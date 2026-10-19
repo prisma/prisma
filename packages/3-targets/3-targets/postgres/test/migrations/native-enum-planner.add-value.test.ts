@@ -26,7 +26,11 @@ import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-da
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresNativeEnumSchemaNode } from '../../src/core/schema-ir/postgres-native-enum-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
-import { postgresTypeComponents, postgresTypeLookups } from '../postgres-type-lookups';
+import {
+  introspectedColumn,
+  postgresTypeComponents,
+  postgresTypeLookups,
+} from '../postgres-type-lookups';
 
 const EXPECTED_MEMBERS = ['draft', 'review', 'done'] as const;
 
@@ -69,7 +73,12 @@ function ordersTableNode(): PostgresTableSchemaNode {
   return new PostgresTableSchemaNode({
     name: 'orders',
     columns: {
-      id: { name: 'id', nativeType: 'int4', nullable: false, resolvedNativeType: 'int4' },
+      id: introspectedColumn({
+        name: 'id',
+        nativeType: 'int4',
+        nullable: false,
+        resolvedNativeType: 'int4',
+      }),
     },
     primaryKey: { columns: ['id'] },
     foreignKeys: [],

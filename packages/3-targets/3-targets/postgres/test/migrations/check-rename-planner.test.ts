@@ -22,7 +22,7 @@ import { PostgresSchema } from '../../src/core/postgres-schema';
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
-import { postgresTypeComponents } from '../postgres-type-lookups';
+import { introspectedColumn, postgresTypeComponents } from '../postgres-type-lookups';
 
 const TABLE_NAME = 'items';
 const OTHER_TABLE = 'others';
@@ -104,8 +104,8 @@ function tableNode(name: string, checks: readonly LooseCheck[]): PostgresTableSc
   return new PostgresTableSchemaNode({
     name,
     columns: {
-      id: { name: 'id', nativeType: 'int4', nullable: false },
-      email: { name: 'email', nativeType: 'text', nullable: false },
+      id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }),
+      email: introspectedColumn({ name: 'email', nativeType: 'text', nullable: false }),
     },
     primaryKey: { columns: ['id'] },
     foreignKeys: [],

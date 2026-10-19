@@ -9,7 +9,7 @@ import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createSqliteMigrationPlanner } from '../../src/core/migrations/planner';
 import { sqliteCreateNamespace } from '../../src/core/sqlite-unbound-database';
-import { sqliteTestComponents } from '../sqlite-test-types';
+import { introspectedColumn, sqliteTestComponents } from '../sqlite-test-types';
 
 const stubLowerer: ExecuteRequestLowerer = {
   lower: () => ({ sql: '', params: [] }),
@@ -82,18 +82,18 @@ function nullableEmailSchema(): { tables: Record<string, SqlTableIR> } {
       users: new SqlTableIR({
         name: 'users',
         columns: {
-          id: {
+          id: introspectedColumn({
             name: 'id',
             nativeType: 'INTEGER',
             resolvedNativeType: 'integer',
             nullable: false,
-          },
-          email: {
+          }),
+          email: introspectedColumn({
             name: 'email',
             nativeType: 'TEXT',
             resolvedNativeType: 'text',
             nullable: true,
-          },
+          }),
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
@@ -197,18 +197,18 @@ describe('nullability-tightening backfill', async () => {
         users: {
           name: 'users',
           columns: {
-            id: {
+            id: introspectedColumn({
               name: 'id',
               nativeType: 'INTEGER',
               resolvedNativeType: 'integer',
               nullable: false,
-            },
-            email: {
+            }),
+            email: introspectedColumn({
               name: 'email',
               nativeType: 'TEXT',
               resolvedNativeType: 'text',
               nullable: false,
-            },
+            }),
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],

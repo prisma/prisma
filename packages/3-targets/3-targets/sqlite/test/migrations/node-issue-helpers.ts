@@ -19,6 +19,7 @@ import {
   SqlTableIR,
   SqlUniqueIR,
 } from '@internal/sql-schema-ir/types';
+import { introspectedColumn } from '../sqlite-test-types';
 
 /** The built-in SQLite codec whose data type is written as each native type; DDL is written from it. */
 const CODEC_ID_BY_NATIVE_TYPE: Readonly<Record<string, string>> = {
@@ -54,6 +55,7 @@ export function expectedColumn(input: {
     resolvedNativeType: input.resolvedNativeType ?? input.nativeType,
     ...(input.many !== undefined ? { many: input.many } : {}),
     ...(input.resolvedDefault !== undefined ? { resolvedDefault: input.resolvedDefault } : {}),
+    ...typeOf(input.nativeType),
     codecRef: {
       codecId: codecIdFor(input.nativeType),
       ...(input.many !== undefined ? { many: input.many } : {}),
@@ -78,7 +80,22 @@ export function actualColumn(input: {
     resolvedNativeType: input.resolvedNativeType ?? input.nativeType,
     ...(input.many !== undefined ? { many: input.many } : {}),
     ...(input.resolvedDefault !== undefined ? { resolvedDefault: input.resolvedDefault } : {}),
+    ...typeOf(input.nativeType),
   });
+}
+
+/** The SQLite data type a column of `nativeType` has, as introspection resolves it. */
+function typeOf(nativeType: string) {
+  const { dataType, storedType, typeParams } = introspectedColumn({
+    name: '',
+    nativeType,
+    nullable: false,
+  });
+  return {
+    ...(dataType === undefined ? {} : { dataType }),
+    ...(storedType === undefined ? {} : { storedType }),
+    ...(typeParams === undefined ? {} : { typeParams }),
+  };
 }
 
 export function primaryKey(columns: readonly string[]): PrimaryKey {

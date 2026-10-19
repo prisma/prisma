@@ -2,6 +2,7 @@ import type { ColumnDefault } from '@internal/contract/types';
 import type { CodecRef, DataType, DataTypeParams } from '@internal/framework-components/codec';
 import type { DiffableNode } from '@internal/framework-components/control';
 import { freezeNode } from '@internal/framework-components/ir';
+import { canonicalizeJson } from '@internal/framework-components/utils';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { RelationalSchemaNodeKind } from './schema-node-kinds';
@@ -217,10 +218,7 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   }
 
   /**
-   * Compares the column's own attributes only — the default lives on the
-   * child node. When both sides carry `resolvedNativeType`, the resolved
-   * value governs (array-ness rides on its `[]` suffix); otherwise raw
-   * fields compare.
+   * Compares the column's own attributes only — the default lives on the child node: the type, by {@link sqlColumnTypesEqual}, and nullability.
    */
   isEqualTo(other: DiffableNode): boolean {
     const node = blindCast<
@@ -228,13 +226,51 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
       'every diff-tree node the differ pairs is a SqlSchemaIRNode'
     >(other);
     assertNode(node, 'SqlColumnIR', SqlColumnIR.is);
-    if (this.resolvedNativeType !== undefined && node.resolvedNativeType !== undefined) {
-      return this.resolvedNativeType === node.resolvedNativeType && this.nullable === node.nullable;
-    }
-    return (
-      this.nativeType === node.nativeType &&
-      this.nullable === node.nullable &&
-      Boolean(this.many) === Boolean(node.many)
-    );
+    return sqlColumnTypesEqual(this, node) && this.nullable === node.nullable;
   }
+
+  /** Why `actual` is not this column: the two types as written and reported, or the nullability of each. */
+  explainMismatch(actual: DiffableNode | undefined): string | undefined {
+    if (actual === undefined) return undefined;
+    const node = blindCast<
+      SqlSchemaIRNode,
+      'every diff-tree node the differ pairs is a SqlSchemaIRNode'
+    >(actual);
+    assertNode(node, 'SqlColumnIR', SqlColumnIR.is);
+    if (node.storedType === undefined && node.reportedType !== undefined) {
+      return `The database column is "${typeTextOf(node)}", which no data type in the configured stack declares.`;
+    }
+    if (!sqlColumnTypesEqual(this, node)) {
+      return `The contract column is "${typeTextOf(this)}" and the database column is "${typeTextOf(node)}".`;
+    }
+    if (this.nullable !== node.nullable) {
+      return `The contract column is ${nullability(this)} and the database column is ${nullability(node)}.`;
+    }
+    return undefined;
+  }
+}
+
+/** The parts of a column that make its type. */
+export type SqlColumnType = Pick<SqlColumnIR, 'storedType' | 'typeParams' | 'many'>;
+
+/**
+ * Whether two columns have the same type: both have a stored type, the two are one data type, their parameters are equal as canonical JSON, and both or neither are lists. A column no data type claims has no stored type and never has the same type as another. ADR 254.
+ */
+export function sqlColumnTypesEqual(a: SqlColumnType, b: SqlColumnType): boolean {
+  return (
+    a.storedType !== undefined &&
+    b.storedType !== undefined &&
+    a.storedType.id === b.storedType.id &&
+    canonicalizeJson(a.typeParams ?? {}) === canonicalizeJson(b.typeParams ?? {}) &&
+    Boolean(a.many) === Boolean(b.many)
+  );
+}
+
+/** The column's type as the database reports it, or as the contract writes it, with `[]` for a list. */
+function typeTextOf(column: SqlColumnIR): string {
+  return `${column.reportedType?.text ?? column.nativeType}${column.many === true ? '[]' : ''}`;
+}
+
+function nullability(column: SqlColumnIR): string {
+  return column.nullable ? 'nullable' : 'not nullable';
 }

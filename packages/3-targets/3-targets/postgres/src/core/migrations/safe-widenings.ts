@@ -1,6 +1,5 @@
 import { dataTypeParams } from '@internal/framework-components/codec';
 import {
-  resolveWrittenSqlTypes,
   type SqlTypeLookups,
   type SqlTypeParams,
   sqlDataTypeOfCodec,
@@ -21,7 +20,6 @@ import {
   pgTimetz,
   pgVarbit,
   pgVarchar,
-  postgresDataTypes,
 } from '../data-types';
 
 /** A column's data type and its parameters in normal form. */
@@ -114,18 +112,16 @@ export function columnType(column: SqlColumnIR, types: SqlTypeLookups): ColumnTy
   return { dataType: type.id, params: type.sql.normalize(params) };
 }
 
-/** The type of an introspected column, read from the type name introspection reports. */
+/** The type of an introspected column: the data type that claims the type the database reports. */
 function introspectedColumnType(column: SqlColumnIR): ColumnType | undefined {
-  if (column.resolvedNativeType === undefined) return undefined;
-  const [only, ...others] = resolveWrittenSqlTypes(column.resolvedNativeType, postgresDataTypes);
-  return only === undefined || others.length > 0
+  return column.storedType === undefined
     ? undefined
-    : { dataType: only.dataType, params: only.typeParams };
+    : { dataType: column.storedType.id, params: column.typeParams ?? {} };
 }
 
 /**
  * Whether changing a live column to the contract's column keeps every value. A column introspected
- * from the database carries no codec, so its type is read from the name introspection reports.
+ * from the database carries no codec, so its type is the data type that claims the type it reports.
  */
 export function liveColumnWidensSafely(
   expected: SqlColumnIR,

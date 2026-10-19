@@ -28,6 +28,7 @@ import {
   RelationalSchemaNodeKind,
   type SqlColumnIR,
   type SqlSchemaIR,
+  sqlColumnTypesEqual,
 } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import {
@@ -36,7 +37,7 @@ import {
   SQLITE_TEXT_CODEC_ID,
 } from '../codec-ids';
 import { columnSpecFromNode } from './column-ddl-rendering';
-import { columnTypeChanged, tableSpecFromNode } from './issue-planner';
+import { tableSpecFromNode } from './issue-planner';
 import {
   AddColumnCall,
   DataTransformCall,
@@ -143,7 +144,7 @@ function classifyNodeIssue(
         issue.actual,
       );
       const fromCodec = ctx.originCodecId(String(issue.path[1]), actual.name);
-      return columnTypeChanged(expected, actual) && !copyKeepsEveryValue(fromCodec, expected)
+      return !sqlColumnTypesEqual(expected, actual) && !copyKeepsEveryValue(fromCodec, expected)
         ? 'destructive'
         : 'widening';
     }

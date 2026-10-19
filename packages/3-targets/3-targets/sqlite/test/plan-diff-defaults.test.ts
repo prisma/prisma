@@ -10,7 +10,7 @@ import { readSqliteDefault } from '../src/core/default-normalizer';
 import { columnSpecFromNode, ddlColumnFromNode } from '../src/core/migrations/column-ddl-rendering';
 import { buildSqlitePlanDiff } from '../src/core/migrations/diff-database-schema';
 import { sqliteCreateNamespace } from '../src/core/sqlite-unbound-database';
-import { sqliteTestComponents, sqliteTestTypes } from './sqlite-test-types';
+import { introspectedColumn, sqliteTestComponents, sqliteTestTypes } from './sqlite-test-types';
 
 function liveSchema(rawDefault: string): SqlSchemaIR {
   return new SqlSchemaIR({
@@ -18,14 +18,14 @@ function liveSchema(rawDefault: string): SqlSchemaIR {
       event: new SqlTableIR({
         name: 'event',
         columns: {
-          at: {
+          at: introspectedColumn({
             name: 'at',
             nativeType: 'text',
             nullable: false,
             default: rawDefault,
             resolvedNativeType: 'text',
             ...ifDefined('resolvedDefault', functionDefaultOf(rawDefault)),
-          },
+          }),
         },
         foreignKeys: [],
         uniques: [],

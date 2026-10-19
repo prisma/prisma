@@ -17,7 +17,11 @@ import {
 import { AlterColumnTypeCall, RenameIndexCall } from '../../src/core/migrations/op-factory-call';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
-import { postgresTypeComponents, postgresTypeLookups } from '../postgres-type-lookups';
+import {
+  introspectedColumn,
+  postgresTypeComponents,
+  postgresTypeLookups,
+} from '../postgres-type-lookups';
 import {
   emptyRoot,
   makeContract,
@@ -105,7 +109,12 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
       user: new PostgresTableSchemaNode({
         name: 'user',
         columns: {
-          id: { name: 'id', nativeType: 'uuid', nullable: false, resolvedNativeType: 'uuid' },
+          id: introspectedColumn({
+            name: 'id',
+            nativeType: 'uuid',
+            nullable: false,
+            resolvedNativeType: 'uuid',
+          }),
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
@@ -130,14 +139,24 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
       user: new PostgresTableSchemaNode({
         name: 'user',
         columns: {
-          id: { name: 'id', nativeType: 'uuid', nullable: false, resolvedNativeType: 'uuid' },
-          email: { name: 'email', nativeType: 'text', nullable: false, resolvedNativeType: 'text' },
-          legacy: {
+          id: introspectedColumn({
+            name: 'id',
+            nativeType: 'uuid',
+            nullable: false,
+            resolvedNativeType: 'uuid',
+          }),
+          email: introspectedColumn({
+            name: 'email',
+            nativeType: 'text',
+            nullable: false,
+            resolvedNativeType: 'text',
+          }),
+          legacy: introspectedColumn({
             name: 'legacy',
             nativeType: 'text',
             nullable: true,
             resolvedNativeType: 'text',
-          },
+          }),
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
@@ -169,8 +188,18 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
       user: new PostgresTableSchemaNode({
         name: 'user',
         columns: {
-          id: { name: 'id', nativeType: 'uuid', nullable: false, resolvedNativeType: 'uuid' },
-          age: { name: 'age', nativeType: 'int4', nullable: true, resolvedNativeType: 'int4' },
+          id: introspectedColumn({
+            name: 'id',
+            nativeType: 'uuid',
+            nullable: false,
+            resolvedNativeType: 'uuid',
+          }),
+          age: introspectedColumn({
+            name: 'age',
+            nativeType: 'int4',
+            nullable: true,
+            resolvedNativeType: 'int4',
+          }),
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
@@ -205,14 +234,19 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
         user: new PostgresTableSchemaNode({
           name: 'user',
           columns: {
-            id: { name: 'id', nativeType: 'uuid', nullable: false, resolvedNativeType: 'uuid' },
-            age: {
+            id: introspectedColumn({
+              name: 'id',
+              nativeType: 'uuid',
+              nullable: false,
+              resolvedNativeType: 'uuid',
+            }),
+            age: introspectedColumn({
               name: 'age',
               nativeType: live.nativeType,
               nullable: false,
               resolvedNativeType: live.nativeType,
               ...(live.many === undefined ? {} : { many: live.many }),
-            },
+            }),
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],
@@ -346,13 +380,18 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
       user: new PostgresTableSchemaNode({
         name: 'user',
         columns: {
-          id: { name: 'id', nativeType: 'uuid', nullable: false, resolvedNativeType: 'uuid' },
-          visits: {
+          id: introspectedColumn({
+            name: 'id',
+            nativeType: 'uuid',
+            nullable: false,
+            resolvedNativeType: 'uuid',
+          }),
+          visits: introspectedColumn({
             name: 'visits',
             nativeType: 'int4',
             nullable: false,
             resolvedNativeType: 'int4',
-          },
+          }),
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
@@ -399,8 +438,18 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
         user: new PostgresTableSchemaNode({
           name: 'user',
           columns: {
-            id: { name: 'id', nativeType: 'uuid', nullable: false, resolvedNativeType: 'uuid' },
-            role: { name: 'role', nativeType: 'text', nullable: false, resolvedNativeType: 'text' },
+            id: introspectedColumn({
+              name: 'id',
+              nativeType: 'uuid',
+              nullable: false,
+              resolvedNativeType: 'uuid',
+            }),
+            role: introspectedColumn({
+              name: 'role',
+              nativeType: 'text',
+              nullable: false,
+              resolvedNativeType: 'text',
+            }),
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],
@@ -432,8 +481,18 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
       user: new PostgresTableSchemaNode({
         name: 'user',
         columns: {
-          id: { name: 'id', nativeType: 'uuid', nullable: false, resolvedNativeType: 'uuid' },
-          age: { name: 'age', nativeType: 'int4', nullable: false, resolvedNativeType: 'int4' },
+          id: introspectedColumn({
+            name: 'id',
+            nativeType: 'uuid',
+            nullable: false,
+            resolvedNativeType: 'uuid',
+          }),
+          age: introspectedColumn({
+            name: 'age',
+            nativeType: 'int4',
+            nullable: false,
+            resolvedNativeType: 'int4',
+          }),
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
@@ -481,8 +540,18 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
       user: new PostgresTableSchemaNode({
         name: 'user',
         columns: {
-          id: { name: 'id', nativeType: 'uuid', nullable: false, resolvedNativeType: 'uuid' },
-          email: { name: 'email', nativeType: 'text', nullable: false, resolvedNativeType: 'text' },
+          id: introspectedColumn({
+            name: 'id',
+            nativeType: 'uuid',
+            nullable: false,
+            resolvedNativeType: 'uuid',
+          }),
+          email: introspectedColumn({
+            name: 'email',
+            nativeType: 'text',
+            nullable: false,
+            resolvedNativeType: 'text',
+          }),
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
@@ -494,7 +563,12 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
       orphan: new PostgresTableSchemaNode({
         name: 'orphan',
         columns: {
-          id: { name: 'id', nativeType: 'uuid', nullable: false, resolvedNativeType: 'uuid' },
+          id: introspectedColumn({
+            name: 'id',
+            nativeType: 'uuid',
+            nullable: false,
+            resolvedNativeType: 'uuid',
+          }),
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
@@ -563,8 +637,18 @@ describe('planNodeIssues — dependency-graph ordering', () => {
     return new PostgresTableSchemaNode({
       name: 'post',
       columns: {
-        id: { name: 'id', nativeType: 'uuid', nullable: false, resolvedNativeType: 'uuid' },
-        userId: { name: 'userId', nativeType: 'uuid', nullable: false, resolvedNativeType: 'uuid' },
+        id: introspectedColumn({
+          name: 'id',
+          nativeType: 'uuid',
+          nullable: false,
+          resolvedNativeType: 'uuid',
+        }),
+        userId: introspectedColumn({
+          name: 'userId',
+          nativeType: 'uuid',
+          nullable: false,
+          resolvedNativeType: 'uuid',
+        }),
       },
       primaryKey: { columns: ['id'] },
       foreignKeys: [fkToUser],
@@ -579,7 +663,12 @@ describe('planNodeIssues — dependency-graph ordering', () => {
     return new PostgresTableSchemaNode({
       name: 'user',
       columns: {
-        id: { name: 'id', nativeType: 'uuid', nullable: false, resolvedNativeType: 'uuid' },
+        id: introspectedColumn({
+          name: 'id',
+          nativeType: 'uuid',
+          nullable: false,
+          resolvedNativeType: 'uuid',
+        }),
       },
       primaryKey: { columns: ['id'] },
       foreignKeys: [],
@@ -643,14 +732,24 @@ describe('planNodeIssues — dependency-graph ordering', () => {
       account: new PostgresTableSchemaNode({
         name: 'account',
         columns: {
-          id: { name: 'id', nativeType: 'uuid', nullable: false, resolvedNativeType: 'uuid' },
-          email: { name: 'email', nativeType: 'text', nullable: false, resolvedNativeType: 'text' },
-          legacy: {
+          id: introspectedColumn({
+            name: 'id',
+            nativeType: 'uuid',
+            nullable: false,
+            resolvedNativeType: 'uuid',
+          }),
+          email: introspectedColumn({
+            name: 'email',
+            nativeType: 'text',
+            nullable: false,
+            resolvedNativeType: 'text',
+          }),
+          legacy: introspectedColumn({
             name: 'legacy',
             nativeType: 'uuid',
             nullable: true,
             resolvedNativeType: 'uuid',
-          },
+          }),
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [
@@ -712,7 +811,7 @@ describe('mapNodeIssueToCall — table rlsEnabled drift', () => {
   function tableNode(rlsEnabled: boolean): PostgresTableSchemaNode {
     return new PostgresTableSchemaNode({
       name: 'user',
-      columns: { id: { name: 'id', nativeType: 'uuid', nullable: false } },
+      columns: { id: introspectedColumn({ name: 'id', nativeType: 'uuid', nullable: false }) },
       primaryKey: { columns: ['id'] },
       foreignKeys: [],
       uniques: [],

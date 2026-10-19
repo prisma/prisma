@@ -70,6 +70,21 @@ describe('buildRecreatePostchecks — column-level', () => {
     expect(check!.sql).toContain('"notnull" = 1');
   });
 
+  it('emits no type postcheck when the type is written another way', () => {
+    const spec = tableSpec({ columns: [colSpec({ name: 'email', typeSql: 'TEXT' })] });
+    const issues = [
+      issue({
+        path: ['database', 'users', 'column:email'],
+        expected: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: false }),
+        actual: actualColumn({ name: 'email', nativeType: 'text', nullable: true }),
+      }),
+    ];
+    const checks = withSql(buildRecreatePostchecks('users', issues, spec));
+    expect(checks.map((check) => check.description)).toEqual([
+      'verify "email" nullability on "users"',
+    ]);
+  });
+
   it('emits a type postcheck when the type changes', () => {
     const spec = tableSpec({ columns: [colSpec({ name: 'email', typeSql: 'TEXT' })] });
     const issues = [

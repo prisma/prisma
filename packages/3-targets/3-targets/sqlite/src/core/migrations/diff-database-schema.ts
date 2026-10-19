@@ -17,7 +17,7 @@ import type {
   SqlSchemaIRNode,
   SqlTableIRInput,
 } from '@internal/sql-schema-ir/types';
-import { relationalNodeGranularity, SqlSchemaIR } from '@internal/sql-schema-ir/types';
+import { relationalNodeGranularity, SqlColumnIR, SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { sqliteResolveDefault } from '../default-normalizer';
 
@@ -189,20 +189,23 @@ function withRecordKeyNames(actualSchema: SqlSchemaIRNode): SqlSchemaIRInput {
       Omit<SqlTableIRInput, 'name' | 'columns'>,
       'every table value in a tables record is SqlTableIR(Input)-shaped'
     >(table);
-    const columns: Record<string, SqlColumnIRInput> = {};
+    const columns: Record<string, SqlColumnIR | SqlColumnIRInput> = {};
     for (const [columnName, column] of Object.entries(
       blindCast<
         { readonly columns?: Readonly<Record<string, unknown>> },
         'every SqlTableIR(Input) carries a columns record keyed by column name'
       >(table).columns ?? {},
     )) {
-      columns[columnName] = {
-        ...blindCast<
-          SqlColumnIRInput,
-          'every column value in a columns record is SqlColumnIR(Input)-shaped'
-        >(column),
-        name: columnName,
-      };
+      columns[columnName] =
+        column instanceof SqlColumnIR && column.name === columnName
+          ? column
+          : {
+              ...blindCast<
+                SqlColumnIRInput,
+                'every column value in a columns record is SqlColumnIR(Input)-shaped'
+              >(column),
+              name: columnName,
+            };
     }
     tables[tableName] = {
       ...rawTable,

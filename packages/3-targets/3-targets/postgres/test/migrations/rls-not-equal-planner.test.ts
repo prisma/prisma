@@ -22,7 +22,7 @@ import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-da
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresPolicySchemaNode } from '../../src/core/schema-ir/postgres-policy-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
-import { postgresTypeComponents } from '../postgres-type-lookups';
+import { introspectedColumn, postgresTypeComponents } from '../postgres-type-lookups';
 
 const TABLE_NAME = 'profiles';
 const EXACT_NAME = 'Tenant members can read';
@@ -104,12 +104,12 @@ function actualSchema(
           [TABLE_NAME]: new PostgresTableSchemaNode({
             name: TABLE_NAME,
             columns: {
-              id: { name: 'id', nativeType: 'int4', nullable: false },
-              tenant_id: {
+              id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }),
+              tenant_id: introspectedColumn({
                 name: 'tenant_id',
                 nativeType: 'int4',
                 nullable: options?.nullableTenantId === true,
-              },
+              }),
             },
             primaryKey: { columns: ['id'] },
             foreignKeys: [],

@@ -9,10 +9,11 @@ import {
 import { PostgresNamespaceSchemaNode } from '../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresRoleSchemaNode } from '../src/core/schema-ir/postgres-role-schema-node';
 import { PostgresTableSchemaNode } from '../src/core/schema-ir/postgres-table-schema-node';
+import { introspectedColumn } from './postgres-type-lookups';
 
 const tableA = new PostgresTableSchemaNode({
   name: 'profiles',
-  columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+  columns: { id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }) },
   foreignKeys: [],
   uniques: [],
   indexes: [],

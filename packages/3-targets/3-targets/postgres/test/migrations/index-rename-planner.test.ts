@@ -24,7 +24,7 @@ import { PostgresSchema } from '../../src/core/postgres-schema';
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
-import { postgresTypeComponents } from '../postgres-type-lookups';
+import { introspectedColumn, postgresTypeComponents } from '../postgres-type-lookups';
 
 const TABLE_NAME = 'items';
 const stubLowerer: ExecuteRequestLowerer = {
@@ -99,9 +99,9 @@ function actualSchema(indexes: readonly LiveIndex[]): PostgresDatabaseSchemaNode
           [TABLE_NAME]: new PostgresTableSchemaNode({
             name: TABLE_NAME,
             columns: {
-              id: { name: 'id', nativeType: 'int4', nullable: false },
-              email: { name: 'email', nativeType: 'text', nullable: false },
-              value: { name: 'value', nativeType: 'int4', nullable: false },
+              id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }),
+              email: introspectedColumn({ name: 'email', nativeType: 'text', nullable: false }),
+              value: introspectedColumn({ name: 'value', nativeType: 'int4', nullable: false }),
             },
             primaryKey: { columns: ['id'] },
             foreignKeys: [],

@@ -62,8 +62,12 @@ function withColumnName(column: SqlColumnIR, name: string): SqlColumnIR {
     ...ifDefined('codecRef', column.codecRef),
     ...ifDefined('codecBaseNativeType', column.codecBaseNativeType),
     ...ifDefined('dataType', column.dataType),
+    ...ifDefined('storedType', column.storedType),
+    ...ifDefined('typeParams', column.typeParams),
     ...ifDefined('defaultValue', column.defaultValue),
     ...ifDefined('defaultUnreadable', column.defaultUnreadable),
+    ...ifDefined('defaultExpressionValue', column.defaultExpressionValue),
+    ...ifDefined('reportedType', column.reportedType),
   });
 }
 

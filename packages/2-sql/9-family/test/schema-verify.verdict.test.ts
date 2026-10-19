@@ -73,6 +73,9 @@ function stampLikeIntrospection(schema: SqlSchemaIR): SqlSchemaIR {
         ...(col.many !== undefined ? { many: col.many } : {}),
         resolvedNativeType,
         ...(resolvedDefault !== undefined ? { resolvedDefault } : {}),
+        ...(col.dataType !== undefined ? { dataType: col.dataType } : {}),
+        ...(col.storedType !== undefined ? { storedType: col.storedType } : {}),
+        ...(col.typeParams !== undefined ? { typeParams: col.typeParams } : {}),
       });
     }
     tables[name] = new SqlTableIR({

@@ -24,11 +24,13 @@ export {
   SqlCheckConstraintIR,
   SqlColumnDefaultIR,
   SqlColumnIR,
+  type SqlColumnType,
   SqlForeignKeyIR,
   SqlIndexIR,
   SqlSchemaIR,
   SqlSchemaIRNode,
   SqlTableIR,
   SqlUniqueIR,
+  sqlColumnTypesEqual,
   sqlDefaultValuesEqual,
 } from '../types';

@@ -32,6 +32,7 @@ import {
   SqlSchemaIR,
   type SqlSchemaIRNode,
   type SqlTableIR,
+  sqlColumnTypesEqual,
 } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import type { Result } from '@internal/utils/result';
@@ -114,16 +115,6 @@ export function issueNode(issue: SchemaDiffIssue): SqlSchemaIRNode | undefined {
     SqlSchemaIRNode,
     'every node in a SQL schema diff tree is a SqlSchemaIRNode; nodeKind is its required discriminant'
   >(node);
-}
-
-/** Whether the expected/actual native type (resolved, or raw+many fallback) differs — mirrors `SqlColumnIR.isEqualTo`'s type comparison. */
-export function columnTypeChanged(expected: SqlColumnIR, actual: SqlColumnIR): boolean {
-  if (expected.resolvedNativeType !== undefined && actual.resolvedNativeType !== undefined) {
-    return expected.resolvedNativeType !== actual.resolvedNativeType;
-  }
-  return (
-    expected.nativeType !== actual.nativeType || Boolean(expected.many) !== Boolean(actual.many)
-  );
 }
 
 /**
@@ -302,7 +293,7 @@ function mapColumnIssue(
     SqlColumnIR,
     'a not-equal column issue always carries the actual column node'
   >(issue.actual);
-  const kind = columnTypeChanged(expected, actual) ? 'typeMismatch' : 'nullabilityConflict';
+  const kind = sqlColumnTypesEqual(expected, actual) ? 'nullabilityConflict' : 'typeMismatch';
   return notOk(issueConflict(kind, issue.path.join('/'), issueLocation(tableName, expected.name)));
 }
 

@@ -8,12 +8,14 @@ import {
   isSqlDataType,
   type ResolvedSqlType,
   renderSqlCatalogText,
+  resolveReportedSqlType,
   resolveWrittenSqlTypes,
   type SqlTypeLookups,
   sqlDataTypeOfCodec,
   unquotedSqlBaseName,
 } from '@internal/sql-contract/data-type';
 import type { StorageColumn, StorageTypeInstance } from '@internal/sql-contract/types';
+import type { SqlColumnType } from '@internal/sql-schema-ir/types';
 import { postgresError } from '../errors';
 import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { postgresCreateNamespace } from '../postgres-schema';
@@ -123,6 +125,34 @@ export function catalogTypeTextIfReadable(
 ): string | undefined {
   const read = readCatalogTypeText(type, dataTypes);
   return read.ok ? read.text : undefined;
+}
+
+/**
+ * The column type a migration's `type` names, as {@link alterTypeCheckText} reads it: the one data type of `dataTypes` that reads it, or for an enum named by its quoted name, the type that claims enums, with the name as introspection would report it. `undefined` when no data type, or more than one, reads it.
+ */
+export function writtenColumnType(
+  type: string,
+  dataTypes: readonly DataType[],
+): SqlColumnType | undefined {
+  const trimmed = autoincrementWidthOfPseudoType(type)?.sequenceType ?? type.trim();
+  const array = ARRAY_SUFFIX.exec(trimmed);
+  const base = array?.[1] ?? trimmed;
+  const resolved = resolveWrittenSqlTypes(base, dataTypes);
+  const [only] = resolved.length === 1 ? resolved : [resolvedByKind(base, dataTypes)];
+  const storedType = dataTypes.find(({ id }) => id === only?.dataType);
+  return only === undefined || storedType === undefined
+    ? undefined
+    : { storedType, typeParams: only.typeParams, many: array !== null };
+}
+
+/** The type a quoted name names, read as the one data type that claims a kind reads a reported type of that kind. */
+function resolvedByKind(base: string, dataTypes: readonly DataType[]): ResolvedSqlType | undefined {
+  const name = quotedName(base);
+  const kinds = dataTypes.filter(isSqlDataType).flatMap(({ sql }) => sql.claimsKind ?? []);
+  const [kind] = kinds;
+  if (name === undefined || kind === undefined || kinds.length > 1) return undefined;
+  const [schema, typeName] = name.length === 2 ? name : [undefined, name[0]];
+  return resolveReportedSqlType({ text: base, kind, schema, name: typeName }, dataTypes);
 }
 
 function readCatalogTypeText(

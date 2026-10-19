@@ -24,7 +24,7 @@ import { postgresCreateNamespace } from '../../src/core/postgres-schema';
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
-import { postgresTypeComponents } from '../postgres-type-lookups';
+import { introspectedColumn, postgresTypeComponents } from '../postgres-type-lookups';
 
 const stubLowerer: ExecuteRequestLowerer = {
   lower(_ast, _ctx) {
@@ -79,7 +79,9 @@ function buildLiveSchema(): PostgresDatabaseSchemaNode {
         tables: {
           app_user: new PostgresTableSchemaNode({
             name: 'app_user',
-            columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+            columns: {
+              id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }),
+            },
             foreignKeys: [],
             uniques: [],
             indexes: [],
@@ -88,7 +90,9 @@ function buildLiveSchema(): PostgresDatabaseSchemaNode {
           }),
           cipher_state: new PostgresTableSchemaNode({
             name: 'cipher_state',
-            columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+            columns: {
+              id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }),
+            },
             foreignKeys: [],
             uniques: [],
             indexes: [],
@@ -97,7 +101,9 @@ function buildLiveSchema(): PostgresDatabaseSchemaNode {
           }),
           orphan_table: new PostgresTableSchemaNode({
             name: 'orphan_table',
-            columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+            columns: {
+              id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }),
+            },
             foreignKeys: [],
             uniques: [],
             indexes: [],
@@ -178,7 +184,9 @@ function buildLiveSchemaWithCrossNamespaceOrphan(): PostgresDatabaseSchemaNode {
         tables: {
           app_user: new PostgresTableSchemaNode({
             name: 'app_user',
-            columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+            columns: {
+              id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }),
+            },
             foreignKeys: [],
             uniques: [],
             indexes: [],
@@ -192,7 +200,9 @@ function buildLiveSchemaWithCrossNamespaceOrphan(): PostgresDatabaseSchemaNode {
         tables: {
           tenant_meta: new PostgresTableSchemaNode({
             name: 'tenant_meta',
-            columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+            columns: {
+              id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }),
+            },
             foreignKeys: [],
             uniques: [],
             indexes: [],
@@ -201,7 +211,9 @@ function buildLiveSchemaWithCrossNamespaceOrphan(): PostgresDatabaseSchemaNode {
           }),
           orphan_table: new PostgresTableSchemaNode({
             name: 'orphan_table',
-            columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+            columns: {
+              id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }),
+            },
             foreignKeys: [],
             uniques: [],
             indexes: [],
@@ -323,8 +335,12 @@ describe('Postgres planner ownership consultation', () => {
             app_user: new PostgresTableSchemaNode({
               name: 'app_user',
               columns: {
-                id: { name: 'id', nativeType: 'int4', nullable: false },
-                legacy_col: { name: 'legacy_col', nativeType: 'text', nullable: true },
+                id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }),
+                legacy_col: introspectedColumn({
+                  name: 'legacy_col',
+                  nativeType: 'text',
+                  nullable: true,
+                }),
               },
               foreignKeys: [],
               uniques: [],

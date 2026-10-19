@@ -47,6 +47,7 @@ import {
   RelationalSchemaNodeKind,
   type SqlColumnIR,
   type SqlSchemaIR,
+  sqlColumnTypesEqual,
 } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { isPostgresSchema } from '../postgres-schema';
@@ -290,7 +291,7 @@ export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
     const pair = columnNodePair(issue);
     if (pair === undefined) continue;
     const { expected, actual } = pair;
-    if (!columnTypeChangedNativeOnly(expected, actual)) continue;
+    if (sqlColumnTypesEqual(expected, actual)) continue;
     const ddlSchemaName = issueSchemaName(issue);
     const tableName = issueTableName(issue);
     if (ddlSchemaName === undefined || tableName === undefined) continue;
@@ -341,17 +342,6 @@ export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
 };
 
 /**
- * Whether the raw (unresolved) native type differs — the SAME comparison
- * `typeChangeCallStrategy` always used (`fromColumn.nativeType !==
- * toColumn.nativeType`), which for the widenable numeric/float types
- * `SAFE_WIDENINGS` lists is identical to the resolved comparison
- * `columnTypeChanged` (in `issue-planner.ts`) performs.
- */
-function columnTypeChangedNativeOnly(expected: SqlColumnIR, actual: SqlColumnIR): boolean {
-  return expected.nativeType !== actual.nativeType;
-}
-
-/**
  * Handles a `not-equal` column issue whose type did not change but which becomes required, for a
  * field a `--backfill` statement names: a data transform whose slots the user fills with values for
  * the NULLs, then `SET NOT NULL`. Every other such column gets the direct `SET NOT NULL` of
@@ -369,7 +359,7 @@ export const nullableTighteningCallStrategy: CallMigrationStrategy = (issues, ct
     const pair = columnNodePair(issue);
     if (pair === undefined) continue;
     const { expected, actual } = pair;
-    if (columnTypeChangedNativeOnly(expected, actual)) continue; // typeChangeCallStrategy's concern
+    if (!sqlColumnTypesEqual(expected, actual)) continue; // typeChangeCallStrategy's concern
     if (expected.nullable !== false || actual.nullable !== true) continue;
 
     const ddlSchemaName = issueSchemaName(issue);

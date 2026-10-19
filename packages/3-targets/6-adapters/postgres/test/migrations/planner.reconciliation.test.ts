@@ -1,12 +1,17 @@
 import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { DataType } from '@internal/framework-components/codec';
 import {
   APP_SPACE_ID,
   type MigrationOperationPolicy,
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlColumnIRInput } from '@internal/sql-schema-ir/types';
 import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
-import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
+import {
+  createPostgresBuiltinDataTypeLookup,
+  postgresDataTypes,
+} from '@internal/target-postgres/data-types';
 import { createPostgresMigrationPlanner } from '@internal/target-postgres/planner';
 import {
   PostgresDatabaseSchemaNode,
@@ -16,8 +21,14 @@ import {
 } from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
+import { introspectedColumn as introspectedColumnOver } from '../../../../../2-sql/1-core/contract/test/introspected-column';
 import { createTestPostgresControlAdapter } from '../helpers/test-control-adapter';
 import { postgresComponents } from './fixtures/postgres-components';
+
+const introspectedColumn = (
+  column: SqlColumnIRInput,
+  dataTypes: readonly DataType[] = postgresDataTypes,
+) => introspectedColumnOver(column, dataTypes);
 
 const RECONCILIATION_POLICY: MigrationOperationPolicy = {
   allowedOperationClasses: ['additive', 'widening', 'destructive'],
@@ -57,9 +68,13 @@ describe('PostgresMigrationPlanner - reconciliation planning', () => {
             user: new PostgresTableSchemaNode({
               name: 'user',
               columns: {
-                id: { name: 'id', nativeType: 'uuid', nullable: false },
-                email: { name: 'email', nativeType: 'text', nullable: false },
-                legacyEmail: { name: 'legacyEmail', nativeType: 'text', nullable: true },
+                id: introspectedColumn({ name: 'id', nativeType: 'uuid', nullable: false }),
+                email: introspectedColumn({ name: 'email', nativeType: 'text', nullable: false }),
+                legacyEmail: introspectedColumn({
+                  name: 'legacyEmail',
+                  nativeType: 'text',
+                  nullable: true,
+                }),
               },
               primaryKey: { columns: ['id'] },
               uniques: [],
@@ -124,8 +139,8 @@ describe('PostgresMigrationPlanner - reconciliation planning', () => {
             user: new PostgresTableSchemaNode({
               name: 'user',
               columns: {
-                id: { name: 'id', nativeType: 'uuid', nullable: false },
-                email: { name: 'email', nativeType: 'text', nullable: false },
+                id: introspectedColumn({ name: 'id', nativeType: 'uuid', nullable: false }),
+                email: introspectedColumn({ name: 'email', nativeType: 'text', nullable: false }),
               },
               primaryKey: { columns: ['id'] },
               uniques: [],
@@ -189,8 +204,12 @@ describe('PostgresMigrationPlanner - reconciliation planning', () => {
             user: new PostgresTableSchemaNode({
               name: 'user',
               columns: {
-                id: { name: 'id', nativeType: 'uuid', nullable: false },
-                legacyEmail: { name: 'legacyEmail', nativeType: 'text', nullable: true },
+                id: introspectedColumn({ name: 'id', nativeType: 'uuid', nullable: false }),
+                legacyEmail: introspectedColumn({
+                  name: 'legacyEmail',
+                  nativeType: 'text',
+                  nullable: true,
+                }),
               },
               primaryKey: { columns: ['id'] },
               uniques: [],

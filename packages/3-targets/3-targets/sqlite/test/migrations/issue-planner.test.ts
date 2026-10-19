@@ -1,9 +1,8 @@
 import { asNamespaceId } from '@internal/contract/types';
-import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
+import { type SqlColumnIR, SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import {
   coalesceSubtreeIssues,
-  columnTypeChanged,
   mapNodeIssueToCall,
   planIssues,
 } from '../../src/core/migrations/issue-planner';
@@ -260,22 +259,32 @@ describe('mapNodeIssueToCall — check constraint', () => {
   });
 });
 
-describe('columnTypeChanged', () => {
-  it('compares resolvedNativeType when both sides carry it', () => {
-    const expected = expectedColumn({ name: 'a', nativeType: 'INTEGER', nullable: false });
-    const actual = actualColumn({
-      name: 'a',
-      nativeType: 'INTEGER',
-      nullable: false,
-      resolvedNativeType: 'TEXT',
-    });
-    expect(columnTypeChanged(expected, actual)).toBe(true);
+describe('the type a not-equal column issue compares', () => {
+  function conflictKind(expected: SqlColumnIR, actual: SqlColumnIR) {
+    const result = mapNodeIssueToCall(
+      issue({ path: ['database', 'user', 'column:age'], expected, actual }),
+      emptyCtx,
+    );
+    if (result.ok) throw new Error('expected failure');
+    return result.failure.kind;
+  }
+
+  it('is the data type, not the type text', () => {
+    expect(
+      conflictKind(
+        expectedColumn({ name: 'age', nativeType: 'INTEGER', nullable: false }),
+        actualColumn({ name: 'age', nativeType: 'integer', nullable: true }),
+      ),
+    ).toBe('nullabilityConflict');
   });
 
-  it('is false when only nullability differs', () => {
-    const expected = expectedColumn({ name: 'a', nativeType: 'INTEGER', nullable: false });
-    const actual = actualColumn({ name: 'a', nativeType: 'INTEGER', nullable: true });
-    expect(columnTypeChanged(expected, actual)).toBe(false);
+  it('differs for a column no data type claims, even with the same type text', () => {
+    expect(
+      conflictKind(
+        expectedColumn({ name: 'age', nativeType: 'numeric', nullable: false }),
+        actualColumn({ name: 'age', nativeType: 'numeric', nullable: true }),
+      ),
+    ).toBe('typeMismatch');
   });
 });
 

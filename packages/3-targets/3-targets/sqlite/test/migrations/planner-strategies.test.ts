@@ -183,6 +183,26 @@ describe('recreateTableStrategy', () => {
     expect(classes).toEqual(['widening', 'widening']);
   });
 
+  it('classifies a recreate for a nullability change as widening when the type is written another way', () => {
+    const ctx = makeContext({
+      expected: new SqlSchemaIR({ tables: { user: expectedUserTable } }),
+      actual: new SqlSchemaIR({ tables: { user: actualUserTable } }),
+    });
+    const result = recreateTableStrategy(
+      [
+        issue({
+          path: ['database', 'user', 'column:email'],
+          expected: expectedColumn({ name: 'email', nativeType: 'INTEGER', nullable: false }),
+          actual: actualColumn({ name: 'email', nativeType: 'integer', nullable: true }),
+        }),
+      ],
+      ctx,
+    );
+    expect(
+      result.kind === 'match' ? (result.calls[0] as RecreateTableCall).operationClass : result.kind,
+    ).toBe('widening');
+  });
+
   it('classifies a recreate that leaves a live column out as destructive', () => {
     const actualWithNickname = table({
       name: 'user',
