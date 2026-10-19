@@ -292,6 +292,7 @@ describe('side-by-side contract examples', () => {
 
       expect(validatedContract.contract.roots).toEqual({
         posts: { namespace: '__unbound__', model: 'Post' },
+        tasks: { namespace: '__unbound__', model: 'Task' },
         users: { namespace: '__unbound__', model: 'User' },
       });
       expect(
@@ -344,6 +345,7 @@ describe('side-by-side contract examples', () => {
     });
     expect(mongoContractJson['roots']).toEqual({
       posts: { namespace: '__unbound__', model: 'Post' },
+      tasks: { namespace: '__unbound__', model: 'Task' },
       users: { namespace: '__unbound__', model: 'User' },
     });
 
