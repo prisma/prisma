@@ -22,7 +22,6 @@ describe('diffSqliteSchema resolves authored function defaults like introspected
               nativeType: 'text',
               nullable: false,
               default: rawDefault,
-              resolvedNativeType: 'text',
               ...ifDefined('resolvedDefault', functionDefaultOf(rawDefault)),
             }),
           },

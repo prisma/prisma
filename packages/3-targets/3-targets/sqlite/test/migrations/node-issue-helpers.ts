@@ -35,7 +35,7 @@ function codecIdFor(nativeType: string): string {
 
 /**
  * An expected (desired-side) column, carrying the codec identity
- * (`codecRef` / `codecBaseNativeType`) the way derivation stamps it —
+ * (`codecRef`) and data type the way derivation stamps them —
  * mirrors `contractToSchemaIR`'s output shape, so the node-based op-builders
  * (`column-ddl-rendering.ts`) resolve DDL from it exactly like a
  * derivation-produced tree.
@@ -44,7 +44,6 @@ export function expectedColumn(input: {
   readonly name: string;
   readonly nativeType: string;
   readonly nullable: boolean;
-  readonly resolvedNativeType?: string;
   readonly many?: boolean;
   readonly resolvedDefault?: ColumnDefault;
 }): SqlColumnIR {
@@ -52,7 +51,6 @@ export function expectedColumn(input: {
     name: input.name,
     nativeType: input.nativeType,
     nullable: input.nullable,
-    resolvedNativeType: input.resolvedNativeType ?? input.nativeType,
     ...(input.many !== undefined ? { many: input.many } : {}),
     ...(input.resolvedDefault !== undefined ? { resolvedDefault: input.resolvedDefault } : {}),
     ...typeOf(input.nativeType),
@@ -60,7 +58,6 @@ export function expectedColumn(input: {
       codecId: codecIdFor(input.nativeType),
       ...(input.many !== undefined ? { many: input.many } : {}),
     },
-    codecBaseNativeType: input.nativeType,
   });
 }
 
@@ -69,7 +66,6 @@ export function actualColumn(input: {
   readonly name: string;
   readonly nativeType: string;
   readonly nullable: boolean;
-  readonly resolvedNativeType?: string;
   readonly many?: boolean;
   readonly resolvedDefault?: ColumnDefault;
 }): SqlColumnIR {
@@ -77,7 +73,6 @@ export function actualColumn(input: {
     name: input.name,
     nativeType: input.nativeType,
     nullable: input.nullable,
-    resolvedNativeType: input.resolvedNativeType ?? input.nativeType,
     ...(input.many !== undefined ? { many: input.many } : {}),
     ...(input.resolvedDefault !== undefined ? { resolvedDefault: input.resolvedDefault } : {}),
     ...typeOf(input.nativeType),

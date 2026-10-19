@@ -242,11 +242,9 @@ describe('contractToSchemaIR', () => {
     const projected = contractToSchemaIR(wrap(storage)).tables['Item']?.columns['tags'];
 
     expect({
-      resolvedNativeType: projected?.resolvedNativeType,
       many: projected?.many,
       codecRef: projected?.codecRef,
     }).toEqual({
-      resolvedNativeType: array ? 'text[]' : 'text',
       many: array ? true : undefined,
       codecRef: array ? { codecId: 'pg/text@1', many: true } : { codecId: 'pg/text@1' },
     });
@@ -290,7 +288,6 @@ describe('contractToSchemaIR', () => {
         name: 'id',
         nativeType: 'text',
         nullable: false,
-        resolvedNativeType: 'text',
       }),
     );
     expect(columns['email']).toEqual(
@@ -298,7 +295,6 @@ describe('contractToSchemaIR', () => {
         name: 'email',
         nativeType: 'text',
         nullable: false,
-        resolvedNativeType: 'text',
       }),
     );
     expect(columns['name']).toEqual(
@@ -306,7 +302,6 @@ describe('contractToSchemaIR', () => {
         name: 'name',
         nativeType: 'text',
         nullable: true,
-        resolvedNativeType: 'text',
       }),
     );
   });
@@ -354,7 +349,6 @@ describe('contractToSchemaIR', () => {
         name: 'a',
         nativeType: 'vector',
         nullable: false,
-        resolvedNativeType: 'vector',
       }),
     );
     expect('codecId' in columnA).toBe(false);
@@ -365,7 +359,6 @@ describe('contractToSchemaIR', () => {
         name: 'b',
         nativeType: 'vector',
         nullable: false,
-        resolvedNativeType: 'vector',
       }),
     );
     expect('codecId' in columnB).toBe(false);
@@ -406,15 +399,12 @@ describe('contractToSchemaIR', () => {
     const columns = contractToSchemaIR(wrap(storage)).tables['T']!.columns;
     expect(
       Object.fromEntries(
-        Object.entries(columns).map(([name, column]) => [
-          name,
-          { nativeType: column.nativeType, resolvedNativeType: column.resolvedNativeType },
-        ]),
+        Object.entries(columns).map(([name, column]) => [name, { nativeType: column.nativeType }]),
       ),
     ).toEqual({
-      whole: { nativeType: 'numeric(10,0)', resolvedNativeType: 'numeric(10,0)' },
-      scaled: { nativeType: 'numeric(10,2)', resolvedNativeType: 'numeric(10,2)' },
-      bare: { nativeType: 'character(1)', resolvedNativeType: 'character(1)' },
+      whole: { nativeType: 'numeric(10,0)' },
+      scaled: { nativeType: 'numeric(10,2)' },
+      bare: { nativeType: 'character(1)' },
     });
   });
 
@@ -474,9 +464,8 @@ describe('contractToSchemaIR', () => {
     });
 
     const mood = contractToSchemaIR(wrap(storage)).tables['T']!.columns['mood']!;
-    expect({ nativeType: mood.nativeType, resolvedNativeType: mood.resolvedNativeType }).toEqual({
+    expect({ nativeType: mood.nativeType }).toEqual({
       nativeType: 'Mood',
-      resolvedNativeType: 'Mood',
     });
   });
 
@@ -1270,37 +1259,6 @@ describe('detectDestructiveChanges', () => {
 });
 
 describe('contractToSchemaIR — resolved leaf values', () => {
-  it('stamps resolvedNativeType equal to the computed native type', () => {
-    const storage = unboundStorage('test' as StorageHashBase<string>, {
-      T: table({ columns: { id: col({}) } }),
-    });
-
-    const result = contractToSchemaIR(wrap(storage));
-    expect(result.tables['T']!.columns['id']!.resolvedNativeType).toBe('text');
-  });
-
-  it('stamps the written type into resolvedNativeType', () => {
-    const storage = unboundStorage('test' as StorageHashBase<string>, {
-      T: table({
-        columns: {
-          id: col({ codecId: 'sql/char@1', typeParams: { length: 36 } }),
-        },
-      }),
-    });
-
-    const result = contractToSchemaIR(wrap(storage));
-    expect(result.tables['T']!.columns['id']!.resolvedNativeType).toBe('character(36)');
-  });
-
-  it('appends [] to resolvedNativeType for array columns', () => {
-    const storage = unboundStorage('test' as StorageHashBase<string>, {
-      T: table({ columns: { tags: col({ many: { elementNullable: false } }) } }),
-    });
-
-    const result = contractToSchemaIR(wrap(storage));
-    expect(result.tables['T']!.columns['tags']!.resolvedNativeType).toBe('text[]');
-  });
-
   it('reads a literal default as a value of the column data type, element by element for a list, with null as a value of a type that takes it', () => {
     const storage = unboundStorage('test' as StorageHashBase<string>, {
       T: table({

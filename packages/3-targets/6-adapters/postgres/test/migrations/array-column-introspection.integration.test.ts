@@ -49,13 +49,13 @@ describe('array column introspection', { concurrent: false }, () => {
     expect(col).toMatchObject({ nativeType: 'text', many: true, nullable: false });
   });
 
-  it('int4[] column → nativeType:int4 + many:true', { timeout: testTimeout }, async () => {
+  it('int4[] column → nativeType:integer + many:true', { timeout: testTimeout }, async () => {
     await driver!.query('CREATE TABLE arr_test (id int4 PRIMARY KEY, scores integer[] NOT NULL)');
 
     const result = await familyInstance.introspect({ driver: driver! });
     PostgresDatabaseSchemaNode.assert(result);
     const col = result.namespaces['public']!.tables['arr_test']?.columns['scores'];
-    expect(col).toMatchObject({ nativeType: 'int4', many: true });
+    expect(col).toMatchObject({ nativeType: 'integer', many: true });
   });
 
   it('nullable text[] column → many:true + nullable:true', { timeout: testTimeout }, async () => {

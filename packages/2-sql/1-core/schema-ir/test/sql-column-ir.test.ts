@@ -21,7 +21,6 @@ describe('SqlColumnIR', () => {
         name: 'status',
         nativeType: 'text',
         nullable: false,
-        resolvedNativeType: 'text',
         resolvedDefault: { kind: 'literal', value: 'draft' },
       });
       expect(column.children()).toEqual([
@@ -38,10 +37,8 @@ describe('SqlColumnIR', () => {
         nativeType: 'order',
         nullable: true,
         many: true,
-        resolvedNativeType: 'order[]',
         resolvedDefault: { kind: 'literal', value: ['asc'] },
         codecRef,
-        codecBaseNativeType: 'order',
       });
 
       const defaultNode = column.children()[0] as SqlColumnDefaultIR;
@@ -49,11 +46,9 @@ describe('SqlColumnIR', () => {
       expect(defaultNode).toBeInstanceOf(SqlColumnDefaultIR);
       expect({
         codecRef: defaultNode.codecRef,
-        codecBaseNativeType: defaultNode.codecBaseNativeType,
         enumerableKeys: Object.keys(defaultNode),
       }).toEqual({
         codecRef,
-        codecBaseNativeType: 'order',
         enumerableKeys: ['nodeKind', 'resolved'],
       });
     });
@@ -116,13 +111,11 @@ describe('SqlColumnIR', () => {
     it('true when the type texts differ but the stored types and parameters are equal', () => {
       const contract = column({
         nativeType: 'character varying(20)',
-        resolvedNativeType: 'character varying(20)',
         storedType: varchar,
         typeParams: { length: 20 },
       });
       const database = column({
         nativeType: 'varchar(20)',
-        resolvedNativeType: 'varchar(20)',
         storedType: varchar,
         typeParams: { length: 20 },
         reportedType: reported('varchar(20)'),
@@ -219,15 +212,13 @@ describe('SqlColumnIR', () => {
   });
 
   describe('resolved fields', () => {
-    it('carries resolvedNativeType and resolvedDefault when supplied', () => {
+    it('carries resolvedDefault when supplied', () => {
       const column = new SqlColumnIR({
         name: 'email',
         nativeType: 'character varying(255)',
         nullable: false,
-        resolvedNativeType: 'character varying(255)',
         resolvedDefault: { kind: 'literal', value: 'x' },
       });
-      expect(column.resolvedNativeType).toBe('character varying(255)');
       expect(column.resolvedDefault).toEqual({ kind: 'literal', value: 'x' });
     });
   });
@@ -304,11 +295,9 @@ describe('SqlColumnIR', () => {
         default: "'draft'::text",
         annotations: { pg: { note: 1 } },
         many: true,
-        resolvedNativeType: 'text[]',
         resolvedDefault: { kind: 'literal', value: 'draft' },
         authoredDefault: { kind: 'literal', value: 'draft' },
         codecRef: { codecId: 't/text@1' },
-        codecBaseNativeType: 'text',
         dataType: text,
         storedType: text,
         typeParams: {},

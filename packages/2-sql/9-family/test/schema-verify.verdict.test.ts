@@ -37,7 +37,7 @@ import {
   createTestSchemaIR,
 } from './schema-verify.helpers';
 
-const testNormalizer = (rawDefault: string, _nativeType: string): ColumnDefault | undefined => {
+const testNormalizer = (rawDefault: string): ColumnDefault | undefined => {
   const trimmed = rawDefault.trim();
   if (/^(now\s*\(\s*\)|CURRENT_TIMESTAMP)$/i.test(trimmed)) {
     return { kind: 'function', expression: 'now()' };
@@ -53,25 +53,19 @@ const testNormalizer = (rawDefault: string, _nativeType: string): ColumnDefault 
   return { kind: 'function', expression: trimmed };
 };
 
-const identityNativeNormalizer = (nativeType: string): string =>
-  nativeType === 'varchar' ? 'character varying' : nativeType;
-
 /** Stamps resolved values onto a raw actual tree the way introspection does. */
 function stampLikeIntrospection(schema: SqlSchemaIR): SqlSchemaIR {
   const tables: Record<string, SqlTableIR> = {};
   for (const [name, table] of Object.entries(schema.tables)) {
     const columns: Record<string, SqlColumnIR> = {};
     for (const [colName, col] of Object.entries(table.columns)) {
-      const resolvedNativeType = `${identityNativeNormalizer(col.nativeType)}${col.many ? '[]' : ''}`;
-      const resolvedDefault =
-        col.default !== undefined ? testNormalizer(col.default, resolvedNativeType) : undefined;
+      const resolvedDefault = col.default !== undefined ? testNormalizer(col.default) : undefined;
       columns[colName] = new SqlColumnIR({
         name: col.name,
         nativeType: col.nativeType,
         nullable: col.nullable,
         ...(col.default !== undefined ? { default: col.default } : {}),
         ...(col.many !== undefined ? { many: col.many } : {}),
-        resolvedNativeType,
         ...(resolvedDefault !== undefined ? { resolvedDefault } : {}),
         ...(col.dataType !== undefined ? { dataType: col.dataType } : {}),
         ...(col.storedType !== undefined ? { storedType: col.storedType } : {}),

@@ -89,7 +89,6 @@ function ordersTable(): PostgresTableSchemaNode {
         name: 'id',
         nativeType: 'int4',
         nullable: false,
-        resolvedNativeType: 'int4',
       }),
     },
     primaryKey: { columns: ['id'] },

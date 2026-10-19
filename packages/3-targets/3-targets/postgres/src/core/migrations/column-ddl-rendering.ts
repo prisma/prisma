@@ -22,8 +22,8 @@ const AUTOINCREMENT = 'autoincrement()';
 /**
  * Reconstructs the `StorageColumn`-shaped fields the DDL builder functions
  * (`buildColumnTypeSql`, `resolveIdentityValue`)
- * expect, from a column node's own stamped codec identity (`codecRef` /
- * `codecBaseNativeType`, Decision 5) — never the contract. The node's fields
+ * expect, from a column node's own stamped codec identity (`codecRef`,
+ * Decision 5) — never the contract. The node's fields
  * are already resolved past any `typeRef` indirection, so the builders get
  * no `storageTypes` catalog.
  */
@@ -37,13 +37,13 @@ function columnLike(
   };
 }
 
-type ColumnCodecIdentity = Pick<SqlColumnIR, 'codecRef' | 'codecBaseNativeType' | 'many'>;
+type ColumnCodecIdentity = Pick<SqlColumnIR, 'codecRef' | 'many'>;
 
 function columnTypeLike(
   owner: string,
   identity: ColumnCodecIdentity,
 ): Pick<StorageColumn, 'codecId' | 'many' | 'typeParams'> {
-  if (identity.codecRef === undefined || identity.codecBaseNativeType === undefined) {
+  if (identity.codecRef === undefined) {
     throw new InternalError(
       `columnTypeLike: expected ${owner} carries no codec identity — the expected tree must be derived via contractToSchemaIR for planning`,
     );

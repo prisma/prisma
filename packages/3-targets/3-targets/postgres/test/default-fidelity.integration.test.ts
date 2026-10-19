@@ -67,7 +67,7 @@ function inferredCodecRef(reportedType: ReportedSqlType) {
 /** The codec `contract infer` binds to the column, as `inferredColumnDefaults` chooses it. */
 function columnCodec({ nativeType, reportedType }: FidelityColumn): Codec {
   const elementType = nativeType.endsWith('[]') ? nativeType.slice(0, -2) : nativeType;
-  const ref = enumNames.has(elementType)
+  const ref = enumNames.has(reportedType.name ?? '')
     ? { codecId: PG_TEXT_CODEC_ID, typeParams: undefined }
     : inferredCodecRef(reportedType);
   const descriptor =
@@ -278,7 +278,8 @@ async function observe(): Promise<ReadonlyMap<string, Observation>> {
         if (column === undefined || storedText === undefined) {
           throw new Error(`column ${row.name} missing from the catalog or the stored row`);
         }
-        const { resolvedNativeType: nativeType } = introspectedNativeType(column);
+        const { nativeType: elementType, many } = introspectedNativeType(column);
+        const nativeType = many ? `${elementType}[]` : elementType;
         const fidelityColumn: FidelityColumn = {
           nativeType,
           reportedType: {

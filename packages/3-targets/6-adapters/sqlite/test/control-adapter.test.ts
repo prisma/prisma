@@ -2,7 +2,6 @@ import { DatabaseSync } from 'node:sqlite';
 import type { CliStructuredError } from '@internal/errors/control';
 import { PrimaryKey } from '@internal/sql-schema-ir/types';
 import { createSqliteBuiltinCodecLookup } from '@internal/target-sqlite/codecs';
-import { normalizeSqliteNativeType } from '@internal/target-sqlite/native-type-normalizer';
 import { describe, expect, it } from 'vitest';
 import { createTestSqliteControlAdapter } from './helpers/test-control-adapter';
 
@@ -58,7 +57,7 @@ describe('SqliteControlAdapter.introspect', () => {
     await driver.close();
   });
 
-  it('stamps normalized resolvedNativeType, and a literal default read with the contract codec', async () => {
+  it('carries the data type of each column, and a literal default read with the contract codec', async () => {
     const driver = createMemoryDriver();
     driver.db.exec(
       "CREATE TABLE docs (status TEXT NOT NULL DEFAULT 'draft', n INTEGER DEFAULT 5, at TEXT DEFAULT '2024-01-01T00:00:00Z', note TEXT DEFAULT 'kept')",
@@ -87,17 +86,17 @@ describe('SqliteControlAdapter.introspect', () => {
     const columns = schema.tables['docs']!.columns;
 
     expect({
-      statusType: columns['status']!.resolvedNativeType,
+      statusType: columns['status']!.storedType?.id,
       status: columns['status']!.resolvedDefault,
-      nType: columns['n']!.resolvedNativeType,
+      nType: columns['n']!.storedType?.id,
       n: columns['n']!.resolvedDefault,
       at: columns['at']!.resolvedDefault,
       atValue: columns['at']!.defaultValue,
       note: columns['note']!.resolvedDefault,
     }).toMatchObject({
-      statusType: 'text',
+      statusType: 'sqlite/text',
       status: { kind: 'literal', value: 'draft' },
-      nType: 'integer',
+      nType: 'sqlite/integer',
       n: { kind: 'literal', value: '5' },
       at: { kind: 'literal', value: '2024-01-01T00:00:00.000Z' },
       atValue: { type: 'sqlite/datetime', value: '2024-01-01T00:00:00.000Z' },
@@ -258,14 +257,6 @@ describe('SqliteControlAdapter.introspect', () => {
     expect(schema.tables['t']!.columns['name']!.default).toBe("'anon'");
     expect(schema.tables['t']!.columns['active']!.default).toBe('1');
     await driver.close();
-  });
-});
-
-describe('normalizeSqliteNativeType', () => {
-  it('lowercases type names', () => {
-    expect(normalizeSqliteNativeType('INTEGER')).toBe('integer');
-    expect(normalizeSqliteNativeType('TEXT')).toBe('text');
-    expect(normalizeSqliteNativeType('  REAL  ')).toBe('real');
   });
 });
 

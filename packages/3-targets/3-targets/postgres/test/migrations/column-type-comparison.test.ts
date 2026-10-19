@@ -78,7 +78,7 @@ describe('the planner compares a live column with the contract by data type', ()
           nullable: false,
           typeParams: { length: 20 },
         },
-        { nativeType: 'varchar(20)', resolvedNativeType: 'varchar(20)', nullable: true },
+        { nativeType: 'varchar(20)', nullable: true },
       ),
       typeChangesPlanned(
         {
@@ -89,7 +89,6 @@ describe('the planner compares a live column with the contract by data type', ()
         },
         {
           nativeType: 'timestamp(3) with time zone',
-          resolvedNativeType: 'timestamp(3) with time zone',
           nullable: true,
         },
       ),
@@ -100,11 +99,11 @@ describe('the planner compares a live column with the contract by data type', ()
           nullable: false,
           typeParams: { precision: 10 },
         },
-        { nativeType: 'numeric(10,0)', resolvedNativeType: 'numeric(10, 0)', nullable: true },
+        { nativeType: 'numeric(10,0)', nullable: true },
       ),
       typeChangesPlanned(
         { dataType: 'pg/char', codecId: 'pg/char@1', nullable: false },
-        { nativeType: 'character(1)', resolvedNativeType: 'char', nullable: true },
+        { nativeType: 'character(1)', nullable: true },
       ),
       typeChangesPlanned(
         {
@@ -113,7 +112,7 @@ describe('the planner compares a live column with the contract by data type', ()
           nullable: false,
           many: { elementNullable: false },
         },
-        { nativeType: 'int', resolvedNativeType: 'int[]', nullable: true, many: true },
+        { nativeType: 'int', nullable: true, many: true },
       ),
     ]).toEqual([0, 0, 0, 0, 0]);
   });
@@ -124,7 +123,6 @@ describe('the planner compares a live column with the contract by data type', ()
         { dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
         {
           nativeType: 'text',
-          resolvedNativeType: 'text',
           nullable: false,
           reportedType: { text: 'citext', kind: undefined, schema: 'public', name: 'citext' },
         },
@@ -141,7 +139,7 @@ describe('the planner compares a live column with the contract by data type', ()
           nullable: false,
           many: { elementNullable: false },
         },
-        { nativeType: 'integer', resolvedNativeType: 'integer[]', nullable: false },
+        { nativeType: 'integer', nullable: false },
       ),
     ).toBe(1);
   });

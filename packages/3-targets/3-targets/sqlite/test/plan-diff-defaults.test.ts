@@ -23,7 +23,6 @@ function liveSchema(rawDefault: string): SqlSchemaIR {
             nativeType: 'text',
             nullable: false,
             default: rawDefault,
-            resolvedNativeType: 'text',
             ...ifDefined('resolvedDefault', functionDefaultOf(rawDefault)),
           }),
         },

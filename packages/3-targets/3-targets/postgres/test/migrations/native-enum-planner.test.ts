@@ -140,7 +140,6 @@ function ordersTableNode(options: { readonly withStatusColumn: boolean }) {
         name: 'id',
         nativeType: 'int4',
         nullable: false,
-        resolvedNativeType: 'int4',
       }),
       ...(options.withStatusColumn
         ? {
@@ -148,7 +147,6 @@ function ordersTableNode(options: { readonly withStatusColumn: boolean }) {
               name: 'status',
               nativeType: 'order_status',
               nullable: false,
-              resolvedNativeType: 'order_status',
               reportedType: {
                 text: 'order_status',
                 kind: 'enum',
@@ -356,7 +354,6 @@ describe('unclaimed enum drop lowering + ordering', () => {
           name: 'id',
           nativeType: 'int4',
           nullable: false,
-          resolvedNativeType: 'int4',
         }),
       },
       primaryKey: { columns: ['id'] },

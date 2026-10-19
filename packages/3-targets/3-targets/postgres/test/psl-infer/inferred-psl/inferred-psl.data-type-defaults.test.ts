@@ -18,14 +18,12 @@ function introspected(
   rawDefault: string,
   shape: { readonly many?: true } = {},
 ): SqlColumnIRInput {
-  const resolvedNativeType = shape.many ? `${nativeType}[]` : nativeType;
   return {
     name,
     nativeType,
     nullable: shape.many === true,
     default: rawDefault,
     ...ifDefined('many', shape.many),
-    resolvedNativeType,
   };
 }
 

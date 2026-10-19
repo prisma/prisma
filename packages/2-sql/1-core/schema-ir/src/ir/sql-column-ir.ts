@@ -39,15 +39,6 @@ export interface SqlColumnIRInput {
   /** True when the column is a native array (e.g. `text[]`, `int4[]`). The `nativeType` carries the element type only (e.g. `text`, `int4`). */
   readonly many?: boolean;
   /**
-   * Fully resolved native type, comparable across the two diff sides:
-   * the contract-derived side stamps the codec-expanded type (typeRef
-   * resolved, parameterized types expanded, `[]` appended for arrays);
-   * the introspected side stamps the target-normalized type with the same
-   * `[]` convention. Stamped at construction by derivation/introspection;
-   * absent on raw hand-built nodes.
-   */
-  readonly resolvedNativeType?: string;
-  /**
    * Structured default, comparable across the two diff sides: the
    * contract-derived side stamps the contract's `ColumnDefault`; the
    * introspected side stamps the target default-normalizer's parse of the
@@ -75,15 +66,6 @@ export interface SqlColumnIRInput {
    * and never compared by `isEqualTo`.
    */
   readonly codecRef?: CodecRef;
-  /**
-   * The column's resolved BASE native type: pre-parameter-expansion,
-   * pre-array-suffix (e.g. `character`, not `character(36)` or
-   * `character[]`). Distinct from {@link resolvedNativeType} (the EXPANDED
-   * comparison value) — DDL rendering re-expands a parameterized type at
-   * plan time from this base, so it must not already carry the expansion.
-   * Stamped alongside {@link codecRef}.
-   */
-  readonly codecBaseNativeType?: string;
   /**
    * The column's data type, from the assembled stack (ADR 254): on the contract-derived side the type its codec represents, on the introspected side the type that claims the reported type. Absent on an introspected column no data type claims.
    */
@@ -128,14 +110,11 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   declare readonly annotations?: SqlAnnotations;
   /** True when the column is a native array (e.g. `text[]`, `int4[]`). The `nativeType` carries the element type only (e.g. `text`, `int4`). */
   declare readonly many?: boolean;
-  declare readonly resolvedNativeType?: string;
   declare readonly resolvedDefault?: ColumnDefault;
   /** See {@link SqlColumnIRInput.authoredDefault}. Non-enumerable so it stays out of JSON and structural equality. */
   declare readonly authoredDefault?: ColumnDefault;
   /** See {@link SqlColumnIRInput.codecRef}. Non-enumerable so it stays out of JSON and structural equality. */
   declare readonly codecRef?: CodecRef;
-  /** See {@link SqlColumnIRInput.codecBaseNativeType}. Non-enumerable, same reason as {@link codecRef}. */
-  declare readonly codecBaseNativeType?: string;
   /** See {@link SqlColumnIRInput.dataType}. Non-enumerable, same reason as {@link codecRef}. */
   declare readonly dataType?: DataType;
   /** See {@link SqlColumnIRInput.storedType}. Non-enumerable, same reason as {@link codecRef}. */
@@ -159,11 +138,9 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
     if (input.default !== undefined) this.default = input.default;
     if (input.annotations !== undefined) this.annotations = input.annotations;
     if (input.many !== undefined) this.many = input.many;
-    if (input.resolvedNativeType !== undefined) this.resolvedNativeType = input.resolvedNativeType;
     if (input.resolvedDefault !== undefined) this.resolvedDefault = input.resolvedDefault;
     defineNonEnumerable(this, 'authoredDefault', input.authoredDefault);
     defineNonEnumerable(this, 'codecRef', input.codecRef);
-    defineNonEnumerable(this, 'codecBaseNativeType', input.codecBaseNativeType);
     defineNonEnumerable(this, 'dataType', input.dataType);
     defineNonEnumerable(this, 'storedType', input.storedType);
     defineNonEnumerable(this, 'typeParams', input.typeParams);
@@ -204,7 +181,6 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
         // rendering.
         ...ifDefined('many', this.many ?? this.codecRef?.many),
         ...ifDefined('codecRef', this.codecRef),
-        ...ifDefined('codecBaseNativeType', this.codecBaseNativeType),
       }),
     ];
   }

@@ -36,13 +36,11 @@ describe('node issue planner: column defaults', () => {
               name: 'id',
               nativeType: 'int4',
               nullable: false,
-              resolvedNativeType: 'int4',
             }),
             serial: introspectedColumn({
               name: 'serial',
               nativeType: 'int4',
               nullable: false,
-              resolvedNativeType: 'int4',
               ...(serialDefault === undefined
                 ? {}
                 : {

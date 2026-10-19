@@ -1172,7 +1172,7 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
       // Process columns for this table
       const columns: Record<string, SqlColumnIRInput> = {};
       for (const colRow of columnsByTable.get(tableName) ?? []) {
-        const { nativeType, many, resolvedNativeType } = introspectedNativeType({
+        const { nativeType, many } = introspectedNativeType({
           formattedType: colRow.formatted_type,
           informationSchemaType: colRow.data_type,
           udtName: colRow.udt_name,
@@ -1214,7 +1214,6 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
           nullable: colRow.is_nullable === 'YES',
           ...ifDefined('default', rawDefault),
           ...ifDefined('many', many),
-          resolvedNativeType,
           ...readDefault,
           ...ifDefined('reportedType', reportedType),
           ...(reportedType === undefined

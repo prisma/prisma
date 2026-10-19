@@ -110,7 +110,6 @@ describe('resolveColumnTemporaryDefault', () => {
       nativeType: 'uuid',
       nullable: true,
       codecRef: { codecId: 'pg/uuid@1' },
-      codecBaseNativeType: 'uuid',
     });
 
     expect(resolveColumnTemporaryDefault(column, new Map(), types)).toBe(
@@ -130,7 +129,6 @@ describe('buildSetDefaultColumn', () => {
     const defaultNode = new SqlColumnDefaultIR({
       resolved: { kind: 'literal', value: 'hello' },
       codecRef: { codecId: 'pg/text@1' },
-      codecBaseNativeType: 'text',
     });
 
     expect(buildSetDefaultColumn('v', defaultNode, types)).toEqual(
@@ -144,7 +142,6 @@ describe('buildSetDefaultColumn', () => {
       const defaultNode = new SqlColumnDefaultIR({
         resolved: { kind: 'function', expression: 'autoincrement()' },
         codecRef: { codecId: `pg/${nativeType}@1` },
-        codecBaseNativeType: nativeType,
       });
 
       expect(buildSetDefaultColumn('v', defaultNode, types)).toEqual(
@@ -160,7 +157,6 @@ describe('buildSetDefaultColumn', () => {
     const defaultNode = new SqlColumnDefaultIR({
       resolved: { kind: 'function', expression: 'autoincrement()' },
       codecRef: { codecId: 'pg/text@1' },
-      codecBaseNativeType: 'text',
     });
 
     expect(buildSetDefaultColumn('v', defaultNode, types)).toEqual(
@@ -180,7 +176,6 @@ describe('buildSetDefaultColumn', () => {
         resolved: { kind: 'literal', value: ['asc'] },
         many: true,
         codecRef: { codecId: 'pg/enum@1', typeParams: { typeName }, many: true },
-        codecBaseNativeType: typeName,
       });
 
       expect(buildSetDefaultColumn('v', defaultNode, types)?.type).toBe(cast);

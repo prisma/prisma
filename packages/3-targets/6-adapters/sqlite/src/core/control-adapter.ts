@@ -61,7 +61,6 @@ import {
 } from '@internal/target-sqlite/contract-free';
 import type { SqliteCreateTable, SqliteDdlNode } from '@internal/target-sqlite/ddl';
 import { readSqliteDefault } from '@internal/target-sqlite/default-normalizer';
-import { normalizeSqliteNativeType } from '@internal/target-sqlite/native-type-normalizer';
 import { escapeLiteral, quoteIdentifier } from '@internal/target-sqlite/sql-utils';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -610,10 +609,8 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
       const autoincrementColumn = autoincrementColumnOf(tableRow.sql, columnsResult.rows);
 
       for (const col of columnsResult.rows) {
-        // Resolved values comparable against the contract-derived expected
-        // side: the normalized native type and the default read with the
-        // column's codec. The raw default stays alongside.
-        const resolvedNativeType = normalizeSqliteNativeType(col.type);
+        // The default read with the column's codec, comparable against the
+        // contract-derived side; the raw default stays alongside.
         const rawDefault = col.dflt_value ?? undefined;
         const readDefault =
           col.name === autoincrementColumn
@@ -636,7 +633,6 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
           nativeType: col.type.toLowerCase(),
           nullable: col.notnull === 0 && col.pk === 0,
           ...ifDefined('default', rawDefault),
-          resolvedNativeType,
           ...readDefault,
           reportedType,
           ...resolveIntrospectedColumnType(reportedType, this.declaredDataTypes),

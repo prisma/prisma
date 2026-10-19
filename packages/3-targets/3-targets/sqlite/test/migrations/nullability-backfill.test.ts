@@ -85,13 +85,11 @@ function nullableEmailSchema(): { tables: Record<string, SqlTableIR> } {
           id: introspectedColumn({
             name: 'id',
             nativeType: 'INTEGER',
-            resolvedNativeType: 'integer',
             nullable: false,
           }),
           email: introspectedColumn({
             name: 'email',
             nativeType: 'TEXT',
-            resolvedNativeType: 'text',
             nullable: true,
           }),
         },
@@ -200,13 +198,11 @@ describe('nullability-tightening backfill', async () => {
             id: introspectedColumn({
               name: 'id',
               nativeType: 'INTEGER',
-              resolvedNativeType: 'integer',
               nullable: false,
             }),
             email: introspectedColumn({
               name: 'email',
               nativeType: 'TEXT',
-              resolvedNativeType: 'text',
               nullable: false,
             }),
           },
