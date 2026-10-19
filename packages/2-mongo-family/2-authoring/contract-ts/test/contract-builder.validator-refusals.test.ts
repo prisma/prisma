@@ -20,7 +20,10 @@ const sqlTypedPack = {
 } as const satisfies ExtensionPackRef<'mongo', 'mongo'>;
 
 const MISSING_ID =
-  'has no _id field stored as BSON type objectId. MongoDB adds an objectId _id to every document it inserts without one, so a collection validator without it rejects every insert.';
+  'has no _id field. MongoDB adds an objectId _id to every document it inserts without one, so a collection validator without it rejects every insert.';
+
+const STRING_ID =
+  'has an _id field stored as BSON type string. An _id must be stored as BSON type objectId: MongoDB adds an objectId _id to a document inserted without one, and the collection validator would refuse that document.';
 
 describe('mongo defineContract refuses what a collection validator cannot describe', () => {
   describe('a codec with no MongoDB data type', () => {
@@ -111,7 +114,7 @@ describe('mongo defineContract refuses what a collection validator cannot descri
       expect(() => defineContract({ ...scaffold, models: { User } })).toThrow(
         expect.objectContaining({
           code: 'CONTRACT.COLLECTION_INVALID',
-          message: `Model "User" ${MISSING_ID}`,
+          message: `Model "User" ${STRING_ID}`,
         }),
       );
     });

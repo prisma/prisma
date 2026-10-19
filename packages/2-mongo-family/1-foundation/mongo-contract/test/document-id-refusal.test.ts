@@ -3,11 +3,16 @@ import { documentIdRefusalOf } from '../src/document-id-refusal';
 import { mongoTypeLookups } from '../src/fake-type-lookups';
 import { scalarField, voField } from './derive-json-schema-helpers';
 
-const notObjectId = {
-  kind: 'notObjectId',
+const missing = {
+  kind: 'missing',
   reason:
-    'has no _id field stored as BSON type objectId. MongoDB adds an objectId _id to every document it inserts without one, so a collection validator without it rejects every insert.',
+    'has no _id field. MongoDB adds an objectId _id to every document it inserts without one, so a collection validator without it rejects every insert.',
 };
+
+const storedAs = (bsonType: string) => ({
+  kind: 'notObjectId',
+  reason: `has an _id field stored as ${bsonType}. An _id must be stored as BSON type objectId: MongoDB adds an objectId _id to a document inserted without one, and the collection validator would refuse that document.`,
+});
 
 describe('documentIdRefusalOf', () => {
   it('accepts an _id stored as BSON type objectId', () => {
@@ -18,14 +23,20 @@ describe('documentIdRefusalOf', () => {
 
   it('refuses a model without an _id', () => {
     expect(documentIdRefusalOf({ email: scalarField('mongo/string@1') }, mongoTypeLookups)).toEqual(
-      notObjectId,
+      missing,
     );
   });
 
   it('refuses an _id stored as another BSON type', () => {
     expect(documentIdRefusalOf({ _id: scalarField('mongo/string@1') }, mongoTypeLookups)).toEqual(
-      notObjectId,
+      storedAs('BSON type string'),
     );
+  });
+
+  it('names every BSON type of an _id stored as several', () => {
+    expect(
+      documentIdRefusalOf({ _id: scalarField('test/int-or-long@1') }, mongoTypeLookups),
+    ).toEqual(storedAs('BSON type int or long'));
   });
 
   it('names the codec of an _id whose codec has no MongoDB data type', () => {
@@ -37,6 +48,8 @@ describe('documentIdRefusalOf', () => {
   });
 
   it('refuses an _id holding a value object', () => {
-    expect(documentIdRefusalOf({ _id: voField('Key') }, mongoTypeLookups)).toEqual(notObjectId);
+    expect(documentIdRefusalOf({ _id: voField('Key') }, mongoTypeLookups)).toEqual(
+      storedAs('an object'),
+    );
   });
 });

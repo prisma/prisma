@@ -24,8 +24,9 @@ Building the contract fails with one of these errors. Change the contract until 
 - A field whose codec has no MongoDB data type:
   `Model "Place" field "location" uses codec "geo/point@1", which no pack in the contract provides, so the collection validator cannot give its BSON type.`
   List the extension that provides the codec in `extensions` in `defineContract`.
-- A root model (a model with a collection, not a variant and not embedded) without a valid `_id`:
-  `Model "User" has no _id field stored as BSON type objectId. MongoDB adds an objectId _id to every document it inserts without one, so a collection validator without it rejects every insert.`
+- A root model (a model with a collection, not a variant and not embedded) without an `_id` stored as BSON type `objectId`:
+  `Model "User" has no _id field. MongoDB adds an objectId _id to every document it inserts without one, so a collection validator without it rejects every insert.`
+  `Model "User" has an _id field stored as BSON type string. An _id must be stored as BSON type objectId: MongoDB adds an objectId _id to a document inserted without one, and the collection validator would refuse that document.`
   Declare `_id: field.objectId()`.
 - An enum a validator cannot list:
   `enumType("Level") codec "mongo/int64@1" stores BSON type long, which a collection validator cannot list as an enum value. Use a codec whose BSON type is string, int, double, bool, object or array.`
