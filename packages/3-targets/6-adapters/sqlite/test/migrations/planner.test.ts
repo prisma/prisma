@@ -9,7 +9,7 @@ import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
 import { createSqliteMigrationPlanner } from '@internal/target-sqlite/planner';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { SqliteControlAdapter } from '../../src/core/control-adapter';
+import { createTestSqliteControlAdapter } from '../helpers/test-control-adapter';
 import { sqliteComponents } from './fixtures/sqlite-components';
 
 function makeColumn(overrides: Partial<StorageColumn> = {}): StorageColumn {
@@ -58,7 +58,7 @@ const emptySchema = { tables: {} };
 
 describe('SQLite migration planner', () => {
   const planner = createSqliteMigrationPlanner(
-    new SqliteControlAdapter(createSqliteBuiltinCodecLookup()),
+    createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup()),
   );
 
   it('plans CREATE TABLE for new table', async () => {

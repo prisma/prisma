@@ -48,6 +48,7 @@ import {
   createSqliteCodecRegistryWithBuiltins,
   jsonDocumentRetag,
 } from '@internal/target-sqlite/codecs';
+import { sqliteDataTypes } from '@internal/target-sqlite/data-types';
 import type { SqliteDdlNode } from '@internal/target-sqlite/ddl';
 import { escapeLiteral, quoteIdentifier } from '@internal/target-sqlite/sql-utils';
 import { assertNever, InternalError } from '@internal/utils/internal-error';
@@ -94,7 +95,7 @@ class SqliteAdapterImpl implements Adapter<AnyQueryAst, SqliteContract, SqliteLo
 
   constructor(codecRegistry: SqliteCodecRegistry, profileId?: string) {
     this.#codecs = codecRegistry;
-    const controlAdapter = new SqliteControlAdapter(codecRegistry);
+    const controlAdapter = new SqliteControlAdapter(codecRegistry, sqliteDataTypes);
     this.profile = Object.freeze({
       id: profileId ?? 'sqlite/default@1',
       target: 'sqlite',

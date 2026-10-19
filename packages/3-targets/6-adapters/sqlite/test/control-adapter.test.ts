@@ -4,7 +4,7 @@ import { PrimaryKey } from '@internal/sql-schema-ir/types';
 import { createSqliteBuiltinCodecLookup } from '@internal/target-sqlite/codecs';
 import { normalizeSqliteNativeType } from '@internal/target-sqlite/native-type-normalizer';
 import { describe, expect, it } from 'vitest';
-import { SqliteControlAdapter } from '../src/core/control-adapter';
+import { createTestSqliteControlAdapter } from './helpers/test-control-adapter';
 
 function createMemoryDriver() {
   const db = new DatabaseSync(':memory:');
@@ -27,7 +27,7 @@ function createMemoryDriver() {
 describe('SqliteControlAdapter.introspect', () => {
   it('introspects empty database', async () => {
     const driver = createMemoryDriver();
-    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
     const schema = await adapter.introspect(driver);
     expect(schema.tables).toEqual({});
     await driver.close();
@@ -36,7 +36,7 @@ describe('SqliteControlAdapter.introspect', () => {
   it('introspects table with columns', async () => {
     const driver = createMemoryDriver();
     driver.db.exec('CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT NOT NULL, bio TEXT)');
-    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
     const schema = await adapter.introspect(driver);
 
     expect(Object.keys(schema.tables)).toEqual(['users']);
@@ -51,7 +51,7 @@ describe('SqliteControlAdapter.introspect', () => {
   it('introspects composite primary key', async () => {
     const driver = createMemoryDriver();
     driver.db.exec('CREATE TABLE kv (ns TEXT, key TEXT, val TEXT, PRIMARY KEY (ns, key))');
-    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
     const schema = await adapter.introspect(driver);
 
     expect(schema.tables['kv']!.primaryKey).toEqual(new PrimaryKey({ columns: ['ns', 'key'] }));
@@ -82,7 +82,7 @@ describe('SqliteControlAdapter.introspect', () => {
         },
       },
     };
-    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
     const schema = await adapter.introspect(driver, contract);
     const columns = schema.tables['docs']!.columns;
 
@@ -113,7 +113,7 @@ describe('SqliteControlAdapter.introspect', () => {
     driver.db.exec(
       `CREATE TABLE "lookalike" ("id" INTEGER PRIMARY KEY, "autoincrement" TEXT DEFAULT 'AUTOINCREMENT', "x" TEXT) -- AUTOINCREMENT`,
     );
-    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
     const schema = await adapter.introspect(driver);
     const defaultOf = (table: string, column: string) =>
       schema.tables[table]!.columns[column]!.resolvedDefault;
@@ -135,7 +135,7 @@ describe('SqliteControlAdapter.introspect', () => {
   it('reports each column type as PRAGMA table_info gives it', async () => {
     const driver = createMemoryDriver();
     driver.db.exec('CREATE TABLE t (id INTEGER, label VARCHAR(20), price Decimal(10, 2))');
-    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
     const schema = await adapter.introspect(driver);
     const columns = schema.tables['t']!.columns;
 
@@ -163,7 +163,7 @@ describe('SqliteControlAdapter.introspect', () => {
     driver.db.exec(
       'CREATE TABLE posts (id INTEGER PRIMARY KEY, author_id INTEGER REFERENCES authors(id) ON DELETE CASCADE)',
     );
-    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
     const schema = await adapter.introspect(driver);
 
     const fks = schema.tables['posts']!.foreignKeys;
@@ -191,7 +191,7 @@ describe('SqliteControlAdapter.introspect', () => {
     driver.db.exec('CREATE TABLE t (a TEXT, b TEXT)');
     driver.db.exec('CREATE INDEX idx_t_a ON t (a)');
     driver.db.exec('CREATE UNIQUE INDEX idx_t_b ON t (b)');
-    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
     const schema = await adapter.introspect(driver);
 
     const indexes = schema.tables['t']!.indexes;
@@ -210,7 +210,7 @@ describe('SqliteControlAdapter.introspect', () => {
     driver.db.exec('CREATE TABLE t (a TEXT, b TEXT, archived INTEGER)');
     driver.db.exec('CREATE UNIQUE INDEX idx_t_a_total ON t (a)');
     driver.db.exec('CREATE UNIQUE INDEX idx_t_b_active ON t (b) WHERE archived = 0');
-    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
     const schema = await adapter.introspect(driver);
 
     const indexes = schema.tables['t']!.indexes;
@@ -228,7 +228,7 @@ describe('SqliteControlAdapter.introspect', () => {
   it('introspects unique constraints', async () => {
     const driver = createMemoryDriver();
     driver.db.exec('CREATE TABLE t (a TEXT, b TEXT, UNIQUE (a, b))');
-    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
     const schema = await adapter.introspect(driver);
 
     const uniques = schema.tables['t']!.uniques;
@@ -240,7 +240,7 @@ describe('SqliteControlAdapter.introspect', () => {
   it('excludes sqlite_ internal tables', async () => {
     const driver = createMemoryDriver();
     driver.db.exec('CREATE TABLE user_data (id INTEGER PRIMARY KEY)');
-    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
     const schema = await adapter.introspect(driver);
 
     expect(Object.keys(schema.tables)).toEqual(['user_data']);
@@ -252,7 +252,7 @@ describe('SqliteControlAdapter.introspect', () => {
     driver.db.exec(
       "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT DEFAULT 'anon', active INTEGER DEFAULT 1)",
     );
-    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
     const schema = await adapter.introspect(driver);
 
     expect(schema.tables['t']!.columns['name']!.default).toBe("'anon'");
@@ -293,7 +293,7 @@ describe('SqliteControlAdapter.readMarker', () => {
       )
     `);
 
-    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
     await expect(adapter.readMarker(driver, 'app')).rejects.toSatisfy((err: unknown) => {
       expect((err as CliStructuredError).toEnvelope().code).toBe('CONTRACT.MARKER_ROW_CORRUPT');
       return true;

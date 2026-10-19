@@ -1,6 +1,5 @@
 import postgresAdapterControl, {
   createPostgresBuiltinCodecLookup,
-  PostgresControlAdapter,
 } from '@internal/adapter-postgres/control';
 import { type Contract, coreHash, profileHash } from '@internal/contract/types';
 import type { MigrationOperationPolicy } from '@internal/framework-components/control';
@@ -17,6 +16,7 @@ import {
 } from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
+import { createTestPostgresControlAdapter } from '../../../../packages/3-targets/6-adapters/postgres/test/helpers/test-control-adapter';
 
 const frameworkComponents = [postgresTargetControl, postgresAdapterControl];
 
@@ -52,7 +52,7 @@ const RECONCILIATION_POLICY: MigrationOperationPolicy = {
   allowedOperationClasses: ['additive', 'widening', 'destructive'],
 };
 
-const testAdapter = new PostgresControlAdapter(
+const testAdapter = createTestPostgresControlAdapter(
   createPostgresBuiltinCodecLookup(),
   createPostgresBuiltinDataTypeLookup(),
 );

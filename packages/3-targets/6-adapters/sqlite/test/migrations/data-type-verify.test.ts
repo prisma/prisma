@@ -16,7 +16,7 @@ import { createSqliteBuiltinCodecLookup } from '@internal/target-sqlite/codecs';
 import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { SqliteControlAdapter } from '../../src/core/control-adapter';
+import { createTestSqliteControlAdapter } from '../helpers/test-control-adapter';
 import {
   controlAdapter,
   emptySchema,
@@ -142,7 +142,7 @@ const contract: Contract<SqlStorage> = {
   meta: {},
 };
 
-const introspector = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+const introspector = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
 
 function documentContractWith(body: StorageColumn): Contract<SqlStorage> {
   return {

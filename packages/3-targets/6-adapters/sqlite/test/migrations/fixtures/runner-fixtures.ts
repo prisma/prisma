@@ -28,9 +28,9 @@ import sqliteTargetDescriptor, { sqliteCreateNamespace } from '@internal/target-
 import type { SqliteDdlNode } from '@internal/target-sqlite/ddl';
 import type { SqlitePlanTargetDetails } from '@internal/target-sqlite/planner-target-details';
 import { applicationDomainOf } from '@repo/test-utils';
-import { SqliteControlAdapter } from '../../../src/core/control-adapter';
 import type { SqliteContract } from '../../../src/core/types';
 import sqliteAdapterDescriptor from '../../../src/exports/control';
+import { createTestSqliteControlAdapter } from '../../helpers/test-control-adapter';
 
 export const contract: Contract<SqlStorage> = {
   target: 'sqlite',
@@ -191,7 +191,7 @@ export function createLedgerTestPlan(options: {
   });
 }
 
-const sqliteControlAdapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+const sqliteControlAdapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
 const sqliteControlLowererContext = { contract: {} as SqliteContract };
 
 export async function bootstrapSqliteControlTables(driver: SqliteControlDriver): Promise<void> {

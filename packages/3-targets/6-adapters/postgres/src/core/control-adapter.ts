@@ -200,11 +200,11 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
   readonly familyId = 'sql' as const;
   readonly targetId = 'postgres' as const;
 
-  /** `declaredDataTypes` are the stack's data types in assembly order, which introspection resolves each column's reported type over; an adapter built without them gives no column a data type. */
+  /** `declaredDataTypes` are the stack's data types in assembly order, which introspection resolves each column's reported type over. */
   constructor(
     private readonly codecRegistry: PostgresCodecRegistry,
     private readonly dataTypeLookup: DataTypeLookup,
-    private readonly declaredDataTypes: readonly DataType[] = [],
+    private readonly declaredDataTypes: readonly DataType[],
   ) {}
 
   bootstrapControlTableQueries(): readonly DdlNode[] {

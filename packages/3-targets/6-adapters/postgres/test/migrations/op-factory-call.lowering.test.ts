@@ -62,14 +62,14 @@ import { TypeScriptRenderablePostgresMigration } from '@internal/target-postgres
 import { renderOps } from '@internal/target-postgres/render-ops';
 import { ifDefined } from '@internal/utils/defined';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from '../helpers/test-control-adapter';
 
 const SNAPSHOTS_IMPORT_PATH = '../../snapshots';
 const META = {
   from: 'a'.repeat(64),
   to: 'b'.repeat(64),
 } as const;
-const testAdapter = new PostgresControlAdapter(
+const testAdapter = createTestPostgresControlAdapter(
   createPostgresBuiltinCodecLookup(),
   createPostgresBuiltinDataTypeLookup(),
 );

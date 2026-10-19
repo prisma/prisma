@@ -40,13 +40,13 @@ import { createPostgresAdapter } from '../src/core/adapter';
 import type { PostgresContract } from '../src/core/types';
 import postgresAdapterControlDescriptor, {
   createPostgresCodecRegistryWithBuiltins,
-  PostgresControlAdapter,
 } from '../src/exports/control';
 import postgresRuntimeAdapterDescriptor from '../src/exports/runtime';
 import {
   createComposedPostgresAdapter,
   createComposedPostgresControlAdapter,
 } from './helpers/composed-adapter';
+import { createTestPostgresControlAdapter } from './helpers/test-control-adapter';
 import { defineTestCodec } from './test-codec';
 
 /** The data types the fixture codecs of one contribution represent, so assembly finds them. */
@@ -351,7 +351,7 @@ describe('PostgreSQL adapter codec registry composition', () => {
       { id: 'fixture', dataTypes: fixtureDataTypes([descriptor]) },
     ]).lookup;
     const codecRegistry = createPostgresCodecRegistryWithBuiltins([descriptor], dataTypeLookup);
-    const adapter = new PostgresControlAdapter(codecRegistry, dataTypeLookup);
+    const adapter = createTestPostgresControlAdapter(codecRegistry, dataTypeLookup);
     const ast = selectWithParam('document', descriptor.codecId, 'Ada');
 
     await expect(adapter.lowerToExecuteRequest(ast, { contract })).resolves.toEqual({

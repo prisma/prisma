@@ -18,9 +18,9 @@ import {
   CreateTableCall,
 } from '@internal/target-postgres/op-factory-call';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from '../helpers/test-control-adapter';
 
-const testAdapter = new PostgresControlAdapter(
+const testAdapter = createTestPostgresControlAdapter(
   createPostgresBuiltinCodecLookup(),
   createPostgresBuiltinDataTypeLookup(),
 );

@@ -12,7 +12,7 @@ import {
 } from '@internal/target-postgres/data-types';
 import { buildColumnTypeSql } from '@internal/target-postgres/planner-ddl-builders';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from '../helpers/test-control-adapter';
 
 const types: SqlTypeLookups = {
   codecLookup: postgresCodecDescriptorRegistry,
@@ -109,7 +109,7 @@ describe('buildColumnTypeSql', () => {
 // ---------------------------------------------------------------------------
 
 describe('the DEFAULT clause the Postgres adapter writes in every DDL statement', () => {
-  const adapter = new PostgresControlAdapter(
+  const adapter = createTestPostgresControlAdapter(
     createPostgresBuiltinCodecLookup(),
     createPostgresBuiltinDataTypeLookup(),
   );

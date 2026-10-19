@@ -19,13 +19,13 @@ import { SqliteCreateTable } from '@internal/target-sqlite/ddl';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { createSqliteAdapter, sqliteRawCodecInferer } from '../src/core/adapter';
-import { SqliteControlAdapter } from '../src/core/control-adapter';
 import { decodeSqliteMarkerRow } from '../src/core/marker-ledger';
 import type { SqliteContract } from '../src/core/types';
+import { createTestSqliteControlAdapter } from './helpers/test-control-adapter';
 
 const contract = {} as SqliteContract;
 const runtimeAdapter = createSqliteAdapter();
-const controlAdapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+const controlAdapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
 
 function catchError(fn: () => unknown): unknown {
   try {
@@ -140,7 +140,7 @@ describe('structured error codes', () => {
       },
       forColumn: () => undefined,
     };
-    const adapter = new SqliteControlAdapter(lookup);
+    const adapter = createTestSqliteControlAdapter(lookup);
     const ast = new SqliteCreateTable({
       table: 'secrets',
       columns: [

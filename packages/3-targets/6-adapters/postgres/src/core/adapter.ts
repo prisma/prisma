@@ -38,7 +38,11 @@ class PostgresAdapterImpl
   ) {
     this.codecRegistry = codecRegistry;
     this.dataTypeLookup = dataTypeLookup;
-    const controlAdapter = new PostgresControlAdapter(codecRegistry, dataTypeLookup);
+    const controlAdapter = new PostgresControlAdapter(
+      codecRegistry,
+      dataTypeLookup,
+      postgresDataTypes,
+    );
     this.profile = Object.freeze({
       id: profileId ?? 'postgres/default@1',
       target: 'postgres',

@@ -15,11 +15,8 @@ import type {
 } from '@internal/target-postgres/types';
 import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import {
-  PostgresControlAdapter,
-  parsePgNameArray,
-  parsePgReloptions,
-} from '../src/core/control-adapter';
+import { parsePgNameArray, parsePgReloptions } from '../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from './helpers/test-control-adapter';
 
 /**
  * These tests introspect a single schema, so the root holds exactly one
@@ -64,7 +61,7 @@ function createMockDriver(
 describe('PostgresControlAdapter', () => {
   describe('introspect', () => {
     it('introspects empty schema', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -84,7 +81,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('issues introspection queries sequentially on the single connection', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -112,7 +109,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('introspects schema with tables and columns', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -201,7 +198,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('handles character varying without length', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -259,7 +256,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('handles numeric with precision and scale', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -317,7 +314,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('handles numeric with precision only', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -375,7 +372,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('handles numeric without precision', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -433,7 +430,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('maps json and jsonb columns to native types', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -502,7 +499,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('uses formatted_type for bit length', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -538,7 +535,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('normalizes formatted_type variants', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -646,7 +643,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('handles foreign keys', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -737,7 +734,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('handles multi-column foreign keys', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -827,7 +824,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('handles unique constraints', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -894,7 +891,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('handles multi-column unique constraints', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -960,7 +957,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('handles indexes', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -1038,7 +1035,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('handles multi-column indexes', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -1116,7 +1113,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('captures an index with a null-attname key as an expression node (whole element list)', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -1221,7 +1218,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('preserves both siblings when a unique and a plain index share one column tuple', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -1334,7 +1331,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('handles custom schema name', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -1367,7 +1364,7 @@ describe('PostgresControlAdapter', () => {
     it(
       'handles version string without match',
       async () => {
-        const adapter = new PostgresControlAdapter(
+        const adapter = createTestPostgresControlAdapter(
           createPostgresBuiltinCodecLookup(),
           createPostgresBuiltinDataTypeLookup(),
         );
@@ -1399,7 +1396,7 @@ describe('PostgresControlAdapter', () => {
     );
 
     it('handles missing version result', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -1427,7 +1424,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('handles table without primary key', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -1485,7 +1482,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('handles primary key without constraint name', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -1553,7 +1550,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('normalizes integer/float/bool formatted types', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -1649,7 +1646,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('sorts multi-column primary key by ordinal position and skips PK from uniques', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -1723,7 +1720,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('stamps normalized resolvedNativeType and parsed resolvedDefault on columns', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -1800,7 +1797,7 @@ describe('PostgresControlAdapter', () => {
 
   describe('introspect - USER-DEFINED enum types', () => {
     it('strips surrounding double quotes from mixed-case enum formatted_type', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -1840,7 +1837,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('preserves lowercase enum formatted_type (no quotes from format_type)', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -1989,7 +1986,7 @@ describe('PostgresControlAdapter', () => {
     };
 
     it('returns null when marker table is absent', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -2000,7 +1997,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('returns null when marker table exists but row is absent', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -2015,7 +2012,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('rejects native array invariants with a structured marker error', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -2046,7 +2043,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('reads canonical_version integer text as a number', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -2067,7 +2064,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('rejects canonical_version text that is not an integer as a corrupt marker row', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -2093,7 +2090,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('rejects SQL NULL invariants as a corrupt marker row', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -2128,7 +2125,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('throws CONTRACT.MARKER_READ_FAILED when marker read query fails', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -2155,7 +2152,7 @@ describe('PostgresControlAdapter', () => {
 
   describe('readAllMarkers', () => {
     it('decodes invariants array text before marker validation', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -2184,7 +2181,7 @@ describe('PostgresControlAdapter', () => {
     });
 
     it('throws CONTRACT.MARKER_ROW_CORRUPT on first corrupt row', async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );

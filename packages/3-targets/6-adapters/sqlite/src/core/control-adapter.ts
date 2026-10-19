@@ -143,8 +143,8 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
   private readonly codecRegistry: SqliteCodecRegistry;
   private readonly declaredDataTypes: readonly DataType[];
 
-  /** `declaredDataTypes` are the stack's data types in assembly order, which introspection resolves each column's reported type over; an adapter built without them gives no column a data type. */
-  constructor(codecRegistry: SqliteCodecRegistry, declaredDataTypes: readonly DataType[] = []) {
+  /** `declaredDataTypes` are the stack's data types in assembly order, which introspection resolves each column's reported type over. */
+  constructor(codecRegistry: SqliteCodecRegistry, declaredDataTypes: readonly DataType[]) {
     this.codecRegistry = codecRegistry;
     this.declaredDataTypes = declaredDataTypes;
   }

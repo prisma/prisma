@@ -1,6 +1,5 @@
 import postgresAdapterControl, {
   createPostgresBuiltinCodecLookup,
-  PostgresControlAdapter,
 } from '@internal/adapter-postgres/control';
 import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
 import { type FieldStatementColumns, sqlTypeLookupsOf } from '@internal/family-sql/control';
@@ -27,8 +26,9 @@ import {
 } from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
+import { createTestPostgresControlAdapter } from '../../../../packages/3-targets/6-adapters/postgres/test/helpers/test-control-adapter';
 
-const testAdapter = new PostgresControlAdapter(
+const testAdapter = createTestPostgresControlAdapter(
   createPostgresBuiltinCodecLookup(),
   createPostgresBuiltinDataTypeLookup(),
 );
