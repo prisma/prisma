@@ -222,6 +222,75 @@ describe('contract infer over every Postgres data type with a marked constructor
   );
 
   it(
+    'verifies clean, and names exactly the column whose type raw SQL changes',
+    async () => {
+      if (!database) throw new Error('database not initialised');
+      const connectionString = database.connectionString;
+      const authored = await authorSqlContractFromPsl(AUTHORED_SCHEMA);
+      if (!authored.contract) throw new Error('authoring produced no contract');
+      const contract = authored.contract;
+      await resetDatabase(connectionString);
+      await migrateContract(connectionString, contract);
+
+      const notEqualColumns = async () => {
+        const driver = await postgresControlDriver.create(connectionString);
+        try {
+          const result = familyInstance.verifySchema({
+            contract,
+            schema: await familyInstance.introspect({ driver, contract }),
+            strict: false,
+            frameworkComponents: postgresFrameworkComponents,
+          });
+          return result.schema.issues
+            .filter((issue) => issue.path.length === 4 && issue.path[3]?.startsWith('column:'))
+            .map((issue) => issue.path.join('/'));
+        } finally {
+          await driver.close();
+        }
+      };
+      expect(await notEqualColumns()).toEqual([]);
+
+      // The CHECK constraints the planner adds for list columns would refuse a column of another type.
+      await withClient(connectionString, async (client) => {
+        const checks = await client.query<{ name: string }>(
+          `SELECT conname AS name FROM pg_constraint WHERE conrelid = '"Sample"'::regclass AND contype = 'c'`,
+        );
+        for (const { name } of checks.rows) {
+          await client.query(`ALTER TABLE "Sample" DROP CONSTRAINT "${name}"`);
+        }
+      });
+
+      const reported = await withClient(connectionString, (client) =>
+        client.query<{ name: string; type: string }>(
+          `SELECT a.attname AS name, format_type(a.atttypid, a.atttypmod) AS type
+             FROM pg_attribute a WHERE a.attrelid = '"Sample"'::regclass AND a.attnum > 0
+              AND NOT a.attisdropped AND a.attname <> 'id' ORDER BY a.attnum`,
+        ),
+      );
+      const misnamed: unknown[] = [];
+      for (const { name, type } of reported.rows) {
+        const list = type.endsWith('[]');
+        const element = list ? type.slice(0, -2) : type;
+        const other = `${element === 'text' ? 'integer' : 'text'}${list ? '[]' : ''}`;
+        await withClient(connectionString, (client) =>
+          client.query(`ALTER TABLE "Sample" ALTER COLUMN "${name}" TYPE ${other} USING NULL`),
+        );
+        const named = await notEqualColumns();
+        if (named.join() !== `database/public/Sample/column:${name}`) {
+          misnamed.push({ name, type, other, named });
+        }
+        await withClient(connectionString, (client) =>
+          client.query(`ALTER TABLE "Sample" ALTER COLUMN "${name}" TYPE ${type} USING NULL`),
+        );
+      }
+      expect(misnamed).toEqual([]);
+      expect(reported.rows.length).toBe(AUTHORED_TYPES.length * 2);
+      expect(await notEqualColumns()).toEqual([]);
+    },
+    timeouts.spinUpPpgDev * 4,
+  );
+
+  it(
     'fails on a tsquery column, whose data type has no marked constructor',
     async () => {
       if (!database) throw new Error('database not initialised');

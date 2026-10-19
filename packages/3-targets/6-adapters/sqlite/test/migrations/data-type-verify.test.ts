@@ -235,6 +235,56 @@ describe('verify on SQLite, for each data type', () => {
     }
   });
 
+  it('names exactly the column whose type raw SQL changes', async () => {
+    const driver = createMemoryDriver();
+    try {
+      const result = sqliteTargetDescriptor.createPlanner(controlAdapter).plan({
+        contract,
+        schema: emptySchema,
+        policy: { allowedOperationClasses: ['additive'] },
+        fromContract: null,
+        origin: null,
+        statements: [],
+        frameworkComponents,
+        spaceId: APP_SPACE_ID,
+        snapshotsImportPath: '../../snapshots',
+      });
+      if (result.kind !== 'success') throw new Error('expected planner success');
+      const operations = (await Promise.all(
+        result.plan.operations,
+      )) as SqlMigrationPlanOperation<unknown>[];
+      for (const operation of operations) {
+        for (const { sql } of operation.execute) await driver.query(sql);
+      }
+      const [created] = (
+        await driver.query<{ sql: string }>(`SELECT sql FROM sqlite_master WHERE name = 'item'`)
+      ).rows;
+      if (created === undefined) throw new Error('the planner created no table');
+      const columnIssues = async () =>
+        (await verify(driver)).schema.issues
+          .filter((issue) => issue.path[2]?.startsWith('column:') && issue.path.length === 3)
+          .map((issue) => issue.path.join('/'));
+      expect(await columnIssues()).toEqual([]);
+
+      const misnamed: unknown[] = [];
+      for (const name of Object.keys(columns)) {
+        const declared = new RegExp(`"${name}" ([A-Z ]+?)(?= NOT NULL| DEFAULT|,|\\n|\\))`);
+        const type = declared.exec(created.sql)?.[1];
+        if (type === undefined) throw new Error(`no declared type for ${name}`);
+        const other = type === 'INTEGER' ? 'TEXT' : 'INTEGER';
+        await driver.query('DROP TABLE "item"');
+        await driver.query(created.sql.replace(declared, `"${name}" ${other}`));
+        const named = await columnIssues();
+        if (named.join() !== `database/item/column:${name}`) misnamed.push({ name, other, named });
+        await driver.query('DROP TABLE "item"');
+        await driver.query(created.sql);
+      }
+      expect(misnamed).toEqual([]);
+    } finally {
+      await driver.close();
+    }
+  });
+
   it('verifies integer and JSON defaults written in their earlier stored form', async () => {
     const driver = createMemoryDriver();
     try {
