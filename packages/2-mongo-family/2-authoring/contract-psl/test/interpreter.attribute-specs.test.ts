@@ -227,13 +227,13 @@ describe('unknown attribute names diagnose against the registered namespace', ()
     expect(
       diagnosticsOf(`
         type Address {
-          street String @map("s")
+          street String
         }
         model Item {
           id      ObjectId @id @map("_id")
           email   String   @unique
           owner   Owner    @relation(fields: [ownerId], references: [id])
-          ownerId ObjectId
+          ownerId ObjectId @map("owner_id")
           address Address
           @@map("items")
           @@index([sort(email, Desc)])

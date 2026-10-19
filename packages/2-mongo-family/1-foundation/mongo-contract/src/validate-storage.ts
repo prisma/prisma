@@ -78,7 +78,7 @@ function fieldStorageErrors(
     ...Object.entries(storageFields).map(([name, { field }]) => [name, field] as const),
   ]) {
     const other = fieldsByStoredName.get(storedName);
-    if (other !== undefined) {
+    if (other !== undefined && other !== fieldName) {
       const [first, second] = [other, fieldName].sort();
       errors.push(
         `Model "${qualifiedName}" fields "${first}" and "${second}" are both stored as "${storedName}"`,
