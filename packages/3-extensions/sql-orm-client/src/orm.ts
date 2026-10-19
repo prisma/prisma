@@ -180,7 +180,7 @@ export function orm<
   collectionMethodTables(context);
   const contract = context.contract;
   const ctx: CollectionContext<TContract> = { runtime, context };
-  const collectionRegistry = createCollectionRegistry(contract, collections);
+  const collectionRegistry = checkCollectionClasses(contract, collections);
 
   type AnyCollection = Collection<TContract, string, unknown, CollectionTypeState>;
 
@@ -257,10 +257,16 @@ export function orm<
   });
 }
 
-function createCollectionRegistry<
+/**
+ * Checks that each custom collection class is a `Collection` subclass registered under a model the contract has, and returns the classes by model name. `orm()` calls it, and a client calls it when it is created, so a wrong class fails there and not on the first query.
+ */
+export function checkCollectionClasses<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses,
->(contract: TContract, collections: TCollections | undefined): Map<string, AnyCollectionClass> {
+>(
+  contract: TContract,
+  collections: TCollections | undefined,
+): ReadonlyMap<string, AnyCollectionClass> {
   const registry = new Map<string, AnyCollectionClass>();
   if (!collections) {
     return registry;

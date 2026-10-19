@@ -15,7 +15,12 @@ import {
 import { createRawLane, sql } from '@internal/sql-builder/runtime';
 import type { Db, RawLane } from '@internal/sql-builder/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
-import { type CollectionClasses, type NoCollectionClasses, orm } from '@internal/sql-orm-client';
+import {
+  type CollectionClasses,
+  checkCollectionClasses,
+  type NoCollectionClasses,
+  orm,
+} from '@internal/sql-orm-client';
 import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
@@ -31,7 +36,6 @@ import {
   activitySource,
   createExecutionContext,
   createSqlExecutionStack,
-  delegatingActivitySource,
   withTransaction,
 } from '@internal/sql-runtime';
 import postgresTarget, { PostgresContractSerializer } from '@internal/target-postgres/runtime';
@@ -307,21 +311,7 @@ export default async function supabase<
 
   const context = createExecutionContext({ contract, stack });
 
-  // orm() checks the custom collection classes when it is built. Building one here makes a class
-  // for a model the contract does not have fail at the factory call, as it does for postgres().
-  const noRuntime = (): never => {
-    throw new InternalError('supabase() builds this ORM only to check its collection classes');
-  };
-  orm<TContract, TCollections>({
-    runtime: {
-      query: noRuntime,
-      execute: noRuntime,
-      connection: noRuntime,
-      [activitySource]: delegatingActivitySource(noRuntime),
-    },
-    context,
-    ...ifDefined('collections', options.collections),
-  });
+  checkCollectionClasses(contract, options.collections);
   const rawCodecInferer = stack.adapter.rawCodecInferer;
 
   const poolEntry = toPool(options);
