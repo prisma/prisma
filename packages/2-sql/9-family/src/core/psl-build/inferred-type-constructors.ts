@@ -83,11 +83,11 @@ export function fewestArgumentsCall(
 }
 
 /**
- * A type constructor argument as PSL writes it: a number as written, a string between quotes.
- * Undefined for a string PSL cannot carry, because a quote, backslash or line break in it would read
- * back differently.
+ * A type constructor argument as PSL writes it: a number or boolean as written, a string between quotes.
+ * Undefined for any other value, such as an array or an object, and for a string PSL cannot carry, because a quote, backslash or line break in it would read back differently.
  */
 export function pslTypeArgumentText(value: unknown): string | undefined {
-  if (typeof value !== 'string') return String(value);
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (typeof value !== 'string') return undefined;
   return escapePslString(value) === value ? `"${value}"` : undefined;
 }

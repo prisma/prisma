@@ -181,10 +181,13 @@ export type {
 } from '../control/verifier-disposition';
 export { dispositionForCategory } from '../control/verifier-disposition';
 export type {
+  AssembledControlMutationDefaults,
   ControlMutationDefaultEntry,
   ControlMutationDefaultRegistry,
   ControlMutationDefaults,
+  DefaultFunctionArgumentsPrinter,
   DefaultFunctionLoweringContext,
+  DefaultFunctionPrinter,
   LoweredDefaultResult,
   LoweredDefaultValue,
   MutationDefaultGeneratorDescriptor,
