@@ -7,7 +7,7 @@ import {
 
 const column = (overrides: Partial<CatalogColumnType>): CatalogColumnType => ({
   formattedType: null,
-  dataType: 'USER-DEFINED',
+  informationSchemaType: 'USER-DEFINED',
   udtName: '',
   characterMaximumLength: null,
   numericPrecision: null,
@@ -18,42 +18,57 @@ const column = (overrides: Partial<CatalogColumnType>): CatalogColumnType => ({
 describe('introspectedNativeType', () => {
   describe('from the type format_type reports', () => {
     it.each([
-      { formattedType: 'integer', dataType: 'integer', udtName: 'int4', nativeType: 'int4' },
-      { formattedType: 'bigint', dataType: 'bigint', udtName: 'int8', nativeType: 'int8' },
-      { formattedType: 'boolean', dataType: 'boolean', udtName: 'bool', nativeType: 'bool' },
+      {
+        formattedType: 'integer',
+        informationSchemaType: 'integer',
+        udtName: 'int4',
+        nativeType: 'int4',
+      },
+      {
+        formattedType: 'bigint',
+        informationSchemaType: 'bigint',
+        udtName: 'int8',
+        nativeType: 'int8',
+      },
+      {
+        formattedType: 'boolean',
+        informationSchemaType: 'boolean',
+        udtName: 'bool',
+        nativeType: 'bool',
+      },
       {
         formattedType: 'double precision',
-        dataType: 'double precision',
+        informationSchemaType: 'double precision',
         udtName: 'float8',
         nativeType: 'float8',
       },
       {
         formattedType: 'character varying(10)',
-        dataType: 'character varying',
+        informationSchemaType: 'character varying',
         udtName: 'varchar',
         nativeType: 'character varying(10)',
       },
       {
         formattedType: 'numeric(10,2)',
-        dataType: 'numeric',
+        informationSchemaType: 'numeric',
         udtName: 'numeric',
         nativeType: 'numeric(10,2)',
       },
       {
         formattedType: 'timestamp(3) without time zone',
-        dataType: 'timestamp without time zone',
+        informationSchemaType: 'timestamp without time zone',
         udtName: 'timestamp',
         nativeType: 'timestamp(3)',
       },
       {
         formattedType: 'timestamp with time zone',
-        dataType: 'timestamp with time zone',
+        informationSchemaType: 'timestamp with time zone',
         udtName: 'timestamptz',
         nativeType: 'timestamptz',
       },
       {
         formattedType: 'audit."AuditAction"',
-        dataType: 'USER-DEFINED',
+        informationSchemaType: 'USER-DEFINED',
         udtName: 'AuditAction',
         nativeType: 'audit.AuditAction',
       },
@@ -73,7 +88,9 @@ describe('introspectedNativeType', () => {
       'reads the array $formattedType as a list of $nativeType',
       ({ formattedType, udtName, nativeType }) => {
         expect(
-          introspectedNativeType(column({ formattedType, dataType: 'ARRAY', udtName })),
+          introspectedNativeType(
+            column({ formattedType, informationSchemaType: 'ARRAY', udtName }),
+          ),
         ).toEqual({ nativeType, many: true, resolvedNativeType: `${nativeType}[]` });
       },
     );
@@ -84,7 +101,7 @@ describe('introspectedNativeType', () => {
       expect(
         introspectedNativeType(
           column({
-            dataType: 'character varying',
+            informationSchemaType: 'character varying',
             udtName: 'varchar',
             characterMaximumLength: 10,
           }),
@@ -100,7 +117,7 @@ describe('introspectedNativeType', () => {
       expect(
         introspectedNativeType(
           column({
-            dataType: 'numeric',
+            informationSchemaType: 'numeric',
             udtName: 'numeric',
             numericPrecision: 10,
             numericScale: 2,
@@ -114,7 +131,9 @@ describe('introspectedNativeType', () => {
     });
 
     it('falls back to the udt name', () => {
-      expect(introspectedNativeType(column({ dataType: 'text', udtName: 'text' }))).toEqual({
+      expect(
+        introspectedNativeType(column({ informationSchemaType: 'text', udtName: 'text' })),
+      ).toEqual({
         nativeType: 'text',
         many: undefined,
         resolvedNativeType: 'text',

@@ -1174,7 +1174,7 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
       for (const colRow of columnsByTable.get(tableName) ?? []) {
         const { nativeType, many, resolvedNativeType } = introspectedNativeType({
           formattedType: colRow.formatted_type,
-          dataType: colRow.data_type,
+          informationSchemaType: colRow.data_type,
           udtName: colRow.udt_name,
           characterMaximumLength: colRow.character_maximum_length,
           numericPrecision: colRow.numeric_precision,

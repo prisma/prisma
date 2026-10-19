@@ -247,7 +247,7 @@ async function observe(): Promise<ReadonlyMap<string, Observation>> {
       const catalog = await client.query<CatalogColumn>(
         `SELECT c.column_name AS "columnName", c.column_default AS "columnDefault",
                 format_type(a.atttypid, a.atttypmod) AS "formattedType",
-                c.data_type AS "dataType", c.udt_name AS "udtName",
+                c.data_type AS "informationSchemaType", c.udt_name AS "udtName",
                 c.character_maximum_length AS "characterMaximumLength",
                 c.numeric_precision AS "numericPrecision", c.numeric_scale AS "numericScale",
                 format_type(COALESCE(et.oid, t.oid), a.atttypmod) AS "reportedText",

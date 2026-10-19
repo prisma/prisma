@@ -55,7 +55,8 @@ export function normalizeSchemaNativeType(nativeType: string): string {
  */
 export interface CatalogColumnType {
   readonly formattedType: string | null;
-  readonly dataType: string;
+  /** `information_schema.columns.data_type`. */
+  readonly informationSchemaType: string;
   readonly udtName: string;
   readonly characterMaximumLength: number | null;
   readonly numericPrecision: number | null;
@@ -86,20 +87,23 @@ function reportedNativeType(column: CatalogColumnType): string {
   if (column.formattedType) {
     return normalizeFormattedType(column.formattedType);
   }
-  if (column.dataType === 'character varying' || column.dataType === 'character') {
+  if (
+    column.informationSchemaType === 'character varying' ||
+    column.informationSchemaType === 'character'
+  ) {
     return column.characterMaximumLength
-      ? `${column.dataType}(${column.characterMaximumLength})`
-      : column.dataType;
+      ? `${column.informationSchemaType}(${column.characterMaximumLength})`
+      : column.informationSchemaType;
   }
-  if (column.dataType === 'numeric' || column.dataType === 'decimal') {
+  if (column.informationSchemaType === 'numeric' || column.informationSchemaType === 'decimal') {
     if (column.numericPrecision && column.numericScale !== null) {
-      return `${column.dataType}(${column.numericPrecision},${column.numericScale})`;
+      return `${column.informationSchemaType}(${column.numericPrecision},${column.numericScale})`;
     }
     return column.numericPrecision
-      ? `${column.dataType}(${column.numericPrecision})`
-      : column.dataType;
+      ? `${column.informationSchemaType}(${column.numericPrecision})`
+      : column.informationSchemaType;
   }
-  return column.udtName || column.dataType;
+  return column.udtName || column.informationSchemaType;
 }
 
 /**
