@@ -3,7 +3,7 @@ import type { Contract } from '@internal/contract/types';
 import postgresDriver, { suppressIdleConnectionErrors } from '@internal/driver-postgres/runtime';
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
 import type { SqlStorage } from '@internal/sql-contract/types';
-import type { CollectionClasses } from '@internal/sql-orm-client';
+import type { CollectionClasses, NoCollectionClasses } from '@internal/sql-orm-client';
 import type { Runtime } from '@internal/sql-runtime';
 import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
 import postgresTarget from '@internal/target-postgres/runtime';
@@ -32,14 +32,14 @@ import type { PostgresTargetId } from './postgres-target-id';
 
 export interface PostgresServerlessConnection<
   TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses = Record<never, never>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
 > extends PostgresStaticMembers<TContract>,
     PostgresRuntimeBoundMembers<TContract, TCollections>,
     PostgresLifecycleMembers {}
 
 export interface PostgresServerlessClient<
   TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses = Record<never, never>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
 > extends PostgresStaticMembers<TContract> {
   connect(binding: {
     readonly url: string;
@@ -50,7 +50,7 @@ export interface PostgresServerlessOptionsBase extends PostgresExecutionOptions 
 
 export type PostgresServerlessOptions<
   TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses = Record<never, never>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
 > = PostgresServerlessOptionsBase & {
   readonly contract: TContract;
   readonly collections?: TCollections;
@@ -101,7 +101,7 @@ function connectionFailedError(url: string, cause: unknown) {
  */
 export default function postgresServerless<
   TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses = Record<never, never>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
 >(
   options: PostgresServerlessOptions<TContract, TCollections>,
 ): PostgresServerlessClient<TContract, TCollections> {

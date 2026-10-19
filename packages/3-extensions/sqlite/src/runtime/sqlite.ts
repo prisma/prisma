@@ -9,6 +9,7 @@ import type { Db, RawLane } from '@internal/sql-builder/types';
 import type { ExtractCodecTypes, SqlStorage } from '@internal/sql-contract/types';
 import {
   type CollectionClasses,
+  type NoCollectionClasses,
   orm as ormBuilder,
   type PreparedFrom,
   prepareQuery,
@@ -72,7 +73,7 @@ function unboundOrm<TContract extends Contract<SqlStorage>, TCollections extends
 
 export interface SqliteTransactionContext<
   TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses = Record<never, never>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
 > extends TransactionContext {
   readonly sql: UnboundSql<TContract>;
   readonly orm: UnboundOrm<TContract, TCollections>;
@@ -81,7 +82,7 @@ export interface SqliteTransactionContext<
 
 export interface SqliteClient<
   TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses = Record<never, never>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
 > {
   readonly sql: UnboundSql<TContract>;
   readonly orm: UnboundOrm<TContract, TCollections>;
@@ -116,7 +117,7 @@ export interface SqliteOptionsBase {
 
 export type SqliteOptions<
   TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses = Record<never, never>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
 > = SqliteOptionsBase & {
   readonly contract: TContract;
   readonly collections?: TCollections;
@@ -142,7 +143,7 @@ export type SqliteOptions<
  */
 export default function sqlite<
   TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses = Record<never, never>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
 >(options: SqliteOptions<TContract, TCollections>): SqliteClient<TContract, TCollections> {
   const contract = validateSqliteContract(options.contract);
   let binding = resolveOptionalSqliteBinding(options);

@@ -15,7 +15,7 @@ import {
 import { createRawLane, sql } from '@internal/sql-builder/runtime';
 import type { Db, RawLane } from '@internal/sql-builder/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
-import { type CollectionClasses, orm } from '@internal/sql-orm-client';
+import { type CollectionClasses, type NoCollectionClasses, orm } from '@internal/sql-orm-client';
 import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
@@ -53,7 +53,7 @@ export type SupabaseTargetId = 'postgres';
 
 type OrmClient<
   TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses = Record<never, never>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
 > = ReturnType<typeof orm<TContract, TCollections>>;
 
 type KeyMaterial =
@@ -62,7 +62,7 @@ type KeyMaterial =
 
 export interface RoleBoundDb<
   TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses = Record<never, never>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
 > {
   readonly sql: Db<TContract>;
   readonly orm: OrmClient<TContract, TCollections>;
@@ -109,14 +109,14 @@ export interface SupabaseInternalDb {
  */
 export type ServiceRoleDb<
   TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses = Record<never, never>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
 > = RoleBoundDb<TContract, TCollections> & {
   readonly supabase: SupabaseInternalDb;
 };
 
 export interface SupabaseDb<
   TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses = Record<never, never>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
 > {
   readonly context: ExecutionContext<TContract>;
   readonly stack: SqlExecutionStackWithDriver<SupabaseTargetId>;
@@ -155,7 +155,7 @@ type JwksUrlOption = {
 
 export type SupabaseOptions<
   TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses = Record<never, never>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
 > = SupabaseBindingOptions &
   SupabaseOptionsBase &
   (JwtSecretOption | JwksUrlOption) & {
@@ -293,7 +293,7 @@ function buildExtensionContract(): SupabaseExtensionContract {
  */
 export default async function supabase<
   TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses = Record<never, never>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
 >(options: SupabaseOptions<TContract, TCollections>): Promise<SupabaseDb<TContract, TCollections>> {
   const keyMaterial = resolveKeyMaterial(options);
   const contract = validatePostgresContract(options.contract);

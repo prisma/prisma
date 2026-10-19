@@ -31,10 +31,10 @@ import type {
 
 export interface OrmOptions<
   TContract extends Contract<SqlStorage>,
-  Collections extends CollectionClasses,
+  TCollections extends CollectionClasses,
 > {
   readonly runtime: RuntimeQueryable;
-  readonly collections?: Collections;
+  readonly collections?: TCollections;
   readonly context: ExecutionContext<TContract>;
 }
 
@@ -45,12 +45,15 @@ type AnyCollectionClass = new (...args: never[]) => object;
 /** Custom collection classes keyed by model name, as `orm({ collections })` and the clients take them. */
 export type CollectionClasses = Partial<Record<string, AnyCollectionClass>>;
 
+/** No custom collection classes: the default of `orm()` and of every client type. */
+export type NoCollectionClasses = Record<never, never>;
+
 type CustomCollectionForKey<
-  Collections extends CollectionClasses,
+  TCollections extends CollectionClasses,
   Key extends string,
-> = Key extends keyof Collections
-  ? Collections[Key] extends AnyCollectionClass
-    ? InstanceType<Collections[Key]>
+> = Key extends keyof TCollections
+  ? TCollections[Key] extends AnyCollectionClass
+    ? InstanceType<TCollections[Key]>
     : never
   : never;
 
@@ -60,17 +63,17 @@ type CustomCollectionForKey<
 // `FieldOutputTypes[NsId]`).
 type ModelCollection<
   TContract extends Contract<SqlStorage>,
-  Collections extends CollectionClasses,
+  TCollections extends CollectionClasses,
   NsId extends string,
   ModelName extends ModelNames<TContract>,
-> = [CustomCollectionForKey<Collections, ModelName>] extends [never]
+> = [CustomCollectionForKey<TCollections, ModelName>] extends [never]
   ? Collection<
       TContract,
       ModelName,
       InferRootRow<TContract, ModelName, NsId>,
       WithNsId<DefaultCollectionTypeState, NsId>
     >
-  : CustomCollectionForKey<Collections, ModelName>;
+  : CustomCollectionForKey<TCollections, ModelName>;
 
 type NamespaceModelNames<
   TContract extends Contract<SqlStorage>,
@@ -83,12 +86,12 @@ type NamespaceModelNames<
 // the `db.enums` facade member, lane-agnostic contract metadata.
 export type OrmNamespace<
   TContract extends Contract<SqlStorage>,
-  Collections extends CollectionClasses,
+  TCollections extends CollectionClasses,
   NsId extends keyof TContract['domain']['namespaces'],
 > = {
   [K in NamespaceModelNames<TContract, NsId>]: ModelCollection<
     TContract,
-    Collections,
+    TCollections,
     NsId & string,
     K
   >;
@@ -96,9 +99,9 @@ export type OrmNamespace<
 
 type NamespacedClientMap<
   TContract extends Contract<SqlStorage>,
-  Collections extends CollectionClasses,
+  TCollections extends CollectionClasses,
 > = {
-  [Ns in keyof TContract['domain']['namespaces']]: OrmNamespace<TContract, Collections, Ns>;
+  [Ns in keyof TContract['domain']['namespaces']]: OrmNamespace<TContract, TCollections, Ns>;
 };
 
 /** The members of the client beside its namespaces. */
@@ -137,8 +140,8 @@ export interface OrmClientMembers<TContract extends Contract<SqlStorage>> {
 
 type OrmClient<
   TContract extends Contract<SqlStorage>,
-  Collections extends CollectionClasses,
-> = NamespacedClientMap<TContract, Collections> &
+  TCollections extends CollectionClasses,
+> = NamespacedClientMap<TContract, TCollections> &
   ('fragment' extends keyof TContract['domain']['namespaces']
     ? unknown
     : OrmClientMembers<TContract>);
@@ -170,8 +173,8 @@ function assertAggregateOperationsNotReserved(registry: SqlAggregateDescriptorRe
 
 export function orm<
   TContract extends Contract<SqlStorage>,
-  Collections extends CollectionClasses = Record<never, never>,
->(options: OrmOptions<TContract, Collections>): OrmClient<TContract, Collections> {
+  TCollections extends CollectionClasses = NoCollectionClasses,
+>(options: OrmOptions<TContract, TCollections>): OrmClient<TContract, TCollections> {
   const { runtime, collections, context } = options;
   assertAggregateOperationsNotReserved(context.aggregateDescriptors);
   collectionMethodTables(context);
@@ -239,7 +242,7 @@ export function orm<
     return facet;
   }
 
-  return new Proxy({} as OrmClient<TContract, Collections>, {
+  return new Proxy({} as OrmClient<TContract, TCollections>, {
     get(_target, prop: string | symbol): unknown {
       if (typeof prop !== 'string') {
         return undefined;
@@ -256,8 +259,8 @@ export function orm<
 
 function createCollectionRegistry<
   TContract extends Contract<SqlStorage>,
-  Collections extends CollectionClasses,
->(contract: TContract, collections: Collections | undefined): Map<string, AnyCollectionClass> {
+  TCollections extends CollectionClasses,
+>(contract: TContract, collections: TCollections | undefined): Map<string, AnyCollectionClass> {
   const registry = new Map<string, AnyCollectionClass>();
   if (!collections) {
     return registry;

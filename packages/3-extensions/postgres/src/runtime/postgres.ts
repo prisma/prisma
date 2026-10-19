@@ -3,7 +3,7 @@ import type { Contract } from '@internal/contract/types';
 import postgresDriver, { suppressIdleConnectionErrors } from '@internal/driver-postgres/runtime';
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
 import type { SqlStorage } from '@internal/sql-contract/types';
-import type { CollectionClasses } from '@internal/sql-orm-client';
+import type { CollectionClasses, NoCollectionClasses } from '@internal/sql-orm-client';
 import type { Runtime } from '@internal/sql-runtime';
 import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
 import postgresTarget from '@internal/target-postgres/runtime';
@@ -36,7 +36,7 @@ import type { PostgresTargetId } from './postgres-target-id';
 
 export interface PostgresClient<
   TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses = Record<never, never>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
 > extends PostgresStaticMembers<TContract>,
     PostgresRuntimeBoundMembers<TContract, TCollections>,
     PostgresLifecycleMembers {
@@ -58,7 +58,7 @@ export interface PostgresBindingOptions {
 
 export type PostgresOptions<
   TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses = Record<never, never>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
 > = PostgresBindingOptions &
   PostgresOptionsBase & {
     readonly contract: TContract;
@@ -105,7 +105,7 @@ function toRuntimeBinding<
  */
 export default function postgres<
   TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses = Record<never, never>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
 >(options: PostgresOptions<TContract, TCollections>): PostgresClient<TContract, TCollections> {
   const cursor = validateCursorOptions(options.cursor, 'postgres');
   const contract = validatePostgresContract(options.contract);

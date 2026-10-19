@@ -5,6 +5,7 @@ import type { Db } from '@internal/sql-builder/types';
 import type { ExtractCodecTypes, SqlStorage } from '@internal/sql-contract/types';
 import {
   type CollectionClasses,
+  type NoCollectionClasses,
   orm as ormBuilder,
   type PreparedFrom,
   prepareQuery,
@@ -34,7 +35,7 @@ type OrmClient<
 
 export interface PostgresTransactionContext<
   TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses = Record<never, never>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
 > extends TransactionContext {
   readonly sql: Db<TContract>;
   readonly orm: OrmClient<TContract, TCollections>;
@@ -49,7 +50,7 @@ export interface PostgresStaticMembers<TContract extends Contract<SqlStorage>>
 
 export interface PostgresRuntimeBoundMembers<
   TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses = Record<never, never>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
 > {
   readonly orm: OrmClient<TContract, TCollections>;
   runtime(): Runtime;
