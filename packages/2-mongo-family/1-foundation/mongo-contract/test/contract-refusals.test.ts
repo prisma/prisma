@@ -2,7 +2,7 @@ import { type ContractModelBase, crossRef } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import { mongoContractRefusalsOf } from '../src/contract-refusals';
 import { mongoTypeLookups } from '../src/fake-type-lookups';
-import { arrayField, scalarField } from './derive-json-schema-helpers';
+import { arrayField, enumField, scalarField, voField } from './derive-json-schema-helpers';
 
 function model(
   fields: ContractModelBase['fields'],
@@ -17,6 +17,7 @@ function refusals(input: Partial<Parameters<typeof mongoContractRefusalsOf>[0]>)
     valueObjects: {},
     enums: {},
     lookups: mongoTypeLookups,
+    controlPolicies: { collections: {}, defaultControlPolicy: undefined },
     ...input,
   });
 }
@@ -103,9 +104,53 @@ describe('mongoContractRefusalsOf', () => {
     ]);
   });
 
+  const unlistableEnums = {
+    Big: { codecId: 'mongo/int64@1', members: [{ name: 'One', value: 1 }] },
+    Ratio: { codecId: 'mongo/double@1', members: [{ name: 'All', value: '1' }] },
+  };
+
+  it('accepts an enum a validator cannot list when no validated collection stores it', () => {
+    expect(
+      refusals({
+        enums: unlistableEnums,
+        models: {
+          Job: model(
+            {
+              size: enumField('mongo/int64@1', 'Big'),
+              ratio: enumField('mongo/double@1', 'Ratio'),
+            },
+            { storage: { collection: 'jobs' } },
+          ),
+        },
+        controlPolicies: { collections: { jobs: 'external' }, defaultControlPolicy: undefined },
+      }),
+    ).toEqual([]);
+  });
+
+  it('refuses an enum a validator cannot list, used in a value object of a validated collection', () => {
+    expect(
+      refusals({
+        enums: { Big: unlistableEnums.Big },
+        valueObjects: { Sizing: { fields: { size: enumField('mongo/int64@1', 'Big') } } },
+        models: {
+          Job: model({ sizing: voField('Sizing') }, { storage: { collection: 'jobs' } }),
+        },
+      }),
+    ).toEqual([expect.objectContaining({ kind: 'enumNotListable', enumName: 'Big' })]);
+  });
+
   it('refuses an enum a validator cannot list, and a member it cannot list', () => {
     expect(
       refusals({
+        models: {
+          Job: model(
+            {
+              size: enumField('mongo/int64@1', 'Big'),
+              ratio: enumField('mongo/double@1', 'Ratio'),
+            },
+            { storage: { collection: 'jobs' } },
+          ),
+        },
         enums: {
           Big: { codecId: 'mongo/int64@1', members: [{ name: 'One', value: 1 }] },
           Ratio: { codecId: 'mongo/double@1', members: [{ name: 'All', value: '1' }] },

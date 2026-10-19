@@ -177,7 +177,8 @@ describe('mongo defineContract refuses what a collection validator cannot descri
   describe('enums', () => {
     it('refuses an enum whose codec stores a BSON type a validator cannot list', () => {
       const Big = enumType('Big', { codecId: 'mongo/int64@1' }, member('One', 1));
-      expect(() => defineContract({ ...scaffold, enums: { Big }, models: {} })).toThrow(
+      const Job = model('Job', { collection: 'jobs', fields: { size: field.namedType(Big) } });
+      expect(() => defineContract({ ...scaffold, enums: { Big }, models: { Job } })).toThrow(
         expect.objectContaining({
           code: 'CONTRACT.ENUM_INVALID',
           message:
@@ -187,6 +188,24 @@ describe('mongo defineContract refuses what a collection validator cannot descri
       );
     });
 
+    it.each([
+      ['used only in an external collection', 'external'],
+      ['used only in an observed collection', 'observed'],
+    ] as const)('accepts an enum a validator cannot list, %s', (_case, controlPolicy) => {
+      const Big = enumType('Big', { codecId: 'mongo/int64@1' }, member('One', 1));
+      const Job = model('Job', {
+        collection: 'jobs',
+        controlPolicy,
+        fields: { size: field.namedType(Big) },
+      });
+      expect(() => defineContract({ ...scaffold, enums: { Big }, models: { Job } })).not.toThrow();
+    });
+
+    it('accepts an enum a validator cannot list that no model uses', () => {
+      const Big = enumType('Big', { codecId: 'mongo/int64@1' }, member('One', 1));
+      expect(() => defineContract({ ...scaffold, enums: { Big }, models: {} })).not.toThrow();
+    });
+
     it('refuses an enum member a validator cannot list', () => {
       const Ratio = enumType(
         'Ratio',
@@ -194,7 +213,8 @@ describe('mongo defineContract refuses what a collection validator cannot descri
         member('Half', 0.5),
         member('All', '1'),
       );
-      expect(() => defineContract({ ...scaffold, enums: { Ratio }, models: {} })).toThrow(
+      const Job = model('Job', { collection: 'jobs', fields: { ratio: field.namedType(Ratio) } });
+      expect(() => defineContract({ ...scaffold, enums: { Ratio }, models: { Job } })).toThrow(
         expect.objectContaining({
           code: 'CONTRACT.ENUM_INVALID',
           message:
