@@ -5,7 +5,10 @@ import type { ContractSourceContext } from '@internal/config/config-types';
 import type { Contract } from '@internal/contract/types';
 import postgresDriver from '@internal/driver-postgres/control';
 import sql from '@internal/family-sql/control';
-import { createControlStack } from '@internal/framework-components/control';
+import {
+  createControlStack,
+  EMPTY_GENERATOR_FUNCTIONS,
+} from '@internal/framework-components/control';
 import { parse } from '@internal/psl-parser/syntax';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import postgres from '@internal/target-postgres/control';
@@ -34,6 +37,7 @@ export function postgresSourceContext(resolvedInputs: readonly string[]): Contra
     codecLookup: stack.codecLookup,
     dataTypes: stack.dataTypes,
     controlMutationDefaults: stack.controlMutationDefaults,
+    generatorFunctions: stack.generatorFunctions,
     resolvedInputs,
     capabilities: stack.capabilities,
   };
@@ -118,6 +122,7 @@ export function interpretSchemaText(text: string): Contract<SqlStorage> {
     defaultNamespaceId: context.defaultNamespaceId,
     binding: prisma7PostgresBinding,
     controlMutationDefaults: context.controlMutationDefaults,
+    generatorFunctions: context.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS,
     authoringContributions: context.authoringContributions,
     codecLookup: context.codecLookup,
     dataTypes: context.dataTypes,

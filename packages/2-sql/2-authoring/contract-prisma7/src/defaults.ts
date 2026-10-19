@@ -6,7 +6,10 @@ import {
   type WrittenValue,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
-import type { ControlMutationDefaults } from '@internal/framework-components/control';
+import type {
+  ControlMutationDefaults,
+  GeneratorFunctionRegistry,
+} from '@internal/framework-components/control';
 import type { FieldSymbol, PslSpan, ResolvedAttribute } from '@internal/psl-parser';
 import type { ExpressionAst } from '@internal/psl-parser/syntax';
 import {
@@ -43,6 +46,7 @@ export interface LowerPrisma7DefaultInput {
   /** Storage value per member name when the field is typed by a Prisma 7 enum. */
   readonly enumMembers: ReadonlyMap<string, string> | undefined;
   readonly controlMutationDefaults: ControlMutationDefaults;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   /** The stack's data types and the PSL support for them, which this reader maps its syntax onto. */
   readonly dataTypes: DataTypeSupport;
   readonly sourceId: string;
@@ -330,7 +334,7 @@ function lowerFunction(
   }
   const keys = FUNCTION_ARGUMENT_KEYS[fn];
   const entry = input.controlMutationDefaults.defaultFunctionRegistry.get(fn);
-  if (keys === undefined || entry === undefined) {
+  if (keys === undefined || (entry === undefined && !input.generatorFunctions.has(fn))) {
     return unknown(
       `function "${fn}()" is not a Prisma 7 default function this target supports.`,
       span,
@@ -353,6 +357,20 @@ function lowerFunction(
   }
   // Prisma 7's cuid() (version 1) has no Prisma 8 generator; the slice maps it to cuid2.
   if (fn === 'cuid') args['version'] = 2;
+  if (entry === undefined) {
+    const resolution = input.generatorFunctions.resolve({
+      name: fn,
+      args,
+      column: { codecId: input.codecId, typeParams: input.typeParams },
+    });
+    if (resolution.ok) return { storage: undefined, onCreate: resolution.generator };
+    return unknown(
+      resolution.reason === 'refused'
+        ? resolution.message
+        : `function "${fn}()" cannot fill a column of codec "${input.codecId}".`,
+      span,
+    );
+  }
   const lowered = entry.lower({
     call: { fn, span, args },
     context: {

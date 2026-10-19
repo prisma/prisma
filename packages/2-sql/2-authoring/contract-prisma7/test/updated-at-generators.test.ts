@@ -1,7 +1,7 @@
 import { getAuthoringTypeConstructor } from '@internal/framework-components/authoring';
 import { prisma7PostgresBinding } from '@internal/target-postgres/prisma7-binding';
 import { describe, expect, it } from 'vitest';
-import { postgresSourceContext } from './support';
+import { interpretSchemaText, postgresSourceContext } from './support';
 
 const PRISMA7_POSTGRES_DATE_TIME_NATIVE_TYPES = [
   'Timestamp',
@@ -11,8 +11,8 @@ const PRISMA7_POSTGRES_DATE_TIME_NATIVE_TYPES = [
   'Timetz',
 ] as const;
 
-describe('the Postgres binding for @updatedAt', () => {
-  const { authoringContributions } = postgresSourceContext([]);
+describe('@updatedAt on Postgres', () => {
+  const { authoringContributions, generatorFunctions } = postgresSourceContext([]);
   const { typeMap } = prisma7PostgresBinding;
   const mappings = [
     ['DateTime', typeMap.scalars.DateTime],
@@ -21,30 +21,50 @@ describe('the Postgres binding for @updatedAt', () => {
     ),
   ] as const;
 
-  it.each(mappings)('gives %s a "now" generator', (_type, mapping) => {
+  it.each(mappings)('resolves now() for the codec %s maps to', (_type, mapping) => {
     const codecId = getAuthoringTypeConstructor(authoringContributions, [mapping.constructorName])
       ?.output.codecId;
     expect(codecId).toBeDefined();
-    expect(prisma7PostgresBinding.updatedAtGenerator({ codecId: codecId ?? '' })).toMatchObject({
-      kind: 'generator',
-    });
+    expect(
+      generatorFunctions?.resolve({
+        name: 'now',
+        args: {},
+        column: { codecId: codecId ?? '', typeParams: undefined },
+      }),
+    ).toMatchObject({ ok: true, generator: { kind: 'generator' } });
   });
 
-  it('gives a time column its precision as the generator param', () => {
-    expect(
-      prisma7PostgresBinding.updatedAtGenerator({
-        codecId: 'pg/time-string@1',
-        typeParams: { precision: 0 },
-      }),
-    ).toEqual({ kind: 'generator', id: 'timeStringNow', params: { precision: 0 } });
-  });
+  it('lowers to now() on create and on update, with the precision of a time column', () => {
+    const contract = interpretSchemaText(`datasource db {
+  provider = "postgresql"
+}
 
-  it('gives a timestamp column no generator params', () => {
-    expect(
-      prisma7PostgresBinding.updatedAtGenerator({
-        codecId: 'pg/timestamp-string@1',
-        typeParams: { precision: 0 },
-      }),
-    ).toEqual({ kind: 'generator', id: 'timestampStringNow' });
+model Clock {
+  id        Int      @id
+  updatedAt DateTime @updatedAt
+  seenAt    DateTime @db.Time(0) @updatedAt
+  stampedAt DateTime @db.Timestamp(0) @updatedAt
+}
+`);
+    const now = (id: string, params?: Record<string, unknown>) =>
+      params === undefined ? { kind: 'generator', id } : { kind: 'generator', id, params };
+    const ref = (field: string) => ({ namespace: 'public', entry: 'Clock', field });
+    expect(contract.execution?.mutations.defaults).toEqual([
+      {
+        ref: ref('seenAt'),
+        onCreate: now('timeStringNow', { precision: 0 }),
+        onUpdate: now('timeStringNow', { precision: 0 }),
+      },
+      {
+        ref: ref('stampedAt'),
+        onCreate: now('timestampStringNow'),
+        onUpdate: now('timestampStringNow'),
+      },
+      {
+        ref: ref('updatedAt'),
+        onCreate: now('timestampStringNow'),
+        onUpdate: now('timestampStringNow'),
+      },
+    ]);
   });
 });

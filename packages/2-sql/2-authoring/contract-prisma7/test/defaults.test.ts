@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { prisma7Contract } from '../src/provider';
 import {
   fixturesDir,
+  interpretSchemaText,
   loadFixtureTable,
   postgresSourceContext,
   postgresSourceContextWithout,
@@ -291,5 +292,29 @@ describe('Json, Decimal, BigInt and Float literal defaults', () => {
       floatLiteral: { kind: 'literal', value: 1.5 },
       intLiteral: { kind: 'literal', value: 42 },
     });
+  });
+});
+
+describe('client functions on VarChar columns', () => {
+  it('resolve through the generator function the column codec binds', () => {
+    const contract = interpretSchemaText(`datasource db {
+  provider = "postgresql"
+}
+
+model Account {
+  id    String @id @db.VarChar(36) @default(uuid())
+  token String @db.VarChar(191) @default(nanoid())
+}
+`);
+    expect(contract.execution?.mutations.defaults).toEqual([
+      {
+        ref: { namespace: 'public', entry: 'Account', field: 'id' },
+        onCreate: { kind: 'generator', id: 'uuidv4' },
+      },
+      {
+        ref: { namespace: 'public', entry: 'Account', field: 'token' },
+        onCreate: { kind: 'generator', id: 'nanoid' },
+      },
+    ]);
   });
 });
