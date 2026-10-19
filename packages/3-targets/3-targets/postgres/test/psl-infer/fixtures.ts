@@ -20,6 +20,7 @@ import {
   type SqlTableIR,
 } from '@internal/sql-schema-ir/types';
 import {
+  postgresAuthoringFieldPresets,
   postgresAuthoringPslBlockDescriptors,
   postgresAuthoringTypes,
 } from '../../src/core/authoring';
@@ -88,7 +89,7 @@ export function withReportedType(
 
 function nonEnumerableFieldsOf(column: SqlColumnIR): Partial<SqlColumnIRInput> {
   return Object.fromEntries(
-    (['authoredDefault', 'codecRef', 'codecBaseNativeType', 'dataType', 'toCanonicalForm'] as const)
+    (['authoredDefault', 'codecRef', 'codecBaseNativeType', 'dataType'] as const)
       .filter((key) => column[key] !== undefined)
       .map((key) => [key, column[key]]),
   );
@@ -143,7 +144,7 @@ export function inferFromFixtureTree(
   tree: PostgresDatabaseSchemaNode,
   context: SqlPslBuildContext,
   describedContracts?: Parameters<typeof inferPostgresPslContract>[2],
-): PslDocumentAst {
+): Promise<PslDocumentAst> {
   return inferPostgresPslContract(withReportedTypesInTree(tree), context, describedContracts);
 }
 
@@ -228,17 +229,22 @@ export const inferBuildContext: SqlPslBuildContext = {
       ...postgresAuthoringTypes,
       ...postgresPslTypeConstructors,
     },
+    field: postgresAuthoringFieldPresets,
   },
+  defaultFunctionPrintersByGenerator: new Map(),
+  componentIdsByGenerator: new Map(),
+  fieldPresetsByCodecAndGenerator: new Map(),
   codecLookup: createPostgresBuiltinCodecLookup(),
   dataTypes: {
     entries: postgresDataTypeEntries(),
     lookup: createDataTypeLookup(postgresDataTypes),
+    dataTypeOfCodec: () => undefined,
   },
 };
 
 /** Infers and prints PSL from a flat introspection fixture, with the header `contract infer` writes. */
-export function printPslFromFlat(schemaIR: SqlSchemaIR): string {
-  return printPsl(inferPostgresPslContract(treeFromFlat(schemaIR), inferBuildContext), {
+export async function printPslFromFlat(schemaIR: SqlSchemaIR): Promise<string> {
+  return printPsl(await inferPostgresPslContract(treeFromFlat(schemaIR), inferBuildContext), {
     pslBlockDescriptors: postgresAuthoringPslBlockDescriptors,
     description:
       'Contract inferred from the live database schema. Edit as needed, then run `prisma contract emit`.',
@@ -246,7 +252,7 @@ export function printPslFromFlat(schemaIR: SqlSchemaIR): string {
 }
 
 /** Infers a PSL AST from a flat introspection fixture. */
-export function inferPslAstFromFlat(schemaIR: SqlSchemaIR): PslDocumentAst {
+export function inferPslAstFromFlat(schemaIR: SqlSchemaIR): Promise<PslDocumentAst> {
   return inferPostgresPslContract(treeFromFlat(schemaIR), inferBuildContext);
 }
 

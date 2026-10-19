@@ -30,14 +30,14 @@ export const testContract = createTestContract({ targetFamily: 'sql', target: 'p
 
 export const doublingCodec = defineTestCodec({
   typeId: 'test/doubling@1',
-  encode: (value: number) => value * 2,
-  decode: (wire: number) => wire / 2,
+  toWire: (value: number) => value * 2,
+  fromWire: (wire: number) => wire / 2,
 });
 
 const failingDecodeCodec = defineTestCodec({
   typeId: 'test/failing-decode@1',
-  encode: (value: number) => value,
-  decode: (): number => {
+  toWire: (value: number) => value,
+  fromWire: (): number => {
     throw new Error('decode failed');
   },
 });
@@ -149,6 +149,7 @@ export interface SetupOptions {
   readonly middleware?: readonly SqlMiddleware[];
   /** When false, the recorder implements no `activityFinalized`. */
   readonly recordFinalized?: boolean;
+  readonly closeRefusal?: 'when-idle' | 'at-once';
 }
 
 export function createSetup(options: SetupOptions = {}) {
@@ -184,6 +185,7 @@ export function createSetup(options: SetupOptions = {}) {
     middleware: [middleware, ...(options.middleware ?? [])],
     ...(options.log ? { log: options.log } : {}),
     ...(options.mode ? { mode: options.mode } : {}),
+    ...(options.closeRefusal ? { closeRefusal: options.closeRefusal } : {}),
   });
   return { runtime, events, middleware, driver };
 }

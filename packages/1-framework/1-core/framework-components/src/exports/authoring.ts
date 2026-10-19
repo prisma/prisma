@@ -26,6 +26,14 @@ export {
   type StoredEnumMember,
 } from '../shared/enum-stored-members';
 export {
+  assembleFieldPresetsByCodecAndGenerator,
+  type FieldPresetPhasePrintForm,
+  type FieldPresetPrintForm,
+  type FieldPresetsByCodecAndGenerator,
+  fieldPresetPrintForm,
+  type PrintableFieldPreset,
+} from '../shared/field-preset-print-form';
+export {
   fieldPresetSpellings,
   getAuthoringFieldPreset,
 } from '../shared/field-preset-resolution';
@@ -67,7 +75,6 @@ export type {
 export {
   assertNoCrossRegistryCollisions,
   assertResolvableTypeConstructorTemplates,
-  authoringEntryType,
   classifyEnumMemberType,
   collectScalarTypeConstructors,
   flushAuthoringWarnings,
@@ -80,12 +87,11 @@ export {
   isAuthoringFieldPresetDescriptor,
   isAuthoringModelAttributeDescriptor,
   isAuthoringPslBlockDescriptor,
+  isAuthoringSelectRef,
   isAuthoringTypeConstructorDescriptor,
-  isTagEntryKey,
   mergeAuthoringNamespaces,
   resolveAuthoringTemplateValue,
   resolveEnumCodecId,
-  tagEntryKey,
   validateAuthoringHelperArguments,
   validateAuthoringTypeParams,
 } from '../shared/framework-authoring';
@@ -113,6 +119,7 @@ export {
   temporalAuthoringPresets,
   temporalCodecPreset,
   temporalPhaseTemplate,
+  temporalPhaseTemplateWithParams,
 } from '../shared/temporal-presets';
 export type {
   CastRefusal,
@@ -120,7 +127,6 @@ export type {
   ReadRefusal,
   RefusalDescription,
   RefusalGuidance,
-  TypedValue,
   WrittenForm,
   WrittenScalar,
   WrittenValue,

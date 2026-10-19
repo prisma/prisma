@@ -15,10 +15,10 @@ import {
   SYNTHETIC_SPAN,
 } from '../psl-build/psl-literals';
 import { buildColumnDefault } from './column-defaults';
-import { buildColumnType } from './column-types';
+import { buildColumnType, type PslColumnType } from './column-types';
 import type { ModelWithTable, VariantInfo } from './contract-model-index';
 import type { NativeEnumEmission } from './enum-blocks';
-import { buildExecutionDefault, temporalPresetArguments } from './generated-values';
+import { buildExecutionDefault } from './generated-values';
 import {
   refuseColumnControl,
   refuseColumnDifferingFromNamedType,
@@ -54,6 +54,7 @@ function scalarFieldAttributes(input: {
   readonly domainEnum: ContractEnum | undefined;
   readonly generatedDefault: PslFieldAttribute | undefined;
   readonly context: SqlPslBuildContext;
+  readonly namedTypes: NonNullable<SqlStorage['types']>;
 }): readonly PslFieldAttribute[] {
   const attributes: PslFieldAttribute[] = [];
   if (input.isSingleColumnId) {
@@ -78,6 +79,7 @@ function scalarFieldAttributes(input: {
       tableName: input.tableName,
       columnName: input.columnName,
       context: input.context,
+      namedTypes: input.namedTypes,
     });
   if (columnDefault !== undefined) {
     attributes.push(columnDefault);
@@ -136,11 +138,11 @@ export function buildScalarFields(input: {
         coordinate,
       });
     }
-    const columnType =
+    const columnType: PslColumnType =
       column.typeRef !== undefined
-        ? { typeName: column.typeRef }
+        ? { kind: 'namedType', typeName: column.typeRef }
         : field.type.kind === 'valueObject'
-          ? { typeName: field.type.name }
+          ? { kind: 'valueObject', typeName: field.type.name }
           : buildColumnType({
               column,
               inferredConstructors,
@@ -160,17 +162,18 @@ export function buildScalarFields(input: {
       const built = buildExecutionDefault({
         executionDefault: execution,
         codecId: column.codecId,
+        pslType: columnType,
+        list: !!field.many,
+        typeParams: column.typeParams,
         coordinate,
+        context,
       });
-      if (built.kind === 'temporal') {
-        typeName = `temporal.${built.phases.presetName}`;
+      if (built.kind === 'preset') {
+        typeName = built.path.join('.');
         typeConstructor = {
           kind: 'typeConstructor',
-          path: ['temporal', built.phases.presetName],
-          args: temporalPresetArguments({
-            phases: built.phases,
-            precision: column.typeParams?.['precision'],
-          }),
+          path: built.path,
+          args: built.args,
           span: SYNTHETIC_SPAN,
         };
       } else if (column.default !== undefined) {
@@ -204,6 +207,7 @@ export function buildScalarFields(input: {
             : domainEnums[column.valueSet.entityName],
         generatedDefault,
         context,
+        namedTypes: input.namedTypes,
       }),
       span: SYNTHETIC_SPAN,
     });

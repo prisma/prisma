@@ -23,8 +23,6 @@ import {
   postgresDiffSubjectGranularity,
 } from '../core/schema-ir/schema-node-kinds';
 
-export { postgresRenderDefault } from '../core/migrations/postgres-contract-to-schema';
-
 function createPostgresTargetDescriptor(): SqlControlTargetDescriptor<
   'postgres',
   PostgresPlanTargetDetails
@@ -85,15 +83,8 @@ function createPostgresTargetDescriptor(): SqlControlTargetDescriptor<
 
 const postgresTargetDescriptor = createPostgresTargetDescriptor();
 
-export {
-  INSTANT_NOW_GENERATOR_ID,
-  instantNowControlDescriptor,
-} from '../core/instant-now-generator';
+export { postgresNowGeneratorControlDescriptors } from '../core/date-time-now-generators';
 export { decodePostgresListText, parsePostgresListText } from '../core/list-decoder';
-export {
-  PLAIN_DATE_TIME_NOW_GENERATOR_ID,
-  plainDateTimeNowControlDescriptor,
-} from '../core/plain-date-time-now-generator';
 export {
   postgresNativeAuthoringTypes,
   postgresPslTypeConstructors,

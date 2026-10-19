@@ -1,4 +1,10 @@
-import type { AnyCodecDescriptor, Codec } from '@internal/framework-components/codec';
+import type { JsonValue } from '@internal/contract/types';
+import type {
+  AnyCodecDescriptor,
+  Codec,
+  DataType,
+  DataTypeValue,
+} from '@internal/framework-components/codec';
 import { dataTypeId } from '@internal/framework-components/codec';
 import type { TargetPackRef } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
@@ -11,31 +17,48 @@ import { defineContract, field, model } from '../src/contract-builder';
 import { enumType, member } from '../src/enum-type';
 import { mongoFamilyPack, mongoTargetPack as mongoTestTargetPack } from './mongo-test-packs';
 
+const testDataTypes: Readonly<Record<string, DataType>> = {
+  'test/object': mongoDataType('test/object', { read: (json) => json, bsonTypes: ['object'] }),
+  'test/date': mongoDataType('test/date', { read: (json) => json, bsonTypes: ['string'] }),
+  'test/upper': mongoDataType('test/upper', { read: (json) => json, bsonTypes: ['string'] }),
+  'test/unequal': mongoDataType('test/unequal', { read: (json) => json, bsonTypes: ['string'] }),
+};
+
+function testDataTypeOf(codecId: string): DataType {
+  const type = testDataTypes[codecId.replace(/@\d+$/, '')];
+  if (type === undefined) throw new Error(`no test data type for ${codecId}`);
+  return type;
+}
+
+/** A codec over the test data type of `id`, which stores `toStored(value)` and reads back `fromStored(stored)`. */
+function testCodec(
+  id: string,
+  toStored: (value: unknown) => unknown = (value) => value,
+  fromStored: (stored: unknown) => unknown = (stored) => stored,
+): Codec {
+  const type = testDataTypeOf(id);
+  return {
+    id,
+    dataType: type,
+    toWire: async (v: unknown) => v,
+    fromWire: async (v: unknown) => v,
+    toDataTypeValue: (v: unknown) => type.valueFrom(toStored(v) as JsonValue, {}),
+    fromDataTypeValue: (value: DataTypeValue) => fromStored(value.value),
+  } satisfies Codec;
+}
+
 const identityDescriptor = (id: string): AnyCodecDescriptor => ({
   codecId: id,
   dataType: dataTypeId(id.replace(/@\d+$/, '')),
   traits: ['equality'],
   paramsSchema: undefined,
   isParameterized: false,
-  factory: () => () =>
-    ({
-      id,
-      encode: async (v: unknown) => v,
-      decode: async (v: unknown) => v,
-      encodeJson: (v: unknown) => v,
-      decodeJson: (j: unknown) => j,
-    }) as unknown as Codec,
+  factory: () => () => testCodec(id),
 });
 
 const mongoTargetPack = {
   ...mongoTestTargetPack,
-  dataTypes: [
-    ...mongoTestTargetPack.dataTypes,
-    mongoDataType('test/object', { bsonTypes: ['object'] }),
-    mongoDataType('test/date', { bsonTypes: ['string'] }),
-    mongoDataType('test/upper', { bsonTypes: ['string'] }),
-    mongoDataType('test/unequal', { bsonTypes: ['string'] }),
-  ],
+  dataTypes: [...mongoTestTargetPack.dataTypes, ...Object.values(testDataTypes)],
 } as const satisfies TargetPackRef<'mongo', 'mongo'>;
 
 const mongoString = { codecId: 'mongo/string@1' as const } as const;
@@ -200,13 +223,11 @@ describe('defineContract() — members compared as the codec stores them', () =>
   const dateDescriptor: AnyCodecDescriptor = {
     ...identityDescriptor('test/date@1'),
     factory: () => () =>
-      ({
-        id: 'test/date@1',
-        encode: async (v: unknown) => v,
-        decode: async (v: unknown) => v,
-        encodeJson: (v: unknown) => (v as Date).toISOString(),
-        decodeJson: (j: unknown) => new Date(j as string),
-      }) as unknown as Codec,
+      testCodec(
+        'test/date@1',
+        (v) => (v as Date).toISOString(),
+        (stored) => new Date(String(stored)),
+      ),
   };
   const target = {
     ...mongoTargetPack,
@@ -357,13 +378,11 @@ describe('defineContract() — codec-encoded value set', () => {
     paramsSchema: undefined,
     isParameterized: false,
     factory: () => () =>
-      ({
-        id: 'test/upper@1',
-        encode: async (v: unknown) => v,
-        decode: async (v: unknown) => v,
-        encodeJson: (v: unknown) => (v as string).toUpperCase(),
-        decodeJson: (j: unknown) => (j as string).toLowerCase(),
-      }) as unknown as Codec,
+      testCodec(
+        'test/upper@1',
+        (v) => String(v).toUpperCase(),
+        (stored) => String(stored).toLowerCase(),
+      ),
   };
   const packWithEncoders = {
     ...mongoTargetPack,

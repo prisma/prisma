@@ -268,7 +268,7 @@ export interface SqlControlFamilyInstance
     readonly contract?: unknown;
   }): Promise<SqlSchemaIRNode>;
 
-  inferPslContract(schemaIR: SqlSchemaIRNode): PslDocumentAst;
+  inferPslContract(schemaIR: SqlSchemaIRNode): Promise<PslDocumentAst>;
 
   lowerAst(
     ast: AnyQueryAst | DdlNode,
@@ -531,6 +531,10 @@ export function createSqlFamilyInstance<TTargetId extends string>(
     authoringContributions: stack.authoringContributions,
     codecLookup: stack.codecLookup,
     dataTypes: stack.dataTypes,
+    defaultFunctionPrintersByGenerator:
+      stack.controlMutationDefaults.defaultFunctionPrintersByGenerator,
+    componentIdsByGenerator: stack.controlMutationDefaults.componentIdsByGenerator,
+    fieldPresetsByCodecAndGenerator: stack.fieldPresetsByCodecAndGenerator,
   };
   // The hook that builds the PSL document of a contract is read off the descriptor the same way.
   // Absent for targets without `contract print`.
@@ -921,7 +925,7 @@ export function createSqlFamilyInstance<TTargetId extends string>(
       return getControlAdapter().introspect(options.driver, options.contract);
     },
 
-    inferPslContract(schemaIR: SqlSchemaIRNode): PslDocumentAst {
+    async inferPslContract(schemaIR: SqlSchemaIRNode): Promise<PslDocumentAst> {
       if (!targetInferPslContract) {
         throw sqlFamilyError(
           'CONTRACT.INFER_UNSUPPORTED',

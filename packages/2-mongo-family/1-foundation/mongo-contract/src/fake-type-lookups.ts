@@ -1,3 +1,4 @@
+import type { JsonValue } from '@internal/contract/types';
 import {
   type AnyCodecDescriptor,
   type Codec,
@@ -5,8 +6,10 @@ import {
   createDataTypeLookup,
   type DataType,
   type DataTypeLookup,
+  type DataTypeValue,
   dataTypeId,
 } from '@internal/framework-components/codec';
+import { assertDefined } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
 import { type MongoTypeLookups, mongoDataType } from './mongo-data-type';
 
@@ -35,22 +38,36 @@ function dataTypeIdOf(codecId: string): string {
   return codecId.replace(/@\d+$/, '').toLowerCase();
 }
 
-function identityCodec(id: string): Codec {
-  return blindCast<Codec, 'an identity codec needs no other members in tests'>({
-    id,
-    encode: async (v: unknown) => v,
-    decode: async (w: unknown) => w,
-    encodeJson: (v: unknown) => v,
-    decodeJson: (j: unknown) => j,
-  });
-}
-
 /**
  * One MongoDB data type for each codec in {@link mongoTestCodecDescriptors}, for a test pack's `dataTypes`.
  */
 export const mongoTestDataTypes: readonly DataType[] = Object.entries(bsonTypesByCodecId).map(
-  ([codecId, bsonTypes]) => mongoDataType(dataTypeIdOf(codecId), { bsonTypes }),
+  ([codecId, bsonTypes]) =>
+    mongoDataType(dataTypeIdOf(codecId), { read: (json) => json, bsonTypes }),
 );
+
+/**
+ * A data type lookup for tests: one MongoDB data type for each codec {@link mongoCodecLookup} knows.
+ */
+export const mongoDataTypeLookup: DataTypeLookup = createDataTypeLookup(mongoTestDataTypes);
+
+/** An identity codec of `id` over its data type in {@link mongoDataTypeLookup}. */
+function identityCodec(id: string): Codec | undefined {
+  const dataType = mongoDataTypeLookup.get(dataTypeIdOf(id));
+  if (dataType === undefined) return undefined;
+  return {
+    id,
+    dataType,
+    toWire: async (v: unknown) => v,
+    fromWire: async (w: unknown) => w,
+    toDataTypeValue: (v: unknown) =>
+      dataType.valueFrom(
+        blindCast<JsonValue, 'the test codecs hand over JSON application values'>(v),
+        {},
+      ),
+    fromDataTypeValue: (value: DataTypeValue) => value.value,
+  };
+}
 
 /**
  * Descriptors of identity codecs for the MongoDB codecs and a few test codecs, each representing its own data type in {@link mongoTestDataTypes}, for a test pack's `types.codecTypes.codecDescriptors`.
@@ -63,13 +80,12 @@ export const mongoTestCodecDescriptors: readonly AnyCodecDescriptor[] = Object.k
   traits: ['equality'],
   paramsSchema: undefined,
   isParameterized: false,
-  factory: () => () => identityCodec(codecId),
+  factory: () => () => {
+    const codec = identityCodec(codecId);
+    assertDefined(codec, `Test codec "${codecId}" has a data type`);
+    return codec;
+  },
 }));
-
-/**
- * A data type lookup for tests: one MongoDB data type for each codec {@link mongoCodecLookup} knows.
- */
-export const mongoDataTypeLookup: DataTypeLookup = createDataTypeLookup(mongoTestDataTypes);
 
 const descriptorsById = new Map(
   mongoTestCodecDescriptors.map((descriptor) => [descriptor.codecId, descriptor]),
