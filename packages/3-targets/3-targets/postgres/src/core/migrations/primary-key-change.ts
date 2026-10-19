@@ -171,7 +171,7 @@ function undeclaredTableRefusal(change: KeyChange, at: ForeignKeyAt) {
     change,
     at,
     `the contract does not declare ${table}`,
-    `This plan allows only additive changes, as db init does, so it cannot change a primary key. Run db update or migration plan instead, which drop ${table} together with its foreign key; add ${table} to the contract first if you want to keep it.`,
+    `This plan allows only additive changes, as db init does, so it cannot change a primary key. Run db update instead, which drops ${table} together with its foreign key; add ${table} to the contract first if you want to keep it.`,
   );
 }
 
@@ -180,7 +180,7 @@ function removedForeignKeyRefusal(change: KeyChange, at: ForeignKeyAt) {
     change,
     at,
     `the contract leaves that foreign key out of ${quotedTable(at)}`,
-    'This plan allows only additive changes, as db init does, so it can neither drop that foreign key nor change a primary key. Run db update or migration plan instead, which drop that foreign key before the key change.',
+    'This plan allows only additive changes, as db init does, so it can neither drop that foreign key nor change a primary key. Run db update instead, which drops that foreign key before the key change.',
   );
 }
 

@@ -405,7 +405,7 @@ describe('a primary key change the plan cannot make', () => {
           kind: 'foreignKeyConflict',
           summary:
             'Primary key "user_pkey" on "public"."user" cannot change while foreign key "post_authorId_fkey" on "public"."post" references it, and the contract does not declare "public"."post".',
-          why: 'This plan allows only additive changes, as db init does, so it cannot change a primary key. Run db update or migration plan instead, which drop "public"."post" together with its foreign key; add "public"."post" to the contract first if you want to keep it.',
+          why: 'This plan allows only additive changes, as db init does, so it cannot change a primary key. Run db update instead, which drops "public"."post" together with its foreign key; add "public"."post" to the contract first if you want to keep it.',
           location: { entityKind: 'table', entityName: 'post', constraint: 'post_authorId_fkey' },
         },
       ],
@@ -424,7 +424,7 @@ describe('a primary key change the plan cannot make', () => {
           kind: 'foreignKeyConflict',
           summary:
             'Primary key "user_pkey" on "public"."user" cannot change while foreign key "post_authorId_fkey" on "public"."post" references it, and the contract leaves that foreign key out of "public"."post".',
-          why: 'This plan allows only additive changes, as db init does, so it can neither drop that foreign key nor change a primary key. Run db update or migration plan instead, which drop that foreign key before the key change.',
+          why: 'This plan allows only additive changes, as db init does, so it can neither drop that foreign key nor change a primary key. Run db update instead, which drops that foreign key before the key change.',
           location: { entityKind: 'table', entityName: 'post', constraint: 'post_authorId_fkey' },
         },
       ],
