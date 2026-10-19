@@ -275,6 +275,17 @@ const vectorCodecFactory =
     new VectorCodec(descriptor, type, params.length);
 
 describe('postgresCodec', () => {
+  it("renders literals with the renderer the target passes, never the template's", () => {
+    const descriptor = postgresCodec(genericVectorDescriptor, {
+      dataType: fixtureVectorType,
+      renderValueLiteral: (value, side) => `${side}-from-target:${String(value)}`,
+      jsonProjection: (expression) => expression,
+      factory: vectorCodecFactory,
+    });
+
+    expect(descriptor.renderValueLiteral?.('value', 'input')).toBe('input-from-target:value');
+  });
+
   it('preserves the wrapped descriptor contract and builds its codec with the factory option', () => {
     const descriptor = postgresCodec(genericVectorDescriptor, {
       dataType: fixtureVectorType,
@@ -292,7 +303,7 @@ describe('postgresCodec', () => {
     expect(descriptor.renderInputType?.({ length: 6 })).toBe(
       'ReadonlyArray<number> & { length: 6 }',
     );
-    expect(descriptor.renderValueLiteral?.('value', 'input')).toBe('input:value');
+    expect(descriptor.renderValueLiteral).toBeUndefined();
     expect('extensionOnly' in descriptor).toBe(false);
     expect('extensionOnlyMethod' in descriptor).toBe(false);
 

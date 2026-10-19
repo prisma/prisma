@@ -14,8 +14,8 @@ const storedValues: Readonly<Record<string, JsonValue>> = {
   'sqlite/json': '"x"',
 };
 
-describe('every registered codec renders the literal of the value it reads from a stored value, or nothing', () => {
-  it('renders, for a stored value of its data type, the literal of the value a query reads', () => {
+describe('the literal each registered codec renders', () => {
+  it('is pinned for a stored value of its data type', () => {
     const rendered = Object.fromEntries(
       codecDescriptors.map((descriptor) => [
         descriptor.codecId,
@@ -45,6 +45,7 @@ describe('every registered codec renders the literal of the value it reads from 
     ['sqlite/integer@1', 1],
     ['sqlite/bigint@1', '1.5'],
     ['sqlite/json@1', '{"a":1}'],
+    ['sqlite/json@1', '"not JSON'],
   ])('%s renders nothing for the stored value %j, which has no literal type', (codecId, value) => {
     const descriptor = codecDescriptors.find((candidate) => candidate.codecId === codecId);
     expect(descriptor?.renderValueLiteral?.(value, 'output')).toBeUndefined();

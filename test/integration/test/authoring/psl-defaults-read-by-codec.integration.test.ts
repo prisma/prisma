@@ -283,7 +283,7 @@ model Task {
         'a jsonb codec, which an enum cannot use',
         '  @@type("pg/jsonb@1")\n  Low = "low"',
         'PSL_EXTENSION_INVALID_VALUE',
-        'enum "Priority" cannot use the codec "pg/jsonb@1". A CHECK lists each member as SQL text, which PostgreSQL reads as the JSON text of a document, while the contract stores a jsonb member as the document itself, so no CHECK can compare a value with the members. No enum can use a jsonb codec; use a text enum instead.',
+        'enum "Priority" cannot use the codec "pg/jsonb@1". A CHECK lists a string member as SQL text, which PostgreSQL reads as the JSON text of a document rather than as a string, and a number member as a number, which PostgreSQL cannot compare with jsonb, so no CHECK can compare a value with the members. No enum can use a jsonb codec; use a text enum instead.',
       ],
       [
         'a timetz codec, which an enum cannot use',

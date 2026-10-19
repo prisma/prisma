@@ -5,7 +5,14 @@ import type {
   DataTypeParams,
   DataTypeValue,
 } from '@internal/framework-components/codec';
-import { floatToJson, readJsonFloat, renderTsLiteral } from '@internal/framework-components/codec';
+import {
+  decimalTextBigintLiteral,
+  decimalTextNumberLiteral,
+  floatNumberLiteral,
+  floatToJson,
+  readJsonFloat,
+  renderTsLiteral,
+} from '@internal/framework-components/codec';
 import {
   type MongoCodec,
   type MongoCodecRegistry,
@@ -28,8 +35,6 @@ import {
   decimal128Decode,
   decimal128Encode,
   decimal128ToJson,
-  decimalTextBigintLiteral,
-  decimalTextNumberLiteral,
   doubleEncode,
   int32Encode,
   int32ToJson,
@@ -296,7 +301,7 @@ export const mongoCodecDescriptors: ReadonlyArray<CodecDescriptor> = [
   }),
   descriptorFor(mongoDoubleCodec, {
     traits: ['equality', 'order', 'numeric'],
-    renderValueLiteral: (value) => (typeof value === 'number' ? String(value) : undefined),
+    renderValueLiteral: floatNumberLiteral,
   }),
   descriptorFor(mongoInt32Codec, {
     traits: ['equality', 'order', 'numeric'],

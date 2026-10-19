@@ -18,3 +18,20 @@ export function renderTsLiteral(value: JsonValue): string | undefined {
   }
   return undefined;
 }
+
+const DECIMAL_INTEGER = /^-?\d+$/;
+
+/** Renders decimal integer text, read as a `number`, as a number literal, or `undefined` for any other value. */
+export function decimalTextNumberLiteral(value: JsonValue): string | undefined {
+  return typeof value === 'string' && DECIMAL_INTEGER.test(value) ? value : undefined;
+}
+
+/** Renders decimal integer text, read as a `bigint`, as a bigint literal, or `undefined` for any other value. */
+export function decimalTextBigintLiteral(value: JsonValue): string | undefined {
+  return typeof value === 'string' && DECIMAL_INTEGER.test(value) ? `${value}n` : undefined;
+}
+
+/** Renders a float's stored number as a number literal. NaN and the infinities are stored as text and have no literal type, so they render nothing. */
+export function floatNumberLiteral(value: JsonValue): string | undefined {
+  return typeof value === 'number' ? String(value) : undefined;
+}

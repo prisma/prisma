@@ -7,6 +7,7 @@ const pgTimestampString = { codecId: 'pg/timestamp-string@1' as const, nativeTyp
 const pgJson = { codecId: 'pg/json@1' as const, nativeType: 'json' };
 const pgBytea = { codecId: 'pg/bytea@1' as const, nativeType: 'bytea' };
 const pgTsquery = { codecId: 'pg/tsquery@1' as const, nativeType: 'tsquery' };
+const pgEnum = { codecId: 'pg/enum@1' as const };
 const pgTimestamptzString = {
   codecId: 'pg/timestamptz-string@1' as const,
   nativeType: 'timestamptz',
@@ -124,6 +125,11 @@ describe('values in a Postgres contract decode to the value a query returns', ()
       'pg/tsquery@1',
       enumType('Stamp', pgTsquery, member('A', 'a & b' as never)),
       "PostgreSQL normalises the query text, so a member as written is not the value a query reads back: it prints a & b as 'a' & 'b'. No enum can use a tsquery codec; use a text enum instead.",
+    ],
+    [
+      'pg/enum@1',
+      enumType('Stamp', pgEnum, member('A', 'low')),
+      'A pg/enum codec types the column of a native enum, whose values the database enforces with an enum type of its own. Declare a native enum instead: native_enum in PSL, or nativeEnum in TypeScript.',
     ],
   ])('refuses an enum over %s, saying why', (codecId, handle, reason) => {
     expect(() => contractWithEnum(handle)).toThrow(

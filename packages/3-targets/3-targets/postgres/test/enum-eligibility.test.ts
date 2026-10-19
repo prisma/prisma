@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { codecDescriptors } from '../src/core/codecs';
 
 describe('the Postgres codecs an enum cannot use', () => {
-  it('are the string timestamps, timetz, bytea, tsquery, json and jsonb, each refused with its reason and what to use instead', () => {
+  it('are the native enum codec, the string timestamps, timetz, bytea, tsquery, json and jsonb, each refused with its reason and what to use instead', () => {
     const refusals = Object.fromEntries(
       codecDescriptors.flatMap((descriptor) => {
         const refusal = enumRefusalOf(descriptor);
@@ -12,6 +12,8 @@ describe('the Postgres codecs an enum cannot use', () => {
     );
 
     expect(refusals).toEqual({
+      'pg/enum@1':
+        'A pg/enum codec types the column of a native enum, whose values the database enforces with an enum type of its own. Declare a native enum instead: native_enum in PSL, or nativeEnum in TypeScript.',
       'pg/timestamp-string@1':
         'A query reads each value as the text PostgreSQL prints, such as "2024-01-02 03:04:05", while the contract stores it in ISO 8601, such as "2024-01-02T03:04:05", so no value read back equals a member. Use pg/timestamp-temporal@1, whose members are Temporal values.',
       'pg/timestamptz-string@1':
@@ -25,7 +27,7 @@ describe('the Postgres codecs an enum cannot use', () => {
       'pg/json@1':
         'The json type has no equality operator, so no CHECK can compare a value with the members. No enum can use a json codec; use a text enum instead.',
       'pg/jsonb@1':
-        'A CHECK lists each member as SQL text, which PostgreSQL reads as the JSON text of a document, while the contract stores a jsonb member as the document itself, so no CHECK can compare a value with the members. No enum can use a jsonb codec; use a text enum instead.',
+        'A CHECK lists a string member as SQL text, which PostgreSQL reads as the JSON text of a document rather than as a string, and a number member as a number, which PostgreSQL cannot compare with jsonb, so no CHECK can compare a value with the members. No enum can use a jsonb codec; use a text enum instead.',
     });
   });
 });

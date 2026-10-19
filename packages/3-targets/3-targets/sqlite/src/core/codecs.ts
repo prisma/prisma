@@ -19,6 +19,9 @@ import {
   type ColumnHelperForStrict,
   column,
   type DataTypeValue,
+  decimalTextBigintLiteral,
+  decimalTextNumberLiteral,
+  floatNumberLiteral,
   floatToJson,
   readJsonFloat,
   readJsonIntegerText,
@@ -161,21 +164,15 @@ const isJsonRetag = (expression: ProjectionExpr): boolean =>
 
 const DECIMAL_INTEGER = /^-?\d+$/;
 
-/** Renders the decimal text of `sqlite/integer`, read as a `number`, as a number literal. */
-const decimalTextNumberLiteral = (value: JsonValue): string | undefined =>
-  typeof value === 'string' && DECIMAL_INTEGER.test(value) ? value : undefined;
-
-/** Renders the decimal text of `sqlite/integer`, read as a `bigint`, as a bigint literal. */
-const decimalTextBigintLiteral = (value: JsonValue): string | undefined =>
-  typeof value === 'string' && DECIMAL_INTEGER.test(value) ? `${value}n` : undefined;
-
-/** Renders a float's stored number as a number literal. An infinity is stored as text and has no literal type. */
-const floatNumberLiteral = (value: JsonValue): string | undefined =>
-  typeof value === 'number' ? String(value) : undefined;
-
-/** Renders the document a `sqlite/json` value's JSON text holds, when it is a string, number or boolean. */
-const jsonTextLiteral = (value: JsonValue): string | undefined =>
-  typeof value === 'string' ? renderTsLiteral(JSON.parse(value)) : undefined;
+/** Renders the document a `sqlite/json` value's JSON text holds, when it is a string, number or boolean, and nothing for text that is not JSON. */
+function jsonTextLiteral(value: JsonValue): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  try {
+    return renderTsLiteral(JSON.parse(value));
+  } catch {
+    return undefined;
+  }
+}
 
 /**
  * SQLite stores an infinity but not NaN, which it turns into NULL, so a float codec on SQLite refuses NaN wherever it writes a value: to a parameter, and to the contract.
@@ -353,12 +350,14 @@ const unpaddedCharJsonProjection = (expression: ProjectionExpr): ProjectionExpr 
 
 export const sqliteSqlCharDescriptor = sqliteCodec(sqlCharDescriptor, {
   dataType: sqliteCharacter,
+  renderValueLiteral: renderTsLiteral,
   jsonProjection: unpaddedCharJsonProjection,
   factory: (descriptor, dataType, params) => () => new SqlCharCodec(descriptor, dataType, params),
 });
 
 export const sqliteSqlVarcharDescriptor = sqliteCodec(sqlVarcharDescriptor, {
   dataType: sqliteCharacterVarying,
+  renderValueLiteral: renderTsLiteral,
   jsonProjection: identityJsonProjection,
   factory: (descriptor, dataType, params) => () =>
     new SqlVarcharCodec(descriptor, dataType, params),

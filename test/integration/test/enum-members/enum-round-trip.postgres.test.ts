@@ -2,6 +2,12 @@ import { int4Column } from '@internal/adapter-postgres/column-types';
 import postgresAdapterControl from '@internal/adapter-postgres/control';
 import type { Contract, JsonValue } from '@internal/contract/types';
 import postgresDriverControl from '@internal/driver-postgres/control';
+import arktypeJsonControl from '@internal/extension-arktype-json/control';
+import arktypeJsonPack from '@internal/extension-arktype-json/pack';
+import pgvectorControl from '@internal/extension-pgvector/control';
+import pgvectorPack from '@internal/extension-pgvector/pack';
+import postgisControl from '@internal/extension-postgis/control';
+import postgisPack from '@internal/extension-postgis/pack';
 import sqlFamilyControl from '@internal/family-sql/control';
 import { enumRefusalOf, readContractValue } from '@internal/framework-components/codec';
 import { createControlStack } from '@internal/framework-components/control';
@@ -19,6 +25,7 @@ import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { describe, expect, it } from 'vitest';
 import { timeouts, withPostgresPort } from '../_harness/postgres';
 import { enumNameOf, tableNameOf } from './enum-name-of';
+import { literalOf } from './literal-of';
 import { sameValue } from './same-value';
 
 const stack = createControlStack({
@@ -26,7 +33,7 @@ const stack = createControlStack({
   target: postgresTargetControl,
   adapter: postgresAdapterControl,
   driver: postgresDriverControl,
-  extensions: [],
+  extensions: [pgvectorControl, postgisControl, arktypeJsonControl],
 });
 
 /** The stored form of one member for each data type a codec an enum can use represents. */
@@ -34,7 +41,6 @@ const storedMembers: Readonly<Record<string, JsonValue>> = {
   'pg/char': 'a',
   'pg/varchar': 'low',
   'pg/text': 'low',
-  'pg/enum': 'low',
   'pg/int2': 7,
   'pg/int4': 7,
   'pg/int8': '9007199254740991',
@@ -54,11 +60,10 @@ const storedMembers: Readonly<Record<string, JsonValue>> = {
   'pg/text-array': ['low', 'high'],
 };
 
-/** The codecs an enum accepts whose enum the contract build still refuses, with its message: a member stored as neither a string nor a finite number, which the column check that enforces membership cannot list, or a data type that needs parameters an enum does not give. */
+/** The codecs an enum accepts whose enum the contract build still refuses, with its message: a member stored as neither a string nor a finite number, which the column check that enforces membership cannot list. */
 const authoringRefusals: Readonly<Record<string, string>> = {
   'pg/bool@1':
     'enumType("PgBool1"): CHECK constraint members must encode to strings or finite numbers.',
-  'pg/enum@1': "Invalid typeParams for codec 'pg/enum@1': typeName must be a string (was missing)",
   'pg/text-array@1':
     'enumType("PgTextArray1"): CHECK constraint members must encode to strings or finite numbers.',
 };
@@ -68,8 +73,19 @@ const refused = stack.codecDescriptors.flatMap((descriptor) => {
   return refusal === undefined ? [] : [{ codecId: descriptor.codecId, refusal }];
 });
 
-function contractWith(enums: Record<string, EnumTypeHandle>) {
+/** The extension packs whose codecs the stack registers. The contract the round trip pushes declares none, because the runtime the harness composes has none, and every extension codec is refused. */
+const extensionPacks = {
+  pgvector: pgvectorPack,
+  postgis: postgisPack,
+  arktypeJson: arktypeJsonPack,
+};
+
+function contractWith(
+  enums: Record<string, EnumTypeHandle>,
+  extensions: Partial<typeof extensionPacks> = extensionPacks,
+) {
   return defineContract({
+    extensions,
     enums,
     models: Object.fromEntries(
       Object.entries(enums).map(([name, handle]) => [
@@ -111,12 +127,14 @@ const accepted = stack.codecDescriptors
 const refusedOnBuild = accepted.flatMap(({ codecId, built }) =>
   'refusal' in built ? [[codecId, built.refusal] as const] : [],
 );
-const roundTripped = accepted.flatMap(({ codecId, built }) =>
-  'handle' in built ? [{ codecId, handle: built.handle }] : [],
+const roundTripped = accepted.flatMap(({ codecId, dataType, built }) =>
+  'handle' in built
+    ? [{ codecId, handle: built.handle, stored: storedMembers[dataType] ?? null }]
+    : [],
 );
 
 const contractJson = new PostgresContractSerializer().serializeContract(
-  contractWith(Object.fromEntries(roundTripped.map(({ handle }) => [handle.enumName, handle]))),
+  contractWith(Object.fromEntries(roundTripped.map(({ handle }) => [handle.enumName, handle])), {}),
 );
 
 describe('every codec an enum can use on Postgres reads back the member it writes', () => {
@@ -137,8 +155,8 @@ describe('every codec an enum can use on Postgres reads back the member it write
   });
 
   it.each(roundTripped)(
-    'writes the member of an enum on $codecId past the column check and reads back the member',
-    ({ handle: { enumName } }) =>
+    'writes the member of an enum on $codecId past the column check, reads back the member, and renders the literal of the value read',
+    ({ codecId, handle: { enumName }, stored }) =>
       withPostgresPort<Contract<SqlStorage>>({ contractJson }, async ({ client }) => {
         const enumAccessor = client.enums['public']?.[enumName];
         const collection = client.orm['public']?.[enumName];
@@ -152,7 +170,8 @@ describe('every codec an enum can use on Postgres reads back the member it write
         expect({
           has: enumAccessor.has(row?.['value']),
           equal: sameValue(row?.['value'], written),
-        }).toEqual({ has: true, equal: true });
+          literal: stack.codecLookup.renderValueLiteralFor?.(codecId, stored, 'output'),
+        }).toEqual({ has: true, equal: true, literal: literalOf(row?.['value']) });
       }),
     timeouts.spinUpPpgDev,
   );

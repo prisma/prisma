@@ -158,8 +158,8 @@ const storedValues: Readonly<Record<string, JsonValue>> = {
   'pg/tsquery': 'a & b',
 };
 
-describe('every registered codec renders the literal of the value it reads from a stored value, or nothing', () => {
-  it('renders, for a stored value of its data type, the literal of the value a query reads', () => {
+describe('the literal each registered codec renders', () => {
+  it('is pinned for a stored value of its data type', () => {
     const rendered = Object.fromEntries(
       codecDescriptors.map((descriptor) => [
         descriptor.codecId,
@@ -196,7 +196,7 @@ describe('every registered codec renders the literal of the value it reads from 
       'pg/timestamptz-string@1': undefined,
       'pg/timestamptz-date@1': undefined,
       'pg/time-string@1': '"12:34:56"',
-      'pg/timetz@1': '"12:34:56+02:00"',
+      'pg/timetz@1': undefined,
       'pg/bool@1': 'true',
       'pg/bit@1': '"1"',
       'pg/varbit@1': '"101"',
@@ -205,7 +205,7 @@ describe('every registered codec renders the literal of the value it reads from 
       'pg/inet@1': '"127.0.0.1"',
       'pg/interval@1': undefined,
       'pg/json@1': undefined,
-      'pg/jsonb@1': '"x"',
+      'pg/jsonb@1': undefined,
       'pg/text-array@1': undefined,
       'pg/tsquery@1': undefined,
     });

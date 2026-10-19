@@ -175,23 +175,6 @@ export const pgInt8NumberDecode = (wire: string | number | bigint): number => {
 export const pgInt8NumberFromDigits = (digits: JsonValue): number =>
   Number(readJsonIntegerText('pg/int8number@1', digits, SAFE_INTEGER_BIGINT_RANGE));
 
-/**
- * Renders a decimal-text default as a `bigint` literal, for the codecs whose
- * canonical JSON is decimal text while the application type is `bigint`
- * (`pg/int8@1`, `pg/unboundedint@1`) — a plain string literal would not
- * typecheck against the emitted column type.
- */
-export const decimalTextBigintLiteral = (value: JsonValue): string | undefined =>
-  typeof value === 'string' && DECIMAL_INTEGER.test(value) ? `${value}n` : undefined;
-
-/** Renders a float's stored number as a number literal. NaN and the infinities are stored as text and have no literal type, so they render nothing and the value set types as `number`. */
-export const floatNumberLiteral = (value: JsonValue): string | undefined =>
-  typeof value === 'number' ? String(value) : undefined;
-
-/** Renders the decimal text of `pg/int8number@1`, whose application type is `number`, as a number literal. */
-export const decimalTextNumberLiteral = (value: JsonValue): string | undefined =>
-  typeof value === 'string' && DECIMAL_INTEGER.test(value) ? value : undefined;
-
 /** Parses an ISO-8601 duration into the application value. */
 export const pgIntervalFromIso = (text: string): PgInterval => intervalFieldsOf(text);
 

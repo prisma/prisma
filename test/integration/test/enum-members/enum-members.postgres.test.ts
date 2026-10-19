@@ -125,12 +125,12 @@ describe('db.enums on a contract emitted from PSL, against Postgres', () => {
         ]);
         const refused = await Promise.all(
           [
-            { id: 3, hosts: ['10.0.0.1'], ratios: [], ratio: Ratio.members.Half },
-            { id: 4, hosts: ['10.0.0.0/16'], ratios: [], ratio: Ratio.members.Half },
-            { id: 5, hosts: [], ratios: ['0.7'], ratio: Ratio.members.Half },
-            { id: 6, hosts: [], ratios: [], ratio: '0.7' },
+            { id: 3, hosts: ['10.0.0.1' as never], ratios: [], ratio: Ratio.members.Half },
+            { id: 4, hosts: ['10.0.0.0/16' as never], ratios: [], ratio: Ratio.members.Half },
+            { id: 5, hosts: [], ratios: ['0.7' as never], ratio: Ratio.members.Half },
+            { id: 6, hosts: [], ratios: [], ratio: '0.7' as never },
           ].map((row) =>
-            db.public.Network.createAndCount([row as never]).then(
+            db.public.Network.createAndCount([row]).then(
               () => 'accepted',
               (error: Error) =>
                 /violates check constraint "networks_\w+_check_/.test(error.message),

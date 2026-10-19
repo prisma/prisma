@@ -18,8 +18,8 @@ const storedValues: Readonly<Record<string, JsonValue>> = {
   'mongo/bson': { a: 1 },
 };
 
-describe('every registered codec renders the literal of the value it reads from a stored value, or nothing', () => {
-  it('renders, for a stored value of its data type, the literal of the value a query reads', () => {
+describe('the literal each registered codec renders', () => {
+  it('is pinned for a stored value of its data type', () => {
     const rendered = Object.fromEntries(
       mongoCodecDescriptors.map((descriptor) => [
         descriptor.codecId,

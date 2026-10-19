@@ -17,6 +17,7 @@ import { SqliteContractSerializer } from '@internal/target-sqlite/runtime';
 import { join } from 'pathe';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { enumNameOf, tableNameOf } from './enum-name-of';
+import { literalOf } from './literal-of';
 import { sameValue } from './same-value';
 
 const stack = createControlStack({
@@ -41,9 +42,9 @@ const storedMembers: Readonly<Record<string, JsonValue>> = {
   'sqlite/json': '"low"',
 };
 
-/** The codecs an enum accepts whose enum the contract build still refuses, with its message: a member stored as neither a string nor a finite number, which the column check that enforces membership cannot list, or a data type that needs parameters an enum does not give. */
 type EnumTypeHandle = ReturnType<typeof enumType>;
 
+/** The codecs an enum accepts whose enum the contract build still refuses, with its message: a member stored as neither a string nor a finite number, which the column check that enforces membership cannot list. */
 const authoringRefusals: Readonly<Record<string, string>> = {};
 
 function contractWith(enums: Record<string, EnumTypeHandle>) {
@@ -93,8 +94,10 @@ const accepted = stack.codecDescriptors
 const refusedOnBuild = accepted.flatMap(({ codecId, built }) =>
   'refusal' in built ? [[codecId, built.refusal] as const] : [],
 );
-const roundTripped = accepted.flatMap(({ codecId, built }) =>
-  'handle' in built ? [{ codecId, handle: built.handle }] : [],
+const roundTripped = accepted.flatMap(({ codecId, dataType, built }) =>
+  'handle' in built
+    ? [{ codecId, handle: built.handle, stored: storedMembers[dataType] ?? null }]
+    : [],
 );
 
 const contract = contractFromJson<Contract<SqlStorage>>(
@@ -182,8 +185,8 @@ describe('every codec an enum can use on SQLite reads back the member it writes'
   });
 
   it.each(roundTripped)(
-    'writes the member of an enum on $codecId past the column check and reads back the member',
-    async ({ handle: { enumName } }) => {
+    'writes the member of an enum on $codecId past the column check, reads back the member, and renders the literal of the value read',
+    async ({ codecId, handle: { enumName }, stored }) => {
       const enumAccessor = client.enums[enumName];
       const collection = client.orm[enumName];
       if (enumAccessor === undefined || collection === undefined) {
@@ -196,7 +199,8 @@ describe('every codec an enum can use on SQLite reads back the member it writes'
       expect({
         has: enumAccessor.has(row?.['value']),
         equal: sameValue(row?.['value'], written),
-      }).toEqual({ has: true, equal: true });
+        literal: stack.codecLookup.renderValueLiteralFor?.(codecId, stored, 'output'),
+      }).toEqual({ has: true, equal: true, literal: literalOf(row?.['value']) });
     },
   );
 });

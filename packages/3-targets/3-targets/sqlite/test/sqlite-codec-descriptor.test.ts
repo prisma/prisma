@@ -193,6 +193,17 @@ describe('SqliteCodecDescriptor', () => {
 });
 
 describe('sqliteCodec', () => {
+  it("renders literals with the renderer the target passes, never the template's", () => {
+    const descriptor = sqliteCodec(genericVectorDescriptor, {
+      dataType: fixtureVectorType,
+      renderValueLiteral: (value, side) => `${side}-from-target:${String(value)}`,
+      jsonProjection: (expression) => expression,
+      factory: buildVectorCodec,
+    });
+
+    expect(descriptor.renderValueLiteral?.('value', 'input')).toBe('input-from-target:value');
+  });
+
   it('preserves the wrapped descriptor contract and materialization behavior', () => {
     const descriptor = sqliteCodec(genericVectorDescriptor, {
       dataType: fixtureVectorType,
@@ -210,7 +221,7 @@ describe('sqliteCodec', () => {
     expect(descriptor.renderInputType?.({ length: 6 })).toBe(
       'ReadonlyArray<number> & { length: 6 }',
     );
-    expect(descriptor.renderValueLiteral?.('value', 'input')).toBe('input:value');
+    expect(descriptor.renderValueLiteral).toBeUndefined();
     expect('extensionOnly' in descriptor).toBe(false);
     expect('extensionOnlyMethod' in descriptor).toBe(false);
 
