@@ -123,7 +123,7 @@ export class PostgisGeometryDescriptor extends PostgresCodecDescriptor<GeometryP
   override readonly codecId = POSTGIS_GEOMETRY_CODEC_ID;
   override readonly traits = ['equality'] as const;
   override readonly enumRefusal =
-    'An enum compares a value with its members exactly, and nothing checks that PostGIS reads a shape back exactly as it was written. No enum can use a geometry codec; use a text enum that names each shape instead.';
+    'Enums over a geometry codec are not supported yet, because no test proves that a shape reads back as its member. Use a text enum that names each shape instead.';
   override readonly paramsSchema: StandardSchemaV1<GeometryParams> = postgisGeometryParams;
   /**
    * Runtime materialization uses an empty parameter object for the

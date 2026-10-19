@@ -5,6 +5,7 @@ import {
   factory,
   makeContext,
   UNEQUAL_CODEC_ID,
+  UNEQUAL_MANY_BSON_TYPES_CODEC_ID,
 } from './enum-entity-fixtures';
 
 describe('mongoFamilyEnumEntityDescriptor: a codec without exactly one storage type', () => {
@@ -48,5 +49,25 @@ describe('mongoFamilyEnumEntityDescriptor: a codec an enum cannot use', () => {
         },
       ],
     });
+  });
+});
+
+describe('mongoFamilyEnumEntityDescriptor: a codec both checks refuse', () => {
+  it("reports the codec's own reason, not the BSON types a collection validator cannot list", () => {
+    const diagnostics: unknown[] = [];
+    factory(
+      enumBlock({
+        name: 'Shape',
+        values: { round: 'round' },
+        typeCodecId: UNEQUAL_MANY_BSON_TYPES_CODEC_ID,
+      }),
+      makeContext(diagnostics),
+    );
+
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        message: `enum "Shape" cannot use the codec "${UNEQUAL_MANY_BSON_TYPES_CODEC_ID}". The codec does not declare the equality trait, so no value can be compared with a member. Use a codec that declares it.`,
+      }),
+    ]);
   });
 });

@@ -116,14 +116,16 @@ class GenericVectorDescriptor extends CodecDescriptorImpl<VectorParams> {
     return `ReadonlyArray<number> & { length: ${params.length} }`;
   }
 
-  override renderValueLiteral(value: JsonValue, side: 'output' | 'input'): string | undefined {
-    return typeof value === 'string' ? `${side}:${value}` : undefined;
-  }
-
   override factory<N extends number>(params: {
     readonly length: N;
   }): (ctx: CodecInstanceContext) => VectorCodec<N> {
     return () => new VectorCodec(this, fixtureVectorType, params.length);
+  }
+}
+
+class RenderingVectorDescriptor extends GenericVectorDescriptor {
+  override renderValueLiteral(value: JsonValue): string | undefined {
+    return typeof value === 'string' ? value : undefined;
   }
 }
 
@@ -275,6 +277,18 @@ const vectorCodecFactory =
     new VectorCodec(descriptor, type, params.length);
 
 describe('postgresCodec', () => {
+  it('refuses a family template that renders literals, naming the option to use instead', () => {
+    expect(() =>
+      postgresCodec(new RenderingVectorDescriptor(), {
+        dataType: fixtureVectorType,
+        jsonProjection: (expression) => expression,
+        factory: vectorCodecFactory,
+      }),
+    ).toThrow(
+      'demo/vector@1 is a family codec template with its own renderValueLiteral. A family template renders no literal, because only the target knows the form its data type stores a value in; pass renderValueLiteral in the options instead.',
+    );
+  });
+
   it("renders literals with the renderer the target passes, never the template's", () => {
     const descriptor = postgresCodec(genericVectorDescriptor, {
       dataType: fixtureVectorType,

@@ -67,23 +67,23 @@ export const mongoFamilyEnumEntityDescriptor = {
       if (!isMongoDataType(dataType)) {
         throw new InternalError(`Data type ${dataType.id} is not a Mongo data type.`);
       }
-      const { bsonTypes } = dataType.mongo;
-      const validatorRefusal = validatorEnumRefusalOf(bsonTypes);
-      if (validatorRefusal !== undefined) {
+      const enumRefusal = enumRefusalOf(descriptor);
+      if (enumRefusal !== undefined) {
         diagnostics?.push({
           code: 'PSL_EXTENSION_INVALID_VALUE',
-          message: `enum "${block.name}" @@type codec "${codecId}" ${validatorRefusal}`,
+          message: `enum "${block.name}" cannot use the codec "${codecId}". ${enumRefusal}`,
           sourceId,
           span: codecSpan,
         });
         return undefined;
       }
 
-      const enumRefusal = enumRefusalOf(descriptor);
-      if (enumRefusal !== undefined) {
+      const { bsonTypes } = dataType.mongo;
+      const validatorRefusal = validatorEnumRefusalOf(bsonTypes);
+      if (validatorRefusal !== undefined) {
         diagnostics?.push({
           code: 'PSL_EXTENSION_INVALID_VALUE',
-          message: `enum "${block.name}" cannot use the codec "${codecId}". ${enumRefusal}`,
+          message: `enum "${block.name}" @@type codec "${codecId}" ${validatorRefusal}`,
           sourceId,
           span: codecSpan,
         });

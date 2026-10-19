@@ -92,27 +92,36 @@ describe('more-codecs-refused-for-enums detection', () => {
   });
 });
 
-describe('adapted-family-codecs-render-literals-from-target-options detection', () => {
-  const patterns = patternsOf(
-    'extension',
-    'adapted-family-codecs-render-literals-from-target-options',
-  );
+describe('family-codec-templates-render-no-literals detection', () => {
+  const patterns = patternsOf('extension', 'family-codec-templates-render-no-literals');
 
-  it('finds a codec a target or extension adapts from a family template', () => {
+  it('finds a family codec template that renders literals', () => {
     expect(
-      [
-        'export const d = postgresCodec(sqlTextDescriptor, { dataType: pgText });',
-        'export const d = sqliteCodec(sqlTextDescriptor, { dataType: sqliteText });',
-      ].map((source) => detects(patterns, source)),
-    ).toEqual([true, true]);
+      detects(
+        patterns,
+        'export class MyTextTemplate extends CodecDescriptorTemplateImpl<void> {\n  override renderValueLiteral(value: JsonValue) {\n    return renderTsLiteral(value);\n  }\n}',
+      ),
+    ).toBe(true);
   });
 
-  it('skips a codec descriptor class and other names', () => {
-    expect(
-      [
-        'export class MyDescriptor extends PostgresCodecDescriptor<void> {}',
-        'const x = myPostgresCodec(template);',
-      ].map((source) => detects(patterns, source)),
-    ).toEqual([false, false]);
+  it.each([
+    [
+      'a family codec template that renders no literal',
+      'export class MyTextTemplate extends CodecDescriptorTemplateImpl<void> {\n  override readonly codecId = "my/text@1";\n}',
+    ],
+    [
+      'a target codec descriptor that renders literals',
+      'export class MyTextDescriptor extends PostgresCodecDescriptor<void> {\n  override renderValueLiteral(value: JsonValue) {\n    return renderTsLiteral(value);\n  }\n}',
+    ],
+    [
+      'a renderer passed in the adapter options',
+      'const d = postgresCodec(sqlTextDescriptor, { dataType: pgText, renderValueLiteral: renderTsLiteral });',
+    ],
+    [
+      'a renderer written as an arrow function in the options',
+      'class T extends CodecDescriptorTemplateImpl<void> {}\nconst d = sqliteCodec(t, { renderValueLiteral: (value) => String(value) });',
+    ],
+  ])('skips %s', (_name, source) => {
+    expect(detects(patterns, source)).toBe(false);
   });
 });

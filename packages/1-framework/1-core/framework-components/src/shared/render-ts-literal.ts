@@ -31,7 +31,7 @@ export function decimalTextBigintLiteral(value: JsonValue): string | undefined {
   return typeof value === 'string' && DECIMAL_INTEGER.test(value) ? `${value}n` : undefined;
 }
 
-/** Renders a float's stored number as a number literal. NaN and the infinities are stored as text and have no literal type, so they render nothing. */
+/** Renders a float's stored number as a number literal. A target stores an infinity, and NaN where it holds one (SQLite does not), as text, which has no literal type, so it renders nothing. */
 export function floatNumberLiteral(value: JsonValue): string | undefined {
   return typeof value === 'number' ? String(value) : undefined;
 }

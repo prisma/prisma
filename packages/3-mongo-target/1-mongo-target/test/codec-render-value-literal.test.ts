@@ -28,7 +28,7 @@ describe('the literal each registered codec renders', () => {
     );
 
     expect(rendered).toEqual({
-      'mongo/objectId@1': '"65a1b2c3d4e5f6a7b8c9d0e1"',
+      'mongo/objectId@1': undefined,
       'mongo/string@1': '"low"',
       'mongo/double@1': '1.5',
       'mongo/int32@1': '1',
@@ -37,7 +37,7 @@ describe('the literal each registered codec renders', () => {
       'mongo/vector@1': undefined,
       'mongo/int64@1': '1n',
       'mongo/int64Number@1': '1',
-      'mongo/decimal128@1': '"1.5"',
+      'mongo/decimal128@1': undefined,
       'mongo/binary@1': undefined,
       'mongo/json@1': undefined,
       'mongo/bson@1': undefined,

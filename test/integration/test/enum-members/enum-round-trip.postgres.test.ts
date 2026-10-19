@@ -68,6 +68,24 @@ const authoringRefusals: Readonly<Record<string, string>> = {
     'enumType("PgTextArray1"): CHECK constraint members must encode to strings or finite numbers.',
 };
 
+const stackWithoutExtensions = createControlStack({
+  family: sqlFamilyControl,
+  target: postgresTargetControl,
+  adapter: postgresAdapterControl,
+  driver: postgresDriverControl,
+  extensions: [],
+});
+
+/** The extension codecs refused for enums, with their reasons. The target's own refusals are pinned in the target's eligibility test. */
+const extensionRefusals: Readonly<Record<string, string>> = {
+  'arktype/json@1':
+    'A CHECK lists a string member as SQL text, which PostgreSQL reads as the JSON text of a document rather than as a string, and a number member as a number, which PostgreSQL cannot compare with jsonb, so no CHECK can compare a value with the members. No enum can use a jsonb codec; use a text enum instead.',
+  'pg/vector@1':
+    'The contract stores a vector member as an array of numbers, which no CHECK can list. No enum can use a vector codec; use a text enum instead.',
+  'pg/geometry@1':
+    'Enums over a geometry codec are not supported yet, because no test proves that a shape reads back as its member. Use a text enum that names each shape instead.',
+};
+
 const refused = stack.codecDescriptors.flatMap((descriptor) => {
   const refusal = enumRefusalOf(descriptor);
   return refusal === undefined ? [] : [{ codecId: descriptor.codecId, refusal }];
@@ -142,6 +160,19 @@ describe('every codec an enum can use on Postgres reads back the member it write
     expect(new Set(accepted.map(({ dataType }) => dataType))).toEqual(
       new Set(Object.keys(storedMembers)),
     );
+  });
+
+  it('refuses the extension codecs it pins, pg/geometry@1 among them because the test database, PGlite, has no PostGIS to prove a shape reads back', () => {
+    const ownCodecIds = new Set(
+      stackWithoutExtensions.codecDescriptors.map(({ codecId }) => codecId),
+    );
+    expect(
+      Object.fromEntries(
+        refused
+          .filter(({ codecId }) => !ownCodecIds.has(codecId))
+          .map(({ codecId, refusal }) => [codecId, refusal]),
+      ),
+    ).toEqual(extensionRefusals);
   });
 
   it.each(refused)('refuses an enum on $codecId with its reason', ({ codecId, refusal }) => {
