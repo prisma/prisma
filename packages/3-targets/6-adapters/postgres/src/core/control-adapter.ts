@@ -16,11 +16,15 @@ import {
   type ReadColumnDefault,
   readColumnDefault,
 } from '@internal/family-sql/control';
-import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
+import {
+  resolveIntrospectedColumnType,
+  type SqlControlAdapter,
+} from '@internal/family-sql/control-adapter';
 import { parseContractMarkerRow } from '@internal/family-sql/verify';
 import {
   type CodecLookupWithDescriptors,
   codecForRef,
+  type DataType,
   type DataTypeLookup,
 } from '@internal/framework-components/codec';
 import { APP_SPACE_ID, type SchemaNodeRef } from '@internal/framework-components/control';
@@ -196,9 +200,11 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
   readonly familyId = 'sql' as const;
   readonly targetId = 'postgres' as const;
 
+  /** `declaredDataTypes` are the stack's data types in assembly order, which introspection resolves each column's reported type over; an adapter built without them gives no column a data type. */
   constructor(
     private readonly codecRegistry: PostgresCodecRegistry,
     private readonly dataTypeLookup: DataTypeLookup,
+    private readonly declaredDataTypes: readonly DataType[] = [],
   ) {}
 
   bootstrapControlTableQueries(): readonly DdlNode[] {
@@ -1195,6 +1201,14 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
                 contractColumnOf(tableName, colRow.column_name),
               )
             : {};
+        const reportedType = colRow.reported_text
+          ? reportedSqlType({
+              text: colRow.reported_text,
+              typtype: colRow.reported_typtype,
+              schema: colRow.reported_type_schema,
+              name: colRow.reported_type_name,
+            })
+          : undefined;
         columns[colRow.column_name] = {
           name: colRow.column_name,
           nativeType,
@@ -1203,17 +1217,10 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
           ...ifDefined('many', many),
           resolvedNativeType,
           ...readDefault,
-          ...ifDefined(
-            'reportedType',
-            colRow.reported_text
-              ? reportedSqlType({
-                  text: colRow.reported_text,
-                  typtype: colRow.reported_typtype,
-                  schema: colRow.reported_type_schema,
-                  name: colRow.reported_type_name,
-                })
-              : undefined,
-          ),
+          ...ifDefined('reportedType', reportedType),
+          ...(reportedType === undefined
+            ? {}
+            : resolveIntrospectedColumnType(reportedType, this.declaredDataTypes)),
         };
       }
 

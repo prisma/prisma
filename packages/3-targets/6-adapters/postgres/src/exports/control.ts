@@ -27,7 +27,11 @@ const postgresAdapterDescriptor: SqlControlAdapterDescriptor<'postgres'> = {
       ...stack.extensions,
     ];
     const codecRegistry = assemblePostgresCodecRegistry(components, stack.dataTypes.lookup);
-    return new PostgresControlAdapter(codecRegistry, stack.dataTypes.lookup);
+    return new PostgresControlAdapter(
+      codecRegistry,
+      stack.dataTypes.lookup,
+      stack.declaredDataTypes.map(({ type }) => type),
+    );
   },
 };
 

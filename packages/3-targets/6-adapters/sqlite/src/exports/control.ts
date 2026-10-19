@@ -21,7 +21,10 @@ const sqliteAdapterDescriptor: SqlControlAdapterDescriptor<'sqlite'> = {
   },
   create(stack): SqlControlAdapter<'sqlite'> {
     const codecRegistry = assembleSqliteCodecRegistry(stack.target, stack.extensions);
-    return new SqliteControlAdapter(codecRegistry);
+    return new SqliteControlAdapter(
+      codecRegistry,
+      stack.declaredDataTypes.map(({ type }) => type),
+    );
   },
 };
 

@@ -207,29 +207,6 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
     ];
   }
 
-  /** This column with `dataType` and its normal-form `typeParams`. */
-  withDataType(dataType: DataType, typeParams: DataTypeParams): SqlColumnIR {
-    return new SqlColumnIR({
-      name: this.name,
-      nativeType: this.nativeType,
-      nullable: this.nullable,
-      ...ifDefined('default', this.default),
-      ...ifDefined('annotations', this.annotations),
-      ...ifDefined('many', this.many),
-      ...ifDefined('resolvedNativeType', this.resolvedNativeType),
-      ...ifDefined('resolvedDefault', this.resolvedDefault),
-      ...ifDefined('authoredDefault', this.authoredDefault),
-      ...ifDefined('codecRef', this.codecRef),
-      ...ifDefined('codecBaseNativeType', this.codecBaseNativeType),
-      dataType,
-      typeParams,
-      ...ifDefined('defaultValue', this.defaultValue),
-      ...ifDefined('defaultUnreadable', this.defaultUnreadable),
-      ...ifDefined('defaultExpressionValue', this.defaultExpressionValue),
-      ...ifDefined('reportedType', this.reportedType),
-    });
-  }
-
   static is(node: SqlSchemaIRNode): node is SqlColumnIR {
     return node.nodeKind === RelationalSchemaNodeKind.column;
   }
