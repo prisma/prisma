@@ -1255,8 +1255,8 @@ interface EnumSite {
   readonly memberSpans: Readonly<Record<string, PslSpan>>;
 }
 
-function fieldKey(owner: string, storedName: string): string {
-  return JSON.stringify([owner, storedName]);
+function fieldKey(owner: string, fieldName: string): string {
+  return JSON.stringify([owner, fieldName]);
 }
 
 /** The diagnostic for an enum a collection validator cannot describe, at its `@@type` or member. */
@@ -1306,9 +1306,8 @@ function fieldRefusalDiagnostic(
 ): PslDiagnostic | undefined {
   if (refusal.kind !== 'fieldBsonType' && refusal.kind !== 'documentId') return undefined;
   const owner = refusal.kind === 'fieldBsonType' ? refusal.owner.name : refusal.modelName;
-  const storedName = refusal.kind === 'fieldBsonType' ? refusal.fieldName : '_id';
-  const field = fieldSymbols.get(fieldKey(owner, storedName));
-  assertDefined(field, `Field "${owner}.${storedName}" has a declaration`);
+  const field = fieldSymbols.get(fieldKey(owner, refusal.fieldName));
+  assertDefined(field, `Field "${owner}.${refusal.fieldName}" has a declaration`);
   return {
     code: refusal.kind === 'fieldBsonType' ? 'PSL_UNSUPPORTED_FIELD_TYPE' : 'PSL_MONGO_ID_REQUIRED',
     message: `Field "${owner}.${field.name}" ${refusal.kind === 'fieldBsonType' ? refusal.refusal.reason : refusal.reason}`,

@@ -11,6 +11,7 @@ import { MongoValidator } from './ir/mongo-validator';
 import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
 import { recursiveGroupsOf, typeKey } from './recursive-groups';
 import { isEmbedRelation } from './relation-fields';
+import { documentIdFieldOf, storedFieldNameOf } from './stored-field-names';
 
 /**
  * The permitted values a field's value set restricts it to, keyed by the value set's name — the
@@ -184,9 +185,10 @@ function propertiesOf(
     if (Object.hasOwn(inherited.fields, fieldName)) continue;
     const schema = fieldToBsonSchema(field, sources);
     if (schema) {
-      properties[fieldName] = schema;
+      const storedName = storedFieldNameOf(shape, fieldName);
+      properties[storedName] = schema;
       if (!field.nullable) {
-        required.push(fieldName);
+        required.push(storedName);
       }
     }
   }
@@ -209,7 +211,7 @@ function deriveObjectSchema(
   { isDocument }: { readonly isDocument: boolean } = { isDocument: false },
 ): Record<string, unknown> {
   const own = propertiesOf(shape, sources, NOTHING_INHERITED);
-  const addsDocumentId = isDocument && !Object.hasOwn(own.properties, DOCUMENT_ID);
+  const addsDocumentId = isDocument && documentIdFieldOf(shape) === undefined;
   const properties = addsDocumentId
     ? { [DOCUMENT_ID]: OBJECT_ID_SCHEMA, ...own.properties }
     : own.properties;

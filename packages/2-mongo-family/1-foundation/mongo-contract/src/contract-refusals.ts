@@ -9,6 +9,7 @@ import { documentIdRefusalOf } from './document-id-refusal';
 import { type FieldBsonTypeRefusal, fieldBsonTypeRefusalOf } from './field-bson-type-refusal';
 import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
 import { isEmbedRelation } from './relation-fields';
+import { documentIdFieldOf } from './stored-field-names';
 import { validatorEnumMemberRefusalOf, validatorEnumRefusalOf } from './validator-enum-refusal';
 
 export type FieldOwner =
@@ -55,6 +56,8 @@ export type MongoContractRefusal =
   | {
       readonly kind: 'documentId';
       readonly modelName: string;
+      /** The model's field stored as `_id`. */
+      readonly fieldName: string;
       readonly collection: string;
       readonly reason: string;
     };
@@ -141,9 +144,12 @@ function documentIdRefusals(
 ): MongoContractRefusal[] {
   return Object.entries(collectionRootModelsOf(models)).flatMap(([collection, modelNames]) =>
     modelNames.flatMap((modelName): MongoContractRefusal[] => {
-      const id = models[modelName]?.fields['_id'];
-      const reason = id === undefined ? undefined : documentIdRefusalOf(id, lookups);
-      return reason === undefined ? [] : [{ kind: 'documentId', modelName, collection, reason }];
+      const model = models[modelName];
+      const id = model === undefined ? undefined : documentIdFieldOf(model);
+      const reason = id === undefined ? undefined : documentIdRefusalOf(id.field, lookups);
+      return id === undefined || reason === undefined
+        ? []
+        : [{ kind: 'documentId', modelName, fieldName: id.name, collection, reason }];
     }),
   );
 }

@@ -88,10 +88,11 @@ function refusalError(refusal: MongoContractRefusal): StructuredError {
     case 'documentId':
       return contractError(
         'CONTRACT.COLLECTION_INVALID',
-        `Model "${refusal.modelName}" field "_id" ${refusal.reason}`,
+        `Model "${refusal.modelName}" field "${refusal.fieldName}" ${refusal.reason}`,
         {
           meta: {
             modelName: refusal.modelName,
+            fieldName: refusal.fieldName,
             collection: refusal.collection,
             reason: 'document-id-not-objectId',
           },

@@ -48,8 +48,18 @@ describe('mongoContractRefusalsOf', () => {
         },
       }),
     ).toEqual([
-      expect.objectContaining({ kind: 'documentId', modelName: 'User', collection: 'users' }),
-      expect.objectContaining({ kind: 'documentId', modelName: 'Event', collection: 'events' }),
+      expect.objectContaining({
+        kind: 'documentId',
+        modelName: 'User',
+        fieldName: '_id',
+        collection: 'users',
+      }),
+      expect.objectContaining({
+        kind: 'documentId',
+        modelName: 'Event',
+        fieldName: '_id',
+        collection: 'events',
+      }),
     ]);
   });
 

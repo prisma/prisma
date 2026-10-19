@@ -112,7 +112,12 @@ describe('mongo defineContract refuses what a collection validator cannot descri
         expect.objectContaining({
           code: 'CONTRACT.COLLECTION_INVALID',
           message: `Model "User" field "_id" ${holdsId(description)}`,
-          meta: { modelName: 'User', collection: 'users', reason: 'document-id-not-objectId' },
+          meta: {
+            modelName: 'User',
+            fieldName: '_id',
+            collection: 'users',
+            reason: 'document-id-not-objectId',
+          },
         }),
       );
     });
