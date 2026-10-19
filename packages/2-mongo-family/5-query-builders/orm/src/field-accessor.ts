@@ -328,6 +328,7 @@ export function createFieldAccessor<
 export function compileFieldOperations(
   ops: readonly FieldOperation[],
   wrapValue: (field: string, value: MongoValue, operator: UpdateOperator) => MongoValue,
+  storedPathOf: (field: string) => string = (field) => field,
 ): Record<string, Record<string, MongoValue>> {
   const grouped: Record<string, Record<string, MongoValue>> = {};
   for (const op of ops) {
@@ -336,7 +337,7 @@ export function compileFieldOperations(
       group = {};
       grouped[op.operator] = group;
     }
-    group[op.field] = wrapValue(op.field, op.value, op.operator);
+    group[storedPathOf(op.field)] = wrapValue(op.field, op.value, op.operator);
   }
   return grouped;
 }

@@ -12,6 +12,7 @@ type OrmSubcode =
   | 'OPERATION_UNSUPPORTED'
   | 'INCLUDE_UNSUPPORTED'
   | 'FIELD_IMMUTABLE'
+  | 'FIELD_UNKNOWN'
   | 'MUTATION_DEFAULTS_MISSING';
 
 export type OrmCode = `ORM.${OrmSubcode}`;
