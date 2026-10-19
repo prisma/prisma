@@ -301,7 +301,6 @@ describe('executeDbUpdate', () => {
           summary: 'Database schema does not satisfy contract',
           meta: { issues: [issue] },
           schemaIssues: [issue],
-          legacyMarkerLocation: 'marker_table_of_the_target',
           failingSpace: 'app',
         }),
       }),
@@ -316,12 +315,10 @@ describe('executeDbUpdate', () => {
         ? undefined
         : {
             schemaIssues: result.failure.schemaIssues,
-            legacyMarkerLocation: result.failure.legacyMarkerLocation,
             metaIssues: result.failure.meta?.['issues'],
           },
     ).toEqual({
       schemaIssues: [issue],
-      legacyMarkerLocation: 'marker_table_of_the_target',
       metaIssues: [issue],
     });
   });

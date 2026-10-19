@@ -1,4 +1,3 @@
-import { legacyMarkerFix } from '@internal/errors/execution';
 import type { MigrationOperationClass } from '@internal/framework-components/control';
 import { ifDefined } from '@internal/utils/defined';
 import { assertNever } from '@internal/utils/internal-error';
@@ -133,9 +132,7 @@ export function mapDbInitFailure(
           ? 'Change the contract source to resolve the issues listed, re-run `{bin} contract emit`, then re-run `{bin} db init`.'
           : failure.failedPrecheck !== undefined
             ? dbInitFailedPrecheckFix(invocation)
-            : failure.legacyMarkerLocation !== undefined
-              ? legacyMarkerFix(failure.legacyMarkerLocation, '{bin} db init')
-              : 'Fix the schema mismatch (db init is additive-only), or drop/reset the database and re-run `{bin} db init`';
+            : 'Fix the schema mismatch (db init is additive-only), or drop/reset the database and re-run `{bin} db init`';
     return errorRunnerFailed(failure.summary, {
       why:
         schemaCheckWhy(failure.schemaIssues) ??

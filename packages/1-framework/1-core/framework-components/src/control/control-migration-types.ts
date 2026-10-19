@@ -396,8 +396,6 @@ export interface MigrationRunnerFailure {
   readonly rowsWithoutValue?: readonly RowsWithoutValue[];
   /** The differences the schema check after apply found, when that check failed. */
   readonly schemaIssues?: readonly SchemaDiffIssue[];
-  /** Where the target keeps its marker, when the marker there has a shape an earlier version wrote. */
-  readonly legacyMarkerLocation?: string;
 }
 
 /** A field that is to become required while existing rows have no value for it. */

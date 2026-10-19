@@ -1,4 +1,3 @@
-import { legacyMarkerFix } from '@internal/errors/execution';
 import { ifDefined } from '@internal/utils/defined';
 import { assertNever } from '@internal/utils/internal-error';
 import type { DbUpdateFailure } from '../control-api/types';
@@ -39,9 +38,7 @@ export function mapDbUpdateFailure(
             )
           : failure.schemaIssues !== undefined
             ? `Change the contract source to resolve the issues listed, re-run \`${cliCommand(invocation, 'contract emit')}\`, then re-run \`${cliCommand(invocation, 'db update')}\`.`
-            : failure.legacyMarkerLocation !== undefined
-              ? legacyMarkerFix(failure.legacyMarkerLocation, cliCommand(invocation, 'db init'))
-              : `Inspect the reported conflict, reconcile schema drift if needed, then re-run \`${cliCommand(invocation, 'db update')}\``;
+            : `Inspect the reported conflict, reconcile schema drift if needed, then re-run \`${cliCommand(invocation, 'db update')}\``;
     return errorRunnerFailed(failure.summary, {
       why:
         schemaCheckWhy(failure.schemaIssues) ??

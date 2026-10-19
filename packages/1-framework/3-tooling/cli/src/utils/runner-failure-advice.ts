@@ -1,4 +1,3 @@
-import { legacyMarkerFix } from '@internal/errors/execution';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { basename, join } from 'pathe';
 import { statementFlag } from '../control-api/statements/statement-flag';
@@ -270,9 +269,6 @@ export function migrateFix(failure: MigrateFailure, invocation: CliInvocation): 
   }
   if (failure.failedPrecheck !== undefined) {
     return migrateFailedPrecheckFix(failure.failedPrecheck, invocation);
-  }
-  if (failure.legacyMarkerLocation !== undefined) {
-    return legacyMarkerFix(failure.legacyMarkerLocation, cliCommand(invocation, 'db init'));
   }
   return `Fix the issue and re-run \`${cliCommand(invocation, 'db migrate', ['--to', '<contract>'])}\` — previously applied migrations are preserved.`;
 }

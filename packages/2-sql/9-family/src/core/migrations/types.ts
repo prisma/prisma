@@ -417,7 +417,6 @@ export interface SqlMigrationRunnerExecuteOptions<TTargetDetails> {
 
 export type SqlMigrationRunnerErrorCode =
   | 'MIGRATION.DESTINATION_CONTRACT_MISMATCH'
-  | 'MIGRATION.LEGACY_MARKER_SHAPE'
   | 'MIGRATION.MARKER_ORIGIN_MISMATCH'
   | 'MIGRATION.MARKER_CAS_FAILURE'
   | 'MIGRATION.POLICY_VIOLATION'

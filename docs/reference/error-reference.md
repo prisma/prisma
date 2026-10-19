@@ -1586,10 +1586,6 @@ A legacy `refs.json` file is invalid: it must be a flat object mapping valid ref
 
 A contract-space id (e.g. via `--space` or in planner input) does not match the required pattern `[a-z][a-z0-9_-]{0,63}`: space ids double as directory names under `migrations/`, so the rule is conservative. Payload: `spaceId`.
 
-### MIGRATION.LEGACY_MARKER_SHAPE
-
-The database's marker table (`prisma_contract.marker` on Postgres, `_prisma_marker` on SQLite) has the pre-per-space shape (no `space` column). The transitional auto-migration has been removed; drop the marker table and re-run `prisma db init` to reinitialise from a clean baseline. Detected during `db init`/`db update`/apply. Payload: `table`, `columns` (runner variant) or `runnerErrorCode` (marker-read variant).
-
 ### MIGRATION.LEGEND_HUMAN_ONLY
 
 `migration list --legend` was combined with a machine-readable or silent output flag (`--json`, `--dot`, or `--quiet`); the legend is human-only decoration on stderr. Drop one of the flags. Payload: `conflictingFlag`.

@@ -63,8 +63,6 @@ export interface RunnerFailure {
   readonly failedPrecheck?: FailedPrecheckReport;
   /** The differences the schema check after apply found, when that check failed. */
   readonly schemaIssues?: readonly SchemaDiffIssue[];
-  /** Where the target keeps its marker, when the marker there has a shape an earlier version wrote. */
-  readonly legacyMarkerLocation?: string;
   /** The written migration of the failed operation, when the runner named the operation, or the last one applied when the schema check after apply failed. */
   readonly failedMigration?: { readonly spaceId: string; readonly edge: AggregateMigrationEdgeRef };
   /**
@@ -280,7 +278,6 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
       ...failureReports(runnerResult.failure, orderedResolutions),
       ...ifDefined('failedPrecheck', failedPrecheckOf(runnerResult.failure, orderedResolutions)),
       ...ifDefined('schemaIssues', schemaIssuesOf(runnerResult.failure)),
-      ...ifDefined('legacyMarkerLocation', runnerResult.failure.legacyMarkerLocation),
       cause: runnerResult.failure,
     });
   }

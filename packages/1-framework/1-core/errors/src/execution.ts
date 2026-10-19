@@ -130,45 +130,6 @@ function isMarkerRowParseError(err: unknown): err is Error {
   );
 }
 
-function isLegacyMarkerShapeReadError(message: string): boolean {
-  const normalized = message.toLowerCase();
-  return (
-    normalized.includes('column "space" does not exist') ||
-    normalized.includes('no such column: space')
-  );
-}
-
-/** The fix for a marker an earlier version wrote: drop it where the target keeps it, then let `initCommand` write it again. */
-export function legacyMarkerFix(location: string, initCommand: string): string {
-  return `The marker has the shape an earlier version wrote. Drop \`${location}\` and re-run \`${initCommand}\` to recreate it with the current per-space shape.`;
-}
-
-function errorLegacyMarkerShape(options: {
-  readonly why: string;
-  readonly markerLocation: string;
-  readonly cause?: unknown;
-}): CliStructuredError {
-  return errorRunnerFailed(
-    `Legacy marker-table shape detected on ${options.markerLocation} (no \`space\` column). ` +
-      'Prisma 8 is in pre-1.0; the previous transitional auto-migration to the per-space-row schema has been removed. ' +
-      `Drop \`${options.markerLocation}\` and re-run \`{bin} db init\` to reinitialise from a clean baseline.`,
-    {
-      why: options.why,
-      fix: legacyMarkerFix(options.markerLocation, '{bin} db init'),
-      nextActions: [
-        {
-          kind: 'run-command',
-          label: 'Reinitialise the marker table from a clean baseline',
-          command: '{bin} db init',
-          reason: `Drop \`${options.markerLocation}\` first — it has the legacy shape (no \`space\` column) and this command recreates it with the current per-space schema.`,
-        },
-      ],
-      meta: { runnerErrorCode: 'MIGRATION.LEGACY_MARKER_SHAPE' },
-      ...ifDefined('cause', options.cause),
-    },
-  );
-}
-
 export function rethrowMarkerReadError(
   err: unknown,
   context: { readonly space: string; readonly markerLocation: string },
@@ -185,13 +146,6 @@ export function rethrowMarkerReadError(
     });
   }
   const message = err instanceof Error ? err.message : String(err);
-  if (isLegacyMarkerShapeReadError(message)) {
-    throw errorLegacyMarkerShape({
-      why: message,
-      markerLocation: context.markerLocation,
-      cause: err,
-    });
-  }
   throw errorMarkerReadFailed({
     why: message,
     space: context.space,
