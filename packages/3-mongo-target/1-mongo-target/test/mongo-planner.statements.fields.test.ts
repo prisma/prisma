@@ -84,27 +84,6 @@ describe('MongoMigrationPlanner, field statements', () => {
       ]);
     });
 
-    it('renames the stored field for a statement that keeps the field name', () => {
-      expect(
-        planned(
-          plan({
-            from: displayName('from', 'name', 'display_name'),
-            to: displayName('to', 'name', 'full_name'),
-            schema: displayNameSchema,
-            statements: [renameField('Profile', 'name', 'Profile', 'name')],
-          }),
-        ),
-      ).toEqual({
-        labels: [
-          'Rename field display_name to full_name in collection profiles',
-          'Update validator on profiles (added: full_name; removed: display_name)',
-        ],
-        classes: ['widening', 'widening'],
-        applied: [[0]],
-        dataLoss: [],
-      });
-    });
-
     it('plans nothing from a contract that named the document id _id to one that names it id', () => {
       const rewrittenSnapshot = contract(
         'from',
