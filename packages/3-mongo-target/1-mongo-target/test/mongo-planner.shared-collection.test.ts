@@ -97,6 +97,49 @@ describe('MongoMigrationPlanner, field changes in a collection that stores sever
     ]);
   });
 
+  it('renames a field that every root model of the collection renames to the same name', () => {
+    expect(
+      planned(
+        plan({
+          from: shared('from', ['level'], ['level']),
+          to: shared('to', ['rank'], ['rank']),
+          schema,
+          statements: [
+            renameField('Admin', 'level', 'Admin', 'rank'),
+            renameField('User', 'level', 'User', 'rank'),
+          ],
+        }),
+      ),
+    ).toEqual({
+      labels: [
+        'Rename field level to rank in collection users',
+        'Update validator on users (added: rank; removed: level)',
+      ],
+      classes: ['widening', 'widening'],
+      applied: [[0], [0]],
+      dataLoss: [],
+    });
+  });
+
+  it('refuses a field rename when another root model renames the field to another name', () => {
+    expect(
+      refusal(
+        plan({
+          from: shared('from', ['level'], ['level']),
+          to: shared('to', ['rank'], ['grade']),
+          schema,
+          statements: [
+            renameField('Admin', 'level', 'Admin', 'rank'),
+            renameField('User', 'level', 'User', 'grade'),
+          ],
+        }),
+      ).map(({ summary }) => summary),
+    ).toEqual([
+      'Cannot rename field "Admin.level" to "Admin.rank": model "User" stores field "level" in the same collection, "users"',
+      'Cannot rename field "User.level" to "User.grade": model "Admin" stores field "level" in the same collection, "users"',
+    ]);
+  });
+
   it('renames a field no other root model of the collection stores', () => {
     expect(
       planned(

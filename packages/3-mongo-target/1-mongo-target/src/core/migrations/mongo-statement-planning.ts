@@ -20,6 +20,8 @@ import {
 import {
   collectionRootModelsOf,
   type MongoContract,
+  storedFieldNameOf,
+  storesField,
   validatorFieldNamesOf,
   validatorRootShapesOf,
 } from '@internal/mongo-contract';
@@ -159,16 +161,14 @@ function otherRootModelsStoring(
   contract: ContractWithDomain,
   model: ModelCoordinate,
   collection: string,
-  field: string,
+  storedName: string,
 ): readonly string[] {
   const models = contract.domain.namespaces[model.namespaceId]?.models ?? {};
   const stores = (name: string) => {
     const root = models[name];
     if (root === undefined) return false;
     const variants = Object.values(root.variants ?? {}).map((variant) => models[variant.model]);
-    return [root, ...variants].some(
-      (each) => each !== undefined && Object.hasOwn(each.fields, field),
-    );
+    return [root, ...variants].some((each) => each !== undefined && storesField(each, storedName));
   };
   return (collectionRootModelsOf(models)[collection] ?? []).filter(
     (name) => name !== model.model && stores(name),
@@ -262,13 +262,30 @@ export function planStatements(input: {
       renamedCollections.set(outcome.call.from, outcome.call.to);
       collectionRenames.push(outcome.call);
     }
-    if (outcome.kind === 'renameField') fieldRenames.push(outcome.call);
+    if (outcome.kind === 'renameField') {
+      const same = fieldRenames.find((call) => sameFieldRename(call, outcome.call));
+      if (same !== undefined) {
+        callOfStatement.push(same);
+        continue;
+      }
+      fieldRenames.push(outcome.call);
+    }
     callOfStatement.push(outcome.kind === 'unchanged' ? undefined : outcome.call);
   }
 
   return conflicts.length > 0
     ? notOk(conflicts)
     : ok({ schema, collectionRenames, fieldRenames, callOfStatement });
+}
+
+/** Whether two field renames rewrite the same documents the same way, as when every root model of a shared collection renames a field together. */
+function sameFieldRename(a: RenameFieldCall, b: RenameFieldCall): boolean {
+  return (
+    a.collection === b.collection &&
+    a.from === b.from &&
+    a.to === b.to &&
+    JSON.stringify(a.filter) === JSON.stringify(b.filter)
+  );
 }
 
 type StatementOutcome =
@@ -387,7 +404,11 @@ function planFieldStatement(
   label: string,
   renamedCollections: ReadonlyMap<string, string>,
   schema: MongoSchemaIR,
-  input: { readonly fromContract: ContractWithDomain; readonly contract: MongoContract },
+  input: {
+    readonly statements: readonly ResolvedRenameStatement[];
+    readonly fromContract: ContractWithDomain;
+    readonly contract: MongoContract;
+  },
 ): StatementOutcome {
   const refuse = (reason: string, why: string): StatementOutcome => ({
     kind: 'refused',
@@ -445,12 +466,25 @@ function planFieldStatement(
   if (policyRefusal !== undefined) return policyRefusal;
   const variant = variantFilter(input.fromContract, statement.from);
   if (variant === undefined) {
+    const fromModel = modelAt(input.fromContract, statement.from);
+    const renamedTogether = new Set(
+      input.statements.flatMap((other) =>
+        other.entity === 'field' &&
+        other.from.namespaceId === statement.from.namespaceId &&
+        other.from.field === statement.from.field &&
+        other.to.field === statement.to.field
+          ? [other.from.model]
+          : [],
+      ),
+    );
     const others = otherRootModelsStoring(
       input.fromContract,
       statement.from,
       originCollection,
-      statement.from.field,
-    );
+      fromModel === undefined
+        ? statement.from.field
+        : storedFieldNameOf(fromModel, statement.from.field),
+    ).filter((name) => !renamedTogether.has(name));
     if (others.length > 0) {
       return refuse(
         `model ${others.map((name) => JSON.stringify(name)).join(', ')} stores field ${JSON.stringify(statement.from.field)} in the same collection, ${JSON.stringify(collection)}`,
