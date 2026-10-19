@@ -20,12 +20,15 @@ import {
 import {
   collectionRootModelsOf,
   type MongoContract,
+  type MongoModelDefinition,
   storedFieldNameOf,
+  storedFieldNamesOf,
   storesField,
   validatorFieldNamesOf,
   validatorRootShapesOf,
 } from '@internal/mongo-contract';
 import { MongoSchemaCollection, MongoSchemaIR } from '@internal/mongo-schema-ir';
+import { blindCast } from '@internal/utils/casts';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { unrewritableFieldNameReason } from './migration-factories';
 import {
@@ -49,14 +52,34 @@ export function collectionOf(
   return typeof collection === 'string' ? collection : coordinate.model;
 }
 
+function mongoModel(model: ContractModelBase): MongoModelDefinition {
+  return blindCast<
+    MongoModelDefinition,
+    'the MongoDB planner plans between MongoDB contracts, whose models record their stored field names'
+  >(model);
+}
+
 function modelAt(
   contract: ContractWithDomain,
   coordinate: ModelCoordinate,
-): ContractModelBase | undefined {
+): MongoModelDefinition | undefined {
   const namespace = contract.domain.namespaces[coordinate.namespaceId];
-  return namespace !== undefined && Object.hasOwn(namespace.models, coordinate.model)
-    ? namespace.models[coordinate.model]
-    : undefined;
+  const model =
+    namespace !== undefined && Object.hasOwn(namespace.models, coordinate.model)
+      ? namespace.models[coordinate.model]
+      : undefined;
+  return model === undefined ? undefined : mongoModel(model);
+}
+
+/** The stored name of `field` of the model at `coordinate`, or undefined when the model does not declare it. */
+function storedFieldNameAt(
+  contract: ContractWithDomain,
+  coordinate: FieldCoordinate,
+): string | undefined {
+  const model = modelAt(contract, coordinate);
+  return model === undefined || !Object.hasOwn(model.fields, coordinate.field)
+    ? undefined
+    : storedFieldNameOf(model, coordinate.field);
 }
 
 /**
@@ -69,14 +92,19 @@ function variantFilter(
 ): Document | undefined {
   const base = modelAt(contract, coordinate)?.base;
   if (base === undefined) return undefined;
-  const baseModel = contract.domain.namespaces[base.namespace]?.models[base.model];
+  const baseModel = modelAt(contract, {
+    namespaceId: asNamespaceId(base.namespace),
+    model: base.model,
+  });
   const field = baseModel?.discriminator?.field;
   const variants = Object.entries(baseModel?.variants ?? {});
   const value = variants.find(
     ([, variant]) =>
       variant.namespace === coordinate.namespaceId && variant.model === coordinate.model,
   )?.[0];
-  return field === undefined || value === undefined ? undefined : { [field]: value };
+  return baseModel === undefined || field === undefined || value === undefined
+    ? undefined
+    : { [storedFieldNameOf(baseModel, field)]: value };
 }
 
 function collectionControlPolicy(contract: MongoContract, collection: string) {
@@ -105,7 +133,7 @@ type StoredField =
   | { readonly kind: 'embed' }
   | { readonly kind: 'absent' };
 
-function storedField(model: ContractModelBase | undefined, field: string): StoredField {
+function storedField(model: MongoModelDefinition | undefined, field: string): StoredField {
   if (model === undefined) return { kind: 'absent' };
   if (Object.hasOwn(model.fields, field)) return { kind: 'field' };
   const relation = Object.hasOwn(model.relations, field) ? model.relations[field] : undefined;
@@ -168,7 +196,9 @@ function otherRootModelsStoring(
     const root = models[name];
     if (root === undefined) return false;
     const variants = Object.values(root.variants ?? {}).map((variant) => models[variant.model]);
-    return [root, ...variants].some((each) => each !== undefined && storesField(each, storedName));
+    return [root, ...variants].some(
+      (each) => each !== undefined && storesField(mongoModel(each), storedName),
+    );
   };
   return (collectionRootModelsOf(models)[collection] ?? []).filter(
     (name) => name !== model.model && stores(name),
@@ -429,50 +459,53 @@ function planFieldStatement(
       `A relation is not stored in documents, so a statement cannot rename a field to or from one. ${LEAVE_OUT}`,
     );
   }
-  if (statement.from.field === '_id' || statement.to.field === '_id') {
-    return refuse('it renames _id', `MongoDB does not let a document change its _id. ${LEAVE_OUT}`);
-  }
-  const unsafeFrom = unrewritableFieldNameReason(statement.from.field);
-  if (unsafeFrom !== undefined) {
-    return refuse(
-      `the stored field name "${statement.from.field}" cannot be rewritten`,
-      `${unsafeFrom}, so a statement cannot move its values. Rename it in the database yourself, or ${LEAVE_OUT.toLowerCase()}`,
-    );
-  }
-  const unsafeTo = unrewritableFieldNameReason(statement.to.field);
-  if (unsafeTo !== undefined) {
-    return refuse(
-      `the stored field name "${statement.to.field}" cannot be written`,
-      `${unsafeTo}. Give the field a stored name without "." that does not start with "$" (with @map), or ${LEAVE_OUT.toLowerCase()}`,
-    );
-  }
+  const fromStored = storedFieldNameAt(input.fromContract, statement.from) ?? statement.from.field;
+  const toStored = storedFieldNameAt(input.contract, statement.to) ?? statement.to.field;
   const originCollection = collectionOf(input.fromContract, statement.from);
   const collection = renamedCollections.get(originCollection) ?? originCollection;
   const destinationCollection = collectionOf(input.contract, statement.to);
+  if (fromStored === toStored && collection === destinationCollection) {
+    return { kind: 'unchanged' };
+  }
+  if (fromStored === '_id' || toStored === '_id') {
+    return refuse('it renames _id', `MongoDB does not let a document change its _id. ${LEAVE_OUT}`);
+  }
+  const unsafeFrom = unrewritableFieldNameReason(fromStored);
+  if (unsafeFrom !== undefined) {
+    return refuse(
+      `the stored field name "${fromStored}" cannot be rewritten`,
+      `${unsafeFrom}, so a statement cannot move its values. Rename it in the database yourself, or ${LEAVE_OUT.toLowerCase()}`,
+    );
+  }
+  const unsafeTo = unrewritableFieldNameReason(toStored);
+  if (unsafeTo !== undefined) {
+    return refuse(
+      `the stored field name "${toStored}" cannot be written`,
+      `${unsafeTo}. Give the field a stored name without "." that does not start with "$" (with @map), or ${LEAVE_OUT.toLowerCase()}`,
+    );
+  }
   if (collection !== destinationCollection) {
     return refuse(
       `the model's collection changes from "${originCollection}" to "${destinationCollection}", and no statement renames it`,
       collectionChangeAdvice(statement, originCollection, destinationCollection),
     );
   }
-  if (statement.from.field === statement.to.field) return { kind: 'unchanged' };
   if (schema.collection(collection)?.options?.timeseries !== undefined) {
     return refuse(
       `collection "${collection}" is a time-series collection`,
-      `${TIME_SERIES_UPDATES}, so a statement cannot move the values of a field in them. Keep the stored name: name the field ${JSON.stringify(statement.from.field)} in the contract (with @map(${JSON.stringify(statement.from.field)}) in PSL), then run this command again without this statement.`,
+      `${TIME_SERIES_UPDATES}, so a statement cannot move the values of a field in them. Keep the stored name: store the field as ${JSON.stringify(fromStored)} (with @map(${JSON.stringify(fromStored)}) in PSL), then run this command again without this statement.`,
     );
   }
   const policyRefusal = controlPolicyRefusal(statement, label, input.contract, collection);
   if (policyRefusal !== undefined) return policyRefusal;
   const variant = variantFilter(input.fromContract, statement.from);
   if (variant === undefined) {
-    const fromModel = modelAt(input.fromContract, statement.from);
     const renamedTogether = new Set(
       input.statements.flatMap((other) =>
         other.entity === 'field' &&
         other.from.namespaceId === statement.from.namespaceId &&
-        other.from.field === statement.from.field &&
-        other.to.field === statement.to.field
+        storedFieldNameAt(input.fromContract, other.from) === fromStored &&
+        storedFieldNameAt(input.contract, other.to) === toStored
           ? [other.from.model]
           : [],
       ),
@@ -481,22 +514,19 @@ function planFieldStatement(
       input.fromContract,
       statement.from,
       originCollection,
-      fromModel === undefined
-        ? statement.from.field
-        : storedFieldNameOf(fromModel, statement.from.field),
+      fromStored,
     ).filter((name) => !renamedTogether.has(name));
     if (others.length > 0) {
       return refuse(
-        `model ${others.map((name) => JSON.stringify(name)).join(', ')} stores field ${JSON.stringify(statement.from.field)} in the same collection, ${JSON.stringify(collection)}`,
+        `model ${others.map((name) => JSON.stringify(name)).join(', ')} stores field ${JSON.stringify(fromStored)} in the same collection, ${JSON.stringify(collection)}`,
         `${sharedCollectionWhy(collection, others, 'renaming the field would rename it in the documents')} To change it, ${SEPARATE_THE_MODELS}.`,
       );
     }
   }
-  const filter =
-    variant ?? rootDocumentsLosing(input.contract, statement.to, statement.from.field)?.filter;
+  const filter = variant ?? rootDocumentsLosing(input.contract, statement.to, fromStored)?.filter;
   return {
     kind: 'renameField',
-    call: new RenameFieldCall(collection, statement.from.field, statement.to.field, filter),
+    call: new RenameFieldCall(collection, fromStored, toStored, filter),
   };
 }
 
@@ -597,7 +627,10 @@ function storedFieldsOf(contract: ContractWithDomain, coordinate: ModelCoordinat
           namespaceId: asNamespaceId(model.base.namespace),
           model: model.base.model,
         });
-  return new Set([...Object.keys(model.fields), ...Object.keys(base?.fields ?? {})]);
+  return new Set([
+    ...Object.values(storedFieldNamesOf(model)),
+    ...(base === undefined ? [] : Object.values(storedFieldNamesOf(base))),
+  ]);
 }
 
 /**
@@ -608,22 +641,23 @@ function storedFieldsOf(contract: ContractWithDomain, coordinate: ModelCoordinat
 function rootDocumentsLosing(
   contract: ContractWithDomain,
   root: ModelCoordinate,
-  field: string,
+  storedName: string,
 ): { readonly filter: Document | undefined } | undefined {
   const model = modelAt(contract, root);
-  if (model === undefined || Object.hasOwn(model.fields, field)) return undefined;
+  if (model === undefined || storesField(model, storedName)) return undefined;
   const discriminator = model.discriminator?.field;
   const keeping = Object.entries(model.variants ?? {})
-    .filter(([, variant]) =>
-      Object.hasOwn(
-        modelAt(contract, { namespaceId: variant.namespace, model: variant.model })?.fields ?? {},
-        field,
-      ),
-    )
+    .filter(([, variant]) => {
+      const variantModel = modelAt(contract, {
+        namespaceId: variant.namespace,
+        model: variant.model,
+      });
+      return variantModel !== undefined && storesField(variantModel, storedName);
+    })
     .map(([value]) => value)
     .sort();
   if (discriminator === undefined || keeping.length === 0) return { filter: undefined };
-  return { filter: { [discriminator]: { $nin: keeping } } };
+  return { filter: { [storedFieldNameOf(model, discriminator)]: { $nin: keeping } } };
 }
 
 /**
@@ -643,28 +677,28 @@ export function planFieldRemovals(input: FieldRemovalInput): readonly FieldRemov
     const model = modelAt(input.fromContract, origin);
     if (model === undefined) return [];
     const variant = variantFilter(input.fromContract, origin);
-    const losing = (field: string): { readonly filter: Document | undefined } | undefined => {
+    const losing = (storedName: string): { readonly filter: Document | undefined } | undefined => {
       if (variant !== undefined) {
-        return storedFieldsOf(input.contract, destination).has(field)
+        return storedFieldsOf(input.contract, destination).has(storedName)
           ? undefined
           : { filter: variant };
       }
-      return rootDocumentsLosing(input.contract, destination, field);
+      return rootDocumentsLosing(input.contract, destination, storedName);
     };
-    return Object.keys(model.fields)
+    return Object.entries(storedFieldNamesOf(model))
       .filter(
-        (field) =>
-          unrewritableFieldNameReason(field) === undefined &&
+        ([field, storedName]) =>
+          unrewritableFieldNameReason(storedName) === undefined &&
           !renamedByStatement(input, { ...origin, field }),
       )
-      .sort()
-      .flatMap((field) => {
-        const lost = losing(field);
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .flatMap(([field, storedName]) => {
+        const lost = losing(storedName);
         return lost === undefined
           ? []
           : [
               {
-                call: new UnsetFieldCall(collection, field, lost.filter),
+                call: new UnsetFieldCall(collection, storedName, lost.filter),
                 subject: { kind: 'field' as const, ...origin, field },
               },
             ];

@@ -24,6 +24,8 @@ export const NS = asNamespaceId('__unbound__');
 export interface ModelSpec {
   readonly collection: string;
   readonly fields: readonly string[];
+  /** The stored name of each field stored under a name other than its own. */
+  readonly storedAs?: Readonly<Record<string, string>>;
   readonly relations?: readonly string[];
   readonly base?: string;
   readonly discriminator?: string;
@@ -91,7 +93,12 @@ export function contract(
                     },
                   ]),
                 ),
-                storage: { collection: spec.collection },
+                storage: {
+                  collection: spec.collection,
+                  fields: Object.fromEntries(
+                    spec.fields.map((field) => [field, { field: spec.storedAs?.[field] ?? field }]),
+                  ),
+                },
                 ...(spec.base === undefined
                   ? {}
                   : { base: { namespace: '__unbound__', model: spec.base } }),

@@ -279,7 +279,7 @@ describe('MongoMigrationPlanner, a field of a time-series collection', () => {
         kind: 'statementRefused',
         summary:
           'Cannot rename field "Reading.value" to "Reading.reading": collection "readings" is a time-series collection',
-        why: 'MongoDB updates the documents of a time-series collection only through its metaField, so a statement cannot move the values of a field in them. Keep the stored name: name the field "value" in the contract (with @map("value") in PSL), then run this command again without this statement.',
+        why: 'MongoDB updates the documents of a time-series collection only through its metaField, so a statement cannot move the values of a field in them. Keep the stored name: store the field as "value" (with @map("value") in PSL), then run this command again without this statement.',
       },
     ]);
   });
