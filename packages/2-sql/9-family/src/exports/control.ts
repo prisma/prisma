@@ -20,6 +20,7 @@ export type {
   SqlDescribedContractSpace,
   SqlPslBuildContext,
 } from '../core/control-target-descriptor';
+export { idGeneratorFunctionBindings } from '../core/generator-functions';
 export type {
   ContractToSchemaIROptions,
   DefaultResolver,

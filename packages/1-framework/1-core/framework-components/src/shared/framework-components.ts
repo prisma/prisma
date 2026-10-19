@@ -2,6 +2,7 @@ import type { AggregateDescriptor } from './aggregate-descriptor';
 import type { AnyCodecDescriptor } from './codec-descriptor';
 import type { DataType } from './data-type';
 import type { AuthoringContributions } from './framework-authoring';
+import type { GeneratorFunctionContribution } from './generator-functions';
 import type { ControlMutationDefaults } from './mutation-default-types';
 import type { TypesImportSpec } from './types-import-spec';
 
@@ -73,6 +74,11 @@ export interface ComponentMetadata {
    * Mutation default function handlers and generator descriptors contributed by this component. Assembled by `createControlStack` with duplicate detection.
    */
   readonly controlMutationDefaults?: ControlMutationDefaults;
+
+  /**
+   * Generator functions this component declares or binds to its codecs, for `@onCreate(fn())`, `@onUpdate(fn())` and the TypeScript builder's `gen` calls. Assembled by `assembleGeneratorFunctions`.
+   */
+  readonly generatorFunctions?: readonly GeneratorFunctionContribution[];
 }
 
 /**

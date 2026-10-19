@@ -3,6 +3,7 @@ import { sqlAttributeSpecs } from '@internal/sql-contract-psl/attribute-specs';
 import { sqlFamilyEntityTypes, sqlFamilyPslBlockDescriptors } from '../core/authoring-entity-types';
 import { sqlFamilyAuthoringFieldPresets } from '../core/authoring-field-presets';
 import { sqlFamilyAuthoringTypes } from '../core/authoring-type-constructors';
+import { sqlFamilyGeneratorFunctions } from '../core/generator-functions';
 
 const sqlFamilyPack = {
   kind: 'family',
@@ -16,6 +17,7 @@ const sqlFamilyPack = {
     pslBlockDescriptors: sqlFamilyPslBlockDescriptors,
     attributeSpecs: sqlAttributeSpecs,
   },
+  generatorFunctions: sqlFamilyGeneratorFunctions,
 } as const satisfies FamilyPackRef<'sql'>;
 
 export default sqlFamilyPack;

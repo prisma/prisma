@@ -3,6 +3,7 @@ import type { CodecTypes } from '../exports/codec-types';
 import { sqliteAuthoringFieldPresets, sqliteAuthoringTypes } from './authoring';
 import { sqliteDataTypeEntries } from './data-type-entries';
 import { sqliteTargetDescriptorMetaRuntime } from './descriptor-meta-runtime';
+import { sqliteGeneratorFunctions } from './generator-functions';
 
 const sqliteTargetDescriptorMetaBase = {
   ...sqliteTargetDescriptorMetaRuntime,
@@ -13,6 +14,7 @@ const sqliteTargetDescriptorMetaBase = {
     field: sqliteAuthoringFieldPresets,
     dataTypes: sqliteDataTypeEntries(),
   },
+  generatorFunctions: sqliteGeneratorFunctions,
 } as const;
 
 export const sqliteTargetDescriptorMeta: typeof sqliteTargetDescriptorMetaBase & {

@@ -38,6 +38,10 @@ import {
   mergeAuthoringNamespaces,
 } from '../shared/framework-authoring';
 import type { ComponentMetadata } from '../shared/framework-components';
+import {
+  assembleGeneratorFunctions,
+  type GeneratorFunctionRegistry,
+} from '../shared/generator-functions';
 import type {
   AssembledControlMutationDefaults,
   ControlMutationDefaultEntry,
@@ -105,6 +109,7 @@ export interface ControlStack<
   /** Names of the top-level zero-arg type constructors in the assembled authoring namespace — the base scalars of the composed stack. */
   readonly scalarTypes: ReadonlyArray<string>;
   readonly controlMutationDefaults: AssembledControlMutationDefaults;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   /** For each codec, the field preset `contract print` writes a column of it with each generator. */
   readonly fieldPresetsByCodecAndGenerator: FieldPresetsByCodecAndGenerator;
   readonly capabilities: CapabilityMatrix;
@@ -886,6 +891,17 @@ export function buildExtensionLoadOrder(
   return result;
 }
 
+/**
+ * The generator ids a stack registers, which every generator function binding must produce from. A stack that registers no generator, such as one composed for authoring without an adapter, checks nothing.
+ */
+function registeredGeneratorIdsOf(
+  defaults: AssembledControlMutationDefaults,
+): ReadonlySet<string> | undefined {
+  return defaults.generatorDescriptors.length === 0
+    ? undefined
+    : new Set(defaults.generatorDescriptors.map((descriptor) => descriptor.id));
+}
+
 export function createControlStack<TFamilyId extends string, TTargetId extends string>(
   input: CreateControlStackInput<TFamilyId, TTargetId>,
 ): ControlStack<TFamilyId, TTargetId> {
@@ -925,6 +941,8 @@ export function createControlStack<TFamilyId extends string, TTargetId extends s
     codecDescriptorFor: (codecId) => codecLookup.descriptorFor?.(codecId),
   });
 
+  const controlMutationDefaults = assembleControlMutationDefaults(allDescriptors);
+
   return {
     family,
     target,
@@ -948,7 +966,10 @@ export function createControlStack<TFamilyId extends string, TTargetId extends s
     aggregateDescriptors: collectAggregateDescriptors(allDescriptors),
     authoringContributions,
     scalarTypes: [...collectScalarTypeConstructors(authoringContributions.type).keys()],
-    controlMutationDefaults: assembleControlMutationDefaults(allDescriptors),
+    controlMutationDefaults,
+    generatorFunctions: assembleGeneratorFunctions(allDescriptors, {
+      registeredGeneratorIds: registeredGeneratorIdsOf(controlMutationDefaults),
+    }),
     fieldPresetsByCodecAndGenerator: assembleFieldPresetsByCodecAndGenerator(
       authoringContributions.field,
     ),
