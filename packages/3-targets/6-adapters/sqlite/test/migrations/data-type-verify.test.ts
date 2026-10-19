@@ -285,6 +285,43 @@ describe('verify on SQLite, for each data type', () => {
     }
   });
 
+  it('verifies clean, and plans no operation, for a table declared with other spellings', async () => {
+    const driver = createMemoryDriver();
+    try {
+      await driver.query(`CREATE TABLE "item" (
+        "text_col" Text NOT NULL DEFAULT 'x',
+        "integer_col" integer NOT NULL DEFAULT 7,
+        "real_col" Real NOT NULL DEFAULT 1.5,
+        "blob_col" blob DEFAULT X'6869',
+        "character_col" Character NOT NULL DEFAULT 'a',
+        "character_varying_col" character   VARYING NOT NULL DEFAULT 'b',
+        "json_col" text NOT NULL DEFAULT '{"a":1}',
+        "bigint_col" Integer NOT NULL DEFAULT 9007199254740993,
+        "datetime_col" TEXT NOT NULL DEFAULT '2024-01-01T00:00:00.000Z'
+      )`);
+      const schema = await introspector.introspect(driver, contract);
+      const result = sqliteTargetDescriptor.createPlanner(controlAdapter).plan({
+        contract,
+        schema,
+        policy: { allowedOperationClasses: ['additive', 'widening', 'destructive'] },
+        fromContract: null,
+        origin: null,
+        statements: [],
+        frameworkComponents,
+        spaceId: APP_SPACE_ID,
+        snapshotsImportPath: '../../snapshots',
+      });
+      if (result.kind !== 'success') throw new Error('expected planner success');
+      const operations = await Promise.all(result.plan.operations);
+      expect({
+        ok: (await verify(driver)).ok,
+        operations: operations.map((operation) => operation.id),
+      }).toEqual({ ok: true, operations: [] });
+    } finally {
+      await driver.close();
+    }
+  });
+
   it('verifies integer and JSON defaults written in their earlier stored form', async () => {
     const driver = createMemoryDriver();
     try {
