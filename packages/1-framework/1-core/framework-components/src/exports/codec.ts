@@ -45,6 +45,7 @@ export type {
   DataTypeId,
   DataTypeLookup,
   DataTypeParams,
+  DataTypeParamsProblem,
   DataTypeReader,
   DataTypeSpec,
   DataTypeSpelling,
@@ -53,10 +54,12 @@ export type {
 } from '../shared/data-type';
 export {
   assembleDataTypes,
+  assertDataTypeParams,
   createDataTypeLookup,
   dataType,
   dataTypeId,
   dataTypeParams,
+  dataTypeParamsProblem,
   dataTypeValuesEqual,
   objectSchemaKeys,
   requiredParamKeys,
