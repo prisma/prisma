@@ -6,6 +6,11 @@ export type {
 } from '@internal/framework-components/runtime';
 export { RelationKeys } from '@internal/framework-components/runtime';
 export { buildMongoStorage } from '../build-mongo-storage';
+export type { CollectionControlPolicies } from '../collection-control-policies';
+export {
+  collectionControlPoliciesOf,
+  collectionControlPolicyOf,
+} from '../collection-control-policies';
 export { collectionRootModelsOf } from '../collection-root-models';
 export type {
   FieldOwner,

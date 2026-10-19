@@ -4,8 +4,8 @@ import type {
   ContractModelBase,
   ContractValueObject,
 } from '@internal/contract/types';
+import { type CollectionControlPolicies, isManaged } from './collection-control-policies';
 import { collectionRootModelsOf } from './collection-root-models';
-import { type CollectionControlPolicies, isManaged } from './derive-collection-validators';
 import { documentIdBsonTypesOf, documentIdRefusalOf } from './document-id-refusal';
 import { type FieldBsonTypeRefusal, fieldBsonTypeRefusalOf } from './field-bson-type-refusal';
 import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
