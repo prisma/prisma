@@ -4,7 +4,7 @@ export type {
   ContractValueObjectDefinitions,
 } from '../contract-types';
 export type { ControlPolicy } from '../control-policy';
-export { effectiveControlPolicy } from '../control-policy';
+export { effectiveControlPolicy, governingControlPolicy } from '../control-policy';
 export type { CrossReference } from '../cross-reference';
 export { CrossReferenceSchema, crossRef } from '../cross-reference';
 export { soleDomainNamespaceId } from '../default-namespace';
@@ -43,6 +43,12 @@ export type {
   ValueObjectFieldType,
 } from '../domain-types';
 export { ContractExecutionSectionSchema } from '../execution-section-schema';
+export type {
+  FieldTypesFromDomain,
+  StoredValueType,
+  ValueObjectTypesFromDomain,
+  ValueTypeSide,
+} from '../field-value-types';
 export type { NamespaceId } from '../namespace-id';
 export { asNamespaceId } from '../namespace-id';
 export type {

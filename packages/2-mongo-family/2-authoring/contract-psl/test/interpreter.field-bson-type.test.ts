@@ -64,12 +64,12 @@ describe('a PSL MongoDB field whose codec has no MongoDB data type', () => {
       {
         code: 'PSL_UNSUPPORTED_FIELD_TYPE',
         message:
-          'Field "Place.location" uses codec "geo/point@1", whose data type "geo/point" is not a MongoDB data type of any pack in the contract, so the collection validator cannot give its BSON type.',
+          'Field "Place.location" uses codec "geo/point@1", whose data type "geo/point" is not a MongoDB data type of any pack in the contract, so its BSON type is unknown and the contract cannot describe the field.',
       },
       {
         code: 'PSL_UNSUPPORTED_FIELD_TYPE',
         message:
-          'Field "Address.location" uses codec "geo/point@1", whose data type "geo/point" is not a MongoDB data type of any pack in the contract, so the collection validator cannot give its BSON type.',
+          'Field "Address.location" uses codec "geo/point@1", whose data type "geo/point" is not a MongoDB data type of any pack in the contract, so its BSON type is unknown and the contract cannot describe the field.',
       },
     ]);
   });

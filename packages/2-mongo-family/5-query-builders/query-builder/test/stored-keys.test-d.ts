@@ -3,9 +3,7 @@ import { expectTypeOf } from 'vitest';
 import { mongoQuery } from '../src/query';
 import type { ModelNestedShape } from '../src/resolve-path';
 import type { ModelToDocShape } from '../src/types';
-import type { TContract, TestContract } from './fixtures/test-contract';
-
-const contractJson = {} as unknown;
+import { type TestContract, testContract } from './fixtures/test-contract';
 
 type PlanRow<P extends MongoQueryPlan> = P extends MongoQueryPlan<infer R> ? R : never;
 
@@ -40,12 +38,12 @@ describe('stored keys', () => {
   });
 
   it('exposes _id, not id, on a model whose id field is stored as _id', () => {
-    const plan = mongoQuery<TContract>({ contractJson }).from('accounts').build();
+    const plan = mongoQuery({ contract: testContract }).from('accounts').build();
     expectTypeOf<PlanRow<typeof plan>>().toEqualTypeOf<AccountRow>();
   });
 
   it('accepts stored keys and rejects domain field names in match', () => {
-    const accounts = mongoQuery<TContract>({ contractJson }).from('accounts');
+    const accounts = mongoQuery({ contract: testContract }).from('accounts');
     accounts.match((f) => f._id.eq('a'));
     accounts.match((f) => f('home_address.city').eq('NYC'));
     // @ts-expect-error -- `id` is a domain field name, not a stored key
@@ -55,7 +53,7 @@ describe('stored keys', () => {
   });
 
   it('keys a looked-up foreign row by stored key', () => {
-    const plan = mongoQuery<TContract>({ contractJson })
+    const plan = mongoQuery({ contract: testContract })
       .from('orders')
       .lookup((from) =>
         from('accounts')

@@ -1,9 +1,11 @@
 import {
   asNamespaceId,
+  type Contract,
   type ContractModelBase,
   type ContractRelation,
   type ContractWithDomain,
-  effectiveControlPolicy,
+  type ControlPolicy,
+  governingControlPolicy,
 } from '@internal/contract/types';
 import {
   describeMigrationStatement,
@@ -18,7 +20,10 @@ import {
   type ResolvedRenameStatement,
 } from '@internal/framework-components/control';
 import {
+  collectionControlPoliciesOf,
+  collectionControlPolicyOf,
   collectionRootModelsOf,
+  MongoCollection,
   type MongoContract,
   type MongoModelDefinition,
   storedFieldNameOf,
@@ -107,11 +112,47 @@ function variantFilter(
     : { [storedFieldNameOf(baseModel, field)]: value };
 }
 
-function collectionControlPolicy(contract: MongoContract, collection: string) {
-  const declared = Object.values(contract.storage.namespaces)
-    .map((namespace) => namespace?.entries.collection?.[collection])
-    .find((entry) => entry !== undefined);
-  return effectiveControlPolicy(declared?.control, contract.defaultControlPolicy);
+/** The control policy that governs a collection, and the policy its contract declares for it. */
+export interface CollectionControl {
+  readonly policy: ControlPolicy;
+  readonly declared: ControlPolicy | undefined;
+}
+
+function declaredCollection(contract: Contract, collection: string): MongoCollection | undefined {
+  return Object.values(contract.storage.namespaces)
+    .map((namespace) => namespace.entries['collection']?.[collection])
+    .find((entry) => entry instanceof MongoCollection);
+}
+
+/**
+ * The control policy of `collection`. A collection the contract leaves out keeps the policy `fromContract` gave it, when that was not `managed`, so leaving an `external` collection out of the contract does not drop it.
+ */
+export function collectionControlOf(
+  contract: MongoContract,
+  fromContract: Contract | null,
+  collection: string,
+): CollectionControl {
+  const declared = declaredCollection(contract, collection);
+  const original =
+    declared === undefined && fromContract !== null
+      ? declaredCollection(fromContract, collection)
+      : undefined;
+  const policy = collectionControlPolicyOf(collection, collectionControlPoliciesOf(contract));
+  if (original === undefined || fromContract === null) {
+    return { policy, declared: declared?.control };
+  }
+  const originalPolicy = governingControlPolicy(
+    { explicitNodeControlPolicy: original.control },
+    fromContract.defaultControlPolicy,
+  );
+  return {
+    policy: originalPolicy === 'managed' ? policy : originalPolicy,
+    declared: original.control,
+  };
+}
+
+export function collectionControlPolicy(contract: MongoContract, collection: string) {
+  return collectionControlOf(contract, null, collection).policy;
 }
 
 /** Why MongoDB would refuse a collection name, if it would. */
@@ -183,26 +224,72 @@ const SEPARATE_THE_MODELS =
   'move the models to separate collections, or carry out the change in a dataTransform operation of a migration.ts, with a filter that selects only their documents';
 
 /**
- * The other root models stored in `collection` that store `field`, themselves or in a variant. A collection that stores several root models has no discriminator that tells their documents apart, so a change to one model's field reaches theirs too.
+ * The discriminator field and value a variant's filter selects, or `undefined` for a filter that selects by anything else, or no filter.
  */
-function otherRootModelsStoring(
+function discriminatorValueOf(
+  filter: Document | undefined,
+): { readonly field: string; readonly value: unknown } | undefined {
+  const entries = Object.entries(filter ?? {});
+  if (entries.length !== 1) return undefined;
+  const [entry] = entries;
+  if (entry === undefined) return undefined;
+  const [field, value] = entry;
+  return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
+    ? { field, value }
+    : undefined;
+}
+
+/**
+ * The other models stored in `collection`, root models and their variants, whose documents a change of `storedName` with `filter` reaches, and which store the field themselves or through their base. No discriminator tells the documents of several root models apart, so without a filter, or with a base model's filter, every other root model's documents are reached. A variant's filter, one discriminator value, reaches a model only when its documents can hold that value: a variant of another root model with the same discriminator field and value, or a model that declares the discriminator field itself.
+ */
+function otherModelsReached(
   contract: ContractWithDomain,
   model: ModelCoordinate,
   collection: string,
+  filter: Document | undefined,
   storedName: string,
 ): readonly string[] {
   const models = contract.domain.namespaces[model.namespaceId]?.models ?? {};
-  const stores = (name: string) => {
-    const root = models[name];
-    if (root === undefined) return false;
-    const variants = Object.values(root.variants ?? {}).map((variant) => models[variant.model]);
-    return [root, ...variants].some(
-      (each) => each !== undefined && storesField(mongoModel(each), storedName),
+  const modelNamed = (name: string) => {
+    const each = models[name];
+    return each === undefined ? undefined : mongoModel(each);
+  };
+  const baseOf = (name: string) => {
+    const base = models[name]?.base;
+    return base === undefined ? undefined : modelNamed(base.model);
+  };
+  const storesOrInherits = (name: string, field: string) => {
+    const each = modelNamed(name);
+    const base = baseOf(name);
+    return (
+      (each !== undefined && storesField(each, field)) ||
+      (base !== undefined && storesField(base, field))
     );
   };
-  return (collectionRootModelsOf(models)[collection] ?? []).filter(
-    (name) => name !== model.model && stores(name),
-  );
+  const selected = discriminatorValueOf(filter);
+  const canHold = (name: string) => {
+    if (selected === undefined) return true;
+    const base = baseOf(name);
+    const discriminator = base?.discriminator?.field;
+    if (
+      base !== undefined &&
+      discriminator !== undefined &&
+      storedFieldNameOf(base, discriminator) === selected.field
+    ) {
+      return Object.entries(base.variants ?? {}).some(
+        ([value, variant]) => variant.model === name && value === selected.value,
+      );
+    }
+    return storesOrInherits(name, selected.field);
+  };
+  const subjectRoot = modelAt(contract, model)?.base?.model ?? model.model;
+  return (collectionRootModelsOf(models)[collection] ?? [])
+    .filter((name) => name !== subjectRoot)
+    .flatMap((name) => [
+      name,
+      ...Object.values(models[name]?.variants ?? {}).map((variant) => variant.model),
+    ])
+    .filter((name) => canHold(name) && storesOrInherits(name, storedName));
 }
 
 function sharedCollectionWhy(
@@ -223,8 +310,8 @@ export function sharedCollectionRemovalRefusals(
 ): readonly MigrationPlannerConflict[] {
   return removals.flatMap((removal): MigrationPlannerConflict[] => {
     const { subject, call } = removal;
-    if (subject.kind !== 'field' || call.filter !== undefined) return [];
-    const others = otherRootModelsStoring(contract, subject, call.collection, call.field);
+    if (subject.kind !== 'field') return [];
+    const others = otherModelsReached(contract, subject, call.collection, call.filter, call.field);
     if (others.length === 0) return [];
     return [
       {
@@ -499,29 +586,28 @@ function planFieldStatement(
   const policyRefusal = controlPolicyRefusal(statement, label, input.contract, collection);
   if (policyRefusal !== undefined) return policyRefusal;
   const variant = variantFilter(input.fromContract, statement.from);
-  if (variant === undefined) {
-    const renamedTogether = new Set(
-      input.statements.flatMap((other) =>
-        other.entity === 'field' &&
-        other.from.namespaceId === statement.from.namespaceId &&
-        storedFieldNameAt(input.fromContract, other.from) === fromStored &&
-        storedFieldNameAt(input.contract, other.to) === toStored
-          ? [other.from.model]
-          : [],
-      ),
+  const renamedTogether = new Set(
+    input.statements.flatMap((other) =>
+      other.entity === 'field' &&
+      other.from.namespaceId === statement.from.namespaceId &&
+      storedFieldNameAt(input.fromContract, other.from) === fromStored &&
+      storedFieldNameAt(input.contract, other.to) === toStored
+        ? [other.from.model]
+        : [],
+    ),
+  );
+  const others = otherModelsReached(
+    input.fromContract,
+    statement.from,
+    originCollection,
+    variant,
+    fromStored,
+  ).filter((name) => !renamedTogether.has(name));
+  if (others.length > 0) {
+    return refuse(
+      `model ${others.map((name) => JSON.stringify(name)).join(', ')} stores field ${JSON.stringify(fromStored)} in the same collection, ${JSON.stringify(collection)}`,
+      `${sharedCollectionWhy(collection, others, 'renaming the field would rename it in the documents')} To change it, ${SEPARATE_THE_MODELS}.`,
     );
-    const others = otherRootModelsStoring(
-      input.fromContract,
-      statement.from,
-      originCollection,
-      fromStored,
-    ).filter((name) => !renamedTogether.has(name));
-    if (others.length > 0) {
-      return refuse(
-        `model ${others.map((name) => JSON.stringify(name)).join(', ')} stores field ${JSON.stringify(fromStored)} in the same collection, ${JSON.stringify(collection)}`,
-        `${sharedCollectionWhy(collection, others, 'renaming the field would rename it in the documents')} To change it, ${SEPARATE_THE_MODELS}.`,
-      );
-    }
   }
   const filter = variant ?? rootDocumentsLosing(input.contract, statement.to, fromStored)?.filter;
   return {

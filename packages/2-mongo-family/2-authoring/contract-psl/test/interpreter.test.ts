@@ -12,6 +12,7 @@ import type { CodecLookupWithDescriptors } from '@internal/framework-components/
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   buildMongoNamespace,
+  documentIdRefusalReason,
   MongoCollection,
   MongoIndex,
   MongoStorage,
@@ -992,7 +993,7 @@ model Item {
     });
   });
 
-  describe('_id objectId requirement', () => {
+  describe('the document id', () => {
     it('accepts an ObjectId @id mapped to _id', () => {
       const ir = interpretOk(`
         model Item {
@@ -1058,24 +1059,59 @@ model Item {
       ]);
     });
 
-    it('rejects an _id whose type is not ObjectId', () => {
-      const result = interpret(`
+    it.each([
+      ['String', 'string'],
+      ['Int32', 'int'],
+    ])('accepts a %s _id, whose validator requires _id with that type', (type, bsonType) => {
+      const ir = interpretOk(`
         model Item {
-          id String @id @map("_id")
+          id   ${type} @id @map("_id")
           name String
         }
       `);
 
-      expect(result.ok).toBe(false);
-      if (result.ok) return;
-      expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
-        {
-          code: 'PSL_MONGO_ID_NOT_OBJECTID',
-          message:
-            'Field "Item.id" holds the document id as BSON type string, but an _id must be stored as BSON type objectId: every collection validator requires an objectId _id, which MongoDB adds to every document inserted without one.',
+      expect(mongoCollectionsFromIr(ir)['Item']?.['validator']).toMatchObject({
+        jsonSchema: {
+          required: ['_id', 'name'],
+          properties: { _id: { bsonType }, name: { bsonType: 'string' } },
         },
-      ]);
+      });
     });
+
+    it.each([
+      ['a list', 'ObjectId[]', 'mongo/objectId@1', ['array']],
+      ['nullable', 'String?', 'mongo/string@1', ['null']],
+      ['json', 'Json', 'mongo/json@1', ['array', 'null']],
+      ['a vector', 'Vector', 'mongo/vector@1', ['array']],
+    ])(
+      'rejects an _id that is %s, at the field, naming its codec',
+      (_case, type, codecId, forbidden) => {
+        const result = interpret(
+          `
+        model Item {
+          id   ${type} @id @map("_id")
+          name String
+        }
+      `,
+          {
+            scalarTypeCodecIds: new Map([
+              ...mongoScalarTypeDescriptors,
+              ['Json', 'mongo/json@1'],
+              ['Vector', 'mongo/vector@1'],
+            ]),
+          },
+        );
+
+        expect(result.ok).toBe(false);
+        if (result.ok) return;
+        expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+          {
+            code: 'PSL_MONGO_ID_INVALID',
+            message: `Field "Item.id" ${documentIdRefusalReason(codecId, forbidden)}`,
+          },
+        ]);
+      },
+    );
 
     it('names the _id codec, at the field, when no pack provides it', () => {
       const result = interpret(
@@ -1100,7 +1136,7 @@ model Item {
         {
           code: 'PSL_UNSUPPORTED_FIELD_TYPE',
           message:
-            'Field "Item.id" uses codec "mongo/objectId@1", which no pack in the contract provides, so the collection validator cannot give its BSON type.',
+            'Field "Item.id" uses codec "mongo/objectId@1", which no pack in the contract provides, so its BSON type is unknown and the contract cannot describe the field.',
         },
       ]);
     });

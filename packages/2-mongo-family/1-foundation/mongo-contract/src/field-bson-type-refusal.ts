@@ -1,16 +1,16 @@
 import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
 
 /**
- * Why a collection validator cannot describe a field of codec `codecId`. `unknownCodec`: no pack in the contract provides the codec. `notMongoDataType`: the codec's data type is not a MongoDB data type, so it names no BSON type.
+ * Why the contract cannot describe a field of codec `codecId`: its BSON type is unknown. `unknownCodec`: no pack in the contract provides the codec. `notMongoDataType`: the codec's data type is not a MongoDB data type, so it names no BSON type.
  */
 export type FieldBsonTypeRefusal =
   | { readonly kind: 'unknownCodec'; readonly reason: string }
   | { readonly kind: 'notMongoDataType'; readonly reason: string; readonly dataType: string };
 
-const CANNOT_GIVE = 'so the collection validator cannot give its BSON type.';
+const CANNOT_GIVE = 'so its BSON type is unknown and the contract cannot describe the field.';
 
 /**
- * Why a field of codec `codecId` cannot be described by a collection validator, or undefined when it can. The reason leaves out its subject so each authoring surface can lead with its own, as in `Field "Place.location" uses codec ...`.
+ * Why a field of codec `codecId` cannot be described, or undefined when its BSON type is known. The reason leaves out its subject so each authoring surface can lead with its own, as in `Field "Place.location" uses codec ...`.
  */
 export function fieldBsonTypeRefusalOf(
   codecId: string,

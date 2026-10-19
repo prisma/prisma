@@ -1,5 +1,7 @@
 import { dataType } from '@internal/framework-components/codec';
 import type { ExtensionPackRef } from '@internal/framework-components/components';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { documentIdRefusalReason } from '@internal/mongo-contract';
 import { describe, expect, it } from 'vitest';
 import { defineContract, field, model, rel, valueObject } from '../src/contract-builder';
 import { enumType, member } from '../src/enum-type';
@@ -21,8 +23,13 @@ const sqlTypedPack = {
   },
 } as const satisfies ExtensionPackRef<'mongo', 'mongo'>;
 
-const holdsId = (description: string) =>
-  `holds the document id as ${description}, but an _id must be stored as BSON type objectId: every collection validator requires an objectId _id, which MongoDB adds to every document inserted without one.`;
+function validatorSchemaOf(
+  contract: { readonly storage: { readonly namespaces: object } },
+  collection: string,
+): unknown {
+  return JSON.parse(JSON.stringify(contract.storage.namespaces))[UNBOUND_NAMESPACE_ID].entries
+    .collection[collection].validator.jsonSchema;
+}
 
 describe('mongo defineContract refuses what a collection validator cannot describe', () => {
   describe('a codec with no MongoDB data type', () => {
@@ -35,7 +42,7 @@ describe('mongo defineContract refuses what a collection validator cannot descri
         expect.objectContaining({
           code: 'CONTRACT.CODEC_DESCRIPTOR_MISSING',
           message:
-            'Model "Place" field "location" uses codec "geo/point@1", which no pack in the contract provides, so the collection validator cannot give its BSON type.',
+            'Model "Place" field "location" uses codec "geo/point@1", which no pack in the contract provides, so its BSON type is unknown and the contract cannot describe the field.',
           meta: { modelName: 'Place', fieldName: 'location', codecId: 'geo/point@1' },
         }),
       );
@@ -52,7 +59,7 @@ describe('mongo defineContract refuses what a collection validator cannot descri
         expect.objectContaining({
           code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
           message:
-            'Model "Place" field "location" uses codec "geo/point@1", whose data type "geo/point" is not a MongoDB data type of any pack in the contract, so the collection validator cannot give its BSON type.',
+            'Model "Place" field "location" uses codec "geo/point@1", whose data type "geo/point" is not a MongoDB data type of any pack in the contract, so its BSON type is unknown and the contract cannot describe the field.',
           meta: {
             modelName: 'Place',
             fieldName: 'location',
@@ -76,7 +83,7 @@ describe('mongo defineContract refuses what a collection validator cannot descri
         expect.objectContaining({
           code: 'CONTRACT.CODEC_DESCRIPTOR_MISSING',
           message:
-            'Value object "Address" field "zip" uses codec "geo/zip@1", which no pack in the contract provides, so the collection validator cannot give its BSON type.',
+            'Value object "Address" field "zip" uses codec "geo/zip@1", which no pack in the contract provides, so its BSON type is unknown and the contract cannot describe the field.',
         }),
       );
     });
@@ -90,7 +97,7 @@ describe('mongo defineContract refuses what a collection validator cannot descri
         expect.objectContaining({
           code: 'CONTRACT.CODEC_DESCRIPTOR_MISSING',
           message:
-            'Model "User" field "_id" uses codec "custom/uuid@1", which no pack in the contract provides, so the collection validator cannot give its BSON type.',
+            'Model "User" field "_id" uses codec "custom/uuid@1", which no pack in the contract provides, so its BSON type is unknown and the contract cannot describe the field.',
         }),
       );
     });
@@ -103,41 +110,51 @@ describe('mongo defineContract refuses what a collection validator cannot descri
     });
 
     it.each([
-      ['a string', field.string(), 'BSON type string'],
-      ['a date', field.date(), 'BSON type date'],
-      ['bytes', field.binary(), 'BSON type binData'],
-      ['a BSON document', field.bson(), 'any BSON type'],
-      ['an int', field.int32(), 'BSON type int'],
-    ])('refuses a root model whose _id holds %s', (_case, idField, description) => {
-      const User = model('User', { collection: 'users', fields: { _id: idField } });
-      expect(() => defineContract({ ...scaffold, models: { User } })).toThrow(
-        expect.objectContaining({
-          code: 'CONTRACT.COLLECTION_INVALID',
-          message: `Model "User" field "_id" ${holdsId(description)}`,
-          meta: {
-            modelName: 'User',
-            fieldName: '_id',
-            collection: 'users',
-            reason: 'document-id-not-objectId',
-          },
-        }),
-      );
-    });
+      ['a string', field.string(), { bsonType: 'string' }],
+      ['an int', field.int32(), { bsonType: 'int' }],
+      ['a date', field.date(), { bsonType: 'date' }],
+      ['bytes', field.binary(), { bsonType: 'binData' }],
+    ])(
+      'accepts a root model whose _id holds %s, and validates it as such',
+      (_case, idField, idSchema) => {
+        const User = model('User', { collection: 'users', fields: { _id: idField } });
+        const built = defineContract({ ...scaffold, models: { User } });
+        expect(validatorSchemaOf(built, 'users')).toEqual({
+          bsonType: 'object',
+          properties: { _id: idSchema },
+          required: ['_id'],
+          additionalProperties: false,
+        });
+      },
+    );
 
     it.each([
-      ['listed first', true],
-      ['listed last', false],
-    ])('refuses a root model with a string _id that shares its collection, %s', (_case, first) => {
-      const User = model('User', { collection: 'users', fields: { _id: field.string() } });
-      const Admin = model('Admin', { collection: 'users', fields: { _id: field.objectId() } });
-      const models = first ? { User, Admin } : { Admin, User };
-      expect(() => defineContract({ ...scaffold, models })).toThrow(
-        expect.objectContaining({
-          code: 'CONTRACT.COLLECTION_INVALID',
-          message: `Model "User" field "_id" ${holdsId('BSON type string')}`,
-        }),
-      );
-    });
+      ['a list', field.objectId().many(), 'mongo/objectId@1', ['array']],
+      ['nullable', field.string().optional(), 'mongo/string@1', ['null']],
+      ['json', field.json(), 'mongo/json@1', ['array', 'null']],
+      ['a vector', field.vector(), 'mongo/vector@1', ['array']],
+      ['any BSON value', field.bson(), 'mongo/bson@1', ['array', 'regex', 'undefined', 'null']],
+    ])(
+      'refuses a root model whose _id is %s, with the reason reading the contract back gives',
+      (_case, idField, codecId, forbidden) => {
+        const held = codecId === 'mongo/bson@1' ? [] : forbidden;
+        const User = model('User', { collection: 'users', fields: { _id: idField } });
+        expect(() => defineContract({ ...scaffold, models: { User } })).toThrow(
+          expect.objectContaining({
+            code: 'CONTRACT.COLLECTION_INVALID',
+            message: `Model "User" field "_id" ${documentIdRefusalReason(codecId, held)}`,
+            meta: {
+              modelName: 'User',
+              fieldName: '_id',
+              collection: 'users',
+              codecId,
+              bsonTypes: forbidden,
+              reason: 'document-id-bson-type',
+            },
+          }),
+        );
+      },
+    );
 
     it('accepts an embedded model and a variant without an _id', () => {
       const Task = model('Task', {
@@ -159,7 +176,8 @@ describe('mongo defineContract refuses what a collection validator cannot descri
   describe('enums', () => {
     it('refuses an enum whose codec stores a BSON type a validator cannot list', () => {
       const Big = enumType('Big', { codecId: 'mongo/int64@1' }, member('One', 1));
-      expect(() => defineContract({ ...scaffold, enums: { Big }, models: {} })).toThrow(
+      const Job = model('Job', { collection: 'jobs', fields: { size: field.namedType(Big) } });
+      expect(() => defineContract({ ...scaffold, enums: { Big }, models: { Job } })).toThrow(
         expect.objectContaining({
           code: 'CONTRACT.ENUM_INVALID',
           message:
@@ -169,6 +187,24 @@ describe('mongo defineContract refuses what a collection validator cannot descri
       );
     });
 
+    it.each([
+      ['used only in an external collection', 'external'],
+      ['used only in an observed collection', 'observed'],
+    ] as const)('accepts an enum a validator cannot list, %s', (_case, controlPolicy) => {
+      const Big = enumType('Big', { codecId: 'mongo/int64@1' }, member('One', 1));
+      const Job = model('Job', {
+        collection: 'jobs',
+        controlPolicy,
+        fields: { size: field.namedType(Big) },
+      });
+      expect(() => defineContract({ ...scaffold, enums: { Big }, models: { Job } })).not.toThrow();
+    });
+
+    it('accepts an enum a validator cannot list that no model uses', () => {
+      const Big = enumType('Big', { codecId: 'mongo/int64@1' }, member('One', 1));
+      expect(() => defineContract({ ...scaffold, enums: { Big }, models: {} })).not.toThrow();
+    });
+
     it('refuses an enum member a validator cannot list', () => {
       const Ratio = enumType(
         'Ratio',
@@ -176,7 +212,8 @@ describe('mongo defineContract refuses what a collection validator cannot descri
         member('Half', 0.5),
         member('All', '1'),
       );
-      expect(() => defineContract({ ...scaffold, enums: { Ratio }, models: {} })).toThrow(
+      const Job = model('Job', { collection: 'jobs', fields: { ratio: field.namedType(Ratio) } });
+      expect(() => defineContract({ ...scaffold, enums: { Ratio }, models: { Job } })).toThrow(
         expect.objectContaining({
           code: 'CONTRACT.ENUM_INVALID',
           message:

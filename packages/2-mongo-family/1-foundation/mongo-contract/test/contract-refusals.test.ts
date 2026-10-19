@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { mongoContractRefusalsOf } from '../src/contract-refusals';
 import type { MongoModelDefinition, MongoModelStorage } from '../src/contract-types';
 import { mongoTypeLookups } from '../src/fake-type-lookups';
-import { scalarField } from './derive-json-schema-helpers';
+import { arrayField, enumField, scalarField, voField } from './derive-json-schema-helpers';
 
 function model(
   fields: MongoModelDefinition['fields'],
@@ -24,6 +24,7 @@ function refusals(input: Partial<Parameters<typeof mongoContractRefusalsOf>[0]>)
     valueObjects: {},
     enums: {},
     lookups: mongoTypeLookups,
+    controlPolicies: { collections: {}, defaultControlPolicy: undefined },
     ...input,
   });
 }
@@ -42,16 +43,21 @@ describe('mongoContractRefusalsOf', () => {
     ).toEqual([]);
   });
 
-  it('refuses each root model whose _id is not an objectId, in every collection', () => {
+  it('refuses each root model whose _id can hold a BSON type an _id cannot have, in every collection', () => {
     expect(
       refusals({
         models: {
-          User: model({ _id: scalarField('mongo/string@1') }, { storage: { collection: 'users' } }),
-          Admin: model(
-            { _id: scalarField('mongo/objectId@1') },
+          User: model(
+            { _id: scalarField('mongo/string@1', true) },
             { storage: { collection: 'users' } },
           ),
-          Event: model({ _id: scalarField('mongo/date@1') }, { storage: { collection: 'events' } }),
+          Admin: model(
+            { _id: scalarField('mongo/string@1') },
+            { storage: { collection: 'users' } },
+          ),
+          Event: model({ _id: arrayField('mongo/date@1') }, { storage: { collection: 'events' } }),
+          Blob: model({ _id: scalarField('mongo/json@1') }, { storage: { collection: 'blobs' } }),
+          Tick: model({ _id: scalarField('mongo/date@1') }, { storage: { collection: 'ticks' } }),
         },
       }),
     ).toEqual([
@@ -60,12 +66,13 @@ describe('mongoContractRefusalsOf', () => {
         modelName: 'User',
         fieldName: '_id',
         collection: 'users',
+        forbidden: ['null'],
       }),
+      expect.objectContaining({ modelName: 'Event', collection: 'events', forbidden: ['array'] }),
       expect.objectContaining({
-        kind: 'documentId',
-        modelName: 'Event',
-        fieldName: '_id',
-        collection: 'events',
+        modelName: 'Blob',
+        codecId: 'mongo/json@1',
+        forbidden: ['array', 'null'],
       }),
     ]);
   });
@@ -75,7 +82,7 @@ describe('mongoContractRefusalsOf', () => {
       refusals({
         models: {
           User: model(
-            { id: scalarField('mongo/string@1') },
+            { id: scalarField('mongo/string@1', true) },
             { storage: { collection: 'users', fields: { id: { field: '_id' } } } },
           ),
         },
@@ -106,7 +113,7 @@ describe('mongoContractRefusalsOf', () => {
         refusal: {
           kind: 'unknownCodec',
           reason:
-            'uses codec "geo/id@1", which no pack in the contract provides, so the collection validator cannot give its BSON type.',
+            'uses codec "geo/id@1", which no pack in the contract provides, so its BSON type is unknown and the contract cannot describe the field.',
         },
       },
     ]);
@@ -124,9 +131,53 @@ describe('mongoContractRefusalsOf', () => {
     ]);
   });
 
+  const unlistableEnums = {
+    Big: { codecId: 'mongo/int64@1', members: [{ name: 'One', value: 1 }] },
+    Ratio: { codecId: 'mongo/double@1', members: [{ name: 'All', value: '1' }] },
+  };
+
+  it('accepts an enum a validator cannot list when no validated collection stores it', () => {
+    expect(
+      refusals({
+        enums: unlistableEnums,
+        models: {
+          Job: model(
+            {
+              size: enumField('mongo/int64@1', 'Big'),
+              ratio: enumField('mongo/double@1', 'Ratio'),
+            },
+            { storage: { collection: 'jobs' } },
+          ),
+        },
+        controlPolicies: { collections: { jobs: 'external' }, defaultControlPolicy: undefined },
+      }),
+    ).toEqual([]);
+  });
+
+  it('refuses an enum a validator cannot list, used in a value object of a validated collection', () => {
+    expect(
+      refusals({
+        enums: { Big: unlistableEnums.Big },
+        valueObjects: { Sizing: { fields: { size: enumField('mongo/int64@1', 'Big') } } },
+        models: {
+          Job: model({ sizing: voField('Sizing') }, { storage: { collection: 'jobs' } }),
+        },
+      }),
+    ).toEqual([expect.objectContaining({ kind: 'enumNotListable', enumName: 'Big' })]);
+  });
+
   it('refuses an enum a validator cannot list, and a member it cannot list', () => {
     expect(
       refusals({
+        models: {
+          Job: model(
+            {
+              size: enumField('mongo/int64@1', 'Big'),
+              ratio: enumField('mongo/double@1', 'Ratio'),
+            },
+            { storage: { collection: 'jobs' } },
+          ),
+        },
         enums: {
           Big: { codecId: 'mongo/int64@1', members: [{ name: 'One', value: 1 }] },
           Ratio: { codecId: 'mongo/double@1', members: [{ name: 'All', value: '1' }] },

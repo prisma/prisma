@@ -1304,6 +1304,9 @@ function enumRefusalDiagnostic(
   };
 }
 
+/** MongoDB PSL has no control policies, so every collection is managed. */
+const MONGO_PSL_CONTROL_POLICIES = { collections: {}, defaultControlPolicy: undefined } as const;
+
 /** The diagnostic for a field a collection validator cannot describe, at the field. */
 function fieldRefusalDiagnostic(
   refusal: MongoContractRefusal,
@@ -1315,8 +1318,7 @@ function fieldRefusalDiagnostic(
   const field = fieldSymbols.get(fieldKey(owner, refusal.fieldName));
   assertDefined(field, `Field "${owner}.${refusal.fieldName}" has a declaration`);
   return {
-    code:
-      refusal.kind === 'fieldBsonType' ? 'PSL_UNSUPPORTED_FIELD_TYPE' : 'PSL_MONGO_ID_NOT_OBJECTID',
+    code: refusal.kind === 'fieldBsonType' ? 'PSL_UNSUPPORTED_FIELD_TYPE' : 'PSL_MONGO_ID_INVALID',
     message: `Field "${owner}.${field.name}" ${refusal.kind === 'fieldBsonType' ? refusal.refusal.reason : refusal.reason}`,
     ...diagnosticSource(sources, field.node.syntax).at(field.span),
   };
@@ -1404,6 +1406,7 @@ export function interpretPslDocumentToMongoContract(
     authoringContributions: input.authoringContributions,
     sources,
     diagnostics,
+    typeLookups: { codecLookup, dataTypeLookup: input.dataTypes.lookup },
     warnPresetWithoutEffect: presetWithoutEffectWarner({
       types: input.authoringContributions?.type,
       scalarTypeCodecIds,
@@ -1772,6 +1775,7 @@ export function interpretPslDocumentToMongoContract(
     valueObjects,
     enums: builtEnums,
     lookups: validatorLookups,
+    controlPolicies: MONGO_PSL_CONTROL_POLICIES,
   })) {
     const enumDiagnostic = enumRefusalDiagnostic(refusal, enumSites);
     if (enumDiagnostic !== undefined) diagnostics.pushExternal(enumDiagnostic);
@@ -1812,6 +1816,7 @@ export function interpretPslDocumentToMongoContract(
     lookups: validatorLookups,
     valueObjects,
     valueSets: storageValueSets,
+    controlPolicies: MONGO_PSL_CONTROL_POLICIES,
   });
   for (const [collectionName, validator] of Object.entries(validators)) {
     const coll = resolvedCollections[collectionName];

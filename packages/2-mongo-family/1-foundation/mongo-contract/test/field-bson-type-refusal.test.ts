@@ -12,7 +12,7 @@ describe('fieldBsonTypeRefusalOf', () => {
     expect(fieldBsonTypeRefusalOf('geo/point@1', mongoTypeLookups)).toEqual({
       kind: 'unknownCodec',
       reason:
-        'uses codec "geo/point@1", which no pack in the contract provides, so the collection validator cannot give its BSON type.',
+        'uses codec "geo/point@1", which no pack in the contract provides, so its BSON type is unknown and the contract cannot describe the field.',
     });
   });
 
@@ -39,7 +39,7 @@ describe('fieldBsonTypeRefusalOf', () => {
       kind: 'notMongoDataType',
       dataType: 'geo/point',
       reason:
-        'uses codec "geo/point@1", whose data type "geo/point" is not a MongoDB data type of any pack in the contract, so the collection validator cannot give its BSON type.',
+        'uses codec "geo/point@1", whose data type "geo/point" is not a MongoDB data type of any pack in the contract, so its BSON type is unknown and the contract cannot describe the field.',
     });
   });
 });

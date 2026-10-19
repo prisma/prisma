@@ -94,7 +94,9 @@ function refusalError(refusal: MongoContractRefusal): StructuredError {
             modelName: refusal.modelName,
             fieldName: refusal.fieldName,
             collection: refusal.collection,
-            reason: 'document-id-not-objectId',
+            codecId: refusal.codecId,
+            bsonTypes: refusal.forbidden,
+            reason: 'document-id-bson-type',
           },
         },
       );

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   contract,
+  type ModelSpec,
   plan,
   planned,
   refusal,
@@ -172,6 +173,136 @@ describe('MongoMigrationPlanner, field changes in a collection that stores sever
         why: `Collection "users" stores several models and no discriminator tells their documents apart, so removing the field would remove it from the documents of "User" too. To keep it in "User" documents only, ${SEPARATE}.`,
       },
     ]);
+  });
+
+  it('refuses to remove a base field another root model stores when a variant of the base keeps it', () => {
+    const withVariants = (seed: string, admin: readonly string[]) =>
+      contract(
+        seed,
+        {
+          Admin: {
+            collection: 'users',
+            fields: ['_id', 'kind', ...admin],
+            discriminator: 'kind',
+            variants: { SuperAdmin: 'super' },
+          },
+          SuperAdmin: { collection: 'users', fields: ['level'], base: 'Admin' },
+          User: { collection: 'users', fields: ['_id', 'level'] },
+        },
+        { users: { jsonSchema: sharedJsonSchema(['kind', 'level'], ['level']) } },
+      );
+    expect(
+      refusal(
+        plan({
+          from: withVariants('from', ['level']),
+          to: withVariants('to', []),
+          schema: [
+            schemaCollection('users', {
+              jsonSchema: sharedJsonSchema(['kind', 'level'], ['level']),
+            }),
+          ],
+        }),
+      ).map(({ summary }) => summary),
+    ).toEqual([
+      'Cannot remove field "level" of model "Admin" from collection "users": model "User" stores it in the same collection',
+    ]);
+  });
+
+  describe('a variant whose discriminator filter other models in the collection can match', () => {
+    const schema = [
+      schemaCollection('users', { jsonSchema: sharedJsonSchema(['kind', 'level'], ['level']) }),
+    ];
+    const models = (superFields: readonly string[], other: Record<string, ModelSpec>) =>
+      ({
+        Admin: {
+          collection: 'users',
+          fields: ['_id', 'kind'],
+          discriminator: 'kind',
+          variants: { SuperAdmin: 'super' },
+        },
+        SuperAdmin: { collection: 'users', fields: superFields, base: 'Admin' },
+        ...other,
+      }) satisfies Record<string, ModelSpec>;
+    const plainWithKind = (fields: readonly string[]) => ({
+      User: { collection: 'users', fields: ['_id', 'kind', ...fields] },
+    });
+    const polymorphicWithSuper = (baseFields: readonly string[]) => ({
+      Member: {
+        collection: 'users',
+        fields: ['_id', 'kind', ...baseFields],
+        discriminator: 'kind',
+        variants: { SuperMember: 'super' },
+      },
+      SuperMember: { collection: 'users', fields: [], base: 'Member' },
+    });
+    const collections = { users: { jsonSchema: sharedJsonSchema(['kind', 'level'], ['level']) } };
+    const summaries = (result: ReturnType<typeof plan>) =>
+      refusal(result).map(({ summary }) => summary);
+
+    it('refuses to remove a variant field a plain root model declaring the discriminator field stores', () => {
+      expect(
+        summaries(
+          plan({
+            from: contract('from', models(['level'], plainWithKind(['level'])), collections),
+            to: contract('to', models([], plainWithKind(['level'])), collections),
+            schema,
+          }),
+        ),
+      ).toEqual([
+        'Cannot remove field "level" of model "SuperAdmin" from collection "users": model "User" stores it in the same collection',
+      ]);
+    });
+
+    it('refuses to remove a variant field another variant with the same discriminator value inherits', () => {
+      expect(
+        summaries(
+          plan({
+            from: contract('from', models(['level'], polymorphicWithSuper(['level'])), collections),
+            to: contract('to', models([], polymorphicWithSuper(['level'])), collections),
+            schema,
+          }),
+        ),
+      ).toEqual([
+        'Cannot remove field "level" of model "SuperAdmin" from collection "users": model "Member", "SuperMember" stores it in the same collection',
+      ]);
+    });
+
+    it('refuses to rename a variant field a plain root model declaring the discriminator field stores', () => {
+      expect(
+        summaries(
+          plan({
+            from: contract('from', models(['level'], plainWithKind(['level'])), collections),
+            to: contract('to', models(['rank'], plainWithKind(['level'])), collections),
+            schema,
+            statements: [renameField('SuperAdmin', 'level', 'SuperAdmin', 'rank')],
+          }),
+        ),
+      ).toEqual([
+        'Cannot rename field "SuperAdmin.level" to "SuperAdmin.rank": model "User" stores field "level" in the same collection, "users"',
+      ]);
+    });
+
+    it('removes a variant field when no other model can hold the discriminator value', () => {
+      expect(
+        planned(
+          plan({
+            from: contract(
+              'from',
+              models(['level'], { User: { collection: 'users', fields: ['_id', 'level'] } }),
+              collections,
+            ),
+            to: contract(
+              'to',
+              models([], { User: { collection: 'users', fields: ['_id', 'level'] } }),
+              collections,
+            ),
+            schema,
+          }),
+        ).dataLoss.map(({ subject }) => subject),
+      ).toEqual([
+        { kind: 'field', namespaceId: '__unbound__', model: 'SuperAdmin', field: 'level' },
+      ]);
+    });
   });
 
   it('removes nothing without an origin contract when another root model still declares the field', () => {

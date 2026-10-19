@@ -5,11 +5,10 @@ import {
 } from '@internal/mongo-query-ast/execution';
 import { describe, expect, it } from 'vitest';
 import { mongoQuery } from '../src/query';
-import type { TContract } from './fixtures/test-contract';
-import { testContractJson } from './fixtures/test-contract';
+import { testContract } from './fixtures/test-contract';
 
 describe('stored keys', () => {
-  const accounts = () => mongoQuery<TContract>({ contractJson: testContractJson }).from('accounts');
+  const accounts = () => mongoQuery({ contract: testContract }).from('accounts');
 
   it('keys the result shape of a model read by stored key', () => {
     expect(accounts().build().resultShape).toEqual({

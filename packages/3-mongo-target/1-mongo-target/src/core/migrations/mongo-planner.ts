@@ -1,4 +1,9 @@
-import { asNamespaceId, type Contract, type ContractWithDomain } from '@internal/contract/types';
+import {
+  asNamespaceId,
+  type Contract,
+  type ContractWithDomain,
+  type ControlPolicy,
+} from '@internal/contract/types';
 import { contractToMongoSchemaIR } from '@internal/family-mongo/control';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import {
@@ -26,7 +31,10 @@ import type {
 } from '@internal/mongo-schema-ir';
 import { canonicalize, deepEqual, indexLookupKey } from '@internal/mongo-schema-ir';
 import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import {
+  type CollectionControl,
+  collectionControlOf,
   collectionOf,
   type FieldRemoval,
   keepCollectionByHandAdvice,
@@ -167,7 +175,12 @@ function collectionHasOptions(coll: MongoSchemaCollection): boolean {
 }
 
 export type PlanCallsResult =
-  | { readonly kind: 'success'; readonly calls: OpFactoryCall[] }
+  | {
+      readonly kind: 'success';
+      readonly calls: OpFactoryCall[];
+      /** One for each change a collection's control policy left out of the plan. */
+      readonly warnings: readonly MigrationPlannerConflict[];
+    }
   | { readonly kind: 'failure'; readonly conflicts: MigrationPlannerConflict[] };
 
 /**
@@ -254,12 +267,137 @@ function modelStoredInDestination(
     : undefined;
 }
 
+interface CollectionDiff {
+  readonly collCreates: readonly OpFactoryCall[];
+  readonly drops: readonly OpFactoryCall[];
+  readonly creates: readonly OpFactoryCall[];
+  readonly validatorOps: readonly OpFactoryCall[];
+  readonly mutableOptionOps: readonly OpFactoryCall[];
+  readonly collDrops: readonly OpFactoryCall[];
+  readonly conflicts: readonly MigrationPlannerConflict[];
+}
+
+function callsOf(diff: CollectionDiff): readonly OpFactoryCall[] {
+  return [
+    ...diff.collCreates,
+    ...diff.drops,
+    ...diff.creates,
+    ...diff.validatorOps,
+    ...diff.mutableOptionOps,
+    ...diff.collDrops,
+  ];
+}
+
+function planCollectionDiff(
+  collName: string,
+  originColl: MongoSchemaCollection | undefined,
+  destColl: MongoSchemaCollection | undefined,
+): CollectionDiff {
+  const collCreates: OpFactoryCall[] = [];
+  const drops: OpFactoryCall[] = [];
+  const creates: OpFactoryCall[] = [];
+  const validatorOps: OpFactoryCall[] = [];
+  const mutableOptionOps: OpFactoryCall[] = [];
+  const collDrops: OpFactoryCall[] = [];
+  const conflicts: MigrationPlannerConflict[] = [];
+
+  if (!originColl) {
+    // Provision contract-declared collections that are absent from
+    // the live database. MongoDB lazily materialises a collection
+    // on first write, so subsequent `createIndex` calls in the same
+    // plan would create the collection for us implicitly — but the
+    // schema verifier treats an unmaterialised contract collection
+    // as a `missing_table` issue, so a plan that lacks both options
+    // and indexes (e.g. a plain `users` collection from the init
+    // scaffold) ends up provisioning nothing and failing verify.
+    // The planner therefore emits an explicit createCollection for
+    // any contract collection that has options/validator OR no
+    // indexes to ride along on. Collections that have indexes
+    // continue to rely on createIndex for materialisation, keeping
+    // existing plans byte-stable.
+    if (destColl && (collectionHasOptions(destColl) || destColl.indexes.length === 0)) {
+      const opts = collectionHasOptions(destColl)
+        ? schemaCollectionToCreateCollectionOptions(destColl)
+        : undefined;
+      collCreates.push(new CreateCollectionCall(collName, opts));
+    }
+  } else if (!destColl) {
+    collDrops.push(new DropCollectionCall(collName));
+  } else {
+    const immutableChange = hasImmutableOptionChange(originColl.options, destColl.options);
+    if (immutableChange) {
+      conflicts.push({
+        kind: 'policy-violation',
+        summary: `Cannot change immutable collection option '${immutableChange}' on ${collName}`,
+        why: `MongoDB does not support modifying the '${immutableChange}' option after collection creation`,
+      });
+    }
+
+    const mutableCall = planMutableOptionsDiffCall(collName, originColl.options, destColl.options);
+    if (mutableCall) mutableOptionOps.push(mutableCall);
+
+    const validatorCall = planValidatorDiffCall(collName, originColl.validator, destColl.validator);
+    if (validatorCall) validatorOps.push(validatorCall);
+  }
+
+  const originLookup = new Map<string, MongoSchemaIndex>();
+  if (originColl) {
+    for (const idx of originColl.indexes) {
+      originLookup.set(indexLookupKey(idx), idx);
+    }
+  }
+
+  const destLookup = new Map<string, MongoSchemaIndex>();
+  if (destColl) {
+    for (const idx of destColl.indexes) {
+      destLookup.set(indexLookupKey(idx), idx);
+    }
+  }
+
+  for (const [lookupKey, idx] of originLookup) {
+    if (!destLookup.has(lookupKey)) {
+      drops.push(new DropIndexCall(collName, idx.keys));
+    }
+  }
+
+  for (const [lookupKey, idx] of destLookup) {
+    if (!originLookup.has(lookupKey)) {
+      creates.push(new CreateIndexCall(collName, idx.keys, schemaIndexToCreateIndexOptions(idx)));
+    }
+  }
+  return { collCreates, drops, creates, validatorOps, mutableOptionOps, collDrops, conflicts };
+}
+
+/**
+ * The warning for a change a collection's control policy left out of the plan, worded as the Postgres planner words a suppressed call.
+ */
+function suppressedCallWarning(
+  call: OpFactoryCall,
+  collection: string,
+  control: CollectionControl,
+): MigrationPlannerConflict & { readonly meta: Record<string, string> } {
+  const declared =
+    control.declared !== undefined && control.declared !== control.policy
+      ? ` but declared '${control.declared}'`
+      : '';
+  return {
+    kind: 'controlPolicySuppressedCall',
+    summary: `control policy suppressed: ${call.label} — collection "${collection}" has effective control '${control.policy}'${declared}`,
+    meta: {
+      controlPolicy: control.policy,
+      ...ifDefined('declaredControlPolicy', control.declared),
+    },
+  };
+}
+
 export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'> {
   planCalls(options: {
     readonly contract: unknown;
     readonly schema: unknown;
     readonly policy: MigrationOperationPolicy;
     readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'mongo', 'mongo'>>;
+    /** The contract the planner reads as the starting state, or `null` when it has none. */
+    readonly fromContract: Contract | null;
     /** What the statements and removed fields plan; its `schema` is diffed in place of `schema`. */
     readonly statementCalls?: StatementCalls;
   }): PlanCallsResult {
@@ -282,6 +420,7 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
     const mutableOptionOps: OpFactoryCall[] = [];
     const collDrops: OpFactoryCall[] = [];
     const conflicts: MigrationPlannerConflict[] = [];
+    const warnings: MigrationPlannerConflict[] = [];
 
     const allCollectionNames = new Set([
       ...originIR.collectionNames,
@@ -290,82 +429,21 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
 
     for (const collName of [...allCollectionNames].sort()) {
       const originColl = originIR.collection(collName);
-      const destColl = destinationIR.collection(collName);
-
-      if (!originColl) {
-        // Provision contract-declared collections that are absent from
-        // the live database. MongoDB lazily materialises a collection
-        // on first write, so subsequent `createIndex` calls in the same
-        // plan would create the collection for us implicitly — but the
-        // schema verifier treats an unmaterialised contract collection
-        // as a `missing_table` issue, so a plan that lacks both options
-        // and indexes (e.g. a plain `users` collection from the init
-        // scaffold) ends up provisioning nothing and failing verify.
-        // The planner therefore emits an explicit createCollection for
-        // any contract collection that has options/validator OR no
-        // indexes to ride along on. Collections that have indexes
-        // continue to rely on createIndex for materialisation, keeping
-        // existing plans byte-stable.
-        if (destColl && (collectionHasOptions(destColl) || destColl.indexes.length === 0)) {
-          const opts = collectionHasOptions(destColl)
-            ? schemaCollectionToCreateCollectionOptions(destColl)
-            : undefined;
-          collCreates.push(new CreateCollectionCall(collName, opts));
-        }
-      } else if (!destColl) {
-        collDrops.push(new DropCollectionCall(collName));
-      } else {
-        const immutableChange = hasImmutableOptionChange(originColl.options, destColl.options);
-        if (immutableChange) {
-          conflicts.push({
-            kind: 'policy-violation',
-            summary: `Cannot change immutable collection option '${immutableChange}' on ${collName}`,
-            why: `MongoDB does not support modifying the '${immutableChange}' option after collection creation`,
-          });
-        }
-
-        const mutableCall = planMutableOptionsDiffCall(
-          collName,
-          originColl.options,
-          destColl.options,
+      const planned = planCollectionDiff(collName, originColl, destinationIR.collection(collName));
+      const control = collectionControlOf(contract, options.fromContract, collName);
+      if (!plansChangesTo(control.policy, originColl !== undefined)) {
+        warnings.push(
+          ...callsOf(planned).map((call) => suppressedCallWarning(call, collName, control)),
         );
-        if (mutableCall) mutableOptionOps.push(mutableCall);
-
-        const validatorCall = planValidatorDiffCall(
-          collName,
-          originColl.validator,
-          destColl.validator,
-        );
-        if (validatorCall) validatorOps.push(validatorCall);
+        continue;
       }
-
-      const originLookup = new Map<string, MongoSchemaIndex>();
-      if (originColl) {
-        for (const idx of originColl.indexes) {
-          originLookup.set(indexLookupKey(idx), idx);
-        }
-      }
-
-      const destLookup = new Map<string, MongoSchemaIndex>();
-      if (destColl) {
-        for (const idx of destColl.indexes) {
-          destLookup.set(indexLookupKey(idx), idx);
-        }
-      }
-
-      for (const [lookupKey, idx] of originLookup) {
-        if (!destLookup.has(lookupKey)) {
-          drops.push(new DropIndexCall(collName, idx.keys));
-        }
-      }
-
-      for (const [lookupKey, idx] of destLookup) {
-        if (!originLookup.has(lookupKey)) {
-          creates.push(
-            new CreateIndexCall(collName, idx.keys, schemaIndexToCreateIndexOptions(idx)),
-          );
-        }
-      }
+      collCreates.push(...planned.collCreates);
+      drops.push(...planned.drops);
+      creates.push(...planned.creates);
+      validatorOps.push(...planned.validatorOps);
+      mutableOptionOps.push(...planned.mutableOptionOps);
+      collDrops.push(...planned.collDrops);
+      conflicts.push(...planned.conflicts);
     }
 
     if (conflicts.length > 0) {
@@ -398,7 +476,7 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
       return { kind: 'failure', conflicts };
     }
 
-    return { kind: 'success', calls: allCalls };
+    return { kind: 'success', calls: allCalls, warnings };
   }
 
   plan(options: {
@@ -474,7 +552,7 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
       },
     });
     if (result.kind === 'failure') return result;
-    const { calls } = result;
+    const { calls, warnings } = result;
     const fieldLoss: readonly MigrationDataLoss[] = removals.map((removal) => ({
       operationIndex: calls.indexOf(removal.call),
       subject: removal.subject,
@@ -504,6 +582,7 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
       ].sort((a, b) => a.operationIndex - b.operationIndex),
       accessWidening: [],
       temporaryValues: [],
+      ...(warnings.length > 0 ? { warnings } : {}),
     };
   }
 
@@ -525,6 +604,18 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
       },
       context.snapshotsImportPath,
     );
+  }
+}
+
+function plansChangesTo(policy: ControlPolicy, collectionExists: boolean): boolean {
+  switch (policy) {
+    case 'managed':
+      return true;
+    case 'tolerated':
+      return !collectionExists;
+    case 'external':
+    case 'observed':
+      return false;
   }
 }
 

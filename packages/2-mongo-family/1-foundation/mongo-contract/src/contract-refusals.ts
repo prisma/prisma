@@ -4,9 +4,10 @@ import type {
   ContractModelBase,
   ContractValueObject,
 } from '@internal/contract/types';
+import { type CollectionControlPolicies, isManaged } from './collection-control-policies';
 import { collectionRootModelsOf } from './collection-root-models';
 import type { MongoModelDefinition } from './contract-types';
-import { documentIdRefusalOf } from './document-id-refusal';
+import { documentIdBsonTypesOf, documentIdRefusalOf } from './document-id-refusal';
 import { type FieldBsonTypeRefusal, fieldBsonTypeRefusalOf } from './field-bson-type-refusal';
 import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
 import { isEmbedRelation } from './relation-fields';
@@ -60,6 +61,9 @@ export type MongoContractRefusal =
       /** The model's field stored as `_id`. */
       readonly fieldName: string;
       readonly collection: string;
+      readonly codecId: string;
+      /** The BSON types the field can hold that an `_id` cannot have. */
+      readonly forbidden: readonly string[];
       readonly reason: string;
     };
 
@@ -68,6 +72,7 @@ export interface MongoContractRefusalsInput {
   readonly valueObjects: Record<string, ContractValueObject>;
   readonly enums: Record<string, ContractEnum>;
   readonly lookups: MongoTypeLookups;
+  readonly controlPolicies: CollectionControlPolicies;
 }
 
 /** Why an embed relation cannot target `embeddedModel`, a model with variants; the subject is the relation. */
@@ -98,13 +103,54 @@ export function lookupFreeRefusalsOf(
   );
 }
 
-function enumRefusals(
-  enums: Record<string, ContractEnum>,
-  lookups: MongoTypeLookups,
-): MongoContractRefusal[] {
+/**
+ * The enums a collection validator lists: those stored by a model in a managed collection, by one of its variants or embedded models, or by a value object any of them holds.
+ */
+function validatedEnumNames(input: MongoContractRefusalsInput): ReadonlySet<string> {
+  const { models, valueObjects, controlPolicies } = input;
+  const visitedModels = new Set(
+    Object.entries(collectionRootModelsOf(models)).flatMap(([collection, names]) =>
+      isManaged(collection, controlPolicies) ? names : [],
+    ),
+  );
+  const visitedValueObjects = new Set<string>();
+  const enums = new Set<string>();
+  const visitFields = (fields: Record<string, ContractField>) => {
+    for (const field of Object.values(fields)) {
+      if (field.valueSet?.entityKind === 'enum') enums.add(field.valueSet.entityName);
+      if (field.type.kind === 'valueObject' && !visitedValueObjects.has(field.type.name)) {
+        visitedValueObjects.add(field.type.name);
+        visitFields(valueObjects[field.type.name]?.fields ?? {});
+      }
+    }
+  };
+  const pending = [...visitedModels];
+  const reach = (name: string) => {
+    if (visitedModels.has(name)) return;
+    visitedModels.add(name);
+    pending.push(name);
+  };
+  for (let name = pending.pop(); name !== undefined; name = pending.pop()) {
+    const model = models[name];
+    if (model === undefined) continue;
+    visitFields(model.fields);
+    for (const relation of Object.values(model.relations)) {
+      if (isEmbedRelation(relation)) reach(relation.to.model);
+    }
+    for (const [variant, candidate] of Object.entries(models)) {
+      if (candidate.base?.model === name) reach(variant);
+    }
+  }
+  return enums;
+}
+
+function enumRefusals(input: MongoContractRefusalsInput): MongoContractRefusal[] {
+  const { enums, lookups } = input;
+  const validated = validatedEnumNames(input);
   return Object.entries(enums).flatMap(([enumName, { codecId, members }]) => {
     const refusal = fieldBsonTypeRefusalOf(codecId, lookups);
     if (refusal !== undefined) return [{ kind: 'enumBsonType', enumName, codecId, refusal }];
+    if (!validated.has(enumName)) return [];
     const bsonTypes = bsonTypesOfCodec(codecId, lookups) ?? [];
     const reason = validatorEnumRefusalOf(bsonTypes);
     if (reason !== undefined) return [{ kind: 'enumNotListable', enumName, codecId, reason }];
@@ -147,24 +193,27 @@ function documentIdRefusals(
     modelNames.flatMap((modelName): MongoContractRefusal[] => {
       const model = models[modelName];
       const id = model === undefined ? undefined : documentIdFieldOf(model);
-      const reason = id === undefined ? undefined : documentIdRefusalOf(id.field, lookups);
-      return id === undefined || reason === undefined
+      if (id === undefined || id.field.type.kind !== 'scalar') return [];
+      const bsonTypes = documentIdBsonTypesOf(id.field, lookups);
+      const codecId = id.field.type.codecId;
+      const refusal = bsonTypes === undefined ? undefined : documentIdRefusalOf(codecId, bsonTypes);
+      return refusal === undefined
         ? []
-        : [{ kind: 'documentId', modelName, fieldName: id.name, collection, reason }];
+        : [{ kind: 'documentId', modelName, fieldName: id.name, collection, codecId, ...refusal }];
     }),
   );
 }
 
 /**
- * Every part of a built MongoDB contract that its collection validators cannot describe: an embed relation to a model with variants, an enum a validator cannot list, a field whose codec has no MongoDB data type, and a root model's field stored as `_id` that is not an objectId. Both authoring surfaces call it on what they built, so the rules are decided in one place.
+ * Every part of a built MongoDB contract that its collection validators cannot describe: an embed relation to a model with variants, an enum a validator of a managed collection cannot list, a field whose codec has no MongoDB data type, and a root model's field stored as `_id` that can hold a BSON type an `_id` cannot have. Both authoring surfaces call it on what they built, so the rules are decided in one place.
  */
 export function mongoContractRefusalsOf(
   input: MongoContractRefusalsInput,
 ): readonly MongoContractRefusal[] {
-  const { models, valueObjects, enums, lookups } = input;
+  const { models, valueObjects, lookups } = input;
   return [
     ...lookupFreeRefusalsOf(models),
-    ...enumRefusals(enums, lookups),
+    ...enumRefusals(input),
     ...Object.entries(models).flatMap(([name, model]) =>
       fieldRefusals({ kind: 'model', name }, model.fields, lookups),
     ),

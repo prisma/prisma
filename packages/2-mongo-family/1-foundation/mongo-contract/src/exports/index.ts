@@ -6,6 +6,11 @@ export type {
 } from '@internal/framework-components/runtime';
 export { RelationKeys } from '@internal/framework-components/runtime';
 export { buildMongoStorage } from '../build-mongo-storage';
+export type { CollectionControlPolicies } from '../collection-control-policies';
+export {
+  collectionControlPoliciesOf,
+  collectionControlPolicyOf,
+} from '../collection-control-policies';
 export { collectionRootModelsOf } from '../collection-root-models';
 export type {
   FieldOwner,
@@ -57,6 +62,7 @@ export {
 export type { CollectionValidatorsInput } from '../derive-collection-validators';
 export { deriveCollectionValidators } from '../derive-collection-validators';
 export type { FieldValueSets } from '../derive-json-schema';
+export { documentIdRefusalReason } from '../document-id-refusal';
 export type { FieldBsonTypeRefusal } from '../field-bson-type-refusal';
 export { fieldBsonTypeRefusalOf } from '../field-bson-type-refusal';
 export { buildMongoNamespace } from '../ir/build-mongo-namespace';

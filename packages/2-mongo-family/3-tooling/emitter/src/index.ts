@@ -97,7 +97,7 @@ export const mongoEmission = {
     return `{ ${parts.join('; ')} }`;
   },
 
-  resolveFieldValueSet(
+  resolveStorageValueSet(
     _modelName: string,
     fieldName: string,
     model: ContractModelBase,
@@ -106,7 +106,7 @@ export const mongoEmission = {
     const field = model.fields[fieldName];
     if (field === undefined || field.type.kind !== 'scalar') return undefined;
     const ref = field.valueSet;
-    if (ref === undefined) return undefined;
+    if (ref?.plane !== 'storage') return undefined;
     const storage = blindCast<
       MongoStorage,
       'contract.storage is MongoStorage for the mongo family'

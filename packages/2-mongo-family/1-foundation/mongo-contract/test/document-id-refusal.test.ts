@@ -1,33 +1,73 @@
 import { describe, expect, it } from 'vitest';
-import { documentIdRefusalOf } from '../src/document-id-refusal';
+import {
+  documentIdBsonTypesOf,
+  documentIdRefusalOf,
+  documentIdRefusalReason,
+} from '../src/document-id-refusal';
 import { mongoTypeLookups } from '../src/fake-type-lookups';
 import { arrayField, scalarField, voField } from './derive-json-schema-helpers';
 
-const storedAs = (description: string) =>
-  `holds the document id as ${description}, but an _id must be stored as BSON type objectId: every collection validator requires an objectId _id, which MongoDB adds to every document inserted without one.`;
-
 describe('documentIdRefusalOf', () => {
-  it('accepts an _id stored as BSON type objectId, by any codec', () => {
-    expect([
-      documentIdRefusalOf(scalarField('mongo/objectId@1'), mongoTypeLookups),
-      documentIdRefusalOf(scalarField('custom/oid@2'), mongoTypeLookups),
-    ]).toEqual([undefined, undefined]);
+  it.each([
+    ['an objectId', 'mongo/objectId@1', ['objectId']],
+    ['a string', 'mongo/string@1', ['string']],
+    ['several allowed types', 'test/int-or-long@1', ['int', 'long']],
+  ])('accepts an _id stored as %s', (_case, codecId, bsonTypes) => {
+    expect(documentIdRefusalOf(codecId, bsonTypes)).toBeUndefined();
   });
 
   it.each([
-    ['a string', scalarField('mongo/string@1'), 'BSON type string'],
-    ['a date', scalarField('mongo/date@1'), 'BSON type date'],
-    ['bytes', scalarField('mongo/binary@1'), 'BSON type binData'],
-    ['any BSON value', scalarField('mongo/bson@1'), 'any BSON type'],
-    ['several BSON types', scalarField('test/int-or-long@1'), 'BSON type int or long'],
-    ['a nullable objectId', scalarField('mongo/objectId@1', true), 'BSON type null or objectId'],
-    ['a list', arrayField('mongo/objectId@1'), 'an array'],
-    ['a value object', voField('Key'), 'an object'],
-  ])('refuses an _id stored as %s', (_case, field, description) => {
-    expect(documentIdRefusalOf(field, mongoTypeLookups)).toBe(storedAs(description));
+    ['json', 'mongo/json@1', ['object', 'array', 'string', 'null'], ['array', 'null']],
+    ['a vector', 'mongo/vector@1', ['array'], ['array']],
+    ['a regular expression', 'test/regex@1', ['regex'], ['regex']],
+    ['undefined', 'test/undefined@1', ['undefined', 'string'], ['undefined']],
+  ])('refuses an _id whose codec can store %s', (_case, codecId, bsonTypes, forbidden) => {
+    expect(documentIdRefusalOf(codecId, bsonTypes)).toEqual({
+      forbidden,
+      reason: documentIdRefusalReason(codecId, forbidden),
+    });
   });
 
-  it('leaves an _id whose codec has no MongoDB data type to the field rule', () => {
-    expect(documentIdRefusalOf(scalarField('unknown/codec@1'), mongoTypeLookups)).toBeUndefined();
+  it('refuses an _id whose codec can store any BSON type, which includes every type an _id cannot have', () => {
+    expect(documentIdRefusalOf('mongo/bson@1', [])).toEqual({
+      forbidden: ['array', 'regex', 'undefined', 'null'],
+      reason:
+        'can hold any BSON type (codec "mongo/bson@1"). An _id cannot be an array, a regular expression, undefined or null: MongoDB refuses the first three, and every document has an _id.',
+    });
+  });
+
+  it('names the codec and the BSON types MongoDB refuses as an _id', () => {
+    expect(documentIdRefusalReason('mongo/json@1', ['array', 'null'])).toBe(
+      'can hold BSON type array or null (codec "mongo/json@1"). An _id cannot be an array, a regular expression, undefined or null: MongoDB refuses the first three, and every document has an _id.',
+    );
+  });
+});
+
+describe('documentIdBsonTypesOf', () => {
+  it('reads the BSON types of the codec', () => {
+    expect(documentIdBsonTypesOf(scalarField('mongo/json@1'), mongoTypeLookups)).toEqual([
+      'object',
+      'array',
+      'string',
+      'double',
+      'int',
+      'long',
+      'bool',
+      'null',
+    ]);
+  });
+
+  it('stores a list as an array and adds null to a nullable field', () => {
+    expect([
+      documentIdBsonTypesOf(arrayField('mongo/objectId@1'), mongoTypeLookups),
+      documentIdBsonTypesOf(scalarField('mongo/string@1', true), mongoTypeLookups),
+    ]).toEqual([['array'], ['string', 'null']]);
+  });
+
+  it('gives no BSON types for a value object or a codec no pack provides', () => {
+    expect([
+      documentIdBsonTypesOf(voField('Key'), mongoTypeLookups),
+      documentIdBsonTypesOf(scalarField('unknown/codec@1'), mongoTypeLookups),
+    ]).toEqual([undefined, undefined]);
   });
 });

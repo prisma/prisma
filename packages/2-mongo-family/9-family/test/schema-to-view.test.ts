@@ -52,4 +52,16 @@ describe('mongoSchemaToView', () => {
       }),
     ).toEqual(['_id: objectId (required)', 'level: int (required)', 'email: string']);
   });
+
+  it('shows every BSON type a field has in the root models of a shared collection', () => {
+    expect(
+      validatorFieldLabels({
+        bsonType: 'object',
+        anyOf: [
+          branch({ _id: { bsonType: 'objectId' }, value: { bsonType: 'string' } }, ['_id']),
+          branch({ _id: { bsonType: 'objectId' }, value: { bsonType: ['null', 'int'] } }, ['_id']),
+        ],
+      }),
+    ).toEqual(['_id: objectId (required)', 'value: string,null,int']);
+  });
 });
