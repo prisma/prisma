@@ -35,12 +35,11 @@ import {
   type SqlMigrationPlanOperation,
   type StatementColumn,
 } from '@internal/family-sql/control';
-import type { DataType } from '@internal/framework-components/codec';
+import type { DataType, TypeLookups } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
 import type { SqlStorage, StorageTable, StorageTypeInstance } from '@internal/sql-contract/types';
 import * as contractFree from '@internal/sql-relational-core/contract-free';
 import {
@@ -141,7 +140,7 @@ export interface StrategyContext {
   readonly schemaName: string;
   readonly codecHooks: ReadonlyMap<string, CodecControlHooks>;
   /** The composed stack's codecs and data types, which write each column's type. */
-  readonly types: SqlTypeLookups;
+  readonly types: TypeLookups;
   readonly storageTypes: Readonly<Record<string, StorageTypeInstance>>;
   readonly schema: SqlSchemaIR;
   readonly policy: MigrationOperationPolicy;

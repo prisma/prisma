@@ -21,10 +21,11 @@ import type { CodecControlHooks } from '@internal/family-sql/control';
 import {
   type AnyCodecDescriptor,
   createDataTypeLookup,
+  type TypeLookups,
 } from '@internal/framework-components/codec';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import { keepInternalSpecifiers } from '@internal/framework-components/emission';
-import { type SqlTypeLookups, sqlDataType } from '@internal/sql-contract/data-type';
+import { sqlDataType } from '@internal/sql-contract/data-type';
 import type { StorageColumn } from '@internal/sql-contract/types';
 import { col, fn } from '@internal/sql-relational-core/contract-free';
 import {
@@ -282,7 +283,7 @@ describe('AddColumnWithTemporaryDefaultCall', () => {
       params: arktype({ length: 'number.integer > 0' }),
       texts: [{ text: 'vector({length})', written: true }],
     });
-    const types: SqlTypeLookups = {
+    const types: TypeLookups = {
       codecLookup: {
         descriptorFor: (codecId) =>
           codecId === 'pg/vector@1'

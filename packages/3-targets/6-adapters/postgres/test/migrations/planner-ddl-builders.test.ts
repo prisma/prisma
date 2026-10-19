@@ -1,5 +1,4 @@
-import { createDataTypeLookup } from '@internal/framework-components/codec';
-import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
+import { createDataTypeLookup, type TypeLookups } from '@internal/framework-components/codec';
 import { toStorageTypeInstance } from '@internal/sql-contract/types';
 import { col as ddlColumn, fn, lit } from '@internal/sql-relational-core/contract-free';
 import {
@@ -14,7 +13,7 @@ import { buildColumnTypeSql } from '@internal/target-postgres/planner-ddl-builde
 import { describe, expect, it } from 'vitest';
 import { createTestPostgresControlAdapter } from '../helpers/test-control-adapter';
 
-const types: SqlTypeLookups = {
+const types: TypeLookups = {
   codecLookup: postgresCodecDescriptorRegistry,
   dataTypeLookup: createDataTypeLookup(postgresDataTypes),
 };

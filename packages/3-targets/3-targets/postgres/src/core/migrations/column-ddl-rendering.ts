@@ -1,10 +1,6 @@
 import type { CodecControlHooks } from '@internal/family-sql/control';
-import { dataTypeParams } from '@internal/framework-components/codec';
-import {
-  isSqlDataType,
-  renderSqlTypeName,
-  type SqlTypeLookups,
-} from '@internal/sql-contract/data-type';
+import { dataTypeParams, type TypeLookups } from '@internal/framework-components/codec';
+import { isSqlDataType, renderSqlTypeName } from '@internal/sql-contract/data-type';
 import type { StorageColumn } from '@internal/sql-contract/types';
 import type { DdlColumn } from '@internal/sql-relational-core/ast';
 import * as contractFree from '@internal/sql-relational-core/contract-free';
@@ -122,7 +118,7 @@ export function renderColumnAlterType(column: SqlColumnIR): string {
 export function resolveColumnTemporaryDefault(
   column: SqlColumnIR,
   codecHooks: ReadonlyMap<string, CodecControlHooks>,
-  types: SqlTypeLookups,
+  types: TypeLookups,
 ): string | null {
   return resolveIdentityValue(columnLike(column), codecHooks, types);
 }
@@ -133,7 +129,7 @@ export function resolveColumnTemporaryDefault(
 export function buildSetDefaultColumn(
   columnName: string,
   defaultNode: SqlColumnDefaultIR,
-  types: SqlTypeLookups,
+  types: TypeLookups,
 ): DdlColumn | undefined {
   const authored = defaultNode.authored ?? defaultNode.resolved;
   if (authored === undefined) return undefined;

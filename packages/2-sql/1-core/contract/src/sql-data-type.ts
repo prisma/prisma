@@ -9,11 +9,11 @@
  */
 
 import type {
-  CodecLookupWithDescriptors,
   DataType,
   DataTypeId,
   DataTypeLookup,
   DataTypeSpec,
+  TypeLookups,
 } from '@internal/framework-components/codec';
 import {
   dataType,
@@ -382,17 +382,11 @@ export function unquotedSqlBaseName<Params extends SqlTypeParams>(
   return typeName;
 }
 
-/** The lookups that find the data type a codec represents. */
-export interface SqlTypeLookups {
-  readonly codecLookup: Pick<CodecLookupWithDescriptors, 'descriptorFor'>;
-  readonly dataTypeLookup: Pick<DataTypeLookup, 'get'>;
-}
-
 const ADD_THE_CODEC_PACK =
   'Add the pack that provides the codec, and so declares its data type, to the configuration: to `extensions` in prisma.config or in defineContract.';
 
 /** The SQL data type the codec `codecId` represents. */
-export function sqlDataTypeOfCodec(codecId: string, lookups: SqlTypeLookups): SqlDataType {
+export function sqlDataTypeOfCodec(codecId: string, lookups: TypeLookups): SqlDataType {
   const descriptor = lookups.codecLookup.descriptorFor(codecId);
   if (descriptor === undefined) {
     throw contractError(
@@ -439,7 +433,7 @@ export function sqlStorageTypeId(dataTypeId: string, lookup: Pick<DataTypeLookup
 }
 
 /** The type a column of the codec `codecId` is stored as: {@link sqlStorageType} of the data type it represents. */
-export function sqlStorageTypeOfCodec(codecId: string, lookups: SqlTypeLookups): SqlDataType {
+export function sqlStorageTypeOfCodec(codecId: string, lookups: TypeLookups): SqlDataType {
   return sqlStorageType(sqlDataTypeOfCodec(codecId, lookups), lookups.dataTypeLookup);
 }
 
@@ -447,7 +441,7 @@ export function sqlStorageTypeOfCodec(codecId: string, lookups: SqlTypeLookups):
 export function unquotedSqlBaseNameOfCodec(
   codecId: string,
   typeParams: SqlTypeParams | undefined,
-  lookups: SqlTypeLookups,
+  lookups: TypeLookups,
 ): string {
   const type = sqlStorageTypeOfCodec(codecId, lookups);
   return unquotedSqlBaseName(type, dataTypeParams(type, typeParams));

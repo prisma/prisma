@@ -2,6 +2,7 @@ import {
   assembleDataTypes,
   type DataType,
   dataTypeParams,
+  type TypeLookups,
 } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import {
@@ -10,7 +11,6 @@ import {
   renderSqlCatalogText,
   resolveReportedSqlType,
   resolveWrittenSqlTypes,
-  type SqlTypeLookups,
   sqlDataTypeOfCodec,
   unquotedSqlBaseName,
 } from '@internal/sql-contract/data-type';
@@ -45,7 +45,7 @@ export function qualifyTableName(schema: string, table: string): string {
  */
 export function buildExpectedFormatType(
   column: Pick<StorageColumn, 'codecId' | 'typeParams' | 'typeRef'>,
-  types: SqlTypeLookups,
+  types: TypeLookups,
   storageTypes: Record<string, StorageTypeInstance> = {},
 ): string {
   const resolved = resolveColumnTypeMetadata(column, storageTypes);

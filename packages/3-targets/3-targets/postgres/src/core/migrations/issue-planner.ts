@@ -24,12 +24,11 @@ import type {
   SqlPlannerConflict,
   SqlPlannerConflictLocation,
 } from '@internal/family-sql/control';
-import type { DataType } from '@internal/framework-components/codec';
+import type { DataType, TypeLookups } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { DiffableNode, SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome, orderIssuesByDependencies } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
 import type { SqlStorage, StorageTypeInstance } from '@internal/sql-contract/types';
 import type { DdlTableConstraint } from '@internal/sql-relational-core/ast';
 import * as contractFree from '@internal/sql-relational-core/contract-free';
@@ -650,7 +649,7 @@ function mapColumnNodeIssue(
   issue: SchemaDiffIssue,
   schemaName: string,
   tableName: string,
-  types: SqlTypeLookups,
+  types: TypeLookups,
   dataTypes: readonly DataType[],
 ): Result<readonly PostgresOpFactoryCall[], SqlPlannerConflict> {
   if (issueOutcome(issue) === 'not-found') {
@@ -709,7 +708,7 @@ function mapColumnDefaultNodeIssue(
   schemaName: string,
   tableName: string,
   columnName: string,
-  types: SqlTypeLookups,
+  types: TypeLookups,
 ): Result<readonly PostgresOpFactoryCall[], SqlPlannerConflict> {
   if (issueOutcome(issue) === 'not-expected') {
     return ok([new DropDefaultCall(schemaName, tableName, columnName)]);
@@ -977,7 +976,7 @@ export interface IssuePlannerOptions {
   readonly schemaName: string;
   readonly codecHooks: ReadonlyMap<string, CodecControlHooks>;
   /** The composed stack's codecs and data types, which write each column's type. */
-  readonly types: SqlTypeLookups;
+  readonly types: TypeLookups;
   readonly storageTypes: Readonly<Record<string, StorageTypeInstance>>;
   /**
    * Current database schema IR. Strategies read this to detect whether a

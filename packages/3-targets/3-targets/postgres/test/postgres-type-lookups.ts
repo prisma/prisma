@@ -1,13 +1,12 @@
-import type { DataType } from '@internal/framework-components/codec';
+import type { DataType, TypeLookups } from '@internal/framework-components/codec';
 import type { AdapterDescriptor } from '@internal/framework-components/components';
-import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
 import type { SqlColumnIRInput } from '@internal/sql-schema-ir/types';
 import { introspectedColumn as introspectedColumnOver } from '../../../../2-sql/1-core/contract/test/introspected-column';
 import { createPostgresBuiltinCodecLookup } from '../src/core/codec-registry';
 import { codecDescriptors } from '../src/core/codecs';
 import { createPostgresBuiltinDataTypeLookup, postgresDataTypes } from '../src/core/data-types';
 
-export const postgresTypeLookups: SqlTypeLookups = {
+export const postgresTypeLookups: TypeLookups = {
   codecLookup: createPostgresBuiltinCodecLookup(),
   dataTypeLookup: createPostgresBuiltinDataTypeLookup(),
 };

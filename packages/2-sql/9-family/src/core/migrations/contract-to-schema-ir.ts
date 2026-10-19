@@ -7,6 +7,7 @@ import {
   type DataTypeParams,
   type DataTypeValue,
   dataTypeParams,
+  type TypeLookups,
 } from '@internal/framework-components/codec';
 import type {
   MigrationPlannerConflict,
@@ -15,7 +16,6 @@ import type {
 import {
   renderSqlTypeName,
   type SqlDataType,
-  type SqlTypeLookups,
   sqlDataTypeOfCodec,
   sqlStorageType,
   unquotedSqlBaseName,
@@ -66,7 +66,7 @@ function convertColumn(
   name: string,
   column: StorageColumn,
   storageTypes: ResolvedStorageTypes,
-  types: SqlTypeLookups,
+  types: TypeLookups,
   hooks: DefaultHooks,
 ): SqlColumnIRInput {
   // A `typeRef` column is written exactly as a column of the referenced
@@ -361,7 +361,7 @@ function convertTable(
   name: string,
   table: StorageTable,
   storageTypes: ResolvedStorageTypes,
-  types: SqlTypeLookups,
+  types: TypeLookups,
   hooks: DefaultHooks,
   storage: SqlStorage,
 ): SqlTableIR {
@@ -461,7 +461,7 @@ export function detectDestructiveChanges(
 }
 
 /** Each column's type is written from the data type its codec represents, found through the lookups. */
-export interface ContractToSchemaIROptions extends SqlTypeLookups {
+export interface ContractToSchemaIROptions extends TypeLookups {
   readonly annotationNamespace: string;
   readonly resolveDefault?: DefaultResolver;
 }

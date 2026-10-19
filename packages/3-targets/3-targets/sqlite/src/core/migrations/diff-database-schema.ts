@@ -2,6 +2,7 @@ import type { Contract, ControlPolicy } from '@internal/contract/types';
 import type { SqlSchemaDiffResult } from '@internal/family-sql/control';
 import { contractToSchemaIR, sqlTypeLookupsOf } from '@internal/family-sql/control';
 import { verifySqlSchemaByDiff } from '@internal/family-sql/diff';
+import type { TypeLookups } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   SchemaDiffIssue,
@@ -9,7 +10,6 @@ import type {
 } from '@internal/framework-components/control';
 import { diffSchemas } from '@internal/framework-components/control';
 import { entityAt } from '@internal/framework-components/ir';
-import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
 import type { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import type {
   SqlColumnIRInput,
@@ -38,7 +38,7 @@ interface SqliteDiffDatabaseSchemaInput {
  */
 export function sqliteContractToSchema(
   contract: Contract<SqlStorage> | null,
-  types: SqlTypeLookups,
+  types: TypeLookups,
 ): SqlSchemaIR {
   // SQLite is single-schema: every contract FK targets the unbound namespace
   // node, so derivation stamps no referenced namespace — the same absence

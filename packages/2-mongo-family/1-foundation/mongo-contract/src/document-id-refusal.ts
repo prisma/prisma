@@ -1,5 +1,6 @@
 import type { ContractField } from '@internal/contract/types';
-import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
+import type { TypeLookups } from '@internal/framework-components/codec';
+import { bsonTypesOfCodec } from './mongo-data-type';
 
 /**
  * Why a root model cannot be stored in a collection with a validator. `unknownCodec`: the lookups know no MongoDB data type for the `_id` codec. `notObjectId`: the model has no `_id`, or its `_id` is not stored as BSON type `objectId`.
@@ -19,7 +20,7 @@ const notObjectId: DocumentIdRefusal = {
  */
 export function documentIdRefusalOf(
   fields: Record<string, ContractField>,
-  lookups: MongoTypeLookups,
+  lookups: TypeLookups,
 ): DocumentIdRefusal | undefined {
   const id = Object.hasOwn(fields, '_id') ? fields['_id'] : undefined;
   if (id?.type.kind !== 'scalar') return notObjectId;

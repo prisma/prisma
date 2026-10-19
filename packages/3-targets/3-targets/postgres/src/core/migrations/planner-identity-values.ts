@@ -1,5 +1,6 @@
 import type { CodecControlHooks } from '@internal/family-sql/control';
-import { type SqlTypeLookups, sqlDataTypeOfCodec } from '@internal/sql-contract/data-type';
+import type { TypeLookups } from '@internal/framework-components/codec';
+import { sqlDataTypeOfCodec } from '@internal/sql-contract/data-type';
 import type { StorageColumn, StorageTypeInstance } from '@internal/sql-contract/types';
 import { ifDefined } from '@internal/utils/defined';
 import {
@@ -36,7 +37,7 @@ import {
 export function resolveIdentityValue(
   column: Pick<StorageColumn, 'codecId' | 'typeParams' | 'typeRef' | 'many'>,
   codecHooks: ReadonlyMap<string, CodecControlHooks>,
-  types: SqlTypeLookups,
+  types: TypeLookups,
   storageTypes: Record<string, StorageTypeInstance> = {},
 ): string | null {
   const referencedType = column.typeRef ? storageTypes[column.typeRef] : undefined;

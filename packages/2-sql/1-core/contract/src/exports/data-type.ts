@@ -5,7 +5,6 @@ export type {
   SqlDataTypeCollision,
   SqlDataTypeFacts,
   SqlDataTypeSpec,
-  SqlTypeLookups,
   SqlTypeParams,
   SqlTypeText,
 } from '../sql-data-type';

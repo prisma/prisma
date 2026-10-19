@@ -1,9 +1,5 @@
-import { dataTypeParams } from '@internal/framework-components/codec';
-import {
-  type SqlTypeLookups,
-  type SqlTypeParams,
-  sqlDataTypeOfCodec,
-} from '@internal/sql-contract/data-type';
+import { dataTypeParams, type TypeLookups } from '@internal/framework-components/codec';
+import { type SqlTypeParams, sqlDataTypeOfCodec } from '@internal/sql-contract/data-type';
 import type { SqlColumnIR } from '@internal/sql-schema-ir/types';
 import { InternalError } from '@internal/utils/internal-error';
 import {
@@ -100,7 +96,7 @@ function isParamRecord(value: unknown): value is SqlTypeParams {
 }
 
 /** The data type a column node's codec represents, with its parameters. */
-export function columnType(column: SqlColumnIR, types: SqlTypeLookups): ColumnType {
+export function columnType(column: SqlColumnIR, types: TypeLookups): ColumnType {
   if (column.codecRef === undefined) {
     throw new InternalError(
       `Column "${column.name}" carries no codec, so its data type is unknown; a type change is planned only between columns built from contracts.`,
@@ -126,7 +122,7 @@ function introspectedColumnType(column: SqlColumnIR): ColumnType | undefined {
 export function liveColumnWidensSafely(
   expected: SqlColumnIR,
   actual: SqlColumnIR,
-  types: SqlTypeLookups,
+  types: TypeLookups,
 ): boolean {
   if (expected.many === true || actual.many === true) return false;
   const from =
