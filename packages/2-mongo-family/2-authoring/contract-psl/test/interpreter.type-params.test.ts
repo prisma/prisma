@@ -13,6 +13,7 @@ import { interpretMongoContract } from './interpreter-test-helpers';
 const vector = mongoDataType('test/vector', {
   bsonTypes: ['array'],
   params: type({ 'length?': 'number.integer >= 1' }),
+  read: (json) => json,
 });
 
 const codecLookup: CodecLookupWithDescriptors = {
@@ -53,6 +54,7 @@ function interpret(length: number) {
           get: (id) => dataTypeLookup.get(id) ?? mongoDataTypeLookup.get(id),
           has: (id) => dataTypeLookup.has(id) || mongoDataTypeLookup.has(id),
         },
+        dataTypeOfCodec: (codecId) => (codecId === 'test/vector@1' ? vector.id : undefined),
       },
       authoringContributions: vectorPreset(length),
     },
