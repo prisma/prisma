@@ -23,7 +23,7 @@ changes:
       glob: "**/*.{ts,mts,cts}"
       matches:
         - 'builtinGeneratorRegistryMetadata'
-        - "\\{\\s*id:\\s*'(?:uuidv4|uuidv7|cuid2|ulid|nanoid|ksuid)'\\s*\\}"
+        - "\\{\\s*id:\\s*['\"](?:uuidv4|uuidv7|cuid2|ulid|nanoid|ksuid)['\"]\\s*\\}"
 ---
 
 # Client generators are generator functions
@@ -75,7 +75,7 @@ const slugidPack = {
 } as const satisfies ExtensionPackRef<'sql', 'postgres'>;
 ```
 
-Put `generatorFunctions` and the generator descriptors on both the pack ref, which the TypeScript builder reads, and the control descriptor, which `contract emit`, `contract print` and the language server read. Every stack, the TypeScript builders included, checks that each binding produces a generator a descriptor registers. Declare the pack ref with `as const satisfies`, not a type annotation: the `gen` of a `defineContract` callback is built from the packs' declared functions and their signatures, so `gen.slugid()` exists only when the pack ref keeps its literal type. A binding's `resolve` may return only a generator id the binding lists in `generatorIds`; any other id throws `InternalError`. To bind a function another component declares, such as `uuid`, to a codec your extension adds, contribute a binding without a `signature`. Composing a stack fails with `CONTRACT.PACK_CONTRIBUTION_INVALID` when two components declare one function, when a binding names a function no component declares, when two bindings cover one function and codec, when two functions write one generator for one codec, or when a binding produces a generator no generator descriptor registers.
+Put `generatorFunctions` and the generator descriptors on both the pack ref, which the TypeScript builder reads, and the control descriptor, which `contract emit`, `contract print` and the language server read. Every stack, the TypeScript builders included, checks that each binding produces a generator a descriptor registers. Declare the pack ref with `as const satisfies`, not a type annotation: the `gen` of a `defineContract` callback is built from the packs' declared functions and their signatures, so `gen.slugid()` exists only when the pack ref keeps its literal type. A binding's `resolve` may return only a generator id the binding lists in `generatorIds`; any other id throws `InternalError`. To bind a function another component declares, such as `uuid`, to a codec your extension adds, contribute a binding without a `signature`. Composing a stack fails with `CONTRACT.PACK_CONTRIBUTION_INVALID` when two components declare one function, when a binding names a function no component declares, when two bindings cover one function and codec, when two functions write one generator for one codec, when a binding produces a generator no generator descriptor registers, or when two components register one generator id.
 
 ## `sql-family-registers-identifier-generators`
 

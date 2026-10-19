@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Rewrites `@default(uuid(...))`, `@default(cuid(...))`, `@default(ulid())` and `@default(nanoid(...))`
 // to `@onCreate(...)` in the Prisma 8 schema files named on the command line. The call is kept as
-// written; `//` comments are left unchanged. A file without the `// use prisma-8` directive (or the
+// written; string literals and `//` comments are left unchanged. A file without the `// use prisma-8` directive (or the
 // older `// use prisma-next`) is left unchanged.
 import { readFileSync, writeFileSync } from 'node:fs';
 import process from 'node:process';
@@ -11,33 +11,43 @@ const CLIENT_FUNCTION_IN_DEFAULT = /@default\((\s*(?:uuid|cuid|ulid|nanoid)\s*\(
 // packages/1-framework/2-authoring/psl-parser/src/schema-directive.ts; this script ships standalone.
 const PRISMA8_DIRECTIVE = /^(\s*\/\/ *use +)(prisma-8|prisma-next)( *)(?!\S)/;
 
-/** The offset where a `//` comment starts on the line, outside a string, or the line's length. */
-function commentStart(line) {
-  let inString = false;
-  for (let index = 0; index < line.length; index += 1) {
-    const char = line[index];
-    if (inString) {
-      if (char === '\\') index += 1;
-      else if (char === '"') inString = false;
-    } else if (char === '"') {
-      inString = true;
-    } else if (char === '/' && line[index + 1] === '/') {
-      return index;
+/** The line cut into code, string literals and a trailing `//` comment, with only the code to rewrite. */
+function spansOf(line) {
+  const spans = [];
+  let codeStart = 0;
+  let index = 0;
+  while (index < line.length) {
+    if (line[index] === '/' && line[index + 1] === '/') break;
+    if (line[index] !== '"') {
+      index += 1;
+      continue;
     }
+    spans.push({ text: line.slice(codeStart, index), code: true });
+    let close = index + 1;
+    while (close < line.length && line[close] !== '"') close += line[close] === '\\' ? 2 : 1;
+    spans.push({ text: line.slice(index, close + 1), code: false });
+    index = close + 1;
+    codeStart = index;
   }
-  return line.length;
+  spans.push({ text: line.slice(codeStart, index), code: true });
+  spans.push({ text: line.slice(index), code: false });
+  return spans;
 }
 
 function rewrite(text) {
   let count = 0;
-  const lines = text.split('\n').map((line) => {
-    const end = commentStart(line);
-    const code = line.slice(0, end).replace(CLIENT_FUNCTION_IN_DEFAULT, (_match, call) => {
-      count += 1;
-      return `@onCreate(${call})`;
-    });
-    return code + line.slice(end);
-  });
+  const lines = text.split('\n').map((line) =>
+    spansOf(line)
+      .map(({ text: span, code }) =>
+        code
+          ? span.replace(CLIENT_FUNCTION_IN_DEFAULT, (_match, call) => {
+              count += 1;
+              return `@onCreate(${call})`;
+            })
+          : span,
+      )
+      .join(''),
+  );
   return { text: lines.join('\n'), count };
 }
 

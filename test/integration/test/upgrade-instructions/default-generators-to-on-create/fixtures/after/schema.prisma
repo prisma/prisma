@@ -11,6 +11,7 @@ model Post {
   createdAt DateTime @default(now())
   count     Int      @default(autoincrement())
   label     String   @default("uuid()")
+  quoted    String   @default("x @default(uuid()) y")
   // legacy String @default(uuid())
   trailing  String   @onCreate(ulid()) // was @default(ulid())
 }
