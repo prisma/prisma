@@ -13,6 +13,7 @@
 | c | 3 | `55dbe5ff17` | 0 | 0 | 0 | SATISFIED |
 | d | 2 | `55dbe5ff17`, `5177521019` | 0 | 0 | 0 | SATISFIED |
 | e | 1 | `4fd312cd43` | 0 | 0 | 0 | SATISFIED |
+| f | 1 | `dad74de99b..bce7b3b5f9`, ADR 254 `ae9e5c08e8` | 0 | 0 | 3 | SATISFIED |
 
 ## Dispatch a, round 1
 
@@ -325,5 +326,62 @@ The brief is built as amended. `prisma7PostgresTypes` names a data type and para
 The table is computed when the module loads. Only `prisma7-binding` imports it, and only the Prisma 7 config entry point loads that, so the cost is paid only when a project reads a Prisma 7 schema. An unmarked constructor would throw an `InternalError` at load, which the table test would catch first.
 
 Checks run: `pnpm build`, root `pnpm typecheck`, `lint:deps` and `lint:framework-vocabulary` pass. Tests pass for the Postgres target, `contract-prisma7`, the Postgres adapter and the Postgres extension.
+
+Verdict: SATISFIED.
+
+## Dispatch f, round 1
+
+Each numbered item of the brief is built:
+
+- The test-only extension `testext` and its journey.
+- A matrix on each target: Postgres in `marked-types-round-trip`, SQLite in `data-type-verify`, which covers all 8 SQLite data types.
+- The enum cases.
+- The golden test and `manifest.json` are deleted.
+- The DoD rule that required re-recording the golden test is removed, the failure mode that described the golden test is marked retired, and the SQL family README is updated.
+
+ADR 254 is the orchestrator's edit, reviewed below.
+
+Checks run:
+
+- `pnpm build`, root `pnpm typecheck`, `pnpm lint`, `lint:deps`, `lint:docs`, `lint:framework-vocabulary`, `check:error-reference`, `fixtures:check` and `check:upgrade-coverage --mode pr` pass.
+- The extension journey passes (4 tests). The Postgres matrix file passes (6 tests). `verify-through-data-types` passes (6 tests), and so does the SQLite `data-type-verify` (6 tests).
+- The slice 4 grep checks return only what they allow, apart from S4-f-R1-3.
+- `pnpm test --coverage` passes in 18 of the 20 packages the slice touched. Two fail on timing alone, not on a coverage threshold, and neither failure comes from this slice:
+  - `packages/3-extensions/postgres`: `define-config.glob-e2e.test.ts` takes 545 ms against a 500 ms limit.
+  - `packages/1-framework/3-tooling/language-server`: up to three tests in `server.membership-races.test.ts` take 511 to 555 ms. They failed again when I reran them. The slice changed one line of an unrelated test file in that package.
+
+The reviewed points:
+
+- **The extension journey is a fair test.** `git grep` finds no production code in the framework, the SQL family or the targets that names `vector`. The type is claimed only through `testext`'s declared text `vector({size})`, and pgvector is not in the config. PGlite cannot create a base type, and a domain reports the kind `domain`, which no data type claims by text, so borrowing the base type an installed extension provides is the only way to get a base-type text on PGlite. Without `testext`, the journey shows verify naming `vector(3)` and `vector(3)[]`, and infer failing with `CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED`.
+- **Dropping the CHECK constraints hides no mismatch.** The constraints are dropped only so that `ALTER COLUMN TYPE` can run, and the matrix then compares column-level issues only. The verify before the drop also filters to column issues, though, so on its own it does not prove the whole verify is clean. I temporarily changed the test to assert the full issue list before the drop, then restored it: no issues at all. See S4-f-R1-2.
+- **The golden test's retirement.** What stays:
+  - Both fixture directories, with `contract.ts`, `prisma.config.ts`, `generated/` and `planned.golden.json`.
+  - The fixture root in `test/integration/scripts/emit-fixture-configs.mjs`. The `integration-tests` emit that `fixtures:emit` runs uses that root, so `fixtures:check` still re-emits and diffs the kept contracts. It is clean.
+  - The `biome.jsonc` ignore for `planned.golden.json`. The ignore for `manifest.json` is removed.
+  The contract-parity tests, `every-postgres-contract-roundtrip` and the two `postchecks-check-full-definition` upgrade detection tests still reference these fixtures.
+- **The coverage timeout is not this branch's doing.** I built `bot/main` (`da82c8c864`) in a temporary worktree under `wip/`, removed afterwards, and ran the postgres extension package under coverage three times. The glob test took 469 ms, 540 ms (failed) and 504 ms. On this branch it took 386, 470, 482 and 545 ms. So it times out on `bot/main` too, and CI's coverage job is no more at risk from this branch. The language-server race tests sit at the same 500 ms limit.
+- **ADR 254 (`ae9e5c08e8`) matches the code.**
+  - The new "Comparing column types" bullet matches `sqlColumnTypesEqual`: the stored data type, normal-form parameters and list flag. It matches how an enum's name is read from the catalog's schema and name, the unclaimed-type message word for word, and the postcheck (`format_type` against the catalog text, or identity through `to_regtype` and `typarray`). It also states the unbound-namespace limit.
+  - The rewritten "Stored as" bullet is right: introspection resolves to a storage type, because a type stored as another declares no texts or kind, and the contract side compares its `storedType`.
+  - The `contract infer` paragraph matches `psl-build/column-types.ts` (`fewestArgumentsCall`, `CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED` listing every column).
+  - No sentence in the ADR still describes comparing type names.
+
+### S4-f-R1-1 (low): the enum mismatch text writes the two sides differently
+
+Where: `typeTextOf` and `reportedTextOf` in `packages/2-sql/1-core/schema-ir/src/ir/sql-column-ir.ts`. The contract side prints its written name (`mood[]`). The database side prints `schema.name` from the catalog (`public.Order Status[]`).
+
+Change: write both sides the way the contract writes an enum's `typeName`, which is the rule `pg/enum`'s `fromReported` already uses. The name is bare in `public` and `schema.name` otherwise, with `[]` for a list. The example then reads `The contract column is "mood[]" and the database column is "Order Status[]"`. This keeps the database side independent of the search path. The simplest way is to have introspection give an enum column's type text in that form, so `explainMismatch` no longer needs its kind branch.
+
+### S4-f-R1-2 (low): the Postgres matrix's clean verify checks columns only
+
+Where: `test/integration/test/psl-infer/marked-types-round-trip.integration.test.ts`, the first `notEqualColumns()` call, before the CHECK constraints are dropped.
+
+Change: assert there that the whole issue list is empty, as my temporary change did. It passes today. Keep the column-only filter for the rest of the test.
+
+### S4-f-R1-3 (low): one grep allowance misses a file
+
+Where: `projects/data-types-completion/plan.md`, the slice 4 `nativeType` row. Its output includes `test/integration/test/upgrade-instructions/column-types-through-data-types/detection.test.ts`, which this slice added, but the allowance names only the earlier upgrade script's tests.
+
+Change: add this slice's upgrade detection test to the allowance.
 
 Verdict: SATISFIED.
