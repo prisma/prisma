@@ -18,7 +18,8 @@ const contract = defineContract({}, ({ field, model }) => ({
 
 it('a collection storing two models accepts a document of each and refuses an extra field', () =>
   withMongod(async ({ client, dbName }) => {
-    const validator = contract.storage.namespaces.__unbound__.entries.collection.users.validator;
+    const validator =
+      contract.storage.namespaces['__unbound__']?.entries.collection?.['users']?.validator;
     if (validator === undefined) expect.unreachable('users has a validator');
     const db = client.db(dbName);
     await db.createCollection('users', {
