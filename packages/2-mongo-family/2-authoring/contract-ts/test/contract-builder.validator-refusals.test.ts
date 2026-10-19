@@ -114,7 +114,6 @@ describe('mongo defineContract refuses what a collection validator cannot descri
       ['an int', field.int32(), { bsonType: 'int' }],
       ['a date', field.date(), { bsonType: 'date' }],
       ['bytes', field.binary(), { bsonType: 'binData' }],
-      ['a BSON document', field.bson(), {}],
     ])(
       'accepts a root model whose _id holds %s, and validates it as such',
       (_case, idField, idSchema) => {
@@ -134,14 +133,16 @@ describe('mongo defineContract refuses what a collection validator cannot descri
       ['nullable', field.string().optional(), 'mongo/string@1', ['null']],
       ['json', field.json(), 'mongo/json@1', ['array', 'null']],
       ['a vector', field.vector(), 'mongo/vector@1', ['array']],
+      ['any BSON value', field.bson(), 'mongo/bson@1', ['array', 'regex', 'undefined', 'null']],
     ])(
       'refuses a root model whose _id is %s, with the reason reading the contract back gives',
       (_case, idField, codecId, forbidden) => {
+        const held = codecId === 'mongo/bson@1' ? [] : forbidden;
         const User = model('User', { collection: 'users', fields: { _id: idField } });
         expect(() => defineContract({ ...scaffold, models: { User } })).toThrow(
           expect.objectContaining({
             code: 'CONTRACT.COLLECTION_INVALID',
-            message: `Model "User" field "_id" ${documentIdRefusalReason(codecId, forbidden)}`,
+            message: `Model "User" field "_id" ${documentIdRefusalReason(codecId, held)}`,
             meta: {
               modelName: 'User',
               fieldName: '_id',

@@ -24,7 +24,7 @@ Building the contract fails with one of these errors. Change the contract until 
 - A field whose codec has no MongoDB data type:
   `Model "Place" field "location" uses codec "geo/point@1", which no pack in the contract provides, so its BSON type is unknown and the contract cannot describe the field.`
   List the extension that provides the codec in `extensions` in `defineContract`.
-- A model whose `_id` field can hold an array, a regular expression, undefined or null, such as `_id: field.objectId().many()`, `_id: field.string().optional()`, `_id: field.json()` or `_id: field.vector()`:
+- A model whose `_id` field can hold an array, a regular expression, undefined or null, such as `_id: field.objectId().many()`, `_id: field.string().optional()`, `_id: field.json()`, `_id: field.vector()` or `_id: field.bson()`:
   `Model "User" field "_id" can hold BSON type array or null (codec "mongo/json@1"). An _id cannot be an array, a regular expression, undefined or null: MongoDB refuses the first three, and every document has an _id.`
   Give the `_id` field a required, single-valued type. Its validator requires `_id` with the field's BSON type, so a string, int, date, bytes or document `_id` is kept as it is. A model that leaves `_id` out gets a validator that requires an `objectId` `_id`, which MongoDB adds to every document inserted without one. A model whose `_id` is not stored as an ObjectId must give its `_id` on every create: without one, MongoDB adds an ObjectId `_id`, which the validator refuses.
 - An enum a validator cannot list:

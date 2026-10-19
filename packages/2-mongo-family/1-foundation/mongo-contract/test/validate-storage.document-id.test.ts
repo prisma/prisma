@@ -69,7 +69,7 @@ describe('validateMongoStorage() and the rules every MongoDB contract source fol
     expect(() => validateMongoStorage(contractWith({ Item: item }, undefined))).not.toThrow();
   });
 
-  it('accepts validators that require an _id of any single BSON type, in every anyOf branch', () => {
+  it('accepts validators that require an _id of a BSON type an _id can have, in every anyOf branch', () => {
     expect(() =>
       validateMongoStorage(
         contractWith(
@@ -79,7 +79,6 @@ describe('validateMongoStorage() and the rules every MongoDB contract source fol
             anyOf: [
               objectIdSchema,
               { ...objectIdSchema, properties: { _id: { bsonType: 'string' } } },
-              { ...objectIdSchema, properties: { _id: {} } },
             ],
           },
         ),
@@ -98,6 +97,20 @@ describe('validateMongoStorage() and the rules every MongoDB contract source fol
     ).toThrow(
       'Collection "items": its validator must require _id, for every model the collection stores, since every document has an _id',
     );
+  });
+
+  it('refuses a validator whose _id accepts any value, naming the model, field and codec', () => {
+    const withId: MongoModelDefinition = {
+      ...item,
+      fields: {
+        _id: { type: { kind: 'scalar', codecId: 'mongo/bson@1' }, nullable: false, many: false },
+      },
+    };
+    expect(() =>
+      validateMongoStorage(
+        contractWith({ Item: withId }, { ...objectIdSchema, properties: { _id: {} } }),
+      ),
+    ).toThrow(`Model "Item" field "_id" ${documentIdRefusalReason('mongo/bson@1', [])}`);
   });
 
   it.each([

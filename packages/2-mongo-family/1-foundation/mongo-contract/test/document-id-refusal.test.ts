@@ -12,7 +12,6 @@ describe('documentIdRefusalOf', () => {
     ['an objectId', 'mongo/objectId@1', ['objectId']],
     ['a string', 'mongo/string@1', ['string']],
     ['several allowed types', 'test/int-or-long@1', ['int', 'long']],
-    ['any BSON type, which the codec does not narrow', 'mongo/bson@1', []],
   ])('accepts an _id stored as %s', (_case, codecId, bsonTypes) => {
     expect(documentIdRefusalOf(codecId, bsonTypes)).toBeUndefined();
   });
@@ -26,6 +25,14 @@ describe('documentIdRefusalOf', () => {
     expect(documentIdRefusalOf(codecId, bsonTypes)).toEqual({
       forbidden,
       reason: documentIdRefusalReason(codecId, forbidden),
+    });
+  });
+
+  it('refuses an _id whose codec can store any BSON type, which includes every type an _id cannot have', () => {
+    expect(documentIdRefusalOf('mongo/bson@1', [])).toEqual({
+      forbidden: ['array', 'regex', 'undefined', 'null'],
+      reason:
+        'can hold any BSON type (codec "mongo/bson@1"). An _id cannot be an array, a regular expression, undefined or null: MongoDB refuses the first three, and every document has an _id.',
     });
   });
 

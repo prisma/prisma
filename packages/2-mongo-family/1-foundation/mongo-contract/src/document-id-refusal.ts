@@ -15,18 +15,27 @@ export interface DocumentIdRefusal {
   readonly reason: string;
 }
 
-/** Why an `_id` stored by `codecId` cannot hold `forbidden`; the subject is left out, so each caller leads with its own. */
+/**
+ * Why an `_id` stored by `codecId` cannot hold `forbidden`, the BSON types it can hold that an `_id` cannot have; an empty list means it can hold any BSON type. The subject is left out, so each caller leads with its own.
+ */
 export function documentIdRefusalReason(codecId: string, forbidden: readonly string[]): string {
-  return `can hold BSON type ${forbidden.join(' or ')} (codec "${codecId}"). An _id cannot be an array, a regular expression, undefined or null: MongoDB refuses the first three, and every document has an _id.`;
+  const held = forbidden.length === 0 ? 'any BSON type' : `BSON type ${forbidden.join(' or ')}`;
+  return `can hold ${held} (codec "${codecId}"). An _id cannot be an array, a regular expression, undefined or null: MongoDB refuses the first three, and every document has an _id.`;
 }
 
 /**
- * The refusal of an `_id` that can hold `bsonTypes`, or undefined when an `_id` can. An empty list leaves the type to the codec, so it is not refused.
+ * The refusal of an `_id` that can hold `bsonTypes`, or undefined when an `_id` can. An empty list means any BSON type, which includes all of them.
  */
 export function documentIdRefusalOf(
   codecId: string,
   bsonTypes: readonly string[],
 ): DocumentIdRefusal | undefined {
+  if (bsonTypes.length === 0) {
+    return {
+      forbidden: [...FORBIDDEN_DOCUMENT_ID_BSON_TYPES],
+      reason: documentIdRefusalReason(codecId, []),
+    };
+  }
   const forbidden = bsonTypes.filter((bsonType) => FORBIDDEN_DOCUMENT_ID_BSON_TYPES.has(bsonType));
   return forbidden.length === 0
     ? undefined
