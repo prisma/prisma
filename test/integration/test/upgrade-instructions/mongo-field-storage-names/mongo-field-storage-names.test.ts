@@ -134,3 +134,50 @@ describe('a contract.d.ts whose storage types the script cannot find', () => {
     });
   });
 });
+
+describe('a model with a field named storage', () => {
+  it("adds the stored names to the model's own storage type, not the field's", () => {
+    const root = workDir();
+    const field = { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false };
+    writeFileSync(
+      join(root, 'contract.json'),
+      `${JSON.stringify({
+        targetFamily: 'mongo',
+        domain: {
+          namespaces: {
+            __unbound__: {
+              models: {
+                Box: {
+                  fields: { storage: field },
+                  relations: {},
+                  storage: { collection: 'boxes' },
+                },
+              },
+            },
+          },
+        },
+      })}\n`,
+    );
+    const declarations = [
+      'type ContractBase = {',
+      '  readonly models: {',
+      '    readonly Box: {',
+      "      readonly fields: { readonly storage: { readonly nullable: false; readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' } } };",
+      '      readonly relations: Record<string, never>;',
+      "      readonly storage: { readonly collection: 'boxes' };",
+      '    };',
+      '  };',
+      '};',
+      '',
+    ];
+    writeFileSync(join(root, 'contract.d.ts'), declarations.join('\n'));
+    expect(run(root).status).toBe(0);
+    expect(readFileSync(join(root, 'contract.d.ts'), 'utf8')).toBe(
+      [
+        ...declarations.slice(0, 5),
+        "      readonly storage: { readonly collection: 'boxes'; readonly fields: { readonly storage: { readonly field: 'storage' } } };",
+        ...declarations.slice(6),
+      ].join('\n'),
+    );
+  });
+});

@@ -119,6 +119,23 @@ function storageFieldsType(fieldNames: readonly string[], quote: string): string
 
 const STORAGE_KEY = /readonly storage:\s*/g;
 
+/** How many braces are open at `end` in `text`, outside string literals. */
+function braceDepth(text: string, end: number): number {
+  let depth = 0;
+  for (let index = 0; index < end; index++) {
+    const char = text[index];
+    if (char === "'" || char === '"' || char === '`') {
+      const close = text.indexOf(char, index + 1);
+      if (close === -1 || close >= end) return depth;
+      index = close;
+      continue;
+    }
+    if (char === '{') depth++;
+    if (char === '}') depth--;
+  }
+  return depth;
+}
+
 /** The model's `readonly storage: ...` type with `readonly fields` added, or undefined when the model's block is not found. */
 function rewriteModelType(
   declarations: string,
@@ -134,6 +151,7 @@ function rewriteModelType(
     const block = declarations.slice(open, close + 1);
     STORAGE_KEY.lastIndex = 0;
     for (const storageMatch of block.matchAll(STORAGE_KEY)) {
+      if (braceDepth(block, storageMatch.index) !== 1) continue;
       const typeStart = open + storageMatch.index + storageMatch[0].length;
       const fields = storageFieldsType(fieldNames, quote);
       if (declarations.startsWith('Record<string, never>', typeStart)) {
