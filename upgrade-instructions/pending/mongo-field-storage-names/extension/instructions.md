@@ -2,7 +2,7 @@
 changes:
   - id: mongo-model-storage-fields
     summary: |
-      A MongoDB model's `fields` are keyed by field name, and `model.storage.fields` records the key each field is stored under: `MongoModelStorage` gains a required `fields: Record<string, { field: string }>`, with an entry for every field. `on.localFields`, `on.targetFields` and `discriminator.field` name fields; indexes, validators and execution default refs name stored names. Code that read `model.fields` keys as document keys reads stored names through the helpers `@internal/mongo-contract` exports: `storedFieldNamesOf`, `storedFieldNameOf`, `fieldOfStoredName`, `documentIdFieldOf` and `hierarchyStoredFieldNamesOf`. A hand-built MongoDB contract or model storage type adds `fields`.
+      A MongoDB model's `fields` are keyed by field name, and `model.storage.fields` records the key each field is stored under: `MongoModelStorage` gains a required `fields: Record<string, { field: string }>`, with an entry for every field. `on.localFields`, `on.targetFields` and `discriminator.field` name fields; indexes, validators and execution default refs name stored names. Code that read `model.fields` keys as document keys reads stored names through the helpers `@internal/mongo-contract` exports: `ownStoredNamesOf`, `ownStoredNameOf`, `ownFieldStoredAs`, `hasOwnFieldStoredAs`, `ownEmbedStoredNamesOf`, `documentIdFieldOf`, `storedNamesOf`, `modelAndBasesOf`, `valueObjectStoredNamesOf` and `mongoModelsOf`, and at the type level `StoredNameOf` and `FieldStoredAs`. An embed relation is stored under its `storage.relations` entry, or its own name. A hand-built MongoDB contract or model storage type adds `fields`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx,json}"
       matches:
@@ -19,13 +19,13 @@ const keys = Object.keys(model.fields);
 const hasId = Object.hasOwn(model.fields, '_id');
 
 // after
-import { documentIdFieldOf, storedFieldNamesOf } from '@internal/mongo-contract';
+import { documentIdFieldOf, ownStoredNamesOf } from '@internal/mongo-contract';
 
-const keys = Object.values(storedFieldNamesOf(model));
+const keys = Object.values(ownStoredNamesOf(model));
 const hasId = documentIdFieldOf(model) !== undefined;
 ```
 
-`storedFieldNamesOf(model)` maps each of a model's own fields to its stored name; a value object, which has no storage block, maps each field to its own name. `hierarchyStoredFieldNamesOf(models, name)` adds the fields a variant inherits from its base. A model built by hand, for example in a test, adds `fields` to its storage:
+`ownStoredNamesOf(model)` maps each of a model's own fields to its stored name; `valueObjectStoredNamesOf(valueObject)` maps each field of a value object, which has no storage block, to its own name. `storedNamesOf(models, name)` adds the fields a variant inherits from its base, and `modelAndBasesOf(models, name)` walks a model and its bases. A model built by hand, for example in a test, adds `fields` to its storage:
 
 ```ts
 // before
