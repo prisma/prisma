@@ -56,6 +56,7 @@ export {
 export type { CollectionValidatorsInput } from '../derive-collection-validators';
 export { deriveCollectionValidators } from '../derive-collection-validators';
 export type { FieldValueSets } from '../derive-json-schema';
+export { documentIdRefusalReason } from '../document-id-refusal';
 export type { FieldBsonTypeRefusal } from '../field-bson-type-refusal';
 export { fieldBsonTypeRefusalOf } from '../field-bson-type-refusal';
 export { buildMongoNamespace } from '../ir/build-mongo-namespace';

@@ -2,7 +2,7 @@
 changes:
   - id: mongo-typescript-contract-validator
     summary: |
-      A MongoDB contract written in TypeScript with `defineContract` now gets the same closed collection validator as a PSL contract, and its storage hash changes once. `defineContract` refuses what a validator cannot describe: a field whose codec has no MongoDB data type, a model whose `_id` field is a list or optional, an enum a validator cannot list, and an embed relation to a model with variants. MongoDB does not check existing documents when a validator is added, so find and fix the documents the validator would refuse, then apply it with `prisma db update`, or with `prisma migration plan` and `prisma db migrate`. Writing an enum in a TypeScript contract to avoid the validator, as the rc.17 notes advised, no longer works.
+      A MongoDB contract written in TypeScript with `defineContract` now gets the same closed collection validator as a PSL contract, and its storage hash changes once. `defineContract` refuses what a validator cannot describe: a field whose codec has no MongoDB data type, a model whose `_id` field can hold an array, a regular expression, undefined or null, an enum a validator cannot list, and an embed relation to a model with variants. MongoDB does not check existing documents when a validator is added, so find and fix the documents the validator would refuse, then apply it with `prisma db update`, or with `prisma migration plan` and `prisma db migrate`. Writing an enum in a TypeScript contract to avoid the validator, as the rc.17 notes advised, no longer works.
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
@@ -22,11 +22,11 @@ Before, a MongoDB contract written in TypeScript had no collection validators, s
 Building the contract fails with one of these errors. Change the contract until it builds.
 
 - A field whose codec has no MongoDB data type:
-  `Model "Place" field "location" uses codec "geo/point@1", which no pack in the contract provides, so the collection validator cannot give its BSON type.`
+  `Model "Place" field "location" uses codec "geo/point@1", which no pack in the contract provides, so its BSON type is unknown and the contract cannot describe the field.`
   List the extension that provides the codec in `extensions` in `defineContract`.
-- A model whose `_id` field is a list or optional, such as `_id: field.objectId().many()` or `_id: field.string().optional()`:
-  `Model "User" field "_id" holds the document id as an optional value, but every document has an _id.`
-  Make the `_id` field required and not a list. Its validator requires `_id` with the field's BSON type, so a string, int, date, bytes or document `_id` is kept as it is. A model that leaves `_id` out gets a validator that requires an `objectId` `_id`, which MongoDB adds to every document inserted without one.
+- A model whose `_id` field can hold an array, a regular expression, undefined or null, such as `_id: field.objectId().many()`, `_id: field.string().optional()`, `_id: field.json()` or `_id: field.vector()`:
+  `Model "User" field "_id" can hold BSON type array or null (codec "mongo/json@1"). An _id cannot be an array, a regular expression, undefined or null: MongoDB refuses the first three, and every document has an _id.`
+  Give the `_id` field a required, single-valued type. Its validator requires `_id` with the field's BSON type, so a string, int, date, bytes or document `_id` is kept as it is. A model that leaves `_id` out gets a validator that requires an `objectId` `_id`, which MongoDB adds to every document inserted without one. A model whose `_id` is not stored as an ObjectId must give its `_id` on every create: without one, MongoDB adds an ObjectId `_id`, which the validator refuses.
 - An enum a validator cannot list:
   `enumType("Level") codec "mongo/int64@1" stores BSON type long, which a collection validator cannot list as an enum value. Use a codec whose BSON type is string, int, double, bool, object or array.`
   A member whose stored value is not of that type is refused too: `enumType("Ratio") member "All" is stored as "1", which a collection validator cannot list as a double. A member of a double enum must be a finite number.`

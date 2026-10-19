@@ -8,6 +8,7 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import type { MongoContract, MongoModelDefinition } from '../src/contract-types';
+import { documentIdRefusalReason } from '../src/document-id-refusal';
 import { buildMongoNamespace } from '../src/ir/build-mongo-namespace';
 import { MongoCollection } from '../src/ir/mongo-collection';
 import { MongoStorage } from '../src/ir/mongo-storage';
@@ -95,20 +96,28 @@ describe('validateMongoStorage() and the rules every MongoDB contract source fol
         ),
       ),
     ).toThrow(
-      'Collection "items": its validator must require _id, for every model the collection stores, and accept neither an array nor null as one, since every document has an _id and MongoDB does not accept an array as one',
+      'Collection "items": its validator must require _id, for every model the collection stores, since every document has an _id',
     );
   });
 
   it.each([
-    ['an array', { bsonType: 'array', items: { bsonType: 'objectId' } }],
-    ['null', { bsonType: ['null', 'string'] }],
-  ])('refuses a validator whose _id accepts %s', (_case, idSchema) => {
-    expect(() =>
-      validateMongoStorage(
-        contractWith({ Item: item }, { ...objectIdSchema, properties: { _id: idSchema } }),
-      ),
-    ).toThrow('Collection "items": its validator must require _id');
-  });
+    ['an array', 'mongo/vector@1', { bsonType: 'array', items: { bsonType: 'double' } }, 'array'],
+    ['null', 'mongo/string@1', { bsonType: ['null', 'string'] }, 'null'],
+    ['a regular expression', 'test/regex@1', { bsonType: 'regex' }, 'regex'],
+  ])(
+    'refuses a validator whose _id accepts %s, naming the model, field and codec',
+    (_case, codecId, idSchema, forbidden) => {
+      const withId: MongoModelDefinition = {
+        ...item,
+        fields: { _id: { type: { kind: 'scalar', codecId }, nullable: false, many: false } },
+      };
+      expect(() =>
+        validateMongoStorage(
+          contractWith({ Item: withId }, { ...objectIdSchema, properties: { _id: idSchema } }),
+        ),
+      ).toThrow(`Model "Item" field "_id" ${documentIdRefusalReason(codecId, [forbidden])}`);
+    },
+  );
 
   it('refuses an embed relation to a model with variants', () => {
     expect(() =>

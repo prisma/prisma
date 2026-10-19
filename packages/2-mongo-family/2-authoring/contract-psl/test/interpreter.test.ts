@@ -12,6 +12,7 @@ import type { CodecLookupWithDescriptors } from '@internal/framework-components/
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   buildMongoNamespace,
+  documentIdRefusalReason,
   MongoCollection,
   MongoIndex,
   MongoStorage,
@@ -1031,30 +1032,39 @@ model Item {
     });
 
     it.each([
-      [
-        'a list',
-        'ObjectId[]',
-        'holds the document id as a list, but MongoDB does not accept an array as an _id.',
-      ],
-      [
-        'nullable',
-        'String?',
-        'holds the document id as an optional value, but every document has an _id.',
-      ],
-    ])('rejects an _id that is %s', (_case, type, reason) => {
-      const result = interpret(`
+      ['a list', 'ObjectId[]', 'mongo/objectId@1', ['array']],
+      ['nullable', 'String?', 'mongo/string@1', ['null']],
+      ['json', 'Json', 'mongo/json@1', ['array', 'null']],
+      ['a vector', 'Vector', 'mongo/vector@1', ['array']],
+    ])(
+      'rejects an _id that is %s, at the field, naming its codec',
+      (_case, type, codecId, forbidden) => {
+        const result = interpret(
+          `
         model Item {
           id   ${type} @id @map("_id")
           name String
         }
-      `);
+      `,
+          {
+            scalarTypeCodecIds: new Map([
+              ...mongoScalarTypeDescriptors,
+              ['Json', 'mongo/json@1'],
+              ['Vector', 'mongo/vector@1'],
+            ]),
+          },
+        );
 
-      expect(result.ok).toBe(false);
-      if (result.ok) return;
-      expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
-        { code: 'PSL_MONGO_ID_INVALID', message: `Field "Item.id" ${reason}` },
-      ]);
-    });
+        expect(result.ok).toBe(false);
+        if (result.ok) return;
+        expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+          {
+            code: 'PSL_MONGO_ID_INVALID',
+            message: `Field "Item.id" ${documentIdRefusalReason(codecId, forbidden)}`,
+          },
+        ]);
+      },
+    );
 
     it('names the _id codec, at the field, when no pack provides it', () => {
       const result = interpret(
@@ -1079,7 +1089,7 @@ model Item {
         {
           code: 'PSL_UNSUPPORTED_FIELD_TYPE',
           message:
-            'Field "Item.id" uses codec "mongo/objectId@1", which no pack in the contract provides, so the collection validator cannot give its BSON type.',
+            'Field "Item.id" uses codec "mongo/objectId@1", which no pack in the contract provides, so its BSON type is unknown and the contract cannot describe the field.',
         },
       ]);
     });

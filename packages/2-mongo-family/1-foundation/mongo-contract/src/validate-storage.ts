@@ -1,40 +1,60 @@
 import type { ContractRelation } from '@internal/contract/types';
 import { structuredError } from '@internal/utils/structured-error';
+import { collectionRootModelsOf } from './collection-root-models';
 import { lookupFreeRefusalsOf } from './contract-refusals';
 import type { MongoContract, MongoModelDefinition } from './contract-types';
+import { documentIdRefusalOf } from './document-id-refusal';
 import { resolveMongoToOneRelationFields } from './relation-fields';
-import { validatorRootShapesOf } from './validator-shapes';
+import { documentIdFieldOf } from './stored-field-names';
+import { type ValidatorShape, validatorRootShapesOf } from './validator-shapes';
 
-function bsonTypesOf(schema: object): readonly unknown[] {
+function bsonTypesOf(schema: object): readonly string[] {
   if (!('bsonType' in schema)) return [];
-  return Array.isArray(schema.bsonType) ? schema.bsonType : [schema.bsonType];
+  const { bsonType } = schema;
+  const types: readonly unknown[] = Array.isArray(bsonType) ? bsonType : [bsonType];
+  return types.filter((type): type is string => typeof type === 'string');
 }
 
-function requiresDocumentId(jsonSchema: unknown): boolean {
-  const roots = validatorRootShapesOf(jsonSchema);
-  return (
-    roots.length > 0 &&
-    roots.every((root) => {
-      const id = root.properties['_id'];
-      return (
-        root.required.includes('_id') &&
-        typeof id === 'object' &&
-        id !== null &&
-        !bsonTypesOf(id).some((bsonType) => bsonType === 'array' || bsonType === 'null')
-      );
-    })
+function idSchemaOf(shape: ValidatorShape): object | undefined {
+  const id = shape.properties['_id'];
+  return shape.required.includes('_id') && typeof id === 'object' && id !== null ? id : undefined;
+}
+
+/**
+ * What a collection validator gets wrong about `_id`: a root model's branch that does not require it, or an `_id` that can hold a BSON type an `_id` cannot have, refused with the reason the build gives.
+ */
+function documentIdErrors(contract: MongoContract): string[] {
+  const models: Record<string, MongoModelDefinition> = Object.assign(
+    {},
+    ...Object.values(contract.domain.namespaces).map((namespace) => namespace.models),
   );
-}
-
-function documentIdErrors(storage: MongoContract['storage']): string[] {
-  return Object.values(storage.namespaces).flatMap((namespace) =>
-    Object.entries(namespace.entries['collection'] ?? {}).flatMap(([name, collection]) =>
-      collection.validator === undefined || requiresDocumentId(collection.validator.jsonSchema)
-        ? []
-        : [
-            `Collection "${name}": its validator must require _id, for every model the collection stores, and accept neither an array nor null as one, since every document has an _id and MongoDB does not accept an array as one`,
-          ],
-    ),
+  const rootModels = collectionRootModelsOf(models);
+  return Object.values(contract.storage.namespaces).flatMap((namespace) =>
+    Object.entries(namespace.entries['collection'] ?? {}).flatMap(([name, collection]) => {
+      if (collection.validator === undefined) return [];
+      const shapes = validatorRootShapesOf(collection.validator.jsonSchema);
+      const idSchemas = shapes.map(idSchemaOf);
+      if (shapes.length === 0 || idSchemas.includes(undefined)) {
+        return [
+          `Collection "${name}": its validator must require _id, for every model the collection stores, since every document has an _id`,
+        ];
+      }
+      const names = rootModels[name] ?? [];
+      return idSchemas.flatMap((idSchema, index): string[] => {
+        const modelName = names.length === shapes.length ? names[index] : undefined;
+        const model = modelName === undefined ? undefined : models[modelName];
+        const id = model === undefined ? undefined : documentIdFieldOf(model);
+        const codecId = id?.field.type.kind === 'scalar' ? id.field.type.codecId : 'unknown';
+        const refusal =
+          idSchema === undefined ? undefined : documentIdRefusalOf(codecId, bsonTypesOf(idSchema));
+        if (refusal === undefined) return [];
+        return [
+          id === undefined
+            ? `Collection "${name}": its validator's _id ${refusal.reason}`
+            : `Model "${modelName}" field "${id.name}" ${refusal.reason}`,
+        ];
+      });
+    }),
   );
 }
 
@@ -136,7 +156,7 @@ export function validateMongoStorage(contract: MongoContract): void {
       }
     }
   }
-  errors.push(...documentIdErrors(contract.storage));
+  errors.push(...documentIdErrors(contract));
 
   if (errors.length > 0) {
     throw structuredError(

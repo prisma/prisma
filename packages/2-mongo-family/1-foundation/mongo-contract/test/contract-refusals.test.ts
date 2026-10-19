@@ -36,7 +36,7 @@ describe('mongoContractRefusalsOf', () => {
     ).toEqual([]);
   });
 
-  it('refuses each root model whose _id is a list or nullable, in every collection, and accepts any single BSON type', () => {
+  it('refuses each root model whose _id can hold a BSON type an _id cannot have, in every collection', () => {
     expect(
       refusals({
         models: {
@@ -49,6 +49,7 @@ describe('mongoContractRefusalsOf', () => {
             { storage: { collection: 'users' } },
           ),
           Event: model({ _id: arrayField('mongo/date@1') }, { storage: { collection: 'events' } }),
+          Blob: model({ _id: scalarField('mongo/json@1') }, { storage: { collection: 'blobs' } }),
           Tick: model({ _id: scalarField('mongo/date@1') }, { storage: { collection: 'ticks' } }),
         },
       }),
@@ -58,14 +59,13 @@ describe('mongoContractRefusalsOf', () => {
         modelName: 'User',
         fieldName: '_id',
         collection: 'users',
-        problem: 'nullable',
+        forbidden: ['null'],
       }),
+      expect.objectContaining({ modelName: 'Event', collection: 'events', forbidden: ['array'] }),
       expect.objectContaining({
-        kind: 'documentId',
-        modelName: 'Event',
-        fieldName: '_id',
-        collection: 'events',
-        problem: 'list',
+        modelName: 'Blob',
+        codecId: 'mongo/json@1',
+        forbidden: ['array', 'null'],
       }),
     ]);
   });
@@ -86,7 +86,7 @@ describe('mongoContractRefusalsOf', () => {
         refusal: {
           kind: 'unknownCodec',
           reason:
-            'uses codec "geo/id@1", which no pack in the contract provides, so the collection validator cannot give its BSON type.',
+            'uses codec "geo/id@1", which no pack in the contract provides, so its BSON type is unknown and the contract cannot describe the field.',
         },
       },
     ]);

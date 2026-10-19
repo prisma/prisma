@@ -1,6 +1,7 @@
 import { dataType } from '@internal/framework-components/codec';
 import type { ExtensionPackRef } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { documentIdRefusalReason } from '@internal/mongo-contract';
 import { describe, expect, it } from 'vitest';
 import { defineContract, field, model, rel, valueObject } from '../src/contract-builder';
 import { enumType, member } from '../src/enum-type';
@@ -41,7 +42,7 @@ describe('mongo defineContract refuses what a collection validator cannot descri
         expect.objectContaining({
           code: 'CONTRACT.CODEC_DESCRIPTOR_MISSING',
           message:
-            'Model "Place" field "location" uses codec "geo/point@1", which no pack in the contract provides, so the collection validator cannot give its BSON type.',
+            'Model "Place" field "location" uses codec "geo/point@1", which no pack in the contract provides, so its BSON type is unknown and the contract cannot describe the field.',
           meta: { modelName: 'Place', fieldName: 'location', codecId: 'geo/point@1' },
         }),
       );
@@ -58,7 +59,7 @@ describe('mongo defineContract refuses what a collection validator cannot descri
         expect.objectContaining({
           code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
           message:
-            'Model "Place" field "location" uses codec "geo/point@1", whose data type "geo/point" is not a MongoDB data type of any pack in the contract, so the collection validator cannot give its BSON type.',
+            'Model "Place" field "location" uses codec "geo/point@1", whose data type "geo/point" is not a MongoDB data type of any pack in the contract, so its BSON type is unknown and the contract cannot describe the field.',
           meta: {
             modelName: 'Place',
             fieldName: 'location',
@@ -82,7 +83,7 @@ describe('mongo defineContract refuses what a collection validator cannot descri
         expect.objectContaining({
           code: 'CONTRACT.CODEC_DESCRIPTOR_MISSING',
           message:
-            'Value object "Address" field "zip" uses codec "geo/zip@1", which no pack in the contract provides, so the collection validator cannot give its BSON type.',
+            'Value object "Address" field "zip" uses codec "geo/zip@1", which no pack in the contract provides, so its BSON type is unknown and the contract cannot describe the field.',
         }),
       );
     });
@@ -96,7 +97,7 @@ describe('mongo defineContract refuses what a collection validator cannot descri
         expect.objectContaining({
           code: 'CONTRACT.CODEC_DESCRIPTOR_MISSING',
           message:
-            'Model "User" field "_id" uses codec "custom/uuid@1", which no pack in the contract provides, so the collection validator cannot give its BSON type.',
+            'Model "User" field "_id" uses codec "custom/uuid@1", which no pack in the contract provides, so its BSON type is unknown and the contract cannot describe the field.',
         }),
       );
     });
@@ -129,33 +130,30 @@ describe('mongo defineContract refuses what a collection validator cannot descri
     );
 
     it.each([
-      [
-        'a list',
-        field.objectId().many(),
-        'list',
-        'holds the document id as a list, but MongoDB does not accept an array as an _id.',
-      ],
-      [
-        'nullable',
-        field.string().optional(),
-        'nullable',
-        'holds the document id as an optional value, but every document has an _id.',
-      ],
-    ])('refuses a root model whose _id is %s', (_case, idField, problem, reason) => {
-      const User = model('User', { collection: 'users', fields: { _id: idField } });
-      expect(() => defineContract({ ...scaffold, models: { User } })).toThrow(
-        expect.objectContaining({
-          code: 'CONTRACT.COLLECTION_INVALID',
-          message: `Model "User" field "_id" ${reason}`,
-          meta: {
-            modelName: 'User',
-            fieldName: '_id',
-            collection: 'users',
-            reason: `document-id-${problem}`,
-          },
-        }),
-      );
-    });
+      ['a list', field.objectId().many(), 'mongo/objectId@1', ['array']],
+      ['nullable', field.string().optional(), 'mongo/string@1', ['null']],
+      ['json', field.json(), 'mongo/json@1', ['array', 'null']],
+      ['a vector', field.vector(), 'mongo/vector@1', ['array']],
+    ])(
+      'refuses a root model whose _id is %s, with the reason reading the contract back gives',
+      (_case, idField, codecId, forbidden) => {
+        const User = model('User', { collection: 'users', fields: { _id: idField } });
+        expect(() => defineContract({ ...scaffold, models: { User } })).toThrow(
+          expect.objectContaining({
+            code: 'CONTRACT.COLLECTION_INVALID',
+            message: `Model "User" field "_id" ${documentIdRefusalReason(codecId, forbidden)}`,
+            meta: {
+              modelName: 'User',
+              fieldName: '_id',
+              collection: 'users',
+              codecId,
+              bsonTypes: forbidden,
+              reason: 'document-id-bson-type',
+            },
+          }),
+        );
+      },
+    );
 
     it('accepts an embedded model and a variant without an _id', () => {
       const Task = model('Task', {

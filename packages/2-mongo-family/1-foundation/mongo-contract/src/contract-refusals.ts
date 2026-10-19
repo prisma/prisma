@@ -6,7 +6,7 @@ import type {
 } from '@internal/contract/types';
 import { collectionRootModelsOf } from './collection-root-models';
 import { type CollectionControlPolicies, isManaged } from './derive-collection-validators';
-import { type DocumentIdRefusal, documentIdRefusalOf } from './document-id-refusal';
+import { documentIdBsonTypesOf, documentIdRefusalOf } from './document-id-refusal';
 import { type FieldBsonTypeRefusal, fieldBsonTypeRefusalOf } from './field-bson-type-refusal';
 import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
 import { isEmbedRelation } from './relation-fields';
@@ -60,7 +60,9 @@ export type MongoContractRefusal =
       /** The model's field stored as `_id`. */
       readonly fieldName: string;
       readonly collection: string;
-      readonly problem: DocumentIdRefusal['problem'];
+      readonly codecId: string;
+      /** The BSON types the field can hold that an `_id` cannot have. */
+      readonly forbidden: readonly string[];
       readonly reason: string;
     };
 
@@ -182,21 +184,27 @@ function fieldRefusals(
   });
 }
 
-function documentIdRefusals(models: Record<string, ContractModelBase>): MongoContractRefusal[] {
+function documentIdRefusals(
+  models: Record<string, ContractModelBase>,
+  lookups: MongoTypeLookups,
+): MongoContractRefusal[] {
   return Object.entries(collectionRootModelsOf(models)).flatMap(([collection, modelNames]) =>
     modelNames.flatMap((modelName): MongoContractRefusal[] => {
       const model = models[modelName];
       const id = model === undefined ? undefined : documentIdFieldOf(model);
-      const refusal = id === undefined ? undefined : documentIdRefusalOf(id.field);
-      return id === undefined || refusal === undefined
+      if (id === undefined || id.field.type.kind !== 'scalar') return [];
+      const bsonTypes = documentIdBsonTypesOf(id.field, lookups);
+      const codecId = id.field.type.codecId;
+      const refusal = bsonTypes === undefined ? undefined : documentIdRefusalOf(codecId, bsonTypes);
+      return refusal === undefined
         ? []
-        : [{ kind: 'documentId', modelName, fieldName: id.name, collection, ...refusal }];
+        : [{ kind: 'documentId', modelName, fieldName: id.name, collection, codecId, ...refusal }];
     }),
   );
 }
 
 /**
- * Every part of a built MongoDB contract that its collection validators cannot describe: an embed relation to a model with variants, an enum a validator of a managed collection cannot list, a field whose codec has no MongoDB data type, and a root model's field stored as `_id` that is a list or nullable. Both authoring surfaces call it on what they built, so the rules are decided in one place.
+ * Every part of a built MongoDB contract that its collection validators cannot describe: an embed relation to a model with variants, an enum a validator of a managed collection cannot list, a field whose codec has no MongoDB data type, and a root model's field stored as `_id` that can hold a BSON type an `_id` cannot have. Both authoring surfaces call it on what they built, so the rules are decided in one place.
  */
 export function mongoContractRefusalsOf(
   input: MongoContractRefusalsInput,
@@ -211,6 +219,6 @@ export function mongoContractRefusalsOf(
     ...Object.entries(valueObjects).flatMap(([name, valueObject]) =>
       fieldRefusals({ kind: 'valueObject', name }, valueObject.fields, lookups),
     ),
-    ...documentIdRefusals(models),
+    ...documentIdRefusals(models, lookups),
   ];
 }
