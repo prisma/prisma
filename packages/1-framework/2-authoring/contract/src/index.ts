@@ -38,6 +38,7 @@ export {
   composePackAuthoringNamespace,
   createFieldHelpersFromNamespace,
 } from './field-preset-helpers';
+export type { ExtractParameterizedOutputTypesFromPack } from './pack-type-slots';
 export type {
   LocalFieldNullabilityLookup,
   ToOneRelationNullability,
