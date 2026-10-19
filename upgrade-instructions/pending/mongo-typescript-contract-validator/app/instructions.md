@@ -40,6 +40,18 @@ The rc.17 upgrade notes advised writing an enum over a codec such as `mongo/int6
 
 MongoDB does not check existing documents when a validator is added. After it is added, every insert, and every update to a document, must produce a valid document. A stored document that does not match the validator can no longer be updated, and writes from other applications that add fields outside the contract fail.
 
+To keep a collection without a validator, for example because other applications write fields the contract does not declare, give its model a control policy other than `managed`. With `controlPolicy: 'observed'`, Prisma creates and changes nothing in that collection, so it adds no validator, and `prisma db verify` reports the collection's differences from the contract as warnings:
+
+```ts
+const Event = model('Event', {
+  collection: 'events',
+  controlPolicy: 'observed',
+  fields: { _id: field.objectId(), name: field.string() },
+});
+```
+
+`defaultControlPolicy: 'observed'` in `defineContract` does the same for every collection. Such a collection is not created by Prisma either, so create it yourself.
+
 ### Steps
 
 1. Run `prisma contract emit`. Each collection in `contract.json` gains a `validator`, and `storage.storageHash` changes.
