@@ -14,6 +14,7 @@ import type {
   ScalarFieldType,
   ValueObjectFieldType,
 } from '@internal/contract/types';
+import type { GeneratorPhase } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { UNBOUND_PSL_NAMESPACE_NAME } from '@internal/framework-components/psl-ast';
 import { canonicalizeJson } from '@internal/framework-components/utils';
@@ -109,8 +110,6 @@ export function refuseUnwritableLiteralDefault(input: {
 }
 
 // Generated values
-
-type GeneratorPhase = 'onCreate' | 'onUpdate';
 
 const PHASE_TEXT: Readonly<Record<GeneratorPhase, string>> = {
   onCreate: 'on create',

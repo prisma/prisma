@@ -4,7 +4,10 @@ import {
   type GeneratorFunctionRegistry,
   type MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/components';
-import { sqlFamilyGeneratorFunctions } from '../../../9-family/src/core/generator-functions';
+import {
+  sqlFamilyGeneratorDescriptors,
+  sqlFamilyGeneratorFunctions,
+} from '../../../9-family/src/core/generator-functions';
 
 const postgresGeneratorFunctionsUrl = new URL(
   '../../../../3-targets/3-targets/postgres/src/core/generator-functions.ts',
@@ -18,7 +21,11 @@ const postgres: {
 
 /** The SQL family's generator functions with the real Postgres bindings, as a Postgres stack assembles them. */
 export const fixtureGeneratorFunctions: GeneratorFunctionRegistry = assembleGeneratorFunctions([
-  { id: 'sql', generatorFunctions: sqlFamilyGeneratorFunctions },
+  {
+    id: 'sql',
+    generatorFunctions: sqlFamilyGeneratorFunctions,
+    controlMutationDefaults: { generatorDescriptors: sqlFamilyGeneratorDescriptors },
+  },
   {
     id: 'postgres',
     generatorFunctions: postgres.postgresGeneratorFunctions,

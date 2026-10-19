@@ -3,6 +3,7 @@ import type {
   GeneratorFunctionBinding,
   GeneratorFunctionContribution,
   GeneratorFunctionField,
+  MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/components';
 import { singleGeneratorBinding } from '@internal/framework-components/components';
 import type { FuncCallSig } from '@internal/psl-parser';
@@ -180,3 +181,12 @@ export const sqlFamilyGeneratorFunctions = [
   { name: 'nanoid', signature: nanoidSignature, bindings: familyBindingsOf('nanoid') },
   { name: 'ksuid', signature: ksuidSignature, bindings: familyBindingsOf('ksuid') },
 ] as const satisfies readonly GeneratorFunctionContribution[];
+
+/** The identifier generators the family's bindings produce, which the family registers so that a target binding them through `idGeneratorFunctionBindings` registers none. */
+export const sqlFamilyGeneratorDescriptors: readonly MutationDefaultGeneratorDescriptor[] = [
+  ...new Set(
+    sqlFamilyGeneratorFunctions.flatMap(({ bindings }) =>
+      bindings.flatMap(({ generatorIds }) => generatorIds),
+    ),
+  ),
+].map((id) => ({ id }));

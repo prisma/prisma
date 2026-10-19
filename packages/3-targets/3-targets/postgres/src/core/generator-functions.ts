@@ -4,7 +4,6 @@ import type {
   GeneratorFunctionContribution,
   MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/components';
-import { builtinGeneratorRegistryMetadata } from '@internal/ids';
 import {
   PG_CHAR_CODEC_ID,
   PG_TEXT_CODEC_ID,
@@ -22,9 +21,8 @@ export const postgresGeneratorFunctions: readonly GeneratorFunctionContribution[
   }),
 ];
 
-/** The generators the Postgres generator functions produce, which the stack checks every binding against. */
+/** The `now` generators Postgres binds. The SQL family registers the identifier generators. */
 export const postgresGeneratorDescriptors: readonly MutationDefaultGeneratorDescriptor[] = [
-  ...builtinGeneratorRegistryMetadata,
   { id: TIMESTAMP_NOW_GENERATOR_ID },
   ...postgresNowGeneratorControlDescriptors(),
 ];

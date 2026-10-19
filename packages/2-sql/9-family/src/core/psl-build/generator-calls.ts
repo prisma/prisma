@@ -5,14 +5,14 @@ import type {
 import type {
   GeneratorFunctionField,
   GeneratorFunctionRegistry,
+  GeneratorPhase,
 } from '@internal/framework-components/components';
 import { canonicalizeJson } from '@internal/framework-components/utils';
 
-export type GeneratorPhase = 'onCreate' | 'onUpdate';
-
 const GENERATOR_PHASES: readonly GeneratorPhase[] = ['onCreate', 'onUpdate'];
 
-export interface GeneratorCallText {
+/** The call text that writes one phase of a column's generators. */
+export interface PhaseCallText {
   readonly phase: GeneratorPhase;
   readonly text: string;
 }
@@ -32,7 +32,7 @@ export type GeneratorCallRefusal =
     };
 
 export type GeneratorCallsResult =
-  | { readonly ok: true; readonly calls: readonly GeneratorCallText[] }
+  | { readonly ok: true; readonly calls: readonly PhaseCallText[] }
   | { readonly ok: false; readonly refusal: GeneratorCallRefusal };
 
 /**
@@ -45,7 +45,7 @@ export function generatorCallsFor(input: {
   readonly generatorFunctions: GeneratorFunctionRegistry;
 }): GeneratorCallsResult {
   const { executionDefault, field, list, generatorFunctions } = input;
-  const calls: GeneratorCallText[] = [];
+  const calls: PhaseCallText[] = [];
   for (const phase of GENERATOR_PHASES) {
     const generator = executionDefault[phase];
     if (generator === undefined) continue;

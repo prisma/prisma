@@ -18,8 +18,7 @@ export { mapDefault } from '../core/psl-build/default-mapping';
 export type {
   GeneratorCallRefusal,
   GeneratorCallsResult,
-  GeneratorCallText,
-  GeneratorPhase,
+  PhaseCallText,
 } from '../core/psl-build/generator-calls';
 export { generatorCallsFor } from '../core/psl-build/generator-calls';
 export {

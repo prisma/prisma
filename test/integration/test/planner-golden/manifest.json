@@ -151,6 +151,7 @@
   "test/integration/test/authoring/parity/default-ulid/expected.contract.json": "054d11d77ecc6f2120e85c775ed69d696071f7962d2c0b88bb6561b5062944af",
   "test/integration/test/authoring/parity/default-uuid-v4/expected.contract.json": "297f2e0040e57051ae4a7adc27afb3d060a1c7f8814961864a66aafb07f19bde",
   "test/integration/test/authoring/parity/default-uuid-v7/expected.contract.json": "017e36a08fcf30a0f1e40bc690a887ad15fc4a7e98b162a192b5115cac5f2b14",
+  "test/integration/test/authoring/parity/generator-on-update-time/expected.contract.json": "723b4d74bc3333548a5b4342bcb09e92f38c1b5b97f3753f7b67856264916ac0",
   "test/integration/test/authoring/parity/map-attributes/expected.contract.json": "434d47c07d330c9831300db018baa43cb0b66cfc3441f407f8a2745493eb119b",
   "test/integration/test/authoring/parity/native-enum/expected.contract.json": "d836f6f85fc90106c0203b5aabea314ac61fd07fa789ff3715bb36eca0bed191",
   "test/integration/test/authoring/parity/pgvector-named-type/expected.contract.json": "005278fb916aee5f9c51eacc8bf461b62fc8c3629cfc7a2c505df0b480743810",

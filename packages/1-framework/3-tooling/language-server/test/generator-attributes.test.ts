@@ -54,6 +54,7 @@ async function actualPostgresStack(): Promise<Stack> {
     }>('../../../2-sql/9-family/src/core/authoring-entity-types.ts'),
     importFromPackageRoot<{
       sqlFamilyGeneratorFunctions: readonly GeneratorFunctionContribution[];
+      sqlFamilyGeneratorDescriptors: readonly MutationDefaultGeneratorDescriptor[];
     }>('../../../2-sql/9-family/src/core/generator-functions.ts'),
     importFromPackageRoot<{
       postgresGeneratorFunctions: readonly GeneratorFunctionContribution[];
@@ -74,7 +75,11 @@ async function actualPostgresStack(): Promise<Stack> {
     ]),
     pslBlockDescriptors: blocks.sqlFamilyPslBlockDescriptors,
     generatorFunctions: assembleGeneratorFunctions([
-      { id: 'sql', generatorFunctions: family.sqlFamilyGeneratorFunctions },
+      {
+        id: 'sql',
+        generatorFunctions: family.sqlFamilyGeneratorFunctions,
+        controlMutationDefaults: { generatorDescriptors: family.sqlFamilyGeneratorDescriptors },
+      },
       {
         id: 'postgres',
         generatorFunctions: postgres.postgresGeneratorFunctions,

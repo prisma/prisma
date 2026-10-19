@@ -1,23 +1,16 @@
 import { assembleGeneratorFunctions } from '@internal/framework-components/components';
 import { describe, expect, it } from 'vitest';
-import {
-  idGeneratorFunctionBindings,
-  sqlFamilyGeneratorFunctions,
-} from '../src/core/generator-functions';
+import { idGeneratorFunctionBindings } from '../src/core/generator-functions';
+import sqlFamilyPack from '../src/exports/pack';
 
 const registry = assembleGeneratorFunctions([
-  { id: 'sql', generatorFunctions: sqlFamilyGeneratorFunctions },
+  sqlFamilyPack,
   {
     id: 'target',
     generatorFunctions: idGeneratorFunctionBindings({
       text: ['demo/char@1', 'demo/text@1', 'demo/varchar@1'],
       uuid: ['demo/uuid@1'],
     }),
-    controlMutationDefaults: {
-      generatorDescriptors: ['uuidv4', 'uuidv7', 'cuid2', 'ulid', 'nanoid', 'ksuid'].map((id) => ({
-        id,
-      })),
-    },
   },
 ]);
 
@@ -38,6 +31,16 @@ function generator(id: string, params?: Record<string, unknown>) {
 }
 
 describe('SQL family generator functions', () => {
+  it('registers the identifier generators, so a target that binds them and registers none composes', () => {
+    expect(registry.functionsFor('demo/text@1').map(({ name }) => name)).toEqual([
+      'cuid',
+      'ksuid',
+      'nanoid',
+      'ulid',
+      'uuid',
+    ]);
+  });
+
   it.each([
     'sql/char@1',
     'sql/varchar@1',

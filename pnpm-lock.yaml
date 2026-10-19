@@ -4073,9 +4073,6 @@ importers:
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.18
         version: link:../../../1-framework/1-core/framework-components
-      '@internal/ids':
-        specifier: workspace:8.0.0-rc.18
-        version: link:../../../1-framework/2-authoring/ids
       '@internal/migration-tools':
         specifier: workspace:8.0.0-rc.18
         version: link:../../../1-framework/3-tooling/migration
@@ -4167,9 +4164,6 @@ importers:
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.18
         version: link:../../../1-framework/1-core/framework-components
-      '@internal/ids':
-        specifier: workspace:8.0.0-rc.18
-        version: link:../../../1-framework/2-authoring/ids
       '@internal/migration-tools':
         specifier: workspace:8.0.0-rc.18
         version: link:../../../1-framework/3-tooling/migration
