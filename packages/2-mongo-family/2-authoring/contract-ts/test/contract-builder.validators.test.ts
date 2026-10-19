@@ -13,7 +13,7 @@ const geoPack = {
   familyId: 'mongo',
   targetId: 'mongo',
   version: '0.0.1',
-  dataTypes: [mongoDataType('geo/point', { bsonTypes: ['object'] })],
+  dataTypes: [mongoDataType('geo/point', { read: (json) => json, bsonTypes: ['object'] })],
   types: {
     codecTypes: { codecDescriptors: [identityCodecDescriptor('geo/point@1', 'geo/point')] },
   },

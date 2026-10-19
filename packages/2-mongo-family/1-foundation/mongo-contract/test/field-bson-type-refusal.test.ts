@@ -30,7 +30,9 @@ describe('fieldBsonTypeRefusalOf', () => {
       },
       dataTypeLookup: {
         get: (id: string) =>
-          id === 'geo/point' ? dataType('geo/point', {}) : mongoDataTypeLookup.get(id),
+          id === 'geo/point'
+            ? dataType('geo/point', { read: (json) => json })
+            : mongoDataTypeLookup.get(id),
       },
     };
     expect(fieldBsonTypeRefusalOf('geo/point@1', lookups)).toEqual({

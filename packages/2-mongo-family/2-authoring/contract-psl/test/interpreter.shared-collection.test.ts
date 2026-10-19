@@ -26,7 +26,7 @@ describe('a PSL MongoDB collection that stores two models', () => {
       ]),
       defaultFunctionRegistry: new Map(),
       codecLookup: mongoCodecLookup,
-      dataTypes: { entries: {}, lookup: mongoDataTypeLookup },
+      dataTypes: { entries: {}, lookup: mongoDataTypeLookup, dataTypeOfCodec: () => undefined },
     });
     if (!result.ok) throw new Error(result.failure.summary);
 

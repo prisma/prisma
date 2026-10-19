@@ -13,7 +13,7 @@ const sqlTypedPack = {
   familyId: 'mongo',
   targetId: 'mongo',
   version: '0.0.1',
-  dataTypes: [dataType('geo/point', {})],
+  dataTypes: [dataType('geo/point', { read: (json) => json })],
   types: {
     codecTypes: { codecDescriptors: [identityCodecDescriptor('geo/point@1', 'geo/point')] },
   },

@@ -34,7 +34,11 @@ function interpret(schema: string) {
     codecLookup,
     dataTypes: {
       entries: {},
-      lookup: createDataTypeLookup([...mongoTestDataTypes, dataType('geo/point', {})]),
+      lookup: createDataTypeLookup([
+        ...mongoTestDataTypes,
+        dataType('geo/point', { read: (json) => json }),
+      ]),
+      dataTypeOfCodec: () => undefined,
     },
   });
 }
