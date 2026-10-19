@@ -41,7 +41,7 @@ GA is the last chance to make breaking changes, so this stream decides the date.
 | 6 | ✅ 1/1 | Remove `@noCheck` and `.noCheck()` | Must | Will | Done 2026-10-16 |  |
 | 7 | 🔄 4/7 | Migration statements: the planner refuses data loss, the user states renames, deletes, conversions and backfills | Must | Will | 4 of 7 slices merged. The TypeScript MongoDB validator slice: PR 1 of 2 merged 2026-10-16, PR 2 in progress | Finish PR 2 of TML-3553, then the remaining Postgres and SQLite renames (TML-3537) |
 | 8 | 🔄 0/4 | Client surfaces: a client takes a typed contract value, custom collections on every client and transaction | Must | Will | Started 2026-10-16. Slice 1 PR approved; it is breaking: `postgres<Contract>({ contractJson })` becomes `postgres({ contract: contractFromJson<Contract>(json) })`. 3 tickets in progress | Merge the slice 1 PR (TML-3602) |
-| 9 | ⏳ | Remove the `unbound` / `__unbound__` namespace alias, keeping one name | Not decided | Serhii | Proposed in an approved, unmerged docs PR to the RC plan. Not started | |
+| 9 | ⏳ | Remove the `unbound` / `__unbound__` namespace alias, keeping one name | Not decided | Serhii | Serhii proposed it in a docs PR to the RC plan, not merged. Not started | |
 
 ## Stream 2: Upgrade path from Prisma 7
 
