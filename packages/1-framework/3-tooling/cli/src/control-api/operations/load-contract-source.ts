@@ -13,9 +13,10 @@ import { ifDefined } from '@internal/utils/defined';
 import type { Result } from '@internal/utils/result';
 import { notOk, ok } from '@internal/utils/result';
 import type { Diagnostic } from '@internal/utils/structured-error';
-import { isStructuredErrorCode } from '@internal/utils/structured-error';
+import { isStructuredError, isStructuredErrorCode } from '@internal/utils/structured-error';
 import { isAbsolute, relative } from 'pathe';
 import { errorContractConfigMissing, errorRuntime } from '../../utils/cli-errors';
+import { errorFromCaught } from './caught-errors';
 
 /**
  * Why the configured source produced no contract: the error to report, and
@@ -291,6 +292,9 @@ export async function loadContractSourceWithStack(inputs: {
   } catch (error) {
     if (signal.aborted || (isRecord(error) && error['name'] === 'AbortError')) {
       throw error;
+    }
+    if (isStructuredError(error)) {
+      return failedWith(errorFromCaught(error, (message) => message));
     }
     return failedWith(
       failedToResolveContractSource(
