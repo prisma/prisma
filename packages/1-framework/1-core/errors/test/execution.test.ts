@@ -201,21 +201,6 @@ describe('Runtime Errors', () => {
     }
   });
 
-  it('rethrowMarkerReadError maps legacy marker shape to MIGRATION.RUNNER_FAILED', () => {
-    try {
-      rethrowMarkerReadError(new Error('column "space" does not exist'), {
-        space: 'app',
-        markerLocation: 'prisma_contract.marker',
-      });
-    } catch (err) {
-      const envelope = (err as CliStructuredError).toEnvelope();
-      expect(envelope.code).toBe('MIGRATION.RUNNER_FAILED');
-      expect(envelope.fix).toContain('Legacy marker-table shape detected');
-      expect(envelope.fix).toContain('prisma_contract.marker');
-      expect(envelope.fix).toContain('{bin} db init');
-    }
-  });
-
   it('rethrowMarkerReadError preserves cause on the corrupt-row path', () => {
     const original = new Error('Invalid contract marker row: core_hash must be string');
     expect(() =>
@@ -228,16 +213,6 @@ describe('Runtime Errors', () => {
 
   it('rethrowMarkerReadError preserves cause on the read-failed path', () => {
     const original = new Error('permission denied for table marker');
-    expect(() =>
-      rethrowMarkerReadError(original, {
-        space: 'app',
-        markerLocation: 'prisma_contract.marker',
-      }),
-    ).toThrow(expect.objectContaining({ cause: original }));
-  });
-
-  it('rethrowMarkerReadError preserves cause on the legacy-shape path', () => {
-    const original = new Error('column "space" does not exist');
     expect(() =>
       rethrowMarkerReadError(original, {
         space: 'app',

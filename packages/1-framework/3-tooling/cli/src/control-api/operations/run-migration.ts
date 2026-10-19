@@ -11,6 +11,7 @@ import type {
   MigrationOperationPolicy,
   MigrationRunnerFailure,
   MigrationSubject,
+  SchemaDiffIssue,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 import type {
@@ -60,6 +61,8 @@ export interface RunnerFailure {
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
   /** The check that failed before its operation ran, when the runner gave no explanation of its own. */
   readonly failedPrecheck?: FailedPrecheckReport;
+  /** The differences the schema check after apply found, when that check failed. */
+  readonly schemaIssues?: readonly SchemaDiffIssue[];
   /** The written migration of the failed operation, when the runner named the operation, or the last one applied when the schema check after apply failed. */
   readonly failedMigration?: { readonly spaceId: string; readonly edge: AggregateMigrationEdgeRef };
   /**
@@ -100,7 +103,7 @@ function failureReports(
   const edge =
     operationIndex !== undefined
       ? edgeOfOperation(resolution.entry.migrationEdges, operationIndex)
-      : failure.code === 'MIGRATION.SCHEMA_VERIFY_FAILED'
+      : schemaIssuesOf(failure) !== undefined
         ? resolution.entry.migrationEdges.at(-1)
         : undefined;
   return {
@@ -122,6 +125,12 @@ function failureReports(
       edge === undefined ? undefined : { spaceId: resolution.spaceId, edge },
     ),
   };
+}
+
+/** The issues of a failed schema check after apply; a check that reported none counts as no issues. */
+function schemaIssuesOf(failure: MigrationRunnerFailure): readonly SchemaDiffIssue[] | undefined {
+  const issues = failure.schemaIssues;
+  return issues === undefined || issues.length === 0 ? undefined : issues;
 }
 
 function failedPrecheckOf(
@@ -268,6 +277,7 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
       },
       ...failureReports(runnerResult.failure, orderedResolutions),
       ...ifDefined('failedPrecheck', failedPrecheckOf(runnerResult.failure, orderedResolutions)),
+      ...ifDefined('schemaIssues', schemaIssuesOf(runnerResult.failure)),
       cause: runnerResult.failure,
     });
   }

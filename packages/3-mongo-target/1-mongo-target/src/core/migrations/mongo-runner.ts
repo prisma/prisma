@@ -17,6 +17,7 @@ import {
   type MigrationRunnerFailure,
   type MigrationRunnerPerSpaceSuccessValue,
   type OperationContext,
+  type SchemaDiffIssue,
   type VerifyDatabaseSchemaResult,
 } from '@internal/framework-components/control';
 import type { AggregateMigrationEdgeRef } from '@internal/migration-tools/aggregate';
@@ -79,7 +80,12 @@ export type MongoMigrationRunnerResult = Result<
 function runnerFailure(
   code: string,
   summary: string,
-  opts?: { why?: string; meta?: Record<string, unknown>; failedCheck?: FailedCheck },
+  opts?: {
+    why?: string;
+    meta?: Record<string, unknown>;
+    failedCheck?: FailedCheck;
+    schemaIssues?: readonly SchemaDiffIssue[];
+  },
 ): MongoMigrationRunnerResult {
   return notOk<MigrationRunnerFailure>({
     code,
@@ -339,6 +345,7 @@ export class MongoMigrationRunner {
         return runnerFailure('MIGRATION.SCHEMA_VERIFY_FAILED', verifyResult.summary, {
           why: 'The resulting database schema does not satisfy the destination contract.',
           meta: { issues: verifyResult.schema.issues },
+          schemaIssues: verifyResult.schema.issues,
         });
       }
 

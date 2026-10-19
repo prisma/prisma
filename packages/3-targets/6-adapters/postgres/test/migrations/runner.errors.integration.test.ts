@@ -4,7 +4,6 @@ import type { PostgresPlanTargetDetails } from '@internal/target-postgres/planne
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { expectNoMarkerOrLedgerWrites } from '../utils/dbAssertions';
 import {
-  bootstrapPostgresControlSchema,
   bootstrapPostgresControlTables,
   contract,
   createDriver,
@@ -80,6 +79,10 @@ describe('PostgresMigrationRunner - Error Scenarios', { concurrent: false }, () 
       expect(result.ok).toBe(false);
       const failure = result.assertNotOk();
       expect(failure.code).toBe('MIGRATION.SCHEMA_VERIFY_FAILED');
+      expect({
+        typed: failure.schemaIssues,
+        found: (failure.schemaIssues?.length ?? 0) > 0,
+      }).toEqual({ typed: failure.meta?.['issues'], found: true });
 
       await expectNoMarkerOrLedgerWrites(driver!);
     });
@@ -113,77 +116,6 @@ describe('PostgresMigrationRunner - Error Scenarios', { concurrent: false }, () 
       expect(failure.summary).toMatch(/precheck/i);
 
       await expectNoMarkerOrLedgerWrites(driver!);
-    });
-  });
-
-  describe('when a legacy single-row marker table exists (pre-1.0 transitional shape)', () => {
-    it('fails with LEGACY_MARKER_SHAPE error and points the operator at re-running dbInit', {
-      timeout: testTimeout,
-    }, async () => {
-      // Reproduce the pre-cleanup shape that `migrateMarkerSchemaStatements`
-      // used to auto-promote: `id smallint primary key` with no `space`
-      // column. The detection step at boot must surface this rather than
-      // silently rebuilding the table.
-      await bootstrapPostgresControlSchema(driver!);
-      await driver!.query(`create table prisma_contract.marker (
-          id smallint primary key default 1,
-          core_hash text not null,
-          profile_hash text not null,
-          contract_json jsonb,
-          canonical_version int,
-          updated_at timestamptz not null default now(),
-          app_tag text,
-          meta jsonb not null default '{}',
-          invariants text[] not null default '{}'
-        )`);
-
-      const runner = postgresTargetDescriptor.createRunner(familyInstance);
-      const emptyPlan = createMigrationPlan<PostgresPlanTargetDetails>({
-        targetId: 'postgres',
-        spaceId: APP_SPACE_ID,
-        origin: null,
-        destination: toPlanContractInfo(contract),
-        operations: [],
-        providedInvariants: [],
-      });
-
-      const result = await runner.execute({
-        driver: driver!,
-        perSpaceOptions: [
-          {
-            space: emptyPlan.spaceId ?? APP_SPACE_ID,
-            plan: emptyPlan,
-            migrationEdges: synthEdges(emptyPlan),
-            driver: driver!,
-            destinationContract: contract,
-            policy: INIT_ADDITIVE_POLICY,
-            frameworkComponents,
-          },
-        ],
-      });
-
-      expect(result.ok).toBe(false);
-      const failure = result.assertNotOk();
-      expect(failure.code).toBe('MIGRATION.LEGACY_MARKER_SHAPE');
-      expect(failure.summary).toMatch(/legacy marker-table shape/i);
-      expect(failure.summary).toMatch(/dbInit/);
-      expect(failure.summary).toMatch(/prisma_contract\.marker/);
-      expect(failure.meta).toMatchObject({ table: 'prisma_contract.marker' });
-
-      // The legacy table is left untouched — operator dropping it is the
-      // explicit remediation; the runner doesn't mutate state on failure.
-      const pkColumns = await driver!.query<{ column_name: string }>(
-        `select kcu.column_name
-             from information_schema.table_constraints tc
-             join information_schema.key_column_usage kcu
-               on tc.constraint_name = kcu.constraint_name
-              and tc.table_schema = kcu.table_schema
-              and tc.table_name = kcu.table_name
-            where tc.table_schema = 'prisma_contract'
-              and tc.table_name = 'marker'
-              and tc.constraint_type = 'PRIMARY KEY'`,
-      );
-      expect(pkColumns.rows.map((r) => r.column_name)).toEqual(['id']);
     });
   });
 

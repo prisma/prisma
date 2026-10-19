@@ -300,6 +300,7 @@ export async function executeMigrate<TFamilyId extends string, TTargetId extends
       ...ifDefined('failedTypeChange', applied.failure.failedTypeChange),
       ...ifDefined('rowsWithoutValue', applied.failure.rowsWithoutValue),
       ...ifDefined('failedPrecheck', applied.failure.failedPrecheck),
+      ...ifDefined('schemaIssues', applied.failure.schemaIssues),
       ...ifDefined(
         'failedMigration',
         applied.failure.failedMigration === undefined

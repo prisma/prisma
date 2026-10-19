@@ -202,6 +202,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
           meta: {
             issues: schemaVerifyResult.schema.issues,
           },
+          schemaIssues: schemaVerifyResult.schema.issues,
         });
       }
     }
@@ -355,44 +356,10 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
       throw new InternalError('Postgres control-table bootstrap must include CREATE SCHEMA');
     }
     await this.executeStatement(driver, await this.family.lowerAst(schemaQuery, lowererContext));
-    const legacyDetection = await this.detectLegacyMarkerShape(driver);
-    if (!legacyDetection.ok) {
-      return legacyDetection;
-    }
     for (const query of tableQueries) {
       await this.executeStatement(driver, await this.family.lowerAst(query, lowererContext));
     }
     return okVoid();
-  }
-
-  private async detectLegacyMarkerShape(
-    driver: SqlMigrationRunnerExecuteOptions<PostgresPlanTargetDetails>['driver'],
-  ): Promise<Result<void, SqlMigrationRunnerFailure>> {
-    const result = await driver.query<{ column_name: string }>(
-      `select column_name
-         from information_schema.columns
-        where table_schema = 'prisma_contract'
-          and table_name = 'marker'`,
-    );
-    if (result.rows.length === 0) {
-      return okVoid();
-    }
-    const columns = new Set(result.rows.map((row) => row.column_name));
-    if (columns.has('space')) {
-      return okVoid();
-    }
-    return runnerFailure(
-      'MIGRATION.LEGACY_MARKER_SHAPE',
-      'Legacy marker-table shape detected on prisma_contract.marker (no `space` column). ' +
-        'Prisma 8 is in pre-1.0; the previous transitional auto-migration to the per-space-row schema has been removed. ' +
-        'Drop `prisma_contract.marker` and re-run `dbInit` to reinitialise from a clean baseline.',
-      {
-        meta: {
-          table: 'prisma_contract.marker',
-          columns: [...columns].sort(),
-        },
-      },
-    );
   }
 
   private async runExpectationSteps(
