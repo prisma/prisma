@@ -1,4 +1,4 @@
-import type { ContractModelBase, CrossReference } from '@internal/contract/types';
+import type { ContractModelBase } from '@internal/contract/types';
 import { assertDefined } from '@internal/utils/assertions';
 import {
   deriveModelJsonSchema,
@@ -8,41 +8,42 @@ import {
 } from './derive-json-schema';
 import type { MongoValidator } from './ir/mongo-validator';
 
-export type CollectionModel = ValidatorModel &
-  Partial<Pick<ContractModelBase, 'storage' | 'base' | 'owner'>>;
+export type StoredModel = Pick<ContractModelBase, 'storage' | 'base' | 'owner'>;
+
+export type CollectionModel = ValidatorModel & StoredModel;
 
 export interface CollectionValidatorsInput extends ModelValidatorSources {
-  readonly roots: Record<string, CrossReference>;
   readonly models: Record<string, CollectionModel>;
 }
 
-/** The root model of `collectionName` and every other model stored in it that is neither a variant nor embedded, in name order. */
-function rootModelNamesOf(
-  collectionName: string,
-  root: CrossReference,
-  models: Record<string, CollectionModel>,
-): string[] {
-  const names = new Set([root.model]);
+/**
+ * The root models of each collection, keyed by collection name: every model stored in the collection that is neither a variant nor embedded, sorted by name.
+ */
+export function collectionRootModelsOf(
+  models: Record<string, StoredModel>,
+): Record<string, readonly string[]> {
+  const roots: Record<string, string[]> = {};
   for (const [name, model] of Object.entries(models)) {
-    const isRoot =
-      model.storage?.['collection'] === collectionName &&
-      model.base === undefined &&
-      model.owner === undefined;
-    if (isRoot) names.add(name);
+    const collection = model.storage['collection'];
+    if (typeof collection !== 'string' || model.base !== undefined || model.owner !== undefined) {
+      continue;
+    }
+    roots[collection] = [...(roots[collection] ?? []), name];
   }
-  return [...names].sort();
+  for (const names of Object.values(roots)) names.sort();
+  return roots;
 }
 
 /**
- * The validator of each collection in `roots`, keyed by collection name. A root model with variants gets one polymorphic schema covering every variant. A collection that stores several root models accepts a document of any of them: its schema has one `anyOf` branch per root model.
+ * The validator of each collection that stores a root model, keyed by collection name. A root model with variants gets one polymorphic schema covering every variant. A collection that stores several root models accepts a document of any of them: its schema has one `anyOf` branch per root model.
  */
 export function deriveCollectionValidators(
   input: CollectionValidatorsInput,
 ): Record<string, MongoValidator> {
   const validators: Record<string, MongoValidator> = {};
 
-  for (const [collectionName, root] of Object.entries(input.roots)) {
-    const schemas = rootModelNamesOf(collectionName, root, input.models).map((modelName) => {
+  for (const [collectionName, modelNames] of Object.entries(collectionRootModelsOf(input.models))) {
+    const schemas = modelNames.map((modelName) => {
       const model = input.models[modelName];
       assertDefined(
         model,

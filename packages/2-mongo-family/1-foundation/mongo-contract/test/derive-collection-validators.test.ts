@@ -92,12 +92,6 @@ describe('deriveCollectionValidators', () => {
     });
   });
 
-  it('refuses a root whose model is missing', () => {
-    expect(() => derive({ roots: { users: crossRef('User') }, models: {} })).toThrow(
-      'Root model "User" of collection "users" is missing',
-    );
-  });
-
   it('refuses a variant whose model is missing', () => {
     expect(() =>
       derive({

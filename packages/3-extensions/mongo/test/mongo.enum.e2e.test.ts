@@ -87,7 +87,6 @@ const storageValueSets = blindCast<
     .namespaces[UNBOUND_NAMESPACE_ID]?.entries.valueSet ?? {},
 );
 const ACCOUNT_VALIDATOR = deriveCollectionValidators({
-  roots: contract.roots,
   models: ns?.models ?? {},
   lookups: { codecLookup, dataTypeLookup: createDataTypeLookup(mongoDataTypes) },
   valueObjects: {},

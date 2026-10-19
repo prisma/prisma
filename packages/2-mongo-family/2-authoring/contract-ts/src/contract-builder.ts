@@ -2511,8 +2511,9 @@ function buildContractFromDefinition<
 
   const builtModels = buildModels(definition.models);
   const builtValueObjects = buildValueObjects(definition.valueObjects);
-  const collectionRoots = deriveRoots(definition.models);
-  const roots = definition.roots ? normalizeRoots(definition.roots) : collectionRoots;
+  const roots = definition.roots
+    ? normalizeRoots(definition.roots)
+    : deriveRoots(definition.models);
   // The Mongo `defineContract` input no longer accepts a `capabilities`
   // block. The build-time matrix is empty here; CLI-time `enrichContract`
   // layers in adapter / driver / extension caps. `profileHash` continues
@@ -2581,11 +2582,9 @@ function buildContractFromDefinition<
     models: builtModels,
     valueObjects: builtValueObjects,
     enums: builtEnums,
-    roots: collectionRoots,
     lookups,
   });
   const validators = deriveCollectionValidators({
-    roots: collectionRoots,
     models: builtModels,
     lookups,
     valueObjects: builtValueObjects,

@@ -47,7 +47,10 @@ export {
   defaultMongoStorageNamespaceId,
 } from '../default-namespace';
 export type { CollectionValidatorsInput } from '../derive-collection-validators';
-export { deriveCollectionValidators } from '../derive-collection-validators';
+export {
+  collectionRootModelsOf,
+  deriveCollectionValidators,
+} from '../derive-collection-validators';
 export type { FieldValueSets } from '../derive-json-schema';
 export type { DocumentIdRefusal } from '../document-id-refusal';
 export { documentIdRefusalOf } from '../document-id-refusal';

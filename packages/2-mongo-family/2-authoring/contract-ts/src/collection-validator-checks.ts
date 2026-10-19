@@ -3,9 +3,9 @@ import type {
   ContractField,
   ContractModelBase,
   ContractValueObject,
-  CrossReference,
 } from '@internal/contract/types';
 import {
+  collectionRootModelsOf,
   documentIdRefusalOf,
   isEmbedRelation,
   validatorEnumMemberRefusalOf,
@@ -105,10 +105,9 @@ export function assertCollectionValidatorSources(input: {
   readonly models: Record<string, ContractModelBase>;
   readonly valueObjects: Record<string, ContractValueObject>;
   readonly enums: Record<string, ContractEnum>;
-  readonly roots: Record<string, CrossReference>;
   readonly lookups: MongoTypeLookups;
 }): void {
-  const { models, valueObjects, enums, roots, lookups } = input;
+  const { models, valueObjects, enums, lookups } = input;
   assertNoEmbeddedVariants(models);
   assertEnumsListable(enums, lookups);
   for (const [modelName, model] of Object.entries(models)) {
@@ -125,12 +124,13 @@ export function assertCollectionValidatorSources(input: {
       lookups,
     );
   }
-  for (const [collection, root] of Object.entries(roots)) {
-    const fields = models[root.model]?.fields ?? {};
-    const refusal = documentIdRefusalOf(fields, lookups);
-    if (refusal === undefined) continue;
-    throw contractError('CONTRACT.COLLECTION_INVALID', `Model "${root.model}" ${refusal.reason}`, {
-      meta: { modelName: root.model, collection, reason: 'document-id-not-objectId' },
-    });
+  for (const [collection, modelNames] of Object.entries(collectionRootModelsOf(models))) {
+    for (const modelName of modelNames) {
+      const refusal = documentIdRefusalOf(models[modelName]?.fields ?? {}, lookups);
+      if (refusal === undefined) continue;
+      throw contractError('CONTRACT.COLLECTION_INVALID', `Model "${modelName}" ${refusal.reason}`, {
+        meta: { modelName, collection, reason: 'document-id-not-objectId' },
+      });
+    }
   }
 }

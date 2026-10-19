@@ -115,6 +115,21 @@ describe('mongo defineContract refuses what a collection validator cannot descri
       );
     });
 
+    it.each([
+      ['listed first', true],
+      ['listed last', false],
+    ])('refuses a root model without an _id that shares its collection, %s', (_case, first) => {
+      const User = model('User', { collection: 'users', fields: { email: field.string() } });
+      const Admin = model('Admin', { collection: 'users', fields: { _id: field.objectId() } });
+      const models = first ? { User, Admin } : { Admin, User };
+      expect(() => defineContract({ ...scaffold, models })).toThrow(
+        expect.objectContaining({
+          code: 'CONTRACT.COLLECTION_INVALID',
+          message: `Model "User" ${MISSING_ID}`,
+        }),
+      );
+    });
+
     it('accepts an embedded model and a variant without an _id', () => {
       const Task = model('Task', {
         collection: 'tasks',

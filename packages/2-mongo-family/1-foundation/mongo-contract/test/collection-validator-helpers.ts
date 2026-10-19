@@ -3,7 +3,7 @@ import type {
   ContractField,
   ContractModelBase,
 } from '@internal/contract/types';
-import { crossRef } from '@internal/contract/types';
+import { type CrossReference, crossRef } from '@internal/contract/types';
 import {
   type CollectionValidatorsInput,
   deriveCollectionValidators,
@@ -23,7 +23,7 @@ export function model(
     >
   > = {},
 ): Model {
-  return { fields, relations: {}, ...extra };
+  return { fields, relations: {}, storage: {}, ...extra };
 }
 
 export function embedOne(to: string): ContractEmbedRelation {
@@ -34,15 +34,25 @@ export function embedMany(to: string): ContractEmbedRelation {
   return { to: crossRef(to), cardinality: '1:N' };
 }
 
+/** The validators of `models`, with each model in `roots` stored in the collection that keys it. */
 export function derive(
-  input: Pick<CollectionValidatorsInput, 'roots' | 'models'> &
+  input: {
+    readonly roots: Record<string, CrossReference>;
+  } & Pick<CollectionValidatorsInput, 'models'> &
     Partial<Pick<CollectionValidatorsInput, 'valueObjects' | 'valueSets'>>,
 ) {
+  const { roots, models, ...sources } = input;
+  const stored = { ...models };
+  for (const [collection, root] of Object.entries(roots)) {
+    const model = stored[root.model];
+    if (model !== undefined) stored[root.model] = { ...model, storage: { collection } };
+  }
   return deriveCollectionValidators({
     lookups: mongoTypeLookups,
     valueObjects: {},
     valueSets: {},
-    ...input,
+    ...sources,
+    models: stored,
   });
 }
 
