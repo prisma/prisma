@@ -73,7 +73,7 @@ export const mongoEmission = {
 
     const storageFields = blindCast<
       MongoModelStorage['fields'],
-      'a validated MongoDB contract records the stored key of every field'
+      'a validated MongoDB contract records the stored name of every field'
     >(model.storage['fields']);
     const fieldEntries = Object.entries(storageFields).map(
       ([fieldName, { field }]) =>

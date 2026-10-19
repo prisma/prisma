@@ -47,7 +47,7 @@ const recent = await db.orm.posts
   .all();
 ```
 
-**Field names, not stored names.** The ORM names a field by its name in the contract, never by the key its documents store it under. A field declared `id ObjectId @id @map("_id")` is `id` in every ORM call and row, and documents store it as `_id`; passing `_id` to the ORM fails with `ORM.FIELD_UNKNOWN`, whose message names the field to use. The pipeline builder (`db.query`) works on documents, so it names stored keys: `_id` there.
+**Field names, not stored names.** The ORM names a field by its name in the contract, never by the key its documents store it under. A field declared `id ObjectId @id @map("_id")` is `id` in every ORM call and row, and documents store it as `_id`; passing `_id` to the ORM fails with `ORM.FIELD_UNKNOWN`, whose message names the field to use. The pipeline builder (`db.query`) works on documents, so it names stored names: `_id` there. A raw filter expression passed to the ORM's `.where(...)`, such as `MongoFieldFilter.eq('displayName', 'Ada')` or a `MongoExprFilter`, names fields too and is translated; one built for `db.query` names stored names, so do not pass it to the ORM.
 
 **`.where(...)`** accepts a plain object whose keys are model field names and values are compared with equality (codec-aware — `ObjectId` fields accept string ids from the contract). Chain multiple `.where({ ... })` calls to AND-compose filters.
 
@@ -146,7 +146,7 @@ Import `acc` and expression helpers (`fn`) from `@prisma/orm-mongo/query-builder
 
 ## Workflow — Query builder (`db.query`)
 
-The concept: `db.query.from('<root>')` starts a typed aggregation-pipeline chain over documents, so it names each field by its stored key (`_id` for a field declared `id … @map("_id")`). Terminal methods produce a `MongoQueryPlan`; run it through the runtime with `query(plan)` (an `AsyncIterableResult` of documents — `await` it for an array):
+The concept: `db.query.from('<root>')` starts a typed aggregation-pipeline chain over documents, so it names each field by its stored name (`_id` for a field declared `id … @map("_id")`). Terminal methods produce a `MongoQueryPlan`; run it through the runtime with `query(plan)` (an `AsyncIterableResult` of documents — `await` it for an array):
 
 ```typescript
 // src/queries/analytics.ts

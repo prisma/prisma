@@ -30,7 +30,7 @@ function contractWithUserStorage(storage: unknown) {
 }
 
 describe('model storage schema', () => {
-  it('accepts the stored key of each field', () => {
+  it('accepts the stored name of each field', () => {
     const contract = contractWithUserStorage({
       collection: 'users',
       fields: { id: { field: '_id' } },

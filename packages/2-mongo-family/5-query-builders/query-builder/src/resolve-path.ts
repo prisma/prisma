@@ -161,7 +161,7 @@ type VONestedShape<TContract extends MongoContract, VOName extends string> = [
   : never;
 
 /**
- * Build the `NestedDocShape` for a model, keyed by stored key. Scalar leaves resolve to their
+ * Build the `NestedDocShape` for a model, keyed by stored name. Scalar leaves resolve to their
  * concrete codec id; value-object fields recurse into the referenced
  * `valueObjects[VOName].fields` table, producing a tree that
  * `ResolvePath` / `ValidPaths` can walk.

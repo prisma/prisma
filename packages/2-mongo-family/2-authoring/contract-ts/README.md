@@ -85,7 +85,7 @@ export const contract = defineContract({
 });
 ```
 
-Each field is stored under its own name unless `.mongo({ field })` names another stored key, as `id` is stored as `_id` above. Relations, the discriminator and indexes name fields; the builder writes stored keys into indexes, validators and execution defaults. A field of a value object is stored under its own name, so `.mongo({ field })` on one is refused.
+Each field is stored under its own name unless `.mongo({ field })` names another stored name, as `id` is stored as `_id` above. Relations, the discriminator and indexes name fields; the builder writes stored names into indexes, validators and execution defaults. A field of a value object is stored under its own name, so `.mongo({ field })` on one is refused.
 
 ## Config helper
 

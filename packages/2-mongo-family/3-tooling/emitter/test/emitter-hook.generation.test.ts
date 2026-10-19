@@ -260,7 +260,7 @@ describe('mongoEmission.generateContractTypes', () => {
       expect(types).toContain('readonly collection: "users"');
     });
 
-    it('generates the stored key of each field', () => {
+    it('generates the stored name of each field', () => {
       const contract = createMongoContract({
         models: {
           User: {

@@ -7,10 +7,10 @@ import { describe, expect, it } from 'vitest';
 import { mongoQuery } from '../src/query';
 import { testContract } from './fixtures/test-contract';
 
-describe('stored keys', () => {
+describe('stored names', () => {
   const accounts = () => mongoQuery({ contract: testContract }).from('accounts');
 
-  it('keys the result shape of a model read by stored key', () => {
+  it('keys the result shape of a model read by stored name', () => {
     expect(accounts().build().resultShape).toEqual({
       kind: 'document',
       fields: {
@@ -37,7 +37,7 @@ describe('stored keys', () => {
     });
   });
 
-  it('matches and projects on stored keys', () => {
+  it('matches and projects on stored names', () => {
     const plan = accounts()
       .match((f) => f.display_name.eq('Ada'))
       .project('display_name')

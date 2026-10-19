@@ -42,7 +42,7 @@ type ExtractCodecId<F> = F extends { type: { kind: 'scalar'; codecId: infer C } 
     : string;
 
 /**
- * A model's document shape, keyed by stored key.
+ * A model's document shape, keyed by stored name.
  */
 export type ModelToDocShape<
   TContract extends MongoContract,
@@ -94,7 +94,7 @@ type ResolveFields<
  *  1. Detect the `ModelOriginBrand` on `Shape` — the phantom symbol
  *     placed by `ModelToDocShape`. When present (and the contract has
  *     type maps), the row is `InferModelRow<TC, M>` from
- *     `@internal/mongo-contract` re-keyed by stored key; `InferModelRow` walks scalar / valueObject /
+ *     `@internal/mongo-contract` re-keyed by stored name; `InferModelRow` walks scalar / valueObject /
  *     union field kinds (handling nested value-objects and list fields).
  *     This makes entry-point reads (`q.from('users').build()`) and
  *     shape-extending stages (`match`, `addFields`) resolve value-object
@@ -134,7 +134,7 @@ type IsConcreteContract<TContract> = [ExtractMongoTypeMaps<TContract>] extends [
   : true;
 
 /**
- * A model's row as stored: keyed by stored key, each value typed by the field it stores.
+ * A model's row as stored: keyed by stored name, each value typed by the field it stores.
  */
 type StoredModelRow<
   TContract extends MongoContractWithTypeMaps<MongoContract, AnyMongoTypeMaps>,

@@ -11,7 +11,7 @@ changes:
     script: ./scripts/mongo-field-storage-names.ts
   - id: mongo-orm-uses-field-names
     summary: |
-      The MongoDB ORM names every field by its name in the schema: a field declared `id ObjectId @id @map("_id")` is `user.id` in rows and `where({ id })`, `select('id')`, `orderBy({ id: 1 })` and create, update and upsert data, where it was `_id`. Passing a stored name such as `_id` fails with `ORM.FIELD_UNKNOWN`, and a row no longer carries a key that no field stores. The pipeline builder (`db.query`) works on documents and keeps naming stored keys (`_id`).
+      The MongoDB ORM names every field by its name in the schema: a field declared `id ObjectId @id @map("_id")` is `user.id` in rows and `where({ id })`, `select('id')`, `orderBy({ id: 1 })` and create, update and upsert data, where it was `_id`. Passing a stored name such as `_id` fails with `ORM.FIELD_UNKNOWN`, and a row no longer carries a key that no field stores. The pipeline builder (`db.query`) works on documents and keeps naming stored names (`_id`).
     detection:
       glob: "**/*.{ts,tsx,mts,cts,js,mjs,cjs}"
       matches:
@@ -33,7 +33,7 @@ changes:
         - '(?<![\w$])type\s+\w+\s*\{[^}]*@map\('
   - id: mongo-typescript-stored-field-names
     summary: |
-      The MongoDB TypeScript builder names a field's stored key with `.mongo({ field })`, as the SQL builder names a column with `.sql({ column })`: `id: field.objectId().mongo({ field: '_id' })`. Relations, the discriminator and indexes name fields; the builder writes stored keys into indexes, validators and execution defaults. A field without it is stored under its own name, so `_id: field.objectId()` keeps working unchanged. Two fields stored under one name fail with `CONTRACT.NAME_DUPLICATE`, and `.mongo({ field })` on a field of a value object fails with `CONTRACT.ARGUMENT_INVALID`.
+      The MongoDB TypeScript builder names a field's stored name with `.mongo({ field })`, as the SQL builder names a column with `.sql({ column })`: `id: field.objectId().mongo({ field: '_id' })`. Relations, the discriminator and indexes name fields; the builder writes stored names into indexes, validators and execution defaults. A field without it is stored under its own name, so `_id: field.objectId()` keeps working unchanged. Two fields stored under one name fail with `CONTRACT.NAME_DUPLICATE`, and `.mongo({ field })` on a field of a value object fails with `CONTRACT.ARGUMENT_INVALID`.
 ---
 
 # MongoDB fields keep their own names
@@ -70,7 +70,7 @@ the model's entry in `contract.json` changes like this:
  }
 ```
 
-Relations name fields too: `"on": { "localFields": ["authorId"], "targetFields": ["id"] }`, where they named `_id`. So does a base model's `discriminator`. Indexes, validators and `execution` keep naming stored keys, so neither the storage hash nor the execution hash changes. The documents in the database do not change.
+Relations name fields too: `"on": { "localFields": ["authorId"], "targetFields": ["id"] }`, where they named `_id`. So does a base model's `discriminator`. Indexes, validators and `execution` keep naming stored names, so neither the storage hash nor the execution hash changes. The documents in the database do not change.
 
 1. Commit your work first, so the changes can be reviewed and undone with git.
 2. Run `prisma contract emit` and commit the regenerated `contract.json` and `contract.d.ts`.
@@ -106,7 +106,7 @@ const posts = await db.orm.posts.where({ authorId: user.id }).include('author').
 
 The same holds for every field with `@map`: `firstName String @map("first_name")` is `firstName` in the ORM, where it was `first_name`, and for the fields of a raw filter expression passed to `where`, such as `MongoFieldFilter.eq('id', ...)`. A type that picks or omits `_id` from `FieldInputTypes` or `FieldOutputTypes` names the field instead, for example `Omit<FieldInputTypes['__unbound__']['User'], 'id'>`. The type checker finds most places: run it after you re-emit.
 
-The pipeline builder reads documents, so it names stored keys, and its rows have them: `db.query.from('users').match((f) => f._id.eq(id))` and `foreign._id` in a lookup stay as they are. Code that hands a pipeline row to code that expects an ORM row renames the stored keys, for example `({ _id, ...rest }) => ({ ...rest, id: _id })`.
+The pipeline builder reads documents, so it names stored names, and its rows have them: `db.query.from('users').match((f) => f._id.eq(id))` and `foreign._id` in a lookup stay as they are. Code that hands a pipeline row to code that expects an ORM row renames the stored names, for example `({ _id, ...rest }) => ({ ...rest, id: _id })`.
 
 ## `mongo-statements-name-fields`
 
@@ -118,6 +118,17 @@ prisma migration plan --name tidy --rename User.id:User.userId
 ```
 
 A statement that renames the field stored as `_id` to a field still stored as `_id` plans nothing; one that would change `_id` is refused, as before.
+
+The first migration you plan after running the script starts from a rewritten snapshot, which names each field by its stored name (see `mongo-contracts-record-stored-field-names`). A statement in that migration names the old field by its stored name, and the new field by its name in the schema. For a schema that had `name String @map("display_name")` and now has `title String`, which renames the stored field to `title`:
+
+```sh
+# the first migration after the upgrade
+prisma migration plan --name rename-title --rename User.display_name:User.title
+# every later migration
+prisma migration plan --name rename-headline --rename User.title:User.headline
+```
+
+Data-loss questions in that first migration name the old fields by their stored names too. A field that keeps its stored name needs no statement at all: planning from the rewritten snapshot to the re-emitted contract compares stored names and plans nothing for it.
 
 ## `mongo-composite-field-map-refused`
 

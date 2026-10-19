@@ -483,8 +483,8 @@ describe('deriveCollectionValidators — variants', () => {
   });
 });
 
-describe('deriveCollectionValidators — stored keys', () => {
-  it('describes each field under its stored key', () => {
+describe('deriveCollectionValidators — stored names', () => {
+  it('describes each field under its stored name', () => {
     const validators = derive({
       roots: { items: crossRef('Item') },
       models: {
@@ -505,7 +505,7 @@ describe('deriveCollectionValidators — stored keys', () => {
     });
   });
 
-  it('names the discriminator and variant fields by their stored keys', () => {
+  it('names the discriminator and variant fields by their stored names', () => {
     const validators = derive({
       roots: { items: crossRef('Item') },
       models: {

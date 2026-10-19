@@ -20,8 +20,8 @@ type AccountRow = {
   readonly home_address: Address | null;
 };
 
-describe('stored keys', () => {
-  it('keys the document shape by stored key', () => {
+describe('stored names', () => {
+  it('keys the document shape by stored name', () => {
     expectTypeOf<keyof ModelToDocShape<TestContract, 'Account'> & string>().toEqualTypeOf<
       '_id' | 'display_name' | 'home_address'
     >();
@@ -30,7 +30,7 @@ describe('stored keys', () => {
     >();
   });
 
-  it('types each stored key by the field it stores', () => {
+  it('types each stored name by the field it stores', () => {
     expectTypeOf<ModelToDocShape<TestContract, 'Account'>['_id']>().toEqualTypeOf<{
       readonly codecId: 'mongo/objectId@1';
       readonly nullable: false;
@@ -42,17 +42,17 @@ describe('stored keys', () => {
     expectTypeOf<PlanRow<typeof plan>>().toEqualTypeOf<AccountRow>();
   });
 
-  it('accepts stored keys and rejects domain field names in match', () => {
+  it('accepts stored names and rejects domain field names in match', () => {
     const accounts = mongoQuery({ contract: testContract }).from('accounts');
     accounts.match((f) => f._id.eq('a'));
     accounts.match((f) => f('home_address.city').eq('NYC'));
-    // @ts-expect-error -- `id` is a domain field name, not a stored key
+    // @ts-expect-error -- `id` is a domain field name, not a stored name
     accounts.match((f) => f.id.eq('a'));
-    // @ts-expect-error -- `displayName` is a domain field name, not a stored key
+    // @ts-expect-error -- `displayName` is a domain field name, not a stored name
     accounts.match((f) => f.displayName.eq('a'));
   });
 
-  it('keys a looked-up foreign row by stored key', () => {
+  it('keys a looked-up foreign row by stored name', () => {
     const plan = mongoQuery({ contract: testContract })
       .from('orders')
       .lookup((from) =>

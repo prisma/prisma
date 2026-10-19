@@ -511,7 +511,7 @@ test('VO input: nested VO recursion resolves inner shape (not unknown)', () => {
   expectTypeOf<VOInput['nested']['inner']>().not.toBeUnknown();
 });
 
-test('a model storage type names the stored key of each field', () => {
+test('a model storage type names the stored name of each field', () => {
   const Account = model('Account', {
     collection: 'accounts',
     fields: {
