@@ -459,7 +459,7 @@ The printed PSL opens with two comment lines: the `// use prisma-8` marker, and 
 
 The printed PSL reads back as the identical contract. Where PSL has no form for part of the contract, the command refuses, names that part, and prints and writes nothing. It exits `2` in these cases:
 - `CONTRACT.PRINT_UNSUPPORTED`: part of the contract cannot be written as PSL that reads back the same. The full list of cases is under that code in `docs/reference/error-reference.md`. A column type an extension contributes, such as pgvector's `Vector`, prints only when that extension is in the config.
-- `CONTRACT.SOURCE_LOAD_FAILED`: the source cannot be read, reported exactly as `contract emit` reports it.
+- `CONTRACT.SOURCE_LOAD_FAILED`, or the source's own code for a structured error it throws (such as `CONTRACT.DEFAULT_INVALID` from a TypeScript builder): the source cannot produce a contract, reported exactly as `contract emit` reports it.
 - The loaded contract fails the structure check `contract emit` applies, as a hand-written TypeScript contract can. The command runs the same check before it prints, so it reports the same error as `contract emit`.
 - `CONTRACT.PRINT_OUTPUT_IS_SOURCE`: the `--output` path is a source file the config reads, sits inside a directory of source files, or names a new file that a glob input of the source would match once written. Pick another path.
 - `CONTRACT.PRINT_OUTPUT_IS_PROJECT_FILE`: the `--output` path is the `prisma.config.ts` in the directory of the config that defines the `orm` section, or one of the files `contract emit` writes (`contract.json` and `contract.d.ts`, or whatever `contract.output` names). Pick another path.
