@@ -95,7 +95,7 @@ function planAgainst(
     issues: coalesced,
     startTree: actual,
     endTree: expected,
-    controlPolicyPlans: () => true,
+    foreignKeyDropAuthority: () => 'allowed' as const,
     toContract: contract,
     fromContract: options.fromContract ?? null,
     schemaName: 'public',

@@ -53,12 +53,12 @@ export function emptyRoot(): PostgresDatabaseSchemaNode {
   });
 }
 
-/** The whole start and end trees `planIssues` takes, with a control policy that plans every issue. */
+/** The whole start and end trees `planIssues` takes, with a plan that may drop every foreign key. */
 export function planTrees(
   startTree: PostgresDatabaseSchemaNode = emptyRoot(),
   endTree: PostgresDatabaseSchemaNode = emptyRoot(),
 ) {
-  return { startTree, endTree, controlPolicyPlans: () => true };
+  return { startTree, endTree, foreignKeyDropAuthority: () => 'allowed' as const };
 }
 
 export function rootOf(

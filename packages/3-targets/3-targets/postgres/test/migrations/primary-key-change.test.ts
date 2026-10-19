@@ -1,6 +1,8 @@
 /**
  * A primary key whose columns change, or that is removed, is dropped and added back. Postgres refuses to drop a key while a foreign key depends on its index, so every foreign key that references the old key's columns is dropped first and, when the end contract keeps it, added back after the new key.
  */
+
+import type { ControlPolicy } from '@internal/contract/types';
 import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import {
@@ -65,8 +67,8 @@ function foreignKey(
   };
 }
 
-function contractOf(tables: Tables): Contract<SqlStorage> {
-  const hash = `primary-key-replacement-${JSON.stringify(tables)}`;
+function contractOf(tables: Tables, defaultControlPolicy?: ControlPolicy): Contract<SqlStorage> {
+  const hash = `primary-key-change-${defaultControlPolicy ?? ''}-${JSON.stringify(tables)}`;
   return {
     target: 'postgres',
     targetFamily: 'sql',
@@ -95,6 +97,7 @@ function contractOf(tables: Tables): Contract<SqlStorage> {
     capabilities: {},
     extensions: {},
     meta: {},
+    ...(defaultControlPolicy === undefined ? {} : { defaultControlPolicy }),
   };
 }
 
@@ -293,53 +296,135 @@ describe('a primary key moved off a column the same plan drops', () => {
   });
 });
 
+const dbUpdateAdvice =
+  'With db update, drop that foreign key yourself, run db update, then add the foreign key back if you still want it.';
+const declaredDbUpdateAdvice =
+  'With db update, drop that foreign key yourself and leave it out of the contract, run db update, then add the foreign key back to both if you still want it.';
+const migrationNewAdvice =
+  'write the change as its own migration with prisma migration new, dropping that foreign key before the key change and adding it back after it.';
+
 describe('a primary key change the plan cannot make', () => {
-  const why =
-    'Drop or change that foreign key yourself, then plan again, or use `migration new` to author a custom migration for this change.';
+  const movedUser = user({ primaryKey: ['id', 'email'], uniques: [['id']] });
+  const controlPolicyRefusal = {
+    kind: 'foreignKeyConflict',
+    summary:
+      'Primary key "user_pkey" on "public"."user" cannot change while foreign key "entry_userId_fkey" on "audit"."entry" references it, and the control policy does not let this plan change "audit"."entry".',
+    why: `With migration plan, give "audit"."entry" a control policy that lets this plan change it and plan again, or ${migrationNewAdvice} ${declaredDbUpdateAdvice}`,
+    location: { entityKind: 'table', entityName: 'entry', constraint: 'entry_userId_fkey' },
+  };
 
-  it('refuses when a foreign key on a table the control policy keeps the plan away from references the key', () => {
-    const externalEntry = { ...entry, control: 'external' as const };
-    const before = contractOf({
-      public: { user: user({ primaryKey: ['id'] }) },
-      audit: { entry: externalEntry },
-    });
-    const after = contractOf({
-      public: { user: user({ primaryKey: ['id', 'email'], uniques: [['id']] }) },
-      audit: { entry: externalEntry },
-    });
+  it.each(['external', 'observed', 'tolerated'] as const)(
+    'refuses when a foreign key on a %s table references the key',
+    (control) => {
+      const controlled = { ...entry, control };
+      const before = contractOf({
+        public: { user: user({ primaryKey: ['id'] }) },
+        audit: { entry: controlled },
+      });
+      const after = contractOf({ public: { user: movedUser }, audit: { entry: controlled } });
 
-    expect(plan(before, after)).toMatchObject({
+      expect(plan(before, after)).toEqual({ kind: 'failure', conflicts: [controlPolicyRefusal] });
+    },
+  );
+
+  it('refuses when the contract default policy keeps the plan away from the referencing table', () => {
+    const managed = (spec: StorageTableInput) => ({ ...spec, control: 'managed' as const });
+    const before = contractOf(
+      { public: { user: managed(user({ primaryKey: ['id'] })) }, audit: { entry } },
+      'observed',
+    );
+    const after = contractOf(
+      { public: { user: managed(movedUser) }, audit: { entry } },
+      'observed',
+    );
+
+    expect(plan(before, after)).toEqual({ kind: 'failure', conflicts: [controlPolicyRefusal] });
+  });
+
+  it('plans nothing when the contract default is external, which no table can raise', async () => {
+    const before = contractOf(
+      { public: { user: user({ primaryKey: ['id'] }) }, audit: { entry } },
+      'external',
+    );
+    const after = contractOf({ public: { user: movedUser }, audit: { entry } }, 'external');
+
+    expect(await plannedOperations(before, after)).toEqual([]);
+  });
+
+  it('creates a missing tolerated table that references the moved key', async () => {
+    const tolerated = { ...entry, control: 'tolerated' as const };
+    const before = contractOf({ public: { user: user({ primaryKey: ['id'] }) } });
+    const after = contractOf({ public: { user: movedUser }, audit: { entry: tolerated } });
+
+    expect(await plannedOperations(before, after)).toEqual([
+      'Create schema "audit"',
+      'Drop constraint "user_managerId_fkey" on "user"',
+      'Drop constraint "user_pkey" on "user"',
+      'Create table "entry"',
+      'Add primary key on "user"',
+      'Add unique constraint on "user" (id)',
+      'Add foreign key "entry_userId_fkey" on "entry"',
+      'Add foreign key "user_managerId_fkey" on "user"',
+    ]);
+  });
+
+  it('refuses, naming the owner, when another contract space owns the referencing table', () => {
+    const before = contractOf({ public: { user: user({ primaryKey: ['id'] }), post: post() } });
+    const after = contractOf({ public: { user: movedUser } });
+    const postOwnedElsewhere: SchemaOwnership = {
+      declaresEntity: (coordinate) => coordinate.entityName === 'post',
+    };
+
+    expect(plan(before, after, postOwnedElsewhere)).toEqual({
       kind: 'failure',
       conflicts: [
         {
           kind: 'foreignKeyConflict',
           summary:
-            'Primary key "user_pkey" on "public"."user" cannot change while foreign key "entry_userId_fkey" on "audit"."entry" references it, and the control policy does not let this plan change "audit"."entry".',
-          why,
-          location: { entityKind: 'table', entityName: 'entry', constraint: 'entry_userId_fkey' },
+            'Primary key "user_pkey" on "public"."user" cannot change while foreign key "post_authorId_fkey" on "public"."post" references it, and another contract space owns "public"."post".',
+          why: `With migration plan, ${migrationNewAdvice} ${dbUpdateAdvice}`,
+          location: { entityKind: 'table', entityName: 'post', constraint: 'post_authorId_fkey' },
         },
       ],
     });
   });
 
-  it('refuses when the end contract leaves out a referencing foreign key whose table the plan does not drop', () => {
+  it('refuses when the end contract leaves out a referencing foreign key whose table the plan neither drops nor changes', () => {
     const before = contractOf({ public: { user: user({ primaryKey: ['id'] }), post: post() } });
-    const after = contractOf({
-      public: { user: user({ primaryKey: ['id', 'email'], uniques: [['id']] }) },
+    const after = contractOf({ public: { user: movedUser, post: post() } });
+    const start = postgresContractToSchema(before, postgresTypeComponents);
+    const { issues } = buildPostgresPlanDiff({
+      contract: after,
+      actualSchema: start,
+      frameworkComponents: postgresTypeComponents,
     });
-    const postOwnedElsewhere: SchemaOwnership = {
-      declaresEntity: (coordinate) => coordinate.entityName === 'post',
-    };
 
-    expect(plan(before, after, postOwnedElsewhere)).toMatchObject({
-      kind: 'failure',
-      conflicts: [
+    const result = planIssues({
+      issues: coalesceSubtreeIssues(issues),
+      ...planTrees(
+        start,
+        postgresContractToSchema(
+          contractOf({ public: { user: movedUser } }),
+          postgresTypeComponents,
+        ),
+      ),
+      toContract: after,
+      fromContract: before,
+      schemaName: 'public',
+      codecHooks: new Map(),
+      types: postgresTypeLookups,
+      storageTypes: {},
+      strategies: [primaryKeyChangeStrategy],
+    });
+
+    expect(result).toMatchObject({
+      ok: false,
+      failure: [
         {
           kind: 'foreignKeyConflict',
           summary:
             'Primary key "user_pkey" on "public"."user" cannot change while foreign key "post_authorId_fkey" on "public"."post" references it, and the end contract has no such foreign key while this plan does not drop "public"."post".',
-          why,
-          location: { entityKind: 'table', entityName: 'post', constraint: 'post_authorId_fkey' },
+          why: `With migration plan, keep that foreign key in the contract and plan again, or ${migrationNewAdvice} ${dbUpdateAdvice}`,
         },
       ],
     });

@@ -47,12 +47,12 @@ import * as contractFree from '@internal/sql-relational-core/contract-free';
 import {
   RelationalSchemaNodeKind,
   type SqlColumnIR,
+  type SqlForeignKeyIR,
   type SqlSchemaIR,
 } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { isPostgresSchema } from '../postgres-schema';
 import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
-import type { SqlSchemaDiffNode } from '../schema-ir/schema-node-kinds';
 import { hasAutoincrementDefault } from './autoincrement-widths';
 import {
   renderColumnAlterType,
@@ -138,6 +138,9 @@ function namespaceIdForDdlSchema(ctx: StrategyContext, ddlSchemaName: string): s
  * when no prior contract is available (e.g. `db update`, where the current
  * DB state is approximated via `schema`).
  */
+/** `allowed`, or why the plan may not drop a foreign key: the control policy keeps it away from the table, or another contract space owns the table. */
+export type ForeignKeyDropAuthority = 'allowed' | 'controlPolicy' | 'otherSpace';
+
 export interface StrategyContext {
   readonly toContract: Contract<SqlStorage>;
   readonly fromContract: Contract<SqlStorage> | null;
@@ -154,8 +157,12 @@ export interface StrategyContext {
   readonly endTree: PostgresDatabaseSchemaNode;
   /** Every issue of the plan, including those earlier strategies consumed. */
   readonly allIssues: readonly SchemaDiffIssue[];
-  /** Whether the control policy lets the plan act on an issue, by the same rule that filtered the plan's issues. */
-  readonly controlPolicyPlans: (issue: SchemaDiffIssue<SqlSchemaDiffNode>) => boolean;
+  /** Whether the plan may drop a foreign key of the start tree, by the control policy and contract-space ownership rules that filtered the plan's issues. */
+  readonly foreignKeyDropAuthority: (
+    ddlSchemaName: string,
+    tableName: string,
+    foreignKey: SqlForeignKeyIR,
+  ) => ForeignKeyDropAuthority;
   readonly policy: MigrationOperationPolicy;
   readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
   /** The columns of the fields `--convert` and `--backfill` statements name. */

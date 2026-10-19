@@ -8,7 +8,7 @@ import {
 } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
-import { PostgresSchemaNodeKind, type SqlSchemaDiffNode } from '../schema-ir/schema-node-kinds';
+import { PostgresSchemaNodeKind } from '../schema-ir/schema-node-kinds';
 import { defaultForeignKeyName, defaultPrimaryKeyName } from './default-constraint-names';
 import {
   emissionSchemaName,
@@ -23,7 +23,11 @@ import {
   DropConstraintCall,
   type PostgresOpFactoryCall,
 } from './op-factory-call';
-import type { CallMigrationStrategy, StrategyContext } from './planner-strategies';
+import type {
+  CallMigrationStrategy,
+  ForeignKeyDropAuthority,
+  StrategyContext,
+} from './planner-strategies';
 
 interface ForeignKeyAt {
   readonly ddlSchemaName: string;
@@ -119,15 +123,40 @@ function foreignKeyName(at: ForeignKeyAt): string {
   return at.foreignKey.name ?? defaultForeignKeyName(at.tableName, at.foreignKey.columns);
 }
 
-function blockedKeyChange(change: KeyChange, at: ForeignKeyAt, reason: string): SqlPlannerConflict {
+function blockedKeyChange(
+  change: KeyChange,
+  at: ForeignKeyAt,
+  reason: string,
+  contractAdvice: string | undefined,
+  declared: boolean,
+): SqlPlannerConflict {
   const keyName = change.oldKey.name ?? defaultPrimaryKeyName(change.tableName);
   const name = foreignKeyName(at);
+  const migrationPlanAdvice = `${contractAdvice === undefined ? '' : `${contractAdvice} and plan again, or `}write the change as its own migration with prisma migration new, dropping that foreign key before the key change and adding it back after it.`;
   return {
     kind: 'foreignKeyConflict',
     summary: `Primary key "${keyName}" on "${change.ddlSchemaName}"."${change.tableName}" cannot change while foreign key "${name}" on "${at.ddlSchemaName}"."${at.tableName}" references it, and ${reason}.`,
-    why: 'Drop or change that foreign key yourself, then plan again, or use `migration new` to author a custom migration for this change.',
+    why: `With migration plan, ${migrationPlanAdvice} ${declared ? 'With db update, drop that foreign key yourself and leave it out of the contract, run db update, then add the foreign key back to both if you still want it.' : 'With db update, drop that foreign key yourself, run db update, then add the foreign key back if you still want it.'}`,
     location: { entityKind: 'table', entityName: at.tableName, constraint: name },
   };
+}
+
+function refusalFor(
+  change: KeyChange,
+  at: ForeignKeyAt,
+  authority: Exclude<ForeignKeyDropAuthority, 'allowed'>,
+  declared: boolean,
+): SqlPlannerConflict {
+  const table = `"${at.ddlSchemaName}"."${at.tableName}"`;
+  return authority === 'otherSpace'
+    ? blockedKeyChange(change, at, `another contract space owns ${table}`, undefined, declared)
+    : blockedKeyChange(
+        change,
+        at,
+        `the control policy does not let this plan change ${table}`,
+        `give ${table} a control policy that lets this plan change it`,
+        declared,
+      );
 }
 
 function keyCalls(change: KeyChange, ctx: StrategyContext): readonly PostgresOpFactoryCall[] {
@@ -155,7 +184,7 @@ function keyCalls(change: KeyChange, ctx: StrategyContext): readonly PostgresOpF
 }
 
 /**
- * Plans a primary key whose columns change, or that is removed: a drop of the old key, then an add of the new one. Postgres refuses to drop a key while a foreign key depends on its index, so every foreign key of the start tree that references the old key's columns is dropped first, unless its own issue already drops it, and added back from the end tree. The plan refuses the change instead when such a foreign key is on a table the control policy keeps it away from, or when the end tree leaves the foreign key out and the plan does not drop its table.
+ * Plans a primary key whose columns change, or that is removed: a drop of the old key, then an add of the new one. Postgres refuses to drop a key while a foreign key depends on its index, so every foreign key of the start tree that references the old key's columns is dropped first, unless its own issue already drops it, and added back from the end tree. The plan refuses the change instead when such a foreign key is on a table the control policy keeps it away from or another contract space owns, or when the end tree leaves the foreign key out and the plan does not drop its table.
  */
 export function primaryKeyChangeStrategy(
   issues: readonly SchemaDiffIssue[],
@@ -178,21 +207,12 @@ export function primaryKeyChangeStrategy(
         foreignKeyName(at),
         'foreignKey',
       );
-      const dropIssue: SchemaDiffIssue<SqlSchemaDiffNode> = {
-        path: ['database', at.ddlSchemaName, at.tableName, at.foreignKey.id],
-        actual: at.foreignKey,
-      };
-      if (!ctx.controlPolicyPlans(dropIssue)) {
-        changeConflicts.push(
-          blockedKeyChange(
-            change,
-            at,
-            `the control policy does not let this plan change "${at.ddlSchemaName}"."${at.tableName}"`,
-          ),
-        );
+      const kept = endForeignKey(ctx.endTree, at);
+      const authority = ctx.foreignKeyDropAuthority(at.ddlSchemaName, at.tableName, at.foreignKey);
+      if (authority !== 'allowed') {
+        changeConflicts.push(refusalFor(change, at, authority, kept !== undefined));
         continue;
       }
-      const kept = endForeignKey(ctx.endTree, at);
       if (kept !== undefined) {
         changeCalls.push(
           drop,
@@ -206,6 +226,8 @@ export function primaryKeyChangeStrategy(
             change,
             at,
             `the end contract has no such foreign key while this plan does not drop "${at.ddlSchemaName}"."${at.tableName}"`,
+            'keep that foreign key in the contract',
+            false,
           ),
         );
       }

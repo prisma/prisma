@@ -53,7 +53,7 @@ import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-
 import type { PostgresNamespaceSchemaNode } from '../schema-ir/postgres-namespace-schema-node';
 import type { PostgresNativeEnumSchemaNode } from '../schema-ir/postgres-native-enum-schema-node';
 import type { PostgresTableSchemaNode } from '../schema-ir/postgres-table-schema-node';
-import { PostgresSchemaNodeKind, type SqlSchemaDiffNode } from '../schema-ir/schema-node-kinds';
+import { PostgresSchemaNodeKind } from '../schema-ir/schema-node-kinds';
 import { hasAutoincrementDefault } from './autoincrement-widths';
 import {
   buildSetDefaultColumn,
@@ -1024,8 +1024,8 @@ export interface IssuePlannerOptions {
   readonly startTree: PostgresDatabaseSchemaNode;
   /** The whole end tree of the plan, every namespace. */
   readonly endTree: PostgresDatabaseSchemaNode;
-  /** Whether the control policy lets the plan act on an issue, by the same rule that filtered `issues`. */
-  readonly controlPolicyPlans: (issue: SchemaDiffIssue<SqlSchemaDiffNode>) => boolean;
+  /** Whether the plan may drop a foreign key of the start tree, by the rules that filtered `issues`. */
+  readonly foreignKeyDropAuthority: StrategyContext['foreignKeyDropAuthority'];
   /**
    * Operation-class policy. `planIssues` filters calls whose `operationClass`
    * is not in `policy.allowedOperationClasses` and surfaces them as conflicts
@@ -1068,7 +1068,7 @@ export function planIssues(
     startTree: options.startTree,
     endTree: options.endTree,
     allIssues: options.issues,
-    controlPolicyPlans: options.controlPolicyPlans,
+    foreignKeyDropAuthority: options.foreignKeyDropAuthority,
     policy,
     frameworkComponents,
     statementColumns: options.statementColumns ?? { convert: [], backfill: [] },

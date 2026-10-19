@@ -85,7 +85,7 @@ import {
 } from './op-factory-call';
 import { postgresCallSubjects } from './operation-subjects';
 import { TypeScriptRenderablePostgresMigration } from './planner-produced-postgres-migration';
-import { postgresPlannerStrategies } from './planner-strategies';
+import { postgresPlannerStrategies, tableAt } from './planner-strategies';
 import { resolveDdlSchemaForNamespaceStorage } from './resolve-ddl-schema';
 import { postgresSchemaTables } from './schema-tables';
 import {
@@ -388,14 +388,29 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       ...ifDefined('schema', relationalSchema),
       startTree: schema,
       endTree: expectedSchema,
-      controlPolicyPlans: (issue) =>
-        partitionIssuesByControlPolicy({
-          issues: [issue],
+      foreignKeyDropAuthority: (ddlSchemaName, tableName, foreignKey) => {
+        const namespaceId = resolveNamespaceIdForDdlSchema(options.contract, ddlSchemaName);
+        const ownedElsewhere =
+          tableAt(options.contract.storage, namespaceId, tableName) === undefined &&
+          options.ownership?.declaresEntity({
+            namespaceId,
+            entityKind: 'table',
+            entityName: tableName,
+          });
+        if (ownedElsewhere === true) return 'otherSpace';
+        const dropIssue: SchemaDiffIssue<SqlSchemaDiffNode> = {
+          path: ['database', ddlSchemaName, tableName, foreignKey.id],
+          actual: foreignKey,
+        };
+        const { plannable } = partitionIssuesByControlPolicy({
+          issues: [dropIssue],
           contract: options.contract,
-          resolveControlPolicySubject: (candidate) =>
-            resolvePostgresNodeIssueControlPolicySubject(candidate, options.contract),
+          resolveControlPolicySubject: (issue) =>
+            resolvePostgresNodeIssueControlPolicySubject(issue, options.contract),
           resolveCreationFactoryName: resolvePostgresNodeIssueCreationFactoryName,
-        }).plannable.length === 1,
+        });
+        return plannable.length === 1 ? 'allowed' : 'controlPolicy';
+      },
       policy: options.policy,
       frameworkComponents: options.frameworkComponents,
       statementColumns: fieldStatementColumns(options.statements, options.contract),

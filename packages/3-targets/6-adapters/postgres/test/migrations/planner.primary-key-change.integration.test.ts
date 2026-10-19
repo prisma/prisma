@@ -76,7 +76,7 @@ function contractOf(name: string, namespaces: Record<string, Record<string, Stor
 
 const userRef = { namespace: 'public', table: 'User', column: 'id' };
 
-type Audit = 'managed' | 'external' | 'none';
+type Audit = 'managed' | 'external' | 'external-unlinked' | 'none';
 
 function auditEntry(audit: Audit): Record<string, StorageTableInput> {
   if (audit === 'none') return {};
@@ -86,13 +86,16 @@ function auditEntry(audit: Audit): Record<string, StorageTableInput> {
       primaryKey: { columns: ['id'] },
       uniques: [],
       indexes: [],
-      foreignKeys: [
-        foreignKey({ namespace: 'audit', table: 'Entry', column: 'userId' }, userRef, {
-          onDelete: 'restrict',
-          onUpdate: 'cascade',
-        }),
-      ],
-      ...(audit === 'external' ? { control: 'external' as const } : {}),
+      foreignKeys:
+        audit === 'external-unlinked'
+          ? []
+          : [
+              foreignKey({ namespace: 'audit', table: 'Entry', column: 'userId' }, userRef, {
+                onDelete: 'restrict',
+                onUpdate: 'cascade',
+              }),
+            ],
+      ...(audit === 'managed' ? {} : { control: 'external' as const }),
     },
   };
 }
@@ -398,7 +401,7 @@ describe('a primary key that moves', { concurrent: false }, () => {
     });
   });
 
-  it('refuses, as db update, when a foreign key on a table the contract marks external references the key', {
+  it('refuses, as db update, when a foreign key on a table the contract marks external references the key, and its db update advice works', {
     timeout: testTimeout,
   }, async () => {
     await planAndApply(null, blog(false, 'none'), INIT_ADDITIVE_POLICY);
@@ -425,7 +428,7 @@ describe('a primary key that moves', { concurrent: false }, () => {
           kind: 'foreignKeyConflict',
           summary:
             'Primary key "User_pkey" on "public"."User" cannot change while foreign key "Entry_userId_fkey" on "audit"."Entry" references it, and the control policy does not let this plan change "audit"."Entry".',
-          why: 'Drop or change that foreign key yourself, then plan again, or use `migration new` to author a custom migration for this change.',
+          why: 'With migration plan, give "audit"."Entry" a control policy that lets this plan change it and plan again, or write the change as its own migration with prisma migration new, dropping that foreign key before the key change and adding it back after it. With db update, drop that foreign key yourself and leave it out of the contract, run db update, then add the foreign key back to both if you still want it.',
           location: { entityKind: 'table', entityName: 'Entry', constraint: 'Entry_userId_fkey' },
         },
       ],
@@ -436,6 +439,19 @@ describe('a primary key that moves', { concurrent: false }, () => {
       definition:
         'FOREIGN KEY ("userId") REFERENCES "User"(id) ON UPDATE CASCADE ON DELETE RESTRICT',
     });
+
+    await driver!.query(`ALTER TABLE "audit"."Entry" DROP CONSTRAINT "Entry_userId_fkey"`);
+    await planAndApply(
+      null,
+      blog(true, 'external-unlinked'),
+      anyClass,
+      await introspect(blog(true, 'external-unlinked')),
+    );
+    await driver!.query(
+      `ALTER TABLE "audit"."Entry" ADD CONSTRAINT "Entry_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE`,
+    );
+    expect(await constraints()).toEqual(editedConstraints);
+    await expectSettled(blog(true, 'external'));
   });
 
   it('drops the key before the column it moves off when the plan drops that column', {
