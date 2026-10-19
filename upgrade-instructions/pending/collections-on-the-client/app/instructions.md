@@ -2,11 +2,12 @@
 changes:
   - id: collections-on-the-client
     summary: |
-      Not a breaking change. Every SQL client takes your custom collection classes as an option, `collections`, and uses them on `db.orm`, on the ORM of every transaction (`tx.orm`), on every connection a serverless client opens, and on every Supabase role-bound client: `postgres({ contract, url, collections: { Post: PostCollection } })`, then `db.orm.public.Post.published()`. Code that builds its own ORM client with `orm({ runtime, context, collections })` to reach its classes still works; replace it with the option and use the client's ORM. The detection matches a call to `orm({ ... })` that passes `collections`.
+      Not a breaking change. Every SQL client takes your custom collection classes as an option, `collections`, and uses them on `db.orm`, on the ORM of every transaction (`tx.orm`), on every connection a serverless client opens, and on every Supabase role-bound client: `postgres({ contract, url, collections: { Post: PostCollection } })`, then `db.orm.public.Post.published()`. Code that builds its own ORM client with `orm({ runtime, context, collections })` to reach its classes still works; replace it with the option and use the client's ORM. The detection matches a call to `orm({ ... })`, or to `orm` imported under another name, that passes `collections`.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
-        - '(?<![\w$.])orm\s*(?:<[^>()]*(?:<[^>()]*>[^>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{[^{}]*\})*?,)?\s*collections\s*[,}:]'
+        - '(?<![\w$.])orm\s*(?:<[^>()]*(?:<[^>()]*>[^>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*?,)?\s*collections\s*[,}:]'
+        - 'import\s*\{[^}]*\borm\s+as\s+([\w$]+)[^}]*\}\s*from\s*[''\"][^''\"]+[''\"][\s\S]*(?<![\w$.])\1\s*(?:<[^>()]*(?:<[^>()]*>[^>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*?,)?\s*collections\s*[,}:]'
 ---
 
 # Custom collection classes go on the client
