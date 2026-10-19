@@ -8,6 +8,7 @@ import { prisma7Contract } from '../src/provider';
 import {
   fixturesDir,
   interpretSchemaText,
+  interpretSchemaTextResult,
   loadFixtureTable,
   postgresSourceContext,
   postgresSourceContextWithout,
@@ -319,6 +320,29 @@ model Account {
       {
         ref: { namespace: 'public', entry: 'Account', field: 'token' },
         onCreate: { kind: 'generator', id: 'nanoid' },
+      },
+    ]);
+  });
+});
+
+describe('a client function whose value does not fit its column', () => {
+  it('is refused, since Postgres refuses the insert', () => {
+    const result = interpretSchemaTextResult(`datasource db {
+  provider = "postgresql"
+}
+
+model Account {
+  id   Int    @id
+  code String @db.Char(10) @default(nanoid())
+}
+`);
+    expect(
+      result.ok ? [] : result.failure.diagnostics.map(({ code, message }) => ({ code, message })),
+    ).toEqual([
+      {
+        code: 'PSL.PRISMA7_GENERATOR_REFUSED',
+        message:
+          'Field "Account.code": @default(nanoid()) cannot fill its column: nanoid() writes 21 characters, which does not fit a column of 10 characters.',
       },
     ]);
   });

@@ -361,12 +361,18 @@ function lowerFunction(
       { codecId: input.codecId, typeParams: input.typeParams },
     );
     if (resolution.ok) return { storage: undefined, onCreate: resolution.generator };
-    return unknown(
-      resolution.reason === 'refused'
-        ? resolution.message
-        : `function "${fn}()" cannot fill a column of codec "${input.codecId}".`,
-      span,
-    );
+    if (resolution.reason === 'refused') {
+      input.diagnostics.push(
+        prisma7Diagnostic(
+          'PSL.PRISMA7_GENERATOR_REFUSED',
+          `${label}: @default(${fn}(${Object.values(args).join(', ')})) cannot fill its column: ${resolution.message}`,
+          input.sourceId,
+          span,
+        ),
+      );
+      return undefined;
+    }
+    return unknown(`function "${fn}()" cannot fill a column of codec "${input.codecId}".`, span);
   }
   const lowered = entry.lower({
     call: { fn, span, args },
