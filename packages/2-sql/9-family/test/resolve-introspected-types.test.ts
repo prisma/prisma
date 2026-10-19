@@ -52,6 +52,14 @@ describe('resolveIntrospectedColumnType', () => {
     expect(resolved(reported('text'))).toEqual({ dataType: 'test/text', typeParams: {} });
   });
 
+  it('is stored as the type that claims it', () => {
+    const { dataType, storedType } = resolveIntrospectedColumnType(
+      reported('numeric(4,2)'),
+      baseTypes,
+    );
+    expect({ dataType, storedType }).toEqual({ dataType: numeric, storedType: numeric });
+  });
+
   it('gives a parameterised type its parameters in normal form', () => {
     expect({
       short: resolved(reported('numeric(10)')),

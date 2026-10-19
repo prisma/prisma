@@ -85,6 +85,11 @@ const fixedCharacterType = sqlDataType('test/fixed-character', {
   ],
   normalize: (params) => (params.length === undefined ? { ...params, length: 1 } : params),
 });
+const codeType = sqlDataType('test/code', {
+  read: (json) => json,
+  params: type({ 'length?': 'number.integer >= 1' }),
+  storedAs: fixedCharacterType.id,
+});
 const enumType = sqlDataType('test/enum', {
   read: (json) => json,
   params: type({ typeName: 'string > 0' }),
@@ -101,6 +106,7 @@ const dataTypeOfCodec: Readonly<Record<string, DataType>> = {
   'pg/numeric@1': numericType,
   'pg/char@1': fixedCharacterType,
   'pg/enum@1': enumType,
+  'test/code@1': codeType,
 };
 
 /** The codec of `pg/timestamptz@1`, the one a test reads a `Date` default with; it holds years from 2000. */
@@ -140,6 +146,7 @@ const testDataTypes = createDataTypeLookup([
   timestamptzType,
   numericType,
   fixedCharacterType,
+  codeType,
   enumType,
 ]);
 
@@ -411,7 +418,7 @@ describe('contractToSchemaIR', () => {
     });
   });
 
-  it('gives each column its data type and the data type parameters in normal form', () => {
+  it('gives each column its data type, the type it is stored as, and that type parameters in normal form', () => {
     const storage = unboundStorage('test' as StorageHashBase<string>, {
       T: table({
         columns: {
@@ -419,6 +426,7 @@ describe('contractToSchemaIR', () => {
           bare: col({ codecId: 'pg/char@1' }),
           name: col({ codecId: 'pg/text@1' }),
           mood: col({ codecId: 'pg/enum@1', typeParams: { typeName: 'Mood' } }),
+          code: col({ codecId: 'test/code@1' }),
         },
       }),
     });
@@ -428,14 +436,31 @@ describe('contractToSchemaIR', () => {
       Object.fromEntries(
         Object.entries(columns).map(([name, column]) => [
           name,
-          { dataType: column.dataType?.id, typeParams: column.typeParams },
+          {
+            dataType: column.dataType?.id,
+            storedType: column.storedType?.id,
+            typeParams: column.typeParams,
+          },
         ]),
       ),
     ).toEqual({
-      whole: { dataType: 'test/numeric', typeParams: { precision: 10, scale: 0 } },
-      bare: { dataType: 'test/fixed-character', typeParams: { length: 1 } },
-      name: { dataType: 'test/text', typeParams: {} },
-      mood: { dataType: 'test/enum', typeParams: { typeName: 'Mood' } },
+      whole: {
+        dataType: 'test/numeric',
+        storedType: 'test/numeric',
+        typeParams: { precision: 10, scale: 0 },
+      },
+      bare: {
+        dataType: 'test/fixed-character',
+        storedType: 'test/fixed-character',
+        typeParams: { length: 1 },
+      },
+      name: { dataType: 'test/text', storedType: 'test/text', typeParams: {} },
+      mood: { dataType: 'test/enum', storedType: 'test/enum', typeParams: { typeName: 'Mood' } },
+      code: {
+        dataType: 'test/code',
+        storedType: 'test/fixed-character',
+        typeParams: { length: 1 },
+      },
     });
   });
 

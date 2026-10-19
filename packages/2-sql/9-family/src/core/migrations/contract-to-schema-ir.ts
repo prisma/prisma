@@ -111,7 +111,8 @@ function convertColumn(
     codecRef: buildColumnCodecRef(resolved, many ? true : undefined),
     codecBaseNativeType: baseTypeName,
     dataType,
-    typeParams: dataType.sql.normalize(dataTypeParams(dataType, resolved.typeParams)),
+    storedType: storage,
+    typeParams: storage.sql.normalize(dataTypeParams(storage, resolved.typeParams)),
     ...ifDefined(
       'defaultValue',
       rawColumnDefault?.kind === 'literal' && rawColumnDefault.value instanceof Date

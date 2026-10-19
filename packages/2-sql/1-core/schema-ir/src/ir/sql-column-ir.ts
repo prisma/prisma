@@ -87,7 +87,9 @@ export interface SqlColumnIRInput {
    * The column's data type, from the assembled stack (ADR 254): on the contract-derived side the type its codec represents, on the introspected side the type that claims the reported type. Absent on an introspected column no data type claims.
    */
   readonly dataType?: DataType;
-  /** The parameters of {@link dataType} in its normal form; empty for a type without parameters. Present exactly when `dataType` is. */
+  /** The type the column is stored as, whose name DDL writes and the database reports: {@link dataType} itself unless that type is stored as another. Present exactly when `dataType` is. */
+  readonly storedType?: DataType;
+  /** The parameters of {@link storedType} in its normal form; empty for a type without parameters. Present exactly when `dataType` is. */
   readonly typeParams?: DataTypeParams;
   /**
    * A literal default as a value of the column's data type (ADR 254): on the contract-derived side read from the contract by the column's type, on the introspected side read from the database by the column's codec. The diff compares defaults by it. Absent when no type or codec read one.
@@ -139,6 +141,8 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   declare readonly codecBaseNativeType?: string;
   /** See {@link SqlColumnIRInput.dataType}. Non-enumerable, same reason as {@link codecRef}. */
   declare readonly dataType?: DataType;
+  /** See {@link SqlColumnIRInput.storedType}. Non-enumerable, same reason as {@link codecRef}. */
+  declare readonly storedType?: DataType;
   /** See {@link SqlColumnIRInput.typeParams}. Non-enumerable, same reason as {@link codecRef}. */
   declare readonly typeParams?: DataTypeParams;
   /** See {@link SqlColumnIRInput.defaultValue}. Non-enumerable, same reason as {@link codecRef}. */
@@ -164,6 +168,7 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
     defineNonEnumerable(this, 'codecRef', input.codecRef);
     defineNonEnumerable(this, 'codecBaseNativeType', input.codecBaseNativeType);
     defineNonEnumerable(this, 'dataType', input.dataType);
+    defineNonEnumerable(this, 'storedType', input.storedType);
     defineNonEnumerable(this, 'typeParams', input.typeParams);
     defineNonEnumerable(this, 'defaultValue', input.defaultValue);
     defineNonEnumerable(this, 'defaultUnreadable', input.defaultUnreadable);
