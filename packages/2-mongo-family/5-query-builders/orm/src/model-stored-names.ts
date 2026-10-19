@@ -48,12 +48,14 @@ export function modelStoredNamesOf(
     ...storedNamesOf(models, modelName),
     ...(variant === undefined ? {} : ownStoredNamesOf(variant)),
   };
+  const embedStoredNames = model === undefined ? {} : ownEmbedStoredNamesOf(model);
   const storedNamesOfModel: ModelStoredNames = {
     modelName,
     storedNames,
     fieldNames: invert(storedNames),
-    embedStoredNames: model === undefined ? {} : ownEmbedStoredNamesOf(model),
+    embedStoredNames,
     embedded(relationName) {
+      if (!Object.hasOwn(embedStoredNames, relationName)) return undefined;
       const target = model?.relations[relationName]?.to.model;
       return target === undefined ? undefined : modelStoredNamesOf(contract, target);
     },

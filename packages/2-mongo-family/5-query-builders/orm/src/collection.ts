@@ -1208,9 +1208,11 @@ class MongoCollectionImpl<
     const doc: Record<string, MongoValue> = {};
     for (const [key, value] of Object.entries(data)) {
       if (value === undefined) continue;
-      const embedded = storage.embedded(key);
-      const embedStoredName = storage.embedStoredNames[key];
+      const embedStoredName = Object.hasOwn(storage.embedStoredNames, key)
+        ? storage.embedStoredNames[key]
+        : undefined;
       if (embedStoredName !== undefined) {
+        const embedded = storage.embedded(key);
         doc[embedStoredName] = new MongoParamRef(
           embedded === undefined
             ? value
@@ -1240,15 +1242,15 @@ class MongoCollectionImpl<
           meta: { field: key },
         });
       }
-      const embedded = storage.embedded(key);
-      result[storedName] =
-        storage.embedStoredNames[key] === undefined
-          ? this.#wrapFieldValue(value, fields[key], key, 'write')
-          : new MongoParamRef(
-              embedded === undefined
-                ? value
-                : mapEach(value, (row) => storedDocumentOfRow(row, embedded)),
-            );
+      const isEmbed = Object.hasOwn(storage.embedStoredNames, key);
+      const embedded = isEmbed ? storage.embedded(key) : undefined;
+      result[storedName] = !isEmbed
+        ? this.#wrapFieldValue(value, fields[key], key, 'write')
+        : new MongoParamRef(
+            embedded === undefined
+              ? value
+              : mapEach(value, (row) => storedDocumentOfRow(row, embedded)),
+          );
     }
     return result;
   }

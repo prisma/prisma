@@ -172,6 +172,24 @@ describe('a model whose fields are stored under other names', () => {
     );
   });
 
+  it.each(['constructor', 'toString'])(
+    'refuses %s, a name every object inherits, as a field it does not have',
+    async (name) => {
+      const { executor } = recordingExecutor();
+      const users = createMongoCollection(contract, 'User', executor, noEnums);
+      const unknown = expect.objectContaining({
+        code: 'ORM.FIELD_UNKNOWN',
+        message: `Model "User" has no field "${name}"`,
+      });
+      await expect(users.create({ [name]: 'x' } as never)).rejects.toThrow(unknown);
+      await expect(users.where({ id: 'u1' }).update({ [name]: 'x' } as never)).rejects.toThrow(
+        unknown,
+      );
+      expect(() => users.where({ [name]: 'x' } as never)).toThrow(unknown);
+      expect(() => users.where(MongoFieldFilter.eq(`${name}.x`, 'x'))).toThrow(unknown);
+    },
+  );
+
   it('refuses a stored name passed as a field, naming the field that stores it', () => {
     const { executor } = recordingExecutor();
     expect(() =>

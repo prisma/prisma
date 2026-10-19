@@ -56,3 +56,13 @@ describe('the stored names of a model that embeds itself', () => {
     );
   });
 });
+
+describe('names every object inherits', () => {
+  it.each(['constructor', 'toString'])('are not embed relations: %s', (name) => {
+    const comment = modelStoredNamesOf(threads, 'Comment');
+    expect([comment.embedded(name), Object.hasOwn(comment.embedStoredNames, name)]).toEqual([
+      undefined,
+      false,
+    ]);
+  });
+});
