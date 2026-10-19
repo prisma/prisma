@@ -138,6 +138,11 @@ function isLegacyMarkerShapeReadError(message: string): boolean {
   );
 }
 
+/** The fix for a marker an earlier version wrote: drop it where the target keeps it, then let `initCommand` write it again. */
+export function legacyMarkerFix(location: string, initCommand: string): string {
+  return `The marker has the shape an earlier version wrote. Drop \`${location}\` and re-run \`${initCommand}\` to recreate it with the current per-space shape.`;
+}
+
 function errorLegacyMarkerShape(options: {
   readonly why: string;
   readonly markerLocation: string;
@@ -149,7 +154,7 @@ function errorLegacyMarkerShape(options: {
       `Drop \`${options.markerLocation}\` and re-run \`{bin} db init\` to reinitialise from a clean baseline.`,
     {
       why: options.why,
-      fix: `The marker has the shape an earlier version wrote. Drop \`${options.markerLocation}\` and re-run \`{bin} db init\` to recreate it with the current per-space shape.`,
+      fix: legacyMarkerFix(options.markerLocation, '{bin} db init'),
       nextActions: [
         {
           kind: 'run-command',

@@ -1,3 +1,4 @@
+import { legacyMarkerFix } from '@internal/errors/execution';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { basename, join } from 'pathe';
 import { statementFlag } from '../control-api/statements/statement-flag';
@@ -270,10 +271,8 @@ export function migrateFix(failure: MigrateFailure, invocation: CliInvocation): 
   if (failure.failedPrecheck !== undefined) {
     return migrateFailedPrecheckFix(failure.failedPrecheck, invocation);
   }
+  if (failure.legacyMarkerLocation !== undefined) {
+    return legacyMarkerFix(failure.legacyMarkerLocation, cliCommand(invocation, 'db init'));
+  }
   return `Fix the issue and re-run \`${cliCommand(invocation, 'db migrate', ['--to', '<contract>'])}\` — previously applied migrations are preserved.`;
-}
-
-/** The fix for a marker an earlier version wrote: drop it where the target keeps it, then let `initCommand` write it again. */
-export function legacyMarkerFix(location: string, initCommand: string): string {
-  return `The marker has the shape an earlier version wrote. Drop \`${location}\` and re-run \`${initCommand}\` to recreate it with the current per-space shape.`;
 }

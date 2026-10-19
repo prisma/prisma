@@ -1,3 +1,4 @@
+import { legacyMarkerFix } from '@internal/errors/execution';
 import { ifDefined } from '@internal/utils/defined';
 import { assertNever } from '@internal/utils/internal-error';
 import type { DbUpdateFailure } from '../control-api/types';
@@ -5,11 +6,7 @@ import type { CliStructuredError } from './cli-errors';
 import { errorMigrationPlanningFailed, errorRunnerFailed } from './cli-errors';
 import { failedPrecheckWhy } from './failed-precheck-advice';
 import { type CliInvocation, cliCommand } from './printed-command';
-import {
-  dbUpdateFailedTypeChangeFix,
-  dbUpdateRowsWithoutValueFix,
-  legacyMarkerFix,
-} from './runner-failure-advice';
+import { dbUpdateFailedTypeChangeFix, dbUpdateRowsWithoutValueFix } from './runner-failure-advice';
 import { schemaCheckWhy } from './schema-issues';
 
 /**

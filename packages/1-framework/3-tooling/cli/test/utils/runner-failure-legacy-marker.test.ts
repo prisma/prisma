@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { mapDbInitFailure } from '../../src/utils/db-init-failure';
 import { mapDbUpdateFailure } from '../../src/utils/db-update-failure';
+import { mapMigrateFailure } from '../../src/utils/migrate-failure';
 
 const invocation = { cwd: '/work/app', configPath: undefined, dbGiven: false };
 
@@ -22,6 +23,13 @@ describe('a marker an earlier version wrote', () => {
 
   it('names where the target keeps it in the db update fix', () => {
     expect(mapDbUpdateFailure(legacyMarker, invocation).fix).toBe(
+      'The marker has the shape an earlier version wrote. Drop `marker_table_of_the_target` and re-run `{bin} db init` to recreate it with the current per-space shape.',
+    );
+  });
+
+  it('names where the target keeps it in the db migrate fix', () => {
+    const { conflicts: _, ...migrateFailure } = legacyMarker;
+    expect(mapMigrateFailure(migrateFailure, invocation).fix).toBe(
       'The marker has the shape an earlier version wrote. Drop `marker_table_of_the_target` and re-run `{bin} db init` to recreate it with the current per-space shape.',
     );
   });

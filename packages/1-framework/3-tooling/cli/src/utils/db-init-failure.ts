@@ -1,3 +1,4 @@
+import { legacyMarkerFix } from '@internal/errors/execution';
 import type { MigrationOperationClass } from '@internal/framework-components/control';
 import { ifDefined } from '@internal/utils/defined';
 import { assertNever } from '@internal/utils/internal-error';
@@ -14,7 +15,7 @@ import {
 import { dbInitFailedPrecheckFix, failedPrecheckWhy } from './failed-precheck-advice';
 import { runCommandAction } from './next-actions';
 import type { CliInvocation } from './printed-command';
-import { dbInitRowsWithoutValueFix, legacyMarkerFix } from './runner-failure-advice';
+import { dbInitRowsWithoutValueFix } from './runner-failure-advice';
 import { schemaCheckWhy } from './schema-issues';
 
 const DB_INIT_ADDITIVE_ONLY_FIX =

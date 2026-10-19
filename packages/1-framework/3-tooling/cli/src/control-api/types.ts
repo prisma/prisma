@@ -803,6 +803,8 @@ export interface MigrateFailure {
   readonly failedPrecheck?: FailedPrecheckReport;
   /** The differences the schema check after apply found, when that check failed. */
   readonly schemaIssues?: readonly SchemaDiffIssue[];
+  /** Where the target keeps its marker, when the marker there has a shape an earlier version wrote. */
+  readonly legacyMarkerLocation?: string;
   /** The written migration of the failed operation: its directory, and the contract it starts from. */
   readonly failedMigration?: { readonly directory: string; readonly from: string };
   /** The type change that failed. */

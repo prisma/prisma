@@ -85,6 +85,8 @@ interface PlanPosition {
  * runs: connection exceptions, transaction rollbacks, resources, operator intervention, system and
  * internal errors.
  */
+const MARKER_LOCATION = 'prisma_contract.marker';
+
 const NOT_THE_STEPS_SQL = ['08', '40', '53', '57', '58', 'XX'];
 
 /**
@@ -384,15 +386,15 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
     }
     return runnerFailure(
       'MIGRATION.LEGACY_MARKER_SHAPE',
-      'Legacy marker-table shape detected on prisma_contract.marker (no `space` column). ' +
+      `Legacy marker-table shape detected on ${MARKER_LOCATION} (no \`space\` column). ` +
         'Prisma 8 is in pre-1.0; the previous transitional auto-migration to the per-space-row schema has been removed. ' +
-        'Drop `prisma_contract.marker` and re-run `dbInit` to reinitialise from a clean baseline.',
+        `Drop \`${MARKER_LOCATION}\` and re-run \`dbInit\` to reinitialise from a clean baseline.`,
       {
         meta: {
-          table: 'prisma_contract.marker',
+          table: MARKER_LOCATION,
           columns: [...columns].sort(),
         },
-        legacyMarkerLocation: 'prisma_contract.marker',
+        legacyMarkerLocation: MARKER_LOCATION,
       },
     );
   }

@@ -95,13 +95,9 @@ function failedTypeChangeReport(change: FailedTypeChange, field: string): Failed
 function failureReports(
   failure: MigrationRunnerFailure,
   resolutions: readonly OrderedResolution[],
-): Pick<
-  RunnerFailure,
-  'failedTypeChange' | 'rowsWithoutValue' | 'schemaIssues' | 'failedMigration'
-> {
+): Pick<RunnerFailure, 'failedTypeChange' | 'rowsWithoutValue' | 'failedMigration'> {
   const resolution = resolutions.find(({ spaceId }) => spaceId === failure.failingSpace);
   if (resolution === undefined) return {};
-  const schemaIssues = schemaIssuesOf(failure);
   const fieldText = (field: MigrationSubject) =>
     subjectText(field, { origin: resolution.entry.destinationContract, statements: [] });
   const { failedTypeChange, rowsWithoutValue } = failure;
@@ -109,7 +105,7 @@ function failureReports(
   const edge =
     operationIndex !== undefined
       ? edgeOfOperation(resolution.entry.migrationEdges, operationIndex)
-      : schemaIssues !== undefined
+      : schemaIssuesOf(failure) !== undefined
         ? resolution.entry.migrationEdges.at(-1)
         : undefined;
   return {
@@ -126,7 +122,6 @@ function failureReports(
         reason,
       })),
     ),
-    ...ifDefined('schemaIssues', schemaIssues),
     ...ifDefined(
       'failedMigration',
       edge === undefined ? undefined : { spaceId: resolution.spaceId, edge },
@@ -284,6 +279,7 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
       },
       ...failureReports(runnerResult.failure, orderedResolutions),
       ...ifDefined('failedPrecheck', failedPrecheckOf(runnerResult.failure, orderedResolutions)),
+      ...ifDefined('schemaIssues', schemaIssuesOf(runnerResult.failure)),
       ...ifDefined('legacyMarkerLocation', runnerResult.failure.legacyMarkerLocation),
       cause: runnerResult.failure,
     });

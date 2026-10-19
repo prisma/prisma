@@ -8,6 +8,7 @@ export {
   errorRuntime,
   errorSchemaVerificationFailed,
   errorTargetMismatch,
+  legacyMarkerFix,
   parseMarkerRowSafely,
   rethrowMarkerReadError,
   withMarkerReadErrorHandling,
