@@ -364,6 +364,7 @@
   "test/integration/test/sql-orm-client/fixtures/scope-namespace/generated/contract.json": "171fbb3540169f8e902d46324c8321033aea2f4335761a322541b07829cf0e3a",
   "test/integration/test/sql-orm-client/fixtures/self-relations/generated/contract.json": "6431f6638842fa61cf86be86c2a1244a0c8c0c96967d854e6d08e8cd12329611",
   "test/integration/test/sql-orm-client/fixtures/soft-delete/generated/contract.json": "b67136b3403a89f59fd850f87ad0b2f33f7788fbe11987d5f6437377e786fa81",
+  "test/integration/test/temporal-defaults/_fixture-attributes/generated/contract.json": "3309555954989b8ca61567a5486e24b8463d1fc17d80471b9606f25ba4d474ef",
   "test/integration/test/temporal-defaults/_fixture-now/generated/contract.json": "75b36e93a3201322a56381dd111773f45ebf1b4ddf8d2a12959094116c949d6a",
   "test/integration/test/temporal-defaults/_fixture-timestamp/generated/contract.json": "18ad41132c365fa1c10d801f85ca2e3855089f7652fece687750351507417ef7",
   "test/integration/test/temporal-defaults/_fixture/generated/contract.json": "4430db7b0d11a076e597dd6fa867b34001a0086148c2d06deb29f058b6f89942",
