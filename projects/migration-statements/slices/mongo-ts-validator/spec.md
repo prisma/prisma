@@ -38,7 +38,10 @@ Will, 2026-10-12: contracts written in either form must behave the same. Without
 | A model without an `_id` field | TypeScript: accepted; PSL: refused | Accepted on both; the validator requires an `objectId` `_id` |
 | A model with an `_id` stored as another BSON type | TypeScript: accepted; PSL: refused | Refused when the contract is built, on both |
 | A TypeScript enum whose codec stores a BSON type a validator cannot list | Accepted | Refused when the contract is built, as PSL refuses it |
-| PSL contracts | — | Unchanged, byte for byte |
+| A PSL collection that stores several models without a discriminator | Validator for the last model only; the others' documents refused | One `anyOf` branch per model; storage hash changes |
+| A PSL or TypeScript contract with a `mongo/vector@1` field | Validator lists BSON type `vector`, which MongoDB refuses | Validated as `array`; storage hash changes |
+| A PSL model without `@id` | Refused | Accepted; its validator requires an `objectId` `_id` |
+| Every other PSL contract | — | Unchanged, byte for byte |
 
 ## Decisions to check
 
@@ -58,7 +61,7 @@ Will, 2026-10-12: contracts written in either form must behave the same. Without
 1. **Move the derivation; no output changes.** The validator derivation (`deriveJsonSchema`, `derivePolymorphicJsonSchema` and the per-collection loop from the PSL interpreter) and the enum listability check from the family package move into `@internal/mongo-contract`, where they become one public function, `deriveCollectionValidators`. PSL calls it from there. Every PSL fixture and hash is unchanged (`pnpm fixtures:check`).
 2. **The TypeScript builder calls it.**
    - Codec and data type lookups come from the target and every extension pack the contract lists, as PSL gets them from the control stack. A field whose codec has no MongoDB data type is refused, not silently dropped.
-   - The `_id` and enum refusals, with the PSL wording adapted to the builder.
+   - The rules on what a validator cannot describe (a field whose codec has no MongoDB data type, a field stored as `_id` that is not an ObjectId, an enum a validator cannot list, an embed of a model with variants) come from one function, `mongoContractRefusalsOf`, which both surfaces call on the contract they built.
    - 4a's temporary refusal (`same-hash-field-changes.ts`) and its docs go.
    - The side-by-side test stops stripping `validator` and `storageHash`, so it checks parity from now on.
    - Fixtures re-emitted; tests that assert a collection without a validator updated.
