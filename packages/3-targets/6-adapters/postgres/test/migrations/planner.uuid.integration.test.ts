@@ -27,7 +27,7 @@ import {
  * Fail conditions per test:
  * - Removing `codecId: 'pg/uuid@1'` or changing it to `pg/text@1` breaks the DDL test
  *   (column type becomes `text`, not `uuid`) and the verifySchema test.
- * - Removing `typeText: 'uuid'` makes the DDL planner fall back to `text`.
+ * - A codec `pg/uuid@1` that represented another data type than `pg/uuid` would change the DDL.
  */
 const contractWithUuid: Contract<SqlStorage> = {
   target: 'postgres',
@@ -131,8 +131,8 @@ describe('pg/uuid@1 — end-to-end PGlite coverage', { concurrent: false }, () =
   /**
    * SDoD1 (a): DDL renders the column as native `uuid` type.
    *
-   * Fails if `pg/uuid@1` is detached from `typeText: 'uuid'` in the storage descriptor,
-   * causing the DDL planner to use a different native type.
+   * Fails if `pg/uuid@1` represents another data type than `pg/uuid`, so the planner
+   * writes another type.
    */
   it('DDL creates a column with Postgres native uuid type', { timeout: testTimeout }, async () => {
     await applyContract(driver!);

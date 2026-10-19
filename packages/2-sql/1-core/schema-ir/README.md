@@ -26,7 +26,7 @@ This package defines the core types for the SQL Schema IR, a target-agnostic rep
 
 - **`SqlSchemaIR`** - Complete database schema representation with tables, extensions, and annotations
 - **`SqlTableIR`** - Table representation with columns, constraints, indexes, and annotations
-- **`SqlColumnIR`** - Column representation with `typeText` (DB-specific type), nullability, and annotations
+- **`SqlColumnIR`** - Column representation with its data type (`dataType`, `storedType`, `typeParams`), `typeText` for display, nullability, and annotations
 - **`SqlForeignKeyIR`** - Foreign key constraint representation
 - **`SqlUniqueIR`** - Unique constraint representation
 - **`SqlIndexIR`** - Index representation
@@ -34,7 +34,7 @@ This package defines the core types for the SQL Schema IR, a target-agnostic rep
 
 ### Key Design Decisions
 
-1. **Native type primary**: Columns capture the database-native type (`typeText`, e.g., `'integer'`, `'vector'`). Codec IDs now live exclusively in the contract—schema IR focuses solely on what exists in the database. This keeps schema verification centered on actual storage, while contract metadata handles codec-level concerns.
+1. **Types compared as data types**: a column carries the data type it is stored as and that type's parameters in normal form (`storedType`, `typeParams`): on the contract side from its codec, on the introspected side from the data type that claims the type the database reports. Verification and the planners compare columns by these with `sqlColumnTypesEqual` ([ADR 254](../../../../docs/architecture%20docs/adrs/ADR%20254%20-%20Data%20types%20and%20casts.md)). `typeText` is the type as the database reports it or the contract writes it, for display only.
 
 2. **Annotations**: All IR types support optional `annotations` for extensibility. This allows targets and extensions to attach metadata without modifying the core IR structure.
 

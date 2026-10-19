@@ -259,7 +259,7 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
   /**
    * Lower an AST all the way to a driver-ready statement. For DDL nodes,
    * literal column defaults are formatted as inline SQL with proper quoting and
-   * `::typeText` cast suffixes. For query ASTs, params are kept as `$N`
+   * a `::` cast to the column's type. For query ASTs, params are kept as `$N`
    * placeholders; wire values go in `params`. Does NOT call `this.lower()` —
    * independent implementation.
    */
