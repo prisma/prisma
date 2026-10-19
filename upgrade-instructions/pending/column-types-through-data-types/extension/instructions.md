@@ -44,6 +44,13 @@ changes:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
         - '\b(?:buildExpectedFormatType|alterTypeCheckText)\b'
+  - id: resolved-sql-type-carries-the-data-type
+    summary: |
+      `resolveReportedSqlType` and `resolveWrittenSqlTypes` (`@prisma/orm-family-sql/contract/data-type`) return the data type they found in `dataType`, a `SqlDataType`, instead of its id. Read `resolved.dataType.id` where you read `resolved.dataType`.
+    detection:
+      glob: "**/*.{ts,mts,cts,tsx}"
+      matches:
+        - '(?<![\s\S])(?=[\s\S]*\bresolve(?:ReportedSqlType|WrittenSqlTypes)\b)[\s\S]*\.dataType\b(?!\s*\.)'
 ---
 
 ## `alter-type-postcheck-by-data-type`
@@ -129,3 +136,17 @@ readPostgresDefault(raw, 'text[]');
 const resolve: DefaultResolver = (def, column) => read(def, column.many);
 readPostgresDefault(raw, true);
 ```
+
+## `resolved-sql-type-carries-the-data-type`
+
+```ts
+// Before
+const resolved = resolveReportedSqlType(reported, dataTypes);
+const type = dataTypes.find(({ id }) => id === resolved?.dataType);
+
+// After
+const resolved = resolveReportedSqlType(reported, dataTypes);
+const type = resolved?.dataType;
+```
+
+The resolver already found the data type, so there is no second lookup, and no case where the id names no type in the list.

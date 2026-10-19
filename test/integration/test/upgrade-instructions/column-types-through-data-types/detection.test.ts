@@ -89,6 +89,16 @@ describe('extension detection', () => {
       "alterTypeCheckText('int4', dataTypes, where)",
       "alterTypeCheck('int4', dataTypes, where)",
     ],
+    [
+      'resolved-sql-type-carries-the-data-type',
+      'const resolved = resolveReportedSqlType(reported, dataTypes);\nlookup.get(resolved.dataType);',
+      'const resolved = resolveReportedSqlType(reported, dataTypes);\nlookup.get(resolved.dataType.id);',
+    ],
+    [
+      'resolved-sql-type-carries-the-data-type',
+      'const [first] = resolveWrittenSqlTypes(text, dataTypes);\nif (first?.dataType === "pg/int4") {}',
+      'const [first] = resolveWrittenSqlTypes(text, dataTypes);\nif (first?.dataType.id === "pg/int4") {}',
+    ],
   ])('%s finds the old use and skips the new one', (id, before, after) => {
     expect({
       before: detects('extension', id, before),
