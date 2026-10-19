@@ -59,6 +59,7 @@ export interface SqlDataTypeFacts<Params extends SqlTypeParams = SqlTypeParams> 
   readonly texts: readonly SqlTypeText[];
   readonly claimsKind: string | undefined;
   readonly storedAs: DataTypeId | undefined;
+  /** The normal form of `params`; parameters the type's schema refuses are returned as written. */
   readonly normalize: (params: Params) => Params;
   readonly render: ((params: Params) => string) | undefined;
   readonly fromReported: ((reported: ReportedSqlType) => Params) | undefined;
@@ -230,7 +231,9 @@ export function sqlDataType<Params extends SqlTypeParams = SqlTypeParams>(
   id: string,
   spec: SqlDataTypeSpec<Params>,
 ): SqlDataType<Params> {
-  const normalize = spec.normalize ?? identity;
+  const declaredNormalize = spec.normalize ?? identity;
+  const normalize = (params: Params): Params =>
+    isParamsOf(spec.params, params) ? declaredNormalize(params) : params;
   const { params: _untypedParams, ...declared } = dataType(id, {
     ...spec,
     normalize: (params) => (isParamsOf(spec.params, params) ? normalize(params) : params),
