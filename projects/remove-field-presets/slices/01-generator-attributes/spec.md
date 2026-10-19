@@ -145,7 +145,7 @@ Who contributes what:
 
 Why the framework holds the shape: ADR 275 says the control stack assembles the registry from each component, and the framework may not name families or targets (`.agents/rules/no-family-vocabulary-in-framework.mdc`). Why pack refs and not adapter control descriptors, where default functions live today: the TypeScript builder has the family, target and extension pack refs (`packages/3-extensions/postgres/src/contract/define-contract.ts`) but no adapter control descriptor, and PSL and TypeScript must resolve the same way. Why the family declares the signatures: today they are duplicated in two adapters; the family is the one place both SQL targets share. Why a binding can come from a component other than the declaring one: an extension that adds a text codec, or a target, binds its own codecs to `uuid` without redeclaring it.
 
-The `generatorDescriptors` live on the target pack refs, as the Mongo target's already do, so the TypeScript builders, which have the pack refs, run the registered-generator check too. The adapters register none. The database default functions still live on the adapters (see `projects/remove-field-presets/deferred.md`).
+The `generatorDescriptors` live on the pack ref of the component that contributes the binding: the SQL family registers the identifier generators its `idGeneratorFunctionBindings` produce, and each target registers its own `now` generators. So the TypeScript builders, which have the pack refs, run the registered-generator check too, and a SQL target that binds the identifier functions registers nothing for them. The adapters register none. A generator function signature may not declare `named` parameters, because a `gen` call passes its arguments by position; assembly refuses one. The database default functions still live on the adapters (see `projects/remove-field-presets/deferred.md`).
 
 ### D3. Generator params come from the column's type params, by binding
 
@@ -157,7 +157,7 @@ Each binding's `resolve` reads `column.typeParams`:
 
 Why size is never read from the length: read literally for `VarChar(255)`, every identifier would be 255 characters, and the Prisma 7 reader would change `@db.VarChar(191) @default(nanoid())` from a 21-character identifier to a 191-character one. Reading it for `Char(n)` only would change the contract of `@db.Char(36) @default(nanoid())`, which main lowers to `{ id: 'nanoid' }`. A shorter identifier in a `Char(n)` column is stored padded, as in Prisma 7. This refines ADR 275; it does not change a decision.
 
-Fixed-length checks for the other id generators (`uuid()` on `Char(10)`) are a non-goal: ADR 275 names only `nanoid`, and the Prisma 7 reader must keep reading schemas Prisma 7 accepts.
+Fixed-length checks for the other id generators (`uuid()` on `Char(10)`) are a non-goal: ADR 275 names only `nanoid`. The Prisma 7 reader keeps reading the schemas Prisma 7 accepts, except a `nanoid` that does not fit its column (D11).
 
 ### D4. `ksuid()` is a new generator function with no arguments
 
@@ -211,7 +211,7 @@ Why a call object and not a generator id: the generator depends on the column's 
 - **Prisma 7.** `lowerFunction` (`packages/2-sql/2-authoring/contract-prisma7/src/defaults.ts`) keeps `FUNCTION_ARGUMENT_KEYS` and the `cuid()` to version 2 mapping. A name in the default function registry lowers to a database default; otherwise it resolves through `generatorFunctions` as `onCreate`. `@updatedAt` resolves `now` for the column through `generatorFunctions` for both phases (`interpreter.ts`). `Prisma7TargetBinding.updatedAtGenerator` (`target-binding.ts`) and its Postgres value (`packages/3-targets/3-targets/postgres/src/core/prisma7-binding.ts`) are removed. The `PSL.PRISMA7_UPDATED_AT_FIELD_INVALID` refusal is kept for a column `now` does not bind.
 - **Prisma 6 Mongo.** `@updatedAt` and `@default(now())` resolve `now` for the field's codec through `generatorFunctions` (`packages/2-mongo-family/2-authoring/contract-prisma6/src/interpreter.ts`). `Prisma6TargetBinding.timestampGeneratorId` (`target-binding.ts`) and its Mongo value (`packages/3-mongo-target/1-mongo-target/src/core/prisma6-binding.ts`) are removed.
 - Both providers pass `context.generatorFunctions` through (`contract-prisma7/src/provider.ts`, `contract-prisma6/src/provider.ts`).
-- The contracts both build do not change. `uuid()` on `@db.VarChar` and on SQLite text, refused today, are read.
+- The contracts both build do not change. `uuid()` on `@db.VarChar` and on SQLite text, refused today, are read. One shape `main` read is now refused: a `nanoid` that does not fit its column, such as `@db.Char(10) @default(nanoid())`, is `PSL.PRISMA7_GENERATOR_REFUSED`. Postgres refuses that insert, so no Prisma 7 application could store such a row.
 
 ### D12. `contract print` writes attributes and drops its preset output
 
