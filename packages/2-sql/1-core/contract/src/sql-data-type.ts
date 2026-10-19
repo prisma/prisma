@@ -21,6 +21,7 @@ import {
   objectSchemaKeys,
   schemaKeysAllowing,
 } from '@internal/framework-components/codec';
+import { canonicalizeJson } from '@internal/framework-components/utils';
 import type { ReportedSqlType } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -430,6 +431,45 @@ export function sqlStorageType(
 export function sqlStorageTypeId(dataTypeId: string, lookup: Pick<DataTypeLookup, 'get'>): string {
   const type = lookup.get(dataTypeId);
   return type !== undefined && isSqlDataType(type) ? sqlStorageType(type, lookup).id : dataTypeId;
+}
+
+/** The parts of a contract column that make its type. */
+export interface SqlColumnTypeFields {
+  readonly dataType: string;
+  readonly typeParams?: Readonly<Record<string, unknown>>;
+  readonly many?: unknown;
+}
+
+/** The type a column is stored as, with its parameters in normal form, or the column's own id and parameters as written when the lookup does not know its data type as a SQL data type. */
+function storedColumnType(column: SqlColumnTypeFields, lookup: Pick<DataTypeLookup, 'get'>) {
+  const type = lookup.get(column.dataType);
+  if (type === undefined || !isSqlDataType(type)) {
+    return { id: column.dataType, params: column.typeParams ?? {} };
+  }
+  const storage = sqlStorageType(type, lookup);
+  return {
+    id: storage.id,
+    params: storage.sql.normalize(dataTypeParams(storage, column.typeParams ?? {})),
+  };
+}
+
+/**
+ * Whether two contract columns have the same type: the types their data types are stored as are one type, those types' parameters are equal in normal form, and both or neither are lists. ADR 254.
+ */
+export function sameSqlColumnType(
+  a: SqlColumnTypeFields,
+  b: SqlColumnTypeFields,
+  lookup: Pick<DataTypeLookup, 'get'>,
+): boolean {
+  const isList = (column: SqlColumnTypeFields) =>
+    column.many !== undefined && column.many !== false;
+  const left = storedColumnType(a, lookup);
+  const right = storedColumnType(b, lookup);
+  return (
+    left.id === right.id &&
+    canonicalizeJson(left.params) === canonicalizeJson(right.params) &&
+    isList(a) === isList(b)
+  );
 }
 
 /** The type a column of the codec `codecId` is stored as: {@link sqlStorageType} of the data type it represents. */
