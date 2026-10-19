@@ -24,6 +24,7 @@ import type {
   MigrationPlanOperation,
   MigrationPlanSubjects,
   OperationPreview,
+  SchemaDiffIssue,
   VerifyDatabaseResult,
   VerifyDatabaseSchemaResult,
 } from '@internal/framework-components/control';
@@ -442,6 +443,8 @@ export interface DbInitFailure {
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
   /** The check that failed before its operation ran. */
   readonly failedPrecheck?: FailedPrecheckReport;
+  /** The differences the schema check after apply found, when that check failed. */
+  readonly schemaIssues?: readonly SchemaDiffIssue[];
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
   readonly marker?: {
@@ -569,6 +572,8 @@ export interface DbUpdateFailure {
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
   /** The check that failed before its operation ran. */
   readonly failedPrecheck?: FailedPrecheckReport;
+  /** The differences the schema check after apply found, when that check failed. */
+  readonly schemaIssues?: readonly SchemaDiffIssue[];
   /**
    * The storage hash of the contract the database is at, when a migration of the graph ends at it:
    * the origin a `migration plan` for this database starts from.
@@ -792,6 +797,8 @@ export interface MigrateFailure {
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
   /** The check that failed before its operation ran. */
   readonly failedPrecheck?: FailedPrecheckReport;
+  /** The differences the schema check after apply found, when that check failed. */
+  readonly schemaIssues?: readonly SchemaDiffIssue[];
   /** The written migration of the failed operation: its directory, and the contract it starts from. */
   readonly failedMigration?: { readonly directory: string; readonly from: string };
   /** The type change that failed. */

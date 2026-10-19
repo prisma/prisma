@@ -1,12 +1,12 @@
 import type { ColumnDefault } from '@internal/contract/types';
 import type { CodecRef, DataType, DataTypeParams } from '@internal/framework-components/codec';
-import type { DiffableNode } from '@internal/framework-components/control';
+import type { DiffableNode, MismatchExplanation } from '@internal/framework-components/control';
 import { freezeNode } from '@internal/framework-components/ir';
 import { canonicalizeJson } from '@internal/framework-components/utils';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { RelationalSchemaNodeKind } from './schema-node-kinds';
-import { SqlColumnDefaultIR } from './sql-column-default-ir';
+import { SqlColumnDefaultIR, type SqlExpressionLiteralFor } from './sql-column-default-ir';
 import type { SqlDefaultValue } from './sql-default-value';
 import { assertNode, defineNonEnumerable, SqlSchemaIRNode } from './sql-schema-ir-node';
 
@@ -85,6 +85,12 @@ export interface SqlColumnIRInput {
    * When the contract's default is an expression that writes a literal, such as `` sql`'hello'::bytea` ``, the value the column's codec reads from that literal. Introspection reads it, beside the reported default, because only introspection reads with a codec; the diff compares it with the reported default's value. Introspected side only.
    */
   readonly defaultExpressionValue?: SqlDefaultValue;
+  /**
+   * The `sql` literal that writes a SQL text, or `undefined` when no literal reads back as that
+   * text. The SQL family supplies it, so a mismatch can show a default as the user would write it.
+   * Stamped on the contract-derived column; absent on introspected nodes.
+   */
+  readonly sqlExpressionLiteralFor?: SqlExpressionLiteralFor;
   /** The element type as the database reports it. Set by introspection; absent on contract-derived nodes. */
   readonly reportedType?: ReportedSqlType;
 }
@@ -127,6 +133,8 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   declare readonly defaultUnreadable?: string;
   /** See {@link SqlColumnIRInput.defaultExpressionValue}. Non-enumerable, same reason as {@link codecRef}. */
   declare readonly defaultExpressionValue?: SqlDefaultValue;
+  /** See {@link SqlColumnIRInput.sqlExpressionLiteralFor}. Non-enumerable, same reason as {@link codecRef}. */
+  declare readonly sqlExpressionLiteralFor?: SqlExpressionLiteralFor;
   /** See {@link SqlColumnIRInput.reportedType}. Non-enumerable, same reason as {@link codecRef}. */
   declare readonly reportedType?: ReportedSqlType;
 
@@ -146,6 +154,7 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
     defineNonEnumerable(this, 'defaultValue', input.defaultValue);
     defineNonEnumerable(this, 'defaultUnreadable', input.defaultUnreadable);
     defineNonEnumerable(this, 'defaultExpressionValue', input.defaultExpressionValue);
+    defineNonEnumerable(this, 'sqlExpressionLiteralFor', input.sqlExpressionLiteralFor);
     defineNonEnumerable(this, 'reportedType', input.reportedType);
     freezeNode(this);
   }
@@ -180,6 +189,7 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
         // rendering.
         ...ifDefined('many', this.many ?? this.codecRef?.many),
         ...ifDefined('codecRef', this.codecRef),
+        ...ifDefined('sqlExpressionLiteralFor', this.sqlExpressionLiteralFor),
       }),
     ];
   }
@@ -214,8 +224,8 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
     return sqlColumnTypesEqual(this, node) && this.nullable === node.nullable;
   }
 
-  /** Why `actual` is not this column: the two types as written and reported, or the nullability of each. */
-  explainMismatch(actual: DiffableNode | undefined): string | undefined {
+  /** Why `actual` is not this column: the two types as written and reported, or the nullability of each. The two sides always hold different values. */
+  explainMismatch(actual: DiffableNode | undefined): MismatchExplanation | undefined {
     if (actual === undefined) return undefined;
     const node = blindCast<
       SqlSchemaIRNode,
@@ -224,13 +234,19 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
     assertNode(node, 'SqlColumnIR', SqlColumnIR.is);
     if (node.storedType === undefined && node.reportedType !== undefined) {
       const reported = node.typeText === '' ? 'has no declared type' : `is ${shownTypeOf(node)}`;
-      return `The database column ${reported}, which no data type in the configured stack declares.`;
+      return differs(
+        `The database column ${reported}, which no data type in the configured stack declares.`,
+      );
     }
     if (!sqlColumnTypesEqual(this, node)) {
-      return `The contract column is ${shownTypeOf(this)} and the database column is ${shownTypeOf(node)}.`;
+      return differs(
+        `The contract column is ${shownTypeOf(this)} and the database column is ${shownTypeOf(node)}.`,
+      );
     }
     if (this.nullable !== node.nullable) {
-      return `The contract column is ${nullability(this)} and the database column is ${nullability(node)}.`;
+      return differs(
+        `The contract column is ${nullability(this)} and the database column is ${nullability(node)}.`,
+      );
     }
     return undefined;
   }
@@ -256,6 +272,10 @@ export function sqlColumnTypesEqual(a: SqlColumnType, b: SqlColumnType): boolean
 function shownTypeOf(column: SqlColumnIR): string {
   const text = `${column.typeText}${column.many === true ? '[]' : ''}`;
   return text.includes('"') ? text : `"${text}"`;
+}
+
+function differs(text: string): MismatchExplanation {
+  return { text, cause: 'differs' };
 }
 
 function nullability(column: SqlColumnIR): string {

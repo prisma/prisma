@@ -145,19 +145,12 @@ export const EARLIEST_POSTGRES_TIMESTAMP_MILLISECONDS = new Date(
   '-004713-11-24T00:00:00Z',
 ).getTime();
 
-function utcText(value: Date, codecId: string, zone: '' | 'Z'): string {
+export function utcTimestamptzText(value: Date, codecId: string): string {
   const milliseconds = value.getTime();
   if (!Number.isFinite(milliseconds) || milliseconds < EARLIEST_POSTGRES_TIMESTAMP_MILLISECONDS) {
     throw new RangeError(
       `${codecId} writes a Date as UTC text and needs a valid Date on or after 4714-11-24 BC, the earliest timestamp PostgreSQL holds; got ${String(value)}`,
     );
   }
-  const iso = value.toISOString();
-  return postgresYearText(zone === 'Z' ? iso : iso.slice(0, -1));
+  return postgresYearText(value.toISOString());
 }
-
-export const utcTimestampText = (value: Date, codecId: string): string =>
-  utcText(value, codecId, '');
-
-export const utcTimestamptzText = (value: Date, codecId: string): string =>
-  utcText(value, codecId, 'Z');

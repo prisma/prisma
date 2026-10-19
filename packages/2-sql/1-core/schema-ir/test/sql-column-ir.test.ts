@@ -171,7 +171,7 @@ describe('SqlColumnIR', () => {
         many: true,
         reportedType: { text: 'integer', kind: undefined, schema: 'pg_catalog', name: 'int4' },
       });
-      expect(column({ many: true }).explainMismatch(database)).toBe(
+      expect(column({ many: true }).explainMismatch(database)?.text).toBe(
         'The contract column is "text[]" and the database column is "integer[]".',
       );
     });
@@ -181,7 +181,7 @@ describe('SqlColumnIR', () => {
         typeText: 'app.status',
         reportedType: { text: 'status', kind: 'enum', schema: 'app', name: 'status' },
       });
-      expect(column({ storedType: int4 }).explainMismatch(database)).toBe(
+      expect(column({ storedType: int4 }).explainMismatch(database)?.text).toBe(
         'The contract column is "text" and the database column is "app.status".',
       );
     });
@@ -193,7 +193,7 @@ describe('SqlColumnIR', () => {
         nullable: false,
         reportedType: { text: 'hstore', kind: undefined, schema: 'public', name: 'hstore' },
       });
-      expect(column().explainMismatch(database)).toBe(
+      expect(column().explainMismatch(database)?.text).toBe(
         'The database column is "hstore", which no data type in the configured stack declares.',
       );
     });
@@ -205,7 +205,7 @@ describe('SqlColumnIR', () => {
         nullable: false,
         reportedType: { text: '"char"', kind: undefined, schema: 'pg_catalog', name: 'char' },
       });
-      expect(column().explainMismatch(database)).toBe(
+      expect(column().explainMismatch(database)?.text).toBe(
         'The database column is "char", which no data type in the configured stack declares.',
       );
     });
@@ -217,21 +217,22 @@ describe('SqlColumnIR', () => {
         nullable: false,
         reportedType: { text: '', kind: undefined, schema: undefined, name: undefined },
       });
-      expect(column().explainMismatch(database)).toBe(
+      expect(column().explainMismatch(database)?.text).toBe(
         'The database column has no declared type, which no data type in the configured stack declares.',
       );
     });
 
     it('names the other column type in a comparison of two contracts', () => {
-      expect(column().explainMismatch(column({ typeText: 'int4', storedType: int4 }))).toBe(
+      expect(column().explainMismatch(column({ typeText: 'int4', storedType: int4 }))?.text).toBe(
         'The contract column is "text" and the database column is "int4".',
       );
     });
 
     it('says which side is nullable when only nullability differs', () => {
-      expect(column().explainMismatch(column({ nullable: true }))).toBe(
-        'The contract column is not nullable and the database column is nullable.',
-      );
+      expect(column().explainMismatch(column({ nullable: true }))).toEqual({
+        text: 'The contract column is not nullable and the database column is nullable.',
+        cause: 'differs',
+      });
     });
   });
 

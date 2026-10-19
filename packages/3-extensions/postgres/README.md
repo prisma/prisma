@@ -37,10 +37,12 @@ The default export must be the value `definePrismaConfig` returns, with the ORM 
 ```typescript
 // db.ts
 import postgres from '@internal/postgres/runtime';
+import { contractFromJson } from '@internal/postgres/static';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
-export const db = postgres<Contract>({ contractJson });
+export const contract = contractFromJson<Contract>(contractJson);
+export const db = postgres({ contract });
 ```
 
 ### Serverless / per-request runtimes
@@ -48,10 +50,12 @@ export const db = postgres<Contract>({ contractJson });
 ```typescript
 // db.ts — module scope: the serverless client holds no database connection.
 import postgresServerless from '@internal/postgres/serverless';
+import { contractFromJson } from '@internal/postgres/static';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
-export const postgres = postgresServerless<Contract>({ contractJson });
+const contract = contractFromJson<Contract>(contractJson);
+export const postgres = postgresServerless({ contract });
 
 // worker.ts — per request: open a connection, close it with `await using`.
 export default {
@@ -149,9 +153,6 @@ A construct is either described exactly or refused. There is no approximate lowe
 | `PSL.PRISMA7_TABLE_COLLISION` | Two models map to the same table in one schema, or a model maps to the table of an implicit many-to-many relation (`_PostToTag`). | Give each model its own table. For a relation's table, rename the model's table with `@@map`, which makes Prisma 7's next migration create the table it never created; renaming the relation instead rebuilds its table as the model's and loses the relation's rows. |
 | `PSL.PRISMA7_UNKNOWN_DEFAULT` | A `@default` value the source cannot read. | Use a literal, an enum member, or one of `autoincrement()`, `now()`, `dbgenerated("<expression>")`, `uuid()`, `ulid()`, `nanoid()`, `cuid()`. |
 | `PSL.PRISMA7_JSON_NULL_DEFAULT_UNSUPPORTED` | A `Json` default of `"null"`, which the contract cannot tell apart from SQL `NULL`. | Remove the `@default` or give it another JSON value; either changes the column default on Prisma 7's next migration. |
-| `PSL.PRISMA7_OPTIONAL_GENERATED_FIELD_UNSUPPORTED` | `@default(uuid())`, another generator, or `@updatedAt` on an optional field. | Remove `@updatedAt` or the generator `@default(...)` and keep the `?`. The database does not change, and both clients then stop filling the value. |
-| `PSL.PRISMA7_UPDATED_AT_WITH_DEFAULT_UNSUPPORTED` | `@updatedAt` combined with `@default`. | Remove the `@default`. `@updatedAt` still sets the value on create and on update, and Prisma 7's next migration removes the column default. |
-| `PSL.PRISMA7_UPDATED_AT_TYPE_UNSUPPORTED` | `@updatedAt` on a `@db.Date`, `@db.Time`, or `@db.Timetz` column, for which Prisma 8 has no generator yet. | Remove `@updatedAt`. Prisma 7's next migration is empty. A required field with no `@default` must then be given on create by both clients, and an optional one stays empty unless a client writes it. With `@default(now())`, the `@default` still sets the value on create. Neither client changes the value on update. |
 | `PSL.PRISMA7_IGNORED_FIELD_REFERENCED` | An `@ignore`d field in `@id` or `@@id`, or one a relation that is not `@ignore` joins on through `fields:` or `references:`. | For a primary key, remove `@ignore` from the field, or replace it with `@@ignore` on the model: either gives an empty Prisma 7 migration, and `@@ignore` keeps the table and removes the model from both clients, while Prisma 7 then requires `@ignore` on every relation field that points to the model. For a relation, remove `@ignore` from the field, or mark the relation field `@ignore` too, which keeps its foreign key and removes the relation field from the Prisma 7 client. |
 | `PSL.PRISMA7_INDEX_ARGUMENT_UNSUPPORTED` | `sort`, `length`, `ops`, or an index type Prisma 8 does not have. | Remove the argument; Prisma 8 indexes carry none. |
 | `PSL.PRISMA7_UNKNOWN_ATTRIBUTE` | An attribute Prisma 7 for Postgres does not have. | Remove it. |
@@ -181,7 +182,7 @@ These changes are not specific to a Prisma 7 schema. They apply to any Postgres 
 Runtime resources are deferred until `db.runtime()` or `db.connect(...)` is called.
 Connection binding can be provided up front (`url`, `pg`, `binding`) or deferred via `db.connect(...)`.
 
-`db.close()` refuses every new call at once with `DRIVER.NOT_CONNECTED` ("Postgres client is closed"), so callers that keep querying cannot keep it waiting. On a client built from `{ url }`, a runtime captured with `db.runtime()` before `close()` is refused at once too, with "Runtime is closed", because the client builds its runtime with the `'at-once'` close policy and closes it. It waits for the queries and transactions already in flight, and a transaction in flight commits. An ORM write whose reload runs after its insert, such as `include(...).create()` or a nested create, must be awaited before `close()`: left pending, its reload is a new call and is refused with "Postgres client is closed". It closes the runtime, and so ends the pool, only for a client built from `{ url }`. A client given a caller's `pg.Pool` or `pg.Client` ends nothing and leaves its runtime open, so a runtime captured from it keeps working and the caller owns that pool's lifecycle. Every call returns the same promise. See [Shutdown](../../../docs/architecture%20docs/subsystems/4.%20Runtime%20&%20Middleware%20Framework.md#shutdown).
+`db.close()` refuses every new call at once with `DRIVER.NOT_CONNECTED` ("Postgres client is closed"), so callers that keep querying cannot keep it waiting. On a client built from `{ url }`, a runtime captured with `db.runtime()` before `close()` is refused at once too, with "Runtime is closed", because the client builds its runtime with the `'at-once'` close policy and closes it. It waits for the queries and transactions already in flight, and a transaction in flight commits. It also waits for every ORM call started before `close()`: a call is one activity, and an activity already open when `close()` is called finishes its work, so an ORM write left pending, including `include(...).create()` and a nested create with its reload, completes. A streaming ORM read such as `all()` starts its call only when the caller reads it; read after `close()`, it is refused with "Postgres client is closed". It closes the runtime, and so ends the pool, only for a client built from `{ url }`. A client given a caller's `pg.Pool` or `pg.Client` ends nothing and leaves its runtime open, so a runtime captured from it keeps working and the caller owns that pool's lifecycle. Every call returns the same promise. See [Shutdown](../../../docs/architecture%20docs/subsystems/4.%20Runtime%20&%20Middleware%20Framework.md#shutdown).
 
 When URL binding is used, pool timeouts are configurable via `poolOptions`:
 
@@ -190,7 +191,7 @@ When URL binding is used, pool timeouts are configurable via `poolOptions`:
 
 Reads are buffered by default. Pass `cursor` (typed `PostgresCursorOptions`, `{ batchSize?: number | undefined }`) to read through a server-side cursor (`pg-cursor`): `{ batchSize: 50 }` streams in batches of 50; `{}` or `{ batchSize: undefined }` in batches of 100; a `batchSize` that is not a positive integer fails the factory call. There is no flag that turns cursors off; leaving the option out does that. A `cursor` value with any other key, or a `batchSize` that is not a positive integer, fails the factory call with `RUNTIME.ARGUMENT_INVALID`. `postgresServerless()` accepts the same option.
 
-Pass `log` (an object with `info`, `warn`, `error` and an optional `debug` method, each taking one event object; `console` works, and the type is `Log` from `@prisma/orm-postgres/family-runtime`) to receive what the runtime logs: the marker-verification warnings `CONTRACT.MARKER_MISSING` and `CONTRACT.MARKER_MISMATCH` from the first query, the warnings `lints()` emits for rules whose severity is `warn`, and the errors a middleware's `activityEnded` or `activityFinalized` hook throws, which the runtime logs and swallows. If `log` has a `debug` method, it also receives debug events, for example when a middleware intercepts a statement. `budgets()` violations never reach `log`: the client runs its runtime in strict mode, so a violation throws, until the client exposes `mode` (TML-3567). Without `log`, the runtime drops these events. `postgresServerless()` accepts the same option.
+Pass `log` (an object with `info`, `warn`, `error` and an optional `debug` method, each taking one event object; `console` works, and the type is `Log` from `@prisma/orm-postgres/family-runtime`) to receive what the runtime logs: the marker-verification warnings `CONTRACT.MARKER_MISSING` and `CONTRACT.MARKER_MISMATCH` from the first query, the warnings `lints()` emits for rules whose severity is `warn`, and the errors a middleware's `activityEnded` or `activityFinalized` hook throws, which the runtime logs and swallows. It also receives the warning `runtime.close.waiting-for-activities` when `close()` is waiting only for activities whose handles were never ended, and the error `runtime.connection.release.error` when the connection taken for an activity's own transaction fails to release after the transaction settles. If `log` has a `debug` method, it also receives debug events, for example when a middleware intercepts a statement. `budgets()` violations never reach `log`: the client runs its runtime in strict mode, so a violation throws, until the client exposes `mode` (TML-3567). Without `log`, the runtime drops these events. `postgresServerless()` accepts the same option.
 
 ### Prepared SQL and ORM rows
 
@@ -262,6 +263,10 @@ Re-exports the Postgres target pack (the value passed as `target:` to `defineCon
 `PostgresServerlessConnection<Contract>` is `PostgresClient<Contract>` without `connect`: `sql`, `raw`, `enums`, `nativeEnums`, `context`, `contract` and `stack` (the same objects as on the serverless client), plus `orm`, `runtime()`, `transaction(fn)`, `prepare(...)`, `close()` and `[Symbol.asyncDispose]`.
 
 Each `connect()` call creates a fresh `pg.Client`, connects it to the database, and wraps it in a fresh runtime. When the database refuses the connection, rejects the credentials, or does not answer within 20 seconds, `connect()` rejects with `DRIVER.CONNECTION_FAILED` and ends the `pg.Client`. No `pg.Pool` is allocated. `close()` and `[Symbol.asyncDispose]` close the runtime once, which ends its `pg.Client`. After that, `db.runtime()` throws `DRIVER.NOT_CONNECTED` ("Postgres connection is closed"). ORM queries, `db.transaction(...)` and `db.prepare(...)` go through the runtime: `close()` waits until the runtime has been idle for one turn of the event loop, then ends the `pg.Client`, and work that starts after that rejects with `DRIVER.NOT_CONNECTED` ("Runtime is closed"). A connection has one database connection, a `pg.Client`, so inside `db.transaction(async (tx) => ...)` run every query through `tx`. Reads are buffered by default. To stream on some paths only, create a second serverless client with `cursor: { batchSize }` and open connections from it only on those paths; they read through `pg-cursor` in batches. On such a connection, finish or `break` a `for await` over a read before sending another query through `db`: the cursor holds the only database connection until the loop ends, so a query inside the loop waits forever. For the same reason, an iterator started by hand with `next()` and never finished or returned holds the client query lock, and `close()` waits for it for ever, as it does for a `db.runtime().connection()` that is never released. Behind Cloudflare Hyperdrive, reads with cursors on hang, so those paths hang there and the paths whose connections come from the serverless client without the option do not.
+
+### `@internal/postgres/static`
+
+`contractFromJson<Contract>(json)` validates an emitted `contract.json` and returns it as the `Contract` type from `contract.d.ts`. Pass the result to `postgres({ contract })`, `postgresServerless({ contract })` or `postgresStatic({ contract })`. It is validated once, however many clients use it. A contract written in TypeScript with `defineContract` is already a typed value and goes to the client directly. The default export, `postgresStatic({ contract })`, builds the static members (`sql`, `raw`, `enums`, `nativeEnums`, `context`, `contract`, `stack`) without loading the database driver.
 
 ## Responsibilities
 

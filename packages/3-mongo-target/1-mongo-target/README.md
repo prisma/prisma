@@ -11,11 +11,11 @@ MongoDB target pack for Prisma 8.
 
 ## Entrypoints
 
-- `./pack`: pure target pack ref used by `@internal/family-mongo` and `@internal/mongo-contract-ts`
+- `./pack`: pure target pack ref used by `@internal/family-mongo` and `@internal/mongo-contract-ts`. It also re-exports `CodecTypes`, `ParameterizedOutputTypesForTypeParams` and `Vector`, the types the pack metadata names, so an application that exports a contract built with this pack can emit declarations
 - `./codecs`: codec descriptors, `mongoDescriptorById`, `mongoStandardCodecs`, and `buildStandardCodecRegistry`
 - `./codec-ids`: codec id constants (`MONGO_STRING_CODEC_ID`, …)
 - `./data-types`: the data types the codecs represent
-- `./codec-types`: the `CodecTypes` map and the `Vector<N>` brand
+- `./codec-types`: the `CodecTypes` map, the `Vector<N>` brand, and `ParameterizedOutputTypesForTypeParams`, the type function that gives a vector field with a `length` type parameter the type `Vector<N>`; both `defineContract` and the emitted `contract.d.ts` apply it
 - `./migration`: factory functions (the `Migration` base class is in `@internal/family-mongo/migration`)
 - `./control`: `mongoTargetDescriptor` and `MongoMigrationRunner` for migration execution; the runner gets its database dependencies from the family instance (`MongoControlFamilyInstance.createRunnerDependencies`), which delegates to the control adapter on the stack
 - `./schema-verify`: pure `verifyMongoSchema(...)` (no DB I/O); composes `contractToMongoSchemaIR` and `diffMongoSchemas` so the runner's post-apply verify step and `MongoFamilyInstance.schemaVerify` agree on "matches the contract" by construction

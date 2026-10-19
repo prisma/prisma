@@ -94,7 +94,7 @@ function describeIssue(issue: SchemaDiffIssue) {
   return {
     outcome: issueOutcome(issue),
     path: issue.path.join('/'),
-    explanation: issue.explanation,
+    explanation: issue.explanation?.text,
   };
 }
 
