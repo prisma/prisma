@@ -22,6 +22,7 @@ describe('mongo contract builder', () => {
     const Lists = model('Lists', {
       collection: 'lists',
       fields: {
+        _id: field.objectId(),
         strict: field.string().many(),
         explicitlyStrict: field.string().many({ elementsNullable: false }),
         nullableElements: field.string().many({ elementsNullable: true }),

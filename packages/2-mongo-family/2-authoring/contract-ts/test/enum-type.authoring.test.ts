@@ -1,23 +1,19 @@
 import type { AnyCodecDescriptor, Codec } from '@internal/framework-components/codec';
 import { dataTypeId } from '@internal/framework-components/codec';
-import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
+import type { TargetPackRef } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { MongoContractSchema } from '@internal/mongo-contract';
+import { mongoDataType } from '@internal/mongo-contract/data-type';
+import { mongoTestCodecDescriptors } from '@internal/mongo-contract/test';
 import { type } from 'arktype';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { defineContract, field, model } from '../src/contract-builder';
 import { enumType, member } from '../src/enum-type';
-
-const mongoFamilyPack = {
-  kind: 'family',
-  id: 'mongo',
-  familyId: 'mongo',
-  version: '0.0.1',
-} as const satisfies FamilyPackRef<'mongo'>;
+import { mongoFamilyPack, mongoTargetPack as mongoTestTargetPack } from './mongo-test-packs';
 
 const identityDescriptor = (id: string): AnyCodecDescriptor => ({
   codecId: id,
-  dataType: dataTypeId('demo/fixture'),
+  dataType: dataTypeId(id.replace(/@\d+$/, '')),
   traits: ['equality'],
   paramsSchema: undefined,
   isParameterized: false,
@@ -32,13 +28,14 @@ const identityDescriptor = (id: string): AnyCodecDescriptor => ({
 });
 
 const mongoTargetPack = {
-  kind: 'target',
-  id: 'mongo',
-  familyId: 'mongo',
-  targetId: 'mongo',
-  version: '0.0.1',
-  defaultNamespaceId: '__unbound__',
-  types: { codecTypes: { codecDescriptors: [identityDescriptor('mongo/string@1')] } },
+  ...mongoTestTargetPack,
+  dataTypes: [
+    ...mongoTestTargetPack.dataTypes,
+    mongoDataType('test/object', { bsonTypes: ['object'] }),
+    mongoDataType('test/date', { bsonTypes: ['string'] }),
+    mongoDataType('test/upper', { bsonTypes: ['string'] }),
+    mongoDataType('test/unequal', { bsonTypes: ['string'] }),
+  ],
 } as const satisfies TargetPackRef<'mongo', 'mongo'>;
 
 const mongoString = { codecId: 'mongo/string@1' as const } as const;
@@ -216,7 +213,7 @@ describe('defineContract() — members compared as the codec stores them', () =>
     types: {
       codecTypes: {
         codecDescriptors: [
-          identityDescriptor('mongo/string@1'),
+          ...mongoTestCodecDescriptors,
           identityDescriptor('test/object@1'),
           dateDescriptor,
         ],
@@ -370,7 +367,7 @@ describe('defineContract() — codec-encoded value set', () => {
   };
   const packWithEncoders = {
     ...mongoTargetPack,
-    types: { codecTypes: { codecDescriptors: [upperDescriptor] } },
+    types: { codecTypes: { codecDescriptors: [...mongoTestCodecDescriptors, upperDescriptor] } },
   } satisfies TargetPackRef<'mongo', 'mongo'>;
 
   const Role = enumType('Role', upperCodec, member('Admin', 'admin'), member('Author', 'author'));
@@ -437,7 +434,7 @@ describe('an enum whose codec does not declare the equality trait', () => {
       types: {
         codecTypes: {
           codecDescriptors: [
-            identityDescriptor('mongo/string@1'),
+            ...mongoTestCodecDescriptors,
             { ...identityDescriptor('test/unequal@1'), traits: [] },
           ],
         },

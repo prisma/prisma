@@ -74,6 +74,7 @@ import type { BsonInputValue, BsonValue } from '@internal/mongo-value';
 import { canonicalStringify } from '@internal/utils/canonical-stringify';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
+import { assertCollectionValidatorSources } from './collection-validator-checks';
 import { contractError } from './contract-errors';
 import type { EnumTypeHandle } from './enum-type';
 
@@ -2510,9 +2511,8 @@ function buildContractFromDefinition<
 
   const builtModels = buildModels(definition.models);
   const builtValueObjects = buildValueObjects(definition.valueObjects);
-  const roots = definition.roots
-    ? normalizeRoots(definition.roots)
-    : deriveRoots(definition.models);
+  const collectionRoots = deriveRoots(definition.models);
+  const roots = definition.roots ? normalizeRoots(definition.roots) : collectionRoots;
   // The Mongo `defineContract` input no longer accepts a `capabilities`
   // block. The build-time matrix is empty here; CLI-time `enrichContract`
   // layers in adapter / driver / extension caps. `profileHash` continues
@@ -2577,8 +2577,15 @@ function buildContractFromDefinition<
     }
   }
 
+  assertCollectionValidatorSources({
+    models: builtModels,
+    valueObjects: builtValueObjects,
+    enums: builtEnums,
+    roots: collectionRoots,
+    lookups,
+  });
   const validators = deriveCollectionValidators({
-    roots: deriveRoots(definition.models),
+    roots: collectionRoots,
     models: builtModels,
     lookups,
     valueObjects: builtValueObjects,
