@@ -12,4 +12,5 @@ model Post {
   count     Int      @default(autoincrement())
   label     String   @default("uuid()")
   // legacy String @default(uuid())
+  trailing  String   @default(ulid()) // was @default(ulid())
 }

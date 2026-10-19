@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { cpSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { isPrismaNextSchema } from '@internal/psl-parser';
 import { dirname, join } from 'pathe';
 import { afterAll, describe, expect, it } from 'vitest';
 
@@ -38,7 +39,7 @@ function run(dir: string, files: readonly string[]) {
 }
 
 describe('rewrite-default-generators', () => {
-  it('rewrites every client function in @default of a Prisma 8 file to @onCreate, comments included, and leaves every other file unchanged', () => {
+  it('rewrites every client function in @default of a Prisma 8 file to @onCreate, keeping each call as written and leaving comments and every other file unchanged', () => {
     const dir = copyBefore();
     const files = [
       'schema.prisma',
@@ -58,7 +59,7 @@ describe('rewrite-default-generators', () => {
       status: 0,
       stdout: [
         'schema.prisma: rewrote 9 @default calls to @onCreate.',
-        'older-header.prisma: rewrote 1 @default calls to @onCreate.',
+        'older-header.prisma: rewrote 1 @default call to @onCreate.',
         'unchanged.prisma: no client function in @default; left unchanged.',
         'prisma7.prisma: has no "// use prisma-8" directive, so it is not a Prisma 8 schema; left unchanged. A Prisma 7 schema keeps @default(uuid()).',
         'prisma7-models.prisma: has no "// use prisma-8" directive, so it is not a Prisma 8 schema; left unchanged. A Prisma 7 schema keeps @default(uuid()).',
@@ -85,9 +86,24 @@ describe('rewrite-default-generators', () => {
       files: files.map((name) => written[name]),
     }).toEqual({
       status: 0,
-      stdout: `${files.map((name) => `${name}: rewrote 1 @default calls to @onCreate.`).join('\n')}\n`,
+      stdout: `${files.map((name) => `${name}: rewrote 1 @default call to @onCreate.`).join('\n')}\n`,
       files: files.map((name) => after[name]),
     });
+  });
+
+  it('treats a file as Prisma 8 exactly when contract emit does', () => {
+    const dir = copyBefore();
+    const files = Object.keys(filesOf(dir)).sort();
+    const before = filesOf(dir);
+    const skipped = new Set(
+      run(dir, files)
+        .stdout.split('\n')
+        .filter((line) => line.includes('is not a Prisma 8 schema'))
+        .map((line) => line.slice(0, line.indexOf(':'))),
+    );
+    expect(files.map((name) => ({ name, skipped: skipped.has(name) }))).toEqual(
+      files.map((name) => ({ name, skipped: !isPrismaNextSchema(before[name] ?? '') })),
+    );
   });
 
   it('is idempotent', () => {

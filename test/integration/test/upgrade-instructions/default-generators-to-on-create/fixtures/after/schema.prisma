@@ -7,9 +7,10 @@ model Post {
   ulid      String   @onCreate(ulid())
   nanoid    String   @onCreate(nanoid())
   short     String   @onCreate(nanoid(16))
-  spaced    String   @onCreate(uuid( 7 ))
+  spaced    String   @onCreate( uuid( 7 ) )
   createdAt DateTime @default(now())
   count     Int      @default(autoincrement())
   label     String   @default("uuid()")
-  // legacy String @onCreate(uuid())
+  // legacy String @default(uuid())
+  trailing  String   @onCreate(ulid()) // was @default(ulid())
 }
