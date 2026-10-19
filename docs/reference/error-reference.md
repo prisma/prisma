@@ -279,7 +279,7 @@ A model declares `@@check` / `check()` but is a single-table-inheritance variant
 
 ### CONTRACT.COLLECTION_INVALID
 
-A Mongo model's collection attachment is wrong: the model declares `indexes`, `collectionOptions`, or `controlPolicy` but has no collection, or a single collection has `collectionOptions` / `controlPolicy` declared by more than one model. Also raised for a root model (a model with a collection, no owner and no base) without an `_id` field stored as BSON type `objectId` (`reason: 'document-id-not-objectId'`): MongoDB adds an `objectId` `_id` to every document it inserts without one, so the collection validator would reject every insert. The Mongo PSL interpreter reports the same case as `PSL_MONGO_ID_REQUIRED`. Raised by the Mongo `defineContract` builder. Payload: `modelName`, `collection`, `reason`.
+A Mongo model's collection attachment is wrong: the model declares `indexes`, `collectionOptions`, or `controlPolicy` but has no collection, or a single collection has `collectionOptions` / `controlPolicy` declared by more than one model. Also raised for a root model (a model with a collection, no owner and no base) whose field stored as `_id` is not stored as BSON type `objectId` (`reason: 'document-id-not-objectId'`): every collection validator requires an `objectId` `_id`, which MongoDB adds to every document inserted without one. A model may leave `_id` out. The Mongo PSL interpreter reports the same case, at the field, as `PSL_MONGO_ID_REQUIRED`. Raised by the Mongo `defineContract` builder. Payload: `modelName`, `collection`, `reason`.
 
 ### CONTRACT.CONSTRAINT_INVALID
 
@@ -639,7 +639,7 @@ A command advancing a ref (`db sign`, `db init`, `db update`, `db migrate --adva
 
 ### CONTRACT.VALIDATION_FAILED
 
-Aggregate contract validation failed: structural validation of the contract JSON (`ContractValidationError` with a `phase` of structural/domain/storage), semantic validation during `buildContract`, or storage/model validators rejecting the built contract. The SQL validators also refuse a domain field with no storage entry, an execution default on a column no field maps, and a relation that joins on a name that is not a field of its model (the target side of a many-to-many relation names junction columns and is exempt). Raised at emit/authoring time and whenever a contract is loaded and validated. Also raised by `migration new` when the emitted contract has no `storageHash`; that site has no meta. Payload: `errors` (aggregate site); the error class also carries `phase`.
+Aggregate contract validation failed: structural validation of the contract JSON (`ContractValidationError` with a `phase` of structural/domain/storage), semantic validation during `buildContract`, or storage/model validators rejecting the built contract. The SQL validators also refuse a domain field with no storage entry, an execution default on a column no field maps, and a relation that joins on a name that is not a field of its model (the target side of a many-to-many relation names junction columns and is exempt). Raised at emit/authoring time and whenever a contract is loaded and validated. Also raised by `migration new` when the emitted contract has no `storageHash`; that site has no meta. A MongoDB contract read from `contract.json` is also refused when a collection validator does not require `_id` as BSON type `objectId` in every branch, or when an embed relation targets a model with variants. Payload: `errors` (aggregate site); the error class also carries `phase`.
 
 ### CONTRACT.VARIANT_COLUMN_NOT_ON_BASE_TABLE
 

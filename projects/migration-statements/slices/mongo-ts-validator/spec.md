@@ -35,7 +35,8 @@ Will, 2026-10-12: contracts written in either form must behave the same. Without
 | Its storage hash | Ignores field names | Changes once; includes the fields |
 | `migration plan` / `db update` after upgrading | — | One `collMod` per collection adds the validator (`widening`), as PSL users got when validators were closed |
 | `migration plan` renaming or removing a field on a TypeScript contract | Refused (temporary) | Planned, as on PSL |
-| A TypeScript model without an `ObjectId` `_id` | Accepted | Refused when the contract is built, as PSL refuses it |
+| A model without an `_id` field | TypeScript: accepted; PSL: refused | Accepted on both; the validator requires an `objectId` `_id` |
+| A model with an `_id` stored as another BSON type | TypeScript: accepted; PSL: refused | Refused when the contract is built, on both |
 | A TypeScript enum whose codec stores a BSON type a validator cannot list | Accepted | Refused when the contract is built, as PSL refuses it |
 | PSL contracts | — | Unchanged, byte for byte |
 
@@ -43,7 +44,7 @@ Will, 2026-10-12: contracts written in either form must behave the same. Without
 
 1. **No opt-out.** PSL has none; parity means TypeScript gets none. A user who needs an open collection uses a control policy other than `managed`, as today.
 2. **Existing documents are the main risk.** MongoDB does not check existing documents when `collMod` adds a validator, but every later write to a document must produce a valid one. A stored document with an extra field or a wrong type can no longer be updated. The upgrade instructions say so, give a `$jsonSchema` query that lists the documents that would fail, and say to fix them before applying the migration.
-3. **Models without `_id` are refused.** A closed validator without `_id` rejects every insert, because MongoDB adds `_id`. So the TypeScript builder refuses such a model, as PSL does, rather than writing a validator that cannot work.
+3. **The build adds `_id`; a declared `_id` must be an ObjectId.** Every collection validator requires an `objectId` `_id`, so a model may leave `_id` out on either surface, and a field stored as `_id` with any other BSON type is refused, by one check of the built contract that both surfaces call (decided by Will, 2026-10-19). MongoDB adds an `objectId` `_id` to every document inserted without one, so this validator accepts every document the ORM inserts, and MongoDB cannot change an `_id` in place.
 
 4. **Embedded models are validated as nested objects.** The TypeScript builder can embed one model inside another through an embed relation; PSL MongoDB has no such models. A closed validator built from a model's own fields alone would reject every document that holds an embedded model, so the embedded model's fields are validated as a nested closed object, as a value object's are (decided by the orchestrator, 2026-10-15, from the PR 1 design review).
 5. **Decided in PR 2:**

@@ -2,7 +2,7 @@
 changes:
   - id: mongo-typescript-contract-validator
     summary: |
-      A MongoDB contract written in TypeScript with `defineContract` now gets the same closed collection validator as a PSL contract, and its storage hash changes once. `defineContract` refuses what a validator cannot describe: a field whose codec has no MongoDB data type, a root model without an `_id` stored as BSON type `objectId`, an enum a validator cannot list, and an embed relation to a model with variants. MongoDB does not check existing documents when a validator is added, so find and fix the documents the validator would refuse, then apply it with `prisma db update`, or with `prisma migration plan` and `prisma db migrate`. Writing an enum in a TypeScript contract to avoid the validator, as the rc.17 notes advised, no longer works.
+      A MongoDB contract written in TypeScript with `defineContract` now gets the same closed collection validator as a PSL contract, and its storage hash changes once. `defineContract` refuses what a validator cannot describe: a field whose codec has no MongoDB data type, a model whose `_id` field is not stored as BSON type `objectId` (a model may leave `_id` out), an enum a validator cannot list, and an embed relation to a model with variants. MongoDB does not check existing documents when a validator is added, so find and fix the documents the validator would refuse, then apply it with `prisma db update`, or with `prisma migration plan` and `prisma db migrate`. Writing an enum in a TypeScript contract to avoid the validator, as the rc.17 notes advised, no longer works.
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
@@ -24,10 +24,9 @@ Building the contract fails with one of these errors. Change the contract until 
 - A field whose codec has no MongoDB data type:
   `Model "Place" field "location" uses codec "geo/point@1", which no pack in the contract provides, so the collection validator cannot give its BSON type.`
   List the extension that provides the codec in `extensions` in `defineContract`.
-- A root model (a model with a collection, not a variant and not embedded) without an `_id` stored as BSON type `objectId`:
-  `Model "User" has no _id field. MongoDB adds an objectId _id to every document it inserts without one, so a collection validator without it rejects every insert.`
-  `Model "User" has an _id field stored as BSON type string. An _id must be stored as BSON type objectId: MongoDB adds an objectId _id to a document inserted without one, and the collection validator would refuse that document.`
-  Declare `_id: field.objectId()`.
+- A model whose `_id` field is not stored as BSON type `objectId`, such as `_id: field.string()`, `field.int32()`, `field.date()`, `field.binary()` or `field.bson()`:
+  `Model "User" field "_id" holds the document id as BSON type string, but an _id must be stored as BSON type objectId: every collection validator requires an objectId _id, which MongoDB adds to every document inserted without one.`
+  Declare `_id: field.objectId()`, or leave `_id` out: every collection validator requires an `objectId` `_id`, and MongoDB adds one to each document inserted without it. If the collection already holds documents with another `_id`, follow [Keeping documents whose `_id` is not an ObjectId](#keeping-documents-whose-_id-is-not-an-objectid) first.
 - An enum a validator cannot list:
   `enumType("Level") codec "mongo/int64@1" stores BSON type long, which a collection validator cannot list as an enum value. Use a codec whose BSON type is string, int, double, bool, object or array.`
   A member whose stored value is not of that type is refused too: `enumType("Ratio") member "All" is stored as "1", which a collection validator cannot list as a double. A member of a double enum must be a finite number.`
@@ -35,6 +34,23 @@ Building the contract fails with one of these errors. Change the contract until 
   `Relation "Owner.task" embeds model "Task", which has variants. The ORM reads and writes only the base fields of an embedded model, so an embedded model cannot have variants.`
 
 The rc.17 upgrade notes advised writing an enum over a codec such as `mongo/int64@1` or `mongo/date@1` in a TypeScript contract, which had no validator. That no longer works: give the enum a codec whose BSON type is string, int, double, bool, object or array.
+
+### Keeping documents whose `_id` is not an ObjectId
+
+MongoDB cannot change a document's `_id` in place. To keep the data of a collection whose documents have another `_id`, copy each document into a new document with an `objectId` `_id`, before you apply the validator. For example, for collection `events`, keeping the old id in a field `legacyId`:
+
+1. In the contract, declare `_id: field.objectId()` (or leave `_id` out), and add `legacyId: field.string()` (with the old `_id`'s field type) if code or other documents still use the old id.
+2. In `mongosh`, copy the documents into a new collection with new ids:
+
+   ```js
+   db.events.find().forEach((doc) => {
+     const { _id, ...rest } = doc;
+     db.events_copy.insertOne({ ...rest, legacyId: _id });
+   });
+   ```
+
+3. Change every document that refers to an event by its old id to refer to its new `_id`, looking it up by `legacyId`.
+4. Replace the old collection with the copy: `db.events_copy.renameCollection('events', true)`. This drops the old collection and its indexes; step 4 of [Steps](#steps) creates the contract's indexes again.
 
 ### The risk: documents already stored
 

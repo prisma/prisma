@@ -9,7 +9,7 @@ list relation over it (`categoryIDs String[]` + `categories CategoryManyToMany[]
 and the mirror on the category side). Prisma 8's mongo authoring cannot express this shape.
 Confirmed empirically by emitting the faithful fixture (`contract emit`), which rejects it with:
 
-- `PSL_MONGO_ID_REQUIRED` — each model must declare `id ObjectId @id @map("_id")`; the suite uses `String @id @map("_id")` with arbitrary string ids (`'1-cat-a'`).
+- `PSL_MONGO_ID_REQUIRED` — a field stored as `_id` must be an `ObjectId`; the suite uses `String @id @map("_id")` with arbitrary string ids (`'1-cat-a'`).
 - `PSL_ORPHANED_BACKRELATION` — "Backrelation list field ... has no matching FK-side relation ... use an explicit join model for many-to-many." Prisma 8 has no two-way embedded implicit m2m; the only supported m:n is an explicit junction model with two FKs, which is a *different* schema shape (different collections, no `categoryIDs`/`postIDs` scalar arrays, different result shapes) — porting via a junction would change the subject under test.
 
 Additionally the mongo ORM `create` accepts only a flat document — there is no nested-relation
