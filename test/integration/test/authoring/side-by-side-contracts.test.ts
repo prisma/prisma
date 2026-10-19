@@ -272,27 +272,7 @@ describe('side-by-side contract examples', () => {
         enrichContract(providerResult.value, frameworkComponents),
       );
 
-      const stripValidatorFields = (contract: typeof normalizedTs) => {
-        const storage = contract.storage as unknown as Record<string, unknown>;
-        const namespaces = storage['namespaces'] as Record<string, Record<string, unknown>>;
-        const strippedNamespaces: Record<string, unknown> = {};
-        for (const [nsId, ns] of Object.entries(namespaces)) {
-          const entries = ns['entries'] as { collection: Record<string, Record<string, unknown>> };
-          const collections = entries.collection;
-          const strippedCollections: Record<string, unknown> = {};
-          for (const [name, coll] of Object.entries(collections)) {
-            const { validator: _, ...rest } = coll;
-            strippedCollections[name] = rest;
-          }
-          strippedNamespaces[nsId] = {
-            ...ns,
-            entries: { ...(ns['entries'] as object), collection: strippedCollections },
-          };
-        }
-        const { storageHash: _sh, ...restStorage } = storage;
-        return { ...contract, storage: { ...restStorage, namespaces: strippedNamespaces } };
-      };
-      expect(stripValidatorFields(normalizedTs)).toEqual(stripValidatorFields(normalizedPsl));
+      expect(normalizedTs).toEqual(normalizedPsl);
 
       const mongoSerializeContract: SerializeContract = (contract) =>
         mongoTargetDescriptor.contractSerializer.serializeContract(contract as MongoTargetContract);
@@ -305,30 +285,7 @@ describe('side-by-side contract examples', () => {
         ...mongoContractCanonicalizationHooks,
       });
 
-      const stripForComparison = (json: string) => {
-        const parsed = JSON.parse(json) as Record<string, unknown>;
-        const storage = parsed['storage'] as Record<string, unknown>;
-        const namespaces = storage['namespaces'] as Record<string, Record<string, unknown>>;
-        const strippedNamespaces: Record<string, unknown> = {};
-        for (const [nsId, ns] of Object.entries(namespaces)) {
-          const entries = ns['entries'] as { collection: Record<string, Record<string, unknown>> };
-          const collections = entries.collection;
-          const strippedCollections: Record<string, unknown> = {};
-          for (const [name, coll] of Object.entries(collections)) {
-            const { validator: _, ...rest } = coll;
-            strippedCollections[name] = rest;
-          }
-          strippedNamespaces[nsId] = {
-            ...ns,
-            entries: { ...(ns['entries'] as object), collection: strippedCollections },
-          };
-        }
-        const { storageHash: _sh, ...restStorage } = storage;
-        return { ...parsed, storage: { ...restStorage, namespaces: strippedNamespaces } };
-      };
-      expect(stripForComparison(emittedTs.contractJson)).toEqual(
-        stripForComparison(emittedPsl.contractJson),
-      );
+      expect(JSON.parse(emittedTs.contractJson)).toEqual(JSON.parse(emittedPsl.contractJson));
 
       const emittedContractJson = parseContractJson(emittedPsl.contractJson);
       const validatedContract = validateEmittedMongoContract(emittedContractJson);
