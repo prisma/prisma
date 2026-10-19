@@ -10,6 +10,9 @@
 | c | 1 | `8b54721858..66c520ef88` | 0 | 1 | 2 | ANOTHER ROUND NEEDED |
 | c | 2 | `3d48d80f40..93cd771cb7` | 0 | 1 | 2 | ANOTHER ROUND NEEDED |
 | d | 1 | `f193c86c9a` | 0 | 0 | 3 | SATISFIED |
+| c | 3 | `55dbe5ff17` | 0 | 0 | 0 | SATISFIED |
+| d | 2 | `55dbe5ff17`, `5177521019` | 0 | 0 | 0 | SATISFIED |
+| e | 1 | `4fd312cd43` | 0 | 0 | 0 | SATISFIED |
 
 ## Dispatch a, round 1
 
@@ -296,5 +299,31 @@ Change: for an `identity` check, write the rendered name without the extra quote
 Where: `packages/3-targets/6-adapters/postgres/test/migrations/alter-column-type-postcheck.integration.test.ts`.
 
 Change: add a case with a pack-shaped data type declared in the test, as my probe did, so the catalog-text check is covered for a type outside the target's own list.
+
+Verdict: SATISFIED.
+
+## Dispatch c, round 3
+
+S4-c-R2-1 is fixed: `DefaultResolver` now says `{ typeText, many }`. S4-c-R2-2 is fixed: every change names a published path. I checked each path against the public packages' `package.json` exports, and `pgInt4` in the example is exported from `@prisma/orm-postgres/target/data-types`. S4-c-R2-3 is fixed: the summary and the section say that a column built by hand needs `dataType`, `storedType` and `typeParams`, and the example sets them. The detection test still passes (30 tests). No new findings.
+
+Verdict: SATISFIED.
+
+## Dispatch d, round 2
+
+S4-d-R1-1 is fixed: the fragment says that `call.checkType` is now a `ColumnTypeCheck` and how to read it. S4-d-R1-2 is fixed: `columnTypeCheckText` puts catalog text in double quotes and writes an enum's quoted name as it is, so an enum postcheck reads `verify column "c" has type "app"."status"`. Catalog-text descriptions are unchanged, so no recorded postcheck description moves. S4-d-R1-3 is fixed: the PGlite test declares a pack-shaped `vector({length})` type and changes `int4` to `vector(3)`, `vector(2)` to `vector(3)` and `int4[]` to `vector(3)[]`. Each postcheck fails before the change and holds after it. The file passes (5 tests). No new findings.
+
+Verdict: SATISFIED.
+
+## Dispatch e, round 1
+
+The brief is built as amended. `prisma7PostgresTypes` names a data type and parameters for each Prisma 7 scalar and `@db.*` type. `prisma7PostgresTypeMap` is computed from it: for each entry, the constructor marked `inferred` for that data type, with every parameter as an argument, through `authoringTypeConstructorArguments`. `EXISTING_COLUMN_DATE_TIME_TYPES` and its file are deleted. The first row 4 grep now returns nothing.
+
+- **The computed table matches the old one entry for entry.** The new test asserts the whole computed table as a literal. I compared that literal with the deleted table: all 9 scalars and 20 native types have the same constructor name and the same arguments, including `Numeric('65','30')`, `TimestampString('3')`, `Char('1')` and the four date and time string constructors.
+- **The deleted `type-constructors` test loses nothing.** It checked that each `EXISTING_COLUMN_DATE_TIME_TYPES` name is a constructor marked `inferred`. Now every entry's constructor is found through the marked constructors, so a date and time entry cannot name an unmarked one. The table test pins the resulting names.
+- **No Prisma 7 output moved.** The `contract-prisma7` tests pass against their committed expected contracts. The `prisma7-source`, `prisma7-migration-ledger` and `infer-roundtrip-fidelity.prisma7-defaults` journeys and the golden planner test pass (10 files, 758 tests). `fixtures:check` is clean, and `git status` is clean afterwards.
+
+The table is computed when the module loads. Only `prisma7-binding` imports it, and only the Prisma 7 config entry point loads that, so the cost is paid only when a project reads a Prisma 7 schema. An unmarked constructor would throw an `InternalError` at load, which the table test would catch first.
+
+Checks run: `pnpm build`, root `pnpm typecheck`, `lint:deps` and `lint:framework-vocabulary` pass. Tests pass for the Postgres target, `contract-prisma7`, the Postgres adapter and the Postgres extension.
 
 Verdict: SATISFIED.
