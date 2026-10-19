@@ -99,3 +99,33 @@ Run on 2026-10-19 by the orchestrator with `mongosh` 2.13.0 (`pnpm dlx mongosh@2
 | Check | `$lookup` from `tickets` to `events` on `eventId` | A1 → Launch, B2 → Meetup, B3 → Meetup |
 
 Not covered here: `db update` recreating the contract's indexes after the rename. Path C's ORM run covers the rest of the upgrade.
+
+### Path C, second run: stopping writes, collection options and indexes
+
+**Date:** 2026-10-19. The note now says three more things: stop writes first, create the copy with the old collection's options, and what to do for a time-series collection. This run checks them, on mongodb-memory-server (MongoDB 8.2.6, port 27933). As in the first run, the `mongosh` snippets ran through the Node driver shim. The new first line of step 2 (`db.createCollection('events_copy', db.getCollectionInfos({ name: 'events' })[0].options)`) ran as its driver equivalent, `createCollection('events_copy', (await listCollections({ name: 'events' }).toArray())[0].options)`. It still needs one run in real `mongosh`.
+
+**Which options copy.** For each of these, I created a collection with the option, read its options back, created a second collection with them, and renamed the second over the first with `dropTarget`:
+
+| Option | Copied | Renamed over the old collection |
+| --- | --- | --- |
+| collation | yes, with MongoDB's defaults filled in | yes |
+| `capped` with `size` | yes | yes |
+| clustered index | yes | yes |
+| clustered index with `expireAfterSeconds` | yes | yes |
+| change stream pre- and post-images | yes | yes |
+| time series | yes | **no:** `cannot rename view`. The note now says to drop `events`, create it again with the saved options, copy the documents back and drop the copy. I ran that through the driver: the documents came back with ObjectId `_id`s and the time-series options were kept. |
+
+**Indexes come back after the rename.**
+- Before: `events` had string `_id`s and a unique index on `name`; `tickets` referred to the events by their old id. This state was created directly in the database.
+- Steps 1 to 4 of the section: the copy, the reference update and the rename all succeeded. After the rename, `events` had only its `_id` index.
+- The note's Steps: `contract emit`; the query listed `events 0` and `tickets 0`; `db update` planned `index.events.create(name:1)` (additive) and `validator.events.add` and `validator.tickets.add` (widening), and reported "Applied 3 operation(s)".
+- After: `events` has its unique index on `name` again. `db verify` is clean, and `tickets.include('event')` through the ORM returns `A1 → Launch` and `B2 → Party`.
+
+**A defect this run found, which this change does not cause.** A TypeScript contract with `collectionOptions: { collation: … }` on a collection cannot be applied:
+- With the builder from `main`, and with this branch, on a fresh database, the first `db update` fails with "Operation index.events.create(name:1) failed during postcheck" when the collection also declares an index.
+- A second `db update` then fails with "Cannot change immutable collection option 'collation' on events".
+- With the collation removed, both runs succeed. With the index removed but the collation kept, the second run still fails.
+
+The planner seems to compare the collation the contract states with the full collation MongoDB reports back, which MongoDB fills with defaults. This needs its own ticket.
+
+Logs: `wip/pr2-r2-qa/`.

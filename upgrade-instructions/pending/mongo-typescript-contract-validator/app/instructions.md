@@ -37,17 +37,22 @@ The rc.17 upgrade notes advised writing an enum over a codec such as `mongo/int6
 
 ### Keeping documents whose `_id` is not an ObjectId
 
-MongoDB cannot change a document's `_id` in place. To keep the data of a collection whose documents have another `_id`, copy each document into a new document with an `objectId` `_id`, before you apply the validator. For example, for collection `events`, keeping the old id in a field `legacyId`:
+MongoDB cannot change a document's `_id` in place. To keep the data of a collection whose documents have another `_id`, copy each document into a new document with an `objectId` `_id`, before you apply the validator. For example, for collection `events`, keeping the old id in a field `legacyId`.
+
+Stop the applications that write to `events`, or to a collection that refers to it, until step 4 is done. A document written to `events` after step 2 is lost in step 4.
 
 1. In the contract, declare `_id: field.objectId()` (or leave `_id` out). If code still uses the old id, add `legacyId: field.string().optional()` (with the old `_id`'s field type), optional so new documents can leave it out. Change every field that refers to the model by its id to `field.objectId()`, for example `eventId` on a model with `rel.belongsTo(Event, { from: 'eventId', to: Event.ref('_id') })`.
-2. In `mongosh`, copy the documents into a new collection with new ids:
+2. In `mongosh`, create the new collection with the options of `events`, such as its collation, then copy the documents into it with new ids:
 
    ```js
+   db.createCollection('events_copy', db.getCollectionInfos({ name: 'events' })[0].options);
    db.events.find().forEach((doc) => {
      const { _id, ...rest } = doc;
      db.events_copy.insertOne({ ...rest, legacyId: _id });
    });
    ```
+
+   The options include every collection option MongoDB keeps, including a collation, `capped`, a clustered index, time-series options and change stream pre- and post-images. They also include a validator if `events` has one; a contract written in TypeScript gave it none.
 
 3. Change every document that refers to an event by its old id to refer to its new `_id`, looking it up by `legacyId`. For documents of collection `tickets` whose `eventId` holds the old id:
 
@@ -57,7 +62,7 @@ MongoDB cannot change a document's `_id` in place. To keep the data of a collect
    });
    ```
 
-4. Replace the old collection with the copy: `db.events_copy.renameCollection('events', true)`. This drops the old collection and its indexes; step 4 of [Steps](#steps) creates the contract's indexes again.
+4. Replace the old collection with the copy: `db.events_copy.renameCollection('events', true)`. This drops the old collection and its indexes; step 4 of [Steps](#steps) creates the contract's indexes again. MongoDB cannot rename a time-series collection; for one, instead drop `events`, create it again with the options you read in step 2, copy the documents back from `events_copy`, and drop `events_copy`.
 
 ### The risk: documents already stored
 
