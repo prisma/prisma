@@ -14,6 +14,7 @@
 | d | 2 | `55dbe5ff17`, `5177521019` | 0 | 0 | 0 | SATISFIED |
 | e | 1 | `4fd312cd43` | 0 | 0 | 0 | SATISFIED |
 | f | 1 | `dad74de99b..bce7b3b5f9`, ADR 254 `ae9e5c08e8` | 0 | 0 | 3 | SATISFIED |
+| branch review fixes | 1 | `3d35c66b22..50e6c2c3e4`, `77d85c5ab0`, ADR 254 `9e86f95876` | 0 | 0 | 0 | SATISFIED |
 
 ## Dispatch a, round 1
 
@@ -383,5 +384,46 @@ Change: assert there that the whole issue list is empty, as my temporary change 
 Where: `projects/data-types-completion/plan.md`, the slice 4 `nativeType` row. Its output includes `test/integration/test/upgrade-instructions/column-types-through-data-types/detection.test.ts`, which this slice added, but the allowance names only the earlier upgrade script's tests.
 
 Change: add this slice's upgrade detection test to the allowance.
+
+Verdict: SATISFIED.
+
+## Branch review fixes, round 1
+
+The rulings are in `slices/4/briefs/review-fixes.md` and the findings in `slices/4/reviews/`. Each item closes its finding as ruled:
+
+- **D01** (`58decfab13`): `SqlColumnIR.dataType` is deleted. The `.dataType` reads that remain in production are of contract `StorageColumn`s (a string id), not of schema IR columns.
+- **D02** (`f862b52584`): the normal-form parameters are `storedTypeParams`, and their doc says DDL writes the parameters as written, from `codecRef`.
+- **D03** (`1cd432bb93`): `isSafeTypeWidening` takes two `SqlColumnType`s and reads `storedType` and `storedTypeParams` on both sides. `columnType`, `introspectedColumnType` and the `InternalError` are deleted. See the note below.
+- **D04** (`e3f473064f`): `sameSqlColumnType` in sql-contract compares the stored type id, parameters in normal form, and list-ness. It is used by the many-to-many check and by the field-event planner, which separately compares the parameters the codec keeps for itself. See the note below.
+- **D05** (`41ac47142a`): `typeText` says what it holds on each side and who reads it: display, the `resolveDefault` hook, and SQLite's default reader. It also says nothing compares it. DDL no longer reads it since dispatch c, so leaving DDL out is correct.
+- **D08** (`ae17c7b4ea`): `ResolvedSqlType.dataType` is the `SqlDataType`. The second lookups are gone, and `e32708f503` adds the upgrade text.
+- **F03** (`1c38fc5324`): `shownTypeOf` does not wrap text that already contains double quotes (`"char"`), and an empty SQLite declared type reads `The database column has no declared type, which no data type in the configured stack declares.` Both are tested.
+- **F04** (`8f325d46ea`): see the note below.
+- **F01** (`749566698f`): both control adapter constructors have before-and-after samples at the published paths, with the advice to pass the stack's declared types when it has extensions.
+- **F02** (`50e6c2c3e4`): the app text says what `typeText` holds: the `format_type` text, lower-cased on SQLite, an enum named as a contract names it, and a type off the search path keeping its schema. It also covers `CONTRACT.DEFAULT_INVALID`'s `meta.typeText`.
+- **The fixes for my own findings:**
+  - `ba0083be2c` names an enum column as a contract does, so a mismatch writes both sides alike (S4-f-R1-1).
+  - `f314203434` makes the matrix assert no issue at all before it changes any column (S4-f-R1-2).
+  - `3d35c66b22` updates the grep allowance (S4-f-R1-3).
+- **D06, D07, D09 and D10** (`77d85c5ab0`): D06 is recorded in `deferred.md`. D07 is not taken, as ruled. The ADR comparison paragraph now sits beside storage types. The plan's dispatch e row says "every parameter the entry names".
+
+**D03's behaviour change is right, and a PGlite test cannot reach it.** `typeChangeCallStrategy` runs only when there is a `fromContract` and a `convert` statement names the column. `migration plan` builds the start schema from the previous contract, so its columns always carry a stored type. `db update` refuses `convert` and `backfill` statements before planning (`errorStatementNeedsMigrationFile` in `cli/src/orm/db/update.ts`). So no CLI path brings an introspected column to this strategy. The old `InternalError` was reachable only from a hand-built unit test, and that test now shows the safe widening altered in place, as a contract column always was. One rule for both kinds of column is the right outcome. A PGlite test would need a path that does not exist.
+
+**D04's list check is a new refusal, but no committed contract hits it.** `fixtures:check` re-emits and validates every committed contract and is clean, and the sql-contract validator tests pass. A junction column that is a list, paired with a scalar model column, would make the join compare an array with an element, so refusing it is correct. The field-event planner now also counts a change of list-ness as an altered column, which it did not compare before. That is a correction.
+
+**The F04 tests plan nothing for the right reason.** Every column is claimed: the PGlite test introspects `extensions.vector(3)` under pgvector and `app.status` off the search path, and an unclaimed column would show up as a verify issue. To check the test can fail, I temporarily changed the contract's `varchar(20)` to `varchar(30)` and `numeric(10)` to `numeric(11)`, then restored it. Verify then named both columns and the planner planned `alterType.t.amount` and `alterType.t.name`. The SQLite test plans nothing for the same reason. Its `json`, `datetime` and `bigint` columns are declared as `text`, `TEXT` and `Integer`, and resolve to the stored types those contract types have.
+
+**ADR 254 after `9e86f95876` matches the code.**
+
+- The paragraph's new sentence, that the rule is the same for two contracts in the migration planner and the many-to-many check, matches `sameSqlColumnType`.
+- "Without the stack's data types, the validator compares parameters as written" matches its fallback when the lookup does not know the data type.
+- The SQLite message for an empty declared type matches `explainMismatch` word for word.
+
+Checks run:
+
+- `pnpm build`, root `pnpm typecheck`, `lint:deps`, `lint:framework-vocabulary`, `lint:docs`, `fixtures:check` and `check:upgrade-coverage --mode pr --prev 90959561c4` pass.
+- Package tests pass for framework-components, sql-contract, schema-ir, the SQL family, both targets, both adapters, pgvector, contract-psl and the CLI. In the CLI package, one `migration-plan.test.ts` test hit its 500 ms limit on the first run and passed on rerun (48 tests). The timed-out run left a gitignored temporary directory, which I deleted.
+- The new other-spellings test, the upgrade detection test, the marked-types matrix and the extension journey pass (8 files, 52 tests).
+- The slice 4 grep checks return only what they allow.
 
 Verdict: SATISFIED.
