@@ -5,7 +5,11 @@ import type { CliStructuredError } from './cli-errors';
 import { errorMigrationPlanningFailed, errorRunnerFailed } from './cli-errors';
 import { failedPrecheckWhy } from './failed-precheck-advice';
 import { type CliInvocation, cliCommand } from './printed-command';
-import { dbUpdateFailedTypeChangeFix, dbUpdateRowsWithoutValueFix } from './runner-failure-advice';
+import {
+  dbUpdateFailedTypeChangeFix,
+  dbUpdateRowsWithoutValueFix,
+  legacyMarkerFix,
+} from './runner-failure-advice';
 import { schemaCheckWhy } from './schema-issues';
 
 /**
@@ -23,10 +27,6 @@ export function mapDbUpdateFailure(
   }
 
   if (failure.code === 'RUNNER_FAILED') {
-    const runnerCode =
-      typeof failure.meta?.['runnerErrorCode'] === 'string'
-        ? failure.meta['runnerErrorCode']
-        : undefined;
     const fix =
       failure.failedTypeChange !== undefined
         ? dbUpdateFailedTypeChangeFix(
@@ -40,11 +40,10 @@ export function mapDbUpdateFailure(
               failure.databaseStorageHash,
               invocation,
             )
-          : schemaCheckWhy(failure.schemaIssues) !== undefined
+          : failure.schemaIssues !== undefined
             ? `Change the contract source to resolve the issues listed, re-run \`${cliCommand(invocation, 'contract emit')}\`, then re-run \`${cliCommand(invocation, 'db update')}\`.`
-            : runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
-              ? // biome-ignore lint/plugin/no-family-vocabulary: names the object to drop per target on purpose — user-facing remediation text, not a framework type
-                `Legacy marker-table shape detected. Drop \`prisma_contract.marker\` (Postgres) or \`_prisma_marker\` (SQLite) and re-run \`${cliCommand(invocation, 'db init')}\` to recreate it with the current per-space schema.`
+            : failure.legacyMarkerLocation !== undefined
+              ? legacyMarkerFix(failure.legacyMarkerLocation, cliCommand(invocation, 'db init'))
               : `Inspect the reported conflict, reconcile schema drift if needed, then re-run \`${cliCommand(invocation, 'db update')}\``;
     return errorRunnerFailed(failure.summary, {
       why:

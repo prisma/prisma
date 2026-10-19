@@ -14,7 +14,6 @@ import {
   printedPlanCommand,
   selfEmitCommand,
 } from './printed-command';
-import { schemaCheckWhy } from './schema-issues';
 
 type FailedMigration = NonNullable<MigrateFailure['failedMigration']>;
 
@@ -265,11 +264,16 @@ export function migrateFix(failure: MigrateFailure, invocation: CliInvocation): 
   if (failure.rowsWithoutValue !== undefined) {
     return migrateRowsWithoutValueFix(failure.rowsWithoutValue, failedMigration, invocation);
   }
-  if (schemaCheckWhy(failure.schemaIssues) !== undefined) {
+  if (failure.schemaIssues !== undefined) {
     return migrateSchemaCheckFix(failedMigration, invocation);
   }
   if (failure.failedPrecheck !== undefined) {
     return migrateFailedPrecheckFix(failure.failedPrecheck, invocation);
   }
   return `Fix the issue and re-run \`${cliCommand(invocation, 'db migrate', ['--to', '<contract>'])}\` — previously applied migrations are preserved.`;
+}
+
+/** The fix for a marker an earlier version wrote: drop it where the target keeps it, then let `initCommand` write it again. */
+export function legacyMarkerFix(location: string, initCommand: string): string {
+  return `The marker has the shape an earlier version wrote. Drop \`${location}\` and re-run \`${initCommand}\` to recreate it with the current per-space shape.`;
 }

@@ -46,10 +46,7 @@ describe('schemaCheckWhy', () => {
     );
   });
 
-  it('gives nothing when the check reported no issues', () => {
-    expect({ absent: schemaCheckWhy(undefined), empty: schemaCheckWhy([]) }).toEqual({
-      absent: undefined,
-      empty: undefined,
-    });
+  it('gives nothing for another failure', () => {
+    expect(schemaCheckWhy(undefined)).toBeUndefined();
   });
 });

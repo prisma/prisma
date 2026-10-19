@@ -22,9 +22,9 @@ export function schemaIssuesWhy(opening: string, issues: readonly SchemaDiffIssu
   return `${opening}: ${labels.join('; ')}.`;
 }
 
-/** The why of a failed schema check after apply, listing its issues as `db verify` does; `undefined` when it found none. */
+/** The why of a failed schema check after apply, listing its issues as `db verify` does; `undefined` when the failure is another. */
 export function schemaCheckWhy(issues: readonly SchemaDiffIssue[] | undefined): string | undefined {
-  return issues === undefined || issues.length === 0
+  return issues === undefined
     ? undefined
     : schemaIssuesWhy('The schema check after apply found', issues);
 }

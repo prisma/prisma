@@ -173,6 +173,7 @@ describe('PostgresMigrationRunner - Error Scenarios', { concurrent: false }, () 
       expect(failure.summary).toMatch(/dbInit/);
       expect(failure.summary).toMatch(/prisma_contract\.marker/);
       expect(failure.meta).toMatchObject({ table: 'prisma_contract.marker' });
+      expect(failure.legacyMarkerLocation).toBe('prisma_contract.marker');
 
       // The legacy table is left untouched — operator dropping it is the
       // explicit remediation; the runner doesn't mutate state on failure.

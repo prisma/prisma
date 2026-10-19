@@ -327,6 +327,7 @@ describe('SqliteMigrationRunner - Error Scenarios', { timeout: timeouts.database
     expect(failure.summary).toMatch(/dbInit/);
     expect(failure.summary).toMatch(/_prisma_marker/);
     expect(failure.meta).toMatchObject({ table: '_prisma_marker' });
+    expect(failure.legacyMarkerLocation).toBe('_prisma_marker');
 
     // Detection must not mutate the legacy table — operator dropping it is
     // the explicit remediation.

@@ -464,6 +464,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       ...ifDefined('rowsWithoutValue', applied.failure.rowsWithoutValue),
       ...ifDefined('failedPrecheck', applied.failure.failedPrecheck),
       ...ifDefined('schemaIssues', applied.failure.schemaIssues),
+      ...ifDefined('legacyMarkerLocation', applied.failure.legacyMarkerLocation),
       ...ifDefined('databaseStorageHash', databaseStorageHash),
       ...ifDefined('cause', applied.failure.cause),
     });
@@ -766,6 +767,7 @@ function buildRunnerFailure(args: {
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
   readonly failedPrecheck?: FailedPrecheckReport;
   readonly schemaIssues?: readonly SchemaDiffIssue[];
+  readonly legacyMarkerLocation?: string;
   /** The contract the database is at, when a migration of the graph ends at it. */
   readonly databaseStorageHash?: string;
   readonly cause?: unknown;
@@ -781,6 +783,7 @@ function buildRunnerFailure(args: {
     ...ifDefined('rowsWithoutValue', args.rowsWithoutValue),
     ...ifDefined('failedPrecheck', args.failedPrecheck),
     ...ifDefined('schemaIssues', args.schemaIssues),
+    ...ifDefined('legacyMarkerLocation', args.legacyMarkerLocation),
     ...ifDefined('databaseStorageHash', args.databaseStorageHash),
     ...ifDefined('cause', args.cause),
   };

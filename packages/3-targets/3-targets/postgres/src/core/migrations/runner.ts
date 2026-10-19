@@ -392,6 +392,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
           table: 'prisma_contract.marker',
           columns: [...columns].sort(),
         },
+        legacyMarkerLocation: 'prisma_contract.marker',
       },
     );
   }

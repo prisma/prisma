@@ -211,6 +211,7 @@ export function runnerFailure(
     failedTypeChange?: FailedTypeChange | undefined;
     rowsWithoutValue?: readonly RowsWithoutValue[] | undefined;
     schemaIssues?: readonly SchemaDiffIssue[] | undefined;
+    legacyMarkerLocation?: string | undefined;
   },
 ): NotOk<SqlMigrationRunnerFailure> {
   const failure: SqlMigrationRunnerFailure = Object.freeze({
@@ -222,6 +223,7 @@ export function runnerFailure(
     ...ifDefined('failedTypeChange', options?.failedTypeChange),
     ...ifDefined('rowsWithoutValue', options?.rowsWithoutValue),
     ...ifDefined('schemaIssues', options?.schemaIssues),
+    ...ifDefined('legacyMarkerLocation', options?.legacyMarkerLocation),
   });
   return notOk(failure);
 }

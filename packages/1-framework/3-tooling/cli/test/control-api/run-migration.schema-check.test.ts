@@ -33,6 +33,27 @@ describe('runMigration, a failed schema check after apply', () => {
     }).toEqual({ schemaIssues: [issue], spaceId: 'app' });
   });
 
+  it('treats an empty issue list as no issues, and names no migration', async () => {
+    const failure = await failureOf({ ...schemaCheckFailed, schemaIssues: [] }, null);
+    expect({
+      schemaIssues: failure?.schemaIssues,
+      failedMigration: failure?.failedMigration,
+    }).toEqual({ schemaIssues: undefined, failedMigration: undefined });
+  });
+
+  it('carries where the target keeps a marker an earlier version wrote', async () => {
+    const failure = await failureOf(
+      {
+        code: 'MIGRATION.LEGACY_MARKER_SHAPE',
+        summary: 'Legacy marker-table shape detected',
+        failingSpace: 'app',
+        legacyMarkerLocation: 'marker_table_of_the_target',
+      },
+      null,
+    );
+    expect(failure?.legacyMarkerLocation).toBe('marker_table_of_the_target');
+  });
+
   it('names no migration when the runner reports no issues', async () => {
     const { schemaIssues: _, ...withoutIssues } = schemaCheckFailed;
     const failure = await failureOf(withoutIssues, null);

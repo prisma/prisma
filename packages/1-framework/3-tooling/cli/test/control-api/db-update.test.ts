@@ -281,6 +281,51 @@ describe('executeDbUpdate', () => {
     }
   });
 
+  it('carries the issues of a failed schema check, and keeps them in meta for JSON output', async () => {
+    const issue = {
+      path: ['public', 'event', 'id'],
+      expected: { id: 'id', nodeKind: 'sql-column', isEqualTo: () => false, children: () => [] },
+    };
+    const result = await executeDbUpdate({
+      driver: createMockDriver(),
+      adapter: STUB_ADAPTER,
+      familyInstance: createMockFamilyInstance({
+        readAllMarkers: async () => new Map([['app', markerRecord({ storageHash: 'origin' })]]),
+      }),
+      contract: dummyContract,
+      mode: 'apply',
+      acceptDataLoss: true,
+      migrations: createMockMigrations({
+        runnerResult: notOk({
+          code: 'MIGRATION.SCHEMA_VERIFY_FAILED',
+          summary: 'Database schema does not satisfy contract',
+          meta: { issues: [issue] },
+          schemaIssues: [issue],
+          legacyMarkerLocation: 'marker_table_of_the_target',
+          failingSpace: 'app',
+        }),
+      }),
+      frameworkComponents: [],
+      migrationsDir: FAKE_MIGRATIONS_DIR,
+      answerQuestions: noQuestions,
+      targetId: 'postgres',
+    });
+
+    expect(
+      result.ok
+        ? undefined
+        : {
+            schemaIssues: result.failure.schemaIssues,
+            legacyMarkerLocation: result.failure.legacyMarkerLocation,
+            metaIssues: result.failure.meta?.['issues'],
+          },
+    ).toEqual({
+      schemaIssues: [issue],
+      legacyMarkerLocation: 'marker_table_of_the_target',
+      metaIssues: [issue],
+    });
+  });
+
   it('returns success with execution stats and marker in apply mode', async () => {
     const result = await executeDbUpdate({
       driver: createMockDriver(),

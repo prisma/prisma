@@ -149,7 +149,7 @@ function errorLegacyMarkerShape(options: {
       `Drop \`${options.markerLocation}\` and re-run \`{bin} db init\` to reinitialise from a clean baseline.`,
     {
       why: options.why,
-      fix: 'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `{bin} db init` to recreate it with the current per-space schema.',
+      fix: `The marker has the shape an earlier version wrote. Drop \`${options.markerLocation}\` and re-run \`{bin} db init\` to recreate it with the current per-space shape.`,
       nextActions: [
         {
           kind: 'run-command',

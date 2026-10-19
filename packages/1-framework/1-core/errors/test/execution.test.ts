@@ -205,14 +205,14 @@ describe('Runtime Errors', () => {
     try {
       rethrowMarkerReadError(new Error('column "space" does not exist'), {
         space: 'app',
-        markerLocation: 'prisma_contract.marker',
+        markerLocation: 'marker_table_of_the_target',
       });
     } catch (err) {
       const envelope = (err as CliStructuredError).toEnvelope();
-      expect(envelope.code).toBe('MIGRATION.RUNNER_FAILED');
-      expect(envelope.fix).toContain('Legacy marker-table shape detected');
-      expect(envelope.fix).toContain('prisma_contract.marker');
-      expect(envelope.fix).toContain('{bin} db init');
+      expect({ code: envelope.code, fix: envelope.fix }).toEqual({
+        code: 'MIGRATION.RUNNER_FAILED',
+        fix: 'The marker has the shape an earlier version wrote. Drop `marker_table_of_the_target` and re-run `{bin} db init` to recreate it with the current per-space shape.',
+      });
     }
   });
 

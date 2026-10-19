@@ -366,6 +366,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
           table: MARKER_TABLE_NAME,
           columns: [...columns].sort(),
         },
+        legacyMarkerLocation: MARKER_TABLE_NAME,
       },
     );
   }

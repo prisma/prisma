@@ -63,6 +63,8 @@ export interface RunnerFailure {
   readonly failedPrecheck?: FailedPrecheckReport;
   /** The differences the schema check after apply found, when that check failed. */
   readonly schemaIssues?: readonly SchemaDiffIssue[];
+  /** Where the target keeps its marker, when the marker there has a shape an earlier version wrote. */
+  readonly legacyMarkerLocation?: string;
   /** The written migration of the failed operation, when the runner named the operation, or the last one applied when the schema check after apply failed. */
   readonly failedMigration?: { readonly spaceId: string; readonly edge: AggregateMigrationEdgeRef };
   /**
@@ -93,9 +95,13 @@ function failedTypeChangeReport(change: FailedTypeChange, field: string): Failed
 function failureReports(
   failure: MigrationRunnerFailure,
   resolutions: readonly OrderedResolution[],
-): Pick<RunnerFailure, 'failedTypeChange' | 'rowsWithoutValue' | 'failedMigration'> {
+): Pick<
+  RunnerFailure,
+  'failedTypeChange' | 'rowsWithoutValue' | 'schemaIssues' | 'failedMigration'
+> {
   const resolution = resolutions.find(({ spaceId }) => spaceId === failure.failingSpace);
   if (resolution === undefined) return {};
+  const schemaIssues = schemaIssuesOf(failure);
   const fieldText = (field: MigrationSubject) =>
     subjectText(field, { origin: resolution.entry.destinationContract, statements: [] });
   const { failedTypeChange, rowsWithoutValue } = failure;
@@ -103,7 +109,7 @@ function failureReports(
   const edge =
     operationIndex !== undefined
       ? edgeOfOperation(resolution.entry.migrationEdges, operationIndex)
-      : failure.schemaIssues !== undefined
+      : schemaIssues !== undefined
         ? resolution.entry.migrationEdges.at(-1)
         : undefined;
   return {
@@ -120,11 +126,18 @@ function failureReports(
         reason,
       })),
     ),
+    ...ifDefined('schemaIssues', schemaIssues),
     ...ifDefined(
       'failedMigration',
       edge === undefined ? undefined : { spaceId: resolution.spaceId, edge },
     ),
   };
+}
+
+/** The issues of a failed schema check after apply; a check that reported none counts as no issues. */
+function schemaIssuesOf(failure: MigrationRunnerFailure): readonly SchemaDiffIssue[] | undefined {
+  const issues = failure.schemaIssues;
+  return issues === undefined || issues.length === 0 ? undefined : issues;
 }
 
 function failedPrecheckOf(
@@ -271,7 +284,7 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
       },
       ...failureReports(runnerResult.failure, orderedResolutions),
       ...ifDefined('failedPrecheck', failedPrecheckOf(runnerResult.failure, orderedResolutions)),
-      ...ifDefined('schemaIssues', runnerResult.failure.schemaIssues),
+      ...ifDefined('legacyMarkerLocation', runnerResult.failure.legacyMarkerLocation),
       cause: runnerResult.failure,
     });
   }

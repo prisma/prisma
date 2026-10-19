@@ -43,6 +43,8 @@ function schemaCheckFailure(issues: readonly SchemaDiffIssue[]) {
   } as const;
 }
 
+const { schemaIssues: _, ...withoutIssues } = schemaCheckFailure([explained]);
+
 describe('a failed schema check after apply', () => {
   describe('on db migrate', () => {
     it('lists the issues in its why, and says how to plan the failed migration again', () => {
@@ -85,8 +87,7 @@ describe('a failed schema check after apply', () => {
     });
 
     it('reads the issues only from the typed field, not from meta', () => {
-      const { schemaIssues: _, ...metaOnly } = schemaCheckFailure([explained]);
-      expect(mapMigrateFailure(metaOnly, invocation).why).toBe(RUNNER_WHY);
+      expect(mapMigrateFailure(withoutIssues, invocation).why).toBe(RUNNER_WHY);
     });
   });
 
@@ -102,11 +103,8 @@ describe('a failed schema check after apply', () => {
       });
     });
 
-    it('keeps the runner why and its advice when there are no issues', () => {
-      const error = mapDbUpdateFailure(
-        { ...schemaCheckFailure([]), conflicts: undefined },
-        invocation,
-      );
+    it('keeps the runner why and its advice for a failure that carries no issues', () => {
+      const error = mapDbUpdateFailure({ ...withoutIssues, conflicts: undefined }, invocation);
       expect({ why: error.why, fix: error.fix }).toEqual({
         why: RUNNER_WHY,
         fix: 'Inspect the reported conflict, reconcile schema drift if needed, then re-run `{bin} db update`',
@@ -126,10 +124,10 @@ describe('a failed schema check after apply', () => {
       });
     });
 
-    it('keeps the runner why when there are no issues', () => {
-      expect(
-        mapDbInitFailure({ ...schemaCheckFailure([]), conflicts: undefined }, invocation).why,
-      ).toBe(RUNNER_WHY);
+    it('keeps the runner why for a failure that carries no issues', () => {
+      expect(mapDbInitFailure({ ...withoutIssues, conflicts: undefined }, invocation).why).toBe(
+        RUNNER_WHY,
+      );
     });
   });
 });

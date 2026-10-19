@@ -14,7 +14,7 @@ import {
 import { dbInitFailedPrecheckFix, failedPrecheckWhy } from './failed-precheck-advice';
 import { runCommandAction } from './next-actions';
 import type { CliInvocation } from './printed-command';
-import { dbInitRowsWithoutValueFix } from './runner-failure-advice';
+import { dbInitRowsWithoutValueFix, legacyMarkerFix } from './runner-failure-advice';
 import { schemaCheckWhy } from './schema-issues';
 
 const DB_INIT_ADDITIVE_ONLY_FIX =
@@ -125,20 +125,15 @@ export function mapDbInitFailure(
   }
 
   if (failure.code === 'RUNNER_FAILED') {
-    const runnerCode =
-      typeof failure.meta?.['runnerErrorCode'] === 'string'
-        ? failure.meta['runnerErrorCode']
-        : undefined;
     const fix =
       failure.rowsWithoutValue !== undefined
         ? dbInitRowsWithoutValueFix(failure.rowsWithoutValue, invocation)
-        : schemaCheckWhy(failure.schemaIssues) !== undefined
+        : failure.schemaIssues !== undefined
           ? 'Change the contract source to resolve the issues listed, re-run `{bin} contract emit`, then re-run `{bin} db init`.'
           : failure.failedPrecheck !== undefined
             ? dbInitFailedPrecheckFix(invocation)
-            : runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
-              ? // biome-ignore lint/plugin/no-family-vocabulary: names the object to drop per target on purpose — user-facing remediation text, not a framework type
-                'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `{bin} db init` to recreate it with the current per-space schema.'
+            : failure.legacyMarkerLocation !== undefined
+              ? legacyMarkerFix(failure.legacyMarkerLocation, '{bin} db init')
               : 'Fix the schema mismatch (db init is additive-only), or drop/reset the database and re-run `{bin} db init`';
     return errorRunnerFailed(failure.summary, {
       why:
