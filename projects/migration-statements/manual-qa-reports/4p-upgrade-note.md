@@ -11,7 +11,7 @@ The note works as printed on both paths. Each path ends with `prisma db verify` 
 - MongoDB: a one-node replica set started with mongodb-memory-server on port 27931 (`wip/pr2-d3/mongod.mjs`).
 - Project: `qa-4p`, inside the CLI e2e test app, so `@prisma/orm-mongo` and the `prisma` bin resolve to the workspace build. It was deleted afterwards. `prisma.config.ts` uses `@prisma/orm-mongo/config` with `contract: './contract.ts'` and `output: './generated'`. The contract has one model, `User`, in collection `users`: `_id: field.objectId()`, `email: field.string()`, `name: field.string().optional()`, and a unique index on `email`.
 - The "before" state: the pre-change builder (`contract-builder.ts` at `c318b87524`) was checked out and built temporarily. With it, `prisma contract emit` wrote storage hash `6c6134e3…` and no validator. The source was then restored and rebuilt.
-- `mongosh` is not installed. Step 2's snippet was run unchanged through the Node driver, with a shim for `db.getCollection` and `print`. The shim adds one `await` before the `find`, because mongosh awaits implicitly.
+- `mongosh` is not installed, and installing it (`brew install mongosh`, `pnpm dlx mongosh` or a Docker image) means downloading software, which needs Will's approval first. So the step-2 snippet has **not** been run in `mongosh`. It was run unchanged through the Node driver, with a shim for `db.getCollection` and `print`. The shim adds one `await` before the `find`, because mongosh awaits implicitly. Not checked: `require('fs')` and the relative path as mongosh resolves them, and mongosh's implicit awaiting. Someone with `mongosh` should run step 2 once before release.
 
 ## Path A: `db update`
 
