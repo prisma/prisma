@@ -16,7 +16,7 @@ import {
   type ResolvedMigrationStatement,
   type ResolvedRenameStatement,
 } from '@internal/framework-components/control';
-import type { MongoContract } from '@internal/mongo-contract';
+import { type MongoContract, validatorRootShapesOf } from '@internal/mongo-contract';
 import type {
   MongoSchemaCollection,
   MongoSchemaCollectionOptions,
@@ -65,8 +65,17 @@ function isPlainObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
-function propertiesOf(schema: Record<string, unknown>): Record<string, unknown> {
-  return isPlainObject(schema['properties']) ? schema['properties'] : {};
+/** Each field a root model of the validator declares, with the distinct schemas the root models give it, in canonical form. */
+function propertiesOf(schema: Record<string, unknown>): Record<string, string> {
+  const schemas = new Map<string, Set<string>>();
+  for (const root of validatorRootShapesOf(schema)) {
+    for (const [field, fieldSchema] of Object.entries(root.properties)) {
+      schemas.set(field, (schemas.get(field) ?? new Set()).add(canonicalize(fieldSchema)));
+    }
+  }
+  return Object.fromEntries(
+    [...schemas].map(([field, distinct]) => [field, [...distinct].sort().join('|')]),
+  );
 }
 
 /**
@@ -80,9 +89,7 @@ function validatorUpdateLabel(
   const originProps = propertiesOf(origin.jsonSchema);
   const destProps = propertiesOf(dest.jsonSchema);
   const changed = Object.keys(destProps).filter(
-    (field) =>
-      Object.hasOwn(originProps, field) &&
-      canonicalize(originProps[field]) !== canonicalize(destProps[field]),
+    (field) => Object.hasOwn(originProps, field) && originProps[field] !== destProps[field],
   );
   const added = Object.keys(destProps).filter((field) => !Object.hasOwn(originProps, field));
   const removed = Object.keys(originProps).filter((field) => !Object.hasOwn(destProps, field));

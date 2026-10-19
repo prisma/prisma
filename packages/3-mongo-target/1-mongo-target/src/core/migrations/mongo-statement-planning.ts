@@ -17,7 +17,11 @@ import {
   type ResolvedModelRenameStatement,
   type ResolvedRenameStatement,
 } from '@internal/framework-components/control';
-import type { MongoContract } from '@internal/mongo-contract';
+import {
+  type MongoContract,
+  validatorFieldNamesOf,
+  validatorRootShapesOf,
+} from '@internal/mongo-contract';
 import { MongoSchemaCollection, MongoSchemaIR } from '@internal/mongo-schema-ir';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { unrewritableFieldNameReason } from './migration-factories';
@@ -562,23 +566,9 @@ export function planFieldRemovals(input: FieldRemovalInput): readonly FieldRemov
   });
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function propertyNames(schema: unknown): readonly string[] {
-  const properties = isRecord(schema) ? schema['properties'] : undefined;
-  return isRecord(properties) ? Object.keys(properties) : [];
-}
-
-function branchPropertyNames(schema: unknown): readonly string[] {
-  const branches = isRecord(schema) ? schema['oneOf'] : undefined;
-  return Array.isArray(branches) ? branches.flatMap(propertyNames) : [];
-}
-
 /**
- * Without an origin contract, a field is known removed when the origin validator declares it at the
- * top level and the destination validator declares it nowhere. It is named by its storage name.
+ * Without an origin contract, a field is known removed when the origin validator declares it for a
+ * root model and the destination validator declares it nowhere. It is named by its storage name.
  */
 export function planValidatorFieldRemovals(input: {
   readonly origin: MongoSchemaIR;
@@ -589,11 +579,13 @@ export function planValidatorFieldRemovals(input: {
     if (collectionControlPolicy(input.contract, originCollection.name) !== 'managed') return [];
     const destination = input.destination.collection(originCollection.name);
     if (destination?.validator === undefined || originCollection.validator === undefined) return [];
-    const kept = new Set([
-      ...propertyNames(destination.validator?.jsonSchema),
-      ...branchPropertyNames(destination.validator?.jsonSchema),
-    ]);
-    return propertyNames(originCollection.validator.jsonSchema)
+    const kept = validatorFieldNamesOf(destination.validator.jsonSchema);
+    const declared = new Set(
+      validatorRootShapesOf(originCollection.validator.jsonSchema).flatMap((root) =>
+        Object.keys(root.properties),
+      ),
+    );
+    return [...declared]
       .filter((field) => unrewritableFieldNameReason(field) === undefined && !kept.has(field))
       .sort()
       .map((field) => ({
