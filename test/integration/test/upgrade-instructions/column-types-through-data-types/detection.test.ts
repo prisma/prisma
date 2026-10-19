@@ -128,6 +128,19 @@ describe('extension detection', () => {
 });
 
 describe('app detection', () => {
+  it('finds code that reads nativeType from a CONTRACT.DEFAULT_INVALID error, and skips typeText', () => {
+    const reads = (key: string) =>
+      detects(
+        'app',
+        'default-invalid-meta-type-text',
+        `if (error.code === 'CONTRACT.DEFAULT_INVALID') console.log(error.meta.${key});`,
+      );
+    expect({ nativeType: reads('nativeType'), typeText: reads('typeText') }).toEqual({
+      nativeType: true,
+      typeText: false,
+    });
+  });
+
   it('finds a script that reads nativeType from db schema --json', () => {
     expect(
       detects(
