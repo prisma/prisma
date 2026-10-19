@@ -2,7 +2,7 @@
 
 ## Current status
 
-Status: **Superseded by [ADR 271](ADR%20271%20-%20The%20runtime%20middleware%20observes%20a%20tree%20of%20activities%2C%20each%20started%2C%20ended%20and%20finalized.md)**. The per-operation hooks are replaced by one lifecycle on statement activities: `beforeQuery` and `beforeExecute` are now `beforeEncode`, which keeps this ADR's position between lowering and encoding and its parameter mutator; `interceptQuery` and `interceptExecute` are `intercept.onQuery` and `intercept.onExecute`; `afterQuery` and `afterExecute` are `activityEnded`. The sections below describe the lifecycle before ADR 271: the August 2026 amendment, then the original May 2026 decision and its rationale.
+Status: **Amended by [ADR 271](ADR%20271%20-%20The%20runtime%20middleware%20observes%20a%20tree%20of%20activities%2C%20each%20started%2C%20ended%20and%20finalized.md)**. This ADR's decision stands: the hook that may change parameters runs after lowering and before encoding, and receives a parameter mutator over user-domain values. ADR 271 renames the hooks: `beforeQuery` and `beforeExecute` are now `beforeEncode`; `interceptQuery` and `interceptExecute` are `intercept.onQuery` and `intercept.onExecute`; `afterQuery` and `afterExecute` are `activityEnded`. The sections below use the names of their time: the August 2026 amendment, then the original May 2026 decision and its rationale.
 
 ## Amendment (August 12, 2026) — operation-specific lifecycle
 
@@ -114,7 +114,7 @@ The top-level runtime, checked-out connection, transaction, guarded transaction 
 
 ## Original decision (May 2026)
 
-> The following section preserves the accepted May 2026 decision and rationale. It describes the generic-hook lifecycle that was in force before the August 12, 2026 amendment; its historical `intercept`, `onRow`, and `afterExecute` vocabulary is not a description of the current operation-specific SPI.
+> The following section preserves the accepted May 2026 decision and rationale. It describes the generic-hook lifecycle that was in force before the August 12, 2026 amendment; its historical `intercept`, `onRow`, and `afterExecute` vocabulary is not a description of the operation-specific SPI that followed it.
 
 ### At a glance
 

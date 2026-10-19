@@ -52,7 +52,7 @@ The runtime defines two kinds of activity:
 - **`statement`**: one statement sent to the database. `query()` sends it for its rows and `execute()` sends it for its statistics, such as the number of affected rows; the activity's `returns` field is `'rows'` or `'stats'` accordingly. Both have the same lifecycle. A statement is a leaf.
 - **`transaction`**: started by `transaction()`, ended by `commit()` or `rollback()`.
 
-Clients add their own kinds. A client kind contains a hyphen, such as `orm-call`, so it is never `statement` or `transaction`. Kinds the runtime defines, in every family, never contain a hyphen. `Activity` is `StatementActivity | TransactionActivity | ClientActivity` in every program, so a middleware that knows no client kind still receives client activities, and a check such as `activity.kind !== 'statement'` leaves both a transaction and a client activity. A client may register a kind's result type by module augmentation of `ClientActivityRegistry` through the published entry `@prisma/orm-framework/components/runtime`. The registry types the handle side only, `intercepted.result` and `end({ result })`; in middleware hooks a client activity's result is `unknown` even after narrowing on its kind, because the hook types must accept unregistered kinds. The runtime rejects a kind without a hyphen at run time too. The SQL ORM is to start one `orm-call` activity for every terminal method. The framework names no client vocabulary.
+Clients add their own kinds. A client kind contains a hyphen, such as `orm-call`, so it is never `statement` or `transaction`. Kinds the runtime defines, in every family, never contain a hyphen. `Activity` is `StatementActivity | TransactionActivity | ClientActivity` in every program, so a middleware that knows no client kind still receives client activities, and a check such as `activity.kind !== 'statement'` leaves both a transaction and a client activity. A client may register a kind's result type by module augmentation of `ClientActivityRegistry` through the published entry `@prisma/orm-framework/components/runtime`. The registry types the handle side only, `intercepted.result` and `end({ result })`; in middleware hooks a client activity's result is `unknown` even after narrowing on its kind, because the hook types must accept unregistered kinds. The runtime rejects a kind without a hyphen at run time too. The SQL ORM starts one `orm-call` activity for every terminal method. The framework names no client vocabulary.
 
 Middleware has two kinds of hook: **lifecycle events**, which observe, and **interceptors**, which can change or stop a statement while the runtime executes it.
 
@@ -269,16 +269,19 @@ Rewriting the query tree before it becomes SQL is the standard home for soft del
   | `afterTransaction` (ADR 260) | `activityFinalized` on a statement |
   | `beforeCompile` | unchanged |
 
-  Every middleware is rewritten: the cache, budgets, lints, the demo's slow-query warning, and external middleware. ADR 260 is amended to say so.
-- ADR 160's `groupingKey` is superseded by the parent activity. ADR 160 is amended.
-- `planExecutionId` (ADR 220) is a statement activity's identity.
+  Every middleware is rewritten: the cache, budgets, lints, the demo's slow-query warning, and external middleware. ADR 260 is marked superseded.
+- ADR 160's `groupingKey` is superseded by the parent activity. ADR 160 is marked superseded.
+- `planExecutionId` (ADR 220) is a statement activity's identity. ADR 220 is marked superseded.
+- ADR 014's hook API is replaced; `beforeCompile` and `onRow` remain. ADR 014 is marked superseded.
+- ADR 215's decision stands under new names: `beforeEncode` runs after lowering and before encoding, with the parameter mutator. ADR 215 is marked amended.
+- Older ADRs that describe a removed hook carry a note saying so.
 - The deferred transaction begin and end hooks are `activityStarted` and `activityEnded` on a transaction activity.
 - Middleware state moves from `WeakMap`s keyed by plan to `ctx.state(key)`. This also removes the case ADR 260 documents, where the hook before encoding and the hooks after it receive different plan objects.
 - A runtime decides once, when it is created, whether any of its middleware implements `activityFinalized`. If one does, a transaction holds its finished child activities until it ends, to finalize them then; a transaction that never ends holds them. If none does, a transaction holds no finished child: it keeps only whether one failed, which decides its own `unknown` outcome.
 - Nested transactions, when built, are a transaction activity under a transaction activity, and finalization waits for the outermost.
 - Mongo has no transactions; every Mongo activity is finalized right after it ends.
 - The direct single-client Postgres driver runs a runtime-scope statement sent while a transaction is open inside that transaction, and the runtime cannot see it. That limit is unchanged.
-- Touches: `RuntimeMiddleware` and `RuntimeMiddlewareContext` in `framework-components`; the runners in `run-with-middleware.ts`; the SQL runtime's transaction bookkeeping and queryables; the Mongo runtime; the Supabase role session; the Postgres, SQLite and Supabase facades; `withMutationScope` and every terminal method in `sql-orm-client`; the ORM's structural `RuntimeQueryable` type, which may carry the `activitySource` member; the cache, budgets and lints middleware.
+- Touches: `RuntimeMiddleware` and `ActivityContext` in `framework-components`; the runners in `run-with-middleware.ts`; the SQL runtime's transaction bookkeeping and queryables; the Mongo runtime; the Supabase role session; the Postgres, SQLite and Supabase facades; `withMutationScope` and every terminal method in `sql-orm-client`; the ORM's structural `RuntimeQueryable` type, which carries the `activitySource` member; the cache, budgets and lints middleware.
 
 ## Alternatives considered
 
