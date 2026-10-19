@@ -59,9 +59,13 @@ const postgresRuntimeAdapterDescriptor: SqlRuntimeAdapterDescriptor<'postgres', 
     rawCodecInferer: postgresRawCodecInferer,
     create(stack): SqlRuntimeAdapter {
       const components = [stack.target, stack.adapter, ...stack.extensions];
-      const dataTypeLookup = assembleDataTypes(components).lookup;
-      const codecRegistry = assemblePostgresCodecRegistry(components, dataTypeLookup);
-      return createPostgresAdapterWithCodecRegistry(codecRegistry, dataTypeLookup);
+      const dataTypes = assembleDataTypes(components);
+      const codecRegistry = assemblePostgresCodecRegistry(components, dataTypes.lookup);
+      return createPostgresAdapterWithCodecRegistry(
+        codecRegistry,
+        dataTypes.lookup,
+        dataTypes.declared.map(({ type }) => type),
+      );
     },
   };
 

@@ -1,4 +1,8 @@
-import { assembleDataTypes, type DataTypeLookup } from '@internal/framework-components/codec';
+import {
+  assembleDataTypes,
+  type DataType,
+  type DataTypeLookup,
+} from '@internal/framework-components/codec';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import type {
   Adapter,
@@ -34,6 +38,7 @@ class PostgresAdapterImpl
   constructor(
     codecRegistry: PostgresCodecRegistry,
     dataTypeLookup: DataTypeLookup,
+    declaredDataTypes: readonly DataType[],
     profileId?: string,
   ) {
     this.codecRegistry = codecRegistry;
@@ -41,7 +46,7 @@ class PostgresAdapterImpl
     const controlAdapter = new PostgresControlAdapter(
       codecRegistry,
       dataTypeLookup,
-      postgresDataTypes,
+      declaredDataTypes,
     );
     this.profile = Object.freeze({
       id: profileId ?? 'postgres/default@1',
@@ -137,20 +142,28 @@ export const postgresRawCodecInferer: RawCodecInferer = {
 };
 
 export function createPostgresAdapter(options?: PostgresAdapterOptions) {
-  const dataTypeLookup = assembleDataTypes([
+  const dataTypes = assembleDataTypes([
     { id: 'postgres', dataTypes: postgresDataTypes },
     { id: 'createPostgresAdapter', dataTypes: options?.dataTypes ?? [] },
-  ]).lookup;
+  ]);
   const codecRegistry = createPostgresCodecRegistryWithBuiltins(
     options?.codecDescriptors,
-    dataTypeLookup,
+    dataTypes.lookup,
   );
-  return Object.freeze(new PostgresAdapterImpl(codecRegistry, dataTypeLookup, options?.profileId));
+  return Object.freeze(
+    new PostgresAdapterImpl(
+      codecRegistry,
+      dataTypes.lookup,
+      dataTypes.declared.map(({ type }) => type),
+      options?.profileId,
+    ),
+  );
 }
 
 export function createPostgresAdapterWithCodecRegistry(
   codecRegistry: PostgresCodecRegistry,
   dataTypeLookup: DataTypeLookup,
+  declaredDataTypes: readonly DataType[],
 ) {
-  return Object.freeze(new PostgresAdapterImpl(codecRegistry, dataTypeLookup));
+  return Object.freeze(new PostgresAdapterImpl(codecRegistry, dataTypeLookup, declaredDataTypes));
 }

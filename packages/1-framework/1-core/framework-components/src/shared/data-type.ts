@@ -104,7 +104,7 @@ export interface DataTypeSpec {
   /** Gives an accepted value its one spelling; a type whose values have one spelling only declares none. */
   readonly spell?: DataTypeSpelling;
   /** The one form of parameters that mean the same type, such as `numeric(10)` and `numeric(10,0)`; a value stores its parameters in it. A type whose parameters have one form only declares none. */
-  readonly normalize?: (params: DataTypeParams) => DataTypeParams;
+  normalize?(params: DataTypeParams): DataTypeParams;
 }
 
 /** The assembled types of one stack, by id. */

@@ -1,4 +1,4 @@
-import type { CodecRef } from '@internal/framework-components/codec';
+import type { CodecRef, DataType } from '@internal/framework-components/codec';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import type {
   Adapter,
@@ -93,9 +93,13 @@ class SqliteAdapterImpl implements Adapter<AnyQueryAst, SqliteContract, SqliteLo
 
   readonly #codecs: SqliteCodecRegistry;
 
-  constructor(codecRegistry: SqliteCodecRegistry, profileId?: string) {
+  constructor(
+    codecRegistry: SqliteCodecRegistry,
+    declaredDataTypes: readonly DataType[],
+    profileId?: string,
+  ) {
     this.#codecs = codecRegistry;
-    const controlAdapter = new SqliteControlAdapter(codecRegistry, sqliteDataTypes);
+    const controlAdapter = new SqliteControlAdapter(codecRegistry, declaredDataTypes);
     this.profile = Object.freeze({
       id: profileId ?? 'sqlite/default@1',
       target: 'sqlite',
@@ -878,9 +882,12 @@ function renderReturning(
 
 export function createSqliteAdapter(options?: SqliteAdapterOptions) {
   const codecRegistry = createSqliteCodecRegistryWithBuiltins(options?.codecDescriptors);
-  return Object.freeze(new SqliteAdapterImpl(codecRegistry, options?.profileId));
+  return Object.freeze(new SqliteAdapterImpl(codecRegistry, sqliteDataTypes, options?.profileId));
 }
 
-export function createSqliteAdapterWithCodecRegistry(codecRegistry: SqliteCodecRegistry) {
-  return Object.freeze(new SqliteAdapterImpl(codecRegistry));
+export function createSqliteAdapterWithCodecRegistry(
+  codecRegistry: SqliteCodecRegistry,
+  declaredDataTypes: readonly DataType[],
+) {
+  return Object.freeze(new SqliteAdapterImpl(codecRegistry, declaredDataTypes));
 }

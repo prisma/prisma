@@ -236,7 +236,7 @@ export function sqlDataType<Params extends SqlTypeParams = SqlTypeParams>(
     isParamsOf(spec.params, params) ? declaredNormalize(params) : params;
   const { params: _untypedParams, ...declared } = dataType(id, {
     ...spec,
-    normalize: (params) => (isParamsOf(spec.params, params) ? normalize(params) : params),
+    normalize,
   });
   const texts = spec.texts ?? [];
   const paramKeys = paramKeysOf(declared.id, spec.params);
