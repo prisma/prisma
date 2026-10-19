@@ -3,26 +3,19 @@ import {
   domainModelsAtDefaultNamespace,
   domainValueObjectsAtDefaultNamespace,
 } from '@internal/contract/types';
-import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { defineContract, field, index, model, rel, valueObject } from '../src/contract-builder';
+import { mongoFamilyPack, mongoTargetPack } from './mongo-test-packs';
 
-const mongoFamilyPack = {
-  kind: 'family',
-  id: 'mongo',
-  familyId: 'mongo',
-  version: '0.0.1',
-} as const satisfies FamilyPackRef<'mongo'>;
-
-const mongoTargetPack = {
-  kind: 'target',
-  id: 'mongo',
-  familyId: 'mongo',
-  targetId: 'mongo',
-  version: '0.0.1',
-  defaultNamespaceId: '__unbound__',
-} as const satisfies TargetPackRef<'mongo', 'mongo'>;
+function strictValidator(jsonSchema: Record<string, unknown>) {
+  return {
+    kind: 'mongo-validator',
+    validationLevel: 'strict',
+    validationAction: 'error',
+    jsonSchema,
+  };
+}
 
 describe('mongo contract builder', () => {
   it('authors scalar-list element nullability through many options', () => {
@@ -87,8 +80,28 @@ describe('mongo contract builder', () => {
       posts: crossRef('Post'),
     });
     expect(contract.storage.namespaces[UNBOUND_NAMESPACE_ID]!.entries['collection']).toEqual({
-      users: { kind: 'mongo-collection' },
-      posts: { kind: 'mongo-collection' },
+      users: {
+        kind: 'mongo-collection',
+        validator: strictValidator({
+          bsonType: 'object',
+          additionalProperties: false,
+          required: ['_id', 'email'],
+          properties: { _id: { bsonType: 'objectId' }, email: { bsonType: 'string' } },
+        }),
+      },
+      posts: {
+        kind: 'mongo-collection',
+        validator: strictValidator({
+          bsonType: 'object',
+          additionalProperties: false,
+          required: ['_id', 'authorId', 'title'],
+          properties: {
+            _id: { bsonType: 'objectId' },
+            authorId: { bsonType: 'objectId' },
+            title: { bsonType: 'string' },
+          },
+        }),
+      },
     });
     expect(domainModelsAtDefaultNamespace(contract.domain)['Post']).toEqual({
       storage: {
@@ -303,8 +316,51 @@ describe('mongo contract builder', () => {
     expect(contract.roots).toEqual({
       tasks: crossRef('Task'),
     });
+    const taskProperties = {
+      _id: { bsonType: 'objectId' },
+      type: { bsonType: 'string' },
+      title: { bsonType: 'string' },
+      metadata: {
+        oneOf: [
+          { bsonType: 'null' },
+          {
+            bsonType: 'object',
+            additionalProperties: false,
+            required: ['street'],
+            properties: { street: { bsonType: 'string' }, zip: { bsonType: ['null', 'string'] } },
+          },
+        ],
+      },
+      comments: {
+        bsonType: 'array',
+        items: {
+          bsonType: 'object',
+          additionalProperties: false,
+          required: ['_id', 'text'],
+          properties: { _id: { bsonType: 'objectId' }, text: { bsonType: 'string' } },
+        },
+      },
+    };
     expect(contract.storage.namespaces[UNBOUND_NAMESPACE_ID]!.entries['collection']).toEqual({
-      tasks: { kind: 'mongo-collection' },
+      tasks: {
+        kind: 'mongo-collection',
+        validator: strictValidator({
+          bsonType: 'object',
+          required: ['_id', 'title', 'type'],
+          properties: taskProperties,
+          oneOf: [
+            {
+              additionalProperties: false,
+              required: ['severity', 'type'],
+              properties: {
+                ...taskProperties,
+                type: { enum: ['bug'] },
+                severity: { bsonType: 'string' },
+              },
+            },
+          ],
+        }),
+      },
     });
     expect(domainValueObjectsAtDefaultNamespace(contract.domain)).toEqual({
       Address: {
@@ -365,6 +421,17 @@ describe('mongo contract builder', () => {
           },
           { kind: 'mongo-index', keys: [{ field: 'location', direction: '2dsphere' }] },
         ],
+        validator: strictValidator({
+          bsonType: 'object',
+          additionalProperties: false,
+          required: ['_id', 'createdAt', 'email', 'location'],
+          properties: {
+            _id: { bsonType: 'objectId' },
+            email: { bsonType: 'string' },
+            createdAt: { bsonType: 'date' },
+            location: { bsonType: 'string' },
+          },
+        }),
       },
     });
   });
@@ -473,6 +540,11 @@ describe('mongo contract builder', () => {
       models: { TaskBase, TaskDerived },
     });
 
+    const taskBaseProperties = {
+      _id: { bsonType: 'objectId' },
+      type: { bsonType: 'string' },
+      title: { bsonType: 'string' },
+    };
     expect(contract.storage.namespaces[UNBOUND_NAMESPACE_ID]!.entries['collection']).toEqual({
       tasks: {
         kind: 'mongo-collection',
@@ -485,6 +557,22 @@ describe('mongo contract builder', () => {
             partialFilterExpression: { type: 'derived' },
           },
         ],
+        validator: strictValidator({
+          bsonType: 'object',
+          required: ['_id', 'title', 'type'],
+          properties: taskBaseProperties,
+          oneOf: [
+            {
+              additionalProperties: false,
+              required: ['expiresAt', 'type'],
+              properties: {
+                ...taskBaseProperties,
+                type: { enum: ['derived'] },
+                expiresAt: { bsonType: 'date' },
+              },
+            },
+          ],
+        }),
       },
     });
   });
@@ -685,6 +773,12 @@ describe('mongo contract builder', () => {
             enabled: true,
           },
         },
+        validator: strictValidator({
+          bsonType: 'object',
+          additionalProperties: false,
+          required: ['_id', 'email'],
+          properties: { _id: { bsonType: 'objectId' }, email: { bsonType: 'string' } },
+        }),
       },
     });
   });

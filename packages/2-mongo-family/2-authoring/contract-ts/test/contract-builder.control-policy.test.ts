@@ -1,6 +1,5 @@
 import type { ControlPolicy } from '@internal/contract/types';
 import { effectiveControlPolicy } from '@internal/contract/types';
-import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   createMongoContractSchema,
@@ -11,22 +10,7 @@ import {
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { defineContract, field, index, model } from '../src/contract-builder';
-
-const mongoFamilyPack = {
-  kind: 'family',
-  id: 'mongo',
-  familyId: 'mongo',
-  version: '0.0.1',
-} as const satisfies FamilyPackRef<'mongo'>;
-
-const mongoTargetPack = {
-  kind: 'target',
-  id: 'mongo',
-  familyId: 'mongo',
-  targetId: 'mongo',
-  version: '0.0.1',
-  defaultNamespaceId: '__unbound__',
-} as const satisfies TargetPackRef<'mongo', 'mongo'>;
+import { mongoFamilyPack, mongoTargetPack } from './mongo-test-packs';
 
 function unboundCollections(storage: MongoStorageShape): Record<string, MongoCollection> {
   const namespace = storage.namespaces[UNBOUND_NAMESPACE_ID];
