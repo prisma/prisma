@@ -97,9 +97,14 @@ describe('a MongoDB contract whose fields are stored under other names', () => {
     'installs a validator that names the stored names, embed relations included',
     () =>
       withMongoPort<Contract>({ contractJson }, async ({ mongoDb }) => {
-        const [users] = await mongoDb.listCollections({ name: 'users' }).toArray();
-        const schema = (users?.options as { validator?: { $jsonSchema?: { properties?: object } } })
-          ?.validator?.$jsonSchema;
+        const [users] = await mongoDb
+          .listCollections({ name: 'users' }, { nameOnly: false })
+          .toArray();
+        const schema = (
+          users && 'options' in users
+            ? (users.options as { validator?: { $jsonSchema?: { properties?: object } } })
+            : undefined
+        )?.validator?.$jsonSchema;
         expect(Object.keys(schema?.properties ?? {}).sort()).toEqual([
           '_id',
           'display_name',
