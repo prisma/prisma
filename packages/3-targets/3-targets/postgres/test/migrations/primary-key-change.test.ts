@@ -412,6 +412,46 @@ describe('a primary key change the plan cannot make', () => {
     });
   });
 
+  it('refuses with only additive changes allowed, as db init, when the contract keeps the table but leaves out its referencing foreign key', () => {
+    const before = contractOf({ public: { user: user({ primaryKey: ['id'] }), post: post() } });
+    const unlinkedPost = { ...post(), foreignKeys: [post().foreignKeys[1]!] };
+    const after = contractOf({ public: { user: movedUser, post: unlinkedPost } });
+
+    expect(plan(before, after, undefined, ['additive'])).toEqual({
+      kind: 'failure',
+      conflicts: [
+        {
+          kind: 'foreignKeyConflict',
+          summary:
+            'Primary key "user_pkey" on "public"."user" cannot change while foreign key "post_authorId_fkey" on "public"."post" references it, and the contract leaves that foreign key out of "public"."post".',
+          why: 'This plan allows only additive changes, as db init does, so it can neither drop that foreign key nor change a primary key. Run db update or migration plan instead, which drop that foreign key before the key change.',
+          location: { entityKind: 'table', entityName: 'post', constraint: 'post_authorId_fkey' },
+        },
+      ],
+    });
+  });
+
+  it('refuses when the referencing table is in a schema the end contract does not declare', () => {
+    const before = contractOf({
+      public: { user: user({ primaryKey: ['id'] }) },
+      audit: { entry },
+    });
+    const after = contractOf({ public: { user: movedUser } });
+
+    expect(plan(before, after)).toEqual({
+      kind: 'failure',
+      conflicts: [
+        {
+          kind: 'foreignKeyConflict',
+          summary:
+            'Primary key "user_pkey" on "public"."user" cannot change while foreign key "entry_userId_fkey" on "audit"."entry" references it, and the contract does not declare schema "audit", whose tables a plan never drops.',
+          why: `With migration plan, declare "audit"."entry" in the contract and plan again, or ${migrationNewAdvice} ${dbUpdateAdvice}`,
+          location: { entityKind: 'table', entityName: 'entry', constraint: 'entry_userId_fkey' },
+        },
+      ],
+    });
+  });
+
   it('gives the plain db update advice when the contract does not declare the foreign key', () => {
     const unlinked = { ...entry, foreignKeys: [], control: 'external' as const };
     const before = contractOf({

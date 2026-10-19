@@ -121,13 +121,13 @@ const redirects: readonly RedirectSpec[] = [
     from: 'migrate reset',
     replacement: '{bin} db migrate',
     reason:
-      "Prisma 8 never drops a database: drop and recreate it with your database's own tools, then `db migrate` applies every migration.",
+      "Prisma 8 never drops a database: drop and recreate it with your database's own tools, then `db migrate` applies every migration; while Prisma 7 still owns this project's migrations, run `migrate reset` with Prisma 7's CLI instead.",
   },
   {
     from: 'migrate resolve',
     replacement: '{bin} db sign <migration>',
     reason:
-      "`db sign <migration>` checks that the database already has that migration's schema and moves the database marker to that migration's contract, so `db migrate` continues after it; `migration status` does not list the migration as applied. Use it where you would run `migrate resolve --applied` after applying a migration's changes by hand. A failed Prisma 8 migration rolls back whole, so nothing needs to be marked rolled back.",
+      "`db sign <migration>` checks that the database already has that migration's schema and moves the database marker to that migration's contract, so `db migrate` continues after it; `migration status` does not list the migration as applied. Use it where you would run `migrate resolve --applied` after applying a migration's changes by hand. A failed Prisma 8 migration rolls back whole, so nothing needs to be marked rolled back. While Prisma 7 still owns this project's migrations, run `migrate resolve` with Prisma 7's CLI instead.",
   },
 ];
 

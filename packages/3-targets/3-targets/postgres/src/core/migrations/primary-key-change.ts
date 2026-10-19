@@ -175,6 +175,37 @@ function undeclaredTableRefusal(change: KeyChange, at: ForeignKeyAt) {
   );
 }
 
+function removedForeignKeyRefusal(change: KeyChange, at: ForeignKeyAt) {
+  return blockedKeyChange(
+    change,
+    at,
+    `the contract leaves that foreign key out of ${quotedTable(at)}`,
+    'This plan allows only additive changes, as db init does, so it can neither drop that foreign key nor change a primary key. Run db update or migration plan instead, which drop that foreign key before the key change.',
+  );
+}
+
+function undeclaredSchemaRefusal(change: KeyChange, at: ForeignKeyAt) {
+  const table = quotedTable(at);
+  return blockedKeyChange(
+    change,
+    at,
+    `the contract does not declare schema "${at.ddlSchemaName}", whose tables a plan never drops`,
+    `With migration plan, declare ${table} in the contract and plan again, or ${migrationNewAdvice} With db update, drop that foreign key yourself, run db update, then add the foreign key back if you still want it.`,
+  );
+}
+
+function allowsOnlyAdditive(ctx: StrategyContext): boolean {
+  const allowed = ctx.policy.allowedOperationClasses;
+  return !allowed.includes('widening') && !allowed.includes('destructive');
+}
+
+function tableInEndTree(endTree: PostgresDatabaseSchemaNode, at: ForeignKeyAt): boolean {
+  return Object.values(endTree.namespaces).some(
+    (namespace) =>
+      namespace.schemaName === at.ddlSchemaName && namespace.tables[at.tableName] !== undefined,
+  );
+}
+
 function keyCalls(change: KeyChange, ctx: StrategyContext): readonly PostgresOpFactoryCall[] {
   const schemaName = emissionSchemaName(ctx, change.ddlSchemaName);
   const drop = new DropConstraintCall(
@@ -200,7 +231,7 @@ function keyCalls(change: KeyChange, ctx: StrategyContext): readonly PostgresOpF
 }
 
 /**
- * Plans a primary key whose columns change, or that is removed: a drop of the old key, then an add of the new one. Postgres refuses to drop a key while a foreign key depends on its index, so every foreign key of the start tree that references the old key's columns is dropped first, unless its own issue already drops it, and added back from the end tree. The plan refuses the change instead when such a foreign key is on a table the control policy keeps it away from or another contract space owns, or when the end tree leaves the foreign key out and the plan does not drop its table, which happens only under a policy that allows additive changes alone, as `db init` does.
+ * Plans a primary key whose columns change, or that is removed: a drop of the old key, then an add of the new one. Postgres refuses to drop a key while a foreign key depends on its index, so every foreign key of the start tree that references the old key's columns is dropped first, unless its own issue already drops it, and added back from the end tree. The plan refuses the change instead when such a foreign key is on a table the control policy keeps it away from or another contract space owns, or when the end tree leaves the foreign key out and the plan does not drop it or its table: under a policy that allows additive changes alone, as `db init` does, or because the table is in a schema the end contract does not declare.
  */
 export function primaryKeyChangeStrategy(
   issues: readonly SchemaDiffIssue[],
@@ -241,7 +272,13 @@ export function primaryKeyChangeStrategy(
       } else if (dropsTable(at, ctx.allIssues)) {
         changeCalls.push(drop);
       } else {
-        changeConflicts.push(undeclaredTableRefusal(change, at));
+        changeConflicts.push(
+          tableInEndTree(ctx.endTree, at)
+            ? removedForeignKeyRefusal(change, at)
+            : allowsOnlyAdditive(ctx)
+              ? undeclaredTableRefusal(change, at)
+              : undeclaredSchemaRefusal(change, at),
+        );
       }
     }
     if (changeConflicts.length > 0) {
