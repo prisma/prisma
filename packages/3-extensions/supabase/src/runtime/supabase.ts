@@ -15,7 +15,7 @@ import {
 import { createRawLane, sql } from '@internal/sql-builder/runtime';
 import type { Db, RawLane } from '@internal/sql-builder/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
-import { orm } from '@internal/sql-orm-client';
+import { type CollectionClasses, orm } from '@internal/sql-orm-client';
 import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
@@ -50,15 +50,21 @@ import { SupabaseRuntimeImpl } from './supabase-runtime';
 
 export type SupabaseTargetId = 'postgres';
 
-type OrmClient<TContract extends Contract<SqlStorage>> = ReturnType<typeof orm<TContract>>;
+type OrmClient<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = Record<never, never>,
+> = ReturnType<typeof orm<TContract, TCollections>>;
 
 type KeyMaterial =
   | { readonly kind: 'secret'; readonly key: Uint8Array }
   | { readonly kind: 'jwks'; readonly keyset: ReturnType<typeof createRemoteJWKSet> };
 
-export interface RoleBoundDb<TContract extends Contract<SqlStorage>> {
+export interface RoleBoundDb<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = Record<never, never>,
+> {
   readonly sql: Db<TContract>;
-  readonly orm: OrmClient<TContract>;
+  readonly orm: OrmClient<TContract, TCollections>;
   readonly raw: RawLane<TContract>;
   query<Row>(
     plan: (SqlExecutionPlan<Row> | SqlQueryPlan<Row>) & { readonly _row?: Row },
@@ -100,16 +106,22 @@ export interface SupabaseInternalDb {
  * are app-only, exactly like `asUser` / `asAnon`), plus a `.supabase` secondary
  * root for the Supabase-internal namespaces.
  */
-export type ServiceRoleDb<TContract extends Contract<SqlStorage>> = RoleBoundDb<TContract> & {
+export type ServiceRoleDb<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = Record<never, never>,
+> = RoleBoundDb<TContract, TCollections> & {
   readonly supabase: SupabaseInternalDb;
 };
 
-export interface SupabaseDb<TContract extends Contract<SqlStorage>> {
+export interface SupabaseDb<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = Record<never, never>,
+> {
   readonly context: ExecutionContext<TContract>;
   readonly stack: SqlExecutionStackWithDriver<SupabaseTargetId>;
-  asUser(jwt: string): Promise<RoleBoundDb<TContract>>;
-  asAnon(): RoleBoundDb<TContract>;
-  asServiceRole(): ServiceRoleDb<TContract>;
+  asUser(jwt: string): Promise<RoleBoundDb<TContract, TCollections>>;
+  asAnon(): RoleBoundDb<TContract, TCollections>;
+  asServiceRole(): ServiceRoleDb<TContract, TCollections>;
   close(): Promise<void>;
   [Symbol.asyncDispose](): Promise<void>;
 }
@@ -140,10 +152,14 @@ type JwksUrlOption = {
   readonly jwtSecret?: never;
 };
 
-export type SupabaseOptions<TContract extends Contract<SqlStorage>> = SupabaseBindingOptions &
+export type SupabaseOptions<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = Record<never, never>,
+> = SupabaseBindingOptions &
   SupabaseOptionsBase &
   (JwtSecretOption | JwksUrlOption) & {
     readonly contract: TContract;
+    readonly collections?: TCollections;
   };
 
 const contractSerializer = new PostgresContractSerializer();
@@ -274,9 +290,10 @@ function buildExtensionContract(): SupabaseExtensionContract {
  * export const db = await supabase({ contract, url, jwtSecret });
  * ```
  */
-export default async function supabase<TContract extends Contract<SqlStorage>>(
-  options: SupabaseOptions<TContract>,
-): Promise<SupabaseDb<TContract>> {
+export default async function supabase<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = Record<never, never>,
+>(options: SupabaseOptions<TContract, TCollections>): Promise<SupabaseDb<TContract, TCollections>> {
   const keyMaterial = resolveKeyMaterial(options);
   const contract = validatePostgresContract(options.contract);
 
@@ -335,25 +352,25 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
     }
   }
 
-  function buildRoleBoundDbWithContext<C extends Contract<SqlStorage>>(
-    binding: SupabaseRoleBinding,
-    roleContext: ExecutionContext<C>,
-    roleRuntime: SupabaseRuntime & SupabaseRuntimeImpl<C>,
-  ): RoleBoundDb<C> {
-    const roleSql: Db<C> = sql<C>({ context: roleContext, rawCodecInferer });
-    const roleRaw: RawLane<C> = createRawLane<C>({ context: roleContext, rawCodecInferer });
-    const roleOrm: OrmClient<C> = orm({
+  function buildRoleBoundDb(binding: SupabaseRoleBinding): RoleBoundDb<TContract, TCollections> {
+    const roleSql: Db<TContract> = sql<TContract>({ context: context, rawCodecInferer });
+    const roleRaw: RawLane<TContract> = createRawLane<TContract>({
+      context: context,
+      rawCodecInferer,
+    });
+    const roleOrm: OrmClient<TContract, TCollections> = orm<TContract, TCollections>({
       runtime: {
         query(plan) {
-          return roleRuntime.queryWithRole(plan, binding);
+          return runtime.queryWithRole(plan, binding);
         },
         execute(plan) {
-          return roleRuntime.executeWithRole(plan, binding);
+          return runtime.executeWithRole(plan, binding);
         },
-        connection: () => roleRuntime.openRoleSession(binding),
-        [activitySource]: roleRuntime.roleActivitySource(binding),
+        connection: () => runtime.openRoleSession(binding),
+        [activitySource]: runtime.roleActivitySource(binding),
       },
-      context: roleContext,
+      context: context,
+      ...ifDefined('collections', options.collections),
     });
 
     return {
@@ -364,22 +381,18 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
         plan: (SqlExecutionPlan<Row> | SqlQueryPlan<Row>) & { readonly _row?: Row },
         execOptions?: RuntimeExecuteOptions,
       ): AsyncIterableResult<Row> {
-        return roleRuntime.queryWithRole<Row>(plan, binding, execOptions);
+        return runtime.queryWithRole<Row>(plan, binding, execOptions);
       },
       execute(
         plan: SqlExecutionPlan | SqlQueryPlan,
         execOptions?: RuntimeExecuteOptions,
       ): Promise<SqlStatementStats> {
-        return roleRuntime.executeWithRole(plan, binding, execOptions);
+        return runtime.executeWithRole(plan, binding, execOptions);
       },
       transaction<R>(fn: (tx: TransactionContext) => PromiseLike<R>): Promise<R> {
-        return withTransaction({ connection: () => roleRuntime.openRoleSession(binding) }, fn);
+        return withTransaction({ connection: () => runtime.openRoleSession(binding) }, fn);
       },
     };
-  }
-
-  function buildRoleBoundDb(binding: SupabaseRoleBinding): RoleBoundDb<TContract> {
-    return buildRoleBoundDbWithContext(binding, context, runtime);
   }
 
   const serviceRoleBinding: SupabaseRoleBinding = {
@@ -455,7 +468,7 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
     context,
     stack,
 
-    async asUser(jwt: string): Promise<RoleBoundDb<TContract>> {
+    async asUser(jwt: string): Promise<RoleBoundDb<TContract, TCollections>> {
       const { payload } = await verifyJwt(jwt);
       const rawRole = payload[SUPABASE_JWT_ROLE_CLAIM];
       const roleStr = typeof rawRole === 'string' ? rawRole : SupabaseRole.members.Authenticated;
@@ -466,12 +479,12 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
       return buildRoleBoundDb(binding);
     },
 
-    asAnon(): RoleBoundDb<TContract> {
+    asAnon(): RoleBoundDb<TContract, TCollections> {
       return buildRoleBoundDb({ role: SupabaseRole.members.Anon, claims: {} });
     },
 
-    asServiceRole(): ServiceRoleDb<TContract> {
-      const roleBound = buildRoleBoundDbWithContext(serviceRoleBinding, context, runtime);
+    asServiceRole(): ServiceRoleDb<TContract, TCollections> {
+      const roleBound = buildRoleBoundDb(serviceRoleBinding);
       return { ...roleBound, supabase: supabaseInternal };
     },
 
