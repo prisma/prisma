@@ -8,6 +8,8 @@
 | b | 1 | `045561e038`, `f9b24e4a4f`, `d31df461b2` | 0 | 1 | 2 | ANOTHER ROUND NEEDED |
 | b | 2 | `e2aac78778..8b54721858` | 0 | 0 | 0 | SATISFIED |
 | c | 1 | `8b54721858..66c520ef88` | 0 | 1 | 2 | ANOTHER ROUND NEEDED |
+| c | 2 | `3d48d80f40..93cd771cb7` | 0 | 1 | 2 | ANOTHER ROUND NEEDED |
+| d | 1 | `f193c86c9a` | 0 | 0 | 3 | SATISFIED |
 
 ## Dispatch a, round 1
 
@@ -227,3 +229,72 @@ Where: `projects/data-types-completion/plan.md`, the slice 4 row for `Unsupporte
 Change: add that file to the allowance.
 
 Verdict: ANOTHER ROUND NEEDED, for S4-c-R1-1.
+
+## Dispatch c, round 2
+
+S4-c-R1-2 and S4-c-R1-3 are fixed: the prose now says what each thing means, and the `Unsupported(` allowance names the contract-psl interpreter test. S4-c-R1-1 is answered by `upgrade-instructions/pending/column-types-through-data-types/`. Its detection test passes (30 tests), and `check:upgrade-coverage` passes in both `pr` and `dev` mode. I read the fragment as an extension author who has not seen this project. Most changes say what to do, with a before-and-after example. Three do not, or say it wrongly.
+
+### S4-c-R2-1 (should-fix): one change gives the wrong field name
+
+Where: `extension/instructions.md`, `default-resolver-takes-the-column`. The summary says a `DefaultResolver` receives `{ nativeType, many }`. `DefaultResolverColumn` in `contract-to-schema-ir.ts` has `typeText` and `many`.
+
+Change: write `{ typeText, many }`.
+
+### S4-c-R2-2 (low): several changes name an entry point without its import path
+
+Where: `type-name-normalisers-removed`, `introspected-type-text`, `alter-type-postcheck-by-data-type` and the `renderSqlTypeName` sentence in `schema-ir-column-type-text`. They say "the Postgres target's `native-type-normalizer` entry point", "the Postgres adapter `control` entry point" and "the SQL contract's `data-type` entry point". Only `type-lookups-one-framework-type` and `schema-ir-column-type-text` give a path an author can import.
+
+Change: write the published paths: `@prisma/orm-postgres/target/native-type-normalizer`, `@prisma/orm-postgres/adapter/control` (and the SQLite one), `@prisma/orm-postgres/target/planner-sql-checks` and `@prisma/orm-family-sql/contract/data-type`.
+
+### S4-c-R2-3 (low): it does not say that a column built by hand now needs its type
+
+Where: `schema-ir-column-type-text`. Its example builds `new SqlColumnIR({ name: 'id', typeText: 'int4', nullable: false })`. That column has no `storedType`, so after this slice it never compares equal to any column. An extension test that builds expected and actual columns by hand (this repository's own tests needed the `introspectedColumn` helper for exactly that) would start reporting mismatches.
+
+Change: say that a column built by hand compares equal only when it has `dataType`, `storedType` and `typeParams`, and show them in the example.
+
+Verdict: ANOTHER ROUND NEEDED, for S4-c-R2-1.
+
+## Dispatch d, round 1
+
+Each numbered item of the brief is built:
+
+- `alterTypeCheck` returns a `ColumnTypeCheck`: `catalog-text` (the `renderSqlCatalogText` of the one data type that reads the written type, plus `[]` for a list) or, for a type that claims a kind, `identity` (`to_regtype` of the name the data type renders, or that type's `typarray` for a list).
+- `buildExpectedFormatType`, `alterTypeCheckText`, `catalogTypeTextIfReadable`, `quoteIdentifierWhereNeeded` and `POSTGRES_QUOTED_KEYWORDS` are deleted. Nothing else used them, and none of them was in a published entry point other than `planner-sql-checks`.
+- The first row 4 grep now returns only `EXISTING_COLUMN_DATE_TIME_TYPES`, which dispatch e owes.
+
+Checks run:
+
+- `pnpm build`, root `pnpm typecheck`, `lint:deps` and `lint:framework-vocabulary` pass.
+- Tests of the Postgres target, the Postgres adapter, pgvector and postgis pass.
+- The new PGlite test passes (4 tests): every written type of every Postgres data type as a column and a list, the enums, and an enum of the same name in another schema, which fails as it should. It checks that the postcheck fails before the change and passes after it.
+- The golden planner test and the cross-package planner files pass (831 tests). The recordings do not change.
+- The `postgres-postchecks-check-full-definition` upgrade test passes.
+
+My own probes:
+
+- The PGlite test covers every Postgres data type, but no pack type. I ran a temporary test, deleted afterwards, with a data type shaped like pgvector's (`vector({length})`) on a database with the `vector` extension. For `int4` to `vector(3)`, `vector(2)` to `vector(3)` (a change of parameter only) and `int4[]` to `vector(3)[]`, the postcheck fails before the change and passes after.
+- With pgvector, no written text of any Postgres type is read by more than one data type. So the new refusal when two data types read the same text, which used to pass when both printed the same catalog text, cannot trigger with the shipped stack.
+
+Published names on `target/planner-sql-checks`: only `buildExpectedFormatType` and `alterTypeCheckText` were removed, and the fragment covers both. `alterTypeCheck` and `ColumnTypeCheck` were added, and `qualifyTableName` and `stackDataTypes` stay.
+
+The enum postcheck description now names the rendered name, so it reads `verify column "c" has type ""app"."status""`. It is understandable, but the quotes double up (S4-d-R1-2). Postcheck descriptions are written into `ops.json`, so a migration emitted again from its `migration.ts` gets new enum postcheck text and SQL, and with them a new migration hash. That is expected for a changed check, and the migrations already committed keep the check they recorded. None of the examples' committed migrations alters a column to an enum.
+
+### S4-d-R1-1 (low): the fragment does not mention `checkType`
+
+Where: `AddColumnCall`, `AlterColumnTypeCall`, `AddRequiredColumnToEmptyTableCall` and `AddColumnWithTemporaryDefaultCall`, published through `@prisma/orm-postgres/target/op-factory-call`. Their public `checkType` field changed from a string to a `ColumnTypeCheck`.
+
+Change: add a sentence to `alter-type-postcheck-by-data-type`.
+
+### S4-d-R1-2 (low): the enum postcheck description doubles its quotes
+
+Where: `columnTypeStep` and `alterColumnType` in `packages/3-targets/3-targets/postgres/src/core/migrations/operations/columns.ts`, which wrap `columnTypeCheckText(check)` in double quotes.
+
+Change: for an `identity` check, write the rendered name without the extra quotes, as in `verify column "c" has type "app"."status"`. Otherwise keep it as it is: it is display text only.
+
+### S4-d-R1-3 (low): the PGlite test has no pack type
+
+Where: `packages/3-targets/6-adapters/postgres/test/migrations/alter-column-type-postcheck.integration.test.ts`.
+
+Change: add a case with a pack-shaped data type declared in the test, as my probe did, so the catalog-text check is covered for a type outside the target's own list.
+
+Verdict: SATISFIED.
