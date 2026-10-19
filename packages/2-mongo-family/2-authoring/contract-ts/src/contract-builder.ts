@@ -14,6 +14,7 @@ import {
   type ExecutionHashBase,
   type ExecutionMutationDefault,
   type ExecutionMutationDefaultPhases,
+  effectiveControlPolicy,
   type FieldTypesFromDomain,
   type JsonValue,
   type ProfileHashBase,
@@ -2567,7 +2568,9 @@ function buildContractFromDefinition<
     collections: Object.fromEntries(
       Object.entries(collections).map(([name, collection]) => [
         name,
-        { ...collection, ...ifDefined('validator', validators[name]) },
+        effectiveControlPolicy(collection.control, definition.defaultControlPolicy) === 'managed'
+          ? { ...collection, ...ifDefined('validator', validators[name]) }
+          : collection,
       ]),
     ),
     valueSets: storageValueSets,
