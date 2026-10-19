@@ -5,6 +5,7 @@ import type {
   MongoContract,
   MongoContractWithTypeMaps,
   MongoModelsMap,
+  StoredNameOf,
 } from '@internal/mongo-contract';
 import type { MongoAggAccumulator, MongoAggExpr } from '@internal/mongo-query-ast/execution';
 import type { ModelArrayField, ModelOriginBrand, ModelOriginBranded } from './resolve-path';
@@ -41,30 +42,13 @@ type ExtractCodecId<F> = F extends { type: { kind: 'scalar'; codecId: infer C } 
     : string;
 
 /**
- * The key a model's field is stored under, read from `storage.fields`.
- */
-export type ModelFieldStoredKey<
-  TContract extends MongoContract,
-  ModelName extends string & keyof MongoModelsMap<TContract>,
-  Field,
-> = MongoModelsMap<TContract>[ModelName] extends {
-  readonly storage: { readonly fields: infer StorageFields };
-}
-  ? Field extends keyof StorageFields
-    ? StorageFields[Field] extends { readonly field: infer StoredKey extends string }
-      ? StoredKey
-      : never
-    : never
-  : never;
-
-/**
  * A model's document shape, keyed by stored key.
  */
 export type ModelToDocShape<
   TContract extends MongoContract,
   ModelName extends string & keyof MongoModelsMap<TContract>,
 > = {
-  [K in keyof MongoModelsMap<TContract>[ModelName]['fields'] & string as ModelFieldStoredKey<
+  [K in keyof MongoModelsMap<TContract>[ModelName]['fields'] & string as StoredNameOf<
     TContract,
     ModelName,
     K
@@ -156,7 +140,7 @@ type StoredModelRow<
   TContract extends MongoContractWithTypeMaps<MongoContract, AnyMongoTypeMaps>,
   ModelName extends string & keyof MongoModelsMap<TContract>,
 > = {
-  [K in keyof InferModelRow<TContract, ModelName> as ModelFieldStoredKey<
+  [K in keyof InferModelRow<TContract, ModelName> as StoredNameOf<
     TContract,
     ModelName,
     K

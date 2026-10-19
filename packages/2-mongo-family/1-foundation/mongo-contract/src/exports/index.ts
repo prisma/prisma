@@ -30,6 +30,7 @@ export type {
   ExtractMongoFieldInputTypes,
   ExtractMongoFieldOutputTypes,
   ExtractMongoTypeMaps,
+  FieldStoredAs,
   InferModelRow,
   MongoContract,
   MongoContractWithTypeMaps,
@@ -52,6 +53,7 @@ export type {
   MongoUnboundFieldOutputTypes,
   MongoWildcardProjection,
   RootModelName,
+  StoredNameOf,
 } from '../contract-types';
 export type { MongoContractAccessors, MongoContractView } from '../contract-view';
 export { buildMongoContractView } from '../contract-view';
@@ -120,16 +122,19 @@ export type {
 export { applyPolymorphicScopeToMongoIndex } from '../polymorphic-index-scope';
 export type { MongoToOneRelationFields } from '../relation-fields';
 export { isEmbedRelation, resolveMongoToOneRelationFields } from '../relation-fields';
-export type { StoredFieldsOwner } from '../stored-field-names';
 export {
   DOCUMENT_ID,
   documentIdFieldOf,
-  fieldOfStoredName,
-  hierarchyStoredFieldNamesOf,
-  storedFieldNameOf,
-  storedFieldNamesOf,
-  storesField,
-} from '../stored-field-names';
+  hasOwnFieldStoredAs,
+  modelAndBasesOf,
+  mongoModelsOf,
+  ownEmbedStoredNamesOf,
+  ownFieldStoredAs,
+  ownStoredNameOf,
+  ownStoredNamesOf,
+  storedNamesOf,
+  valueObjectStoredNamesOf,
+} from '../stored-names';
 export { validateMongoStorage } from '../validate-storage';
 export {
   validatorEnumMemberRefusalOf,

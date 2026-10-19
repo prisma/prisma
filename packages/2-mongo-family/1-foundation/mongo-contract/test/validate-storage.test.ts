@@ -686,6 +686,31 @@ describe('validateMongoStorage()', () => {
       );
     });
 
+    it('rejects an embed relation stored under the stored name of a field', () => {
+      const contract = makeMinimalContract({
+        models: {
+          Item: {
+            fields: { id: objectId, notes: text },
+            storage: {
+              collection: 'items',
+              fields: { id: { field: '_id' }, notes: { field: 'notes' } },
+              relations: { comments: { field: 'notes' } },
+            },
+            relations: { comments: { to: crossRef('Comment'), cardinality: '1:N' } },
+          },
+          Comment: {
+            fields: { body: text },
+            storage: { fields: { body: { field: 'body' } } },
+            relations: {},
+            owner: 'Item',
+          },
+        },
+      });
+      expect(() => validateMongoStorage(contract)).toThrow(
+        'Model "__unbound__:Item" field "notes" and embed relation "comments" are both stored as "notes"',
+      );
+    });
+
     it('treats a field stored as _id as the document id of the back side of a 1:1', () => {
       const contract = makeMinimalContract({
         roots: { users: crossRef('User') },

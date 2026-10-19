@@ -1,6 +1,6 @@
 import type { ContractValueObjectDefinitions } from '@internal/contract/types';
-import type { MongoContract, MongoModelsMap } from '@internal/mongo-contract';
-import type { DocField, ModelFieldStoredKey } from './types';
+import type { MongoContract, MongoModelsMap, StoredNameOf } from '@internal/mongo-contract';
+import type { DocField } from './types';
 
 /**
  * Marker `DocField` variant representing a non-leaf (value-object) path in
@@ -178,11 +178,11 @@ export type ModelNestedShape<
   TContract extends MongoContract,
   ModelName extends string & keyof MongoModelsMap<TContract>,
 > = {
-  readonly [K in keyof MongoModelsMap<TContract>[ModelName]['fields'] &
-    string as ModelFieldStoredKey<TContract, ModelName, K>]: TranslateField<
+  readonly [K in keyof MongoModelsMap<TContract>[ModelName]['fields'] & string as StoredNameOf<
     TContract,
-    MongoModelsMap<TContract>[ModelName]['fields'][K]
-  >;
+    ModelName,
+    K
+  >]: TranslateField<TContract, MongoModelsMap<TContract>[ModelName]['fields'][K]>;
 };
 
 // ── Path walking ─────────────────────────────────────────────────────────

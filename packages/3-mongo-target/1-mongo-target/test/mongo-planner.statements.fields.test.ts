@@ -68,6 +68,18 @@ describe('MongoMigrationPlanner, field statements', () => {
       });
     });
 
+    it('plans nothing and loses nothing when a field is renamed without a statement and keeps its stored name', () => {
+      expect(
+        planned(
+          plan({
+            from: displayName('from', 'name', 'display_name'),
+            to: displayName('to', 'title', 'display_name'),
+            schema: displayNameSchema,
+          }),
+        ),
+      ).toEqual({ labels: [], classes: [], applied: [], dataLoss: [] });
+    });
+
     it('asks about the field whose stored name changes without a statement, by its own name', () => {
       expect(
         planned(

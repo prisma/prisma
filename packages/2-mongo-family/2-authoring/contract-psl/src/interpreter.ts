@@ -45,7 +45,7 @@ import {
   type MongoIndexKeyDirection,
   mongoContractRefusalsOf,
   mongoValueSetsOf,
-  storedFieldNameOf,
+  ownStoredNameOf,
 } from '@internal/mongo-contract';
 import type { MongoTypeLookups } from '@internal/mongo-contract/data-type';
 import type { CollationOptions } from '@internal/mongo-value/mongodb-types';
@@ -561,7 +561,7 @@ function resolvePolymorphism(input: {
     const discriminatorField =
       baseModelEntry === undefined || discriminatorDomainField === undefined
         ? undefined
-        : storedFieldNameOf(baseModelEntry, discriminatorDomainField);
+        : ownStoredNameOf(baseModelEntry, discriminatorDomainField);
     const scopedVariantIndexes: MongoIndex[] = [];
     if (discriminatorField) {
       for (const idx of variantOwnIndexes) {

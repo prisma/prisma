@@ -11,7 +11,7 @@ import { documentIdBsonTypesOf, documentIdRefusalOf } from './document-id-refusa
 import { type FieldBsonTypeRefusal, fieldBsonTypeRefusalOf } from './field-bson-type-refusal';
 import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
 import { isEmbedRelation } from './relation-fields';
-import { documentIdFieldOf } from './stored-field-names';
+import { documentIdFieldOf } from './stored-names';
 import { validatorEnumMemberRefusalOf, validatorEnumRefusalOf } from './validator-enum-refusal';
 
 export type FieldOwner =

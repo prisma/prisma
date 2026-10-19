@@ -4,7 +4,7 @@ import type {
   ContractToOneRelation,
 } from '@internal/contract/types';
 import type { MongoModelDefinition } from './contract-types';
-import { DOCUMENT_ID, storedFieldNameOf } from './stored-field-names';
+import { DOCUMENT_ID, ownStoredNameOf } from './stored-names';
 
 export type MongoToOneRelationFields = {
   /** False for the back side of a 1:1, whose local field is the document id. */
@@ -30,7 +30,7 @@ export function resolveMongoToOneRelationFields(
     fields.every(
       (field) =>
         Object.hasOwn(model.fields, field.name) &&
-        storedFieldNameOf(model, field.name) === DOCUMENT_ID,
+        ownStoredNameOf(model, field.name) === DOCUMENT_ID,
     )
   );
   return { ownsForeignKey, fields };

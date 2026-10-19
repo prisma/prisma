@@ -2,6 +2,7 @@ import { type ContractValueObject, crossRef } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import {
   derive,
+  embedMany,
   model,
   polymorphicRootValidator,
   rootValidator,
@@ -537,6 +538,47 @@ describe('deriveCollectionValidators — stored keys', () => {
           additionalProperties: false,
         },
       ],
+    });
+  });
+});
+
+describe('deriveCollectionValidators — embed stored names', () => {
+  it('describes an embedded model under its relation stored name, with its fields under their stored names', () => {
+    const validators = derive({
+      roots: { items: crossRef('Item') },
+      models: {
+        Item: model(
+          { id: scalarField('mongo/objectId@1') },
+          {
+            relations: { notes: embedMany('Note') },
+            storage: {
+              fields: { id: { field: '_id' } },
+              relations: { notes: { field: 'item_notes' } },
+            },
+          },
+        ),
+        Note: model(
+          { text: scalarField('mongo/string@1') },
+          { storage: { fields: { text: { field: 'note_text' } } }, owner: 'Item' },
+        ),
+      },
+    });
+    expect(validators['items']?.jsonSchema).toEqual({
+      bsonType: 'object',
+      properties: {
+        _id: { bsonType: 'objectId' },
+        item_notes: {
+          bsonType: 'array',
+          items: {
+            bsonType: 'object',
+            properties: { note_text: { bsonType: 'string' } },
+            required: ['note_text'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['_id'],
+      additionalProperties: false,
     });
   });
 });

@@ -1,5 +1,5 @@
 import type { ContractField, ContractValueObject } from '@internal/contract/types';
-import { type MongoModelDefinition, storedFieldNamesOf } from '@internal/mongo-contract';
+import { type MongoModelDefinition, ownStoredNamesOf } from '@internal/mongo-contract';
 import type { MongoFieldShape, MongoResultShape } from '@internal/mongo-query-ast/execution';
 import { freezeMongoFieldShape, freezeMongoResultShape } from '@internal/mongo-query-ast/execution';
 
@@ -78,7 +78,7 @@ export function contractModelToMongoResultShape(
 ): MongoResultShape {
   const fields: Record<string, MongoFieldShape> = { ...options?.includes };
   const fieldsByStoredName = new Map(
-    Object.entries(storedFieldNamesOf(model)).map(([field, storedName]) => [storedName, field]),
+    Object.entries(ownStoredNamesOf(model)).map(([field, storedName]) => [storedName, field]),
   );
   // An explicit empty selection is honored as-is (returns a document shape
   // with no fields). Only the absence of a selection falls back to the model's

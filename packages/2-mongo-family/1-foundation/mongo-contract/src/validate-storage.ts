@@ -5,7 +5,12 @@ import { lookupFreeRefusalsOf } from './contract-refusals';
 import type { MongoContract, MongoModelDefinition } from './contract-types';
 import { documentIdRefusalOf } from './document-id-refusal';
 import { resolveMongoToOneRelationFields } from './relation-fields';
-import { documentIdFieldOf } from './stored-field-names';
+import {
+  documentIdFieldOf,
+  modelAndBasesOf,
+  ownEmbedStoredNamesOf,
+  ownStoredNamesOf,
+} from './stored-names';
 import { type ValidatorShape, validatorRootShapesOf } from './validator-shapes';
 
 function bsonTypesOf(schema: object): readonly string[] {
@@ -76,6 +81,7 @@ function storageDeclaresCollection(
 
 function fieldStorageErrors(
   qualifiedName: string,
+  modelName: string,
   model: MongoModelDefinition,
   models: Record<string, MongoModelDefinition>,
 ): string[] {
@@ -94,34 +100,38 @@ function fieldStorageErrors(
     }
   }
   if (errors.length > 0) return errors;
-  const fieldsByStoredName = new Map<string, string>();
-  const inherited = baseStoredFields(model, models);
-  for (const [fieldName, storedName] of [
-    ...inherited,
-    ...Object.entries(storageFields).map(([name, { field }]) => [name, field] as const),
-  ]) {
-    const other = fieldsByStoredName.get(storedName);
-    if (other !== undefined && other !== fieldName) {
-      const [first, second] = [other, fieldName].sort();
-      errors.push(
-        `Model "${qualifiedName}" fields "${first}" and "${second}" are both stored as "${storedName}"`,
-      );
+  const membersByStoredName = new Map<string, string>();
+  const chain = [...modelAndBasesOf(models, modelName)].reverse();
+  const members = chain.flatMap((each) => [
+    ...Object.entries(ownStoredNamesOf(each)).map(
+      ([name, storedName]) => [`field "${name}"`, storedName] as const,
+    ),
+    ...Object.entries(ownEmbedStoredNamesOf(each)).map(
+      ([name, storedName]) => [`embed relation "${name}"`, storedName] as const,
+    ),
+  ]);
+  for (const [member, storedName] of members) {
+    const other = membersByStoredName.get(storedName);
+    if (other !== undefined && other !== member) {
+      errors.push(bothStoredAs(qualifiedName, other, member, storedName));
     }
-    fieldsByStoredName.set(storedName, fieldName);
+    membersByStoredName.set(storedName, member);
   }
   return errors;
 }
 
-function baseStoredFields(
-  model: MongoModelDefinition,
-  models: Record<string, MongoModelDefinition>,
-): (readonly [string, string])[] {
-  const base = model.base === undefined ? undefined : models[model.base.model];
-  if (base === undefined) return [];
-  return [
-    ...baseStoredFields(base, models),
-    ...Object.entries(base.storage.fields).map(([name, { field }]) => [name, field] as const),
-  ];
+function bothStoredAs(
+  qualifiedName: string,
+  first: string,
+  second: string,
+  storedName: string,
+): string {
+  const fieldPrefix = 'field "';
+  if (first.startsWith(fieldPrefix) && second.startsWith(fieldPrefix)) {
+    const [a, b] = [first, second].map((member) => member.slice(fieldPrefix.length, -1)).sort();
+    return `Model "${qualifiedName}" fields "${a}" and "${b}" are both stored as "${storedName}"`;
+  }
+  return `Model "${qualifiedName}" ${first} and ${second} are both stored as "${storedName}"`;
 }
 
 export function validateMongoStorage(contract: MongoContract): void {
@@ -132,7 +142,7 @@ export function validateMongoStorage(contract: MongoContract): void {
     const models = namespace.models as Record<string, MongoModelDefinition>;
     for (const [modelName, model] of Object.entries(models)) {
       const qualifiedName = `${namespaceId}:${modelName}`;
-      const fieldErrors = fieldStorageErrors(qualifiedName, model, models);
+      const fieldErrors = fieldStorageErrors(qualifiedName, modelName, model, models);
       if (fieldErrors.length > 0) fieldStorageComplete = false;
       errors.push(...fieldErrors);
       if (
