@@ -1,4 +1,4 @@
-# ADR 276 — An emitted contract gets its type from `contractFromJson`, not from a declaration file next to the JSON
+# ADR 277 — An emitted contract gets its type from `contractFromJson`, not from a declaration file next to the JSON
 
 **Status:** Proposed
 **Date:** 2026-10-19
