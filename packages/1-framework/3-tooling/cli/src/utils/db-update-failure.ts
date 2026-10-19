@@ -6,7 +6,7 @@ import { errorMigrationPlanningFailed, errorRunnerFailed } from './cli-errors';
 import { failedPrecheckWhy } from './failed-precheck-advice';
 import { type CliInvocation, cliCommand } from './printed-command';
 import { dbUpdateFailedTypeChangeFix, dbUpdateRowsWithoutValueFix } from './runner-failure-advice';
-import { runnerSchemaCheckWhy, runnerSchemaIssues } from './schema-issues';
+import { schemaCheckWhy } from './schema-issues';
 
 /**
  * A `db update` failure as the CLI's structured error.
@@ -40,7 +40,7 @@ export function mapDbUpdateFailure(
               failure.databaseStorageHash,
               invocation,
             )
-          : runnerSchemaIssues(failure.meta) !== undefined
+          : schemaCheckWhy(failure.schemaIssues) !== undefined
             ? `Change the contract source to resolve the issues listed, re-run \`${cliCommand(invocation, 'contract emit')}\`, then re-run \`${cliCommand(invocation, 'db update')}\`.`
             : runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
               ? // biome-ignore lint/plugin/no-family-vocabulary: names the object to drop per target on purpose — user-facing remediation text, not a framework type
@@ -48,7 +48,7 @@ export function mapDbUpdateFailure(
               : `Inspect the reported conflict, reconcile schema drift if needed, then re-run \`${cliCommand(invocation, 'db update')}\``;
     return errorRunnerFailed(failure.summary, {
       why:
-        runnerSchemaCheckWhy(failure.meta) ??
+        schemaCheckWhy(failure.schemaIssues) ??
         failure.why ??
         (failure.failedPrecheck === undefined
           ? 'Migration runner failed'

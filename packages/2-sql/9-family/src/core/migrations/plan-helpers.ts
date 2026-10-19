@@ -4,6 +4,7 @@ import type {
   FailedTypeChange,
   MigrationPlanSubjects,
   RowsWithoutValue,
+  SchemaDiffIssue,
 } from '@internal/framework-components/control';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -209,6 +210,7 @@ export function runnerFailure(
     failedCheck?: FailedCheck | undefined;
     failedTypeChange?: FailedTypeChange | undefined;
     rowsWithoutValue?: readonly RowsWithoutValue[] | undefined;
+    schemaIssues?: readonly SchemaDiffIssue[] | undefined;
   },
 ): NotOk<SqlMigrationRunnerFailure> {
   const failure: SqlMigrationRunnerFailure = Object.freeze({
@@ -219,6 +221,7 @@ export function runnerFailure(
     ...ifDefined('failedCheck', options?.failedCheck),
     ...ifDefined('failedTypeChange', options?.failedTypeChange),
     ...ifDefined('rowsWithoutValue', options?.rowsWithoutValue),
+    ...ifDefined('schemaIssues', options?.schemaIssues),
   });
   return notOk(failure);
 }

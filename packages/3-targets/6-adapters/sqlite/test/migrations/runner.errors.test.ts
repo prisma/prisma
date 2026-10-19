@@ -57,6 +57,10 @@ describe('SqliteMigrationRunner - Error Scenarios', { timeout: timeouts.database
     expect(result.ok).toBe(false);
     const failure = result.assertNotOk();
     expect(failure.code).toBe('MIGRATION.SCHEMA_VERIFY_FAILED');
+    expect({
+      typed: failure.schemaIssues,
+      found: (failure.schemaIssues?.length ?? 0) > 0,
+    }).toEqual({ typed: failure.meta?.['issues'], found: true });
 
     await expectNoMarkerOrLedgerWrites(driver);
   });

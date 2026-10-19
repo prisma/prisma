@@ -202,6 +202,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
           meta: {
             issues: schemaVerifyResult.schema.issues,
           },
+          schemaIssues: schemaVerifyResult.schema.issues,
         });
       }
     }

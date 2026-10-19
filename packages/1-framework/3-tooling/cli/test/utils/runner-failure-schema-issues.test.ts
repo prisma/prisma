@@ -33,12 +33,13 @@ const PROJECT = '/work/app';
 const invocation = { cwd: PROJECT, configPath: undefined, dbGiven: false };
 const FROM = 'b'.repeat(64);
 
-function schemaCheckFailure(issues: unknown) {
+function schemaCheckFailure(issues: readonly SchemaDiffIssue[]) {
   return {
     code: 'RUNNER_FAILED',
     summary: 'Database schema does not satisfy contract',
     why: RUNNER_WHY,
     meta: { runnerErrorCode: 'MIGRATION.SCHEMA_VERIFY_FAILED', issues },
+    schemaIssues: issues,
   } as const;
 }
 
@@ -83,10 +84,9 @@ describe('a failed schema check after apply', () => {
       );
     });
 
-    it('keeps the runner why for an issue the CLI cannot read', () => {
-      expect(
-        mapMigrateFailure(schemaCheckFailure([explained, { path: ['x'] }]), invocation).why,
-      ).toBe(RUNNER_WHY);
+    it('reads the issues only from the typed field, not from meta', () => {
+      const { schemaIssues: _, ...metaOnly } = schemaCheckFailure([explained]);
+      expect(mapMigrateFailure(metaOnly, invocation).why).toBe(RUNNER_WHY);
     });
   });
 

@@ -11,6 +11,7 @@ import type {
   MigrationOperationPolicy,
   MigrationRunnerFailure,
   MigrationSubject,
+  SchemaDiffIssue,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 import type {
@@ -60,6 +61,8 @@ export interface RunnerFailure {
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
   /** The check that failed before its operation ran, when the runner gave no explanation of its own. */
   readonly failedPrecheck?: FailedPrecheckReport;
+  /** The differences the schema check after apply found, when that check failed. */
+  readonly schemaIssues?: readonly SchemaDiffIssue[];
   /** The written migration of the failed operation, when the runner named the operation, or the last one applied when the schema check after apply failed. */
   readonly failedMigration?: { readonly spaceId: string; readonly edge: AggregateMigrationEdgeRef };
   /**
@@ -100,7 +103,7 @@ function failureReports(
   const edge =
     operationIndex !== undefined
       ? edgeOfOperation(resolution.entry.migrationEdges, operationIndex)
-      : failure.code === 'MIGRATION.SCHEMA_VERIFY_FAILED'
+      : failure.schemaIssues !== undefined
         ? resolution.entry.migrationEdges.at(-1)
         : undefined;
   return {
@@ -268,6 +271,7 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
       },
       ...failureReports(runnerResult.failure, orderedResolutions),
       ...ifDefined('failedPrecheck', failedPrecheckOf(runnerResult.failure, orderedResolutions)),
+      ...ifDefined('schemaIssues', runnerResult.failure.schemaIssues),
       cause: runnerResult.failure,
     });
   }

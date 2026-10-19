@@ -15,7 +15,7 @@ import { dbInitFailedPrecheckFix, failedPrecheckWhy } from './failed-precheck-ad
 import { runCommandAction } from './next-actions';
 import type { CliInvocation } from './printed-command';
 import { dbInitRowsWithoutValueFix } from './runner-failure-advice';
-import { runnerSchemaCheckWhy, runnerSchemaIssues } from './schema-issues';
+import { schemaCheckWhy } from './schema-issues';
 
 const DB_INIT_ADDITIVE_ONLY_FIX =
   '`db init` applies only additive changes. Run `{bin} db update`, which also applies widening and destructive ones once you answer what each operation that would lose data means, with `--delete` or `--rename`.';
@@ -132,7 +132,7 @@ export function mapDbInitFailure(
     const fix =
       failure.rowsWithoutValue !== undefined
         ? dbInitRowsWithoutValueFix(failure.rowsWithoutValue, invocation)
-        : runnerSchemaIssues(failure.meta) !== undefined
+        : schemaCheckWhy(failure.schemaIssues) !== undefined
           ? 'Change the contract source to resolve the issues listed, re-run `{bin} contract emit`, then re-run `{bin} db init`.'
           : failure.failedPrecheck !== undefined
             ? dbInitFailedPrecheckFix(invocation)
@@ -142,7 +142,7 @@ export function mapDbInitFailure(
               : 'Fix the schema mismatch (db init is additive-only), or drop/reset the database and re-run `{bin} db init`';
     return errorRunnerFailed(failure.summary, {
       why:
-        runnerSchemaCheckWhy(failure.meta) ??
+        schemaCheckWhy(failure.schemaIssues) ??
         failure.why ??
         (failure.failedPrecheck === undefined
           ? 'Migration runner failed'
