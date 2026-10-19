@@ -6,6 +6,8 @@
 | a | 2 | `e18a2f56eb..bd7aad8b10` | 0 | 0 | 3 | SATISFIED |
 | a | 3 | `cb6e833bed` | 0 | 0 | 0 | SATISFIED |
 | b | 1 | `045561e038`, `f9b24e4a4f`, `d31df461b2` | 0 | 1 | 2 | ANOTHER ROUND NEEDED |
+| b | 2 | `e2aac78778..8b54721858` | 0 | 0 | 0 | SATISFIED |
+| c | 1 | `8b54721858..66c520ef88` | 0 | 1 | 2 | ANOTHER ROUND NEEDED |
 
 ## Dispatch a, round 1
 
@@ -151,3 +153,77 @@ Where: `packages/2-sql/1-core/schema-ir/src/ir/sql-column-ir.ts`, the class doc 
 Change: say that `isEqualTo` compares the type with `sqlColumnTypesEqual` and compares nullability.
 
 Verdict: ANOTHER ROUND NEEDED, for S4-b-R1-1.
+
+## Dispatch b, round 2
+
+S4-b-R1-1 is fixed. `SqlColumnIR.withName` copies every own property of the column and rebuilds it through the constructor. Its test compares the own property descriptors of the copy and the original, enumerable or not, apart from `name`, so it fails if a field is dropped. Both `withColumnName` functions are gone, and the SQLite `withRecordKeyNames` uses `withName` for an instance whose name differs from its key. S4-b-R1-2 is fixed: the two target helpers wrap the shared `introspectedColumn`. Widening the targets' typecheck `rootDir` to `../../..` matches the adapters, and it only affects typechecking: the build uses tsdown and `tsconfig.prod.json`. S4-b-R1-3 is fixed. No new findings.
+
+Verdict: SATISFIED.
+
+## Dispatch c, round 1
+
+Each numbered item of the brief is built:
+
+- `typeText` replaces `nativeType`.
+- `resolvedNativeType`, `codecBaseNativeType` and the type-name normalisers are deleted.
+- `introspectedNativeType` is now `introspectedTypeText`.
+- The DDL builders that take a schema IR column write the type from `storedType`.
+- `CatalogColumnType.dataType` is now `informationSchemaType`.
+- `TypeLookups` in framework-components replaces `SqlTypeLookups`, `MongoTypeLookups`, contract-ts's local pair and the loose fields in `data-type-default.ts`.
+
+Checks run:
+
+- `pnpm build`, root `pnpm typecheck`, `lint:deps` and `lint:framework-vocabulary` pass.
+- Package tests pass for framework-components, mongo-contract, sql-contract, schema-ir, contract-psl, contract-ts, the SQL family, both targets, both adapters, pgvector, postgis, the CLI and publish-surface.
+- The golden planner test passes (734 tests, run without the write flag, so nothing was re-recorded). It still records `numeric(10)` and `character varying(255)`.
+- The integration files and journeys the diff touches pass (42 files, 178 tests): `cli.db-introspect`, `family.introspect`, `db-schema-discovery`, the enum-members tests, the cross-package planners, greenfield, drift-schema, data-type-defaults, infer-roundtrip-fidelity, multi-step-migration and `cli.db-verify`.
+- The SQLite e2e `destructive` test passes.
+- `check:upgrade-coverage --mode pr` passes, and so do `check:publish-deps` and `lint-publishability`.
+
+PGlite round trip: I ran a temporary test in the Postgres adapter, deleted afterwards. A contract with `numeric(10)`, `varchar(20)`, `timestamptz(3)`, a bare `char` and `text[]` was planned and applied, then verified. The database reports `numeric(10,0)`, `character varying(20)`, `timestamp(3) with time zone`, `character(1)` and `text[]`, and `db verify` reports no issues. Writing DDL from the stored type with the parameters as written keeps the planned DDL unchanged, and the comparison through data types matches it to what the database reports.
+
+The `db schema` JSON output: its `schema` field is the introspected schema IR serialized as it is, typed `unknown` in `SchemaDocument`. The CLI README and `skills/prisma-8/references/migrations.md` document that `--json` exists and suggest `jq` over it, but nothing documents its fields: no output schema, published type or reference page names `nativeType`. The rename also removes `resolvedNativeType` from that output. I recommend keeping the new key. Keeping the old one would need a custom serializer that only exists for compatibility, and the repository does not keep compatibility shims. Mention the rename in the app upgrade note of S4-c-R1-1, because the skill tells agents to read this JSON. The tree output now prints the reported type (`integer` where it printed `int4`), which is a display change only.
+
+The grep rows: the first row 4 grep returns only `buildExpectedFormatType` (and its tests and export), owed by dispatch d, and `EXISTING_COLUMN_DATE_TIME_TYPES`, owed by dispatch e. The `nativeType` allowances are justified:
+
+- The Prisma 7 type table's `nativeTypes` key, keyed by `@db.*` names.
+- The Mongo Prisma 6 `nativeTypeCodecIds`, also keyed by `@db.*` names.
+- The old-contract refusal in `validators.ts`, with its tests and the Supabase fixture.
+- The `data-type-in-contract` upgrade tests and their fixtures.
+- The comments in the pgvector and postgis `migration.ts` files.
+
+`AuthoringTypeLookups` was never exported, so replacing it loses nothing.
+
+### S4-c-R1-1 (should-fix): published names are removed without an upgrade note
+
+Where: these entry points are re-exported unchanged by the published packages.
+
+- `SqlTypeLookups`, removed from `@internal/sql-contract/data-type`, which `@prisma/orm-family-sql`, `@prisma/orm-postgres` and `@prisma/orm-sqlite` publish.
+- `MongoTypeLookups`, removed from `@internal/mongo-contract/data-type`, which `@prisma/orm-family-mongo` and `@prisma/orm-mongo` publish. The published rc.14 to rc.15 extension guide tells extension authors to type a parameter with it.
+- `normalizeSchemaNativeType`, `introspectedNativeType` and `IntrospectedNativeType`, removed from `@prisma/orm-postgres/target/native-type-normalizer`, and `CatalogColumnType.dataType`, renamed there.
+- `normalizeSchemaNativeType` and `normalizeSqliteNativeType`, removed from the adapters' control entry points.
+- `SqlColumnIR` and `SqlColumnIRInput`: `nativeType` renamed to `typeText`, `resolvedNativeType` and `codecBaseNativeType` removed. These are published through `@prisma/orm-family-sql/schema-ir`.
+- From dispatch b, on the same entry points: `DefaultResolver` now takes a column, and `readPostgresDefault` takes a list flag.
+
+`check:upgrade-coverage` does not catch these, because it only requires a declaration for changes under `examples/` and `packages/3-extensions/`. The repository has documented changes like these for extension authors before.
+
+Change: add an extension fragment under `upgrade-instructions/pending/`. For each removed or renamed name, say what replaces it: `TypeLookups` from the framework's `codec` entry point, `typeText`, `storedType` and `typeParams`, and `informationSchemaType`. Add an app fragment line for the `db schema --json` column key. The orchestrator writes these.
+
+### S4-c-R1-2 (low): the rename reached prose where it no longer makes sense
+
+Where:
+
+- `packages/3-targets/6-adapters/postgres/src/core/control-adapter.ts:262`, which says "`::typeText` cast suffixes".
+- Two test names in `packages/3-targets/6-adapters/postgres/test/lower-to-execute-request.test.ts` ("::typeText cast").
+- The doc comment of `packages/3-targets/6-adapters/postgres/test/migrations/planner.uuid.integration.test.ts`, which says removing "`typeText: 'uuid'`" from "the storage descriptor" changes the DDL. No storage descriptor carries such a field.
+- `packages/2-sql/1-core/schema-ir/README.md`, whose "Native type primary" paragraph still says verification centres on the type text.
+
+Change: write what each means now. The cast suffix is the type's SQL name, the uuid test depends on the codec's data type, and the README should say columns compare by their stored data type and parameters.
+
+### S4-c-R1-3 (low): one grep allowance misses a file
+
+Where: `projects/data-types-completion/plan.md`, the slice 4 row for `Unsupported(`. Its output includes `packages/2-sql/2-authoring/contract-psl/test/interpreter.field-type-resolution.test.ts`, which tests the TML-3582 message, but the allowance names only `native-type-parity.test.ts` and `sql-unsupported-type-lsp.integration.test.ts` as its tests.
+
+Change: add that file to the allowance.
+
+Verdict: ANOTHER ROUND NEEDED, for S4-c-R1-1.
