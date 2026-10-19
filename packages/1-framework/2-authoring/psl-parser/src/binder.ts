@@ -3,9 +3,11 @@ import type {
   AuthoringPslBlockDescriptorNamespace,
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
-import type {
-  ControlMutationDefaultRegistry,
-  ControlMutationDefaults,
+import {
+  type ControlMutationDefaultRegistry,
+  type ControlMutationDefaults,
+  EMPTY_GENERATOR_FUNCTIONS,
+  type GeneratorFunctionRegistry,
 } from '@internal/framework-components/control';
 import type { ContributedPslDiagnosticCode } from '@internal/framework-components/psl-ast';
 import { blindCast } from '@internal/utils/casts';
@@ -165,7 +167,10 @@ export interface UnresolvedTypeReference {
 export type DescribeUnresolvedType = (unresolved: UnresolvedTypeReference) => string | undefined;
 
 export interface BinderContext
-  extends Pick<ContractSourceContext, 'authoringContributions' | 'pslDiagnostics' | 'dataTypes'> {
+  extends Pick<
+    ContractSourceContext,
+    'authoringContributions' | 'pslDiagnostics' | 'dataTypes' | 'generatorFunctions'
+  > {
   readonly controlMutationDefaults: Pick<ControlMutationDefaults, 'defaultFunctionRegistry'>;
 }
 
@@ -181,6 +186,7 @@ interface BindingInputs {
   readonly contributedTypes: ContributedTypeNamespace;
   readonly attributeSpecs: AttributeSpecNamespace;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
   readonly pslBlockDescriptors?: AuthoringPslBlockDescriptorNamespace | undefined;
   readonly describeUnsupportedAttribute?: DescribeUnsupportedAttribute | undefined;
@@ -331,6 +337,7 @@ export function createBinder(input: CreateBinderInput): BinderResult {
     attributeSpecs: assembleAttributeSpecs(contributions),
     pslBlockDescriptors: contributions.pslBlockDescriptors,
     defaultFunctionRegistry: context.controlMutationDefaults.defaultFunctionRegistry,
+    generatorFunctions: context.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS,
     dataTypes: context.dataTypes,
     ...(describeUnsupportedAttributeFactory !== undefined
       ? { describeUnsupportedAttribute: describeUnsupportedAttributeFactory(sources) }
@@ -348,6 +355,7 @@ function bind(options: BindingInputs): BinderResult {
     contributedTypes,
     attributeSpecs,
     defaultFunctionRegistry,
+    generatorFunctions,
     dataTypes,
     describeUnsupportedAttribute,
     describeUnresolvedType,
@@ -475,7 +483,13 @@ function bind(options: BindingInputs): BinderResult {
     };
     const specContext =
       entity.kind === 'model' || (entity.kind === 'mixin' && entity.keyword === 'model')
-        ? { symbols: symbolTable, model: entity, defaultFunctionRegistry, dataTypes }
+        ? {
+            symbols: symbolTable,
+            model: entity,
+            defaultFunctionRegistry,
+            generatorFunctions,
+            dataTypes,
+          }
         : undefined;
     bindAttributes(
       entity,

@@ -422,6 +422,7 @@ function contextForInterpretOptions(
     InterpretPslDocumentToSqlContractInput,
     | 'authoringContributions'
     | 'controlMutationDefaults'
+    | 'generatorFunctions'
     | 'codecLookup'
     | 'dataTypes'
     | 'composedExtensions'
@@ -465,6 +466,9 @@ function contextForInterpretOptions(
       defaultFunctionRegistry: new Map(),
       generatorDescriptors: [],
     },
+    ...(options.generatorFunctions === undefined
+      ? {}
+      : { generatorFunctions: options.generatorFunctions }),
     resolvedInputs: [],
     capabilities: options.capabilities,
   };

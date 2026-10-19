@@ -20,6 +20,7 @@ import {
   fieldAttribute,
   fieldRef,
   funcCall,
+  generatorAttributeSpec,
   identifier,
   int,
   interpretAttribute,
@@ -67,14 +68,10 @@ function buildFieldAttributeCtx(input: {
 }
 
 const UNLOWERED_FIELD_ATTRIBUTE_HINTS: ReadonlyMap<string, string> = new Map([
-  [
-    'updatedAt',
-    'To fill the timestamp on create and update, use `temporal.updatedAt()` as the field type.',
-  ],
+  ['updatedAt', 'Use @onCreate(now()) @onUpdate(now()) instead.'],
 ]);
 
-const DEFAULT_NOW_HINT =
-  'To fill the timestamp on create, use `temporal.createdAt()` as the field type.';
+const DEFAULT_NOW_HINT = 'Use @onCreate(now()) instead; MongoDB has no database defaults.';
 
 function unloweredAttributeHint(attribute: ResolvedAttribute): string | undefined {
   if (attribute.name === 'default' && attribute.args[0]?.value.replace(/\s/g, '') === 'now()') {
@@ -420,5 +417,7 @@ export const mongoAttributeSpecs = {
     unique: staticFieldSpec(uniqueFieldSpec),
     map: staticFieldSpec(mapFieldSpec),
     relation: staticFieldSpec(relationFieldSpec),
+    onCreate: generatorAttributeSpec('onCreate'),
+    onUpdate: generatorAttributeSpec('onUpdate'),
   },
 } as const satisfies AttributeSpecNamespace;

@@ -6,6 +6,7 @@ export type MongoContextInput = Pick<
   InterpretPslDocumentToMongoContractInput,
   | 'scalarTypeCodecIds'
   | 'defaultFunctionRegistry'
+  | 'generatorFunctions'
   | 'dataTypes'
   | 'codecLookup'
   | 'authoringContributions'
@@ -20,6 +21,7 @@ export function mongoContextInput(context: ContractSourceContext): MongoContextI
       ),
     ),
     defaultFunctionRegistry: context.controlMutationDefaults.defaultFunctionRegistry,
+    ...(context.generatorFunctions ? { generatorFunctions: context.generatorFunctions } : {}),
     dataTypes: context.dataTypes,
     codecLookup: context.codecLookup,
     authoringContributions: context.authoringContributions,

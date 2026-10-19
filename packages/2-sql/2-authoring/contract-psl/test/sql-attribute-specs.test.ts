@@ -1,3 +1,4 @@
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/control';
 import type {
   ArgType,
   AttributeCtx,
@@ -97,6 +98,7 @@ function interpretDefault(schema: string, fieldName: string, namespaceName?: str
         field: target,
         binder,
         defaultFunctionRegistry,
+        generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
         dataTypes: fixtureDataTypeSupport,
       }),
     ),
@@ -130,6 +132,7 @@ namespace scoped {
           symbols: input.symbolTable,
           model,
           defaultFunctionRegistry,
+          generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
           dataTypes: fixtureDataTypeSupport,
         }),
       ),
@@ -158,6 +161,7 @@ describe('sqlAttributeSpecs', () => {
     symbols: symbolTable,
     model,
     defaultFunctionRegistry,
+    generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     dataTypes: fixtureDataTypeSupport,
   });
   const fieldCtx = fieldSpecContext({
@@ -166,6 +170,7 @@ describe('sqlAttributeSpecs', () => {
     field: field(model, 'id'),
     binder,
     defaultFunctionRegistry,
+    generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     dataTypes: fixtureDataTypeSupport,
   });
 
@@ -214,6 +219,8 @@ describe('sqlAttributeSpecs', () => {
       'default',
       'id',
       'map',
+      'onCreate',
+      'onUpdate',
       'relation',
       'unique',
     ]);
@@ -278,6 +285,7 @@ describe('the tags @default offers at a value position', () => {
             field: field(model, name),
             binder,
             defaultFunctionRegistry,
+            generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
             dataTypes,
           }),
         ),
@@ -320,6 +328,7 @@ describe('the tags @default offers at a value position', () => {
               field: field(aliased.model, name),
               binder: aliased.binder,
               defaultFunctionRegistry,
+              generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
               dataTypes: knowingCodecs,
             }),
           ),
@@ -358,6 +367,7 @@ describe('sqlAttributeSpecs.field.default', () => {
     field: field(model, 'id'),
     binder,
     defaultFunctionRegistry,
+    generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     dataTypes: fixtureDataTypeSupport,
   });
 
@@ -405,6 +415,7 @@ describe('sqlAttributeSpecs.field.default', () => {
       field: field(model, 'id'),
       binder,
       defaultFunctionRegistry,
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: EMPTY_DATA_TYPES,
     });
     const value = oneOfMetadata(positionalType(sqlAttributeSpecs.field.default(noTags)));
@@ -419,6 +430,7 @@ describe('sqlAttributeSpecs.field.default', () => {
       field: field(model, 'tags'),
       binder,
       defaultFunctionRegistry,
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: fixtureDataTypeSupport,
     });
     const value = oneOfMetadata(positionalType(sqlAttributeSpecs.field.default(listCtx)));
@@ -446,6 +458,7 @@ describe('sqlAttributeSpecs.field.default', () => {
       field: field(model, 'tags'),
       binder,
       defaultFunctionRegistry,
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: fixtureDataTypeSupport,
     });
     const value = oneOfMetadata(positionalType(sqlAttributeSpecs.field.default(listCtx)));
@@ -468,6 +481,7 @@ describe('sqlAttributeSpecs.field.default', () => {
       field: priority,
       binder: enumProject.binder,
       defaultFunctionRegistry,
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: fixtureDataTypeSupport,
     });
     const enumDefault = oneOfMetadata(positionalType(sqlAttributeSpecs.field.default(enumCtx)));
@@ -487,6 +501,7 @@ describe('sqlAttributeSpecs.field.default', () => {
       field: kind,
       binder: emptyProject.binder,
       defaultFunctionRegistry,
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: fixtureDataTypeSupport,
     });
     const emptyDefault = oneOfMetadata(positionalType(sqlAttributeSpecs.field.default(emptyCtx)));

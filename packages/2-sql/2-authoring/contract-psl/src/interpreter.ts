@@ -36,10 +36,12 @@ import type {
   ExtensionPackRef,
   TargetPackRef,
 } from '@internal/framework-components/components';
-import type {
-  ControlMutationDefaultRegistry,
-  ControlMutationDefaults,
-  MutationDefaultGeneratorDescriptor,
+import {
+  type ControlMutationDefaultRegistry,
+  type ControlMutationDefaults,
+  EMPTY_GENERATOR_FUNCTIONS,
+  type GeneratorFunctionRegistry,
+  type MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { Binder } from '@internal/psl-parser';
@@ -170,6 +172,8 @@ export interface InterpretPslDocumentToSqlContractInput {
   readonly composedExtensions?: readonly string[];
   readonly composedExtensionPackRefs?: readonly ExtensionPackRef<'sql', string>[];
   readonly controlMutationDefaults?: ControlMutationDefaults;
+  /** The stack's generator functions, which `@onCreate(fn())` and `@onUpdate(fn())` resolve through. */
+  readonly generatorFunctions?: GeneratorFunctionRegistry;
   /** The stack's data types with their authoring entries. ADR 254. */
   readonly dataTypes: DataTypeSupport;
   readonly authoringContributions?: AuthoringContributions;
@@ -532,6 +536,7 @@ interface BuildModelNodeInput {
   readonly targetId: string;
   readonly authoringContributions: AuthoringContributions | undefined;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
   readonly generatorDescriptorById: ReadonlyMap<string, MutationDefaultGeneratorDescriptor>;
   readonly scalarColumnDescriptors: ReadonlyMap<string, ColumnDescriptor>;
@@ -639,6 +644,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
     symbols: input.symbolTable,
     model,
     defaultFunctionRegistry: input.defaultFunctionRegistry,
+    generatorFunctions: input.generatorFunctions,
     dataTypes: input.dataTypes,
   });
   const modelNamespaceId = input.namespaceId;
@@ -654,6 +660,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
     authoringContributions: input.authoringContributions,
     targetId: input.targetId,
     defaultFunctionRegistry: input.defaultFunctionRegistry,
+    generatorFunctions: input.generatorFunctions,
     dataTypes: input.dataTypes,
     generatorDescriptorById: input.generatorDescriptorById,
     diagnostics,
@@ -2050,8 +2057,15 @@ export function interpretPslDocumentToSqlContract(
   const { binder, dataTypes } = input;
   const defaultFunctionRegistry: ControlMutationDefaultRegistry =
     input.controlMutationDefaults?.defaultFunctionRegistry ?? new Map();
+  const generatorFunctions = input.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS;
   const specContextFor = (model: ModelSymbol) =>
-    modelSpecContext({ symbols: input.symbolTable, model, defaultFunctionRegistry, dataTypes });
+    modelSpecContext({
+      symbols: input.symbolTable,
+      model,
+      defaultFunctionRegistry,
+      generatorFunctions,
+      dataTypes,
+    });
 
   const namespaceSymbols = Object.values(input.symbolTable.namespaces);
   validateNamespaceBlocksForSqlTarget({
@@ -2406,6 +2420,7 @@ export function interpretPslDocumentToSqlContract(
       targetId: input.target.targetId,
       authoringContributions: input.authoringContributions,
       defaultFunctionRegistry,
+      generatorFunctions,
       dataTypes,
       generatorDescriptorById,
       scalarColumnDescriptors: input.scalarColumnDescriptors,

@@ -6,6 +6,7 @@ import type {
 import type {
   AssembledAuthoringContributions,
   ControlMutationDefaults,
+  GeneratorFunctionRegistry,
 } from '@internal/framework-components/control';
 import { type BinderContext, EMPTY_DATA_TYPES } from '@internal/psl-parser';
 
@@ -15,6 +16,7 @@ export interface LspControlStack {
   readonly pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace;
   readonly authoringContributions?: AssembledAuthoringContributions;
   readonly controlMutationDefaults?: ControlMutationDefaults;
+  readonly generatorFunctions?: GeneratorFunctionRegistry;
   readonly dataTypes?: DataTypeSupport;
   readonly pslDiagnostics?: ContractSourceContext['pslDiagnostics'];
 }
@@ -33,6 +35,9 @@ export function binderContextFromStack(stack: LspControlStack): BinderContext {
     controlMutationDefaults: {
       defaultFunctionRegistry: stack.controlMutationDefaults?.defaultFunctionRegistry ?? new Map(),
     },
+    ...(stack.generatorFunctions === undefined
+      ? {}
+      : { generatorFunctions: stack.generatorFunctions }),
     dataTypes: stack.dataTypes ?? EMPTY_DATA_TYPES,
     ...(stack.pslDiagnostics === undefined ? {} : { pslDiagnostics: stack.pslDiagnostics }),
   };

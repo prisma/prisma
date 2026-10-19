@@ -226,3 +226,6 @@ export function singleGeneratorBinding(input: {
       generator.id === input.generatorId ? { args: {}, text: '' } : undefined,
   };
 }
+
+/** The generator functions of a stack that contributes none. */
+export const EMPTY_GENERATOR_FUNCTIONS: GeneratorFunctionRegistry = assembleGeneratorFunctions([]);

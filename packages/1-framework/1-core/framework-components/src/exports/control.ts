@@ -193,7 +193,11 @@ export type {
   GeneratorFunctionSummary,
   GeneratorResolution,
 } from '../shared/generator-functions';
-export { assembleGeneratorFunctions, singleGeneratorBinding } from '../shared/generator-functions';
+export {
+  assembleGeneratorFunctions,
+  EMPTY_GENERATOR_FUNCTIONS,
+  singleGeneratorBinding,
+} from '../shared/generator-functions';
 export type {
   AssembledControlMutationDefaults,
   ControlMutationDefaultEntry,

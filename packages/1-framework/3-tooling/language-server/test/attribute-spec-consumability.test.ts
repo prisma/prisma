@@ -3,6 +3,7 @@ import * as configLoader from '@internal/config-loader';
 import {
   assembleAuthoringContributions,
   assembleControlMutationDefaults,
+  EMPTY_GENERATOR_FUNCTIONS,
 } from '@internal/framework-components/control';
 import type { AttributeSpecContext, AttributeSpecNamespace } from '@internal/psl-parser';
 import {
@@ -114,6 +115,7 @@ describe('assembled attribute specs are consumable from a resolved project', () 
       symbols: pipeline.symbolTable,
       model,
       defaultFunctionRegistry: controlMutationDefaults.defaultFunctionRegistry,
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: EMPTY_DATA_TYPES,
     });
     expect(spec).toMatchObject({
@@ -191,6 +193,7 @@ describe('assembled attribute specs are consumable from a resolved project', () 
       typeConstructor: undefined,
       defaultFunctionRegistry:
         interpretation.context.controlMutationDefaults.defaultFunctionRegistry,
+      generatorFunctions: interpretation.context.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: interpretation.context.dataTypes,
     });
     expect(spec).toMatchObject({
@@ -223,6 +226,7 @@ describe('assembled attribute specs are consumable from a resolved project', () 
       model,
       defaultFunctionRegistry:
         interpretation.context.controlMutationDefaults.defaultFunctionRegistry,
+      generatorFunctions: interpretation.context.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: interpretation.context.dataTypes,
     };
 

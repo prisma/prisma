@@ -98,6 +98,7 @@ function lspControlStackFromStack(stack: ControlStack): LspControlStack {
     ...(stack.controlMutationDefaults === undefined
       ? {}
       : { controlMutationDefaults: stack.controlMutationDefaults }),
+    generatorFunctions: stack.generatorFunctions,
     ...ifDefined('pslDiagnostics', stack.family?.pslDiagnostics),
   };
 }
@@ -121,6 +122,7 @@ function resolveInterpretation(
       codecLookup: stack.codecLookup,
       dataTypes: stack.dataTypes,
       controlMutationDefaults: stack.controlMutationDefaults,
+      generatorFunctions: stack.generatorFunctions,
       resolvedInputs: [...inputs.uris()],
       capabilities: stack.capabilities,
       defaultNamespaceId: stack.target.defaultNamespaceId,

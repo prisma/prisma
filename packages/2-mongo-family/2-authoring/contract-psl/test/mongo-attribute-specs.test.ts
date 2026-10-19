@@ -1,5 +1,6 @@
 import type { ContractSourceContext } from '@internal/config/config-types';
 import { emptyCodecLookup } from '@internal/framework-components/codec';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/control';
 import type {
   ArgType,
   AttributeCtx,
@@ -108,6 +109,7 @@ function contexts(): { model: AttributeSpecContext; field: FieldAttributeSpecCon
     symbols: symbolTable,
     model,
     defaultFunctionRegistry: new Map(),
+    generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     dataTypes: EMPTY_DATA_TYPES,
   };
   return {
@@ -157,7 +159,7 @@ model Base { id String }`,
       field: Object.keys(mongoAttributeSpecs.field).sort(),
     }).toEqual({
       model: ['base', 'discriminator', 'index', 'map', 'textIndex', 'unique'],
-      field: ['id', 'map', 'relation', 'unique'],
+      field: ['id', 'map', 'onCreate', 'onUpdate', 'relation', 'unique'],
     });
   });
 

@@ -5,6 +5,7 @@ import type { CapabilityMatrix } from '@internal/framework-components/components
 import type {
   AssembledAuthoringContributions,
   ControlMutationDefaults,
+  GeneratorFunctionRegistry,
 } from '@internal/framework-components/control';
 import type { Result } from '@internal/utils/result';
 
@@ -49,6 +50,8 @@ export interface ContractSourceContext {
   /** The stack's data types with their authoring entries, so a written value can be read and cast into a receiving type. ADR 254. */
   readonly dataTypes: DataTypeSupport;
   readonly controlMutationDefaults: ControlMutationDefaults;
+  /** The stack's generator functions, which `@onCreate(fn())` and `@onUpdate(fn())` resolve through. A context without them resolves no generator function. */
+  readonly generatorFunctions?: GeneratorFunctionRegistry;
   /**
    * The flat, expanded, deduped, sorted member file list — every
    * `source.inputs` glob resolved to the files it currently matches. A glob

@@ -278,6 +278,7 @@ export async function loadContractSourceWithStack(inputs: {
     ...ifDefined('pslDiagnostics', stack.family?.pslDiagnostics),
     codecLookup: stack.codecLookup,
     controlMutationDefaults: stack.controlMutationDefaults,
+    generatorFunctions: stack.generatorFunctions,
     dataTypes: stack.dataTypes,
     resolvedInputs: await unlessAborted(expandContractInputs(source.inputs)),
     capabilities: stack.capabilities,

@@ -2,9 +2,11 @@ import type {
   AuthoringPslBlockDescriptorNamespace,
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
-import type {
-  AssembledAuthoringContributions,
-  ControlMutationDefaults,
+import {
+  type AssembledAuthoringContributions,
+  type ControlMutationDefaults,
+  EMPTY_GENERATOR_FUNCTIONS,
+  type GeneratorFunctionRegistry,
 } from '@internal/framework-components/control';
 import {
   type AttributeSpec,
@@ -39,6 +41,7 @@ export interface AttributeSpecSource {
   readonly symbolTable: SymbolTable;
   readonly authoringContributions?: AssembledAuthoringContributions;
   readonly controlMutationDefaults?: ControlMutationDefaults;
+  readonly generatorFunctions?: GeneratorFunctionRegistry;
   readonly dataTypes?: DataTypeSupport;
 }
 
@@ -168,6 +171,7 @@ export function attributeSpecResolver(
         symbols: source.symbolTable,
         model,
         defaultFunctionRegistry: source.controlMutationDefaults.defaultFunctionRegistry,
+        generatorFunctions: source.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS,
         dataTypes: source.dataTypes ?? EMPTY_DATA_TYPES,
       };
       return (name) => specs.model[name]?.(specContext);
@@ -185,6 +189,7 @@ export function attributeSpecResolver(
         symbols: source.symbolTable,
         model,
         defaultFunctionRegistry: source.controlMutationDefaults.defaultFunctionRegistry,
+        generatorFunctions: source.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS,
         dataTypes: source.dataTypes ?? EMPTY_DATA_TYPES,
       };
       const node = typeReferenceNode(field);

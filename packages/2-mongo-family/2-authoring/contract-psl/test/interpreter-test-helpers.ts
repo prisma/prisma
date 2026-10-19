@@ -66,6 +66,9 @@ function contextForInterpretOptions(
       defaultFunctionRegistry: options.defaultFunctionRegistry,
       generatorDescriptors: [],
     },
+    ...(options.generatorFunctions === undefined
+      ? {}
+      : { generatorFunctions: options.generatorFunctions }),
     resolvedInputs: [],
     capabilities: {},
     ...(options.reportWarning ? { reportWarning: options.reportWarning } : {}),

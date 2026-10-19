@@ -10,6 +10,7 @@ import type { CodecLookupWithDescriptors } from '@internal/framework-components/
 import type { CapabilityMatrix } from '@internal/framework-components/components';
 import type {
   ControlMutationDefaultRegistry,
+  GeneratorFunctionRegistry,
   MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/control';
 import type {
@@ -47,6 +48,7 @@ import {
 import type { ColumnDescriptor, FieldPresetContributions } from './psl-column-resolution';
 import {
   lowerDefaultForField,
+  lowerGeneratorAttributesForField,
   rejectStrictListNullDefault,
   resolveFieldTypeDescriptor,
 } from './psl-column-resolution';
@@ -72,6 +74,7 @@ function lowerEnumDefaultForField(input: {
   readonly binder: Binder;
   readonly enumHandle: EnumTypeHandle;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
   readonly diagnostics: PslDiagnosticCollector;
 }): LoweredFieldDefault {
@@ -86,6 +89,7 @@ function lowerEnumDefaultForField(input: {
       field,
       binder: input.binder,
       defaultFunctionRegistry: input.defaultFunctionRegistry,
+      generatorFunctions: input.generatorFunctions,
       dataTypes: input.dataTypes,
     }),
   );
@@ -187,6 +191,7 @@ export interface CollectResolvedFieldsInput {
   readonly authoringContributions: AuthoringContributions | undefined;
   readonly targetId: string;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
   readonly generatorDescriptorById: ReadonlyMap<string, MutationDefaultGeneratorDescriptor>;
   readonly diagnostics: PslDiagnosticCollector;
@@ -223,12 +228,14 @@ interface RemovedAttributeRule {
   readonly suppressWhen: (field: FieldSymbol) => boolean;
 }
 
+const GENERATOR_ATTRIBUTE_NAMES = ['onCreate', 'onUpdate'] as const;
+
 const REMOVED_ATTRIBUTE_RULES: ReadonlyMap<string, RemovedAttributeRule> = new Map([
   [
     'updatedAt',
     {
-      hint: 'Use `temporal.updatedAt()` as a field-preset call instead.',
-      suppressWhen: (field) => field.typeConstructor?.path[0] === 'temporal',
+      hint: 'Use @onCreate(now()) @onUpdate(now()) instead.',
+      suppressWhen: (field) => field.attributes.some((attribute) => attribute.name === 'onUpdate'),
     },
   ],
 ]);
@@ -342,6 +349,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     binder,
     targetId,
     defaultFunctionRegistry,
+    generatorFunctions,
     dataTypes,
     generatorDescriptorById,
     diagnostics,
@@ -495,6 +503,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
             binder: input.binder,
             enumHandle,
             defaultFunctionRegistry,
+            generatorFunctions,
             dataTypes,
             diagnostics,
           })
@@ -515,11 +524,27 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
                 : { valueObjectName, types: valueObjectTypes },
             generatorDescriptorById,
             defaultFunctionRegistry,
+            generatorFunctions,
             dataTypes,
             codecLookup,
             diagnostics,
           })
       : {};
+    const generatedValues = lowerGeneratorAttributesForField({
+      modelName: model.name,
+      fieldName: field.name,
+      field,
+      model,
+      symbolTable,
+      sources: input.sources,
+      binder: input.binder,
+      columnDescriptor: descriptor,
+      columnTypeParams: resolvedTypeParams(descriptor, input.namedTypes),
+      defaultFunctionRegistry,
+      generatorFunctions,
+      dataTypes,
+      diagnostics,
+    });
     const loweredOnCreate = loweredDefault.executionDefaults?.onCreate;
     if (
       isListField &&
@@ -544,6 +569,33 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       });
       continue;
     }
+    const generatorAttribute = GENERATOR_ATTRIBUTE_NAMES.map((name) =>
+      getAttribute(field.attributes, name),
+    ).find((attribute) => attribute !== undefined);
+    if (isListField && generatorAttribute !== undefined && generatedValues !== undefined) {
+      const argument =
+        generatorAttribute.args.find((arg) => arg.kind === 'positional')?.value.trim() ?? '';
+      diagnostics.push({
+        code: 'PSL_LIST_EXECUTION_DEFAULT_UNSUPPORTED',
+        message: `Field "${model.name}.${field.name}" is a list and cannot use @${generatorAttribute.name}(${argument}). Lists have no per-element generated values; remove @${generatorAttribute.name}(...).`,
+        ...source.at(generatorAttribute.span),
+      });
+      continue;
+    }
+    const presetPhaseConflict = GENERATOR_ATTRIBUTE_NAMES.find(
+      (phase) =>
+        presetContributions?.executionDefaults?.[phase] !== undefined &&
+        generatedValues?.[phase] !== undefined,
+    );
+    if (presetPhaseConflict !== undefined) {
+      const phaseText = presetPhaseConflict === 'onCreate' ? 'on create' : 'on update';
+      diagnostics.push({
+        code: 'PSL_PRESET_AND_DEFAULT_CONFLICT',
+        message: `Field "${model.name}.${field.name}" uses a field-preset call that already generates a value ${phaseText}, so @${presetPhaseConflict}(...) cannot set one too. Remove @${presetPhaseConflict}(...) or use a preset without an ${presetPhaseConflict} generator.`,
+        ...source.at(getAttribute(field.attributes, presetPhaseConflict)?.span ?? field.span),
+      });
+      continue;
+    }
     if (presetContributions?.executionDefaults?.onCreate && loweredOnCreate) {
       diagnostics.push({
         code: 'PSL_PRESET_AND_DEFAULT_CONFLICT',
@@ -559,6 +611,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       field,
       binder,
       defaultFunctionRegistry,
+      generatorFunctions,
       dataTypes,
     });
     const { idAttribute, uniqueAttribute, idName, uniqueName } = extractFieldConstraintNames({
@@ -598,7 +651,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     }
 
     const fieldExecutionDefaults = mergeExecutionDefaults(
-      loweredDefault.executionDefaults,
+      mergeExecutionDefaults(loweredDefault.executionDefaults, generatedValues),
       presetContributions?.executionDefaults,
     );
     const fieldDefaultValue = presetContributions?.default ?? loweredDefault.defaultValue;

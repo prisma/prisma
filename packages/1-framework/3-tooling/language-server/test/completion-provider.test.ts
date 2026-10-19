@@ -1123,7 +1123,7 @@ namespace app {
       completeWithActualStack(['model Post {', '  id Int @|', '}'].join('\n'), stack).items.map(
         (item) => item.label,
       ),
-    ).toEqual(['default', 'id', 'map', 'relation', 'unique']);
+    ).toEqual(['default', 'id', 'map', 'onCreate', 'onUpdate', 'relation', 'unique']);
     expect(
       completeWithActualStack(
         ['model Post {', '  id Int', '  @@|', '}'].join('\n'),
@@ -1248,6 +1248,8 @@ namespace app {
       'default',
       'id',
       'map',
+      'onCreate',
+      'onUpdate',
       'relation',
       'unique',
     ]);
@@ -1263,7 +1265,7 @@ namespace app {
       completeWithActualStack(['model Post {', '  id String @|', '}'].join('\n'), stack).items.map(
         (item) => item.label,
       ),
-    ).toEqual(['id', 'map', 'relation', 'unique']);
+    ).toEqual(['id', 'map', 'onCreate', 'onUpdate', 'relation', 'unique']);
     expect(
       completeWithActualStack(
         ['model Post {', '  id String', '  @@|', '}'].join('\n'),

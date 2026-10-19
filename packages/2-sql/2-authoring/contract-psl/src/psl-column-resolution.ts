@@ -1,6 +1,7 @@
 import type {
   ColumnDefault,
   ExecutionMutationDefaultPhases,
+  ExecutionMutationDefaultValue,
   ValueSetRef,
 } from '@internal/contract/types';
 import type {
@@ -31,6 +32,7 @@ import {
   type ControlMutationDefaultRegistry,
   type DefaultFunctionLoweringContext,
   describeTaggedLiteralFailure,
+  type GeneratorFunctionRegistry,
   type MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/control';
 import type { ContributedPslDiagnosticCode } from '@internal/framework-components/psl-ast';
@@ -686,6 +688,7 @@ export function lowerDefaultForField(input: {
     | undefined;
   readonly generatorDescriptorById: ReadonlyMap<string, MutationDefaultGeneratorDescriptor>;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly diagnostics: PslDiagnosticCollector;
@@ -703,6 +706,7 @@ export function lowerDefaultForField(input: {
       field: input.field,
       binder: input.binder,
       defaultFunctionRegistry: input.defaultFunctionRegistry,
+      generatorFunctions: input.generatorFunctions,
       dataTypes: input.dataTypes,
     }),
   );
@@ -939,4 +943,72 @@ export function lowerDefaultForField(input: {
   }
 
   return { executionDefaults: { onCreate: lowered.value.generated } };
+}
+
+const GENERATOR_PHASES = ['onCreate', 'onUpdate'] as const;
+
+/** The generators a field's `@onCreate(fn())` and `@onUpdate(fn())` resolve to for its column, or `undefined` for a field with neither. */
+export function lowerGeneratorAttributesForField(input: {
+  readonly modelName: string;
+  readonly fieldName: string;
+  readonly field: FieldSymbol;
+  readonly model: ModelSymbol;
+  readonly symbolTable: SymbolTable;
+  readonly sources: PslSources;
+  readonly binder: Binder;
+  readonly columnDescriptor: ColumnDescriptor;
+  /** The column's parameters: its own, or those of the named type it is declared with. */
+  readonly columnTypeParams: Record<string, unknown> | undefined;
+  readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
+  readonly dataTypes: DataTypeSupport;
+  readonly diagnostics: PslDiagnosticCollector;
+}): ExecutionMutationDefaultPhases | undefined {
+  const specContext = fieldSpecContext({
+    symbols: input.symbolTable,
+    model: input.model,
+    field: input.field,
+    binder: input.binder,
+    defaultFunctionRegistry: input.defaultFunctionRegistry,
+    generatorFunctions: input.generatorFunctions,
+    dataTypes: input.dataTypes,
+  });
+  const phases: {
+    onCreate?: ExecutionMutationDefaultValue;
+    onUpdate?: ExecutionMutationDefaultValue;
+  } = {};
+  for (const phase of GENERATOR_PHASES) {
+    const node = getAttribute(input.field.attributes, phase)?.node;
+    if (node === undefined) continue;
+    const interpreted = interpretFieldAttribute({
+      symbols: input.symbolTable,
+      node,
+      spec: sqlAttributeSpecs.field[phase](specContext),
+      model: input.model,
+      field: input.field,
+      sources: input.sources,
+      binder: input.binder,
+      diagnostics: input.diagnostics,
+    });
+    if (interpreted === undefined) continue;
+    const call = interpreted.value;
+    const resolution = input.generatorFunctions.resolve({
+      name: call.fn,
+      args: call.args,
+      column: { codecId: input.columnDescriptor.codecId, typeParams: input.columnTypeParams },
+    });
+    if (resolution.ok) {
+      phases[phase] = resolution.generator;
+      continue;
+    }
+    input.diagnostics.push({
+      code: 'PSL_GENERATOR_NOT_APPLICABLE',
+      message:
+        resolution.reason === 'refused'
+          ? `Field "${input.modelName}.${input.fieldName}": ${resolution.message}`
+          : `Field "${input.modelName}.${input.fieldName}": ${call.fn}() does not apply to codec "${input.columnDescriptor.codecId}".`,
+      ...diagnosticSource(input.sources, node.syntax).at(call.span),
+    });
+  }
+  return phases.onCreate === undefined && phases.onUpdate === undefined ? undefined : phases;
 }
