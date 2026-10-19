@@ -1,7 +1,30 @@
 import { contractFromJson } from '@internal/postgres/static';
 import { Collection } from '@internal/sql-orm-client';
 import { SignJWT } from 'jose';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+const statements = vi.hoisted(() => [] as string[]);
+
+vi.mock('pg', () => {
+  const query = vi.fn(async (request: string | { readonly text: string }) => {
+    statements.push(typeof request === 'string' ? request : request.text);
+    return { rows: [], rowCount: 0 };
+  });
+  class Pool {
+    on = vi.fn().mockReturnThis();
+    connect = vi.fn().mockResolvedValue({ query, release: vi.fn(), on: vi.fn() });
+    end = vi.fn().mockResolvedValue(undefined);
+  }
+  class Client {
+    on = vi.fn().mockReturnThis();
+    connect = vi.fn().mockResolvedValue(undefined);
+    query = query;
+    end = vi.fn().mockResolvedValue(undefined);
+    release = vi.fn();
+  }
+  return { Pool, Client };
+});
+
 import supabase from '../src/runtime/supabase';
 import type { Contract } from './fixtures/example-app/contract';
 import contractJson from './fixtures/example-app/contract.json' with { type: 'json' };
@@ -30,5 +53,25 @@ describe('a supabase client with custom collection classes', () => {
       serviceRole: db.asServiceRole().orm.public.Profile.named('ada') instanceof ProfileCollection,
     }).toEqual({ user: true, anon: true, serviceRole: true });
     await db.close();
+  });
+
+  it('runs a class method on a role-bound client', async () => {
+    const db = await supabase({
+      contract,
+      url: 'postgres://localhost/db',
+      verifyMarker: false,
+      jwtSecret,
+      collections: { Profile: ProfileCollection },
+    });
+
+    await db.asAnon().orm.public.Profile.named('ada').all();
+    await db.close();
+
+    expect(statements).toEqual([
+      'SELECT set_config($1, $2, false)',
+      'SELECT set_config($1, $2, false)',
+      'SELECT "profile"."id" AS "id", "profile"."userId" AS "userId", "profile"."username" AS "username" FROM "public"."profile" WHERE "profile"."username" = $1',
+      'RESET ALL',
+    ]);
   });
 });
