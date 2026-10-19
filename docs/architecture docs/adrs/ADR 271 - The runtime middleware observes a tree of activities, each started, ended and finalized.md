@@ -45,7 +45,7 @@ sequenceDiagram
     M->>M: invalidate keys
 ```
 
-The runtime's middleware sees a tree. An **activity** is one act by an actor: a statement a client sent, a transaction a client or the user opened, an ORM call the user made. An activity may have a parent, to any depth. The runtime hosts the tree and fires the hooks; it starts no activity on its own.
+The runtime's middleware sees a tree. An **activity** is one act by an actor: a statement a client sent, a transaction a client or the user opened, an ORM call the user made. An activity may have a parent, to any depth. The runtime hosts the tree and fires the hooks; it starts no activity on its own. Nobody declares the tree up front: it grows as the code runs, because `db.transaction(fn)` runs user code and an ORM call's later statements depend on earlier results, such as an `UPDATE` sent only when the `SELECT` before it found a row.
 
 The runtime defines two kinds of activity:
 
@@ -284,16 +284,24 @@ Rewriting the query tree before it becomes SQL is the standard home for soft del
 
 - **Copy the call's annotations onto every statement.** Misstates what was annotated and multiplies the payload. Rejected.
 - **Attach them to one chosen statement.** The ORM decides which statement represents the call. Rejected.
+- **Carry the call's annotations on each statement under a reserved annotation namespace.** A stopgap for the missing call activity, with the same costs as copying them. Rejected.
+- **Start an activity only for ORM terminal methods that send several statements.** The user would have to know how many statements a method sends, which changes with the target, so a tracer would show different trees for the same code on Postgres and SQLite, and middleware would have to handle a statement that is sometimes the call. Every terminal method starts one, including a call served from the cache without any statement. Rejected.
 - **The cache reads a statement's annotations, then its parent's.** Would cache the same work twice when both are annotated. The cache acts only on the activity in hand. Rejected.
 - **Parent pointers only, no child list.** The runtime needs the child list to finalize a transaction's activities. Rejected.
+- **End a parent's open children automatically when the parent ends.** An open child at that point is a client bug, and ending it quietly would hide the bug. Rejected for a runtime error.
+- **The cache walks a transaction's children when the transaction ends, to find annotated writes.** It fails when the transaction is the ORM call's child, as for a single-row `update()`, and makes the cache know about transactions. Rejected for `activityFinalized` on the annotated activity.
+- **Keep the per-statement hooks beside the activity hooks.** Two interfaces for the same moments, kept for compatibility. The release-candidate period is the time to change the interface, and there are few middleware to rewrite, first-party or external. Rejected.
+- **Put the activity on the plan, as a field of `PlanMeta`.** ADR 220 rejected per-execution facts on the plan: the runtime would have to wrap the plan, the plan reference would no longer flow through unchanged, and content hashing would have to exclude the field. Rejected for the activity's own `ctx`.
 - **One wrapping hook around execution, with a `next()` to call.** ADR 014 rejected it because it is harder to keep compile-time work, run-time work and budgets apart, and it mixes observing with changing. Rejected again.
 - **Two statement kinds, one per runtime method.** Both have the same lifecycle; only the result differs, which `returns` records. Rejected.
 - **One `intercept` hook for all results, checked at run time.** The compiler could not check that a middleware returned rows to a statement that asked for rows. Rejected for one handler per result type.
 - **Lifecycle events split by kind.** They return nothing, so splitting buys no type safety, and kind-agnostic consumers such as the cache and a tracer would implement the same body several times. Kinds are also open, so a catch-all would be needed anyway. Rejected.
 - **An `intercept` handler for transactions.** A transaction has no result to supply, and skipping it would run its actor's statements outside any transaction. Rejected.
 - **Serve cached reads inside a transaction, and defer storing to commit,** as Spring's `TransactionAwareCacheDecorator` does. A transaction would read rows from before its own writes. Rejected.
+- **Stop caching only once the transaction has written,** as django-cacheops does. The runtime cannot tell whether a raw SQL statement writes. Rejected for now, in favour of skipping every activity inside a transaction.
 - **Name the hook `activitySettled` or `activityCompleted`.** In JavaScript a promise "settles" when it resolves or rejects, which is when an activity ends, not when its effects are final. "Completed" is a near synonym of "ended", so readers cannot tell which moment comes first; Spring's `afterCompletion` belongs only to a transaction, for which ending and completing are the same moment, and does not carry over to statements and ORM calls. Rejected for "finalized", which says that the effects are final.
 - **Name the leaf activity `execution` or `query`.** "Execution" already means running any plan, and "query" already means both a statement in general and the `query()` method. Rejected.
+- **Name the concept an operation, a scope, a call or a span.** "Operation" has several meanings in this codebase already, "scope" is `ctx.scope`, "call" does not cover a transaction, and ADR 160 keeps OpenTelemetry's words, such as "span", free for a tracing integration. Rejected for "activity", from .NET.
 - **Two finalization outcomes, as in Rails.** A rejected `COMMIT` and a silently rolled-back `COMMIT` fire nothing, and a cache holds stale rows until expiry. Rejected.
 - **`startActivity` on the user-facing scope.** Users would see a client-only method on `tx`. Rejected.
 - **`startActivity` and `planContentHash` as methods on the public `Runtime` types.** Users of `db.runtime()` would see two client-only methods, and every object that implements the types, including test stubs, would have to provide them. Rejected for members under a symbol, reached through `startActivityOn` and `planContentHashOn`, which a queryable without the member fails clearly.
