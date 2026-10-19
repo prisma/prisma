@@ -75,7 +75,6 @@ import {
   mongoVector,
 } from './data-types';
 import { decodeJsonValue, encodeJsonValue } from './json-codec-helpers';
-import { mongoTargetError } from './mongo-target-errors';
 
 export const mongoObjectIdCodec = mongoCodec({
   typeId: MONGO_OBJECTID_CODEC_ID,
@@ -257,14 +256,9 @@ function descriptorFor<Id extends string>(
     readonly traits: readonly CodecTrait[];
     /** Builds the codec for a column's parameters, for a codec whose data type has parameters. */
     readonly withParams?: (params: DataTypeParams) => MongoCodec<Id, readonly CodecTrait[]>;
-    readonly renderOutputType?: (typeParams: Record<string, unknown>) => string | undefined;
     readonly renderValueLiteral?: CodecDescriptor['renderValueLiteral'];
   },
 ): CodecDescriptor {
-  const renderOutputType = blindCast<
-    CodecDescriptor['renderOutputType'] | undefined,
-    "the descriptor's P is structurally Record<string, unknown> for codecs that take params (Mongo vector); non-parameterized codecs ignore the slot, so no per-codec P leaks into the heterogeneous descriptor list"
-  >(metadata.renderOutputType);
   return {
     codecId: codec.id,
     dataType: codec.dataType.id,
@@ -284,31 +278,12 @@ function descriptorFor<Id extends string>(
           : metadata.withParams(params);
       return () => built;
     }),
-    ...ifDefined('renderOutputType', renderOutputType),
     ...ifDefined('renderValueLiteral', metadata.renderValueLiteral),
   };
 }
 
-const renderVectorOutputType = (typeParams: Record<string, unknown>): string | undefined => {
-  const length = typeParams['length'];
-  if (length === undefined) return undefined;
-  if (
-    typeof length !== 'number' ||
-    !Number.isFinite(length) ||
-    !Number.isInteger(length) ||
-    length <= 0
-  ) {
-    throw mongoTargetError(
-      'RUNTIME.TYPE_PARAMS_INVALID',
-      'renderOutputType: expected positive integer "length" for Vector',
-      { meta: { typeName: 'Vector', param: 'length', received: length } },
-    );
-  }
-  return `Vector<${length}>`;
-};
-
 /**
- * Mongo wire-type codec descriptors. Static metadata for `traits` and `renderOutputType` lives here (the descriptor shape) — `MongoCodec` itself carries its data type and the four conversion methods (TML-2357).
+ * Mongo wire-type codec descriptors. Static metadata such as `traits` lives here (the descriptor shape) — `MongoCodec` itself carries its data type and the four conversion methods (TML-2357).
  */
 export const mongoCodecDescriptors: ReadonlyArray<CodecDescriptor> = [
   descriptorFor(mongoObjectIdCodec, {
@@ -335,7 +310,6 @@ export const mongoCodecDescriptors: ReadonlyArray<CodecDescriptor> = [
   }),
   descriptorFor(mongoVectorCodec, {
     traits: ['equality'],
-    renderOutputType: renderVectorOutputType,
     withParams: vectorCodec,
   }),
   descriptorFor(mongoInt64Codec, {
