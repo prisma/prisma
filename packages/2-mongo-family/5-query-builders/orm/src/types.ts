@@ -281,9 +281,29 @@ type GeneratedOnCreateFields<
     }
   > extends infer Matched
     ? Matched extends { readonly ref: { readonly field: infer Field extends string } }
-      ? Field
+      ? FieldStoredAs<TContract, ModelName, Field>
       : never
     : never;
+
+/** The fields of the model stored under `StoredName`. */
+type FieldStoredAs<
+  TContract extends MongoContract,
+  ModelName extends string & keyof MongoModelsMap<TContract>,
+  StoredName extends string,
+> = {
+  [K in keyof MongoModelsMap<TContract>[ModelName]['storage']['fields'] &
+    string]: MongoModelsMap<TContract>[ModelName]['storage']['fields'][K] extends {
+    readonly field: StoredName;
+  }
+    ? K
+    : never;
+}[keyof MongoModelsMap<TContract>[ModelName]['storage']['fields'] & string];
+
+/** The field stored as `_id`, which MongoDB fills when a create leaves it out. */
+type DocumentIdField<
+  TContract extends MongoContract,
+  ModelName extends string & keyof MongoModelsMap<TContract>,
+> = FieldStoredAs<TContract, ModelName, '_id'>;
 
 /**
  * Fields a document may leave out: nullable ones, which read back as `null`. The create input makes them optional, as the SQL ORM client does for nullable columns.
@@ -301,7 +321,10 @@ type NullableFields<
 type OptionalOnCreate<
   TContract extends MongoContract,
   ModelName extends string & keyof MongoModelsMap<TContract>,
-> = '_id' | GeneratedOnCreateFields<TContract, ModelName> | NullableFields<TContract, ModelName>;
+> =
+  | DocumentIdField<TContract, ModelName>
+  | GeneratedOnCreateFields<TContract, ModelName>
+  | NullableFields<TContract, ModelName>;
 
 export type CreateInput<
   TContract extends MongoContractWithTypeMaps<MongoContract, AnyMongoTypeMaps>,
@@ -335,7 +358,7 @@ type DiscriminatorField<
   : never;
 
 // TODO(TML-2229): VariantModelRow flows through ResolvedOutputRow, so variant
-// domain fields use output types. Only the _id pick uses ResolvedInputRow.
+// domain fields use output types. Only the document id pick uses ResolvedInputRow.
 // When input/output types diverge (parameterized codecs), this needs an
 // input-side VariantModelRow.
 export type VariantCreateInput<
@@ -351,7 +374,7 @@ export type VariantCreateInput<
   Partial<
     Pick<
       ResolvedInputRow<TContract, ModelName>,
-      '_id' & keyof ResolvedInputRow<TContract, ModelName>
+      DocumentIdField<TContract, ModelName> & keyof ResolvedInputRow<TContract, ModelName>
     >
   > &
   Partial<
