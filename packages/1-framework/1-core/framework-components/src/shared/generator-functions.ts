@@ -111,25 +111,19 @@ function invalidContribution(message: string): Error {
   return runtimeError('CONTRACT.PACK_CONTRIBUTION_INVALID', message);
 }
 
+/** A registered generator: its descriptor, and the id of the component that registers it. */
+export interface GeneratorRegistration {
+  readonly descriptor: MutationDefaultGeneratorDescriptor;
+  readonly componentId: string | undefined;
+}
+
 /**
- * The generator ids the components register, each with the id of the component that registers it. A generator registered by two components is refused: the component that defines a generator registers it, once.
+ * The generators the components register, by id. A generator registered by two components is refused: the component that defines a generator registers it, once.
  */
-export function registeredGeneratorDescriptors(
+export function assembleGeneratorRegistrations(
   descriptors: ReadonlyArray<Pick<GeneratorFunctionComponent, 'id' | 'controlMutationDefaults'>>,
-): ReadonlyMap<
-  string,
-  {
-    readonly descriptor: MutationDefaultGeneratorDescriptor;
-    readonly componentId: string | undefined;
-  }
-> {
-  const registered = new Map<
-    string,
-    {
-      readonly descriptor: MutationDefaultGeneratorDescriptor;
-      readonly componentId: string | undefined;
-    }
-  >();
+): ReadonlyMap<string, GeneratorRegistration> {
+  const registered = new Map<string, GeneratorRegistration>();
   for (const component of descriptors) {
     for (const descriptor of component.controlMutationDefaults?.generatorDescriptors ?? []) {
       const existing = registered.get(descriptor.id);
@@ -150,7 +144,7 @@ export function registeredGeneratorDescriptors(
 export function assembleGeneratorFunctions(
   descriptors: ReadonlyArray<GeneratorFunctionComponent>,
 ): GeneratorFunctionRegistry {
-  const registered = registeredGeneratorDescriptors(descriptors);
+  const registered = assembleGeneratorRegistrations(descriptors);
   const declared = new Map<string, DeclaredFunction>();
   const bindingsByCodec = new Map<string, Map<string, OwnedBinding>>();
   const printersByCodecAndGenerator = new Map<string, OwnedBinding>();

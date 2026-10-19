@@ -36,8 +36,8 @@ import {
 import type { ComponentMetadata } from '../shared/framework-components';
 import {
   assembleGeneratorFunctions,
+  assembleGeneratorRegistrations,
   type GeneratorFunctionRegistry,
-  registeredGeneratorDescriptors,
 } from '../shared/generator-functions';
 import type {
   AssembledControlMutationDefaults,
@@ -584,7 +584,7 @@ export function assembleControlMutationDefaults(
 ): AssembledControlMutationDefaults {
   const defaultFunctionRegistry = new Map<string, ControlMutationDefaultEntry>();
   const functionOwners = new Map<string, string>();
-  const registered = registeredGeneratorDescriptors(descriptors);
+  const registered = assembleGeneratorRegistrations(descriptors);
 
   for (const descriptor of descriptors) {
     const contributions = descriptor.controlMutationDefaults;

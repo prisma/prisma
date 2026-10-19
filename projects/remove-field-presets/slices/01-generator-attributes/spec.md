@@ -173,7 +173,7 @@ Why: it is the rule `psl-field-resolution.ts` already applies to a preset and `@
 
 ### D6. `@default` can no longer produce a client generator
 
-`LoweredDefaultValue` loses its `{ kind: 'execution' }` arm, and `ControlMutationDefaultEntry` loses `printArguments`. The default function registries keep `autoincrement` and `now` only. `AssembledControlMutationDefaults.defaultFunctionPrintersByGenerator` and the `DefaultFunctionPrinter` type are removed; `componentIdsByGenerator` stays for print's refusal message. `MutationDefaultGeneratorDescriptor` loses `applicableCodecIds` (bindings replace it) and `buildPhases` (no caller). `builtinGeneratorRegistryMetadata` in `@internal/ids` loses `applicableCodecIds`.
+`LoweredDefaultValue` loses its `{ kind: 'execution' }` arm, and `ControlMutationDefaultEntry` loses `printArguments`. The default function registries keep `autoincrement` and `now` only. `AssembledControlMutationDefaults.defaultFunctionPrintersByGenerator` and the `DefaultFunctionPrinter` type are removed; `componentIdsByGenerator` stays for print's refusal message. `MutationDefaultGeneratorDescriptor` loses `applicableCodecIds` (bindings replace it) and `buildPhases` (no caller). `builtinGeneratorRegistryMetadata` in `@internal/ids` is removed: the SQL family registers the identifier generators, and the extension upgrade change `sql-family-registers-identifier-generators` tells authors to drop it.
 
 Why: ADR 275 says every entry in the default function registry lowers to a database default. Keeping the `execution` arm would let an extension's `@default(slugid())` stay a client generator, the ambiguity the ADR removes. This is a breaking change for extension authors that ADR 275 does not list; the extension upgrade fragment covers it.
 
