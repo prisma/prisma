@@ -1,7 +1,7 @@
 /**
- * Field changes on a MongoDB contract written in TypeScript, which gives its collections no validator.
+ * Field changes on a MongoDB contract written in TypeScript, planned and applied as on PSL.
  *
- * Field names are then not in the contract's storage hash, so a migration that only renames or removes a field would start and end at the same hash, which `db migrate` refuses. `migration plan` refuses the change before it writes anything; `db update` carries it out. Journey H1 renames `Event.name` and follows the refusal's advice through `db update`. Journey H2 removes the field: no statement names a removal, so `migration plan` finds no change and writes nothing, and `db update` carries it out.
+ * The contract gives each collection a validator, so field names are in the storage hash and a field rename or removal changes it. Journey T1 renames `Event.name` with `migration plan --rename` and applies it with `db migrate`. Journey T2 removes the field: `migration plan` asks for the removal, then plans it with the printed `--delete`, and `db migrate` applies it.
  */
 
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -17,9 +17,7 @@ import {
   getMigrationDirs,
   type JourneyContext,
   latestMigrationDirName,
-  parseJsonOutput,
   runContractEmit,
-  runDbUpdate,
   runMigrate,
   runMigrationPlan,
 } from '../utils/journey-test-helpers';
@@ -35,7 +33,7 @@ function withDatabase(baseUri: string, dbName: string): string {
 function setupProject(connectionString: string): JourneyContext {
   const testDir = join(
     fixtureAppDir,
-    `test-mongo-same-hash-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    `test-mongo-ts-field-changes-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
   const outputDir = join(testDir, 'output');
   mkdirSync(outputDir, { recursive: true });
@@ -43,7 +41,7 @@ function setupProject(connectionString: string): JourneyContext {
   writeFileSync(
     join(testDir, 'package.json'),
     JSON.stringify({
-      name: 'mongo-same-hash-journey',
+      name: 'mongo-ts-field-changes-journey',
       private: true,
       type: 'module',
       dependencies: { '@prisma/orm-mongo': 'workspace:0.16.0' },
@@ -66,7 +64,7 @@ async function useFixture(ctx: JourneyContext, name: string, label: string): Pro
   expect(emitted.exitCode, `${label}: emit: ${emitted.stderr}`).toBe(0);
 }
 
-describe('Journeys (MongoDB): field changes that leave the storage hash unchanged', {
+describe('Journeys (MongoDB): field changes on a TypeScript contract', {
   timeout: timeouts.spinUpMongoMemoryServer,
 }, () => {
   let replSet: MongoMemoryReplSet;
@@ -115,49 +113,52 @@ describe('Journeys (MongoDB): field changes that leave the storage hash unchange
       .toArray();
   }
 
-  it('H1: migration plan refuses a field rename, and db update carries it out as advised', async () => {
-    const dbName = 'mongo_same_hash_rename';
-    const { ctx, origin } = await migratedProject(dbName, 'H1');
-    await useFixture(ctx, 'contract-events-name-renamed.ts', 'H1.04');
-    const rename = ['--rename', 'Event.name:Event.title'];
+  it('T1: migration plan renames a field, and db migrate applies it', async () => {
+    const dbName = 'mongo_ts_field_rename';
+    const { ctx, origin } = await migratedProject(dbName, 'T1');
+    await useFixture(ctx, 'contract-events-name-renamed.ts', 'T1.04');
 
-    const refused = await runMigrationPlan(ctx, ['--from', origin, ...rename, '--json']);
-    expect(refused.exitCode, 'H1.05: the rename is refused').not.toBe(0);
-    const error = JSON.stringify(engineError(refused));
-    expect(error, 'H1.05: names the field and the reason').toContain(
-      'Cannot rename field \\"Event.name\\" to \\"Event.title\\": the migration would start and end at the same contract hash',
-    );
-    expect(error, 'H1.05: says what works').toContain('Use prisma db update for this change');
-    expect(getMigrationDirs(ctx), 'H1.05: nothing written').toHaveLength(1);
+    const plan = await runMigrationPlan(ctx, [
+      '--name',
+      'rename',
+      '--from',
+      origin,
+      '--rename',
+      'Event.name:Event.title',
+      '--json',
+    ]);
+    expect(plan.exitCode, `T1.05: plan: ${plan.stderr}`).toBe(0);
+    expect(getMigrationDirs(ctx), 'T1.05: the migration is written').toHaveLength(2);
 
-    const updated = await runDbUpdate(ctx, ['--no-interactive', ...rename, '--json']);
-    expect(updated.exitCode, `H1.06: db update: ${updated.stderr}`).toBe(0);
-    expect(await events(dbName), 'H1.06: the value is under the new name').toEqual([
+    const applied = await runMigrate(ctx);
+    expect(applied.exitCode, `T1.06: db migrate: ${applied.stderr}`).toBe(0);
+    expect(await events(dbName), 'T1.06: the value is under the new name').toEqual([
       { title: 'launch' },
     ]);
   });
 
-  it('H2: migration plan finds no change in a field removal, and db update carries it out', async () => {
-    const dbName = 'mongo_same_hash_remove';
-    const { ctx, origin } = await migratedProject(dbName, 'H2');
-    await useFixture(ctx, 'contract-events-name-removed.ts', 'H2.04');
+  it('T2: migration plan asks for a field removal, plans it with the printed --delete, and db migrate applies it', async () => {
+    const dbName = 'mongo_ts_field_remove';
+    const { ctx, origin } = await migratedProject(dbName, 'T2');
+    await useFixture(ctx, 'contract-events-name-removed.ts', 'T2.04');
 
-    const unstated = await runMigrationPlan(ctx, ['--from', origin, '--json']);
-    expect(unstated.exitCode, `H2.05: without a statement: ${unstated.stderr}`).toBe(0);
-    expect(
-      parseJsonOutput<{ noOp: boolean }>(unstated).noOp,
-      'H2.05: the hash is unchanged, so the plan sees no change',
-    ).toBe(true);
+    const asked = await runMigrationPlan(ctx, ['--from', origin, '--json']);
+    expect(asked.exitCode, 'T2.05: the removal needs a statement').toBe(2);
+    expect(engineError(asked)?.code, 'T2.05').toBe('CLI.CONSENT_REQUIRED');
 
-    expect(getMigrationDirs(ctx), 'H2.05: nothing written').toHaveLength(1);
-
-    const updated = await runDbUpdate(ctx, [
-      '--no-interactive',
+    const plan = await runMigrationPlan(ctx, [
+      '--name',
+      'remove',
+      '--from',
+      origin,
       '--delete',
       'Event.name',
       '--json',
     ]);
-    expect(updated.exitCode, `H2.06: db update: ${updated.stderr}`).toBe(0);
-    expect(await events(dbName), 'H2.06: the field is gone').toEqual([{}]);
+    expect(plan.exitCode, `T2.06: plan: ${plan.stderr}`).toBe(0);
+
+    const applied = await runMigrate(ctx);
+    expect(applied.exitCode, `T2.07: db migrate: ${applied.stderr}`).toBe(0);
+    expect(await events(dbName), 'T2.07: the field is gone').toEqual([{}]);
   });
 });

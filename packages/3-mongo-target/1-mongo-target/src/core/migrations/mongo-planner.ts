@@ -47,7 +47,6 @@ import {
   schemaIndexToCreateIndexOptions,
 } from './op-factory-call';
 import { PlannerProducedMongoMigration } from './planner-produced-migration';
-import { sameHashFieldChangeRefusals } from './same-hash-field-changes';
 
 function validatorsEqual(
   a: MongoSchemaValidator | undefined,
@@ -453,17 +452,7 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
               schema.collectionNames.filter((name) => destinationIR.collection(name) !== undefined),
             ),
           });
-    const removalRefusals = [
-      ...timeSeriesRemovalRefusals(removals, schema),
-      ...sameHashFieldChangeRefusals({
-        origin: options.origin,
-        fromContract: fromContract ?? contract,
-        contract,
-        statements: renames,
-        callOfStatement,
-        removals,
-      }),
-    ];
+    const removalRefusals = timeSeriesRemovalRefusals(removals, schema);
     if (removalRefusals.length > 0) return { kind: 'failure', conflicts: removalRefusals };
     const result = this.planCalls({
       ...options,
