@@ -362,10 +362,12 @@ function lowerFunction(
     );
     if (resolution.ok) return { storage: undefined, onCreate: resolution.generator };
     if (resolution.reason === 'refused') {
+      const written =
+        input.attribute.args.find((arg) => arg.kind === 'positional')?.value.trim() ?? `${fn}()`;
       input.diagnostics.push(
         prisma7Diagnostic(
           'PSL.PRISMA7_GENERATOR_REFUSED',
-          `${label}: @default(${fn}(${Object.values(args).join(', ')})) cannot fill its column: ${resolution.message}`,
+          `${label}: @default(${written}) cannot fill its column: ${resolution.message}`,
           input.sourceId,
           span,
         ),

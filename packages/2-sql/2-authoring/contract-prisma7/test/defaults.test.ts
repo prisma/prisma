@@ -326,24 +326,29 @@ model Account {
 });
 
 describe('a client function whose value does not fit its column', () => {
-  it('is refused, since Postgres refuses the insert', () => {
+  it.each([
+    {
+      column: '@db.Char(10) @default(nanoid())',
+      message:
+        'Field "Account.code": @default(nanoid()) cannot fill its column: nanoid() writes 21 characters, which does not fit a column of 10 characters.',
+    },
+    {
+      column: '@db.VarChar(10) @default(nanoid( 16 ))',
+      message:
+        'Field "Account.code": @default(nanoid( 16 )) cannot fill its column: nanoid(16) writes 16 characters, which does not fit a column of 10 characters.',
+    },
+  ])('is refused on $column, since Postgres refuses the insert', ({ column, message }) => {
     const result = interpretSchemaTextResult(`datasource db {
   provider = "postgresql"
 }
 
 model Account {
   id   Int    @id
-  code String @db.Char(10) @default(nanoid())
+  code String ${column}
 }
 `);
     expect(
       result.ok ? [] : result.failure.diagnostics.map(({ code, message }) => ({ code, message })),
-    ).toEqual([
-      {
-        code: 'PSL.PRISMA7_GENERATOR_REFUSED',
-        message:
-          'Field "Account.code": @default(nanoid()) cannot fill its column: nanoid() writes 21 characters, which does not fit a column of 10 characters.',
-      },
-    ]);
+    ).toEqual([{ code: 'PSL.PRISMA7_GENERATOR_REFUSED', message }]);
   });
 });
