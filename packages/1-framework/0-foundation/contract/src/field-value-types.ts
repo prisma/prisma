@@ -91,18 +91,18 @@ type NamespaceParts<ValueObjects, NamespaceOverrides> = {
 
 type ValueObjectType<
   Name,
-  NamespaceParts,
+  Parts,
   CodecTypes,
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
   Side extends ValueTypeSide,
 > = ClosedWhenEmpty<{
   readonly [F in keyof Lookup<
-    Lookup<Lookup<NamespaceParts, 'valueObjects'>, Name>,
+    Lookup<Lookup<Parts, 'valueObjects'>, Name>,
     'fields'
   >]: FieldValueType<
-    Lookup<Lookup<Lookup<NamespaceParts, 'valueObjects'>, Name>, 'fields'>[F],
-    Lookup<Lookup<Lookup<Lookup<NamespaceParts, 'overrides'>, 'valueObjects'>, Name>, F>,
-    NamespaceParts,
+    Lookup<Lookup<Lookup<Parts, 'valueObjects'>, Name>, 'fields'>[F],
+    Lookup<Lookup<Lookup<Lookup<Parts, 'overrides'>, 'valueObjects'>, Name>, F>,
+    Parts,
     CodecTypes,
     ParameterizedOutputs,
     Side
@@ -112,28 +112,28 @@ type ValueObjectType<
 // The type of a value object, a union, or a field of a kind this file does not know, before modifiers. Scalar fields are typed by `ScalarValueType`.
 type ElementType<
   FieldType,
-  NamespaceParts,
+  Parts,
   CodecTypes,
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
   Side extends ValueTypeSide,
 > = FieldType extends { readonly kind: 'valueObject'; readonly name: infer Name }
-  ? ValueObjectType<Name, NamespaceParts, CodecTypes, ParameterizedOutputs, Side>
+  ? ValueObjectType<Name, Parts, CodecTypes, ParameterizedOutputs, Side>
   : FieldType extends {
         readonly kind: 'union';
         readonly members: infer Members extends readonly unknown[];
       }
-    ? UnionMemberType<Members[number], NamespaceParts, CodecTypes, ParameterizedOutputs, Side>
+    ? UnionMemberType<Members[number], Parts, CodecTypes, ParameterizedOutputs, Side>
     : unknown;
 
 type UnionMemberType<
   Member,
-  NamespaceParts,
+  Parts,
   CodecTypes,
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
   Side extends ValueTypeSide,
 > = Member extends { readonly kind: 'scalar'; readonly codecId: infer CodecId }
   ? PlainCodecType<CodecTypes, CodecId, Side>
-  : ElementType<Member, NamespaceParts, CodecTypes, ParameterizedOutputs, Side>;
+  : ElementType<Member, Parts, CodecTypes, ParameterizedOutputs, Side>;
 
 type Listed<Base, Many> = [Many] extends [{ readonly elementNullable: infer ElementNullable }]
   ? ReadonlyArray<Base | (ElementNullable extends true ? null : never)>
@@ -169,7 +169,7 @@ type ScalarValueType<
 type FieldValueType<
   Field,
   Override,
-  NamespaceParts,
+  Parts,
   CodecTypes,
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
   Side extends ValueTypeSide,
@@ -202,7 +202,7 @@ type FieldValueType<
     ? WithModifiers<
         BaseType<
           Override,
-          ValueObjectType<Name, NamespaceParts, CodecTypes, ParameterizedOutputs, Side>,
+          ValueObjectType<Name, Parts, CodecTypes, ParameterizedOutputs, Side>,
           Side
         >,
         NullableFlag<Field>,
@@ -217,7 +217,7 @@ type FieldValueType<
       ? WithModifiers<
           BaseType<
             Override,
-            ElementType<FieldType, NamespaceParts, CodecTypes, ParameterizedOutputs, Side>,
+            ElementType<FieldType, Parts, CodecTypes, ParameterizedOutputs, Side>,
             Side
           >,
           NullableFlag<Field>,
@@ -261,7 +261,7 @@ export type FieldTypesFromDomain<
 
 type NamespaceFieldTypes<
   Models,
-  NamespaceParts,
+  Parts,
   CodecTypes,
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
   Side extends ValueTypeSide,
@@ -275,8 +275,8 @@ type NamespaceFieldTypes<
           {
             readonly [F in keyof Fields]: FieldValueType<
               Fields[F],
-              Lookup<Lookup<Lookup<Lookup<NamespaceParts, 'overrides'>, 'models'>, M>, F>,
-              NamespaceParts,
+              Lookup<Lookup<Lookup<Lookup<Parts, 'overrides'>, 'models'>, M>, F>,
+              Parts,
               CodecTypes,
               ParameterizedOutputs,
               Side

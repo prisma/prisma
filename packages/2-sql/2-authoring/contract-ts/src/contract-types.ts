@@ -8,7 +8,7 @@ import type {
   NamespaceId,
   StorageHashBase,
 } from '@internal/contract/types';
-import type { PackParameterizedOutputTypes } from '@internal/contract-authoring';
+import type { ExtractParameterizedOutputTypesFromPack } from '@internal/contract-authoring';
 import type { ExtensionPackRef, TargetPackRef } from '@internal/framework-components/components';
 import type { StorageType } from '@internal/framework-components/ir';
 import type { IndexTypeRegistration } from '@internal/sql-contract/index-types';
@@ -1544,7 +1544,9 @@ type FieldColumnTypeParams<Definition, FieldState> =
     : DescriptorTypeParams<FieldDescriptorOf<FieldState>>;
 
 type ParameterizedOutputTypesFromDefinition<Definition> = {
-  [K in keyof AllPacks<Definition>]: PackParameterizedOutputTypes<AllPacks<Definition>[K]>;
+  [K in keyof AllPacks<Definition>]: ExtractParameterizedOutputTypesFromPack<
+    AllPacks<Definition>[K]
+  >;
 }[keyof AllPacks<Definition>];
 
 // The value type of the codec a column spec's factory builds, such as the type an arktype schema infers; `never` for a descriptor without a factory.

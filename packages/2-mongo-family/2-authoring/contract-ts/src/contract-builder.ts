@@ -30,9 +30,9 @@ import {
   createFieldHelpersFromNamespace,
   type EntityHelpersFromNamespace,
   type ExtractAuthoringNamespaceFromPack,
+  type ExtractParameterizedOutputTypesFromPack,
   encodeEnumTypeMembers,
   type MergeExtensionAuthoringNamespaces,
-  type PackParameterizedOutputTypes,
   type ResolveTemplateValue,
   resolveToOneRelationNullable,
   type TupleFromArgumentDescriptors,
@@ -898,9 +898,9 @@ type DefinitionTarget<Definition> = Definition extends { readonly target: infer 
   : never;
 
 type ParameterizedOutputTypesFromDefinition<Definition> =
-  | PackParameterizedOutputTypes<DefinitionTarget<Definition>>
+  | ExtractParameterizedOutputTypesFromPack<DefinitionTarget<Definition>>
   | {
-      [K in keyof DefinitionExtensions<Definition>]: PackParameterizedOutputTypes<
+      [K in keyof DefinitionExtensions<Definition>]: ExtractParameterizedOutputTypesFromPack<
         DefinitionExtensions<Definition>[K]
       >;
     }[keyof DefinitionExtensions<Definition>];
