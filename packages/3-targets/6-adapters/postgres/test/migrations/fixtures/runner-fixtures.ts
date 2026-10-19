@@ -175,21 +175,6 @@ const postgresControlAdapter = new PostgresControlAdapter(
 );
 const postgresControlLowererContext = { contract: {} as PostgresContract };
 
-export async function bootstrapPostgresControlSchema(driver: PostgresControlDriver): Promise<void> {
-  const schemaQuery = buildControlTableBootstrapQueries()[0];
-  if (!schemaQuery) {
-    throw new Error('expected prisma_contract schema bootstrap query');
-  }
-  const postgresSchemaQuery = schemaQuery as unknown as PostgresDdlNode;
-  await executeStatement(
-    driver,
-    await postgresControlAdapter.lowerToExecuteRequest(
-      postgresSchemaQuery,
-      postgresControlLowererContext,
-    ),
-  );
-}
-
 export async function bootstrapPostgresControlTables(driver: PostgresControlDriver): Promise<void> {
   for (const query of buildControlTableBootstrapQueries()) {
     const postgresQuery = query as unknown as PostgresDdlNode;
