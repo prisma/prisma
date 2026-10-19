@@ -208,13 +208,16 @@ Reads are buffered by default. To stream on one route, create a second serverles
 
 ```ts
 // src/prisma/db.ts
-export const postgres = postgresServerless({ contract });
+const collections = { User: UserCollection, Post: PostCollection };
+
+export const postgres = postgresServerless({ contract, collections });
 
 /**
  * Serverless client with cursors on, used only by the `/cursor/large` route to stream a large result. Reads through its connections hang behind Cloudflare Hyperdrive.
  */
 export const streamingPostgres = postgresServerless({
   contract,
+  collections,
   cursor: { batchSize: 100 },
 });
 
@@ -249,7 +252,7 @@ if (url.pathname === '/cursor/large') {
 
 ### Wiring the ORM client
 
-`db.orm` is the ORM on a connection. To give models their own query methods, pass custom collection classes to the Worker's serverless client with the `collections` option. Every connection's `db.orm`, and the `tx.orm` of its transactions, then returns those classes. The streaming client from the previous section takes the same options, so it gets the classes too:
+`db.orm` is the ORM on a connection. To give models their own query methods, pass custom collection classes to the Worker's serverless client with the `collections` option. Every connection's `db.orm`, and the `tx.orm` of its transactions, then returns those classes. A serverless client has the classes only if it is given `collections`, so the streaming client from the previous section is given the same `collections` constant:
 
 ```ts
 // src/prisma/db.ts
@@ -261,10 +264,9 @@ import contractJson from './contract.json' with { type: 'json' };
 
 export const contract = contractFromJson<Contract>(contractJson);
 
-export const postgres = postgresServerless({
-  contract,
-  collections: { User: UserCollection, Post: PostCollection },
-});
+const collections = { User: UserCollection, Post: PostCollection };
+
+export const postgres = postgresServerless({ contract, collections });
 
 // in fetch:
 // await using db = await postgres.connect({ url: env.HYPERDRIVE.connectionString });
