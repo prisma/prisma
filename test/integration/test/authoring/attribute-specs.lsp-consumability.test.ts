@@ -52,6 +52,7 @@ describe('postgres attribute specs are consumable from a resolved language-serve
         binder: testBinder({ ...controlStack, sources, symbolTable }),
         symbolTable,
       },
+      clientSupportsSnippets: false,
     });
 
     expect(items.map((item) => item.label)).toEqual(['cuid', 'ksuid', 'nanoid', 'ulid', 'uuid']);

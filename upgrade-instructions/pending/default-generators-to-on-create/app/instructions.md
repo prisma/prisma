@@ -45,7 +45,7 @@ node <guide>/scripts/rewrite-default-generators.mjs src/prisma/contract.prisma
 
 `<guide>` is the directory that holds this guide. The script reads and rewrites only the files it is given. For each one it prints how many calls it rewrote, or that it left the file unchanged. It rewrites every `@default(uuid(...))`, `@default(cuid(...))`, `@default(ulid())` and `@default(nanoid(...))` to `@onCreate(...)` with the same arguments, comments included, and changes nothing else.
 
-Do not pass a Prisma 7 `schema.prisma` that your config reads with `prisma7Schema(...)`. Prisma 7 keeps `@default(uuid())`, and the Prisma 7 reader turns it into the same generator. The script rewrites only a file whose first line is `// use prisma-8` (or the older `// use prisma-next`), the header every Prisma 8 schema file starts with. It leaves every other file unchanged and prints a line for it, so a Prisma 7 schema split across files is safe even when a file holds only models.
+Do not pass a Prisma 7 `schema.prisma` that your config reads with `prisma7Schema(...)`. Prisma 7 keeps `@default(uuid())`, and the Prisma 7 reader turns it into the same generator. The script rewrites only a file that has the `// use prisma-8` directive (or the older `// use prisma-next`), read by the same rule `contract emit` uses. It leaves every other file unchanged and prints a line for it, so a Prisma 7 schema split across files is safe even when a file holds only models.
 
 The contract does not change: `@onCreate(uuid())` lowers to the generator `@default(uuid())` lowered to, so `prisma contract emit` writes the same `contract.json` and hashes, and nothing needs to be signed or migrated.
 

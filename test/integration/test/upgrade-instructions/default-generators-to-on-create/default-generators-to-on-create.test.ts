@@ -40,24 +40,53 @@ function run(dir: string, files: readonly string[]) {
 describe('rewrite-default-generators', () => {
   it('rewrites every client function in @default of a Prisma 8 file to @onCreate, comments included, and leaves every other file unchanged', () => {
     const dir = copyBefore();
-    const result = run(dir, [
+    const files = [
       'schema.prisma',
       'older-header.prisma',
       'unchanged.prisma',
       'prisma7.prisma',
       'prisma7-models.prisma',
-    ]);
-    expect({ status: result.status, stdout: result.stdout, files: filesOf(dir) }).toEqual({
+    ];
+    const result = run(dir, files);
+    const written = filesOf(dir);
+    const after = filesOf(join(fixturesDir, 'after'));
+    expect({
+      status: result.status,
+      stdout: result.stdout,
+      files: files.map((name) => written[name]),
+    }).toEqual({
       status: 0,
       stdout: [
         'schema.prisma: rewrote 9 @default calls to @onCreate.',
         'older-header.prisma: rewrote 1 @default calls to @onCreate.',
         'unchanged.prisma: no client function in @default; left unchanged.',
-        'prisma7.prisma: does not start with "// use prisma-8", so it is not a Prisma 8 schema; left unchanged. A Prisma 7 schema keeps @default(uuid()).',
-        'prisma7-models.prisma: does not start with "// use prisma-8", so it is not a Prisma 8 schema; left unchanged. A Prisma 7 schema keeps @default(uuid()).',
+        'prisma7.prisma: has no "// use prisma-8" directive, so it is not a Prisma 8 schema; left unchanged. A Prisma 7 schema keeps @default(uuid()).',
+        'prisma7-models.prisma: has no "// use prisma-8" directive, so it is not a Prisma 8 schema; left unchanged. A Prisma 7 schema keeps @default(uuid()).',
         '',
       ].join('\n'),
-      files: filesOf(join(fixturesDir, 'after')),
+      files: files.map((name) => after[name]),
+    });
+  });
+
+  it('reads the Prisma 8 header as contract emit does', () => {
+    const dir = copyBefore();
+    const files = [
+      'blank-line-header.prisma',
+      'no-space-header.prisma',
+      'bom-header.prisma',
+      'trailing-text-header.prisma',
+    ];
+    const result = run(dir, files);
+    const after = filesOf(join(fixturesDir, 'after'));
+    const written = filesOf(dir);
+    expect({
+      status: result.status,
+      stdout: result.stdout,
+      files: files.map((name) => written[name]),
+    }).toEqual({
+      status: 0,
+      stdout: `${files.map((name) => `${name}: rewrote 1 @default calls to @onCreate.`).join('\n')}\n`,
+      files: files.map((name) => after[name]),
     });
   });
 

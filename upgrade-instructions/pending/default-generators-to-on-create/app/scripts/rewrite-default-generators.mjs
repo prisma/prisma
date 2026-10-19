@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 // Rewrites `@default(uuid(...))`, `@default(cuid(...))`, `@default(ulid())` and `@default(nanoid(...))`
-// to `@onCreate(...)` in the Prisma 8 schema files named on the command line. A Prisma 8 file starts
-// with `// use prisma-8` (or the older `// use prisma-next`); every other file is left unchanged.
+// to `@onCreate(...)` in the Prisma 8 schema files named on the command line. A file without the
+// `// use prisma-8` directive (or the older `// use prisma-next`) is left unchanged.
 import { readFileSync, writeFileSync } from 'node:fs';
 import process from 'node:process';
 
 const CLIENT_FUNCTION_IN_DEFAULT = /@default\(\s*((?:uuid|cuid|ulid|nanoid)\s*\([^()]*\))\s*\)/g;
-const PRISMA8_HEADER = /^\/\/ use prisma-(?:8|next)\s*$/;
+// The directive rule contract emit uses, copied from isPrismaNextSchema in
+// packages/1-framework/2-authoring/psl-parser/src/schema-directive.ts; this script ships standalone.
+const PRISMA8_DIRECTIVE = /^(\s*\/\/ *use +)(prisma-8|prisma-next)( *)(?!\S)/;
 
 const files = process.argv.slice(2);
 if (files.length === 0) {
@@ -25,9 +27,9 @@ for (const file of files) {
 }
 
 for (const [file, text] of texts) {
-  if (!PRISMA8_HEADER.test(text.split('\n', 1)[0] ?? '')) {
+  if (!PRISMA8_DIRECTIVE.test(text)) {
     process.stdout.write(
-      `${file}: does not start with "// use prisma-8", so it is not a Prisma 8 schema; left unchanged. A Prisma 7 schema keeps @default(uuid()).\n`,
+      `${file}: has no "// use prisma-8" directive, so it is not a Prisma 8 schema; left unchanged. A Prisma 7 schema keeps @default(uuid()).\n`,
     );
     continue;
   }
