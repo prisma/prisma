@@ -5,6 +5,8 @@ import { defineContract, field, model, rel, valueObject } from '../src/contract-
 import { enumType, member } from '../src/enum-type';
 import { identityCodecDescriptor, mongoFamilyPack, mongoTargetPack } from './mongo-test-packs';
 
+const plainGeoPoint = dataType('geo/point', { read: (json) => json });
+
 const scaffold = { family: mongoFamilyPack, target: mongoTargetPack } as const;
 
 const sqlTypedPack = {
@@ -13,9 +15,9 @@ const sqlTypedPack = {
   familyId: 'mongo',
   targetId: 'mongo',
   version: '0.0.1',
-  dataTypes: [dataType('geo/point', { read: (json) => json })],
+  dataTypes: [plainGeoPoint],
   types: {
-    codecTypes: { codecDescriptors: [identityCodecDescriptor('geo/point@1', 'geo/point')] },
+    codecTypes: { codecDescriptors: [identityCodecDescriptor('geo/point@1', plainGeoPoint)] },
   },
 } as const satisfies ExtensionPackRef<'mongo', 'mongo'>;
 

@@ -1,8 +1,13 @@
-import type { AnyCodecDescriptor, Codec } from '@internal/framework-components/codec';
+import type { JsonValue } from '@internal/contract/types';
+import type {
+  AnyCodecDescriptor,
+  Codec,
+  DataType,
+  DataTypeValue,
+} from '@internal/framework-components/codec';
 import { dataTypeId } from '@internal/framework-components/codec';
 import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
 import { mongoTestCodecDescriptors, mongoTestDataTypes } from '@internal/mongo-contract/test';
-import { blindCast } from '@internal/utils/casts';
 
 export const mongoFamilyPack = {
   kind: 'family',
@@ -22,20 +27,22 @@ export const mongoTargetPack = {
   types: { codecTypes: { codecDescriptors: mongoTestCodecDescriptors } },
 } as const satisfies TargetPackRef<'mongo', 'mongo'>;
 
-export function identityCodecDescriptor(codecId: string, dataType: string): AnyCodecDescriptor {
+/** A descriptor of an identity codec `codecId` over `dataType`. */
+export function identityCodecDescriptor(codecId: string, dataType: DataType): AnyCodecDescriptor {
   return {
     codecId,
-    dataType: dataTypeId(dataType),
+    dataType: dataTypeId(dataType.id),
     traits: ['equality'],
     paramsSchema: undefined,
     isParameterized: false,
     factory: () => () =>
-      blindCast<Codec, 'an identity codec needs no other members in tests'>({
+      ({
         id: codecId,
-        encode: async (v: unknown) => v,
-        decode: async (w: unknown) => w,
-        encodeJson: (v: unknown) => v,
-        decodeJson: (j: unknown) => j,
-      }),
+        dataType,
+        toWire: async (v: unknown) => v,
+        fromWire: async (w: unknown) => w,
+        toDataTypeValue: (v: unknown) => dataType.valueFrom(v as JsonValue, {}),
+        fromDataTypeValue: (value: DataTypeValue) => value.value,
+      }) satisfies Codec,
   };
 }

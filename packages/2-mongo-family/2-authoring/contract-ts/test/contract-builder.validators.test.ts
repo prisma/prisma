@@ -7,15 +7,17 @@ import { defineContract, field, model, rel, valueObject } from '../src/contract-
 import { enumType, member } from '../src/enum-type';
 import { identityCodecDescriptor, mongoFamilyPack, mongoTargetPack } from './mongo-test-packs';
 
+const geoPoint = mongoDataType('geo/point', { read: (json) => json, bsonTypes: ['object'] });
+
 const geoPack = {
   kind: 'extension',
   id: 'geo',
   familyId: 'mongo',
   targetId: 'mongo',
   version: '0.0.1',
-  dataTypes: [mongoDataType('geo/point', { read: (json) => json, bsonTypes: ['object'] })],
+  dataTypes: [geoPoint],
   types: {
-    codecTypes: { codecDescriptors: [identityCodecDescriptor('geo/point@1', 'geo/point')] },
+    codecTypes: { codecDescriptors: [identityCodecDescriptor('geo/point@1', geoPoint)] },
   },
 } as const satisfies ExtensionPackRef<'mongo', 'mongo'>;
 
