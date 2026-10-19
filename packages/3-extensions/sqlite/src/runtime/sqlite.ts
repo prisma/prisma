@@ -7,7 +7,12 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { sql as sqlBuilder } from '@internal/sql-builder/runtime';
 import type { Db, RawLane } from '@internal/sql-builder/types';
 import type { ExtractCodecTypes, SqlStorage } from '@internal/sql-contract/types';
-import { orm as ormBuilder, type PreparedFrom, prepareQuery } from '@internal/sql-orm-client';
+import {
+  type CollectionClasses,
+  orm as ormBuilder,
+  type PreparedFrom,
+  prepareQuery,
+} from '@internal/sql-orm-client';
 import type { CodecTypesBase } from '@internal/sql-relational-core/expression';
 import type { Preparable, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
@@ -42,34 +47,44 @@ import { resolveOptionalSqliteBinding, resolveSqliteBinding } from './binding';
 import { SqliteRuntimeImpl } from './sqlite-runtime';
 
 export type SqliteTargetId = 'sqlite';
-type OrmClient<TContract extends Contract<SqlStorage>> = ReturnType<typeof ormBuilder<TContract>>;
+type OrmClient<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses,
+> = ReturnType<typeof ormBuilder<TContract, TCollections>>;
 
 type UnboundSql<TContract extends Contract<SqlStorage>> =
   Db<TContract>[typeof UNBOUND_NAMESPACE_ID];
-type UnboundOrm<TContract extends Contract<SqlStorage>> =
-  OrmClient<TContract>[typeof UNBOUND_NAMESPACE_ID];
+type UnboundOrm<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses,
+> = OrmClient<TContract, TCollections>[typeof UNBOUND_NAMESPACE_ID];
 
-function unboundOrm<TContract extends Contract<SqlStorage>>(
-  orm: OrmClient<TContract>,
-): UnboundOrm<TContract> {
+function unboundOrm<TContract extends Contract<SqlStorage>, TCollections extends CollectionClasses>(
+  orm: OrmClient<TContract, TCollections>,
+): UnboundOrm<TContract, TCollections> {
   const value = orm[UNBOUND_NAMESPACE_ID];
   assertDefined(value, 'the unbound namespace always exists on a sqlite builder output');
   return blindCast<
-    UnboundOrm<TContract>,
+    UnboundOrm<TContract, TCollections>,
     'OrmClient<TContract> indexed by a literal key widens NsId to string; Collection is invariant in NsId via row/mutation-input types, so the indexed-access type cannot be proven to match the literal-keyed OrmNamespace without this cast'
   >(value);
 }
 
-export interface SqliteTransactionContext<TContract extends Contract<SqlStorage>>
-  extends TransactionContext {
+export interface SqliteTransactionContext<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = Record<never, never>,
+> extends TransactionContext {
   readonly sql: UnboundSql<TContract>;
-  readonly orm: UnboundOrm<TContract>;
+  readonly orm: UnboundOrm<TContract, TCollections>;
   readonly enums: SqliteStaticContext<TContract>['enums'];
 }
 
-export interface SqliteClient<TContract extends Contract<SqlStorage>> {
+export interface SqliteClient<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = Record<never, never>,
+> {
   readonly sql: UnboundSql<TContract>;
-  readonly orm: UnboundOrm<TContract>;
+  readonly orm: UnboundOrm<TContract, TCollections>;
   readonly enums: SqliteStaticContext<TContract>['enums'];
   readonly raw: RawLane<TContract>;
   readonly context: ExecutionContext<TContract>;
@@ -85,7 +100,9 @@ export interface SqliteClient<TContract extends Contract<SqlStorage>> {
     declaration: D,
     callback: (params: BindSiteParams<D>) => Q,
   ): Promise<PreparedFrom<ParamsFromDeclaration<D, CT>, Q>>;
-  transaction<R>(fn: (tx: SqliteTransactionContext<TContract>) => PromiseLike<R>): Promise<R>;
+  transaction<R>(
+    fn: (tx: SqliteTransactionContext<TContract, TCollections>) => PromiseLike<R>,
+  ): Promise<R>;
   close(): Promise<void>;
   [Symbol.asyncDispose](): Promise<void>;
 }
@@ -97,8 +114,12 @@ export interface SqliteOptionsBase {
   readonly log?: Log;
 }
 
-export type SqliteOptions<TContract extends Contract<SqlStorage>> = SqliteOptionsBase & {
+export type SqliteOptions<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = Record<never, never>,
+> = SqliteOptionsBase & {
   readonly contract: TContract;
+  readonly collections?: TCollections;
   readonly path?: string;
 };
 
@@ -119,9 +140,10 @@ export type SqliteOptions<TContract extends Contract<SqlStorage>> = SqliteOption
  * export const db = sqlite({ contract, path: './dev.db' });
  * ```
  */
-export default function sqlite<TContract extends Contract<SqlStorage>>(
-  options: SqliteOptions<TContract>,
-): SqliteClient<TContract> {
+export default function sqlite<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = Record<never, never>,
+>(options: SqliteOptions<TContract, TCollections>): SqliteClient<TContract, TCollections> {
   const contract = validateSqliteContract(options.contract);
   let binding = resolveOptionalSqliteBinding(options);
 
@@ -214,9 +236,10 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
     return runtimeInstance;
   };
 
-  const orm: UnboundOrm<TContract> = unboundOrm(
-    ormBuilder({
+  const orm: UnboundOrm<TContract, TCollections> = unboundOrm(
+    ormBuilder<TContract, TCollections>({
       context,
+      ...ifDefined('collections', options.collections),
       runtime: {
         query(plan) {
           return getRuntime().query(plan);
@@ -291,7 +314,9 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
     },
     prepare,
 
-    transaction<R>(fn: (tx: SqliteTransactionContext<TContract>) => PromiseLike<R>): Promise<R> {
+    transaction<R>(
+      fn: (tx: SqliteTransactionContext<TContract, TCollections>) => PromiseLike<R>,
+    ): Promise<R> {
       let runtime: ReturnType<typeof getRuntime>;
       try {
         runtime = getRuntime();
@@ -312,8 +337,8 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
           'Db<TContract> indexed by a literal key widens NsId to string; TableProxy is invariant in NsId via insert()/update() parameter positions, so the indexed-access type cannot be proven to match the literal-keyed Namespace without this cast'
         >(txSqlNamespace);
 
-        const txOrm: UnboundOrm<TContract> = unboundOrm(
-          ormBuilder({
+        const txOrm: UnboundOrm<TContract, TCollections> = unboundOrm(
+          ormBuilder<TContract, TCollections>({
             runtime: {
               query(plan) {
                 return txCtx.query(plan);
@@ -324,6 +349,7 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
               [activitySource]: delegatingActivitySource(() => txCtx),
             },
             context,
+            ...ifDefined('collections', options.collections),
           }),
         );
 
@@ -331,7 +357,7 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
         // accessors (notably the `invalidated` getter, which reads a closure
         // variable in `withTransaction`) remain wired to the original object.
         // Spreading would evaluate the getter once and freeze its value.
-        const tx: SqliteTransactionContext<TContract> = Object.assign(
+        const tx: SqliteTransactionContext<TContract, TCollections> = Object.assign(
           castAs<TransactionContext>(Object.create(txCtx)),
           { sql: txSql, orm: txOrm, enums },
         );
