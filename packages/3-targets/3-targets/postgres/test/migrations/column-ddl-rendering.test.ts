@@ -1,7 +1,9 @@
+import type { DataType } from '@internal/framework-components/codec';
 import { opaqueSql } from '@internal/sql-relational-core/ast';
 import { col, fn, lit } from '@internal/sql-relational-core/contract-free';
 import { SqlColumnDefaultIR, SqlColumnIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
+import { pgInt4, pgNumeric, pgText, pgUuid } from '../../src/core/data-types';
 import {
   buildSetDefaultColumn,
   renderColumnAlterType,
@@ -9,6 +11,12 @@ import {
   resolveColumnTemporaryDefault,
 } from '../../src/core/migrations/column-ddl-rendering';
 import { postgresTypeLookups as types } from '../postgres-type-lookups';
+
+const typed = (type: DataType, typeParams: Record<string, unknown> = {}) => ({
+  dataType: type,
+  storedType: type,
+  typeParams,
+});
 
 describe('renderColumnDdl', () => {
   it('renders a non-null array column with typeParams, an explicit many flag', () => {
@@ -19,10 +27,10 @@ describe('renderColumnDdl', () => {
       many: true,
       resolvedDefault: { kind: 'literal', value: ['a', 'b'] },
       codecRef: { codecId: 'pg/text@1', typeParams: {} },
-      codecBaseNativeType: 'text',
+      ...typed(pgText),
     });
 
-    const result = renderColumnDdl('tags', column, types);
+    const result = renderColumnDdl('tags', column);
 
     expect(result.name).toBe('tags');
     expect(result.type).toBe('text[]');
@@ -38,10 +46,10 @@ describe('renderColumnDdl', () => {
       nullable: true,
       resolvedDefault: { kind: 'function', expression: 'gen_random_uuid()' },
       codecRef: { codecId: 'pg/uuid@1' },
-      codecBaseNativeType: 'uuid',
+      ...typed(pgUuid),
     });
 
-    const result = renderColumnDdl('id2', column, types);
+    const result = renderColumnDdl('id2', column);
 
     expect(result.name).toBe('id2');
     expect(result.type).toBe('uuid');
@@ -53,25 +61,27 @@ describe('renderColumnDdl', () => {
     expect(result.codecRef).toEqual({ codecId: 'pg/uuid@1' });
   });
 
-  it('throws when the column carries no codec identity at all', () => {
-    const column = new SqlColumnIR({ name: 'x', nativeType: 'text', nullable: true });
+  it('writes the type from the stored type and the parameters as the contract writes them', () => {
+    const column = new SqlColumnIR({
+      name: 'amount',
+      nativeType: 'numeric(10)',
+      nullable: true,
+      codecRef: { codecId: 'pg/numeric@1', typeParams: { precision: 10 } },
+      ...typed(pgNumeric, { precision: 10, scale: 0 }),
+    });
 
-    expect(() => renderColumnDdl('x', column, types)).toThrow(
-      /column "x" carries no codec identity/,
-    );
+    expect(renderColumnDdl('amount', column).type).toBe('numeric(10)');
   });
 
-  it('throws when the column has a codecRef but no codecBaseNativeType', () => {
+  it('throws when the column has no data type', () => {
     const column = new SqlColumnIR({
-      name: 'y',
+      name: 'x',
       nativeType: 'text',
       nullable: true,
       codecRef: { codecId: 'pg/text@1' },
     });
 
-    expect(() => renderColumnDdl('y', column, types)).toThrow(
-      /column "y" carries no codec identity/,
-    );
+    expect(() => renderColumnDdl('x', column)).toThrow(/column "x" has no data type/);
   });
 });
 
@@ -83,10 +93,13 @@ describe('renderColumnAlterType', () => {
       nullable: false,
       resolvedDefault: { kind: 'function', expression: 'autoincrement()' },
       codecRef: { codecId: 'pg/int4@1' },
-      codecBaseNativeType: 'int4',
+      ...typed(pgInt4),
     });
 
-    expect(renderColumnAlterType(column, types)).toBe('int4');
+    expect({
+      alter: renderColumnAlterType(column),
+      create: renderColumnDdl('id3', column).type,
+    }).toEqual({ alter: 'int4', create: 'SERIAL' });
   });
 });
 

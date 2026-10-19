@@ -18,6 +18,8 @@ function column(value: string | readonly (string | null)[] | null, many: boolean
     codecRef: { codecId: 'pg/timestamptz-temporal@1', ...(many ? { many: true } : {}) },
     codecBaseNativeType: 'timestamptz',
     dataType: pgTimestamptz,
+    storedType: pgTimestamptz,
+    typeParams: {},
   });
 }
 
@@ -39,7 +41,7 @@ describe('a date or time default written by the planner', () => {
     (_name, value, many) => {
       const node = column(value, many);
       expect({
-        createTable: renderColumnDdl('v', node, types).default,
+        createTable: renderColumnDdl('v', node).default,
         setDefault: buildSetDefaultColumn('v', defaultNode(node), types)?.default,
       }).toEqual({
         createTable: { kind: 'literal', value },

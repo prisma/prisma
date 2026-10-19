@@ -84,7 +84,7 @@ describe('a sql`...` default on Postgres renders as authored', () => {
     (expression, nativeType, dataType, codecId) => {
       const column = expectedColumn(dataType, codecId, expression);
 
-      const ddl = renderColumnDdl('value', column, postgresTypeLookups);
+      const ddl = renderColumnDdl('value', column);
       const setDefault = buildSetDefaultColumn('value', defaultNodeOf(column), postgresTypeLookups);
 
       expect({ type: ddl.type, default: ddl.default }).toEqual({
@@ -98,7 +98,7 @@ describe('a sql`...` default on Postgres renders as authored', () => {
   it('writes SERIAL for a column authored as autoincrement()', () => {
     const column = expectedColumn('pg/int4', 'pg/int4@1', 'autoincrement()');
 
-    const ddl = renderColumnDdl('value', column, postgresTypeLookups);
+    const ddl = renderColumnDdl('value', column);
 
     expect({ type: ddl.type, default: ddl.default }).toEqual({
       type: 'SERIAL',

@@ -241,7 +241,7 @@ export const notNullBackfillCallStrategy: CallMigrationStrategy = (issues, ctx) 
     const slot = named.text;
 
     matched.push(issue);
-    const ddl = renderColumnDdl(expected.name, expected, ctx.types);
+    const ddl = renderColumnDdl(expected.name, expected);
     const nullableSpec = contractFree.col(ddl.name, ddl.type, {
       ...(ddl.codecRef !== undefined ? { codecRef: ddl.codecRef } : {}),
     });
@@ -314,7 +314,7 @@ export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
         schemaName,
         tableName,
         columnName: expected.name,
-        type: renderColumnAlterType(expected, ctx.types),
+        type: renderColumnAlterType(expected),
         using: {
           kind: 'placeholder',
           slot: `${converted.text}:convert`,
@@ -495,7 +495,7 @@ export const notNullAddColumnCallStrategy: CallMigrationStrategy = (issues, ctx)
 
     matched.push(issue);
 
-    const ddl = renderColumnDdl(expected.name, expected, ctx.types);
+    const ddl = renderColumnDdl(expected.name, expected);
     calls.push(
       canUseSharedTempDefault && temporaryDefault !== null
         ? new AddColumnWithTemporaryDefaultCall(

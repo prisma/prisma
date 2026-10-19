@@ -449,9 +449,8 @@ function buildCreateTableCallsFromNode(
   schemaName: string,
   ddlSchemaName: string,
   table: PostgresTableSchemaNode,
-  types: SqlTypeLookups,
 ): PostgresOpFactoryCall[] {
-  const ddlColumns = Object.values(table.columns).map((c) => renderColumnDdl(c.name, c, types));
+  const ddlColumns = Object.values(table.columns).map((c) => renderColumnDdl(c.name, c));
   const primaryKeyConstraints: DdlTableConstraint[] = table.primaryKey
     ? [
         contractFree.primaryKey([...table.primaryKey.columns], {
@@ -603,14 +602,13 @@ function mapTableNodeIssue(
   // never match a live nspname), mirroring the schema the retired
   // policy-half enable resolved via `resolveDdlSchemaForNamespaceStorage`.
   ddlSchemaName: string,
-  types: SqlTypeLookups,
 ): Result<readonly PostgresOpFactoryCall[], SqlPlannerConflict> {
   if (issueOutcome(issue) === 'not-found') {
     const table = blindCast<
       PostgresTableSchemaNode,
       'a not-found table issue always carries the expected PostgresTableSchemaNode'
     >(issue.expected);
-    return ok(buildCreateTableCallsFromNode(schemaName, ddlSchemaName, table, types));
+    return ok(buildCreateTableCallsFromNode(schemaName, ddlSchemaName, table));
   }
   if (issueOutcome(issue) === 'not-expected') {
     const table = blindCast<
@@ -661,12 +659,7 @@ function mapColumnNodeIssue(
       'a not-found column issue always carries the expected column node'
     >(issue.expected);
     return ok([
-      new AddColumnCall(
-        schemaName,
-        tableName,
-        renderColumnDdl(column.name, column, types),
-        dataTypes,
-      ),
+      new AddColumnCall(schemaName, tableName, renderColumnDdl(column.name, column), dataTypes),
     ]);
   }
   if (issueOutcome(issue) === 'not-expected') {
@@ -692,7 +685,7 @@ function mapColumnNodeIssue(
         schemaName,
         tableName,
         columnName: expected.name,
-        type: renderColumnAlterType(expected, types),
+        type: renderColumnAlterType(expected),
         dataTypes,
         ownsAutoincrementSequence: hasAutoincrementDefault(actual),
         operationClass: liveColumnWidensSafely(expected, actual, types)
@@ -947,7 +940,7 @@ export function mapNodeIssueToCall(
 
   switch (node.nodeKind) {
     case PostgresSchemaNodeKind.table:
-      return mapTableNodeIssue(issue, schemaName, ddlSchemaName, ctx.types);
+      return mapTableNodeIssue(issue, schemaName, ddlSchemaName);
     case RelationalSchemaNodeKind.column:
       return mapColumnNodeIssue(issue, schemaName, tableName, ctx.types, ctx.dataTypes);
     case RelationalSchemaNodeKind.columnDefault: {

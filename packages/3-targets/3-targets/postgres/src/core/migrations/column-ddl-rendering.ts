@@ -1,5 +1,10 @@
 import type { CodecControlHooks } from '@internal/family-sql/control';
-import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
+import { dataTypeParams } from '@internal/framework-components/codec';
+import {
+  isSqlDataType,
+  renderSqlTypeName,
+  type SqlTypeLookups,
+} from '@internal/sql-contract/data-type';
 import type { StorageColumn } from '@internal/sql-contract/types';
 import type { DdlColumn } from '@internal/sql-relational-core/ast';
 import * as contractFree from '@internal/sql-relational-core/contract-free';
@@ -7,6 +12,7 @@ import type { SqlColumnDefaultIR, SqlColumnIR } from '@internal/sql-schema-ir/ty
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
+import { autoincrementWidthOfDataType } from './autoincrement-widths';
 import { postgresDefaultToDdlColumnDefault } from './op-factory-call';
 import { buildColumnTypeSql } from './planner-ddl-builders';
 import { resolveIdentityValue } from './planner-identity-values';
@@ -61,17 +67,37 @@ function columnTypeLike(
 }
 
 /**
- * Builds the `CREATE TABLE` / `ADD COLUMN` DDL column for an expected column
- * node, writing its type from the data type the node's codec represents.
+ * The type DDL writes for a column node: the name of the type it is stored as, with the parameters as the contract writes them, `[]` for a list, and for an `autoincrement()` column of an integer type the serial pseudo-type when `allowPseudoTypes`.
  */
-export function renderColumnDdl(
-  name: string,
-  column: SqlColumnIR,
-  types: SqlTypeLookups,
-): DdlColumn {
-  const like = columnLike(column);
-  const typeSql = buildColumnTypeSql(like, types);
-  const ddlDefault = postgresDefaultToDdlColumnDefault(like.default);
+function columnTypeSql(column: SqlColumnIR, allowPseudoTypes: boolean): string {
+  const type = column.storedType;
+  if (type === undefined || !isSqlDataType(type)) {
+    throw new InternalError(
+      `column "${column.name}" has no data type; the expected tree must be derived via contractToSchemaIR for planning`,
+    );
+  }
+  const columnDefault = column.authoredDefault ?? column.resolvedDefault;
+  if (
+    allowPseudoTypes &&
+    columnDefault?.kind === 'function' &&
+    columnDefault.expression === AUTOINCREMENT
+  ) {
+    const width = autoincrementWidthOfDataType(type.id);
+    if (width !== undefined) return width.serialType;
+  }
+  const typeSql = renderSqlTypeName(type, dataTypeParams(type, column.codecRef?.typeParams));
+  return (column.many ?? column.codecRef?.many) ? `${typeSql}[]` : typeSql;
+}
+
+/**
+ * Builds the `CREATE TABLE` / `ADD COLUMN` DDL column for an expected column
+ * node, writing its type from the type the column is stored as.
+ */
+export function renderColumnDdl(name: string, column: SqlColumnIR): DdlColumn {
+  const typeSql = columnTypeSql(column, true);
+  const ddlDefault = postgresDefaultToDdlColumnDefault(
+    column.authoredDefault ?? column.resolvedDefault,
+  );
   return contractFree.col(name, typeSql, {
     ...(!column.nullable ? { notNull: true } : {}),
     ...ifDefined('default', ddlDefault),
@@ -82,8 +108,8 @@ export function renderColumnDdl(
 /**
  * Builds the `ALTER COLUMN … TYPE` operands for an expected column node.
  */
-export function renderColumnAlterType(column: SqlColumnIR, types: SqlTypeLookups): string {
-  return buildColumnTypeSql(columnLike(column), types, {}, false);
+export function renderColumnAlterType(column: SqlColumnIR): string {
+  return columnTypeSql(column, false);
 }
 
 /**

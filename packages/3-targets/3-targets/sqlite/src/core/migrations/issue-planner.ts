@@ -24,7 +24,6 @@ import { sqlTypeLookupsOf } from '@internal/family-sql/control';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome, orderIssuesByDependencies } from '@internal/framework-components/control';
-import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
 import {
   RelationalSchemaNodeKind,
   type SqlColumnIR,
@@ -123,9 +122,9 @@ export function issueNode(issue: SchemaDiffIssue): SqlSchemaIRNode | undefined {
  * `toTableSpec` (which read a raw contract `StorageTable`). Every column's
  * spec is resolved from its `codecRef` via `columnSpecFromNode`.
  */
-export function tableSpecFromNode(table: SqlTableIR, types: SqlTypeLookups): SqliteTableSpec {
+export function tableSpecFromNode(table: SqlTableIR): SqliteTableSpec {
   const columns: SqliteColumnSpec[] = Object.values(table.columns).map((c) =>
-    columnSpecFromNode(c, isInlineAutoincrementPrimaryKeyNode(table, c), types),
+    columnSpecFromNode(c, isInlineAutoincrementPrimaryKeyNode(table, c)),
   );
   const uniques: SqliteUniqueSpec[] = table.uniques.map((u) => ({
     columns: u.columns,
@@ -200,9 +199,9 @@ function absorbedConflictKind(nodeKind: string): SqlPlannerConflict['kind'] {
  * (declared + FK-backing, deduped) are already merged and ordered at
  * derivation (`contractToSchemaIR`'s `convertTable`).
  */
-function buildCreateTableCalls(table: SqlTableIR, types: SqlTypeLookups): SqliteOpFactoryCall[] {
+function buildCreateTableCalls(table: SqlTableIR): SqliteOpFactoryCall[] {
   const columns = Object.values(table.columns).map((c) =>
-    ddlColumnFromNode(c, isInlineAutoincrementPrimaryKeyNode(table, c), types),
+    ddlColumnFromNode(c, isInlineAutoincrementPrimaryKeyNode(table, c)),
   );
   const hasInlinePk = Object.values(table.columns).some((c) =>
     isInlineAutoincrementPrimaryKeyNode(table, c),
@@ -224,14 +223,13 @@ function buildCreateTableCalls(table: SqlTableIR, types: SqlTypeLookups): Sqlite
 
 function mapTableIssue(
   issue: SchemaDiffIssue,
-  types: SqlTypeLookups,
 ): Result<readonly SqliteOpFactoryCall[], SqlPlannerConflict> {
   if (issueOutcome(issue) === 'not-found') {
     const table = blindCast<
       SqlTableIR,
       'a not-found table issue always carries the expected table node'
     >(issue.expected);
-    return ok(buildCreateTableCalls(table, types));
+    return ok(buildCreateTableCalls(table));
   }
   if (issueOutcome(issue) === 'not-expected') {
     const table = blindCast<
@@ -273,7 +271,7 @@ function mapColumnIssue(
     // honest against the table node rather than assuming it.
     const table = ctx.expected.tables[tableName];
     const inline = table !== undefined && isInlineAutoincrementPrimaryKeyNode(table, column);
-    return ok([new AddColumnCall(tableName, columnSpecFromNode(column, inline, ctx.types))]);
+    return ok([new AddColumnCall(tableName, columnSpecFromNode(column, inline))]);
   }
   if (issueOutcome(issue) === 'not-expected') {
     const column = blindCast<
@@ -346,7 +344,7 @@ export function mapNodeIssueToCall(
   }
   switch (node.nodeKind) {
     case RelationalSchemaNodeKind.table:
-      return mapTableIssue(issue, ctx.types);
+      return mapTableIssue(issue);
     case RelationalSchemaNodeKind.column:
       return mapColumnIssue(issue, ctx);
     case RelationalSchemaNodeKind.index:

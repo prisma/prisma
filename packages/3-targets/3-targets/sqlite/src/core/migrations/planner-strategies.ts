@@ -343,7 +343,7 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
 
     // Flatten the expected table node to a self-contained spec — the Call
     // holds pre-rendered SQL fragments only, no schema-IR node.
-    const tableSpec = tableSpecFromNode(expectedTable, ctx.types);
+    const tableSpec = tableSpecFromNode(expectedTable);
 
     // Indexes (declared + FK-backing) are already merged and deduped by
     // column-set at derivation (`contractToSchemaIR`'s `convertTable`).
@@ -423,7 +423,7 @@ export const nullabilityTighteningBackfillStrategy: CallMigrationStrategy = (iss
     if (added !== undefined) {
       calls.push(
         new AddColumnCall(tableName, {
-          ...columnSpecFromNode(added, false, ctx.types),
+          ...columnSpecFromNode(added, false),
           nullable: true,
         }),
       );
