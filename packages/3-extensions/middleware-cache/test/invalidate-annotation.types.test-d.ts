@@ -1,6 +1,7 @@
 import type { AnnotationValue } from '@internal/framework-components/runtime';
 import { expectTypeOf, test } from 'vitest';
 import {
+  type CacheMiddleware,
   type InvalidateAnnotationHandle,
   type InvalidateAnnotationOptions,
   invalidateAnnotation,
@@ -47,4 +48,10 @@ test('invalidateAnnotation rejects unknown and mistyped options', () => {
 
   // @ts-expect-error - keys is a list of strings
   invalidateAnnotation({ keys: 'user-1' });
+});
+
+test('invalidate takes the same type as the annotation payload', () => {
+  expectTypeOf<Parameters<CacheMiddleware<TagMeta>['invalidate']>[0]>().toEqualTypeOf<
+    InvalidateAnnotationOptions<TagMeta>
+  >();
 });

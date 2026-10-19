@@ -8,7 +8,11 @@ import type {
   CrossFamilyMiddleware,
   ExecutionPlan,
 } from '@internal/framework-components/runtime';
-import { cacheAnnotation, invalidateAnnotation } from './cache-annotation';
+import {
+  cacheAnnotation,
+  type InvalidateAnnotationOptions,
+  invalidateAnnotation,
+} from './cache-annotation';
 import {
   type CachedValue,
   type CacheEntry,
@@ -51,10 +55,7 @@ export interface CacheMiddlewareOptions<TMeta = unknown> {
  * `TMeta` is the store's meta type, which `invalidate`'s `meta` must have.
  */
 export type CacheMiddleware<TMeta = unknown> = CrossFamilyMiddleware & {
-  readonly invalidate: (target: {
-    readonly keys?: readonly string[];
-    readonly meta?: TMeta;
-  }) => Promise<void>;
+  readonly invalidate: (target: InvalidateAnnotationOptions<TMeta>) => Promise<void>;
 };
 
 /**
@@ -238,10 +239,7 @@ export function createCacheMiddleware<TMeta = unknown>(
     });
   }
 
-  async function invalidate(target: {
-    readonly keys?: readonly string[];
-    readonly meta?: unknown;
-  }): Promise<void> {
+  async function invalidate(target: InvalidateAnnotationOptions): Promise<void> {
     const keys = target.keys !== undefined && target.keys.length > 0 ? target.keys : undefined;
     if (keys === undefined && target.meta === undefined) {
       return;

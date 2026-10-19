@@ -70,6 +70,7 @@ describe('integration: a write annotated with invalidateAnnotation invalidates o
       await client.end();
       await database.client.query(`UPDATE users SET name = 'Alice' WHERE id = 1`);
       await database.client.query('DELETE FROM posts WHERE id >= 900');
+      await database.client.query(`UPDATE users SET name = 'Bob' WHERE id = 2`);
     }
   }
 
@@ -163,6 +164,95 @@ describe('integration: a write annotated with invalidateAnnotation invalidates o
         unsets: unsetsIn(events),
         readEvents: events.slice(eventsBeforeRead),
       }).toEqual({ read: { name: 'Alice' }, unsets: [], readEvents: [] });
+    });
+  });
+
+  it('invalidates once for each annotated write in db.transaction(fn), after the commit', async () => {
+    await withFacade(async ({ db, events }) => {
+      const unsetsDuringTransaction = await db.transaction(async (tx) => {
+        await tx.orm.public.User.where({ id: 1 }).update({ name: 'Alicia' }, (meta) =>
+          meta.annotate(invalidateAnnotation({ keys: ['user-1'] })),
+        );
+        await tx.orm.public.User.where({ id: 2 }).update({ name: 'Robert' }, (meta) =>
+          meta.annotate(invalidateAnnotation({ keys: ['user-2'] })),
+        );
+        return unsetsIn(events);
+      });
+
+      expect({
+        unsetsDuringTransaction,
+        afterCommit: events.slice(events.indexOf('transaction-succeeded') + 1),
+      }).toEqual({
+        unsetsDuringTransaction: [],
+        afterCommit: ['unset:user-1', 'unset:user-2'],
+      });
+    });
+  });
+
+  it('invalidates an annotated SQL builder write inside db.transaction(fn) after the commit', async () => {
+    await withFacade(async ({ db, events }) => {
+      await readUserOne(db.orm.public.User);
+
+      const unsetsDuringTransaction = await db.transaction(async (tx) => {
+        await tx.execute(
+          tx.sql.public.users
+            .update({ name: 'Alicia' })
+            .where((f, fns) => fns.eq(f.id, 1))
+            .annotate(invalidateAnnotation({ keys: ['user-1'] }))
+            .build(),
+        );
+        return unsetsIn(events);
+      });
+      const read = await readUserOne(db.orm.public.User);
+
+      expect({ unsetsDuringTransaction, unsets: unsetsIn(events), read }).toEqual({
+        unsetsDuringTransaction: [],
+        unsets: ['unset:user-1'],
+        read: { name: 'Alicia' },
+      });
+    });
+  });
+
+  it('on the default store, an annotation with meta logs the refusal and removes no keys', async () => {
+    await withFacade(async ({ db, events, log }) => {
+      await readUserOne(db.orm.public.User);
+
+      const updated = await db.orm.public.User.where({ id: 1 }).update({ name: 'Alicia' }, (meta) =>
+        meta.annotate(invalidateAnnotation({ keys: ['user-1'], meta: { tags: ['users'] } })),
+      );
+      const eventsBeforeRead = events.length;
+      const read = await readUserOne(db.orm.public.User);
+
+      expect({
+        updated,
+        read,
+        readEvents: events.slice(eventsBeforeRead),
+        logged: log.error.mock.calls,
+      }).toEqual({
+        updated: expect.objectContaining({ name: 'Alicia' }),
+        read: { name: 'Alice' },
+        readEvents: [],
+        logged: [
+          [
+            {
+              event: 'middleware.activityFinalized.error',
+              middleware: 'cache',
+              error: expect.objectContaining({ code: 'RUNTIME.CACHE_STORE_META_UNSUPPORTED' }),
+            },
+          ],
+        ],
+      });
+    });
+  });
+
+  it('an ORM read terminal refuses invalidateAnnotation at run time', async () => {
+    await withFacade(async ({ db, events }) => {
+      const refusedAnnotation: never = invalidateAnnotation({ keys: ['user-1'] }) as never;
+
+      await expect(
+        db.orm.public.User.first({ id: 1 }, (meta) => meta.annotate(refusedAnnotation)),
+      ).rejects.toMatchObject({ code: 'RUNTIME.ANNOTATION_INAPPLICABLE' });
+      expect(events).toEqual([]);
     });
   });
 

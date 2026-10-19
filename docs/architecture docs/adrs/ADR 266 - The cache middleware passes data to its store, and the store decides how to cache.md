@@ -10,6 +10,7 @@ import {
   cacheAnnotation,
   createCacheMiddleware,
   createInMemoryCacheStore,
+  invalidateAnnotation,
 } from '@internal/middleware-cache';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
@@ -28,8 +29,12 @@ const alice = await db.orm.public.User.first({ id: 1 }, (m) =>
   m.annotate(cacheAnnotation({ key: 'user-1' })),
 );
 
-// After a write has returned, the application removes the entry.
-await db.orm.public.User.where({ id: 1 }).update({ name: 'Alicia' });
+// The write carries its invalidation, which runs once the write has committed.
+await db.orm.public.User.where({ id: 1 }).update({ name: 'Alicia' }, (m) =>
+  m.annotate(invalidateAnnotation({ keys: ['user-1'] })),
+);
+
+// Or, after a write has returned, the application removes the entry itself.
 await cache.invalidate({ keys: ['user-1'] });
 ```
 

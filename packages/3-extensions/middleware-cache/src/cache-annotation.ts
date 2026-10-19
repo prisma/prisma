@@ -82,7 +82,7 @@ function withTypedMeta(
 }
 
 /**
- * Options for a write annotated with `invalidateAnnotation`: the argument of the cache middleware's `invalidate`, which removes them once the write's effects are final.
+ * What to invalidate: the argument of the cache middleware's `invalidate`, and the payload of `invalidateAnnotation`, which the middleware passes to the same call once the write's effects are final.
  *
  * `TMeta` is the shape of `meta`; pass the store's `TMeta` so the two agree.
  */
@@ -105,6 +105,8 @@ export type InvalidateAnnotationHandle = (<TMeta = unknown>(
 
 /**
  * Marks a write whose cache entries the cache middleware invalidates once the write's effects are final: right after the write outside a transaction, or when the outermost enclosing transaction ends. It does not invalidate when the write is rolled back, and does when the outcome is unknown. It applies to writes only: a read terminal refuses it at compile time and at run time.
+ *
+ * `TMeta` types `meta` for this call only. Nothing ties it to the store's `TMeta`, so a store package should export a wrapper typed with its own meta, such as `(o: InvalidateAnnotationOptions<TagMeta>) => invalidateAnnotation<TagMeta>(o)`.
  *
  * @example
  * ```typescript

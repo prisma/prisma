@@ -168,7 +168,7 @@ The store keeps a **version** per key: an integer it keeps even for a key that h
 
 The rules a store must follow:
 
-- **The store interprets `meta`; the middleware never does.** A store that does not index `meta` must throw when `unset` receives a `meta` it cannot act on. An invalidation is never silently ignored.
+- **The store interprets `meta`; the middleware never does.** A store that does not index `meta` must throw when `unset` receives a `meta` it cannot act on, so `invalidate` rejects rather than doing nothing. An invalidation that a write carries in `invalidateAnnotation` is different: the error is only logged, and the write succeeds (see [Invalidating with a write](#invalidating-with-a-write)).
 - **An `unset` by key also drops that key from any `meta` index the store keeps.**
 - **Lifetime and eviction are the store's policy.** A store that wants per-entry lifetimes reads them from `meta`.
 - **`set` must be atomic against `unset`.** Comparing the version and writing the value must be one step that no `unset` of the same key can fall between: one synchronous step in memory, or one script (for example a Lua script) on a server. The middleware's guard against overlapping reads relies on this.
@@ -318,7 +318,7 @@ await db.orm.public.User.where({ id: 1 }).update({ name: 'Alicia' }, (meta) =>
 
 await db.transaction(async (tx) => {
   await tx.orm.public.User.where({ id: 2 }).delete((meta) =>
-    meta.annotate(invalidateAnnotation({ meta: { tags: ['users'] } })),
+    meta.annotate(invalidateAnnotation({ meta: { tags: ['users'] } })), // needs a store that indexes meta
   );
 }); // invalidates here, once the transaction has committed
 
@@ -332,13 +332,15 @@ await db.runtime().execute(
 ```
 
 - **Writes only.** The annotation declares `applicableTo: ['write']`. Every SQL ORM write terminal and every SQL builder insert, update and delete accepts it; a read rejects it at compile time and at run time.
-- **When.** Outside a transaction, right after the write ends, including after the write's own transaction when the ORM call runs one, such as an update with a relation callback or a create on a multi-table-inheritance variant. Inside `db.transaction(fn)`, when the transaction ends. The middleware acts in the runtime's `activityFinalized` event. Reads inside the transaction, or in other requests, are still served from the cache until then.
+- **When.** Outside a transaction, right after the write ends, including after the write's own transaction when the ORM call runs one, such as an update with a relation callback or a create on a multi-table-inheritance variant. Inside `db.transaction(fn)`, when the transaction ends. The middleware acts in the runtime's `activityFinalized` event. Reads inside the transaction, or in other requests, are still served from the cache until then. A write whose activity never finalizes does not invalidate: a builder write whose row iterator is dropped without `return()`, or a process that stops between the commit and the invalidation. Its entries stay until they expire.
+- **The write waits for the store.** The write's promise, and `db.transaction(fn)`'s, resolve only after `store.unset` has settled, so its latency adds to theirs, once per annotated write. A store that never settles leaves a committed write unresolved, so a custom store must time out its own `unset`.
 - **Outcome.** A `committed` write invalidates. A `rolled-back` write does not: the entry stays. An `unknown` outcome, such as a write that failed or a `COMMIT` that errored, invalidates, since the write may have landed and an unneeded invalidation costs one miss.
 - **Each write on its own.** Several annotated writes in one transaction each invalidate when it ends. With empty or absent `keys` and no `meta`, nothing happens, as for `invalidate`.
 - **What carries it.** The middleware reads the annotation from whatever activity carries it: an ORM call, an annotated SQL builder statement, or any client activity. It does not check the kind or the transaction. An ORM write's annotation lives on the call, and the statements the call sends carry none, so a write invalidates once.
 - **Store errors.** An error from `unset` is thrown from `activityFinalized`; the runtime passes it to `ctx.log.error` with the event `middleware.activityFinalized.error` and swallows it. The write has already happened, so the entry stays until it expires.
+- **`meta` needs a store that indexes it.** The default store refuses any `meta` before removing anything, so on it an annotation with `meta` removes nothing, not even its `keys`, and every such write logs `RUNTIME.CACHE_STORE_META_UNSUPPORTED` through `middleware.activityFinalized.error`. Nothing fails, so check the logs.
 - **Not on Mongo ORM writes.** The Mongo ORM's write methods take no annotations. On Mongo, call `invalidate` after the write.
-- **Cost.** Because the middleware implements `activityFinalized`, a runtime that uses it keeps every transaction's finished statements until the transaction ends, whether or not any write is annotated, and checks each activity for the annotation once it is finalized.
+- **Cost.** Because the middleware implements `activityFinalized`, a runtime that uses it keeps every transaction's finished statements until the transaction ends, whether or not any write is annotated, so the memory a transaction holds grows with the number of statements it runs. It also checks each activity for the annotation once it is finalized.
 
 ## Transaction-scope guard
 
@@ -365,7 +367,7 @@ This package caches annotated reads in a store and passes data between the annot
 - `bypass` on the annotation;
 - the `CacheStore` interface, and the default in-memory store.
 
-How long an entry lives, and what `meta` means (tags, groups, per-entry lifetimes), are the store's business. Deciding what to invalidate and when, request coalescing, and routing between several stores are policy, and belong in extensions built on these primitives. Such extensions invalidate through `invalidate` or the store's `unset`; either moves the versions that stop overlapping reads from storing rows that predate the write.
+How long an entry lives, and what `meta` means (tags, groups, per-entry lifetimes), are the store's business. The middleware decides when the invalidation a write carries runs: once the write's effects are final. Deciding what a write should invalidate, for example by table, request coalescing, and routing between several stores are policy, and belong in extensions built on these primitives. Such extensions invalidate through `invalidate` or the store's `unset`; either moves the versions that stop overlapping reads from storing rows that predate the write.
 
 What the primitives do not cover yet:
 

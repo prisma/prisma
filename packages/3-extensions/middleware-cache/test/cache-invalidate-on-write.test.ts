@@ -158,10 +158,10 @@ describe('invalidateAnnotation', () => {
     expect([...invalidateAnnotation.applicableTo]).toEqual(['write']);
   });
 
-  it('is refused by a read terminal at run time', () => {
+  it('is refused for a read at run time', () => {
     expect(() =>
       assertAnnotationsApplicable([invalidateAnnotation({ keys: ['user-1'] })], 'read', 'first'),
-    ).toThrow();
+    ).toThrow(expect.objectContaining({ code: 'RUNTIME.ANNOTATION_INAPPLICABLE' }));
   });
 
   it('uses its own namespace, apart from cacheAnnotation', () => {
