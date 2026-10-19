@@ -148,11 +148,16 @@ const entry = table({
   foreignKeys: [foreignKey({ namespace: 'audit', table: 'entry', columns: ['userId'] }, userRef)],
 });
 
-function plan(from: Contract<SqlStorage>, to: Contract<SqlStorage>, ownership?: SchemaOwnership) {
+function plan(
+  from: Contract<SqlStorage>,
+  to: Contract<SqlStorage>,
+  ownership?: SchemaOwnership,
+  allowed: readonly MigrationOperationClass[] = ALL_CLASSES,
+) {
   return createPostgresMigrationPlanner(stubLowerer).plan({
     contract: to,
     schema: postgresContractToSchema(from, postgresTypeComponents),
-    policy: { allowedOperationClasses: [...ALL_CLASSES] },
+    policy: { allowedOperationClasses: [...allowed] },
     fromContract: from,
     origin: null,
     statements: [],
@@ -299,7 +304,7 @@ describe('a primary key moved off a column the same plan drops', () => {
 const dbUpdateAdvice =
   'With db update, drop that foreign key yourself, run db update, then add the foreign key back if you still want it.';
 const declaredDbUpdateAdvice =
-  'With db update, drop that foreign key yourself and leave it out of the contract, run db update, then add the foreign key back to both if you still want it.';
+  'With db update, drop that foreign key yourself and leave it out of the contract, run db update, then add the foreign key back to both if you still want it and run db update again.';
 const migrationNewAdvice =
   'write the change as its own migration with prisma migration new, dropping that foreign key before the key change and adding it back after it.';
 
@@ -382,49 +387,64 @@ describe('a primary key change the plan cannot make', () => {
           kind: 'foreignKeyConflict',
           summary:
             'Primary key "user_pkey" on "public"."user" cannot change while foreign key "post_authorId_fkey" on "public"."post" references it, and another contract space owns "public"."post".',
-          why: `With migration plan, ${migrationNewAdvice} ${dbUpdateAdvice}`,
+          why: `Change that foreign key through the contract space that owns "public"."post", or ${migrationNewAdvice}`,
           location: { entityKind: 'table', entityName: 'post', constraint: 'post_authorId_fkey' },
         },
       ],
     });
   });
 
-  it('refuses when the end contract leaves out a referencing foreign key whose table the plan neither drops nor changes', () => {
+  it('refuses with only additive changes allowed, as db init, when a table the contract does not declare references the key', () => {
     const before = contractOf({ public: { user: user({ primaryKey: ['id'] }), post: post() } });
-    const after = contractOf({ public: { user: movedUser, post: post() } });
-    const start = postgresContractToSchema(before, postgresTypeComponents);
-    const { issues } = buildPostgresPlanDiff({
-      contract: after,
-      actualSchema: start,
-      frameworkComponents: postgresTypeComponents,
-    });
+    const after = contractOf({ public: { user: movedUser } });
 
-    const result = planIssues({
-      issues: coalesceSubtreeIssues(issues),
-      ...planTrees(
-        start,
-        postgresContractToSchema(
-          contractOf({ public: { user: movedUser } }),
-          postgresTypeComponents,
-        ),
-      ),
-      toContract: after,
-      fromContract: before,
-      schemaName: 'public',
-      codecHooks: new Map(),
-      types: postgresTypeLookups,
-      storageTypes: {},
-      strategies: [primaryKeyChangeStrategy],
-    });
-
-    expect(result).toMatchObject({
-      ok: false,
-      failure: [
+    expect(plan(before, after, undefined, ['additive'])).toEqual({
+      kind: 'failure',
+      conflicts: [
         {
           kind: 'foreignKeyConflict',
           summary:
-            'Primary key "user_pkey" on "public"."user" cannot change while foreign key "post_authorId_fkey" on "public"."post" references it, and the end contract has no such foreign key while this plan does not drop "public"."post".',
-          why: `With migration plan, keep that foreign key in the contract and plan again, or ${migrationNewAdvice} ${dbUpdateAdvice}`,
+            'Primary key "user_pkey" on "public"."user" cannot change while foreign key "post_authorId_fkey" on "public"."post" references it, and the contract does not declare "public"."post".',
+          why: 'This plan allows only additive changes, as db init does, so it cannot change a primary key. Run db update or migration plan instead, which drop "public"."post" together with its foreign key; add "public"."post" to the contract first if you want to keep it.',
+          location: { entityKind: 'table', entityName: 'post', constraint: 'post_authorId_fkey' },
+        },
+      ],
+    });
+  });
+
+  it('gives the plain db update advice when the contract does not declare the foreign key', () => {
+    const unlinked = { ...entry, foreignKeys: [], control: 'external' as const };
+    const before = contractOf({
+      public: { user: user({ primaryKey: ['id'] }) },
+      audit: { entry: unlinked },
+    });
+    const after = contractOf({ public: { user: movedUser }, audit: { entry: unlinked } });
+    const start = postgresContractToSchema(
+      contractOf({
+        public: { user: user({ primaryKey: ['id'] }) },
+        audit: { entry: { ...entry, control: 'external' } },
+      }),
+      postgresTypeComponents,
+    );
+
+    const result = createPostgresMigrationPlanner(stubLowerer).plan({
+      contract: after,
+      schema: start,
+      policy: { allowedOperationClasses: [...ALL_CLASSES] },
+      fromContract: before,
+      origin: null,
+      statements: [],
+      frameworkComponents: postgresTypeComponents,
+      spaceId: APP_SPACE_ID,
+      snapshotsImportPath: '../../snapshots',
+    });
+
+    expect(result).toEqual({
+      kind: 'failure',
+      conflicts: [
+        {
+          ...controlPolicyRefusal,
+          why: `With migration plan, give "audit"."entry" a control policy that lets this plan change it and plan again, or ${migrationNewAdvice} ${dbUpdateAdvice}`,
         },
       ],
     });

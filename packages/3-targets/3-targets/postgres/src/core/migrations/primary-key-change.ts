@@ -23,11 +23,7 @@ import {
   DropConstraintCall,
   type PostgresOpFactoryCall,
 } from './op-factory-call';
-import type {
-  CallMigrationStrategy,
-  ForeignKeyDropAuthority,
-  StrategyContext,
-} from './planner-strategies';
+import type { CallMigrationStrategy, StrategyContext } from './planner-strategies';
 
 interface ForeignKeyAt {
   readonly ddlSchemaName: string;
@@ -123,40 +119,60 @@ function foreignKeyName(at: ForeignKeyAt): string {
   return at.foreignKey.name ?? defaultForeignKeyName(at.tableName, at.foreignKey.columns);
 }
 
+const migrationNewAdvice =
+  'write the change as its own migration with prisma migration new, dropping that foreign key before the key change and adding it back after it.';
+
+function quotedTable(at: ForeignKeyAt): string {
+  return `"${at.ddlSchemaName}"."${at.tableName}"`;
+}
+
 function blockedKeyChange(
   change: KeyChange,
   at: ForeignKeyAt,
   reason: string,
-  contractAdvice: string | undefined,
-  declared: boolean,
+  why: string,
 ): SqlPlannerConflict {
   const keyName = change.oldKey.name ?? defaultPrimaryKeyName(change.tableName);
   const name = foreignKeyName(at);
-  const migrationPlanAdvice = `${contractAdvice === undefined ? '' : `${contractAdvice} and plan again, or `}write the change as its own migration with prisma migration new, dropping that foreign key before the key change and adding it back after it.`;
   return {
     kind: 'foreignKeyConflict',
-    summary: `Primary key "${keyName}" on "${change.ddlSchemaName}"."${change.tableName}" cannot change while foreign key "${name}" on "${at.ddlSchemaName}"."${at.tableName}" references it, and ${reason}.`,
-    why: `With migration plan, ${migrationPlanAdvice} ${declared ? 'With db update, drop that foreign key yourself and leave it out of the contract, run db update, then add the foreign key back to both if you still want it.' : 'With db update, drop that foreign key yourself, run db update, then add the foreign key back if you still want it.'}`,
+    summary: `Primary key "${keyName}" on "${change.ddlSchemaName}"."${change.tableName}" cannot change while foreign key "${name}" on ${quotedTable(at)} references it, and ${reason}.`,
+    why,
     location: { entityKind: 'table', entityName: at.tableName, constraint: name },
   };
 }
 
-function refusalFor(
-  change: KeyChange,
-  at: ForeignKeyAt,
-  authority: Exclude<ForeignKeyDropAuthority, 'allowed'>,
-  declared: boolean,
-): SqlPlannerConflict {
-  const table = `"${at.ddlSchemaName}"."${at.tableName}"`;
-  return authority === 'otherSpace'
-    ? blockedKeyChange(change, at, `another contract space owns ${table}`, undefined, declared)
-    : blockedKeyChange(
-        change,
-        at,
-        `the control policy does not let this plan change ${table}`,
-        `give ${table} a control policy that lets this plan change it`,
-        declared,
-      );
+function controlPolicyRefusal(change: KeyChange, at: ForeignKeyAt, declared: boolean) {
+  const table = quotedTable(at);
+  const dbUpdateAdvice = declared
+    ? 'With db update, drop that foreign key yourself and leave it out of the contract, run db update, then add the foreign key back to both if you still want it and run db update again.'
+    : 'With db update, drop that foreign key yourself, run db update, then add the foreign key back if you still want it.';
+  return blockedKeyChange(
+    change,
+    at,
+    `the control policy does not let this plan change ${table}`,
+    `With migration plan, give ${table} a control policy that lets this plan change it and plan again, or ${migrationNewAdvice} ${dbUpdateAdvice}`,
+  );
+}
+
+function otherSpaceRefusal(change: KeyChange, at: ForeignKeyAt) {
+  const table = quotedTable(at);
+  return blockedKeyChange(
+    change,
+    at,
+    `another contract space owns ${table}`,
+    `Change that foreign key through the contract space that owns ${table}, or ${migrationNewAdvice}`,
+  );
+}
+
+function undeclaredTableRefusal(change: KeyChange, at: ForeignKeyAt) {
+  const table = quotedTable(at);
+  return blockedKeyChange(
+    change,
+    at,
+    `the contract does not declare ${table}`,
+    `This plan allows only additive changes, as db init does, so it cannot change a primary key. Run db update or migration plan instead, which drop ${table} together with its foreign key; add ${table} to the contract first if you want to keep it.`,
+  );
 }
 
 function keyCalls(change: KeyChange, ctx: StrategyContext): readonly PostgresOpFactoryCall[] {
@@ -184,7 +200,7 @@ function keyCalls(change: KeyChange, ctx: StrategyContext): readonly PostgresOpF
 }
 
 /**
- * Plans a primary key whose columns change, or that is removed: a drop of the old key, then an add of the new one. Postgres refuses to drop a key while a foreign key depends on its index, so every foreign key of the start tree that references the old key's columns is dropped first, unless its own issue already drops it, and added back from the end tree. The plan refuses the change instead when such a foreign key is on a table the control policy keeps it away from or another contract space owns, or when the end tree leaves the foreign key out and the plan does not drop its table.
+ * Plans a primary key whose columns change, or that is removed: a drop of the old key, then an add of the new one. Postgres refuses to drop a key while a foreign key depends on its index, so every foreign key of the start tree that references the old key's columns is dropped first, unless its own issue already drops it, and added back from the end tree. The plan refuses the change instead when such a foreign key is on a table the control policy keeps it away from or another contract space owns, or when the end tree leaves the foreign key out and the plan does not drop its table, which happens only under a policy that allows additive changes alone, as `db init` does.
  */
 export function primaryKeyChangeStrategy(
   issues: readonly SchemaDiffIssue[],
@@ -210,7 +226,11 @@ export function primaryKeyChangeStrategy(
       const kept = endForeignKey(ctx.endTree, at);
       const authority = ctx.foreignKeyDropAuthority(at.ddlSchemaName, at.tableName, at.foreignKey);
       if (authority !== 'allowed') {
-        changeConflicts.push(refusalFor(change, at, authority, kept !== undefined));
+        changeConflicts.push(
+          authority === 'otherSpace'
+            ? otherSpaceRefusal(change, at)
+            : controlPolicyRefusal(change, at, kept !== undefined),
+        );
         continue;
       }
       if (kept !== undefined) {
@@ -221,15 +241,7 @@ export function primaryKeyChangeStrategy(
       } else if (dropsTable(at, ctx.allIssues)) {
         changeCalls.push(drop);
       } else {
-        changeConflicts.push(
-          blockedKeyChange(
-            change,
-            at,
-            `the end contract has no such foreign key while this plan does not drop "${at.ddlSchemaName}"."${at.tableName}"`,
-            'keep that foreign key in the contract',
-            false,
-          ),
-        );
+        changeConflicts.push(undeclaredTableRefusal(change, at));
       }
     }
     if (changeConflicts.length > 0) {

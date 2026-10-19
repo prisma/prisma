@@ -9,3 +9,7 @@ Work found during the project and left for later, with why.
 ## `StrategyContext.schema` could come from `startTree`
 
 `StrategyContext.schema` is one namespace node of the start tree, picked by `relationalNamespaceNode` in `planner.ts`. Since slice 8 the context also carries the whole `startTree`, so `schema` could be derived from it instead of being passed separately.
+
+## A primary key cannot move while an implicit many-to-many junction references it
+
+Found in manual QA of slice 8. When a model takes part in an implicit many-to-many relation, moving its primary key to a composite key (for example `@@id([id, email])` with `id @unique`) makes `contract emit` refuse with `PSL_JUNCTION_TARGET_FK_NOT_ID`: the junction's foreign key to that model must reference the model's full `@id` columns. The diagnostic is raised in `packages/2-sql/2-authoring/contract-psl/src/psl-relation-resolution.ts`, and the Prisma 7 reader passes it through (`packages/2-sql/2-authoring/contract-prisma7/src/relations.ts`). Prisma 7 allows this change. Supporting it needs a design decision about junctions whose target key is not the model's `@id`.

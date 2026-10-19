@@ -428,7 +428,7 @@ describe('a primary key that moves', { concurrent: false }, () => {
           kind: 'foreignKeyConflict',
           summary:
             'Primary key "User_pkey" on "public"."User" cannot change while foreign key "Entry_userId_fkey" on "audit"."Entry" references it, and the control policy does not let this plan change "audit"."Entry".',
-          why: 'With migration plan, give "audit"."Entry" a control policy that lets this plan change it and plan again, or write the change as its own migration with prisma migration new, dropping that foreign key before the key change and adding it back after it. With db update, drop that foreign key yourself and leave it out of the contract, run db update, then add the foreign key back to both if you still want it.',
+          why: 'With migration plan, give "audit"."Entry" a control policy that lets this plan change it and plan again, or write the change as its own migration with prisma migration new, dropping that foreign key before the key change and adding it back after it. With db update, drop that foreign key yourself and leave it out of the contract, run db update, then add the foreign key back to both if you still want it and run db update again.',
           location: { entityKind: 'table', entityName: 'Entry', constraint: 'Entry_userId_fkey' },
         },
       ],
@@ -451,6 +451,16 @@ describe('a primary key that moves', { concurrent: false }, () => {
       `ALTER TABLE "audit"."Entry" ADD CONSTRAINT "Entry_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE`,
     );
     expect(await constraints()).toEqual(editedConstraints);
+    await planAndApply(
+      null,
+      blog(true, 'external'),
+      anyClass,
+      await introspect(blog(true, 'external')),
+    );
+    const marker = await driver!.query<{ core_hash: string }>(
+      'SELECT core_hash FROM prisma_contract.marker',
+    );
+    expect(marker.rows).toEqual([{ core_hash: blog(true, 'external').storage.storageHash }]);
     await expectSettled(blog(true, 'external'));
   });
 

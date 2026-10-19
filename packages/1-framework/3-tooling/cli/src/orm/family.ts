@@ -127,7 +127,7 @@ const redirects: readonly RedirectSpec[] = [
     from: 'migrate resolve',
     replacement: '{bin} db sign <migration>',
     reason:
-      "`db sign <migration>` checks that the database has that migration's schema and records it as applied; a failed Prisma 8 migration rolls back whole, so nothing needs to be marked rolled back.",
+      "`db sign <migration>` checks that the database already has that migration's schema and moves the database marker to that migration's contract, so `db migrate` continues after it; `migration status` does not list the migration as applied. Use it where you would run `migrate resolve --applied` after applying a migration's changes by hand. A failed Prisma 8 migration rolls back whole, so nothing needs to be marked rolled back.",
   },
 ];
 

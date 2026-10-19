@@ -129,6 +129,9 @@ function namespaceIdForDdlSchema(ctx: StrategyContext, ddlSchemaName: string): s
 // Strategy types
 // ============================================================================
 
+/** `allowed`, or why the plan may not drop a foreign key: the control policy keeps it away from the table, or another contract space owns the table. */
+export type ForeignKeyDropAuthority = 'allowed' | 'controlPolicy' | 'otherSpace';
+
 /**
  * Context passed to each migration strategy.
  *
@@ -138,9 +141,6 @@ function namespaceIdForDdlSchema(ctx: StrategyContext, ddlSchemaName: string): s
  * when no prior contract is available (e.g. `db update`, where the current
  * DB state is approximated via `schema`).
  */
-/** `allowed`, or why the plan may not drop a foreign key: the control policy keeps it away from the table, or another contract space owns the table. */
-export type ForeignKeyDropAuthority = 'allowed' | 'controlPolicy' | 'otherSpace';
-
 export interface StrategyContext {
   readonly toContract: Contract<SqlStorage>;
   readonly fromContract: Contract<SqlStorage> | null;
