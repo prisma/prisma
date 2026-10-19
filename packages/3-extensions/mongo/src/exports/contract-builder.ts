@@ -13,6 +13,8 @@ export type {
 } from '@internal/mongo-contract-ts/contract-builder';
 export {
   field,
+  type GeneratorCall,
+  gen,
   index,
   member,
   model,

@@ -1,6 +1,12 @@
+import type {
+  ExecutionMutationDefaultPhases,
+  ExecutionMutationDefaultValue,
+} from '@internal/contract/types';
 import { resolveToOneRelationNullable } from '@internal/contract-authoring';
 import {
   type AuthoringEntityTypeNamespace,
+  assembleGeneratorFunctions,
+  type GeneratorFunctionRegistry,
   isAuthoringEntityTypeDescriptor,
 } from '@internal/framework-components/authoring';
 import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
@@ -900,11 +906,68 @@ function coveredFieldNames(index: IndexConstraint): readonly string[] {
   return expression.fields.map((ref) => ref.fieldName);
 }
 
+/**
+ * The generators a field's `.onCreate(...)` and `.onUpdate(...)` calls resolve to for its column, merged over the phases a field preset or `field.generated(...)` sets.
+ */
+function resolveGeneratorCalls(input: {
+  readonly modelName: string;
+  readonly fieldName: string;
+  readonly fieldState: FieldStateOf<ScalarFieldBuilder>;
+  readonly descriptor: ColumnTypeDescriptor;
+  readonly storageTypes: Record<string, AuthoredStorageTypeInstance>;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
+}): ExecutionMutationDefaultPhases | undefined {
+  const { modelName, fieldName, fieldState, descriptor, generatorFunctions } = input;
+  const calls = fieldState.generatorCalls;
+  if (calls === undefined) return fieldState.executionDefaults;
+  const column = {
+    codecId: descriptor.codecId,
+    typeParams:
+      descriptor.typeParams ??
+      (descriptor.typeRef === undefined
+        ? undefined
+        : input.storageTypes[descriptor.typeRef]?.typeParams),
+  };
+  const phases: {
+    onCreate?: ExecutionMutationDefaultValue;
+    onUpdate?: ExecutionMutationDefaultValue;
+  } = {
+    ...fieldState.executionDefaults,
+  };
+  for (const phase of ['onCreate', 'onUpdate'] as const) {
+    const call = calls[phase];
+    if (call === undefined) continue;
+    const resolution = generatorFunctions.resolve({ name: call.name, args: call.args, column });
+    if (resolution.ok) {
+      phases[phase] = resolution.generator;
+      continue;
+    }
+    const meta = { modelName, fieldName, codecId: column.codecId, function: call.name };
+    if (resolution.reason === 'unknown-function') {
+      throw contractError(
+        'CONTRACT.DEFAULT_INVALID',
+        `Field "${modelName}.${fieldName}": no pack in the contract declares the generator function "${call.name}".`,
+        { meta: { ...meta, reason: 'generator-unknown' } },
+      );
+    }
+    const applying = generatorFunctions.functionsFor(column.codecId).map(({ name }) => `${name}()`);
+    throw contractError(
+      'CONTRACT.DEFAULT_INVALID',
+      resolution.reason === 'refused'
+        ? `Field "${modelName}.${fieldName}": ${resolution.message}`
+        : `Field "${modelName}.${fieldName}": ${call.name}() does not apply to codec "${column.codecId}". ${applying.length === 0 ? 'No generator function applies to this codec.' : `Functions that apply: ${applying.join(', ')}.`}`,
+      { meta: { ...meta, reason: 'generator-not-applicable' } },
+    );
+  }
+  return phases;
+}
+
 function resolveModelNode(
   spec: RuntimeModelSpec,
   allSpecs: ReadonlyMap<string, RuntimeModelSpec>,
   storageTypes: Record<string, AuthoredStorageTypeInstance>,
   storageTypeReverseLookup: ReadonlyMap<AuthoredStorageTypeInstance, string>,
+  generatorFunctions: GeneratorFunctionRegistry,
   extensions?: Record<string, ExtensionPackRef<'sql', string>>,
 ): ModelNode {
   const fields: FieldNode[] = [];
@@ -930,6 +993,14 @@ function resolveModelNode(
       'typeRef' in fieldState && isEnumTypeHandle(fieldState.typeRef)
         ? fieldState.typeRef
         : undefined;
+    const executionDefaults = resolveGeneratorCalls({
+      modelName: spec.modelName,
+      fieldName,
+      fieldState,
+      descriptor,
+      storageTypes,
+      generatorFunctions,
+    });
 
     fields.push({
       fieldName,
@@ -939,7 +1010,7 @@ function resolveModelNode(
       many: fieldState.many !== false,
       ...(fieldState.many !== false ? { elementNullable: fieldState.many.elementNullable } : {}),
       ...(fieldState.default ? { default: fieldState.default } : {}),
-      ...(fieldState.executionDefaults ? { executionDefaults: fieldState.executionDefaults } : {}),
+      ...ifDefined('executionDefaults', executionDefaults),
       ...(enumHandle !== undefined ? { enumTypeHandle: enumHandle } : {}),
     });
   }
@@ -1118,6 +1189,7 @@ function collectRuntimeModelSpecs(definition: LoweringInput): RuntimeCollection 
 
 function lowerModels(
   collection: RuntimeCollection,
+  generatorFunctions: GeneratorFunctionRegistry,
   extensions?: Record<string, ExtensionPackRef<'sql', string>>,
 ): readonly ModelNode[] {
   emitTypedCrossModelFallbackWarnings(collection);
@@ -1129,6 +1201,7 @@ function lowerModels(
       collection.modelSpecs,
       collection.storageTypes,
       storageTypeReverseLookup,
+      generatorFunctions,
       extensions,
     ),
   );
@@ -1282,7 +1355,12 @@ function lowerPackEntityHandles(
 
 export function buildContractDefinition(definition: LoweringInput): ContractDefinition {
   const collection = collectRuntimeModelSpecs(definition);
-  const models = lowerModels(collection, definition.extensions);
+  const generatorFunctions = assembleGeneratorFunctions([
+    definition.family,
+    definition.target,
+    ...Object.values<ExtensionPackRef<'sql', string>>(definition.extensions ?? {}),
+  ]);
+  const models = lowerModels(collection, generatorFunctions, definition.extensions);
   const attachedEntities = lowerPackEntityHandles(definition, collection.modelSpecs);
 
   return {

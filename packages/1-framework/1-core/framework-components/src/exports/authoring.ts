@@ -87,6 +87,13 @@ export {
   validateAuthoringHelperArguments,
   validateAuthoringTypeParams,
 } from '../shared/framework-authoring';
+export type { GeneratorCall } from '../shared/generator-calls';
+export { gen } from '../shared/generator-calls';
+export type {
+  GeneratorFunctionContribution,
+  GeneratorFunctionRegistry,
+} from '../shared/generator-functions';
+export { assembleGeneratorFunctions } from '../shared/generator-functions';
 export type { AuthoringOption } from '../shared/option-descriptor';
 export type {
   ParsedPslExtensionBlock,

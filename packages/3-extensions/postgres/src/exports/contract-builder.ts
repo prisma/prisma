@@ -20,6 +20,8 @@ export {
   autoincrement,
   buildSqlContractFromDefinition,
   check,
+  type GeneratorCall,
+  gen,
   member,
   model,
   now,

@@ -1,3 +1,4 @@
+export { type GeneratorCall, gen } from '@internal/framework-components/authoring';
 export type {
   ContractDefinition,
   ContractFactory,

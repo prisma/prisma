@@ -17,6 +17,8 @@ export type {
 export {
   autoincrement,
   field,
+  type GeneratorCall,
+  gen,
   member,
   model,
   now,
