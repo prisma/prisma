@@ -1102,8 +1102,8 @@ describe('PostgresMigrationPlanner - reconciliation integration', { concurrent: 
   // ==========================================================================
 
   // planAndExecute succeeds iff the postcheck passes — the postcheck compares
-  // buildExpectedFormatType output against PG's format_type(), so success here
-  // proves the FORMAT_TYPE_DISPLAY mapping is correct for the target type.
+  // the catalog text the data type declares against PG's format_type(), so
+  // success here proves the declaration is right for the target type.
 
   it('applies ALTER COLUMN TYPE from text to timestamp', { timeout: testTimeout }, async () => {
     const baselineContract = makeContract(

@@ -395,19 +395,19 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
     expect(call).toBeInstanceOf(AlterColumnTypeCall);
     expect(
       call instanceof AlterColumnTypeCall && { type: call.type, checkType: call.checkType },
-    ).toEqual({ type: 'int8', checkType: 'bigint' });
+    ).toEqual({ type: 'int8', checkType: { kind: 'catalog-text', text: 'bigint' } });
   });
 
   it.each([
-    { typeName: 'UserRole', typeRef: 'UserRole', formatTypeExpected: '"UserRole"' },
-    { typeName: 'UserRole', typeRef: undefined, formatTypeExpected: '"UserRole"' },
-    { typeName: 'user_role', typeRef: 'user_role', formatTypeExpected: 'user_role' },
-    { typeName: 'user_role', typeRef: undefined, formatTypeExpected: 'user_role' },
-    { typeName: 'select', typeRef: undefined, formatTypeExpected: '"select"' },
-    { typeName: 'position', typeRef: undefined, formatTypeExpected: '"position"' },
+    { typeName: 'UserRole', typeRef: 'UserRole', checked: '"UserRole"' },
+    { typeName: 'UserRole', typeRef: undefined, checked: '"UserRole"' },
+    { typeName: 'user_role', typeRef: 'user_role', checked: '"user_role"' },
+    { typeName: 'user_role', typeRef: undefined, checked: '"user_role"' },
+    { typeName: 'select', typeRef: undefined, checked: '"select"' },
+    { typeName: 'app.status', typeRef: undefined, checked: '"app"."status"' },
   ])(
-    'checks a type change to enum $typeName (typeRef $typeRef) against $formatTypeExpected',
-    ({ typeName, typeRef, formatTypeExpected }) => {
+    'checks a type change to enum $typeName (typeRef $typeRef) by the identity of $checked',
+    ({ typeName, typeRef, checked }) => {
       const enumType = { dataType: 'pg/enum', codecId: 'pg/enum@1', typeParams: { typeName } };
       const contract = makeContract(
         {
@@ -448,7 +448,11 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
         }),
       });
       const call = planFor(contract, actual).find((c) => c instanceof AlterColumnTypeCall);
-      expect(call instanceof AlterColumnTypeCall && call.checkType).toBe(formatTypeExpected);
+      expect(call instanceof AlterColumnTypeCall && call.checkType).toEqual({
+        kind: 'identity',
+        typeName: checked,
+        many: false,
+      });
     },
   );
 

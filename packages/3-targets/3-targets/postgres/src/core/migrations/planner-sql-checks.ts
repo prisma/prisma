@@ -1,27 +1,19 @@
-import {
-  assembleDataTypes,
-  type DataType,
-  dataTypeParams,
-  type TypeLookups,
-} from '@internal/framework-components/codec';
+import { assembleDataTypes, type DataType } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import {
   isSqlDataType,
   type ResolvedSqlType,
   renderSqlCatalogText,
+  renderSqlTypeName,
   resolveReportedSqlType,
   resolveWrittenSqlTypes,
-  sqlDataTypeOfCodec,
-  unquotedSqlBaseName,
+  type SqlDataType,
+  type SqlTypeParams,
 } from '@internal/sql-contract/data-type';
-import type { StorageColumn, StorageTypeInstance } from '@internal/sql-contract/types';
 import type { SqlColumnType } from '@internal/sql-schema-ir/types';
 import { postgresError } from '../errors';
-import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { postgresCreateNamespace } from '../postgres-schema';
-import { quoteIdentifierWhereNeeded } from '../sql-utils';
 import { autoincrementWidthOfPseudoType } from './autoincrement-widths';
-import { resolveColumnTypeMetadata } from './planner-type-resolution';
 
 /**
  * String-keyed entry points the migration ops use to render
@@ -36,28 +28,6 @@ import { resolveColumnTypeMetadata } from './planner-type-resolution';
  */
 export function qualifyTableName(schema: string, table: string): string {
   return postgresCreateNamespace({ id: schema, entries: { table: {} } }).qualifyTable(table);
-}
-
-/**
- * The type `format_type` prints, for the column's ALTER COLUMN TYPE postcheck: the catalog text of
- * its data type with normalised parameters, or for an enum its name, quoted where Postgres quotes
- * it.
- */
-export function buildExpectedFormatType(
-  column: Pick<StorageColumn, 'codecId' | 'typeParams' | 'typeRef'>,
-  types: TypeLookups,
-  storageTypes: Record<string, StorageTypeInstance> = {},
-): string {
-  const resolved = resolveColumnTypeMetadata(column, storageTypes);
-  const dataType = sqlDataTypeOfCodec(resolved.codecId, types);
-  const params = dataTypeParams(dataType, resolved.typeParams);
-  if (dataType.sql.claimsKind !== undefined) {
-    return unquotedSqlBaseName(dataType, params)
-      .split('.')
-      .map(quoteIdentifierWhereNeeded)
-      .join('.');
-  }
-  return renderSqlCatalogText(dataType, params);
 }
 
 /** The data types the components of a stack register. */
@@ -85,105 +55,121 @@ function quotedName(text: string): readonly string[] | undefined {
   return segments.length === 1 || segments.length === 2 ? segments : undefined;
 }
 
-function catalogTextOf(resolved: ResolvedSqlType, dataTypes: readonly DataType[]): string {
-  const type = dataTypes.filter(isSqlDataType).find(({ id }) => id === resolved.dataType);
-  return type === undefined ? resolved.dataType : renderSqlCatalogText(type, resolved.typeParams);
-}
-
 function columnTypeUnreadable(type: string, where: string, reason: string): never {
   throw postgresError('MIGRATION.COLUMN_TYPE_UNREADABLE', `${where}: ${reason}`, {
-    why: 'A column type change checks afterwards that the column has the new type as the database prints it, and finds that text through the data types the configured stack registers.',
+    why: 'A column type change checks afterwards that the column has the new type, and finds the type through the data types the configured stack registers.',
     fix: 'Write the type as a migration writes it, for example int4 or varchar(20), or an enum by its quoted name, such as "Mood". If the type comes from an extension, add that extension to the configuration.',
     meta: { type, where },
   });
 }
 
 /**
- * The type `format_type` prints for a column altered to `type`, written as a migration writes it:
- * the catalog text of the one data type of `dataTypes` that reads it, or for an enum, named by its
- * quoted name, that name quoted where Postgres quotes it, without the `public` schema, which
- * `format_type` leaves out as the planner's own enum names do. A list type keeps one `[]`, as
- * `format_type` prints it. The planner and the `alterColumnType` facade both check the alter with
- * this text, so re-running a migration reproduces its operations. `where` names the call in the
- * error a type no data type reads raises.
+ * How a postcheck recognises that a column has a type: by the text `format_type` prints for it, or, for a type that claims a kind such as an enum, by the type's identity, `to_regtype` of the name its data type renders, or that type's array type for a list. Design 12.3.
  */
-export function alterTypeCheckText(
+export type ColumnTypeCheck =
+  | { readonly kind: 'catalog-text'; readonly text: string }
+  | { readonly kind: 'identity'; readonly typeName: string; readonly many: boolean };
+
+/** The text a postcheck's description names the type it checks with. */
+export function columnTypeCheckText(check: ColumnTypeCheck): string {
+  return check.kind === 'catalog-text' ? check.text : `${check.typeName}${check.many ? '[]' : ''}`;
+}
+
+/**
+ * The postcheck for a column altered to `type`, written as a migration writes it, read through the one data type of `dataTypes` that reads it. The planner and the `alterColumnType` facade both check the alter with it, so re-running a migration reproduces its operations. `where` names the call in the error a type no data type reads raises.
+ */
+export function alterTypeCheck(
   type: string,
   dataTypes: readonly DataType[],
   where: string,
-): string {
-  const read = readCatalogTypeText(type, dataTypes);
-  return read.ok ? read.text : columnTypeUnreadable(type, where, read.reason);
+): ColumnTypeCheck {
+  const read = readColumnTypeCheck(type, dataTypes);
+  return read.ok ? read.check : columnTypeUnreadable(type, where, read.reason);
 }
 
-/**
- * The type `format_type` prints for a column of `type`, read as {@link alterTypeCheckText} reads it, or `undefined` when the stack's data types do not read `type`, as for a raw column.
- */
-export function catalogTypeTextIfReadable(
+/** The postcheck for a column of `type`, read as {@link alterTypeCheck} reads it, or `undefined` when the stack's data types do not read `type`, as for a raw column. */
+export function columnTypeCheckIfReadable(
   type: string,
   dataTypes: readonly DataType[],
-): string | undefined {
-  const read = readCatalogTypeText(type, dataTypes);
-  return read.ok ? read.text : undefined;
+): ColumnTypeCheck | undefined {
+  const read = readColumnTypeCheck(type, dataTypes);
+  return read.ok ? read.check : undefined;
 }
 
 /**
- * The column type a migration's `type` names, as {@link alterTypeCheckText} reads it: the one data type of `dataTypes` that reads it, or for an enum named by its quoted name, the type that claims enums, with the name as introspection would report it. `undefined` when no data type, or more than one, reads it.
+ * The column type a migration's `type` names, as {@link alterTypeCheck} reads it: the one data type of `dataTypes` that reads it, or for an enum named by its quoted name, the type that claims enums, with the name as introspection would report it. `undefined` when no data type, or more than one, reads it.
  */
 export function writtenColumnType(
   type: string,
   dataTypes: readonly DataType[],
 ): SqlColumnType | undefined {
+  const read = readWrittenType(type, dataTypes);
+  return read.ok
+    ? { storedType: read.type, typeParams: read.typeParams, many: read.many }
+    : undefined;
+}
+
+type WrittenTypeRead =
+  | {
+      readonly ok: true;
+      readonly type: SqlDataType;
+      readonly typeParams: SqlTypeParams;
+      readonly many: boolean;
+    }
+  | { readonly ok: false; readonly reason: string };
+
+function readWrittenType(type: string, dataTypes: readonly DataType[]): WrittenTypeRead {
   const trimmed = autoincrementWidthOfPseudoType(type)?.sequenceType ?? type.trim();
   const array = ARRAY_SUFFIX.exec(trimmed);
   const base = array?.[1] ?? trimmed;
-  const resolved = resolveWrittenSqlTypes(base, dataTypes);
-  const [only] = resolved.length === 1 ? resolved : [resolvedByKind(base, dataTypes)];
-  const storedType = dataTypes.find(({ id }) => id === only?.dataType);
-  return only === undefined || storedType === undefined
-    ? undefined
-    : { storedType, typeParams: only.typeParams, many: array !== null };
+  const sqlTypes = dataTypes.filter(isSqlDataType);
+  const byText = resolveWrittenSqlTypes(base, sqlTypes);
+  if (byText.length > 1) {
+    const named = byText.map((resolved) => resolved.dataType).join(' and ');
+    return {
+      ok: false,
+      reason: `more than one data type of the configured stack reads the type "${type}", as ${named}`,
+    };
+  }
+  const resolved = byText[0] ?? resolvedByKind(base, sqlTypes);
+  const found = sqlTypes.find(({ id }) => id === resolved?.dataType);
+  if (resolved === undefined || found === undefined) {
+    return { ok: false, reason: `no data type of the configured stack reads the type "${type}"` };
+  }
+  return { ok: true, type: found, typeParams: resolved.typeParams, many: array !== null };
+}
+
+function readColumnTypeCheck(
+  type: string,
+  dataTypes: readonly DataType[],
+):
+  | { readonly ok: true; readonly check: ColumnTypeCheck }
+  | { readonly ok: false; readonly reason: string } {
+  const read = readWrittenType(type, dataTypes);
+  if (!read.ok) return read;
+  if (read.type.sql.claimsKind !== undefined) {
+    return {
+      ok: true,
+      check: {
+        kind: 'identity',
+        typeName: renderSqlTypeName(read.type, read.typeParams),
+        many: read.many,
+      },
+    };
+  }
+  const text = renderSqlCatalogText(read.type, read.typeParams);
+  return { ok: true, check: { kind: 'catalog-text', text: `${text}${read.many ? '[]' : ''}` } };
 }
 
 /** The type a quoted name names, read as the one data type that claims a kind reads a reported type of that kind. */
-function resolvedByKind(base: string, dataTypes: readonly DataType[]): ResolvedSqlType | undefined {
+function resolvedByKind(
+  base: string,
+  dataTypes: readonly SqlDataType[],
+): ResolvedSqlType | undefined {
   const name = quotedName(base);
-  const kinds = dataTypes.filter(isSqlDataType).flatMap(({ sql }) => sql.claimsKind ?? []);
+  const kinds = dataTypes.flatMap(({ sql }) => sql.claimsKind ?? []);
   const [kind] = kinds;
   if (name === undefined || kind === undefined || kinds.length > 1) return undefined;
   const [schema, typeName] = name.length === 2 ? name : [undefined, name[0]];
   return resolveReportedSqlType({ text: base, kind, schema, name: typeName }, dataTypes);
-}
-
-function readCatalogTypeText(
-  type: string,
-  dataTypes: readonly DataType[],
-): { readonly ok: true; readonly text: string } | { readonly ok: false; readonly reason: string } {
-  const trimmed = autoincrementWidthOfPseudoType(type)?.sequenceType ?? type.trim();
-  const array = ARRAY_SUFFIX.exec(trimmed);
-  const base = array?.[1] ?? trimmed;
-  const suffix = array === null ? '' : '[]';
-  const texts = [
-    ...new Set(
-      resolveWrittenSqlTypes(base, dataTypes).map((resolved) => catalogTextOf(resolved, dataTypes)),
-    ),
-  ];
-  const [only] = texts;
-  if (only !== undefined && texts.length === 1) return { ok: true, text: `${only}${suffix}` };
-  if (texts.length > 1) {
-    return {
-      ok: false,
-      reason: `more than one data type of the configured stack reads the type "${type}", as ${texts.join(' and ')}`,
-    };
-  }
-  const name = quotedName(base);
-  const namesItself = dataTypes.some(
-    (dataType) => isSqlDataType(dataType) && dataType.sql.claimsKind !== undefined,
-  );
-  if (name !== undefined && namesItself) {
-    const [schema, ...rest] = name;
-    const unqualified = rest.length > 0 && schema === DEFAULT_NAMESPACE_ID ? rest : name;
-    return { ok: true, text: `${unqualified.map(quoteIdentifierWhereNeeded).join('.')}${suffix}` };
-  }
-  return { ok: false, reason: `no data type of the configured stack reads the type "${type}"` };
 }

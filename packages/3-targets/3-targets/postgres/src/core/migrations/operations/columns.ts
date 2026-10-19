@@ -21,7 +21,7 @@ import { escapeLiteral, quoteIdentifier } from '../../sql-utils';
 import { type AutoincrementWidth, autoincrementWidth } from '../autoincrement-widths';
 import { boundSchema } from '../bound-schema';
 import { defaultSequenceName } from '../default-sequence-name';
-import { qualifyTableName } from '../planner-sql-checks';
+import { type ColumnTypeCheck, columnTypeCheckText, qualifyTableName } from '../planner-sql-checks';
 import { type Op, step, targetDetails } from './shared';
 
 type CheckStep = { sql: string; params?: readonly unknown[] };
@@ -36,24 +36,31 @@ async function columnExistsSteps(
   return { present, absent };
 }
 
+/** The check that the column has the type `check` recognises: by the text `format_type` prints, or by the type's identity. */
+function columnTypeCheckAst(location: ColumnLocation, check: ColumnTypeCheck) {
+  return check.kind === 'catalog-text'
+    ? columnTypeAst({ ...location, expectedType: check.text })
+    : columnTypeOidAst({ ...location, type: check.typeName, many: check.many });
+}
+
 /**
- * The postcheck step that the column has the type `type`: by the text `format_type` prints, `checkType`, when the stack's data types read the type, and otherwise by the type's oid, which ignores a type modifier.
+ * The postcheck step that the column has the type `type`: as `check` recognises it when the stack's data types read the type, and otherwise by the type's oid, which ignores a type modifier.
  */
 export async function columnTypeStep(
   lowerer: ExecuteRequestLowerer,
-  location: { readonly schema: string; readonly table: string; readonly column: string },
+  location: ColumnLocation,
   type: string,
-  checkType: string | undefined,
+  check: ColumnTypeCheck | undefined,
 ) {
-  const check = await lowerer.lowerToExecuteRequest(
-    checkType === undefined
-      ? columnTypeOidAst({ ...location, type })
-      : columnTypeAst({ ...location, expectedType: checkType }),
+  const lowered = await lowerer.lowerToExecuteRequest(
+    check === undefined
+      ? columnTypeOidAst({ ...location, type, many: false })
+      : columnTypeCheckAst(location, check),
   );
   return step(
-    `verify column "${location.column}" has type "${checkType ?? type}"`,
-    check.sql,
-    check.params,
+    `verify column "${location.column}" has type "${check === undefined ? type : columnTypeCheckText(check)}"`,
+    lowered.sql,
+    lowered.params,
   );
 }
 
@@ -145,7 +152,7 @@ export type AlterColumnTypeClass = 'widening' | 'destructive' | 'data';
 
 /**
  * `type` is the new column type as a migration writes it, into the `ALTER COLUMN TYPE` clause.
- * `checkType` is the type `format_type` prints for it, which the postcheck compares. `sequence` is
+ * `checkType` is how the postcheck recognises the new type. `sequence` is
  * the width of the sequence the column owns when it has an `autoincrement()` default: the operation
  * finds that sequence in the catalog and changes it to the new width, refusing first when the
  * sequence has handed out a value past that width. A column whose default reads a sequence it does
@@ -158,7 +165,7 @@ export async function alterColumnType(
   columnName: string,
   options: {
     readonly type: string;
-    readonly checkType: string;
+    readonly checkType: ColumnTypeCheck;
     readonly using?: string;
     readonly sequenceWidth: AutoincrementWidth | undefined;
   },
@@ -171,12 +178,10 @@ export async function alterColumnType(
     column: columnName,
   });
   const typeCheck = await lowerer.lowerToExecuteRequest(
-    columnTypeAst({
-      schema: schemaName,
-      table: tableName,
-      column: columnName,
-      expectedType: options.checkType,
-    }),
+    columnTypeCheckAst(
+      { schema: schemaName, table: tableName, column: columnName },
+      options.checkType,
+    ),
   );
   const alterType = await lowerer.lowerToExecuteRequest(
     contractFreeDdl.alterTable({
@@ -218,7 +223,7 @@ export async function alterColumnType(
     ],
     postcheck: [
       step(
-        `verify column "${columnName}" has type "${options.checkType}"`,
+        `verify column "${columnName}" has type "${columnTypeCheckText(options.checkType)}"`,
         typeCheck.sql,
         typeCheck.params,
       ),
@@ -558,7 +563,7 @@ export async function addRequiredColumnToEmptyTable(
   schemaName: string,
   tableName: string,
   column: DdlColumn,
-  checkType: string | undefined,
+  checkType: ColumnTypeCheck | undefined,
   lowerer: ExecuteRequestLowerer,
 ): Promise<Op> {
   const columnName = column.name;

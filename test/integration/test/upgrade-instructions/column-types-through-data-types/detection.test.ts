@@ -31,7 +31,7 @@ describe('extension detection', () => {
   it.each([
     [
       'type-lookups-one-framework-type',
-      "import type { SqlTypeLookups } from '@prisma/orm-family-sql/contract/data-type';",
+      'function storageTypeOf(codecId: string, lookups: SqlTypeLookups) {}',
       'const lookups = testSqlTypeLookups();',
     ],
     [
@@ -46,7 +46,7 @@ describe('extension detection', () => {
     ],
     [
       'type-name-normalisers-removed',
-      "import { normalizeSqliteNativeType } from '@prisma/orm-sqlite/adapter/control';",
+      'normalizeSqliteNativeType(column.type)',
       'readSqliteDefault(raw, type)',
     ],
     [
@@ -78,6 +78,16 @@ describe('extension detection', () => {
       'default-resolver-takes-the-column',
       'const resolve: DefaultResolver = (def, nativeType) => def;',
       'const resolve: DefaultReader = (def) => def;',
+    ],
+    [
+      'alter-type-postcheck-by-data-type',
+      "const text = buildExpectedFormatType({ codecId: 'pg/int4@1' }, types);",
+      "const check = alterTypeCheck('int4', dataTypes, where);",
+    ],
+    [
+      'alter-type-postcheck-by-data-type',
+      "alterTypeCheckText('int4', dataTypes, where)",
+      "alterTypeCheck('int4', dataTypes, where)",
     ],
   ])('%s finds the old use and skips the new one', (id, before, after) => {
     expect({

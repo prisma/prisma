@@ -37,7 +37,27 @@ changes:
       matches:
         - '\bDefaultResolver\b'
         - '\breadPostgresDefault\s*\('
+  - id: alter-type-postcheck-by-data-type
+    summary: |
+      In the Postgres target's `planner-sql-checks` entry point, `buildExpectedFormatType` and `alterTypeCheckText` are removed. `alterTypeCheck(type, dataTypes, where)` returns how the `ALTER COLUMN TYPE` postcheck recognises the new type: `{ kind: 'catalog-text', text }`, the text `format_type` prints, or for an enum `{ kind: 'identity', typeName, many }`, checked with `to_regtype` whatever schema the enum is in.
+    detection:
+      glob: "**/*.{ts,mts,cts,tsx}"
+      matches:
+        - '\b(?:buildExpectedFormatType|alterTypeCheckText)\b'
 ---
+
+## `alter-type-postcheck-by-data-type`
+
+```ts
+// Before
+const checkText = alterTypeCheckText('"app"."status"', dataTypes, where); // 'app.status'
+
+// After
+const check = alterTypeCheck('"app"."status"', dataTypes, where);
+// { kind: 'identity', typeName: '"app"."status"', many: false }
+```
+
+A check of kind `catalog-text` holds the text `buildExpectedFormatType` gave for the same type.
 
 ## `type-lookups-one-framework-type`
 

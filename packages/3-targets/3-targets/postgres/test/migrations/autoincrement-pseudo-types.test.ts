@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { postgresDataTypes } from '../../src/core/data-types';
 import { autoincrementWidthOfPseudoType } from '../../src/core/migrations/autoincrement-widths';
-import { catalogTypeTextIfReadable } from '../../src/core/migrations/planner-sql-checks';
+import { columnTypeCheckIfReadable } from '../../src/core/migrations/planner-sql-checks';
 
 describe('the SERIAL pseudo-types an autoincrement() column is written with', () => {
   it('read as the integer type Postgres stores, in any case and with the numbered aliases', () => {
@@ -15,8 +15,8 @@ describe('the SERIAL pseudo-types an autoincrement() column is written with', ()
   it('give the add-column type check the catalog text of that integer type', () => {
     expect(
       ['SMALLSERIAL', 'SERIAL', 'BIGSERIAL'].map((type) =>
-        catalogTypeTextIfReadable(type, postgresDataTypes),
+        columnTypeCheckIfReadable(type, postgresDataTypes),
       ),
-    ).toEqual(['smallint', 'integer', 'bigint']);
+    ).toEqual(['smallint', 'integer', 'bigint'].map((text) => ({ kind: 'catalog-text', text })));
   });
 });
