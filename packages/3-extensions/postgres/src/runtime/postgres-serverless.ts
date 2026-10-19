@@ -3,6 +3,7 @@ import type { Contract } from '@internal/contract/types';
 import postgresDriver, { suppressIdleConnectionErrors } from '@internal/driver-postgres/runtime';
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
 import type { SqlStorage } from '@internal/sql-contract/types';
+import type { CollectionClasses } from '@internal/sql-orm-client';
 import type { Runtime } from '@internal/sql-runtime';
 import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
 import postgresTarget from '@internal/target-postgres/runtime';
@@ -29,22 +30,31 @@ import {
 import { PostgresRuntimeImpl } from './postgres-runtime';
 import type { PostgresTargetId } from './postgres-target-id';
 
-export interface PostgresServerlessConnection<TContract extends Contract<SqlStorage>>
-  extends PostgresStaticMembers<TContract>,
-    PostgresRuntimeBoundMembers<TContract>,
+export interface PostgresServerlessConnection<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = Record<never, never>,
+> extends PostgresStaticMembers<TContract>,
+    PostgresRuntimeBoundMembers<TContract, TCollections>,
     PostgresLifecycleMembers {}
 
-export interface PostgresServerlessClient<TContract extends Contract<SqlStorage>>
-  extends PostgresStaticMembers<TContract> {
-  connect(binding: { readonly url: string }): Promise<PostgresServerlessConnection<TContract>>;
+export interface PostgresServerlessClient<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = Record<never, never>,
+> extends PostgresStaticMembers<TContract> {
+  connect(binding: {
+    readonly url: string;
+  }): Promise<PostgresServerlessConnection<TContract, TCollections>>;
 }
 
 export interface PostgresServerlessOptionsBase extends PostgresExecutionOptions {}
 
-export type PostgresServerlessOptions<TContract extends Contract<SqlStorage>> =
-  PostgresServerlessOptionsBase & {
-    readonly contract: TContract;
-  };
+export type PostgresServerlessOptions<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = Record<never, never>,
+> = PostgresServerlessOptionsBase & {
+  readonly contract: TContract;
+  readonly collections?: TCollections;
+};
 
 function closedConnectionError() {
   return postgresError('DRIVER.NOT_CONNECTED', 'Postgres connection is closed', {
@@ -89,9 +99,12 @@ function connectionFailedError(url: string, cause: unknown) {
  * };
  * ```
  */
-export default function postgresServerless<TContract extends Contract<SqlStorage>>(
-  options: PostgresServerlessOptions<TContract>,
-): PostgresServerlessClient<TContract> {
+export default function postgresServerless<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = Record<never, never>,
+>(
+  options: PostgresServerlessOptions<TContract, TCollections>,
+): PostgresServerlessClient<TContract, TCollections> {
   const cursor = validateCursorOptions(options.cursor, 'postgresServerless');
   const contract = validatePostgresContract(options.contract);
   const stack = createSqlExecutionStack({
@@ -114,8 +127,9 @@ export default function postgresServerless<TContract extends Contract<SqlStorage
   );
 
   const buildRuntimeBoundMembers = (getRuntime: () => Runtime, getRuntimeForWork: () => Runtime) =>
-    buildPostgresRuntimeBoundMembers<TContract>({
+    buildPostgresRuntimeBoundMembers<TContract, TCollections>({
       context,
+      collections: options.collections,
       rawCodecInferer,
       enums,
       nativeEnums,
@@ -130,7 +144,9 @@ export default function postgresServerless<TContract extends Contract<SqlStorage
   };
   buildRuntimeBoundMembers(noRuntime, noRuntime);
 
-  const createConnection = (runtime: Runtime): PostgresServerlessConnection<TContract> => {
+  const createConnection = (
+    runtime: Runtime,
+  ): PostgresServerlessConnection<TContract, TCollections> => {
     let closing: Promise<void> | undefined;
     const close = (): Promise<void> => {
       closing ??= runtime.close();
