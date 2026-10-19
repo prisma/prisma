@@ -43,7 +43,7 @@ export interface SqlTypeText {
 export type SqlTypeParams = Readonly<Record<string, unknown>>;
 
 export interface SqlDataTypeSpec<Params extends SqlTypeParams = SqlTypeParams>
-  extends DataTypeSpec {
+  extends Omit<DataTypeSpec, 'normalize'> {
   readonly params?: Type<Params>;
   readonly texts?: readonly SqlTypeText[];
   /** The kind of reported type this data type claims, instead of any text. */
@@ -193,11 +193,11 @@ function checkStoredAs<Params extends SqlTypeParams>(
 
 const identity = <Params>(params: Params): Params => params;
 
-function acceptsParams<Params extends SqlTypeParams>(
-  type: SqlDataType<Params>,
+function isParamsOf<Params extends SqlTypeParams>(
+  schema: Type<Params> | undefined,
   params: SqlTypeParams,
 ): params is Params {
-  return type.params === undefined || !(type.params(params) instanceof arktype.errors);
+  return schema === undefined || !(schema(params) instanceof arktype.errors);
 }
 
 function checkNormalFormsWritten<Params extends SqlTypeParams>(type: SqlDataType<Params>): void {
@@ -214,7 +214,7 @@ function checkNormalFormsWritten<Params extends SqlTypeParams>(type: SqlDataType
     ),
   ];
   for (const probe of probes) {
-    if (!acceptsParams(type, probe)) continue;
+    if (!isParamsOf(type.params, probe)) continue;
     const normalKeys = presentKeys(type.sql.normalize(probe));
     if (!written.has([...normalKeys].sort().join(','))) {
       refuseDeclaration(
@@ -230,7 +230,11 @@ export function sqlDataType<Params extends SqlTypeParams = SqlTypeParams>(
   id: string,
   spec: SqlDataTypeSpec<Params>,
 ): SqlDataType<Params> {
-  const { params: _untypedParams, ...declared } = dataType(id, spec);
+  const normalize = spec.normalize ?? identity;
+  const { params: _untypedParams, ...declared } = dataType(id, {
+    ...spec,
+    normalize: (params) => (isParamsOf(spec.params, params) ? normalize(params) : params),
+  });
   const texts = spec.texts ?? [];
   const paramKeys = paramKeysOf(declared.id, spec.params);
   for (const text of texts) checkText(declared.id, text, paramKeys);
@@ -244,7 +248,7 @@ export function sqlDataType<Params extends SqlTypeParams = SqlTypeParams>(
       texts,
       claimsKind: spec.claimsKind,
       storedAs: spec.storedAs,
-      normalize: spec.normalize ?? identity,
+      normalize,
       render: spec.render,
       fromReported: spec.fromReported,
     },
