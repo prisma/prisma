@@ -304,7 +304,7 @@ describe('contractToSchemaIR', () => {
     );
   });
 
-  it('drops codecId, typeParams, and typeRef from columns', () => {
+  it('drops codecId and typeRef from columns, and every type parameter its data type does not declare', () => {
     const storage = new SqlStorage({
       storageHash: 'test' as StorageHashBase<string>,
       namespaces: {
@@ -351,7 +351,7 @@ describe('contractToSchemaIR', () => {
       }),
     );
     expect('codecId' in columnA).toBe(false);
-    expect('typeParams' in columnA).toBe(false);
+    expect(columnA.typeParams).toEqual({});
     expect('typeRef' in columnA).toBe(false);
     expect(columnB).toEqual(
       new SqlColumnIR({
@@ -362,7 +362,7 @@ describe('contractToSchemaIR', () => {
       }),
     );
     expect('codecId' in columnB).toBe(false);
-    expect('typeParams' in columnB).toBe(false);
+    expect(columnB.typeParams).toEqual({});
     expect('typeRef' in columnB).toBe(false);
   });
 
@@ -408,6 +408,34 @@ describe('contractToSchemaIR', () => {
       whole: { nativeType: 'numeric(10,0)', resolvedNativeType: 'numeric(10,0)' },
       scaled: { nativeType: 'numeric(10,2)', resolvedNativeType: 'numeric(10,2)' },
       bare: { nativeType: 'character(1)', resolvedNativeType: 'character(1)' },
+    });
+  });
+
+  it('gives each column its data type and the data type parameters in normal form', () => {
+    const storage = unboundStorage('test' as StorageHashBase<string>, {
+      T: table({
+        columns: {
+          whole: col({ codecId: 'pg/numeric@1', typeParams: { precision: 10, codecOwned: 1 } }),
+          bare: col({ codecId: 'pg/char@1' }),
+          name: col({ codecId: 'pg/text@1' }),
+          mood: col({ codecId: 'pg/enum@1', typeParams: { typeName: 'Mood' } }),
+        },
+      }),
+    });
+
+    const columns = contractToSchemaIR(wrap(storage)).tables['T']!.columns;
+    expect(
+      Object.fromEntries(
+        Object.entries(columns).map(([name, column]) => [
+          name,
+          { dataType: column.dataType?.id, typeParams: column.typeParams },
+        ]),
+      ),
+    ).toEqual({
+      whole: { dataType: 'test/numeric', typeParams: { precision: 10, scale: 0 } },
+      bare: { dataType: 'test/fixed-character', typeParams: { length: 1 } },
+      name: { dataType: 'test/text', typeParams: {} },
+      mood: { dataType: 'test/enum', typeParams: { typeName: 'Mood' } },
     });
   });
 

@@ -1,5 +1,5 @@
 import type { ColumnDefault } from '@internal/contract/types';
-import type { CodecRef, DataType } from '@internal/framework-components/codec';
+import type { CodecRef, DataType, DataTypeParams } from '@internal/framework-components/codec';
 import type { DiffableNode } from '@internal/framework-components/control';
 import { freezeNode } from '@internal/framework-components/ir';
 import { blindCast } from '@internal/utils/casts';
@@ -84,10 +84,11 @@ export interface SqlColumnIRInput {
    */
   readonly codecBaseNativeType?: string;
   /**
-   * The data type the column's codec represents, from the assembled stack (ADR 254). Stamped on the
-   * contract-derived column; absent on introspected nodes.
+   * The column's data type, from the assembled stack (ADR 254): on the contract-derived side the type its codec represents, on the introspected side the type that claims the reported type. Absent on an introspected column no data type claims.
    */
   readonly dataType?: DataType;
+  /** The parameters of {@link dataType} in its normal form; empty for a type without parameters. Present exactly when `dataType` is. */
+  readonly typeParams?: DataTypeParams;
   /**
    * A literal default as a value of the column's data type (ADR 254): on the contract-derived side read from the contract by the column's type, on the introspected side read from the database by the column's codec. The diff compares defaults by it. Absent when no type or codec read one.
    */
@@ -138,6 +139,8 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   declare readonly codecBaseNativeType?: string;
   /** See {@link SqlColumnIRInput.dataType}. Non-enumerable, same reason as {@link codecRef}. */
   declare readonly dataType?: DataType;
+  /** See {@link SqlColumnIRInput.typeParams}. Non-enumerable, same reason as {@link codecRef}. */
+  declare readonly typeParams?: DataTypeParams;
   /** See {@link SqlColumnIRInput.defaultValue}. Non-enumerable, same reason as {@link codecRef}. */
   declare readonly defaultValue?: SqlDefaultValue;
   /** See {@link SqlColumnIRInput.defaultUnreadable}. Non-enumerable, same reason as {@link codecRef}. */
@@ -161,6 +164,7 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
     defineNonEnumerable(this, 'codecRef', input.codecRef);
     defineNonEnumerable(this, 'codecBaseNativeType', input.codecBaseNativeType);
     defineNonEnumerable(this, 'dataType', input.dataType);
+    defineNonEnumerable(this, 'typeParams', input.typeParams);
     defineNonEnumerable(this, 'defaultValue', input.defaultValue);
     defineNonEnumerable(this, 'defaultUnreadable', input.defaultUnreadable);
     defineNonEnumerable(this, 'defaultExpressionValue', input.defaultExpressionValue);
@@ -201,6 +205,29 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
         ...ifDefined('codecBaseNativeType', this.codecBaseNativeType),
       }),
     ];
+  }
+
+  /** This column with `dataType` and its normal-form `typeParams`. */
+  withDataType(dataType: DataType, typeParams: DataTypeParams): SqlColumnIR {
+    return new SqlColumnIR({
+      name: this.name,
+      nativeType: this.nativeType,
+      nullable: this.nullable,
+      ...ifDefined('default', this.default),
+      ...ifDefined('annotations', this.annotations),
+      ...ifDefined('many', this.many),
+      ...ifDefined('resolvedNativeType', this.resolvedNativeType),
+      ...ifDefined('resolvedDefault', this.resolvedDefault),
+      ...ifDefined('authoredDefault', this.authoredDefault),
+      ...ifDefined('codecRef', this.codecRef),
+      ...ifDefined('codecBaseNativeType', this.codecBaseNativeType),
+      dataType,
+      typeParams,
+      ...ifDefined('defaultValue', this.defaultValue),
+      ...ifDefined('defaultUnreadable', this.defaultUnreadable),
+      ...ifDefined('defaultExpressionValue', this.defaultExpressionValue),
+      ...ifDefined('reportedType', this.reportedType),
+    });
   }
 
   static is(node: SqlSchemaIRNode): node is SqlColumnIR {

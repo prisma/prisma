@@ -225,6 +225,76 @@ describe('SqlColumnIR', () => {
     });
   });
 
+  describe('data type and parameters', () => {
+    const numeric = dataType('t/numeric', { read: (json) => json });
+
+    it('carries the type parameters outside JSON and equality', () => {
+      const column = new SqlColumnIR({
+        name: 'price',
+        nativeType: 'numeric',
+        nullable: false,
+        dataType: numeric,
+        typeParams: { precision: 10, scale: 0 },
+      });
+      const bare = new SqlColumnIR({ name: 'price', nativeType: 'numeric', nullable: false });
+
+      expect({
+        typeParams: column.typeParams,
+        json: JSON.stringify(column),
+        equal: column.isEqualTo(bare),
+      }).toEqual({
+        typeParams: { precision: 10, scale: 0 },
+        json: JSON.stringify(bare),
+        equal: true,
+      });
+    });
+
+    it('gives a copy with a data type and parameters, keeping every other field', () => {
+      const value = dataType('t/text', { read: (json) => json }).fromContract('draft', {});
+      const reportedType = {
+        text: 'numeric(10,0)',
+        kind: undefined,
+        schema: 'pg_catalog',
+        name: 'numeric',
+      };
+      const column = new SqlColumnIR({
+        name: 'price',
+        nativeType: 'numeric(10,0)',
+        nullable: true,
+        default: "'1'::numeric",
+        many: true,
+        resolvedNativeType: 'numeric(10,0)[]',
+        resolvedDefault: { kind: 'literal', value: '1' },
+        defaultValue: value,
+        defaultUnreadable: 'why',
+        defaultExpressionValue: value,
+        reportedType,
+      });
+
+      const resolved = column.withDataType(numeric, { precision: 10, scale: 0 });
+
+      expect({
+        json: JSON.stringify(resolved),
+        dataType: resolved.dataType,
+        typeParams: resolved.typeParams,
+        defaultValue: resolved.defaultValue,
+        defaultUnreadable: resolved.defaultUnreadable,
+        defaultExpressionValue: resolved.defaultExpressionValue,
+        reportedType: resolved.reportedType,
+        frozen: Object.isFrozen(resolved),
+      }).toEqual({
+        json: JSON.stringify(column),
+        dataType: numeric,
+        typeParams: { precision: 10, scale: 0 },
+        defaultValue: value,
+        defaultUnreadable: 'why',
+        defaultExpressionValue: value,
+        reportedType,
+        frozen: true,
+      });
+    });
+  });
+
   describe('identity columns (introspected, no raw default)', () => {
     it('yields a default child node from resolvedDefault alone, with no raw default', () => {
       // A `GENERATED ... AS IDENTITY` column has no `column_default` at
