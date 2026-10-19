@@ -26,14 +26,6 @@ export {
   type StoredEnumMember,
 } from '../shared/enum-stored-members';
 export {
-  assembleFieldPresetsByCodecAndGenerator,
-  type FieldPresetPhasePrintForm,
-  type FieldPresetPrintForm,
-  type FieldPresetsByCodecAndGenerator,
-  fieldPresetPrintForm,
-  type PrintableFieldPreset,
-} from '../shared/field-preset-print-form';
-export {
   fieldPresetSpellings,
   getAuthoringFieldPreset,
 } from '../shared/field-preset-resolution';

@@ -23,6 +23,17 @@ const defaultFunctionCalls = [...stack.controlMutationDefaults.defaultFunctionRe
   .flatMap((entry) => entry.usageSignatures ?? [])
   .map((usage) => usage.replace(/<(\d+)-\d+>/, '$1'));
 
+/** A call of every generator function the stack binds to `String`, with each argument form. */
+const textGeneratorCalls = [
+  'uuid()',
+  'uuid(7)',
+  'cuid(2)',
+  'ulid()',
+  'nanoid()',
+  'nanoid(2)',
+  'ksuid()',
+];
+
 /** Every `temporal.*` field preset the stack contributes, called with the now generator in each phase it takes. */
 function temporalPresetCalls(namespace: AuthoringFieldNamespace): readonly string[] {
   const temporal = namespace['temporal'];
@@ -53,8 +64,11 @@ model Widget {
 }
 
 describe('every generated value the stack reads prints as PSL that reads back', () => {
-  it('finds the default functions and temporal presets', () => {
-    expect(defaultFunctionCalls).toContain('uuid(7)');
+  it('finds the default functions, generator functions and temporal presets', () => {
+    expect(defaultFunctionCalls).toContain('now()');
+    expect(stack.generatorFunctions.functionsFor('pg/text@1').map(({ name }) => name)).toEqual(
+      [...new Set(textGeneratorCalls.map((call) => call.slice(0, call.indexOf('('))))].sort(),
+    );
     expect(temporalPresetCalls(stack.authoringContributions.field)).toContain(
       'temporal.timestamptz(onCreate: now, onUpdate: now)',
     );
@@ -73,6 +87,22 @@ describe('every generated value the stack reads prints as PSL that reads back', 
     timeouts.pslRoundTrip,
   );
 
+  it.each(textGeneratorCalls)(
+    '@onCreate(%s)',
+    async (call) => {
+      await roundTrip(`value String @onCreate(${call})`);
+    },
+    timeouts.pslRoundTrip,
+  );
+
+  it(
+    '@onCreate(now()) @onUpdate(now()) beside @default(now())',
+    async () => {
+      await roundTrip('value DateTime @default(now()) @onCreate(now()) @onUpdate(now())');
+    },
+    timeouts.pslRoundTrip,
+  );
+
   it.each(temporalPresetCalls(stack.authoringContributions.field))(
     '%s',
     async (call) => {
@@ -85,7 +115,7 @@ describe('every generated value the stack reads prints as PSL that reads back', 
     'a default function an extension registers',
     async () => {
       await roundTrip(
-        'value String @default(slugid())',
+        'value String @onCreate(slugid())',
         composePostgresStack([...slugidExtensions]),
       );
     },

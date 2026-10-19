@@ -1,102 +1,65 @@
-import type { ExecutionMutationDefault } from '@internal/contract/types';
-import type { SqlPslBuildContext } from '@internal/family-sql/control';
-import {
-  defaultFunctionCallFor,
-  type FieldPresetArgument,
-  fieldPresetCallFor,
-  type PslColumnTypeRef,
-} from '@internal/family-sql/psl-build';
 import type {
-  PslAttributeArgument,
-  PslFieldAttribute,
-} from '@internal/framework-components/psl-ast';
-import { buildAttribute, namedArg, positionalArg } from '../psl-build/psl-literals';
+  ExecutionMutationDefault,
+  ExecutionMutationDefaultValue,
+} from '@internal/contract/types';
+import type { SqlPslBuildContext } from '@internal/family-sql/control';
+import type { PslFieldAttribute } from '@internal/framework-components/psl-ast';
+import { canonicalizeJson } from '@internal/framework-components/utils';
+import { buildAttribute, positionalArg } from '../psl-build/psl-literals';
 import {
-  refuseGeneratorOnUpdate,
-  refuseGeneratorsNoPresetWritesTogether,
+  refuseGeneratorOnList,
+  refuseGeneratorReadingBackDifferently,
   refuseGeneratorWithoutPslFunction,
-  refusePresetCallReadingBackDifferently,
-  refuseUnwritablePresetCall,
 } from './refusals';
 
-export type BuiltExecutionDefault =
-  | { readonly kind: 'attribute'; readonly attribute: PslFieldAttribute }
-  | {
-      readonly kind: 'preset';
-      readonly path: readonly string[];
-      readonly args: readonly PslAttributeArgument[];
-    };
-
-function toPslArgument(argument: FieldPresetArgument): PslAttributeArgument {
-  return argument.kind === 'positional'
-    ? positionalArg(argument.value)
-    : namedArg(argument.name, argument.value);
-}
+const GENERATOR_PHASES = ['onCreate', 'onUpdate'] as const;
 
 /**
- * How one column's execution generators are written in PSL: as the call of the field preset of the stack that writes the column's codec with them, or else a create-only generator as the `@default(<fn>(...))` call of the default function that declares `printArguments` for it. A column neither writes is refused, with the preset's reason when a preset writes its codec and generators.
+ * The `@onCreate(fn(...))` and `@onUpdate(fn(...))` attributes that write one column's generators, each the call of the generator function the stack binds to the column's codec. The written call must resolve back to the stored generator; a column whose generator no function writes, or whose call reads back differently, is refused.
  */
-export function buildExecutionDefault(input: {
+export function buildGeneratorAttributes(input: {
   readonly executionDefault: ExecutionMutationDefault;
   readonly codecId: string;
-  readonly pslType: PslColumnTypeRef;
   readonly list: boolean;
   readonly typeParams: Readonly<Record<string, unknown>> | undefined;
   readonly coordinate: string;
   readonly context: SqlPslBuildContext;
-}): BuiltExecutionDefault {
-  const { executionDefault, codecId, pslType, list, typeParams, coordinate, context } = input;
-  const onCreateId = executionDefault.onCreate?.id;
-  const onUpdateId = executionDefault.onUpdate?.id;
-  const phases = { coordinate, onCreate: onCreateId, onUpdate: onUpdateId };
-
-  const choice = fieldPresetCallFor({
-    fieldPresetsByCodecAndGenerator: context.fieldPresetsByCodecAndGenerator,
-    column: { codecId, pslType, list, typeParams, generators: executionDefault },
-  });
-  if (choice.kind === 'call') {
-    return { kind: 'preset', path: choice.preset.path, args: choice.arguments.map(toPslArgument) };
-  }
-
-  const call =
-    onCreateId === undefined || onUpdateId !== undefined
-      ? undefined
-      : defaultFunctionCallFor(
-          context.defaultFunctionPrintersByGenerator,
-          onCreateId,
-          executionDefault.onCreate?.params,
-        );
-  if (call !== undefined) {
-    return {
-      kind: 'attribute',
-      attribute: buildAttribute('field', 'default', [positionalArg(call)]),
-    };
-  }
-
-  switch (choice.kind) {
-    case 'cannotWrite':
-      if (choice.reason.kind === 'phasesNotWrittenTogether') {
-        return refuseGeneratorsNoPresetWritesTogether(phases);
-      }
-      return refuseUnwritablePresetCall({
+}): readonly PslFieldAttribute[] {
+  const { executionDefault, codecId, list, typeParams, coordinate, context } = input;
+  const column = { codecId, typeParams };
+  const attributes: PslFieldAttribute[] = [];
+  for (const phase of GENERATOR_PHASES) {
+    const generator: ExecutionMutationDefaultValue | undefined = executionDefault[phase];
+    if (generator === undefined) continue;
+    if (list) refuseGeneratorOnList({ coordinate, phase, generatorId: generator.id });
+    const call = context.generatorFunctions.callFor(generator, column);
+    if (call === undefined) {
+      refuseGeneratorWithoutPslFunction({
         coordinate,
-        preset: choice.preset.path.join('.'),
-        reason: choice.reason,
+        phase,
+        generatorId: generator.id,
+        codecId,
+        registeredBy: context.componentIdsByGenerator.has(generator.id)
+          ? { componentId: context.componentIdsByGenerator.get(generator.id) }
+          : undefined,
       });
-    case 'readsBackDifferently':
-      return refusePresetCallReadingBackDifferently({
+    }
+    const written = `${call.name}(${call.text})`;
+    const readBack = context.generatorFunctions.resolve({
+      name: call.name,
+      args: call.args,
+      column,
+    });
+    if (!readBack.ok || canonicalizeJson(readBack.generator) !== canonicalizeJson(generator)) {
+      refuseGeneratorReadingBackDifferently({
         coordinate,
-        preset: choice.preset.path.join('.'),
-        differences: choice.differences,
+        phase,
+        call: written,
+        stored: generator,
+        readBack: readBack.ok ? readBack.generator : undefined,
       });
-    case 'noPreset':
-      if (onUpdateId !== undefined) return refuseGeneratorOnUpdate(phases);
-      return refuseGeneratorWithoutPslFunction({
-        ...phases,
-        registeredBy:
-          onCreateId !== undefined && context.componentIdsByGenerator.has(onCreateId)
-            ? { componentId: context.componentIdsByGenerator.get(onCreateId) }
-            : undefined,
-      });
+    }
+    attributes.push(buildAttribute('field', phase, [positionalArg(written)]));
   }
+  return attributes;
 }

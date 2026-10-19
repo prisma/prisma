@@ -1,14 +1,11 @@
 import type { Contract } from '@internal/contract/types';
-import type {
-  DataTypeSupport,
-  FieldPresetsByCodecAndGenerator,
-} from '@internal/framework-components/authoring';
+import type { DataTypeSupport } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type {
   AssembledAuthoringContributions,
   ContractSerializer,
-  DefaultFunctionPrinter,
   DiffSubjectGranularity,
+  GeneratorFunctionRegistry,
   MigratableTargetDescriptor,
   SchemaVerifier,
 } from '@internal/framework-components/control';
@@ -43,12 +40,10 @@ export interface SqlPslBuildContext {
   readonly authoringContributions: Pick<AssembledAuthoringContributions, 'type' | 'field'>;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypes: DataTypeSupport;
-  /** For each generator id, the default function in the stack whose PSL call produces it. */
-  readonly defaultFunctionPrintersByGenerator: ReadonlyMap<string, DefaultFunctionPrinter>;
+  /** The generator functions of the stack, which write each generator as `@onCreate(fn(...))` or `@onUpdate(fn(...))`. */
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   /** For each generator id the stack registers, the id of the component that registers it, when that component has one. */
   readonly componentIdsByGenerator: ReadonlyMap<string, string | undefined>;
-  /** For each codec, the field preset in the stack that writes a column of it with each generator. */
-  readonly fieldPresetsByCodecAndGenerator: FieldPresetsByCodecAndGenerator;
 }
 
 export interface SqlControlTargetDescriptor<

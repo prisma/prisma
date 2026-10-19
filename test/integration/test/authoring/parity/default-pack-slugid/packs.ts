@@ -1,23 +1,5 @@
 import type { SqlControlExtensionDescriptor } from '@internal/family-sql/control';
-import type { ControlMutationDefaultEntry } from '@internal/framework-components/control';
-
-// `slugid()` takes no arguments; its signature makes arity a grammar concern, so any
-// `slugid(...)` call fails as invalid attribute syntax before the lower runs.
-const slugidEntry: ControlMutationDefaultEntry = {
-  signature: { documentation: 'Generates a slug identifier when a field value is omitted.' },
-  lower: () => ({
-    ok: true,
-    value: {
-      kind: 'execution',
-      generated: {
-        kind: 'generator',
-        id: 'slugid',
-      },
-    },
-  }),
-  usageSignatures: ['slugid()'],
-  printArguments: { slugid: () => '' },
-};
+import { singleGeneratorBinding } from '@internal/framework-components/control';
 
 const slugidDefaultsPack: SqlControlExtensionDescriptor<'postgres'> = {
   kind: 'extension',
@@ -27,9 +9,16 @@ const slugidDefaultsPack: SqlControlExtensionDescriptor<'postgres'> = {
   targetId: 'postgres',
 
   controlMutationDefaults: {
-    defaultFunctionRegistry: new Map([['slugid', slugidEntry]]),
-    generatorDescriptors: [{ id: 'slugid', applicableCodecIds: ['pg/text@1'] }],
+    defaultFunctionRegistry: new Map(),
+    generatorDescriptors: [{ id: 'slugid' }],
   },
+  generatorFunctions: [
+    {
+      name: 'slugid',
+      signature: { documentation: 'Generates a slug identifier when a field value is omitted.' },
+      bindings: [singleGeneratorBinding({ codecIds: ['pg/text@1'], generatorId: 'slugid' })],
+    },
+  ],
   create() {
     return {
       familyId: 'sql',
