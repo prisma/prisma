@@ -1,5 +1,10 @@
-export type { CacheAnnotationHandle, CacheAnnotationOptions } from '../cache-annotation';
-export { cacheAnnotation } from '../cache-annotation';
+export type {
+  CacheAnnotationHandle,
+  CacheAnnotationOptions,
+  InvalidateAnnotationHandle,
+  InvalidateAnnotationOptions,
+} from '../cache-annotation';
+export { cacheAnnotation, invalidateAnnotation } from '../cache-annotation';
 export type { CacheMiddleware, CacheMiddlewareOptions } from '../cache-middleware';
 export { createCacheMiddleware, deriveKeyFromContentHash } from '../cache-middleware';
 export type {

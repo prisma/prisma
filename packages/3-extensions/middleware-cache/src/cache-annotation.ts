@@ -80,3 +80,59 @@ function withTypedMeta(
     }),
   );
 }
+
+/**
+ * Options for a write annotated with `invalidateAnnotation`: the argument of the cache middleware's `invalidate`, which removes them once the write's effects are final.
+ *
+ * `TMeta` is the shape of `meta`; pass the store's `TMeta` so the two agree.
+ */
+export interface InvalidateAnnotationOptions<TMeta = unknown> {
+  readonly keys?: readonly string[];
+  readonly meta?: TMeta;
+}
+
+/**
+ * The type of `invalidateAnnotation`: a call generic in `TMeta`, plus the read-only `namespace`,
+ * `applicableTo` and `read` of the underlying annotation handle.
+ */
+export type InvalidateAnnotationHandle = (<TMeta = unknown>(
+  options: InvalidateAnnotationOptions<TMeta>,
+) => AnnotationValue<InvalidateAnnotationOptions, 'write'>) & {
+  readonly namespace: string;
+  readonly applicableTo: ReadonlySet<'write'>;
+  readonly read: AnnotationHandle<InvalidateAnnotationOptions, 'write'>['read'];
+};
+
+/**
+ * Marks a write whose cache entries the cache middleware invalidates once the write's effects are final: right after the write outside a transaction, or when the outermost enclosing transaction ends. It does not invalidate when the write is rolled back, and does when the outcome is unknown. It applies to writes only: a read terminal refuses it at compile time and at run time.
+ *
+ * @example
+ * ```typescript
+ * await db.orm.public.User.where({ id: 1 }).update({ name: 'Alicia' }, (meta) =>
+ *   meta.annotate(invalidateAnnotation({ keys: ['user-1'] })),
+ * );
+ * ```
+ */
+export const invalidateAnnotation: InvalidateAnnotationHandle = withTypedInvalidateMeta(
+  defineAnnotation<InvalidateAnnotationOptions>()({
+    namespace: 'cache-invalidate',
+    applicableTo: ['write'],
+  }),
+);
+
+function withTypedInvalidateMeta(
+  handle: AnnotationHandle<InvalidateAnnotationOptions, 'write'>,
+): InvalidateAnnotationHandle {
+  function invalidateAnnotationWithMeta<TMeta = unknown>(
+    options: InvalidateAnnotationOptions<TMeta>,
+  ): AnnotationValue<InvalidateAnnotationOptions, 'write'> {
+    return handle(options);
+  }
+  return Object.freeze(
+    Object.assign(invalidateAnnotationWithMeta, {
+      namespace: handle.namespace,
+      applicableTo: handle.applicableTo,
+      read: handle.read,
+    }),
+  );
+}

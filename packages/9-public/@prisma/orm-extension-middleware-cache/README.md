@@ -14,13 +14,14 @@ import {
   createCacheMiddleware,
   createInMemoryCacheStore,
   deriveKeyFromContentHash,
+  invalidateAnnotation,
   type CacheStore,
 } from '@prisma/orm-extension-middleware-cache';
 ```
 
 ## Responsibilities
 
-A read-through cache middleware. An annotated ORM call, such as `db.orm.public.User.first(...)`, is cached as a whole: on a hit the middleware supplies the call's result and the ORM sends no statement; on a miss it stores the value the call returned. An annotated statement, such as a SQL builder query, is cached as rows: on a hit it returns the cached rows and never invokes the driver; on a miss it buffers the driver's rows and stores them when the read completes. A read opts in with `cacheAnnotation({ key?, meta?, bypass? })`: `key` names the entry; otherwise an ORM call is keyed by its content hash, a digest of the terminal method and the statement it sends, and a statement by the `deriveKey` option (default: the family runtime's content hash, `deriveKeyFromContentHash`); `meta` is handed to the store with the entry; `bypass: true` skips the cache for that call. A read inside a transaction or on a held connection, such as a Supabase role session, is neither served nor stored.
+A read-through cache middleware. An annotated ORM call, such as `db.orm.public.User.first(...)`, is cached as a whole: on a hit the middleware supplies the call's result and the ORM sends no statement; on a miss it stores the value the call returned. An annotated statement, such as a SQL builder query, is cached as rows: on a hit it returns the cached rows and never invokes the driver; on a miss it buffers the driver's rows and stores them when the read completes. A read opts in with `cacheAnnotation({ key?, meta?, bypass? })`: `key` names the entry; otherwise an ORM call is keyed by its content hash, a digest of the terminal method and the statement it sends, and a statement by the `deriveKey` option (default: the family runtime's content hash, `deriveKeyFromContentHash`); `meta` is handed to the store with the entry; `bypass: true` skips the cache for that call. A read inside a transaction or on a held connection, such as a Supabase role session, is neither served nor stored. A write annotated with `invalidateAnnotation({ keys?, meta? })` removes those entries once its effects are final.
 
 How long an entry lives is the store's policy. The default store, `createInMemoryCacheStore({ maxEntries?, ttlMs?, clock? })`, keeps up to 1000 values for 60 seconds each; `ttlMs: Infinity` never expires. A key's version is kept for `ttlMs` after the `unset` that moved it. Versions are not bounded by `maxEntries`. A forgotten version reads as 0, so with a finite `ttlMs` a read that takes longer than `ttlMs` and overlaps an `invalidate` can store stale rows. With `ttlMs: Infinity`, the versions of invalidated keys are never forgotten and grow with the number of distinct keys invalidated. A `maxEntries` that is not a positive integer or a `ttlMs` that is not positive throws `RUNTIME.ARGUMENT_INVALID`. Implement the `CacheStore` interface to use Redis, Memcached, or any other backend.
 
@@ -110,10 +111,20 @@ await cache.invalidate({ keys: ['user-1'] });
 
 A read that missed before an `invalidate` and finishes after it does not store its rows. Its `store.get` returned an empty entry with, say, version 3; the `unset` moves the key to version 4; `store.set(entry, rows)` then returns `false`. This works across processes that share a store, because the store owns the version. Call `invalidate` after the write has committed: inside a transaction, another request can put the old rows back in the cache before the commit. An error from the store propagates.
 
+A write can carry its invalidation instead. `invalidateAnnotation({ keys?, meta? })` takes the argument of `invalidate`, and the middleware makes the same call from the runtime's `activityFinalized` event, once the write's effects are final:
+
+```ts
+await db.orm.public.User.where({ id: 1 }).update({ name: 'Alicia' }, (meta) =>
+  meta.annotate(invalidateAnnotation({ keys: ['user-1'] })),
+);
+```
+
+It applies to writes only: every SQL ORM write terminal and every SQL builder insert, update and delete accepts it, and a read rejects it at compile time and at run time. Outside a transaction it invalidates right after the write ends, after the write's own transaction when the ORM call runs one, such as an update with a relation callback or a create on a multi-table-inheritance variant. Inside `db.transaction(fn)` it invalidates when the transaction ends; until then the entry is still served. A rolled-back write does not invalidate. An `unknown` outcome, such as a failed write or a `COMMIT` that errored, does, since the write may have landed. Several annotated writes in one transaction each invalidate when it ends. The middleware reads the annotation from whatever activity carries it, an ORM call, an annotated builder statement or any client activity, and does not check the kind or the transaction. An error from `unset` is passed to `ctx.log.error` with the event `middleware.activityFinalized.error` and swallowed; the write has already happened. The Mongo ORM's write methods take no annotations, so on Mongo call `invalidate` after the write. Because the middleware implements `activityFinalized`, a runtime that uses it keeps every transaction's finished statements until the transaction ends, whether or not any write is annotated.
+
 A tag scheme is a store policy: `cacheAnnotation({ meta: { tags: ['users'] } })` on the read, a store that indexes `meta.tags` in `set`, and `cache.invalidate({ meta: { tags: ['users'] } })` after the write.
 
 ## Scope
 
-The middleware is a read-through cache with a control surface: keys and `deriveKey`, `meta`, `bypass`, `invalidate`, and the `CacheStore` interface. It carries data between the annotations and the store and never interprets it. Lifetime and the meaning of `meta` are the store's; deciding what to invalidate and when, request coalescing and routing between several stores belong in extensions built on these primitives.
+The middleware is a read-through cache with a control surface: keys and `deriveKey`, `meta`, `bypass`, `invalidate` and `invalidateAnnotation`, and the `CacheStore` interface. It carries data between the annotations and the store and never interprets it. Lifetime and the meaning of `meta` are the store's; deciding what to invalidate and when, request coalescing and routing between several stores belong in extensions built on these primitives.
 
-Invalidating as part of a write is not supported yet: it must wait for the transaction to commit. Every ORM write is an `orm-call` activity that carries the user's annotations, including its own transaction, and `activityFinalized` fires for it once it has committed, but the middleware does not yet act on that event. Until then, call `invalidate` after the write returns. Serve-stale strategies such as stale-while-revalidate need the hit-or-miss decision, which only the middleware makes.
+Serve-stale strategies such as stale-while-revalidate need the hit-or-miss decision, which only the middleware makes.

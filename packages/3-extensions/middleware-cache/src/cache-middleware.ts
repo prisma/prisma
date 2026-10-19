@@ -2,12 +2,13 @@ import type {
   Activity,
   ActivityContext,
   ActivityEndedResult,
+  ActivityFinalizedResult,
   ActivityInterceptResult,
   ClientActivity,
   CrossFamilyMiddleware,
   ExecutionPlan,
 } from '@internal/framework-components/runtime';
-import { cacheAnnotation } from './cache-annotation';
+import { cacheAnnotation, invalidateAnnotation } from './cache-annotation';
 import {
   type CachedValue,
   type CacheEntry,
@@ -44,6 +45,8 @@ export interface CacheMiddlewareOptions<TMeta = unknown> {
  * removes, so a read that missed before the call and finishes after it does not store its rows:
  * its conditional `store.set` returns `false`. This holds across processes that share a store. An
  * error from the store propagates.
+ *
+ * A write annotated with `invalidateAnnotation({ keys, meta })` makes the same call from `activityFinalized`, once the write's effects are final, unless they were rolled back.
  *
  * `TMeta` is the store's meta type, which `invalidate`'s `meta` must have.
  */
@@ -112,7 +115,7 @@ function valueToStore(miss: PendingMiss, result: ActivityEndedResult): CachedVal
 }
 
 /**
- * Creates a read-through cache middleware that works with every family runtime.
+ * Creates a read-through cache middleware that works with every family runtime. It also invalidates entries for writes annotated with `invalidateAnnotation`.
  *
  * It caches an activity that carries `cacheAnnotation` without `bypass` and runs in runtime scope,
  * outside any transaction: never on a held connection, whose session may change what a read
@@ -134,6 +137,7 @@ function valueToStore(miss: PendingMiss, result: ActivityEndedResult): CachedVal
  *   `succeeded` with a result (`null` is a result), calls `store.set(entry, value)` with the entry
  *   `store.get` returned, which stores only if the key's version has not moved. If an `unset` moved
  *   it meanwhile, `set` returns `false` and the middleware logs `middleware.cache.store-skipped`.
+ * - `activityFinalized` — for any activity that carries `invalidateAnnotation`, whatever its kind or transaction, calls `invalidate` with the annotation's `keys` and `meta`, unless the outcome is `rolled-back`. An `unknown` outcome invalidates, since the write may have landed. A store error is thrown, and the runtime logs it.
  *
  * @example
  * ```typescript
@@ -144,8 +148,9 @@ function valueToStore(miss: PendingMiss, result: ActivityEndedResult): CachedVal
  *   { id: 1 },
  *   (meta) => meta.annotate(cacheAnnotation({ key: 'user-1' })),
  * );
- * await db.orm.public.User.where({ id: 1 }).update({ name: 'Alicia' });
- * await cache.invalidate({ keys: ['user-1'] });
+ * await db.orm.public.User.where({ id: 1 }).update({ name: 'Alicia' }, (meta) =>
+ *   meta.annotate(invalidateAnnotation({ keys: ['user-1'] })),
+ * );
  * ```
  */
 export function createCacheMiddleware<TMeta = unknown>(
@@ -235,7 +240,7 @@ export function createCacheMiddleware<TMeta = unknown>(
 
   async function invalidate(target: {
     readonly keys?: readonly string[];
-    readonly meta?: TMeta;
+    readonly meta?: unknown;
   }): Promise<void> {
     const keys = target.keys !== undefined && target.keys.length > 0 ? target.keys : undefined;
     if (keys === undefined && target.meta === undefined) {
@@ -244,5 +249,25 @@ export function createCacheMiddleware<TMeta = unknown>(
     await store.unset({ keys, meta: target.meta });
   }
 
-  return { name: 'cache', intercept: { onQuery, onActivity }, onRow, activityEnded, invalidate };
+  async function activityFinalized(
+    activity: Activity,
+    result: ActivityFinalizedResult,
+  ): Promise<void> {
+    if (result.outcome === 'rolled-back') {
+      return;
+    }
+    const target = invalidateAnnotation.read(activity);
+    if (target !== undefined) {
+      await invalidate(target);
+    }
+  }
+
+  return {
+    name: 'cache',
+    intercept: { onQuery, onActivity },
+    onRow,
+    activityEnded,
+    activityFinalized,
+    invalidate,
+  };
 }

@@ -7,6 +7,8 @@ It caches two kinds of annotated read:
 - **An ORM call**, such as `db.orm.public.User.first(...)`, cached as a whole through the `intercept.onActivity` handler. Every ORM terminal method is one `orm-call` activity that carries the user's annotations. On a hit, the middleware supplies the call's result and the ORM sends no statement. On a miss, `activityEnded` stores the value the call returned.
 - **A statement**, such as an annotated SQL builder query, through the `intercept.onQuery` handler. On a hit, the middleware returns the cached rows and the driver is never invoked. On a miss, `onRow` buffers the rows from the driver in the statement's `ctx.state`, and `activityEnded` stores them when the read succeeded.
 
+A write annotated with `invalidateAnnotation` removes entries once its effects are final (see [Invalidating with a write](#invalidating-with-a-write)).
+
 The package depends on no SQL or Mongo package: its runtime dependencies are `@internal/framework-components` and `@internal/utils`. The default key of a statement is `ActivityContext.contentHash(exec)`, which the family runtime populates, and the default key of an ORM call is the call's `activity.contentHash()`, so SQL and Mongo runtimes both work out of the box.
 
 ## Responsibilities
@@ -18,13 +20,18 @@ The package depends on no SQL or Mongo package: its runtime dependencies are `@i
 - Tag stored values, so a statement's rows and an ORM call's result never stand in for each other under the same key.
 - Bypass the cache inside a transaction and on a held connection.
 - Remove entries on request through `invalidate({ keys, meta })`, and stop a read that overlapped it from storing its rows.
+- Define the write-only `invalidateAnnotation` handle, and make the same `invalidate` call from `activityFinalized` once an annotated write's effects are final, unless they were rolled back.
 - Define the `CacheStore` interface, and ship a default in-memory store with a size bound and one lifetime for every entry.
 
 ## Quick start
 
 ```typescript
 import postgres from '@internal/postgres/runtime';
-import { cacheAnnotation, createCacheMiddleware } from '@internal/middleware-cache';
+import {
+  cacheAnnotation,
+  createCacheMiddleware,
+  invalidateAnnotation,
+} from '@internal/middleware-cache';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -45,9 +52,10 @@ const second = await db.orm.public.User.first({ id: 1 }, (meta) =>
   meta.annotate(cacheAnnotation({ key: 'user-1' })),
 );
 
-// After a write, remove the entry so the next read sees it.
-await db.orm.public.User.where({ id: 1 }).update({ name: 'Alicia' });
-await cache.invalidate({ keys: ['user-1'] });
+// The write removes the entry once it has committed, so the next read sees it.
+await db.orm.public.User.where({ id: 1 }).update({ name: 'Alicia' }, (meta) =>
+  meta.annotate(invalidateAnnotation({ keys: ['user-1'] })),
+);
 
 // Un-annotated reads are never cached.
 const fresh = await db.orm.public.User.first({ id: 1 });
@@ -293,11 +301,44 @@ export const cached = (o: CacheAnnotationOptions<TagMeta>) => cacheAnnotation<Ta
 
 Rules:
 
-- **Call it after the write has committed.** `invalidate` works from any scope, but if you call it inside a transaction, another request can read the old rows before the commit and put them back in the cache. Invalidate once the transaction has returned.
+- **Call it after the write has committed.** `invalidate` works from any scope, but if you call it inside a transaction, another request can read the old rows before the commit and put them back in the cache. Invalidate once the transaction has returned, or annotate the write with `invalidateAnnotation`, which waits for the commit.
 - **Overlapping reads.** A read that missed the cache before an `invalidate` and finishes after it does not store its rows, because they may predate the write. For example: the read's `store.get` returns an empty entry with version 3; the `invalidate` makes `unset` move the key to version 4; when the read completes, `store.set(entry, rows)` compares 3 with 4 and returns `false`. Only reads for keys the `unset` removes or would remove are affected. Each skipped store is logged at debug level as `middleware.cache.store-skipped` with the key.
 - **Across processes.** The guard works across processes that share a store, because the store owns the version. Calling the store's `unset` directly moves the versions too.
 - **Until `invalidate` resolves,** reads can still return entries it has not removed yet.
 - **Store errors propagate.** If `unset` rejects, `invalidate` rejects with that error. Whether overlapping reads still store depends on how far the store got.
+
+### Invalidating with a write
+
+A write can carry its invalidation. `invalidateAnnotation({ keys?, meta? })` takes the argument of `invalidate`, and the middleware makes the same `invalidate` call once the write's effects are final:
+
+```typescript
+await db.orm.public.User.where({ id: 1 }).update({ name: 'Alicia' }, (meta) =>
+  meta.annotate(invalidateAnnotation({ keys: ['user-1'] })),
+);
+
+await db.transaction(async (tx) => {
+  await tx.orm.public.User.where({ id: 2 }).delete((meta) =>
+    meta.annotate(invalidateAnnotation({ meta: { tags: ['users'] } })),
+  );
+}); // invalidates here, once the transaction has committed
+
+await db.runtime().execute(
+  db.sql.public.users
+    .update({ name: 'Alicia' })
+    .where((f, fns) => fns.eq(f.id, 1))
+    .annotate(invalidateAnnotation({ keys: ['user-1'] }))
+    .build(),
+);
+```
+
+- **Writes only.** The annotation declares `applicableTo: ['write']`. Every SQL ORM write terminal and every SQL builder insert, update and delete accepts it; a read rejects it at compile time and at run time.
+- **When.** Outside a transaction, right after the write ends, including after the write's own transaction when the ORM call runs one, such as an update with a relation callback or a create on a multi-table-inheritance variant. Inside `db.transaction(fn)`, when the transaction ends. The middleware acts in the runtime's `activityFinalized` event. Reads inside the transaction, or in other requests, are still served from the cache until then.
+- **Outcome.** A `committed` write invalidates. A `rolled-back` write does not: the entry stays. An `unknown` outcome, such as a write that failed or a `COMMIT` that errored, invalidates, since the write may have landed and an unneeded invalidation costs one miss.
+- **Each write on its own.** Several annotated writes in one transaction each invalidate when it ends. With empty or absent `keys` and no `meta`, nothing happens, as for `invalidate`.
+- **What carries it.** The middleware reads the annotation from whatever activity carries it: an ORM call, an annotated SQL builder statement, or any client activity. It does not check the kind or the transaction. An ORM write's annotation lives on the call, and the statements the call sends carry none, so a write invalidates once.
+- **Store errors.** An error from `unset` is thrown from `activityFinalized`; the runtime passes it to `ctx.log.error` with the event `middleware.activityFinalized.error` and swallows it. The write has already happened, so the entry stays until it expires.
+- **Not on Mongo ORM writes.** The Mongo ORM's write methods take no annotations. On Mongo, call `invalidate` after the write.
+- **Cost.** Because the middleware implements `activityFinalized`, a runtime that uses it keeps every transaction's finished statements until the transaction ends, whether or not any write is annotated, and checks each activity for the annotation once it is finalized.
 
 ## Transaction-scope guard
 
@@ -310,7 +351,7 @@ The middleware neither serves nor stores a read when `ActivityContext.scope` is 
 
 - **The default store is not coherent across replicas.** Use a custom `CacheStore` (Redis, etc.) for cross-process coherence.
 - **Concurrent misses both populate the store.** Two concurrent first-time reads of the same key both run the driver and both store their rows; last writer wins. Request coalescing is out of this package's scope (see [Scope](#scope)).
-- **Writes do not invalidate on their own.** The middleware never observes writes. Call `invalidate` after a write that changes cached reads, rely on the store's lifetime to bound staleness, or pass `cacheAnnotation({ bypass: true })` on a read that must be current.
+- **A write invalidates only what it names.** The middleware does not work out which entries a write affects. Annotate the write with `invalidateAnnotation`, call `invalidate` after it, rely on the store's lifetime to bound staleness, or pass `cacheAnnotation({ bypass: true })` on a read that must be current.
 - **The default store shares class instances in an ORM call's result.** It copies the result's plain objects and arrays, but a class instance a codec returned, such as a Temporal value or a decimal, is the same object for the first caller and every hit. Do not mutate such values in place. See [The default store](#the-default-store). A custom store decides for itself whether to copy and what it can store; one that keeps references shares the first caller's object with every later hit.
 - **`maxEntries` counts entries, not bytes.** A large result set takes one slot like a small one.
 
@@ -320,7 +361,7 @@ This package caches annotated reads in a store and passes data between the annot
 
 - keys: the annotation `key`, and the `deriveKey` option with its default `deriveKeyFromContentHash`;
 - `meta` on the annotation, handed to the store's `get` and `set`;
-- `invalidate({ keys, meta })`, handed to the store's `unset`;
+- `invalidate({ keys, meta })`, handed to the store's `unset`, and `invalidateAnnotation`, which makes the same call once a write's effects are final;
 - `bypass` on the annotation;
 - the `CacheStore` interface, and the default in-memory store.
 
@@ -328,7 +369,6 @@ How long an entry lives, and what `meta` means (tags, groups, per-entry lifetime
 
 What the primitives do not cover yet:
 
-- **Invalidating as part of the write.** Today the application calls `invalidate` after the write has returned. Invalidating from the write itself must wait for the transaction to commit; otherwise a concurrent reader can refill the entry with the old row before the commit. Every ORM write is an `orm-call` activity that carries the user's annotations, including a write with relation callbacks and its own transaction, and the runtime's `activityFinalized` event fires for it once its effects are final. A write annotation that invalidates from that event is planned.
 - **Serve-stale strategies** such as stale-while-revalidate. Only the middleware decides hit or miss, so nothing outside it can serve an expired entry while it re-runs the query.
 
 ## See also
