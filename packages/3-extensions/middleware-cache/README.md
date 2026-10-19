@@ -337,10 +337,14 @@ await db.runtime().execute(
 - **Outcome.** A `committed` write invalidates. A `rolled-back` write does not: the entry stays. An `unknown` outcome, such as a write that failed or a `COMMIT` that errored, invalidates, since the write may have landed and an unneeded invalidation costs one miss.
 - **Each write on its own.** Several annotated writes in one transaction each invalidate when it ends. With empty or absent `keys` and no `meta`, nothing happens, as for `invalidate`.
 - **What carries it.** The middleware reads the annotation from whatever activity carries it: an ORM call, an annotated SQL builder statement, or any client activity. It does not check the kind or the transaction. An ORM write's annotation lives on the call, and the statements the call sends carry none, so a write invalidates once.
-- **Store errors.** An error from `unset` is thrown from `activityFinalized`; the runtime passes it to `ctx.log.error` with the event `middleware.activityFinalized.error` and swallows it. The write has already happened, so the entry stays until it expires.
-- **`meta` needs a store that indexes it.** The default store refuses any `meta` before removing anything, so on it an annotation with `meta` removes nothing, not even its `keys`, and every such write logs `RUNTIME.CACHE_STORE_META_UNSUPPORTED` through `middleware.activityFinalized.error`. Nothing fails, so check the logs.
+- **Store errors are only logged.** An error from `unset` is thrown from `activityFinalized`; the runtime passes it to `ctx.log.error` with the event `middleware.activityFinalized.error` and swallows it. The write has already happened, so the entry stays until it expires. `postgres()`, `sqlite()` and `supabase()` drop these events unless the application passes `log`, so pass it to see a failed invalidation:
+
+  ```typescript
+  const db = postgres<Contract>({ contractJson, url, middleware: [cache], log: console });
+  ```
+- **`meta` needs a store that indexes it.** The default store refuses any `meta` before removing anything, so on it an annotation with `meta` removes nothing, not even its `keys`, and every such write logs `RUNTIME.CACHE_STORE_META_UNSUPPORTED` through `middleware.activityFinalized.error`. Nothing fails, so pass `log` to the client and check it.
 - **Not on Mongo ORM writes.** The Mongo ORM's write methods take no annotations. On Mongo, call `invalidate` after the write.
-- **Cost.** Because the middleware implements `activityFinalized`, a runtime that uses it keeps every transaction's finished statements until the transaction ends, whether or not any write is annotated, so the memory a transaction holds grows with the number of statements it runs. It also checks each activity for the annotation once it is finalized.
+- **Cost.** Because the middleware implements `activityFinalized`, a runtime that uses it keeps every transaction's finished statements until the transaction ends, whether or not any write is annotated. Measured on Postgres, that is about 2.9 KB per statement, about 55 MB for a transaction of 20,000 statements, all released at the commit. Any middleware with `activityFinalized` costs about the same. Split a long batch import into several transactions, or run it on a client without the cache middleware. The middleware also checks each activity for the annotation once it is finalized.
 
 ## Transaction-scope guard
 

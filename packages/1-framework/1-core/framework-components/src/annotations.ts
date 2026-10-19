@@ -302,6 +302,9 @@ export function assertAnnotationsApplicable(
           kind,
           applicableTo: Array.from(annotation.applicableTo),
         },
+        {
+          fix: `Remove '${annotation.namespace}' from '${terminalName}'. It applies only to ${Array.from(annotation.applicableTo).join(' and ')} operations, so put it on one of those instead.`,
+        },
       );
     }
   }

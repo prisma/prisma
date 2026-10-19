@@ -151,3 +151,41 @@ Every SQL ORM terminal method now runs as one `orm-call` activity that carries t
 ## Pass criteria
 
 Each check passes when what you see matches the Expected column. Record anything a user would find wrong, confusing or undocumented as a finding.
+
+# Slice 4: a write carries its invalidation (TML-3400)
+
+## What this part is testing
+
+A write annotated with `invalidateAnnotation({ keys, meta })` makes the cache middleware call `invalidate({ keys, meta })` once the write's effects are final, in `activityFinalized`. A `committed` or `unknown` outcome invalidates; a `rolled-back` outcome leaves the entry. Inside `db.transaction(fn)` the invalidation runs when the transaction ends, not when the write ends. This part is for the **application author**: use the cache README ("Invalidating with a write"), the demo README and the ORM README. Do not read the tests.
+
+## Setup
+
+1. A Postgres database with `vector`, new for this run. If the local Postgres refuses connections, use a stateless `@prisma/dev` server started from the demo's `node_modules`, as in slice 3.
+2. `mise exec -- pnpm build` at the repository root.
+3. In `examples/prisma-8-demo`: `.env` with `DATABASE_URL`, then `contract emit`, `db init` and `pnpm seed`. Note the user ids the seed prints.
+4. A scratch folder `wip/qa4/` whose `node_modules` links the demo's packages, as in slice 3. Save every command's output there.
+5. A tracer middleware, registered before `createCacheMiddleware()`, that logs started, ended and finalized with kind, parent and outcome. To show when the store removes an entry, give the cache a store that wraps `createInMemoryCacheStore()` and logs each `unset` call.
+
+## Checks
+
+| Check | Scenario | Expected |
+|---|---|---|
+| W-1 | Cache a `User.first()` read, then an annotated `update()` outside a transaction, then the read again | The second read misses and shows the new value. The tracer shows the update's `orm-call` finalized `committed`, and `unset` runs after it, not before. |
+| W-2 | An annotated `update()` with a relation callback (nested create), outside a transaction | The call's own transaction commits first; `unset` runs once, after the `orm-call` is finalized. The next read misses. |
+| W-3 | Inside `db.transaction(fn)`: an annotated `update()`, then the cached read before the callback returns; after the commit, the read again | Inside: still a hit, showing the old value. `unset` runs after the transaction is finalized. After: a miss with the new value. |
+| W-4 | The same as W-3, but the callback throws after the write | The caller gets the callback's error. Everything is finalized `rolled-back`; no `unset`. The next read is a hit. |
+| W-5 | An annotated `create()` on a multi-table-inheritance variant (for example `Bug`) | Invalidates once, after the call is finalized. |
+| W-6 | An annotated write that fails, for example a `create()` that violates a unique constraint | The caller gets the database error. The call is finalized `unknown`; the entry is removed. |
+| W-7 | An annotated SQL builder `update` run with `db.runtime().execute(...)` | Invalidates from the statement activity; the next read misses. |
+| W-8 | Several annotated writes with different keys in one `db.transaction(fn)` | Each key is removed when the transaction ends. |
+| W-9 | Annotation with empty `keys` and no `meta` | No `unset`; nothing removed. |
+| E-1 | `invalidateAnnotation` on a read terminal (`first`, `all`) and on a builder `select` | A type error. With the type bypassed, a run-time error whose message says what to do. |
+| E-2 | `invalidateAnnotation({ keys, meta })` on the default store | As the README says: the write succeeds, `RUNTIME.CACHE_STORE_META_UNSUPPORTED` is logged through `middleware.activityFinalized.error`, and nothing is removed, not even `keys`. |
+| E-3 | A store whose `unset` rejects | The write succeeds; the error is logged; the entry stays. |
+| E-4 | A store whose `unset` takes 1.5 s | The write's promise resolves only after `unset` settles, as the README says. |
+| D-1 | Demo README and `pnpm start` commands | Whether the demo shows invalidation with a write. |
+| M-1 | Peak heap for one `db.transaction(fn)` that inserts 20,000 rows one statement at a time, with no middleware and with `createCacheMiddleware()` registered (no annotation) | Both numbers, each in its own process, and the difference. |
+
+## Pass criteria
+
+Each check passes when what you see matches the Expected column. Record anything a user would find wrong, confusing or undocumented as a finding.

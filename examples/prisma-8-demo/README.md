@@ -123,8 +123,9 @@ The demo includes ORM client examples under `src/orm-client/`:
 - `ormClientGetEngagementPrecision(runtime)` — `count`/`sum`/`avg` beside `countBigInt`/`sumBigInt`/`avgDecimal`, including the bare `sum` that raises rather than rounding
 - `ormClientGetEngagementSpread(runtime)` — an extension-contributed `stddev` aggregate, called like a built-in
 - `ormClientUpsertUser(data, runtime)` — `upsert()` for create-or-update by primary key
-- `ormClientFindUserByIdCached(id, runtime, options?)` — opt-in cached `first({ id })` lookup via `cacheAnnotation({ bypass? })` from `@internal/middleware-cache`
+- `ormClientFindUserByIdCached(id, runtime, options?)` — opt-in cached `first({ id })` lookup via `cacheAnnotation({ key: userCacheKey(id), bypass? })` from `@internal/middleware-cache`
 - `ormClientGetUsersCached(limit, runtime, options?)` — opt-in cached `User.all()` listing, with optional explicit cache-key override
+- `ormClientUpdateUserEmailInvalidatingCache(id, email, runtime)` — `update({ email })` annotated with `invalidateAnnotation({ keys: [userCacheKey(id)] })`, which removes the cached lookup once the update commits
 - `ormClientGetRecentPosts(since, orderBy, direction, limit, runtime)` — **query fragments**: `createdSince` (`db.orm.fragment`, a scope for any model with a `createdAt` field), `orderByField` (a field to order by, named in the request and checked at run time) and `postSummary` (`db.orm.public.Post.fragment`, the shared `select` and `include` of a post), from `src/orm-client/fragments.ts`
 - `ormClientGetFilteredPosts({ userId?, before? }, limit, runtime)` — **a conditional query with `with`**: `db.Post.with((posts) => (input.userId !== undefined ? posts.where({ userId: input.userId }) : posts))` applies a filter only when the input names it, and `createdBefore` is a row fragment for any model with a `createdAt` field, run with `where` and typed with `CodecField` in `src/orm-client/fragments.ts`
 - `ormClientGetRecentUsers(since, limit, runtime)` — the same `createdSince` on users and on their included posts, which `postSummary` shapes inside the include refinement
@@ -347,7 +348,7 @@ and the [aggregate descriptor guide](../../docs/reference/aggregate-descriptor-g
 
 ## Cache Middleware Examples
 
-The demo wires `@internal/middleware-cache` into the Postgres client in `src/prisma/db.ts`. The cache middleware is **opt-in per query**: it acts only on reads that carry a `cacheAnnotation`. An annotated ORM call is cached as a whole: the annotation is on the call, and the key is the annotation's `key` or the call's content hash. An annotated SQL builder query is cached as the rows of its statement. The default store keeps each entry for 60 seconds. Three CLI commands run a query twice and report the latency of each call so the cache hit is visible:
+The demo wires `@internal/middleware-cache` into the Postgres client in `src/prisma/db.ts`. The cache middleware is **opt-in per query**: it caches only reads that carry a `cacheAnnotation`, and removes entries for writes that carry an `invalidateAnnotation`. An annotated ORM call is cached as a whole: the annotation is on the call, and the key is the annotation's `key` or the call's content hash. An annotated SQL builder query is cached as the rows of its statement. The default store keeps each entry for 60 seconds. Three CLI commands run a query twice and report the latency of each call so the cache hit is visible:
 
 ```bash
 # ORM client first({ id }) cached for 60s.
@@ -373,9 +374,10 @@ Speedup: 26.2x faster
 
 The corresponding source files:
 
-- `src/orm-client/find-user-by-id-cached.ts` — `db.User.first({ id }, (meta) => meta.annotate(cacheAnnotation({ bypass })))`
+- `src/orm-client/find-user-by-id-cached.ts` — `db.User.first({ id }, (meta) => meta.annotate(cacheAnnotation({ key: userCacheKey(id), bypass })))`
 - `src/orm-client/get-users-cached.ts` — `db.User.limit(n).all((meta) => meta.annotate(cacheAnnotation({ key? })))`
 - `src/queries/get-users-cached.ts` — `db.sql.public.user.select(...).annotate(cacheAnnotation({})).build()`
+- `src/orm-client/update-user-email-invalidating-cache.ts` — `db.User.where({ id }).update({ email }, (meta) => meta.annotate(invalidateAnnotation({ keys: [userCacheKey(id)] })))`: the write removes the entry `ormClientFindUserByIdCached` stored under `user:<id>` once it has committed, or, inside a transaction, once that transaction commits. Errors from the store are only logged, through the client's `log` option.
 
 Relevant points:
 

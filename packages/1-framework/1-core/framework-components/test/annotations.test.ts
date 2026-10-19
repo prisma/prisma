@@ -324,6 +324,16 @@ describe('assertAnnotationsApplicable', () => {
       }
     });
 
+    it('with a fix that names the kinds the annotation applies to', () => {
+      expect(() =>
+        assertAnnotationsApplicable([audit({ actor: 'system' })], 'read', 'first'),
+      ).toThrow(
+        expect.objectContaining({
+          fix: "Remove 'audit' from 'first'. It applies only to write operations, so put it on one of those instead.",
+        }),
+      );
+    });
+
     it('with structured details including namespace, terminalName, kind, and applicableTo', () => {
       try {
         assertAnnotationsApplicable([cache({ ttl: 60 })], 'write', 'create');

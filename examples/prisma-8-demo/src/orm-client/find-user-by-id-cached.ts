@@ -9,10 +9,10 @@
  * `src/prisma/db.ts`) is served from the cache — the ORM sends **no**
  * statement the second time.
  *
- * The cache key is the call's `activity.contentHash()`, a digest of the
- * terminal method and the post-lowering SQL plus parameters of the
- * statement it sends. Two lookups for different `id` values therefore
- * land in different cache slots; the same `id` hits.
+ * The cache key is `userCacheKey(id)`, so a write can name it:
+ * `ormClientUpdateUserEmailInvalidatingCache` removes it with
+ * `invalidateAnnotation` once the update commits. Two lookups for
+ * different `id` values land in different cache slots; the same `id` hits.
  *
  * Notes worth pinning:
  *
@@ -52,10 +52,17 @@ export async function ormClientFindUserByIdCached(
 ) {
   const db = createOrmClient(runtime);
   return db.User.first({ id: toUserId(id) }, (meta) =>
-    meta.annotate(cacheAnnotation({ bypass: options.forceRefresh ?? false })),
+    meta.annotate(
+      cacheAnnotation({ key: userCacheKey(id), bypass: options.forceRefresh ?? false }),
+    ),
   );
 }
 
-function toUserId(value: string): UserId {
+export function toUserId(value: string): UserId {
   return value as UserId;
+}
+
+/** The key `ormClientFindUserByIdCached` stores user `id` under. */
+export function userCacheKey(id: string): string {
+  return `user:${id}`;
 }

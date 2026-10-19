@@ -36,6 +36,7 @@ import { ormClientSearchPosts } from '../src/orm-client/search-posts';
 import { ormClientSearchPostsByEmbedding } from '../src/orm-client/search-posts-by-embedding';
 import { ormClientSearchPostsByTitle } from '../src/orm-client/search-posts-by-title';
 import { ormClientUpdateUserEmail } from '../src/orm-client/update-user-email';
+import { ormClientUpdateUserEmailInvalidatingCache } from '../src/orm-client/update-user-email-invalidating-cache';
 import { ormClientUpsertUser } from '../src/orm-client/upsert-user';
 import type { Contract } from '../src/prisma/contract.d';
 import contractJson from '../src/prisma/contract.json' with { type: 'json' };
@@ -1388,6 +1389,38 @@ describe('ORM client integration examples', () => {
           // Cache hit: driver was not invoked again.
           expect(driverQuerySpy.mock.calls.length).toBe(driverCallsAfterFirst);
           expect(second).toEqual(first);
+        } finally {
+          await runtime.close();
+        }
+      });
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
+    'ormClientUpdateUserEmailInvalidatingCache removes the cached lookup once the update commits',
+    async () => {
+      await withDevDatabase(async ({ connectionString }) => {
+        await initTestDatabase({ connection: connectionString, contract });
+        const cache = createCacheMiddleware();
+        const { runtime, driver } = await getRuntimeWithMiddleware(connectionString, [cache]);
+
+        try {
+          await seedOrmClientData(runtime);
+          await ormClientFindUserByIdCached(seededUserIds.admin, runtime);
+
+          await ormClientUpdateUserEmailInvalidatingCache(
+            seededUserIds.admin,
+            'admin-renamed@example.com',
+            runtime,
+          );
+          const driverQuerySpy = vi.spyOn(driver, 'query');
+          const after = await ormClientFindUserByIdCached(seededUserIds.admin, runtime);
+
+          expect({
+            email: after?.email,
+            sentStatement: driverQuerySpy.mock.calls.length > 0,
+          }).toEqual({ email: 'admin-renamed@example.com', sentStatement: true });
         } finally {
           await runtime.close();
         }

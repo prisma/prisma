@@ -1,3 +1,5 @@
+import { ifDefined } from '@internal/utils/defined';
+
 export interface RuntimeErrorEnvelope extends Error {
   readonly code: string;
   readonly category:
@@ -11,6 +13,8 @@ export interface RuntimeErrorEnvelope extends Error {
     | 'ORM';
   readonly severity: 'error';
   readonly details?: Record<string, unknown>;
+  /** What the caller should do instead. */
+  readonly fix?: string;
 }
 
 /**
@@ -33,12 +37,14 @@ export function runtimeError(
   code: string,
   message: string,
   details?: Record<string, unknown>,
+  options?: { readonly fix?: string },
 ): RuntimeErrorEnvelope {
   const error = Object.assign(new Error(message), {
     code,
     category: resolveCategory(code),
     severity: 'error' as const,
     ...(details !== undefined ? { details } : {}),
+    ...ifDefined('fix', options?.fix),
   });
   Object.defineProperty(error, 'name', { value: 'RuntimeError', configurable: true });
   return error;
