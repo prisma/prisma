@@ -26,7 +26,7 @@ This package defines the core types for the SQL Schema IR, a target-agnostic rep
 
 - **`SqlSchemaIR`** - Complete database schema representation with tables, extensions, and annotations
 - **`SqlTableIR`** - Table representation with columns, constraints, indexes, and annotations
-- **`SqlColumnIR`** - Column representation with the data type it is stored as and that type's parameters in normal form (`storedType`, `storedTypeParams`), `typeText` for display, nullability, and annotations
+- **`SqlColumnIR`** - Column representation with the data type it is stored as and that type's parameters in normal form (`storedType`, `storedTypeParams`), `typeText`, nullability, and annotations
 - **`SqlForeignKeyIR`** - Foreign key constraint representation
 - **`SqlUniqueIR`** - Unique constraint representation
 - **`SqlIndexIR`** - Index representation
@@ -34,7 +34,7 @@ This package defines the core types for the SQL Schema IR, a target-agnostic rep
 
 ### Key Design Decisions
 
-1. **Types compared as data types**: a column carries the data type it is stored as and that type's parameters in normal form (`storedType`, `storedTypeParams`): on the contract side from its codec, on the introspected side from the data type that claims the type the database reports. Verification and the planners compare columns by these with `sqlColumnTypesEqual` ([ADR 254](../../../../docs/architecture%20docs/adrs/ADR%20254%20-%20Data%20types%20and%20casts.md)). `typeText` is the type as the database reports it or the contract writes it, for display only. `storedTypeParams` is only for comparing: DDL writes the parameters as written, from `codecRef.typeParams`.
+1. **Types compared as data types**: a column carries the data type it is stored as and that type's parameters in normal form (`storedType`, `storedTypeParams`): on the contract side from its codec, on the introspected side from the data type that claims the type the database reports. Verification and the planners compare columns by these with `sqlColumnTypesEqual` ([ADR 254](../../../../docs/architecture%20docs/adrs/ADR%20254%20-%20Data%20types%20and%20casts.md)). `typeText` is the type as introspection reads it or as a migration writes it. Nothing compares it: mismatch messages and the schema tree show it, and the targets' default parsing reads it. `storedTypeParams` is only for comparing: DDL writes the parameters as written, from `codecRef.typeParams`.
 
 2. **Annotations**: All IR types support optional `annotations` for extensibility. This allows targets and extensions to attach metadata without modifying the core IR structure.
 

@@ -31,6 +31,9 @@ export interface ReportedSqlType {
 
 export interface SqlColumnIRInput {
   readonly name: string;
+  /**
+   * The column's element type as text; nothing compares it. On the contract-derived side, the name a migration writes for the type the column is stored as, with an enum named as the contract names it. On the introspected side, the type as introspection reads it: on Postgres the `format_type` text, which keeps the schema of a type off the search path, except that an enum is named as a contract names it; on SQLite the declared type, lower-cased. Mismatch messages and the schema tree show it, and default parsing reads it: the target's `resolveDefault` hook on the contract side, and SQLite's default reader on the introspected side. Columns are compared by {@link storedType} and {@link storedTypeParams}.
+   */
   readonly typeText: string;
   readonly nullable: boolean;
   /** Raw database default expression (e.g. `'hello'::text`, `nextval('seq')`). */
@@ -102,6 +105,7 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   override readonly nodeKind = RelationalSchemaNodeKind.column;
 
   readonly name: string;
+  /** See {@link SqlColumnIRInput.typeText}. */
   readonly typeText: string;
   readonly nullable: boolean;
   declare readonly default?: string;

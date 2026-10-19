@@ -23,7 +23,7 @@ changes:
         - '\b(?:introspectedNativeType|IntrospectedNativeType|CatalogColumnType)\b'
   - id: schema-ir-column-type-text
     summary: |
-      `SqlColumnIR` and `SqlColumnIRInput` (`@prisma/orm-family-sql/schema-ir/types`): `nativeType` is renamed `typeText`, and `resolvedNativeType` and `codecBaseNativeType` are removed. A column's type is its `storedType` and `storedTypeParams`; `typeText` is for display only. A column built by hand compares equal to another only when it has `storedType` and `storedTypeParams`.
+      `SqlColumnIR` and `SqlColumnIRInput` (`@prisma/orm-family-sql/schema-ir/types`): `nativeType` is renamed `typeText`, and `resolvedNativeType` and `codecBaseNativeType` are removed. A column's type is its `storedType` and `storedTypeParams`; nothing compares `typeText`. A column built by hand compares equal to another only when it has `storedType` and `storedTypeParams`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
@@ -93,7 +93,7 @@ const { typeText, many } = introspectedTypeText({
 });
 ```
 
-`typeText` is the type exactly as the database reports it, such as `integer` or `timestamp(3) with time zone`, not a normalised name.
+On the database side, `typeText` is the type as introspection reads it, such as `integer` or `timestamp(3) with time zone`, not a normalised name. On Postgres an enum is named as a contract names it (`mood`, or `app.status` outside `public`) and a type off the search path keeps its schema (`extensions.vector(3)`); on SQLite the declared type is lower-cased. On the contract side it is the name a migration writes.
 
 ## `schema-ir-column-type-text`
 
