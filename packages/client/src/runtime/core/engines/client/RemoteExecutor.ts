@@ -165,7 +165,9 @@ export class RemoteExecutor implements Executor {
       } catch (error) {
         // `fetch` rejects when the request could not be completed at the
         // network level (connection reset, socket closed, DNS failure, ...).
-        if (attempt >= MAX_RETRIES) {
+        // A cancelled request is not a transient failure, so it is passed on
+        // straight away.
+        if (attempt >= MAX_RETRIES || isAbortError(error)) {
           throw error
         }
         await this.#waitBeforeRetry({ attempt, method, path, reason: (error as Error)?.message ?? String(error) })
@@ -173,14 +175,17 @@ export class RemoteExecutor implements Executor {
       }
 
       if (!response.ok && isRetryableStatus(response.status) && attempt < MAX_RETRIES) {
-        // Read the body so that the connection can be reused, and so that the
-        // reason for the retry ends up in the logs.
-        const responseText = await response.text().catch(() => '')
+        // Read the body so that the connection can be reused. Only the status
+        // goes into the log message: the body is whatever the server or a proxy
+        // in front of it returned, and it is not ours to put in the logs. If
+        // the last attempt fails too, its body is reported as usual by
+        // `#throwErrorFromResponse`.
+        await response.text().catch(() => {})
         await this.#waitBeforeRetry({
           attempt,
           method,
           path,
-          reason: `HTTP ${response.status}${responseText ? `: ${responseText}` : ''}`,
+          reason: `HTTP ${response.status}${response.statusText ? ` ${response.statusText}` : ''}`,
         })
         continue
       }
@@ -335,6 +340,19 @@ export class RemoteExecutor implements Executor {
  */
 function isRetryableStatus(status: number): boolean {
   return status >= 500 && status !== 504
+}
+
+/**
+ * Whether `fetch` rejected because the request was cancelled through an
+ * `AbortSignal`, either explicitly (`AbortError`) or by a deadline such as
+ * `AbortSignal.timeout()` (`TimeoutError`). Such requests are not retried.
+ */
+function isAbortError(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null) {
+    return false
+  }
+  const name = (error as { name?: unknown }).name
+  return name === 'AbortError' || name === 'TimeoutError'
 }
 
 /**

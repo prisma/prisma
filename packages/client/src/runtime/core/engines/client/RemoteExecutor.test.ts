@@ -37,7 +37,7 @@ function setup(responses: Array<Response | Error>) {
     if (next === undefined) {
       throw new Error('unexpected request')
     }
-    return next instanceof Error ? Promise.reject(next) : Promise.resolve(next)
+    return next instanceof Response ? Promise.resolve(next) : Promise.reject(next)
   })
 
   return { executor, fetch, warnings }
@@ -101,9 +101,35 @@ describe('RemoteExecutor retries', () => {
     await expect(execute(executor, fetch)).resolves.toEqual([])
 
     expect(fetch).toHaveBeenCalledTimes(2)
-    expect(warnings[0]).toEqual(
-      `Attempt 1/3 failed for POST /query: HTTP ${status}: {"message":"Worker exceeded resource limits"}`,
-    )
+    expect(warnings[0]).toEqual(`Attempt 1/3 failed for POST /query: HTTP ${status}`)
+  })
+
+  test('does not put the response body of a retried request in the logs', async () => {
+    const { executor, fetch, warnings } = setup([
+      new Response(JSON.stringify({ message: 'internal details: secret-value' }), {
+        status: 503,
+        statusText: 'Service Unavailable',
+      }),
+      jsonResponse({ data: [] }),
+    ])
+
+    await expect(execute(executor, fetch)).resolves.toEqual([])
+
+    expect(warnings[0]).toEqual('Attempt 1/3 failed for POST /query: HTTP 503 Service Unavailable')
+    expect(warnings.join('\n')).not.toContain('secret-value')
+  })
+
+  test.each([
+    ['AbortError', 'This operation was aborted'],
+    ['TimeoutError', 'The operation was aborted due to timeout'],
+  ])('does not retry a request cancelled with %s', async (name, message) => {
+    const error = new DOMException(message, name)
+    const { executor, fetch, warnings } = setup([error, jsonResponse({ data: [] })])
+
+    await expect(execute(executor, fetch)).rejects.toBe(error)
+
+    expect(fetch).toHaveBeenCalledTimes(1)
+    expect(warnings).toEqual([])
   })
 
   test('retries requests that use the global fetch', async () => {
