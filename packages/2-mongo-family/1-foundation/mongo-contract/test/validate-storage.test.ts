@@ -686,6 +686,33 @@ describe('validateMongoStorage()', () => {
       );
     });
 
+    it('reports a base field without a storage entry once, without failing on its variant', () => {
+      const contract = makeMinimalContract({
+        models: {
+          Item: {
+            fields: { id: objectId, kind: text },
+            storage: { collection: 'items', fields: { id: { field: '_id' } } },
+            relations: {},
+            discriminator: { field: 'kind' },
+            variants: { special: crossRef('SpecialItem') },
+          },
+          SpecialItem: {
+            fields: { label: text },
+            storage: { collection: 'items', fields: { label: { field: 'label' } } },
+            relations: {},
+            base: crossRef('Item'),
+          },
+        },
+      });
+      expect(() => validateMongoStorage(contract)).toThrow(
+        expect.objectContaining({
+          code: 'CONTRACT.VALIDATION_FAILED',
+          message:
+            'Contract storage validation failed:\n- Model "__unbound__:Item" field "kind" has no entry in storage.fields',
+        }),
+      );
+    });
+
     it('rejects an embed relation stored under the stored name of a field', () => {
       const contract = makeMinimalContract({
         models: {

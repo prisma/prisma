@@ -98,8 +98,9 @@ function fieldStorageErrors(
     }
   }
   if (errors.length > 0) return errors;
-  const membersByStoredName = new Map<string, string>();
   const chain = [...modelAndBasesOf(models, modelName)].reverse();
+  if (!chain.every(hasCompleteFieldStorage)) return errors;
+  const membersByStoredName = new Map<string, string>();
   const members = chain.flatMap((each) => [
     ...Object.entries(ownStoredNamesOf(each)).map(
       ([name, storedName]) => [`field "${name}"`, storedName] as const,
@@ -116,6 +117,10 @@ function fieldStorageErrors(
     membersByStoredName.set(storedName, member);
   }
   return errors;
+}
+
+function hasCompleteFieldStorage(model: MongoModelDefinition): boolean {
+  return Object.keys(model.fields).every((name) => Object.hasOwn(model.storage.fields, name));
 }
 
 function bothStoredAs(
