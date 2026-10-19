@@ -1,12 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import {
-  issueOutcome,
-  type VerifyDatabaseSchemaResult,
-} from '@internal/framework-components/control';
-import stripAnsi from 'strip-ansi';
-import { expect } from 'vitest';
-import { engineDocument, type JourneyContext, runDbVerify } from '../../utils/journey-test-helpers';
+import type { ExpectedVerifyIssue, JourneyContext } from '../../utils/journey-test-helpers';
 
 export const SEED_SQL = `
   CREATE SCHEMA secure;
@@ -85,13 +79,6 @@ export function fixIndexTypes(psl: string): string {
   return psl.replace(/,\s*type: "(?:gin|hash)"/g, '');
 }
 
-/** A schema issue as the journeys assert it: where it is, what kind of node, and whether it is missing, extra or different. */
-export interface ExpectedVerifyIssue {
-  readonly path: readonly string[];
-  readonly nodeKind: string;
-  readonly outcome: 'not-found' | 'not-expected' | 'not-equal';
-}
-
 /**
  * `contract infer` reads one schema and leaves out `sessions.owner_ref -> secure.owners` as a dangling foreign key (`resolveForeignKeys` in packages/3-targets/3-targets/postgres/src/core/psl-infer/infer-foreign-keys.ts), so strict verify reports the live constraint as extra.
  */
@@ -100,27 +87,3 @@ export const SESSIONS_CROSS_SCHEMA_FOREIGN_KEY: ExpectedVerifyIssue = {
   nodeKind: 'sql-foreign-key',
   outcome: 'not-expected',
 };
-
-/**
- * Asserts a pulled schema verifies immediately: `db verify --schema-only --strict` reports exactly `expectedIssues` and no warnings. Strict mode is what makes a live column or constraint the contract leaves out an issue.
- */
-export async function expectVerifiesCleanAfterPull(
-  ctx: JourneyContext,
-  subject: string,
-  expectedIssues: readonly ExpectedVerifyIssue[] = [],
-): Promise<void> {
-  const result = await runDbVerify(ctx, ['--schema-only', '--strict', '--json']);
-  const document = engineDocument<VerifyDatabaseSchemaResult>(result);
-  expect(
-    {
-      ok: document.ok,
-      issues: document.schema.issues.map((issue) => ({
-        path: issue.path,
-        nodeKind: (issue.expected ?? issue.actual)?.nodeKind,
-        outcome: issueOutcome(issue),
-      })),
-      warnings: document.schema.warnings?.issues ?? [],
-    },
-    `${subject}: db verify --schema-only --strict after a pull\n${stripAnsi(result.stderr)}`,
-  ).toEqual({ ok: expectedIssues.length === 0, issues: expectedIssues, warnings: [] });
-}

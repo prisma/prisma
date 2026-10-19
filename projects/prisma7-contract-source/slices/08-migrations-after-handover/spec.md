@@ -146,7 +146,7 @@ Decisions:
 
 - `expectVerifiesCleanAfterPull` in `test/integration/test/cli-journeys/infer-roundtrip-fidelity/harness.ts` ran `db verify --schema-only`, asserted exit 0, then asserted the output did not match `/✖ (?:missing|extra):/`. The engine prints neither that glyph nor that layout, so the second check always passed.
 - Lenient mode cannot catch a left-out column either: `computeSqlDiffVerdict` (`packages/2-sql/9-family/src/core/diff/schema-verify.ts`) drops a relational extra before grading it, and warnings come only from an `observed` control policy. So the helper runs strict mode.
-- **Built:** the helper runs `db verify --schema-only --strict --json`, reads the result document, and asserts `ok`, the issue list as `{ path, nodeKind, outcome }`, and an empty warning list. It takes an optional list of expected issues, empty by default; `ok` must be true exactly when that list is empty. Its seven callers keep their two arguments.
+- **Built:** the helper is now `expectStrictVerifyIssues(ctx, subject, expectedIssues = [])` in `test/integration/test/utils/journey-test-helpers.ts`, next to `runDbVerify`. It runs `db verify --schema-only --strict --json`, reads the result document, and asserts `ok`, `meta.strict` (which must be true), the issue list as `{ path, nodeKind, outcome }`, and an empty warning list. `ok` must be true exactly when the expected list is empty. `SESSIONS_CROSS_SCHEMA_FOREIGN_KEY` stays in the fidelity harness, because it belongs to that journey's seed.
 - **One expected issue:** the seed of the main fidelity journey has `sessions.owner_ref REFERENCES secure.owners(id)`. `contract infer` reads one schema and deliberately leaves that foreign key out as dangling, keeping the scalar column and writing a comment (`resolveForeignKeys` in `packages/3-targets/3-targets/postgres/src/core/psl-infer/infer-foreign-keys.ts`). Strict verify reports the live constraint as extra. The three callers in `infer-roundtrip-fidelity.e2e.test.ts` pass `SESSIONS_CROSS_SCHEMA_FOREIGN_KEY`, which matches it on path, node kind and outcome.
 - `sql-expression-literals.e2e.test.ts` checked `db verify --schema-only` by exit code only; it now uses the same helper.
 - Sweep result: no other journey asserts on a verify glyph. The other negative output checks in `test/integration/test/cli-journeys` and `examples/*/test` assert on PSL or migration text that the command really prints.
@@ -172,7 +172,7 @@ Handover, `examples/prisma7-adoption/test/handover.test.ts`: add `test/handover/
 
 CLI, `packages/1-framework/3-tooling/cli/test/orm/cli.test.ts`: extend the redirect table assertion with the six entries; add one run of `migrate dev --name x --json` asserting the `CLI.COMMAND_MOVED` envelope and its replacement with the binary name substituted; `createOrmCli` still constructs.
 
-Journeys: the `expectVerifiesCleanAfterPull` change makes its seven callers stricter. Prove the new helper can fail: run one journey once with a contract edit that leaves an extra column, see it fail, then revert. Run journey files with `--project integration`: without it, `pnpm test <file>` also runs the file in the `packaging` project, where `contract infer` fails with `CONFIG.EVALUATION_FAILED`. Run the touched journey files one at a time with `pnpm test <file>` inside `test/integration`; never the full suites.
+Journeys: the `expectStrictVerifyIssues` change makes its seven callers stricter. Prove the new helper can fail: run one journey once with a contract edit that leaves an extra column, see it fail, then revert. Run journey files with `--project integration`: without it, `pnpm test <file>` also runs the file in the `packaging` project, where `contract infer` fails with `CONFIG.EVALUATION_FAILED`. Run the touched journey files one at a time with `pnpm test <file>` inside `test/integration`; never the full suites.
 
 ## Docs to update
 
@@ -189,7 +189,7 @@ Journeys: the `expectVerifiesCleanAfterPull` change makes its seven callers stri
 - No plan with a key replacement asks a data-loss question or needs a statement flag.
 - `db init` still refuses an actions change and a moved key.
 - Every redirect in the table answers with exit 2, `CLI.COMMAND_MOVED`, its reason and its replacement.
-- `expectVerifiesCleanAfterPull` fails on a live column the contract leaves out.
+- `expectStrictVerifyIssues` fails on a live column the contract leaves out.
 - `pnpm --filter prisma7-adoption test` passes with five handover edits.
 
 ## Non-goals

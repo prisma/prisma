@@ -25,6 +25,7 @@ import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
+  expectStrictVerifyIssues,
   type JourneyContext,
   runContractEmit,
   runContractInfer,
@@ -33,7 +34,6 @@ import {
   useDevDatabase,
 } from '../utils/journey-test-helpers';
 import {
-  expectVerifiesCleanAfterPull,
   fixIndexTypes,
   fixOneToOneBackRelation,
   readContractPsl,
@@ -202,7 +202,7 @@ withTempDir(({ createTempDir }) => {
             `instead got:\n${stripAnsi(emit.stderr)}\n${stripAnsi(emit.stdout)}`,
         ).toBe(0);
 
-        await expectVerifiesCleanAfterPull(ctx, 'Users.tags', [SESSIONS_CROSS_SCHEMA_FOREIGN_KEY]);
+        await expectStrictVerifyIssues(ctx, 'Users.tags', [SESSIONS_CROSS_SCHEMA_FOREIGN_KEY]);
       },
       timeouts.spinUpPpgDev,
     );
@@ -234,9 +234,7 @@ withTempDir(({ createTempDir }) => {
             `instead got:\n${stripAnsi(emit.stderr)}\n${stripAnsi(emit.stdout)}`,
         ).toBe(0);
 
-        await expectVerifiesCleanAfterPull(ctx, 'Users.labels', [
-          SESSIONS_CROSS_SCHEMA_FOREIGN_KEY,
-        ]);
+        await expectStrictVerifyIssues(ctx, 'Users.labels', [SESSIONS_CROSS_SCHEMA_FOREIGN_KEY]);
       },
       timeouts.spinUpPpgDev,
     );
@@ -348,7 +346,7 @@ withTempDir(({ createTempDir }) => {
         const emit = await runContractEmit(ctx);
         expect(emit.exitCode, `contract emit\n${stripAnsi(emit.stderr)}`).toBe(0);
 
-        await expectVerifiesCleanAfterPull(ctx, 'Users.metadata, Users.fee, Users.joinedAt', [
+        await expectStrictVerifyIssues(ctx, 'Users.metadata, Users.fee, Users.joinedAt', [
           SESSIONS_CROSS_SCHEMA_FOREIGN_KEY,
         ]);
       },

@@ -16,12 +16,17 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs';
+import {
+  issueOutcome,
+  type VerifyDatabaseSchemaResult,
+} from '@internal/framework-components/control';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import type { EngineEvent, PresentedResult, StreamEvent } from '@prisma/cli-engine';
 import type { Diagnostic } from '@prisma/cli-engine/protocol';
 import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { isAbsolute, join } from 'pathe';
-import { afterAll, beforeAll } from 'vitest';
+import stripAnsi from 'strip-ansi';
+import { afterAll, beforeAll, expect } from 'vitest';
 
 import {
   runOnEngine as runCommandOnEngine,
@@ -730,6 +735,43 @@ export function engineDiagnosticCodes(run: EngineCommandResult): readonly string
     throw new Error(`Step never presented a result (exit ${run.exitCode}):\n${run.stderr}`);
   }
   return presented.diagnostics.map((diagnostic) => diagnostic.code);
+}
+
+/** A schema issue as the journeys assert it: where it is, what kind of node, and whether it is missing, extra or different. */
+export interface ExpectedVerifyIssue {
+  readonly path: readonly string[];
+  readonly nodeKind: string;
+  readonly outcome: ReturnType<typeof issueOutcome>;
+}
+
+/**
+ * Asserts that `db verify --schema-only --strict` ran in strict mode and reported exactly `expectedIssues` and no warnings. Strict mode is what makes a live column or constraint the contract leaves out an issue.
+ */
+export async function expectStrictVerifyIssues(
+  ctx: JourneyContext,
+  subject: string,
+  expectedIssues: readonly ExpectedVerifyIssue[] = [],
+): Promise<void> {
+  const result = await runDbVerify(ctx, ['--schema-only', '--strict', '--json']);
+  const document = engineDocument<VerifyDatabaseSchemaResult>(result);
+  expect(
+    {
+      ok: document.ok,
+      strict: document.meta?.strict,
+      issues: document.schema.issues.map((issue) => ({
+        path: issue.path,
+        nodeKind: (issue.expected ?? issue.actual)?.nodeKind,
+        outcome: issueOutcome(issue),
+      })),
+      warnings: document.schema.warnings?.issues ?? [],
+    },
+    `${subject}: db verify --schema-only --strict\n${stripAnsi(result.stderr)}`,
+  ).toEqual({
+    ok: expectedIssues.length === 0,
+    strict: true,
+    issues: expectedIssues,
+    warnings: [],
+  });
 }
 
 export { EMPTY_CONTRACT_HASH };
