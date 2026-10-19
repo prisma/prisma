@@ -218,7 +218,7 @@ describe('SqlColumnIR', () => {
         reportedType: { text: '', kind: undefined, schema: undefined, name: undefined },
       });
       expect(column().explainMismatch(database)?.text).toBe(
-        'The database column has no declared type, which no data type in the configured stack declares.',
+        'The database column has no declared type.',
       );
     });
 

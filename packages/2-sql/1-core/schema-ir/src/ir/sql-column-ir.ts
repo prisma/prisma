@@ -233,9 +233,10 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
     >(actual);
     assertNode(node, 'SqlColumnIR', SqlColumnIR.is);
     if (node.storedType === undefined && node.reportedType !== undefined) {
-      const reported = node.typeText === '' ? 'has no declared type' : `is ${shownTypeOf(node)}`;
       return differs(
-        `The database column ${reported}, which no data type in the configured stack declares.`,
+        node.typeText === ''
+          ? 'The database column has no declared type.'
+          : `The database column is ${shownTypeOf(node)}, which no data type in the configured stack declares.`,
       );
     }
     if (!sqlColumnTypesEqual(this, node)) {
