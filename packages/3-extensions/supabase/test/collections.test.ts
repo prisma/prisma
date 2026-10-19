@@ -75,3 +75,16 @@ describe('a supabase client with custom collection classes', () => {
     ]);
   });
 });
+
+describe('a supabase client given a class for a model the contract does not have', () => {
+  it('rejects it when it is created', async () => {
+    await expect(
+      supabase({ contract, jwtSecret, collections: { NotAModel: ProfileCollection } }),
+    ).rejects.toThrow(
+      expect.objectContaining({
+        code: 'ORM.ARGUMENT_INVALID',
+        message: expect.stringContaining("No model found for custom collection 'NotAModel'"),
+      }),
+    );
+  });
+});
