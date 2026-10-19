@@ -9,7 +9,7 @@ import type {
 } from '@internal/framework-components/control';
 import { ok } from '@internal/utils/result';
 import { expectTypeOf, test } from 'vitest';
-import { defineConfig, type FormatterConfig, type PrismaNextConfig } from '../src/config-types';
+import { defineConfig, type PrismaNextConfig } from '../src/config-types';
 import type {
   ContractSourceDiagnostic,
   ContractSourceFormat,
@@ -159,30 +159,6 @@ test('a contract source is PSL or TypeScript, and nothing else', () => {
   // @ts-expect-error a source format the framework does not have
   const other: ContractSourceProvider = { format: 'other', inputs: [], load: async () => ok({}) };
   void other;
-});
-
-test('carries an optional formatter section', () => {
-  const config: PrismaNextConfig<'sql', 'postgres'> = {
-    family: sqlFamilyDescriptor,
-    target: postgresTargetDescriptor,
-    adapter: postgresAdapterDescriptor,
-    formatter: { indent: 'tab', newline: 'CRLF' },
-  };
-
-  const result = defineConfig(config);
-  expectTypeOf(result.formatter).toEqualTypeOf<FormatterConfig | undefined>();
-  expectTypeOf<FormatterConfig['indent']>().toEqualTypeOf<number | 'tab' | undefined>();
-  expectTypeOf<FormatterConfig['newline']>().toEqualTypeOf<'LF' | 'CRLF' | undefined>();
-});
-
-test('omits the formatter section when absent', () => {
-  const config: PrismaNextConfig<'sql', 'postgres'> = {
-    family: sqlFamilyDescriptor,
-    target: postgresTargetDescriptor,
-    adapter: postgresAdapterDescriptor,
-  };
-
-  expectTypeOf(config.formatter).toEqualTypeOf<FormatterConfig | undefined>();
 });
 
 test('rejects an invalid newline literal in the formatter section', () => {

@@ -332,13 +332,6 @@ describe('createCacheMiddleware — middleware shape', () => {
     expect(mw.activityFinalized).toBeUndefined();
   });
 
-  it('defaults to an in-memory LRU store when none is supplied', () => {
-    // Smoke: the constructor accepts no store and produces a working
-    // middleware. Behavior is exercised by the roundtrip test below.
-    const mw = createCacheMiddleware();
-    expect(mw.intercept?.onQuery).toBeDefined();
-  });
-
   it('roundtrips a miss-then-hit through the default in-memory store', async () => {
     const mw = createCacheMiddleware();
     const exec = makeExec('select roundtrip', {

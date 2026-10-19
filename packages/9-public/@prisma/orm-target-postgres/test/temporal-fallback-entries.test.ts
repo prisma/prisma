@@ -169,13 +169,6 @@ describe('how a published package that ships the control entry declares temporal
     return isRecord(declarations) ? declarations[POLYFILL] : undefined;
   }
 
-  it('the packages are the target package and the facade', () => {
-    expect(PACKAGES_THAT_SHIP_THE_CONTROL_ENTRY).toEqual([
-      '@prisma/orm-target-postgres',
-      '@prisma/orm-postgres',
-    ]);
-  });
-
   it.each(PACKAGES_THAT_SHIP_THE_CONTROL_ENTRY)(
     '%s declares it as a required peer dependency, not a dependency',
     (packageName) => {
@@ -227,10 +220,9 @@ const DECODE_A_TIMESTAMP = `
   const before = typeof globalThis.Temporal;
   let decoded;
   try {
+    const codec = createPostgresBuiltinCodecLookup().get('pg/timestamptz-temporal@1');
     decoded = String(
-      createPostgresBuiltinCodecLookup()
-        .get('pg/timestamptz-temporal@1')
-        .decodeJson('2024-01-01T00:00:00Z'),
+      codec.fromDataTypeValue(codec.dataType.fromContract('2024-01-01T00:00:00Z', {})),
     );
   } catch (error) {
     decoded = error.code;

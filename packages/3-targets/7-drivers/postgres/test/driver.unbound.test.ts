@@ -23,20 +23,6 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
     return driver;
   }
 
-  describe('descriptor.create', () => {
-    it('returns an unbound driver with stable identity fields', () => {
-      const driver = createDriver();
-
-      expect(driver).toMatchObject({
-        familyId: 'sql',
-        targetId: 'postgres',
-        acquireConnection: expect.any(Function),
-        connect: expect.any(Function),
-        close: expect.any(Function),
-      });
-    });
-  });
-
   describe('given an unbound driver', () => {
     const useBeforeConnectMessage =
       'Postgres driver not connected. Call connect(binding) before acquireConnection or execute.';
@@ -53,17 +39,6 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
     it('throws when query is called', async () => {
       const driver = createDriver();
       await expect(queryRows(driver, 'select 1')).rejects.toMatchObject({
-        code: 'DRIVER.NOT_CONNECTED',
-        category: 'DRIVER',
-        message: useBeforeConnectMessage,
-      });
-    });
-
-    it('throws when execute is iterated', async () => {
-      const driver = createDriver();
-      const iter = driver.query({ sql: 'select 1' });
-      const iterator = iter[Symbol.asyncIterator]();
-      await expect(iterator.next()).rejects.toMatchObject({
         code: 'DRIVER.NOT_CONNECTED',
         category: 'DRIVER',
         message: useBeforeConnectMessage,

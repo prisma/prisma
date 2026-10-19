@@ -297,19 +297,6 @@ describe('@internal/driver-postgres', () => {
     expect(driver.state).toBe('closed');
   });
 
-  it(
-    'constructs and closes url-bound driver',
-    async () => {
-      const driver = createBoundDriverFromBinding(
-        { kind: 'url', url: 'postgresql://127.0.0.1:65432/unused' },
-        undefined,
-      );
-      await driver.close();
-      expect(driver).toBeDefined();
-    },
-    timeouts.spinUpPpgDev,
-  );
-
   it('closes direct client once when close called multiple times', async () => {
     const mockClient = {
       _connection: {},

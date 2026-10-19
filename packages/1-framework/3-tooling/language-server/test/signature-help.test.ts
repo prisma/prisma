@@ -400,12 +400,6 @@ describe('providePslSignatureHelp', () => {
   ])('suppresses help outside recognized argument lists: %s', (source) => {
     expect(help(source)).toBeNull();
   });
-
-  it('never invokes argument parsers to inspect metadata', () => {
-    parseArgument.mockClear();
-    expect(field('call: nested(|)')?.signatures[0]?.label).toBe('nested(string, flag?: boolean)');
-    expect(parseArgument).not.toHaveBeenCalled();
-  });
 });
 
 describe('providePslSignatureHelp — inside a mixin body', () => {

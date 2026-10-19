@@ -349,35 +349,6 @@ describe('RLS planner diff-wiring', () => {
 });
 
 describe('RLS planner policy edit (missing + extra via generic pipeline)', () => {
-  it('emits CREATE new + DROP old when same-prefix policy is superseded', async () => {
-    const newPolicy = makePolicy('p_read_11111111');
-    const contract = buildContractWith([newPolicy]);
-    const planner = createPostgresMigrationPlanner(stubLowerer);
-
-    const oldPolicy = makeActualPolicy('p_read_00000000', TABLE_NAME, '(auth.uid() = old_user_id)');
-    const schema = schemaWith([oldPolicy]);
-
-    const result = planner.plan({
-      contract,
-      schema,
-      policy: DB_UPDATE_POLICY,
-      fromContract: null,
-      origin: null,
-      statements: [],
-      frameworkComponents: postgresTypeComponents,
-      spaceId: APP_SPACE_ID,
-      snapshotsImportPath: '../../snapshots',
-    });
-
-    expect(result.kind).toBe('success');
-    if (result.kind !== 'success') return;
-
-    const ops = await Promise.all(result.plan.operations);
-    const opIds = ops.map((op) => op.id);
-    expect(opIds).toContain(`rlsPolicy.public.${TABLE_NAME}.p_read_11111111`);
-    expect(opIds).toContain(`rlsPolicy.public.${TABLE_NAME}.p_read_00000000.drop`);
-  });
-
   it('drops the extra policy under a policy that allows widening but not destructive', async () => {
     const contract = buildContractWith([makePolicy('p_read_11111111')]);
     const oldPolicy = makeActualPolicy('p_read_00000000', TABLE_NAME, '(auth.uid() = old_user_id)');

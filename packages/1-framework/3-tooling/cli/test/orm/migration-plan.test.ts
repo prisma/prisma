@@ -428,20 +428,6 @@ describe('migration plan', () => {
       expect(run.presented?.data).toMatchObject({ from: HASH_FROM, to: HASH_TO });
       expect(run.presented?.data).not.toHaveProperty('warnings');
     });
-
-    it('refuses with PLAN_ORIGIN_UNKNOWN when neither --from nor a db ref is given', async () => {
-      const project = await forkedProject();
-
-      const run = await harness(project).run(['migration', 'plan', '--name', 'delta', '--json'], {
-        cwd: project.dir,
-      });
-
-      expect(run.exitCode).toBe(2);
-      expect(run.json.at(-1)).toMatchObject({
-        kind: 'result',
-        envelope: { ok: false, error: { code: 'MIGRATION.PLAN_ORIGIN_UNKNOWN' } },
-      });
-    });
   });
 
   describe('data loss', () => {

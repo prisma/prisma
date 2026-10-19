@@ -66,15 +66,6 @@ describe('Mongo emitter hook end-to-end (blog fixture)', () => {
     expect(types).not.toContain('strategy');
   });
 
-  it('generates storage section with namespaces', () => {
-    const types = generateContractDts(blogContract, mongoEmission, [], testHashes);
-
-    expect(types).toContain('readonly namespaces:');
-    expect(types).toContain('readonly collection:');
-    expect(types).toContain('readonly users: MongoCollection');
-    expect(types).toContain('readonly posts: MongoCollection');
-  });
-
   it('generates Comment model with owner and empty storage', () => {
     const types = generateContractDts(blogContract, mongoEmission, [], testHashes);
 

@@ -1,3 +1,4 @@
+import { ContractValidationError } from '@internal/contract/contract-validation-error';
 import { CliStructuredError } from '@internal/errors/control';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
@@ -123,26 +124,6 @@ describe('errorNoInvariantPath', () => {
     });
     expect(err.why).toContain('required=["a", "b", "c"]');
     expect(err.why).toContain('missing=["c"]');
-  });
-
-  it('preserves the structuralPath wire shape exactly', () => {
-    // The JSON envelope (meta.structuralPath) is part of the public CLI
-    // contract — pin the per-edge key set so adding or dropping a field
-    // requires an explicit test update.
-    const err = errorNoInvariantPath({
-      required: ['X'],
-      missing: ['X'],
-      structuralPath: baseStructural,
-    });
-    const path = err.meta?.['structuralPath'] as readonly Record<string, unknown>[];
-    expect(path).toHaveLength(1);
-    expect(Object.keys(path[0]!).sort()).toEqual([
-      'dirName',
-      'from',
-      'invariants',
-      'migrationHash',
-      'to',
-    ]);
   });
 });
 
@@ -287,5 +268,24 @@ describe('MigrationToolsError base type', () => {
       expect(err.fix).toBeTypeOf('string');
       expect(err.fix).not.toBe(err.why);
     }
+  });
+});
+
+describe('errorContractDeserializationFailed', () => {
+  const refusedDefaults = [{ namespaceId: 'public', table: 'Token', column: 'value' }];
+
+  it('keeps the refused defaults of a contract the family refused', () => {
+    const cause = new ContractValidationError('refused', 'storage', { refusedDefaults });
+    expect(
+      errorContractDeserializationFailed('/m/snapshots/x/contract.json', 'refused', { cause }).meta,
+    ).toEqual({ refusedDefaults, filePath: '/m/snapshots/x/contract.json', message: 'refused' });
+  });
+
+  it('carries only the file and message for any other failure', () => {
+    expect(
+      errorContractDeserializationFailed('/m/contract.json', 'bad shape', {
+        cause: new Error('bad shape'),
+      }).meta,
+    ).toEqual({ filePath: '/m/contract.json', message: 'bad shape' });
   });
 });

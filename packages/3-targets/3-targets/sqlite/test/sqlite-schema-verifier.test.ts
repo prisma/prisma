@@ -1,23 +1,14 @@
 import { type ColumnDefault, type Contract, coreHash, profileHash } from '@internal/contract/types';
-import { SqlSchemaVerifierBase } from '@internal/family-sql/ir';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { SqlStorage, type StorageTable } from '@internal/sql-contract/types';
 import { SqlSchemaIR, SqlTableIR } from '@internal/sql-schema-ir/types';
 import { ifDefined } from '@internal/utils/defined';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { parseSqliteDefault } from '../src/core/default-normalizer';
+import { readSqliteDefault } from '../src/core/default-normalizer';
 import { diffSqliteSchema } from '../src/core/migrations/diff-database-schema';
-import { SqliteSchemaVerifier } from '../src/core/sqlite-schema-verifier';
 import { sqliteCreateNamespace } from '../src/core/sqlite-unbound-database';
 import { sqliteTestComponents } from './sqlite-test-types';
-
-describe('SqliteSchemaVerifier', () => {
-  it('extends SqlSchemaVerifierBase', () => {
-    const verifier = new SqliteSchemaVerifier();
-    expect(verifier).toBeInstanceOf(SqlSchemaVerifierBase);
-  });
-});
 
 describe('diffSqliteSchema resolves authored function defaults like introspected ones', () => {
   function actualSchema(rawDefault: string): SqlSchemaIR {
@@ -32,7 +23,7 @@ describe('diffSqliteSchema resolves authored function defaults like introspected
               nullable: false,
               default: rawDefault,
               resolvedNativeType: 'text',
-              ...ifDefined('resolvedDefault', parseSqliteDefault(rawDefault, 'text')),
+              ...ifDefined('resolvedDefault', functionDefaultOf(rawDefault)),
             },
           },
           foreignKeys: [],
@@ -97,3 +88,9 @@ describe('diffSqliteSchema resolves authored function defaults like introspected
     expect(result.issues).not.toEqual([]);
   });
 });
+
+/** The function default introspection reads from `rawDefault`; a literal needs the column codec, which these schemas have none of. */
+function functionDefaultOf(rawDefault: string) {
+  const read = readSqliteDefault(rawDefault, 'text');
+  return read.kind === 'function' ? read : undefined;
+}

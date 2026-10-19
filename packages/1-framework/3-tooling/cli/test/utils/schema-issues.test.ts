@@ -13,7 +13,7 @@ const explained: SchemaDiffIssue = {
   path: ['public', 'event', 'at', 'default'],
   expected: node,
   actual: node,
-  explanation: { text: 'Re-emit the contract, then try again.', cause: 'expected-refused' },
+  explanation: { text: 'The contract holds 1, and the database holds 2.', cause: 'differs' },
 };
 const plain: SchemaDiffIssue = { path: ['public', 'event', 'id'], expected: node };
 
@@ -26,7 +26,7 @@ describe('issueLabel', () => {
 
   it('adds the explanation a mismatch carries', () => {
     expect(issueLabel(explained)).toBe(
-      'mismatch: public/event/at/default. Re-emit the contract, then try again.',
+      'mismatch: public/event/at/default. The contract holds 1, and the database holds 2.',
     );
   });
 });
@@ -34,7 +34,7 @@ describe('issueLabel', () => {
 describe('schemaIssuesWhy', () => {
   it('joins the labels after the opening without doubling a full stop', () => {
     expect(schemaIssuesWhy('The live schema differs', [explained, plain])).toBe(
-      'The live schema differs: mismatch: public/event/at/default. Re-emit the contract, then try again; missing: public/event/id.',
+      'The live schema differs: mismatch: public/event/at/default. The contract holds 1, and the database holds 2; missing: public/event/id.',
     );
   });
 });
@@ -47,7 +47,7 @@ describe('runnerSchemaCheckWhy', () => {
 
   it('lists the issues of a failed schema check', () => {
     expect(runnerSchemaCheckWhy(failed([explained, plain]))).toBe(
-      'The schema check after apply found: mismatch: public/event/at/default. Re-emit the contract, then try again; missing: public/event/id.',
+      'The schema check after apply found: mismatch: public/event/at/default. The contract holds 1, and the database holds 2; missing: public/event/id.',
     );
   });
 
@@ -68,7 +68,7 @@ describe('runnerSchemaCheckWhy', () => {
     ['an explanation that is text', { ...plain, explanation: 'text' }],
     [
       'an explanation whose text is not text',
-      { ...plain, explanation: { text: 1, cause: 'expected-refused' } },
+      { ...plain, explanation: { text: 1, cause: 'differs' } },
     ],
     ['an unknown cause', { ...plain, explanation: { text: 'text', cause: 'other' } }],
   ])('gives nothing for an issue with %s', (_, issue) => {

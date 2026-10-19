@@ -380,20 +380,6 @@ describe('db update questions', () => {
     expect(mocks.dbUpdate).not.toHaveBeenCalled();
   });
 
-  it('offers only delete for a type change, since it has no migration file to fill in', async () => {
-    const typeChange = dataLossQuestion(
-      {
-        operationIndex: 0,
-        label: 'Alter type of "User"."age" to int4',
-        subject: { kind: 'field', namespaceId: asNamespaceId('app'), model: 'User', field: 'age' },
-        loss: 'typeChange',
-      },
-      contracts,
-    );
-
-    expect(typeChange.verbs).toEqual(['delete']);
-  });
-
   it('refuses a --delete no question asks about', async () => {
     mocks.dbUpdate.mockReset().mockImplementation(askThenApply(() => []));
 

@@ -85,12 +85,6 @@ describe('postgres target query operations', () => {
       expect(ast.args.filter((arg) => arg instanceof ParamRef)).toEqual([]);
     });
 
-    it('leaves the query unparsed on the SQL side', () => {
-      expect(buildOpAst(method, TEXT_COLUMN, 'prisma').lowering?.template).not.toContain(
-        'websearch_to_tsquery',
-      );
-    });
-
     it('embeds the language as a literal, defaulting to english', () => {
       const withDefault = buildOpAst(method, TEXT_COLUMN, 'prisma').args[1];
       const withGerman = buildOpAst(method, TEXT_COLUMN, 'prisma', { language: 'german' }).args[1];

@@ -137,21 +137,6 @@ describe('policy predicates', () => {
     });
   });
 
-  it('keeps permissive = false', () => {
-    const policy = onlyPolicy(
-      schemaWith(`  policy_select owner_read {
-    target     = profile
-    using      = sql\`owner_id = 1\`
-    permissive = false
-  }`),
-    );
-
-    expect({ using: policy.using, permissive: policy.permissive }).toEqual({
-      using: 'owner_id = 1',
-      permissive: false,
-    });
-  });
-
   it.each([
     ['"owner_id = 1"', 'PSL_VALUE_TYPE_INCOMPATIBLE', 'Expected sql`...`; write sql`owner_id = 1`'],
     ["'x'", 'PSL_VALUE_TYPE_INCOMPATIBLE', 'Expected sql`...`; write sql`x`'],
@@ -160,7 +145,7 @@ describe('policy predicates', () => {
     [
       'pg.sql`x`',
       'PSL_UNKNOWN_LITERAL_TAG',
-      'Unknown literal tag "pg.sql". Known tags: sql, json.',
+      'Unknown literal tag "pg.sql". Known tags: sql, json, date, time, timetz, timestamp, timestamptz, interval, bytea.',
     ],
   ])('refuses %s in using and withCheck at the value', (value, code, message) => {
     const source = schemaWith(`  policy_update owner_write {

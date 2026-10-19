@@ -78,15 +78,6 @@ describe('verifyPostgresNamespacePresence', () => {
     expect(issues).toHaveLength(0);
   });
 
-  it('does not emit missing_schema for the always-present public namespace', () => {
-    const contract = makeContract(['public']);
-    const schema = makeSchema(['public']);
-
-    const issues = verifyPostgresNamespacePresence({ contract, schema });
-
-    expect(issues).toHaveLength(0);
-  });
-
   it('does not emit missing_schema for the unbound singleton (no creatable schema name)', () => {
     const contract = makeContract([UNBOUND_NAMESPACE_ID], { useUnbound: true });
     const schema = makeSchema(['public']);

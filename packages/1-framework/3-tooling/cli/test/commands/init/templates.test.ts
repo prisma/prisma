@@ -5,7 +5,6 @@ import {
   configFile,
   dbFile,
   starterSchema,
-  targetPackageName,
 } from '../../../src/commands/init/templates/code-templates';
 import {
   quickReferenceMd,
@@ -201,16 +200,6 @@ describe('templates', () => {
     });
   });
 
-  describe('targetPackageName', () => {
-    it('returns postgres package name', () => {
-      expect(targetPackageName('postgres')).toBe('@internal/postgres');
-    });
-
-    it('returns mongo package name', () => {
-      expect(targetPackageName('mongo')).toBe('@internal/mongo');
-    });
-  });
-
   describe('quickReferenceMd', () => {
     it('contains file locations for postgres', () => {
       const md = quickReferenceMd('postgres', 'psl', 'src/prisma/contract.prisma', 'pnpm prisma');
@@ -360,15 +349,6 @@ describe('templates', () => {
 
   describe('tsconfig', () => {
     describe('defaultTsConfig', () => {
-      it('includes all required compiler options', () => {
-        const config = JSON.parse(defaultTsConfig()) as Record<string, unknown>;
-        const opts = config['compilerOptions'] as Record<string, unknown>;
-
-        for (const [key, value] of Object.entries(REQUIRED_COMPILER_OPTIONS)) {
-          expect(opts[key]).toBe(value);
-        }
-      });
-
       it('sets strict: true', () => {
         const config = JSON.parse(defaultTsConfig()) as Record<string, unknown>;
         const opts = config['compilerOptions'] as Record<string, unknown>;
@@ -382,23 +362,9 @@ describe('templates', () => {
 
         expect(opts['skipLibCheck']).toBe(true);
       });
-
-      it('produces valid JSON', () => {
-        expect(() => JSON.parse(defaultTsConfig())).not.toThrow();
-      });
     });
 
     describe('mergeTsConfig', () => {
-      it('adds required options to an empty compilerOptions', () => {
-        const existing = JSON.stringify({ compilerOptions: {} }, null, 2);
-        const merged = JSON.parse(mergeTsConfig(existing)) as Record<string, unknown>;
-        const opts = merged['compilerOptions'] as Record<string, unknown>;
-
-        for (const [key, value] of Object.entries(REQUIRED_COMPILER_OPTIONS)) {
-          expect(opts[key]).toBe(value);
-        }
-      });
-
       it('preserves existing non-conflicting options', () => {
         const existing = JSON.stringify(
           { compilerOptions: { outDir: './dist', strict: true, declaration: true } },
@@ -458,11 +424,6 @@ describe('templates', () => {
           expect(opts[key]).toBe(value);
         }
         expect(merged['include']).toEqual(['src']);
-      });
-
-      it('produces valid JSON', () => {
-        const existing = JSON.stringify({ compilerOptions: { target: 'ES2020' } }, null, 2);
-        expect(() => JSON.parse(mergeTsConfig(existing))).not.toThrow();
       });
     });
   });

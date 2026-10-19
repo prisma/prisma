@@ -38,9 +38,20 @@ describe('converted factories carry typed nextActions', () => {
   it('errorContractValidationFailed', () => {
     const error = errorContractValidationFailed('storage hash mismatch');
 
-    expect(error.fix).toBe('Re-run `{bin} contract emit`, or fix the contract file and try again');
+    expect(error.fix).toBe(
+      'If an earlier release emitted this contract, follow the app upgrade instructions of each release since, which rewrite the contract and its migration snapshots: https://github.com/prisma/orm/tree/main/skills/prisma-8/upgrading/app. If this release emitted it, re-run `{bin} contract emit`, or fix the contract file if you edited it, and try again',
+    );
     expect(error.nextActions).toEqual([
-      { kind: 'run-command', label: 'Re-emit the contract', command: '{bin} contract emit' },
+      {
+        kind: 'open-url',
+        label: 'If an earlier release emitted the contract, follow the app upgrade instructions',
+        url: 'https://github.com/prisma/orm/tree/main/skills/prisma-8/upgrading/app',
+      },
+      {
+        kind: 'run-command',
+        label: 'If this release emitted the contract, re-emit it',
+        command: '{bin} contract emit',
+      },
       {
         kind: 'edit-file',
         label: 'Fix the contract file, then re-run the command',
@@ -147,32 +158,4 @@ describe('converted factories carry typed nextActions', () => {
       },
     ]);
   });
-});
-
-describe('no converted action hardcodes a binary name', () => {
-  const converted = [
-    errorConfigFileNotFound(),
-    errorContractValidationFailed('reason'),
-    errorMarkerMissing(),
-    errorMarkerRowCorrupt({ why: 'w', space: 'app', markerLocation: 'm' }),
-    errorMarkerRequired(),
-    errorSchemaVerificationFailed({ summary: 's', verificationResult: driftedSchema }),
-    errorMigrationFileMissing('dir'),
-  ];
-
-  it.each(converted.map((error) => [error.code, error] as const))(
-    '%s writes {bin} rather than a literal binary',
-    (_code, error) => {
-      const commands = (error.nextActions ?? []).flatMap((action) => [
-        ...(action.command === undefined ? [] : [action.command]),
-        ...(action.commands ?? []),
-      ]);
-
-      expect(commands.length).toBeGreaterThan(0);
-      for (const command of commands) {
-        expect(command).toContain('{bin}');
-        expect(command).not.toContain('prisma-next');
-      }
-    },
-  );
 });

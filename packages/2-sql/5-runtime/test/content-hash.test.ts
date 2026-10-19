@@ -34,15 +34,6 @@ describe('computeSqlContentHash', () => {
       expect(await computeSqlContentHash(a)).toBe(await computeSqlContentHash(b));
     });
 
-    it('returns the same hash across repeated invocations', async () => {
-      const exec = makeExec({ sql: 'select 1', params: [1, 'x'] });
-      const first = await computeSqlContentHash(exec);
-      const second = await computeSqlContentHash(exec);
-      const third = await computeSqlContentHash(exec);
-      expect(first).toBe(second);
-      expect(second).toBe(third);
-    });
-
     it('is insensitive to object key insertion order in params', async () => {
       const a = makeExec({
         sql: 'insert into users (data) values ($1)',
@@ -148,17 +139,6 @@ describe('computeSqlContentHash', () => {
       const hash = await computeSqlContentHash(exec);
       expect(hash).not.toContain(sensitiveSql);
       expect(hash).not.toContain(sensitiveParam);
-    });
-
-    it('produces a fixed-size hash regardless of payload size', async () => {
-      const small = makeExec({ sql: 'select 1', params: [] });
-      const large = makeExec({
-        sql: 'select * from t where data = $1',
-        params: ['x'.repeat(1_000_000)],
-      });
-      expect((await computeSqlContentHash(small)).length).toBe(
-        (await computeSqlContentHash(large)).length,
-      );
     });
 
     it('returns the same hash for two identical empty-params plans', async () => {

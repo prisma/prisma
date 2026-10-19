@@ -9,10 +9,11 @@ const node: DiffableNode = {
   children: () => [],
 };
 
-const refused: SchemaDiffIssue = {
+const differs: SchemaDiffIssue = {
   path: ['public', 'event', 'on', 'default'],
   expected: node,
-  explanation: { text: 'Re-emit the contract, then try again.', cause: 'expected-refused' },
+  actual: node,
+  explanation: { text: 'The contract holds 1, and the database holds 2.', cause: 'differs' },
 };
 const possiblyEquivalent: SchemaDiffIssue = {
   path: ['public', 'event', 'at', 'default'],
@@ -25,12 +26,6 @@ const possiblyEquivalent: SchemaDiffIssue = {
 };
 const plain: SchemaDiffIssue = { path: ['public', 'event', 'id'], expected: node };
 
-const REEMIT = {
-  kind: 'run-command',
-  label:
-    'Re-emit the contract: the emitted contract holds a value its type refuses, and re-emitting stores it as its type holds it',
-  command: '{bin} contract emit',
-};
 const writeAsStored = (retry: string) => ({
   kind: 'user-choice',
   label: `If the database only stored a value in a form of its own, write it in the contract source as the database stores it, re-run contract emit, then ${retry}`,
@@ -42,7 +37,7 @@ const dbUpdate = (verb: string, command = '{bin} db update') => ({
 });
 const describeOtherIssues = (retry: string) => ({
   kind: 'user-choice',
-  label: `Or, for the issues with no explanation, change the contract source to describe the database as it is, re-run contract emit, then ${retry}`,
+  label: `Or, for the other issues, change the contract source to describe the database as it is, re-run contract emit, then ${retry}`,
 });
 const describeDatabase = (retry: string) => ({
   kind: 'user-choice',
@@ -68,18 +63,6 @@ describe('schemaDriftNextActions', () => {
       dbUpdate('sign', '{bin} db update --to "staging"'),
       describeDatabase('sign the emitted contract instead of "staging"'),
     ]);
-  });
-
-  it('offers only re-emitting when every issue is a refused contract value', () => {
-    expect(
-      schemaDriftNextActions({ verb: 'sign', contractRef: 'staging', issues: [refused] }),
-    ).toEqual([REEMIT]);
-  });
-
-  it('offers re-emitting, then the drift actions, when another issue is plain drift', () => {
-    expect(
-      schemaDriftNextActions({ verb: 'verify', contractRef: undefined, issues: [plain, refused] }),
-    ).toEqual([REEMIT, dbUpdate('verify'), describeDatabase('verify again')]);
   });
 
   it('offers writing the stored form, then db update for real drift', () => {
@@ -119,28 +102,23 @@ describe('schemaDriftNextActions', () => {
     ]);
   });
 
-  it('offers re-emitting first, then writing the stored form, then the drift actions, for all three', () => {
+  it('offers db update, then a change to the contract source, for an issue whose values differ', () => {
+    expect(
+      schemaDriftNextActions({ verb: 'verify', contractRef: undefined, issues: [differs] }),
+    ).toEqual([dbUpdate('verify'), describeDatabase('verify again')]);
+  });
+
+  it("names the other issues beside writing the stored form when an issue's values differ", () => {
     expect(
       schemaDriftNextActions({
         verb: 'verify',
         contractRef: undefined,
-        issues: [possiblyEquivalent, plain, refused],
+        issues: [differs, possiblyEquivalent],
       }),
     ).toEqual([
-      REEMIT,
       writeAsStored('verify again'),
       dbUpdate('verify'),
       describeOtherIssues('verify again'),
     ]);
-  });
-
-  it('offers re-emitting, writing the stored form and db update for a refused value beside one in the database form', () => {
-    expect(
-      schemaDriftNextActions({
-        verb: 'verify',
-        contractRef: undefined,
-        issues: [refused, possiblyEquivalent],
-      }),
-    ).toEqual([REEMIT, writeAsStored('verify again'), dbUpdate('verify')]);
   });
 });

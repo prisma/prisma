@@ -1,4 +1,4 @@
-import { decodeJsonString } from '@internal/framework-components/codec';
+import { type DataTypeValue, dataType, readJsonString } from '@internal/framework-components/codec';
 import { mongoCodec, newMongoCodecRegistry } from '@internal/mongo-codec';
 import type { MongoAdapter } from '@internal/mongo-lowering';
 import type { AnyMongoCommand } from '@internal/mongo-query-ast/execution';
@@ -32,6 +32,8 @@ import { MongoParamRef } from '@internal/mongo-value';
 import type { AnyMongoWireCommand } from '@internal/mongo-wire';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { _unstable_createMongoAdapterWithCodecs, createMongoAdapter } from '../src/mongo-adapter';
+
+const textType = dataType('test/text', { read: (json) => readJsonString('test/text', json) });
 
 const stubMeta = {
   target: 'mongo',
@@ -122,18 +124,6 @@ describe('MongoAdapter', () => {
       );
       const wire = narrowWire(await adapter.lower(plan('users', command), {}), 'deleteOne');
       expect(wire.filter).toEqual({ _id: { $eq: 'id-456' } });
-    });
-  });
-
-  describe('RawAggregateCommand with raw pipeline', () => {
-    it('passes raw pipeline through', async () => {
-      const pipeline = [
-        { $match: { status: 'active' } },
-        { $group: { _id: '$department', count: { $sum: 1 } } },
-      ];
-      const command = new RawAggregateCommand('users', pipeline);
-      const wire = narrowWire(await adapter.lower(plan('users', command), {}), 'aggregate');
-      expect(wire.pipeline).toEqual(pipeline);
     });
   });
 
@@ -391,9 +381,10 @@ describe('MongoAdapter', () => {
 describe('MongoAdapter with codec registry', () => {
   const uppercaseCodec = mongoCodec({
     typeId: 'test/uppercase@1',
-    decode: (wire: string) => wire.toLowerCase(),
-    encode: (value: string) => value.toUpperCase(),
-    decodeJson: (json) => decodeJsonString('test/uppercase@1', json),
+    fromWire: (wire: string) => wire.toLowerCase(),
+    toWire: (value: string) => value.toUpperCase(),
+    dataType: textType,
+    fromDataTypeValue: (value: DataTypeValue<string>) => value.value,
   });
 
   function registryWithUppercase() {

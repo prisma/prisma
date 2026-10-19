@@ -1,4 +1,5 @@
-import type { Codec } from '@internal/framework-components/codec';
+import type { JsonValue } from '@internal/contract/types';
+import { type Codec, dataType } from '@internal/framework-components/codec';
 import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import {
   DefaultValueExpr,
@@ -113,26 +114,16 @@ describe('structured error codes', () => {
     });
   });
 
-  it('CONTRACT.DEFAULT_INVALID on a NaN number literal default', async () => {
-    const ast = new SqliteCreateTable({
-      table: 'defaults',
-      columns: [col('x', 'REAL', { default: lit(Number.NaN) })],
-    });
-    const err = await catchAsyncError(() =>
-      controlAdapter.lowerToExecuteRequest(ast, { contract }),
-    );
-    expect(isStructuredError(err)).toBe(true);
-    expect(err).toMatchObject({ code: 'CONTRACT.DEFAULT_INVALID' });
-  });
-
   it('CONTRACT.PACK_CONTRIBUTION_INVALID when a codec emits an unsupported wire type', async () => {
+    const symbolType = dataType('test/symbol', { read: (json) => json });
     const symbolCodec = {
       id: 'test/symbol@1',
-      encode: async () => Symbol('wire'),
-      decode: async (wire: unknown) => wire,
-      encodeJson: (value: unknown) => value,
-      decodeJson: (json: unknown) => json,
-    } as unknown as Codec;
+      dataType: symbolType,
+      toWire: async () => Symbol('wire'),
+      fromWire: async (wire: unknown) => wire,
+      fromDataTypeValue: (value) => value.value,
+      toDataTypeValue: (input) => symbolType.valueFrom(input as JsonValue, {}),
+    } as Codec;
     const lookup: SqliteCodecRegistry = {
       ...createSqliteBuiltinCodecLookup(),
       get: (id) => (id === 'test/symbol@1' ? symbolCodec : undefined),

@@ -30,12 +30,11 @@ export interface SchemaDiffIssue<TNode extends DiffableNode = DiffableNode> {
 }
 
 /**
- * The cause of a mismatch the expected node can name: the expected value is one its type refuses
- * (`expected-refused`), or the database may hold the expected value in a form of its own, so the
- * two may mean the same (`possibly-equivalent`). A tool that chooses actions from the cause maps
- * every value.
+ * The cause of a mismatch the expected node can name: the two sides hold different values
+ * (`differs`), or the database may hold the expected value in a form of its own, so the two may
+ * mean the same (`possibly-equivalent`). A tool that chooses actions from the cause maps every value.
  */
-export type MismatchCause = 'expected-refused' | 'possibly-equivalent';
+export type MismatchCause = 'differs' | 'possibly-equivalent';
 
 export interface MismatchExplanation {
   /** The explanation as text for people. */

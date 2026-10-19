@@ -79,9 +79,9 @@ const cases = [
   {
     name: 'a string constant holding a backslash',
     type: 'String',
-    written: String.raw`sql` + '`' + String.raw`lower('a\\\\b')` + '`',
+    written: String.raw`sql` + '`' + String.raw`lower('a\\\b')` + '`',
     stored: String.raw`lower('a\\b'::text)`,
-    literal: String.raw`sql` + '`' + String.raw`lower('a\\\\b'::text)` + '`',
+    literal: String.raw`sql` + '`' + String.raw`lower('a\\\b'::text)` + '`',
   },
   {
     name: 'a string constant holding a backtick',

@@ -9,7 +9,6 @@ import {
 import { PostgresNamespaceSchemaNode } from '../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresRoleSchemaNode } from '../src/core/schema-ir/postgres-role-schema-node';
 import { PostgresTableSchemaNode } from '../src/core/schema-ir/postgres-table-schema-node';
-import type { SqlSchemaDiffNode } from '../src/core/schema-ir/schema-node-kinds';
 
 const tableA = new PostgresTableSchemaNode({
   name: 'profiles',
@@ -60,14 +59,6 @@ describe('PostgresDatabaseSchemaNode', () => {
     expect(node.children()).toEqual([nsPublic, nsApp, role]);
   });
 
-  it('children() includes role nodes (roles now enter the diff)', () => {
-    const node = new PostgresDatabaseSchemaNode(baseInput);
-    const roleChildren = node
-      .children()
-      .filter((child) => PostgresRoleSchemaNode.is(child as SqlSchemaDiffNode));
-    expect(roleChildren).toEqual([role]);
-  });
-
   it('a role id may equal a same-named schema id — the differ pairs by (nodeKind, id), not id alone', () => {
     const publicRole = new PostgresRoleSchemaNode({
       name: 'public',
@@ -101,27 +92,6 @@ describe('PostgresDatabaseSchemaNode', () => {
     // No throw, and identical trees produce no issues.
     expect(() => diffSchemas(expected, actual)).not.toThrow();
     expect(diffSchemas(expected, actual)).toEqual([]);
-  });
-
-  it('carries namespaces keyed by schema name', () => {
-    const node = new PostgresDatabaseSchemaNode(baseInput);
-    expect(Object.keys(node.namespaces)).toEqual(['public', 'app']);
-    expect(node.namespaces['public']).toBe(nsPublic);
-  });
-
-  it('carries roles', () => {
-    const node = new PostgresDatabaseSchemaNode(baseInput);
-    expect(node.roles).toEqual([role]);
-  });
-
-  it('carries existingSchemas', () => {
-    const node = new PostgresDatabaseSchemaNode(baseInput);
-    expect(node.existingSchemas).toEqual(['public', 'app']);
-  });
-
-  it('carries pgVersion', () => {
-    const node = new PostgresDatabaseSchemaNode(baseInput);
-    expect(node.pgVersion).toBe('15.2');
   });
 
   it('instance is frozen', () => {

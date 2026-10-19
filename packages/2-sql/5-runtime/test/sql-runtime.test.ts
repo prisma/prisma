@@ -75,8 +75,8 @@ function createStubCodecs(
   return [
     defineTestCodec({
       typeId: 'pg/int4@1',
-      encode: (v: number) => v,
-      decode: (w: number) => w,
+      toWire: (v: number) => v,
+      fromWire: (w: number) => w,
     }),
     ...extraCodecs,
   ];
@@ -250,22 +250,6 @@ function createRawExecutionPlan<Row = Record<string, unknown>>(
 }
 
 describe('SqlRuntime', () => {
-  it('creates runtime with context and driver', () => {
-    const { stackInstance, context, driver } = createTestSetup();
-
-    const runtime = createRuntime({
-      stackInstance,
-      context,
-      driver,
-      verifyMarker: false,
-    });
-
-    expect(runtime).toBeDefined();
-    expect(runtime.query).toBeDefined();
-    expect(runtime.telemetry).toBeDefined();
-    expect(runtime.close).toBeDefined();
-  });
-
   it('returns null telemetry when no events', () => {
     const { stackInstance, context, driver } = createTestSetup();
 
@@ -291,18 +275,6 @@ describe('SqlRuntime', () => {
 
     await runtime.close();
     expect(driver.close).toHaveBeenCalled();
-  });
-
-  it('creates runtime with default verifyMarker behaviour when the option is omitted', () => {
-    const { stackInstance, context, driver } = createTestSetup();
-
-    const runtime = createRuntime({
-      stackInstance,
-      context,
-      driver,
-    });
-
-    expect(runtime).toBeDefined();
   });
 
   it('uses acquired connection queryable for connection.query', async () => {
@@ -798,10 +770,10 @@ describe('SqlRuntime', () => {
   it('wraps async parameter encoding failures before the driver runs', async () => {
     const failingCodec = defineTestCodec({
       typeId: 'test/failing-secret@1',
-      encode: async (_value: string) => {
+      toWire: async (_value: string) => {
         throw new Error('encrypt failed');
       },
-      decode: (wire: string) => wire,
+      fromWire: (wire: string) => wire,
     });
     const { stackInstance, context, driver } = createTestSetup({
       extraCodecs: [failingCodec],

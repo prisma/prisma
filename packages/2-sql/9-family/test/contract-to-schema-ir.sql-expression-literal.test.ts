@@ -13,7 +13,10 @@ import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
 import { contractToSchemaIR } from '../src/core/migrations/contract-to-schema-ir';
 
-const textType = sqlDataType('test/text', { texts: [{ text: 'text', written: true }] });
+const textType = sqlDataType('test/text', {
+  read: (json) => json,
+  texts: [{ text: 'text', written: true }],
+});
 
 const codecLookup: CodecLookupWithDescriptors = {
   ...emptyCodecLookup,

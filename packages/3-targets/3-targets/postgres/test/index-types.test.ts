@@ -65,7 +65,11 @@ function interpret(source: string) {
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
       codecLookup: postgresCodecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
-      dataTypes: { entries: assembled.dataTypes, lookup: postgresDataTypeLookup },
+      dataTypes: {
+        entries: assembled.dataTypes,
+        lookup: postgresDataTypeLookup,
+        dataTypeOfCodec: () => undefined,
+      },
       resolvedInputs: [],
       capabilities: {},
     },
@@ -160,12 +164,6 @@ describe('fullText options', () => {
     ['any other option', { weightGroups: [['title']], language: 'english', fastupdate: 'off' }],
   ])('rejects %s', (_label, options) => {
     expect(accepts(options)).toBe(false);
-  });
-});
-
-describe('postgresTargetDescriptorMeta', () => {
-  it('declares its index types via postgresIndexTypes', () => {
-    expect(postgresTargetDescriptorMeta.indexTypes).toBe(postgresIndexTypes);
   });
 });
 

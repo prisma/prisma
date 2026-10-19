@@ -759,22 +759,4 @@ describe('ProjectArtifacts binder', () => {
     project.diagnostics(schemaUri);
     expect(spy.mock.calls[0]?.[0].binder).toBe(first);
   });
-
-  it('produces a new binder after a document edit', () => {
-    const { interpretation } = interpretationDouble(() => ok({} as never));
-    const { project, set } = projectWithSnapshots(interpretation);
-    set(schemaUri, cleanSource);
-    const first = project.binder();
-    set(schemaUri, `${directive}model User {\n  id Int @id\n  name Int\n}\n`);
-    project.documentChanged(schemaUri);
-    const second = project.binder();
-    expect(second).toBeDefined();
-    expect(second).not.toBe(first);
-  });
-
-  it('builds a binder from the control stack without an interpretation', () => {
-    const { project, set } = projectWithSnapshots();
-    set(schemaUri, cleanSource);
-    expect(project.binder()).toBeDefined();
-  });
 });

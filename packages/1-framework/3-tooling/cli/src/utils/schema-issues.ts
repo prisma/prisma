@@ -12,7 +12,7 @@ const OUTCOME_LABEL: Record<ExpectationFailureReason, string> = {
 };
 
 const MISMATCH_CAUSES: Record<MismatchCause, true> = {
-  'expected-refused': true,
+  differs: true,
   'possibly-equivalent': true,
 };
 

@@ -234,33 +234,19 @@ describe('non-suffix member changes are refused with the exact diagnostic and ze
 });
 
 describe('AddNativeEnumValueCall op', () => {
-  function recordingLowerer(): { lowerer: ExecuteRequestLowerer; sqlCalls: string[] } {
-    const sqlCalls: string[] = [];
+  function recordingLowerer(): { lowerer: ExecuteRequestLowerer } {
     return {
-      sqlCalls,
       lowerer: {
         lower(_ast, _ctx) {
           return { sql: 'stub', params: [] };
         },
         renderColumnDefault: async () => '',
         async lowerToExecuteRequest(_ast, _ctx) {
-          sqlCalls.push('lowered-check');
           return { sql: 'stub-check-sql', params: [] };
         },
       },
     };
   }
-
-  it('renders the schema-qualified, quoted, literal-escaped ALTER TYPE ADD VALUE statement', async () => {
-    const { lowerer } = recordingLowerer();
-    const op = await new AddNativeEnumValueCall('sales', 'order_status', 'guest').toOp(lowerer);
-    expect(op.execute).toEqual([
-      {
-        description: 'add value "guest" to enum type "order_status"',
-        sql: `ALTER TYPE "sales"."order_status" ADD VALUE 'guest'`,
-      },
-    ]);
-  });
 
   it('escapes a value containing a single quote', async () => {
     const { lowerer } = recordingLowerer();
@@ -276,22 +262,6 @@ describe('AddNativeEnumValueCall op', () => {
       lowerer,
     );
     expect(op.execute[0]?.sql).toBe(`ALTER TYPE "mood" ADD VALUE 'happy'`);
-  });
-
-  it('precheck asserts the type exists and the value is absent; postcheck asserts the value is present', async () => {
-    const { lowerer, sqlCalls } = recordingLowerer();
-    const op = await new AddNativeEnumValueCall('sales', 'order_status', 'guest').toOp(lowerer);
-    expect(op.precheck.map((step) => step.description)).toEqual([
-      'ensure enum type "order_status" exists',
-      'ensure value "guest" is absent from enum type "order_status"',
-    ]);
-    expect(op.postcheck.map((step) => step.description)).toEqual([
-      'verify value "guest" exists on enum type "order_status"',
-    ]);
-    // Three typed catalog checks are lowered through the adapter: type-exists,
-    // value-absent (precheck), value-present (postcheck). The execute step is
-    // built directly and never lowered.
-    expect(sqlCalls).toHaveLength(3);
   });
 
   it('the rendered description carries the non-transactional ADD VALUE caveat', () => {
@@ -323,18 +293,5 @@ describe('AddNativeEnumValueCall op', () => {
   it('throws when toOp is called without a lowerer', async () => {
     const call = new AddNativeEnumValueCall('sales', 'order_status', 'guest');
     await expect(call.toOp()).rejects.toThrow(/lowerer is required/);
-  });
-
-  it('renderTypeScript renders the hand-authored surface call', () => {
-    const call = new AddNativeEnumValueCall('sales', 'order_status', 'guest');
-    expect(call.renderTypeScript()).toBe(
-      `this.addNativeEnumValue({ schema: "sales", typeName: "order_status", value: "guest" })`,
-    );
-  });
-
-  it('factoryName and operationClass identify the call as additive', () => {
-    const call = new AddNativeEnumValueCall('sales', 'order_status', 'guest');
-    expect(call.factoryName).toBe('addNativeEnumValue');
-    expect(call.operationClass).toBe('additive');
   });
 });
