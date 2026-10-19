@@ -14,7 +14,7 @@ describe.each([
   const codecId = descriptor.codecId;
 
   it('passes text through', async () => {
-    expect(await codec.encode(text, {})).toBe(text);
+    expect(await codec.toWire(text, {})).toBe(text);
   });
 
   it.each([
@@ -22,7 +22,7 @@ describe.each([
     ['a number', 1_704_164_645_678],
     ['null', null],
   ])('refuses %s', async (received, value) => {
-    await expect(codec.encode(wrongTyped(value), {})).rejects.toMatchObject({
+    await expect(codec.toWire(wrongTyped(value), {})).rejects.toMatchObject({
       code: 'RUNTIME.ENCODE_FAILED',
       message: `Codec '${codecId}' writes PostgreSQL's text for the value, but received ${received}.`,
       meta: { codecId, received },

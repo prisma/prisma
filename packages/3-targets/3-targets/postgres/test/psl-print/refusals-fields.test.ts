@@ -349,6 +349,7 @@ describe('columns and fields', () => {
         fieldPresets: { geo: { stamped } },
         dataTypes: [
           sqlDataType('postgis/geometry', {
+            read: (json) => json,
             params: arktype({ 'shape?': 'string' }),
             texts: [{ text: 'geometry', written: true, catalog: true }],
           }),
