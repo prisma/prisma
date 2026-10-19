@@ -18,6 +18,7 @@ import {
   type ResolvedRenameStatement,
 } from '@internal/framework-components/control';
 import {
+  collectionRootModelsOf,
   type MongoContract,
   validatorFieldNamesOf,
   validatorRootShapesOf,
@@ -147,6 +148,63 @@ function refused(
 }
 
 const LEAVE_OUT = 'Leave out this statement.';
+
+const SEPARATE_THE_MODELS =
+  'move the models to separate collections, or carry out the change in a dataTransform operation of a migration.ts, with a filter that selects only their documents';
+
+/**
+ * The other root models stored in `collection` that store `field`, themselves or in a variant. A collection that stores several root models has no discriminator that tells their documents apart, so a change to one model's field reaches theirs too.
+ */
+function otherRootModelsStoring(
+  contract: ContractWithDomain,
+  model: ModelCoordinate,
+  collection: string,
+  field: string,
+): readonly string[] {
+  const models = contract.domain.namespaces[model.namespaceId]?.models ?? {};
+  const stores = (name: string) => {
+    const root = models[name];
+    if (root === undefined) return false;
+    const variants = Object.values(root.variants ?? {}).map((variant) => models[variant.model]);
+    return [root, ...variants].some(
+      (each) => each !== undefined && Object.hasOwn(each.fields, field),
+    );
+  };
+  return (collectionRootModelsOf(models)[collection] ?? []).filter(
+    (name) => name !== model.model && stores(name),
+  );
+}
+
+function sharedCollectionWhy(
+  collection: string,
+  others: readonly string[],
+  change: string,
+): string {
+  const names = others.map((name) => JSON.stringify(name)).join(', ');
+  return `Collection ${JSON.stringify(collection)} stores several models and no discriminator tells their documents apart, so ${change} of ${names} too.`;
+}
+
+/**
+ * A removal the plan cannot carry out because another root model stored in the same collection still stores the field, and no discriminator selects the documents of the model that loses it.
+ */
+export function sharedCollectionRemovalRefusals(
+  removals: readonly FieldRemoval[],
+  contract: ContractWithDomain,
+): readonly MigrationPlannerConflict[] {
+  return removals.flatMap((removal): MigrationPlannerConflict[] => {
+    const { subject, call } = removal;
+    if (subject.kind !== 'field' || call.filter !== undefined) return [];
+    const others = otherRootModelsStoring(contract, subject, call.collection, call.field);
+    if (others.length === 0) return [];
+    return [
+      {
+        kind: 'fieldRemovalRefused',
+        summary: `Cannot remove field ${JSON.stringify(call.field)} of model ${JSON.stringify(subject.model)} from collection ${JSON.stringify(call.collection)}: model ${others.map((name) => JSON.stringify(name)).join(', ')} stores it in the same collection`,
+        why: `${sharedCollectionWhy(call.collection, others, 'removing the field would remove it from the documents')} To keep it in ${others.map((name) => JSON.stringify(name)).join(', ')} documents only, ${SEPARATE_THE_MODELS}.`,
+      },
+    ];
+  });
+}
 
 const TIME_SERIES_UPDATES =
   'MongoDB updates the documents of a time-series collection only through its metaField';
@@ -385,9 +443,23 @@ function planFieldStatement(
   }
   const policyRefusal = controlPolicyRefusal(statement, label, input.contract, collection);
   if (policyRefusal !== undefined) return policyRefusal;
+  const variant = variantFilter(input.fromContract, statement.from);
+  if (variant === undefined) {
+    const others = otherRootModelsStoring(
+      input.fromContract,
+      statement.from,
+      originCollection,
+      statement.from.field,
+    );
+    if (others.length > 0) {
+      return refuse(
+        `model ${others.map((name) => JSON.stringify(name)).join(', ')} stores field ${JSON.stringify(statement.from.field)} in the same collection, ${JSON.stringify(collection)}`,
+        `${sharedCollectionWhy(collection, others, 'renaming the field would rename it in the documents')} To change it, ${SEPARATE_THE_MODELS}.`,
+      );
+    }
+  }
   const filter =
-    variantFilter(input.fromContract, statement.from) ??
-    rootDocumentsLosing(input.contract, statement.to, statement.from.field)?.filter;
+    variant ?? rootDocumentsLosing(input.contract, statement.to, statement.from.field)?.filter;
   return {
     kind: 'renameField',
     call: new RenameFieldCall(collection, statement.from.field, statement.to.field, filter),

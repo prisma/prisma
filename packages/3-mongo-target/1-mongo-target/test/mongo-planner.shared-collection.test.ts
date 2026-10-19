@@ -3,6 +3,8 @@ import {
   contract,
   plan,
   planned,
+  refusal,
+  renameField,
   schemaCollection,
   sharedJsonSchema,
 } from './mongo-statement-fixtures';
@@ -64,5 +66,74 @@ describe('MongoMigrationPlanner, a collection that stores several root models', 
         },
       ],
     });
+  });
+});
+
+const SEPARATE =
+  'move the models to separate collections, or carry out the change in a dataTransform operation of a migration.ts, with a filter that selects only their documents';
+
+describe('MongoMigrationPlanner, field changes in a collection that stores several root models', () => {
+  const schema = [
+    schemaCollection('users', { jsonSchema: sharedJsonSchema(['level'], ['level']) }),
+  ];
+
+  it('refuses to rename a field another root model of the collection stores', () => {
+    expect(
+      refusal(
+        plan({
+          from: shared('from', ['level'], ['level']),
+          to: shared('to', ['rank'], ['level']),
+          schema,
+          statements: [renameField('Admin', 'level', 'Admin', 'rank')],
+        }),
+      ),
+    ).toEqual([
+      {
+        kind: 'statementRefused',
+        summary:
+          'Cannot rename field "Admin.level" to "Admin.rank": model "User" stores field "level" in the same collection, "users"',
+        why: `Collection "users" stores several models and no discriminator tells their documents apart, so renaming the field would rename it in the documents of "User" too. To change it, ${SEPARATE}.`,
+      },
+    ]);
+  });
+
+  it('renames a field no other root model of the collection stores', () => {
+    expect(
+      planned(
+        plan({
+          from: shared('from', ['level'], ['email']),
+          to: shared('to', ['rank'], ['email']),
+          schema: [
+            schemaCollection('users', { jsonSchema: sharedJsonSchema(['level'], ['email']) }),
+          ],
+          statements: [renameField('Admin', 'level', 'Admin', 'rank')],
+        }),
+      ).labels[0],
+    ).toBe('Rename field level to rank in collection users');
+  });
+
+  it('refuses to remove a field another root model of the collection still stores', () => {
+    expect(
+      refusal(
+        plan({
+          from: shared('from', ['level'], ['level']),
+          to: shared('to', [], ['level']),
+          schema,
+        }),
+      ),
+    ).toEqual([
+      {
+        kind: 'fieldRemovalRefused',
+        summary:
+          'Cannot remove field "level" of model "Admin" from collection "users": model "User" stores it in the same collection',
+        why: `Collection "users" stores several models and no discriminator tells their documents apart, so removing the field would remove it from the documents of "User" too. To keep it in "User" documents only, ${SEPARATE}.`,
+      },
+    ]);
+  });
+
+  it('removes nothing without an origin contract when another root model still declares the field', () => {
+    expect(planned(plan({ from: null, to: shared('to', [], ['level']), schema })).dataLoss).toEqual(
+      [],
+    );
   });
 });

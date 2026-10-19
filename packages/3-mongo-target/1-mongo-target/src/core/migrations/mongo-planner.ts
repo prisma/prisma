@@ -34,6 +34,7 @@ import {
   planStatements,
   planValidatorFieldRemovals,
   type StatementCalls,
+  sharedCollectionRemovalRefusals,
   timeSeriesRemovalRefusals,
 } from './mongo-statement-planning';
 import type { OpFactoryCall } from './op-factory-call';
@@ -459,7 +460,10 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
               schema.collectionNames.filter((name) => destinationIR.collection(name) !== undefined),
             ),
           });
-    const removalRefusals = timeSeriesRemovalRefusals(removals, schema);
+    const removalRefusals = [
+      ...timeSeriesRemovalRefusals(removals, schema),
+      ...sharedCollectionRemovalRefusals(removals, contract),
+    ];
     if (removalRefusals.length > 0) return { kind: 'failure', conflicts: removalRefusals };
     const result = this.planCalls({
       ...options,
