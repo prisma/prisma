@@ -79,7 +79,7 @@ describe('mongo attribute specs are consumable from a resolved language-server p
       field: Object.keys(specs.field).sort(),
     }).toEqual({
       model: ['base', 'discriminator', 'index', 'map', 'textIndex', 'unique'],
-      field: ['id', 'map', 'relation', 'unique'],
+      field: ['id', 'map', 'onCreate', 'onUpdate', 'relation', 'unique'],
     });
   });
 
@@ -140,7 +140,15 @@ describe('mongo attribute specs are consumable from a resolved language-server p
       'rls',
       'unique',
     ]);
-    expect(Object.keys(specs.field).sort()).toEqual(['default', 'id', 'map', 'relation', 'unique']);
+    expect(Object.keys(specs.field).sort()).toEqual([
+      'default',
+      'id',
+      'map',
+      'onCreate',
+      'onUpdate',
+      'relation',
+      'unique',
+    ]);
   });
 
   it("invokes the SQL family's @relation factory and enumerates its named arguments", async () => {

@@ -20,13 +20,8 @@ import {
 const TIMESTAMP_NOW = { kind: 'generator', id: 'timestampNow' } as const;
 
 describe('timestampNow generator', () => {
-  it('builds a control descriptor that generates on create and on update', () => {
-    const descriptor = timestampNowControlDescriptor();
-    expect(descriptor.id).toBe('timestampNow');
-    expect(descriptor.buildPhases?.()).toEqual({
-      onCreate: TIMESTAMP_NOW,
-      onUpdate: TIMESTAMP_NOW,
-    });
+  it('builds a control descriptor that registers the generator id', () => {
+    expect(timestampNowControlDescriptor()).toEqual({ id: 'timestampNow' });
   });
 });
 

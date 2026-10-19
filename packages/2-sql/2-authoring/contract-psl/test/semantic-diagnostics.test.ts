@@ -39,7 +39,6 @@ it('pushes owned default diagnostics with filename and range rather than a provi
     columnTypeParams: undefined,
     isListColumn: false,
     valueObjectDefault: undefined,
-    generatorDescriptorById: new Map(),
     defaultFunctionRegistry: new Map(),
     generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     dataTypes: fixtureDataTypeSupport,

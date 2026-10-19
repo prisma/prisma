@@ -18,7 +18,7 @@ import { createMockRuntime, type MockRuntime } from './helpers';
 const schema = `model Note {
   id       Int     @id
   title    String
-  token    String? @default(uuid())
+  token    String? @onCreate(uuid())
   editedAt temporal.timestamptzString(onCreate: now, onUpdate: now)?
 }`;
 

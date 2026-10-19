@@ -6,7 +6,7 @@ import { PG_TIMESTAMPTZ_DATE_CODEC_ID } from './codec-ids';
  * channel. Each names a codec; the column's database type is its data type's.
  *
  * The type position is the only storage decider: a mutation-default generator
- * (`@default(uuid())`) never re-picks a column's storage.
+ * (`@onCreate(uuid())`) never re-picks a column's storage.
  */
 export const postgresScalarAuthoringTypes = {
   String: {

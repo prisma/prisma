@@ -33,7 +33,6 @@ import {
   type DefaultFunctionLoweringContext,
   describeTaggedLiteralFailure,
   type GeneratorFunctionRegistry,
-  type MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/control';
 import type { ContributedPslDiagnosticCode } from '@internal/framework-components/psl-ast';
 import type {
@@ -686,16 +685,12 @@ export function lowerDefaultForField(input: {
   readonly valueObjectDefault:
     | { readonly valueObjectName: string; readonly types: ValueObjectTypes }
     | undefined;
-  readonly generatorDescriptorById: ReadonlyMap<string, MutationDefaultGeneratorDescriptor>;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
   readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly diagnostics: PslDiagnosticCollector;
-}): {
-  readonly defaultValue?: AuthoredColumnDefault;
-  readonly executionDefaults?: ExecutionMutationDefaultPhases;
-} {
+}): { readonly defaultValue?: AuthoredColumnDefault } {
   const node = getAttribute(input.field.attributes, 'default')?.node;
   if (node === undefined) return {};
   const source = diagnosticSource(input.sources, node.syntax);
@@ -909,40 +904,7 @@ export function lowerDefaultForField(input: {
     return {};
   }
 
-  if (lowered.value.kind === 'storage') {
-    return { defaultValue: lowered.value.defaultValue };
-  }
-
-  const generatorDescriptor = input.generatorDescriptorById.get(lowered.value.generated.id);
-  if (!generatorDescriptor) {
-    input.diagnostics.push({
-      code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
-      message: `Default generator "${lowered.value.generated.id}" is not available in the composed mutation default registry.`,
-      ...source.at(call.span),
-    });
-    return {};
-  }
-
-  // Preset-only generators (e.g. `timestampNow`) co-register their codec through the preset descriptor, so they don't carry an `applicableCodecIds` list. Such a generator surfacing on the `@default(...)` lowering path is itself the bug — emit a diagnostic pointing the user at the correct authoring surface.
-  if (generatorDescriptor.applicableCodecIds === undefined) {
-    input.diagnostics.push({
-      code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
-      message: `Default generator "${generatorDescriptor.id}" is not applicable to "@default(...)" lowering. Use the corresponding field preset (e.g. \`temporal.${generatorDescriptor.id === 'timestampNow' ? 'updatedAt' : generatorDescriptor.id}()\`) instead.`,
-      ...source.at(call.span),
-    });
-    return {};
-  }
-
-  if (!generatorDescriptor.applicableCodecIds.includes(input.columnDescriptor.codecId)) {
-    input.diagnostics.push({
-      code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
-      message: `Default generator "${generatorDescriptor.id}" is not applicable to "${input.modelName}.${input.fieldName}" with codecId "${input.columnDescriptor.codecId}".`,
-      ...source.at(call.span),
-    });
-    return {};
-  }
-
-  return { executionDefaults: { onCreate: lowered.value.generated } };
+  return { defaultValue: lowered.value.defaultValue };
 }
 
 const GENERATOR_PHASES = ['onCreate', 'onUpdate'] as const;

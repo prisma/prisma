@@ -13,13 +13,13 @@
 //   model ContactAnalytics { ... many nullable DateTime/Int/Float/Boolean fields ... }
 
 model Contact {
-  id        String             @id @default(cuid(2))
+  id        String             @id @onCreate(cuid(2))
   analytics ContactAnalytics[]
   @@map("contact")
 }
 
 model ContactAnalytics {
-  id        String   @id @default(cuid(2))
+  id        String   @id @onCreate(cuid(2))
   contactId String
   contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
   date1     DateTime?

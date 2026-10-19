@@ -1759,28 +1759,12 @@ namespace app {
       'null',
       'autoincrement',
       'now',
-      'uuid',
-      'cuid',
-      'ulid',
-      'nanoid',
     ]);
-    expect(
-      completeWithActualStack(source('uuid(|)'), stack, options).items.map((item) => item.label),
-    ).toEqual(['4', '7']);
-    expect(
-      completeWithActualStack(source('cuid(|)'), stack, options).items.map((item) => item.label),
-    ).toEqual(['2']);
-    expect(completeWithActualStack(source('nanoid(|)'), stack, options).items).toEqual([]);
     const snippetItems = completeWithActualStack(source('|'), stack, {
       ...options,
       clientSupportsSnippets: true,
     }).items;
-    expect(completionItemByLabel(snippetItems, 'uuid').textEdit?.newText).toBe(
-      `uuid(${emptySnippetPlaceholder1})`,
-    );
-    expect(completionItemByLabel(snippetItems, 'cuid').textEdit?.newText).toBe(
-      'cuid($' + '{1:version})',
-    );
+    expect(completionItemByLabel(snippetItems, 'now').textEdit?.newText).toBe('now()');
   }, 5_000);
 
   it('offers each registered tag inside @default( with its own documentation', async () => {

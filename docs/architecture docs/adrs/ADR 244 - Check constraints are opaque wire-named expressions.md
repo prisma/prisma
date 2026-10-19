@@ -33,7 +33,7 @@ enum user_type {
 }
 
 model User {
-  id   Uuid      @id @default(uuid())
+  id   Uuid      @id @onCreate(uuid())
   kind user_type
   tags String[]
 

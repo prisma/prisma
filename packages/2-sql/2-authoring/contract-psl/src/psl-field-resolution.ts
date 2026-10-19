@@ -11,7 +11,6 @@ import type { CapabilityMatrix } from '@internal/framework-components/components
 import type {
   ControlMutationDefaultRegistry,
   GeneratorFunctionRegistry,
-  MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/control';
 import type {
   Binder,
@@ -61,7 +60,6 @@ import type { ValueObjectTypes } from './value-object-default';
 
 type LoweredFieldDefault = {
   readonly defaultValue?: AuthoredColumnDefault;
-  readonly executionDefaults?: ExecutionMutationDefaultPhases;
 };
 
 function lowerEnumDefaultForField(input: {
@@ -193,7 +191,6 @@ export interface CollectResolvedFieldsInput {
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
   readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
-  readonly generatorDescriptorById: ReadonlyMap<string, MutationDefaultGeneratorDescriptor>;
   readonly diagnostics: PslDiagnosticCollector;
   readonly sources: PslSources;
   readonly binder: Binder;
@@ -351,7 +348,6 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     defaultFunctionRegistry,
     generatorFunctions,
     dataTypes,
-    generatorDescriptorById,
     diagnostics,
     sources,
     scalarColumnDescriptors,
@@ -522,7 +518,6 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
               valueObjectName === undefined
                 ? undefined
                 : { valueObjectName, types: valueObjectTypes },
-            generatorDescriptorById,
             defaultFunctionRegistry,
             generatorFunctions,
             dataTypes,
@@ -545,7 +540,6 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       dataTypes,
       diagnostics,
     });
-    const loweredOnCreate = loweredDefault.executionDefaults?.onCreate;
     if (
       isListField &&
       loweredDefault.defaultValue?.kind === 'function' &&
@@ -554,17 +548,6 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       diagnostics.push({
         code: 'PSL_LIST_AUTOINCREMENT_UNSUPPORTED',
         message: `Field "${model.name}.${field.name}" is a list and cannot use autoincrement(); it is a Prisma marker for a sequence-backed scalar column, not SQL.`,
-        ...source.at(defaultAttribute?.span ?? field.span),
-      });
-      continue;
-    }
-    if (isListField && loweredOnCreate) {
-      const defaultExpression =
-        defaultAttribute?.args.find((arg) => arg.kind === 'positional')?.value.trim() ??
-        'this function';
-      diagnostics.push({
-        code: 'PSL_LIST_EXECUTION_DEFAULT_UNSUPPORTED',
-        message: `Field "${model.name}.${field.name}" is a list and cannot use an execution default ("${defaultExpression}"). Lists have no per-element execution-default semantics; use a literal list @default or remove the default.`,
         ...source.at(defaultAttribute?.span ?? field.span),
       });
       continue;
@@ -593,14 +576,6 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
         code: 'PSL_PRESET_AND_DEFAULT_CONFLICT',
         message: `Field "${model.name}.${field.name}" uses a field-preset call that already generates a value ${phaseText}, so @${presetPhaseConflict}(...) cannot set one too. Remove @${presetPhaseConflict}(...) or use a preset without an ${presetPhaseConflict} generator.`,
         ...source.at(getAttribute(field.attributes, presetPhaseConflict)?.span ?? field.span),
-      });
-      continue;
-    }
-    if (presetContributions?.executionDefaults?.onCreate && loweredOnCreate) {
-      diagnostics.push({
-        code: 'PSL_PRESET_AND_DEFAULT_CONFLICT',
-        message: `Field "${model.name}.${field.name}" uses a field-preset call that already generates a value on create, so @default(...) cannot generate one too. Remove @default(...), write a database default in @default(...), or use a preset without an onCreate generator.`,
-        ...source.at(defaultAttribute?.span ?? field.span),
       });
       continue;
     }
@@ -651,7 +626,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     }
 
     const fieldExecutionDefaults = mergeExecutionDefaults(
-      mergeExecutionDefaults(loweredDefault.executionDefaults, generatedValues),
+      generatedValues,
       presetContributions?.executionDefaults,
     );
     const fieldDefaultValue = presetContributions?.default ?? loweredDefault.defaultValue;
@@ -677,11 +652,11 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
 }
 
 function mergeExecutionDefaults(
-  fromDefaultAttribute: ExecutionMutationDefaultPhases | undefined,
+  fromAttributes: ExecutionMutationDefaultPhases | undefined,
   fromPreset: ExecutionMutationDefaultPhases | undefined,
 ): ExecutionMutationDefaultPhases | undefined {
-  if (fromDefaultAttribute === undefined || fromPreset === undefined) {
-    return fromPreset ?? fromDefaultAttribute;
+  if (fromAttributes === undefined || fromPreset === undefined) {
+    return fromPreset ?? fromAttributes;
   }
-  return { ...fromDefaultAttribute, ...fromPreset };
+  return { ...fromAttributes, ...fromPreset };
 }

@@ -29,10 +29,16 @@ function calleeName(node: AstNode): string | undefined {
   return FunctionCallAst.cast(node.syntax)?.path().join('.');
 }
 
-function functionListText(functions: readonly { readonly name: string }[]): string {
-  return functions.length === 0
+function functionListText(
+  functions: readonly { readonly name: string }[],
+  codecKnown: boolean,
+): string {
+  if (functions.length > 0) {
+    return `Functions that apply: ${functions.map(({ name }) => `${name}()`).join(', ')}.`;
+  }
+  return codecKnown
     ? 'No generator function applies to this codec.'
-    : `Functions that apply: ${functions.map(({ name }) => `${name}()`).join(', ')}.`;
+    : 'No generator function applies to it.';
 }
 
 /**
@@ -50,13 +56,13 @@ function generatorCallArm(ctx: FieldAttributeSpecContext) {
         ? leafDiagnostic(
             attributeCtx,
             arg,
-            `Field "${fieldPath}": unknown generator function "${name}". ${functionListText(functions)}`,
+            `Field "${fieldPath}": unknown generator function "${name}". ${functionListText(functions, codecId !== undefined)}`,
             'PSL_UNKNOWN_GENERATOR_FUNCTION',
           )
         : leafDiagnostic(
             attributeCtx,
             arg,
-            `Field "${fieldPath}": ${nodeSourceText(arg, attributeCtx)} does not apply to ${target}. ${functionListText(functions)}`,
+            `Field "${fieldPath}": ${nodeSourceText(arg, attributeCtx)} does not apply to ${target}. ${functionListText(functions, codecId !== undefined)}`,
             'PSL_GENERATOR_NOT_APPLICABLE',
           );
     return notOk<readonly PslDiagnostic[]>([diagnostic]);

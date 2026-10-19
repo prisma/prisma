@@ -25,7 +25,7 @@ enum Priority {
 }
 
 model User {
-  id          Uuid      @id @default(uuid())
+  id          Uuid      @id @onCreate(uuid())
   email       String
   displayName String
   createdAt   DateTime  @default(now())
@@ -38,7 +38,7 @@ model User {
 }
 
 model Post {
-  id        Uuid           @id @default(uuid())
+  id        Uuid           @id @onCreate(uuid())
   title     String
   userId    Uuid
   priority  Priority @default(Low)
@@ -68,7 +68,7 @@ model Post {
 }
 
 model Tag {
-  id    Uuid   @id @default(uuid())
+  id    Uuid   @id @onCreate(uuid())
   label String @unique
 
   posts Post[]
@@ -88,7 +88,7 @@ model PostTag {
 }
 
 model Task {
-  id          Uuid     @id @default(uuid())
+  id          Uuid     @id @onCreate(uuid())
   title       String
   description String?
   status      String   @default("open")

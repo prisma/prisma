@@ -391,9 +391,7 @@ function lowerFunction(
     );
     return undefined;
   }
-  return lowered.value.kind === 'storage'
-    ? { storage: lowered.value.defaultValue, onCreate: undefined }
-    : { storage: undefined, onCreate: lowered.value.generated };
+  return { storage: lowered.value.defaultValue, onCreate: undefined };
 }
 
 /**

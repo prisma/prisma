@@ -41,7 +41,6 @@ import {
   type ControlMutationDefaults,
   EMPTY_GENERATOR_FUNCTIONS,
   type GeneratorFunctionRegistry,
-  type MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { Binder } from '@internal/psl-parser';
@@ -538,7 +537,6 @@ interface BuildModelNodeInput {
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
   readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
-  readonly generatorDescriptorById: ReadonlyMap<string, MutationDefaultGeneratorDescriptor>;
   readonly scalarColumnDescriptors: ReadonlyMap<string, ColumnDescriptor>;
   readonly sources: PslSources;
   readonly binder: Binder;
@@ -662,7 +660,6 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
     defaultFunctionRegistry: input.defaultFunctionRegistry,
     generatorFunctions: input.generatorFunctions,
     dataTypes: input.dataTypes,
-    generatorDescriptorById: input.generatorDescriptorById,
     diagnostics,
     sources: input.sources,
     binder: input.binder,
@@ -2142,11 +2139,6 @@ export function interpretPslDocumentToSqlContract(
   const composedExtensions = new Set(input.composedExtensions ?? []);
   const composedExtensionContracts: ReadonlyMap<string, Contract> =
     input.composedExtensionContracts;
-  const generatorDescriptors = input.controlMutationDefaults?.generatorDescriptors ?? [];
-  const generatorDescriptorById = new Map<string, MutationDefaultGeneratorDescriptor>();
-  for (const descriptor of generatorDescriptors) {
-    generatorDescriptorById.set(descriptor.id, descriptor);
-  }
 
   const isEnumBlock = (block: BlockSymbol): boolean => block.keyword === 'enum';
   const legitimateBlockKeywords = claimedBlockKeywords(
@@ -2422,7 +2414,6 @@ export function interpretPslDocumentToSqlContract(
       defaultFunctionRegistry,
       generatorFunctions,
       dataTypes,
-      generatorDescriptorById,
       scalarColumnDescriptors: input.scalarColumnDescriptors,
       sources: input.sources,
       binder,

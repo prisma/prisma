@@ -383,10 +383,6 @@ describe('sqlAttributeSpecs.field.default', () => {
       'null',
       'funcCall',
       'funcCall',
-      'funcCall',
-      'funcCall',
-      'funcCall',
-      'funcCall',
       // One tagged-literal arm per distinct tag documentation: the sql tags, then json.
       'taggedLiteral',
       'taggedLiteral',
@@ -394,18 +390,9 @@ describe('sqlAttributeSpecs.field.default', () => {
       // list literal too; the codec's declaration decides whether one is accepted.
       'list',
     ]);
-    const uuid = value.alternatives
-      .filter((alt) => alt.kind === 'funcCall')
-      .find((alt) => alt.name === 'uuid');
-    if (uuid === undefined) throw new Error('uuid default function arm is present');
-    const versionType = uuid.signature.positional?.[0]?.type;
-    if (versionType === undefined) throw new Error('uuid version argument is present');
-    const version = oneOfMetadata(versionType);
-    expect(version).toMatchObject({ kind: 'oneOf', optional: true });
-    expect(version.alternatives).toEqual([
-      expect.objectContaining({ kind: 'num', value: 4 }),
-      expect.objectContaining({ kind: 'num', value: 7 }),
-    ]);
+    expect(
+      value.alternatives.filter((alt) => alt.kind === 'funcCall').map((alt) => alt.name),
+    ).toEqual(['autoincrement', 'now']);
   });
 
   it('omits the tagged-literal arm when no tag is registered', () => {
@@ -440,7 +427,7 @@ describe('sqlAttributeSpecs.field.default', () => {
     expect(listDefault.of).toMatchObject({ kind: 'oneOf' });
     expect(
       value.alternatives.filter((alt) => alt.kind === 'funcCall').map((alt) => alt.name),
-    ).toEqual(['autoincrement', 'now', 'uuid', 'cuid', 'ulid', 'nanoid']);
+    ).toEqual(['autoincrement', 'now']);
     expect(value.alternatives.filter((alt) => alt.kind === 'taggedLiteral')).toMatchObject([
       {
         label: 'sql`...`',

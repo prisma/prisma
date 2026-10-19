@@ -2,6 +2,7 @@ import { isInternalError } from '@internal/utils/internal-error';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import {
+  builtinGeneratorIds,
   builtinGeneratorRegistryMetadata,
   cuid2,
   ksuid,
@@ -102,17 +103,7 @@ describe('@internal/ids', () => {
     expect(nanoid({ size: 255 }).typeParams).toEqual({ length: 255 });
   });
 
-  it('includes pg/uuid@1 in applicableCodecIds for uuidv4 and uuidv7', () => {
-    const uuidv4Meta = builtinGeneratorRegistryMetadata.find((m) => m.id === 'uuidv4');
-    const uuidv7Meta = builtinGeneratorRegistryMetadata.find((m) => m.id === 'uuidv7');
-    expect(uuidv4Meta?.applicableCodecIds).toContain('pg/uuid@1');
-    expect(uuidv7Meta?.applicableCodecIds).toContain('pg/uuid@1');
-  });
-
-  it('does not include pg/uuid@1 in applicableCodecIds for ulid, nanoid, cuid2, or ksuid', () => {
-    for (const id of ['ulid', 'nanoid', 'cuid2', 'ksuid'] as const) {
-      const meta = builtinGeneratorRegistryMetadata.find((m) => m.id === id);
-      expect(meta?.applicableCodecIds).not.toContain('pg/uuid@1');
-    }
+  it('registers every builtin generator id', () => {
+    expect(builtinGeneratorRegistryMetadata).toEqual(builtinGeneratorIds.map((id) => ({ id })));
   });
 });

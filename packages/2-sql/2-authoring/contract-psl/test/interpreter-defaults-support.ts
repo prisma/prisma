@@ -2,6 +2,7 @@ import { createTestSqlNamespace } from '../../../1-core/contract/test/test-suppo
 import type { InterpretPslDocumentToSqlContractInput } from '../src/interpreter';
 import { fixtureTypeLookups } from './fixture-codec-descriptors';
 import { fixtureDataTypeSupport } from './fixture-data-types';
+import { fixtureGeneratorFunctions } from './fixture-generator-functions';
 import {
   createBuiltinLikeControlMutationDefaults,
   interpretSqlContract,
@@ -43,6 +44,7 @@ export const interpretPostgresSchema = (
     composedExtensionContracts: new Map(),
     createNamespace: createTestSqlNamespace,
     capabilities: { sql: { scalarList: true } },
+    generatorFunctions: fixtureGeneratorFunctions,
     ...interpreterInput,
     // Literal defaults resolve through the column's codec descriptor, as they do in a real stack.
     codecLookup: interpreterInput.codecLookup ?? fixtureTypeLookups.codecLookup,
