@@ -30,6 +30,7 @@ import {
   createInMemoryCacheStore,
 } from '@internal/middleware-cache';
 import { emitContractSpaceArtifacts } from '@internal/migration-tools/spaces';
+import { contractFromJson } from '@internal/postgres/static';
 import type { SqlMiddleware } from '@internal/sql-runtime';
 import postgres from '@internal/target-postgres/control';
 import { isStructuredError } from '@internal/utils/structured-error';
@@ -375,7 +376,11 @@ describe('RLS — role-bound Supabase runtime acceptance', () => {
       const jwksUrl = `http://127.0.0.1:${port}/auth/v1/.well-known/jwks.json`;
 
       try {
-        const db = await supabase<Contract>({ contractJson, url: connectionString, jwksUrl });
+        const db = await supabase({
+          contract: contractFromJson<Contract>(contractJson),
+          url: connectionString,
+          jwksUrl,
+        });
         try {
           const jwtA = await new SignJWT({ sub: userAId, role: 'authenticated' })
             .setProtectedHeader({ alg: 'ES256', kid })
