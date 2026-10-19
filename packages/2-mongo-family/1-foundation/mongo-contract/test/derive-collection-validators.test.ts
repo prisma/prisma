@@ -339,3 +339,93 @@ describe('deriveCollectionValidators', () => {
     });
   });
 });
+
+describe('deriveCollectionValidators for a collection that stores several root models', () => {
+  const userSchema = {
+    bsonType: 'object',
+    required: ['_id', 'email'],
+    properties: { _id: { bsonType: 'objectId' }, email: { bsonType: 'string' } },
+    additionalProperties: false,
+  };
+
+  it('accepts a document of any root model, one anyOf branch per model in name order', () => {
+    const validators = derive({
+      roots: { users: crossRef('User') },
+      models: {
+        User: model(
+          { _id: objectId(), email: scalarField('mongo/string@1') },
+          { storage: { collection: 'users' } },
+        ),
+        Admin: model(
+          { _id: objectId(), level: scalarField('mongo/int32@1') },
+          { storage: { collection: 'users' } },
+        ),
+      },
+    });
+
+    expect(jsonSchemas(validators)).toEqual({
+      users: {
+        bsonType: 'object',
+        anyOf: [
+          {
+            bsonType: 'object',
+            required: ['_id', 'level'],
+            properties: { _id: { bsonType: 'objectId' }, level: { bsonType: 'int' } },
+            additionalProperties: false,
+          },
+          userSchema,
+        ],
+      },
+    });
+  });
+
+  it('gives a root model with variants its own oneOf inside its branch', () => {
+    const validators = derive({
+      roots: { users: crossRef('User') },
+      models: {
+        User: model(
+          { _id: objectId(), email: scalarField('mongo/string@1') },
+          { storage: { collection: 'users' } },
+        ),
+        Task: model(
+          { _id: objectId(), type: scalarField('mongo/string@1') },
+          {
+            storage: { collection: 'users' },
+            discriminator: { field: 'type' },
+            variants: { bug: crossRef('Bug') },
+          },
+        ),
+        Bug: model(
+          { severity: scalarField('mongo/int32@1') },
+          { storage: { collection: 'users' }, base: crossRef('Task') },
+        ),
+        Note: model({ text: scalarField('mongo/string@1') }, { owner: 'User' }),
+      },
+    });
+
+    expect(jsonSchemas(validators)).toEqual({
+      users: {
+        bsonType: 'object',
+        anyOf: [
+          {
+            bsonType: 'object',
+            required: ['_id', 'type'],
+            properties: { _id: { bsonType: 'objectId' }, type: { bsonType: 'string' } },
+            oneOf: [
+              {
+                properties: {
+                  _id: { bsonType: 'objectId' },
+                  type: { enum: ['bug'] },
+                  severity: { bsonType: 'int' },
+                },
+                required: ['severity', 'type'],
+                additionalProperties: false,
+              },
+            ],
+          },
+          userSchema,
+        ],
+      },
+    });
+  });
+});

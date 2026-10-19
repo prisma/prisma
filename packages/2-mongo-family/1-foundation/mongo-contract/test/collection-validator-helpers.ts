@@ -16,7 +16,12 @@ export type Model = CollectionValidatorsInput['models'][string];
 
 export function model(
   fields: Record<string, ContractField>,
-  extra: Partial<Pick<ContractModelBase, 'relations' | 'discriminator' | 'variants'>> = {},
+  extra: Partial<
+    Pick<
+      ContractModelBase,
+      'relations' | 'discriminator' | 'variants' | 'storage' | 'base' | 'owner'
+    >
+  > = {},
 ): Model {
   return { fields, relations: {}, ...extra };
 }

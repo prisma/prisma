@@ -214,7 +214,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function validatorOf(jsonSchema: Record<string, unknown>): MongoValidator {
+export function validatorOf(jsonSchema: Record<string, unknown>): MongoValidator {
   return new MongoValidator({ jsonSchema, validationLevel: 'strict', validationAction: 'error' });
 }
 
@@ -268,16 +268,16 @@ export interface ModelValidatorSources {
 }
 
 /**
- * The validator of a root model's collection: the model's fields and embedded models, and for a model with variants one `oneOf` branch per variant.
+ * The `$jsonSchema` of a root model's documents: the model's fields and embedded models, and for a model with variants one `oneOf` branch per variant.
  */
-export function deriveModelValidator(
+export function deriveModelJsonSchema(
   modelName: string,
   model: ValidatorModel,
   sources: ModelValidatorSources,
-): MongoValidator {
+): Record<string, unknown> {
   const schemaSources = sourcesFor(sources, typeKey('model', modelName));
   if (!model.discriminator || !model.variants) {
-    return validatorOf(deriveObjectSchema(model, schemaSources));
+    return deriveObjectSchema(model, schemaSources);
   }
 
   const variants = Object.entries(model.variants).map(([discriminatorValue, variant]) => {
@@ -285,5 +285,5 @@ export function deriveModelValidator(
     assertDefined(variantModel, `Variant model "${variant.model}" of "${modelName}" is missing`);
     return { discriminatorValue, modelName: variant.model, ...variantModel };
   });
-  return validatorOf(polymorphicSchema(model, model.discriminator.field, variants, schemaSources));
+  return polymorphicSchema(model, model.discriminator.field, variants, schemaSources);
 }

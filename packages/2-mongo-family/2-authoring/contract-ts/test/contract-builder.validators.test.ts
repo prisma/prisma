@@ -131,6 +131,41 @@ describe('mongo defineContract collection validators', () => {
     });
   });
 
+  it('accepts a document of any model stored in a collection', () => {
+    const User = model('User', {
+      collection: 'users',
+      fields: { _id: field.objectId(), email: field.string() },
+    });
+    const Admin = model('Admin', {
+      collection: 'users',
+      fields: { _id: field.objectId(), level: field.int32() },
+    });
+
+    const contract = defineContract({
+      family: mongoFamilyPack,
+      target: mongoTargetPack,
+      models: { User, Admin },
+    });
+
+    expect(collectionsOf(contract).users.validator.jsonSchema).toEqual({
+      bsonType: 'object',
+      anyOf: [
+        {
+          bsonType: 'object',
+          additionalProperties: false,
+          required: ['_id', 'level'],
+          properties: { _id: { bsonType: 'objectId' }, level: { bsonType: 'int' } },
+        },
+        {
+          bsonType: 'object',
+          additionalProperties: false,
+          required: ['_id', 'email'],
+          properties: { _id: { bsonType: 'objectId' }, email: { bsonType: 'string' } },
+        },
+      ],
+    });
+  });
+
   it('reads the BSON type of a codec from the extension packs the contract lists', () => {
     const Place = model('Place', {
       collection: 'places',
