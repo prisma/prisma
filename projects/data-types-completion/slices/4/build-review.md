@@ -4,6 +4,8 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | a | 1 | `dc9e22ab28..e18a2f56eb` | 0 | 1 | 3 | ANOTHER ROUND NEEDED |
 | a | 2 | `e18a2f56eb..bd7aad8b10` | 0 | 0 | 3 | SATISFIED |
+| a | 3 | `cb6e833bed` | 0 | 0 | 0 | SATISFIED |
+| b | 1 | `045561e038`, `f9b24e4a4f`, `d31df461b2` | 0 | 1 | 2 | ANOTHER ROUND NEEDED |
 
 ## Dispatch a, round 1
 
@@ -89,3 +91,63 @@ What is wrong: only the family unit test checks that an introspected column's `s
 Change: add `storedType` to both tests' projections, here or in dispatch b.
 
 Verdict: SATISFIED.
+
+## Dispatch a, round 3
+
+S4-a-R2-1 is fixed: `sqlDataType` hands its checked normal form to `dataType` once. S4-a-R2-3 is fixed: both adapters' introspection tests assert `storedType`. S4-a-R2-2 went further than the round 2 log asked. Both runtime adapters now build their control adapter with the stack's data types, and `createPostgresAdapterWithCodecRegistry` and `createSqliteAdapterWithCodecRegistry` take them as an argument. Neither function, nor either control adapter class, is in a published package's surface, so no upgrade instruction is needed. No test shows a pack's type reaching the runtime adapter, but that adapter only reads the marker, so I raise no finding. No new findings.
+
+Verdict: SATISFIED.
+
+## Dispatch b, round 1
+
+Each numbered item of the brief is built. Every comparison site the brief lists now calls `sqlColumnTypesEqual`, and I found none it missed:
+
+- `SqlColumnIR.isEqualTo`.
+- Both issue planners, whose `columnTypeChanged` is deleted.
+- SQLite `operations/tables.ts`.
+- Both targets' `planner-strategies.ts`.
+- Postgres `safe-widenings.ts`, which now reads `storedType`.
+- Postgres `postgres-migration.ts`, through `writtenColumnType`.
+
+`git grep` finds no remaining comparison of `nativeType` or `resolvedNativeType` between two columns. `pgIsTextLikeNativeType` in the Postgres adapter only renders DDL, which dispatch c covers.
+
+Checks run:
+
+- Build, typecheck and lint: `pnpm build`, root `pnpm typecheck` and per-package `pnpm lint` all pass.
+- Package tests pass for framework-components, sql-contract, schema-ir, the SQL family, both targets, both adapters, pgvector and the CLI.
+- `lint:deps` and `lint:framework-vocabulary` pass.
+- The golden planner test and the two cross-package planner files pass: 780 tests, no DDL change.
+- 16 CLI journey files pass: `cli.db-verify`, greenfield, drift-schema, native-enum-adoption, prisma7-source, data-type-defaults, brownfield-adoption, defaults-read-by-codec, autoincrement on SQLite, multi-step-migration, db-update-workflows, infer-roundtrip-fidelity, date-time-default-canonical-form, bytea-defaults, composite-pk-greenfield and rename-table-migration. That is 52 test files and 138 tests.
+- `db verify` on committed examples: I built each example's database from its own migrations or contract on a fresh database (`wip/s4/review-b1/examples-verify.mjs`) and ran `db verify`. Four examples are clean: `prisma-8-demo` (Postgres with pgvector, through `db migrate`), `react-router-demo`, `prisma-8-cloudflare-worker` and `prisma-8-demo-sqlite` (each through `db init`). The local setup could not check four others, and none of these failures comes from the code under review:
+  - `retail-store` is a Mongo project.
+  - The local test server has no PostGIS, so `prisma-8-postgis-demo` could not be checked.
+  - `supabase` and `paradedb-demo` stop with a contract-space layout error before reaching verify.
+
+The implementer's decisions:
+
+1. **The mismatch text leaves out the column.** This holds. The text reaches the user only through `issueLabel` in `cli/src/orm/db/verification.ts`, which prints `mismatch: <path>. <explanation>`. That covers `db verify` and `db sign` in human output, and the JSON diagnostic's `meta.issues` and `why`. `db update` and `migration plan` never print the text: their conflicts carry a location, and a type change becomes an `ALTER` operation.
+2. **Default parsing takes the list flag.** This holds. `readPostgresDefault` read the type only for the `[]` suffix and the `box` check. The numeric check (`NUMBER_TYPE_PATTERN`) reads the cast inside the default expression, not the column's type. `box` has no data type in the stack, so a `box[]` column is never claimed, cannot be a contract column, and makes `contract infer` fail first. Removing the check loses nothing. SQLite still reads the declared text, which is correct, because SQLite derives a column's type affinity from that text.
+3. **The copies that dropped fields are fixed.** The two `withColumnName` functions and the SQLite actual-schema rebuild are fixed. The rest of my sweep found no other copy that loses `storedType`. Every other table or schema rebuild passes existing `SqlColumnIR` instances through unchanged (`SqlTableIR`, `PostgresTableSchemaNode`, `infer-foreign-keys`, `padActualNamespaces`). The defect class is still open, though: see S4-b-R1-1.
+4. **The test helper is copied.** See S4-b-R1-2.
+
+### S4-b-R1-1 (should-fix): columns are copied by listing fields by hand, in two places
+
+Where: `packages/3-targets/3-targets/postgres/src/core/migrations/working-schema.ts` and `packages/3-targets/3-targets/sqlite/src/core/migrations/working-schema.ts`, both `withColumnName`. Also the fallback in `packages/3-targets/3-targets/sqlite/src/core/migrations/diff-database-schema.ts` `withRecordKeyNames`, which spreads a `SqlColumnIR` instance whose name differs from its key, and so drops every non-enumerable field.
+
+What is wrong: this dispatch had to fix both lists, because they had silently dropped the new fields. Any field added to `SqlColumnIRInput` later will be dropped the same way. A dropped `storedType` now produces a false type mismatch, and from that a planned `ALTER COLUMN TYPE`.
+
+Change: add one `SqlColumnIR` method in schema-ir that returns the column under another name, copying every field. Use it at all three sites. Test it by checking that every own property of the copy, enumerable or not, equals the original's except `name`.
+
+### S4-b-R1-2 (low): `introspectedColumn` is written three times
+
+Where: `packages/2-sql/1-core/contract/test/introspected-column.ts`, `packages/3-targets/3-targets/postgres/test/postgres-type-lookups.ts` and `packages/3-targets/3-targets/sqlite/test/sqlite-test-types.ts`. The three function bodies are identical. Five other test files already wrap the first one by relative import.
+
+Change: keep the one in `contract/test`, and make the two target helpers wrappers that only default `dataTypes`, as the five other files do. Where a column has a `reportedType`, the helper could call the production `resolveIntrospectedColumnType`, so the tests exercise the code the adapters run.
+
+### S4-b-R1-3 (low): the `SqlColumnIR` class comment describes the old comparison
+
+Where: `packages/2-sql/1-core/schema-ir/src/ir/sql-column-ir.ts`, the class doc comment. It still says equality uses `resolvedNativeType` and falls back to raw fields.
+
+Change: say that `isEqualTo` compares the type with `sqlColumnTypesEqual` and compares nullability.
+
+Verdict: ANOTHER ROUND NEEDED, for S4-b-R1-1.
