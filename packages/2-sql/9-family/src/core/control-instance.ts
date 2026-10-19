@@ -70,6 +70,7 @@ import type {
   SqlControlExtensionDescriptor,
 } from './migrations/types';
 import { sqlOperationsToPreview } from './operation-preview';
+import { resolveIntrospectedTypes } from './resolve-introspected-types';
 import { collectSupportedCodecTypeIds } from './verify';
 
 function missingDescriptorOperationError(targetId: string, operation: string): StructuredError {
@@ -493,6 +494,7 @@ export function createSqlFamilyInstance<TTargetId extends string>(
   assertNoCrossSpaceFkReverseReferences(extensions);
 
   const { codecTypeImports, extensionIds } = stack;
+  const declaredDataTypes = stack.declaredDataTypes.map(({ type }) => type);
 
   // Lazily construct the control adapter on first use, then memoize it.
   // Merely building a family instance must not instantiate the adapter —
@@ -918,7 +920,10 @@ export function createSqlFamilyInstance<TTargetId extends string>(
       readonly driver: SqlControlDriverInstance<string>;
       readonly contract?: unknown;
     }): Promise<SqlSchemaIRNode> {
-      return getControlAdapter().introspect(options.driver, options.contract);
+      return resolveIntrospectedTypes(
+        await getControlAdapter().introspect(options.driver, options.contract),
+        declaredDataTypes,
+      );
     },
 
     async inferPslContract(schemaIR: SqlSchemaIRNode): Promise<PslDocumentAst> {
