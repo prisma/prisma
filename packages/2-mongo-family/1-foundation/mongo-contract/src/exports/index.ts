@@ -6,6 +6,12 @@ export type {
 } from '@internal/framework-components/runtime';
 export { RelationKeys } from '@internal/framework-components/runtime';
 export { buildMongoStorage } from '../build-mongo-storage';
+export type {
+  FieldOwner,
+  MongoContractRefusal,
+  MongoContractRefusalsInput,
+} from '../contract-refusals';
+export { mongoContractRefusalsOf } from '../contract-refusals';
 export {
   createMongoContractSchema,
   createMongoNamespaceEnvelopeSchema,
@@ -52,8 +58,6 @@ export {
   deriveCollectionValidators,
 } from '../derive-collection-validators';
 export type { FieldValueSets } from '../derive-json-schema';
-export type { DocumentIdRefusal } from '../document-id-refusal';
-export { documentIdRefusalOf } from '../document-id-refusal';
 export type { FieldBsonTypeRefusal } from '../field-bson-type-refusal';
 export { fieldBsonTypeRefusalOf } from '../field-bson-type-refusal';
 export { buildMongoNamespace } from '../ir/build-mongo-namespace';

@@ -1,7 +1,39 @@
 import type { ContractRelation } from '@internal/contract/types';
 import { structuredError } from '@internal/utils/structured-error';
+import { embeddedVariantsReason } from './contract-refusals';
 import type { MongoContract, MongoModelDefinition } from './contract-types';
-import { resolveMongoToOneRelationFields } from './relation-fields';
+import { isEmbedRelation, resolveMongoToOneRelationFields } from './relation-fields';
+import { validatorRootShapesOf } from './validator-shapes';
+
+function requiresObjectIdDocumentId(jsonSchema: unknown): boolean {
+  const roots = validatorRootShapesOf(jsonSchema);
+  return (
+    roots.length > 0 &&
+    roots.every((root) => {
+      const id = root.properties['_id'];
+      return (
+        root.required.includes('_id') &&
+        typeof id === 'object' &&
+        id !== null &&
+        'bsonType' in id &&
+        id.bsonType === 'objectId'
+      );
+    })
+  );
+}
+
+function documentIdErrors(storage: MongoContract['storage']): string[] {
+  return Object.values(storage.namespaces).flatMap((namespace) =>
+    Object.entries(namespace.entries['collection'] ?? {}).flatMap(([name, collection]) =>
+      collection.validator === undefined ||
+      requiresObjectIdDocumentId(collection.validator.jsonSchema)
+        ? []
+        : [
+            `Collection "${name}": its validator must require _id as BSON type objectId, for every model the collection stores, since MongoDB adds an objectId _id to every document inserted without one`,
+          ],
+    ),
+  );
+}
 
 function formatCrossRef(crossRef: { readonly namespace: string; readonly model: string }): string {
   return `${crossRef.namespace}.${crossRef.model}`;
@@ -52,6 +84,12 @@ export function validateMongoStorage(contract: MongoContract): void {
         const targetModel = models[relation.to.model];
         const targetLabel = formatCrossRef(relation.to);
 
+        if (isEmbedRelation(relation) && targetModel?.variants !== undefined) {
+          errors.push(
+            `Relation "${modelName}.${relName}" ${embeddedVariantsReason(relation.to.model)}`,
+          );
+        }
+
         if (targetModel?.owner) {
           if (targetModel.owner !== modelName) {
             errors.push(
@@ -93,6 +131,8 @@ export function validateMongoStorage(contract: MongoContract): void {
       }
     }
   }
+
+  errors.push(...documentIdErrors(contract.storage));
 
   if (errors.length > 0) {
     throw structuredError(
