@@ -2,28 +2,28 @@
 changes:
   - id: type-lookups-one-framework-type
     summary: |
-      `SqlTypeLookups` (from the SQL contract's `data-type` entry point) and `MongoTypeLookups` (from the Mongo contract's `data-type` entry point) are removed. Use `TypeLookups` from `@prisma/orm-framework/components/codec`, the same pair of `codecLookup` and `dataTypeLookup`.
+      `SqlTypeLookups` (from `@prisma/orm-family-sql/contract/data-type`) and `MongoTypeLookups` (from `@prisma/orm-family-mongo/contract/data-type`) are removed. Use `TypeLookups` from `@prisma/orm-framework/components/codec`, the same pair of `codecLookup` and `dataTypeLookup`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
         - '\b(?:SqlTypeLookups|MongoTypeLookups)\b'
   - id: type-name-normalisers-removed
     summary: |
-      `normalizeSchemaNativeType` (Postgres target `native-type-normalizer` entry point and Postgres adapter `control` entry point) and `normalizeSqliteNativeType` (SQLite adapter `control` entry point) are removed. Columns are compared by their data type and its parameters, so no type name needs normalising.
+      `normalizeSchemaNativeType` (from `@prisma/orm-postgres/target/native-type-normalizer` and `@prisma/orm-postgres/adapter/control`) and `normalizeSqliteNativeType` (from `@prisma/orm-sqlite/adapter/control`) are removed. Columns are compared by their data type and its parameters, so no type name needs normalising.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
         - '\b(?:normalizeSchemaNativeType|normalizeSqliteNativeType)\b'
   - id: introspected-type-text
     summary: |
-      In the Postgres target's `native-type-normalizer` entry point, `introspectedNativeType` is renamed `introspectedTypeText` and `IntrospectedNativeType` is renamed `IntrospectedTypeText`; its result holds `typeText` (the type the database reports) and `many`, and no `resolvedNativeType`. `CatalogColumnType.dataType` is renamed `informationSchemaType`.
+      In `@prisma/orm-postgres/target/native-type-normalizer`, `introspectedNativeType` is renamed `introspectedTypeText` and `IntrospectedNativeType` is renamed `IntrospectedTypeText`; its result holds `typeText` (the type the database reports) and `many`, and no `resolvedNativeType`. `CatalogColumnType.dataType` is renamed `informationSchemaType`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
         - '\b(?:introspectedNativeType|IntrospectedNativeType|CatalogColumnType)\b'
   - id: schema-ir-column-type-text
     summary: |
-      `SqlColumnIR` and `SqlColumnIRInput` (`@prisma/orm-family-sql/schema-ir/types`): `nativeType` is renamed `typeText`, and `resolvedNativeType` and `codecBaseNativeType` are removed. A column's type is its `dataType`, `storedType` and `typeParams`; `typeText` is for display only.
+      `SqlColumnIR` and `SqlColumnIRInput` (`@prisma/orm-family-sql/schema-ir/types`): `nativeType` is renamed `typeText`, and `resolvedNativeType` and `codecBaseNativeType` are removed. A column's type is its `dataType`, `storedType` and `typeParams`; `typeText` is for display only. A column built by hand compares equal to another only when it has `dataType`, `storedType` and `typeParams`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
@@ -31,7 +31,7 @@ changes:
         - '(?<![\s\S])(?=[\s\S]*\bSqlColumnIR)[\s\S]*\bnativeType\b'
   - id: default-resolver-takes-the-column
     summary: |
-      A `DefaultResolver` receives the column, `{ nativeType, many }`, as its second argument instead of a type name with a `[]` suffix for a list, and `readPostgresDefault(raw, many)` takes whether the column is a list instead of a type name.
+      A `DefaultResolver` (`@prisma/orm-family-sql/family/control`) receives the column, `{ typeText, many }`, as its second argument instead of a type name with a `[]` suffix for a list, and `readPostgresDefault(raw, many)` (`@prisma/orm-postgres/target/default-normalizer`) takes whether the column is a list instead of a type name.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
@@ -39,7 +39,7 @@ changes:
         - '\breadPostgresDefault\s*\('
   - id: alter-type-postcheck-by-data-type
     summary: |
-      In the Postgres target's `planner-sql-checks` entry point, `buildExpectedFormatType` and `alterTypeCheckText` are removed. `alterTypeCheck(type, dataTypes, where)` returns how the `ALTER COLUMN TYPE` postcheck recognises the new type: `{ kind: 'catalog-text', text }`, the text `format_type` prints, or for an enum `{ kind: 'identity', typeName, many }`, checked with `to_regtype` whatever schema the enum is in.
+      In `@prisma/orm-postgres/target/planner-sql-checks`, `buildExpectedFormatType` and `alterTypeCheckText` are removed. `alterTypeCheck(type, dataTypes, where)` returns how the `ALTER COLUMN TYPE` postcheck recognises the new type, a `ColumnTypeCheck`: `{ kind: 'catalog-text', text }`, the text `format_type` prints, or for an enum `{ kind: 'identity', typeName, many }`, checked with `to_regtype` whatever schema the enum is in. The `checkType` field of `AddColumnCall`, `AlterColumnTypeCall`, `AddRequiredColumnToEmptyTableCall` and `AddColumnWithTemporaryDefaultCall` (`@prisma/orm-postgres/target/op-factory-call`) is now a `ColumnTypeCheck` instead of a string.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
@@ -57,7 +57,7 @@ const check = alterTypeCheck('"app"."status"', dataTypes, where);
 // { kind: 'identity', typeName: '"app"."status"', many: false }
 ```
 
-A check of kind `catalog-text` holds the text `buildExpectedFormatType` gave for the same type.
+A check of kind `catalog-text` holds the text `buildExpectedFormatType` gave for the same type. Code that read `call.checkType` as a string reads `call.checkType.text` for a `catalog-text` check and `call.checkType.typeName` for an `identity` check.
 
 ## `type-lookups-one-framework-type`
 
@@ -102,10 +102,21 @@ const { typeText, many } = introspectedTypeText({
 new SqlColumnIR({ name: 'id', nativeType: 'int4', nullable: false, resolvedNativeType: 'int4' });
 
 // After
-new SqlColumnIR({ name: 'id', typeText: 'int4', nullable: false });
+import { pgInt4 } from '@prisma/orm-postgres/target/data-types';
+
+new SqlColumnIR({
+  name: 'id',
+  typeText: 'int4',
+  nullable: false,
+  dataType: pgInt4,
+  storedType: pgInt4,
+  typeParams: {},
+});
 ```
 
-Read `column.typeText` where you read `column.nativeType`. Code that compared `resolvedNativeType` compares types with `sqlColumnTypesEqual` instead. Code that read `codecBaseNativeType` to write DDL writes the type from `column.storedType` and the parameters in `column.codecRef.typeParams`, with `renderSqlTypeName` from the SQL contract's `data-type` entry point.
+A column with no `storedType` is one no data type claims, and it never compares equal to another, so a column a test builds by hand to compare needs `dataType`, `storedType` and `typeParams`: the data type, the type it is stored as (the same one unless that type is stored as another), and the type's parameters in normal form, such as `{ precision: 10, scale: 0 }` for `numeric(10)`.
+
+Read `column.typeText` where you read `column.nativeType`. Code that compared `resolvedNativeType` compares types with `sqlColumnTypesEqual` instead. Code that read `codecBaseNativeType` to write DDL writes the type from `column.storedType` and the parameters in `column.codecRef.typeParams`, with `renderSqlTypeName` from `@prisma/orm-family-sql/contract/data-type`.
 
 ## `default-resolver-takes-the-column`
 
