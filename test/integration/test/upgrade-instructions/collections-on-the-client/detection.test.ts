@@ -42,6 +42,19 @@ describe.each(['app', 'extension'] as const)('the %s detection', (audience) => {
   });
 
   it.each([
+    [
+      'a method definition named orm',
+      'class Facade {\n  orm({ collections }) {\n    return collections;\n  }\n}',
+    ],
+    [
+      "another library's orm function",
+      "import { orm } from 'some-other-library';\n\norm({ collections });",
+    ],
+  ])('finds %s, which the agent inspects and skips', (_name, content) => {
+    expect(detects(content)).toBe(true);
+  });
+
+  it.each([
     ['the client option', 'postgres({ contract, url, collections: { Post: PostCollection } })'],
     ['an ORM without classes', 'orm({ runtime, context })'],
     ['another function', 'mongoOrm({ contract, collections })'],
