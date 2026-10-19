@@ -3,7 +3,6 @@ import {
   type ContractField,
   type ContractReferenceRelation,
   type ContractValueObject,
-  domainModelsAtDefaultNamespace,
   domainValueObjectsAtDefaultNamespace,
   type PlanMeta,
 } from '@internal/contract/types';
@@ -211,6 +210,16 @@ const MEMBERSHIP_OPERATORS: ReadonlySet<string> = new Set(['$in', '$nin']);
 
 type ValuePurpose = 'write' | 'filter';
 
+function modelOf(contract: MongoContract, modelName: string): MongoModelDefinition {
+  const model = mongoModels(contract)[modelName];
+  if (model === undefined) {
+    throw ormError('ORM.MODEL_UNKNOWN', `Unknown model: "${modelName}".`, {
+      meta: { model: modelName },
+    });
+  }
+  return model;
+}
+
 function resolveCollectionName(model: MongoModelDefinition, modelName: string): string {
   return model.storage.collection ?? modelName;
 }
@@ -275,21 +284,14 @@ class MongoCollectionImpl<
     this.#executor = executor;
     this.#mutationDefaults = mutationDefaults;
     this.#enums = enums;
-    const model = blindCast<
-      MongoModelDefinition,
-      'modelName is constrained to Mongo contract model keys but namespace lookup erases storage type'
-    >(domainModelsAtDefaultNamespace(contract.domain)[modelName]);
-    this.#collectionName = resolveCollectionName(model, modelName);
+    this.#collectionName = resolveCollectionName(modelOf(contract, modelName), modelName);
     this.#state = emptyCollectionState();
   }
 
   variant<V extends DiscriminatorValues<TContract, ModelName>>(
     value: V,
   ): MongoCollection<TContract, ModelName, TIncludes, V> {
-    const model = blindCast<
-      MongoModelDefinition | undefined,
-      'Mongo contract model lookup preserves target storage metadata erased by the namespace helper'
-    >(domainModelsAtDefaultNamespace(this.#contract.domain)[this.#modelName]);
+    const model = mongoModels(this.#contract)[this.#modelName];
     const discriminator = model?.discriminator;
     const selectedValue = this.#variantValue;
 
@@ -380,10 +382,7 @@ class MongoCollectionImpl<
   include<K extends ReferenceRelationKeys<TContract, ModelName> & string>(
     relationName: K,
   ): MongoCollection<TContract, ModelName, TIncludes & Record<K, true>, TVariantValue> {
-    const model = blindCast<
-      MongoModelDefinition,
-      'modelName is constrained to Mongo contract model keys but namespace lookup erases storage type'
-    >(domainModelsAtDefaultNamespace(this.#contract.domain)[this.#modelName]);
+    const model = modelOf(this.#contract, this.#modelName);
     const relation = model.relations?.[relationName];
     if (!relation) {
       throw ormError(
@@ -861,10 +860,7 @@ class MongoCollectionImpl<
 
   #variantModelName(): string | undefined {
     if (this.#variantValue === undefined) return undefined;
-    const model = blindCast<
-      MongoModelDefinition | undefined,
-      'Mongo contract model lookup preserves target storage metadata erased by the namespace helper'
-    >(domainModelsAtDefaultNamespace(this.#contract.domain)[this.#modelName]);
+    const model = mongoModels(this.#contract)[this.#modelName];
     return model?.variants?.[this.#variantValue]?.model;
   }
 
@@ -936,18 +932,12 @@ class MongoCollectionImpl<
   }
 
   #modelWithVariantFields(): MongoModelDefinition | undefined {
-    const models = domainModelsAtDefaultNamespace(this.#contract.domain);
-    const model = blindCast<
-      MongoModelDefinition | undefined,
-      'Mongo contract model lookup preserves target storage metadata erased by the namespace helper'
-    >(models[this.#modelName]);
+    const models = mongoModels(this.#contract);
+    const model = models[this.#modelName];
     const variantRef =
       this.#variantValue === undefined ? undefined : model?.variants?.[this.#variantValue];
     if (model === undefined || variantRef === undefined) return model;
-    const variant = blindCast<
-      MongoModelDefinition | undefined,
-      'a variant reference names the variant model in the same namespace'
-    >(models[variantRef.model]);
+    const variant = models[variantRef.model];
     return variant === undefined
       ? model
       : {
@@ -1426,10 +1416,7 @@ class MongoCollectionImpl<
 
   #injectDiscriminator(data: Record<string, unknown>): Record<string, unknown> {
     if (!this.#variantValue) return data;
-    const model = blindCast<
-      MongoModelDefinition | undefined,
-      'Mongo contract model lookup preserves target storage metadata erased by the namespace helper'
-    >(domainModelsAtDefaultNamespace(this.#contract.domain)[this.#modelName]);
+    const model = mongoModels(this.#contract)[this.#modelName];
     if (!model?.discriminator) return data;
     return { ...data, [model.discriminator.field]: this.#variantValue };
   }
