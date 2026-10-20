@@ -30,6 +30,7 @@ import {
 const classifySqliteNumber = createNumberClassifier({
   integers: [{ type: sqliteInteger.id, form: 'text', ...signedRange(64) }],
   fraction: { type: sqliteReal.id, form: 'number' },
+  words: { type: sqliteReal.id, form: 'text' },
 });
 
 function printNumber(value: JsonValue): string {

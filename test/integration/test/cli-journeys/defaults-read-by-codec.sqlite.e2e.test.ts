@@ -1,5 +1,5 @@
 /**
- * Journey: a default on a column of every built-in SQLite type that has a codec and a PSL default is written by the CLI, read back from the database by the column's codec, and compared as a value. A second model holds edge values: bytes and text with quotes and backslashes, empty bytes, a very small float, years outside 1 to 9999, an offset, a JSON document that is a string, and the smallest integer. `db verify` reports no issue. A default changed behind the CLI's back is the one issue it reports.
+ * Journey: a default on a column of every built-in SQLite type that has a codec and a PSL default is written by the CLI, read back from the database by the column's codec, and compared as a value. A second model holds edge values: bytes and text with quotes and backslashes, empty bytes, a very small float, years outside 1 to 9999, an offset, a JSON document that is a string, the smallest integer, and both infinities. `db verify` reports no issue. A default changed behind the CLI's back is the one issue it reports.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
@@ -54,6 +54,8 @@ model Edge {
   offset     DateTime     @default(${tagged('datetime', '2024-01-01T05:30:00.5+05:30')})
   docString  Json         @default(${tagged('json', '"42"')})
   huge       BigInt       @default(-9223372036854775808)
+  up         Float        @default(Infinity)
+  down       Float        @default(-Infinity)
 
   @@map("edge")
 }

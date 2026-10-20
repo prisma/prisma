@@ -129,6 +129,7 @@ export const brokenCodec = fakeCodec(BROKEN_CODEC_ID, foldingTextType, () => {
 });
 
 export const UNEQUAL_CODEC_ID = 'test/unequal@1';
+export const UNEQUAL_MANY_BSON_TYPES_CODEC_ID = 'test/unequal-many-bson-types@1';
 
 export const dataTypeIdByCodecId: Record<string, string> = {
   [TEXT_CODEC_ID]: 'test/text',
@@ -141,6 +142,7 @@ export const dataTypeIdByCodecId: Record<string, string> = {
   [BROKEN_CODEC_ID]: 'test/folding-text',
   'test/orphan@1': 'test/unregistered',
   [UNEQUAL_CODEC_ID]: 'test/json',
+  [UNEQUAL_MANY_BSON_TYPES_CODEC_ID]: 'test/mongo-json',
   [LENIENT_OBJECT_CODEC_ID]: 'test/json',
   [ARRAY_CODEC_ID]: 'test/array',
 };
@@ -173,7 +175,8 @@ export const testCodecLookup: CodecLookupWithDescriptors = {
   descriptorFor(id: string) {
     const dataTypeId = dataTypeIdByCodecId[id];
     if (dataTypeId === undefined) return undefined;
-    const traits = id === UNEQUAL_CODEC_ID ? [] : ['equality'];
+    const traits =
+      id === UNEQUAL_CODEC_ID || id === UNEQUAL_MANY_BSON_TYPES_CODEC_ID ? [] : ['equality'];
     return { codecId: id, dataType: dataTypeId, traits } as unknown as AnyCodecDescriptor;
   },
   renderOutputTypeFor: () => undefined,

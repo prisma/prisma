@@ -1,4 +1,6 @@
 import type { ContractEnum } from '@internal/contract/types';
+import type { SqlPslBuildContext } from '@internal/family-sql/control';
+import { writeDefaultLiteral } from '@internal/family-sql/psl-build';
 import type {
   PslExtensionBlock,
   PslExtensionBlockPrintEntry,
@@ -11,23 +13,32 @@ import { SYNTHETIC_SPAN } from '../psl-build/psl-literals';
 import {
   refuseNativeEnumControl,
   refuseNativeEnumWithoutValueSet,
+  refuseUnwritableEnumMember,
   refuseUnwritableName,
 } from './refusals';
 
 /**
- * One `enum <name> { … }` block per domain enum, each member written as
- * `Name = <value>` under `@@type`. The PSL source reads a member value as JSON,
- * so the value is written as JSON text.
+ * One `enum <name> { … }` block per domain enum, each member written as `Name = <value>` under
+ * `@@type`. The PSL source reads a member as a written value of the enum codec's data type, so each
+ * member is written as the PSL literal that type reads back as the stored value, as a default is.
  */
 export function buildDomainEnumBlocks(
   enums: Readonly<Record<string, ContractEnum>>,
+  context: Pick<SqlPslBuildContext, 'dataTypes' | 'codecLookup'>,
 ): readonly PslExtensionBlock[] {
   return Object.entries(enums).map(([name, domainEnum]): PslExtensionBlock => {
     refuseUnwritableName('enum', name);
     const parameters = Object.fromEntries(
       domainEnum.members.map((member): [string, PslExtensionBlockPrintEntry] => {
         refuseUnwritableName('enum member', member.name);
-        return [member.name, { expression: JSON.stringify(member.value), span: SYNTHETIC_SPAN }];
+        const written = writeDefaultLiteral(member.value, {
+          dataTypes: context.dataTypes,
+          columnCodec: context.codecLookup.descriptorFor(domainEnum.codecId),
+        });
+        if (written === undefined) {
+          refuseUnwritableEnumMember({ enumName: name, member: member.name, value: member.value });
+        }
+        return [member.name, { expression: written, span: SYNTHETIC_SPAN }];
       }),
     );
     return {

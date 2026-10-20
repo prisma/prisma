@@ -5,7 +5,14 @@ import type {
   DataTypeParams,
   DataTypeValue,
 } from '@internal/framework-components/codec';
-import { floatToJson, readJsonFloat, renderTsLiteral } from '@internal/framework-components/codec';
+import {
+  decimalTextBigintLiteral,
+  decimalTextNumberLiteral,
+  floatNumberLiteral,
+  floatToJson,
+  readJsonFloat,
+  renderTsLiteral,
+} from '@internal/framework-components/codec';
 import {
   type MongoCodec,
   type MongoCodecRegistry,
@@ -28,8 +35,6 @@ import {
   decimal128Decode,
   decimal128Encode,
   decimal128ToJson,
-  decimalTextBigintLiteral,
-  decimalTextNumberLiteral,
   doubleEncode,
   int32Encode,
   int32ToJson,
@@ -257,6 +262,7 @@ function descriptorFor<Id extends string>(
     /** Builds the codec for a column's parameters, for a codec whose data type has parameters. */
     readonly withParams?: (params: DataTypeParams) => MongoCodec<Id, readonly CodecTrait[]>;
     readonly renderValueLiteral?: CodecDescriptor['renderValueLiteral'];
+    readonly keepsWrittenForm?: true;
   },
 ): CodecDescriptor {
   return {
@@ -279,6 +285,7 @@ function descriptorFor<Id extends string>(
       return () => built;
     }),
     ...ifDefined('renderValueLiteral', metadata.renderValueLiteral),
+    ...ifDefined('keepsWrittenForm', metadata.keepsWrittenForm),
   };
 }
 
@@ -295,7 +302,7 @@ export const mongoCodecDescriptors: ReadonlyArray<CodecDescriptor> = [
   }),
   descriptorFor(mongoDoubleCodec, {
     traits: ['equality', 'order', 'numeric'],
-    renderValueLiteral: (value) => (typeof value === 'number' ? String(value) : undefined),
+    renderValueLiteral: floatNumberLiteral,
   }),
   descriptorFor(mongoInt32Codec, {
     traits: ['equality', 'order', 'numeric'],
@@ -322,6 +329,7 @@ export const mongoCodecDescriptors: ReadonlyArray<CodecDescriptor> = [
   }),
   descriptorFor(mongoDecimal128Codec, {
     traits: ['equality', 'order', 'numeric'],
+    keepsWrittenForm: true,
   }),
   descriptorFor(mongoBinaryCodec, {
     traits: ['equality'],

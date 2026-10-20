@@ -470,8 +470,12 @@ describe('exactRewrite', () => {
     ).toBeUndefined();
   });
 
-  it('offers nothing for a receiving type without a tag', () => {
-    expect(exactRewrite(support, at(big), { kind: 'string', text: '8' })).toBeUndefined();
+  it('offers the text unquoted for a receiving type that takes it as a number', () => {
+    expect(exactRewrite(support, at(big), { kind: 'string', text: '8' })).toBe('8');
+  });
+
+  it('offers nothing for quoted text that is not a number the receiving type takes', () => {
+    expect(exactRewrite(support, at(big), { kind: 'string', text: 'eight' })).toBeUndefined();
   });
 
   it('offers nothing when the printed literal would not read back as the same text', () => {

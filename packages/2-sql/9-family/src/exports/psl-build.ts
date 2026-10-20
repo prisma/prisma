@@ -14,7 +14,7 @@ export type {
   DefaultMappingOptions,
   DefaultMappingResult,
 } from '../core/psl-build/default-mapping';
-export { mapDefault } from '../core/psl-build/default-mapping';
+export { mapDefault, writeDefaultLiteral } from '../core/psl-build/default-mapping';
 export type {
   GeneratorCallRefusal,
   GeneratorCallsResult,

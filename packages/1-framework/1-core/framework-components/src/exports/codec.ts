@@ -69,6 +69,7 @@ export {
   schemaKeysAllowing,
 } from '../shared/data-type';
 export { DATA_TYPE_ID_PATTERN } from '../shared/data-type-id-pattern';
+export { decimalTextEqualityKey } from '../shared/decimal-text-equality';
 export type { BigIntRange, IntegerRange } from '../shared/json-readers';
 export {
   floatToJson,
@@ -86,7 +87,12 @@ export {
   SAFE_INTEGER_BIGINT_RANGE,
   SAFE_INTEGER_RANGE,
 } from '../shared/json-readers';
-export { renderTsLiteral } from '../shared/render-ts-literal';
+export {
+  decimalTextBigintLiteral,
+  decimalTextNumberLiteral,
+  floatNumberLiteral,
+  renderTsLiteral,
+} from '../shared/render-ts-literal';
 export {
   CONTRACT_CODEC_DESCRIPTOR_MISSING,
   codecForRef,

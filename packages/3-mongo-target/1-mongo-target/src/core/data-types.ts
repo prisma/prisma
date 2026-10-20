@@ -6,6 +6,7 @@
 
 import type { DataType } from '@internal/framework-components/codec';
 import {
+  decimalTextEqualityKey,
   readJsonBoolean,
   readJsonFloat,
   readJsonString,
@@ -72,6 +73,7 @@ export const mongoInt64 = mongoDataType('mongo/int64', {
 });
 export const mongoDecimal128 = mongoDataType('mongo/decimal128', {
   read: (json) => readDecimal128Json('mongo/decimal128', json),
+  equalityKey: decimalTextEqualityKey,
   bsonTypes: ['decimal'],
 });
 export const mongoBinary = mongoDataType('mongo/binary', {

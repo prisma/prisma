@@ -375,7 +375,7 @@ model Post {
     );
   });
 
-  it('a non-JSON member value is rejected by the shared grammar, not by lowering', () => {
+  it('a member value that is not a literal is rejected by the shared grammar, not by lowering', () => {
     const result = interpret(`
 enum Priority {
   @@type("pg/text@1")
@@ -390,8 +390,7 @@ model Post {
     expect(result.failure.diagnostics).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          message:
-            'Expected one of: string | number | boolean | null | JSON value[] | { [key]: JSON value }',
+          message: 'Expected one of: string | number | boolean | tag`...`',
         }),
       ]),
     );
@@ -400,7 +399,7 @@ model Post {
     );
   });
 
-  it('codec-rejected member value emits diagnostic', () => {
+  it("a member value its codec's data type has no cast from emits a diagnostic", () => {
     const result = interpret(`
 enum Priority {
   @@type("pg/text@1")
@@ -413,7 +412,7 @@ model Post {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([expect.objectContaining({ code: 'PSL_EXTENSION_INVALID_VALUE' })]),
+      expect.arrayContaining([expect.objectContaining({ code: 'PSL_VALUE_TYPE_INCOMPATIBLE' })]),
     );
   });
 

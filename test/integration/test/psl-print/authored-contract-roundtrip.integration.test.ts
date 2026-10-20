@@ -329,6 +329,79 @@ model Tagged {
 `,
   },
   {
+    name: 'enum members that are not text: numbers, NaN and infinities, dates and times, an interval, an address, a uuid, and bare members',
+    schema: `enum Level {
+  @@type("pg/int4@1")
+  Low  = 1
+  High = 2
+}
+
+enum Ratio {
+  @@type("pg/numeric@1")
+  Half  = 0.5
+  Whole = 1.50
+}
+
+enum Reading {
+  @@type("pg/float8@1")
+  Nan      = NaN
+  Up       = Infinity
+  Down     = -Infinity
+  Fraction = 2.25
+}
+
+enum Launch {
+  @@type("pg/date-temporal@1")
+  First = date\`2024-01-02\`
+}
+
+enum Instant {
+  @@type("pg/timestamptz-temporal@1")
+  Start = timestamptz\`2024-01-02T03:04:05.5Z\`
+}
+
+enum Slot {
+  @@type("pg/time-temporal@1")
+  Morning = time\`03:04:05.5\`
+}
+
+enum Span {
+  @@type("pg/interval@1")
+  Day  = interval\`P1D\`
+  Hour = interval\`PT1H\`
+}
+
+enum Network {
+  @@type("pg/inet@1")
+  Private = "10.0.0.0/8"
+}
+
+enum Key {
+  @@type("pg/uuid@1")
+  Only = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+}
+
+enum Color {
+  Red
+  Green
+}
+
+model Sample {
+  id      Int      @id
+  level   Level
+  ratio   Ratio
+  reading Reading
+  launch  Launch
+  instant Instant
+  slot    Slot
+  span    Span
+  network Network
+  key     Key
+  color   Color
+}
+`,
+  },
+  {
     name: 'a model in the unbound namespace',
     schema: `namespace unbound {
   model Setting {
