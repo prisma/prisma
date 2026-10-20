@@ -7,15 +7,11 @@ import type {
   WrittenScalar,
 } from '@internal/framework-components/authoring';
 import {
-  admittedForms,
-  castTypedValue,
   describeAdmittedForms,
-  describeRefusal,
-  exactRewrite,
   instantiateAuthoringFieldPreset,
   instantiateAuthoringTypeConstructor,
   isAuthoringTypeConstructorDescriptor,
-  readWrittenValue,
+  readWrittenValueAs,
   validateAuthoringHelperArguments,
   validateAuthoringTypeParams,
 } from '@internal/framework-components/authoring';
@@ -64,21 +60,8 @@ function readValueArgument(
   if (written === undefined) {
     return refuse(`Expected ${describeAdmittedForms(dataTypes, dataType)}`);
   }
-  const forms = admittedForms(dataTypes, [dataType]);
-  const read = readWrittenValue(dataTypes, written);
-  if (!read.ok) {
-    return refuse(describeRefusal(read.failure, dataTypes, { forms, rewrite: undefined }).message);
-  }
-  const cast = castTypedValue(dataTypes, dataType, {}, read.value);
-  if (!cast.ok) {
-    const rewrite = exactRewrite(
-      dataTypes,
-      { receivingType: dataType, receivingParams: {} },
-      written,
-    );
-    return refuse(describeRefusal(cast.failure, dataTypes, { forms, rewrite }).message);
-  }
-  return cast.value.value;
+  const read = readWrittenValueAs(dataTypes, dataType, written);
+  return read.ok ? read.value.value : refuse(read.failure.message);
 }
 
 /**

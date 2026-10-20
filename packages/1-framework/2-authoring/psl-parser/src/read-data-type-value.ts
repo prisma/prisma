@@ -1,17 +1,14 @@
 import {
   admittedForms,
-  castTypedValue,
   type DataTypeSupport,
   describeExpected,
-  describeRefusal,
-  exactRewrite,
-  readWrittenValue,
+  readWrittenValueAs,
 } from '@internal/framework-components/authoring';
 import type { DataTypeId, DataTypeValue } from '@internal/framework-components/codec';
 import { describeTaggedLiteralFailure } from '@internal/framework-components/control';
 import type { PslDiagnosticCode } from '@internal/framework-components/psl-ast';
 import { InternalError } from '@internal/utils/internal-error';
-import { notOk, ok, type Result } from '@internal/utils/result';
+import { notOk, type Result } from '@internal/utils/result';
 import type { ExpressionAst } from './syntax/ast/expressions';
 import { readWrittenScalar } from './written-scalar';
 
@@ -59,19 +56,5 @@ export function readDataTypeValue(
         });
   }
 
-  const read = readWrittenValue(support, literal.written);
-  if (!read.ok) {
-    return notOk(describeRefusal(read.failure, support, { forms, rewrite: undefined }));
-  }
-
-  const cast = castTypedValue(support, dataType, {}, read.value);
-  if (!cast.ok) {
-    const rewrite = exactRewrite(
-      support,
-      { receivingType: dataType, receivingParams: {} },
-      literal.written,
-    );
-    return notOk(describeRefusal(cast.failure, support, { forms, rewrite }));
-  }
-  return ok(cast.value);
+  return readWrittenValueAs(support, dataType, literal.written);
 }

@@ -137,5 +137,6 @@ export {
   exactRewrite,
   knownTags,
   readWrittenValue,
+  readWrittenValueAs,
   tagForm,
 } from '../shared/written-value';
