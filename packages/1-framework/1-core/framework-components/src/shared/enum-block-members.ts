@@ -68,7 +68,10 @@ export function enumMemberProblemDiagnostic(
     case 'duplicate-member-value':
       return {
         code: 'PSL_ENUM_DUPLICATE_MEMBER_VALUE',
-        message: `enum "${enumName}": members "${problem.earlier}" and "${problem.later}" both store ${JSON.stringify(problem.stored)}`,
+        message:
+          problem.earlierStored === undefined
+            ? `enum "${enumName}": members "${problem.earlier}" and "${problem.later}" both store ${JSON.stringify(problem.stored)}`
+            : `enum "${enumName}": members "${problem.earlier}" and "${problem.later}" store ${JSON.stringify(problem.earlierStored)} and ${JSON.stringify(problem.stored)}, which the database holds equal`,
         ...at(problem.later),
       };
   }

@@ -61,6 +61,8 @@ export interface CodecLookup {
     value: JsonValue,
     side: 'output' | 'input',
   ): string | undefined;
+  /** Whether the codec's descriptor declares `comparesByEqualityKey`: its values keep forms its data type holds equal, so an enum on it is typed by the codec's type. The codec type map entry carries the same flag. */
+  comparesByEqualityKey?(id: string): boolean;
 }
 
 /** A {@link CodecLookup} that resolves codec descriptors, which building a column's codec with its type parameters needs. */

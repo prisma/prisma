@@ -327,7 +327,8 @@ model Task {
       diagnostics: [
         {
           code: 'PSL_ENUM_DUPLICATE_MEMBER_VALUE',
-          message: 'enum "Priority": members "Half" and "AlsoHalf" both store "0.50"',
+          message:
+            'enum "Priority": members "Half" and "AlsoHalf" store "0.5" and "0.50", which the database holds equal',
         },
       ],
     });

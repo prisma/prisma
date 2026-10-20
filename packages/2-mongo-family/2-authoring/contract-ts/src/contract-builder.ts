@@ -190,6 +190,7 @@ type MongoCodecTypes = {
     readonly input: string;
     readonly output: string;
     readonly traits: 'equality' | 'order' | 'numeric';
+    readonly comparesByEqualityKey: true;
   };
   readonly 'mongo/binary@1': {
     readonly input: Uint8Array;

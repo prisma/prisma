@@ -72,3 +72,15 @@ describe('the equality of mongo/decimal128 values', () => {
     ]);
   });
 });
+
+describe("each Mongo codec's equality-key flag", () => {
+  it('is declared by mongo/decimal128@1 only, whose data type has an equality key', () => {
+    const flagged = mongoCodecDescriptors.filter(
+      (descriptor) => descriptor.comparesByEqualityKey === true,
+    );
+    expect({
+      flagged: flagged.map((descriptor) => descriptor.codecId),
+      keyed: mongoDecimal128.equalityKey !== undefined,
+    }).toEqual({ flagged: ['mongo/decimal128@1'], keyed: true });
+  });
+});

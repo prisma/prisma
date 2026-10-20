@@ -11,6 +11,11 @@ type CodecTypes = {
   readonly 'test/char@1': { readonly input: string; readonly output: string };
   readonly 'test/int@1': { readonly input: number | bigint; readonly output: bigint };
   readonly 'test/json@1': { readonly input: unknown; readonly output: unknown };
+  readonly 'test/decimal@1': {
+    readonly input: string;
+    readonly output: string;
+    readonly comparesByEqualityKey: true;
+  };
 };
 
 type Char<N extends number> = string & { readonly __length: N };
@@ -293,5 +298,31 @@ describe('the value type of one storage entry', () => {
         'output'
       >
     >().toEqualTypeOf<string>();
+  });
+
+  test("ignores an override for a codec whose data type compares values by an equality key, which keeps the codec's type", () => {
+    type Members = { readonly output: '0.5' | '1.50'; readonly input: '0.5' | '1.50' };
+    expectTypeOf<
+      StoredValueType<
+        { readonly many: false },
+        'test/decimal@1',
+        undefined,
+        Members,
+        CodecTypes,
+        CharOutputTypes,
+        'output'
+      >
+    >().toEqualTypeOf<string>();
+    expectTypeOf<
+      StoredValueType<
+        { readonly many: false },
+        'test/text@1',
+        undefined,
+        Members,
+        CodecTypes,
+        CharOutputTypes,
+        'output'
+      >
+    >().toEqualTypeOf<'0.5' | '1.50'>();
   });
 });

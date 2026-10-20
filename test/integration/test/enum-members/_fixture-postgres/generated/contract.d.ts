@@ -245,6 +245,8 @@ type FieldTypeOverrides = {
           readonly output: '127.0.0.1' | '10.0.0.0/8' | '::1';
           readonly input: '127.0.0.1' | '10.0.0.0/8' | '::1';
         };
+        readonly ratio: { readonly output: '0.5' | '1.50'; readonly input: '0.5' | '1.50' };
+        readonly ratios: { readonly output: '0.5' | '1.50'; readonly input: '0.5' | '1.50' };
       };
       readonly Reading: {
         readonly float8: { readonly output: 1.5 | 2.25; readonly input: 1.5 | 2.25 };
@@ -282,6 +284,8 @@ type ColumnTypeOverrides = {
         readonly output: '127.0.0.1' | '10.0.0.0/8' | '::1';
         readonly input: '127.0.0.1' | '10.0.0.0/8' | '::1';
       };
+      readonly ratio: { readonly output: '0.5' | '1.50'; readonly input: '0.5' | '1.50' };
+      readonly ratios: { readonly output: '0.5' | '1.50'; readonly input: '0.5' | '1.50' };
     };
     readonly readings: {
       readonly float8: { readonly output: 1.5 | 2.25; readonly input: 1.5 | 2.25 };

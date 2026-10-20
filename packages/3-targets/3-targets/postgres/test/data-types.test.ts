@@ -232,3 +232,19 @@ describe('the equality of pg/numeric values', () => {
     }).toEqual({ numeric: ['0.5', '0.5', '0'], keyed: ['pg/numeric'] });
   });
 });
+
+describe("each codec's equality-key flag", () => {
+  it('is declared by the codecs whose application value keeps the forms its data type holds equal, and only on a data type with an equality key', async () => {
+    const { codecDescriptors } = await import('../src/core/codecs');
+    const types = new Map(postgresDataTypes.map((type) => [type.id, type]));
+    const flagged = codecDescriptors.filter(
+      (descriptor) => descriptor.comparesByEqualityKey === true,
+    );
+    expect({
+      flagged: flagged.map((descriptor) => descriptor.codecId),
+      withoutKey: flagged
+        .filter((descriptor) => types.get(descriptor.dataType)?.equalityKey === undefined)
+        .map((descriptor) => descriptor.codecId),
+    }).toEqual({ flagged: ['pg/numeric@1'], withoutKey: [] });
+  });
+});

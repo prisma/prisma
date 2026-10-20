@@ -41,6 +41,15 @@ type CodecType<
     : PlainCodecType<CodecTypes, CodecId, Side>
   : PlainCodecType<CodecTypes, CodecId, Side>;
 
+/**
+ * `Override`, unless the codec's type map entry carries `comparesByEqualityKey`: its data type holds values equal that have more than one stored form, so a read can return a value the override's member literals do not name, and the value keeps the codec's type.
+ */
+type MemberOverride<Override, CodecTypes, CodecId> = CodecId extends keyof CodecTypes
+  ? CodecTypes[CodecId] extends { readonly comparesByEqualityKey: true }
+    ? never
+    : Override
+  : Override;
+
 type BaseType<Override, Base, Side extends ValueTypeSide> = [Override] extends [never]
   ? Base
   : Override extends { readonly [S in Side]: infer T }
@@ -160,7 +169,11 @@ type ScalarValueType<
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
   Side extends ValueTypeSide,
 > = WithModifiers<
-  BaseType<Override, CodecType<CodecTypes, CodecId, TypeParams, ParameterizedOutputs, Side>, Side>,
+  BaseType<
+    MemberOverride<Override, CodecTypes, CodecId>,
+    CodecType<CodecTypes, CodecId, TypeParams, ParameterizedOutputs, Side>,
+    Side
+  >,
   Nullable,
   Many,
   Dictionary

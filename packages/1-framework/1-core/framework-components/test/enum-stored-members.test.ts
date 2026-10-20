@@ -57,6 +57,6 @@ describe('duplicateStoredMembers with the data type equality key', () => {
         ],
         (json) => String(Number(json)),
       ),
-    ).toEqual([{ earlier: 'Half', later: 'AlsoHalf', stored: '0.50' }]);
+    ).toEqual([{ earlier: 'Half', later: 'AlsoHalf', stored: '0.50', earlierStored: '0.5' }]);
   });
 });

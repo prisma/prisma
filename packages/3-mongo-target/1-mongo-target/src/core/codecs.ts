@@ -262,6 +262,7 @@ function descriptorFor<Id extends string>(
     /** Builds the codec for a column's parameters, for a codec whose data type has parameters. */
     readonly withParams?: (params: DataTypeParams) => MongoCodec<Id, readonly CodecTrait[]>;
     readonly renderValueLiteral?: CodecDescriptor['renderValueLiteral'];
+    readonly comparesByEqualityKey?: true;
   },
 ): CodecDescriptor {
   return {
@@ -284,6 +285,7 @@ function descriptorFor<Id extends string>(
       return () => built;
     }),
     ...ifDefined('renderValueLiteral', metadata.renderValueLiteral),
+    ...ifDefined('comparesByEqualityKey', metadata.comparesByEqualityKey),
   };
 }
 
@@ -327,6 +329,7 @@ export const mongoCodecDescriptors: ReadonlyArray<CodecDescriptor> = [
   }),
   descriptorFor(mongoDecimal128Codec, {
     traits: ['equality', 'order', 'numeric'],
+    comparesByEqualityKey: true,
   }),
   descriptorFor(mongoBinaryCodec, {
     traits: ['equality'],

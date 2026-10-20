@@ -53,6 +53,8 @@ export interface CodecDescriptorTemplate<P = void> {
   readonly renderValueLiteral?: (value: JsonValue, side: 'output' | 'input') => string | undefined;
   /** Why an enum cannot use this codec, as sentences an enum's refusal quotes, ending with what to use instead. A codec with the `equality` trait sets it when no value a query reads back equals a member as the contract stores it. A codec without the trait may set it to give a more specific reason than the generic one. Read it through {@link enumRefusalOf}, which also refuses a codec without the `equality` trait. */
   readonly enumRefusal?: string;
+  /** `true` for a codec whose application value keeps the forms its data type's `equalityKey` holds equal, as a decimal codec reads `0.50` and `0.5` as two strings. Its codec type map entry carries the same flag, and the shared value types then type a value of an enum on it by the codec's type rather than its members' literals, since a read can return a member in another form. Only a codec whose data type declares an `equalityKey` sets it; each target's tests check this. */
+  readonly comparesByEqualityKey?: true;
   /** The curried higher-order codec. For non-parameterized codecs, the factory is constant — every call returns the same shared codec instance. For parameterized codecs, the factory is called once per `storage.types` instance (or once per inline-`typeParams` column), with `ctx` carrying the column set the resulting codec serves. */
   readonly factory: (params: P) => (ctx: CodecInstanceContext) => Codec;
 }
@@ -125,6 +127,9 @@ export abstract class CodecDescriptorTemplateImpl<TParams = void>
 
   /** See {@link CodecDescriptorTemplate.enumRefusal}. */
   declare readonly enumRefusal?: string;
+
+  /** See {@link CodecDescriptorTemplate.comparesByEqualityKey}. */
+  declare readonly comparesByEqualityKey?: true;
 
   /**
    * Materialize a curried codec factory for the given params. Concrete subclasses override with a typed return type (e.g. `factory<N>(params: { length: N }): (ctx) => VectorCodec<N>`); per-codec helpers read the typed return at the *direct* call site, which is what preserves method-level generics. Type extraction (e.g. `ReturnType<D['factory']>`) widens method generics to their constraint — that's why the column-helper surface is per-codec, not polymorphic.

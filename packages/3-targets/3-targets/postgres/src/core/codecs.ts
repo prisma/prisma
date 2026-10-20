@@ -840,6 +840,7 @@ export class PgNumericDescriptor extends PostgresCodecDescriptor<NumericParams> 
   override readonly dataType = pgNumeric.id;
   override readonly codecId = PG_NUMERIC_CODEC_ID;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
+  override readonly comparesByEqualityKey = true as const;
   override readonly paramsSchema = pgNumericParams satisfies StandardSchemaV1<NumericParams>;
   override renderValueLiteral(value: JsonValue): string | undefined {
     return renderTsLiteral(value);

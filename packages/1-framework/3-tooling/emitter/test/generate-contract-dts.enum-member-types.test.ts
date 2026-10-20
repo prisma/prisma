@@ -1,5 +1,5 @@
 import type { ContractEnum, JsonValue } from '@internal/contract/types';
-import { type Codec, type CodecLookup, dataType } from '@internal/framework-components/codec';
+import type { CodecLookup } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
 import { generateContractDts } from '../src/generate-contract-dts';
 import { createMockSpi } from './mock-spi';
@@ -108,22 +108,14 @@ describe('generateContractDts enum member types', () => {
     );
   });
 
-  it("types members as their codec's output type when the codec's data type holds values equal that have other stored forms", () => {
-    const decimal = dataType('test/decimal', { read: (json) => json, equalityKey: String });
-    const decimalCodec: Codec = {
-      id: 'test/decimal@1',
-      dataType: decimal,
-      toWire: async (value) => value,
-      fromWire: async (wire) => wire,
-      toDataTypeValue: (value) => decimal.valueFrom(value as JsonValue, {}),
-      fromDataTypeValue: (value) => value.value,
-    };
+  it("types members as their codec's output type when the codec compares values by an equality key", () => {
     const dts = emitEnums(
       { Ratio: enumOf('test/decimal@1', ['Half', '0.5']) },
       {
-        get: (id) => (id === decimalCodec.id ? decimalCodec : undefined),
+        get: () => undefined,
         renderOutputTypeFor: () => undefined,
         renderValueLiteralFor: (_id, value) => JSON.stringify(value),
+        comparesByEqualityKey: (id) => id === 'test/decimal@1',
       },
     );
     expect(memberTypesOf(dts)).toBe(

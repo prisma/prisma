@@ -327,7 +327,7 @@ export type StorageValueSetResolver = (
  *
  * Returns `undefined` — signalling the caller to fall back to the codec's full output type — when
  * the lookup is absent, has no `renderValueLiteralFor`, the value set is empty, **any** value
- * isn't literal-expressible, or the codec's data type holds values equal that have other stored forms, so a read can return a value that is none of the literals, as `numeric` reads `0.50` for a member `0.5`. A caller that needs column and field types to agree shares this so both
+ * isn't literal-expressible. A codec whose type map entry carries `comparesByEqualityKey` keeps its codec type in the shared field and column types whatever this renders. A caller that needs column and field types to agree shares this so both
  * compute the union identically.
  */
 export function renderValueSetType(
@@ -346,14 +346,13 @@ export function renderValueSetType(
   return literals.join(' | ');
 }
 
-/** The TS literal type the codec renders for one stored value, or `undefined` when it renders none, what it renders is not a safe type expression, or the codec's data type holds values equal that have other stored forms, so a read can return a value the literal does not name. */
+/** The TS literal type the codec renders for one stored value, or `undefined` when it renders none or what it renders is not a safe type expression. */
 export function renderValueLiteralType(
   value: JsonValue,
   codecId: string,
   side: 'output' | 'input',
   codecLookup: CodecLookup | undefined,
 ): string | undefined {
-  if (codecLookup?.get(codecId)?.dataType.equalityKey !== undefined) return undefined;
   const lit = codecLookup?.renderValueLiteralFor?.(codecId, value, side);
   return lit === undefined || !isSafeTypeExpression(lit) ? undefined : lit;
 }

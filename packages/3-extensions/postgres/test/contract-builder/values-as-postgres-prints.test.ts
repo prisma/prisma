@@ -142,3 +142,15 @@ describe('values in a Postgres contract decode to the value a query returns', ()
     );
   });
 });
+
+describe('two numeric members that are one number in different scales', () => {
+  it('are refused, naming both stored forms', () => {
+    expect(() =>
+      contractWithEnum(
+        enumType('Ratio', pgNumeric, member('Half', '0.5'), member('AlsoHalf', '0.50')),
+      ),
+    ).toThrow(
+      'enumType("Ratio"): members "Half" and "AlsoHalf" store "0.5" and "0.50", which the database holds equal. Member values must be unique as their data type compares them.',
+    );
+  });
+});
