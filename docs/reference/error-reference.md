@@ -1064,7 +1064,7 @@ The table a collection resolves to does not exist in the contract's storage for 
 
 ### ORM.WHERE_MISSING
 
-A Mongo mutation method (e.g. update/delete variants) requires a prior `.where()` filter with at least one condition and none was set. An empty `.where({})` sets none. To write to every document on purpose, use `db.query.from(...)`. Payload: `method`.
+A Mongo mutation method (e.g. update/delete variants) was called with no `.where()` filter; an empty `.where({})` adds none. `db.query.from(...).updateAll()` and `.deleteAll()` write to every document. Payload: `method`.
 
 ## RUNTIME
 
