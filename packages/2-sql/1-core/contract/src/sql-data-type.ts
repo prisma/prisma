@@ -439,6 +439,18 @@ export function sqlDataTypeOfCodec(codecId: string, lookups: TypeLookups): SqlDa
   return type;
 }
 
+/**
+ * The length of a column of data type `type` with `typeParams`, in the type's normal form, as verify compares it: a bare Postgres `character` holds 1. `undefined` when the column has no length, or when its data type drops the length because the database does not limit it, as SQLite's text types do.
+ */
+export function sqlColumnLength(
+  type: DataType | undefined,
+  typeParams: Readonly<Record<string, unknown>> | undefined,
+): number | undefined {
+  if (type === undefined || !isSqlDataType(type)) return undefined;
+  const length = type.sql.normalize(dataTypeParams(type, typeParams ?? {}))['length'];
+  return typeof length === 'number' ? length : undefined;
+}
+
 /** The type a column of `type` is stored as, whose name DDL writes and the database reports: `type` itself unless it names another. */
 export function sqlStorageType(
   type: SqlDataType,

@@ -61,6 +61,7 @@ import {
   reportTypeConstructorNotCalled,
 } from '@internal/psl-parser/interpret';
 import type { PslSources } from '@internal/psl-parser/syntax';
+import { sqlColumnLength } from '@internal/sql-contract/data-type';
 import {
   SQL_EXPRESSION_DATA_TYPE_ID,
   SQL_EXPRESSION_TAG,
@@ -909,6 +910,19 @@ export function lowerDefaultForField(input: {
 const GENERATOR_PHASES = ['onCreate', 'onUpdate'] as const;
 
 /** The generators a field's `@onCreate(fn())` and `@onUpdate(fn())` resolve to for its column, or `undefined` for a field with neither. */
+/** The length of a column of `codecId` in its data type's normal form, which a generator binding checks what it writes against. */
+export function columnLength(
+  dataTypes: DataTypeSupport,
+  codecId: string,
+  typeParams: Record<string, unknown> | undefined,
+): number | undefined {
+  const dataTypeId = dataTypes.dataTypeOfCodec(codecId);
+  return sqlColumnLength(
+    dataTypeId === undefined ? undefined : dataTypes.lookup.get(dataTypeId),
+    typeParams,
+  );
+}
+
 export function lowerGeneratorAttributesForField(input: {
   readonly modelName: string;
   readonly fieldName: string;
@@ -964,7 +978,15 @@ export function lowerGeneratorAttributesForField(input: {
     const call = interpreted.value;
     const resolution = input.generatorFunctions.resolve(
       { name: call.fn, args: call.args },
-      { codecId: input.columnDescriptor.codecId, typeParams: input.columnTypeParams },
+      {
+        codecId: input.columnDescriptor.codecId,
+        typeParams: input.columnTypeParams,
+        length: columnLength(
+          input.dataTypes,
+          input.columnDescriptor.codecId,
+          input.columnTypeParams,
+        ),
+      },
     );
     if (resolution.ok) {
       phases[phase] = resolution.generator;

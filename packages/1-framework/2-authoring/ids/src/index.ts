@@ -8,6 +8,7 @@ import { NANOID_SIZE } from './generator-limits';
 import type { IdGeneratorOptionsById } from './generators';
 
 export { CUID_VERSION, NANOID_SIZE, UUID_VERSIONS } from './generator-limits';
+export type { BuiltinGeneratorId };
 export { builtinGeneratorIds };
 
 const GENERATED_CHAR_TYPE = { codecId: 'sql/char@1' } as const;

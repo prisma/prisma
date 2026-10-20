@@ -31,7 +31,11 @@ import {
   StringLiteralExprAst,
 } from '@internal/psl-parser/syntax';
 import { defaultFunctionCall } from '@internal/sql-contract-psl/attribute-specs';
-import { type DefaultRefusal, readDataTypeDefault } from '@internal/sql-contract-psl/resolution';
+import {
+  columnLength,
+  type DefaultRefusal,
+  readDataTypeDefault,
+} from '@internal/sql-contract-psl/resolution';
 import type {
   AuthoredColumnDefault,
   AuthoredColumnDefaultLiteralValue,
@@ -364,7 +368,11 @@ function lowerFunction(
     if (args === undefined) return undefined;
     const resolution = input.generatorFunctions.resolve(
       { name: fn, args },
-      { codecId: input.codecId, typeParams: input.typeParams },
+      {
+        codecId: input.codecId,
+        typeParams: input.typeParams,
+        length: columnLength(input.dataTypes, input.codecId, input.typeParams),
+      },
     );
     if (resolution.ok) return { storage: undefined, onCreate: resolution.generator };
     if (resolution.reason === 'refused') {

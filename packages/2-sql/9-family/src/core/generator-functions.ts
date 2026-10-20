@@ -4,11 +4,16 @@ import type {
   BindingResolution,
   GeneratorFunctionBinding,
   GeneratorFunctionContribution,
-  GeneratorFunctionField,
   MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/components';
 import { singleGeneratorBinding } from '@internal/framework-components/components';
-import { CUID_VERSION, NANOID_SIZE, UUID_VERSIONS } from '@internal/ids';
+import {
+  type BuiltinGeneratorId,
+  CUID_VERSION,
+  generatedLength,
+  NANOID_SIZE,
+  UUID_VERSIONS,
+} from '@internal/ids';
 import {
   type ArgType,
   type AttributeCtx,
@@ -89,11 +94,6 @@ function cuidBinding(codecIds: readonly string[]): GeneratorFunctionBinding {
   };
 }
 
-function columnLength(field: GeneratorFunctionField): number | undefined {
-  const length = field.typeParams?.['length'];
-  return typeof length === 'number' ? length : undefined;
-}
-
 function isNanoidSize(size: unknown): size is number {
   return (
     typeof size === 'number' &&
@@ -104,28 +104,20 @@ function isNanoidSize(size: unknown): size is number {
 }
 
 /**
- * A Nano ID has the size the call gives, or 21; the column's length never sets it. A size larger than the column's length is refused, since the identifier would not fit. A shorter identifier in a fixed-length column is padded by the database, as Prisma 7 does.
+ * A Nano ID has the size the call gives, or 21; the column's length never sets it. A shorter identifier in a fixed-length column is padded by the database, as Prisma 7 does.
  */
 function nanoidBinding(codecIds: readonly string[]): GeneratorFunctionBinding {
   return {
     codecIds,
     generatorIds: ['nanoid'],
-    resolve: ({ args, field }) => {
+    resolve: ({ args }) => {
       const explicit = args['size'];
       if (explicit !== undefined && !isNanoidSize(explicit)) {
         return refused(
           `nanoid: size must be between ${NANOID_SIZE.min} and ${NANOID_SIZE.max}, got ${String(explicit)}`,
         );
       }
-      const size = explicit ?? NANOID_DEFAULT_SIZE;
-      const length = columnLength(field);
-      if (length !== undefined && size > length) {
-        const call = explicit === undefined ? 'nanoid()' : `nanoid(${size})`;
-        return refused(
-          `${call} writes ${size} characters, which does not fit a column of ${length} characters.`,
-        );
-      }
-      return explicit === undefined ? generated('nanoid') : generated('nanoid', { size });
+      return explicit === undefined ? generated('nanoid') : generated('nanoid', { size: explicit });
     },
     printArguments: (generator) => {
       if (generator.id !== 'nanoid') return undefined;
@@ -137,21 +129,57 @@ function nanoidBinding(codecIds: readonly string[]): GeneratorFunctionBinding {
   };
 }
 
-/** The identifier generator functions bound to a target's text codecs, and `uuid` to its uuid codecs. */
+/**
+ * `binding`, refusing a column whose length, in its data type's normal form, is shorter than the identifier the generator writes. The database would refuse every insert of a longer value.
+ */
+function fittingColumn(name: string, binding: GeneratorFunctionBinding): GeneratorFunctionBinding {
+  return {
+    ...binding,
+    resolve: (input) => {
+      const resolution = binding.resolve(input);
+      const length = input.field.length;
+      if (!resolution.ok || length === undefined) return resolution;
+      const { generator } = resolution;
+      const written = generatedLength(
+        blindCast<BuiltinGeneratorId, 'an identifier binding produces only built-in generators'>(
+          generator.id,
+        ),
+        generator.params,
+      );
+      if (written <= length) return resolution;
+      const call = `${name}(${binding.printArguments(generator, input.field)?.text ?? ''})`;
+      return refused(
+        `${call} writes ${written} characters, which does not fit a column of ${length} ${length === 1 ? 'character' : 'characters'}.`,
+      );
+    },
+  };
+}
+
+/** The identifier generator functions bound to a target's text codecs, and `uuid` to its uuid codecs. Each refuses a column too short for what it writes. */
 export function idGeneratorFunctionBindings(codecs: {
   readonly text: readonly string[];
   readonly uuid?: readonly string[];
 }): readonly GeneratorFunctionContribution[] {
   const { text } = codecs;
   return [
-    { name: 'uuid', bindings: [uuidBinding([...text, ...(codecs.uuid ?? [])])] },
-    { name: 'cuid', bindings: [cuidBinding(text)] },
-    { name: 'ulid', bindings: [singleGeneratorBinding({ codecIds: text, generatorId: 'ulid' })] },
+    {
+      name: 'uuid',
+      bindings: [fittingColumn('uuid', uuidBinding([...text, ...(codecs.uuid ?? [])]))],
+    },
+    { name: 'cuid', bindings: [fittingColumn('cuid', cuidBinding(text))] },
+    {
+      name: 'ulid',
+      bindings: [
+        fittingColumn('ulid', singleGeneratorBinding({ codecIds: text, generatorId: 'ulid' })),
+      ],
+    },
     {
       name: 'ksuid',
-      bindings: [singleGeneratorBinding({ codecIds: text, generatorId: 'ksuid' })],
+      bindings: [
+        fittingColumn('ksuid', singleGeneratorBinding({ codecIds: text, generatorId: 'ksuid' })),
+      ],
     },
-    { name: 'nanoid', bindings: [nanoidBinding(text)] },
+    { name: 'nanoid', bindings: [fittingColumn('nanoid', nanoidBinding(text))] },
   ];
 }
 
