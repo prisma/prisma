@@ -32,7 +32,7 @@ describe('runMigration, a check that failed before an operation', () => {
     ).toMatchObject({ planStartsFromMarker: true });
   });
 
-  it('leaves it out when the runner explained the failure itself', async () => {
+  it('names the check from the typed fact, whatever the runner wrote in its why', async () => {
     expect(
       (
         await failureOf(
@@ -43,6 +43,10 @@ describe('runMigration, a check that failed before an operation', () => {
           null,
         )
       )?.failedPrecheck,
-    ).toBeUndefined();
+    ).toEqual({
+      operationId: 'column.x',
+      description: 'ensure column "x" is missing',
+      planStartsFromMarker: false,
+    });
   });
 });

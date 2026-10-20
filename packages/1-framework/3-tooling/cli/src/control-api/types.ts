@@ -499,7 +499,7 @@ export type FailedTypeChangeReport =
   | (Pick<FailedCast, 'by' | 'reason'> & { readonly field: string })
   | (Pick<FailedConversion, 'by' | 'reason'> & { readonly field: string });
 
-/** A check that failed before its operation ran, when the runner explained it by the check alone. */
+/** A check that failed before its operation ran. */
 export interface FailedPrecheckReport {
   readonly operationId: string;
   /** The check, as the operation describes it. */
@@ -516,7 +516,7 @@ export interface RunnerFailureFacts {
   readonly failedTypeChange?: FailedTypeChangeReport;
   /** The fields that were to become required while rows had no value for them; the failed one first. */
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
-  /** The check that failed before its operation ran, when the runner explained it by the check alone. */
+  /** The check that failed before its operation ran. */
   readonly failedPrecheck?: FailedPrecheckReport;
   /** The differences the schema check after apply found; an empty list counts as none. */
   readonly schemaIssues?: readonly SchemaDiffIssue[];

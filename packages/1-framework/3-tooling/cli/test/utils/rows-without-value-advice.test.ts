@@ -234,4 +234,28 @@ describe('the advice for rows a required field has no value for', () => {
       ).fix,
     ).not.toContain('drift');
   });
+
+  it('wins over the precheck advice when the failed precheck is the one that found the rows, on every command', () => {
+    const rows = {
+      ...runnerFailed,
+      rowsWithoutValue: [{ field: 'Item.note', reason: 'nullValues' }],
+      databaseStorageHash: DATABASE,
+      failedMigration,
+    } as const;
+    const withPrecheck = {
+      ...rows,
+      failedPrecheck: {
+        operationId: 'alterNullability.setNotNull.Item.note',
+        description: 'ensure no NULL values in "note"',
+        planStartsFromMarker: true,
+      },
+    };
+    expect(
+      [dbInitError, dbUpdateError, migrateError].map(
+        (error) => error(withPrecheck, FROM_PROJECT).fix,
+      ),
+    ).toEqual(
+      [dbInitError, dbUpdateError, migrateError].map((error) => error(rows, FROM_PROJECT).fix),
+    );
+  });
 });
