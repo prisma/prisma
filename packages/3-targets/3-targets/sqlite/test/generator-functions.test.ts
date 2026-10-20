@@ -6,7 +6,7 @@ import sqlitePack from '../src/exports/pack';
 const registry = assembleGeneratorFunctions([sqlFamilyPack, sqlitePack]);
 
 function resolve(name: string, codecId: string, args: Record<string, unknown> = {}) {
-  return registry.resolve({ name, args }, { codecId, typeParams: undefined });
+  return registry.resolve({ name, args }, { codecId, typeParams: undefined, length: undefined });
 }
 
 describe('the SQLite generator functions', () => {

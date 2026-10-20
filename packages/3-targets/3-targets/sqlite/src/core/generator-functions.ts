@@ -1,4 +1,7 @@
-import { idGeneratorFunctionBindings } from '@internal/family-sql/pack';
+import {
+  idGeneratorFunctionBindings,
+  sqlIntegerArgumentGeneratorFunctions,
+} from '@internal/family-sql/pack';
 import { TIMESTAMP_NOW_GENERATOR_ID } from '@internal/framework-components/authoring';
 import type {
   GeneratorFunctionContribution,
@@ -6,8 +9,10 @@ import type {
 } from '@internal/framework-components/components';
 import { singleGeneratorBinding } from '@internal/framework-components/components';
 import { SQLITE_DATETIME_CODEC_ID, SQLITE_TEXT_CODEC_ID } from './codec-ids';
+import { sqliteInteger } from './data-types';
 
-export const sqliteGeneratorFunctions: readonly GeneratorFunctionContribution[] = [
+export const sqliteGeneratorFunctions = [
+  ...sqlIntegerArgumentGeneratorFunctions({ integer: sqliteInteger.id }),
   {
     name: 'now',
     bindings: [
@@ -18,7 +23,7 @@ export const sqliteGeneratorFunctions: readonly GeneratorFunctionContribution[] 
     ],
   },
   ...idGeneratorFunctionBindings({ text: [SQLITE_TEXT_CODEC_ID] }),
-];
+] as const satisfies readonly GeneratorFunctionContribution[];
 
 /** The `now` generator SQLite binds. The SQL family registers the identifier generators. */
 export const sqliteGeneratorDescriptors: readonly MutationDefaultGeneratorDescriptor[] = [

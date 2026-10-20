@@ -30,6 +30,7 @@ export function binderContextFromStack(stack: LspControlStack): BinderContext {
       pslBlockDescriptors: stack.pslBlockDescriptors,
       modelAttributes: {},
       attributeSpecs: { model: {}, field: {} },
+      textDataTypes: [],
       dataTypes: {},
     },
     controlMutationDefaults: {

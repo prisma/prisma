@@ -99,6 +99,7 @@ const stubContext: ContractSourceContext = {
   defaultNamespaceId: 'public',
   composedExtensionContracts: new Map(),
   authoringContributions: {
+    textDataTypes: [],
     dataTypes: {},
     field: {},
     type: {},

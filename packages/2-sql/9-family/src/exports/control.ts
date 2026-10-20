@@ -20,6 +20,8 @@ export type {
   SqlDescribedContractSpace,
   SqlPslBuildContext,
 } from '../core/control-target-descriptor';
+export type { SqlDefaultFunctionName } from '../core/default-functions';
+export { sqlDefaultFunctions } from '../core/default-functions';
 export type {
   ContractToSchemaIROptions,
   DefaultResolver,

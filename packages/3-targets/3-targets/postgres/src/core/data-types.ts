@@ -14,6 +14,7 @@ import {
   assembleDataTypes,
   type Cast,
   type DataType,
+  type DataTypeId,
   type DataTypeLookup,
   type DataTypeParams,
   type DataTypeReader,
@@ -788,3 +789,6 @@ export const postgresDataTypes: readonly DataType[] = [
 export function createPostgresBuiltinDataTypeLookup(): DataTypeLookup {
   return assembleDataTypes([{ id: 'postgres', dataTypes: postgresDataTypes }]).lookup;
 }
+
+/** Postgres's text data types: `text`, `character(n)` and `character varying(n)`. */
+export const postgresTextDataTypes: readonly DataTypeId[] = [pgText.id, pgChar.id, pgVarchar.id];

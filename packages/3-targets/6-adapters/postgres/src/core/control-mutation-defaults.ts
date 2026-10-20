@@ -1,36 +1,9 @@
-import type {
-  ControlMutationDefaultEntry,
-  LoweredDefaultResult,
-} from '@internal/framework-components/control';
-import type { FuncCallSig } from '@internal/psl-parser';
+import { sqlDefaultFunctions } from '@internal/family-sql/control';
+import type { ControlMutationDefaultEntry } from '@internal/framework-components/control';
 
-function databaseFunction(expression: string): LoweredDefaultResult {
-  return { ok: true, value: { kind: 'storage', defaultValue: { kind: 'function', expression } } };
-}
-
-const nowSig: FuncCallSig = {
-  documentation: 'Uses the current database timestamp as the default value.',
-};
-const autoincrementSig: FuncCallSig = {
-  documentation: 'Generates an increasing integer value in the database.',
-};
-
-const postgresDefaultFunctionRegistryEntries: ReadonlyArray<
-  readonly [string, ControlMutationDefaultEntry]
-> = [
-  [
-    'autoincrement',
-    {
-      signature: autoincrementSig,
-      lower: () => databaseFunction('autoincrement()'),
-      usageSignatures: ['autoincrement()'],
-    },
-  ],
-  [
-    'now',
-    { signature: nowSig, lower: () => databaseFunction('now()'), usageSignatures: ['now()'] },
-  ],
-];
+const postgresDefaultFunctionRegistryEntries = Object.entries(
+  sqlDefaultFunctions(),
+) satisfies ReadonlyArray<readonly [string, ControlMutationDefaultEntry]>;
 
 export function createPostgresDefaultFunctionRegistry(): ReadonlyMap<
   string,

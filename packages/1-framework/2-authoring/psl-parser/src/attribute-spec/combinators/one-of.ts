@@ -1,4 +1,5 @@
 import { blindCast } from '@internal/utils/casts';
+import { InternalError } from '@internal/utils/internal-error';
 import { notOk, or, type Result } from '@internal/utils/result';
 import type { PslDiagnostic } from '../../diagnostic';
 import type {
@@ -20,6 +21,13 @@ export function oneOf<Alts extends readonly [AnyArgType, ...AnyArgType[]]>(
 ): OneOfArgType<Alts, ContextForRequirement<RequiredContextFor<CtxOf<Alts[number]>>>> {
   type RequiredContext = RequiredContextFor<CtxOf<Alts[number]>>;
   type ParseContext = ContextForRequirement<RequiredContext>;
+  for (const alt of alts) {
+    if (alt.kind === 'dataTypeValue') {
+      throw new InternalError(
+        `oneOf was given an arm typed by data type "${alt.dataType}" (${alt.label}). A value of a data type is a parameter of an attribute, a block or a function call, never an arm of oneOf.`,
+      );
+    }
+  }
   const label = alts.map((alt) => alt.label).join(' | ');
   return {
     kind: 'oneOf',

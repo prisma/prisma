@@ -48,7 +48,7 @@ export { json } from '../attribute-spec/combinators/json';
 export { jsonValue } from '../attribute-spec/combinators/json-value';
 export type { ListOptions } from '../attribute-spec/combinators/list';
 export { list } from '../attribute-spec/combinators/list';
-export { mapArg } from '../attribute-spec/combinators/map-arg';
+export { mapArg, refineArg } from '../attribute-spec/combinators/map-arg';
 export { num } from '../attribute-spec/combinators/num';
 export { numLiteral } from '../attribute-spec/combinators/num-literal';
 export { oneOf } from '../attribute-spec/combinators/one-of';
@@ -61,7 +61,11 @@ export type {
 } from '../attribute-spec/combinators/written-scalar';
 export { writtenList, writtenScalar } from '../attribute-spec/combinators/written-scalar';
 export { fieldAttribute } from '../attribute-spec/field-attribute';
-export { generatorAttributeSpec, nodeSourceText } from '../attribute-spec/generator-attribute';
+export {
+  generatorAttributeSpec,
+  generatorFunctionCall,
+  nodeSourceText,
+} from '../attribute-spec/generator-attribute';
 export type { ArgBindingSpec } from '../attribute-spec/interpret';
 export { interpretArgs, interpretAttribute } from '../attribute-spec/interpret';
 export { modelAttribute } from '../attribute-spec/model-attribute';

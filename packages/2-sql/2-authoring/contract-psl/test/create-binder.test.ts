@@ -119,6 +119,7 @@ describe('createBinder', () => {
       defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
+        textDataTypes: [],
         dataTypes: fixtureDataTypeSupport.entries,
         field: fieldPresets,
         type: authoringType,
@@ -230,6 +231,7 @@ describe('createBinder', () => {
       composedExtensions: [],
       composedExtensionContracts: new Map(),
       authoringContributions: {
+        textDataTypes: [],
         dataTypes: fixtureDataTypeSupport.entries,
         field: fieldPresets,
         type: authoringType,

@@ -27,10 +27,16 @@ const TAGGED_LITERAL_FAILURE_CODES = {
   'too-large': 'PSL_TAGGED_LITERAL_TOO_LARGE',
 } as const;
 
-/** An argument typed by a data type: any literal, admitted by the ADR 254 cast rule. Used as a parameter of an attribute, a block or a `funcCall`, never as a bare arm of `oneOf`. ADR 231, ADR 254, ADR 268. */
+/** An argument typed by a data type: any literal, admitted by the ADR 254 cast rule. Used as a parameter of an attribute, a block or a `funcCall`; `oneOf` refuses it as an arm. ADR 231, ADR 254, ADR 268. */
 export function dataTypeValue(
   dataType: DataTypeId,
   support: DataTypeSupport,
+  options: {
+    /** Written values offered for completion besides the tags. */
+    readonly suggestions?: readonly string[];
+    /** The label shown for the argument in place of the forms its type admits, such as the values a function takes. */
+    readonly label?: string;
+  } = {},
 ): DataTypeValueArgType<AttributeCtx> {
   const tags = admittedTags(support, dataType);
   const [firstTag] = tags;
@@ -38,10 +44,14 @@ export function dataTypeValue(
   return {
     kind: 'dataTypeValue',
     label:
-      firstTag === undefined ? describeAdmittedForms(support, dataType) : tagForm(firstTag).phrase,
+      options.label ??
+      (firstTag === undefined
+        ? describeAdmittedForms(support, dataType)
+        : tagForm(firstTag).phrase),
     dataType,
     tags,
     documentation: support.entries[dataType]?.documentation ?? '',
+    suggestions: options.suggestions ?? [],
     parse: (arg, ctx) => parseDataTypeValue(arg, ctx, dataType, support, forms),
   };
 }

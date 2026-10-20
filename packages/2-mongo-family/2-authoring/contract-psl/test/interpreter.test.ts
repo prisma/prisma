@@ -238,6 +238,7 @@ model Item {
         pslBlockDescriptors: authoringContributions.pslBlockDescriptors,
         modelAttributes: {},
         attributeSpecs: mongoAttributeSpecs,
+        textDataTypes: [],
         dataTypes: {},
       },
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedMongoAttribute },
