@@ -13,7 +13,7 @@ import sqlitePackRef from '@internal/target-sqlite/pack';
 import { join } from 'pathe';
 import { afterAll, describe, expect, it } from 'vitest';
 
-const FIELD_PREFIX = '  value uuidString() @default(';
+const FIELD_PREFIX = '  value String @default(';
 
 describe.each([
   {
