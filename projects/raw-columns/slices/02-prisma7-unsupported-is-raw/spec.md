@@ -57,7 +57,7 @@ The reader reads the text as written. It does not substitute a data type an exte
 
 ### Attributes on an `Unsupported` field
 
-- `@default(dbgenerated("..."))` becomes a `sql` expression default, through the existing `dbgeneratedDefault` (`packages/2-sql/2-authoring/contract-prisma7/src/defaults.ts:386-405`). `dbgenerated()` means no default. A literal or another function reaches `sql/raw`'s reader, which refuses it (`CONTRACT.LITERAL_VALUES_ABSENT`), reported as today's default refusals are. Prisma 7 refuses these too.
+- `@default(dbgenerated("..."))` becomes a `sql` expression default, through the existing `dbgeneratedDefault` (`packages/2-sql/2-authoring/contract-prisma7/src/defaults.ts:386-405`). `dbgenerated()` means no default. Any other default, a literal or a function such as `now()` or `autoincrement()`, is refused before lowering with `PSL.PRISMA7_UNKNOWN_DEFAULT`, quoting Prisma 7's own message, because Prisma 7 refuses it too. The rule is Prisma 7's, so it lives in the reader (`lowerPrisma7Default`'s `onlyDbgenerated` input), not in `sql/raw`.
 - `@map`, `@unique`, `@@unique` and `@@index` work as on any field.
 - `@ignore` changes nothing: the column already has no field. Prisma 7 refuses it, but the meaning is not in doubt, so the reader accepts it.
 - `@db.*` is refused with `PSL.PRISMA7_UNKNOWN_ATTRIBUTE`. Today `readField` would record it and then skip it on this path, so the refusal needs code. `@updatedAt` is refused by the existing check (`PSL.PRISMA7_UPDATED_AT_FIELD_INVALID`).

@@ -68,7 +68,7 @@ The reader reads `Unsupported` as written. It does not substitute a data type an
 
 The reader reads `Unsupported("X")` as the SQL family's `Raw("X")`, so the text is checked as any `Raw` text is, and the column is kept like an `@ignore` field's (ADR 267): on its model's table, with its uniques and indexes, and with no field.
 
-Prisma 7 accepts only `@default(dbgenerated("..."))` on an `Unsupported` field. The reader lowers it to a `sql` expression default, and refuses any other default, `@db.*` and `@updatedAt` on such a field, as Prisma 7 does.
+Prisma 7 accepts only `@default(dbgenerated("..."))` on an `Unsupported` field. The reader lowers it to a `sql` expression default, and refuses any other default, `@db.*` and `@updatedAt` on such a field, as Prisma 7 does. It accepts `@ignore` on an `Unsupported` field, which Prisma 7 refuses, because the column already has no field and the meaning is not in doubt.
 
 A model needs a field that identifies a row, so `@id` or `@@id` over an `Unsupported` field is refused on a model that is not `@@ignore`; the edit is `@@ignore` on the model, which keeps its table and primary key. A relation that is not `@ignore` cannot join on an `Unsupported` field, because Prisma 8 relations join on fields; the edit is `@ignore` on the relation field, which keeps its foreign key. Prisma 7 accepts both, so both are Prisma 7 edits with no migration.
 
