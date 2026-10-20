@@ -55,7 +55,7 @@ Every code is a dotted `NAMESPACE.SUBCODE`; the namespace is the prefix (`CONFIG
 
 ### Wrapped errors
 
-`db migrate`, `db init`, and `db update` map an apply failure the runner did not classify into `MIGRATION.RUNNER_FAILED`, passing the failure's own `meta` through unchanged and its detail into `why`. Migration-tools failures that *are* classified (`MIGRATION.HASH_MISMATCH`, `MIGRATION.PATH_UNREACHABLE`, …) arrive under their own code. **When `code` is `MIGRATION.RUNNER_FAILED`, read `why` and `meta`** — that is where the routing-quality information lives (`meta.runnerErrorCode` at the legacy-marker-shape site).
+`db migrate`, `db init`, and `db update` map an apply failure the runner did not classify into `MIGRATION.RUNNER_FAILED`, passing the failure's own `meta` through unchanged and its detail into `why`. Migration-tools failures that *are* classified (`MIGRATION.HASH_MISMATCH`, `MIGRATION.PATH_UNREACHABLE`, …) arrive under their own code. **When `code` is `MIGRATION.RUNNER_FAILED`, read `why` and `meta`** — that is where the routing-quality information lives (`meta.runnerErrorCode` names the runner's own code, such as `MIGRATION.SCHEMA_VERIFY_FAILED` when the schema check after apply failed).
 
 ### How to ask for the full envelope
 
