@@ -1,13 +1,8 @@
-import { describe, expect, it, vi } from 'vitest';
-
-vi.hoisted(() => {
-  delete process.env['DATABASE_URL'];
-});
-
+import { describe, expect, it } from 'vitest';
 import { db } from '../src/prisma/db';
 
-describe('the demo client with no database', () => {
-  it('renders the SQL of a custom collection method', () => {
+describe('the demo client', () => {
+  it('renders the SQL of a custom collection method without a database', () => {
     const plan = db.orm.public.User.admins().select('id', 'email').prepared.all().plan;
 
     expect(db.toSql(plan)).toEqual({
