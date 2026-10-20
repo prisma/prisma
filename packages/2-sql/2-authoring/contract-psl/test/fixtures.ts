@@ -594,7 +594,7 @@ export function createBuiltinLikeControlMutationDefaults(): ControlMutationDefau
       [
         'autoincrement',
         {
-          signature: () => autoincrementSig,
+          signature: autoincrementSig,
           lower: () => ({
             ok: true as const,
             value: {
@@ -608,7 +608,7 @@ export function createBuiltinLikeControlMutationDefaults(): ControlMutationDefau
       [
         'now',
         {
-          signature: () => nowSig,
+          signature: nowSig,
           lower: () => ({
             ok: true as const,
             value: {
@@ -622,7 +622,7 @@ export function createBuiltinLikeControlMutationDefaults(): ControlMutationDefau
       [
         'uuid',
         {
-          signature: () => uuidSig,
+          signature: uuidSig,
           lower: ({ call }) =>
             call.args['version'] === UUID_VERSIONS.v7
               ? executionGenerator('uuidv7')
@@ -633,7 +633,7 @@ export function createBuiltinLikeControlMutationDefaults(): ControlMutationDefau
       [
         'cuid',
         {
-          signature: () => cuidSig,
+          signature: cuidSig,
           lower: () => executionGenerator('cuid2'),
           usageSignatures: [`cuid(${CUID_VERSION})`],
         },
@@ -641,7 +641,7 @@ export function createBuiltinLikeControlMutationDefaults(): ControlMutationDefau
       [
         'ulid',
         {
-          signature: () => ulidSig,
+          signature: ulidSig,
           lower: () => executionGenerator('ulid'),
           usageSignatures: ['ulid()'],
         },
@@ -649,7 +649,7 @@ export function createBuiltinLikeControlMutationDefaults(): ControlMutationDefau
       [
         'nanoid',
         {
-          signature: () => nanoidSig,
+          signature: nanoidSig,
           lower: ({ call }) => {
             const size = call.args['size'];
             return typeof size === 'number'

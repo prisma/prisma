@@ -68,9 +68,9 @@ export interface TypedDefaultFunctionCall {
 }
 
 export interface ControlMutationDefaultEntry {
-  // The function's argument signature, built against the stack's data types. Typed `unknown`
-  // because its concrete type lives in the authoring layer, which the core framework cannot
-  // import; the family that registers the entry narrows it back.
+  // The function's argument signature, or a function that builds it from the stack's data types.
+  // Typed `unknown` because its concrete type lives in the authoring layer, which the core
+  // framework cannot import; the family that registers the entry narrows it back.
   readonly signature?: unknown;
   readonly lower: (input: {
     readonly call: TypedDefaultFunctionCall;

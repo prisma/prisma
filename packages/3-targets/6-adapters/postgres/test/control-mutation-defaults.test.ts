@@ -1,6 +1,6 @@
+import type { DataTypeSupport } from '@internal/framework-components/authoring';
 import { assembleControlMutationDefaults } from '@internal/framework-components/control';
-import { EMPTY_DATA_TYPES } from '@internal/psl-parser';
-import type { DefaultFunctionSignature } from '@internal/sql-contract-psl/attribute-specs';
+import { EMPTY_DATA_TYPES, type FuncCallSig } from '@internal/psl-parser';
 import { describe, expect, it } from 'vitest';
 import {
   createPostgresDefaultFunctionRegistry,
@@ -33,12 +33,11 @@ describe('createPostgresDefaultFunctionRegistry', () => {
   });
 
   it('declares each signature against the stack data types, taking a pg/int4 version', () => {
-    const signatureOf = (name: string) =>
-      (registry.get(name)!.signature as DefaultFunctionSignature)(EMPTY_DATA_TYPES);
-    expect(signatureOf('now')).toEqual({
+    expect(registry.get('now')?.signature).toEqual({
       documentation: 'Uses the current database timestamp as the default value.',
     });
-    expect(signatureOf('uuid')).toMatchObject({
+    const uuid = registry.get('uuid')!.signature as (dataTypes: DataTypeSupport) => FuncCallSig;
+    expect(uuid(EMPTY_DATA_TYPES)).toMatchObject({
       documentation: 'Generates a UUID when a value is not supplied.',
       positional: [
         {

@@ -30,19 +30,15 @@ export function sqlDefaultFunctionSignatures({
 }): Readonly<Record<SqlDefaultFunctionName, SqlDefaultFunctionDeclaration>> {
   return {
     autoincrement: {
-      signature: () => ({
-        documentation: 'Generates an increasing integer value in the database.',
-      }),
+      signature: { documentation: 'Generates an increasing integer value in the database.' },
       usageSignatures: ['autoincrement()'],
     },
     now: {
-      signature: () => ({
-        documentation: 'Uses the current database timestamp as the default value.',
-      }),
+      signature: { documentation: 'Uses the current database timestamp as the default value.' },
       usageSignatures: ['now()'],
     },
     ulid: {
-      signature: () => ({ documentation: 'Generates a ULID when a value is not supplied.' }),
+      signature: { documentation: 'Generates a ULID when a value is not supplied.' },
       usageSignatures: ['ulid()'],
     },
     uuid: {

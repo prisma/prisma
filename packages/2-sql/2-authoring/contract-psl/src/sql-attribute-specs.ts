@@ -244,8 +244,12 @@ type DefaultArgValue =
   | EnumMemberDefault
   | EnumMemberListDefault;
 
-/** A default function's signature, built against the stack's data types, which its arguments are read as. */
-export type DefaultFunctionSignature = (dataTypes: DataTypeSupport) => FuncCallSig;
+/** A default function's signature, or a function that builds it from the stack's data types when its arguments are values of a data type. */
+export type DefaultFunctionSignature = FuncCallSig | ((dataTypes: DataTypeSupport) => FuncCallSig);
+
+function signatureFor(signature: DefaultFunctionSignature, dataTypes: DataTypeSupport) {
+  return typeof signature === 'function' ? signature(dataTypes) : signature;
+}
 
 function defaultFunctionArm(
   name: string,
@@ -324,10 +328,13 @@ function scalarDefaultArms(
   const funcArms = [...defaultFunctionRegistry.entries()].map(([name, entry]) =>
     defaultFunctionArm(
       name,
-      blindCast<
-        DefaultFunctionSignature,
-        'The registry stores each signature opaquely as `unknown` because FuncCallSig lives in the authoring layer that core cannot name; the SQL family owns these entries and guarantees every one declares a DefaultFunctionSignature.'
-      >(entry.signature)(dataTypes),
+      signatureFor(
+        blindCast<
+          DefaultFunctionSignature,
+          'The registry stores each signature opaquely as `unknown` because FuncCallSig lives in the authoring layer that core cannot name; the SQL family owns these entries and guarantees every one declares a DefaultFunctionSignature.'
+        >(entry.signature),
+        dataTypes,
+      ),
     ),
   );
   return isList
