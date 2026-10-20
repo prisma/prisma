@@ -25,11 +25,7 @@ import {
   assembleDataTypeSupport,
   assertNoCrossRegistryCollisions,
 } from '@internal/framework-components/authoring';
-import type {
-  CodecLookupWithDescriptors,
-  DataTypeLookup,
-  TypeLookups,
-} from '@internal/framework-components/codec';
+import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import {
   createGeneratorHelpers,
   type ExtensionPackRef,
@@ -313,13 +309,12 @@ export function createComposedAuthoringHelpers<
   Family extends FamilyPackRef<string>,
   Target extends TargetPackRef<'sql', string>,
   Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined,
->(
-  options: {
-    readonly family: Family;
-    readonly target: Target;
-    readonly extensions?: Extensions;
-  } & TypeLookups<CodecLookupWithDescriptors, DataTypeLookup>,
-): ComposedAuthoringHelpers<Family, Target, Extensions> {
+>(options: {
+  readonly family: Family;
+  readonly target: Target;
+  readonly extensions?: Extensions;
+  readonly codecLookup: CodecLookupWithDescriptors;
+}): ComposedAuthoringHelpers<Family, Target, Extensions> {
   const extensionValues: readonly ExtensionPackRef<'sql', string>[] = Object.values(
     (options.extensions ?? {}) as Record<string, ExtensionPackRef<'sql', string>>,
   );
@@ -336,12 +331,13 @@ export function createComposedAuthoringHelpers<
   // `createControlStack`, the TS DSL composes here. Both seams need the guard.
   assertNoCrossRegistryCollisions(typeNamespace, fieldNamespace, entityNamespace);
   assertNoBuiltInEntityCollisions(entityNamespace);
+  const { support } = assembleDataTypeSupport(
+    components,
+    (codecId) => options.codecLookup.descriptorFor(codecId)?.dataType,
+  );
   const helperLookups: AuthoringHelperLookups = {
     codecLookup: options.codecLookup,
-    dataTypes: assembleDataTypeSupport(
-      components,
-      (codecId) => options.codecLookup.descriptorFor(codecId)?.dataType,
-    ).support,
+    dataTypes: support,
   };
 
   return blindCast<
@@ -353,7 +349,7 @@ export function createComposedAuthoringHelpers<
         family: options.family.familyId,
         target: options.target.targetId,
         codecLookup: options.codecLookup,
-        dataTypeLookup: options.dataTypeLookup,
+        dataTypeLookup: support.lookup,
       },
     }),
     field: createComposedFieldHelpers(fieldNamespace, helperLookups),

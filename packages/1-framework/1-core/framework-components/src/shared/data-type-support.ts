@@ -1,4 +1,9 @@
-import { assembleDataTypes, type DataType, type DataTypeId } from './data-type';
+import {
+  assembleDataTypes,
+  type DataType,
+  type DataTypeId,
+  type DataTypeLookup,
+} from './data-type';
 import {
   type AuthoringContributions,
   type AuthoringFieldPresetDescriptor,
@@ -10,15 +15,43 @@ import {
 import { runtimeError } from './runtime-error';
 import type { DataTypeSupport } from './written-value';
 
-/** A component as data type assembly reads it: the data types it registers, their authoring entries, and the type constructors and field presets whose value arguments name them. */
+/** A component as data type assembly reads it: the data types it registers, their authoring entries, the codecs that name them, and the type constructors and field presets whose value arguments name them. */
 export interface DataTypeComponent {
   readonly id?: string;
   readonly dataTypes?: ReadonlyArray<DataType>;
   readonly authoring?: Pick<AuthoringContributions, 'dataTypes' | 'type' | 'field'>;
+  readonly types?: {
+    readonly [slot: string]: unknown;
+    readonly codecTypes?: {
+      readonly codecDescriptors?: ReadonlyArray<{
+        readonly codecId: string;
+        readonly dataType: DataTypeId;
+      }>;
+    };
+  };
 }
 
-/** A type constructor or field preset, with the path it is registered under and who registered it. */
-export interface ContributedConstructor {
+/** What the data type checks of assembly read, each item with the id of the component that contributed it. */
+export interface DataTypeAssemblyInput {
+  readonly lookup: DataTypeLookup;
+  readonly declaredTypes: ReadonlyArray<{
+    readonly type: DataType;
+    readonly contributedBy: string;
+  }>;
+  readonly codecs: ReadonlyArray<{
+    readonly codecId: string;
+    readonly dataType: DataTypeId;
+    readonly contributedBy: string;
+  }>;
+  readonly authoringEntries: ReadonlyArray<{
+    readonly key: string;
+    readonly entry: DataTypeAuthoringEntry;
+    readonly contributedBy: string;
+  }>;
+}
+
+/** A type constructor or field preset, the helpers that take arguments, with the path it is registered under and who registered it. */
+export interface ContributedHelper {
   readonly path: string;
   readonly descriptor: AuthoringTypeConstructorDescriptor | AuthoringFieldPresetDescriptor;
   readonly contributedBy: string;
@@ -74,9 +107,9 @@ function descriptorsIn<D>(
 }
 
 /** Every type constructor and field preset a component contributes. */
-export function contributedConstructors(
+export function contributedHelpers(
   component: Pick<DataTypeComponent, 'id' | 'authoring'>,
-): readonly ContributedConstructor[] {
+): readonly ContributedHelper[] {
   return [
     ...descriptorsIn(component.authoring?.type, isAuthoringTypeConstructorDescriptor),
     ...descriptorsIn(component.authoring?.field, isAuthoringFieldPresetDescriptor),
@@ -84,11 +117,11 @@ export function contributedConstructors(
 }
 
 /** The data types a contract source can write: each entry's own, and every type a plain-number entry classifies a number as. */
-export function writableDataTypes(
-  entries: Readonly<Record<string, DataTypeAuthoringEntry>>,
+function writableDataTypes(
+  entries: DataTypeAssemblyInput['authoringEntries'],
 ): ReadonlySet<string> {
   return new Set(
-    Object.entries(entries).flatMap(([key, entry]) => [
+    entries.flatMap(({ key, entry }) => [
       key,
       ...(entry.written.kind === 'plain' && entry.written.syntax === 'number'
         ? entry.written.types
@@ -100,7 +133,7 @@ export function writableDataTypes(
 /** Refuses a value argument whose data type is unregistered, or that no contract source can write, directly or through a cast. */
 function enforceValueArguments(
   support: DataTypeSupport,
-  contributed: ContributedConstructor,
+  contributed: ContributedHelper,
   writable: ReadonlySet<string>,
 ): void {
   const { path, descriptor, contributedBy } = contributed;
@@ -128,7 +161,82 @@ function enforceValueArguments(
 }
 
 /**
- * The data types the components register, with their authoring entries, as every contract source reads values with. Refuses two registrations of one data type or one entry key, and a value argument of a type constructor or field preset whose data type is unregistered or that no contract source can write. ADR 254.
+ * The checks assembly makes across components on their data types, each naming the component and the id at fault:
+ *
+ * 1. every codec names a registered data type;
+ * 2. every authoring entry, and every type a number classifier returns, names a registered data type;
+ * 3. every type a cast takes values of is registered and can be written, because a cast from a type nobody can write is never exercised;
+ * 4. no two entries claim one tag or one plain form.
+ */
+export function enforceDataTypeAssemblyInvariants(input: DataTypeAssemblyInput): void {
+  const unregistered = (contributedBy: string, id: string, what: string): never => {
+    throw runtimeError(
+      'CONTRACT.DATA_TYPE_UNREGISTERED',
+      `${what} names data type "${id}", which no component registers. Contributed by "${contributedBy}".`,
+      { dataType: id, contributedBy },
+    );
+  };
+
+  for (const codec of input.codecs) {
+    if (!input.lookup.has(codec.dataType)) {
+      unregistered(codec.contributedBy, codec.dataType, `Codec "${codec.codecId}"`);
+    }
+  }
+
+  for (const { key, entry, contributedBy } of input.authoringEntries) {
+    if (!input.lookup.has(key)) {
+      unregistered(contributedBy, key, 'Authoring entry');
+    }
+    if (entry.written.kind === 'plain' && entry.written.syntax === 'number') {
+      for (const classified of entry.written.types) {
+        if (!input.lookup.has(classified)) {
+          unregistered(contributedBy, classified, `The classifier of authoring entry "${key}"`);
+        }
+      }
+    }
+  }
+
+  const writable = writableDataTypes(input.authoringEntries);
+  for (const { type, contributedBy } of input.declaredTypes) {
+    const sources = [...Object.keys(type.casts), ...(type.listCast?.of ?? [])];
+    for (const source of sources) {
+      if (!input.lookup.has(source)) {
+        unregistered(contributedBy, source, `The casts of data type "${type.id}"`);
+      }
+      if (!writable.has(source)) {
+        throw runtimeError(
+          'CONTRACT.DATA_TYPE_NOT_WRITABLE',
+          `Data type "${type.id}" casts from "${source}", which no contract source can write, so the cast is never exercised. Contributed by "${contributedBy}".`,
+          { dataType: type.id, source, contributedBy },
+        );
+      }
+    }
+  }
+
+  const claimants = new Map<string, { readonly key: string; readonly contributedBy: string }>();
+  for (const { key, entry, contributedBy } of input.authoringEntries) {
+    const written = entry.written;
+    const claim = written.kind === 'tag' ? `tag "${written.tag}"` : `plain ${written.syntax}`;
+    const existing = claimants.get(claim);
+    if (existing !== undefined) {
+      throw runtimeError(
+        'CONTRACT.DATA_TYPE_WRITTEN_FORM_DUPLICATE',
+        `Two authoring entries claim the ${claim}: "${key}" from "${contributedBy}" conflicts with "${existing.key}" from "${existing.contributedBy}".`,
+        {
+          claim,
+          key,
+          contributedBy,
+          owner: existing.key,
+          ownerContributedBy: existing.contributedBy,
+        },
+      );
+    }
+    claimants.set(claim, { key, contributedBy });
+  }
+}
+
+/**
+ * The data types the components register, with their authoring entries, as every contract source reads values with. Refuses two registrations of one data type or one entry key, every case {@link enforceDataTypeAssemblyInvariants} lists, and a value argument of a type constructor or field preset whose data type is unregistered or that no contract source can write. ADR 254.
  */
 export function assembleDataTypeSupport(
   components: ReadonlyArray<DataTypeComponent>,
@@ -136,9 +244,29 @@ export function assembleDataTypeSupport(
 ): AssembledDataTypeSupport {
   const { lookup, declared } = assembleDataTypes(components);
   const entries = assembleAuthoringDataTypes(components);
+  const contributedBy = (component: DataTypeComponent) => component.id ?? UNKNOWN_CONTRIBUTOR;
+  const authoringEntries = components.flatMap((component) =>
+    Object.entries(component.authoring?.dataTypes ?? {}).map(([key, entry]) => ({
+      key,
+      entry,
+      contributedBy: contributedBy(component),
+    })),
+  );
+  enforceDataTypeAssemblyInvariants({
+    lookup,
+    declaredTypes: declared,
+    codecs: components.flatMap((component) =>
+      (component.types?.codecTypes?.codecDescriptors ?? []).map(({ codecId, dataType }) => ({
+        codecId,
+        dataType,
+        contributedBy: contributedBy(component),
+      })),
+    ),
+    authoringEntries,
+  });
   const support: DataTypeSupport = { entries, lookup, dataTypeOfCodec };
-  const writable = writableDataTypes(entries);
-  for (const contributed of components.flatMap(contributedConstructors)) {
+  const writable = writableDataTypes(authoringEntries);
+  for (const contributed of components.flatMap(contributedHelpers)) {
     enforceValueArguments(support, contributed, writable);
   }
   return { support, declared };

@@ -285,6 +285,28 @@ describe('createComposedAuthoringHelpers', () => {
     ).toThrow(expect.objectContaining({ code: 'CONTRACT.DATA_TYPE_ENTRY_DUPLICATE' }));
   });
 
+  it('refuses two packs whose entries claim one written form, as the control stack does', () => {
+    const otherSql = sqlDataType('x/sql', { read: (json) => json });
+    const familyPack = { ...bareFamilyPack, ...sqlExpressionRegistration };
+    const targetPack = {
+      ...bareTargetPack,
+      dataTypes: [otherSql],
+      authoring: {
+        dataTypes: {
+          [otherSql.id]: sqlExpressionRegistration.authoring.dataTypes['sql/expression'],
+        },
+      },
+    };
+
+    expect(() =>
+      createComposedAuthoringHelpers({
+        ...testTypeLookups,
+        family: familyPack,
+        target: targetPack,
+      }),
+    ).toThrow(expect.objectContaining({ code: 'CONTRACT.DATA_TYPE_WRITTEN_FORM_DUPLICATE' }));
+  });
+
   it('rejects extension helpers that collide with reserved core field helper names', () => {
     const reservedFieldPack = {
       kind: 'extension',

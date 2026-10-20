@@ -1,9 +1,9 @@
 import { postgresAdapterContractContributions } from '@internal/adapter-postgres/adapter';
 import sqlFamilyPack from '@internal/family-sql/pack';
-import {
-  assembleDataTypes,
-  type CodecLookupWithDescriptors,
-  type DataTypeLookup,
+import { assembleDataTypeSupport } from '@internal/framework-components/authoring';
+import type {
+  CodecLookupWithDescriptors,
+  DataTypeLookup,
 } from '@internal/framework-components/codec';
 import type { ExtensionPackRef } from '@internal/framework-components/components';
 import type {
@@ -86,7 +86,9 @@ type PostgresBaseScaffold<
   readonly foreignKeyDefaults?: ForeignKeyDefaults;
   /** Overrides the codecs of the target and the extensions. */
   readonly codecLookup?: CodecLookupWithDescriptors;
-  /** Overrides the data types of the target and the extensions. */
+  /**
+   * Replaces the data types the contract is built with, which are otherwise those of the family, the target and the extensions. Only for an extension's own contract space, which uses the data types of a pack it does not list as an extension. Helper arguments are always read with the packs' data types.
+   */
   readonly dataTypeLookup?: DataTypeLookup;
   /**
    * RLS handles (`policy*`, `rlsEnabled`, `role`), lowered by the generic
@@ -189,7 +191,8 @@ export function defineContract(
   );
   const dataTypeLookup =
     definition.dataTypeLookup ??
-    assembleDataTypes([sqlFamilyPack, postgresPack, ...extensions]).lookup;
+    assembleDataTypeSupport([sqlFamilyPack, postgresPack, ...extensions], () => undefined).support
+      .lookup;
   const bound = {
     ...definition,
     adapter,

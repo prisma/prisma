@@ -1,9 +1,9 @@
 import { sqliteAdapterContractContributions } from '@internal/adapter-sqlite/adapter';
 import sqlFamilyPack from '@internal/family-sql/pack';
-import {
-  assembleDataTypes,
-  type CodecLookupWithDescriptors,
-  type DataTypeLookup,
+import { assembleDataTypeSupport } from '@internal/framework-components/authoring';
+import type {
+  CodecLookupWithDescriptors,
+  DataTypeLookup,
 } from '@internal/framework-components/codec';
 import type { ExtensionPackRef, TargetPackRef } from '@internal/framework-components/components';
 import type {
@@ -81,7 +81,9 @@ type SqliteBaseScaffold<
   readonly foreignKeyDefaults?: ForeignKeyDefaults;
   /** Overrides the codecs of the target and the extensions. */
   readonly codecLookup?: CodecLookupWithDescriptors;
-  /** Overrides the data types of the target and the extensions. */
+  /**
+   * Replaces the data types the contract is built with, which are otherwise those of the family, the target and the extensions. Only for an extension's own contract space, which uses the data types of a pack it does not list as an extension. Helper arguments are always read with the packs' data types.
+   */
   readonly dataTypeLookup?: DataTypeLookup;
 };
 
@@ -171,7 +173,8 @@ export function defineContract(
     codecLookup: definition.codecLookup ?? assembleSqliteCodecRegistry(target, extensionPacks),
     dataTypeLookup:
       definition.dataTypeLookup ??
-      assembleDataTypes([sqlFamilyPack, target, ...extensionPacks]).lookup,
+      assembleDataTypeSupport([sqlFamilyPack, target, ...extensionPacks], () => undefined).support
+        .lookup,
   };
   if (factory !== undefined) {
     return buildBoundContract(sqlFamilyPack, sqlitePack, bound, factory);
