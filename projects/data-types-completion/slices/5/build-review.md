@@ -6,6 +6,8 @@
 | a | 2 | `b820051918..d0642eb4ce` | 0 | 0 | 0 | SATISFIED |
 | b | 1 | `d0642eb4ce..8dd61b8b21` | 0 | 0 | 0 | SATISFIED |
 | c | 1 | `bc5265338a..d1dd5482ea` | 1 | 1 | 0 | ANOTHER ROUND NEEDED |
+| c | 2 | `fc01dc5f4f`, `80c2950c68` | 0 | 0 | 0 | SATISFIED |
+| d | 1 | `e8b28ec8e1..ca60a4a8a4` | 1 | 1 | 0 | ANOTHER ROUND NEEDED |
 
 ## Dispatch a, round 1
 
@@ -109,3 +111,44 @@ Where: `packages/2-sql/2-authoring/contract-psl/src/psl-column-resolution.ts`, `
 What is wrong: when the column's codec has no descriptor, the check reports `PSL_INVALID_DEFAULT_APPLICABILITY` naming the codec. A real stack cannot get there, because the column was resolved from that lookup. No test reaches it. `data-type-default.ts` treats the same situation as an `InternalError`.
 
 Change: throw an `InternalError`, as `data-type-default.ts` does, and drop the codec arm of the message.
+
+## Dispatch c, round 2
+
+S5-c-R1-1: the `packages/1-framework` threshold is 237, and `lint:framework-vocabulary` passes. S5-c-R1-2: a column with no codec descriptor now throws an `InternalError` with the same wording as `data-type-default.ts`. The message names only the data type. A new contract-psl test checks the throw. Checks run on `ca60a4a8a4` (below) include both.
+
+Verdict: SATISFIED.
+
+## Dispatch d, round 1
+
+Brief as ruled in `e8b28ec8e1`: discriminators stay text-typed, and the contract shape does not change.
+
+Checks run on `ca60a4a8a4`: `pnpm build`, root `typecheck:agent`, `lint:deps`, `lint:framework-vocabulary`, `check:publish-deps`, `lint:publishability` and `fixtures:check:agent` pass. The first `fixtures:check:agent` run timed out at 300 seconds with the machine's load average at 105; the second passed. Tests and `pnpm lint` pass in SQL contract-psl, Mongo contract-psl and sql-orm-client. The language server's `attribute-spec-consumability` and `completion-provider` files pass. In two full runs of the language server suite, two or three `server.membership-races`/`server.test.ts` tests timed out at 500 ms under that load; neither file is touched by this diff. Integration files pass: `authoring/discriminator-values`, `sql-orm-client/polymorphism-char-discriminator`, `polymorphism`, `polymorphism-variant-create`, `polymorphism-include`, `polymorphism-namespaces`, `mongo/target-runner/runner-polymorphism` and `psl-print/authored-contract-roundtrip`. No committed contract, snapshot or DDL changed.
+
+### Judgements on the implementer's decisions
+
+1. **Discriminator columns beyond `String`.** `Char` and `VarChar` are needed: the brief's own tests use `VarChar(5)` and `Char(6)`. The rule as written accepts more than the text types, though; see finding 1.
+2. **The ORM runtime needed no change.** Confirmed in the code. Writes put the variant's value into the row, and `query-plan-mutations.ts` binds every column through `codecRefForStorageColumn`. The `variant()` filter binds the value with `paramRefForStorageColumn` (`collection.ts`). Rows are read through each projection's codec ref, including the hidden discriminator projection (`buildHiddenDiscriminatorProjection` in `query-plan-select.ts`). `mapPolymorphicRow` and `createPolymorphicRowMapper` then compare the decoded value with the contract's text keys. The `Char(6)` test exercises all three paths on PGlite: `variant('box').all()` filters, `select` without `kind` uses the hidden projection, and the raw query shows the stored `'box   '` padding.
+3. **Mongo unchanged.** The conclusion holds, for a simpler reason than the one given. A Mongo discriminator must be `String` (Mongo `interpreter.ts`), and the Mongo `@@base` keeps its own `str()` spec. The value its codec writes is the string itself, so the `$jsonSchema` enum already holds the codec's value, and a quoted string is the only value a `String` column admits.
+4. **The `VarChar(5)` length test is Postgres-only.** Accepted. SQLite has no `VarChar` constructor, and its `character-varying` does not enforce a length. The length refusal is reported on the whole `@@base` attribute with the default's wording ("pg/varchar JSON value must be a string of at most 5 characters"), exactly as for a default. The cast refusal for a number is at the value. Both match "with the diagnostics of a default".
+5. **Accepting `string | number | boolean` at the parser.** Not the right shape now that discriminators are text only; see finding 2.
+
+### S5-d-R1-1 (must-fix): a discriminator may now be a UUID, bit string or IP address column
+
+Where: `packages/2-sql/2-authoring/contract-psl/src/interpreter.ts`, `isTextColumn`.
+
+What is wrong: the rule accepts a column whose data type is the type a quoted string is written as, or any type that casts from it. On Postgres, `pg/uuid`, `pg/bit`, `pg/varbit` and `pg/inet` all cast from `pg/text`. A probe, run through the integration test's authoring helper and then deleted, emitted these without errors:
+- `kind Uuid` with `@@base(Shape, "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11")`
+- `kind Bit(4)` with `@@base(Shape, "1010")`
+- `kind Inet` with `@@base(Shape, "10.0.0.1")`
+
+Today all three are refused. The ruling says discriminators stay text-typed, and the report's "`String`, `Char`, `VarChar` or a named type over them" does not describe what the code accepts. None of these columns has an ORM round-trip test.
+
+Change: accept only the target's text data types. Have the target name them, as it does for `sqlBuiltinGeneratorDescriptors({ text })`, rather than deriving them from casts. Add tests that `Uuid` and `Inet` discriminators are refused. A wider rule would need a ruling first.
+
+### S5-d-R1-2 (should-fix): signature help offers numbers and booleans for a text-only value
+
+Where: `packages/2-sql/2-authoring/contract-psl/src/sql-attribute-specs.ts`, `baseModelSpec`; `language-server/test/attribute-spec-consumability.test.ts`.
+
+What is wrong: the value is `oneOf(writtenScalar(str()), writtenScalar(numLiteral()), writtenScalar(bool()))`, so signature help shows `@@base(model reference, string | number | boolean)`. No text discriminator takes a number or a boolean; the parser accepts them only for the cast to refuse them.
+
+Change: take `writtenScalar(str())`, so the label is `string` as on Mongo. Keep the cast into the column's type for the length and padding checks. Update the number test to the parser's refusal at the value.
