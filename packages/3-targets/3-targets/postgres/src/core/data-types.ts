@@ -29,7 +29,12 @@ import {
   readJsonString,
   refuseJsonValue,
 } from '@internal/framework-components/codec';
-import { numeralText, type SqlTypeText, sqlDataType } from '@internal/sql-contract/data-type';
+import {
+  numeralText,
+  type SqlTypeText,
+  sqlDataType,
+  sqlRawDataType,
+} from '@internal/sql-contract/data-type';
 import {
   type DateTimeStoredTextOptions,
   dateTimeStoredText,
@@ -768,6 +773,7 @@ export const postgresDataTypes: readonly DataType[] = [
   pgTime,
   pgTimestamp,
   pgTimestamptz,
+  sqlRawDataType,
 ];
 
 /** A lookup of the data types this target registers. */
