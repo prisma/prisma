@@ -75,6 +75,16 @@ describe('app detection', () => {
       'a String @default(nanoid())',
     ],
     [
+      'default-function-argument-with-fraction',
+      'a String @default(nanoid(8.0))',
+      'a String @default(nanoid(8))',
+    ],
+    [
+      'default-function-argument-with-fraction',
+      'id String @default(uuid(7.0))',
+      'id String @default(uuid(7))',
+    ],
+    [
       'default-function-argument-diagnostics',
       "expect(message).toBe('Expected one of: 4 | 7');",
       "expect(message).toBe('uuid: version must be 4 or 7, got 5');",

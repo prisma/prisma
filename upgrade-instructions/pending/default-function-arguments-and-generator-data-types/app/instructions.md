@@ -18,6 +18,13 @@ changes:
         - 'Expected one of: 4 \| 7'
         - 'Expected an integer between 2 and 255'
         - 'Attribute \\?"(?:uuid|cuid|nanoid|ulid|now|autoincrement)\\?"'
+  - id: default-function-argument-with-fraction
+    summary: |
+      A default function argument written with a fraction, such as `nanoid(8.0)`, `uuid(4.0)`, `uuid(7.0)` or `cuid(2.0)`, is refused with `PSL_VALUE_TYPE_INCOMPATIBLE`, because a number with a fraction is not an integer value. It used to be read as the whole number. Write `nanoid(8)`, `uuid(4)`, `uuid(7)` or `cuid(2)`.
+    detection:
+      glob: "**/*.prisma"
+      matches:
+        - '\b(?:uuid|cuid|nanoid)\(\s*\d+\.\d'
   - id: generator-applicability-names-data-type
     summary: |
       `PSL_INVALID_DEFAULT_APPLICABILITY`, reported for a generated default on a column it does not apply to, names the column's data type instead of its codec: `Default generator "uuidv4" is not applicable to "Row.value" with data type "pg/int4".` where it said `with codecId "pg/int4@1"`.
@@ -72,7 +79,7 @@ expect(diagnostic).toMatchObject({
 });
 ```
 
-The messages are `uuid: version must be 4 or 7, got <n>`, `cuid: version must be 2, got <n>` and `nanoid: size must be between 2 and 255, got <n>`. An argument that is not a whole number, such as `nanoid(8.5)` or `nanoid("8")`, is `PSL_VALUE_TYPE_INCOMPATIBLE`, as for any value of the integer type.
+The messages are `uuid: version must be 4 or 7, got <n>`, `cuid: version must be 2, got <n>` and `nanoid: size must be between 2 and 255, got <n>`. An argument that is not written as a whole number, such as `nanoid(8.5)` or `nanoid("8")`, is `PSL_VALUE_TYPE_INCOMPATIBLE`, as for any value of the integer type. That includes a whole number written with a fraction, `nanoid(8.0)`, `uuid(4.0)`, `uuid(7.0)` or `cuid(2.0)`, which used to be read as the integer: write `nanoid(8)`, `uuid(4)`, `uuid(7)` and `cuid(2)`.
 
 ## `generator-applicability-names-data-type`
 

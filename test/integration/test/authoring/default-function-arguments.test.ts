@@ -95,16 +95,25 @@ describe.each([
     ]);
   });
 
-  it('refuses nanoid(8.5) at the argument for the missing cast to the integer type', async () => {
-    expect(await refusals('nanoid(8.5)')).toEqual([
-      {
-        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
-        message: `Expected a number that ${integer} can hold; got ${fraction}`,
-        line: 5,
-        columns: columnsOf('nanoid(8.5)', '8.5'),
-      },
-    ]);
-  });
+  it.each([
+    ['nanoid(8.5)', '8.5'],
+    ['nanoid(8.0)', '8.0'],
+    ['uuid(4.0)', '4.0'],
+    ['uuid(7.0)', '7.0'],
+    ['cuid(2.0)', '2.0'],
+  ])(
+    'refuses %s at the argument, because a number with a fraction is not an integer',
+    async (call, argument) => {
+      expect(await refusals(call)).toEqual([
+        {
+          code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+          message: `Expected a number that ${integer} can hold; got ${fraction}`,
+          line: 5,
+          columns: columnsOf(call, argument),
+        },
+      ]);
+    },
+  );
 
   it('refuses a quoted string argument at the argument', async () => {
     expect(await refusals('nanoid("8")')).toEqual([
