@@ -103,9 +103,16 @@ export function fixtureSchemaText(caseName: string): string {
 
 /** Interprets Prisma 7 schema text with the Postgres composition, or throws the diagnostics. */
 export function interpretSchemaText(text: string): Contract<SqlStorage> {
+  const result = interpretSchemaTextResult(text);
+  if (!result.ok) throw new Error(JSON.stringify(result.failure.diagnostics));
+  return result.value as Contract<SqlStorage>;
+}
+
+/** Interprets Prisma 7 schema text with the Postgres composition. */
+export function interpretSchemaTextResult(text: string) {
   const context = postgresSourceContext(['schema.prisma']);
   const { document, sources } = parse(text, 'schema.prisma', { grammar: 'prisma-7' });
-  const result = interpretPrisma7Documents({
+  return interpretPrisma7Documents({
     documents: [
       {
         document,
@@ -123,6 +130,4 @@ export function interpretSchemaText(text: string): Contract<SqlStorage> {
     dataTypes: context.dataTypes,
     composedExtensions: context.composedExtensions,
   });
-  if (!result.ok) throw new Error(JSON.stringify(result.failure.diagnostics));
-  return result.value as Contract<SqlStorage>;
 }

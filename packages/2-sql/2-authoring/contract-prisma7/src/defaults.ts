@@ -6,8 +6,18 @@ import {
   type WrittenValue,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
-import type { ControlMutationDefaults } from '@internal/framework-components/control';
-import type { FieldSymbol, PslSpan, ResolvedAttribute } from '@internal/psl-parser';
+import type {
+  ControlMutationDefaultEntry,
+  ControlMutationDefaults,
+} from '@internal/framework-components/control';
+import { CUID_VERSION } from '@internal/ids';
+import {
+  type AttributeCtx,
+  type FieldSymbol,
+  mapPslDiagnostics,
+  type PslSpan,
+  type ResolvedAttribute,
+} from '@internal/psl-parser';
 import type { ExpressionAst } from '@internal/psl-parser/syntax';
 import {
   ArrayLiteralAst,
@@ -19,6 +29,7 @@ import {
   printSyntax,
   StringLiteralExprAst,
 } from '@internal/psl-parser/syntax';
+import { defaultFunctionCall } from '@internal/sql-contract-psl/attribute-specs';
 import { type DefaultRefusal, readDataTypeDefault } from '@internal/sql-contract-psl/resolution';
 import type {
   AuthoredColumnDefault,
@@ -43,31 +54,23 @@ export interface LowerPrisma7DefaultInput {
   /** Storage value per member name when the field is typed by a Prisma 7 enum. */
   readonly enumMembers: ReadonlyMap<string, string> | undefined;
   readonly controlMutationDefaults: ControlMutationDefaults;
+  /** The context a default function's arguments are parsed in. */
+  readonly argumentContext: () => AttributeCtx;
   /** The stack's data types and the PSL support for them, which this reader maps its syntax onto. */
   readonly dataTypes: DataTypeSupport;
   readonly sourceId: string;
   readonly diagnostics: ContractSourceDiagnostic[];
 }
 
-type LiteralValue = string | number | boolean;
-
-/** Positional argument keys per Prisma 7 default function, matching the target registry's signatures. */
-const FUNCTION_ARGUMENT_KEYS: Readonly<Record<string, readonly string[]>> = {
-  uuid: ['version'],
-  cuid: ['version'],
-  nanoid: ['size'],
-  now: [],
-  autoincrement: [],
-  ulid: [],
-};
-
-function literalArgument(expression: ExpressionAst): LiteralValue | undefined {
-  const text = StringLiteralExprAst.cast(expression.syntax)?.value();
-  if (text !== undefined) return text;
-  const number = NumberLiteralExprAst.cast(expression.syntax)?.value();
-  if (number !== undefined) return number;
-  return BooleanLiteralExprAst.cast(expression.syntax)?.value();
-}
+/** The default functions of Prisma 7's schema language. */
+const PRISMA7_DEFAULT_FUNCTIONS: ReadonlySet<string> = new Set([
+  'autoincrement',
+  'now',
+  'uuid',
+  'cuid',
+  'nanoid',
+  'ulid',
+]);
 
 export function lowerPrisma7Default(
   input: LowerPrisma7DefaultInput,
@@ -93,7 +96,7 @@ export function lowerPrisma7Default(
 
   const call = FunctionCallAst.cast(expression.syntax);
   if (call !== undefined) {
-    return lowerFunction(call, input, label, unknown);
+    return lowerFunction(call, expression, input, label, unknown);
   }
 
   const scalar = scalarValue(expression, input, unknown);
@@ -318,6 +321,7 @@ function describeCasts(casts: readonly string[]): string {
 
 function lowerFunction(
   call: FunctionCallAst,
+  expression: ExpressionAst,
   input: LowerPrisma7DefaultInput,
   label: string,
   unknown: (reason: string, span: PslSpan) => undefined,
@@ -328,31 +332,15 @@ function lowerFunction(
   if (fn === 'dbgenerated') {
     return dbgeneratedDefault(callArgs, unknown, span);
   }
-  const keys = FUNCTION_ARGUMENT_KEYS[fn];
   const entry = input.controlMutationDefaults.defaultFunctionRegistry.get(fn);
-  if (keys === undefined || entry === undefined) {
+  if (!PRISMA7_DEFAULT_FUNCTIONS.has(fn) || entry === undefined) {
     return unknown(
       `function "${fn}()" is not a Prisma 7 default function this target supports.`,
       span,
     );
   }
-  const args: Record<string, unknown> = {};
-  let index = 0;
-  for (const arg of callArgs) {
-    const key = arg.name()?.name() ?? keys[index];
-    const value = arg.value();
-    const literal = value === undefined ? undefined : literalArgument(value);
-    if (key === undefined || literal === undefined) {
-      return unknown(
-        `function "${fn}()" has an argument this contract source does not read.`,
-        span,
-      );
-    }
-    args[key] = literal;
-    index += 1;
-  }
-  // Prisma 7's cuid() (version 1) has no Prisma 8 generator; the slice maps it to cuid2.
-  if (fn === 'cuid') args['version'] = 2;
+  const args = boundArguments(call, expression, fn, entry, input, label);
+  if (args === undefined) return undefined;
   const lowered = entry.lower({
     call: { fn, span, args },
     context: {
@@ -376,6 +364,34 @@ function lowerFunction(
   return lowered.value.kind === 'storage'
     ? { storage: lowered.value.defaultValue, onCreate: undefined }
     : { storage: undefined, onCreate: lowered.value.generated };
+}
+
+/**
+ * The arguments of a call to `fn`, bound and checked through its signature as Prisma 8 PSL binds them, or `undefined` after reporting each refusal at its argument. Prisma 7's `cuid()` is the one call bound otherwise: Prisma 8 has no generator for its version 1, so it means `cuid(2)`.
+ */
+function boundArguments(
+  call: FunctionCallAst,
+  expression: ExpressionAst,
+  fn: string,
+  entry: ControlMutationDefaultEntry,
+  input: LowerPrisma7DefaultInput,
+  label: string,
+): Readonly<Record<string, unknown>> | undefined {
+  if (fn === 'cuid' && [...call.args()].length === 0) return { version: CUID_VERSION };
+  const ctx = input.argumentContext();
+  const bound = defaultFunctionCall(fn, entry, input.dataTypes).parse(expression, ctx);
+  if (bound.ok) return bound.value.args;
+  for (const diagnostic of mapPslDiagnostics(bound.failure, ctx.sources)) {
+    input.diagnostics.push(
+      prisma7Diagnostic(
+        'PSL.PRISMA7_UNKNOWN_DEFAULT',
+        `${label}: ${diagnostic.message}`,
+        input.sourceId,
+        diagnostic.span,
+      ),
+    );
+  }
+  return undefined;
 }
 
 /**

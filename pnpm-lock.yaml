@@ -2555,6 +2555,9 @@ importers:
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.18
         version: link:../../../1-framework/1-core/framework-components
+      '@internal/ids':
+        specifier: workspace:8.0.0-rc.18
+        version: link:../../../1-framework/2-authoring/ids
       '@internal/psl-parser':
         specifier: workspace:8.0.0-rc.18
         version: link:../../../1-framework/2-authoring/psl-parser

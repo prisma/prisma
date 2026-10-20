@@ -13,11 +13,13 @@ import {
   instantiateAuthoringEntityType,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
-import type {
-  AssembledAuthoringContributions,
-  ControlMutationDefaults,
+import {
+  type AssembledAuthoringContributions,
+  assembleAuthoringContributions,
+  type ControlMutationDefaults,
 } from '@internal/framework-components/control';
 import type {
+  AttributeCtx,
   BlockSymbol,
   FieldSymbol,
   ModelSymbol,
@@ -27,9 +29,12 @@ import type {
   ResolvedTypeConstructorCall,
 } from '@internal/psl-parser';
 import {
+  type BinderContext,
   buildSymbolTable,
+  createBinder,
   createPslDiagnosticCollector,
   diagnosticSource,
+  EMPTY_DATA_TYPES,
   keywordPslSpan,
   nodePslSpan,
   readResolvedAttribute,
@@ -136,7 +141,18 @@ interface ModelDeclaration {
   readonly id: IndexAttribute | undefined;
   readonly uniqueIndexes: readonly IndexAttribute[];
   readonly indexes: readonly IndexAttribute[];
+  /** The context a default function's arguments are parsed in, built for the model's document when first asked for. */
+  readonly argumentContext: () => AttributeCtx;
 }
+
+/**
+ * The binder context of a Prisma 7 document's argument context. A default function's arguments are literals, so the binder needs no Prisma 8 attribute specs, functions or data types.
+ */
+const ARGUMENT_BINDER_CONTEXT: BinderContext = {
+  authoringContributions: assembleAuthoringContributions([]),
+  controlMutationDefaults: { defaultFunctionRegistry: new Map() },
+  dataTypes: EMPTY_DATA_TYPES,
+};
 
 interface ModelBuild {
   readonly declaration: ModelDeclaration;
@@ -340,10 +356,27 @@ export function interpretPrisma7Documents(
       'PSL_INVALID_EXTENSION_BLOCK_MEMBER',
       symbolTable.defaultNamespace.blocks,
     );
+    let argumentContext: AttributeCtx | undefined;
+    const argumentContextOf = (): AttributeCtx => {
+      argumentContext ??= {
+        sources,
+        symbols: symbolTable,
+        binder: createBinder({ sources, symbolTable, context: ARGUMENT_BINDER_CONTEXT }).binder,
+      };
+      return argumentContext;
+    };
     for (const symbol of Object.values(symbolTable.defaultNamespace.models)) {
       if (!claimName('model', symbol.name, sourceId, symbol.span)) continue;
       models.push(
-        readModelDeclaration(symbol, sourceId, sources, defaultNamespaceId, binding, diagnostics),
+        readModelDeclaration(
+          symbol,
+          sourceId,
+          sources,
+          defaultNamespaceId,
+          binding,
+          diagnostics,
+          argumentContextOf,
+        ),
       );
     }
   }
@@ -681,6 +714,7 @@ function readModelDeclaration(
   defaultNamespaceId: string,
   binding: Pick<Prisma7TargetBinding, 'indexTypes' | 'identifierMaxBytes'>,
   diagnostics: ContractSourceDiagnostic[],
+  argumentContext: () => AttributeCtx,
 ): ModelDeclaration {
   const { indexTypes } = binding;
   let ignored = false;
@@ -765,6 +799,7 @@ function readModelDeclaration(
     id,
     uniqueIndexes,
     indexes,
+    argumentContext,
   };
 }
 
@@ -1208,6 +1243,7 @@ function readField(args: ReadFieldArgs): void {
               ? undefined
               : new Map(enumDeclaration.members.map((member) => [member.name, member.value])),
           controlMutationDefaults: input.controlMutationDefaults,
+          argumentContext: model.argumentContext,
           sourceId,
           diagnostics,
         });
