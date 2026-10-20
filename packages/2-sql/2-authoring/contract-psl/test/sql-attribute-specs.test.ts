@@ -145,7 +145,10 @@ namespace scoped {
     expect(diagnostics.toExternal()).toEqual([]);
     expect(value?.base.declaration).toBe(namespace.models['Base']);
     expect(value?.base.namespace).toBe(namespace);
-    expect(value?.value).toBe('variant');
+    expect(value?.value).toMatchObject({
+      kind: 'scalar',
+      written: { kind: 'string', text: 'variant' },
+    });
   });
 });
 

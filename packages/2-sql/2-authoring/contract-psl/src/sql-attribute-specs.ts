@@ -689,8 +689,9 @@ function baseModelSpec() {
       },
       {
         key: 'value',
-        type: str(),
-        documentation: 'The discriminator value identifying this variant.',
+        type: oneOf(writtenScalar(str()), writtenScalar(numLiteral()), writtenScalar(bool())),
+        documentation:
+          "The discriminator value identifying this variant, a value of the discriminator column's type.",
       },
     ],
   });

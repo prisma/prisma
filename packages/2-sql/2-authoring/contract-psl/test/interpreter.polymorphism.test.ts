@@ -972,7 +972,7 @@ model Bug {
       );
     });
 
-    it('diagnoses non-String discriminator field', () => {
+    it('diagnoses a discriminator field that is not text', () => {
       const result = interpretPostgresSchema(
         `model Task {
   id    Int    @id @default(autoincrement())
@@ -998,7 +998,7 @@ model Bug {
         expect.arrayContaining([
           expect.objectContaining({
             code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-            message: expect.stringContaining('must be of type String'),
+            message: expect.stringContaining('must be text, such as String'),
           }),
         ]),
       );
@@ -1066,7 +1066,7 @@ model Bug {
         {
           code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
           message:
-            'Discriminator field "type" on model "Task" must be of type String, but is "String"',
+            'Discriminator field "type" on model "Task" must be text, such as String, but is "String"',
           sourceId: 'schema.prisma',
           span: {
             start: { line: 11, column: 3, offset: 189 },
