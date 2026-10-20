@@ -97,6 +97,31 @@ describe('a sqlite transaction', () => {
   });
 });
 
+describe('a prepared ORM read on a sqlite transaction', () => {
+  it('runs inside the transaction it is given', async () => {
+    const started: Array<{ kind: string; parentKind: string | undefined }> = [];
+    const db = sqlite({
+      contract,
+      path,
+      verifyMarker: false,
+      middleware: [activityTracer(started)],
+    });
+    const ids = await db.prepare({}, () => db.orm.Post.select('id').prepared.all());
+
+    const rows = await db.transaction(async (tx) => ids.query(tx, {}));
+    await db.close();
+
+    expect({ rows, started }).toEqual({
+      rows: [{ id: 1 }, { id: 2 }],
+      started: [
+        { kind: 'transaction', parentKind: undefined },
+        { kind: 'orm-call', parentKind: 'transaction' },
+        { kind: 'statement', parentKind: 'orm-call' },
+      ],
+    });
+  });
+});
+
 describe('the sqlite ORM', () => {
   it('offers fragment on db.orm and tx.orm', async () => {
     const db = sqlite({ contract, path, verifyMarker: false });

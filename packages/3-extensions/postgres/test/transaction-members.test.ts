@@ -122,6 +122,18 @@ describe('a postgres transaction', () => {
     expect(recorded.statements).toEqual(onOneConnection(['BEGIN', selectById, 'COMMIT']));
   });
 
+  it('runs a prepared ORM read inside the transaction it is given', async () => {
+    const db = postgres({ contract, url, verifyMarker: false });
+    const ids = await db.prepare({}, () => db.orm.public.Post.select('id').prepared.all());
+
+    await db.transaction(async (tx) => ids.query(tx, {}));
+    await db.close();
+
+    expect(recorded.statements).toEqual(
+      onOneConnection(['BEGIN', 'SELECT "posts"."id" AS "id" FROM "public"."posts"', 'COMMIT']),
+    );
+  });
+
   it('refuses a prepared statement run on the transaction after it ends', async () => {
     const db = postgres({ contract, url, verifyMarker: false });
     const byId = await db.prepare({ id: 'pg/int4@1' }, (params) =>

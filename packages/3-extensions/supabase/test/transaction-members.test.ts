@@ -160,4 +160,50 @@ describe('a transaction on a supabase role-bound client', () => {
 
     expect(recorded.statements).toEqual(underRole('service_role', [[selectByName, ['ada']]]));
   });
+
+  it('runs a prepared ORM read on a role-bound client, its service role copy and a transaction under the role', async () => {
+    const db = await supabase({
+      contract,
+      url: 'postgres://localhost/db',
+      verifyMarker: false,
+      jwtSecret: 'fixture-jwt-signing-input-not-a-real-credential',
+    });
+    const selectIds = 'SELECT "profile"."id" AS "id" FROM "public"."profile"';
+    const runs: Array<Array<{ readonly connection: number; readonly text: string }>> = [];
+    const run = async (body: () => PromiseLike<unknown>) => {
+      recorded.statements.length = 0;
+      await body();
+      runs.push(recorded.statements.map(({ connection, text }) => ({ connection, text })));
+    };
+
+    const anon = db.asAnon();
+    const serviceRole = db.asServiceRole();
+    const anonIds = await anon.prepare({}, () =>
+      anon.orm.public.Profile.select('id').prepared.all(),
+    );
+    const serviceIds = await serviceRole.prepare({}, () =>
+      serviceRole.orm.public.Profile.select('id').prepared.all(),
+    );
+    await run(() => anonIds.query(anon, {}));
+    await run(() => serviceIds.query(serviceRole, {}));
+    await run(() => anon.transaction(async (tx) => anonIds.query(tx, {})));
+    await db.close();
+
+    const framed =
+      (middle: readonly string[]) =>
+      (statements: ReadonlyArray<{ readonly connection: number }>) => {
+        const connection = statements[0]?.connection;
+        return [
+          'SELECT set_config($1, $2, false)',
+          'SELECT set_config($1, $2, false)',
+          ...middle,
+          'RESET ALL',
+        ].map((text) => ({ connection, text }));
+      };
+    expect(runs).toEqual([
+      framed([selectIds])(runs[0] ?? []),
+      framed([selectIds])(runs[1] ?? []),
+      framed(['BEGIN', selectIds, 'COMMIT'])(runs[2] ?? []),
+    ]);
+  });
 });

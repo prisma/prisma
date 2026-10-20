@@ -454,7 +454,7 @@ export default async function supabase<
         );
       },
     };
-    return roleBound;
+    return Object.assign(roleBound, { [activitySource]: runtime.roleActivitySource(binding) });
   }
 
   const serviceRoleBinding: SupabaseRoleBinding = {
