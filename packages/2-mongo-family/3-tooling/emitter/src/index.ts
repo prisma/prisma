@@ -2,7 +2,7 @@ import type { Contract, ContractModelBase, JsonValue } from '@internal/contract/
 import { serializeObjectKey, serializeValue } from '@internal/emitter/domain-type-generation';
 import type { ImportSpecifierResolver } from '@internal/framework-components/emission';
 import type { Namespace } from '@internal/framework-components/ir';
-import type { MongoCollection, MongoStorage } from '@internal/mongo-contract';
+import type { MongoCollection, MongoModelStorage, MongoStorage } from '@internal/mongo-contract';
 import { blindCast } from '@internal/utils/casts';
 
 const MONGO_NAMESPACE_KIND_FALLBACK = 'mongo-namespace' as const;
@@ -71,6 +71,18 @@ export const mongoEmission = {
       parts.push(`readonly collection: ${serializeValue(collection)}`);
     }
 
+    const storageFields = blindCast<
+      MongoModelStorage['fields'],
+      'a validated MongoDB contract records the stored name of every field'
+    >(model.storage['fields']);
+    const fieldEntries = Object.entries(storageFields).map(
+      ([fieldName, { field }]) =>
+        `readonly ${serializeObjectKey(fieldName)}: { readonly field: ${serializeValue(field)} }`,
+    );
+    parts.push(
+      `readonly fields: ${fieldEntries.length > 0 ? `{ ${fieldEntries.join('; ')} }` : 'Record<string, never>'}`,
+    );
+
     const storageRelations = model.storage['relations'] as
       | Record<string, Record<string, unknown>>
       | undefined;
@@ -82,7 +94,7 @@ export const mongoEmission = {
       parts.push(`readonly relations: { ${relEntries.join('; ')} }`);
     }
 
-    return parts.length > 0 ? `{ ${parts.join('; ')} }` : 'Record<string, never>';
+    return `{ ${parts.join('; ')} }`;
   },
 
   resolveStorageValueSet(

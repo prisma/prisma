@@ -24,9 +24,9 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 // system (content cannot be null/undefined on CommentRequired), so that branch
 // is covered below through the provisioned collection validator.
 //
-// Note: create() returns the input data merged with the server-assigned _id.
+// Note: create() returns the input data merged with the server-assigned id.
 // Upstream asserts `id: expect.any(String)`; Prisma 8 decodes write results
-// through the same codecs as reads (#29879), so `_id` is a hex string here too.
+// through the same codecs as reads (#29879), so `id` is a hex string here too.
 
 function withComposites(fn: Parameters<typeof withMongoPort<Contract>>[1]) {
   return withMongoPort<Contract>({ contractJson }, fn);
@@ -53,7 +53,7 @@ describe('ports/prisma/functional/composites/object/create', () => {
               upvotes: [{ userId: '10', vote: true }],
             },
           });
-          expect(comment._id).toEqual(expect.any(String));
+          expect(comment.id).toEqual(expect.any(String));
         }),
       timeouts.spinUpMongoMemoryServer,
     );
@@ -149,7 +149,7 @@ describe('ports/prisma/functional/composites/object/create', () => {
               upvotes: [{ userId: '10', vote: true }],
             },
           });
-          expect(comment._id).toEqual(expect.any(String));
+          expect(comment.id).toEqual(expect.any(String));
         }),
       timeouts.spinUpMongoMemoryServer,
     );

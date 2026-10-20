@@ -38,7 +38,7 @@ function deserializedContract() {
             },
           },
           relations: {},
-          storage: { collection: 'items' },
+          storage: { fields: { _id: { field: '_id' } }, collection: 'items' },
         },
       },
       namespaceId: UNBOUND_DOMAIN_NAMESPACE_ID,

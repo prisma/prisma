@@ -12,7 +12,7 @@ function contractWithVariant(entry: unknown) {
           models: {
             Task: {
               fields: {},
-              storage: {},
+              storage: { fields: {} },
               discriminator: { field: 'type' },
               variants: { bug: entry },
             },

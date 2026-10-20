@@ -43,7 +43,19 @@
             },
             "owner": "User",
             "relations": {},
-            "storage": {}
+            "storage": {
+              "fields": {
+                "city": {
+                  "field": "city"
+                },
+                "street": {
+                  "field": "street"
+                },
+                "zip": {
+                  "field": "zip"
+                }
+              }
+            }
           },
           "Bug": {
             "base": {
@@ -61,7 +73,12 @@
             },
             "relations": {},
             "storage": {
-              "collection": "tasks"
+              "collection": "tasks",
+              "fields": {
+                "severity": {
+                  "field": "severity"
+                }
+              }
             }
           },
           "Comment": {
@@ -90,7 +107,19 @@
             },
             "owner": "Task",
             "relations": {},
-            "storage": {}
+            "storage": {
+              "fields": {
+                "_id": {
+                  "field": "_id"
+                },
+                "createdAt": {
+                  "field": "createdAt"
+                },
+                "text": {
+                  "field": "text"
+                }
+              }
+            }
           },
           "Feature": {
             "base": {
@@ -115,7 +144,15 @@
             },
             "relations": {},
             "storage": {
-              "collection": "tasks"
+              "collection": "tasks",
+              "fields": {
+                "priority": {
+                  "field": "priority"
+                },
+                "targetRelease": {
+                  "field": "targetRelease"
+                }
+              }
             }
           },
           "Task": {
@@ -179,6 +216,20 @@
             },
             "storage": {
               "collection": "tasks",
+              "fields": {
+                "_id": {
+                  "field": "_id"
+                },
+                "assigneeId": {
+                  "field": "assigneeId"
+                },
+                "title": {
+                  "field": "title"
+                },
+                "type": {
+                  "field": "type"
+                }
+              },
               "relations": {
                 "comments": {
                   "field": "comments"
@@ -231,6 +282,17 @@
             },
             "storage": {
               "collection": "users",
+              "fields": {
+                "_id": {
+                  "field": "_id"
+                },
+                "email": {
+                  "field": "email"
+                },
+                "name": {
+                  "field": "name"
+                }
+              },
               "relations": {
                 "addresses": {
                   "field": "addresses"

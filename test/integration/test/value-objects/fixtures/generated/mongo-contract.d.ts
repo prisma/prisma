@@ -68,7 +68,7 @@ type ContractBase = {
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'shops' };
+            readonly storage: { readonly collection: 'shops'; readonly fields: { readonly _id: { readonly field: '_id' }; readonly name: { readonly field: 'name' }; readonly location: { readonly field: 'location' }; readonly notes: { readonly field: 'notes' } } };
           };
         };
         readonly valueObjects: {

@@ -27,7 +27,13 @@ import type {
   ControlMutationDefaults,
 } from '@internal/framework-components/control';
 import type { FuncCallSig, PslBlockSpecDescriptor, SymbolTable } from '@internal/psl-parser';
-import { blockAttribute, buildSymbolTable, jsonValue, mapBlock, str } from '@internal/psl-parser';
+import {
+  blockAttribute,
+  buildSymbolTable,
+  enumMemberValue,
+  mapBlock,
+  str,
+} from '@internal/psl-parser';
 import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
 import type { DocumentAst, PslSources, SourceFile } from '@internal/psl-parser/syntax';
 import { parse } from '@internal/psl-parser/syntax';
@@ -83,7 +89,7 @@ export const testEnumPslBlockDescriptor = {
   name: { required: true },
   spec: () =>
     mapBlock({
-      value: { type: jsonValue(), documentation: 'The explicit member value.' },
+      value: { type: enumMemberValue(), documentation: 'The explicit member value.' },
       allowBare: true,
     }),
   attributes: {

@@ -109,7 +109,10 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'notes' };
+            readonly storage: {
+              readonly collection: 'notes';
+              readonly fields: { readonly _id: { readonly field: '_id' } };
+            };
           };
         };
       };

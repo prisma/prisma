@@ -5,12 +5,12 @@ import {
   type ContractExecutionSection,
   type ContractField,
   type ContractFieldType,
-  type ContractModelBase,
   type ContractReferenceRelation,
   type ContractValueObject,
   type ControlPolicy,
   type CrossReference,
   crossRef,
+  type EnumMemberValueType,
   type ExecutionHashBase,
   type ExecutionMutationDefault,
   type ExecutionMutationDefaultPhases,
@@ -75,9 +75,11 @@ import {
   type MongoIndexFields,
   type MongoIndexInput,
   type MongoIndexOptionsInput,
+  type MongoModelDefinition,
   type MongoStorageShape,
   type MongoTypeMaps,
   mongoValueSetsOf,
+  unsupportedStoredNameReason,
 } from '@internal/mongo-contract';
 import { assertMongoFieldTypeParams } from '@internal/mongo-contract/data-type';
 import type { BsonInputValue, BsonValue } from '@internal/mongo-value';
@@ -194,6 +196,7 @@ type MongoCodecTypes = {
     readonly input: string;
     readonly output: string;
     readonly traits: 'equality' | 'order' | 'numeric';
+    readonly keepsWrittenForm: true;
   };
   readonly 'mongo/binary@1': {
     readonly input: Uint8Array;
@@ -233,6 +236,7 @@ export interface FieldBuilder<
     | { readonly elementNullable: boolean },
   Handle extends EnumTypeHandle | undefined = EnumTypeHandle | undefined,
   ExecutionDefaults extends ExecutionMutationDefaultPhases | undefined = undefined,
+  StoredName extends string | undefined = string | undefined,
 > {
   readonly __kind: 'field';
   readonly __type: Type;
@@ -240,19 +244,34 @@ export interface FieldBuilder<
   readonly __many: Many;
   readonly __enumHandle: Handle;
   readonly __executionDefaults?: ExecutionDefaults;
+  readonly __storedName: StoredName;
   /** The generator function calls `.onCreate(...)` and `.onUpdate(...)` give, resolved by the field's codec when the contract is built. */
   readonly __generatorCalls?: FieldGeneratorCalls;
   /** Generates the field's value in the client when a document is created without one, with a call from `gen`, such as `gen.now()`. */
   onCreate(
     call: GeneratorFunctionCall,
-  ): FieldBuilder<Type, Nullable, Many, Handle, WithGeneratedPhase<ExecutionDefaults, 'onCreate'>>;
+  ): FieldBuilder<
+    Type,
+    Nullable,
+    Many,
+    Handle,
+    WithGeneratedPhase<ExecutionDefaults, 'onCreate'>,
+    StoredName
+  >;
   /** Generates the field's value in the client every time a document is updated, with a call from `gen`, such as `gen.now()`. */
   onUpdate(
     call: GeneratorFunctionCall,
-  ): FieldBuilder<Type, Nullable, Many, Handle, WithGeneratedPhase<ExecutionDefaults, 'onUpdate'>>;
+  ): FieldBuilder<
+    Type,
+    Nullable,
+    Many,
+    Handle,
+    WithGeneratedPhase<ExecutionDefaults, 'onUpdate'>,
+    StoredName
+  >;
   readonly optional: FilledOnWrite<ExecutionDefaults> extends true
     ? (this: 'A preset fills this field on write, so it cannot be optional') => never
-    : () => FieldBuilder<Type, true, Many, Handle, ExecutionDefaults>;
+    : () => FieldBuilder<Type, true, Many, Handle, ExecutionDefaults, StoredName>;
   readonly many: FilledOnWrite<ExecutionDefaults> extends true
     ? (this: 'A preset fills this field on write, so it cannot be a list') => never
     : {
@@ -261,7 +280,8 @@ export interface FieldBuilder<
           Nullable,
           { readonly elementNullable: false },
           Handle,
-          ExecutionDefaults
+          ExecutionDefaults,
+          StoredName
         >;
         (options: {
           readonly elementsNullable: false;
@@ -270,7 +290,8 @@ export interface FieldBuilder<
           Nullable,
           { readonly elementNullable: false },
           Handle,
-          ExecutionDefaults
+          ExecutionDefaults,
+          StoredName
         >;
         (options: {
           readonly elementsNullable: true;
@@ -279,9 +300,14 @@ export interface FieldBuilder<
           Nullable,
           { readonly elementNullable: true },
           Handle,
-          ExecutionDefaults
+          ExecutionDefaults,
+          StoredName
         >;
       };
+  /** Store the field under `field` in its documents, as `.mongo({ field: '_id' })` stores the document id. */
+  readonly mongo: <const Field extends string>(spec: {
+    readonly field: Field;
+  }) => FieldBuilder<Type, Nullable, Many, Handle, ExecutionDefaults, Field>;
 }
 
 type FieldGeneratorCalls = {
@@ -625,8 +651,29 @@ type ContractRelationsFromRecord<
       readonly [K in keyof Relations]: ContractRelationFromBuilder<Relations[K], Fields>;
     }>;
 
-type ContractModelStorageFromBuilder<TBuilder> = ModelStorageSection<TBuilder> &
-  ModelStorageRelationsSection<TBuilder>;
+type StoredNameFromBuilder<TBuilder, FieldName extends string> = TBuilder extends {
+  readonly __storedName: infer StoredName extends string;
+}
+  ? StoredName
+  : FieldName;
+
+type StorageFieldsFromRecord<Fields extends Record<string, AnyFieldBuilder>> =
+  keyof Fields extends never
+    ? Record<string, never>
+    : {
+        readonly [K in keyof Fields & string]: {
+          readonly field: StoredNameFromBuilder<Fields[K], K>;
+        };
+      };
+
+type ContractModelStorageFromBuilder<
+  TBuilder,
+  Fields extends Record<string, AnyFieldBuilder>,
+> = Simplify<
+  ModelStorageSection<TBuilder> & {
+    readonly fields: StorageFieldsFromRecord<Fields>;
+  } & ModelStorageRelationsSection<TBuilder>
+>;
 
 type MaybeOwner<Owner> = [Owner] extends [undefined]
   ? EmptyObject
@@ -665,7 +712,7 @@ type ContractModelFromBuilder<TBuilder> =
         {
           readonly fields: ContractFieldsFromRecord<Fields>;
           readonly relations: ContractRelationsFromRecord<Relations, Fields>;
-          readonly storage: ContractModelStorageFromBuilder<TBuilder>;
+          readonly storage: ContractModelStorageFromBuilder<TBuilder, Fields>;
         } & MaybeOwner<Owner> &
           MaybeBase<Base> &
           MaybeDiscriminator<Discriminator> &
@@ -783,22 +830,38 @@ type EnumHandleEntries<Enums> = {
 };
 
 // The `enumMemberTypes` for enums authored with `enumType`: each member with the value the application reads, as an emitted `contract.d.ts` types it. `db.enums` reads its accessors from it.
-type EnumHandleMemberTypes<Enums> = {
-  readonly [K in keyof Enums as HandleName<Enums[K]>]: EnumHandleMembers<Enums[K], false>;
+type EnumHandleMemberTypes<Enums, CodecTypes> = {
+  readonly [K in keyof Enums as HandleName<Enums[K]>]: Enums[K] extends EnumTypeHandle<
+    string,
+    infer Values,
+    infer Names,
+    Record<string, unknown>,
+    infer CodecId
+  >
+    ? {
+        readonly [I in keyof Values]: {
+          readonly name: I extends keyof Names ? Names[I] : never;
+          readonly value: EnumMemberValueType<CodecTypes, CodecId, Values[I]>;
+        };
+      }
+    : never;
 };
 
-type MaybeEnumsSection<Enums extends Record<string, EnumTypeHandle>> = keyof Enums extends never
+type MaybeEnumsSection<
+  Enums extends Record<string, EnumTypeHandle>,
+  CodecTypes,
+> = keyof Enums extends never
   ? EmptyObject
   : {
       readonly enum: EnumHandleEntries<Enums>;
-      readonly enumMemberTypes?: EnumHandleMemberTypes<Enums>;
+      readonly enumMemberTypes?: EnumHandleMemberTypes<Enums, CodecTypes>;
     };
 
 type MongoDomainNamespaceFromDefinition<Definition> = Simplify<
   {
     readonly models: ContractModelsFromRecord<DefinitionModels<Definition>>;
   } & MaybeValueObjectsSection<DefinitionValueObjects<Definition>> &
-    MaybeEnumsSection<DefinitionEnums<Definition>>
+    MaybeEnumsSection<DefinitionEnums<Definition>, CodecTypesFromDefinition<Definition>>
 >;
 
 type MongoContractBaseFromDefinition<Definition> = Simplify<{
@@ -832,7 +895,10 @@ type ModelExecutionDefaults<TBuilder> =
                 readonly ref: {
                   readonly namespace: typeof UNBOUND_NAMESPACE_ID;
                   readonly entry: Entry;
-                  readonly field: FieldName;
+                  readonly field: StoredNameFromBuilder<
+                    ExtractModelFields<TBuilder>[FieldName],
+                    FieldName
+                  >;
                 };
               } & Phases
           : never;
@@ -1233,25 +1299,42 @@ function createFieldBuilder<
   Many extends false | { readonly elementNullable: boolean },
   Handle extends EnumTypeHandle | undefined = undefined,
   ExecutionDefaults extends ExecutionMutationDefaultPhases | undefined = undefined,
+  StoredName extends string | undefined = undefined,
 >(
   spec: FieldBuilderSpec<Type, Nullable, Many>,
   enumHandle?: Handle,
   executionDefaults?: ExecutionDefaults,
+  storedName?: StoredName,
   generatorCalls?: FieldGeneratorCalls,
-): FieldBuilder<Type, Nullable, Many, Handle, ExecutionDefaults> {
+): FieldBuilder<Type, Nullable, Many, Handle, ExecutionDefaults, StoredName> {
   function many(): FieldBuilder<
     Type,
     Nullable,
     { readonly elementNullable: false },
     Handle,
-    ExecutionDefaults
+    ExecutionDefaults,
+    StoredName
   >;
   function many(options: {
     readonly elementsNullable: false;
-  }): FieldBuilder<Type, Nullable, { readonly elementNullable: false }, Handle, ExecutionDefaults>;
+  }): FieldBuilder<
+    Type,
+    Nullable,
+    { readonly elementNullable: false },
+    Handle,
+    ExecutionDefaults,
+    StoredName
+  >;
   function many(options: {
     readonly elementsNullable: true;
-  }): FieldBuilder<Type, Nullable, { readonly elementNullable: true }, Handle, ExecutionDefaults>;
+  }): FieldBuilder<
+    Type,
+    Nullable,
+    { readonly elementNullable: true },
+    Handle,
+    ExecutionDefaults,
+    StoredName
+  >;
   function many(options?: { readonly elementsNullable: boolean }) {
     return createFieldBuilder(
       {
@@ -1261,6 +1344,7 @@ function createFieldBuilder<
       },
       enumHandle,
       executionDefaults,
+      storedName,
       generatorCalls,
     );
   }
@@ -1283,6 +1367,7 @@ function createFieldBuilder<
         WithGeneratedPhase<ExecutionDefaults, Phase>,
         'the phase is resolved from the call when the contract is built; the type records that it will be set'
       >(executionDefaults),
+      storedName,
       { ...generatorCalls, [phase]: call },
     );
   }
@@ -1300,11 +1385,15 @@ function createFieldBuilder<
       Handle,
       'optional param widens to Handle | undefined; Handle defaults to undefined when no enum handle is passed'
     >(enumHandle),
+    __storedName: blindCast<
+      StoredName,
+      'optional param widens to StoredName | undefined; StoredName defaults to undefined when no stored name is passed'
+    >(storedName),
     optional: blindCast<
-      FieldBuilder<Type, Nullable, Many, Handle, ExecutionDefaults>['optional'],
+      FieldBuilder<Type, Nullable, Many, Handle, ExecutionDefaults, StoredName>['optional'],
       'every builder has the method at runtime, for a JavaScript caller the type does not stop; the type refuses it on a field a preset fills'
     >(() =>
-      createFieldBuilder<Type, true, Many, Handle, ExecutionDefaults>(
+      createFieldBuilder<Type, true, Many, Handle, ExecutionDefaults, StoredName>(
         {
           type: spec.type,
           nullable: true,
@@ -1312,13 +1401,22 @@ function createFieldBuilder<
         },
         enumHandle,
         executionDefaults,
+        storedName,
         generatorCalls,
       ),
     ),
     many: blindCast<
-      FieldBuilder<Type, Nullable, Many, Handle, ExecutionDefaults>['many'],
+      FieldBuilder<Type, Nullable, Many, Handle, ExecutionDefaults, StoredName>['many'],
       'every builder has the method at runtime, for a JavaScript caller the type does not stop; the type refuses it on a field a preset fills'
     >(many),
+    mongo: <const Field extends string>({ field }: { readonly field: Field }) =>
+      createFieldBuilder<Type, Nullable, Many, Handle, ExecutionDefaults, Field>(
+        spec,
+        enumHandle,
+        executionDefaults,
+        field,
+        generatorCalls,
+      ),
   };
 }
 
@@ -1962,6 +2060,45 @@ function buildContractField(builder: AnyFieldBuilder): ContractField {
   };
 }
 
+function storedNameOf(fieldName: string, fieldBuilder: AnyFieldBuilder): string {
+  return fieldBuilder.__storedName ?? fieldName;
+}
+
+function buildStorageFields(
+  modelName: string,
+  fields: Record<string, AnyFieldBuilder>,
+): Record<string, { readonly field: string }> {
+  const storageFields: Record<string, { readonly field: string }> = {};
+  const fieldsByStoredName = new Map<string, string>();
+  for (const [fieldName, fieldBuilder] of Object.entries(fields)) {
+    const storedName = storedNameOf(fieldName, fieldBuilder);
+    const unsupported = unsupportedStoredNameReason(storedName);
+    if (unsupported !== undefined) {
+      throw contractError(
+        'CONTRACT.ARGUMENT_INVALID',
+        `Model "${modelName}" field "${fieldName}" ${unsupported}. Give it another stored name.`,
+        { meta: { modelName, fieldName, reason: 'stored-name-unsupported' } },
+      );
+    }
+    const existingField = fieldsByStoredName.get(storedName);
+    if (existingField !== undefined) {
+      throw contractError(
+        'CONTRACT.NAME_DUPLICATE',
+        `Model "${modelName}" stores both "${existingField}" and "${fieldName}" as "${storedName}".`,
+        { meta: { kind: 'field', name: storedName, first: existingField, second: fieldName } },
+      );
+    }
+    fieldsByStoredName.set(storedName, fieldName);
+    storageFields[fieldName] = { field: storedName };
+  }
+  return storageFields;
+}
+
+function storedFieldNameIn(fields: Record<string, AnyFieldBuilder>, fieldName: string): string {
+  const fieldBuilder = Object.hasOwn(fields, fieldName) ? fields[fieldName] : undefined;
+  return fieldBuilder === undefined ? fieldName : storedNameOf(fieldName, fieldBuilder);
+}
+
 function buildFields(fields: Record<string, AnyFieldBuilder>): Record<string, ContractField> {
   const builtFields: Record<string, ContractField> = {};
 
@@ -2063,6 +2200,21 @@ function buildValueObjects(
       );
     }
 
+    for (const [fieldName, fieldBuilder] of Object.entries(valueObjectBuilder.__fields)) {
+      if (fieldBuilder.__storedName !== undefined) {
+        throw contractError(
+          'CONTRACT.ARGUMENT_INVALID',
+          `Value object "${valueObjectBuilder.__name}" field "${fieldName}" sets .mongo({ field }), but a field of a value object is stored under its own name.`,
+          {
+            meta: {
+              valueObjectName: valueObjectBuilder.__name,
+              fieldName,
+              reason: 'value-object-field-stored-name',
+            },
+          },
+        );
+      }
+    }
     builtValueObjects[valueObjectBuilder.__name] = {
       fields: buildFields(valueObjectBuilder.__fields),
     };
@@ -2073,8 +2225,8 @@ function buildValueObjects(
 
 function buildModels(
   models: Record<string, AnyModelBuilder> | undefined,
-): Record<string, ContractModelBase> {
-  const builtModels: Record<string, ContractModelBase> = {};
+): Record<string, MongoModelDefinition> {
+  const builtModels: Record<string, MongoModelDefinition> = {};
 
   for (const modelBuilder of Object.values(models ?? {})) {
     if (modelBuilder.__name in builtModels) {
@@ -2089,6 +2241,7 @@ function buildModels(
 
     const storage = {
       ...(modelBuilder.__collection ? { collection: modelBuilder.__collection } : {}),
+      fields: buildStorageFields(modelBuilder.__name, modelBuilder.__fields),
       ...(modelBuilder.__storageRelations ? { relations: modelBuilder.__storageRelations } : {}),
     };
 
@@ -2169,9 +2322,19 @@ function normalizeRoots(
   return normalizedRoots;
 }
 
-function toStorageIndex(index: MongoIndexAuthoringInput): MongoIndex {
+function storedIndexKey(fields: Record<string, AnyFieldBuilder>, key: string): string {
+  const wildcardMatch = key.match(/^(.+)\.\$\*\*$/);
+  const scope = wildcardMatch?.[1];
+  if (scope !== undefined) return `${storedFieldNameIn(fields, scope)}.$**`;
+  return key === '$**' ? key : storedFieldNameIn(fields, key);
+}
+
+function toStorageIndex(
+  index: MongoIndexAuthoringInput,
+  fields: Record<string, AnyFieldBuilder>,
+): MongoIndex {
   const keys = Object.entries(index.fields).map(([field, direction]) => ({
-    field,
+    field: storedIndexKey(fields, field),
     direction,
   }));
   const input: Record<string, unknown> = { keys };
@@ -2234,7 +2397,10 @@ function resolveVariantScope(
   const discriminatorField = baseBuilder.__discriminator?.field;
   const variantValue = baseBuilder.__variants?.[modelBuilder.__name]?.value;
   if (!discriminatorField || variantValue === undefined) return undefined;
-  return { discriminatorField, discriminatorValue: variantValue };
+  return {
+    discriminatorField: storedFieldNameIn(baseBuilder.__fields, discriminatorField),
+    discriminatorValue: variantValue,
+  };
 }
 
 function scopeVariantIndex(
@@ -2346,7 +2512,9 @@ function buildCollections(
     }
 
     const polymorphicScope = resolveVariantScope(modelBuilder, modelsByName);
-    const rawStorageIndexes = (modelBuilder.__indexes ?? []).map(toStorageIndex);
+    const rawStorageIndexes = (modelBuilder.__indexes ?? []).map((authored) =>
+      toStorageIndex(authored, modelBuilder.__fields),
+    );
     const storageIndexes = polymorphicScope
       ? rawStorageIndexes.map((idx, i) =>
           scopeVariantIndex(
@@ -2513,7 +2681,10 @@ function buildExecutionDefaults(
   const collectionByModelName = new Map(
     modelBuilders.map((modelBuilder) => [modelBuilder.__name, modelBuilder.__collection]),
   );
-  const byRef = new Map<string, { readonly modelName: string; readonly phasesKey: string }>();
+  const byRef = new Map<
+    string,
+    { readonly modelName: string; readonly fieldName: string; readonly phasesKey: string }
+  >();
   const defaults: ExecutionMutationDefault[] = [];
   for (const modelBuilder of modelBuilders) {
     for (const [fieldName, fieldBuilder] of Object.entries(modelBuilder.__fields)) {
@@ -2556,7 +2727,8 @@ function buildExecutionDefaults(
           'has executionDefaults, but its model has no collection. Generated values are only supported on fields of a model stored in a collection.',
         );
       }
-      const refKey = JSON.stringify([entry, fieldName]);
+      const storedName = storedNameOf(fieldName, fieldBuilder);
+      const refKey = JSON.stringify([entry, storedName]);
       const phasesKey = canonicalStringify(phases);
       const existing = byRef.get(refKey);
       if (existing !== undefined) {
@@ -2565,14 +2737,14 @@ function buildExecutionDefaults(
             modelName,
             fieldName,
             'executionDefaults-conflict',
-            `has different executionDefaults than "${existing.modelName}.${fieldName}", which is stored in the same collection "${entry}". Use the same executionDefaults on both models.`,
+            `has different executionDefaults than "${existing.modelName}.${existing.fieldName}", which is stored in the same collection "${entry}". Use the same executionDefaults on both models.`,
           );
         }
         continue;
       }
-      byRef.set(refKey, { modelName, phasesKey });
+      byRef.set(refKey, { modelName, fieldName, phasesKey });
       defaults.push({
-        ref: { namespace: UNBOUND_NAMESPACE_ID, entry, field: fieldName },
+        ref: { namespace: UNBOUND_NAMESPACE_ID, entry, field: storedName },
         ...phases,
       });
     }

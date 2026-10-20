@@ -15,7 +15,7 @@
         "models": {
           "Lists": {
             "fields": {
-              "_id": {
+              "id": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -99,7 +99,36 @@
             },
             "relations": {},
             "storage": {
-              "collection": "lists"
+              "collection": "lists",
+              "fields": {
+                "id": {
+                  "field": "_id"
+                },
+                "name": {
+                  "field": "name"
+                },
+                "nickname": {
+                  "field": "nickname"
+                },
+                "nullableStrings": {
+                  "field": "nullableStrings"
+                },
+                "optionalEntries": {
+                  "field": "optionalEntries"
+                },
+                "optionalNullableEntries": {
+                  "field": "optionalNullableEntries"
+                },
+                "optionalNullableStrings": {
+                  "field": "optionalNullableStrings"
+                },
+                "optionalStrings": {
+                  "field": "optionalStrings"
+                },
+                "strings": {
+                  "field": "strings"
+                }
+              }
             }
           }
         },

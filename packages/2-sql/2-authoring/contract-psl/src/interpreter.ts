@@ -118,7 +118,7 @@ import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { contractError } from './contract-errors';
-import { readWrittenNumberForCodec } from './data-type-default';
+import { readWrittenValueForCodec } from './data-type-default';
 import { defaultTableName } from './default-table-name';
 import {
   getAttribute,
@@ -2199,17 +2199,16 @@ export function interpretPslDocumentToSqlContract(
           );
         },
       },
-      readWrittenNumber: ({ text, codecId, subject }) => {
-        if (input.codecLookup.descriptorFor(codecId) === undefined) return undefined;
-        const reading = readWrittenNumberForCodec({
-          text,
-          codecId,
-          codecLookup: input.codecLookup,
-          dataTypes: input.dataTypes,
-          subject,
-        });
-        return reading.ok ? reading : { ok: false, message: reading.message };
-      },
+      readWrittenValueForCodec: ({ written, codecId, subject }) =>
+        input.codecLookup.descriptorFor(codecId) === undefined
+          ? undefined
+          : readWrittenValueForCodec({
+              written,
+              codecId,
+              codecLookup: input.codecLookup,
+              dataTypes: input.dataTypes,
+              subject,
+            }),
       ...ifDefined('enumInferenceCodecs', input.enumInferenceCodecs),
     },
     diagnostics,

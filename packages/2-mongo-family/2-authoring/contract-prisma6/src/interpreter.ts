@@ -116,7 +116,7 @@ type Diagnostics = ContractSourceDiagnostic[];
 interface ModelBuild {
   readonly located: Located<ModelSymbol>;
   readonly collection: string;
-  /** Prisma 6 field name to stored field name, for every field that is not a relation field. */
+  /** Prisma 6 field name to stored name, for every field that is not a relation field. */
   readonly storedNames: Map<string, string>;
   readonly ignoredFields: Set<string>;
   readonly rejectedFields: Set<string>;
@@ -1059,7 +1059,7 @@ function readModelField(
       diagnostics.push(defaultUnsupported(label, defaultAttribute, owner, field, sourceId));
       return;
     }
-    build.fields[storedName] = resolved;
+    build.fields[field.name] = resolved;
     return;
   }
 
@@ -1105,7 +1105,7 @@ function readModelField(
     );
     return;
   }
-  build.fields[storedName] = resolved;
+  build.fields[field.name] = resolved;
   if (phases !== undefined) build.executionDefaults.push({ field: storedName, phases });
 }
 
@@ -1399,20 +1399,18 @@ function readRelationFields(
       reject();
       continue;
     }
-    const local = localFields.filter((name): name is string => name !== undefined);
-    const referenced = targetFields.filter((name): name is string => name !== undefined);
     build.relations[field.name] = {
       to: crossRef(field.typeName, namespaceId),
       cardinality: 'N:1',
       nullable: field.optional,
-      on: { localFields: local, targetFields: referenced },
+      on: { localFields: localNames, targetFields: targetNames },
     };
     out.foreignKeys.push({
       declaringModel: symbol.name,
       targetModel: field.typeName,
       ...ifDefined('relationName', args?.name),
-      localFields: local,
-      targetFields: referenced,
+      localFields: localNames,
+      targetFields: targetNames,
     });
   }
 }
@@ -1507,7 +1505,15 @@ function assembleContract(input: {
     models[modelName] = {
       fields: build.fields,
       relations: build.relations,
-      storage: { collection: build.collection },
+      storage: {
+        collection: build.collection,
+        fields: Object.fromEntries(
+          Object.keys(build.fields).map((name) => [
+            name,
+            { field: build.storedNames.get(name) ?? name },
+          ]),
+        ),
+      },
     };
   }
   const capabilities: Record<string, Record<string, boolean>> = {};

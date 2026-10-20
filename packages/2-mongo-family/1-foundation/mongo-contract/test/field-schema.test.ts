@@ -4,7 +4,9 @@ import { MongoContractSchema } from '../src/contract-schema';
 
 function contractWithField(kind: 'models' | 'valueObjects', field: Record<string, unknown>) {
   const entry =
-    kind === 'models' ? { fields: { name: field }, storage: {} } : { fields: { name: field } };
+    kind === 'models'
+      ? { fields: { name: field }, storage: { fields: { name: { field: 'name' } } } }
+      : { fields: { name: field } };
   return {
     targetFamily: 'mongo',
     roots: {},

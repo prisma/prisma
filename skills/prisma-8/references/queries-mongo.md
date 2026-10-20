@@ -47,6 +47,8 @@ const recent = await db.orm.posts
   .all();
 ```
 
+**Field names, not stored names.** The ORM names a field by its name in the contract, never by the key its documents store it under. A field declared `id ObjectId @id @map("_id")` is `id` in every ORM call and row, and documents store it as `_id`; passing `_id` to the ORM fails with `ORM.FIELD_UNKNOWN`, whose message names the field to use. The pipeline builder (`db.query`) works on documents, so it names stored names: `_id` there. A raw filter expression passed to the ORM's `.where(...)`, such as `MongoFieldFilter.eq('displayName', 'Ada')` or a `MongoExprFilter`, names fields too and is translated; one built for `db.query` names stored names, so do not pass it to the ORM.
+
 **`.where(...)`** accepts a plain object whose keys are model field names and values are compared with equality (codec-aware — `ObjectId` fields accept string ids from the contract). Chain multiple `.where({ ... })` calls to AND-compose filters.
 
 For operators the object form doesn't cover (`.in([...])`, range comparisons, nested logic), pass a `MongoFilterExpr` — today that means importing filter helpers from `@prisma/orm-mongo/query-ast/execution` (a façade-completeness gap; see *What Prisma 8 doesn't do yet* in [`queries.md`](./queries.md)). Prefer the object form whenever equality suffices.
@@ -60,7 +62,7 @@ const tutorials = await db.orm.posts.variant('tutorial').where({ authorId }).all
 
 **Sorting and pagination.** `.orderBy({ field: 1 | -1 })` (Mongo sort directions). `.limit(n)` maps to `$limit`; `.offset(n)` maps to `$skip`.
 
-**`.first()` vs `.all()`.** `.first()` issues a limit-1 read; `.all()` returns every matching document. There is no `.first({ pk })` shorthand on Mongo — filter on `_id` explicitly: `.where({ _id: id }).first()`.
+**`.first()` vs `.all()`.** `.first()` issues a limit-1 read; `.all()` returns every matching document. There is no `.first({ pk })` shorthand on Mongo — filter on the id field explicitly: `.where({ id }).first()`.
 
 Mongo `.all()` returns the same `AsyncIterableResult` shape as Postgres — `await db.orm.users.all()` yields an array; see *Consuming the result* in [`queries.md`](./queries.md).
 
@@ -83,7 +85,7 @@ Relation names match the contract's `@relation` field names. Nested includes fol
 Mongo mutations require a preceding `.where(...)` filter (except `.create` / `.createAll`). Updates accept either a partial document or a field-accessor callback for Mongo operators:
 
 ```typescript
-// Create — returns the row with server-assigned `_id`.
+// Create — returns the row with the server-assigned `id` (stored as `_id`).
 const user = await db.orm.users.create({
   name: 'Alice',
   email: 'alice@example.com',
@@ -92,11 +94,11 @@ const user = await db.orm.users.create({
 });
 
 // Update one — plain object replaces top-level fields.
-await db.orm.users.where({ _id: user._id }).update({ bio: 'Writer' });
+await db.orm.users.where({ id: user.id }).update({ bio: 'Writer' });
 
 // Update one — field operations ($push, $inc, dot-path $set).
 await db.orm.users
-  .where({ _id: user._id })
+  .where({ id: user.id })
   .update((u) => [u.tags.push('admin'), u.loginCount.inc(1)]);
 
 // Update many / delete many — iterate or count.
@@ -105,7 +107,7 @@ const updated = await db.orm.users
   .updateAll({ bio: 'filled' });
 for await (const row of updated) { /* each modified doc */ }
 
-await db.orm.users.where({ _id: user._id }).delete();
+await db.orm.users.where({ id: user.id }).delete();
 
 // Upsert — filter via .where(), split create vs update branches.
 await db.orm.users.where({ email: 'alice@example.com' }).upsert({
@@ -144,7 +146,7 @@ Import `acc` and expression helpers (`fn`) from `@prisma/orm-mongo/query-builder
 
 ## Workflow — Query builder (`db.query`)
 
-The concept: `db.query.from('<root>')` starts a typed aggregation-pipeline chain. Terminal methods produce a `MongoQueryPlan`; run it through the runtime with `query(plan)` (an `AsyncIterableResult` of documents — `await` it for an array):
+The concept: `db.query.from('<root>')` starts a typed aggregation-pipeline chain over documents, so it names each field by its stored name (`_id` for a field declared `id … @map("_id")`). Terminal methods produce a `MongoQueryPlan`; run it through the runtime with `query(plan)` (an `AsyncIterableResult` of documents — `await` it for an array):
 
 ```typescript
 // src/queries/analytics.ts

@@ -1,18 +1,24 @@
 import type {
   ContractEmbedRelation,
   ContractField,
-  ContractModelBase,
   ContractRelation,
   ContractValueObject,
   JsonValue,
 } from '@internal/contract/types';
 import type { TypeLookups } from '@internal/framework-components/codec';
 import { assertDefined } from '@internal/utils/assertions';
+import type { MongoModelDefinition } from './contract-types';
 import { MongoValidator } from './ir/mongo-validator';
 import { bsonTypesOfCodec } from './mongo-data-type';
 import { recursiveGroupsOf, typeKey } from './recursive-groups';
 import { isEmbedRelation } from './relation-fields';
-import { DOCUMENT_ID, documentIdFieldOf, storedFieldNameOf } from './stored-field-names';
+import {
+  DOCUMENT_ID,
+  ownEmbedStoredNamesOf,
+  ownStoredNameOf,
+  ownStoredNamesOf,
+  valueObjectStoredNamesOf,
+} from './stored-names';
 
 /**
  * The permitted values a field's value set restricts it to, keyed by the value set's name — the
@@ -22,8 +28,8 @@ import { DOCUMENT_ID, documentIdFieldOf, storedFieldNameOf } from './stored-fiel
 export type FieldValueSets = Record<string, { readonly values: readonly JsonValue[] }>;
 
 export type ValidatorModel = Pick<
-  ContractModelBase,
-  'fields' | 'relations' | 'discriminator' | 'variants'
+  MongoModelDefinition,
+  'fields' | 'relations' | 'discriminator' | 'variants' | 'storage'
 >;
 
 interface SchemaSources extends ModelValidatorSources {
@@ -70,11 +76,36 @@ function entering(key: string, sources: SchemaSources): SchemaSources {
 interface StoredShape {
   readonly fields: Record<string, ContractField>;
   readonly relations: Record<string, ContractRelation>;
+  /** The stored name of each field, keyed by field name. */
+  readonly storedNames: Readonly<Record<string, string>>;
+  /** The stored name of each embed relation, keyed by relation name. */
+  readonly embedStoredNames: Readonly<Record<string, string>>;
 }
 
-const NO_RELATIONS: Record<string, ContractRelation> = {};
+function modelShape(model: ValidatorModel): StoredShape {
+  return {
+    fields: model.fields,
+    relations: model.relations,
+    storedNames: ownStoredNamesOf(model),
+    embedStoredNames: ownEmbedStoredNamesOf(model),
+  };
+}
 
-const NOTHING_INHERITED: StoredShape = { fields: {}, relations: NO_RELATIONS };
+function valueObjectShape(valueObject: ContractValueObject): StoredShape {
+  return {
+    fields: valueObject.fields,
+    relations: {},
+    storedNames: valueObjectStoredNamesOf(valueObject),
+    embedStoredNames: {},
+  };
+}
+
+const NOTHING_INHERITED: StoredShape = {
+  fields: {},
+  relations: {},
+  storedNames: {},
+  embedStoredNames: {},
+};
 
 /**
  * The `bsonType` keyword for a list of BSON type names: the name itself for one entry, the list for several.
@@ -136,12 +167,7 @@ function fieldToBsonSchema(
   if (field.type.kind === 'valueObject') {
     const vo = valueObjects[field.type.name];
     if (!vo) return undefined;
-    const voSchema = objectSchemaOf(
-      'valueObject',
-      field.type.name,
-      { fields: vo.fields, relations: NO_RELATIONS },
-      sources,
-    );
+    const voSchema = objectSchemaOf('valueObject', field.type.name, valueObjectShape(vo), sources);
     if (field.many) {
       return {
         bsonType: field.nullable ? ['null', 'array'] : 'array',
@@ -167,7 +193,7 @@ function embedToBsonSchema(
   const embeddedName = relation.to.model;
   const embedded = sources.models[embeddedName];
   assertDefined(embedded, `Embedded model "${embeddedName}" is missing`);
-  const schema = objectSchemaOf('model', embeddedName, embedded, sources);
+  const schema = objectSchemaOf('model', embeddedName, modelShape(embedded), sources);
   return relation.cardinality === '1:N' ? { bsonType: 'array', items: schema } : schema;
 }
 
@@ -186,7 +212,8 @@ function propertiesOf(
     if (Object.hasOwn(inherited.fields, fieldName)) continue;
     const schema = fieldToBsonSchema(field, sources);
     if (schema) {
-      const storedName = storedFieldNameOf(shape, fieldName);
+      const storedName = shape.storedNames[fieldName];
+      assertDefined(storedName, `Field "${fieldName}" has a stored name`);
       properties[storedName] = schema;
       if (!field.nullable) {
         required.push(storedName);
@@ -196,7 +223,9 @@ function propertiesOf(
 
   for (const [relationName, relation] of Object.entries(shape.relations)) {
     if (Object.hasOwn(inherited.relations, relationName) || !isEmbedRelation(relation)) continue;
-    properties[relationName] = embedToBsonSchema(relation, sources);
+    const storedName = shape.embedStoredNames[relationName];
+    assertDefined(storedName, `Embed relation "${relationName}" has a stored name`);
+    properties[storedName] = embedToBsonSchema(relation, sources);
   }
 
   return { properties, required };
@@ -210,7 +239,7 @@ function deriveObjectSchema(
   { isDocument }: { readonly isDocument: boolean } = { isDocument: false },
 ): Record<string, unknown> {
   const own = propertiesOf(shape, sources, NOTHING_INHERITED);
-  const addsDocumentId = isDocument && documentIdFieldOf(shape) === undefined;
+  const addsDocumentId = isDocument && !Object.values(shape.storedNames).includes(DOCUMENT_ID);
   const properties = addsDocumentId
     ? { [DOCUMENT_ID]: OBJECT_ID_SCHEMA, ...own.properties }
     : own.properties;
@@ -294,13 +323,18 @@ export function deriveModelJsonSchema(
 ): Record<string, unknown> {
   const schemaSources = sourcesFor(sources, typeKey('model', modelName));
   if (!model.discriminator || !model.variants) {
-    return deriveObjectSchema(model, schemaSources, { isDocument: true });
+    return deriveObjectSchema(modelShape(model), schemaSources, { isDocument: true });
   }
 
   const variants = Object.entries(model.variants).map(([discriminatorValue, variant]) => {
     const variantModel = sources.models[variant.model];
     assertDefined(variantModel, `Variant model "${variant.model}" of "${modelName}" is missing`);
-    return { discriminatorValue, modelName: variant.model, ...variantModel };
+    return { discriminatorValue, modelName: variant.model, ...modelShape(variantModel) };
   });
-  return polymorphicSchema(model, model.discriminator.field, variants, schemaSources);
+  return polymorphicSchema(
+    modelShape(model),
+    ownStoredNameOf(model, model.discriminator.field),
+    variants,
+    schemaSources,
+  );
 }

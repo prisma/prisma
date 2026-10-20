@@ -77,29 +77,29 @@ export type FieldInputTypes = FieldTypesFromDomain<
 
 export namespace Models {
   export type unbound_Asset = {
-    _id: FieldOutputTypes['__unbound__']['Asset']['_id'];
+    id: FieldOutputTypes['__unbound__']['Asset']['id'];
     kind: 'photo';
     readonly [RelationKeys]?: never;
   };
   export type unbound_Author = {
-    _id: FieldOutputTypes['__unbound__']['Author']['_id'];
     address: FieldOutputTypes['__unbound__']['Author']['address'];
     avatar: FieldOutputTypes['__unbound__']['Author']['avatar'];
     balance: FieldOutputTypes['__unbound__']['Author']['balance'];
+    id: FieldOutputTypes['__unbound__']['Author']['id'];
     karma: FieldOutputTypes['__unbound__']['Author']['karma'];
     role: FieldOutputTypes['__unbound__']['Author']['role'];
     books: unbound_Book[];
     readonly [RelationKeys]?: 'books';
   };
   export type unbound_Book = {
-    _id: FieldOutputTypes['__unbound__']['Book']['_id'];
     authorId: FieldOutputTypes['__unbound__']['Book']['authorId'];
+    id: FieldOutputTypes['__unbound__']['Book']['id'];
     title: FieldOutputTypes['__unbound__']['Book']['title'];
     author: unbound_Author;
     readonly [RelationKeys]?: 'author';
   };
   export type unbound_Photo = {
-    _id: FieldOutputTypes['__unbound__']['Asset']['_id'];
+    id: FieldOutputTypes['__unbound__']['Asset']['id'];
     kind: 'photo';
     exif: FieldOutputTypes['__unbound__']['Photo']['exif'];
     ownerId: FieldOutputTypes['__unbound__']['Photo']['ownerId'];
@@ -107,7 +107,7 @@ export namespace Models {
     readonly [RelationKeys]?: never;
   };
   export type unbound_Post = {
-    _id: FieldOutputTypes['__unbound__']['Post']['_id'];
+    id: FieldOutputTypes['__unbound__']['Post']['id'];
     meta: FieldOutputTypes['__unbound__']['Post']['meta'];
     notes: FieldOutputTypes['__unbound__']['Post']['notes'];
     price: FieldOutputTypes['__unbound__']['Post']['price'];
@@ -117,18 +117,18 @@ export namespace Models {
     readonly [RelationKeys]?: never;
   };
   export type unbound_Reading = {
-    _id: FieldOutputTypes['__unbound__']['Reading']['_id'];
     count: FieldOutputTypes['__unbound__']['Reading']['count'];
+    id: FieldOutputTypes['__unbound__']['Reading']['id'];
     ratio: FieldOutputTypes['__unbound__']['Reading']['ratio'];
     readonly [RelationKeys]?: never;
   };
   export type unbound_Series = {
-    _id: FieldOutputTypes['__unbound__']['Series']['_id'];
     bytes: FieldOutputTypes['__unbound__']['Series']['bytes'];
     dates: FieldOutputTypes['__unbound__']['Series']['dates'];
     decimals: FieldOutputTypes['__unbound__']['Series']['decimals'];
     doubles: FieldOutputTypes['__unbound__']['Series']['doubles'];
     flags: FieldOutputTypes['__unbound__']['Series']['flags'];
+    id: FieldOutputTypes['__unbound__']['Series']['id'];
     ids: FieldOutputTypes['__unbound__']['Series']['ids'];
     ints: FieldOutputTypes['__unbound__']['Series']['ints'];
     longs: FieldOutputTypes['__unbound__']['Series']['longs'];
@@ -446,7 +446,7 @@ type ContractBase = Omit<
         readonly models: {
           readonly Asset: {
             readonly fields: {
-              readonly _id: {
+              readonly id: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
@@ -456,7 +456,13 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'assets' };
+            readonly storage: {
+              readonly collection: 'assets';
+              readonly fields: {
+                readonly id: { readonly field: '_id' };
+                readonly kind: { readonly field: 'kind' };
+              };
+            };
             readonly discriminator: { readonly field: 'kind' };
             readonly variants: {
               readonly photo: {
@@ -467,10 +473,6 @@ type ContractBase = Omit<
           };
           readonly Author: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly address: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'Address' };
@@ -482,6 +484,10 @@ type ContractBase = Omit<
               readonly balance: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/decimal128@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly karma: {
                 readonly nullable: false;
@@ -500,20 +506,30 @@ type ContractBase = Omit<
                 };
                 readonly cardinality: '1:N';
                 readonly on: {
-                  readonly localFields: readonly ['_id'];
+                  readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['authorId'];
                 };
               };
             };
-            readonly storage: { readonly collection: 'authors' };
+            readonly storage: {
+              readonly collection: 'authors';
+              readonly fields: {
+                readonly address: { readonly field: 'address' };
+                readonly avatar: { readonly field: 'avatar' };
+                readonly balance: { readonly field: 'balance' };
+                readonly id: { readonly field: '_id' };
+                readonly karma: { readonly field: 'karma' };
+                readonly role: { readonly field: 'role' };
+              };
+            };
           };
           readonly Book: {
             readonly fields: {
-              readonly _id: {
+              readonly authorId: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
-              readonly authorId: {
+              readonly id: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
@@ -532,11 +548,18 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['authorId'];
-                  readonly targetFields: readonly ['_id'];
+                  readonly targetFields: readonly ['id'];
                 };
               };
             };
-            readonly storage: { readonly collection: 'books' };
+            readonly storage: {
+              readonly collection: 'books';
+              readonly fields: {
+                readonly authorId: { readonly field: 'authorId' };
+                readonly id: { readonly field: '_id' };
+                readonly title: { readonly field: 'title' };
+              };
+            };
           };
           readonly Photo: {
             readonly fields: {
@@ -555,7 +578,14 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'assets' };
+            readonly storage: {
+              readonly collection: 'assets';
+              readonly fields: {
+                readonly exif: { readonly field: 'exif' };
+                readonly ownerId: { readonly field: 'ownerId' };
+                readonly stamps: { readonly field: 'stamps' };
+              };
+            };
             readonly base: {
               readonly namespace: '__unbound__' & NamespaceId;
               readonly model: 'Asset';
@@ -563,7 +593,7 @@ type ContractBase = Omit<
           };
           readonly Post: {
             readonly fields: {
-              readonly _id: {
+              readonly id: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
@@ -593,17 +623,28 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'posts' };
+            readonly storage: {
+              readonly collection: 'posts';
+              readonly fields: {
+                readonly id: { readonly field: '_id' };
+                readonly meta: { readonly field: 'meta' };
+                readonly notes: { readonly field: 'notes' };
+                readonly price: { readonly field: 'price' };
+                readonly raw: { readonly field: 'raw' };
+                readonly thumbnail: { readonly field: 'thumbnail' };
+                readonly views: { readonly field: 'views' };
+              };
+            };
           };
           readonly Reading: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly count: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/int32@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly ratio: {
                 readonly nullable: false;
@@ -611,14 +652,17 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'readings' };
+            readonly storage: {
+              readonly collection: 'readings';
+              readonly fields: {
+                readonly count: { readonly field: 'count' };
+                readonly id: { readonly field: '_id' };
+                readonly ratio: { readonly field: 'ratio' };
+              };
+            };
           };
           readonly Series: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly bytes: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/binary@1' };
@@ -643,6 +687,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/bool@1' };
                 readonly many: { readonly elementNullable: false };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly ids: {
                 readonly nullable: false;
@@ -671,7 +719,22 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'series' };
+            readonly storage: {
+              readonly collection: 'series';
+              readonly fields: {
+                readonly bytes: { readonly field: 'bytes' };
+                readonly dates: { readonly field: 'dates' };
+                readonly decimals: { readonly field: 'decimals' };
+                readonly doubles: { readonly field: 'doubles' };
+                readonly flags: { readonly field: 'flags' };
+                readonly id: { readonly field: '_id' };
+                readonly ids: { readonly field: 'ids' };
+                readonly ints: { readonly field: 'ints' };
+                readonly longs: { readonly field: 'longs' };
+                readonly points: { readonly field: 'points' };
+                readonly words: { readonly field: 'words' };
+              };
+            };
           };
         };
         readonly valueObjects: {

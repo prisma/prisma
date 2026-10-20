@@ -381,7 +381,10 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'posts' };
+            readonly storage: {
+              readonly collection: 'posts';
+              readonly fields: { readonly body: { readonly field: 'body' } };
+            };
             readonly base: {
               readonly namespace: '__unbound__' & NamespaceId;
               readonly model: 'Post';
@@ -395,7 +398,10 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'posts' };
+            readonly storage: {
+              readonly collection: 'posts';
+              readonly fields: { readonly url: { readonly field: 'url' } };
+            };
             readonly base: {
               readonly namespace: '__unbound__' & NamespaceId;
               readonly model: 'Post';
@@ -434,7 +440,15 @@ type ContractBase = Omit<
                 };
               };
             };
-            readonly storage: { readonly collection: 'posts' };
+            readonly storage: {
+              readonly collection: 'posts';
+              readonly fields: {
+                readonly _id: { readonly field: '_id' };
+                readonly authorId: { readonly field: 'authorId' };
+                readonly kind: { readonly field: 'kind' };
+                readonly title: { readonly field: 'title' };
+              };
+            };
             readonly discriminator: { readonly field: 'kind' };
             readonly variants: {
               readonly article: {
@@ -539,7 +553,31 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'users' };
+            readonly storage: {
+              readonly collection: 'users';
+              readonly fields: {
+                readonly _id: { readonly field: '_id' };
+                readonly active: { readonly field: 'active' };
+                readonly age: { readonly field: 'age' };
+                readonly avatar: { readonly field: 'avatar' };
+                readonly balance: { readonly field: 'balance' };
+                readonly email: { readonly field: 'email' };
+                readonly embedding: { readonly field: 'embedding' };
+                readonly home: { readonly field: 'home' };
+                readonly joinedAt: { readonly field: 'joinedAt' };
+                readonly nickname: { readonly field: 'nickname' };
+                readonly nicknames: { readonly field: 'nicknames' };
+                readonly pastHomes: { readonly field: 'pastHomes' };
+                readonly pastRoles: { readonly field: 'pastRoles' };
+                readonly raw: { readonly field: 'raw' };
+                readonly rawEmbedding: { readonly field: 'rawEmbedding' };
+                readonly role: { readonly field: 'role' };
+                readonly score: { readonly field: 'score' };
+                readonly scores: { readonly field: 'scores' };
+                readonly settings: { readonly field: 'settings' };
+                readonly visits: { readonly field: 'visits' };
+              };
+            };
           };
         };
         readonly valueObjects: {
