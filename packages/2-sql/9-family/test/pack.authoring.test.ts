@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { sqlTargetTypeConstructors } from '../src/exports/control';
-import sqlFamilyPack from '../src/exports/pack';
+import sqlFamilyPack, { sqlTargetTypeConstructors } from '../src/exports/pack';
 
 describe('sql family pack authoring contributions', () => {
   it('contributes Raw, whose argument is a sql expression', () => {

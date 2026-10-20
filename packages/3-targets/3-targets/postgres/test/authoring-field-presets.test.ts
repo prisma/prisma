@@ -1,7 +1,7 @@
 import {
   temporalCodecPresetWithPrecision,
   temporalStringAuthoringPresets,
-} from '@internal/family-sql/control';
+} from '@internal/family-sql/pack';
 import {
   collectScalarTypeConstructors,
   instantiateAuthoringFieldPreset,

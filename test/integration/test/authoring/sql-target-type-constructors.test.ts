@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync } from 'node:fs';
-import { sqlTargetTypeConstructors } from '@internal/family-sql/control';
+import { sqlTargetTypeConstructors } from '@internal/family-sql/pack';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 

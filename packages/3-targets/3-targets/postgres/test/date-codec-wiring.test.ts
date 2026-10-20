@@ -1,4 +1,4 @@
-import { temporalCodecPresetWithPrecision } from '@internal/family-sql/control';
+import { temporalCodecPresetWithPrecision } from '@internal/family-sql/pack';
 import { temporalAuthoringPresets } from '@internal/framework-components/authoring';
 import { describe, expect, it } from 'vitest';
 import { postgresAggregateDescriptors } from '../src/core/aggregates';

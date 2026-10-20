@@ -1,4 +1,4 @@
-import { sqlTargetTypeConstructors } from '@internal/family-sql/control';
+import { sqlTargetTypeConstructors } from '@internal/family-sql/pack';
 import type {
   AuthoringFieldNamespace,
   AuthoringTypeNamespace,

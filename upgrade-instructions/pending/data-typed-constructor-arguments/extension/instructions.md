@@ -28,8 +28,10 @@ changes:
       `dataTypes`, and its `PslTypeCall` carries the argument `values`. `writtenTypeArguments` writes
       a call's arguments as literals of their data types. `sql.String` is no longer in the SQL
       family pack: a SQL target contributes it with `sqlTargetTypeConstructors({ sizeType })` from
-      `family/control`, and `temporalCodecPresetWithPrecision` takes `sizeType`
-      too. `assembleAuthoringDataTypes` moves from `components/control` to
+      `family/pack`, and `temporalCodecPresetWithPrecision` takes `sizeType` too.
+      `temporalCodecPresetWithPrecision` and `temporalStringAuthoringPresets` move from
+      `family/control` to `family/pack`, so a target pack does not load the family's control
+      entry point. `assembleAuthoringDataTypes` moves from `components/control` to
       `components/authoring`, beside `assembleDataTypeSupport`, which builds a `DataTypeSupport`
       from a list of components and checks their value arguments.
     detection:
@@ -38,6 +40,7 @@ changes:
         - 'parsePslPositionalArgs|pslTypeArgumentText'
         - 'temporalCodecPresetWithPrecision\('
         - 'assembleAuthoringDataTypes'
+        - 'temporalStringAuthoringPresets'
 ---
 
 # Type-constructor arguments are values of data types
@@ -83,6 +86,6 @@ To type a descriptor of a value argument on its own, use `AuthoringValueArgument
 
 ## `psl-and-print-helpers-take-data-types`
 
-Pass the stack's `DataTypeSupport` to `mapPslHelperArgs({ ..., dataTypes })` and `instantiatePslFieldPreset({ ..., dataTypes })`. Replace `parsePslPositionalArgs` with the values of the call you built, and `pslTypeArgumentText` with `writtenTypeArguments(descriptor, args, dataTypes)`. A SQL target spreads `sqlTargetTypeConstructors({ sizeType: '<its size data type>' })` from `@prisma/orm-family-sql/family/control` (where `temporalCodecPresetWithPrecision` is) into its type namespace, and passes the same `sizeType` to `temporalCodecPresetWithPrecision`. The size type is the data type of a length or a precision: `pg/int4` on Postgres.
+Pass the stack's `DataTypeSupport` to `mapPslHelperArgs({ ..., dataTypes })` and `instantiatePslFieldPreset({ ..., dataTypes })`. Replace `parsePslPositionalArgs` with the values of the call you built, and `pslTypeArgumentText` with `writtenTypeArguments(descriptor, args, dataTypes)`. A SQL target spreads `sqlTargetTypeConstructors({ sizeType: '<its size data type>' })` from `@prisma/orm-family-sql/family/pack` into its type namespace, and passes the same `sizeType` to `temporalCodecPresetWithPrecision`. Import `temporalCodecPresetWithPrecision` and `temporalStringAuthoringPresets` from `family/pack` too; `family/control` no longer exports them. The size type is the data type of a length or a precision: `pg/int4` on Postgres.
 
 Import `assembleAuthoringDataTypes` from `components/authoring` instead of `components/control`. To build the data types a set of components reads values with, call `assembleDataTypeSupport(components, dataTypeOfCodec)`; it refuses a duplicate data type or entry, and a value argument whose data type is unregistered or that nothing writes.
