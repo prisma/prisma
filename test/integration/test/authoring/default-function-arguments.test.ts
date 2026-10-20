@@ -1,4 +1,4 @@
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import postgresAdapter from '@internal/adapter-postgres/control';
 import sqliteAdapter from '@internal/adapter-sqlite/control';
@@ -11,7 +11,7 @@ import { postgresCreateNamespace } from '@internal/target-postgres/types';
 import sqlite, { sqliteCreateNamespace } from '@internal/target-sqlite/control';
 import sqlitePackRef from '@internal/target-sqlite/pack';
 import { join } from 'pathe';
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 
 const FIELD_PREFIX = '  value uuidString() @default(';
 
@@ -33,8 +33,15 @@ describe.each([
     fraction: 'sqlite/real',
   },
 ])('default function arguments on $name', ({ stack, pack, createNamespace, integer, fraction }) => {
+  const folders: string[] = [];
+  afterAll(() => {
+    for (const folder of folders) rmSync(folder, { recursive: true, force: true });
+  });
+
   async function author(call: string) {
-    const schemaPath = join(mkdtempSync(join(tmpdir(), 'psl-default-args-')), 'schema.prisma');
+    const folder = mkdtempSync(join(tmpdir(), 'psl-default-args-'));
+    folders.push(folder);
+    const schemaPath = join(folder, 'schema.prisma');
     writeFileSync(
       schemaPath,
       `// use prisma-8\n\nmodel Row {\n  id Int @id\n${FIELD_PREFIX}${call})\n}\n`,
