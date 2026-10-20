@@ -8,6 +8,8 @@
 | c | 1 | `bc5265338a..d1dd5482ea` | 1 | 1 | 0 | ANOTHER ROUND NEEDED |
 | c | 2 | `fc01dc5f4f`, `80c2950c68` | 0 | 0 | 0 | SATISFIED |
 | d | 1 | `e8b28ec8e1..ca60a4a8a4` | 1 | 1 | 0 | ANOTHER ROUND NEEDED |
+| d | 2 | `9863d741cc`, `5ba8816b9e` | 0 | 0 | 1 | SATISFIED |
+| e | 1 | `5ba8816b9e..c4421f6562` | 0 | 2 | 2 | ANOTHER ROUND NEEDED |
 
 ## Dispatch a, round 1
 
@@ -152,3 +154,68 @@ Where: `packages/2-sql/2-authoring/contract-psl/src/sql-attribute-specs.ts`, `ba
 What is wrong: the value is `oneOf(writtenScalar(str()), writtenScalar(numLiteral()), writtenScalar(bool()))`, so signature help shows `@@base(model reference, string | number | boolean)`. No text discriminator takes a number or a boolean; the parser accepts them only for the cast to refuse them.
 
 Change: take `writtenScalar(str())`, so the label is `string` as on Mongo. Keep the cast into the column's type for the length and padding checks. Update the number test to the parser's refusal at the value.
+
+## Dispatch d, round 2
+
+S5-d-R1-1 is fixed. Each SQL target names its text data types (`postgresTextDataTypes`, `sqliteTextDataTypes`: text, character, character varying). Its adapter contributes them as `authoring.textDataTypes` and passes the same list to `sqlBuiltinGeneratorDescriptors`. The discriminator check accepts only those types. New tests refuse `Uuid` and `Inet` on Postgres and `Int` on SQLite, and assembly is tested to merge and deduplicate the lists. S5-d-R1-2 is fixed: `@@base`'s value is `writtenScalar(str())`, signature help reads `@@base(model reference, string)`, and a number is refused at the value with `Expected a string literal`.
+
+**A new framework contribution as the home.** Acceptable. `AuthoringContributions` is how a component tells authoring about its data types, and "which types hold text" is not specific to SQL. The adapter declares it beside `valueObjectStorageType`, and the same list feeds the generator descriptors, so there is one source per target. A flag on each data type's authoring entry would put the fact where the type is declared. The list is a reasonable choice for now, and nothing published depends on it yet.
+
+### S5-d-R2-1 (low): the assembled `textDataTypes` is optional although assembly always sets it
+
+Where: `AssembledAuthoringContributions.textDataTypes` in `framework-components/src/control/control-stack.ts`; `input.authoringContributions?.textDataTypes ?? []` in contract-psl `interpreter.ts`.
+
+What is wrong: `assembleAuthoringContributions` always returns a list, as it does for `dataTypes`, which is required. Because the field is optional, any authoring contributions not built by assembly lose the list silently, and every discriminator is then refused with "must be text". Those are 11 typed sites in tests and tools.
+
+Change: make it required, as `dataTypes` is, and drop the `?? []`. Acceptable to leave if the orchestrator prefers not to touch the hand-built fixtures.
+
+Verdict: SATISFIED.
+
+## Dispatch e, round 1
+
+Checks run on `c4421f6562`:
+- **Repo checks:** `pnpm build`, root `typecheck:agent`, `lint:agent`, `lint:deps`, `lint:docs`, `lint:framework-vocabulary`, `check:publish-deps`, `lint:publishability`, `check:error-reference` and `check:upgrade-coverage --mode pr --prev a65442a06b` pass.
+- **Fixtures:** `fixtures:check:agent` timed out twice at its 300-second wrapper limit, at load average 80 to 150. Run directly as `pnpm fixtures:check`, it passed and left the tree clean.
+- **Integration files:** the upgrade detection test passes (46 tests; each change has a positive and a negative sample), and so does `authoring/discriminator-values`.
+- **Coverage:** `pnpm test --coverage` passes, thresholds included, in ids, psl-parser, framework-components, SQL contract-psl, contract-ts, contract-prisma7, family-sql, both adapters and both targets.
+- **Language server:** it has no coverage thresholds (`"thresholds": {}`). Two full coverage runs at load average 40 to 55 failed 2 and 4 tests, all in `server.membership-races` and all on its 500 ms test timeout. Run alone, that file and `server.directive-membership` passed three times out of three at the same load. Neither file nor the server code is touched by the slice, so these are load failures, not regressions.
+- **Grep rows:** the slice's two rows in `plan.md` return what they say.
+
+### Judgements
+
+1. **ADR list (brief item 1):** not judged; the orchestrator is editing ADRs 254 and 231.
+2. **App upgrade note, read cold.** It is accurate and usable: it says what changed, shows before and after, and tells the reader which value keeps today's stored data (`uuid(5)` made version 4 UUIDs). The detection patterns match each refused form and skip the valid ones; the test proves both. One inaccuracy; see finding 3.
+3. **Extension upgrade note, read cold.** Every published import path it names exists: `@prisma/orm-framework/components/codec` (`dataTypeId`), `/components/control`, `/ids`, `/psl-parser`, `@prisma/orm-family-sql/family/control`, `/contract-psl/attribute-specs` and `@prisma/orm-postgres/target/data-types`. The samples match the code. One wrong claim; see finding 2.
+4. **Hover regression.** Yes, the label should list the allowed values again; see finding 1.
+
+### S5-e-R1-1 (should-fix): signature help and hover lost the allowed versions
+
+Where: `packages/2-sql/9-family/src/core/default-function-signatures.ts`, `checkedInteger`; the `language-server` README.
+
+What is wrong: the argument's label is now the integer data type's ("a number"). Signature help and hover therefore show `uuid(a number?)`, `cuid(a number)` and `nanoid(a number?)`, where they showed `uuid((4 | 7)?)`, `cuid(2)` and `nanoid(integer?)`. Completion still offers `4`/`7` and `2`, so the label and the completion list now disagree. The dispatch e README edit wrote the regression into the docs as the example.
+
+Change: give the checked argument the label of the values the function takes: `4 | 7` for `uuid` and `2` for `cuid`, from the limits already imported. For `nanoid`, use a label for the range or keep the data type's. A `label` option on `dataTypeValue` (beside `suggestions`), or setting it on the refined argument, would do. Restore `uuid((4 | 7)?)` in the README. Add a language server test asserting the hover or signature label for `uuid`.
+
+### S5-e-R1-2 (should-fix): the extension note says an extension can extend the built-in generators
+
+Where: `upgrade-instructions/pending/default-function-arguments-and-generator-data-types/extension/instructions.md`, change `text-data-types`.
+
+What is wrong: it says an extension that wants "the built-in ID generators to apply to" its text type names it "in the `text` list of its generator descriptors". An extension cannot do that. The built-in generators' descriptors are registered once, by the target's adapter, and a second descriptor with the same id is refused at assembly (`Duplicate mutation default generator id`). Only `@@discriminator` reads `textDataTypes`.
+
+Change: say that `textDataTypes` makes the extension's type usable as a discriminator column. Say that the built-in generators apply to the target's own text types only, and that an extension's own generators list the types they apply to in `applicableDataTypes`.
+
+### S5-e-R1-3 (low): the discriminator message change is SQL only
+
+Where: app note, change `discriminator-must-be-text`.
+
+What is wrong: Mongo's interpreter still says `must be of type String`. The note and its detection pattern read as if every family changed, so a Mongo project's test matching the old text is flagged for a change it does not have.
+
+Change: say "a SQL `@@discriminator` field". If possible, narrow the detection, or note that Mongo is unchanged.
+
+### S5-e-R1-4 (low): the contract-psl README overstates SQLite's text types
+
+Where: `packages/2-sql/2-authoring/contract-psl/README.md`, Polymorphism.
+
+What is wrong: "on Postgres and SQLite `String`, `Char(n)` and `VarChar(n)`". SQLite has no `Char`/`VarChar` constructors; its fixed and bounded text columns come from `uuidString()` and `sql.String(n)`, as the tests use.
+
+Change: name SQLite's own spellings, or say "the target's text types (on Postgres `String`, `Char(n)`, `VarChar(n)`)".
