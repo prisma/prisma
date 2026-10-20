@@ -34,6 +34,7 @@ export function postgresSourceContext(resolvedInputs: readonly string[]): Contra
     codecLookup: stack.codecLookup,
     dataTypes: stack.dataTypes,
     controlMutationDefaults: stack.controlMutationDefaults,
+    generatorFunctions: stack.generatorFunctions,
     resolvedInputs,
     capabilities: stack.capabilities,
   };
@@ -101,11 +102,11 @@ export function fixtureSchemaText(caseName: string): string {
   return readFileSync(join(fixturesDir, caseName, 'schema.prisma'), 'utf8');
 }
 
-/** Interprets Prisma 7 schema text with the Postgres composition, or throws the diagnostics. */
-export function interpretSchemaText(text: string): Contract<SqlStorage> {
+/** Interprets Prisma 7 schema text with the Postgres composition. */
+export function interpretSchemaTextResult(text: string) {
   const context = postgresSourceContext(['schema.prisma']);
   const { document, sources } = parse(text, 'schema.prisma', { grammar: 'prisma-7' });
-  const result = interpretPrisma7Documents({
+  return interpretPrisma7Documents({
     documents: [
       {
         document,
@@ -118,11 +119,17 @@ export function interpretSchemaText(text: string): Contract<SqlStorage> {
     defaultNamespaceId: context.defaultNamespaceId,
     binding: prisma7PostgresBinding,
     controlMutationDefaults: context.controlMutationDefaults,
+    generatorFunctions: context.generatorFunctions,
     authoringContributions: context.authoringContributions,
     codecLookup: context.codecLookup,
     dataTypes: context.dataTypes,
     composedExtensions: context.composedExtensions,
   });
+}
+
+/** Interprets Prisma 7 schema text with the Postgres composition, or throws the diagnostics. */
+export function interpretSchemaText(text: string): Contract<SqlStorage> {
+  const result = interpretSchemaTextResult(text);
   if (!result.ok) throw new Error(JSON.stringify(result.failure.diagnostics));
   return result.value as Contract<SqlStorage>;
 }

@@ -19,6 +19,34 @@ describeWithMongoDB('mongoOrm integration', (ctx) => {
         kind: 'mongo-collection-options',
         collation: { kind: 'mongo-collation-options', locale: 'en', strength: 2 },
       },
+      validator: {
+        kind: 'mongo-validator',
+        validationLevel: 'strict',
+        validationAction: 'error',
+        jsonSchema: {
+          bsonType: 'object',
+          additionalProperties: false,
+          required: ['_id', 'email', 'name'],
+          properties: {
+            _id: { bsonType: 'objectId' },
+            name: { bsonType: 'string' },
+            email: { bsonType: 'string' },
+            addresses: {
+              bsonType: 'array',
+              items: {
+                bsonType: 'object',
+                additionalProperties: false,
+                required: ['city', 'street', 'zip'],
+                properties: {
+                  street: { bsonType: 'string' },
+                  city: { bsonType: 'string' },
+                  zip: { bsonType: 'string' },
+                },
+              },
+            },
+          },
+        },
+      },
     });
   });
 

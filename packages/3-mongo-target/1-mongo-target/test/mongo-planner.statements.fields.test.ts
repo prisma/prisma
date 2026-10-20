@@ -19,6 +19,112 @@ describe('MongoMigrationPlanner, field statements', () => {
     { profiles: { unique: ['fullName'], required: ['fullName'] } },
   );
 
+  describe('a field stored under another name', () => {
+    const displayName = (seed: string, field: string, storedAs: string) =>
+      contract(
+        seed,
+        {
+          Profile: {
+            collection: 'profiles',
+            fields: ['id', field],
+            storedAs: { id: '_id', [field]: storedAs },
+          },
+        },
+        { profiles: { required: [storedAs] } },
+      );
+    const displayNameSchema = [schemaCollection('profiles', { required: ['display_name'] })];
+
+    it('plans nothing for a rename that keeps the stored name', () => {
+      expect(
+        planned(
+          plan({
+            from: displayName('from', 'name', 'display_name'),
+            to: displayName('to', 'title', 'display_name'),
+            schema: displayNameSchema,
+            statements: [renameField('Profile', 'name', 'Profile', 'title')],
+          }),
+        ),
+      ).toEqual({ labels: [], classes: [], applied: [[]], dataLoss: [] });
+    });
+
+    it('renames the stored field when the rename changes the stored name', () => {
+      expect(
+        planned(
+          plan({
+            from: displayName('from', 'name', 'display_name'),
+            to: displayName('to', 'title', 'title'),
+            schema: displayNameSchema,
+            statements: [renameField('Profile', 'name', 'Profile', 'title')],
+          }),
+        ),
+      ).toEqual({
+        labels: [
+          'Rename field display_name to title in collection profiles',
+          'Update validator on profiles (added: title; removed: display_name)',
+        ],
+        classes: ['widening', 'widening'],
+        applied: [[0]],
+        dataLoss: [],
+      });
+    });
+
+    it('plans nothing and loses nothing when a field is renamed without a statement and keeps its stored name', () => {
+      expect(
+        planned(
+          plan({
+            from: displayName('from', 'name', 'display_name'),
+            to: displayName('to', 'title', 'display_name'),
+            schema: displayNameSchema,
+          }),
+        ),
+      ).toEqual({ labels: [], classes: [], applied: [], dataLoss: [] });
+    });
+
+    it('asks about the field whose stored name changes without a statement, by its own name', () => {
+      expect(
+        planned(
+          plan({
+            from: displayName('from', 'name', 'display_name'),
+            to: displayName('to', 'name', 'full_name'),
+            schema: displayNameSchema,
+          }),
+        ).dataLoss,
+      ).toEqual([
+        expect.objectContaining({
+          subject: { kind: 'field', namespaceId: NS, model: 'Profile', field: 'name' },
+        }),
+      ]);
+    });
+
+    it('plans nothing from a contract that named the document id _id to one that names it id', () => {
+      const rewrittenSnapshot = contract(
+        'from',
+        { Profile: { collection: 'profiles', fields: ['_id', 'first_name'] } },
+        { profiles: { required: ['first_name'] } },
+      );
+      const reEmitted = contract(
+        'to',
+        {
+          Profile: {
+            collection: 'profiles',
+            fields: ['id', 'firstName'],
+            storedAs: { id: '_id', firstName: 'first_name' },
+          },
+        },
+        { profiles: { required: ['first_name'] } },
+      );
+      expect(
+        planned(
+          plan({
+            from: rewrittenSnapshot,
+            to: reEmitted,
+            schema: [schemaCollection('profiles', { required: ['first_name'] })],
+          }),
+        ),
+      ).toEqual({ labels: [], classes: [], applied: [], dataLoss: [] });
+    });
+  });
+
   it('renames the field between the index drop and the index create, before the validator update', () => {
     expect(
       planned(
@@ -191,6 +297,77 @@ describe('MongoMigrationPlanner, removed fields', () => {
       },
       { tasks: {} },
     );
+
+  it('keeps a root field that becomes an embed relation stored under the same name', () => {
+    const users = (seed: string, user: { fields: string[]; embeds?: Record<string, string> }) =>
+      contract(seed, { User: { collection: 'users', ...user } }, { users: {} });
+    expect(
+      planned(
+        plan({
+          from: users('from', { fields: ['_id', 'notes'] }),
+          to: users('to', { fields: ['_id'], embeds: { comments: 'notes' } }),
+          schema: [schemaCollection('users')],
+        }),
+      ),
+    ).toEqual({ labels: [], classes: [], applied: [], dataLoss: [] });
+  });
+
+  it('unsets a base field from the variants that do not keep it, counting a variant embed stored under its name as keeping it', () => {
+    const tasks = (
+      seed: string,
+      taskFields: string[],
+      bug: { fields: string[]; embeds?: Record<string, string> },
+    ) =>
+      contract(
+        seed,
+        {
+          Task: {
+            collection: 'tasks',
+            fields: ['_id', 'type', ...taskFields],
+            discriminator: 'type',
+            variants: { Bug: 'bug', Feature: 'feature' },
+          },
+          Bug: { collection: 'tasks', base: 'Task', ...bug },
+          Feature: { collection: 'tasks', fields: [], base: 'Task' },
+        },
+        { tasks: {} },
+      );
+    expect(
+      planned(
+        plan({
+          from: tasks('from', ['notes'], { fields: [] }),
+          to: tasks('to', [], { fields: [], embeds: { comments: 'notes' } }),
+          schema: [schemaCollection('tasks')],
+        }),
+      ).labels,
+    ).toEqual(['Remove field notes from collection tasks in documents whose type is not "bug"']);
+  });
+
+  it('keeps a variant field that becomes an embed relation stored under the same name', () => {
+    const tasks = (seed: string, bug: { fields: string[]; embeds?: Record<string, string> }) =>
+      contract(
+        seed,
+        {
+          Task: {
+            collection: 'tasks',
+            fields: ['_id', 'type'],
+            discriminator: 'type',
+            variants: { Bug: 'bug' },
+          },
+          Bug: { collection: 'tasks', base: 'Task', ...bug },
+        },
+        { tasks: {} },
+      );
+    expect(
+      planned(
+        plan({
+          from: tasks('from', { fields: ['notes'] }),
+          to: tasks('to', { fields: [], embeds: { comments: 'notes' } }),
+          schema: [schemaCollection('tasks')],
+        }),
+      ),
+    ).toEqual({ labels: [], classes: [], applied: [], dataLoss: [] });
+  });
 
   it("unsets a variant's removed field only from that variant's documents", () => {
     expect(

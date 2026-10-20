@@ -2,6 +2,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { applySpecifierDefaultControlPolicy } from '@internal/contract/apply-specifier-default-control-policy';
 import type { Contract } from '@internal/contract/types';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
@@ -667,9 +668,9 @@ model Document {
         `// use prisma-8
 model User {
   id Int @id
-  cuid2 String @default(cuid(2))
-  uuidV7 String @default(uuid(7))
-  nanoid16 String @default(nanoid(16))
+  cuid2 String @onCreate(cuid(2))
+  uuidV7 String @onCreate(uuid(7))
+  nanoid16 String @onCreate(nanoid(16))
   dbExpr String @default(sql\`gen_random_uuid()\`)
 }
 `,
@@ -736,7 +737,7 @@ model User {
         `// use prisma-8
 model User {
   id Int @id
-  cuidValue String @default(cuid())
+  cuidValue String @onCreate(cuid())
 }
 `,
         'utf-8',
@@ -790,6 +791,7 @@ model User {
             defaultFunctionRegistry: new Map(),
             generatorDescriptors: [],
           },
+          generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
           resolvedInputs: [schemaPath],
         }),
       );

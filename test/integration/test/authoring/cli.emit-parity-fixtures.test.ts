@@ -61,6 +61,7 @@ function sourceContextFromConfig(config: PrismaNextConfig): ContractSourceContex
     codecLookup: stack.codecLookup,
     dataTypes: stack.dataTypes,
     controlMutationDefaults: stack.controlMutationDefaults,
+    generatorFunctions: stack.generatorFunctions,
     resolvedInputs: config.contract?.source.inputs ?? [],
     capabilities: stack.capabilities,
   };

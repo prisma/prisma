@@ -6,6 +6,7 @@ import { collectScalarTypeConstructors } from '@internal/framework-components/au
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { fixtureInterpreterTypes } from './fixture-codec-descriptors';
+import { fixtureGeneratorFunctions } from './fixture-generator-functions';
 import { interpretSqlContract, postgresScalarAuthoringTypes, postgresTarget } from './fixtures';
 import { sqlStorageFromSuccessfulSqlInterpretation } from './interpret-sql-contract-storage';
 import { builtinControlMutationDefaults } from './interpreter-defaults-support';
@@ -41,13 +42,14 @@ describe('generator defaults never mutate storage — the type position is the o
       authoringContributions,
       composedExtensionContracts: new Map(),
       controlMutationDefaults: builtinControlMutationDefaults,
+      generatorFunctions: fixtureGeneratorFunctions,
       createNamespace: createTestSqlNamespace,
       capabilities: { sql: { scalarList: true } },
     });
 
-  it('keeps pg/uuid@1 for a bare native scalar field under @default(uuid())', () => {
+  it('keeps pg/uuid@1 for a bare native scalar field under @onCreate(uuid())', () => {
     const result = interpret(`model F {
-id Uuid @id @default(uuid())
+id Uuid @id @onCreate(uuid())
 }`);
 
     expect(result.ok).toBe(true);
@@ -68,13 +70,13 @@ id Uuid @id @default(uuid())
     ]);
   });
 
-  it('keeps pg/uuid@1 for a named type aliasing the native scalar under @default(uuid())', () => {
+  it('keeps pg/uuid@1 for a named type aliasing the native scalar under @onCreate(uuid())', () => {
     const result = interpret(`types {
 TUuid = Uuid
 }
 
 model E {
-id TUuid @id @default(uuid())
+id TUuid @id @onCreate(uuid())
 }`);
 
     expect(result.ok).toBe(true);
@@ -92,7 +94,7 @@ id TUuid @id @default(uuid())
 
   it('keeps explicit char storage for a constructor-form field under a non-uuid generator default', () => {
     const result = interpret(`model M {
-id Char(30) @id @default(cuid(2))
+id Char(30) @id @onCreate(cuid(2))
 }`);
 
     expect(result.ok).toBe(true);
@@ -114,9 +116,9 @@ id Char(30) @id @default(cuid(2))
     ]);
   });
 
-  it('keeps the target String storage (text) for String under @default(uuid()) and emits the uuidv4 execution default', () => {
+  it('keeps the target String storage (text) for String under @onCreate(uuid()) and emits the uuidv4 execution default', () => {
     const result = interpret(`model L {
-id String @id @default(uuid())
+id String @id @onCreate(uuid())
 }`);
 
     expect(result.ok).toBe(true);
@@ -137,9 +139,9 @@ id String @id @default(uuid())
     ]);
   });
 
-  it('lowers the zero-arg call form String() identically to bare String under @default(uuid())', () => {
+  it('lowers the zero-arg call form String() identically to bare String under @onCreate(uuid())', () => {
     const result = interpret(`model P {
-id String() @id @default(uuid())
+id String() @id @onCreate(uuid())
 }`);
 
     expect(result.ok).toBe(true);
@@ -156,9 +158,9 @@ id String() @id @default(uuid())
 
   it('keeps text storage for nanoid and cuid generator defaults on String fields', () => {
     const result = interpret(`model N {
-id String @id @default(nanoid())
-sized String @default(nanoid(16))
-ref String @default(cuid(2))
+id String @id @onCreate(nanoid())
+sized String @onCreate(nanoid(16))
+ref String @onCreate(cuid(2))
 }`);
 
     expect(result.ok).toBe(true);
@@ -194,13 +196,13 @@ ref String @default(cuid(2))
     );
   });
 
-  it('keeps text storage for a named type aliasing String under @default(uuid())', () => {
+  it('keeps text storage for a named type aliasing String under @onCreate(uuid())', () => {
     const result = interpret(`types {
 TId = String
 }
 
 model T {
-id TId @id @default(uuid())
+id TId @id @onCreate(uuid())
 }`);
 
     expect(result.ok).toBe(true);
@@ -216,21 +218,26 @@ id TId @id @default(uuid())
     });
   });
 
-  it('diagnoses a generator on a codec outside its applicableCodecIds (Int @default(uuid()))', () => {
+  it('diagnoses a generator function the codec does not bind (Int @onCreate(uuid()))', () => {
     const result = interpret(`model B {
-id Int @id @default(uuid())
+id Int @id @onCreate(uuid())
 }`);
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
-          sourceId: 'schema.prisma',
-          message: expect.stringContaining('uuidv4'),
-        }),
-      ]),
-    );
+    expect(
+      result.failure.diagnostics.map(({ code, message, sourceId }) => ({
+        code,
+        message,
+        sourceId,
+      })),
+    ).toEqual([
+      {
+        code: 'PSL_GENERATOR_NOT_APPLICABLE',
+        sourceId: 'schema.prisma',
+        message:
+          'Field "B.id": uuid() does not apply to codec "pg/int4@1". No generator function applies to this codec.',
+      },
+    ]);
   });
 });

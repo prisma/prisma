@@ -14,6 +14,7 @@ import type {
   SchemaNodeRef,
 } from '@internal/framework-components/control';
 import {
+  nameIsCatalogText,
   renderSqlTypeName,
   type SqlDataType,
   sqlDataTypeOfCodec,
@@ -98,6 +99,7 @@ function convertColumn(
     codecRef: buildColumnCodecRef(resolved, many ? true : undefined),
     storedType: storage,
     storedTypeParams: storage.sql.normalize(dataTypeParams(storage, resolved.typeParams)),
+    ...ifDefined('catalogText', nameIsCatalogText(storage) ? typeText : undefined),
     ...ifDefined(
       'defaultValue',
       rawColumnDefault?.kind === 'literal' && rawColumnDefault.value instanceof Date

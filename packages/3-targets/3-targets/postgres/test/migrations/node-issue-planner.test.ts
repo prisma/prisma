@@ -398,6 +398,61 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
   });
 
   it.each([
+    { from: 'tsvector', to: 'circle', checkType: 'circle' },
+    { from: 'tsvector', to: 'character varying(10)', checkType: 'character varying(10)' },
+    { from: 'integer', to: 'int4', checkType: 'int4' },
+  ])(
+    'checks a type change to the raw type $to against that text, as its data type writes it',
+    ({ from, to, checkType }) => {
+      const contract = makeContract({
+        user: {
+          columns: {
+            id: { dataType: 'pg/uuid', codecId: 'pg/uuid@1', nullable: false },
+            area: {
+              dataType: 'sql/raw',
+              codecId: 'sql/raw@1',
+              typeParams: { sql: to },
+              nullable: false,
+            },
+          },
+          primaryKey: { columns: ['id'] },
+          foreignKeys: [],
+          uniques: [],
+          indexes: [],
+        },
+      });
+      const actual = rootOf({
+        user: new PostgresTableSchemaNode({
+          name: 'user',
+          columns: {
+            id: introspectedColumn({ name: 'id', typeText: 'uuid', nullable: false }),
+            area: introspectedColumn({
+              name: 'area',
+              typeText: from,
+              nullable: false,
+              reportedType: { text: from, kind: undefined, schema: 'pg_catalog', name: from },
+            }),
+          },
+          primaryKey: { columns: ['id'] },
+          foreignKeys: [],
+          uniques: [],
+          indexes: [],
+          policies: [],
+          rlsEnabled: false,
+        }),
+      });
+      const call = planFor(contract, actual).find((c) => c instanceof AlterColumnTypeCall);
+      expect(
+        call instanceof AlterColumnTypeCall && {
+          type: call.type,
+          raw: call.raw,
+          checkType: call.checkType,
+        },
+      ).toEqual({ type: to, raw: true, checkType: { kind: 'catalog-text', text: checkType } });
+    },
+  );
+
+  it.each([
     { typeName: 'UserRole', typeRef: 'UserRole', checked: '"UserRole"' },
     { typeName: 'UserRole', typeRef: undefined, checked: '"UserRole"' },
     { typeName: 'user_role', typeRef: 'user_role', checked: '"user_role"' },

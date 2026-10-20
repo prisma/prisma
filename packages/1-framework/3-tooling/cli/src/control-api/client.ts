@@ -648,11 +648,12 @@ class ControlClientImpl implements ControlClient {
     });
     if (!loaded.ok) {
       const { error, sourceDiagnostics } = loaded.failure;
+      const thrownBySource = error.code !== 'CONTRACT.SOURCE_LOAD_FAILED';
       return notOk({
         code: 'CONTRACT_SOURCE_INVALID',
         summary: sourceDiagnostics?.summary ?? error.message,
         why: error.why,
-        meta: sourceDiagnostics?.meta,
+        meta: thrownBySource ? { code: error.code, ...error.meta } : sourceDiagnostics?.meta,
         ...ifDefined('diagnostics', sourceDiagnostics),
       });
     }

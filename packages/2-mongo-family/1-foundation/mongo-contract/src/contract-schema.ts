@@ -98,6 +98,11 @@ const StorageRelationEntrySchema = type({
   field: 'string',
 });
 
+const StorageFieldEntrySchema = type({
+  '+': 'reject',
+  field: 'string',
+});
+
 const MongoJsonPrimitiveSchema = type
   .declare<MongoJsonPrimitive>()
   .type('string | number | boolean | null');
@@ -232,6 +237,7 @@ const CollectionOptionsSchema = type({
 const ModelStorageSchema = type({
   '+': 'reject',
   'collection?': 'string',
+  fields: type({ '[string]': StorageFieldEntrySchema }),
   'relations?': type({ '[string]': StorageRelationEntrySchema }),
 });
 

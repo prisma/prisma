@@ -4,6 +4,8 @@ import type {
   FamilyPackRef,
   TargetPackRef,
 } from '@internal/framework-components/components';
+import { mongoDataType } from '@internal/mongo-contract/data-type';
+import { mongoTestCodecDescriptors, mongoTestDataTypes } from '@internal/mongo-contract/test';
 import { blindCast } from '@internal/utils/casts';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
@@ -63,10 +65,18 @@ const vectorTargetPack = {
   targetId: 'mongo',
   version: '0.0.1',
   defaultNamespaceId: '__unbound__',
-  dataTypes: [dataType('mongo/vector', { params: vectorParams, read: (json) => json })],
+  dataTypes: [
+    ...mongoTestDataTypes.filter((each) => each.id !== 'mongo/vector'),
+    mongoDataType('mongo/vector', {
+      params: vectorParams,
+      bsonTypes: ['array'],
+      read: (json) => json,
+    }),
+  ],
   types: {
     codecTypes: {
       codecDescriptors: [
+        ...mongoTestCodecDescriptors.filter((each) => each.codecId !== 'mongo/vector@1'),
         blindCast<
           AnyCodecDescriptor,
           'a test descriptor needs only the id, the data type and the parameter flag the build reads'

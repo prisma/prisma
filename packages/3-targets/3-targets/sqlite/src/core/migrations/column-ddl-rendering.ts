@@ -1,5 +1,9 @@
 import { dataTypeParams } from '@internal/framework-components/codec';
-import { isSqlDataType, renderSqlTypeName } from '@internal/sql-contract/data-type';
+import {
+  isSqlDataType,
+  nameIsCatalogText,
+  renderSqlTypeName,
+} from '@internal/sql-contract/data-type';
 import {
   DdlColumn,
   type DdlTableConstraint,
@@ -18,7 +22,7 @@ import {
 } from './operations/shared';
 
 /**
- * The type DDL writes for a column node: the name of the type it is stored as, with the parameters as the contract writes them, in upper case.
+ * The type DDL writes for a column node: the name of the type it is stored as, with the parameters as the contract writes them, in upper case, or as given for a data type whose name is its catalog text, since verify compares that text exactly (ADR 273).
  */
 function columnTypeSql(column: SqlColumnIR): string {
   const type = column.storedType;
@@ -27,7 +31,8 @@ function columnTypeSql(column: SqlColumnIR): string {
       `column "${column.name}" has no data type; the expected tree must be derived via contractToSchemaIR for planning`,
     );
   }
-  return renderSqlTypeName(type, dataTypeParams(type, column.codecRef?.typeParams)).toUpperCase();
+  const written = renderSqlTypeName(type, dataTypeParams(type, column.codecRef?.typeParams));
+  return nameIsCatalogText(type) ? written : written.toUpperCase();
 }
 
 /** The default DDL writes: the one the contract authored; `resolvedDefault` exists for the diff comparison. */

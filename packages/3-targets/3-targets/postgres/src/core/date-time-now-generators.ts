@@ -113,11 +113,5 @@ export const postgresNowGenerators = [
 }>;
 
 export function postgresNowGeneratorControlDescriptors(): readonly MutationDefaultGeneratorDescriptor[] {
-  return postgresNowGenerators.map(({ id }) => ({
-    id,
-    buildPhases: () => ({
-      onCreate: { kind: 'generator', id },
-      onUpdate: { kind: 'generator', id },
-    }),
-  }));
+  return postgresNowGenerators.map(({ id }) => ({ id }));
 }

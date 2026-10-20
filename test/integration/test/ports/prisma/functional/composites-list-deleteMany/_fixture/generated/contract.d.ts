@@ -69,9 +69,9 @@ export type FieldInputTypes = FieldTypesFromDomain<
 
 export namespace Models {
   export type unbound_CommentRequiredList = {
-    _id: FieldOutputTypes['__unbound__']['CommentRequiredList']['_id'];
     contents: FieldOutputTypes['__unbound__']['CommentRequiredList']['contents'];
     country: FieldOutputTypes['__unbound__']['CommentRequiredList']['country'];
+    id: FieldOutputTypes['__unbound__']['CommentRequiredList']['id'];
     readonly [RelationKeys]?: never;
   };
 }
@@ -154,10 +154,6 @@ type ContractBase = Omit<
         readonly models: {
           readonly CommentRequiredList: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly contents: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'CommentContent' };
@@ -167,9 +163,20 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
+              };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'comment_required_list' };
+            readonly storage: {
+              readonly collection: 'comment_required_list';
+              readonly fields: {
+                readonly contents: { readonly field: 'contents' };
+                readonly country: { readonly field: 'country' };
+                readonly id: { readonly field: '_id' };
+              };
+            };
           };
         };
         readonly valueObjects: {

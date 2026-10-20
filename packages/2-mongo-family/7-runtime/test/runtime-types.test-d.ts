@@ -30,7 +30,14 @@ type TestModels = {
       };
     };
     readonly relations: Record<string, never>;
-    readonly storage: { readonly collection: 'orders' };
+    readonly storage: {
+      readonly collection: 'orders';
+      readonly fields: {
+        readonly _id: { readonly field: '_id' };
+        readonly status: { readonly field: 'status' };
+        readonly amount: { readonly field: 'amount' };
+      };
+    };
   };
 };
 

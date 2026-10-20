@@ -530,6 +530,16 @@ function columnNameFromDefaultIssuePath(issue: SchemaDiffIssue): string | undefi
 }
 
 /**
+ * Compares the declared type with `typeSql`: exactly for a data type named by its catalog text, as
+ * verify compares it (ADR 273), and without case otherwise.
+ */
+function declaredTypeMatches(expected: SqlColumnIR, typeSql: string): string {
+  return expected.catalogText !== undefined
+    ? `type = '${escapeLiteral(typeSql)}'`
+    : `LOWER(type) = '${escapeLiteral(typeSql.toLowerCase())}'`;
+}
+
+/**
  * Per-issue postchecks verifying the recreated table's shape against the
  * expected spec. Column-level issues (`sql-column` `not-equal`,
  * `sql-column-default` any reason) emit one targeted check each;
@@ -604,7 +614,7 @@ export function buildRecreatePostchecks(
         if (colSpec) {
           checks.push({
             description: `verify "${columnName}" type on "${tableName}"`,
-            sql: `SELECT COUNT(*) > 0 FROM pragma_table_info('${t}') WHERE name = '${c}' AND LOWER(type) = '${escapeLiteral(colSpec.typeSql.toLowerCase())}'`,
+            sql: `SELECT COUNT(*) > 0 FROM pragma_table_info('${t}') WHERE name = '${c}' AND ${declaredTypeMatches(expected, colSpec.typeSql)}`,
           });
         }
       }

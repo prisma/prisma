@@ -22,7 +22,24 @@
         "models": {
           "User": {
             "storage": {
-              "collection": "users"
+              "collection": "users",
+              "fields": {
+                "_id": {
+                  "field": "_id"
+                },
+                "name": {
+                  "field": "name"
+                },
+                "email": {
+                  "field": "email"
+                },
+                "bio": {
+                  "field": "bio"
+                },
+                "createdAt": {
+                  "field": "createdAt"
+                }
+              }
             },
             "fields": {
               "_id": {
@@ -66,7 +83,36 @@
           },
           "Post": {
             "storage": {
-              "collection": "posts"
+              "collection": "posts",
+              "fields": {
+                "_id": {
+                  "field": "_id"
+                },
+                "title": {
+                  "field": "title"
+                },
+                "slug": {
+                  "field": "slug"
+                },
+                "content": {
+                  "field": "content"
+                },
+                "status": {
+                  "field": "status"
+                },
+                "authorId": {
+                  "field": "authorId"
+                },
+                "viewCount": {
+                  "field": "viewCount"
+                },
+                "publishedAt": {
+                  "field": "publishedAt"
+                },
+                "updatedAt": {
+                  "field": "updatedAt"
+                }
+              }
             },
             "fields": {
               "_id": {

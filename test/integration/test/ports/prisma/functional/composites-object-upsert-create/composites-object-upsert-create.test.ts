@@ -11,13 +11,13 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 // This port uses two separate roots (required / optional content), mirroring the
 // create port, because upstream is matrix-parameterised on contentProperty.
 //
-// Prisma 8: `.where({ _id }).upsert({ create, update: {} })`.
+// Prisma 8: `.where({ id }).upsert({ create, update: {} })`.
 //
 // Like create(), upsert() returns the input merged with the server-assigned
-// `_id` and does NOT re-read the stored document — so the shape is asserted via
-// toMatchObject (content/country) plus `_id`, exactly as the create port does.
+// `id` and does NOT re-read the stored document — so the shape is asserted via
+// toMatchObject (content/country) plus `id`, exactly as the create port does.
 // Upstream asserts `id: expect.any(String)`; Prisma 8 decodes write results
-// through the same codecs as reads (#29879), so `_id` is a hex string here too.
+// through the same codecs as reads (#29879), so `id` is a hex string here too.
 //
 // Upstream "set null" for the required variant throws at runtime; in Prisma 8 the
 // required constraint is enforced at the type level (@ts-expect-error holds) and
@@ -34,10 +34,10 @@ describe('ports/prisma/functional/composites/object/upsert-create', () => {
       () =>
         withComposites(async ({ db }) => {
           const id = new ObjectId().toHexString();
-          const comment = await db.comments_required.where({ _id: id }).upsert({
+          const comment = await db.comments_required.where({ id }).upsert({
             update: {},
             create: {
-              _id: id,
+              id,
               country: 'France',
               content: {
                 text: 'Hello World',
@@ -53,7 +53,7 @@ describe('ports/prisma/functional/composites/object/upsert-create', () => {
               upvotes: [{ userId: '10', vote: true }],
             },
           });
-          expect(comment._id).toEqual(expect.any(String));
+          expect(comment.id).toEqual(expect.any(String));
         }),
       timeouts.spinUpMongoMemoryServer,
     );
@@ -63,10 +63,10 @@ describe('ports/prisma/functional/composites/object/upsert-create', () => {
       () =>
         withComposites(async ({ db }) => {
           const id = new ObjectId().toHexString();
-          const comment = await db.comments_required.where({ _id: id }).upsert({
+          const comment = await db.comments_required.where({ id }).upsert({
             update: {},
             create: {
-              _id: id,
+              id,
               country: 'France',
               content: {
                 text: 'Hello World',
@@ -94,10 +94,10 @@ describe('ports/prisma/functional/composites/object/upsert-create', () => {
       () =>
         withComposites(async ({ db }) => {
           const id = new ObjectId().toHexString();
-          const comment = db.comments_required.where({ _id: id }).upsert({
+          const comment = db.comments_required.where({ id }).upsert({
             update: {},
             create: {
-              _id: id,
+              id,
               country: 'France',
               // @ts-expect-error required `content` cannot be null
               content: null,
@@ -113,10 +113,10 @@ describe('ports/prisma/functional/composites/object/upsert-create', () => {
       () =>
         withComposites(async ({ db }) => {
           const id = new ObjectId().toHexString();
-          const comment = await db.comments_required.where({ _id: id }).upsert({
+          const comment = await db.comments_required.where({ id }).upsert({
             update: {},
             create: {
-              _id: id,
+              id,
               country: 'France',
               content: {
                 text: 'Hello World',
@@ -149,10 +149,10 @@ describe('ports/prisma/functional/composites/object/upsert-create', () => {
       () =>
         withComposites(async ({ db }) => {
           const id = new ObjectId().toHexString();
-          const comment = await db.comments_optional.where({ _id: id }).upsert({
+          const comment = await db.comments_optional.where({ id }).upsert({
             update: {},
             create: {
-              _id: id,
+              id,
               country: 'France',
               content: null,
             },

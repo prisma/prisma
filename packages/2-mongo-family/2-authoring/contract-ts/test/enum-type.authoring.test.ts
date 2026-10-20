@@ -2,51 +2,63 @@ import type { JsonValue } from '@internal/contract/types';
 import type {
   AnyCodecDescriptor,
   Codec,
+  DataType,
   DataTypeValue,
 } from '@internal/framework-components/codec';
-import { dataType, dataTypeId } from '@internal/framework-components/codec';
-import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
+import { dataTypeId } from '@internal/framework-components/codec';
+import type { TargetPackRef } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { MongoContractSchema } from '@internal/mongo-contract';
+import { mongoDataType } from '@internal/mongo-contract/data-type';
+import { mongoTestCodecDescriptors } from '@internal/mongo-contract/test';
 import { type } from 'arktype';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { defineContract, field, model } from '../src/contract-builder';
 import { enumType, member } from '../src/enum-type';
+import { mongoFamilyPack, mongoTargetPack as mongoTestTargetPack } from './mongo-test-packs';
 
-const mongoFamilyPack = {
-  kind: 'family',
-  id: 'mongo',
-  familyId: 'mongo',
-  version: '0.0.1',
-} as const satisfies FamilyPackRef<'mongo'>;
+const testDataTypes: Readonly<Record<string, DataType>> = {
+  'test/object': mongoDataType('test/object', { read: (json) => json, bsonTypes: ['object'] }),
+  'test/date': mongoDataType('test/date', { read: (json) => json, bsonTypes: ['string'] }),
+  'test/upper': mongoDataType('test/upper', { read: (json) => json, bsonTypes: ['string'] }),
+  'test/unequal': mongoDataType('test/unequal', { read: (json) => json, bsonTypes: ['string'] }),
+};
 
-const fixtureType = dataType('demo/fixture', { read: (json) => json });
+function testDataTypeOf(codecId: string): DataType {
+  const type = testDataTypes[codecId.replace(/@\d+$/, '')];
+  if (type === undefined) throw new Error(`no test data type for ${codecId}`);
+  return type;
+}
+
+/** A codec over the test data type of `id`, which stores `toStored(value)` and reads back `fromStored(stored)`. */
+function testCodec(
+  id: string,
+  toStored: (value: unknown) => unknown = (value) => value,
+  fromStored: (stored: unknown) => unknown = (stored) => stored,
+): Codec {
+  const type = testDataTypeOf(id);
+  return {
+    id,
+    dataType: type,
+    toWire: async (v: unknown) => v,
+    fromWire: async (v: unknown) => v,
+    toDataTypeValue: (v: unknown) => type.valueFrom(toStored(v) as JsonValue, {}),
+    fromDataTypeValue: (value: DataTypeValue) => fromStored(value.value),
+  } satisfies Codec;
+}
 
 const identityDescriptor = (id: string): AnyCodecDescriptor => ({
   codecId: id,
-  dataType: dataTypeId('demo/fixture'),
+  dataType: dataTypeId(id.replace(/@\d+$/, '')),
   traits: ['equality'],
   paramsSchema: undefined,
   isParameterized: false,
-  factory: () => () =>
-    ({
-      id,
-      dataType: fixtureType,
-      toWire: async (v: unknown) => v,
-      fromWire: async (v: unknown) => v,
-      toDataTypeValue: (v: unknown) => fixtureType.valueFrom(v as JsonValue, {}),
-      fromDataTypeValue: (value: DataTypeValue) => value.value,
-    }) satisfies Codec,
+  factory: () => () => testCodec(id),
 });
 
 const mongoTargetPack = {
-  kind: 'target',
-  id: 'mongo',
-  familyId: 'mongo',
-  targetId: 'mongo',
-  version: '0.0.1',
-  defaultNamespaceId: '__unbound__',
-  types: { codecTypes: { codecDescriptors: [identityDescriptor('mongo/string@1')] } },
+  ...mongoTestTargetPack,
+  dataTypes: [...mongoTestTargetPack.dataTypes, ...Object.values(testDataTypes)],
 } as const satisfies TargetPackRef<'mongo', 'mongo'>;
 
 const mongoString = { codecId: 'mongo/string@1' as const } as const;
@@ -211,21 +223,18 @@ describe('defineContract() — members compared as the codec stores them', () =>
   const dateDescriptor: AnyCodecDescriptor = {
     ...identityDescriptor('test/date@1'),
     factory: () => () =>
-      ({
-        id: 'test/date@1',
-        dataType: fixtureType,
-        toWire: async (v: unknown) => v,
-        fromWire: async (v: unknown) => v,
-        toDataTypeValue: (v: unknown) => fixtureType.valueFrom((v as Date).toISOString(), {}),
-        fromDataTypeValue: (value: DataTypeValue) => new Date(String(value.value)),
-      }) satisfies Codec,
+      testCodec(
+        'test/date@1',
+        (v) => (v as Date).toISOString(),
+        (stored) => new Date(String(stored)),
+      ),
   };
   const target = {
     ...mongoTargetPack,
     types: {
       codecTypes: {
         codecDescriptors: [
-          identityDescriptor('mongo/string@1'),
+          ...mongoTestCodecDescriptors,
           identityDescriptor('test/object@1'),
           dateDescriptor,
         ],
@@ -362,7 +371,6 @@ describe('defineContract() — enum declaration key mismatch', () => {
 
 describe('defineContract() — codec-encoded value set', () => {
   const upperCodec = { codecId: 'test/upper@1' as const } as const;
-  const upperType = dataType('test/upper', { read: (json) => json });
   const upperDescriptor: AnyCodecDescriptor = {
     codecId: 'test/upper@1',
     dataType: dataTypeId('test/upper'),
@@ -370,18 +378,15 @@ describe('defineContract() — codec-encoded value set', () => {
     paramsSchema: undefined,
     isParameterized: false,
     factory: () => () =>
-      ({
-        id: 'test/upper@1',
-        dataType: upperType,
-        toWire: async (v: unknown) => v,
-        fromWire: async (v: unknown) => v,
-        toDataTypeValue: (v: unknown) => upperType.valueFrom(String(v).toUpperCase(), {}),
-        fromDataTypeValue: (value: DataTypeValue) => String(value.value).toLowerCase(),
-      }) satisfies Codec,
+      testCodec(
+        'test/upper@1',
+        (v) => String(v).toUpperCase(),
+        (stored) => String(stored).toLowerCase(),
+      ),
   };
   const packWithEncoders = {
     ...mongoTargetPack,
-    types: { codecTypes: { codecDescriptors: [upperDescriptor] } },
+    types: { codecTypes: { codecDescriptors: [...mongoTestCodecDescriptors, upperDescriptor] } },
   } satisfies TargetPackRef<'mongo', 'mongo'>;
 
   const Role = enumType('Role', upperCodec, member('Admin', 'admin'), member('Author', 'author'));
@@ -448,7 +453,7 @@ describe('an enum whose codec does not declare the equality trait', () => {
       types: {
         codecTypes: {
           codecDescriptors: [
-            identityDescriptor('mongo/string@1'),
+            ...mongoTestCodecDescriptors,
             { ...identityDescriptor('test/unequal@1'), traits: [] },
           ],
         },

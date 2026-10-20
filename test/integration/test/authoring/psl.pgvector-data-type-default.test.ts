@@ -104,6 +104,7 @@ model Document {
           codecLookup: stack.codecLookup,
           dataTypes: stack.dataTypes,
           controlMutationDefaults: stack.controlMutationDefaults,
+          generatorFunctions: stack.generatorFunctions,
           resolvedInputs: [schemaPath],
           capabilities: stack.capabilities,
         });

@@ -41,6 +41,7 @@ const declaredByTypeFunction = [
 ] as const satisfies readonly DeclaredCodecs[];
 
 const temporalPrecision = 'A precision does not change the Temporal type a value reads as.';
+const rawOutput = 'A raw column reads as unknown whatever its type text (ADR 273).';
 
 /** Per stack: the codecs its type functions declare, the parameterized codecs whose output type is the same whatever their type parameters (with the reason), and those that render their output type as text, because no type can compute it from their type parameters. */
 type StackClassification = {
@@ -60,6 +61,7 @@ const stacks: Readonly<Record<'Postgres and its extensions' | 'SQLite', StackCla
       'pg/timestamp-temporal@1': temporalPrecision,
       'pg/timestamptz-temporal@1': temporalPrecision,
       'pg/unboundedint@1': 'A numeric(P, 0) column reads as a bigint whatever its precision.',
+      'sql/raw@1': rawOutput,
     },
     renderedAsText: ['arktype/json@1'],
   },
@@ -68,6 +70,7 @@ const stacks: Readonly<Record<'Postgres and its extensions' | 'SQLite', StackCla
     outputIndependentOfTypeParams: {
       'sql/char@1': 'SQLite declares no type function; a character column reads as a string.',
       'sql/varchar@1': 'SQLite declares no type function; a character column reads as a string.',
+      'sql/raw@1': rawOutput,
     },
     renderedAsText: [],
   },

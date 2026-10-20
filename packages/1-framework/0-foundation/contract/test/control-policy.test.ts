@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { applySpecifierDefaultControlPolicy } from '../src/apply-specifier-default-control-policy';
 import type { Contract } from '../src/contract-types';
-import { effectiveControlPolicy } from '../src/control-policy';
+import { effectiveControlPolicy, governingControlPolicy } from '../src/control-policy';
 
 describe('applySpecifierDefaultControlPolicy', () => {
   const minimalContract = {
@@ -42,5 +42,23 @@ describe('effectiveControlPolicy', () => {
     it('returns managed when both are undefined', () => {
       expect(effectiveControlPolicy(undefined, undefined)).toBe('managed');
     });
+  });
+});
+
+describe('governingControlPolicy', () => {
+  it('keeps every object of an external-default contract external, whatever it declares', () => {
+    expect([
+      governingControlPolicy({ explicitNodeControlPolicy: 'managed' }, 'external'),
+      governingControlPolicy({ explicitNodeControlPolicy: 'observed' }, 'external'),
+      governingControlPolicy(undefined, 'external'),
+    ]).toEqual(['external', 'external', 'external']);
+  });
+
+  it('otherwise takes the object policy, then the contract default, then managed', () => {
+    expect([
+      governingControlPolicy({ explicitNodeControlPolicy: 'external' }, 'observed'),
+      governingControlPolicy({}, 'tolerated'),
+      governingControlPolicy(undefined, undefined),
+    ]).toEqual(['external', 'tolerated', 'managed']);
   });
 });

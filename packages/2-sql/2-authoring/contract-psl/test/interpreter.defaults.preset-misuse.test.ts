@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { fixtureGeneratorFunctions } from './fixture-generator-functions';
 import { sqlStorageFromSuccessfulSqlInterpretation } from './interpret-sql-contract-storage';
 import {
   builtinControlMutationDefaults,
@@ -161,28 +162,34 @@ example temporal.exampleField() @default("other")
     ]);
   });
 
-  it('rejects a generated @default(...) on a preset that generates a value on create', () => {
-    const result = interpretPostgresSchema(
-      `model Bad {
+  it.each([
+    { phase: 'onCreate', preset: 'generatedField', phaseText: 'on create' },
+    { phase: 'onUpdate', preset: 'updateOnlyField', phaseText: 'on update' },
+  ])(
+    'rejects @$phase on a preset that generates a value for that phase',
+    ({ preset, phase, phaseText }) => {
+      const result = interpretPostgresSchema(
+        `model Bad {
 id Int @id
-example temporal.generatedField() @default(uuid())
+example temporal.${preset}() @${phase}(uuid())
 }`,
-      {
-        controlMutationDefaults: builtinControlMutationDefaults,
-        authoringContributions: syntheticPresetContributions,
-      },
-    );
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+          generatorFunctions: fixtureGeneratorFunctions,
+          authoringContributions: syntheticPresetContributions,
+        },
+      );
 
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
-      {
-        code: 'PSL_PRESET_AND_DEFAULT_CONFLICT',
-        message:
-          'Field "Bad.example" uses a field-preset call that already generates a value on create, so @default(...) cannot generate one too. Remove @default(...), write a database default in @default(...), or use a preset without an onCreate generator.',
-      },
-    ]);
-  });
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+        {
+          code: 'PSL_PRESET_AND_DEFAULT_CONFLICT',
+          message: `Field "Bad.example" uses a field-preset call that already generates a value ${phaseText}, so @${phase}(...) cannot set one too. Remove @${phase}(...) or use a preset without an ${phase} generator.`,
+        },
+      ]);
+    },
+  );
 
   it('keeps a database @default(...) together with the preset generators', () => {
     const result = interpretPostgresSchema(
@@ -214,14 +221,15 @@ example temporal.generatedField() @default("fallback")
     ]);
   });
 
-  it('keeps a generated @default(...) together with a preset that only generates on update', () => {
+  it('keeps @onCreate(...) together with a preset that only generates on update', () => {
     const result = interpretPostgresSchema(
       `model Good {
 id Int @id
-example temporal.updateOnlyField() @default(uuid())
+example temporal.updateOnlyField() @onCreate(uuid())
 }`,
       {
         controlMutationDefaults: builtinControlMutationDefaults,
+        generatorFunctions: fixtureGeneratorFunctions,
         authoringContributions: syntheticPresetContributions,
       },
     );

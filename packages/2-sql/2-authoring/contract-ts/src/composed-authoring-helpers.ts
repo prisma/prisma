@@ -22,10 +22,13 @@ import type {
   DataTypeLookup,
   TypeLookups,
 } from '@internal/framework-components/codec';
-import type {
-  ExtensionPackRef,
-  FamilyPackRef,
-  TargetPackRef,
+import {
+  createGeneratorHelpers,
+  type ExtensionPackRef,
+  type ExtensionPackValues,
+  type FamilyPackRef,
+  type GeneratorHelpersOf,
+  type TargetPackRef,
 } from '@internal/framework-components/components';
 import { blindCast } from '@internal/utils/casts';
 import {
@@ -193,6 +196,7 @@ export type ComposedAuthoringHelpers<
       ExtractTypeNamespaceFromPack<Target> &
       MergeExtensionTypeNamespaces<Extensions>
   >;
+  readonly gen: GeneratorHelpersOf<Family | Target | ExtensionPackValues<Extensions>>;
 };
 
 type AuthoringComponent = {
@@ -219,14 +223,14 @@ function composeEntityNamespace(
 
 /**
  * Reserved top-level keys on the composed helpers surface — the
- * built-in `model` / `rel` helpers, the `field` / `type` namespace
+ * built-in `model` / `rel` helpers, the `field` / `type` / `gen` namespace
  * objects. Pack-contributed entity types are flattened to the same
  * top-level shape (e.g. `helpers.enum({...})`), so a pack cannot
  * contribute an entity type whose name collides with one of these
  * reserved keys without silently overwriting at runtime. Detect the
  * collision at compose time and fail loudly with a guidance message.
  */
-const RESERVED_HELPER_KEYS: readonly string[] = ['field', 'model', 'rel', 'type'];
+const RESERVED_HELPER_KEYS: readonly string[] = ['field', 'model', 'rel', 'type', 'gen'];
 
 function assertNoBuiltInEntityCollisions(namespace: AuthoringEntityTypeNamespace): void {
   const collisions = Object.keys(namespace).filter((name) => RESERVED_HELPER_KEYS.includes(name));
@@ -321,5 +325,6 @@ export function createComposedAuthoringHelpers<
     model,
     rel,
     type: createTypeHelpersFromNamespace(typeNamespace, options),
+    gen: createGeneratorHelpers([options.family, options.target, ...extensionValues]),
   });
 }

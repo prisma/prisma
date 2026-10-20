@@ -1,3 +1,4 @@
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 /**
  * `@@rls` authoring end-to-end in the Postgres target:
  *
@@ -65,6 +66,7 @@ function blockResolutionBinder(
         pslBlockDescriptors: assembled.pslBlockDescriptors,
       },
       controlMutationDefaults: { defaultFunctionRegistry: new Map() },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: postgresDataTypeSupport,
     },
   }).binder;
@@ -106,6 +108,7 @@ function contextFor(authoringContributions: typeof assembled): BoundPslSchema['c
     pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
     codecLookup: postgresCodecLookup,
     controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+    generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     dataTypes: postgresDataTypeSupport,
     resolvedInputs: [],
     capabilities: { sql: { scalarList: true } },

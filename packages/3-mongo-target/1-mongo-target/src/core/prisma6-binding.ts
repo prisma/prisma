@@ -1,4 +1,3 @@
-import { TIMESTAMP_NOW_GENERATOR_ID } from '@internal/framework-components/authoring';
 import type { TargetPackRef } from '@internal/framework-components/components';
 import {
   MONGO_BINARY_CODEC_ID,
@@ -45,5 +44,4 @@ export const prisma6MongoBinding = {
     Json: { 'db.Json': MONGO_JSON_CODEC_ID },
   },
   objectIdCodecId: MONGO_OBJECTID_CODEC_ID,
-  timestampGeneratorId: TIMESTAMP_NOW_GENERATOR_ID,
 } as const;

@@ -9,9 +9,11 @@ import {
 } from '@internal/contract/types';
 import { enumType, member } from '@internal/contract-authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   buildMongoNamespace,
+  documentIdRefusalReason,
   MongoCollection,
   MongoIndex,
   MongoStorage,
@@ -80,7 +82,7 @@ function mongoCollectionsFromIr(ir: {
 interface MongoModel {
   readonly fields: Record<string, ContractField>;
   readonly relations: Record<string, ContractReferenceRelation>;
-  readonly storage: Record<string, unknown>;
+  readonly storage: { readonly fields: Record<string, { readonly field: string }> };
 }
 
 function modelsOf(ir: Contract): Record<string, unknown> {
@@ -179,7 +181,7 @@ model Item {
       },
     );
     expect(model(ir, 'Item').fields).toEqual({
-      _id: { type: { kind: 'scalar', codecId: 'mongo/objectId@1' }, nullable: false, many: false },
+      id: { type: { kind: 'scalar', codecId: 'mongo/objectId@1' }, nullable: false, many: false },
       roles: {
         type: { kind: 'scalar', codecId: 'mongo/string@1' },
         nullable: false,
@@ -241,6 +243,7 @@ model Item {
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedMongoAttribute },
       codecLookup: mongoCodecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: { entries: {}, lookup: mongoDataTypeLookup, dataTypeOfCodec: () => undefined },
       resolvedInputs: [],
       capabilities: {},
@@ -266,6 +269,7 @@ model Item {
         dataTypes: context.dataTypes,
         codecLookup: context.codecLookup,
         authoringContributions: context.authoringContributions,
+        generatorFunctions: context.generatorFunctions,
       }),
       mapPslDiagnostics([...symbolTableDiagnostics, ...binderDiagnostics], input.sources),
     );
@@ -296,7 +300,7 @@ model Item {
 
       expect(modelsOf(ir)['Item']).toMatchObject({
         fields: {
-          _id: {
+          id: {
             type: { kind: 'scalar', codecId: 'mongo/objectId@1' },
             nullable: false,
             many: false,
@@ -366,7 +370,7 @@ model Item {
 
       expect(modelsOf(ir)['Item']).toMatchObject({
         fields: {
-          _id: { type: { kind: 'scalar', codecId: 'custom/oid@2' }, nullable: false, many: false },
+          id: { type: { kind: 'scalar', codecId: 'custom/oid@2' }, nullable: false, many: false },
           name: {
             type: { kind: 'scalar', codecId: 'custom/text@2' },
             nullable: false,
@@ -469,8 +473,8 @@ model Item {
       `);
 
       expect(after.storage).toEqual(before.storage);
-      expect(Object.keys(model(after, 'Account').fields)).toEqual(
-        Object.keys(model(before, 'User').fields),
+      expect(Object.values(model(after, 'Account').storage.fields)).toEqual(
+        Object.values(model(before, 'User').storage.fields),
       );
     });
 
@@ -516,8 +520,68 @@ model Item {
         }
       `);
 
-      expect(model(ir, 'Item').fields).toHaveProperty('first_name');
-      expect(model(ir, 'Item').fields).not.toHaveProperty('firstName');
+      expect({
+        fields: Object.keys(model(ir, 'Item').fields),
+        storage: model(ir, 'Item').storage,
+      }).toEqual({
+        fields: ['id', 'firstName'],
+        storage: {
+          collection: 'Item',
+          fields: { id: { field: '_id' }, firstName: { field: 'first_name' } },
+        },
+      });
+    });
+
+    it('refuses two fields stored under one name', () => {
+      const result = interpret(`
+        model Item {
+          id    ObjectId @id @map("_id")
+          name  String
+          title String @map("name")
+        }
+      `);
+      expect(result.ok ? [] : result.failure.diagnostics).toEqual([
+        expect.objectContaining({
+          code: 'PSL_DUPLICATE_STORED_NAME',
+          message:
+            'Fields "Item.name" and "Item.title" are both stored as "name". Give each field its own stored name with @map.',
+        }),
+      ]);
+    });
+
+    it('refuses a field stored as __proto__', () => {
+      const result = interpret(`
+        model Item {
+          id    ObjectId @id @map("_id")
+          label String @map("__proto__")
+        }
+      `);
+      expect(result.ok ? [] : result.failure.diagnostics).toEqual([
+        expect.objectContaining({
+          code: 'PSL_STORED_NAME_UNSUPPORTED',
+          message:
+            'Field "Item.label" is stored as "__proto__", which JavaScript reads as the prototype of an object rather than as a key. Give the field another stored name with @map.',
+        }),
+      ]);
+    });
+
+    it('refuses @map on a field of a composite type', () => {
+      const result = interpret(`
+        type Address {
+          street String @map("st")
+        }
+        model Item {
+          id      ObjectId @id @map("_id")
+          address Address
+        }
+      `);
+      expect(result.ok ? [] : result.failure.diagnostics).toEqual([
+        expect.objectContaining({
+          code: 'PSL_MONGO_TYPE_FIELD_MAP_UNSUPPORTED',
+          message:
+            'Field "Address.street" has @map, but a field of a composite type is stored under its own name. Remove @map, or rename the field to the name it is stored under.',
+        }),
+      ]);
     });
   });
 
@@ -585,7 +649,7 @@ model Item {
           nullable: false,
           on: {
             localFields: ['authorId'],
-            targetFields: ['_id'],
+            targetFields: ['id'],
           },
         },
       });
@@ -670,7 +734,7 @@ model Item {
           to: crossRef('Post'),
           cardinality: '1:N',
           on: {
-            localFields: ['_id'],
+            localFields: ['id'],
             targetFields: ['authorId'],
           },
         },
@@ -697,7 +761,7 @@ model Item {
       expect(result.failure.diagnostics).toEqual([diagnostic]);
     });
 
-    it('uses mapped names in forward relations, unique constraints, and indexes', () => {
+    it('uses field names in relations and stored names in unique constraints and indexes', () => {
       const ir = interpretOk(`
         model Child {
           id       ObjectId @id @map("_id")
@@ -720,12 +784,15 @@ model Item {
           cardinality: 'N:1',
           nullable: false,
           on: {
-            localFields: ['parent_id'],
-            targetFields: ['_id'],
+            localFields: ['parentId'],
+            targetFields: ['id'],
           },
         },
       });
-      expect(model(ir, 'Parent').storage).toEqual({ collection: 'parents' });
+      expect(model(ir, 'Parent').storage).toEqual({
+        collection: 'parents',
+        fields: { id: { field: '_id' }, code: { field: 'code_value' } },
+      });
       expect(getIndexes(ir, 'Child')).toEqual([
         new MongoIndex({ keys: [{ field: 'parent_id', direction: 1 }] }),
       ]);
@@ -768,12 +835,12 @@ model Item {
         createdTasks: {
           to: crossRef('Task'),
           cardinality: '1:N',
-          on: { localFields: ['_id'], targetFields: ['creatorId'] },
+          on: { localFields: ['id'], targetFields: ['creatorId'] },
         },
         assignedTasks: {
           to: crossRef('Task'),
           cardinality: '1:N',
-          on: { localFields: ['_id'], targetFields: ['assigneeId'] },
+          on: { localFields: ['id'], targetFields: ['assigneeId'] },
         },
       });
     });
@@ -851,7 +918,7 @@ model Item {
           cardinality: '1:1',
           nullable: true,
           on: {
-            localFields: ['_id'],
+            localFields: ['id'],
             targetFields: ['userId'],
           },
         },
@@ -863,7 +930,7 @@ model Item {
           nullable: false,
           on: {
             localFields: ['userId'],
-            targetFields: ['_id'],
+            targetFields: ['id'],
           },
         },
       });
@@ -918,23 +985,19 @@ model Item {
   });
 
   describe('@id validation', () => {
-    it('emits diagnostic when model has no @id field', () => {
-      const result = interpret(`
+    it('accepts a model without @id, whose validator still requires an objectId _id', () => {
+      const ir = interpretOk(`
         model Item {
           name String
         }
       `);
 
-      expect(result.ok).toBe(false);
-      if (result.ok) return;
-      expect(result.failure.diagnostics).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            code: 'PSL_MISSING_ID_FIELD',
-            message: expect.stringContaining('Item'),
-          }),
-        ]),
-      );
+      expect(mongoCollectionsFromIr(ir)['Item']?.['validator']).toMatchObject({
+        jsonSchema: {
+          required: ['_id', 'name'],
+          properties: { _id: { bsonType: 'objectId' }, name: { bsonType: 'string' } },
+        },
+      });
     });
 
     it('accepts model with @id field', () => {
@@ -949,7 +1012,7 @@ model Item {
     });
   });
 
-  describe('_id objectId requirement', () => {
+  describe('the document id', () => {
     it('accepts an ObjectId @id mapped to _id', () => {
       const ir = interpretOk(`
         model Item {
@@ -972,42 +1035,104 @@ model Item {
       expect(modelsOf(ir)['Item']).toBeDefined();
     });
 
-    it('rejects an @id ObjectId that is not mapped to _id', () => {
+    it('rejects @id on a field not stored as _id, saying what to do', () => {
       const result = interpret(`
         model Item {
-          id ObjectId @id
+          id   ObjectId @id
           name String
         }
       `);
 
       expect(result.ok).toBe(false);
       if (result.ok) return;
-      expect(result.failure.diagnostics).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            code: 'PSL_MONGO_ID_REQUIRED',
-            message: expect.stringContaining('Item'),
-          }),
-        ]),
-      );
+      expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+        {
+          code: 'PSL_MONGO_ID_ATTRIBUTE_INVALID',
+          message:
+            'Field "Item.id" has @id but is stored as "id". In MongoDB, @id marks the field stored as _id, the document id: add @map("_id") to it, or remove @id.',
+        },
+      ]);
     });
 
-    it('rejects an _id whose type is not ObjectId', () => {
+    it('rejects @id on two fields of one model', () => {
       const result = interpret(`
         model Item {
-          id String @id @map("_id")
-          name String
+          id   ObjectId @id @map("_id")
+          code String   @id
         }
       `);
 
       expect(result.ok).toBe(false);
       if (result.ok) return;
-      expect(result.failure.diagnostics).toEqual(
-        expect.arrayContaining([expect.objectContaining({ code: 'PSL_MONGO_ID_REQUIRED' })]),
-      );
+      expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+        {
+          code: 'PSL_MONGO_ID_ATTRIBUTE_INVALID',
+          message:
+            'Field "Item.code" has @id but is stored as "code". In MongoDB, @id marks the field stored as _id, the document id: add @map("_id") to it, or remove @id.',
+        },
+        {
+          code: 'PSL_MONGO_ID_ATTRIBUTE_INVALID',
+          message:
+            'Model "Item" has @id on 2 fields, "id" and "code". A document has one id: keep @id only on the field stored as _id.',
+        },
+      ]);
     });
 
-    it('names the _id codec when the lookups know no MongoDB data type for it', () => {
+    it.each([
+      ['String', 'string'],
+      ['Int32', 'int'],
+    ])('accepts a %s _id, whose validator requires _id with that type', (type, bsonType) => {
+      const ir = interpretOk(`
+        model Item {
+          id   ${type} @id @map("_id")
+          name String
+        }
+      `);
+
+      expect(mongoCollectionsFromIr(ir)['Item']?.['validator']).toMatchObject({
+        jsonSchema: {
+          required: ['_id', 'name'],
+          properties: { _id: { bsonType }, name: { bsonType: 'string' } },
+        },
+      });
+    });
+
+    it.each([
+      ['a list', 'ObjectId[]', 'mongo/objectId@1', ['array']],
+      ['nullable', 'String?', 'mongo/string@1', ['null']],
+      ['json', 'Json', 'mongo/json@1', ['array', 'null']],
+      ['a vector', 'Vector', 'mongo/vector@1', ['array']],
+    ])(
+      'rejects an _id that is %s, at the field, naming its codec',
+      (_case, type, codecId, forbidden) => {
+        const result = interpret(
+          `
+        model Item {
+          id   ${type} @id @map("_id")
+          name String
+        }
+      `,
+          {
+            scalarTypeCodecIds: new Map([
+              ...mongoScalarTypeDescriptors,
+              ['Json', 'mongo/json@1'],
+              ['Vector', 'mongo/vector@1'],
+            ]),
+          },
+        );
+
+        expect(result.ok).toBe(false);
+        if (result.ok) return;
+        expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+          {
+            code: 'PSL_MONGO_ID_INVALID',
+            message: `Field "Item.id" ${documentIdRefusalReason(codecId, forbidden)}`,
+          },
+        ]);
+      },
+    );
+
+    it('names the _id codec, at the field, when no pack provides it', () => {
       const result = interpret(
         `
         model Item {
@@ -1028,9 +1153,9 @@ model Item {
       if (result.ok) return;
       expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
         {
-          code: 'PSL_MONGO_ID_REQUIRED',
+          code: 'PSL_UNSUPPORTED_FIELD_TYPE',
           message:
-            'Model "Item" has an _id field whose codec "mongo/objectId@1" has no MongoDB data type, so its BSON type is unknown.',
+            'Field "Item.id" uses codec "mongo/objectId@1", which no pack in the contract provides, so its BSON type is unknown and the contract cannot describe the field.',
         },
       ]);
     });
@@ -1348,7 +1473,7 @@ model Item {
               models: {
                 User: {
                   fields: {
-                    _id: {
+                    id: {
                       type: { kind: 'scalar', codecId: 'mongo/objectId@1' },
                       nullable: false,
                       many: false,
@@ -1373,14 +1498,22 @@ model Item {
                     posts: {
                       to: crossRef('Post'),
                       cardinality: '1:N',
-                      on: { localFields: ['_id'], targetFields: ['authorId'] },
+                      on: { localFields: ['id'], targetFields: ['authorId'] },
                     },
                   },
-                  storage: { collection: 'users' },
+                  storage: {
+                    collection: 'users',
+                    fields: {
+                      id: { field: '_id' },
+                      name: { field: 'name' },
+                      email: { field: 'email' },
+                      bio: { field: 'bio' },
+                    },
+                  },
                 },
                 Post: {
                   fields: {
-                    _id: {
+                    id: {
                       type: { kind: 'scalar', codecId: 'mongo/objectId@1' },
                       nullable: false,
                       many: false,
@@ -1411,10 +1544,19 @@ model Item {
                       to: crossRef('User'),
                       cardinality: 'N:1',
                       nullable: false,
-                      on: { localFields: ['authorId'], targetFields: ['_id'] },
+                      on: { localFields: ['authorId'], targetFields: ['id'] },
                     },
                   },
-                  storage: { collection: 'posts' },
+                  storage: {
+                    collection: 'posts',
+                    fields: {
+                      id: { field: '_id' },
+                      title: { field: 'title' },
+                      content: { field: 'content' },
+                      authorId: { field: 'authorId' },
+                      createdAt: { field: 'createdAt' },
+                    },
+                  },
                 },
               },
             },

@@ -16,6 +16,7 @@ import type {
 import type { EmissionSpi } from '@internal/framework-components/emission';
 import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok } from '@internal/utils/result';
+import { structuredError } from '@internal/utils/structured-error';
 import { createContract, timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { describe, expect, it, vi } from 'vitest';
@@ -557,6 +558,38 @@ describe('ControlClient progress emission', () => {
         (e) => e.kind === 'spanEnd' && e.spanId === 'resolveSource',
       );
       expect(resolveSourceEnd).toMatchObject({ outcome: 'error' });
+    });
+
+    it('keeps the code, meta, summary and why of a structured error the source throws', async () => {
+      const { mockFamily, mockTarget, mockAdapter } = createMockComponents();
+      const client = createControlClient({
+        family: mockFamily,
+        target: mockTarget,
+        adapter: mockAdapter,
+      });
+      const message = 'Field "Event.e": now() does not apply to codec "pg/text@1".';
+      const meta = { modelName: 'Event', fieldName: 'e', reason: 'generator-not-applicable' };
+
+      const result = await client.emit({
+        contractConfig: {
+          source: createSourceProvider(async () => {
+            throw structuredError('CONTRACT.DEFAULT_INVALID', message, {
+              why: 'The field codec binds no now() function.',
+              meta,
+            });
+          }),
+          output: '/tmp/contract.json',
+        },
+      });
+
+      await client.close();
+
+      expect(result.ok ? undefined : result.failure).toEqual({
+        code: 'CONTRACT_SOURCE_INVALID',
+        summary: message,
+        why: 'The field codec binds no now() function.',
+        meta: { code: 'CONTRACT.DEFAULT_INVALID', ...meta },
+      });
     });
 
     it('returns provider diagnostics when source provider fails', async () => {

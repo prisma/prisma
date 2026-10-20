@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { sqlAttributeSpecs } from '../src/sql-attribute-specs';
 import { fixtureInterpreterTypes } from './fixture-codec-descriptors';
+import { fixtureGeneratorFunctions } from './fixture-generator-functions';
 import {
   createBuiltinLikeControlMutationDefaults,
   interpretSqlContract,
@@ -20,6 +21,7 @@ function interpret(schema: string) {
     ...fixtureInterpreterTypes,
     capabilities: { sql: { scalarList: true, checkConstraint: true } },
     controlMutationDefaults: createBuiltinLikeControlMutationDefaults(),
+    generatorFunctions: fixtureGeneratorFunctions,
   });
 }
 
@@ -51,6 +53,7 @@ model Post {
   authorId Int
   author   User @relation(fields: [authorId], references: [id])
   slug     String
+  seenAt   DateTime @onCreate(now()) @onUpdate(now())
 
   @@id([postId])
   @@unique([slug])

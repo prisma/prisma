@@ -7,6 +7,8 @@ import { describe, expect, it } from 'vitest';
 import { prisma7Contract } from '../src/provider';
 import {
   fixturesDir,
+  interpretSchemaText,
+  interpretSchemaTextResult,
   loadFixtureTable,
   postgresSourceContext,
   postgresSourceContextWithout,
@@ -291,5 +293,62 @@ describe('Json, Decimal, BigInt and Float literal defaults', () => {
       floatLiteral: { kind: 'literal', value: 1.5 },
       intLiteral: { kind: 'literal', value: 42 },
     });
+  });
+});
+
+describe('client functions on VarChar and Char columns', () => {
+  it('resolve through the generator function the column codec binds', () => {
+    const contract = interpretSchemaText(`datasource db {
+  provider = "postgresql"
+}
+
+model Account {
+  id    String @id @db.VarChar(36) @default(uuid())
+  token String @db.VarChar(191) @default(nanoid())
+  code  String @db.Char(36) @default(nanoid())
+}
+`);
+    expect(contract.execution?.mutations.defaults).toEqual([
+      {
+        ref: { namespace: 'public', entry: 'Account', field: 'code' },
+        onCreate: { kind: 'generator', id: 'nanoid' },
+      },
+      {
+        ref: { namespace: 'public', entry: 'Account', field: 'id' },
+        onCreate: { kind: 'generator', id: 'uuidv4' },
+      },
+      {
+        ref: { namespace: 'public', entry: 'Account', field: 'token' },
+        onCreate: { kind: 'generator', id: 'nanoid' },
+      },
+    ]);
+  });
+});
+
+describe('a client function whose value does not fit its column', () => {
+  it.each([
+    {
+      column: '@db.Char(10) @default(nanoid())',
+      message:
+        'Field "Account.code": @default(nanoid()) cannot fill its column: nanoid() writes 21 characters, which does not fit a column of 10 characters.',
+    },
+    {
+      column: '@db.VarChar(10) @default(nanoid( 16 ))',
+      message:
+        'Field "Account.code": @default(nanoid( 16 )) cannot fill its column: nanoid(16) writes 16 characters, which does not fit a column of 10 characters.',
+    },
+  ])('is refused on $column, since Postgres refuses the insert', ({ column, message }) => {
+    const result = interpretSchemaTextResult(`datasource db {
+  provider = "postgresql"
+}
+
+model Account {
+  id   Int    @id
+  code String ${column}
+}
+`);
+    expect(
+      result.ok ? [] : result.failure.diagnostics.map(({ code, message }) => ({ code, message })),
+    ).toEqual([{ code: 'PSL.PRISMA7_GENERATOR_REFUSED', message }]);
   });
 });

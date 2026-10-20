@@ -573,6 +573,7 @@ export interface EmitFailure {
   readonly code: EmitFailureCode;
   readonly summary: string;
   readonly why: string | undefined;
+  /** For `CONTRACT_SOURCE_INVALID` from a structured error the source threw, such as `CONTRACT.DEFAULT_INVALID` from a TypeScript builder, `meta` holds that error's `code` and its own `meta`, `reason` included. */
   readonly meta: Record<string, unknown> | undefined;
   readonly diagnostics?: ContractSourceDiagnostics;
 }

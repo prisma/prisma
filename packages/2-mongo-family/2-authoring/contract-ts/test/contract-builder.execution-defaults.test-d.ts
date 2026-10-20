@@ -153,3 +153,29 @@ test('the built contract types its execution defaults with the collection and fi
       }
   >();
 });
+
+test('the built contract types an execution default ref with the stored name of its field', () => {
+  const contract = defineContract(
+    { family: mongoFamilyPack, target: mongoTargetPack },
+    ({ field, model }) => ({
+      models: {
+        Post: model('Post', {
+          collection: 'posts',
+          fields: {
+            id: field.objectId().mongo({ field: '_id' }),
+            createdAt: field.temporal.createdAt().mongo({ field: 'created_at' }),
+          },
+        }),
+      },
+    }),
+  );
+  type Defaults = NonNullable<(typeof contract)['execution']>['mutations']['defaults'][number];
+  expectTypeOf<Defaults>().toEqualTypeOf<{
+    readonly ref: {
+      readonly namespace: '__unbound__';
+      readonly entry: 'posts';
+      readonly field: 'created_at';
+    };
+    readonly onCreate: TimestampNow;
+  }>();
+});
