@@ -3,6 +3,7 @@ import type {
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
 import { createDataTypeLookup, dataType } from '@internal/framework-components/codec';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import {
   type BlockSpecContext,
   blockAttribute,
@@ -86,11 +87,13 @@ function completeAt(markedSource: string, dataTypes: DataTypeSupport | undefined
     candidates: {
       scalarTypes: [],
       pslBlockDescriptors,
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       symbolTable,
       binder: testBinder({
         sources,
         symbolTable,
         pslBlockDescriptors,
+        generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
         ...(dataTypes === undefined ? {} : { dataTypes }),
       }),
       ...(dataTypes === undefined ? {} : { dataTypes }),

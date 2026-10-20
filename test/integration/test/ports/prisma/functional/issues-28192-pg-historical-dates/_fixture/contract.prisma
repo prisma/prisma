@@ -17,7 +17,7 @@
 // Note: @db.Date/@db.Timestamp/@db.Timestamptz are authored as type-position
 // types in Prisma 8 PSL.
 model TestData {
-  id          String     @id @default(cuid(2))
+  id          String     @id @onCreate(cuid(2))
   date        Date
   timestamp   Timestamp
   timestamptz Timestamptz

@@ -21,6 +21,7 @@ import {
   resolveEnumCodecId,
 } from '@internal/framework-components/authoring';
 import type { ExtensionPackRef, TargetPackRef } from '@internal/framework-components/components';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import type {
   ControlMutationDefaultEntry,
   ControlMutationDefaults,
@@ -30,11 +31,7 @@ import {
   blockAttribute,
   buildSymbolTable,
   enumMemberValue,
-  int,
   mapBlock,
-  num,
-  oneOf,
-  optional,
   str,
 } from '@internal/psl-parser';
 import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
@@ -53,6 +50,7 @@ import { sqlContextInput } from '../src/test';
 import { describeUnresolvedSqlType } from '../src/unresolved-type';
 import { fixtureInterpreterTypes } from './fixture-codec-descriptors';
 import { fixtureDataTypeSupport } from './fixture-data-types';
+import { fixtureGeneratorFunctions } from './fixture-generator-functions';
 
 function testEnumFactory(
   block: ParsedPslExtensionBlock<Readonly<Record<string, JsonValue | undefined>>>,
@@ -116,20 +114,6 @@ export const testEnumEntityContributions = {
     output: { factory: testEnumFactory },
   },
 } as const satisfies AuthoringEntityTypeNamespace;
-
-function executionGenerator(id: string, params?: Record<string, unknown>) {
-  return {
-    ok: true as const,
-    value: {
-      kind: 'execution' as const,
-      generated: {
-        kind: 'generator' as const,
-        id,
-        ...(params ? { params } : {}),
-      },
-    },
-  };
-}
 
 export const postgresEnumInferenceCodecs = {
   text: 'pg/text@1',
@@ -417,11 +401,18 @@ export function symbolTableInputFromParseArgs(args: {
   });
 }
 
+type InterpretOptions = Omit<
+  InterpretPslDocumentToSqlContractInput,
+  'documents' | 'sources' | 'symbolTable' | 'binder' | 'generatorFunctions'
+> &
+  Partial<Pick<InterpretPslDocumentToSqlContractInput, 'generatorFunctions'>>;
+
 function contextForInterpretOptions(
   options: Pick<
-    InterpretPslDocumentToSqlContractInput,
+    InterpretOptions,
     | 'authoringContributions'
     | 'controlMutationDefaults'
+    | 'generatorFunctions'
     | 'codecLookup'
     | 'dataTypes'
     | 'composedExtensions'
@@ -465,6 +456,7 @@ function contextForInterpretOptions(
       defaultFunctionRegistry: new Map(),
       generatorDescriptors: [],
     },
+    generatorFunctions: options.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS,
     resolvedInputs: [],
     capabilities: options.capabilities,
   };
@@ -472,10 +464,7 @@ function contextForInterpretOptions(
 
 export function interpretSqlContract(
   schema: string,
-  options: Omit<
-    InterpretPslDocumentToSqlContractInput,
-    'documents' | 'sources' | 'symbolTable' | 'binder'
-  >,
+  options: InterpretOptions,
   sourceId?: string,
 ): Result<Contract, ContractSourceDiagnostics> {
   const bound = bindPslSchema(schema, {
@@ -549,6 +538,7 @@ export function createPostgresTestContext(
       describeUnresolvedType: describeUnresolvedSqlType,
     },
     controlMutationDefaults: createBuiltinLikeControlMutationDefaults(),
+    generatorFunctions: fixtureGeneratorFunctions,
     ...fixtureInterpreterTypes,
     resolvedInputs: [],
     capabilities: { sql: { scalarList: true } },
@@ -561,34 +551,6 @@ const nowSig: FuncCallSig = {
 };
 const autoincrementSig: FuncCallSig = {
   documentation: 'Generates an increasing integer value in the database.',
-};
-const ulidSig: FuncCallSig = { documentation: 'Generates a ULID when a value is not supplied.' };
-const uuidSig: FuncCallSig = {
-  documentation: 'Generates a UUID when a value is not supplied.',
-  positional: [
-    {
-      key: 'version',
-      type: optional(oneOf(num(4), num(7))),
-      documentation: 'The UUID version: `4` or `7`. Defaults to `4`.',
-    },
-  ],
-};
-const cuidSig: FuncCallSig = {
-  documentation: 'Generates a CUID2 identifier when a value is not supplied.',
-  positional: [
-    { key: 'version', type: num(2), documentation: 'The CUID version. Only `2` is supported.' },
-  ],
-};
-const nanoidSig: FuncCallSig = {
-  documentation: 'Generates a Nano ID when a value is not supplied.',
-  positional: [
-    {
-      key: 'size',
-      type: optional(int({ min: 2, max: 255 })),
-      documentation:
-        'The identifier length, from `2` through `255`. Omit to use the generator default.',
-    },
-  ],
 };
 export function createBuiltinLikeControlMutationDefaults(): ControlMutationDefaults {
   return {
@@ -621,80 +583,11 @@ export function createBuiltinLikeControlMutationDefaults(): ControlMutationDefau
           usageSignatures: ['now()'],
         },
       ],
-      [
-        'uuid',
-        {
-          signature: uuidSig,
-          lower: ({ call }) =>
-            call.args['version'] === 7
-              ? executionGenerator('uuidv7')
-              : executionGenerator('uuidv4'),
-          usageSignatures: ['uuid()', 'uuid(4)', 'uuid(7)'],
-        },
-      ],
-      [
-        'cuid',
-        {
-          signature: cuidSig,
-          lower: () => executionGenerator('cuid2'),
-          usageSignatures: ['cuid(2)'],
-        },
-      ],
-      [
-        'ulid',
-        {
-          signature: ulidSig,
-          lower: () => executionGenerator('ulid'),
-          usageSignatures: ['ulid()'],
-        },
-      ],
-      [
-        'nanoid',
-        {
-          signature: nanoidSig,
-          lower: ({ call }) => {
-            const size = call.args['size'];
-            return typeof size === 'number'
-              ? executionGenerator('nanoid', { size })
-              : executionGenerator('nanoid');
-          },
-          usageSignatures: ['nanoid()', 'nanoid(<2-255>)'],
-        },
-      ],
     ]),
     generatorDescriptors: [
-      {
-        id: 'uuidv4',
-        applicableCodecIds: ['pg/text@1', 'sql/char@1', 'pg/uuid@1'],
-      },
-      {
-        id: 'uuidv7',
-        applicableCodecIds: ['pg/text@1', 'sql/char@1', 'pg/uuid@1'],
-      },
-      {
-        id: 'cuid2',
-        applicableCodecIds: ['pg/text@1', 'sql/char@1'],
-      },
-      {
-        id: 'ulid',
-        applicableCodecIds: ['pg/text@1', 'sql/char@1'],
-      },
-      {
-        id: 'nanoid',
-        applicableCodecIds: ['pg/text@1', 'sql/char@1'],
-      },
-      {
-        id: 'timestampNow',
-        applicableCodecIds: [
-          'pg/timestamp-temporal@1',
-          'pg/timestamptz-temporal@1',
-          'sqlite/datetime@1',
-        ],
-        buildPhases: () => ({
-          onCreate: { kind: 'generator', id: 'timestampNow' },
-          onUpdate: { kind: 'generator', id: 'timestampNow' },
-        }),
-      },
+      ...['uuidv4', 'uuidv7', 'cuid2', 'ulid', 'nanoid', 'ksuid', 'timestampNow'].map((id) => ({
+        id,
+      })),
     ],
   };
 }

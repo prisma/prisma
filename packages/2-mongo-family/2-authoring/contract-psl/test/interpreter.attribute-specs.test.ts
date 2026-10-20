@@ -165,7 +165,7 @@ describe('unknown attribute names diagnose against the registered namespace', ()
     ]);
   });
 
-  it('points @updatedAt at the temporal.updatedAt() preset', () => {
+  it('points @updatedAt at @onCreate(now()) @onUpdate(now())', () => {
     expect(
       diagnosticsOf(`
         model Item {
@@ -177,12 +177,12 @@ describe('unknown attribute names diagnose against the registered namespace', ()
       expect.objectContaining({
         code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
         message:
-          'Field "Item.updatedAt" uses unsupported attribute "@updatedAt". To fill the timestamp on create and update, use `temporal.updatedAt()` as the field type.',
+          'Field "Item.updatedAt" uses unsupported attribute "@updatedAt". Use @onCreate(now()) @onUpdate(now()) instead.',
       }),
     ]);
   });
 
-  it('points @default(now()) at the temporal.createdAt() preset', () => {
+  it('points @default(now()) at @onCreate(now())', () => {
     expect(
       diagnosticsOf(`
         model Item {
@@ -195,7 +195,7 @@ describe('unknown attribute names diagnose against the registered namespace', ()
       expect.objectContaining({
         code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
         message:
-          'Field "Item.createdAt" uses unsupported attribute "@default". To fill the timestamp on create, use `temporal.createdAt()` as the field type.',
+          'Field "Item.createdAt" uses unsupported attribute "@default". Use @onCreate(now()) instead; MongoDB has no database defaults.',
       }),
       expect.objectContaining({
         code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',

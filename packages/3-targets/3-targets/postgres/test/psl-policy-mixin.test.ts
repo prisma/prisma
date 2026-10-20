@@ -1,4 +1,5 @@
 import type { AuthoringTypeConstructorDescriptor } from '@internal/framework-components/authoring';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import { assembleAuthoringContributions } from '@internal/framework-components/control';
 import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
 import { type BoundPslSchema, bindPslSchema } from '@internal/psl-parser/test';
@@ -56,6 +57,7 @@ function contextFor(): BoundPslSchema['context'] {
     pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
     codecLookup: createPostgresBuiltinCodecLookup(),
     controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+    generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     dataTypes: postgresDataTypeSupport,
     resolvedInputs: [],
     capabilities: { sql: { scalarList: true } },

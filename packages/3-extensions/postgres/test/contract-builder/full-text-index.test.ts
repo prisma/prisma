@@ -1,3 +1,4 @@
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 /**
  * `fullTextIndex(...)` is the TypeScript twin of `@@fullTextIndex(...)`. Both store a `fullText` index whose options hold the weight groups, as storage column names, and the language, so the two surfaces produce the same index for the same model.
  */
@@ -101,6 +102,7 @@ function pslIndexes() {
         dataTypeOfCodec: () => undefined,
       },
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       resolvedInputs: [],
       capabilities: {},
     },

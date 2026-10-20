@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { fixtureInterpreterTypes } from './fixture-codec-descriptors';
 import { fixtureDataTypeSupport } from './fixture-data-types';
+import { fixtureGeneratorFunctions } from './fixture-generator-functions';
 import {
   createBuiltinLikeControlMutationDefaults,
   interpretSqlContract,
@@ -32,6 +33,7 @@ function expectDiagnosticForSchema(
   const result = interpretSqlContract(schema, {
     ...baseInput,
     controlMutationDefaults: builtinControlMutationDefaults,
+    generatorFunctions: fixtureGeneratorFunctions,
   });
 
   expect(result.ok).toBe(false);
@@ -54,7 +56,11 @@ describe('interpretPslDocumentToSqlContract list-column defaults', () => {
   ])('lowers %s defaults %s through the typed literal pipeline', (type, literal, value) => {
     const result = interpretSqlContract(
       `model Post {\n id Int @id\n tags ${type} @default(${literal})\n}`,
-      { ...baseInput, controlMutationDefaults: builtinControlMutationDefaults },
+      {
+        ...baseInput,
+        controlMutationDefaults: builtinControlMutationDefaults,
+        generatorFunctions: fixtureGeneratorFunctions,
+      },
     );
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -104,6 +110,7 @@ describe('interpretPslDocumentToSqlContract list-column defaults', () => {
         {
           ...baseInput,
           controlMutationDefaults: builtinControlMutationDefaults,
+          generatorFunctions: fixtureGeneratorFunctions,
         },
       );
       expect(result.ok).toBe(true);
@@ -120,17 +127,17 @@ describe('interpretPslDocumentToSqlContract list-column defaults', () => {
     },
   );
 
-  it('rejects an execution default uuid() on a list field', () => {
+  it('rejects @onCreate(uuid()) on a list field', () => {
     expectDiagnosticForSchema(
       `model Post {
   id Int @id
-  tags String[] @default(uuid())
+  tags String[] @onCreate(uuid())
 }
 `,
       {
         code: 'PSL_LIST_EXECUTION_DEFAULT_UNSUPPORTED',
         message:
-          'Field "Post.tags" is a list and cannot use an execution default ("uuid()"). Lists have no per-element execution-default semantics; use a literal list @default or remove the default.',
+          'Field "Post.tags" is a list and cannot use @onCreate(uuid()). Lists have no per-element generated values; remove @onCreate(...).',
       },
     );
   });

@@ -20,6 +20,7 @@ import { testSqlTypeLookups } from '../../../1-core/contract/test/test-type-look
 import type { InterpretPslDocumentToSqlContractInput } from '../src/interpreter';
 import { fixtureTypeLookups } from './fixture-codec-descriptors';
 import { fixtureDataTypeSupport } from './fixture-data-types';
+import { fixtureGeneratorFunctions } from './fixture-generator-functions';
 import {
   createBuiltinLikeControlMutationDefaults,
   interpretSqlContract,
@@ -102,6 +103,7 @@ function interpret(schema: string, overrides?: Partial<InterpretPslDocumentToSql
     scalarColumnDescriptors: postgresScalarTypeDescriptors,
     composedExtensionContracts: new Map(),
     controlMutationDefaults: builtinControlMutationDefaults,
+    generatorFunctions: fixtureGeneratorFunctions,
     authoringContributions: contributions,
     dataTypes: {
       entries:
@@ -1069,7 +1071,7 @@ model Post {
     );
   });
 
-  it('function default @default(uuid()) on an enum field is rejected as invalid attribute syntax', () => {
+  it('rejects @onCreate(uuid()) on an enum field, whose type no generator function applies to', () => {
     const result = interpret(`
 enum Priority {
   @@type("pg/text@1")
@@ -1079,14 +1081,18 @@ enum Priority {
 
 model Post {
   id       Int      @id
-  priority Priority @default(uuid())
+  priority Priority @onCreate(uuid())
 }
 `);
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([expect.objectContaining({ code: 'PSL_INVALID_ATTRIBUTE_SYNTAX' })]),
-    );
+    expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+      {
+        code: 'PSL_GENERATOR_NOT_APPLICABLE',
+        message:
+          'Field "Post.priority": uuid() does not apply to the field\'s type. No generator function applies to it.',
+      },
+    ]);
   });
 
   it('lowers nullable enum-list defaults through member values and preserves value-set semantics', () => {

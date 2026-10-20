@@ -1,5 +1,6 @@
 import type { DataTypeSupport } from '@internal/framework-components/authoring';
 import { createDataTypeLookup } from '@internal/framework-components/codec';
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
 import type { ControlMutationDefaultRegistry } from '@internal/framework-components/control';
 import type { Resolution } from '../binder';
 import type { BlockSpecContext } from '../block-spec/types';
@@ -16,6 +17,7 @@ export interface AttributeSpecContext {
   readonly symbols: SymbolTable;
   readonly model: ModelSymbol | MixinSymbol;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
 }
 

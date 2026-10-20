@@ -32,8 +32,14 @@ describe('interpretPslDocumentToSqlContract — polymorphism', () => {
       | 'capabilities'
       | 'dataTypes'
       | 'codecLookup'
+      | 'generatorFunctions'
     > &
-      Partial<Pick<InterpretPslDocumentToSqlContractInput, 'composedExtensionContracts'>>,
+      Partial<
+        Pick<
+          InterpretPslDocumentToSqlContractInput,
+          'composedExtensionContracts' | 'generatorFunctions'
+        >
+      >,
   ) =>
     interpretSqlContract(schema, {
       target: postgresTarget,

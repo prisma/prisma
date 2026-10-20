@@ -36,6 +36,7 @@ async function author(fields: string, blocks = '') {
     codecLookup: stack.codecLookup,
     dataTypes: stack.dataTypes,
     controlMutationDefaults: stack.controlMutationDefaults,
+    generatorFunctions: stack.generatorFunctions,
     resolvedInputs: [schemaPath],
     capabilities: stack.capabilities,
   });

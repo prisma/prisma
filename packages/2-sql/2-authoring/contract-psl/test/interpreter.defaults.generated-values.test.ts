@@ -33,7 +33,7 @@ describe('generated values with a database default or on an optional field', () 
   id        Int @id
   updatedAt temporal.timestampString(3, onCreate: now, onUpdate: now) @default(now())
   touchedAt temporal.timestamptz(onUpdate: now) @default(now())
-  token     String? @default(uuid())
+  token     String? @onCreate(uuid())
   editedAt  temporal.timestampString(3, onCreate: now, onUpdate: now)?
   day       temporal.dateString(onCreate: now, onUpdate: now)?
 }`,

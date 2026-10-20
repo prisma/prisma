@@ -1,3 +1,4 @@
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import { buildSymbolTable, createBinder } from '@internal/psl-parser';
 import { parse } from '@internal/psl-parser/syntax';
 import { expect, it, vi } from 'vitest';
@@ -38,8 +39,8 @@ it('pushes owned default diagnostics with filename and range rather than a provi
     columnTypeParams: undefined,
     isListColumn: false,
     valueObjectDefault: undefined,
-    generatorDescriptorById: new Map(),
     defaultFunctionRegistry: new Map(),
+    generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     dataTypes: fixtureDataTypeSupport,
     codecLookup: context.codecLookup,
     diagnostics,
