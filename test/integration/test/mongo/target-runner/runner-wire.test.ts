@@ -270,12 +270,16 @@ describe('MongoMigrationRunner', () => {
       frameworkComponents: [],
     });
 
-    expect(result.ok ? undefined : result.failure).toMatchObject({
+    expect(
+      result.ok ? undefined : { code: result.failure.code, meta: result.failure.meta },
+    ).toEqual({
       code: 'MIGRATION.PRECHECK_FAILED',
-      failedCheck: {
-        operationId: expect.any(String),
-        phase: 'precheck',
-        description: 'index does not already exist on users',
+      meta: {
+        failedCheck: {
+          operationId: expect.any(String),
+          phase: 'precheck',
+          description: 'index does not already exist on users',
+        },
       },
     });
     expect(result.ok ? undefined : result.failure.why).toBeUndefined();

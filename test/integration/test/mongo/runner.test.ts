@@ -447,8 +447,16 @@ describe('mongoTargetDescriptor.execute (across spaces)', {
 
       expect(failingResult.ok).toBe(false);
       if (failingResult.ok) throw new Error('unreachable');
-      expect(failingResult.failure.failingSpace).toBe(APP_SPACE_ID);
-      expect(failingResult.failure.code).toBe('MIGRATION.SCHEMA_VERIFY_FAILED');
+      expect({
+        code: failingResult.failure.code,
+        message: failingResult.failure.message,
+        failingSpace: failingResult.failure.meta.failingSpace,
+      }).toEqual({
+        code: 'MIGRATION.SCHEMA_VERIFY_FAILED',
+        message: expect.any(String),
+        failingSpace: APP_SPACE_ID,
+      });
+      expect(failingResult.failure.message).not.toBe('');
 
       const extMarkerAfterFail = await controlAdapter.readMarker(
         new MongoControlDriver(db, client),
