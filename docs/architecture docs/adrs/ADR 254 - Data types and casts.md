@@ -185,7 +185,7 @@ PSL has three kinds of expression, and each has one rule.
 
 - **A literal** is written plainly or with a tag. The interpreter finds its entry, calls `parse`, and has a value of a known type.
 - **A reference** is an identifier that resolves through the symbol table to a declaration. An enum member resolves to the member declared in its `enum` block, and the only check is that it belongs to this column's enum. No parsing and no cast.
-- **A call** names a registered function. Every parameter names a data type, so its argument is admitted by the same rule as a default. That includes the parameters of client-side generators: `uuid`'s and `cuid`'s version and `nanoid`'s size are values of the target's integer type (`pg/int4`, `sqlite/integer`), and each function then checks its own limit (`uuid: version must be 4 or 7, got 5`), reported as `PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT` at the argument. The SQL family declares these signatures once, and each target passes its integer type. The Prisma 7 schema reader binds a default function's arguments through the same signatures.
+- **A call** names a registered function. Every parameter of a built-in default function names a data type, so its argument is admitted by the same rule as a default; an extension's function may still declare a plain signature with shape combinators. That includes the parameters of client-side generators: `uuid`'s and `cuid`'s version and `nanoid`'s size are values of the target's integer type (`pg/int4`, `sqlite/integer`), and each function then checks its own limit (`uuid: version must be 4 or 7, got 5`), reported as `PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT` at the argument. The SQL family declares these functions once, signatures and lowering together, and each target passes its integer type. The Prisma 7 schema reader binds a default function's arguments through the same signatures. A generator applies to a column by data type: one that writes text applies to the stack's text data types, which each target names and an extension may add to, and a UUID generator also to the target's UUID type. A generator is refused on a column whose length, in its type's normal form, is shorter than what the generator writes: `Default generator "uuidv4" writes 36 characters, but "Row.value" holds at most 5.`
 
 Reading a default is then:
 
@@ -406,7 +406,7 @@ model Place {
 
 - Whether a codec writes the `sql` representation of a value (the DDL half of ADR 184).
 - Mongo casts and written values. Mongo codecs have the same four methods and Mongo data types the same values; Mongo's verification runs through the collection validator.
-- Enum CHECK constraints and Mongo validator enums, which use a stored value as a database value without a codec. Discriminator values are settled: a SQL discriminator column is one of the target's text data types, `@@base` takes a string read into that column's type, and the ORM reads and writes the discriminator through the column's codec.
+- Enum CHECK constraints and Mongo validator enums, which use a stored value as a database value without a codec. Discriminator values are settled: a SQL discriminator column is one of the stack's text data types (each target names its own, and an extension may add to them), `@@base` takes a string read into that column's type, and the ORM reads and writes the discriminator through the column's codec.
 
 ## Related
 
