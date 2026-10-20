@@ -83,17 +83,24 @@ export async function loadFixtureTable(
       `Fixture "${caseName}" did not load: ${JSON.stringify(result.failure.diagnostics)}`,
     );
   }
+  return serializedTable(result.value as Contract<SqlStorage>, tableName, namespaceId);
+}
+
+/** One table of `contract`'s serialized storage, or a thrown error naming the missing table. */
+export function serializedTable(
+  contract: Contract<SqlStorage>,
+  tableName: string,
+  namespaceId = 'public',
+): SerializedTable {
   const serialized = JSON.parse(
-    JSON.stringify(
-      new PostgresContractSerializer().serializeContract(result.value as Contract<SqlStorage>),
-    ),
+    JSON.stringify(new PostgresContractSerializer().serializeContract(contract)),
   ) as {
     storage: {
       namespaces: Record<string, { entries: { table: Record<string, SerializedTable> } }>;
     };
   };
   const table = serialized.storage.namespaces[namespaceId]?.entries.table[tableName];
-  if (table === undefined) throw new Error(`Fixture "${caseName}" has no table "${tableName}"`);
+  if (table === undefined) throw new Error(`The contract has no table "${tableName}"`);
   return table;
 }
 

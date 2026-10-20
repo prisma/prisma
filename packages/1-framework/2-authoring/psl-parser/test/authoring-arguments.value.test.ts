@@ -144,7 +144,7 @@ describe('mapPslHelperArgs on a value argument', () => {
 
   it('refuses a quoted number', () => {
     expect(callWith('"255"', [length])).toEqual(
-      refusedAt(3, '"255"', 'PSL_VALUE_TYPE_INCOMPATIBLE', 'Expected a number'),
+      refusedAt(3, '"255"', 'PSL_VALUE_TYPE_INCOMPATIBLE', 'Expected a number; write 255'),
     );
   });
 
@@ -172,51 +172,29 @@ describe('mapPslHelperArgs on a value argument', () => {
   });
 });
 
-describe('mapPslHelperArgs on a value argument a reader builds from text', () => {
-  function callWithText(text: string) {
+describe('mapPslHelperArgs on a value argument with no expression', () => {
+  it('throws an internal error, because a reader built the argument from text', () => {
     const { document, sources } = parse('', 'schema.prisma');
-    const diagnostics = createPslDiagnosticCollector(sources);
     const span = {
       start: { offset: 0, line: 1, column: 1 },
       end: { offset: 0, line: 1, column: 1 },
     };
-    const result = mapPslHelperArgs({
-      args: [{ kind: 'positional', value: text, span }],
-      descriptors: [length],
-      helperLabel: 'constructor "Sized"',
-      span,
-      diagnostics,
-      source: diagnosticSource(sources, document.syntax),
-      entityLabel: 'Field "Model.field"',
-      dataTypes: support,
-    });
-    return {
-      result,
-      diagnostics: diagnostics.toExternal().map(({ code, message }) => ({ code, message })),
-    };
-  }
-
-  it('reads the text as the expression it holds', () => {
-    expect(callWithText('255')).toEqual({ result: [255], diagnostics: [] });
-  });
-
-  it('refuses text that is a value its data type cannot hold, at the argument', () => {
-    expect(callWithText('"255"')).toEqual({
-      result: undefined,
-      diagnostics: [{ code: 'PSL_VALUE_TYPE_INCOMPATIBLE', message: 'Expected a number' }],
-    });
-  });
-
-  it('refuses text that is not one expression', () => {
-    expect(callWithText('1, 2')).toEqual({
-      result: undefined,
-      diagnostics: [
-        {
-          code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-          message:
-            'Field "Model.field" constructor "Sized" cannot parse argument #1 for descriptor kind "value".',
-        },
-      ],
-    });
+    expect(() =>
+      mapPslHelperArgs({
+        args: [{ kind: 'positional', value: '255', span }],
+        descriptors: [length],
+        helperLabel: 'constructor "Sized"',
+        span,
+        diagnostics: createPslDiagnosticCollector(sources),
+        source: diagnosticSource(sources, document.syntax),
+        entityLabel: 'Field "Model.field"',
+        dataTypes: support,
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        name: 'InternalError',
+        message: expect.stringContaining('received argument #1 with no expression'),
+      }),
+    );
   });
 });

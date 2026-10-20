@@ -5,13 +5,10 @@ import type {
 } from '@internal/framework-components/authoring';
 import { dataTypeId } from '@internal/framework-components/codec';
 import type { PslSpan } from '@internal/framework-components/psl-ast';
+import { InternalError } from '@internal/utils/internal-error';
 import type { DiagnosticSource, PslDiagnosticCollector } from './diagnostic';
-import { Cursor, parseAttribute } from './parse';
 import { readDataTypeValue } from './read-data-type-value';
 import { nodePslSpan, type ResolvedAttributeArg } from './resolve';
-import { FieldAttributeAst } from './syntax/ast/attributes';
-import type { ExpressionAst } from './syntax/ast/expressions';
-import { createSyntaxTree } from './syntax/red';
 
 function unquoteStringLiteral(value: string): string {
   const trimmed = value.trim();
@@ -389,34 +386,20 @@ function readPslHelperArgument(
     return value === INVALID_AUTHORING_ARGUMENT ? invalid() : value;
   }
 
-  const expression = argument.expression ?? expressionOfText(argument.value);
-  if (expression === undefined) return invalid();
+  const { expression } = argument;
+  if (expression === undefined) {
+    throw new InternalError(
+      `${input.entityLabel} ${input.helperLabel} received ${argumentLabel} with no expression. A value argument is read from the expression a schema writes; a reader that builds a call must pass the arguments it parsed, or instantiate the constructor with values.`,
+    );
+  }
   const read = readDataTypeValue(expression, dataTypeId(descriptor.dataType), input.dataTypes);
   if (read.ok) return read.value.value;
   input.diagnostics.push({
     code: read.failure.code,
     message: read.failure.message,
-    ...input.source.at(
-      argument.expression === undefined
-        ? argument.span
-        : nodePslSpan(argument.expression.syntax, input.source.sources),
-    ),
+    ...input.source.at(nodePslSpan(expression.syntax, input.source.sources)),
   });
   return INVALID_AUTHORING_ARGUMENT;
-}
-
-/**
- * The one expression `text` holds, for an argument a reader builds from text instead of reading it from a schema, such as the Prisma 7 reader's arguments for `@db.VarChar(255)`. `undefined` when `text` is not exactly one expression.
- */
-function expressionOfText(text: string): ExpressionAst | undefined {
-  const cursor = new Cursor('argument', `@x(${text})`);
-  const attribute = FieldAttributeAst.cast(createSyntaxTree(parseAttribute(cursor)));
-  const args = [...(attribute?.argList()?.args() ?? [])];
-  const [only] = args;
-  if (cursor.diagnostics.length > 0 || args.length !== 1 || only?.name() !== undefined) {
-    return undefined;
-  }
-  return only?.value();
 }
 
 /**

@@ -8,6 +8,7 @@ import type {
   AuthoringEntityTypeDescriptor,
   AuthoringTypeConstructorDescriptor,
   DataTypeSupport,
+  ScalarTypeConstructorOutput,
 } from '@internal/framework-components/authoring';
 import {
   getAuthoringTypeConstructor,
@@ -57,6 +58,7 @@ import { deriveValueSetFromEntity } from '@internal/sql-contract/value-set-deriv
 import {
   buildEntityTypesByDiscriminator,
   instantiateFieldTypeConstructor,
+  type ResolveFieldTypeResult,
 } from '@internal/sql-contract-psl/resolution';
 import {
   buildSqlContractFromDefinition,
@@ -958,7 +960,7 @@ function lowerNativeEnums(
 /** The SQL family's type constructor for a column of a type no data type claims (ADR 273). */
 const RAW_TYPE_CONSTRUCTOR: readonly string[] = ['Raw'];
 
-/** Prisma 7's `Unsupported("...")`, which this source reads as `Raw("...")`. */
+/** Prisma 7's `Unsupported("...")`, which this source reads as ``Raw(sql`...`)``. */
 function isUnsupportedType(call: ResolvedTypeConstructorCall | undefined): boolean {
   return call?.path.length === 1 && call.path[0] === 'Unsupported';
 }
@@ -977,22 +979,34 @@ function unsupportedTypeArgument(
   return text === undefined ? undefined : { written, text };
 }
 
-/** Why the type parameters a constructor makes from `args` fail its codec's parameter schema, or undefined when they pass. */
-function typeParamsRefusal(
+/**
+ * How the reader gives a field its Prisma 8 type: a call it reads as a schema's call is read, from the arguments as written, or a constructor and the values of its arguments, which the reader already holds.
+ */
+type Prisma7FieldType =
+  | { readonly kind: 'written'; readonly call: ResolvedTypeConstructorCall }
+  | {
+      readonly kind: 'values';
+      readonly path: readonly string[];
+      readonly values: readonly unknown[];
+    };
+
+/** The column a constructor makes from the values of its arguments, or why its codec's parameter schema refuses them. */
+function instantiateWithValues(
   descriptor: AuthoringTypeConstructorDescriptor,
-  args: readonly unknown[],
+  values: readonly unknown[],
   codecLookup: CodecLookupWithDescriptors,
-): string | undefined {
-  const { typeParams } = instantiateAuthoringTypeConstructor(descriptor, args);
+): Result<ScalarTypeConstructorOutput, string> {
+  const output = instantiateAuthoringTypeConstructor(descriptor, values);
   const schema = codecLookup.descriptorFor(descriptor.output.codecId)?.paramsSchema;
-  if (schema === undefined) return undefined;
-  const result = schema['~standard'].validate(typeParams ?? {});
+  if (schema === undefined) return ok(output);
+  const result = schema['~standard'].validate(output.typeParams ?? {});
   if (result instanceof Promise) {
     throw new InternalError(
       `The parameter schema of codec "${descriptor.output.codecId}" is asynchronous; authoring requires a synchronous schema.`,
     );
   }
-  return result.issues?.[0]?.message;
+  const refusal = result.issues?.[0]?.message;
+  return refusal === undefined ? ok(output) : notOk(refusal);
 }
 
 function nativeTypeMessage(label: string, nativeType: string): string {
@@ -1177,18 +1191,12 @@ function readField(args: ReadFieldArgs): void {
   }
 
   const enumDeclaration = unsupported ? undefined : args.enums.get(field.typeName);
-  let call: ResolvedTypeConstructorCall;
+  let fieldType: Prisma7FieldType;
   if (unsupportedArgument !== undefined) {
-    call = {
+    fieldType = {
+      kind: 'values',
       path: RAW_TYPE_CONSTRUCTOR,
-      args: [
-        {
-          kind: 'positional',
-          value: `"${unsupportedArgument.text}"`,
-          span: unsupportedArgument.written.span,
-        },
-      ],
-      span: unsupportedArgument.written.span,
+      values: [unsupportedArgument.text],
     };
   } else if (enumDeclaration !== undefined) {
     if (enumDeclaration.namespaceId !== model.namespaceId) {
@@ -1202,10 +1210,13 @@ function readField(args: ReadFieldArgs): void {
       );
       return;
     }
-    call = {
-      path: binding.nativeEnum.typeConstructor,
-      args: [{ kind: 'positional', value: enumDeclaration.name, span: field.span }],
-      span: field.span,
+    fieldType = {
+      kind: 'written',
+      call: {
+        path: binding.nativeEnum.typeConstructor,
+        args: [{ kind: 'positional', value: enumDeclaration.name, span: field.span }],
+        span: field.span,
+      },
     };
   } else {
     const scalar = prisma7ScalarMapping(binding.typeMap, field.typeName);
@@ -1220,36 +1231,40 @@ function readField(args: ReadFieldArgs): void {
       );
       return;
     }
-    let mapping = scalar;
-    let span = field.span;
-    if (nativeType !== undefined) {
-      const native = prisma7NativeTypeMapping(
-        binding.typeMap,
-        nativeType.name,
-        nativeType.attribute.args.map((arg) => arg.value),
+    const native =
+      nativeType === undefined
+        ? undefined
+        : prisma7NativeTypeMapping(binding.typeMap, nativeType.name);
+    if (nativeType !== undefined && native === undefined) {
+      diagnostics.push(
+        prisma7Diagnostic(
+          'PSL.PRISMA7_NATIVE_TYPE_UNSUPPORTED',
+          nativeTypeMessage(label, nativeType.name),
+          sourceId,
+          nativeType.attribute.span,
+        ),
       );
-      if (native === undefined) {
-        diagnostics.push(
-          prisma7Diagnostic(
-            'PSL.PRISMA7_NATIVE_TYPE_UNSUPPORTED',
-            nativeTypeMessage(label, nativeType.name),
-            sourceId,
-            nativeType.attribute.span,
-          ),
-        );
-        return;
-      }
-      mapping = native;
-      span = nativeType.attribute.span;
+      return;
     }
-    call = {
-      path: [mapping.constructorName],
-      args: mapping.args.map((value) => ({ kind: 'positional', value, span })),
-      span,
-    };
+    const mapping = native ?? scalar;
+    fieldType =
+      nativeType === undefined || nativeType.attribute.args.length === 0
+        ? { kind: 'values', path: [mapping.constructorName], values: mapping.args }
+        : {
+            kind: 'written',
+            call: {
+              path: [mapping.constructorName],
+              args: nativeType.attribute.args,
+              span: nativeType.attribute.span,
+            },
+          };
   }
 
-  const typeConstructor = getAuthoringTypeConstructor(input.authoringContributions, call.path);
+  const constructorPath = fieldType.kind === 'written' ? fieldType.call.path : fieldType.path;
+  const typeConstructor = getAuthoringTypeConstructor(
+    input.authoringContributions,
+    constructorPath,
+  );
   if (typeConstructor === undefined) {
     diagnostics.push(
       prisma7Diagnostic(
@@ -1261,34 +1276,45 @@ function readField(args: ReadFieldArgs): void {
     );
     return;
   }
-  const refusal =
-    unsupportedArgument === undefined
-      ? undefined
-      : typeParamsRefusal(typeConstructor, [unsupportedArgument.text], input.codecLookup);
-  if (unsupportedArgument !== undefined && refusal !== undefined) {
-    diagnostics.push(
-      prisma7Diagnostic(
-        'PSL.PRISMA7_UNSUPPORTED_TYPE',
-        `${label}: Unsupported(${unsupportedArgument.written.value}) is not one type name: ${refusal}`,
-        sourceId,
-        unsupportedArgument.written.span,
-      ),
+  let resolved: ResolveFieldTypeResult;
+  if (fieldType.kind === 'written') {
+    const typeDiagnostics = createPslDiagnosticCollector(model.sources);
+    resolved = instantiateFieldTypeConstructor({
+      call: fieldType.call,
+      descriptor: typeConstructor,
+      diagnostics: typeDiagnostics,
+      source: diagnosticSource(model.sources, field.node.syntax),
+      entityLabel: label,
+      namespaceId: model.namespaceId,
+      namespaceExtensionEntities: args.namespaceEntities,
+      codecLookup: input.codecLookup,
+      dataTypes: input.dataTypes,
+    });
+    diagnostics.push(...typeDiagnostics.toExternal());
+  } else {
+    const instantiated = instantiateWithValues(
+      typeConstructor,
+      fieldType.values,
+      input.codecLookup,
     );
-    return;
+    if (!instantiated.ok && unsupportedArgument !== undefined) {
+      diagnostics.push(
+        prisma7Diagnostic(
+          'PSL.PRISMA7_UNSUPPORTED_TYPE',
+          `${label}: Unsupported(${unsupportedArgument.written.value}) is not one type name: ${instantiated.failure}`,
+          sourceId,
+          unsupportedArgument.written.span,
+        ),
+      );
+      return;
+    }
+    if (!instantiated.ok) {
+      throw new InternalError(
+        `The Prisma 7 target binding maps ${label} to constructor "${fieldType.path.join('.')}" with arguments its codec refuses: ${instantiated.failure}`,
+      );
+    }
+    resolved = { ok: true, descriptor: instantiated.value };
   }
-  const typeDiagnostics = createPslDiagnosticCollector(model.sources);
-  const resolved = instantiateFieldTypeConstructor({
-    call,
-    descriptor: typeConstructor,
-    diagnostics: typeDiagnostics,
-    source: diagnosticSource(model.sources, field.node.syntax),
-    entityLabel: label,
-    namespaceId: model.namespaceId,
-    namespaceExtensionEntities: args.namespaceEntities,
-    codecLookup: input.codecLookup,
-    dataTypes: input.dataTypes,
-  });
-  diagnostics.push(...typeDiagnostics.toExternal());
   if (!resolved.ok) {
     return;
   }
