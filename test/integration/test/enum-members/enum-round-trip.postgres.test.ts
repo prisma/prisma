@@ -164,8 +164,31 @@ const roundTripped = accepted.flatMap(({ codecId, dataType, built }) =>
     : [],
 );
 
+/** An interval member with every field, beside the one-field member every codec gets. */
+const complexInterval = {
+  codecId: 'pg/interval@1',
+  stored: 'P1Y2M3DT4H5M6.5S',
+  handle: enumType(
+    'PgIntervalComplex',
+    { codecId: 'pg/interval@1' },
+    member(
+      'Only',
+      readContractValue(
+        stack.codecLookup.forCodecRef({ codecId: 'pg/interval@1' }),
+        'P1Y2M3DT4H5M6.5S',
+        undefined,
+      ),
+    ),
+  ),
+};
+
 const contractJson = new PostgresContractSerializer().serializeContract(
-  contractWith(Object.fromEntries(roundTripped.map(({ handle }) => [handle.enumName, handle])), {}),
+  contractWith(
+    Object.fromEntries(
+      [...roundTripped, complexInterval].map(({ handle }) => [handle.enumName, handle]),
+    ),
+    {},
+  ),
 );
 
 describe('every codec an enum can use on Postgres reads back the member it writes', () => {
@@ -231,8 +254,8 @@ describe('every codec an enum can use on Postgres reads back the member it write
     timeouts.spinUpPpgDev,
   );
 
-  it.each(roundTripped)(
-    'writes the member of an enum on $codecId past the column check, reads back the member, and renders the literal of the value read',
+  it.each([...roundTripped, complexInterval])(
+    'writes the member of an enum on $codecId ($stored) past the column check, reads back the member, and renders the literal of the value read',
     ({ codecId, handle: { enumName }, stored }) =>
       withPostgresPort<Contract<SqlStorage>>({ contractJson }, async ({ client }) => {
         const enumAccessor = client.enums['public']?.[enumName];
