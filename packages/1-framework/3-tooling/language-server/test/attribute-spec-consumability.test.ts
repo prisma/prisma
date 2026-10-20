@@ -101,10 +101,7 @@ describe('assembled attribute specs are consumable from a resolved project', () 
     return attributeSpecs;
   }
 
-  function expectBaseSpecSignatureHelp(
-    attributeSpecs: AttributeSpecNamespace,
-    value: { readonly kind: 'str' | 'oneOf'; readonly label: string },
-  ) {
+  function expectBaseSpecSignatureHelp(attributeSpecs: AttributeSpecNamespace) {
     const authoringContributions = assembleAuthoringContributions([
       { id: 'actual-family', authoring: { attributeSpecs } },
     ]);
@@ -126,7 +123,7 @@ describe('assembled attribute specs are consumable from a resolved project', () 
           key: 'base',
           type: { kind: 'entityRef', expected: { kind: 'model' }, label: 'model reference' },
         },
-        { key: 'value', type: { kind: value.kind } },
+        { key: 'value', type: { kind: 'str' } },
       ],
     });
     expect(pipeline.diagnostics).toEqual([]);
@@ -143,7 +140,7 @@ describe('assembled attribute specs are consumable from a resolved project', () 
         controlMutationDefaults,
       },
     });
-    expect(signature?.signatures[0]?.label).toBe(`@@base(model reference, ${value.label})`);
+    expect(signature?.signatures[0]?.label).toBe('@@base(model reference, string)');
   }
 
   it('provides signature help from the SQL @@base spec factory', async () => {
@@ -152,7 +149,6 @@ describe('assembled attribute specs are consumable from a resolved project', () 
         '../../../../2-sql/2-authoring/contract-psl/src/sql-attribute-specs.ts',
         'sqlAttributeSpecs',
       ),
-      { kind: 'oneOf', label: 'string | number | boolean' },
     );
   });
 
@@ -162,7 +158,6 @@ describe('assembled attribute specs are consumable from a resolved project', () 
         '../../../../2-mongo-family/2-authoring/contract-psl/src/mongo-attribute-specs.ts',
         'mongoAttributeSpecs',
       ),
-      { kind: 'str', label: 'string' },
     );
   });
 

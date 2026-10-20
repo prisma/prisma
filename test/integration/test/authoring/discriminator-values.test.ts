@@ -88,11 +88,11 @@ describe.each([
     });
   });
 
-  it('refuses a number at the value, because a number is not text', async () => {
+  it('refuses a number at the value, as the attribute takes a string', async () => {
     expect(await refusals('String', ['4'])).toEqual([
       {
-        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
-        message: 'Field "Shape.kind": Expected a quoted string',
+        code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
+        message: 'Expected a string literal',
         line: 13,
         columns: [17, 18],
       },
