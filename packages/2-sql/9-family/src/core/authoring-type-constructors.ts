@@ -14,17 +14,17 @@ export const sqlFamilyAuthoringTypes = {
 } as const satisfies AuthoringTypeNamespace;
 
 /**
- * The type constructors every SQL target shares whose arguments are numbers. A target contributes them with `wholeNumber`, the data type whose values are its whole-number arguments, such as `pg/int4`.
+ * The type constructors every SQL target contributes itself, because their arguments are sizes, such as a length, and only the target names the data type a size is a value of: `sizeType`, such as `pg/int4`.
  */
-export function sqlFamilyTypeConstructors<const WholeNumber extends string>(input: {
-  readonly wholeNumber: WholeNumber;
+export function sqlTargetTypeConstructors<const SizeType extends string>(input: {
+  readonly sizeType: SizeType;
 }) {
   return {
     sql: {
       String: {
         kind: 'typeConstructor',
         documentation: 'Variable-length text with a required maximum character length.',
-        args: [{ kind: 'value', dataType: input.wholeNumber, name: 'length' }],
+        args: [{ kind: 'value', dataType: input.sizeType, name: 'length' }],
         output: {
           codecId: 'sql/varchar@1',
           typeParams: {

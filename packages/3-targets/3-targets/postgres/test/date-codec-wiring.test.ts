@@ -45,7 +45,7 @@ describe('Postgres Date codec wiring', () => {
     const input = { codecId };
     const convenience = temporalAuthoringPresets(input);
     expect(postgresAuthoringFieldPresets.temporal).toMatchObject({
-      timestamptzJsDate: temporalCodecPresetWithPrecision({ ...input, wholeNumber: 'pg/int4' }),
+      timestamptzJsDate: temporalCodecPresetWithPrecision({ ...input, sizeType: 'pg/int4' }),
       createdAtJsDate: convenience.createdAt,
       updatedAtJsDate: convenience.updatedAt,
     });

@@ -182,8 +182,8 @@ export type {
 export { entityReference, matchesSelector } from '../entity-reference';
 export { findBlockDescriptor } from '../extension-block';
 export { NAME_THE_PSL_SOURCE_LOSES } from '../name-the-psl-source-loses';
-export type { DataTypeValueRefusal } from '../read-data-type-value';
-export { readDataTypeValue } from '../read-data-type-value';
+export type { DataTypeValueRefusal } from '../read-expression-as';
+export { readExpressionAs } from '../read-expression-as';
 export {
   keywordPslSpan,
   nodePslSpan,

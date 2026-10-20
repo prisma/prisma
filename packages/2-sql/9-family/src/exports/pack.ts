@@ -12,7 +12,6 @@ import {
   sqlFamilyGeneratorFunctions,
 } from '../core/generator-functions';
 
-export { sqlFamilyTypeConstructors } from '../core/authoring-type-constructors';
 export { idGeneratorFunctionBindings } from '../core/generator-functions';
 
 const sqlFamilyPackBase = {
@@ -38,7 +37,7 @@ const sqlFamilyPackBase = {
 
 const sqlFamilyPack: typeof sqlFamilyPackBase & {
   readonly __dataTypeArguments?: {
-    readonly 'sql/expression': { readonly input: SqlExpression; readonly canonical: string };
+    readonly 'sql/expression': { readonly argument: SqlExpression; readonly parameter: string };
   };
 } = sqlFamilyPackBase;
 

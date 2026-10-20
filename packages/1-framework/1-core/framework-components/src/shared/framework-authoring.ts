@@ -66,15 +66,14 @@ interface AuthoringArgumentDescriptorCommon {
   readonly optional?: boolean;
 }
 
-/** An argument that is a value of the data type `dataType`, read and cast as attribute arguments are. ADR 254. */
-export interface AuthoringValueArgument {
+interface ValueArgumentKind {
   readonly kind: 'value';
   readonly dataType: string;
 }
 
 export type AuthoringArgumentDescriptor = AuthoringArgumentDescriptorCommon &
   (
-    | AuthoringValueArgument
+    | ValueArgumentKind
     | {
         readonly kind: 'number';
         readonly integer?: boolean;
@@ -87,6 +86,12 @@ export type AuthoringArgumentDescriptor = AuthoringArgumentDescriptorCommon &
       }
     | AuthoringOption
   );
+
+/** An argument that is a value of the data type `dataType`, read and cast as attribute arguments are. ADR 254. */
+export type AuthoringValueArgument = Extract<
+  AuthoringArgumentDescriptor,
+  { readonly kind: 'value' }
+>;
 
 /**
  * What a type constructor or field preset produces: a codec and its parameters. The database type

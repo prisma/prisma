@@ -7,7 +7,7 @@ import { dataTypeId } from '@internal/framework-components/codec';
 import type { PslSpan } from '@internal/framework-components/psl-ast';
 import { InternalError } from '@internal/utils/internal-error';
 import type { DiagnosticSource, PslDiagnosticCollector } from './diagnostic';
-import { readDataTypeValue } from './read-data-type-value';
+import { readExpressionAs } from './read-expression-as';
 import { nodePslSpan, type ResolvedAttributeArg } from './resolve';
 
 function unquoteStringLiteral(value: string): string {
@@ -392,7 +392,7 @@ function readPslHelperArgument(
       `${input.entityLabel} ${input.helperLabel} received ${argumentLabel} with no expression. A value argument is read from the expression a schema writes; a reader that builds a call must pass the arguments it parsed, or instantiate the constructor with values.`,
     );
   }
-  const read = readDataTypeValue(expression, dataTypeId(descriptor.dataType), input.dataTypes);
+  const read = readExpressionAs(input.dataTypes, dataTypeId(descriptor.dataType), expression);
   if (read.ok) return read.value.value;
   input.diagnostics.push({
     code: read.failure.code,

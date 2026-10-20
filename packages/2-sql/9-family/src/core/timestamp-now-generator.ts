@@ -36,12 +36,12 @@ const PRECISION_PARAMS = { precision: { kind: 'arg', index: 0 } } as const;
 /* @__NO_SIDE_EFFECTS__ */
 export function temporalCodecPresetWithPrecision<
   const CodecId extends string,
-  const WholeNumber extends string,
+  const SizeType extends string,
   const GeneratorId extends string = typeof TIMESTAMP_NOW_GENERATOR_ID,
 >(input: {
   readonly codecId: CodecId;
-  /** The data type whose values the precision argument takes, such as `pg/int4`. */
-  readonly wholeNumber: WholeNumber;
+  /** The data type of the target's size arguments, which the precision argument is a value of, such as `pg/int4`. */
+  readonly sizeType: SizeType;
   readonly generatorId?: GeneratorId;
   readonly nowTakesPrecision?: true;
 }) {
@@ -53,7 +53,7 @@ export function temporalCodecPresetWithPrecision<
   return {
     kind: 'fieldPreset',
     args: [
-      { name: 'precision', kind: 'value', dataType: input.wholeNumber, optional: true },
+      { name: 'precision', kind: 'value', dataType: input.sizeType, optional: true },
       TEMPORAL_ON_CREATE_ARG,
       TEMPORAL_ON_UPDATE_ARG,
     ],

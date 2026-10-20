@@ -24,6 +24,6 @@ const sqliteTargetDescriptorMetaBase = {
 export const sqliteTargetDescriptorMeta: typeof sqliteTargetDescriptorMetaBase & {
   readonly __codecTypes?: CodecTypes;
   readonly __dataTypeArguments?: {
-    readonly 'sqlite/real': { readonly input: number; readonly canonical: number };
+    readonly 'sqlite/real': { readonly argument: number; readonly parameter: number };
   };
 } = sqliteTargetDescriptorMetaBase;

@@ -7,7 +7,7 @@ import {
 import type { DataTypeId } from '@internal/framework-components/codec';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import type { PslDiagnostic } from '../../diagnostic';
-import { readDataTypeValue } from '../../read-data-type-value';
+import { readExpressionAs } from '../../read-expression-as';
 import { nodePslSpan } from '../../resolve';
 import type { ExpressionAst } from '../../syntax/ast/expressions';
 import type { AttributeCtx, DataTypeValueArgType, ParsedTypedValue } from '../types';
@@ -37,7 +37,7 @@ function parseDataTypeValue(
   dataType: DataTypeId,
   support: DataTypeSupport,
 ): Result<ParsedTypedValue, readonly PslDiagnostic[]> {
-  const read = readDataTypeValue(arg, dataType, support);
+  const read = readExpressionAs(support, dataType, arg);
   if (!read.ok) return notOk([leafDiagnostic(ctx, arg, read.failure.message, read.failure.code)]);
   return ok({ value: read.value, span: nodePslSpan(arg.syntax, ctx.sources) });
 }

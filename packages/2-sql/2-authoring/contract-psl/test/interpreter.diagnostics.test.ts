@@ -503,7 +503,8 @@ model InvalidNativeTypes {
   it.each([
     ['VarChar(3000000000)', '3000000000', 'Expected a number that pg/int4 can hold; got pg/int8'],
     ['Timestamp(2.5)', '2.5', 'Expected a number that pg/int4 can hold; got pg/numeric'],
-    ['VarChar("255")', '"255"', 'Expected a number'],
+    ['VarChar(255.0)', '255.0', 'Expected a number that pg/int4 can hold; got pg/numeric'],
+    ['VarChar("255")', '"255"', 'Expected a number; write 255'],
     ['VarChar(length: true)', 'true', 'Expected a number'],
   ])(
     'refuses %s as a value its argument’s data type does not take, at the argument',

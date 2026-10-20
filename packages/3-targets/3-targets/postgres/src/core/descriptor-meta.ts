@@ -55,6 +55,6 @@ export const postgresTargetDescriptorMeta: typeof postgresTargetDescriptorMetaBa
   readonly __queryOperationTypes?: QueryOperationTypesForCodecs;
   readonly __parameterizedOutputTypes?: ParameterizedOutputTypesForTypeParams;
   readonly __dataTypeArguments?: {
-    readonly 'pg/int4': { readonly input: number; readonly canonical: number };
+    readonly 'pg/int4': { readonly argument: number; readonly parameter: number };
   };
 } = postgresTargetDescriptorMetaBase;

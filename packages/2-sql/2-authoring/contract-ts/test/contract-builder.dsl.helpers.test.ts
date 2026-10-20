@@ -110,7 +110,7 @@ const sqlFamilyPackBase = {
 
 const sqlFamilyPack: typeof sqlFamilyPackBase & {
   readonly __dataTypeArguments?: {
-    readonly 'pg/int4': { readonly input: number; readonly canonical: number };
+    readonly 'pg/int4': { readonly argument: number; readonly parameter: number };
   };
 } = sqlFamilyPackBase;
 

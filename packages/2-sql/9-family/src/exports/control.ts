@@ -14,6 +14,7 @@ export type {
 export { assembleAuthoringContributions } from '@internal/framework-components/control';
 export { checkSqlDefaultText } from '@internal/sql-contract/validators';
 export { extractCodecControlHooks } from '../core/assembly';
+export { sqlTargetTypeConstructors } from '../core/authoring-type-constructors';
 export type { SqlControlFamilyInstance } from '../core/control-instance';
 export type {
   SqlControlTargetDescriptor,

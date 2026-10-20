@@ -25,8 +25,8 @@ changes:
       `dataTypes`, and its `PslTypeCall` carries the argument `values`. `writtenTypeArguments` writes
       a call's arguments as literals of their data types. `sql.String` is no longer in the SQL
       family pack: a SQL target contributes it with
-      `sqlFamilyTypeConstructors({ wholeNumber })`, and `temporalCodecPresetWithPrecision` takes
-      `wholeNumber` too.
+      `sqlTargetTypeConstructors({ sizeType })`, and `temporalCodecPresetWithPrecision` takes
+      `sizeType` too.
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
@@ -66,7 +66,7 @@ A target or extension that registers a data type its arguments take declares the
 export const myTargetPack: typeof myTargetPackBase & {
   readonly __codecTypes?: CodecTypes;
   readonly __dataTypeArguments?: {
-    readonly 'my/int': { readonly input: number; readonly canonical: number };
+    readonly 'my/int': { readonly argument: number; readonly parameter: number };
   };
 } = myTargetPackBase;
 ```
@@ -75,4 +75,4 @@ An extension whose arguments take the target's types, such as `pg/int4`, declare
 
 ## `psl-and-print-helpers-take-data-types`
 
-Pass the stack's `DataTypeSupport` to `mapPslHelperArgs({ ..., dataTypes })` and `instantiatePslFieldPreset({ ..., dataTypes })`. Replace `parsePslPositionalArgs` with the values of the call you built, and `pslTypeArgumentText` with `writtenTypeArguments(descriptor, args, dataTypes)`. A SQL target spreads `sqlFamilyTypeConstructors({ wholeNumber: '<its whole-number data type>' })` from `@prisma/orm-family-sql/family/pack` into its type namespace, and passes the same `wholeNumber` to `temporalCodecPresetWithPrecision`.
+Pass the stack's `DataTypeSupport` to `mapPslHelperArgs({ ..., dataTypes })` and `instantiatePslFieldPreset({ ..., dataTypes })`. Replace `parsePslPositionalArgs` with the values of the call you built, and `pslTypeArgumentText` with `writtenTypeArguments(descriptor, args, dataTypes)`. A SQL target spreads `sqlTargetTypeConstructors({ sizeType: '<its whole-number data type>' })` from `@prisma/orm-family-sql/family/pack` into its type namespace, and passes the same `sizeType` to `temporalCodecPresetWithPrecision`.

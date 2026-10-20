@@ -26,10 +26,10 @@ export interface DataTypeValueRefusal {
 /**
  * Reads `expression` as a value of `dataType`: the literal is read through the authoring entry for its syntax, then taken into `dataType` directly or through a cast it declares. The read every argument typed by a data type takes, in an attribute or a type constructor. ADR 254.
  */
-export function readDataTypeValue(
-  expression: ExpressionAst,
-  dataType: DataTypeId,
+export function readExpressionAs(
   support: DataTypeSupport,
+  dataType: DataTypeId,
+  expression: ExpressionAst,
 ): Result<DataTypeValue, DataTypeValueRefusal> {
   if (!support.lookup.has(dataType)) {
     throw new InternalError(

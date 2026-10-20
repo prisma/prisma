@@ -1,10 +1,10 @@
 import type { AuthoringArgumentDescriptor } from '@internal/framework-components/authoring';
 
 /**
- * The TypeScript value a `value` argument of a data type takes, by data type id, with the canonical value the argument gives the constructor. A pack declares an entry for each data type it registers that arguments take, as `__dataTypeArguments` in its type.
+ * For each data type id, the TypeScript value a `value` argument of that data type takes (`argument`) and the type parameter it gives the constructor (`parameter`). A pack declares an entry for each data type it registers that arguments take, as `__dataTypeArguments` in its type.
  */
 export type DataTypeArgumentTypes = {
-  readonly [dataType: string]: { readonly input: unknown; readonly canonical: unknown };
+  readonly [dataType: string]: { readonly argument: unknown; readonly parameter: unknown };
 };
 
 type NoDataTypeArgumentTypes = Record<never, never>;
@@ -54,7 +54,7 @@ export type ArgTypeFromDescriptor<
   ValueTypes extends DataTypeArgumentTypes = NoDataTypeArgumentTypes,
 > = Arg extends { readonly kind: 'value'; readonly dataType: infer DataType extends string }
   ? DataType extends keyof ValueTypes
-    ? ValueTypes[DataType]['input']
+    ? ValueTypes[DataType]['argument']
     : never
   : Arg extends { readonly kind: 'number' }
     ? number
@@ -106,9 +106,9 @@ type CanonicalArgument<
   ValueTypes extends DataTypeArgumentTypes,
 > = Arg extends { readonly kind: 'value'; readonly dataType: infer DataType extends string }
   ? DataType extends keyof ValueTypes
-    ? Param extends ValueTypes[DataType]['canonical'] | undefined
+    ? Param extends ValueTypes[DataType]['parameter'] | undefined
       ? Param
-      : ValueTypes[DataType]['canonical'] | Extract<Param, undefined>
+      : ValueTypes[DataType]['parameter'] | Extract<Param, undefined>
     : Param
   : Param;
 

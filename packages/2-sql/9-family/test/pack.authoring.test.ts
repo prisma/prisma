@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import sqlFamilyPack, { sqlFamilyTypeConstructors } from '../src/exports/pack';
+import { sqlTargetTypeConstructors } from '../src/exports/control';
+import sqlFamilyPack from '../src/exports/pack';
 
 describe('sql family pack authoring contributions', () => {
   it('contributes Raw, whose argument is a sql expression', () => {
@@ -21,8 +22,8 @@ describe('sql family pack authoring contributions', () => {
     }).toEqual({ dataTypes: ['sql/expression'], entries: ['sql/expression'] });
   });
 
-  it('builds sql.String for a target, whose length is a value of the target’s whole-number type', () => {
-    expect(sqlFamilyTypeConstructors({ wholeNumber: 'pg/int4' })).toEqual({
+  it('builds sql.String for a target, whose length is a value of the target’s size type', () => {
+    expect(sqlTargetTypeConstructors({ sizeType: 'pg/int4' })).toEqual({
       sql: {
         String: {
           kind: 'typeConstructor',
