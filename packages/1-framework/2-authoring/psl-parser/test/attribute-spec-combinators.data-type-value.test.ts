@@ -447,6 +447,13 @@ describe('dataTypeValue', () => {
     );
   });
 
+  it('takes the label it is given in place of the forms it admits', () => {
+    expect({
+      given: dataTypeValue(pgInt4.id, support, { label: '4 | 7' }).label,
+      none: dataTypeValue(pgInt4.id, support).label,
+    }).toEqual({ given: '4 | 7', none: 'a number' });
+  });
+
   it('offers the suggestions it is given, and none by default', () => {
     expect({
       given: dataTypeValue(pgInt4.id, support, { suggestions: ['4', '7'] }).suggestions,

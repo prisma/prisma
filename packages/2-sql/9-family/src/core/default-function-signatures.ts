@@ -65,7 +65,7 @@ function uuidSignature(integer: DataTypeId, dataTypes: DataTypeSupport): FuncCal
       {
         key: 'version',
         type: optional(
-          checkedInteger(integer, dataTypes, versions, (version, written) =>
+          checkedInteger(integer, dataTypes, listed(versions), (version, written) =>
             versions.some((allowed) => allowed === version)
               ? undefined
               : `uuid: version must be ${UUID_VERSIONS.v4} or ${UUID_VERSIONS.v7}, got ${written}`,
@@ -83,7 +83,7 @@ function cuidSignature(integer: DataTypeId, dataTypes: DataTypeSupport): FuncCal
     positional: [
       {
         key: 'version',
-        type: checkedInteger(integer, dataTypes, [CUID_VERSION], (version, written) =>
+        type: checkedInteger(integer, dataTypes, listed([CUID_VERSION]), (version, written) =>
           version === CUID_VERSION
             ? undefined
             : `cuid: version must be ${CUID_VERSION}, got ${written}`,
@@ -101,10 +101,17 @@ function nanoidSignature(integer: DataTypeId, dataTypes: DataTypeSupport): FuncC
       {
         key: 'size',
         type: optional(
-          checkedInteger(integer, dataTypes, [], (size, written) =>
-            size >= NANOID_SIZE.min && size <= NANOID_SIZE.max
-              ? undefined
-              : `nanoid: size must be between ${NANOID_SIZE.min} and ${NANOID_SIZE.max}, got ${written}`,
+          checkedInteger(
+            integer,
+            dataTypes,
+            {
+              label: `integer from ${NANOID_SIZE.min} to ${NANOID_SIZE.max}`,
+              suggestions: [],
+            },
+            (size, written) =>
+              size >= NANOID_SIZE.min && size <= NANOID_SIZE.max
+                ? undefined
+                : `nanoid: size must be between ${NANOID_SIZE.min} and ${NANOID_SIZE.max}, got ${written}`,
           ),
         ),
         documentation: `The identifier length, from \`${NANOID_SIZE.min}\` through \`${NANOID_SIZE.max}\`. Omit to use the generator default.`,
@@ -113,28 +120,31 @@ function nanoidSignature(integer: DataTypeId, dataTypes: DataTypeSupport): FuncC
   };
 }
 
+/** The label and completion suggestions of an argument that takes one of `values`. */
+function listed(values: readonly number[]) {
+  const suggestions = values.map(String);
+  return { label: suggestions.join(' | '), suggestions };
+}
+
 /**
  * One value of the integer data type, as a number, refused at the argument with the function's message when `refusal` returns one.
  */
 function checkedInteger(
   integer: DataTypeId,
   dataTypes: DataTypeSupport,
-  suggestions: readonly number[],
+  allowed: { readonly label: string; readonly suggestions: readonly string[] },
   refusal: (value: number, written: string) => string | undefined,
 ): ArgType<number, AttributeCtx> {
-  return refineArg(
-    dataTypeValue(integer, dataTypes, { suggestions: suggestions.map(String) }),
-    ({ value }, arg, ctx) => {
-      const stored = value.value;
-      if (typeof stored !== 'number' && typeof stored !== 'string') {
-        throw new InternalError(
-          `Data type "${integer}" stores an integer as ${typeof stored}, not a number or digit text.`,
-        );
-      }
-      const message = refusal(Number(stored), String(stored));
-      return message === undefined
-        ? ok(Number(stored))
-        : notOk([leafDiagnostic(ctx, arg, message, 'PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT')]);
-    },
-  );
+  return refineArg(dataTypeValue(integer, dataTypes, allowed), ({ value }, arg, ctx) => {
+    const stored = value.value;
+    if (typeof stored !== 'number' && typeof stored !== 'string') {
+      throw new InternalError(
+        `Data type "${integer}" stores an integer as ${typeof stored}, not a number or digit text.`,
+      );
+    }
+    const message = refusal(Number(stored), String(stored));
+    return message === undefined
+      ? ok(Number(stored))
+      : notOk([leafDiagnostic(ctx, arg, message, 'PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT')]);
+  });
 }

@@ -19,8 +19,10 @@ import {
   type BlockSpecContext,
   blockAttribute,
   buildSymbolTable,
+  EMPTY_DATA_TYPES,
   entityRef,
   type FieldAttributeSpecContext,
+  type FuncCallSig,
   fieldAttribute,
   identifier,
   int,
@@ -43,6 +45,7 @@ import {
 } from 'vscode-languageserver';
 import { classifyPslCompletionContext } from '../src/completion-context';
 import { providePslCompletionItems } from '../src/completion-provider';
+import { renderSignatureLabel, resolveSignatureParameters } from '../src/signature-help';
 import { testBinder } from './helpers/binder';
 
 const scalarTypes = ['String', 'Int', 'Boolean', 'DateTime'] as const;
@@ -1780,6 +1783,25 @@ namespace app {
       'cuid($' + '{1:version})',
     );
   }, 5_000);
+
+  it('labels each default function argument by the values the function takes', async () => {
+    const defaults = await importFromPackageRoot<ActualPostgresDefaultsModule>(
+      '../../../3-targets/6-adapters/postgres/src/core/control-mutation-defaults.ts',
+    );
+    const registry = defaults.createPostgresDefaultFunctionRegistry();
+    const labelOf = (name: string) => {
+      const signature = (registry.get(name)!.signature as (dataTypes: unknown) => FuncCallSig)(
+        EMPTY_DATA_TYPES,
+      );
+      return renderSignatureLabel(name, signature, resolveSignatureParameters(signature, undefined))
+        .label;
+    };
+    expect(['uuid', 'cuid', 'nanoid'].map(labelOf)).toEqual([
+      'uuid((4 | 7)?)',
+      'cuid(2)',
+      'nanoid(integer from 2 to 255?)',
+    ]);
+  });
 
   it('offers each registered tag inside @default( with its own documentation', async () => {
     const stack = await actualSqlStack();
