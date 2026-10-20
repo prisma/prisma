@@ -2989,6 +2989,9 @@ importers:
       '@internal/driver-postgres':
         specifier: workspace:8.0.0-rc.18
         version: link:../../3-targets/7-drivers/postgres
+      '@internal/ids':
+        specifier: workspace:8.0.0-rc.18
+        version: link:../../1-framework/2-authoring/ids
       '@internal/psl-printer':
         specifier: workspace:8.0.0-rc.18
         version: link:../../1-framework/2-authoring/psl-printer

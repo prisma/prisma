@@ -2,7 +2,7 @@ import type {
   ContractSourceDiagnostic,
   ContractSourceDiagnostics,
 } from '@internal/config/config-types';
-import type { Contract } from '@internal/contract/types';
+import type { Contract, ExecutionMutationDefaultValue } from '@internal/contract/types';
 import type {
   AuthoringEntityContext,
   AuthoringEntityTypeDescriptor,
@@ -13,6 +13,7 @@ import {
   instantiateAuthoringEntityType,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
 import type {
   AssembledAuthoringContributions,
   ControlMutationDefaults,
@@ -84,6 +85,21 @@ import {
 } from './relations';
 import type { Prisma7TargetBinding } from './target-binding';
 
+/** The generator `now()` resolves to for a column, which `@updatedAt` writes on create and on update; `undefined` when no generator function binds `now` to its codec. */
+function nowGeneratorFor(
+  generatorFunctions: GeneratorFunctionRegistry,
+  column: {
+    readonly codecId: string;
+    readonly typeParams?: Readonly<Record<string, unknown>> | undefined;
+  },
+): ExecutionMutationDefaultValue | undefined {
+  const resolution = generatorFunctions.resolve(
+    { name: 'now', args: {} },
+    { codecId: column.codecId, typeParams: column.typeParams },
+  );
+  return resolution.ok ? resolution.generator : undefined;
+}
+
 export interface Prisma7Document {
   readonly document: DocumentAst;
   readonly sources: PslSources;
@@ -96,6 +112,7 @@ export interface InterpretPrisma7DocumentsInput {
   readonly seedDiagnostics: readonly ContractSourceDiagnostic[];
   readonly binding: Prisma7TargetBinding;
   readonly controlMutationDefaults: ControlMutationDefaults;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly authoringContributions: AssembledAuthoringContributions;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypes: DataTypeSupport;
@@ -1170,7 +1187,7 @@ function readField(args: ReadFieldArgs): void {
   const updatedAtGenerator =
     updatedAt === undefined || ignored
       ? undefined
-      : binding.updatedAtGenerator(resolved.descriptor);
+      : nowGeneratorFor(input.generatorFunctions, resolved.descriptor);
   if (updatedAt !== undefined && !ignored && updatedAtGenerator === undefined) {
     if (nativeType === undefined) {
       throw new InternalError(
@@ -1208,6 +1225,7 @@ function readField(args: ReadFieldArgs): void {
               ? undefined
               : new Map(enumDeclaration.members.map((member) => [member.name, member.value])),
           controlMutationDefaults: input.controlMutationDefaults,
+          generatorFunctions: input.generatorFunctions,
           sourceId,
           diagnostics,
         });

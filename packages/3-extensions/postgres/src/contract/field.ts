@@ -9,16 +9,25 @@ import postgresPack from '@internal/target-postgres/pack';
 
 const dataTypeLookup = assembleDataTypes([postgresPack]).lookup;
 
-/**
- * The field builders of the `defineContract` callback for Postgres, without extensions: `field.text()`, `field.temporal.timestamptz()`, `field.uuidString()`, and `field.column(columnType)`. Use it outside a contract, for example to declare the fields of a query fragment.
- */
-export const field: ComposedAuthoringHelpers<
-  typeof sqlFamilyPack,
-  typeof postgresPack,
-  undefined
->['field'] = createComposedAuthoringHelpers({
+const helpers = createComposedAuthoringHelpers({
   family: sqlFamilyPack,
   target: postgresPack,
   codecLookup: assemblePostgresCodecRegistryWithBuiltins([], dataTypeLookup),
   dataTypeLookup,
-}).field;
+});
+
+type PostgresHelpers = ComposedAuthoringHelpers<
+  typeof sqlFamilyPack,
+  typeof postgresPack,
+  undefined
+>;
+
+/**
+ * The field builders of the `defineContract` callback for Postgres, without extensions: `field.text()`, `field.temporal.timestamptz()`, `field.uuidString()`, and `field.column(columnType)`. Use it outside a contract, for example to declare the fields of a query fragment.
+ */
+export const field: PostgresHelpers['field'] = helpers.field;
+
+/**
+ * The generator function calls of the `defineContract` callback for Postgres, without extensions, for `.onCreate(...)` and `.onUpdate(...)`: `gen.now()`, `gen.uuid(7)`, `gen.cuid(2)`, `gen.ulid()`, `gen.nanoid(16)` and `gen.ksuid()`.
+ */
+export const gen: PostgresHelpers['gen'] = helpers.gen;

@@ -39,18 +39,16 @@ const loweringContext = {
 describe('default function registry', () => {
   const builtinRegistry = createBuiltinLikeControlMutationDefaults().defaultFunctionRegistry;
 
-  it('lowers cuid(2) to a cuid2 execution generator', () => {
-    const loweredCuid2 = lowerDefaultFunctionWithRegistry({
-      call: call('cuid', { version: 2 }),
+  it('lowers now() to a database default', () => {
+    const loweredNow = lowerDefaultFunctionWithRegistry({
+      call: call('now'),
       registry: builtinRegistry,
       context: loweringContext,
       source,
     });
-    expect(loweredCuid2.ok).toBe(true);
-    if (!loweredCuid2.ok) return;
-    expect(loweredCuid2.value).toMatchObject({
-      kind: 'execution',
-      generated: { kind: 'generator', id: 'cuid2' },
+    expect(loweredNow).toEqual({
+      ok: true,
+      value: { kind: 'storage', defaultValue: { kind: 'function', expression: 'now()' } },
     });
   });
 
@@ -120,7 +118,7 @@ describe('default function registry', () => {
     expect(loweredUnknown.diagnostic.message).not.toContain('custom().');
   });
 
-  it('lists supported signatures for unknown generator-like function names', () => {
+  it('lists only the database functions for an unknown function', () => {
     const loweredUnknown = lowerDefaultFunctionWithRegistry({
       call: call('uuidv7'),
       registry: builtinRegistry,
@@ -130,6 +128,8 @@ describe('default function registry', () => {
     expect(loweredUnknown.ok).toBe(false);
     if (loweredUnknown.ok) return;
 
-    expect(loweredUnknown.diagnostic.message).toContain('uuid(7)');
+    expect(loweredUnknown.diagnostic.message).toBe(
+      'Default function "uuidv7" is not supported in SQL PSL provider v1. Supported functions: autoincrement(), now().',
+    );
   });
 });

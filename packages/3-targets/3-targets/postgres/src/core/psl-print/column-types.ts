@@ -1,8 +1,4 @@
-import {
-  type InferredTypeConstructors,
-  type PslColumnTypeRef,
-  pslTypeArgumentText,
-} from '@internal/family-sql/psl-build';
+import { type InferredTypeConstructors, pslTypeArgumentText } from '@internal/family-sql/psl-build';
 import {
   type AuthoringTypeConstructorCall,
   type AuthoringTypeNamespace,
@@ -18,8 +14,15 @@ import { PG_ENUM_CODEC_ID } from '../codec-ids';
 import { positionalArg, SYNTHETIC_SPAN } from '../psl-build/psl-literals';
 import { refuseColumnWithoutPslType, refuseUnwritableTypeArgument } from './refusals';
 
+/**
+ * What a column's PSL type stands for. `dataType` is a type that stands for the column's codec and type params alone, written as a bare name such as `String` or a call such as `Timestamptz(3)`. A named type, a value object or an enum, including a native enum written `pg.enum(<Block>)`, names something more.
+ */
+export type PslColumnTypeKind = 'dataType' | 'namedType' | 'valueObject' | 'enum';
+
 /** The PSL type position of one column: its name and what it stands for, and the type-constructor call when it is written as one. */
-export interface PslColumnType extends PslColumnTypeRef {
+export interface PslColumnType {
+  readonly kind: PslColumnTypeKind;
+  readonly typeName: string;
   readonly typeConstructor?: PslTypeConstructorCall;
 }
 

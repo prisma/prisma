@@ -1,6 +1,6 @@
 # ADR 249 — Central attribute-spec registry
 
-**Status:** Accepted
+**Status:** Accepted. Amended by [ADR 275](ADR%20275%20-%20Client%20generators%20are%20field%20attributes%2C%20and%20a%20type%20alias%20is%20expanded%20into%20each%20column.md): the construction context gains `generatorFunctions`, the stack's generator function registry. `@default` pins one `funcCall` arm per database default function (`autoincrement()`, `now()`). The new `onCreate` and `onUpdate` field specs pin one arm per generator function bound to the field's codec, which they read from `typeConstructor`, and refuse a function that does not apply before trying the arms.
 **Date:** 2026-09-09
 **Builds on:** [ADR 231 — Declarative attribute specifications](ADR%20231%20-%20Declarative%20attribute%20specifications.md), [ADR 236 — Target-contributed model attributes](ADR%20236%20-%20Target-contributed%20model%20attributes.md)
 

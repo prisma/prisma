@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 import type { ContractSourceContext } from '@internal/config/config-types';
 import { errorUnexpected } from '@internal/errors/control';
 import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import {
   assembleAuthoringContributions,
   assembleControlMutationDefaults,
@@ -243,6 +244,7 @@ async function resolutionForInputs(
       scalarTypes: [...scalarTypes],
       defaultNamespaceId: 'public',
       pslBlockDescriptors: descriptors,
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       authoringContributions: assembleAuthoringContributions([
         { id: 'scalars', authoring: { type: testTypeConstructors(scalarTypes) } },
       ]),
@@ -259,6 +261,7 @@ async function emptyResolution(): Promise<ConfigResolution> {
       scalarTypes: [...scalarTypes],
       defaultNamespaceId: 'public',
       pslBlockDescriptors: {},
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     },
   };
 }
@@ -281,6 +284,7 @@ const resolveToSchemaWithAttributeContributions: ResolveInputs = async () => {
       ...resolution.controlStack,
       authoringContributions: completionAuthoringContributions,
       controlMutationDefaults: completionInterpretationContext.controlMutationDefaults,
+      generatorFunctions: completionInterpretationContext.generatorFunctions,
     },
     interpretation: {
       source: completionInterpretationSource,
