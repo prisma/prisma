@@ -1,12 +1,12 @@
 import type { ExecutionMutationDefaultValue } from '@internal/contract/types';
 import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
 import { ifDefined } from '@internal/utils/defined';
-import { NANOID_SIZE } from './argument-limits';
 import { contractError } from './contract-errors';
 import { type BuiltinGeneratorId, builtinGeneratorIds } from './generator-ids';
+import { NANOID_SIZE } from './generator-limits';
 import type { IdGeneratorOptionsById } from './generators';
 
-export { CUID_VERSION, NANOID_SIZE, UUID_VERSIONS } from './argument-limits';
+export { CUID_VERSION, NANOID_SIZE, UUID_VERSIONS } from './generator-limits';
 export { builtinGeneratorIds };
 
 const GENERATED_CHAR_TYPE = { codecId: 'sql/char@1' } as const;
