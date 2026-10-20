@@ -1,0 +1,8 @@
+[
+  {
+    "code": "PSL_INVALID_ATTRIBUTE_ARGUMENT",
+    "file": "schema.prisma",
+    "line": 7,
+    "message": "Field \"Post.search\" constructor \"Raw\" Authoring helper argument at Raw[0] is invalid: A raw type is one type name as the database catalog prints it, such as tsvector, double precision, geometry(Point,4326), app.email or \"MyType\"[]: words of letters, digits and underscores separated by single spaces, or double-quoted names with each double quote inside doubled; the first optionally after one schema name and a dot; each optionally followed by parentheses holding only letters, digits, underscores, commas, spaces and a minus sign before a digit; and at most one trailing []."
+  }
+]

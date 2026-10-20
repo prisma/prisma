@@ -36,6 +36,8 @@ export interface LowerPrisma7DefaultInput {
   readonly attribute: ResolvedAttribute;
   readonly field: FieldSymbol;
   readonly modelName: string;
+  /** The field's type is `Unsupported(...)`, which Prisma 7 lets take only a `dbgenerated(...)` default. */
+  readonly unsupportedType: boolean;
   readonly codecId: string;
   readonly typeParams: Readonly<Record<string, unknown>> | undefined;
   readonly codecLookup: CodecLookupWithDescriptors;
@@ -92,6 +94,12 @@ export function lowerPrisma7Default(
   }
 
   const call = FunctionCallAst.cast(expression.syntax);
+  if (input.unsupportedType && call?.path().join('.') !== 'dbgenerated') {
+    return unknown(
+      'on a field of type Unsupported(...) must be dbgenerated("..."). Prisma 7 refuses this schema too: "Only @default(dbgenerated("...")) can be used for Unsupported types." Write the default as @default(dbgenerated("<sql expression>")), or remove it.',
+      attribute.span,
+    );
+  }
   if (call !== undefined) {
     return lowerFunction(call, input, label, unknown);
   }

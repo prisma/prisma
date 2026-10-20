@@ -73,7 +73,12 @@ import {
   statedConstraintName,
 } from './constraint-names';
 import { lowerPrisma7Default } from './defaults';
-import { ignoredFieldInPrimaryKey, prisma7Diagnostic } from './diagnostics';
+import {
+  ignoredFieldInPrimaryKey,
+  type NoFieldReason,
+  noFieldDiagnostics,
+  prisma7Diagnostic,
+} from './diagnostics';
 import { type IndexAttribute, indexNode, parseIndexAttribute } from './indexes';
 import { prisma7NativeTypeMapping, prisma7ScalarMapping } from './native-types';
 import {
@@ -141,10 +146,10 @@ interface ModelDeclaration {
 interface ModelBuild {
   readonly declaration: ModelDeclaration;
   readonly columns: Map<string, FieldNode>;
-  /** The columns the table keeps and no field of the model maps: those of `@ignore` fields, or every column of an `@@ignore` model. */
+  /** The columns the table keeps and no field of the model maps: those of `@ignore` and `Unsupported(...)` fields, or every column of an `@@ignore` model. */
   readonly ignoredColumns: Map<string, ColumnNode>;
-  /** Fields marked `@ignore`, and relation fields to an `@@ignore` model. */
-  readonly ignoredFields: Set<string>;
+  /** Fields the model has no Prisma 8 field for, and why. */
+  readonly ignoredFields: Map<string, NoFieldReason>;
   readonly ignoredRelationFields: RelationField[];
   readonly rejectedFields: Set<string>;
   idFields: readonly string[];
@@ -374,7 +379,7 @@ export function interpretPrisma7Documents(
       declaration,
       columns: new Map(),
       ignoredColumns: new Map(),
-      ignoredFields: new Set(),
+      ignoredFields: new Map(),
       ignoredRelationFields: [],
       rejectedFields: new Set(),
       idFields: declaration.id?.fields ?? [],
@@ -437,19 +442,19 @@ export function interpretPrisma7Documents(
   for (const [modelName, build] of builds) {
     const model = relationModels.get(modelName);
     if (model === undefined) continue;
-    const ignoredAmong = (fieldNames: readonly string[] | undefined): readonly string[] =>
-      fieldNames?.filter((name) => build.ignoredFields.has(name)) ?? [];
     const idAttribute = build.declaration.id;
-    const ignoredIdFields = ignoredAmong(idAttribute?.fields);
-    if (idAttribute !== undefined && ignoredIdFields.length > 0) {
+    if (idAttribute?.fields !== undefined) {
       diagnostics.push(
-        ignoredFieldInPrimaryKey({
-          modelName,
-          fieldNames: ignoredIdFields,
-          usedBy: `@@id on model "${modelName}"`,
-          sourceId: model.sourceId,
-          span: idAttribute.span,
-        }),
+        ...noFieldDiagnostics(idAttribute.fields, build.ignoredFields, (fieldNames, reason) =>
+          ignoredFieldInPrimaryKey({
+            modelName,
+            fieldNames,
+            reason,
+            usedBy: `@@id on model "${modelName}"`,
+            sourceId: model.sourceId,
+            span: idAttribute.span,
+          }),
+        ),
       );
     }
     const id = keyColumns(model, model.idFields);
@@ -927,6 +932,14 @@ function lowerNativeEnums(
   return result;
 }
 
+/** The SQL family's type constructor for a column of a type no data type claims (ADR 273). */
+const RAW_TYPE_CONSTRUCTOR: readonly string[] = ['Raw'];
+
+/** Prisma 7's `Unsupported("...")`, which this source reads as `Raw("...")`. */
+function isUnsupportedType(call: ResolvedTypeConstructorCall | undefined): boolean {
+  return call?.path.length === 1 && call.path[0] === 'Unsupported';
+}
+
 function nativeTypeMessage(label: string, nativeType: string): string {
   return `${label}: native type "@db.${nativeType}" has no Prisma 8 codec yet, and Prisma 8 cannot read this schema until it supports the column type. @ignore on the field or @@ignore on the model does not help: Prisma 8 keeps the columns of ignored fields and models in the contract. Changing the field's type to one Prisma 8 supports changes the column type on Prisma 7's next migration.`;
 }
@@ -954,8 +967,11 @@ function readField(args: ReadFieldArgs): void {
   const fieldIgnored =
     field.attributes.some((attribute) => attribute.name === 'ignore') ||
     (isRelationField && args.ignoredModels.has(field.typeName));
-  if (fieldIgnored) build.ignoredFields.add(field.name);
-  const ignored = fieldIgnored || model.ignored;
+  const unsupported = isUnsupportedType(field.typeConstructor);
+  const noFieldReason: NoFieldReason | undefined =
+    unsupported && !model.ignored ? 'unsupported' : fieldIgnored ? 'ignored' : undefined;
+  if (noFieldReason !== undefined) build.ignoredFields.set(field.name, noFieldReason);
+  const ignored = fieldIgnored || model.ignored || unsupported;
 
   let columnName = field.name;
   let nativeType: { readonly name: string; readonly attribute: ResolvedAttribute } | undefined;
@@ -990,11 +1006,12 @@ function readField(args: ReadFieldArgs): void {
         build.idFields = [field.name];
         build.idMap = parsed.map;
       }
-      if (fieldIgnored) {
+      if (noFieldReason !== undefined) {
         diagnostics.push(
           ignoredFieldInPrimaryKey({
             modelName: model.symbol.name,
             fieldNames: [field.name],
+            reason: noFieldReason,
             usedBy: 'its @id',
             sourceId,
             span: attribute.span,
@@ -1030,13 +1047,24 @@ function readField(args: ReadFieldArgs): void {
   }
 
   if (field.malformedType) return;
-  if (field.typeConstructor !== undefined) {
+  if (field.typeConstructor !== undefined && !unsupported) {
     diagnostics.push(
       prisma7Diagnostic(
         'PSL.PRISMA7_UNSUPPORTED_TYPE',
-        `${label} has type "${field.typeConstructor.path.join('.')}(...)", which has no Prisma 8 codec yet, and Prisma 8 cannot read this schema until it supports the column type. @@ignore on model "${model.symbol.name}" does not help: Prisma 8 keeps the columns of ignored models in the contract. Removing the field drops its column on Prisma 7's next migration.`,
+        `${label} has type "${field.typeConstructor.path.join('.')}(...)", which is not a Prisma 7 type. Prisma 7 refuses this schema too.`,
         sourceId,
         field.typeConstructor.span,
+      ),
+    );
+    return;
+  }
+  if (unsupported && nativeType !== undefined) {
+    diagnostics.push(
+      prisma7Diagnostic(
+        'PSL.PRISMA7_UNKNOWN_ATTRIBUTE',
+        `${label} has type Unsupported(...), which takes no native type, but has attribute "@db.${nativeType.name}". Prisma 7 refuses this schema too: "Attribute not known". Remove "@db.${nativeType.name}".`,
+        sourceId,
+        nativeType.attribute.span,
       ),
     );
     return;
@@ -1078,9 +1106,11 @@ function readField(args: ReadFieldArgs): void {
     return;
   }
 
-  const enumDeclaration = args.enums.get(field.typeName);
+  const enumDeclaration = unsupported ? undefined : args.enums.get(field.typeName);
   let call: ResolvedTypeConstructorCall;
-  if (enumDeclaration !== undefined) {
+  if (field.typeConstructor !== undefined) {
+    call = { ...field.typeConstructor, path: RAW_TYPE_CONSTRUCTOR };
+  } else if (enumDeclaration !== undefined) {
     if (enumDeclaration.namespaceId !== model.namespaceId) {
       diagnostics.push(
         prisma7Diagnostic(
@@ -1194,6 +1224,7 @@ function readField(args: ReadFieldArgs): void {
           attribute: defaultAttribute,
           field,
           modelName: model.symbol.name,
+          unsupportedType: unsupported,
           codecId: resolved.descriptor.codecId,
           typeParams: resolved.descriptor.typeParams,
           codecLookup: input.codecLookup,

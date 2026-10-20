@@ -37,6 +37,8 @@ import {
   andList,
   fieldList,
   ignoredFieldJoined,
+  type NoFieldReason,
+  noFieldDiagnostics,
   type Prisma7DiagnosticCode,
   prisma7Diagnostic,
 } from './diagnostics';
@@ -75,8 +77,8 @@ export interface RelationModel {
   readonly columns: ReadonlyMap<string, FieldNode>;
   /** The columns the table keeps and no field of the model maps: those of `@ignore` fields, or every column of an `@@ignore` model. */
   readonly ignoredColumns: ReadonlyMap<string, ColumnNode>;
-  /** Fields marked `@ignore`, and relation fields to an `@@ignore` model. */
-  readonly ignoredFields: ReadonlySet<string>;
+  /** Fields the model has no Prisma 8 field for, and why: those marked `@ignore`, relation fields to an `@@ignore` model, and `Unsupported(...)` fields of a model that is not `@@ignore`. */
+  readonly ignoredFields: ReadonlyMap<string, NoFieldReason>;
   /** Relation fields marked `@ignore`: their foreign keys are kept, and they and their back-relations stay out of the domain. */
   readonly ignoredRelationFields: readonly RelationField[];
   /** Fields whose type or attributes were reported; keys and relations over them report nothing more. */
@@ -438,20 +440,18 @@ export function lowerRelations(
           : [
               { owner: model, names: attribute.fields },
               { owner: target, names: attribute.references ?? [] },
-            ].flatMap(({ owner, names }) => {
-              const ignored = names.filter((name) => owner.ignoredFields.has(name));
-              return ignored.length === 0
-                ? []
-                : [
-                    ignoredFieldJoined({
-                      modelName: owner.modelName,
-                      fieldNames: ignored,
-                      relationField: `${model.modelName}.${field.name}`,
-                      sourceId: model.sourceId,
-                      span: attribute.span,
-                    }),
-                  ];
-            });
+            ].flatMap(({ owner, names }) =>
+              noFieldDiagnostics(names, owner.ignoredFields, (fieldNames, reason) =>
+                ignoredFieldJoined({
+                  modelName: owner.modelName,
+                  fieldNames,
+                  reason,
+                  relationField: `${model.modelName}.${field.name}`,
+                  sourceId: model.sourceId,
+                  span: attribute.span,
+                }),
+              ),
+            );
         if (joinedIgnored.length > 0) {
           rejectFkSide(model, relationField, ...joinedIgnored);
           continue;
