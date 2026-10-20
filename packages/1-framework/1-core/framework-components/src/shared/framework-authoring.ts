@@ -65,17 +65,21 @@ interface AuthoringArgumentDescriptorCommon {
   readonly optional?: boolean;
 }
 
+/** An argument that is a value of the data type `dataType`, read and cast as attribute arguments are. ADR 254. */
+export interface AuthoringValueArgument {
+  readonly kind: 'value';
+  readonly dataType: string;
+}
+
 export type AuthoringArgumentDescriptor = AuthoringArgumentDescriptorCommon &
   (
-    | { readonly kind: 'string' }
-    | { readonly kind: 'boolean' }
+    | AuthoringValueArgument
     | {
         readonly kind: 'number';
         readonly integer?: boolean;
         readonly minimum?: number;
         readonly maximum?: number;
       }
-    | { readonly kind: 'stringArray' }
     | {
         readonly kind: 'object';
         readonly properties: Record<string, AuthoringArgumentDescriptor>;
@@ -1592,29 +1596,7 @@ function validateAuthoringArgument(
     throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} is missing`);
   }
 
-  if (descriptor.kind === 'string') {
-    if (typeof value !== 'string') {
-      throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} must be a string`);
-    }
-    return;
-  }
-
-  if (descriptor.kind === 'boolean') {
-    if (typeof value !== 'boolean') {
-      throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} must be a boolean`);
-    }
-    return;
-  }
-
-  if (descriptor.kind === 'stringArray') {
-    if (!Array.isArray(value)) {
-      throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} must be an array of strings`);
-    }
-    for (const entry of value) {
-      if (typeof entry !== 'string') {
-        throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} must be an array of strings`);
-      }
-    }
+  if (descriptor.kind === 'value') {
     return;
   }
 

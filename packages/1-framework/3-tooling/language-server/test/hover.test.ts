@@ -1,4 +1,8 @@
-import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
+import type {
+  AuthoringPslBlockDescriptorNamespace,
+  DataTypeSupport,
+} from '@internal/framework-components/authoring';
+import { createDataTypeLookup, dataType } from '@internal/framework-components/codec';
 import { assembleAuthoringContributions } from '@internal/framework-components/control';
 import {
   type ArgType,
@@ -123,18 +127,18 @@ const authoringContributions = assembleAuthoringContributions([
           Varchar: {
             kind: 'typeConstructor',
             documentation: 'A variable-length string.',
-            args: [{ name: 'length', kind: 'number' }],
+            args: [{ name: 'length', kind: 'value', dataType: 'fixture/int' }],
             output: { codecId: 'fixture/varchar' },
           },
           Text: {
             kind: 'typeConstructor',
             output: { codecId: 'fixture/text' },
           },
-          Tags: {
+          Raw: {
             kind: 'typeConstructor',
-            documentation: 'A list of tags.',
-            args: [{ name: 'tags', kind: 'stringArray' }],
-            output: { codecId: 'fixture/tags' },
+            documentation: 'A type written as SQL.',
+            args: [{ name: 'sql', kind: 'value', dataType: 'fixture/expression' }],
+            output: { codecId: 'fixture/raw' },
           },
           Mode: {
             kind: 'typeConstructor',
@@ -185,6 +189,30 @@ const pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace = {
   },
 };
 
+const fixtureInt = dataType('fixture/int', { read: (json) => json });
+const fixtureExpression = dataType('fixture/expression', { read: (json) => json });
+const dataTypes: DataTypeSupport = {
+  entries: {
+    [fixtureInt.id]: {
+      written: {
+        kind: 'plain',
+        syntax: 'number',
+        types: [fixtureInt.id],
+        classify: (text) => ({ type: fixtureInt.id, value: Number(text) }),
+      },
+      print: String,
+      documentation: 'A whole number.',
+    },
+    [fixtureExpression.id]: {
+      written: { kind: 'tag', tag: 'sql', parse: (text) => text },
+      print: String,
+      documentation: 'A SQL expression.',
+    },
+  },
+  lookup: createDataTypeLookup([fixtureInt, fixtureExpression]),
+  dataTypeOfCodec: () => undefined,
+};
+
 function hover(markedSource: string, siblings: readonly string[] = []) {
   const offset = markedSource.indexOf('|');
   expect(offset).toBeGreaterThanOrEqual(0);
@@ -205,6 +233,7 @@ function hover(markedSource: string, siblings: readonly string[] = []) {
     position: sourceFile.positionAt(offset),
     binder: testBinder({ sources, symbolTable, authoringContributions, pslBlockDescriptors }),
     pslBlockDescriptors,
+    dataTypes,
   });
 }
 
@@ -469,7 +498,7 @@ describe('providePslHover', () => {
     expect(result).toEqual({
       contents: {
         kind: 'markdown',
-        value: '```prisma\npg.Varchar(length: number)\n```\n\nA variable-length string.',
+        value: '```prisma\npg.Varchar(length: a number)\n```\n\nA variable-length string.',
       },
       range: { start: { line: 1, character: 11 }, end: { line: 1, character: 18 } },
     });
@@ -499,14 +528,14 @@ describe('providePslHover', () => {
     });
   });
 
-  it('shows a stringArray contributed-type arg as string[]', () => {
-    const result = hover('model Product {\n  labels pg.Tag|s([])\n}');
+  it('shows a value argument by the forms its data type is written in', () => {
+    const result = hover('model Product {\n  labels pg.Ra|w(sql`text`)\n}');
     expect(result).toEqual({
       contents: {
         kind: 'markdown',
-        value: '```prisma\npg.Tags(tags: string[])\n```\n\nA list of tags.',
+        value: '```prisma\npg.Raw(sql: sql`...`)\n```\n\nA type written as SQL.',
       },
-      range: { start: { line: 1, character: 12 }, end: { line: 1, character: 16 } },
+      range: { start: { line: 1, character: 12 }, end: { line: 1, character: 15 } },
     });
   });
 

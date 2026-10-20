@@ -58,6 +58,7 @@ export type {
   AuthoringTypeConstructorDescriptor,
   AuthoringTypeConstructorEntityRef,
   AuthoringTypeNamespace,
+  AuthoringValueArgument,
   AuthoringWarning,
   AuthoringWarningSink,
   DataTypeAuthoringEntry,

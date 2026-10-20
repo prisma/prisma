@@ -446,7 +446,40 @@ function argumentMappedKeys(
   );
 }
 
-function enforceConstructorInvariants(input: DataTypeInvariantInput): void {
+/** Refuses a value argument whose data type is unregistered, or that no contract source can write, directly or through a cast. */
+function enforceValueArguments(
+  input: DataTypeInvariantInput,
+  contributed: ContributedConstructor,
+  writable: ReadonlySet<string>,
+): void {
+  const { path, descriptor, contributedBy } = contributed;
+  const kind = descriptor.kind === 'typeConstructor' ? 'type constructor' : 'field preset';
+  for (const [index, argument] of (descriptor.args ?? []).entries()) {
+    if (argument.kind !== 'value') continue;
+    const label = `Argument ${argument.name === undefined ? `#${index + 1}` : `"${argument.name}"`} of ${kind} "${path}"`;
+    const type = input.lookup.get(argument.dataType);
+    if (type === undefined) {
+      throw runtimeError(
+        'CONTRACT.DATA_TYPE_UNREGISTERED',
+        `${label} names data type "${argument.dataType}", which no component registers. Contributed by "${contributedBy}".`,
+        { dataType: argument.dataType, contributedBy },
+      );
+    }
+    const admitted = [argument.dataType, ...Object.keys(type.casts)];
+    if (!admitted.some((admittedType) => writable.has(admittedType))) {
+      throw runtimeError(
+        'CONTRACT.DATA_TYPE_NOT_WRITABLE',
+        `${label} contributed by "${contributedBy}" takes a value of data type "${argument.dataType}", which no contract source can write.`,
+        { dataType: argument.dataType, contributedBy },
+      );
+    }
+  }
+}
+
+function enforceConstructorInvariants(
+  input: DataTypeInvariantInput,
+  writable: ReadonlySet<string>,
+): void {
   const inferredBy = new Map<string, ContributedConstructor>();
   for (const contributed of input.constructors) {
     const { path, descriptor, contributedBy } = contributed;
@@ -458,6 +491,7 @@ function enforceConstructorInvariants(input: DataTypeInvariantInput): void {
         `${kind} "${path}" contributed by "${contributedBy}" names codec "${codecId}", which no component registers.`,
       );
     }
+    enforceValueArguments(input, contributed, writable);
     if (descriptor.kind !== 'typeConstructor') continue;
 
     const codecKeys = codec.paramsSchema === undefined ? [] : objectSchemaKeys(codec.paramsSchema);
@@ -496,7 +530,9 @@ function enforceConstructorInvariants(input: DataTypeInvariantInput): void {
  *    is never exercised;
  * 5. every type constructor and field preset names a registered codec;
  * 6. a type constructor maps its arguments only onto parameters its data type or codec declares;
- * 7. at most one type constructor per data type is marked inferred.
+ * 7. at most one type constructor per data type is marked inferred;
+ * 8. every value argument of a type constructor or field preset names a registered data type that
+ *    a contract source can write.
  */
 export function enforceDataTypeInvariants(input: DataTypeInvariantInput): void {
   const unregistered = (contributedBy: string, id: string, what: string): never => {
@@ -574,7 +610,7 @@ export function enforceDataTypeInvariants(input: DataTypeInvariantInput): void {
     claimants.set(claim, { key, contributedBy });
   }
 
-  enforceConstructorInvariants(input);
+  enforceConstructorInvariants(input, writable);
 }
 
 export function assembleControlMutationDefaults(

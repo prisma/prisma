@@ -330,6 +330,59 @@ describe('enforceDataTypeInvariants on type constructors and field presets', () 
     ).toThrow(/x-pack.*demo\/text|demo\/text.*x-pack/s);
   });
 
+  describe('a value argument', () => {
+    const withValueArgument = (
+      dataTypeOfArgument: string,
+      kind: 'typeConstructor' | 'fieldPreset' = 'typeConstructor',
+    ): ContributedConstructor => ({
+      path: 'Sized',
+      contributedBy: 'x-pack',
+      descriptor: {
+        kind,
+        args: [{ kind: 'value', dataType: dataTypeOfArgument, name: 'length' }],
+        output: { codecId: 'demo/sized@1', typeParams: { length: { kind: 'arg', index: 0 } } },
+      },
+    });
+    const checkWritten = (constructors: readonly ContributedConstructor[]) => () =>
+      invariants({
+        constructors,
+        codecDescriptorFor,
+        authoringEntries: [{ key: int2.id, entry: numberEntry(), contributedBy: 'demo' }],
+      });
+
+    it('refuses a data type no component registers, naming the constructor and the contributor', () => {
+      const thrown = (() => {
+        try {
+          checkWritten([withValueArgument('demo/gone')])();
+        } catch (error) {
+          return error;
+        }
+        return undefined;
+      })();
+      expect(isRuntimeError(thrown) && { code: thrown.code, message: thrown.message }).toEqual({
+        code: 'CONTRACT.DATA_TYPE_UNREGISTERED',
+        message:
+          'Argument "length" of type constructor "Sized" names data type "demo/gone", which no component registers. Contributed by "x-pack".',
+      });
+    });
+
+    it('refuses a data type nothing in the stack writes', () => {
+      expect(checkWritten([withValueArgument(text.id)])).toThrow(
+        'Argument "length" of type constructor "Sized" contributed by "x-pack" takes a value of data type "demo/text", which no contract source can write.',
+      );
+    });
+
+    it('checks the value arguments of a field preset too', () => {
+      expect(checkWritten([withValueArgument(text.id, 'fieldPreset')])).toThrow(
+        'Argument "length" of field preset "Sized" contributed by "x-pack" takes a value of data type "demo/text", which no contract source can write.',
+      );
+    });
+
+    it('passes a data type that is written, or that casts from a type that is written', () => {
+      expect(checkWritten([withValueArgument(int2.id), withValueArgument(int8.id)])).not.toThrow();
+    });
+  });
+
   it('passes one inferred constructor per data type', () => {
     expect(
       check([

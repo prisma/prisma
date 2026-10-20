@@ -7,7 +7,7 @@ import type {
   DataTypeAuthoringEntry,
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
-import { createDataTypeLookup } from '@internal/framework-components/codec';
+import { createDataTypeLookup, dataType } from '@internal/framework-components/codec';
 import {
   EMPTY_GENERATOR_FUNCTIONS,
   type GeneratorFunctionRegistry,
@@ -373,6 +373,30 @@ async function actualMongoStack(): Promise<CompletionTestStack> {
   };
 }
 
+const fixtureInt = dataType('fixture/int', { read: (json) => json });
+const fixtureExpression = dataType('fixture/expression', { read: (json) => json });
+const constructorArgumentDataTypes: DataTypeSupport = {
+  entries: {
+    [fixtureInt.id]: {
+      written: {
+        kind: 'plain',
+        syntax: 'number',
+        types: [fixtureInt.id],
+        classify: (text) => ({ type: fixtureInt.id, value: Number(text) }),
+      },
+      print: String,
+      documentation: 'A whole number.',
+    },
+    [fixtureExpression.id]: {
+      written: { kind: 'tag', tag: 'sql', parse: (text) => text },
+      print: String,
+      documentation: 'A SQL expression.',
+    },
+  },
+  lookup: createDataTypeLookup([fixtureInt, fixtureExpression]),
+  dataTypeOfCodec: () => undefined,
+};
+
 async function sqlExpressionDataTypes(): Promise<Readonly<Record<string, DataTypeAuthoringEntry>>> {
   const family = await importFromPackageRoot<ActualSqlExpressionModule>(
     '../../../2-sql/1-core/contract/src/exports/sql-expression.ts',
@@ -557,15 +581,15 @@ namespace other { model Hidden { id Int } }`,
         Required: {
           kind: 'typeConstructor',
           args: [
-            { name: 'size', kind: 'number' },
-            { name: 'label', kind: 'string' },
-            { name: 'scale', kind: 'number', optional: true },
+            { name: 'size', kind: 'value', dataType: 'fixture/int' },
+            { name: 'label', kind: 'value', dataType: 'fixture/expression' },
+            { name: 'scale', kind: 'value', dataType: 'fixture/int', optional: true },
           ],
           output: { codecId: 'fixture/value' },
         },
         Optional: {
           kind: 'typeConstructor',
-          args: [{ name: 'size', kind: 'number', optional: true }],
+          args: [{ name: 'size', kind: 'value', dataType: 'fixture/int', optional: true }],
           output: { codecId: 'fixture/value' },
         },
         Entity: {
@@ -583,12 +607,13 @@ namespace other { model Hidden { id Int } }`,
           authoringContributions: assembleAuthoringContributions([
             { id: 'constructors', authoring: { type: { ...types, custom: types } } },
           ]),
+          dataTypes: constructorArgumentDataTypes,
         });
         for (const [label, snippet] of [
           ['Scalar', 'Scalar'],
           ['Deprecated', 'Deprecated'],
           ['Empty', 'Empty()'],
-          ['Required', 'Required($' + '{1:size}, "$' + '{2:label}")'],
+          ['Required', 'Required($' + '{1:size}, sql`$' + '{2:label}`)'],
           ['Optional', 'Optional($' + '{1:})'],
           ['Entity', 'Entity($' + '{1:choice})'],
         ] as const) {
