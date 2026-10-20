@@ -81,3 +81,15 @@ With the CLI built from the branch, on Postgres and SQLite: a schema with each d
 - Enum member values, enum CHECK literals and Mongo validator enums (excluded above).
 - Problems found in earlier slices' QA: TML-3586, TML-3637, TML-3638, TML-3639.
 - Project close-out, which follows this slice (project plan, "Close-out").
+
+## Amendment, 2026-10-20: main's ADR 275 replaced the generator subsystem
+
+While this slice was built, `main` merged TML-3607 slice 1 (ADR 275, "Client generators are field attributes, and a type alias is expanded into each column"). Client generators are no longer default functions: `@default(uuid())` is refused and the generator is written `@onCreate(uuid())`; generator functions live in the SQL family's `generator-functions.ts`; each target or extension binds a function to codec ids, and the binding decides which columns take it. ADR 275 chose codec bindings over data types on purpose, because two codecs of one data type expect different in-memory values.
+
+Decision 6: this slice conforms to ADR 275. It keeps the codec bindings and drops its own generator applicability (`applicableDataTypes`, `writesText`, generators reading `textDataTypes`). It keeps what ADR 275 does not cover:
+
+- Generator arguments are typed values: `uuid`, `cuid` and `nanoid` in main's generator-function signatures take a `dataTypeValue` of the target's integer type, then the function's own check, with `PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT` (renamed if `main` names these "generator functions"; follow `main`'s vocabulary) and the labelled hover. The limits come from `@internal/ids`.
+- The length check: each generator states how many characters it writes, and a binding refuses a column whose length in normal form is shorter, for every generator, not only `nanoid` as on `main`.
+- The Prisma 7 reader checks its client functions' arguments through main's registry.
+- `textDataTypes` stays for discriminators only. Dispatch d is unaffected.
+- `sqlDefaultFunctions` keeps only the database defaults (`autoincrement`, `now`).
