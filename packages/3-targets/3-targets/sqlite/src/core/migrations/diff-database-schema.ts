@@ -2,6 +2,7 @@ import type { Contract, ControlPolicy } from '@internal/contract/types';
 import type { SqlSchemaDiffResult } from '@internal/family-sql/control';
 import { contractToSchemaIR, sqlTypeLookupsOf } from '@internal/family-sql/control';
 import { verifySqlSchemaByDiff } from '@internal/family-sql/diff';
+import type { TypeLookups } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   SchemaDiffIssue,
@@ -9,7 +10,6 @@ import type {
 } from '@internal/framework-components/control';
 import { diffSchemas } from '@internal/framework-components/control';
 import { entityAt } from '@internal/framework-components/ir';
-import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
 import type { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import type {
   SqlColumnIRInput,
@@ -17,7 +17,7 @@ import type {
   SqlSchemaIRNode,
   SqlTableIRInput,
 } from '@internal/sql-schema-ir/types';
-import { relationalNodeGranularity, SqlSchemaIR } from '@internal/sql-schema-ir/types';
+import { relationalNodeGranularity, SqlColumnIR, SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { sqliteResolveDefault } from '../default-normalizer';
 
@@ -38,7 +38,7 @@ interface SqliteDiffDatabaseSchemaInput {
  */
 export function sqliteContractToSchema(
   contract: Contract<SqlStorage> | null,
-  types: SqlTypeLookups,
+  types: TypeLookups,
 ): SqlSchemaIR {
   // SQLite is single-schema: every contract FK targets the unbound namespace
   // node, so derivation stamps no referenced namespace — the same absence
@@ -189,20 +189,25 @@ function withRecordKeyNames(actualSchema: SqlSchemaIRNode): SqlSchemaIRInput {
       Omit<SqlTableIRInput, 'name' | 'columns'>,
       'every table value in a tables record is SqlTableIR(Input)-shaped'
     >(table);
-    const columns: Record<string, SqlColumnIRInput> = {};
+    const columns: Record<string, SqlColumnIR | SqlColumnIRInput> = {};
     for (const [columnName, column] of Object.entries(
       blindCast<
         { readonly columns?: Readonly<Record<string, unknown>> },
         'every SqlTableIR(Input) carries a columns record keyed by column name'
       >(table).columns ?? {},
     )) {
-      columns[columnName] = {
-        ...blindCast<
-          SqlColumnIRInput,
-          'every column value in a columns record is SqlColumnIR(Input)-shaped'
-        >(column),
-        name: columnName,
-      };
+      columns[columnName] =
+        column instanceof SqlColumnIR
+          ? column.name === columnName
+            ? column
+            : column.withName(columnName)
+          : {
+              ...blindCast<
+                SqlColumnIRInput,
+                'every column value in a columns record is SqlColumnIR(Input)-shaped'
+              >(column),
+              name: columnName,
+            };
     }
     tables[tableName] = {
       ...rawTable,

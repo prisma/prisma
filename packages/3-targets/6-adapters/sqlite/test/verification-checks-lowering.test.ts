@@ -8,10 +8,10 @@ import {
 } from '@internal/target-sqlite/contract-free';
 import { SqliteCreateTable } from '@internal/target-sqlite/ddl';
 import { describe, expect, it } from 'vitest';
-import { SqliteControlAdapter } from '../src/core/control-adapter';
 import type { SqliteContract } from '../src/core/types';
+import { createTestSqliteControlAdapter } from './helpers/test-control-adapter';
 
-const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
 const ctx = { contract: {} as SqliteContract };
 
 describe('columnExistsAst lowering — pragma_table_info verification checks', () => {
@@ -74,7 +74,7 @@ describe('indexExistsAst lowering — sqlite_master index verification checks', 
   });
 });
 
-const productionAdapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+const productionAdapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
 
 describe('verification checks lowering — complete codec registry', () => {
   it('columnExistsAst lowers with sqlite/text@1 params without CODEC_DESCRIPTOR_MISSING', async () => {

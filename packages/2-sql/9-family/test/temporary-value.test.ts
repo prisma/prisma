@@ -2,7 +2,7 @@ import { StorageTable } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { columnTakesTemporaryValue } from '../src/core/migrations/temporary-value';
 
-const text = { dataType: 'test/text', codecId: 'test/text@1', nativeType: 'text', nullable: false };
+const text = { dataType: 'test/text', codecId: 'test/text@1', nullable: false };
 const role = {
   ...text,
   valueSet: {

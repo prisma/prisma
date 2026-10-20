@@ -7,6 +7,7 @@ import type {
   MigrationPlanOperation,
   MigrationRunner,
   MigrationRunnerPerSpaceOptions,
+  SchemaDiffIssue,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
@@ -17,7 +18,7 @@ import { writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { writeRef } from '@internal/migration-tools/refs';
 import { blindCast } from '@internal/utils/casts';
-import { ok } from '@internal/utils/result';
+import { notOk, ok } from '@internal/utils/result';
 import { createSqlContract } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -166,6 +167,24 @@ function recordingMigrations() {
   return { runnerCalls, migrations };
 }
 
+/** A runner whose schema check after apply fails with `issues`. */
+function schemaCheckFailingMigrations(issues: readonly SchemaDiffIssue[]) {
+  const runner: MigrationRunner<'sql', 'postgres'> = {
+    execute: async () =>
+      notOk({
+        code: 'MIGRATION.SCHEMA_VERIFY_FAILED',
+        summary: 'Database schema does not satisfy contract',
+        meta: { issues },
+        schemaIssues: issues,
+        failingSpace: 'app',
+      }),
+  };
+  return blindCast<
+    TargetMigrationsCapability<'sql', 'postgres', ControlFamilyInstance<'sql', unknown>>,
+    'executeMigrate only creates a runner'
+  >({ createRunner: () => runner });
+}
+
 function migrateOptions(args: {
   readonly migrationsDir: string;
   readonly markers: ReadonlyMap<string, ContractMarkerRecord>;
@@ -260,5 +279,30 @@ describe('executeMigrate runner schedule', () => {
 
     expect(result.ok).toBe(true);
     expect(runnerCalls).toEqual([[EXTERNAL_SPACE, 'app']]);
+  });
+
+  it('carries the issues of a failed schema check, and keeps them in meta for JSON output', async () => {
+    const migrationsDir = await migrationsDirWithOneAppEdge();
+    const issue: SchemaDiffIssue = {
+      path: ['public', 'event', 'id'],
+      expected: { id: 'id', nodeKind: 'sql-column', isEqualTo: () => false, children: () => [] },
+    };
+
+    const result = await executeMigrate(
+      migrateOptions({
+        migrationsDir,
+        markers: new Map(),
+        migrations: schemaCheckFailingMigrations([issue]),
+      }),
+    );
+
+    expect(
+      result.ok
+        ? undefined
+        : {
+            schemaIssues: result.failure.schemaIssues,
+            metaIssues: result.failure.meta?.['issues'],
+          },
+    ).toEqual({ schemaIssues: [issue], metaIssues: [issue] });
   });
 });

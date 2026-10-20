@@ -53,9 +53,9 @@ describe('constraintRenamesForTableRename', () => {
     return new PostgresTableSchemaNode({
       name: 'UserProfile',
       columns: {
-        id: { name: 'id', nativeType: 'int4', nullable: false },
-        email: { name: 'email', nativeType: 'text', nullable: false },
-        accountId: { name: 'accountId', nativeType: 'int4', nullable: false },
+        id: { name: 'id', typeText: 'int4', nullable: false },
+        email: { name: 'email', typeText: 'text', nullable: false },
+        accountId: { name: 'accountId', typeText: 'int4', nullable: false },
       },
       foreignKeys: [...(input.foreignKeys ?? [])],
       uniques: [...(input.uniques ?? [])],

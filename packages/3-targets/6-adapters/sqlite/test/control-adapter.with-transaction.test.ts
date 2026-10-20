@@ -4,7 +4,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { createSqliteBuiltinCodecLookup } from '@internal/target-sqlite/codecs';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
-import { SqliteControlAdapter } from '../src/core/control-adapter';
+import { createTestSqliteControlAdapter } from './helpers/test-control-adapter';
 
 function createMemoryDriver(location = ':memory:') {
   const db = new DatabaseSync(location);
@@ -32,7 +32,7 @@ async function countRows(driver: ReturnType<typeof createMemoryDriver>): Promise
 }
 
 describe('SqliteControlAdapter.withTransaction', () => {
-  const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+  const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
 
   it('commits the work of a callback that resolves and returns its value', async () => {
     const driver = createMemoryDriver();
@@ -112,7 +112,7 @@ describe('SqliteControlAdapter.withTransaction', () => {
 });
 
 describe('SqliteControlAdapter marker lock', () => {
-  const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+  const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
 
   it('holds the database write lock from the start of the transaction, so the migration runner cannot begin', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'sqlite-sign-lock-'));

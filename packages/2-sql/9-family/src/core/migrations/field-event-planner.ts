@@ -23,9 +23,10 @@
  */
 
 import type { Contract } from '@internal/contract/types';
-import type { DataTypeLookup } from '@internal/framework-components/codec';
+import { type DataTypeLookup, objectSchemaKeys } from '@internal/framework-components/codec';
 import type { OpFactoryCall } from '@internal/framework-components/control';
-import { sqlStorageTypeId } from '@internal/sql-contract/data-type';
+import { canonicalizeJson } from '@internal/framework-components/utils';
+import { sameSqlColumnType } from '@internal/sql-contract/data-type';
 import { type SqlStorage, type StorageColumn, StorageTable } from '@internal/sql-contract/types';
 import type { ColumnRename } from './resolve-column-rename';
 import type { TableRename } from './resolve-table-rename';
@@ -273,14 +274,30 @@ function sameStorageColumn(
   dataTypes: Pick<DataTypeLookup, 'get'>,
 ): boolean {
   if (a === b) return true;
-  if (sqlStorageTypeId(a.dataType, dataTypes) !== sqlStorageTypeId(b.dataType, dataTypes)) {
-    return false;
-  }
+  if (!sameSqlColumnType(a, b, dataTypes)) return false;
   if (a.nullable !== b.nullable) return false;
   if (a.typeRef !== b.typeRef) return false;
-  if (!sameJson(a.typeParams, b.typeParams)) return false;
+  if (
+    canonicalizeJson(codecOwnParams(a, dataTypes)) !==
+    canonicalizeJson(codecOwnParams(b, dataTypes))
+  ) {
+    return false;
+  }
   if (!sameJson(a.default, b.default)) return false;
   return true;
+}
+
+/** The parameters a column's codec keeps for itself: every key its data type does not declare. */
+function codecOwnParams(
+  column: StorageColumn,
+  dataTypes: Pick<DataTypeLookup, 'get'>,
+): Record<string, unknown> {
+  const declared = new Set<PropertyKey>(
+    objectSchemaKeys(dataTypes.get(column.dataType)?.params) ?? [],
+  );
+  return Object.fromEntries(
+    Object.entries(column.typeParams ?? {}).filter(([key]) => !declared.has(key)),
+  );
 }
 
 function sameJson(a: unknown, b: unknown): boolean {

@@ -1,13 +1,11 @@
 import type { VerifyDatabaseSchemaResult } from '@internal/framework-components/control';
 import { describe, expect, it } from 'vitest';
-import type { CliStructuredError } from '../src/control';
 import { errorConfigFileNotFound, errorContractValidationFailed } from '../src/control';
 import {
   errorMarkerMissing,
   errorMarkerRequired,
   errorMarkerRowCorrupt,
   errorSchemaVerificationFailed,
-  rethrowMarkerReadError,
 } from '../src/execution';
 import { errorMigrationFileMissing } from '../src/migration';
 
@@ -132,29 +130,6 @@ describe('converted factories carry typed nextActions', () => {
         kind: 'run-command',
         label: 'Scaffold a migration from a contract diff',
         command: '{bin} migration plan',
-      },
-    ]);
-  });
-
-  it('the legacy marker-table shape maps to a runner failure carrying nextActions', () => {
-    let thrown: CliStructuredError | undefined;
-    try {
-      rethrowMarkerReadError(new Error('column "space" does not exist'), {
-        space: 'app',
-        markerLocation: 'prisma_contract.marker',
-      });
-    } catch (error) {
-      thrown = error as CliStructuredError;
-    }
-
-    expect(thrown?.code).toBe('MIGRATION.RUNNER_FAILED');
-    expect(thrown?.nextActions).toEqual([
-      {
-        kind: 'run-command',
-        label: 'Reinitialise the marker table from a clean baseline',
-        command: '{bin} db init',
-        reason:
-          'Drop `prisma_contract.marker` first — it has the legacy shape (no `space` column) and this command recreates it with the current per-space schema.',
       },
     ]);
   });

@@ -28,9 +28,9 @@ import {
   postgresCreateNamespace,
 } from '@internal/target-postgres/types';
 import { applicationDomainOf, createDevDatabase, timeouts } from '@repo/test-utils';
-import { PostgresControlAdapter } from '../../../src/core/control-adapter';
 import type { PostgresContract } from '../../../src/core/types';
 import postgresAdapterDescriptor from '../../../src/exports/control';
+import { createTestPostgresControlAdapter } from '../../helpers/test-control-adapter';
 
 export const contract: Contract<SqlStorage> = {
   target: 'postgres',
@@ -169,26 +169,11 @@ export function createLedgerTestPlan<TDetails extends PostgresPlanTargetDetails>
   });
 }
 
-const postgresControlAdapter = new PostgresControlAdapter(
+const postgresControlAdapter = createTestPostgresControlAdapter(
   createPostgresBuiltinCodecLookup(),
   createPostgresBuiltinDataTypeLookup(),
 );
 const postgresControlLowererContext = { contract: {} as PostgresContract };
-
-export async function bootstrapPostgresControlSchema(driver: PostgresControlDriver): Promise<void> {
-  const schemaQuery = buildControlTableBootstrapQueries()[0];
-  if (!schemaQuery) {
-    throw new Error('expected prisma_contract schema bootstrap query');
-  }
-  const postgresSchemaQuery = schemaQuery as unknown as PostgresDdlNode;
-  await executeStatement(
-    driver,
-    await postgresControlAdapter.lowerToExecuteRequest(
-      postgresSchemaQuery,
-      postgresControlLowererContext,
-    ),
-  );
-}
 
 export async function bootstrapPostgresControlTables(driver: PostgresControlDriver): Promise<void> {
   for (const query of buildControlTableBootstrapQueries()) {

@@ -1,46 +1,124 @@
-import { EXISTING_COLUMN_DATE_TIME_TYPES } from './psl-build/existing-column-date-time-types';
+import { inferredTypeConstructors } from '@internal/family-sql/psl-build';
+import { authoringTypeConstructorArguments } from '@internal/framework-components/authoring';
+import { createDataTypeLookup, type DataTypeId } from '@internal/framework-components/codec';
+import type { SqlTypeParams } from '@internal/sql-contract/data-type';
+import { InternalError } from '@internal/utils/internal-error';
+import {
+  pgBool,
+  pgBytea,
+  pgChar,
+  pgDate,
+  pgFloat4,
+  pgFloat8,
+  pgInet,
+  pgInt2,
+  pgInt4,
+  pgInt8,
+  pgJson,
+  pgJsonb,
+  pgNumeric,
+  pgText,
+  pgTime,
+  pgTimestamp,
+  pgTimestamptz,
+  pgTimetz,
+  pgUuid,
+  pgVarchar,
+  postgresDataTypes,
+} from './data-types';
+import { postgresCodecDescriptorRegistry } from './registry';
+import { postgresPslTypeConstructors } from './type-constructors';
+
+/** A Prisma 8 constructor call: its name and its arguments as written. */
+export interface ConstructorCall {
+  readonly constructorName: string;
+  readonly args: readonly string[];
+}
+
+/** The data type and parameters of the column Prisma 7 creates. */
+export interface Prisma7ColumnType {
+  readonly dataType: DataTypeId;
+  readonly params: SqlTypeParams;
+}
+
+const of = (type: { readonly id: DataTypeId }, params: SqlTypeParams = {}): Prisma7ColumnType => ({
+  dataType: type.id,
+  params,
+});
 
 /**
- * What Prisma 7.10.0 creates in Postgres for each Prisma 7 scalar and `@db.*`
- * native type, expressed as the Prisma 8 authoring type constructor that
- * produces the same column. Derived from the SQL recorded in
- * `test/integration/test/fixtures/prisma7-source/reference/migration.sql`.
- * `args` are the constructor's positional arguments. A `@db.*` attribute's own
- * arguments replace them; without any, the column gets `args`, so `@db.Char`
- * is `Char(1)`, the `character(1)` Postgres stores for Prisma 7's `CHAR`.
+ * What Prisma 7.10.0 creates in Postgres for each Prisma 7 scalar and `@db.*` native type, as a data type and its parameters. Derived from the SQL recorded in `test/integration/test/fixtures/prisma7-source/reference/migration.sql`. A `@db.*` attribute's own arguments replace the parameters; without any, the column gets these, so `@db.Char` is the `character(1)` Postgres stores for Prisma 7's `CHAR`.
  */
-export const prisma7PostgresTypeMap = {
+export const prisma7PostgresTypes = {
   scalars: {
-    String: { constructorName: 'String', args: [] },
-    Boolean: { constructorName: 'Boolean', args: [] },
-    Int: { constructorName: 'Int', args: [] },
-    BigInt: { constructorName: 'BigInt', args: [] },
-    Float: { constructorName: 'Float', args: [] },
-    Decimal: { constructorName: 'Numeric', args: ['65', '30'] },
-    DateTime: { constructorName: EXISTING_COLUMN_DATE_TIME_TYPES.timestamp, args: ['3'] },
-    Json: { constructorName: 'Jsonb', args: [] },
-    Bytes: { constructorName: 'Bytes', args: [] },
+    String: of(pgText),
+    Boolean: of(pgBool),
+    Int: of(pgInt4),
+    BigInt: of(pgInt8),
+    Float: of(pgFloat8),
+    Decimal: of(pgNumeric, { precision: 65, scale: 30 }),
+    DateTime: of(pgTimestamp, { precision: 3 }),
+    Json: of(pgJsonb),
+    Bytes: of(pgBytea),
   },
   nativeTypes: {
-    Text: { constructorName: 'String', args: [] },
-    VarChar: { constructorName: 'VarChar', args: [] },
-    Char: { constructorName: 'Char', args: ['1'] },
-    Uuid: { constructorName: 'Uuid', args: [] },
-    Inet: { constructorName: 'Inet', args: [] },
-    Boolean: { constructorName: 'Boolean', args: [] },
-    Integer: { constructorName: 'Int', args: [] },
-    SmallInt: { constructorName: 'SmallInt', args: [] },
-    BigInt: { constructorName: 'BigInt', args: [] },
-    Real: { constructorName: 'Real', args: [] },
-    DoublePrecision: { constructorName: 'Float', args: [] },
-    Decimal: { constructorName: 'Numeric', args: [] },
-    Timestamp: { constructorName: EXISTING_COLUMN_DATE_TIME_TYPES.timestamp, args: [] },
-    Timestamptz: { constructorName: EXISTING_COLUMN_DATE_TIME_TYPES.timestamptz, args: [] },
-    Date: { constructorName: EXISTING_COLUMN_DATE_TIME_TYPES.date, args: [] },
-    Time: { constructorName: EXISTING_COLUMN_DATE_TIME_TYPES.time, args: [] },
-    Timetz: { constructorName: EXISTING_COLUMN_DATE_TIME_TYPES.timetz, args: [] },
-    Json: { constructorName: 'Json', args: [] },
-    JsonB: { constructorName: 'Jsonb', args: [] },
-    ByteA: { constructorName: 'Bytes', args: [] },
+    Text: of(pgText),
+    VarChar: of(pgVarchar),
+    Char: of(pgChar, { length: 1 }),
+    Uuid: of(pgUuid),
+    Inet: of(pgInet),
+    Boolean: of(pgBool),
+    Integer: of(pgInt4),
+    SmallInt: of(pgInt2),
+    BigInt: of(pgInt8),
+    Real: of(pgFloat4),
+    DoublePrecision: of(pgFloat8),
+    Decimal: of(pgNumeric),
+    Timestamp: of(pgTimestamp),
+    Timestamptz: of(pgTimestamptz),
+    Date: of(pgDate),
+    Time: of(pgTime),
+    Timetz: of(pgTimetz),
+    Json: of(pgJson),
+    JsonB: of(pgJsonb),
+    ByteA: of(pgBytea),
   },
 } as const;
+
+const marked = inferredTypeConstructors({
+  authoringTypes: postgresPslTypeConstructors,
+  codecLookup: postgresCodecDescriptorRegistry,
+  dataTypeLookup: createDataTypeLookup(postgresDataTypes),
+});
+
+/**
+ * The constructor marked `inferred` for the column's data type, with every parameter Prisma 7 gives the column as an argument. The reader builds a contract, so it keeps each parameter rather than the fewest arguments printed PSL writes (design 13.8).
+ */
+function mappingOf({ dataType, params }: Prisma7ColumnType): ConstructorCall {
+  const markedConstructor = marked.get(dataType);
+  const args =
+    markedConstructor === undefined
+      ? undefined
+      : authoringTypeConstructorArguments(markedConstructor.descriptor, {
+          codecId: markedConstructor.descriptor.output.codecId,
+          typeParams: params,
+        });
+  if (markedConstructor === undefined || args === undefined) {
+    throw new InternalError(
+      `No constructor marked inferred writes ${dataType} with these parameters.`,
+    );
+  }
+  return { constructorName: markedConstructor.path.join('.'), args: args.map(String) };
+}
+
+function mappingsOf(
+  types: Readonly<Record<string, Prisma7ColumnType>>,
+): Readonly<Record<string, ConstructorCall>> {
+  return Object.fromEntries(Object.entries(types).map(([name, type]) => [name, mappingOf(type)]));
+}
+
+/** {@link prisma7PostgresTypes} as the Prisma 7 reader takes it: each type's constructor call. */
+export const prisma7PostgresTypeMap = {
+  scalars: mappingsOf(prisma7PostgresTypes.scalars),
+  nativeTypes: mappingsOf(prisma7PostgresTypes.nativeTypes),
+};

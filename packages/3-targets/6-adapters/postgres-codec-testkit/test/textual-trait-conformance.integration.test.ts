@@ -13,7 +13,7 @@ import {
 } from '@internal/target-postgres/sql-utils';
 import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { type AggregateFixture, FIXTURES, nativeTypeOf, refOf } from './aggregate-matrix';
+import { type AggregateFixture, FIXTURES, refOf, typeTextOf } from './aggregate-matrix';
 
 type Query = (sql: string) => Promise<ReadonlyArray<Record<string, unknown>>>;
 
@@ -80,10 +80,10 @@ describe('PostgreSQL textual trait conformance', { concurrent: false }, () => {
     for (const statement of fixture.setupSql ?? []) {
       await query(statement);
     }
-    const nativeType = nativeTypeOf(refOf(fixture));
-    await query(`CREATE TABLE "${TABLE}" ("${COLUMN}" ${nativeType})`);
+    const typeText = typeTextOf(refOf(fixture));
+    await query(`CREATE TABLE "${TABLE}" ("${COLUMN}" ${typeText})`);
     await query(
-      `INSERT INTO "${TABLE}" ("${COLUMN}") VALUES ((${fixture.samples[0]})::${nativeType})`,
+      `INSERT INTO "${TABLE}" ("${COLUMN}") VALUES ((${fixture.samples[0]})::${typeText})`,
     );
 
     const refusals: Refusal[] = [];

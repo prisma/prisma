@@ -18,11 +18,11 @@ import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
 import { SqliteCreateTable } from '@internal/target-sqlite/ddl';
 import { createContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { SqliteControlAdapter } from '../src/core/control-adapter';
 import { encodeControlQueryParams } from '../src/core/control-codecs';
 import type { SqliteContract } from '../src/core/types';
+import { createTestSqliteControlAdapter } from './helpers/test-control-adapter';
 
-const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
 const ctx = { contract: {} as SqliteContract };
 
 /**
@@ -225,7 +225,7 @@ describe('SqliteControlAdapter.lowerToExecuteRequest — guards', () => {
 
 describe('SqliteControlAdapter.lowerToExecuteRequest — codec routing + DDL shape', () => {
   it('routes a codec-bearing literal default through codec.toWire (not raw type-branching)', async () => {
-    const codecAdapter = new SqliteControlAdapter(transformingLookup);
+    const codecAdapter = createTestSqliteControlAdapter(transformingLookup);
     const ast = new SqliteCreateTable({
       table: 'secrets',
       columns: [
@@ -378,7 +378,7 @@ describe('SqliteControlAdapter.lowerToExecuteRequest — extension codec end-to-
 
   it('encodes a query param through an extension codec when the adapter receives the descriptor', async () => {
     const { contract, table } = buildExtContractAndTable();
-    const extAdapter = new SqliteControlAdapter(extCodecLookup);
+    const extAdapter = createTestSqliteControlAdapter(extCodecLookup);
 
     const ast = table.select(table.label).where(table.label.eq('plaintext')).build();
     const result = await extAdapter.lowerToExecuteRequest(ast, { contract });
@@ -389,7 +389,7 @@ describe('SqliteControlAdapter.lowerToExecuteRequest — extension codec end-to-
 
   it('throws when a contract column references a codec absent from the adapter lookup', async () => {
     const { contract, table } = buildExtContractAndTable();
-    const noExtAdapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const noExtAdapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
 
     const ast = table.select(table.label).where(table.label.eq('plaintext')).build();
     await expect(noExtAdapter.lowerToExecuteRequest(ast, { contract })).rejects.toThrow(

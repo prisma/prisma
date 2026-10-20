@@ -26,7 +26,7 @@ import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-da
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresPolicySchemaNode } from '../../src/core/schema-ir/postgres-policy-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
-import { postgresTypeComponents } from '../postgres-type-lookups';
+import { introspectedColumn, postgresTypeComponents } from '../postgres-type-lookups';
 
 const TABLE_NAME = 'profiles';
 const stubLowerer: ExecuteRequestLowerer = {
@@ -117,8 +117,8 @@ function actualSchema(options: {
           [TABLE_NAME]: new PostgresTableSchemaNode({
             name: TABLE_NAME,
             columns: {
-              id: { name: 'id', nativeType: 'int4', nullable: false },
-              user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
+              id: introspectedColumn({ name: 'id', typeText: 'int4', nullable: false }),
+              user_id: introspectedColumn({ name: 'user_id', typeText: 'int4', nullable: false }),
             },
             primaryKey: { columns: ['id'] },
             foreignKeys: [],

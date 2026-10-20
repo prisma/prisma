@@ -28,10 +28,10 @@ describe('inferPostgresPslContract', () => {
         event: {
           name: 'event',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
             ts: {
               name: 'ts',
-              nativeType: 'timestamptz',
+              typeText: 'timestamptz',
               nullable: false,
               default: 'now()',
             },
@@ -65,11 +65,11 @@ describe('inferPostgresPslContract', () => {
           columns: {
             id: {
               name: 'id',
-              nativeType: 'int4',
+              typeText: 'int4',
               nullable: false,
               resolvedDefault: { kind: 'function', expression: 'autoincrement()' },
             },
-            note: { name: 'note', nativeType: 'text', nullable: true },
+            note: { name: 'note', typeText: 'text', nullable: true },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],
@@ -111,8 +111,8 @@ describe('inferPostgresPslContract', () => {
           user: {
             name: 'user',
             columns: {
-              id: { name: 'id', nativeType: 'int4', nullable: false },
-              email: { name: 'email', nativeType: 'text', nullable: false },
+              id: { name: 'id', typeText: 'int4', nullable: false },
+              email: { name: 'email', typeText: 'text', nullable: false },
             },
             primaryKey: { columns: ['id'] },
             foreignKeys: [],
@@ -294,7 +294,7 @@ describe('inferPostgresPslContract', () => {
         tables: {
           thing: new PostgresTableSchemaNode({
             name: 'thing',
-            columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+            columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
             primaryKey: { columns: ['id'] },
             foreignKeys: [],
             uniques: [],

@@ -21,9 +21,9 @@ describe('printPsl', () => {
         user: {
           name: 'user',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
-            email: { name: 'email', nativeType: 'text', nullable: false },
-            name: { name: 'name', nativeType: 'text', nullable: true },
+            id: { name: 'id', typeText: 'int4', nullable: false },
+            email: { name: 'email', typeText: 'text', nullable: false },
+            name: { name: 'name', typeText: 'text', nullable: true },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],
@@ -54,10 +54,10 @@ describe('printPsl', () => {
         audit_log: {
           name: 'audit_log',
           columns: {
-            event: { name: 'event', nativeType: 'text', nullable: false },
+            event: { name: 'event', typeText: 'text', nullable: false },
             timestamp: {
               name: 'timestamp',
-              nativeType: 'timestamptz',
+              typeText: 'timestamptz',
               nullable: false,
             },
           },
@@ -89,13 +89,13 @@ describe('printPsl', () => {
         order_item: {
           name: 'order_item',
           columns: {
-            order_id: { name: 'order_id', nativeType: 'int4', nullable: false },
+            order_id: { name: 'order_id', typeText: 'int4', nullable: false },
             product_id: {
               name: 'product_id',
-              nativeType: 'int4',
+              typeText: 'int4',
               nullable: false,
             },
-            quantity: { name: 'quantity', nativeType: 'int4', nullable: false },
+            quantity: { name: 'quantity', typeText: 'int4', nullable: false },
           },
           primaryKey: { columns: ['order_id', 'product_id'], name: 'order_item_pkey' },
           foreignKeys: [],
@@ -127,7 +127,7 @@ describe('printPsl', () => {
         b_table: {
           name: 'b_table',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],
@@ -137,7 +137,7 @@ describe('printPsl', () => {
         a_table: {
           name: 'a_table',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],

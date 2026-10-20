@@ -7,7 +7,7 @@ describe('inferRelations', () => {
     const tables: Record<string, SqlTableIR> = {
       user: new SqlTableIR({
         name: 'user',
-        columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+        columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
         uniques: [],
@@ -16,8 +16,8 @@ describe('inferRelations', () => {
       post: new SqlTableIR({
         name: 'post',
         columns: {
-          id: { name: 'id', nativeType: 'int4', nullable: false },
-          user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
+          id: { name: 'id', typeText: 'int4', nullable: false },
+          user_id: { name: 'user_id', typeText: 'int4', nullable: false },
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [{ columns: ['user_id'], referencedTable: 'user', referencedColumns: ['id'] }],
@@ -54,7 +54,7 @@ describe('inferRelations', () => {
     const tables: Record<string, SqlTableIR> = {
       user: new SqlTableIR({
         name: 'user',
-        columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+        columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
         uniques: [],
@@ -63,8 +63,8 @@ describe('inferRelations', () => {
       profile: new SqlTableIR({
         name: 'profile',
         columns: {
-          id: { name: 'id', nativeType: 'int4', nullable: false },
-          user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
+          id: { name: 'id', typeText: 'int4', nullable: false },
+          user_id: { name: 'user_id', typeText: 'int4', nullable: false },
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [{ columns: ['user_id'], referencedTable: 'user', referencedColumns: ['id'] }],
@@ -91,7 +91,7 @@ describe('inferRelations', () => {
     const tables: Record<string, SqlTableIR> = {
       user: new SqlTableIR({
         name: 'user',
-        columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+        columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
         uniques: [],
@@ -100,8 +100,8 @@ describe('inferRelations', () => {
       profile: new SqlTableIR({
         name: 'profile',
         columns: {
-          id: { name: 'id', nativeType: 'int4', nullable: false },
-          user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
+          id: { name: 'id', typeText: 'int4', nullable: false },
+          user_id: { name: 'user_id', typeText: 'int4', nullable: false },
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [{ columns: ['user_id'], referencedTable: 'user', referencedColumns: ['id'] }],
@@ -139,7 +139,7 @@ describe('inferRelations', () => {
     const tables: Record<string, SqlTableIR> = {
       user: new SqlTableIR({
         name: 'user',
-        columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+        columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
         uniques: [],
@@ -148,8 +148,8 @@ describe('inferRelations', () => {
       draft: new SqlTableIR({
         name: 'draft',
         columns: {
-          id: { name: 'id', nativeType: 'int4', nullable: false },
-          user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
+          id: { name: 'id', typeText: 'int4', nullable: false },
+          user_id: { name: 'user_id', typeText: 'int4', nullable: false },
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [{ columns: ['user_id'], referencedTable: 'user', referencedColumns: ['id'] }],
@@ -190,7 +190,7 @@ describe('inferRelations', () => {
     const tables: Record<string, SqlTableIR> = {
       user: new SqlTableIR({
         name: 'user',
-        columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+        columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
         uniques: [],
@@ -199,9 +199,9 @@ describe('inferRelations', () => {
       handle: new SqlTableIR({
         name: 'handle',
         columns: {
-          id: { name: 'id', nativeType: 'int4', nullable: false },
-          user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
-          name: { name: 'name', nativeType: 'text', nullable: false },
+          id: { name: 'id', typeText: 'int4', nullable: false },
+          user_id: { name: 'user_id', typeText: 'int4', nullable: false },
+          name: { name: 'name', typeText: 'text', nullable: false },
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [{ columns: ['user_id'], referencedTable: 'user', referencedColumns: ['id'] }],
@@ -239,7 +239,7 @@ describe('inferRelations', () => {
     const tables: Record<string, SqlTableIR> = {
       user: new SqlTableIR({
         name: 'user',
-        columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+        columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
         uniques: [],
@@ -248,7 +248,7 @@ describe('inferRelations', () => {
       user_detail: new SqlTableIR({
         name: 'user_detail',
         columns: {
-          user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
+          user_id: { name: 'user_id', typeText: 'int4', nullable: false },
         },
         primaryKey: { columns: ['user_id'] },
         foreignKeys: [{ columns: ['user_id'], referencedTable: 'user', referencedColumns: ['id'] }],
@@ -275,8 +275,8 @@ describe('inferRelations', () => {
       account: new SqlTableIR({
         name: 'account',
         columns: {
-          tenant_id: { name: 'tenant_id', nativeType: 'int4', nullable: false },
-          id: { name: 'id', nativeType: 'int4', nullable: false },
+          tenant_id: { name: 'tenant_id', typeText: 'int4', nullable: false },
+          id: { name: 'id', typeText: 'int4', nullable: false },
         },
         primaryKey: { columns: ['tenant_id', 'id'] },
         foreignKeys: [],
@@ -286,9 +286,9 @@ describe('inferRelations', () => {
       profile: new SqlTableIR({
         name: 'profile',
         columns: {
-          id: { name: 'id', nativeType: 'int4', nullable: false },
-          tenant_id: { name: 'tenant_id', nativeType: 'int4', nullable: false },
-          account_id: { name: 'account_id', nativeType: 'int4', nullable: false },
+          id: { name: 'id', typeText: 'int4', nullable: false },
+          tenant_id: { name: 'tenant_id', typeText: 'int4', nullable: false },
+          account_id: { name: 'account_id', typeText: 'int4', nullable: false },
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [
@@ -320,7 +320,7 @@ describe('inferRelations', () => {
     const tables: Record<string, SqlTableIR> = {
       user: new SqlTableIR({
         name: 'user',
-        columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+        columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
         uniques: [],
@@ -329,9 +329,9 @@ describe('inferRelations', () => {
       message: new SqlTableIR({
         name: 'message',
         columns: {
-          id: { name: 'id', nativeType: 'int4', nullable: false },
-          sender_id: { name: 'sender_id', nativeType: 'int4', nullable: false },
-          receiver_id: { name: 'receiver_id', nativeType: 'int4', nullable: false },
+          id: { name: 'id', typeText: 'int4', nullable: false },
+          sender_id: { name: 'sender_id', typeText: 'int4', nullable: false },
+          receiver_id: { name: 'receiver_id', typeText: 'int4', nullable: false },
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [
@@ -371,7 +371,7 @@ describe('inferRelations', () => {
     const tables: Record<string, SqlTableIR> = {
       user: new SqlTableIR({
         name: 'user',
-        columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+        columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
         uniques: [],
@@ -380,9 +380,9 @@ describe('inferRelations', () => {
       message: new SqlTableIR({
         name: 'message',
         columns: {
-          id: { name: 'id', nativeType: 'int4', nullable: false },
-          sender_id: { name: 'sender_id', nativeType: 'int4', nullable: false },
-          recipient_id: { name: 'recipient_id', nativeType: 'int4', nullable: false },
+          id: { name: 'id', typeText: 'int4', nullable: false },
+          sender_id: { name: 'sender_id', typeText: 'int4', nullable: false },
+          recipient_id: { name: 'recipient_id', typeText: 'int4', nullable: false },
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [
@@ -411,8 +411,8 @@ describe('inferRelations', () => {
       category: new SqlTableIR({
         name: 'category',
         columns: {
-          id: { name: 'id', nativeType: 'int4', nullable: false },
-          parent_id: { name: 'parent_id', nativeType: 'int4', nullable: true },
+          id: { name: 'id', typeText: 'int4', nullable: false },
+          parent_id: { name: 'parent_id', typeText: 'int4', nullable: true },
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [
@@ -448,7 +448,7 @@ describe('inferRelations', () => {
     const tables: Record<string, SqlTableIR> = {
       parent: new SqlTableIR({
         name: 'parent',
-        columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+        columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
         uniques: [],
@@ -457,8 +457,8 @@ describe('inferRelations', () => {
       child: new SqlTableIR({
         name: 'child',
         columns: {
-          id: { name: 'id', nativeType: 'int4', nullable: false },
-          parent_id: { name: 'parent_id', nativeType: 'int4', nullable: false },
+          id: { name: 'id', typeText: 'int4', nullable: false },
+          parent_id: { name: 'parent_id', typeText: 'int4', nullable: false },
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [
@@ -492,9 +492,9 @@ describe('inferRelations', () => {
       audit: new SqlTableIR({
         name: 'audit',
         columns: {
-          id: { name: 'id', nativeType: 'int4', nullable: false },
-          owner_id: { name: 'owner_id', nativeType: 'int4', nullable: false },
-          marker: { name: 'marker', nativeType: 'text', nullable: false },
+          id: { name: 'id', typeText: 'int4', nullable: false },
+          owner_id: { name: 'owner_id', typeText: 'int4', nullable: false },
+          marker: { name: 'marker', typeText: 'text', nullable: false },
         },
         foreignKeys: [
           { columns: ['owner_id'], referencedTable: 'user', referencedColumns: ['id'] },
@@ -526,7 +526,7 @@ describe('inferRelations', () => {
     const tables: Record<string, SqlTableIR> = {
       user: new SqlTableIR({
         name: 'user',
-        columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+        columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
         uniques: [],
@@ -535,8 +535,8 @@ describe('inferRelations', () => {
       post: new SqlTableIR({
         name: 'post',
         columns: {
-          id: { name: 'id', nativeType: 'int4', nullable: false },
-          user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
+          id: { name: 'id', typeText: 'int4', nullable: false },
+          user_id: { name: 'user_id', typeText: 'int4', nullable: false },
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [{ columns: ['user_id'], referencedTable: 'user', referencedColumns: ['id'] }],
@@ -558,7 +558,7 @@ describe('inferRelations', () => {
     const tables: Record<string, SqlTableIR> = {
       user: new SqlTableIR({
         name: 'user',
-        columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+        columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
         uniques: [],
@@ -567,8 +567,8 @@ describe('inferRelations', () => {
       post: new SqlTableIR({
         name: 'post',
         columns: {
-          id: { name: 'id', nativeType: 'int4', nullable: false },
-          user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
+          id: { name: 'id', typeText: 'int4', nullable: false },
+          user_id: { name: 'user_id', typeText: 'int4', nullable: false },
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [{ columns: ['user_id'], referencedTable: 'user', referencedColumns: ['id'] }],
@@ -603,8 +603,8 @@ describe('inferRelations', () => {
       user: new SqlTableIR({
         name: 'user',
         columns: {
-          tenant_id: { name: 'tenant_id', nativeType: 'int4', nullable: false },
-          id: { name: 'id', nativeType: 'int4', nullable: false },
+          tenant_id: { name: 'tenant_id', typeText: 'int4', nullable: false },
+          id: { name: 'id', typeText: 'int4', nullable: false },
         },
         primaryKey: { columns: ['tenant_id', 'id'] },
         foreignKeys: [],
@@ -614,9 +614,9 @@ describe('inferRelations', () => {
       post: new SqlTableIR({
         name: 'post',
         columns: {
-          id: { name: 'id', nativeType: 'int4', nullable: false },
-          tenant_id: { name: 'tenant_id', nativeType: 'int4', nullable: false },
-          user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
+          id: { name: 'id', typeText: 'int4', nullable: false },
+          tenant_id: { name: 'tenant_id', typeText: 'int4', nullable: false },
+          user_id: { name: 'user_id', typeText: 'int4', nullable: false },
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [
@@ -657,7 +657,7 @@ describe('inferRelations', () => {
     const tables: Record<string, SqlTableIR> = {
       user: new SqlTableIR({
         name: 'user',
-        columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+        columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
         uniques: [],
@@ -666,11 +666,11 @@ describe('inferRelations', () => {
       audit: new SqlTableIR({
         name: 'audit',
         columns: {
-          id: { name: 'id', nativeType: 'int4', nullable: false },
-          user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
-          user: { name: 'user', nativeType: 'text', nullable: false },
-          userUser: { name: 'userUser', nativeType: 'text', nullable: false },
-          user2: { name: 'user2', nativeType: 'text', nullable: false },
+          id: { name: 'id', typeText: 'int4', nullable: false },
+          user_id: { name: 'user_id', typeText: 'int4', nullable: false },
+          user: { name: 'user', typeText: 'text', nullable: false },
+          userUser: { name: 'userUser', typeText: 'text', nullable: false },
+          user2: { name: 'user2', typeText: 'text', nullable: false },
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [{ columns: ['user_id'], referencedTable: 'user', referencedColumns: ['id'] }],

@@ -7,11 +7,7 @@ import {
 import { createDataTypeLookup } from '@internal/framework-components/codec';
 import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
 import { printPsl } from '@internal/psl-printer';
-import {
-  isSqlDataType,
-  renderSqlCatalogText,
-  resolveWrittenSqlTypes,
-} from '@internal/sql-contract/data-type';
+import { renderSqlCatalogText, resolveWrittenSqlTypes } from '@internal/sql-contract/data-type';
 import {
   type ReportedSqlType,
   SqlColumnIR,
@@ -53,22 +49,18 @@ export function fixtureEnums(schema: string, typeNames: Iterable<string>): Fixtu
  * A text no data type reads is reported as written.
  */
 export function reportedFromWritten(
-  nativeType: string,
+  typeText: string,
   enums: FixtureEnums = new Map(),
 ): ReportedSqlType {
-  const enumType = enums.get(nativeType);
+  const enumType = enums.get(typeText);
   if (enumType !== undefined) {
-    return { text: nativeType, kind: 'enum', schema: enumType.schema, name: enumType.name };
+    return { text: typeText, kind: 'enum', schema: enumType.schema, name: enumType.name };
   }
-  const [resolved] = resolveWrittenSqlTypes(nativeType, postgresDataTypes);
-  const dataType = postgresDataTypes.find((type) => type.id === resolved?.dataType);
+  const [resolved] = resolveWrittenSqlTypes(typeText, postgresDataTypes);
   const text =
-    resolved !== undefined &&
-    dataType !== undefined &&
-    isSqlDataType(dataType) &&
-    dataType.sql.claimsKind === undefined
-      ? renderSqlCatalogText(dataType, resolved.typeParams)
-      : nativeType;
+    resolved !== undefined && resolved.dataType.sql.claimsKind === undefined
+      ? renderSqlCatalogText(resolved.dataType, resolved.typeParams)
+      : typeText;
   return { text, kind: undefined, schema: 'pg_catalog', name: undefined };
 }
 
@@ -83,13 +75,13 @@ export function withReportedType(
   return new SqlColumnIR({
     ...column,
     ...(column instanceof SqlColumnIR ? nonEnumerableFieldsOf(column) : {}),
-    reportedType: reportedFromWritten(column.nativeType, enums),
+    reportedType: reportedFromWritten(column.typeText, enums),
   });
 }
 
 function nonEnumerableFieldsOf(column: SqlColumnIR): Partial<SqlColumnIRInput> {
   return Object.fromEntries(
-    (['authoredDefault', 'codecRef', 'codecBaseNativeType', 'dataType'] as const)
+    (['authoredDefault', 'codecRef', 'storedType', 'storedTypeParams'] as const)
       .filter((key) => column[key] !== undefined)
       .map((key) => [key, column[key]]),
   );

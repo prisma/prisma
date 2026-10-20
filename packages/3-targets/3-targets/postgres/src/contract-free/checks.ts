@@ -825,18 +825,22 @@ export function columnOwnsSequenceAst(options: {
 }
 
 /**
- * Typed column-type check for a type the stack's data types do not read: compares the column's `pg_attribute.atttypid` with `to_regtype(type)`. `to_regtype` drops a type modifier, so `varchar(20)` matches any `varchar`.
+ * Typed column-type check by the type's identity: compares the column's `pg_attribute.atttypid` with `to_regtype(type)`, or with that type's array type for a list. It checks a type that claims a kind, such as an enum, whatever schema it is in, and a type the stack's data types do not read. `to_regtype` drops a type modifier, so `varchar(20)` matches any `varchar`.
  */
 export function columnTypeOidAst(options: {
   readonly schema: string;
   readonly table: string;
   readonly column: string;
   readonly type: string;
+  /** Whether the column holds a list of `type`, so its type is the array type of `type`. */
+  readonly many: boolean;
 }): SelectAst {
   const namespace = checkNamespace(options.schema);
   const expectedType = cfExpr.fn({
     method: 'to_regtype',
-    template: 'to_regtype({{self}})',
+    template: options.many
+      ? '(SELECT "t"."typarray" FROM "pg_catalog"."pg_type" AS "t" WHERE "t"."oid" = to_regtype({{self}}))'
+      : 'to_regtype({{self}})',
     self: cfExpr.param(options.type, PG_TEXT_CODEC_ID),
     returns: { codecId: PG_TEXT_CODEC_ID, nullable: true },
   });

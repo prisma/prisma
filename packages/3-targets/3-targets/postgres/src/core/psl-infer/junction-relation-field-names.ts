@@ -15,7 +15,7 @@ const EMPTY_FOREIGN_KEY_EXTRAS = {
 function idTable(name: string): SqlTableIR {
   return new SqlTableIR({
     name,
-    columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+    columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
     foreignKeys: [],
     uniques: [],
     indexes: [],
@@ -38,7 +38,7 @@ export function junctionRelationFieldNames(
   ) {
     junctionName = `${junctionName}x`;
   }
-  const column = (name: string) => ({ name, nativeType: 'int4', nullable: false });
+  const column = (name: string) => ({ name, typeText: 'int4', nullable: false });
   const foreignKey = (columnName: string, referencedTable: string) => ({
     columns: [columnName],
     referencedTable,

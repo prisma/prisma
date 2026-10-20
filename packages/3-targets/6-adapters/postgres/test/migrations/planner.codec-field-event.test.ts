@@ -19,7 +19,7 @@ import {
 import { applicationDomainOf } from '@repo/test-utils';
 import { expectNarrowedType } from '@repo/test-utils/typed-expectations';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from '../helpers/test-control-adapter';
 import { postgresComponents } from './fixtures/postgres-components';
 
 const emptySchema = new PostgresDatabaseSchemaNode({
@@ -33,7 +33,7 @@ const emptySchema = new PostgresDatabaseSchemaNode({
   roles: [],
   existingSchemas: [],
 });
-const testAdapter = new PostgresControlAdapter(
+const testAdapter = createTestPostgresControlAdapter(
   createPostgresBuiltinCodecLookup(),
   createPostgresBuiltinDataTypeLookup(),
 );

@@ -29,6 +29,8 @@ export {
   type SqlAnnotations,
   SqlColumnIR,
   type SqlColumnIRInput,
+  type SqlColumnType,
+  sqlColumnTypesEqual,
 } from './ir/sql-column-ir';
 export {
   type SqlDefaultValue,

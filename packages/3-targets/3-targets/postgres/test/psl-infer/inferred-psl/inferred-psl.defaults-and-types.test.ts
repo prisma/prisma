@@ -11,31 +11,31 @@ describe('printPsl', () => {
           columns: {
             id: {
               name: 'id',
-              nativeType: 'int4',
+              typeText: 'int4',
               nullable: false,
               default: { kind: 'function', expression: 'autoincrement()' } as unknown as string,
             },
             title: {
               name: 'title',
-              nativeType: 'text',
+              typeText: 'text',
               nullable: false,
               default: { kind: 'literal', value: 'Untitled' } as unknown as string,
             },
             is_published: {
               name: 'is_published',
-              nativeType: 'bool',
+              typeText: 'bool',
               nullable: false,
               default: { kind: 'literal', value: false } as unknown as string,
             },
             view_count: {
               name: 'view_count',
-              nativeType: 'int4',
+              typeText: 'int4',
               nullable: false,
               default: { kind: 'literal', value: 0 } as unknown as string,
             },
             created_at: {
               name: 'created_at',
-              nativeType: 'timestamptz',
+              typeText: 'timestamptz',
               nullable: false,
               default: { kind: 'function', expression: 'now()' } as unknown as string,
             },
@@ -71,15 +71,15 @@ describe('printPsl', () => {
         contact: {
           name: 'contact',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
             email: {
               name: 'email',
-              nativeType: 'character varying(255)',
+              typeText: 'character varying(255)',
               nullable: false,
             },
             phone: {
               name: 'phone',
-              nativeType: 'character(20)',
+              typeText: 'character(20)',
               nullable: true,
             },
           },
@@ -112,10 +112,10 @@ describe('printPsl', () => {
         price: {
           name: 'price',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
             value: {
               name: 'value',
-              nativeType: 'numeric(10,2)',
+              typeText: 'numeric(10,2)',
               nullable: false,
             },
           },
@@ -127,10 +127,10 @@ describe('printPsl', () => {
         setting: {
           name: 'setting',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
             value: {
               name: 'value',
-              nativeType: 'character varying(255)',
+              typeText: 'character varying(255)',
               nullable: false,
             },
           },
@@ -169,10 +169,10 @@ describe('printPsl', () => {
         account: {
           name: 'account',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
             email: {
               name: 'email',
-              nativeType: 'character varying(255)',
+              typeText: 'character varying(255)',
               nullable: false,
             },
           },
@@ -184,10 +184,10 @@ describe('printPsl', () => {
         profile: {
           name: 'profile',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
             email: {
               name: 'email',
-              nativeType: 'character varying(255)',
+              typeText: 'character varying(255)',
               nullable: false,
             },
           },
@@ -227,15 +227,15 @@ describe('printPsl', () => {
         user: {
           name: 'user',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
             user: {
               name: 'user',
-              nativeType: 'character varying(255)',
+              typeText: 'character varying(255)',
               nullable: false,
             },
             string: {
               name: 'string',
-              nativeType: 'character varying(64)',
+              typeText: 'character varying(64)',
               nullable: false,
             },
           },
@@ -269,15 +269,15 @@ describe('printPsl', () => {
         geo_data: {
           name: 'geo_data',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
             location: {
               name: 'location',
-              nativeType: 'geometry',
+              typeText: 'geometry',
               nullable: true,
             },
             metadata: {
               name: 'metadata',
-              nativeType: 'hstore',
+              typeText: 'hstore',
               nullable: false,
             },
           },
@@ -306,7 +306,7 @@ describe('printPsl', () => {
           columns: {
             id: {
               name: 'id',
-              nativeType: 'uuid',
+              typeText: 'uuid',
               nullable: false,
               default: { kind: 'function', expression: 'gen_random_uuid()' } as unknown as string,
             },
@@ -338,25 +338,25 @@ describe('printPsl', () => {
         schedule: {
           name: 'schedule',
           columns: {
-            id: { name: 'id', nativeType: 'uuid', nullable: false },
+            id: { name: 'id', typeText: 'uuid', nullable: false },
             booked_on: {
               name: 'booked_on',
-              nativeType: 'date',
+              typeText: 'date',
               nullable: false,
             },
             slot: {
               name: 'slot',
-              nativeType: 'time(3)',
+              typeText: 'time(3)',
               nullable: false,
             },
             rating: {
               name: 'rating',
-              nativeType: 'int2',
+              typeText: 'int2',
               nullable: false,
             },
             payload: {
               name: 'payload',
-              nativeType: 'json',
+              typeText: 'json',
               nullable: false,
             },
           },
@@ -392,22 +392,22 @@ describe('printPsl', () => {
         data: {
           name: 'data',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
             computed: {
               name: 'computed',
-              nativeType: 'text',
+              typeText: 'text',
               nullable: false,
               default: { kind: 'function', expression: 'my_custom_func()' } as unknown as string,
             },
             payload: {
               name: 'payload',
-              nativeType: 'jsonb',
+              typeText: 'jsonb',
               nullable: false,
               default: "'{}'::jsonb",
             },
             touched_at: {
               name: 'touched_at',
-              nativeType: 'timestamptz',
+              typeText: 'timestamptz',
               nullable: false,
               default: 'clock_timestamp()',
             },

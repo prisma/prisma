@@ -55,8 +55,8 @@ async function pslWithPolicies(
           profile: new PostgresTableSchemaNode({
             name: 'profile',
             columns: {
-              id: { name: 'id', nativeType: 'int4', nullable: false },
-              owner_id: { name: 'owner_id', nativeType: 'int4', nullable: false },
+              id: { name: 'id', typeText: 'int4', nullable: false },
+              owner_id: { name: 'owner_id', typeText: 'int4', nullable: false },
             },
             primaryKey: { columns: ['id'] },
             foreignKeys: [],
@@ -183,8 +183,8 @@ function tableNode(
   return new PostgresTableSchemaNode({
     name,
     columns: {
-      id: { name: 'id', nativeType: 'int4', nullable: false },
-      ...(aalColumn ? { aal: { name: 'aal', nativeType: 'tenant_read', nullable: true } } : {}),
+      id: { name: 'id', typeText: 'int4', nullable: false },
+      ...(aalColumn ? { aal: { name: 'aal', typeText: 'tenant_read', nullable: true } } : {}),
     },
     primaryKey: { columns: ['id'] },
     foreignKeys: [],

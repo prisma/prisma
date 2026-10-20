@@ -37,7 +37,11 @@ import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-n
 import { PostgresNativeEnumSchemaNode } from '../../src/core/schema-ir/postgres-native-enum-schema-node';
 import { PostgresPolicySchemaNode } from '../../src/core/schema-ir/postgres-policy-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
-import { postgresTypeComponents, postgresTypeLookups } from '../postgres-type-lookups';
+import {
+  introspectedColumn,
+  postgresTypeComponents,
+  postgresTypeLookups,
+} from '../postgres-type-lookups';
 
 const stubLowerer: ExecuteRequestLowerer = {
   lower: () => ({ sql: 'stub', params: [] }),
@@ -152,9 +156,9 @@ function liveSchema(
     tableNodes[tableName] = new PostgresTableSchemaNode({
       name: tableName,
       columns: Object.fromEntries(
-        Object.entries(shape.columns).map(([name, nativeType]) => [
+        Object.entries(shape.columns).map(([name, typeText]) => [
           name,
-          { name, nativeType, nullable: false },
+          introspectedColumn({ name, typeText, nullable: false }),
         ]),
       ),
       primaryKey: { columns: ['id'] },
