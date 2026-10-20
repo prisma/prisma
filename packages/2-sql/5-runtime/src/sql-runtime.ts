@@ -47,7 +47,7 @@ import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-co
 import type { CodecDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
 import type { RuntimeScope, SqlOrmPlan } from '@internal/sql-relational-core/types';
 import { invariant } from '@internal/utils/assertions';
-import { blindCast } from '@internal/utils/casts';
+import { blindCast, castAs } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { type StructuredError, structuredError } from '@internal/utils/structured-error';
 import {
@@ -1712,6 +1712,16 @@ function transactionClosedError(): Error {
  */
 export interface ConnectionProvider {
   connection(): Promise<RuntimeConnection & Partial<TransactionStartTarget>>;
+}
+
+/**
+ * Adds a client's members to the context `withTransaction` passes. The context is the prototype, not spread, so live accessors such as `invalidated` keep reading the transaction's state; spreading would copy their value once.
+ */
+export function withTransactionMembers<TMembers extends object>(
+  txCtx: TransactionContext,
+  members: TMembers,
+): TransactionContext & TMembers {
+  return Object.assign(castAs<TransactionContext>(Object.create(txCtx)), members);
 }
 
 export async function withTransaction<R>(

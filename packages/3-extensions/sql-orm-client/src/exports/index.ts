@@ -38,7 +38,7 @@ export { createModelAccessor } from '../model-accessor';
 export type {
   CollectionClasses,
   NoCollectionClasses,
-  OrmClientMembers,
+  OrmClientRootMembers,
   OrmOptions,
 } from '../orm';
 export { checkCollectionClasses, orm } from '../orm';
@@ -47,6 +47,7 @@ export {
   createPreparedRowQuery,
   type PreparedFrom,
   type PreparedRowQuery,
+  type PrepareMember,
   prepareQuery,
 } from '../prepared-row-query';
 export type { AliasedTable, TableScope, TableStorageCoordinate } from '../table-scope';
