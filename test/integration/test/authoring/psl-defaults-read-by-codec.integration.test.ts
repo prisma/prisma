@@ -250,6 +250,18 @@ model Task {
         'enum "Priority" member "Low": Expected date`...`; write date`2024-01-02`',
       ],
       [
+        'a tagged date member that is not a date',
+        '  @@type("pg/date-temporal@1")\n  Low = date`not a date`',
+        'PSL_INVALID_LITERAL',
+        'enum "Priority" member "Low": pg/date cannot read "not a date". Write a date, as in "2024-01-01".',
+      ],
+      [
+        'a tagged json member holding a NUL character, which is refused before any codec reads it',
+        '  @@type("pg/text@1")\n  Low = json`a\0b`',
+        'PSL_TAGGED_LITERAL_NUL',
+        'Tagged literals must not contain NUL characters.',
+      ],
+      [
         'an inet member that is not an address',
         '  @@type("pg/inet@1")\n  Low = "not an address"',
         'PSL_INVALID_LITERAL',

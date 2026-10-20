@@ -262,6 +262,26 @@ describe('enum members on SQLite', () => {
     });
   });
 
+  it('refuses a sqlite/json@1 member whose tagged literal holds a NUL character, rather than storing null', async () => {
+    expect(await storedEnumValues('sqlite/json@1', `Low = ${json('"a\0b"')}`)).toEqual({
+      diagnostics: [
+        {
+          code: 'PSL_TAGGED_LITERAL_NUL',
+          message: 'Tagged literals must not contain NUL characters.',
+        },
+      ],
+    });
+  });
+
+  it('refuses a sqlite/datetime@1 member whose tagged literal is not a date', async () => {
+    expect(
+      await storedEnumValues(
+        'sqlite/datetime@1',
+        `Launch = datetime${BACKTICK}not a date${BACKTICK}`,
+      ),
+    ).toEqual({ diagnostics: [{ code: 'PSL_INVALID_LITERAL', message: expect.any(String) }] });
+  });
+
   it('refuses a sqlite/json@1 member written as a number, which no cast takes to a document', async () => {
     expect((await storedEnumValues('sqlite/json@1', 'Low = 1')).diagnostics).toEqual([
       {

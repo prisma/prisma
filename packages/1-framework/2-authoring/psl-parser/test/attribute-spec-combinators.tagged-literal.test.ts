@@ -126,4 +126,17 @@ describe('enumMemberValue', () => {
       value: { kind: 'tag', tag: 'date', text: '2024-01-31' },
     });
   });
+
+  it('refuses a tagged member whose text cannot be canonicalized, with the tagged literal diagnostic', () => {
+    const { expr, ctx } = argOf('json`a\0b`');
+    expect(enumMemberValue().parse(expr, ctx)).toMatchObject({
+      ok: false,
+      failure: [
+        {
+          code: 'PSL_TAGGED_LITERAL_NUL',
+          message: 'Tagged literals must not contain NUL characters.',
+        },
+      ],
+    });
+  });
 });
