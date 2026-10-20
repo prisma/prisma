@@ -2,7 +2,7 @@ import type { WrittenScalar } from '@internal/framework-components/authoring';
 import { describeTaggedLiteralFailure } from '@internal/framework-components/control';
 import { blindCast } from '@internal/utils/casts';
 import { notOk, ok } from '@internal/utils/result';
-import { TaggedLiteralExprAst } from '../../syntax/ast/expressions';
+import { type ExpressionAst, TaggedLiteralExprAst } from '../../syntax/ast/expressions';
 import type { ArgType, AttributeCtx } from '../types';
 import { bool } from './bool';
 import { leafDiagnostic } from './diagnostic';
@@ -37,7 +37,11 @@ function writtenTaggedLiteral(): ArgType<WrittenScalar, AttributeCtx> {
   return blindCast<
     ArgType<WrittenScalar, AttributeCtx>,
     "The arm's metadata does not depend on its output type, but TypeScript cannot carry a spread of the ArgType union over to a new output type."
-  >({ ...arm, parse, claims: (arg) => TaggedLiteralExprAst.cast(arg.syntax) !== undefined });
+  >({
+    ...arm,
+    parse,
+    claims: (arg: ExpressionAst) => TaggedLiteralExprAst.cast(arg.syntax) !== undefined,
+  });
 }
 
 /**
