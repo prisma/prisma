@@ -8,12 +8,12 @@ import { CliStructuredError } from './cli-errors';
  */
 export function runnerFailureError(
   failure: MigrationRunnerFailure,
-  advice: { readonly fix: string; readonly meta?: Record<string, unknown> },
+  advice: { readonly fix: string },
 ): CliStructuredError {
   return new CliStructuredError(failure.code, failure.message, {
     ...ifDefined('why', failure.why),
     fix: advice.fix,
-    meta: { ...failure.meta, ...advice.meta },
+    meta: failure.meta,
     cause: failure,
   });
 }

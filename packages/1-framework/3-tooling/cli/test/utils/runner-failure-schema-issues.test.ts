@@ -71,7 +71,6 @@ function migrateError(
 function dbUpdateError(failure: MigrationRunnerFailure) {
   return dbUpdateRunnerFailureError(failure, runnerFailureFacts(failure, []), {
     databaseStorageHash: undefined,
-    plannerWarnings: undefined,
     invocation,
   });
 }

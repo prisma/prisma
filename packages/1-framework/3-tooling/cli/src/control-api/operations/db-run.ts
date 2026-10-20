@@ -44,13 +44,13 @@ import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { join } from 'pathe';
-import {
-  CliStructuredError,
-  errorMigrationPlanningFailed,
-  errorPathUnreachable,
-} from '../../utils/cli-errors';
+import { CliStructuredError, errorMigrationPlanningFailed } from '../../utils/cli-errors';
 import { dbInitPlanningFailedError, dbInitRunnerFailureError } from '../../utils/db-init-failure';
 import { dbUpdateRunnerFailureError } from '../../utils/db-update-failure';
+import {
+  errorExtensionNoInvariantPath,
+  errorExtensionPathUnreachable,
+} from '../../utils/extension-path-failure';
 import type { CliInvocation } from '../../utils/printed-command';
 import {
   type AnswerPlanQuestions,
@@ -83,7 +83,7 @@ import {
   buildContractSpaceAggregate,
 } from './contract-space-aggregate-loader';
 import { stripOperations } from './migration-helpers';
-import { noInvariantPathError } from './no-invariant-path';
+import { structuralPathOf } from './no-invariant-path';
 import {
   buildPerSpaceBreakdown,
   collectOrdered,
@@ -129,6 +129,8 @@ export interface ExecuteRunSharedOptions<TFamilyId extends string, TTargetId ext
   readonly policy: MigrationOperationPolicy;
   /** The command line the advice of a failure repeats. */
   readonly invocation: CliInvocation;
+  /** Called with the planner's warnings when the apply fails after planning. */
+  readonly onPlannerWarnings?: (warnings: readonly MigrationPlannerConflict[]) => void;
   /** Content check for contract snapshots the aggregate loader resolves. */
   readonly verifySnapshotContent?: SnapshotContentVerifier;
   readonly onProgress?: OnControlProgress;
@@ -299,6 +301,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
           action,
           aggregate,
           markerRows,
+          invocation: options.invocation,
         }),
       });
     }
@@ -467,13 +470,13 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     ...ifDefined('onProgress', onProgress),
   });
   if (!applied.ok) {
+    if (plannerWarnings !== undefined) options.onPlannerWarnings?.(plannerWarnings);
     const facts = runnerFailureFacts(applied.failure, orderedResolutions);
     return notOk(
       action === 'dbInit'
         ? dbInitRunnerFailureError(applied.failure, facts, options.invocation)
         : dbUpdateRunnerFailureError(applied.failure, facts, {
             databaseStorageHash,
-            plannerWarnings,
             invocation: options.invocation,
           }),
     );
@@ -663,6 +666,7 @@ function mapPlannerError(
     readonly action: 'dbInit' | 'dbUpdate';
     readonly aggregate: ContractSpaceAggregate;
     readonly markerRows: ReadonlyMap<string, { readonly storageHash: string }>;
+    readonly invocation: CliInvocation;
   },
 ): CliStructuredError {
   if (error.kind === 'planFromDiffFailed') {
@@ -670,36 +674,34 @@ function mapPlannerError(
       ? dbInitPlanningFailedError(error.conflicts)
       : errorMigrationPlanningFailed({ conflicts: error.conflicts });
   }
+  if (error.kind === 'policyConflict') {
+    throw new InternalError(
+      `The planner refused the planning policy db init and db update give it, which plans the app space from the diff and walks every extension space's graph: ${error.detail}`,
+    );
+  }
+  const space = context.aggregate.extensions.find(({ spaceId }) => spaceId === error.spaceId);
+  if (space === undefined) {
+    throw new InternalError(
+      `The planner named extension space "${error.spaceId}", which the aggregate does not hold.`,
+    );
+  }
+  const headRef = requireHeadRef(space);
+  const plan = {
+    spaceId: error.spaceId,
+    fromHash: context.markerRows.get(error.spaceId)?.storageHash ?? EMPTY_CONTRACT_HASH,
+    targetHash: headRef.hash,
+    command: context.action === 'dbInit' ? 'db init' : 'db update',
+    invocation: context.invocation,
+  } as const;
   if (error.kind === 'extensionPathUnreachable') {
-    return errorPathUnreachable({
-      summary: `Cannot resolve apply path for extension space "${error.spaceId}"`,
-      why: `No path in the on-disk migration graph for extension space "${error.spaceId}" reaches the on-disk head ref hash "${error.target}".`,
-      meta: {
-        spaceId: error.spaceId,
-        fromHash: context.markerRows.get(error.spaceId)?.storageHash ?? '<empty>',
-        target: error.target,
-      },
-    });
+    return errorExtensionPathUnreachable(plan);
   }
-  if (error.kind === 'extensionPathUnsatisfiable') {
-    const space = context.aggregate.extensions.find(({ spaceId }) => spaceId === error.spaceId);
-    if (space === undefined) {
-      throw new InternalError(
-        `The planner named extension space "${error.spaceId}", which the aggregate does not hold.`,
-      );
-    }
-    const headRef = requireHeadRef(space);
-    throw noInvariantPathError({
-      graph: space.graph(),
-      fromHash: context.markerRows.get(error.spaceId)?.storageHash ?? EMPTY_CONTRACT_HASH,
-      targetHash: headRef.hash,
-      required: headRef.invariants,
-      missing: error.missingInvariants,
-    });
-  }
-  throw new InternalError(
-    `The planner refused the planning policy db init and db update give it, which plans the app space from the diff and walks every extension space's graph: ${error.detail}`,
-  );
+  return errorExtensionNoInvariantPath({
+    ...plan,
+    required: headRef.invariants,
+    missing: error.missingInvariants,
+    structuralPath: structuralPathOf(space.graph(), plan.fromHash, plan.targetHash),
+  });
 }
 
 function wrapPlanResult(args: {

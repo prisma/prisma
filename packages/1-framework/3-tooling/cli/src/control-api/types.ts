@@ -24,7 +24,6 @@ import type {
   MigrationPlanOperation,
   MigrationPlanSubjects,
   OperationPreview,
-  SchemaDiffIssue,
   VerifyDatabaseResult,
   VerifyDatabaseSchemaResult,
 } from '@internal/framework-components/control';
@@ -205,6 +204,11 @@ export interface DbInitOptions {
    */
   readonly migrationsDir: string;
   /** Optional progress callback for observing operation progress */
+  /**
+   * Called with the planner's warnings when the apply fails after planning: a failure carries no
+   * result to hold them. A successful run reports them in its result's `warnings`.
+   */
+  readonly onPlannerWarnings?: (warnings: readonly MigrationPlannerConflict[]) => void;
   readonly onProgress?: OnControlProgress;
 }
 
@@ -254,6 +258,11 @@ export interface DbUpdateOptions {
    */
   readonly answerQuestions: AnswerPlanQuestions;
   /** Optional progress callback for observing operation progress */
+  /**
+   * Called with the planner's warnings when the apply fails after planning: a failure carries no
+   * result to hold them. A successful run reports them in its result's `warnings`.
+   */
+  readonly onPlannerWarnings?: (warnings: readonly MigrationPlannerConflict[]) => void;
   readonly onProgress?: OnControlProgress;
 }
 
@@ -518,8 +527,6 @@ export interface RunnerFailureFacts {
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
   /** The check that failed before its operation ran. */
   readonly failedPrecheck?: FailedPrecheckReport;
-  /** The differences the schema check after apply found; an empty list counts as none. */
-  readonly schemaIssues?: readonly SchemaDiffIssue[];
   /** The written migration of the failed operation, when the runner named the operation, or the last one applied when the schema check after apply failed. */
   readonly failedMigration?: { readonly spaceId: string; readonly edge: AggregateMigrationEdgeRef };
 }

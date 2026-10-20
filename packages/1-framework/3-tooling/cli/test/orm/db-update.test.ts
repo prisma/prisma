@@ -731,21 +731,21 @@ describe('db update', () => {
   });
 
   it('reports the planner`s warnings even when the apply fails', async () => {
-    mocks.dbUpdate.mockResolvedValue(
-      notOk(
+    mocks.dbUpdate.mockImplementation(async (options: Parameters<ControlClient['dbUpdate']>[0]) => {
+      options.onPlannerWarnings?.([
+        { kind: 'suppressed', summary: 'control policy suppressed: table "auth.x"' },
+      ]);
+      return notOk(
         dbUpdateRunnerFailureError(
           migrationRunnerFailure('MIGRATION.EXECUTION_FAILED', 'runner failed'),
           {},
           {
             databaseStorageHash: undefined,
-            plannerWarnings: [
-              { kind: 'suppressed', summary: 'control policy suppressed: table "auth.x"' },
-            ],
             invocation: { cwd: projectDir, configPath: undefined, dbGiven: false },
           },
         ),
-      ),
-    );
+      );
+    });
 
     const run = await harness().run(['db', 'update'], {
       cwd: projectDir,
@@ -773,7 +773,6 @@ describe('db update', () => {
       notOk(
         dbUpdateRunnerFailureError(runnerFailure, runnerFailureFacts(runnerFailure, []), {
           databaseStorageHash: undefined,
-          plannerWarnings: undefined,
           invocation: { cwd: projectDir, configPath: undefined, dbGiven: false },
         }),
       ),
@@ -798,11 +797,9 @@ describe('db update', () => {
         meta: { schemaIssues: [{ path: ['public', 'event', 'id'] }], failingSpace: 'app' },
       },
     });
-    expect(
-      Object.keys(
-        (envelopeOf(run.json) as { error: { meta: Record<string, unknown> } }).error.meta,
-      ).sort(),
-    ).toEqual(['failingSpace', 'schemaIssues']);
+    expect((envelopeOf(run.json) as { error: { meta: unknown } }).error.meta).toEqual(
+      runnerFailure.meta,
+    );
     expect(mocks.dbUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         invocation: { cwd: projectDir, configPath: undefined, dbGiven: false },

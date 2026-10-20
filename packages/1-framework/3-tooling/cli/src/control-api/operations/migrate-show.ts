@@ -257,7 +257,7 @@ export async function executeMigrateShowPlan(
         errorPathUnreachable({
           summary: `No on-disk migrations for contract space "${outcome.spaceId}"`,
           why: `migrate is replay-only: space "${outcome.spaceId}" has no on-disk migrations but its head ref targets "${outcome.targetHash}".`,
-          meta: { spaceId: outcome.spaceId, target: outcome.targetHash, kind: 'neverPlanned' },
+          meta: { spaceId: outcome.spaceId, targetHash: outcome.targetHash, kind: 'neverPlanned' },
         }),
       );
     }
@@ -267,7 +267,12 @@ export async function executeMigrateShowPlan(
         errorPathUnreachable({
           summary: `No migration path from ${fromHash.slice(0, 14)} to ${outcome.targetHash.slice(0, 14)} in space "${outcome.spaceId}".`,
           why: `The migration graph has no path from the from-state to the target in space "${outcome.spaceId}".`,
-          meta: { spaceId: outcome.spaceId, from: fromHash, to: outcome.targetHash },
+          meta: {
+            spaceId: outcome.spaceId,
+            fromHash,
+            targetHash: outcome.targetHash,
+            kind: 'pathUnreachable',
+          },
         }),
       );
     }

@@ -573,11 +573,9 @@ describe('db init', () => {
         meta: { schemaIssues: [{ path: ['public', 'event', 'id'] }], failingSpace: 'app' },
       },
     });
-    expect(
-      Object.keys(
-        (envelopeOf(run.json) as { error: { meta: Record<string, unknown> } }).error.meta,
-      ).sort(),
-    ).toEqual(['failingSpace', 'schemaIssues']);
+    expect((envelopeOf(run.json) as { error: { meta: unknown } }).error.meta).toEqual(
+      runnerFailure.meta,
+    );
     expect(mocks.dbInit).toHaveBeenCalledWith(
       expect.objectContaining({
         invocation: { cwd: projectDir, configPath: undefined, dbGiven: false },

@@ -19,10 +19,10 @@ export function schemaIssuesWhy(opening: string, issues: readonly SchemaDiffIssu
   return `${opening}: ${labels.join('; ')}.`;
 }
 
-/** The why of a failed schema check after apply, listing its issues; `undefined` when it found none. */
-export function schemaCheckWhy(issues: readonly SchemaDiffIssue[]): string | undefined {
+/** The why of a failed schema check after apply, listing its issues when it found any. */
+export function schemaCheckWhy(issues: readonly SchemaDiffIssue[]): string {
   return issues.length === 0
-    ? undefined
+    ? 'The resulting database schema does not satisfy the destination contract.'
     : schemaIssuesWhy('The schema check after apply found', issues);
 }
 

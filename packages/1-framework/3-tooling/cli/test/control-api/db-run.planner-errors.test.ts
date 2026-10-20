@@ -161,8 +161,24 @@ async function dbInitPlan(space: AuditSpace, markerHash: string) {
   });
 }
 
+const ADVICE = `The migrations of extension space "${AUDIT_SPACE}" come with the extension. Install a version of the extension whose migrations start from the contract the database is at, then run \`{bin} db init\` again. List the space's migrations with \`{bin} migration list --space ${AUDIT_SPACE}\`.`;
+
+const ACTIONS = [
+  {
+    kind: 'user-choice',
+    label:
+      'Install a version of the extension whose migrations start from the contract the database is at',
+  },
+  {
+    kind: 'run-command',
+    label: `List the migrations of extension space "${AUDIT_SPACE}"`,
+    command: `{bin} migration list --space ${AUDIT_SPACE}`,
+  },
+  { kind: 'run-command', label: 'Run db init again', command: '{bin} db init' },
+];
+
 describe('db init, an extension space whose marker no migration path leaves', () => {
-  it('reports MIGRATION.PATH_UNREACHABLE naming the space, its marker and its head', async () => {
+  it('reports MIGRATION.PATH_UNREACHABLE for the space, with advice about the extension, not the app', async () => {
     const result = await dbInitPlan(
       {
         packages: [migrationPackage('20260101T0000_init', EMPTY_CONTRACT_HASH, AUDIT_HEAD)],
@@ -171,20 +187,32 @@ describe('db init, an extension space whose marker no migration path leaves', ()
       STRAY_HASH,
     );
 
-    expect(
-      result.ok
-        ? undefined
-        : { code: result.failure.code, message: result.failure.message, meta: result.failure.meta },
-    ).toEqual({
+    const failure = result.assertNotOk();
+    expect({
+      code: failure.code,
+      message: failure.message,
+      why: failure.why,
+      fix: failure.fix,
+      nextActions: failure.nextActions,
+      meta: failure.meta,
+    }).toEqual({
       code: 'MIGRATION.PATH_UNREACHABLE',
       message: `Cannot resolve apply path for extension space "${AUDIT_SPACE}"`,
-      meta: { spaceId: AUDIT_SPACE, fromHash: STRAY_HASH, target: AUDIT_HEAD },
+      why: `No path in the on-disk migration graph for extension space "${AUDIT_SPACE}" leads from the contract its marker names ("${STRAY_HASH}") to the on-disk head ref hash "${AUDIT_HEAD}".`,
+      fix: ADVICE,
+      nextActions: ACTIONS,
+      meta: {
+        spaceId: AUDIT_SPACE,
+        fromHash: STRAY_HASH,
+        targetHash: AUDIT_HEAD,
+        kind: 'pathUnreachable',
+      },
     });
   });
 });
 
 describe('db init, an extension space whose path from its marker misses a required invariant', () => {
-  it('refuses with MIGRATION.NO_INVARIANT_PATH, naming the invariant and the path it would take', async () => {
+  it('returns MIGRATION.NO_INVARIANT_PATH naming the space, the invariant and the path it would take', async () => {
     const side = migrationPackage('20260101T0000_side', EMPTY_CONTRACT_HASH, SIDE_HASH);
     const tail = migrationPackage('20260102T0000_tail', SIDE_HASH, AUDIT_HEAD);
     const space: AuditSpace = {
@@ -197,9 +225,22 @@ describe('db init, an extension space whose path from its marker misses a requir
       invariants: ['audit-backfilled'],
     };
 
-    await expect(dbInitPlan(space, SIDE_HASH)).rejects.toMatchObject({
+    const failure = (await dbInitPlan(space, SIDE_HASH)).assertNotOk();
+    expect({
+      code: failure.code,
+      message: failure.message,
+      why: failure.why,
+      fix: failure.fix,
+      nextActions: failure.nextActions,
+      meta: failure.meta,
+    }).toEqual({
       code: 'MIGRATION.NO_INVARIANT_PATH',
+      message: `No path covers the required invariants of extension space "${AUDIT_SPACE}"`,
+      why: `The head of extension space "${AUDIT_SPACE}" requires invariants that no path of its migrations from the contract its marker names ("${SIDE_HASH}") provides: "audit-backfilled".`,
+      fix: ADVICE,
+      nextActions: ACTIONS,
       meta: {
+        spaceId: AUDIT_SPACE,
         required: ['audit-backfilled'],
         missing: ['audit-backfilled'],
         structuralPath: [

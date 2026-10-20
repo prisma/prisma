@@ -420,7 +420,7 @@ describe('migrate', () => {
         errorPathUnreachable({
           summary: 'no path',
           why: 'no recorded path',
-          meta: { fromHash: '<empty>', targetHash: C2 },
+          meta: { spaceId: 'app', fromHash: '<empty>', targetHash: C2, kind: 'pathUnreachable' },
         }),
       ),
     );
@@ -474,11 +474,9 @@ describe('migrate', () => {
         meta: { schemaIssues: [{ path: ['public', 'event', 'id'] }], failingSpace: 'app' },
       },
     });
-    expect(
-      Object.keys(
-        (envelopeOf(run.json) as { error: { meta: Record<string, unknown> } }).error.meta,
-      ).sort(),
-    ).toEqual(['failingSpace', 'schemaIssues']);
+    expect((envelopeOf(run.json) as { error: { meta: unknown } }).error.meta).toEqual(
+      runnerFailure.meta,
+    );
     expect(mocks.migrate).toHaveBeenCalledWith(expect.objectContaining({ invocation }));
   });
 

@@ -46,7 +46,9 @@ describe('schemaCheckWhy', () => {
     );
   });
 
-  it('gives nothing when the check found no issues', () => {
-    expect(schemaCheckWhy([])).toBeUndefined();
+  it('says the schema does not satisfy the contract when the check found no issues', () => {
+    expect(schemaCheckWhy([])).toBe(
+      'The resulting database schema does not satisfy the destination contract.',
+    );
   });
 });

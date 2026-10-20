@@ -16,6 +16,6 @@ export function migrateRunnerFailureError(
   invocation: CliInvocation,
 ): CliStructuredError {
   return runnerFailureError(failure, {
-    fix: migrateFix(facts, failedMigration, invocation),
+    fix: migrateFix(failure, facts, failedMigration, invocation),
   });
 }

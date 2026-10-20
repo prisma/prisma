@@ -628,7 +628,7 @@ export function buildNeverPlannedFailure(
   return errorPathUnreachable({
     summary: `No on-disk migrations for contract space "${spaceId}"`,
     why: `migrate is replay-only: a contract space that declares managed storage elements must have an authored migration graph on disk. Space "${spaceId}" has no migrations under \`${migrationsDir}/${spaceId}/\` but its head ref targets "${targetHash}".`,
-    meta: { spaceId, target: targetHash, kind: 'neverPlanned' },
+    meta: { spaceId, targetHash, kind: 'neverPlanned' },
   });
 }
 

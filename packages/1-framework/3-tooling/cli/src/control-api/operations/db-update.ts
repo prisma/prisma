@@ -5,6 +5,7 @@ import type {
   ControlDriverInstance,
   ControlExtensionDescriptor,
   ControlFamilyInstance,
+  MigrationPlannerConflict,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 import type { SnapshotContentVerifier } from '@internal/migration-tools/contract-snapshot-store';
@@ -55,6 +56,11 @@ export interface ExecuteDbUpdateOptions<TFamilyId extends string, TTargetId exte
   /** Asks the questions no statement answered; see {@link AnswerPlanQuestions}. */
   readonly answerQuestions: AnswerPlanQuestions;
   /** The command line the advice of a failure repeats. */
+  /**
+   * Called with the planner's warnings when the apply fails after planning: a failure carries no
+   * result to hold them. A successful run reports them in its result's `warnings`.
+   */
+  readonly onPlannerWarnings?: (warnings: readonly MigrationPlannerConflict[]) => void;
   readonly invocation: CliInvocation;
   readonly onProgress?: OnControlProgress;
 }
@@ -86,6 +92,7 @@ export async function executeDbUpdate<TFamilyId extends string, TTargetId extend
     acceptDataLoss: options.acceptDataLoss ?? false,
     acceptAccessWidening: options.acceptAccessWidening ?? false,
     ...ifDefined('verifySnapshotContent', options.verifySnapshotContent),
+    ...ifDefined('onPlannerWarnings', options.onPlannerWarnings),
     ...ifDefined('onProgress', options.onProgress),
   })) as DbUpdateResult;
 }

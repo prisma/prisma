@@ -11,9 +11,10 @@ import type { CliStructuredError } from './cli-errors';
 import { ActionableCliError, errorMigrationPlanningFailed } from './cli-errors';
 import { dbInitFailedPrecheckFix } from './failed-precheck-advice';
 import { runCommandAction } from './next-actions';
-import type { CliInvocation } from './printed-command';
+import { type CliInvocation, cliCommand } from './printed-command';
 import { dbInitRowsWithoutValueFix } from './runner-failure-advice';
 import { runnerFailureError } from './runner-failure-error';
+import { schemaCheckIssues } from './schema-check-issues';
 
 const DB_INIT_ADDITIVE_ONLY_FIX =
   '`db init` applies only additive changes. Run `{bin} db update`, which also applies widening and destructive ones once you answer what each operation that would lose data means, with `--delete` or `--rename`.';
@@ -86,10 +87,10 @@ export function dbInitRunnerFailureError(
   const fix =
     facts.rowsWithoutValue !== undefined
       ? dbInitRowsWithoutValueFix(facts.rowsWithoutValue, invocation)
-      : facts.schemaIssues !== undefined
-        ? 'Change the contract source to resolve the issues listed, re-run `{bin} contract emit`, then re-run `{bin} db init`.'
+      : schemaCheckIssues(failure) !== undefined
+        ? `Change the contract source to resolve the issues listed, re-run \`${cliCommand(invocation, 'contract emit')}\`, then re-run \`${cliCommand(invocation, 'db init')}\`.`
         : facts.failedPrecheck !== undefined
           ? dbInitFailedPrecheckFix(invocation)
-          : 'Fix the schema mismatch (db init is additive-only), or drop/reset the database and re-run `{bin} db init`';
+          : `Fix the schema mismatch (db init is additive-only), or drop/reset the database and re-run \`${cliCommand(invocation, 'db init')}\``;
   return runnerFailureError(failure, { fix });
 }

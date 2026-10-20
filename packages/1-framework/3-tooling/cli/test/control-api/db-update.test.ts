@@ -298,6 +298,54 @@ describe('executeDbUpdate', () => {
     }
   });
 
+  it('hands the planner`s warnings to onPlannerWarnings when the apply fails, and keeps them out of meta', async () => {
+    const warning = { kind: 'suppressed', summary: 'control policy suppressed: table "auth.x"' };
+    const runnerFailure = migrationRunnerFailure('MIGRATION.EXECUTION_FAILED', 'Step failed', {
+      meta: { sqlState: '42P07', failingSpace: 'app' },
+    });
+    const onPlannerWarnings = vi.fn();
+    const result = await executeDbUpdate({
+      invocation: TEST_INVOCATION,
+      driver: createMockDriver(),
+      adapter: STUB_ADAPTER,
+      familyInstance: createMockFamilyInstance({
+        readAllMarkers: async () => new Map([['app', markerRecord({ storageHash: 'origin' })]]),
+      }),
+      contract: dummyContract,
+      mode: 'apply',
+      acceptDataLoss: true,
+      migrations: createMockMigrations({
+        planResult: {
+          kind: 'success',
+          dataLoss: [],
+          accessWidening: [],
+          temporaryValues: [],
+          appliedStatements: [],
+          warnings: [warning],
+          plan: {
+            targetId: 'postgres',
+            destination: { storageHash: 'new-hash', profileHash: 'new-profile' },
+            operations: [
+              { id: 'column.user.nickname', label: 'Add column', operationClass: 'additive' },
+            ],
+            renderTypeScript: () => '',
+          },
+        },
+        runnerResult: notOk(runnerFailure),
+      }),
+      frameworkComponents: [],
+      migrationsDir: FAKE_MIGRATIONS_DIR,
+      answerQuestions: noQuestions,
+      targetId: 'postgres',
+      onPlannerWarnings,
+    });
+
+    expect({
+      warned: onPlannerWarnings.mock.calls,
+      meta: result.ok ? undefined : result.failure.meta,
+    }).toEqual({ warned: [[[warning]]], meta: { sqlState: '42P07', failingSpace: 'app' } });
+  });
+
   it('lists the issues of a failed schema check in its why, and keeps the runner meta', async () => {
     const issue = {
       path: ['public', 'event', 'id'],

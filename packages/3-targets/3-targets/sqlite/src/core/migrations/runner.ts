@@ -131,9 +131,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
       });
       if (!schemaVerifyResult.ok) {
         return runnerFailure('MIGRATION.SCHEMA_VERIFY_FAILED', schemaVerifyResult.summary, {
-          why:
-            schemaCheckWhy(schemaVerifyResult.schema.issues) ??
-            'The resulting database schema does not satisfy the destination contract.',
+          why: schemaCheckWhy(schemaVerifyResult.schema.issues),
           meta: { schemaIssues: schemaVerifyResult.schema.issues },
         });
       }

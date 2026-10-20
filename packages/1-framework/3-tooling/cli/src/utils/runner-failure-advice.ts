@@ -1,3 +1,4 @@
+import type { MigrationRunnerFailure } from '@internal/framework-components/control';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { basename, join } from 'pathe';
 import { statementFlag } from '../control-api/statements/statement-flag';
@@ -14,6 +15,7 @@ import {
   printedPlanCommand,
   selfEmitCommand,
 } from './printed-command';
+import { schemaCheckIssues } from './schema-check-issues';
 
 /** The written migration of the failed operation: its directory, and the contract it starts from. */
 export interface FailedMigrationOnDisk {
@@ -258,23 +260,24 @@ function migrateSchemaCheckFix(
  * CLI ran, with the `--config` it was given.
  */
 export function migrateFix(
-  failure: RunnerFailureFacts,
+  failure: MigrationRunnerFailure,
+  facts: RunnerFailureFacts,
   failedOnDisk: FailedMigrationOnDisk | undefined,
   invocation: CliInvocation,
 ): string {
   const failedMigration =
     failedOnDisk === undefined ? undefined : failedMigrationText(failedOnDisk, invocation);
-  if (failure.failedTypeChange !== undefined) {
-    return migrateFailedTypeChangeFix(failure.failedTypeChange, failedMigration, invocation);
+  if (facts.failedTypeChange !== undefined) {
+    return migrateFailedTypeChangeFix(facts.failedTypeChange, failedMigration, invocation);
   }
-  if (failure.rowsWithoutValue !== undefined) {
-    return migrateRowsWithoutValueFix(failure.rowsWithoutValue, failedMigration, invocation);
+  if (facts.rowsWithoutValue !== undefined) {
+    return migrateRowsWithoutValueFix(facts.rowsWithoutValue, failedMigration, invocation);
   }
-  if (failure.schemaIssues !== undefined) {
+  if (schemaCheckIssues(failure) !== undefined) {
     return migrateSchemaCheckFix(failedMigration, invocation);
   }
-  if (failure.failedPrecheck !== undefined) {
-    return migrateFailedPrecheckFix(failure.failedPrecheck, invocation);
+  if (facts.failedPrecheck !== undefined) {
+    return migrateFailedPrecheckFix(facts.failedPrecheck, invocation);
   }
   return `Fix the issue and re-run \`${cliCommand(invocation, 'db migrate', ['--to', '<contract>'])}\` — previously applied migrations are preserved.`;
 }

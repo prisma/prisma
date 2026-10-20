@@ -909,29 +909,27 @@ const ROLLBACK_IS_DESTRUCTIVE =
 const RENAMES_AND_DATA_NEED_MORE =
   'Plan a rename with --rename old:new; re-adding a required field without a safe default, or a type change that needs data, may need you to fill in the planned migration.ts';
 
-/** What a replay found when no migration path reaches its target: `meta` carries `fromHash`, `targetHash` or `target`, `deadEnds` and `kind`. */
+/** The `meta` of `MIGRATION.PATH_UNREACHABLE`: the space, the hashes the path was to join, and whether the space has no migrations at all. */
+export interface PathUnreachableMeta {
+  readonly spaceId: string;
+  readonly fromHash?: string;
+  readonly targetHash?: string;
+  readonly kind: 'pathUnreachable' | 'neverPlanned';
+}
+
+/** What a replay found when no migration path reaches its target. */
 export interface PathUnreachable {
   readonly summary: string;
   readonly why: string | undefined;
-  readonly meta: Record<string, unknown>;
+  readonly meta: PathUnreachableMeta;
 }
 
 export function errorPathUnreachable(failure: PathUnreachable): ActionableCliError {
   const meta = failure.meta;
-  const fromHashMeta = typeof meta['fromHash'] === 'string' ? meta['fromHash'] : null;
+  const fromHashMeta = meta.fromHash ?? null;
   // `buildPathNotFoundFailure` uses this sentinel in meta when the live marker is null.
   const planFromHash = fromHashMeta === '<empty>' ? null : fromHashMeta;
-  const targetHash =
-    typeof meta['targetHash'] === 'string'
-      ? meta['targetHash']
-      : typeof meta['target'] === 'string'
-        ? meta['target']
-        : null;
-  const deadEnds = meta['deadEnds'];
-  const deadEndsSuffix =
-    Array.isArray(deadEnds) && deadEnds.length > 0
-      ? ` Dead-ends: ${deadEnds.map(String).join(', ')}.`
-      : '';
+  const targetHash = meta.targetHash ?? null;
   // Plan-then-apply recovery. The planner destination is the missing edge's
   // target; `migration plan --to` (built for arbitrary targets) makes this a
   // real command, so the diagnostic that sends you here is now honest.
@@ -942,7 +940,7 @@ export function errorPathUnreachable(failure: PathUnreachable): ActionableCliErr
   // without `--to` targets the working contract (the same contract the app
   // space's synthesized head ref carries), so the bare form is the one that
   // runs verbatim.
-  const neverPlanned = meta['kind'] === 'neverPlanned';
+  const neverPlanned = meta.kind === 'neverPlanned';
   const planCommand = (() => {
     if (neverPlanned) {
       return '{bin} migration plan --name <slug>';
@@ -965,7 +963,7 @@ export function errorPathUnreachable(failure: PathUnreachable): ActionableCliErr
   return new ActionableCliError('MIGRATION.PATH_UNREACHABLE', failure.summary, {
     why:
       failure.why ??
-      `Cannot reach target "${targetHash ?? '<unknown>'}" from current marker "${fromHashMeta ?? '<unknown>'}".${deadEndsSuffix}`,
+      `Cannot reach target "${targetHash ?? '<unknown>'}" from current marker "${fromHashMeta ?? '<unknown>'}".`,
     fix: [
       'Plan the missing edge, then apply it:',
       `  1. ${planCommand}`,

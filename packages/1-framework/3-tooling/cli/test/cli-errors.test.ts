@@ -68,7 +68,7 @@ describe('errorPathUnreachable', () => {
     const failure: PathUnreachable = {
       summary: 'No on-disk migrations for contract space "app"',
       why: 'migrate is replay-only.',
-      meta: { spaceId: 'app', kind: 'neverPlanned', target: targetHash },
+      meta: { spaceId: 'app', kind: 'neverPlanned', targetHash },
     };
     const envelope = errorPathUnreachable(failure).toEnvelope();
     // A never-planned space has an EMPTY graph, and `--to <hash>` only
@@ -83,7 +83,7 @@ describe('errorPathUnreachable', () => {
     const failure: PathUnreachable = {
       summary: 'Migration runner reported an unreachable target',
       why: 'No detail available.',
-      meta: { spaceId: 'app' },
+      meta: { spaceId: 'app', kind: 'pathUnreachable' },
     };
     const envelope = errorPathUnreachable(failure).toEnvelope();
     expect(envelope.fix).toContain('{bin} migration plan');

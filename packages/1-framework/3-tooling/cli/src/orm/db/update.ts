@@ -212,19 +212,6 @@ function unansweredConsents(statements: {
     .flatMap(({ verb, text }) => (verb === 'delete' || verb === 'allow' ? [{ verb, text }] : []));
 }
 
-/** The planner's warnings a failed `db update` keeps in its error's `meta`. */
-function plannerWarningsOf(error: {
-  readonly meta?: Record<string, unknown>;
-}): readonly { readonly summary: string }[] {
-  const warnings: unknown = error.meta?.['plannerWarnings'];
-  if (!Array.isArray(warnings)) return [];
-  return warnings.flatMap((warning: unknown) => {
-    const summary: unknown =
-      typeof warning === 'object' && warning !== null ? Reflect.get(warning, 'summary') : undefined;
-    return typeof summary === 'string' ? [{ summary }] : [];
-  });
-}
-
 export function createDbUpdateCommand(createClient: CreateControlClient) {
   return defineOrmCommand({
     help: {
@@ -360,9 +347,8 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
       try {
         await client.connect(dbConnection);
 
-        // A refused or failed run has no result to carry the planner's warnings,
-        // and an errored envelope renders no meta, so they are reported as events
-        // to reach both channels.
+        // A failed run has no result to carry the planner's warnings, so they are
+        // reported as events, which reach both the human and the JSON output.
         const reportPlannerWarnings = (warnings: readonly { readonly summary: string }[]): void => {
           for (const warning of warnings) {
             ctx.report({ kind: 'message', severity: 'warn', text: warning.summary });
@@ -376,10 +362,10 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
           statements: [...renames, ...previewConsents],
           answerQuestions: promptPlanQuestions(ctx.prompt),
           invocation: cliInvocation(ctx, args.flags.db),
+          onPlannerWarnings: reportPlannerWarnings,
           onProgress: controlProgressReporter(ctx.report),
         });
         if (!result.ok) {
-          reportPlannerWarnings(plannerWarningsOf(result.failure));
           return notOk(normalizeError(result.failure));
         }
 

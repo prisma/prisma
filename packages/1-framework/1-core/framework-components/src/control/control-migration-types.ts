@@ -421,11 +421,13 @@ export function withFailingSpace<TCode extends MigrationRunnerFailure['code']>(
   failure: MigrationRunnerFailure & { readonly code: TCode },
   failingSpace: string,
 ): MigrationRunnerFailure & { readonly code: TCode } {
-  return migrationRunnerFailure(failure.code, failure.message, {
+  const attributed = migrationRunnerFailure(failure.code, failure.message, {
     why: failure.why,
     meta: { ...failure.meta, failingSpace },
     ...ifDefined('cause', failure.cause),
   });
+  if (failure.stack !== undefined) attributed.stack = failure.stack;
+  return attributed;
 }
 
 /** A field that is to become required while existing rows have no value for it. */

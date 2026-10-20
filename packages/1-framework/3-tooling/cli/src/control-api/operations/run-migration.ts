@@ -11,7 +11,6 @@ import type {
   MigrationOperationPolicy,
   MigrationRunnerFailure,
   MigrationSubject,
-  SchemaDiffIssue,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 import type {
@@ -22,6 +21,7 @@ import type {
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
+import { schemaCheckIssues } from '../../utils/schema-check-issues';
 import { subjectText } from '../statements/plan-questions';
 import type {
   FailedPrecheckReport,
@@ -75,7 +75,7 @@ function failureReports(
   const edge =
     operationIndex !== undefined
       ? edgeOfOperation(resolution.entry.migrationEdges, operationIndex)
-      : schemaIssuesOf(failure) !== undefined
+      : schemaCheckIssues(failure) !== undefined
         ? resolution.entry.migrationEdges.at(-1)
         : undefined;
   return {
@@ -97,12 +97,6 @@ function failureReports(
       edge === undefined ? undefined : { spaceId: resolution.spaceId, edge },
     ),
   };
-}
-
-/** The issues of a failed schema check after apply; a check that reported none counts as no issues. */
-function schemaIssuesOf(failure: MigrationRunnerFailure): readonly SchemaDiffIssue[] | undefined {
-  const issues = failure.meta.schemaIssues;
-  return issues === undefined || issues.length === 0 ? undefined : issues;
 }
 
 function failedPrecheckOf(
@@ -129,7 +123,6 @@ export function runnerFailureFacts(
   return {
     ...failureReports(failure, resolutions),
     ...ifDefined('failedPrecheck', failedPrecheckOf(failure, resolutions)),
-    ...ifDefined('schemaIssues', schemaIssuesOf(failure)),
   };
 }
 

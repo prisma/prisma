@@ -57,6 +57,7 @@ describe('withFailingSpace', () => {
       meta: { schemaIssues: [], sqlState: '42P01', failingSpace: 'app' },
       cause,
     });
+    expect(failure.stack).toBe(original.stack);
   });
 
   it('leaves the original failure unchanged', () => {

@@ -80,8 +80,18 @@ export type MongoMigrationRunnerResult = Result<
   MigrationRunnerFailure
 >;
 
+/** The codes the Mongo runner returns a failure with. */
+type MongoMigrationRunnerErrorCode =
+  | 'MIGRATION.EXECUTION_FAILED'
+  | 'MIGRATION.MARKER_CAS_FAILURE'
+  | 'MIGRATION.MARKER_ORIGIN_MISMATCH'
+  | 'MIGRATION.POLICY_VIOLATION'
+  | 'MIGRATION.POSTCHECK_FAILED'
+  | 'MIGRATION.PRECHECK_FAILED'
+  | 'MIGRATION.SCHEMA_VERIFY_FAILED';
+
 function runnerFailure(
-  code: MigrationRunnerFailure['code'],
+  code: MongoMigrationRunnerErrorCode,
   summary: string,
   options?: { readonly why?: string; readonly meta?: MigrationRunnerFailureMeta },
 ): MongoMigrationRunnerResult {
@@ -331,9 +341,7 @@ export class MongoMigrationRunner {
         : rawVerifyResult;
       if (!verifyResult.ok) {
         return runnerFailure('MIGRATION.SCHEMA_VERIFY_FAILED', verifyResult.summary, {
-          why:
-            schemaCheckWhy(verifyResult.schema.issues) ??
-            'The resulting database schema does not satisfy the destination contract.',
+          why: schemaCheckWhy(verifyResult.schema.issues),
           meta: { schemaIssues: verifyResult.schema.issues },
         });
       }

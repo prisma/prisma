@@ -383,6 +383,7 @@ class ControlClientImpl implements ControlClient {
     return executeDbInit({
       driver,
       invocation: options.invocation,
+      ...ifDefined('onPlannerWarnings', options.onPlannerWarnings),
       adapter,
       familyInstance,
       contract,
@@ -425,6 +426,7 @@ class ControlClientImpl implements ControlClient {
     return executeDbUpdate({
       driver,
       invocation: options.invocation,
+      ...ifDefined('onPlannerWarnings', options.onPlannerWarnings),
       adapter,
       familyInstance,
       contract,

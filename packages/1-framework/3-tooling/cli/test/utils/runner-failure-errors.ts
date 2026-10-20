@@ -1,4 +1,8 @@
-import { failedPrecheckWhy, migrationRunnerFailure } from '@internal/framework-components/control';
+import {
+  failedPrecheckWhy,
+  migrationRunnerFailure,
+  type SchemaDiffIssue,
+} from '@internal/framework-components/control';
 import { ifDefined } from '@internal/utils/defined';
 import type { RunnerFailureFacts } from '../../src/control-api/types';
 import { dbInitRunnerFailureError } from '../../src/utils/db-init-failure';
@@ -12,6 +16,7 @@ interface AdviceInput extends Omit<RunnerFailureFacts, 'failedMigration'> {
   readonly summary: string;
   readonly why: string | undefined;
   readonly failedMigration?: FailedMigrationOnDisk;
+  readonly schemaIssues?: readonly SchemaDiffIssue[];
   readonly databaseStorageHash?: string;
   readonly conflicts?: undefined;
 }
@@ -29,6 +34,10 @@ function runnerFailureOf(input: AdviceInput) {
             phase: 'precheck',
             description: precheck.description,
           })),
+    ...ifDefined(
+      'meta',
+      input.schemaIssues === undefined ? undefined : { schemaIssues: input.schemaIssues },
+    ),
   });
 }
 
@@ -37,7 +46,6 @@ function factsOf(input: AdviceInput): RunnerFailureFacts {
     ...ifDefined('failedTypeChange', input.failedTypeChange),
     ...ifDefined('rowsWithoutValue', input.rowsWithoutValue),
     ...ifDefined('failedPrecheck', input.failedPrecheck),
-    ...ifDefined('schemaIssues', input.schemaIssues),
   };
 }
 
@@ -53,7 +61,6 @@ export function migrateError(input: AdviceInput, invocation: CliInvocation) {
 export function dbUpdateError(input: AdviceInput, invocation: CliInvocation) {
   return dbUpdateRunnerFailureError(runnerFailureOf(input), factsOf(input), {
     databaseStorageHash: input.databaseStorageHash,
-    plannerWarnings: undefined,
     invocation,
   });
 }

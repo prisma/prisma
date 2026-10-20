@@ -26,27 +26,18 @@ const schemaCheckFailed = (meta: MigrationRunnerFailureMeta) =>
   );
 
 describe('runMigration, a failed schema check after apply', () => {
-  it('carries the issues and names the last migration to plan again', async () => {
+  it('names the last migration to plan again', async () => {
     const failure = await failureOf(schemaCheckFailed({ schemaIssues: [issue] }), null);
-    expect({
-      schemaIssues: failure?.schemaIssues,
-      spaceId: failure?.failedMigration?.spaceId,
-    }).toEqual({ schemaIssues: [issue], spaceId: 'app' });
+    expect(failure?.failedMigration?.spaceId).toBe('app');
   });
 
-  it('treats an empty issue list as no issues, and names no migration', async () => {
+  it('names no migration when the issue list is empty', async () => {
     const failure = await failureOf(schemaCheckFailed({ schemaIssues: [] }), null);
-    expect({
-      schemaIssues: failure?.schemaIssues,
-      failedMigration: failure?.failedMigration,
-    }).toEqual({ schemaIssues: undefined, failedMigration: undefined });
+    expect(failure?.failedMigration).toBeUndefined();
   });
 
   it('names no migration when the runner reports no issues', async () => {
     const failure = await failureOf(schemaCheckFailed({}), null);
-    expect({
-      schemaIssues: failure?.schemaIssues,
-      failedMigration: failure?.failedMigration,
-    }).toEqual({ schemaIssues: undefined, failedMigration: undefined });
+    expect(failure?.failedMigration).toBeUndefined();
   });
 });

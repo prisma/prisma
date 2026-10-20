@@ -5,6 +5,7 @@ import type {
   ControlDriverInstance,
   ControlExtensionDescriptor,
   ControlFamilyInstance,
+  MigrationPlannerConflict,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 import type { SnapshotContentVerifier } from '@internal/migration-tools/contract-snapshot-store';
@@ -61,6 +62,11 @@ export interface ExecuteDbInitOptions<TFamilyId extends string, TTargetId extend
   /** Content check for contract snapshots the aggregate loader resolves. */
   readonly verifySnapshotContent?: SnapshotContentVerifier;
   /** The command line the advice of a failure repeats. */
+  /**
+   * Called with the planner's warnings when the apply fails after planning: a failure carries no
+   * result to hold them. A successful run reports them in its result's `warnings`.
+   */
+  readonly onPlannerWarnings?: (warnings: readonly MigrationPlannerConflict[]) => void;
   readonly invocation: CliInvocation;
   /** Optional progress callback for observing operation progress */
   readonly onProgress?: OnControlProgress;
@@ -91,6 +97,7 @@ export async function executeDbInit<TFamilyId extends string, TTargetId extends 
     invocation: options.invocation,
     action: 'dbInit',
     ...ifDefined('verifySnapshotContent', options.verifySnapshotContent),
+    ...ifDefined('onPlannerWarnings', options.onPlannerWarnings),
     ...ifDefined('onProgress', options.onProgress),
   });
   return result as DbInitResult;

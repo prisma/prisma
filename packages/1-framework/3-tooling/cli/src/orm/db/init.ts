@@ -179,6 +179,11 @@ export function createDbInitCommand(createClient: CreateControlClient) {
           mode: args.flags.dryRun ? 'plan' : 'apply',
           migrationsDir,
           invocation: cliInvocation(ctx, args.flags.db),
+          onPlannerWarnings: (warnings) => {
+            for (const warning of warnings) {
+              ctx.report({ kind: 'message', severity: 'warn', text: warning.summary });
+            }
+          },
           onProgress: controlProgressReporter(ctx.report),
         });
         if (!result.ok) {
