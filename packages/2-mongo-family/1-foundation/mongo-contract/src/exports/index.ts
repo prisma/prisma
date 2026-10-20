@@ -42,6 +42,7 @@ export type {
   MongoJsonPrimitive,
   MongoJsonValue,
   MongoModelDefinition,
+  MongoModelFieldStorage,
   MongoModelStorage,
   MongoModelsMap,
   MongoStorageShape,
@@ -50,6 +51,8 @@ export type {
   MongoUnboundFieldInputTypes,
   MongoUnboundFieldOutputTypes,
   MongoWildcardProjection,
+  OwnFieldStoredAs,
+  OwnStoredNameOf,
   RootModelName,
 } from '../contract-types';
 export type { MongoContractAccessors, MongoContractView } from '../contract-view';
@@ -112,6 +115,7 @@ export { MongoValidator } from '../ir/mongo-validator';
 export type { MongoValueSetInput } from '../ir/mongo-value-set';
 export { MongoValueSet } from '../ir/mongo-value-set';
 export { mongoValueSetsOf } from '../mongo-enum';
+export { modelAndBasesOf, mongoModelsOf } from '../mongo-models';
 export type {
   ApplyScopeResult,
   PolymorphicIndexScope,
@@ -121,10 +125,16 @@ export type { MongoToOneRelationFields } from '../relation-fields';
 export { isEmbedRelation, resolveMongoToOneRelationFields } from '../relation-fields';
 export {
   DOCUMENT_ID,
-  documentIdFieldOf,
-  storedFieldNameOf,
-  storesField,
-} from '../stored-field-names';
+  hasOwnFieldStoredAs,
+  ownDocumentIdFieldOf,
+  ownEmbedStoredNamesOf,
+  ownFieldStoredAs,
+  ownStoredNameOf,
+  ownStoredNamesOf,
+  storedNamesOf,
+  unsupportedStoredNameReason,
+  valueObjectStoredNamesOf,
+} from '../stored-names';
 export { validateMongoStorage } from '../validate-storage';
 export {
   validatorEnumMemberRefusalOf,

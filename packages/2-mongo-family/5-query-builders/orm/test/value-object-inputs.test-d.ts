@@ -70,7 +70,15 @@ type VOContract = MongoContractWithTypeMaps<
                 };
               };
               readonly relations: Record<string, never>;
-              readonly storage: { readonly collection: 'users' };
+              readonly storage: {
+                readonly collection: 'users';
+                readonly fields: {
+                  readonly _id: { readonly field: '_id' };
+                  readonly name: { readonly field: 'name' };
+                  readonly contactInfo: { readonly field: 'contactInfo' };
+                  readonly tags: { readonly field: 'tags' };
+                };
+              };
             };
           };
           readonly valueObjects: {
@@ -233,7 +241,15 @@ type VOContractWithFieldTypes = MongoContractWithTypeMaps<
                 };
               };
               readonly relations: Record<string, never>;
-              readonly storage: { readonly collection: 'users' };
+              readonly storage: {
+                readonly collection: 'users';
+                readonly fields: {
+                  readonly _id: { readonly field: '_id' };
+                  readonly name: { readonly field: 'name' };
+                  readonly contactInfo: { readonly field: 'contactInfo' };
+                  readonly tags: { readonly field: 'tags' };
+                };
+              };
             };
           };
           readonly valueObjects: {
@@ -384,6 +400,12 @@ type ExtContract = MongoContractWithTypeMaps<
               };
               readonly storage: {
                 readonly collection: 'tasks';
+                readonly fields: {
+                  readonly _id: { readonly field: '_id' };
+                  readonly title: { readonly field: 'title' };
+                  readonly type: { readonly field: 'type' };
+                  readonly assigneeId: { readonly field: 'assigneeId' };
+                };
                 readonly relations: { readonly comments: { readonly field: 'comments' } };
               };
               readonly discriminator: { readonly field: 'type' };
@@ -401,7 +423,10 @@ type ExtContract = MongoContractWithTypeMaps<
                 };
               };
               readonly relations: Record<string, never>;
-              readonly storage: { readonly collection: 'tasks' };
+              readonly storage: {
+                readonly collection: 'tasks';
+                readonly fields: { readonly severity: { readonly field: 'severity' } };
+              };
               readonly base: CrossRefFor<'Task'>;
             };
             readonly Feature: {
@@ -413,7 +438,10 @@ type ExtContract = MongoContractWithTypeMaps<
                 };
               };
               readonly relations: Record<string, never>;
-              readonly storage: { readonly collection: 'tasks' };
+              readonly storage: {
+                readonly collection: 'tasks';
+                readonly fields: { readonly priority: { readonly field: 'priority' } };
+              };
               readonly base: CrossRefFor<'Task'>;
             };
             readonly User: {
@@ -430,7 +458,13 @@ type ExtContract = MongoContractWithTypeMaps<
                 };
               };
               readonly relations: Record<string, never>;
-              readonly storage: { readonly collection: 'users' };
+              readonly storage: {
+                readonly collection: 'users';
+                readonly fields: {
+                  readonly _id: { readonly field: '_id' };
+                  readonly name: { readonly field: 'name' };
+                };
+              };
             };
             readonly Comment: {
               readonly fields: {
@@ -446,7 +480,12 @@ type ExtContract = MongoContractWithTypeMaps<
                 };
               };
               readonly relations: Record<string, never>;
-              readonly storage: Record<string, never>;
+              readonly storage: {
+                readonly fields: {
+                  readonly _id: { readonly field: '_id' };
+                  readonly text: { readonly field: 'text' };
+                };
+              };
               readonly owner: 'Task';
             };
           };

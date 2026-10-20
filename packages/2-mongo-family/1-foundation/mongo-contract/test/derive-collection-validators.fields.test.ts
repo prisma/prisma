@@ -1,6 +1,12 @@
-import type { ContractValueObject } from '@internal/contract/types';
+import { type ContractValueObject, crossRef } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
-import { polymorphicRootValidator, rootValidator } from './collection-validator-helpers';
+import {
+  derive,
+  embedMany,
+  model,
+  polymorphicRootValidator,
+  rootValidator,
+} from './collection-validator-helpers';
 import {
   arrayEnumField,
   arrayField,
@@ -474,5 +480,105 @@ describe('deriveCollectionValidators — variants', () => {
     const oneOf = result.jsonSchema['oneOf'] as Record<string, Record<string, unknown>>[];
     const branchProps = oneOf[0]!['properties'] as Record<string, unknown>;
     expect(branchProps['_id']).toEqual({ bsonType: 'objectId' });
+  });
+});
+
+describe('deriveCollectionValidators — stored names', () => {
+  it('describes each field under its stored name', () => {
+    const validators = derive({
+      roots: { items: crossRef('Item') },
+      models: {
+        Item: model(
+          { id: scalarField('mongo/objectId@1'), title: scalarField('mongo/string@1', true) },
+          { storage: { fields: { id: { field: '_id' }, title: { field: 'display_title' } } } },
+        ),
+      },
+    });
+    expect(validators['items']?.jsonSchema).toEqual({
+      bsonType: 'object',
+      properties: {
+        _id: { bsonType: 'objectId' },
+        display_title: { bsonType: ['null', 'string'] },
+      },
+      required: ['_id'],
+      additionalProperties: false,
+    });
+  });
+
+  it('names the discriminator and variant fields by their stored names', () => {
+    const validators = derive({
+      roots: { items: crossRef('Item') },
+      models: {
+        Item: model(
+          { id: scalarField('mongo/objectId@1'), kind: scalarField('mongo/string@1') },
+          {
+            storage: { fields: { id: { field: '_id' }, kind: { field: '_kind' } } },
+            discriminator: { field: 'kind' },
+            variants: { dog: crossRef('Dog') },
+          },
+        ),
+        Dog: model(
+          { breed: scalarField('mongo/string@1') },
+          { storage: { fields: { breed: { field: 'dog_breed' } } }, base: crossRef('Item') },
+        ),
+      },
+    });
+    expect(validators['items']?.jsonSchema).toEqual({
+      bsonType: 'object',
+      properties: { _id: { bsonType: 'objectId' }, _kind: { bsonType: 'string' } },
+      required: ['_id', '_kind'],
+      oneOf: [
+        {
+          properties: {
+            _id: { bsonType: 'objectId' },
+            _kind: { enum: ['dog'] },
+            dog_breed: { bsonType: 'string' },
+          },
+          required: ['_kind', 'dog_breed'],
+          additionalProperties: false,
+        },
+      ],
+    });
+  });
+});
+
+describe('deriveCollectionValidators — embed stored names', () => {
+  it('describes an embedded model under its relation stored name, with its fields under their stored names', () => {
+    const validators = derive({
+      roots: { items: crossRef('Item') },
+      models: {
+        Item: model(
+          { id: scalarField('mongo/objectId@1') },
+          {
+            relations: { notes: embedMany('Note') },
+            storage: {
+              fields: { id: { field: '_id' } },
+              relations: { notes: { field: 'item_notes' } },
+            },
+          },
+        ),
+        Note: model(
+          { text: scalarField('mongo/string@1') },
+          { storage: { fields: { text: { field: 'note_text' } } }, owner: 'Item' },
+        ),
+      },
+    });
+    expect(validators['items']?.jsonSchema).toEqual({
+      bsonType: 'object',
+      properties: {
+        _id: { bsonType: 'objectId' },
+        item_notes: {
+          bsonType: 'array',
+          items: {
+            bsonType: 'object',
+            properties: { note_text: { bsonType: 'string' } },
+            required: ['note_text'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['_id'],
+      additionalProperties: false,
+    });
   });
 });

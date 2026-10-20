@@ -1,16 +1,5 @@
 import type { FailedPrecheckReport } from '../control-api/types';
-import { readCheckDescription } from './check-description';
 import { type CliInvocation, cliCommand } from './printed-command';
-
-/** What a failed check before an operation means, in words: which check failed, and what that says of the database. */
-export function failedPrecheckWhy(report: FailedPrecheckReport): string {
-  const checked = `Before operation ${report.operationId} runs, it checks: ${report.description}.`;
-  const reading = readCheckDescription(report.description);
-  if (reading === undefined) return `${checked} That check failed on this database.`;
-  return reading.expects === 'absent'
-    ? `${checked} That check failed: the database already has ${reading.object}.`
-    : `${checked} That check failed: the database has no ${reading.object}.`;
-}
 
 /** The way out of a failed check before an operation of `db migrate`. */
 export function migrateFailedPrecheckFix(

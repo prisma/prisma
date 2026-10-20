@@ -92,12 +92,20 @@
             },
             "relations": {},
             "storage": {
-              "collection": "events"
+              "collection": "events",
+              "fields": {
+                "brand": {
+                  "field": "brand"
+                },
+                "productId": {
+                  "field": "productId"
+                }
+              }
             }
           },
           "Cart": {
             "fields": {
-              "_id": {
+              "id": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -131,7 +139,7 @@
                     "userId"
                   ],
                   "targetFields": [
-                    "_id"
+                    "id"
                   ]
                 },
                 "to": {
@@ -141,7 +149,18 @@
               }
             },
             "storage": {
-              "collection": "carts"
+              "collection": "carts",
+              "fields": {
+                "id": {
+                  "field": "_id"
+                },
+                "items": {
+                  "field": "items"
+                },
+                "userId": {
+                  "field": "userId"
+                }
+              }
             }
           },
           "Event": {
@@ -149,7 +168,7 @@
               "field": "type"
             },
             "fields": {
-              "_id": {
+              "id": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -187,7 +206,24 @@
             },
             "relations": {},
             "storage": {
-              "collection": "events"
+              "collection": "events",
+              "fields": {
+                "id": {
+                  "field": "_id"
+                },
+                "sessionId": {
+                  "field": "sessionId"
+                },
+                "timestamp": {
+                  "field": "timestamp"
+                },
+                "type": {
+                  "field": "type"
+                },
+                "userId": {
+                  "field": "userId"
+                }
+              }
             },
             "variants": {
               "add-to-cart": {
@@ -206,7 +242,7 @@
           },
           "Invoice": {
             "fields": {
-              "_id": {
+              "id": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -268,7 +304,7 @@
                     "orderId"
                   ],
                   "targetFields": [
-                    "_id"
+                    "id"
                   ]
                 },
                 "to": {
@@ -278,18 +314,34 @@
               }
             },
             "storage": {
-              "collection": "invoices"
+              "collection": "invoices",
+              "fields": {
+                "id": {
+                  "field": "_id"
+                },
+                "issuedAt": {
+                  "field": "issuedAt"
+                },
+                "items": {
+                  "field": "items"
+                },
+                "orderId": {
+                  "field": "orderId"
+                },
+                "subtotal": {
+                  "field": "subtotal"
+                },
+                "tax": {
+                  "field": "tax"
+                },
+                "total": {
+                  "field": "total"
+                }
+              }
             }
           },
           "Location": {
             "fields": {
-              "_id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "mongo/objectId@1",
-                  "kind": "scalar"
-                }
-              },
               "city": {
                 "nullable": false,
                 "type": {
@@ -301,6 +353,13 @@
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
                   "kind": "scalar"
                 }
               },
@@ -328,12 +387,32 @@
             },
             "relations": {},
             "storage": {
-              "collection": "locations"
+              "collection": "locations",
+              "fields": {
+                "city": {
+                  "field": "city"
+                },
+                "country": {
+                  "field": "country"
+                },
+                "id": {
+                  "field": "_id"
+                },
+                "name": {
+                  "field": "name"
+                },
+                "postalCode": {
+                  "field": "postalCode"
+                },
+                "streetAndNumber": {
+                  "field": "streetAndNumber"
+                }
+              }
             }
           },
           "Order": {
             "fields": {
-              "_id": {
+              "id": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -393,7 +472,7 @@
                 "cardinality": "1:N",
                 "on": {
                   "localFields": [
-                    "_id"
+                    "id"
                   ],
                   "targetFields": [
                     "orderId"
@@ -412,7 +491,7 @@
                     "userId"
                   ],
                   "targetFields": [
-                    "_id"
+                    "id"
                   ]
                 },
                 "to": {
@@ -422,18 +501,31 @@
               }
             },
             "storage": {
-              "collection": "orders"
+              "collection": "orders",
+              "fields": {
+                "id": {
+                  "field": "_id"
+                },
+                "items": {
+                  "field": "items"
+                },
+                "shippingAddress": {
+                  "field": "shippingAddress"
+                },
+                "statusHistory": {
+                  "field": "statusHistory"
+                },
+                "type": {
+                  "field": "type"
+                },
+                "userId": {
+                  "field": "userId"
+                }
+              }
             }
           },
           "Product": {
             "fields": {
-              "_id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "mongo/objectId@1",
-                  "kind": "scalar"
-                }
-              },
               "articleType": {
                 "nullable": false,
                 "type": {
@@ -469,6 +561,13 @@
                 "nullable": true,
                 "type": {
                   "codecId": "mongo/double@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
                   "kind": "scalar"
                 }
               },
@@ -523,7 +622,45 @@
             },
             "relations": {},
             "storage": {
-              "collection": "products"
+              "collection": "products",
+              "fields": {
+                "articleType": {
+                  "field": "articleType"
+                },
+                "brand": {
+                  "field": "brand"
+                },
+                "code": {
+                  "field": "code"
+                },
+                "description": {
+                  "field": "description"
+                },
+                "embedding": {
+                  "field": "embedding"
+                },
+                "id": {
+                  "field": "_id"
+                },
+                "image": {
+                  "field": "image"
+                },
+                "name": {
+                  "field": "name"
+                },
+                "price": {
+                  "field": "price"
+                },
+                "primaryCategory": {
+                  "field": "primaryCategory"
+                },
+                "status": {
+                  "field": "status"
+                },
+                "subCategory": {
+                  "field": "subCategory"
+                }
+              }
             }
           },
           "SearchEvent": {
@@ -542,18 +679,16 @@
             },
             "relations": {},
             "storage": {
-              "collection": "events"
+              "collection": "events",
+              "fields": {
+                "query": {
+                  "field": "query"
+                }
+              }
             }
           },
           "User": {
             "fields": {
-              "_id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "mongo/objectId@1",
-                  "kind": "scalar"
-                }
-              },
               "address": {
                 "nullable": true,
                 "type": {
@@ -565,6 +700,13 @@
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
                   "kind": "scalar"
                 }
               },
@@ -581,7 +723,7 @@
                 "cardinality": "1:N",
                 "on": {
                   "localFields": [
-                    "_id"
+                    "id"
                   ],
                   "targetFields": [
                     "userId"
@@ -596,7 +738,7 @@
                 "cardinality": "1:N",
                 "on": {
                   "localFields": [
-                    "_id"
+                    "id"
                   ],
                   "targetFields": [
                     "userId"
@@ -609,7 +751,21 @@
               }
             },
             "storage": {
-              "collection": "users"
+              "collection": "users",
+              "fields": {
+                "address": {
+                  "field": "address"
+                },
+                "email": {
+                  "field": "email"
+                },
+                "id": {
+                  "field": "_id"
+                },
+                "name": {
+                  "field": "name"
+                }
+              }
             }
           },
           "ViewProductEvent": {
@@ -649,7 +805,21 @@
             },
             "relations": {},
             "storage": {
-              "collection": "events"
+              "collection": "events",
+              "fields": {
+                "brand": {
+                  "field": "brand"
+                },
+                "exitMethod": {
+                  "field": "exitMethod"
+                },
+                "productId": {
+                  "field": "productId"
+                },
+                "subCategory": {
+                  "field": "subCategory"
+                }
+              }
             }
           }
         },

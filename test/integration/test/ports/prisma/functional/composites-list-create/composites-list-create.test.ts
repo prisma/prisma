@@ -43,7 +43,7 @@ describe('ports/prisma/functional/composites/list/create', () => {
             },
           ],
         });
-        expect(comment._id).toEqual(expect.any(String));
+        expect(comment.id).toEqual(expect.any(String));
       }),
     timeouts.spinUpMongoMemoryServer,
   );
@@ -91,7 +91,7 @@ describe('ports/prisma/functional/composites/list/create', () => {
             },
           ],
         });
-        expect(comment._id).toEqual(expect.any(String));
+        expect(comment.id).toEqual(expect.any(String));
       }),
     timeouts.spinUpMongoMemoryServer,
   );

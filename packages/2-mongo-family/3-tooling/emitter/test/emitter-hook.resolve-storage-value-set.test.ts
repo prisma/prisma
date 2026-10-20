@@ -33,7 +33,7 @@ const userModel: ContractModelBase = {
     domainRole: domainRoleField,
   },
   relations: {},
-  storage: { collection: 'users' },
+  storage: { fields: { _id: { field: '_id' }, role: { field: 'role' } }, collection: 'users' },
 } as unknown as ContractModelBase;
 
 function contractWithValueSet(values: readonly string[]): Contract {

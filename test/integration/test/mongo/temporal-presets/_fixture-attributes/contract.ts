@@ -4,7 +4,7 @@ export const contract = defineContract({}, ({ field, model }) => {
   const Event = model('Event', {
     collection: 'events',
     fields: {
-      _id: field.objectId(),
+      id: field.objectId().mongo({ field: '_id' }),
       kind: field.string(),
       createdAt: field.date().onCreate(gen.now()),
     },
@@ -18,17 +18,21 @@ export const contract = defineContract({}, ({ field, model }) => {
       Post: model('Post', {
         collection: 'posts',
         fields: {
-          _id: field.objectId(),
+          id: field.objectId().mongo({ field: '_id' }),
           title: field.string(),
           createdAt: field.date().onCreate(gen.now()),
-          updated_at: field.date().onCreate(gen.now()).onUpdate(gen.now()),
+          updatedAt: field
+            .date()
+            .onCreate(gen.now())
+            .onUpdate(gen.now())
+            .mongo({ field: 'updated_at' }),
           touchedAt: field.date().onUpdate(gen.now()),
         },
       }),
       Counter: model('Counter', {
         collection: 'counters',
         fields: {
-          _id: field.objectId(),
+          id: field.objectId().mongo({ field: '_id' }),
           key: field.string(),
           tags: field.string().many(),
           scores: field.int32().many(),

@@ -56,13 +56,13 @@ describe('MongoMigrationPlanner, statements it refuses', () => {
       {
         kind: 'statementRefused',
         summary:
-          'Cannot rename field "Profile.o.d" to "Profile.od": the stored field name "o.d" cannot be rewritten',
+          'Cannot rename field "Profile.o.d" to "Profile.od": the stored name "o.d" cannot be rewritten',
         why: 'MongoDB reads a name containing "." as a path into embedded documents, so a statement cannot move its values. Rename it in the database yourself, or leave out this statement.',
       },
     ]);
   });
 
-  it('refuses a stored field name MongoDB reads as a path or an operator', () => {
+  it('refuses a stored name MongoDB reads as a path or an operator', () => {
     const to = (field: string) =>
       contract(
         field,
@@ -81,8 +81,8 @@ describe('MongoMigrationPlanner, statements it refuses', () => {
         ).map(({ summary }) => summary),
       ),
     ).toEqual([
-      'Cannot rename field "Profile.name" to "Profile.a.b": the stored field name "a.b" cannot be written',
-      'Cannot rename field "Profile.name" to "Profile.$a": the stored field name "$a" cannot be written',
+      'Cannot rename field "Profile.name" to "Profile.a.b": the stored name "a.b" cannot be written',
+      'Cannot rename field "Profile.name" to "Profile.$a": the stored name "$a" cannot be written',
     ]);
   });
 
@@ -279,7 +279,7 @@ describe('MongoMigrationPlanner, a field of a time-series collection', () => {
         kind: 'statementRefused',
         summary:
           'Cannot rename field "Reading.value" to "Reading.reading": collection "readings" is a time-series collection',
-        why: 'MongoDB updates the documents of a time-series collection only through its metaField, so a statement cannot move the values of a field in them. Keep the stored name: name the field "value" in the contract (with @map("value") in PSL), then run this command again without this statement.',
+        why: 'MongoDB updates the documents of a time-series collection only through its metaField, so a statement cannot move the values of a field in them. Keep the stored name: store the field as "value" (with @map("value") in PSL), then run this command again without this statement.',
       },
     ]);
   });

@@ -73,11 +73,19 @@ describe('PostgresMigrationRunner - renameTable', { concurrent: false }, () => {
     });
 
     expect(result.ok).toBe(false);
-    expect(result.assertNotOk()).toMatchObject({
+    const failure = result.assertNotOk();
+    expect({ code: failure.code, message: failure.message, meta: failure.meta }).toEqual({
       code: 'MIGRATION.PRECHECK_FAILED',
-      summary:
+      message:
         'Operation renameTable.userProfile failed during precheck: ensure table "UserProfile" does not exist',
-      meta: { operationId: 'renameTable.userProfile' },
+      meta: {
+        failingSpace: 'app',
+        failedCheck: {
+          operationId: 'renameTable.userProfile',
+          phase: 'precheck',
+          description: 'ensure table "UserProfile" does not exist',
+        },
+      },
     });
     const rows = await driver!.query('select id from "public"."userProfile"');
     expect(rows.rows).toEqual([{ id: 1 }]);

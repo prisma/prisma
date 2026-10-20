@@ -59,8 +59,8 @@ export type FieldInputTypes = FieldTypesFromDomain<
 
 export namespace Models {
   export type unbound_Reading = {
-    _id: FieldOutputTypes['__unbound__']['Reading']['_id'];
     double: FieldOutputTypes['__unbound__']['Reading']['double'];
+    id: FieldOutputTypes['__unbound__']['Reading']['id'];
     int32: FieldOutputTypes['__unbound__']['Reading']['int32'];
     text: FieldOutputTypes['__unbound__']['Reading']['text'];
     readonly [RelationKeys]?: never;
@@ -130,13 +130,13 @@ type ContractBase = Omit<
         readonly models: {
           readonly Reading: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly double: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/double@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly int32: {
                 readonly nullable: false;
@@ -148,7 +148,15 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'readings' };
+            readonly storage: {
+              readonly collection: 'readings';
+              readonly fields: {
+                readonly double: { readonly field: 'double' };
+                readonly id: { readonly field: '_id' };
+                readonly int32: { readonly field: 'int32' };
+                readonly text: { readonly field: 'text' };
+              };
+            };
           };
         };
         readonly enum: {

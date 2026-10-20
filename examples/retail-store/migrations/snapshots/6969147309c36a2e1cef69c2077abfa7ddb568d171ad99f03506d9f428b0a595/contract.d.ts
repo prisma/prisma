@@ -77,7 +77,7 @@ export type FieldInputTypes = FieldTypesFromDomain<
 
 export namespace Models {
   export type unbound_AddToCartEvent = {
-    _id: FieldOutputTypes['__unbound__']['Event']['_id'];
+    id: FieldOutputTypes['__unbound__']['Event']['id'];
     sessionId: FieldOutputTypes['__unbound__']['Event']['sessionId'];
     timestamp: FieldOutputTypes['__unbound__']['Event']['timestamp'];
     type: 'add-to-cart';
@@ -87,14 +87,14 @@ export namespace Models {
     readonly [RelationKeys]?: never;
   };
   export type unbound_Cart = {
-    _id: FieldOutputTypes['__unbound__']['Cart']['_id'];
+    id: FieldOutputTypes['__unbound__']['Cart']['id'];
     items: FieldOutputTypes['__unbound__']['Cart']['items'];
     userId: FieldOutputTypes['__unbound__']['Cart']['userId'];
     user: unbound_User;
     readonly [RelationKeys]?: 'user';
   };
   export type unbound_Event = {
-    _id: FieldOutputTypes['__unbound__']['Event']['_id'];
+    id: FieldOutputTypes['__unbound__']['Event']['id'];
     sessionId: FieldOutputTypes['__unbound__']['Event']['sessionId'];
     timestamp: FieldOutputTypes['__unbound__']['Event']['timestamp'];
     type: 'add-to-cart' | 'search' | 'view-product';
@@ -102,7 +102,7 @@ export namespace Models {
     readonly [RelationKeys]?: never;
   };
   export type unbound_Invoice = {
-    _id: FieldOutputTypes['__unbound__']['Invoice']['_id'];
+    id: FieldOutputTypes['__unbound__']['Invoice']['id'];
     issuedAt: FieldOutputTypes['__unbound__']['Invoice']['issuedAt'];
     items: FieldOutputTypes['__unbound__']['Invoice']['items'];
     orderId: FieldOutputTypes['__unbound__']['Invoice']['orderId'];
@@ -113,16 +113,16 @@ export namespace Models {
     readonly [RelationKeys]?: 'order';
   };
   export type unbound_Location = {
-    _id: FieldOutputTypes['__unbound__']['Location']['_id'];
     city: FieldOutputTypes['__unbound__']['Location']['city'];
     country: FieldOutputTypes['__unbound__']['Location']['country'];
+    id: FieldOutputTypes['__unbound__']['Location']['id'];
     name: FieldOutputTypes['__unbound__']['Location']['name'];
     postalCode: FieldOutputTypes['__unbound__']['Location']['postalCode'];
     streetAndNumber: FieldOutputTypes['__unbound__']['Location']['streetAndNumber'];
     readonly [RelationKeys]?: never;
   };
   export type unbound_Order = {
-    _id: FieldOutputTypes['__unbound__']['Order']['_id'];
+    id: FieldOutputTypes['__unbound__']['Order']['id'];
     items: FieldOutputTypes['__unbound__']['Order']['items'];
     shippingAddress: FieldOutputTypes['__unbound__']['Order']['shippingAddress'];
     statusHistory: FieldOutputTypes['__unbound__']['Order']['statusHistory'];
@@ -133,11 +133,11 @@ export namespace Models {
     readonly [RelationKeys]?: 'invoices' | 'user';
   };
   export type unbound_Product = {
-    _id: FieldOutputTypes['__unbound__']['Product']['_id'];
     articleType: FieldOutputTypes['__unbound__']['Product']['articleType'];
     brand: FieldOutputTypes['__unbound__']['Product']['brand'];
     code: FieldOutputTypes['__unbound__']['Product']['code'];
     description: FieldOutputTypes['__unbound__']['Product']['description'];
+    id: FieldOutputTypes['__unbound__']['Product']['id'];
     image: FieldOutputTypes['__unbound__']['Product']['image'];
     name: FieldOutputTypes['__unbound__']['Product']['name'];
     price: FieldOutputTypes['__unbound__']['Product']['price'];
@@ -146,7 +146,7 @@ export namespace Models {
     readonly [RelationKeys]?: never;
   };
   export type unbound_SearchEvent = {
-    _id: FieldOutputTypes['__unbound__']['Event']['_id'];
+    id: FieldOutputTypes['__unbound__']['Event']['id'];
     sessionId: FieldOutputTypes['__unbound__']['Event']['sessionId'];
     timestamp: FieldOutputTypes['__unbound__']['Event']['timestamp'];
     type: 'search';
@@ -155,16 +155,16 @@ export namespace Models {
     readonly [RelationKeys]?: never;
   };
   export type unbound_User = {
-    _id: FieldOutputTypes['__unbound__']['User']['_id'];
     address: FieldOutputTypes['__unbound__']['User']['address'];
     email: FieldOutputTypes['__unbound__']['User']['email'];
+    id: FieldOutputTypes['__unbound__']['User']['id'];
     name: FieldOutputTypes['__unbound__']['User']['name'];
     carts: unbound_Cart[];
     orders: unbound_Order[];
     readonly [RelationKeys]?: 'carts' | 'orders';
   };
   export type unbound_ViewProductEvent = {
-    _id: FieldOutputTypes['__unbound__']['Event']['_id'];
+    id: FieldOutputTypes['__unbound__']['Event']['id'];
     sessionId: FieldOutputTypes['__unbound__']['Event']['sessionId'];
     timestamp: FieldOutputTypes['__unbound__']['Event']['timestamp'];
     type: 'view-product';
@@ -674,7 +674,13 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'events' };
+            readonly storage: {
+              readonly collection: 'events';
+              readonly fields: {
+                readonly brand: { readonly field: 'brand' };
+                readonly productId: { readonly field: 'productId' };
+              };
+            };
             readonly base: {
               readonly namespace: '__unbound__' & NamespaceId;
               readonly model: 'Event';
@@ -682,7 +688,7 @@ type ContractBase = Omit<
           };
           readonly Cart: {
             readonly fields: {
-              readonly _id: {
+              readonly id: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
@@ -706,15 +712,22 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
-                  readonly targetFields: readonly ['_id'];
+                  readonly targetFields: readonly ['id'];
                 };
               };
             };
-            readonly storage: { readonly collection: 'carts' };
+            readonly storage: {
+              readonly collection: 'carts';
+              readonly fields: {
+                readonly id: { readonly field: '_id' };
+                readonly items: { readonly field: 'items' };
+                readonly userId: { readonly field: 'userId' };
+              };
+            };
           };
           readonly Event: {
             readonly fields: {
-              readonly _id: {
+              readonly id: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
@@ -736,7 +749,16 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'events' };
+            readonly storage: {
+              readonly collection: 'events';
+              readonly fields: {
+                readonly id: { readonly field: '_id' };
+                readonly sessionId: { readonly field: 'sessionId' };
+                readonly timestamp: { readonly field: 'timestamp' };
+                readonly type: { readonly field: 'type' };
+                readonly userId: { readonly field: 'userId' };
+              };
+            };
             readonly discriminator: { readonly field: 'type' };
             readonly variants: {
               readonly 'add-to-cart': {
@@ -755,7 +777,7 @@ type ContractBase = Omit<
           };
           readonly Invoice: {
             readonly fields: {
-              readonly _id: {
+              readonly id: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
@@ -795,18 +817,25 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['orderId'];
-                  readonly targetFields: readonly ['_id'];
+                  readonly targetFields: readonly ['id'];
                 };
               };
             };
-            readonly storage: { readonly collection: 'invoices' };
+            readonly storage: {
+              readonly collection: 'invoices';
+              readonly fields: {
+                readonly id: { readonly field: '_id' };
+                readonly issuedAt: { readonly field: 'issuedAt' };
+                readonly items: { readonly field: 'items' };
+                readonly orderId: { readonly field: 'orderId' };
+                readonly subtotal: { readonly field: 'subtotal' };
+                readonly tax: { readonly field: 'tax' };
+                readonly total: { readonly field: 'total' };
+              };
+            };
           };
           readonly Location: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly city: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
@@ -814,6 +843,10 @@ type ContractBase = Omit<
               readonly country: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly name: {
                 readonly nullable: false;
@@ -829,11 +862,21 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'locations' };
+            readonly storage: {
+              readonly collection: 'locations';
+              readonly fields: {
+                readonly city: { readonly field: 'city' };
+                readonly country: { readonly field: 'country' };
+                readonly id: { readonly field: '_id' };
+                readonly name: { readonly field: 'name' };
+                readonly postalCode: { readonly field: 'postalCode' };
+                readonly streetAndNumber: { readonly field: 'streetAndNumber' };
+              };
+            };
           };
           readonly Order: {
             readonly fields: {
-              readonly _id: {
+              readonly id: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
@@ -868,7 +911,7 @@ type ContractBase = Omit<
                 };
                 readonly cardinality: '1:N';
                 readonly on: {
-                  readonly localFields: readonly ['_id'];
+                  readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['orderId'];
                 };
               };
@@ -881,18 +924,24 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
-                  readonly targetFields: readonly ['_id'];
+                  readonly targetFields: readonly ['id'];
                 };
               };
             };
-            readonly storage: { readonly collection: 'orders' };
+            readonly storage: {
+              readonly collection: 'orders';
+              readonly fields: {
+                readonly id: { readonly field: '_id' };
+                readonly items: { readonly field: 'items' };
+                readonly shippingAddress: { readonly field: 'shippingAddress' };
+                readonly statusHistory: { readonly field: 'statusHistory' };
+                readonly type: { readonly field: 'type' };
+                readonly userId: { readonly field: 'userId' };
+              };
+            };
           };
           readonly Product: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly articleType: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
@@ -908,6 +957,10 @@ type ContractBase = Omit<
               readonly description: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly image: {
                 readonly nullable: false;
@@ -931,7 +984,21 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'products' };
+            readonly storage: {
+              readonly collection: 'products';
+              readonly fields: {
+                readonly articleType: { readonly field: 'articleType' };
+                readonly brand: { readonly field: 'brand' };
+                readonly code: { readonly field: 'code' };
+                readonly description: { readonly field: 'description' };
+                readonly id: { readonly field: '_id' };
+                readonly image: { readonly field: 'image' };
+                readonly name: { readonly field: 'name' };
+                readonly price: { readonly field: 'price' };
+                readonly primaryCategory: { readonly field: 'primaryCategory' };
+                readonly subCategory: { readonly field: 'subCategory' };
+              };
+            };
           };
           readonly SearchEvent: {
             readonly fields: {
@@ -941,7 +1008,10 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'events' };
+            readonly storage: {
+              readonly collection: 'events';
+              readonly fields: { readonly query: { readonly field: 'query' } };
+            };
             readonly base: {
               readonly namespace: '__unbound__' & NamespaceId;
               readonly model: 'Event';
@@ -949,10 +1019,6 @@ type ContractBase = Omit<
           };
           readonly User: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly address: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'Address' };
@@ -960,6 +1026,10 @@ type ContractBase = Omit<
               readonly email: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly name: {
                 readonly nullable: false;
@@ -974,7 +1044,7 @@ type ContractBase = Omit<
                 };
                 readonly cardinality: '1:N';
                 readonly on: {
-                  readonly localFields: readonly ['_id'];
+                  readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['userId'];
                 };
               };
@@ -985,12 +1055,20 @@ type ContractBase = Omit<
                 };
                 readonly cardinality: '1:N';
                 readonly on: {
-                  readonly localFields: readonly ['_id'];
+                  readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['userId'];
                 };
               };
             };
-            readonly storage: { readonly collection: 'users' };
+            readonly storage: {
+              readonly collection: 'users';
+              readonly fields: {
+                readonly address: { readonly field: 'address' };
+                readonly email: { readonly field: 'email' };
+                readonly id: { readonly field: '_id' };
+                readonly name: { readonly field: 'name' };
+              };
+            };
           };
           readonly ViewProductEvent: {
             readonly fields: {
@@ -1012,7 +1090,15 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'events' };
+            readonly storage: {
+              readonly collection: 'events';
+              readonly fields: {
+                readonly brand: { readonly field: 'brand' };
+                readonly exitMethod: { readonly field: 'exitMethod' };
+                readonly productId: { readonly field: 'productId' };
+                readonly subCategory: { readonly field: 'subCategory' };
+              };
+            };
             readonly base: {
               readonly namespace: '__unbound__' & NamespaceId;
               readonly model: 'Event';

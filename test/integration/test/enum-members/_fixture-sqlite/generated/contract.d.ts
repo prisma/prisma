@@ -133,7 +133,16 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
   : Encoded;
 type ParameterizedOutputTypeFunctions = never;
 
-type FieldTypeOverrides = {};
+type FieldTypeOverrides = {
+  readonly __unbound__: {
+    readonly models: {
+      readonly Reading: {
+        readonly big: { readonly output: 1n | 10n; readonly input: 1n | 10n };
+        readonly text: { readonly output: 'low' | 'high'; readonly input: 'low' | 'high' };
+      };
+    };
+  };
+};
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
@@ -148,7 +157,14 @@ export type FieldInputTypes = FieldTypesFromDomain<
   FieldTypeOverrides,
   'input'
 >;
-type ColumnTypeOverrides = {};
+type ColumnTypeOverrides = {
+  readonly __unbound__: {
+    readonly readings: {
+      readonly big: { readonly output: 1n | 10n; readonly input: 1n | 10n };
+      readonly text: { readonly output: 'low' | 'high'; readonly input: 'low' | 'high' };
+    };
+  };
+};
 export type StorageColumnTypes = ColumnTypesFromStorage<
   ContractBase['storage'],
   CodecTypes,

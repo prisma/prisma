@@ -36,6 +36,13 @@ const Plan = enumType(
   member('Paid', 'paid'),
 );
 
+const Ratio = enumType(
+  'Ratio',
+  { codecId: 'pg/numeric@1' } as const,
+  member('Half', '0.5'),
+  member('Whole', '1.50'),
+);
+
 const pgVarchar20 = { codecId: 'pg/varchar@1', typeParams: { length: 20 } } as const;
 
 const User = model('User', {
@@ -59,6 +66,7 @@ const User = model('User', {
     seenAt: field.temporal.timestamptzJsDate(3),
     handle: field.column(pgVarchar20),
     plan: field.namedType(Plan),
+    ratio: field.namedType(Ratio),
   },
 });
 
@@ -165,7 +173,7 @@ const Profile = model('Profile', {
 export const contract = defineContract({
   extensions: { 'arktype-json': arktypeJsonPack },
   namespaces: ['auth'],
-  enums: { Plan },
+  enums: { Plan, Ratio },
   types: { TimestampString3: timestampString3, TimestamptzString3: timestamptzString3 },
   models: {
     User: User.relations({

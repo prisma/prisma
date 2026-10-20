@@ -47,6 +47,26 @@ describe('Mongo TS temporal presets', () => {
     },
   }));
 
+  it('keys the execution default of a field by its stored name', () => {
+    const mapped = defineContract(scaffold, ({ field, model }) => ({
+      models: {
+        Post: model('Post', {
+          collection: 'posts',
+          fields: {
+            id: field.objectId().mongo({ field: '_id' }),
+            createdAt: field.temporal.createdAt().mongo({ field: 'created_at' }),
+          },
+        }),
+      },
+    }));
+    expect(mapped.execution?.mutations.defaults).toEqual([
+      {
+        ref: { namespace: UNBOUND_NAMESPACE_ID, entry: 'posts', field: 'created_at' },
+        onCreate: timestampNow,
+      },
+    ]);
+  });
+
   it('types each preset field as a mongo/date@1 scalar', () => {
     const date = { nullable: false, type: { kind: 'scalar', codecId: 'mongo/date@1' } };
     expect(domainModelsAtDefaultNamespace(contract.domain)['Post']?.fields).toMatchObject({
@@ -353,6 +373,31 @@ describe('Mongo TS temporal presets on models sharing a collection', () => {
         code: 'CONTRACT.DEFAULT_INVALID',
         meta: { modelName: 'Page', fieldName: 'stamp', reason: 'executionDefaults-conflict' },
       }),
+    );
+  });
+
+  it("names each model's own field when differing defaults share a stored name", () => {
+    expect(() =>
+      defineContract(scaffold, ({ field, model }) => ({
+        models: {
+          Post: model('Post', {
+            collection: 'entries',
+            fields: {
+              _id: field.objectId(),
+              createdAt: field.temporal.createdAt().mongo({ field: 'created_at' }),
+            },
+          }),
+          Page: model('Page', {
+            collection: 'entries',
+            fields: {
+              _id: field.objectId(),
+              created: field.temporal.updatedAt().mongo({ field: 'created_at' }),
+            },
+          }),
+        },
+      })),
+    ).toThrow(
+      'Field "Page.created" has different executionDefaults than "Post.createdAt", which is stored in the same collection "entries". Use the same executionDefaults on both models.',
     );
   });
 });

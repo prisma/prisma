@@ -1,6 +1,6 @@
-import type { DiffableNode, SchemaDiffIssue } from '@internal/framework-components/control';
 import { describe, expect, it } from 'vitest';
-import { issueLabel, schemaCheckWhy, schemaIssuesWhy } from '../../src/utils/schema-issues';
+import { issueLabel, schemaCheckWhy, schemaIssuesWhy } from '../src/control/runner-failure-why';
+import type { DiffableNode, SchemaDiffIssue } from '../src/control/schema-diff';
 
 const node: DiffableNode = {
   id: 'default',
@@ -46,7 +46,9 @@ describe('schemaCheckWhy', () => {
     );
   });
 
-  it('gives nothing for another failure', () => {
-    expect(schemaCheckWhy(undefined)).toBeUndefined();
+  it('says the schema does not satisfy the contract when the check found no issues', () => {
+    expect(schemaCheckWhy([])).toBe(
+      'The resulting database schema does not satisfy the destination contract.',
+    );
   });
 });

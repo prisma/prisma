@@ -51,11 +51,12 @@ const Address = valueObject('Address', {
 const User = model('User', {
   collection: 'users',
   fields: {
-    _id: field.objectId(),
+    id: field.objectId().mongo({ field: '_id' }),
+    email: field.string(),
     homeAddress: field.valueObject(Address).optional(),
   },
   indexes: [
-    index({ _id: 1 }, { unique: true }),
+    index({ email: 1 }, { unique: true }),
   ],
   collectionOptions: {
     collation: { locale: 'en', strength: 2 },
@@ -65,14 +66,14 @@ const User = model('User', {
 const Post = model('Post', {
   collection: 'posts',
   fields: {
-    _id: field.objectId(),
-    authorId: field.objectId(),
+    id: field.objectId().mongo({ field: '_id' }),
+    authorId: field.objectId().mongo({ field: 'author_id' }),
     title: field.string(),
   },
   relations: {
     author: rel.belongsTo(User, {
       from: 'authorId',
-      to: User.ref('_id'),
+      to: User.ref('id'),
     }),
   },
 });
@@ -84,6 +85,8 @@ export const contract = defineContract({
   models: { User, Post },
 });
 ```
+
+Each field is stored under its own name unless `.mongo({ field })` names another stored name, as `id` is stored as `_id` above. Relations, the discriminator and indexes name fields; the builder writes stored names into indexes, validators and execution defaults. A field of a value object is stored under its own name, so `.mongo({ field })` on one is refused.
 
 ## Config helper
 

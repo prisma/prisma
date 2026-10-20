@@ -1,3 +1,4 @@
+import type { WrittenScalar } from './written-value';
 export interface PslPosition {
   readonly offset: number;
   readonly line: number;
@@ -169,8 +170,8 @@ export interface ParsedPslExtensionBlock<Values = Readonly<Record<string, unknow
   readonly name: string;
   readonly values: Values;
   readonly parameterSpans: Readonly<Record<string, PslSpan>>;
-  /** The source text of each entry whose value is a number literal, by key, so a reader can keep digits a JavaScript number loses. */
-  readonly numberTexts?: Readonly<Record<string, string>>;
+  /** Each entry whose value is a literal, by key, as it is written: its syntax and source text, so a reader takes it by the cast rule and keeps digits a JavaScript number loses. ADR 254. */
+  readonly writtenValues?: Readonly<Record<string, WrittenScalar>>;
   readonly attributes: Readonly<Record<string, PslExtensionBlockParsedAttribute>>;
   readonly span: PslSpan;
 }

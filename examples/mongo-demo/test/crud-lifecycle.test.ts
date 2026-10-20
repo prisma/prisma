@@ -40,7 +40,7 @@ describe('CRUD lifecycle', { timeout: timeouts.spinUpMongoMemoryServer }, () => 
       address: null,
     });
 
-    expect(alice._id).toBeDefined();
+    expect(alice.id).toBeDefined();
     expect(alice.name).toBe('Alice');
     expect(alice.email).toBe('alice@example.com');
 
@@ -161,7 +161,7 @@ describe('CRUD lifecycle', { timeout: timeouts.spinUpMongoMemoryServer }, () => 
     });
 
     expect(result).toBeDefined();
-    expect(result._id).toBeDefined();
+    expect(result.id).toBeDefined();
 
     const allUsers = await orm.users.all();
     expect(allUsers).toHaveLength(1);

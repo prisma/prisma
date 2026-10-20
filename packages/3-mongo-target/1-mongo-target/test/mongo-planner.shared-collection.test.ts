@@ -282,6 +282,39 @@ describe('MongoMigrationPlanner, field changes in a collection that stores sever
       ]);
     });
 
+    it('compares discriminators by stored name, so a variant of another value is not reached', () => {
+      const storedKind = (superFields: readonly string[]) =>
+        ({
+          Admin: {
+            collection: 'users',
+            fields: ['_id', 'kind'],
+            storedAs: { kind: '_kind' },
+            discriminator: 'kind',
+            variants: { SuperAdmin: 'super' },
+          },
+          SuperAdmin: { collection: 'users', fields: superFields, base: 'Admin' },
+          Member: {
+            collection: 'users',
+            fields: ['_id', 'kind'],
+            storedAs: { kind: '_kind' },
+            discriminator: 'kind',
+            variants: { OtherMember: 'other' },
+          },
+          OtherMember: { collection: 'users', fields: ['level'], base: 'Member' },
+        }) satisfies Record<string, ModelSpec>;
+      expect(
+        planned(
+          plan({
+            from: contract('from', storedKind(['level']), collections),
+            to: contract('to', storedKind([]), collections),
+            schema,
+          }),
+        ).dataLoss.map(({ subject }) => subject),
+      ).toEqual([
+        { kind: 'field', namespaceId: '__unbound__', model: 'SuperAdmin', field: 'level' },
+      ]);
+    });
+
     it('removes a variant field when no other model can hold the discriminator value', () => {
       expect(
         planned(

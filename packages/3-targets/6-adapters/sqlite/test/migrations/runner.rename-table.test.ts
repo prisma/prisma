@@ -59,9 +59,15 @@ describe('SqliteMigrationRunner - renameTable', { timeout: timeouts.databaseOper
 
     expect(result.assertNotOk()).toMatchObject({
       code: 'MIGRATION.PRECHECK_FAILED',
-      summary:
+      message:
         'Operation renameTable.Profile failed during precheck: ensure no table or index is named "User" in any case',
-      meta: { operationId: 'renameTable.Profile' },
+      meta: {
+        failedCheck: {
+          operationId: 'renameTable.Profile',
+          phase: 'precheck',
+          description: 'ensure no table or index is named "User" in any case',
+        },
+      },
     });
     const tables = await driver.query<{ name: string }>(
       `SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('Profile', 'user') ORDER BY name`,
@@ -79,7 +85,7 @@ describe('SqliteMigrationRunner - renameTable', { timeout: timeouts.databaseOper
 
     expect(result.assertNotOk()).toMatchObject({
       code: 'MIGRATION.PRECHECK_FAILED',
-      meta: { operationId: 'renameTable.Profile' },
+      meta: { failedCheck: expect.objectContaining({ operationId: 'renameTable.Profile' }) },
     });
   });
 
@@ -116,9 +122,15 @@ describe('SqliteMigrationRunner - renameTable', { timeout: timeouts.databaseOper
     expect(result.ok).toBe(false);
     expect(result.assertNotOk()).toMatchObject({
       code: 'MIGRATION.PRECHECK_FAILED',
-      summary:
+      message:
         'Operation renameTable.profile failed during precheck: ensure no table or index is named "account" in any case',
-      meta: { operationId: 'renameTable.profile' },
+      meta: {
+        failedCheck: {
+          operationId: 'renameTable.profile',
+          phase: 'precheck',
+          description: 'ensure no table or index is named "account" in any case',
+        },
+      },
     });
     const rows = await driver.query('SELECT id FROM "profile"');
     expect(rows.rows).toEqual([{ id: 1 }]);

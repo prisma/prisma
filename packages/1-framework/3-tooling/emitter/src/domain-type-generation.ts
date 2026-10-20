@@ -327,8 +327,9 @@ export type StorageValueSetResolver = (
  *
  * Returns `undefined` — signalling the caller to fall back to the codec's full output type — when
  * the lookup is absent, has no `renderValueLiteralFor`, the value set is empty, or **any** value
- * isn't literal-expressible. A caller that needs column and field types to agree shares this so both
- * compute the union identically.
+ * isn't literal-expressible, which every value of a codec that declares `keepsWrittenForm` is. A
+ * caller that needs column and field types to agree shares this so both compute the union
+ * identically.
  */
 export function renderValueSetType(
   values: readonly JsonValue[],
@@ -336,14 +337,25 @@ export function renderValueSetType(
   side: 'output' | 'input',
   codecLookup: CodecLookup | undefined,
 ): string | undefined {
-  if (values.length === 0 || codecLookup?.renderValueLiteralFor === undefined) return undefined;
+  if (values.length === 0) return undefined;
   const literals: string[] = [];
   for (const value of values) {
-    const lit = codecLookup.renderValueLiteralFor(codecId, value, side);
-    if (lit === undefined || !isSafeTypeExpression(lit)) return undefined;
+    const lit = renderValueLiteralType(value, codecId, side, codecLookup);
+    if (lit === undefined) return undefined;
     literals.push(lit);
   }
   return literals.join(' | ');
+}
+
+/** The TS literal type the codec renders for one stored value, or `undefined` when it renders none or what it renders is not a safe type expression. */
+export function renderValueLiteralType(
+  value: JsonValue,
+  codecId: string,
+  side: 'output' | 'input',
+  codecLookup: CodecLookup | undefined,
+): string | undefined {
+  const lit = codecLookup?.renderValueLiteralFor?.(codecId, value, side);
+  return lit === undefined || !isSafeTypeExpression(lit) ? undefined : lit;
 }
 
 /** The local alias for the union of the stack's parameterized output type functions. */

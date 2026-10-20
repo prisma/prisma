@@ -39,7 +39,7 @@ const levelField = {
 const itemModel: ContractModelBase = {
   fields: { level: levelField },
   relations: {},
-  storage: { collection: 'items' },
+  storage: { fields: { level: { field: 'level' } }, collection: 'items' },
 } as unknown as ContractModelBase;
 
 function contractWithEncodedValueSet(): Contract {

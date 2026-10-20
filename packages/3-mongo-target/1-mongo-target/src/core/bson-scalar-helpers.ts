@@ -14,7 +14,6 @@ import { counted } from '@internal/utils/text';
 import { Binary, Decimal128, Double, Long, ObjectId } from 'bson';
 import { mongoTargetError } from './mongo-target-errors';
 
-const DECIMAL_INTEGER = /^-?\d+$/;
 const STORED_DECIMAL_TEXT = /^(?:-?\d+(?:\.\d+)?|NaN|-?Infinity)$/;
 const DECIMAL128_TEXT = /^(-?)(\d+)(?:\.(\d+))?(?:E([+-]\d+))?$/;
 const BASE64_TEXT = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
@@ -330,14 +329,6 @@ export function int64NumberToJson(codecId: string, value: number): string {
 /** A `number` holds an integer exactly only within the safe integer range, so digit text past it is refused. */
 export function int64NumberFromDigits(codecId: string, digits: JsonValue): number {
   return Number(readJsonIntegerText(codecId, digits, SAFE_INTEGER_BIGINT_RANGE));
-}
-
-export function decimalTextNumberLiteral(value: JsonValue): string | undefined {
-  return typeof value === 'string' && DECIMAL_INTEGER.test(value) ? value : undefined;
-}
-
-export function decimalTextBigintLiteral(value: JsonValue): string | undefined {
-  return typeof value === 'string' && DECIMAL_INTEGER.test(value) ? `${value}n` : undefined;
 }
 
 /**

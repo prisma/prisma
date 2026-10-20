@@ -315,7 +315,8 @@ function writeListCast(
   return stored !== undefined && sameForm(stored, value) ? `[${parts.join(', ')}]` : undefined;
 }
 
-function writeDefaultLiteral(
+/** The PSL literal a stored value is written as for the column `options` describe, or `undefined` when it has no written form that reads back as that value. */
+export function writeDefaultLiteral(
   value: ColumnDefaultLiteralInputValue,
   options: DefaultMappingOptions | undefined,
 ): string | undefined {

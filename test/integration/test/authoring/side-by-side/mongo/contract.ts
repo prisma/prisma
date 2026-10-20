@@ -1,5 +1,12 @@
-import { defineContract, field, model, rel, valueObject } from '@internal/mongo/contract-builder';
-import { enumType, member } from '@internal/mongo-contract-ts/contract-builder';
+import {
+  defineContract,
+  enumType,
+  field,
+  member,
+  model,
+  rel,
+  valueObject,
+} from '@internal/mongo/contract-builder';
 
 const Role = enumType(
   'Role',
@@ -18,7 +25,7 @@ const Address = valueObject('Address', {
 const Admin = model('Admin', {
   collection: 'users',
   fields: {
-    _id: field.objectId(),
+    id: field.objectId().mongo({ field: '_id' }),
     level: field.int32(),
   },
 });
@@ -26,7 +33,7 @@ const Admin = model('Admin', {
 const User = model('User', {
   collection: 'users',
   fields: {
-    _id: field.objectId(),
+    id: field.objectId().mongo({ field: '_id' }),
     name: field.string(),
     email: field.string(),
     bio: field.string().optional(),
@@ -34,27 +41,27 @@ const User = model('User', {
     address: field.valueObject(Address).optional(),
   },
   relations: {
-    posts: rel.hasMany('Post', { from: '_id', to: 'authorId' }),
+    posts: rel.hasMany('Post', { from: 'id', to: 'authorId' }),
   },
 });
 
 const Post = model('Post', {
   collection: 'posts',
   fields: {
-    _id: field.objectId(),
+    id: field.objectId().mongo({ field: '_id' }),
     authorId: field.objectId(),
     title: field.string(),
     publishedAt: field.date().optional(),
   },
   relations: {
-    author: rel.belongsTo(User, { from: 'authorId', to: User.ref('_id') }),
+    author: rel.belongsTo(User, { from: 'authorId', to: User.ref('id') }),
   },
 });
 
 const Task = model('Task', {
   collection: 'tasks',
   fields: {
-    _id: field.objectId(),
+    id: field.objectId().mongo({ field: '_id' }),
     type: field.string(),
     title: field.string(),
   },

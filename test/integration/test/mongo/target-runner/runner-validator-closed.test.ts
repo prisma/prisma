@@ -237,7 +237,7 @@ describe('MongoMigrationRunner - closed validators', () => {
 
     expect(result.ok).toBe(true);
     if (!result.ok) {
-      throw new Error(`Runner failed: ${result.failure.code} — ${result.failure.summary}`);
+      throw new Error(`Runner failed: ${result.failure.code} — ${result.failure.message}`);
     }
     expect(result.value.operationsExecuted).toBe(1);
 

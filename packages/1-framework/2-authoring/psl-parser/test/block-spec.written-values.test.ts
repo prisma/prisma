@@ -67,8 +67,8 @@ const SETTINGS_DESCRIPTOR = {
   spec: settingsSpec,
 } satisfies PslBlockSpecDescriptor;
 
-describe('interpretExtensionBlock records the source text of number entries', () => {
-  it('keeps every digit of a map entry written as a number literal, by key', () => {
+describe('interpretExtensionBlock records each literal entry as it is written', () => {
+  it('keeps the syntax and every digit of each literal map entry, by key', () => {
     const parsed = interpretOnlyBlock(
       [
         'enum Big {',
@@ -86,15 +86,16 @@ describe('interpretExtensionBlock records the source text of number entries', ()
 
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
-    expect({ ...parsed.value.numberTexts }).toEqual({
-      Huge: '9007199254740993',
-      Fraction: '0.12345678901234567890',
-      Negative: '-1',
-      Positive: '+2',
+    expect({ ...parsed.value.writtenValues }).toEqual({
+      Huge: { kind: 'number', text: '9007199254740993' },
+      Fraction: { kind: 'number', text: '0.12345678901234567890' },
+      Negative: { kind: 'number', text: '-1' },
+      Positive: { kind: 'number', text: '+2' },
+      Text: { kind: 'string', text: '9007199254740993' },
     });
   });
 
-  it('keeps the text of a struct entry written as a number literal, by key', () => {
+  it('keeps each literal struct entry as it is written, by key', () => {
     const parsed = interpretOnlyBlock(
       ['settings Main {', '  limit = 9223372036854775807', '  label = "x"', '}'].join('\n'),
       SETTINGS_DESCRIPTOR,
@@ -103,6 +104,9 @@ describe('interpretExtensionBlock records the source text of number entries', ()
 
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
-    expect({ ...parsed.value.numberTexts }).toEqual({ limit: '9223372036854775807' });
+    expect({ ...parsed.value.writtenValues }).toEqual({
+      limit: { kind: 'number', text: '9223372036854775807' },
+      label: { kind: 'string', text: 'x' },
+    });
   });
 });

@@ -167,6 +167,47 @@ export function buildSqlContractFromDefinition(
   const storageTypes = definition.storageTypes ?? {};
   const targetFamily = 'sql';
 
+  // Build per-namespace registries for `enumType()` handles.
+  // All authored enums target the contract's default namespace.
+  const domainEnumsByNs: Record<string, Record<string, ContractEnum>> = {};
+  const storageValueSetsByNs: Record<string, Record<string, StorageValueSetInput>> = {};
+  for (const [enumName, handle] of Object.entries(definition.enums ?? {})) {
+    if (enumName !== handle.enumName) {
+      throw contractError(
+        'CONTRACT.ENUM_INVALID',
+        `enum declaration key "${enumName}" must match enumType name "${handle.enumName}". Aliases are not supported.`,
+        {
+          meta: {
+            enumName: handle.enumName,
+            declarationKey: enumName,
+            reason: 'key-name-mismatch',
+          },
+        },
+      );
+    }
+    const nsId = defaultNamespaceId;
+    let domainSlot = domainEnumsByNs[nsId];
+    if (domainSlot === undefined) {
+      domainSlot = {};
+      domainEnumsByNs[nsId] = domainSlot;
+    }
+    const storedMembers = encodeEnumTypeMembers(handle, codecLookup, 'the column');
+    domainSlot[enumName] = {
+      codecId: handle.codecId,
+      members: storedMembers,
+    };
+
+    let storageSlot = storageValueSetsByNs[nsId];
+    if (storageSlot === undefined) {
+      storageSlot = {};
+      storageValueSetsByNs[nsId] = storageSlot;
+    }
+    storageSlot[enumName] = {
+      kind: 'valueSet',
+      values: storedMembers.map((member) => member.value),
+    };
+  }
+
   const modelDescriptionContext = {
     ...modelLookupsOf(definition),
     declaredTables: declaredTableKeys(definition),
@@ -233,47 +274,6 @@ export function buildSqlContractFromDefinition(
     ]),
   );
   const namespaceCoordinateIds = collectStorageNamespaceCoordinateIds(definition);
-
-  // Build per-namespace registries for `enumType()` handles.
-  // All authored enums target the contract's default namespace.
-  const domainEnumsByNs: Record<string, Record<string, ContractEnum>> = {};
-  const storageValueSetsByNs: Record<string, Record<string, StorageValueSetInput>> = {};
-  for (const [enumName, handle] of Object.entries(definition.enums ?? {})) {
-    if (enumName !== handle.enumName) {
-      throw contractError(
-        'CONTRACT.ENUM_INVALID',
-        `enum declaration key "${enumName}" must match enumType name "${handle.enumName}". Aliases are not supported.`,
-        {
-          meta: {
-            enumName: handle.enumName,
-            declarationKey: enumName,
-            reason: 'key-name-mismatch',
-          },
-        },
-      );
-    }
-    const nsId = defaultNamespaceId;
-    let domainSlot = domainEnumsByNs[nsId];
-    if (domainSlot === undefined) {
-      domainSlot = {};
-      domainEnumsByNs[nsId] = domainSlot;
-    }
-    const storedMembers = encodeEnumTypeMembers(handle, codecLookup, 'the column');
-    domainSlot[enumName] = {
-      codecId: handle.codecId,
-      members: storedMembers,
-    };
-
-    let storageSlot = storageValueSetsByNs[nsId];
-    if (storageSlot === undefined) {
-      storageSlot = {};
-      storageValueSetsByNs[nsId] = storageSlot;
-    }
-    storageSlot[enumName] = {
-      kind: 'valueSet',
-      values: storedMembers.map((member) => member.value),
-    };
-  }
 
   const { createNamespace } = definition;
   const entityTypesByDiscriminator = collectEntityTypeDescriptorsByDiscriminator(definition);
