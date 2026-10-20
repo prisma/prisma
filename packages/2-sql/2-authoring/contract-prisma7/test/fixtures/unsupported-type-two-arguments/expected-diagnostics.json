@@ -1,8 +1,8 @@
 [
   {
-    "code": "PSL_INVALID_ATTRIBUTE_ARGUMENT",
+    "code": "PSL.PRISMA7_UNSUPPORTED_TYPE",
     "file": "schema.prisma",
     "line": 7,
-    "message": "Field \"Post.search\" of type Unsupported(\"tsvector\", \"gin\") constructor \"Unsupported\" accepts at most 1 argument(s), received 2."
+    "message": "Field \"Post.search\": Unsupported(...) takes one string, the column's type as the database prints it, such as Unsupported(\"tsvector\")."
   }
 ]

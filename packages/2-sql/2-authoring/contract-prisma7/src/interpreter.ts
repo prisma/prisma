@@ -6,11 +6,13 @@ import type { Contract, ExecutionMutationDefaultValue } from '@internal/contract
 import type {
   AuthoringEntityContext,
   AuthoringEntityTypeDescriptor,
+  AuthoringTypeConstructorDescriptor,
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
 import {
   getAuthoringTypeConstructor,
   instantiateAuthoringEntityType,
+  instantiateAuthoringTypeConstructor,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
@@ -25,6 +27,7 @@ import type {
   ParsedPslExtensionBlock,
   PslSpan,
   ResolvedAttribute,
+  ResolvedAttributeArg,
   ResolvedTypeConstructorCall,
 } from '@internal/psl-parser';
 import {
@@ -960,8 +963,36 @@ function isUnsupportedType(call: ResolvedTypeConstructorCall | undefined): boole
   return call?.path.length === 1 && call.path[0] === 'Unsupported';
 }
 
-function writtenCall(call: ResolvedTypeConstructorCall): string {
-  return `${call.path.join('.')}(${call.args.map((arg) => arg.value).join(', ')})`;
+/** The one double-quoted string `Unsupported(...)` takes, as written and with its escapes undone. */
+function unsupportedTypeArgument(
+  call: ResolvedTypeConstructorCall,
+): { readonly written: ResolvedAttributeArg; readonly text: string } | undefined {
+  const [written, ...rest] = call.args;
+  if (written === undefined || rest.length > 0 || written.kind !== 'positional') return undefined;
+  const literal =
+    written.expression === undefined
+      ? undefined
+      : StringLiteralExprAst.cast(written.expression.syntax);
+  const text = literal?.quote() === '"' ? literal.value() : undefined;
+  return text === undefined ? undefined : { written, text };
+}
+
+/** Why the type parameters a constructor makes from `args` fail its codec's parameter schema, or undefined when they pass. */
+function typeParamsRefusal(
+  descriptor: AuthoringTypeConstructorDescriptor,
+  args: readonly unknown[],
+  codecLookup: CodecLookupWithDescriptors,
+): string | undefined {
+  const { typeParams } = instantiateAuthoringTypeConstructor(descriptor, args);
+  const schema = codecLookup.descriptorFor(descriptor.output.codecId)?.paramsSchema;
+  if (schema === undefined) return undefined;
+  const result = schema['~standard'].validate(typeParams ?? {});
+  if (result instanceof Promise) {
+    throw new InternalError(
+      `The parameter schema of codec "${descriptor.output.codecId}" is asynchronous; authoring requires a synchronous schema.`,
+    );
+  }
+  return result.issues?.[0]?.message;
 }
 
 function nativeTypeMessage(label: string, nativeType: string): string {
@@ -1093,6 +1124,21 @@ function readField(args: ReadFieldArgs): void {
     );
     return;
   }
+  const unsupportedArgument =
+    field.typeConstructor === undefined
+      ? undefined
+      : unsupportedTypeArgument(field.typeConstructor);
+  if (field.typeConstructor !== undefined && unsupportedArgument === undefined) {
+    diagnostics.push(
+      prisma7Diagnostic(
+        'PSL.PRISMA7_UNSUPPORTED_TYPE',
+        `${label}: Unsupported(...) takes one string, the column's type as the database prints it, such as Unsupported("tsvector").`,
+        sourceId,
+        field.typeConstructor.span,
+      ),
+    );
+    return;
+  }
   if (isRelationField) {
     const attribute =
       relation === undefined
@@ -1132,8 +1178,18 @@ function readField(args: ReadFieldArgs): void {
 
   const enumDeclaration = unsupported ? undefined : args.enums.get(field.typeName);
   let call: ResolvedTypeConstructorCall;
-  if (field.typeConstructor !== undefined) {
-    call = field.typeConstructor;
+  if (unsupportedArgument !== undefined) {
+    call = {
+      path: RAW_TYPE_CONSTRUCTOR,
+      args: [
+        {
+          kind: 'positional',
+          value: `"${unsupportedArgument.text}"`,
+          span: unsupportedArgument.written.span,
+        },
+      ],
+      span: unsupportedArgument.written.span,
+    };
   } else if (enumDeclaration !== undefined) {
     if (enumDeclaration.namespaceId !== model.namespaceId) {
       diagnostics.push(
@@ -1193,10 +1249,7 @@ function readField(args: ReadFieldArgs): void {
     };
   }
 
-  const typeConstructor = getAuthoringTypeConstructor(
-    input.authoringContributions,
-    unsupported ? RAW_TYPE_CONSTRUCTOR : call.path,
-  );
+  const typeConstructor = getAuthoringTypeConstructor(input.authoringContributions, call.path);
   if (typeConstructor === undefined) {
     diagnostics.push(
       prisma7Diagnostic(
@@ -1208,13 +1261,28 @@ function readField(args: ReadFieldArgs): void {
     );
     return;
   }
+  const refusal =
+    unsupportedArgument === undefined
+      ? undefined
+      : typeParamsRefusal(typeConstructor, [unsupportedArgument.text], input.codecLookup);
+  if (unsupportedArgument !== undefined && refusal !== undefined) {
+    diagnostics.push(
+      prisma7Diagnostic(
+        'PSL.PRISMA7_UNSUPPORTED_TYPE',
+        `${label}: Unsupported(${unsupportedArgument.written.value}) is not one type name: ${refusal}`,
+        sourceId,
+        unsupportedArgument.written.span,
+      ),
+    );
+    return;
+  }
   const typeDiagnostics = createPslDiagnosticCollector(model.sources);
   const resolved = instantiateFieldTypeConstructor({
     call,
     descriptor: typeConstructor,
     diagnostics: typeDiagnostics,
     source: diagnosticSource(model.sources, field.node.syntax),
-    entityLabel: unsupported ? `${label} of type ${writtenCall(call)}` : label,
+    entityLabel: label,
     namespaceId: model.namespaceId,
     namespaceExtensionEntities: args.namespaceEntities,
     codecLookup: input.codecLookup,

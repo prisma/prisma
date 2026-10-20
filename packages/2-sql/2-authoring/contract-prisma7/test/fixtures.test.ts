@@ -134,6 +134,7 @@ describe('Prisma 7 fixtures', () => {
       'unsupported-type-model-ignored',
       'unsupported-type-native-type',
       'unsupported-type-no-argument',
+      'unsupported-type-not-a-string',
       'unsupported-type-text-refused',
       'unsupported-type-two-arguments',
       'updated-at',

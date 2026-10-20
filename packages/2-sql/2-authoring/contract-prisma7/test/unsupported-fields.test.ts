@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { loadFixtureSchema, loadFixtureTable } from './support';
+import { interpretSchemaText, loadFixtureSchema, loadFixtureTable } from './support';
 
 const raw = (sql: string) => ({ dataType: 'sql/raw', codecId: 'sql/raw@1', typeParams: { sql } });
 
@@ -58,5 +58,20 @@ describe('an Unsupported field', () => {
       ['net', 'Host'],
       ['prefix', 'Network'],
     ]);
+  });
+
+  it('reads the text with its string escapes undone', () => {
+    const contract = interpretSchemaText(`datasource db {
+  provider = "postgresql"
+}
+
+model Post {
+  id  Int                        @id
+  tag Unsupported("\\"My Type\\"")?
+}
+`);
+    expect(
+      contract.storage.namespaces['public']?.entries.table?.['Post']?.columns['tag']?.typeParams,
+    ).toEqual({ sql: '"My Type"' });
   });
 });
