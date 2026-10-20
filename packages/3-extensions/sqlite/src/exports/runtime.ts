@@ -4,6 +4,7 @@ export type {
   SqliteOptions,
   SqliteOptionsBase,
   SqliteOrm,
+  SqliteQueryMembers,
   SqliteTargetId,
   SqliteTransactionContext,
 } from '../runtime/sqlite';

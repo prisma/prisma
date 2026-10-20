@@ -10,9 +10,10 @@ import type { ExtractCodecTypes, SqlStorage } from '@internal/sql-contract/types
 import {
   type CollectionClasses,
   type NoCollectionClasses,
-  type OrmClientMembers,
+  type OrmClientRootMembers,
   orm as ormBuilder,
   type PreparedFrom,
+  type PrepareMember,
   prepareQuery,
 } from '@internal/sql-orm-client';
 import type { CodecTypesBase, RawCodecInferer } from '@internal/sql-relational-core/expression';
@@ -36,10 +37,11 @@ import {
   createSqlExecutionStack,
   delegatingActivitySource,
   withTransaction,
+  withTransactionMembers,
 } from '@internal/sql-runtime';
 import sqliteTarget from '@internal/target-sqlite/runtime';
 import { assertDefined } from '@internal/utils/assertions';
-import { blindCast, castAs } from '@internal/utils/casts';
+import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { sqliteError } from '../errors';
@@ -67,7 +69,7 @@ export type SqliteOrm<
   TCollections extends CollectionClasses = NoCollectionClasses,
 > = 'fragment' extends keyof UnboundOrm<TContract, TCollections>
   ? UnboundOrm<TContract, TCollections>
-  : UnboundOrm<TContract, TCollections> & OrmClientMembers<TContract>;
+  : UnboundOrm<TContract, TCollections> & OrmClientRootMembers<TContract>;
 
 function sqliteOrm<TContract extends Contract<SqlStorage>, TCollections extends CollectionClasses>(
   orm: OrmClient<TContract, TCollections>,
@@ -84,36 +86,29 @@ function sqliteOrm<TContract extends Contract<SqlStorage>, TCollections extends 
   >(withFragment);
 }
 
-interface SqlitePrepareMember<TContract extends Contract<SqlStorage>> {
-  prepare<
-    D extends Declaration<CT>,
-    Q extends SqlQueryPlan | Preparable<unknown, unknown>,
-    CT extends CodecTypesBase = ExtractCodecTypes<TContract>,
-  >(
-    declaration: D,
-    callback: (params: BindSiteParams<D>) => Q,
-  ): Promise<PreparedFrom<ParamsFromDeclaration<D, CT>, Q>>;
+/** The query members of a SQLite client, which its transactions offer with the same types. */
+export interface SqliteQueryMembers<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
+> extends PrepareMember<TContract> {
+  readonly sql: UnboundSql<TContract>;
+  readonly orm: SqliteOrm<TContract, TCollections>;
+  readonly raw: RawLane<TContract>;
 }
 
 export interface SqliteTransactionContext<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
 > extends TransactionContext,
-    SqlitePrepareMember<TContract> {
-  readonly sql: UnboundSql<TContract>;
-  readonly orm: SqliteOrm<TContract, TCollections>;
-  readonly raw: RawLane<TContract>;
+    SqliteQueryMembers<TContract, TCollections> {
   readonly enums: SqliteStaticContext<TContract>['enums'];
 }
 
 export interface SqliteClient<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
-> extends SqlitePrepareMember<TContract> {
-  readonly sql: UnboundSql<TContract>;
-  readonly orm: SqliteOrm<TContract, TCollections>;
+> extends SqliteQueryMembers<TContract, TCollections> {
   readonly enums: SqliteStaticContext<TContract>['enums'];
-  readonly raw: RawLane<TContract>;
   readonly context: ExecutionContext<TContract>;
   readonly contract: TContract;
   readonly stack: SqlExecutionStackWithDriver<SqliteTargetId>;
@@ -395,8 +390,8 @@ export default function sqlite<
         return Promise.reject(err);
       }
       return withTransaction(runtime, (txCtx) => {
-        const tx: SqliteTransactionContext<TContract, TCollections> = Object.assign(
-          castAs<TransactionContext>(Object.create(txCtx)),
+        const tx: SqliteTransactionContext<TContract, TCollections> = withTransactionMembers(
+          txCtx,
           buildSqliteTransactionMembers<TContract, TCollections>(
             {
               context,
