@@ -23,10 +23,12 @@ import {
   type WrittenScalar,
   type WrittenValue,
 } from '@internal/framework-components/authoring';
-import type {
-  AnyCodecDescriptor,
-  CodecLookupWithDescriptors,
-  DataTypeId,
+import {
+  type AnyCodecDescriptor,
+  type CodecLookupWithDescriptors,
+  type DataType,
+  type DataTypeId,
+  dataTypeParams,
 } from '@internal/framework-components/codec';
 import {
   type ControlMutationDefaultRegistry,
@@ -61,6 +63,7 @@ import {
   reportTypeConstructorNotCalled,
 } from '@internal/psl-parser/interpret';
 import type { PslSources } from '@internal/psl-parser/syntax';
+import { isSqlDataType } from '@internal/sql-contract/data-type';
 import {
   SQL_EXPRESSION_DATA_TYPE_ID,
   SQL_EXPRESSION_TAG,
@@ -668,6 +671,15 @@ function isParsedNullLiteral(element: { readonly kind: string }): element is Par
   return element.kind === 'null';
 }
 
+/** The column's parameters in its data type's normal form, as verify compares them, so a bare `Char` holds length 1. */
+function normalColumnParams(
+  type: DataType | undefined,
+  typeParams: Record<string, unknown> | undefined,
+): Readonly<Record<string, unknown>> {
+  if (type === undefined || !isSqlDataType(type)) return typeParams ?? {};
+  return type.sql.normalize(dataTypeParams(type, typeParams ?? {}));
+}
+
 export function lowerDefaultForField(input: {
   readonly modelName: string;
   readonly fieldName: string;
@@ -952,7 +964,10 @@ export function lowerDefaultForField(input: {
     return {};
   }
 
-  const length = input.columnTypeParams?.['length'];
+  const length = normalColumnParams(
+    input.dataTypes.lookup.get(descriptor.dataType),
+    input.columnTypeParams,
+  )['length'];
   const written = generatorDescriptor.writtenLength?.(lowered.value.generated.params);
   if (typeof length === 'number' && written !== undefined && written > length) {
     input.diagnostics.push({

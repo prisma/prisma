@@ -166,6 +166,7 @@ describe('generated defaults on a Postgres column with a length', () => {
     ['Short @default(cuid(2))', 'types {\n  Short = VarChar(3)\n}\n\n', 'cuid2', 24, 3],
     ['Char(5) @default(nanoid())', '', 'nanoid', 21, 5],
     ['Char(10) @default(nanoid(20))', '', 'nanoid', 20, 10],
+    ['Char @default(uuid())', '', 'uuidv4', 36, 1],
   ])(
     'refuses %s, which is too short for what the generator writes',
     async (field, blocks, id, written, held) => {
@@ -185,6 +186,7 @@ describe('generated defaults on a Postgres column with a length', () => {
     'VarChar(36) @default(uuid())',
     'Char(36) @default(uuid())',
     'Char(21) @default(nanoid())',
+    'VarChar @default(uuid())',
   ])('takes %s', async (field) => {
     const result = await author(field);
     expect(result.ok ? [] : result.failure.diagnostics).toEqual([]);
