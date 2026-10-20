@@ -24,16 +24,17 @@ export class SqlFamilyAdapter<TContract extends Contract<SqlStorage>>
 /** Rejects a plan built for another target or contract: `PLAN.TARGET_MISMATCH` or `PLAN.HASH_MISMATCH`. */
 export function validateSqlPlan(plan: QueryPlan, contract: Contract<SqlStorage>): void {
   if (plan.meta.target !== contract.target) {
-    throw runtimeError('PLAN.TARGET_MISMATCH', 'Plan target does not match runtime target', {
-      planTarget: plan.meta.target,
-      runtimeTarget: contract.target,
-    });
+    throw runtimeError(
+      'PLAN.TARGET_MISMATCH',
+      'The plan was built for another target than the contract',
+      { planTarget: plan.meta.target, contractTarget: contract.target },
+    );
   }
 
   if (plan.meta.storageHash !== contract.storage.storageHash) {
-    throw runtimeError('PLAN.HASH_MISMATCH', 'Plan storage hash does not match runtime contract', {
+    throw runtimeError('PLAN.HASH_MISMATCH', 'The plan was built for another contract', {
       planStorageHash: plan.meta.storageHash,
-      runtimeStorageHash: contract.storage.storageHash,
+      contractStorageHash: contract.storage.storageHash,
     });
   }
 }
