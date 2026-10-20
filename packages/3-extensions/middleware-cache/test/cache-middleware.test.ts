@@ -322,14 +322,14 @@ describe('createCacheMiddleware — middleware shape', () => {
     expect(mw.name).toBe('cache');
   });
 
-  it('wires intercept.onQuery, onRow, and activityEnded (only)', () => {
+  it('wires intercept.onQuery, onRow, activityEnded and activityFinalized (only)', () => {
     const mw = createCacheMiddleware({ store: spyStore() });
     expect(mw.intercept?.onQuery).toBeDefined();
     expect(mw.intercept?.onExecute).toBeUndefined();
     expect(mw.onRow).toBeDefined();
     expect(mw.activityEnded).toBeDefined();
     expect(mw.beforeEncode).toBeUndefined();
-    expect(mw.activityFinalized).toBeUndefined();
+    expect(mw.activityFinalized).toBeDefined();
   });
 
   it('roundtrips a miss-then-hit through the default in-memory store', async () => {

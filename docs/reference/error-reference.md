@@ -1110,7 +1110,7 @@ Two trait-matching aggregate descriptors for one operation both claim a register
 
 ### RUNTIME.ANNOTATION_INAPPLICABLE
 
-A lane terminal (SQL DSL `.build()`, ORM collection terminal) received an annotation whose declared `applicableTo` set does not include the operation kind being built: the runtime check that backs up the type-level annotation validation when it is bypassed via casts or dynamic invocation. Payload: `namespace`, `terminalName`, `kind`, `applicableTo`.
+A lane terminal (SQL DSL `.build()`, ORM collection terminal) received an annotation whose declared `applicableTo` set does not include the operation kind being built: the runtime check that backs up the type-level annotation validation when it is bypassed via casts or dynamic invocation. Remove the annotation from that operation and put it on an operation of a kind its `applicableTo` names; the message names those kinds. Payload: `namespace`, `terminalName`, `kind`, `applicableTo`.
 
 ### RUNTIME.ARGUMENT_INVALID
 
@@ -1134,7 +1134,7 @@ A client (`postgres()`, `sqlite()`, `mongo()`) was asked to connect with no bind
 
 ### RUNTIME.CACHE_STORE_META_UNSUPPORTED
 
-The default in-memory cache store was asked to remove entries by `meta`, through `invalidate({ meta })` on a cache middleware that uses it. That store ignores `meta` when it stores an entry, so it cannot tell which entries match. The call removes nothing, including the keys passed with it. Invalidate by `keys`, or supply a `CacheStore` that indexes `meta` in `set` and honours it in `unset`.
+The default in-memory cache store was asked to remove entries by `meta`, through `invalidate({ meta })` or a write annotated with `invalidateAnnotation({ meta })` on a cache middleware that uses it. That store ignores `meta` when it stores an entry, so it cannot tell which entries match. The call removes nothing, including the keys passed with it. From `invalidate` the error rejects the call; from an annotated write it goes only to the client's `log` as `middleware.activityFinalized.error`, and the write keeps its own outcome. Use a `CacheStore` that indexes `meta` in `set` and honours it in `unset`, or pass only `keys`.
 
 ### RUNTIME.CODEC_DESCRIPTOR_ARRAY_UNSUPPORTED
 
