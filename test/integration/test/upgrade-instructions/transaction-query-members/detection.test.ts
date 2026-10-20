@@ -23,6 +23,7 @@ describe('the transaction-query-members detection', () => {
     ],
     ['a role-bound client', 'function useDb(db: RoleBoundDb<Contract>) {}'],
     ['the SQLite ORM type', 'type Orm = SqliteOrm<Contract>;'],
+    ['the SQLite client ORM', "type Orm = SqliteClient<Contract>['orm'];"],
     ['the Postgres query members', 'type M = PostgresQueryMembers<Contract>;'],
   ])('finds %s', (_name, content) => {
     expect(detects(content)).toBe(true);

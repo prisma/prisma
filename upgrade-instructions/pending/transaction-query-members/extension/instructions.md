@@ -2,11 +2,11 @@
 changes:
   - id: transaction-query-members
     summary: |
-      Additive for code that only uses these types: a transaction now offers the client's query members (`sql`, `orm`, `raw`, `prepare`, `query`, `execute`) on every SQL client, a Supabase role-bound client gains `prepare`, and SQLite's `db.orm` gains `fragment`. Code that builds its own object of one of the changed types must add the new members. Changed: `PostgresTransactionContext` (adds `raw` and `prepare`), `SqliteTransactionContext` (adds `raw` and `prepare`; `orm` is now `SqliteOrm`), `RoleBoundDb` (adds `prepare`; `transaction` passes a `SupabaseTransactionContext`). New: `PostgresQueryMembers` and `SqliteQueryMembers` (the query members a client and its transactions share), `SupabaseTransactionContext`, `SqliteOrm`, and from the ORM client `OrmClientRootMembers` and `PrepareMember`. The detection matches a file that names one of these types.
+      Additive for code that only uses these types: a transaction now offers the client's query members (`sql`, `orm`, `raw`, `prepare`, `query`, `execute`) on every SQL client, a Supabase role-bound client gains `prepare`, and SQLite's `db.orm` gains `fragment`. Code that builds its own object of one of the changed types must add the new members. Changed: `PostgresTransactionContext` (adds `raw` and `prepare`), `SqliteTransactionContext` (adds `raw` and `prepare`; `orm` is now `SqliteOrm`), `RoleBoundDb` (adds `prepare`; `transaction` passes a `SupabaseTransactionContext`). New: `PostgresQueryMembers` and `SqliteQueryMembers` (the query members a client and its transactions share), `SupabaseTransactionContext`, `SqliteOrm`, and from the ORM client `OrmClientRootMembers` and `PrepareMember`. The detection matches a file that names one of these types, or `SqliteClient`, whose `orm` changed.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
-        - '(?<![\w$])(?:PostgresTransactionContext|SqliteTransactionContext|RoleBoundDb|SupabaseTransactionContext|PostgresQueryMembers|SqliteQueryMembers|SqliteOrm|OrmClientRootMembers)(?![\w$])'
+        - '(?<![\w$])(?:PostgresTransactionContext|SqliteTransactionContext|SqliteClient|RoleBoundDb|SupabaseTransactionContext|PostgresQueryMembers|SqliteQueryMembers|SqliteOrm|OrmClientRootMembers)(?![\w$])'
 ---
 
 # A transaction offers the client's query members
