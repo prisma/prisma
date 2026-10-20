@@ -136,7 +136,7 @@ describe.each([
       expect(await refusals('nanoid("8")')).toEqual([
         {
           code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
-          message: 'Expected a number',
+          message: 'Expected a number; write 8',
           line: 5,
           columns: columnsOf('nanoid("8")', '"8"'),
         },
