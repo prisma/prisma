@@ -59,6 +59,7 @@ function context(): BinderContext {
       attributeSpecs: { model: {}, field: {} },
       modelAttributes: {},
       pslBlockDescriptors: {},
+      textDataTypes: [],
       dataTypes: {},
     },
     controlMutationDefaults: { defaultFunctionRegistry: new Map() },

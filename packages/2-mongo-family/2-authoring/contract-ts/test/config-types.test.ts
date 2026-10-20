@@ -14,6 +14,7 @@ const emptyContext: ContractSourceContext = {
   composedExtensionContracts: new Map(),
 
   authoringContributions: {
+    textDataTypes: [],
     dataTypes: {},
     field: {},
     type: {},

@@ -148,6 +148,7 @@ function makeContractFromPsl(): MongoContract {
         pslBlockDescriptors: {},
         modelAttributes: {},
         attributeSpecs: mongoAttributeSpecs,
+        textDataTypes: [],
         dataTypes: {},
       },
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedMongoAttribute },

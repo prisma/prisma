@@ -72,7 +72,7 @@ export interface AssembledAuthoringContributions {
   /** The single {@link AuthoringContributions.valueObjectStorageType} declared across the composed components, validated at assembly against the merged `type` namespace. */
   readonly valueObjectStorageType?: string;
   /** Every component's {@link AuthoringContributions.textDataTypes}, each once. */
-  readonly textDataTypes?: readonly DataTypeId[];
+  readonly textDataTypes: readonly DataTypeId[];
 }
 
 export interface ControlStack<

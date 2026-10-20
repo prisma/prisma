@@ -44,6 +44,7 @@ function mongoContext(seen: BlockSpecContext[]): ContractSourceContext {
     defaultNamespaceId: '__unbound__',
     composedExtensionContracts: new Map(),
     authoringContributions: {
+      textDataTypes: [],
       dataTypes: {},
       field: {},
       type: {},

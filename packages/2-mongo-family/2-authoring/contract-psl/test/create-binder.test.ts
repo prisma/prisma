@@ -118,6 +118,7 @@ describe('createBinder', () => {
       defaultNamespaceId: '__unbound__',
       composedExtensionContracts: new Map(),
       authoringContributions: {
+        textDataTypes: [],
         dataTypes: {},
         field: fieldPresets,
         type: mongoScalarAuthoringTypes,
@@ -223,6 +224,7 @@ describe('createBinder', () => {
       composedExtensions: [],
       composedExtensionContracts: new Map(),
       authoringContributions: {
+        textDataTypes: [],
         dataTypes: {},
         field: fieldPresets,
         type: mongoScalarAuthoringTypes,

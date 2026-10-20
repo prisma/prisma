@@ -346,6 +346,7 @@ export const postgresNativeScalarTypeDescriptors = collectScalarTypeConstructors
  */
 export const pgvectorAuthoringContributions = {
   dataTypes: {},
+  textDataTypes: fixtureTextDataTypes,
   entityTypes: {},
   field: {},
   pslBlockDescriptors: {},

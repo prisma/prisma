@@ -37,6 +37,7 @@ function createBinderFor(symbolTable: SymbolTable, sources: PslSources) {
       pslBlockDescriptors: {},
       modelAttributes: {},
       attributeSpecs: mongoAttributeSpecs,
+      textDataTypes: [],
       dataTypes: {},
     },
     pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedMongoAttribute },
