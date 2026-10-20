@@ -1354,7 +1354,7 @@ A prepared statement failed again after the PostgreSQL driver discarded a stale 
 
 ## MIGRATION
 
-A migration runner fails with its own code: `MIGRATION.SCHEMA_VERIFY_FAILED`, `MIGRATION.PRECHECK_FAILED`, `MIGRATION.POSTCHECK_FAILED`, `MIGRATION.EXECUTION_FAILED`, `MIGRATION.POLICY_VIOLATION`, `MIGRATION.MARKER_ORIGIN_MISMATCH`, `MIGRATION.MARKER_CAS_FAILURE`, `MIGRATION.DESTINATION_CONTRACT_MISMATCH` or `MIGRATION.FOREIGN_KEY_VIOLATION`. `db init`, `db update` and `db migrate` report that code, its `why` and its payload unchanged, and add their advice. When a run covers several contract spaces, the payload also carries `failingSpace`, the space whose plan failed.
+A migration runner fails with its own code: `MIGRATION.SCHEMA_VERIFY_FAILED`, `MIGRATION.PRECHECK_FAILED`, `MIGRATION.POSTCHECK_FAILED`, `MIGRATION.EXECUTION_FAILED`, `MIGRATION.POLICY_VIOLATION`, `MIGRATION.MARKER_ORIGIN_MISMATCH`, `MIGRATION.MARKER_CAS_FAILURE`, `MIGRATION.DESTINATION_CONTRACT_MISMATCH` or `MIGRATION.FOREIGN_KEY_VIOLATION`. `db init`, `db update` and `db migrate` report that code, its `why` and its payload unchanged, and add their advice. The payload also carries `failingSpace`, the contract space whose plan failed (`app` for the application's own).
 
 ### MIGRATION.ALTER_COLUMN_TYPE_USING_WITHOUT_TYPE_CHANGE
 

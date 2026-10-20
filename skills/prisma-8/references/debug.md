@@ -55,7 +55,7 @@ Every code is a dotted `NAMESPACE.SUBCODE`; the namespace is the prefix (`CONFIG
 
 ### Migration apply failures
 
-`db migrate`, `db init`, and `db update` report a failure of the migration runner with the runner's own code, such as `MIGRATION.SCHEMA_VERIFY_FAILED`, `MIGRATION.PRECHECK_FAILED`, `MIGRATION.POSTCHECK_FAILED` or `MIGRATION.EXECUTION_FAILED`, and its `meta` unchanged. The facts are typed `meta` keys: `schemaIssues` (the schema check's issues), `failedCheck` (`operationId`, `phase`, `description`), `failedTypeChange`, `rowsWithoutValue`, and `failingSpace` when the run covered several contract spaces. Read `why` for what failed and `nextActions` for the way out.
+`db migrate`, `db init`, and `db update` report a failure of the migration runner with the runner's own code, such as `MIGRATION.SCHEMA_VERIFY_FAILED`, `MIGRATION.PRECHECK_FAILED`, `MIGRATION.POSTCHECK_FAILED` or `MIGRATION.EXECUTION_FAILED`, and its `meta` unchanged. The facts are typed `meta` keys: `schemaIssues` (the schema check's issues), `failedCheck` (`operationId`, `phase`, `description`), `failedTypeChange`, `rowsWithoutValue`, and `failingSpace`, the contract space whose plan failed. Read `why` for what failed and `nextActions` for the way out.
 
 ### How to ask for the full envelope
 
