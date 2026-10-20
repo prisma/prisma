@@ -192,3 +192,32 @@ describe('generated defaults on a Postgres column with a length', () => {
     expect(result.ok ? [] : result.failure.diagnostics).toEqual([]);
   });
 });
+
+describe('generated defaults on a SQLite column with a length', () => {
+  it('takes sql.String(5) @default(uuid()), as SQLite does not limit the length', async () => {
+    const stack = createControlStack({ family: sql, target: sqlite, adapter: sqliteAdapter });
+    const folder = mkdtempSync(join(tmpdir(), 'psl-generator-length-sqlite-'));
+    const schemaPath = join(folder, 'schema.prisma');
+    writeFileSync(
+      schemaPath,
+      '// use prisma-8\n\nmodel Row {\n  id    Int @id\n  value sql.String(5) @default(uuid())\n}\n',
+      'utf-8',
+    );
+    const result = await prismaContract(schemaPath, {
+      target: sqlitePackRef,
+      createNamespace: sqliteCreateNamespace,
+    }).source.load({
+      composedExtensions: [],
+      defaultNamespaceId: stack.target.defaultNamespaceId,
+      composedExtensionContracts: new Map(),
+      authoringContributions: stack.authoringContributions,
+      codecLookup: stack.codecLookup,
+      dataTypes: stack.dataTypes,
+      controlMutationDefaults: stack.controlMutationDefaults,
+      resolvedInputs: [schemaPath],
+      capabilities: stack.capabilities,
+    });
+    rmSync(folder, { recursive: true, force: true });
+    expect(result.ok ? [] : result.failure.diagnostics).toEqual([]);
+  });
+});
