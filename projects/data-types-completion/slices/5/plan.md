@@ -14,7 +14,7 @@ model Token {
 
 model Shape {
   id   Int @id
-  kind Int
+  kind VarChar(5)
   @@discriminator(kind)
 }
 
@@ -22,11 +22,16 @@ model Circle {
   radius Int
   @@base(Shape, "circle")
 }
+
+model Square {
+  side Int
+  @@base(Shape, 4)
+}
 ```
 
-Today: `nanoid(8.5)` says `Expected an integer literal`, `uuid(5)` says `Expected one of: 4 | 7`, both with the generic code `PSL_INVALID_ATTRIBUTE_SYNTAX`; the same `uuid(5)` read from a Prisma 7 schema silently becomes a version 4 UUID; and `@@base(Shape, "circle")` is accepted although `kind` is an integer column.
+Today: `nanoid(8.5)` says `Expected an integer literal`, `uuid(5)` says `Expected one of: 4 | 7`, both with the generic code `PSL_INVALID_ATTRIBUTE_SYNTAX`; the same `uuid(5)` read from a Prisma 7 schema silently becomes a version 4 UUID; and `@@base(Shape, "circle")` and `@@base(Shape, 4)` are accepted although `kind` holds at most five characters and `4` is not text.
 
-After: each function argument is a value of the integer data type, read and cast like a default, then checked by the function itself: `nanoid(8.5)` reports the missing cast from a decimal to an integer, `uuid(5)` says `uuid: version must be 4 or 7, got 5`, both with `PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT` at the argument, and the Prisma 7 reader gives the same message. `@@base(Shape, "circle")` is refused at the value because a string is not a value of `kind`'s type; `@@base(Shape, 1)` is accepted.
+After: each function argument is a value of the integer data type, read and cast like a default, then checked by the function itself: `nanoid(8.5)` reports the missing cast from a decimal to an integer, `uuid(5)` says `uuid: version must be 4 or 7, got 5`, both with `PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT` at the argument, and the Prisma 7 reader gives the same message. `@@base(Shape, "circle")` is refused at the value because `kind` holds at most five characters, and `@@base(Shape, 4)` because a number is not a value of `kind`'s type.
 
 ## What the code does today
 
@@ -44,8 +49,9 @@ From an inventory of `main` on 2026-10-20:
 
 1. **No check for a generator on an optional field.** Design item 14.3 gives such a check its own code, but no such check exists in Prisma 8 PSL today, and adding one would refuse schemas that work now. Out of scope; the Prisma 7 reader's own behaviour is unchanged.
 2. **A Prisma 7 schema with an out-of-range argument is now refused** (`uuid(5)`, `nanoid(1)`), with `PSL.PRISMA7_UNKNOWN_DEFAULT` and the function's message, instead of being lowered to something else. An upgrade note says so.
-3. **Discriminator values meet the database through the column's codec**: the runtime decodes the row's discriminator with `fromWire` and compares values; writes encode with `toWire`; Mongo's `$jsonSchema` writes the value as the column's codec writes it. This closes the deferred item for discriminators.
-4. **`oneOf` refuses a `dataTypeValue` arm** at construction, an `InternalError`, so the rule is enforced rather than documented.
+3. **Discriminator columns stay text-typed.** Prisma 8 PSL accepts only a `String`-family discriminator column today, and the contract keys variants by their value as text. Allowing integer or other discriminators would change the contract's shape and the ORM's `variant()` argument, which is a new feature, not this slice. This slice reads the value as a value of the discriminator column's text type (so `VarChar(5)` limits it and a number is refused), compares duplicates by stored value, and leaves the contract shape alone. Recorded 2026-10-20 after dispatch d found the open choice.
+4. **Discriminator values meet the database through the column's codec**: the runtime decodes the row's discriminator with `fromWire` and compares values; writes encode with `toWire`; Mongo's `$jsonSchema` writes the value as the column's codec writes it. This closes the deferred item for discriminators.
+5. **`oneOf` refuses a `dataTypeValue` arm** at construction, an `InternalError`, so the rule is enforced rather than documented.
 
 ## Dispatches
 
@@ -54,7 +60,7 @@ From an inventory of `main` on 2026-10-20:
 | a | One set of signatures in the SQL family, `sqlDefaultFunctionSignatures({ integer })`, which Postgres calls with `pg/int4` and SQLite with `sqlite/integer`; the adapters' copies go, lowering stays. The limits live in `@internal/ids` and every other copy imports them. `uuid`, `cuid` and `nanoid` take one `dataTypeValue` of the integer type, then the function's own check, with the design's messages and `PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT` at the argument. Arity messages say `Default function "nanoid"`. `oneOf` refuses a `dataTypeValue` arm. | Each message tested on Postgres and SQLite; `nanoid(8.5)` reports the missing cast; the limits are written in one file (grep). |
 | b | The Prisma 7 reader binds arguments through the same signatures; `FUNCTION_ARGUMENT_KEYS` is deleted; a refusal keeps `PSL.PRISMA7_UNKNOWN_DEFAULT` with the function's message. | Prisma 7 tests for each message; expected-contract fixtures unchanged. |
 | c | Generators declare the data types they apply to (`applicableDataTypes`), passed by each target: text generators `pg/text`, `pg/char`, `pg/varchar` and `sqlite/text`, `sqlite/character`, `sqlite/character-varying`; the UUID generators add `pg/uuid`. The check compares the column's data type. | `String @default(uuid())` emits on SQLite; a `Char(36)` column takes `uuid()` on both targets; an `Int` column is refused as today. |
-| d | `@@base(Model, value)` takes a value of the discriminator column's data type, read and cast like a default when the attribute is interpreted; the duplicate check compares values. The runtime and Mongo's `$jsonSchema` use the column's codec (decision 3). | A string on an integer discriminator refused at the value; an integer discriminator round-trips through `create` and a polymorphic read on PGlite and SQLite; Mongo's validator holds the codec's value. |
+| d | `@@base(Model, value)` takes a value of the discriminator column's data type, read and cast like a default when the attribute is interpreted; the duplicate check compares values. The runtime and Mongo's `$jsonSchema` use the column's codec (decision 3). | A number, and a string longer than a `VarChar(n)` discriminator holds, refused at the value; a `Char(n)` discriminator round-trips through `create` and a polymorphic read on PGlite and SQLite (the codec removes the padding); Mongo's validator holds the codec's value. |
 | e | Error reference (`PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT`), ADR 254's sections on function arguments and discriminators, the upgrade note (decision 2, and any published name the slice removes), the slice's grep check, full checks. | All checks; manual QA below. |
 
 ## Must not change

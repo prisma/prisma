@@ -17,7 +17,7 @@ Read `common-rules.md` first. Plan decision 3; design 14.7; the deferred item ab
 
 ## Tests
 
-On Postgres and SQLite: a string discriminator works as today; an integer discriminator (`@@base(Shape, 1)`) emits, and `create` then a polymorphic read round-trips through the ORM on PGlite and SQLite; `@@base(Shape, "circle")` on an integer discriminator is refused at the value; duplicate values (`1` and `1`) are refused. Mongo: an integer discriminator's validator enum holds the codec's value.
+Ruled after the implementer stopped (plan decision 3): discriminator columns stay text-typed and the contract keeps keying variants by text; no integer discriminators. On Postgres and SQLite: a `String` discriminator works as today; `@@base(Shape, 4)` is refused at the value (a number is not text); on a `VarChar(5)` discriminator `@@base(Shape, "circle")` is refused as too long; duplicates (`"a"` and `"a"`) are refused; a `Char(6)` discriminator round-trips through `create` and a polymorphic read on PGlite and SQLite, which needs the runtime to read the row through the codec (padding). Mongo: the validator enum holds the value as the codec writes it.
 
 ## Done when
 
