@@ -1,5 +1,11 @@
+import type { ExecutionMutationDefaultValue } from '@internal/contract/types';
 import type { DataTypeSupport } from '@internal/framework-components/authoring';
 import type { DataTypeId } from '@internal/framework-components/codec';
+import type {
+  ControlMutationDefaultEntry,
+  LoweredDefaultResult,
+  TypedDefaultFunctionCall,
+} from '@internal/framework-components/control';
 import { CUID_VERSION, NANOID_SIZE, UUID_VERSIONS } from '@internal/ids';
 import {
   type ArgType,
@@ -14,47 +20,78 @@ import type { DefaultFunctionSignature } from '@internal/sql-contract-psl/attrib
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok } from '@internal/utils/result';
 
-export interface SqlDefaultFunctionDeclaration {
+export interface SqlDefaultFunction extends ControlMutationDefaultEntry {
   readonly signature: DefaultFunctionSignature;
   readonly usageSignatures: readonly string[];
 }
 
-export type SqlDefaultFunctionName = 'autoincrement' | 'now' | 'ulid' | 'uuid' | 'cuid' | 'nanoid';
+export type SqlDefaultFunctionName = 'autoincrement' | 'now' | 'uuid' | 'cuid' | 'ulid' | 'nanoid';
 
 /**
- * The signatures of the SQL family's default functions. Each integer argument is a value of `integer`, the target's integer data type, read and cast like a default, then checked by its function.
+ * The SQL family's default functions: their signatures and how each lowers. Each integer argument is a value of `integer`, the target's integer data type, read and cast like a default, then checked by its function.
  */
-export function sqlDefaultFunctionSignatures({
+export function sqlDefaultFunctions({
   integer,
 }: {
   readonly integer: DataTypeId;
-}): Readonly<Record<SqlDefaultFunctionName, SqlDefaultFunctionDeclaration>> {
+}): Readonly<Record<SqlDefaultFunctionName, SqlDefaultFunction>> {
   return {
     autoincrement: {
       signature: { documentation: 'Generates an increasing integer value in the database.' },
       usageSignatures: ['autoincrement()'],
+      lower: () => storageFunction('autoincrement()'),
     },
     now: {
       signature: { documentation: 'Uses the current database timestamp as the default value.' },
       usageSignatures: ['now()'],
-    },
-    ulid: {
-      signature: { documentation: 'Generates a ULID when a value is not supplied.' },
-      usageSignatures: ['ulid()'],
+      lower: () => storageFunction('now()'),
     },
     uuid: {
       signature: (dataTypes) => uuidSignature(integer, dataTypes),
       usageSignatures: ['uuid()', `uuid(${UUID_VERSIONS.v4})`, `uuid(${UUID_VERSIONS.v7})`],
+      lower: ({ call }) =>
+        executionGenerator(call.args['version'] === UUID_VERSIONS.v7 ? 'uuidv7' : 'uuidv4'),
     },
     cuid: {
       signature: (dataTypes) => cuidSignature(integer, dataTypes),
       usageSignatures: [`cuid(${CUID_VERSION})`],
+      lower: () => executionGenerator('cuid2'),
+    },
+    ulid: {
+      signature: { documentation: 'Generates a ULID when a value is not supplied.' },
+      usageSignatures: ['ulid()'],
+      lower: () => executionGenerator('ulid'),
     },
     nanoid: {
       signature: (dataTypes) => nanoidSignature(integer, dataTypes),
       usageSignatures: ['nanoid()', `nanoid(<${NANOID_SIZE.min}-${NANOID_SIZE.max}>)`],
+      lower: lowerNanoid,
     },
   };
+}
+
+function storageFunction(expression: string): LoweredDefaultResult {
+  return { ok: true, value: { kind: 'storage', defaultValue: { kind: 'function', expression } } };
+}
+
+function executionGenerator(
+  id: ExecutionMutationDefaultValue['id'],
+  params?: Record<string, unknown>,
+): LoweredDefaultResult {
+  return {
+    ok: true,
+    value: {
+      kind: 'execution',
+      generated: { kind: 'generator', id, ...(params ? { params } : {}) },
+    },
+  };
+}
+
+function lowerNanoid({ call }: { readonly call: TypedDefaultFunctionCall }): LoweredDefaultResult {
+  const size = call.args['size'];
+  return typeof size === 'number'
+    ? executionGenerator('nanoid', { size })
+    : executionGenerator('nanoid');
 }
 
 function uuidSignature(integer: DataTypeId, dataTypes: DataTypeSupport): FuncCallSig {

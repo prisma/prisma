@@ -21,11 +21,8 @@ export type {
   SqlDescribedContractSpace,
   SqlPslBuildContext,
 } from '../core/control-target-descriptor';
-export type {
-  SqlDefaultFunctionDeclaration,
-  SqlDefaultFunctionName,
-} from '../core/default-function-signatures';
-export { sqlDefaultFunctionSignatures } from '../core/default-function-signatures';
+export type { SqlDefaultFunction, SqlDefaultFunctionName } from '../core/default-functions';
+export { sqlDefaultFunctions } from '../core/default-functions';
 export type {
   ContractToSchemaIROptions,
   DefaultResolver,
