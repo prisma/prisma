@@ -10,7 +10,7 @@ Once the contract is emitted and the DB is up to date, this skill covers everyth
 - User wants to read, write, update, or delete data.
 - User wants to include / eager-load relations.
 - User wants to paginate, sort, filter, project.
-- User wants to wrap operations in a transaction (`db.transaction(...)` — Postgres and SQLite).
+- User wants to wrap operations in a transaction (`db.transaction(...)` — Postgres, SQLite and Supabase role-bound clients).
 - User wants to aggregate (`count`, `sum`, `avg`, …).
 - User asks about query lanes (ORM vs SQL builder / query builder).
 - User mentions: *query, select, where, orderBy, limit, offset, take, skip, include, eager load, first, all, count, aggregate, create, update, delete, upsert, returning, drizzle-style, kysely-style, prisma client*.
@@ -136,12 +136,12 @@ There is no `.stream()` method on a client or on a connection.
 
 ## Prepared statements (Postgres, SQLite)
 
-`db.prepare(declaration, (sql, params) => plan)` builds a statement once and binds it per call. The declaration names each parameter's codec (`{ email: 'pg/text@1' }`); the callback receives the façade's `sql` builder plus typed `params` and returns a plan. A row-returning plan gives a `PreparedStatement` you run with `ps.query(runtime, params)`; a plan whose result is an affected count gives a `PreparedExecution` you run with `ps.execute(runtime, params)`. Declaring a parameter the plan never references throws `RUNTIME.PREPARE_UNUSED_PARAM`. `runtime.prepare(declaration, (params) => plan)` is the same thing on a `Runtime`.
+`db.prepare(declaration, (params) => plan)` builds a statement once and binds it per call. The declaration names each parameter's codec (`{ email: 'pg/text@1' }`); the callback receives typed `params`, builds the plan with `db.sql` (or an ORM `.prepared` description), and returns it. A row-returning plan gives a `PreparedStatement` you run with `ps.query(target, params)`; a plan whose result is an affected count gives a `PreparedExecution` you run with `ps.execute(target, params)`. A prepared statement runs on what it is given: the runtime, a connection, a transaction's `tx`, or a Supabase role-bound client, which runs it under its role. `ps.query(tx, params)` runs inside the transaction. Preparing sends nothing to the database. Inside a transaction, `tx.prepare(...)` prepares without the outer client. Declaring a parameter the plan never references throws `RUNTIME.PREPARE_UNUSED_PARAM`. `runtime.prepare(declaration, (params) => plan)` is the same thing on a `Runtime`.
 
 ```typescript
 // examples/prisma-8-demo/src/queries/get-user-by-email-prepared.ts
-const ps = await db.prepare({ email: 'pg/text@1' }, (sql, params) =>
-  sql.public.user
+const ps = await db.prepare({ email: 'pg/text@1' }, (params) =>
+  db.sql.public.user
     .select('id', 'email', 'displayName', 'createdAt', 'kind')
     .where((f, fns) => fns.eq(f.email, params.email))
     .limit(1)

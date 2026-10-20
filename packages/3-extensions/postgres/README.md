@@ -199,6 +199,23 @@ Reads are buffered by default. Pass `cursor` (typed `PostgresCursorOptions`, `{ 
 
 Pass `log` (an object with `info`, `warn`, `error` and an optional `debug` method, each taking one event object; `console` works, and the type is `Log` from `@prisma/orm-postgres/family-runtime`) to receive what the runtime logs: the marker-verification warnings `CONTRACT.MARKER_MISSING` and `CONTRACT.MARKER_MISMATCH` from the first query, the warnings `lints()` emits for rules whose severity is `warn`, and the errors a middleware's `activityEnded` or `activityFinalized` hook throws, which the runtime logs and swallows. It also receives the warning `runtime.close.waiting-for-activities` when `close()` is waiting only for activities whose handles were never ended, and the error `runtime.connection.release.error` when the connection taken for an activity's own transaction fails to release after the transaction settles. If `log` has a `debug` method, it also receives debug events, for example when a middleware intercepts a statement. `budgets()` violations never reach `log`: the client runs its runtime in strict mode, so a violation throws, until the client exposes `mode` (TML-3567). Without `log`, the runtime drops these events. `postgresServerless()` accepts the same option.
 
+### Transactions
+
+`db.transaction(async (tx) => ...)` commits when the callback returns and rolls back when it throws. `tx` offers the client's query members, with the same types: `sql`, `orm` (with the client's custom collection classes), `raw`, `prepare`, `query`, `execute`, `enums` and `nativeEnums`. Every statement they send runs inside the transaction. `tx` has no `close`, `[Symbol.asyncDispose]`, `transaction` or `runtime()`. A transaction on a serverless connection (`await postgres.connect({ url })`) offers the same members. The type is `PostgresTransactionContext<Contract>`.
+
+```ts
+await db.transaction(async (tx) => {
+  const posts = await tx.orm.public.Post.published().forUpdate().all();
+  await tx.execute(tx.raw.sql`UPDATE posts SET pinned = false WHERE id = ${posts[0]!.id}`.affectedCount().build());
+  const byId = await tx.prepare({ id: 'pg/int4@1' }, (params) =>
+    tx.sql.public.posts.select('id').where((f, fns) => fns.eq(f.id, params.id)).build(),
+  );
+  await byId.query(tx, { id: 1 });
+});
+```
+
+`published()` is a method of a custom `PostCollection`. `tx.prepare` lets code inside a transaction prepare a statement without the outer client. Preparing sends nothing to the database.
+
 ### Prepared SQL and ORM rows
 
 Use `db.prepare(declaration, params => ...)` to prepare SQL queries, ORM row reads or ORM aggregates once and execute them with different parameter values.
@@ -216,7 +233,7 @@ const rowOrNull = await first.query(db.runtime(), {});
 const sqlRows = await byId.query(db.runtime(), { id: 1 });
 ```
 
-Pass a compatible runtime, connection or transaction explicitly to `query(target, params, options?)`. ORM `all` returns a thenable async row stream; `first` returns a row-or-null promise; `firstOrThrow` returns a row promise that rejects with `RUNTIME.NO_ROWS` when no row matches. For descriptions built with `.prepared.aggregate(selector, configure?)`, `query` returns an aggregate object promise on ungrouped collections (`Promise<AggregateResult<Spec>>`), or an array promise after `groupBy(...)` (`Promise<Array<GroupKeys & AggregateResult<Spec>>>`). See the [ORM composition reference](../sql-orm-client/README.md#prepared-row-descriptions) for aggregate examples, HAVING, supported predicates, includes and pagination.
+Pass a compatible runtime, connection or transaction explicitly to `query(target, params, options?)`. A prepared statement runs on what it is given, wherever it was prepared: `ps.query(tx, params)` inside `db.transaction(async (tx) => ...)` runs inside the transaction. ORM `all` returns a thenable async row stream; `first` returns a row-or-null promise; `firstOrThrow` returns a row promise that rejects with `RUNTIME.NO_ROWS` when no row matches. For descriptions built with `.prepared.aggregate(selector, configure?)`, `query` returns an aggregate object promise on ungrouped collections (`Promise<AggregateResult<Spec>>`), or an array promise after `groupBy(...)` (`Promise<Array<GroupKeys & AggregateResult<Spec>>>`). See the [ORM composition reference](../sql-orm-client/README.md#prepared-row-descriptions) for aggregate examples, HAVING, supported predicates, includes and pagination.
 
 ### `@internal/postgres/contract-builder`
 

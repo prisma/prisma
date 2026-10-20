@@ -10,6 +10,7 @@ export type {
   SupabaseInternalDb,
   SupabaseOptions,
   SupabaseTargetId,
+  SupabaseTransactionContext,
 } from '../runtime/supabase';
 export { default as supabase } from '../runtime/supabase';
 export type {

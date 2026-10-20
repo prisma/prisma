@@ -609,7 +609,7 @@ The SQL builder's `.orderBy(column, { direction, nulls })` takes the same null p
 
 ## Workflow — Transactions
 
-The concept: `db.transaction(fn)` opens a transaction and passes a `tx` context to the callback. `tx.orm` and `tx.sql` mirror `db.orm` / `db.sql` but ride the same transaction; `tx.query(plan)` / `tx.execute(plan)` run a SQL-builder plan within it (rows vs affected count, as on the runtime). The transaction commits on the callback's successful return and rolls back on any thrown error.
+The concept: `db.transaction(fn)` opens a transaction and passes a `tx` context to the callback. `tx` offers the client's query members with the same types, and each runs inside the transaction: `sql`, `orm` (with the client's custom collection classes), `raw`, `prepare`, `query(plan)` (rows) and `execute(plan)` (affected count), plus `enums` and `nativeEnums`. A prepared statement runs on what it is given, so `ps.query(tx, params)` runs inside the transaction. See *Workflow — Transactions* in `references/runtime.md` for raw SQL and `tx.prepare`. The transaction commits on the callback's successful return and rolls back on any thrown error.
 
 ```typescript
 await db.transaction(async (tx) => {

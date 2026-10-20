@@ -9,3 +9,5 @@ Items found while shaping this project that it does not do. Each is filed as a t
 - **Plans for writes.** `create`, `update` and `delete` run immediately and have no plan form, so tools cannot inspect them.
 - **Supabase's `pg` option ignores a `pg.Client`.** Found by the facade audit.
 - **`mongoQuery({ contract })` does not validate.** It sits in the Mongo query-builder package, below the facade, and casts the value to its type without validating it. Every other entry that takes `{ contract }` validates once. Found in the slice 1 design review.
+- **`enums` and `nativeEnums` on Supabase role-bound clients and their transactions.** The Postgres client and its transactions have them; Supabase's do not. Left out of slice 3, which covers query members only.
+- **One `forRole(binding)` object in `SupabaseRuntime`.** The runtime has a separate method for each operation that runs under a role (query, execute, prepared query, prepared execute, and more). One object implemented once would replace them. Found in the slice 3 design review.

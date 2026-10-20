@@ -17,6 +17,7 @@ import { validatePostgresUrl } from './binding';
 import {
   buildPostgresRuntimeBoundMembers,
   type PostgresLifecycleMembers,
+  type PostgresQueryMembers,
   type PostgresRuntimeBoundMembers,
   type PostgresStaticMembers,
 } from './postgres-members';
@@ -33,7 +34,8 @@ import type { PostgresTargetId } from './postgres-target-id';
 export interface PostgresServerlessConnection<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
-> extends PostgresStaticMembers<TContract>,
+> extends PostgresQueryMembers<TContract, TCollections>,
+    PostgresStaticMembers<TContract>,
     PostgresRuntimeBoundMembers<TContract, TCollections>,
     PostgresLifecycleMembers {}
 

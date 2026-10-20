@@ -4,17 +4,19 @@ import type { SqliteBinding } from '@internal/driver-sqlite/runtime';
 import sqliteDriver from '@internal/driver-sqlite/runtime';
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { sql as sqlBuilder } from '@internal/sql-builder/runtime';
+import { createRawLane, sql as sqlBuilder } from '@internal/sql-builder/runtime';
 import type { Db, RawLane } from '@internal/sql-builder/types';
 import type { ExtractCodecTypes, SqlStorage } from '@internal/sql-contract/types';
 import {
   type CollectionClasses,
   type NoCollectionClasses,
+  type OrmClientRootMembers,
   orm as ormBuilder,
   type PreparedFrom,
+  type PrepareMember,
   prepareQuery,
 } from '@internal/sql-orm-client';
-import type { CodecTypesBase } from '@internal/sql-relational-core/expression';
+import type { CodecTypesBase, RawCodecInferer } from '@internal/sql-relational-core/expression';
 import type { Preparable, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
   BindSiteParams,
@@ -35,10 +37,11 @@ import {
   createSqlExecutionStack,
   delegatingActivitySource,
   withTransaction,
+  withTransactionMembers,
 } from '@internal/sql-runtime';
 import sqliteTarget from '@internal/target-sqlite/runtime';
 import { assertDefined } from '@internal/utils/assertions';
-import { blindCast, castAs } from '@internal/utils/casts';
+import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { sqliteError } from '../errors';
@@ -60,52 +63,114 @@ type UnboundOrm<
   TCollections extends CollectionClasses,
 > = OrmClient<TContract, TCollections>[typeof UNBOUND_NAMESPACE_ID];
 
-function unboundOrm<TContract extends Contract<SqlStorage>, TCollections extends CollectionClasses>(
+/** The models of SQLite's single namespace, and `fragment` unless a model is named `fragment`. */
+export type SqliteOrm<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
+> = 'fragment' extends keyof UnboundOrm<TContract, TCollections>
+  ? UnboundOrm<TContract, TCollections>
+  : UnboundOrm<TContract, TCollections> & OrmClientRootMembers<TContract>;
+
+function sqliteOrm<TContract extends Contract<SqlStorage>, TCollections extends CollectionClasses>(
   orm: OrmClient<TContract, TCollections>,
-): UnboundOrm<TContract, TCollections> {
-  const value = orm[UNBOUND_NAMESPACE_ID];
-  assertDefined(value, 'the unbound namespace always exists on a sqlite builder output');
+): SqliteOrm<TContract, TCollections> {
+  const namespace = orm[UNBOUND_NAMESPACE_ID];
+  assertDefined(namespace, 'the unbound namespace always exists on a sqlite builder output');
+  const withFragment: object =
+    Reflect.get(namespace, 'fragment') === undefined
+      ? Object.create(namespace, { fragment: { value: Reflect.get(orm, 'fragment') } })
+      : namespace;
   return blindCast<
-    UnboundOrm<TContract, TCollections>,
+    SqliteOrm<TContract, TCollections>,
     'OrmClient<TContract> indexed by a literal key widens NsId to string; Collection is invariant in NsId via row/mutation-input types, so the indexed-access type cannot be proven to match the literal-keyed OrmNamespace without this cast'
-  >(value);
+  >(withFragment);
+}
+
+/** The query members of a SQLite client, which its transactions offer with the same types. */
+export interface SqliteQueryMembers<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
+> extends PrepareMember<TContract> {
+  readonly sql: UnboundSql<TContract>;
+  readonly orm: SqliteOrm<TContract, TCollections>;
+  readonly raw: RawLane<TContract>;
 }
 
 export interface SqliteTransactionContext<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
-> extends TransactionContext {
-  readonly sql: UnboundSql<TContract>;
-  readonly orm: UnboundOrm<TContract, TCollections>;
+> extends TransactionContext,
+    SqliteQueryMembers<TContract, TCollections> {
   readonly enums: SqliteStaticContext<TContract>['enums'];
 }
 
 export interface SqliteClient<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
-> {
-  readonly sql: UnboundSql<TContract>;
-  readonly orm: UnboundOrm<TContract, TCollections>;
+> extends SqliteQueryMembers<TContract, TCollections> {
   readonly enums: SqliteStaticContext<TContract>['enums'];
-  readonly raw: RawLane<TContract>;
   readonly context: ExecutionContext<TContract>;
   readonly contract: TContract;
   readonly stack: SqlExecutionStackWithDriver<SqliteTargetId>;
   connect(bindingInput?: { readonly path: string }): Promise<Runtime>;
   runtime(): Runtime;
-  prepare<
-    D extends Declaration<CT>,
-    Q extends SqlQueryPlan | Preparable<unknown, unknown>,
-    CT extends CodecTypesBase = ExtractCodecTypes<TContract>,
-  >(
-    declaration: D,
-    callback: (params: BindSiteParams<D>) => Q,
-  ): Promise<PreparedFrom<ParamsFromDeclaration<D, CT>, Q>>;
   transaction<R>(
     fn: (tx: SqliteTransactionContext<TContract, TCollections>) => PromiseLike<R>,
   ): Promise<R>;
   close(): Promise<void>;
   [Symbol.asyncDispose](): Promise<void>;
+}
+
+interface SqliteTransactionMembersOptions<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses,
+> {
+  readonly context: ExecutionContext<TContract>;
+  readonly collections: TCollections | undefined;
+  readonly rawCodecInferer: RawCodecInferer;
+  readonly enums: SqliteStaticContext<TContract>['enums'];
+  readonly prepareRuntime: () => Runtime;
+}
+
+/**
+ * Builds the members of a SQLite transaction over `txCtx`, so every statement they run goes through the transaction. Preparing sends nothing to the database, so `prepare` uses `prepareRuntime`; the prepared statement runs on the queryable it is given.
+ */
+function buildSqliteTransactionMembers<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses,
+>(
+  options: SqliteTransactionMembersOptions<TContract, TCollections>,
+  txCtx: TransactionContext,
+): Omit<SqliteTransactionContext<TContract, TCollections>, keyof TransactionContext> {
+  const { context, collections, rawCodecInferer, enums, prepareRuntime } = options;
+  const sqlNamespace = sqlBuilder<TContract>({ context, rawCodecInferer })[UNBOUND_NAMESPACE_ID];
+  assertDefined(sqlNamespace, 'the unbound namespace always exists on a sqlite builder output');
+  return {
+    sql: blindCast<
+      UnboundSql<TContract>,
+      'Db<TContract> indexed by a literal key widens NsId to string; TableProxy is invariant in NsId via insert()/update() parameter positions, so the indexed-access type cannot be proven to match the literal-keyed Namespace without this cast'
+    >(sqlNamespace),
+    orm: sqliteOrm(
+      ormBuilder<TContract, TCollections>({
+        runtime: {
+          query(plan) {
+            return txCtx.query(plan);
+          },
+          execute(plan) {
+            return txCtx.execute(plan);
+          },
+          [activitySource]: delegatingActivitySource(() => txCtx),
+        },
+        context,
+        ...ifDefined('collections', collections),
+      }),
+    ),
+    raw: createRawLane<TContract>({ context, rawCodecInferer }),
+    enums,
+    prepare(declaration, callback) {
+      return prepareQuery(prepareRuntime(), declaration, callback);
+    },
+  };
 }
 
 export interface SqliteOptionsBase {
@@ -237,7 +302,7 @@ export default function sqlite<
     return runtimeInstance;
   };
 
-  const orm: UnboundOrm<TContract, TCollections> = unboundOrm(
+  const orm: SqliteOrm<TContract, TCollections> = sqliteOrm(
     ormBuilder<TContract, TCollections>({
       context,
       ...ifDefined('collections', options.collections),
@@ -325,42 +390,18 @@ export default function sqlite<
         return Promise.reject(err);
       }
       return withTransaction(runtime, (txCtx) => {
-        const rawCodecInferer = stack.adapter.rawCodecInferer;
-        const txSqlNamespace = sqlBuilder<TContract>({ context, rawCodecInferer })[
-          UNBOUND_NAMESPACE_ID
-        ];
-        assertDefined(
-          txSqlNamespace,
-          'the unbound namespace always exists on a sqlite builder output',
-        );
-        const txSql: UnboundSql<TContract> = blindCast<
-          UnboundSql<TContract>,
-          'Db<TContract> indexed by a literal key widens NsId to string; TableProxy is invariant in NsId via insert()/update() parameter positions, so the indexed-access type cannot be proven to match the literal-keyed Namespace without this cast'
-        >(txSqlNamespace);
-
-        const txOrm: UnboundOrm<TContract, TCollections> = unboundOrm(
-          ormBuilder<TContract, TCollections>({
-            runtime: {
-              query(plan) {
-                return txCtx.query(plan);
-              },
-              execute(plan) {
-                return txCtx.execute(plan);
-              },
-              [activitySource]: delegatingActivitySource(() => txCtx),
+        const tx: SqliteTransactionContext<TContract, TCollections> = withTransactionMembers(
+          txCtx,
+          buildSqliteTransactionMembers<TContract, TCollections>(
+            {
+              context,
+              collections: options.collections,
+              rawCodecInferer: stack.adapter.rawCodecInferer,
+              enums,
+              prepareRuntime: getRuntime,
             },
-            context,
-            ...ifDefined('collections', options.collections),
-          }),
-        );
-
-        // Use `txCtx` as the prototype instead of spreading it so that live
-        // accessors (notably the `invalidated` getter, which reads a closure
-        // variable in `withTransaction`) remain wired to the original object.
-        // Spreading would evaluate the getter once and freeze its value.
-        const tx: SqliteTransactionContext<TContract, TCollections> = Object.assign(
-          castAs<TransactionContext>(Object.create(txCtx)),
-          { sql: txSql, orm: txOrm, enums },
+            txCtx,
+          ),
         );
 
         return fn(tx);
