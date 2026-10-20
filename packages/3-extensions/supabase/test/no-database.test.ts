@@ -158,6 +158,19 @@ describe('a supabase client given a URL', () => {
     );
   });
 
+  it('makes every concurrent close() wait for the pool to end', async () => {
+    const db = await supabase({ contract, url, jwtSecret, verifyMarker: false });
+    const anon = db.asAnon();
+    await anon.query(anon.sql.public.profile.select('id').build()).toArray();
+
+    const first = db.close();
+    const second = db.close();
+    await second;
+
+    expect(second).toBe(first);
+    expect(created.poolEnds).toBe(1);
+  });
+
   it('ends the pool it created when it is closed', async () => {
     const db = await supabase({ contract, url, jwtSecret, verifyMarker: false });
     const anon = db.asAnon();

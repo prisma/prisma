@@ -559,11 +559,17 @@ export default async function supabase<
     },
   };
 
-  async function closeDb(): Promise<void> {
-    if (closed) return;
-    closed = true;
+  let closePromise: Promise<void> | undefined;
+
+  async function closeOwnedRuntime(): Promise<void> {
     if (runtimes?.ownedPool === undefined) return;
     await runtimes.runtime.close();
+  }
+
+  function closeDb(): Promise<void> {
+    closed = true;
+    closePromise ??= closeOwnedRuntime();
+    return closePromise;
   }
 
   return {
