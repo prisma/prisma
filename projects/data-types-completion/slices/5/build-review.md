@@ -10,6 +10,7 @@
 | d | 1 | `e8b28ec8e1..ca60a4a8a4` | 1 | 1 | 0 | ANOTHER ROUND NEEDED |
 | d | 2 | `9863d741cc`, `5ba8816b9e` | 0 | 0 | 1 | SATISFIED |
 | e | 1 | `5ba8816b9e..c4421f6562` | 0 | 2 | 2 | ANOTHER ROUND NEEDED |
+| branch review fixes | 1 | `14335e1dd3..24528d379e` | 0 | 1 | 3 | SATISFIED once S5-BR-R1-1 is fixed |
 
 ## Dispatch a, round 1
 
@@ -219,3 +220,76 @@ Where: `packages/2-sql/2-authoring/contract-psl/README.md`, Polymorphism.
 What is wrong: "on Postgres and SQLite `String`, `Char(n)` and `VarChar(n)`". SQLite has no `Char`/`VarChar` constructors; its fixed and bounded text columns come from `uuidString()` and `sql.String(n)`, as the tests use.
 
 Change: name SQLite's own spellings, or say "the target's text types (on Postgres `String`, `Char(n)`, `VarChar(n)`)".
+
+## Branch review fixes, round 1
+
+Rulings: `slices/5/briefs/review-fixes.md`, for findings D01 to D09 and F01 to F05 in `slices/5/reviews/`.
+
+Checks run on `24528d379e`:
+- **Repo checks:** `pnpm build`, root `typecheck:agent`, `lint:deps`, `lint:framework-vocabulary`, `lint:docs`, `check:publish-deps`, `lint:publishability`, `check:error-reference` and `check:upgrade-coverage --mode pr --prev a65442a06b` pass.
+- **Fixtures:** `pnpm fixtures:check`, run directly because of the load, passes and leaves the tree clean.
+- **Package tests:** tests and `pnpm lint` pass in ids, framework-components, psl-parser, SQL contract-psl, contract-prisma7, family-sql, both adapters and both targets. The Postgres adapter's full run had one 8-second timeout in `render-typescript.roundtrip`; that file passed alone (8 of 8), at load average 110 to 126.
+- **Integration files:** these pass: `authoring/generator-applicability`, `default-function-arguments`, `discriminator-values`, `extension-text-type`, the upgrade detection test (52), `sql-orm-client/polymorphism-char-discriminator`, `psl-print/generated-values-roundtrip` and `authoring/cli.emit-parity-fixtures`.
+
+### Each item against its ruling
+
+1. **D01, D02 (`d06855b763`): closed.** Each target's descriptor meta contributes `textDataTypes`, and the adapters no longer do; a test asserts the target names them and the adapter does not. Built-in generators carry `writesText: true`, and `lowerDefaultForField` checks them against the `textDataTypes` it is given when the default is checked, not against a list fixed in the registry. `sqlBuiltinGeneratorDescriptors({ uuid })` takes only the UUID types. `extension-text-type.test.ts` adds a test pack's text type through `textDataTypes` and shows it works as a discriminator and takes `uuid()`.
+2. **F01 (`4d9654cd62`, `24528d379e`): closed, with SQLite open (S5-BR-R1-2).** Each generator's stated length comes from `generatedStorage` in `@internal/ids` under the lowered params. I checked those against what the runtime generators (`uniku`) actually write, over 200 values each: `uuidv4` and `uuidv7` 36, `ulid` 26, `cuid2` 24, `ksuid` 27, `nanoid()` 21, `nanoid({ size: 8 })` 8, `nanoid({ size: 255 })` 255. All match. The check uses the same params the runtime receives, so `nanoid(n)` is checked against `n`. A column with no length (`VarChar`, `String`, `Uuid`) is never refused. A bare `Char` is `character(1)` in normal form and refuses `uuid()`. On Postgres, `VarChar(5) @default(uuid())`, a named type over `VarChar(3)` with `cuid(2)`, `Char(5) @default(nanoid())` and `Char(10) @default(nanoid(20))` are refused naming both lengths; `VarChar(36)` and `Char(36)` with `uuid()` emit.
+3. **F02 (`a546c32f92`): closed.** The `@@base` value's codec refusal is spanned at the value; the test was updated.
+4. **F03 (`0709f88f92`): closed.** `nanoid(8.0)`, `uuid(4.0)`, `uuid(7.0)` and `cuid(2.0)` are tested as `PSL_VALUE_TYPE_INCOMPATIBLE` at the argument on both targets. The app note has a `default-function-argument-with-fraction` change with the fix and detection samples.
+5. **F05 (`114139a562`): closed.** `nanoid(3000000000)` is tested on both targets: Postgres reports that `pg/int4` cannot hold it (`got pg/int8`), and SQLite gives nanoid's own range message.
+6. **D06 (`3f1937d116`): closed.** `sqlDefaultFunctions({ integer })` in family-sql holds each function's signature, usage and lowering. The lowering moved unchanged (the two adapter copies were identical), and the adapters keep only Postgres's `printArguments`. The fixtures emit unchanged.
+7. **D07 (`1e2d8fe3fb`): closed at the discriminator.** An empty list throws an `InternalError` there, and a test covers it. The same class remains in the generator check (S5-BR-R1-1).
+8. **D09 (`f228e94d9d`): closed.** The file is `generator-limits.ts`; no reference to `argument-limits` remains.
+9. **F04 (the plan's Outcome): closed** in the plan.
+
+### ADRs 254 and 231 against the code
+
+They match on what this slice changed:
+- **Function arguments** are values of the target's integer type, followed by each function's own check.
+- **Signatures** may be a `FuncCallSig` or a function of the data types, and `defaultFunctionCall` builds the call from either.
+- **Labels and checks:** `dataTypeValue`'s `{ suggestions, label }` and `refineArg` are described as built.
+- **`oneOf`** refuses a `dataTypeValue` arm.
+- **Generators** apply by data type, through the text data types and the UUID type.
+- **Length:** a generator is refused on a column too short for what it writes, measured in normal form.
+- **Discriminators** are settled as text types read through the codec.
+- **Plain signatures:** an extension may still declare a plain signature.
+
+Two small gaps are listed below: S5-BR-R1-2 (the ADR does not spell out what normal form means on SQLite) and S5-BR-R1-4 (one stale sentence in ADR 231).
+
+### S5-BR-R1-1 (should-fix): the generator check still treats missing text data types as an empty list
+
+Where: `packages/2-sql/2-authoring/contract-psl/src/psl-field-resolution.ts`, `textDataTypes: authoringContributions?.textDataTypes ?? []`, which feeds `lowerDefaultForField`.
+
+What is wrong: this is the same defect D07 ruled on, in the other place that reads the list. With no text data types, every `String @default(uuid())` is refused with `Default generator "uuidv4" is not applicable to ... with data type "pg/text"`, a user error that blames the schema for a broken stack.
+
+Change: treat an empty list the same way at the generator check: an `InternalError` with the discriminator's wording, thrown when a text-writing generator is checked. Better still, make `AssembledAuthoringContributions.textDataTypes` required (S5-d-R2-1), so both readers drop the `?? []`.
+
+### S5-BR-R1-2 (low): on SQLite no column refuses a generator for length, and nothing says so
+
+Where: `lowerDefaultForField` with `24528d379e`; `test/integration/test/authoring/generator-applicability.test.ts`; the app note `generator-fits-column`; ADR 254's "A call" item.
+
+What is wrong: SQLite's `character` and `character varying` drop `length` in normal form (`withoutLength`), so the check never fires there. A probe (deleted) emitted `sql.String(5) @default(uuid())` and `uuidString() @default(nanoid(40))` on SQLite with no diagnostic. That is defensible, because SQLite stores the longer value. But no test records it. The app note says such a column "failed at the first insert before", which is true only on Postgres. The ADR's "in its type's normal form" leaves the reader to work out the SQLite case.
+
+Change:
+- Add a SQLite case to the length tests that emits `sql.String(5) @default(uuid())`.
+- Say "on Postgres" in the app note.
+- Add one clause to ADR 254, such as: "SQLite's text types have no length in normal form, so no SQLite column refuses a generator for its length."
+
+### S5-BR-R1-3 (low): the extension note does not mention `writtenLength`
+
+Where: `upgrade-instructions/pending/default-function-arguments-and-generator-data-types/extension/instructions.md`, `builtin-generator-metadata-writes-uuid` and `generator-applicable-data-types`.
+
+What is wrong: `builtinGeneratorRegistryMetadata` now gives `{ id, writesUuid, writtenLength }`, but the note says `{ id, writesUuid }`. `MutationDefaultGeneratorDescriptor` gained an optional `writtenLength(params)`, which an extension's own generator can set to get the column-length check; the note does not say so.
+
+Change: list `writtenLength` in both places.
+
+### S5-BR-R1-4 (low): one ADR 231 sentence names the old arm
+
+Where: `docs/architecture docs/adrs/ADR 231 - Declarative attribute specifications.md`, "SQL defaults", first paragraph.
+
+What is wrong: it says scalar fields take "one pinned `funcCall(name, signature)` arm for every active default-function registry entry". The paragraph and sample right after it say the arm is `defaultFunctionCall(name, entry, dataTypes)`.
+
+Change: name `defaultFunctionCall` in that sentence.
+
+Verdict: SATISFIED once S5-BR-R1-1 is fixed; the lows can go with it.
