@@ -40,6 +40,18 @@ Add the same `invocation` to every `dbInit`, `dbUpdate` and `migrate` call. Set 
 
 A failure of these three operations is a `CliStructuredError`. Replace any use of `DbInitFailure`, `DbUpdateFailure`, `MigrateFailure` or their code types with `CliStructuredError`, and branch on `failure.code`, a dotted code such as `MIGRATION.PLANNING_FAILED`, instead of `'PLANNING_FAILED'`, `'RUNNER_FAILED'` or `'MIGRATION_PATH_NOT_FOUND'`.
 
+The failure's fields change too:
+
+| Before | After |
+| --- | --- |
+| `failure.summary` | `failure.message` |
+| `failure.code === 'PLANNING_FAILED'`, `failure.conflicts` | `failure.code === 'MIGRATION.PLANNING_FAILED'`, `failure.meta.conflicts` |
+| `failure.warnings` on a failed `dbInit` or `dbUpdate` | the `onPlannerWarnings(warnings)` option, called with the planner's warnings when the apply fails after planning; a successful run still returns them as `warnings` |
+| `failure.schemaIssues`, `failure.rowsWithoutValue`, `failure.failedTypeChange`, `failure.failedPrecheck` | the runner's facts in `failure.meta`: `schemaIssues`, `rowsWithoutValue`, `failedTypeChange`, `failedCheck`. A field in them is a subject object, not text such as `"User.age"` |
+| `failure.failedMigration`, `failure.databaseStorageHash` | removed; the advice in `failure.nextActions` names the migration directory and the `--from` hash |
+
+In `--json` output, `db init` and `db update` print the planner's warnings of a failed apply as `warn` messages before the error, instead of in the error's `meta.plannerWarnings`.
+
 ## Match the runner's code, not `MIGRATION.RUNNER_FAILED`
 
 Code that reads `prisma db migrate`, `db init` or `db update` output with `--json`, or a control client's failure, and matches `MIGRATION.RUNNER_FAILED` or `meta.runnerErrorCode`, now matches the code itself:
@@ -56,7 +68,7 @@ if (error.code === 'MIGRATION.SCHEMA_VERIFY_FAILED') {
 }
 ```
 
-A check that matched `MIGRATION.RUNNER_FAILED` alone, meaning "the apply failed", matches every code the runner reports: `MIGRATION.SCHEMA_VERIFY_FAILED`, `MIGRATION.PRECHECK_FAILED`, `MIGRATION.POSTCHECK_FAILED`, `MIGRATION.EXECUTION_FAILED`, `MIGRATION.POLICY_VIOLATION`, `MIGRATION.MARKER_ORIGIN_MISMATCH`, `MIGRATION.MARKER_CAS_FAILURE`, `MIGRATION.DESTINATION_CONTRACT_MISMATCH`, `MIGRATION.FOREIGN_KEY_VIOLATION` and, on MongoDB, `MIGRATION.DATA_TRANSFORM_CHECK_NOT_READ_ONLY`. `db init` and `db update` also report an extension space they cannot reach as `MIGRATION.PATH_UNREACHABLE` or `MIGRATION.NO_INVARIANT_PATH`.
+A check that matched `MIGRATION.RUNNER_FAILED` alone, meaning "the apply failed", matches every code the runner reports: `MIGRATION.SCHEMA_VERIFY_FAILED`, `MIGRATION.PRECHECK_FAILED`, `MIGRATION.POSTCHECK_FAILED`, `MIGRATION.EXECUTION_FAILED`, `MIGRATION.POLICY_VIOLATION`, `MIGRATION.MARKER_ORIGIN_MISMATCH`, `MIGRATION.MARKER_CAS_FAILURE`, `MIGRATION.DESTINATION_CONTRACT_MISMATCH`, `MIGRATION.FOREIGN_KEY_VIOLATION` and, on MongoDB, `MIGRATION.DATA_TRANSFORM_CHECK_NOT_READ_ONLY`. `db init` and `db update` also report an extension space they cannot plan as `MIGRATION.PATH_UNREACHABLE` or `MIGRATION.NO_INVARIANT_PATH`, with `meta.spaceId`.
 
 Read the facts from these `meta` keys:
 

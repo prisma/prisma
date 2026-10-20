@@ -97,8 +97,8 @@ If the runner detects that the resulting schema does not match the contract, it 
 
 ```
 ✘ [MIGRATION.SCHEMA_VERIFY_FAILED] Database schema does not satisfy contract (1 failure)
-  Why: The schema check after apply found: missing: public/user/email.
-  Fix: Change the contract source to resolve the issues listed, re-run `prisma contract emit`, then re-run `prisma db update`.
+  why: The schema check after apply found: missing: public/user/email.
+→ Change the contract source to resolve the issues listed, re-run `prisma contract emit`, then re-run `prisma db update`.
 ```
 
 ## Key differences between `db init` and `db update`
