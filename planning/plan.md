@@ -33,7 +33,7 @@ GA is the last chance to make breaking changes, so this stream decides the date.
 
 | # | Progress | Project | GA | Owner | Status | Next |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | 🔄 4/6 | Finish ADR 254: data types own column types | Must | Will | 4 of 6 tickets merged. Verify and the planner compare column types as data types (TML-3387): PR approved 2026-10-20 | Merge the TML-3387 PR, then the cast rule (TML-3389) |
+| 1 | 🔄 5/6 | Finish ADR 254: data types own column types | Must | Will | 5 of 6 tickets merged. Verify and the planner compare column types as data types (TML-3387), merged 2026-10-20. The cast rule (TML-3389) is left, in backlog | Build TML-3389: the cast rule checks default function arguments, enum member values and discriminator values |
 | 2 | ✅ 2/2 | One CLI and one config file | Must | Will | Done 2026-10-08 |  |
 | 3 | ⏳ | Early MySQL attempt, to find shared code that assumes PostgreSQL | Must | Will | Not started, no ticket |  |
 | 4 | ✅ 6/6 | SQL expression literals | Must | Will | Done 2026-10-12 |  |
@@ -125,7 +125,7 @@ Test: the getting-started eval passes, in few steps and with no workarounds.
 
 | Progress | Item | Owner | Status | Priority |
 | --- | --- | --- | --- | --- |
-| 🔄 | Manifesto | Will | PR open, last updated 2026-10-01 | Publish. Was due the week of 2026-09-29 |
+| ✅ | Manifesto | Will | Published | |
 | 🔄 | One lowering for PSL and the TypeScript contract builder | Serhii | Serhii and WhyAsh (prisma-idb) | Not a GA item unless Will says so |
 | 🔄 | Asks | Will | Ongoing | Lower, in parallel with GA |
 | 🔄 | Eval harness | Will | Ongoing | Lower, in parallel with GA |
