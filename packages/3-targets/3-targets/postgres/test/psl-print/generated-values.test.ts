@@ -111,8 +111,13 @@ describe('generated values', () => {
     ).toMatchObject({
       code: 'CONTRACT.PRINT_UNSUPPORTED',
       message:
-        'contract print: column "public"."Widget"."value" generates "uuidv4" on create, but @onCreate(uuid()) reads back as no generator.',
-      meta: { call: 'uuid()', stored: { kind: 'generator', id: 'uuidv4' }, readBack: undefined },
+        'contract print: column "public"."Widget"."value" generates "uuidv4" on create, but @onCreate(uuid()) is refused: uuid() writes 36 characters, which does not fit a column of 5 characters.',
+      meta: {
+        call: 'uuid()',
+        stored: { kind: 'generator', id: 'uuidv4' },
+        readBack: undefined,
+        refusedBecause: 'uuid() writes 36 characters, which does not fit a column of 5 characters.',
+      },
     });
   });
 

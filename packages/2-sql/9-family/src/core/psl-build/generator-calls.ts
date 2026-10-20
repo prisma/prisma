@@ -29,6 +29,8 @@ export type GeneratorCallRefusal =
       readonly generator: ExecutionMutationDefaultValue;
       readonly text: string;
       readonly readBack: ExecutionMutationDefaultValue | undefined;
+      /** Why the call's binding refuses the column, when it does. */
+      readonly refusedBecause: string | undefined;
     };
 
 export type GeneratorCallsResult =
@@ -64,6 +66,8 @@ export function generatorCallsFor(input: {
           generator,
           text: printed.text,
           readBack: readBack.ok ? readBack.generator : undefined,
+          refusedBecause:
+            !readBack.ok && readBack.reason === 'refused' ? readBack.message : undefined,
         },
       };
     }

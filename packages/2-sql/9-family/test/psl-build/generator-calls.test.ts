@@ -82,6 +82,7 @@ describe('generatorCallsFor', () => {
         generator: timeNow,
         text: 'now()',
         readBack: { kind: 'generator', id: 'timeNow', params: { precision: 3 } },
+        refusedBecause: undefined,
       },
     });
   });

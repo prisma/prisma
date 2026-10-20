@@ -40,6 +40,7 @@ function refuse(
         call: refusal.text,
         stored: generator,
         readBack: refusal.readBack,
+        refusedBecause: refusal.refusedBecause,
       });
   }
 }
