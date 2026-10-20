@@ -16,7 +16,7 @@ console.log(db.toSql(plan));
 ```ts
 const plan = db.sql.public.post.select('id', 'title').limit(10).build();
 for await (const row of db.query(plan)) console.log(row);
-await db.execute(db.raw.sql`UPDATE post SET pinned = false`.build());
+await db.execute(db.raw.sql`UPDATE post SET pinned = false`.affectedCount().build());
 ```
 
 ```ts
