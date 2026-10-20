@@ -1,4 +1,5 @@
 import { ormConfigSection } from '@internal/config-loader';
+import type { MigrationPlannerConflict } from '@internal/framework-components/control';
 import { ifDefined } from '@internal/utils/defined';
 import { isStructuredError } from '@internal/utils/structured-error';
 import type { Block, Presentations } from '@prisma/cli-engine';
@@ -67,6 +68,7 @@ function initDocument(inputs: {
   readonly advancedRef: { readonly name: string; readonly hash: string } | null;
   readonly plannedAdvanceRef: { readonly name: string; readonly hash: string } | null;
   readonly startedAt: number;
+  readonly plannerWarnings: readonly MigrationPlannerConflict[];
 }): MigrationCommandResult {
   const { value } = inputs;
   return {
@@ -104,6 +106,7 @@ function initDocument(inputs: {
     ...ifDefined('perSpace', value.perSpace),
     advancedRef: inputs.advancedRef,
     plannedAdvanceRef: inputs.plannedAdvanceRef,
+    ...(inputs.plannerWarnings.length > 0 ? { warnings: inputs.plannerWarnings } : {}),
     summary: value.summary,
     timings: { total: Date.now() - inputs.startedAt },
   };
@@ -214,6 +217,7 @@ export function createDbInitCommand(createClient: CreateControlClient) {
           advancedRef: advanced.value.advancedRef,
           plannedAdvanceRef: advanced.value.plannedAdvanceRef,
           startedAt,
+          plannerWarnings: plannerWarnings.collected(),
         });
       } catch (error) {
         if (

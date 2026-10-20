@@ -648,7 +648,7 @@ export function buildPathNotFoundFailure(
   targetHash: string,
 ): CliStructuredError {
   const fromHash = marker?.storageHash ?? EMPTY_CONTRACT_HASH;
-  const fromText = marker === null ? '<empty>' : fromHash;
+  const fromText = marker === null ? 'the empty contract' : `the current state "${fromHash}"`;
   // The app-case phrasing names the user-visible condition (a
   // contract has been emitted that no on-disk migration reaches) so
   // the error reads naturally for the app space. Extension spaces
@@ -659,7 +659,7 @@ export function buildPathNotFoundFailure(
       : `Current contract has no planned migration path for contract space "${spaceId}"`;
   return errorPathUnreachable({
     summary,
-    why: `No migration edge connects the current state "${fromText}" to the target "${targetHash}" in contract space "${spaceId}". The on-disk migration graph does not join the two, and migrate replays existing edges — it never invents one.`,
+    why: `No migration edge connects ${fromText} to the target "${targetHash}" in contract space "${spaceId}". The on-disk migration graph does not join the two, and migrate replays existing edges — it never invents one.`,
     meta: { spaceId, fromHash, targetHash, kind: 'pathUnreachable' },
   });
 }

@@ -7,7 +7,7 @@ import {
 } from '@internal/framework-components/control';
 import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
 import { notOk, ok } from '@internal/utils/result';
-import { structuredError } from '@internal/utils/structured-error';
+import { docsUrlFor, structuredError } from '@internal/utils/structured-error';
 import type { EngineEvent, StreamEvent } from '@prisma/cli-engine';
 import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
@@ -17,6 +17,7 @@ import type { ControlClient } from '../../src/control-api/types';
 import { BIN_GROUPS, createBinCommands } from '../../src/orm/cli';
 import { errorMigrationPlanningFailed } from '../../src/utils/cli-errors';
 import { dbUpdateRunnerFailureError } from '../../src/utils/db-update-failure';
+import { stdoutErrorMeta, stdoutFrames } from '../helpers/json-frames';
 import { createOrmTestCli } from '../helpers/orm-test-cli';
 import { createTestProjectDir, writeProjectManifest } from '../utils/test-project-dir';
 
@@ -162,19 +163,6 @@ function planSuccess(): Record<string, unknown> {
 
 function harness(config: Record<string, unknown> = ormConfig()) {
   return createOrmTestCli({ commands, groups, orm: config });
-}
-
-/** The frames a `--json` run wrote to stdout, parsed as a consumer reads them. */
-function stdoutFrames(stdout: string): readonly Record<string, unknown>[] {
-  return stdout
-    .trim()
-    .split('\n')
-    .map((line) => JSON.parse(line) as Record<string, unknown>);
-}
-
-function stdoutErrorMeta(stdout: string): unknown {
-  const last = stdoutFrames(stdout).at(-1) as { envelope: { error: { meta: unknown } } };
-  return last.envelope.error.meta;
 }
 
 function envelopeOf(json: readonly StreamEvent[]): unknown {
@@ -819,6 +807,28 @@ describe('db update', () => {
       kinds: ['message', 'result'],
       first: expect.objectContaining({ kind: 'message', severity: 'warn', text: WARNING.summary }),
     });
+  });
+
+  it('links a runner failure to the reference entry of its code', async () => {
+    mocks.dbUpdate.mockResolvedValue(
+      notOk(
+        dbUpdateRunnerFailureError(
+          migrationRunnerFailure('MIGRATION.EXECUTION_FAILED', 'runner failed'),
+          {},
+          {
+            databaseStorageHash: undefined,
+            invocation: { cwd: projectDir, configPath: undefined, dbGiven: false },
+          },
+        ),
+      ),
+    );
+
+    const run = await harness().run(['db', 'update'], {
+      cwd: projectDir,
+      isTty: { stdout: true, stderr: true },
+    });
+
+    expect(stripAnsi(run.stderr)).toContain(`docs: ${docsUrlFor('MIGRATION.EXECUTION_FAILED')}`);
   });
 
   it('reports a runner failure with the runner code and meta, and the advice', async () => {

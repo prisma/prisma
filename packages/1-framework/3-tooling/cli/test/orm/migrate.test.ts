@@ -6,6 +6,7 @@ import {
   type SchemaDiffIssue,
   schemaCheckWhy,
 } from '@internal/framework-components/control';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { writeMigrationPackage } from '@internal/migration-tools/io';
@@ -20,6 +21,7 @@ import type { ControlClient } from '../../src/control-api/types';
 import { BIN_GROUPS, createBinCommands } from '../../src/orm/cli';
 import { errorPathUnreachable } from '../../src/utils/cli-errors';
 import { migrateRunnerFailureError } from '../../src/utils/migrate-failure';
+import { stdoutErrorMeta } from '../helpers/json-frames';
 import { createOrmTestCli } from '../helpers/orm-test-cli';
 import { createTestProjectDir, writeProjectManifest } from '../utils/test-project-dir';
 
@@ -192,19 +194,6 @@ beforeEach(() => {
 
 function harness(config: Record<string, unknown>) {
   return createOrmTestCli({ commands, groups: BIN_GROUPS, orm: config });
-}
-
-/** The frames a `--json` run wrote to stdout, parsed as a consumer reads them. */
-function stdoutFrames(stdout: string): readonly Record<string, unknown>[] {
-  return stdout
-    .trim()
-    .split('\n')
-    .map((line) => JSON.parse(line) as Record<string, unknown>);
-}
-
-function stdoutErrorMeta(stdout: string): unknown {
-  const last = stdoutFrames(stdout).at(-1) as { envelope: { error: { meta: unknown } } };
-  return last.envelope.error.meta;
 }
 
 function envelopeOf(json: readonly StreamEvent[]): unknown {
@@ -433,7 +422,12 @@ describe('migrate', () => {
         errorPathUnreachable({
           summary: 'no path',
           why: 'no recorded path',
-          meta: { spaceId: 'app', fromHash: '<empty>', targetHash: C2, kind: 'pathUnreachable' },
+          meta: {
+            spaceId: 'app',
+            fromHash: EMPTY_CONTRACT_HASH,
+            targetHash: C2,
+            kind: 'pathUnreachable',
+          },
         }),
       ),
     );

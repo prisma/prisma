@@ -1,5 +1,6 @@
 import type { MigrationRunnerFailure } from '@internal/framework-components/control';
 import { ifDefined } from '@internal/utils/defined';
+import { docsUrlFor } from '@internal/utils/structured-error';
 import { CliStructuredError } from './cli-errors';
 
 /**
@@ -14,6 +15,7 @@ export function runnerFailureError(
     ...ifDefined('why', failure.why),
     fix: advice.fix,
     meta: failure.meta,
+    docsUrl: docsUrlFor(failure.code),
     cause: failure,
   });
 }

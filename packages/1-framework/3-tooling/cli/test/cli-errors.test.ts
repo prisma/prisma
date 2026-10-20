@@ -1,3 +1,4 @@
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { docsUrlFor } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import {
@@ -106,12 +107,12 @@ describe('errorPathUnreachable', () => {
     expect(envelope.fix ?? '').toContain('Plan a rename with --rename old:new');
   });
 
-  it('omits --from in the fix when buildPathNotFoundFailure uses the empty-marker sentinel', () => {
+  it('omits --from in the fix and names the empty contract when the space has no marker', () => {
     const envelope = buildPathNotFoundFailure('app', null, targetHash).toEnvelope();
 
-    expect(envelope.why).toContain('<empty>');
+    expect(envelope.why).toContain('No migration edge connects the empty contract to the target');
+    expect(envelope.meta?.['fromHash']).toBe(EMPTY_CONTRACT_HASH);
     expect(envelope.fix).toContain(`{bin} migration plan --to ${targetHash} --name <slug>`);
-    expect(envelope.fix).not.toContain('--from <empty>');
     expect(envelope.fix).not.toMatch(/--from\s/);
   });
 

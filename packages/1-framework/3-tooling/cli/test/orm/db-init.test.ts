@@ -19,6 +19,7 @@ import {
   dbInitPlanningFailedError,
   dbInitRunnerFailureError,
 } from '../../src/utils/db-init-failure';
+import { stdoutErrorMeta, stdoutFrames } from '../helpers/json-frames';
 import { createOrmTestCli } from '../helpers/orm-test-cli';
 import { createTestProjectDir, writeProjectManifest } from '../utils/test-project-dir';
 
@@ -156,19 +157,6 @@ function planSuccess(): Record<string, unknown> {
 
 function harness(config: Record<string, unknown>) {
   return createOrmTestCli({ commands, groups: BIN_GROUPS, orm: config });
-}
-
-/** The frames a `--json` run wrote to stdout, parsed as a consumer reads them. */
-function stdoutFrames(stdout: string): readonly Record<string, unknown>[] {
-  return stdout
-    .trim()
-    .split('\n')
-    .map((line) => JSON.parse(line) as Record<string, unknown>);
-}
-
-function stdoutErrorMeta(stdout: string): unknown {
-  const last = stdoutFrames(stdout).at(-1) as { envelope: { error: { meta: unknown } } };
-  return last.envelope.error.meta;
 }
 
 function envelopeOf(json: readonly StreamEvent[]): unknown {
@@ -562,6 +550,41 @@ describe('db init', () => {
       );
     });
   }
+
+  function succeedWithPlannerWarning() {
+    mocks.dbInit.mockImplementation(async (options: Parameters<ControlClient['dbInit']>[0]) => {
+      options.onPlannerWarnings?.([WARNING]);
+      return ok(applySuccess());
+    });
+  }
+
+  it('shows the planner`s warnings when the apply succeeds', async () => {
+    succeedWithPlannerWarning();
+
+    const run = await harness(ormConfig()).run(['db', 'init'], {
+      cwd: projectDir,
+      isTty: { stdout: true },
+    });
+    const blocks = run.presented?.presentation.human ?? [];
+
+    expect(run.exitCode).toBe(0);
+    expect(blocks).toContainEqual({ kind: 'summary', status: 'warn', text: 'Planner warnings' });
+    expect(blocks).toContainEqual({ kind: 'list', items: [WARNING.summary] });
+  });
+
+  it('lists the planner`s warnings in the --json result of a successful apply', async () => {
+    succeedWithPlannerWarning();
+
+    const run = await harness(ormConfig()).run(['db', 'init', '--json'], { cwd: projectDir });
+    const frames = stdoutFrames(run.stdout);
+
+    expect({
+      exitCode: run.exitCode,
+      messages: frames.filter((frame) => frame['kind'] === 'message'),
+      warnings: (frames.at(-1) as { envelope: { result: { warnings: unknown } } }).envelope.result
+        .warnings,
+    }).toEqual({ exitCode: 0, messages: [], warnings: [WARNING] });
+  });
 
   it('shows the planner`s warnings when the apply fails', async () => {
     failWithPlannerWarning();

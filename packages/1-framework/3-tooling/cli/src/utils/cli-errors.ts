@@ -943,8 +943,9 @@ function planThenApply(meta: PathUnreachableMeta): PathUnreachableAdvice {
   // `--to <hash>` remediation would reject its own input. `migration plan`
   // without `--to` targets the working contract (the same contract the app
   // space's synthesized head ref carries), so the bare form is the one that
-  // runs verbatim. `migration plan` starts from the empty contract by default
-  // and does not take it as `--from`.
+  // runs verbatim. With no marker, the live origin `migration plan` uses
+  // without `--from` is the empty contract, so the printed command leaves
+  // `--from` out.
   const planCommand =
     meta.kind === 'neverPlanned'
       ? '{bin} migration plan --name <slug>'

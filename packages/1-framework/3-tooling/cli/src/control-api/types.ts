@@ -176,15 +176,15 @@ export interface SchemaVerifyOptions {
   readonly onProgress?: OnControlProgress;
 }
 
-/**
- * Options for the dbInit operation.
- */
 /** Receives the warnings the planner raised about a run's plan without refusing it. */
 export interface PlannerWarningsListener {
   /** Called once per run, after planning, when the planner raised warnings, whether the apply then succeeds or fails. */
   readonly onPlannerWarnings?: (warnings: readonly MigrationPlannerConflict[]) => void;
 }
 
+/**
+ * Options for the dbInit operation.
+ */
 export interface DbInitOptions extends PlannerWarningsListener {
   /** The command line the advice of a failure repeats: its directory, `--config` and whether `--db` was given. */
   readonly invocation: CliInvocation;
