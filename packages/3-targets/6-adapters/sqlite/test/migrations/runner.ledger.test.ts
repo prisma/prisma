@@ -9,7 +9,7 @@ import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { createSqliteBuiltinCodecLookup } from '@internal/target-sqlite/codecs';
 import { timeouts } from '@repo/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
-import { SqliteControlAdapter } from '../../src/core/control-adapter';
+import { createTestSqliteControlAdapter } from '../helpers/test-control-adapter';
 import {
   contract,
   controlAdapter,
@@ -36,7 +36,7 @@ interface LedgerRow {
   readonly created_at: string;
 }
 
-const ledgerAdapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+const ledgerAdapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
 
 type ExpectedLedgerEntry = Omit<LedgerEntryRecord, 'appliedAt'>;
 

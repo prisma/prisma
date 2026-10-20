@@ -23,6 +23,7 @@ export type {
 export type {
   ContractToSchemaIROptions,
   DefaultResolver,
+  DefaultResolverColumn,
 } from '../core/migrations/contract-to-schema-ir';
 // Contract → SchemaIR conversion for offline migration planning
 export {

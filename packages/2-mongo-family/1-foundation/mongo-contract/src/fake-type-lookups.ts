@@ -8,10 +8,11 @@ import {
   type DataTypeLookup,
   type DataTypeValue,
   dataTypeId,
+  type TypeLookups,
 } from '@internal/framework-components/codec';
 import { assertDefined } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
-import { type MongoTypeLookups, mongoDataType } from './mongo-data-type';
+import { mongoDataType } from './mongo-data-type';
 
 const bsonTypesByCodecId: Record<string, readonly string[]> = {
   'mongo/string@1': ['string'],
@@ -104,7 +105,7 @@ export const mongoCodecLookup: CodecLookupWithDescriptors = {
   renderOutputTypeFor: () => undefined,
 };
 
-export const mongoTypeLookups: MongoTypeLookups = {
+export const mongoTypeLookups: TypeLookups = {
   codecLookup: mongoCodecLookup,
   dataTypeLookup: mongoDataTypeLookup,
 };

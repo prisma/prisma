@@ -32,7 +32,7 @@ import {
   isAuthoringEntityTypeDescriptor,
   isAuthoringTypeConstructorDescriptor,
 } from '@internal/framework-components/authoring';
-import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import type { CodecLookupWithDescriptors, TypeLookups } from '@internal/framework-components/codec';
 import type { ControlMutationDefaultRegistry } from '@internal/framework-components/control';
 import {
   applyPolymorphicScopeToMongoIndex,
@@ -47,7 +47,6 @@ import {
   mongoValueSetsOf,
   ownStoredNameOf,
 } from '@internal/mongo-contract';
-import type { MongoTypeLookups } from '@internal/mongo-contract/data-type';
 import type { CollationOptions } from '@internal/mongo-value/mongodb-types';
 import type {
   AttributeSpecContext,
@@ -1510,7 +1509,7 @@ export function interpretPslDocumentToMongoContract(
   const backrelationCandidates: MongoBackRelationCandidate[] = [];
   const invalidFkPairings: InvalidFkPairing[] = [];
 
-  const validatorLookups: MongoTypeLookups = {
+  const validatorLookups: TypeLookups = {
     codecLookup,
     dataTypeLookup: input.dataTypes.lookup,
   };

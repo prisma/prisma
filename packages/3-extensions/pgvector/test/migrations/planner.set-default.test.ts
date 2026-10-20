@@ -1,13 +1,16 @@
 import postgresAdapterDescriptor from '@internal/adapter-postgres/control';
 import { type Contract, coreHash, profileHash } from '@internal/contract/types';
 import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import type { DataType } from '@internal/framework-components/codec';
 import {
   APP_SPACE_ID,
   type MigrationOperationPolicy,
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlColumnIRInput } from '@internal/sql-schema-ir/types';
 import postgresTargetDescriptor from '@internal/target-postgres/control';
+import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import { createPostgresMigrationPlanner } from '@internal/target-postgres/planner';
 import type { PostgresPlanTargetDetails } from '@internal/target-postgres/planner-target-details';
 import {
@@ -18,8 +21,15 @@ import {
 } from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
+import { introspectedColumn as introspectedColumnOver } from '../../../../2-sql/1-core/contract/test/introspected-column';
+import { pgvectorDataTypes } from '../../src/core/data-types';
 import pgvectorDescriptor from '../../src/exports/control';
 import { createComposedPostgresControlAdapter } from '../helpers/composed-adapter';
+
+const introspectedColumn = (
+  column: SqlColumnIRInput,
+  dataTypes: readonly DataType[] = postgresDataTypes,
+) => introspectedColumnOver(column, dataTypes);
 
 const policy: MigrationOperationPolicy = { allowedOperationClasses: ['additive', 'widening'] };
 
@@ -72,8 +82,11 @@ const liveSchema = new PostgresDatabaseSchemaNode({
         doc: new PostgresTableSchemaNode({
           name: 'doc',
           columns: {
-            id: { name: 'id', nativeType: 'uuid', nullable: false },
-            embedding: { name: 'embedding', nativeType: 'vector(3)', nullable: true },
+            id: introspectedColumn({ name: 'id', typeText: 'uuid', nullable: false }),
+            embedding: introspectedColumn(
+              { name: 'embedding', typeText: 'vector(3)', nullable: true },
+              [...postgresDataTypes, ...pgvectorDataTypes],
+            ),
           },
           primaryKey: { columns: ['id'] },
           uniques: [],

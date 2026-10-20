@@ -42,7 +42,7 @@ import {
   instantiateAuthoringFieldPreset,
   validateAuthoringHelperArguments,
 } from '@internal/framework-components/authoring';
-import { assembleDataTypes } from '@internal/framework-components/codec';
+import { assembleDataTypes, type TypeLookups } from '@internal/framework-components/codec';
 import type {
   ExtensionPackRef,
   FamilyPackRef,
@@ -71,10 +71,7 @@ import {
   type MongoTypeMaps,
   mongoValueSetsOf,
 } from '@internal/mongo-contract';
-import {
-  assertMongoFieldTypeParams,
-  type MongoTypeLookups,
-} from '@internal/mongo-contract/data-type';
+import { assertMongoFieldTypeParams } from '@internal/mongo-contract/data-type';
 import type { BsonInputValue, BsonValue } from '@internal/mongo-value';
 import { canonicalStringify } from '@internal/utils/canonical-stringify';
 import { blindCast } from '@internal/utils/casts';
@@ -2629,7 +2626,7 @@ function buildContractFromDefinition<
     ...Object.values(definition.extensions ?? {}),
   ];
   const codecLookup = extractCodecLookup(components);
-  const lookups: MongoTypeLookups = {
+  const lookups: TypeLookups = {
     codecLookup,
     dataTypeLookup: assembleDataTypes(components).lookup,
   };

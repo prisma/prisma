@@ -1,4 +1,5 @@
-import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
+import type { TypeLookups } from '@internal/framework-components/codec';
+import { bsonTypesOfCodec } from './mongo-data-type';
 
 /**
  * Why the contract cannot describe a field of codec `codecId`: its BSON type is unknown. `unknownCodec`: no pack in the contract provides the codec. `notMongoDataType`: the codec's data type is not a MongoDB data type, so it names no BSON type.
@@ -14,7 +15,7 @@ const CANNOT_GIVE = 'so its BSON type is unknown and the contract cannot describ
  */
 export function fieldBsonTypeRefusalOf(
   codecId: string,
-  lookups: MongoTypeLookups,
+  lookups: TypeLookups,
 ): FieldBsonTypeRefusal | undefined {
   if (bsonTypesOfCodec(codecId, lookups) !== undefined) return undefined;
   const descriptor = lookups.codecLookup.descriptorFor(codecId);

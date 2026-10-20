@@ -183,8 +183,8 @@ test('strict satisfies catches wrong codec wired in', () => {
 
 test('column packs the codec id and parameters, and no database type name', () => {
   const col = vectorFixture(1536);
-  expectTypeOf(col).not.toHaveProperty('nativeType');
-  if (col.codecId !== 'demo/vector@1' || col.typeParams.length !== 1536 || 'nativeType' in col) {
+  expectTypeOf(col).not.toHaveProperty('typeText');
+  if (col.codecId !== 'demo/vector@1' || col.typeParams.length !== 1536 || 'typeText' in col) {
     throw new Error(`unexpected column spec: ${JSON.stringify(col)}`);
   }
 });

@@ -60,7 +60,7 @@ describe('schema-IR node from() factories', () => {
   it('SqlTableIR hydrates raw inputs and instances alike', () => {
     const raw = new SqlTableIR({
       name: 'users',
-      columns: { email: { name: 'email', nativeType: 'text', nullable: false } },
+      columns: { email: { name: 'email', typeText: 'text', nullable: false } },
       primaryKey: { columns: ['email'] },
       foreignKeys: [],
       uniques: [],
@@ -71,7 +71,7 @@ describe('schema-IR node from() factories', () => {
     if (carriedPrimaryKey === undefined) throw new Error('expected a primary key');
     const rehydrated = new SqlTableIR({
       name: 'users',
-      columns: { email: { name: 'email', nativeType: 'text', nullable: false } },
+      columns: { email: { name: 'email', typeText: 'text', nullable: false } },
       primaryKey: carriedPrimaryKey,
       foreignKeys: [],
       uniques: [],

@@ -613,7 +613,7 @@ sql schema (tables: 2)
               "id": "column-user-id",
               "label": "id: int4 (not null)",
               "meta": {
-                "nativeType": "int4",
+                "typeText": "int4",
                 "nullable": false
               }
             }

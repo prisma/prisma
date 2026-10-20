@@ -1,16 +1,25 @@
 import { type Contract, coreHash, profileHash } from '@internal/contract/types';
 import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import type { DataType } from '@internal/framework-components/codec';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { index } from '@internal/sql-contract/factories';
 import { SqlStorage, type StorageColumn, type StorageTable } from '@internal/sql-contract/types';
+import type { SqlColumnIRInput } from '@internal/sql-schema-ir/types';
 import { createSqliteBuiltinCodecLookup } from '@internal/target-sqlite/codecs';
 import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
+import { sqliteDataTypes } from '@internal/target-sqlite/data-types';
 import { createSqliteMigrationPlanner } from '@internal/target-sqlite/planner';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { SqliteControlAdapter } from '../../src/core/control-adapter';
+import { introspectedColumn as introspectedColumnOver } from '../../../../../2-sql/1-core/contract/test/introspected-column';
+import { createTestSqliteControlAdapter } from '../helpers/test-control-adapter';
 import { sqliteComponents } from './fixtures/sqlite-components';
+
+const introspectedColumn = (
+  column: SqlColumnIRInput,
+  dataTypes: readonly DataType[] = sqliteDataTypes,
+) => introspectedColumnOver(column, dataTypes);
 
 function makeColumn(overrides: Partial<StorageColumn> = {}): StorageColumn {
   return {
@@ -58,7 +67,7 @@ const emptySchema = { tables: {} };
 
 describe('SQLite migration planner', () => {
   const planner = createSqliteMigrationPlanner(
-    new SqliteControlAdapter(createSqliteBuiltinCodecLookup()),
+    createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup()),
   );
 
   it('plans CREATE TABLE for new table', async () => {
@@ -119,8 +128,8 @@ describe('SQLite migration planner', () => {
         users: {
           name: 'users',
           columns: {
-            id: { name: 'id', nativeType: 'integer', nullable: false },
-            name: { name: 'name', nativeType: 'text', nullable: false },
+            id: introspectedColumn({ name: 'id', typeText: 'integer', nullable: false }),
+            name: introspectedColumn({ name: 'name', typeText: 'text', nullable: false }),
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],

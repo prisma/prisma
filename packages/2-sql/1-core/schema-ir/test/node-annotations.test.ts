@@ -1,3 +1,4 @@
+import { dataType } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
 
 import { SqlColumnIR } from '../src/ir/sql-column-ir';
@@ -7,11 +8,13 @@ import { SqlSchemaIR } from '../src/ir/sql-schema-ir';
 import { SqlTableIR } from '../src/ir/sql-table-ir';
 import { SqlUniqueIR } from '../src/ir/sql-unique-ir';
 
+const int4Type = { storedType: dataType('t/int4', { read: (json) => json }), storedTypeParams: {} };
+
 const annotations = { 'prisma/rls': { enabled: true } };
 
 const withAnnotations = {
   SqlColumnIR: () =>
-    new SqlColumnIR({ name: 'id', nativeType: 'int4', nullable: false, annotations }),
+    new SqlColumnIR({ name: 'id', typeText: 'int4', nullable: false, ...int4Type, annotations }),
   SqlForeignKeyIR: () =>
     new SqlForeignKeyIR({
       columns: ['user_id'],
@@ -45,7 +48,8 @@ const withAnnotations = {
 } as const;
 
 const withoutAnnotations = {
-  SqlColumnIR: () => new SqlColumnIR({ name: 'id', nativeType: 'int4', nullable: false }),
+  SqlColumnIR: () =>
+    new SqlColumnIR({ name: 'id', typeText: 'int4', nullable: false, ...int4Type }),
   SqlForeignKeyIR: () =>
     new SqlForeignKeyIR({
       columns: ['user_id'],

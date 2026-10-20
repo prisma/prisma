@@ -2,7 +2,7 @@ import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
 import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from '../helpers/test-control-adapter';
 import {
   createDriver,
   createTestDatabase,
@@ -11,7 +11,7 @@ import {
   testTimeout,
 } from './fixtures/runner-fixtures';
 
-const adapter: SqlControlAdapter<'postgres'> = new PostgresControlAdapter(
+const adapter: SqlControlAdapter<'postgres'> = createTestPostgresControlAdapter(
   createPostgresBuiltinCodecLookup(),
   createPostgresBuiltinDataTypeLookup(),
 );

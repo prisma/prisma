@@ -9,18 +9,16 @@ import { printPslFromFlat } from '../fixtures';
  */
 function introspected(
   name: string,
-  nativeType: string,
+  typeText: string,
   rawDefault: string,
   shape: { readonly many?: true; readonly nullable?: true } = {},
 ): SqlColumnIRInput {
-  const resolvedNativeType = shape.many ? `${nativeType}[]` : nativeType;
   return {
     name,
-    nativeType,
+    typeText,
     nullable: shape.many === true || shape.nullable === true,
     default: rawDefault,
     ...ifDefined('many', shape.many),
-    resolvedNativeType,
   };
 }
 
@@ -31,7 +29,7 @@ async function printTable(name: string, columns: readonly SqlColumnIRInput[]): P
         [name]: {
           name,
           columns: Object.fromEntries(
-            [{ name: 'id', nativeType: 'int4', nullable: false }, ...columns].map((column) => [
+            [{ name: 'id', typeText: 'int4', nullable: false }, ...columns].map((column) => [
               column.name,
               column,
             ]),

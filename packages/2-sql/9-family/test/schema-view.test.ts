@@ -67,13 +67,13 @@ describe('SqlFamilyInstance.toSchemaView', () => {
           columns: {
             id: {
               name: 'id',
-              nativeType: 'int4',
+              typeText: 'int4',
               nullable: false,
               default: "nextval('users_id_seq'::regclass)",
             },
             status: {
               name: 'status',
-              nativeType: 'text',
+              typeText: 'text',
               nullable: false,
               default: "'draft'::text",
             },
@@ -97,7 +97,7 @@ describe('SqlFamilyInstance.toSchemaView', () => {
     expect(idNode?.kind).toBe('field');
     expect(idNode?.label).toBe('id: int4 (not nullable)');
     expect(idNode?.meta).toMatchObject({
-      nativeType: 'int4',
+      typeText: 'int4',
       nullable: false,
       default: "nextval('users_id_seq'::regclass)",
     });
@@ -106,7 +106,7 @@ describe('SqlFamilyInstance.toSchemaView', () => {
     expect(statusNode?.kind).toBe('field');
     expect(statusNode?.label).toBe('status: text (not nullable)');
     expect(statusNode?.meta).toMatchObject({
-      nativeType: 'text',
+      typeText: 'text',
       nullable: false,
       default: "'draft'::text",
     });
@@ -119,7 +119,7 @@ describe('SqlFamilyInstance.toSchemaView', () => {
       new SqlTableIR({
         name: 'ignored',
         columns: {
-          [columnName]: { name: columnName, nativeType: 'int4', nullable: false },
+          [columnName]: { name: columnName, typeText: 'int4', nullable: false },
         },
         foreignKeys: [],
         uniques: [],
@@ -152,7 +152,7 @@ describe('SqlFamilyInstance.toSchemaView', () => {
       new SqlTableIR({
         name: 'ignored',
         columns: {
-          [columnName]: { name: columnName, nativeType: 'int4', nullable: false },
+          [columnName]: { name: columnName, typeText: 'int4', nullable: false },
         },
         foreignKeys: [],
         uniques: [],
@@ -184,7 +184,7 @@ describe('SqlFamilyInstance.toSchemaView', () => {
           tables: {
             users: {
               name: 'users',
-              columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+              columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
               foreignKeys: [],
               uniques: [],
               indexes: [],

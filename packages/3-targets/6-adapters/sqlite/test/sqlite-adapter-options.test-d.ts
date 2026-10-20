@@ -1,4 +1,4 @@
-import type { CodecRegistry } from '@internal/framework-components/codec';
+import type { CodecRegistry, DataType } from '@internal/framework-components/codec';
 import type { AnySqliteCodecDescriptor } from '@internal/target-sqlite/codec-descriptor';
 import type { SqliteCodecRegistry } from '@internal/target-sqlite/codecs';
 import { createSqliteAdapter } from '../src/core/adapter';
@@ -7,9 +7,10 @@ import { SqliteControlAdapter } from '../src/core/control-adapter';
 declare const descriptor: AnySqliteCodecDescriptor;
 declare const coherentRegistry: SqliteCodecRegistry;
 declare const genericRegistry: CodecRegistry;
+declare const dataTypes: readonly DataType[];
 
 createSqliteAdapter({ codecDescriptors: [descriptor] });
-new SqliteControlAdapter(coherentRegistry);
+new SqliteControlAdapter(coherentRegistry, dataTypes);
 
 createSqliteAdapter({
   // @ts-expect-error Generic codec lookups cannot be injected independently from target descriptors.
@@ -22,4 +23,4 @@ createSqliteAdapter({
 });
 
 // @ts-expect-error Control construction requires one coherent ordinary and target-specific registry.
-new SqliteControlAdapter(genericRegistry);
+new SqliteControlAdapter(genericRegistry, dataTypes);

@@ -63,22 +63,18 @@ async function readColumnDefault(
 ): Promise<ColumnDefault | undefined> {
   const raw: unknown = column.default;
   if (typeof raw !== 'string') return isColumnDefault(raw) ? raw : undefined;
-  return readDefaultWithCodec(
-    raw,
-    column.many === true ? `${column.nativeType}[]` : column.nativeType,
-    codecOf(pslType, isEnum, context),
-  );
+  return readDefaultWithCodec(raw, column.many === true, codecOf(pslType, isEnum, context));
 }
 
 /**
- * Reads one reported default, `nativeType` ending in `[]` for a list column, with `codec`: a function default and SQL NULL as themselves, a literal the codec reads as its stored JSON, and anything else as the raw expression as reported.
+ * Reads one reported default, of a list column when `many`, with `codec`: a function default and SQL NULL as themselves, a literal the codec reads as its stored JSON, and anything else as the raw expression as reported.
  */
 export async function readDefaultWithCodec(
   raw: string,
-  nativeType: string,
+  many: boolean,
   codec: Codec | undefined,
 ): Promise<ColumnDefault> {
-  const reported = readPostgresDefault(raw, nativeType);
+  const reported = readPostgresDefault(raw, many);
   if (reported.kind === 'function') return reported;
   if (reported.kind === 'null') return { kind: 'literal', value: null };
   const rawExpression: ColumnDefault = { kind: 'function', expression: raw.trim() };

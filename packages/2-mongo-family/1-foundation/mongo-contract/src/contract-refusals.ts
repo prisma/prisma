@@ -4,12 +4,13 @@ import type {
   ContractModelBase,
   ContractValueObject,
 } from '@internal/contract/types';
+import type { TypeLookups } from '@internal/framework-components/codec';
 import { type CollectionControlPolicies, isManaged } from './collection-control-policies';
 import { collectionRootModelsOf } from './collection-root-models';
 import type { MongoModelDefinition } from './contract-types';
 import { documentIdBsonTypesOf, documentIdRefusalOf } from './document-id-refusal';
 import { type FieldBsonTypeRefusal, fieldBsonTypeRefusalOf } from './field-bson-type-refusal';
-import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
+import { bsonTypesOfCodec } from './mongo-data-type';
 import { isEmbedRelation } from './relation-fields';
 import { ownDocumentIdFieldOf } from './stored-names';
 import { validatorEnumMemberRefusalOf, validatorEnumRefusalOf } from './validator-enum-refusal';
@@ -71,7 +72,7 @@ export interface MongoContractRefusalsInput {
   readonly models: Record<string, MongoModelDefinition>;
   readonly valueObjects: Record<string, ContractValueObject>;
   readonly enums: Record<string, ContractEnum>;
-  readonly lookups: MongoTypeLookups;
+  readonly lookups: TypeLookups;
   readonly controlPolicies: CollectionControlPolicies;
 }
 
@@ -174,7 +175,7 @@ function enumRefusals(input: MongoContractRefusalsInput): MongoContractRefusal[]
 function fieldRefusals(
   owner: FieldOwner,
   fields: Record<string, ContractField>,
-  lookups: MongoTypeLookups,
+  lookups: TypeLookups,
 ): MongoContractRefusal[] {
   return Object.entries(fields).flatMap(([fieldName, field]): MongoContractRefusal[] => {
     if (field.type.kind !== 'scalar') return [];
@@ -187,7 +188,7 @@ function fieldRefusals(
 
 function documentIdRefusals(
   models: Record<string, MongoModelDefinition>,
-  lookups: MongoTypeLookups,
+  lookups: TypeLookups,
 ): MongoContractRefusal[] {
   return Object.entries(collectionRootModelsOf(models)).flatMap(([collection, modelNames]) =>
     modelNames.flatMap((modelName): MongoContractRefusal[] => {

@@ -2,8 +2,8 @@ import { expectTypeOf, test } from 'vitest';
 import { defineContract, field, model } from '../../src/exports/contract-builder';
 import sqlite from '../../src/exports/runtime';
 
-const integer = { codecId: 'sqlite/integer@1', nativeType: 'integer' } as const;
-const text = { codecId: 'sqlite/text@1', nativeType: 'text' } as const;
+const integer = { codecId: 'sqlite/integer@1' } as const;
+const text = { codecId: 'sqlite/text@1' } as const;
 
 const Author = model('Author', {
   fields: { id: field.column(integer).id(), handle: field.column(text) },

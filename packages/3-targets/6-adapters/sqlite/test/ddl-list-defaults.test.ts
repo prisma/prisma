@@ -2,10 +2,10 @@ import { col, lit } from '@internal/sql-relational-core/contract-free';
 import { createSqliteBuiltinCodecLookup } from '@internal/target-sqlite/codecs';
 import { SqliteCreateTable } from '@internal/target-sqlite/ddl';
 import { describe, expect, it } from 'vitest';
-import { SqliteControlAdapter } from '../src/core/control-adapter';
 import type { SqliteContract } from '../src/core/types';
+import { createTestSqliteControlAdapter } from './helpers/test-control-adapter';
 
-const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
 
 function lower(typeText: string, codecId: string, value: string | readonly (string | number)[]) {
   return adapter.lowerToExecuteRequest(

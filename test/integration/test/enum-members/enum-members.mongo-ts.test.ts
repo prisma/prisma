@@ -6,19 +6,19 @@ import { timeouts, withMongoPort } from '../_harness/mongo';
 
 const TextLevel = enumType(
   'TextLevel',
-  { codecId: 'mongo/string@1', nativeType: 'string' },
+  { codecId: 'mongo/string@1' },
   member('Low', 'low'),
   member('High', 'high'),
 );
 const Int32Level = enumType(
   'Int32Level',
-  { codecId: 'mongo/int32@1', nativeType: 'int' },
+  { codecId: 'mongo/int32@1' },
   member('Low', 1),
   member('High', 10),
 );
 const DoubleLevel = enumType(
   'DoubleLevel',
-  { codecId: 'mongo/double@1', nativeType: 'double' },
+  { codecId: 'mongo/double@1' },
   member('Half', 1.5),
   member('Whole', 2.25),
 );
