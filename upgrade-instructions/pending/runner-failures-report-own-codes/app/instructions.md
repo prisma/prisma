@@ -46,9 +46,9 @@ The failure's fields change too:
 | --- | --- |
 | `failure.summary` | `failure.message` |
 | `failure.code === 'PLANNING_FAILED'`, `failure.conflicts` | `failure.code === 'MIGRATION.PLANNING_FAILED'`, `failure.meta.conflicts` |
-| `failure.warnings` on a failed `dbInit` or `dbUpdate` | the `onPlannerWarnings(warnings)` option, called with the planner's warnings when the apply fails after planning; a successful run still returns them as `warnings` |
+| `failure.warnings` on a failed `dbInit` or `dbUpdate`, and `value.warnings` on a successful one | the `onPlannerWarnings(warnings)` option, called once per run when planning raised warnings, whether the apply then succeeds or fails |
 | `failure.schemaIssues`, `failure.rowsWithoutValue`, `failure.failedTypeChange`, `failure.failedPrecheck` | the runner's facts in `failure.meta`: `schemaIssues`, `rowsWithoutValue`, `failedTypeChange`, `failedCheck`. A field in them is a subject object, not text such as `"User.age"` |
-| `failure.failedMigration`, `failure.databaseStorageHash` | removed; the advice in `failure.nextActions` names the migration directory and the `--from` hash |
+| `failure.failedMigration`, `failure.databaseStorageHash` | removed; the advice in `failure.fix` names the migration directory and the `--from` hash |
 
 In `--json` output, `db init` and `db update` print the planner's warnings of a failed apply as `warn` messages before the error, instead of in the error's `meta.plannerWarnings`.
 
