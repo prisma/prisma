@@ -162,7 +162,9 @@ describe('a MongoDB contract whose fields are stored under other names', () => {
             ),
           ),
           await names(db.users.orderBy({ displayName: -1 })),
-        ]).toEqual([['Ada'], ['Ada', 'Bob'], ['Ada'], ['Ada'], ['Bob', 'Ada']]);
+          await names(db.users.where({ tags: 'a' })),
+          await names(db.users.where({ tags: null } as never)),
+        ]).toEqual([['Ada'], ['Ada', 'Bob'], ['Ada'], ['Ada'], ['Bob', 'Ada'], ['Ada', 'Bob'], []]);
       }),
     timeouts.spinUpMongoMemoryServer,
   );
