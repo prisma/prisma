@@ -2,6 +2,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import type { ContractSourceContext } from '@internal/config/config-types';
 import type { AuthoringEntityContext } from '@internal/framework-components/authoring';
+import { dataTypeId } from '@internal/framework-components/codec';
 import {
   buildSymbolTable,
   createBinder,
@@ -245,6 +246,7 @@ model Other {
       generatorDescriptorById: new Map(),
       defaultFunctionRegistry: new Map(),
       dataTypes: fixtureDataTypeSupport,
+      textDataTypes: [dataTypeId('pg/text')],
       codecLookup: context.codecLookup,
       diagnostics,
     });

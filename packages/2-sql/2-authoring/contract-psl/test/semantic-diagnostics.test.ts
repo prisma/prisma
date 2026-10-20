@@ -1,3 +1,4 @@
+import { dataTypeId } from '@internal/framework-components/codec';
 import { buildSymbolTable, createBinder } from '@internal/psl-parser';
 import { parse } from '@internal/psl-parser/syntax';
 import { expect, it, vi } from 'vitest';
@@ -41,6 +42,7 @@ it('pushes owned default diagnostics with filename and range rather than a provi
     generatorDescriptorById: new Map(),
     defaultFunctionRegistry: new Map(),
     dataTypes: fixtureDataTypeSupport,
+    textDataTypes: [dataTypeId('pg/text')],
     codecLookup: context.codecLookup,
     diagnostics,
   });
