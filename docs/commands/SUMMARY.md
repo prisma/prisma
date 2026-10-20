@@ -96,7 +96,7 @@ This happens when:
 If the runner detects that the resulting schema does not match the contract, it fails with `MIGRATION.SCHEMA_VERIFY_FAILED` and lists the issues:
 
 ```
-✖ Database schema does not satisfy contract (MIGRATION.SCHEMA_VERIFY_FAILED)
+✘ [MIGRATION.SCHEMA_VERIFY_FAILED] Database schema does not satisfy contract (1 failure)
   Why: The schema check after apply found: missing: public/user/email.
   Fix: Change the contract source to resolve the issues listed, re-run `prisma contract emit`, then re-run `prisma db update`.
 ```
