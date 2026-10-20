@@ -2,9 +2,9 @@ import postgresDriver from '@internal/driver-postgres/runtime';
 import { contractFromJson } from '@internal/postgres/static';
 import { Collection } from '@internal/sql-orm-client';
 import type { SqlMiddleware } from '@internal/sql-runtime';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, type MockInstance, vi } from 'vitest';
 
-const created = vi.hoisted(() => ({ pools: 0, clients: 0, poolConnects: 0 }));
+const created = vi.hoisted(() => ({ pools: 0, clients: 0, poolConnects: 0, poolEnds: 0 }));
 
 vi.mock('pg', () => {
   class Pool {
@@ -17,7 +17,9 @@ vi.mock('pg', () => {
         on: vi.fn(),
       };
     });
-    end = vi.fn().mockResolvedValue(undefined);
+    end = vi.fn(async () => {
+      created.poolEnds += 1;
+    });
     constructor() {
       created.pools += 1;
     }
@@ -52,12 +54,13 @@ const selectNamed = {
   params: ['ada'],
 };
 
-let driverCreate: ReturnType<typeof vi.spyOn>;
+let driverCreate: MockInstance<typeof postgresDriver.create>;
 
 beforeEach(() => {
   created.pools = 0;
   created.clients = 0;
   created.poolConnects = 0;
+  created.poolEnds = 0;
   driverCreate = vi.spyOn(postgresDriver, 'create');
 });
 
@@ -79,7 +82,7 @@ describe('a supabase client with no database', () => {
     expect(
       anon.toSql(anon.orm.public.Profile.named('ada').select('id').prepared.all().plan),
     ).toEqual(selectNamed);
-    expect(created).toEqual({ pools: 0, clients: 0, poolConnects: 0 });
+    expect(created).toEqual({ pools: 0, clients: 0, poolConnects: 0, poolEnds: 0 });
     expect(driverCreate).not.toHaveBeenCalled();
   });
 });
@@ -102,6 +105,40 @@ describe('a supabase client given a URL', () => {
     expect(driverCreate).toHaveBeenCalledTimes(1);
   });
 
+  it('leaves no pool open when creating the driver fails, and creates one when a later query succeeds', async () => {
+    const db = await supabase({ contract, url, jwtSecret, verifyMarker: false });
+    const anon = db.asAnon();
+    const plan = anon.sql.public.profile.select('id').build();
+    driverCreate.mockImplementationOnce(() => {
+      throw new Error('driver creation failed');
+    });
+
+    expect(() => anon.query(plan)).toThrow('driver creation failed');
+    expect(created.pools).toBe(0);
+
+    await anon.query(plan).toArray();
+    await db.close();
+
+    expect(created.pools).toBe(1);
+  });
+
+  it('keeps a failed driver connect and throws it on the next query, ending its pool', async () => {
+    const createDriver = postgresDriver.create.bind(postgresDriver);
+    driverCreate.mockImplementationOnce((options) => {
+      const driver = createDriver(options);
+      vi.spyOn(driver, 'connect').mockRejectedValueOnce(new Error('connect failed'));
+      return driver;
+    });
+    const db = await supabase({ contract, url, jwtSecret, verifyMarker: false });
+    const anon = db.asAnon();
+    const plan = anon.sql.public.profile.select('id').build();
+
+    await expect(anon.query(plan).toArray()).rejects.toThrow();
+
+    expect(() => anon.query(plan)).toThrow('connect failed');
+    expect(created.poolEnds).toBe(1);
+  });
+
   it('creates no pool when it is closed before a query', async () => {
     const db = await supabase({ contract, url, jwtSecret });
 
@@ -112,6 +149,16 @@ describe('a supabase client given a URL', () => {
       expect.objectContaining({ code: 'DRIVER.NOT_CONNECTED' }),
     );
     expect(created.pools).toBe(0);
+  });
+
+  it("gives a role-bound transaction the client's toSql", async () => {
+    const db = await supabase({ contract, url, jwtSecret, verifyMarker: false });
+    const anon = db.asAnon();
+
+    const toSql = await anon.transaction(async (tx) => tx.toSql);
+    await db.close();
+
+    expect(toSql).toBe(anon.toSql);
   });
 
   it('passes the mode option to middleware', async () => {
@@ -137,5 +184,21 @@ describe('a supabase client given a URL', () => {
     await db.close();
 
     expect(modes).toEqual(['permissive']);
+  });
+});
+
+describe('toSql on a supabase client', () => {
+  it("renders a plan of the Supabase contract only on the service role's supabase member", async () => {
+    const db = await supabase({ contract, jwtSecret });
+    const admin = db.asServiceRole();
+    const plan = admin.supabase.sql.auth.users.select('id').limit(1).build();
+
+    expect(admin.supabase.toSql(plan)).toEqual({
+      sql: 'SELECT "id" AS "id" FROM "auth"."users" LIMIT 1',
+      params: [],
+    });
+    expect(() => admin.toSql(plan)).toThrow(
+      expect.objectContaining({ code: 'PLAN.HASH_MISMATCH' }),
+    );
   });
 });

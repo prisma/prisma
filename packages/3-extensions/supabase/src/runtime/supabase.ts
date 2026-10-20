@@ -25,12 +25,13 @@ import {
 } from '@internal/sql-orm-client';
 import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import type { RuntimeScope } from '@internal/sql-relational-core/types';
 import type {
-  ActivitySource,
   ExecutionContext,
   Log,
   PreparedExecution,
   PreparedStatement,
+  RuntimeMode,
   SqlExecutionStackWithDriver,
   SqlMiddleware,
   SqlRuntimeExtensionDescriptor,
@@ -43,6 +44,7 @@ import {
   createExecutionContext,
   createSqlExecutionStack,
   createToSql,
+  lazyActivitySource,
   withTransaction,
   withTransactionMembers,
 } from '@internal/sql-runtime';
@@ -91,11 +93,13 @@ export interface RoleBoundDb<
   ): Promise<R>;
 }
 
-/** A transaction on a role-bound client: the `PostgresQueryMembers` of the client, run under the bound role. */
+/** A transaction on a role-bound client: the `PostgresQueryMembers` and `toSql` of the client, run under the bound role. */
 export type SupabaseTransactionContext<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
-> = TransactionContext & PostgresQueryMembers<TContract, TCollections>;
+> = TransactionContext &
+  Omit<PostgresQueryMembers<TContract, TCollections>, keyof RuntimeScope> &
+  ToSqlMember;
 
 /**
  * Query surface for the Supabase-internal contract (`auth`, `storage`). Exposed
@@ -107,7 +111,7 @@ export type SupabaseTransactionContext<
  * app root and this secondary root are served by separate runtimes that do not
  * share one pinned connection, so a transaction spanning both is out of scope for v1.
  */
-export interface SupabaseInternalDb {
+export interface SupabaseInternalDb extends ToSqlMember {
   readonly sql: Db<SupabaseExtensionContract>;
   readonly orm: OrmClient<SupabaseExtensionContract>;
   readonly nativeEnums: NamespacedNativeEnums<SupabaseExtensionContract>;
@@ -151,8 +155,7 @@ export interface SupabaseOptionsBase {
   readonly middleware?: readonly SqlMiddleware[];
   readonly verifyMarker?: VerifyMarkerOption;
   readonly log?: Log;
-  /** Passed to middleware as `ctx.mode`. `'strict'` (the default) makes `budgets` block a query its `'warn'` severity would only warn about. */
-  readonly mode?: 'strict' | 'permissive';
+  readonly mode?: RuntimeMode;
   readonly poolOptions?: {
     readonly connectionTimeoutMillis?: number;
     readonly idleTimeoutMillis?: number;
@@ -198,13 +201,6 @@ function closedClientError() {
     fix: 'Create a new supabase(...) client.',
     meta: { extension: 'supabase' },
   });
-}
-
-function lazyActivitySource(source: () => ActivitySource): ActivitySource {
-  return {
-    startActivity: (activity) => source().startActivity(activity),
-    planContentHash: (plan) => source().planContentHash(plan),
-  };
 }
 
 function resolveKeyMaterial<TContract extends Contract<SqlStorage>>(
@@ -365,9 +361,13 @@ export default async function supabase<
   const extContext = createExecutionContext({ contract: extContract, stack });
 
   let runtimes: SupabaseRuntimes<TContract> | undefined;
+  let connectError: { readonly error: unknown } | undefined;
   let closed = false;
 
   function getRuntimes(): SupabaseRuntimes<TContract> {
+    if (connectError !== undefined) {
+      throw connectError.error;
+    }
     if (runtimes !== undefined) {
       return runtimes;
     }
@@ -379,12 +379,8 @@ export default async function supabase<
     if (!driverDescriptor) {
       throw new InternalError('Driver descriptor missing from execution stack');
     }
-    const poolEntry = toPool(options);
     const adapter = stack.adapter.create(stack);
     const driver = driverDescriptor.create({ cursor: { disabled: true } });
-    if (poolEntry) {
-      void driver.connect({ kind: 'pgPool', pool: poolEntry.pool });
-    }
     const sharedOptions = {
       adapter,
       driver,
@@ -393,20 +389,27 @@ export default async function supabase<
       ...ifDefined('mode', options.mode),
       closeRefusal: 'at-once',
     } as const;
+    const runtime = new SupabaseRuntimeImpl({
+      context,
+      ...sharedOptions,
+      ...ifDefined('verifyMarker', options.verifyMarker),
+    });
+    const extRuntime = new SupabaseRuntimeImpl({
+      context: extContext,
+      ...sharedOptions,
+      verifyMarker: false,
+    });
 
-    runtimes = {
-      runtime: new SupabaseRuntimeImpl({
-        context,
-        ...sharedOptions,
-        ...ifDefined('verifyMarker', options.verifyMarker),
-      }),
-      extRuntime: new SupabaseRuntimeImpl({
-        context: extContext,
-        ...sharedOptions,
-        verifyMarker: false,
-      }),
-      ownedPool: poolEntry?.owned ? poolEntry.pool : undefined,
-    };
+    const poolEntry = toPool(options);
+    const ownedPool = poolEntry?.owned ? poolEntry.pool : undefined;
+    if (poolEntry) {
+      driver.connect({ kind: 'pgPool', pool: poolEntry.pool }).catch(async (err: unknown) => {
+        connectError = { error: err };
+        await ownedPool?.end().catch(() => undefined);
+      });
+    }
+
+    runtimes = { runtime, extRuntime, ownedPool };
     return runtimes;
   }
 
@@ -502,6 +505,7 @@ export default async function supabase<
                   context,
                   collections: options.collections,
                   rawCodecInferer,
+                  toSql,
                   prepareRuntime: runtime,
                 },
                 txCtx,
@@ -528,6 +532,7 @@ export default async function supabase<
 
   const supabaseInternal: SupabaseInternalDb = {
     sql: sql<SupabaseExtensionContract>({ context: extContext, rawCodecInferer }),
+    toSql: createToSql(stack, extContract),
     orm: orm({
       runtime: {
         query(plan) {
