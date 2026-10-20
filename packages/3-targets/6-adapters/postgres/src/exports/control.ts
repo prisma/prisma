@@ -2,6 +2,7 @@ import type { SqlControlAdapterDescriptor } from '@internal/family-sql/control';
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import { assemblePostgresCodecRegistry } from '@internal/target-postgres/codecs';
 import { postgresPslTypeConstructors } from '@internal/target-postgres/control';
+import { postgresTextDataTypes } from '@internal/target-postgres/data-types';
 import { escapeLiteral, qualifyName, quoteIdentifier } from '@internal/target-postgres/sql-utils';
 import { PostgresControlAdapter } from '../core/control-adapter';
 import {
@@ -15,6 +16,7 @@ const postgresAdapterDescriptor: SqlControlAdapterDescriptor<'postgres'> = {
   authoring: {
     type: postgresPslTypeConstructors,
     valueObjectStorageType: 'Jsonb',
+    textDataTypes: postgresTextDataTypes,
   },
   controlMutationDefaults: {
     defaultFunctionRegistry: createPostgresDefaultFunctionRegistry(),

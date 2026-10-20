@@ -71,6 +71,8 @@ export interface AssembledAuthoringContributions {
   readonly dataTypes: Readonly<Record<string, DataTypeAuthoringEntry>>;
   /** The single {@link AuthoringContributions.valueObjectStorageType} declared across the composed components, validated at assembly against the merged `type` namespace. */
   readonly valueObjectStorageType?: string;
+  /** Every component's {@link AuthoringContributions.textDataTypes}, each once. */
+  readonly textDataTypes?: readonly DataTypeId[];
 }
 
 export interface ControlStack<
@@ -347,6 +349,9 @@ export function assembleAuthoringContributions(
 
   return {
     dataTypes: assembleAuthoringDataTypes(descriptors),
+    textDataTypes: [
+      ...new Set(descriptors.flatMap((descriptor) => descriptor.authoring?.textDataTypes ?? [])),
+    ],
     field: fieldNamespace,
     type: typeNamespace,
     entityTypes: entityTypeNamespace,

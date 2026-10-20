@@ -12,12 +12,7 @@ import type {
 } from '@internal/framework-components/control';
 import { timestampNowControlDescriptor } from '@internal/framework-components/control';
 import { UUID_VERSIONS } from '@internal/ids';
-import {
-  sqliteCharacter,
-  sqliteCharacterVarying,
-  sqliteInteger,
-  sqliteText,
-} from '@internal/target-sqlite/data-types';
+import { sqliteInteger, sqliteTextDataTypes } from '@internal/target-sqlite/data-types';
 
 function executionGenerator(
   id: ExecutionMutationDefaultValue['id'],
@@ -104,7 +99,7 @@ export function createSqliteDefaultFunctionRegistry(): ReadonlyMap<
 export function createSqliteMutationDefaultGeneratorDescriptors(): readonly MutationDefaultGeneratorDescriptor[] {
   return [
     ...sqlBuiltinGeneratorDescriptors({
-      text: [sqliteText.id, sqliteCharacter.id, sqliteCharacterVarying.id],
+      text: sqliteTextDataTypes,
       uuid: [],
     }),
     timestampNowControlDescriptor(),

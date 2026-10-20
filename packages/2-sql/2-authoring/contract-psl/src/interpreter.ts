@@ -30,7 +30,7 @@ import {
   isAuthoringEntityTypeDescriptor,
   isAuthoringModelAttributeDescriptor,
 } from '@internal/framework-components/authoring';
-import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import type { CodecLookupWithDescriptors, DataTypeId } from '@internal/framework-components/codec';
 import type {
   CapabilityMatrix,
   ExtensionPackRef,
@@ -1590,21 +1590,14 @@ type PendingBaseDeclaration = Omit<BaseDeclaration, 'value'> & {
 /** The column a field is stored in, when it is a single-valued scalar column. */
 type DiscriminatorColumnOf = (model: ModelSymbol, fieldName: string) => DefaultColumn | undefined;
 
-/** Whether a quoted string is a value of the column's data type: the type is the target's text type, or casts from it. */
+/** Whether the column's data type is one of the stack's text data types. */
 function isTextColumn(
   column: DefaultColumn,
   codecLookup: CodecLookupWithDescriptors,
-  dataTypes: DataTypeSupport,
+  textDataTypes: readonly DataTypeId[],
 ): boolean {
   const dataType = codecLookup.descriptorFor(column.codecId)?.dataType;
-  if (dataType === undefined) return false;
-  const casts = dataTypes.lookup.get(dataType)?.casts ?? {};
-  return Object.entries(dataTypes.entries).some(
-    ([type, entry]) =>
-      entry.written.kind === 'plain' &&
-      entry.written.syntax === 'string' &&
-      (type === dataType || Object.hasOwn(casts, type)),
-  );
+  return dataType !== undefined && textDataTypes.includes(dataType);
 }
 
 function collectPolymorphismDeclarations(
@@ -1616,6 +1609,7 @@ function collectPolymorphismDeclarations(
   discriminatorColumnOf: DiscriminatorColumnOf,
   codecLookup: CodecLookupWithDescriptors,
   dataTypes: DataTypeSupport,
+  textDataTypes: readonly DataTypeId[],
   diagnostics: PslDiagnosticCollector,
 ): {
   discriminatorDeclarations: Map<string, DiscriminatorDeclaration>;
@@ -1641,7 +1635,7 @@ function collectPolymorphismDeclarations(
         const span = nodePslSpan(discriminatorNode.syntax, sources);
         const discField = model.fields[parsed.field];
         const column = discriminatorColumnOf(model, parsed.field);
-        if (column === undefined || !isTextColumn(column, codecLookup, dataTypes)) {
+        if (column === undefined || !isTextColumn(column, codecLookup, textDataTypes)) {
           diagnostics.push({
             code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
             message: `Discriminator field "${parsed.field}" on model "${model.name}" must be text, such as String, but is "${discField?.typeName ?? parsed.field}"`,
@@ -2591,6 +2585,7 @@ export function interpretPslDocumentToSqlContract(
     discriminatorColumnOf,
     input.codecLookup,
     dataTypes,
+    input.authoringContributions?.textDataTypes ?? [],
     diagnostics,
   );
 

@@ -13,7 +13,7 @@ import type {
 import { timestampNowControlDescriptor } from '@internal/framework-components/control';
 import { CUID_VERSION, UUID_VERSIONS } from '@internal/ids';
 import { postgresNowGeneratorControlDescriptors } from '@internal/target-postgres/control';
-import { pgChar, pgInt4, pgText, pgUuid, pgVarchar } from '@internal/target-postgres/data-types';
+import { pgInt4, pgUuid, postgresTextDataTypes } from '@internal/target-postgres/data-types';
 
 function executionGenerator(
   id: ExecutionMutationDefaultValue['id'],
@@ -128,7 +128,7 @@ export function createPostgresDefaultFunctionRegistry(): ReadonlyMap<
 export function createPostgresMutationDefaultGeneratorDescriptors(): readonly MutationDefaultGeneratorDescriptor[] {
   return [
     ...sqlBuiltinGeneratorDescriptors({
-      text: [pgText.id, pgChar.id, pgVarchar.id],
+      text: postgresTextDataTypes,
       uuid: [pgUuid.id],
     }),
     timestampNowControlDescriptor(),

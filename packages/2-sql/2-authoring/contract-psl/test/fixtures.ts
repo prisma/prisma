@@ -87,6 +87,11 @@ function testEnumFactory(
   return enumType(block.name, { codecId }, ...members);
 }
 
+const pgTextType = dataTypeId('pg/text');
+const pgCharType = dataTypeId('pg/char');
+/** The fixture stack's text data types, as the Postgres target names them. */
+const fixtureTextDataTypes = [pgTextType, pgCharType, dataTypeId('pg/varchar')];
+
 export const testEnumPslBlockDescriptor = {
   kind: 'pslBlock' as const,
   keyword: 'enum',
@@ -454,6 +459,7 @@ function contextForInterpretOptions(
       modelAttributes: authoring?.modelAttributes ?? {},
       attributeSpecs: authoring?.attributeSpecs ?? sqlAttributeSpecs,
       dataTypes: authoring?.dataTypes ?? options.dataTypes.entries,
+      textDataTypes: authoring?.textDataTypes ?? fixtureTextDataTypes,
       ...(authoring?.valueObjectStorageType === undefined
         ? {}
         : { valueObjectStorageType: authoring.valueObjectStorageType }),
@@ -539,6 +545,7 @@ export function createPostgresTestContext(
     composedExtensionContracts: new Map(),
     authoringContributions: {
       dataTypes: fixtureDataTypeSupport.entries,
+      textDataTypes: fixtureTextDataTypes,
       field: {},
       type: postgresScalarAuthoringTypes,
       entityTypes: {},
@@ -619,8 +626,6 @@ const nanoidSig = (dataTypes: DataTypeSupport): FuncCallSig => {
     positional: [{ key, type: optional(type), documentation }],
   };
 };
-const pgTextType = dataTypeId('pg/text');
-const pgCharType = dataTypeId('pg/char');
 
 export function createBuiltinLikeControlMutationDefaults(): ControlMutationDefaults {
   return {

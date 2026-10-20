@@ -10,6 +10,7 @@ import type { JsonValue } from '@internal/contract/types';
 import {
   type Cast,
   type DataType,
+  type DataTypeId,
   type DataTypeReader,
   type DataTypeSpelling,
   INT64_RANGE,
@@ -207,4 +208,11 @@ export const sqliteDataTypes: readonly DataType[] = [
   sqliteCharacterVarying,
   sqliteDatetime,
   sqliteJson,
+];
+
+/** SQLite's text data types: `text`, `character(n)` and `character varying(n)`. */
+export const sqliteTextDataTypes: readonly DataTypeId[] = [
+  sqliteText.id,
+  sqliteCharacter.id,
+  sqliteCharacterVarying.id,
 ];

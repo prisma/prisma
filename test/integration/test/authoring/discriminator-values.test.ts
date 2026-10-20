@@ -20,6 +20,10 @@ describe.each([
     pack: postgresPackRef,
     createNamespace: postgresCreateNamespace,
     lengthLimited: 'VarChar(5)',
+    notText: [
+      ['Uuid', '"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"'],
+      ['Inet', '"10.0.0.1"'],
+    ],
   },
   {
     name: 'SQLite',
@@ -27,8 +31,9 @@ describe.each([
     pack: sqlitePackRef,
     createNamespace: sqliteCreateNamespace,
     lengthLimited: undefined,
+    notText: [['Int', '"1"']],
   },
-])('@@base values on $name', ({ stack, pack, createNamespace, lengthLimited }) => {
+])('@@base values on $name', ({ stack, pack, createNamespace, lengthLimited, notText }) => {
   const folders: string[] = [];
   afterAll(() => {
     for (const folder of folders) rmSync(folder, { recursive: true, force: true });
@@ -108,6 +113,17 @@ describe.each([
       ]);
     },
   );
+
+  it.each(notText)('refuses a %s discriminator, which is not text', async (kindType, value) => {
+    expect(await refusals(kindType, [value])).toEqual([
+      {
+        code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+        message: `Discriminator field "kind" on model "Shape" must be text, such as String, but is "${kindType}"`,
+        line: 7,
+        columns: [3, 24],
+      },
+    ]);
+  });
 
   it('refuses two variants with the same value', async () => {
     expect(await refusals('String', ['"a"', '"a"'])).toEqual([

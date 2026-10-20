@@ -170,6 +170,7 @@ describe('assembleAuthoringContributions', () => {
     const result = assembleAuthoringContributions([createDescriptor()]);
     expect(result).toEqual({
       dataTypes: {},
+      textDataTypes: [],
       field: {},
       type: {},
       entityTypes: {},
@@ -395,6 +396,27 @@ describe('assembleAuthoringContributions', () => {
       }),
     ]);
     expect(Object.keys(result.type)).toEqual(['enum']);
+  });
+
+  it('assembles the text data types every descriptor names, once each', () => {
+    const result = assembleAuthoringContributions([
+      createDescriptor({
+        id: 'target',
+        authoring: { textDataTypes: [dataTypeId('test/text'), dataTypeId('test/char')] },
+      }),
+      createDescriptor({
+        id: 'extension',
+        authoring: { textDataTypes: [dataTypeId('test/char'), dataTypeId('ext/citext')] },
+      }),
+      createDescriptor({ id: 'other' }),
+    ]);
+    expect(result.textDataTypes).toEqual(['test/text', 'test/char', 'ext/citext']);
+  });
+
+  it('assembles no text data types when no descriptor names one', () => {
+    expect(
+      assembleAuthoringContributions([createDescriptor({ id: 'other' })]).textDataTypes,
+    ).toEqual([]);
   });
 
   it('assembles the single declared valueObjectStorageType', () => {
@@ -1484,6 +1506,7 @@ describe('createControlStack', () => {
     expect(state.extensionIds).toEqual(['fam', 'tgt']);
     expect(state.authoringContributions).toEqual({
       dataTypes: {},
+      textDataTypes: [],
       field: {},
       type: {},
       entityTypes: {},
