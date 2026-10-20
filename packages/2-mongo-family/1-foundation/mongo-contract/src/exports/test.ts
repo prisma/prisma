@@ -1,1 +1,7 @@
-export { mongoCodecLookup, mongoDataTypeLookup, mongoTypeLookups } from '../fake-type-lookups';
+export {
+  mongoCodecLookup,
+  mongoDataTypeLookup,
+  mongoTestCodecDescriptors,
+  mongoTestDataTypes,
+  mongoTypeLookups,
+} from '../fake-type-lookups';

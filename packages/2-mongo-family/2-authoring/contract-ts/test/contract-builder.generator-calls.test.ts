@@ -1,23 +1,12 @@
-import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
+import type { TargetPackRef } from '@internal/framework-components/components';
 import { singleGeneratorBinding } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { type ContractAuthoringHelpers, defineContract } from '../src/contract-builder';
-
-const mongoFamilyPack = {
-  kind: 'family',
-  id: 'mongo',
-  familyId: 'mongo',
-  version: '0.0.1',
-} as const satisfies FamilyPackRef<'mongo'>;
+import { mongoTargetPack as baseTargetPack, mongoFamilyPack } from './mongo-test-packs';
 
 const mongoTargetPack = {
-  kind: 'target',
-  id: 'mongo',
-  familyId: 'mongo',
-  targetId: 'mongo',
-  version: '0.0.1',
-  defaultNamespaceId: '__unbound__',
+  ...baseTargetPack,
   generatorFunctions: [
     {
       name: 'now',

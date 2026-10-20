@@ -20,7 +20,6 @@ import 'dotenv/config';
 
 import { loadAppConfig } from '../src/app-config';
 import { NotFoundError } from '../src/errors';
-import { createOrmClient } from '../src/orm-client/client';
 import 'temporal-polyfill/full/global';
 import { db } from '../src/prisma/db';
 
@@ -222,7 +221,7 @@ async function main() {
     // and, for the multi-table `Feature` variant, write the base + variant rows in one
     // transaction. These rows power the polymorphic-include demos (`repo-task-board`,
     // `repo-bug-triage`, `repo-feature-roadmap`).
-    const orm = createOrmClient(runtime);
+    const orm = db.orm.public;
 
     await orm.Task.bugs().create({
       title: 'Login crashes on Safari',

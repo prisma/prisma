@@ -173,7 +173,8 @@ export const mapFieldSpec = fieldAttribute('map', {
   positional: [{ key: 'name', type: str(), documentation: 'The key stored in MongoDB documents.' }],
 });
 export const idFieldSpec = fieldAttribute('id', {
-  documentation: 'Identifies the document’s primary-key field.',
+  documentation:
+    'Marks the field stored as `_id`, the document’s id. The field must be stored as `_id`: name it `_id` or add `@map("_id")`. A model may leave `@id` out; its documents still get an ObjectId `_id`.',
 });
 export const uniqueFieldSpec = fieldAttribute('unique', {
   documentation: 'Requires values in this field to be unique across the collection.',

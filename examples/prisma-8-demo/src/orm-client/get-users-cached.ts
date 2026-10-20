@@ -19,8 +19,7 @@
  */
 
 import { cacheAnnotation } from '@prisma/orm-extension-middleware-cache';
-import type { Runtime } from '@prisma/orm-postgres/family-runtime';
-import { createOrmClient } from './client';
+import type { DemoOrm } from '../prisma/db';
 
 export interface CachedListOptions {
   /**
@@ -32,11 +31,10 @@ export interface CachedListOptions {
 
 export async function ormClientGetUsersCached(
   limit: number,
-  runtime: Runtime,
+  orm: DemoOrm,
   options: CachedListOptions = {},
 ) {
-  const db = createOrmClient(runtime);
-  return db.User.limit(limit).all((meta) =>
+  return orm.User.limit(limit).all((meta) =>
     meta.annotate(cacheAnnotation(options.key !== undefined ? { key: options.key } : {})),
   );
 }

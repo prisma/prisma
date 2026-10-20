@@ -75,17 +75,14 @@ model Event {
 });
 
 describe('field-level @id and @unique are interpreted against their specs', () => {
-  it('rejects an argument on @id and no longer counts the field as the id', () => {
+  it('rejects an argument on @id', () => {
     const diagnostics = diagnosticsOf(`
       model Item {
         id   ObjectId @id("primary") @map("_id")
         name String
       }
     `);
-    expect(diagnostics.map((d) => d.code)).toEqual([
-      'PSL_INVALID_ATTRIBUTE_SYNTAX',
-      'PSL_MISSING_ID_FIELD',
-    ]);
+    expect(diagnostics.map((d) => d.code)).toEqual(['PSL_INVALID_ATTRIBUTE_SYNTAX']);
   });
 
   it('rejects an argument on @unique and declares no index for it', () => {

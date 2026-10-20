@@ -1,4 +1,9 @@
-import type { Contract, ContractWithDomain, ModelStorageBase } from '@internal/contract/types';
+import {
+  type Contract,
+  type ContractWithDomain,
+  governingControlPolicy,
+  type ModelStorageBase,
+} from '@internal/contract/types';
 import {
   type AppliedMigrationStatement,
   describeMigrationStatement,
@@ -15,7 +20,6 @@ import {
 } from '@internal/framework-components/control';
 import { type SqlModelStorage, type SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { notOk, ok, type Result } from '@internal/utils/result';
-import { controlPolicyForCall } from './control-policy';
 import {
   type ColumnRename,
   type ColumnRenameMismatch,
@@ -232,16 +236,8 @@ function statementRefused(
 
 function tableControlPolicy(contract: Contract<SqlStorage>, table: ModelTable) {
   const node = contract.storage.namespaces[table.namespaceId]?.entries.table?.[table.table];
-  return controlPolicyForCall(
-    {
-      namespaceId: table.namespaceId,
-      entityKind: 'table',
-      entityName: table.table,
-      ...(StorageTable.is(node) && node.control !== undefined
-        ? { explicitNodeControlPolicy: node.control }
-        : {}),
-      createsNewObject: false,
-    },
+  return governingControlPolicy(
+    { explicitNodeControlPolicy: StorageTable.is(node) ? node.control : undefined },
     contract.defaultControlPolicy,
   );
 }

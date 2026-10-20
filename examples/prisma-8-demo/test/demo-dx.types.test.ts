@@ -10,9 +10,7 @@
 import type { ResultType } from '@prisma/orm-postgres/components/runtime';
 import type { EnumMemberNames, EnumValues } from '@prisma/orm-postgres/contract/enum-accessor';
 import type { Scalars, Shape } from '@prisma/orm-postgres/family-contract/types';
-import type { Runtime } from '@prisma/orm-postgres/family-runtime';
 import { expectTypeOf, test } from 'vitest';
-import { createOrmClient } from '../src/orm-client/client';
 import { ormClientGetUserProfile, type UserProfile } from '../src/orm-client/get-user-profile';
 import type {
   AddressOutput,
@@ -21,7 +19,7 @@ import type {
   FieldOutputTypes,
   models,
 } from '../src/prisma/contract.d';
-import { db } from '../src/prisma/db';
+import { type DemoOrm, db } from '../src/prisma/db';
 import type { getPostsByPriority } from '../src/queries/get-posts-by-priority';
 
 test('emitted contract.d.ts types Post.priority as the value union, not number', () => {
@@ -142,9 +140,9 @@ test('the demo user-profile endpoint returns the Shape it declares, and a body w
 
   async function withoutTags(
     userId: EmittedModels.public_User['id'],
-    runtime: Runtime,
+    orm: DemoOrm,
   ): Promise<UserProfile | null> {
-    const user = await createOrmClient(runtime).User.where({ id: userId }).include('posts').first();
+    const user = await orm.User.where({ id: userId }).include('posts').first();
     if (user === null) return null;
     const { email: _email, ...rest } = user;
     // @ts-expect-error the body omits the tags include, which the shape declares on posts

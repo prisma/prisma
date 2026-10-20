@@ -1,10 +1,16 @@
 import { budgets, lints } from '@prisma/orm-postgres/family-runtime';
 import postgresServerless from '@prisma/orm-postgres/serverless';
 import { contractFromJson } from '@prisma/orm-postgres/static';
+import { PostCollection, UserCollection } from '../orm-client/collections';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
 export const contract = contractFromJson<Contract>(contractJson);
+
+const collections = {
+  User: UserCollection,
+  Post: PostCollection,
+};
 
 function createMiddleware() {
   return [
@@ -25,6 +31,7 @@ function createMiddleware() {
 export const postgres = postgresServerless({
   contract,
   middleware: createMiddleware(),
+  collections,
 });
 
 /**
@@ -34,5 +41,6 @@ export const postgres = postgresServerless({
 export const streamingPostgres = postgresServerless({
   contract,
   middleware: createMiddleware(),
+  collections,
   cursor: { batchSize: 100 },
 });
