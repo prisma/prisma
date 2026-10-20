@@ -31,6 +31,7 @@ const TAGGED_LITERAL_FAILURE_CODES = {
 export function dataTypeValue(
   dataType: DataTypeId,
   support: DataTypeSupport,
+  options: { readonly suggestions?: readonly string[] } = {},
 ): DataTypeValueArgType<AttributeCtx> {
   const tags = admittedTags(support, dataType);
   const [firstTag] = tags;
@@ -42,7 +43,7 @@ export function dataTypeValue(
     dataType,
     tags,
     documentation: support.entries[dataType]?.documentation ?? '',
-    suggestions: [],
+    suggestions: options.suggestions ?? [],
     parse: (arg, ctx) => parseDataTypeValue(arg, ctx, dataType, support, forms),
   };
 }

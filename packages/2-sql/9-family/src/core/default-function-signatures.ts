@@ -8,6 +8,7 @@ import {
   type FuncCallSig,
   leafDiagnostic,
   optional,
+  refineArg,
 } from '@internal/psl-parser';
 import type { DefaultFunctionSignature } from '@internal/sql-contract-psl/attribute-specs';
 import { InternalError } from '@internal/utils/internal-error';
@@ -121,18 +122,10 @@ function checkedInteger(
   suggestions: readonly number[],
   refusal: (value: number, written: string) => string | undefined,
 ): ArgType<number, AttributeCtx> {
-  const value = dataTypeValue(integer, dataTypes);
-  return {
-    kind: value.kind,
-    label: value.label,
-    dataType: value.dataType,
-    tags: value.tags,
-    documentation: value.documentation,
-    suggestions: suggestions.map(String),
-    parse: (arg, ctx) => {
-      const parsed = value.parse(arg, ctx);
-      if (!parsed.ok) return parsed;
-      const stored = parsed.value.value.value;
+  return refineArg(
+    dataTypeValue(integer, dataTypes, { suggestions: suggestions.map(String) }),
+    ({ value }, arg, ctx) => {
+      const stored = value.value;
       if (typeof stored !== 'number' && typeof stored !== 'string') {
         throw new InternalError(
           `Data type "${integer}" stores an integer as ${typeof stored}, not a number or digit text.`,
@@ -143,5 +136,5 @@ function checkedInteger(
         ? ok(Number(stored))
         : notOk([leafDiagnostic(ctx, arg, message, 'PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT')]);
     },
-  };
+  );
 }

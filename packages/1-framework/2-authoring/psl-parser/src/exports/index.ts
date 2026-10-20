@@ -47,7 +47,7 @@ export { json } from '../attribute-spec/combinators/json';
 export { jsonValue } from '../attribute-spec/combinators/json-value';
 export type { ListOptions } from '../attribute-spec/combinators/list';
 export { list } from '../attribute-spec/combinators/list';
-export { mapArg } from '../attribute-spec/combinators/map-arg';
+export { mapArg, refineArg } from '../attribute-spec/combinators/map-arg';
 export { num } from '../attribute-spec/combinators/num';
 export { numLiteral } from '../attribute-spec/combinators/num-literal';
 export { oneOf } from '../attribute-spec/combinators/one-of';
