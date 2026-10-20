@@ -100,10 +100,10 @@ function markerAt(storageHash: string): ContractMarkerRecord {
   };
 }
 
-function familyWithAuditMarker(hash: string) {
+function familyWithAuditMarker(hash: string | undefined) {
   return {
     familyId: 'sql',
-    readAllMarkers: async () => new Map([[AUDIT_SPACE, markerAt(hash)]]),
+    readAllMarkers: async () => new Map(hash === undefined ? [] : [[AUDIT_SPACE, markerAt(hash)]]),
     introspect: async () => ({ tables: {} }),
     deserializeContract: (json: unknown) => json as Contract,
     storageNameOf: (operation: MigrationPlanOperation) => operation.id,
@@ -146,7 +146,7 @@ async function migrationsDirWith(space: AuditSpace): Promise<string> {
   return migrationsDir;
 }
 
-async function dbInitPlan(space: AuditSpace, markerHash: string) {
+async function dbInitPlan(space: AuditSpace, markerHash: string | undefined) {
   return executeDbInit({
     invocation: TEST_INVOCATION,
     driver: { close: vi.fn() } as unknown as ControlDriverInstance<'sql', 'postgres'>,
@@ -205,6 +205,30 @@ describe('db init, an extension space whose marker no migration path leaves', ()
       meta: {
         spaceId: AUDIT_SPACE,
         fromHash: STRAY_HASH,
+        targetHash: AUDIT_HEAD,
+        kind: 'pathUnreachable',
+      },
+    });
+  });
+});
+
+describe('db init, an extension space with no marker whose migrations do not start from the empty contract', () => {
+  it('reports MIGRATION.PATH_UNREACHABLE from the empty contract', async () => {
+    const result = await dbInitPlan(
+      {
+        packages: [migrationPackage('20260102T0000_tail', SIDE_HASH, AUDIT_HEAD)],
+        invariants: [],
+      },
+      undefined,
+    );
+
+    const failure = result.assertNotOk();
+    expect({ code: failure.code, why: failure.why, meta: failure.meta }).toEqual({
+      code: 'MIGRATION.PATH_UNREACHABLE',
+      why: `No path in the on-disk migration graph for extension space "${AUDIT_SPACE}" leads from the empty contract (the space has no marker) to the on-disk head ref hash "${AUDIT_HEAD}".`,
+      meta: {
+        spaceId: AUDIT_SPACE,
+        fromHash: EMPTY_CONTRACT_HASH,
         targetHash: AUDIT_HEAD,
         kind: 'pathUnreachable',
       },
