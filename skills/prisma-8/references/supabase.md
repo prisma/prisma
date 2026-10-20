@@ -57,7 +57,7 @@ The concept: your models live in your namespaces (`public`); Supabase's live in 
 ```prisma
 namespace public {
   model Profile {
-    id       Uuid   @id @default(uuid())
+    id       Uuid   @id @onCreate(uuid())
     username String
     userId   Uuid   @unique
     user     supabase:auth.AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)

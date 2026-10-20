@@ -186,8 +186,8 @@ interface VersionRecord {
 function metaUnsupported() {
   return structuredError(
     'RUNTIME.CACHE_STORE_META_UNSUPPORTED',
-    'The in-memory cache store cannot remove entries by meta because it does not index meta',
-    { fix: 'Invalidate by keys, or supply a CacheStore that indexes meta in set and unset.' },
+    'The in-memory cache store cannot remove entries by meta because it does not index meta, so it removed nothing, not even the keys passed with it',
+    { fix: 'Use a CacheStore that indexes meta in set and unset, or pass only keys.' },
   );
 }
 

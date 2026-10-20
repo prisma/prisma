@@ -38,6 +38,7 @@ const sqlSourceContext: ContractSourceContext = {
   codecLookup: sqlStack.codecLookup,
   dataTypes: sqlStack.dataTypes,
   controlMutationDefaults: sqlStack.controlMutationDefaults,
+  generatorFunctions: sqlStack.generatorFunctions,
   resolvedInputs: [],
   capabilities: sqlStack.capabilities,
 };
@@ -50,6 +51,7 @@ const mongoSourceContext: ContractSourceContext = {
   codecLookup: mongoStack.codecLookup,
   dataTypes: mongoStack.dataTypes,
   controlMutationDefaults: mongoStack.controlMutationDefaults,
+  generatorFunctions: mongoStack.generatorFunctions,
   resolvedInputs: [],
   capabilities: mongoStack.capabilities,
 };

@@ -1,3 +1,4 @@
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 /**
  * Managed native-enum lifecycle end-to-end against a live (PGlite) database
  * (Phase 2 Slice A DoD, plus Slice B's R8/R9 live proofs):
@@ -239,6 +240,7 @@ function buildContractFromPsl(psl: string, control: ControlPolicy): Contract<Sql
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
       codecLookup: createPostgresBuiltinCodecLookup(),
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: {
         entries: assembled.dataTypes,
         lookup: postgresDataTypeLookup,

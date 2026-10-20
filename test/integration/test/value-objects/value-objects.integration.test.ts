@@ -9,6 +9,7 @@ import {
 import { MongoContractSerializer } from '@internal/family-mongo/ir';
 import type { AuthoringTypeConstructorDescriptor } from '@internal/framework-components/authoring';
 import { createDataTypeLookup, emptyCodecLookup } from '@internal/framework-components/codec';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import {
   describeUnsupportedMongoAttribute,
   interpretPslDocumentToMongoContract,
@@ -116,6 +117,7 @@ function interpretMongoPsl(schema: string) {
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedMongoAttribute },
       codecLookup: { ...emptyCodecLookup, descriptorFor: mongoDescriptorById },
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: {
         entries: {},
         lookup: createDataTypeLookup(mongoDataTypes),
@@ -169,6 +171,7 @@ function interpretSqlPsl(schema: string) {
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
       codecLookup: createPostgresBuiltinCodecLookup(),
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: { entries: {}, lookup: postgresDataTypeLookup, dataTypeOfCodec: () => undefined },
       resolvedInputs: [],
       capabilities: { sql: { scalarList: true } },

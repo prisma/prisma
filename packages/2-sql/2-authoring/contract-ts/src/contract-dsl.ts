@@ -21,6 +21,8 @@ import type {
 import type {
   ExtensionPackRef,
   FamilyPackRef,
+  GeneratorFunctionCall,
+  GeneratorPhase,
   TargetPackRef,
 } from '@internal/framework-components/components';
 import { readSqlExpression, type SqlExpression } from '@internal/sql-contract/sql-expression';
@@ -70,6 +72,7 @@ export type ScalarFieldState<
   readonly columnName?: ColumnName | undefined;
   readonly default?: AuthoredColumnDefault | undefined;
   readonly executionDefaults?: ExecutionMutationDefaultPhases | undefined;
+  readonly generatorCalls?: FieldGeneratorCalls | undefined;
   readonly many: Many;
 } & (IdSpec extends NamedConstraintSpec ? { readonly id: IdSpec } : { readonly id?: undefined }) &
   (UniqueSpec extends NamedConstraintSpec
@@ -78,6 +81,53 @@ export type ScalarFieldState<
 
 /** Whether a field's column has a database default, and whether the client generates its value on create. */
 export type FieldDefaultPresence = { readonly column: boolean; readonly execution: boolean };
+
+/** The generator function calls a field's `.onCreate(...)` and `.onUpdate(...)` give, resolved by the field's codec when the contract is built. */
+export type FieldGeneratorCalls = {
+  readonly onCreate?: GeneratorFunctionCall;
+  readonly onUpdate?: GeneratorFunctionCall;
+};
+
+type WithExecutionDefault<State extends AnyScalarFieldState> =
+  State extends ScalarFieldState<
+    infer Descriptor,
+    infer TypeRef,
+    infer Nullable,
+    infer ColumnName,
+    infer IdSpec,
+    infer UniqueSpec,
+    infer Many,
+    infer Defaults
+  >
+    ? ScalarFieldState<
+        Descriptor,
+        TypeRef,
+        Nullable,
+        ColumnName,
+        IdSpec,
+        UniqueSpec,
+        Many,
+        { readonly column: Defaults['column']; readonly execution: true }
+      >
+    : State;
+
+function withGeneratorCall<State extends AnyScalarFieldState>(
+  state: State,
+  phase: GeneratorPhase,
+  call: GeneratorFunctionCall,
+): State {
+  if (
+    state.generatorCalls?.[phase] !== undefined ||
+    state.executionDefaults?.[phase] !== undefined
+  ) {
+    throw contractError(
+      'CONTRACT.DEFAULT_INVALID',
+      `.${phase}() is called on a field that already generates a value ${phase === 'onCreate' ? 'on create' : 'on update'}. Set each phase once, and do not combine .${phase}() with a field preset that sets it.`,
+      { meta: { reason: 'generator-phase-set-twice', phase } },
+    );
+  }
+  return { ...state, generatorCalls: { ...state.generatorCalls, [phase]: call } };
+}
 
 type WithColumnDefault<State extends AnyScalarFieldState> =
   State extends ScalarFieldState<
@@ -110,6 +160,7 @@ type AnyScalarFieldState = {
   readonly columnName?: string | undefined;
   readonly default?: AuthoredColumnDefault | undefined;
   readonly executionDefaults?: ExecutionMutationDefaultPhases | undefined;
+  readonly generatorCalls?: FieldGeneratorCalls | undefined;
   readonly many: false | { readonly elementNullable: boolean };
   readonly id?: NamedConstraintSpec | undefined;
   readonly unique?: NamedConstraintSpec | undefined;
@@ -439,6 +490,19 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
         default: toColumnDefault(value),
       }),
     );
+  }
+
+  /** Generates the field's value in the client when a row is created without one, with a call from `gen`, such as `gen.uuid()`. */
+  onCreate(call: GeneratorFunctionCall): ScalarFieldBuilder<WithExecutionDefault<State>> {
+    return blindCast<
+      ScalarFieldBuilder<WithExecutionDefault<State>>,
+      'the state gains a generator call; the presence it changes exists only in types'
+    >(new ScalarFieldBuilder(withGeneratorCall(this.state, 'onCreate', call)));
+  }
+
+  /** Generates the field's value in the client every time a row is updated, with a call from `gen`, such as `gen.now()`. */
+  onUpdate(call: GeneratorFunctionCall): ScalarFieldBuilder<State> {
+    return new ScalarFieldBuilder(withGeneratorCall(this.state, 'onUpdate', call));
   }
 
   /**

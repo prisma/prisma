@@ -45,6 +45,7 @@ async function interpret(schemaPath: string): Promise<Contract<SqlStorage>> {
     codecLookup: stack.codecLookup,
     dataTypes: stack.dataTypes,
     controlMutationDefaults: stack.controlMutationDefaults,
+    generatorFunctions: stack.generatorFunctions,
     resolvedInputs: [schemaPath],
     capabilities: stack.capabilities,
   });

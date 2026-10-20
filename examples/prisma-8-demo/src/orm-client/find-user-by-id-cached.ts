@@ -9,10 +9,10 @@
  * `src/prisma/db.ts`) is served from the cache — the ORM sends **no**
  * statement the second time.
  *
- * The cache key is the call's `activity.contentHash()`, a digest of the
- * terminal method and the post-lowering SQL plus parameters of the
- * statement it sends. Two lookups for different `id` values therefore
- * land in different cache slots; the same `id` hits.
+ * The cache key is `userCacheKey(id)`, so a write can name it:
+ * `ormClientUpdateUserEmailInvalidatingCache` removes it with
+ * `invalidateAnnotation` once the update commits. Two lookups for
+ * different `id` values land in different cache slots; the same `id` hits.
  *
  * Notes worth pinning:
  *
@@ -23,16 +23,16 @@
  * - On a cache hit no statement runs, so statement middleware such as
  *   `slowQueryWarning` in `db.ts` sees nothing; the call's own
  *   `activityEnded` fires with `source: 'middleware'`.
- * - Schema migrations rotate `meta.storageHash`, which feeds the
- *   content hash, so cached entries from a previous schema cannot
- *   accidentally serve queries against the new schema.
+ * - The explicit key does not change with `meta.storageHash`, so after a
+ *   schema migration it can serve an entry cached under the old schema
+ *   until the entry expires. With a store shared across deploys, prefix
+ *   the key with something tied to the schema, such as the storage hash.
  */
 
 import { cacheAnnotation } from '@prisma/orm-extension-middleware-cache';
-import type { Runtime } from '@prisma/orm-postgres/family-runtime';
 import type { DefaultModelRow } from '@prisma/orm-postgres/orm-client';
 import type { Contract } from '../prisma/contract.d';
-import { createOrmClient } from './client';
+import type { DemoOrm } from '../prisma/db';
 
 type UserId = DefaultModelRow<Contract, 'User'>['id'];
 
@@ -47,15 +47,21 @@ export interface CachedLookupOptions {
 
 export async function ormClientFindUserByIdCached(
   id: string,
-  runtime: Runtime,
+  orm: DemoOrm,
   options: CachedLookupOptions = {},
 ) {
-  const db = createOrmClient(runtime);
-  return db.User.first({ id: toUserId(id) }, (meta) =>
-    meta.annotate(cacheAnnotation({ bypass: options.forceRefresh ?? false })),
+  return orm.User.first({ id: toUserId(id) }, (meta) =>
+    meta.annotate(
+      cacheAnnotation({ key: userCacheKey(id), bypass: options.forceRefresh ?? false }),
+    ),
   );
 }
 
-function toUserId(value: string): UserId {
+export function toUserId(value: string): UserId {
   return value as UserId;
+}
+
+/** The key `ormClientFindUserByIdCached` stores user `id` under. */
+export function userCacheKey(id: string): string {
+  return `user:${id}`;
 }

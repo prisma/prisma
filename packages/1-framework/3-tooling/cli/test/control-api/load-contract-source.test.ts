@@ -2,6 +2,8 @@ import { existsSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import type * as configLoader from '@internal/config-loader';
+import type { CliStructuredError } from '@internal/errors/control';
+import { structuredError } from '@internal/utils/structured-error';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { executeContractEmit } from '../../src/control-api/operations/contract-emit';
@@ -75,6 +77,30 @@ describe('loadContractSource', () => {
 
     expect(result.assertOk()).toBe(contract);
     expect(existsSync(join(tmpDir, 'src'))).toBe(false);
+  });
+
+  it('reports a structured error the source throws with its own code, message and meta', async () => {
+    const message =
+      'Field "Event.e": now() does not apply to codec "pg/text@1". Functions that apply: uuid().';
+    const meta = {
+      modelName: 'Event',
+      fieldName: 'e',
+      codecId: 'pg/text@1',
+      function: 'now',
+      reason: 'generator-not-applicable',
+    };
+    const config = configWithSource(join(tmpDir, 'contract.json'), async () => {
+      throw structuredError('CONTRACT.DEFAULT_INVALID', message, { meta });
+    });
+
+    const error = (await loadContractSource(config).catch(
+      (caught: unknown) => caught,
+    )) as CliStructuredError;
+
+    expect({ error, envelope: error.toEnvelope() }).toMatchObject({
+      error: { code: 'CONTRACT.DEFAULT_INVALID', message, meta },
+      envelope: { code: 'CONTRACT.DEFAULT_INVALID', summary: message, meta },
+    });
   });
 
   it('throws the emit error for a malformed source result', async () => {

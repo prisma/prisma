@@ -1,6 +1,7 @@
 import type {
   ColumnDefault,
   ExecutionMutationDefaultPhases,
+  ExecutionMutationDefaultValue,
   ValueSetRef,
 } from '@internal/contract/types';
 import type {
@@ -27,11 +28,11 @@ import type {
   AnyCodecDescriptor,
   CodecLookupWithDescriptors,
 } from '@internal/framework-components/codec';
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
 import {
   type ControlMutationDefaultRegistry,
   type DefaultFunctionLoweringContext,
   describeTaggedLiteralFailure,
-  type MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/control';
 import type { ContributedPslDiagnosticCode } from '@internal/framework-components/psl-ast';
 import type {
@@ -684,15 +685,12 @@ export function lowerDefaultForField(input: {
   readonly valueObjectDefault:
     | { readonly valueObjectName: string; readonly types: ValueObjectTypes }
     | undefined;
-  readonly generatorDescriptorById: ReadonlyMap<string, MutationDefaultGeneratorDescriptor>;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly diagnostics: PslDiagnosticCollector;
-}): {
-  readonly defaultValue?: AuthoredColumnDefault;
-  readonly executionDefaults?: ExecutionMutationDefaultPhases;
-} {
+}): { readonly defaultValue?: AuthoredColumnDefault } {
   const node = getAttribute(input.field.attributes, 'default')?.node;
   if (node === undefined) return {};
   const source = diagnosticSource(input.sources, node.syntax);
@@ -703,6 +701,7 @@ export function lowerDefaultForField(input: {
       field: input.field,
       binder: input.binder,
       defaultFunctionRegistry: input.defaultFunctionRegistry,
+      generatorFunctions: input.generatorFunctions,
       dataTypes: input.dataTypes,
     }),
   );
@@ -904,38 +903,81 @@ export function lowerDefaultForField(input: {
     return {};
   }
 
-  if (lowered.value.kind === 'storage') {
-    return { defaultValue: lowered.value.defaultValue };
-  }
+  return { defaultValue: lowered.value.defaultValue };
+}
 
-  const generatorDescriptor = input.generatorDescriptorById.get(lowered.value.generated.id);
-  if (!generatorDescriptor) {
-    input.diagnostics.push({
-      code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
-      message: `Default generator "${lowered.value.generated.id}" is not available in the composed mutation default registry.`,
-      ...source.at(call.span),
+const GENERATOR_PHASES = ['onCreate', 'onUpdate'] as const;
+
+/** The generators a field's `@onCreate(fn())` and `@onUpdate(fn())` resolve to for its column, or `undefined` for a field with neither. */
+export function lowerGeneratorAttributesForField(input: {
+  readonly modelName: string;
+  readonly fieldName: string;
+  readonly field: FieldSymbol;
+  readonly model: ModelSymbol;
+  readonly symbolTable: SymbolTable;
+  readonly sources: PslSources;
+  readonly binder: Binder;
+  readonly columnDescriptor: ColumnDescriptor;
+  /** The column's parameters: its own, or those of the named type it is declared with. */
+  readonly columnTypeParams: Record<string, unknown> | undefined;
+  readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
+  readonly dataTypes: DataTypeSupport;
+  readonly diagnostics: PslDiagnosticCollector;
+}): ExecutionMutationDefaultPhases | undefined {
+  const specContext = fieldSpecContext({
+    symbols: input.symbolTable,
+    model: input.model,
+    field: input.field,
+    binder: input.binder,
+    defaultFunctionRegistry: input.defaultFunctionRegistry,
+    generatorFunctions: input.generatorFunctions,
+    dataTypes: input.dataTypes,
+  });
+  const phases: {
+    onCreate?: ExecutionMutationDefaultValue;
+    onUpdate?: ExecutionMutationDefaultValue;
+  } = {};
+  for (const phase of GENERATOR_PHASES) {
+    const [attribute, duplicate] = input.field.attributes.filter(({ name }) => name === phase);
+    if (attribute === undefined) continue;
+    if (duplicate !== undefined) {
+      input.diagnostics.push({
+        code: 'PSL_DUPLICATE_ATTRIBUTE',
+        message: `\`@${phase}\` declared more than once on field "${input.modelName}.${input.fieldName}".`,
+        ...diagnosticSource(input.sources, duplicate.node.syntax).at(duplicate.span),
+      });
+      continue;
+    }
+    const node = attribute.node;
+    const interpreted = interpretFieldAttribute({
+      symbols: input.symbolTable,
+      node,
+      spec: sqlAttributeSpecs.field[phase](specContext),
+      model: input.model,
+      field: input.field,
+      sources: input.sources,
+      binder: input.binder,
+      diagnostics: input.diagnostics,
     });
-    return {};
-  }
-
-  // Preset-only generators (e.g. `timestampNow`) co-register their codec through the preset descriptor, so they don't carry an `applicableCodecIds` list. Such a generator surfacing on the `@default(...)` lowering path is itself the bug — emit a diagnostic pointing the user at the correct authoring surface.
-  if (generatorDescriptor.applicableCodecIds === undefined) {
+    if (interpreted === undefined) continue;
+    const call = interpreted.value;
+    const resolution = input.generatorFunctions.resolve(
+      { name: call.fn, args: call.args },
+      { codecId: input.columnDescriptor.codecId, typeParams: input.columnTypeParams },
+    );
+    if (resolution.ok) {
+      phases[phase] = resolution.generator;
+      continue;
+    }
     input.diagnostics.push({
-      code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
-      message: `Default generator "${generatorDescriptor.id}" is not applicable to "@default(...)" lowering. Use the corresponding field preset (e.g. \`temporal.${generatorDescriptor.id === 'timestampNow' ? 'updatedAt' : generatorDescriptor.id}()\`) instead.`,
-      ...source.at(call.span),
+      code: 'PSL_GENERATOR_NOT_APPLICABLE',
+      message:
+        resolution.reason === 'refused'
+          ? `Field "${input.modelName}.${input.fieldName}": ${resolution.message}`
+          : `Field "${input.modelName}.${input.fieldName}": ${call.fn}() does not apply to codec "${input.columnDescriptor.codecId}".`,
+      ...diagnosticSource(input.sources, node.syntax).at(call.span),
     });
-    return {};
   }
-
-  if (!generatorDescriptor.applicableCodecIds.includes(input.columnDescriptor.codecId)) {
-    input.diagnostics.push({
-      code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
-      message: `Default generator "${generatorDescriptor.id}" is not applicable to "${input.modelName}.${input.fieldName}" with codecId "${input.columnDescriptor.codecId}".`,
-      ...source.at(call.span),
-    });
-    return {};
-  }
-
-  return { executionDefaults: { onCreate: lowered.value.generated } };
+  return phases.onCreate === undefined && phases.onUpdate === undefined ? undefined : phases;
 }

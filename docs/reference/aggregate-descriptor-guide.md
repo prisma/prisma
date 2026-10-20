@@ -155,7 +155,7 @@ The rows a contribution settles into decide the call shapes the operation surfac
 
 One naming constraint applies. Include reducers install into the ORM collection's own namespace, beside `select`, `where`, `include`, and the rest of the query builder, so an operation may not take a name a built-in collection member already owns; `orm(...)` rejects one that does with `ORM.AGGREGATE_OPERATION_RESERVED`.
 
-A custom collection class registered through `orm({ collections })` sits outside that check, and its own members take precedence: a member whose name an operation also carries keeps the name, and the collection installs no reducer for that operation. Where the contract's emitted map declares the operation, TypeScript holds the member to the reducer's signature — the collection surface is the class intersected with the reducer set — so what passes silently is a member the types never promised.
+A custom collection class, passed in a client's `collections` option, sits outside that check, and its own members take precedence: a member whose name an operation also carries keeps the name, and the collection installs no reducer for that operation. Where the contract's emitted map declares the operation, TypeScript holds the member to the reducer's signature — the collection surface is the class intersected with the reducer set — so what passes silently is a member the types never promised.
 
 ## What a consumer stamps
 

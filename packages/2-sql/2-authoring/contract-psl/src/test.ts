@@ -9,6 +9,7 @@ export type SqlContextInput = Pick<
   | 'composedExtensions'
   | 'composedExtensionContracts'
   | 'controlMutationDefaults'
+  | 'generatorFunctions'
   | 'capabilities'
   | 'codecLookup'
   | 'dataTypes'
@@ -23,6 +24,7 @@ export function sqlContextInput(context: ContractSourceContext): SqlContextInput
       : {}),
     composedExtensionContracts: context.composedExtensionContracts,
     controlMutationDefaults: context.controlMutationDefaults,
+    generatorFunctions: context.generatorFunctions,
     capabilities: context.capabilities,
     codecLookup: context.codecLookup,
     dataTypes: context.dataTypes,

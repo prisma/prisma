@@ -35,8 +35,8 @@ export {
 } from '../fragments';
 export { GroupedCollection } from '../grouped-collection';
 export { createModelAccessor } from '../model-accessor';
-export type { OrmOptions } from '../orm';
-export { orm } from '../orm';
+export type { CollectionClasses, NoCollectionClasses, OrmOptions } from '../orm';
+export { checkCollectionClasses, orm } from '../orm';
 export type { PreparedCollection } from '../prepared-collection';
 export {
   createPreparedRowQuery,

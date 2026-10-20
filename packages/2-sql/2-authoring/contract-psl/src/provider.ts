@@ -101,6 +101,7 @@ export function prismaContract(schemaPath: string, options: PrismaContractOption
           options.composedExtensionPackRefs?.length ? options.composedExtensionPackRefs : undefined,
         ),
         controlMutationDefaults: context.controlMutationDefaults,
+        generatorFunctions: context.generatorFunctions,
         createNamespace: options.createNamespace,
         capabilities: context.capabilities,
         codecLookup: context.codecLookup,

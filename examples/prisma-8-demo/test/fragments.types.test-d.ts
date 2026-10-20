@@ -1,5 +1,4 @@
 import { field } from '@prisma/orm-postgres/contract-builder';
-import type { Runtime } from '@prisma/orm-postgres/family-runtime';
 import {
   type CodecField,
   type CollectionRowOf,
@@ -9,7 +8,6 @@ import {
 } from '@prisma/orm-postgres/orm-client';
 import { websearchToTsquery } from '@prisma/orm-postgres/target/full-text';
 import { describe, expectTypeOf, test } from 'vitest';
-import { createOrmClient } from '../src/orm-client/client';
 import { createdBefore, createdSince, ownedBy, postSummary } from '../src/orm-client/fragments';
 import type { ormClientGetFilteredPosts } from '../src/orm-client/get-filtered-posts';
 import type { ormClientGetRecentPosts } from '../src/orm-client/get-recent-posts';
@@ -17,11 +15,10 @@ import type { ormClientGetRecentUsers } from '../src/orm-client/get-recent-users
 import type { Contract } from '../src/prisma/contract.d';
 import { db as dbFacade } from '../src/prisma/db';
 
-declare const runtime: Runtime;
 declare const since: Temporal.Instant;
 declare const orderBy: string;
 
-const db = createOrmClient(runtime);
+const db = dbFacade.orm.public;
 
 type TimestampCodec = 'pg/timestamptz-temporal@1';
 type CreatedAt = CodecField<Contract, TimestampCodec>;

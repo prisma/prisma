@@ -1,3 +1,4 @@
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import {
   assembleAuthoringContributions,
   assembleControlMutationDefaults,
@@ -68,6 +69,7 @@ it.each([
         symbolTable,
         pslBlockDescriptors: {},
         controlMutationDefaults: assembleControlMutationDefaults([]),
+        generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
         authoringContributions: assembleAuthoringContributions([
           {
             id: 'values',

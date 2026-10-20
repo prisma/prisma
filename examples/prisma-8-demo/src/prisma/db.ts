@@ -4,6 +4,7 @@ import { budgets, lints } from '@prisma/orm-postgres/family-runtime';
 import postgres from '@prisma/orm-postgres/runtime';
 import { contractFromJson } from '@prisma/orm-postgres/static';
 import { engagementStatsRuntime } from '../extensions/engagement-stats';
+import { collections } from '../orm-client/collections';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 import { slowQueryWarning } from './slow-query-warning';
@@ -12,6 +13,7 @@ export const contract = contractFromJson<Contract>(contractJson);
 
 export const db = postgres({
   contract,
+  collections,
   // The runtime half of the `stddev` contribution; its control half is
   // composed in `prisma.config.ts`, where the emitted types come from.
   extensions: [pgvector, engagementStatsRuntime],
@@ -38,3 +40,6 @@ export const db = postgres({
     slowQueryWarning({ thresholdMs: 250 }),
   ],
 });
+
+export type DemoClient = typeof db;
+export type DemoOrm = DemoClient['orm']['public'];

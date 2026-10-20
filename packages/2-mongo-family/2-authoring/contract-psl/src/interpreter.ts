@@ -13,6 +13,7 @@ import {
   crossRef,
   type ExecutionMutationDefault,
   type ExecutionMutationDefaultPhases,
+  type ExecutionMutationDefaultValue,
   type ValueSetRef,
 } from '@internal/contract/types';
 import { type EnumTypeHandle, resolveToOneRelationNullable } from '@internal/contract-authoring';
@@ -32,16 +33,19 @@ import {
   isAuthoringEntityTypeDescriptor,
   isAuthoringTypeConstructorDescriptor,
 } from '@internal/framework-components/authoring';
-import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import type { CodecLookupWithDescriptors, TypeLookups } from '@internal/framework-components/codec';
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
 import type { ControlMutationDefaultRegistry } from '@internal/framework-components/control';
 import {
   applyPolymorphicScopeToMongoIndex,
   buildMongoStorage,
+  DOCUMENT_ID,
   deriveCollectionValidators,
-  documentIdRefusalOf,
   type MongoCollectionInput,
+  type MongoContractRefusal,
   MongoIndex,
   type MongoIndexKeyDirection,
+  mongoContractRefusalsOf,
   mongoValueSetsOf,
 } from '@internal/mongo-contract';
 import type { CollationOptions } from '@internal/mongo-value/mongodb-types';
@@ -50,6 +54,7 @@ import type {
   Binder,
   BlockSymbol,
   CompositeTypeSymbol,
+  FieldAttributeSpecContext,
   FieldSymbol,
   InferAttr,
   ModelSymbol,
@@ -117,6 +122,8 @@ export interface InterpretPslDocumentToMongoContractInput {
   readonly binder: Binder;
   readonly scalarTypeCodecIds: ReadonlyMap<string, string>;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  /** The stack's generator functions, which `@onCreate(fn())` and `@onUpdate(fn())` resolve through. */
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly seedDiagnostics?: readonly ContractSourceDiagnostic[];
@@ -1083,6 +1090,7 @@ interface PresetExecutionDefault {
   readonly field: FieldSymbol;
   readonly storedField: string;
   readonly phases: ExecutionMutationDefaultPhases;
+  readonly fromPreset: boolean;
 }
 
 /**
@@ -1109,10 +1117,11 @@ function resolvePresetExecutionDefaults(input: {
     const at = diagnosticSource(input.sources, preset.field.node.syntax).at(
       call?.span ?? preset.field.span,
     );
+    const source = preset.fromPreset ? `Preset "${presetPath}"` : 'Generated value';
     if (model.base !== undefined) {
       input.diagnostics.push({
         code: 'PSL_PRESET_ON_VARIANT_FIELD',
-        message: `Preset "${presetPath}" on variant "${preset.modelName}" field "${preset.field.name}": execution defaults apply to every document in collection "${collection}", so declare them on the base model.`,
+        message: `${source} on variant "${preset.modelName}" field "${preset.field.name}": execution defaults apply to every document in collection "${collection}", so declare them on the base model.`,
         ...at,
       });
       continue;
@@ -1131,12 +1140,109 @@ function resolvePresetExecutionDefaults(input: {
     if (existing.phasesKey !== phasesKey) {
       input.diagnostics.push({
         code: 'PSL_PRESET_CONFLICT',
-        message: `Preset "${presetPath}" on "${preset.modelName}.${preset.field.name}" sets different execution defaults than the preset on "${existing.owner.modelName}.${existing.owner.field.name}" for field "${preset.storedField}" of collection "${collection}". Use the same preset on both models.`,
+        message: `${source} on "${preset.modelName}.${preset.field.name}" sets different execution defaults than "${existing.owner.modelName}.${existing.owner.field.name}" for field "${preset.storedField}" of collection "${collection}". Generate the same values on both models.`,
         ...at,
       });
     }
   }
   return resolved;
+}
+
+const GENERATOR_PHASES = ['onCreate', 'onUpdate'] as const;
+
+/**
+ * The generators a field's `@onCreate(fn())` and `@onUpdate(fn())` resolve to, `undefined` for a field with neither, or `'invalid'` when one is refused.
+ */
+function lowerGeneratorAttributes(input: {
+  readonly field: FieldSymbol;
+  readonly model: ModelSymbol;
+  readonly modelName: string;
+  readonly resolved: ResolvedNonRelationField;
+  readonly specContext: FieldAttributeSpecContext;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
+  readonly sources: PslSources;
+  readonly binder: Binder;
+  readonly diagnostics: PslDiagnosticCollector;
+}): ExecutionMutationDefaultPhases | 'invalid' | undefined {
+  const { field, modelName, diagnostics } = input;
+  const fieldLabel = `Field "${modelName}.${field.name}"`;
+  const phases: {
+    onCreate?: ExecutionMutationDefaultValue;
+    onUpdate?: ExecutionMutationDefaultValue;
+  } = {};
+  for (const phase of GENERATOR_PHASES) {
+    const [attribute, duplicate] = field.attributes.filter(({ name }) => name === phase);
+    if (attribute === undefined) continue;
+    if (duplicate !== undefined) {
+      diagnostics.push({
+        code: 'PSL_DUPLICATE_ATTRIBUTE',
+        message: `\`@${phase}\` declared more than once on field "${modelName}.${field.name}".`,
+        ...diagnosticSource(input.sources, field.node.syntax).at(duplicate.span),
+      });
+      return 'invalid';
+    }
+    const at = diagnosticSource(input.sources, field.node.syntax).at(attribute.span);
+    const argument = attribute.args.find((arg) => arg.kind === 'positional')?.value.trim() ?? '';
+    if (field.list) {
+      diagnostics.push({
+        code: 'PSL_LIST_EXECUTION_DEFAULT_UNSUPPORTED',
+        message: `${fieldLabel} is a list and cannot use @${phase}(${argument}). Lists have no per-element generated values; remove @${phase}(...).`,
+        ...at,
+      });
+      return 'invalid';
+    }
+    if (field.optional) {
+      diagnostics.push({
+        code: 'PSL_OPTIONAL_EXECUTION_DEFAULT_UNSUPPORTED',
+        message: `${fieldLabel} is optional, and a generated value needs a required field in MongoDB. Remove "?" or remove @${phase}(...).`,
+        ...at,
+      });
+      return 'invalid';
+    }
+    if (input.resolved.executionDefaults?.[phase] !== undefined) {
+      const phaseText = phase === 'onCreate' ? 'on create' : 'on update';
+      diagnostics.push({
+        code: 'PSL_PRESET_AND_DEFAULT_CONFLICT',
+        message: `${fieldLabel} uses a field-preset call that already generates a value ${phaseText}, so @${phase}(...) cannot set one too. Remove @${phase}(...) or use a preset without an ${phase} generator.`,
+        ...at,
+      });
+      return 'invalid';
+    }
+    const interpreted = interpretFieldAttribute({
+      symbols: input.specContext.symbols,
+      node: attribute.node,
+      spec: mongoAttributeSpecs.field[phase](input.specContext),
+      model: input.model,
+      field,
+      sources: input.sources,
+      binder: input.binder,
+      diagnostics,
+    });
+    if (interpreted === undefined) return 'invalid';
+    const type = input.resolved.field.type;
+    const call = interpreted.value;
+    const resolution =
+      type.kind === 'scalar'
+        ? input.generatorFunctions.resolve(
+            { name: call.fn, args: call.args },
+            { codecId: type.codecId, typeParams: type.typeParams },
+          )
+        : undefined;
+    if (resolution?.ok === true) {
+      phases[phase] = resolution.generator;
+      continue;
+    }
+    diagnostics.push({
+      code: 'PSL_GENERATOR_NOT_APPLICABLE',
+      message:
+        resolution?.reason === 'refused'
+          ? `${fieldLabel}: ${resolution.message}`
+          : `${fieldLabel}: ${call.fn}() does not apply to this field's type.`,
+      ...diagnosticSource(input.sources, field.node.syntax).at(call.span),
+    });
+    return 'invalid';
+  }
+  return phases.onCreate === undefined && phases.onUpdate === undefined ? undefined : phases;
 }
 
 interface ResolvedNonRelationField {
@@ -1249,6 +1355,75 @@ function resolveNonRelationField(
   };
 }
 
+interface EnumSite {
+  readonly sourceId: string;
+  readonly codecSpan: PslSpan;
+  readonly memberSpans: Readonly<Record<string, PslSpan>>;
+}
+
+function fieldKey(owner: string, fieldName: string): string {
+  return JSON.stringify([owner, fieldName]);
+}
+
+/** The diagnostic for an enum a collection validator cannot describe, at its `@@type` or member. */
+function enumRefusalDiagnostic(
+  refusal: MongoContractRefusal,
+  sites: ReadonlyMap<string, EnumSite>,
+): ContractSourceDiagnostic | undefined {
+  if (
+    refusal.kind !== 'enumBsonType' &&
+    refusal.kind !== 'enumNotListable' &&
+    refusal.kind !== 'enumMemberNotListable'
+  ) {
+    return undefined;
+  }
+  const site = sites.get(refusal.enumName);
+  assertDefined(site, `Built enum "${refusal.enumName}" has a declaration site`);
+  const subject = `enum "${refusal.enumName}"`;
+  if (refusal.kind === 'enumBsonType') {
+    return {
+      code: 'PSL_EXTENSION_INVALID_VALUE',
+      message: `${subject} ${refusal.refusal.reason}`,
+      sourceId: site.sourceId,
+      span: site.codecSpan,
+    };
+  }
+  if (refusal.kind === 'enumNotListable') {
+    return {
+      code: 'PSL_EXTENSION_INVALID_VALUE',
+      message: `${subject} @@type codec "${refusal.codecId}" ${refusal.reason}`,
+      sourceId: site.sourceId,
+      span: site.codecSpan,
+    };
+  }
+  return {
+    code: 'PSL_EXTENSION_INVALID_VALUE',
+    message: `${subject} member "${refusal.member}" ${refusal.reason}`,
+    sourceId: site.sourceId,
+    span: site.memberSpans[refusal.member] ?? site.codecSpan,
+  };
+}
+
+/** MongoDB PSL has no control policies, so every collection is managed. */
+const MONGO_PSL_CONTROL_POLICIES = { collections: {}, defaultControlPolicy: undefined } as const;
+
+/** The diagnostic for a field a collection validator cannot describe, at the field. */
+function fieldRefusalDiagnostic(
+  refusal: MongoContractRefusal,
+  fieldSymbols: ReadonlyMap<string, FieldSymbol>,
+  sources: PslSources,
+): PslDiagnostic | undefined {
+  if (refusal.kind !== 'fieldBsonType' && refusal.kind !== 'documentId') return undefined;
+  const owner = refusal.kind === 'fieldBsonType' ? refusal.owner.name : refusal.modelName;
+  const field = fieldSymbols.get(fieldKey(owner, refusal.fieldName));
+  assertDefined(field, `Field "${owner}.${refusal.fieldName}" has a declaration`);
+  return {
+    code: refusal.kind === 'fieldBsonType' ? 'PSL_UNSUPPORTED_FIELD_TYPE' : 'PSL_MONGO_ID_INVALID',
+    message: `Field "${owner}.${field.name}" ${refusal.kind === 'fieldBsonType' ? refusal.refusal.reason : refusal.reason}`,
+    ...diagnosticSource(sources, field.node.syntax).at(field.span),
+  };
+}
+
 function processEnumDeclarations(input: {
   readonly enumSymbols: readonly BlockSymbol[];
   readonly parsedBlocks: ReadonlyMap<BlockSymbol, ParsedPslExtensionBlock>;
@@ -1257,6 +1432,8 @@ function processEnumDeclarations(input: {
   readonly authoringContributions: AuthoringContributions | undefined;
   readonly entityContext: AuthoringEntityContext;
   readonly diagnostics: PslDiagnosticCollector;
+  /** Filled with where each built enum is declared, for diagnostics about it. */
+  readonly sites: Map<string, EnumSite>;
 }): Record<string, ContractEnum> {
   const builtEnums: Record<string, ContractEnum> = {};
 
@@ -1309,6 +1486,12 @@ function processEnumDeclarations(input: {
       continue;
     }
     builtEnums[envelope.name] = { codecId: handle.codecId, members: encoded.value };
+    const typeAttribute = envelope.attributes['type'];
+    input.sites.set(envelope.name, {
+      sourceId: sourceFile.filename,
+      codecSpan: typeAttribute?.argSpans?.['codecId'] ?? typeAttribute?.span ?? envelope.span,
+      memberSpans: envelope.parameterSpans,
+    });
   }
 
   return builtEnums;
@@ -1356,10 +1539,12 @@ export function interpretPslDocumentToMongoContract(
   });
   const allModels: ModelSymbol[] = Object.values(defaultNamespace.models);
   const allCompositeTypes: CompositeTypeSymbol[] = Object.values(defaultNamespace.compositeTypes);
+  const { generatorFunctions } = input;
   const specContextFor = (model: ModelSymbol): AttributeSpecContext => ({
     symbols: symbolTable,
     model,
     defaultFunctionRegistry: input.defaultFunctionRegistry,
+    generatorFunctions,
     dataTypes: input.dataTypes,
   });
   const physicalNames = new Map<ModelSymbol | FieldSymbol, string>();
@@ -1387,7 +1572,9 @@ export function interpretPslDocumentToMongoContract(
     (b) => b.keyword === 'enum',
   );
 
+  const enumSites = new Map<string, EnumSite>();
   const builtEnums = processEnumDeclarations({
+    sites: enumSites,
     enumSymbols: topLevelEnumSymbols,
     parsedBlocks,
     sources,
@@ -1425,8 +1612,14 @@ export function interpretPslDocumentToMongoContract(
   const backrelationCandidates: MongoBackRelationCandidate[] = [];
   const invalidFkPairings: InvalidFkPairing[] = [];
 
+  const validatorLookups: TypeLookups = {
+    codecLookup,
+    dataTypeLookup: input.dataTypes.lookup,
+  };
+
+  const fieldSymbols = new Map<string, FieldSymbol>();
+
   for (const pslModel of allModels) {
-    const modelSource = diagnosticSource(sources, pslModel.node.syntax);
     const collectionName = physicalName(physicalNames, pslModel);
     const specContext = specContextFor(pslModel);
 
@@ -1525,63 +1718,76 @@ export function interpretPslDocumentToMongoContract(
 
       const mappedName = physicalName(physicalNames, field);
       fields[mappedName] = resolved.field;
-      if (resolved.executionDefaults) {
+      fieldSymbols.set(fieldKey(pslModel.name, mappedName), field);
+      const generated = lowerGeneratorAttributes({
+        field,
+        model: pslModel,
+        modelName: pslModel.name,
+        resolved,
+        specContext: {
+          ...specContext,
+          field,
+          typeResolution: resolution,
+          typeConstructor: contributedTypeOf(resolution, binder),
+        },
+        generatorFunctions,
+        sources,
+        binder,
+        diagnostics,
+      });
+      if (generated === 'invalid') continue;
+      const phases =
+        resolved.executionDefaults === undefined
+          ? generated
+          : { ...resolved.executionDefaults, ...generated };
+      if (phases !== undefined) {
         presetExecutionDefaults.push({
           modelName: pslModel.name,
           field,
           storedField: mappedName,
-          phases: resolved.executionDefaults,
+          phases,
+          fromPreset: resolved.executionDefaults !== undefined,
         });
       }
     }
 
-    const isVariantModel = pslModel.attributes.some((attr) => attr.name === 'base');
-    const hasIdField =
-      Object.values(pslModel.fields).filter((field) => {
-        const idNode = field.attributes.find((attr) => attr.name === 'id')?.node;
-        if (!idNode) return false;
-        return (
-          interpretFieldAttribute({
-            symbols: specContext.symbols,
-            node: idNode,
-            spec: mongoAttributeSpecs.field.id({
-              ...specContext,
-              field,
-              typeResolution: fieldTypeResolution(field, binder),
-              typeConstructor: contributedTypeOf(fieldTypeResolution(field, binder), binder),
-            }),
-            model: pslModel,
-            field,
-            sources,
-            binder,
-            diagnostics,
-          }) !== undefined
-        );
-      }).length > 0;
-    // Variant models inherit the base's identity and are validated through their base.
-    if (!isVariantModel) {
-      if (!hasIdField) {
-        diagnostics.pushUnlocated({
-          code: 'PSL_MISSING_ID_FIELD',
-          message: `Model "${pslModel.name}" has no field with @id attribute. Every model must have exactly one @id field.`,
-          ...modelSource.at(),
+    const idFields: FieldSymbol[] = [];
+    for (const field of Object.values(pslModel.fields)) {
+      const idNode = field.attributes.find((attr) => attr.name === 'id')?.node;
+      if (!idNode) continue;
+      const interpreted = interpretFieldAttribute({
+        symbols: specContext.symbols,
+        node: idNode,
+        spec: mongoAttributeSpecs.field.id({
+          ...specContext,
+          field,
+          typeResolution: fieldTypeResolution(field, binder),
+          typeConstructor: contributedTypeOf(fieldTypeResolution(field, binder), binder),
+        }),
+        model: pslModel,
+        field,
+        sources,
+        binder,
+        diagnostics,
+      });
+      if (interpreted === undefined) continue;
+      idFields.push(field);
+      const storedName = physicalName(physicalNames, field);
+      if (storedName !== DOCUMENT_ID) {
+        diagnostics.push({
+          code: 'PSL_MONGO_ID_ATTRIBUTE_INVALID',
+          message: `Field "${pslModel.name}.${field.name}" has @id but is stored as "${storedName}". In MongoDB, @id marks the field stored as _id, the document id: add @map("_id") to it, or remove @id.`,
+          ...diagnosticSource(sources, field.node.syntax).at(field.span),
         });
-      } else {
-        const idRefusal = documentIdRefusalOf(fields, {
-          codecLookup,
-          dataTypeLookup: input.dataTypes.lookup,
-        });
-        if (idRefusal !== undefined) {
-          diagnostics.pushUnlocated({
-            code: 'PSL_MONGO_ID_REQUIRED',
-            message:
-              idRefusal.kind === 'unknownCodec'
-                ? `Model "${pslModel.name}" ${idRefusal.reason}`
-                : `Model "${pslModel.name}" must declare an _id field of type ObjectId (e.g. \`id ObjectId @id @map("_id")\`).`,
-            ...modelSource.at(),
-          });
-        }
       }
+    }
+    const [, secondIdField] = idFields;
+    if (secondIdField !== undefined) {
+      diagnostics.push({
+        code: 'PSL_MONGO_ID_ATTRIBUTE_INVALID',
+        message: `Model "${pslModel.name}" has @id on ${idFields.length} fields, ${idFields.map((field) => `"${field.name}"`).join(' and ')}. A document has one id: keep @id only on the field stored as _id.`,
+        ...diagnosticSource(sources, secondIdField.node.syntax).at(secondIdField.span),
+      });
     }
 
     models[pslModel.name] = { fields, relations, storage: { collection: collectionName } };
@@ -1620,6 +1826,7 @@ export function interpretPslDocumentToMongoContract(
       );
       if (!resolved) continue;
       fields[field.name] = resolved.field;
+      fieldSymbols.set(fieldKey(compositeType.name, field.name), field);
     }
     valueObjects[compositeType.name] = { fields };
   }
@@ -1666,6 +1873,19 @@ export function interpretPslDocumentToMongoContract(
     namespaceId: defaultNamespace.id,
   });
 
+  for (const refusal of mongoContractRefusalsOf({
+    models: polyResult.models,
+    valueObjects,
+    enums: builtEnums,
+    lookups: validatorLookups,
+    controlPolicies: MONGO_PSL_CONTROL_POLICIES,
+  })) {
+    const enumDiagnostic = enumRefusalDiagnostic(refusal, enumSites);
+    if (enumDiagnostic !== undefined) diagnostics.pushExternal(enumDiagnostic);
+    const fieldDiagnostic = fieldRefusalDiagnostic(refusal, fieldSymbols, sources);
+    if (fieldDiagnostic !== undefined) diagnostics.push(fieldDiagnostic);
+  }
+
   if (
     diagnostics.length > 0 ||
     polyResult.diagnostics.length > 0 ||
@@ -1695,11 +1915,11 @@ export function interpretPslDocumentToMongoContract(
   const storageValueSets = mongoValueSetsOf(builtEnums);
 
   const validators = deriveCollectionValidators({
-    roots: polyResult.roots,
     models: resolvedModels,
-    lookups: { codecLookup, dataTypeLookup: input.dataTypes.lookup },
+    lookups: validatorLookups,
     valueObjects,
     valueSets: storageValueSets,
+    controlPolicies: MONGO_PSL_CONTROL_POLICIES,
   });
   for (const [collectionName, validator] of Object.entries(validators)) {
     const coll = resolvedCollections[collectionName];
