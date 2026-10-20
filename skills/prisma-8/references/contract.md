@@ -23,7 +23,7 @@ Both files are **emitted artefacts**. Edit the source; never the JSON or `.d.ts`
 - User wants to add a namespace block (Postgres schema) or a cross-contract foreign key.
 - User wants to set `@@control` on a model or configure `defaultControlPolicy`.
 - User wants to use a custom type from an extension (`pgvector.Vector(length: 1536)`, `postgis.Geometry(...)`).
-- User needs a column of a database type no Prisma column type covers (`tsvector`, `ltree`, `circle`, a domain): a raw column, `Raw("...")`.
+- User needs a column of a database type no Prisma column type covers (`tsvector`, `ltree`, `circle`, a domain): a raw column, ``Raw(sql`...`)``.
 - User wants to install or configure an extension via `extensions: [...]` in `prisma.config.ts`, including `@internal/extension-supabase`.
 - User is migrating between authoring sources (PSL ↔ TypeScript builder).
 - User received `CONFIG.CONTRACT_MISSING`, `CONTRACT.VALIDATION_FAILED`, or `CONFIG.MISSING_EXTENSION_PACKS` from `contract emit`.
@@ -235,23 +235,24 @@ For canonical worked examples covering single and multi-extension setups, read `
 
 ## Workflow — Raw columns (a type no column type covers)
 
-The concept: `Raw("<type>")` declares a column whose type Prisma does not model, such as `tsvector`, `ltree`, `circle` or a domain of the user's own. Migrations write the text as given, and `db verify` compares it with the type the database reports, exactly. Values are typed `unknown`, read the same flat and through includes, and write back as read. On Postgres the ORM reads each value as the text the database prints for it. On SQLite a value keeps the shape of its storage class: a number, a string, a `Uint8Array` for a BLOB, or null. The ORM offers no filters or ordering on raw values. Raw columns exist on Postgres and SQLite.
+The concept: ``Raw(sql`<type>`)`` declares a column whose type Prisma does not model, such as `tsvector`, `ltree`, `circle` or a domain of the user's own. Migrations write the text as given, and `db verify` compares it with the type the database reports, exactly. Values are typed `unknown`, read the same flat and through includes, and write back as read. On Postgres the ORM reads each value as the text the database prints for it. On SQLite a value keeps the shape of its storage class: a number, a string, a `Uint8Array` for a BLOB, or null. The ORM offers no filters or ordering on raw values. Raw columns exist on Postgres and SQLite.
 
 ```prisma
 model Category {
-  id     Int             @id
-  search Raw("tsvector")
-  area   Raw("circle")   @default(sql`'<(0,0),1>'::circle`)
-  net    Raw("cidr")?
+  id     Int                @id
+  search Raw(sql`tsvector`)
+  area   Raw(sql`circle`)   @default(sql`'<(0,0),1>'::circle`)
+  net    Raw(sql`cidr`)?
+  tags   Raw(sql`"MyTag"[]`)
 }
 ```
 
-In the TypeScript builder, use `field.column(type.Raw('tsvector'))` in the callback overload, or `field.column(rawColumn('tsvector'))` with `rawColumn` from the adapter's column types.
+In the TypeScript builder, use ``field.column(type.Raw(sql`tsvector`))`` in the callback overload, or ``field.column(rawColumn(sql`tsvector`))`` with `rawColumn` from the adapter's column types and `sql` from the contract builder. A quoted string, `Raw("tsvector")`, is refused with ``Expected sql`...`; write sql`tsvector` ``.
 
 - Write the type as the database catalog prints it: `integer`, not `int4`; `character varying(10)`, not `varchar(10)`. Another form reports a type mismatch in `db verify`, and the finding names the text to write.
 - A raw column's default is a `sql` expression. A literal default is refused at emit (`` Expected sql`...` ``).
 - The text is one type name: words and double-quoted names separated by single spaces, the first optionally after one schema name and a dot, each optionally followed by parentheses of letters, digits, underscores, commas, spaces and a minus sign before a digit, and at most one trailing `[]`. `geometry(Point,4326)`, `double precision` and `app.email` (a domain whose schema is not on the `search_path`) are fine; quotes of other kinds, `$` and operators are refused.
-- PSL strings have no escapes, so a type whose name needs double quotes cannot be written with `Raw`.
+- A type whose name needs double quotes is written with them inside the literal: ``Raw(sql`"MyType"`)``.
 - Changing the text changes the column's type: `migration plan` writes `ALTER COLUMN ... TYPE`. If the database has no cast between the two types, name the field with `--convert` and write the conversion. The generated call is `alterColumnType({ ..., type: "text", raw: true })`; keep `raw: true` when editing it, since a raw type is checked as written.
 
 ## Workflow — Polymorphism (`@@discriminator` / `@@base`)

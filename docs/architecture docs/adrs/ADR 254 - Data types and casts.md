@@ -1,6 +1,6 @@
 # ADR 254 — Data types and casts
 
-Status: **Accepted.** Implemented for the Postgres and SQLite targets and their extensions; the Mongo parts listed under "Not decided here" remain open.
+Status: **Accepted.** Implemented for the Postgres and SQLite targets and their extensions; the Mongo parts listed under "Not decided here" remain open. Amended 2026-10-20: a type-constructor argument that is a value names a data type and is admitted by the cast rule (see "Columns and type constructors").
 
 ## At a glance
 
@@ -302,6 +302,8 @@ The contract stores `dataType`, although the stack could derive it from the code
 
 A **type constructor** is how PSL names a column's type: `Int`, `Numeric(10, 2)`, `pgvector.Vector(1536)`, `pg.enum(Status)`. It names the codec and maps its arguments onto parameters; the data type follows from the codec. `BigInt` is `pg/int8` with `pg/int8@1`, and a number-valued variant is the same type with `pg/int8number@1`. A `types { X = ... }` alias is a type constructor call given a name.
 
+An argument that is a value names its data type, `{ kind: 'value', dataType: 'pg/int4' }`, and is read as an attribute argument is: the written literal is read through the authoring entry for its syntax and admitted when it is a value of that type or of a type it casts from. `VarChar(255)` reads `255` as a `pg/int2` and casts it to `pg/int4`, so the parameter is `255` as before; `VarChar(3000000000)` is refused with `Expected a number that pg/int4 can hold; got pg/int8`, and `VarChar("255")` with `Expected a number`. Every Postgres length, precision, scale and SRID is a `pg/int4`, the type of a typmod. `Raw`'s argument is a `sql/expression`, written `` Raw(sql`ltree`) ``. A constructor every SQL target shares, such as `sql.String`, takes the target's whole-number type: `pg/int4` on Postgres and `sqlite/real` on SQLite, because `sqlite/integer` stores its value as digit text and a parameter is a JSON number. The argument carries no bounds; the parameter's schema checks the value it gives. The TypeScript builder reads its arguments through the same read and cast, so both sources give the same parameters, and `contract print` writes each argument as a literal of its type. A field preset's or entity type's argument of another kind (`number`, `option`, `object`) is read from its text as before.
+
 ## Date and time types
 
 Each date and time type has a tag named after it, listed under "How PSL writes a value". `` timestamptz`2024-01-01T00:00:00Z` ``, `` timestamptz`2024-01-01T00:00:00.000Z` `` and `` timestamptz`2024-01-01T01:00:00+01:00` `` are one instant, stored once as `2024-01-01T00:00:00Z`.
@@ -343,6 +345,8 @@ It refuses, as an `InternalError` naming the contributor and the id, declaration
 5. a type constructor or field preset names a codec no component registers;
 6. a type constructor maps an argument onto a parameter that neither its codec's data type nor the codec declares;
 7. two type constructors of one data type are both marked `inferred`.
+
+It refuses, with a structured error, a value argument of a type constructor or field preset whose data type no component registers (`CONTRACT.DATA_TYPE_UNREGISTERED`), or that no contract source can write, itself or through a type it casts from (`CONTRACT.DATA_TYPE_NOT_WRITABLE`).
 
 The reverse of item 4 is not required: a type may be reachable only through casts. These checks run at assembly because they span packs: `pgvector/vector` taking `pg/numeric` values is valid only when the Postgres target that owns `pg/numeric` is in the stack. Within a pack, types are referred to by constant, so a misspelt id fails to compile and an unregistered one fails assembly.
 
