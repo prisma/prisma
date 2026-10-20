@@ -108,21 +108,6 @@ describe('generateContractDts enum member types', () => {
     );
   });
 
-  it("types members as their codec's output type when the codec compares values by an equality key", () => {
-    const dts = emitEnums(
-      { Ratio: enumOf('test/decimal@1', ['Half', '0.5']) },
-      {
-        get: () => undefined,
-        renderOutputTypeFor: () => undefined,
-        renderValueLiteralFor: (_id, value) => JSON.stringify(value),
-        comparesByEqualityKey: (id) => id === 'test/decimal@1',
-      },
-    );
-    expect(memberTypesOf(dts)).toBe(
-      'readonly enumMemberTypes?: { readonly Ratio: readonly [{ readonly name: "Half"; readonly value: CodecTypes["test/decimal@1"]["output"] }] };',
-    );
-  });
-
   it('keeps the stored forms in the enum entry', () => {
     const dts = emitEnums({ Level: enumOf('test/bigint@1', ['Low', '1']) }, codecLookup);
     expect(dts).toContain(

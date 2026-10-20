@@ -281,7 +281,7 @@ export interface AuthoringEntityContext {
   /**
    * Reads a value written in the contract source outside a default, such as an enum member's value, the way a column default is read: the value's syntax gives it a data type, the codec's data type takes it directly or through a cast, and the codec checks it. Returns the value's stored form, or why it is refused, worded for `subject`. Without it, or when it returns `undefined` for a codec the stack registers no descriptor for, the codec's data type and then the codec read the value as JSON.
    */
-  readonly readWrittenValue?: (input: {
+  readonly readWrittenValueForCodec?: (input: {
     readonly written: WrittenScalar;
     readonly codecId: string;
     readonly subject: string;

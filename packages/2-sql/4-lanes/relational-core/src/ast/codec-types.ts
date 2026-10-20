@@ -185,10 +185,10 @@ export type ExtractCodecTypes<
     readonly output: DescriptorCodecInput<ScalarNames[K]>;
     readonly json: DescriptorCodecJson<ScalarNames[K]>;
     readonly traits: DescriptorCodecTraits<ScalarNames[K]>;
-  } & DescriptorEqualityKeyFlag<ScalarNames[K]>;
+  } & DescriptorKeepsWrittenFormFlag<ScalarNames[K]>;
 };
 
-/** `{ comparesByEqualityKey: true }` for a descriptor that declares it, so the shared field and column types read it; nothing for any other. */
-export type DescriptorEqualityKeyFlag<D> = D extends { readonly comparesByEqualityKey: true }
-  ? { readonly comparesByEqualityKey: true }
+/** `{ keepsWrittenForm: true }` for a descriptor that declares it, so the shared field and column types read it; nothing for any other. */
+export type DescriptorKeepsWrittenFormFlag<D> = D extends { readonly keepsWrittenForm: true }
+  ? { readonly keepsWrittenForm: true }
   : unknown;

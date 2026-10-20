@@ -779,7 +779,6 @@ export function extractCodecLookup(
     renderOutputTypeFor: (id, params) => renderersById.get(id)?.(params),
     renderInputTypeFor: (id, params) => inputRenderersById.get(id)?.(params),
     renderValueLiteralFor: (id, value, side) => valueLiteralRenderersById.get(id)?.(value, side),
-    comparesByEqualityKey: (id) => descriptorsById.get(id)?.comparesByEqualityKey === true,
     descriptorFor: (id) => descriptorsById.get(id),
   };
   return registry;

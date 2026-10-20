@@ -56,13 +56,14 @@ const storedMembers: Readonly<Record<string, JsonValue>> = {
   'pg/varbit': '101',
   'pg/uuid': 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
   'pg/inet': '10.0.0.0/8',
-  'pg/interval': 'P1Y2M3DT4H5M6.5S',
+  'pg/interval': 'P1D',
   'pg/text-array': ['low', 'high'],
 };
 
 /** For a codec whose data type holds equal values in more than one stored form, a value equal to the member in another form, which the column check admits and a read returns as written. */
-const equalInOtherForm: Readonly<Record<string, string>> = {
+const equalInOtherForm: Readonly<Record<string, JsonValue>> = {
   'pg/numeric@1': '12.0',
+  'pg/interval@1': 'PT24H',
 };
 
 /** The codecs an enum accepts whose enum the contract build still refuses, with its message: a member stored as neither a string nor a finite number, which the column check that enforces membership cannot list. */
@@ -90,6 +91,13 @@ const extensionRefusals: Readonly<Record<string, string>> = {
   'pg/geometry@1':
     'Enums over a geometry codec are not supported yet, because no test proves that a shape reads back as its member. Use a text enum that names each shape instead.',
 };
+
+/** The literal a codec should render for the value read: none for a codec whose value keeps the form it was written in, since a read can return a member in another form. */
+function expectedLiteral(codecId: string, read: unknown): string | undefined {
+  return stack.codecLookup.descriptorFor(codecId)?.keepsWrittenForm === true
+    ? undefined
+    : literalOf(read);
+}
 
 const refused = stack.codecDescriptors.flatMap((descriptor) => {
   const refusal = enumRefusalOf(descriptor);
@@ -192,7 +200,7 @@ describe('every codec an enum can use on Postgres reads back the member it write
 
   it.each(Object.entries(equalInOtherForm))(
     'writes a value equal to the member of an enum on %s in another stored form, and reads it back as the member',
-    (codecId, other) =>
+    (codecId, otherStored) =>
       withPostgresPort<Contract<SqlStorage>>({ contractJson }, async ({ client }) => {
         const enumName = enumNameOf(codecId);
         const enumAccessor = client.enums['public']?.[enumName];
@@ -200,15 +208,25 @@ describe('every codec an enum can use on Postgres reads back the member it write
         if (enumAccessor === undefined || collection === undefined) {
           expect.unreachable(`the client has the enum and model ${enumName}`);
         }
+        const other = readContractValue(
+          stack.codecLookup.forCodecRef({ codecId }),
+          otherStored,
+          undefined,
+        );
         await collection.createAndCount([{ id: 1, value: other }]);
         const row = await collection.first();
 
         expect({
-          read: row?.['value'],
-          member: enumAccessor.members['Only'],
+          readAsWritten: sameValue(row?.['value'], other),
           has: enumAccessor.has(row?.['value']),
           name: enumAccessor.nameOf(row?.['value'] as JsonValue),
-        }).toEqual({ read: other, member: '12', has: true, name: 'Only' });
+          literal: stack.codecLookup.renderValueLiteralFor?.(codecId, otherStored, 'output'),
+        }).toEqual({
+          readAsWritten: true,
+          has: true,
+          name: 'Only',
+          literal: expectedLiteral(codecId, row?.['value']),
+        });
       }),
     timeouts.spinUpPpgDev,
   );
@@ -230,7 +248,7 @@ describe('every codec an enum can use on Postgres reads back the member it write
           has: enumAccessor.has(row?.['value']),
           equal: sameValue(row?.['value'], written),
           literal: stack.codecLookup.renderValueLiteralFor?.(codecId, stored, 'output'),
-        }).toEqual({ has: true, equal: true, literal: literalOf(row?.['value']) });
+        }).toEqual({ has: true, equal: true, literal: expectedLiteral(codecId, row?.['value']) });
       }),
     timeouts.spinUpPpgDev,
   );

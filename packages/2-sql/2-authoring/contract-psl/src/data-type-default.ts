@@ -439,21 +439,14 @@ export function readWrittenValueForCodec(input: {
     fieldPath: input.subject,
   });
   if (read.ok) return read;
-  const { refusal } = read;
-  const { code, message } = refusalMessage(
-    refusal,
-    input.subject,
-    input.dataTypes,
-    guidanceFor(read, input.written, input.dataTypes),
-  );
-  if (refusal.kind !== 'no-cast' || message.includes(refusal.valueType)) {
-    return { ok: false, code, message };
-  }
-  const reason = message.slice(input.subject.length + 2);
   return {
     ok: false,
-    code,
-    message: `${input.subject}: ${refusal.receivingType} has no cast from ${refusal.valueType}. ${reason}`,
+    ...refusalMessage(
+      read.refusal,
+      input.subject,
+      input.dataTypes,
+      guidanceFor(read, input.written, input.dataTypes),
+    ),
   };
 }
 

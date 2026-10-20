@@ -42,13 +42,22 @@ type CodecType<
   : PlainCodecType<CodecTypes, CodecId, Side>;
 
 /**
- * `Override`, unless the codec's type map entry carries `comparesByEqualityKey`: its data type holds values equal that have more than one stored form, so a read can return a value the override's member literals do not name, and the value keeps the codec's type.
+ * `Override`, unless the codec's type map entry carries `keepsWrittenForm`: its data type holds values equal that have more than one stored form, so a read can return a value the override's member literals do not name, and the value keeps the codec's type.
  */
 type MemberOverride<Override, CodecTypes, CodecId> = CodecId extends keyof CodecTypes
-  ? CodecTypes[CodecId] extends { readonly comparesByEqualityKey: true }
+  ? CodecTypes[CodecId] extends { readonly keepsWrittenForm: true }
     ? never
     : Override
   : Override;
+
+/**
+ * The type of an enum member's value as a query reads it: `Value`, the member's literal, unless the codec's type map entry carries `keepsWrittenForm`, when a read can return the member in another form and the member has the codec's output type. The emitted `contract.d.ts` and every `defineContract` builder type members by this rule.
+ */
+export type EnumMemberValueType<CodecTypes, CodecId, Value> = CodecId extends keyof CodecTypes
+  ? CodecTypes[CodecId] extends { readonly keepsWrittenForm: true; readonly output: infer Output }
+    ? Output
+    : Value
+  : Value;
 
 type BaseType<Override, Base, Side extends ValueTypeSide> = [Override] extends [never]
   ? Base

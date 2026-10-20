@@ -48,20 +48,17 @@ function generateEnumBlockType(enums: Record<string, ContractEnum>): string {
 }
 
 /**
- * Types each enum member as the value a query returns for it: the literal its codec renders for the stored form, or the codec's output type when the codec renders none or declares `comparesByEqualityKey`, since a read can return the member in another form.
+ * Types each enum member as the value a query returns for it: the literal its codec renders for the stored form, or the codec's output type when the codec renders none.
  */
 function generateEnumMemberTypesBlock(
   enums: Record<string, ContractEnum>,
   codecLookup: CodecLookup | undefined,
 ): string {
   const entries = Object.entries(enums).map(([name, entry]) => {
-    const literalOf = (value: JsonValue) =>
-      codecLookup?.comparesByEqualityKey?.(entry.codecId) === true
-        ? undefined
-        : renderValueLiteralType(value, entry.codecId, 'output', codecLookup);
     const memberTupleItems = entry.members.map((m) => {
       const valueType =
-        literalOf(m.value) ?? `CodecTypes[${serializeValue(entry.codecId)}]["output"]`;
+        renderValueLiteralType(m.value, entry.codecId, 'output', codecLookup) ??
+        `CodecTypes[${serializeValue(entry.codecId)}]["output"]`;
       return `{ readonly name: ${serializeValue(m.name)}; readonly value: ${valueType} }`;
     });
     return `readonly ${serializeObjectKey(name)}: readonly [${memberTupleItems.join(', ')}]`;

@@ -1,6 +1,6 @@
 import type { ContractEnum } from '@internal/contract/types';
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
-import { mapDefault } from '@internal/family-sql/psl-build';
+import { writeDefaultLiteral } from '@internal/family-sql/psl-build';
 import type {
   PslExtensionBlock,
   PslExtensionBlockPrintEntry,
@@ -17,11 +17,6 @@ import {
   refuseUnwritableName,
 } from './refusals';
 
-/** The literal inside a `@default(<literal>)` attribute. */
-function literalOfDefault(attribute: string): string {
-  return attribute.slice('@default('.length, -')'.length);
-}
-
 /**
  * One `enum <name> { … }` block per domain enum, each member written as `Name = <value>` under
  * `@@type`. The PSL source reads a member as a written value of the enum codec's data type, so each
@@ -36,20 +31,14 @@ export function buildDomainEnumBlocks(
     const parameters = Object.fromEntries(
       domainEnum.members.map((member): [string, PslExtensionBlockPrintEntry] => {
         refuseUnwritableName('enum member', member.name);
-        const written = mapDefault(
-          { kind: 'literal', value: member.value },
-          {
-            dataTypes: context.dataTypes,
-            columnCodec: context.codecLookup.descriptorFor(domainEnum.codecId),
-          },
-        );
+        const written = writeDefaultLiteral(member.value, {
+          dataTypes: context.dataTypes,
+          columnCodec: context.codecLookup.descriptorFor(domainEnum.codecId),
+        });
         if (written === undefined) {
           refuseUnwritableEnumMember({ enumName: name, member: member.name, value: member.value });
         }
-        return [
-          member.name,
-          { expression: literalOfDefault(written.attribute), span: SYNTHETIC_SPAN },
-        ];
+        return [member.name, { expression: written, span: SYNTHETIC_SPAN }];
       }),
     );
     return {

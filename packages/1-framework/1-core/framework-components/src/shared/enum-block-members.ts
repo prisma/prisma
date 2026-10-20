@@ -78,7 +78,7 @@ export function enumMemberProblemDiagnostic(
 }
 
 /**
- * Reads the members of an `enum` block through its codec. When the family gives a reader for written values (`ctx.readWrittenValue`), each member is read as a column default is read: its syntax gives it a data type, the codec's data type takes it directly or through a cast, and the codec checks it, so a number keeps every digit and a quoted value is text. A bare member is read from its own name, as text. Without that reader, a member is read as JSON by the codec's data type and then the codec.
+ * Reads the members of an `enum` block through its codec. When the family gives a reader for written values (`ctx.readWrittenValueForCodec`), each member is read as a column default is read: its syntax gives it a data type, the codec's data type takes it directly or through a cast, and the codec checks it, so a number keeps every digit and a quoted value is text. A bare member is read from its own name, as text. Without that reader, a member is read as JSON by the codec's data type and then the codec.
  * Pushes a diagnostic and returns `undefined` when a member is refused, when two members
  * store the same value, or when the block has no members. Shared by every family's enum factory.
  */
@@ -115,7 +115,7 @@ export function readEnumBlockMembers(
     const reading =
       written === undefined
         ? undefined
-        : ctx.readWrittenValue?.({
+        : ctx.readWrittenValueForCodec?.({
             written,
             codecId,
             subject: `enum "${block.name}" member "${memberName}"`,

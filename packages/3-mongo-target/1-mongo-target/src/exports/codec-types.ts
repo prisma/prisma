@@ -57,7 +57,7 @@ export type CodecTypes = {
     readonly input: string;
     readonly output: string;
     readonly traits: 'equality' | 'order' | 'numeric';
-    readonly comparesByEqualityKey: true;
+    readonly keepsWrittenForm: true;
   };
   readonly 'mongo/binary@1': {
     readonly input: Uint8Array;

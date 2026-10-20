@@ -185,7 +185,7 @@ describe('the literal each registered codec renders', () => {
       'pg/int8number@1': '1',
       'pg/float4@1': '1.5',
       'pg/float8@1': '1.5',
-      'pg/numeric@1': '"2"',
+      'pg/numeric@1': undefined,
       'pg/unboundedint@1': '2n',
       'pg/date-temporal@1': undefined,
       'pg/timestamp-temporal@1': undefined,

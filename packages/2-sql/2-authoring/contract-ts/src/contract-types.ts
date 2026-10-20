@@ -3,6 +3,7 @@ import type {
   Contract,
   ContractExecutionSection,
   ContractRelation,
+  EnumMemberValueType,
   FieldTypesFromDomain,
   JsonValue,
   NamespaceId,
@@ -34,7 +35,7 @@ import type { EnumTypeHandle } from './enum-type';
 export type PublicCodecTypes<CodecTypes extends Record<string, { readonly output: unknown }>> = {
   readonly [CodecId in keyof CodecTypes]: Pick<
     CodecTypes[CodecId],
-    Extract<keyof CodecTypes[CodecId], 'input' | 'output' | 'traits' | 'comparesByEqualityKey'>
+    Extract<keyof CodecTypes[CodecId], 'input' | 'output' | 'traits' | 'keepsWrittenForm'>
   >;
 };
 
@@ -1385,32 +1386,21 @@ type EnumHandleEntries<Enums> = {
 
 // The `enumMemberTypes` for enums authored with `enumType`: each member with the value the application reads, as an emitted `contract.d.ts` types it. `db.enums` reads its accessors from it.
 type EnumHandleMemberTypes<Enums, CodecTypes> = {
-  readonly [K in keyof Enums as HandleName<Enums[K]>]: EnumHandleCodecId<Enums[K]> extends infer Id
-    ? Id extends keyof CodecTypes
-      ? CodecTypes[Id] extends {
-          readonly comparesByEqualityKey: true;
-          readonly output: infer Output;
-        }
-        ? EnumHandleMembersOfType<Enums[K], Output>
-        : EnumHandleMembers<Enums[K], false>
-      : EnumHandleMembers<Enums[K], false>
-    : never;
-};
-
-type EnumHandleCodecId<Handle> = Handle extends { readonly codecId: infer CodecId }
-  ? CodecId
-  : never;
-
-// Each member with the codec's output type, for a codec whose type map entry carries `comparesByEqualityKey`: a read can return the member in another form, so no member's literal names it.
-type EnumHandleMembersOfType<Handle, Output> =
-  Handle extends EnumTypeHandle<string, infer Values, infer Names>
+  readonly [K in keyof Enums as HandleName<Enums[K]>]: Enums[K] extends EnumTypeHandle<
+    string,
+    infer Values,
+    infer Names,
+    Record<string, unknown>,
+    infer CodecId
+  >
     ? {
         readonly [I in keyof Values]: {
           readonly name: I extends keyof Names ? Names[I] : never;
-          readonly value: Output;
+          readonly value: EnumMemberValueType<CodecTypes, CodecId, Values[I]>;
         };
       }
     : never;
+};
 
 // The storage `valueSet` entries for enums authored with `enumType`: each enum's member values as they are stored.
 type EnumHandleValueSets<Enums> = {

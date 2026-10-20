@@ -44,6 +44,7 @@ import {
   FLOAT4_MAX,
   fitsCharacterLength,
   fitsFloat4,
+  intervalEqualityKey,
   pgIntervalStoredText,
   readPgByteaJson,
   spellPgByteaJson,
@@ -653,6 +654,7 @@ export const pgInterval = sqlDataType('pg/interval', {
     INTERVAL_SECONDS_FRACTION,
   ),
   spell: spellStoredDateTime(pgIntervalStoredText),
+  equalityKey: intervalEqualityKey,
   params: pgPrecisionParams,
   texts: [writtenAndCatalog('interval'), writtenAndCatalog('interval({precision})')],
 });

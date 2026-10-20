@@ -171,7 +171,7 @@ describe('readEnumBlockMembers', () => {
         dataTypeLookup: createDataTypeLookup([]),
         sourceId: 'schema.prisma',
         diagnostics: { push: (d) => diagnostics.push(d) },
-        readWrittenValue: (input) => {
+        readWrittenValueForCodec: (input) => {
           readerInputs.push(input);
           return reading(input.written);
         },

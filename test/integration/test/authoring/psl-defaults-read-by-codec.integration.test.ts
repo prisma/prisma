@@ -217,7 +217,7 @@ model Task {
         'a text member under an integer codec',
         '  @@type("pg/int4@1")\n  Low = "low"',
         'PSL_VALUE_TYPE_INCOMPATIBLE',
-        'enum "Priority" member "Low": pg/int4 has no cast from pg/text. Expected a number',
+        'enum "Priority" member "Low": Expected a number',
       ],
       [
         'a bare member under an integer codec',
@@ -229,25 +229,25 @@ model Task {
         'a number member under a text codec',
         '  @@type("pg/text@1")\n  Low = 1',
         'PSL_VALUE_TYPE_INCOMPATIBLE',
-        'enum "Priority" member "Low": pg/text has no cast from pg/int2. Expected a quoted string',
+        'enum "Priority" member "Low": Expected a quoted string',
       ],
       [
         'a quoted numeric member, which is text',
         '  @@type("pg/numeric@1")\n  Low = "1.50"',
         'PSL_VALUE_TYPE_INCOMPATIBLE',
-        'enum "Priority" member "Low": pg/numeric has no cast from pg/text. Expected a number; write 1.50',
+        'enum "Priority" member "Low": Expected a number; write 1.50',
       ],
       [
         'a quoted int8 member, which is text',
         '  @@type("pg/int8@1")\n  Low = "9007199254740993"',
         'PSL_VALUE_TYPE_INCOMPATIBLE',
-        'enum "Priority" member "Low": pg/int8 has no cast from pg/text. Expected a number; write 9007199254740993',
+        'enum "Priority" member "Low": Expected a number; write 9007199254740993',
       ],
       [
         'a quoted date member, which is text',
         '  @@type("pg/date-temporal@1")\n  Low = "2024-01-02"',
         'PSL_VALUE_TYPE_INCOMPATIBLE',
-        'enum "Priority" member "Low": pg/date has no cast from pg/text. Expected date`...`; write date`2024-01-02`',
+        'enum "Priority" member "Low": Expected date`...`; write date`2024-01-02`',
       ],
       [
         'an inet member that is not an address',
@@ -329,6 +329,20 @@ model Task {
           code: 'PSL_ENUM_DUPLICATE_MEMBER_VALUE',
           message:
             'enum "Priority": members "Half" and "AlsoHalf" store "0.5" and "0.50", which the database holds equal',
+        },
+      ],
+    });
+  });
+
+  it('refuses two pg/interval@1 members that are one length, a day and 24 hours', async () => {
+    expect(
+      await storedEnumValues('pg/interval@1', ['Day = interval`P1D`', 'Hours = interval`PT24H`']),
+    ).toEqual({
+      diagnostics: [
+        {
+          code: 'PSL_ENUM_DUPLICATE_MEMBER_VALUE',
+          message:
+            'enum "Priority": members "Day" and "Hours" store "P1D" and "PT24H", which the database holds equal',
         },
       ],
     });

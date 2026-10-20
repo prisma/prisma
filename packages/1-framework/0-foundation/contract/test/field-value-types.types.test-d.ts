@@ -14,7 +14,7 @@ type CodecTypes = {
   readonly 'test/decimal@1': {
     readonly input: string;
     readonly output: string;
-    readonly comparesByEqualityKey: true;
+    readonly keepsWrittenForm: true;
   };
 };
 

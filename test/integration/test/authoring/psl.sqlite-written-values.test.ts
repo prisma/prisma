@@ -227,7 +227,7 @@ describe('enum members on SQLite', () => {
         diagnostics: [
           {
             code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
-            message: `enum "Priority" member "Low": sqlite/integer has no cast from sqlite/text. Expected a number; write ${number}`,
+            message: `enum "Priority" member "Low": Expected a number; write ${number}`,
           },
         ],
       });
@@ -253,8 +253,7 @@ describe('enum members on SQLite', () => {
       diagnostics: [
         {
           code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
-          message:
-            'enum "Priority" member "Low": sqlite/json has no cast from sqlite/text. Expected json`...`; write json`"low"`',
+          message: 'enum "Priority" member "Low": Expected json`...`; write json`"low"`',
         },
       ],
     });
@@ -264,8 +263,7 @@ describe('enum members on SQLite', () => {
     expect((await storedEnumValues('sqlite/json@1', 'Low = 1')).diagnostics).toEqual([
       {
         code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
-        message:
-          'enum "Priority" member "Low": sqlite/json has no cast from sqlite/integer. Expected json`...`',
+        message: 'enum "Priority" member "Low": Expected json`...`',
       },
     ]);
   });

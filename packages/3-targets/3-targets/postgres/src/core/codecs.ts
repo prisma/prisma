@@ -840,11 +840,8 @@ export class PgNumericDescriptor extends PostgresCodecDescriptor<NumericParams> 
   override readonly dataType = pgNumeric.id;
   override readonly codecId = PG_NUMERIC_CODEC_ID;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
-  override readonly comparesByEqualityKey = true as const;
+  override readonly keepsWrittenForm = true as const;
   override readonly paramsSchema = pgNumericParams satisfies StandardSchemaV1<NumericParams>;
-  override renderValueLiteral(value: JsonValue): string | undefined {
-    return renderTsLiteral(value);
-  }
   override factory(params: NumericParams): (ctx: CodecInstanceContext) => PgNumericCodec {
     return () => new PgNumericCodec(this, pgNumeric, params ?? {});
   }
@@ -1273,6 +1270,7 @@ export class PgIntervalDescriptor extends PostgresCodecDescriptor<PrecisionParam
   override readonly dataType = pgInterval.id;
   override readonly codecId = PG_INTERVAL_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
+  override readonly keepsWrittenForm = true as const;
   override readonly paramsSchema = pgPrecisionParams satisfies StandardSchemaV1<PrecisionParams>;
   override factory(params: PrecisionParams): (ctx: CodecInstanceContext) => PgIntervalCodec {
     return () => new PgIntervalCodec(this, pgInterval, params ?? {});

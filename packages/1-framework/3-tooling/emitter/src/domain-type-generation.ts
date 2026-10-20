@@ -326,9 +326,10 @@ export type StorageValueSetResolver = (
  * a generic serializer. `side`: `output` = read type, `input` = create/update type.
  *
  * Returns `undefined` — signalling the caller to fall back to the codec's full output type — when
- * the lookup is absent, has no `renderValueLiteralFor`, the value set is empty, **any** value
- * isn't literal-expressible. A codec whose type map entry carries `comparesByEqualityKey` keeps its codec type in the shared field and column types whatever this renders. A caller that needs column and field types to agree shares this so both
- * compute the union identically.
+ * the lookup is absent, has no `renderValueLiteralFor`, the value set is empty, or **any** value
+ * isn't literal-expressible, which every value of a codec that declares `keepsWrittenForm` is. A
+ * caller that needs column and field types to agree shares this so both compute the union
+ * identically.
  */
 export function renderValueSetType(
   values: readonly JsonValue[],
