@@ -8,7 +8,10 @@ import {
   sqlFamilyGeneratorFunctions,
 } from '../core/generator-functions';
 
-export { idGeneratorFunctionBindings } from '../core/generator-functions';
+export {
+  idGeneratorFunctionBindings,
+  sqlIntegerArgumentGeneratorFunctions,
+} from '../core/generator-functions';
 
 const sqlFamilyPack = {
   kind: 'family',

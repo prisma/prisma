@@ -1777,15 +1777,18 @@ namespace app {
     expect(completionItemByLabel(snippetItems, 'now').textEdit?.newText).toBe('now()');
   }, 5_000);
 
-  it('labels each default function argument by the values the function takes', async () => {
-    const defaults = await importFromPackageRoot<ActualPostgresDefaultsModule>(
-      '../../../3-targets/6-adapters/postgres/src/core/control-mutation-defaults.ts',
-    );
-    const registry = defaults.createPostgresDefaultFunctionRegistry();
+  it('labels each generator function argument by the values the function takes', async () => {
+    const postgres = await importFromPackageRoot<{
+      readonly postgresGeneratorFunctions: readonly {
+        readonly name: string;
+        readonly signature?: unknown;
+      }[];
+    }>('../../../3-targets/3-targets/postgres/src/core/generator-functions.ts');
     const labelOf = (name: string) => {
-      const signature = (registry.get(name)!.signature as (dataTypes: unknown) => FuncCallSig)(
-        EMPTY_DATA_TYPES,
-      );
+      const declared = postgres.postgresGeneratorFunctions.find(
+        (contribution) => contribution.name === name && contribution.signature !== undefined,
+      )!.signature as (dataTypes: unknown) => FuncCallSig;
+      const signature = declared(EMPTY_DATA_TYPES);
       return renderSignatureLabel(name, signature, resolveSignatureParameters(signature, undefined))
         .label;
     };

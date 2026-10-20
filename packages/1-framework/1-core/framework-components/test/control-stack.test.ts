@@ -170,6 +170,7 @@ describe('assembleAuthoringContributions', () => {
     const result = assembleAuthoringContributions([createDescriptor()]);
     expect(result).toEqual({
       dataTypes: {},
+      textDataTypes: [],
       field: {},
       type: {},
       entityTypes: {},
@@ -1490,6 +1491,7 @@ describe('createControlStack', () => {
     expect(state.extensionIds).toEqual(['fam', 'tgt']);
     expect(state.authoringContributions).toEqual({
       dataTypes: {},
+      textDataTypes: [],
       field: {},
       type: {},
       entityTypes: {},

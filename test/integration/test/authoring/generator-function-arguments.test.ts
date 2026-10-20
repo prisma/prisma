@@ -13,7 +13,7 @@ import sqlitePackRef from '@internal/target-sqlite/pack';
 import { join } from 'pathe';
 import { afterAll, describe, expect, it } from 'vitest';
 
-const FIELD_PREFIX = '  value String @default(';
+const FIELD_PREFIX = '  value String @onCreate(';
 
 describe.each([
   {
@@ -36,7 +36,7 @@ describe.each([
     integer: 'sqlite/integer',
     fraction: 'sqlite/real',
     beyondInteger: {
-      code: 'PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT',
+      code: 'PSL_INVALID_GENERATOR_ARGUMENT',
       message: 'nanoid: size must be between 2 and 255, got 3000000000',
     },
   },
@@ -98,7 +98,7 @@ describe.each([
     ])('refuses %s at the argument with the function message', async (call, argument, message) => {
       expect(await refusals(call)).toEqual([
         {
-          code: 'PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT',
+          code: 'PSL_INVALID_GENERATOR_ARGUMENT',
           message,
           line: 5,
           columns: columnsOf(call, argument),
@@ -143,22 +143,22 @@ describe.each([
       ]);
     });
 
-    it('names cuid as a default function when its version is missing', async () => {
+    it('names cuid as a generator function when its version is missing', async () => {
       expect(await refusals('cuid()')).toEqual([
         {
           code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
-          message: 'Default function "cuid" is missing required argument "version"',
+          message: 'Generator function "cuid" is missing required argument "version"',
           line: 5,
           columns: columnsOf('cuid()', 'cuid()'),
         },
       ]);
     });
 
-    it('names nanoid as a default function when it receives too many arguments', async () => {
+    it('names nanoid as a generator function when it receives too many arguments', async () => {
       expect(await refusals('nanoid(8, 9)')).toEqual([
         {
           code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
-          message: 'Default function "nanoid" received too many positional arguments',
+          message: 'Generator function "nanoid" received too many positional arguments',
           line: 5,
           columns: columnsOf('nanoid(8, 9)', 'nanoid(8, 9)'),
         },

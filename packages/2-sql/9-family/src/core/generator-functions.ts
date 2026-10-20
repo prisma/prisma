@@ -1,3 +1,5 @@
+import type { DataTypeSupport } from '@internal/framework-components/authoring';
+import type { DataTypeId } from '@internal/framework-components/codec';
 import type {
   BindingResolution,
   GeneratorFunctionBinding,
@@ -6,49 +8,32 @@ import type {
   MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/components';
 import { singleGeneratorBinding } from '@internal/framework-components/components';
-import type { FuncCallSig } from '@internal/psl-parser';
-import { int, num, oneOf, optional } from '@internal/psl-parser';
+import { CUID_VERSION, NANOID_SIZE, UUID_VERSIONS } from '@internal/ids';
+import {
+  type ArgType,
+  type AttributeCtx,
+  dataTypeValue,
+  type FuncCallSig,
+  leafDiagnostic,
+  optional,
+  refineArg,
+} from '@internal/psl-parser';
 import {
   SQL_CHAR_CODEC_ID,
   SQL_TEXT_CODEC_ID,
   SQL_VARCHAR_CODEC_ID,
 } from '@internal/sql-relational-core/ast';
+import { blindCast } from '@internal/utils/casts';
+import { InternalError } from '@internal/utils/internal-error';
+import { notOk, ok } from '@internal/utils/result';
 
 const NANOID_DEFAULT_SIZE = 21;
-const NANOID_MIN_SIZE = 2;
-const NANOID_MAX_SIZE = 255;
 
 const nowSignature = {
   documentation: "Writes the current time, as the column's codec represents it.",
 } as const satisfies FuncCallSig;
-const uuidSignature = {
-  documentation: 'Generates a UUID when a value is not supplied.',
-  positional: [
-    {
-      key: 'version',
-      type: optional(oneOf(num(4), num(7))),
-      documentation: 'The UUID version: `4` or `7`. Defaults to `4`.',
-    },
-  ],
-} as const satisfies FuncCallSig;
-const cuidSignature = {
-  documentation: 'Generates a CUID2 identifier when a value is not supplied.',
-  positional: [
-    { key: 'version', type: num(2), documentation: 'The CUID version. Only `2` is supported.' },
-  ],
-} as const satisfies FuncCallSig;
 const ulidSignature = {
   documentation: 'Generates a ULID when a value is not supplied.',
-} as const satisfies FuncCallSig;
-const nanoidSignature = {
-  documentation: 'Generates a Nano ID when a value is not supplied.',
-  positional: [
-    {
-      key: 'size',
-      type: optional(int({ min: NANOID_MIN_SIZE, max: NANOID_MAX_SIZE })),
-      documentation: 'The identifier length, from `2` through `255`. Defaults to 21.',
-    },
-  ],
 } as const satisfies FuncCallSig;
 const ksuidSignature = {
   documentation: 'Generates a KSUID when a value is not supplied.',
@@ -71,13 +56,17 @@ function uuidBinding(codecIds: readonly string[]): GeneratorFunctionBinding {
     generatorIds: ['uuidv4', 'uuidv7'],
     resolve: ({ args }) => {
       const version = args['version'];
-      if (version === undefined || version === 4) return generated('uuidv4');
-      if (version === 7) return generated('uuidv7');
-      return refused(`uuid takes version 4 or 7, not ${String(version)}.`);
+      if (version === undefined || version === UUID_VERSIONS.v4) return generated('uuidv4');
+      if (version === UUID_VERSIONS.v7) return generated('uuidv7');
+      return refused(
+        `uuid: version must be ${UUID_VERSIONS.v4} or ${UUID_VERSIONS.v7}, got ${String(version)}`,
+      );
     },
     printArguments: (generator) => {
       if (generator.id === 'uuidv4') return { args: {}, text: '' };
-      if (generator.id === 'uuidv7') return { args: { version: 7 }, text: '7' };
+      if (generator.id === 'uuidv7') {
+        return { args: { version: UUID_VERSIONS.v7 }, text: String(UUID_VERSIONS.v7) };
+      }
       return undefined;
     },
   };
@@ -89,12 +78,14 @@ function cuidBinding(codecIds: readonly string[]): GeneratorFunctionBinding {
     generatorIds: ['cuid2'],
     resolve: ({ args }) => {
       const version = args['version'];
-      return version === 2
+      return version === CUID_VERSION
         ? generated('cuid2')
-        : refused(`cuid takes version 2, not ${String(version)}.`);
+        : refused(`cuid: version must be ${CUID_VERSION}, got ${String(version)}`);
     },
     printArguments: (generator) =>
-      generator.id === 'cuid2' ? { args: { version: 2 }, text: '2' } : undefined,
+      generator.id === 'cuid2'
+        ? { args: { version: CUID_VERSION }, text: String(CUID_VERSION) }
+        : undefined,
   };
 }
 
@@ -107,8 +98,8 @@ function isNanoidSize(size: unknown): size is number {
   return (
     typeof size === 'number' &&
     Number.isInteger(size) &&
-    size >= NANOID_MIN_SIZE &&
-    size <= NANOID_MAX_SIZE
+    size >= NANOID_SIZE.min &&
+    size <= NANOID_SIZE.max
   );
 }
 
@@ -123,7 +114,7 @@ function nanoidBinding(codecIds: readonly string[]): GeneratorFunctionBinding {
       const explicit = args['size'];
       if (explicit !== undefined && !isNanoidSize(explicit)) {
         return refused(
-          `nanoid takes a size from ${NANOID_MIN_SIZE} through ${NANOID_MAX_SIZE}, not ${String(explicit)}.`,
+          `nanoid: size must be between ${NANOID_SIZE.min} and ${NANOID_SIZE.max}, got ${String(explicit)}`,
         );
       }
       const size = explicit ?? NANOID_DEFAULT_SIZE;
@@ -175,10 +166,10 @@ function familyBindingsOf(name: string): readonly GeneratorFunctionBinding[] {
 /** The generator functions the SQL family declares, with their bindings to the family's codecs. Targets bind `now` and their own codecs. */
 export const sqlFamilyGeneratorFunctions = [
   { name: 'now', signature: nowSignature, bindings: [] },
-  { name: 'uuid', signature: uuidSignature, bindings: familyBindingsOf('uuid') },
-  { name: 'cuid', signature: cuidSignature, bindings: familyBindingsOf('cuid') },
+  { name: 'uuid', bindings: familyBindingsOf('uuid') },
+  { name: 'cuid', bindings: familyBindingsOf('cuid') },
   { name: 'ulid', signature: ulidSignature, bindings: familyBindingsOf('ulid') },
-  { name: 'nanoid', signature: nanoidSignature, bindings: familyBindingsOf('nanoid') },
+  { name: 'nanoid', bindings: familyBindingsOf('nanoid') },
   { name: 'ksuid', signature: ksuidSignature, bindings: familyBindingsOf('ksuid') },
 ] as const satisfies readonly GeneratorFunctionContribution[];
 
@@ -190,3 +181,127 @@ export const sqlFamilyGeneratorDescriptors: readonly MutationDefaultGeneratorDes
     ),
   ),
 ].map((id) => ({ id }));
+
+/**
+ * The generator functions whose arguments are integers, declared with their signatures: `uuid(version?)`, `cuid(version)` and `nanoid(size?)`. Each argument is a value of `integer`, the target's integer data type, read and cast like a default, then checked by its function. A target declares them, because only it knows its integer type; the family and the target bind them.
+ */
+export function sqlIntegerArgumentGeneratorFunctions({
+  integer,
+}: {
+  readonly integer: DataTypeId;
+}) {
+  return [
+    {
+      name: 'uuid',
+      signature: (dataTypes: DataTypeSupport) => uuidSignature(integer, dataTypes),
+      bindings: [],
+    },
+    {
+      name: 'cuid',
+      signature: (dataTypes: DataTypeSupport) => cuidSignature(integer, dataTypes),
+      bindings: [],
+    },
+    {
+      name: 'nanoid',
+      signature: (dataTypes: DataTypeSupport) => nanoidSignature(integer, dataTypes),
+      bindings: [],
+    },
+  ] as const satisfies readonly GeneratorFunctionContribution[];
+}
+
+function uuidSignature(integer: DataTypeId, dataTypes: DataTypeSupport) {
+  const versions = [UUID_VERSIONS.v4, UUID_VERSIONS.v7] as const;
+  return {
+    documentation: 'Generates a UUID when a value is not supplied.',
+    positional: [
+      {
+        key: 'version',
+        type: optional(
+          checkedInteger<(typeof versions)[number]>(
+            integer,
+            dataTypes,
+            listed(versions),
+            (version, written) =>
+              versions.some((allowed) => allowed === version)
+                ? undefined
+                : `uuid: version must be ${UUID_VERSIONS.v4} or ${UUID_VERSIONS.v7}, got ${written}`,
+          ),
+        ),
+        documentation: `The UUID version: \`${UUID_VERSIONS.v4}\` or \`${UUID_VERSIONS.v7}\`. Defaults to \`${UUID_VERSIONS.v4}\`.`,
+      },
+    ],
+  } as const satisfies FuncCallSig;
+}
+
+function cuidSignature(integer: DataTypeId, dataTypes: DataTypeSupport) {
+  return {
+    documentation: 'Generates a CUID2 identifier when a value is not supplied.',
+    positional: [
+      {
+        key: 'version',
+        type: checkedInteger<typeof CUID_VERSION>(
+          integer,
+          dataTypes,
+          listed([CUID_VERSION]),
+          (version, written) =>
+            version === CUID_VERSION
+              ? undefined
+              : `cuid: version must be ${CUID_VERSION}, got ${written}`,
+        ),
+        documentation: `The CUID version. Only \`${CUID_VERSION}\` is supported.`,
+      },
+    ],
+  } as const satisfies FuncCallSig;
+}
+
+function nanoidSignature(integer: DataTypeId, dataTypes: DataTypeSupport) {
+  return {
+    documentation: 'Generates a Nano ID when a value is not supplied.',
+    positional: [
+      {
+        key: 'size',
+        type: optional(
+          checkedInteger<number>(
+            integer,
+            dataTypes,
+            { label: `integer from ${NANOID_SIZE.min} to ${NANOID_SIZE.max}`, suggestions: [] },
+            (size, written) =>
+              isNanoidSize(size)
+                ? undefined
+                : `nanoid: size must be between ${NANOID_SIZE.min} and ${NANOID_SIZE.max}, got ${written}`,
+          ),
+        ),
+        documentation: `The identifier length, from \`${NANOID_SIZE.min}\` through \`${NANOID_SIZE.max}\`. Defaults to ${NANOID_DEFAULT_SIZE}.`,
+      },
+    ],
+  } as const satisfies FuncCallSig;
+}
+
+/** The label and completion suggestions of an argument that takes one of `values`. */
+function listed(values: readonly number[]) {
+  const suggestions = values.map(String);
+  return { label: suggestions.join(' | '), suggestions };
+}
+
+/**
+ * One value of the integer data type, as a number, refused at the argument with the function's message when `refusal` returns one.
+ */
+function checkedInteger<Allowed extends number>(
+  integer: DataTypeId,
+  dataTypes: DataTypeSupport,
+  allowed: { readonly label: string; readonly suggestions: readonly string[] },
+  refusal: (value: number, written: string) => string | undefined,
+): ArgType<Allowed, AttributeCtx> {
+  return refineArg(dataTypeValue(integer, dataTypes, allowed), ({ value }, arg, ctx) => {
+    const stored = value.value;
+    if (typeof stored !== 'number' && typeof stored !== 'string') {
+      throw new InternalError(
+        `Data type "${integer}" stores an integer as ${typeof stored}, not a number or digit text.`,
+      );
+    }
+    const message = refusal(Number(stored), String(stored));
+    return message === undefined
+      ? ok(blindCast<Allowed, 'refusal accepts only the values the function takes'>(Number(stored)))
+      : notOk([leafDiagnostic(ctx, arg, message, 'PSL_INVALID_GENERATOR_ARGUMENT')]);
+  });
+}
