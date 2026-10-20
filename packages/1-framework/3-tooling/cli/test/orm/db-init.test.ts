@@ -36,6 +36,8 @@ const MISSING_COLUMN: SchemaDiffIssue = {
   expected: { id: 'id', nodeKind: 'sql-column', isEqualTo: () => false, children: () => [] },
 };
 
+const WARNING = { kind: 'suppressed', summary: 'control policy suppressed: table "auth.x"' };
+
 const mocks = {
   connect: vi.fn(),
   dbInit: vi.fn(),
@@ -154,6 +156,19 @@ function planSuccess(): Record<string, unknown> {
 
 function harness(config: Record<string, unknown>) {
   return createOrmTestCli({ commands, groups: BIN_GROUPS, orm: config });
+}
+
+/** The frames a `--json` run wrote to stdout, parsed as a consumer reads them. */
+function stdoutFrames(stdout: string): readonly Record<string, unknown>[] {
+  return stdout
+    .trim()
+    .split('\n')
+    .map((line) => JSON.parse(line) as Record<string, unknown>);
+}
+
+function stdoutErrorMeta(stdout: string): unknown {
+  const last = stdoutFrames(stdout).at(-1) as { envelope: { error: { meta: unknown } } };
+  return last.envelope.error.meta;
 }
 
 function envelopeOf(json: readonly StreamEvent[]): unknown {
@@ -535,6 +550,48 @@ describe('db init', () => {
     });
   });
 
+  function failWithPlannerWarning() {
+    mocks.dbInit.mockImplementation(async (options: Parameters<ControlClient['dbInit']>[0]) => {
+      options.onPlannerWarnings?.([WARNING]);
+      return notOk(
+        dbInitRunnerFailureError(
+          migrationRunnerFailure('MIGRATION.EXECUTION_FAILED', 'runner failed'),
+          {},
+          { cwd: projectDir, configPath: undefined, dbGiven: false },
+        ),
+      );
+    });
+  }
+
+  it('shows the planner`s warnings when the apply fails', async () => {
+    failWithPlannerWarning();
+
+    const run = await harness(ormConfig()).run(['db', 'init'], {
+      cwd: projectDir,
+      isTty: { stdout: true, stderr: true },
+    });
+
+    expect(run.events).toContainEqual({ kind: 'message', severity: 'warn', text: WARNING.summary });
+    expect(stripAnsi(run.stderr)).toContain(WARNING.summary);
+  });
+
+  it('writes the planner`s warnings of a failed apply as warn frames before the --json error', async () => {
+    failWithPlannerWarning();
+
+    const run = await harness(ormConfig()).run(['db', 'init', '--json'], { cwd: projectDir });
+    const frames = stdoutFrames(run.stdout);
+
+    expect({
+      exitCode: run.exitCode,
+      kinds: frames.map((frame) => frame['kind']),
+      first: frames[0],
+    }).toEqual({
+      exitCode: 2,
+      kinds: ['message', 'result'],
+      first: expect.objectContaining({ kind: 'message', severity: 'warn', text: WARNING.summary }),
+    });
+  });
+
   it('reports a runner failure with the runner code and meta, and the advice', async () => {
     const runnerFailure = migrationRunnerFailure(
       'MIGRATION.SCHEMA_VERIFY_FAILED',
@@ -573,9 +630,7 @@ describe('db init', () => {
         meta: { schemaIssues: [{ path: ['public', 'event', 'id'] }], failingSpace: 'app' },
       },
     });
-    expect((envelopeOf(run.json) as { error: { meta: unknown } }).error.meta).toEqual(
-      runnerFailure.meta,
-    );
+    expect(stdoutErrorMeta(run.stdout)).toEqual(JSON.parse(JSON.stringify(runnerFailure.meta)));
     expect(mocks.dbInit).toHaveBeenCalledWith(
       expect.objectContaining({
         invocation: { cwd: projectDir, configPath: undefined, dbGiven: false },

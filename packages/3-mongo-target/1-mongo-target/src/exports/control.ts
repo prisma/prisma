@@ -10,6 +10,8 @@ export { MongoMigrationPlanner } from '../core/migrations/mongo-planner';
 export {
   MongoMigrationRunner,
   type MongoMigrationRunnerExecuteOptions,
+  type MongoMigrationRunnerFailure,
+  type MongoMigrationRunnerResult,
 } from '../core/migrations/mongo-runner';
 export { MongoTargetSchemaVerifier } from '../core/migrations/mongo-target-schema-verifier';
 export type { CollModMeta, OpFactoryCall } from '../core/migrations/op-factory-call';
@@ -35,3 +37,4 @@ export {
   MongoTargetDatabase,
   MongoTargetUnboundDatabase,
 } from '../core/mongo-target-database';
+export type { MongoMigrationRunnerErrorCode } from '../core/mongo-target-errors';

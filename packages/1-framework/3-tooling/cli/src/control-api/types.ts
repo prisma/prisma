@@ -179,7 +179,13 @@ export interface SchemaVerifyOptions {
 /**
  * Options for the dbInit operation.
  */
-export interface DbInitOptions {
+/** Receives the warnings the planner raised about a run's plan without refusing it. */
+export interface PlannerWarningsListener {
+  /** Called once per run, after planning, when the planner raised warnings, whether the apply then succeeds or fails. */
+  readonly onPlannerWarnings?: (warnings: readonly MigrationPlannerConflict[]) => void;
+}
+
+export interface DbInitOptions extends PlannerWarningsListener {
   /** The command line the advice of a failure repeats: its directory, `--config` and whether `--db` was given. */
   readonly invocation: CliInvocation;
   /** Contract or unvalidated JSON - validated at runtime via familyInstance.deserializeContract() */
@@ -204,18 +210,13 @@ export interface DbInitOptions {
    */
   readonly migrationsDir: string;
   /** Optional progress callback for observing operation progress */
-  /**
-   * Called with the planner's warnings when the apply fails after planning: a failure carries no
-   * result to hold them. A successful run reports them in its result's `warnings`.
-   */
-  readonly onPlannerWarnings?: (warnings: readonly MigrationPlannerConflict[]) => void;
   readonly onProgress?: OnControlProgress;
 }
 
 /**
  * Options for the dbUpdate operation.
  */
-export interface DbUpdateOptions {
+export interface DbUpdateOptions extends PlannerWarningsListener {
   /** The command line the advice of a failure repeats: its directory, `--config` and whether `--db` was given. */
   readonly invocation: CliInvocation;
   /** Contract or unvalidated JSON - validated at runtime via familyInstance.deserializeContract() */
@@ -258,11 +259,6 @@ export interface DbUpdateOptions {
    */
   readonly answerQuestions: AnswerPlanQuestions;
   /** Optional progress callback for observing operation progress */
-  /**
-   * Called with the planner's warnings when the apply fails after planning: a failure carries no
-   * result to hold them. A successful run reports them in its result's `warnings`.
-   */
-  readonly onPlannerWarnings?: (warnings: readonly MigrationPlannerConflict[]) => void;
   readonly onProgress?: OnControlProgress;
 }
 
@@ -434,7 +430,6 @@ export interface DbInitSuccess {
    */
   readonly perSpace?: ReadonlyArray<PerSpaceExecutionEntry>;
   readonly summary: string;
-  readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
 }
 
 /** The result of `db init`: a failure is the structured error the command reports. */
@@ -497,7 +492,6 @@ export interface DbUpdateSuccess
    */
   readonly databaseStorageHash?: string;
   readonly summary: string;
-  readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
 }
 
 /**

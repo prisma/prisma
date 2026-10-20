@@ -42,7 +42,7 @@ import {
 import { blindCast } from '@internal/utils/casts';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
-import { mongoTargetError } from '../mongo-target-errors';
+import { type MongoMigrationRunnerErrorCode, mongoTargetError } from '../mongo-target-errors';
 import { FilterEvaluator } from './filter-evaluator';
 import { deserializeMongoOps } from './mongo-ops-serializer';
 
@@ -75,20 +75,15 @@ export interface MongoMigrationRunnerExecuteOptions {
   readonly migrationEdges: readonly AggregateMigrationEdgeRef[];
 }
 
+/** A failure of the Mongo runner: one of the codes it returns. */
+export interface MongoMigrationRunnerFailure extends MigrationRunnerFailure {
+  readonly code: MongoMigrationRunnerErrorCode;
+}
+
 export type MongoMigrationRunnerResult = Result<
   MigrationRunnerPerSpaceSuccessValue,
-  MigrationRunnerFailure
+  MongoMigrationRunnerFailure
 >;
-
-/** The codes the Mongo runner returns a failure with. */
-type MongoMigrationRunnerErrorCode =
-  | 'MIGRATION.EXECUTION_FAILED'
-  | 'MIGRATION.MARKER_CAS_FAILURE'
-  | 'MIGRATION.MARKER_ORIGIN_MISMATCH'
-  | 'MIGRATION.POLICY_VIOLATION'
-  | 'MIGRATION.POSTCHECK_FAILED'
-  | 'MIGRATION.PRECHECK_FAILED'
-  | 'MIGRATION.SCHEMA_VERIFY_FAILED';
 
 function runnerFailure(
   code: MongoMigrationRunnerErrorCode,

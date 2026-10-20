@@ -346,6 +346,50 @@ describe('executeDbUpdate', () => {
     }).toEqual({ warned: [[[warning]]], meta: { sqlState: '42P07', failingSpace: 'app' } });
   });
 
+  it('hands the planner`s warnings to onPlannerWarnings once when the apply succeeds', async () => {
+    const warning = { kind: 'suppressed', summary: 'control policy suppressed: table "auth.x"' };
+    const onPlannerWarnings = vi.fn();
+    const result = await executeDbUpdate({
+      invocation: TEST_INVOCATION,
+      driver: createMockDriver(),
+      adapter: STUB_ADAPTER,
+      familyInstance: createMockFamilyInstance({
+        readAllMarkers: async () => new Map([['app', markerRecord({ storageHash: 'origin' })]]),
+      }),
+      contract: dummyContract,
+      mode: 'apply',
+      acceptDataLoss: true,
+      migrations: createMockMigrations({
+        planResult: {
+          kind: 'success',
+          dataLoss: [],
+          accessWidening: [],
+          temporaryValues: [],
+          appliedStatements: [],
+          warnings: [warning],
+          plan: {
+            targetId: 'postgres',
+            destination: { storageHash: 'new-hash', profileHash: 'new-profile' },
+            operations: [
+              { id: 'column.user.nickname', label: 'Add column', operationClass: 'additive' },
+            ],
+            renderTypeScript: () => '',
+          },
+        },
+      }),
+      frameworkComponents: [],
+      migrationsDir: FAKE_MIGRATIONS_DIR,
+      answerQuestions: noQuestions,
+      targetId: 'postgres',
+      onPlannerWarnings,
+    });
+
+    expect({ ok: result.ok, warned: onPlannerWarnings.mock.calls }).toEqual({
+      ok: true,
+      warned: [[[warning]]],
+    });
+  });
+
   it('lists the issues of a failed schema check in its why, and keeps the runner meta', async () => {
     const issue = {
       path: ['public', 'event', 'id'],

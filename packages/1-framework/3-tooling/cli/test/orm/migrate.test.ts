@@ -194,6 +194,19 @@ function harness(config: Record<string, unknown>) {
   return createOrmTestCli({ commands, groups: BIN_GROUPS, orm: config });
 }
 
+/** The frames a `--json` run wrote to stdout, parsed as a consumer reads them. */
+function stdoutFrames(stdout: string): readonly Record<string, unknown>[] {
+  return stdout
+    .trim()
+    .split('\n')
+    .map((line) => JSON.parse(line) as Record<string, unknown>);
+}
+
+function stdoutErrorMeta(stdout: string): unknown {
+  const last = stdoutFrames(stdout).at(-1) as { envelope: { error: { meta: unknown } } };
+  return last.envelope.error.meta;
+}
+
 function envelopeOf(json: readonly StreamEvent[]): unknown {
   const terminal = json.at(-1);
   return terminal?.kind === 'result' ? terminal.envelope : undefined;
@@ -474,9 +487,7 @@ describe('migrate', () => {
         meta: { schemaIssues: [{ path: ['public', 'event', 'id'] }], failingSpace: 'app' },
       },
     });
-    expect((envelopeOf(run.json) as { error: { meta: unknown } }).error.meta).toEqual(
-      runnerFailure.meta,
-    );
+    expect(stdoutErrorMeta(run.stdout)).toEqual(JSON.parse(JSON.stringify(runnerFailure.meta)));
     expect(mocks.migrate).toHaveBeenCalledWith(expect.objectContaining({ invocation }));
   });
 

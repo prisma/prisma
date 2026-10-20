@@ -50,6 +50,7 @@ import { dbUpdateRunnerFailureError } from '../../utils/db-update-failure';
 import {
   errorExtensionNoInvariantPath,
   errorExtensionPathUnreachable,
+  type UnplannableExtensionSpace,
 } from '../../utils/extension-path-failure';
 import type { CliInvocation } from '../../utils/printed-command';
 import {
@@ -77,6 +78,7 @@ import type {
   DbUpdateSuccess,
   OnControlProgress,
   PerSpaceExecutionEntry,
+  PlannerWarningsListener,
 } from '../types';
 import {
   type BuildAggregateInputs,
@@ -111,7 +113,8 @@ const SPAN_IDS = {
  * loader gathers the rest from disk + descriptors. The CLI is the
  * descriptor-import boundary; everything downstream is descriptor-free.
  */
-export interface ExecuteRunSharedOptions<TFamilyId extends string, TTargetId extends string> {
+export interface ExecuteRunSharedOptions<TFamilyId extends string, TTargetId extends string>
+  extends PlannerWarningsListener {
   readonly driver: ControlDriverInstance<TFamilyId, TTargetId>;
   readonly adapter: ControlAdapterInstance<TFamilyId, TTargetId>;
   readonly familyInstance: ControlFamilyInstance<TFamilyId, unknown>;
@@ -129,8 +132,6 @@ export interface ExecuteRunSharedOptions<TFamilyId extends string, TTargetId ext
   readonly policy: MigrationOperationPolicy;
   /** The command line the advice of a failure repeats. */
   readonly invocation: CliInvocation;
-  /** Called with the planner's warnings when the apply fails after planning. */
-  readonly onPlannerWarnings?: (warnings: readonly MigrationPlannerConflict[]) => void;
   /** Content check for contract snapshots the aggregate loader resolves. */
   readonly verifySnapshotContent?: SnapshotContentVerifier;
   readonly onProgress?: OnControlProgress;
@@ -376,6 +377,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
   }
   const { planned, orderedResolutions } = run;
   const plannerWarnings = aggregatePlannerWarnings(orderedResolutions);
+  if (plannerWarnings !== undefined) options.onPlannerWarnings?.(plannerWarnings);
 
   // The destination's structural shape comes from the app's plan — its
   // `destination` is the storage hash users see in CLI output.
@@ -447,7 +449,6 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       appliedStatements,
       subjects,
       databaseStorageHash,
-      ...ifDefined('warnings', plannerWarnings),
     });
   }
 
@@ -470,7 +471,6 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     ...ifDefined('onProgress', onProgress),
   });
   if (!applied.ok) {
-    if (plannerWarnings !== undefined) options.onPlannerWarnings?.(plannerWarnings);
     const facts = runnerFailureFacts(applied.failure, orderedResolutions);
     return notOk(
       action === 'dbInit'
@@ -500,7 +500,6 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     appliedStatements,
     subjects,
     databaseStorageHash,
-    ...ifDefined('warnings', plannerWarnings),
   });
 }
 
@@ -686,21 +685,21 @@ function mapPlannerError(
     );
   }
   const headRef = requireHeadRef(space);
-  const plan = {
+  const unplannable: UnplannableExtensionSpace = {
     spaceId: error.spaceId,
     fromHash: context.markerRows.get(error.spaceId)?.storageHash ?? EMPTY_CONTRACT_HASH,
     targetHash: headRef.hash,
     command: context.action === 'dbInit' ? 'db init' : 'db update',
     invocation: context.invocation,
-  } as const;
+  };
   if (error.kind === 'extensionPathUnreachable') {
-    return errorExtensionPathUnreachable(plan);
+    return errorExtensionPathUnreachable(unplannable);
   }
   return errorExtensionNoInvariantPath({
-    ...plan,
+    ...unplannable,
     required: headRef.invariants,
     missing: error.missingInvariants,
-    structuralPath: structuralPathOf(space.graph(), plan.fromHash, plan.targetHash),
+    structuralPath: structuralPathOf(space.graph(), unplannable.fromHash, unplannable.targetHash),
   });
 }
 
@@ -716,7 +715,6 @@ function wrapPlanResult(args: {
   readonly subjects:
     | MigrationPlanSubjects<AskedDataLoss, AskedAccessChange, TemporaryValueReport>
     | undefined;
-  readonly warnings?: readonly MigrationPlannerConflict[];
   /** `undefined` for `db init`, which prints no `migration plan`. */
   readonly databaseStorageHash: string | undefined;
 }): DbInitResult | DbUpdateResult {
@@ -735,7 +733,6 @@ function wrapPlanResult(args: {
     },
     perSpace: args.perSpace,
     summary: args.summary,
-    ...ifDefined('warnings', args.warnings),
   };
   return ok(success);
 }
@@ -753,7 +750,6 @@ function wrapApplyResult(args: {
   readonly subjects:
     | MigrationPlanSubjects<AskedDataLoss, AskedAccessChange, TemporaryValueReport>
     | undefined;
-  readonly warnings?: readonly MigrationPlannerConflict[];
   /** `undefined` for `db init`, which prints no `migration plan`. */
   readonly databaseStorageHash: string | undefined;
 }): DbInitResult | DbUpdateResult {
@@ -776,7 +772,6 @@ function wrapApplyResult(args: {
       : { storageHash: args.destination.storageHash },
     perSpace: args.perSpace,
     summary: args.summary,
-    ...ifDefined('warnings', args.warnings),
   };
   return ok(success);
 }

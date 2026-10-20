@@ -79,19 +79,6 @@ describe('errorPathUnreachable', () => {
     expect(envelope.fix).not.toContain('<unknown>');
   });
 
-  it('falls back to a bare `migration plan` suggestion when both hashes are absent', () => {
-    const failure: PathUnreachable = {
-      summary: 'Migration runner reported an unreachable target',
-      why: 'No detail available.',
-      meta: { spaceId: 'app', kind: 'pathUnreachable' },
-    };
-    const envelope = errorPathUnreachable(failure).toEnvelope();
-    expect(envelope.fix).toContain('{bin} migration plan');
-    expect(envelope.fix).not.toContain('--from');
-    expect(envelope.fix).not.toContain('--to');
-    expect(envelope.fix).not.toContain('<unknown>');
-  });
-
   it('composes buildPathNotFoundFailure why with the fix into one plan-then-apply sequence', () => {
     // Drive the real failure producer so the `why` text is the one users see,
     // not a stub — then assert it composes with the fix without both

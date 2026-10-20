@@ -34,6 +34,8 @@ const MISSING_COLUMN: SchemaDiffIssue = {
   expected: { id: 'id', nodeKind: 'sql-column', isEqualTo: () => false, children: () => [] },
 };
 
+const WARNING = { kind: 'suppressed', summary: 'control policy suppressed: table "auth.x"' };
+
 const mocks = {
   connect: vi.fn(),
   dbUpdate: vi.fn(),
@@ -160,6 +162,19 @@ function planSuccess(): Record<string, unknown> {
 
 function harness(config: Record<string, unknown> = ormConfig()) {
   return createOrmTestCli({ commands, groups, orm: config });
+}
+
+/** The frames a `--json` run wrote to stdout, parsed as a consumer reads them. */
+function stdoutFrames(stdout: string): readonly Record<string, unknown>[] {
+  return stdout
+    .trim()
+    .split('\n')
+    .map((line) => JSON.parse(line) as Record<string, unknown>);
+}
+
+function stdoutErrorMeta(stdout: string): unknown {
+  const last = stdoutFrames(stdout).at(-1) as { envelope: { error: { meta: unknown } } };
+  return last.envelope.error.meta;
 }
 
 function envelopeOf(json: readonly StreamEvent[]): unknown {
@@ -568,12 +583,12 @@ describe('db update', () => {
   });
 
   it('shows the planner`s warnings without failing the run', async () => {
-    mocks.dbUpdate.mockResolvedValue(
-      ok({
-        ...applySuccess(),
-        warnings: [{ summary: 'Column user.legacy is dropped without a backfill' }],
-      }),
-    );
+    mocks.dbUpdate.mockImplementation(async (options: Parameters<ControlClient['dbUpdate']>[0]) => {
+      options.onPlannerWarnings?.([
+        { kind: 'suppressed', summary: 'Column user.legacy is dropped without a backfill' },
+      ]);
+      return ok(applySuccess());
+    });
 
     const run = await harness().run(['db', 'update'], {
       cwd: projectDir,
@@ -760,6 +775,52 @@ describe('db update', () => {
     expect(stripAnsi(run.stderr)).toContain('control policy suppressed: table "auth.x"');
   });
 
+  it('lists the planner`s warnings in the --json result of a successful run', async () => {
+    mocks.dbUpdate.mockImplementation(async (options: Parameters<ControlClient['dbUpdate']>[0]) => {
+      options.onPlannerWarnings?.([WARNING]);
+      return ok(applySuccess());
+    });
+
+    const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
+    const frames = stdoutFrames(run.stdout);
+
+    expect({
+      exitCode: run.exitCode,
+      messages: frames.filter((frame) => frame['kind'] === 'message'),
+      warnings: (frames.at(-1) as { envelope: { result: { warnings: unknown } } }).envelope.result
+        .warnings,
+    }).toEqual({ exitCode: 0, messages: [], warnings: [WARNING] });
+  });
+
+  it('writes the planner`s warnings of a failed run as warn frames before the --json error', async () => {
+    mocks.dbUpdate.mockImplementation(async (options: Parameters<ControlClient['dbUpdate']>[0]) => {
+      options.onPlannerWarnings?.([WARNING]);
+      return notOk(
+        dbUpdateRunnerFailureError(
+          migrationRunnerFailure('MIGRATION.EXECUTION_FAILED', 'runner failed'),
+          {},
+          {
+            databaseStorageHash: undefined,
+            invocation: { cwd: projectDir, configPath: undefined, dbGiven: false },
+          },
+        ),
+      );
+    });
+
+    const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
+    const frames = stdoutFrames(run.stdout);
+
+    expect({
+      exitCode: run.exitCode,
+      kinds: frames.map((frame) => frame['kind']),
+      first: frames[0],
+    }).toEqual({
+      exitCode: 2,
+      kinds: ['message', 'result'],
+      first: expect.objectContaining({ kind: 'message', severity: 'warn', text: WARNING.summary }),
+    });
+  });
+
   it('reports a runner failure with the runner code and meta, and the advice', async () => {
     const runnerFailure = migrationRunnerFailure(
       'MIGRATION.SCHEMA_VERIFY_FAILED',
@@ -797,9 +858,7 @@ describe('db update', () => {
         meta: { schemaIssues: [{ path: ['public', 'event', 'id'] }], failingSpace: 'app' },
       },
     });
-    expect((envelopeOf(run.json) as { error: { meta: unknown } }).error.meta).toEqual(
-      runnerFailure.meta,
-    );
+    expect(stdoutErrorMeta(run.stdout)).toEqual(JSON.parse(JSON.stringify(runnerFailure.meta)));
     expect(mocks.dbUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         invocation: { cwd: projectDir, configPath: undefined, dbGiven: false },

@@ -5,7 +5,6 @@ import type {
   ControlDriverInstance,
   ControlExtensionDescriptor,
   ControlFamilyInstance,
-  MigrationPlannerConflict,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 import type { SnapshotContentVerifier } from '@internal/migration-tools/contract-snapshot-store';
@@ -14,7 +13,7 @@ import { errorStatementNeedsMigrationFile } from '../../utils/cli-errors';
 import type { CliInvocation } from '../../utils/printed-command';
 import type { AnswerPlanQuestions } from '../statements/plan-questions';
 import type { StatementText } from '../statements/statement-text';
-import type { DbUpdateResult, OnControlProgress } from '../types';
+import type { DbUpdateResult, OnControlProgress, PlannerWarningsListener } from '../types';
 import { executeRun } from './db-run';
 import { DB_UPDATE_POLICY } from './db-update-policy';
 
@@ -26,7 +25,8 @@ import { DB_UPDATE_POLICY } from './db-update-policy';
  * asks `answerQuestions` what each operation that would lose data means and
  * whether each that would widen access may run, before it applies anything.
  */
-export interface ExecuteDbUpdateOptions<TFamilyId extends string, TTargetId extends string> {
+export interface ExecuteDbUpdateOptions<TFamilyId extends string, TTargetId extends string>
+  extends PlannerWarningsListener {
   readonly driver: ControlDriverInstance<TFamilyId, TTargetId>;
   readonly adapter: ControlAdapterInstance<TFamilyId, TTargetId>;
   readonly familyInstance: ControlFamilyInstance<TFamilyId, unknown>;
@@ -56,11 +56,6 @@ export interface ExecuteDbUpdateOptions<TFamilyId extends string, TTargetId exte
   /** Asks the questions no statement answered; see {@link AnswerPlanQuestions}. */
   readonly answerQuestions: AnswerPlanQuestions;
   /** The command line the advice of a failure repeats. */
-  /**
-   * Called with the planner's warnings when the apply fails after planning: a failure carries no
-   * result to hold them. A successful run reports them in its result's `warnings`.
-   */
-  readonly onPlannerWarnings?: (warnings: readonly MigrationPlannerConflict[]) => void;
   readonly invocation: CliInvocation;
   readonly onProgress?: OnControlProgress;
 }

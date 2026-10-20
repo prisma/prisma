@@ -25,6 +25,7 @@ import { baseDirFor } from '../migration/paths';
 import { normalizeError } from '../normalize-error';
 import { controlProgressReporter } from '../progress';
 import { migrationResultBlocks, migrationResultNextActions } from './migration-blocks';
+import { plannerWarningsCollector } from './planner-warnings';
 import { prepareMigrationRun } from './prepare';
 
 function initPresentations(inputs: {
@@ -174,19 +175,17 @@ export function createDbInitCommand(createClient: CreateControlClient) {
       try {
         await client.connect(dbConnection);
 
+        const plannerWarnings = plannerWarningsCollector(ctx.report);
         const result = await client.dbInit({
           contract: contractJson,
           mode: args.flags.dryRun ? 'plan' : 'apply',
           migrationsDir,
           invocation: cliInvocation(ctx, args.flags.db),
-          onPlannerWarnings: (warnings) => {
-            for (const warning of warnings) {
-              ctx.report({ kind: 'message', severity: 'warn', text: warning.summary });
-            }
-          },
+          onPlannerWarnings: plannerWarnings.onPlannerWarnings,
           onProgress: controlProgressReporter(ctx.report),
         });
         if (!result.ok) {
+          plannerWarnings.reportCollected();
           return notOk(normalizeError(result.failure));
         }
 

@@ -5,13 +5,12 @@ import type {
   ControlDriverInstance,
   ControlExtensionDescriptor,
   ControlFamilyInstance,
-  MigrationPlannerConflict,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 import type { SnapshotContentVerifier } from '@internal/migration-tools/contract-snapshot-store';
 import { ifDefined } from '@internal/utils/defined';
 import type { CliInvocation } from '../../utils/printed-command';
-import type { DbInitResult, OnControlProgress } from '../types';
+import type { DbInitResult, OnControlProgress, PlannerWarningsListener } from '../types';
 import { executeRun } from './db-run';
 
 /**
@@ -31,7 +30,8 @@ import { executeRun } from './db-run';
  * `extensions` mirrors `Config.extensions` (descriptor list).
  * The loader (sub-spec § Loader) is the sole descriptor-import boundary.
  */
-export interface ExecuteDbInitOptions<TFamilyId extends string, TTargetId extends string> {
+export interface ExecuteDbInitOptions<TFamilyId extends string, TTargetId extends string>
+  extends PlannerWarningsListener {
   readonly driver: ControlDriverInstance<TFamilyId, TTargetId>;
   readonly adapter: ControlAdapterInstance<TFamilyId, TTargetId>;
   readonly familyInstance: ControlFamilyInstance<TFamilyId, unknown>;
@@ -62,11 +62,6 @@ export interface ExecuteDbInitOptions<TFamilyId extends string, TTargetId extend
   /** Content check for contract snapshots the aggregate loader resolves. */
   readonly verifySnapshotContent?: SnapshotContentVerifier;
   /** The command line the advice of a failure repeats. */
-  /**
-   * Called with the planner's warnings when the apply fails after planning: a failure carries no
-   * result to hold them. A successful run reports them in its result's `warnings`.
-   */
-  readonly onPlannerWarnings?: (warnings: readonly MigrationPlannerConflict[]) => void;
   readonly invocation: CliInvocation;
   /** Optional progress callback for observing operation progress */
   readonly onProgress?: OnControlProgress;
