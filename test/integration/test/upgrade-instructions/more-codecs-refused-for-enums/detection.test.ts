@@ -125,3 +125,49 @@ describe('family-codec-templates-render-no-literals detection', () => {
     expect(detects(patterns, source)).toBe(false);
   });
 });
+
+describe('psl-enum-members-read-by-the-cast-rule detection', () => {
+  const patterns = patternsOf('app', 'psl-enum-members-read-by-the-cast-rule');
+
+  it.each([
+    ['a quoted numeric member', 'enum Ratio {\n  @@type("pg/numeric@1")\n  Half = "0.5"\n}'],
+    ['a quoted int8 member', 'enum Level {\n  @@type("pg/int8@1")\n  Low = "1"\n}'],
+    [
+      'a quoted date member',
+      'enum Day {\n  @@type("pg/date-temporal@1")\n  Launch = "2024-01-01"\n}',
+    ],
+    ['a quoted float NaN member', 'enum F {\n  @@type("pg/float8@1")\n  Nan = "NaN"\n}'],
+    [
+      'a quoted SQLite datetime member',
+      'enum W {\n  @@type("sqlite/datetime@1")\n  At = "2024-01-01T00:00:00.000Z"\n}',
+    ],
+    [
+      'a quoted member written before @@type',
+      'enum Ratio {\n  Half = "0.5"\n  @@type("pg/numeric@1")\n}',
+    ],
+  ])('finds %s', (_name, source) => {
+    expect(detects(patterns, source)).toBe(true);
+  });
+
+  it.each([
+    ['an unquoted numeric member', 'enum Ratio {\n  @@type("pg/numeric@1")\n  Half = 0.5\n}'],
+    [
+      'a tagged date member',
+      'enum Day {\n  @@type("pg/date-temporal@1")\n  Launch = date`2024-01-01`\n}',
+    ],
+    ['a quoted text member', 'enum Level {\n  @@type("pg/text@1")\n  Low = "low"\n}'],
+    [
+      'a quoted uuid member, which casts from text',
+      'enum U {\n  @@type("pg/uuid@1")\n  A = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"\n}',
+    ],
+    ['a quoted SQLite text member', 'enum L {\n  @@type("sqlite/text@1")\n  Low = "low"\n}'],
+    [
+      'a quoted Mongo member, whose PSL is unchanged',
+      'enum L {\n  @@type("mongo/int32@1")\n  Low = "1"\n}',
+    ],
+    ['an enum with no @@type', 'enum Level {\n  Low = "low"\n}'],
+    ['bare numeric members', 'enum Ratio {\n  @@type("pg/numeric@1")\n  Half\n}'],
+  ])('skips %s', (_name, source) => {
+    expect(detects(patterns, source)).toBe(false);
+  });
+});

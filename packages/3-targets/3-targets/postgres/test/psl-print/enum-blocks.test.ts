@@ -13,13 +13,16 @@ import { testBuildContext } from './build-context';
 import { type ColumnShape, domainFieldOf, INT_COLUMN, table } from './print-support';
 
 describe('domain enum blocks', () => {
-  it('writes JSON expressions and retains the raw codec attribute', () => {
-    const [block] = buildDomainEnumBlocks({
-      Status: {
-        codecId: 'pg/text@1',
-        members: [{ name: 'Quoted', value: 'a"b\\c\n' }],
+  it('writes each member as the PSL literal its data type reads back, and retains the raw codec attribute', () => {
+    const [block] = buildDomainEnumBlocks(
+      {
+        Status: {
+          codecId: 'pg/text@1',
+          members: [{ name: 'Quoted', value: 'a"b\\c\n' }],
+        },
       },
-    });
+      testBuildContext(),
+    );
     expect(block?.parameters['Quoted']?.expression).toBe('"a\\"b\\\\c\\n"');
     expect(block?.blockAttributes).toEqual([
       {
@@ -29,6 +32,30 @@ describe('domain enum blocks', () => {
       },
     ]);
     expect(block).not.toHaveProperty('attributes');
+  });
+
+  it('writes a number member unquoted, a date member with its tag, and NaN as a word', () => {
+    const expressions = (codecId: string, values: readonly string[]) =>
+      Object.values(
+        buildDomainEnumBlocks(
+          {
+            E: { codecId, members: values.map((value, index) => ({ name: `M${index}`, value })) },
+          },
+          testBuildContext(),
+        )[0]?.parameters ?? {},
+      ).map((entry) => entry.expression);
+
+    expect({
+      numeric: expressions('pg/numeric@1', ['0.5', '1.50']),
+      int8: expressions('pg/int8@1', ['9007199254740993']),
+      date: expressions('pg/date-temporal@1', ['2024-01-02']),
+      float: expressions('pg/float8@1', ['NaN']),
+    }).toEqual({
+      numeric: ['0.5', '1.50'],
+      int8: ['9007199254740993'],
+      date: ['date`2024-01-02`'],
+      float: ['NaN'],
+    });
   });
 });
 

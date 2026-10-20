@@ -245,8 +245,6 @@ type FieldTypeOverrides = {
           readonly output: '127.0.0.1' | '10.0.0.0/8' | '::1';
           readonly input: '127.0.0.1' | '10.0.0.0/8' | '::1';
         };
-        readonly ratio: { readonly output: '0.5' | '1.50'; readonly input: '0.5' | '1.50' };
-        readonly ratios: { readonly output: '0.5' | '1.50'; readonly input: '0.5' | '1.50' };
       };
       readonly Reading: {
         readonly float8: { readonly output: 1.5 | 2.25; readonly input: 1.5 | 2.25 };
@@ -284,8 +282,6 @@ type ColumnTypeOverrides = {
         readonly output: '127.0.0.1' | '10.0.0.0/8' | '::1';
         readonly input: '127.0.0.1' | '10.0.0.0/8' | '::1';
       };
-      readonly ratio: { readonly output: '0.5' | '1.50'; readonly input: '0.5' | '1.50' };
-      readonly ratios: { readonly output: '0.5' | '1.50'; readonly input: '0.5' | '1.50' };
     };
     readonly readings: {
       readonly float8: { readonly output: 1.5 | 2.25; readonly input: 1.5 | 2.25 };
@@ -788,8 +784,8 @@ type ContractBase = Omit<
             { readonly name: 'High'; readonly value: 10n },
           ];
           readonly Ratio: readonly [
-            { readonly name: 'Half'; readonly value: '0.5' },
-            { readonly name: 'Whole'; readonly value: '1.50' },
+            { readonly name: 'Half'; readonly value: CodecTypes['pg/numeric@1']['output'] },
+            { readonly name: 'Whole'; readonly value: CodecTypes['pg/numeric@1']['output'] },
           ];
           readonly StampLevel: readonly [
             {

@@ -1,5 +1,5 @@
 import type { ContractEnum, JsonValue } from '@internal/contract/types';
-import type { CodecLookup } from '@internal/framework-components/codec';
+import { type Codec, type CodecLookup, dataType } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
 import { generateContractDts } from '../src/generate-contract-dts';
 import { createMockSpi } from './mock-spi';
@@ -105,6 +105,29 @@ describe('generateContractDts enum member types', () => {
     );
     expect(memberTypesOf(dts)).toBe(
       'readonly enumMemberTypes?: { readonly Level: readonly [{ readonly name: "Low"; readonly value: CodecTypes["test/unsafe@1"]["output"] }] };',
+    );
+  });
+
+  it("types members as their codec's output type when the codec's data type holds values equal that have other stored forms", () => {
+    const decimal = dataType('test/decimal', { read: (json) => json, equalityKey: String });
+    const decimalCodec: Codec = {
+      id: 'test/decimal@1',
+      dataType: decimal,
+      toWire: async (value) => value,
+      fromWire: async (wire) => wire,
+      toDataTypeValue: (value) => decimal.valueFrom(value as JsonValue, {}),
+      fromDataTypeValue: (value) => value.value,
+    };
+    const dts = emitEnums(
+      { Ratio: enumOf('test/decimal@1', ['Half', '0.5']) },
+      {
+        get: (id) => (id === decimalCodec.id ? decimalCodec : undefined),
+        renderOutputTypeFor: () => undefined,
+        renderValueLiteralFor: (_id, value) => JSON.stringify(value),
+      },
+    );
+    expect(memberTypesOf(dts)).toBe(
+      'readonly enumMemberTypes?: { readonly Ratio: readonly [{ readonly name: "Half"; readonly value: CodecTypes["test/decimal@1"]["output"] }] };',
     );
   });
 

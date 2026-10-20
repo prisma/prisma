@@ -422,35 +422,40 @@ export function lowerDataTypeDefault(input: {
 }
 
 /**
- * Reads one number literal written in a contract source outside a default, such as an enum member's value, from its source text for a codec, as {@link lowerDataTypeDefault} reads a default: the number's entry gives it a data type, the codec's data type takes it directly or through a cast, and the codec checks it. A refusal is worded for `subject`, and the caller reports it at its own span.
+ * Reads one value written in a contract source outside a default, such as an enum member's value, for a codec, as {@link lowerDataTypeDefault} reads a default: the value's syntax gives it a data type, the codec's data type takes it directly or through a cast, and the codec checks it. A refusal is worded for `subject`, and the caller reports it at its own span.
  */
-export function readWrittenNumberForCodec(input: {
-  readonly text: string;
+export function readWrittenValueForCodec(input: {
+  readonly written: WrittenScalar;
   readonly codecId: string;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypes: DataTypeSupport;
   readonly subject: string;
 }): ReadValueResult {
-  const written: WrittenValue = { kind: 'number', text: input.text };
   const read = readDataTypeDefault({
-    written,
+    written: input.written,
     isList: false,
     column: { codecId: input.codecId },
     codecLookup: input.codecLookup,
     dataTypes: input.dataTypes,
     fieldPath: input.subject,
   });
-  return read.ok
-    ? read
-    : {
-        ok: false,
-        ...refusalMessage(
-          read.refusal,
-          input.subject,
-          input.dataTypes,
-          guidanceFor(read, written, input.dataTypes),
-        ),
-      };
+  if (read.ok) return read;
+  const { refusal } = read;
+  const { code, message } = refusalMessage(
+    refusal,
+    input.subject,
+    input.dataTypes,
+    guidanceFor(read, input.written, input.dataTypes),
+  );
+  if (refusal.kind !== 'no-cast' || message.includes(refusal.valueType)) {
+    return { ok: false, code, message };
+  }
+  const reason = message.slice(input.subject.length + 2);
+  return {
+    ok: false,
+    code,
+    message: `${input.subject}: ${refusal.receivingType} has no cast from ${refusal.valueType}. ${reason}`,
+  };
 }
 
 /** What a refusal of `written` tells the author to write instead. */

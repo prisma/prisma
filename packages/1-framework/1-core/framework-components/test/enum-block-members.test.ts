@@ -9,6 +9,7 @@ import type {
   WrittenValueReading,
 } from '../src/shared/framework-authoring';
 import type { ParsedPslExtensionBlock } from '../src/shared/psl-extension-block';
+import type { WrittenScalar } from '../src/shared/written-value';
 
 const SPAN = {
   start: { offset: 0, line: 1, column: 1 },
@@ -140,11 +141,25 @@ describe('readEnumBlockMembers', () => {
     ).toThrow(failure);
   });
 
-  describe('with a family reader for number members', () => {
+  it('reads each member as JSON through the codec when the family gives no reader for written members', () => {
+    expect(
+      readEnumBlockMembers(enumBlock({ Low: 1, Half: 1.5 }), anyJsonCodec.id, anyJsonCodec, {
+        family: 'test',
+        target: 'test',
+        codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
+        dataTypeLookup: createDataTypeLookup([]),
+      }),
+    ).toEqual([
+      { name: 'Low', value: 1 },
+      { name: 'Half', value: 1.5 },
+    ]);
+  });
+
+  describe('with a family reader for written members', () => {
     function readWithReader(
       values: Record<string, JsonValue | undefined>,
-      numberTexts: Record<string, string>,
-      reading: (text: string) => WrittenValueReading | undefined,
+      writtenValues: Record<string, WrittenScalar>,
+      reading: (written: WrittenScalar) => WrittenValueReading | undefined,
       codec: Codec = lowerCasingCodec,
     ) {
       const diagnostics: unknown[] = [];
@@ -156,13 +171,13 @@ describe('readEnumBlockMembers', () => {
         dataTypeLookup: createDataTypeLookup([]),
         sourceId: 'schema.prisma',
         diagnostics: { push: (d) => diagnostics.push(d) },
-        readWrittenNumber: (input) => {
+        readWrittenValue: (input) => {
           readerInputs.push(input);
-          return reading(input.text);
+          return reading(input.written);
         },
       };
       const members = readEnumBlockMembers(
-        { ...enumBlock(values), numberTexts },
+        { ...enumBlock(values), writtenValues },
         codec.id,
         codec,
         ctx,
@@ -170,12 +185,15 @@ describe('readEnumBlockMembers', () => {
       return { members, diagnostics, readerInputs };
     }
 
-    it('hands a number member to the reader as its source text, and every other member to the codec', () => {
+    it('hands every member to the reader as it is written, and a bare member as its name in text', () => {
       expect(
         readWithReader(
           { Big: 9007199254740992, Text: 'T', Bare: undefined },
-          { Big: '9007199254740993' },
-          (text) => ({ ok: true, value: text }),
+          {
+            Big: { kind: 'number', text: '9007199254740993' },
+            Text: { kind: 'string', text: 'T' },
+          },
+          (written) => ({ ok: true, value: written.kind === 'boolean' ? 'b' : written.text }),
         ),
       ).toEqual({
         members: [
@@ -186,64 +204,53 @@ describe('readEnumBlockMembers', () => {
         diagnostics: [],
         readerInputs: [
           {
-            text: '9007199254740993',
+            written: { kind: 'number', text: '9007199254740993' },
             codecId: 'test/lower-casing@1',
             subject: 'enum "Key" member "Big"',
+          },
+          {
+            written: { kind: 'string', text: 'T' },
+            codecId: 'test/lower-casing@1',
+            subject: 'enum "Key" member "Text"',
+          },
+          {
+            written: { kind: 'string', text: 'Bare' },
+            codecId: 'test/lower-casing@1',
+            subject: 'enum "Key" member "Bare"',
           },
         ],
       });
     });
 
-    it('reads a number member the reader refuses with the codec, as an earlier version read it', () => {
+    it('reports the reason the reader refuses a member, with its code, at the member', () => {
       expect(
-        readWithReader(
-          { Low: 1, Half: 1.5 },
-          { Low: '1', Half: '1.5' },
-          () => ({ ok: false, message: 'test/json has no cast from test/integer' }),
-          anyJsonCodec,
-        ),
-      ).toEqual({
-        members: [
-          { name: 'Low', value: 1 },
-          { name: 'Half', value: 1.5 },
-        ],
-        diagnostics: [],
-        readerInputs: [
-          { text: '1', codecId: 'test/any-json@1', subject: 'enum "Key" member "Low"' },
-          { text: '1.5', codecId: 'test/any-json@1', subject: 'enum "Key" member "Half"' },
-        ],
-      });
-    });
-
-    it('reports the reason the reader refuses a number member when the codec refuses it too', () => {
-      expect(
-        readWithReader({ Low: 1 }, { Low: '1' }, () => ({
+        readWithReader({ Half: '0.5' }, { Half: { kind: 'string', text: '0.5' } }, () => ({
           ok: false,
-          message: 'enum "Key" member "Low": test/text has no cast from test/integer',
+          code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+          message: 'enum "Key" member "Half": test/numeric has no cast from test/text',
         })),
       ).toMatchObject({
         members: undefined,
         diagnostics: [
           {
-            code: 'PSL_EXTENSION_INVALID_VALUE',
-            message: 'enum "Key" member "Low": test/text has no cast from test/integer',
+            code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+            message: 'enum "Key" member "Half": test/numeric has no cast from test/text',
             sourceId: 'schema.prisma',
-            span: memberSpan(0),
           },
         ],
       });
     });
 
-    it('hands a number member to the codec when the reader does not read for the codec', () => {
-      expect(readWithReader({ Low: 1 }, { Low: '1' }, () => undefined)).toMatchObject({
+    it('reports a bare member the reader refuses as a bare member', () => {
+      expect(
+        readWithReader({ Low: undefined }, {}, () => ({
+          ok: false,
+          code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+          message: 'refused',
+        })),
+      ).toMatchObject({
         members: undefined,
-        diagnostics: [
-          {
-            code: 'PSL_EXTENSION_INVALID_VALUE',
-            message:
-              'enum "Key" member "Low" was rejected by codec "test/lower-casing@1": expected text, got number',
-          },
-        ],
+        diagnostics: [{ code: 'PSL_ENUM_BARE_MEMBER_NON_STRING_CODEC' }],
       });
     });
   });

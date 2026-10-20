@@ -29,8 +29,8 @@ import type { FuncCallSig, PslBlockSpecDescriptor, SymbolTable } from '@internal
 import {
   blockAttribute,
   buildSymbolTable,
+  enumMemberValue,
   int,
-  jsonValue,
   mapBlock,
   num,
   oneOf,
@@ -91,7 +91,7 @@ export const testEnumPslBlockDescriptor = {
   name: { required: true },
   spec: () =>
     mapBlock({
-      value: { type: jsonValue(), documentation: 'The explicit member value.' },
+      value: { type: enumMemberValue(), documentation: 'The explicit member value.' },
       allowBare: true,
     }),
   attributes: {

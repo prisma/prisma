@@ -221,3 +221,14 @@ describe('what each cast converts', () => {
     );
   });
 });
+
+describe('the equality of pg/numeric values', () => {
+  it('holds values equal that differ only in scale, and every other type has no key of its own', () => {
+    expect({
+      numeric: ['0.50', '0.5', '-0'].map((json) => pgNumeric.equalityKey?.(json)),
+      keyed: postgresDataTypes
+        .filter((type) => type.equalityKey !== undefined)
+        .map((type) => type.id),
+    }).toEqual({ numeric: ['0.5', '0.5', '0'], keyed: ['pg/numeric'] });
+  });
+});

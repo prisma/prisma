@@ -60,6 +60,11 @@ const storedMembers: Readonly<Record<string, JsonValue>> = {
   'pg/text-array': ['low', 'high'],
 };
 
+/** For a codec whose data type holds equal values in more than one stored form, a value equal to the member in another form, which the column check admits and a read returns as written. */
+const equalInOtherForm: Readonly<Record<string, string>> = {
+  'pg/numeric@1': '12.0',
+};
+
 /** The codecs an enum accepts whose enum the contract build still refuses, with its message: a member stored as neither a string nor a finite number, which the column check that enforces membership cannot list. */
 const authoringRefusals: Readonly<Record<string, string>> = {
   'pg/bool@1':
@@ -184,6 +189,29 @@ describe('every codec an enum can use on Postgres reads back the member it write
   it('refuses, when the contract is built, each other enum it cannot store in a checked column', () => {
     expect(Object.fromEntries(refusedOnBuild)).toEqual(authoringRefusals);
   });
+
+  it.each(Object.entries(equalInOtherForm))(
+    'writes a value equal to the member of an enum on %s in another stored form, and reads it back as the member',
+    (codecId, other) =>
+      withPostgresPort<Contract<SqlStorage>>({ contractJson }, async ({ client }) => {
+        const enumName = enumNameOf(codecId);
+        const enumAccessor = client.enums['public']?.[enumName];
+        const collection = client.orm['public']?.[enumName];
+        if (enumAccessor === undefined || collection === undefined) {
+          expect.unreachable(`the client has the enum and model ${enumName}`);
+        }
+        await collection.createAndCount([{ id: 1, value: other }]);
+        const row = await collection.first();
+
+        expect({
+          read: row?.['value'],
+          member: enumAccessor.members['Only'],
+          has: enumAccessor.has(row?.['value']),
+          name: enumAccessor.nameOf(row?.['value'] as JsonValue),
+        }).toEqual({ read: other, member: '12', has: true, name: 'Only' });
+      }),
+    timeouts.spinUpPpgDev,
+  );
 
   it.each(roundTripped)(
     'writes the member of an enum on $codecId past the column check, reads back the member, and renders the literal of the value read',

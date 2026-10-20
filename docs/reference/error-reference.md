@@ -324,6 +324,7 @@ A model declares an empty unique constraint (a unique with no fields), raised du
   - a multi-table variant is linked to its base other than through the base's primary key columns as its unnamed primary key and an unnamed foreign key that cascades on delete (meta: `namespaceId`, `modelName`);
   - one model name is declared in more than one namespace (meta: `modelName`, `namespaces`);
   - a domain enum is declared outside the default namespace (meta: `namespaceId`, `names`);
+  - a domain enum member stores a value that no PSL literal of the enum codec's data type reads back as, including when the codec has no data type in the stack (meta: `enumName`, `member`);
   - a value object is declared outside the default namespace (meta: `namespaceId`, `names`).
 - Keys, checks and indexes:
   - a check or index has a prefix, but its name is not that prefix followed by the hash of its content (meta: `namespaceId`, `table`, `name`, `prefix`);

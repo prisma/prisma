@@ -18,6 +18,7 @@ import {
   type DataTypeParams,
   type DataTypeReader,
   type DataTypeSpelling,
+  decimalTextEqualityKey,
   INT32_RANGE,
   INT64_RANGE,
   isNonFiniteText,
@@ -449,6 +450,7 @@ export const pgNumeric = sqlDataType('pg/numeric', {
   ],
   read: readNumeric,
   spell: spellNumeric,
+  equalityKey: decimalTextEqualityKey,
   normalize: (params) =>
     params.precision !== undefined && params.scale === undefined ? { ...params, scale: 0 } : params,
   casts: {

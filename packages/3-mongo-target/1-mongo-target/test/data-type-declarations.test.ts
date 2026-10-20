@@ -3,7 +3,7 @@ import { isMongoDataType } from '@internal/mongo-contract/data-type';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { mongoCodecDescriptors } from '../src/core/codecs';
-import { mongoVector } from '../src/core/data-types';
+import { mongoDecimal128, mongoVector } from '../src/core/data-types';
 import { mongoTargetDescriptorMetaRuntime } from '../src/core/descriptor-meta-runtime';
 
 /** Each type's BSON types are the ones its codec stored values as before data types declared them. */
@@ -61,4 +61,14 @@ describe('the parameter schema of every Mongo codec', () => {
       expect(descriptor.isParameterized).toBe(type?.params !== undefined);
     },
   );
+});
+
+describe('the equality of mongo/decimal128 values', () => {
+  it('holds values equal that differ only in scale', () => {
+    expect(['1.50', '1.5', '2'].map((json) => mongoDecimal128.equalityKey?.(json))).toEqual([
+      '1.5',
+      '1.5',
+      '2',
+    ]);
+  });
 });

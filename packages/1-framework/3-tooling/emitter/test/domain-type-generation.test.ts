@@ -1,6 +1,11 @@
-import type { ContractField, ContractModel, ContractValueObject } from '@internal/contract/types';
+import type {
+  ContractField,
+  ContractModel,
+  ContractValueObject,
+  JsonValue,
+} from '@internal/contract/types';
 import { crossRef } from '@internal/contract/types';
-import type { CodecLookup } from '@internal/framework-components/codec';
+import { type Codec, type CodecLookup, dataType } from '@internal/framework-components/codec';
 import type { TypesImportSpec } from '@internal/framework-components/emission';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it, vi } from 'vitest';
@@ -775,6 +780,24 @@ describe('renderValueSetType', () => {
       renderOutputTypeFor: () => undefined,
     };
     expect(renderValueSetType(['low'], 'pg/text@1', 'output', lookup)).toBeUndefined();
+  });
+
+  it("returns undefined when the codec's data type holds values equal that have other stored forms, which a read can return", () => {
+    const decimal = dataType('test/decimal', { read: (json) => json, equalityKey: String });
+    const decimalCodec: Codec = {
+      id: 'test/decimal@1',
+      dataType: decimal,
+      toWire: async (value) => value,
+      fromWire: async (wire) => wire,
+      toDataTypeValue: (value) => decimal.valueFrom(value as JsonValue, {}),
+      fromDataTypeValue: (value) => value.value,
+    };
+    const lookup: CodecLookup = {
+      get: (id) => (id === decimalCodec.id ? decimalCodec : undefined),
+      renderOutputTypeFor: () => undefined,
+      renderValueLiteralFor: (_id, value) => JSON.stringify(value),
+    };
+    expect(renderValueSetType(['0.5', '1.50'], decimalCodec.id, 'output', lookup)).toBeUndefined();
   });
 
   it('returns undefined when any value is not literal-expressible', () => {

@@ -8,9 +8,19 @@ changes:
       matches:
         - '@@type\(\s*"(?:pg/(?:jsonb|timetz|enum|vector|geometry)|arktype/json)@1"\s*\)'
         - '(?<![\s\S])(?![\s\S]*GENERATED FILE - DO NOT EDIT)(?=[\s\S]*\benumType\()[\s\S]*?(?:[''"`](?:pg/(?:jsonb|timetz|enum|vector|geometry)|arktype/json)@1[''"`]|\b(?:timetzColumn|jsonbColumn|arktypeJson|geometryColumn)\b|\b(?:vector|geometry)\()'
+  - id: psl-enum-members-read-by-the-cast-rule
+    summary: |
+      A PSL enum member is now read as a written value of the enum codec's data type, as a `@default` is. A quoted member is text, so it is refused with `PSL_VALUE_TYPE_INCOMPATIBLE` on a codec whose data type has no cast from text, such as `pg/numeric@1`, `pg/int8@1`, the float, date and time codecs, `sqlite/bigint@1` and `sqlite/datetime@1`; the message names the missing cast and the literal to write. Write a number unquoted (`Half = 0.5`, `Low = 1`, `Nan = NaN`, `Infinite = Infinity`) and a date or time with its tag (`Launch = date`2024-01-01``, `Launch = timestamptz`2024-01-01T00:00:00Z``). The stored members do not change, so the contract does not either. A member written in TypeScript, an application value, is unchanged, and so is MongoDB PSL.
+    detection:
+      glob: "**/*.prisma"
+      matches:
+        - 'enum\s+\w+\s*\{(?=[^}]*@@type\(\s*"(?!(?:pg/(?:text|char|varchar|uuid|inet|bit|varbit)|sql/(?:text|char|varchar)|sqlite/text|mongo/[\w-]+)@1")[^"]+"\s*\))[^}]*=\s*"'
+  - id: numeric-enum-members-compare-as-numbers
+    summary: |
+      `db.enums.<Enum>.has()`, `nameOf()` and `ordinalOf()` on a `pg/numeric@1` enum now find a value equal to a member in another scale, as PostgreSQL's CHECK constraint already admitted it: `0.50` is the member `0.5`. Such an enum's members, and a column typed by it, are typed in the emitted `contract.d.ts` as the codec's type, `string`, because a read can return `0.50`.
   - id: enum-columns-typed-by-member-literals
     summary: |
-      A column typed by an enum whose codec is `pg/uuid@1`, `pg/inet@1`, `pg/numeric@1`, `pg/bit@1`, `pg/varbit@1`, `pg/date-string@1`, `pg/time-string@1`, `sql/char@1`, `sql/varchar@1`, `sql/text@1`, `sql/int@1` or `sql/float@1` on Postgres, or `sqlite/text@1`, `sqlite/integer@1`, `sqlite/real@1`, `sqlite/bigint@1`, `sqlite/json@1`, `sql/char@1`, `sql/varchar@1`, `sql/int@1` or `sql/float@1` on SQLite, is now typed in the emitted `contract.d.ts` as the union of its members' values, as a `pg/text@1` or `pg/int4@1` enum column already was, instead of the codec's whole type. Re-emit the contract. Code that writes a value that is not a member to such a column, or compares a value read from it with one, no longer typechecks; use a member, such as `client.enums.Host.members.Loopback`.
+      A column typed by an enum whose codec is `pg/uuid@1`, `pg/inet@1`, `pg/bit@1`, `pg/varbit@1`, `pg/date-string@1`, `pg/time-string@1`, `sql/char@1`, `sql/varchar@1`, `sql/text@1`, `sql/int@1` or `sql/float@1` on Postgres, or `sqlite/text@1`, `sqlite/integer@1`, `sqlite/real@1`, `sqlite/bigint@1`, `sqlite/json@1`, `sql/char@1`, `sql/varchar@1`, `sql/int@1` or `sql/float@1` on SQLite, is now typed in the emitted `contract.d.ts` as the union of its members' values, as a `pg/text@1` or `pg/int4@1` enum column already was, instead of the codec's whole type. Re-emit the contract. Code that writes a value that is not a member to such a column, or compares a value read from it with one, no longer typechecks; use a member, such as `client.enums.Host.members.Loopback`.
 ---
 
 ## `more-codecs-refused-for-enums`
@@ -28,6 +38,36 @@ PSL refuses an enum block with `@@type` naming one of these codecs with the same
 3. Re-emit the contract. The enum's columns change type, and with them the storage hash. Plan and apply a migration, which changes each column's type.
 
 The TypeScript detection matches a file that calls `enumType(` and names one of these codecs or their column helpers anywhere, even on a column that is not an enum. Check only the enums.
+
+## `psl-enum-members-read-by-the-cast-rule`
+
+`contract emit` refuses a quoted member on a codec whose data type has no cast from text:
+
+```text
+enum "Ratio" member "Half": pg/numeric has no cast from pg/text. Expected a number; write 0.5
+```
+
+Rewrite each refused member as the message says, then emit the contract again. The stored members are the same, so the storage hash does not change and no migration is needed.
+
+```prisma
+// before
+enum Ratio {
+  @@type("pg/numeric@1")
+  Half  = "0.5"
+  Whole = "1.50"
+}
+
+// after
+enum Ratio {
+  @@type("pg/numeric@1")
+  Half  = 0.5
+  Whole = 1.50
+}
+```
+
+## `numeric-enum-members-compare-as-numbers`
+
+Re-emit the contract. Code that reads a `pg/numeric@1` enum column as a member literal type, such as `'0.5' | '1.50'`, now reads `string`; compare it with a member through `db.enums.<Enum>.has()` or `nameOf()`, which find `0.50` as `0.5`.
 
 ## `enum-columns-typed-by-member-literals`
 

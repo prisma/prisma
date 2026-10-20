@@ -194,7 +194,7 @@ model Task {
 `),
     ).toEqual([
       {
-        code: 'PSL_EXTENSION_INVALID_VALUE',
+        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
         message:
           'enum "Priority" member "Low": Expected a number that pg/int4 can hold; got pg/int8',
       },
@@ -216,8 +216,8 @@ model Task {
       [
         'a text member under an integer codec',
         '  @@type("pg/int4@1")\n  Low = "low"',
-        'PSL_EXTENSION_INVALID_VALUE',
-        'enum "Priority" member "Low" was rejected by codec "pg/int4@1": pg/int4 JSON value must be an integer from -2147483648 to 2147483647',
+        'PSL_VALUE_TYPE_INCOMPATIBLE',
+        'enum "Priority" member "Low": pg/int4 has no cast from pg/text. Expected a number',
       ],
       [
         'a bare member under an integer codec',
@@ -228,26 +228,38 @@ model Task {
       [
         'a number member under a text codec',
         '  @@type("pg/text@1")\n  Low = 1',
-        'PSL_EXTENSION_INVALID_VALUE',
-        'enum "Priority" member "Low": Expected a quoted string',
+        'PSL_VALUE_TYPE_INCOMPATIBLE',
+        'enum "Priority" member "Low": pg/text has no cast from pg/int2. Expected a quoted string',
       ],
       [
-        'a numeric member with a leading zero',
-        '  @@type("pg/numeric@1")\n  Low = "01.5"',
-        'PSL_EXTENSION_INVALID_VALUE',
-        'enum "Priority" member "Low" was rejected by codec "pg/numeric@1": pg/numeric JSON value must be "1.5", as PostgreSQL writes this value',
+        'a quoted numeric member, which is text',
+        '  @@type("pg/numeric@1")\n  Low = "1.50"',
+        'PSL_VALUE_TYPE_INCOMPATIBLE',
+        'enum "Priority" member "Low": pg/numeric has no cast from pg/text. Expected a number; write 1.50',
       ],
       [
-        'a numeric member written as negative zero',
-        '  @@type("pg/numeric@1")\n  Low = "-0"',
-        'PSL_EXTENSION_INVALID_VALUE',
-        'enum "Priority" member "Low" was rejected by codec "pg/numeric@1": pg/numeric JSON value must be "0", as PostgreSQL writes this value',
+        'a quoted int8 member, which is text',
+        '  @@type("pg/int8@1")\n  Low = "9007199254740993"',
+        'PSL_VALUE_TYPE_INCOMPATIBLE',
+        'enum "Priority" member "Low": pg/int8 has no cast from pg/text. Expected a number; write 9007199254740993',
       ],
       [
-        'an int8 member with a leading zero',
-        '  @@type("pg/int8@1")\n  Low = "007"',
-        'PSL_EXTENSION_INVALID_VALUE',
-        `enum "Priority" member "Low" was rejected by codec "pg/int8@1": pg/int8 JSON value must be "7", the integer's decimal text without leading zeros or a minus sign on zero`,
+        'a quoted date member, which is text',
+        '  @@type("pg/date-temporal@1")\n  Low = "2024-01-02"',
+        'PSL_VALUE_TYPE_INCOMPATIBLE',
+        'enum "Priority" member "Low": pg/date has no cast from pg/text. Expected date`...`; write date`2024-01-02`',
+      ],
+      [
+        'an inet member that is not an address',
+        '  @@type("pg/inet@1")\n  Low = "not an address"',
+        'PSL_INVALID_LITERAL',
+        'enum "Priority" member "Low": "not an address" is not an IP address: PostgreSQL reads an IPv4 address in decimal octets or an IPv6 address in hexadecimal groups, either optionally followed by / and a prefix length.',
+      ],
+      [
+        'a fraction under an integer codec',
+        '  @@type("pg/int4@1")\n  Low = 1.5',
+        'PSL_VALUE_TYPE_INCOMPATIBLE',
+        'enum "Priority" member "Low": Expected a number that pg/int4 can hold; got pg/numeric',
       ],
       [
         'a string timestamp codec, which an enum cannot use',
@@ -291,24 +303,6 @@ model Task {
         'PSL_EXTENSION_INVALID_VALUE',
         'enum "Priority" cannot use the codec "pg/timetz@1". A query reads each value as the text PostgreSQL prints, such as "12:34:56+02", while the contract stores it in ISO 8601, such as "12:34:56+02:00", so a value read back need not equal the member written. No enum can use a timetz codec; use a text enum instead.',
       ],
-      [
-        'an inet member with /32',
-        '  @@type("pg/inet@1")\n  Low = "10.0.0.1/32"',
-        'PSL_EXTENSION_INVALID_VALUE',
-        'enum "Priority" member "Low" was rejected by codec "pg/inet@1": pg/inet JSON value must be "10.0.0.1", as pg/inet stores this value',
-      ],
-      [
-        'an inet member that is not an address',
-        '  @@type("pg/inet@1")\n  Low = "not an address"',
-        'PSL_EXTENSION_INVALID_VALUE',
-        'enum "Priority" member "Low" was rejected by codec "pg/inet@1": pg/inet JSON value must be an IP address or network in a spelling PostgreSQL reads, as in 10.0.0.1 or 2001:db8::/32',
-      ],
-      [
-        'a fraction under an integer codec',
-        '  @@type("pg/int4@1")\n  Low = 1.5',
-        'PSL_EXTENSION_INVALID_VALUE',
-        'enum "Priority" member "Low": Expected a number that pg/int4 can hold; got pg/numeric',
-      ],
     ])('refuses %s', async (_name, members, code, message) => {
       expect(await diagnosticsOf(enumOf(members))).toEqual([{ code, message }]);
     });
@@ -328,13 +322,30 @@ model Task {
     });
   });
 
-  describe('an enum member written as a string literal, read by its codec', () => {
+  it('refuses two pg/numeric@1 members that are one number in different scales', async () => {
+    expect(await storedEnumValues('pg/numeric@1', ['Half = 0.5', 'AlsoHalf = 0.50'])).toEqual({
+      diagnostics: [
+        {
+          code: 'PSL_ENUM_DUPLICATE_MEMBER_VALUE',
+          message: 'enum "Priority": members "Half" and "AlsoHalf" both store "0.50"',
+        },
+      ],
+    });
+  });
+
+  describe('an enum member read as a default is, stored as PostgreSQL writes it', () => {
     it.each([
-      ['pg/int8@1', '"9007199254740993"', '9007199254740993'],
-      ['pg/int8number@1', '"42"', '42'],
-      ['pg/unboundedint@1', '"9223372036854775808"', '9223372036854775808'],
-      ['pg/numeric@1', '"1.50"', '1.50'],
-    ])('accepts a %s member written as %s', async (codecId, written, stored) => {
+      ['pg/int8@1', '9007199254740993', '9007199254740993'],
+      ['pg/int8@1', '007', '7'],
+      ['pg/int8number@1', '42', '42'],
+      ['pg/unboundedint@1', '9223372036854775808', '9223372036854775808'],
+      ['pg/numeric@1', '1.50', '1.50'],
+      ['pg/numeric@1', '01.5', '1.5'],
+      ['pg/numeric@1', '-0', '0'],
+      ['pg/inet@1', '"10.0.0.1/32"', '10.0.0.1'],
+      ['pg/date-temporal@1', 'date`2024-01-02`', '2024-01-02'],
+      ['pg/float8@1', 'NaN', 'NaN'],
+    ])('stores a %s member written as %s as %j', async (codecId, written, stored) => {
       expect(await storedEnumValues(codecId, [`Low = ${written}`])).toEqual({ values: [stored] });
     });
   });
@@ -354,7 +365,7 @@ model Task {
 `),
       ).toEqual([
         {
-          code: 'PSL_EXTENSION_INVALID_VALUE',
+          code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
           message:
             'enum "Priority" member "Low": Expected a number that pg/int4 can hold; got pg/int8',
         },

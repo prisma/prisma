@@ -326,7 +326,7 @@ export function buildPostgresPslContract(
 
   const namespaces: PslNamespace[] = [];
   refuseEnumsOutsideDefaultNamespace(contract);
-  const topLevelEnums = buildDomainEnumBlocks(defaultDomainEnums);
+  const topLevelEnums = buildDomainEnumBlocks(defaultDomainEnums, context);
   if (topLevelEnums.length > 0) {
     namespaces.push(
       makePslNamespace({

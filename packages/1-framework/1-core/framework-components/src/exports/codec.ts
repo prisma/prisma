@@ -68,6 +68,7 @@ export {
   schemaKeysAllowing,
 } from '../shared/data-type';
 export { DATA_TYPE_ID_PATTERN } from '../shared/data-type-id-pattern';
+export { decimalTextEqualityKey } from '../shared/decimal-text-equality';
 export type { BigIntRange, IntegerRange } from '../shared/json-readers';
 export {
   floatToJson,
