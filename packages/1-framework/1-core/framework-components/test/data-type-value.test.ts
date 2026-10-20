@@ -172,3 +172,33 @@ describe('dataTypeValuesEqual', () => {
     expect(dataTypeValuesEqual(of('1'), decimal.fromContract('1', {}))).toBe(false);
   });
 });
+
+describe('a type with a normal form of its parameters', () => {
+  const numeral = dataType('demo/numeral', {
+    read: (json) => json,
+    normalize: (params) =>
+      params['precision'] !== undefined && params['scale'] === undefined
+        ? { ...params, scale: 0 }
+        : params,
+  });
+
+  it('stores the parameters of a value read from the contract in their normal form', () => {
+    expect(numeral.fromContract('1', { precision: 10 }).params).toEqual({
+      precision: 10,
+      scale: 0,
+    });
+  });
+
+  it('stores the parameters of a value built from JSON in their normal form', () => {
+    expect(numeral.valueFrom('1', { precision: 10 }).params).toEqual({ precision: 10, scale: 0 });
+  });
+
+  it('holds one value under parameters with the same normal form', () => {
+    expect(
+      dataTypeValuesEqual(
+        numeral.valueFrom('1', { precision: 10 }),
+        numeral.fromContract('1', { precision: 10, scale: 0 }),
+      ),
+    ).toBe(true);
+  });
+});

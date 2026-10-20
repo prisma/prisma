@@ -63,7 +63,6 @@
     "./target/ddl": "./dist/target__ddl.mjs",
     "./target/default-normalizer": "./dist/target__default-normalizer.mjs",
     "./target/migration": "./dist/target__migration.mjs",
-    "./target/native-type-normalizer": "./dist/target__native-type-normalizer.mjs",
     "./target/op-factory-call": "./dist/target__op-factory-call.mjs",
     "./target/pack": "./dist/target__pack.mjs",
     "./target/planner": "./dist/target__planner.mjs",

@@ -14,18 +14,16 @@ const tagged = (tag: string, body: string): string => `${tag}${BACKTICK}${body}$
 
 function introspected(
   name: string,
-  nativeType: string,
+  typeText: string,
   rawDefault: string,
   shape: { readonly many?: true } = {},
 ): SqlColumnIRInput {
-  const resolvedNativeType = shape.many ? `${nativeType}[]` : nativeType;
   return {
     name,
-    nativeType,
+    typeText,
     nullable: shape.many === true,
     default: rawDefault,
     ...ifDefined('many', shape.many),
-    resolvedNativeType,
   };
 }
 
@@ -39,7 +37,7 @@ async function printedDefaults(
         account: {
           name: 'account',
           columns: Object.fromEntries(
-            [{ name: 'id', nativeType: 'int4', nullable: false }, ...columns].map((column) => [
+            [{ name: 'id', typeText: 'int4', nullable: false }, ...columns].map((column) => [
               column.name,
               column,
             ]),
@@ -159,9 +157,9 @@ describe('printPsl writes each default as the literal the column data type takes
     ['-infinity', 'date', "'-infinity'::date"],
   ])(
     'prints the %s sentinel on a %s column with the column type tag',
-    async (sentinel, nativeType, rawDefault) => {
-      expect(await printedDefaults([introspected('stamp', nativeType, rawDefault)])).toEqual({
-        stamp: `@default(${tagged(nativeType, sentinel)})`,
+    async (sentinel, typeText, rawDefault) => {
+      expect(await printedDefaults([introspected('stamp', typeText, rawDefault)])).toEqual({
+        stamp: `@default(${tagged(typeText, sentinel)})`,
       });
     },
   );
@@ -179,9 +177,9 @@ describe('printPsl writes each default as the literal the column data type takes
     ],
   ])(
     'prints a %s default with its tag, in canonical form',
-    async (nativeType, rawDefault, standard) => {
-      expect(await printedDefaults([introspected('stamp', nativeType, rawDefault)])).toEqual({
-        stamp: `@default(${tagged(nativeType, standard)})`,
+    async (typeText, rawDefault, standard) => {
+      expect(await printedDefaults([introspected('stamp', typeText, rawDefault)])).toEqual({
+        stamp: `@default(${tagged(typeText, standard)})`,
       });
     },
   );
@@ -205,8 +203,8 @@ describe('printPsl writes each default as the literal the column data type takes
   it.each([
     ['a database function', 'uuid', 'gen_random_uuid()'],
     ['an expression', 'timestamptz', "(now() + '00:03:00'::interval)"],
-  ])('prints %s as a sql tagged literal', async (_name, nativeType, rawDefault) => {
-    expect(await printedDefaults([introspected('value', nativeType, rawDefault)])).toEqual({
+  ])('prints %s as a sql tagged literal', async (_name, typeText, rawDefault) => {
+    expect(await printedDefaults([introspected('value', typeText, rawDefault)])).toEqual({
       value: `@default(sql${BACKTICK}${rawDefault}${BACKTICK})`,
     });
   });

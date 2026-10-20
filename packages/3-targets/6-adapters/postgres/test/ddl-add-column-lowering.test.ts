@@ -19,9 +19,9 @@ import { addColumnAction, alterTable } from '@internal/target-postgres/contract-
 import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
 import { PostgresAlterTable } from '@internal/target-postgres/ddl';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from './helpers/test-control-adapter';
 
-const adapter = new PostgresControlAdapter(
+const adapter = createTestPostgresControlAdapter(
   createPostgresBuiltinCodecLookup(),
   createPostgresBuiltinDataTypeLookup(),
 );
@@ -173,7 +173,7 @@ describe('PostgresAlterTable ADD COLUMN lowering', () => {
     } as unknown as AnyPostgresCodecDescriptor;
 
     const builtin = createPostgresBuiltinCodecLookup();
-    const withVector = new PostgresControlAdapter(
+    const withVector = createTestPostgresControlAdapter(
       {
         ...builtin,
         // The representative instance carries no params, as the control stack's does.

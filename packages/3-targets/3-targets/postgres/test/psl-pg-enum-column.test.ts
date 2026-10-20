@@ -358,14 +358,14 @@ namespace auth {
     });
   });
 
-  it('resolves a pg.enum ref declared in the public namespace (the default target namespace) with an unqualified nativeType', () => {
+  it('resolves a pg.enum ref declared in the public namespace (the default target namespace) with an unqualified typeText', () => {
     // A top-level (unspecified-namespace) `native_enum` block is never lowered
     // — native enums are schema-scoped and must be declared inside an explicit
     // `namespace { … }` block, same as any other native_enum. `namespace public
     // { … }` is the explicit way to target the default target namespace.
     //
     // `public` is Postgres's default schema — `format_type()` reports the
-    // bare type name for a `public`-schema type, so the column `nativeType`
+    // bare type name for a `public`-schema type, so the column `typeText`
     // must stay bare too (contrast the `auth` namespace case above, which
     // expects the schema-qualified `auth.aal_level`).
     const source = `

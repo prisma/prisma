@@ -868,6 +868,8 @@ Per-repo stop conditions beyond the canonical ones:
 
 **Reference incident.** 2026-10-09, SQL expression literals slice 3 (prisma/orm#30558): review round 3 extended the PSL/TypeScript parity fixture, and the first queue run failed on its missing golden entry.
 
+**Retired 2026-10-19.** The data types completion project deleted the planner golden test and its `manifest.json`. Journeys now check that `db verify` is clean after a planned migration and names a column whose type changes, so a new contract fixture needs no recording. The two `planned.golden.json` files stay as fixtures that upgrade-instruction tests read; nothing rewrites them.
+
 ### F49. Guards, helpers and tests are written for inputs the public API cannot produce, then removed
 
 **Symptom.** A slice adds checks, helpers, tests and doc caveats for inputs that only hand-built internal state or a hand-edited contract can produce. The operator has each one removed, and the pattern repeats in the next round.

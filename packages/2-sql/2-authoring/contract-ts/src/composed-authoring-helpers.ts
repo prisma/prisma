@@ -17,6 +17,11 @@ import type {
   AuthoringTypeNamespace,
 } from '@internal/framework-components/authoring';
 import { assertNoCrossRegistryCollisions } from '@internal/framework-components/authoring';
+import type {
+  CodecLookupWithDescriptors,
+  DataTypeLookup,
+  TypeLookups,
+} from '@internal/framework-components/codec';
 import {
   createGeneratorHelpers,
   type ExtensionPackRef,
@@ -27,7 +32,6 @@ import {
 } from '@internal/framework-components/components';
 import { blindCast } from '@internal/utils/casts';
 import {
-  type AuthoringTypeLookups,
   createFieldPresetHelper,
   createTypeHelpersFromNamespace,
 } from './authoring-helper-runtime';
@@ -241,7 +245,7 @@ function assertNoBuiltInEntityCollisions(namespace: AuthoringEntityTypeNamespace
 
 function createComposedFieldHelpers(
   fieldNamespace: AuthoringFieldNamespace,
-  lookups: AuthoringTypeLookups,
+  lookups: TypeLookups<CodecLookupWithDescriptors, DataTypeLookup>,
 ): CoreFieldHelpers & Record<string, unknown> {
   const helperNamespace = createFieldHelpersFromNamespace(
     fieldNamespace,
@@ -286,7 +290,7 @@ export function createComposedAuthoringHelpers<
     readonly family: Family;
     readonly target: Target;
     readonly extensions?: Extensions;
-  } & AuthoringTypeLookups,
+  } & TypeLookups<CodecLookupWithDescriptors, DataTypeLookup>,
 ): ComposedAuthoringHelpers<Family, Target, Extensions> {
   const extensionValues: readonly ExtensionPackRef<'sql', string>[] = Object.values(
     (options.extensions ?? {}) as Record<string, ExtensionPackRef<'sql', string>>,

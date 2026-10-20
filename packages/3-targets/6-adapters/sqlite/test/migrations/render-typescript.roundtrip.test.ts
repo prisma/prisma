@@ -32,10 +32,10 @@ import { renderOps } from '@internal/target-sqlite/render-ops';
 import { timeouts } from '@repo/test-utils';
 import { join, resolve } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { SqliteControlAdapter } from '../../src/exports/control';
+import { createTestSqliteControlAdapter } from '../helpers/test-control-adapter';
 
 const execFileAsync = promisify(execFile);
-const testAdapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+const testAdapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
 const packageRoot = resolve(import.meta.dirname, '../..');
 const repoRoot = resolve(packageRoot, '../../../..');
 const targetSqliteRoot = resolve(repoRoot, 'packages/3-targets/3-targets/sqlite');

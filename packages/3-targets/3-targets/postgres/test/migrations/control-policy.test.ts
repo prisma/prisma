@@ -69,7 +69,7 @@ function makeContract(): Contract<SqlStorage> {
 function tableNode(name: string): PostgresTableSchemaNode {
   return new PostgresTableSchemaNode({
     name,
-    columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+    columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
     primaryKey: { columns: ['id'] },
     foreignKeys: [],
     uniques: [],

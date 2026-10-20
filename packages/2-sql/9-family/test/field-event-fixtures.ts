@@ -19,6 +19,7 @@ const DATA_TYPE_OF_CODEC: Readonly<Record<string, string>> = {
   'sqlite/datetime@1': 'sqlite/datetime',
   'pg/text@1': 'pg/text',
   'pg/varchar@1': 'pg/varchar',
+  't/numeric@1': 't/numeric',
 };
 
 function dataTypeOf(codecId: string): string {

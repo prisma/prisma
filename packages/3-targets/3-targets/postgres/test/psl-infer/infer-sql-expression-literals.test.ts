@@ -65,8 +65,8 @@ async function infer(input: {
           profile: new PostgresTableSchemaNode({
             name: 'profile',
             columns: {
-              id: { name: 'id', nativeType: 'int4', nullable: false },
-              owner_id: { name: 'owner_id', nativeType: 'int4', nullable: false },
+              id: { name: 'id', typeText: 'int4', nullable: false },
+              owner_id: { name: 'owner_id', typeText: 'int4', nullable: false },
               ...input.columns,
             },
             primaryKey: { columns: ['id'] },
@@ -190,7 +190,7 @@ describe('contract infer keeps a default whose text would not read back, with a 
   it('prints the default and notes it on the model', async () => {
     const psl = await infer({
       columns: {
-        label: { name: 'label', nativeType: 'text', nullable: false, default: "lower('a\r\nb')" },
+        label: { name: 'label', typeText: 'text', nullable: false, default: "lower('a\r\nb')" },
       },
     });
 
@@ -201,7 +201,7 @@ describe('contract infer keeps a default whose text would not read back, with a 
   it('adds no note for a default that reads back', async () => {
     const psl = await infer({
       columns: {
-        label: { name: 'label', nativeType: 'text', nullable: false, default: "lower('a')" },
+        label: { name: 'label', typeText: 'text', nullable: false, default: "lower('a')" },
       },
     });
 

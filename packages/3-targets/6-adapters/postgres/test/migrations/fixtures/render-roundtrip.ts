@@ -10,10 +10,10 @@ import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/d
 import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { applicationDomainOf } from '@repo/test-utils';
 import { join, resolve } from 'pathe';
-import { PostgresControlAdapter } from '../../../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from '../../helpers/test-control-adapter';
 
 export const execFileAsync = promisify(execFile);
-export const testAdapter = new PostgresControlAdapter(
+export const testAdapter = createTestPostgresControlAdapter(
   createPostgresBuiltinCodecLookup(),
   createPostgresBuiltinDataTypeLookup(),
 );

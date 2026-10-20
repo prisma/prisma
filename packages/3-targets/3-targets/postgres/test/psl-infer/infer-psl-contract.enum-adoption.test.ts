@@ -106,7 +106,7 @@ async function inferAndPrint(
   });
 }
 
-const idColumn: SqlColumnIRInput = { name: 'id', nativeType: 'int4', nullable: false };
+const idColumn: SqlColumnIRInput = { name: 'id', typeText: 'int4', nullable: false };
 
 const AAL_LEVEL: FlatNativeEnumEntry = {
   typeName: 'aal_level',
@@ -119,7 +119,7 @@ function sessionsNamespace(schemaName: string) {
     {
       sessions: table('sessions', {
         id: idColumn,
-        aal: { name: 'aal', nativeType: 'aal_level', nullable: true },
+        aal: { name: 'aal', typeText: 'aal_level', nullable: true },
       }),
     },
     [AAL_LEVEL],
@@ -289,7 +289,7 @@ describe('native enum adoption — happy path', () => {
     expect(output).toContain('pg.enum(AalLevel)?');
   });
 
-  it('resolves a schema-qualified column nativeType (live introspection reports auth.aal_level)', async () => {
+  it('resolves a schema-qualified column typeText (live introspection reports auth.aal_level)', async () => {
     // `format_type` schema-qualifies a type outside the connection's
     // search_path, so a live auth-schema column carries `auth.aal_level`
     // while `pg_type.typname` (the definitions key) stays bare.
@@ -300,7 +300,7 @@ describe('native enum adoption — happy path', () => {
           {
             sessions: table('sessions', {
               id: idColumn,
-              aal: { name: 'aal', nativeType: 'auth.aal_level', nullable: true },
+              aal: { name: 'aal', typeText: 'auth.aal_level', nullable: true },
             }),
           },
           [AAL_LEVEL],
@@ -319,7 +319,7 @@ describe('native enum adoption — happy path', () => {
           {
             user: table('user', {
               id: idColumn,
-              role: { name: 'role', nativeType: 'user_role', nullable: false },
+              role: { name: 'role', typeText: 'user_role', nullable: false },
             }),
           },
           [{ typeName: 'user_role', values: ['admin', 'user'] }],
@@ -409,7 +409,7 @@ describe('pack-owned enum subtraction (by type name)', () => {
         {
           app_notes: table('app_notes', {
             id: idColumn,
-            aal: { name: 'aal', nativeType: 'aal_level', nullable: true },
+            aal: { name: 'aal', typeText: 'aal_level', nullable: true },
           }),
         },
         [AAL_LEVEL],
@@ -426,7 +426,7 @@ describe('pack-owned enum subtraction (by type name)', () => {
         {
           app_notes: table('app_notes', {
             id: idColumn,
-            aal: { name: 'aal', nativeType: 'auth.aal_level', nullable: true },
+            aal: { name: 'aal', typeText: 'auth.aal_level', nullable: true },
           }),
         },
         [AAL_LEVEL],
@@ -471,7 +471,7 @@ describe('pack-owned enum subtraction from a serialized+hydrated described contr
         {
           mfa_factors: table('mfa_factors', {
             id: idColumn,
-            factor: { name: 'factor', nativeType: 'factor_type', nullable: true },
+            factor: { name: 'factor', typeText: 'factor_type', nullable: true },
           }),
         },
         [AAL_LEVEL, FACTOR_TYPE],
@@ -503,7 +503,7 @@ describe('enum-typed column defaults', () => {
               id: idColumn,
               aal: {
                 name: 'aal',
-                nativeType: 'aal_level',
+                typeText: 'aal_level',
                 nullable: false,
                 default: "'aal1'::aal_level",
               },
@@ -527,7 +527,7 @@ describe('enum-typed column defaults', () => {
               id: idColumn,
               aal: {
                 name: 'aal',
-                nativeType: 'aal_level',
+                typeText: 'aal_level',
                 nullable: false,
                 default: "'aal1'::auth.aal_level",
               },
@@ -551,7 +551,7 @@ describe('enum-typed column defaults', () => {
 });
 
 describe('adopted output lowers through the production interpret chain', () => {
-  it('the public shape interprets: pg/enum@1 column with valueSet ref and bare nativeType', async () => {
+  it('the public shape interprets: pg/enum@1 column with valueSet ref and bare typeText', async () => {
     const output = await inferAndPrint(tree({ public: sessionsNamespace('public') }));
 
     const result = interpret(output);
@@ -574,7 +574,7 @@ describe('adopted output lowers through the production interpret chain', () => {
     });
   });
 
-  it('the auth shape interprets with the schema-qualified nativeType', async () => {
+  it('the auth shape interprets with the schema-qualified typeText', async () => {
     const output = await inferAndPrint(tree({ auth: sessionsNamespace('auth') }));
 
     const result = interpret(output);
@@ -628,7 +628,7 @@ describe('mixed-case enum type names (Prisma-ORM-created types)', () => {
       {
         orders: table('orders', {
           id: idColumn,
-          hold: { name: 'hold', nativeType: 'HoldType', nullable: false },
+          hold: { name: 'hold', typeText: 'HoldType', nullable: false },
         }),
       },
       [HOLD_TYPE],
@@ -639,7 +639,7 @@ describe('mixed-case enum type names (Prisma-ORM-created types)', () => {
     const output = await inferAndPrint(tree({ public: ordersNamespace('public') }));
 
     // The block name already equals the type name, so no @@map is emitted —
-    // the interpret test below proves the nativeType still round-trips.
+    // the interpret test below proves the typeText still round-trips.
     expect(output).toContain('native_enum HoldType {');
     expect(output).not.toContain('@@map("HoldType")');
     expect(output).toContain('pg.enum(HoldType)');
@@ -666,7 +666,7 @@ describe('an enum column whose type has no adopted block', () => {
   function moodColumn(schema: string): SqlColumnIRInput {
     return {
       name: 'm',
-      nativeType: `${schema}.mood`,
+      typeText: `${schema}.mood`,
       nullable: true,
       reportedType: { text: `${schema}.mood`, kind: 'enum', schema, name: 'mood' },
     };

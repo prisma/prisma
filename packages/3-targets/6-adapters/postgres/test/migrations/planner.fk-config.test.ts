@@ -17,7 +17,7 @@ import {
 } from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from '../helpers/test-control-adapter';
 import { postgresComponents } from './fixtures/postgres-components';
 
 // FK1: `constraint`/`index` are authoring-time booleans materialized once at
@@ -111,7 +111,7 @@ const MIGRATION_PLAN_POLICY = {
 
 describe('PostgresMigrationPlanner - materialized FK/index combinations', () => {
   const planner = createPostgresMigrationPlanner(
-    new PostgresControlAdapter(
+    createTestPostgresControlAdapter(
       createPostgresBuiltinCodecLookup(),
       createPostgresBuiltinDataTypeLookup(),
     ),

@@ -25,6 +25,7 @@ import { SqlSchemaIR, SqlTableIR } from '@internal/sql-schema-ir/types';
 import { ifDefined } from '@internal/utils/defined';
 import { applicationDomainOf } from '@repo/test-utils';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
+import { testTypeLookups } from '../../1-core/contract/test/test-type-lookups';
 
 /**
  * Creates a minimal valid contract for testing.
@@ -141,10 +142,11 @@ export function createContractTable(
 /**
  * Creates a minimal schema table for testing.
  * Note: default is now a raw string (e.g., "now()", "'hello'::text") matching SqlColumnIR.
+ * Each column has the test data type `pg/<typeText>`, as introspection would resolve its reported type.
  */
 export function createSchemaTable(
   name: string,
-  columns: Record<string, { nativeType: string; nullable: boolean; default?: string }>,
+  columns: Record<string, { typeText: string; nullable: boolean; default?: string }>,
   options?: {
     primaryKey?: { columns: readonly string[]; name?: string };
     foreignKeys?: ReadonlyArray<{
@@ -177,9 +179,10 @@ export function createSchemaTable(
         colName,
         {
           name: colName,
-          nativeType: col.nativeType,
+          typeText: col.typeText,
           nullable: col.nullable,
           ...ifDefined('default', col.default),
+          ...introspectedType(col.typeText),
         },
       ]),
     ),
@@ -202,4 +205,10 @@ export function createSchemaTable(
     ),
     ...ifDefined('primaryKey', options?.primaryKey),
   });
+}
+
+function introspectedType(typeText: string) {
+  const type = testTypeLookups.dataTypeLookup.get(`pg/${typeText}`);
+  if (type === undefined) throw new Error(`no test data type pg/${typeText}`);
+  return { storedType: type, storedTypeParams: {} };
 }

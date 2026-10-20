@@ -81,14 +81,14 @@ describe('a sql`...` default on Postgres renders as authored', () => {
     ["'{}'::jsonb", 'jsonb', 'pg/jsonb', 'pg/jsonb@1'],
   ])(
     'writes DEFAULT (%s) on a %s column in CREATE TABLE and SET DEFAULT',
-    (expression, nativeType, dataType, codecId) => {
+    (expression, typeText, dataType, codecId) => {
       const column = expectedColumn(dataType, codecId, expression);
 
-      const ddl = renderColumnDdl('value', column, postgresTypeLookups);
+      const ddl = renderColumnDdl('value', column);
       const setDefault = buildSetDefaultColumn('value', defaultNodeOf(column), postgresTypeLookups);
 
       expect({ type: ddl.type, default: ddl.default }).toEqual({
-        type: nativeType,
+        type: typeText,
         default: { kind: 'function', expression: opaqueSql(expression) },
       });
       expect(setDefault?.default).toEqual(ddl.default);
@@ -98,7 +98,7 @@ describe('a sql`...` default on Postgres renders as authored', () => {
   it('writes SERIAL for a column authored as autoincrement()', () => {
     const column = expectedColumn('pg/int4', 'pg/int4@1', 'autoincrement()');
 
-    const ddl = renderColumnDdl('value', column, postgresTypeLookups);
+    const ddl = renderColumnDdl('value', column);
 
     expect({ type: ddl.type, default: ddl.default }).toEqual({
       type: 'SERIAL',
@@ -110,7 +110,10 @@ describe('a sql`...` default on Postgres renders as authored', () => {
 describe("a literal-shaped sql`'{}'::jsonb` default on Postgres", () => {
   it('stays an expression on the contract side', () => {
     expect(
-      postgresResolveDefault({ kind: 'function', expression: "'{}'::jsonb" }, 'jsonb'),
+      postgresResolveDefault(
+        { kind: 'function', expression: "'{}'::jsonb" },
+        { typeText: 'jsonb', many: false },
+      ),
     ).toEqual({ kind: 'function', expression: "'{}'::jsonb" });
   });
 });

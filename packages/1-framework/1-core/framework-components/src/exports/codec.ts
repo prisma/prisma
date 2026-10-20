@@ -27,6 +27,7 @@ export type {
   CodecRef,
   CodecRegistry,
   CodecTrait,
+  TypeLookups,
 } from '../shared/codec-types';
 export { emptyCodecLookup } from '../shared/codec-types';
 export type {

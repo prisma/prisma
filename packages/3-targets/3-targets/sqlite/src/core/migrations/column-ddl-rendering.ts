@@ -1,5 +1,5 @@
-import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
-import type { StorageColumn } from '@internal/sql-contract/types';
+import { dataTypeParams } from '@internal/framework-components/codec';
+import { isSqlDataType, renderSqlTypeName } from '@internal/sql-contract/data-type';
 import {
   DdlColumn,
   type DdlTableConstraint,
@@ -8,7 +8,6 @@ import {
   UniqueConstraint,
 } from '@internal/sql-relational-core/ast';
 import type { SqlColumnIR, SqlTableIR } from '@internal/sql-schema-ir/types';
-import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { sqliteError } from '../errors';
@@ -17,43 +16,23 @@ import {
   type SqliteColumnSpec,
   sqliteDefaultToDdlColumnDefault,
 } from './operations/shared';
-import { buildColumnTypeSql } from './planner-ddl-builders';
 
 /**
- * Reconstructs the `StorageColumn`-shaped fields `buildColumnTypeSql`
- * expects, from a column node's own stamped codec
- * identity (`codecRef` / `codecBaseNativeType`, Decision 5) — never the
- * contract. `typeRef` is deliberately left unset here: setting it would send
- * `buildColumnTypeSql` back through a live `storageTypes` lookup the node's
- * fields have already resolved past, which throws for an unrecognized
- * reference.
+ * The type DDL writes for a column node: the name of the type it is stored as, with the parameters as the contract writes them, in upper case.
  */
-function columnLike(
-  column: SqlColumnIR,
-): Pick<StorageColumn, 'codecId' | 'nullable' | 'many' | 'typeParams' | 'default'> {
-  if (column.codecRef === undefined || column.codecBaseNativeType === undefined) {
+function columnTypeSql(column: SqlColumnIR): string {
+  const type = column.storedType;
+  if (type === undefined || !isSqlDataType(type)) {
     throw new InternalError(
-      `columnLike: expected column "${column.name}" carries no codec identity — the expected tree must be derived via contractToSchemaIR for planning`,
+      `column "${column.name}" has no data type; the expected tree must be derived via contractToSchemaIR for planning`,
     );
   }
-  return {
-    codecId: column.codecRef.codecId,
-    nullable: column.nullable,
-    // `column.many` is unset on contract-derived columns (array-ness rides
-    // on the type text's `[]` suffix there instead) — `codecRef.many`
-    // carries it. Hand-built/introspected columns set `column.many` directly.
-    many: (column.many ?? column.codecRef.many) ? { elementNullable: false } : false,
-    ...(column.codecRef.typeParams !== undefined
-      ? {
-          typeParams: blindCast<
-            Record<string, unknown>,
-            'CodecRef.typeParams is JsonValue-shaped; the DDL builders only ever read it as the Record the contract column originally carried'
-          >(column.codecRef.typeParams),
-        }
-      : {}),
-    // DDL writes the default as authored; `resolvedDefault` exists for the diff comparison only.
-    ...ifDefined('default', column.authoredDefault ?? column.resolvedDefault),
-  };
+  return renderSqlTypeName(type, dataTypeParams(type, column.codecRef?.typeParams)).toUpperCase();
+}
+
+/** The default DDL writes: the one the contract authored; `resolvedDefault` exists for the diff comparison. */
+function ddlDefaultOf(column: SqlColumnIR) {
+  return column.authoredDefault ?? column.resolvedDefault;
 }
 
 /**
@@ -77,39 +56,30 @@ export function isInlineAutoincrementPrimaryKeyNode(
 
 /**
  * Builds the flat `SqliteColumnSpec` `AddColumnCall` / `RecreateTableCall`
- * need, resolved from the column node's codec identity — the same builders
- * the pre-`plan(start, end)` op-path called, so the output is
- * byte-identical.
+ * need, with the type the column is stored as.
  */
-export function columnSpecFromNode(
-  column: SqlColumnIR,
-  inline: boolean,
-  types: SqlTypeLookups,
-): SqliteColumnSpec {
-  const like = columnLike(column);
-  const typeSql = buildColumnTypeSql(like, types);
+export function columnSpecFromNode(column: SqlColumnIR, inline: boolean): SqliteColumnSpec {
+  const typeSql = columnTypeSql(column);
   return {
     name: column.name,
     typeSql,
     ...(inline
       ? {}
-      : { ...ifDefined('default', like.default), ...ifDefined('codecRef', column.codecRef) }),
+      : {
+          ...ifDefined('default', ddlDefaultOf(column)),
+          ...ifDefined('codecRef', column.codecRef),
+        }),
     nullable: column.nullable,
     ...(inline ? { inlineAutoincrementPrimaryKey: true } : {}),
   };
 }
 
 /**
- * Builds the `DdlColumn` the `CreateTableCall` path needs, resolved from the
- * column node's codec identity.
+ * Builds the `DdlColumn` the `CreateTableCall` path needs, with the type the
+ * column is stored as.
  */
-export function ddlColumnFromNode(
-  column: SqlColumnIR,
-  inline: boolean,
-  types: SqlTypeLookups,
-): DdlColumn {
-  const like = columnLike(column);
-  const typeSql = buildColumnTypeSql(like, types);
+export function ddlColumnFromNode(column: SqlColumnIR, inline: boolean): DdlColumn {
+  const typeSql = columnTypeSql(column);
   if (inline) {
     // `DdlColumn` has no SQLite-specific autoincrement flag, so the full
     // `PRIMARY KEY AUTOINCREMENT` clause is embedded in the `type` string.
@@ -122,7 +92,7 @@ export function ddlColumnFromNode(
       type: `${typeSql}${INLINE_AUTOINCREMENT_PRIMARY_KEY}`,
     });
   }
-  const colDefault = sqliteDefaultToDdlColumnDefault(like.default);
+  const colDefault = sqliteDefaultToDdlColumnDefault(ddlDefaultOf(column));
   return new DdlColumn({
     name: column.name,
     type: typeSql,

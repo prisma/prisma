@@ -145,9 +145,9 @@ function liveSchemaWithoutTheIndex(): PostgresDatabaseSchemaNode {
           Message: new PostgresTableSchemaNode({
             name: 'Message',
             columns: {
-              id: { name: 'id', nativeType: 'int4', nullable: false },
-              text: { name: 'text', nativeType: 'text', nullable: false },
-              note: { name: 'note', nativeType: 'text', nullable: true },
+              id: { name: 'id', typeText: 'int4', nullable: false },
+              text: { name: 'text', typeText: 'text', nullable: false },
+              note: { name: 'note', typeText: 'text', nullable: true },
             },
             primaryKey: { columns: ['id'] },
             foreignKeys: [],

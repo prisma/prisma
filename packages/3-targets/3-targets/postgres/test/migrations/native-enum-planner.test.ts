@@ -35,7 +35,11 @@ import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-n
 import { PostgresNativeEnumSchemaNode } from '../../src/core/schema-ir/postgres-native-enum-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
 import { PostgresCreateType, PostgresDropType } from '../../src/exports/ddl';
-import { postgresTypeComponents, postgresTypeLookups } from '../postgres-type-lookups';
+import {
+  introspectedColumn,
+  postgresTypeComponents,
+  postgresTypeLookups,
+} from '../postgres-type-lookups';
 
 const MEMBERS = ['draft', 'review', 'done'] as const;
 
@@ -132,15 +136,24 @@ function ordersTableNode(options: { readonly withStatusColumn: boolean }) {
   return new PostgresTableSchemaNode({
     name: 'orders',
     columns: {
-      id: { name: 'id', nativeType: 'int4', nullable: false, resolvedNativeType: 'int4' },
+      id: introspectedColumn({
+        name: 'id',
+        typeText: 'int4',
+        nullable: false,
+      }),
       ...(options.withStatusColumn
         ? {
-            status: {
+            status: introspectedColumn({
               name: 'status',
-              nativeType: 'order_status',
+              typeText: 'order_status',
               nullable: false,
-              resolvedNativeType: 'order_status',
-            },
+              reportedType: {
+                text: 'order_status',
+                kind: 'enum',
+                schema: undefined,
+                name: 'order_status',
+              },
+            }),
           }
         : {}),
     },
@@ -337,7 +350,11 @@ describe('unclaimed enum drop lowering + ordering', () => {
     const zzzWidget = new PostgresTableSchemaNode({
       name: 'zzz_widget',
       columns: {
-        id: { name: 'id', nativeType: 'int4', nullable: false, resolvedNativeType: 'int4' },
+        id: introspectedColumn({
+          name: 'id',
+          typeText: 'int4',
+          nullable: false,
+        }),
       },
       primaryKey: { columns: ['id'] },
       foreignKeys: [],
@@ -363,7 +380,7 @@ describe('unclaimed enum drop lowering + ordering', () => {
 function legacyTable() {
   return new PostgresTableSchemaNode({
     name: 'legacy',
-    columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+    columns: { id: introspectedColumn({ name: 'id', typeText: 'int4', nullable: false }) },
     foreignKeys: [],
     uniques: [],
     indexes: [],
@@ -570,7 +587,9 @@ describe('D2-F1: enum drop-safety resolves ownership by physical type name', () 
           tables: {
             orders: new PostgresTableSchemaNode({
               name: 'orders',
-              columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+              columns: {
+                id: introspectedColumn({ name: 'id', typeText: 'int4', nullable: false }),
+              },
               primaryKey: { columns: ['id'] },
               foreignKeys: [],
               uniques: [],

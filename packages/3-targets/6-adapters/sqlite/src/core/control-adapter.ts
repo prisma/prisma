@@ -11,9 +11,16 @@ import {
   type ReadColumnDefault,
   readColumnDefault,
 } from '@internal/family-sql/control';
-import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
+import {
+  resolveIntrospectedColumnType,
+  type SqlControlAdapter,
+} from '@internal/family-sql/control-adapter';
 import { parseContractMarkerRow } from '@internal/family-sql/verify';
-import { type CodecLookupWithDescriptors, codecForRef } from '@internal/framework-components/codec';
+import {
+  type CodecLookupWithDescriptors,
+  codecForRef,
+  type DataType,
+} from '@internal/framework-components/codec';
 import { APP_SPACE_ID, type SchemaNodeRef } from '@internal/framework-components/control';
 import { ledgerOriginFromStored } from '@internal/migration-tools/ledger-origin';
 import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
@@ -54,7 +61,6 @@ import {
 } from '@internal/target-sqlite/contract-free';
 import type { SqliteCreateTable, SqliteDdlNode } from '@internal/target-sqlite/ddl';
 import { readSqliteDefault } from '@internal/target-sqlite/default-normalizer';
-import { normalizeSqliteNativeType } from '@internal/target-sqlite/native-type-normalizer';
 import { escapeLiteral, quoteIdentifier } from '@internal/target-sqlite/sql-utils';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -134,9 +140,12 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
   readonly targetId = 'sqlite' as const;
 
   private readonly codecRegistry: SqliteCodecRegistry;
+  private readonly declaredDataTypes: readonly DataType[];
 
-  constructor(codecRegistry: SqliteCodecRegistry) {
+  /** `declaredDataTypes` are the stack's data types in assembly order, which introspection resolves each column's reported type over. */
+  constructor(codecRegistry: SqliteCodecRegistry, declaredDataTypes: readonly DataType[]) {
     this.codecRegistry = codecRegistry;
+    this.declaredDataTypes = declaredDataTypes;
   }
 
   bootstrapControlTableQueries(): readonly DdlNode[] {
@@ -600,10 +609,8 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
       const autoincrementColumn = autoincrementColumnOf(tableRow.sql, columnsResult.rows);
 
       for (const col of columnsResult.rows) {
-        // Resolved values comparable against the contract-derived expected
-        // side: the normalized native type and the default read with the
-        // column's codec. The raw default stays alongside.
-        const resolvedNativeType = normalizeSqliteNativeType(col.type);
+        // The default read with the column's codec, comparable against the
+        // contract-derived side; the raw default stays alongside.
         const rawDefault = col.dflt_value ?? undefined;
         const readDefault =
           col.name === autoincrementColumn
@@ -615,14 +622,20 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
                   col.type,
                   contractColumnsOf.columnOf(undefined, tableName, col.name),
                 );
+        const reportedType = {
+          text: col.type,
+          kind: undefined,
+          schema: undefined,
+          name: undefined,
+        };
         columns[col.name] = {
           name: col.name,
-          nativeType: col.type.toLowerCase(),
+          typeText: col.type.toLowerCase(),
           nullable: col.notnull === 0 && col.pk === 0,
           ...ifDefined('default', rawDefault),
-          resolvedNativeType,
           ...readDefault,
-          reportedType: { text: col.type, kind: undefined, schema: undefined, name: undefined },
+          reportedType,
+          ...resolveIntrospectedColumnType(reportedType, this.declaredDataTypes),
         };
         if (col.pk > 0) {
           pkColumns.push({ name: col.name, pk: col.pk });

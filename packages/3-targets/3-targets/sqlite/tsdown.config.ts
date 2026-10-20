@@ -13,7 +13,6 @@ export default defineConfig({
     'src/exports/ddl.ts',
     'src/exports/default-normalizer.ts',
     'src/exports/migration.ts',
-    'src/exports/native-type-normalizer.ts',
     'src/exports/op-factory-call.ts',
     'src/exports/pack.ts',
     'src/exports/planner.ts',

@@ -24,7 +24,11 @@ const postgresAdapterDescriptor: SqlControlAdapterDescriptor<'postgres'> = {
       ...stack.extensions,
     ];
     const codecRegistry = assemblePostgresCodecRegistry(components, stack.dataTypes.lookup);
-    return new PostgresControlAdapter(codecRegistry, stack.dataTypes.lookup);
+    return new PostgresControlAdapter(
+      codecRegistry,
+      stack.dataTypes.lookup,
+      stack.declaredDataTypes.map(({ type }) => type),
+    );
   },
 };
 
@@ -34,6 +38,5 @@ export {
   createPostgresBuiltinCodecLookup,
   createPostgresCodecRegistryWithBuiltins,
 } from '@internal/target-postgres/codecs';
-export { normalizeSchemaNativeType } from '@internal/target-postgres/native-type-normalizer';
 export { PostgresControlAdapter } from '../core/control-adapter';
 export { escapeLiteral, qualifyName, quoteIdentifier };

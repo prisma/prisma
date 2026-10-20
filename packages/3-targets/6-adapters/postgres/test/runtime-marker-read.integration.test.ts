@@ -6,8 +6,8 @@ import type { PostgresDdlNode } from '@internal/target-postgres/ddl';
 import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createPostgresAdapter } from '../src/core/adapter';
-import { PostgresControlAdapter } from '../src/core/control-adapter';
 import type { PostgresContract } from '../src/core/types';
+import { createTestPostgresControlAdapter } from './helpers/test-control-adapter';
 
 describe('runtime readMarker through the Postgres runtime driver', () => {
   const cleanups: Array<() => Promise<void>> = [];
@@ -27,7 +27,7 @@ describe('runtime readMarker through the Postgres runtime driver', () => {
     });
     await driver.connect({ kind: 'url', url: database.connectionString });
 
-    const controlAdapter = new PostgresControlAdapter(
+    const controlAdapter = createTestPostgresControlAdapter(
       createPostgresBuiltinCodecLookup(),
       createPostgresBuiltinDataTypeLookup(),
     );
