@@ -1126,10 +1126,8 @@ function resolveModelNode(
  * `ContractInput`'s `Extensions` parameter defaults to `undefined`, but lowering
  * reads the extension-pack record at runtime, so the input is widened here.
  */
-type LoweringInput = Omit<ContractInput, 'extensions' | 'codecLookup' | 'dataTypeLookup'> & {
+type LoweringInput = Omit<ContractInput, 'extensions'> & {
   readonly extensions?: Record<string, ExtensionPackRef<'sql', string>> | undefined;
-  readonly codecLookup?: ContractInput['codecLookup'] | undefined;
-  readonly dataTypeLookup?: ContractInput['dataTypeLookup'] | undefined;
 };
 
 type ColumnLength = (
@@ -1139,7 +1137,6 @@ type ColumnLength = (
 
 function columnLengthOf(definition: LoweringInput): ColumnLength {
   const { codecLookup, dataTypeLookup } = definition;
-  if (codecLookup === undefined || dataTypeLookup === undefined) return () => undefined;
   return (codecId, typeParams) => {
     const dataTypeId = codecLookup.descriptorFor(codecId)?.dataType;
     return sqlColumnLength(

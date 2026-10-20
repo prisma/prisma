@@ -9,7 +9,7 @@ describe('the Mongo generator functions', () => {
     expect(
       registry.resolve(
         { name: 'now', args: {} },
-        { codecId: 'mongo/date@1', typeParams: undefined },
+        { codecId: 'mongo/date@1', typeParams: undefined, length: undefined },
       ),
     ).toEqual({ ok: true, generator: { kind: 'generator', id: 'timestampNow' } });
   });

@@ -1116,7 +1116,7 @@ function dateTimeNowGenerator(
 ): ExecutionMutationDefaultValue {
   const now = generatorFunctions.resolve(
     { name: 'now', args: {} },
-    { codecId, typeParams: undefined },
+    { codecId, typeParams: undefined, length: undefined },
   );
   if (!now.ok) {
     throw new InternalError(

@@ -2,6 +2,7 @@ import type { ExecutionMutationDefault } from '@internal/contract/types';
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
 import { type GeneratorCallRefusal, generatorCallsFor } from '@internal/family-sql/psl-build';
 import type { PslFieldAttribute } from '@internal/framework-components/psl-ast';
+import { sqlCodecColumnLength } from '@internal/sql-contract/data-type';
 import { buildAttribute, positionalArg } from '../psl-build/psl-literals';
 import {
   refuseGeneratorOnList,
@@ -56,7 +57,11 @@ export function buildGeneratorAttributes(input: {
 }): readonly PslFieldAttribute[] {
   const result = generatorCallsFor({
     executionDefault: input.executionDefault,
-    field: { codecId: input.codecId, typeParams: input.typeParams },
+    field: {
+      codecId: input.codecId,
+      typeParams: input.typeParams,
+      length: sqlCodecColumnLength(input.context.dataTypes, input.codecId, input.typeParams),
+    },
     list: input.list,
     generatorFunctions: input.context.generatorFunctions,
   });

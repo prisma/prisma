@@ -51,7 +51,7 @@ import type {
   SourceFile,
 } from '@internal/psl-parser/syntax';
 import { dottedPathsIn, printSyntax, StringLiteralExprAst } from '@internal/psl-parser/syntax';
-import { sqlDataTypeOfCodec } from '@internal/sql-contract/data-type';
+import { sqlCodecColumnLength, sqlDataTypeOfCodec } from '@internal/sql-contract/data-type';
 import {
   declaredBackingObjectName,
   declaredIndexesServeForeignKey,
@@ -96,6 +96,7 @@ import type { Prisma7TargetBinding } from './target-binding';
 /** The generator `now()` resolves to for a column, which `@updatedAt` writes on create and on update; `undefined` when no generator function binds `now` to its codec. */
 function nowGeneratorFor(
   generatorFunctions: GeneratorFunctionRegistry,
+  dataTypes: DataTypeSupport,
   column: {
     readonly codecId: string;
     readonly typeParams?: Readonly<Record<string, unknown>> | undefined;
@@ -103,7 +104,11 @@ function nowGeneratorFor(
 ): ExecutionMutationDefaultValue | undefined {
   const resolution = generatorFunctions.resolve(
     { name: 'now', args: {} },
-    { codecId: column.codecId, typeParams: column.typeParams },
+    {
+      codecId: column.codecId,
+      typeParams: column.typeParams,
+      length: sqlCodecColumnLength(dataTypes, column.codecId, column.typeParams),
+    },
   );
   return resolution.ok ? resolution.generator : undefined;
 }
@@ -1226,7 +1231,7 @@ function readField(args: ReadFieldArgs): void {
   const updatedAtGenerator =
     updatedAt === undefined || ignored
       ? undefined
-      : nowGeneratorFor(input.generatorFunctions, resolved.descriptor);
+      : nowGeneratorFor(input.generatorFunctions, input.dataTypes, resolved.descriptor);
   if (updatedAt !== undefined && !ignored && updatedAtGenerator === undefined) {
     if (nativeType === undefined) {
       throw new InternalError(

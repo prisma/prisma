@@ -147,6 +147,11 @@ describe('extension detection', () => {
       'for (const { name, signature } of pack.generatorFunctions) arms.push(generatorFunctionCall(name, signature, dataTypes));',
     ],
     [
+      'generator-function-field-length',
+      'const resolution = generatorFunctions.resolve(call, { codecId, typeParams });',
+      'const resolution = registry.lookup(call.name);',
+    ],
+    [
       'arg-binding-spec-label',
       "interpretArgs(args, { name: 'rel', positional, named }, ctx, span, node);",
       'interpretAttribute(node, spec, ctx);',

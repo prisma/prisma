@@ -57,6 +57,8 @@ export function testBuildContext(
   } = {},
 ): SqlPslBuildContext {
   const extraCodecs = new Map((extra.codecs ?? []).map((codec) => [codec.codecId, codec]));
+  const descriptorFor = (codecId: string) =>
+    extraCodecs.get(codecId) ?? postgresCodecDescriptorRegistry.descriptorFor(codecId);
   const field: AuthoringFieldNamespace = {
     ...postgresAuthoringFieldPresets,
     temporal: { ...postgresAuthoringFieldPresets.temporal, ...extra.temporalPresets },
@@ -88,13 +90,12 @@ export function testBuildContext(
     codecLookup: {
       get: () => undefined,
       renderOutputTypeFor: () => undefined,
-      descriptorFor: (codecId) =>
-        extraCodecs.get(codecId) ?? postgresCodecDescriptorRegistry.descriptorFor(codecId),
+      descriptorFor,
     },
     dataTypes: {
       entries: postgresDataTypeEntries(),
       lookup: createDataTypeLookup([...postgresDataTypes, ...(extra.dataTypes ?? [])]),
-      dataTypeOfCodec: () => undefined,
+      dataTypeOfCodec: (codecId) => descriptorFor(codecId)?.dataType,
     },
   };
 }

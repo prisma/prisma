@@ -210,8 +210,8 @@ describe('SQL family generator functions', () => {
   });
 
   it('writes the call for each identifier generator', () => {
-    const text = { codecId: 'demo/text@1', typeParams: undefined };
-    const char36 = { codecId: 'sql/char@1', typeParams: { length: 36 } };
+    const text = { codecId: 'demo/text@1', typeParams: undefined, length: undefined };
+    const char36 = { codecId: 'sql/char@1', typeParams: { length: 36 }, length: 36 };
     expect({
       uuidv4: registry.callFor({ kind: 'generator', id: 'uuidv4' }, text)?.text,
       uuidv7: registry.callFor({ kind: 'generator', id: 'uuidv7' }, text)?.text,

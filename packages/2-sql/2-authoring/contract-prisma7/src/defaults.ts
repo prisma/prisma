@@ -30,12 +30,9 @@ import {
   printSyntax,
   StringLiteralExprAst,
 } from '@internal/psl-parser/syntax';
+import { sqlCodecColumnLength } from '@internal/sql-contract/data-type';
 import { defaultFunctionCall } from '@internal/sql-contract-psl/attribute-specs';
-import {
-  columnLength,
-  type DefaultRefusal,
-  readDataTypeDefault,
-} from '@internal/sql-contract-psl/resolution';
+import { type DefaultRefusal, readDataTypeDefault } from '@internal/sql-contract-psl/resolution';
 import type {
   AuthoredColumnDefault,
   AuthoredColumnDefaultLiteralValue,
@@ -371,7 +368,7 @@ function lowerFunction(
       {
         codecId: input.codecId,
         typeParams: input.typeParams,
-        length: columnLength(input.dataTypes, input.codecId, input.typeParams),
+        length: sqlCodecColumnLength(input.dataTypes, input.codecId, input.typeParams),
       },
     );
     if (resolution.ok) return { storage: undefined, onCreate: resolution.generator };

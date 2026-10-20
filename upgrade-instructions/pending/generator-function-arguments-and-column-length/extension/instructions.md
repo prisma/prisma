@@ -16,7 +16,11 @@ changes:
         - '(?<![\s\S])(?=[\s\S]*\b(?:defaultFunctionRegistry|generatorFunctions)\b)[\s\S]*\.signature\b'
   - id: generator-function-field-length
     summary: |
-      The column a generator function binding resolves for, `GeneratorFunctionField` (`@prisma/orm-framework/components/components`), has an optional `length`: the column's length in its data type's normal form, so a bare `Char` gives 1. It is left out for a column with no length, or one whose database does not limit it, such as SQLite's. The built-in identifier bindings refuse a column shorter than what they write; a binding of your own can read it to do the same. Code that calls `resolve` on a generator function registry passes it to have the check.
+      The column a generator function binding resolves for, `GeneratorFunctionField` (`@prisma/orm-framework/components/components`), has a required `length` key: the column's length in its data type's normal form, so a bare `Char` gives 1, or `undefined` for a column with no length or one whose database does not limit it, such as SQLite's. Code that calls `resolve` or `callFor` on a generator function registry passes it; for a SQL column, `sqlCodecColumnLength(dataTypes, codecId, typeParams)` from `@prisma/orm-family-sql/contract/data-type` computes it. The built-in identifier bindings refuse a column shorter than what they write, and a binding of your own can read `length` to do the same. The detection matches files that call the registry's `resolve` or `callFor`.
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      matches:
+        - '\bgeneratorFunctions\.(?:resolve|callFor)\('
   - id: arg-binding-spec-label
     summary: |
       `ArgBindingSpec` (`@prisma/orm-framework/psl-parser`), the second argument of `interpretArgs`, names its callee with `label`, the whole phrase such as `Attribute "rel"`, instead of `name`. `funcCall(name, signature, { label })` takes the phrase its binding diagnostics use; without it they say `Attribute "<name>"` as before.
@@ -74,6 +78,22 @@ const arm = generatorFunctionCall(contribution.name, contribution.signature, dat
 A function you declare can keep a plain `FuncCallSig`. Write it as `(dataTypes) => FuncCallSig` when an argument is a value of a data type, read with `dataTypeValue(type, dataTypes)`.
 
 ## `generator-function-field-length`
+
+```ts
+// Before
+generatorFunctions.resolve(call, { codecId, typeParams });
+
+// After
+import { sqlCodecColumnLength } from '@prisma/orm-family-sql/contract/data-type';
+
+generatorFunctions.resolve(call, {
+  codecId,
+  typeParams,
+  length: sqlCodecColumnLength(dataTypes, codecId, typeParams),
+});
+```
+
+A binding of your own reads the length:
 
 ```ts
 const binding: GeneratorFunctionBinding = {

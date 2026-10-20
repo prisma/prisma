@@ -451,6 +451,22 @@ export function sqlColumnLength(
   return typeof length === 'number' ? length : undefined;
 }
 
+/** The length of a column of `codecId` in its data type's normal form, or `undefined` for a column with no length or one whose database does not limit it. */
+export function sqlCodecColumnLength(
+  dataTypes: {
+    readonly lookup: Pick<DataTypeLookup, 'get'>;
+    readonly dataTypeOfCodec: (codecId: string) => DataTypeId | undefined;
+  },
+  codecId: string,
+  typeParams: Readonly<Record<string, unknown>> | undefined,
+): number | undefined {
+  const dataTypeId = dataTypes.dataTypeOfCodec(codecId);
+  return sqlColumnLength(
+    dataTypeId === undefined ? undefined : dataTypes.lookup.get(dataTypeId),
+    typeParams,
+  );
+}
+
 /** The type a column of `type` is stored as, whose name DDL writes and the database reports: `type` itself unless it names another. */
 export function sqlStorageType(
   type: SqlDataType,

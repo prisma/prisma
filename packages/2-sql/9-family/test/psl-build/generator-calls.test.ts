@@ -41,7 +41,7 @@ function callsFor(input: {
       ...(input.onCreate === undefined ? {} : { onCreate: input.onCreate }),
       ...(input.onUpdate === undefined ? {} : { onUpdate: input.onUpdate }),
     },
-    field: { codecId: 'demo/time@1', typeParams: input.typeParams },
+    field: { codecId: 'demo/time@1', typeParams: input.typeParams, length: undefined },
     list: input.list === true,
     generatorFunctions,
   });

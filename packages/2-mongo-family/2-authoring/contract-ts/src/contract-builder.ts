@@ -2613,7 +2613,11 @@ function executionDefaultsOf(
     if (call === undefined) continue;
     const resolution =
       type.kind === 'scalar'
-        ? generatorFunctions.resolve(call, { codecId: type.codecId, typeParams: type.typeParams })
+        ? generatorFunctions.resolve(call, {
+            codecId: type.codecId,
+            typeParams: type.typeParams,
+            length: undefined,
+          })
         : undefined;
     if (resolution?.ok === true) {
       phases[phase] = resolution.generator;
