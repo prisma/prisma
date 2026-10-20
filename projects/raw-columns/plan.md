@@ -4,7 +4,7 @@
 
 | Slice | Delivers | Builds on | Linear |
 | --- | --- | --- | --- |
-| 1 | `sql/raw` data type and codec on Postgres and SQLite; `Raw("...")` in Prisma 8 schemas and the TypeScript builder; `sql` defaults only; verify by the catalog text; `contract print`; planning a change between raw types | main | TML-3585 (#30745) |
+| 1 | `sql/raw` data type and codec on Postgres and SQLite; `Raw("...")` in Prisma 8 schemas and the TypeScript builder; `sql` defaults only; verify by the catalog text; `contract print`; planning a change between raw types | main | TML-3585 (#30745, merged 2026-10-20) |
 | 2 | The Prisma 7 reader reads `Unsupported("...")` as a raw column with no field | 1 | TML-3596 |
 | 0 | Every type-constructor argument that is a value is read as a value of a data type; `Raw` takes `` sql`...` `` (breaking, with upgrade instructions) ([spec](./slices/00-data-typed-constructor-arguments/spec.md)) | 1, TML-3607 | TML-3615 |
 

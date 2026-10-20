@@ -62,6 +62,8 @@ A change from one raw text to another plans `ALTER COLUMN ... TYPE`. The `alterC
 
 ## The Prisma 7 reader
 
+This section records the design of the reader's part, which arrives in a later change. Until it does, the Prisma 7 reader does not read `Unsupported(...)` fields as raw columns.
+
 The reader (ADR 252) turns `Unsupported("X")` into a raw column with `sql: "X"`, and gives the model no field for it. Prisma 7's generated client leaves such a field out of the model's rows and inputs, and leaves out `create`, `createMany` and `upsert` when the field is required and has no default. So the Prisma 8 ORM shows the model with the shape the Prisma 7 client had.
 
 The reader reads `Unsupported` as written. It does not substitute a data type an extension pack provides, even where one claims the text, as pgvector claims `vector(1536)`. Moving such a column to its real type is a choice the author makes when converting to a Prisma 8 schema.
