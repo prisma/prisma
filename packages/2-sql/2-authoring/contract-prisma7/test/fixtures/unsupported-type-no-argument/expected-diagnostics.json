@@ -1,0 +1,8 @@
+[
+  {
+    "code": "PSL_INVALID_ATTRIBUTE_ARGUMENT",
+    "file": "schema.prisma",
+    "line": 7,
+    "message": "Field \"Post.search\" of type Unsupported() constructor \"Unsupported\" Argument \"sql\" of Unsupported is missing"
+  }
+]

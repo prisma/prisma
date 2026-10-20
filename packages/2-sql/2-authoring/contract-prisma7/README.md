@@ -71,7 +71,7 @@ Codes are prefixed `PSL.PRISMA7_`:
 | `PSL.PRISMA7_CONTRACT_INVALID` | A structured error (one with a dotted code, such as the contract builder's `CONTRACT.*` or a codec's `RUNTIME.*`) was thrown while `load` built the contract, or the contract failed the domain, storage consistency, or model storage reference check `load` runs afterwards. It is reported at the input path and asks the user to report the schema as a Prisma bug. Any other error thrown inside `load`, such as an `InternalError` or a `TypeError`, still throws: it is a bug in Prisma ORM, not a problem in the schema (ADR 245). |
 | `PSL.PRISMA7_SCHEMA_READ_FAILED` | The input path could not be read, or a schema directory holds no `.prisma` file. |
 
-Unknown top-level blocks keep the parser's `PSL_UNSUPPORTED_TOP_LEVEL_BLOCK` code. An `Unsupported` text that is not one type name, such as `Unsupported("tsvector; drop")`, keeps the `PSL_INVALID_ATTRIBUTE_ARGUMENT` code the `Raw` type constructor reports, with the `sql/raw` data type's message.
+Unknown top-level blocks keep the parser's `PSL_UNSUPPORTED_TOP_LEVEL_BLOCK` code. An `Unsupported` call the `Raw` type constructor refuses, such as `Unsupported("tsvector; drop")`, two arguments or none, keeps that constructor's `PSL_INVALID_ATTRIBUTE_ARGUMENT` code. The message names `Unsupported` and repeats the call as written, for example `Field "Post.search" of type Unsupported("tsvector; drop") constructor "Unsupported" Authoring helper argument at Unsupported[0] is invalid: ...`, followed by the `sql/raw` data type's reason.
 
 ## Relations
 

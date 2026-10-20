@@ -957,6 +957,10 @@ function isUnsupportedType(call: ResolvedTypeConstructorCall | undefined): boole
   return call?.path.length === 1 && call.path[0] === 'Unsupported';
 }
 
+function writtenCall(call: ResolvedTypeConstructorCall): string {
+  return `${call.path.join('.')}(${call.args.map((arg) => arg.value).join(', ')})`;
+}
+
 function nativeTypeMessage(label: string, nativeType: string): string {
   return `${label}: native type "@db.${nativeType}" has no Prisma 8 codec yet, and Prisma 8 cannot read this schema until it supports the column type. @ignore on the field or @@ignore on the model does not help: Prisma 8 keeps the columns of ignored fields and models in the contract. Changing the field's type to one Prisma 8 supports changes the column type on Prisma 7's next migration.`;
 }
@@ -1126,7 +1130,7 @@ function readField(args: ReadFieldArgs): void {
   const enumDeclaration = unsupported ? undefined : args.enums.get(field.typeName);
   let call: ResolvedTypeConstructorCall;
   if (field.typeConstructor !== undefined) {
-    call = { ...field.typeConstructor, path: RAW_TYPE_CONSTRUCTOR };
+    call = field.typeConstructor;
   } else if (enumDeclaration !== undefined) {
     if (enumDeclaration.namespaceId !== model.namespaceId) {
       diagnostics.push(
@@ -1186,7 +1190,10 @@ function readField(args: ReadFieldArgs): void {
     };
   }
 
-  const typeConstructor = getAuthoringTypeConstructor(input.authoringContributions, call.path);
+  const typeConstructor = getAuthoringTypeConstructor(
+    input.authoringContributions,
+    unsupported ? RAW_TYPE_CONSTRUCTOR : call.path,
+  );
   if (typeConstructor === undefined) {
     diagnostics.push(
       prisma7Diagnostic(
@@ -1204,7 +1211,7 @@ function readField(args: ReadFieldArgs): void {
     descriptor: typeConstructor,
     diagnostics: typeDiagnostics,
     source: diagnosticSource(model.sources, field.node.syntax),
-    entityLabel: label,
+    entityLabel: unsupported ? `${label} of type ${writtenCall(call)}` : label,
     namespaceId: model.namespaceId,
     namespaceExtensionEntities: args.namespaceEntities,
     codecLookup: input.codecLookup,
