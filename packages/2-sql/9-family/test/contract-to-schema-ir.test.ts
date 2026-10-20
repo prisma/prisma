@@ -11,7 +11,7 @@ import type {
 } from '@internal/framework-components/codec';
 import { createDataTypeLookup, emptyCodecLookup } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { sqlDataType } from '@internal/sql-contract/data-type';
+import { sqlDataType, sqlRawDataType } from '@internal/sql-contract/data-type';
 import {
   CheckConstraint,
   Index,
@@ -97,6 +97,14 @@ const enumType = sqlDataType('test/enum', {
   render: ({ typeName }) => `"${typeName}"`,
 });
 
+/** A data type unrelated to sql/raw whose name is its catalog text too. */
+const verbatimType = sqlDataType<{ name: string }>('test/verbatim', {
+  read: (json) => json,
+  params: type({ name: 'string' }),
+  nameIsCatalogText: true,
+  render: ({ name }) => name,
+});
+
 const dataTypeOfCodec: Readonly<Record<string, DataType>> = {
   'pg/text@1': textType,
   'sql/char@1': characterType,
@@ -107,6 +115,8 @@ const dataTypeOfCodec: Readonly<Record<string, DataType>> = {
   'pg/char@1': fixedCharacterType,
   'pg/enum@1': enumType,
   'test/code@1': codeType,
+  'sql/raw@1': sqlRawDataType,
+  'test/verbatim@1': verbatimType,
 };
 
 /** The codec of `pg/timestamptz@1`, the one a test reads a `Date` default with; it holds years from 2000. */
@@ -148,6 +158,8 @@ const testDataTypes = createDataTypeLookup([
   fixedCharacterType,
   codeType,
   enumType,
+  sqlRawDataType,
+  verbatimType,
 ]);
 
 function wrap(storage: SqlStorage): Contract<SqlStorage> {
@@ -462,6 +474,42 @@ describe('contractToSchemaIR', () => {
     const mood = contractToSchemaIR(wrap(storage)).tables['T']!.columns['mood']!;
     expect({ typeText: mood.typeText }).toEqual({
       typeText: 'Mood',
+    });
+  });
+
+  it('writes a raw column as its sql text, compared with the type the database reports', () => {
+    const storage = unboundStorage('test' as StorageHashBase<string>, {
+      T: table({
+        columns: {
+          size: col({ codecId: 'sql/raw@1', typeParams: { sql: 'integer' } }),
+          tags: col({
+            codecId: 'sql/raw@1',
+            typeParams: { sql: 'tsvector' },
+            many: { elementNullable: false },
+          }),
+          name: col({ codecId: 'pg/text@1' }),
+          other: col({ codecId: 'test/verbatim@1', typeParams: { name: 'MyType' } }),
+        },
+      }),
+    });
+
+    const columns = contractToSchemaIR(wrap(storage)).tables['T']!.columns;
+    expect(
+      Object.fromEntries(
+        Object.entries(columns).map(([name, column]) => [
+          name,
+          {
+            typeText: column.typeText,
+            storedType: column.storedType?.id,
+            catalogText: column.catalogText,
+          },
+        ]),
+      ),
+    ).toEqual({
+      size: { typeText: 'integer', storedType: 'sql/raw', catalogText: 'integer' },
+      tags: { typeText: 'tsvector', storedType: 'sql/raw', catalogText: 'tsvector' },
+      name: { typeText: 'text', storedType: 'test/text', catalogText: undefined },
+      other: { typeText: 'MyType', storedType: 'test/verbatim', catalogText: 'MyType' },
     });
   });
 

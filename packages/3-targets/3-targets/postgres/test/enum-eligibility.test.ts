@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { codecDescriptors } from '../src/core/codecs';
 
 describe('the Postgres codecs an enum cannot use', () => {
-  it('are the native enum codec, the string timestamps, timetz, bytea, tsquery, json and jsonb, each refused with its reason and what to use instead', () => {
+  it('are the native enum codec, the string timestamps, timetz, bytea, tsquery, json, jsonb and raw, each refused with its reason and what to use instead', () => {
     const refusals = Object.fromEntries(
       codecDescriptors.flatMap((descriptor) => {
         const refusal = enumRefusalOf(descriptor);
@@ -28,6 +28,8 @@ describe('the Postgres codecs an enum cannot use', () => {
         'The json type has no equality operator, so no CHECK can compare a value with the members. No enum can use a json codec; use a text enum instead.',
       'pg/jsonb@1':
         'A CHECK lists a string member as SQL text, which PostgreSQL reads as the JSON text of a document rather than as a string, and a number member as a number, which PostgreSQL cannot compare with jsonb, so no CHECK can compare a value with the members. No enum can use a jsonb codec; use a text enum instead.',
+      'sql/raw@1':
+        'A raw column has a type Prisma does not interpret, so no member can be written as one of its values. No enum can use the raw codec; use a text enum instead.',
     });
   });
 });

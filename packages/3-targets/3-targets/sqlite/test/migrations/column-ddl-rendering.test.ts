@@ -1,10 +1,13 @@
+import type { JsonValue } from '@internal/contract/types';
 import type { DataType } from '@internal/framework-components/codec';
+import { sqlDataType, sqlRawDataType } from '@internal/sql-contract/data-type';
 import {
   PrimaryKey,
   SqlColumnIR,
   SqlForeignKeyIR,
   SqlUniqueIR,
 } from '@internal/sql-schema-ir/types';
+import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { sqliteCharacter, sqliteText } from '../../src/core/data-types';
 import {
@@ -80,7 +83,7 @@ describe('tableConstraintsFromNode — checks', () => {
   });
 });
 
-function column(storedType: DataType, codecId: string, typeParams?: Record<string, number>) {
+function column(storedType: DataType, codecId: string, typeParams?: Record<string, JsonValue>) {
   return new SqlColumnIR({
     name: 'c',
     typeText: 'text',
@@ -100,6 +103,20 @@ describe('the type SQLite DDL writes for a column node', () => {
       ddl: ddlColumnFromNode(datetime, false).type,
       character: columnSpecFromNode(character, false).typeSql,
     }).toEqual({ spec: 'TEXT', ddl: 'TEXT', character: 'CHARACTER' });
+  });
+
+  it('is the name as given for a type whose name is its catalog text, which verify compares exactly', () => {
+    const verbatim = sqlDataType<{ name: string }>('t/verbatim', {
+      read: (json) => json,
+      params: type({ name: 'string' }),
+      nameIsCatalogText: true,
+      render: ({ name }) => name,
+    });
+    expect({
+      raw: columnSpecFromNode(column(sqlRawDataType, 'sql/raw@1', { sql: 'circle' }), false)
+        .typeSql,
+      other: ddlColumnFromNode(column(verbatim, 't/verbatim@1', { name: 'MyType(3)' }), false).type,
+    }).toEqual({ raw: 'circle', other: 'MyType(3)' });
   });
 
   it('refuses a column with no data type', () => {

@@ -33,7 +33,7 @@ import type { SqliteContract } from '@internal/adapter-sqlite/types';
 import { computeProfileHash, computeStorageHash } from '@internal/contract/hashing';
 import type { JsonValue } from '@internal/contract/types';
 import { UNBOUND_DOMAIN_NAMESPACE_ID } from '@internal/contract/types';
-import type { CodecRef } from '@internal/framework-components/codec';
+import type { Codec, CodecRef, DataTypeValue } from '@internal/framework-components/codec';
 import { dataTypeValuesEqual, validateCodecTypeParams } from '@internal/framework-components/codec';
 import { SqlStorage } from '@internal/sql-contract/types';
 import {
@@ -132,6 +132,8 @@ export interface SqliteCodecConformanceCase {
    * recorded kind can rot as projections change.
    */
   readonly notYetCanonical?: ExpectedProjectionFailure;
+  /** The codec's data type has no literal values (a raw column), so `toDataTypeValue` refuses every value and the harness does not check it. */
+  readonly literalValuesAbsent?: true;
 }
 
 export interface CodecProjectionOutcome {
@@ -270,6 +272,28 @@ async function rowExecutionFailure(
   };
 }
 
+/** How `toDataTypeValue` fails for `value`, or does not give `v` back from `toDataTypeValue(fromDataTypeValue(v))`; `undefined` when it does. */
+function valueRoundTripFailure(
+  codec: Pick<Codec, 'toDataTypeValue' | 'fromDataTypeValue'>,
+  value: unknown,
+): ProjectionFailure | undefined {
+  let dataTypeValue: DataTypeValue;
+  try {
+    dataTypeValue = codec.toDataTypeValue(value);
+  } catch (error) {
+    return {
+      kind: 'to-data-type-value-rejects',
+      detail: `toDataTypeValue rejects the value: ${describeError(error)}`,
+    };
+  }
+  const again = codec.toDataTypeValue(codec.fromDataTypeValue(dataTypeValue));
+  if (dataTypeValuesEqual(again, dataTypeValue)) return undefined;
+  return {
+    kind: 'value-round-trip',
+    detail: `toDataTypeValue(fromDataTypeValue(v)) is not v: ${JSON.stringify(dataTypeValue.value)} came back as ${JSON.stringify(again.value)}`,
+  };
+}
+
 export async function runSqliteCodecProjection(
   connection: ConformanceConnection,
   conformanceCase: SqliteCodecConformanceCase,
@@ -336,28 +360,9 @@ export async function runSqliteCodecProjection(
         };
   }
 
-  let value: ReturnType<typeof codec.toDataTypeValue>;
-  try {
-    value = codec.toDataTypeValue(conformanceCase.value);
-  } catch (error) {
-    return {
-      ...base,
-      failure: {
-        kind: 'to-data-type-value-rejects',
-        detail: `toDataTypeValue rejects the value: ${describeError(error)}`,
-      },
-    };
-  }
-
-  const again = codec.toDataTypeValue(codec.fromDataTypeValue(value));
-  if (!dataTypeValuesEqual(again, value)) {
-    return {
-      ...base,
-      failure: {
-        kind: 'value-round-trip',
-        detail: `toDataTypeValue(fromDataTypeValue(v)) is not v: ${JSON.stringify(value.value)} came back as ${JSON.stringify(again.value)}`,
-      },
-    };
+  if (conformanceCase.literalValuesAbsent !== true) {
+    const failure = valueRoundTripFailure(codec, conformanceCase.value);
+    if (failure !== undefined) return { ...base, failure };
   }
 
   if (!rowRead.ok) {

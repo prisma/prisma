@@ -318,6 +318,7 @@ export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
           kind: 'placeholder',
           slot: `${converted.text}:convert`,
         },
+        ...(expected.catalogText !== undefined ? { raw: true as const } : {}),
         dataTypes: ctx.dataTypes,
         ownsAutoincrementSequence: hasAutoincrementDefault(actual),
       }),

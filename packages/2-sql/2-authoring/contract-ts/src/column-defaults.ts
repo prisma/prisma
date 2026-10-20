@@ -72,6 +72,18 @@ function defaultRefusal(
   );
 }
 
+/** The refusal of a literal default by a data type that has no literal values, such as a raw column's. */
+function noLiteralValuesRefusal(site: ColumnDefaultSite, cause: StructuredError): StructuredError {
+  return contractError(
+    'CONTRACT.DEFAULT_INVALID',
+    `${columnSiteSubject(site)} has a literal default. ${cause.message}`,
+    {
+      cause,
+      meta: { ...columnSiteMeta(site), codecId: site.codecId, reason: 'no-literal-values' },
+    },
+  );
+}
+
 function encodeDefaultValue(
   value: unknown,
   codec: Codec,
@@ -82,6 +94,9 @@ function encodeDefaultValue(
     return encodeViaCodec(value, codec);
   } catch (cause) {
     if (cause instanceof InternalError) throw cause;
+    if (isStructuredError(cause) && cause.code === 'CONTRACT.LITERAL_VALUES_ABSENT') {
+      throw noLiteralValuesRefusal(site, cause);
+    }
     throw defaultRefusal(site, cause, elementPosition);
   }
 }

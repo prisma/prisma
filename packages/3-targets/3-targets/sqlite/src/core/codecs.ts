@@ -29,6 +29,7 @@ import {
   renderTsLiteral,
   SAFE_INTEGER_BIGINT_RANGE,
 } from '@internal/framework-components/codec';
+import { sqlRawDataType } from '@internal/sql-contract/data-type';
 import {
   BinaryExpr,
   CaseExpr,
@@ -39,10 +40,12 @@ import {
   SqlCharCodec,
   SqlFloatCodec,
   SqlIntCodec,
+  SqlRawCodec,
   SqlVarcharCodec,
   sqlCharDescriptor,
   sqlFloatDescriptor,
   sqlIntDescriptor,
+  sqlRawDescriptor,
   sqlVarcharDescriptor,
 } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
@@ -361,6 +364,31 @@ export const sqliteSqlVarcharDescriptor = sqliteCodec(sqlVarcharDescriptor, {
   jsonProjection: identityJsonProjection,
   factory: (descriptor, dataType, params) => () =>
     new SqlVarcharCodec(descriptor, dataType, params),
+});
+
+/**
+ * `sql/raw@1` as SQLite reads it: a value keeps the shape the driver returns for its storage class. An include carries a BLOB as the array of its hex text that the projection writes, because SQLite's JSON functions refuse a blob; a column value never reaches the JSON constructor as an array, so the array is a BLOB.
+ */
+export class SqliteSqlRawCodec extends SqlRawCodec {
+  override async fromWire(wire: unknown, _ctx: CodecCallContext): Promise<unknown> {
+    if (!Array.isArray(wire)) return wire;
+    const [hex] = wire.length === 1 ? wire : [];
+    if (typeof hex !== 'string' || !BLOB_HEX_TEXT.test(hex)) {
+      throw sqliteError(
+        'RUNTIME.DECODE_FAILED',
+        `${this.id} wire value in an include must be the array of a BLOB's hex text`,
+        { meta: { codecId: this.id, received: String(wire) } },
+      );
+    }
+    return new Uint8Array(Buffer.from(hex, 'hex'));
+  }
+}
+
+export const sqliteSqlRawDescriptor = sqliteCodec(sqlRawDescriptor, {
+  dataType: sqlRawDataType,
+  jsonProjection: hexJsonProjection,
+  factory: (descriptor, dataType, params) => () =>
+    new SqliteSqlRawCodec(descriptor, dataType, params),
 });
 
 /** `sql/int@1` as SQLite stores it: its stored form is `sqlite/integer`'s digit text. */
@@ -837,6 +865,7 @@ export const codecDescriptors = defineSqliteCodecs([
   sqliteSqlVarcharDescriptor,
   sqliteSqlIntDescriptor,
   sqliteSqlFloatDescriptor,
+  sqliteSqlRawDescriptor,
   sqliteTextDescriptor,
   sqliteIntegerDescriptor,
   sqliteRealDescriptor,

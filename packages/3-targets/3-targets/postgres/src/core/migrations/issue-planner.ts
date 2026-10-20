@@ -684,6 +684,7 @@ function mapColumnNodeIssue(
         tableName,
         columnName: expected.name,
         type: renderColumnAlterType(expected),
+        ...(expected.catalogText !== undefined ? { raw: true as const } : {}),
         dataTypes,
         ownsAutoincrementSequence: hasAutoincrementDefault(actual),
         operationClass: liveColumnWidensSafely(expected, actual) ? 'widening' : 'destructive',

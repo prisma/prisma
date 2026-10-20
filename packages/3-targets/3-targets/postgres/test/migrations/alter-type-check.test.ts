@@ -45,6 +45,25 @@ describe('alterTypeCheck', () => {
     ]);
   });
 
+  it('checks a raw type, which its text names, by that text as written, list included', () => {
+    expect(
+      ['circle', 'cidr[]', '"LTree"', 'character varying(3)'].map((type) =>
+        alterTypeCheck(type, postgresDataTypes, where, true),
+      ),
+    ).toEqual([
+      catalogText('circle'),
+      catalogText('cidr[]'),
+      catalogText('"LTree"'),
+      catalogText('character varying(3)'),
+    ]);
+  });
+
+  it('refuses a raw text that is not one type name, naming the call', () => {
+    expect(() => alterTypeCheck('text DEFAULT $a$x$a$', postgresDataTypes, where, true)).toThrow(
+      expect.objectContaining({ code: 'MIGRATION.COLUMN_TYPE_UNREADABLE' }),
+    );
+  });
+
   it('refuses a type no data type of the stack reads, naming the text and where it was written', () => {
     expect(() => alterTypeCheck('int9', postgresDataTypes, where)).toThrow(
       expect.objectContaining({
