@@ -909,7 +909,6 @@ export function lowerDefaultForField(input: {
 
 const GENERATOR_PHASES = ['onCreate', 'onUpdate'] as const;
 
-/** The generators a field's `@onCreate(fn())` and `@onUpdate(fn())` resolve to for its column, or `undefined` for a field with neither. */
 /** The length of a column of `codecId` in its data type's normal form, which a generator binding checks what it writes against. */
 export function columnLength(
   dataTypes: DataTypeSupport,
@@ -923,6 +922,7 @@ export function columnLength(
   );
 }
 
+/** The generators a field's `@onCreate(fn())` and `@onUpdate(fn())` resolve to for its column, or `undefined` for a field with neither. */
 export function lowerGeneratorAttributesForField(input: {
   readonly modelName: string;
   readonly fieldName: string;
