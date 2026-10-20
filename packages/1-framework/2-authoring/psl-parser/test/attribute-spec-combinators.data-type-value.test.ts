@@ -439,6 +439,14 @@ describe('dataTypeValue', () => {
     );
   });
 
+  it('is refused as an arm of oneOf when the oneOf is built', () => {
+    expect(() => oneOf(str(), dataTypeValue(pgInt4.id, support))).toThrow(
+      new InternalError(
+        'oneOf was given an arm typed by data type "pg/int4" (a number). A value of a data type is a parameter of an attribute, a block or a function call, never an arm of oneOf.',
+      ),
+    );
+  });
+
   describe('as a parameter of a function call that is an arm of oneOf', () => {
     const value = oneOf(
       str(),
