@@ -99,7 +99,7 @@ The record changes no client's behaviour. It only saves a validator from checkin
 
 ### No side effects on creation
 
-Tools such as linters need to import an application's `db.ts` and read its client without a database. The ORM builds a plan from the contract alone and uses the database only when the query runs, so this works as long as creating the client does nothing else. Every client therefore creates its pool or driver on the first query, and each has a test that creates it with no URL, builds a plan and renders it with `toSql(plan)`. `toSql` needs only the adapter and the contract, so it is a static member.
+Tools such as linters need to import an application's `db.ts` and read its client without a database. The ORM builds a plan from the contract alone and uses the database only when the query runs, so this works as long as creating the client does nothing else. Every client therefore creates its pool or driver on the first query, and each has a test that creates it with no URL and builds a plan. Each SQL client's test also renders the plan with `toSql(plan)`, which needs only the adapter and the contract, so it is a static member. `mongo()` has no `toSql`.
 
 ADR 263 lists `orm` among the members that need a database connection. That is about running an ORM query. Building one does not need a connection.
 
