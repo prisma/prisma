@@ -31,7 +31,7 @@ model Square {
 
 Today: `nanoid(8.5)` says `Expected an integer literal`, `uuid(5)` says `Expected one of: 4 | 7`, both with the generic code `PSL_INVALID_ATTRIBUTE_SYNTAX`; the same `uuid(5)` read from a Prisma 7 schema silently becomes a version 4 UUID; and `@@base(Shape, "circle")` and `@@base(Shape, 4)` are accepted although `kind` holds at most five characters and `4` is not text.
 
-After: each function argument is a value of the integer data type, read and cast like a default, then checked by the function itself: `nanoid(8.5)` reports the missing cast from a decimal to an integer, `uuid(5)` says `uuid: version must be 4 or 7, got 5`, both with `PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT` at the argument, and the Prisma 7 reader gives the same message. `@@base(Shape, "circle")` is refused at the value because `kind` holds at most five characters, and `@@base(Shape, 4)` because a number is not a value of `kind`'s type.
+After: each function argument is a value of the integer data type, read and cast like a default, then checked by the function itself: `nanoid(8.5)` reports the missing cast from a decimal to an integer (`PSL_VALUE_TYPE_INCOMPATIBLE`), `uuid(5)` says `uuid: version must be 4 or 7, got 5` (`PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT`), both at the argument, and the Prisma 7 reader gives the same message. `@@base(Shape, "circle")` is refused at the value because `kind` holds at most five characters, and `@@base(Shape, 4)` because a number is not a value of `kind`'s type.
 
 ## What the code does today
 
