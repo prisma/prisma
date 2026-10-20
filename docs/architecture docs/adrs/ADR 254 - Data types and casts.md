@@ -52,7 +52,7 @@ Each of these problems comes from a value that has no type of its own, or from a
 
 - A written number read through a JavaScript number is rounded before anything can check it: `100000000000000099` becomes `100000000000000100`, and `1.50` loses its trailing zero.
 - A JSON default written as a quoted string, `Jsonb @default("{}")`, is a string, not a document, and `contract infer` cannot print one back.
-- The `8` in `@default(8)` and the `8` in a database function's argument, such as `gen_random_bytes(8)` in a `sql` default, are the same thing: a written value handed to a position that expects a particular type. Without types they are checked by unrelated code. (The `8` in `nanoid(8)` is different: it sizes a generator that runs in the client, so it is grammar; [ADR 231](ADR%20231%20-%20Declarative%20attribute%20specifications.md) draws the line.)
+- The `8` in `@default(8)` and the `8` in a database function's argument, such as `gen_random_bytes(8)` in a `sql` default, are the same thing: a written value handed to a position that expects a particular type. Without types they are checked by unrelated code. So is the `8` in `nanoid(8)`, which sizes a generator that runs in the client: it is a value of the target's integer type, read by the same rule, and the function then checks its own limit.
 - When a codec stands in for the database type, the facts about that type, such as its DDL name, its parameters and how `numeric(10,2)` is written, are spread across codecs and rendering hooks. Two codecs of one database type, `pg/int8@1` and `pg/int8number@1`, cannot say they are the same type, and each can store the same value in a different form.
 - When both a codec and its type can define how a value is stored, one value gets two texts. On SQLite a datetime default would be `2024-01-01T00:00:00Z` in the contract and `2024-01-01T00:00:00.000Z` in every row, and every tool that compares them needs code to make them equal.
 
@@ -185,7 +185,7 @@ PSL has three kinds of expression, and each has one rule.
 
 - **A literal** is written plainly or with a tag. The interpreter finds its entry, calls `parse`, and has a value of a known type.
 - **A reference** is an identifier that resolves through the symbol table to a declaration. An enum member resolves to the member declared in its `enum` block, and the only check is that it belongs to this column's enum. No parsing and no cast.
-- **A call** names a registered function. A parameter whose value the database receives names a data type, so its argument is admitted by the same rule as a default. A parameter of a client-side generator, such as `nanoid`'s size, is grammar and keeps its shape check ([ADR 231](ADR%20231%20-%20Declarative%20attribute%20specifications.md)).
+- **A call** names a registered function. Every parameter names a data type, so its argument is admitted by the same rule as a default. That includes the parameters of client-side generators: `uuid`'s and `cuid`'s version and `nanoid`'s size are values of the target's integer type (`pg/int4`, `sqlite/integer`), and each function then checks its own limit (`uuid: version must be 4 or 7, got 5`), reported as `PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT` at the argument. The SQL family declares these signatures once, and each target passes its integer type. The Prisma 7 schema reader binds a default function's arguments through the same signatures.
 
 Reading a default is then:
 
@@ -406,7 +406,7 @@ model Place {
 
 - Whether a codec writes the `sql` representation of a value (the DDL half of ADR 184).
 - Mongo casts and written values. Mongo codecs have the same four methods and Mongo data types the same values; Mongo's verification runs through the collection validator.
-- Enum CHECK constraints, Mongo validator enums and discriminator values, which use a stored value as a database value without a codec.
+- Enum CHECK constraints and Mongo validator enums, which use a stored value as a database value without a codec. Discriminator values are settled: a SQL discriminator column is one of the target's text data types, `@@base` takes a string read into that column's type, and the ORM reads and writes the discriminator through the column's codec.
 
 ## Related
 
