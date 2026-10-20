@@ -1726,7 +1726,7 @@ function storedDiscriminatorValue(
   }
   const lowered = lowerDataTypeDefault({
     written: written.written,
-    spans: { attribute: declaration.span, value: written.span, elements: [] },
+    spans: { attribute: written.span, value: written.span, elements: [] },
     isList: false,
     column: discriminator.column,
     codecLookup: input.codecLookup,

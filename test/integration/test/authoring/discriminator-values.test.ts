@@ -100,7 +100,7 @@ describe.each([
   });
 
   it.skipIf(lengthLimited === undefined)(
-    'refuses a value longer than the discriminator column holds, at the attribute as for a default',
+    'refuses a value longer than the discriminator column holds, at the value',
     async () => {
       expect(await refusals(lengthLimited ?? '', ['"circle"'])).toEqual([
         {
@@ -108,7 +108,7 @@ describe.each([
           message:
             'Field "Shape.kind": pg/varchar JSON value must be a string of at most 5 characters',
           line: 13,
-          columns: [3, 26],
+          columns: [17, 25],
         },
       ]);
     },
