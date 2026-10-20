@@ -8,6 +8,7 @@ import type {
 } from '@internal/framework-components/runtime';
 import {
   buildPostgresTransactionQueryMembers,
+  type PostgresPrepareMember,
   type PostgresTransactionQueryMembers,
   withTransactionMembers,
 } from '@internal/postgres/internal/transaction-members';
@@ -25,12 +26,15 @@ import {
   checkCollectionClasses,
   type NoCollectionClasses,
   orm,
+  prepareQuery,
 } from '@internal/sql-orm-client';
 import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
   ExecutionContext,
   Log,
+  PreparedExecution,
+  PreparedStatement,
   SqlExecutionStackWithDriver,
   SqlMiddleware,
   SqlRuntimeExtensionDescriptor,
@@ -43,6 +47,10 @@ import {
   createSqlExecutionStack,
   withTransaction,
 } from '@internal/sql-runtime';
+import {
+  preparedStatementExecute,
+  preparedStatementQuery,
+} from '@internal/sql-runtime/internal/prepared-query';
 import postgresTarget, { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -72,7 +80,7 @@ type KeyMaterial =
 export interface RoleBoundDb<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
-> {
+> extends PostgresPrepareMember<TContract> {
   readonly sql: Db<TContract>;
   readonly orm: OrmClient<TContract, TCollections>;
   readonly raw: RawLane<TContract>;
@@ -393,10 +401,13 @@ export default async function supabase<
       ...ifDefined('collections', options.collections),
     });
 
-    return {
+    const roleBound: RoleBoundDb<TContract, TCollections> = {
       sql: roleSql,
       orm: roleOrm,
       raw: roleRaw,
+      prepare(declaration, callback) {
+        return prepareQuery(runtime, declaration, callback);
+      },
       query<Row>(
         plan: (SqlExecutionPlan<Row> | SqlQueryPlan<Row>) & { readonly _row?: Row },
         execOptions?: RuntimeExecuteOptions,
@@ -430,6 +441,22 @@ export default async function supabase<
         );
       },
     };
+    return Object.assign(roleBound, {
+      [preparedStatementQuery]<Params, Row>(
+        statement: PreparedStatement<Params, Row>,
+        params: Params,
+        execOptions?: RuntimeExecuteOptions,
+      ): AsyncIterableResult<Row> {
+        return runtime.preparedQueryWithRole(statement, params, binding, execOptions);
+      },
+      [preparedStatementExecute]<Params>(
+        statement: PreparedExecution<Params>,
+        params: Params,
+        execOptions?: RuntimeExecuteOptions,
+      ): Promise<SqlStatementStats> {
+        return runtime.preparedExecuteWithRole(statement, params, binding, execOptions);
+      },
+    });
   }
 
   const serviceRoleBinding: SupabaseRoleBinding = {

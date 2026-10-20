@@ -1,5 +1,6 @@
 export {
   buildPostgresTransactionQueryMembers,
+  type PostgresPrepareMember,
   type PostgresTransactionQueryMembers,
   type PostgresTransactionQueryMembersOptions,
   withTransactionMembers,

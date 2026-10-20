@@ -18,6 +18,7 @@ test('each query member of a transaction has the type it has on the role-bound c
   expectTypeOf<Tx['sql']>().toEqualTypeOf<Client['sql']>();
   expectTypeOf<Tx['orm']>().toEqualTypeOf<Client['orm']>();
   expectTypeOf<Tx['raw']>().toEqualTypeOf<Client['raw']>();
+  expectTypeOf<Tx['prepare']>().toEqualTypeOf<Client['prepare']>();
   expectTypeOf<Tx['orm']['public']['Profile']['named']>().toBeFunction();
 });
 

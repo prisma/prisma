@@ -76,4 +76,30 @@ describe('a transaction on a supabase role-bound client', () => {
       'RESET ALL',
     ]);
   });
+
+  it('prepares a statement on a role-bound client that runs under its role', async () => {
+    const db = await supabase({
+      contract,
+      url: 'postgres://localhost/db',
+      verifyMarker: false,
+      jwtSecret: 'fixture-jwt-signing-input-not-a-real-credential',
+    });
+    const anon = db.asAnon();
+
+    const byName = await anon.prepare({ username: 'pg/text@1' }, (params) =>
+      anon.sql.public.profile
+        .select('id')
+        .where((f, fns) => fns.eq(f.username, params.username))
+        .build(),
+    );
+    await byName.query(anon, { username: 'ada' });
+    await db.close();
+
+    expect(statements).toEqual([
+      'SELECT set_config($1, $2, false)',
+      'SELECT set_config($1, $2, false)',
+      'SELECT "id" AS "id" FROM "public"."profile" WHERE "username" = $1',
+      'RESET ALL',
+    ]);
+  });
 });
