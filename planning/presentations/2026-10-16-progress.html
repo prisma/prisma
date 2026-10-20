@@ -1,0 +1,379 @@
+<title>Prisma 8 GA Progress</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one slide per screen, snapped vertically; arrow keys step through; on phones the slides stack and scroll freely. */
+:root {
+  --paper: #f3f6f7;
+  --ink: #142029;
+  --muted: #56656f;
+  --rule: #d5dde1;
+  --done: #127a5e;
+  --done-recent: #34b38b;
+  --progress: #c98a12;
+  --todo: #c4ced3;
+  --decide: #b4473a;
+  --accent: #127a5e;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f171c; --ink: #e6edf0; --muted: #98a8b1; --rule: #2a3a43;
+    --done: #3fbf95; --done-recent: #8fe3c4; --progress: #e3a73a; --todo: #3a4a53; --decide: #e07a6c; --accent: #3fbf95;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f171c; --ink: #e6edf0; --muted: #98a8b1; --rule: #2a3a43;
+  --done: #3fbf95; --done-recent: #8fe3c4; --progress: #e3a73a; --todo: #3a4a53; --decide: #e07a6c; --accent: #3fbf95;
+  color-scheme: dark;
+}
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 1.05rem; line-height: 1.5; }
+.slide {
+  min-height: 100vh; min-height: 100dvh;
+  scroll-snap-align: start;
+  display: flex; flex-direction: column; justify-content: center; gap: 1.6rem;
+  padding-block: 4rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  border-bottom: 1px solid var(--rule);
+}
+.inner { width: 100%; max-width: 1120px; margin-inline: auto; display: flex; flex-direction: column; gap: 1.6rem; }
+.eyebrow { font-family: var(--font-mono); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1, h2 { font-family: var(--font-display); font-weight: 700; line-height: 1.05; text-wrap: balance; margin: 0; letter-spacing: -.01em; }
+h1 { font-size: clamp(2.6rem, 7vw, 5.2rem); }
+h2 { font-size: clamp(1.9rem, 4.2vw, 3rem); }
+h3 { font-family: var(--font-display); font-weight: 500; font-size: 1.25rem; margin: 0; }
+p { margin: 0; max-width: 65ch; }
+.lede { font-size: 1.25rem; color: var(--muted); max-width: 52ch; }
+code, .mono { font-family: var(--font-mono); font-size: .92em; }
+code { background: color-mix(in srgb, var(--todo) 35%, transparent); padding: .05em .3em; border-radius: 3px; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* Title slide */
+.dates { font-family: var(--font-mono); font-size: 1rem; color: var(--muted); }
+.goal { display: flex; flex-wrap: wrap; gap: .6rem 2rem; font-size: 1.1rem; }
+.goal b { font-weight: 600; }
+
+/* Big numbers */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.2rem; }
+.stat { border-top: 3px solid var(--ink); padding-top: .8rem; display: flex; flex-direction: column; gap: .3rem; }
+.stat .n { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.6rem, 6vw, 4rem); line-height: 1; font-variant-numeric: tabular-nums; }
+.stat .n small { font-size: .45em; color: var(--muted); font-weight: 500; }
+.stat .l { color: var(--muted); max-width: 28ch; }
+.releases { display: grid; grid-template-columns: max-content 1fr; gap: .3rem 1.4rem; font-size: 1rem; }
+.releases dt { color: var(--muted); }
+.releases dd { margin: 0; font-family: var(--font-mono); }
+
+/* Stream chart */
+.legend { display: flex; flex-wrap: wrap; gap: .5rem 1.4rem; font-size: .92rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: .45rem; }
+.sw { width: 14px; height: 14px; border-radius: 2px; display: inline-block; }
+.streams { display: flex; flex-direction: column; gap: 1.1rem; }
+.stream { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr) 7.5rem; gap: .4rem 1.2rem; align-items: center; }
+.stream .name { font-weight: 500; }
+.stream .count { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.cells { display: flex; flex-wrap: wrap; gap: 4px; }
+.cell { width: 30px; height: 30px; border-radius: 3px; }
+.c-old { background: var(--done); }
+.c-new { background: var(--done-recent); }
+.c-prog { background: var(--progress); }
+.c-todo { background: var(--todo); }
+.c-dec { background: transparent; border: 2px dashed var(--decide); }
+.total { border-top: 1px solid var(--rule); padding-top: 1rem; }
+.total .cell { width: 20px; height: 20px; }
+
+/* Lists */
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.4rem 2.4rem; }
+.group { display: flex; flex-direction: column; gap: .7rem; min-width: 0; }
+.group h3 { border-bottom: 1px solid var(--rule); padding-bottom: .35rem; }
+ul.items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .7rem; }
+ul.items li { display: grid; grid-template-columns: 1fr auto; gap: .1rem 1rem; min-width: 0; }
+ul.items .what { font-weight: 600; }
+ul.items .when { font-family: var(--font-mono); font-size: .85rem; color: var(--muted); white-space: nowrap; }
+ul.items .why { grid-column: 1 / -1; color: var(--muted); font-size: .97rem; }
+.tag { font-family: var(--font-mono); font-size: .78rem; padding: .1rem .45rem; border-radius: 3px; white-space: nowrap; align-self: start; }
+.tag.prog { background: color-mix(in srgb, var(--progress) 22%, transparent); color: var(--ink); }
+.tag.todo { background: color-mix(in srgb, var(--todo) 55%, transparent); color: var(--ink); }
+.tag.dec { border: 1px dashed var(--decide); color: var(--decide); }
+
+/* Breaking changes table */
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; }
+th, td { text-align: left; padding: .6rem .8rem .6rem 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-family: var(--font-mono); font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+td.rel { font-family: var(--font-mono); font-size: .9rem; white-space: nowrap; color: var(--muted); }
+
+.note { color: var(--muted); font-size: .95rem; }
+
+/* Navigation */
+.nav {
+  position: fixed; right: 0; bottom: 0;
+  padding: 0 calc(1rem + env(safe-area-inset-right, 0px)) calc(1rem + env(safe-area-inset-bottom, 0px)) 0;
+  display: flex; gap: .4rem; align-items: center;
+}
+.nav button { font: inherit; font-family: var(--font-mono); font-size: .85rem; background: var(--paper); color: var(--ink); border: 1px solid var(--rule); border-radius: 4px; padding: .3rem .6rem; cursor: pointer; }
+.nav button:hover { border-color: var(--ink); }
+.nav .pos { font-family: var(--font-mono); font-size: .85rem; color: var(--muted); padding-inline: .3rem; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 720px) {
+  html { scroll-snap-type: none; }
+  .slide { min-height: auto; padding-block: 3rem; }
+  .stream { grid-template-columns: 1fr auto; }
+  .stream .cells { grid-column: 1 / -1; grid-row: 2; }
+  .cell { width: 22px; height: 22px; }
+  .nav { display: none; }
+}
+</style>
+
+<main>
+
+<section class="slide" id="s1">
+  <div class="inner">
+    <div class="eyebrow">Prisma 8 GA · team update</div>
+    <h1>Two weeks on the road to Prisma 8 GA</h1>
+    <div class="dates">2 October to 16 October 2026</div>
+    <div class="goal">
+      <span><b>Goal:</b> GA at the end of October 2026</span>
+      <span><b>Fallback:</b> November</span>
+    </div>
+    <p class="lede">What we finished, what changed for users, and the 22 projects between us and GA.</p>
+  </div>
+</section>
+
+<section class="slide" id="s2">
+  <div class="inner">
+    <div class="eyebrow">The two weeks in numbers</div>
+    <h2>From 1 finished GA project to 12</h2>
+    <div class="stats">
+      <div class="stat"><span class="n">12<small> of 34</small></span><span class="l">projects GA needs are done. On 2 October it was 1.</span></div>
+      <div class="stat"><span class="n">157</span><span class="l">pull requests merged: 111 in orm, 30 in composer, 16 in prisma-cli.</span></div>
+      <div class="stat"><span class="n">14</span><span class="l">projects in progress, most with slices already merged.</span></div>
+      <div class="stat"><span class="n">8</span><span class="l">projects not started. One of them waits on a decision.</span></div>
+    </div>
+    <dl class="releases">
+      <dt>ORM</dt><dd>8.0.0-rc.15 → rc.18</dd>
+      <dt>Composer</dt><dd>0.27.0 → 0.30.0</dd>
+      <dt>prisma CLI</dt><dd>8.0.0-rc.20 → rc.23</dd>
+    </dl>
+    <p class="note">A project counts as done only when every part of it has merged. Every project that has started counts toward GA.</p>
+  </div>
+</section>
+
+<section class="slide" id="s3">
+  <div class="inner">
+    <div class="eyebrow">Progress by stream</div>
+    <h2>Where each stream stands</h2>
+    <div class="legend">
+      <span><i class="sw c-old"></i>Done before 2 October</span>
+      <span><i class="sw c-new"></i>Done in the last two weeks</span>
+      <span><i class="sw c-prog"></i>In progress</span>
+      <span><i class="sw c-todo"></i>Not started</span>
+      <span><i class="sw c-dec"></i>Waiting on a decision</span>
+    </div>
+    <div class="streams" id="streams"></div>
+    <div class="stream total">
+      <span class="name"><b>All streams</b></span>
+      <div class="cells" id="all-cells"></div>
+      <span class="count"><b>12 of 34</b></span>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s4">
+  <div class="inner">
+    <div class="eyebrow">Finished in the last two weeks</div>
+    <h2>11 projects done</h2>
+    <div class="cols">
+      <div class="group">
+        <h3>Foundations and breaking changes</h3>
+        <ul class="items">
+          <li><span class="what">One CLI and one config file</span><span class="when">8 Oct</span><span class="why"><code>prisma</code> is the only CLI. Composer's settings live in <code>prisma.config.ts</code>.</span></li>
+          <li><span class="what">SQL expression literals</span><span class="when">12 Oct</span><span class="why">Raw SQL is written <code>sql`…`</code> in PSL, in TypeScript contracts and in migration files.</span></li>
+          <li><span class="what"><code>@noCheck</code> removed</span><span class="when">16 Oct</span><span class="why">A list that allows null elements is written <code>T?[]</code>.</span></li>
+        </ul>
+        <h3>Upgrade path from Prisma 7</h3>
+        <ul class="items">
+          <li><span class="what">Storage a model does not map</span><span class="when">13 Oct</span><span class="why">A table can hold columns no model maps, and a table can have no model. Prisma 7's <code>@ignore</code> keeps working. ADR 267.</span></li>
+        </ul>
+        <h3>Docs and the new user's first hour</h3>
+        <ul class="items">
+          <li><span class="what">Docs stop naming <code>prisma-composer</code></span><span class="when">8 Oct</span><span class="why">The docs and the shipped skill name one CLI.</span></li>
+        </ul>
+      </div>
+      <div class="group">
+        <h3>Query features</h3>
+        <ul class="items">
+          <li><span class="what">Row locking on a select</span><span class="when">7 Oct</span><span class="why"><code>forUpdate</code>, <code>forNoKeyUpdate</code>, <code>forShare</code> and <code>forKeyShare</code> in the SQL builder and the ORM. ADR 261.</span></li>
+          <li><span class="what">Design for leaving fields out</span><span class="when">7 Oct</span><span class="why">The Prisma 8 replacement for <code>omit</code> is designed.</span></li>
+          <li><span class="what"><code>firstOrThrow</code> on collections</span><span class="when">8 Oct</span><span class="why">In the SQL and MongoDB ORMs.</span></li>
+          <li><span class="what"><code>variant()</code></span><span class="when">6 Oct</span><span class="why">Selects rows by discriminator value.</span></li>
+          <li><span class="what">The Postgres driver returns text</span><span class="when">6 Oct</span><span class="why">Every column arrives as server text, so a codec decodes it once.</span></li>
+          <li><span class="what">Collection classes, scopes and query fragments</span><span class="when">15 Oct</span><span class="why">A custom collection keeps its class through a chain. Queries can name a weighted full-text index. Packages can add collection methods.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s5">
+  <div class="inner">
+    <div class="eyebrow">Inside the projects still in progress</div>
+    <h2>Big parts that merged</h2>
+    <div class="cols">
+      <div class="group">
+        <ul class="items">
+          <li><span class="what">Data types own column types</span><span class="tag prog">3 of 6</span><span class="why">Contract columns store a data type id, with an upgrade script. <code>contract infer</code> reads column types from data types, and <code>Unsupported(...)</code> is gone.</span></li>
+          <li><span class="what">Migration statements</span><span class="tag prog">4 of 7</span><span class="why"><code>migration plan</code> and <code>db update</code> refuse to lose data until you answer with <code>--delete</code> or <code>--rename</code>. <code>--convert</code> and <code>--backfill</code> work on Postgres and SQLite. MongoDB renames and deletes too.</span></li>
+          <li><span class="what">PSL mixins</span><span class="tag prog">4 of 5</span><span class="why">Mixins are built, with editor support. Removing field presets is left.</span></li>
+          <li><span class="what">Prisma 7 handover</span><span class="tag prog">3 of 7</span><span class="why">Prisma 8 takes over migrations while Prisma 7 keeps serving queries. No baseline command is needed.</span></li>
+          <li><span class="what">Columns with no codec</span><span class="tag prog">0 of 2</span><span class="why">Designed as raw columns in ADR 273. Slice 1 is built and reviewed.</span></li>
+        </ul>
+      </div>
+      <div class="group">
+        <ul class="items">
+          <li><span class="what">Emulator controls</span><span class="tag prog">3 of 5</span><span class="why">Composer has <code>prisma dev --detach</code>, <code>prisma dev stop</code>, <code>prisma dev url</code> and <code>prisma emulator list</code>. Each checkout gets its own services and ports.</span></li>
+          <li><span class="what">Language server</span><span class="tag prog">2 of 4</span><span class="why">Hover, go to definition, find references and rename all merged.</span></li>
+          <li><span class="what">Middleware sees a tree of activities</span><span class="tag prog">3 of 5</span><span class="why">Statements, transactions and client calls are activities that middleware can observe or answer. ADR 271.</span></li>
+          <li><span class="what">Nested writes</span><span class="tag prog">0 of 5</span><span class="why">Every top-level write now runs through one mutation graph, the base for nested <code>update</code>, <code>delete</code> and <code>upsert</code>.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s6">
+  <div class="inner">
+    <div class="eyebrow">What changed for users</div>
+    <h2>Breaking changes that shipped</h2>
+    <p>GA is the last chance to break things. These landed in the last two weeks.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Change</th><th>What users do</th><th>Release</th></tr></thead>
+        <tbody>
+          <tr><td>Contract columns store a data type id</td><td>Run the upgrade script, then <code>db sign</code></td><td class="rel">ORM rc.15</td></tr>
+          <tr><td><code>migration plan</code> and <code>db update</code> refuse to lose data</td><td>Answer each drop with <code>--delete</code> or <code>--rename</code></td><td class="rel">ORM rc.17</td></tr>
+          <tr><td>The collection method <code>apply(fn)</code> is now <code>with(fn)</code></td><td>Rename the call</td><td class="rel">ORM rc.17</td></tr>
+          <tr><td>The <code>prisma-composer</code> binary is gone</td><td>Use <code>prisma dev</code> and <code>prisma deploy</code></td><td class="rel">CLI rc.20</td></tr>
+          <tr><td>Piping a <code>prisma</code> command gives plain data</td><td>Add <code>--json</code> for JSON</td><td class="rel">CLI, next release</td></tr>
+          <tr><td><code>Unsupported(...)</code> is removed</td><td><code>contract infer</code> refuses a type no data type claims</td><td class="rel">ORM, next release</td></tr>
+          <tr><td><code>@noCheck</code> and <code>.noCheck()</code> are removed</td><td>Write <code>T?[]</code> for a list that allows null elements</td><td class="rel">ORM, next release</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s7">
+  <div class="inner">
+    <div class="eyebrow">What is left</div>
+    <h2>22 projects to GA: 14 in progress, 8 not started</h2>
+    <div class="cols">
+      <div class="group">
+        <h3>Foundations and breaking changes</h3>
+        <ul class="items">
+          <li><span class="what">Data types own column types</span><span class="tag prog">3 of 6</span><span class="why">Slice 3, a data type owns its values, is being built.</span></li>
+          <li><span class="what">Migration statements</span><span class="tag prog">4 of 7</span><span class="why">TypeScript MongoDB validators, then the remaining renames.</span></li>
+          <li><span class="what">Remove field presets</span><span class="tag prog">4 of 5</span><span class="why">Generated values become <code>@onCreate</code> and <code>@onUpdate</code>, and <code>@default</code> means the database only. Type aliases stay.</span></li>
+          <li><span class="what">Early MySQL attempt</span><span class="tag todo">not started</span><span class="why">To find shared code that assumes PostgreSQL.</span></li>
+        </ul>
+        <h3>Upgrade path from Prisma 7</h3>
+        <ul class="items">
+          <li><span class="what">Urgent and high upgrade issues</span><span class="tag prog">6 of 11</span><span class="why">One PR in review closes 3 of the 5 left.</span></li>
+          <li><span class="what">Prisma 7 handover follow-ups</span><span class="tag prog">3 of 7</span><span class="why">Foreign key action and primary key changes next.</span></li>
+          <li><span class="what">Columns with no codec</span><span class="tag prog">0 of 2</span><span class="why">Slice 1 built; slice 2 reads Prisma 7's <code>Unsupported</code>.</span></li>
+          <li><span class="what">Upgrade guide rewrite</span><span class="tag todo">not started</span></li>
+          <li><span class="what">Codecs for <code>citext</code>, <code>bit</code>, <code>varbit</code>, <code>xml</code>, <code>oid</code></span><span class="tag todo">not started</span></li>
+          <li><span class="what">Adopt a Prisma 7 database without changing it</span><span class="tag todo">not started</span><span class="why">The enum membership check.</span></li>
+        </ul>
+      </div>
+      <div class="group">
+        <h3>Editor and tools</h3>
+        <ul class="items">
+          <li><span class="what">Emulator controls in <code>prisma</code></span><span class="tag prog">3 of 5</span><span class="why">Release Composer, add the commands to <code>prisma</code>, then the docs.</span></li>
+          <li><span class="what">VS Code extension</span><span class="tag prog">2 of 4</span><span class="why">File watching in review. Formatter without the CLI to verify.</span></li>
+          <li><span class="what">Extension and Prisma Postgres instances</span><span class="tag todo">not started</span></li>
+        </ul>
+        <h3>Query features</h3>
+        <ul class="items">
+          <li><span class="what">Nested writes on relations</span><span class="tag prog">0 of 5</span><span class="why">Slice 1 in review.</span></li>
+          <li><span class="what">Middleware sees a tree of activities</span><span class="tag prog">3 of 5</span></li>
+          <li><span class="what">Cache middleware</span><span class="tag prog">3 of 4</span><span class="why">Invalidation after commit waits on the activity tree.</span></li>
+          <li><span class="what">Transaction options: isolation and timeouts</span><span class="tag todo">not started</span></li>
+          <li><span class="what">Nested transactions</span><span class="tag todo">not started</span></li>
+        </ul>
+        <h3>Docs and the new user's first hour</h3>
+        <ul class="items">
+          <li><span class="what">Correct the skill's query reference</span><span class="tag prog">0 of 3</span></li>
+          <li><span class="what">Docs gaps found by the eval</span><span class="tag prog">1 of 11</span></li>
+          <li><span class="what">Docs restructure</span><span class="tag prog">draft</span></li>
+          <li><span class="what">ORM scenario for the eval</span><span class="tag dec">needs a decision</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s8">
+  <div class="inner">
+    <div class="eyebrow">How to follow along</div>
+    <h2>The plan is one page</h2>
+    <p>Every project, in priority order by stream, with its status and next step. It is kept current, and the pull requests behind each status are in <code>evidence.md</code> beside it.</p>
+    <p><a href="https://github.com/prisma/orm/blob/planning/prisma-8-ga/planning/plan.md">planning/plan.md on the branch planning/prisma-8-ga</a></p>
+    <p class="note">PostgreSQL is ready at GA. SQLite, MongoDB and MySQL/MariaDB can finish after GA, labelled release candidate or early access until they are ready.</p>
+  </div>
+</section>
+
+</main>
+
+<nav class="nav" aria-label="Slides">
+  <button type="button" id="prev" aria-label="Previous slide">↑</button>
+  <span class="pos" id="pos">1 / 8</span>
+  <button type="button" id="next" aria-label="Next slide">↓</button>
+</nav>
+
+<script>
+const streams = [
+  { name: "Foundations and breaking changes", old: 0, recent: 3, prog: 3, todo: 1, dec: 0 },
+  { name: "Upgrade path from Prisma 7", old: 0, recent: 1, prog: 3, todo: 3, dec: 0 },
+  { name: "Editor and tools", old: 1, recent: 0, prog: 2, todo: 1, dec: 0 },
+  { name: "Query features", old: 0, recent: 6, prog: 3, todo: 2, dec: 0 },
+  { name: "Docs and the new user's first hour", old: 0, recent: 1, prog: 3, todo: 0, dec: 1 },
+];
+function cells(s) {
+  const parts = [["c-old", s.old], ["c-new", s.recent], ["c-prog", s.prog], ["c-todo", s.todo], ["c-dec", s.dec]];
+  return parts.map(([cls, n]) => `<i class="cell ${cls}"></i>`.repeat(n)).join("");
+}
+const host = document.getElementById("streams");
+host.innerHTML = streams.map(s => {
+  const total = s.old + s.recent + s.prog + s.todo + s.dec;
+  const done = s.old + s.recent;
+  return `<div class="stream"><span class="name">${s.name}</span><div class="cells" role="img" aria-label="${done} of ${total} done, ${s.prog} in progress, ${s.todo + s.dec} not started">${cells(s)}</div><span class="count">${done} of ${total}</span></div>`;
+}).join("");
+const sum = streams.reduce((a, s) => ({ old: a.old + s.old, recent: a.recent + s.recent, prog: a.prog + s.prog, todo: a.todo + s.todo, dec: a.dec + s.dec }), { old: 0, recent: 0, prog: 0, todo: 0, dec: 0 });
+document.getElementById("all-cells").innerHTML = cells(sum);
+
+const slides = [...document.querySelectorAll(".slide")];
+const pos = document.getElementById("pos");
+let current = 0;
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { current = slides.indexOf(e.target); pos.textContent = `${current + 1} / ${slides.length}`; } });
+}, { threshold: 0.55 });
+slides.forEach(s => io.observe(s));
+function go(i) { const t = slides[Math.max(0, Math.min(slides.length - 1, i))]; t.scrollIntoView({ block: "start" }); }
+document.getElementById("prev").addEventListener("click", () => go(current - 1));
+document.getElementById("next").addEventListener("click", () => go(current + 1));
+document.addEventListener("keydown", e => {
+  if (["ArrowDown", "ArrowRight", "PageDown", " "].includes(e.key)) { e.preventDefault(); go(current + 1); }
+  else if (["ArrowUp", "ArrowLeft", "PageUp"].includes(e.key)) { e.preventDefault(); go(current - 1); }
+  else if (e.key === "Home") { e.preventDefault(); go(0); }
+  else if (e.key === "End") { e.preventDefault(); go(slides.length - 1); }
+});
+</script>

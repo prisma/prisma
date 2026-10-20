@@ -1,8 +1,8 @@
 # Instructions for agents
 
-Notes for planning Prisma 8 GA with Will Madden, shared with the team. They live on the branch `planning/prisma-8-ga` in `prisma/orm` (local name `worktree/prisma-orm-planning-51fed0`). Push new commits to that branch. Never open a pull request from it and never merge it into `main`.
+Notes for planning Prisma 8 GA with Will Madden, shared with the team. They live on the branch `planning/prisma-8-ga` in `prisma/orm`. Fetch it from and push it to the `bot` remote. Other sessions push here too, so fetch and merge before every push, and confirm the push with `git ls-remote`. Never open a pull request from it and never merge it into `main`.
 
-This file is for an agent picking up the planning discussion with Will. People should read [README.md](README.md). Read this file, then [plan.md](plan.md), [decisions.md](decisions.md) and [context.md](context.md). Read the other files only when the discussion needs them.
+This file is for an agent picking up the planning discussion with Will. People should read [README.md](README.md). Start with [handover.md](handover.md), then read this file, then [plan.md](plan.md), [decisions.md](decisions.md) and [context.md](context.md). Read the other files only when the discussion needs them.
 
 ## Files
 
@@ -31,7 +31,11 @@ This file is for an agent picking up the planning discussion with Will. People s
 
 Linear and the ported test records drift from the code. Before relying on a status:
 
-- Work on a row can live in prisma/composer or prisma/prisma-cli as well as prisma/orm. Search open PRs in all three before calling a row not started.
+- Work on a row can live in prisma/composer or prisma/prisma-cli as well as prisma/orm. Search open and merged PRs in all three, and the code, before calling a row not started.
+- Re-read the state of every PR you report right before you report it. PRs merge between checks.
+- Merging a PR closes the ticket in its title, including ADR-only PRs. Check ticket states against the code and reopen wrongly closed tickets.
+- `StevenMcClankerton` is Serhii's bot account; `wmadden-electric` is Will's.
+- A project that has started is Must (Will, 2026-10-16), and counts toward GA readiness.
 - After changing any Progress cell, recount the "How far from GA" table at the top of plan.md and the "GA readiness" line under each stream heading.
 
 - Open pull requests by the bot: `gh search prs --author wmadden-electric --state open`
