@@ -2,8 +2,8 @@
 changes:
   - id: raw-columns-take-a-sql-literal
     summary: |
-      A raw column's type is written as a `sql` literal: `Raw(sql`ltree`)` in a schema,
-      `type.Raw(sql`ltree`)` and `rawColumn(sql`ltree`)` in TypeScript. `contract emit` refuses
+      A raw column's type is written as a `sql` literal: ``Raw(sql`ltree`)`` in a schema,
+      ``type.Raw(sql`ltree`)`` and ``rawColumn(sql`ltree`)`` in TypeScript. `contract emit` refuses
       `Raw("ltree")` with ``Expected sql`...`; write sql`ltree` ``, and TypeScript refuses a plain
       string. Replace the quotes with a `sql` literal holding the same text. The contract does not
       change.
