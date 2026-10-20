@@ -29,6 +29,19 @@ describe('Mongo fields declared only on a variant', () => {
   );
 
   it(
+    "write through the variant field's codec when the base collection is given the discriminator value",
+    () =>
+      withMongoPort<Contract>({ contractJson }, async ({ db, mongoDb }) => {
+        const data = { kind: 'photo', ownerId, exif: {}, stamps: [] };
+        await db.assets.create(data);
+
+        const stored = await mongoDb.collection('assets').findOne({});
+        expect(stored?.['ownerId']).toBeInstanceOf(ObjectId);
+      }),
+    timeouts.spinUpMongoMemoryServer,
+  );
+
+  it(
     'refuse a non-JSON value in a Json field on write, naming the field and the path inside it',
     () =>
       withMongoPort<Contract>({ contractJson }, async ({ db }) => {

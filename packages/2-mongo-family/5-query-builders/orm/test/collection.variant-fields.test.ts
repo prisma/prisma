@@ -51,6 +51,21 @@ describe('a variant collection', () => {
     );
   });
 
+  it('encodes a variant field with its codec when the base collection is given the discriminator value', async () => {
+    const { executor, plans } = recordingExecutor();
+    const data = { type: 'bug', title: 'Crash', assigneeId: 'a1', severity: 'high', comments: [] };
+    await createMongoCollection(contract, 'Task', executor, noEnums).create(data);
+
+    const severity = paramRefs(plans[0]?.command).find((ref) => ref.name === 'severity');
+    expect(severity).toEqual(
+      new MongoParamRef('high', {
+        codecId: 'mongo/string@1',
+        name: 'severity',
+        collection: 'tasks',
+      }),
+    );
+  });
+
   it("decodes a field declared only on the variant with the variant field's codec", async () => {
     const { executor, plans } = recordingExecutor();
     await createMongoCollection(contract, 'Task', executor, noEnums).variant('bug').all().toArray();

@@ -827,18 +827,21 @@ class MongoCollectionImpl<
     return rows;
   }
 
-  #modelFields(): Record<string, ContractField> {
-    return this.#modelWithVariantFields()?.fields ?? {};
+  #modelFields(data?: Record<string, unknown>): Record<string, ContractField> {
+    return this.#modelWithVariantFields(data)?.fields ?? {};
   }
 
-  #modelWithVariantFields(): MongoModelDefinition | undefined {
+  #modelWithVariantFields(data?: Record<string, unknown>): MongoModelDefinition | undefined {
     const models = domainModelsAtDefaultNamespace(this.#contract.domain);
     const model = blindCast<
       MongoModelDefinition | undefined,
       'Mongo contract model lookup preserves target storage metadata erased by the namespace helper'
     >(models[this.#modelName]);
-    const variantRef =
-      this.#variantValue === undefined ? undefined : model?.variants?.[this.#variantValue];
+    const discriminatorValue = model?.discriminator ? data?.[model.discriminator.field] : undefined;
+    const variantValue =
+      this.#variantValue ??
+      (typeof discriminatorValue === 'string' ? discriminatorValue : undefined);
+    const variantRef = variantValue === undefined ? undefined : model?.variants?.[variantValue];
     if (model === undefined || variantRef === undefined) return model;
     const variant = blindCast<
       MongoModelDefinition | undefined,
@@ -1086,7 +1089,7 @@ class MongoCollectionImpl<
   }
 
   #toDocument(data: Record<string, unknown>): Record<string, MongoValue> {
-    const fields = this.#modelFields();
+    const fields = this.#modelFields(data);
     const doc: Record<string, MongoValue> = {};
     for (const [key, value] of Object.entries(data)) {
       if (value !== undefined) {
