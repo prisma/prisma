@@ -120,7 +120,7 @@ import { contractError } from './contract-errors';
 import {
   type DefaultColumn,
   lowerDataTypeDefault,
-  readWrittenNumberForCodec,
+  readWrittenValueForCodec,
 } from './data-type-default';
 import { defaultTableName } from './default-table-name';
 import {
@@ -2279,17 +2279,16 @@ export function interpretPslDocumentToSqlContract(
           );
         },
       },
-      readWrittenNumber: ({ text, codecId, subject }) => {
-        if (input.codecLookup.descriptorFor(codecId) === undefined) return undefined;
-        const reading = readWrittenNumberForCodec({
-          text,
-          codecId,
-          codecLookup: input.codecLookup,
-          dataTypes: input.dataTypes,
-          subject,
-        });
-        return reading.ok ? reading : { ok: false, message: reading.message };
-      },
+      readWrittenValueForCodec: ({ written, codecId, subject }) =>
+        input.codecLookup.descriptorFor(codecId) === undefined
+          ? undefined
+          : readWrittenValueForCodec({
+              written,
+              codecId,
+              codecLookup: input.codecLookup,
+              dataTypes: input.dataTypes,
+              subject,
+            }),
       ...ifDefined('enumInferenceCodecs', input.enumInferenceCodecs),
     },
     diagnostics,

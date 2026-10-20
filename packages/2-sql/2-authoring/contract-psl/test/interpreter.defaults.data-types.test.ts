@@ -166,13 +166,13 @@ describe('written defaults a column refuses', () => {
       'quoted digits on a numeric column',
       'price Decimal @default("1.50")',
       'PSL_VALUE_TYPE_INCOMPATIBLE',
-      'Field "N.price": Expected a number',
+      'Field "N.price": Expected a number; write 1.50',
     ],
     [
       'quoted digits on an int column',
       'count Int @default("1")',
       'PSL_VALUE_TYPE_INCOMPATIBLE',
-      'Field "N.count": Expected a number',
+      'Field "N.count": Expected a number; write 1',
     ],
     [
       'a JSON document on an int column',

@@ -224,6 +224,60 @@ describe('what each cast converts', () => {
   });
 });
 
+describe('the equality of pg/numeric values', () => {
+  it('holds values equal that differ only in scale, and every other type has no key of its own', () => {
+    expect({
+      numeric: ['0.50', '0.5', '-0'].map((json) => pgNumeric.equalityKey?.(json)),
+      keyed: postgresDataTypes
+        .filter((type) => type.equalityKey !== undefined)
+        .map((type) => type.id),
+    }).toEqual({ numeric: ['0.5', '0.5', '0'], keyed: ['pg/numeric', 'pg/interval'] });
+  });
+
+  it('holds intervals equal by their total length, a month counting as 30 days and a day as 24 hours, as PostgreSQL compares them', () => {
+    const key = (json: string) => pgInterval.equalityKey?.(json);
+    expect({
+      dayAndHours: key('P1D') === key('PT24H'),
+      monthAndDays: key('P1M') === key('P30D'),
+      yearAndMonths: key('P1Y') === key('P12M'),
+      mixed: key('P1DT1H') === key('PT25H'),
+      different: key('P1D') === key('P2D'),
+      fraction: key('PT0.5S') === key('PT0.500S'),
+    }).toEqual({
+      dayAndHours: true,
+      monthAndDays: true,
+      yearAndMonths: true,
+      mixed: true,
+      different: false,
+      fraction: true,
+    });
+  });
+});
+
+describe("each codec's equality-key flag", () => {
+  it('is declared by the codecs whose application value keeps the forms its data type holds equal, and only on a data type with an equality key', async () => {
+    const { codecDescriptors } = await import('../src/core/codecs');
+    const types = new Map(postgresDataTypes.map((type) => [type.id, type]));
+    const flagged = codecDescriptors.filter((descriptor) => descriptor.keepsWrittenForm === true);
+    expect({
+      flagged: flagged.map((descriptor) => descriptor.codecId),
+      withoutKey: flagged
+        .filter((descriptor) => types.get(descriptor.dataType)?.equalityKey === undefined)
+        .map((descriptor) => descriptor.codecId),
+    }).toEqual({ flagged: ['pg/numeric@1', 'pg/interval@1'], withoutKey: [] });
+  });
+
+  it('is declared only by codecs that render no literal, since a read can return a member in another form', async () => {
+    const { codecDescriptors } = await import('../src/core/codecs');
+    expect(
+      codecDescriptors
+        .filter((descriptor) => descriptor.keepsWrittenForm === true)
+        .filter((descriptor) => descriptor.renderValueLiteral !== undefined)
+        .map((descriptor) => descriptor.codecId),
+    ).toEqual([]);
+  });
+});
+
 describe('values under parameters with one normal form', () => {
   it('are one value for numeric(10) and numeric(10,0)', () => {
     const short = pgNumeric.valueFrom('12', { precision: 10 });

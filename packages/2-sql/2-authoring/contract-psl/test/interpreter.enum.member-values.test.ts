@@ -13,20 +13,8 @@ import {
   testEnumPslBlockDescriptor,
 } from './fixtures';
 
-/** The values an enum typed by `codecId` stores for `members`, or the diagnostics that refuse it. */
-function storedValues(codecId: string, members: readonly string[]) {
-  const schema = `
-enum Key {
-  @@type("${codecId}")
-${members.map((line) => `  ${line}`).join('\n')}
-}
-
-model Post {
-  id  Int @id
-  key Key
-}
-`;
-  const result = interpretSqlContract(schema, {
+function interpret(schema: string) {
+  return interpretSqlContract(schema, {
     target: postgresTarget,
     scalarColumnDescriptors: postgresScalarTypeDescriptors,
     composedExtensionContracts: new Map(),
@@ -43,6 +31,29 @@ model Post {
     enumInferenceCodecs: postgresEnumInferenceCodecs,
     capabilities: { sql: { scalarList: true } },
   });
+}
+
+function diagnosticsOf(schema: string) {
+  const result = interpret(schema);
+  return result.ok
+    ? []
+    : result.failure.diagnostics.map(({ code, message }) => ({ code, message }));
+}
+
+/** The values an enum typed by `codecId` stores for `members`, or the diagnostics that refuse it. */
+function storedValues(codecId: string, members: readonly string[]) {
+  const schema = `
+enum Key {
+  @@type("${codecId}")
+${members.map((line) => `  ${line}`).join('\n')}
+}
+
+model Post {
+  id  Int @id
+  key Key
+}
+`;
+  const result = interpret(schema);
   if (!result.ok) {
     return {
       diagnostics: result.failure.diagnostics.map(({ code, message }) => ({ code, message })),
@@ -78,27 +89,82 @@ describe('enum members written as number literals', () => {
   });
 
   it.each([['pg/json@1'], ['pg/jsonb@1']])(
-    'reads a %s member that no cast admits with the codec, storing the number',
+    'refuses a %s member written as a number, which no cast admits',
     (codecId) => {
-      expect(storedValues(codecId, ['Low = 1', 'Half = 1.5'])).toEqual({ values: [1, 1.5] });
+      expect(storedValues(codecId, ['Low = 1']).diagnostics).toEqual([
+        {
+          code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+          message: expect.stringContaining('enum "Key" member "Low"'),
+        },
+      ]);
     },
   );
 
   it('reports why the number is refused when the codec refuses it too', () => {
-    expect(storedValues('pg/text@1', ['Low = 1']).diagnostics).toContainEqual({
-      code: 'PSL_EXTENSION_INVALID_VALUE',
-      message: 'enum "Key" member "Low": Expected a quoted string',
-    });
+    expect(storedValues('pg/text@1', ['Low = 1']).diagnostics).toEqual([
+      {
+        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+        message: 'enum "Key" member "Low": Expected a quoted string',
+      },
+    ]);
   });
 });
 
-describe('enum members written as string literals are read by the codec', () => {
+describe('enum members written as string literals take the cast rule', () => {
+  it('accepts a pg/text@1 member written as a string', () => {
+    expect(storedValues('pg/text@1', ['Half = "0.5"'])).toEqual({ values: ['0.5'] });
+  });
+
+  it('accepts a pg/numeric@1 member written as a number', () => {
+    expect(storedValues('pg/numeric@1', ['Half = 0.5', 'Whole = 1.50'])).toEqual({
+      values: ['0.5', '1.50'],
+    });
+  });
+
   it.each([
-    ['pg/int8@1', '"9007199254740993"', '9007199254740993'],
-    ['pg/numeric@1', '"1.50"', '1.50'],
-    ['pg/json@1', '"low"', 'low'],
-    ['pg/jsonb@1', '"low"', 'low'],
-  ])('accepts a %s member written as %s', (codecId, written, stored) => {
-    expect(storedValues(codecId, [`A = ${written}`])).toEqual({ values: [stored] });
+    ['pg/numeric@1', '"0.5"'],
+    ['pg/int8@1', '"9007199254740993"'],
+    ['pg/json@1', '"low"'],
+    ['pg/jsonb@1', '"low"'],
+  ])('refuses a %s member written as the string %s, which no cast admits', (codecId, written) => {
+    expect(storedValues(codecId, [`A = ${written}`]).diagnostics).toEqual([
+      {
+        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+        message: expect.stringContaining('enum "Key" member "A"'),
+      },
+    ]);
+  });
+
+  it('says to write a pg/numeric@1 member as a number', () => {
+    expect(storedValues('pg/numeric@1', ['Half = "0.5"']).diagnostics).toEqual([
+      {
+        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+        message: 'enum "Key" member "Half": Expected a number; write 0.5',
+      },
+    ]);
+  });
+
+  it('words a refused member as it words the same value refused as a default', () => {
+    const [member, fieldDefault] = diagnosticsOf(`
+enum Key {
+  @@type("pg/numeric@1")
+  Half = "0.5"
+}
+
+model Post {
+  id    Int     @id
+  price Decimal @default("0.5")
+}
+`);
+    expect({ member, fieldDefault }).toEqual({
+      member: {
+        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+        message: 'enum "Key" member "Half": Expected a number; write 0.5',
+      },
+      fieldDefault: {
+        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+        message: 'Field "Post.price": Expected a number; write 0.5',
+      },
+    });
   });
 });

@@ -7,6 +7,7 @@ const pgTimestampString = { codecId: 'pg/timestamp-string@1' as const };
 const pgJson = { codecId: 'pg/json@1' as const };
 const pgBytea = { codecId: 'pg/bytea@1' as const };
 const pgTsquery = { codecId: 'pg/tsquery@1' as const };
+const pgEnum = { codecId: 'pg/enum@1' as const };
 const pgTimestamptzString = {
   codecId: 'pg/timestamptz-string@1' as const,
 };
@@ -112,7 +113,7 @@ describe('values in a Postgres contract decode to the value a query returns', ()
     [
       'pg/json@1',
       enumType('Stamp', pgJson, member('A', 'low')),
-      'The json type has no equality operator, so no CHECK can compare a value with the members. Use pg/jsonb@1, whose type has one.',
+      'The json type has no equality operator, so no CHECK can compare a value with the members. No enum can use a json codec; use a text enum instead.',
     ],
     [
       'pg/bytea@1',
@@ -124,6 +125,11 @@ describe('values in a Postgres contract decode to the value a query returns', ()
       enumType('Stamp', pgTsquery, member('A', 'a & b' as never)),
       "PostgreSQL normalises the query text, so a member as written is not the value a query reads back: it prints a & b as 'a' & 'b'. No enum can use a tsquery codec; use a text enum instead.",
     ],
+    [
+      'pg/enum@1',
+      enumType('Stamp', pgEnum, member('A', 'low')),
+      'A pg/enum codec types the column of a native enum, whose values the database enforces with an enum type of its own. Declare a native enum instead: native_enum in PSL, or nativeEnum in TypeScript.',
+    ],
   ])('refuses an enum over %s, saying why', (codecId, handle, reason) => {
     expect(() => contractWithEnum(handle)).toThrow(
       expect.objectContaining({
@@ -132,6 +138,18 @@ describe('values in a Postgres contract decode to the value a query returns', ()
         fix: 'Type the enum with another codec.',
         meta: { enumName: 'Stamp', codecId, reason: 'codec-not-for-enums' },
       }),
+    );
+  });
+});
+
+describe('two numeric members that are one number in different scales', () => {
+  it('are refused, naming both stored forms', () => {
+    expect(() =>
+      contractWithEnum(
+        enumType('Ratio', pgNumeric, member('Half', '0.5'), member('AlsoHalf', '0.50')),
+      ),
+    ).toThrow(
+      'enumType("Ratio"): members "Half" and "AlsoHalf" store "0.5" and "0.50", which the database holds equal. Member values must be unique as their data type compares them.',
     );
   });
 });

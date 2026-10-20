@@ -368,10 +368,10 @@ describe('dataTypeValue', () => {
     },
   );
 
-  it('refuses a string for a type without a tag by naming its written form', () => {
+  it('refuses a string for a type without a tag by naming its written form and the number to write', () => {
     const source = '"8"';
     expect(parse(pgInt4.id, source)).toEqual(
-      refusal(source, 'PSL_VALUE_TYPE_INCOMPATIBLE', 'Expected a number'),
+      refusal(source, 'PSL_VALUE_TYPE_INCOMPATIBLE', 'Expected a number; write 8'),
     );
   });
 
@@ -488,7 +488,7 @@ describe('dataTypeValue', () => {
 
     it('passes a refusal of the value through without running the check', () => {
       expect(parseWith(version, '"7"')).toEqual(
-        refusal('"7"', 'PSL_VALUE_TYPE_INCOMPATIBLE', 'Expected a number'),
+        refusal('"7"', 'PSL_VALUE_TYPE_INCOMPATIBLE', 'Expected a number; write 7'),
       );
     });
   });
@@ -544,7 +544,7 @@ describe('dataTypeValue', () => {
         notOk([
           {
             code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
-            message: 'Expected a number',
+            message: 'Expected a number; write 8',
             filename: 'schema.prisma',
             range: { start: { line: 0, character: 10 }, end: { line: 0, character: 13 } },
           },
@@ -578,7 +578,7 @@ describe('oneOf given a call to a function one arm names', () => {
       notOk([
         {
           code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
-          message: 'Expected a number',
+          message: 'Expected a number; write 8',
           filename: 'schema.prisma',
           range: { start: { line: 0, character: 10 }, end: { line: 0, character: 13 } },
         },

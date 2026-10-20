@@ -1,6 +1,8 @@
+import type { JsonValue } from '@internal/contract/types';
 import type { AnyCodecDescriptor } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
 import {
+  codecDescriptors,
   pgBoolDescriptor,
   pgEnumDescriptor,
   pgFloat4Descriptor,
@@ -122,6 +124,90 @@ describe('codec renderValueLiteral', () => {
     it('escapes double quotes in member values', () => {
       expect(renderer?.('say "hi"', 'output')).toBe('"say \\"hi\\""');
       expect(renderer?.("it's", 'output')).toBe('"it\'s"');
+    });
+  });
+});
+
+/** A stored value of each data type, and the literal each codec of the type renders for it. */
+const storedValues: Readonly<Record<string, JsonValue>> = {
+  'pg/char': 'a',
+  'pg/varchar': 'low',
+  'pg/text': 'low',
+  'pg/enum': 'low',
+  'pg/int2': 1,
+  'pg/int4': 1,
+  'pg/int8': '1',
+  'pg/float4': 1.5,
+  'pg/float8': 1.5,
+  'pg/numeric': '2',
+  'pg/date': '2024-01-01',
+  'pg/timestamp': '2024-01-01T00:00:00',
+  'pg/timestamptz': '2024-01-01T00:00:00Z',
+  'pg/time': '12:34:56',
+  'pg/timetz': '12:34:56+02:00',
+  'pg/bool': true,
+  'pg/bit': '1',
+  'pg/varbit': '101',
+  'pg/bytea': 'aGVsbG8=',
+  'pg/uuid': 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+  'pg/inet': '127.0.0.1',
+  'pg/interval': 'P1D',
+  'pg/json': 'x',
+  'pg/jsonb': 'x',
+  'pg/text-array': ['a'],
+  'pg/tsquery': 'a & b',
+};
+
+describe('the literal each registered codec renders', () => {
+  it('is pinned for a stored value of its data type', () => {
+    const rendered = Object.fromEntries(
+      codecDescriptors.map((descriptor) => [
+        descriptor.codecId,
+        valueRendererFor(descriptor)?.(storedValues[descriptor.dataType], 'output'),
+      ]),
+    );
+
+    expect(rendered).toEqual({
+      'sql/char@1': '"a"',
+      'sql/varchar@1': '"low"',
+      'sql/int@1': '1',
+      'sql/float@1': '1.5',
+      'sql/text@1': '"low"',
+      'pg/text@1': '"low"',
+      'pg/enum@1': '"low"',
+      'pg/char@1': '"a"',
+      'pg/varchar@1': '"low"',
+      'pg/int@1': '1',
+      'pg/float@1': '1.5',
+      'pg/int4@1': '1',
+      'pg/int2@1': '1',
+      'pg/int8@1': '1n',
+      'pg/int8number@1': '1',
+      'pg/float4@1': '1.5',
+      'pg/float8@1': '1.5',
+      'pg/numeric@1': undefined,
+      'pg/unboundedint@1': '2n',
+      'pg/date-temporal@1': undefined,
+      'pg/timestamp-temporal@1': undefined,
+      'pg/timestamptz-temporal@1': undefined,
+      'pg/time-temporal@1': undefined,
+      'pg/date-string@1': '"2024-01-01"',
+      'pg/timestamp-string@1': undefined,
+      'pg/timestamptz-string@1': undefined,
+      'pg/timestamptz-date@1': undefined,
+      'pg/time-string@1': '"12:34:56"',
+      'pg/timetz@1': undefined,
+      'pg/bool@1': 'true',
+      'pg/bit@1': '"1"',
+      'pg/varbit@1': '"101"',
+      'pg/bytea@1': undefined,
+      'pg/uuid@1': '"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"',
+      'pg/inet@1': '"127.0.0.1"',
+      'pg/interval@1': undefined,
+      'pg/json@1': undefined,
+      'pg/jsonb@1': undefined,
+      'pg/text-array@1': undefined,
+      'pg/tsquery@1': undefined,
     });
   });
 });

@@ -29,6 +29,7 @@ import {
   SubqueryExpr,
 } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
+import { InternalError } from '@internal/utils/internal-error';
 import { structuredError } from '@internal/utils/structured-error';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 
@@ -120,6 +121,8 @@ export interface PostgresCodecOptions<
    * adapted codec's parameter schema is this data type's, not the template's.
    */
   readonly dataType: DataType;
+  /** Renders the literal of the value the codec reads from a stored value of `dataType`. A family template renders no literal, because only the target knows the form its data type stores a value in, so the adapted codec renders with this and never with a renderer on the template. */
+  readonly renderValueLiteral?: (value: JsonValue, side: 'output' | 'input') => string | undefined;
   readonly jsonProjection: (expression: ProjectionExpr, params: P) => ProjectionExpr;
   readonly jsonArrayProjection?: (expression: ProjectionExpr, params: P) => ProjectionExpr;
   /**
@@ -181,9 +184,13 @@ class PostgresCodecDescriptorAdapter<
       this.renderInputType = (params) => renderInputType.call(descriptor, params);
     }
 
-    const renderValueLiteral = descriptor.renderValueLiteral;
-    if (renderValueLiteral !== undefined) {
-      this.renderValueLiteral = (value, side) => renderValueLiteral.call(descriptor, value, side);
+    if (descriptor.renderValueLiteral !== undefined) {
+      throw new InternalError(
+        `${descriptor.codecId} is a family codec template with its own renderValueLiteral. A family template renders no literal, because only the target knows the form its data type stores a value in; pass renderValueLiteral in the options instead.`,
+      );
+    }
+    if (options.renderValueLiteral !== undefined) {
+      this.renderValueLiteral = options.renderValueLiteral;
     }
 
     if (descriptor.enumRefusal !== undefined) {

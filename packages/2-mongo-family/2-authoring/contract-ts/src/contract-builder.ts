@@ -10,6 +10,7 @@ import {
   type ControlPolicy,
   type CrossReference,
   crossRef,
+  type EnumMemberValueType,
   type ExecutionHashBase,
   type ExecutionMutationDefault,
   type ExecutionMutationDefaultPhases,
@@ -195,6 +196,7 @@ type MongoCodecTypes = {
     readonly input: string;
     readonly output: string;
     readonly traits: 'equality' | 'order' | 'numeric';
+    readonly keepsWrittenForm: true;
   };
   readonly 'mongo/binary@1': {
     readonly input: Uint8Array;
@@ -828,22 +830,38 @@ type EnumHandleEntries<Enums> = {
 };
 
 // The `enumMemberTypes` for enums authored with `enumType`: each member with the value the application reads, as an emitted `contract.d.ts` types it. `db.enums` reads its accessors from it.
-type EnumHandleMemberTypes<Enums> = {
-  readonly [K in keyof Enums as HandleName<Enums[K]>]: EnumHandleMembers<Enums[K], false>;
+type EnumHandleMemberTypes<Enums, CodecTypes> = {
+  readonly [K in keyof Enums as HandleName<Enums[K]>]: Enums[K] extends EnumTypeHandle<
+    string,
+    infer Values,
+    infer Names,
+    Record<string, unknown>,
+    infer CodecId
+  >
+    ? {
+        readonly [I in keyof Values]: {
+          readonly name: I extends keyof Names ? Names[I] : never;
+          readonly value: EnumMemberValueType<CodecTypes, CodecId, Values[I]>;
+        };
+      }
+    : never;
 };
 
-type MaybeEnumsSection<Enums extends Record<string, EnumTypeHandle>> = keyof Enums extends never
+type MaybeEnumsSection<
+  Enums extends Record<string, EnumTypeHandle>,
+  CodecTypes,
+> = keyof Enums extends never
   ? EmptyObject
   : {
       readonly enum: EnumHandleEntries<Enums>;
-      readonly enumMemberTypes?: EnumHandleMemberTypes<Enums>;
+      readonly enumMemberTypes?: EnumHandleMemberTypes<Enums, CodecTypes>;
     };
 
 type MongoDomainNamespaceFromDefinition<Definition> = Simplify<
   {
     readonly models: ContractModelsFromRecord<DefinitionModels<Definition>>;
   } & MaybeValueObjectsSection<DefinitionValueObjects<Definition>> &
-    MaybeEnumsSection<DefinitionEnums<Definition>>
+    MaybeEnumsSection<DefinitionEnums<Definition>, CodecTypesFromDefinition<Definition>>
 >;
 
 type MongoContractBaseFromDefinition<Definition> = Simplify<{

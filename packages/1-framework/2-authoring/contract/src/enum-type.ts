@@ -251,7 +251,9 @@ export function enumType(
 export function duplicateMemberError(enumName: string, duplicate: DuplicateStoredValue) {
   return contractError(
     'CONTRACT.ENUM_INVALID',
-    `enumType("${enumName}"): members "${duplicate.earlier}" and "${duplicate.later}" both store ${JSON.stringify(duplicate.stored)}. Member values must be unique as their codec stores them.`,
+    duplicate.earlierStored === undefined
+      ? `enumType("${enumName}"): members "${duplicate.earlier}" and "${duplicate.later}" both store ${JSON.stringify(duplicate.stored)}. Member values must be unique as their codec stores them.`
+      : `enumType("${enumName}"): members "${duplicate.earlier}" and "${duplicate.later}" store ${JSON.stringify(duplicate.earlierStored)} and ${JSON.stringify(duplicate.stored)}, which the database holds equal. Member values must be unique as their data type compares them.`,
     {
       meta: {
         enumName,

@@ -96,6 +96,19 @@ export function refuseDefaultOutsideEnum(input: {
   );
 }
 
+export function refuseUnwritableEnumMember(input: {
+  readonly enumName: string;
+  readonly member: string;
+  readonly value: unknown;
+}): never {
+  throw unsupported(
+    `enum "${input.enumName}" member "${input.member}" stores ${JSON.stringify(input.value)}, which no Prisma 8 PSL literal of the enum's data type writes.`,
+    'Writing the value in any other form would parse, but the PSL source would read it back as a different value.',
+    'Type the enum with a codec whose values PSL writes, such as pg/text@1, before printing.',
+    { enumName: input.enumName, member: input.member },
+  );
+}
+
 export function refuseUnwritableLiteralDefault(input: {
   readonly coordinate: string;
   readonly written: string;
