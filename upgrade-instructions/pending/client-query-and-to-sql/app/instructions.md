@@ -25,7 +25,7 @@ await db.execute(db.raw.sql`UPDATE post SET pinned = false`.affectedCount().buil
 
 `toSql(plan)` needs only the adapter and the contract, so it works with no database. `params` are the plan's values before codecs encode them. Middleware rewrites (`beforeCompile`) are not applied. A plan with `prepare` bind sites throws `RUNTIME.PREPARE_BIND_ON_ADHOC`, and a plan built for another contract throws `PLAN.HASH_MISMATCH`, as running it would.
 
-The message of `RUNTIME.PREPARE_BIND_ON_ADHOC` changed; its code did not. Code that matches the old message text ("Ad-hoc execute received a bind-site slot") must match the code instead.
+The message of `RUNTIME.PREPARE_BIND_ON_ADHOC` changed; its code did not. Code that matches the old message text ("Ad-hoc execute received a bind-site slot") must match the code instead. The details of `PLAN.TARGET_MISMATCH` and `PLAN.HASH_MISMATCH` rename `runtimeTarget` to `contractTarget` and `runtimeStorageHash` to `contractStorageHash`, and their messages changed; match the codes.
 
 Code that only reads these types needs no change. Code that creates an object of one of them, for example a test double typed `PostgresClient<Contract>`, must add the new members:
 
