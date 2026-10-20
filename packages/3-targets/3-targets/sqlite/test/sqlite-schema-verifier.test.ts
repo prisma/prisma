@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest';
 import { readSqliteDefault } from '../src/core/default-normalizer';
 import { diffSqliteSchema } from '../src/core/migrations/diff-database-schema';
 import { sqliteCreateNamespace } from '../src/core/sqlite-unbound-database';
-import { sqliteTestComponents } from './sqlite-test-types';
+import { introspectedColumn, sqliteTestComponents } from './sqlite-test-types';
 
 describe('diffSqliteSchema resolves authored function defaults like introspected ones', () => {
   function actualSchema(rawDefault: string): SqlSchemaIR {
@@ -17,14 +17,13 @@ describe('diffSqliteSchema resolves authored function defaults like introspected
         event: new SqlTableIR({
           name: 'event',
           columns: {
-            at: {
+            at: introspectedColumn({
               name: 'at',
-              nativeType: 'text',
+              typeText: 'text',
               nullable: false,
               default: rawDefault,
-              resolvedNativeType: 'text',
               ...ifDefined('resolvedDefault', functionDefaultOf(rawDefault)),
-            },
+            }),
           },
           foreignKeys: [],
           uniques: [],

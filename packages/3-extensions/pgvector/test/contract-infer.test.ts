@@ -29,7 +29,7 @@ function inferFrom(extensions: readonly (typeof pgvectorControl)[]) {
             columns: {
               id: {
                 name: 'id',
-                nativeType: 'int4',
+                typeText: 'int4',
                 nullable: false,
                 reportedType: {
                   text: 'integer',
@@ -40,13 +40,13 @@ function inferFrom(extensions: readonly (typeof pgvectorControl)[]) {
               },
               embedding: {
                 name: 'embedding',
-                nativeType: 'vector(3)',
+                typeText: 'vector(3)',
                 nullable: false,
                 reportedType: vector,
               },
               history: {
                 name: 'history',
-                nativeType: 'vector(3)',
+                typeText: 'vector(3)',
                 nullable: false,
                 many: true,
                 reportedType: vector,

@@ -49,6 +49,13 @@ describe('sqlDataType', () => {
     expect(numeric.sql.normalize({ precision: 10 })).toEqual({ precision: 10, scale: 0 });
   });
 
+  it('keeps parameters its schema refuses as written, in its normal form and in a value', () => {
+    expect({
+      normalForm: numeric.sql.normalize({ precision: 0 }),
+      value: numeric.valueFrom('1', { precision: 0 }).params,
+    }).toEqual({ normalForm: { precision: 0 }, value: { precision: 0 } });
+  });
+
   it('keeps the casts, list cast and parameter schema of the framework declaration', () => {
     const params = type({ 'length?': 'number.integer >= 1' });
     const declared = sqlDataType('t/varchar', {

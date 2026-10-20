@@ -13,7 +13,7 @@ import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-n
 import { PostgresNativeEnumSchemaNode } from '../../src/core/schema-ir/postgres-native-enum-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
 import { postgresDiffSubjectGranularity } from '../../src/core/schema-ir/schema-node-kinds';
-import { postgresTypeComponents } from '../postgres-type-lookups';
+import { introspectedColumn, postgresTypeComponents } from '../postgres-type-lookups';
 
 /**
  * Enum drift visibility end-to-end: the expected projection turns
@@ -85,7 +85,11 @@ function ordersTable(): PostgresTableSchemaNode {
   return new PostgresTableSchemaNode({
     name: 'orders',
     columns: {
-      id: { name: 'id', nativeType: 'int4', nullable: false, resolvedNativeType: 'int4' },
+      id: introspectedColumn({
+        name: 'id',
+        typeText: 'int4',
+        nullable: false,
+      }),
     },
     primaryKey: { columns: ['id'] },
     foreignKeys: [],

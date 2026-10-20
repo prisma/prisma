@@ -21,7 +21,7 @@ import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createSqliteMigrationPlanner } from '../../src/core/migrations/planner';
 import { sqliteCreateNamespace } from '../../src/core/sqlite-unbound-database';
-import { sqliteTestComponents } from '../sqlite-test-types';
+import { introspectedColumn, sqliteTestComponents } from '../sqlite-test-types';
 
 const stubLowerer: ExecuteRequestLowerer = {
   lower: () => {
@@ -69,21 +69,21 @@ function buildLiveSchema(): SqlSchemaIR {
     tables: {
       app_user: {
         name: 'app_user',
-        columns: { id: { name: 'id', nativeType: 'integer', nullable: false } },
+        columns: { id: introspectedColumn({ name: 'id', typeText: 'integer', nullable: false }) },
         foreignKeys: [],
         uniques: [],
         indexes: [],
       },
       cipher_state: {
         name: 'cipher_state',
-        columns: { id: { name: 'id', nativeType: 'integer', nullable: false } },
+        columns: { id: introspectedColumn({ name: 'id', typeText: 'integer', nullable: false }) },
         foreignKeys: [],
         uniques: [],
         indexes: [],
       },
       orphan_table: {
         name: 'orphan_table',
-        columns: { id: { name: 'id', nativeType: 'integer', nullable: false } },
+        columns: { id: introspectedColumn({ name: 'id', typeText: 'integer', nullable: false }) },
         foreignKeys: [],
         uniques: [],
         indexes: [],
@@ -188,8 +188,12 @@ describe('SQLite planner ownership consultation', () => {
         app_user: {
           name: 'app_user',
           columns: {
-            id: { name: 'id', nativeType: 'integer', nullable: false },
-            legacy_col: { name: 'legacy_col', nativeType: 'text', nullable: true },
+            id: introspectedColumn({ name: 'id', typeText: 'integer', nullable: false }),
+            legacy_col: introspectedColumn({
+              name: 'legacy_col',
+              typeText: 'text',
+              nullable: true,
+            }),
           },
           foreignKeys: [],
           uniques: [],

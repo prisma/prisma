@@ -10,8 +10,8 @@ describe('printPsl', () => {
         user: {
           name: 'user',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
-            name: { name: 'name', nativeType: 'text', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
+            name: { name: 'name', typeText: 'text', nullable: false },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],
@@ -21,9 +21,9 @@ describe('printPsl', () => {
         post: {
           name: 'post',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
-            title: { name: 'title', nativeType: 'text', nullable: false },
-            user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
+            title: { name: 'title', typeText: 'text', nullable: false },
+            user_id: { name: 'user_id', typeText: 'int4', nullable: false },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [
@@ -82,7 +82,7 @@ describe('printPsl', () => {
         user: {
           name: 'user',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],
@@ -92,8 +92,8 @@ describe('printPsl', () => {
         post: {
           name: 'post',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
-            user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
+            user_id: { name: 'user_id', typeText: 'int4', nullable: false },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [
@@ -137,7 +137,7 @@ describe('printPsl', () => {
         user: {
           name: 'user',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],
@@ -147,9 +147,9 @@ describe('printPsl', () => {
         profile: {
           name: 'profile',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
-            user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
-            bio: { name: 'bio', nativeType: 'text', nullable: true },
+            id: { name: 'id', typeText: 'int4', nullable: false },
+            user_id: { name: 'user_id', typeText: 'int4', nullable: false },
+            bio: { name: 'bio', typeText: 'text', nullable: true },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [
@@ -196,10 +196,10 @@ describe('printPsl', () => {
           columns: {
             tenant_id: {
               name: 'tenant_id',
-              nativeType: 'int4',
+              typeText: 'int4',
               nullable: false,
             },
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
           },
           primaryKey: { columns: ['tenant_id', 'id'] },
           foreignKeys: [],
@@ -209,15 +209,15 @@ describe('printPsl', () => {
         profile: {
           name: 'profile',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
             tenant_id: {
               name: 'tenant_id',
-              nativeType: 'int4',
+              typeText: 'int4',
               nullable: false,
             },
             account_id: {
               name: 'account_id',
-              nativeType: 'int4',
+              typeText: 'int4',
               nullable: false,
             },
           },
@@ -267,11 +267,11 @@ describe('printPsl', () => {
         employee: {
           name: 'employee',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
-            name: { name: 'name', nativeType: 'text', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
+            name: { name: 'name', typeText: 'text', nullable: false },
             manager_id: {
               name: 'manager_id',
-              nativeType: 'int4',
+              typeText: 'int4',
               nullable: true,
             },
           },
@@ -312,7 +312,7 @@ describe('printPsl', () => {
         user: {
           name: 'user',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],
@@ -322,15 +322,15 @@ describe('printPsl', () => {
         message: {
           name: 'message',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
             sender_id: {
               name: 'sender_id',
-              nativeType: 'int4',
+              typeText: 'int4',
               nullable: false,
             },
             recipient_id: {
               name: 'recipient_id',
-              nativeType: 'int4',
+              typeText: 'int4',
               nullable: false,
             },
           },
@@ -388,12 +388,12 @@ describe('printPsl', () => {
           columns: {
             category_id: {
               name: 'category_id',
-              nativeType: 'int4',
+              typeText: 'int4',
               nullable: false,
             },
             product_id: {
               name: 'product_id',
-              nativeType: 'int4',
+              typeText: 'int4',
               nullable: false,
             },
           },
@@ -405,15 +405,15 @@ describe('printPsl', () => {
         review: {
           name: 'review',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
             product_category_id: {
               name: 'product_category_id',
-              nativeType: 'int4',
+              typeText: 'int4',
               nullable: false,
             },
             product_product_id: {
               name: 'product_product_id',
-              nativeType: 'int4',
+              typeText: 'int4',
               nullable: false,
             },
           },
@@ -462,7 +462,7 @@ describe('printPsl', () => {
         parent: {
           name: 'parent',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],
@@ -472,10 +472,10 @@ describe('printPsl', () => {
         child: {
           name: 'child',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
             parent_id: {
               name: 'parent_id',
-              nativeType: 'int4',
+              typeText: 'int4',
               nullable: false,
             },
           },
@@ -523,7 +523,7 @@ describe('printPsl', () => {
         team: {
           name: 'team',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],
@@ -533,8 +533,8 @@ describe('printPsl', () => {
         member: {
           name: 'member',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
-            team_id: { name: 'team_id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
+            team_id: { name: 'team_id', typeText: 'int4', nullable: false },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [
@@ -580,8 +580,8 @@ describe('printPsl', () => {
         alpha: {
           name: 'alpha',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
-            beta_id: { name: 'beta_id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
+            beta_id: { name: 'beta_id', typeText: 'int4', nullable: false },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [
@@ -593,10 +593,10 @@ describe('printPsl', () => {
         beta: {
           name: 'beta',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
             alpha_id: {
               name: 'alpha_id',
-              nativeType: 'int4',
+              typeText: 'int4',
               nullable: false,
             },
           },

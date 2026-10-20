@@ -14,10 +14,15 @@ const PRISMA7_POSTGRES_DATE_TIME_NATIVE_TYPES = [
 describe('the Postgres binding for @updatedAt', () => {
   const { authoringContributions } = postgresSourceContext([]);
   const { typeMap } = prisma7PostgresBinding;
+  const mappingOf = (table: typeof typeMap.scalars, name: string) => {
+    const mapping = table[name];
+    if (mapping === undefined) throw new Error(`the Prisma 7 type table has no ${name}`);
+    return mapping;
+  };
   const mappings = [
-    ['DateTime', typeMap.scalars.DateTime],
+    ['DateTime', mappingOf(typeMap.scalars, 'DateTime')],
     ...PRISMA7_POSTGRES_DATE_TIME_NATIVE_TYPES.map(
-      (nativeType) => [`@db.${nativeType}`, typeMap.nativeTypes[nativeType]] as const,
+      (nativeType) => [`@db.${nativeType}`, mappingOf(typeMap.nativeTypes, nativeType)] as const,
     ),
   ] as const;
 

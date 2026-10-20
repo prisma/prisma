@@ -15,7 +15,8 @@ import type { JsonValue } from '@internal/contract/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError, isInternalError } from '@internal/utils/internal-error';
-import type { Type } from 'arktype';
+import { structuredError } from '@internal/utils/structured-error';
+import { type as arktype, type Type } from 'arktype';
 import { canonicalizeJson } from '../utils/canonicalize-json';
 import { DATA_TYPE_ID_PATTERN } from './data-type-id-pattern';
 import { refuseJsonValue } from './json-readers';
@@ -103,6 +104,8 @@ export interface DataTypeSpec {
   readonly read: DataTypeReader;
   /** Gives an accepted value its one spelling; a type whose values have one spelling only declares none. */
   readonly spell?: DataTypeSpelling;
+  /** The one form of parameters that mean the same type, such as `numeric(10)` and `numeric(10,0)`; a value stores its parameters in it. A type whose parameters have one form only declares none. */
+  normalize?(params: DataTypeParams): DataTypeParams;
 }
 
 /** The assembled types of one stack, by id. */
@@ -131,9 +134,13 @@ export function dataType(id: string, spec: DataTypeSpec): DataType {
     casts[dataTypeId(source)] = cast;
   }
   const listCast = spec.listCast;
-  const { read, spell } = spec;
+  const { read, spell, normalize } = spec;
   const construct = (json: JsonValue, params: DataTypeParams): DataTypeValue =>
-    new DataTypeValueRecord(typeId, Object.freeze({ ...params }), json);
+    new DataTypeValueRecord(
+      typeId,
+      Object.freeze({ ...(normalize === undefined ? params : normalize(params)) }),
+      json,
+    );
   const spelledUnder = (json: JsonValue, params: DataTypeParams): JsonValue => {
     const accepted = read(json, params);
     return spell === undefined ? accepted : spell(accepted, params);
@@ -174,6 +181,40 @@ export function dataType(id: string, spec: DataTypeSpec): DataType {
       ),
     toContract: (value) => requireValueOf(typeId, value, `Data type ${typeId}`).value,
   };
+}
+
+/** What is wrong with the parameters given a data type: the message to report and each parameter it refuses. */
+export interface DataTypeParamsProblem {
+  readonly dataType: DataTypeId;
+  readonly message: string;
+  readonly parameters: readonly string[];
+}
+
+/** What is wrong with `params` for `type`, or undefined when `type` accepts them or has no parameter schema. */
+export function dataTypeParamsProblem(
+  type: DataType,
+  params: Readonly<Record<string, unknown>>,
+): DataTypeParamsProblem | undefined {
+  const result = type.params?.(params);
+  if (!(result instanceof arktype.errors)) return undefined;
+  return {
+    dataType: type.id,
+    message: `${type.id}: ${result.summary}`,
+    parameters: [...new Set(result.map((error) => error.path.map(String).join('.')))],
+  };
+}
+
+/** Refuses `params` that `type` does not accept with `CONTRACT.TYPE_PARAMS_INVALID`, naming the data type and each parameter it refuses, plus the facts in `meta`. */
+export function assertDataTypeParams(
+  type: DataType,
+  params: Readonly<Record<string, unknown>>,
+  meta: Readonly<Record<string, unknown>> = {},
+): void {
+  const problem = dataTypeParamsProblem(type, params);
+  if (problem === undefined) return;
+  throw structuredError('CONTRACT.TYPE_PARAMS_INVALID', problem.message, {
+    meta: { dataType: problem.dataType, parameters: problem.parameters, ...meta },
+  });
 }
 
 /** `value`, when it is a value of `type` that a data type constructed; anything else is a bug in `holder`'s caller. */

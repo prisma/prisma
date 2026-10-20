@@ -1,15 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { defineContract, enumType, member } from '../../src/exports/contract-builder';
 
-const pgNumeric = { codecId: 'pg/numeric@1' as const, nativeType: 'numeric' };
-const pgInet = { codecId: 'pg/inet@1' as const, nativeType: 'inet' };
-const pgTimestampString = { codecId: 'pg/timestamp-string@1' as const, nativeType: 'timestamp' };
-const pgJson = { codecId: 'pg/json@1' as const, nativeType: 'json' };
-const pgBytea = { codecId: 'pg/bytea@1' as const, nativeType: 'bytea' };
-const pgTsquery = { codecId: 'pg/tsquery@1' as const, nativeType: 'tsquery' };
+const pgNumeric = { codecId: 'pg/numeric@1' as const };
+const pgInet = { codecId: 'pg/inet@1' as const };
+const pgTimestampString = { codecId: 'pg/timestamp-string@1' as const };
+const pgJson = { codecId: 'pg/json@1' as const };
+const pgBytea = { codecId: 'pg/bytea@1' as const };
+const pgTsquery = { codecId: 'pg/tsquery@1' as const };
 const pgTimestamptzString = {
   codecId: 'pg/timestamptz-string@1' as const,
-  nativeType: 'timestamptz',
 };
 
 type EnumHandle = ReturnType<typeof enumType>;

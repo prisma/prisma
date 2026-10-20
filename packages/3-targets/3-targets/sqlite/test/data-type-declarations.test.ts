@@ -3,7 +3,7 @@ import { createDataTypeLookup } from '@internal/framework-components/codec';
 import {
   isSqlDataType,
   renderSqlTypeName,
-  resolveReportedSqlType,
+  resolveReportedSqlType as resolveReported,
   type SqlDataType,
   type SqlTypeParams,
   type SqlTypeText,
@@ -12,6 +12,12 @@ import {
 import { describe, expect, it } from 'vitest';
 import { codecDescriptors } from '../src/core/codecs';
 import { sqliteTargetDescriptorMeta } from '../src/core/descriptor-meta';
+
+/** resolveReportedSqlType, with each resolved data type named by its id for the expectations. */
+const resolveReportedSqlType = (...args: Parameters<typeof resolveReported>) => {
+  const resolved = resolveReported(...args);
+  return resolved && { dataType: resolved.dataType.id, typeParams: resolved.typeParams };
+};
 
 const writtenAndCatalog = (text: string): readonly SqlTypeText[] => [
   { text, written: true, catalog: true },

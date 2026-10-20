@@ -9,18 +9,20 @@
  */
 
 import type {
-  CodecLookupWithDescriptors,
   DataType,
   DataTypeId,
   DataTypeLookup,
   DataTypeSpec,
+  TypeLookups,
 } from '@internal/framework-components/codec';
 import {
+  assertDataTypeParams,
   dataType,
   dataTypeParams,
   objectSchemaKeys,
   schemaKeysAllowing,
 } from '@internal/framework-components/codec';
+import { canonicalizeJson } from '@internal/framework-components/utils';
 import type { ReportedSqlType } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -43,7 +45,7 @@ export interface SqlTypeText {
 export type SqlTypeParams = Readonly<Record<string, unknown>>;
 
 export interface SqlDataTypeSpec<Params extends SqlTypeParams = SqlTypeParams>
-  extends DataTypeSpec {
+  extends Omit<DataTypeSpec, 'normalize'> {
   readonly params?: Type<Params>;
   readonly texts?: readonly SqlTypeText[];
   /** The kind of reported type this data type claims, instead of any text. */
@@ -66,6 +68,7 @@ export interface SqlDataTypeFacts<Params extends SqlTypeParams = SqlTypeParams> 
   readonly texts: readonly SqlTypeText[];
   readonly claimsKind: string | undefined;
   readonly storedAs: DataTypeId | undefined;
+  /** The normal form of `params`; parameters the type's schema refuses are returned as written. */
   readonly normalize: (params: Params) => Params;
   readonly render: ((params: Params) => string) | undefined;
   readonly fromReported: ((reported: ReportedSqlType) => Params) | undefined;
@@ -77,8 +80,9 @@ export interface SqlDataType<Params extends SqlTypeParams = SqlTypeParams> exten
   readonly sql: SqlDataTypeFacts<Params>;
 }
 
+/** A data type that claims a type text, with the parameters the text gives in their normal form. */
 export interface ResolvedSqlType {
-  readonly dataType: DataTypeId;
+  readonly dataType: SqlDataType;
   readonly typeParams: SqlTypeParams;
 }
 
@@ -215,11 +219,11 @@ function checkStoredAs<Params extends SqlTypeParams>(
 
 const identity = <Params>(params: Params): Params => params;
 
-function acceptsParams<Params extends SqlTypeParams>(
-  type: SqlDataType<Params>,
+function isParamsOf<Params extends SqlTypeParams>(
+  schema: Type<Params> | undefined,
   params: SqlTypeParams,
 ): params is Params {
-  return type.params === undefined || !(type.params(params) instanceof arktype.errors);
+  return schema === undefined || !(schema(params) instanceof arktype.errors);
 }
 
 function checkNormalFormsWritten<Params extends SqlTypeParams>(type: SqlDataType<Params>): void {
@@ -236,7 +240,7 @@ function checkNormalFormsWritten<Params extends SqlTypeParams>(type: SqlDataType
     ),
   ];
   for (const probe of probes) {
-    if (!acceptsParams(type, probe)) continue;
+    if (!isParamsOf(type.params, probe)) continue;
     const normalKeys = presentKeys(type.sql.normalize(probe));
     if (!written.has([...normalKeys].sort().join(','))) {
       refuseDeclaration(
@@ -252,7 +256,13 @@ export function sqlDataType<Params extends SqlTypeParams = SqlTypeParams>(
   id: string,
   spec: SqlDataTypeSpec<Params>,
 ): SqlDataType<Params> {
-  const { params: _untypedParams, ...declared } = dataType(id, spec);
+  const declaredNormalize = spec.normalize ?? identity;
+  const normalize = (params: Params): Params =>
+    isParamsOf(spec.params, params) ? declaredNormalize(params) : params;
+  const { params: _untypedParams, ...declared } = dataType(id, {
+    ...spec,
+    normalize,
+  });
   const texts = spec.texts ?? [];
   const paramKeys = paramKeysOf(declared.id, spec.params);
   for (const text of texts) checkText(declared.id, text, paramKeys);
@@ -266,7 +276,7 @@ export function sqlDataType<Params extends SqlTypeParams = SqlTypeParams>(
       texts,
       claimsKind: spec.claimsKind,
       storedAs: spec.storedAs,
-      normalize: spec.normalize ?? identity,
+      normalize,
       render: spec.render,
       fromReported: spec.fromReported,
       nameIsCatalogText: spec.nameIsCatalogText === true,
@@ -296,29 +306,15 @@ function formatKeys(keys: readonly string[]): string {
   return `[${[...keys].sort().join(', ')}]`;
 }
 
-/** The parameters, when `type` accepts them; otherwise `CONTRACT.TYPE_PARAMS_INVALID` naming each parameter at fault. */
+/** The parameters, when `type` accepts them; otherwise `CONTRACT.TYPE_PARAMS_INVALID` naming each parameter it refuses. */
 export function validateSqlTypeParams<Params extends SqlTypeParams>(
   type: SqlDataType<Params>,
   params: SqlTypeParams,
 ): Params {
-  if (type.params === undefined) {
-    return blindCast<
-      Params,
-      'a type without a parameter schema declares no parameters, so its parameter type is the empty object'
-    >(params);
-  }
-  const result = type.params(params);
-  if (result instanceof arktype.errors) {
-    throw contractError('CONTRACT.TYPE_PARAMS_INVALID', `${type.id}: ${result.summary}`, {
-      meta: {
-        dataType: type.id,
-        parameters: [...new Set(result.map((error) => error.path.map(String).join('.')))],
-      },
-    });
-  }
+  assertDataTypeParams(type, params);
   return blindCast<
     Params,
-    'the schema accepted params, and an object schema of parameters has no morphs, so the accepted value is the parameters as declared'
+    'the schema accepted params, or the type declares none; an object schema of parameters has no morphs, so the accepted value is the parameters as declared'
   >(params);
 }
 
@@ -416,17 +412,11 @@ export function unquotedSqlBaseName<Params extends SqlTypeParams>(
   return typeName;
 }
 
-/** The lookups that find the data type a codec represents. */
-export interface SqlTypeLookups {
-  readonly codecLookup: Pick<CodecLookupWithDescriptors, 'descriptorFor'>;
-  readonly dataTypeLookup: Pick<DataTypeLookup, 'get'>;
-}
-
 const ADD_THE_CODEC_PACK =
   'Add the pack that provides the codec, and so declares its data type, to the configuration: to `extensions` in prisma.config or in defineContract.';
 
 /** The SQL data type the codec `codecId` represents. */
-export function sqlDataTypeOfCodec(codecId: string, lookups: SqlTypeLookups): SqlDataType {
+export function sqlDataTypeOfCodec(codecId: string, lookups: TypeLookups): SqlDataType {
   const descriptor = lookups.codecLookup.descriptorFor(codecId);
   if (descriptor === undefined) {
     throw contractError(
@@ -472,8 +462,47 @@ export function sqlStorageTypeId(dataTypeId: string, lookup: Pick<DataTypeLookup
   return type !== undefined && isSqlDataType(type) ? sqlStorageType(type, lookup).id : dataTypeId;
 }
 
+/** The parts of a contract column that make its type. */
+export interface SqlColumnTypeFields {
+  readonly dataType: string;
+  readonly typeParams?: Readonly<Record<string, unknown>>;
+  readonly many?: unknown;
+}
+
+/** The type a column is stored as, with its parameters in normal form, or the column's own id and parameters as written when the lookup does not know its data type as a SQL data type. */
+function storedColumnType(column: SqlColumnTypeFields, lookup: Pick<DataTypeLookup, 'get'>) {
+  const type = lookup.get(column.dataType);
+  if (type === undefined || !isSqlDataType(type)) {
+    return { id: column.dataType, params: column.typeParams ?? {} };
+  }
+  const storage = sqlStorageType(type, lookup);
+  return {
+    id: storage.id,
+    params: storage.sql.normalize(dataTypeParams(storage, column.typeParams ?? {})),
+  };
+}
+
+/**
+ * Whether two contract columns have the same type: the types their data types are stored as are one type, those types' parameters are equal in normal form, and both or neither are lists. ADR 254.
+ */
+export function sameSqlColumnType(
+  a: SqlColumnTypeFields,
+  b: SqlColumnTypeFields,
+  lookup: Pick<DataTypeLookup, 'get'>,
+): boolean {
+  const isList = (column: SqlColumnTypeFields) =>
+    column.many !== undefined && column.many !== false;
+  const left = storedColumnType(a, lookup);
+  const right = storedColumnType(b, lookup);
+  return (
+    left.id === right.id &&
+    canonicalizeJson(left.params) === canonicalizeJson(right.params) &&
+    isList(a) === isList(b)
+  );
+}
+
 /** The type a column of the codec `codecId` is stored as: {@link sqlStorageType} of the data type it represents. */
-export function sqlStorageTypeOfCodec(codecId: string, lookups: SqlTypeLookups): SqlDataType {
+export function sqlStorageTypeOfCodec(codecId: string, lookups: TypeLookups): SqlDataType {
   return sqlStorageType(sqlDataTypeOfCodec(codecId, lookups), lookups.dataTypeLookup);
 }
 
@@ -481,7 +510,7 @@ export function sqlStorageTypeOfCodec(codecId: string, lookups: SqlTypeLookups):
 export function unquotedSqlBaseNameOfCodec(
   codecId: string,
   typeParams: SqlTypeParams | undefined,
-  lookups: SqlTypeLookups,
+  lookups: TypeLookups,
 ): string {
   const type = sqlStorageTypeOfCodec(codecId, lookups);
   return unquotedSqlBaseName(type, dataTypeParams(type, typeParams));
@@ -660,5 +689,5 @@ export function resolveWrittenSqlTypes(
 
 function resolvedWith(type: SqlDataType, params: SqlTypeParams): ResolvedSqlType | undefined {
   if (type.params !== undefined && type.params(params) instanceof arktype.errors) return undefined;
-  return { dataType: type.id, typeParams: type.sql.normalize(params) };
+  return { dataType: type, typeParams: type.sql.normalize(params) };
 }

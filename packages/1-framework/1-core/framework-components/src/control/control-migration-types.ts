@@ -26,6 +26,7 @@ import type {
   MigrationSubject,
   ResolvedMigrationStatement,
 } from './migration-statements';
+import type { SchemaDiffIssue } from './schema-diff';
 
 // ============================================================================
 // Migration Package Metadata
@@ -393,6 +394,8 @@ export interface MigrationRunnerFailure {
    * step fail: first the field of the failed step, then the others of the same migration.
    */
   readonly rowsWithoutValue?: readonly RowsWithoutValue[];
+  /** The differences the schema check after apply found, when that check failed. */
+  readonly schemaIssues?: readonly SchemaDiffIssue[];
 }
 
 /** A field that is to become required while existing rows have no value for it. */

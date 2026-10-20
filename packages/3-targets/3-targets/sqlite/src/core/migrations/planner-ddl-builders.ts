@@ -1,4 +1,4 @@
-import { dataTypeParams } from '@internal/framework-components/codec';
+import { dataTypeParams, type TypeLookups } from '@internal/framework-components/codec';
 /**
  * Low-level DDL fragment builders for SQLite migrations.
  *
@@ -9,12 +9,7 @@ import { dataTypeParams } from '@internal/framework-components/codec';
  * see `StorageColumn` or `storageTypes`.
  */
 
-import {
-  nameIsCatalogText,
-  renderSqlTypeName,
-  type SqlTypeLookups,
-  sqlStorageTypeOfCodec,
-} from '@internal/sql-contract/data-type';
+import { renderSqlTypeName, sqlStorageTypeOfCodec } from '@internal/sql-contract/data-type';
 import type {
   StorageColumn,
   StorageTable,
@@ -25,19 +20,16 @@ import { quoteIdentifier } from '../sql-utils';
 
 /**
  * Renders the column's DDL type token (e.g. `"INTEGER"`, `"TEXT"`): the name the type its codec's
- * data type is stored as is written with, in upper case, or as given for a data type that names its
- * type exactly as the catalog reports it, since verify compares that text unchanged. Resolves
- * `typeRef` against `storageTypes`.
+ * data type is stored as is written with, in upper case. Resolves `typeRef` against `storageTypes`.
  */
 export function buildColumnTypeSql(
   column: Pick<StorageColumn, 'codecId' | 'typeParams' | 'typeRef'>,
-  types: SqlTypeLookups,
+  types: TypeLookups,
   storageTypes: Record<string, StorageTypeInstance> = {},
 ): string {
   const resolved = resolveColumnTypeMetadata(column, storageTypes);
   const storage = sqlStorageTypeOfCodec(resolved.codecId, types);
-  const written = renderSqlTypeName(storage, dataTypeParams(storage, resolved.typeParams));
-  return nameIsCatalogText(storage) ? written : written.toUpperCase();
+  return renderSqlTypeName(storage, dataTypeParams(storage, resolved.typeParams)).toUpperCase();
 }
 
 export function buildCreateIndexSql(

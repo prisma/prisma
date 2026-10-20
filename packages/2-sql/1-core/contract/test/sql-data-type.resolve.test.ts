@@ -2,8 +2,14 @@ import { dataType } from '@internal/framework-components/codec';
 import type { ReportedSqlType } from '@internal/sql-schema-ir/types';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
-import { resolveReportedSqlType, sqlDataType } from '../src/sql-data-type';
+import { resolveReportedSqlType as resolveReported, sqlDataType } from '../src/sql-data-type';
 import { allTypes } from './sql-data-type-fixtures';
+
+/** resolveReportedSqlType, with each resolved data type named by its id for the expectations. */
+const resolveReportedSqlType = (...args: Parameters<typeof resolveReported>) => {
+  const resolved = resolveReported(...args);
+  return resolved && { dataType: resolved.dataType.id, typeParams: resolved.typeParams };
+};
 
 function reported(text: string, rest: Partial<ReportedSqlType> = {}): ReportedSqlType {
   return { text, kind: undefined, schema: undefined, name: undefined, ...rest };

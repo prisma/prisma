@@ -40,6 +40,12 @@ const USING_WITHOUT_TYPE_CHANGE = expect.objectContaining({
   meta: expect.objectContaining({ type: 'int4' }),
 });
 
+const USING_WITHOUT_TYPE_CHANGE_TO = (type: string) =>
+  expect.objectContaining({
+    code: 'MIGRATION.ALTER_COLUMN_TYPE_USING_WITHOUT_TYPE_CHANGE',
+    meta: expect.objectContaining({ type }),
+  });
+
 describe('this.alterColumnType and the start contract', () => {
   it('refuses a using conversion to the type the start contract already gives the column', () => {
     expect(() =>
@@ -69,6 +75,39 @@ describe('this.alterColumnType and the start contract', () => {
 
   it('refuses an unchanged type with using on a table an earlier renameTable renamed', () => {
     expect(() => alterChangedColumnAfterTableRename('int4')).toThrow(USING_WITHOUT_TYPE_CHANGE);
+  });
+
+  it('refuses a using conversion to the start type written another way', () => {
+    const refused = (type: string) => () =>
+      exposedMigration(boxContract(undefined)).callAlterColumnType({
+        schema: 'public',
+        table: 'Box',
+        column: 'changed',
+        type,
+        using: '"changed" * 2',
+      });
+    expect(refused('integer')).toThrow(USING_WITHOUT_TYPE_CHANGE_TO('integer'));
+    expect(refused('INT')).toThrow(USING_WITHOUT_TYPE_CHANGE_TO('INT'));
+  });
+
+  it('refuses a using conversion to the enum outside public the start contract gives the column', () => {
+    const status = {
+      dataType: 'pg/enum',
+      codecId: 'pg/enum@1',
+      nullable: false,
+      typeParams: { typeName: 'app.status' },
+    };
+    expect(() =>
+      exposedMigration(
+        boxContract(undefined, 'public', { table: 'Box', column: 'changed' }, status),
+      ).callAlterColumnType({
+        schema: 'public',
+        table: 'Box',
+        column: 'changed',
+        type: '"app"."status"',
+        using: '"changed"::text::"app"."status"',
+      }),
+    ).toThrow(USING_WITHOUT_TYPE_CHANGE_TO('"app"."status"'));
   });
 
   it('accepts a using conversion to another type', async () => {

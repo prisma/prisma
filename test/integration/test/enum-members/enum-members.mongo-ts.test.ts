@@ -1,24 +1,24 @@
 import { MongoContractSerializer } from '@internal/family-mongo/ir';
 import { defineContract, enumType, field, member, model } from '@internal/mongo/contract-builder';
-import mongoStatic from '@internal/mongo/static';
+import mongoStatic, { contractFromJson } from '@internal/mongo/static';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { timeouts, withMongoPort } from '../_harness/mongo';
 
 const TextLevel = enumType(
   'TextLevel',
-  { codecId: 'mongo/string@1', nativeType: 'string' },
+  { codecId: 'mongo/string@1' },
   member('Low', 'low'),
   member('High', 'high'),
 );
 const Int64Level = enumType(
   'Int64Level',
-  { codecId: 'mongo/int64@1', nativeType: 'long' },
+  { codecId: 'mongo/int64@1' },
   member('Low', 1n),
   member('High', 10n),
 );
 const DateLevel = enumType(
   'DateLevel',
-  { codecId: 'mongo/date@1', nativeType: 'date' },
+  { codecId: 'mongo/date@1' },
   member('Launch', new Date('2024-01-01T00:00:00.000Z')),
   member('Sunset', new Date('2025-06-30T12:00:00.000Z')),
 );
@@ -39,7 +39,7 @@ const contract = defineContract({
 });
 type Contract = typeof contract;
 const contractJson = new MongoContractSerializer().serializeContract(contract);
-const { enums } = mongoStatic<Contract>({ contractJson });
+const { enums } = mongoStatic({ contract: contractFromJson<Contract>(contractJson) });
 
 describe('db.enums on a Mongo contract built with TypeScript', () => {
   it(

@@ -41,7 +41,7 @@ function writtenCall(
   reported: ReportedSqlType,
 ): PslTypeCall | undefined {
   const resolved = resolveReportedSqlType(reported, dataTypes);
-  const marked = resolved && constructors.get(resolved.dataType);
+  const marked = resolved && constructors.get(resolved.dataType.id);
   const call = resolved && marked && fewestArgumentsCall(marked, resolved.typeParams);
   if (call === undefined) return undefined;
   const args = call.args.map(pslTypeArgumentText);

@@ -1,5 +1,5 @@
 import { asNamespaceId } from '@internal/contract/types';
-import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
+import { type SqlColumnIR, SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import {
   coalesceSubtreeIssues,
@@ -37,8 +37,8 @@ describe('mapNodeIssueToCall — table', () => {
     const t = table({
       name: 'user',
       columns: {
-        id: expectedColumn({ name: 'id', nativeType: 'INTEGER', nullable: false }),
-        email: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: false }),
+        id: expectedColumn({ name: 'id', typeText: 'INTEGER', nullable: false }),
+        email: expectedColumn({ name: 'email', typeText: 'TEXT', nullable: false }),
       },
       primaryKey: primaryKey(['id']),
       indexes: [index(['email'], { name: 'user_email_idx' })],
@@ -79,7 +79,7 @@ describe('mapNodeIssueToCall — table', () => {
 
 describe('mapNodeIssueToCall — column', () => {
   it('emits AddColumnCall for a not-found column', () => {
-    const col = expectedColumn({ name: 'bio', nativeType: 'TEXT', nullable: true });
+    const col = expectedColumn({ name: 'bio', typeText: 'TEXT', nullable: true });
     const result = mapNodeIssueToCall(
       issue({ path: ['database', 'user', 'column:bio'], expected: col }),
       emptyCtx,
@@ -92,7 +92,7 @@ describe('mapNodeIssueToCall — column', () => {
   });
 
   it('emits DropColumnCall for a not-expected column', () => {
-    const col = actualColumn({ name: 'old', nativeType: 'TEXT', nullable: true });
+    const col = actualColumn({ name: 'old', typeText: 'TEXT', nullable: true });
     const result = mapNodeIssueToCall(
       issue({ path: ['database', 'user', 'column:old'], actual: col }),
       emptyCtx,
@@ -105,8 +105,8 @@ describe('mapNodeIssueToCall — column', () => {
   });
 
   it('returns a typeMismatch conflict for a not-equal column with a type change (unabsorbed)', () => {
-    const expected = expectedColumn({ name: 'age', nativeType: 'INTEGER', nullable: false });
-    const actual = actualColumn({ name: 'age', nativeType: 'TEXT', nullable: false });
+    const expected = expectedColumn({ name: 'age', typeText: 'INTEGER', nullable: false });
+    const actual = actualColumn({ name: 'age', typeText: 'TEXT', nullable: false });
     const result = mapNodeIssueToCall(
       issue({ path: ['database', 'user', 'column:age'], expected, actual }),
       emptyCtx,
@@ -117,8 +117,8 @@ describe('mapNodeIssueToCall — column', () => {
   });
 
   it('returns a nullabilityConflict for a not-equal column with only a nullability change', () => {
-    const expected = expectedColumn({ name: 'age', nativeType: 'INTEGER', nullable: false });
-    const actual = actualColumn({ name: 'age', nativeType: 'INTEGER', nullable: true });
+    const expected = expectedColumn({ name: 'age', typeText: 'INTEGER', nullable: false });
+    const actual = actualColumn({ name: 'age', typeText: 'INTEGER', nullable: true });
     const result = mapNodeIssueToCall(
       issue({ path: ['database', 'user', 'column:age'], expected, actual }),
       emptyCtx,
@@ -259,22 +259,32 @@ describe('mapNodeIssueToCall — check constraint', () => {
   });
 });
 
-describe('typeDiffersFrom on a SQLite column', () => {
-  it('compares resolvedNativeType when both sides carry it', () => {
-    const expected = expectedColumn({ name: 'a', nativeType: 'INTEGER', nullable: false });
-    const actual = actualColumn({
-      name: 'a',
-      nativeType: 'INTEGER',
-      nullable: false,
-      resolvedNativeType: 'TEXT',
-    });
-    expect(expected.typeDiffersFrom(actual)).toBe(true);
+describe('the type a not-equal column issue compares', () => {
+  function conflictKind(expected: SqlColumnIR, actual: SqlColumnIR) {
+    const result = mapNodeIssueToCall(
+      issue({ path: ['database', 'user', 'column:age'], expected, actual }),
+      emptyCtx,
+    );
+    if (result.ok) throw new Error('expected failure');
+    return result.failure.kind;
+  }
+
+  it('is the data type, not the type text', () => {
+    expect(
+      conflictKind(
+        expectedColumn({ name: 'age', typeText: 'INTEGER', nullable: false }),
+        actualColumn({ name: 'age', typeText: 'integer', nullable: true }),
+      ),
+    ).toBe('nullabilityConflict');
   });
 
-  it('is false when only nullability differs', () => {
-    const expected = expectedColumn({ name: 'a', nativeType: 'INTEGER', nullable: false });
-    const actual = actualColumn({ name: 'a', nativeType: 'INTEGER', nullable: true });
-    expect(expected.typeDiffersFrom(actual)).toBe(false);
+  it('differs for a column no data type claims, even with the same type text', () => {
+    expect(
+      conflictKind(
+        expectedColumn({ name: 'age', typeText: 'numeric', nullable: false }),
+        actualColumn({ name: 'age', typeText: 'numeric', nullable: true }),
+      ),
+    ).toBe('typeMismatch');
   });
 });
 
@@ -293,7 +303,7 @@ describe('planIssues — dependency-graph ordering', () => {
     path: ['database', 'created'],
     expected: table({
       name: 'created',
-      columns: { id: expectedColumn({ name: 'id', nativeType: 'INTEGER', nullable: false }) },
+      columns: { id: expectedColumn({ name: 'id', typeText: 'INTEGER', nullable: false }) },
     }),
   });
   const droppedA = issue({
@@ -325,7 +335,7 @@ describe('coalesceSubtreeIssues', () => {
   it('drops nested column/default issues under a not-found table', () => {
     const t = table({
       name: 'user',
-      columns: { id: expectedColumn({ name: 'id', nativeType: 'INTEGER', nullable: false }) },
+      columns: { id: expectedColumn({ name: 'id', typeText: 'INTEGER', nullable: false }) },
     });
     const tableIssue = issue({ path: ['database', 'user'], expected: t });
     const nestedColumn = issue({
@@ -346,7 +356,7 @@ describe('coalesceSubtreeIssues', () => {
   });
 
   it('drops a nested default issue under a not-found (new) column on an otherwise-matched table', () => {
-    const col = expectedColumn({ name: 'bio', nativeType: 'TEXT', nullable: true });
+    const col = expectedColumn({ name: 'bio', typeText: 'TEXT', nullable: true });
     const columnIssue = issue({
       path: ['database', 'user', 'column:bio'],
       expected: col,
@@ -362,8 +372,8 @@ describe('coalesceSubtreeIssues', () => {
   it('keeps sibling per-attribute issues on a matched table untouched', () => {
     const colDrift = issue({
       path: ['database', 'user', 'column:age'],
-      expected: expectedColumn({ name: 'age', nativeType: 'INTEGER', nullable: false }),
-      actual: actualColumn({ name: 'age', nativeType: 'TEXT', nullable: false }),
+      expected: expectedColumn({ name: 'age', typeText: 'INTEGER', nullable: false }),
+      actual: actualColumn({ name: 'age', typeText: 'TEXT', nullable: false }),
     });
     const defaultMissing = issue({
       path: ['database', 'user', 'column:age', 'default'],
@@ -377,8 +387,8 @@ describe('coalesceSubtreeIssues', () => {
   it('is a no-op when there are no not-found/not-expected issues at all', () => {
     const onlyDrift = issue({
       path: ['database', 'user', 'column:age'],
-      expected: expectedColumn({ name: 'age', nativeType: 'INTEGER', nullable: false }),
-      actual: actualColumn({ name: 'age', nativeType: 'TEXT', nullable: false }),
+      expected: expectedColumn({ name: 'age', typeText: 'INTEGER', nullable: false }),
+      actual: actualColumn({ name: 'age', typeText: 'TEXT', nullable: false }),
     });
     expect(coalesceSubtreeIssues([onlyDrift])).toEqual([onlyDrift]);
   });

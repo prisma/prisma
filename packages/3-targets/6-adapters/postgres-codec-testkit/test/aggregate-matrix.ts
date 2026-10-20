@@ -203,7 +203,7 @@ const postgresDataTypeLookup = createDataTypeLookup(postgresDataTypes);
 
 const UNWRITTEN_COLUMN_TYPES: Readonly<Record<string, string>> = { 'pg/text-array@1': 'text[]' };
 
-export function nativeTypeOf(ref: CodecRef): string {
+export function typeTextOf(ref: CodecRef): string {
   const unwritten = UNWRITTEN_COLUMN_TYPES[ref.codecId];
   if (unwritten !== undefined) return unwritten;
   const type = sqlDataTypeOfCodec(ref.codecId, {

@@ -1,5 +1,6 @@
 import type { CodecControlHooks } from '@internal/family-sql/control';
-import { type SqlTypeLookups, sqlDataTypeOfCodec } from '@internal/sql-contract/data-type';
+import type { TypeLookups } from '@internal/framework-components/codec';
+import { sqlDataTypeOfCodec } from '@internal/sql-contract/data-type';
 import type { SqlColumnIR } from '@internal/sql-schema-ir/types';
 import { encodeSqliteDatetime } from '../codecs';
 import {
@@ -36,7 +37,7 @@ function isParamRecord(value: unknown): value is Record<string, unknown> {
 export function sqliteFillValue(
   column: SqlColumnIR,
   codecHooks: ReadonlyMap<string, CodecControlHooks>,
-  types: SqlTypeLookups,
+  types: TypeLookups,
 ): string | undefined {
   const codecRef = column.codecRef;
   if (codecRef === undefined || column.many === true) return undefined;

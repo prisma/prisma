@@ -4,11 +4,10 @@ import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { SqlStorage, type StorageColumn } from '@internal/sql-contract/types';
-import { createSqliteBuiltinCodecLookup } from '@internal/target-sqlite/codecs';
 import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { SqliteControlAdapter } from '../../src/core/control-adapter';
+import { createTestSqliteControlAdapter } from '../helpers/test-control-adapter';
 import {
   controlAdapter,
   emptySchema,
@@ -64,7 +63,7 @@ function contractOf(columns: Record<string, StorageColumn>): Contract<SqlStorage
   };
 }
 
-const introspector = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+const introspector = createTestSqliteControlAdapter();
 
 describe('a raw column on SQLite', () => {
   it('is created with its text as written, and verifies with no findings', async () => {

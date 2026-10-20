@@ -419,7 +419,7 @@ describe('AlterColumnTypeCall', () => {
     expect({ source: call.renderTypeScript(), checkType: call.checkType }).toEqual({
       source:
         'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "circle", raw: true })',
-      checkType: 'circle',
+      checkType: { kind: 'catalog-text', text: 'circle' },
     });
   });
 

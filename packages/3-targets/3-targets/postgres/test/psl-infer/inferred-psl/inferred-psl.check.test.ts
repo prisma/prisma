@@ -33,8 +33,8 @@ describe('printPsl — @@check emission', () => {
         users: {
           name: 'users',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
-            tags: { name: 'tags', nativeType: 'text', nullable: false, many: true },
+            id: { name: 'id', typeText: 'int4', nullable: false },
+            tags: { name: 'tags', typeText: 'text', nullable: false, many: true },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],
@@ -60,8 +60,8 @@ describe('printPsl — @@check emission', () => {
         orders: {
           name: 'orders',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
-            total: { name: 'total', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
+            total: { name: 'total', typeText: 'int4', nullable: false },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],
@@ -99,8 +99,8 @@ describe('printPsl — @@check emission', () => {
         users: {
           name: 'users',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
-            tags: { name: 'tags', nativeType: 'text', nullable: false, many: true },
+            id: { name: 'id', typeText: 'int4', nullable: false },
+            tags: { name: 'tags', typeText: 'text', nullable: false, many: true },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],

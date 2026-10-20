@@ -21,10 +21,11 @@ import type { CodecControlHooks } from '@internal/family-sql/control';
 import {
   type AnyCodecDescriptor,
   createDataTypeLookup,
+  type TypeLookups,
 } from '@internal/framework-components/codec';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import { keepInternalSpecifiers } from '@internal/framework-components/emission';
-import { type SqlTypeLookups, sqlDataType } from '@internal/sql-contract/data-type';
+import { sqlDataType } from '@internal/sql-contract/data-type';
 import type { StorageColumn } from '@internal/sql-contract/types';
 import { col, fn } from '@internal/sql-relational-core/contract-free';
 import {
@@ -62,14 +63,14 @@ import { TypeScriptRenderablePostgresMigration } from '@internal/target-postgres
 import { renderOps } from '@internal/target-postgres/render-ops';
 import { ifDefined } from '@internal/utils/defined';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from '../helpers/test-control-adapter';
 
 const SNAPSHOTS_IMPORT_PATH = '../../snapshots';
 const META = {
   from: 'a'.repeat(64),
   to: 'b'.repeat(64),
 } as const;
-const testAdapter = new PostgresControlAdapter(
+const testAdapter = createTestPostgresControlAdapter(
   createPostgresBuiltinCodecLookup(),
   createPostgresBuiltinDataTypeLookup(),
 );
@@ -282,7 +283,7 @@ describe('AddColumnWithTemporaryDefaultCall', () => {
       params: arktype({ length: 'number.integer > 0' }),
       texts: [{ text: 'vector({length})', written: true }],
     });
-    const types: SqlTypeLookups = {
+    const types: TypeLookups = {
       codecLookup: {
         descriptorFor: (codecId) =>
           codecId === 'pg/vector@1'

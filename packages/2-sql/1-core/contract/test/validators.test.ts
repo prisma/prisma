@@ -1012,6 +1012,36 @@ describe('SQL contract validators', () => {
       ).not.toThrow();
     });
 
+    it('compares junction column parameters in their normal form', () => {
+      const numeric = sqlDataType('pg/numeric', {
+        params: type({ 'precision?': 'number', 'scale?': 'number' }),
+        read: (json) => json,
+        texts: [
+          { text: 'numeric', written: true, catalog: true },
+          { text: 'numeric({precision})', written: true },
+          { text: 'numeric({precision},{scale})', written: true, catalog: true },
+        ],
+        normalize: (params) =>
+          params.precision !== undefined && params.scale === undefined
+            ? { ...params, scale: 0 }
+            : params,
+      });
+      const numericColumn = (typeParams: Record<string, number>) =>
+        new StorageColumn({
+          dataType: 'pg/numeric',
+          codecId: 'pg/numeric@1',
+          nullable: false,
+          typeParams,
+        });
+      const c = junctionContract(
+        numericColumn({ precision: 10 }),
+        numericColumn({ precision: 10, scale: 0 }),
+      );
+      expect(() =>
+        validateSqlContractFully(c, { dataTypes: createDataTypeLookup([numeric]) }),
+      ).not.toThrow();
+    });
+
     it('names both data types when junction columns differ', () => {
       const c = junctionContract(col('pg/text', 'pg/text@1'), col('pg/int4', 'pg/int4@1'));
       expect(() => validateSqlContractFully(c)).toThrow(

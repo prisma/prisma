@@ -117,7 +117,7 @@ describe('fewestArgumentsCall', () => {
 function column(name: string, reportedType: ReportedSqlType, rest: Partial<SqlColumnIRInput> = {}) {
   return new SqlColumnIR({
     name,
-    nativeType: reportedType.text,
+    typeText: reportedType.text,
     nullable: false,
     reportedType,
     ...rest,
@@ -201,7 +201,7 @@ describe('inferColumnTypes', () => {
         {
           schemaName: 'public',
           tableName: 'thing',
-          columns: [new SqlColumnIR({ name: 'id', nativeType: 'int4', nullable: false })],
+          columns: [new SqlColumnIR({ name: 'id', typeText: 'int4', nullable: false })],
         },
       ]),
     ).toThrow(/without the type the database reported/);

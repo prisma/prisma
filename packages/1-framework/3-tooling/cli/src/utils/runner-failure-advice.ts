@@ -14,7 +14,6 @@ import {
   printedPlanCommand,
   selfEmitCommand,
 } from './printed-command';
-import { runnerSchemaIssues } from './schema-issues';
 
 type FailedMigration = NonNullable<MigrateFailure['failedMigration']>;
 
@@ -265,7 +264,7 @@ export function migrateFix(failure: MigrateFailure, invocation: CliInvocation): 
   if (failure.rowsWithoutValue !== undefined) {
     return migrateRowsWithoutValueFix(failure.rowsWithoutValue, failedMigration, invocation);
   }
-  if (runnerSchemaIssues(failure.meta) !== undefined) {
+  if (failure.schemaIssues !== undefined) {
     return migrateSchemaCheckFix(failedMigration, invocation);
   }
   if (failure.failedPrecheck !== undefined) {

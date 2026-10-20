@@ -157,7 +157,7 @@ export async function inferPostgresPslContract(
           throw postgresError(
             'CONTRACT.INFER_UNSUPPORTED',
             `contract infer: column "${tableName}"."${column.name}" is typed by native enum ` +
-              `type "${column.nativeType}", which extension pack space "${owningSpaceId}" ` +
+              `type "${column.typeText}", which extension pack space "${owningSpaceId}" ` +
               'already describes. A cross-space enum-typed column has no authorable PSL form ' +
               "yet; describe the table in that pack's contract or retype the column before " +
               're-running contract infer.',

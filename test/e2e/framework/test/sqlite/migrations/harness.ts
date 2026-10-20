@@ -23,6 +23,7 @@ import type { SqlStorage } from '@prisma/orm-sqlite/family-contract/types';
 import { buildFabricatedMigrationEdge } from '@prisma/orm-sqlite/migration-tools/aggregate';
 import { SqlSchemaIR } from '@prisma/orm-sqlite/schema-ir/types';
 import sqliteTargetDescriptor from '@prisma/orm-sqlite/target/control';
+import { sqliteDataTypes } from '@prisma/orm-sqlite/target/data-types';
 
 const controlStack = createControlStack({
   family: sqlFamilyDescriptor,
@@ -163,7 +164,7 @@ async function runMigration(
   try {
     const planner = sqliteTargetDescriptor.createPlanner(controlAdapter);
     const runner = sqliteTargetDescriptor.createRunner(familyInstance);
-    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup(), sqliteDataTypes);
     const policy = options.policy ?? INIT_ADDITIVE_POLICY;
 
     let currentSchema: SqlSchemaIR = emptySchema;

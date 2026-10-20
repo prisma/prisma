@@ -22,7 +22,7 @@ describe('the temporary value a new required SQLite column takes', () => {
       codecDescriptors.map(async (descriptor) => {
         const column = new SqlColumnIR({
           name: 'v',
-          nativeType: 'TEXT',
+          typeText: 'TEXT',
           nullable: false,
           codecRef: { codecId: descriptor.codecId },
         });
@@ -72,7 +72,7 @@ describe('the temporary value of a column whose codec comes from an extension', 
   ])('is the value of the data type %s represents', (codecId, fill) => {
     const column = new SqlColumnIR({
       name: 'v',
-      nativeType: 'TEXT',
+      typeText: 'TEXT',
       nullable: false,
       codecRef: { codecId },
     });

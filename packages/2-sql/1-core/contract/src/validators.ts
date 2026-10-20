@@ -25,7 +25,7 @@ import { contractError } from './contract-errors';
 import { composeSqlEntityKinds } from './entity-kinds';
 import { sameColumns, startsWithColumns } from './index-equivalence';
 import { resolveSqlToOneRelationStorage } from './relation-storage';
-import { sqlStorageTypeId } from './sql-data-type';
+import { sameSqlColumnType } from './sql-data-type';
 
 export {
   CheckConstraintSchema,
@@ -1202,21 +1202,6 @@ function lookupStorageColumn(
   return table.columns[columnName];
 }
 
-/**
- * Two storage columns share a type when the types their `dataType`s are stored as and their `typeParams` match. `codecId` and
- * `nullable` are not compared: they do not change the database type that governs a join.
- */
-function sameStorageType(
-  a: StorageColumn,
-  b: StorageColumn,
-  dataTypes: Pick<DataTypeLookup, 'get'>,
-): boolean {
-  return (
-    sqlStorageTypeId(a.dataType, dataTypes) === sqlStorageTypeId(b.dataType, dataTypes) &&
-    canonicalizeJson(a.typeParams ?? {}) === canonicalizeJson(b.typeParams ?? {})
-  );
-}
-
 function describeColumnType(column: StorageColumn): string {
   return column.typeParams === undefined
     ? column.dataType
@@ -1226,7 +1211,7 @@ function describeColumnType(column: StorageColumn): string {
 /**
  * Validates one side of an N:M join: the junction columns and the model
  * columns they pair against positionally must be equal in number, exist in
- * their tables, and share the same storage type (`dataType` + `typeParams`).
+ * their tables, and have the same type by `sameSqlColumnType`.
  * The junction's storage foreign keys already guarantee this for user-declared
  * FK constraints, but `through` is a logical descriptor never tied to them by
  * the rest of validation — and the TS builder accepts explicit join columns
@@ -1318,7 +1303,7 @@ function validateThroughJoinSide(input: {
         `${input.modelColumnsLabel} references column "${modelColumnName}" absent from table "${model.namespaceId}.${model.table}".`,
       );
     }
-    if (!sameStorageType(junctionColumn, modelColumn, input.dataTypes)) {
+    if (!sameSqlColumnType(junctionColumn, modelColumn, input.dataTypes)) {
       throw fail(
         `joins "${input.junctionTable}.${junctionColumnName}" (${describeColumnType(junctionColumn)}) with "${model.table}.${modelColumnName}" (${describeColumnType(modelColumn)}) of differing storage type; junction columns must match the type of the column they reference.`,
       );

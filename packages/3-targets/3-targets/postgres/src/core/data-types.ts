@@ -395,7 +395,7 @@ export const pgText = namedOnly('pg/text', 'text', readString('pg/text'));
 export const pgTextArray = sqlDataType('pg/text-array', { read: readTextArray });
 
 /** The enum's `typeName`: its name in `public` or with no schema, its schema-qualified name elsewhere. */
-function qualifiedEnumName(reported: ReportedSqlType): string {
+export function qualifiedEnumName(reported: Pick<ReportedSqlType, 'schema' | 'name'>): string {
   const name = reported.name ?? '';
   return reported.schema === undefined || reported.schema === 'public'
     ? name

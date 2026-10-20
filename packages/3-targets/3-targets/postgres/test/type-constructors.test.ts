@@ -10,7 +10,6 @@ import { describe, expect, it } from 'vitest';
 import { postgresAuthoringTypes } from '../src/core/authoring';
 import { createPostgresBuiltinCodecLookup } from '../src/core/codec-registry';
 import { postgresDataTypes } from '../src/core/data-types';
-import { EXISTING_COLUMN_DATE_TIME_TYPES } from '../src/core/psl-build/existing-column-date-time-types';
 import {
   postgresNativeAuthoringTypes,
   postgresPslTypeConstructors,
@@ -95,14 +94,6 @@ function markedInferred(): string[] {
 describe('the constructors contract infer prints', () => {
   it('are marked inferred, and no other constructor is', () => {
     expect(markedInferred().sort()).toEqual([...INFERRED].sort());
-  });
-
-  it('include every date and time constructor written for an existing column', () => {
-    expect(
-      Object.values(EXISTING_COLUMN_DATE_TIME_TYPES).filter(
-        (name) => !markedInferred().includes(name),
-      ),
-    ).toEqual([]);
   });
 
   it.each(INFERRED)('%s is marked with true', (path) => {

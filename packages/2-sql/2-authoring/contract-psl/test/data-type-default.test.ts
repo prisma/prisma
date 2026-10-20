@@ -59,8 +59,7 @@ describe('readStoredValue', () => {
       readStoredValue({
         value,
         column: { codecId: descriptor.codecId },
-        codecLookup,
-        dataTypeLookup: createDataTypeLookup([zoned]),
+        lookups: { codecLookup, dataTypeLookup: createDataTypeLookup([zoned]) },
         fieldPath: 'T.at',
       });
     expect({ zoned: read('12:00Z'), unzoned: read('12:00') }).toEqual({

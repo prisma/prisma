@@ -19,6 +19,7 @@ import {
   SqlTableIR,
   SqlUniqueIR,
 } from '@internal/sql-schema-ir/types';
+import { introspectedColumn } from '../sqlite-test-types';
 
 /** The built-in SQLite codec whose data type is written as each native type; DDL is written from it. */
 const CODEC_ID_BY_NATIVE_TYPE: Readonly<Record<string, string>> = {
@@ -28,57 +29,67 @@ const CODEC_ID_BY_NATIVE_TYPE: Readonly<Record<string, string>> = {
   BLOB: 'sqlite/blob@1',
 };
 
-function codecIdFor(nativeType: string): string {
-  return CODEC_ID_BY_NATIVE_TYPE[nativeType.toUpperCase()] ?? 'test/native@1';
+function codecIdFor(typeText: string): string {
+  return CODEC_ID_BY_NATIVE_TYPE[typeText.toUpperCase()] ?? 'test/native@1';
 }
 
 /**
  * An expected (desired-side) column, carrying the codec identity
- * (`codecRef` / `codecBaseNativeType`) the way derivation stamps it —
+ * (`codecRef`) and data type the way derivation stamps them —
  * mirrors `contractToSchemaIR`'s output shape, so the node-based op-builders
  * (`column-ddl-rendering.ts`) resolve DDL from it exactly like a
  * derivation-produced tree.
  */
 export function expectedColumn(input: {
   readonly name: string;
-  readonly nativeType: string;
+  readonly typeText: string;
   readonly nullable: boolean;
-  readonly resolvedNativeType?: string;
   readonly many?: boolean;
   readonly resolvedDefault?: ColumnDefault;
 }): SqlColumnIR {
   return new SqlColumnIR({
     name: input.name,
-    nativeType: input.nativeType,
+    typeText: input.typeText,
     nullable: input.nullable,
-    resolvedNativeType: input.resolvedNativeType ?? input.nativeType,
     ...(input.many !== undefined ? { many: input.many } : {}),
     ...(input.resolvedDefault !== undefined ? { resolvedDefault: input.resolvedDefault } : {}),
+    ...typeOf(input.typeText),
     codecRef: {
-      codecId: codecIdFor(input.nativeType),
+      codecId: codecIdFor(input.typeText),
       ...(input.many !== undefined ? { many: input.many } : {}),
     },
-    codecBaseNativeType: input.nativeType,
   });
 }
 
 /** A live (actual-side) column, as introspection would build it — no codec identity. */
 export function actualColumn(input: {
   readonly name: string;
-  readonly nativeType: string;
+  readonly typeText: string;
   readonly nullable: boolean;
-  readonly resolvedNativeType?: string;
   readonly many?: boolean;
   readonly resolvedDefault?: ColumnDefault;
 }): SqlColumnIR {
   return new SqlColumnIR({
     name: input.name,
-    nativeType: input.nativeType,
+    typeText: input.typeText,
     nullable: input.nullable,
-    resolvedNativeType: input.resolvedNativeType ?? input.nativeType,
     ...(input.many !== undefined ? { many: input.many } : {}),
     ...(input.resolvedDefault !== undefined ? { resolvedDefault: input.resolvedDefault } : {}),
+    ...typeOf(input.typeText),
   });
+}
+
+/** The SQLite data type a column of `typeText` has, as introspection resolves it. */
+function typeOf(typeText: string) {
+  const { storedType, storedTypeParams } = introspectedColumn({
+    name: '',
+    typeText,
+    nullable: false,
+  });
+  return {
+    ...(storedType === undefined ? {} : { storedType }),
+    ...(storedTypeParams === undefined ? {} : { storedTypeParams }),
+  };
 }
 
 export function primaryKey(columns: readonly string[]): PrimaryKey {

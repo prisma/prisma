@@ -24,12 +24,11 @@ import type {
   SqlPlannerConflict,
   SqlPlannerConflictLocation,
 } from '@internal/family-sql/control';
-import type { DataType } from '@internal/framework-components/codec';
+import type { DataType, TypeLookups } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { DiffableNode, SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome, orderIssuesByDependencies } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
 import type { SqlStorage, StorageTypeInstance } from '@internal/sql-contract/types';
 import type { DdlTableConstraint } from '@internal/sql-relational-core/ast';
 import * as contractFree from '@internal/sql-relational-core/contract-free';
@@ -43,6 +42,7 @@ import {
   SqlSchemaIR,
   type SqlSchemaIRNode,
   type SqlUniqueIR,
+  sqlColumnTypesEqual,
 } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -55,7 +55,6 @@ import { PostgresSchemaNodeKind } from '../schema-ir/schema-node-kinds';
 import { hasAutoincrementDefault } from './autoincrement-widths';
 import {
   buildSetDefaultColumn,
-  columnTypeIsCatalogText,
   renderColumnAlterType,
   renderColumnDdl,
 } from './column-ddl-rendering';
@@ -449,9 +448,8 @@ function buildCreateTableCallsFromNode(
   schemaName: string,
   ddlSchemaName: string,
   table: PostgresTableSchemaNode,
-  types: SqlTypeLookups,
 ): PostgresOpFactoryCall[] {
-  const ddlColumns = Object.values(table.columns).map((c) => renderColumnDdl(c.name, c, types));
+  const ddlColumns = Object.values(table.columns).map((c) => renderColumnDdl(c.name, c));
   const primaryKeyConstraints: DdlTableConstraint[] = table.primaryKey
     ? [
         contractFree.primaryKey([...table.primaryKey.columns], {
@@ -603,14 +601,13 @@ function mapTableNodeIssue(
   // never match a live nspname), mirroring the schema the retired
   // policy-half enable resolved via `resolveDdlSchemaForNamespaceStorage`.
   ddlSchemaName: string,
-  types: SqlTypeLookups,
 ): Result<readonly PostgresOpFactoryCall[], SqlPlannerConflict> {
   if (issueOutcome(issue) === 'not-found') {
     const table = blindCast<
       PostgresTableSchemaNode,
       'a not-found table issue always carries the expected PostgresTableSchemaNode'
     >(issue.expected);
-    return ok(buildCreateTableCallsFromNode(schemaName, ddlSchemaName, table, types));
+    return ok(buildCreateTableCallsFromNode(schemaName, ddlSchemaName, table));
   }
   if (issueOutcome(issue) === 'not-expected') {
     const table = blindCast<
@@ -652,7 +649,6 @@ function mapColumnNodeIssue(
   issue: SchemaDiffIssue,
   schemaName: string,
   tableName: string,
-  types: SqlTypeLookups,
   dataTypes: readonly DataType[],
 ): Result<readonly PostgresOpFactoryCall[], SqlPlannerConflict> {
   if (issueOutcome(issue) === 'not-found') {
@@ -661,12 +657,7 @@ function mapColumnNodeIssue(
       'a not-found column issue always carries the expected column node'
     >(issue.expected);
     return ok([
-      new AddColumnCall(
-        schemaName,
-        tableName,
-        renderColumnDdl(column.name, column, types),
-        dataTypes,
-      ),
+      new AddColumnCall(schemaName, tableName, renderColumnDdl(column.name, column), dataTypes),
     ]);
   }
   if (issueOutcome(issue) === 'not-expected') {
@@ -686,19 +677,17 @@ function mapColumnNodeIssue(
     'a not-equal column issue always carries the actual column node'
   >(issue.actual);
   const calls: PostgresOpFactoryCall[] = [];
-  if (expected.typeDiffersFrom(actual)) {
+  if (!sqlColumnTypesEqual(expected, actual)) {
     calls.push(
       new AlterColumnTypeCall({
         schemaName,
         tableName,
         columnName: expected.name,
-        type: renderColumnAlterType(expected, types),
-        ...(columnTypeIsCatalogText(expected, types) ? { raw: true as const } : {}),
+        type: renderColumnAlterType(expected),
+        ...(expected.catalogText !== undefined ? { raw: true as const } : {}),
         dataTypes,
         ownsAutoincrementSequence: hasAutoincrementDefault(actual),
-        operationClass: liveColumnWidensSafely(expected, actual, types)
-          ? 'widening'
-          : 'destructive',
+        operationClass: liveColumnWidensSafely(expected, actual) ? 'widening' : 'destructive',
       }),
     );
   }
@@ -717,7 +706,7 @@ function mapColumnDefaultNodeIssue(
   schemaName: string,
   tableName: string,
   columnName: string,
-  types: SqlTypeLookups,
+  types: TypeLookups,
 ): Result<readonly PostgresOpFactoryCall[], SqlPlannerConflict> {
   if (issueOutcome(issue) === 'not-expected') {
     return ok([new DropDefaultCall(schemaName, tableName, columnName)]);
@@ -948,9 +937,9 @@ export function mapNodeIssueToCall(
 
   switch (node.nodeKind) {
     case PostgresSchemaNodeKind.table:
-      return mapTableNodeIssue(issue, schemaName, ddlSchemaName, ctx.types);
+      return mapTableNodeIssue(issue, schemaName, ddlSchemaName);
     case RelationalSchemaNodeKind.column:
-      return mapColumnNodeIssue(issue, schemaName, tableName, ctx.types, ctx.dataTypes);
+      return mapColumnNodeIssue(issue, schemaName, tableName, ctx.dataTypes);
     case RelationalSchemaNodeKind.columnDefault: {
       const columnName = issueColumnName(issue);
       if (columnName === undefined) {
@@ -985,7 +974,7 @@ export interface IssuePlannerOptions {
   readonly schemaName: string;
   readonly codecHooks: ReadonlyMap<string, CodecControlHooks>;
   /** The composed stack's codecs and data types, which write each column's type. */
-  readonly types: SqlTypeLookups;
+  readonly types: TypeLookups;
   readonly storageTypes: Readonly<Record<string, StorageTypeInstance>>;
   /**
    * Current database schema IR. Strategies read this to detect whether a

@@ -1,11 +1,11 @@
 export { numeralText } from '../numeral-text';
 export type {
   ResolvedSqlType,
+  SqlColumnTypeFields,
   SqlDataType,
   SqlDataTypeCollision,
   SqlDataTypeFacts,
   SqlDataTypeSpec,
-  SqlTypeLookups,
   SqlTypeParams,
   SqlTypeText,
 } from '../sql-data-type';
@@ -17,6 +17,7 @@ export {
   renderSqlTypeName,
   resolveReportedSqlType,
   resolveWrittenSqlTypes,
+  sameSqlColumnType,
   sqlBaseName,
   sqlDataType,
   sqlDataTypeOfCodec,

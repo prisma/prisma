@@ -78,7 +78,7 @@ function typePostcheckHolds(
     issue({
       path: ['database', 'places', 'column:shape'],
       expected: column.expected,
-      actual: actualColumn({ name: 'shape', nativeType: 'blob', nullable: true }),
+      actual: actualColumn({ name: 'shape', typeText: 'blob', nullable: true }),
     }),
   ];
   const db = new DatabaseSync(':memory:');
@@ -99,15 +99,16 @@ describe('the type postcheck of a recreated table', () => {
     typeSql: 'circle',
     expected: new SqlColumnIR({
       name: 'shape',
-      nativeType: 'circle',
+      typeText: 'circle',
       nullable: true,
-      resolvedNativeType: 'circle',
-      dataType: sqlRawDataType,
+      storedType: sqlRawDataType,
+      storedTypeParams: { sql: 'circle' },
+      catalogText: 'circle',
     }),
   };
   const integer = {
     typeSql: 'INTEGER',
-    expected: expectedColumn({ name: 'shape', nativeType: 'integer', nullable: true }),
+    expected: expectedColumn({ name: 'shape', typeText: 'integer', nullable: true }),
   };
 
   it('compares a type named by its catalog text exactly, case included, as verify does', () => {

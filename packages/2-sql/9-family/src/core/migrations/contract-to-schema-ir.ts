@@ -7,6 +7,7 @@ import {
   type DataTypeParams,
   type DataTypeValue,
   dataTypeParams,
+  type TypeLookups,
 } from '@internal/framework-components/codec';
 import type {
   MigrationPlannerConflict,
@@ -16,7 +17,6 @@ import {
   nameIsCatalogText,
   renderSqlTypeName,
   type SqlDataType,
-  type SqlTypeLookups,
   sqlDataTypeOfCodec,
   sqlStorageType,
   unquotedSqlBaseName,
@@ -54,7 +54,13 @@ import { sqlFamilyError } from '../errors';
 /**
  * Target-supplied hook that names a contract's expression default the way the target's introspection names the same database function, such as `now()` for `CURRENT_TIMESTAMP`, so the two compare equal. When omitted, the contract's default is the resolved default unchanged.
  */
-export type DefaultResolver = (def: ColumnDefault, resolvedNativeType: string) => ColumnDefault;
+export type DefaultResolver = (def: ColumnDefault, column: DefaultResolverColumn) => ColumnDefault;
+
+/** The column a {@link DefaultResolver} names a default for: its type as written, and whether it is a list. */
+export interface DefaultResolverColumn {
+  readonly typeText: string;
+  readonly many: boolean;
+}
 
 type DefaultHooks = Pick<ContractToSchemaIROptions, 'resolveDefault'>;
 
@@ -62,7 +68,7 @@ function convertColumn(
   name: string,
   column: StorageColumn,
   storageTypes: ResolvedStorageTypes,
-  types: SqlTypeLookups,
+  types: TypeLookups,
   hooks: DefaultHooks,
 ): SqlColumnIRInput {
   // A `typeRef` column is written exactly as a column of the referenced
@@ -70,40 +76,20 @@ function convertColumn(
   const resolved = resolveColumnTypeMetadata(column, storageTypes);
   const dataType = sqlDataTypeOfCodec(resolved.codecId, types);
   const storage = sqlStorageType(dataType, types.dataTypeLookup);
-  const baseTypeName = unquotedSqlBaseName(storage, dataTypeParams(storage, resolved.typeParams));
-  const baseNativeType = schemaTypeText(storage, resolved.typeParams);
-  // `many: true` columns keep `nativeType` as the bare element type (matching
-  // how the introspected/"actual" side reports it — see the postgres control
-  // adapter's own `many`-stripping normalization) and carry the array-ness in
-  // the separate `many` field instead of baking `[]` into `nativeType`.
-  // Baking it in here (`"text[]"`) made every `@@` list-typed column
-  // permanently mismatch against a live introspected column reporting
-  // `{ nativeType: "text", many: true }`, regardless of whether the two are
-  // otherwise identical — `db verify` reported every such column
-  // `not-equal`. `resolvedNativeType` still carries the full `"text[]"`
-  // form: it is the side both this and the introspected column already
-  // agree on as the comparable "expanded" type.
-  const nativeType = baseNativeType;
+  const typeText = schemaTypeText(storage, resolved.typeParams);
   const many = column.many !== undefined && column.many !== false;
-  const resolvedNativeType = many ? `${baseNativeType}[]` : baseNativeType;
   const rawColumnDefault = column.default ?? undefined;
   const resolvedColumnDefault =
     rawColumnDefault !== undefined && hooks.resolveDefault
-      ? hooks.resolveDefault(rawColumnDefault, resolvedNativeType)
+      ? hooks.resolveDefault(rawColumnDefault, { typeText, many })
       : rawColumnDefault;
   return {
     name,
-    nativeType,
+    typeText,
     nullable: column.nullable,
     ...ifDefined('many', many ? true : undefined),
-    // Contract-derived columns are resolved by construction: the computed
-    // full native type doubles as the resolved value. The contract's raw
-    // structured default becomes the resolved default after passing through
-    // the target's `resolveDefault` hook (when supplied), so a default the
-    // target's introspection side would normalize differently (e.g. a
-    // raw sql`...` default whose body is a literal) compares
-    // equal instead of drifting on `kind` alone.
-    resolvedNativeType,
+    // The contract's default after the target's `resolveDefault` hook, so a
+    // default the target's introspection names differently compares equal.
     ...ifDefined('resolvedDefault', resolvedColumnDefault),
     ...ifDefined('authoredDefault', rawColumnDefault),
     // The column's codec identity, carried the same way the query AST
@@ -111,14 +97,9 @@ function convertColumn(
     // resolve DDL rendering from this at plan time (Decision 5), instead of
     // reading a derivation-precomputed render payload.
     codecRef: buildColumnCodecRef(resolved, many ? true : undefined),
-    codecBaseNativeType: baseTypeName,
-    dataType,
-    ...ifDefined(
-      'reportedType',
-      nameIsCatalogText(storage)
-        ? { text: baseNativeType, kind: undefined, schema: undefined, name: undefined }
-        : undefined,
-    ),
+    storedType: storage,
+    storedTypeParams: storage.sql.normalize(dataTypeParams(storage, resolved.typeParams)),
+    ...ifDefined('catalogText', nameIsCatalogText(storage) ? typeText : undefined),
     ...ifDefined(
       'defaultValue',
       rawColumnDefault?.kind === 'literal' && rawColumnDefault.value instanceof Date
@@ -387,7 +368,7 @@ function convertTable(
   name: string,
   table: StorageTable,
   storageTypes: ResolvedStorageTypes,
-  types: SqlTypeLookups,
+  types: TypeLookups,
   hooks: DefaultHooks,
   storage: SqlStorage,
 ): SqlTableIR {
@@ -487,7 +468,7 @@ export function detectDestructiveChanges(
 }
 
 /** Each column's type is written from the data type its codec represents, found through the lookups. */
-export interface ContractToSchemaIROptions extends SqlTypeLookups {
+export interface ContractToSchemaIROptions extends TypeLookups {
   readonly annotationNamespace: string;
   readonly resolveDefault?: DefaultResolver;
 }

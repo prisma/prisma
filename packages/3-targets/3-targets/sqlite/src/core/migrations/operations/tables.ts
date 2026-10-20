@@ -7,10 +7,13 @@ import {
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import type { RowsWithoutValue, SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome } from '@internal/framework-components/control';
-import { isSqlDataType, nameIsCatalogText } from '@internal/sql-contract/data-type';
 import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
 import type { ReferentialAction } from '@internal/sql-contract/types';
-import { RelationalSchemaNodeKind, type SqlColumnIR } from '@internal/sql-schema-ir/types';
+import {
+  RelationalSchemaNodeKind,
+  type SqlColumnIR,
+  sqlColumnTypesEqual,
+} from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { type } from 'arktype';
 import { tableExistsAst } from '../../../contract-free/checks';
@@ -531,8 +534,7 @@ function columnNameFromDefaultIssuePath(issue: SchemaDiffIssue): string | undefi
  * verify compares it (ADR 273), and without case otherwise.
  */
 function declaredTypeMatches(expected: SqlColumnIR, typeSql: string): string {
-  const { dataType } = expected;
-  return dataType !== undefined && isSqlDataType(dataType) && nameIsCatalogText(dataType)
+  return expected.catalogText !== undefined
     ? `type = '${escapeLiteral(typeSql)}'`
     : `LOWER(type) = '${escapeLiteral(typeSql.toLowerCase())}'`;
 }
@@ -607,7 +609,7 @@ export function buildRecreatePostchecks(
               }),
         });
       }
-      if (expected.typeDiffersFrom(actual)) {
+      if (!sqlColumnTypesEqual(expected, actual)) {
         const colSpec = byName.get(columnName);
         if (colSpec) {
           checks.push({

@@ -24,9 +24,10 @@ import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresAdapter, postgresRawCodecInferer } from '../src/core/adapter';
 import { postgresAdapterCapabilities } from '../src/core/capabilities';
-import { PostgresControlAdapter, parsePgReloptions } from '../src/core/control-adapter';
+import { parsePgReloptions } from '../src/core/control-adapter';
 import { renderLoweredSql } from '../src/core/sql-renderer';
 import type { PostgresContract } from '../src/core/types';
+import { createTestPostgresControlAdapter } from './helpers/test-control-adapter';
 
 const contract = {
   target: 'postgres',
@@ -81,7 +82,7 @@ describe('adapter-postgres structured error codes', () => {
   });
 
   it('raises RUNTIME.DDL_UNSUPPORTED when the control adapter sync lower() receives DDL', () => {
-    const controlAdapter = new PostgresControlAdapter(
+    const controlAdapter = createTestPostgresControlAdapter(
       codecLookup,
       createPostgresBuiltinDataTypeLookup(),
     );

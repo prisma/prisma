@@ -3,11 +3,11 @@ import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/code
 import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
 import { PostgresCreateTable } from '@internal/target-postgres/ddl';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../src/core/control-adapter';
 import type { PostgresContract } from '../src/core/types';
+import { createTestPostgresControlAdapter } from './helpers/test-control-adapter';
 
 const lookup = createPostgresBuiltinCodecLookup();
-const adapter = new PostgresControlAdapter(lookup, createPostgresBuiltinDataTypeLookup());
+const adapter = createTestPostgresControlAdapter(lookup, createPostgresBuiltinDataTypeLookup());
 
 async function defaultClause(codecId: string, typeText: string, value: number): Promise<string> {
   const codec = lookup.get(codecId)!;

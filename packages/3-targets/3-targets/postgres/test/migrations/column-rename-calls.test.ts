@@ -1,10 +1,11 @@
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { sqlColumnTypesEqual } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import { postgresContractToSchema } from '../../src/core/migrations/postgres-contract-to-schema';
 import { postgresColumnRenameCall } from '../../src/core/migrations/table-rename-calls';
 import { renameColumnInPostgresSchema } from '../../src/core/migrations/working-schema';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
-import { postgresTypeComponents } from '../postgres-type-lookups';
+import { introspectedColumn, postgresTypeComponents } from '../postgres-type-lookups';
 import { makeContract, rootOf } from './node-issue-planner-fixtures';
 import {
   ORIGINAL_COLUMNS,
@@ -150,13 +151,12 @@ describe('renameColumnInPostgresSchema on a raw column', () => {
       shape: new PostgresTableSchemaNode({
         name: 'shape',
         columns: {
-          size: {
+          size: introspectedColumn({
             name: 'size',
-            nativeType: 'int4',
+            typeText: 'integer',
             nullable: false,
-            resolvedNativeType: 'int4',
             reportedType: { text: 'integer', kind: undefined, schema: 'pg_catalog', name: 'int4' },
-          },
+          }),
         },
         foreignKeys: [],
         uniques: [],
@@ -192,9 +192,9 @@ describe('renameColumnInPostgresSchema on a raw column', () => {
     });
     const after = renamed.namespaces['public']?.tables['shape']?.columns['count'];
     const wanted = expected.namespaces['public']?.tables['shape']?.columns['count'];
-    expect([after?.reportedType?.text, after && wanted?.typeDiffersFrom(after)]).toEqual([
-      'integer',
-      false,
-    ]);
+    expect([
+      after?.reportedType?.text,
+      after && wanted && sqlColumnTypesEqual(wanted, after),
+    ]).toEqual(['integer', true]);
   });
 });
