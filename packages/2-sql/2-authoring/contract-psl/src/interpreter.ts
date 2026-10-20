@@ -1596,6 +1596,11 @@ function isTextColumn(
   codecLookup: CodecLookupWithDescriptors,
   textDataTypes: readonly DataTypeId[],
 ): boolean {
+  if (textDataTypes.length === 0) {
+    throw new InternalError(
+      'The stack names no text data types, so no column can be a discriminator; the target names its text types in its authoring contributions.',
+    );
+  }
   const dataType = codecLookup.descriptorFor(column.codecId)?.dataType;
   return dataType !== undefined && textDataTypes.includes(dataType);
 }
