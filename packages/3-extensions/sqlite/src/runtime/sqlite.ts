@@ -93,7 +93,8 @@ export interface SqliteQueryMembers<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
 > extends PrepareMember<TContract>,
-    RuntimeScope {
+    RuntimeScope,
+    ToSqlMember {
   readonly sql: UnboundSql<TContract>;
   readonly orm: SqliteOrm<TContract, TCollections>;
   readonly raw: RawLane<TContract>;
@@ -103,8 +104,7 @@ export interface SqliteTransactionContext<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
 > extends TransactionContext,
-    Omit<SqliteQueryMembers<TContract, TCollections>, keyof RuntimeScope>,
-    ToSqlMember {
+    SqliteQueryMembers<TContract, TCollections> {
   readonly enums: SqliteStaticContext<TContract>['enums'];
 }
 

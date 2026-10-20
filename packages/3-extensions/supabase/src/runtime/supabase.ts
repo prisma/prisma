@@ -25,7 +25,6 @@ import {
 } from '@internal/sql-orm-client';
 import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
-import type { RuntimeScope } from '@internal/sql-relational-core/types';
 import type {
   ExecutionContext,
   Log,
@@ -85,7 +84,6 @@ export interface RoleBoundDb<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
 > extends PostgresQueryMembers<TContract, TCollections>,
-    ToSqlMember,
     PreparedStatementQueryTarget,
     PreparedStatementExecuteTarget {
   transaction<R>(
@@ -97,9 +95,7 @@ export interface RoleBoundDb<
 export type SupabaseTransactionContext<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
-> = TransactionContext &
-  Omit<PostgresQueryMembers<TContract, TCollections>, keyof RuntimeScope> &
-  ToSqlMember;
+> = TransactionContext & PostgresQueryMembers<TContract, TCollections>;
 
 /**
  * Query surface for the Supabase-internal contract (`auth`, `storage`). Exposed

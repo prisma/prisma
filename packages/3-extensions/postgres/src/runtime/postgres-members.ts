@@ -45,22 +45,18 @@ export interface PostgresQueryMembers<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
 > extends PrepareMember<TContract>,
-    RuntimeScope {
+    RuntimeScope,
+    ToSqlMember {
   readonly sql: Db<TContract>;
   readonly orm: OrmClient<TContract, TCollections>;
   readonly raw: RawLane<TContract>;
 }
 
-type PostgresTransactionQueryMembers<
-  TContract extends Contract<SqlStorage>,
-  TCollections extends CollectionClasses,
-> = Omit<PostgresQueryMembers<TContract, TCollections>, keyof RuntimeScope> & ToSqlMember;
-
 export interface PostgresTransactionContext<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
 > extends TransactionContext,
-    PostgresTransactionQueryMembers<TContract, TCollections> {
+    PostgresQueryMembers<TContract, TCollections> {
   readonly enums: NamespacedEnums<TContract>;
   readonly nativeEnums: NamespacedNativeEnums<TContract>;
 }
@@ -85,7 +81,7 @@ export function buildPostgresQueryMembers<
 >(
   options: PostgresQueryMembersOptions<TContract, TCollections>,
   txCtx: TransactionContext,
-): PostgresTransactionQueryMembers<TContract, TCollections> {
+): Omit<PostgresQueryMembers<TContract, TCollections>, keyof RuntimeScope> {
   const { context, collections, rawCodecInferer, toSql, prepareRuntime } = options;
   return {
     toSql,
