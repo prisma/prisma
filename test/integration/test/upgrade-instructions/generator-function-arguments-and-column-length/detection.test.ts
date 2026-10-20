@@ -71,6 +71,11 @@ describe('app detection', () => {
     ],
     [
       'prisma7-default-function-arguments-checked',
+      'id String @default(uuid(4.0))',
+      'id String @default(uuid(4))',
+    ],
+    [
+      'prisma7-default-function-arguments-checked',
       'a String @default(nanoid(8.5))',
       'a String @default(nanoid())',
     ],

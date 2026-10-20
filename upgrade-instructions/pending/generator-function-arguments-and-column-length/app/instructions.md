@@ -2,7 +2,7 @@
 changes:
   - id: prisma7-default-function-arguments-checked
     summary: |
-      The reader for a Prisma 7 schema checks the arguments of `uuid`, `cuid` and `nanoid` as Prisma 8 does. An argument the function does not take, such as `uuid(5)`, `cuid(1)`, `nanoid(1)` or `nanoid(1000)`, is refused with `PSL.PRISMA7_UNKNOWN_DEFAULT` and the function's message, where it used to be read as something else (`uuid(5)` as a version 4 UUID, `cuid(1)` as `cuid(2)`). A named argument, such as `nanoid(size: 8)`, is refused too. Write the argument positionally and inside the function's range.
+      The reader for a Prisma 7 schema checks the arguments of `uuid`, `cuid` and `nanoid` as Prisma 8 does. An argument the function does not take, such as `uuid(5)`, `cuid(1)`, `nanoid(1)` or `nanoid(1000)`, is refused with `PSL.PRISMA7_UNKNOWN_DEFAULT` and the function's message, where it used to be read as something else (`uuid(5)` as a version 4 UUID, `cuid(1)` as `cuid(2)`). A named argument, such as `nanoid(size: 8)`, is refused too, and so is a number written with a fraction, such as `uuid(4.0)` or `nanoid(8.0)`, which is not an integer value. Write the argument positionally, as a whole number, inside the function's range: `uuid(4)`, `nanoid(8)`.
     detection:
       glob: "**/*.prisma"
       matches:
@@ -30,7 +30,7 @@ changes:
       A generator is refused on a Postgres column too short for what it writes, such as `Char(5) @onCreate(nanoid())` (a Nano ID is 21 characters), `VarChar(5) @onCreate(uuid())`, or a bare `Char`, which holds one character. The message names both lengths: `Field "Row.value": nanoid() writes 21 characters, which does not fit a column of 5 characters.` The code is `PSL_GENERATOR_NOT_APPLICABLE` in Prisma 8 PSL, `PSL.PRISMA7_GENERATOR_REFUSED` for a Prisma 7 `@default(...)`, and `CONTRACT.DEFAULT_INVALID` in a TypeScript contract. Such a column used to fail at the first insert. SQLite does not limit the length, so it takes any of them. Widen the column, or for `nanoid` pass a size that fits.
   - id: discriminator-must-be-text
     summary: |
-      A SQL `@@discriminator` field that is not text is refused with the message `must be text, such as String, but is "<type>"` instead of `must be of type String, but is "<type>"`. A discriminator may now also be a `Char(n)` or `VarChar(n)` column, and a `@@base` value is checked against the column's type, so a value longer than a `VarChar(n)` column holds is refused. Mongo's message is unchanged.
+      A SQL `@@discriminator` field that is not text is refused with the message `must be text, such as String, but is "<type>"` instead of `must be of type String, but is "<type>"`. A discriminator may now also be a `Char(n)` or `VarChar(n)` column on Postgres, or a `sql.String(n)` column on SQLite. A `@@base` value is checked against the column's type, so on Postgres a value longer than a `VarChar(n)` column holds is refused; SQLite does not limit the length, so it takes any value. Mongo's message is unchanged.
     detection:
       glob: "**/*.{ts,mts,cts,tsx,js,mjs,cjs,json}"
       matches:
@@ -47,12 +47,14 @@ id    String @id @default(uuid(5))
 code  String @default(cuid(1))
 short String @default(nanoid(1))
 named String @default(nanoid(size: 8))
+whole String @default(uuid(4.0))
 
 // After: write what the generator makes
 id    String @id @default(uuid(4))
 code  String @default(cuid(2))
 short String @default(nanoid(2))
 named String @default(nanoid(8))
+whole String @default(uuid(4))
 ```
 
 Each refusal is `PSL.PRISMA7_UNKNOWN_DEFAULT`, reported at the argument, with the function's message: `Field "User.id": uuid: version must be 4 or 7, got 5`. `cuid()` with no argument still reads as `cuid(2)`. Pick the value that keeps what your application stores today: `uuid(5)` made version 4 UUIDs, `cuid(1)` made CUID2 identifiers.
