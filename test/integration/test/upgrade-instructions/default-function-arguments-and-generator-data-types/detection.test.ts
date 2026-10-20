@@ -128,7 +128,7 @@ describe('app detection of the discriminator message', () => {
       detects(
         'app',
         'discriminator-must-be-text',
-        `import { mongoContract } from '@prisma/orm-mongo/contract-psl/provider';\nexpect(message).toContain('must be of type String');`,
+        `const source = mongoContract(schemaPath);\nexpect(message).toContain('must be of type String');`,
       ),
     ).toBe(false);
   });
