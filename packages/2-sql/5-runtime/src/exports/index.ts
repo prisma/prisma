@@ -98,4 +98,4 @@ export type {
   RuntimeTransaction,
   TransactionContext,
 } from '../sql-runtime';
-export { SqlRuntimeBase, withTransaction } from '../sql-runtime';
+export { SqlRuntimeBase, withTransaction, withTransactionMembers } from '../sql-runtime';

@@ -216,19 +216,17 @@ export async function executeStatement(
 }
 
 export function formatRunnerFailure(failure: MigrationRunnerFailure): string {
-  const parts = [`[${failure.code}] ${failure.summary}`];
+  const parts = [`[${failure.code}] ${failure.message}`];
   if (failure.why) {
     parts.push(`  why: ${failure.why}`);
   }
-  if (failure.meta) {
-    const issues = failure.meta['issues'];
-    if (Array.isArray(issues)) {
-      for (const issue of issues) {
-        parts.push(`  - ${JSON.stringify(issue)}`);
-      }
-    } else {
-      parts.push(`  meta: ${JSON.stringify(failure.meta, null, 2)}`);
+  const issues = failure.meta.schemaIssues;
+  if (issues !== undefined) {
+    for (const issue of issues) {
+      parts.push(`  - ${JSON.stringify(issue)}`);
     }
+  } else {
+    parts.push(`  meta: ${JSON.stringify(failure.meta, null, 2)}`);
   }
   return parts.join('\n');
 }

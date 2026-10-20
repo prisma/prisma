@@ -80,9 +80,9 @@ describe('PostgresMigrationRunner - Error Scenarios', { concurrent: false }, () 
       const failure = result.assertNotOk();
       expect(failure.code).toBe('MIGRATION.SCHEMA_VERIFY_FAILED');
       expect({
-        typed: failure.schemaIssues,
-        found: (failure.schemaIssues?.length ?? 0) > 0,
-      }).toEqual({ typed: failure.meta?.['issues'], found: true });
+        metaKeys: Object.keys(failure.meta).sort(),
+        found: (failure.meta.schemaIssues?.length ?? 0) > 0,
+      }).toEqual({ metaKeys: ['failingSpace', 'schemaIssues'], found: true });
 
       await expectNoMarkerOrLedgerWrites(driver!);
     });
@@ -113,7 +113,7 @@ describe('PostgresMigrationRunner - Error Scenarios', { concurrent: false }, () 
       expect(result.ok).toBe(false);
       const failure = result.assertNotOk();
       expect(failure.code).toBe('MIGRATION.PRECHECK_FAILED');
-      expect(failure.summary).toMatch(/precheck/i);
+      expect(failure.message).toMatch(/precheck/i);
 
       await expectNoMarkerOrLedgerWrites(driver!);
     });
@@ -166,7 +166,7 @@ describe('PostgresMigrationRunner - Error Scenarios', { concurrent: false }, () 
       expect(result.ok).toBe(false);
       const failure = result.assertNotOk();
       expect(failure.code).toBe('MIGRATION.MARKER_ORIGIN_MISMATCH');
-      expect(failure.summary).toMatch(/does not match plan origin/i);
+      expect(failure.message).toMatch(/does not match plan origin/i);
 
       const markerRow = await driver!.query<{ core_hash: string; profile_hash: string }>(
         'select core_hash, profile_hash from prisma_contract.marker where space = $1',
@@ -317,8 +317,8 @@ describe('PostgresMigrationRunner - Error Scenarios', { concurrent: false }, () 
       expect(result.ok).toBe(false);
       const failure = result.assertNotOk();
       expect(failure.code).toBe('MIGRATION.POSTCHECK_FAILED');
-      expect(failure.summary).toMatch(/table\.test_table/i);
-      expect(failure.summary).toMatch(/postcheck/i);
+      expect(failure.message).toMatch(/table\.test_table/i);
+      expect(failure.message).toMatch(/postcheck/i);
 
       // Verify table was rolled back
       const tableRow = await driver!.query<{ exists: boolean }>(
@@ -388,7 +388,7 @@ describe('PostgresMigrationRunner - Error Scenarios', { concurrent: false }, () 
       expect(result.ok).toBe(false);
       const failure = result.assertNotOk();
       expect(failure.code).toBe('MIGRATION.EXECUTION_FAILED');
-      expect(failure.summary).toMatch(/Operation table\.user failed during execution/i);
+      expect(failure.message).toMatch(/Operation table\.user failed during execution/i);
       expect(failure.meta).toMatchObject({
         operationId: 'table.user',
         stepDescription: 'create user table with invalid SQL',

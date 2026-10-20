@@ -1,14 +1,23 @@
 import { existsSync, rmSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
+import {
+  migrationRunnerFailure,
+  type SchemaDiffIssue,
+  schemaCheckWhy,
+} from '@internal/framework-components/control';
 import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
 import { notOk, ok } from '@internal/utils/result';
-import { structuredError } from '@internal/utils/structured-error';
+import { docsUrlFor, structuredError } from '@internal/utils/structured-error';
 import type { EngineEvent, StreamEvent } from '@prisma/cli-engine';
 import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { runnerFailureFacts } from '../../src/control-api/operations/run-migration';
 import type { ControlClient } from '../../src/control-api/types';
 import { BIN_GROUPS, createBinCommands } from '../../src/orm/cli';
+import { errorMigrationPlanningFailed } from '../../src/utils/cli-errors';
+import { dbUpdateRunnerFailureError } from '../../src/utils/db-update-failure';
+import { stdoutErrorMeta, stdoutFrames } from '../helpers/json-frames';
 import { createOrmTestCli } from '../helpers/orm-test-cli';
 import { createTestProjectDir, writeProjectManifest } from '../utils/test-project-dir';
 
@@ -20,6 +29,13 @@ function refusedDefault(): Error {
     meta: { reason: 'default-not-canonical', column: 'at' },
   });
 }
+
+const MISSING_COLUMN: SchemaDiffIssue = {
+  path: ['public', 'event', 'id'],
+  expected: { id: 'id', nodeKind: 'sql-column', isEqualTo: () => false, children: () => [] },
+};
+
+const WARNING = { kind: 'suppressed', summary: 'control policy suppressed: table "auth.x"' };
 
 const mocks = {
   connect: vi.fn(),
@@ -303,6 +319,24 @@ describe('db update --rename', () => {
     });
   });
 
+  it('lists the access an apply would widen on a dry run, marked answered by an --allow', async () => {
+    const user = { kind: 'model', namespaceId: 'app', model: 'User' } as const;
+    mocks.dbUpdate.mockResolvedValue(
+      ok({
+        ...planSuccess(),
+        accessWidening: [{ operationIndex: 0, subject: user, text: 'User' }],
+      }),
+    );
+
+    const run = await harness().run(['db', 'update', '--dry-run', '--allow', 'User', '--json'], {
+      cwd: projectDir,
+    });
+
+    expect(run.presented?.data).toMatchObject({
+      accessWidening: [{ operationIndex: 0, subject: user, text: 'User', answered: true }],
+    });
+  });
+
   it('marks the questions the flags of a dry run answer, and repeats the flags in the apply it suggests', async () => {
     const legacy = { kind: 'model', namespaceId: 'app', model: 'Legacy' } as const;
     const audit = { kind: 'storage', name: "audit log's" } as const;
@@ -555,12 +589,12 @@ describe('db update', () => {
   });
 
   it('shows the planner`s warnings without failing the run', async () => {
-    mocks.dbUpdate.mockResolvedValue(
-      ok({
-        ...applySuccess(),
-        warnings: [{ summary: 'Column user.legacy is dropped without a backfill' }],
-      }),
-    );
+    mocks.dbUpdate.mockImplementation(async (options: Parameters<ControlClient['dbUpdate']>[0]) => {
+      options.onPlannerWarnings?.([
+        { kind: 'suppressed', summary: 'Column user.legacy is dropped without a backfill' },
+      ]);
+      return ok(applySuccess());
+    });
 
     const run = await harness().run(['db', 'update'], {
       cwd: projectDir,
@@ -674,15 +708,7 @@ describe('db update', () => {
   });
 
   it('maps a planning failure to its migration code', async () => {
-    mocks.dbUpdate.mockResolvedValue(
-      notOk({
-        code: 'PLANNING_FAILED',
-        summary: 'planning failed',
-        why: undefined,
-        conflicts: [],
-        meta: undefined,
-      }),
-    );
+    mocks.dbUpdate.mockResolvedValue(notOk(errorMigrationPlanningFailed({ conflicts: [] })));
 
     const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
 
@@ -726,16 +752,21 @@ describe('db update', () => {
   });
 
   it('reports the planner`s warnings even when the apply fails', async () => {
-    mocks.dbUpdate.mockResolvedValue(
-      notOk({
-        code: 'RUNNER_FAILED',
-        summary: 'runner failed',
-        why: undefined,
-        conflicts: undefined,
-        warnings: [{ kind: 'suppressed', summary: 'control policy suppressed: table "auth.x"' }],
-        meta: undefined,
-      }),
-    );
+    mocks.dbUpdate.mockImplementation(async (options: Parameters<ControlClient['dbUpdate']>[0]) => {
+      options.onPlannerWarnings?.([
+        { kind: 'suppressed', summary: 'control policy suppressed: table "auth.x"' },
+      ]);
+      return notOk(
+        dbUpdateRunnerFailureError(
+          migrationRunnerFailure('MIGRATION.EXECUTION_FAILED', 'runner failed'),
+          {},
+          {
+            databaseStorageHash: undefined,
+            invocation: { cwd: projectDir, configPath: undefined, dbGiven: false },
+          },
+        ),
+      );
+    });
 
     const run = await harness().run(['db', 'update'], {
       cwd: projectDir,
@@ -750,15 +781,55 @@ describe('db update', () => {
     expect(stripAnsi(run.stderr)).toContain('control policy suppressed: table "auth.x"');
   });
 
-  it('maps a runner failure to its migration code', async () => {
-    mocks.dbUpdate.mockResolvedValue(
-      notOk({
-        code: 'RUNNER_FAILED',
-        summary: 'runner failed',
-        why: undefined,
-        conflicts: undefined,
-        meta: { runnerErrorCode: 'MIGRATION.EXECUTION_FAILED' },
-      }),
+  it('lists the planner`s warnings in the --json result of a successful run', async () => {
+    mocks.dbUpdate.mockImplementation(async (options: Parameters<ControlClient['dbUpdate']>[0]) => {
+      options.onPlannerWarnings?.([WARNING]);
+      return ok(applySuccess());
+    });
+
+    const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
+    const frames = stdoutFrames(run.stdout);
+
+    expect({
+      exitCode: run.exitCode,
+      messages: frames.filter((frame) => frame['kind'] === 'message'),
+      warnings: (frames.at(-1) as { envelope: { result: { warnings: unknown } } }).envelope.result
+        .warnings,
+    }).toEqual({ exitCode: 0, messages: [], warnings: [WARNING] });
+  });
+
+  it('writes the planner`s warnings of a failed run as warn frames before the --json error', async () => {
+    mocks.dbUpdate.mockImplementation(async (options: Parameters<ControlClient['dbUpdate']>[0]) => {
+      options.onPlannerWarnings?.([WARNING]);
+      return notOk(
+        dbUpdateRunnerFailureError(
+          migrationRunnerFailure('MIGRATION.EXECUTION_FAILED', 'runner failed'),
+          {},
+          {
+            databaseStorageHash: undefined,
+            invocation: { cwd: projectDir, configPath: undefined, dbGiven: false },
+          },
+        ),
+      );
+    });
+
+    const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
+    const frames = stdoutFrames(run.stdout);
+
+    expect({
+      exitCode: run.exitCode,
+      kinds: frames.map((frame) => frame['kind']),
+      first: frames[0],
+    }).toEqual({
+      exitCode: 2,
+      kinds: ['message', 'result'],
+      first: expect.objectContaining({ kind: 'message', severity: 'warn', text: WARNING.summary }),
+    });
+  });
+
+  it('reports a contract the client refuses as a contract validation failure at the contract path', async () => {
+    mocks.dbUpdate.mockRejectedValue(
+      structuredError('CONTRACT.VALIDATION_FAILED', 'storage.storageHash is missing'),
     );
 
     const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
@@ -766,8 +837,79 @@ describe('db update', () => {
     expect(run.exitCode).toBe(2);
     expect(envelopeOf(run.json)).toMatchObject({
       ok: false,
-      error: { code: 'MIGRATION.RUNNER_FAILED' },
+      error: {
+        code: 'CONTRACT.VALIDATION_FAILED',
+        summary: 'Contract validation failed',
+        why: expect.stringContaining('storage.storageHash is missing'),
+      },
     });
+  });
+
+  it('links a runner failure to the reference entry of its code', async () => {
+    mocks.dbUpdate.mockResolvedValue(
+      notOk(
+        dbUpdateRunnerFailureError(
+          migrationRunnerFailure('MIGRATION.EXECUTION_FAILED', 'runner failed'),
+          {},
+          {
+            databaseStorageHash: undefined,
+            invocation: { cwd: projectDir, configPath: undefined, dbGiven: false },
+          },
+        ),
+      ),
+    );
+
+    const run = await harness().run(['db', 'update'], {
+      cwd: projectDir,
+      isTty: { stdout: true, stderr: true },
+    });
+
+    expect(stripAnsi(run.stderr)).toContain(`docs: ${docsUrlFor('MIGRATION.EXECUTION_FAILED')}`);
+  });
+
+  it('reports a runner failure with the runner code and meta, and the advice', async () => {
+    const runnerFailure = migrationRunnerFailure(
+      'MIGRATION.SCHEMA_VERIFY_FAILED',
+      'Database schema does not satisfy contract',
+      {
+        why: schemaCheckWhy([MISSING_COLUMN]),
+        meta: { schemaIssues: [MISSING_COLUMN], failingSpace: 'app' },
+      },
+    );
+    mocks.dbUpdate.mockResolvedValue(
+      notOk(
+        dbUpdateRunnerFailureError(runnerFailure, runnerFailureFacts(runnerFailure, []), {
+          databaseStorageHash: undefined,
+          invocation: { cwd: projectDir, configPath: undefined, dbGiven: false },
+        }),
+      ),
+    );
+
+    const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
+
+    expect(run.exitCode).toBe(2);
+    expect(envelopeOf(run.json)).toMatchObject({
+      ok: false,
+      error: {
+        code: 'MIGRATION.SCHEMA_VERIFY_FAILED',
+        summary: 'Database schema does not satisfy contract',
+        why: 'The schema check after apply found: missing: public/event/id.',
+        nextActions: [
+          {
+            kind: 'user-choice',
+            label:
+              'Change the contract source to resolve the issues listed, re-run `prisma-test contract emit`, then re-run `prisma-test db update`.',
+          },
+        ],
+        meta: { schemaIssues: [{ path: ['public', 'event', 'id'] }], failingSpace: 'app' },
+      },
+    });
+    expect(stdoutErrorMeta(run.stdout)).toEqual(JSON.parse(JSON.stringify(runnerFailure.meta)));
+    expect(mocks.dbUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        invocation: { cwd: projectDir, configPath: undefined, dbGiven: false },
+      }),
+    );
   });
 
   it('refuses a --to reference no migration package produces', async () => {

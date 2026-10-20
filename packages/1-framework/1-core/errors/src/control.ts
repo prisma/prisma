@@ -419,7 +419,7 @@ function conflictJson(conflict: CliErrorConflict): Record<string, unknown> {
 export function errorMigrationPlanningFailed(options: {
   readonly conflicts: readonly CliErrorConflict[];
   readonly why?: string;
-}): CliStructuredError {
+}): CliStructuredError & { readonly why: string } {
   const conflictSummaries = options.conflicts.map((c) => c.summary);
   const computedWhy = options.why ?? conflictSummaries.join('\n');
 
@@ -431,12 +431,13 @@ export function errorMigrationPlanningFailed(options: {
       ? conflictFixes.join('\n')
       : 'Use `db verify --schema-only` to inspect conflicts, or ensure the database is empty';
 
-  return new CliStructuredError('MIGRATION.PLANNING_FAILED', 'Migration planning failed', {
+  const error = new CliStructuredError('MIGRATION.PLANNING_FAILED', 'Migration planning failed', {
     why: computedWhy,
     fix: computedFix,
     meta: { conflicts: options.conflicts.map(conflictJson) },
     docsUrl: docsUrlFor('MIGRATION.PLANNING_FAILED'),
   });
+  return Object.assign(error, { why: computedWhy });
 }
 
 /**

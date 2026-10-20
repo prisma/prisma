@@ -48,6 +48,18 @@ export interface SupabaseRuntime extends PostgresRuntime {
     binding: SupabaseRoleBinding,
     options?: RuntimeExecuteOptions,
   ): Promise<SqlStatementStats>;
+  preparedQueryWithRole<Params, Row>(
+    statement: PreparedStatement<Params, Row>,
+    params: Params,
+    binding: SupabaseRoleBinding,
+    options?: RuntimeExecuteOptions,
+  ): AsyncIterableResult<Row>;
+  preparedExecuteWithRole<Params>(
+    statement: PreparedExecution<Params>,
+    params: Params,
+    binding: SupabaseRoleBinding,
+    options?: RuntimeExecuteOptions,
+  ): Promise<SqlStatementStats>;
 }
 
 export interface SupabaseRoleBinding {
@@ -224,6 +236,30 @@ export class SupabaseRuntimeImpl<
     options?: ActivityExecuteOptions,
   ): Promise<SqlStatementStats> {
     return this.executeOnRoleSession(binding, (session) => session.execute(plan, options));
+  }
+
+  /** Runs a prepared statement on a role session, as a role-bound query runs. */
+  preparedQueryWithRole<Params, Row>(
+    statement: PreparedStatement<Params, Row>,
+    params: Params,
+    binding: SupabaseRoleBinding,
+    options?: ActivityExecuteOptions,
+  ): AsyncIterableResult<Row> {
+    return this.streamOnRoleSession<Row>(binding, (session) =>
+      session[preparedStatementQuery](statement, params, options),
+    );
+  }
+
+  /** Runs a prepared statement that reports affected rows on a role session. */
+  preparedExecuteWithRole<Params>(
+    statement: PreparedExecution<Params>,
+    params: Params,
+    binding: SupabaseRoleBinding,
+    options?: ActivityExecuteOptions,
+  ): Promise<SqlStatementStats> {
+    return this.executeOnRoleSession(binding, (session) =>
+      session[preparedStatementExecute](statement, params, options),
+    );
   }
 
   private streamOnRoleSession<Row>(

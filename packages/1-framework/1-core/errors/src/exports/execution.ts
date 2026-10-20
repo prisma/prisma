@@ -4,7 +4,6 @@ export {
   errorMarkerReadFailed,
   errorMarkerRequired,
   errorMarkerRowCorrupt,
-  errorRunnerFailed,
   errorRuntime,
   errorSchemaVerificationFailed,
   errorTargetMismatch,

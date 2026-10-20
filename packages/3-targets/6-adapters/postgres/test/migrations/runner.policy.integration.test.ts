@@ -100,7 +100,7 @@ describe('PostgresMigrationRunner - Policy Violations', { concurrent: false }, (
       expect(result.ok).toBe(false);
       if (!result.ok) {
         expect(result.failure.code).toBe('MIGRATION.POLICY_VIOLATION');
-        expect(result.failure.summary).toMatch(/destructive/i);
+        expect(result.failure.message).toMatch(/destructive/i);
         expect(result.failure.why).toMatch(/additive/i);
       }
 
@@ -172,7 +172,7 @@ describe('PostgresMigrationRunner - Policy Violations', { concurrent: false }, (
       expect(result.ok).toBe(false);
       if (!result.ok) {
         expect(result.failure.code).toBe('MIGRATION.POLICY_VIOLATION');
-        expect(result.failure.summary).toMatch(/data/i);
+        expect(result.failure.message).toMatch(/data/i);
         expect(result.failure.why).toMatch(/additive/i);
         expect(result.failure.meta).toMatchObject({
           operationId: 'data_migration.backfill-emails',

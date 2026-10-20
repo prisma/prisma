@@ -26,6 +26,8 @@ import {
   testTimeout,
 } from './fixtures/runner-fixtures';
 
+const TEST_INVOCATION = { cwd: process.cwd(), configPath: undefined, dbGiven: false };
+
 /**
  * End-to-end coverage for the CLI aggregate `db init` / `db update`
  * pipeline against a real Postgres database (PGlite via dev-database)
@@ -275,6 +277,7 @@ describe('db init / db update aggregate pipeline (CLI) - postgres', { concurrent
       const { migrationsDir } = await setupBaseline(tmp);
 
       const result = await executeDbInit({
+        invocation: TEST_INVOCATION,
         driver: drv,
         adapter: controlAdapter,
         familyInstance,
@@ -329,6 +332,7 @@ describe('db init / db update aggregate pipeline (CLI) - postgres', { concurrent
       const baseline = await setupBaseline(tmp);
 
       const initResult = await executeDbInit({
+        invocation: TEST_INVOCATION,
         driver: drv,
         adapter: controlAdapter,
         familyInstance,
@@ -371,6 +375,7 @@ describe('db init / db update aggregate pipeline (CLI) - postgres', { concurrent
       }
 
       const updateResult = await executeDbUpdate({
+        invocation: TEST_INVOCATION,
         answerQuestions: async (questions) =>
           questions.map((question) => ({
             verb: question.verbs.includes('allow') ? ('allow' as const) : ('delete' as const),
@@ -426,6 +431,7 @@ describe('db init / db update aggregate pipeline (CLI) - postgres', { concurrent
       const baseline = await setupBaseline(tmp);
 
       const initResult = await executeDbInit({
+        invocation: TEST_INVOCATION,
         driver: drv,
         adapter: controlAdapter,
         familyInstance,
@@ -472,6 +478,7 @@ describe('db init / db update aggregate pipeline (CLI) - postgres', { concurrent
       }
 
       const updateResult = await executeDbUpdate({
+        invocation: TEST_INVOCATION,
         answerQuestions: async (questions) =>
           questions.map((question) => ({
             verb: question.verbs.includes('allow') ? ('allow' as const) : ('delete' as const),
@@ -497,7 +504,7 @@ describe('db init / db update aggregate pipeline (CLI) - postgres', { concurrent
 
       expect(updateResult.ok).toBe(false);
       if (updateResult.ok) throw new Error('expected failure');
-      expect(updateResult.failure.code).toBe('RUNNER_FAILED');
+      expect(updateResult.failure.code).toBe('MIGRATION.EXECUTION_FAILED');
       expect(updateResult.failure.meta).toMatchObject({ failingSpace: EXT_SPACE_ID });
 
       const markersAfter = await drv.query<{ space: string; core_hash: string }>(

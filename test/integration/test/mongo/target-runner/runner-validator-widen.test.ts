@@ -181,7 +181,7 @@ describe('MongoMigrationRunner - validator widen', () => {
 
     expect(result.ok).toBe(true);
     if (!result.ok) {
-      throw new Error(`Runner failed: ${result.failure.code} — ${result.failure.summary}`);
+      throw new Error(`Runner failed: ${result.failure.code} — ${result.failure.message}`);
     }
 
     // The collMod must have executed — not been skipped by the idempotency probe.
@@ -308,7 +308,7 @@ describe('MongoMigrationRunner - validator widen', () => {
 
     expect(result.ok).toBe(true);
     if (!result.ok) {
-      throw new Error(`Runner failed: ${result.failure.code} — ${result.failure.summary}`);
+      throw new Error(`Runner failed: ${result.failure.code} — ${result.failure.message}`);
     }
 
     // The collMod was skipped by the postcheck idempotency probe (live === target).
