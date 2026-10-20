@@ -85,4 +85,42 @@ describe('sql.String on SQLite, whose length is a value of sqlite/real', () => {
       }),
     ]);
   });
+
+  it('accepts the largest length SQLite allows, which a double holds exactly', () => {
+    const result = emit('model Label {\n  id   Int @id\n  name sql.String(2147483647)\n}\n');
+    if (!result.ok) throw new Error(JSON.stringify(result.failure.diagnostics));
+    const { storage } = JSON.parse(JSON.stringify(result.value));
+    const [namespace] = Object.values<{ entries: { table: Record<string, { columns: object }> } }>(
+      storage.namespaces,
+    );
+    expect(namespace?.entries.table['Label']?.columns).toMatchObject({
+      name: { typeParams: { length: 2147483647 } },
+    });
+  });
+
+  it('refuses a length above SQLite’s maximum through the length’s schema, at the argument', () => {
+    const schema = 'model Label {\n  id   Int @id\n  name sql.String(2147483648)\n}\n';
+    const result = emit(schema);
+    expect(result.ok ? [] : result.failure.diagnostics).toEqual([
+      expect.objectContaining({
+        code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+        message: expect.stringContaining('length must be at most 2147483647'),
+        span: expect.objectContaining({
+          start: expect.objectContaining({ offset: schema.indexOf('2147483648') }),
+        }),
+      }),
+    ]);
+  });
+
+  it('accepts a whole number written with a zero fraction, which reads as sqlite/real', () => {
+    const result = emit('model Label {\n  id   Int @id\n  name sql.String(2.0)\n}\n');
+    if (!result.ok) throw new Error(JSON.stringify(result.failure.diagnostics));
+    const { storage } = JSON.parse(JSON.stringify(result.value));
+    const [namespace] = Object.values<{ entries: { table: Record<string, { columns: object }> } }>(
+      storage.namespaces,
+    );
+    expect(namespace?.entries.table['Label']?.columns).toMatchObject({
+      name: { typeParams: { length: 2 } },
+    });
+  });
 });
