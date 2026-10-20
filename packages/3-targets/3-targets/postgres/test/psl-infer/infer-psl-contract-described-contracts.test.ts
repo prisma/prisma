@@ -28,7 +28,7 @@ const TARGET_FAMILY = 'sql' as const;
 function idColumnTable(name: string, foreignKeys: PostgresTableSchemaNode['foreignKeys'] = []) {
   return new PostgresTableSchemaNode({
     name,
-    columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+    columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
     primaryKey: { columns: ['id'] },
     foreignKeys,
     uniques: [],
@@ -267,8 +267,8 @@ describe('inferPostgresPslContract — described-contract omission', () => {
         profile: new PostgresTableSchemaNode({
           name: 'profile',
           columns: {
-            id: { name: 'id', nativeType: 'uuid', nullable: false },
-            userId: { name: 'userId', nativeType: 'uuid', nullable: false },
+            id: { name: 'id', typeText: 'uuid', nullable: false },
+            userId: { name: 'userId', typeText: 'uuid', nullable: false },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [
@@ -327,8 +327,8 @@ describe('inferPostgresPslContract — described-contract omission', () => {
         profile: new PostgresTableSchemaNode({
           name: 'profile',
           columns: {
-            id: { name: 'id', nativeType: 'uuid', nullable: false },
-            userId: { name: 'userId', nativeType: 'uuid', nullable: false },
+            id: { name: 'id', typeText: 'uuid', nullable: false },
+            userId: { name: 'userId', typeText: 'uuid', nullable: false },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [
@@ -381,8 +381,8 @@ describe('inferPostgresPslContract — described-contract omission', () => {
         profile: new PostgresTableSchemaNode({
           name: 'profile',
           columns: {
-            id: { name: 'id', nativeType: 'uuid', nullable: false },
-            userId: { name: 'userId', nativeType: 'uuid', nullable: false },
+            id: { name: 'id', typeText: 'uuid', nullable: false },
+            userId: { name: 'userId', typeText: 'uuid', nullable: false },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [
@@ -413,8 +413,8 @@ describe('inferPostgresPslContract — described-contract omission', () => {
         posts: new PostgresTableSchemaNode({
           name: 'posts',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
-            ownerId: { name: 'ownerId', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
+            ownerId: { name: 'ownerId', typeText: 'int4', nullable: false },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [
@@ -459,8 +459,8 @@ describe('inferPostgresPslContract — described-contract omission', () => {
         posts: new PostgresTableSchemaNode({
           name: 'posts',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
-            user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
+            user_id: { name: 'user_id', typeText: 'int4', nullable: false },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [

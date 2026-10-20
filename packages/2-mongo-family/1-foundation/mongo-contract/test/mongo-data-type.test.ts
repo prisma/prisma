@@ -1,13 +1,8 @@
 import type { JsonValue } from '@internal/contract/types';
-import { type DataType, dataType } from '@internal/framework-components/codec';
+import { type DataType, dataType, type TypeLookups } from '@internal/framework-components/codec';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
-import {
-  assertMongoFieldTypeParams,
-  isMongoDataType,
-  type MongoTypeLookups,
-  mongoDataType,
-} from '../src/mongo-data-type';
+import { assertMongoFieldTypeParams, isMongoDataType, mongoDataType } from '../src/mongo-data-type';
 
 const valueMethods = {
   fromContract: expect.any(Function),
@@ -100,7 +95,7 @@ describe('assertMongoFieldTypeParams', () => {
         codecId === 'demo/vector@1' ? { dataType: vector.id } : undefined,
     },
     dataTypeLookup: { get: (id: string) => (id === vector.id ? vector : undefined) },
-  } as unknown as MongoTypeLookups;
+  } as unknown as TypeLookups;
   const vectorField = (length: number) => ({
     nullable: false,
     type: { kind: 'scalar' as const, codecId: 'demo/vector@1', typeParams: { length } },

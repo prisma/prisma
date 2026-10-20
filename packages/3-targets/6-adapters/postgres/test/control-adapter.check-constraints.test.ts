@@ -3,7 +3,7 @@ import { SqlCheckConstraintIR } from '@internal/sql-schema-ir/types';
 import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
 import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from './helpers/test-control-adapter';
 
 /**
  * Drives `introspect` with a driver that answers the catalog queries from
@@ -14,7 +14,7 @@ async function checksOf(
   tableName: string,
   checkRows: ReadonlyArray<{ constraint_name: string; check_expression: string }>,
 ) {
-  const adapter = new PostgresControlAdapter(
+  const adapter = createTestPostgresControlAdapter(
     createPostgresBuiltinCodecLookup(),
     createPostgresBuiltinDataTypeLookup(),
   );

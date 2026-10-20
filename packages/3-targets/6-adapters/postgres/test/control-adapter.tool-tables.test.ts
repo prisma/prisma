@@ -3,7 +3,7 @@ import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
 import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from './helpers/test-control-adapter';
 
 function column(tableName: string, columnName: string): Record<string, unknown> {
   return {
@@ -59,7 +59,7 @@ function contractDeclaringTables(tablesByNamespace: Record<string, readonly stri
   };
 }
 
-const adapter = new PostgresControlAdapter(
+const adapter = createTestPostgresControlAdapter(
   createPostgresBuiltinCodecLookup(),
   createPostgresBuiltinDataTypeLookup(),
 );

@@ -3,7 +3,7 @@ import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/code
 import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
 import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from './helpers/test-control-adapter';
 
 const createMockDriver = (
   columns: Array<{
@@ -54,7 +54,7 @@ describe('PostgresControlAdapter column defaults', () => {
   it('stores raw default expressions from database', {
     timeout: timeouts.databaseOperation,
   }, async () => {
-    const adapter = new PostgresControlAdapter(
+    const adapter = createTestPostgresControlAdapter(
       createPostgresBuiltinCodecLookup(),
       createPostgresBuiltinDataTypeLookup(),
     );
@@ -282,7 +282,7 @@ describe('PostgresControlAdapter reads a literal default with the column codec',
   it('holds the value and the stored JSON of each default, and the value of a contract expression that writes a literal', {
     timeout: timeouts.databaseOperation,
   }, async () => {
-    const adapter = new PostgresControlAdapter(
+    const adapter = createTestPostgresControlAdapter(
       createPostgresBuiltinCodecLookup(),
       createPostgresBuiltinDataTypeLookup(),
     );

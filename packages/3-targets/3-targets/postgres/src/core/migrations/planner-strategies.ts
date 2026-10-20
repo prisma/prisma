@@ -35,18 +35,18 @@ import {
   type SqlMigrationPlanOperation,
   type StatementColumn,
 } from '@internal/family-sql/control';
-import type { DataType } from '@internal/framework-components/codec';
+import type { DataType, TypeLookups } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
 import type { SqlStorage, StorageTable, StorageTypeInstance } from '@internal/sql-contract/types';
 import * as contractFree from '@internal/sql-relational-core/contract-free';
 import {
   RelationalSchemaNodeKind,
   type SqlColumnIR,
   type SqlSchemaIR,
+  sqlColumnTypesEqual,
 } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { isPostgresSchema } from '../postgres-schema';
@@ -70,7 +70,7 @@ import {
   SetNotNullCall,
 } from './op-factory-call';
 import { buildTargetDetails, type PostgresPlanTargetDetails } from './planner-target-details';
-import { columnType, isSafeTypeWidening } from './safe-widenings';
+import { isSafeTypeWidening } from './safe-widenings';
 
 /**
  * Look up a storage table by its explicit namespace coordinate. Returns
@@ -140,7 +140,7 @@ export interface StrategyContext {
   readonly schemaName: string;
   readonly codecHooks: ReadonlyMap<string, CodecControlHooks>;
   /** The composed stack's codecs and data types, which write each column's type. */
-  readonly types: SqlTypeLookups;
+  readonly types: TypeLookups;
   readonly storageTypes: Readonly<Record<string, StorageTypeInstance>>;
   readonly schema: SqlSchemaIR;
   readonly policy: MigrationOperationPolicy;
@@ -240,7 +240,7 @@ export const notNullBackfillCallStrategy: CallMigrationStrategy = (issues, ctx) 
     const slot = named.text;
 
     matched.push(issue);
-    const ddl = renderColumnDdl(expected.name, expected, ctx.types);
+    const ddl = renderColumnDdl(expected.name, expected);
     const nullableSpec = contractFree.col(ddl.name, ddl.type, {
       ...(ddl.codecRef !== undefined ? { codecRef: ddl.codecRef } : {}),
     });
@@ -290,7 +290,7 @@ export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
     const pair = columnNodePair(issue);
     if (pair === undefined) continue;
     const { expected, actual } = pair;
-    if (!columnTypeChangedNativeOnly(expected, actual)) continue;
+    if (sqlColumnTypesEqual(expected, actual)) continue;
     const ddlSchemaName = issueSchemaName(issue);
     const tableName = issueTableName(issue);
     if (ddlSchemaName === undefined || tableName === undefined) continue;
@@ -302,7 +302,7 @@ export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
         column.column === expected.name,
     );
     if (converted === undefined) continue;
-    if (isSafeTypeWidening(columnType(actual, ctx.types), columnType(expected, ctx.types))) {
+    if (isSafeTypeWidening(actual, expected)) {
       continue;
     }
 
@@ -313,7 +313,7 @@ export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
         schemaName,
         tableName,
         columnName: expected.name,
-        type: renderColumnAlterType(expected, ctx.types),
+        type: renderColumnAlterType(expected),
         using: {
           kind: 'placeholder',
           slot: `${converted.text}:convert`,
@@ -341,17 +341,6 @@ export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
 };
 
 /**
- * Whether the raw (unresolved) native type differs — the SAME comparison
- * `typeChangeCallStrategy` always used (`fromColumn.nativeType !==
- * toColumn.nativeType`), which for the widenable numeric/float types
- * `SAFE_WIDENINGS` lists is identical to the resolved comparison
- * `columnTypeChanged` (in `issue-planner.ts`) performs.
- */
-function columnTypeChangedNativeOnly(expected: SqlColumnIR, actual: SqlColumnIR): boolean {
-  return expected.nativeType !== actual.nativeType;
-}
-
-/**
  * Handles a `not-equal` column issue whose type did not change but which becomes required, for a
  * field a `--backfill` statement names: a data transform whose slots the user fills with values for
  * the NULLs, then `SET NOT NULL`. Every other such column gets the direct `SET NOT NULL` of
@@ -369,7 +358,7 @@ export const nullableTighteningCallStrategy: CallMigrationStrategy = (issues, ct
     const pair = columnNodePair(issue);
     if (pair === undefined) continue;
     const { expected, actual } = pair;
-    if (columnTypeChangedNativeOnly(expected, actual)) continue; // typeChangeCallStrategy's concern
+    if (!sqlColumnTypesEqual(expected, actual)) continue; // typeChangeCallStrategy's concern
     if (expected.nullable !== false || actual.nullable !== true) continue;
 
     const ddlSchemaName = issueSchemaName(issue);
@@ -505,7 +494,7 @@ export const notNullAddColumnCallStrategy: CallMigrationStrategy = (issues, ctx)
 
     matched.push(issue);
 
-    const ddl = renderColumnDdl(expected.name, expected, ctx.types);
+    const ddl = renderColumnDdl(expected.name, expected);
     calls.push(
       canUseSharedTempDefault && temporaryDefault !== null
         ? new AddColumnWithTemporaryDefaultCall(

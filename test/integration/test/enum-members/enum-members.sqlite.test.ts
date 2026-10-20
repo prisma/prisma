@@ -14,13 +14,13 @@ const sunset = new Date('2025-06-30T12:00:00.000Z');
 
 const Level = enumType(
   'Level',
-  { codecId: 'sqlite/bigint@1', nativeType: 'integer' },
+  { codecId: 'sqlite/bigint@1' },
   member('Low', 1n),
   member('High', 10n),
 );
 const When = enumType(
   'When',
-  { codecId: 'sqlite/datetime@1', nativeType: 'text' },
+  { codecId: 'sqlite/datetime@1' },
   member('Launch', launch),
   member('Sunset', sunset),
 );
@@ -28,7 +28,7 @@ const tsContract = defineContract({ enums: { Level, When } }, ({ field, model })
   models: {
     Sample: model('Sample', {
       fields: {
-        id: field.column({ codecId: 'sqlite/integer@1', nativeType: 'integer' }).id(),
+        id: field.column({ codecId: 'sqlite/integer@1' }).id(),
         level: field.namedType(Level),
         when: field.namedType(When),
       },

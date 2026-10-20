@@ -16,7 +16,7 @@ import { createSqliteBuiltinCodecLookup } from '@internal/target-sqlite/codecs';
 import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { SqliteControlAdapter } from '../../src/core/control-adapter';
+import { createTestSqliteControlAdapter } from '../helpers/test-control-adapter';
 import {
   controlAdapter,
   emptySchema,
@@ -142,7 +142,7 @@ const contract: Contract<SqlStorage> = {
   meta: {},
 };
 
-const introspector = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+const introspector = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
 
 function documentContractWith(body: StorageColumn): Contract<SqlStorage> {
   return {
@@ -215,7 +215,7 @@ describe('verify on SQLite, for each data type', () => {
         Object.fromEntries(
           Object.entries(schema.tables['item']?.columns ?? {}).map(([name, column]) => [
             name,
-            column.nativeType,
+            column.typeText,
           ]),
         ),
       ).toEqual({
@@ -230,6 +230,93 @@ describe('verify on SQLite, for each data type', () => {
         datetime_col: 'text',
       });
       expect((await verify(driver)).ok).toBe(true);
+    } finally {
+      await driver.close();
+    }
+  });
+
+  it('names exactly the column whose type raw SQL changes', async () => {
+    const driver = createMemoryDriver();
+    try {
+      const result = sqliteTargetDescriptor.createPlanner(controlAdapter).plan({
+        contract,
+        schema: emptySchema,
+        policy: { allowedOperationClasses: ['additive'] },
+        fromContract: null,
+        origin: null,
+        statements: [],
+        frameworkComponents,
+        spaceId: APP_SPACE_ID,
+        snapshotsImportPath: '../../snapshots',
+      });
+      if (result.kind !== 'success') throw new Error('expected planner success');
+      const operations = (await Promise.all(
+        result.plan.operations,
+      )) as SqlMigrationPlanOperation<unknown>[];
+      for (const operation of operations) {
+        for (const { sql } of operation.execute) await driver.query(sql);
+      }
+      const [created] = (
+        await driver.query<{ sql: string }>(`SELECT sql FROM sqlite_master WHERE name = 'item'`)
+      ).rows;
+      if (created === undefined) throw new Error('the planner created no table');
+      const columnIssues = async () =>
+        (await verify(driver)).schema.issues
+          .filter((issue) => issue.path[2]?.startsWith('column:') && issue.path.length === 3)
+          .map((issue) => issue.path.join('/'));
+      expect(await columnIssues()).toEqual([]);
+
+      const misnamed: unknown[] = [];
+      for (const name of Object.keys(columns)) {
+        const declared = new RegExp(`"${name}" ([A-Z ]+?)(?= NOT NULL| DEFAULT|,|\\n|\\))`);
+        const type = declared.exec(created.sql)?.[1];
+        if (type === undefined) throw new Error(`no declared type for ${name}`);
+        const other = type === 'INTEGER' ? 'TEXT' : 'INTEGER';
+        await driver.query('DROP TABLE "item"');
+        await driver.query(created.sql.replace(declared, `"${name}" ${other}`));
+        const named = await columnIssues();
+        if (named.join() !== `database/item/column:${name}`) misnamed.push({ name, other, named });
+        await driver.query('DROP TABLE "item"');
+        await driver.query(created.sql);
+      }
+      expect(misnamed).toEqual([]);
+    } finally {
+      await driver.close();
+    }
+  });
+
+  it('verifies clean, and plans no operation, for a table declared with other spellings', async () => {
+    const driver = createMemoryDriver();
+    try {
+      await driver.query(`CREATE TABLE "item" (
+        "text_col" Text NOT NULL DEFAULT 'x',
+        "integer_col" integer NOT NULL DEFAULT 7,
+        "real_col" Real NOT NULL DEFAULT 1.5,
+        "blob_col" blob DEFAULT X'6869',
+        "character_col" Character NOT NULL DEFAULT 'a',
+        "character_varying_col" character   VARYING NOT NULL DEFAULT 'b',
+        "json_col" text NOT NULL DEFAULT '{"a":1}',
+        "bigint_col" Integer NOT NULL DEFAULT 9007199254740993,
+        "datetime_col" TEXT NOT NULL DEFAULT '2024-01-01T00:00:00.000Z'
+      )`);
+      const schema = await introspector.introspect(driver, contract);
+      const result = sqliteTargetDescriptor.createPlanner(controlAdapter).plan({
+        contract,
+        schema,
+        policy: { allowedOperationClasses: ['additive', 'widening', 'destructive'] },
+        fromContract: null,
+        origin: null,
+        statements: [],
+        frameworkComponents,
+        spaceId: APP_SPACE_ID,
+        snapshotsImportPath: '../../snapshots',
+      });
+      if (result.kind !== 'success') throw new Error('expected planner success');
+      const operations = await Promise.all(result.plan.operations);
+      expect({
+        ok: (await verify(driver)).ok,
+        operations: operations.map((operation) => operation.id),
+      }).toEqual({ ok: true, operations: [] });
     } finally {
       await driver.close();
     }

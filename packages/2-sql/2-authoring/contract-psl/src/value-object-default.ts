@@ -11,8 +11,8 @@ import {
   type Codec,
   type CodecLookupWithDescriptors,
   codecForRef,
-  type DataTypeLookup,
   readContractValue,
+  type TypeLookups,
 } from '@internal/framework-components/codec';
 import {
   isValueObjectMember,
@@ -49,8 +49,7 @@ export interface ValueObjectDefaultInput {
   readonly nullable: boolean;
   readonly valueObjectName: string;
   readonly types: ValueObjectTypes;
-  readonly codecLookup: CodecLookupWithDescriptors;
-  readonly dataTypeLookup: DataTypeLookup;
+  readonly lookups: TypeLookups<CodecLookupWithDescriptors>;
 }
 
 /**
@@ -152,8 +151,7 @@ export function valueObjectDefaultMismatches(
     const reading = readStoredValue({
       value,
       column: member.descriptor,
-      codecLookup: input.codecLookup,
-      dataTypeLookup: input.dataTypeLookup,
+      lookups: input.lookups,
       fieldPath: path,
     });
     if (!reading.ok) {
@@ -161,7 +159,7 @@ export function valueObjectDefaultMismatches(
       else mismatches.push({ code: reading.code, message: reading.message });
       return;
     }
-    const enumMismatch = enumValueMismatch(value, member, path, input.codecLookup);
+    const enumMismatch = enumValueMismatch(value, member, path, input.lookups.codecLookup);
     if (enumMismatch !== undefined) mismatches.push(enumMismatch);
   };
 

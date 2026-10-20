@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { resolveWrittenSqlTypes } from '../src/sql-data-type';
+import { resolveWrittenSqlTypes as resolveWritten } from '../src/sql-data-type';
 import { char, character, int4, numeric, timestamp } from './sql-data-type-fixtures';
+
+/** resolveWrittenSqlTypes, with each resolved data type named by its id for the expectations. */
+const resolveWrittenSqlTypes = (...args: Parameters<typeof resolveWritten>) =>
+  resolveWritten(...args).map(({ dataType, typeParams }) => ({
+    dataType: dataType.id,
+    typeParams,
+  }));
 
 const types = [int4, numeric, char, timestamp];
 

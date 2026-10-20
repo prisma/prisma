@@ -1,7 +1,7 @@
 import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
 import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from './helpers/test-control-adapter';
 
 function createCapturingDriver() {
   const statements: string[] = [];
@@ -21,7 +21,7 @@ function createCapturingDriver() {
 }
 
 describe('PostgresControlAdapter.withTransaction', () => {
-  const adapter = new PostgresControlAdapter(
+  const adapter = createTestPostgresControlAdapter(
     createPostgresBuiltinCodecLookup(),
     createPostgresBuiltinDataTypeLookup(),
   );
@@ -90,7 +90,7 @@ describe('PostgresControlAdapter.withTransaction', () => {
 });
 
 describe('PostgresControlAdapter.lockMarker', () => {
-  const adapter = new PostgresControlAdapter(
+  const adapter = createTestPostgresControlAdapter(
     createPostgresBuiltinCodecLookup(),
     createPostgresBuiltinDataTypeLookup(),
   );

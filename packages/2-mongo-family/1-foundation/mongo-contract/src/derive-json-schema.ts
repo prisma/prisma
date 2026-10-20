@@ -6,9 +6,10 @@ import type {
   ContractValueObject,
   JsonValue,
 } from '@internal/contract/types';
+import type { TypeLookups } from '@internal/framework-components/codec';
 import { assertDefined } from '@internal/utils/assertions';
 import { MongoValidator } from './ir/mongo-validator';
-import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
+import { bsonTypesOfCodec } from './mongo-data-type';
 import { recursiveGroupsOf, typeKey } from './recursive-groups';
 import { isEmbedRelation } from './relation-fields';
 import { DOCUMENT_ID, documentIdFieldOf, storedFieldNameOf } from './stored-field-names';
@@ -278,7 +279,7 @@ function polymorphicSchema(
 
 export interface ModelValidatorSources {
   readonly models: Record<string, ValidatorModel>;
-  readonly lookups: MongoTypeLookups;
+  readonly lookups: TypeLookups;
   readonly valueObjects: Record<string, ContractValueObject>;
   readonly valueSets: FieldValueSets;
 }

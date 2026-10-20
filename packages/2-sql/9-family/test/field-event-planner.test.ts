@@ -2,6 +2,7 @@ import { createDataTypeLookup } from '@internal/framework-components/codec';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { sqlDataType } from '@internal/sql-contract/data-type';
+import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import {
   planFieldEventCalls,
@@ -243,6 +244,54 @@ describe('planFieldEventOperations', () => {
     });
 
     expect(hook.calls).toEqual([]);
+  });
+
+  describe('parameters of a data type the stack declares', () => {
+    const numeric = sqlDataType('t/numeric', {
+      params: type({ 'precision?': 'number', 'scale?': 'number' }),
+      read: (json) => json,
+      texts: [
+        { text: 'numeric', written: true, catalog: true },
+        { text: 'numeric({precision})', written: true },
+        { text: 'numeric({precision},{scale})', written: true, catalog: true },
+      ],
+      normalize: (params) =>
+        params.precision !== undefined && params.scale === undefined
+          ? { ...params, scale: 0 }
+          : params,
+    });
+    const altered = (from: Record<string, unknown>, to: Record<string, unknown>) => {
+      const amount = (typeParams: Record<string, unknown>) =>
+        contract({
+          Sale: table({
+            amount: col({ codecId: 't/numeric@1', dataType: numeric.id, typeParams }),
+          }),
+        });
+      const hook = recordingHook([makeOp('rotate')]);
+      planFieldEventOperations({
+        priorContract: amount(from),
+        newContract: amount(to),
+        codecHooks: new Map<string, CodecControlHooks>([['t/numeric@1', hook.hook]]),
+        tableRenames: [],
+        columnRenames: [],
+        dataTypes: createDataTypeLookup([numeric]),
+      });
+      return hook.calls.map((call) => call.event);
+    };
+
+    it("does not fire 'altered' when the parameters are equal in their normal form", () => {
+      expect(altered({ precision: 10 }, { scale: 0, precision: 10 })).toEqual([]);
+    });
+
+    it("fires 'altered' when a parameter the type declares changes", () => {
+      expect(altered({ precision: 10 }, { precision: 10, scale: 2 })).toEqual(['altered']);
+    });
+
+    it("fires 'altered' when a key the codec keeps for itself changes", () => {
+      expect(altered({ precision: 10, mode: 'a' }, { precision: 10, mode: 'b' })).toEqual([
+        'altered',
+      ]);
+    });
   });
 
   it("does not fire 'altered' when only codecId changes", () => {

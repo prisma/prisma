@@ -39,7 +39,13 @@ describe('AddColumnCall postchecks', () => {
       postcheck: op.postcheck.map((step) => step.description),
     }).toEqual({
       received: [
-        columnTypeOidAst({ schema: 'public', table: 'user', column: 'position', type: 'geometry' }),
+        columnTypeOidAst({
+          schema: 'public',
+          table: 'user',
+          column: 'position',
+          type: 'geometry',
+          many: false,
+        }),
         columnNullabilityAst({
           schema: 'public',
           table: 'user',

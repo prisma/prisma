@@ -12,6 +12,7 @@ import * as contractFreeDdl from '../../contract-free/ddl';
 import { boundSchema } from './bound-schema';
 import { columnTypeStep } from './operations/columns';
 import { step } from './operations/shared';
+import type { ColumnTypeCheck } from './planner-sql-checks';
 import { buildTargetDetails, type PostgresPlanTargetDetails } from './planner-target-details';
 
 export function buildAddColumnOperationIdentity(
@@ -39,8 +40,8 @@ export async function buildAddNotNullColumnWithTemporaryDefaultOperation(options
   readonly columnName: string;
   /** The column's type as a migration writes it. */
   readonly type: string;
-  /** The type `format_type` prints for `type`, or `undefined` when the stack's data types do not read it. */
-  readonly checkType: string | undefined;
+  /** How the postcheck recognises `type`, or `undefined` when the stack's data types do not read it. */
+  readonly checkType: ColumnTypeCheck | undefined;
   readonly temporaryDefault: string;
   readonly lowerer: ExecuteRequestLowerer;
 }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {

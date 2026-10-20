@@ -48,11 +48,11 @@ import {
   COLUMN,
   computedTypeFor,
   FIXTURES,
-  nativeTypeOf,
   OPERATIONS,
   refOf,
   registry,
   TABLE,
+  typeTextOf,
 } from './aggregate-matrix';
 import { aggregateSql } from './aggregate-sql';
 
@@ -117,10 +117,10 @@ describe('PostgreSQL aggregate conformance', { concurrent: false }, () => {
     for (const statement of fixture.setupSql ?? []) {
       await query(statement);
     }
-    const nativeType = nativeTypeOf(refOf(fixture));
-    await query(`CREATE TABLE "${TABLE}" ("${COLUMN}" ${nativeType})`);
+    const typeText = typeTextOf(refOf(fixture));
+    await query(`CREATE TABLE "${TABLE}" ("${COLUMN}" ${typeText})`);
     for (const sample of fixture.samples) {
-      await query(`INSERT INTO "${TABLE}" ("${COLUMN}") VALUES ((${sample})::${nativeType})`);
+      await query(`INSERT INTO "${TABLE}" ("${COLUMN}") VALUES ((${sample})::${typeText})`);
     }
     return body();
   }
@@ -154,7 +154,7 @@ describe('PostgreSQL aggregate conformance', { concurrent: false }, () => {
               continue;
             }
             const expected =
-              computedTypeFor(operation, fixture.codecId) ?? nativeTypeOf(resolved.output);
+              computedTypeFor(operation, fixture.codecId) ?? typeTextOf(resolved.output);
             if (!(await producesExpectedType(query, expression, expected))) {
               disagreements.push({
                 operation,

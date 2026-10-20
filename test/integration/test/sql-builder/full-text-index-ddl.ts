@@ -1,6 +1,5 @@
 import postgresAdapterControl, {
   createPostgresBuiltinCodecLookup,
-  PostgresControlAdapter,
 } from '@internal/adapter-postgres/control';
 import pgvector from '@internal/extension-pgvector/control';
 import sqlFamilyControl from '@internal/family-sql/control';
@@ -10,6 +9,7 @@ import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/d
 import { CreateIndexCall } from '@internal/target-postgres/op-factory-call';
 import { contractToPostgresDatabaseSchemaNode } from '@internal/target-postgres/planner';
 import { blindCast } from '@internal/utils/casts';
+import { createTestPostgresControlAdapter } from '../../../../packages/3-targets/6-adapters/postgres/test/helpers/test-control-adapter';
 
 /** An index of the fixture contract, as the migration planner sees it and creates it. */
 export interface PlannedIndex {
@@ -29,7 +29,7 @@ const fixtureStack = createControlStack({
   extensions: [pgvector],
 });
 
-const controlAdapter = new PostgresControlAdapter(
+const controlAdapter = createTestPostgresControlAdapter(
   createPostgresBuiltinCodecLookup(),
   createPostgresBuiltinDataTypeLookup(),
 );

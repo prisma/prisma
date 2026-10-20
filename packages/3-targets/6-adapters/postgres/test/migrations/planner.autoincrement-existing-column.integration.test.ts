@@ -36,8 +36,8 @@ const anyClass: MigrationOperationPolicy = {
 
 const AUTOINCREMENT: ColumnDefault = { kind: 'function', expression: 'autoincrement()' };
 
-function buildContract(nativeType: string, numberDefault: ColumnDefault | undefined) {
-  const hash = `orders-${nativeType}-${numberDefault === undefined ? 'none' : JSON.stringify(numberDefault)}`;
+function buildContract(typeText: string, numberDefault: ColumnDefault | undefined) {
+  const hash = `orders-${typeText}-${numberDefault === undefined ? 'none' : JSON.stringify(numberDefault)}`;
   const contract: Contract<SqlStorage> = {
     target: 'postgres',
     targetFamily: 'sql',
@@ -53,8 +53,8 @@ function buildContract(nativeType: string, numberDefault: ColumnDefault | undefi
                 columns: {
                   id: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
                   number: {
-                    dataType: `pg/${nativeType}`,
-                    codecId: `pg/${nativeType}@1`,
+                    dataType: `pg/${typeText}`,
+                    codecId: `pg/${typeText}@1`,
                     nullable: false,
                     ...(numberDefault === undefined ? {} : { default: numberDefault }),
                   },
@@ -201,9 +201,9 @@ describe('autoincrement() on an existing integer column', { concurrent: false },
   it.each(['int2', 'int4', 'int8'])(
     'attaches a sequence to a %s column that already has rows, and adds it back after removal',
     { timeout: testTimeout },
-    async (nativeType) => {
-      const withoutDefault = buildContract(nativeType, undefined);
-      const withAutoincrement = buildContract(nativeType, AUTOINCREMENT);
+    async (typeText) => {
+      const withoutDefault = buildContract(typeText, undefined);
+      const withAutoincrement = buildContract(typeText, AUTOINCREMENT);
       await planAndApply(withoutDefault, emptySchema, INIT_ADDITIVE_POLICY);
       await driver!.query('INSERT INTO public.orders (id, number) VALUES (1, 5), (2, 9)');
 

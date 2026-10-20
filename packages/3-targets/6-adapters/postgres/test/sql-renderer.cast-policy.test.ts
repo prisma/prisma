@@ -143,7 +143,7 @@ function selectWithTypeParams(
 }
 
 describe('renderLoweredSql cast policy', () => {
-  it('emits $N::<nativeType> from a target descriptor outside the inferrable set', () => {
+  it('emits $N::<typeText> from a target descriptor outside the inferrable set', () => {
     const registry = buildPostgresCodecDescriptorRegistry([descriptorFor('app/test-foo@1', 'foo')]);
     const ast = selectWithParam('tag', 'app/test-foo@1', 'tagged');
 

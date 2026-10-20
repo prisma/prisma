@@ -2,7 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import { createSqliteBuiltinCodecLookup } from '@internal/target-sqlite/codecs';
 import { describe, expect, it } from 'vitest';
-import { SqliteControlAdapter } from '../src/core/control-adapter';
+import { createTestSqliteControlAdapter } from './helpers/test-control-adapter';
 
 interface CapturedCall {
   readonly sql: string;
@@ -41,7 +41,7 @@ function createMemoryDriver() {
 }
 
 describe('SqliteControlAdapter marker/ledger write lowering', () => {
-  const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+  const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
 
   it('insertMarker lowers to a plain insert with DB-side updated_at', async () => {
     const driver = createCapturingDriver();
@@ -151,7 +151,7 @@ describe('SqliteControlAdapter marker/ledger write lowering', () => {
 });
 
 describe('SqliteControlAdapter marker/ledger writes (end-to-end)', () => {
-  const adapter: SqlControlAdapter<'sqlite'> = new SqliteControlAdapter(
+  const adapter: SqlControlAdapter<'sqlite'> = createTestSqliteControlAdapter(
     createSqliteBuiltinCodecLookup(),
   );
 

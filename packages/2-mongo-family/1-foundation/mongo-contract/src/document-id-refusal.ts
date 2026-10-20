@@ -1,5 +1,6 @@
 import type { ContractField } from '@internal/contract/types';
-import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
+import type { TypeLookups } from '@internal/framework-components/codec';
+import { bsonTypesOfCodec } from './mongo-data-type';
 
 /** The BSON types an `_id` cannot have: MongoDB refuses an array, a regular expression and undefined, and every document has an `_id`. */
 const FORBIDDEN_DOCUMENT_ID_BSON_TYPES: ReadonlySet<string> = new Set([
@@ -47,7 +48,7 @@ export function documentIdRefusalOf(
  */
 export function documentIdBsonTypesOf(
   field: ContractField,
-  lookups: MongoTypeLookups,
+  lookups: TypeLookups,
 ): readonly string[] | undefined {
   if (field.type.kind !== 'scalar') return undefined;
   const codecTypes = bsonTypesOfCodec(field.type.codecId, lookups);

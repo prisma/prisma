@@ -85,6 +85,11 @@ const fixedCharacterType = sqlDataType('test/fixed-character', {
   ],
   normalize: (params) => (params.length === undefined ? { ...params, length: 1 } : params),
 });
+const codeType = sqlDataType('test/code', {
+  read: (json) => json,
+  params: type({ 'length?': 'number.integer >= 1' }),
+  storedAs: fixedCharacterType.id,
+});
 const enumType = sqlDataType('test/enum', {
   read: (json) => json,
   params: type({ typeName: 'string > 0' }),
@@ -101,6 +106,7 @@ const dataTypeOfCodec: Readonly<Record<string, DataType>> = {
   'pg/numeric@1': numericType,
   'pg/char@1': fixedCharacterType,
   'pg/enum@1': enumType,
+  'test/code@1': codeType,
 };
 
 /** The codec of `pg/timestamptz@1`, the one a test reads a `Date` default with; it holds years from 2000. */
@@ -140,6 +146,7 @@ const testDataTypes = createDataTypeLookup([
   timestamptzType,
   numericType,
   fixedCharacterType,
+  codeType,
   enumType,
 ]);
 
@@ -235,11 +242,9 @@ describe('contractToSchemaIR', () => {
     const projected = contractToSchemaIR(wrap(storage)).tables['Item']?.columns['tags'];
 
     expect({
-      resolvedNativeType: projected?.resolvedNativeType,
       many: projected?.many,
       codecRef: projected?.codecRef,
     }).toEqual({
-      resolvedNativeType: array ? 'text[]' : 'text',
       many: array ? true : undefined,
       codecRef: array ? { codecId: 'pg/text@1', many: true } : { codecId: 'pg/text@1' },
     });
@@ -281,30 +286,27 @@ describe('contractToSchemaIR', () => {
     expect(columns['id']).toEqual(
       new SqlColumnIR({
         name: 'id',
-        nativeType: 'text',
+        typeText: 'text',
         nullable: false,
-        resolvedNativeType: 'text',
       }),
     );
     expect(columns['email']).toEqual(
       new SqlColumnIR({
         name: 'email',
-        nativeType: 'text',
+        typeText: 'text',
         nullable: false,
-        resolvedNativeType: 'text',
       }),
     );
     expect(columns['name']).toEqual(
       new SqlColumnIR({
         name: 'name',
-        nativeType: 'text',
+        typeText: 'text',
         nullable: true,
-        resolvedNativeType: 'text',
       }),
     );
   });
 
-  it('drops codecId, typeParams, and typeRef from columns', () => {
+  it('drops codecId and typeRef from columns, and every type parameter its data type does not declare', () => {
     const storage = new SqlStorage({
       storageHash: 'test' as StorageHashBase<string>,
       namespaces: {
@@ -345,24 +347,22 @@ describe('contractToSchemaIR', () => {
     expect(columnA).toEqual(
       new SqlColumnIR({
         name: 'a',
-        nativeType: 'vector',
+        typeText: 'vector',
         nullable: false,
-        resolvedNativeType: 'vector',
       }),
     );
     expect('codecId' in columnA).toBe(false);
-    expect('typeParams' in columnA).toBe(false);
+    expect(columnA.storedTypeParams).toEqual({});
     expect('typeRef' in columnA).toBe(false);
     expect(columnB).toEqual(
       new SqlColumnIR({
         name: 'b',
-        nativeType: 'vector',
+        typeText: 'vector',
         nullable: false,
-        resolvedNativeType: 'vector',
       }),
     );
     expect('codecId' in columnB).toBe(false);
-    expect('typeParams' in columnB).toBe(false);
+    expect(columnB.storedTypeParams).toEqual({});
     expect('typeRef' in columnB).toBe(false);
   });
 
@@ -379,9 +379,9 @@ describe('contractToSchemaIR', () => {
 
     const columns = contractToSchemaIR(wrap(storage)).tables['T']!.columns;
     expect({
-      id: columns['id']!.nativeType,
-      code: columns['code']!.nativeType,
-      name: columns['name']!.nativeType,
+      id: columns['id']!.typeText,
+      code: columns['code']!.typeText,
+      name: columns['name']!.typeText,
     }).toEqual({ id: 'character(36)', code: 'character', name: 'text' });
   });
 
@@ -399,15 +399,54 @@ describe('contractToSchemaIR', () => {
     const columns = contractToSchemaIR(wrap(storage)).tables['T']!.columns;
     expect(
       Object.fromEntries(
+        Object.entries(columns).map(([name, column]) => [name, { typeText: column.typeText }]),
+      ),
+    ).toEqual({
+      whole: { typeText: 'numeric(10,0)' },
+      scaled: { typeText: 'numeric(10,2)' },
+      bare: { typeText: 'character(1)' },
+    });
+  });
+
+  it('gives each column its data type, the type it is stored as, and that type parameters in normal form', () => {
+    const storage = unboundStorage('test' as StorageHashBase<string>, {
+      T: table({
+        columns: {
+          whole: col({ codecId: 'pg/numeric@1', typeParams: { precision: 10, codecOwned: 1 } }),
+          bare: col({ codecId: 'pg/char@1' }),
+          name: col({ codecId: 'pg/text@1' }),
+          mood: col({ codecId: 'pg/enum@1', typeParams: { typeName: 'Mood' } }),
+          code: col({ codecId: 'test/code@1' }),
+        },
+      }),
+    });
+
+    const columns = contractToSchemaIR(wrap(storage)).tables['T']!.columns;
+    expect(
+      Object.fromEntries(
         Object.entries(columns).map(([name, column]) => [
           name,
-          { nativeType: column.nativeType, resolvedNativeType: column.resolvedNativeType },
+          {
+            storedType: column.storedType?.id,
+            storedTypeParams: column.storedTypeParams,
+          },
         ]),
       ),
     ).toEqual({
-      whole: { nativeType: 'numeric(10,0)', resolvedNativeType: 'numeric(10,0)' },
-      scaled: { nativeType: 'numeric(10,2)', resolvedNativeType: 'numeric(10,2)' },
-      bare: { nativeType: 'character(1)', resolvedNativeType: 'character(1)' },
+      whole: {
+        storedType: 'test/numeric',
+        storedTypeParams: { precision: 10, scale: 0 },
+      },
+      bare: {
+        storedType: 'test/fixed-character',
+        storedTypeParams: { length: 1 },
+      },
+      name: { storedType: 'test/text', storedTypeParams: {} },
+      mood: { storedType: 'test/enum', storedTypeParams: { typeName: 'Mood' } },
+      code: {
+        storedType: 'test/fixed-character',
+        storedTypeParams: { length: 1 },
+      },
     });
   });
 
@@ -421,9 +460,8 @@ describe('contractToSchemaIR', () => {
     });
 
     const mood = contractToSchemaIR(wrap(storage)).tables['T']!.columns['mood']!;
-    expect({ nativeType: mood.nativeType, resolvedNativeType: mood.resolvedNativeType }).toEqual({
-      nativeType: 'Mood',
-      resolvedNativeType: 'Mood',
+    expect({ typeText: mood.typeText }).toEqual({
+      typeText: 'Mood',
     });
   });
 
@@ -471,7 +509,7 @@ describe('contractToSchemaIR', () => {
 
     const result = contractToSchemaIR(wrap(storage));
 
-    expect(result.tables['Post']!.columns['embedding']!.nativeType).toBe('vector(1536)');
+    expect(result.tables['Post']!.columns['embedding']!.typeText).toBe('vector(1536)');
   });
 
   it('omits default field when column has no default', () => {
@@ -869,7 +907,7 @@ describe('contractToSchemaIR', () => {
     });
 
     const result = contractToSchemaIR(wrap(storage));
-    expect(result.tables['T']!.columns['embedding']!.nativeType).toBe('vector(1536)');
+    expect(result.tables['T']!.columns['embedding']!.typeText).toBe('vector(1536)');
     expect(result.annotations).toBeUndefined();
   });
 
@@ -1217,37 +1255,6 @@ describe('detectDestructiveChanges', () => {
 });
 
 describe('contractToSchemaIR — resolved leaf values', () => {
-  it('stamps resolvedNativeType equal to the computed native type', () => {
-    const storage = unboundStorage('test' as StorageHashBase<string>, {
-      T: table({ columns: { id: col({}) } }),
-    });
-
-    const result = contractToSchemaIR(wrap(storage));
-    expect(result.tables['T']!.columns['id']!.resolvedNativeType).toBe('text');
-  });
-
-  it('stamps the written type into resolvedNativeType', () => {
-    const storage = unboundStorage('test' as StorageHashBase<string>, {
-      T: table({
-        columns: {
-          id: col({ codecId: 'sql/char@1', typeParams: { length: 36 } }),
-        },
-      }),
-    });
-
-    const result = contractToSchemaIR(wrap(storage));
-    expect(result.tables['T']!.columns['id']!.resolvedNativeType).toBe('character(36)');
-  });
-
-  it('appends [] to resolvedNativeType for array columns', () => {
-    const storage = unboundStorage('test' as StorageHashBase<string>, {
-      T: table({ columns: { tags: col({ many: { elementNullable: false } }) } }),
-    });
-
-    const result = contractToSchemaIR(wrap(storage));
-    expect(result.tables['T']!.columns['tags']!.resolvedNativeType).toBe('text[]');
-  });
-
   it('reads a literal default as a value of the column data type, element by element for a list, with null as a value of a type that takes it', () => {
     const storage = unboundStorage('test' as StorageHashBase<string>, {
       T: table({
@@ -1325,8 +1332,8 @@ describe('contractToSchemaIR — resolved leaf values', () => {
     // default becomes the resolved default unchanged — this is what a
     // target that never normalizes (e.g. one with no literal-vs-function
     // ambiguity in its default syntax) gets by omitting the hook. Proves
-    // the hook actually runs, and runs with the resolved (`[]`-suffixed for
-    // arrays) native type, not the base one.
+    // the hook actually runs, and runs with the column's element type and its
+    // list flag.
     const storage = unboundStorage('test' as StorageHashBase<string>, {
       T: table({
         columns: {
@@ -1339,8 +1346,8 @@ describe('contractToSchemaIR — resolved leaf values', () => {
     });
 
     const result = contractToSchemaIR(wrap(storage), {
-      resolveDefault: (def, resolvedNativeType) =>
-        def.kind === 'function' && resolvedNativeType === 'text[]'
+      resolveDefault: (def, column) =>
+        def.kind === 'function' && column.many && column.typeText === 'text'
           ? { kind: 'literal', value: [] }
           : def,
     });
