@@ -16,6 +16,8 @@ test('each query member of a transaction has the type it has on the client', () 
   expectTypeOf<Tx['orm']>().toEqualTypeOf<Client['orm']>();
   expectTypeOf<Tx['raw']>().toEqualTypeOf<Client['raw']>();
   expectTypeOf<Tx['prepare']>().toEqualTypeOf<Client['prepare']>();
+  expectTypeOf<Tx['query']>().toEqualTypeOf<Client['query']>();
+  expectTypeOf<Tx['execute']>().toEqualTypeOf<Client['execute']>();
   expectTypeOf<Tx['orm']['Post']['titled']>().toBeFunction();
 });
 

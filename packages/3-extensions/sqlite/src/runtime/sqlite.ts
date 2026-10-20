@@ -18,6 +18,7 @@ import {
 } from '@internal/sql-orm-client';
 import type { CodecTypesBase, RawCodecInferer } from '@internal/sql-relational-core/expression';
 import type { Preparable, SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import type { RuntimeScope } from '@internal/sql-relational-core/types';
 import type {
   BindSiteParams,
   Declaration,
@@ -28,6 +29,7 @@ import type {
   SqlExecutionStackWithDriver,
   SqlMiddleware,
   SqlRuntimeExtensionDescriptor,
+  ToSqlMember,
   TransactionContext,
   VerifyMarkerOption,
 } from '@internal/sql-runtime';
@@ -90,7 +92,8 @@ function sqliteOrm<TContract extends Contract<SqlStorage>, TCollections extends 
 export interface SqliteQueryMembers<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
-> extends PrepareMember<TContract> {
+> extends PrepareMember<TContract>,
+    RuntimeScope {
   readonly sql: UnboundSql<TContract>;
   readonly orm: SqliteOrm<TContract, TCollections>;
   readonly raw: RawLane<TContract>;
@@ -107,7 +110,8 @@ export interface SqliteTransactionContext<
 export interface SqliteClient<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
-> extends SqliteQueryMembers<TContract, TCollections> {
+> extends SqliteQueryMembers<TContract, TCollections>,
+    ToSqlMember {
   readonly enums: SqliteStaticContext<TContract>['enums'];
   readonly context: ExecutionContext<TContract>;
   readonly contract: TContract;
@@ -178,6 +182,8 @@ export interface SqliteOptionsBase {
   readonly middleware?: readonly SqlMiddleware[];
   readonly verifyMarker?: VerifyMarkerOption;
   readonly log?: Log;
+  /** Passed to middleware as `ctx.mode`. `'strict'` (the default) makes `budgets` block a query its `'warn'` severity would only warn about. */
+  readonly mode?: 'strict' | 'permissive';
 }
 
 export type SqliteOptions<
@@ -229,11 +235,8 @@ export default function sqlite<
     sql,
     raw: rawSqlTag,
     enums,
-  }: SqliteStaticContext<TContract> = buildSqliteStaticContext<TContract>(
-    contract,
-    context,
-    stack.adapter.rawCodecInferer,
-  );
+    toSql,
+  }: SqliteStaticContext<TContract> = buildSqliteStaticContext<TContract>(contract, context, stack);
 
   let runtimeInstance: Runtime | undefined;
   let runtimeDriver: { connect(binding: unknown): Promise<void> } | undefined;
@@ -296,6 +299,7 @@ export default function sqlite<
       ...ifDefined('verifyMarker', options.verifyMarker),
       ...ifDefined('middleware', options.middleware),
       ...ifDefined('log', options.log),
+      ...ifDefined('mode', options.mode),
       closeRefusal: 'at-once',
     });
 
@@ -337,9 +341,16 @@ export default function sqlite<
     orm,
     enums,
     raw: rawSqlTag,
+    toSql,
     context,
     contract,
     stack,
+    query(plan, execOptions) {
+      return getRuntime().query(plan, execOptions);
+    },
+    execute(plan, execOptions) {
+      return getRuntime().execute(plan, execOptions);
+    },
     async connect(bindingInput) {
       if (closed) {
         throw sqliteError('DRIVER.NOT_CONNECTED', 'SQLite client is closed', {
