@@ -25,6 +25,7 @@ const fixtureRoots = [
   'test/planner-golden/fixtures',
   'test/contract-parity/fixtures',
   'test/mongo/bson-scalars',
+  'test/mongo/list-filters',
   'test/mongo/temporal-presets',
   'test/mongo/prisma6-source',
 ];

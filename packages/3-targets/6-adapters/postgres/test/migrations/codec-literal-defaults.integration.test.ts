@@ -19,7 +19,7 @@ import { PostgresCreateTable } from '@internal/target-postgres/ddl';
 import { postgresCreateNamespace } from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from '../helpers/test-control-adapter';
 import {
   controlAdapter,
   createDriver,
@@ -263,7 +263,7 @@ describe('literal defaults rendered through the column codec', { concurrent: fal
   it('stores the codec values of defaults written by CREATE TABLE', {
     timeout: testTimeout,
   }, async () => {
-    const adapter = new PostgresControlAdapter(
+    const adapter = createTestPostgresControlAdapter(
       createPostgresBuiltinCodecLookup(),
       createPostgresBuiltinDataTypeLookup(),
     );

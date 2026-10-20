@@ -1,12 +1,6 @@
 import { MongoControlAdapterImpl } from '@internal/adapter-mongo/control';
-import {
-  createPostgresBuiltinCodecLookup,
-  PostgresControlAdapter,
-} from '@internal/adapter-postgres/control';
-import {
-  createSqliteBuiltinCodecLookup,
-  SqliteControlAdapter,
-} from '@internal/adapter-sqlite/control';
+import { createPostgresBuiltinCodecLookup } from '@internal/adapter-postgres/control';
+import { createSqliteBuiltinCodecLookup } from '@internal/adapter-sqlite/control';
 import { MongoControlDriver } from '@internal/driver-mongo/control';
 import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
 import {
@@ -29,6 +23,7 @@ import {
   ledgerOperationCounts,
   MULTI_EDGE_OPERATION_COUNTS,
 } from '../../../../packages/1-framework/3-tooling/migration/test/fixtures/ledger-operation-count-parity';
+import { createTestPostgresControlAdapter } from '../../../../packages/3-targets/6-adapters/postgres/test/helpers/test-control-adapter';
 import {
   createDriver,
   createLedgerTestPlan,
@@ -41,6 +36,7 @@ import {
   postgresTargetDescriptor,
   resetDatabase,
 } from '../../../../packages/3-targets/6-adapters/postgres/test/migrations/fixtures/runner-fixtures';
+import { createTestSqliteControlAdapter } from '../../../../packages/3-targets/6-adapters/sqlite/test/helpers/test-control-adapter';
 import {
   createLedgerTestPlan as createSqliteLedgerPlan,
   createTestDatabase as createSqliteTestDatabase,
@@ -230,7 +226,7 @@ describe('LedgerEntryRecord.operationCount parity across targets', {
       ],
     });
     if (!pgResult.ok) throw new Error(formatRunnerFailure(pgResult.failure));
-    const pgLedger = await new PostgresControlAdapter(
+    const pgLedger = await createTestPostgresControlAdapter(
       createPostgresBuiltinCodecLookup(),
       createPostgresBuiltinDataTypeLookup(),
     ).readLedger(pgDriver!, LEDGER_TEST_SPACE_ID);
@@ -254,7 +250,7 @@ describe('LedgerEntryRecord.operationCount parity across targets', {
       ],
     });
     if (!sqliteResult.ok) throw new Error(formatRunnerFailure(sqliteResult.failure));
-    const sqliteLedger = await new SqliteControlAdapter(
+    const sqliteLedger = await createTestSqliteControlAdapter(
       createSqliteBuiltinCodecLookup(),
     ).readLedger(sqliteDriver, LEDGER_TEST_SPACE_ID);
 
@@ -358,7 +354,7 @@ describe('LedgerEntryRecord.operationCount parity across targets', {
       ],
     });
     if (!pgResult.ok) throw new Error(formatRunnerFailure(pgResult.failure));
-    const pgLedger = await new PostgresControlAdapter(
+    const pgLedger = await createTestPostgresControlAdapter(
       createPostgresBuiltinCodecLookup(),
       createPostgresBuiltinDataTypeLookup(),
     ).readLedger(pgDriver!, LEDGER_TEST_SPACE_ID);
@@ -415,7 +411,7 @@ describe('LedgerEntryRecord.operationCount parity across targets', {
       ],
     });
     if (!sqliteResult.ok) throw new Error(formatRunnerFailure(sqliteResult.failure));
-    const sqliteLedger = await new SqliteControlAdapter(
+    const sqliteLedger = await createTestSqliteControlAdapter(
       createSqliteBuiltinCodecLookup(),
     ).readLedger(sqliteDriver, LEDGER_TEST_SPACE_ID);
 
@@ -513,7 +509,7 @@ describe('LedgerEntryRecord.operationCount parity across targets', {
       ],
     });
     if (!pgResult.ok) throw new Error(formatRunnerFailure(pgResult.failure));
-    const pgLedger = await new PostgresControlAdapter(
+    const pgLedger = await createTestPostgresControlAdapter(
       createPostgresBuiltinCodecLookup(),
       createPostgresBuiltinDataTypeLookup(),
     ).readLedger(pgDriver!, LEDGER_TEST_SPACE_ID);
@@ -562,7 +558,7 @@ describe('LedgerEntryRecord.operationCount parity across targets', {
       ],
     });
     if (!sqliteResult.ok) throw new Error(formatRunnerFailure(sqliteResult.failure));
-    const sqliteLedger = await new SqliteControlAdapter(
+    const sqliteLedger = await createTestSqliteControlAdapter(
       createSqliteBuiltinCodecLookup(),
     ).readLedger(sqliteDriver, LEDGER_TEST_SPACE_ID);
 

@@ -8,7 +8,7 @@ export interface EnumInfo {
 export interface PslPrinterOptions {
   readonly defaultMapping?: DefaultMappingOptions;
   readonly enumInfo?: EnumInfo;
-  readonly parseRawDefault?: (rawDefault: string, nativeType?: string) => ColumnDefault | undefined;
+  readonly parseRawDefault?: (rawDefault: string, typeText?: string) => ColumnDefault | undefined;
 }
 
 export type RelationField = {

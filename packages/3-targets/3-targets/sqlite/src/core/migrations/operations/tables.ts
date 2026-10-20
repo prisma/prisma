@@ -9,7 +9,11 @@ import type { RowsWithoutValue, SchemaDiffIssue } from '@internal/framework-comp
 import { issueOutcome } from '@internal/framework-components/control';
 import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
 import type { ReferentialAction } from '@internal/sql-contract/types';
-import { RelationalSchemaNodeKind, type SqlColumnIR } from '@internal/sql-schema-ir/types';
+import {
+  RelationalSchemaNodeKind,
+  type SqlColumnIR,
+  sqlColumnTypesEqual,
+} from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { type } from 'arktype';
 import { tableExistsAst } from '../../../contract-free/checks';
@@ -472,16 +476,6 @@ function nodeKindOf(issue: SchemaDiffIssue): string | undefined {
     .nodeKind;
 }
 
-/** Mirrors `SqlColumnIR.isEqualTo`'s type comparison, isolated so a `not-equal` column issue's postcheck can target type drift and nullability drift independently. */
-function columnTypeChanged(expected: SqlColumnIR, actual: SqlColumnIR): boolean {
-  if (expected.resolvedNativeType !== undefined && actual.resolvedNativeType !== undefined) {
-    return expected.resolvedNativeType !== actual.resolvedNativeType;
-  }
-  return (
-    expected.nativeType !== actual.nativeType || Boolean(expected.many) !== Boolean(actual.many)
-  );
-}
-
 /**
  * Returns the columns the contract expects as the table's primary key. Picks
  * up SQLite's inline `INTEGER PRIMARY KEY AUTOINCREMENT` form when no
@@ -605,7 +599,7 @@ export function buildRecreatePostchecks(
               }),
         });
       }
-      if (columnTypeChanged(expected, actual)) {
+      if (!sqlColumnTypesEqual(expected, actual)) {
         const colSpec = byName.get(columnName);
         if (colSpec) {
           checks.push({

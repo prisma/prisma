@@ -7,8 +7,8 @@ import { col } from '@internal/sql-relational-core/contract-free';
 import { createSqliteBuiltinCodecLookup } from '@internal/target-sqlite/codecs';
 import { createTable } from '@internal/target-sqlite/contract-free';
 import { describe, expect, it } from 'vitest';
-import { SqliteControlAdapter } from '../src/core/control-adapter';
 import type { SqliteContract } from '../src/core/types';
+import { createTestSqliteControlAdapter } from './helpers/test-control-adapter';
 
 describe('SqliteCreateTable with table-level constraints', () => {
   it('renders a join table with composite PK, two FKs, and a table-level unique', async () => {
@@ -35,7 +35,7 @@ describe('SqliteCreateTable with table-level constraints', () => {
       ],
     });
 
-    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
     const lowered = await adapter.lowerToExecuteRequest(ast, {
       contract: {} as SqliteContract,
     });
@@ -60,7 +60,7 @@ describe('SqliteCreateTable with table-level constraints', () => {
       constraints: [new PrimaryKeyConstraint({ columns: ['a', 'b'], name: 'pk_items' })],
     });
 
-    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
     const lowered = await adapter.lowerToExecuteRequest(ast, {
       contract: {} as SqliteContract,
     });
@@ -84,7 +84,7 @@ describe('SqliteCreateTable with table-level constraints', () => {
       ],
     });
 
-    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
     const lowered = await adapter.lowerToExecuteRequest(ast, {
       contract: {} as SqliteContract,
     });
@@ -100,7 +100,7 @@ describe('SqliteCreateTable with table-level constraints', () => {
       columns: [col('id', 'TEXT', { primaryKey: true, notNull: true })],
     });
 
-    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
     const lowered = await adapter.lowerToExecuteRequest(ast, {
       contract: {} as SqliteContract,
     });
@@ -125,7 +125,7 @@ describe('SqliteCreateTable with table-level constraints', () => {
       ],
     });
 
-    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
     const lowered = await adapter.lowerToExecuteRequest(ast, {
       contract: {} as SqliteContract,
     });

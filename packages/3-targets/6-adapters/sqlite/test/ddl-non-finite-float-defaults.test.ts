@@ -2,11 +2,11 @@ import { col, lit } from '@internal/sql-relational-core/contract-free';
 import { createSqliteBuiltinCodecLookup } from '@internal/target-sqlite/codecs';
 import { SqliteCreateTable } from '@internal/target-sqlite/ddl';
 import { describe, expect, it } from 'vitest';
-import { SqliteControlAdapter } from '../src/core/control-adapter';
 import type { SqliteContract } from '../src/core/types';
+import { createTestSqliteControlAdapter } from './helpers/test-control-adapter';
 
 const lookup = createSqliteBuiltinCodecLookup();
-const adapter = new SqliteControlAdapter(lookup);
+const adapter = createTestSqliteControlAdapter(lookup);
 
 async function createTable(codecId: string, value: number): Promise<string> {
   const codec = lookup.get(codecId)!;

@@ -83,7 +83,7 @@ function schemaWith(checks: readonly SqlCheckConstraintIR[]): SqlSchemaIR {
     tables: {
       [TABLE_NAME]: {
         name: TABLE_NAME,
-        columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+        columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
         foreignKeys: [],
         uniques: [],
         indexes: [],

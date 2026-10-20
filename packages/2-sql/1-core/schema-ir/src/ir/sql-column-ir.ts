@@ -1,7 +1,8 @@
 import type { ColumnDefault } from '@internal/contract/types';
-import type { CodecRef, DataType } from '@internal/framework-components/codec';
-import type { DiffableNode } from '@internal/framework-components/control';
+import type { CodecRef, DataType, DataTypeParams } from '@internal/framework-components/codec';
+import type { DiffableNode, MismatchExplanation } from '@internal/framework-components/control';
 import { freezeNode } from '@internal/framework-components/ir';
+import { canonicalizeJson } from '@internal/framework-components/utils';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { RelationalSchemaNodeKind } from './schema-node-kinds';
@@ -30,22 +31,16 @@ export interface ReportedSqlType {
 
 export interface SqlColumnIRInput {
   readonly name: string;
-  readonly nativeType: string;
+  /**
+   * The column's element type as text; nothing compares it. On the contract-derived side, the name a migration writes for the type the column is stored as, with an enum named as the contract names it. On the introspected side, the type as introspection reads it: on Postgres the `format_type` text, which keeps the schema of a type off the search path, except that an enum is named as a contract names it; on SQLite the declared type, lower-cased. Mismatch messages and the schema tree show it, and default parsing reads it: the target's `resolveDefault` hook on the contract side, and SQLite's default reader on the introspected side. Columns are compared by {@link storedType} and {@link storedTypeParams}.
+   */
+  readonly typeText: string;
   readonly nullable: boolean;
   /** Raw database default expression (e.g. `'hello'::text`, `nextval('seq')`). */
   readonly default?: string;
   readonly annotations?: SqlAnnotations;
-  /** True when the column is a native array (e.g. `text[]`, `int4[]`). The `nativeType` carries the element type only (e.g. `text`, `int4`). */
+  /** True when the column is a native array (e.g. `text[]`, `int4[]`). The `typeText` carries the element type only (e.g. `text`, `int4`). */
   readonly many?: boolean;
-  /**
-   * Fully resolved native type, comparable across the two diff sides:
-   * the contract-derived side stamps the codec-expanded type (typeRef
-   * resolved, parameterized types expanded, `[]` appended for arrays);
-   * the introspected side stamps the target-normalized type with the same
-   * `[]` convention. Stamped at construction by derivation/introspection;
-   * absent on raw hand-built nodes.
-   */
-  readonly resolvedNativeType?: string;
   /**
    * Structured default, comparable across the two diff sides: the
    * contract-derived side stamps the contract's `ColumnDefault`; the
@@ -75,19 +70,11 @@ export interface SqlColumnIRInput {
    */
   readonly codecRef?: CodecRef;
   /**
-   * The column's resolved BASE native type: pre-parameter-expansion,
-   * pre-array-suffix (e.g. `character`, not `character(36)` or
-   * `character[]`). Distinct from {@link resolvedNativeType} (the EXPANDED
-   * comparison value) — DDL rendering re-expands a parameterized type at
-   * plan time from this base, so it must not already carry the expansion.
-   * Stamped alongside {@link codecRef}.
+   * The type the column is stored as, whose name DDL writes and the database reports (ADR 254): on the contract-derived side the type its codec's data type is stored as, on the introspected side the type that claims the reported type. Absent on an introspected column no data type claims.
    */
-  readonly codecBaseNativeType?: string;
-  /**
-   * The data type the column's codec represents, from the assembled stack (ADR 254). Stamped on the
-   * contract-derived column; absent on introspected nodes.
-   */
-  readonly dataType?: DataType;
+  readonly storedType?: DataType;
+  /** The parameters of {@link storedType} in its normal form, for comparing; empty for a type without parameters. Present exactly when `storedType` is. DDL writes the parameters as written, from {@link codecRef}. */
+  readonly storedTypeParams?: DataTypeParams;
   /**
    * A literal default as a value of the column's data type (ADR 254): on the contract-derived side read from the contract by the column's type, on the introspected side read from the database by the column's codec. The diff compares defaults by it. Absent when no type or codec read one.
    */
@@ -117,33 +104,29 @@ export interface SqlColumnIRInput {
  *
  * Implements `DiffableNode` so a column is directly a table's diff-tree
  * child: `id` is the column name (unique among a table's columns); `isEqualTo`
- * compares this column's own attributes only — never children, since a
- * column is a leaf. When both sides carry `resolvedNativeType` (stamped at
- * derivation/introspection), the comparison uses the resolved values —
- * resolved native type, nullability, and structured default equality per
- * the relational walk's `columnDefaultsEqual` semantics, with `this` as the
- * expected side. Otherwise it falls back to comparing raw fields.
+ * compares this column's own attributes only, never its default, which is a
+ * child node: the type by {@link sqlColumnTypesEqual}, and nullability.
  */
 export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   override readonly nodeKind = RelationalSchemaNodeKind.column;
 
   readonly name: string;
-  readonly nativeType: string;
+  /** See {@link SqlColumnIRInput.typeText}. */
+  readonly typeText: string;
   readonly nullable: boolean;
   declare readonly default?: string;
   declare readonly annotations?: SqlAnnotations;
-  /** True when the column is a native array (e.g. `text[]`, `int4[]`). The `nativeType` carries the element type only (e.g. `text`, `int4`). */
+  /** True when the column is a native array (e.g. `text[]`, `int4[]`). The `typeText` carries the element type only (e.g. `text`, `int4`). */
   declare readonly many?: boolean;
-  declare readonly resolvedNativeType?: string;
   declare readonly resolvedDefault?: ColumnDefault;
   /** See {@link SqlColumnIRInput.authoredDefault}. Non-enumerable so it stays out of JSON and structural equality. */
   declare readonly authoredDefault?: ColumnDefault;
   /** See {@link SqlColumnIRInput.codecRef}. Non-enumerable so it stays out of JSON and structural equality. */
   declare readonly codecRef?: CodecRef;
-  /** See {@link SqlColumnIRInput.codecBaseNativeType}. Non-enumerable, same reason as {@link codecRef}. */
-  declare readonly codecBaseNativeType?: string;
-  /** See {@link SqlColumnIRInput.dataType}. Non-enumerable, same reason as {@link codecRef}. */
-  declare readonly dataType?: DataType;
+  /** See {@link SqlColumnIRInput.storedType}. Non-enumerable, same reason as {@link codecRef}. */
+  declare readonly storedType?: DataType;
+  /** See {@link SqlColumnIRInput.storedTypeParams}. Non-enumerable, same reason as {@link codecRef}. */
+  declare readonly storedTypeParams?: DataTypeParams;
   /** See {@link SqlColumnIRInput.defaultValue}. Non-enumerable, same reason as {@link codecRef}. */
   declare readonly defaultValue?: SqlDefaultValue;
   /** See {@link SqlColumnIRInput.defaultUnreadable}. Non-enumerable, same reason as {@link codecRef}. */
@@ -158,17 +141,16 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   constructor(input: SqlColumnIRInput) {
     super();
     this.name = input.name;
-    this.nativeType = input.nativeType;
+    this.typeText = input.typeText;
     this.nullable = input.nullable;
     if (input.default !== undefined) this.default = input.default;
     if (input.annotations !== undefined) this.annotations = input.annotations;
     if (input.many !== undefined) this.many = input.many;
-    if (input.resolvedNativeType !== undefined) this.resolvedNativeType = input.resolvedNativeType;
     if (input.resolvedDefault !== undefined) this.resolvedDefault = input.resolvedDefault;
     defineNonEnumerable(this, 'authoredDefault', input.authoredDefault);
     defineNonEnumerable(this, 'codecRef', input.codecRef);
-    defineNonEnumerable(this, 'codecBaseNativeType', input.codecBaseNativeType);
-    defineNonEnumerable(this, 'dataType', input.dataType);
+    defineNonEnumerable(this, 'storedType', input.storedType);
+    defineNonEnumerable(this, 'storedTypeParams', input.storedTypeParams);
     defineNonEnumerable(this, 'defaultValue', input.defaultValue);
     defineNonEnumerable(this, 'defaultUnreadable', input.defaultUnreadable);
     defineNonEnumerable(this, 'defaultExpressionValue', input.defaultExpressionValue);
@@ -200,17 +182,30 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
         ...ifDefined('unreadable', this.defaultUnreadable),
         ...ifDefined('expressionValue', this.defaultExpressionValue),
         // Contract-derived and introspected columns both set `this.many`
-        // directly (with `nativeType` as the bare element type; array-ness
+        // directly (with `typeText` as the bare element type; array-ness
         // never rides on a `[]` suffix). `codecRef.many` is a fallback for
         // hand-built nodes that carry a codec ref without the column-level
         // flag. Either source works for the default node's array-literal
         // rendering.
         ...ifDefined('many', this.many ?? this.codecRef?.many),
         ...ifDefined('codecRef', this.codecRef),
-        ...ifDefined('codecBaseNativeType', this.codecBaseNativeType),
         ...ifDefined('sqlExpressionLiteralFor', this.sqlExpressionLiteralFor),
       }),
     ];
+  }
+
+  /** This column under another name, with every other field as it is. */
+  withName(name: string): SqlColumnIR {
+    const fields = Object.fromEntries(
+      Object.getOwnPropertyNames(this).map((key) => [key, Reflect.get(this, key)]),
+    );
+    return new SqlColumnIR({
+      ...blindCast<
+        SqlColumnIRInput,
+        'every field of the input is an own property of the column under the same name'
+      >(fields),
+      name,
+    });
   }
 
   static is(node: SqlSchemaIRNode): node is SqlColumnIR {
@@ -218,10 +213,7 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   }
 
   /**
-   * Compares the column's own attributes only — the default lives on the
-   * child node. When both sides carry `resolvedNativeType`, the resolved
-   * value governs (array-ness rides on its `[]` suffix); otherwise raw
-   * fields compare.
+   * Compares the column's own attributes only — the default lives on the child node: the type, by {@link sqlColumnTypesEqual}, and nullability.
    */
   isEqualTo(other: DiffableNode): boolean {
     const node = blindCast<
@@ -229,13 +221,64 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
       'every diff-tree node the differ pairs is a SqlSchemaIRNode'
     >(other);
     assertNode(node, 'SqlColumnIR', SqlColumnIR.is);
-    if (this.resolvedNativeType !== undefined && node.resolvedNativeType !== undefined) {
-      return this.resolvedNativeType === node.resolvedNativeType && this.nullable === node.nullable;
-    }
-    return (
-      this.nativeType === node.nativeType &&
-      this.nullable === node.nullable &&
-      Boolean(this.many) === Boolean(node.many)
-    );
+    return sqlColumnTypesEqual(this, node) && this.nullable === node.nullable;
   }
+
+  /** Why `actual` is not this column: the two types as written and reported, or the nullability of each. The two sides always hold different values. */
+  explainMismatch(actual: DiffableNode | undefined): MismatchExplanation | undefined {
+    if (actual === undefined) return undefined;
+    const node = blindCast<
+      SqlSchemaIRNode,
+      'every diff-tree node the differ pairs is a SqlSchemaIRNode'
+    >(actual);
+    assertNode(node, 'SqlColumnIR', SqlColumnIR.is);
+    if (node.storedType === undefined && node.reportedType !== undefined) {
+      return differs(
+        node.typeText === ''
+          ? 'The database column has no declared type.'
+          : `The database column is ${shownTypeOf(node)}, which no data type in the configured stack declares.`,
+      );
+    }
+    if (!sqlColumnTypesEqual(this, node)) {
+      return differs(
+        `The contract column is ${shownTypeOf(this)} and the database column is ${shownTypeOf(node)}.`,
+      );
+    }
+    if (this.nullable !== node.nullable) {
+      return differs(
+        `The contract column is ${nullability(this)} and the database column is ${nullability(node)}.`,
+      );
+    }
+    return undefined;
+  }
+}
+
+/** The parts of a column that make its type. */
+export type SqlColumnType = Pick<SqlColumnIR, 'storedType' | 'storedTypeParams' | 'many'>;
+
+/**
+ * Whether two columns have the same type: both have a stored type, the two are one data type, their parameters are equal as canonical JSON, and both or neither are lists. A column no data type claims has no stored type and never has the same type as another. ADR 254.
+ */
+export function sqlColumnTypesEqual(a: SqlColumnType, b: SqlColumnType): boolean {
+  return (
+    a.storedType !== undefined &&
+    b.storedType !== undefined &&
+    a.storedType.id === b.storedType.id &&
+    canonicalizeJson(a.storedTypeParams ?? {}) === canonicalizeJson(b.storedTypeParams ?? {}) &&
+    Boolean(a.many) === Boolean(b.many)
+  );
+}
+
+/** The column's type as the contract writes it, or as introspection gives it, with `[]` for a list, in double quotes unless the text has double quotes of its own, as `"char"` does. */
+function shownTypeOf(column: SqlColumnIR): string {
+  const text = `${column.typeText}${column.many === true ? '[]' : ''}`;
+  return text.includes('"') ? text : `"${text}"`;
+}
+
+function differs(text: string): MismatchExplanation {
+  return { text, cause: 'differs' };
+}
+
+function nullability(column: SqlColumnIR): string {
+  return column.nullable ? 'nullable' : 'not nullable';
 }

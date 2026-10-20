@@ -14,9 +14,9 @@ import {
   AlterColumnTypeCall,
 } from '@internal/target-postgres/op-factory-call';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from './helpers/test-control-adapter';
 
-const adapter = new PostgresControlAdapter(
+const adapter = createTestPostgresControlAdapter(
   createPostgresBuiltinCodecLookup(),
   createPostgresBuiltinDataTypeLookup(),
 );

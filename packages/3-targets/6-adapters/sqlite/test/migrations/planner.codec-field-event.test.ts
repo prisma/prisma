@@ -13,7 +13,7 @@ import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
 import { createSqliteMigrationPlanner } from '@internal/target-sqlite/planner';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { SqliteControlAdapter } from '../../src/core/control-adapter';
+import { createTestSqliteControlAdapter } from '../helpers/test-control-adapter';
 import { sqliteComponents, textCodecDescriptor } from './fixtures/sqlite-components';
 
 const DATA_TYPE_OF_CODEC: Readonly<Record<string, string>> = {
@@ -93,7 +93,7 @@ function makeFrameworkComponents(
 
 describe('SqliteMigrationPlanner - codec onFieldEvent wiring', () => {
   const planner = createSqliteMigrationPlanner(
-    new SqliteControlAdapter(createSqliteBuiltinCodecLookup()),
+    createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup()),
   );
 
   it('inlines ops emitted by onFieldEvent after structural DDL', async () => {

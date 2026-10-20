@@ -39,7 +39,7 @@ const AUTOINCREMENT: ColumnDefault = { kind: 'function', expression: 'autoincrem
 function ordersContract(options: {
   readonly table: string;
   readonly column: string;
-  readonly nativeType: string;
+  readonly typeText: string;
   readonly numberDefault: ColumnDefault | undefined;
   readonly withColumn?: boolean;
 }): Contract<SqlStorage> {
@@ -62,8 +62,8 @@ function ordersContract(options: {
                     ? {}
                     : {
                         [options.column]: {
-                          dataType: `pg/${options.nativeType}`,
-                          codecId: `pg/${options.nativeType}@1`,
+                          dataType: `pg/${options.typeText}`,
+                          codecId: `pg/${options.typeText}@1`,
                           nullable: false,
                           ...(options.numberDefault === undefined
                             ? {}
@@ -160,14 +160,14 @@ describe('adding an autoincrement() column to an existing table', { concurrent: 
   }
 
   it.each([
-    { nativeType: 'int2', stored: 'smallint' },
-    { nativeType: 'int4', stored: 'integer' },
-    { nativeType: 'int8', stored: 'bigint' },
+    { typeText: 'int2', stored: 'smallint' },
+    { typeText: 'int4', stored: 'integer' },
+    { typeText: 'int8', stored: 'bigint' },
   ])(
-    'adds a $nativeType autoincrement() column, checked as $stored',
+    'adds a $typeText autoincrement() column, checked as $stored',
     { timeout: testTimeout },
-    async ({ nativeType, stored }) => {
-      const shape = { table: 'orders', column: 'number', nativeType, numberDefault: AUTOINCREMENT };
+    async ({ typeText, stored }) => {
+      const shape = { table: 'orders', column: 'number', typeText, numberDefault: AUTOINCREMENT };
       await migrateTo(ordersContract({ ...shape, withColumn: false }));
 
       const ids = await migrateTo(ordersContract(shape));

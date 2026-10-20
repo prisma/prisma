@@ -20,7 +20,7 @@ import { SqlUniqueIR } from '../src/ir/sql-unique-ir';
  */
 describe('SqlSchemaIRNode discriminants', () => {
   it.each([
-    ['SqlColumnIR', new SqlColumnIR({ name: 'id', nativeType: 'int4', nullable: false })],
+    ['SqlColumnIR', new SqlColumnIR({ name: 'id', typeText: 'int4', nullable: false })],
     ['PrimaryKey', new PrimaryKey({ columns: ['id'] })],
     [
       'SqlForeignKeyIR',
@@ -62,7 +62,7 @@ describe('SqlSchemaIRNode discriminants', () => {
   it.each([
     [
       'SqlColumnIR',
-      new SqlColumnIR({ name: 'id', nativeType: 'int4', nullable: false }),
+      new SqlColumnIR({ name: 'id', typeText: 'int4', nullable: false }),
       'sql-column',
     ],
     ['PrimaryKey', new PrimaryKey({ columns: ['id'] }), 'sql-primary-key'],
@@ -113,10 +113,10 @@ describe('SqlSchemaIRNode discriminants', () => {
   });
 
   it('a column still matches a pre-lift flat literal via toEqual', () => {
-    const column = new SqlColumnIR({ name: 'id', nativeType: 'int4', nullable: false });
+    const column = new SqlColumnIR({ name: 'id', typeText: 'int4', nullable: false });
     expect(column).toEqual({
       name: 'id',
-      nativeType: 'int4',
+      typeText: 'int4',
       nullable: false,
       nodeKind: 'sql-column',
     });
@@ -125,7 +125,7 @@ describe('SqlSchemaIRNode discriminants', () => {
 
 describe('assertNode', () => {
   it('names the expected class and the kind it got instead', () => {
-    const column = new SqlColumnIR({ name: 'id', nativeType: 'int4', nullable: false });
+    const column = new SqlColumnIR({ name: 'id', typeText: 'int4', nullable: false });
 
     expect(() => assertNode(column, 'SqlIndexIR', SqlIndexIR.is)).toThrow(
       'Expected a SqlIndexIR but got nodeKind=sql-column',
@@ -192,7 +192,7 @@ describe('relationalNodeGranularity map (granularity is off the node)', () => {
       new SqlTableIR({ name: 't', columns: {}, foreignKeys: [], uniques: [], indexes: [] }),
       'entity',
     ],
-    ['SqlColumnIR', new SqlColumnIR({ name: 'id', nativeType: 'int4', nullable: false }), 'field'],
+    ['SqlColumnIR', new SqlColumnIR({ name: 'id', typeText: 'int4', nullable: false }), 'field'],
     ['SqlColumnDefaultIR', new SqlColumnDefaultIR({ raw: '0' }), 'auxiliary'],
     ['PrimaryKey', new PrimaryKey({ columns: ['id'] }), 'auxiliary'],
     [

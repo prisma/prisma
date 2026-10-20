@@ -6,16 +6,14 @@
  * against what the database returns.
  */
 
-import {
-  createPostgresBuiltinCodecLookup,
-  PostgresControlAdapter,
-} from '@internal/adapter-postgres/control';
+import { createPostgresBuiltinCodecLookup } from '@internal/adapter-postgres/control';
 import { fullTextIndex } from '@internal/postgres/contract-builder';
 import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
 import { CreateIndexCall } from '@internal/target-postgres/op-factory-call';
 import { contractToPostgresDatabaseSchemaNode } from '@internal/target-postgres/planner';
 import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
+import { createTestPostgresControlAdapter } from '../../../packages/3-targets/6-adapters/postgres/test/helpers/test-control-adapter';
 import {
   defineContract,
   field,
@@ -71,7 +69,7 @@ async function createIndexStatements(contract: unknown): Promise<readonly string
     { expression: index.expression },
     { type: index.type ?? 'gin' },
   ).toOp(
-    new PostgresControlAdapter(
+    createTestPostgresControlAdapter(
       createPostgresBuiltinCodecLookup(),
       createPostgresBuiltinDataTypeLookup(),
     ),

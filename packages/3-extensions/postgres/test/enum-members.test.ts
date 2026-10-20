@@ -10,49 +10,49 @@ const sunset = '2025-06-30T12:00:00.000Z';
 
 const TextLevel = enumType(
   'TextLevel',
-  { codecId: 'pg/text@1', nativeType: 'text' },
+  { codecId: 'pg/text@1' },
   member('Low', 'low'),
   member('High', 'high'),
 );
 const Int4Level = enumType(
   'Int4Level',
-  { codecId: 'pg/int4@1', nativeType: 'int4' },
+  { codecId: 'pg/int4@1' },
   member('Low', 1),
   member('High', 10),
 );
 const Int8Level = enumType(
   'Int8Level',
-  { codecId: 'pg/int8@1', nativeType: 'int8' },
+  { codecId: 'pg/int8@1' },
   member('Low', 1n),
   member('High', 10n),
 );
 const UuidLevel = enumType(
   'UuidLevel',
-  { codecId: 'pg/uuid@1', nativeType: 'uuid' },
+  { codecId: 'pg/uuid@1' },
   member('First', uuidA),
   member('Second', uuidB),
 );
 const DateLevel = enumType(
   'DateLevel',
-  { codecId: 'pg/timestamptz-date@1', nativeType: 'timestamptz' },
+  { codecId: 'pg/timestamptz-date@1' },
   member('Launch', new Date(launch)),
   member('Sunset', new Date(sunset)),
 );
 const DayLevel = enumType(
   'DayLevel',
-  { codecId: 'pg/date-temporal@1', nativeType: 'date' },
+  { codecId: 'pg/date-temporal@1' },
   member('Launch', Temporal.PlainDate.from('2024-01-01')),
   member('Sunset', Temporal.PlainDate.from('2025-06-30')),
 );
 const InstantLevel = enumType(
   'InstantLevel',
-  { codecId: 'pg/timestamptz-temporal@1', nativeType: 'timestamptz' },
+  { codecId: 'pg/timestamptz-temporal@1' },
   member('Launch', Temporal.Instant.from(launch)),
   member('Sunset', Temporal.Instant.from(sunset)),
 );
 const Float8Level = enumType(
   'Float8Level',
-  { codecId: 'pg/float8@1', nativeType: 'float8' },
+  { codecId: 'pg/float8@1' },
   member('Half', 1.5),
   member('Whole', 2.25),
 );
@@ -89,7 +89,7 @@ const contract = defineContract(
   }),
 );
 
-const { enums } = postgresStatic<typeof contract>({ contractJson: contract });
+const { enums } = postgresStatic({ contract });
 const levels = enums['public'] ?? expect.unreachable('the TS builder registers enums in public');
 
 const isMember = (accessor: { has(value: unknown): boolean }, value: unknown) =>

@@ -3,12 +3,7 @@ import { expectTypeOf, test } from 'vitest';
 import { defineContract, enumType, member } from '../../src/exports/contract-builder';
 import postgres from '../../src/exports/runtime';
 
-const Level = enumType(
-  'Level',
-  { codecId: 'pg/int8@1', nativeType: 'int8' },
-  member('Low', 1n),
-  member('High', 10n),
-);
+const Level = enumType('Level', { codecId: 'pg/int8@1' }, member('Low', 1n), member('High', 10n));
 
 const contract = defineContract({ enums: { Level } }, ({ field, model, type }) => ({
   models: {

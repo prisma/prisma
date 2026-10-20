@@ -4,7 +4,6 @@ import {
   PrimaryKey,
   RelationalSchemaNodeKind,
   SqlCheckConstraintIR,
-  SqlColumnIR,
   SqlForeignKeyIR,
   SqlIndexIR,
   SqlSchemaIR,
@@ -47,25 +46,6 @@ function stepRewrite(tableName: string, kind: string, fromId: string, toId: stri
 }
 
 type ColumnMap = (column: string) => string;
-
-function withColumnName(column: SqlColumnIR, name: string): SqlColumnIR {
-  return new SqlColumnIR({
-    name,
-    nativeType: column.nativeType,
-    nullable: column.nullable,
-    ...ifDefined('default', column.default),
-    ...ifDefined('annotations', column.annotations),
-    ...ifDefined('many', column.many),
-    ...ifDefined('resolvedNativeType', column.resolvedNativeType),
-    ...ifDefined('resolvedDefault', column.resolvedDefault),
-    ...ifDefined('authoredDefault', column.authoredDefault),
-    ...ifDefined('codecRef', column.codecRef),
-    ...ifDefined('codecBaseNativeType', column.codecBaseNativeType),
-    ...ifDefined('dataType', column.dataType),
-    ...ifDefined('defaultValue', column.defaultValue),
-    ...ifDefined('defaultUnreadable', column.defaultUnreadable),
-  });
-}
 
 /**
  * An index whose definition carries SQL text, an expression or a predicate, keeps its columns as
@@ -115,7 +95,7 @@ function rebuildTable(table: SqlTableIR, edit: TableEdit, rewrite: RefRewrite): 
     columns: Object.fromEntries(
       Object.values(table.columns).map((column) => {
         const name = columnName(column.name);
-        return [name, name === column.name ? column : withColumnName(column, name)];
+        return [name, name === column.name ? column : column.withName(name)];
       }),
     ),
     ...ifDefined(

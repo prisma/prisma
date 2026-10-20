@@ -20,7 +20,7 @@ import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
 import { createSqliteMigrationPlanner } from '@internal/target-sqlite/planner';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { SqliteControlAdapter } from '../../src/core/control-adapter';
+import { createTestSqliteControlAdapter } from '../helpers/test-control-adapter';
 import { sqliteComponents } from './fixtures/sqlite-components';
 
 function createMemoryDriver() {
@@ -100,7 +100,7 @@ describe('SQLite planner + introspection round-trip', () => {
   it('executes planned DDL and verifies via introspection', async () => {
     const driver = createMemoryDriver();
     try {
-      const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+      const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
       const planner = createSqliteMigrationPlanner(adapter);
 
       const contract = makeContract({
@@ -175,7 +175,7 @@ describe('SQLite planner + introspection round-trip', () => {
     const driver = createMemoryDriver();
     try {
       const planner = createSqliteMigrationPlanner(
-        new SqliteControlAdapter(createSqliteBuiltinCodecLookup()),
+        createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup()),
       );
 
       const contract = makeContract({
@@ -230,7 +230,7 @@ describe('SQLite planner + introspection round-trip', () => {
     const driver = createMemoryDriver();
     try {
       const planner = createSqliteMigrationPlanner(
-        new SqliteControlAdapter(createSqliteBuiltinCodecLookup()),
+        createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup()),
       );
 
       const contract = makeContract({

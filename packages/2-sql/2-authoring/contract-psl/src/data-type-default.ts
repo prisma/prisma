@@ -30,9 +30,9 @@ import type {
   AnyCodecDescriptor,
   CodecLookupWithDescriptors,
   DataTypeId,
-  DataTypeLookup,
   DataTypeParams,
   DataTypeValue,
+  TypeLookups,
 } from '@internal/framework-components/codec';
 import { codecForRef, dataTypeParams } from '@internal/framework-components/codec';
 import type { ContributedPslDiagnosticCode, PslSpan } from '@internal/framework-components/psl-ast';
@@ -175,16 +175,15 @@ function codecRefTypeParams(
  */
 function storedValueReader(input: {
   readonly column: DefaultColumn;
-  readonly codecLookup: CodecLookupWithDescriptors;
-  readonly dataTypeLookup: DataTypeLookup;
+  readonly lookups: TypeLookups<CodecLookupWithDescriptors>;
   readonly fieldPath: string;
 }): {
   readonly descriptor: AnyCodecDescriptor;
   readonly params: DataTypeParams;
   readonly read: (value: JsonValue, elementIndex: number | undefined) => StoredReadResult;
 } {
-  const descriptor = input.codecLookup.descriptorFor(input.column.codecId);
-  const codec = codecForRef(input.codecLookup, {
+  const descriptor = input.lookups.codecLookup.descriptorFor(input.column.codecId);
+  const codec = codecForRef(input.lookups.codecLookup, {
     codecId: input.column.codecId,
     ...ifDefined('typeParams', codecRefTypeParams(input.column.typeParams)),
   });
@@ -225,8 +224,7 @@ function storedValueReader(input: {
 export function readStoredValue(input: {
   readonly value: JsonValue;
   readonly column: DefaultColumn;
-  readonly codecLookup: CodecLookupWithDescriptors;
-  readonly dataTypeLookup: DataTypeLookup;
+  readonly lookups: TypeLookups<CodecLookupWithDescriptors>;
   readonly fieldPath: string;
 }): ReadValueResult {
   const reading = storedValueReader(input).read(input.value, undefined);
@@ -254,8 +252,9 @@ export function readDataTypeDefault(input: {
     params,
     read: readStored,
   } = storedValueReader({
-    ...input,
-    dataTypeLookup: input.dataTypes.lookup,
+    column: input.column,
+    lookups: { codecLookup: input.codecLookup, dataTypeLookup: input.dataTypes.lookup },
+    fieldPath: input.fieldPath,
   });
   const columnType = descriptor.dataType;
   const suggestedTypes = [columnType];

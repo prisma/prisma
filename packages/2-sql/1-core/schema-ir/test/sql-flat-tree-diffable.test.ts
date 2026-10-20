@@ -7,8 +7,8 @@ describe('flat tree diffability (SqlSchemaIR / SqlTableIR)', () => {
   const table = new SqlTableIR({
     name: 'users',
     columns: {
-      id: { name: 'id', nativeType: 'int4', nullable: false },
-      email: { name: 'email', nativeType: 'text', nullable: false },
+      id: { name: 'id', typeText: 'int4', nullable: false },
+      email: { name: 'email', typeText: 'text', nullable: false },
     },
     primaryKey: { columns: ['id'] },
     foreignKeys: [{ columns: ['org_id'], referencedTable: 'orgs', referencedColumns: ['id'] }],
@@ -55,7 +55,7 @@ describe('flat tree diffability (SqlSchemaIR / SqlTableIR)', () => {
       tables: {
         users: {
           name: 'users',
-          columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+          columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
           foreignKeys: [
             { columns: ['org_id'], referencedTable: 'orgs', referencedColumns: ['id'] },
           ],

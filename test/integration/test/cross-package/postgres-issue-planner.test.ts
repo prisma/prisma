@@ -1,17 +1,21 @@
 import postgresAdapterControl, {
   createPostgresBuiltinCodecLookup,
-  PostgresControlAdapter,
 } from '@internal/adapter-postgres/control';
 import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
 import { type FieldStatementColumns, sqlTypeLookupsOf } from '@internal/family-sql/control';
+import type { DataType } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   SqlStorage,
   type SqlStorageInput,
   type StorageTableInput,
 } from '@internal/sql-contract/types';
+import type { SqlColumnIRInput } from '@internal/sql-schema-ir/types';
 import postgresTargetControl from '@internal/target-postgres/control';
-import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
+import {
+  createPostgresBuiltinDataTypeLookup,
+  postgresDataTypes,
+} from '@internal/target-postgres/data-types';
 import { buildPostgresPlanDiff } from '@internal/target-postgres/diff-database-schema';
 import { coalesceSubtreeIssues, planIssues } from '@internal/target-postgres/issue-planner';
 import type { CreateTableCall } from '@internal/target-postgres/op-factory-call';
@@ -27,8 +31,15 @@ import {
 } from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
+import { introspectedColumn as introspectedColumnOver } from '../../../../packages/2-sql/1-core/contract/test/introspected-column';
+import { createTestPostgresControlAdapter } from '../../../../packages/3-targets/6-adapters/postgres/test/helpers/test-control-adapter';
 
-const testAdapter = new PostgresControlAdapter(
+const introspectedColumn = (
+  column: SqlColumnIRInput,
+  dataTypes: readonly DataType[] = postgresDataTypes,
+) => introspectedColumnOver(column, dataTypes);
+
+const testAdapter = createTestPostgresControlAdapter(
   createPostgresBuiltinCodecLookup(),
   createPostgresBuiltinDataTypeLookup(),
 );
@@ -187,12 +198,11 @@ describe('planIssues', () => {
               user: new PostgresTableSchemaNode({
                 name: 'user',
                 columns: {
-                  id: {
+                  id: introspectedColumn({
                     name: 'id',
-                    nativeType: 'uuid',
+                    typeText: 'uuid',
                     nullable: false,
-                    resolvedNativeType: 'uuid',
-                  },
+                  }),
                 },
                 primaryKey: { columns: ['id'] },
                 foreignKeys: [],
@@ -263,18 +273,16 @@ describe('planIssues', () => {
               user: new PostgresTableSchemaNode({
                 name: 'user',
                 columns: {
-                  id: {
+                  id: introspectedColumn({
                     name: 'id',
-                    nativeType: 'uuid',
+                    typeText: 'uuid',
                     nullable: false,
-                    resolvedNativeType: 'uuid',
-                  },
-                  email: {
+                  }),
+                  email: introspectedColumn({
                     name: 'email',
-                    nativeType: 'text',
+                    typeText: 'text',
                     nullable: true,
-                    resolvedNativeType: 'text',
-                  },
+                  }),
                 },
                 primaryKey: { columns: ['id'] },
                 foreignKeys: [],
@@ -307,7 +315,7 @@ describe('planIssues', () => {
   });
 
   describe('typeChange call strategy', () => {
-    function actualWithAge(nativeType: string, codecId: string): PostgresDatabaseSchemaNode {
+    function actualWithAge(typeText: string, codecId: string): PostgresDatabaseSchemaNode {
       return new PostgresDatabaseSchemaNode({
         namespaces: {
           public: new PostgresNamespaceSchemaNode({
@@ -316,19 +324,17 @@ describe('planIssues', () => {
               user: new PostgresTableSchemaNode({
                 name: 'user',
                 columns: {
-                  id: {
+                  id: introspectedColumn({
                     name: 'id',
-                    nativeType: 'uuid',
+                    typeText: 'uuid',
                     nullable: false,
-                    resolvedNativeType: 'uuid',
-                  },
-                  age: {
+                  }),
+                  age: introspectedColumn({
                     name: 'age',
-                    nativeType,
+                    typeText,
                     nullable: false,
-                    resolvedNativeType: nativeType,
                     codecRef: { codecId },
-                  },
+                  }),
                 },
                 primaryKey: { columns: ['id'] },
                 foreignKeys: [],
@@ -447,18 +453,16 @@ describe('planIssues', () => {
               doc: new PostgresTableSchemaNode({
                 name: 'doc',
                 columns: {
-                  id: {
+                  id: introspectedColumn({
                     name: 'id',
-                    nativeType: 'uuid',
+                    typeText: 'uuid',
                     nullable: false,
-                    resolvedNativeType: 'uuid',
-                  },
-                  body: {
+                  }),
+                  body: introspectedColumn({
                     name: 'body',
-                    nativeType: 'text',
+                    typeText: 'text',
                     nullable: false,
-                    resolvedNativeType: 'text',
-                  },
+                  }),
                 },
                 primaryKey: { columns: ['id'] },
                 foreignKeys: [],
@@ -612,12 +616,11 @@ describe('planIssues', () => {
               user: new PostgresTableSchemaNode({
                 name: 'user',
                 columns: {
-                  id: {
+                  id: introspectedColumn({
                     name: 'id',
-                    nativeType: 'uuid',
+                    typeText: 'uuid',
                     nullable: false,
-                    resolvedNativeType: 'uuid',
-                  },
+                  }),
                 },
                 primaryKey: { columns: ['id'] },
                 foreignKeys: [],
@@ -672,12 +675,11 @@ describe('planIssues', () => {
               user: new PostgresTableSchemaNode({
                 name: 'user',
                 columns: {
-                  id: {
+                  id: introspectedColumn({
                     name: 'id',
-                    nativeType: 'uuid',
+                    typeText: 'uuid',
                     nullable: false,
-                    resolvedNativeType: 'uuid',
-                  },
+                  }),
                 },
                 primaryKey: { columns: ['id'] },
                 foreignKeys: [],
