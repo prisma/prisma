@@ -1334,7 +1334,7 @@ describe('assembleControlMutationDefaults', () => {
         id: 'desc-b',
         controlMutationDefaults: {
           defaultFunctionRegistry: new Map([['uuid', { lower: stubLower }]]),
-          generatorDescriptors: [{ id: 'uuidv4', applicableCodecIds: ['pg/text@1'] }],
+          generatorDescriptors: [{ id: 'uuidv4', applicableDataTypes: [dataTypeId('pg/text')] }],
         },
       }),
     ]);
@@ -1372,14 +1372,14 @@ describe('assembleControlMutationDefaults', () => {
           id: 'desc-a',
           controlMutationDefaults: {
             defaultFunctionRegistry: new Map(),
-            generatorDescriptors: [{ id: 'uuidv4', applicableCodecIds: ['a@1'] }],
+            generatorDescriptors: [{ id: 'uuidv4', applicableDataTypes: [dataTypeId('test/a')] }],
           },
         }),
         createDescriptor({
           id: 'desc-b',
           controlMutationDefaults: {
             defaultFunctionRegistry: new Map(),
-            generatorDescriptors: [{ id: 'uuidv4', applicableCodecIds: ['b@1'] }],
+            generatorDescriptors: [{ id: 'uuidv4', applicableDataTypes: [dataTypeId('test/b')] }],
           },
         }),
       ]),

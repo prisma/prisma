@@ -100,7 +100,7 @@ describe('composed mutation default registries', () => {
               },
             ],
           ]),
-          generatorDescriptors: [{ id: 'slugid', applicableCodecIds: ['pg/text@1'] }],
+          generatorDescriptors: [{ id: 'slugid', applicableDataTypes: [dataTypeId('pg/text')] }],
         },
       },
     );
@@ -171,8 +171,8 @@ describe('composed mutation default registries', () => {
         ],
       ]),
       generatorDescriptors: [
-        { id: 'slugid', applicableCodecIds: ['pg/text@1'] },
-        { id: 'sizedid', applicableCodecIds: ['pg/text@1'] },
+        { id: 'slugid', applicableDataTypes: [dataTypeId('pg/text')] },
+        { id: 'sizedid', applicableDataTypes: [dataTypeId('pg/text')] },
       ],
     };
 
@@ -223,6 +223,62 @@ describe('composed mutation default registries', () => {
     });
   });
 
+  it('applies a generator to a column whose codec, from another pack, has a listed data type', () => {
+    const textCodec = fixtureInterpreterTypes.codecLookup.descriptorFor('pg/text@1');
+    if (textCodec === undefined) throw new Error('the fixture registers pg/text@1');
+    const codecLookup = {
+      ...fixtureInterpreterTypes.codecLookup,
+      descriptorFor: (codecId: string) =>
+        codecId === 'pack/slug@1'
+          ? { ...textCodec, codecId }
+          : fixtureInterpreterTypes.codecLookup.descriptorFor(codecId),
+    };
+    const result = interpretSqlContract(
+      `model User {
+  id Int @id
+  slug Slug @default(slugid())
+}
+`,
+      {
+        target: postgresTarget,
+        scalarColumnDescriptors: new Map([
+          ...postgresScalarTypeDescriptors,
+          ['Slug', { codecId: 'pack/slug@1' }],
+        ]),
+        composedExtensionContracts: new Map(),
+        createNamespace: createTestSqlNamespace,
+        ...fixtureInterpreterTypes,
+        codecLookup,
+        capabilities: { sql: { scalarList: true } },
+        controlMutationDefaults: {
+          defaultFunctionRegistry: new Map([
+            [
+              'slugid',
+              {
+                signature: { documentation: 'Generates a slug identifier.' },
+                lower: () => ({
+                  ok: true as const,
+                  value: {
+                    kind: 'execution' as const,
+                    generated: { kind: 'generator' as const, id: 'slugid' },
+                  },
+                }),
+              },
+            ],
+          ]),
+          generatorDescriptors: [{ id: 'slugid', applicableDataTypes: [dataTypeId('pg/text')] }],
+        },
+      },
+    );
+
+    expect(result.ok ? result.value.execution?.mutations.defaults : result.failure).toEqual([
+      {
+        ref: { namespace: 'public', entry: 'User', field: 'slug' },
+        onCreate: { kind: 'generator', id: 'slugid' },
+      },
+    ]);
+  });
+
   it('emits applicability diagnostics for incompatible generator codec ids', () => {
     const result = interpretPostgresSchema(
       `model User {
@@ -250,7 +306,7 @@ describe('composed mutation default registries', () => {
               },
             ],
           ]),
-          generatorDescriptors: [{ id: 'slugid', applicableCodecIds: ['pg/text@1'] }],
+          generatorDescriptors: [{ id: 'slugid', applicableDataTypes: [dataTypeId('pg/text')] }],
         },
       },
     );

@@ -216,7 +216,7 @@ id TId @id @default(uuid())
     });
   });
 
-  it('diagnoses a generator on a codec outside its applicableCodecIds (Int @default(uuid()))', () => {
+  it('diagnoses a generator on a column outside its applicableDataTypes (Int @default(uuid()))', () => {
     const result = interpret(`model B {
 id Int @id @default(uuid())
 }`);

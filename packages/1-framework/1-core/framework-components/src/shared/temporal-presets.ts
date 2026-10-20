@@ -18,7 +18,7 @@ export const TIMESTAMP_NOW_GENERATOR_ID = 'timestampNow' as const;
 /**
  * Builds the control-plane descriptor for the wall-clock-now mutation default generator. Its `id` and `buildPhases` are target-agnostic, so PSL `temporal.updatedAt()` and TS `field.temporal.updatedAt()` lower to byte-identical contracts.
  *
- * `applicableCodecIds` is omitted: `timestampNow` is reachable only through a preset, which co-registers the codec itself, so a compatibility list would be tautological.
+ * `applicableDataTypes` is omitted: `timestampNow` is reachable only through a preset, which co-registers the codec itself, so a compatibility list would be tautological.
  */
 export function timestampNowControlDescriptor(): MutationDefaultGeneratorDescriptor {
   return {

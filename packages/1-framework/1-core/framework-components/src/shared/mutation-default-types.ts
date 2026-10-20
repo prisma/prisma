@@ -3,6 +3,7 @@ import type {
   ExecutionMutationDefaultPhases,
   ExecutionMutationDefaultValue,
 } from '@internal/contract/types';
+import type { DataTypeId } from './data-type';
 
 interface SourcePosition {
   readonly offset: number;
@@ -41,15 +42,9 @@ export type LoweredDefaultResult =
 export interface MutationDefaultGeneratorDescriptor {
   readonly id: string;
   /**
-   * Codec ids the generator is compatible with when the codec choice
-   * and the generator choice are made independently by the contract
-   * author. Set when the registry-coherence check is meaningful
-   * (the codec and the generator can be paired arbitrarily by the
-   * caller); omitted when the generator is only reachable through a
-   * descriptor that co-registers a fixed codec, so coherence is
-   * structural and the list would be tautological.
+   * The data types of the columns `@default(...)` may fill with this generator; a column qualifies when its codec's data type is listed, whichever codec it uses. Omitted for a generator reachable only through a field preset that also chooses the column's codec.
    */
-  readonly applicableCodecIds?: readonly string[];
+  readonly applicableDataTypes?: readonly DataTypeId[];
   /**
    * Construct the `onCreate`/`onUpdate` phases value owned by this
    * generator. Authoring layers (PSL `temporal.updatedAt()`, TS field presets) call

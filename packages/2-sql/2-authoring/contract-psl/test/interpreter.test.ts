@@ -1,4 +1,5 @@
 import { crossRef } from '@internal/contract/types';
+import { dataTypeId } from '@internal/framework-components/codec';
 import { defineIndexTypes } from '@internal/sql-contract/index-types';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
@@ -188,7 +189,7 @@ describe('interpretPslDocumentToSqlContract', () => {
               },
             ],
           ]),
-          generatorDescriptors: [{ id: 'slugid', applicableCodecIds: ['pg/text@1'] }],
+          generatorDescriptors: [{ id: 'slugid', applicableDataTypes: [dataTypeId('pg/text')] }],
         },
         createNamespace: createTestSqlNamespace,
       },

@@ -918,8 +918,8 @@ export function lowerDefaultForField(input: {
     return {};
   }
 
-  // Preset-only generators (e.g. `timestampNow`) co-register their codec through the preset descriptor, so they don't carry an `applicableCodecIds` list. Such a generator surfacing on the `@default(...)` lowering path is itself the bug — emit a diagnostic pointing the user at the correct authoring surface.
-  if (generatorDescriptor.applicableCodecIds === undefined) {
+  // Preset-only generators (e.g. `timestampNow`) co-register their codec through the preset descriptor, so they don't carry an `applicableDataTypes` list. Such a generator surfacing on the `@default(...)` lowering path is itself the bug — emit a diagnostic pointing the user at the correct authoring surface.
+  if (generatorDescriptor.applicableDataTypes === undefined) {
     input.diagnostics.push({
       code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
       message: `Default generator "${generatorDescriptor.id}" is not applicable to "@default(...)" lowering. Use the corresponding field preset (e.g. \`temporal.${generatorDescriptor.id === 'timestampNow' ? 'updatedAt' : generatorDescriptor.id}()\`) instead.`,
@@ -928,10 +928,11 @@ export function lowerDefaultForField(input: {
     return {};
   }
 
-  if (!generatorDescriptor.applicableCodecIds.includes(input.columnDescriptor.codecId)) {
+  const dataType = input.codecLookup.descriptorFor(input.columnDescriptor.codecId)?.dataType;
+  if (dataType === undefined || !generatorDescriptor.applicableDataTypes.includes(dataType)) {
     input.diagnostics.push({
       code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
-      message: `Default generator "${generatorDescriptor.id}" is not applicable to "${input.modelName}.${input.fieldName}" with codecId "${input.columnDescriptor.codecId}".`,
+      message: `Default generator "${generatorDescriptor.id}" is not applicable to "${input.modelName}.${input.fieldName}" with ${dataType === undefined ? `codec "${input.columnDescriptor.codecId}"` : `data type "${dataType}"`}.`,
       ...source.at(call.span),
     });
     return {};

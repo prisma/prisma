@@ -1,5 +1,8 @@
 import type { ExecutionMutationDefaultValue } from '@internal/contract/types';
-import { sqlDefaultFunctionSignatures } from '@internal/family-sql/control';
+import {
+  sqlBuiltinGeneratorDescriptors,
+  sqlDefaultFunctionSignatures,
+} from '@internal/family-sql/control';
 import type {
   ControlMutationDefaultEntry,
   DefaultFunctionLoweringContext,
@@ -8,8 +11,13 @@ import type {
   TypedDefaultFunctionCall,
 } from '@internal/framework-components/control';
 import { timestampNowControlDescriptor } from '@internal/framework-components/control';
-import { builtinGeneratorRegistryMetadata, UUID_VERSIONS } from '@internal/ids';
-import { sqliteInteger } from '@internal/target-sqlite/data-types';
+import { UUID_VERSIONS } from '@internal/ids';
+import {
+  sqliteCharacter,
+  sqliteCharacterVarying,
+  sqliteInteger,
+  sqliteText,
+} from '@internal/target-sqlite/data-types';
 
 function executionGenerator(
   id: ExecutionMutationDefaultValue['id'],
@@ -95,12 +103,10 @@ export function createSqliteDefaultFunctionRegistry(): ReadonlyMap<
 
 export function createSqliteMutationDefaultGeneratorDescriptors(): readonly MutationDefaultGeneratorDescriptor[] {
   return [
-    ...builtinGeneratorRegistryMetadata.map(
-      ({ id, applicableCodecIds }): MutationDefaultGeneratorDescriptor => ({
-        id,
-        applicableCodecIds,
-      }),
-    ),
+    ...sqlBuiltinGeneratorDescriptors({
+      text: [sqliteText.id, sqliteCharacter.id, sqliteCharacterVarying.id],
+      uuid: [],
+    }),
     timestampNowControlDescriptor(),
   ];
 }

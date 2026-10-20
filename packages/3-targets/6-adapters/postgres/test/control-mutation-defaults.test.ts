@@ -218,23 +218,31 @@ describe('createPostgresMutationDefaultGeneratorDescriptors', () => {
     );
   });
 
-  it('omits applicableCodecIds for timestampNow (preset-only generator)', () => {
+  it('omits applicableDataTypes for timestampNow (preset-only generator)', () => {
     const descriptor = descriptors.find((d) => d.id === 'timestampNow')!;
 
     // timestampNow is reachable only via temporal.{createdAt,updatedAt}()
     // preset descriptors that co-register the codec — the @default(...)
     // lowering compatibility check has no role to play here, so the
     // field is intentionally absent. F04 / spec NFR3 (corrected).
-    expect(descriptor.applicableCodecIds).toBeUndefined();
+    expect(descriptor.applicableDataTypes).toBeUndefined();
   });
 
-  it('keeps pg/text@1 applicable for every builtin generator so String fields never false-diagnose', () => {
-    // The type position is the only storage decider (TML-2986); a generator
-    // default on a `String` column must validate against pg/text@1.
-    for (const id of ['ulid', 'nanoid', 'uuidv7', 'uuidv4', 'cuid2', 'ksuid'] as const) {
-      const descriptor = descriptors.find((d) => d.id === id)!;
-      expect(descriptor.applicableCodecIds).toContain('pg/text@1');
-    }
+  it('applies every builtin generator to the text data types, and the UUID generators to pg/uuid', () => {
+    expect(
+      Object.fromEntries(
+        descriptors.flatMap(({ id, applicableDataTypes }) =>
+          applicableDataTypes === undefined ? [] : [[id, applicableDataTypes]],
+        ),
+      ),
+    ).toEqual({
+      ulid: ['pg/text', 'pg/char', 'pg/varchar'],
+      nanoid: ['pg/text', 'pg/char', 'pg/varchar'],
+      uuidv7: ['pg/text', 'pg/char', 'pg/varchar', 'pg/uuid'],
+      uuidv4: ['pg/text', 'pg/char', 'pg/varchar', 'pg/uuid'],
+      cuid2: ['pg/text', 'pg/char', 'pg/varchar'],
+      ksuid: ['pg/text', 'pg/char', 'pg/varchar'],
+    });
   });
 });
 

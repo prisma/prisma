@@ -57,44 +57,45 @@ function nanoidStorage(options?: NanoidOptions): GeneratedStorage {
 }
 
 type BuiltinGeneratorMetadata = {
-  readonly applicableCodecIds: readonly string[];
+  /** Whether the generator writes a UUID, so a target's UUID column takes it besides its text columns. */
+  readonly writesUuid: boolean;
   /** The single source of the {@link GeneratedStorage} this generator's TS spec helper bundles, in its value and in its type. */
   readonly generatedStorage: (options?: never) => GeneratedStorage;
 };
 
 const builtinGeneratorMetadataById = {
   ulid: {
-    applicableCodecIds: ['pg/text@1', 'sql/char@1'],
+    writesUuid: false,
     generatedStorage: () => charStorage(26),
   },
   nanoid: {
-    applicableCodecIds: ['pg/text@1', 'sql/char@1'],
+    writesUuid: false,
     generatedStorage: nanoidStorage,
   },
   uuidv7: {
-    applicableCodecIds: ['pg/text@1', 'sql/char@1', 'pg/uuid@1'],
+    writesUuid: true,
     generatedStorage: () => charStorage(36),
   },
   uuidv4: {
-    applicableCodecIds: ['pg/text@1', 'sql/char@1', 'pg/uuid@1'],
+    writesUuid: true,
     generatedStorage: () => charStorage(36),
   },
   cuid2: {
-    applicableCodecIds: ['pg/text@1', 'sql/char@1'],
+    writesUuid: false,
     generatedStorage: () => charStorage(24),
   },
   ksuid: {
-    applicableCodecIds: ['pg/text@1', 'sql/char@1'],
+    writesUuid: false,
     generatedStorage: () => charStorage(27),
   },
 } as const satisfies Record<BuiltinGeneratorId, BuiltinGeneratorMetadata>;
 
 export const builtinGeneratorRegistryMetadata: ReadonlyArray<{
   readonly id: BuiltinGeneratorId;
-  readonly applicableCodecIds: readonly string[];
+  readonly writesUuid: boolean;
 }> = builtinGeneratorIds.map((id) => ({
   id,
-  applicableCodecIds: builtinGeneratorMetadataById[id].applicableCodecIds,
+  writesUuid: builtinGeneratorMetadataById[id].writesUuid,
 }));
 
 export type GeneratedColumnSpec<TCodecId extends string = string> = {

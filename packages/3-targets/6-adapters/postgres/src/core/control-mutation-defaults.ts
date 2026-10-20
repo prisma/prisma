@@ -1,5 +1,8 @@
 import type { ExecutionMutationDefaultValue } from '@internal/contract/types';
-import { sqlDefaultFunctionSignatures } from '@internal/family-sql/control';
+import {
+  sqlBuiltinGeneratorDescriptors,
+  sqlDefaultFunctionSignatures,
+} from '@internal/family-sql/control';
 import type {
   ControlMutationDefaultEntry,
   DefaultFunctionLoweringContext,
@@ -8,9 +11,9 @@ import type {
   TypedDefaultFunctionCall,
 } from '@internal/framework-components/control';
 import { timestampNowControlDescriptor } from '@internal/framework-components/control';
-import { builtinGeneratorRegistryMetadata, CUID_VERSION, UUID_VERSIONS } from '@internal/ids';
+import { CUID_VERSION, UUID_VERSIONS } from '@internal/ids';
 import { postgresNowGeneratorControlDescriptors } from '@internal/target-postgres/control';
-import { pgInt4 } from '@internal/target-postgres/data-types';
+import { pgChar, pgInt4, pgText, pgUuid, pgVarchar } from '@internal/target-postgres/data-types';
 
 function executionGenerator(
   id: ExecutionMutationDefaultValue['id'],
@@ -124,12 +127,10 @@ export function createPostgresDefaultFunctionRegistry(): ReadonlyMap<
 
 export function createPostgresMutationDefaultGeneratorDescriptors(): readonly MutationDefaultGeneratorDescriptor[] {
   return [
-    ...builtinGeneratorRegistryMetadata.map(
-      ({ id, applicableCodecIds }): MutationDefaultGeneratorDescriptor => ({
-        id,
-        applicableCodecIds,
-      }),
-    ),
+    ...sqlBuiltinGeneratorDescriptors({
+      text: [pgText.id, pgChar.id, pgVarchar.id],
+      uuid: [pgUuid.id],
+    }),
     timestampNowControlDescriptor(),
     ...postgresNowGeneratorControlDescriptors(),
   ];

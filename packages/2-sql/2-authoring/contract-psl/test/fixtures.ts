@@ -619,6 +619,9 @@ const nanoidSig = (dataTypes: DataTypeSupport): FuncCallSig => {
     positional: [{ key, type: optional(type), documentation }],
   };
 };
+const pgTextType = dataTypeId('pg/text');
+const pgCharType = dataTypeId('pg/char');
+
 export function createBuiltinLikeControlMutationDefaults(): ControlMutationDefaults {
   return {
     defaultFunctionRegistry: new Map<string, ControlMutationDefaultEntry>([
@@ -694,30 +697,30 @@ export function createBuiltinLikeControlMutationDefaults(): ControlMutationDefau
     generatorDescriptors: [
       {
         id: 'uuidv4',
-        applicableCodecIds: ['pg/text@1', 'sql/char@1', 'pg/uuid@1'],
+        applicableDataTypes: [pgTextType, pgCharType, dataTypeId('pg/uuid')],
       },
       {
         id: 'uuidv7',
-        applicableCodecIds: ['pg/text@1', 'sql/char@1', 'pg/uuid@1'],
+        applicableDataTypes: [pgTextType, pgCharType, dataTypeId('pg/uuid')],
       },
       {
         id: 'cuid2',
-        applicableCodecIds: ['pg/text@1', 'sql/char@1'],
+        applicableDataTypes: [pgTextType, pgCharType],
       },
       {
         id: 'ulid',
-        applicableCodecIds: ['pg/text@1', 'sql/char@1'],
+        applicableDataTypes: [pgTextType, pgCharType],
       },
       {
         id: 'nanoid',
-        applicableCodecIds: ['pg/text@1', 'sql/char@1'],
+        applicableDataTypes: [pgTextType, pgCharType],
       },
       {
         id: 'timestampNow',
-        applicableCodecIds: [
-          'pg/timestamp-temporal@1',
-          'pg/timestamptz-temporal@1',
-          'sqlite/datetime@1',
+        applicableDataTypes: [
+          dataTypeId('pg/timestamp'),
+          dataTypeId('pg/timestamptz'),
+          dataTypeId('sqlite/datetime'),
         ],
         buildPhases: () => ({
           onCreate: { kind: 'generator', id: 'timestampNow' },

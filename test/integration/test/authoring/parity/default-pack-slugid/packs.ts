@@ -1,4 +1,5 @@
 import type { SqlControlExtensionDescriptor } from '@internal/family-sql/control';
+import { dataTypeId } from '@internal/framework-components/codec';
 import type { ControlMutationDefaultEntry } from '@internal/framework-components/control';
 
 // `slugid()` takes no arguments; its signature makes arity a grammar concern, so any
@@ -28,7 +29,7 @@ const slugidDefaultsPack: SqlControlExtensionDescriptor<'postgres'> = {
 
   controlMutationDefaults: {
     defaultFunctionRegistry: new Map([['slugid', slugidEntry]]),
-    generatorDescriptors: [{ id: 'slugid', applicableCodecIds: ['pg/text@1'] }],
+    generatorDescriptors: [{ id: 'slugid', applicableDataTypes: [dataTypeId('pg/text')] }],
   },
   create() {
     return {
