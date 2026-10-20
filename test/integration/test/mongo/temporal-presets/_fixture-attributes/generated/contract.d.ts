@@ -50,16 +50,16 @@ export type FieldInputTypes = FieldTypesFromDomain<
 
 export namespace Models {
   export type unbound_Click = {
-    _id: FieldOutputTypes['__unbound__']['Event']['_id'];
     createdAt: FieldOutputTypes['__unbound__']['Event']['createdAt'];
+    id: FieldOutputTypes['__unbound__']['Event']['id'];
     kind: 'click';
     url: FieldOutputTypes['__unbound__']['Click']['url'];
     readonly [RelationKeys]?: never;
   };
   export type unbound_Counter = {
-    _id: FieldOutputTypes['__unbound__']['Counter']['_id'];
     factor: FieldOutputTypes['__unbound__']['Counter']['factor'];
     hits: FieldOutputTypes['__unbound__']['Counter']['hits'];
+    id: FieldOutputTypes['__unbound__']['Counter']['id'];
     key: FieldOutputTypes['__unbound__']['Counter']['key'];
     label: FieldOutputTypes['__unbound__']['Counter']['label'];
     scores: FieldOutputTypes['__unbound__']['Counter']['scores'];
@@ -68,22 +68,22 @@ export namespace Models {
     readonly [RelationKeys]?: never;
   };
   export type unbound_Event = {
-    _id: FieldOutputTypes['__unbound__']['Event']['_id'];
     createdAt: FieldOutputTypes['__unbound__']['Event']['createdAt'];
+    id: FieldOutputTypes['__unbound__']['Event']['id'];
     kind: 'click' | 'view';
     readonly [RelationKeys]?: never;
   };
   export type unbound_Post = {
-    _id: FieldOutputTypes['__unbound__']['Post']['_id'];
     createdAt: FieldOutputTypes['__unbound__']['Post']['createdAt'];
+    id: FieldOutputTypes['__unbound__']['Post']['id'];
     title: FieldOutputTypes['__unbound__']['Post']['title'];
     touchedAt: FieldOutputTypes['__unbound__']['Post']['touchedAt'];
-    updated_at: FieldOutputTypes['__unbound__']['Post']['updated_at'];
+    updatedAt: FieldOutputTypes['__unbound__']['Post']['updatedAt'];
     readonly [RelationKeys]?: never;
   };
   export type unbound_View = {
-    _id: FieldOutputTypes['__unbound__']['Event']['_id'];
     createdAt: FieldOutputTypes['__unbound__']['Event']['createdAt'];
+    id: FieldOutputTypes['__unbound__']['Event']['id'];
     kind: 'view';
     path: FieldOutputTypes['__unbound__']['View']['path'];
     readonly [RelationKeys]?: never;
@@ -244,7 +244,10 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'events' };
+            readonly storage: {
+              readonly collection: 'events';
+              readonly fields: { readonly url: { readonly field: 'url' } };
+            };
             readonly base: {
               readonly namespace: '__unbound__' & NamespaceId;
               readonly model: 'Event';
@@ -252,10 +255,6 @@ type ContractBase = Omit<
           };
           readonly Counter: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly factor: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/double@1' };
@@ -263,6 +262,10 @@ type ContractBase = Omit<
               readonly hits: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/int32@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly key: {
                 readonly nullable: false;
@@ -288,17 +291,29 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'counters' };
+            readonly storage: {
+              readonly collection: 'counters';
+              readonly fields: {
+                readonly factor: { readonly field: 'factor' };
+                readonly hits: { readonly field: 'hits' };
+                readonly id: { readonly field: '_id' };
+                readonly key: { readonly field: 'key' };
+                readonly label: { readonly field: 'label' };
+                readonly scores: { readonly field: 'scores' };
+                readonly tags: { readonly field: 'tags' };
+                readonly updatedAt: { readonly field: 'updatedAt' };
+              };
+            };
           };
           readonly Event: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/date@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly kind: {
                 readonly nullable: false;
@@ -306,7 +321,14 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'events' };
+            readonly storage: {
+              readonly collection: 'events';
+              readonly fields: {
+                readonly createdAt: { readonly field: 'createdAt' };
+                readonly id: { readonly field: '_id' };
+                readonly kind: { readonly field: 'kind' };
+              };
+            };
             readonly discriminator: { readonly field: 'kind' };
             readonly variants: {
               readonly click: {
@@ -321,13 +343,13 @@ type ContractBase = Omit<
           };
           readonly Post: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/date@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly title: {
                 readonly nullable: false;
@@ -337,13 +359,22 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/date@1' };
               };
-              readonly updated_at: {
+              readonly updatedAt: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/date@1' };
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'posts' };
+            readonly storage: {
+              readonly collection: 'posts';
+              readonly fields: {
+                readonly createdAt: { readonly field: 'createdAt' };
+                readonly id: { readonly field: '_id' };
+                readonly title: { readonly field: 'title' };
+                readonly touchedAt: { readonly field: 'touchedAt' };
+                readonly updatedAt: { readonly field: 'updated_at' };
+              };
+            };
           };
           readonly View: {
             readonly fields: {
@@ -353,7 +384,10 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'events' };
+            readonly storage: {
+              readonly collection: 'events';
+              readonly fields: { readonly path: { readonly field: 'path' } };
+            };
             readonly base: {
               readonly namespace: '__unbound__' & NamespaceId;
               readonly model: 'Event';
