@@ -51,6 +51,7 @@ Through `mise exec --` and the `:agent` variants, reading the log file each prin
 | 4 | `git grep -n "nativeType" -- packages examples apps test` | the Prisma 6 and Prisma 7 schema readers where it names `@db.*` attributes, including the Prisma 7 type table's `nativeTypes` key and its test; the old-contract refusal and its tests and fixture; the upgrade script, its tests and its fixtures; this slice's upgrade detection test, `test/integration/test/upgrade-instructions/column-types-through-data-types/detection.test.ts`; comments in the pgvector and postgis `migration.ts` files |
 | 4 | `git grep -nE '(^\|[^A-Za-z])Unsupported\(' -- packages test examples` | the Prisma 6 and Prisma 7 schema readers, their fixtures and tests; `packages/3-extensions/postgres/README.md`, which documents the Prisma 7 reader; the message that names `Unsupported("x")` as no Prisma 8 type (TML-3582: `contract-psl/src/unresolved-type.ts`, the `contract-psl` README, and its tests in `native-type-parity.test.ts`, `interpreter.field-type-resolution.test.ts` and `sql-unsupported-type-lsp.integration.test.ts`) |
 | 5 | `git grep -n "applicableCodecIds\|FUNCTION_ARGUMENT_KEYS" -- packages` | nothing |
+| 5 | `git grep -nE "min: 2, max: 255\|minimum: 2,\|maximum: 255\|<2-255>" -- packages ':!packages/**/test/**'` | `packages/1-framework/2-authoring/ids/src/argument-limits.ts`, where the nanoid limits are written; the `contract-psl` README's list of default function calls |
 
 ## Halt conditions
 
