@@ -162,6 +162,7 @@ model Post {
   tags          Tag[]
   fans          User[]  @relation("Favorites")
   labels        Label[]
+  search        Unsupported("tsvector")?
 
   @@unique([title, category])
   @@index([category])
