@@ -22,6 +22,7 @@ import {
 import type {
   CodecLookupWithDescriptors,
   DataTypeLookup,
+  TypeLookups,
 } from '@internal/framework-components/codec';
 import { mergeCapabilityMatrices } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
@@ -46,7 +47,6 @@ import { contractError } from './contract-errors';
 import { describeModel, type ModelDescription } from './describe-model';
 import { describeTableNode } from './describe-table-node';
 import { buildDomainField } from './domain-fields';
-import type { TypeLookups } from './lower-column';
 import { lowerTable, type TableLoweringContext } from './lower-table';
 import { mergeTables } from './merge-tables';
 import { modelLookupsOf, modelNamespaceId } from './model-references';
@@ -156,7 +156,7 @@ export function buildSqlContractFromDefinition(
   codecLookup: CodecLookupWithDescriptors,
   dataTypeLookup: DataTypeLookup,
 ): Contract<SqlStorage> {
-  const lookups: TypeLookups = { codecLookup, dataTypeLookup };
+  const lookups: TypeLookups<CodecLookupWithDescriptors> = { codecLookup, dataTypeLookup };
   const target = definition.target.targetId;
   const defaultNamespaceId = definition.target.defaultNamespaceId;
   const indexTypeRegistry = indexTypeRegistryOf(

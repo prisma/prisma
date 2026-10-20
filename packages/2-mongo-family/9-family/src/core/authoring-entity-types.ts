@@ -8,12 +8,9 @@ import {
   resolveEnumCodecId,
 } from '@internal/framework-components/authoring';
 import { enumRefusalOf } from '@internal/framework-components/codec';
-import { validatorEnumMemberRefusalOf, validatorEnumRefusalOf } from '@internal/mongo-contract';
-import { isMongoDataType } from '@internal/mongo-contract/data-type';
 import { type EnumTypeHandle, enumType } from '@internal/mongo-contract-ts/contract-builder';
 import type { InferBlock, PslBlockSpecDescriptor } from '@internal/psl-parser';
 import { blockAttribute, jsonValue, mapBlock, str } from '@internal/psl-parser';
-import { InternalError } from '@internal/utils/internal-error';
 
 export function mongoFamilyEnumSpec() {
   return mapBlock({
@@ -54,36 +51,11 @@ export const mongoFamilyEnumEntityDescriptor = {
         });
         return undefined;
       }
-      const dataType = ctx.dataTypeLookup.get(descriptor.dataType);
-      if (dataType === undefined) {
-        diagnostics?.push({
-          code: 'PSL_EXTENSION_INVALID_VALUE',
-          message: `enum "${block.name}" @@type codec "${codecId}" represents data type "${descriptor.dataType}", which no component registers`,
-          sourceId,
-          span: codecSpan,
-        });
-        return undefined;
-      }
-      if (!isMongoDataType(dataType)) {
-        throw new InternalError(`Data type ${dataType.id} is not a Mongo data type.`);
-      }
       const enumRefusal = enumRefusalOf(descriptor);
       if (enumRefusal !== undefined) {
         diagnostics?.push({
           code: 'PSL_EXTENSION_INVALID_VALUE',
           message: `enum "${block.name}" cannot use the codec "${codecId}". ${enumRefusal}`,
-          sourceId,
-          span: codecSpan,
-        });
-        return undefined;
-      }
-
-      const { bsonTypes } = dataType.mongo;
-      const validatorRefusal = validatorEnumRefusalOf(bsonTypes);
-      if (validatorRefusal !== undefined) {
-        diagnostics?.push({
-          code: 'PSL_EXTENSION_INVALID_VALUE',
-          message: `enum "${block.name}" @@type codec "${codecId}" ${validatorRefusal}`,
           sourceId,
           span: codecSpan,
         });
@@ -103,23 +75,6 @@ export const mongoFamilyEnumEntityDescriptor = {
 
       const members = readEnumBlockMembers(block, codecId, codec, ctx);
       if (members === undefined) return undefined;
-
-      let unlistedMember = false;
-      for (const member of members) {
-        const refusal = validatorEnumMemberRefusalOf(
-          bsonTypes,
-          codec.dataType.toContract(codec.toDataTypeValue(member.value)),
-        );
-        if (refusal === undefined) continue;
-        diagnostics?.push({
-          code: 'PSL_EXTENSION_INVALID_VALUE',
-          message: `enum "${block.name}" member "${member.name}" ${refusal}`,
-          sourceId,
-          span: block.parameterSpans[member.name] ?? block.span,
-        });
-        unlistedMember = true;
-      }
-      if (unlistedMember) return undefined;
 
       return enumType(block.name, { codecId }, ...members);
     },

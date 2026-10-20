@@ -1,6 +1,17 @@
-import { PrimaryKey, SqlForeignKeyIR, SqlUniqueIR } from '@internal/sql-schema-ir/types';
+import type { DataType } from '@internal/framework-components/codec';
+import {
+  PrimaryKey,
+  SqlColumnIR,
+  SqlForeignKeyIR,
+  SqlUniqueIR,
+} from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
-import { tableConstraintsFromNode } from '../../src/core/migrations/column-ddl-rendering';
+import { sqliteCharacter, sqliteText } from '../../src/core/data-types';
+import {
+  columnSpecFromNode,
+  ddlColumnFromNode,
+  tableConstraintsFromNode,
+} from '../../src/core/migrations/column-ddl-rendering';
 import { checkConstraint, expectedColumn, table } from './node-issue-helpers';
 
 describe('tableConstraintsFromNode — checks', () => {
@@ -8,7 +19,7 @@ describe('tableConstraintsFromNode — checks', () => {
     const orderTable = table({
       name: 'order',
       columns: {
-        total: expectedColumn({ name: 'total', nativeType: 'NUMERIC', nullable: false }),
+        total: expectedColumn({ name: 'total', typeText: 'NUMERIC', nullable: false }),
       },
       checks: [checkConstraint({ name: 'order_total_positive', expression: 'total > 0' })],
     });
@@ -25,7 +36,7 @@ describe('tableConstraintsFromNode — checks', () => {
     const orderTable = table({
       name: 'order',
       columns: {
-        total: expectedColumn({ name: 'total', nativeType: 'NUMERIC', nullable: false }),
+        total: expectedColumn({ name: 'total', typeText: 'NUMERIC', nullable: false }),
       },
       checks: [
         checkConstraint({ name: 'order_total_positive', expression: 'total > 0' }),
@@ -44,9 +55,9 @@ describe('tableConstraintsFromNode — checks', () => {
     const orderTable = table({
       name: 'order',
       columns: {
-        id: expectedColumn({ name: 'id', nativeType: 'INTEGER', nullable: false }),
-        email: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: false }),
-        total: expectedColumn({ name: 'total', nativeType: 'NUMERIC', nullable: false }),
+        id: expectedColumn({ name: 'id', typeText: 'INTEGER', nullable: false }),
+        email: expectedColumn({ name: 'email', typeText: 'TEXT', nullable: false }),
+        total: expectedColumn({ name: 'total', typeText: 'NUMERIC', nullable: false }),
       },
       primaryKey: new PrimaryKey({ columns: ['id'] }),
       uniques: [new SqlUniqueIR({ columns: ['email'] })],
@@ -66,5 +77,38 @@ describe('tableConstraintsFromNode — checks', () => {
       'UniqueConstraint',
       'ForeignKeyConstraint',
     ]);
+  });
+});
+
+function column(storedType: DataType, codecId: string, typeParams?: Record<string, number>) {
+  return new SqlColumnIR({
+    name: 'c',
+    typeText: 'text',
+    nullable: false,
+    storedType,
+    storedTypeParams: {},
+    codecRef: { codecId, ...(typeParams === undefined ? {} : { typeParams }) },
+  });
+}
+
+describe('the type SQLite DDL writes for a column node', () => {
+  it('is the name of the type the column is stored as, in upper case', () => {
+    const datetime = column(sqliteText, 'sqlite/datetime@1');
+    const character = column(sqliteCharacter, 'sql/char@1', { length: 10 });
+    expect({
+      spec: columnSpecFromNode(datetime, false).typeSql,
+      ddl: ddlColumnFromNode(datetime, false).type,
+      character: columnSpecFromNode(character, false).typeSql,
+    }).toEqual({ spec: 'TEXT', ddl: 'TEXT', character: 'CHARACTER' });
+  });
+
+  it('refuses a column with no data type', () => {
+    const untyped = new SqlColumnIR({
+      name: 'c',
+      typeText: 'text',
+      nullable: false,
+      codecRef: { codecId: 'sqlite/text@1' },
+    });
+    expect(() => columnSpecFromNode(untyped, false)).toThrow(/column "c" has no data type/);
   });
 });

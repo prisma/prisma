@@ -123,3 +123,15 @@ A SQLite table rebuild renders as a 40-line `recreateTable` call full of interna
 **Found:** slice 3a review round 2 (2026-10-13), S07. Tracked as TML-3575.
 
 `db migrate`, `db update` and `migration plan` print every command through `cliCommand` in `packages/1-framework/3-tooling/cli/src/utils/printed-command.ts`. About 100 other `{bin} …` literals do not: `migration status`, `db init` failures (`db-init-failure.ts`), `db sign` beyond its re-run command, `contract emit`, `prepare.ts`, `cli-errors.ts` (for example `MIGRATION.PLAN_ORIGIN_UNKNOWN`), and `reemitHint` in the migration package. Followed from another directory, they load a different config or none.
+
+## The shared-collection reach check reads the discriminator value back out of a filter
+
+**Found:** slice 4p review, PR 2 rounds 4 and 5 (2026-10-19).
+
+`otherModelsReached` in `packages/3-mongo-target/1-mongo-target/src/core/migrations/mongo-statement-planning.ts` learns which variant a field removal selects by reading the discriminator value back out of the removal call's MongoDB filter (`discriminatorValueOf`). It is safe today, because a filter it cannot read is treated as reaching every model. Carry the selection as a typed value, the discriminator field and value, on `FieldRemoval` and on the statement outcome, and write the filter from it at the end. Do it with the next PR, which changes the discriminator to a stored key, so the filter changes shape anyway.
+
+## The enum refusal walks the models a second time
+
+**Found:** slice 4p review, PR 2 round 5 (2026-10-19).
+
+`validatedEnumNames` in `packages/2-mongo-family/1-foundation/mongo-contract/src/contract-refusals.ts` works out which enums a managed collection's validator lists by walking root models, variants, embedded models and value objects. `deriveCollectionValidators` already walks the same types, and is the authority on what a validator lists, for example below the entry point of a recursive group. Have the derivation report the enums it listed, for example by returning `{ validators, listedEnums }` from one internal walk, and refuse from that, so the two walks cannot drift apart.

@@ -4,10 +4,11 @@ import {
   temporalAuthoringPresets,
   temporalCodecPreset,
 } from '@internal/framework-components/authoring';
-import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
+import type { TargetPackRef } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { defineContract, type FieldBuilder } from '../src/contract-builder';
+import { mongoFamilyPack, mongoTargetPack as mongoTestTargetPack } from './mongo-test-packs';
 
 /** What a JavaScript caller, whom the types do not stop, can write on a preset field. */
 function untyped(builder: unknown): { optional(): FieldBuilder; many(): FieldBuilder } {
@@ -16,20 +17,8 @@ function untyped(builder: unknown): { optional(): FieldBuilder; many(): FieldBui
 
 const mongoDate = { codecId: 'mongo/date@1' } as const;
 
-const mongoFamilyPack = {
-  kind: 'family',
-  id: 'mongo',
-  familyId: 'mongo',
-  version: '0.0.1',
-} as const satisfies FamilyPackRef<'mongo'>;
-
 const mongoTargetPack = {
-  kind: 'target',
-  id: 'mongo',
-  familyId: 'mongo',
-  targetId: 'mongo',
-  version: '0.0.1',
-  defaultNamespaceId: '__unbound__',
+  ...mongoTestTargetPack,
   authoring: {
     field: {
       temporal: {

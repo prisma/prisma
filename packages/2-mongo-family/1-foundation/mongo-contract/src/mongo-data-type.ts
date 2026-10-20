@@ -7,11 +7,10 @@
 
 import type { ContractField } from '@internal/contract/types';
 import type {
-  CodecLookupWithDescriptors,
   DataType,
-  DataTypeLookup,
   DataTypeParamsProblem,
   DataTypeSpec,
+  TypeLookups,
 } from '@internal/framework-components/codec';
 import {
   assertDataTypeParams,
@@ -40,19 +39,13 @@ export function isMongoDataType(type: DataType): type is MongoDataType {
   return 'mongo' in type;
 }
 
-/** The lookups that find the Mongo data type a codec represents. */
-export interface MongoTypeLookups {
-  readonly codecLookup: Pick<CodecLookupWithDescriptors, 'descriptorFor'>;
-  readonly dataTypeLookup: Pick<DataTypeLookup, 'get'>;
-}
-
 /**
  * The BSON types a value of the codec `codecId` is stored as, read from the data type the codec
  * represents; undefined when the stack registers no such codec or Mongo data type.
  */
 export function bsonTypesOfCodec(
   codecId: string,
-  lookups: MongoTypeLookups,
+  lookups: TypeLookups,
 ): readonly string[] | undefined {
   const type = dataTypeOfCodec(codecId, lookups);
   return type !== undefined && isMongoDataType(type) ? type.mongo.bsonTypes : undefined;
@@ -76,7 +69,7 @@ interface DomainNamespaceFields {
  */
 export function assertMongoFieldTypeParams(
   namespaces: Readonly<Record<string, DomainNamespaceFields>>,
-  lookups: MongoTypeLookups,
+  lookups: TypeLookups,
 ): void {
   for (const namespace of Object.values(namespaces)) {
     for (const [modelName, model] of Object.entries(namespace.models)) {
@@ -91,7 +84,7 @@ export function assertMongoFieldTypeParams(
 function assertFieldsTypeParams(
   fields: Readonly<Record<string, ContractField>>,
   owner: FieldOwner,
-  lookups: MongoTypeLookups,
+  lookups: TypeLookups,
 ): void {
   for (const [fieldName, field] of Object.entries(fields)) {
     const { type: fieldType } = field;
@@ -106,13 +99,13 @@ function assertFieldsTypeParams(
 export function codecTypeParamsProblem(
   codecId: string,
   typeParams: Readonly<Record<string, unknown>>,
-  lookups: MongoTypeLookups,
+  lookups: TypeLookups,
 ): DataTypeParamsProblem | undefined {
   const type = dataTypeOfCodec(codecId, lookups);
   return type === undefined ? undefined : dataTypeParamsProblem(type, typeParams);
 }
 
-function dataTypeOfCodec(codecId: string, lookups: MongoTypeLookups): DataType | undefined {
+function dataTypeOfCodec(codecId: string, lookups: TypeLookups): DataType | undefined {
   const descriptor = lookups.codecLookup.descriptorFor(codecId);
   return descriptor === undefined ? undefined : lookups.dataTypeLookup.get(descriptor.dataType);
 }

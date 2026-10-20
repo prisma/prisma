@@ -107,17 +107,17 @@ describe('family instance introspect', () => {
 
           const idColumn = userTable.columns['id']!;
           expect(idColumn.name).toBe('id');
-          expect(idColumn.nativeType).toBeDefined();
+          expect(idColumn.typeText).toBeDefined();
           expect(idColumn.nullable).toBe(false);
 
           const emailColumn = userTable.columns['email']!;
           expect(emailColumn.name).toBe('email');
-          expect(emailColumn.nativeType).toBeDefined();
+          expect(emailColumn.typeText).toBeDefined();
           expect(emailColumn.nullable).toBe(false);
 
           const createdAtColumn = userTable.columns['createdAt']!;
           expect(createdAtColumn.name).toBe('createdAt');
-          expect(createdAtColumn.nativeType).toBeDefined();
+          expect(createdAtColumn.typeText).toBeDefined();
           expect(createdAtColumn.nullable).toBe(false);
         });
       },

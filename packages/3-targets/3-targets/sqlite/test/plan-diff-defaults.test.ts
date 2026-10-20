@@ -10,7 +10,7 @@ import { readSqliteDefault } from '../src/core/default-normalizer';
 import { columnSpecFromNode, ddlColumnFromNode } from '../src/core/migrations/column-ddl-rendering';
 import { buildSqlitePlanDiff } from '../src/core/migrations/diff-database-schema';
 import { sqliteCreateNamespace } from '../src/core/sqlite-unbound-database';
-import { sqliteTestComponents, sqliteTestTypes } from './sqlite-test-types';
+import { introspectedColumn, sqliteTestComponents } from './sqlite-test-types';
 
 function liveSchema(rawDefault: string): SqlSchemaIR {
   return new SqlSchemaIR({
@@ -18,14 +18,13 @@ function liveSchema(rawDefault: string): SqlSchemaIR {
       event: new SqlTableIR({
         name: 'event',
         columns: {
-          at: {
+          at: introspectedColumn({
             name: 'at',
-            nativeType: 'text',
+            typeText: 'text',
             nullable: false,
             default: rawDefault,
-            resolvedNativeType: 'text',
             ...ifDefined('resolvedDefault', functionDefaultOf(rawDefault)),
-          },
+          }),
         },
         foreignKeys: [],
         uniques: [],
@@ -125,8 +124,8 @@ describe('buildSqlitePlanDiff derives the expected default like verify does', ()
       const column = diff.expected.tables['event']?.columns['at'];
       if (column === undefined) throw new Error('expected column derived');
       expect({
-        spec: columnSpecFromNode(column, false, sqliteTestTypes).default,
-        ddl: ddlColumnFromNode(column, false, sqliteTestTypes).default,
+        spec: columnSpecFromNode(column, false).default,
+        ddl: ddlColumnFromNode(column, false).default,
       }).toEqual({
         spec: { kind: 'function', expression },
         ddl: new FunctionColumnDefault(opaqueSql(expression)),

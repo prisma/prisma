@@ -1,3 +1,4 @@
+import { dataTypeValuesEqual } from '@internal/framework-components/codec';
 import { SQL_EXPRESSION_DATA_TYPE_ID } from '@internal/sql-contract/sql-expression';
 import { describe, expect, it } from 'vitest';
 import {
@@ -246,5 +247,22 @@ describe("each codec's equality-key flag", () => {
         .filter((descriptor) => types.get(descriptor.dataType)?.equalityKey === undefined)
         .map((descriptor) => descriptor.codecId),
     }).toEqual({ flagged: ['pg/numeric@1'], withoutKey: [] });
+  });
+});
+
+describe('values under parameters with one normal form', () => {
+  it('are one value for numeric(10) and numeric(10,0)', () => {
+    const short = pgNumeric.valueFrom('12', { precision: 10 });
+    const long = pgNumeric.fromContract('12', { precision: 10, scale: 0 });
+    expect({ params: short.params, equal: dataTypeValuesEqual(short, long) }).toEqual({
+      params: { precision: 10, scale: 0 },
+      equal: true,
+    });
+  });
+
+  it('are one value for character and character(1)', () => {
+    expect(
+      dataTypeValuesEqual(pgChar.valueFrom('a', {}), pgChar.fromContract('a', { length: 1 })),
+    ).toBe(true);
   });
 });

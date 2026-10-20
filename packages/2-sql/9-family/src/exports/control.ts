@@ -23,6 +23,7 @@ export type {
 export type {
   ContractToSchemaIROptions,
   DefaultResolver,
+  DefaultResolverColumn,
 } from '../core/migrations/contract-to-schema-ir';
 // Contract → SchemaIR conversion for offline migration planning
 export {
@@ -32,7 +33,6 @@ export {
 } from '../core/migrations/contract-to-schema-ir';
 export type { ControlPolicySubject, SuppressionRecord } from '../core/migrations/control-policy';
 export {
-  controlPolicyForCall,
   partitionCallsByControlPolicy,
   partitionIssuesByControlPolicy,
 } from '../core/migrations/control-policy';

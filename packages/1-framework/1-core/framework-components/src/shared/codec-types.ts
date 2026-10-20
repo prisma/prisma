@@ -1,6 +1,7 @@
 import type { JsonValue } from '@internal/contract/types';
 import type { Codec } from './codec';
 import type { AnyCodecDescriptor } from './codec-descriptor';
+import type { DataTypeLookup } from './data-type';
 
 /** Every semantic trait a codec may advertise. The runtime tuple backs validation of trait-keyed contributions arriving from JavaScript. */
 export const CODEC_TRAITS = ['equality', 'order', 'boolean', 'numeric', 'textual'] as const;
@@ -71,6 +72,18 @@ export interface CodecLookupWithDescriptors extends CodecLookup {
    * The registered {@link AnyCodecDescriptor} for `id`, or `undefined` if none is registered. A consumer that needs more than the per-id readers above, such as a column's codec built with its type parameters or an authoring hook a target's descriptor exposes, fetches the descriptor itself. It answers from the same registrations as `get`.
    */
   descriptorFor(id: string): AnyCodecDescriptor | undefined;
+}
+
+/** The codecs and the data types of one stack, which together find the data type a codec represents. ADR 254. */
+export interface TypeLookups<
+  Codecs extends Pick<CodecLookupWithDescriptors, 'descriptorFor'> = Pick<
+    CodecLookupWithDescriptors,
+    'descriptorFor'
+  >,
+  DataTypes extends Pick<DataTypeLookup, 'get'> = Pick<DataTypeLookup, 'get'>,
+> {
+  readonly codecLookup: Codecs;
+  readonly dataTypeLookup: DataTypes;
 }
 
 /**

@@ -60,8 +60,8 @@ describe('buildRecreatePostchecks — column-level', () => {
     const issues = [
       issue({
         path: ['database', 'users', 'column:email'],
-        expected: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: false }),
-        actual: actualColumn({ name: 'email', nativeType: 'TEXT', nullable: true }),
+        expected: expectedColumn({ name: 'email', typeText: 'TEXT', nullable: false }),
+        actual: actualColumn({ name: 'email', typeText: 'TEXT', nullable: true }),
       }),
     ];
     const checks = withSql(buildRecreatePostchecks('users', issues, spec));
@@ -70,13 +70,28 @@ describe('buildRecreatePostchecks — column-level', () => {
     expect(check!.sql).toContain('"notnull" = 1');
   });
 
+  it('emits no type postcheck when the type is written another way', () => {
+    const spec = tableSpec({ columns: [colSpec({ name: 'email', typeSql: 'TEXT' })] });
+    const issues = [
+      issue({
+        path: ['database', 'users', 'column:email'],
+        expected: expectedColumn({ name: 'email', typeText: 'TEXT', nullable: false }),
+        actual: actualColumn({ name: 'email', typeText: 'text', nullable: true }),
+      }),
+    ];
+    const checks = withSql(buildRecreatePostchecks('users', issues, spec));
+    expect(checks.map((check) => check.description)).toEqual([
+      'verify "email" nullability on "users"',
+    ]);
+  });
+
   it('emits a type postcheck when the type changes', () => {
     const spec = tableSpec({ columns: [colSpec({ name: 'email', typeSql: 'TEXT' })] });
     const issues = [
       issue({
         path: ['database', 'users', 'column:email'],
-        expected: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: true }),
-        actual: actualColumn({ name: 'email', nativeType: 'INTEGER', nullable: true }),
+        expected: expectedColumn({ name: 'email', typeText: 'TEXT', nullable: true }),
+        actual: actualColumn({ name: 'email', typeText: 'INTEGER', nullable: true }),
       }),
     ];
     const checks = withSql(buildRecreatePostchecks('users', issues, spec));
@@ -90,8 +105,8 @@ describe('buildRecreatePostchecks — column-level', () => {
     const issues = [
       issue({
         path: ['database', 'users', 'column:email'],
-        expected: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: false }),
-        actual: actualColumn({ name: 'email', nativeType: 'INTEGER', nullable: true }),
+        expected: expectedColumn({ name: 'email', typeText: 'TEXT', nullable: false }),
+        actual: actualColumn({ name: 'email', typeText: 'INTEGER', nullable: true }),
       }),
     ];
     const checks = withSql(buildRecreatePostchecks('users', issues, spec));
@@ -299,8 +314,8 @@ describe('buildRecreatePostchecks — constraints', () => {
     const issues = [
       issue({
         path: ['database', 't', 'column:a'],
-        expected: expectedColumn({ name: 'a', nativeType: 'TEXT', nullable: true }),
-        actual: actualColumn({ name: 'a', nativeType: 'INTEGER', nullable: true }),
+        expected: expectedColumn({ name: 'a', typeText: 'TEXT', nullable: true }),
+        actual: actualColumn({ name: 'a', typeText: 'INTEGER', nullable: true }),
       }),
     ];
     const checks = withSql(buildRecreatePostchecks('t', issues, spec));

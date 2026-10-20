@@ -33,9 +33,9 @@ function interpret(schema: string) {
   );
 }
 
-describe('a Mongo enum over a codec without exactly one BSON type and without equality', () => {
-  it.each([['mongo/json@1'], ['mongo/bson@1']])(
-    'refuses @@type("%s") with the codec\'s own reason, at the @@type argument and nowhere else',
+describe('a Mongo enum over a codec that compares no values', () => {
+  it.each(['mongo/json@1', 'mongo/bson@1'])(
+    'refuses @@type("%s") at the @@type argument and nowhere else',
     (codecId) => {
       const typeAttribute = `@@type("${codecId}")`;
       const schema = `enum Shape {\n  ${typeAttribute}\n  a\n}\nmodel Figure {\n  id    ObjectId @id @map("_id")\n  shape Shape\n  other Shape?\n}\n`;

@@ -11,6 +11,7 @@ describe('deriveCollectionValidators — BSON type lists', () => {
     });
 
     expect(result.jsonSchema['properties']).toEqual({
+      _id: { bsonType: 'objectId' },
       views: { bsonType: 'long' },
       price: { bsonType: 'decimal' },
       thumbnail: { bsonType: 'binData' },
@@ -52,8 +53,8 @@ describe('deriveCollectionValidators — BSON type lists', () => {
 
       expect(result.jsonSchema).toEqual({
         bsonType: 'object',
-        ...(nullable ? {} : { required: ['tags'] }),
-        properties: { tags: { bsonType, items: {} } },
+        required: nullable ? ['_id'] : ['_id', 'tags'],
+        properties: { _id: { bsonType: 'objectId' }, tags: { bsonType, items: {} } },
         additionalProperties: false,
       });
     },
@@ -66,6 +67,7 @@ describe('deriveCollectionValidators — BSON type lists', () => {
       many: arrayField('mongo/bson@1'),
     });
     expect(result.jsonSchema['properties']).toEqual({
+      _id: { bsonType: 'objectId' },
       raw: {},
       maybe: {},
       many: { bsonType: 'array', items: {} },
@@ -78,19 +80,23 @@ describe('deriveCollectionValidators — BSON type lists', () => {
     it('admits the JSON-representable BSON types, null included, when required', () => {
       const result = rootValidator({ payload: scalarField('mongo/json@1') });
       expect(result.jsonSchema).toMatchObject({
-        required: ['payload'],
+        required: ['_id', 'payload'],
         properties: { payload: { bsonType: jsonBsonTypes } },
       });
     });
 
     it('admits the same types when nullable, without a second null', () => {
       const result = rootValidator({ payload: scalarField('mongo/json@1', true) });
-      expect(result.jsonSchema['properties']).toEqual({ payload: { bsonType: jsonBsonTypes } });
+      expect(result.jsonSchema['properties']).toEqual({
+        _id: { bsonType: 'objectId' },
+        payload: { bsonType: jsonBsonTypes },
+      });
     });
 
     it('admits the same types for each item of a list', () => {
       const result = rootValidator({ payloads: arrayField('mongo/json@1') });
       expect(result.jsonSchema['properties']).toEqual({
+        _id: { bsonType: 'objectId' },
         payloads: { bsonType: 'array', items: { bsonType: jsonBsonTypes } },
       });
     });
@@ -99,24 +105,32 @@ describe('deriveCollectionValidators — BSON type lists', () => {
   describe('a codec with several BSON types', () => {
     it('lists every type for a required field', () => {
       const result = rootValidator({ count: scalarField('test/int-or-long@1') });
-      expect(result.jsonSchema['properties']).toEqual({ count: { bsonType: ['int', 'long'] } });
+      expect(result.jsonSchema['properties']).toEqual({
+        _id: { bsonType: 'objectId' },
+        count: { bsonType: ['int', 'long'] },
+      });
     });
 
     it('prepends null for a nullable field', () => {
       const result = rootValidator({ count: scalarField('test/int-or-long@1', true) });
       expect(result.jsonSchema['properties']).toEqual({
+        _id: { bsonType: 'objectId' },
         count: { bsonType: ['null', 'int', 'long'] },
       });
     });
 
     it('does not repeat null for a nullable field whose types already include it', () => {
       const result = rootValidator({ count: scalarField('test/number-or-null@1', true) });
-      expect(result.jsonSchema['properties']).toEqual({ count: { bsonType: ['null', 'int'] } });
+      expect(result.jsonSchema['properties']).toEqual({
+        _id: { bsonType: 'objectId' },
+        count: { bsonType: ['null', 'int'] },
+      });
     });
 
     it('lists every type for the items of a list field', () => {
       const result = rootValidator({ counts: arrayField('test/int-or-long@1') });
       expect(result.jsonSchema['properties']).toEqual({
+        _id: { bsonType: 'objectId' },
         counts: { bsonType: 'array', items: { bsonType: ['int', 'long'] } },
       });
     });

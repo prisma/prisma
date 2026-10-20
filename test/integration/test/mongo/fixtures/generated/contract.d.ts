@@ -22,7 +22,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'570ba689a61d07585f3e31609fe8eda758d82b4df90937daff6c946276a5b9ac'>;
+  StorageHashBase<'05e02701a75dba3e7c3faae5f87d6a92e451d323f32c16aacc4b90177419b705'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'251b3ce23f6c9f561892e7c1af9d2cc941a13d64ba1aa7226b90036b09568cc3'>;
@@ -120,7 +120,88 @@ type ContractBase = Omit<
         readonly kind: 'mongo-database';
         readonly entries: {
           readonly collection: {
-            readonly tasks: MongoCollection;
+            readonly tasks: {
+              readonly kind: 'mongo-collection';
+              readonly validator: {
+                readonly jsonSchema: {
+                  readonly bsonType: 'object';
+                  readonly oneOf: readonly [
+                    {
+                      readonly additionalProperties: false;
+                      readonly properties: {
+                        readonly _id: { readonly bsonType: 'objectId' };
+                        readonly assigneeId: { readonly bsonType: 'objectId' };
+                        readonly comments: {
+                          readonly bsonType: 'array';
+                          readonly items: {
+                            readonly additionalProperties: false;
+                            readonly bsonType: 'object';
+                            readonly properties: {
+                              readonly _id: { readonly bsonType: 'objectId' };
+                              readonly createdAt: { readonly bsonType: 'date' };
+                              readonly text: { readonly bsonType: 'string' };
+                            };
+                            readonly required: readonly ['_id', 'createdAt', 'text'];
+                          };
+                        };
+                        readonly severity: { readonly bsonType: 'string' };
+                        readonly title: { readonly bsonType: 'string' };
+                        readonly type: { readonly enum: readonly ['bug'] };
+                      };
+                      readonly required: readonly ['severity', 'type'];
+                    },
+                    {
+                      readonly additionalProperties: false;
+                      readonly properties: {
+                        readonly _id: { readonly bsonType: 'objectId' };
+                        readonly assigneeId: { readonly bsonType: 'objectId' };
+                        readonly comments: {
+                          readonly bsonType: 'array';
+                          readonly items: {
+                            readonly additionalProperties: false;
+                            readonly bsonType: 'object';
+                            readonly properties: {
+                              readonly _id: { readonly bsonType: 'objectId' };
+                              readonly createdAt: { readonly bsonType: 'date' };
+                              readonly text: { readonly bsonType: 'string' };
+                            };
+                            readonly required: readonly ['_id', 'createdAt', 'text'];
+                          };
+                        };
+                        readonly priority: { readonly bsonType: 'string' };
+                        readonly targetRelease: { readonly bsonType: 'string' };
+                        readonly title: { readonly bsonType: 'string' };
+                        readonly type: { readonly enum: readonly ['feature'] };
+                      };
+                      readonly required: readonly ['priority', 'targetRelease', 'type'];
+                    },
+                  ];
+                  readonly properties: {
+                    readonly _id: { readonly bsonType: 'objectId' };
+                    readonly assigneeId: { readonly bsonType: 'objectId' };
+                    readonly comments: {
+                      readonly bsonType: 'array';
+                      readonly items: {
+                        readonly additionalProperties: false;
+                        readonly bsonType: 'object';
+                        readonly properties: {
+                          readonly _id: { readonly bsonType: 'objectId' };
+                          readonly createdAt: { readonly bsonType: 'date' };
+                          readonly text: { readonly bsonType: 'string' };
+                        };
+                        readonly required: readonly ['_id', 'createdAt', 'text'];
+                      };
+                    };
+                    readonly title: { readonly bsonType: 'string' };
+                    readonly type: { readonly bsonType: 'string' };
+                  };
+                  readonly required: readonly ['_id', 'assigneeId', 'title', 'type'];
+                };
+                readonly kind: 'mongo-validator';
+                readonly validationAction: 'error';
+                readonly validationLevel: 'strict';
+              };
+            };
             readonly users: {
               readonly indexes: readonly [
                 {
@@ -137,6 +218,34 @@ type ContractBase = Omit<
                   readonly strength: 2;
                 };
                 readonly kind: 'mongo-collection-options';
+              };
+              readonly validator: {
+                readonly jsonSchema: {
+                  readonly additionalProperties: false;
+                  readonly bsonType: 'object';
+                  readonly properties: {
+                    readonly _id: { readonly bsonType: 'objectId' };
+                    readonly addresses: {
+                      readonly bsonType: 'array';
+                      readonly items: {
+                        readonly additionalProperties: false;
+                        readonly bsonType: 'object';
+                        readonly properties: {
+                          readonly city: { readonly bsonType: 'string' };
+                          readonly street: { readonly bsonType: 'string' };
+                          readonly zip: { readonly bsonType: 'string' };
+                        };
+                        readonly required: readonly ['city', 'street', 'zip'];
+                      };
+                    };
+                    readonly email: { readonly bsonType: 'string' };
+                    readonly name: { readonly bsonType: 'string' };
+                  };
+                  readonly required: readonly ['_id', 'email', 'name'];
+                };
+                readonly kind: 'mongo-validator';
+                readonly validationAction: 'error';
+                readonly validationLevel: 'strict';
               };
             };
           };

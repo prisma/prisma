@@ -10,7 +10,7 @@ const literal = (body: string | number) => ({
 describe('sqliteResolveDefault', () => {
   it('passes a literal default through unchanged', () => {
     const stored = { kind: 'literal' as const, value: 'draft' };
-    expect(sqliteResolveDefault(stored, 'text')).toBe(stored);
+    expect(sqliteResolveDefault(stored, { typeText: 'text', many: false })).toBe(stored);
   });
 
   it.each([
@@ -19,21 +19,33 @@ describe('sqliteResolveDefault', () => {
     ['(CURRENT_TIMESTAMP)'],
     ["strftime('%Y-%m-%dT%H:%M:%fZ','now')"],
   ])('names the authored expression %j now(), as introspection does', (expression) => {
-    expect(sqliteResolveDefault({ kind: 'function', expression }, 'text')).toEqual({
+    expect(
+      sqliteResolveDefault({ kind: 'function', expression }, { typeText: 'text', many: false }),
+    ).toEqual({
       kind: 'function',
       expression: 'now()',
     });
   });
 
   it('keeps an expression that writes a literal as the expression', () => {
-    expect(sqliteResolveDefault({ kind: 'function', expression: "'draft'" }, 'text')).toEqual({
+    expect(
+      sqliteResolveDefault(
+        { kind: 'function', expression: "'draft'" },
+        { typeText: 'text', many: false },
+      ),
+    ).toEqual({
       kind: 'function',
       expression: "'draft'",
     });
   });
 
   it('keeps an unrecognised expression as a function default', () => {
-    expect(sqliteResolveDefault({ kind: 'function', expression: 'random()' }, 'integer')).toEqual({
+    expect(
+      sqliteResolveDefault(
+        { kind: 'function', expression: 'random()' },
+        { typeText: 'integer', many: false },
+      ),
+    ).toEqual({
       kind: 'function',
       expression: 'random()',
     });

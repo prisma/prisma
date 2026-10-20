@@ -118,8 +118,8 @@ describe('Journey (MongoDB): keeping the documents of a collection created only 
     const remapDir = latestMigrationDirName(project);
     const migrationTs = join(project.testDir, 'migrations/app', remapDir, 'migration.ts');
     const planned = readFileSync(migrationTs, 'utf-8');
-    expect(planned, 'K.07: the index creates occasions, no createCollection does').not.toMatch(
-      /createCollection\(/,
+    expect(planned, 'K.07: occasions is created with its validator').toMatch(
+      /createCollection\('occasions', \{\s*validator: \{/,
     );
     writeFileSync(migrationTs, followRenameCollectionAdvice(planned, 'events', 'occasions'));
     const emitted = runPrintedSelfEmit(question, dirname(migrationTs));

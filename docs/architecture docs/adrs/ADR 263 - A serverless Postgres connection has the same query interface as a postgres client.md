@@ -129,14 +129,14 @@ The `await using` line shows the lifetime of the connection at the place where t
 
 A connection wraps a runtime. It is not one: it has no `query` or `execute` of its own. Code that needs a runtime calls `db.runtime()`, exactly as with a client. Three functions take a runtime:
 
-- `orm({ runtime, context, collections })`, which builds an ORM with custom collection classes;
+- `orm({ runtime, context, collections })`, the lower-level function a connection's `orm` is built on;
 - `withTransaction(runtime, fn)`;
 - a prepared statement's `query(runtime, params)`.
 
-This sample and the ones below continue the Worker sample above, so `postgres` is its serverless client and `Contract` is its contract type:
+An application does not call `orm()` for custom collection classes. It passes them to its serverless client with the `collections` option, and every connection's `db.orm` returns them. This sample and the ones below continue the Worker sample above, so `contract` and `Contract` are its contract value and type, and `postgres` is its serverless client, here created with the classes:
 
 ```ts
-import { Collection, orm } from '@prisma/orm-postgres/orm-client';
+import { Collection } from '@prisma/orm-postgres/orm-client';
 
 class UserCollection extends Collection<Contract, 'User'> {
   admins() {
@@ -144,18 +144,15 @@ class UserCollection extends Collection<Contract, 'User'> {
   }
 }
 
+const postgres = postgresServerless({ contract, collections: { User: UserCollection } });
+
 export async function listAdmins(url: string) {
   await using db = await postgres.connect({ url });
-  const customOrm = orm({
-    runtime: db.runtime(),
-    context: db.context,
-    collections: { User: UserCollection },
-  });
-  return await customOrm.public.User.admins().all();
+  return await db.orm.public.User.admins().all();
 }
 ```
 
-A custom ORM like this is built inside the request, so that it runs on that request's connection.
+The classes are registered once, at module scope. Each query still runs on the connection of the request that calls it.
 
 ## Cursors are off by default
 

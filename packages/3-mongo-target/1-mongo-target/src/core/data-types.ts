@@ -64,7 +64,7 @@ export const mongoVector = mongoDataType('mongo/vector', {
       json,
       typeof params['length'] === 'number' ? params['length'] : undefined,
     ),
-  bsonTypes: ['vector'],
+  bsonTypes: ['array'],
   params: mongoVectorParams,
 });
 export const mongoInt64 = mongoDataType('mongo/int64', {

@@ -12,6 +12,7 @@ import type { CodecLookupWithDescriptors } from '@internal/framework-components/
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   buildMongoNamespace,
+  documentIdRefusalReason,
   MongoCollection,
   MongoIndex,
   MongoStorage,
@@ -918,23 +919,19 @@ model Item {
   });
 
   describe('@id validation', () => {
-    it('emits diagnostic when model has no @id field', () => {
-      const result = interpret(`
+    it('accepts a model without @id, whose validator still requires an objectId _id', () => {
+      const ir = interpretOk(`
         model Item {
           name String
         }
       `);
 
-      expect(result.ok).toBe(false);
-      if (result.ok) return;
-      expect(result.failure.diagnostics).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            code: 'PSL_MISSING_ID_FIELD',
-            message: expect.stringContaining('Item'),
-          }),
-        ]),
-      );
+      expect(mongoCollectionsFromIr(ir)['Item']?.['validator']).toMatchObject({
+        jsonSchema: {
+          required: ['_id', 'name'],
+          properties: { _id: { bsonType: 'objectId' }, name: { bsonType: 'string' } },
+        },
+      });
     });
 
     it('accepts model with @id field', () => {
@@ -949,7 +946,7 @@ model Item {
     });
   });
 
-  describe('_id objectId requirement', () => {
+  describe('the document id', () => {
     it('accepts an ObjectId @id mapped to _id', () => {
       const ir = interpretOk(`
         model Item {
@@ -972,42 +969,104 @@ model Item {
       expect(modelsOf(ir)['Item']).toBeDefined();
     });
 
-    it('rejects an @id ObjectId that is not mapped to _id', () => {
+    it('rejects @id on a field not stored as _id, saying what to do', () => {
       const result = interpret(`
         model Item {
-          id ObjectId @id
+          id   ObjectId @id
           name String
         }
       `);
 
       expect(result.ok).toBe(false);
       if (result.ok) return;
-      expect(result.failure.diagnostics).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            code: 'PSL_MONGO_ID_REQUIRED',
-            message: expect.stringContaining('Item'),
-          }),
-        ]),
-      );
+      expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+        {
+          code: 'PSL_MONGO_ID_ATTRIBUTE_INVALID',
+          message:
+            'Field "Item.id" has @id but is stored as "id". In MongoDB, @id marks the field stored as _id, the document id: add @map("_id") to it, or remove @id.',
+        },
+      ]);
     });
 
-    it('rejects an _id whose type is not ObjectId', () => {
+    it('rejects @id on two fields of one model', () => {
       const result = interpret(`
         model Item {
-          id String @id @map("_id")
-          name String
+          id   ObjectId @id @map("_id")
+          code String   @id
         }
       `);
 
       expect(result.ok).toBe(false);
       if (result.ok) return;
-      expect(result.failure.diagnostics).toEqual(
-        expect.arrayContaining([expect.objectContaining({ code: 'PSL_MONGO_ID_REQUIRED' })]),
-      );
+      expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+        {
+          code: 'PSL_MONGO_ID_ATTRIBUTE_INVALID',
+          message:
+            'Field "Item.code" has @id but is stored as "code". In MongoDB, @id marks the field stored as _id, the document id: add @map("_id") to it, or remove @id.',
+        },
+        {
+          code: 'PSL_MONGO_ID_ATTRIBUTE_INVALID',
+          message:
+            'Model "Item" has @id on 2 fields, "id" and "code". A document has one id: keep @id only on the field stored as _id.',
+        },
+      ]);
     });
 
-    it('names the _id codec when the lookups know no MongoDB data type for it', () => {
+    it.each([
+      ['String', 'string'],
+      ['Int32', 'int'],
+    ])('accepts a %s _id, whose validator requires _id with that type', (type, bsonType) => {
+      const ir = interpretOk(`
+        model Item {
+          id   ${type} @id @map("_id")
+          name String
+        }
+      `);
+
+      expect(mongoCollectionsFromIr(ir)['Item']?.['validator']).toMatchObject({
+        jsonSchema: {
+          required: ['_id', 'name'],
+          properties: { _id: { bsonType }, name: { bsonType: 'string' } },
+        },
+      });
+    });
+
+    it.each([
+      ['a list', 'ObjectId[]', 'mongo/objectId@1', ['array']],
+      ['nullable', 'String?', 'mongo/string@1', ['null']],
+      ['json', 'Json', 'mongo/json@1', ['array', 'null']],
+      ['a vector', 'Vector', 'mongo/vector@1', ['array']],
+    ])(
+      'rejects an _id that is %s, at the field, naming its codec',
+      (_case, type, codecId, forbidden) => {
+        const result = interpret(
+          `
+        model Item {
+          id   ${type} @id @map("_id")
+          name String
+        }
+      `,
+          {
+            scalarTypeCodecIds: new Map([
+              ...mongoScalarTypeDescriptors,
+              ['Json', 'mongo/json@1'],
+              ['Vector', 'mongo/vector@1'],
+            ]),
+          },
+        );
+
+        expect(result.ok).toBe(false);
+        if (result.ok) return;
+        expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+          {
+            code: 'PSL_MONGO_ID_INVALID',
+            message: `Field "Item.id" ${documentIdRefusalReason(codecId, forbidden)}`,
+          },
+        ]);
+      },
+    );
+
+    it('names the _id codec, at the field, when no pack provides it', () => {
       const result = interpret(
         `
         model Item {
@@ -1028,9 +1087,9 @@ model Item {
       if (result.ok) return;
       expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
         {
-          code: 'PSL_MONGO_ID_REQUIRED',
+          code: 'PSL_UNSUPPORTED_FIELD_TYPE',
           message:
-            'Model "Item" has an _id field whose codec "mongo/objectId@1" has no MongoDB data type, so its BSON type is unknown.',
+            'Field "Item.id" uses codec "mongo/objectId@1", which no pack in the contract provides, so its BSON type is unknown and the contract cannot describe the field.',
         },
       ]);
     });

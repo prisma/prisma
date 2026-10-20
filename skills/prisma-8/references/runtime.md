@@ -167,8 +167,8 @@ The rule to remember: inside a request, `db` does everything the `db` from `post
 
 - **`connect` connects before it returns.** When the database refuses the connection, rejects the credentials, or does not answer within 20 seconds, `postgres.connect({ url })` rejects with `DRIVER.CONNECTION_FAILED` and leaves nothing open; an empty URL, a string that is not a URL, or a scheme other than `postgres://` or `postgresql://` rejects with `RUNTIME.BINDING_INVALID`. Handle an unreachable database at the `connect` call, not at the first query. Answer a request that needs no query, such as an unknown route, before `connect`, because `connect` opens a database connection whether or not a query follows.
 - **Never call `connect` at module scope.** A connection opened there is shared by every request in the isolate, and fails in four ways: its database connection goes stale after the isolate idles, concurrent requests queue behind each other on one `pg.Client`, nothing closes it when a request ends, and Cloudflare Workers reject a socket used across requests.
-- **`db.orm` is the default way to use the ORM.** Build `orm({ runtime: db.runtime(), context: db.context, collections })` only for custom collection classes, and build it inside the request. See *Workflow — Custom collection classes* in [`queries-postgres.md`](queries-postgres.md).
-- **Anything that takes a runtime gets `db.runtime()`.** That includes `orm({ runtime, ... })`, `withTransaction(runtime, fn)` and a prepared statement's `query(runtime, params)`. Do not pass `db` itself to `orm()`.
+- **`db.orm` is the way to use the ORM.** For custom collection classes, pass `collections` to `postgresServerless({ contract, collections })` at module scope; every connection's `db.orm` and `tx.orm` then returns the classes. See *Workflow — Custom collection classes* in [`queries-postgres.md`](queries-postgres.md).
+- **Anything that takes a runtime gets `db.runtime()`.** That includes `withTransaction(runtime, fn)` and a prepared statement's `query(runtime, params)`. Do not pass `db` itself.
 - **Inside `db.transaction(async (tx) => ...)`, run every query through `tx`.** A connection has one database connection, so inside `db.transaction(async (tx) => ...)` a query through `db` is not independent of the transaction; run every query through `tx`. A query that uses the connection's database connection directly, such as a `db.orm` read, a `db.orm` create of one row, an `updateAll(...)` or `deleteAll()`, or `db.runtime().query(...)`, runs inside the open transaction without saying so. An operation that asks for a database connection of its own, such as a `db.orm` `update(...)` or `delete()` of one row, `db.runtime().connection()`, a `db.orm` create that also writes related rows, or a nested `db.transaction(...)`, waits for the database connection the transaction holds, and the request hangs.
 - **After `db.close()`** (or the end of the `await using` scope), `db.runtime()` throws `DRIVER.NOT_CONNECTED` ("Postgres connection is closed"), and ORM queries, `db.transaction(...)` and prepared statements that start after the runtime was idle for a turn reject with `DRIVER.NOT_CONNECTED` ("Runtime is closed"). Call `postgres.connect({ url })` again for a new connection.
 
@@ -254,13 +254,14 @@ For the full option surface, read the source: `packages/2-sql/5-runtime/src/midd
 
 ## Workflow — Cache middleware
 
-The concept: `@prisma/orm-extension-middleware-cache` ships an opt-in read cache. An annotated ORM call is cached as a whole, through `intercept.onActivity`: on a hit the ORM sends no statement; on a miss the value the call returned is stored. An annotated SQL builder query is cached as rows, through `intercept.onQuery`: on a hit the driver is never called; on a miss the rows are buffered and stored when the query completes. Only a read carrying `cacheAnnotation` is cached; `cacheAnnotation({ bypass: true })` skips the cache for one call. Cache keys default to the content hash of the ORM call or of the plan (`key` overrides), and reads inside a transaction or on a pinned connection are neither served nor stored. How long an entry lives is the store's policy: the default store keeps up to 1000 entries for 60 seconds each, and `createInMemoryCacheStore({ maxEntries, ttlMs })` changes that (`ttlMs: Infinity` never expires). `CacheStore` is the interface for a Redis-style backend. The cache never sees writes: after the write commits, call `cache.invalidate({ keys })` for reads annotated with a `key`. `cacheAnnotation({ meta })` hands any value to the store with the entry, and `cache.invalidate({ meta })` hands one to its `unset`; only a custom store that indexes `meta` can act on it, and the default store throws `RUNTIME.CACHE_STORE_META_UNSUPPORTED`.
+The concept: `@prisma/orm-extension-middleware-cache` ships an opt-in read cache. An annotated ORM call is cached as a whole, through `intercept.onActivity`: on a hit the ORM sends no statement; on a miss the value the call returned is stored. An annotated SQL builder query is cached as rows, through `intercept.onQuery`: on a hit the driver is never called; on a miss the rows are buffered and stored when the query completes. Only a read carrying `cacheAnnotation` is cached; `cacheAnnotation({ bypass: true })` skips the cache for one call. Cache keys default to the content hash of the ORM call or of the plan (`key` overrides), and reads inside a transaction or on a pinned connection are neither served nor stored. How long an entry lives is the store's policy: the default store keeps up to 1000 entries for 60 seconds each, and `createInMemoryCacheStore({ maxEntries, ttlMs })` changes that (`ttlMs: Infinity` never expires). `CacheStore` is the interface for a Redis-style backend. A write removes entries only when told which: annotate it with `invalidateAnnotation({ keys, meta })`, and the cache invalidates once the write's effects are final (after its own commit, or when the enclosing `db.transaction(fn)` commits; not after a rollback), or call `cache.invalidate({ keys })` after the write commits. Mongo ORM writes take no annotations, so on Mongo call `invalidate`. `cacheAnnotation({ meta })` hands any value to the store with the entry, and `cache.invalidate({ meta })` hands one to its `unset`; only a custom store that indexes `meta` can act on it, and the default store throws `RUNTIME.CACHE_STORE_META_UNSUPPORTED`.
 
 ```typescript
 import {
   cacheAnnotation,
   createCacheMiddleware,
   createInMemoryCacheStore,
+  invalidateAnnotation,
 } from '@prisma/orm-extension-middleware-cache';
 
 export const cache = createCacheMiddleware({
@@ -278,11 +279,16 @@ const user = await db.orm.public.User.first({ id: 1 }, (meta) =>
 );
 // Un-annotated queries always hit the database.
 
-// After a write to user 1 has committed (outside the transaction, never inside it):
+// The write invalidates 'user-1' once it has committed; inside db.transaction(fn), when that commits.
+await db.orm.public.User.where({ id: 1 }).update({ name: 'Alicia' }, (meta) =>
+  meta.annotate(invalidateAnnotation({ keys: ['user-1'] })),
+);
+
+// Or, after a write to user 1 has committed (outside the transaction, never inside it):
 await cache.invalidate({ keys: ['user-1'] });
 ```
 
-**Invalidate after the commit, not inside the transaction.** A read from another request can refill the cache with the old rows before the commit lands. A read that missed before the `invalidate` and finishes after it does not store its rows: the store moves the key's version on `unset`, and the read's `set` is conditional on the version it saw. This holds across processes that share a store.
+**Invalidate after the commit, not inside the transaction.** `invalidateAnnotation` waits for the commit on its own; a manual `invalidate` must be called after it. A read from another request can refill the cache with the old rows before the commit lands. A read that missed before the `invalidate` and finishes after it does not store its rows: the store moves the key's version on `unset`, and the read's `set` is conditional on the version it saw. This holds across processes that share a store.
 
 **The cache key carries no identity.** The default key is a content hash of the statement — contract hash, SQL text, and bound parameters — or, for an ORM call, of the terminal method and the statement it sends first, so two callers issuing the same read share one entry regardless of who they are. Never annotate a read whose rows depend on the caller (per-user, per-tenant, or RLS-filtered data) on the plain `postgres()` façade unless the identity is part of the key: `cacheAnnotation({ key: `user:${userId}:profile` })`, or a `where` clause that binds the identity as a parameter (the parameter is in the hash). Reads that run on a pinned connection or inside a transaction bypass the cache entirely (`ctx.scope !== 'runtime'` or `ctx.inTransaction()`), which is why a Supabase `RoleBoundDb` read — executed on a connection with the role bound via `set_config` — is never served from cache; the plain façade has no such protection.
 

@@ -7,8 +7,8 @@ import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/d
 import { PostgresCreateTable } from '@internal/target-postgres/ddl';
 import { SetDefaultCall } from '@internal/target-postgres/op-factory-call';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../../src/core/control-adapter';
 import type { PostgresContract } from '../../src/core/types';
+import { createTestPostgresControlAdapter } from '../helpers/test-control-adapter';
 import {
   createDriver,
   createTestDatabase,
@@ -43,7 +43,7 @@ describe('a list default the codecs read applies', { concurrent: false }, () => 
   it(
     'fills a new row with each list, its NULL element and the empty list',
     async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -83,7 +83,7 @@ describe('a list default the codecs read applies', { concurrent: false }, () => 
   it(
     'writes each element as the codec writes it, beside a NULL element',
     async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );
@@ -140,7 +140,7 @@ describe('a list default the codecs read applies', { concurrent: false }, () => 
   it(
     'sets a changed list default with a NULL element',
     async () => {
-      const adapter = new PostgresControlAdapter(
+      const adapter = createTestPostgresControlAdapter(
         createPostgresBuiltinCodecLookup(),
         createPostgresBuiltinDataTypeLookup(),
       );

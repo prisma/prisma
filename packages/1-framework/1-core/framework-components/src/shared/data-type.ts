@@ -108,6 +108,8 @@ export interface DataTypeSpec {
   readonly spell?: DataTypeSpelling;
   /** See {@link DataType.equalityKey}. */
   readonly equalityKey?: (json: JsonValue) => string;
+  /** The one form of parameters that mean the same type, such as `numeric(10)` and `numeric(10,0)`; a value stores its parameters in it. A type whose parameters have one form only declares none. */
+  normalize?(params: DataTypeParams): DataTypeParams;
 }
 
 /** The assembled types of one stack, by id. */
@@ -136,9 +138,13 @@ export function dataType(id: string, spec: DataTypeSpec): DataType {
     casts[dataTypeId(source)] = cast;
   }
   const listCast = spec.listCast;
-  const { read, spell } = spec;
+  const { read, spell, normalize } = spec;
   const construct = (json: JsonValue, params: DataTypeParams): DataTypeValue =>
-    new DataTypeValueRecord(typeId, Object.freeze({ ...params }), json);
+    new DataTypeValueRecord(
+      typeId,
+      Object.freeze({ ...(normalize === undefined ? params : normalize(params)) }),
+      json,
+    );
   const spelledUnder = (json: JsonValue, params: DataTypeParams): JsonValue => {
     const accepted = read(json, params);
     return spell === undefined ? accepted : spell(accepted, params);

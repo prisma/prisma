@@ -14,13 +14,39 @@ const EXPECTED_BSON_TYPES: Readonly<Record<string, readonly string[]>> = {
   'mongo/int32': ['int'],
   'mongo/bool': ['bool'],
   'mongo/date': ['date'],
-  'mongo/vector': ['vector'],
+  'mongo/vector': ['array'],
   'mongo/int64': ['long'],
   'mongo/decimal128': ['decimal'],
   'mongo/binary': ['binData'],
   'mongo/json': ['object', 'array', 'string', 'double', 'int', 'long', 'bool', 'null'],
   'mongo/bson': [],
 };
+
+/** The type names a `$jsonSchema` `bsonType` accepts, from the MongoDB manual's BSON types table. */
+const JSON_SCHEMA_BSON_TYPES = new Set([
+  'double',
+  'string',
+  'object',
+  'array',
+  'binData',
+  'undefined',
+  'objectId',
+  'bool',
+  'date',
+  'null',
+  'regex',
+  'dbPointer',
+  'javascript',
+  'symbol',
+  'javascriptWithScope',
+  'int',
+  'timestamp',
+  'long',
+  'decimal',
+  'minKey',
+  'maxKey',
+  'number',
+]);
 
 const registered: readonly DataType[] = mongoTargetDescriptorMetaRuntime.dataTypes;
 
@@ -42,6 +68,15 @@ describe('the Mongo data type declarations', () => {
       expect(type.listCast).toBeUndefined();
     },
   );
+
+  it('declares only BSON types a collection validator can name', () => {
+    const unnamed = registered.flatMap((type) =>
+      isMongoDataType(type)
+        ? type.mongo.bsonTypes.filter((name) => !JSON_SCHEMA_BSON_TYPES.has(name))
+        : [],
+    );
+    expect(unnamed).toEqual([]);
+  });
 
   it('declares a parameter only on the vector, whose length is optional and 1 or more', () => {
     expect(registered.filter((type) => type.params !== undefined)).toEqual([mongoVector]);

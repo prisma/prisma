@@ -53,6 +53,7 @@ function codecLookupOf(codec: Codec): CodecLookupWithDescriptors {
     descriptorFor: (id) =>
       id === codec.id
         ? ({
+            ...mongoCodecLookup.descriptorFor(id),
             codecId: id,
             traits: ['equality'],
             factory: () => () => codec,
