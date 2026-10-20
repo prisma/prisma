@@ -93,12 +93,12 @@ This happens when:
 
 **Recovery**: Inspect the conflict, reconcile the schema drift manually or update the contract to match reality, then re-run `db update`.
 
-If the runner detects that the resulting schema does not match the contract, it fails with `RUNNER_FAILED`:
+If the runner detects that the resulting schema does not match the contract, it fails with `MIGRATION.SCHEMA_VERIFY_FAILED` and lists the issues:
 
 ```
-✖ Schema verify failed (RUNNER_FAILED)
-  Why: The resulting database schema does not satisfy the destination contract.
-  Fix: Inspect the reported conflict, reconcile schema drift if needed, then re-run `prisma db update`
+✖ Database schema does not satisfy contract (MIGRATION.SCHEMA_VERIFY_FAILED)
+  Why: The schema check after apply found: missing: public/user/email.
+  Fix: Change the contract source to resolve the issues listed, re-run `prisma contract emit`, then re-run `prisma db update`.
 ```
 
 ## Key differences between `db init` and `db update`

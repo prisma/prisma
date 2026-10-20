@@ -1469,11 +1469,14 @@ try {
 
   // Run operations
   const verifyResult = await client.verify({ contract });
-  const initResult = await client.dbInit({ contract, mode: 'apply', migrationsDir: 'migrations' });
+  // Where the commands an error's advice prints are run from, and the --config and --db they repeat.
+  const invocation = { cwd: process.cwd(), configPath: undefined, dbGiven: false };
+  const initResult = await client.dbInit({ contract, mode: 'apply', migrationsDir: 'migrations', invocation });
   const updateResult = await client.dbUpdate({
     contract,
     mode: 'apply',
     migrationsDir: 'migrations',
+    invocation,
     // Asked before an apply about each operation that would lose data or widen access.
     // Answer each question in order, as `{ verb, text }`, or throw to refuse.
     answerQuestions: async (questions) => {
