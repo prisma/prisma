@@ -375,4 +375,29 @@ describe('Mongo TS temporal presets on models sharing a collection', () => {
       }),
     );
   });
+
+  it("names each model's own field when differing defaults share a stored name", () => {
+    expect(() =>
+      defineContract(scaffold, ({ field, model }) => ({
+        models: {
+          Post: model('Post', {
+            collection: 'entries',
+            fields: {
+              _id: field.objectId(),
+              createdAt: field.temporal.createdAt().mongo({ field: 'created_at' }),
+            },
+          }),
+          Page: model('Page', {
+            collection: 'entries',
+            fields: {
+              _id: field.objectId(),
+              created: field.temporal.updatedAt().mongo({ field: 'created_at' }),
+            },
+          }),
+        },
+      })),
+    ).toThrow(
+      'Field "Page.created" has different executionDefaults than "Post.createdAt", which is stored in the same collection "entries". Use the same executionDefaults on both models.',
+    );
+  });
 });

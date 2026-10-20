@@ -2521,7 +2521,10 @@ function buildExecutionDefaults(
   const collectionByModelName = new Map(
     modelBuilders.map((modelBuilder) => [modelBuilder.__name, modelBuilder.__collection]),
   );
-  const byRef = new Map<string, { readonly modelName: string; readonly phasesKey: string }>();
+  const byRef = new Map<
+    string,
+    { readonly modelName: string; readonly fieldName: string; readonly phasesKey: string }
+  >();
   const defaults: ExecutionMutationDefault[] = [];
   for (const modelBuilder of modelBuilders) {
     for (const [fieldName, fieldBuilder] of Object.entries(modelBuilder.__fields)) {
@@ -2573,12 +2576,12 @@ function buildExecutionDefaults(
             modelName,
             fieldName,
             'executionDefaults-conflict',
-            `has different executionDefaults than "${existing.modelName}.${fieldName}", which is stored in the same collection "${entry}". Use the same executionDefaults on both models.`,
+            `has different executionDefaults than "${existing.modelName}.${existing.fieldName}", which is stored in the same collection "${entry}". Use the same executionDefaults on both models.`,
           );
         }
         continue;
       }
-      byRef.set(refKey, { modelName, phasesKey });
+      byRef.set(refKey, { modelName, fieldName, phasesKey });
       defaults.push({
         ref: { namespace: UNBOUND_NAMESPACE_ID, entry, field: storedName },
         ...phases,
