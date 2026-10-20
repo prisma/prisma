@@ -1511,9 +1511,9 @@ Operations return structured result types:
 - `verify()` → `VerifyDatabaseResult`
 - `schemaVerify()` → `VerifyDatabaseSchemaResult`
 - `dbSign()` → `ExecuteDbSignResult`, a `Result` whose success lists one `DbSignSpaceOutcome` per contract space
-- `dbInit()` → `Result<DbInitSuccess, DbInitFailure>` (uses Result pattern)
-- `dbUpdate()` → `Result<DbUpdateSuccess, DbUpdateFailure>` (uses Result pattern)
-- `migrate()` → `Result<MigrateSuccess, MigrateFailure>` (uses Result pattern)
+- `dbInit()` → `Result<DbInitSuccess, CliStructuredError>` (uses Result pattern)
+- `dbUpdate()` → `Result<DbUpdateSuccess, CliStructuredError>` (uses Result pattern)
+- `migrate()` → `Result<MigrateSuccess, CliStructuredError>` (uses Result pattern)
 - `introspect()` → Schema IR (family-specific)
 
 ### Error Handling

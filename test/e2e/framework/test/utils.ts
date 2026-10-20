@@ -20,6 +20,8 @@ import { PostgresContractSerializer } from '@prisma/orm-postgres/target/runtime'
 import { withClient, withDevDatabase } from '@repo/test-utils';
 import type { Client } from 'pg';
 
+const TEST_INVOCATION = { cwd: process.cwd(), configPath: undefined, dbGiven: false };
+
 const execFileAsync = promisify(execFile);
 
 export async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
@@ -143,13 +145,14 @@ export async function runDbInit(options: {
 
   const invoke = async (migrationsDir: string): Promise<void> => {
     const result = await controlClient.dbInit({
+      invocation: TEST_INVOCATION,
       contract: contractJson,
       mode: 'apply',
       migrationsDir,
     });
     if (!result.ok) {
       throw new Error(
-        `dbInit failed: ${result.failure.summary}\n${JSON.stringify(result.failure, null, 2)}`,
+        `dbInit failed: ${result.failure.message}\n${JSON.stringify(result.failure, null, 2)}`,
       );
     }
   };
@@ -175,13 +178,14 @@ async function getPlannedDdlSql(options: {
 
   const invoke = async (migrationsDir: string): Promise<string> => {
     const result = await controlClient.dbInit({
+      invocation: TEST_INVOCATION,
       contract,
       mode: 'plan',
       connection: connectionString,
       migrationsDir,
     });
     if (!result.ok) {
-      throw new Error(`dbInit plan failed: ${result.failure.summary}`);
+      throw new Error(`dbInit plan failed: ${result.failure.message}`);
     }
 
     const sqlStatements =

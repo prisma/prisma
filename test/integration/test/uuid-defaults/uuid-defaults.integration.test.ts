@@ -27,6 +27,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { emit } from '../../utils/emit';
 import { createIntegrationTestDir } from '../utils/cli-test-helpers';
 
+const TEST_INVOCATION = { cwd: process.cwd(), configPath: undefined, dbGiven: false };
+
 const schema = `// use prisma-8
 
 model T {
@@ -111,7 +113,12 @@ async function initAndVerify(
   const client = createClient();
   try {
     await client.connect(connectionString);
-    const init = await client.dbInit({ contract: contractJson, mode: 'apply', migrationsDir });
+    const init = await client.dbInit({
+      invocation: TEST_INVOCATION,
+      contract: contractJson,
+      mode: 'apply',
+      migrationsDir,
+    });
     if (!init.ok) return { init: init.failure };
     const verified = await client.dbVerify({
       contract: postgres.contractSerializer.deserializeContract(contractJson),

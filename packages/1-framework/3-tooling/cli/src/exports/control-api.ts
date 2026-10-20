@@ -188,3 +188,4 @@ export type {
 } from '../control-api/types';
 // Lifecycle helpers for hosts that publish to many output paths
 export { disposeEmitQueue } from '../utils/emit-queue';
+export type { CliInvocation } from '../utils/printed-command';
