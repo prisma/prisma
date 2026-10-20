@@ -7,6 +7,10 @@ import {
 import postgresAdapter from '@internal/adapter-postgres/control';
 import { rawColumn as sqliteRawColumn } from '@internal/adapter-sqlite/column-types';
 import sqliteAdapter from '@internal/adapter-sqlite/control';
+import pgvectorControl from '@internal/extension-pgvector/control';
+import pgvectorPack from '@internal/extension-pgvector/pack';
+import postgisControl from '@internal/extension-postgis/control';
+import postgisPack from '@internal/extension-postgis/pack';
 import sqlFamilyControl from '@internal/family-sql/control';
 import { createControlStack } from '@internal/framework-components/control';
 import { defineContract as definePostgresContract } from '@internal/postgres/contract-builder';
@@ -29,6 +33,13 @@ const postgresStack = createControlStack({
   adapter: postgresAdapter,
 });
 
+const postgresExtensionsStack = createControlStack({
+  family: sqlFamilyControl,
+  target: postgresControl,
+  adapter: postgresAdapter,
+  extensions: [pgvectorControl, postgisControl],
+});
+
 const sqliteStack = createControlStack({
   family: sqlFamilyControl,
   target: sqliteControl,
@@ -48,6 +59,26 @@ function interpretPostgres(schema: string) {
       binder: bound.binder,
       ...sqlContextInput(bound.context),
       target: postgresPack,
+      createNamespace: postgresCreateNamespace,
+    }),
+    bound.seedDiagnostics,
+  );
+}
+
+function interpretPostgresWithExtensions(schema: string) {
+  const bound = bindPslSchema(schema, {
+    sourceId: 'value-arguments.prisma',
+    context: contractSourceContextFromControlStack(postgresExtensionsStack),
+  });
+  return withSeedDiagnostics(
+    interpretPslDocumentToSqlContract({
+      documents: bound.documents,
+      sources: bound.sources,
+      symbolTable: bound.symbolTable,
+      binder: bound.binder,
+      ...sqlContextInput(bound.context),
+      target: postgresPack,
+      composedExtensionPackRefs: [pgvectorPack, postgisPack],
       createNamespace: postgresCreateNamespace,
     }),
     bound.seedDiagnostics,
@@ -83,7 +114,7 @@ function thrownMessage(build: () => unknown): string | undefined {
 }
 
 describe('type-constructor value arguments give the same contract from PSL and TypeScript', () => {
-  it('on Postgres: VarChar, Numeric, sql.String and Raw', () => {
+  it('on Postgres: sql.String and Raw through TypeScript helpers that read value arguments, and VarChar and Numeric, which TypeScript writes with fixed column helpers', () => {
     const tsContract = definePostgresContract({}, ({ field, model, type }) => ({
       models: {
         Account: model('Account', {
@@ -106,6 +137,33 @@ describe('type-constructor value arguments give the same contract from PSL and T
   label sql.String(50)
   kind  Raw(sql\`"MyType"[]\`)?
   shape Raw(sql\`"MyType"[]\`)?
+}
+`);
+
+    if (!interpreted.ok) throw new Error(JSON.stringify(interpreted.failure.diagnostics));
+    expect(interpreted.value).toEqual(tsContract);
+  });
+
+  it('on Postgres with extensions: pgvector.Vector and postgis.Geometry, through TypeScript helpers that read value arguments', () => {
+    const tsContract = definePostgresContract(
+      { extensions: { pgvector: pgvectorPack, postgis: postgisPack } },
+      ({ field, model, type }) => ({
+        models: {
+          Place: model('Place', {
+            fields: {
+              id: field.column(int4Column).id(),
+              embedding: field.column(type.pgvector.Vector(1536)),
+              location: field.column(type.postgis.Geometry(4326)),
+            },
+          }),
+        },
+      }),
+    );
+
+    const interpreted = interpretPostgresWithExtensions(`model Place {
+  id        Int @id
+  embedding pgvector.Vector(1536)
+  location  postgis.Geometry(4326)
 }
 `);
 
