@@ -1,13 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { mapDbInitFailure } from '../../src/utils/db-init-failure';
-import { mapDbUpdateFailure } from '../../src/utils/db-update-failure';
-import { mapMigrateFailure } from '../../src/utils/migrate-failure';
+import { dbInitError, dbUpdateError, migrateError } from './runner-failure-errors';
 
 const runnerFailed = {
-  code: 'RUNNER_FAILED',
   summary: '3 rows of "Item" hold NULL in "note", so it cannot become required.',
   why: 'Operation alterNullability.setNotNull.Item.note failed during precheck: ensure no NULL values in "note"',
-  meta: {},
 } as const;
 
 const DATABASE = 'a'.repeat(64);
@@ -19,7 +15,7 @@ const failedMigration = { directory: `${PROJECT}/migrations/app/20261012T1200_no
 describe('the advice for rows a required field has no value for', () => {
   it('on db update, says to set the values, keep the field optional, or plan a backfill from the database contract', () => {
     expect(
-      mapDbUpdateFailure(
+      dbUpdateError(
         {
           ...runnerFailed,
           conflicts: undefined,
@@ -35,7 +31,7 @@ describe('the advice for rows a required field has no value for', () => {
 
   it('on db update, names a backfill for every field of the plan that needs one, each once', () => {
     expect(
-      mapDbUpdateFailure(
+      dbUpdateError(
         {
           ...runnerFailed,
           conflicts: undefined,
@@ -56,7 +52,7 @@ describe('the advice for rows a required field has no value for', () => {
 
   it('suggests no backfill when the contract names no field', () => {
     expect([
-      mapDbUpdateFailure(
+      dbUpdateError(
         {
           ...runnerFailed,
           conflicts: undefined,
@@ -64,7 +60,7 @@ describe('the advice for rows a required field has no value for', () => {
         },
         FROM_PROJECT,
       ).fix,
-      mapDbUpdateFailure(
+      dbUpdateError(
         {
           ...runnerFailed,
           conflicts: undefined,
@@ -80,7 +76,7 @@ describe('the advice for rows a required field has no value for', () => {
 
   it('on db init, says to initialize with the field optional and make it required with db update', () => {
     expect(
-      mapDbInitFailure(
+      dbInitError(
         {
           ...runnerFailed,
           conflicts: undefined,
@@ -100,8 +96,8 @@ describe('the advice for rows a required field has no value for', () => {
     ] as const;
     const replan = `delete \`migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), plan it again with \`{bin} migration plan --from ${FROM} --name note --backfill Item.role --backfill Item.code\` and its other statements, fill in the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`{bin} db migrate\``;
     expect([
-      mapMigrateFailure({ ...runnerFailed, rowsWithoutValue, failedMigration }, FROM_PROJECT).fix,
-      mapMigrateFailure(
+      migrateError({ ...runnerFailed, rowsWithoutValue, failedMigration }, FROM_PROJECT).fix,
+      migrateError(
         {
           ...runnerFailed,
           rowsWithoutValue: [{ field: 'Item.role', reason: 'nullValues' }, rowsWithoutValue[1]],
@@ -114,7 +110,7 @@ describe('the advice for rows a required field has no value for', () => {
       `The migration also adds a required field the existing rows have no value for, so setting values is not enough. The failed apply changed nothing: ${replan}.`,
     ]);
     expect(
-      mapMigrateFailure(
+      migrateError(
         {
           ...runnerFailed,
           rowsWithoutValue: [
@@ -131,7 +127,7 @@ describe('the advice for rows a required field has no value for', () => {
 
   it('on db migrate, offers keeping a field with NULL rows optional, as db update does', () => {
     expect(
-      mapMigrateFailure(
+      migrateError(
         {
           ...runnerFailed,
           rowsWithoutValue: [{ field: 'Item.note', reason: 'nullValues' }],
@@ -146,7 +142,7 @@ describe('the advice for rows a required field has no value for', () => {
 
   it('on db migrate from another directory with --config, prints every path and command so it works from there', () => {
     expect(
-      mapMigrateFailure(
+      migrateError(
         {
           ...runnerFailed,
           rowsWithoutValue: [{ field: 'Item.note', reason: 'nullValues' }],
@@ -162,7 +158,7 @@ describe('the advice for rows a required field has no value for', () => {
   it('on db update and db init with --config, repeats it in every command', () => {
     const withConfig = { cwd: '/work', configPath: 'app/prisma.config.ts', dbGiven: false };
     expect([
-      mapDbUpdateFailure(
+      dbUpdateError(
         {
           ...runnerFailed,
           conflicts: undefined,
@@ -170,7 +166,7 @@ describe('the advice for rows a required field has no value for', () => {
         },
         withConfig,
       ).fix,
-      mapDbInitFailure(
+      dbInitError(
         {
           ...runnerFailed,
           conflicts: undefined,
@@ -186,7 +182,7 @@ describe('the advice for rows a required field has no value for', () => {
 
   it('on db migrate, says the backfill step left the rows without a value and to fix the step, not to plan again', () => {
     const advice = (failed: typeof failedMigration | undefined) =>
-      mapMigrateFailure(
+      migrateError(
         {
           ...runnerFailed,
           rowsWithoutValue: [{ field: 'Item.note', reason: 'backfillMissedRows' }],
@@ -203,15 +199,15 @@ describe('the advice for rows a required field has no value for', () => {
   it('with --db, repeats it as a placeholder in every command that connects, so the advice applies to the same database', () => {
     const withDb = { cwd: '/work', configPath: 'app/prisma.config.ts', dbGiven: true };
     expect([
-      mapMigrateFailure(
+      migrateError(
         {
           ...runnerFailed,
           rowsWithoutValue: [{ field: 'Item.note', reason: 'backfillMissedRows' }],
         },
         withDb,
       ).fix,
-      mapMigrateFailure(runnerFailed, withDb).fix,
-      mapDbUpdateFailure(
+      migrateError(runnerFailed, withDb).fix,
+      dbUpdateError(
         {
           ...runnerFailed,
           conflicts: undefined,
@@ -228,7 +224,7 @@ describe('the advice for rows a required field has no value for', () => {
 
   it('never mentions schema drift', () => {
     expect(
-      mapDbUpdateFailure(
+      dbUpdateError(
         {
           ...runnerFailed,
           conflicts: undefined,

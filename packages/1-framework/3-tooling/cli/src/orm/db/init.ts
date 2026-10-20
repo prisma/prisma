@@ -17,7 +17,6 @@ import type { CreateControlClient, DbInitSuccess } from '../../control-api/types
 import { CliStructuredError, errorContractValidationFailed } from '../../utils/cli-errors';
 import { closeQuietly } from '../../utils/command-helpers';
 import { contractValidationMeta } from '../../utils/contract-validation-meta';
-import { mapDbInitFailure } from '../../utils/db-init-failure';
 import type { MigrationCommandResult } from '../../utils/formatters/migrations';
 import { type CliInvocation, cliCommand, cliInvocation } from '../../utils/printed-command';
 import { defineOrmCommand } from '../define-command';
@@ -179,12 +178,11 @@ export function createDbInitCommand(createClient: CreateControlClient) {
           contract: contractJson,
           mode: args.flags.dryRun ? 'plan' : 'apply',
           migrationsDir,
+          invocation: cliInvocation(ctx, args.flags.db),
           onProgress: controlProgressReporter(ctx.report),
         });
         if (!result.ok) {
-          return notOk(
-            normalizeError(mapDbInitFailure(result.failure, cliInvocation(ctx, args.flags.db))),
-          );
+          return notOk(normalizeError(result.failure));
         }
 
         const advancementHash =

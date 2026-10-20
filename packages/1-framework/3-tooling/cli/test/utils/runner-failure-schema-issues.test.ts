@@ -1,9 +1,16 @@
-import type { DiffableNode, SchemaDiffIssue } from '@internal/framework-components/control';
+import {
+  type DiffableNode,
+  type MigrationRunnerFailure,
+  migrationRunnerFailure,
+  type SchemaDiffIssue,
+} from '@internal/framework-components/control';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { describe, expect, it } from 'vitest';
-import { mapDbInitFailure } from '../../src/utils/db-init-failure';
-import { mapDbUpdateFailure } from '../../src/utils/db-update-failure';
-import { mapMigrateFailure } from '../../src/utils/migrate-failure';
+import { runnerFailureFacts } from '../../src/control-api/operations/run-migration';
+import { dbInitRunnerFailureError } from '../../src/utils/db-init-failure';
+import { dbUpdateRunnerFailureError } from '../../src/utils/db-update-failure';
+import { migrateRunnerFailureError } from '../../src/utils/migrate-failure';
+import type { FailedMigrationOnDisk } from '../../src/utils/runner-failure-advice';
 
 const node: DiffableNode = {
   id: 'default',
@@ -33,70 +40,94 @@ const PROJECT = '/work/app';
 const invocation = { cwd: PROJECT, configPath: undefined, dbGiven: false };
 const FROM = 'b'.repeat(64);
 
-function schemaCheckFailure(issues: readonly SchemaDiffIssue[]) {
-  return {
-    code: 'RUNNER_FAILED',
-    summary: 'Database schema does not satisfy contract',
-    why: RUNNER_WHY,
-    meta: { runnerErrorCode: 'MIGRATION.SCHEMA_VERIFY_FAILED', schemaIssues: issues },
-    schemaIssues: issues,
-  } as const;
+function schemaCheckFailure(
+  issues: readonly SchemaDiffIssue[] | undefined,
+): MigrationRunnerFailure {
+  return migrationRunnerFailure(
+    'MIGRATION.SCHEMA_VERIFY_FAILED',
+    'Database schema does not satisfy contract',
+    { why: RUNNER_WHY, meta: issues === undefined ? {} : { schemaIssues: issues } },
+  );
 }
 
-const { schemaIssues: _, ...withoutIssues } = schemaCheckFailure([explained]);
+const withoutIssues = schemaCheckFailure(undefined);
+
+function migrateError(
+  failure: MigrationRunnerFailure,
+  failedMigration: FailedMigrationOnDisk | undefined = undefined,
+) {
+  return migrateRunnerFailureError(
+    failure,
+    runnerFailureFacts(failure, []),
+    failedMigration,
+    invocation,
+  );
+}
+
+function dbUpdateError(failure: MigrationRunnerFailure) {
+  return dbUpdateRunnerFailureError(failure, runnerFailureFacts(failure, []), {
+    databaseStorageHash: undefined,
+    plannerWarnings: undefined,
+    invocation,
+  });
+}
+
+function dbInitError(failure: MigrationRunnerFailure) {
+  return dbInitRunnerFailureError(failure, runnerFailureFacts(failure, []), invocation);
+}
 
 describe('a failed schema check after apply', () => {
   describe('on db migrate', () => {
     it('lists the issues in its why, and says how to plan the failed migration again', () => {
-      const error = mapMigrateFailure(
-        {
-          ...schemaCheckFailure([explained, plain]),
-          failedMigration: {
-            directory: `${PROJECT}/migrations/app/20261015T1200_initial`,
-            from: FROM,
-          },
-        },
-        invocation,
-      );
-      expect({ why: error.why, fix: error.fix, issues: error.meta?.['schemaIssues'] }).toEqual({
+      const failure = schemaCheckFailure([explained, plain]);
+      const error = migrateError(failure, {
+        directory: `${PROJECT}/migrations/app/20261015T1200_initial`,
+        from: FROM,
+      });
+      expect({
+        code: error.code,
+        message: error.message,
+        why: error.why,
+        fix: error.fix,
+        meta: error.meta,
+        cause: error.cause,
+      }).toEqual({
+        code: 'MIGRATION.SCHEMA_VERIFY_FAILED',
+        message: 'Database schema does not satisfy contract',
         why: LISTED,
         fix: `The failed apply changed nothing. Change the contract source to resolve the issues listed, re-run \`{bin} contract emit\`, delete \`migrations/app/20261015T1200_initial\` (copy any code you wrote in its migration.ts first), plan it again with \`{bin} migration plan --from ${FROM} --name initial\`, put any code you copied into the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`{bin} db migrate\`.`,
-        issues: [explained, plain],
+        meta: { schemaIssues: [explained, plain] },
+        cause: failure,
       });
+      expect(error.cause).toBe(failure);
     });
 
     it('plans the first migration again without --from, which does not take the empty contract', () => {
       expect(
-        mapMigrateFailure(
-          {
-            ...schemaCheckFailure([explained]),
-            failedMigration: {
-              directory: `${PROJECT}/migrations/app/20261015T1200_initial`,
-              from: EMPTY_CONTRACT_HASH,
-            },
-          },
-          invocation,
-        ).fix,
+        migrateError(schemaCheckFailure([explained]), {
+          directory: `${PROJECT}/migrations/app/20261015T1200_initial`,
+          from: EMPTY_CONTRACT_HASH,
+        }).fix,
       ).toContain('plan it again with `{bin} migration plan --name initial`,');
     });
 
     it('says to carry written code over when the runner names no migration', () => {
-      expect(mapMigrateFailure(schemaCheckFailure([explained]), invocation).fix).toBe(
+      expect(migrateError(schemaCheckFailure([explained])).fix).toBe(
         "The failed apply changed nothing. Change the contract source to resolve the issues listed, re-run `{bin} contract emit`, delete the failed migration's directory (copy any code you wrote in its migration.ts first), plan it again with `{bin} migration plan`, put any code you copied into the migration.ts it writes, run that migration.ts with the `node` command `migration plan` prints, and run `{bin} db migrate`.",
       );
     });
 
-    it('reads the issues only from the typed field, not from meta', () => {
-      expect(mapMigrateFailure(withoutIssues, invocation).why).toBe(RUNNER_WHY);
+    it('keeps the runner why when the check reported no issues', () => {
+      expect([migrateError(withoutIssues).why, migrateError(schemaCheckFailure([])).why]).toEqual([
+        RUNNER_WHY,
+        RUNNER_WHY,
+      ]);
     });
   });
 
   describe('on db update', () => {
     it('lists the issues in its why, and says to change the contract', () => {
-      const error = mapDbUpdateFailure(
-        { ...schemaCheckFailure([explained, plain]), conflicts: undefined },
-        invocation,
-      );
+      const error = dbUpdateError(schemaCheckFailure([explained, plain]));
       expect({ why: error.why, fix: error.fix }).toEqual({
         why: LISTED,
         fix: 'Change the contract source to resolve the issues listed, re-run `{bin} contract emit`, then re-run `{bin} db update`.',
@@ -104,7 +135,7 @@ describe('a failed schema check after apply', () => {
     });
 
     it('keeps the runner why and its advice for a failure that carries no issues', () => {
-      const error = mapDbUpdateFailure({ ...withoutIssues, conflicts: undefined }, invocation);
+      const error = dbUpdateError(withoutIssues);
       expect({ why: error.why, fix: error.fix }).toEqual({
         why: RUNNER_WHY,
         fix: 'Inspect the reported conflict, reconcile schema drift if needed, then re-run `{bin} db update`',
@@ -114,10 +145,7 @@ describe('a failed schema check after apply', () => {
 
   describe('on db init', () => {
     it('lists the issues in its why, and says to change the contract', () => {
-      const error = mapDbInitFailure(
-        { ...schemaCheckFailure([explained, plain]), conflicts: undefined },
-        invocation,
-      );
+      const error = dbInitError(schemaCheckFailure([explained, plain]));
       expect({ why: error.why, fix: error.fix }).toEqual({
         why: LISTED,
         fix: 'Change the contract source to resolve the issues listed, re-run `{bin} contract emit`, then re-run `{bin} db init`.',
@@ -125,9 +153,7 @@ describe('a failed schema check after apply', () => {
     });
 
     it('keeps the runner why for a failure that carries no issues', () => {
-      expect(mapDbInitFailure({ ...withoutIssues, conflicts: undefined }, invocation).why).toBe(
-        RUNNER_WHY,
-      );
+      expect(dbInitError(withoutIssues).why).toBe(RUNNER_WHY);
     });
   });
 });

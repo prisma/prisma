@@ -29,7 +29,10 @@ import type {
   VerifyDatabaseSchemaResult,
 } from '@internal/framework-components/control';
 import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
+import type { AggregateMigrationEdgeRef } from '@internal/migration-tools/aggregate';
 import type { Result } from '@internal/utils/result';
+import type { CliStructuredError } from '../utils/cli-errors';
+import type { CliInvocation } from '../utils/printed-command';
 import type { ExecuteDbSignResult } from './operations/db-sign';
 import type { ExecuteDbVerifyResult } from './operations/db-verify';
 import type { RenderContractDtsOptions, RenderContractDtsResult } from './render-contract-dts';
@@ -178,6 +181,8 @@ export interface SchemaVerifyOptions {
  * Options for the dbInit operation.
  */
 export interface DbInitOptions {
+  /** The command line the advice of a failure repeats: its directory, `--config` and whether `--db` was given. */
+  readonly invocation: CliInvocation;
   /** Contract or unvalidated JSON - validated at runtime via familyInstance.deserializeContract() */
   readonly contract: unknown;
   /**
@@ -207,6 +212,8 @@ export interface DbInitOptions {
  * Options for the dbUpdate operation.
  */
 export interface DbUpdateOptions {
+  /** The command line the advice of a failure repeats: its directory, `--config` and whether `--db` was given. */
+  readonly invocation: CliInvocation;
   /** Contract or unvalidated JSON - validated at runtime via familyInstance.deserializeContract() */
   readonly contract: unknown;
   /**
@@ -421,47 +428,8 @@ export interface DbInitSuccess {
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
 }
 
-/**
- * Failure codes for dbInit operation.
- */
-export type DbInitFailureCode =
-  | 'PLANNING_FAILED'
-  | 'MIGRATION.MARKER_ORIGIN_MISMATCH'
-  | 'RUNNER_FAILED';
-
-/**
- * Failure details for dbInit operation.
- */
-export interface DbInitFailure {
-  readonly code: DbInitFailureCode;
-  readonly summary: string;
-  readonly why: string | undefined;
-  readonly conflicts: ReadonlyArray<MigrationPlannerConflict> | undefined;
-  readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
-  readonly meta: Record<string, unknown> | undefined;
-  /** The fields that were to become required while rows had no value for them; the failed one first. */
-  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
-  /** The check that failed before its operation ran. */
-  readonly failedPrecheck?: FailedPrecheckReport;
-  /** The differences the schema check after apply found, when that check failed. */
-  readonly schemaIssues?: readonly SchemaDiffIssue[];
-  /** Underlying failure or error for diagnostics; never serialized into envelopes. */
-  readonly cause?: unknown;
-  readonly marker?: {
-    readonly storageHash?: string;
-    readonly profileHash?: string;
-  };
-  readonly destination?: {
-    readonly storageHash: string;
-    readonly profileHash?: string | undefined;
-  };
-}
-
-/**
- * Result type for dbInit operation.
- * Uses Result pattern: success returns DbInitSuccess, failure returns DbInitFailure.
- */
-export type DbInitResult = Result<DbInitSuccess, DbInitFailure>;
+/** The result of `db init`: a failure is the structured error the command reports. */
+export type DbInitResult = Result<DbInitSuccess, CliStructuredError>;
 
 /** An operation an apply asks about, with its subject written as the question writes it: `User.nickname`. */
 export interface AskedSubject extends MigrationOperationSubject {
@@ -542,6 +510,20 @@ export interface FailedPrecheckReport {
   readonly planStartsFromMarker: boolean;
 }
 
+/** What a runner failure's advice names, in the words the advice uses. Only the CLI knows these. */
+export interface RunnerFailureFacts {
+  /** The type change whose cast failed. */
+  readonly failedTypeChange?: FailedTypeChangeReport;
+  /** The fields that were to become required while rows had no value for them; the failed one first. */
+  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  /** The check that failed before its operation ran, when the runner gave no explanation of its own. */
+  readonly failedPrecheck?: FailedPrecheckReport;
+  /** The differences the schema check after apply found; an empty list counts as none. */
+  readonly schemaIssues?: readonly SchemaDiffIssue[];
+  /** The written migration of the failed operation, when the runner named the operation, or the last one applied when the schema check after apply failed. */
+  readonly failedMigration?: { readonly spaceId: string; readonly edge: AggregateMigrationEdgeRef };
+}
+
 /** A field that was to become required while rows had no value for it, as the advice names it. */
 export interface RowsWithoutValueReport {
   /** The field, as a `backfill` statement names it, when the contract names one. */
@@ -553,43 +535,8 @@ export interface RowsWithoutValueReport {
   readonly reason: 'nullValues' | 'newField' | 'backfillMissedRows';
 }
 
-/**
- * Failure codes for dbUpdate operation.
- */
-export type DbUpdateFailureCode = 'PLANNING_FAILED' | 'RUNNER_FAILED';
-
-/**
- * Failure details for dbUpdate operation.
- */
-export interface DbUpdateFailure {
-  readonly code: DbUpdateFailureCode;
-  readonly summary: string;
-  readonly why: string | undefined;
-  readonly conflicts: ReadonlyArray<MigrationPlannerConflict> | undefined;
-  readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
-  readonly meta: Record<string, unknown> | undefined;
-  /** The fields that were to become required while rows had no value for them; the failed one first. */
-  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
-  /** The check that failed before its operation ran. */
-  readonly failedPrecheck?: FailedPrecheckReport;
-  /** The differences the schema check after apply found, when that check failed. */
-  readonly schemaIssues?: readonly SchemaDiffIssue[];
-  /**
-   * The storage hash of the contract the database is at, when a migration of the graph ends at it:
-   * the origin a `migration plan` for this database starts from.
-   */
-  readonly databaseStorageHash?: string;
-  /** The type change that failed. */
-  readonly failedTypeChange?: FailedTypeChangeReport;
-  /** Underlying failure or error for diagnostics; never serialized into envelopes. */
-  readonly cause?: unknown;
-}
-
-/**
- * Result type for dbUpdate operation.
- * Uses Result pattern: success returns DbUpdateSuccess, failure returns DbUpdateFailure.
- */
-export type DbUpdateResult = Result<DbUpdateSuccess, DbUpdateFailure>;
+/** The result of `db update`: a failure is the structured error the command reports. */
+export type DbUpdateResult = Result<DbUpdateSuccess, CliStructuredError>;
 
 /**
  * Successful emit result.
@@ -651,6 +598,8 @@ export type EmitResult = Result<EmitSuccess, EmitFailure>;
  * envelope, app-space migration packages) and hands the inputs in.
  */
 export interface MigrateOptions {
+  /** The command line the advice of a failure repeats: its directory, `--config` and whether `--db` was given. */
+  readonly invocation: CliInvocation;
   /** Already-validated app contract (the canonical "where we are heading" hash). */
   readonly contract: unknown;
   /** Migrations root directory (`migrations/` under the project). */
@@ -780,37 +729,8 @@ export interface MigrateSuccess {
   readonly pathDecision?: MigratePathDecision;
 }
 
-/**
- * Failure codes for migrate operation.
- */
-export type MigrateFailureCode = 'RUNNER_FAILED' | 'MIGRATION_PATH_NOT_FOUND';
-
-/**
- * Failure details for migrate operation.
- */
-export interface MigrateFailure {
-  readonly code: MigrateFailureCode;
-  readonly summary: string;
-  readonly why: string | undefined;
-  readonly meta: Record<string, unknown> | undefined;
-  /** The fields that were to become required while rows had no value for them; the failed one first. */
-  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
-  /** The check that failed before its operation ran. */
-  readonly failedPrecheck?: FailedPrecheckReport;
-  /** The differences the schema check after apply found, when that check failed. */
-  readonly schemaIssues?: readonly SchemaDiffIssue[];
-  /** The written migration of the failed operation: its directory, and the contract it starts from. */
-  readonly failedMigration?: { readonly directory: string; readonly from: string };
-  /** The type change that failed. */
-  readonly failedTypeChange?: FailedTypeChangeReport;
-  /** Underlying failure or error for diagnostics; never serialized into envelopes. */
-  readonly cause?: unknown;
-}
-
-/**
- * Result type for migrate operation.
- */
-export type MigrateResult = Result<MigrateSuccess, MigrateFailure>;
+/** The result of `db migrate`: a failure is the structured error the command reports. */
+export type MigrateResult = Result<MigrateSuccess, CliStructuredError>;
 
 // ============================================================================
 // Standalone Contract Emit Types

@@ -18,7 +18,12 @@ import {
 } from '@internal/migration-tools/aggregate';
 import { notOk, ok } from '@internal/utils/result';
 import { describe, expect, it, vi } from 'vitest';
-import { type RunAction, runMigration } from '../../src/control-api/operations/run-migration';
+import {
+  collectOrdered,
+  type RunAction,
+  runMigration,
+  runnerFailureFacts,
+} from '../../src/control-api/operations/run-migration';
 import type { ControlProgressEvent } from '../../src/control-api/types';
 
 const APP_HASH = `${'a'.repeat(64)}`;
@@ -145,8 +150,8 @@ describe('runMigration apply span label', () => {
   });
 });
 
-describe('runMigration runner-failure cause forwarding', () => {
-  it('preserves the runner failure object as `cause` on the RunnerFailure', async () => {
+describe('runMigration, a runner failure', () => {
+  it('returns the runner failure object itself', async () => {
     const runnerFailure = migrationRunnerFailure(
       'MIGRATION.EXECUTION_FAILED',
       'relation "users" already exists',
@@ -180,15 +185,7 @@ describe('runMigration runner-failure cause forwarding', () => {
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.cause).toBe(runnerFailure);
-    expect({ summary: result.failure.summary, meta: result.failure.meta }).toEqual({
-      summary: 'relation "users" already exists',
-      meta: {
-        failingSpace: 'app',
-        runnerErrorCode: 'MIGRATION.EXECUTION_FAILED',
-        sqlState: '42P07',
-      },
-    });
+    expect(result.failure).toBe(runnerFailure);
   });
 });
 
@@ -237,14 +234,15 @@ describe('runMigration, a type change that failed', () => {
     ];
     const destinationContract = { domain: { namespaces: { app: { models: {} } } } };
 
+    const perSpacePlans = new Map([
+      [
+        'app',
+        { ...makePerSpacePlan(), destinationContract, migrationEdges } as unknown as PerSpacePlan,
+      ],
+    ]);
     const result = await runMigration<'sql', 'postgres'>({
       aggregate: makeAggregate(),
-      perSpacePlans: new Map([
-        [
-          'app',
-          { ...makePerSpacePlan(), destinationContract, migrationEdges } as unknown as PerSpacePlan,
-        ],
-      ]),
+      perSpacePlans,
       applyOrder: ['app'],
       driver: {} as ControlDriverInstance<'sql', 'postgres'>,
       familyInstance: { familyId: 'sql' } as unknown as ControlFamilyInstance<'sql', unknown>,
@@ -254,13 +252,13 @@ describe('runMigration, a type change that failed', () => {
       action: 'migrate',
     });
 
+    const facts = result.ok
+      ? undefined
+      : runnerFailureFacts(result.failure, collectOrdered(['app'], perSpacePlans));
     expect(
-      result.ok
+      facts === undefined
         ? undefined
-        : {
-            failedTypeChange: result.failure.failedTypeChange,
-            failedMigration: result.failure.failedMigration,
-          },
+        : { failedTypeChange: facts.failedTypeChange, failedMigration: facts.failedMigration },
     ).toEqual({
       failedTypeChange: { field: 'User.age', by: 'cast', reason: 'value' },
       failedMigration: { spaceId: 'app', edge: migrationEdges[1] },

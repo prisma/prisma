@@ -7,7 +7,6 @@ import {
   errorMarkerReadFailed,
   errorMarkerRequired,
   errorMarkerRowCorrupt,
-  errorRunnerFailed,
   errorRuntime,
   errorTargetMismatch,
   parseMarkerRowSafely,
@@ -81,29 +80,6 @@ describe('Runtime Errors', () => {
     const error = errorMarkerRequired({ why: 'Custom reason', fix: 'Custom fix' });
     expect(error.why).toBe('Custom reason');
     expect(error.fix).toBe('Custom fix');
-  });
-
-  it('errorRunnerFailed creates correct error', () => {
-    const error = errorRunnerFailed('Runner failed');
-    expect(error.code).toBe('MIGRATION.RUNNER_FAILED');
-    expect(error.message).toBe('Runner failed');
-  });
-
-  it('errorRunnerFailed with all options', () => {
-    const error = errorRunnerFailed('Runner failed', {
-      why: 'Custom why',
-      fix: 'Custom fix',
-      meta: { key: 'value' },
-    });
-    expect(error.why).toBe('Custom why');
-    expect(error.fix).toBe('Custom fix');
-    expect(error.meta).toEqual({ key: 'value' });
-  });
-
-  it('errorRunnerFailed forwards cause', () => {
-    const cause = new Error('underlying failure');
-    const error = errorRunnerFailed('Runner failed', { cause });
-    expect(error.cause).toBe(cause);
   });
 
   it('errorRuntime carries the caller-provided code', () => {

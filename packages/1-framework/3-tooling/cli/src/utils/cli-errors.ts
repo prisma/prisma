@@ -31,7 +31,6 @@ import { ifDefined } from '@internal/utils/defined';
 import type { NextAction } from '@prisma/cli-engine/protocol';
 import { statementFlag } from '../control-api/statements/statement-flag';
 import type { StatementText } from '../control-api/statements/statement-text';
-import type { MigrateFailure } from '../control-api/types';
 import { chooseAction, runCommandAction } from './next-actions';
 import { type CliInvocation, cliCommand, printedPlanCommand } from './printed-command';
 
@@ -39,7 +38,6 @@ export {
   errorHashMismatch,
   errorMarkerMissing,
   errorMarkerRequired,
-  errorRunnerFailed,
   errorRuntime,
   errorSchemaVerificationFailed,
   errorTargetMismatch,
@@ -911,8 +909,15 @@ const ROLLBACK_IS_DESTRUCTIVE =
 const RENAMES_AND_DATA_NEED_MORE =
   'Plan a rename with --rename old:new; re-adding a required field without a safe default, or a type change that needs data, may need you to fill in the planned migration.ts';
 
-export function errorPathUnreachable(failure: MigrateFailure): ActionableCliError {
-  const meta = failure.meta ?? {};
+/** What a replay found when no migration path reaches its target: `meta` carries `fromHash`, `targetHash` or `target`, `deadEnds` and `kind`. */
+export interface PathUnreachable {
+  readonly summary: string;
+  readonly why: string | undefined;
+  readonly meta: Record<string, unknown>;
+}
+
+export function errorPathUnreachable(failure: PathUnreachable): ActionableCliError {
+  const meta = failure.meta;
   const fromHashMeta = typeof meta['fromHash'] === 'string' ? meta['fromHash'] : null;
   // `buildPathNotFoundFailure` uses this sentinel in meta when the live marker is null.
   const planFromHash = fromHashMeta === '<empty>' ? null : fromHashMeta;

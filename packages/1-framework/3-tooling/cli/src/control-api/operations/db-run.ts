@@ -16,7 +16,6 @@ import type {
   MigrationPlanSubjects,
   OperationPreview,
   ResolvedMigrationStatement,
-  SchemaDiffIssue,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 import {
@@ -32,19 +31,27 @@ import {
   collectAggregateNamespaces,
   type PlannerError,
   planMigration,
+  requireHeadRef,
 } from '@internal/migration-tools/aggregate';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import {
   contractSnapshotDir,
   readContractSnapshotJson,
   type SnapshotContentVerifier,
 } from '@internal/migration-tools/contract-snapshot-store';
 import { MigrationToolsError } from '@internal/migration-tools/errors';
-import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { join } from 'pathe';
-import { CliStructuredError } from '../../utils/cli-errors';
+import {
+  CliStructuredError,
+  errorMigrationPlanningFailed,
+  errorPathUnreachable,
+} from '../../utils/cli-errors';
+import { dbInitPlanningFailedError, dbInitRunnerFailureError } from '../../utils/db-init-failure';
+import { dbUpdateRunnerFailureError } from '../../utils/db-update-failure';
+import type { CliInvocation } from '../../utils/printed-command';
 import {
   type AnswerPlanQuestions,
   askPlanQuestions,
@@ -64,28 +71,25 @@ import { reportTemporaryValues, type TemporaryValueReport } from '../statements/
 import type {
   AskedAccessChange,
   AskedDataLoss,
-  DbInitFailure,
   DbInitResult,
   DbInitSuccess,
-  DbUpdateFailure,
   DbUpdateResult,
   DbUpdateSuccess,
-  FailedPrecheckReport,
-  FailedTypeChangeReport,
   OnControlProgress,
   PerSpaceExecutionEntry,
-  RowsWithoutValueReport,
 } from '../types';
 import {
   type BuildAggregateInputs,
   buildContractSpaceAggregate,
 } from './contract-space-aggregate-loader';
 import { stripOperations } from './migration-helpers';
+import { noInvariantPathError } from './no-invariant-path';
 import {
   buildPerSpaceBreakdown,
   collectOrdered,
   type OrderedResolution,
   runMigration,
+  runnerFailureFacts,
 } from './run-migration';
 
 /**
@@ -123,6 +127,8 @@ export interface ExecuteRunSharedOptions<TFamilyId extends string, TTargetId ext
   readonly extensions: ReadonlyArray<ControlExtensionDescriptor<TFamilyId, TTargetId>>;
   readonly targetId: TTargetId;
   readonly policy: MigrationOperationPolicy;
+  /** The command line the advice of a failure repeats. */
+  readonly invocation: CliInvocation;
   /** Content check for contract snapshots the aggregate loader resolves. */
   readonly verifySnapshotContent?: SnapshotContentVerifier;
   readonly onProgress?: OnControlProgress;
@@ -268,7 +274,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
   // walk their on-disk migration graphs via resolveRecordedPath.
   const plan = async (
     resolved: readonly ResolvedMigrationStatement[],
-  ): Promise<Result<PlannedRun, DbInitResult | DbUpdateResult>> => {
+  ): Promise<Result<PlannedRun, PlanningRefused>> => {
     onProgress?.({
       action,
       kind: 'spanStart',
@@ -288,7 +294,13 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     });
     if (!planned.ok) {
       onProgress?.({ action, kind: 'spanEnd', spanId: SPAN_IDS.plan, outcome: 'error' });
-      return notOk(mapPlannerError(planned.failure));
+      return notOk({
+        refused: mapPlannerError(planned.failure, {
+          action,
+          aggregate,
+          markerRows,
+        }),
+      });
     }
     onProgress?.({ action, kind: 'spanEnd', spanId: SPAN_IDS.plan, outcome: 'ok' });
     const orderedResolutions = collectOrdered(planned.value.applyOrder, planned.value.perSpace);
@@ -313,7 +325,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
 
   const first = await plan(statements);
   if (!first.ok) {
-    return first.failure;
+    return notOk(first.failure.refused);
   }
   let run = first.value;
   let plannedTexts: readonly StatementText[] = statementTexts.filter(isPlannedStatement);
@@ -339,7 +351,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       if (CliStructuredError.is(answered.failure)) {
         throw answered.failure;
       }
-      return answered.failure;
+      return notOk(answered.failure.refused);
     }
     run = answered.value.plan;
     plannedTexts = answered.value.statements;
@@ -455,18 +467,16 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     ...ifDefined('onProgress', onProgress),
   });
   if (!applied.ok) {
-    return buildRunnerFailure({
-      summary: applied.failure.summary,
-      ...ifDefined('why', applied.failure.why),
-      meta: applied.failure.meta,
-      ...ifDefined('warnings', plannerWarnings),
-      ...ifDefined('failedTypeChange', applied.failure.failedTypeChange),
-      ...ifDefined('rowsWithoutValue', applied.failure.rowsWithoutValue),
-      ...ifDefined('failedPrecheck', applied.failure.failedPrecheck),
-      ...ifDefined('schemaIssues', applied.failure.schemaIssues),
-      ...ifDefined('databaseStorageHash', databaseStorageHash),
-      ...ifDefined('cause', applied.failure.cause),
-    });
+    const facts = runnerFailureFacts(applied.failure, orderedResolutions);
+    return notOk(
+      action === 'dbInit'
+        ? dbInitRunnerFailureError(applied.failure, facts, options.invocation)
+        : dbUpdateRunnerFailureError(applied.failure, facts, {
+            databaseStorageHash,
+            plannerWarnings,
+            invocation: options.invocation,
+          }),
+    );
   }
 
   const aggregateOps = applied.value.orderedResolutions.flatMap((r) => r.entry.displayOps);
@@ -493,6 +503,11 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
 
 /** The origin of a database whose marker names no readable contract: no models. */
 const EMPTY_ORIGIN = { domain: { namespaces: {} } };
+
+/** The planner refused to plan: the error the command reports. */
+interface PlanningRefused {
+  readonly refused: CliStructuredError;
+}
 
 /** A plan of every space, and what it would lose and whose access it would widen. */
 interface PlannedRun extends PlannedQuestions {
@@ -642,42 +657,51 @@ function detectOrphanMarkers(
   });
 }
 
-function mapPlannerError(error: PlannerError): DbInitResult | DbUpdateResult {
+function mapPlannerError(
+  error: PlannerError,
+  context: {
+    readonly action: 'dbInit' | 'dbUpdate';
+    readonly aggregate: ContractSpaceAggregate;
+    readonly markerRows: ReadonlyMap<string, { readonly storageHash: string }>;
+  },
+): CliStructuredError {
   if (error.kind === 'planFromDiffFailed') {
-    const failure: DbInitFailure | DbUpdateFailure = {
-      code: 'PLANNING_FAILED',
-      summary: 'Migration planning failed due to conflicts',
-      conflicts: error.conflicts,
-      why: undefined,
-      meta: undefined,
-    };
-    return blindCast<
-      DbInitResult | DbUpdateResult,
-      'notOk(failure) is shape-compatible with both DbInitResult and DbUpdateResult; the union is the return type of the surrounding function'
-    >(notOk(failure));
+    return context.action === 'dbInit'
+      ? dbInitPlanningFailedError(error.conflicts)
+      : errorMigrationPlanningFailed({ conflicts: error.conflicts });
   }
   if (error.kind === 'extensionPathUnreachable') {
-    return buildRunnerFailure({
+    return errorPathUnreachable({
       summary: `Cannot resolve apply path for extension space "${error.spaceId}"`,
       why: `No path in the on-disk migration graph for extension space "${error.spaceId}" reaches the on-disk head ref hash "${error.target}".`,
-      meta: { spaceId: error.spaceId, target: error.target },
+      meta: {
+        spaceId: error.spaceId,
+        fromHash: context.markerRows.get(error.spaceId)?.storageHash ?? '<empty>',
+        target: error.target,
+      },
     });
   }
   if (error.kind === 'extensionPathUnsatisfiable') {
-    return buildRunnerFailure({
-      summary: `Cannot resolve apply path for extension space "${error.spaceId}"`,
-      why: `On-disk migration graph for extension space "${error.spaceId}" reaches the on-disk head ref but does not cover required invariants: ${error.missingInvariants.join(', ')}.`,
-      meta: { spaceId: error.spaceId, missingInvariants: error.missingInvariants },
+    const space = context.aggregate.extensions.find(({ spaceId }) => spaceId === error.spaceId);
+    if (space === undefined) {
+      throw new InternalError(
+        `The planner named extension space "${error.spaceId}", which the aggregate does not hold.`,
+      );
+    }
+    const headRef = requireHeadRef(space);
+    throw noInvariantPathError({
+      graph: space.graph(),
+      fromHash: context.markerRows.get(error.spaceId)?.storageHash ?? EMPTY_CONTRACT_HASH,
+      targetHash: headRef.hash,
+      required: headRef.invariants,
+      missing: error.missingInvariants,
     });
   }
-  // policyConflict — surfaces as a runner-style failure naming the
-  // space; conceptually a configuration bug, but mapping it onto the
-  // existing failure surface keeps callers untouched.
-  return buildRunnerFailure({
-    summary: `Aggregate planner policy conflict for space "${error.spaceId}"`,
-    why: error.detail,
-    meta: { spaceId: error.spaceId },
-  });
+  return new CliStructuredError(
+    'MIGRATION.CALLER_POLICY_REFUSED',
+    `The planner refused the planning policy for space "${error.spaceId}"`,
+    { why: error.detail, meta: { spaceId: error.spaceId } },
+  );
 }
 
 function wrapPlanResult(args: {
@@ -755,39 +779,6 @@ function wrapApplyResult(args: {
     ...ifDefined('warnings', args.warnings),
   };
   return ok(success);
-}
-
-function buildRunnerFailure(args: {
-  readonly summary: string;
-  readonly why?: string;
-  readonly meta: Record<string, unknown>;
-  readonly warnings?: readonly MigrationPlannerConflict[];
-  readonly failedTypeChange?: FailedTypeChangeReport;
-  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
-  readonly failedPrecheck?: FailedPrecheckReport;
-  readonly schemaIssues?: readonly SchemaDiffIssue[];
-  /** The contract the database is at, when a migration of the graph ends at it. */
-  readonly databaseStorageHash?: string;
-  readonly cause?: unknown;
-}): DbInitResult | DbUpdateResult {
-  const failure: DbInitFailure | DbUpdateFailure = {
-    code: 'RUNNER_FAILED',
-    summary: args.summary,
-    why: args.why,
-    meta: args.meta,
-    conflicts: undefined,
-    ...ifDefined('warnings', args.warnings),
-    ...ifDefined('failedTypeChange', args.failedTypeChange),
-    ...ifDefined('rowsWithoutValue', args.rowsWithoutValue),
-    ...ifDefined('failedPrecheck', args.failedPrecheck),
-    ...ifDefined('schemaIssues', args.schemaIssues),
-    ...ifDefined('databaseStorageHash', args.databaseStorageHash),
-    ...ifDefined('cause', args.cause),
-  };
-  return blindCast<
-    DbInitResult | DbUpdateResult,
-    'notOk(failure) is shape-compatible with both DbInitResult and DbUpdateResult; the union is the return type of the surrounding function'
-  >(notOk(failure));
 }
 
 /**

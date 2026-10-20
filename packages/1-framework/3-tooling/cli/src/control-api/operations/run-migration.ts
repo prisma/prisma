@@ -28,7 +28,7 @@ import type {
   FailedTypeChangeReport,
   OnControlProgress,
   PerSpaceExecutionEntry,
-  RowsWithoutValueReport,
+  RunnerFailureFacts,
 } from '../types';
 
 /**
@@ -43,34 +43,6 @@ const RUN_SPAN_ID = 'apply' as const;
  * and used to compose action-specific summary phrasing.
  */
 export type RunAction = 'dbInit' | 'dbUpdate' | 'migrate';
-
-/**
- * Failure variant emitted by {@link runMigration} when the runner
- * itself rejects the run. Mirrors the failure shape callers
- * already wrap into their own action-specific failure envelopes
- * (`DbInitFailure`, `DbUpdateFailure`, `MigrateFailure`) so each
- * caller keeps owning its own discriminated failure code.
- */
-export interface RunnerFailure {
-  readonly summary: string;
-  readonly why?: string;
-  readonly meta: Record<string, unknown>;
-  /** The type change whose cast failed. */
-  readonly failedTypeChange?: FailedTypeChangeReport;
-  /** The fields that were to become required while rows had no value for them; the failed one first. */
-  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
-  /** The check that failed before its operation ran, when the runner gave no explanation of its own. */
-  readonly failedPrecheck?: FailedPrecheckReport;
-  /** The differences the schema check after apply found, when that check failed. */
-  readonly schemaIssues?: readonly SchemaDiffIssue[];
-  /** The written migration of the failed operation, when the runner named the operation, or the last one applied when the schema check after apply failed. */
-  readonly failedMigration?: { readonly spaceId: string; readonly edge: AggregateMigrationEdgeRef };
-  /**
-   * The runner's original failure object, preserved verbatim so callers
-   * can attach it as `cause` on the CLI error they build from this shape.
-   */
-  readonly cause?: unknown;
-}
 
 function edgeOfOperation(
   edges: readonly AggregateMigrationEdgeRef[],
@@ -93,7 +65,7 @@ function failedTypeChangeReport(change: FailedTypeChange, field: string): Failed
 function failureReports(
   failure: MigrationRunnerFailure,
   resolutions: readonly OrderedResolution[],
-): Pick<RunnerFailure, 'failedTypeChange' | 'rowsWithoutValue' | 'failedMigration'> {
+): Pick<RunnerFailureFacts, 'failedTypeChange' | 'rowsWithoutValue' | 'failedMigration'> {
   const resolution = resolutions.find(({ spaceId }) => spaceId === failure.meta.failingSpace);
   if (resolution === undefined) return {};
   const fieldText = (field: MigrationSubject) =>
@@ -146,6 +118,18 @@ function failedPrecheckOf(
     operationId: check.operationId,
     description: check.description,
     planStartsFromMarker: resolution !== undefined && resolution.entry.plan.origin !== null,
+  };
+}
+
+/** The facts the advice for `failure` names, found in the plans of `resolutions`. */
+export function runnerFailureFacts(
+  failure: MigrationRunnerFailure,
+  resolutions: readonly OrderedResolution[],
+): RunnerFailureFacts {
+  return {
+    ...failureReports(failure, resolutions),
+    ...ifDefined('failedPrecheck', failedPrecheckOf(failure, resolutions)),
+    ...ifDefined('schemaIssues', schemaIssuesOf(failure)),
   };
 }
 
@@ -203,7 +187,7 @@ export interface RunMigrationValue {
   readonly perSpace: readonly PerSpaceExecutionEntry[];
 }
 
-export type RunMigrationResult = Result<RunMigrationValue, RunnerFailure>;
+export type RunMigrationResult = Result<RunMigrationValue, MigrationRunnerFailure>;
 
 /**
  * Runner-driving tail shared by every run caller — `db init`,
@@ -267,18 +251,7 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
 
   if (!runnerResult.ok) {
     onProgress?.({ action, kind: 'spanEnd', spanId: RUN_SPAN_ID, outcome: 'error' });
-    return notOk({
-      summary: runnerResult.failure.message,
-      ...ifDefined('why', runnerResult.failure.why),
-      meta: {
-        ...runnerResult.failure.meta,
-        runnerErrorCode: runnerResult.failure.code,
-      },
-      ...failureReports(runnerResult.failure, orderedResolutions),
-      ...ifDefined('failedPrecheck', failedPrecheckOf(runnerResult.failure, orderedResolutions)),
-      ...ifDefined('schemaIssues', schemaIssuesOf(runnerResult.failure)),
-      cause: runnerResult.failure,
-    });
+    return notOk(runnerResult.failure);
   }
   onProgress?.({ action, kind: 'spanEnd', spanId: RUN_SPAN_ID, outcome: 'ok' });
 

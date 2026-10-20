@@ -22,6 +22,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { createControlClient } from '../../src/control-api/client';
 import type { ControlProgressEvent } from '../../src/control-api/types';
 
+const TEST_INVOCATION = { cwd: '/work/app', configPath: undefined, dbGiven: false };
+
 /**
  * The smallest contract the real emitter accepts: a storage envelope with a
  * hash and no models. No module mocks — the emit tests run the real
@@ -744,6 +746,7 @@ describe('ControlClient progress emission', () => {
       });
 
       const result = await client.dbUpdate({
+        invocation: TEST_INVOCATION,
         contract: {
           target: 'postgres',
           storage: { storageHash: 'fixture', tables: {}, namespaces: {} },
@@ -807,6 +810,7 @@ describe('ControlClient progress emission', () => {
       });
 
       const result = await client.dbUpdate({
+        invocation: TEST_INVOCATION,
         contract: {
           target: 'postgres',
           storage: { storageHash: 'fixture', tables: {}, namespaces: {} },

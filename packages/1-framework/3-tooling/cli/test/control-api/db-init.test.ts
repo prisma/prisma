@@ -9,6 +9,8 @@ import { ok } from '@internal/utils/result';
 import { describe, expect, it, vi } from 'vitest';
 import { executeDbInit } from '../../src/control-api/operations/db-init';
 
+const TEST_INVOCATION = { cwd: '/work/app', configPath: undefined, dbGiven: false };
+
 function createMockDriver() {
   return {
     close: vi.fn(),
@@ -61,6 +63,7 @@ describe('executeDbInit', () => {
     >;
 
     const result = await executeDbInit({
+      invocation: TEST_INVOCATION,
       driver: createMockDriver(),
       adapter: {} as unknown as ControlAdapterInstance<'sql', 'postgres'>,
       familyInstance: createMockFamilyInstance(),

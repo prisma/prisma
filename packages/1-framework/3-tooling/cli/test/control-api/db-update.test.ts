@@ -18,6 +18,8 @@ import {
 } from '../../src/control-api/statements/plan-questions';
 import type { ControlProgressEvent } from '../../src/control-api/types';
 
+const TEST_INVOCATION = { cwd: '/work/app', configPath: undefined, dbGiven: false };
+
 const FAKE_MIGRATIONS_DIR = '/tmp/__test-db-update-migrations';
 
 const noQuestions = async (questions: readonly PlanQuestion[]) =>
@@ -132,6 +134,7 @@ const dummyContract = {
 describe('executeDbUpdate', () => {
   it('succeeds on a fresh database without marker', async () => {
     const result = await executeDbUpdate({
+      invocation: TEST_INVOCATION,
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance(),
@@ -151,8 +154,9 @@ describe('executeDbUpdate', () => {
     }
   });
 
-  it('returns PLANNING_FAILED when planner reports conflicts', async () => {
+  it('returns MIGRATION.PLANNING_FAILED when planner reports conflicts', async () => {
     const result = await executeDbUpdate({
+      invocation: TEST_INVOCATION,
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance({
@@ -179,9 +183,10 @@ describe('executeDbUpdate', () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.failure.code).toBe('PLANNING_FAILED');
-      expect(result.failure.conflicts).toHaveLength(1);
-      expect(result.failure.conflicts?.[0]).toMatchObject({ kind: 'typeMismatch' });
+      expect({ code: result.failure.code, why: result.failure.why }).toEqual({
+        code: 'MIGRATION.PLANNING_FAILED',
+        why: 'Type mismatch',
+      });
     }
   });
 
@@ -213,6 +218,7 @@ describe('executeDbUpdate', () => {
     });
 
     const result = await executeDbUpdate({
+      invocation: TEST_INVOCATION,
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance({
@@ -248,8 +254,14 @@ describe('executeDbUpdate', () => {
     expect(execute).not.toHaveBeenCalled();
   });
 
-  it('returns RUNNER_FAILED when runner rejects apply', async () => {
+  it('reports a runner failure with its own code, message, why and meta, and the advice', async () => {
+    const runnerFailure = migrationRunnerFailure(
+      'MIGRATION.MARKER_ORIGIN_MISMATCH',
+      'Origin mismatch',
+      { why: 'Marker drifted', meta: { drift: true, failingSpace: 'app' } },
+    );
     const result = await executeDbUpdate({
+      invocation: TEST_INVOCATION,
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance({
@@ -259,12 +271,7 @@ describe('executeDbUpdate', () => {
       mode: 'apply',
       acceptDataLoss: true,
       migrations: createMockMigrations({
-        runnerResult: notOk(
-          migrationRunnerFailure('MIGRATION.MARKER_ORIGIN_MISMATCH', 'Origin mismatch', {
-            why: 'Marker drifted',
-            meta: { drift: true, failingSpace: 'app' },
-          }),
-        ),
+        runnerResult: notOk(runnerFailure),
       }),
       frameworkComponents: [],
       migrationsDir: FAKE_MIGRATIONS_DIR,
@@ -274,19 +281,30 @@ describe('executeDbUpdate', () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.failure.code).toBe('RUNNER_FAILED');
-      expect(result.failure.summary).toBe('Origin mismatch');
-      expect(result.failure.why).toBe('Marker drifted');
-      expect(result.failure.meta).toMatchObject({ drift: true, failingSpace: 'app' });
+      expect({
+        code: result.failure.code,
+        message: result.failure.message,
+        why: result.failure.why,
+        fix: result.failure.fix,
+        meta: result.failure.meta,
+      }).toEqual({
+        code: 'MIGRATION.MARKER_ORIGIN_MISMATCH',
+        message: 'Origin mismatch',
+        why: 'Marker drifted',
+        fix: 'Inspect the reported conflict, reconcile schema drift if needed, then re-run `{bin} db update`',
+        meta: { drift: true, failingSpace: 'app' },
+      });
+      expect(result.failure.cause).toBe(runnerFailure);
     }
   });
 
-  it('carries the issues of a failed schema check, and keeps them in meta for JSON output', async () => {
+  it('lists the issues of a failed schema check in its why, and keeps the runner meta', async () => {
     const issue = {
       path: ['public', 'event', 'id'],
       expected: { id: 'id', nodeKind: 'sql-column', isEqualTo: () => false, children: () => [] },
     };
     const result = await executeDbUpdate({
+      invocation: TEST_INVOCATION,
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance({
@@ -313,18 +331,17 @@ describe('executeDbUpdate', () => {
     expect(
       result.ok
         ? undefined
-        : {
-            schemaIssues: result.failure.schemaIssues,
-            metaIssues: result.failure.meta?.['schemaIssues'],
-          },
+        : { code: result.failure.code, why: result.failure.why, meta: result.failure.meta },
     ).toEqual({
-      schemaIssues: [issue],
-      metaIssues: [issue],
+      code: 'MIGRATION.SCHEMA_VERIFY_FAILED',
+      why: 'The schema check after apply found: missing: public/event/id.',
+      meta: { schemaIssues: [issue], failingSpace: 'app' },
     });
   });
 
   it('returns success with execution stats and marker in apply mode', async () => {
     const result = await executeDbUpdate({
+      invocation: TEST_INVOCATION,
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance({
@@ -370,6 +387,7 @@ describe('executeDbUpdate', () => {
 
   it('returns success with 0 operations when database already matches contract', async () => {
     const result = await executeDbUpdate({
+      invocation: TEST_INVOCATION,
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance({
@@ -449,6 +467,7 @@ describe('executeDbUpdate', () => {
     });
 
     const result = await executeDbUpdate({
+      invocation: TEST_INVOCATION,
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance({
@@ -513,6 +532,7 @@ describe('executeDbUpdate', () => {
     >;
 
     await executeDbUpdate({
+      invocation: TEST_INVOCATION,
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance({
@@ -598,6 +618,7 @@ describe('executeDbUpdate', () => {
         migrationsDir: FAKE_MIGRATIONS_DIR,
         targetId: 'postgres' as const,
         answerQuestions: noQuestions,
+        invocation: TEST_INVOCATION,
         ...overrides,
       };
     }
@@ -863,6 +884,7 @@ describe('executeDbUpdate', () => {
     >;
 
     const result = await executeDbUpdate({
+      invocation: TEST_INVOCATION,
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance(),
@@ -896,6 +918,7 @@ describe('executeDbUpdate', () => {
       const events: ControlProgressEvent[] = [];
 
       await executeDbUpdate({
+        invocation: TEST_INVOCATION,
         driver: createMockDriver(),
         adapter: STUB_ADAPTER,
         familyInstance: createMockFamilyInstance(),
@@ -923,6 +946,7 @@ describe('executeDbUpdate', () => {
       const events: ControlProgressEvent[] = [];
 
       await executeDbUpdate({
+        invocation: TEST_INVOCATION,
         driver: createMockDriver(),
         adapter: STUB_ADAPTER,
         familyInstance: createMockFamilyInstance(),
@@ -956,6 +980,7 @@ describe('executeDbUpdate', () => {
       const events: ControlProgressEvent[] = [];
 
       await executeDbUpdate({
+        invocation: TEST_INVOCATION,
         driver: createMockDriver(),
         adapter: STUB_ADAPTER,
         familyInstance: createMockFamilyInstance(),
@@ -979,6 +1004,7 @@ describe('executeDbUpdate', () => {
       const events: ControlProgressEvent[] = [];
 
       await executeDbUpdate({
+        invocation: TEST_INVOCATION,
         driver: createMockDriver(),
         adapter: STUB_ADAPTER,
         familyInstance: createMockFamilyInstance(),

@@ -1,5 +1,9 @@
 import { existsSync, rmSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
+import {
+  migrationRunnerFailure,
+  type SchemaDiffIssue,
+} from '@internal/framework-components/control';
 import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
 import { notOk, ok } from '@internal/utils/result';
 import { structuredError } from '@internal/utils/structured-error';
@@ -7,8 +11,11 @@ import type { EngineEvent, StreamEvent } from '@prisma/cli-engine';
 import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { runnerFailureFacts } from '../../src/control-api/operations/run-migration';
 import type { ControlClient } from '../../src/control-api/types';
 import { BIN_GROUPS, createBinCommands } from '../../src/orm/cli';
+import { errorMigrationPlanningFailed } from '../../src/utils/cli-errors';
+import { dbUpdateRunnerFailureError } from '../../src/utils/db-update-failure';
 import { createOrmTestCli } from '../helpers/orm-test-cli';
 import { createTestProjectDir, writeProjectManifest } from '../utils/test-project-dir';
 
@@ -20,6 +27,11 @@ function refusedDefault(): Error {
     meta: { reason: 'default-not-canonical', column: 'at' },
   });
 }
+
+const MISSING_COLUMN: SchemaDiffIssue = {
+  path: ['public', 'event', 'id'],
+  expected: { id: 'id', nodeKind: 'sql-column', isEqualTo: () => false, children: () => [] },
+};
 
 const mocks = {
   connect: vi.fn(),
@@ -674,15 +686,7 @@ describe('db update', () => {
   });
 
   it('maps a planning failure to its migration code', async () => {
-    mocks.dbUpdate.mockResolvedValue(
-      notOk({
-        code: 'PLANNING_FAILED',
-        summary: 'planning failed',
-        why: undefined,
-        conflicts: [],
-        meta: undefined,
-      }),
-    );
+    mocks.dbUpdate.mockResolvedValue(notOk(errorMigrationPlanningFailed({ conflicts: [] })));
 
     const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
 
@@ -727,14 +731,19 @@ describe('db update', () => {
 
   it('reports the planner`s warnings even when the apply fails', async () => {
     mocks.dbUpdate.mockResolvedValue(
-      notOk({
-        code: 'RUNNER_FAILED',
-        summary: 'runner failed',
-        why: undefined,
-        conflicts: undefined,
-        warnings: [{ kind: 'suppressed', summary: 'control policy suppressed: table "auth.x"' }],
-        meta: undefined,
-      }),
+      notOk(
+        dbUpdateRunnerFailureError(
+          migrationRunnerFailure('MIGRATION.EXECUTION_FAILED', 'runner failed'),
+          {},
+          {
+            databaseStorageHash: undefined,
+            plannerWarnings: [
+              { kind: 'suppressed', summary: 'control policy suppressed: table "auth.x"' },
+            ],
+            invocation: { cwd: projectDir, configPath: undefined, dbGiven: false },
+          },
+        ),
+      ),
     );
 
     const run = await harness().run(['db', 'update'], {
@@ -750,15 +759,23 @@ describe('db update', () => {
     expect(stripAnsi(run.stderr)).toContain('control policy suppressed: table "auth.x"');
   });
 
-  it('maps a runner failure to its migration code', async () => {
+  it('reports a runner failure with the runner code and meta, and the advice', async () => {
+    const runnerFailure = migrationRunnerFailure(
+      'MIGRATION.SCHEMA_VERIFY_FAILED',
+      'Database schema does not satisfy contract',
+      {
+        why: 'The resulting database schema does not satisfy the destination contract.',
+        meta: { schemaIssues: [MISSING_COLUMN], failingSpace: 'app' },
+      },
+    );
     mocks.dbUpdate.mockResolvedValue(
-      notOk({
-        code: 'RUNNER_FAILED',
-        summary: 'runner failed',
-        why: undefined,
-        conflicts: undefined,
-        meta: { runnerErrorCode: 'MIGRATION.EXECUTION_FAILED' },
-      }),
+      notOk(
+        dbUpdateRunnerFailureError(runnerFailure, runnerFailureFacts(runnerFailure, []), {
+          databaseStorageHash: undefined,
+          plannerWarnings: undefined,
+          invocation: { cwd: projectDir, configPath: undefined, dbGiven: false },
+        }),
+      ),
     );
 
     const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
@@ -766,8 +783,30 @@ describe('db update', () => {
     expect(run.exitCode).toBe(2);
     expect(envelopeOf(run.json)).toMatchObject({
       ok: false,
-      error: { code: 'MIGRATION.RUNNER_FAILED' },
+      error: {
+        code: 'MIGRATION.SCHEMA_VERIFY_FAILED',
+        summary: 'Database schema does not satisfy contract',
+        why: 'The schema check after apply found: missing: public/event/id.',
+        nextActions: [
+          {
+            kind: 'user-choice',
+            label:
+              'Change the contract source to resolve the issues listed, re-run `prisma-test contract emit`, then re-run `prisma-test db update`.',
+          },
+        ],
+        meta: { schemaIssues: [{ path: ['public', 'event', 'id'] }], failingSpace: 'app' },
+      },
     });
+    expect(
+      Object.keys(
+        (envelopeOf(run.json) as { error: { meta: Record<string, unknown> } }).error.meta,
+      ).sort(),
+    ).toEqual(['failingSpace', 'schemaIssues']);
+    expect(mocks.dbUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        invocation: { cwd: projectDir, configPath: undefined, dbGiven: false },
+      }),
+    );
   });
 
   it('refuses a --to reference no migration package produces', async () => {

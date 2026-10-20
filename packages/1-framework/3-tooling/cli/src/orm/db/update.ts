@@ -41,7 +41,6 @@ import {
 import { closeQuietly } from '../../utils/command-helpers';
 import { RECORDED_CONTRACT_REF_FORMS } from '../../utils/contract-ref-forms';
 import { contractValidationMeta } from '../../utils/contract-validation-meta';
-import { mapDbUpdateFailure } from '../../utils/db-update-failure';
 import type { MigrationCommandResult } from '../../utils/formatters/migrations';
 import { type CliInvocation, cliCommand, cliInvocation } from '../../utils/printed-command';
 import { defineOrmCommand } from '../define-command';
@@ -213,6 +212,19 @@ function unansweredConsents(statements: {
     .flatMap(({ verb, text }) => (verb === 'delete' || verb === 'allow' ? [{ verb, text }] : []));
 }
 
+/** The planner's warnings a failed `db update` keeps in its error's `meta`. */
+function plannerWarningsOf(error: {
+  readonly meta?: Record<string, unknown>;
+}): readonly { readonly summary: string }[] {
+  const warnings: unknown = error.meta?.['plannerWarnings'];
+  if (!Array.isArray(warnings)) return [];
+  return warnings.flatMap((warning: unknown) => {
+    const summary: unknown =
+      typeof warning === 'object' && warning !== null ? Reflect.get(warning, 'summary') : undefined;
+    return typeof summary === 'string' ? [{ summary }] : [];
+  });
+}
+
 export function createDbUpdateCommand(createClient: CreateControlClient) {
   return defineOrmCommand({
     help: {
@@ -363,13 +375,12 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
           migrationsDir,
           statements: [...renames, ...previewConsents],
           answerQuestions: promptPlanQuestions(ctx.prompt),
+          invocation: cliInvocation(ctx, args.flags.db),
           onProgress: controlProgressReporter(ctx.report),
         });
         if (!result.ok) {
-          reportPlannerWarnings(result.failure.warnings ?? []);
-          return notOk(
-            normalizeError(mapDbUpdateFailure(result.failure, cliInvocation(ctx, args.flags.db))),
-          );
+          reportPlannerWarnings(plannerWarningsOf(result.failure));
+          return notOk(normalizeError(result.failure));
         }
 
         const advancementHash =

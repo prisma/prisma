@@ -382,6 +382,7 @@ class ControlClientImpl implements ControlClient {
 
     return executeDbInit({
       driver,
+      invocation: options.invocation,
       adapter,
       familyInstance,
       contract,
@@ -423,6 +424,7 @@ class ControlClientImpl implements ControlClient {
 
     return executeDbUpdate({
       driver,
+      invocation: options.invocation,
       adapter,
       familyInstance,
       contract,
@@ -525,6 +527,7 @@ class ControlClientImpl implements ControlClient {
 
     return executeMigrate({
       driver,
+      invocation: options.invocation,
       familyInstance,
       contract,
       migrations: this.options.target.migrations,
