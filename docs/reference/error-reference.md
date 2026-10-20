@@ -916,6 +916,10 @@ A list column declares `@default(autoincrement())`: `Field "<Model>.<field>" is 
 
 A `` @default(sql`...`) `` text fails the check `@default` runs on raw SQL: `Default SQL must not contain semicolons, SQL comment tokens, dollar-quoting, or subqueries.` (the rule the migration planners apply at DDL time, run at authoring time so it has a source span), or is exactly `now()` or `autoincrement()`: `` Write @default(now()) instead of sql`now()`; now() is a Prisma default function, not raw SQL. `` The tag is always `sql`. Only `@default` reports this code; the other places that take a `sql` literal check nothing about its text. Reported at the literal.
 
+### PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT
+
+An argument of a default function is a value of the target's integer type that the function does not take: `uuid: version must be 4 or 7, got <n>`, `cuid: version must be 2, got <n>`, or `nanoid: size must be between 2 and 255, got <n>`. Each argument is read like a written default of the integer type (`pg/int4` on Postgres, `sqlite/integer` on SQLite) before the function checks it, so a value that type does not take, such as `nanoid(8.5)` or `nanoid("8")`, is `PSL_VALUE_TYPE_INCOMPATIBLE` instead. A missing or extra argument is `PSL_INVALID_ATTRIBUTE_SYNTAX`, as in `Default function "cuid" is missing required argument "version"`. Reported at the argument. See [ADR 254](../architecture%20docs/adrs/ADR%20254%20-%20Data%20types%20and%20casts.md).
+
 ### PSL_ENUM_TYPE_NEEDS_PARAMETERS
 
 An `enum` block's `@@type` names a codec whose data type requires a parameter, which an enum block has no way to give: `enum "<Enum>" @@type codec "<codecId>" represents data type "<dataType>", which requires the parameter "<parameter>"; an enum block gives it none`. Reported by the SQL PSL reader at the `@@type` attribute. Choose a codec whose data type takes no required parameter, such as the target's text or integer codec.
