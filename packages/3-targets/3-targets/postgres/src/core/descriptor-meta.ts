@@ -11,6 +11,7 @@ import {
 import { postgresRenderCheckExpressions } from './check-expressions';
 import { postgresQualifyColumnType } from './codecs';
 import { postgresDataTypeEntries } from './data-type-entries';
+import { postgresTextDataTypes } from './data-types';
 import { postgresTargetDescriptorMetaRuntime } from './descriptor-meta-runtime';
 import { postgresIndexTypes } from './index-types';
 import { DEFAULT_NAMESPACE_ID } from './namespace-ids';
@@ -25,6 +26,7 @@ const postgresTargetDescriptorMetaBase = {
     type: postgresAuthoringTypes,
     field: postgresAuthoringFieldPresets,
     dataTypes: postgresDataTypeEntries(),
+    textDataTypes: postgresTextDataTypes,
     entityTypes: postgresAuthoringEntityTypes,
     pslBlockDescriptors: postgresAuthoringPslBlockDescriptors,
     modelAttributes: postgresAuthoringModelAttributes,

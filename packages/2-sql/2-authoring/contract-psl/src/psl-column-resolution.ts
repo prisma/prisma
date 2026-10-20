@@ -26,6 +26,7 @@ import {
 import type {
   AnyCodecDescriptor,
   CodecLookupWithDescriptors,
+  DataTypeId,
 } from '@internal/framework-components/codec';
 import {
   type ControlMutationDefaultRegistry,
@@ -687,6 +688,8 @@ export function lowerDefaultForField(input: {
   readonly generatorDescriptorById: ReadonlyMap<string, MutationDefaultGeneratorDescriptor>;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
   readonly dataTypes: DataTypeSupport;
+  /** The stack's text data types, which a generator that writes text applies to. */
+  readonly textDataTypes: readonly DataTypeId[];
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly diagnostics: PslDiagnosticCollector;
 }): {
@@ -919,7 +922,10 @@ export function lowerDefaultForField(input: {
   }
 
   // Preset-only generators (e.g. `timestampNow`) co-register their codec through the preset descriptor, so they don't carry an `applicableDataTypes` list. Such a generator surfacing on the `@default(...)` lowering path is itself the bug — emit a diagnostic pointing the user at the correct authoring surface.
-  if (generatorDescriptor.applicableDataTypes === undefined) {
+  if (
+    generatorDescriptor.applicableDataTypes === undefined &&
+    generatorDescriptor.writesText !== true
+  ) {
     input.diagnostics.push({
       code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
       message: `Default generator "${generatorDescriptor.id}" is not applicable to "@default(...)" lowering. Use the corresponding field preset (e.g. \`temporal.${generatorDescriptor.id === 'timestampNow' ? 'updatedAt' : generatorDescriptor.id}()\`) instead.`,
@@ -934,7 +940,10 @@ export function lowerDefaultForField(input: {
       `Field "${input.modelName}.${input.fieldName}": no codec descriptor is registered for "${input.columnDescriptor.codecId}", but the column was resolved from one.`,
     );
   }
-  if (!generatorDescriptor.applicableDataTypes.includes(descriptor.dataType)) {
+  const applies =
+    (generatorDescriptor.applicableDataTypes?.includes(descriptor.dataType) ?? false) ||
+    (generatorDescriptor.writesText === true && input.textDataTypes.includes(descriptor.dataType));
+  if (!applies) {
     input.diagnostics.push({
       code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
       message: `Default generator "${generatorDescriptor.id}" is not applicable to "${input.modelName}.${input.fieldName}" with data type "${descriptor.dataType}".`,

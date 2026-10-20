@@ -4,7 +4,7 @@ import type {
   MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/control';
 import { timestampNowControlDescriptor } from '@internal/framework-components/control';
-import { sqliteInteger, sqliteTextDataTypes } from '@internal/target-sqlite/data-types';
+import { sqliteInteger } from '@internal/target-sqlite/data-types';
 
 const sqliteDefaultFunctionRegistryEntries = Object.entries(
   sqlDefaultFunctions({ integer: sqliteInteger.id }),
@@ -18,11 +18,5 @@ export function createSqliteDefaultFunctionRegistry(): ReadonlyMap<
 }
 
 export function createSqliteMutationDefaultGeneratorDescriptors(): readonly MutationDefaultGeneratorDescriptor[] {
-  return [
-    ...sqlBuiltinGeneratorDescriptors({
-      text: sqliteTextDataTypes,
-      uuid: [],
-    }),
-    timestampNowControlDescriptor(),
-  ];
+  return [...sqlBuiltinGeneratorDescriptors({ uuid: [] }), timestampNowControlDescriptor()];
 }

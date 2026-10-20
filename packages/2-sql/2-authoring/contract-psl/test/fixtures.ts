@@ -703,23 +703,25 @@ export function createBuiltinLikeControlMutationDefaults(): ControlMutationDefau
     generatorDescriptors: [
       {
         id: 'uuidv4',
-        applicableDataTypes: [pgTextType, pgCharType, dataTypeId('pg/uuid')],
+        writesText: true,
+        applicableDataTypes: [dataTypeId('pg/uuid')],
       },
       {
         id: 'uuidv7',
-        applicableDataTypes: [pgTextType, pgCharType, dataTypeId('pg/uuid')],
+        writesText: true,
+        applicableDataTypes: [dataTypeId('pg/uuid')],
       },
       {
         id: 'cuid2',
-        applicableDataTypes: [pgTextType, pgCharType],
+        writesText: true,
       },
       {
         id: 'ulid',
-        applicableDataTypes: [pgTextType, pgCharType],
+        writesText: true,
       },
       {
         id: 'nanoid',
-        applicableDataTypes: [pgTextType, pgCharType],
+        writesText: true,
       },
       {
         id: 'timestampNow',

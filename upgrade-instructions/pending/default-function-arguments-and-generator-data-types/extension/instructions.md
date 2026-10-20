@@ -2,14 +2,14 @@
 changes:
   - id: generator-applicable-data-types
     summary: |
-      `MutationDefaultGeneratorDescriptor.applicableCodecIds` (`@prisma/orm-framework/components/control`) is replaced by `applicableDataTypes`, a list of data type ids. One entry covers every codec of that data type. A descriptor that still sets `applicableCodecIds` is treated as having no list, so `@default(...)` refuses the generator with the message that points at the field preset.
+      `MutationDefaultGeneratorDescriptor.applicableCodecIds` (`@prisma/orm-framework/components/control`) is replaced by `applicableDataTypes`, a list of data type ids. One entry covers every codec of that data type. A generator that writes text sets `writesText: true` instead of listing text types, and then applies to every one of the stack's text data types (`textDataTypes`). A descriptor that still sets `applicableCodecIds` is treated as having no list, so `@default(...)` refuses the generator with the message that points at the field preset.
     detection:
       glob: "**/*.{ts,mts,cts,tsx,js,mjs,cjs}"
       matches:
         - '\bapplicableCodecIds\b'
   - id: builtin-generator-metadata-writes-uuid
     summary: |
-      `builtinGeneratorRegistryMetadata` (`@prisma/orm-framework/ids`) gives `{ id, writesUuid }` for each built-in generator instead of `{ id, applicableCodecIds }`. A SQL target builds its descriptors with `sqlBuiltinGeneratorDescriptors({ text, uuid })` from `@prisma/orm-family-sql/family/control`, passing its own data types.
+      `builtinGeneratorRegistryMetadata` (`@prisma/orm-framework/ids`) gives `{ id, writesUuid }` for each built-in generator instead of `{ id, applicableCodecIds }`. A SQL target builds its descriptors with `sqlBuiltinGeneratorDescriptors({ uuid })` from `@prisma/orm-family-sql/family/control`, passing its UUID data types. Every built-in generator writes text, so it applies to the stack's text data types as well.
     detection:
       glob: "**/*.{ts,mts,cts,tsx,js,mjs,cjs}"
       matches:
@@ -45,7 +45,7 @@ changes:
         - '\boneOf\([^;]*\bdataTypeValue\('
   - id: text-data-types
     summary: |
-      A component's authoring contributions may name `textDataTypes`, the data types whose values are text. Only SQL `@@discriminator` reads the list: a discriminator field must be stored in one of them. An extension that adds a text type and wants it usable as a discriminator names it there. The built-in ID generators apply only to the data types the target passes to `sqlBuiltinGeneratorDescriptors`.
+      A component's authoring contributions may name `textDataTypes`, the data types whose values are text; a SQL target names its own. A SQL `@@discriminator` field must be stored in one of them, and a generator that writes text (`writesText: true`, as every built-in ID generator does) applies to all of them. An extension that adds a text type names it there to make it a discriminator and to let `uuid()`, `nanoid()` and the other built-in generators fill it.
 ---
 
 ## `generator-applicable-data-types`
@@ -58,6 +58,9 @@ generatorDescriptors: [{ id: 'slugid', applicableCodecIds: ['pg/text@1'] }],
 import { dataTypeId } from '@prisma/orm-framework/components/codec';
 
 generatorDescriptors: [{ id: 'slugid', applicableDataTypes: [dataTypeId('pg/text')] }],
+
+// Or, for a generator that writes text, every text type of the stack:
+generatorDescriptors: [{ id: 'slugid', writesText: true }],
 ```
 
 The check compares the column's data type, the one its codec declares, so a codec of `pg/text` from any pack takes the generator. A generator reachable only through a field preset still leaves the list out.
@@ -73,15 +76,12 @@ generatorDescriptors: builtinGeneratorRegistryMetadata.map(({ id, applicableCode
 
 // After
 import { sqlBuiltinGeneratorDescriptors } from '@prisma/orm-family-sql/family/control';
-import { pgChar, pgText, pgUuid, pgVarchar } from '@prisma/orm-postgres/target/data-types';
+import { pgUuid } from '@prisma/orm-postgres/target/data-types';
 
-generatorDescriptors: sqlBuiltinGeneratorDescriptors({
-  text: [pgText.id, pgChar.id, pgVarchar.id],
-  uuid: [pgUuid.id],
-}),
+generatorDescriptors: sqlBuiltinGeneratorDescriptors({ uuid: [pgUuid.id] }),
 ```
 
-`writesUuid` is `true` for `uuidv4` and `uuidv7`, which also apply to the `uuid` data types.
+`writesUuid` is `true` for `uuidv4` and `uuidv7`, which also apply to the `uuid` data types. The text types come from the stack's `textDataTypes`, which the target names.
 
 ## `default-function-signature-from-data-types`
 

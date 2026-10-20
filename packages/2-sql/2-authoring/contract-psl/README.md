@@ -22,7 +22,7 @@ This keeps core/CLI source-agnostic while giving PSL-first SQL users a one-line 
 - Map PSL relation action tokens to SQL contract referential actions and emit diagnostics for unsupported values
 - Emit deterministic relation metadata in `models.<Model>.relations`
 - Enforce extension composition for namespaced constructor expressions and emit strict diagnostics for unsupported namespaced attributes
-- Validate generator applicability by the column's data type: a generated `@default(...)` applies to a column whose codec's data type is in the generator descriptor's `applicableDataTypes`, which each target passes (its text types, and `pg/uuid` for the UUID generators on Postgres), so `String @default(uuid())` works on SQLite as on Postgres. A column outside the list is `PSL_INVALID_DEFAULT_APPLICABILITY`, naming the column's data type
+- Validate generator applicability by the column's data type: a generated `@default(...)` applies to a column whose codec's data type is in the generator descriptor's `applicableDataTypes` (`pg/uuid` for the UUID generators on Postgres) or, for a generator that writes text (`writesText`), in the stack's `textDataTypes`, which the target names and an extension can add to, so `String @default(uuid())` works on SQLite as on Postgres. A column outside the list is `PSL_INVALID_DEFAULT_APPLICABILITY`, naming the column's data type
 - Consume target-bound scalar descriptors, shared authoring contributions, and mutation-default registries assembled by composition layers
 - Compose provider flow for SQL PSL-first config (`read -> parse -> interpret`) without local registry assembly
 - Preserve parser diagnostics and add interpreter diagnostics with stable codes

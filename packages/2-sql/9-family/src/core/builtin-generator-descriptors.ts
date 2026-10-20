@@ -3,17 +3,16 @@ import type { MutationDefaultGeneratorDescriptor } from '@internal/framework-com
 import { builtinGeneratorRegistryMetadata } from '@internal/ids';
 
 /**
- * The descriptors of the built-in ID generators on a SQL target: each applies to the target's `text` data types, and a generator that writes a UUID also to its `uuid` data types.
+ * The descriptors of the built-in ID generators on a SQL target: each writes text, so it applies to the stack's text data types, and a generator that writes a UUID also applies to the target's `uuid` data types.
  */
 export function sqlBuiltinGeneratorDescriptors({
-  text,
   uuid,
 }: {
-  readonly text: readonly DataTypeId[];
   readonly uuid: readonly DataTypeId[];
 }): readonly MutationDefaultGeneratorDescriptor[] {
   return builtinGeneratorRegistryMetadata.map(({ id, writesUuid }) => ({
     id,
-    applicableDataTypes: writesUuid ? [...text, ...uuid] : text,
+    writesText: true,
+    applicableDataTypes: writesUuid ? uuid : [],
   }));
 }

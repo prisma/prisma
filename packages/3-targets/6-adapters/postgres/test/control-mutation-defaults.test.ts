@@ -228,20 +228,20 @@ describe('createPostgresMutationDefaultGeneratorDescriptors', () => {
     expect(descriptor.applicableDataTypes).toBeUndefined();
   });
 
-  it('applies every builtin generator to the text data types, and the UUID generators to pg/uuid', () => {
+  it('makes every builtin generator write text, and applies the UUID generators to pg/uuid', () => {
     expect(
       Object.fromEntries(
-        descriptors.flatMap(({ id, applicableDataTypes }) =>
-          applicableDataTypes === undefined ? [] : [[id, applicableDataTypes]],
+        descriptors.flatMap(({ id, writesText, applicableDataTypes }) =>
+          writesText === true ? [[id, applicableDataTypes]] : [],
         ),
       ),
     ).toEqual({
-      ulid: ['pg/text', 'pg/char', 'pg/varchar'],
-      nanoid: ['pg/text', 'pg/char', 'pg/varchar'],
-      uuidv7: ['pg/text', 'pg/char', 'pg/varchar', 'pg/uuid'],
-      uuidv4: ['pg/text', 'pg/char', 'pg/varchar', 'pg/uuid'],
-      cuid2: ['pg/text', 'pg/char', 'pg/varchar'],
-      ksuid: ['pg/text', 'pg/char', 'pg/varchar'],
+      ulid: [],
+      nanoid: [],
+      uuidv7: ['pg/uuid'],
+      uuidv4: ['pg/uuid'],
+      cuid2: [],
+      ksuid: [],
     });
   });
 });

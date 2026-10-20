@@ -60,7 +60,7 @@ const idSpec = nanoid({ size: 12 });
 - Different helpers can move to different codecs independently (for example `ulid` binary and `nanoid` char/varchar).
 - `nanoid({ size })` also sets descriptor metadata to `character(size)` so contract shape matches generator output length.
 - The default function argument limits are written once, here: `UUID_VERSIONS` (4 and 7), `CUID_VERSION` (2) and `NANOID_SIZE` (2 to 255). The `nanoid` helper, the SQL family's field presets and default function signatures import them.
-- `builtinGeneratorRegistryMetadata` lists each built-in generator with `writesUuid`; each SQL target builds its generator descriptors from it with `sqlBuiltinGeneratorDescriptors`, passing the data types they apply to.
+- `builtinGeneratorRegistryMetadata` lists each built-in generator with `writesUuid`; each SQL target builds its generator descriptors from it with `sqlBuiltinGeneratorDescriptors`, passing its UUID data types; every built-in generator writes text, so it also applies to the stack's text data types.
 
 Runtime usage:
 

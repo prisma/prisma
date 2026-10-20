@@ -516,6 +516,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
             generatorDescriptorById,
             defaultFunctionRegistry,
             dataTypes,
+            textDataTypes: authoringContributions?.textDataTypes ?? [],
             codecLookup,
             diagnostics,
           })

@@ -134,7 +134,7 @@ describe('extension detection', () => {
     [
       'builtin-generator-metadata-writes-uuid',
       'builtinGeneratorRegistryMetadata.map(({ id, applicableCodecIds }) => ({ id, applicableCodecIds }))',
-      'sqlBuiltinGeneratorDescriptors({ text: [pgText.id], uuid: [pgUuid.id] })',
+      'sqlBuiltinGeneratorDescriptors({ uuid: [pgUuid.id] })',
     ],
     [
       'generator-applicability-names-data-type',

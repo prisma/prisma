@@ -45,6 +45,8 @@ export interface MutationDefaultGeneratorDescriptor {
    * The data types of the columns `@default(...)` may fill with this generator; a column qualifies when its codec's data type is listed, whichever codec it uses. Omitted for a generator reachable only through a field preset that also chooses the column's codec.
    */
   readonly applicableDataTypes?: readonly DataTypeId[];
+  /** The generator writes text, so it also applies to every one of the stack's text data types (the assembled `textDataTypes`). */
+  readonly writesText?: boolean;
   /**
    * Construct the `onCreate`/`onUpdate` phases value owned by this
    * generator. Authoring layers (PSL `temporal.updatedAt()`, TS field presets) call
