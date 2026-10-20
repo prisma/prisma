@@ -11,6 +11,7 @@
 | d | 2 | `9863d741cc`, `5ba8816b9e` | 0 | 0 | 1 | SATISFIED |
 | e | 1 | `5ba8816b9e..c4421f6562` | 0 | 2 | 2 | ANOTHER ROUND NEEDED |
 | branch review fixes | 1 | `14335e1dd3..24528d379e` | 0 | 1 | 3 | SATISFIED once S5-BR-R1-1 is fixed |
+| f (port onto ADR 275) | 1 | `9a3eeb66b2..656998d34d` | 0 | 1 | 3 | SATISFIED once S5-f-R1-1 is fixed |
 
 ## Dispatch a, round 1
 
@@ -293,3 +294,87 @@ What is wrong: it says scalar fields take "one pinned `funcCall(name, signature)
 Change: name `defaultFunctionCall` in that sentence.
 
 Verdict: SATISFIED once S5-BR-R1-1 is fixed; the lows can go with it.
+
+## Dispatch f, round 1: port onto ADR 275
+
+Range: merge `9a3eeb66b2` (main at `016a661799`, which is `bot/main`), the commits after it up to `785b756074`, and the ADR edits in `656998d34d`. Brief: `slices/5/briefs/dispatch-f-port-onto-adr-275.md`.
+
+Checks run on `656998d34d`, at load average 6 to 20:
+- **Repo checks:** `pnpm build`, root `typecheck:agent`, `lint:agent`, `lint:deps`, `lint:framework-vocabulary`, `lint:docs`, `check:publish-deps`, `lint:publishability`, `check:error-reference`, `check:upgrade-coverage --mode pr` and `fixtures:check:agent` pass, and the tree stays clean.
+- **Package tests:** tests and `pnpm lint` pass in ids, framework-components, psl-parser, the language server, SQL contract, SQL contract-psl, contract-ts, contract-prisma7, family-sql, both adapters, both targets and Mongo contract-psl.
+- **Integration files:** these pass: `authoring/generator-column-length` (34), `authoring/generator-function-arguments` (88), `authoring/discriminator-values`, `authoring/extension-text-type`, `sql-orm-client/polymorphism-char-discriminator`, `psl-print/generated-values-roundtrip`, `authoring/cli.emit-parity-fixtures` and `prisma7-source/supported`. The detection tests of both `generator-function-arguments-and-column-length` (48) and main's `default-generators-to-on-create` (10) pass.
+
+### The merge
+
+`git merge-tree` of the two parents gives 21 conflicted files. I diffed each against `bot/main` at the head.
+- **Main won outright** in ten of them, which are identical to main: `mutation-default-types.ts`, `temporal-presets.ts`, contract-prisma7 `test/support.ts`, contract-psl's `composed-mutation-defaults`, `interpreter.defaults.generator-storage`, `interpreter`, `provider.interpret` and `semantic-diagnostics` tests, the Postgres adapter's `control-mutation-defaults.test.ts`, and the slugid pack.
+- **Every other line removed from main** is one the brief says to replace:
+  - main's local nanoid limits and messages, now taken from `@internal/ids` with this slice's wording;
+  - the two adapters' copies of the `autoincrement`/`now` signatures, now `sqlDefaultFunctions()` in the family;
+  - the Prisma 7 reader's `FUNCTION_ARGUMENT_KEYS`/`literalArgument` binding;
+  - `@@base`'s `str()`, now `writtenScalar(str())`.
+- **Main's Prisma 7 behaviour is kept** for calls that pass the argument check: refused generators still give `PSL.PRISMA7_GENERATOR_REFUSED` with main's `@default(<written>) cannot fill its column:` wording, and a function that does not apply to the codec keeps main's message.
+
+### Ported, as the brief asks
+
+- **Typed arguments on main's generator functions.** Each target declares `sqlIntegerArgumentGeneratorFunctions({ integer })` with `pg/int4` or `sqlite/integer`; the family's own declarations of `uuid`, `cuid` and `nanoid` carry no signature. Each argument is a `dataTypeValue` of that type, refined by the function's check, with code `PSL_INVALID_GENERATOR_ARGUMENT` (renamed; the error reference has it) and the labels `4 | 7`, `2` and `integer from 2 to 255`. Arity diagnostics say `Generator function "<name>"`, through `generatorFunctionCall` in psl-parser. Main's generator registry accepts a signature or a function of the data types.
+- **The length check in every identifier binding.** `fittingColumn` wraps the bindings of `uuid`, `cuid`, `ulid`, `ksuid` and `nanoid`. It compares `generatedLength(id, params)` from `@internal/ids`, the lengths I checked against the real generators in the previous round, with `GeneratorFunctionField.length`. `sqlColumnLength` computes that length in normal form: a bare `Char` gives 1, and SQLite's text types give `undefined`, so SQLite is never refused.
+  - **Who fills `length`:** the PSL reader (`lowerGeneratorAttributesForField`), the TypeScript builder (`columnLengthOf`, when the lookups are present, which they are on the `defineContract` path), and the Prisma 7 reader (client-function path).
+  - **Tests:** every generator on Postgres, a named type, a bare `Char`, SQLite taking short columns, the TypeScript builder, and Prisma 7.
+- **`sqlDefaultFunctions()`** keeps only `autoincrement` and `now`, in the family.
+- **The Prisma 7 reader** binds client-function arguments through `generatorFunctionCall`. `uuid(5)`, `nanoid(1)`, `nanoid(1000)`, `nanoid(8.5)` and `cuid(1)` are refused, each as `PSL.PRISMA7_UNKNOWN_DEFAULT` at the argument, and so is a named argument. `cuid()` still reads as `cuid(2)`.
+
+### Dropped, and gone
+
+A grep for `applicableDataTypes`, `writesText`, `writtenLength`, `writesUuid`, `builtinGeneratorRegistryMetadata`, `sqlBuiltinGeneratorDescriptors`, `applicableCodecIds`, `FUNCTION_ARGUMENT_KEYS`, `sqlDefaultFunctionSignatures` and `PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT`, outside `projects/` and the released notes, finds them only in main's own ADRs (169, 275), main's pending `default-generators-to-on-create` note and the released skills. `generator-applicability.test.ts` is gone. `extension-text-type.test.ts` now tests the discriminator only.
+
+### Discriminators
+
+Unchanged since `24528d379e`: no discriminator line changed in contract-psl `interpreter.ts`, and the three discriminator test files differ only by one stack field and the removed generator case.
+
+### Upgrade notes
+
+The app and extension notes under `generator-function-arguments-and-column-length/` cover what main's `default-generators-to-on-create` does not: the argument checks, the code rename, fractions, the length check, the Prisma 7 refusals, the target declaring the integer-argument signatures, the signature form, `GeneratorFunctionField.length`, `ArgBindingSpec.label`, `oneOf`, and `textDataTypes`. Main's note covers only moving `@default(fn())` to `@onCreate` and `contract print`, so there is no overlap. Nothing in the new notes names a dropped name. The samples use `@onCreate`.
+
+### ADRs 254, 231 and 275 against the code
+
+They match:
+- **ADR 254, "A call":** arguments are values of the integer type, `PSL_INVALID_GENERATOR_ARGUMENT`, each target declares the signatures, and applicability and length are decided by the codec binding.
+- **ADR 231:** a signature or a function of the data types, for both registries; `generatorFunctionCall`; the `Generator function "<name>"` label; `defaultFunctionCall` named in "SQL defaults".
+- **ADR 275, generator entries:** the length check, a bare `Char` counting as one character, no refusal on SQLite, and the typed arguments.
+
+One ADR 275 sentence is now incomplete; see S5-f-R1-4.
+
+### S5-f-R1-1 (should-fix): `GeneratorFunctionField.length` is optional, so a caller that forgets it silently skips the length check
+
+Where: `framework-components/src/shared/generator-functions.ts`, `GeneratorFunctionField.length?`. The callers that leave it out are `postgres/src/core/psl-print/generated-values.ts` (`contract print`'s read-back), the Prisma 7 `nowGeneratorFor`, and Mongo's resolvers. The TypeScript builder passes `undefined` whenever `LoweringInput`'s lookups are absent (`columnLengthOf`).
+
+What is wrong: "no length" and "the caller did not compute one" look the same to `fittingColumn`. This is the defect class D07 and S5-BR-R1-1 were about, and `.agents/rules/required-key-undefined-fields.mdc` asks for a required key typed `| undefined` on such inputs. Today, `contract print` of a contract whose `Char(5)` column carries a `uuidv4` generator prints `@onCreate(uuid())`, and the printed file then fails to emit.
+
+Change: make it `readonly length: number | undefined`, so every caller states it. `contract print` should pass the column's length too, either refusing such a column or printing it knowingly. Bindings only read the field, so extension bindings are unaffected; update the extension note's wording, which says callers pass it "to have the check".
+
+### S5-f-R1-2 (low): an orphaned doc comment in `psl-column-resolution.ts`
+
+Where: `packages/2-sql/2-authoring/contract-psl/src/psl-column-resolution.ts`, around line 912.
+
+What is wrong: the merge put the new `columnLength` between main's doc comment for `lowerGeneratorAttributesForField` and that function. Two doc blocks now sit back to back above `columnLength`, and `lowerGeneratorAttributesForField` has none.
+
+Change: move main's comment back above `lowerGeneratorAttributesForField`.
+
+### S5-f-R1-3 (low): the slice's first grep row expects matches its scope cannot find
+
+Where: `projects/data-types-completion/plan.md`, the first slice-5 grep row.
+
+What is wrong: the expected result names "the upgrade notes under `upgrades/` that ship them", but the grep searches only `packages` and `test` and returns nothing.
+
+Change: expect "nothing".
+
+### S5-f-R1-4 (low): ADR 275 says the Prisma 7 reader's contracts do not change
+
+Where: ADR 275, the paragraph on the Prisma 7 reader ("The contracts it builds do not change").
+
+What is wrong: it is still true for schemas that build, but the reader now refuses several schemas it used to accept. These are out-of-range, fractional or named arguments, and columns too short for the generator.
+
+Change: add that the reader checks client-function arguments and column length as Prisma 8 does (TML-3389), so those schemas are refused.
+
+Verdict: SATISFIED once S5-f-R1-1 is fixed; the lows can go with it.
