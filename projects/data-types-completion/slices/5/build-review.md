@@ -5,6 +5,7 @@
 | a | 1 | `0f7e12d1ce..bd60550583` | 0 | 1 | 2 | ANOTHER ROUND NEEDED |
 | a | 2 | `b820051918..d0642eb4ce` | 0 | 0 | 0 | SATISFIED |
 | b | 1 | `d0642eb4ce..8dd61b8b21` | 0 | 0 | 0 | SATISFIED |
+| c | 1 | `bc5265338a..d1dd5482ea` | 1 | 1 | 0 | ANOTHER ROUND NEEDED |
 
 ## Dispatch a, round 1
 
@@ -71,3 +72,40 @@ Brief items 1 to 4 are built. `FUNCTION_ARGUMENT_KEYS` and `literalArgument` are
 Named arguments: the old reader accepted `nanoid(size: 8)`; the signature has only positional parameters, so this is now refused as an unknown argument. No fixture or test in the repository writes a named argument to these functions, and Prisma 8 PSL refuses it the same way, so this is not a finding. dispatch e should mention it in the upgrade note next to plan decision 2.
 
 Verdict: SATISFIED.
+
+## Dispatch c, round 1
+
+Checks run on `d1dd5482ea`: `pnpm build`, root `typecheck:agent`, `lint:deps`, `check:publish-deps`, `lint:publishability` and `fixtures:check:agent` pass. `lint:framework-vocabulary` fails (finding 1). Tests and `pnpm lint` pass in framework-components, ids, contract-psl, contract-ts, contract-prisma7, family-sql, both adapters and the language server. Integration files pass: `authoring/generator-applicability`, `authoring/default-function-arguments`, `authoring/cli.emit-parity-fixtures`, `psl-print/generated-values-roundtrip` and `prisma7-source/supported`. No committed contract, snapshot or DDL changed. The slice's grep for `applicableCodecIds` and `FUNCTION_ARGUMENT_KEYS` in `packages` returns nothing.
+
+Brief items 1 to 3 are built. At the base commit, nothing outside the files this dispatch touches read `applicableCodecIds`: not the TypeScript builder, the language server, Mongo or the docs. So item 3 needed no other change. SQLite has no `Char`/`VarChar` constructors, so its tests use `uuidString()` (`sqlite/character`) and `sql.String(36)` (`sqlite/character-varying`); this is accepted.
+
+### Judgements on the implementer's decisions
+
+1. **`@internal/ids` names no codec and only says `writesUuid`.** Right. Which columns can hold a generator's value is a fact about the target's data types, and the framework cannot know a target's data type ids. The one fact that does belong to the generator, that it writes a UUID, stays with the generator.
+2. **`sqlBuiltinGeneratorDescriptors({ text, uuid })` in family-sql.** Right home. Both SQL targets build their descriptors the same way, and each passes only its data types: Postgres `pg/text`, `pg/char`, `pg/varchar` plus `pg/uuid`, and SQLite `sqlite/text`, `sqlite/character`, `sqlite/character-varying` with no UUID types.
+3. **Comparing the codec's data type, and falling back to naming the codec.** The comparison is right. In a real stack the fallback cannot run: the column's codec id comes from the same codec lookup the check reads, and `data-type-default.ts` already throws an `InternalError` in the same situation. As a probe I replaced the fallback with a throw and ran the whole contract-psl suite (745 tests); nothing reached it. The probe was reverted. See finding 2.
+4. **The "pack codec of `pg/text`" test fails on the old code.** Confirmed. With the old `psl-column-resolution.ts`, its codec id comparison fed the list `pg/text@1`, `sql/char@1`, only that test fails, with `... with codecId "pack/slug@1"`. The other five tests in the file pass. The probe was reverted.
+
+### Notes for dispatch e's upgrade note
+
+An extension that declares generators must change two things:
+- **The descriptor field.** `MutationDefaultGeneratorDescriptor.applicableCodecIds` (codec ids such as `pg/text@1`) is now `applicableDataTypes`: data type ids built with `dataTypeId('pg/text')`. A column qualifies when its codec's data type is listed, so one entry covers every codec of that type, including codecs from other packs. A descriptor that still sets `applicableCodecIds` fails to compile when written as a typed object literal. Built any other way, it is treated as having no list, and its generator is refused in `@default(...)` with the misleading "not applicable to `@default(...)` lowering, use the field preset" message.
+- **The published metadata.** `builtinGeneratorRegistryMetadata`, published as `@prisma/orm-framework/ids`, now gives `{ id, writesUuid }` instead of `{ id, applicableCodecIds }`.
+
+The applicability message now names the column's data type, not its codec id.
+
+### S5-c-R1-1 (must-fix): `lint:framework-vocabulary` fails
+
+Where: `scripts/lint-framework-vocabulary.config.json`.
+
+What is wrong: removing the codec ids from `@internal/ids` lowers the count of target words in `packages/1-framework` from 243 to 237. The ratchet fails until the threshold is lowered, and it runs in CI.
+
+Change: set the `packages/1-framework` threshold to 237, as the script says.
+
+### S5-c-R1-2 (should-fix): the applicability check handles a codec with no descriptor as a user error
+
+Where: `packages/2-sql/2-authoring/contract-psl/src/psl-column-resolution.ts`, `lowerDefaultForField`, and the `dataType === undefined` arm of its message.
+
+What is wrong: when the column's codec has no descriptor, the check reports `PSL_INVALID_DEFAULT_APPLICABILITY` naming the codec. A real stack cannot get there, because the column was resolved from that lookup. No test reaches it. `data-type-default.ts` treats the same situation as an `InternalError`.
+
+Change: throw an `InternalError`, as `data-type-default.ts` does, and drop the codec arm of the message.
