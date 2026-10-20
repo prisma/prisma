@@ -282,7 +282,9 @@ describe('MongoMigrationRunner', () => {
         },
       },
     });
-    expect(result.ok ? undefined : result.failure.why).toBeUndefined();
+    expect(result.ok ? undefined : result.failure.why).toMatch(
+      /^Before operation .* runs, it checks: index does not already exist on users\. That check failed/,
+    );
   });
 
   it('executes multiple operations in order', async () => {

@@ -500,7 +500,7 @@ describe('MongoMigrationRunner schema verification', () => {
 
     const failure = result.assertNotOk();
     expect(failure.code).toBe('MIGRATION.SCHEMA_VERIFY_FAILED');
-    expect(failure.why).toMatch(/destination contract/);
+    expect(failure.why).toBe('The schema check after apply found: extra: rogue.');
     expect(failure.meta).toEqual({
       schemaIssues: expect.arrayContaining([expect.objectContaining({ path: ['rogue'] })]),
     });
@@ -902,6 +902,7 @@ describe('MongoMigrationRunner, a DDL precheck that does not hold', () => {
       code: 'MIGRATION.PRECHECK_FAILED',
       message:
         'Operation collection.orders.create failed during precheck: collection orders does not exist',
+      why: 'Before operation collection.orders.create runs, it checks: collection orders does not exist. That check failed: the database already has collection orders.',
       meta: {
         failedCheck: {
           operationId: 'collection.orders.create',

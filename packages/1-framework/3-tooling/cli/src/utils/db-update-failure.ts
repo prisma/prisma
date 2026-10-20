@@ -32,7 +32,7 @@ export function dbUpdateRunnerFailureError(
           ? `Change the contract source to resolve the issues listed, re-run \`${cliCommand(invocation, 'contract emit')}\`, then re-run \`${cliCommand(invocation, 'db update')}\`.`
           : `Inspect the reported conflict, reconcile schema drift if needed, then re-run \`${cliCommand(invocation, 'db update')}\``;
   const warnings = context.plannerWarnings ?? [];
-  return runnerFailureError(failure, facts, {
+  return runnerFailureError(failure, {
     fix,
     ...(warnings.length > 0 ? { meta: { plannerWarnings: warnings } } : {}),
   });

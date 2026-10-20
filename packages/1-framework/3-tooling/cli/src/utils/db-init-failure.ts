@@ -91,5 +91,5 @@ export function dbInitRunnerFailureError(
         : facts.failedPrecheck !== undefined
           ? dbInitFailedPrecheckFix(invocation)
           : 'Fix the schema mismatch (db init is additive-only), or drop/reset the database and re-run `{bin} db init`';
-  return runnerFailureError(failure, facts, { fix });
+  return runnerFailureError(failure, { fix });
 }

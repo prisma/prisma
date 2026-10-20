@@ -167,6 +167,14 @@ export {
   modelStatementText,
 } from '../control/migration-statements';
 export { orderIssuesByDependencies } from '../control/order-issues-by-dependencies';
+export {
+  type CheckDescriptionReading,
+  failedPrecheckWhy,
+  issueLabel,
+  readCheckDescription,
+  schemaCheckWhy,
+  schemaIssuesWhy,
+} from '../control/runner-failure-why';
 export type {
   DiffableNode,
   ExpectationFailureReason,

@@ -8,6 +8,8 @@ import { verifyMongoSchema } from '@internal/family-mongo/schema-verify';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import {
   APP_SPACE_ID,
+  type FailedCheck,
+  failedPrecheckWhy,
   type MigrationOperationPolicy,
   type MigrationPlan,
   type MigrationPlanOperation,
@@ -17,6 +19,7 @@ import {
   type MigrationRunnerPerSpaceSuccessValue,
   migrationRunnerFailure,
   type OperationContext,
+  schemaCheckWhy,
   type VerifyDatabaseSchemaResult,
 } from '@internal/framework-components/control';
 import type { AggregateMigrationEdgeRef } from '@internal/migration-tools/aggregate';
@@ -239,20 +242,17 @@ export class MongoMigrationRunner {
             filterEvaluator,
           );
           if (failed !== undefined) {
+            const failedCheck: FailedCheck = {
+              operationId: operation.id,
+              phase: 'precheck',
+              description: failed.description,
+            };
             return (
               renameTargetExistsRefusal(operation, failed) ??
               runnerFailure(
                 'MIGRATION.PRECHECK_FAILED',
                 `Operation ${operation.id} failed during precheck: ${failed.description}`,
-                {
-                  meta: {
-                    failedCheck: {
-                      operationId: operation.id,
-                      phase: 'precheck',
-                      description: failed.description,
-                    },
-                  },
-                },
+                { why: failedPrecheckWhy(failedCheck), meta: { failedCheck } },
               )
             );
           }
@@ -331,7 +331,9 @@ export class MongoMigrationRunner {
         : rawVerifyResult;
       if (!verifyResult.ok) {
         return runnerFailure('MIGRATION.SCHEMA_VERIFY_FAILED', verifyResult.summary, {
-          why: 'The resulting database schema does not satisfy the destination contract.',
+          why:
+            schemaCheckWhy(verifyResult.schema.issues) ??
+            'The resulting database schema does not satisfy the destination contract.',
           meta: { schemaIssues: verifyResult.schema.issues },
         });
       }

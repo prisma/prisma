@@ -3,6 +3,7 @@ import {
   type MigrationRunnerFailure,
   migrationRunnerFailure,
   type SchemaDiffIssue,
+  schemaCheckWhy,
 } from '@internal/framework-components/control';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { describe, expect, it } from 'vitest';
@@ -46,7 +47,10 @@ function schemaCheckFailure(
   return migrationRunnerFailure(
     'MIGRATION.SCHEMA_VERIFY_FAILED',
     'Database schema does not satisfy contract',
-    { why: RUNNER_WHY, meta: issues === undefined ? {} : { schemaIssues: issues } },
+    {
+      why: (issues === undefined ? undefined : schemaCheckWhy(issues)) ?? RUNNER_WHY,
+      meta: issues === undefined ? {} : { schemaIssues: issues },
+    },
   );
 }
 

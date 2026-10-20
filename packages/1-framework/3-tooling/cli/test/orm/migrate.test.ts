@@ -4,6 +4,7 @@ import {
   type MigrationPlanOperation,
   migrationRunnerFailure,
   type SchemaDiffIssue,
+  schemaCheckWhy,
 } from '@internal/framework-components/control';
 import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
@@ -439,7 +440,7 @@ describe('migrate', () => {
       'MIGRATION.SCHEMA_VERIFY_FAILED',
       'Database schema does not satisfy contract',
       {
-        why: 'The resulting database schema does not satisfy the destination contract.',
+        why: schemaCheckWhy([MISSING_COLUMN]),
         meta: { schemaIssues: [MISSING_COLUMN], failingSpace: 'app' },
       },
     );

@@ -1,4 +1,4 @@
-import { migrationRunnerFailure } from '@internal/framework-components/control';
+import { failedPrecheckWhy, migrationRunnerFailure } from '@internal/framework-components/control';
 import { ifDefined } from '@internal/utils/defined';
 import type { RunnerFailureFacts } from '../../src/control-api/types';
 import { dbInitRunnerFailureError } from '../../src/utils/db-init-failure';
@@ -16,9 +16,19 @@ interface AdviceInput extends Omit<RunnerFailureFacts, 'failedMigration'> {
   readonly conflicts?: undefined;
 }
 
+/** The failure as a runner builds it: it explains a failed precheck it has no other words for. */
 function runnerFailureOf(input: AdviceInput) {
+  const precheck = input.failedPrecheck;
   return migrationRunnerFailure('MIGRATION.EXECUTION_FAILED', input.summary, {
-    why: input.why,
+    why:
+      input.why ??
+      (precheck === undefined
+        ? undefined
+        : failedPrecheckWhy({
+            operationId: precheck.operationId,
+            phase: 'precheck',
+            description: precheck.description,
+          })),
   });
 }
 

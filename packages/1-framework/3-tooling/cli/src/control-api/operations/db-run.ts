@@ -697,10 +697,8 @@ function mapPlannerError(
       missing: error.missingInvariants,
     });
   }
-  return new CliStructuredError(
-    'MIGRATION.CALLER_POLICY_REFUSED',
-    `The planner refused the planning policy for space "${error.spaceId}"`,
-    { why: error.detail, meta: { spaceId: error.spaceId } },
+  throw new InternalError(
+    `The planner refused the planning policy db init and db update give it, which plans the app space from the diff and walks every extension space's graph: ${error.detail}`,
   );
 }
 

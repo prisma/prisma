@@ -1366,10 +1366,6 @@ A migration reference (directory name or hash prefix) passed to a CLI command ma
 
 A hash resolves to a node in the migration graph, but no on-disk migration package has that hash as its destination (`to`), so there is no bundle to read for it. Hit when resolving a ref or hash to a migration bundle (e.g. `migration show`, contract-at resolution). Payload: `hash`, `explicitLabel` (when the user supplied a named reference).
 
-### MIGRATION.CALLER_POLICY_REFUSED
-
-The aggregate planner refused the planning policy `db init` or `db update` asked for one contract space: either the space was to be planned from the diff while its head ref declares invariants, which only a walk of its migration graph can provide, or statements were given for a space that is not planned from the diff. Payload: `spaceId`.
-
 ### MIGRATION.CHECK_CONTRACT_UNREADABLE
 
 A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: the `contract.json` for a contract space cannot be read or validated. Re-emit the extension contract artifacts or fix the descriptor producing the invalid contract.

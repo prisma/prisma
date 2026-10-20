@@ -66,7 +66,7 @@ describe('SqliteMigrationRunner - replay on a database already ahead', {
     const failure = result.assertNotOk();
     expect({ code: failure.code, why: failure.why, meta: failure.meta }).toEqual({
       code: 'MIGRATION.PRECHECK_FAILED',
-      why: undefined,
+      why: 'Before operation column.user.nickname runs, it checks: ensure column "nickname" is missing. That check failed: the database already has column "nickname".',
       meta: {
         failingSpace: 'app',
         failedCheck: {

@@ -7,7 +7,7 @@ import type {
   MigrationRunnerResult,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
-import { migrationRunnerFailure } from '@internal/framework-components/control';
+import { migrationRunnerFailure, schemaCheckWhy } from '@internal/framework-components/control';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok } from '@internal/utils/result';
 import { describe, expect, it, vi } from 'vitest';
@@ -318,7 +318,7 @@ describe('executeDbUpdate', () => {
           migrationRunnerFailure(
             'MIGRATION.SCHEMA_VERIFY_FAILED',
             'Database schema does not satisfy contract',
-            { meta: { schemaIssues: [issue], failingSpace: 'app' } },
+            { why: schemaCheckWhy([issue]), meta: { schemaIssues: [issue], failingSpace: 'app' } },
           ),
         ),
       }),

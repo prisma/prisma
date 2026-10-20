@@ -1,23 +1,20 @@
 /**
  * A check that fails before an operation runs: the run failure names the check and says whether the space had a marker, so the advice can tell a replay on an adopted database from drift.
  */
-import { migrationRunnerFailure } from '@internal/framework-components/control';
+import { failedPrecheckWhy, migrationRunnerFailure } from '@internal/framework-components/control';
 import { describe, expect, it } from 'vitest';
 import { APP_HASH, failureOf } from './run-migration-harness';
+
+const failedCheck = {
+  operationId: 'column.x',
+  phase: 'precheck',
+  description: 'ensure column "x" is missing',
+} as const;
 
 const precheckFailed = migrationRunnerFailure(
   'MIGRATION.PRECHECK_FAILED',
   'Operation column.x failed during precheck: ensure column "x" is missing',
-  {
-    meta: {
-      failingSpace: 'app',
-      failedCheck: {
-        operationId: 'column.x',
-        phase: 'precheck',
-        description: 'ensure column "x" is missing',
-      },
-    },
-  },
+  { why: failedPrecheckWhy(failedCheck), meta: { failingSpace: 'app', failedCheck } },
 );
 
 describe('runMigration, a check that failed before an operation', () => {

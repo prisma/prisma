@@ -15,7 +15,7 @@ export function migrateRunnerFailureError(
   failedMigration: FailedMigrationOnDisk | undefined,
   invocation: CliInvocation,
 ): CliStructuredError {
-  return runnerFailureError(failure, facts, {
+  return runnerFailureError(failure, {
     fix: migrateFix(facts, failedMigration, invocation),
   });
 }

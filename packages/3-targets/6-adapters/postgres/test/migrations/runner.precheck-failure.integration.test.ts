@@ -138,6 +138,8 @@ describe('PostgresMigrationRunner - replay on a database already ahead', {
         },
       },
     });
-    expect(result.ok ? undefined : result.failure.why).toBeUndefined();
+    expect(result.ok ? undefined : result.failure.why).toBe(
+      'Before operation column.public.item.x runs, it checks: ensure column "x" is missing. That check failed: the database already has column "x".',
+    );
   });
 });

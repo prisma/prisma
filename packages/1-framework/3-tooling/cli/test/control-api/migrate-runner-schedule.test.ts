@@ -10,7 +10,7 @@ import type {
   SchemaDiffIssue,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
-import { migrationRunnerFailure } from '@internal/framework-components/control';
+import { migrationRunnerFailure, schemaCheckWhy } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { writeContractSnapshot } from '@internal/migration-tools/contract-snapshot-store';
@@ -176,7 +176,7 @@ function schemaCheckFailingMigrations(issues: readonly SchemaDiffIssue[]) {
         migrationRunnerFailure(
           'MIGRATION.SCHEMA_VERIFY_FAILED',
           'Database schema does not satisfy contract',
-          { meta: { schemaIssues: issues, failingSpace: 'app' } },
+          { why: schemaCheckWhy(issues), meta: { schemaIssues: issues, failingSpace: 'app' } },
         ),
       ),
   };

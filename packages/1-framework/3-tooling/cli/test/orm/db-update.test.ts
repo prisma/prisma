@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import {
   migrationRunnerFailure,
   type SchemaDiffIssue,
+  schemaCheckWhy,
 } from '@internal/framework-components/control';
 import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
 import { notOk, ok } from '@internal/utils/result';
@@ -764,7 +765,7 @@ describe('db update', () => {
       'MIGRATION.SCHEMA_VERIFY_FAILED',
       'Database schema does not satisfy contract',
       {
-        why: 'The resulting database schema does not satisfy the destination contract.',
+        why: schemaCheckWhy([MISSING_COLUMN]),
         meta: { schemaIssues: [MISSING_COLUMN], failingSpace: 'app' },
       },
     );

@@ -14,6 +14,7 @@ import type {
   SchemaDiffIssue,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
+import { failedPrecheckWhy } from '@internal/framework-components/control';
 import type {
   AggregateMigrationEdgeRef,
   ContractSpaceAggregate,
@@ -110,7 +111,11 @@ function failedPrecheckOf(
   resolutions: readonly OrderedResolution[],
 ): FailedPrecheckReport | undefined {
   const check = failure.meta.failedCheck;
-  if (check === undefined || check.phase !== 'precheck' || failure.why !== undefined) {
+  if (
+    check === undefined ||
+    check.phase !== 'precheck' ||
+    failure.why !== failedPrecheckWhy(check)
+  ) {
     return undefined;
   }
   const resolution = resolutions.find(({ spaceId }) => spaceId === failure.meta.failingSpace);

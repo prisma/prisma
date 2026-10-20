@@ -25,7 +25,12 @@ import type {
   FailedTypeChange,
   MigrationRunnerResult,
 } from '@internal/framework-components/control';
-import { APP_SPACE_ID, withFailingSpace } from '@internal/framework-components/control';
+import {
+  APP_SPACE_ID,
+  failedPrecheckWhy,
+  schemaCheckWhy,
+  withFailingSpace,
+} from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
 import { SqlQueryError } from '@internal/sql-errors';
 import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
@@ -198,7 +203,9 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
       });
       if (!schemaVerifyResult.ok) {
         return runnerFailure('MIGRATION.SCHEMA_VERIFY_FAILED', schemaVerifyResult.summary, {
-          why: 'The resulting database schema does not satisfy the destination contract.',
+          why:
+            schemaCheckWhy(schemaVerifyResult.schema.issues) ??
+            'The resulting database schema does not satisfy the destination contract.',
           meta: { schemaIssues: schemaVerifyResult.schema.issues },
         });
       }
@@ -377,10 +384,18 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
           required === undefined
             ? undefined
             : await this.rowsWithoutValue(driver, operation, required, plan);
+        const failedCheck = { operationId: operation.id, phase, description: step.description };
         return runnerFailure(code, rowsWithoutValue?.summary ?? failed, {
-          ...ifDefined('why', rowsWithoutValue === undefined ? undefined : failed),
+          ...ifDefined(
+            'why',
+            rowsWithoutValue !== undefined
+              ? failed
+              : phase === 'precheck'
+                ? failedPrecheckWhy(failedCheck)
+                : undefined,
+          ),
           meta: {
-            failedCheck: { operationId: operation.id, phase, description: step.description },
+            failedCheck,
             ...ifDefined('rowsWithoutValue', rowsWithoutValue?.reports),
           },
         });

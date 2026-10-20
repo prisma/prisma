@@ -24,7 +24,12 @@ import type {
   FailedConversion,
   MigrationRunnerResult,
 } from '@internal/framework-components/control';
-import { APP_SPACE_ID, withFailingSpace } from '@internal/framework-components/control';
+import {
+  APP_SPACE_ID,
+  failedPrecheckWhy,
+  schemaCheckWhy,
+  withFailingSpace,
+} from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
 import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
@@ -126,7 +131,9 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
       });
       if (!schemaVerifyResult.ok) {
         return runnerFailure('MIGRATION.SCHEMA_VERIFY_FAILED', schemaVerifyResult.summary, {
-          why: 'The resulting database schema does not satisfy the destination contract.',
+          why:
+            schemaCheckWhy(schemaVerifyResult.schema.issues) ??
+            'The resulting database schema does not satisfy the destination contract.',
           meta: { schemaIssues: schemaVerifyResult.schema.issues },
         });
       }
@@ -350,18 +357,19 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
           phase === 'precheck' ? 'MIGRATION.PRECHECK_FAILED' : 'MIGRATION.POSTCHECK_FAILED';
         const field = plan === undefined ? undefined : unconvertedFieldOf(step, plan.contract);
         const converted = convertedColumnOf(step);
+        const failedCheck = { operationId: operation.id, phase, description: step.description };
+        const unconverted =
+          converted === undefined ? undefined : await this.unconvertedValueText(driver, converted);
         return runnerFailure(
           code,
           `Operation ${operation.id} failed during ${phase}: ${step.description}`,
           {
             ...ifDefined(
               'why',
-              converted === undefined
-                ? undefined
-                : await this.unconvertedValueText(driver, converted),
+              unconverted ?? (phase === 'precheck' ? failedPrecheckWhy(failedCheck) : undefined),
             ),
             meta: {
-              failedCheck: { operationId: operation.id, phase, description: step.description },
+              failedCheck,
               ...ifDefined(
                 'failedTypeChange',
                 field === undefined || plan === undefined || converted === undefined
