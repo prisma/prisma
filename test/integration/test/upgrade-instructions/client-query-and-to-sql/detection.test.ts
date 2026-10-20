@@ -24,6 +24,8 @@ describe.each(GUIDE_PATHS)('the client-query-and-to-sql detection in %s', (guide
     ['a SQLite client', 'type Db = SqliteClient<Contract>;'],
     ['a role-bound client', 'function useDb(db: RoleBoundDb<Contract>) {}'],
     ['a static context', 'type S = PostgresStaticContext<Contract>;'],
+    ['a transaction context', 'const tx: SqliteTransactionContext<Contract> = makeTx();'],
+    ['the Supabase-contract client', 'function admin(db: SupabaseInternalDb) {}'],
     ['a plan run through the runtime', 'await db.runtime().query(plan);'],
     ['a write run through the runtime', 'await db\n  .runtime()\n  .execute(plan);'],
   ])('finds %s', (_name, content) => {

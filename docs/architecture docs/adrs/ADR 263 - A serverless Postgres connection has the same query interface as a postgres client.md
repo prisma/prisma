@@ -255,6 +255,8 @@ Both have a method named `connect`, and the two methods do different things.
 
 The three member groups are three interfaces: `PostgresStaticMembers`, `PostgresRuntimeBoundMembers` and `PostgresLifecycleMembers`. `PostgresStaticMembers` is `PostgresStaticContext`, the object that `postgresStatic()` from the `/static` entry point returns, plus `stack`, which `/static` cannot offer because its stack has no driver. `PostgresClient` and `PostgresServerlessConnection` both extend all three. A member added to one of the interfaces reaches both. A member added to `PostgresClient` alone does not reach a connection.
 
+A fourth interface, `PostgresQueryMembers`, groups members by a different rule: the members a transaction and a Supabase role-bound client share with the client. It holds `sql` and `raw`, which are static, and `orm`, `prepare`, `query` and `execute`, which are runtime-bound, so it overlaps the two groups. It is the one place `query` and `execute` are declared. `PostgresClient` and `PostgresServerlessConnection` extend it; the serverless client does not. A transaction takes `query` and `execute` from its transaction context and the rest of `PostgresQueryMembers` from the client, and it also offers the client's `toSql`, `enums` and `nativeEnums`. A member a transaction must offer goes in `PostgresQueryMembers`.
+
 Two functions build the members for both:
 
 - `buildPostgresStaticContext` builds `sql`, `raw`, `enums`, `nativeEnums` and `toSql` from the execution context and the stack.
