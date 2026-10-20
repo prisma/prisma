@@ -20,6 +20,7 @@ import {
   fieldAttribute,
   fieldRef,
   funcCall,
+  generatorAttributeSpec,
   identifier,
   int,
   interpretAttribute,
@@ -67,14 +68,10 @@ function buildFieldAttributeCtx(input: {
 }
 
 const UNLOWERED_FIELD_ATTRIBUTE_HINTS: ReadonlyMap<string, string> = new Map([
-  [
-    'updatedAt',
-    'To fill the timestamp on create and update, use `temporal.updatedAt()` as the field type.',
-  ],
+  ['updatedAt', 'Use @onCreate(now()) @onUpdate(now()) instead.'],
 ]);
 
-const DEFAULT_NOW_HINT =
-  'To fill the timestamp on create, use `temporal.createdAt()` as the field type.';
+const DEFAULT_NOW_HINT = 'Use @onCreate(now()) instead; MongoDB has no database defaults.';
 
 function unloweredAttributeHint(attribute: ResolvedAttribute): string | undefined {
   if (attribute.name === 'default' && attribute.args[0]?.value.replace(/\s/g, '') === 'now()') {
@@ -176,7 +173,8 @@ export const mapFieldSpec = fieldAttribute('map', {
   positional: [{ key: 'name', type: str(), documentation: 'The key stored in MongoDB documents.' }],
 });
 export const idFieldSpec = fieldAttribute('id', {
-  documentation: 'Identifies the document’s primary-key field.',
+  documentation:
+    'Marks the field stored as `_id`, the document’s id. The field must be stored as `_id`: name it `_id` or add `@map("_id")`. A model may leave `@id` out; its documents still get an ObjectId `_id`.',
 });
 export const uniqueFieldSpec = fieldAttribute('unique', {
   documentation: 'Requires values in this field to be unique across the collection.',
@@ -420,5 +418,7 @@ export const mongoAttributeSpecs = {
     unique: staticFieldSpec(uniqueFieldSpec),
     map: staticFieldSpec(mapFieldSpec),
     relation: staticFieldSpec(relationFieldSpec),
+    onCreate: generatorAttributeSpec('onCreate'),
+    onUpdate: generatorAttributeSpec('onUpdate'),
   },
 } as const satisfies AttributeSpecNamespace;

@@ -1,6 +1,7 @@
 import { assembleDataTypes, type DataType } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import {
+  checkRawTypeText,
   isSqlDataType,
   type ResolvedSqlType,
   renderSqlCatalogText,
@@ -77,14 +78,27 @@ export function columnTypeCheckText(check: ColumnTypeCheck): string {
     : `${check.typeName}${check.many ? '[]' : ''}`;
 }
 
+function rawTypeCheckText(type: string, where: string): string {
+  const trimmed = type.trim();
+  const array = ARRAY_SUFFIX.exec(trimmed);
+  const base = array?.[1] ?? trimmed;
+  const suffix = array === null ? '' : '[]';
+  const refused = checkRawTypeText(base);
+  return refused === undefined
+    ? `${base}${suffix}`
+    : columnTypeUnreadable(type, where, `the raw type "${type}" is refused: ${refused}`);
+}
+
 /**
- * The postcheck for a column altered to `type`, written as a migration writes it, read through the one data type of `dataTypes` that reads it. The planner and the `alterColumnType` facade both check the alter with it, so re-running a migration reproduces its operations. `where` names the call in the error a type no data type reads raises.
+ * The postcheck for a column altered to `type`, written as a migration writes it: for a raw type, which the call marks with `raw` (ADR 273), the text as written, compared with the catalog text; otherwise read through the one data type of `dataTypes` that reads it. The planner and the `alterColumnType` facade both check the alter with it, so re-running a migration reproduces its operations. `where` names the call in the error a type no data type reads raises.
  */
 export function alterTypeCheck(
   type: string,
   dataTypes: readonly DataType[],
   where: string,
+  raw = false,
 ): ColumnTypeCheck {
+  if (raw) return { kind: 'catalog-text', text: rawTypeCheckText(type, where) };
   const read = readColumnTypeCheck(type, dataTypes);
   return read.ok ? read.check : columnTypeUnreadable(type, where, read.reason);
 }

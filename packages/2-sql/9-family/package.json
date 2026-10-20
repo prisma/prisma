@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "@internal/driver-postgres": "workspace:8.0.0-rc.18",
+    "@internal/ids": "workspace:8.0.0-rc.18",
     "@internal/psl-printer": "workspace:8.0.0-rc.18",
     "@repo/test-utils": "workspace:8.0.0-rc.18",
     "@repo/tsconfig": "workspace:8.0.0-rc.18",

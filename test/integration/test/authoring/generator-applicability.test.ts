@@ -57,6 +57,7 @@ describe.each([
         codecLookup: stack.codecLookup,
         dataTypes: stack.dataTypes,
         controlMutationDefaults: stack.controlMutationDefaults,
+        generatorFunctions: stack.generatorFunctions,
         resolvedInputs: [schemaPath],
         capabilities: stack.capabilities,
       });
@@ -115,6 +116,7 @@ describe('generated defaults on a Postgres uuid column', () => {
       codecLookup: stack.codecLookup,
       dataTypes: stack.dataTypes,
       controlMutationDefaults: stack.controlMutationDefaults,
+      generatorFunctions: stack.generatorFunctions,
       resolvedInputs: [schemaPath],
       capabilities: stack.capabilities,
     });
@@ -156,6 +158,7 @@ describe('generated defaults on a Postgres column with a length', () => {
       codecLookup: stack.codecLookup,
       dataTypes: stack.dataTypes,
       controlMutationDefaults: stack.controlMutationDefaults,
+      generatorFunctions: stack.generatorFunctions,
       resolvedInputs: [schemaPath],
       capabilities: stack.capabilities,
     });
@@ -214,6 +217,7 @@ describe('generated defaults on a SQLite column with a length', () => {
       codecLookup: stack.codecLookup,
       dataTypes: stack.dataTypes,
       controlMutationDefaults: stack.controlMutationDefaults,
+      generatorFunctions: stack.generatorFunctions,
       resolvedInputs: [schemaPath],
       capabilities: stack.capabilities,
     });

@@ -34,8 +34,11 @@ export interface MongoIndexKey {
   readonly direction: MongoIndexKeyDirection;
 }
 
+export type MongoModelFieldStorage = { readonly field: string };
+
 export type MongoModelStorage = {
   readonly collection?: string;
+  readonly fields: Readonly<Record<string, MongoModelFieldStorage>>;
   readonly relations?: Record<string, { readonly field: string }>;
 };
 
@@ -150,6 +153,35 @@ export type MongoUnboundFieldInputTypes<T> =
   ExtractMongoFieldInputTypes<T> extends Record<typeof UNBOUND_NAMESPACE_ID, infer Inner>
     ? Inner
     : never;
+
+/** The stored name of field `Field`, one of model `ModelName`'s own fields, read from its `storage.fields`; `never` for a name that is not one. */
+export type OwnStoredNameOf<
+  TContract extends MongoContract,
+  ModelName extends string & keyof MongoModelsMap<TContract>,
+  Field,
+> = MongoModelsMap<TContract>[ModelName] extends {
+  readonly storage: { readonly fields: infer StorageFields };
+}
+  ? Field extends keyof StorageFields
+    ? StorageFields[Field] extends { readonly field: infer StoredName extends string }
+      ? StoredName
+      : never
+    : never
+  : never;
+
+/** The own fields of model `ModelName` stored under `StoredName`. */
+export type OwnFieldStoredAs<
+  TContract extends MongoContract,
+  ModelName extends string & keyof MongoModelsMap<TContract>,
+  StoredName extends string,
+> = {
+  [K in keyof MongoModelsMap<TContract>[ModelName]['storage']['fields'] &
+    string]: MongoModelsMap<TContract>[ModelName]['storage']['fields'][K] extends {
+    readonly field: StoredName;
+  }
+    ? K
+    : never;
+}[keyof MongoModelsMap<TContract>[ModelName]['storage']['fields'] & string];
 
 export type InferModelRow<
   TContract extends MongoContractWithTypeMaps<

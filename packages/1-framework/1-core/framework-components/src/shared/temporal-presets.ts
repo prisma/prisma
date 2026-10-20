@@ -15,19 +15,9 @@ export type PresetStorageTemplate = ScalarTypeConstructorOutput & AuthoringStora
  */
 export const TIMESTAMP_NOW_GENERATOR_ID = 'timestampNow' as const;
 
-/**
- * Builds the control-plane descriptor for the wall-clock-now mutation default generator. Its `id` and `buildPhases` are target-agnostic, so PSL `temporal.updatedAt()` and TS `field.temporal.updatedAt()` lower to byte-identical contracts.
- *
- * `applicableDataTypes` is omitted: `timestampNow` is reachable only through a preset, which co-registers the codec itself, so a compatibility list would be tautological.
- */
+/** Builds the control-plane descriptor for the wall-clock-now mutation default generator. */
 export function timestampNowControlDescriptor(): MutationDefaultGeneratorDescriptor {
-  return {
-    id: TIMESTAMP_NOW_GENERATOR_ID,
-    buildPhases: () => ({
-      onCreate: { kind: 'generator', id: TIMESTAMP_NOW_GENERATOR_ID },
-      onUpdate: { kind: 'generator', id: TIMESTAMP_NOW_GENERATOR_ID },
-    }),
-  };
+  return { id: TIMESTAMP_NOW_GENERATOR_ID };
 }
 
 /**

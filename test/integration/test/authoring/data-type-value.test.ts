@@ -3,6 +3,7 @@ import sqliteAdapter from '@internal/adapter-sqlite/control';
 import type { JsonValue } from '@internal/contract/types';
 import sql from '@internal/family-sql/control';
 import { dataTypeId } from '@internal/framework-components/codec';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import {
   assembleAuthoringContributions,
   createControlStack,
@@ -35,6 +36,7 @@ function parseArgument(source: string) {
     context: {
       authoringContributions: assembleAuthoringContributions([]),
       controlMutationDefaults: { defaultFunctionRegistry: new Map() },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: EMPTY_DATA_TYPES,
     },
   }).binder;

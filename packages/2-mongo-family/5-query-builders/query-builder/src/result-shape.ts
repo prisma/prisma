@@ -1,5 +1,5 @@
 import type { ContractField, ContractValueObject } from '@internal/contract/types';
-import type { MongoModelDefinition } from '@internal/mongo-contract';
+import { type MongoModelDefinition, ownStoredNamesOf } from '@internal/mongo-contract';
 import type { MongoFieldShape, MongoResultShape } from '@internal/mongo-query-ast/execution';
 import { freezeMongoFieldShape, freezeMongoResultShape } from '@internal/mongo-query-ast/execution';
 
@@ -64,6 +64,9 @@ export function contractFieldToMongoFieldShape(
   return freezeMongoFieldShape(fieldShape(field, valueObjects, new Set()));
 }
 
+/**
+ * The shape the runtime decodes a model's documents against, keyed by stored name. `selection` names stored names; `includes` is keyed by relation name.
+ */
 export function contractModelToMongoResultShape(
   model: MongoModelDefinition,
   options?: {
@@ -74,17 +77,21 @@ export function contractModelToMongoResultShape(
   },
 ): MongoResultShape {
   const fields: Record<string, MongoFieldShape> = { ...options?.includes };
-  const modelFields = model.fields;
+  const fieldsByStoredName = new Map(
+    Object.entries(ownStoredNamesOf(model)).map(([field, storedName]) => [storedName, field]),
+  );
   // An explicit empty selection is honored as-is (returns a document shape
   // with no fields). Only the absence of a selection falls back to the model's
   // full field set.
-  const keys = options?.selection !== undefined ? options.selection : Object.keys(modelFields);
+  const keys =
+    options?.selection !== undefined ? options.selection : [...fieldsByStoredName.keys()];
 
   for (const key of keys) {
     if (Object.hasOwn(fields, key)) {
       continue;
     }
-    const cf = modelFields[key];
+    const fieldName = fieldsByStoredName.get(key);
+    const cf = fieldName === undefined ? undefined : model.fields[fieldName];
     if (!cf) {
       fields[key] = UNKNOWN;
       continue;

@@ -23,7 +23,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'c7780d7c048e42cb1ad4f6815999679be5e3e1a307cd445b51b2879612bbb594'>;
+  StorageHashBase<'f40b9a31525edcf6ac7faa3ae99f554ca15e128136e74743654436c4b79fb2f6'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'251b3ce23f6c9f561892e7c1af9d2cc941a13d64ba1aa7226b90036b09568cc3'>;
@@ -161,7 +161,48 @@ type ContractBase = Omit<
         readonly kind: 'mongo-database';
         readonly entries: {
           readonly collection: {
-            readonly posts: MongoCollection;
+            readonly posts: {
+              readonly kind: 'mongo-collection';
+              readonly validator: {
+                readonly jsonSchema: {
+                  readonly bsonType: 'object';
+                  readonly oneOf: readonly [
+                    {
+                      readonly additionalProperties: false;
+                      readonly properties: {
+                        readonly _id: { readonly bsonType: 'objectId' };
+                        readonly authorId: { readonly bsonType: 'objectId' };
+                        readonly body: { readonly bsonType: 'string' };
+                        readonly kind: { readonly enum: readonly ['article'] };
+                        readonly title: { readonly bsonType: 'string' };
+                      };
+                      readonly required: readonly ['body', 'kind'];
+                    },
+                    {
+                      readonly additionalProperties: false;
+                      readonly properties: {
+                        readonly _id: { readonly bsonType: 'objectId' };
+                        readonly authorId: { readonly bsonType: 'objectId' };
+                        readonly kind: { readonly enum: readonly ['link'] };
+                        readonly title: { readonly bsonType: 'string' };
+                        readonly url: { readonly bsonType: 'string' };
+                      };
+                      readonly required: readonly ['kind', 'url'];
+                    },
+                  ];
+                  readonly properties: {
+                    readonly _id: { readonly bsonType: 'objectId' };
+                    readonly authorId: { readonly bsonType: 'objectId' };
+                    readonly kind: { readonly bsonType: 'string' };
+                    readonly title: { readonly bsonType: 'string' };
+                  };
+                  readonly required: readonly ['_id', 'authorId', 'kind', 'title'];
+                };
+                readonly kind: 'mongo-validator';
+                readonly validationAction: 'error';
+                readonly validationLevel: 'strict';
+              };
+            };
             readonly users: {
               readonly indexes: readonly [
                 {
@@ -171,6 +212,148 @@ type ContractBase = Omit<
                 },
               ];
               readonly kind: 'mongo-collection';
+              readonly validator: {
+                readonly jsonSchema: {
+                  readonly additionalProperties: false;
+                  readonly bsonType: 'object';
+                  readonly properties: {
+                    readonly _id: { readonly bsonType: 'objectId' };
+                    readonly active: { readonly bsonType: 'bool' };
+                    readonly age: { readonly bsonType: 'int' };
+                    readonly avatar: { readonly bsonType: readonly ['null', 'binData'] };
+                    readonly balance: { readonly bsonType: 'decimal' };
+                    readonly email: { readonly bsonType: 'string' };
+                    readonly embedding: { readonly bsonType: 'array' };
+                    readonly home: {
+                      readonly oneOf: readonly [
+                        { readonly bsonType: 'null' },
+                        {
+                          readonly additionalProperties: false;
+                          readonly bsonType: 'object';
+                          readonly properties: {
+                            readonly kind: {
+                              readonly bsonType: readonly ['null', 'string'];
+                              readonly enum: readonly ['reader', 'editor', null];
+                            };
+                            readonly location: {
+                              readonly oneOf: readonly [
+                                { readonly bsonType: 'null' },
+                                {
+                                  readonly additionalProperties: false;
+                                  readonly bsonType: 'object';
+                                  readonly properties: {
+                                    readonly lat: { readonly bsonType: 'double' };
+                                    readonly lng: { readonly bsonType: 'double' };
+                                  };
+                                  readonly required: readonly ['lat', 'lng'];
+                                },
+                              ];
+                            };
+                            readonly street: { readonly bsonType: 'string' };
+                            readonly tags: {
+                              readonly bsonType: 'array';
+                              readonly items: { readonly bsonType: 'string' };
+                            };
+                            readonly zip: { readonly bsonType: readonly ['null', 'string'] };
+                          };
+                          readonly required: readonly ['street', 'tags'];
+                        },
+                      ];
+                    };
+                    readonly joinedAt: { readonly bsonType: 'date' };
+                    readonly nickname: { readonly bsonType: readonly ['null', 'string'] };
+                    readonly nicknames: {
+                      readonly bsonType: readonly ['null', 'array'];
+                      readonly items: { readonly bsonType: 'string' };
+                    };
+                    readonly pastHomes: {
+                      readonly bsonType: 'array';
+                      readonly items: {
+                        readonly additionalProperties: false;
+                        readonly bsonType: 'object';
+                        readonly properties: {
+                          readonly kind: {
+                            readonly bsonType: readonly ['null', 'string'];
+                            readonly enum: readonly ['reader', 'editor', null];
+                          };
+                          readonly location: {
+                            readonly oneOf: readonly [
+                              { readonly bsonType: 'null' },
+                              {
+                                readonly additionalProperties: false;
+                                readonly bsonType: 'object';
+                                readonly properties: {
+                                  readonly lat: { readonly bsonType: 'double' };
+                                  readonly lng: { readonly bsonType: 'double' };
+                                };
+                                readonly required: readonly ['lat', 'lng'];
+                              },
+                            ];
+                          };
+                          readonly street: { readonly bsonType: 'string' };
+                          readonly tags: {
+                            readonly bsonType: 'array';
+                            readonly items: { readonly bsonType: 'string' };
+                          };
+                          readonly zip: { readonly bsonType: readonly ['null', 'string'] };
+                        };
+                        readonly required: readonly ['street', 'tags'];
+                      };
+                    };
+                    readonly pastRoles: {
+                      readonly bsonType: 'array';
+                      readonly items: {
+                        readonly bsonType: readonly ['null', 'string'];
+                        readonly enum: readonly ['reader', 'editor', null];
+                      };
+                    };
+                    readonly raw: {};
+                    readonly rawEmbedding: { readonly bsonType: 'array' };
+                    readonly role: {
+                      readonly bsonType: 'string';
+                      readonly enum: readonly ['reader', 'editor'];
+                    };
+                    readonly score: { readonly bsonType: 'double' };
+                    readonly scores: {
+                      readonly bsonType: 'array';
+                      readonly items: { readonly bsonType: 'double' };
+                    };
+                    readonly settings: {
+                      readonly bsonType: readonly [
+                        'object',
+                        'array',
+                        'string',
+                        'double',
+                        'int',
+                        'long',
+                        'bool',
+                        'null',
+                      ];
+                    };
+                    readonly visits: { readonly bsonType: 'long' };
+                  };
+                  readonly required: readonly [
+                    '_id',
+                    'active',
+                    'age',
+                    'balance',
+                    'email',
+                    'embedding',
+                    'joinedAt',
+                    'pastHomes',
+                    'pastRoles',
+                    'rawEmbedding',
+                    'role',
+                    'score',
+                    'scores',
+                    'settings',
+                    'visits',
+                  ];
+                };
+                readonly kind: 'mongo-validator';
+                readonly validationAction: 'error';
+                readonly validationLevel: 'strict';
+              };
             };
           };
         };
@@ -198,7 +381,10 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'posts' };
+            readonly storage: {
+              readonly collection: 'posts';
+              readonly fields: { readonly body: { readonly field: 'body' } };
+            };
             readonly base: {
               readonly namespace: '__unbound__' & NamespaceId;
               readonly model: 'Post';
@@ -212,7 +398,10 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'posts' };
+            readonly storage: {
+              readonly collection: 'posts';
+              readonly fields: { readonly url: { readonly field: 'url' } };
+            };
             readonly base: {
               readonly namespace: '__unbound__' & NamespaceId;
               readonly model: 'Post';
@@ -251,7 +440,15 @@ type ContractBase = Omit<
                 };
               };
             };
-            readonly storage: { readonly collection: 'posts' };
+            readonly storage: {
+              readonly collection: 'posts';
+              readonly fields: {
+                readonly _id: { readonly field: '_id' };
+                readonly authorId: { readonly field: 'authorId' };
+                readonly kind: { readonly field: 'kind' };
+                readonly title: { readonly field: 'title' };
+              };
+            };
             readonly discriminator: { readonly field: 'kind' };
             readonly variants: {
               readonly article: {
@@ -356,7 +553,31 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'users' };
+            readonly storage: {
+              readonly collection: 'users';
+              readonly fields: {
+                readonly _id: { readonly field: '_id' };
+                readonly active: { readonly field: 'active' };
+                readonly age: { readonly field: 'age' };
+                readonly avatar: { readonly field: 'avatar' };
+                readonly balance: { readonly field: 'balance' };
+                readonly email: { readonly field: 'email' };
+                readonly embedding: { readonly field: 'embedding' };
+                readonly home: { readonly field: 'home' };
+                readonly joinedAt: { readonly field: 'joinedAt' };
+                readonly nickname: { readonly field: 'nickname' };
+                readonly nicknames: { readonly field: 'nicknames' };
+                readonly pastHomes: { readonly field: 'pastHomes' };
+                readonly pastRoles: { readonly field: 'pastRoles' };
+                readonly raw: { readonly field: 'raw' };
+                readonly rawEmbedding: { readonly field: 'rawEmbedding' };
+                readonly role: { readonly field: 'role' };
+                readonly score: { readonly field: 'score' };
+                readonly scores: { readonly field: 'scores' };
+                readonly settings: { readonly field: 'settings' };
+                readonly visits: { readonly field: 'visits' };
+              };
+            };
           };
         };
         readonly valueObjects: {

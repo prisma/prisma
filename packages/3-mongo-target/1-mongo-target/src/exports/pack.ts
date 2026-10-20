@@ -17,6 +17,7 @@ const mongoTargetPack: {
   };
   readonly authoring: { readonly field: typeof mongoAuthoringFieldPresets };
   readonly controlMutationDefaults: ControlMutationDefaults;
+  readonly generatorFunctions: typeof mongoTargetDescriptorMeta.generatorFunctions;
   readonly __codecTypes?: CodecTypes;
   readonly __parameterizedOutputTypes?: ParameterizedOutputTypesForTypeParams;
 } = mongoTargetDescriptorMeta;

@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { fixtureTypeLookups } from './fixture-codec-descriptors';
 import { fixtureDataTypeSupport } from './fixture-data-types';
+import { fixtureGeneratorFunctions } from './fixture-generator-functions';
 import {
   createBuiltinLikeControlMutationDefaults,
   interpretSqlContract,
@@ -45,6 +46,7 @@ describe('interpretPslDocumentToSqlContract tagged literal defaults', () => {
       createNamespace: createTestSqlNamespace,
       capabilities: { sql: { scalarList: true } },
       controlMutationDefaults: builtinControlMutationDefaults,
+      generatorFunctions: fixtureGeneratorFunctions,
       codecLookup: fixtureTypeLookups.codecLookup,
       dataTypes: {
         entries,
@@ -142,7 +144,7 @@ describe('interpretPslDocumentToSqlContract tagged literal defaults', () => {
       {
         code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
         message:
-          'Expected one of: string | number | boolean | null | autoincrement() | now() | uuid() | cuid() | ulid() | nanoid() | sql`...` | json`...` | list of (string | number | boolean | null | json`...`)',
+          'Expected one of: string | number | boolean | null | autoincrement() | now() | sql`...` | json`...` | list of (string | number | boolean | null | json`...`)',
         sourceId: 'schema.prisma',
         span: lineThreeSpan(21, 'gen_random_uuid()'.length),
       },
@@ -236,7 +238,7 @@ describe('interpretPslDocumentToSqlContract tagged literal defaults', () => {
   });
 
   it('still rejects a client-side generator on a list column', () => {
-    expect(diagnostics('tags String[] @default(uuid())')).toEqual([
+    expect(diagnostics('tags String[] @onCreate(uuid())')).toEqual([
       expect.objectContaining({ code: 'PSL_LIST_EXECUTION_DEFAULT_UNSUPPORTED' }),
     ]);
   });

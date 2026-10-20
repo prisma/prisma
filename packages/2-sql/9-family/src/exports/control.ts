@@ -14,14 +14,13 @@ export type {
 export { assembleAuthoringContributions } from '@internal/framework-components/control';
 export { checkSqlDefaultText } from '@internal/sql-contract/validators';
 export { extractCodecControlHooks } from '../core/assembly';
-export { sqlBuiltinGeneratorDescriptors } from '../core/builtin-generator-descriptors';
 export type { SqlControlFamilyInstance } from '../core/control-instance';
 export type {
   SqlControlTargetDescriptor,
   SqlDescribedContractSpace,
   SqlPslBuildContext,
 } from '../core/control-target-descriptor';
-export type { SqlDefaultFunction, SqlDefaultFunctionName } from '../core/default-functions';
+export type { SqlDefaultFunctionName } from '../core/default-functions';
 export { sqlDefaultFunctions } from '../core/default-functions';
 export type {
   ContractToSchemaIROptions,
@@ -36,7 +35,6 @@ export {
 } from '../core/migrations/contract-to-schema-ir';
 export type { ControlPolicySubject, SuppressionRecord } from '../core/migrations/control-policy';
 export {
-  controlPolicyForCall,
   partitionCallsByControlPolicy,
   partitionIssuesByControlPolicy,
 } from '../core/migrations/control-policy';

@@ -65,17 +65,17 @@ export type FieldInputTypes = FieldTypesFromDomain<
 
 export namespace Models {
   export type unbound_Counter = {
-    _id: FieldOutputTypes['__unbound__']['Counter']['_id'];
     hits: FieldOutputTypes['__unbound__']['Counter']['hits'];
+    id: FieldOutputTypes['__unbound__']['Counter']['id'];
     large: FieldOutputTypes['__unbound__']['Counter']['large'];
     name: FieldOutputTypes['__unbound__']['Counter']['name'];
     small: FieldOutputTypes['__unbound__']['Counter']['small'];
     readonly [RelationKeys]?: never;
   };
   export type unbound_Tally = {
-    _id: FieldOutputTypes['__unbound__']['Tally']['_id'];
     address: FieldOutputTypes['__unbound__']['Tally']['address'];
     addresses: FieldOutputTypes['__unbound__']['Tally']['addresses'];
+    id: FieldOutputTypes['__unbound__']['Tally']['id'];
     name: FieldOutputTypes['__unbound__']['Tally']['name'];
     scores: FieldOutputTypes['__unbound__']['Tally']['scores'];
     readonly [RelationKeys]?: never;
@@ -124,13 +124,13 @@ type ContractBase = Omit<
         readonly models: {
           readonly Counter: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly hits: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/int64Number@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly large: {
                 readonly nullable: false;
@@ -146,14 +146,19 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'Counter' };
+            readonly storage: {
+              readonly collection: 'Counter';
+              readonly fields: {
+                readonly hits: { readonly field: 'hits' };
+                readonly id: { readonly field: '_id' };
+                readonly large: { readonly field: 'large' };
+                readonly name: { readonly field: 'name' };
+                readonly small: { readonly field: 'small' };
+              };
+            };
           };
           readonly Tally: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly address: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'Address' };
@@ -162,6 +167,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'Address' };
                 readonly many: { readonly elementNullable: false };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly name: {
                 readonly nullable: false;
@@ -174,7 +183,16 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'Tally' };
+            readonly storage: {
+              readonly collection: 'Tally';
+              readonly fields: {
+                readonly address: { readonly field: 'address' };
+                readonly addresses: { readonly field: 'addresses' };
+                readonly id: { readonly field: '_id' };
+                readonly name: { readonly field: 'name' };
+                readonly scores: { readonly field: 'scores' };
+              };
+            };
           };
         };
         readonly valueObjects: {

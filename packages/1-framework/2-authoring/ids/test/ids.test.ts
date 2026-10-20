@@ -1,15 +1,7 @@
 import { isInternalError } from '@internal/utils/internal-error';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
-import {
-  builtinGeneratorRegistryMetadata,
-  cuid2,
-  ksuid,
-  nanoid,
-  ulid,
-  uuidv4,
-  uuidv7,
-} from '../src/index';
+import { cuid2, generatedLength, ksuid, nanoid, ulid, uuidv4, uuidv7 } from '../src/index';
 import { generateId } from '../src/runtime';
 
 describe('@internal/ids', () => {
@@ -103,16 +95,14 @@ describe('@internal/ids', () => {
   });
 
   it('states how many characters each generator writes', () => {
-    const lengthOf = (id: string, params?: Record<string, unknown>) =>
-      builtinGeneratorRegistryMetadata.find((meta) => meta.id === id)?.writtenLength(params);
     expect({
-      ulid: lengthOf('ulid'),
-      nanoid: lengthOf('nanoid'),
-      nanoid12: lengthOf('nanoid', { size: 12 }),
-      uuidv7: lengthOf('uuidv7'),
-      uuidv4: lengthOf('uuidv4'),
-      cuid2: lengthOf('cuid2'),
-      ksuid: lengthOf('ksuid'),
+      ulid: generatedLength('ulid', undefined),
+      nanoid: generatedLength('nanoid', undefined),
+      nanoid12: generatedLength('nanoid', { size: 12 }),
+      uuidv7: generatedLength('uuidv7', undefined),
+      uuidv4: generatedLength('uuidv4', undefined),
+      cuid2: generatedLength('cuid2', undefined),
+      ksuid: generatedLength('ksuid', undefined),
     }).toEqual({
       ulid: 26,
       nanoid: 21,
@@ -122,11 +112,5 @@ describe('@internal/ids', () => {
       cuid2: 24,
       ksuid: 27,
     });
-  });
-
-  it('marks uuidv4 and uuidv7 as the generators that write a UUID', () => {
-    expect(
-      builtinGeneratorRegistryMetadata.filter((meta) => meta.writesUuid).map((meta) => meta.id),
-    ).toEqual(['uuidv7', 'uuidv4']);
   });
 });

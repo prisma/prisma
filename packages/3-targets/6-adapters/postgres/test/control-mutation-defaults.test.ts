@@ -1,11 +1,5 @@
-import type { DataTypeSupport } from '@internal/framework-components/authoring';
-import { assembleControlMutationDefaults } from '@internal/framework-components/control';
-import { EMPTY_DATA_TYPES, type FuncCallSig } from '@internal/psl-parser';
 import { describe, expect, it } from 'vitest';
-import {
-  createPostgresDefaultFunctionRegistry,
-  createPostgresMutationDefaultGeneratorDescriptors,
-} from '../src/core/control-mutation-defaults';
+import { createPostgresDefaultFunctionRegistry } from '../src/core/control-mutation-defaults';
 import runtimeAdapterDescriptor from '../src/exports/runtime';
 
 const stubSpan = {
@@ -26,26 +20,13 @@ function makeCall(fn: string, args: Record<string, unknown> = {}) {
 describe('createPostgresDefaultFunctionRegistry', () => {
   const registry = createPostgresDefaultFunctionRegistry();
 
-  it('contains all builtin default function entries', () => {
-    expect([...registry.keys()]).toEqual(
-      expect.arrayContaining(['autoincrement', 'now', 'uuid', 'cuid', 'ulid', 'nanoid']),
-    );
+  it('contains only the functions that lower to a database default', () => {
+    expect([...registry.keys()]).toEqual(['autoincrement', 'now']);
   });
 
-  it('declares each signature against the stack data types, taking a pg/int4 version', () => {
-    expect(registry.get('now')?.signature).toEqual({
+  it('retains declaration documentation in the opaque function registry', () => {
+    expect(registry.get('now')?.signature).toMatchObject({
       documentation: 'Uses the current database timestamp as the default value.',
-    });
-    const uuid = registry.get('uuid')!.signature as (dataTypes: DataTypeSupport) => FuncCallSig;
-    expect(uuid(EMPTY_DATA_TYPES)).toMatchObject({
-      documentation: 'Generates a UUID when a value is not supplied.',
-      positional: [
-        {
-          key: 'version',
-          documentation: 'The UUID version: `4` or `7`. Defaults to `4`.',
-          type: { kind: 'dataTypeValue', dataType: 'pg/int4', optional: true },
-        },
-      ],
     });
   });
 
@@ -68,180 +49,6 @@ describe('createPostgresDefaultFunctionRegistry', () => {
     expect(result).toMatchObject({
       ok: true,
       value: { kind: 'storage', defaultValue: { kind: 'function', expression: 'now()' } },
-    });
-  });
-
-  it('lowers uuid() to uuidv4 execution generator', () => {
-    const handler = registry.get('uuid')!;
-    const result = handler.lower({ call: makeCall('uuid'), context: stubContext });
-    expect(result).toMatchObject({
-      ok: true,
-      value: { kind: 'execution', generated: { kind: 'generator', id: 'uuidv4' } },
-    });
-  });
-
-  it('lowers uuid(7) to uuidv7 execution generator', () => {
-    const handler = registry.get('uuid')!;
-    const result = handler.lower({
-      call: makeCall('uuid', { version: 7 }),
-      context: stubContext,
-    });
-    expect(result).toMatchObject({
-      ok: true,
-      value: { kind: 'execution', generated: { kind: 'generator', id: 'uuidv7' } },
-    });
-  });
-
-  it('lowers cuid(2) to cuid2 execution generator', () => {
-    const handler = registry.get('cuid')!;
-    const result = handler.lower({
-      call: makeCall('cuid', { version: 2 }),
-      context: stubContext,
-    });
-    expect(result).toMatchObject({
-      ok: true,
-      value: { kind: 'execution', generated: { kind: 'generator', id: 'cuid2' } },
-    });
-  });
-
-  it('lowers ulid() to execution generator', () => {
-    const handler = registry.get('ulid')!;
-    const result = handler.lower({ call: makeCall('ulid'), context: stubContext });
-    expect(result).toMatchObject({
-      ok: true,
-      value: { kind: 'execution', generated: { kind: 'generator', id: 'ulid' } },
-    });
-  });
-
-  it('lowers nanoid() to execution generator', () => {
-    const handler = registry.get('nanoid')!;
-    const result = handler.lower({ call: makeCall('nanoid'), context: stubContext });
-    expect(result).toMatchObject({
-      ok: true,
-      value: { kind: 'execution', generated: { kind: 'generator', id: 'nanoid' } },
-    });
-  });
-
-  it('lowers nanoid(16) with size param', () => {
-    const handler = registry.get('nanoid')!;
-    const result = handler.lower({
-      call: makeCall('nanoid', { size: 16 }),
-      context: stubContext,
-    });
-    expect(result).toMatchObject({
-      ok: true,
-      value: {
-        kind: 'execution',
-        generated: { kind: 'generator', id: 'nanoid', params: { size: 16 } },
-      },
-    });
-  });
-
-  it('lowers uuid(4) explicitly to uuidv4 execution generator', () => {
-    const handler = registry.get('uuid')!;
-    const result = handler.lower({
-      call: makeCall('uuid', { version: 4 }),
-      context: stubContext,
-    });
-    expect(result).toMatchObject({
-      ok: true,
-      value: { kind: 'execution', generated: { kind: 'generator', id: 'uuidv4' } },
-    });
-  });
-
-  it('prints the PSL call arguments of each generator a function produces', () => {
-    const printed = Object.fromEntries(
-      [...registry].map(([name, entry]) => [
-        name,
-        Object.fromEntries(
-          Object.entries(entry.printArguments ?? {}).map(([id, print]) => [id, print(undefined)]),
-        ),
-      ]),
-    );
-    expect(printed).toEqual({
-      autoincrement: {},
-      now: {},
-      uuid: { uuidv4: '', uuidv7: '7' },
-      cuid: { cuid2: '2' },
-      ulid: { ulid: '' },
-      nanoid: { nanoid: '' },
-    });
-  });
-
-  it('prints a nanoid size so that it lowers back to the same params', () => {
-    const entry = registry.get('nanoid')!;
-    expect(entry.printArguments?.['nanoid']?.({ size: 21 })).toBe('21');
-    expect(
-      entry.lower({ call: makeCall('nanoid', { size: 21 }), context: stubContext }),
-    ).toMatchObject({
-      ok: true,
-      value: { kind: 'execution', generated: { id: 'nanoid', params: { size: 21 } } },
-    });
-  });
-
-  it('assembles with a registered generator for every printed call', () => {
-    const assembled = assembleControlMutationDefaults([
-      {
-        id: 'postgres',
-        controlMutationDefaults: {
-          defaultFunctionRegistry: registry,
-          generatorDescriptors: createPostgresMutationDefaultGeneratorDescriptors(),
-        },
-      },
-    ]);
-    expect(
-      Object.fromEntries(
-        [...assembled.defaultFunctionPrintersByGenerator].map(([id, call]) => [
-          id,
-          call.functionName,
-        ]),
-      ),
-    ).toEqual({ uuidv4: 'uuid', uuidv7: 'uuid', cuid2: 'cuid', ulid: 'ulid', nanoid: 'nanoid' });
-  });
-});
-
-describe('createPostgresMutationDefaultGeneratorDescriptors', () => {
-  const descriptors = createPostgresMutationDefaultGeneratorDescriptors();
-
-  it('returns descriptors for all builtin generators', () => {
-    const ids = descriptors.map((d) => d.id);
-    expect(ids).toEqual(
-      expect.arrayContaining([
-        'ulid',
-        'nanoid',
-        'uuidv7',
-        'uuidv4',
-        'cuid2',
-        'ksuid',
-        'timestampNow',
-      ]),
-    );
-  });
-
-  it('omits applicableDataTypes for timestampNow (preset-only generator)', () => {
-    const descriptor = descriptors.find((d) => d.id === 'timestampNow')!;
-
-    // timestampNow is reachable only via temporal.{createdAt,updatedAt}()
-    // preset descriptors that co-register the codec — the @default(...)
-    // lowering compatibility check has no role to play here, so the
-    // field is intentionally absent. F04 / spec NFR3 (corrected).
-    expect(descriptor.applicableDataTypes).toBeUndefined();
-  });
-
-  it('makes every builtin generator write text, and applies the UUID generators to pg/uuid', () => {
-    expect(
-      Object.fromEntries(
-        descriptors.flatMap(({ id, writesText, applicableDataTypes }) =>
-          writesText === true ? [[id, applicableDataTypes]] : [],
-        ),
-      ),
-    ).toEqual({
-      ulid: [],
-      nanoid: [],
-      uuidv7: ['pg/uuid'],
-      uuidv4: ['pg/uuid'],
-      cuid2: [],
-      ksuid: [],
     });
   });
 });

@@ -10,10 +10,6 @@ import type { AnyCodecDescriptor } from '../shared/codec-descriptor';
 import type { CodecRef, CodecRegistry } from '../shared/codec-types';
 import type { DataType, DataTypeId, DataTypeLookup } from '../shared/data-type';
 import { assembleDataTypes, objectSchemaKeys } from '../shared/data-type';
-import {
-  assembleFieldPresetsByCodecAndGenerator,
-  type FieldPresetsByCodecAndGenerator,
-} from '../shared/field-preset-print-form';
 import type {
   AuthoringAttributeSpecContributions,
   AuthoringContributions,
@@ -38,11 +34,14 @@ import {
   mergeAuthoringNamespaces,
 } from '../shared/framework-authoring';
 import type { ComponentMetadata } from '../shared/framework-components';
+import {
+  assembleGeneratorFunctions,
+  assembleGeneratorRegistrations,
+  type GeneratorFunctionRegistry,
+} from '../shared/generator-functions';
 import type {
   AssembledControlMutationDefaults,
   ControlMutationDefaultEntry,
-  DefaultFunctionPrinter,
-  MutationDefaultGeneratorDescriptor,
 } from '../shared/mutation-default-types';
 import {
   CONTRACT_CODEC_DESCRIPTOR_MISSING,
@@ -107,8 +106,7 @@ export interface ControlStack<
   /** Names of the top-level zero-arg type constructors in the assembled authoring namespace — the base scalars of the composed stack. */
   readonly scalarTypes: ReadonlyArray<string>;
   readonly controlMutationDefaults: AssembledControlMutationDefaults;
-  /** For each codec, the field preset `contract print` writes a column of it with each generator. */
-  readonly fieldPresetsByCodecAndGenerator: FieldPresetsByCodecAndGenerator;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly capabilities: CapabilityMatrix;
 }
 
@@ -591,26 +589,12 @@ export function assembleControlMutationDefaults(
 ): AssembledControlMutationDefaults {
   const defaultFunctionRegistry = new Map<string, ControlMutationDefaultEntry>();
   const functionOwners = new Map<string, string>();
-  const generatorMap = new Map<string, MutationDefaultGeneratorDescriptor>();
-  const componentIdsByGenerator = new Map<string, string | undefined>();
-  const defaultFunctionPrintersByGenerator = new Map<string, DefaultFunctionPrinter>();
-  const printerOwners = new Map<string, string>();
+  const registered = assembleGeneratorRegistrations(descriptors);
 
   for (const descriptor of descriptors) {
     const contributions = descriptor.controlMutationDefaults;
     if (!contributions) continue;
     const descriptorId = descriptor.id ?? '<unknown>';
-
-    for (const generatorDescriptor of contributions.generatorDescriptors) {
-      if (generatorMap.has(generatorDescriptor.id)) {
-        throw new InternalError(
-          `Duplicate mutation default generator id "${generatorDescriptor.id}". ` +
-            `Descriptor "${descriptorId}" conflicts with "${componentIdsByGenerator.get(generatorDescriptor.id) ?? '<unknown>'}".`,
-        );
-      }
-      generatorMap.set(generatorDescriptor.id, generatorDescriptor);
-      componentIdsByGenerator.set(generatorDescriptor.id, descriptor.id);
-    }
 
     for (const [functionName, handler] of contributions.defaultFunctionRegistry) {
       const existingOwner = functionOwners.get(functionName);
@@ -622,36 +606,15 @@ export function assembleControlMutationDefaults(
       }
       defaultFunctionRegistry.set(functionName, handler);
       functionOwners.set(functionName, descriptorId);
-
-      for (const [generatorId, printArguments] of Object.entries(handler.printArguments ?? {})) {
-        const existingPrinter = defaultFunctionPrintersByGenerator.get(generatorId);
-        if (existingPrinter !== undefined) {
-          throw runtimeError(
-            'CONTRACT.PACK_CONTRIBUTION_INVALID',
-            `Duplicate PSL call for mutation default generator "${generatorId}". ` +
-              `Function "${functionName}" from "${descriptorId}" conflicts with function "${existingPrinter.functionName}" from "${printerOwners.get(generatorId)}".`,
-          );
-        }
-        defaultFunctionPrintersByGenerator.set(generatorId, { functionName, printArguments });
-        printerOwners.set(generatorId, descriptorId);
-      }
-    }
-  }
-
-  for (const [generatorId, printer] of defaultFunctionPrintersByGenerator) {
-    if (!generatorMap.has(generatorId)) {
-      throw runtimeError(
-        'CONTRACT.PACK_CONTRIBUTION_INVALID',
-        `Mutation default function "${printer.functionName}" from "${printerOwners.get(generatorId)}" writes a PSL call for generator "${generatorId}", which no generator descriptor in the stack registers.`,
-      );
     }
   }
 
   return {
     defaultFunctionRegistry,
-    generatorDescriptors: Array.from(generatorMap.values()),
-    defaultFunctionPrintersByGenerator,
-    componentIdsByGenerator,
+    generatorDescriptors: [...registered.values()].map(({ descriptor }) => descriptor),
+    componentIdsByGenerator: new Map(
+      [...registered].map(([id, { componentId }]) => [id, componentId] as const),
+    ),
   };
 }
 
@@ -930,6 +893,8 @@ export function createControlStack<TFamilyId extends string, TTargetId extends s
     codecDescriptorFor: (codecId) => codecLookup.descriptorFor?.(codecId),
   });
 
+  const controlMutationDefaults = assembleControlMutationDefaults(allDescriptors);
+
   return {
     family,
     target,
@@ -953,10 +918,8 @@ export function createControlStack<TFamilyId extends string, TTargetId extends s
     aggregateDescriptors: collectAggregateDescriptors(allDescriptors),
     authoringContributions,
     scalarTypes: [...collectScalarTypeConstructors(authoringContributions.type).keys()],
-    controlMutationDefaults: assembleControlMutationDefaults(allDescriptors),
-    fieldPresetsByCodecAndGenerator: assembleFieldPresetsByCodecAndGenerator(
-      authoringContributions.field,
-    ),
+    controlMutationDefaults,
+    generatorFunctions: assembleGeneratorFunctions(allDescriptors),
     capabilities: mergeCapabilityMatrices({}, [
       target,
       ...(adapter ? [adapter] : []),

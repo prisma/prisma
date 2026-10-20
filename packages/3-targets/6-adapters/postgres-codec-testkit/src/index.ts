@@ -156,6 +156,8 @@ export interface PostgresCodecConformanceCase {
    * recorded kind can rot as projections change.
    */
   readonly notYetCanonical?: ExpectedProjectionFailure;
+  /** The codec's data type has no literal values (a raw column), so `toDataTypeValue` refuses every value and the harness does not check it. */
+  readonly literalValuesAbsent?: true;
   /** Compares the application value the row reads to with the case's value, for a value that is not deep-equal to its copy. */
   readonly valueEquality?: (left: unknown, right: unknown) => boolean;
   /** Compares the application value the projection reads to with the row's, for a value that is not deep-equal to its copy. The comparison is otherwise exact. */
@@ -471,7 +473,10 @@ export async function runPostgresCodecProjection(
 
   let notRoundTripped: readonly string[];
   try {
-    notRoundTripped = valuesNotRoundTripped(codec, conformanceCase);
+    notRoundTripped =
+      conformanceCase.literalValuesAbsent === true
+        ? []
+        : valuesNotRoundTripped(codec, conformanceCase);
   } catch (error) {
     return {
       ...base,

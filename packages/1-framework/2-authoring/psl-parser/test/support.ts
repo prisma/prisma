@@ -3,6 +3,7 @@ import type {
   AuthoringTypeNamespace,
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import type { ControlMutationDefaultRegistry } from '@internal/framework-components/control';
 import { notOk, ok } from '@internal/utils/result';
 import { identifier } from '../src/attribute-spec/combinators/identifier';
@@ -148,6 +149,7 @@ export function binderContext(
     controlMutationDefaults: {
       defaultFunctionRegistry: input.defaultFunctionRegistry ?? new Map(),
     },
+    generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     dataTypes,
     pslDiagnostics: {
       ...(describeUnsupportedAttribute === undefined

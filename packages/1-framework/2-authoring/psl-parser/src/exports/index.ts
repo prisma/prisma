@@ -60,6 +60,11 @@ export type {
 } from '../attribute-spec/combinators/written-scalar';
 export { writtenList, writtenScalar } from '../attribute-spec/combinators/written-scalar';
 export { fieldAttribute } from '../attribute-spec/field-attribute';
+export {
+  generatorAttributeSpec,
+  generatorFunctionCall,
+  nodeSourceText,
+} from '../attribute-spec/generator-attribute';
 export type { ArgBindingSpec } from '../attribute-spec/interpret';
 export { interpretArgs, interpretAttribute } from '../attribute-spec/interpret';
 export { modelAttribute } from '../attribute-spec/model-attribute';
@@ -85,15 +90,18 @@ export type {
   EntityRefArgType,
   FieldAttributeCtx,
   FixedIdentifierArgType,
+  FixedNumArgType,
   FuncCallSig,
   IdentifierArgType,
   InferAttr,
   InspectableArgType,
+  IntArgType,
   JsonValueArgType,
   ModelAttributeCtx,
   NamedOut,
   NullArgType,
   NumLiteral,
+  OneOfArgType,
   OptionalArgType,
   OutOf,
   Param,
@@ -105,6 +113,7 @@ export type {
   TaggedLiteralArgType,
   TypedFuncCall,
   UnrestrictedIdentifierArgType,
+  UnrestrictedNumArgType,
 } from '../attribute-spec/types';
 export type {
   AttributeSymbol,

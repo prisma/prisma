@@ -46,7 +46,17 @@ type TestModels = {
       };
     };
     readonly relations: Record<string, never>;
-    readonly storage: { readonly collection: 'orders' };
+    readonly storage: {
+      readonly collection: 'orders';
+      readonly fields: {
+        readonly _id: { readonly field: '_id' };
+        readonly status: { readonly field: 'status' };
+        readonly amount: { readonly field: 'amount' };
+        readonly customerId: { readonly field: 'customerId' };
+        readonly notes: { readonly field: 'notes' };
+        readonly tags: { readonly field: 'tags' };
+      };
+    };
   };
   readonly User: {
     readonly fields: {
@@ -72,7 +82,15 @@ type TestModels = {
       };
     };
     readonly relations: Record<string, never>;
-    readonly storage: { readonly collection: 'users' };
+    readonly storage: {
+      readonly collection: 'users';
+      readonly fields: {
+        readonly _id: { readonly field: '_id' };
+        readonly firstName: { readonly field: 'firstName' };
+        readonly lastName: { readonly field: 'lastName' };
+        readonly email: { readonly field: 'email' };
+      };
+    };
   };
   /**
    * Fixture for value-object dot-path traversal (TML-2281). `address` is a
@@ -109,7 +127,44 @@ type TestModels = {
       };
     };
     readonly relations: Record<string, never>;
-    readonly storage: { readonly collection: 'customers' };
+    readonly storage: {
+      readonly collection: 'customers';
+      readonly fields: {
+        readonly _id: { readonly field: '_id' };
+        readonly name: { readonly field: 'name' };
+        readonly address: { readonly field: 'address' };
+        readonly workAddress: { readonly field: 'workAddress' };
+        readonly stats: { readonly field: 'stats' };
+      };
+    };
+  };
+  readonly Account: {
+    readonly fields: {
+      readonly id: {
+        readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
+        readonly nullable: false;
+        readonly many: false;
+      };
+      readonly displayName: {
+        readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
+        readonly nullable: false;
+        readonly many: false;
+      };
+      readonly home: {
+        readonly type: { readonly kind: 'valueObject'; readonly name: 'Address' };
+        readonly nullable: true;
+        readonly many: false;
+      };
+    };
+    readonly relations: Record<string, never>;
+    readonly storage: {
+      readonly collection: 'accounts';
+      readonly fields: {
+        readonly id: { readonly field: '_id' };
+        readonly displayName: { readonly field: 'display_name' };
+        readonly home: { readonly field: 'home_address' };
+      };
+    };
   };
 };
 
@@ -179,6 +234,7 @@ type TestStorage = {
           readonly orders: { readonly kind: 'mongo-collection' };
           readonly users: { readonly kind: 'mongo-collection' };
           readonly customers: { readonly kind: 'mongo-collection' };
+          readonly accounts: { readonly kind: 'mongo-collection' };
         };
       };
     };
@@ -192,6 +248,7 @@ export type TestContract = Omit<MongoContract<TestStorage>, 'domain'> & {
     readonly orders: CrossReference & { readonly model: 'Order' };
     readonly users: CrossReference & { readonly model: 'User' };
     readonly customers: CrossReference & { readonly model: 'Customer' };
+    readonly accounts: CrossReference & { readonly model: 'Account' };
   };
   readonly domain: {
     readonly namespaces: {
@@ -250,6 +307,16 @@ type TestFieldOutputTypes = {
       } | null;
       readonly stats: { visits: number; lastSeen: Date | null };
     };
+    readonly Account: {
+      readonly id: string;
+      readonly displayName: string;
+      readonly home: {
+        street: string;
+        city: string;
+        zip: string | null;
+        geo: { lat: number; lng: number };
+      } | null;
+    };
   };
 };
 
@@ -265,6 +332,7 @@ export const testContractJson = {
     orders: crossRef('Order'),
     users: crossRef('User'),
     customers: crossRef('Customer'),
+    accounts: crossRef('Account'),
   },
   domain: {
     namespaces: {
@@ -304,7 +372,17 @@ export const testContractJson = {
               },
             },
             relations: {},
-            storage: { collection: 'orders' },
+            storage: {
+              collection: 'orders',
+              fields: {
+                _id: { field: '_id' },
+                status: { field: 'status' },
+                amount: { field: 'amount' },
+                customerId: { field: 'customerId' },
+                notes: { field: 'notes' },
+                tags: { field: 'tags' },
+              },
+            },
           },
           User: {
             fields: {
@@ -330,7 +408,15 @@ export const testContractJson = {
               },
             },
             relations: {},
-            storage: { collection: 'users' },
+            storage: {
+              collection: 'users',
+              fields: {
+                _id: { field: '_id' },
+                firstName: { field: 'firstName' },
+                lastName: { field: 'lastName' },
+                email: { field: 'email' },
+              },
+            },
           },
           Customer: {
             fields: {
@@ -357,7 +443,40 @@ export const testContractJson = {
               stats: { type: { kind: 'valueObject', name: 'Stats' }, nullable: false, many: false },
             },
             relations: {},
-            storage: { collection: 'customers' },
+            storage: {
+              collection: 'customers',
+              fields: {
+                _id: { field: '_id' },
+                name: { field: 'name' },
+                address: { field: 'address' },
+                workAddress: { field: 'workAddress' },
+                stats: { field: 'stats' },
+              },
+            },
+          },
+          Account: {
+            fields: {
+              id: {
+                type: { kind: 'scalar', codecId: 'mongo/objectId@1' },
+                nullable: false,
+                many: false,
+              },
+              displayName: {
+                type: { kind: 'scalar', codecId: 'mongo/string@1' },
+                nullable: false,
+                many: false,
+              },
+              home: { type: { kind: 'valueObject', name: 'Address' }, nullable: true, many: false },
+            },
+            relations: {},
+            storage: {
+              collection: 'accounts',
+              fields: {
+                id: { field: '_id' },
+                displayName: { field: 'display_name' },
+                home: { field: 'home_address' },
+              },
+            },
           },
         },
         valueObjects: {
@@ -427,6 +546,7 @@ export const testContractJson = {
           orders: { kind: 'mongo-collection' },
           users: { kind: 'mongo-collection' },
           customers: { kind: 'mongo-collection' },
+          accounts: { kind: 'mongo-collection' },
         },
       },
     },

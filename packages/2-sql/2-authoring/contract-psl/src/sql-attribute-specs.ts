@@ -2,6 +2,7 @@ import type {
   AuthoringModelAttributeDescriptor,
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
 import type {
   ControlMutationDefaultEntry,
   ControlMutationDefaultRegistry,
@@ -39,6 +40,7 @@ import {
   fieldAttribute,
   fieldRef,
   funcCall,
+  generatorAttributeSpec,
   identifier,
   interpretAttribute,
   leafDiagnostic,
@@ -46,6 +48,7 @@ import {
   mapArg,
   modelAttribute,
   nodePslSpan,
+  nodeSourceText,
   numLiteral,
   oneOf,
   optional,
@@ -360,21 +363,37 @@ function defaultValueArm(
     ...ArgType<DefaultArgValue, AttributeCtx>[],
   ],
   registry: ControlMutationDefaultRegistry,
+  generatorFunctions: GeneratorFunctionRegistry,
+  fieldPath: string,
 ) {
   const value = arms.length === 1 && arms[0].kind === 'list' ? arms[0] : oneOf(...arms);
   return {
     ...value,
-    parse: (arg: Parameters<typeof value.parse>[0], ctx: AttributeCtx) =>
-      FunctionCallAst.cast(arg.syntax)?.path().join('.') === 'dbgenerated'
-        ? notOk<readonly PslDiagnostic[]>([
-            leafDiagnostic(
-              ctx,
-              arg,
-              removedDbgeneratedMessage(registry),
-              'PSL_UNKNOWN_DEFAULT_FUNCTION',
-            ),
-          ])
-        : value.parse(arg, ctx),
+    parse: (arg: Parameters<typeof value.parse>[0], ctx: AttributeCtx) => {
+      const callee = FunctionCallAst.cast(arg.syntax)?.path().join('.');
+      if (callee === 'dbgenerated') {
+        return notOk<readonly PslDiagnostic[]>([
+          leafDiagnostic(
+            ctx,
+            arg,
+            removedDbgeneratedMessage(registry),
+            'PSL_UNKNOWN_DEFAULT_FUNCTION',
+          ),
+        ]);
+      }
+      if (callee !== undefined && !registry.has(callee) && generatorFunctions.has(callee)) {
+        const call = nodeSourceText(arg, ctx);
+        return notOk<readonly PslDiagnostic[]>([
+          leafDiagnostic(
+            ctx,
+            arg,
+            `Field "${fieldPath}": ${call} is a value the client generates, and @default sets a database default only. Write @onCreate(${call}) instead.`,
+            'PSL_GENERATOR_IN_DEFAULT',
+          ),
+        ]);
+      }
+      return value.parse(arg, ctx);
+    },
   };
 }
 
@@ -441,7 +460,12 @@ function defaultFieldSpec(ctx: FieldAttributeSpecContext) {
     positional: [
       {
         key: 'value',
-        type: defaultValueArm(valueArms, ctx.defaultFunctionRegistry),
+        type: defaultValueArm(
+          valueArms,
+          ctx.defaultFunctionRegistry,
+          ctx.generatorFunctions,
+          `${ctx.model.name}.${ctx.field.name}`,
+        ),
         documentation:
           'A literal, enum member, or registered default function compatible with this field.',
       },
@@ -797,12 +821,14 @@ export function modelSpecContext(input: {
   readonly symbols: SymbolTable;
   readonly model: ModelSymbol;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
 }): AttributeSpecContext {
   return {
     symbols: input.symbols,
     model: input.model,
     defaultFunctionRegistry: input.defaultFunctionRegistry,
+    generatorFunctions: input.generatorFunctions,
     dataTypes: input.dataTypes,
   };
 }
@@ -813,6 +839,7 @@ export function fieldSpecContext(input: {
   readonly field: FieldSymbol;
   readonly binder: Binder;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
 }): FieldAttributeSpecContext {
   const node = typeReferenceNode(input.field);
@@ -824,6 +851,7 @@ export function fieldSpecContext(input: {
     typeResolution,
     typeConstructor: contributedTypeOf(typeResolution, input.binder),
     defaultFunctionRegistry: input.defaultFunctionRegistry,
+    generatorFunctions: input.generatorFunctions,
     dataTypes: input.dataTypes,
   };
 }
@@ -846,5 +874,7 @@ export const sqlAttributeSpecs = {
     unique: (_ctx: FieldAttributeSpecContext) => uniqueFieldSpec,
     relation: (_ctx: FieldAttributeSpecContext) => relationFieldSpec,
     default: defaultFieldSpec,
+    onCreate: generatorAttributeSpec('onCreate'),
+    onUpdate: generatorAttributeSpec('onUpdate'),
   },
 } as const satisfies AttributeSpecNamespace;

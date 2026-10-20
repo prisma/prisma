@@ -1,3 +1,4 @@
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import type {
   ArgType,
   AttributeCtx,
@@ -97,6 +98,7 @@ function interpretDefault(schema: string, fieldName: string, namespaceName?: str
         field: target,
         binder,
         defaultFunctionRegistry,
+        generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
         dataTypes: fixtureDataTypeSupport,
       }),
     ),
@@ -130,6 +132,7 @@ namespace scoped {
           symbols: input.symbolTable,
           model,
           defaultFunctionRegistry,
+          generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
           dataTypes: fixtureDataTypeSupport,
         }),
       ),
@@ -145,10 +148,7 @@ namespace scoped {
     expect(diagnostics.toExternal()).toEqual([]);
     expect(value?.base.declaration).toBe(namespace.models['Base']);
     expect(value?.base.namespace).toBe(namespace);
-    expect(value?.value).toMatchObject({
-      kind: 'scalar',
-      written: { kind: 'string', text: 'variant' },
-    });
+    expect(value?.value).toBe('variant');
   });
 });
 
@@ -161,6 +161,7 @@ describe('sqlAttributeSpecs', () => {
     symbols: symbolTable,
     model,
     defaultFunctionRegistry,
+    generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     dataTypes: fixtureDataTypeSupport,
   });
   const fieldCtx = fieldSpecContext({
@@ -169,6 +170,7 @@ describe('sqlAttributeSpecs', () => {
     field: field(model, 'id'),
     binder,
     defaultFunctionRegistry,
+    generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     dataTypes: fixtureDataTypeSupport,
   });
 
@@ -217,6 +219,8 @@ describe('sqlAttributeSpecs', () => {
       'default',
       'id',
       'map',
+      'onCreate',
+      'onUpdate',
       'relation',
       'unique',
     ]);
@@ -281,6 +285,7 @@ describe('the tags @default offers at a value position', () => {
             field: field(model, name),
             binder,
             defaultFunctionRegistry,
+            generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
             dataTypes,
           }),
         ),
@@ -323,6 +328,7 @@ describe('the tags @default offers at a value position', () => {
               field: field(aliased.model, name),
               binder: aliased.binder,
               defaultFunctionRegistry,
+              generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
               dataTypes: knowingCodecs,
             }),
           ),
@@ -361,6 +367,7 @@ describe('sqlAttributeSpecs.field.default', () => {
     field: field(model, 'id'),
     binder,
     defaultFunctionRegistry,
+    generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     dataTypes: fixtureDataTypeSupport,
   });
 
@@ -376,10 +383,6 @@ describe('sqlAttributeSpecs.field.default', () => {
       'null',
       'funcCall',
       'funcCall',
-      'funcCall',
-      'funcCall',
-      'funcCall',
-      'funcCall',
       // One tagged-literal arm per distinct tag documentation: the sql tags, then json.
       'taggedLiteral',
       'taggedLiteral',
@@ -387,17 +390,9 @@ describe('sqlAttributeSpecs.field.default', () => {
       // list literal too; the codec's declaration decides whether one is accepted.
       'list',
     ]);
-    const uuid = value.alternatives
-      .filter((alt) => alt.kind === 'funcCall')
-      .find((alt) => alt.name === 'uuid');
-    if (uuid === undefined) throw new Error('uuid default function arm is present');
-    const versionType = uuid.signature.positional?.[0]?.type;
-    if (versionType === undefined) throw new Error('uuid version argument is present');
-    expect(versionType).toMatchObject({
-      kind: 'dataTypeValue',
-      dataType: 'pg/int4',
-      optional: true,
-    });
+    expect(
+      value.alternatives.filter((alt) => alt.kind === 'funcCall').map((alt) => alt.name),
+    ).toEqual(['autoincrement', 'now']);
   });
 
   it('omits the tagged-literal arm when no tag is registered', () => {
@@ -407,6 +402,7 @@ describe('sqlAttributeSpecs.field.default', () => {
       field: field(model, 'id'),
       binder,
       defaultFunctionRegistry,
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: EMPTY_DATA_TYPES,
     });
     const value = oneOfMetadata(positionalType(sqlAttributeSpecs.field.default(noTags)));
@@ -421,6 +417,7 @@ describe('sqlAttributeSpecs.field.default', () => {
       field: field(model, 'tags'),
       binder,
       defaultFunctionRegistry,
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: fixtureDataTypeSupport,
     });
     const value = oneOfMetadata(positionalType(sqlAttributeSpecs.field.default(listCtx)));
@@ -430,7 +427,7 @@ describe('sqlAttributeSpecs.field.default', () => {
     expect(listDefault.of).toMatchObject({ kind: 'oneOf' });
     expect(
       value.alternatives.filter((alt) => alt.kind === 'funcCall').map((alt) => alt.name),
-    ).toEqual(['autoincrement', 'now', 'uuid', 'cuid', 'ulid', 'nanoid']);
+    ).toEqual(['autoincrement', 'now']);
     expect(value.alternatives.filter((alt) => alt.kind === 'taggedLiteral')).toMatchObject([
       {
         label: 'sql`...`',
@@ -448,6 +445,7 @@ describe('sqlAttributeSpecs.field.default', () => {
       field: field(model, 'tags'),
       binder,
       defaultFunctionRegistry,
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: fixtureDataTypeSupport,
     });
     const value = oneOfMetadata(positionalType(sqlAttributeSpecs.field.default(listCtx)));
@@ -470,6 +468,7 @@ describe('sqlAttributeSpecs.field.default', () => {
       field: priority,
       binder: enumProject.binder,
       defaultFunctionRegistry,
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: fixtureDataTypeSupport,
     });
     const enumDefault = oneOfMetadata(positionalType(sqlAttributeSpecs.field.default(enumCtx)));
@@ -489,6 +488,7 @@ describe('sqlAttributeSpecs.field.default', () => {
       field: kind,
       binder: emptyProject.binder,
       defaultFunctionRegistry,
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: fixtureDataTypeSupport,
     });
     const emptyDefault = oneOfMetadata(positionalType(sqlAttributeSpecs.field.default(emptyCtx)));

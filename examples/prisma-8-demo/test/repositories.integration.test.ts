@@ -36,6 +36,7 @@ import { ormClientSearchPosts } from '../src/orm-client/search-posts';
 import { ormClientSearchPostsByEmbedding } from '../src/orm-client/search-posts-by-embedding';
 import { ormClientSearchPostsByTitle } from '../src/orm-client/search-posts-by-title';
 import { ormClientUpdateUserEmail } from '../src/orm-client/update-user-email';
+import { ormClientUpdateUserEmailInvalidatingCache } from '../src/orm-client/update-user-email-invalidating-cache';
 import { ormClientUpsertUser } from '../src/orm-client/upsert-user';
 import { contract, type DemoOrm, db } from '../src/prisma/db';
 import { initTestDatabase } from './utils/control-client';
@@ -244,7 +245,7 @@ async function seedEmbeddingPosts(runtime: Runtime): Promise<void> {
 // member users via the ORM client's variant scopes, which auto-inject the
 // discriminator and transactionally write the base + variant tables. The
 // other seeded users own no tasks, so their included `tasks` come back empty.
-// Ids are client-generated (`@default(uuid())`); the created rows are returned
+// Ids are client-generated (`@onCreate(uuid())`); the created rows are returned
 // so the assertions can key on the same ids.
 async function seedOrmClientTasks(orm: DemoOrm): Promise<SeededTaskIds> {
   const adminBug = await orm.Task.bugs().create({
@@ -1372,6 +1373,38 @@ describe('ORM client integration examples', () => {
           // Cache hit: driver was not invoked again.
           expect(driverQuerySpy.mock.calls.length).toBe(driverCallsAfterFirst);
           expect(second).toEqual(first);
+        } finally {
+          await runtime.close();
+        }
+      });
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
+    'ormClientUpdateUserEmailInvalidatingCache removes the cached lookup once the update commits',
+    async () => {
+      await withDevDatabase(async ({ connectionString }) => {
+        await initTestDatabase({ connection: connectionString, contract });
+        const cache = createCacheMiddleware();
+        const { runtime, orm, driver } = await getRuntimeWithMiddleware(connectionString, [cache]);
+
+        try {
+          await seedOrmClientData(runtime);
+          await ormClientFindUserByIdCached(seededUserIds.admin, orm);
+
+          await ormClientUpdateUserEmailInvalidatingCache(
+            seededUserIds.admin,
+            'admin-renamed@example.com',
+            orm,
+          );
+          const driverQuerySpy = vi.spyOn(driver, 'query');
+          const after = await ormClientFindUserByIdCached(seededUserIds.admin, orm);
+
+          expect({
+            email: after?.email,
+            sentStatement: driverQuerySpy.mock.calls.length > 0,
+          }).toEqual({ email: 'admin-renamed@example.com', sentStatement: true });
         } finally {
           await runtime.close();
         }

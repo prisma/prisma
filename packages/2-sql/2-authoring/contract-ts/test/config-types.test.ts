@@ -8,6 +8,7 @@ import {
 } from '@internal/contract/types';
 import { createDataTypeLookup } from '@internal/framework-components/codec';
 import type { TargetPackRef } from '@internal/framework-components/components';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
@@ -47,6 +48,7 @@ const stubContext: ContractSourceContext = {
     defaultFunctionRegistry: new Map(),
     generatorDescriptors: [],
   },
+  generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
   resolvedInputs: [],
   capabilities: {},
 };

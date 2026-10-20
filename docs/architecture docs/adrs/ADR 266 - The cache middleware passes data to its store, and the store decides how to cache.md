@@ -10,6 +10,7 @@ import {
   cacheAnnotation,
   createCacheMiddleware,
   createInMemoryCacheStore,
+  invalidateAnnotation,
 } from '@internal/middleware-cache';
 import { contractFromJson } from '@internal/postgres/static';
 import type { Contract } from './contract.d';
@@ -29,8 +30,12 @@ const alice = await db.orm.public.User.first({ id: 1 }, (m) =>
   m.annotate(cacheAnnotation({ key: 'user-1' })),
 );
 
-// After a write has returned, the application removes the entry.
-await db.orm.public.User.where({ id: 1 }).update({ name: 'Alicia' });
+// The write carries its invalidation, which runs once the write has committed.
+await db.orm.public.User.where({ id: 1 }).update({ name: 'Alicia' }, (m) =>
+  m.annotate(invalidateAnnotation({ keys: ['user-1'] })),
+);
+
+// Or, after a write has returned, the application removes the entry itself.
 await cache.invalidate({ keys: ['user-1'] });
 ```
 
@@ -41,7 +46,7 @@ The cache middleware in [`@internal/middleware-cache`](../../../packages/3-exten
 | The string a read is stored under | Middleware | The annotation's `key`, else a key derived from the query ([Keys](#keys)) |
 | Data that groups entries, such as tags or table names | Application | `meta` on the annotation and on `invalidate`, passed to the store unread ([Grouping entries](#grouping-entries-with-meta)) |
 | Finding entries by `meta`, how long they live, and whether a read that overlapped an invalidation may store its rows | Store | The three store methods ([The store contract](#the-store-contract)) |
-| When to remove entries | Application or extension | `cache.invalidate({ keys, meta })` |
+| When to remove entries | Application or extension | `cache.invalidate({ keys, meta })`, or `invalidateAnnotation({ keys, meta })` on the write |
 
 An operation belongs in the middleware only if it cannot be built outside it.
 
@@ -76,6 +81,8 @@ A key the annotation names never passes through `deriveKey`, so `invalidate({ ke
 `cache.invalidate({ keys })` passes the keys to the store, which removes them. This is how an application removes entries from the default store: by the keys it named. A derived key is a hash the application never sees, so entries stored under derived keys are removed by `meta`, described next, or left to expire.
 
 The application calls `invalidate` after its write has returned. Outside a transaction, the write has committed by the time it returns. Inside one, the application calls `invalidate` after `db.transaction()` returns. Calling it before the commit is unsafe: a concurrent read could fetch the old, still-committed row and store it after the invalidation ran.
+
+A write can instead carry its invalidation: `invalidateAnnotation({ keys, meta })` on an ORM write or a SQL builder write. The middleware makes the same `invalidate` call from the runtime's `activityFinalized` event ([ADR 271](ADR%20271%20-%20The%20runtime%20middleware%20observes%20a%20tree%20of%20activities%2C%20each%20started%2C%20ended%20and%20finalized.md)), once the write's effects are final: right after the write outside a transaction, or when the outermost enclosing transaction ends. It does not invalidate when the outcome is `rolled-back`, and does when it is `unknown`, since the write may have landed and an unneeded invalidation costs one miss.
 
 ### Grouping entries with `meta`
 
@@ -270,7 +277,7 @@ Invalidating the `users` tag increases the tag's version, so a read tagged `user
 - An annotated read that completes from the database is always offered to the store, unless it is bypassed or runs inside a transaction or on a dedicated connection. The store decides whether to keep it, and for how long.
 - With the default store, the application removes entries by the keys it named. Grouping entries by `meta` requires a store that indexes it.
 - Store authors take on the obligations listed under [The store contract](#the-store-contract).
-- Removing entries when a write commits, rather than by calling `invalidate` after the write returns, belongs in this package rather than in an extension. It makes no decisions of its own: it names keys or `meta` and reaches the same `invalidate` call. What it adds is waiting until the write's transaction has committed, which is best done once, by the middleware that already holds the store, rather than rebuilt by every extension. That waiting needs a runtime hook that runs after a transaction commits.
+- Removing entries when a write commits, rather than by calling `invalidate` after the write returns, belongs in this package rather than in an extension. `invalidateAnnotation` makes no decisions of its own: it names keys or `meta` and reaches the same `invalidate` call. What it adds is waiting until the write's effects are final, which is best done once, by the middleware that already holds the store, rather than rebuilt by every extension. The middleware waits for the runtime's `activityFinalized` event ([ADR 271](ADR%20271%20-%20The%20runtime%20middleware%20observes%20a%20tree%20of%20activities%2C%20each%20started%2C%20ended%20and%20finalized.md)).
 - Serving an expired entry while refreshing it cannot be built outside. A store can return the expired rows, but only the middleware can serve them and also let the query run to refresh the entry.
 
 ### What stays outside the middleware, and how to build it
@@ -278,9 +285,9 @@ Invalidating the `users` tag increases the tag's version, so a read tagged `user
 - **Tags.** The store indexes `meta.tags` when it stores an entry, and `unset({ meta: { tags } })` removes the tagged keys and increases their versions and the tag's version. The [example](#example-a-tagging-store) above is a complete sketch.
 - **Namespaces.** A namespace is one label per entry in `meta`, handled like a tag, or a prefix that `deriveKey` adds to every key.
 - **Named stores.** One store that receives every entry and routes it by `meta.store` to the real backend.
-- **Invalidating by table.** Each read's `meta` lists the tables it touches, typically through the extension's annotation helper, and the store indexes them. The extension's own middleware reads a write's tables from its query plan and calls `cache.invalidate({ meta: { tables } })`. Inside a transaction it must wait until the transaction commits, which needs the runtime hook named under the consequences above.
+- **Invalidating by table.** Each read's `meta` lists the tables it touches, typically through the extension's annotation helper, and the store indexes them. The extension's own middleware reads a write's tables from its query plan and calls `cache.invalidate({ meta: { tables } })`. It must wait until the write's effects are final, which it does from `activityFinalized`: it invalidates when the outcome is `committed` or `unknown`, since a write with an `unknown` outcome may have landed, and skips only `rolled-back`, as the cache's own `invalidateAnnotation` does.
 - **Versioned keys.** `deriveKey` includes a generation number in every key, and an invalidation increases it. The number lives in the store's backend so that every process reads the same one. Old keys are never looked up again and expire on the store's schedule.
-- **Sharing one read among identical concurrent requests.** A separate middleware placed after the cache, built on the runtime's `interceptQuery` and `afterQuery` hooks. Its `interceptQuery` runs only for reads the cache did not answer.
+- **Sharing one read among identical concurrent requests.** A separate middleware placed after the cache, built on `intercept.onQuery` and `activityEnded`. Its `intercept.onQuery` runs only for reads the cache did not answer, and `activityEnded` on the statement tells it when the shared read has finished.
 
 ## Alternatives considered
 

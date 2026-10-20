@@ -1,5 +1,8 @@
 import { crossRef } from '@internal/contract/types';
-import { dataTypeId } from '@internal/framework-components/codec';
+import {
+  assembleGeneratorFunctions,
+  singleGeneratorBinding,
+} from '@internal/framework-components/components';
 import { defineIndexTypes } from '@internal/sql-contract/index-types';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
@@ -43,8 +46,14 @@ describe('interpretPslDocumentToSqlContract', () => {
       | 'capabilities'
       | 'dataTypes'
       | 'codecLookup'
+      | 'generatorFunctions'
     > &
-      Partial<Pick<InterpretPslDocumentToSqlContractInput, 'composedExtensionContracts'>>,
+      Partial<
+        Pick<
+          InterpretPslDocumentToSqlContractInput,
+          'composedExtensionContracts' | 'generatorFunctions'
+        >
+      >,
   ) =>
     interpretSqlContract(schema, {
       target: postgresTarget,
@@ -161,7 +170,7 @@ describe('interpretPslDocumentToSqlContract', () => {
     const result = interpretSqlContract(
       `model User {
   id Int @id
-  slug String @default(slugid())
+  slug String @onCreate(slugid())
 }`,
       {
         target: postgresTarget,
@@ -169,28 +178,24 @@ describe('interpretPslDocumentToSqlContract', () => {
         composedExtensionContracts: new Map(),
         capabilities: { sql: { scalarList: true } },
         ...fixtureInterpreterTypes,
-        controlMutationDefaults: {
-          defaultFunctionRegistry: new Map([
-            [
-              'slugid',
+        generatorFunctions: assembleGeneratorFunctions([
+          {
+            id: 'slugid-pack',
+            generatorFunctions: [
               {
+                name: 'slugid',
                 signature: {
                   documentation:
                     'Generates a slug identifier without changing the field’s storage type.',
                 },
-                lower: () => ({
-                  ok: true as const,
-                  value: {
-                    kind: 'execution' as const,
-                    generated: { kind: 'generator' as const, id: 'slugid' },
-                  },
-                }),
-                usageSignatures: ['slugid()'],
+                bindings: [
+                  singleGeneratorBinding({ codecIds: ['pg/text@1'], generatorId: 'slugid' }),
+                ],
               },
             ],
-          ]),
-          generatorDescriptors: [{ id: 'slugid', applicableDataTypes: [dataTypeId('pg/text')] }],
-        },
+            controlMutationDefaults: { generatorDescriptors: [{ id: 'slugid' }] },
+          },
+        ]),
         createNamespace: createTestSqlNamespace,
       },
     );

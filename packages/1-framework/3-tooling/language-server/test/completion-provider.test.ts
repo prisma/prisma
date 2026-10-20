@@ -8,6 +8,10 @@ import type {
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
 import { createDataTypeLookup } from '@internal/framework-components/codec';
+import {
+  EMPTY_GENERATOR_FUNCTIONS,
+  type GeneratorFunctionRegistry,
+} from '@internal/framework-components/components';
 
 import {
   assembleAuthoringContributions,
@@ -286,6 +290,7 @@ function completeWithSource(input: {
   readonly clientSupportsTriggerSuggestCommand?: boolean;
   readonly clientSupportsTriggerParameterHintsCommand?: boolean;
   readonly scalarTypes?: readonly string[];
+  readonly generatorFunctions?: GeneratorFunctionRegistry;
 }) {
   const cursorOffset = input.markedSource.indexOf('|');
   expect(cursorOffset).toBeGreaterThanOrEqual(0);
@@ -327,6 +332,7 @@ function completeWithSource(input: {
           ? {}
           : { controlMutationDefaults: input.controlMutationDefaults }),
         ...(input.dataTypes === undefined ? {} : { dataTypes: input.dataTypes }),
+        generatorFunctions: input.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS,
       },
       clientSupportsSnippets: input.clientSupportsSnippets === true,
       clientSupportsTriggerSuggestCommand: input.clientSupportsTriggerSuggestCommand === true,
@@ -985,6 +991,7 @@ namespace app {
         }),
         authoringContributions: observedAuthoringContributions,
         controlMutationDefaults,
+        generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       },
       clientSupportsSnippets: true,
     });
@@ -1126,7 +1133,7 @@ namespace app {
       completeWithActualStack(['model Post {', '  id Int @|', '}'].join('\n'), stack).items.map(
         (item) => item.label,
       ),
-    ).toEqual(['default', 'id', 'map', 'relation', 'unique']);
+    ).toEqual(['default', 'id', 'map', 'onCreate', 'onUpdate', 'relation', 'unique']);
     expect(
       completeWithActualStack(
         ['model Post {', '  id Int', '  @@|', '}'].join('\n'),
@@ -1251,6 +1258,8 @@ namespace app {
       'default',
       'id',
       'map',
+      'onCreate',
+      'onUpdate',
       'relation',
       'unique',
     ]);
@@ -1266,7 +1275,7 @@ namespace app {
       completeWithActualStack(['model Post {', '  id String @|', '}'].join('\n'), stack).items.map(
         (item) => item.label,
       ),
-    ).toEqual(['id', 'map', 'relation', 'unique']);
+    ).toEqual(['id', 'map', 'onCreate', 'onUpdate', 'relation', 'unique']);
     expect(
       completeWithActualStack(
         ['model Post {', '  id String', '  @@|', '}'].join('\n'),
@@ -1760,28 +1769,12 @@ namespace app {
       'null',
       'autoincrement',
       'now',
-      'uuid',
-      'cuid',
-      'ulid',
-      'nanoid',
     ]);
-    expect(
-      completeWithActualStack(source('uuid(|)'), stack, options).items.map((item) => item.label),
-    ).toEqual(['4', '7']);
-    expect(
-      completeWithActualStack(source('cuid(|)'), stack, options).items.map((item) => item.label),
-    ).toEqual(['2']);
-    expect(completeWithActualStack(source('nanoid(|)'), stack, options).items).toEqual([]);
     const snippetItems = completeWithActualStack(source('|'), stack, {
       ...options,
       clientSupportsSnippets: true,
     }).items;
-    expect(completionItemByLabel(snippetItems, 'uuid').textEdit?.newText).toBe(
-      `uuid(${emptySnippetPlaceholder1})`,
-    );
-    expect(completionItemByLabel(snippetItems, 'cuid').textEdit?.newText).toBe(
-      'cuid($' + '{1:version})',
-    );
+    expect(completionItemByLabel(snippetItems, 'now').textEdit?.newText).toBe('now()');
   }, 5_000);
 
   it('labels each default function argument by the values the function takes', async () => {

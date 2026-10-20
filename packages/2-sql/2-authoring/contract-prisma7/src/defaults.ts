@@ -6,17 +6,18 @@ import {
   type WrittenValue,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
-import type {
-  ControlMutationDefaultEntry,
-  ControlMutationDefaults,
-} from '@internal/framework-components/control';
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
+import type { ControlMutationDefaults } from '@internal/framework-components/control';
 import { CUID_VERSION } from '@internal/ids';
 import {
+  type ArgType,
   type AttributeCtx,
   type FieldSymbol,
+  generatorFunctionCall,
   mapPslDiagnostics,
   type PslSpan,
   type ResolvedAttribute,
+  type TypedFuncCall,
 } from '@internal/psl-parser';
 import type { ExpressionAst } from '@internal/psl-parser/syntax';
 import {
@@ -56,6 +57,7 @@ export interface LowerPrisma7DefaultInput {
   readonly controlMutationDefaults: ControlMutationDefaults;
   /** The context a default function's arguments are parsed in. */
   readonly argumentContext: () => AttributeCtx;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   /** The stack's data types and the PSL support for them, which this reader maps its syntax onto. */
   readonly dataTypes: DataTypeSupport;
   readonly sourceId: string;
@@ -333,13 +335,59 @@ function lowerFunction(
     return dbgeneratedDefault(callArgs, unknown, span);
   }
   const entry = input.controlMutationDefaults.defaultFunctionRegistry.get(fn);
-  if (!PRISMA7_DEFAULT_FUNCTIONS.has(fn) || entry === undefined) {
+  const generator =
+    entry === undefined
+      ? input.generatorFunctions.functionsFor(input.codecId).find(({ name }) => name === fn)
+      : undefined;
+  if (
+    !PRISMA7_DEFAULT_FUNCTIONS.has(fn) ||
+    (entry === undefined && !input.generatorFunctions.has(fn))
+  ) {
     return unknown(
       `function "${fn}()" is not a Prisma 7 default function this target supports.`,
       span,
     );
   }
-  const args = boundArguments(call, expression, fn, entry, input, label);
+  if (entry === undefined) {
+    if (generator === undefined) {
+      return unknown(`function "${fn}()" cannot fill a column of codec "${input.codecId}".`, span);
+    }
+    const args =
+      fn === 'cuid' && callArgs.length === 0
+        ? { version: CUID_VERSION }
+        : boundArguments(
+            generatorFunctionCall(fn, generator.signature, input.dataTypes),
+            expression,
+            input,
+            label,
+          );
+    if (args === undefined) return undefined;
+    const resolution = input.generatorFunctions.resolve(
+      { name: fn, args },
+      { codecId: input.codecId, typeParams: input.typeParams },
+    );
+    if (resolution.ok) return { storage: undefined, onCreate: resolution.generator };
+    if (resolution.reason === 'refused') {
+      const written =
+        input.attribute.args.find((arg) => arg.kind === 'positional')?.value.trim() ?? `${fn}()`;
+      input.diagnostics.push(
+        prisma7Diagnostic(
+          'PSL.PRISMA7_GENERATOR_REFUSED',
+          `${label}: @default(${written}) cannot fill its column: ${resolution.message}`,
+          input.sourceId,
+          span,
+        ),
+      );
+      return undefined;
+    }
+    return unknown(`function "${fn}()" cannot fill a column of codec "${input.codecId}".`, span);
+  }
+  const args = boundArguments(
+    defaultFunctionCall(fn, entry, input.dataTypes),
+    expression,
+    input,
+    label,
+  );
   if (args === undefined) return undefined;
   const lowered = entry.lower({
     call: { fn, span, args },
@@ -361,25 +409,20 @@ function lowerFunction(
     );
     return undefined;
   }
-  return lowered.value.kind === 'storage'
-    ? { storage: lowered.value.defaultValue, onCreate: undefined }
-    : { storage: undefined, onCreate: lowered.value.generated };
+  return { storage: lowered.value.defaultValue, onCreate: undefined };
 }
 
 /**
- * The arguments of a call to `fn`, bound and checked through its signature as Prisma 8 PSL binds them, or `undefined` after reporting each refusal at its argument. Prisma 7's `cuid()` is the one call bound otherwise: Prisma 8 has no generator for its version 1, so it means `cuid(2)`.
+ * The arguments of a call, bound and checked through its function's signature as Prisma 8 PSL binds them, or `undefined` after reporting each refusal at its argument.
  */
 function boundArguments(
-  call: FunctionCallAst,
+  arm: ArgType<TypedFuncCall, AttributeCtx>,
   expression: ExpressionAst,
-  fn: string,
-  entry: ControlMutationDefaultEntry,
   input: LowerPrisma7DefaultInput,
   label: string,
 ): Readonly<Record<string, unknown>> | undefined {
-  if (fn === 'cuid' && [...call.args()].length === 0) return { version: CUID_VERSION };
   const ctx = input.argumentContext();
-  const bound = defaultFunctionCall(fn, entry, input.dataTypes).parse(expression, ctx);
+  const bound = arm.parse(expression, ctx);
   if (bound.ok) return bound.value.args;
   for (const diagnostic of mapPslDiagnostics(bound.failure, ctx.sources)) {
     input.diagnostics.push(

@@ -4,6 +4,7 @@ import type {
   AuthoringTypeNamespace,
 } from '@internal/framework-components/authoring';
 import { emptyCodecLookup } from '@internal/framework-components/codec';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import { buildSymbolTable, createBinder, EMPTY_DATA_TYPES } from '@internal/psl-parser';
 import { parse, SyntaxNode } from '@internal/psl-parser/syntax';
 import { describe, expect, it } from 'vitest';
@@ -130,6 +131,7 @@ describe('createBinder', () => {
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedMongoAttribute },
       codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
       controlMutationDefaults: { defaultFunctionRegistry, generatorDescriptors: [] },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: EMPTY_DATA_TYPES,
       resolvedInputs: [],
       capabilities: {},
@@ -239,6 +241,7 @@ describe('createBinder', () => {
       },
       codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: EMPTY_DATA_TYPES,
       resolvedInputs: [],
       capabilities: {},

@@ -32,7 +32,7 @@ export function mongoContractJson(params: {
             many: false,
           },
         },
-        storage: { collection: 'items' },
+        storage: { fields: { _id: { field: '_id' } }, collection: 'items' },
       },
     }) as Record<string, ContractModelBase>,
   );

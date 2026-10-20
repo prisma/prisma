@@ -208,7 +208,7 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: Record<string, never>;
+            readonly storage: { readonly fields: { readonly street: { readonly field: 'street' }; readonly city: { readonly field: 'city' }; readonly zip: { readonly field: 'zip' } } };
             readonly owner: 'User';
           };
           readonly Bug: {
@@ -219,7 +219,7 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'tasks' };
+            readonly storage: { readonly collection: 'tasks'; readonly fields: { readonly severity: { readonly field: 'severity' } } };
             readonly base: {
               readonly namespace: '__unbound__' & NamespaceId;
               readonly model: 'Task';
@@ -241,7 +241,7 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: Record<string, never>;
+            readonly storage: { readonly fields: { readonly _id: { readonly field: '_id' }; readonly text: { readonly field: 'text' }; readonly createdAt: { readonly field: 'createdAt' } } };
             readonly owner: 'Task';
           };
           readonly Feature: {
@@ -256,7 +256,7 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'tasks' };
+            readonly storage: { readonly collection: 'tasks'; readonly fields: { readonly priority: { readonly field: 'priority' }; readonly targetRelease: { readonly field: 'targetRelease' } } };
             readonly base: {
               readonly namespace: '__unbound__' & NamespaceId;
               readonly model: 'Task';
@@ -302,10 +302,7 @@ type ContractBase = Omit<
                 readonly cardinality: '1:N';
               };
             };
-            readonly storage: {
-              readonly collection: 'tasks';
-              readonly relations: { readonly comments: { readonly field: 'comments' } };
-            };
+            readonly storage: { readonly collection: 'tasks'; readonly fields: { readonly _id: { readonly field: '_id' }; readonly title: { readonly field: 'title' }; readonly type: { readonly field: 'type' }; readonly assigneeId: { readonly field: 'assigneeId' } }; readonly relations: { readonly comments: { readonly field: 'comments' } } };
             readonly discriminator: { readonly field: 'type' };
             readonly variants: {
               readonly bug: {
@@ -366,10 +363,7 @@ type ContractBase = Omit<
                 };
               };
             };
-            readonly storage: {
-              readonly collection: 'users';
-              readonly relations: { readonly addresses: { readonly field: 'addresses' } };
-            };
+            readonly storage: { readonly collection: 'users'; readonly fields: { readonly _id: { readonly field: '_id' }; readonly name: { readonly field: 'name' }; readonly email: { readonly field: 'email' }; readonly loginCount: { readonly field: 'loginCount' }; readonly tags: { readonly field: 'tags' }; readonly homeAddress: { readonly field: 'homeAddress' } }; readonly relations: { readonly addresses: { readonly field: 'addresses' } } };
           };
         };
         readonly valueObjects: {

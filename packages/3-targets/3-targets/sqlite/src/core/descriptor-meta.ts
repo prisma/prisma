@@ -4,6 +4,7 @@ import { sqliteAuthoringFieldPresets, sqliteAuthoringTypes } from './authoring';
 import { sqliteDataTypeEntries } from './data-type-entries';
 import { sqliteTextDataTypes } from './data-types';
 import { sqliteTargetDescriptorMetaRuntime } from './descriptor-meta-runtime';
+import { sqliteGeneratorDescriptors, sqliteGeneratorFunctions } from './generator-functions';
 
 const sqliteTargetDescriptorMetaBase = {
   ...sqliteTargetDescriptorMetaRuntime,
@@ -14,6 +15,11 @@ const sqliteTargetDescriptorMetaBase = {
     field: sqliteAuthoringFieldPresets,
     dataTypes: sqliteDataTypeEntries(),
     textDataTypes: sqliteTextDataTypes,
+  },
+  generatorFunctions: sqliteGeneratorFunctions,
+  controlMutationDefaults: {
+    defaultFunctionRegistry: new Map(),
+    generatorDescriptors: sqliteGeneratorDescriptors,
   },
 } as const;
 

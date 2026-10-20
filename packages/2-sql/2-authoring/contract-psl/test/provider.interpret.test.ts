@@ -2,7 +2,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import type { ContractSourceContext } from '@internal/config/config-types';
 import type { AuthoringEntityContext } from '@internal/framework-components/authoring';
-import { dataTypeId } from '@internal/framework-components/codec';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import {
   buildSymbolTable,
   createBinder,
@@ -243,10 +243,9 @@ model Other {
       columnTypeParams: undefined,
       isListColumn: false,
       valueObjectDefault: undefined,
-      generatorDescriptorById: new Map(),
       defaultFunctionRegistry: new Map(),
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: fixtureDataTypeSupport,
-      textDataTypes: [dataTypeId('pg/text')],
       codecLookup: context.codecLookup,
       diagnostics,
     });
@@ -277,13 +276,13 @@ model Other {
 `,
       },
       {
-        code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
+        code: 'PSL_GENERATOR_NOT_APPLICABLE',
         schema: `types {
   UuidNativeId = Uuid
 }
 
 model User {
-  id UuidNativeId @id @default(nanoid())
+  id UuidNativeId @id @onCreate(nanoid())
 }
 `,
       },

@@ -16,37 +16,26 @@ import {
   type AuthoringTypeConstructorDescriptor,
   type AuthoringTypeNamespace,
   collectScalarTypeConstructors,
-  type DataTypeSupport,
   type ParsedPslExtensionBlock,
   readEnumBlockMembers,
   resolveEnumCodecId,
 } from '@internal/framework-components/authoring';
 import { dataTypeId } from '@internal/framework-components/codec';
 import type { ExtensionPackRef, TargetPackRef } from '@internal/framework-components/components';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import type {
   ControlMutationDefaultEntry,
   ControlMutationDefaults,
 } from '@internal/framework-components/control';
-import { CUID_VERSION, NANOID_SIZE, UUID_VERSIONS } from '@internal/ids';
 import type { FuncCallSig, PslBlockSpecDescriptor, SymbolTable } from '@internal/psl-parser';
-import {
-  blockAttribute,
-  buildSymbolTable,
-  dataTypeValue,
-  jsonValue,
-  leafDiagnostic,
-  mapBlock,
-  optional,
-  refineArg,
-  str,
-} from '@internal/psl-parser';
+import { blockAttribute, buildSymbolTable, jsonValue, mapBlock, str } from '@internal/psl-parser';
 import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
 import type { DocumentAst, PslSources, SourceFile } from '@internal/psl-parser/syntax';
 import { parse } from '@internal/psl-parser/syntax';
 import { bindPslSchema } from '@internal/psl-parser/test';
 import type { SqlNamespaceBase, SqlNamespaceInput } from '@internal/sql-contract/types';
 import { type EnumTypeHandle, enumType } from '@internal/sql-contract-ts/contract-builder';
-import { notOk, ok, type Result } from '@internal/utils/result';
+import type { Result } from '@internal/utils/result';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import type { InterpretPslDocumentToSqlContractInput } from '../src/interpreter';
 import { interpretPslDocumentToSqlContract } from '../src/interpreter';
@@ -56,6 +45,7 @@ import { sqlContextInput } from '../src/test';
 import { describeUnresolvedSqlType } from '../src/unresolved-type';
 import { fixtureInterpreterTypes } from './fixture-codec-descriptors';
 import { fixtureDataTypeSupport } from './fixture-data-types';
+import { fixtureGeneratorFunctions } from './fixture-generator-functions';
 
 function testEnumFactory(
   block: ParsedPslExtensionBlock<Readonly<Record<string, JsonValue | undefined>>>,
@@ -87,10 +77,12 @@ function testEnumFactory(
   return enumType(block.name, { codecId }, ...members);
 }
 
-const pgTextType = dataTypeId('pg/text');
-const pgCharType = dataTypeId('pg/char');
 /** The fixture stack's text data types, as the Postgres target names them. */
-const fixtureTextDataTypes = [pgTextType, pgCharType, dataTypeId('pg/varchar')];
+const fixtureTextDataTypes = [
+  dataTypeId('pg/text'),
+  dataTypeId('pg/char'),
+  dataTypeId('pg/varchar'),
+];
 
 export const testEnumPslBlockDescriptor = {
   kind: 'pslBlock' as const,
@@ -124,20 +116,6 @@ export const testEnumEntityContributions = {
     output: { factory: testEnumFactory },
   },
 } as const satisfies AuthoringEntityTypeNamespace;
-
-function executionGenerator(id: string, params?: Record<string, unknown>) {
-  return {
-    ok: true as const,
-    value: {
-      kind: 'execution' as const,
-      generated: {
-        kind: 'generator' as const,
-        id,
-        ...(params ? { params } : {}),
-      },
-    },
-  };
-}
 
 export const postgresEnumInferenceCodecs = {
   text: 'pg/text@1',
@@ -426,11 +404,18 @@ export function symbolTableInputFromParseArgs(args: {
   });
 }
 
+type InterpretOptions = Omit<
+  InterpretPslDocumentToSqlContractInput,
+  'documents' | 'sources' | 'symbolTable' | 'binder' | 'generatorFunctions'
+> &
+  Partial<Pick<InterpretPslDocumentToSqlContractInput, 'generatorFunctions'>>;
+
 function contextForInterpretOptions(
   options: Pick<
-    InterpretPslDocumentToSqlContractInput,
+    InterpretOptions,
     | 'authoringContributions'
     | 'controlMutationDefaults'
+    | 'generatorFunctions'
     | 'codecLookup'
     | 'dataTypes'
     | 'composedExtensions'
@@ -475,6 +460,7 @@ function contextForInterpretOptions(
       defaultFunctionRegistry: new Map(),
       generatorDescriptors: [],
     },
+    generatorFunctions: options.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS,
     resolvedInputs: [],
     capabilities: options.capabilities,
   };
@@ -482,10 +468,7 @@ function contextForInterpretOptions(
 
 export function interpretSqlContract(
   schema: string,
-  options: Omit<
-    InterpretPslDocumentToSqlContractInput,
-    'documents' | 'sources' | 'symbolTable' | 'binder'
-  >,
+  options: InterpretOptions,
   sourceId?: string,
 ): Result<Contract, ContractSourceDiagnostics> {
   const bound = bindPslSchema(schema, {
@@ -560,6 +543,7 @@ export function createPostgresTestContext(
       describeUnresolvedType: describeUnresolvedSqlType,
     },
     controlMutationDefaults: createBuiltinLikeControlMutationDefaults(),
+    generatorFunctions: fixtureGeneratorFunctions,
     ...fixtureInterpreterTypes,
     resolvedInputs: [],
     capabilities: { sql: { scalarList: true } },
@@ -573,61 +557,6 @@ const nowSig: FuncCallSig = {
 const autoincrementSig: FuncCallSig = {
   documentation: 'Generates an increasing integer value in the database.',
 };
-const ulidSig: FuncCallSig = { documentation: 'Generates a ULID when a value is not supplied.' };
-/**
- * A positional integer argument of a default function, written as the SQL family writes it: a value of `pg/int4`, then the function's own check, refused at the argument with `PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT`.
- */
-function integerArgument(
-  dataTypes: DataTypeSupport,
-  key: string,
-  refusal: (value: number) => string | undefined,
-) {
-  return {
-    key,
-    type: refineArg(dataTypeValue(dataTypeId('pg/int4'), dataTypes), ({ value }, arg, ctx) => {
-      const number = Number(value.value);
-      const message = refusal(number);
-      return message === undefined
-        ? ok(number)
-        : notOk([leafDiagnostic(ctx, arg, message, 'PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT')]);
-    }),
-    documentation: `The ${key}.`,
-  };
-}
-
-const uuidSig = (dataTypes: DataTypeSupport): FuncCallSig => {
-  const { key, type, documentation } = integerArgument(dataTypes, 'version', (version) =>
-    version === UUID_VERSIONS.v4 || version === UUID_VERSIONS.v7
-      ? undefined
-      : `uuid: version must be ${UUID_VERSIONS.v4} or ${UUID_VERSIONS.v7}, got ${version}`,
-  );
-  return {
-    documentation: 'Generates a UUID when a value is not supplied.',
-    positional: [{ key, type: optional(type), documentation }],
-  };
-};
-const cuidSig = (dataTypes: DataTypeSupport): FuncCallSig => ({
-  documentation: 'Generates a CUID2 identifier when a value is not supplied.',
-  positional: [
-    integerArgument(dataTypes, 'version', (version) =>
-      version === CUID_VERSION
-        ? undefined
-        : `cuid: version must be ${CUID_VERSION}, got ${version}`,
-    ),
-  ],
-});
-const nanoidSig = (dataTypes: DataTypeSupport): FuncCallSig => {
-  const { key, type, documentation } = integerArgument(dataTypes, 'size', (size) =>
-    size >= NANOID_SIZE.min && size <= NANOID_SIZE.max
-      ? undefined
-      : `nanoid: size must be between ${NANOID_SIZE.min} and ${NANOID_SIZE.max}, got ${size}`,
-  );
-  return {
-    documentation: 'Generates a Nano ID when a value is not supplied.',
-    positional: [{ key, type: optional(type), documentation }],
-  };
-};
-
 export function createBuiltinLikeControlMutationDefaults(): ControlMutationDefaults {
   return {
     defaultFunctionRegistry: new Map<string, ControlMutationDefaultEntry>([
@@ -659,82 +588,11 @@ export function createBuiltinLikeControlMutationDefaults(): ControlMutationDefau
           usageSignatures: ['now()'],
         },
       ],
-      [
-        'uuid',
-        {
-          signature: uuidSig,
-          lower: ({ call }) =>
-            call.args['version'] === UUID_VERSIONS.v7
-              ? executionGenerator('uuidv7')
-              : executionGenerator('uuidv4'),
-          usageSignatures: ['uuid()', `uuid(${UUID_VERSIONS.v4})`, `uuid(${UUID_VERSIONS.v7})`],
-        },
-      ],
-      [
-        'cuid',
-        {
-          signature: cuidSig,
-          lower: () => executionGenerator('cuid2'),
-          usageSignatures: [`cuid(${CUID_VERSION})`],
-        },
-      ],
-      [
-        'ulid',
-        {
-          signature: ulidSig,
-          lower: () => executionGenerator('ulid'),
-          usageSignatures: ['ulid()'],
-        },
-      ],
-      [
-        'nanoid',
-        {
-          signature: nanoidSig,
-          lower: ({ call }) => {
-            const size = call.args['size'];
-            return typeof size === 'number'
-              ? executionGenerator('nanoid', { size })
-              : executionGenerator('nanoid');
-          },
-          usageSignatures: ['nanoid()', `nanoid(<${NANOID_SIZE.min}-${NANOID_SIZE.max}>)`],
-        },
-      ],
     ]),
     generatorDescriptors: [
-      {
-        id: 'uuidv4',
-        writesText: true,
-        applicableDataTypes: [dataTypeId('pg/uuid')],
-      },
-      {
-        id: 'uuidv7',
-        writesText: true,
-        applicableDataTypes: [dataTypeId('pg/uuid')],
-      },
-      {
-        id: 'cuid2',
-        writesText: true,
-      },
-      {
-        id: 'ulid',
-        writesText: true,
-      },
-      {
-        id: 'nanoid',
-        writesText: true,
-      },
-      {
-        id: 'timestampNow',
-        applicableDataTypes: [
-          dataTypeId('pg/timestamp'),
-          dataTypeId('pg/timestamptz'),
-          dataTypeId('sqlite/datetime'),
-        ],
-        buildPhases: () => ({
-          onCreate: { kind: 'generator', id: 'timestampNow' },
-          onUpdate: { kind: 'generator', id: 'timestampNow' },
-        }),
-      },
+      ...['uuidv4', 'uuidv7', 'cuid2', 'ulid', 'nanoid', 'ksuid', 'timestampNow'].map((id) => ({
+        id,
+      })),
     ],
   };
 }

@@ -1,4 +1,5 @@
 export type {
+  ContractAuthoringHelpers,
   ContractDefinition,
   ContractFactory,
   ContractScaffold,

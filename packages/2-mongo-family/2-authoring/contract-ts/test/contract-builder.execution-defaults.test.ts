@@ -4,10 +4,11 @@ import {
   temporalAuthoringPresets,
   temporalCodecPreset,
 } from '@internal/framework-components/authoring';
-import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
+import type { TargetPackRef } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { defineContract, type FieldBuilder } from '../src/contract-builder';
+import { mongoFamilyPack, mongoTargetPack as mongoTestTargetPack } from './mongo-test-packs';
 
 /** What a JavaScript caller, whom the types do not stop, can write on a preset field. */
 function untyped(builder: unknown): { optional(): FieldBuilder; many(): FieldBuilder } {
@@ -16,20 +17,8 @@ function untyped(builder: unknown): { optional(): FieldBuilder; many(): FieldBui
 
 const mongoDate = { codecId: 'mongo/date@1' } as const;
 
-const mongoFamilyPack = {
-  kind: 'family',
-  id: 'mongo',
-  familyId: 'mongo',
-  version: '0.0.1',
-} as const satisfies FamilyPackRef<'mongo'>;
-
 const mongoTargetPack = {
-  kind: 'target',
-  id: 'mongo',
-  familyId: 'mongo',
-  targetId: 'mongo',
-  version: '0.0.1',
-  defaultNamespaceId: '__unbound__',
+  ...mongoTestTargetPack,
   authoring: {
     field: {
       temporal: {
@@ -57,6 +46,26 @@ describe('Mongo TS temporal presets', () => {
       }),
     },
   }));
+
+  it('keys the execution default of a field by its stored name', () => {
+    const mapped = defineContract(scaffold, ({ field, model }) => ({
+      models: {
+        Post: model('Post', {
+          collection: 'posts',
+          fields: {
+            id: field.objectId().mongo({ field: '_id' }),
+            createdAt: field.temporal.createdAt().mongo({ field: 'created_at' }),
+          },
+        }),
+      },
+    }));
+    expect(mapped.execution?.mutations.defaults).toEqual([
+      {
+        ref: { namespace: UNBOUND_NAMESPACE_ID, entry: 'posts', field: 'created_at' },
+        onCreate: timestampNow,
+      },
+    ]);
+  });
 
   it('types each preset field as a mongo/date@1 scalar', () => {
     const date = { nullable: false, type: { kind: 'scalar', codecId: 'mongo/date@1' } };
@@ -364,6 +373,31 @@ describe('Mongo TS temporal presets on models sharing a collection', () => {
         code: 'CONTRACT.DEFAULT_INVALID',
         meta: { modelName: 'Page', fieldName: 'stamp', reason: 'executionDefaults-conflict' },
       }),
+    );
+  });
+
+  it("names each model's own field when differing defaults share a stored name", () => {
+    expect(() =>
+      defineContract(scaffold, ({ field, model }) => ({
+        models: {
+          Post: model('Post', {
+            collection: 'entries',
+            fields: {
+              _id: field.objectId(),
+              createdAt: field.temporal.createdAt().mongo({ field: 'created_at' }),
+            },
+          }),
+          Page: model('Page', {
+            collection: 'entries',
+            fields: {
+              _id: field.objectId(),
+              created: field.temporal.updatedAt().mongo({ field: 'created_at' }),
+            },
+          }),
+        },
+      })),
+    ).toThrow(
+      'Field "Page.created" has different executionDefaults than "Post.createdAt", which is stored in the same collection "entries". Use the same executionDefaults on both models.',
     );
   });
 });

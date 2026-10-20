@@ -36,6 +36,7 @@ async function author(fields: string, blocks = '') {
     codecLookup: stack.codecLookup,
     dataTypes: stack.dataTypes,
     controlMutationDefaults: stack.controlMutationDefaults,
+    generatorFunctions: stack.generatorFunctions,
     resolvedInputs: [schemaPath],
     capabilities: stack.capabilities,
   });
@@ -255,5 +256,24 @@ describe('enum members on SQLite', () => {
       code: 'PSL_EXTENSION_INVALID_VALUE',
       message: 'enum "Priority" member "Low": Expected json`...`',
     });
+  });
+});
+
+describe('a raw column in a SQLite schema', () => {
+  it('reads Raw("...") as the raw data type, with a sql default', async () => {
+    expect(await storedColumn(`Raw("circle") @default(sql${BACKTICK}'x'${BACKTICK})`)).toEqual({
+      dataType: 'sql/raw',
+      codecId: 'sql/raw@1',
+      default: { kind: 'function', expression: "'x'" },
+    });
+  });
+
+  it('refuses a literal default, saying what to write', async () => {
+    expect(await diagnostics('Raw("circle") @default("x")')).toEqual([
+      expect.objectContaining({
+        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+        message: expect.stringContaining(`Expected sql${BACKTICK}...${BACKTICK}`),
+      }),
+    ]);
   });
 });

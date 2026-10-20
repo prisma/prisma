@@ -13,6 +13,7 @@ import {
   crossRef,
   type ExecutionMutationDefault,
   type ExecutionMutationDefaultPhases,
+  type ExecutionMutationDefaultValue,
   type ValueSetRef,
 } from '@internal/contract/types';
 import { type EnumTypeHandle, resolveToOneRelationNullable } from '@internal/contract-authoring';
@@ -27,6 +28,7 @@ import {
   type ParsedPslExtensionBlock,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
 import type { AssembledAuthoringContributions } from '@internal/framework-components/control';
 import {
   buildMongoStorage,
@@ -94,6 +96,7 @@ export interface InterpretPrisma6DocumentsInput {
   readonly documents: readonly Prisma6Document[];
   readonly seedDiagnostics: readonly ContractSourceDiagnostic[];
   readonly binding: Prisma6TargetBinding;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly authoringContributions: AssembledAuthoringContributions;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypes: DataTypeSupport;
@@ -113,7 +116,7 @@ type Diagnostics = ContractSourceDiagnostic[];
 interface ModelBuild {
   readonly located: Located<ModelSymbol>;
   readonly collection: string;
-  /** Prisma 6 field name to stored field name, for every field that is not a relation field. */
+  /** Prisma 6 field name to stored name, for every field that is not a relation field. */
   readonly storedNames: Map<string, string>;
   readonly ignoredFields: Set<string>;
   readonly rejectedFields: Set<string>;
@@ -338,6 +341,7 @@ export function interpretPrisma6Documents(
   const enumNames = new Set(enumBlocks.map((located) => located.symbol.name));
   const typeContext: TypeContext = {
     binding,
+    generatorFunctions: input.generatorFunctions,
     enums,
     enumNames,
     compositeTypeNames,
@@ -607,6 +611,7 @@ function schemaUnsupported(
 
 interface TypeContext {
   readonly binding: Prisma6TargetBinding;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly enums: ReadonlyMap<string, ContractEnum>;
   /** Every declared enum, including one that was refused and so is not in `enums`. */
   readonly enumNames: ReadonlySet<string>;
@@ -1054,7 +1059,7 @@ function readModelField(
       diagnostics.push(defaultUnsupported(label, defaultAttribute, owner, field, sourceId));
       return;
     }
-    build.fields[storedName] = resolved;
+    build.fields[field.name] = resolved;
     return;
   }
 
@@ -1075,13 +1080,18 @@ function readModelField(
     diagnostics.push(defaultUnsupported(label, defaultAttribute, owner, field, sourceId));
     return;
   }
-  const generator = { kind: 'generator' as const, id: binding.timestampGeneratorId };
+  const generator =
+    updatedAt !== undefined || defaultIsNow
+      ? dateTimeNowGenerator(ctx.generatorFunctions, binding.scalarCodecIds.DateTime)
+      : undefined;
   const phases: ExecutionMutationDefaultPhases | undefined =
-    updatedAt !== undefined
-      ? { onCreate: generator, onUpdate: generator }
-      : defaultIsNow
-        ? { onCreate: generator }
-        : undefined;
+    generator === undefined
+      ? undefined
+      : updatedAt !== undefined
+        ? { onCreate: generator, onUpdate: generator }
+        : defaultIsNow
+          ? { onCreate: generator }
+          : undefined;
   if (phases !== undefined && field.optional) {
     const written = updatedAt ?? defaultAttribute;
     const generator = written === undefined ? 'the generator' : attributeText(written);
@@ -1095,8 +1105,25 @@ function readModelField(
     );
     return;
   }
-  build.fields[storedName] = resolved;
+  build.fields[field.name] = resolved;
   if (phases !== undefined) build.executionDefaults.push({ field: storedName, phases });
+}
+
+/** The generator `now()` resolves to on the DateTime codec, which `@default(now())` and `@updatedAt` write. */
+function dateTimeNowGenerator(
+  generatorFunctions: GeneratorFunctionRegistry,
+  codecId: string,
+): ExecutionMutationDefaultValue {
+  const now = generatorFunctions.resolve(
+    { name: 'now', args: {} },
+    { codecId, typeParams: undefined },
+  );
+  if (!now.ok) {
+    throw new InternalError(
+      `The stack binds no "now" generator function to codec "${codecId}", which the DateTime scalar maps to.`,
+    );
+  }
+  return now.generator;
 }
 
 interface RelationArguments {
@@ -1372,20 +1399,18 @@ function readRelationFields(
       reject();
       continue;
     }
-    const local = localFields.filter((name): name is string => name !== undefined);
-    const referenced = targetFields.filter((name): name is string => name !== undefined);
     build.relations[field.name] = {
       to: crossRef(field.typeName, namespaceId),
       cardinality: 'N:1',
       nullable: field.optional,
-      on: { localFields: local, targetFields: referenced },
+      on: { localFields: localNames, targetFields: targetNames },
     };
     out.foreignKeys.push({
       declaringModel: symbol.name,
       targetModel: field.typeName,
       ...ifDefined('relationName', args?.name),
-      localFields: local,
-      targetFields: referenced,
+      localFields: localNames,
+      targetFields: targetNames,
     });
   }
 }
@@ -1480,7 +1505,15 @@ function assembleContract(input: {
     models[modelName] = {
       fields: build.fields,
       relations: build.relations,
-      storage: { collection: build.collection },
+      storage: {
+        collection: build.collection,
+        fields: Object.fromEntries(
+          Object.keys(build.fields).map((name) => [
+            name,
+            { field: build.storedNames.get(name) ?? name },
+          ]),
+        ),
+      },
     };
   }
   const capabilities: Record<string, Record<string, boolean>> = {};

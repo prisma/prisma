@@ -1,5 +1,9 @@
 import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
 import {
+  EMPTY_GENERATOR_FUNCTIONS,
+  type GeneratorFunctionRegistry,
+} from '@internal/framework-components/components';
+import {
   type AssembledAuthoringContributions,
   assembleAuthoringContributions,
   type ControlMutationDefaults,
@@ -263,6 +267,7 @@ export interface FixtureCursorInput extends FixtureStack {
   readonly binder: Binder;
   readonly symbolTable: SymbolTable;
   readonly controlMutationDefaults: ControlMutationDefaults;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly formatOptions: ResolvedFormatOptions;
 }
 
@@ -290,6 +295,7 @@ export function cursorInput(
     symbolTable,
     ...stack,
     controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+    generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     formatOptions: resolveFormatOptions(undefined),
   };
 }

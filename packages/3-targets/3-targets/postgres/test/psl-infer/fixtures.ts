@@ -1,10 +1,12 @@
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
+import sqlFamilyPack from '@internal/family-sql/pack';
 import {
   type ColumnTypeOf,
   inferColumnTypes,
   inferredTypeConstructors,
 } from '@internal/family-sql/psl-build';
 import { createDataTypeLookup } from '@internal/framework-components/codec';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
 import { printPsl } from '@internal/psl-printer';
 import { renderSqlCatalogText, resolveWrittenSqlTypes } from '@internal/sql-contract/data-type';
@@ -212,20 +214,20 @@ export function treeFromFlat(schemaIR: SqlSchemaIR): PostgresDatabaseSchemaNode 
 }
 
 /**
- * The stack `contract emit` reads an inferred schema with: the type constructors the adapter
- * contributes, the target's own, and the target's codecs and data types.
+ * The stack `contract emit` reads an inferred schema with: the type constructors the family and the
+ * adapter contribute, the target's own, and the target's codecs and data types.
  */
 export const inferBuildContext: SqlPslBuildContext = {
   authoringContributions: {
     type: {
+      ...sqlFamilyPack.authoring.type,
       ...postgresAuthoringTypes,
       ...postgresPslTypeConstructors,
     },
     field: postgresAuthoringFieldPresets,
   },
-  defaultFunctionPrintersByGenerator: new Map(),
+  generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
   componentIdsByGenerator: new Map(),
-  fieldPresetsByCodecAndGenerator: new Map(),
   codecLookup: createPostgresBuiltinCodecLookup(),
   dataTypes: {
     entries: postgresDataTypeEntries(),

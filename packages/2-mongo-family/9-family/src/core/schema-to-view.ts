@@ -1,7 +1,7 @@
 import type { CoreSchemaView } from '@internal/framework-components/control';
 import { SchemaTreeNode } from '@internal/framework-components/control';
+import { validatorRootShapesOf } from '@internal/mongo-contract';
 import type { MongoSchemaCollection, MongoSchemaIR } from '@internal/mongo-schema-ir';
-import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 
 export function mongoSchemaToView(schema: MongoSchemaIR): CoreSchemaView {
@@ -55,28 +55,28 @@ function collectionToSchemaNode(name: string, collection: MongoSchemaCollection)
 
   if (collection.validator) {
     const validatorChildren: SchemaTreeNode[] = [];
-    const jsonSchema = blindCast<
-      {
-        readonly properties?: Readonly<Record<string, { readonly bsonType?: unknown }>>;
-        readonly required?: readonly string[];
-      },
-      'a collection validator is a $jsonSchema object'
-    >(collection.validator.jsonSchema);
-    const properties = jsonSchema.properties;
-    const required = new Set(jsonSchema.required ?? []);
-
-    if (properties) {
-      for (const [propName, propDef] of Object.entries(properties)) {
-        const bsonType = propDef.bsonType === undefined ? 'any' : String(propDef.bsonType);
-        const suffix = required.has(propName) ? ' (required)' : '';
-        validatorChildren.push(
-          new SchemaTreeNode({
-            kind: 'field',
-            id: `field-${name}-${propName}`,
-            label: `${propName}: ${bsonType}${suffix}`,
-          }),
-        );
+    const roots = validatorRootShapesOf(collection.validator.jsonSchema);
+    const fields = new Map<string, Set<string>>();
+    for (const root of roots) {
+      for (const [propName, propDef] of Object.entries(root.properties)) {
+        const types = fields.get(propName) ?? new Set<string>();
+        for (const type of bsonTypesOf(propDef)) types.add(type);
+        fields.set(propName, types);
       }
+    }
+
+    for (const [propName, types] of fields) {
+      const bsonType = types.has('any') ? 'any' : [...types].join(',');
+      const required = roots.every(
+        (root) => !Object.hasOwn(root.properties, propName) || root.required.includes(propName),
+      );
+      validatorChildren.push(
+        new SchemaTreeNode({
+          kind: 'field',
+          id: `field-${name}-${propName}`,
+          label: `${propName}: ${bsonType}${required ? ' (required)' : ''}`,
+        }),
+      );
     }
 
     children.push(
@@ -130,4 +130,10 @@ function collectionToSchemaNode(name: string, collection: MongoSchemaCollection)
     label: `collection ${name}`,
     ...ifDefined('children', children.length > 0 ? children : undefined),
   });
+}
+
+function bsonTypesOf(propDef: unknown): readonly string[] {
+  if (typeof propDef !== 'object' || propDef === null || !('bsonType' in propDef)) return ['any'];
+  const { bsonType } = propDef;
+  return Array.isArray(bsonType) ? bsonType.map(String) : [String(bsonType)];
 }

@@ -170,7 +170,6 @@ describe('assembleAuthoringContributions', () => {
     const result = assembleAuthoringContributions([createDescriptor()]);
     expect(result).toEqual({
       dataTypes: {},
-      textDataTypes: [],
       field: {},
       type: {},
       entityTypes: {},
@@ -396,27 +395,6 @@ describe('assembleAuthoringContributions', () => {
       }),
     ]);
     expect(Object.keys(result.type)).toEqual(['enum']);
-  });
-
-  it('assembles the text data types every descriptor names, once each', () => {
-    const result = assembleAuthoringContributions([
-      createDescriptor({
-        id: 'target',
-        authoring: { textDataTypes: [dataTypeId('test/text'), dataTypeId('test/char')] },
-      }),
-      createDescriptor({
-        id: 'extension',
-        authoring: { textDataTypes: [dataTypeId('test/char'), dataTypeId('ext/citext')] },
-      }),
-      createDescriptor({ id: 'other' }),
-    ]);
-    expect(result.textDataTypes).toEqual(['test/text', 'test/char', 'ext/citext']);
-  });
-
-  it('assembles no text data types when no descriptor names one', () => {
-    expect(
-      assembleAuthoringContributions([createDescriptor({ id: 'other' })]).textDataTypes,
-    ).toEqual([]);
   });
 
   it('assembles the single declared valueObjectStorageType', () => {
@@ -1356,7 +1334,7 @@ describe('assembleControlMutationDefaults', () => {
         id: 'desc-b',
         controlMutationDefaults: {
           defaultFunctionRegistry: new Map([['uuid', { lower: stubLower }]]),
-          generatorDescriptors: [{ id: 'uuidv4', applicableDataTypes: [dataTypeId('pg/text')] }],
+          generatorDescriptors: [{ id: 'uuidv4' }],
         },
       }),
     ]);
@@ -1387,25 +1365,31 @@ describe('assembleControlMutationDefaults', () => {
     ).toThrow(/Duplicate mutation default function "now".*"desc-b".*"desc-a"/);
   });
 
-  it('throws on duplicate generator id', () => {
+  it('refuses a generator id two components register', () => {
     expect(() =>
       assembleControlMutationDefaults([
         createDescriptor({
           id: 'desc-a',
           controlMutationDefaults: {
             defaultFunctionRegistry: new Map(),
-            generatorDescriptors: [{ id: 'uuidv4', applicableDataTypes: [dataTypeId('test/a')] }],
+            generatorDescriptors: [{ id: 'uuidv4' }],
           },
         }),
         createDescriptor({
           id: 'desc-b',
           controlMutationDefaults: {
             defaultFunctionRegistry: new Map(),
-            generatorDescriptors: [{ id: 'uuidv4', applicableDataTypes: [dataTypeId('test/b')] }],
+            generatorDescriptors: [{ id: 'uuidv4' }],
           },
         }),
       ]),
-    ).toThrow(/Duplicate mutation default generator id "uuidv4".*"desc-b".*"desc-a"/);
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        message:
+          'Generator "uuidv4" is registered by both "desc-a" and "desc-b". Register each generator once, in the component that defines it.',
+      }),
+    );
   });
 });
 
@@ -1506,7 +1490,6 @@ describe('createControlStack', () => {
     expect(state.extensionIds).toEqual(['fam', 'tgt']);
     expect(state.authoringContributions).toEqual({
       dataTypes: {},
-      textDataTypes: [],
       field: {},
       type: {},
       entityTypes: {},

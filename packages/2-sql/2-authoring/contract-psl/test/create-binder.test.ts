@@ -1,5 +1,6 @@
 import type { ContractSourceContext } from '@internal/config/config-types';
 import type { AuthoringFieldNamespace } from '@internal/framework-components/authoring';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import { createBinder } from '@internal/psl-parser';
 import { SyntaxNode } from '@internal/psl-parser/syntax';
 import { describe, expect, it } from 'vitest';
@@ -129,6 +130,7 @@ describe('createBinder', () => {
       },
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
       controlMutationDefaults: controlMutationDefaultsBase,
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       ...fixtureInterpreterTypes,
       resolvedInputs: [],
       capabilities: { sql: { scalarList: true } },
@@ -240,6 +242,7 @@ describe('createBinder', () => {
       },
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
       controlMutationDefaults: createBuiltinLikeControlMutationDefaults(),
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       ...fixtureInterpreterTypes,
       resolvedInputs: [],
       capabilities: { sql: { scalarList: true } },

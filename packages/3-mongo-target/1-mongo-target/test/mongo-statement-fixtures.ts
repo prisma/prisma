@@ -24,6 +24,10 @@ export const NS = asNamespaceId('__unbound__');
 export interface ModelSpec {
   readonly collection: string;
   readonly fields: readonly string[];
+  /** The stored name of each field stored under a name other than its own. */
+  readonly storedAs?: Readonly<Record<string, string>>;
+  /** The stored name of each embed relation, keyed by relation name. */
+  readonly embeds?: Readonly<Record<string, string>>;
   readonly relations?: readonly string[];
   readonly base?: string;
   readonly discriminator?: string;
@@ -35,6 +39,8 @@ export interface CollectionSpec {
   readonly required?: readonly string[];
   readonly control?: ControlPolicy;
   readonly timeField?: string;
+  /** The validator's whole `$jsonSchema`, in place of the one `required` gives. */
+  readonly jsonSchema?: Record<string, unknown>;
 }
 
 export function jsonSchema(fields: readonly string[]) {
@@ -47,6 +53,15 @@ export function jsonSchema(fields: readonly string[]) {
     ]),
     additionalProperties: false,
   };
+}
+
+/** The validator of a collection that stores one root model per entry of `fieldLists`. */
+export function sharedJsonSchema(...fieldLists: readonly (readonly string[])[]) {
+  return { bsonType: 'object', anyOf: fieldLists.map(jsonSchema) };
+}
+
+function validatorJsonSchemaOf(spec: CollectionSpec): Record<string, unknown> | undefined {
+  return spec.jsonSchema ?? (spec.required === undefined ? undefined : jsonSchema(spec.required));
 }
 
 export function contract(
@@ -70,8 +85,8 @@ export function contract(
               name,
               {
                 fields: Object.fromEntries(spec.fields.map((field) => [field, {}])),
-                relations: Object.fromEntries(
-                  (spec.relations ?? []).map((relation) => [
+                relations: Object.fromEntries([
+                  ...(spec.relations ?? []).map((relation) => [
                     relation,
                     {
                       to: { model: 'Other', namespace: '__unbound__' },
@@ -79,8 +94,27 @@ export function contract(
                       on: { localFields: ['otherId'], targetFields: ['_id'] },
                     },
                   ]),
-                ),
-                storage: { collection: spec.collection },
+                  ...Object.keys(spec.embeds ?? {}).map((relation) => [
+                    relation,
+                    { to: { model: 'Embedded', namespace: '__unbound__' }, cardinality: '1:N' },
+                  ]),
+                ]),
+                storage: {
+                  collection: spec.collection,
+                  fields: Object.fromEntries(
+                    spec.fields.map((field) => [field, { field: spec.storedAs?.[field] ?? field }]),
+                  ),
+                  ...(spec.embeds === undefined
+                    ? {}
+                    : {
+                        relations: Object.fromEntries(
+                          Object.entries(spec.embeds).map(([relation, field]) => [
+                            relation,
+                            { field },
+                          ]),
+                        ),
+                      }),
+                },
                 ...(spec.base === undefined
                   ? {}
                   : { base: { namespace: '__unbound__', model: spec.base } }),
@@ -116,11 +150,11 @@ export function contract(
                     keys: [{ field, direction: 1 as const }],
                     unique: true,
                   })),
-                  ...(spec.required === undefined
+                  ...(validatorJsonSchemaOf(spec) === undefined
                     ? {}
                     : {
                         validator: {
-                          jsonSchema: jsonSchema(spec.required),
+                          jsonSchema: validatorJsonSchemaOf(spec) ?? {},
                           validationLevel: 'strict' as const,
                           validationAction: 'error' as const,
                         },
@@ -148,11 +182,11 @@ export function schemaCollection(
     indexes: (spec.unique ?? []).map(
       (field) => new MongoSchemaIndex({ keys: [{ field, direction: 1 }], unique: true }),
     ),
-    ...(spec.required === undefined
+    ...(validatorJsonSchemaOf(spec) === undefined
       ? {}
       : {
           validator: new MongoSchemaValidator({
-            jsonSchema: jsonSchema(spec.required),
+            jsonSchema: validatorJsonSchemaOf(spec) ?? {},
             validationLevel: 'strict',
             validationAction: 'error',
           }),

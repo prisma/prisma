@@ -1,6 +1,7 @@
 # ADR 231 — Declarative attribute specifications: composable argument combinators with typed inference
 
 **Status:** Accepted. Amended 2026-09-22: top-level extension-block member values are declared through this same combinator kit via block specs (`structBlock` / `mapBlock`), and the shared `jsonValue()` rule reads native JSON-compatible literals from the AST — see [ADR 262 — Block specs bind top-level block values](ADR%20262%20-%20Block%20specs%20bind%20top-level%20block%20values.md). Central spec discovery and language-server consumption, listed below as follow-up, are delivered by [ADR 249 — Central attribute-spec registry](ADR%20249%20-%20Central%20attribute-spec%20registry.md). Amended 2026-09-30: `dataTypeValue` types the arguments that take raw SQL (`@@index(where:)`, `@@index(expression:)`, `@@fullTextIndex(where:)`, `@@check(expression:)` and a policy's `using` and `withCheck`) — see [ADR 268 — Raw SQL is a value of the data type `sql/expression`](ADR%20268%20-%20Raw%20SQL%20is%20a%20value%20of%20the%20data%20type%20sql-expression.md).
+Amended by [ADR 275](ADR%20275%20-%20Client%20generators%20are%20field%20attributes%2C%20and%20a%20type%20alias%20is%20expanded%20into%20each%20column.md): `@default` offers only the functions that lower to a database default, and `@onCreate(fn())` and `@onUpdate(fn())` are specs whose `funcCall` arms are the generator functions bound to the field's codec.
 **Date:** 2026-06-29
 **Accepted:** 2026-08-27
 
@@ -221,7 +222,7 @@ Building the argument never throws, because the language server builds every spe
 
 ### Alternatives
 
-`oneOf(first, ...rest)` tries its alternatives in order and returns the first success. If every alternative fails, it discards the branch diagnostics and emits one aggregate `Expected one of: …` diagnostic assembled from the alternatives' labels. An alternative may claim an argument whose shape is its own (`ArgType.claims`). When exactly one alternative claims the argument, `oneOf` returns that alternative's result, success or failure, so its diagnostics about the argument are kept. `oneOf` knows nothing about which combinators claim; each combinator decides for its own shape. `funcCall` claims a call to its name whose callee is a plain identifier: the author named the function, so `@default(nanoid("8"))` reports what is wrong with `"8"`, not the list of every default form.
+`oneOf(first, ...rest)` tries its alternatives in order and returns the first success. If every alternative fails, it discards the branch diagnostics and emits one aggregate `Expected one of: …` diagnostic assembled from the alternatives' labels. An alternative may claim an argument whose shape is its own (`ArgType.claims`). When exactly one alternative claims the argument, `oneOf` returns that alternative's result, success or failure, so its diagnostics about the argument are kept. `oneOf` knows nothing about which combinators claim; each combinator decides for its own shape. `funcCall` claims a call to its name whose callee is a plain identifier: the author named the function, so `@onCreate(nanoid("8"))` reports what is wrong with `"8"`, not the list of every default form.
 
 This trade-off keeps the leaf contract small and allows backtracking, at the cost of less specific diagnostics for malformed input that resembles one particular branch.
 

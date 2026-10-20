@@ -21,7 +21,7 @@ import {
   refuseJsonValue,
 } from '@internal/framework-components/codec';
 import { canonicalizeJson } from '@internal/framework-components/utils';
-import { sqlDataType } from '@internal/sql-contract/data-type';
+import { sqlDataType, sqlRawDataType } from '@internal/sql-contract/data-type';
 import { dateTimeStoredText } from '@internal/sql-contract/data-type-support';
 import { structuredError } from '@internal/utils/structured-error';
 import { type as arktype } from 'arktype';
@@ -208,6 +208,7 @@ export const sqliteDataTypes: readonly DataType[] = [
   sqliteCharacterVarying,
   sqliteDatetime,
   sqliteJson,
+  sqlRawDataType,
 ];
 
 /** SQLite's text data types: `text`, `character(n)` and `character varying(n)`. */

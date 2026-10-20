@@ -347,6 +347,7 @@ namespace billing {
         codecLookup: stack.codecLookup,
         dataTypes: stack.dataTypes,
         controlMutationDefaults: stack.controlMutationDefaults,
+        generatorFunctions: stack.generatorFunctions,
         resolvedInputs: await expandContractInputs(contract.source.inputs),
         capabilities: stack.capabilities,
         reportWarning: (diagnostic) => warnings.push({ ...diagnostic, severity: 'warning' }),

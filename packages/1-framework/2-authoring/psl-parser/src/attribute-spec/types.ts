@@ -1,6 +1,10 @@
 import type { JsonValue } from '@internal/contract/types';
 import type { TaggedLiteralCanonicalization } from '@internal/framework-components/authoring';
 import type { DataTypeId, DataTypeValue } from '@internal/framework-components/codec';
+import type {
+  SignatureArgumentOutput,
+  SignatureOptionalArgument,
+} from '@internal/framework-components/components';
 import type { PslSpan } from '@internal/framework-components/psl-ast';
 import type { Result } from '@internal/utils/result';
 import type { Simplify, UnionToIntersection } from '@internal/utils/types';
@@ -57,9 +61,8 @@ export type ArgTypeKind =
 
 export type ArgTypeContext = 'attribute' | 'field' | 'model';
 
-export interface ArgTypeOutput<T, Ctx extends AttributeCtx> {
+export interface ArgTypeOutput<T, Ctx extends AttributeCtx> extends SignatureArgumentOutput<T> {
   readonly label: string;
-  readonly _out?: T;
   /** True when the argument has this type's shape, so that its diagnostics are about the argument. `oneOf` returns the result of the one alternative that claims the argument. */
   readonly claims?: (arg: ExpressionAst) => boolean;
   readonly parse: (arg: ExpressionAst, ctx: Ctx) => Result<T, readonly PslDiagnostic[]>;
@@ -330,11 +333,14 @@ export type OptionalArgType<
   Ctx extends AttributeCtx,
   Type extends object = ArgType<T, Ctx>,
   HasDefault extends boolean = boolean,
-> = Type & {
-  readonly optional: true;
+> = Type & OptionalArgumentMarks<T, HasDefault>;
+
+/** What `optional(...)` adds to an argument type: the shared optional mark `gen` reads, and its default. */
+export interface OptionalArgumentMarks<T, HasDefault extends boolean>
+  extends SignatureOptionalArgument {
   readonly hasDefault: HasDefault;
   readonly defaultValue?: T | undefined;
-};
+}
 
 export interface Param<T, Ctx extends AttributeCtx> {
   readonly type: ArgType<T, Ctx>;
@@ -359,9 +365,9 @@ export interface AttributeSpec<Out, Ctx extends AttributeCtx> {
   readonly refine?: (parsed: Out, ctx: Ctx, attributeNode: AstNode) => readonly PslDiagnostic[];
 }
 
-export type OutOf<P> = P extends { readonly _out?: infer T } ? T : never;
+export type OutOf<P> = P extends SignatureArgumentOutput<infer T> ? T : never;
 
-type OptionalMarker = { readonly optional: true };
+type OptionalMarker = SignatureOptionalArgument;
 
 export type NamedOut<N extends Record<string, Param<unknown, never>>> = Simplify<
   { [K in keyof N as N[K]['type'] extends OptionalMarker ? never : K]: OutOf<N[K]['type']> } & {

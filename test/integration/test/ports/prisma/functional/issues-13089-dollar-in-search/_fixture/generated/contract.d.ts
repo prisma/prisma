@@ -49,8 +49,8 @@ export type FieldInputTypes = FieldTypesFromDomain<
 
 export namespace Models {
   export type unbound_users = {
-    _id: FieldOutputTypes['__unbound__']['users']['_id'];
     firstName: FieldOutputTypes['__unbound__']['users']['firstName'];
+    id: FieldOutputTypes['__unbound__']['users']['id'];
     readonly [RelationKeys]?: never;
   };
 }
@@ -114,17 +114,23 @@ type ContractBase = Omit<
         readonly models: {
           readonly users: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly firstName: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
+              };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'users' };
+            readonly storage: {
+              readonly collection: 'users';
+              readonly fields: {
+                readonly firstName: { readonly field: 'firstName' };
+                readonly id: { readonly field: '_id' };
+              };
+            };
           };
         };
       };

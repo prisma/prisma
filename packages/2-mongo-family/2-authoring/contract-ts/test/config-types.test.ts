@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import type { ContractSourceContext } from '@internal/config/config-types';
 import type { Contract, ControlPolicy } from '@internal/contract/types';
 import { createDataTypeLookup, emptyCodecLookup } from '@internal/framework-components/codec';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
@@ -29,6 +30,7 @@ const emptyContext: ContractSourceContext = {
     defaultFunctionRegistry: new Map(),
     generatorDescriptors: [],
   },
+  generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
   resolvedInputs: [],
   capabilities: {},
 };

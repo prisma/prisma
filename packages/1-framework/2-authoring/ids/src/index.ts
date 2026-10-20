@@ -58,55 +58,43 @@ function nanoidStorage(options?: NanoidOptions): GeneratedStorage {
 }
 
 type BuiltinGeneratorMetadata = {
-  /** Whether the generator writes a UUID, so a target's UUID column takes it besides its text columns. */
-  readonly writesUuid: boolean;
   /** The single source of the {@link GeneratedStorage} this generator's TS spec helper bundles, in its value and in its type. */
   readonly generatedStorage: (options?: never) => GeneratedStorage;
 };
 
 const builtinGeneratorMetadataById = {
   ulid: {
-    writesUuid: false,
     generatedStorage: () => charStorage(26),
   },
   nanoid: {
-    writesUuid: false,
     generatedStorage: nanoidStorage,
   },
   uuidv7: {
-    writesUuid: true,
     generatedStorage: () => charStorage(36),
   },
   uuidv4: {
-    writesUuid: true,
     generatedStorage: () => charStorage(36),
   },
   cuid2: {
-    writesUuid: false,
     generatedStorage: () => charStorage(24),
   },
   ksuid: {
-    writesUuid: false,
     generatedStorage: () => charStorage(27),
   },
 } as const satisfies Record<BuiltinGeneratorId, BuiltinGeneratorMetadata>;
 
-export const builtinGeneratorRegistryMetadata: ReadonlyArray<{
-  readonly id: BuiltinGeneratorId;
-  readonly writesUuid: boolean;
-  /** The number of characters the generator writes under `params`. */
-  readonly writtenLength: (params: Readonly<Record<string, unknown>> | undefined) => number;
-}> = builtinGeneratorIds.map((id) => ({
-  id,
-  writesUuid: builtinGeneratorMetadataById[id].writesUuid,
-  writtenLength: (params) =>
-    builtinGeneratorMetadataById[id].generatedStorage(
-      blindCast<
-        never,
-        'A generator ignores params it does not take, and nanoid reads its size from them.'
-      >(params),
-    ).typeParams.length,
-}));
+/** The number of characters the built-in generator `id` writes under `params`, such as 36 for a UUID or a Nano ID's size. */
+export function generatedLength(
+  id: BuiltinGeneratorId,
+  params: Readonly<Record<string, unknown>> | undefined,
+): number {
+  return builtinGeneratorMetadataById[id].generatedStorage(
+    blindCast<
+      never,
+      'A generator ignores params it does not take, and nanoid reads its size from them.'
+    >(params),
+  ).typeParams.length;
+}
 
 export type GeneratedColumnSpec<TCodecId extends string = string> = {
   readonly type: ColumnTypeDescriptor<TCodecId>;
