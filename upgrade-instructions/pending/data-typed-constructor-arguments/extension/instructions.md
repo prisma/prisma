@@ -15,23 +15,29 @@ changes:
   - id: value-argument-types-in-typescript
     summary: |
       The TypeScript builder types a `value` argument through `__dataTypeArguments`, a map a pack
-      declares in its type from each data type it registers to `{ input, canonical }`. A pack that
-      registers a data type its own type constructors take must declare it, or the argument types
-      as `never`.
+      declares in its type from each data type it registers to `{ argument, parameter }`: the
+      TypeScript value an author passes, and the type parameter it gives. A pack that registers a
+      data type its own type constructors take must declare it, or the argument types as `never`.
+      The TypeScript builder reads value arguments only with the data types and authoring entries
+      the composed packs register, so a pack must register in `dataTypes` and
+      `authoring.dataTypes` every data type its arguments take.
   - id: psl-and-print-helpers-take-data-types
     summary: |
       `mapPslHelperArgs` and `instantiatePslFieldPreset` take the stack's `dataTypes`;
       `parsePslPositionalArgs` and `pslTypeArgumentText` are removed. `inferColumnTypes` takes
       `dataTypes`, and its `PslTypeCall` carries the argument `values`. `writtenTypeArguments` writes
       a call's arguments as literals of their data types. `sql.String` is no longer in the SQL
-      family pack: a SQL target contributes it with
-      `sqlTargetTypeConstructors({ sizeType })`, and `temporalCodecPresetWithPrecision` takes
-      `sizeType` too.
+      family pack: a SQL target contributes it with `sqlTargetTypeConstructors({ sizeType })` from
+      `family/control`, and `temporalCodecPresetWithPrecision` takes `sizeType`
+      too. `assembleAuthoringDataTypes` moves from `components/control` to
+      `components/authoring`, beside `assembleDataTypeSupport`, which builds a `DataTypeSupport`
+      from a list of components and checks their value arguments.
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
         - 'parsePslPositionalArgs|pslTypeArgumentText'
         - 'temporalCodecPresetWithPrecision\('
+        - 'assembleAuthoringDataTypes'
 ---
 
 # Type-constructor arguments are values of data types
@@ -71,8 +77,12 @@ export const myTargetPack: typeof myTargetPackBase & {
 } = myTargetPackBase;
 ```
 
-An extension whose arguments take the target's types, such as `pg/int4`, declares nothing.
+`argument` is what an author passes to the helper, and `parameter` is the type parameter the data type's reader gives for it, which the column's type is built from. An extension whose arguments take the target's types, such as `pg/int4`, declares nothing.
+
+To type a descriptor of a value argument on its own, use `AuthoringValueArgument` from `components/authoring`; it now includes `name` and `optional`.
 
 ## `psl-and-print-helpers-take-data-types`
 
-Pass the stack's `DataTypeSupport` to `mapPslHelperArgs({ ..., dataTypes })` and `instantiatePslFieldPreset({ ..., dataTypes })`. Replace `parsePslPositionalArgs` with the values of the call you built, and `pslTypeArgumentText` with `writtenTypeArguments(descriptor, args, dataTypes)`. A SQL target spreads `sqlTargetTypeConstructors({ sizeType: '<its whole-number data type>' })` from `@prisma/orm-family-sql/family/pack` into its type namespace, and passes the same `sizeType` to `temporalCodecPresetWithPrecision`.
+Pass the stack's `DataTypeSupport` to `mapPslHelperArgs({ ..., dataTypes })` and `instantiatePslFieldPreset({ ..., dataTypes })`. Replace `parsePslPositionalArgs` with the values of the call you built, and `pslTypeArgumentText` with `writtenTypeArguments(descriptor, args, dataTypes)`. A SQL target spreads `sqlTargetTypeConstructors({ sizeType: '<its size data type>' })` from `@prisma/orm-family-sql/family/control` (where `temporalCodecPresetWithPrecision` is) into its type namespace, and passes the same `sizeType` to `temporalCodecPresetWithPrecision`. The size type is the data type of a length or a precision: `pg/int4` on Postgres.
+
+Import `assembleAuthoringDataTypes` from `components/authoring` instead of `components/control`. To build the data types a set of components reads values with, call `assembleDataTypeSupport(components, dataTypeOfCodec)`; it refuses a duplicate data type or entry, and a value argument whose data type is unregistered or that nothing writes.
