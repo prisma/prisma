@@ -1,7 +1,11 @@
+import type { DataTypeSupport } from '@internal/framework-components/authoring';
+import { dataTypeId } from '@internal/framework-components/codec';
 import type {
   DefaultFunctionLoweringContext,
   TypedDefaultFunctionCall,
 } from '@internal/framework-components/control';
+import { dataTypeValue, type FuncCallSig, leafDiagnostic, refineArg } from '@internal/psl-parser';
+import { notOk, ok } from '@internal/utils/result';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import type { InterpretPslDocumentToSqlContractInput } from '../src/interpreter';
@@ -115,6 +119,107 @@ describe('composed mutation default registries', () => {
           ],
         },
       },
+    });
+  });
+
+  describe('a registry with a signature written as an object and one built from the data types', () => {
+    const generated = (id: string, params?: Record<string, unknown>) => ({
+      ok: true as const,
+      value: {
+        kind: 'execution' as const,
+        generated: { kind: 'generator' as const, id, ...(params ? { params } : {}) },
+      },
+    });
+    const controlMutationDefaults = {
+      defaultFunctionRegistry: new Map([
+        [
+          'slugid',
+          {
+            signature: { documentation: 'Generates a slug identifier.' },
+            lower: () => generated('slugid'),
+          },
+        ],
+        [
+          'sizedid',
+          {
+            signature: (dataTypes: DataTypeSupport): FuncCallSig => ({
+              documentation: 'Generates an identifier of a given size.',
+              positional: [
+                {
+                  key: 'size',
+                  type: refineArg(
+                    dataTypeValue(dataTypeId('pg/int4'), dataTypes),
+                    ({ value }, arg, ctx) =>
+                      Number(value.value) === 4
+                        ? ok(4)
+                        : notOk([
+                            leafDiagnostic(
+                              ctx,
+                              arg,
+                              `sizedid: size must be 4, got ${String(value.value)}`,
+                              'PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT',
+                            ),
+                          ]),
+                  ),
+                  documentation: 'The size.',
+                },
+              ],
+            }),
+            lower: ({ call }: { call: TypedDefaultFunctionCall }) =>
+              generated('sizedid', { size: call.args['size'] }),
+          },
+        ],
+      ]),
+      generatorDescriptors: [
+        { id: 'slugid', applicableCodecIds: ['pg/text@1'] },
+        { id: 'sizedid', applicableCodecIds: ['pg/text@1'] },
+      ],
+    };
+
+    it('lowers both functions', () => {
+      const result = interpretPostgresSchema(
+        `model User {
+  id Int @id
+  slug String @default(slugid())
+  sized String @default(sizedid(4))
+}
+`,
+        { controlMutationDefaults },
+      );
+
+      expect(result.ok ? result.value.execution?.mutations.defaults : result.failure).toEqual([
+        {
+          ref: { namespace: 'public', entry: 'User', field: 'sized' },
+          onCreate: { kind: 'generator', id: 'sizedid', params: { size: 4 } },
+        },
+        {
+          ref: { namespace: 'public', entry: 'User', field: 'slug' },
+          onCreate: { kind: 'generator', id: 'slugid' },
+        },
+      ]);
+    });
+
+    it('reports the check of the built signature at the argument', () => {
+      const result = interpretPostgresSchema(
+        `model User {
+  id Int @id
+  sized String @default(sizedid(5))
+}
+`,
+        { controlMutationDefaults },
+      );
+
+      expect(result.ok ? [] : result.failure.diagnostics).toEqual([
+        {
+          code: 'PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT',
+          message: 'sizedid: size must be 4, got 5',
+          sourceId: 'schema.prisma',
+          span: {
+            start: { line: 3, column: 33, offset: 58 },
+            end: { line: 3, column: 34, offset: 59 },
+          },
+        },
+      ]);
     });
   });
 

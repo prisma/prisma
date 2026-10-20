@@ -230,8 +230,8 @@ model UuidNativeBad {
         },
       },
       {
-        code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
-        message: 'Expected one of: 4 | 7',
+        code: 'PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT',
+        message: 'uuid: version must be 4 or 7, got 5',
         sourceId: 'schema.prisma',
         span: {
           start: { line: 4, column: 32, offset: 104 },
@@ -239,8 +239,8 @@ model UuidNativeBad {
         },
       },
       {
-        code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
-        message: 'Expected an integer between 2 and 255',
+        code: 'PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT',
+        message: 'nanoid: size must be between 2 and 255, got 1',
         sourceId: 'schema.prisma',
         span: {
           start: { line: 5, column: 36, offset: 143 },

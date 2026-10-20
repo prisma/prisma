@@ -16,10 +16,12 @@ import {
   type AuthoringTypeConstructorDescriptor,
   type AuthoringTypeNamespace,
   collectScalarTypeConstructors,
+  type DataTypeSupport,
   type ParsedPslExtensionBlock,
   readEnumBlockMembers,
   resolveEnumCodecId,
 } from '@internal/framework-components/authoring';
+import { dataTypeId } from '@internal/framework-components/codec';
 import type { ExtensionPackRef, TargetPackRef } from '@internal/framework-components/components';
 import type {
   ControlMutationDefaultEntry,
@@ -30,12 +32,12 @@ import type { FuncCallSig, PslBlockSpecDescriptor, SymbolTable } from '@internal
 import {
   blockAttribute,
   buildSymbolTable,
-  int,
+  dataTypeValue,
   jsonValue,
+  leafDiagnostic,
   mapBlock,
-  num,
-  oneOf,
   optional,
+  refineArg,
   str,
 } from '@internal/psl-parser';
 import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
@@ -44,7 +46,7 @@ import { parse } from '@internal/psl-parser/syntax';
 import { bindPslSchema } from '@internal/psl-parser/test';
 import type { SqlNamespaceBase, SqlNamespaceInput } from '@internal/sql-contract/types';
 import { type EnumTypeHandle, enumType } from '@internal/sql-contract-ts/contract-builder';
-import type { Result } from '@internal/utils/result';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import type { InterpretPslDocumentToSqlContractInput } from '../src/interpreter';
 import { interpretPslDocumentToSqlContract } from '../src/interpreter';
@@ -564,29 +566,58 @@ const autoincrementSig: FuncCallSig = {
   documentation: 'Generates an increasing integer value in the database.',
 };
 const ulidSig: FuncCallSig = { documentation: 'Generates a ULID when a value is not supplied.' };
-const uuidSig: FuncCallSig = {
-  documentation: 'Generates a UUID when a value is not supplied.',
-  positional: [
-    {
-      key: 'version',
-      type: optional(oneOf(num(UUID_VERSIONS.v4), num(UUID_VERSIONS.v7))),
-      documentation: 'The UUID version.',
-    },
-  ],
+/**
+ * A positional integer argument of a default function, written as the SQL family writes it: a value of `pg/int4`, then the function's own check, refused at the argument with `PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT`.
+ */
+function integerArgument(
+  dataTypes: DataTypeSupport,
+  key: string,
+  refusal: (value: number) => string | undefined,
+) {
+  return {
+    key,
+    type: refineArg(dataTypeValue(dataTypeId('pg/int4'), dataTypes), ({ value }, arg, ctx) => {
+      const number = Number(value.value);
+      const message = refusal(number);
+      return message === undefined
+        ? ok(number)
+        : notOk([leafDiagnostic(ctx, arg, message, 'PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT')]);
+    }),
+    documentation: `The ${key}.`,
+  };
+}
+
+const uuidSig = (dataTypes: DataTypeSupport): FuncCallSig => {
+  const { key, type, documentation } = integerArgument(dataTypes, 'version', (version) =>
+    version === UUID_VERSIONS.v4 || version === UUID_VERSIONS.v7
+      ? undefined
+      : `uuid: version must be ${UUID_VERSIONS.v4} or ${UUID_VERSIONS.v7}, got ${version}`,
+  );
+  return {
+    documentation: 'Generates a UUID when a value is not supplied.',
+    positional: [{ key, type: optional(type), documentation }],
+  };
 };
-const cuidSig: FuncCallSig = {
+const cuidSig = (dataTypes: DataTypeSupport): FuncCallSig => ({
   documentation: 'Generates a CUID2 identifier when a value is not supplied.',
-  positional: [{ key: 'version', type: num(CUID_VERSION), documentation: 'The CUID version.' }],
-};
-const nanoidSig: FuncCallSig = {
-  documentation: 'Generates a Nano ID when a value is not supplied.',
   positional: [
-    {
-      key: 'size',
-      type: optional(int(NANOID_SIZE)),
-      documentation: 'The identifier length.',
-    },
+    integerArgument(dataTypes, 'version', (version) =>
+      version === CUID_VERSION
+        ? undefined
+        : `cuid: version must be ${CUID_VERSION}, got ${version}`,
+    ),
   ],
+});
+const nanoidSig = (dataTypes: DataTypeSupport): FuncCallSig => {
+  const { key, type, documentation } = integerArgument(dataTypes, 'size', (size) =>
+    size >= NANOID_SIZE.min && size <= NANOID_SIZE.max
+      ? undefined
+      : `nanoid: size must be between ${NANOID_SIZE.min} and ${NANOID_SIZE.max}, got ${size}`,
+  );
+  return {
+    documentation: 'Generates a Nano ID when a value is not supplied.',
+    positional: [{ key, type: optional(type), documentation }],
+  };
 };
 export function createBuiltinLikeControlMutationDefaults(): ControlMutationDefaults {
   return {

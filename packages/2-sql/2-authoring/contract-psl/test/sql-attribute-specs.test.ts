@@ -390,12 +390,11 @@ describe('sqlAttributeSpecs.field.default', () => {
     if (uuid === undefined) throw new Error('uuid default function arm is present');
     const versionType = uuid.signature.positional?.[0]?.type;
     if (versionType === undefined) throw new Error('uuid version argument is present');
-    const version = oneOfMetadata(versionType);
-    expect(version).toMatchObject({ kind: 'oneOf', optional: true });
-    expect(version.alternatives).toEqual([
-      expect.objectContaining({ kind: 'num', value: 4 }),
-      expect.objectContaining({ kind: 'num', value: 7 }),
-    ]);
+    expect(versionType).toMatchObject({
+      kind: 'dataTypeValue',
+      dataType: 'pg/int4',
+      optional: true,
+    });
   });
 
   it('omits the tagged-literal arm when no tag is registered', () => {
