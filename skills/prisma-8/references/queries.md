@@ -127,7 +127,7 @@ await db.close();
 
 ## Running a plan and printing its SQL (SQL targets)
 
-A plan from `db.sql`, `db.raw` or the ORM (`.prepared.all().plan`) runs on the client: `db.query(plan)` returns its rows as an `AsyncIterableResult`, and `db.execute(plan)` resolves `{ affectedRows }` with no rows. Inside a transaction use `tx.query` / `tx.execute`; they have the same types. On Supabase, call them on a role-bound client (`db.asAnon()`, `await db.asUser(jwt)`). `db.query` on an ORM plan yields the database rows, not the result the ORM builds from them. Use `db.runtime()` only for `connection()`, `close()` or `telemetry()`.
+A plan from `db.sql`, `db.raw` or the ORM (`.prepared.all().plan`) runs on the client: `db.query(plan)` returns its rows as an `AsyncIterableResult`, and `db.execute(plan)` resolves `{ affectedRows }` with no rows. Inside a transaction use `tx.query` / `tx.execute`; they have the same types. On Supabase, call them on a role-bound client (`db.asAnon()`, `await db.asUser(jwt)`). `db.query` on an ORM plan yields the database rows, not the result the ORM builds from them. To run a plan, use `db.query` and `db.execute`, not `db.runtime()`. `db.runtime()` remains for runtime-level work: `connection()`, `close()`, `telemetry()`, and as the target of a prepared statement (`ps.query(db.runtime(), params)`).
 
 `db.toSql(plan)` returns `{ sql, params }` and needs no database, so a script can import `db.ts` with no `DATABASE_URL` set and print what a query would send. `params` are the plan's values before codecs encode them for the driver. Middleware rewrites (`beforeCompile`) are not applied. A plan with `prepare` bind sites throws `RUNTIME.PREPARE_BIND_ON_ADHOC`. `postgresStatic()` and `sqliteStatic()` have `toSql` too.
 

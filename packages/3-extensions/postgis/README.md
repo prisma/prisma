@@ -95,7 +95,7 @@ import { db } from './prisma/db';
 const ferryBuilding = point(-122.3937, 37.7955, 4326);
 
 // Five nearest cafes, with their distance in metres.
-const closest = await db.execute(
+const closest = await db.query(
   db.sql.cafe
     .select('id', 'name')
     .select('meters', (f, fns) => fns.distanceSphere(f.location, ferryBuilding))
