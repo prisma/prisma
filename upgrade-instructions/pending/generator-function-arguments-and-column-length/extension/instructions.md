@@ -21,6 +21,13 @@ changes:
       glob: "**/*.{ts,mts,cts}"
       matches:
         - '\bgeneratorFunctions\.(?:resolve|callFor)\('
+  - id: build-contract-definition-takes-lookups
+    summary: |
+      `buildContractDefinition` (`@prisma/orm-family-sql/contract-ts/contract-builder`) now requires `codecLookup` and `dataTypeLookup`, the same lookups `buildSqlContractFromDefinition` takes, so that each `.onCreate(...)` and `.onUpdate(...)` call is checked against its column's length. Pass them in the definition. The detection matches files that call `buildContractDefinition`.
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      matches:
+        - '\bbuildContractDefinition\('
   - id: arg-binding-spec-label
     summary: |
       `ArgBindingSpec` (`@prisma/orm-framework/psl-parser`), the second argument of `interpretArgs`, names its callee with `label`, the whole phrase such as `Attribute "rel"`, instead of `name`. `funcCall(name, signature, { label })` takes the phrase its binding diagnostics use; without it they say `Attribute "<name>"` as before.
@@ -105,6 +112,23 @@ const binding: GeneratorFunctionBinding = {
       : { ok: true, generator: { kind: 'generator', id: 'slugid' } },
   printArguments: () => ({ args: {}, text: '' }),
 };
+```
+
+## `build-contract-definition-takes-lookups`
+
+```ts
+// Before
+const definition = buildContractDefinition({ family, target, createNamespace, models });
+
+// After
+const definition = buildContractDefinition({
+  family,
+  target,
+  createNamespace,
+  codecLookup,
+  dataTypeLookup,
+  models,
+});
 ```
 
 ## `arg-binding-spec-label`

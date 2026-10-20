@@ -152,6 +152,11 @@ describe('extension detection', () => {
       'const resolution = registry.lookup(call.name);',
     ],
     [
+      'build-contract-definition-takes-lookups',
+      'const definition = buildContractDefinition({ family, target, createNamespace, models });',
+      'return buildSqlContractFromDefinition(definition, codecLookup, dataTypeLookup);',
+    ],
+    [
       'arg-binding-spec-label',
       "interpretArgs(args, { name: 'rel', positional, named }, ctx, span, node);",
       'interpretAttribute(node, spec, ctx);',
