@@ -260,8 +260,12 @@ describe('enum members on SQLite', () => {
 });
 
 describe('a raw column in a SQLite schema', () => {
-  it('reads Raw("...") as the raw data type, with a sql default', async () => {
-    expect(await storedColumn(`Raw("circle") @default(sql${BACKTICK}'x'${BACKTICK})`)).toEqual({
+  it('reads Raw(sql`...`) as the raw data type, with a sql default', async () => {
+    expect(
+      await storedColumn(
+        `Raw(sql${BACKTICK}circle${BACKTICK}) @default(sql${BACKTICK}'x'${BACKTICK})`,
+      ),
+    ).toEqual({
       dataType: 'sql/raw',
       codecId: 'sql/raw@1',
       default: { kind: 'function', expression: "'x'" },
@@ -269,7 +273,7 @@ describe('a raw column in a SQLite schema', () => {
   });
 
   it('refuses a literal default, saying what to write', async () => {
-    expect(await diagnostics('Raw("circle") @default("x")')).toEqual([
+    expect(await diagnostics(`Raw(sql${BACKTICK}circle${BACKTICK}) @default("x")`)).toEqual([
       expect.objectContaining({
         code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
         message: expect.stringContaining(`Expected sql${BACKTICK}...${BACKTICK}`),
