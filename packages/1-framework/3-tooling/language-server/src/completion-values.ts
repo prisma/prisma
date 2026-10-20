@@ -148,7 +148,7 @@ function valueItems(
   if (syntax === 'functionName') return [];
   if (qualifier !== undefined) return qualifiedItems(input, type, qualifier);
   if (type.kind === 'taggedLiteral' || type.kind === 'dataTypeValue') {
-    return type.tags.map((tag) => ({
+    const tags = type.tags.map((tag) => ({
       ...completionItem(
         input,
         tag,
@@ -158,6 +158,9 @@ function valueItems(
       ),
       detail: type.documentation,
     }));
+    return type.kind === 'dataTypeValue'
+      ? [...scalarItems(input, type.suggestions), ...tags]
+      : tags;
   }
   switch (type.kind) {
     case 'identifier':

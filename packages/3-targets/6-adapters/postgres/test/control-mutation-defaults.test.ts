@@ -1,4 +1,6 @@
 import { assembleControlMutationDefaults } from '@internal/framework-components/control';
+import { EMPTY_DATA_TYPES } from '@internal/psl-parser';
+import type { DefaultFunctionSignature } from '@internal/sql-contract-psl/attribute-specs';
 import { describe, expect, it } from 'vitest';
 import {
   createPostgresDefaultFunctionRegistry,
@@ -30,17 +32,19 @@ describe('createPostgresDefaultFunctionRegistry', () => {
     );
   });
 
-  it('retains declaration documentation in the opaque function registry', () => {
-    expect(registry.get('now')?.signature).toMatchObject({
+  it('declares each signature against the stack data types, taking a pg/int4 version', () => {
+    const signatureOf = (name: string) =>
+      (registry.get(name)!.signature as DefaultFunctionSignature)(EMPTY_DATA_TYPES);
+    expect(signatureOf('now')).toEqual({
       documentation: 'Uses the current database timestamp as the default value.',
     });
-    expect(registry.get('uuid')?.signature).toMatchObject({
+    expect(signatureOf('uuid')).toMatchObject({
       documentation: 'Generates a UUID when a value is not supplied.',
       positional: [
         {
           key: 'version',
           documentation: 'The UUID version: `4` or `7`. Defaults to `4`.',
-          type: { kind: 'oneOf', optional: true },
+          type: { kind: 'dataTypeValue', dataType: 'pg/int4', optional: true },
         },
       ],
     });

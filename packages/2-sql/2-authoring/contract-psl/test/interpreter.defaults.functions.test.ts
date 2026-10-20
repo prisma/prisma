@@ -222,7 +222,7 @@ model UuidNativeBad {
     expect(result.failure.diagnostics).toEqual([
       {
         code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
-        message: 'Attribute "cuid" is missing required argument "version"',
+        message: 'Default function "cuid" is missing required argument "version"',
         sourceId: 'schema.prisma',
         span: {
           start: { line: 3, column: 29, offset: 65 },

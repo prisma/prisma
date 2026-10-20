@@ -4252,9 +4252,6 @@ importers:
       '@internal/ids':
         specifier: workspace:8.0.0-rc.18
         version: link:../../../1-framework/2-authoring/ids
-      '@internal/psl-parser':
-        specifier: workspace:8.0.0-rc.18
-        version: link:../../../1-framework/2-authoring/psl-parser
       '@internal/sql-contract':
         specifier: workspace:8.0.0-rc.18
         version: link:../../../2-sql/1-core/contract
@@ -4295,6 +4292,9 @@ importers:
       '@internal/migration-tools':
         specifier: workspace:8.0.0-rc.18
         version: link:../../../1-framework/3-tooling/migration
+      '@internal/psl-parser':
+        specifier: workspace:8.0.0-rc.18
+        version: link:../../../1-framework/2-authoring/psl-parser
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.18
         version: link:../../../../test/utils
@@ -4401,9 +4401,6 @@ importers:
       '@internal/ids':
         specifier: workspace:8.0.0-rc.18
         version: link:../../../1-framework/2-authoring/ids
-      '@internal/psl-parser':
-        specifier: workspace:8.0.0-rc.18
-        version: link:../../../1-framework/2-authoring/psl-parser
       '@internal/sql-contract':
         specifier: workspace:8.0.0-rc.18
         version: link:../../../2-sql/1-core/contract

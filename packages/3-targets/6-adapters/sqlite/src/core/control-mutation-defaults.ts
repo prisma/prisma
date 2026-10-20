@@ -1,4 +1,5 @@
 import type { ExecutionMutationDefaultValue } from '@internal/contract/types';
+import { sqlDefaultFunctionSignatures } from '@internal/family-sql/control';
 import type {
   ControlMutationDefaultEntry,
   DefaultFunctionLoweringContext,
@@ -7,9 +8,8 @@ import type {
   TypedDefaultFunctionCall,
 } from '@internal/framework-components/control';
 import { timestampNowControlDescriptor } from '@internal/framework-components/control';
-import { builtinGeneratorRegistryMetadata } from '@internal/ids';
-import type { FuncCallSig } from '@internal/psl-parser';
-import { int, num, oneOf, optional } from '@internal/psl-parser';
+import { builtinGeneratorRegistryMetadata, UUID_VERSIONS } from '@internal/ids';
+import { sqliteInteger } from '@internal/target-sqlite/data-types';
 
 function executionGenerator(
   id: ExecutionMutationDefaultValue['id'],
@@ -56,7 +56,7 @@ function lowerUuid(input: {
   readonly call: TypedDefaultFunctionCall;
   readonly context: DefaultFunctionLoweringContext;
 }): LoweredDefaultResult {
-  return input.call.args['version'] === 7
+  return input.call.args['version'] === UUID_VERSIONS.v7
     ? executionGenerator('uuidv7')
     : executionGenerator('uuidv4');
 }
@@ -75,60 +75,15 @@ function lowerNanoid(input: {
     : executionGenerator('nanoid');
 }
 
-const nowSig: FuncCallSig = {
-  documentation: 'Uses the current database timestamp as the default value.',
-};
-const autoincrementSig: FuncCallSig = {
-  documentation: 'Generates an increasing integer value in the database.',
-};
-const ulidSig: FuncCallSig = { documentation: 'Generates a ULID when a value is not supplied.' };
-const uuidSig: FuncCallSig = {
-  documentation: 'Generates a UUID when a value is not supplied.',
-  positional: [
-    {
-      key: 'version',
-      type: optional(oneOf(num(4), num(7))),
-      documentation: 'The UUID version: `4` or `7`. Defaults to `4`.',
-    },
-  ],
-};
-const cuidSig: FuncCallSig = {
-  documentation: 'Generates a CUID2 identifier when a value is not supplied.',
-  positional: [
-    { key: 'version', type: num(2), documentation: 'The CUID version. Only `2` is supported.' },
-  ],
-};
-const nanoidSig: FuncCallSig = {
-  documentation: 'Generates a Nano ID when a value is not supplied.',
-  positional: [
-    {
-      key: 'size',
-      type: optional(int({ min: 2, max: 255 })),
-      documentation:
-        'The identifier length, from `2` through `255`. Omit to use the generator default.',
-    },
-  ],
-};
+const signatures = sqlDefaultFunctionSignatures({ integer: sqliteInteger.id });
+
 const sqliteDefaultFunctionRegistryEntries = [
-  [
-    'autoincrement',
-    {
-      signature: autoincrementSig,
-      lower: lowerAutoincrement,
-      usageSignatures: ['autoincrement()'],
-    },
-  ],
-  ['now', { signature: nowSig, lower: lowerNow, usageSignatures: ['now()'] }],
-  [
-    'uuid',
-    { signature: uuidSig, lower: lowerUuid, usageSignatures: ['uuid()', 'uuid(4)', 'uuid(7)'] },
-  ],
-  ['cuid', { signature: cuidSig, lower: lowerCuid, usageSignatures: ['cuid(2)'] }],
-  ['ulid', { signature: ulidSig, lower: lowerUlid, usageSignatures: ['ulid()'] }],
-  [
-    'nanoid',
-    { signature: nanoidSig, lower: lowerNanoid, usageSignatures: ['nanoid()', 'nanoid(<2-255>)'] },
-  ],
+  ['autoincrement', { ...signatures.autoincrement, lower: lowerAutoincrement }],
+  ['now', { ...signatures.now, lower: lowerNow }],
+  ['uuid', { ...signatures.uuid, lower: lowerUuid }],
+  ['cuid', { ...signatures.cuid, lower: lowerCuid }],
+  ['ulid', { ...signatures.ulid, lower: lowerUlid }],
+  ['nanoid', { ...signatures.nanoid, lower: lowerNanoid }],
 ] satisfies ReadonlyArray<readonly [string, ControlMutationDefaultEntry]>;
 
 export function createSqliteDefaultFunctionRegistry(): ReadonlyMap<

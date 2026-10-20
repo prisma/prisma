@@ -244,11 +244,17 @@ type DefaultArgValue =
   | EnumMemberDefault
   | EnumMemberListDefault;
 
+/** A default function's signature, built against the stack's data types, which its arguments are read as. */
+export type DefaultFunctionSignature = (dataTypes: DataTypeSupport) => FuncCallSig;
+
 function defaultFunctionArm(
   name: string,
   signature: FuncCallSig,
 ): ArgType<DefaultFunctionCall, AttributeCtx> {
-  return mapArg(funcCall(name, signature), (call) => ({ kind: 'default-function', call }));
+  return mapArg(funcCall(name, signature, { label: `Default function "${name}"` }), (call) => ({
+    kind: 'default-function',
+    call,
+  }));
 }
 
 /** The data type of the column a field declares, when its type, or the named type it is declared with, is a constructor or preset the stack knows. */
@@ -319,9 +325,9 @@ function scalarDefaultArms(
     defaultFunctionArm(
       name,
       blindCast<
-        FuncCallSig,
-        'The registry stores each signature opaquely as `unknown` because FuncCallSig lives in the authoring layer that core cannot name; the SQL family owns these entries and guarantees every one declares a FuncCallSig.'
-      >(entry.signature),
+        DefaultFunctionSignature,
+        'The registry stores each signature opaquely as `unknown` because FuncCallSig lives in the authoring layer that core cannot name; the SQL family owns these entries and guarantees every one declares a DefaultFunctionSignature.'
+      >(entry.signature)(dataTypes),
     ),
   );
   return isList

@@ -42,6 +42,7 @@ export function dataTypeValue(
     dataType,
     tags,
     documentation: support.entries[dataType]?.documentation ?? '',
+    suggestions: [],
     parse: (arg, ctx) => parseDataTypeValue(arg, ctx, dataType, support, forms),
   };
 }

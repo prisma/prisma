@@ -21,6 +21,11 @@ export type {
   SqlPslBuildContext,
 } from '../core/control-target-descriptor';
 export type {
+  SqlDefaultFunctionDeclaration,
+  SqlDefaultFunctionName,
+} from '../core/default-function-signatures';
+export { sqlDefaultFunctionSignatures } from '../core/default-function-signatures';
+export type {
   ContractToSchemaIROptions,
   DefaultResolver,
   DefaultResolverColumn,

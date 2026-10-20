@@ -25,6 +25,7 @@ import type {
   ControlMutationDefaultEntry,
   ControlMutationDefaults,
 } from '@internal/framework-components/control';
+import { CUID_VERSION, NANOID_SIZE, UUID_VERSIONS } from '@internal/ids';
 import type { FuncCallSig, PslBlockSpecDescriptor, SymbolTable } from '@internal/psl-parser';
 import {
   blockAttribute,
@@ -568,25 +569,22 @@ const uuidSig: FuncCallSig = {
   positional: [
     {
       key: 'version',
-      type: optional(oneOf(num(4), num(7))),
-      documentation: 'The UUID version: `4` or `7`. Defaults to `4`.',
+      type: optional(oneOf(num(UUID_VERSIONS.v4), num(UUID_VERSIONS.v7))),
+      documentation: 'The UUID version.',
     },
   ],
 };
 const cuidSig: FuncCallSig = {
   documentation: 'Generates a CUID2 identifier when a value is not supplied.',
-  positional: [
-    { key: 'version', type: num(2), documentation: 'The CUID version. Only `2` is supported.' },
-  ],
+  positional: [{ key: 'version', type: num(CUID_VERSION), documentation: 'The CUID version.' }],
 };
 const nanoidSig: FuncCallSig = {
   documentation: 'Generates a Nano ID when a value is not supplied.',
   positional: [
     {
       key: 'size',
-      type: optional(int({ min: 2, max: 255 })),
-      documentation:
-        'The identifier length, from `2` through `255`. Omit to use the generator default.',
+      type: optional(int(NANOID_SIZE)),
+      documentation: 'The identifier length.',
     },
   ],
 };
@@ -596,7 +594,7 @@ export function createBuiltinLikeControlMutationDefaults(): ControlMutationDefau
       [
         'autoincrement',
         {
-          signature: autoincrementSig,
+          signature: () => autoincrementSig,
           lower: () => ({
             ok: true as const,
             value: {
@@ -610,7 +608,7 @@ export function createBuiltinLikeControlMutationDefaults(): ControlMutationDefau
       [
         'now',
         {
-          signature: nowSig,
+          signature: () => nowSig,
           lower: () => ({
             ok: true as const,
             value: {
@@ -624,26 +622,26 @@ export function createBuiltinLikeControlMutationDefaults(): ControlMutationDefau
       [
         'uuid',
         {
-          signature: uuidSig,
+          signature: () => uuidSig,
           lower: ({ call }) =>
-            call.args['version'] === 7
+            call.args['version'] === UUID_VERSIONS.v7
               ? executionGenerator('uuidv7')
               : executionGenerator('uuidv4'),
-          usageSignatures: ['uuid()', 'uuid(4)', 'uuid(7)'],
+          usageSignatures: ['uuid()', `uuid(${UUID_VERSIONS.v4})`, `uuid(${UUID_VERSIONS.v7})`],
         },
       ],
       [
         'cuid',
         {
-          signature: cuidSig,
+          signature: () => cuidSig,
           lower: () => executionGenerator('cuid2'),
-          usageSignatures: ['cuid(2)'],
+          usageSignatures: [`cuid(${CUID_VERSION})`],
         },
       ],
       [
         'ulid',
         {
-          signature: ulidSig,
+          signature: () => ulidSig,
           lower: () => executionGenerator('ulid'),
           usageSignatures: ['ulid()'],
         },
@@ -651,14 +649,14 @@ export function createBuiltinLikeControlMutationDefaults(): ControlMutationDefau
       [
         'nanoid',
         {
-          signature: nanoidSig,
+          signature: () => nanoidSig,
           lower: ({ call }) => {
             const size = call.args['size'];
             return typeof size === 'number'
               ? executionGenerator('nanoid', { size })
               : executionGenerator('nanoid');
           },
-          usageSignatures: ['nanoid()', 'nanoid(<2-255>)'],
+          usageSignatures: ['nanoid()', `nanoid(<${NANOID_SIZE.min}-${NANOID_SIZE.max}>)`],
         },
       ],
     ]),

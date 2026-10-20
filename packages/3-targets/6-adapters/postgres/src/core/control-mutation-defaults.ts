@@ -1,4 +1,5 @@
 import type { ExecutionMutationDefaultValue } from '@internal/contract/types';
+import { sqlDefaultFunctionSignatures } from '@internal/family-sql/control';
 import type {
   ControlMutationDefaultEntry,
   DefaultFunctionLoweringContext,
@@ -7,10 +8,9 @@ import type {
   TypedDefaultFunctionCall,
 } from '@internal/framework-components/control';
 import { timestampNowControlDescriptor } from '@internal/framework-components/control';
-import { builtinGeneratorRegistryMetadata } from '@internal/ids';
-import type { FuncCallSig } from '@internal/psl-parser';
-import { int, num, oneOf, optional } from '@internal/psl-parser';
+import { builtinGeneratorRegistryMetadata, CUID_VERSION, UUID_VERSIONS } from '@internal/ids';
 import { postgresNowGeneratorControlDescriptors } from '@internal/target-postgres/control';
+import { pgInt4 } from '@internal/target-postgres/data-types';
 
 function executionGenerator(
   id: ExecutionMutationDefaultValue['id'],
@@ -57,7 +57,7 @@ function lowerUuid(input: {
   readonly call: TypedDefaultFunctionCall;
   readonly context: DefaultFunctionLoweringContext;
 }): LoweredDefaultResult {
-  return input.call.args['version'] === 7
+  return input.call.args['version'] === UUID_VERSIONS.v7
     ? executionGenerator('uuidv7')
     : executionGenerator('uuidv4');
 }
@@ -81,85 +81,35 @@ function printNanoidArguments(params: Readonly<Record<string, unknown>> | undefi
   return typeof size === 'number' ? String(size) : '';
 }
 
-const nowSig: FuncCallSig = {
-  documentation: 'Uses the current database timestamp as the default value.',
-};
-const autoincrementSig: FuncCallSig = {
-  documentation: 'Generates an increasing integer value in the database.',
-};
-const ulidSig: FuncCallSig = { documentation: 'Generates a ULID when a value is not supplied.' };
-const uuidSig: FuncCallSig = {
-  documentation: 'Generates a UUID when a value is not supplied.',
-  positional: [
-    {
-      key: 'version',
-      type: optional(oneOf(num(4), num(7))),
-      documentation: 'The UUID version: `4` or `7`. Defaults to `4`.',
-    },
-  ],
-};
-const cuidSig: FuncCallSig = {
-  documentation: 'Generates a CUID2 identifier when a value is not supplied.',
-  positional: [
-    { key: 'version', type: num(2), documentation: 'The CUID version. Only `2` is supported.' },
-  ],
-};
-const nanoidSig: FuncCallSig = {
-  documentation: 'Generates a Nano ID when a value is not supplied.',
-  positional: [
-    {
-      key: 'size',
-      type: optional(int({ min: 2, max: 255 })),
-      documentation:
-        'The identifier length, from `2` through `255`. Omit to use the generator default.',
-    },
-  ],
-};
+const signatures = sqlDefaultFunctionSignatures({ integer: pgInt4.id });
+
 const postgresDefaultFunctionRegistryEntries: ReadonlyArray<
   readonly [string, ControlMutationDefaultEntry]
 > = [
-  [
-    'autoincrement',
-    {
-      signature: autoincrementSig,
-      lower: lowerAutoincrement,
-      usageSignatures: ['autoincrement()'],
-    },
-  ],
-  ['now', { signature: nowSig, lower: lowerNow, usageSignatures: ['now()'] }],
+  ['autoincrement', { ...signatures.autoincrement, lower: lowerAutoincrement }],
+  ['now', { ...signatures.now, lower: lowerNow }],
   [
     'uuid',
     {
-      signature: uuidSig,
+      ...signatures.uuid,
       lower: lowerUuid,
-      usageSignatures: ['uuid()', 'uuid(4)', 'uuid(7)'],
-      printArguments: { uuidv4: () => '', uuidv7: () => '7' },
+      printArguments: { uuidv4: () => '', uuidv7: () => String(UUID_VERSIONS.v7) },
     },
   ],
   [
     'cuid',
     {
-      signature: cuidSig,
+      ...signatures.cuid,
       lower: lowerCuid,
-      usageSignatures: ['cuid(2)'],
-      printArguments: { cuid2: () => '2' },
+      printArguments: { cuid2: () => String(CUID_VERSION) },
     },
   ],
-  [
-    'ulid',
-    {
-      signature: ulidSig,
-      lower: lowerUlid,
-      usageSignatures: ['ulid()'],
-      printArguments: { ulid: () => '' },
-    },
-  ],
+  ['ulid', { ...signatures.ulid, lower: lowerUlid, printArguments: { ulid: () => '' } }],
   [
     'nanoid',
     {
-      signature: nanoidSig,
+      ...signatures.nanoid,
       lower: lowerNanoid,
-      usageSignatures: ['nanoid()', 'nanoid(<2-255>)'],
       printArguments: { nanoid: printNanoidArguments },
     },
   ],
