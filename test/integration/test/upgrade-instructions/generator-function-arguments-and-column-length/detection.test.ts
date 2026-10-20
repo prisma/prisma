@@ -10,7 +10,7 @@ function detectionOf(audience: 'app' | 'extension', id: string): readonly RegExp
   const guide = readFileSync(
     join(
       repoRoot,
-      'upgrade-instructions/pending/default-function-arguments-and-generator-data-types',
+      'upgrade-instructions/pending/generator-function-arguments-and-column-length',
       audience,
       'instructions.md',
     ),
@@ -75,39 +75,34 @@ describe('app detection', () => {
       'a String @default(nanoid())',
     ],
     [
-      'default-function-argument-with-fraction',
+      'generator-function-argument-with-fraction',
       'a String @default(nanoid(8.0))',
       'a String @default(nanoid(8))',
     ],
     [
-      'default-function-argument-with-fraction',
+      'generator-function-argument-with-fraction',
       'id String @default(uuid(7.0))',
       'id String @default(uuid(7))',
     ],
     [
-      'default-function-argument-diagnostics',
+      'generator-function-argument-diagnostics',
       "expect(message).toBe('Expected one of: 4 | 7');",
       "expect(message).toBe('uuid: version must be 4 or 7, got 5');",
     ],
     [
-      'default-function-argument-diagnostics',
+      'generator-function-argument-diagnostics',
       "expect(message).toBe('Expected an integer between 2 and 255');",
       "expect(message).toBe('nanoid: size must be between 2 and 255, got 1');",
     ],
     [
-      'default-function-argument-diagnostics',
+      'generator-function-argument-diagnostics',
       `expect(message).toBe('Attribute "cuid" is missing required argument "version"');`,
-      `expect(message).toBe('Default function "cuid" is missing required argument "version"');`,
+      `expect(message).toBe('Generator function "cuid" is missing required argument "version"');`,
     ],
     [
-      'default-function-argument-diagnostics',
+      'generator-function-argument-diagnostics',
       '{"message": "Attribute \\"nanoid\\" received too many positional arguments"}',
       '{"message": "Attribute \\"map\\" received too many positional arguments"}',
-    ],
-    [
-      'generator-applicability-names-data-type',
-      `'Default generator "uuidv4" is not applicable to "Row.value" with codecId "pg/int4@1".'`,
-      `'Default generator "uuidv4" is not applicable to "Row.value" with data type "pg/int4".'`,
     ],
     [
       'discriminator-must-be-text',
@@ -137,24 +132,19 @@ describe('app detection of the discriminator message', () => {
 describe('extension detection', () => {
   it.each([
     [
-      'generator-applicable-data-types',
-      "generatorDescriptors: [{ id: 'slugid', applicableCodecIds: ['pg/text@1'] }],",
-      "generatorDescriptors: [{ id: 'slugid', applicableDataTypes: [dataTypeId('pg/text')] }],",
+      'sql-target-declares-integer-argument-generators',
+      'generatorFunctions: [...idGeneratorFunctionBindings({ text: [MY_TEXT_CODEC_ID] })],',
+      'generatorFunctions: [...sqlIntegerArgumentGeneratorFunctions({ integer: myInt4.id }), ...idGeneratorFunctionBindings({ text: [MY_TEXT_CODEC_ID] })],',
     ],
     [
-      'builtin-generator-metadata-writes-uuid',
-      'builtinGeneratorRegistryMetadata.map(({ id, applicableCodecIds }) => ({ id, applicableCodecIds }))',
-      'sqlBuiltinGeneratorDescriptors({ uuid: [pgUuid.id] })',
-    ],
-    [
-      'generator-applicability-names-data-type',
-      `expect(message).toContain('with codecId "pg/int4@1"');`,
-      `expect(message).toContain('with data type "pg/int4"');`,
-    ],
-    [
-      'default-function-signature-from-data-types',
+      'generator-signature-from-data-types',
       'for (const [name, entry] of stack.defaultFunctionRegistry) arms.push(funcCall(name, entry.signature as FuncCallSig));',
       'for (const [name, entry] of stack.defaultFunctionRegistry) arms.push(defaultFunctionCall(name, entry, dataTypes));',
+    ],
+    [
+      'generator-signature-from-data-types',
+      'for (const fn of pack.generatorFunctions) arms.push(funcCall(fn.name, fn.signature as FuncCallSig));',
+      'for (const { name, signature } of pack.generatorFunctions) arms.push(generatorFunctionCall(name, signature, dataTypes));',
     ],
     [
       'arg-binding-spec-label',
@@ -182,7 +172,7 @@ describe('extension detection', () => {
     expect(
       detects(
         'extension',
-        'default-function-signature-from-data-types',
+        'generator-signature-from-data-types',
         'const label = type.signature.documentation;',
       ),
     ).toBe(false);
