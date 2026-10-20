@@ -1,8 +1,4 @@
-import {
-  buildExecutionSection,
-  computeProfileHash,
-  computeStorageHash,
-} from '@internal/contract/hashing';
+import { buildExecutionSection, computeProfileHash } from '@internal/contract/hashing';
 import {
   type ContractEmbedRelation,
   type ContractEnum,
@@ -47,7 +43,7 @@ import {
   instantiateAuthoringFieldPreset,
   validateAuthoringHelperArguments,
 } from '@internal/framework-components/authoring';
-import { assembleDataTypes } from '@internal/framework-components/codec';
+import { assembleDataTypes, type TypeLookups } from '@internal/framework-components/codec';
 import type {
   ExtensionPackRef,
   FamilyPackRef,
@@ -57,7 +53,8 @@ import { extractCodecLookup } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   applyPolymorphicScopeToMongoIndex,
-  buildMongoNamespace,
+  buildMongoStorage,
+  deriveCollectionValidators,
   type MongoCollection,
   type MongoCollectionInput,
   MongoCollectionOptions,
@@ -70,17 +67,16 @@ import {
   type MongoIndexFields,
   type MongoIndexInput,
   type MongoIndexOptionsInput,
-  MongoStorage,
   type MongoStorageShape,
   type MongoTypeMaps,
   mongoValueSetsOf,
 } from '@internal/mongo-contract';
-import { mongoContractCanonicalizationHooks } from '@internal/mongo-contract/canonicalization-hooks';
 import { assertMongoFieldTypeParams } from '@internal/mongo-contract/data-type';
 import type { BsonInputValue, BsonValue } from '@internal/mongo-value';
 import { canonicalStringify } from '@internal/utils/canonical-stringify';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
+import { assertCollectionValidatorSources } from './collection-validator-checks';
 import { contractError } from './contract-errors';
 import type { EnumTypeHandle } from './enum-type';
 
@@ -2498,18 +2494,19 @@ function buildContractFromDefinition<
     defaults: buildExecutionDefaults(definition.models),
   });
 
-  const codecLookup = extractCodecLookup([definition.target]);
   const components = [
     definition.family,
     definition.target,
     ...Object.values(definition.extensions ?? {}),
   ];
+  const codecLookup = extractCodecLookup(components);
+  const lookups: TypeLookups = {
+    codecLookup,
+    dataTypeLookup: assembleDataTypes(components).lookup,
+  };
   assertMongoFieldTypeParams(
     { [UNBOUND_NAMESPACE_ID]: { models: builtModels, valueObjects: builtValueObjects } },
-    {
-      codecLookup: extractCodecLookup(components),
-      dataTypeLookup: assembleDataTypes(components).lookup,
-    },
+    lookups,
   );
 
   const builtEnums: Record<string, ContractEnum> = {};
@@ -2520,40 +2517,6 @@ function buildContractFromDefinition<
     };
   }
   const storageValueSets = mongoValueSetsOf(builtEnums);
-  const hasValueSets = Object.keys(storageValueSets).length > 0;
-
-  const unboundNamespace = buildMongoNamespace({
-    id: UNBOUND_NAMESPACE_ID,
-    entries: {
-      collection: collections,
-      ...ifDefined('valueSet', hasValueSets ? storageValueSets : undefined),
-    },
-  });
-  // Hash the constructed (normalized) entries, not the raw input literals —
-  // persisted storageHash values were computed over the constructed form.
-  const storageBody = {
-    namespaces: {
-      [UNBOUND_NAMESPACE_ID]: {
-        id: UNBOUND_NAMESPACE_ID,
-        collections: unboundNamespace.entries.collection,
-        ...ifDefined('valueSet', unboundNamespace.entries.valueSet),
-      },
-    },
-  };
-
-  const storageHash = computeStorageHash({
-    target: definition.target.targetId,
-    targetFamily: definition.family.familyId,
-    storage: storageBody,
-    ...mongoContractCanonicalizationHooks,
-  });
-
-  const storage: MongoStorageShape<string> = new MongoStorage({
-    storageHash,
-    namespaces: {
-      [UNBOUND_NAMESPACE_ID]: unboundNamespace,
-    },
-  });
 
   for (const [enumName, handle] of Object.entries(definition.enums ?? {})) {
     if (enumName !== handle.enumName) {
@@ -2584,6 +2547,36 @@ function buildContractFromDefinition<
       }
     }
   }
+
+  const controlPolicies = {
+    collections: Object.fromEntries(
+      Object.entries(collections).map(([name, collection]) => [name, collection.control]),
+    ),
+    defaultControlPolicy: definition.defaultControlPolicy,
+  };
+  assertCollectionValidatorSources({
+    models: builtModels,
+    valueObjects: builtValueObjects,
+    enums: builtEnums,
+    lookups,
+    controlPolicies,
+  });
+  const validators = deriveCollectionValidators({
+    models: builtModels,
+    lookups,
+    valueObjects: builtValueObjects,
+    valueSets: storageValueSets,
+    controlPolicies,
+  });
+  const storage: MongoStorageShape<string> = buildMongoStorage({
+    collections: Object.fromEntries(
+      Object.entries(collections).map(([name, collection]) => [
+        name,
+        { ...collection, ...ifDefined('validator', validators[name]) },
+      ]),
+    ),
+    valueSets: storageValueSets,
+  });
 
   const builtContract = {
     target: definition.target.targetId,

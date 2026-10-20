@@ -96,8 +96,8 @@ describe('deriveCollectionValidators — fields', () => {
     const result = rootValidator({ tags: field });
     expect(result.jsonSchema).toEqual({
       bsonType: 'object',
-      ...(required ? { required } : {}),
-      properties: { tags: { bsonType, items } },
+      required: ['_id', ...(required ?? [])],
+      properties: { _id: { bsonType: 'objectId' }, tags: { bsonType, items } },
       additionalProperties: false,
     });
   });
@@ -139,8 +139,9 @@ describe('deriveCollectionValidators — fields', () => {
       );
       expect(result.jsonSchema).toEqual({
         bsonType: 'object',
-        ...(nullable ? {} : { required: ['roles'] }),
+        required: nullable ? ['_id'] : ['_id', 'roles'],
         properties: {
+          _id: { bsonType: 'objectId' },
           roles: {
             bsonType,
             items,
@@ -241,8 +242,9 @@ describe('deriveCollectionValidators — fields', () => {
     };
     expect(result.jsonSchema).toEqual({
       bsonType: 'object',
-      ...(nullable ? {} : { required: ['tags'] }),
+      required: nullable ? ['_id'] : ['_id', 'tags'],
       properties: {
+        _id: { bsonType: 'objectId' },
         tags: {
           bsonType,
           items: elementNullable ? { oneOf: [{ bsonType: 'null' }, objectSchema] } : objectSchema,
@@ -252,12 +254,13 @@ describe('deriveCollectionValidators — fields', () => {
     });
   });
 
-  it('derives a minimal closed schema from an empty field set', () => {
+  it('derives a schema that requires only the document id from an empty field set', () => {
     const result = rootValidator({});
 
     expect(result.jsonSchema).toEqual({
       bsonType: 'object',
-      properties: {},
+      required: ['_id'],
+      properties: { _id: { bsonType: 'objectId' } },
       additionalProperties: false,
     });
   });
@@ -283,22 +286,13 @@ describe('deriveCollectionValidators — fields', () => {
     });
   });
 
-  it('skips fields with unknown codec IDs', () => {
-    const result = rootValidator({
-      _id: scalarField('mongo/objectId@1'),
-      name: scalarField('mongo/string@1'),
-      custom: scalarField('custom/unknown@1'),
-    });
-
-    expect(result.jsonSchema).toEqual({
-      bsonType: 'object',
-      required: ['_id', 'name'],
-      properties: {
-        _id: { bsonType: 'objectId' },
-        name: { bsonType: 'string' },
-      },
-      additionalProperties: false,
-    });
+  it('refuses a field whose codec has no MongoDB data type, rather than leave it out', () => {
+    expect(() =>
+      rootValidator({
+        _id: scalarField('mongo/objectId@1'),
+        custom: scalarField('custom/unknown@1'),
+      }),
+    ).toThrow('Field codec "custom/unknown@1" has no MongoDB data type');
   });
 
   it('handles nested value objects (recursive), closing every level', () => {

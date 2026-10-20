@@ -8,6 +8,10 @@
       "model": "Post",
       "namespace": "__unbound__"
     },
+    "tasks": {
+      "model": "Task",
+      "namespace": "__unbound__"
+    },
     "users": {
       "model": "User",
       "namespace": "__unbound__"
@@ -16,7 +20,63 @@
   "domain": {
     "namespaces": {
       "__unbound__": {
+        "enum": {
+          "Role": {
+            "codecId": "mongo/string@1",
+            "members": [
+              {
+                "name": "Member",
+                "value": "member"
+              },
+              {
+                "name": "Editor",
+                "value": "editor"
+              }
+            ]
+          }
+        },
         "models": {
+          "Admin": {
+            "fields": {
+              "_id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
+                  "kind": "scalar"
+                }
+              },
+              "level": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/int32@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "collection": "users"
+            }
+          },
+          "Bug": {
+            "base": {
+              "model": "Task",
+              "namespace": "__unbound__"
+            },
+            "fields": {
+              "severity": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/int32@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "collection": "tasks"
+            }
+          },
           "Post": {
             "fields": {
               "_id": {
@@ -70,6 +130,44 @@
               "collection": "posts"
             }
           },
+          "Task": {
+            "discriminator": {
+              "field": "type"
+            },
+            "fields": {
+              "_id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
+                  "kind": "scalar"
+                }
+              },
+              "title": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              },
+              "type": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "collection": "tasks"
+            },
+            "variants": {
+              "bug": {
+                "model": "Bug",
+                "namespace": "__unbound__"
+              }
+            }
+          },
           "User": {
             "fields": {
               "_id": {
@@ -77,6 +175,13 @@
                 "type": {
                   "codecId": "mongo/objectId@1",
                   "kind": "scalar"
+                }
+              },
+              "address": {
+                "nullable": true,
+                "type": {
+                  "kind": "valueObject",
+                  "name": "Address"
                 }
               },
               "bio": {
@@ -99,6 +204,19 @@
                   "codecId": "mongo/string@1",
                   "kind": "scalar"
                 }
+              },
+              "role": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "Role",
+                  "namespaceId": "__unbound__",
+                  "plane": "domain"
+                }
               }
             },
             "relations": {
@@ -120,6 +238,26 @@
             },
             "storage": {
               "collection": "users"
+            }
+          }
+        },
+        "valueObjects": {
+          "Address": {
+            "fields": {
+              "street": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              },
+              "zip": {
+                "nullable": true,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              }
             }
           }
         }
@@ -165,39 +303,154 @@
                 "validationLevel": "strict"
               }
             },
-            "users": {
+            "tasks": {
               "kind": "mongo-collection",
               "validator": {
                 "jsonSchema": {
-                  "additionalProperties": false,
                   "bsonType": "object",
+                  "oneOf": [
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "_id": {
+                          "bsonType": "objectId"
+                        },
+                        "severity": {
+                          "bsonType": "int"
+                        },
+                        "title": {
+                          "bsonType": "string"
+                        },
+                        "type": {
+                          "enum": [
+                            "bug"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "severity",
+                        "type"
+                      ]
+                    }
+                  ],
                   "properties": {
                     "_id": {
                       "bsonType": "objectId"
                     },
-                    "bio": {
-                      "bsonType": [
-                        "null",
-                        "string"
-                      ]
-                    },
-                    "email": {
+                    "title": {
                       "bsonType": "string"
                     },
-                    "name": {
+                    "type": {
                       "bsonType": "string"
                     }
                   },
                   "required": [
                     "_id",
-                    "email",
-                    "name"
+                    "title",
+                    "type"
                   ]
                 },
                 "kind": "mongo-validator",
                 "validationAction": "error",
                 "validationLevel": "strict"
               }
+            },
+            "users": {
+              "kind": "mongo-collection",
+              "validator": {
+                "jsonSchema": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": false,
+                      "bsonType": "object",
+                      "properties": {
+                        "_id": {
+                          "bsonType": "objectId"
+                        },
+                        "level": {
+                          "bsonType": "int"
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "level"
+                      ]
+                    },
+                    {
+                      "additionalProperties": false,
+                      "bsonType": "object",
+                      "properties": {
+                        "_id": {
+                          "bsonType": "objectId"
+                        },
+                        "address": {
+                          "oneOf": [
+                            {
+                              "bsonType": "null"
+                            },
+                            {
+                              "additionalProperties": false,
+                              "bsonType": "object",
+                              "properties": {
+                                "street": {
+                                  "bsonType": "string"
+                                },
+                                "zip": {
+                                  "bsonType": [
+                                    "null",
+                                    "string"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "street"
+                              ]
+                            }
+                          ]
+                        },
+                        "bio": {
+                          "bsonType": [
+                            "null",
+                            "string"
+                          ]
+                        },
+                        "email": {
+                          "bsonType": "string"
+                        },
+                        "name": {
+                          "bsonType": "string"
+                        },
+                        "role": {
+                          "bsonType": "string",
+                          "enum": [
+                            "member",
+                            "editor"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "_id",
+                        "email",
+                        "name",
+                        "role"
+                      ]
+                    }
+                  ],
+                  "bsonType": "object"
+                },
+                "kind": "mongo-validator",
+                "validationAction": "error",
+                "validationLevel": "strict"
+              }
+            }
+          },
+          "valueSet": {
+            "Role": {
+              "kind": "valueSet",
+              "values": [
+                "member",
+                "editor"
+              ]
             }
           }
         },
@@ -205,7 +458,7 @@
         "kind": "mongo-database"
       }
     },
-    "storageHash": "564487ff1e220862e292ca0cbd2f6b4048b93038a20daaeb2faeba00b3703c71"
+    "storageHash": "9d0d8d271546a3ca3180095b1adaf549c22edf1cc8f8d2b63f92fe219df7d677"
   },
   "capabilities": {},
   "extensions": {},

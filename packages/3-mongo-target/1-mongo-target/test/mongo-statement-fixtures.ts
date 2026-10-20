@@ -35,6 +35,8 @@ export interface CollectionSpec {
   readonly required?: readonly string[];
   readonly control?: ControlPolicy;
   readonly timeField?: string;
+  /** The validator's whole `$jsonSchema`, in place of the one `required` gives. */
+  readonly jsonSchema?: Record<string, unknown>;
 }
 
 export function jsonSchema(fields: readonly string[]) {
@@ -47,6 +49,15 @@ export function jsonSchema(fields: readonly string[]) {
     ]),
     additionalProperties: false,
   };
+}
+
+/** The validator of a collection that stores one root model per entry of `fieldLists`. */
+export function sharedJsonSchema(...fieldLists: readonly (readonly string[])[]) {
+  return { bsonType: 'object', anyOf: fieldLists.map(jsonSchema) };
+}
+
+function validatorJsonSchemaOf(spec: CollectionSpec): Record<string, unknown> | undefined {
+  return spec.jsonSchema ?? (spec.required === undefined ? undefined : jsonSchema(spec.required));
 }
 
 export function contract(
@@ -116,11 +127,11 @@ export function contract(
                     keys: [{ field, direction: 1 as const }],
                     unique: true,
                   })),
-                  ...(spec.required === undefined
+                  ...(validatorJsonSchemaOf(spec) === undefined
                     ? {}
                     : {
                         validator: {
-                          jsonSchema: jsonSchema(spec.required),
+                          jsonSchema: validatorJsonSchemaOf(spec) ?? {},
                           validationLevel: 'strict' as const,
                           validationAction: 'error' as const,
                         },
@@ -148,11 +159,11 @@ export function schemaCollection(
     indexes: (spec.unique ?? []).map(
       (field) => new MongoSchemaIndex({ keys: [{ field, direction: 1 }], unique: true }),
     ),
-    ...(spec.required === undefined
+    ...(validatorJsonSchemaOf(spec) === undefined
       ? {}
       : {
           validator: new MongoSchemaValidator({
-            jsonSchema: jsonSchema(spec.required),
+            jsonSchema: validatorJsonSchemaOf(spec) ?? {},
             validationLevel: 'strict',
             validationAction: 'error',
           }),
