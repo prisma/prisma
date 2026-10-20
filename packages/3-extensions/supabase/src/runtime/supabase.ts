@@ -364,11 +364,11 @@ export default async function supabase<
     if (connectError !== undefined) {
       throw connectError.error;
     }
+    if (closed && runtimes?.ownedPool === undefined) {
+      throw closedClientError();
+    }
     if (runtimes !== undefined) {
       return runtimes;
-    }
-    if (closed) {
-      throw closedClientError();
     }
 
     const driverDescriptor = stack.driver;
@@ -562,9 +562,8 @@ export default async function supabase<
   async function closeDb(): Promise<void> {
     if (closed) return;
     closed = true;
-    if (runtimes === undefined) return;
+    if (runtimes?.ownedPool === undefined) return;
     await runtimes.runtime.close();
-    await runtimes.ownedPool?.end().catch(() => undefined);
   }
 
   return {

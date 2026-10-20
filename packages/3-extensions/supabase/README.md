@@ -111,6 +111,8 @@ Pass `log` (an object with `info`, `warn`, `error` and an optional `debug` metho
 
 `mode` is `'strict'` by default, and every `budgets()` violation throws. Pass `mode: 'permissive'` and a violation whose severity is `'warn'` goes to `log.warn` instead, and the query runs; a violation whose severity is `'error'` still throws. `budgets()` gives latency `'warn'` and the row count `'error'` by default, so a row-count limit warns only with `severities: { rowCount: 'warn' }`.
 
+`db.close()` ends the pool the client created from `url`. A `pg.Pool` you pass in stays open, as with `postgres()`; you own its lifecycle. After `close()`, a query on the client is refused with `DRIVER.NOT_CONNECTED`.
+
 **Role binding is structurally unbypassable.** Each role-bound query runs on a connection that has had `set_config('role', …, false)` and `set_config('request.jwt.claims', …, false)` applied *below* the user-middleware chain, with `RESET ALL` on release — user middleware can neither observe nor suppress it, and no role leaks across pool checkouts. See [ADR 230](../../../docs/architecture%20docs/adrs/ADR%20230%20-%20Runtime%20target%20layer%20session-coupled%20connections.md).
 
 ### JWT validation

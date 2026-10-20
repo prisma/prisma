@@ -20,6 +20,9 @@ vi.mock('pg', () => {
     end = vi.fn(async () => {
       created.poolEnds += 1;
     });
+    totalCount = 0;
+    idleCount = 0;
+    waitingCount = 0;
     constructor() {
       created.pools += 1;
     }
@@ -32,6 +35,7 @@ vi.mock('pg', () => {
   return { Pool, Client };
 });
 
+import { Pool } from 'pg';
 import supabase from '../src/runtime/supabase';
 import type { Contract } from './fixtures/example-app/contract';
 import contractJson from './fixtures/example-app/contract.json' with { type: 'json' };
@@ -136,6 +140,31 @@ describe('a supabase client given a URL', () => {
     await expect(anon.query(plan).toArray()).rejects.toThrow();
 
     expect(() => anon.query(plan)).toThrow('connect failed');
+    expect(created.poolEnds).toBe(1);
+  });
+
+  it('leaves a pool the caller passed in open when it is closed, and refuses later queries', async () => {
+    const pool = new Pool();
+    const db = await supabase({ contract, pg: pool, jwtSecret, verifyMarker: false });
+    const anon = db.asAnon();
+    const plan = anon.sql.public.profile.select('id').build();
+
+    await anon.query(plan).toArray();
+    await db.close();
+
+    expect(created.poolEnds).toBe(0);
+    expect(() => anon.query(plan)).toThrow(
+      expect.objectContaining({ code: 'DRIVER.NOT_CONNECTED' }),
+    );
+  });
+
+  it('ends the pool it created when it is closed', async () => {
+    const db = await supabase({ contract, url, jwtSecret, verifyMarker: false });
+    const anon = db.asAnon();
+
+    await anon.query(anon.sql.public.profile.select('id').build()).toArray();
+    await db.close();
+
     expect(created.poolEnds).toBe(1);
   });
 
