@@ -17,6 +17,7 @@ import type { Contract } from './_fixture/generated/contract';
 import emittedContractJson from './_fixture/generated/contract.json' with { type: 'json' };
 
 const fixtureDir = join(dirname(fileURLToPath(import.meta.url)), '_fixture');
+const attributesFixtureDir = join(dirname(fileURLToPath(import.meta.url)), '_fixture-attributes');
 
 const mongoStack = createControlStack({
   family: mongoFamilyDescriptor,
@@ -32,6 +33,7 @@ const sourceContext: ContractSourceContext = {
   codecLookup: mongoStack.codecLookup,
   dataTypes: mongoStack.dataTypes,
   controlMutationDefaults: mongoStack.controlMutationDefaults,
+  generatorFunctions: mongoStack.generatorFunctions,
   resolvedInputs: [],
   capabilities: mongoStack.capabilities,
 };
@@ -86,6 +88,29 @@ describe('Mongo temporal presets from PSL and TS', () => {
       if (!pslResult.ok) throw new Error(JSON.stringify(pslResult.failure));
       const { contract: tsContract } = (await import(
         pathToFileURL(join(fixtureDir, 'contract.ts')).href
+      )) as { readonly contract: FrameworkContract };
+
+      const fromPsl = await emitNormalized(pslResult.value);
+      const fromTs = await emitNormalized(tsContract);
+
+      expect(fromPsl['execution']).toEqual(emittedContractJson.execution);
+      expect(fromTs['execution']).toEqual(fromPsl['execution']);
+      expect(withoutKnownStorageGap(fromTs)).toEqual(withoutKnownStorageGap(fromPsl));
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'emit the same contract from the gen calls of the facade as from @onCreate(now()) and @onUpdate(now())',
+    async () => {
+      const pslPath = join(attributesFixtureDir, 'contract.prisma');
+      const pslResult = await mongoContract(pslPath).source.load({
+        ...sourceContext,
+        resolvedInputs: [pslPath],
+      });
+      if (!pslResult.ok) throw new Error(JSON.stringify(pslResult.failure));
+      const { contract: tsContract } = (await import(
+        pathToFileURL(join(attributesFixtureDir, 'contract.ts')).href
       )) as { readonly contract: FrameworkContract };
 
       const fromPsl = await emitNormalized(pslResult.value);

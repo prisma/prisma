@@ -1,5 +1,6 @@
-import type { ExecutionMutationDefaultValue } from '@internal/contract/types';
 import { TIMESTAMP_NOW_GENERATOR_ID } from '@internal/framework-components/authoring';
+import type { GeneratorFunctionContribution } from '@internal/framework-components/components';
+import { singleGeneratorBinding } from '@internal/framework-components/components';
 import {
   PG_DATE_STRING_CODEC_ID,
   PG_DATE_TEMPORAL_CODEC_ID,
@@ -53,16 +54,20 @@ export const postgresNowGeneratorTakesPrecision = {
   [PG_TIMETZ_CODEC_ID]: true,
 } as const;
 
-/** The "now" generator for a column, with the column's precision as its param when it takes one; `undefined` when the codec has none. */
-export function postgresNowGeneratorFor(column: {
-  readonly codecId: string;
-  readonly typeParams?: Readonly<Record<string, unknown>> | undefined;
-}): ExecutionMutationDefaultValue | undefined {
-  const id = postgresNowGeneratorIdFor(column.codecId);
-  if (id === undefined) return undefined;
-  const precision = column.typeParams?.['precision'];
-  return Object.hasOwn(postgresNowGeneratorTakesPrecision, column.codecId) &&
-    typeof precision === 'number'
-    ? { kind: 'generator', id, params: { precision } }
-    : { kind: 'generator', id };
-}
+/** The `now` generator function bound to each Postgres date and time codec, with the column's precision on the three time codecs. */
+export const postgresNowGeneratorFunction: GeneratorFunctionContribution = {
+  name: 'now',
+  bindings: Object.entries(postgresNowGeneratorIds).map(([codecId, generatorId]) =>
+    singleGeneratorBinding({
+      codecIds: [codecId],
+      generatorId,
+      paramsFromField: (column) => {
+        const precision = column.typeParams?.['precision'];
+        return Object.hasOwn(postgresNowGeneratorTakesPrecision, codecId) &&
+          typeof precision === 'number'
+          ? { precision }
+          : undefined;
+      },
+    }),
+  ),
+};

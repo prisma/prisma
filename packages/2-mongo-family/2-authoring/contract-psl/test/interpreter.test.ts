@@ -9,6 +9,7 @@ import {
 } from '@internal/contract/types';
 import { enumType, member } from '@internal/contract-authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   buildMongoNamespace,
@@ -242,6 +243,7 @@ model Item {
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedMongoAttribute },
       codecLookup: mongoCodecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: { entries: {}, lookup: mongoDataTypeLookup, dataTypeOfCodec: () => undefined },
       resolvedInputs: [],
       capabilities: {},
@@ -267,6 +269,7 @@ model Item {
         dataTypes: context.dataTypes,
         codecLookup: context.codecLookup,
         authoringContributions: context.authoringContributions,
+        generatorFunctions: context.generatorFunctions,
       }),
       mapPslDiagnostics([...symbolTableDiagnostics, ...binderDiagnostics], input.sources),
     );

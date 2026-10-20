@@ -11,6 +11,7 @@ import {
   dataType,
   readJsonString,
 } from '@internal/framework-components/codec';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import { mongoCodecLookup } from '@internal/mongo-contract/test';
 import { jsonValue, mapBlock } from '@internal/psl-parser';
 import { join } from 'pathe';
@@ -108,6 +109,7 @@ function createMongoTestContext(overrides?: Partial<ContractSourceContext>): Con
       defaultFunctionRegistry: new Map(),
       generatorDescriptors: [],
     },
+    generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     resolvedInputs: [],
     capabilities: {},
     ...overrides,

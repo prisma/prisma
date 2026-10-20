@@ -1,3 +1,4 @@
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 /**
  * Managed native-enum add-value migration against a REAL PostgreSQL server
  * (not PGlite): plans and applies `ALTER TYPE … ADD VALUE`, then proves the
@@ -123,6 +124,7 @@ function buildContractFromPsl(psl: string, control: ControlPolicy): Contract<Sql
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
       codecLookup: createPostgresBuiltinCodecLookup(),
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: {
         entries: assembled.dataTypes,
         lookup: postgresDataTypeLookup,

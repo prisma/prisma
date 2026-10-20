@@ -13,6 +13,7 @@ import {
   type ExecutionHashBase,
   type ExecutionMutationDefault,
   type ExecutionMutationDefaultPhases,
+  type ExecutionMutationDefaultValue,
   type FieldTypesFromDomain,
   type JsonValue,
   type ProfileHashBase,
@@ -43,10 +44,17 @@ import {
   validateAuthoringHelperArguments,
 } from '@internal/framework-components/authoring';
 import { assembleDataTypes, type TypeLookups } from '@internal/framework-components/codec';
-import type {
-  ExtensionPackRef,
-  FamilyPackRef,
-  TargetPackRef,
+import {
+  assembleGeneratorFunctions,
+  createGeneratorHelpers,
+  type ExtensionPackRef,
+  type ExtensionPackValues,
+  type FamilyPackRef,
+  type GeneratorFunctionCall,
+  type GeneratorFunctionRegistry,
+  type GeneratorHelpersOf,
+  type GeneratorPhase,
+  type TargetPackRef,
 } from '@internal/framework-components/components';
 import { extractCodecLookup } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
@@ -235,6 +243,30 @@ export interface FieldBuilder<
   readonly __enumHandle: Handle;
   readonly __executionDefaults?: ExecutionDefaults;
   readonly __storedName: StoredName;
+  /** The generator function calls `.onCreate(...)` and `.onUpdate(...)` give, resolved by the field's codec when the contract is built. */
+  readonly __generatorCalls?: FieldGeneratorCalls;
+  /** Generates the field's value in the client when a document is created without one, with a call from `gen`, such as `gen.now()`. */
+  onCreate(
+    call: GeneratorFunctionCall,
+  ): FieldBuilder<
+    Type,
+    Nullable,
+    Many,
+    Handle,
+    WithGeneratedPhase<ExecutionDefaults, 'onCreate'>,
+    StoredName
+  >;
+  /** Generates the field's value in the client every time a document is updated, with a call from `gen`, such as `gen.now()`. */
+  onUpdate(
+    call: GeneratorFunctionCall,
+  ): FieldBuilder<
+    Type,
+    Nullable,
+    Many,
+    Handle,
+    WithGeneratedPhase<ExecutionDefaults, 'onUpdate'>,
+    StoredName
+  >;
   readonly optional: FilledOnWrite<ExecutionDefaults> extends true
     ? (this: 'A preset fills this field on write, so it cannot be optional') => never
     : () => FieldBuilder<Type, true, Many, Handle, ExecutionDefaults, StoredName>;
@@ -275,6 +307,18 @@ export interface FieldBuilder<
     readonly field: Field;
   }) => FieldBuilder<Type, Nullable, Many, Handle, ExecutionDefaults, Field>;
 }
+
+type FieldGeneratorCalls = {
+  readonly onCreate?: GeneratorFunctionCall;
+  readonly onUpdate?: GeneratorFunctionCall;
+};
+
+type WithGeneratedPhase<
+  ExecutionDefaults extends ExecutionMutationDefaultPhases | undefined,
+  Phase extends GeneratorPhase,
+> = (ExecutionDefaults extends undefined ? unknown : ExecutionDefaults) & {
+  readonly [Key in Phase]: ExecutionMutationDefaultValue;
+};
 
 /**
  * Whether a preset such as `temporal.createdAt()` fills the field on write. Distributes over a union, so the widest `FieldBuilder` constraint keeps both signatures and every field builder satisfies it.
@@ -1065,10 +1109,12 @@ export type ContractAuthoringHelpers<
   readonly model: typeof model;
   readonly rel: typeof rel;
   readonly valueObject: typeof valueObject;
+  readonly gen: GeneratorHelpersOf<Family | Target | ExtensionPackValues<Extensions>>;
 };
 
 const MONGO_RESERVED_HELPER_KEYS: readonly string[] = [
   'field',
+  'gen',
   'index',
   'model',
   'rel',
@@ -1172,6 +1218,7 @@ function composeMongoAuthoringHelpers<
       },
     }),
     field: composeMongoFieldHelpers(fieldNamespace),
+    gen: createGeneratorHelpers(components),
     index,
     model,
     rel,
@@ -1240,6 +1287,7 @@ function createFieldBuilder<
   enumHandle?: Handle,
   executionDefaults?: ExecutionDefaults,
   storedName?: StoredName,
+  generatorCalls?: FieldGeneratorCalls,
 ): FieldBuilder<Type, Nullable, Many, Handle, ExecutionDefaults, StoredName> {
   function many(): FieldBuilder<
     Type,
@@ -1279,12 +1327,39 @@ function createFieldBuilder<
       enumHandle,
       executionDefaults,
       storedName,
+      generatorCalls,
+    );
+  }
+
+  function withGeneratorCall<Phase extends GeneratorPhase>(
+    phase: Phase,
+    call: GeneratorFunctionCall,
+  ) {
+    if (generatorCalls?.[phase] !== undefined || executionDefaults?.[phase] !== undefined) {
+      throw contractError(
+        'CONTRACT.DEFAULT_INVALID',
+        `.${phase}() is called on a field that already generates a value ${phase === 'onCreate' ? 'on create' : 'on update'}. Set each phase once, and do not combine .${phase}() with a field preset that sets it.`,
+        { meta: { reason: 'generator-phase-set-twice', phase } },
+      );
+    }
+    return createFieldBuilder(
+      spec,
+      enumHandle,
+      blindCast<
+        WithGeneratedPhase<ExecutionDefaults, Phase>,
+        'the phase is resolved from the call when the contract is built; the type records that it will be set'
+      >(executionDefaults),
+      storedName,
+      { ...generatorCalls, [phase]: call },
     );
   }
 
   return {
     __kind: 'field',
     ...ifDefined('__executionDefaults', executionDefaults),
+    ...ifDefined('__generatorCalls', generatorCalls),
+    onCreate: (call) => withGeneratorCall('onCreate', call),
+    onUpdate: (call) => withGeneratorCall('onUpdate', call),
     __type: spec.type,
     __nullable: spec.nullable,
     __many: spec.many,
@@ -1309,6 +1384,7 @@ function createFieldBuilder<
         enumHandle,
         executionDefaults,
         storedName,
+        generatorCalls,
       ),
     ),
     many: blindCast<
@@ -1321,6 +1397,7 @@ function createFieldBuilder<
         enumHandle,
         executionDefaults,
         field,
+        generatorCalls,
       ),
   };
 }
@@ -2503,7 +2580,62 @@ function executionDefaultError(
 
 function hasExecutionDefaults(fieldBuilder: AnyFieldBuilder): boolean {
   const phases = fieldBuilder.__executionDefaults;
-  return phases?.onCreate !== undefined || phases?.onUpdate !== undefined;
+  const calls = fieldBuilder.__generatorCalls;
+  return (
+    phases?.onCreate !== undefined ||
+    phases?.onUpdate !== undefined ||
+    calls?.onCreate !== undefined ||
+    calls?.onUpdate !== undefined
+  );
+}
+
+/**
+ * The phases a field generates: a preset's, with the generators its `.onCreate(...)` and `.onUpdate(...)` calls resolve to for its codec.
+ */
+function executionDefaultsOf(
+  fieldBuilder: AnyFieldBuilder,
+  modelName: string,
+  fieldName: string,
+  generatorFunctions: GeneratorFunctionRegistry,
+): ExecutionMutationDefaultPhases | undefined {
+  const calls = fieldBuilder.__generatorCalls;
+  if (calls === undefined) return fieldBuilder.__executionDefaults;
+  const type = fieldBuilder.__type;
+  const codecId = type.kind === 'scalar' ? type.codecId : undefined;
+  const phases: {
+    onCreate?: ExecutionMutationDefaultValue;
+    onUpdate?: ExecutionMutationDefaultValue;
+  } = {
+    ...fieldBuilder.__executionDefaults,
+  };
+  for (const phase of ['onCreate', 'onUpdate'] as const) {
+    const call = calls[phase];
+    if (call === undefined) continue;
+    const resolution =
+      type.kind === 'scalar'
+        ? generatorFunctions.resolve(call, { codecId: type.codecId, typeParams: type.typeParams })
+        : undefined;
+    if (resolution?.ok === true) {
+      phases[phase] = resolution.generator;
+      continue;
+    }
+    const meta = { modelName, fieldName, codecId, function: call.name };
+    if (resolution?.reason === 'unknown-function') {
+      throw contractError(
+        'CONTRACT.DEFAULT_INVALID',
+        `Field "${modelName}.${fieldName}": no pack in the contract declares the generator function "${call.name}".`,
+        { meta: { ...meta, reason: 'generator-unknown' } },
+      );
+    }
+    throw contractError(
+      'CONTRACT.DEFAULT_INVALID',
+      resolution?.reason === 'refused'
+        ? `Field "${modelName}.${fieldName}": ${resolution.message}`
+        : `Field "${modelName}.${fieldName}": ${call.name}() does not apply to ${codecId === undefined ? "the field's type" : `codec "${codecId}"`}.`,
+      { meta: { ...meta, reason: 'generator-not-applicable' } },
+    );
+  }
+  return phases;
 }
 
 function assertNoValueObjectExecutionDefaults(
@@ -2525,6 +2657,7 @@ function assertNoValueObjectExecutionDefaults(
 
 function buildExecutionDefaults(
   models: Record<string, AnyModelBuilder> | undefined,
+  generatorFunctions: GeneratorFunctionRegistry,
 ): ExecutionMutationDefault[] {
   const modelBuilders = Object.values(models ?? {});
   const collectionByModelName = new Map(
@@ -2537,9 +2670,10 @@ function buildExecutionDefaults(
   const defaults: ExecutionMutationDefault[] = [];
   for (const modelBuilder of modelBuilders) {
     for (const [fieldName, fieldBuilder] of Object.entries(modelBuilder.__fields)) {
-      const phases = fieldBuilder.__executionDefaults;
-      if (!phases || !hasExecutionDefaults(fieldBuilder)) continue;
+      if (!hasExecutionDefaults(fieldBuilder)) continue;
       const modelName = modelBuilder.__name;
+      const phases = executionDefaultsOf(fieldBuilder, modelName, fieldName, generatorFunctions);
+      if (phases === undefined) continue;
       if (fieldBuilder.__nullable) {
         throw executionDefaultError(
           modelName,
@@ -2629,7 +2763,14 @@ function buildContractFromDefinition<
   const execution = buildExecutionSection({
     target: definition.target.targetId,
     targetFamily: definition.family.familyId,
-    defaults: buildExecutionDefaults(definition.models),
+    defaults: buildExecutionDefaults(
+      definition.models,
+      assembleGeneratorFunctions([
+        definition.family,
+        definition.target,
+        ...Object.values(definition.extensions ?? {}),
+      ]),
+    ),
   });
 
   const components = [

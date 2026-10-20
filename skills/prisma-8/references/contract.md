@@ -155,6 +155,8 @@ model User {
 }
 ```
 
+Values the client generates are written `@onCreate(fn())` and `@onUpdate(fn())`: `id String @id @onCreate(uuid(7))`, `slug String @onCreate(nanoid(12))`, `updatedAt DateTime @onCreate(now()) @onUpdate(now())`. `@default(...)` is a database default only (`now()`, `autoincrement()`, a literal, or `` sql`...` ``); `@default(uuid())` is refused with `PSL_GENERATOR_IN_DEFAULT`. In the TS builder, write `.onCreate(gen.uuid(7))` and `.onUpdate(gen.now())`. Column defaults and generators can sit on one field: `@default(now()) @onCreate(now())`.
+
 Note: scalar lists (e.g. `String[]`) are gated on the target's `sql.scalarList` capability — PostgreSQL declares it, so `tags String[]` lowers to an array column (with a generated no-NULL-elements check; write `tags String?[]` for a list whose elements may be null, which gets no such check); SQLite does not, and rejects the field with `PSL_SCALAR_LIST_UNSUPPORTED_TARGET`. Implicit Prisma-ORM many-to-many (list navigation on both sides without a join model) is rejected by the SQL interpreter — declare the join model explicitly and the ORM traverses it for you (`references/queries.md`). Composite/embeddable types (`type Address { ... }` with `address Address` on a model) are supported: the interpreter lowers them to `valueObjects` in the domain and stores them as `jsonb` columns. See *Workflow — Value objects* below.
 
 ## Workflow — Edit a model / field / relation (TS builder)
@@ -191,7 +193,7 @@ For Mongo, swap every `@internal/postgres/*` import for `@internal/mongo/*`. The
 
 Mongo scalar types, as PSL name / TS builder / application type: `String` / `field.string()` / `string`; `Int32` / `field.int32()` / `number`; `Int64` / `field.int64()` / `bigint`; `Double` / `field.double()` / `number`; `Decimal128` / `field.decimal128()` / decimal text as a `string`; `Bool` / `field.bool()` / `boolean`; `Date` / `field.date()` / `Date`; `ObjectId` / `field.objectId()` / `string`; `Binary` / `field.binary()` / `Uint8Array`; `Json` / `field.json()` / `JsonValue`; `Bson` / `field.bson()` / `BsonValue`. `Json` holds a JSON value only, validated as the JSON-representable BSON types; `Bson` holds any BSON value, unconstrained by the validator. The full table, with codec ids and storage types, is [Scalar types](https://github.com/prisma/orm/blob/main/docs/reference/scalar-types.md).
 
-Mongo timestamps the ORM fills: in PSL, type the field `temporal.createdAt()` (set on create), `temporal.updatedAt()` (set on create and on every update with a non-empty payload), or `temporal.timestamp(onCreate: now, onUpdate: now)` with either option; in TS, use `field.temporal.createdAt()` and the rest inside the callback overload. They store a BSON date read back as `Date`, one value per ORM operation, and an explicit value in the write wins. The fields are optional on create. A preset field cannot be optional (`?`), a list, `@id`, or a field of a composite type.
+Mongo timestamps the ORM fills: in PSL, write `createdAt Date @onCreate(now())` (set on create) or `updatedAt Date @onCreate(now()) @onUpdate(now())` (set on create and on every update with a non-empty payload), or type the field with the presets `temporal.createdAt()`, `temporal.updatedAt()` or `temporal.timestamp(onCreate: now, onUpdate: now)`; in TS, use `field.date().onCreate(gen.now()).onUpdate(gen.now())`, or `field.temporal.createdAt()` and the rest inside the callback overload. They store a BSON date read back as `Date`, one value per ORM operation, and an explicit value in the write wins. The fields are optional on create. A preset field cannot be optional (`?`), a list, `@id`, or a field of a composite type.
 
 ## Workflow — Add an extension-typed scalar (pgvector)
 
@@ -281,7 +283,7 @@ type Address {
 }
 
 model User {
-  id      String   @id @default(uuid())
+  id      String   @id @onCreate(uuid())
   email   String
   address Address?
 }
@@ -303,7 +305,7 @@ enum user_type {
 }
 
 model User {
-  id   String    @id @default(uuid())
+  id   String    @id @onCreate(uuid())
   kind user_type
 }
 ```
@@ -348,7 +350,7 @@ The concept: wrap models in a `namespace <name> { ... }` block to place them in 
 ```prisma
 namespace public {
   model Profile {
-    id       String @id @default(uuid())
+    id       String @id @onCreate(uuid())
     username String
     userId   String @unique
     @@map("profile")
@@ -365,7 +367,7 @@ The concept: a mixin is a named set of members for one kind of block. Declare it
 ```prisma
 model mixin Timestamps {
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  updatedAt DateTime @onCreate(now()) @onUpdate(now())
   @@index([createdAt])
 }
 
@@ -409,7 +411,7 @@ types {
 
 namespace public {
   model Profile {
-    id       String     @id @default(uuid())
+    id       String     @id @onCreate(uuid())
     username String
     userId   AuthUserId @unique
     user     supabase:auth.AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)

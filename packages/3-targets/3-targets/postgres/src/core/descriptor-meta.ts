@@ -12,6 +12,7 @@ import { postgresRenderCheckExpressions } from './check-expressions';
 import { postgresQualifyColumnType } from './codecs';
 import { postgresDataTypeEntries } from './data-type-entries';
 import { postgresTargetDescriptorMetaRuntime } from './descriptor-meta-runtime';
+import { postgresGeneratorDescriptors, postgresGeneratorFunctions } from './generator-functions';
 import { postgresIndexTypes } from './index-types';
 import { DEFAULT_NAMESPACE_ID } from './namespace-ids';
 import { postgresCreateNamespace } from './postgres-schema';
@@ -32,6 +33,11 @@ const postgresTargetDescriptorMetaBase = {
     qualifyColumnType: postgresQualifyColumnType,
     renderCheckExpressions: postgresRenderCheckExpressions,
     lowerEntityHandles: postgresLowerEntityHandles,
+  },
+  generatorFunctions: postgresGeneratorFunctions,
+  controlMutationDefaults: {
+    defaultFunctionRegistry: new Map(),
+    generatorDescriptors: postgresGeneratorDescriptors,
   },
   types: {
     queryOperationTypes: {

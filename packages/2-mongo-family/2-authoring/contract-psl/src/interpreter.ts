@@ -13,6 +13,7 @@ import {
   crossRef,
   type ExecutionMutationDefault,
   type ExecutionMutationDefaultPhases,
+  type ExecutionMutationDefaultValue,
   type ValueSetRef,
 } from '@internal/contract/types';
 import { type EnumTypeHandle, resolveToOneRelationNullable } from '@internal/contract-authoring';
@@ -33,6 +34,7 @@ import {
   isAuthoringTypeConstructorDescriptor,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors, TypeLookups } from '@internal/framework-components/codec';
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
 import type { ControlMutationDefaultRegistry } from '@internal/framework-components/control';
 import {
   applyPolymorphicScopeToMongoIndex,
@@ -54,6 +56,7 @@ import type {
   Binder,
   BlockSymbol,
   CompositeTypeSymbol,
+  FieldAttributeSpecContext,
   FieldSymbol,
   InferAttr,
   ModelSymbol,
@@ -121,6 +124,8 @@ export interface InterpretPslDocumentToMongoContractInput {
   readonly binder: Binder;
   readonly scalarTypeCodecIds: ReadonlyMap<string, string>;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  /** The stack's generator functions, which `@onCreate(fn())` and `@onUpdate(fn())` resolve through. */
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly seedDiagnostics?: readonly ContractSourceDiagnostic[];
@@ -1089,6 +1094,7 @@ interface PresetExecutionDefault {
   readonly field: FieldSymbol;
   readonly storedField: string;
   readonly phases: ExecutionMutationDefaultPhases;
+  readonly fromPreset: boolean;
 }
 
 /**
@@ -1115,10 +1121,11 @@ function resolvePresetExecutionDefaults(input: {
     const at = diagnosticSource(input.sources, preset.field.node.syntax).at(
       call?.span ?? preset.field.span,
     );
+    const source = preset.fromPreset ? `Preset "${presetPath}"` : 'Generated value';
     if (model.base !== undefined) {
       input.diagnostics.push({
         code: 'PSL_PRESET_ON_VARIANT_FIELD',
-        message: `Preset "${presetPath}" on variant "${preset.modelName}" field "${preset.field.name}": execution defaults apply to every document in collection "${collection}", so declare them on the base model.`,
+        message: `${source} on variant "${preset.modelName}" field "${preset.field.name}": execution defaults apply to every document in collection "${collection}", so declare them on the base model.`,
         ...at,
       });
       continue;
@@ -1137,12 +1144,109 @@ function resolvePresetExecutionDefaults(input: {
     if (existing.phasesKey !== phasesKey) {
       input.diagnostics.push({
         code: 'PSL_PRESET_CONFLICT',
-        message: `Preset "${presetPath}" on "${preset.modelName}.${preset.field.name}" sets different execution defaults than the preset on "${existing.owner.modelName}.${existing.owner.field.name}" for field "${preset.storedField}" of collection "${collection}". Use the same preset on both models.`,
+        message: `${source} on "${preset.modelName}.${preset.field.name}" sets different execution defaults than "${existing.owner.modelName}.${existing.owner.field.name}" for field "${preset.storedField}" of collection "${collection}". Generate the same values on both models.`,
         ...at,
       });
     }
   }
   return resolved;
+}
+
+const GENERATOR_PHASES = ['onCreate', 'onUpdate'] as const;
+
+/**
+ * The generators a field's `@onCreate(fn())` and `@onUpdate(fn())` resolve to, `undefined` for a field with neither, or `'invalid'` when one is refused.
+ */
+function lowerGeneratorAttributes(input: {
+  readonly field: FieldSymbol;
+  readonly model: ModelSymbol;
+  readonly modelName: string;
+  readonly resolved: ResolvedNonRelationField;
+  readonly specContext: FieldAttributeSpecContext;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
+  readonly sources: PslSources;
+  readonly binder: Binder;
+  readonly diagnostics: PslDiagnosticCollector;
+}): ExecutionMutationDefaultPhases | 'invalid' | undefined {
+  const { field, modelName, diagnostics } = input;
+  const fieldLabel = `Field "${modelName}.${field.name}"`;
+  const phases: {
+    onCreate?: ExecutionMutationDefaultValue;
+    onUpdate?: ExecutionMutationDefaultValue;
+  } = {};
+  for (const phase of GENERATOR_PHASES) {
+    const [attribute, duplicate] = field.attributes.filter(({ name }) => name === phase);
+    if (attribute === undefined) continue;
+    if (duplicate !== undefined) {
+      diagnostics.push({
+        code: 'PSL_DUPLICATE_ATTRIBUTE',
+        message: `\`@${phase}\` declared more than once on field "${modelName}.${field.name}".`,
+        ...diagnosticSource(input.sources, field.node.syntax).at(duplicate.span),
+      });
+      return 'invalid';
+    }
+    const at = diagnosticSource(input.sources, field.node.syntax).at(attribute.span);
+    const argument = attribute.args.find((arg) => arg.kind === 'positional')?.value.trim() ?? '';
+    if (field.list) {
+      diagnostics.push({
+        code: 'PSL_LIST_EXECUTION_DEFAULT_UNSUPPORTED',
+        message: `${fieldLabel} is a list and cannot use @${phase}(${argument}). Lists have no per-element generated values; remove @${phase}(...).`,
+        ...at,
+      });
+      return 'invalid';
+    }
+    if (field.optional) {
+      diagnostics.push({
+        code: 'PSL_OPTIONAL_EXECUTION_DEFAULT_UNSUPPORTED',
+        message: `${fieldLabel} is optional, and a generated value needs a required field in MongoDB. Remove "?" or remove @${phase}(...).`,
+        ...at,
+      });
+      return 'invalid';
+    }
+    if (input.resolved.executionDefaults?.[phase] !== undefined) {
+      const phaseText = phase === 'onCreate' ? 'on create' : 'on update';
+      diagnostics.push({
+        code: 'PSL_PRESET_AND_DEFAULT_CONFLICT',
+        message: `${fieldLabel} uses a field-preset call that already generates a value ${phaseText}, so @${phase}(...) cannot set one too. Remove @${phase}(...) or use a preset without an ${phase} generator.`,
+        ...at,
+      });
+      return 'invalid';
+    }
+    const interpreted = interpretFieldAttribute({
+      symbols: input.specContext.symbols,
+      node: attribute.node,
+      spec: mongoAttributeSpecs.field[phase](input.specContext),
+      model: input.model,
+      field,
+      sources: input.sources,
+      binder: input.binder,
+      diagnostics,
+    });
+    if (interpreted === undefined) return 'invalid';
+    const type = input.resolved.field.type;
+    const call = interpreted.value;
+    const resolution =
+      type.kind === 'scalar'
+        ? input.generatorFunctions.resolve(
+            { name: call.fn, args: call.args },
+            { codecId: type.codecId, typeParams: type.typeParams },
+          )
+        : undefined;
+    if (resolution?.ok === true) {
+      phases[phase] = resolution.generator;
+      continue;
+    }
+    diagnostics.push({
+      code: 'PSL_GENERATOR_NOT_APPLICABLE',
+      message:
+        resolution?.reason === 'refused'
+          ? `${fieldLabel}: ${resolution.message}`
+          : `${fieldLabel}: ${call.fn}() does not apply to this field's type.`,
+      ...diagnosticSource(input.sources, field.node.syntax).at(call.span),
+    });
+    return 'invalid';
+  }
+  return phases.onCreate === undefined && phases.onUpdate === undefined ? undefined : phases;
 }
 
 interface ResolvedNonRelationField {
@@ -1439,10 +1543,12 @@ export function interpretPslDocumentToMongoContract(
   });
   const allModels: ModelSymbol[] = Object.values(defaultNamespace.models);
   const allCompositeTypes: CompositeTypeSymbol[] = Object.values(defaultNamespace.compositeTypes);
+  const { generatorFunctions } = input;
   const specContextFor = (model: ModelSymbol): AttributeSpecContext => ({
     symbols: symbolTable,
     model,
     defaultFunctionRegistry: input.defaultFunctionRegistry,
+    generatorFunctions,
     dataTypes: input.dataTypes,
   });
   const physicalNames = new Map<ModelSymbol | FieldSymbol, string>();
@@ -1633,12 +1739,34 @@ export function interpretPslDocumentToMongoContract(
       fields[field.name] = resolved.field;
       storageFields[field.name] = { field: mappedName };
       fieldSymbols.set(fieldKey(pslModel.name, field.name), field);
-      if (resolved.executionDefaults) {
+      const generated = lowerGeneratorAttributes({
+        field,
+        model: pslModel,
+        modelName: pslModel.name,
+        resolved,
+        specContext: {
+          ...specContext,
+          field,
+          typeResolution: resolution,
+          typeConstructor: contributedTypeOf(resolution, binder),
+        },
+        generatorFunctions,
+        sources,
+        binder,
+        diagnostics,
+      });
+      if (generated === 'invalid') continue;
+      const phases =
+        resolved.executionDefaults === undefined
+          ? generated
+          : { ...resolved.executionDefaults, ...generated };
+      if (phases !== undefined) {
         presetExecutionDefaults.push({
           modelName: pslModel.name,
           field,
           storedField: mappedName,
-          phases: resolved.executionDefaults,
+          phases,
+          fromPreset: resolved.executionDefaults !== undefined,
         });
       }
     }

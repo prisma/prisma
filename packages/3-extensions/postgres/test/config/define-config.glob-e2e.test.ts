@@ -56,6 +56,7 @@ describe('defineConfig with a glob contract path', () => {
       codecLookup: stack.codecLookup,
       dataTypes: stack.dataTypes,
       controlMutationDefaults: stack.controlMutationDefaults,
+      generatorFunctions: stack.generatorFunctions,
       resolvedInputs,
       capabilities: stack.capabilities,
     };

@@ -49,5 +49,33 @@ export type {
   TargetPackRef,
 } from '../shared/framework-components';
 export { checkContractComponentRequirements } from '../shared/framework-components';
+export type {
+  BindingResolution,
+  GeneratorFunctionBinding,
+  GeneratorFunctionCall,
+  GeneratorFunctionComponent,
+  GeneratorFunctionContribution,
+  GeneratorFunctionField,
+  GeneratorFunctionRegistry,
+  GeneratorFunctionResolution,
+  GeneratorFunctionSummary,
+  GeneratorPhase,
+  PrintedArguments,
+  PrintedGeneratorCall,
+} from '../shared/generator-functions';
+export {
+  assembleGeneratorFunctions,
+  EMPTY_GENERATOR_FUNCTIONS,
+  singleGeneratorBinding,
+} from '../shared/generator-functions';
+export type {
+  ExtensionPackValues,
+  GeneratorHelper,
+  GeneratorHelpersOf,
+  SignatureArgumentOutput,
+  SignatureOptionalArgument,
+} from '../shared/generator-helpers';
+export { createGeneratorHelpers } from '../shared/generator-helpers';
+export type { MutationDefaultGeneratorDescriptor } from '../shared/mutation-default-types';
 export type { RuntimeErrorEnvelope } from '../shared/runtime-error';
 export { isRuntimeError, runtimeError } from '../shared/runtime-error';

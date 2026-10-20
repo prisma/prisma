@@ -13,6 +13,7 @@ import {
   crossRef,
   type ExecutionMutationDefault,
   type ExecutionMutationDefaultPhases,
+  type ExecutionMutationDefaultValue,
   type ValueSetRef,
 } from '@internal/contract/types';
 import { type EnumTypeHandle, resolveToOneRelationNullable } from '@internal/contract-authoring';
@@ -27,6 +28,7 @@ import {
   type ParsedPslExtensionBlock,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
 import type { AssembledAuthoringContributions } from '@internal/framework-components/control';
 import {
   buildMongoStorage,
@@ -94,6 +96,7 @@ export interface InterpretPrisma6DocumentsInput {
   readonly documents: readonly Prisma6Document[];
   readonly seedDiagnostics: readonly ContractSourceDiagnostic[];
   readonly binding: Prisma6TargetBinding;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly authoringContributions: AssembledAuthoringContributions;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypes: DataTypeSupport;
@@ -338,6 +341,7 @@ export function interpretPrisma6Documents(
   const enumNames = new Set(enumBlocks.map((located) => located.symbol.name));
   const typeContext: TypeContext = {
     binding,
+    generatorFunctions: input.generatorFunctions,
     enums,
     enumNames,
     compositeTypeNames,
@@ -607,6 +611,7 @@ function schemaUnsupported(
 
 interface TypeContext {
   readonly binding: Prisma6TargetBinding;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly enums: ReadonlyMap<string, ContractEnum>;
   /** Every declared enum, including one that was refused and so is not in `enums`. */
   readonly enumNames: ReadonlySet<string>;
@@ -1075,13 +1080,18 @@ function readModelField(
     diagnostics.push(defaultUnsupported(label, defaultAttribute, owner, field, sourceId));
     return;
   }
-  const generator = { kind: 'generator' as const, id: binding.timestampGeneratorId };
+  const generator =
+    updatedAt !== undefined || defaultIsNow
+      ? dateTimeNowGenerator(ctx.generatorFunctions, binding.scalarCodecIds.DateTime)
+      : undefined;
   const phases: ExecutionMutationDefaultPhases | undefined =
-    updatedAt !== undefined
-      ? { onCreate: generator, onUpdate: generator }
-      : defaultIsNow
-        ? { onCreate: generator }
-        : undefined;
+    generator === undefined
+      ? undefined
+      : updatedAt !== undefined
+        ? { onCreate: generator, onUpdate: generator }
+        : defaultIsNow
+          ? { onCreate: generator }
+          : undefined;
   if (phases !== undefined && field.optional) {
     const written = updatedAt ?? defaultAttribute;
     const generator = written === undefined ? 'the generator' : attributeText(written);
@@ -1097,6 +1107,23 @@ function readModelField(
   }
   build.fields[field.name] = resolved;
   if (phases !== undefined) build.executionDefaults.push({ field: storedName, phases });
+}
+
+/** The generator `now()` resolves to on the DateTime codec, which `@default(now())` and `@updatedAt` write. */
+function dateTimeNowGenerator(
+  generatorFunctions: GeneratorFunctionRegistry,
+  codecId: string,
+): ExecutionMutationDefaultValue {
+  const now = generatorFunctions.resolve(
+    { name: 'now', args: {} },
+    { codecId, typeParams: undefined },
+  );
+  if (!now.ok) {
+    throw new InternalError(
+      `The stack binds no "now" generator function to codec "${codecId}", which the DateTime scalar maps to.`,
+    );
+  }
+  return now.generator;
 }
 
 interface RelationArguments {

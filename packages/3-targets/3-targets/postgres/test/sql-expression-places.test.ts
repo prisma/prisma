@@ -1,3 +1,4 @@
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 /**
  * Every PSL place that takes raw SQL receives the data type `sql/expression`, and every other
  * argument that takes a plain string is listed as not SQL. A new string argument fails the second
@@ -44,6 +45,7 @@ const modelContext = {
   symbols: symbolTable,
   model,
   defaultFunctionRegistry: new Map(),
+  generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
   dataTypes: postgresDataTypeSupport,
 };
 const fieldContext = {

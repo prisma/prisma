@@ -10,6 +10,11 @@ import {
 } from '@internal/errors/control';
 import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
 import { createDataTypeLookup, dataType } from '@internal/framework-components/codec';
+import {
+  assembleGeneratorFunctions,
+  EMPTY_GENERATOR_FUNCTIONS,
+  singleGeneratorBinding,
+} from '@internal/framework-components/components';
 import type { ControlStack } from '@internal/framework-components/control';
 import * as control from '@internal/framework-components/control';
 import { jsonValue, mapBlock } from '@internal/psl-parser';
@@ -71,6 +76,7 @@ function stubStackWithContext(): ControlStack {
       defaultFunctionRegistry: new Map(),
       generatorDescriptors: [],
     },
+    generatorFunctions: stubGeneratorFunctions,
     capabilities: { demo: { scalarList: true } },
   } as unknown as ControlStack;
 }
@@ -93,6 +99,20 @@ const stubDataTypes = {
   lookup: createDataTypeLookup([stubInt]),
 };
 
+const stubGeneratorFunctions = assembleGeneratorFunctions([
+  {
+    id: 'demo',
+    generatorFunctions: [
+      {
+        name: 'uuid',
+        signature: { documentation: 'uuid' },
+        bindings: [singleGeneratorBinding({ codecIds: ['demo/text@1'], generatorId: 'uuidv4' })],
+      },
+    ],
+    controlMutationDefaults: { generatorDescriptors: [{ id: 'uuidv4' }] },
+  },
+]);
+
 function stubStack(
   scalarTypes: readonly string[],
   pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace,
@@ -102,6 +122,7 @@ function stubStack(
     scalarTypes,
     authoringContributions: { pslBlockDescriptors, dataTypes: stubDataTypeEntries },
     dataTypes: stubDataTypes,
+    generatorFunctions: stubGeneratorFunctions,
   } as unknown as ControlStack;
 }
 
@@ -154,6 +175,7 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
       scalarTypes: [],
       defaultNamespaceId: '__unbound__',
       pslBlockDescriptors: {},
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     });
   });
 
@@ -193,6 +215,7 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
       scalarTypes: [],
       defaultNamespaceId: '__unbound__',
       pslBlockDescriptors: {},
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     });
   });
 
@@ -240,8 +263,10 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
       pslBlockDescriptors: {},
       authoringContributions: { pslBlockDescriptors: {}, dataTypes: stubDataTypeEntries },
       dataTypes: stubDataTypes,
+      generatorFunctions: stubGeneratorFunctions,
     });
     expect(result.controlStack.dataTypes).toBe(stubDataTypes);
+    expect(result.controlStack.generatorFunctions).toBe(stubGeneratorFunctions);
     expect(result.inputs.includes(pathToFileURL('/abs/schema.psl').toString())).toBe(true);
   });
 });
@@ -262,6 +287,7 @@ describe('control-stack input derivation', () => {
       scalarTypes: [],
       defaultNamespaceId: '__unbound__',
       pslBlockDescriptors: {},
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     });
     expect(createControlStack).not.toHaveBeenCalled();
   });
@@ -293,6 +319,7 @@ describe('control-stack input derivation', () => {
       pslBlockDescriptors,
       authoringContributions: { pslBlockDescriptors, dataTypes: stubDataTypeEntries },
       dataTypes: stubDataTypes,
+      generatorFunctions: stubGeneratorFunctions,
     });
     expect(result.controlStack.dataTypes).toBe(stubDataTypes);
   });
@@ -343,6 +370,7 @@ describe('interpretation resolution', () => {
     expect(context?.authoringContributions).toBe(stack.authoringContributions);
     expect(context?.codecLookup).toBe(stack.codecLookup);
     expect(context?.controlMutationDefaults).toBe(stack.controlMutationDefaults);
+    expect(context?.generatorFunctions).toBe(stack.generatorFunctions);
     expect(context?.capabilities).toBe(stack.capabilities);
     expect(context?.resolvedInputs).toEqual([pathToFileURL('/abs/schema.prisma').toString()]);
     expect(context?.defaultNamespaceId).toBe('demo_default');
