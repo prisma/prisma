@@ -9,7 +9,11 @@ import type {
   TargetPackRef,
 } from '@internal/framework-components/components';
 import { sqlDataType } from '@internal/sql-contract/data-type';
-import { sql, sqlExpressionRegistration } from '@internal/sql-contract/sql-expression';
+import {
+  sql,
+  sqlExpressionAuthoringEntry,
+  sqlExpressionRegistration,
+} from '@internal/sql-contract/sql-expression';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import {
