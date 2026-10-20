@@ -6,9 +6,11 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import postgresAdapter from '@internal/adapter-postgres/control';
+import type { Contract } from '@internal/contract/types';
 import postgresDriver from '@internal/driver-postgres/control';
 import sql from '@internal/family-sql/control';
 import { createControlStack } from '@internal/framework-components/control';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import { prisma7Contract } from '@internal/sql-contract-prisma7/provider';
 import postgres from '@internal/target-postgres/control';
 import { prisma7PostgresBinding } from '@internal/target-postgres/prisma7-binding';
@@ -58,7 +60,7 @@ describe('an Unsupported text not in catalog form', () => {
 
       const verified = await runSchemaVerify(
         getConnectionString(),
-        new PostgresContractSerializer().serializeContract(loaded.value),
+        new PostgresContractSerializer().serializeContract(loaded.value as Contract<SqlStorage>),
       );
 
       expect(
