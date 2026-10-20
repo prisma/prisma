@@ -20,6 +20,7 @@ Provides the SQL family descriptor (`ControlFamilyDescriptor`) that includes:
 - **Storage Type Control Hooks**: Extracts codec-owned control hooks for planning/verification/introspection of `storage.types` without adding enum-specific fields to shared IR
 - **Codec Ownership**: Enforces a single owner per `codecId` for parameterized renderers and control-plane hooks to prevent ambiguous conflicts during assembly
 - **Authoring Contribution Assembly**: Assembles authoring contributions (type constructors, field presets) from composed components for PSL interpretation
+- **Raw columns**: Contributes the `Raw("...")` type constructor, for a column of a type no other column type covers, on every SQL target (ADR 273)
 - **Column Type Verification**: Compares each column by the data type it is stored as, its parameters in normal form, and whether it is a list. Introspection resolves the type the database reports to the data type that claims it; a type no data type in the stack claims is reported as a mismatch naming that type
 - **Schema Defaults Policy**: Ignores execution mutation defaults during schema verification since they are applied before DB writes
 - **Foreign Key Config Awareness**: Schema verification respects the contract's `foreignKeys` configuration — when `foreignKeys.constraints` is `false`, FK constraint checks are skipped during verification (see [ADR 161](../../../docs/architecture%20docs/adrs/ADR%20161%20-%20Explicit%20foreign%20key%20constraint%20and%20index%20configuration.md))

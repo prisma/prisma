@@ -15,7 +15,7 @@
 //     dec    Decimal?
 //   }
 model TestModel {
-  id     String    @id @default(cuid(2))
+  id     String    @id @onCreate(cuid(2))
   string String?
   int    Int?
   bInt   BigInt?

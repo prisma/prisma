@@ -23,6 +23,7 @@ Both files are **emitted artefacts**. Edit the source; never the JSON or `.d.ts`
 - User wants to add a namespace block (Postgres schema) or a cross-contract foreign key.
 - User wants to set `@@control` on a model or configure `defaultControlPolicy`.
 - User wants to use a custom type from an extension (`pgvector.Vector(length: 1536)`, `postgis.Geometry(...)`).
+- User needs a column of a database type no Prisma column type covers (`tsvector`, `ltree`, `circle`, a domain): a raw column, `Raw("...")`.
 - User wants to install or configure an extension via `extensions: [...]` in `prisma.config.ts`, including `@internal/extension-supabase`.
 - User is migrating between authoring sources (PSL ↔ TypeScript builder).
 - User received `CONFIG.CONTRACT_MISSING`, `CONTRACT.VALIDATION_FAILED`, or `CONFIG.MISSING_EXTENSION_PACKS` from `contract emit`.
@@ -155,6 +156,8 @@ model User {
 }
 ```
 
+Values the client generates are written `@onCreate(fn())` and `@onUpdate(fn())`: `id String @id @onCreate(uuid(7))`, `slug String @onCreate(nanoid(12))`, `updatedAt DateTime @onCreate(now()) @onUpdate(now())`. `@default(...)` is a database default only (`now()`, `autoincrement()`, a literal, or `` sql`...` ``); `@default(uuid())` is refused with `PSL_GENERATOR_IN_DEFAULT`. In the TS builder, write `.onCreate(gen.uuid(7))` and `.onUpdate(gen.now())`. Column defaults and generators can sit on one field: `@default(now()) @onCreate(now())`.
+
 Note: scalar lists (e.g. `String[]`) are gated on the target's `sql.scalarList` capability — PostgreSQL declares it, so `tags String[]` lowers to an array column (with a generated no-NULL-elements check; write `tags String?[]` for a list whose elements may be null, which gets no such check); SQLite does not, and rejects the field with `PSL_SCALAR_LIST_UNSUPPORTED_TARGET`. Implicit Prisma-ORM many-to-many (list navigation on both sides without a join model) is rejected by the SQL interpreter — declare the join model explicitly and the ORM traverses it for you (`references/queries.md`). Composite/embeddable types (`type Address { ... }` with `address Address` on a model) are supported: the interpreter lowers them to `valueObjects` in the domain and stores them as `jsonb` columns. See *Workflow — Value objects* below.
 
 ## Workflow — Edit a model / field / relation (TS builder)
@@ -191,7 +194,7 @@ For Mongo, swap every `@internal/postgres/*` import for `@internal/mongo/*`. The
 
 Mongo scalar types, as PSL name / TS builder / application type: `String` / `field.string()` / `string`; `Int32` / `field.int32()` / `number`; `Int64` / `field.int64()` / `bigint`; `Double` / `field.double()` / `number`; `Decimal128` / `field.decimal128()` / decimal text as a `string`; `Bool` / `field.bool()` / `boolean`; `Date` / `field.date()` / `Date`; `ObjectId` / `field.objectId()` / `string`; `Binary` / `field.binary()` / `Uint8Array`; `Json` / `field.json()` / `JsonValue`; `Bson` / `field.bson()` / `BsonValue`. `Json` holds a JSON value only, validated as the JSON-representable BSON types; `Bson` holds any BSON value, unconstrained by the validator. The full table, with codec ids and storage types, is [Scalar types](https://github.com/prisma/orm/blob/main/docs/reference/scalar-types.md).
 
-Mongo timestamps the ORM fills: in PSL, type the field `temporal.createdAt()` (set on create), `temporal.updatedAt()` (set on create and on every update with a non-empty payload), or `temporal.timestamp(onCreate: now, onUpdate: now)` with either option; in TS, use `field.temporal.createdAt()` and the rest inside the callback overload. They store a BSON date read back as `Date`, one value per ORM operation, and an explicit value in the write wins. The fields are optional on create. A preset field cannot be optional (`?`), a list, `@id`, or a field of a composite type.
+Mongo timestamps the ORM fills: in PSL, write `createdAt Date @onCreate(now())` (set on create) or `updatedAt Date @onCreate(now()) @onUpdate(now())` (set on create and on every update with a non-empty payload), or type the field with the presets `temporal.createdAt()`, `temporal.updatedAt()` or `temporal.timestamp(onCreate: now, onUpdate: now)`; in TS, use `field.date().onCreate(gen.now()).onUpdate(gen.now())`, or `field.temporal.createdAt()` and the rest inside the callback overload. They store a BSON date read back as `Date`, one value per ORM operation, and an explicit value in the write wins. The fields are optional on create. A preset field cannot be optional (`?`), a list, `@id`, or a field of a composite type.
 
 ## Workflow — Add an extension-typed scalar (pgvector)
 
@@ -229,6 +232,27 @@ Emit. The named-type lowering puts `vector(1536)` on the column and the type map
 If you reference `pgvector.*` without registering the descriptor in the config, emit fails with `CONFIG.MISSING_EXTENSION_PACKS` and `meta.missingExtensionPacks: ['pgvector']`. The envelope's `fix` text says *"Add the missing extension descriptors to `extensions` in prisma.config.ts"* — that field name matches `ormConfig`.
 
 For canonical worked examples covering single and multi-extension setups, read `examples/prisma-8-demo/prisma.config.ts`, `examples/multi-extension-monorepo/app/prisma.config.ts` and `examples/prisma-8-postgis-demo/prisma.config.ts`.
+
+## Workflow — Raw columns (a type no column type covers)
+
+The concept: `Raw("<type>")` declares a column whose type Prisma does not model, such as `tsvector`, `ltree`, `circle` or a domain of the user's own. Migrations write the text as given, and `db verify` compares it with the type the database reports, exactly. Values are typed `unknown`, read the same flat and through includes, and write back as read. On Postgres the ORM reads each value as the text the database prints for it. On SQLite a value keeps the shape of its storage class: a number, a string, a `Uint8Array` for a BLOB, or null. The ORM offers no filters or ordering on raw values. Raw columns exist on Postgres and SQLite.
+
+```prisma
+model Category {
+  id     Int             @id
+  search Raw("tsvector")
+  area   Raw("circle")   @default(sql`'<(0,0),1>'::circle`)
+  net    Raw("cidr")?
+}
+```
+
+In the TypeScript builder, use `field.column(type.Raw('tsvector'))` in the callback overload, or `field.column(rawColumn('tsvector'))` with `rawColumn` from the adapter's column types.
+
+- Write the type as the database catalog prints it: `integer`, not `int4`; `character varying(10)`, not `varchar(10)`. Another form reports a type mismatch in `db verify`, and the finding names the text to write.
+- A raw column's default is a `sql` expression. A literal default is refused at emit (`` Expected sql`...` ``).
+- The text is one type name: words and double-quoted names separated by single spaces, the first optionally after one schema name and a dot, each optionally followed by parentheses of letters, digits, underscores, commas, spaces and a minus sign before a digit, and at most one trailing `[]`. `geometry(Point,4326)`, `double precision` and `app.email` (a domain whose schema is not on the `search_path`) are fine; quotes of other kinds, `$` and operators are refused.
+- PSL strings have no escapes, so a type whose name needs double quotes cannot be written with `Raw`.
+- Changing the text changes the column's type: `migration plan` writes `ALTER COLUMN ... TYPE`. If the database has no cast between the two types, name the field with `--convert` and write the conversion. The generated call is `alterColumnType({ ..., type: "text", raw: true })`; keep `raw: true` when editing it, since a raw type is checked as written.
 
 ## Workflow — Polymorphism (`@@discriminator` / `@@base`)
 
@@ -281,7 +305,7 @@ type Address {
 }
 
 model User {
-  id      String   @id @default(uuid())
+  id      String   @id @onCreate(uuid())
   email   String
   address Address?
 }
@@ -303,7 +327,7 @@ enum user_type {
 }
 
 model User {
-  id   String    @id @default(uuid())
+  id   String    @id @onCreate(uuid())
   kind user_type
 }
 ```
@@ -348,7 +372,7 @@ The concept: wrap models in a `namespace <name> { ... }` block to place them in 
 ```prisma
 namespace public {
   model Profile {
-    id       String @id @default(uuid())
+    id       String @id @onCreate(uuid())
     username String
     userId   String @unique
     @@map("profile")
@@ -365,7 +389,7 @@ The concept: a mixin is a named set of members for one kind of block. Declare it
 ```prisma
 model mixin Timestamps {
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  updatedAt DateTime @onCreate(now()) @onUpdate(now())
   @@index([createdAt])
 }
 
@@ -409,7 +433,7 @@ types {
 
 namespace public {
   model Profile {
-    id       String     @id @default(uuid())
+    id       String     @id @onCreate(uuid())
     username String
     userId   AuthUserId @unique
     user     supabase:auth.AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)

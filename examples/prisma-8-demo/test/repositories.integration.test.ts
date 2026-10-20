@@ -245,7 +245,7 @@ async function seedEmbeddingPosts(runtime: Runtime): Promise<void> {
 // member users via the ORM client's variant scopes, which auto-inject the
 // discriminator and transactionally write the base + variant tables. The
 // other seeded users own no tasks, so their included `tasks` come back empty.
-// Ids are client-generated (`@default(uuid())`); the created rows are returned
+// Ids are client-generated (`@onCreate(uuid())`); the created rows are returned
 // so the assertions can key on the same ids.
 async function seedOrmClientTasks(orm: DemoOrm): Promise<SeededTaskIds> {
   const adminBug = await orm.Task.bugs().create({

@@ -48,7 +48,7 @@ flowchart LR
 
 `parse(source, filename, options)` returns a lossless syntax tree, a `PslSources` registry that maps any node back to its file, and syntax diagnostics. The tree keeps every token, including comments and whitespace, so the formatter and the language server work on the same tree as the interpreters. Unsupported syntax is an error; there is no best-effort mode.
 
-The parser reads structure only. Attributes, their arguments and block entries are parsed generically, whether or not anything defines them. Deciding what `@default(uuid(7))` or `@vendor.option` means belongs to later steps.
+The parser reads structure only. Attributes, their arguments and block entries are parsed generically, whether or not anything defines them. Deciding what `@onCreate(uuid(7))` or `@vendor.option` means belongs to later steps.
 
 `options.grammar` selects the grammar a file is written in: `prisma-8` by default, or `prisma-7` for Prisma 7 and Prisma 6 schemas.
 

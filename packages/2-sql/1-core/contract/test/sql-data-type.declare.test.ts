@@ -243,11 +243,55 @@ describe('sqlDataType', () => {
     });
   });
 
-  describe('render and fromReported go with claimsKind, which excludes texts', () => {
-    it('refuses render without claimsKind', () => {
+  describe('render goes with claimsKind or nameIsCatalogText; fromReported goes with claimsKind, which excludes texts', () => {
+    it('refuses render without claimsKind or nameIsCatalogText', () => {
       expect(() => sqlDataType('t/bad', { read: (json) => json, render: () => 'x' })).toThrow(
         InternalError,
       );
+    });
+
+    it('allows render with nameIsCatalogText and no texts or kind', () => {
+      const named = sqlDataType('t/named', {
+        read: (json) => json,
+        nameIsCatalogText: true,
+        render: () => 'x',
+      });
+      expect(named.sql).toMatchObject({
+        texts: [],
+        claimsKind: undefined,
+        nameIsCatalogText: true,
+      });
+      expect(named.sql.render?.({})).toBe('x');
+    });
+
+    it('refuses nameIsCatalogText without render, next to texts, or next to claimsKind', () => {
+      const render = () => 'x';
+      expect(
+        [
+          () => sqlDataType('t/bad', { read: (json) => json, nameIsCatalogText: true }),
+          () =>
+            sqlDataType('t/bad', {
+              read: (json) => json,
+              nameIsCatalogText: true,
+              render,
+              texts: [{ text: 'x', written: true }],
+            }),
+          () =>
+            sqlDataType('t/bad', {
+              read: (json) => json,
+              nameIsCatalogText: true,
+              render,
+              claimsKind: 'enum',
+            }),
+        ].map((declare) => {
+          try {
+            declare();
+            return 'declared';
+          } catch (error) {
+            return error instanceof InternalError ? 'refused' : 'other';
+          }
+        }),
+      ).toEqual(['refused', 'refused', 'refused']);
     });
 
     it('refuses fromReported without claimsKind', () => {

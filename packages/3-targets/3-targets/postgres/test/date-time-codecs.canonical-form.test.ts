@@ -25,6 +25,7 @@ const everyCodecHolds: Readonly<Record<string, readonly string[]>> = {
   'pg/int8': ['0', '-1', '9007199254740991'],
   'pg/bytea': ['aGVsbG8=', 'AAE=', ''],
   'pg/inet': ['192.168.0.1', '10.0.0.0/8', '2001:db8::1/64', '::ffff:1.2.3.4'],
+  'sql/raw': [],
 };
 
 /** Every codec of a type whose values have more than one written form, found in the target's codec registry. */

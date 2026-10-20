@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { ContractSourceContext } from '@internal/config/config-types';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import {
   assembleAuthoringContributions,
   assembleControlMutationDefaults,
@@ -60,6 +61,7 @@ const interpretContext = {
     field: {},
     entityTypes: {},
     pslBlockDescriptors: {},
+    generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     modelAttributes: {},
     attributeSpecs: { model: {}, field: {} },
     dataTypes: {},
@@ -70,6 +72,7 @@ const controlStack = {
   scalarTypes: ['Int'],
   defaultNamespaceId: 'public',
   pslBlockDescriptors: {},
+  generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
   authoringContributions: assembleAuthoringContributions([
     {
       id: 'fixture',

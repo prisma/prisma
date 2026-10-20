@@ -1334,7 +1334,7 @@ describe('assembleControlMutationDefaults', () => {
         id: 'desc-b',
         controlMutationDefaults: {
           defaultFunctionRegistry: new Map([['uuid', { lower: stubLower }]]),
-          generatorDescriptors: [{ id: 'uuidv4', applicableCodecIds: ['pg/text@1'] }],
+          generatorDescriptors: [{ id: 'uuidv4' }],
         },
       }),
     ]);
@@ -1365,25 +1365,31 @@ describe('assembleControlMutationDefaults', () => {
     ).toThrow(/Duplicate mutation default function "now".*"desc-b".*"desc-a"/);
   });
 
-  it('throws on duplicate generator id', () => {
+  it('refuses a generator id two components register', () => {
     expect(() =>
       assembleControlMutationDefaults([
         createDescriptor({
           id: 'desc-a',
           controlMutationDefaults: {
             defaultFunctionRegistry: new Map(),
-            generatorDescriptors: [{ id: 'uuidv4', applicableCodecIds: ['a@1'] }],
+            generatorDescriptors: [{ id: 'uuidv4' }],
           },
         }),
         createDescriptor({
           id: 'desc-b',
           controlMutationDefaults: {
             defaultFunctionRegistry: new Map(),
-            generatorDescriptors: [{ id: 'uuidv4', applicableCodecIds: ['b@1'] }],
+            generatorDescriptors: [{ id: 'uuidv4' }],
           },
         }),
       ]),
-    ).toThrow(/Duplicate mutation default generator id "uuidv4".*"desc-b".*"desc-a"/);
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        message:
+          'Generator "uuidv4" is registered by both "desc-a" and "desc-b". Register each generator once, in the component that defines it.',
+      }),
+    );
   });
 });
 

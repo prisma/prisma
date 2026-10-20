@@ -580,6 +580,7 @@ model Post {
         codecLookup: stack.codecLookup,
         dataTypes: stack.dataTypes,
         controlMutationDefaults: stack.controlMutationDefaults,
+        generatorFunctions: stack.generatorFunctions,
         resolvedInputs: contractConfig!.source.inputs ?? [],
         capabilities: stack.capabilities,
       });

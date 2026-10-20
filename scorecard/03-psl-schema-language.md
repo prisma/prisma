@@ -37,11 +37,14 @@ Legend:
 | Native `@db.*` types (SQLite: mapped via type affinity) | ✅ | 🟡 | — | `packages/3-targets/6-adapters/postgres/test/migrations/native-array-columns.integration.test.ts` |
 | `@default(autoincrement())` | 🟡 | ✅ | — | `test/e2e/framework/test/sqlite/migrations/additive.test.ts` (`INTEGER PRIMARY KEY`) |
 | `@default(now())` | 🟡 | ✅ | — | `test/e2e/framework/test/sqlite/migrations/widening.test.ts` (`round-trips a now() default`) |
-| `@default(uuid())` | ✅ | 🟡 | — | `packages/3-targets/6-adapters/postgres/test/migrations/planner.uuid.integration.test.ts` |
-| `@default(uuid(7))` | ✅ | 🟡 | — | `test/e2e/framework/test/dml.test.ts` (`UUIDv7 client-generated IDs`) |
-| `@default(cuid(2))` | 🟡 | 🟡 | — | |
-| `@default(ulid())` | 🟡 | 🟡 | — | |
-| `@default(nanoid())` | 🟡 | 🟡 | — | |
+| `@onCreate(uuid())` | ✅ | 🟡 | — | `packages/3-targets/6-adapters/postgres/test/migrations/planner.uuid.integration.test.ts` |
+| `@onCreate(uuid(7))` | ✅ | 🟡 | — | `test/e2e/framework/test/dml.test.ts` (`UUIDv7 client-generated IDs`) |
+| `@onCreate(cuid(2))` | 🟡 | 🟡 | — | |
+| `@onCreate(ulid())` | 🟡 | 🟡 | — | |
+| `@onCreate(nanoid())` | 🟡 | 🟡 | — | |
+| `@onCreate(ksuid())` | 🟡 | 🟡 | — | |
+| `@onCreate(now())` / `@onUpdate(now())` | ✅ | 🟡 | 🟡 | `test/integration/test/temporal-defaults/generator-attributes-parity.test.ts`; `test/integration/test/mongo/temporal-presets/generator-attributes-parity.test.ts` |
+| `@default(uuid())` and other client functions in `@default` | ❌ | ❌ | — | Refused with `PSL_GENERATOR_IN_DEFAULT`, naming `@onCreate(...)` (`packages/2-sql/2-authoring/contract-psl/test/interpreter.defaults.functions.test.ts`). |
 | `@default(dbgenerated("..."))` | ❌ | ❌ | — | Removed; a raw SQL default is `` @default(sql`...`) `` (`packages/2-sql/2-authoring/contract-psl/test/interpreter.defaults.tagged-literal.test.ts`). A `dbgenerated(...)` call is `PSL_UNKNOWN_DEFAULT_FUNCTION` naming the replacement (`test/integration/test/authoring/diagnostics/removed-dbgenerated/`). |
 | TS ID generator `ulid` | 🟡 | 🟡 | — | |
 | TS ID generator `nanoid` | 🟡 | 🟡 | — | |
@@ -50,8 +53,8 @@ Legend:
 | TS ID generator `cuid2` | 🟡 | 🟡 | — | |
 | TS ID generator `ksuid` | 🟡 | 🟡 | — | |
 | Literal `@default(...)` values | ✅ | ✅ | 🟡 | `test/e2e/framework/test/dml.test.ts` (`applies literal defaults for every supported type`); `test/e2e/framework/test/sqlite/migrations/additive.test.ts` (`default values`) |
-| `@default(cuid())` (cuid v1) | ❌ | ❌ | — | |
-| `Unsupported("...")` | ❌ | ❌ | ❌ | Not a Prisma 8 type: `contract emit` refuses a field typed `Unsupported("x")`, and `contract infer` fails with `CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED` on a column type no data type in the stack claims, instead of printing it. |
+| `@onCreate(cuid())` (cuid v1) | ❌ | ❌ | — | |
+| `Unsupported("...")` | ❌ | ❌ | ❌ | Not a Prisma 8 type: `contract emit` refuses a field typed `Unsupported("x")`, and `contract infer` fails with `CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED` on a column type no data type in the stack claims, instead of printing it. Write such a column as `Raw("x")` (ADR 273). |
 | `@ignore` | ❌ | ❌ | ❌ | |
 | `@@ignore` | ❌ | ❌ | ❌ | |
 | `@shardKey` | ❌ | ❌ | ❌ | |

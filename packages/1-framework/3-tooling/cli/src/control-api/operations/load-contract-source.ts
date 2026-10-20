@@ -13,9 +13,10 @@ import { ifDefined } from '@internal/utils/defined';
 import type { Result } from '@internal/utils/result';
 import { notOk, ok } from '@internal/utils/result';
 import type { Diagnostic } from '@internal/utils/structured-error';
-import { isStructuredErrorCode } from '@internal/utils/structured-error';
+import { isStructuredError, isStructuredErrorCode } from '@internal/utils/structured-error';
 import { isAbsolute, relative } from 'pathe';
 import { errorContractConfigMissing, errorRuntime } from '../../utils/cli-errors';
+import { cliErrorFromStructured } from './caught-errors';
 
 /**
  * Why the configured source produced no contract: the error to report, and
@@ -252,7 +253,9 @@ function validateProviderResult(
 
 /**
  * Asks the configured contract source for the contract, with a source context
- * built from `stack`, and turns every failure into `CONTRACT.SOURCE_LOAD_FAILED`.
+ * built from `stack`. A structured error the source throws, such as
+ * `CONTRACT.DEFAULT_INVALID` from a TypeScript builder, is reported under its
+ * own code; every other failure becomes `CONTRACT.SOURCE_LOAD_FAILED`.
  * Every command that loads a contract source goes through here, so each
  * reports a bad source the same way.
  *
@@ -278,6 +281,7 @@ export async function loadContractSourceWithStack(inputs: {
     ...ifDefined('pslDiagnostics', stack.family?.pslDiagnostics),
     codecLookup: stack.codecLookup,
     controlMutationDefaults: stack.controlMutationDefaults,
+    generatorFunctions: stack.generatorFunctions,
     dataTypes: stack.dataTypes,
     resolvedInputs: await unlessAborted(expandContractInputs(source.inputs)),
     capabilities: stack.capabilities,
@@ -290,6 +294,9 @@ export async function loadContractSourceWithStack(inputs: {
   } catch (error) {
     if (signal.aborted || (isRecord(error) && error['name'] === 'AbortError')) {
       throw error;
+    }
+    if (isStructuredError(error)) {
+      return failedWith(cliErrorFromStructured(error));
     }
     return failedWith(
       failedToResolveContractSource(

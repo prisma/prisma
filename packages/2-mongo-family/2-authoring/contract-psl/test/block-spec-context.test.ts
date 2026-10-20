@@ -1,5 +1,6 @@
 import type { ContractSourceContext } from '@internal/config/config-types';
 import { createDataTypeLookup, emptyCodecLookup } from '@internal/framework-components/codec';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import type { BlockSpecContext, PslBlockSpecDescriptor } from '@internal/psl-parser';
 import { blockAttribute, optional, str, structBlock } from '@internal/psl-parser';
 import { hasPslInterpreter } from '@internal/psl-parser/interpret';
@@ -61,6 +62,7 @@ function mongoContext(seen: BlockSpecContext[]): ContractSourceContext {
     dataTypes: { entries: {}, lookup: createDataTypeLookup([]), dataTypeOfCodec: () => undefined },
     codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
     controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+    generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     resolvedInputs: [],
     capabilities: {},
   };
