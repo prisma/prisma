@@ -1482,6 +1482,10 @@ A contract-space check raised under one code, in two lanes with different exits.
 
 A migration object's `endContract`/`startContract` accessor was read, but the instance carries no `endContractJson`/`startContractJson` to build the contract view from, typically a migration that overrides `describe()` and carries no contract. Payload: `className`, `accessor`, `jsonField`.
 
+### MIGRATION.DATA_TRANSFORM_CHECK_NOT_READ_ONLY
+
+MongoDB only: a data transform's precheck or postcheck reads with a command that writes, such as an update, so running the check could change the database. The runner refuses the check before sending it. Write the check's source as an `aggregate` or `rawAggregate` pipeline. Payload: `checkDescription`, `commandKind`, `collection`.
+
 ### MIGRATION.DATA_TRANSFORM_CONTRACT_MISMATCH
 
 At migration authoring/emit time, a `dataTransform(endContract, …)` produced a query plan whose storage hash does not match the contract passed to `dataTransform`: the query builder was configured with a different contract reference than the migration itself. Make both use the same imported `endContract`. Payload: `dataTransformName`, `expected`, `actual`.

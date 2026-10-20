@@ -7,6 +7,7 @@ export type MongoTargetErrorCode =
   | 'RUNTIME.ENCODE_FAILED';
 
 type MigrationSubcode =
+  | 'DATA_TRANSFORM_CHECK_NOT_READ_ONLY'
   | 'FIELD_NAME_UNSUPPORTED'
   | 'INVALID_OPERATION_ENTRY'
   | 'OPERATION_UNSUPPORTED';

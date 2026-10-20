@@ -1,10 +1,11 @@
-import type {
-  ControlDriverInstance,
-  ControlFamilyInstance,
-  MigrationPlan,
-  MigrationRunnerFailure,
-  MigrationRunnerResult,
-  TargetMigrationsCapability,
+import { asNamespaceId } from '@internal/contract/types';
+import {
+  type ControlDriverInstance,
+  type ControlFamilyInstance,
+  type MigrationPlan,
+  type MigrationRunnerResult,
+  migrationRunnerFailure,
+  type TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 import type {
   AggregateContractSpace,
@@ -146,13 +147,14 @@ describe('runMigration apply span label', () => {
 
 describe('runMigration runner-failure cause forwarding', () => {
   it('preserves the runner failure object as `cause` on the RunnerFailure', async () => {
-    const runnerFailure = {
-      code: 'MIGRATION.APPLY_FAILED',
-      summary: 'relation "users" already exists',
-      why: 'CREATE TABLE users conflicted with an existing relation',
-      meta: { sqlState: '42P07' },
-      failingSpace: 'app',
-    };
+    const runnerFailure = migrationRunnerFailure(
+      'MIGRATION.EXECUTION_FAILED',
+      'relation "users" already exists',
+      {
+        why: 'CREATE TABLE users conflicted with an existing relation',
+        meta: { sqlState: '42P07', failingSpace: 'app' },
+      },
+    );
     const failingResult: MigrationRunnerResult = notOk(runnerFailure);
     const migrations = {
       createRunner: () => ({
@@ -179,27 +181,41 @@ describe('runMigration runner-failure cause forwarding', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.failure.cause).toBe(runnerFailure);
-    expect(result.failure.meta).toMatchObject({
-      failingSpace: 'app',
-      runnerErrorCode: 'MIGRATION.APPLY_FAILED',
-      sqlState: '42P07',
+    expect({ summary: result.failure.summary, meta: result.failure.meta }).toEqual({
+      summary: 'relation "users" already exists',
+      meta: {
+        failingSpace: 'app',
+        runnerErrorCode: 'MIGRATION.EXECUTION_FAILED',
+        sqlState: '42P07',
+      },
     });
   });
 });
 
 describe('runMigration, a type change that failed', () => {
   it('names the field as a convert statement names it, and the migration of the failed operation', async () => {
-    const failingResult: MigrationRunnerResult = notOk({
-      code: 'MIGRATION.EXECUTION_FAILED',
-      summary: 'Operation alterType.user.age failed during execution: alter type of "age"',
-      failingSpace: 'app',
-      failedTypeChange: {
-        field: { kind: 'field', namespaceId: 'app', model: 'User', field: 'age' },
-        by: 'cast',
-        reason: 'value',
-        operationIndex: 2,
-      },
-    } as MigrationRunnerFailure);
+    const failingResult: MigrationRunnerResult = notOk(
+      migrationRunnerFailure(
+        'MIGRATION.EXECUTION_FAILED',
+        'Operation alterType.user.age failed during execution: alter type of "age"',
+        {
+          meta: {
+            failingSpace: 'app',
+            failedTypeChange: {
+              field: {
+                kind: 'field',
+                namespaceId: asNamespaceId('app'),
+                model: 'User',
+                field: 'age',
+              },
+              by: 'cast',
+              reason: 'value',
+              operationIndex: 2,
+            },
+          },
+        },
+      ),
+    );
     const migrations = {
       createRunner: () => ({ execute: async () => failingResult }),
     } as unknown as TargetMigrationsCapability<

@@ -50,4 +50,6 @@ expectTypeOf<SqlMigrationRunnerSuccessValue['operationsExecuted']>().toExtend<
 
 // Test that SqlMigrationRunnerFailure has the required core fields
 expectTypeOf<SqlMigrationRunnerFailure['code']>().toExtend<MigrationRunnerFailure['code']>();
-expectTypeOf<SqlMigrationRunnerFailure['summary']>().toExtend<MigrationRunnerFailure['summary']>();
+expectTypeOf<SqlMigrationRunnerFailure['message']>().toExtend<MigrationRunnerFailure['message']>();
+expectTypeOf<SqlMigrationRunnerFailure['meta']>().toEqualTypeOf<MigrationRunnerFailure['meta']>();
+expectTypeOf<SqlMigrationRunnerFailure>().toExtend<MigrationRunnerFailure>();

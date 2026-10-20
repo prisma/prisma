@@ -24,7 +24,7 @@ import type {
   FailedConversion,
   MigrationRunnerResult,
 } from '@internal/framework-components/control';
-import { APP_SPACE_ID } from '@internal/framework-components/control';
+import { APP_SPACE_ID, withFailingSpace } from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
 import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
@@ -127,8 +127,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
       if (!schemaVerifyResult.ok) {
         return runnerFailure('MIGRATION.SCHEMA_VERIFY_FAILED', schemaVerifyResult.summary, {
           why: 'The resulting database schema does not satisfy the destination contract.',
-          meta: { issues: schemaVerifyResult.schema.issues },
-          schemaIssues: schemaVerifyResult.schema.issues,
+          meta: { schemaIssues: schemaVerifyResult.schema.issues },
         });
       }
     }
@@ -186,7 +185,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
           const space = spaceOptions.space ?? spaceOptions.plan.spaceId;
           const result = await this.executeOnConnection({ ...spaceOptions, driver, space });
           if (!result.ok) {
-            return notOk({ ...result.failure, failingSpace: space });
+            return notOk(withFailingSpace(result.failure, space));
           }
           perSpaceResults.push({ space, value: result.value });
           lastProcessedSpace = space;
@@ -201,10 +200,9 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
             // reference). Surface the last successfully-applied space
             // so operators can investigate from the most recent
             // migration first.
-            return notOk({
-              ...fkIntegrityCheck.failure,
-              failingSpace: lastProcessedSpace ?? APP_SPACE_ID,
-            });
+            return notOk(
+              withFailingSpace(fkIntegrityCheck.failure, lastProcessedSpace ?? APP_SPACE_ID),
+            );
           }
         }
 
@@ -356,36 +354,33 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
           code,
           `Operation ${operation.id} failed during ${phase}: ${step.description}`,
           {
-            meta: {
-              operationId: operation.id,
-              phase,
-              stepDescription: step.description,
-            },
-            failedCheck: { operationId: operation.id, phase, description: step.description },
             ...ifDefined(
               'why',
               converted === undefined
                 ? undefined
                 : await this.unconvertedValueText(driver, converted),
             ),
-            ...ifDefined(
-              'failedTypeChange',
-              field === undefined || plan === undefined || converted === undefined
-                ? undefined
-                : converted.by === 'conversion'
-                  ? {
-                      field,
-                      by: 'conversion' as const,
-                      reason: 'invalidResult' as const,
-                      operationIndex: plan.operationIndex,
-                    }
-                  : {
-                      field,
-                      by: 'cast' as const,
-                      reason: 'value' as const,
-                      operationIndex: plan.operationIndex,
-                    },
-            ),
+            meta: {
+              failedCheck: { operationId: operation.id, phase, description: step.description },
+              ...ifDefined(
+                'failedTypeChange',
+                field === undefined || plan === undefined || converted === undefined
+                  ? undefined
+                  : converted.by === 'conversion'
+                    ? {
+                        field,
+                        by: 'conversion' as const,
+                        reason: 'invalidResult' as const,
+                        operationIndex: plan.operationIndex,
+                      }
+                    : {
+                        field,
+                        by: 'cast' as const,
+                        reason: 'value' as const,
+                        operationIndex: plan.operationIndex,
+                      },
+              ),
+            },
           },
         );
       }
@@ -439,9 +434,9 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
             operationId: operation.id,
             stepDescription: step.description,
             sql: step.sql,
+            ...ifDefined('rowsWithoutValue', rowsWithoutValue?.reports),
+            ...ifDefined('failedTypeChange', failedConversion),
           },
-          rowsWithoutValue: rowsWithoutValue?.reports,
-          failedTypeChange: failedConversion,
         });
       }
     }

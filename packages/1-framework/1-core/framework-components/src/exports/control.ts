@@ -60,6 +60,7 @@ export type {
   MigrationRunner,
   MigrationRunnerExecutionChecks,
   MigrationRunnerFailure,
+  MigrationRunnerFailureMeta,
   MigrationRunnerPerSpaceOptions,
   MigrationRunnerPerSpaceSuccessValue,
   MigrationRunnerResult,
@@ -72,7 +73,11 @@ export type {
   SchemaOwnership,
   TargetMigrationsCapability,
 } from '../control/control-migration-types';
-export { planOriginOf } from '../control/control-migration-types';
+export {
+  migrationRunnerFailure,
+  planOriginOf,
+  withFailingSpace,
+} from '../control/control-migration-types';
 export type {
   OperationPreview,
   OperationPreviewStatement,

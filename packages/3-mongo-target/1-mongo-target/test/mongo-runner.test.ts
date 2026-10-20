@@ -7,6 +7,7 @@ import type {
   MigrationOperationPolicy,
   MigrationPlan,
   MigrationRunnerExecutionChecks,
+  MigrationRunnerFailure,
 } from '@internal/framework-components/control';
 import {
   type AggregateMigrationEdgeRef,
@@ -39,6 +40,7 @@ import type {
   AnyMongoDmlWireCommand,
   AnyMongoWireCommand,
 } from '@internal/mongo-wire';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { MongoServerError } from 'mongodb';
 import { describe, expect, it } from 'vitest';
 import {
@@ -279,6 +281,15 @@ function makeContract(profileHash: string): MongoContract {
   } as unknown as MongoContract;
 }
 
+function failureFields(failure: MigrationRunnerFailure) {
+  return {
+    code: failure.code,
+    message: failure.message,
+    ...(failure.why === undefined ? {} : { why: failure.why }),
+    meta: failure.meta,
+  };
+}
+
 async function execute(
   harness: Harness,
   ops: readonly AnyMongoMigrationOperation[],
@@ -340,9 +351,9 @@ describe('MongoMigrationRunner.executeDmlOperation', () => {
 
     const result = await execute(harness, [op], { idempotencyChecks: false });
 
-    expect(result.assertNotOk()).toMatchObject({
+    expect(failureFields(result.assertNotOk())).toEqual({
       code: 'MIGRATION.PRECHECK_FAILED',
-      summary: `Operation ${op.id} failed during precheck`,
+      message: `Operation ${op.id} failed during precheck`,
       meta: { operationId: op.id, name: op.name },
     });
     expect(harness.driver.executeCalls).toEqual([
@@ -365,9 +376,9 @@ describe('MongoMigrationRunner.executeDmlOperation', () => {
 
     const result = await execute(harness, [op], { idempotencyChecks: false });
 
-    expect(result.assertNotOk()).toMatchObject({
+    expect(failureFields(result.assertNotOk())).toEqual({
       code: 'MIGRATION.POSTCHECK_FAILED',
-      summary: `Operation ${op.id} failed during postcheck`,
+      message: `Operation ${op.id} failed during postcheck`,
       meta: { operationId: op.id, name: op.name },
     });
     expect(harness.driver.executeCalls.map((c) => c.kind)).toEqual([
@@ -391,8 +402,9 @@ describe('MongoMigrationRunner.executeDmlOperation', () => {
       thrown = error;
     }
 
+    expect(isStructuredError(thrown)).toBe(true);
     expect(thrown).toMatchObject({
-      code: 'MIGRATION.RUNNER_FAILED',
+      code: 'MIGRATION.DATA_TRANSFORM_CHECK_NOT_READ_ONLY',
       meta: {
         commandKind: 'rawUpdateMany',
         collection: RUN_COLLECTION,
@@ -489,13 +501,9 @@ describe('MongoMigrationRunner schema verification', () => {
     const failure = result.assertNotOk();
     expect(failure.code).toBe('MIGRATION.SCHEMA_VERIFY_FAILED');
     expect(failure.why).toMatch(/destination contract/);
-    expect({
-      typed: failure.schemaIssues,
-      found: (failure.schemaIssues?.length ?? 0) > 0,
-    }).toEqual({ typed: failure.meta?.['issues'], found: true });
-    expect(failure.meta?.['issues']).toEqual(
-      expect.arrayContaining([expect.objectContaining({ path: ['rogue'] })]),
-    );
+    expect(failure.meta).toEqual({
+      schemaIssues: expect.arrayContaining([expect.objectContaining({ path: ['rogue'] })]),
+    });
     expect(calls).toEqual({ initMarker: 0, updateMarker: 0, writeLedgerEntry: 0 });
   });
 
@@ -819,9 +827,9 @@ describe('MongoMigrationRunner, a document rewrite without the privilege to skip
     const result = await execute(harness, [unsetField('users', 'nickname')]);
 
     expect(JSON.stringify(result.assertNotOk())).not.toContain('clusterTime');
-    expect(result.assertNotOk()).toEqual({
+    expect(failureFields(result.assertNotOk())).toEqual({
       code: 'MIGRATION.EXECUTION_FAILED',
-      summary:
+      message:
         'Operation field.users.nickname.unset failed: the database user may not skip document validation',
       why: 'Renaming or removing a field rewrites documents with bypassDocumentValidation, because the old validator requires the old field. MongoDB refused it with error 13 (Unauthorized). Grant the user the bypassDocumentValidation action on the database, for example with the dbAdmin or restore role, then run the command again; operations that already ran are skipped.',
       meta: { operationId: 'field.users.nickname.unset', mongoCode: 13, codeName: 'Unauthorized' },
@@ -848,9 +856,9 @@ describe('MongoMigrationRunner, a field rename stopped because documents already
       renameField('posts', 'title', 'headline', { filter: { type: 'bug' } }),
     ]);
 
-    expect(result.assertNotOk()).toEqual({
+    expect(failureFields(result.assertNotOk())).toEqual({
       code: 'MIGRATION.PRECHECK_FAILED',
-      summary:
+      message:
         'Operation field.posts.title.rename(headline).where({"type":"bug"}) stopped: some documents in collection posts already hold headline as well as title',
       why: 'Renaming title to headline would overwrite their headline. Find them with db.getCollection("posts").find({"$and":[{"type":"bug"},{"title":{"$exists":true}},{"headline":{"$exists":true}}]}) in mongosh, and move or remove one of the two values in each. Nothing was renamed. The operations before this one in the plan already ran, such as dropping an index on title; once the documents are fixed, run the command again and the plan finishes from here.',
       meta: {
@@ -869,12 +877,38 @@ describe('MongoMigrationRunner, a collection rename stopped because the new coll
     const result = await execute(harness, [renameCollection('events', 'occasions')]);
 
     expect(harness.ddlCalls).toEqual([]);
-    expect(result.assertNotOk()).toEqual({
+    expect(failureFields(result.assertNotOk())).toEqual({
       code: 'MIGRATION.PRECHECK_FAILED',
-      summary:
+      message:
         'Operation collection.events.rename(occasions) stopped: collection occasions already exists, so collection events cannot be renamed to it',
       why: 'Nothing was renamed. If occasions holds nothing you need, drop it, then run the command again; operations that already ran are skipped. If an earlier operation of the same migration created occasions, as a createIndex on occasions does, make renameCollection("events", "occasions") the first operation of its migration.ts, run node on that migration.ts, and then drop occasions and run the command again.',
       meta: { operationId: 'collection.events.rename(occasions)' },
+    });
+  });
+});
+
+describe('MongoMigrationRunner, a DDL precheck that does not hold', () => {
+  it('reports the failed check once, in meta.failedCheck', async () => {
+    const harness = makeHarness();
+    harness.inspectionExecutor.collections = [{ name: 'orders' }];
+
+    const result = await execute(harness, [createCollection('orders')], {
+      prechecks: true,
+      postchecks: false,
+      idempotencyChecks: false,
+    });
+
+    expect(failureFields(result.assertNotOk())).toEqual({
+      code: 'MIGRATION.PRECHECK_FAILED',
+      message:
+        'Operation collection.orders.create failed during precheck: collection orders does not exist',
+      meta: {
+        failedCheck: {
+          operationId: 'collection.orders.create',
+          phase: 'precheck',
+          description: 'collection orders does not exist',
+        },
+      },
     });
   });
 });

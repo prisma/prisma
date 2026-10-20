@@ -7,6 +7,7 @@ import type {
   MigrationRunnerResult,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
+import { migrationRunnerFailure } from '@internal/framework-components/control';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok } from '@internal/utils/result';
 import { describe, expect, it, vi } from 'vitest';
@@ -258,13 +259,12 @@ describe('executeDbUpdate', () => {
       mode: 'apply',
       acceptDataLoss: true,
       migrations: createMockMigrations({
-        runnerResult: notOk({
-          code: 'ORIGIN_MISMATCH',
-          summary: 'Origin mismatch',
-          why: 'Marker drifted',
-          meta: { drift: true },
-          failingSpace: 'app',
-        }),
+        runnerResult: notOk(
+          migrationRunnerFailure('MIGRATION.MARKER_ORIGIN_MISMATCH', 'Origin mismatch', {
+            why: 'Marker drifted',
+            meta: { drift: true, failingSpace: 'app' },
+          }),
+        ),
       }),
       frameworkComponents: [],
       migrationsDir: FAKE_MIGRATIONS_DIR,
@@ -296,13 +296,13 @@ describe('executeDbUpdate', () => {
       mode: 'apply',
       acceptDataLoss: true,
       migrations: createMockMigrations({
-        runnerResult: notOk({
-          code: 'MIGRATION.SCHEMA_VERIFY_FAILED',
-          summary: 'Database schema does not satisfy contract',
-          meta: { issues: [issue] },
-          schemaIssues: [issue],
-          failingSpace: 'app',
-        }),
+        runnerResult: notOk(
+          migrationRunnerFailure(
+            'MIGRATION.SCHEMA_VERIFY_FAILED',
+            'Database schema does not satisfy contract',
+            { meta: { schemaIssues: [issue], failingSpace: 'app' } },
+          ),
+        ),
       }),
       frameworkComponents: [],
       migrationsDir: FAKE_MIGRATIONS_DIR,
@@ -315,7 +315,7 @@ describe('executeDbUpdate', () => {
         ? undefined
         : {
             schemaIssues: result.failure.schemaIssues,
-            metaIssues: result.failure.meta?.['issues'],
+            metaIssues: result.failure.meta?.['schemaIssues'],
           },
     ).toEqual({
       schemaIssues: [issue],
@@ -986,12 +986,12 @@ describe('executeDbUpdate', () => {
         mode: 'apply',
         acceptDataLoss: true,
         migrations: createMockMigrations({
-          runnerResult: notOk({
-            code: 'RUNNER_ERROR',
-            summary: 'Failed',
-            why: 'Error',
-            failingSpace: 'app',
-          }),
+          runnerResult: notOk(
+            migrationRunnerFailure('MIGRATION.EXECUTION_FAILED', 'Failed', {
+              why: 'Error',
+              meta: { failingSpace: 'app' },
+            }),
+          ),
         }),
         frameworkComponents: [],
         migrationsDir: FAKE_MIGRATIONS_DIR,

@@ -10,6 +10,7 @@ import type {
   SchemaDiffIssue,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
+import { migrationRunnerFailure } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { writeContractSnapshot } from '@internal/migration-tools/contract-snapshot-store';
@@ -171,13 +172,13 @@ function recordingMigrations() {
 function schemaCheckFailingMigrations(issues: readonly SchemaDiffIssue[]) {
   const runner: MigrationRunner<'sql', 'postgres'> = {
     execute: async () =>
-      notOk({
-        code: 'MIGRATION.SCHEMA_VERIFY_FAILED',
-        summary: 'Database schema does not satisfy contract',
-        meta: { issues },
-        schemaIssues: issues,
-        failingSpace: 'app',
-      }),
+      notOk(
+        migrationRunnerFailure(
+          'MIGRATION.SCHEMA_VERIFY_FAILED',
+          'Database schema does not satisfy contract',
+          { meta: { schemaIssues: issues, failingSpace: 'app' } },
+        ),
+      ),
   };
   return blindCast<
     TargetMigrationsCapability<'sql', 'postgres', ControlFamilyInstance<'sql', unknown>>,
@@ -301,7 +302,7 @@ describe('executeMigrate runner schedule', () => {
         ? undefined
         : {
             schemaIssues: result.failure.schemaIssues,
-            metaIssues: result.failure.meta?.['issues'],
+            metaIssues: result.failure.meta?.['schemaIssues'],
           },
     ).toEqual({ schemaIssues: [issue], metaIssues: [issue] });
   });

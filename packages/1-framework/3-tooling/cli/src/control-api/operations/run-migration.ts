@@ -94,11 +94,11 @@ function failureReports(
   failure: MigrationRunnerFailure,
   resolutions: readonly OrderedResolution[],
 ): Pick<RunnerFailure, 'failedTypeChange' | 'rowsWithoutValue' | 'failedMigration'> {
-  const resolution = resolutions.find(({ spaceId }) => spaceId === failure.failingSpace);
+  const resolution = resolutions.find(({ spaceId }) => spaceId === failure.meta.failingSpace);
   if (resolution === undefined) return {};
   const fieldText = (field: MigrationSubject) =>
     subjectText(field, { origin: resolution.entry.destinationContract, statements: [] });
-  const { failedTypeChange, rowsWithoutValue } = failure;
+  const { failedTypeChange, rowsWithoutValue } = failure.meta;
   const operationIndex = failedTypeChange?.operationIndex ?? rowsWithoutValue?.[0]?.operationIndex;
   const edge =
     operationIndex !== undefined
@@ -129,7 +129,7 @@ function failureReports(
 
 /** The issues of a failed schema check after apply; a check that reported none counts as no issues. */
 function schemaIssuesOf(failure: MigrationRunnerFailure): readonly SchemaDiffIssue[] | undefined {
-  const issues = failure.schemaIssues;
+  const issues = failure.meta.schemaIssues;
   return issues === undefined || issues.length === 0 ? undefined : issues;
 }
 
@@ -137,11 +137,11 @@ function failedPrecheckOf(
   failure: MigrationRunnerFailure,
   resolutions: readonly OrderedResolution[],
 ): FailedPrecheckReport | undefined {
-  const check = failure.failedCheck;
+  const check = failure.meta.failedCheck;
   if (check === undefined || check.phase !== 'precheck' || failure.why !== undefined) {
     return undefined;
   }
-  const resolution = resolutions.find(({ spaceId }) => spaceId === failure.failingSpace);
+  const resolution = resolutions.find(({ spaceId }) => spaceId === failure.meta.failingSpace);
   return {
     operationId: check.operationId,
     description: check.description,
@@ -163,7 +163,7 @@ export interface RunMigrationInputs<TFamilyId extends string, TTargetId extends 
   /**
    * Canonical schedule order — extensions alphabetically by `spaceId`,
    * then app. Mirrors {@link import('@internal/migration-tools/concatenate-space-apply-inputs').concatenateSpaceApplyInputs}'s
-   * convention so `MigrationRunnerFailure.failingSpace` attribution
+   * convention so `MigrationRunnerFailure.meta.failingSpace` attribution
    * stays byte-for-byte stable across callers.
    */
   readonly applyOrder: readonly string[];
@@ -268,11 +268,10 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
   if (!runnerResult.ok) {
     onProgress?.({ action, kind: 'spanEnd', spanId: RUN_SPAN_ID, outcome: 'error' });
     return notOk({
-      summary: runnerResult.failure.summary,
+      summary: runnerResult.failure.message,
       ...ifDefined('why', runnerResult.failure.why),
       meta: {
-        ...(runnerResult.failure.meta ?? {}),
-        failingSpace: runnerResult.failure.failingSpace,
+        ...runnerResult.failure.meta,
         runnerErrorCode: runnerResult.failure.code,
       },
       ...failureReports(runnerResult.failure, orderedResolutions),
