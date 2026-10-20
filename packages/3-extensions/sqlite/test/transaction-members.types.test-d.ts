@@ -2,6 +2,7 @@ import type { Collection } from '@internal/sql-orm-client';
 import { expectTypeOf, test } from 'vitest';
 import type { Contract } from '../../../3-targets/3-targets/sqlite/test/fixtures/sqlite-contract.d';
 import type { SqliteClient, SqliteTransactionContext } from '../src/exports/runtime';
+import type { SqliteStaticContext } from '../src/exports/static';
 
 declare class PostCollection extends Collection<Contract, 'Post'> {
   titled(title: string): this;
@@ -18,6 +19,7 @@ test('each query member of a transaction has the type it has on the client', () 
   expectTypeOf<Tx['prepare']>().toEqualTypeOf<Client['prepare']>();
   expectTypeOf<Tx['query']>().toEqualTypeOf<Client['query']>();
   expectTypeOf<Tx['execute']>().toEqualTypeOf<Client['execute']>();
+  expectTypeOf<Tx['toSql']>().toEqualTypeOf<Client['toSql']>();
   expectTypeOf<Tx['orm']['Post']['titled']>().toBeFunction();
 });
 
@@ -31,4 +33,8 @@ test('a transaction has no lifecycle members, transaction or runtime', () => {
   expectTypeOf<
     Extract<keyof Tx, 'close' | 'transaction' | 'runtime' | typeof Symbol.asyncDispose>
   >().toBeNever();
+});
+
+test('the client has every static member of the static entry', () => {
+  expectTypeOf<Client>().toMatchTypeOf<SqliteStaticContext<Contract>>();
 });

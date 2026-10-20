@@ -51,6 +51,20 @@ describe('a sqlite client with no database', () => {
   });
 });
 
+describe('a sqlite client given a path', () => {
+  it('creates its driver on the first use', async () => {
+    const db = sqlite({ contract, path: ':memory:' });
+    db.toSql(db.sql.posts.select('id').build());
+
+    expect(driverCreate).not.toHaveBeenCalled();
+
+    db.runtime();
+    await db.close();
+
+    expect(driverCreate).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('the static entry', () => {
   it('renders plans from sql and raw', () => {
     const db = sqliteStatic({ contract });

@@ -2,7 +2,6 @@ import sqliteAdapter from '@internal/adapter-sqlite/runtime';
 import type { Contract } from '@internal/contract/types';
 import type { SqliteBinding } from '@internal/driver-sqlite/runtime';
 import sqliteDriver from '@internal/driver-sqlite/runtime';
-import { instantiateExecutionStack } from '@internal/framework-components/execution';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { createRawLane, sql as sqlBuilder } from '@internal/sql-builder/runtime';
 import type { Db, RawLane } from '@internal/sql-builder/types';
@@ -26,6 +25,7 @@ import type {
   Log,
   ParamsFromDeclaration,
   Runtime,
+  RuntimeMode,
   SqlExecutionStackWithDriver,
   SqlMiddleware,
   SqlRuntimeExtensionDescriptor,
@@ -103,19 +103,21 @@ export interface SqliteTransactionContext<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
 > extends TransactionContext,
-    SqliteQueryMembers<TContract, TCollections> {
+    Omit<SqliteQueryMembers<TContract, TCollections>, keyof RuntimeScope>,
+    ToSqlMember {
   readonly enums: SqliteStaticContext<TContract>['enums'];
+}
+
+export interface SqliteStaticMembers<TContract extends Contract<SqlStorage>>
+  extends SqliteStaticContext<TContract> {
+  readonly stack: SqlExecutionStackWithDriver<SqliteTargetId>;
 }
 
 export interface SqliteClient<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
 > extends SqliteQueryMembers<TContract, TCollections>,
-    ToSqlMember {
-  readonly enums: SqliteStaticContext<TContract>['enums'];
-  readonly context: ExecutionContext<TContract>;
-  readonly contract: TContract;
-  readonly stack: SqlExecutionStackWithDriver<SqliteTargetId>;
+    SqliteStaticMembers<TContract> {
   connect(bindingInput?: { readonly path: string }): Promise<Runtime>;
   runtime(): Runtime;
   transaction<R>(
@@ -133,6 +135,7 @@ interface SqliteTransactionMembersOptions<
   readonly collections: TCollections | undefined;
   readonly rawCodecInferer: RawCodecInferer;
   readonly enums: SqliteStaticContext<TContract>['enums'];
+  readonly toSql: ToSqlMember['toSql'];
   readonly prepareRuntime: () => Runtime;
 }
 
@@ -146,7 +149,7 @@ function buildSqliteTransactionMembers<
   options: SqliteTransactionMembersOptions<TContract, TCollections>,
   txCtx: TransactionContext,
 ): Omit<SqliteTransactionContext<TContract, TCollections>, keyof TransactionContext> {
-  const { context, collections, rawCodecInferer, enums, prepareRuntime } = options;
+  const { context, collections, rawCodecInferer, enums, toSql, prepareRuntime } = options;
   const sqlNamespace = sqlBuilder<TContract>({ context, rawCodecInferer })[UNBOUND_NAMESPACE_ID];
   assertDefined(sqlNamespace, 'the unbound namespace always exists on a sqlite builder output');
   return {
@@ -171,6 +174,7 @@ function buildSqliteTransactionMembers<
     ),
     raw: createRawLane<TContract>({ context, rawCodecInferer }),
     enums,
+    toSql,
     prepare(declaration, callback) {
       return prepareQuery(prepareRuntime(), declaration, callback);
     },
@@ -182,8 +186,7 @@ export interface SqliteOptionsBase {
   readonly middleware?: readonly SqlMiddleware[];
   readonly verifyMarker?: VerifyMarkerOption;
   readonly log?: Log;
-  /** Passed to middleware as `ctx.mode`. `'strict'` (the default) makes `budgets` block a query its `'warn'` severity would only warn about. */
-  readonly mode?: 'strict' | 'permissive';
+  readonly mode?: RuntimeMode;
 }
 
 export type SqliteOptions<
@@ -279,7 +282,7 @@ export default function sqlite<
       return runtimeInstance;
     }
 
-    const stackInstance = instantiateExecutionStack(stack);
+    const adapter = stack.adapter.create(stack);
     const driverDescriptor = stack.driver;
     if (!driverDescriptor) {
       throw new InternalError('Driver descriptor missing from execution stack');
@@ -294,7 +297,7 @@ export default function sqlite<
 
     runtimeInstance = new SqliteRuntimeImpl({
       context,
-      adapter: stackInstance.adapter,
+      adapter,
       driver,
       ...ifDefined('verifyMarker', options.verifyMarker),
       ...ifDefined('middleware', options.middleware),
@@ -409,6 +412,7 @@ export default function sqlite<
               collections: options.collections,
               rawCodecInferer: stack.adapter.rawCodecInferer,
               enums,
+              toSql,
               prepareRuntime: getRuntime,
             },
             txCtx,
