@@ -6,6 +6,7 @@ import {
   inferredTypeConstructors,
 } from '@internal/family-sql/psl-build';
 import { createDataTypeLookup } from '@internal/framework-components/codec';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
 import { printPsl } from '@internal/psl-printer';
 import { renderSqlCatalogText, resolveWrittenSqlTypes } from '@internal/sql-contract/data-type';
@@ -225,9 +226,8 @@ export const inferBuildContext: SqlPslBuildContext = {
     },
     field: postgresAuthoringFieldPresets,
   },
-  defaultFunctionPrintersByGenerator: new Map(),
+  generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
   componentIdsByGenerator: new Map(),
-  fieldPresetsByCodecAndGenerator: new Map(),
   codecLookup: createPostgresBuiltinCodecLookup(),
   dataTypes: {
     entries: postgresDataTypeEntries(),

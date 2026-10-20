@@ -12,6 +12,7 @@ import { sqlFamilyEntityTypes, sqlFamilyPslBlockDescriptors } from './authoring-
 import { sqlFamilyAuthoringFieldPresets } from './authoring-field-presets';
 import { sqlFamilyAuthoringTypes } from './authoring-type-constructors';
 import { createSqlFamilyInstance, type SqlControlFamilyInstance } from './control-instance';
+import { sqlFamilyGeneratorDescriptors, sqlFamilyGeneratorFunctions } from './generator-functions';
 
 const sqlFamilyDescribeUnsupportedAttribute: unknown = describeUnsupportedSqlAttribute;
 const sqlFamilyDescribeUnresolvedType: unknown = describeUnresolvedSqlType;
@@ -33,6 +34,11 @@ export class SqlFamilyDescriptor
     attributeSpecs: sqlAttributeSpecs,
     dataTypes: sqlExpressionRegistration.authoring.dataTypes,
   } as const;
+  readonly generatorFunctions = sqlFamilyGeneratorFunctions;
+  readonly controlMutationDefaults = {
+    defaultFunctionRegistry: new Map(),
+    generatorDescriptors: sqlFamilyGeneratorDescriptors,
+  };
   readonly pslDiagnostics = {
     describeUnsupportedAttribute: sqlFamilyDescribeUnsupportedAttribute,
     describeUnresolvedType: sqlFamilyDescribeUnresolvedType,

@@ -1583,7 +1583,13 @@ describe('MongoMigrationPlanner', () => {
       schema: MongoSchemaIR,
       policy = ALL_CLASSES_POLICY,
     ) {
-      const result = p.planCalls({ contract, schema, policy, frameworkComponents: [] });
+      const result = p.planCalls({
+        contract,
+        schema,
+        policy,
+        fromContract: null,
+        frameworkComponents: [],
+      });
       expect(result.kind).toBe('success');
       if (result.kind !== 'success') throw new Error('Expected success');
       return result.calls;
@@ -1625,6 +1631,7 @@ describe('MongoMigrationPlanner', () => {
       ]);
 
       const result = planner.planCalls({
+        fromContract: null,
         contract,
         schema: origin,
         policy: ALL_CLASSES_POLICY,
@@ -1642,6 +1649,7 @@ describe('MongoMigrationPlanner', () => {
       });
 
       const result = planner.planCalls({
+        fromContract: null,
         contract,
         schema: emptyIR(),
         policy: { allowedOperationClasses: ['destructive'] },

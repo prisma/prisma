@@ -30,7 +30,7 @@ Through the public package, import from `@prisma/orm-family-mongo/contract` inst
 
 ## `mongo-derive-json-schema-replaced-by-derive-collection-validators`
 
-`deriveJsonSchema` took the fields of one model and ignored its relations, so its validator could differ from the one a contract emits. `deriveCollectionValidators` takes the contract's roots and models and derives every collection's validator, with each variant as a `oneOf` branch.
+`deriveJsonSchema` took the fields of one model and ignored its relations, so its validator could differ from the one a contract emits. `deriveCollectionValidators` takes the contract's models and derives the validator of every collection that stores a root model, with each variant as a `oneOf` branch.
 
 ```ts
 // before
@@ -47,7 +47,6 @@ const validator = deriveJsonSchema(
 import { deriveCollectionValidators } from '@internal/mongo-contract';
 
 const validator = deriveCollectionValidators({
-  roots: contract.roots,
   models: ns.models,
   lookups: { codecLookup, dataTypeLookup },
   valueObjects: ns.valueObjects ?? {},

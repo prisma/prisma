@@ -1,22 +1,6 @@
-import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
 import { describe, expect, it } from 'vitest';
 import { defineContract, field, index, model } from '../src/contract-builder';
-
-const mongoFamilyPack = {
-  kind: 'family',
-  id: 'mongo',
-  familyId: 'mongo',
-  version: '0.0.1',
-} as const satisfies FamilyPackRef<'mongo'>;
-
-const mongoTargetPack = {
-  kind: 'target',
-  id: 'mongo',
-  familyId: 'mongo',
-  targetId: 'mongo',
-  version: '0.0.1',
-  defaultNamespaceId: '__unbound__',
-} as const satisfies TargetPackRef<'mongo', 'mongo'>;
+import { mongoFamilyPack, mongoTargetPack } from './mongo-test-packs';
 
 // Pins the storageHash computed for a representative authored contract.
 // The hash fingerprints the constructed storage body the builder feeds
@@ -50,7 +34,7 @@ describe('mongo builder storageHash pin', () => {
     });
 
     expect(String(contract.storage.storageHash)).toBe(
-      'cf17fca6237ec7fc1703fb8bbfea0856e08b769868b3275b72ace8b8cdf0fb38',
+      '5d42e6d82387b059ecc9ffc13e1bf085b978380e0668fe85433f1c72df20df3d',
     );
   });
 });

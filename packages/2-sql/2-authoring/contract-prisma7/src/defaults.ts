@@ -6,6 +6,7 @@ import {
   type WrittenValue,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
 import type { ControlMutationDefaults } from '@internal/framework-components/control';
 import type { FieldSymbol, PslSpan, ResolvedAttribute } from '@internal/psl-parser';
 import type { ExpressionAst } from '@internal/psl-parser/syntax';
@@ -45,6 +46,7 @@ export interface LowerPrisma7DefaultInput {
   /** Storage value per member name when the field is typed by a Prisma 7 enum. */
   readonly enumMembers: ReadonlyMap<string, string> | undefined;
   readonly controlMutationDefaults: ControlMutationDefaults;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   /** The stack's data types and the PSL support for them, which this reader maps its syntax onto. */
   readonly dataTypes: DataTypeSupport;
   readonly sourceId: string;
@@ -338,7 +340,7 @@ function lowerFunction(
   }
   const keys = FUNCTION_ARGUMENT_KEYS[fn];
   const entry = input.controlMutationDefaults.defaultFunctionRegistry.get(fn);
-  if (keys === undefined || entry === undefined) {
+  if (keys === undefined || (entry === undefined && !input.generatorFunctions.has(fn))) {
     return unknown(
       `function "${fn}()" is not a Prisma 7 default function this target supports.`,
       span,
@@ -361,6 +363,27 @@ function lowerFunction(
   }
   // Prisma 7's cuid() (version 1) has no Prisma 8 generator; the slice maps it to cuid2.
   if (fn === 'cuid') args['version'] = 2;
+  if (entry === undefined) {
+    const resolution = input.generatorFunctions.resolve(
+      { name: fn, args },
+      { codecId: input.codecId, typeParams: input.typeParams },
+    );
+    if (resolution.ok) return { storage: undefined, onCreate: resolution.generator };
+    if (resolution.reason === 'refused') {
+      const written =
+        input.attribute.args.find((arg) => arg.kind === 'positional')?.value.trim() ?? `${fn}()`;
+      input.diagnostics.push(
+        prisma7Diagnostic(
+          'PSL.PRISMA7_GENERATOR_REFUSED',
+          `${label}: @default(${written}) cannot fill its column: ${resolution.message}`,
+          input.sourceId,
+          span,
+        ),
+      );
+      return undefined;
+    }
+    return unknown(`function "${fn}()" cannot fill a column of codec "${input.codecId}".`, span);
+  }
   const lowered = entry.lower({
     call: { fn, span, args },
     context: {
@@ -381,9 +404,7 @@ function lowerFunction(
     );
     return undefined;
   }
-  return lowered.value.kind === 'storage'
-    ? { storage: lowered.value.defaultValue, onCreate: undefined }
-    : { storage: undefined, onCreate: lowered.value.generated };
+  return { storage: lowered.value.defaultValue, onCreate: undefined };
 }
 
 /**

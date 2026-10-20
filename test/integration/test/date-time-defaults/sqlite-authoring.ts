@@ -35,6 +35,7 @@ export async function authorSqliteContractFromPsl(pslSchema: string) {
     codecLookup: sqliteStack.codecLookup,
     dataTypes: sqliteStack.dataTypes,
     controlMutationDefaults: sqliteStack.controlMutationDefaults,
+    generatorFunctions: sqliteStack.generatorFunctions,
     resolvedInputs: [schemaPath],
     capabilities: sqliteStack.capabilities,
   });

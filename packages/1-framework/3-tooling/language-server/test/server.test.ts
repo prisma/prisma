@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 import type { ContractSourceContext } from '@internal/config/config-types';
 import { errorUnexpected } from '@internal/errors/control';
 import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import {
   assembleAuthoringContributions,
   assembleControlMutationDefaults,
@@ -243,6 +244,7 @@ async function resolutionForInputs(
       scalarTypes: [...scalarTypes],
       defaultNamespaceId: 'public',
       pslBlockDescriptors: descriptors,
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       authoringContributions: assembleAuthoringContributions([
         { id: 'scalars', authoring: { type: testTypeConstructors(scalarTypes) } },
       ]),
@@ -259,6 +261,7 @@ async function emptyResolution(): Promise<ConfigResolution> {
       scalarTypes: [...scalarTypes],
       defaultNamespaceId: 'public',
       pslBlockDescriptors: {},
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     },
   };
 }
@@ -281,6 +284,7 @@ const resolveToSchemaWithAttributeContributions: ResolveInputs = async () => {
       ...resolution.controlStack,
       authoringContributions: completionAuthoringContributions,
       controlMutationDefaults: completionInterpretationContext.controlMutationDefaults,
+      generatorFunctions: completionInterpretationContext.generatorFunctions,
     },
     interpretation: {
       source: completionInterpretationSource,
@@ -3909,6 +3913,39 @@ describe('language server disposal', { timeout: timeouts.databaseOperation }, ()
     await assertNoUnhandledRejection((load) =>
       load.reject(new Error('config load failed after dispose')),
     );
+  });
+
+  it('does not reject when a watcher unregistration is still pending at dispose', async () => {
+    const unhandled: unknown[] = [];
+    const onUnhandled = (reason: unknown): void => {
+      unhandled.push(reason);
+    };
+    process.on('unhandledRejection', onUnhandled);
+    try {
+      harness = startHarness(resolveToSchema, watchedFilesCapabilities);
+      const unregistering = deferred<void>();
+      harness.client.onRequest(UnregistrationRequest.type, () => {
+        unregistering.resolve();
+        return new Promise<void>(() => undefined);
+      });
+      await harness.initialize();
+      openDocument(harness, schemaUri, duplicateModelSource);
+      await harness.waitForDiagnostics(schemaUri);
+      const activeHarness = harness;
+      await waitUntil(() => activeHarness.schemaWatcherRegistrationIds().length > 0);
+
+      harness.notifyConfigChanged();
+      await unregistering.promise;
+      harness.disconnect();
+      harness = undefined;
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(unhandled).toEqual([]);
+    } finally {
+      process.off('unhandledRejection', onUnhandled);
+    }
   });
 
   it('does not reject when a client notification is still being written at dispose', async () => {

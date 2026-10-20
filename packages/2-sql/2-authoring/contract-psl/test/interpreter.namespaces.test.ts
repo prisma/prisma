@@ -5,6 +5,7 @@ import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { fixtureInterpreterTypes } from './fixture-codec-descriptors';
+import { fixtureGeneratorFunctions } from './fixture-generator-functions';
 import {
   createBuiltinLikeControlMutationDefaults,
   interpretSqlContract,
@@ -103,6 +104,7 @@ const baseInput = {
   target: postgresTarget,
   scalarColumnDescriptors: postgresScalarTypeDescriptors,
   controlMutationDefaults: createBuiltinLikeControlMutationDefaults(),
+  generatorFunctions: fixtureGeneratorFunctions,
   composedExtensionContracts: new Map(),
   createNamespace: createTestSqlNamespace,
   capabilities: { sql: { scalarList: true } },
@@ -112,7 +114,7 @@ describe('un-namespaced PG model defaults to public namespace (TML-2916)', () =>
   it('places a bare model in domain.namespaces.public and storage.namespaces.public, with no __unbound__ slot', () => {
     const result = interpretSqlContract(
       `model user {
-  id String @id @default(uuid())
+  id String @id @onCreate(uuid())
 }
 `,
       { ...baseInput },

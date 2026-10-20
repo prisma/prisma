@@ -1,5 +1,4 @@
-import type { Runtime } from '@prisma/orm-postgres/family-runtime';
-import { createOrmClient } from './client';
+import type { DemoOrm } from '../prisma/db';
 import { createdBefore, postSummary } from './fragments';
 
 export interface GetFilteredPostsInput {
@@ -13,10 +12,9 @@ export interface GetFilteredPostsInput {
 export async function ormClientGetFilteredPosts(
   input: GetFilteredPostsInput,
   limit: number,
-  runtime: Runtime,
+  orm: DemoOrm,
 ) {
-  const db = createOrmClient(runtime);
-  return db.Post.with((posts) =>
+  return orm.Post.with((posts) =>
     input.userId !== undefined ? posts.where({ userId: input.userId }) : posts,
   )
     .with((posts) =>

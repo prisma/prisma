@@ -3,7 +3,7 @@ import type {
   ContractField,
   ContractModelBase,
 } from '@internal/contract/types';
-import { crossRef } from '@internal/contract/types';
+import { type CrossReference, crossRef } from '@internal/contract/types';
 import {
   type CollectionValidatorsInput,
   deriveCollectionValidators,
@@ -16,9 +16,14 @@ export type Model = CollectionValidatorsInput['models'][string];
 
 export function model(
   fields: Record<string, ContractField>,
-  extra: Partial<Pick<ContractModelBase, 'relations' | 'discriminator' | 'variants'>> = {},
+  extra: Partial<
+    Pick<
+      ContractModelBase,
+      'relations' | 'discriminator' | 'variants' | 'storage' | 'base' | 'owner'
+    >
+  > = {},
 ): Model {
-  return { fields, relations: {}, ...extra };
+  return { fields, relations: {}, storage: {}, ...extra };
 }
 
 export function embedOne(to: string): ContractEmbedRelation {
@@ -29,15 +34,26 @@ export function embedMany(to: string): ContractEmbedRelation {
   return { to: crossRef(to), cardinality: '1:N' };
 }
 
+/** The validators of `models`, with each model in `roots` stored in the collection that keys it. */
 export function derive(
-  input: Pick<CollectionValidatorsInput, 'roots' | 'models'> &
-    Partial<Pick<CollectionValidatorsInput, 'valueObjects' | 'valueSets'>>,
+  input: {
+    readonly roots: Record<string, CrossReference>;
+  } & Pick<CollectionValidatorsInput, 'models'> &
+    Partial<Pick<CollectionValidatorsInput, 'valueObjects' | 'valueSets' | 'controlPolicies'>>,
 ) {
+  const { roots, models, ...sources } = input;
+  const stored = { ...models };
+  for (const [collection, root] of Object.entries(roots)) {
+    const model = stored[root.model];
+    if (model !== undefined) stored[root.model] = { ...model, storage: { collection } };
+  }
   return deriveCollectionValidators({
     lookups: mongoTypeLookups,
     valueObjects: {},
     valueSets: {},
-    ...input,
+    controlPolicies: { collections: {}, defaultControlPolicy: undefined },
+    ...sources,
+    models: stored,
   });
 }
 

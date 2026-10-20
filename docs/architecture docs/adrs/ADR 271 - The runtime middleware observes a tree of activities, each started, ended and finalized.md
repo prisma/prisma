@@ -45,14 +45,14 @@ sequenceDiagram
     M->>M: invalidate keys
 ```
 
-The runtime's middleware sees a tree. An **activity** is one act by an actor: a statement a client sent, a transaction a client or the user opened, an ORM call the user made. An activity may have a parent, to any depth. The runtime hosts the tree and fires the hooks; it starts no activity on its own.
+The runtime's middleware sees a tree. An **activity** is one act by an actor: a statement a client sent, a transaction a client or the user opened, an ORM call the user made. An activity may have a parent, to any depth. The runtime hosts the tree and fires the hooks; it starts no activity on its own. Nobody declares the tree up front: it grows as the code runs, because `db.transaction(fn)` runs user code and an ORM call's later statements depend on earlier results, such as an `UPDATE` sent only when the `SELECT` before it found a row.
 
 The runtime defines two kinds of activity:
 
 - **`statement`**: one statement sent to the database. `query()` sends it for its rows and `execute()` sends it for its statistics, such as the number of affected rows; the activity's `returns` field is `'rows'` or `'stats'` accordingly. Both have the same lifecycle. A statement is a leaf.
 - **`transaction`**: started by `transaction()`, ended by `commit()` or `rollback()`.
 
-Clients add their own kinds. A client kind contains a hyphen, such as `orm-call`, so it is never `statement` or `transaction`. Kinds the runtime defines, in every family, never contain a hyphen. `Activity` is `StatementActivity | TransactionActivity | ClientActivity` in every program, so a middleware that knows no client kind still receives client activities, and a check such as `activity.kind !== 'statement'` leaves both a transaction and a client activity. A client may register a kind's result type by module augmentation of `ClientActivityRegistry` through the published entry `@prisma/orm-framework/components/runtime`. The registry types the handle side only, `intercepted.result` and `end({ result })`; in middleware hooks a client activity's result is `unknown` even after narrowing on its kind, because the hook types must accept unregistered kinds. The runtime rejects a kind without a hyphen at run time too. The SQL ORM is to start one `orm-call` activity for every terminal method. The framework names no client vocabulary.
+Clients add their own kinds. A client kind contains a hyphen, such as `orm-call`, so it is never `statement` or `transaction`. Kinds the runtime defines, in every family, never contain a hyphen. `Activity` is `StatementActivity | TransactionActivity | ClientActivity` in every program, so a middleware that knows no client kind still receives client activities, and a check such as `activity.kind !== 'statement'` leaves both a transaction and a client activity. A client may register a kind's result type by module augmentation of `ClientActivityRegistry` through the published entry `@prisma/orm-framework/components/runtime`. The registry types the handle side only, `intercepted.result` and `end({ result })`; in middleware hooks a client activity's result is `unknown` even after narrowing on its kind, because the hook types must accept unregistered kinds. The runtime rejects a kind without a hyphen at run time too. The SQL ORM starts one `orm-call` activity for every terminal method. The framework names no client vocabulary.
 
 Middleware has two kinds of hook: **lifecycle events**, which observe, and **interceptors**, which can change or stop a statement while the runtime executes it.
 
@@ -269,31 +269,42 @@ Rewriting the query tree before it becomes SQL is the standard home for soft del
   | `afterTransaction` (ADR 260) | `activityFinalized` on a statement |
   | `beforeCompile` | unchanged |
 
-  Every middleware is rewritten: the cache, budgets, lints, the demo's slow-query warning, and external middleware. ADR 260 is amended to say so.
-- ADR 160's `groupingKey` is superseded by the parent activity. ADR 160 is amended.
-- `planExecutionId` (ADR 220) is a statement activity's identity.
+  Every middleware is rewritten: the cache, budgets, lints, the demo's slow-query warning, and external middleware. ADR 260 is marked superseded.
+- ADR 160's `groupingKey` is superseded by the parent activity. ADR 160 is marked superseded.
+- `planExecutionId` (ADR 220) is a statement activity's identity. ADR 220 is marked superseded.
+- ADR 014's hook API is replaced; `beforeCompile` and `onRow` remain. ADR 014 is marked superseded.
+- ADR 215's decision stands under new names: `beforeEncode` runs after lowering and before encoding, with the parameter mutator. ADR 215 is marked amended.
+- Older ADRs that describe a removed hook carry a note saying so.
 - The deferred transaction begin and end hooks are `activityStarted` and `activityEnded` on a transaction activity.
 - Middleware state moves from `WeakMap`s keyed by plan to `ctx.state(key)`. This also removes the case ADR 260 documents, where the hook before encoding and the hooks after it receive different plan objects.
 - A runtime decides once, when it is created, whether any of its middleware implements `activityFinalized`. If one does, a transaction holds its finished child activities until it ends, to finalize them then; a transaction that never ends holds them. If none does, a transaction holds no finished child: it keeps only whether one failed, which decides its own `unknown` outcome.
 - Nested transactions, when built, are a transaction activity under a transaction activity, and finalization waits for the outermost.
 - Mongo has no transactions; every Mongo activity is finalized right after it ends.
 - The direct single-client Postgres driver runs a runtime-scope statement sent while a transaction is open inside that transaction, and the runtime cannot see it. That limit is unchanged.
-- Touches: `RuntimeMiddleware` and `RuntimeMiddlewareContext` in `framework-components`; the runners in `run-with-middleware.ts`; the SQL runtime's transaction bookkeeping and queryables; the Mongo runtime; the Supabase role session; the Postgres, SQLite and Supabase facades; `withMutationScope` and every terminal method in `sql-orm-client`; the ORM's structural `RuntimeQueryable` type, which may carry the `activitySource` member; the cache, budgets and lints middleware.
+- Touches: `RuntimeMiddleware` and `ActivityContext` in `framework-components`; the runners in `run-with-middleware.ts`; the SQL runtime's transaction bookkeeping and queryables; the Mongo runtime; the Supabase role session; the Postgres, SQLite and Supabase facades; `withMutationScope` and every terminal method in `sql-orm-client`; the ORM's structural `RuntimeQueryable` type, which carries the `activitySource` member; the cache, budgets and lints middleware.
 
 ## Alternatives considered
 
 - **Copy the call's annotations onto every statement.** Misstates what was annotated and multiplies the payload. Rejected.
 - **Attach them to one chosen statement.** The ORM decides which statement represents the call. Rejected.
+- **Carry the call's annotations on each statement under a reserved annotation namespace.** A stopgap for the missing call activity, with the same costs as copying them. Rejected.
+- **Start an activity only for ORM terminal methods that send several statements.** The user would have to know how many statements a method sends, which changes with the target, so a tracer would show different trees for the same code on Postgres and SQLite, and middleware would have to handle a statement that is sometimes the call. Every terminal method starts one, including a call served from the cache without any statement. Rejected.
 - **The cache reads a statement's annotations, then its parent's.** Would cache the same work twice when both are annotated. The cache acts only on the activity in hand. Rejected.
 - **Parent pointers only, no child list.** The runtime needs the child list to finalize a transaction's activities. Rejected.
+- **End a parent's open children automatically when the parent ends.** An open child at that point is a client bug, and ending it quietly would hide the bug. Rejected for a runtime error.
+- **The cache walks a transaction's children when the transaction ends, to find annotated writes.** It fails when the transaction is the ORM call's child, as for a single-row `update()`, and makes the cache know about transactions. Rejected for `activityFinalized` on the annotated activity.
+- **Keep the per-statement hooks beside the activity hooks.** Two interfaces for the same moments, kept for compatibility. The release-candidate period is the time to change the interface, and there are few middleware to rewrite, first-party or external. Rejected.
+- **Put the activity on the plan, as a field of `PlanMeta`.** ADR 220 rejected per-execution facts on the plan: the runtime would have to wrap the plan, the plan reference would no longer flow through unchanged, and content hashing would have to exclude the field. Rejected for the activity's own `ctx`.
 - **One wrapping hook around execution, with a `next()` to call.** ADR 014 rejected it because it is harder to keep compile-time work, run-time work and budgets apart, and it mixes observing with changing. Rejected again.
 - **Two statement kinds, one per runtime method.** Both have the same lifecycle; only the result differs, which `returns` records. Rejected.
 - **One `intercept` hook for all results, checked at run time.** The compiler could not check that a middleware returned rows to a statement that asked for rows. Rejected for one handler per result type.
 - **Lifecycle events split by kind.** They return nothing, so splitting buys no type safety, and kind-agnostic consumers such as the cache and a tracer would implement the same body several times. Kinds are also open, so a catch-all would be needed anyway. Rejected.
 - **An `intercept` handler for transactions.** A transaction has no result to supply, and skipping it would run its actor's statements outside any transaction. Rejected.
 - **Serve cached reads inside a transaction, and defer storing to commit,** as Spring's `TransactionAwareCacheDecorator` does. A transaction would read rows from before its own writes. Rejected.
+- **Stop caching only once the transaction has written,** as django-cacheops does. The runtime cannot tell whether a raw SQL statement writes. Rejected for now, in favour of skipping every activity inside a transaction.
 - **Name the hook `activitySettled` or `activityCompleted`.** In JavaScript a promise "settles" when it resolves or rejects, which is when an activity ends, not when its effects are final. "Completed" is a near synonym of "ended", so readers cannot tell which moment comes first; Spring's `afterCompletion` belongs only to a transaction, for which ending and completing are the same moment, and does not carry over to statements and ORM calls. Rejected for "finalized", which says that the effects are final.
 - **Name the leaf activity `execution` or `query`.** "Execution" already means running any plan, and "query" already means both a statement in general and the `query()` method. Rejected.
+- **Name the concept an operation, a scope, a call or a span.** "Operation" has several meanings in this codebase already, "scope" is `ctx.scope`, "call" does not cover a transaction, and ADR 160 keeps OpenTelemetry's words, such as "span", free for a tracing integration. Rejected for "activity", from .NET.
 - **Two finalization outcomes, as in Rails.** A rejected `COMMIT` and a silently rolled-back `COMMIT` fire nothing, and a cache holds stale rows until expiry. Rejected.
 - **`startActivity` on the user-facing scope.** Users would see a client-only method on `tx`. Rejected.
 - **`startActivity` and `planContentHash` as methods on the public `Runtime` types.** Users of `db.runtime()` would see two client-only methods, and every object that implements the types, including test stubs, would have to provide them. Rejected for members under a symbol, reached through `startActivityOn` and `planContentHashOn`, which a queryable without the member fails clearly.

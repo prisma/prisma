@@ -5,6 +5,7 @@ import type {
   ContractSourceDiagnostic,
 } from '@internal/config/config-types';
 import type { AuthoringEntityContext } from '@internal/framework-components/authoring';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import { mongoCodecLookup } from '@internal/mongo-contract/test';
 import {
   buildSymbolTable,
@@ -64,6 +65,7 @@ function createMongoTestContext(overrides?: Partial<ContractSourceContext>): Con
       defaultFunctionRegistry: new Map(),
       generatorDescriptors: [],
     },
+    generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     resolvedInputs: [],
     capabilities: {},
     ...overrides,

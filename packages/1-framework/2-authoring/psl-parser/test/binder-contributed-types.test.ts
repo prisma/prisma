@@ -2,6 +2,7 @@ import type {
   AuthoringFieldPresetDescriptor,
   AuthoringTypeConstructorDescriptor,
 } from '@internal/framework-components/authoring';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import { describe, expect, it } from 'vitest';
 import { EMPTY_DATA_TYPES } from '../src/attribute-spec/spec-context';
 import {
@@ -62,6 +63,7 @@ function context(): BinderContext {
       dataTypes: {},
     },
     controlMutationDefaults: { defaultFunctionRegistry: new Map() },
+    generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     dataTypes: EMPTY_DATA_TYPES,
   };
 }

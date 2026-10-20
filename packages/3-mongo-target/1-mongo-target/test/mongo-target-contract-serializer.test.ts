@@ -157,7 +157,11 @@ describe('MongoTargetContractSerializer', () => {
                       },
                     ],
                     validator: {
-                      jsonSchema: { type: 'object' },
+                      jsonSchema: {
+                        bsonType: 'object',
+                        required: ['_id'],
+                        properties: { _id: { bsonType: 'objectId' } },
+                      },
                       validationLevel: 'strict' as const,
                       validationAction: 'error' as const,
                     },

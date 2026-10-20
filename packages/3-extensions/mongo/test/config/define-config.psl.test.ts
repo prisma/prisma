@@ -32,6 +32,7 @@ async function load(schema: string) {
     pslDiagnostics: stack.family.pslDiagnostics,
     codecLookup: stack.codecLookup,
     controlMutationDefaults: stack.controlMutationDefaults,
+    generatorFunctions: stack.generatorFunctions,
     dataTypes: stack.dataTypes,
     resolvedInputs: [path],
     capabilities: stack.capabilities,

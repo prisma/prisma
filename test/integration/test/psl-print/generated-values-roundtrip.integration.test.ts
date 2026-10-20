@@ -9,6 +9,7 @@ import {
   composePostgresStack,
   type PostgresStack,
   printAndReadBack,
+  printContract,
   readPsl,
   serializedWithoutCapabilities,
 } from './print-and-read-back';
@@ -22,6 +23,17 @@ const stack = composePostgresStack();
 const defaultFunctionCalls = [...stack.controlMutationDefaults.defaultFunctionRegistry.values()]
   .flatMap((entry) => entry.usageSignatures ?? [])
   .map((usage) => usage.replace(/<(\d+)-\d+>/, '$1'));
+
+/** A call of every generator function the stack binds to `String`, with each argument form. */
+const textGeneratorCalls = [
+  'uuid()',
+  'uuid(7)',
+  'cuid(2)',
+  'ulid()',
+  'nanoid()',
+  'nanoid(2)',
+  'ksuid()',
+];
 
 /** Every `temporal.*` field preset the stack contributes, called with the now generator in each phase it takes. */
 function temporalPresetCalls(namespace: AuthoringFieldNamespace): readonly string[] {
@@ -53,8 +65,11 @@ model Widget {
 }
 
 describe('every generated value the stack reads prints as PSL that reads back', () => {
-  it('finds the default functions and temporal presets', () => {
-    expect(defaultFunctionCalls).toContain('uuid(7)');
+  it('finds the default functions, generator functions and temporal presets', () => {
+    expect(defaultFunctionCalls).toContain('now()');
+    expect(stack.generatorFunctions.functionsFor('pg/text@1').map(({ name }) => name)).toEqual(
+      [...new Set(textGeneratorCalls.map((call) => call.slice(0, call.indexOf('('))))].sort(),
+    );
     expect(temporalPresetCalls(stack.authoringContributions.field)).toContain(
       'temporal.timestamptz(onCreate: now, onUpdate: now)',
     );
@@ -73,6 +88,22 @@ describe('every generated value the stack reads prints as PSL that reads back', 
     timeouts.pslRoundTrip,
   );
 
+  it.each(textGeneratorCalls)(
+    '@onCreate(%s)',
+    async (call) => {
+      await roundTrip(`value String @onCreate(${call})`);
+    },
+    timeouts.pslRoundTrip,
+  );
+
+  it(
+    '@onCreate(now()) @onUpdate(now()) beside @default(now())',
+    async () => {
+      await roundTrip('value DateTime @default(now()) @onCreate(now()) @onUpdate(now())');
+    },
+    timeouts.pslRoundTrip,
+  );
+
   it.each(temporalPresetCalls(stack.authoringContributions.field))(
     '%s',
     async (call) => {
@@ -85,9 +116,61 @@ describe('every generated value the stack reads prints as PSL that reads back', 
     'a default function an extension registers',
     async () => {
       await roundTrip(
-        'value String @default(slugid())',
+        'value String @onCreate(slugid())',
         composePostgresStack([...slugidExtensions]),
       );
+    },
+    timeouts.pslRoundTrip,
+  );
+
+  it(
+    'the generated columns of the slice example, on VarChar(32) and Time(3) among them',
+    async () => {
+      const authored = await readPsl(`// use prisma-8
+model Event {
+  id        String      @id @onCreate(uuid(7))
+  code      VarChar(32) @onCreate(nanoid())
+  seenAt    Time(3)     @onUpdate(now())
+  createdAt DateTime    @default(now()) @onCreate(now())
+}
+`);
+      const fieldLines = printContract(authored)
+        .text.split('\n')
+        .map((line) => line.trim().replace(/\s+/g, ' '))
+        .filter((line) => /^(id|code|seenAt|createdAt) /.test(line));
+      const printed = await printAndReadBack(authored);
+
+      expect({
+        defaults: authored.execution?.mutations.defaults,
+        fieldLines,
+        roundTrip: serializedWithoutCapabilities(printed),
+      }).toEqual({
+        defaults: [
+          {
+            ref: { namespace: 'public', entry: 'Event', field: 'code' },
+            onCreate: { kind: 'generator', id: 'nanoid' },
+          },
+          {
+            ref: { namespace: 'public', entry: 'Event', field: 'createdAt' },
+            onCreate: { kind: 'generator', id: 'instantNow' },
+          },
+          {
+            ref: { namespace: 'public', entry: 'Event', field: 'id' },
+            onCreate: { kind: 'generator', id: 'uuidv7' },
+          },
+          {
+            ref: { namespace: 'public', entry: 'Event', field: 'seenAt' },
+            onUpdate: { kind: 'generator', id: 'plainTimeNow', params: { precision: 3 } },
+          },
+        ],
+        fieldLines: [
+          'id String @id @onCreate(uuid(7))',
+          'code VarChar(32) @onCreate(nanoid())',
+          'seenAt Time(3) @onUpdate(now())',
+          'createdAt DateTime @default(now()) @onCreate(now())',
+        ],
+        roundTrip: serializedWithoutCapabilities(authored),
+      });
     },
     timeouts.pslRoundTrip,
   );

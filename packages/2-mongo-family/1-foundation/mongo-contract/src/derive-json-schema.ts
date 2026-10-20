@@ -12,6 +12,7 @@ import { MongoValidator } from './ir/mongo-validator';
 import { bsonTypesOfCodec } from './mongo-data-type';
 import { recursiveGroupsOf, typeKey } from './recursive-groups';
 import { isEmbedRelation } from './relation-fields';
+import { DOCUMENT_ID, documentIdFieldOf, storedFieldNameOf } from './stored-field-names';
 
 /**
  * The permitted values a field's value set restricts it to, keyed by the value set's name — the
@@ -101,7 +102,10 @@ function fieldToBsonSchema(
   const { lookups, valueObjects, valueSets } = sources;
   if (field.type.kind === 'scalar') {
     const bsonTypes = bsonTypesOfCodec(field.type.codecId, lookups);
-    if (bsonTypes === undefined) return undefined;
+    assertDefined(
+      bsonTypes,
+      `Field codec "${field.type.codecId}" has no MongoDB data type; the authoring surface refuses such a field before it derives the validator`,
+    );
     if (bsonTypes.length === 0) return anyValueSchema(field);
     const bsonType = bsonTypeKeyword(bsonTypes);
 
@@ -182,9 +186,10 @@ function propertiesOf(
     if (Object.hasOwn(inherited.fields, fieldName)) continue;
     const schema = fieldToBsonSchema(field, sources);
     if (schema) {
-      properties[fieldName] = schema;
+      const storedName = storedFieldNameOf(shape, fieldName);
+      properties[storedName] = schema;
       if (!field.nullable) {
-        required.push(fieldName);
+        required.push(storedName);
       }
     }
   }
@@ -197,8 +202,19 @@ function propertiesOf(
   return { properties, required };
 }
 
-function deriveObjectSchema(shape: StoredShape, sources: SchemaSources): Record<string, unknown> {
-  const { properties, required } = propertiesOf(shape, sources, NOTHING_INHERITED);
+const OBJECT_ID_SCHEMA = { bsonType: 'objectId' };
+
+function deriveObjectSchema(
+  shape: StoredShape,
+  sources: SchemaSources,
+  { isDocument }: { readonly isDocument: boolean } = { isDocument: false },
+): Record<string, unknown> {
+  const own = propertiesOf(shape, sources, NOTHING_INHERITED);
+  const addsDocumentId = isDocument && documentIdFieldOf(shape) === undefined;
+  const properties = addsDocumentId
+    ? { [DOCUMENT_ID]: OBJECT_ID_SCHEMA, ...own.properties }
+    : own.properties;
+  const required = addsDocumentId ? [DOCUMENT_ID, ...own.required] : own.required;
 
   const result: Record<string, unknown> = {
     bsonType: 'object',
@@ -215,7 +231,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function validatorOf(jsonSchema: Record<string, unknown>): MongoValidator {
+export function validatorOf(jsonSchema: Record<string, unknown>): MongoValidator {
   return new MongoValidator({ jsonSchema, validationLevel: 'strict', validationAction: 'error' });
 }
 
@@ -231,7 +247,7 @@ function polymorphicSchema(
   variants: readonly StoredVariant[],
   sources: SchemaSources,
 ): Record<string, unknown> {
-  const baseSchema = deriveObjectSchema(base, sources);
+  const baseSchema = deriveObjectSchema(base, sources, { isDocument: true });
   const baseProperties = isRecord(baseSchema['properties']) ? baseSchema['properties'] : {};
 
   const oneOf: Record<string, unknown>[] = [];
@@ -269,16 +285,16 @@ export interface ModelValidatorSources {
 }
 
 /**
- * The validator of a root model's collection: the model's fields and embedded models, and for a model with variants one `oneOf` branch per variant.
+ * The `$jsonSchema` of a root model's documents: the model's fields and embedded models, and for a model with variants one `oneOf` branch per variant.
  */
-export function deriveModelValidator(
+export function deriveModelJsonSchema(
   modelName: string,
   model: ValidatorModel,
   sources: ModelValidatorSources,
-): MongoValidator {
+): Record<string, unknown> {
   const schemaSources = sourcesFor(sources, typeKey('model', modelName));
   if (!model.discriminator || !model.variants) {
-    return validatorOf(deriveObjectSchema(model, schemaSources));
+    return deriveObjectSchema(model, schemaSources, { isDocument: true });
   }
 
   const variants = Object.entries(model.variants).map(([discriminatorValue, variant]) => {
@@ -286,5 +302,5 @@ export function deriveModelValidator(
     assertDefined(variantModel, `Variant model "${variant.model}" of "${modelName}" is missing`);
     return { discriminatorValue, modelName: variant.model, ...variantModel };
   });
-  return validatorOf(polymorphicSchema(model, model.discriminator.field, variants, schemaSources));
+  return polymorphicSchema(model, model.discriminator.field, variants, schemaSources);
 }
