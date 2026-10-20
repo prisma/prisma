@@ -289,6 +289,25 @@ describeWithMongoDB('mongoOrm integration', (ctx) => {
     }
   });
 
+  it('deleteAll() after where({}) explains the empty filter and leaves the collection intact', async () => {
+    const db = ctx.client.db(ctx.dbName);
+    await db.collection('users').insertMany([
+      { name: 'Alice', email: 'alice@example.com', addresses: [] },
+      { name: 'Bob', email: 'bob@example.com', addresses: [] },
+    ]);
+
+    const orm = mongoOrm({
+      contract,
+      executor: ctx.runtime,
+      enums: buildMongoEnums(contract, ctx.codecs),
+    });
+
+    expect(() => orm.users.where({}).deleteAll()).toThrow(
+      'deleteAll() requires a .where() filter with at least one condition, and .where({}) adds none. To match every document on purpose, use db.query.from() instead',
+    );
+    expect(await db.collection('users').countDocuments()).toBe(2);
+  });
+
   it('full flow: ORM -> typed AST -> runtime -> driver -> typed results', async () => {
     const db = ctx.client.db(ctx.dbName);
     const userId = new ObjectId();

@@ -1233,7 +1233,7 @@ class MongoCollectionImpl<
     if (this.#state.filters.length === 0) {
       throw ormError(
         'ORM.WHERE_MISSING',
-        `${methodName}() requires a .where() filter. Call .where() before .${methodName}()`,
+        `${methodName}() requires a .where() filter with at least one condition, and .where({}) adds none. To match every document on purpose, use db.query.from() instead`,
         { meta: { method: methodName } },
       );
     }
