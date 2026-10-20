@@ -1,4 +1,5 @@
 import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
+import { requireSqlExpression, type SqlExpression } from '@internal/sql-contract/sql-expression';
 import {
   SQL_RAW_CODEC_ID,
   SQLITE_BIGINT_CODEC_ID,
@@ -38,9 +39,12 @@ export const bigintColumn = {
   codecId: SQLITE_BIGINT_CODEC_ID,
 } as const;
 
-/** A column of a type no other column type covers, named exactly as the database catalog prints it, such as `rawColumn('tsvector')` (ADR 273). Its values are typed `unknown`. */
-export function rawColumn<const Sql extends string>(
-  sql: Sql,
-): ColumnTypeDescriptor<typeof SQL_RAW_CODEC_ID> & { readonly typeParams: { readonly sql: Sql } } {
-  return { codecId: SQL_RAW_CODEC_ID, typeParams: { sql } } as const;
+/** A column of a type no other column type covers, named exactly as the database catalog prints it, such as ``rawColumn(sql`tsvector`)`` (ADR 273). Its values are typed `unknown`. */
+export function rawColumn(definition: SqlExpression): ColumnTypeDescriptor<
+  typeof SQL_RAW_CODEC_ID
+> & {
+  readonly typeParams: { readonly sql: string };
+} {
+  const { text } = requireSqlExpression(definition, 'rawColumn(...)');
+  return { codecId: SQL_RAW_CODEC_ID, typeParams: { sql: text } } as const;
 }

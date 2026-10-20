@@ -94,7 +94,7 @@ function buildMemberType(input: {
     }),
     inferredConstructors: input.inferredConstructors,
     authoringTypes: input.context.authoringContributions.type,
-    dataTypeLookup: input.context.dataTypes.lookup,
+    dataTypes: input.context.dataTypes,
     enumBlockNames: input.enumBlockNames,
     coordinate,
   });
@@ -162,7 +162,7 @@ export function buildTypesBlock(
       }),
       inferredConstructors,
       authoringTypes: context.authoringContributions.type,
-      dataTypeLookup: context.dataTypes.lookup,
+      dataTypes: context.dataTypes,
       enumBlockNames: new Map(),
       coordinate: `types.${name}`,
     });

@@ -41,7 +41,7 @@ export const extensionCodec: AnyPostgresCodecDescriptor = postgresCodec(citextTe
 });
 
 /**
- * A stand-in for the stack the SQL family hands the printer: the target's own type constructors,
+ * A stand-in for the stack the SQL family hands the printer: the family's and the target's own type constructors and data types,
  * field presets, codecs, data types and generator functions, the family's generator functions, and what `extra` adds. `extra.temporalPresets` joins the target's `temporal.*`
  * presets; `extra.fieldPresets` adds top-level field namespaces.
  */
@@ -65,6 +65,7 @@ export function testBuildContext(
   return {
     authoringContributions: {
       type: {
+        ...sqlFamilyPack.authoring.type,
         ...postgresAuthoringTypes,
         ...postgresPslTypeConstructors,
         ...extra.types,
@@ -92,8 +93,12 @@ export function testBuildContext(
         extraCodecs.get(codecId) ?? postgresCodecDescriptorRegistry.descriptorFor(codecId),
     },
     dataTypes: {
-      entries: postgresDataTypeEntries(),
-      lookup: createDataTypeLookup([...postgresDataTypes, ...(extra.dataTypes ?? [])]),
+      entries: { ...sqlFamilyPack.authoring.dataTypes, ...postgresDataTypeEntries() },
+      lookup: createDataTypeLookup([
+        ...sqlFamilyPack.dataTypes,
+        ...postgresDataTypes,
+        ...(extra.dataTypes ?? []),
+      ]),
       dataTypeOfCodec: () => undefined,
     },
   };

@@ -517,7 +517,7 @@ model sample {
     );
   });
 
-  it('rejects a non-integer precision via the declarative integer constraint', () => {
+  it('rejects a non-integer precision, which pg/int4 cannot hold', () => {
     const result = emit(`model sample {
   id Int @id
   at Timestamp(1.5)
@@ -525,14 +525,12 @@ model sample {
 `);
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-          message: expect.stringContaining('must be an integer'),
-        }),
-      ]),
-    );
+    expect(result.failure.diagnostics).toEqual([
+      expect.objectContaining({
+        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+        message: 'Expected a number that pg/int4 can hold; got pg/numeric',
+      }),
+    ]);
   });
 
   it('rejects arguments on a no-arg native type', () => {

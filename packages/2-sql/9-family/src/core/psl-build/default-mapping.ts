@@ -257,6 +257,17 @@ function writeScalar(
   return undefined;
 }
 
+/**
+ * `value`, a value of `dataType` as `contract.json` stores it, written as the literal of a type that `dataType` takes, proven to read back as `value`: `255` for `pg/int4`, ``sql`"MyType"[]` `` for `sql/expression`. `undefined` when no literal reads back as it.
+ */
+export function writeDataTypeValue(
+  value: JsonValue,
+  dataType: DataTypeId,
+  support: DataTypeSupport,
+): string | undefined {
+  return writeScalar(value, { id: dataType, params: {} }, writingSurface(support));
+}
+
 const DECIMAL_WITH_FRACTION = /^-?\d+\.\d+$/;
 
 function withoutTrailingFractionZeros(value: JsonValue): string | undefined {

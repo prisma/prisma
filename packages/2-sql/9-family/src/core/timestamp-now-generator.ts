@@ -20,13 +20,6 @@ export function temporalStringAuthoringPresets<
   } as const;
 }
 
-const TEMPORAL_PRECISION_ARG = {
-  name: 'precision',
-  kind: 'number',
-  optional: true,
-  integer: true,
-} as const;
-
 const PRECISION_PARAMS = { precision: { kind: 'arg', index: 0 } } as const;
 
 /**
@@ -43,9 +36,12 @@ const PRECISION_PARAMS = { precision: { kind: 'arg', index: 0 } } as const;
 /* @__NO_SIDE_EFFECTS__ */
 export function temporalCodecPresetWithPrecision<
   const CodecId extends string,
+  const WholeNumber extends string,
   const GeneratorId extends string = typeof TIMESTAMP_NOW_GENERATOR_ID,
 >(input: {
   readonly codecId: CodecId;
+  /** The data type whose values the precision argument takes, such as `pg/int4`. */
+  readonly wholeNumber: WholeNumber;
   readonly generatorId?: GeneratorId;
   readonly nowTakesPrecision?: true;
 }) {
@@ -56,7 +52,11 @@ export function temporalCodecPresetWithPrecision<
       : temporalPhaseTemplate(index, generatorId);
   return {
     kind: 'fieldPreset',
-    args: [TEMPORAL_PRECISION_ARG, TEMPORAL_ON_CREATE_ARG, TEMPORAL_ON_UPDATE_ARG],
+    args: [
+      { name: 'precision', kind: 'value', dataType: input.wholeNumber, optional: true },
+      TEMPORAL_ON_CREATE_ARG,
+      TEMPORAL_ON_UPDATE_ARG,
+    ],
     output: {
       codecId: input.codecId,
       typeParams: { precision: { kind: 'arg', index: 0 } },

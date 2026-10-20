@@ -16,11 +16,14 @@ import {
 const TIMESTAMP_NOW_PHASE = { kind: 'generator', id: 'timestampNow' };
 
 describe('temporalCodecPresetWithPrecision', () => {
-  const preset = temporalCodecPresetWithPrecision({ codecId: 'pg/timestamp-temporal@1' });
+  const preset = temporalCodecPresetWithPrecision({
+    codecId: 'pg/timestamp-temporal@1',
+    wholeNumber: 'pg/int4',
+  });
 
-  it('declares precision, onCreate, onUpdate args in that order, all optional', () => {
+  it('declares precision, a value of the target’s whole-number type, then onCreate and onUpdate, all optional', () => {
     expect(preset.args).toEqual([
-      { name: 'precision', kind: 'number', optional: true, integer: true },
+      { name: 'precision', kind: 'value', dataType: 'pg/int4', optional: true },
       { name: 'onCreate', kind: 'option', values: ['now'], optional: true },
       { name: 'onUpdate', kind: 'option', values: ['now'], optional: true },
     ]);
@@ -41,6 +44,7 @@ describe('temporalCodecPresetWithPrecision', () => {
     expect(
       temporalCodecPresetWithPrecision({
         codecId: 'pg/timestamptz-temporal@1',
+        wholeNumber: 'pg/int4',
       }).output,
     ).toMatchObject({ codecId: 'pg/timestamptz-temporal@1' });
   });
@@ -132,6 +136,7 @@ describe('downstream mirrors track the factories', () => {
     expect(temporalCodecPresetMirrors.pgTimestamp).toEqual(
       temporalCodecPresetWithPrecision({
         codecId: 'pg/timestamp-temporal@1',
+        wholeNumber: 'pg/int4',
       }),
     );
   });
@@ -140,6 +145,7 @@ describe('downstream mirrors track the factories', () => {
     expect(temporalCodecPresetMirrors.pgTimestamptz).toEqual(
       temporalCodecPresetWithPrecision({
         codecId: 'pg/timestamptz-temporal@1',
+        wholeNumber: 'pg/int4',
       }),
     );
   });
@@ -148,6 +154,7 @@ describe('downstream mirrors track the factories', () => {
     expect(temporalCodecPresetMirrors.pgTimestampString).toEqual(
       temporalCodecPresetWithPrecision({
         codecId: 'pg/timestamp-string@1',
+        wholeNumber: 'pg/int4',
         generatorId: 'timestampStringNow',
       }),
     );
@@ -161,7 +168,7 @@ describe('downstream mirrors track the factories', () => {
 
   it('contract-ts mirrors the precision-bearing preset over its portable codec', () => {
     expect(sqlTimestampPresetMirror).toEqual(
-      temporalCodecPresetWithPrecision({ codecId: 'test/timestamp@1' }),
+      temporalCodecPresetWithPrecision({ codecId: 'test/timestamp@1', wholeNumber: 'pg/int4' }),
     );
   });
 

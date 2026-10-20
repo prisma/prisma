@@ -9,12 +9,14 @@ import type {
   TargetPackRef,
 } from '@internal/framework-components/components';
 import { sqlDataType } from '@internal/sql-contract/data-type';
+import { sql } from '@internal/sql-contract/sql-expression';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import {
   testSqlTypeLookups,
   testTypeLookups,
 } from '../../../1-core/contract/test/test-type-lookups';
+import { fixtureDataTypeSupport } from '../../contract-psl/test/fixture-data-types';
 import {
   createFieldPresetHelper,
   createTypeHelpersFromNamespace,
@@ -22,6 +24,11 @@ import {
 } from '../src/authoring-helper-runtime';
 import { createComposedAuthoringHelpers } from '../src/composed-authoring-helpers';
 import { nanoidIdPresetMirror } from './nanoid-preset-mirror';
+
+const helperLookups = {
+  codecLookup: testTypeLookups.codecLookup,
+  dataTypes: fixtureDataTypeSupport,
+};
 
 const textPreset = {
   kind: 'fieldPreset',
@@ -48,7 +55,7 @@ const nestedTypeNamespace = {
   pgvector: {
     Vector: {
       kind: 'typeConstructor',
-      args: [{ kind: 'number', name: 'length', integer: true }],
+      args: [{ kind: 'value', dataType: 'pg/int4', name: 'length' }],
       output: {
         codecId: 'pg/vector@1',
         typeParams: {
@@ -95,7 +102,7 @@ describe('authoring helper runtime', () => {
   });
 
   it('creates nested type helpers and instantiates storage types', () => {
-    const helpers = createTypeHelpersFromNamespace(nestedTypeNamespace, testTypeLookups) as {
+    const helpers = createTypeHelpersFromNamespace(nestedTypeNamespace, helperLookups) as {
       readonly pgvector: {
         readonly Vector: (length: number) => {
           readonly codecId: string;
@@ -118,10 +125,10 @@ describe('authoring helper runtime', () => {
       }),
     } as unknown as AuthoringTypeNamespace;
 
-    expect(() => createTypeHelpersFromNamespace(unsafeNamespace, testTypeLookups)).toThrow(
+    expect(() => createTypeHelpersFromNamespace(unsafeNamespace, helperLookups)).toThrow(
       'Invalid authoring helper "nested.__proto__". Helper path segments must not use "__proto__".',
     );
-    expect(() => createTypeHelpersFromNamespace(unsafeNamespace, testTypeLookups)).toThrow(
+    expect(() => createTypeHelpersFromNamespace(unsafeNamespace, helperLookups)).toThrow(
       expect.objectContaining({ code: 'CONTRACT.PACK_CONTRIBUTION_INVALID' }),
     );
   });
@@ -131,6 +138,7 @@ describe('authoring helper runtime', () => {
       helperPath: 'field.id.nanoid',
       descriptor: nanoidIdPresetMirror,
       codecLookup: testTypeLookups.codecLookup,
+      dataTypes: fixtureDataTypeSupport,
       build: ({ args, namedConstraintOptions }) => ({
         args,
         namedConstraintOptions,
@@ -148,6 +156,7 @@ describe('authoring helper runtime', () => {
       helperPath: 'field.id.nanoid',
       descriptor: nanoidIdPresetMirror,
       codecLookup: testTypeLookups.codecLookup,
+      dataTypes: fixtureDataTypeSupport,
       build: ({ args, namedConstraintOptions }) => ({
         args,
         namedConstraintOptions,
@@ -167,6 +176,7 @@ describe('authoring helper runtime', () => {
       helperPath: 'field.id.nanoid',
       descriptor: nanoidIdPresetMirror,
       codecLookup: testTypeLookups.codecLookup,
+      dataTypes: fixtureDataTypeSupport,
       build: ({ args, namedConstraintOptions }) => ({
         args,
         namedConstraintOptions,
@@ -343,11 +353,14 @@ describe('createComposedAuthoringHelpers', () => {
     const namespace = {
       VarChar: {
         kind: 'typeConstructor',
-        args: [{ kind: 'number', name: 'length', integer: true, optional: true }],
+        args: [{ kind: 'value', dataType: 'pg/int4', name: 'length', optional: true }],
         output: { codecId: 't/varchar@1', typeParams: { length: { kind: 'arg', index: 0 } } },
       },
     } as const satisfies AuthoringTypeNamespace;
-    const helpers = createTypeHelpersFromNamespace(namespace, lookups) as {
+    const helpers = createTypeHelpersFromNamespace(namespace, {
+      codecLookup: lookups.codecLookup,
+      dataTypes: fixtureDataTypeSupport,
+    }) as {
       readonly VarChar: (length?: number) => unknown;
     };
 
@@ -372,6 +385,59 @@ describe('createComposedAuthoringHelpers', () => {
             /^Authoring helper argument at VarChar\[0\] is invalid: length must be/,
           ),
         }),
+      );
+    });
+  });
+
+  describe('value arguments', () => {
+    const namespace = {
+      Sized: {
+        kind: 'typeConstructor',
+        args: [{ kind: 'value', dataType: 'pg/int4', name: 'length' }],
+        output: { codecId: 'pg/vector@1', typeParams: { length: { kind: 'arg', index: 0 } } },
+      },
+      Raw: {
+        kind: 'typeConstructor',
+        args: [{ kind: 'value', dataType: 'sql/expression', name: 'sql' }],
+        output: { codecId: 'sql/raw@1', typeParams: { sql: { kind: 'arg', index: 0 } } },
+      },
+    } as const satisfies AuthoringTypeNamespace;
+    const helpers = createTypeHelpersFromNamespace(namespace, helperLookups) as {
+      readonly Sized: (length: unknown) => unknown;
+      readonly Raw: (definition: unknown) => unknown;
+    };
+    const refusal = (message: string) =>
+      expect.objectContaining({ code: 'CONTRACT.ARGUMENT_INVALID', message });
+
+    it('gives a sql value as the canonical text of its literal', () => {
+      expect(helpers.Raw(sql`"MyType"[]`)).toEqual({
+        kind: 'codec-instance',
+        codecId: 'sql/raw@1',
+        typeParams: { sql: '"MyType"[]' },
+      });
+    });
+
+    it('refuses a number its data type cannot hold, as PSL does', () => {
+      expect(() => helpers.Sized(3000000000)).toThrow(
+        refusal('Argument "length" of Sized: Expected a number that pg/int4 can hold; got pg/int8'),
+      );
+    });
+
+    it('refuses a string where a number goes', () => {
+      expect(() => helpers.Sized('255')).toThrow(
+        refusal('Argument "length" of Sized: Expected a number'),
+      );
+    });
+
+    it('refuses a value that is not written in any form, such as an object', () => {
+      expect(() => helpers.Raw({ text: 'circle' })).toThrow(
+        refusal('Argument "sql" of Raw: Expected sql`...`'),
+      );
+    });
+
+    it('refuses a string where a sql value goes, with the value to write', () => {
+      expect(() => helpers.Raw('circle')).toThrow(
+        refusal('Argument "sql" of Raw: Expected sql`...`; write sql`circle`'),
       );
     });
   });

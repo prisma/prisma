@@ -1178,6 +1178,7 @@ function readField(args: ReadFieldArgs): void {
     namespaceId: model.namespaceId,
     namespaceExtensionEntities: args.namespaceEntities,
     codecLookup: input.codecLookup,
+    dataTypes: input.dataTypes,
   });
   diagnostics.push(...typeDiagnostics.toExternal());
   if (!resolved.ok) {

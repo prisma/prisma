@@ -1468,6 +1468,7 @@ interface BuildValueObjectNodesInput {
   readonly compositeTypes: readonly CompositeTypeSymbol[];
   readonly enumTypeDescriptors: ReadonlyMap<BlockSymbol, ColumnDescriptor>;
   readonly enumHandles: ReadonlyMap<BlockSymbol, EnumTypeHandle>;
+  readonly dataTypes: DataTypeSupport;
   readonly namedTypeDescriptors: ReadonlyMap<NamedTypeSymbol, ColumnDescriptor>;
   /** The named types; a member typed by one takes its parameters inline. */
   readonly namedTypes: Record<string, AuthoredStorageTypeInstance>;
@@ -1528,6 +1529,7 @@ function buildValueObjectNodes(input: BuildValueObjectNodesInput): ValueObjectNo
         namespaceExtensionEntities: input.namespaceExtensionEntities,
         binder,
         codecLookup: input.codecLookup,
+        dataTypes: input.dataTypes,
       });
       if (!resolved.ok) {
         continue;
@@ -2355,6 +2357,7 @@ export function interpretPslDocumentToSqlContract(
     binder,
     enumTypeDescriptors: allEnumTypeDescriptors,
     codecLookup: input.codecLookup,
+    dataTypes: input.dataTypes,
     diagnostics,
   });
 
@@ -2385,6 +2388,7 @@ export function interpretPslDocumentToSqlContract(
     defaultNamespaceId,
     namespaceExtensionEntities,
     codecLookup: input.codecLookup,
+    dataTypes: input.dataTypes,
     binder,
   });
   const valueObjectTypes: ValueObjectTypes = {

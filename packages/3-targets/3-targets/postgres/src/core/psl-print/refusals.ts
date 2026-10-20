@@ -1,3 +1,4 @@
+import type { AuthoringTypeConstructorCall } from '@internal/framework-components/authoring';
 /**
  * Every part of a contract `contract print` cannot write as Prisma 8 PSL that reads back the same,
  * one function per case in the `CONTRACT.PRINT_UNSUPPORTED` list of
@@ -71,15 +72,18 @@ export function refuseColumnWithoutPslType(column: StorageColumn, coordinate: st
 }
 
 /**
- * Refuses a string type argument the PSL source would read back differently: it reads a string
- * argument between its quotes as written, with no escapes.
+ * Refuses a type constructor call whose arguments no PSL literal writes: an argument that is not a value of a data type, or a value no literal of its data type reads back as.
  */
-export function refuseUnwritableTypeArgument(value: string, coordinate: string): never {
+export function refuseUnwritableTypeArgument(
+  call: AuthoringTypeConstructorCall,
+  coordinate: string,
+): never {
+  const written = `${call.path.join('.')}(${call.args.map((arg) => JSON.stringify(arg)).join(', ')})`;
   throw unsupported(
-    `column ${coordinate} takes the type argument ${JSON.stringify(value)}, which a PSL type argument cannot carry.`,
-    'The PSL source reads a string type argument as written between its quotes, with no escapes, so a quote, backslash or line break in it would read back differently.',
+    `column ${coordinate} is written ${written}, and an argument has no PSL literal that reads back as it.`,
+    'Each argument of a type constructor is written as a literal of its data type, and contract print writes it only when the literal reads back as the same value.',
     KEEP_SOURCE,
-    { coordinate, argument: value },
+    { coordinate, path: call.path.join('.'), arguments: call.args },
   );
 }
 

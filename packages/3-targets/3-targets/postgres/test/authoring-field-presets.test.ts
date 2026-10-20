@@ -114,21 +114,26 @@ describe('postgres temporal per-codec presets', () => {
         codecId: 'pg/timestamptz-date@1',
       }).updatedAt,
       timestamptzJsDate: temporalCodecPresetWithPrecision({
+        wholeNumber: 'pg/int4',
         codecId: 'pg/timestamptz-date@1',
       }),
       timestamp: temporalCodecPresetWithPrecision({
+        wholeNumber: 'pg/int4',
         codecId: 'pg/timestamp-temporal@1',
         generatorId: 'plainDateTimeNow',
       }),
       timestamptz: temporalCodecPresetWithPrecision({
+        wholeNumber: 'pg/int4',
         codecId: 'pg/timestamptz-temporal@1',
         generatorId: 'instantNow',
       }),
       timestampString: temporalCodecPresetWithPrecision({
+        wholeNumber: 'pg/int4',
         codecId: 'pg/timestamp-string@1',
         generatorId: 'timestampStringNow',
       }),
       timestamptzString: temporalCodecPresetWithPrecision({
+        wholeNumber: 'pg/int4',
         codecId: 'pg/timestamptz-string@1',
         generatorId: 'timestamptzStringNow',
       }),
@@ -138,16 +143,19 @@ describe('postgres temporal per-codec presets', () => {
         generatorId: 'dateStringNow',
       }),
       time: temporalCodecPresetWithPrecision({
+        wholeNumber: 'pg/int4',
         codecId: 'pg/time-temporal@1',
         generatorId: 'plainTimeNow',
         nowTakesPrecision: true,
       }),
       timeString: temporalCodecPresetWithPrecision({
+        wholeNumber: 'pg/int4',
         codecId: 'pg/time-string@1',
         generatorId: 'timeStringNow',
         nowTakesPrecision: true,
       }),
       timetz: temporalCodecPresetWithPrecision({
+        wholeNumber: 'pg/int4',
         codecId: 'pg/timetz@1',
         generatorId: 'timetzNow',
         nowTakesPrecision: true,
