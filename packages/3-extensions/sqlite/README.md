@@ -89,11 +89,11 @@ Re-exports all migration operation helpers from `@internal/target-sqlite/migrati
 
 ### `@internal/sqlite/runtime`
 
-Composes the SQLite execution stack and returns typed query roots (`db.sql`, `db.orm`, `db.context`, `db.stack`).
+Composes the SQLite execution stack and returns typed query roots (`db.sql`, `db.raw`, `db.orm`, `db.query(plan)`, `db.execute(plan)`, `db.toSql(plan)`, `db.context`, `db.stack`). Creating a client has no side effects; the database opens on the first query, `db.runtime()` or `db.connect(...)`.
 
 Pass `collections` to give models custom collection classes: `sqlite({ contract, path, collections: { Post: PostCollection } })`, where `PostCollection` extends `Collection<Contract, 'Post'>` from `@prisma/orm-sqlite/orm-client`. `db.orm.Post`, and the ORM inside `db.transaction(...)`, then return a `PostCollection`. The client's type carries the classes as its second type parameter, which defaults to no classes.
 
-Pass `log` (an object with `info`, `warn`, `error` and an optional `debug` method, each taking one event object; `console` works, and the type is `Log` from `@prisma/orm-sqlite/family-runtime`) to receive what the runtime logs: the marker-verification warnings `CONTRACT.MARKER_MISSING` and `CONTRACT.MARKER_MISMATCH` from the first query, the warnings `lints()` emits for rules whose severity is `warn`, and the errors a middleware's `activityEnded` or `activityFinalized` hook throws, which the runtime logs and swallows. It also receives the warning `runtime.close.waiting-for-activities` when `close()` is waiting only for activities whose handles were never ended, and the error `runtime.connection.release.error` when the connection taken for an activity's own transaction fails to release after the transaction settles. If `log` has a `debug` method, it also receives debug events, for example when a middleware intercepts a statement. `budgets()` violations never reach `log`: the client runs its runtime in strict mode, so a violation throws, until the client exposes `mode` (TML-3567). Without `log`, the runtime drops these events.
+Pass `log` (an object with `info`, `warn`, `error` and an optional `debug` method, each taking one event object; `console` works, and the type is `Log` from `@prisma/orm-sqlite/family-runtime`) to receive what the runtime logs: the marker-verification warnings `CONTRACT.MARKER_MISSING` and `CONTRACT.MARKER_MISMATCH` from the first query, the warnings `lints()` emits for rules whose severity is `warn`, and the errors a middleware's `activityEnded` or `activityFinalized` hook throws, which the runtime logs and swallows. It also receives the warning `runtime.close.waiting-for-activities` when `close()` is waiting only for activities whose handles were never ended, and the error `runtime.connection.release.error` when the connection taken for an activity's own transaction fails to release after the transaction settles. If `log` has a `debug` method, it also receives debug events, for example when a middleware intercepts a statement. `budgets()` violations reach `log` only in `mode: 'permissive'` (see *Running plans and rendering SQL*). Without `log`, the runtime drops these events.
 
 `db.orm` offers `fragment` beside the models, unless a model is named `fragment`. A fragment is a reusable query step:
 
@@ -103,6 +103,21 @@ const titled = db.orm.fragment({ title: { codecId: 'sqlite/text@1', nullable: fa
 );
 await db.orm.Post.with(titled).all();
 ```
+
+### Running plans and rendering SQL
+
+`db.query(plan)` runs a plan from `db.sql`, `db.raw` or the ORM and returns its rows as an `AsyncIterableResult`; `await` it for an array. `db.execute(plan)` runs a plan and resolves its statistics, `{ affectedRows }`, with no rows. Both have the types `tx.query` and `tx.execute` have inside `db.transaction(...)`. For an ORM plan such as `db.orm.Post.where({ published: true }).prepared.all().plan`, `db.query` yields the database rows, not the result the ORM builds from them.
+
+`db.toSql(plan)` returns the SQL and parameters the plan would run, `{ sql, params }`, with no database. `params` are the values the plan holds, before codecs encode them for the driver. Middleware rewrites (`beforeCompile`) are not applied, because they belong to running a query. A plan with `prepare` bind sites throws `RUNTIME.PREPARE_BIND_ON_ADHOC`. `sqliteStatic()` has `toSql` too.
+
+```ts
+const plan = db.sql.post.select('id', 'title').limit(10).build();
+console.log(db.toSql(plan));
+for await (const row of db.query(plan)) console.log(row);
+await db.execute(db.raw.sql`UPDATE post SET pinned = false`.affectedCount().build());
+```
+
+`mode` is `'strict'` by default, and every `budgets()` violation throws. Pass `mode: 'permissive'` and a violation whose severity is `'warn'` goes to `log.warn` instead, and the query runs; a violation whose severity is `'error'` still throws. `budgets()` gives latency `'warn'` and the row count `'error'` by default, so a row-count limit warns only with `severities: { rowCount: 'warn' }`.
 
 ### Transactions
 
