@@ -139,6 +139,7 @@ CREATE TABLE "Post" (
     "authorId" INTEGER NOT NULL,
     "editorId" INTEGER,
     "legacyOwnerId" INTEGER,
+    "search" tsvector,
 
     CONSTRAINT "Post_pkey" PRIMARY KEY ("id")
 );

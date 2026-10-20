@@ -68,6 +68,9 @@ const expectedRefusals: ReadonlyMap<string, ExpectedRefusal> = new Map([
     modelInTwoNamespaces({ modelName: 'X', namespaces: ['one', 'two'] }),
   ],
   ['relations-ignored', storageWithNoModel],
+  ['unsupported-type', storageWithNoModel],
+  ['unsupported-type-ignored', storageWithNoModel],
+  ['unsupported-type-model-ignored', storageWithNoModel],
 ]);
 
 function prisma7SchemaPath(caseName: string): string {
