@@ -7,11 +7,12 @@ import type {
 import type { TypeLookups } from '@internal/framework-components/codec';
 import { type CollectionControlPolicies, isManaged } from './collection-control-policies';
 import { collectionRootModelsOf } from './collection-root-models';
+import type { MongoModelDefinition } from './contract-types';
 import { documentIdBsonTypesOf, documentIdRefusalOf } from './document-id-refusal';
 import { type FieldBsonTypeRefusal, fieldBsonTypeRefusalOf } from './field-bson-type-refusal';
 import { bsonTypesOfCodec } from './mongo-data-type';
 import { isEmbedRelation } from './relation-fields';
-import { documentIdFieldOf } from './stored-field-names';
+import { ownDocumentIdFieldOf } from './stored-names';
 import { validatorEnumMemberRefusalOf, validatorEnumRefusalOf } from './validator-enum-refusal';
 
 export type FieldOwner =
@@ -68,7 +69,7 @@ export type MongoContractRefusal =
     };
 
 export interface MongoContractRefusalsInput {
-  readonly models: Record<string, ContractModelBase>;
+  readonly models: Record<string, MongoModelDefinition>;
   readonly valueObjects: Record<string, ContractValueObject>;
   readonly enums: Record<string, ContractEnum>;
   readonly lookups: TypeLookups;
@@ -186,13 +187,13 @@ function fieldRefusals(
 }
 
 function documentIdRefusals(
-  models: Record<string, ContractModelBase>,
+  models: Record<string, MongoModelDefinition>,
   lookups: TypeLookups,
 ): MongoContractRefusal[] {
   return Object.entries(collectionRootModelsOf(models)).flatMap(([collection, modelNames]) =>
     modelNames.flatMap((modelName): MongoContractRefusal[] => {
       const model = models[modelName];
-      const id = model === undefined ? undefined : documentIdFieldOf(model);
+      const id = model === undefined ? undefined : ownDocumentIdFieldOf(model);
       if (id === undefined || id.field.type.kind !== 'scalar') return [];
       const bsonTypes = documentIdBsonTypesOf(id.field, lookups);
       const codecId = id.field.type.codecId;

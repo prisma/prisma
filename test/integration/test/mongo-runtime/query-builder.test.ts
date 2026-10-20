@@ -27,27 +27,41 @@ type ScalarField<TCodecId extends string> = {
   readonly many: false;
 };
 
+type StoredAs<TFields extends string> = { readonly [K in TFields]: { readonly field: K } };
+
 type TestContract = MongoContract & {
-  readonly models: {
-    readonly Order: {
-      readonly fields: {
-        readonly _id: ScalarField<'mongo/objectId@1'>;
-        readonly department: ScalarField<'mongo/string@1'>;
-        readonly amount: ScalarField<'mongo/double@1'>;
-        readonly status: ScalarField<'mongo/string@1'>;
+  readonly domain: {
+    readonly namespaces: {
+      readonly __unbound__: {
+        readonly models: {
+          readonly Order: {
+            readonly fields: {
+              readonly _id: ScalarField<'mongo/objectId@1'>;
+              readonly department: ScalarField<'mongo/string@1'>;
+              readonly amount: ScalarField<'mongo/double@1'>;
+              readonly status: ScalarField<'mongo/string@1'>;
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly collection: 'orders';
+              readonly fields: StoredAs<'_id' | 'department' | 'amount' | 'status'>;
+            };
+          };
+          readonly User: {
+            readonly fields: {
+              readonly _id: ScalarField<'mongo/objectId@1'>;
+              readonly firstName: ScalarField<'mongo/string@1'>;
+              readonly lastName: ScalarField<'mongo/string@1'>;
+              readonly orderId: ScalarField<'mongo/objectId@1'>;
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly collection: 'users';
+              readonly fields: StoredAs<'_id' | 'firstName' | 'lastName' | 'orderId'>;
+            };
+          };
+        };
       };
-      readonly relations: Record<string, never>;
-      readonly storage: { readonly collection: 'orders' };
-    };
-    readonly User: {
-      readonly fields: {
-        readonly _id: ScalarField<'mongo/objectId@1'>;
-        readonly firstName: ScalarField<'mongo/string@1'>;
-        readonly lastName: ScalarField<'mongo/string@1'>;
-        readonly orderId: ScalarField<'mongo/objectId@1'>;
-      };
-      readonly relations: Record<string, never>;
-      readonly storage: { readonly collection: 'users' };
     };
   };
   readonly roots: {
@@ -81,7 +95,15 @@ const contractJson = {
               status: scalarField('mongo/string@1'),
             },
             relations: {},
-            storage: { collection: 'orders' },
+            storage: {
+              collection: 'orders',
+              fields: {
+                _id: { field: '_id' },
+                department: { field: 'department' },
+                amount: { field: 'amount' },
+                status: { field: 'status' },
+              },
+            },
           },
           User: {
             fields: {
@@ -91,7 +113,15 @@ const contractJson = {
               orderId: scalarField('mongo/objectId@1'),
             },
             relations: {},
-            storage: { collection: 'users' },
+            storage: {
+              collection: 'users',
+              fields: {
+                _id: { field: '_id' },
+                firstName: { field: 'firstName' },
+                lastName: { field: 'lastName' },
+                orderId: { field: 'orderId' },
+              },
+            },
           },
         },
       },

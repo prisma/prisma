@@ -25,7 +25,12 @@
             },
             "relations": {},
             "storage": {
-              "collection": "notes"
+              "collection": "notes",
+              "fields": {
+                "_id": {
+                  "field": "_id"
+                }
+              }
             }
           }
         }

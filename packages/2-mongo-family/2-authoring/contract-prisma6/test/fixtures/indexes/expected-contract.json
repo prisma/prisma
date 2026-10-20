@@ -13,7 +13,7 @@
         "models": {
           "Post": {
             "fields": {
-              "_id": {
+              "id": {
                 "type": {
                   "kind": "scalar",
                   "codecId": "mongo/objectId@1"
@@ -37,7 +37,7 @@
                 "nullable": false,
                 "many": false
               },
-              "post_title": {
+              "title": {
                 "type": {
                   "kind": "scalar",
                   "codecId": "mongo/string@1"
@@ -64,7 +64,27 @@
             },
             "relations": {},
             "storage": {
-              "collection": "Post"
+              "collection": "Post",
+              "fields": {
+                "id": {
+                  "field": "_id"
+                },
+                "slug": {
+                  "field": "slug"
+                },
+                "rank": {
+                  "field": "rank"
+                },
+                "title": {
+                  "field": "post_title"
+                },
+                "authorId": {
+                  "field": "authorId"
+                },
+                "createdAt": {
+                  "field": "createdAt"
+                }
+              }
             }
           }
         }

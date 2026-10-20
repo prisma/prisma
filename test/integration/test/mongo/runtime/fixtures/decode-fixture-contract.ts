@@ -6,6 +6,8 @@ import type {
   MongoTypeMaps,
 } from '@internal/mongo-contract';
 
+type StoredAs<TFields extends string> = { readonly [K in TFields]: { readonly field: K } };
+
 type DecodeFixtureModels = {
   readonly User: {
     readonly fields: {
@@ -36,7 +38,10 @@ type DecodeFixtureModels = {
       };
     };
     readonly relations: Record<string, never>;
-    readonly storage: { readonly collection: 'users' };
+    readonly storage: {
+      readonly collection: 'users';
+      readonly fields: StoredAs<'_id' | 'name' | 'email' | 'createdAt' | 'embeddings'>;
+    };
   };
   readonly Post: {
     readonly fields: {
@@ -67,7 +72,10 @@ type DecodeFixtureModels = {
         };
       };
     };
-    readonly storage: { readonly collection: 'posts' };
+    readonly storage: {
+      readonly collection: 'posts';
+      readonly fields: StoredAs<'_id' | 'title' | 'userId'>;
+    };
   };
 };
 
@@ -155,7 +163,16 @@ export const decodeFixtureContractJson = {
       __unbound__: {
         models: {
           User: {
-            storage: { collection: 'users' },
+            storage: {
+              collection: 'users',
+              fields: {
+                _id: { field: '_id' },
+                name: { field: 'name' },
+                email: { field: 'email' },
+                createdAt: { field: 'createdAt' },
+                embeddings: { field: 'embeddings' },
+              },
+            },
             relations: {},
             fields: {
               _id: {
@@ -186,7 +203,14 @@ export const decodeFixtureContractJson = {
             },
           },
           Post: {
-            storage: { collection: 'posts' },
+            storage: {
+              collection: 'posts',
+              fields: {
+                _id: { field: '_id' },
+                title: { field: 'title' },
+                userId: { field: 'userId' },
+              },
+            },
             relations: {
               user: {
                 to: crossRef('User'),

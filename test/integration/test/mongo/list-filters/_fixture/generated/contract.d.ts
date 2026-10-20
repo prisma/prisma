@@ -65,7 +65,7 @@ export type FieldInputTypes = FieldTypesFromDomain<
 
 export namespace Models {
   export type unbound_Lists = {
-    _id: FieldOutputTypes['__unbound__']['Lists']['_id'];
+    id: FieldOutputTypes['__unbound__']['Lists']['id'];
     name: FieldOutputTypes['__unbound__']['Lists']['name'];
     nickname: FieldOutputTypes['__unbound__']['Lists']['nickname'];
     nullableStrings: FieldOutputTypes['__unbound__']['Lists']['nullableStrings'];
@@ -172,7 +172,7 @@ type ContractBase = Omit<
         readonly models: {
           readonly Lists: {
             readonly fields: {
-              readonly _id: {
+              readonly id: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
@@ -216,7 +216,20 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'lists' };
+            readonly storage: {
+              readonly collection: 'lists';
+              readonly fields: {
+                readonly id: { readonly field: '_id' };
+                readonly name: { readonly field: 'name' };
+                readonly nickname: { readonly field: 'nickname' };
+                readonly nullableStrings: { readonly field: 'nullableStrings' };
+                readonly optionalEntries: { readonly field: 'optionalEntries' };
+                readonly optionalNullableEntries: { readonly field: 'optionalNullableEntries' };
+                readonly optionalNullableStrings: { readonly field: 'optionalNullableStrings' };
+                readonly optionalStrings: { readonly field: 'optionalStrings' };
+                readonly strings: { readonly field: 'strings' };
+              };
+            };
           };
         };
         readonly valueObjects: {

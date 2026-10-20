@@ -107,6 +107,11 @@ describe('mongo contract builder', () => {
     expect(domainModelsAtDefaultNamespace(contract.domain)['Post']).toEqual({
       storage: {
         collection: 'posts',
+        fields: {
+          _id: { field: '_id' },
+          authorId: { field: 'authorId' },
+          title: { field: 'title' },
+        },
       },
       fields: {
         _id: {
@@ -378,6 +383,12 @@ describe('mongo contract builder', () => {
     const models = domainModelsAtDefaultNamespace(contract.domain);
     expect(models['Task']!.storage).toEqual({
       collection: 'tasks',
+      fields: {
+        _id: { field: '_id' },
+        metadata: { field: 'metadata' },
+        title: { field: 'title' },
+        type: { field: 'type' },
+      },
       relations: {
         comments: { field: 'comments' },
       },

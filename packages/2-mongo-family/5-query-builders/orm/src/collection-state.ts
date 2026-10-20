@@ -3,6 +3,7 @@ import type { MongoFilterExpr } from '@internal/mongo-query-ast/execution';
 
 export interface MongoIncludeExpr {
   readonly relationName: string;
+  readonly targetModelName: string;
   readonly targetModel: MongoModelDefinition;
   readonly from: string;
   readonly localField: string;

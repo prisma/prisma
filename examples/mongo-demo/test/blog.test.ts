@@ -79,14 +79,14 @@ describe('mongo-demo blog integration', { timeout: timeouts.spinUpMongoMemorySer
         title: 'Hello World',
         content: 'My first post',
         kind: 'article',
-        authorId: alice._id as string,
+        authorId: alice.id as string,
         createdAt: new Date('2026-01-15'),
       },
       {
         title: 'Second Post',
         content: 'More content',
         kind: 'tutorial',
-        authorId: alice._id as string,
+        authorId: alice.id as string,
         createdAt: new Date('2026-02-01'),
       },
     ]);
@@ -119,7 +119,7 @@ describe('mongo-demo blog integration', { timeout: timeouts.spinUpMongoMemorySer
       title: 'Hello World',
       content: 'My first post',
       kind: 'article',
-      authorId: alice._id as string,
+      authorId: alice.id as string,
       createdAt: new Date('2026-01-15'),
     });
 
@@ -152,14 +152,14 @@ describe('mongo-demo blog integration', { timeout: timeouts.spinUpMongoMemorySer
         title: 'Hello World',
         content: 'My first post',
         kind: 'article',
-        authorId: alice._id as string,
+        authorId: alice.id as string,
         createdAt: new Date('2026-01-15'),
       },
       {
         title: 'Mongo with Prisma 8',
         content: 'Using the contract-first approach',
         kind: 'tutorial',
-        authorId: bob._id as string,
+        authorId: bob.id as string,
         createdAt: new Date('2026-02-20'),
       },
     ]);
@@ -170,13 +170,13 @@ describe('mongo-demo blog integration', { timeout: timeouts.spinUpMongoMemorySer
     const posts = await orm.posts.include('author').all();
     expect(posts).toHaveLength(2);
 
-    const alicePost = posts.find((p) => String(p.authorId) === String(alice._id));
+    const alicePost = posts.find((p) => String(p.authorId) === String(alice.id));
     expect(alicePost).toMatchObject({
       title: 'Hello World',
       author: { name: 'Alice' },
     });
 
-    const bobPost = posts.find((p) => String(p.authorId) === String(bob._id));
+    const bobPost = posts.find((p) => String(p.authorId) === String(bob.id));
     expect(bobPost).toMatchObject({
       title: 'Mongo with Prisma 8',
       author: { name: 'Bob' },
@@ -197,21 +197,21 @@ describe('mongo-demo blog integration', { timeout: timeouts.spinUpMongoMemorySer
         title: 'Article One',
         content: 'Article content',
         kind: 'article',
-        authorId: alice._id as string,
+        authorId: alice.id as string,
         createdAt: new Date('2026-01-15'),
       },
       {
         title: 'Tutorial One',
         content: 'Tutorial content',
         kind: 'tutorial',
-        authorId: alice._id as string,
+        authorId: alice.id as string,
         createdAt: new Date('2026-02-01'),
       },
       {
         title: 'Article Two',
         content: 'Another article',
         kind: 'article',
-        authorId: alice._id as string,
+        authorId: alice.id as string,
         createdAt: new Date('2026-03-01'),
       },
     ]);
