@@ -18,7 +18,10 @@ import {
 
 const contract = createTestContract({});
 
-function planWhere(value: ParamRef | PreparedParamRef): SqlQueryPlan {
+function planWhere(
+  value: ParamRef | PreparedParamRef,
+  meta: Partial<SqlQueryPlan['meta']> = {},
+): SqlQueryPlan {
   return {
     ast: SelectAst.from(TableSource.named('users')).withWhere(
       BinaryExpr.eq(ColumnRef.of('users', 'id'), value),
@@ -29,6 +32,7 @@ function planWhere(value: ParamRef | PreparedParamRef): SqlQueryPlan {
       targetFamily: contract.targetFamily,
       storageHash: contract.storage.storageHash,
       lane: 'sql',
+      ...meta,
     },
   };
 }
@@ -66,7 +70,23 @@ describe('createToSql', () => {
     const { toSql } = setup();
 
     expect(() => toSql(planWhere(PreparedParamRef.of('id', { codecId: 'pg/int4@1' })))).toThrow(
-      expect.objectContaining({ code: 'RUNTIME.PREPARE_BIND_ON_ADHOC' }),
+      expect.objectContaining({
+        code: 'RUNTIME.PREPARE_BIND_ON_ADHOC',
+        message:
+          "The plan has a bind site for 'id'. A plan built inside prepare(...) runs only as a prepared statement.",
+      }),
+    );
+  });
+
+  it('rejects a plan built for another contract, as the runtime does', () => {
+    const { toSql } = setup();
+    const value = ParamRef.of(1, { codec: { codecId: 'pg/int4@1' } });
+
+    expect(() => toSql(planWhere(value, { storageHash: 'other-contract' }))).toThrow(
+      expect.objectContaining({ code: 'PLAN.HASH_MISMATCH' }),
+    );
+    expect(() => toSql(planWhere(value, { target: 'sqlite' }))).toThrow(
+      expect.objectContaining({ code: 'PLAN.TARGET_MISMATCH' }),
     );
   });
 });

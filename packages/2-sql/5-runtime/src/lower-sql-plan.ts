@@ -27,7 +27,7 @@ export function lowerSqlPlan<Row>(
     if (slot.kind === 'literal') return slot.value;
     throw runtimeError(
       'RUNTIME.PREPARE_BIND_ON_ADHOC',
-      `Ad-hoc execute received a bind-site slot for '${slot.name}' — bind-site references are only valid inside runtime.prepare(...).`,
+      `The plan has a bind site for '${slot.name}'. A plan built inside prepare(...) runs only as a prepared statement.`,
       { name: slot.name },
     );
   });

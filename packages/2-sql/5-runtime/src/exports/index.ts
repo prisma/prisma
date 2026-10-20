@@ -29,6 +29,7 @@ export {
   delegatingActivitySource,
   findActivitySource,
   type HashablePlan,
+  lazyActivitySource,
   planContentHashOn,
   startActivityOn,
 } from '../activity-handle';
@@ -93,6 +94,7 @@ export type {
   ConnectionProvider,
   Runtime,
   RuntimeConnection,
+  RuntimeMode,
   RuntimeOptions,
   RuntimeQueryable,
   RuntimeTransaction,

@@ -127,13 +127,16 @@ export type Log = RuntimeLog;
  */
 export type CloseRefusal = 'when-idle' | 'at-once';
 
+/** How middleware treats a guardrail violation. `'strict'`, the default, makes `budgets` throw on every violation; `'permissive'` lets a violation whose severity is `'warn'` go to `log.warn`. */
+export type RuntimeMode = 'strict' | 'permissive';
+
 export interface RuntimeOptions<TContract extends Contract<SqlStorage> = Contract<SqlStorage>> {
   readonly context: ExecutionContext<TContract>;
   readonly adapter: Adapter<AnyQueryAst, Contract<SqlStorage>, LoweredStatement>;
   readonly driver: SqlDriver<unknown>;
   readonly verifyMarker?: VerifyMarkerOption;
   readonly middleware?: readonly SqlMiddleware[];
-  readonly mode?: 'strict' | 'permissive';
+  readonly mode?: RuntimeMode;
   readonly log?: Log;
   readonly closeRefusal?: CloseRefusal | undefined;
 }
