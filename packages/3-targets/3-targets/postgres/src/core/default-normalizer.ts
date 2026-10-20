@@ -3,7 +3,7 @@
  */
 
 import type { ColumnDefault } from '@internal/contract/types';
-import type { ReportedLiteralDefault } from '@internal/family-sql/control';
+import type { DefaultResolverColumn, ReportedLiteralDefault } from '@internal/family-sql/control';
 
 export const NEXTVAL_PATTERN = /^nextval\s*\(/i;
 const NOW_FUNCTION_PATTERN = /^(now\s*\(\s*\)|CURRENT_TIMESTAMP)$/i;
@@ -56,9 +56,6 @@ export const NUMBER_TYPE_PATTERN = new RegExp(
  * Examples: `'{}'::text[]`, `'{1,2}'::integer[]`, `'{}'`
  */
 export const ARRAY_LITERAL_PATTERN = /^'(\{.*\})'(?:::.+\[\])?$/;
-
-/** `box` is the one core type whose array elements are delimited by `;`, not `,`. */
-export const SEMICOLON_DELIMITED_ELEMENT_TYPE_PATTERN = /^box$/i;
 
 /**
  * Matches the constructor spelling Postgres reports for a default written as
@@ -272,17 +269,14 @@ function functionDefault(expression: string): PostgresReportedDefault {
 }
 
 /**
- * Reads a column's reported default. `nativeType` ends in `[]` for a list column, whose literal is an array literal (`'{a,b}'::text[]`) or an `ARRAY[...]` constructor of literals. A `nextval(...)` default is `autoincrement()`, and the forms of `now()` and of `gen_random_uuid()` are named as the contract names them. Any other expression is a function default, kept as reported.
+ * Reads a column's reported default. A list column (`many`) has a literal that is an array literal (`'{a,b}'::text[]`) or an `ARRAY[...]` constructor of literals. A `nextval(...)` default is `autoincrement()`, and the forms of `now()` and of `gen_random_uuid()` are named as the contract names them. Any other expression is a function default, kept as reported.
  */
-export function readPostgresDefault(
-  rawDefault: string,
-  nativeType?: string,
-): PostgresReportedDefault {
+export function readPostgresDefault(rawDefault: string, many: boolean): PostgresReportedDefault {
   const trimmed = rawDefault.trim();
   if (NEXTVAL_PATTERN.test(trimmed)) return functionDefault('autoincrement()');
   if (NULL_PATTERN.test(trimmed)) return { kind: 'null' };
-  if (nativeType?.endsWith('[]')) {
-    const elements = listElementBodies(trimmed, nativeType.slice(0, -2));
+  if (many) {
+    const elements = listElementBodies(trimmed);
     return elements === undefined
       ? functionDefault(trimmed)
       : { kind: 'literal', literal: { kind: 'list', elements } };
@@ -308,12 +302,9 @@ function literalBody(expression: string): string | undefined {
 }
 
 /** The element bodies of a list literal, with `null` for SQL NULL, or `undefined` when the default is not a list of literals. */
-function listElementBodies(
-  expression: string,
-  elementType: string,
-): readonly (string | null)[] | undefined {
+function listElementBodies(expression: string): readonly (string | null)[] | undefined {
   const arrayLiteral = ARRAY_LITERAL_PATTERN.exec(expression)?.[1];
-  if (arrayLiteral !== undefined && !SEMICOLON_DELIMITED_ELEMENT_TYPE_PATTERN.test(elementType)) {
+  if (arrayLiteral !== undefined) {
     return arrayLiteralElements(arrayLiteral.replace(/''/g, "'"));
   }
   const constructed = ARRAY_CONSTRUCTOR_PATTERN.exec(unwrapOuterArrayCasts(expression))?.[1];
@@ -356,9 +347,9 @@ function arrayLiteralElements(literal: string): readonly (string | null)[] | und
  */
 export function postgresResolveDefault(
   def: ColumnDefault,
-  resolvedNativeType: string,
+  column: DefaultResolverColumn,
 ): ColumnDefault {
   if (def.kind !== 'function') return def;
-  const read = readPostgresDefault(def.expression, resolvedNativeType);
+  const read = readPostgresDefault(def.expression, column.many);
   return read.kind === 'function' ? read : def;
 }

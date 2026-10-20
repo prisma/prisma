@@ -20,9 +20,9 @@ import type { SqliteTableSpec } from '../../../../3-targets/sqlite/src/core/migr
 // Pre-slice oracle: the createTable function and SqliteTableSpec type from the
 // internal tables module (kept on disk for Phase 2 recreateTable use).
 import { createTable as preSliceCreateTableOp } from '../../../../3-targets/sqlite/src/core/migrations/operations/tables';
-import { SqliteControlAdapter } from '../../src/exports/control';
+import { createTestSqliteControlAdapter } from '../helpers/test-control-adapter';
 
-const lowerer = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+const lowerer = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
 
 async function oracleSql(tableName: string, spec: SqliteTableSpec): Promise<string> {
   const op = await preSliceCreateTableOp(tableName, spec, lowerer);

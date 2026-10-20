@@ -18,10 +18,10 @@ import {
   FIXTURES,
   integerInputs,
   LOSSLESS_VARIANT_INPUTS,
-  nativeTypeOf,
   READS_A_COMPUTED_TYPE,
   registry,
   TABLE,
+  typeTextOf,
 } from './aggregate-matrix';
 import { aggregateSql } from './aggregate-sql';
 
@@ -38,7 +38,7 @@ describe('PostgreSQL aggregate resolution', () => {
   it('names a computed type only where the declared codec reads one it does not store', () => {
     const redundant = READS_A_COMPUTED_TYPE.filter(({ operation, codecId, computed }) => {
       const resolved = registry.resolve(operation, { codecId });
-      return resolved !== undefined && nativeTypeOf(resolved.output) === computed;
+      return resolved !== undefined && typeTextOf(resolved.output) === computed;
     });
 
     expect(redundant).toEqual([]);

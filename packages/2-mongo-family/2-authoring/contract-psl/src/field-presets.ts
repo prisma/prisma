@@ -3,7 +3,8 @@ import type {
   AuthoringContributions,
   AuthoringFieldPresetDescriptor,
 } from '@internal/framework-components/authoring';
-import { codecTypeParamsProblem, type MongoTypeLookups } from '@internal/mongo-contract/data-type';
+import type { TypeLookups } from '@internal/framework-components/codec';
+import { codecTypeParamsProblem } from '@internal/mongo-contract/data-type';
 import {
   diagnosticSource,
   type FieldSymbol,
@@ -19,7 +20,7 @@ export interface FieldPresetContext {
   readonly authoringContributions: AuthoringContributions | undefined;
   readonly sources: PslSources;
   readonly diagnostics: PslDiagnosticCollector;
-  readonly typeLookups: MongoTypeLookups;
+  readonly typeLookups: TypeLookups;
   readonly warnPresetWithoutEffect: (preset: PresetWithoutEffect) => void;
 }
 

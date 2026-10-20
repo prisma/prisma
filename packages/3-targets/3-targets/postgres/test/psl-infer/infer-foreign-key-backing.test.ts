@@ -12,7 +12,7 @@ function schemaWithIndexOnForeignKey(index: {
     tables: {
       user: {
         name: 'user',
-        columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+        columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
         primaryKey: { columns: ['id'] },
         foreignKeys: [],
         uniques: [],
@@ -21,8 +21,8 @@ function schemaWithIndexOnForeignKey(index: {
       post: {
         name: 'post',
         columns: {
-          id: { name: 'id', nativeType: 'int4', nullable: false },
-          user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
+          id: { name: 'id', typeText: 'int4', nullable: false },
+          user_id: { name: 'user_id', typeText: 'int4', nullable: false },
         },
         primaryKey: { columns: ['id'] },
         foreignKeys: [{ columns: ['user_id'], referencedTable: 'user', referencedColumns: ['id'] }],

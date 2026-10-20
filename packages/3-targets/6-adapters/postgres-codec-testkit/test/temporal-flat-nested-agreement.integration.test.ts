@@ -3,7 +3,7 @@ import { postgresCodecDescriptorRegistry } from '@internal/target-postgres/codec
 import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildProjectionSql, type PostgresCodecConformanceCase } from '../src/index';
-import { nativeTypeOf } from './aggregate-matrix';
+import { typeTextOf } from './aggregate-matrix';
 
 const STORAGE_TABLE = 'codec_conformance';
 const VALUE_COLUMN = 'value';
@@ -88,9 +88,9 @@ describe('temporal flat and nested reads agree', () => {
       codecId: entry.codecId,
       ...(entry.typeParams ? { typeParams: entry.typeParams } : {}),
     };
-    const nativeType = nativeTypeOf(ref);
+    const typeText = typeTextOf(ref);
     await driver!.query(`DROP TABLE IF EXISTS "${STORAGE_TABLE}"`);
-    await driver!.query(`CREATE TABLE "${STORAGE_TABLE}" ("${VALUE_COLUMN}" ${nativeType})`);
+    await driver!.query(`CREATE TABLE "${STORAGE_TABLE}" ("${VALUE_COLUMN}" ${typeText})`);
     await driver!.query(`INSERT INTO "${STORAGE_TABLE}" VALUES (${entry.literal})`);
 
     const flatRows = await driver!.query(

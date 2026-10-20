@@ -8,8 +8,8 @@ import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/code
 import { createTable } from '@internal/target-postgres/contract-free';
 import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../src/core/control-adapter';
 import type { PostgresContract } from '../src/core/types';
+import { createTestPostgresControlAdapter } from './helpers/test-control-adapter';
 
 describe('PostgresCreateTable with table-level constraints', () => {
   it('renders a join table with composite PK, two FKs, and a table-level unique', async () => {
@@ -38,7 +38,7 @@ describe('PostgresCreateTable with table-level constraints', () => {
       ],
     });
 
-    const adapter = new PostgresControlAdapter(
+    const adapter = createTestPostgresControlAdapter(
       createPostgresBuiltinCodecLookup(),
       createPostgresBuiltinDataTypeLookup(),
     );
@@ -64,7 +64,7 @@ describe('PostgresCreateTable with table-level constraints', () => {
       constraints: [new PrimaryKeyConstraint({ columns: ['a', 'b'], name: 'pk_items' })],
     });
 
-    const adapter = new PostgresControlAdapter(
+    const adapter = createTestPostgresControlAdapter(
       createPostgresBuiltinCodecLookup(),
       createPostgresBuiltinDataTypeLookup(),
     );
@@ -89,7 +89,7 @@ describe('PostgresCreateTable with table-level constraints', () => {
       ],
     });
 
-    const adapter = new PostgresControlAdapter(
+    const adapter = createTestPostgresControlAdapter(
       createPostgresBuiltinCodecLookup(),
       createPostgresBuiltinDataTypeLookup(),
     );
@@ -115,7 +115,7 @@ describe('PostgresCreateTable with table-level constraints', () => {
       ],
     });
 
-    const adapter = new PostgresControlAdapter(
+    const adapter = createTestPostgresControlAdapter(
       createPostgresBuiltinCodecLookup(),
       createPostgresBuiltinDataTypeLookup(),
     );
@@ -131,7 +131,7 @@ describe('PostgresCreateTable with table-level constraints', () => {
       columns: [col('id', 'text', { primaryKey: true, notNull: true })],
     });
 
-    const adapter = new PostgresControlAdapter(
+    const adapter = createTestPostgresControlAdapter(
       createPostgresBuiltinCodecLookup(),
       createPostgresBuiltinDataTypeLookup(),
     );

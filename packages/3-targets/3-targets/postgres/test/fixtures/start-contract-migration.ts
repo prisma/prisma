@@ -10,7 +10,7 @@ import type {
   SqlControlAdapter,
 } from '@internal/family-sql/control-adapter';
 import type { ControlStack } from '@internal/framework-components/control';
-import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { SqlStorage, type StorageColumnInput, StorageTable } from '@internal/sql-contract/types';
 import type { DdlColumn } from '@internal/sql-relational-core/ast';
 import type { SqlTextInput } from '@internal/sql-relational-core/contract-free';
 import { blindCast } from '@internal/utils/casts';
@@ -52,8 +52,8 @@ export function boxContract(
   changedDefault: ColumnDefault | undefined,
   namespaceId = 'public',
   names: { readonly table: string; readonly column: string } = { table: 'Box', column: 'changed' },
+  changed: StorageColumnInput = { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
 ): FrameworkContract<SqlStorage> {
-  const changed = { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false };
   return {
     target: 'postgres',
     targetFamily: 'sql',

@@ -22,7 +22,7 @@ import { classifySqlDiffIssue, computeSqlDiffVerdict } from '../src/core/diff/sc
  * granularity" (pinned separately by the relational/Postgres node-kind maps).
  */
 const table = new SqlTableIR({ name: 't', columns: {}, foreignKeys: [], uniques: [], indexes: [] });
-const column = new SqlColumnIR({ name: 'c', nativeType: 'int4', nullable: false });
+const column = new SqlColumnIR({ name: 'c', typeText: 'int4', nullable: false });
 const index = new SqlIndexIR({
   naming: { kind: 'exact', name: 't_c_idx' },
   columns: ['c'],

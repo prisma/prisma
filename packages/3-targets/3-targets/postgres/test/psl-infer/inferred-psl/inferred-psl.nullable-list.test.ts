@@ -9,9 +9,9 @@ describe('printPsl — nullable list columns', () => {
         users: {
           name: 'users',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
-            labels: { name: 'labels', nativeType: 'text', nullable: true, many: true },
-            tags: { name: 'tags', nativeType: 'text', nullable: false, many: true },
+            id: { name: 'id', typeText: 'int4', nullable: false },
+            labels: { name: 'labels', typeText: 'text', nullable: true, many: true },
+            tags: { name: 'tags', typeText: 'text', nullable: false, many: true },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],

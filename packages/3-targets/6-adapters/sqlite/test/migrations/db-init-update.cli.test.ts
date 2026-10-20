@@ -474,7 +474,7 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
                       nullable: false,
                     },
                     email: {
-                      nativeType: 'text',
+                      typeText: 'text',
                       codecId: HOOKED_CODEC,
                       nullable: false,
                     },

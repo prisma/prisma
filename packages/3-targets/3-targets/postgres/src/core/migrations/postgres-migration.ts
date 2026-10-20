@@ -19,6 +19,7 @@ import type { SqlStorage } from '@internal/sql-contract/types';
 import type { DdlColumn, DdlTableConstraint } from '@internal/sql-relational-core/ast';
 import { type SqlTextInput, sqlTextOf } from '@internal/sql-relational-core/contract-free';
 import { nameOf } from '@internal/sql-schema-ir/naming';
+import { sqlColumnTypesEqual } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { errorPostgresMigrationStackMissing, postgresError } from '../errors';
@@ -65,7 +66,7 @@ import { type DataTransformOptions, dataTransform } from './operations/data-tran
 import { installExtension } from './operations/dependencies';
 import type { CreateIndexExtras } from './operations/indexes';
 import type { ForeignKeySpec } from './operations/shared';
-import { catalogTypeTextIfReadable, stackDataTypes } from './planner-sql-checks';
+import { stackDataTypes, writtenColumnType } from './planner-sql-checks';
 import type { PostgresPlanTargetDetails } from './planner-target-details';
 import { postgresContractToSchema } from './postgres-contract-to-schema';
 import { ddlSchemaOfCallSchema } from './resolve-ddl-schema';
@@ -623,8 +624,8 @@ export abstract class PostgresMigration<
   private refuseUnchangedTypeConversion(call: AlterColumnTypeCall): void {
     const column = this.startColumnAfterRenames(call.schemaName, call.tableName, call.columnName);
     if (column === undefined) return;
-    const startType = column.resolvedNativeType ?? column.nativeType;
-    if (catalogTypeTextIfReadable(startType, this.dataTypes()) !== call.checkType) return;
+    const written = writtenColumnType(call.type, this.dataTypes());
+    if (written === undefined || !sqlColumnTypesEqual(column, written)) return;
     const where = alterColumnTypeCallText(call.schemaName, call.tableName, call.columnName);
     throw postgresError(
       'MIGRATION.ALTER_COLUMN_TYPE_USING_WITHOUT_TYPE_CHANGE',

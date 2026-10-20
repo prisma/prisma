@@ -29,7 +29,7 @@ function inferFrom(
   });
   const column = (name: string, text: string) => ({
     name,
-    nativeType: text,
+    typeText: text,
     nullable: false,
     reportedType: geometry(text),
   });
@@ -43,7 +43,7 @@ function inferFrom(
             columns: {
               id: {
                 name: 'id',
-                nativeType: 'int4',
+                typeText: 'int4',
                 nullable: false,
                 reportedType: {
                   text: 'integer',

@@ -50,11 +50,11 @@ function tableWith(columns: Record<string, { reportedType: ReportedSqlType; many
   return {
     name: 'sample',
     columns: {
-      id: { name: 'id', nativeType: 'int4', nullable: false, reportedType: reported('integer') },
+      id: { name: 'id', typeText: 'int4', nullable: false, reportedType: reported('integer') },
       ...Object.fromEntries(
         Object.entries(columns).map(([name, column]) => [
           name,
-          { name, nativeType: column.reportedType.text, nullable: false, ...column },
+          { name, typeText: column.reportedType.text, nullable: false, ...column },
         ]),
       ),
     },

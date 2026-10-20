@@ -10,14 +10,14 @@ import { postgresTypeLookups as types } from '../postgres-type-lookups';
 function column(value: string | readonly (string | null)[] | null, many: boolean): SqlColumnIR {
   return new SqlColumnIR({
     name: 'v',
-    nativeType: 'timestamptz',
+    typeText: 'timestamptz',
     nullable: true,
     ...(many ? { many: true } : {}),
     authoredDefault: { kind: 'literal', value },
     resolvedDefault: { kind: 'literal', value },
     codecRef: { codecId: 'pg/timestamptz-temporal@1', ...(many ? { many: true } : {}) },
-    codecBaseNativeType: 'timestamptz',
-    dataType: pgTimestamptz,
+    storedType: pgTimestamptz,
+    storedTypeParams: {},
   });
 }
 
@@ -39,7 +39,7 @@ describe('a date or time default written by the planner', () => {
     (_name, value, many) => {
       const node = column(value, many);
       expect({
-        createTable: renderColumnDdl('v', node, types).default,
+        createTable: renderColumnDdl('v', node).default,
         setDefault: buildSetDefaultColumn('v', defaultNode(node), types)?.default,
       }).toEqual({
         createTable: { kind: 'literal', value },

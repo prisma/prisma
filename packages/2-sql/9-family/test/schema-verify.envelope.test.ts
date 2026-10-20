@@ -23,7 +23,7 @@ function stubDiff(control: 'observed' | 'managed'): SqlSchemaDiffFn {
     issues: [
       {
         path: ['database', 'user', 'column:email'],
-        expected: new SqlColumnIR({ name: 'email', nativeType: 'text', nullable: false }),
+        expected: new SqlColumnIR({ name: 'email', typeText: 'text', nullable: false }),
       },
     ],
     resolveControlPolicy: () => control,

@@ -6,7 +6,7 @@ import { createSqliteBuiltinCodecLookup } from '@internal/target-sqlite/codecs';
 import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { SqliteControlAdapter } from '../../src/core/control-adapter';
+import { createTestSqliteControlAdapter } from '../helpers/test-control-adapter';
 import { familyInstance, frameworkComponents } from './fixtures/runner-fixtures';
 
 const text = (expression: string): StorageColumn => ({
@@ -68,10 +68,9 @@ describe('verify on SQLite of an expression default against the literal the data
       db.exec(
         `CREATE TABLE "greeting" ("same" TEXT NOT NULL DEFAULT 'hello', "cased" TEXT NOT NULL DEFAULT 'hello', "spaced" TEXT NOT NULL DEFAULT 'ab')`,
       );
-      const schema = await new SqliteControlAdapter(createSqliteBuiltinCodecLookup()).introspect(
-        driver,
-        contract,
-      );
+      const schema = await createTestSqliteControlAdapter(
+        createSqliteBuiltinCodecLookup(),
+      ).introspect(driver, contract);
       const result = familyInstance.verifySchema({
         contract,
         schema,

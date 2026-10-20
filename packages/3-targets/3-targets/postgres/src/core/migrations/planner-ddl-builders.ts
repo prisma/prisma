@@ -1,9 +1,5 @@
-import { dataTypeParams } from '@internal/framework-components/codec';
-import {
-  renderSqlTypeName,
-  type SqlTypeLookups,
-  sqlDataTypeOfCodec,
-} from '@internal/sql-contract/data-type';
+import { dataTypeParams, type TypeLookups } from '@internal/framework-components/codec';
+import { renderSqlTypeName, sqlDataTypeOfCodec } from '@internal/sql-contract/data-type';
 import type { StorageColumn, StorageTypeInstance } from '@internal/sql-contract/types';
 import { autoincrementWidthOfDataType } from './autoincrement-widths';
 
@@ -17,7 +13,7 @@ import { autoincrementWidthOfDataType } from './autoincrement-widths';
  */
 export function buildColumnTypeSql(
   column: Pick<StorageColumn, 'codecId' | 'many' | 'typeParams' | 'typeRef' | 'default'>,
-  types: SqlTypeLookups,
+  types: TypeLookups,
   storageTypes: Record<string, StorageTypeInstance> = {},
   allowPseudoTypes = true,
 ): string {
