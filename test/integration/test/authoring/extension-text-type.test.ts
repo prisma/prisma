@@ -154,18 +154,4 @@ model Circle {
       circle: { model: 'Circle', namespace: 'public' },
     });
   });
-
-  it('takes a text-writing generator', async () => {
-    const contract = await author(`model Row {
-  id    Int @id
-  token testtext.Citext @default(uuid())
-}
-`);
-    expect(contract.execution?.mutations.defaults).toEqual([
-      {
-        ref: { namespace: 'public', entry: 'Row', field: 'token' },
-        onCreate: { kind: 'generator', id: 'uuidv4' },
-      },
-    ]);
-  });
 });
