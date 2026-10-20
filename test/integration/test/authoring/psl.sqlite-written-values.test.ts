@@ -84,6 +84,8 @@ describe('written values on SQLite', () => {
       '9223372036854775807',
     ],
     ['a number with a fraction on a Float column', 'Float @default(1.5)', 'sqlite/real@1', 1.5],
+    ['Infinity on a Float column', 'Float @default(Infinity)', 'sqlite/real@1', 'Infinity'],
+    ['-Infinity on a Float column', 'Float @default(-Infinity)', 'sqlite/real@1', '-Infinity'],
     [
       'a whole number on a Float column, through the cast from integer',
       'Float @default(2)',

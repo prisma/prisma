@@ -68,9 +68,6 @@ const buildRefusals: Readonly<Record<string, readonly string[]>> = {
   'mongo/date@1': [
     'enum "MongoDate1" @@type codec "mongo/date@1" stores BSON type date, which a collection validator cannot list as an enum value. Use a codec whose BSON type is string, int, double, bool, object or array.',
   ],
-  'mongo/vector@1': [
-    'enum "MongoVector1" @@type codec "mongo/vector@1" stores BSON type vector, which a collection validator cannot list as an enum value. Use a codec whose BSON type is string, int, double, bool, object or array.',
-  ],
   'mongo/int64@1': [
     'enum "MongoInt641" @@type codec "mongo/int64@1" stores BSON type long, which a collection validator cannot list as an enum value. Use a codec whose BSON type is string, int, double, bool, object or array.',
   ],

@@ -3,7 +3,6 @@ import type {
   ContractEnum,
   ContractModelBase,
   ContractValueObject,
-  JsonValue,
 } from '@internal/contract/types';
 import type { CodecLookup } from '@internal/framework-components/codec';
 import {

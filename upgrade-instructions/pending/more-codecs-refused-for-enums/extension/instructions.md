@@ -7,6 +7,13 @@ changes:
       glob: "**/*.{ts,mts,cts}"
       matches:
         - '(?<![\s\S])(?=[\s\S]*\bextends\s+CodecDescriptorTemplateImpl\b)(?=[\s\S]*\brenderValueLiteral\s*\()'
+  - id: enum-block-written-values
+    summary: |
+      A parsed PSL extension block now records each literal entry as it is written in `writtenValues`, a `WrittenScalar` by key, in place of `numberTexts`, which held only the source text of number entries. `AuthoringEntityContext.readWrittenNumber` is replaced by `readWrittenValueForCodec`, which takes a `WrittenScalar` as `written` in place of the number's `text`, and reads any written value, not only a number, by the cast rule. A refused `WrittenValueReading` now carries the diagnostic `code` with its `message`. `enumMemberValue()` yields a tagged member as its `WrittenScalar` in place of `null`.
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      matches:
+        - '\b(?:numberTexts|readWrittenNumber|WrittenValueReading)\b'
 ---
 
 ## `family-codec-templates-render-no-literals`
@@ -38,3 +45,23 @@ export const myTextDescriptor = postgresCodec(myTextTemplate, {
 ```
 
 Without the option, the adapted codec renders no literal, so an enum or value set on it is typed as the codec's whole output type.
+
+## `enum-block-written-values`
+
+1. Read `block.writtenValues?.[key]` in place of `block.numberTexts?.[key]`. A number entry is `{ kind: 'number', text }`, with the text as written.
+2. Rename a `readWrittenNumber` hook to `readWrittenValueForCodec`, and read `written` in place of `text`.
+3. Give every refused `WrittenValueReading` a `code`, such as `PSL_VALUE_TYPE_INCOMPATIBLE`.
+
+```ts
+// before
+readWrittenNumber: ({ text, codecId, subject }) => ({ ok: false, message: `${subject}: refused` }),
+
+// after
+readWrittenValueForCodec: ({ written, codecId, subject }) => ({
+  ok: false,
+  code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+  message: `${subject}: refused`,
+}),
+```
+
+The detection matches every file that names `WrittenValueReading`, including one that already sets `code`. Check each refused reading.

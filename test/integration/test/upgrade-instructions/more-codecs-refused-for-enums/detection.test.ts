@@ -145,12 +145,20 @@ describe('psl-enum-members-read-by-the-cast-rule detection', () => {
       'a quoted member written before @@type',
       'enum Ratio {\n  Half = "0.5"\n  @@type("pg/numeric@1")\n}',
     ],
+    [
+      'a quoted SQLite json member, which now needs the json tag',
+      'enum Doc {\n  @@type("sqlite/json@1")\n  Low = "low"\n}',
+    ],
   ])('finds %s', (_name, source) => {
     expect(detects(patterns, source)).toBe(true);
   });
 
   it.each([
     ['an unquoted numeric member', 'enum Ratio {\n  @@type("pg/numeric@1")\n  Half = 0.5\n}'],
+    [
+      'a tagged SQLite json member',
+      'enum Doc {\n  @@type("sqlite/json@1")\n  Low = json`"low"`\n}',
+    ],
     [
       'a tagged date member',
       'enum Day {\n  @@type("pg/date-temporal@1")\n  Launch = date`2024-01-01`\n}',
@@ -167,6 +175,77 @@ describe('psl-enum-members-read-by-the-cast-rule detection', () => {
     ],
     ['an enum with no @@type', 'enum Level {\n  Low = "low"\n}'],
     ['bare numeric members', 'enum Ratio {\n  @@type("pg/numeric@1")\n  Half\n}'],
+  ])('skips %s', (_name, source) => {
+    expect(detects(patterns, source)).toBe(false);
+  });
+});
+
+describe('enum-members-compare-by-their-data-type detection', () => {
+  const patterns = patternsOf('app', 'enum-members-compare-by-their-data-type');
+
+  it.each([
+    ['a PSL numeric enum', 'enum Ratio {\n  @@type("pg/numeric@1")\n  Half = 0.5\n}'],
+    ['a PSL interval enum', 'enum Span {\n  @@type( "pg/interval@1" )\n  Day = "P1D"\n}'],
+    ['a PSL decimal128 enum', 'enum Ratio {\n  @@type("mongo/decimal128@1")\n  Half = "0.5"\n}'],
+    [
+      'a TypeScript enum on the numeric helper',
+      "const Ratio = enumType('Ratio', numericColumn(10, 2), member('Half', '0.50'));",
+    ],
+    [
+      'a TypeScript enum on the interval helper',
+      "const Span = enumType('Span', intervalColumn(), member('Day', 'P1D'));",
+    ],
+    [
+      'a TypeScript enum on a quoted codec id',
+      "const Ratio = enumType('Ratio', { codecId: 'mongo/decimal128@1' }, member('Half', '0.5'));",
+    ],
+  ])('finds %s', (_name, source) => {
+    expect(detects(patterns, source)).toBe(true);
+  });
+
+  it.each([
+    ['a PSL text enum', 'enum Level {\n  @@type("pg/text@1")\n  Low = "low"\n}'],
+    ['a codec id with a longer name', 'enum Ratio {\n  @@type("pg/numeric-x@1")\n}'],
+    ['a codec id of another version', 'enum Ratio {\n  @@type("pg/numeric@2")\n}'],
+    [
+      'a numeric column in a file with no enum',
+      'const Item = model({ fields: { price: field.column(numericColumn(10, 2)) } });',
+    ],
+    [
+      'a generated file',
+      "// GENERATED FILE - DO NOT EDIT\nconst R = enumType('R', numericColumn(), member('Half', '0.5'));",
+    ],
+    ['a TypeScript int enum', "const L = enumType('L', int4Column, member('Low', 1));"],
+    [
+      'a name that ends in numericColumn',
+      "const L = enumType('L', textColumn, member('Low', mynumericColumn('low')));",
+    ],
+  ])('skips %s', (_name, source) => {
+    expect(detects(patterns, source)).toBe(false);
+  });
+});
+
+describe('enum-block-written-values detection', () => {
+  const patterns = patternsOf('extension', 'enum-block-written-values');
+
+  it.each([
+    ['a read of numberTexts', 'const text = block.numberTexts?.[name];'],
+    ['a readWrittenNumber hook', 'const ctx = { readWrittenNumber: ({ text }) => read(text) };'],
+    [
+      'a WrittenValueReading built by hand',
+      "const refused: WrittenValueReading = { ok: false, message: 'no' };",
+    ],
+  ])('finds %s', (_name, source) => {
+    expect(detects(patterns, source)).toBe(true);
+  });
+
+  it.each([
+    ['a read of writtenValues', 'const written = block.writtenValues?.[name];'],
+    [
+      'the renamed hook',
+      'const ctx = { readWrittenValueForCodec: ({ written }) => read(written) };',
+    ],
+    ['a longer name', 'const t = block.numberTextsByKey;'],
   ])('skips %s', (_name, source) => {
     expect(detects(patterns, source)).toBe(false);
   });

@@ -247,7 +247,6 @@ type FieldTypeOverrides = {
       };
       readonly User: {
         readonly plan: { readonly output: 'free' | 'paid'; readonly input: 'free' | 'paid' };
-        readonly ratio: { readonly output: '0.5' | '1.50'; readonly input: '0.5' | '1.50' };
       };
     };
   };
@@ -273,7 +272,6 @@ type ColumnTypeOverrides = {
     };
     readonly users: {
       readonly plan: { readonly output: 'free' | 'paid'; readonly input: 'free' | 'paid' };
-      readonly ratio: { readonly output: '0.5' | '1.50'; readonly input: '0.5' | '1.50' };
     };
   };
 };
