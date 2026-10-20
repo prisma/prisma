@@ -70,7 +70,7 @@ export function dbInitPlanningFailedError(
   }
   const { fix, nextAction } = adviceForRefusedClasses(refused);
   return new ActionableCliError(planningFailed.code, planningFailed.message, {
-    why: planningFailed.why ?? '',
+    why: planningFailed.why,
     fix,
     nextActions: [nextAction],
     ...ifDefined('meta', planningFailed.meta),
