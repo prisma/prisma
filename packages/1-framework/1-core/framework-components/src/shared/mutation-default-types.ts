@@ -47,6 +47,8 @@ export interface MutationDefaultGeneratorDescriptor {
   readonly applicableDataTypes?: readonly DataTypeId[];
   /** The generator writes text, so it also applies to every one of the stack's text data types (the assembled `textDataTypes`). */
   readonly writesText?: boolean;
+  /** The number of characters the generator writes under its params, so a column too short for the value refuses it. Omitted when the length is not fixed. */
+  readonly writtenLength?: (params: Readonly<Record<string, unknown>> | undefined) => number;
   /**
    * Construct the `onCreate`/`onUpdate` phases value owned by this
    * generator. Authoring layers (PSL `temporal.updatedAt()`, TS field presets) call

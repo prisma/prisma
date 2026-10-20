@@ -1,5 +1,6 @@
 import type { ExecutionMutationDefaultValue } from '@internal/contract/types';
 import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
+import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { contractError } from './contract-errors';
 import { type BuiltinGeneratorId, builtinGeneratorIds } from './generator-ids';
@@ -93,9 +94,18 @@ const builtinGeneratorMetadataById = {
 export const builtinGeneratorRegistryMetadata: ReadonlyArray<{
   readonly id: BuiltinGeneratorId;
   readonly writesUuid: boolean;
+  /** The number of characters the generator writes under `params`. */
+  readonly writtenLength: (params: Readonly<Record<string, unknown>> | undefined) => number;
 }> = builtinGeneratorIds.map((id) => ({
   id,
   writesUuid: builtinGeneratorMetadataById[id].writesUuid,
+  writtenLength: (params) =>
+    builtinGeneratorMetadataById[id].generatedStorage(
+      blindCast<
+        never,
+        'A generator ignores params it does not take, and nanoid reads its size from them.'
+      >(params),
+    ).typeParams.length,
 }));
 
 export type GeneratedColumnSpec<TCodecId extends string = string> = {

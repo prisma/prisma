@@ -25,6 +25,9 @@ changes:
       glob: "**/*.{ts,mts,cts,tsx,js,mjs,cjs,json}"
       matches:
         - '\bwith codecId \\?"'
+  - id: generator-fits-column
+    summary: |
+      A generated default is refused when the column is too short for what the generator writes: `Char(5) @default(nanoid())` (a Nano ID is 21 characters) and `VarChar(5) @default(uuid())` report `PSL_INVALID_DEFAULT_APPLICABILITY`, `Default generator "nanoid" writes 21 characters, but "Row.value" holds at most 5.` Such a column failed at the first insert before. Widen the column, or for `nanoid` pass a size that fits.
   - id: discriminator-must-be-text
     summary: |
       A SQL `@@discriminator` field that is not text is refused with the message `must be text, such as String, but is "<type>"` instead of `must be of type String, but is "<type>"`. A discriminator may now also be a `Char(n)` or `VarChar(n)` column, and a `@@base` value is checked against the column's type, so a value longer than a `VarChar(n)` column holds is refused. Mongo's message is unchanged.
@@ -80,6 +83,19 @@ The messages are `uuid: version must be 4 or 7, got <n>`, `cuid: version must be
 // After
 'Default generator "uuidv4" is not applicable to "Row.value" with data type "pg/int4".'
 ```
+
+## `generator-fits-column`
+
+```prisma
+// Before: emitted, then every insert failed with "value too long"
+code Char(5) @default(nanoid())
+
+// After
+code Char(21) @default(nanoid())
+code Char(5)  @default(nanoid(5))
+```
+
+The lengths are: `uuid` 36, `ulid` 26, `cuid(2)` 24, `nanoid()` 21 and `nanoid(n)` n.
 
 ## `discriminator-must-be-text`
 

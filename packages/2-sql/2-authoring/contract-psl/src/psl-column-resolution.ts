@@ -952,5 +952,16 @@ export function lowerDefaultForField(input: {
     return {};
   }
 
+  const length = input.columnTypeParams?.['length'];
+  const written = generatorDescriptor.writtenLength?.(lowered.value.generated.params);
+  if (typeof length === 'number' && written !== undefined && written > length) {
+    input.diagnostics.push({
+      code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
+      message: `Default generator "${generatorDescriptor.id}" writes ${written} characters, but "${input.modelName}.${input.fieldName}" holds at most ${length}.`,
+      ...source.at(call.span),
+    });
+    return {};
+  }
+
   return { executionDefaults: { onCreate: lowered.value.generated } };
 }

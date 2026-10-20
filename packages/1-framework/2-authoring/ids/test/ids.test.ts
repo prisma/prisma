@@ -102,6 +102,28 @@ describe('@internal/ids', () => {
     expect(nanoid({ size: 255 }).typeParams).toEqual({ length: 255 });
   });
 
+  it('states how many characters each generator writes', () => {
+    const lengthOf = (id: string, params?: Record<string, unknown>) =>
+      builtinGeneratorRegistryMetadata.find((meta) => meta.id === id)?.writtenLength(params);
+    expect({
+      ulid: lengthOf('ulid'),
+      nanoid: lengthOf('nanoid'),
+      nanoid12: lengthOf('nanoid', { size: 12 }),
+      uuidv7: lengthOf('uuidv7'),
+      uuidv4: lengthOf('uuidv4'),
+      cuid2: lengthOf('cuid2'),
+      ksuid: lengthOf('ksuid'),
+    }).toEqual({
+      ulid: 26,
+      nanoid: 21,
+      nanoid12: 12,
+      uuidv7: 36,
+      uuidv4: 36,
+      cuid2: 24,
+      ksuid: 27,
+    });
+  });
+
   it('marks uuidv4 and uuidv7 as the generators that write a UUID', () => {
     expect(
       builtinGeneratorRegistryMetadata.filter((meta) => meta.writesUuid).map((meta) => meta.id),

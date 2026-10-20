@@ -10,9 +10,10 @@ export function sqlBuiltinGeneratorDescriptors({
 }: {
   readonly uuid: readonly DataTypeId[];
 }): readonly MutationDefaultGeneratorDescriptor[] {
-  return builtinGeneratorRegistryMetadata.map(({ id, writesUuid }) => ({
+  return builtinGeneratorRegistryMetadata.map(({ id, writesUuid, writtenLength }) => ({
     id,
     writesText: true,
     applicableDataTypes: writesUuid ? uuid : [],
+    writtenLength,
   }));
 }
