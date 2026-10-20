@@ -6,7 +6,7 @@ changes:
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
-        - '(?<![\w$])(?:PostgresClient|PostgresServerlessClient|PostgresServerlessConnection|PostgresStaticContext|PostgresStaticMembers|PostgresRuntimeBoundMembers|PostgresQueryMembers|SqliteClient|SqliteStaticContext|SqliteQueryMembers|RoleBoundDb|ServiceRoleDb|SupabaseInternalDb|PostgresTransactionContext|SqliteTransactionContext|SupabaseTransactionContext|SqliteStaticMembers)(?![\w$])'
+        - '(?<![\w$])(?:PostgresClient|PostgresServerlessClient|PostgresServerlessConnection|PostgresStaticContext|PostgresStaticMembers|PostgresQueryMembers|SqliteClient|SqliteStaticContext|SqliteQueryMembers|RoleBoundDb|ServiceRoleDb|SupabaseInternalDb|PostgresTransactionContext|SqliteTransactionContext|SupabaseTransactionContext|SqliteStaticMembers)(?![\w$])'
         - '\.runtime\(\)\s*\.(?:query|execute)\('
 ---
 
@@ -33,15 +33,15 @@ Code that only reads these types needs no change. Code that creates an object of
 | --- | --- |
 | `PostgresClient`, `PostgresServerlessConnection` (`@prisma/orm-postgres/runtime`, `/serverless`) | `query`, `execute`, `toSql` |
 | `PostgresServerlessClient`, `PostgresStaticContext`, `PostgresStaticMembers` | `toSql` |
-| `PostgresRuntimeBoundMembers`, `PostgresQueryMembers` | `query`, `execute` |
+| `PostgresQueryMembers` | `query`, `execute`, `toSql` |
 | `SqliteClient` (`@prisma/orm-sqlite/runtime`) | `query`, `execute`, `toSql` |
 | `SqliteStaticContext` | `toSql` |
-| `SqliteQueryMembers` | `query`, `execute` |
+| `SqliteQueryMembers` | `query`, `execute`, `toSql` |
 | `PostgresTransactionContext`, `SqliteTransactionContext`, `SupabaseTransactionContext` | `toSql` |
 | `RoleBoundDb`, `ServiceRoleDb` (`@prisma/orm-extension-supabase/runtime`) | `toSql`; `query` and `execute` now take the plan type every SQL client shares |
 | `SupabaseInternalDb` (the service role's `supabase` member) | `toSql`, over the Supabase contract |
 | `SqliteStaticMembers` (`@prisma/orm-sqlite/runtime`) | new: the static context plus `stack`, which `SqliteClient` now extends |
 
-`supabase()` no longer creates its `pg.Pool`, driver or runtimes when it is called. It creates them on the first query, so creating a client with a URL opens nothing. It is still `async` and still requires `jwtSecret` or `jwksUrl`.
+`supabase()` no longer creates its `pg.Pool`, driver or runtimes when it is called. It creates them on the first query, so creating a client with a URL opens nothing. It is still `async` and still requires `jwtSecret` or `jwksUrl`. `close()` now ends only a pool the client created from `url`; a `pg.Pool` passed in with the `pg` option stays open, as with `postgres()`, and the caller ends it.
 
 The new `mode` option, typed `RuntimeMode`, is `'strict'` by default, which is how every client ran before. Under `'permissive'`, a `budgets()` violation whose severity is `'warn'` goes to `log.warn` and the query runs.
