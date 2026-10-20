@@ -33,7 +33,11 @@ import { type PostgresContract, postgresCreateNamespace } from '../../src/core/p
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
-import { postgresTypeComponents, postgresTypeLookups } from '../postgres-type-lookups';
+import {
+  introspectedColumn,
+  postgresTypeComponents,
+  postgresTypeLookups,
+} from '../postgres-type-lookups';
 
 const stubLowerer: ExecuteRequestLowerer = {
   lower(_ast, _ctx) {
@@ -118,8 +122,8 @@ function liveTable(tableName: string): PostgresTableSchemaNode {
   return new PostgresTableSchemaNode({
     name: tableName,
     columns: {
-      id: { name: 'id', nativeType: 'int4', nullable: false },
-      email: { name: 'email', nativeType: 'text', nullable: false },
+      id: introspectedColumn({ name: 'id', typeText: 'int4', nullable: false }),
+      email: introspectedColumn({ name: 'email', typeText: 'text', nullable: false }),
     },
     primaryKey: { columns: ['id'], name: `${tableName}_pkey` },
     foreignKeys: [],

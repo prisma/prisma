@@ -68,8 +68,8 @@ function printWithEnums(
 const sessionsTable: SqlTableIRInput = {
   name: 'sessions',
   columns: {
-    id: { name: 'id', nativeType: 'int4', nullable: false },
-    aal: { name: 'aal', nativeType: 'aal_level', nullable: true },
+    id: { name: 'id', typeText: 'int4', nullable: false },
+    aal: { name: 'aal', typeText: 'aal_level', nullable: true },
   },
   primaryKey: { columns: ['id'] },
   foreignKeys: [],
@@ -101,7 +101,7 @@ describe('native_enum block emission', () => {
       {
         user: {
           name: 'user',
-          columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+          columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],
           uniques: [],
@@ -159,8 +159,8 @@ describe('name collision against a model of the same name', () => {
         status: {
           name: 'status',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
-            state: { name: 'state', nativeType: 'status', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
+            state: { name: 'state', typeText: 'status', nullable: false },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],
@@ -185,9 +185,9 @@ describe('pg.enum(Name) column emission', () => {
         sessions: {
           ...sessionsTable,
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
-            aal: { name: 'aal', nativeType: 'aal_level', nullable: true },
-            aal_required: { name: 'aal_required', nativeType: 'aal_level', nullable: false },
+            id: { name: 'id', typeText: 'int4', nullable: false },
+            aal: { name: 'aal', typeText: 'aal_level', nullable: true },
+            aal_required: { name: 'aal_required', typeText: 'aal_level', nullable: false },
           },
         },
       },
@@ -204,8 +204,8 @@ describe('pg.enum(Name) column emission', () => {
         user: {
           name: 'user',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
-            roles: { name: 'roles', nativeType: 'user_role', nullable: false, many: true },
+            id: { name: 'id', typeText: 'int4', nullable: false },
+            roles: { name: 'roles', typeText: 'user_role', nullable: false, many: true },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],
@@ -255,9 +255,9 @@ describe('emitted PSL parses', () => {
         status: {
           name: 'status',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false },
-            state: { name: 'state', nativeType: 'status', nullable: false },
-            history: { name: 'history', nativeType: 'status', nullable: false, many: true },
+            id: { name: 'id', typeText: 'int4', nullable: false },
+            state: { name: 'state', typeText: 'status', nullable: false },
+            history: { name: 'history', typeText: 'status', nullable: false, many: true },
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],

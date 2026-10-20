@@ -13,18 +13,13 @@ import {
 import type {
   CodecLookupWithDescriptors,
   DataTypeLookup,
+  TypeLookups,
 } from '@internal/framework-components/codec';
 import {
   type AuthoredStorageTypeInstance,
   CODEC_INSTANCE_KIND,
 } from '@internal/sql-contract/types';
 import { contractError } from './contract-errors';
-
-/** The codecs and data types of the packs a contract is authored with. */
-export interface AuthoringTypeLookups {
-  readonly codecLookup: CodecLookupWithDescriptors;
-  readonly dataTypeLookup: DataTypeLookup;
-}
 
 export type RuntimeNamedConstraintSpec = {
   readonly name?: string;
@@ -46,7 +41,7 @@ export function isNamedConstraintOptionsLike(value: unknown): value is RuntimeNa
 
 export function createTypeHelpersFromNamespace(
   namespace: AuthoringTypeNamespace,
-  lookups: AuthoringTypeLookups,
+  lookups: TypeLookups<CodecLookupWithDescriptors, DataTypeLookup>,
   path: readonly string[] = [],
 ): Record<string, unknown> {
   const helpers: Record<string, unknown> = {};

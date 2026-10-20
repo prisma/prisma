@@ -1,4 +1,4 @@
-import { dataTypeParams } from '@internal/framework-components/codec';
+import { dataTypeParams, type TypeLookups } from '@internal/framework-components/codec';
 /**
  * Low-level DDL fragment builders for SQLite migrations.
  *
@@ -9,11 +9,7 @@ import { dataTypeParams } from '@internal/framework-components/codec';
  * see `StorageColumn` or `storageTypes`.
  */
 
-import {
-  renderSqlTypeName,
-  type SqlTypeLookups,
-  sqlStorageTypeOfCodec,
-} from '@internal/sql-contract/data-type';
+import { renderSqlTypeName, sqlStorageTypeOfCodec } from '@internal/sql-contract/data-type';
 import type {
   StorageColumn,
   StorageTable,
@@ -28,7 +24,7 @@ import { quoteIdentifier } from '../sql-utils';
  */
 export function buildColumnTypeSql(
   column: Pick<StorageColumn, 'codecId' | 'typeParams' | 'typeRef'>,
-  types: SqlTypeLookups,
+  types: TypeLookups,
   storageTypes: Record<string, StorageTypeInstance> = {},
 ): string {
   const resolved = resolveColumnTypeMetadata(column, storageTypes);

@@ -13,7 +13,7 @@ import {
 } from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from '../helpers/test-control-adapter';
 import { postgresComponents } from './fixtures/postgres-components';
 
 function createRefActionContract(
@@ -95,7 +95,7 @@ async function planAndGetFkSql(
   onUpdate?: ReferentialAction,
 ): Promise<string> {
   const planner = createPostgresMigrationPlanner(
-    new PostgresControlAdapter(
+    createTestPostgresControlAdapter(
       createPostgresBuiltinCodecLookup(),
       createPostgresBuiltinDataTypeLookup(),
     ),

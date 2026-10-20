@@ -30,10 +30,9 @@
  */
 
 import { cacheAnnotation } from '@prisma/orm-extension-middleware-cache';
-import type { Runtime } from '@prisma/orm-postgres/family-runtime';
 import type { DefaultModelRow } from '@prisma/orm-postgres/orm-client';
 import type { Contract } from '../prisma/contract.d';
-import { createOrmClient } from './client';
+import type { DemoOrm } from '../prisma/db';
 
 type UserId = DefaultModelRow<Contract, 'User'>['id'];
 
@@ -48,11 +47,10 @@ export interface CachedLookupOptions {
 
 export async function ormClientFindUserByIdCached(
   id: string,
-  runtime: Runtime,
+  orm: DemoOrm,
   options: CachedLookupOptions = {},
 ) {
-  const db = createOrmClient(runtime);
-  return db.User.first({ id: toUserId(id) }, (meta) =>
+  return orm.User.first({ id: toUserId(id) }, (meta) =>
     meta.annotate(
       cacheAnnotation({ key: userCacheKey(id), bypass: options.forceRefresh ?? false }),
     ),

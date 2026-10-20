@@ -10,7 +10,7 @@ import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/code
 import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
 import type { PostgresPlanTargetDetails } from '@internal/target-postgres/planner-target-details';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from '../helpers/test-control-adapter';
 import {
   contract,
   controlAdapter,
@@ -39,7 +39,7 @@ interface LedgerRow {
   readonly operations: unknown;
 }
 
-const ledgerAdapter = new PostgresControlAdapter(
+const ledgerAdapter = createTestPostgresControlAdapter(
   createPostgresBuiltinCodecLookup(),
   createPostgresBuiltinDataTypeLookup(),
 );

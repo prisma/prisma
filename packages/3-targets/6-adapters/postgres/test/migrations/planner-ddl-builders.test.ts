@@ -1,5 +1,4 @@
-import { createDataTypeLookup } from '@internal/framework-components/codec';
-import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
+import { createDataTypeLookup, type TypeLookups } from '@internal/framework-components/codec';
 import { toStorageTypeInstance } from '@internal/sql-contract/types';
 import { col as ddlColumn, fn, lit } from '@internal/sql-relational-core/contract-free';
 import {
@@ -12,9 +11,9 @@ import {
 } from '@internal/target-postgres/data-types';
 import { buildColumnTypeSql } from '@internal/target-postgres/planner-ddl-builders';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from '../helpers/test-control-adapter';
 
-const types: SqlTypeLookups = {
+const types: TypeLookups = {
   codecLookup: postgresCodecDescriptorRegistry,
   dataTypeLookup: createDataTypeLookup(postgresDataTypes),
 };
@@ -109,7 +108,7 @@ describe('buildColumnTypeSql', () => {
 // ---------------------------------------------------------------------------
 
 describe('the DEFAULT clause the Postgres adapter writes in every DDL statement', () => {
-  const adapter = new PostgresControlAdapter(
+  const adapter = createTestPostgresControlAdapter(
     createPostgresBuiltinCodecLookup(),
     createPostgresBuiltinDataTypeLookup(),
   );

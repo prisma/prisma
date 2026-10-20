@@ -5,17 +5,15 @@
  */
 
 import { invalidateAnnotation } from '@prisma/orm-extension-middleware-cache';
-import type { Runtime } from '@prisma/orm-postgres/family-runtime';
-import { createOrmClient } from './client';
+import type { DemoOrm } from '../prisma/db';
 import { toUserId, userCacheKey } from './find-user-by-id-cached';
 
 export async function ormClientUpdateUserEmailInvalidatingCache(
   id: string,
   email: string,
-  runtime: Runtime,
+  orm: DemoOrm,
 ) {
-  const db = createOrmClient(runtime);
-  return db.User.where({ id: toUserId(id) })
+  return orm.User.where({ id: toUserId(id) })
     .select('id', 'email', 'kind')
     .update({ email }, (meta) => meta.annotate(invalidateAnnotation({ keys: [userCacheKey(id)] })));
 }

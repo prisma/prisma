@@ -376,7 +376,7 @@ The `migration check` failure catalogue (`PN-MIG-CHECK-NNN`) converts to self-de
 
 - `DRIVER.*` — already dotted; `DRIVER` becomes a real namespace. No code strings change.
 - `RUNTIME.MISSING_MUTATION_DEFAULT_GENERATOR` and `RUNTIME.MUTATION_DEFAULT_GENERATOR_MISSING` (near-duplicates) → single `RUNTIME.MUTATION_DEFAULT_GENERATOR_MISSING`.
-- The migration runner's bare-word enum values `EXECUTION_FAILED`, `SCHEMA_VERIFY_FAILED`, `PRECHECK_FAILED`, `POSTCHECK_FAILED`, `POLICY_VIOLATION`, `FOREIGN_KEY_VIOLATION`, `DESTINATION_CONTRACT_MISMATCH`, `LEGACY_MARKER_SHAPE`, `MARKER_ORIGIN_MISMATCH`, `MARKER_CAS_FAILURE` → `MIGRATION.<VALUE>` on the `Result` failure (the failure already carries a summary and details; only the code string changes).
+- The migration runner's bare-word enum values `EXECUTION_FAILED`, `SCHEMA_VERIFY_FAILED`, `PRECHECK_FAILED`, `POSTCHECK_FAILED`, `POLICY_VIOLATION`, `FOREIGN_KEY_VIOLATION`, `DESTINATION_CONTRACT_MISMATCH`, `MARKER_ORIGIN_MISMATCH`, `MARKER_CAS_FAILURE` → `MIGRATION.<VALUE>` on the `Result` failure (the failure already carries a summary and details; only the code string changes).
 - `PLAN.INVALID` / `PLAN.UNSUPPORTED` had no production callers and are deleted rather than migrated.
 - The remaining `MIGRATION.*` / `RUNTIME.*` / `PLAN.*` / `CONTRACT.*` / `LINT.*` / `BUDGET.*` codes already conform; no rename.
 

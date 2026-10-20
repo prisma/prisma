@@ -20,14 +20,15 @@ import {
   type SqlSlot,
   type StatementColumn,
 } from '@internal/family-sql/control';
+import type { TypeLookups } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome } from '@internal/framework-components/control';
-import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
 import {
   RelationalSchemaNodeKind,
   type SqlColumnIR,
   type SqlSchemaIR,
+  sqlColumnTypesEqual,
 } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import {
@@ -36,7 +37,7 @@ import {
   SQLITE_TEXT_CODEC_ID,
 } from '../codec-ids';
 import { columnSpecFromNode } from './column-ddl-rendering';
-import { columnTypeChanged, tableSpecFromNode } from './issue-planner';
+import { tableSpecFromNode } from './issue-planner';
 import {
   AddColumnCall,
   DataTransformCall,
@@ -55,7 +56,7 @@ export interface StrategyContext {
   readonly policy: MigrationOperationPolicy;
   readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
   /** The composed stack's codecs and data types, which write each column's type. */
-  readonly types: SqlTypeLookups;
+  readonly types: TypeLookups;
   /** The columns of the fields `--convert` and `--backfill` statements name. */
   readonly statementColumns: FieldStatementColumns;
   /** Whether a required column the plan adds to a table may take a temporary value in its rows. */
@@ -143,7 +144,7 @@ function classifyNodeIssue(
         issue.actual,
       );
       const fromCodec = ctx.originCodecId(String(issue.path[1]), actual.name);
-      return columnTypeChanged(expected, actual) && !copyKeepsEveryValue(fromCodec, expected)
+      return !sqlColumnTypesEqual(expected, actual) && !copyKeepsEveryValue(fromCodec, expected)
         ? 'destructive'
         : 'widening';
     }
@@ -342,7 +343,7 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
 
     // Flatten the expected table node to a self-contained spec — the Call
     // holds pre-rendered SQL fragments only, no schema-IR node.
-    const tableSpec = tableSpecFromNode(expectedTable, ctx.types);
+    const tableSpec = tableSpecFromNode(expectedTable);
 
     // Indexes (declared + FK-backing) are already merged and deduped by
     // column-set at derivation (`contractToSchemaIR`'s `convertTable`).
@@ -422,7 +423,7 @@ export const nullabilityTighteningBackfillStrategy: CallMigrationStrategy = (iss
     if (added !== undefined) {
       calls.push(
         new AddColumnCall(tableName, {
-          ...columnSpecFromNode(added, false, ctx.types),
+          ...columnSpecFromNode(added, false),
           nullable: true,
         }),
       );

@@ -489,6 +489,10 @@ describe('MongoMigrationRunner schema verification', () => {
     const failure = result.assertNotOk();
     expect(failure.code).toBe('MIGRATION.SCHEMA_VERIFY_FAILED');
     expect(failure.why).toMatch(/destination contract/);
+    expect({
+      typed: failure.schemaIssues,
+      found: (failure.schemaIssues?.length ?? 0) > 0,
+    }).toEqual({ typed: failure.meta?.['issues'], found: true });
     expect(failure.meta?.['issues']).toEqual(
       expect.arrayContaining([expect.objectContaining({ path: ['rogue'] })]),
     );

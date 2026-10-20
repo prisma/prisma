@@ -7,13 +7,13 @@ const sunset = '2025-06-30T12:00:00.000Z';
 
 const Level = enumType(
   'Level',
-  { codecId: 'sqlite/bigint@1', nativeType: 'integer' },
+  { codecId: 'sqlite/bigint@1' },
   member('Low', 1n),
   member('High', 10n),
 );
 const When = enumType(
   'When',
-  { codecId: 'sqlite/datetime@1', nativeType: 'text' },
+  { codecId: 'sqlite/datetime@1' },
   member('Launch', new Date(launch)),
   member('Sunset', new Date(sunset)),
 );

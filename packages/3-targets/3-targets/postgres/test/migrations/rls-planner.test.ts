@@ -32,7 +32,7 @@ import { PostgresPolicySchemaNode } from '../../src/core/schema-ir/postgres-poli
 import { PostgresRoleSchemaNode } from '../../src/core/schema-ir/postgres-role-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
 import { PostgresCreatePolicy } from '../../src/exports/ddl';
-import { postgresTypeComponents } from '../postgres-type-lookups';
+import { introspectedColumn, postgresTypeComponents } from '../postgres-type-lookups';
 
 const stubLowerer: ExecuteRequestLowerer = {
   lower(_ast, _ctx) {
@@ -166,8 +166,8 @@ function schemaWith(
           [TABLE_NAME]: new PostgresTableSchemaNode({
             name: TABLE_NAME,
             columns: {
-              id: { name: 'id', nativeType: 'int4', nullable: false },
-              user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
+              id: introspectedColumn({ name: 'id', typeText: 'int4', nullable: false }),
+              user_id: introspectedColumn({ name: 'user_id', typeText: 'int4', nullable: false }),
             },
             foreignKeys: [],
             uniques: [],

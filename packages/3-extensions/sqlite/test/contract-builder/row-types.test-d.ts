@@ -5,7 +5,7 @@ import sqlite from '../../src/exports/runtime';
 
 const Level = enumType(
   'Level',
-  { codecId: 'sqlite/bigint@1', nativeType: 'integer' },
+  { codecId: 'sqlite/bigint@1' },
   member('Low', 1n),
   member('High', 10n),
 );
@@ -14,13 +14,13 @@ const contract = defineContract({ enums: { Level } }, ({ field, model, type }) =
   models: {
     Reading: model('Reading', {
       fields: {
-        id: field.column({ codecId: 'sqlite/integer@1', nativeType: 'integer' }).id(),
+        id: field.column({ codecId: 'sqlite/integer@1' }).id(),
         label: field.column(type.sql.String(50)),
         note: field.column(type.sql.String(50)).optional(),
         count: field.column(type.BigIntNumber()),
         seen: field.temporal.datetime(),
-        score: field.column({ codecId: 'sqlite/real@1', nativeType: 'real' }),
-        at: field.column({ codecId: 'sqlite/datetime@1', nativeType: 'text' }),
+        score: field.column({ codecId: 'sqlite/real@1' }),
+        at: field.column({ codecId: 'sqlite/datetime@1' }),
         level: field.namedType(Level),
         uuid: field.id.uuidv4String(),
       },

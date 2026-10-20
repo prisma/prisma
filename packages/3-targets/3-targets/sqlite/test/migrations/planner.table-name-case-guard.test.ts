@@ -20,7 +20,7 @@ import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createSqliteMigrationPlanner } from '../../src/core/migrations/planner';
 import { sqliteCreateNamespace } from '../../src/core/sqlite-unbound-database';
-import { sqliteTestComponents } from '../sqlite-test-types';
+import { introspectedColumn, sqliteTestComponents } from '../sqlite-test-types';
 
 const stubLowerer: ExecuteRequestLowerer = {
   lower: () => {
@@ -93,8 +93,8 @@ function liveSchema(tableNames: readonly string[]): SqlSchemaIR {
         {
           name: tableName,
           columns: {
-            id: { name: 'id', nativeType: 'integer', nullable: false },
-            email: { name: 'email', nativeType: 'text', nullable: false },
+            id: introspectedColumn({ name: 'id', typeText: 'integer', nullable: false }),
+            email: introspectedColumn({ name: 'email', typeText: 'text', nullable: false }),
           },
           primaryKey: { columns: ['id'], name: `${tableName}_pkey` },
           foreignKeys: [],

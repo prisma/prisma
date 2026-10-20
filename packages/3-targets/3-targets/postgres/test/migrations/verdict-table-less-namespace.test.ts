@@ -11,7 +11,7 @@ import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-n
 import { PostgresPolicySchemaNode } from '../../src/core/schema-ir/postgres-policy-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
 import { postgresDiffSubjectGranularity } from '../../src/core/schema-ir/schema-node-kinds';
-import { postgresTypeComponents } from '../postgres-type-lookups';
+import { introspectedColumn, postgresTypeComponents } from '../postgres-type-lookups';
 
 /**
  * Table-less contract namespaces (e.g. an enums-only schema) are invisible
@@ -64,12 +64,11 @@ function profilesTable(options?: { readonly idNullable?: boolean }): PostgresTab
   return new PostgresTableSchemaNode({
     name: 'profiles',
     columns: {
-      id: {
+      id: introspectedColumn({
         name: 'id',
-        nativeType: 'int4',
+        typeText: 'int4',
         nullable: options?.idNullable ?? false,
-        resolvedNativeType: 'int4',
-      },
+      }),
     },
     primaryKey: { columns: ['id'] },
     foreignKeys: [],
@@ -96,12 +95,11 @@ function enumsNamespaceWithStrayTable(
       audit_log: new PostgresTableSchemaNode({
         name: 'audit_log',
         columns: {
-          id: {
+          id: introspectedColumn({
             name: 'id',
-            nativeType: 'int4',
+            typeText: 'int4',
             nullable: false,
-            resolvedNativeType: 'int4',
-          },
+          }),
         },
         foreignKeys: [],
         uniques: [],

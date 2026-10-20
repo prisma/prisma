@@ -2,9 +2,9 @@ import type { DdlColumn } from '@internal/sql-relational-core/ast';
 import { col, fn, lit } from '@internal/sql-relational-core/contract-free';
 import { createSqliteBuiltinCodecLookup } from '@internal/target-sqlite/codecs';
 import { describe, expect, it } from 'vitest';
-import { SqliteControlAdapter } from '../src/core/control-adapter';
+import { createTestSqliteControlAdapter } from './helpers/test-control-adapter';
 
-const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
 const render = (column: DdlColumn) => adapter.renderColumnDefault(column, 't');
 
 describe('the DEFAULT clause the SQLite adapter writes in every DDL statement', () => {

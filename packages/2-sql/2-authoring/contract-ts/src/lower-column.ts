@@ -1,7 +1,4 @@
-import type {
-  CodecLookupWithDescriptors,
-  DataTypeLookup,
-} from '@internal/framework-components/codec';
+import type { CodecLookupWithDescriptors, TypeLookups } from '@internal/framework-components/codec';
 import { dataTypeParams } from '@internal/framework-components/codec';
 import {
   type SqlDataType,
@@ -79,13 +76,8 @@ function validateColumnTypeParams(
   }
 }
 
-export interface TypeLookups {
-  readonly codecLookup: CodecLookupWithDescriptors;
-  readonly dataTypeLookup: DataTypeLookup;
-}
-
 export interface ColumnLoweringContext {
-  readonly lookups: TypeLookups;
+  readonly lookups: TypeLookups<CodecLookupWithDescriptors>;
   readonly storageTypes: Record<string, AuthoredStorageTypeInstance>;
   readonly defaultNamespaceId: string;
   readonly qualifyColumnType: ColumnTypeQualifier | undefined;

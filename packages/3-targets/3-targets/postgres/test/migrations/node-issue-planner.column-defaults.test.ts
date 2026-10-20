@@ -4,6 +4,7 @@
 import { fn } from '@internal/sql-relational-core/contract-free';
 import { describe, expect, it } from 'vitest';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
+import { introspectedColumn } from '../postgres-type-lookups';
 import { makeContract, planFor, rootOf } from './node-issue-planner-fixtures';
 
 describe('node issue planner: column defaults', () => {
@@ -31,19 +32,22 @@ describe('node issue planner: column defaults', () => {
         post: new PostgresTableSchemaNode({
           name: 'post',
           columns: {
-            id: { name: 'id', nativeType: 'int4', nullable: false, resolvedNativeType: 'int4' },
-            serial: {
-              name: 'serial',
-              nativeType: 'int4',
+            id: introspectedColumn({
+              name: 'id',
+              typeText: 'int4',
               nullable: false,
-              resolvedNativeType: 'int4',
+            }),
+            serial: introspectedColumn({
+              name: 'serial',
+              typeText: 'int4',
+              nullable: false,
               ...(serialDefault === undefined
                 ? {}
                 : {
                     default: serialDefault.raw,
                     resolvedDefault: { kind: 'literal', value: serialDefault.value },
                   }),
-            },
+            }),
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],

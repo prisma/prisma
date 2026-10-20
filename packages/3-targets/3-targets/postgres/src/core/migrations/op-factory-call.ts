@@ -122,7 +122,11 @@ import type { ForeignKeySpec } from './operations/shared';
 import { step, targetDetails } from './operations/shared';
 import { dropTable, renameTable } from './operations/tables';
 import { buildAddNotNullColumnWithTemporaryDefaultOperation } from './planner-recipes';
-import { alterTypeCheckText, catalogTypeTextIfReadable } from './planner-sql-checks';
+import {
+  alterTypeCheck,
+  type ColumnTypeCheck,
+  columnTypeCheckIfReadable,
+} from './planner-sql-checks';
 import type { PostgresPlanTargetDetails } from './planner-target-details';
 
 type Op = SqlMigrationPlanOperation<PostgresPlanTargetDetails>;
@@ -498,8 +502,8 @@ export class AddColumnCall extends PostgresOpFactoryCallNode {
   readonly schemaName: string;
   readonly tableName: string;
   readonly column: DdlColumn;
-  /** The type `format_type` prints for the column, or `undefined` when the stack's data types do not read it. */
-  readonly checkType: string | undefined;
+  /** How the postcheck recognises the column's type, or `undefined` when the stack's data types do not read it. */
+  readonly checkType: ColumnTypeCheck | undefined;
   readonly label: string;
 
   constructor(
@@ -512,7 +516,7 @@ export class AddColumnCall extends PostgresOpFactoryCallNode {
     this.schemaName = schemaName;
     this.tableName = tableName;
     this.column = column;
-    this.checkType = catalogTypeTextIfReadable(column.type, dataTypes);
+    this.checkType = columnTypeCheckIfReadable(column.type, dataTypes);
     this.label = `Add column "${column.name}" to "${tableName}"`;
     this.freeze();
   }
@@ -729,8 +733,8 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
   /** The new type as a migration writes it. */
   readonly type: string;
   readonly using: SqlSlot | undefined;
-  /** The type `format_type` prints once the alter has run, which the postcheck compares. */
-  readonly checkType: string;
+  /** How the postcheck recognises the column's new type once the alter has run. */
+  readonly checkType: ColumnTypeCheck;
   /** The width the sequence the column owns takes, when the column has an `autoincrement()` default and an integer type. */
   readonly sequenceWidth: AutoincrementWidth | undefined;
   readonly label: string;
@@ -759,7 +763,7 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
       : undefined;
     this.operationClass = input.operationClass ?? this.#defaultClass();
     this.#refuseUnsafeUsing();
-    this.checkType = alterTypeCheckText(input.type, input.dataTypes, this.#callText());
+    this.checkType = alterTypeCheck(input.type, input.dataTypes, this.#callText());
     this.label = `Alter type of "${input.tableName}"."${input.columnName}" to ${input.type}`;
     this.freeze();
   }
@@ -1059,7 +1063,7 @@ export class AddRequiredColumnToEmptyTableCall extends PostgresOpFactoryCallNode
   /** The column's type as a migration writes it. */
   readonly type: string;
   /** The type `format_type` prints for `type`, or `undefined` when the stack's data types do not read it. */
-  readonly checkType: string | undefined;
+  readonly checkType: ColumnTypeCheck | undefined;
   readonly label: string;
 
   constructor(
@@ -1074,7 +1078,7 @@ export class AddRequiredColumnToEmptyTableCall extends PostgresOpFactoryCallNode
     this.tableName = tableName;
     this.columnName = columnName;
     this.type = type;
-    this.checkType = catalogTypeTextIfReadable(type, dataTypes);
+    this.checkType = columnTypeCheckIfReadable(type, dataTypes);
     this.label = `Add column ${columnName} to ${tableName}`;
     this.freeze();
   }
@@ -1123,7 +1127,7 @@ export class AddColumnWithTemporaryDefaultCall extends PostgresOpFactoryCallNode
   /** SQL for the value existing rows take, such as `''` or `0`. */
   readonly temporaryDefault: string;
   /** The type `format_type` prints for `type`, or `undefined` when the stack's data types do not read it. */
-  readonly checkType: string | undefined;
+  readonly checkType: ColumnTypeCheck | undefined;
   readonly label: string;
 
   constructor(
@@ -1140,7 +1144,7 @@ export class AddColumnWithTemporaryDefaultCall extends PostgresOpFactoryCallNode
     this.columnName = columnName;
     this.type = type;
     this.temporaryDefault = temporaryDefault;
-    this.checkType = catalogTypeTextIfReadable(type, dataTypes);
+    this.checkType = columnTypeCheckIfReadable(type, dataTypes);
     const refused = checkSqlDefaultText(temporaryDefault);
     if (refused !== undefined) {
       const call = `addColumnWithTemporaryDefault({ ${columnCallLocation(schemaName, tableName, columnName).join(', ')} })`;

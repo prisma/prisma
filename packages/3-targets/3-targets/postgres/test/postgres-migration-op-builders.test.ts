@@ -587,6 +587,19 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
     expect(converted.postcheck[0]?.description).toBe('verify column "count" has type "bigint"');
   });
 
+  it('alterColumnType names an enum in its postcheck by its quoted name, quoted once', async () => {
+    const m = new ExposedMigration(fakeControlStack());
+    const where = { schema: 'public', table: 'widget', column: 'state' };
+    const [single, list] = await Promise.all([
+      m.callAlterColumnType({ ...where, type: '"app"."status"' }),
+      m.callAlterColumnType({ ...where, type: '"Mood"[]' }),
+    ]);
+    expect([single.postcheck[0]?.description, list.postcheck[0]?.description]).toEqual([
+      'verify column "state" has type "app"."status"',
+      'verify column "state" has type "Mood"[]',
+    ]);
+  });
+
   it('alterColumnType refuses the options an earlier version wrote, naming the new shape', () => {
     const m = new ExposedMigration(fakeControlStack());
     const earlier = {
