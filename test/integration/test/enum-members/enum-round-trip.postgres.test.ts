@@ -164,17 +164,19 @@ const roundTripped = accepted.flatMap(({ codecId, dataType, built }) =>
     : [],
 );
 
+const intervalCodecId: string = 'pg/interval@1';
+
 /** An interval member with every field, beside the one-field member every codec gets. */
 const complexInterval = {
-  codecId: 'pg/interval@1',
+  codecId: intervalCodecId,
   stored: 'P1Y2M3DT4H5M6.5S',
   handle: enumType(
     'PgIntervalComplex',
-    { codecId: 'pg/interval@1' },
+    { codecId: intervalCodecId },
     member(
       'Only',
       readContractValue(
-        stack.codecLookup.forCodecRef({ codecId: 'pg/interval@1' }),
+        stack.codecLookup.forCodecRef({ codecId: intervalCodecId }),
         'P1Y2M3DT4H5M6.5S',
         undefined,
       ),
