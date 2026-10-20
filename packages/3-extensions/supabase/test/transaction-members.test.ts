@@ -2,22 +2,44 @@ import { contractFromJson } from '@internal/postgres/static';
 import { Collection } from '@internal/sql-orm-client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-const statements = vi.hoisted(() => [] as string[]);
+const recorded = vi.hoisted(() => ({
+  statements: [] as Array<{
+    readonly connection: number;
+    readonly text: string;
+    readonly values?: readonly unknown[];
+  }>,
+  connections: 0,
+}));
 
 vi.mock('pg', () => {
-  const query = vi.fn(async (request: string | { readonly text: string }) => {
-    statements.push(typeof request === 'string' ? request : request.text);
-    return { rows: [], rowCount: 0 };
-  });
+  function recordingQuery(connection: number) {
+    return vi.fn(
+      async (
+        request: string | { readonly text: string; readonly values?: unknown[] },
+        values?: unknown[],
+      ) => {
+        const text = typeof request === 'string' ? request : request.text;
+        const params = typeof request === 'string' ? values : request.values;
+        recorded.statements.push(
+          params === undefined ? { connection, text } : { connection, text, values: params },
+        );
+        return { rows: [], rowCount: 0 };
+      },
+    );
+  }
   class Pool {
     on = vi.fn().mockReturnThis();
-    connect = vi.fn().mockResolvedValue({ query, release: vi.fn(), on: vi.fn() });
+    connect = vi.fn(async () => ({
+      query: recordingQuery(++recorded.connections),
+      release: vi.fn(),
+      on: vi.fn(),
+    }));
     end = vi.fn().mockResolvedValue(undefined);
   }
   class Client {
     on = vi.fn().mockReturnThis();
     connect = vi.fn().mockResolvedValue(undefined);
-    query = query;
+    query = recordingQuery(++recorded.connections);
     end = vi.fn().mockResolvedValue(undefined);
     release = vi.fn();
   }
@@ -36,8 +58,26 @@ class ProfileCollection extends Collection<Contract, 'Profile'> {
 
 const contract = contractFromJson<Contract>(contractJson);
 
+function underRole(
+  role: string,
+  statements: ReadonlyArray<readonly [string, readonly unknown[]] | readonly [string]>,
+) {
+  const connection = recorded.statements[0]?.connection;
+  return [
+    { connection, text: 'SELECT set_config($1, $2, false)', values: ['role', role] },
+    { connection, text: 'SELECT set_config($1, $2, false)', values: ['request.jwt.claims', '{}'] },
+    ...statements.map(([text, values]) =>
+      values === undefined ? { connection, text } : { connection, text, values },
+    ),
+    { connection, text: 'RESET ALL', values: [] },
+  ];
+}
+
+const selectByName = 'SELECT "id" AS "id" FROM "public"."profile" WHERE "username" = $1';
+
 afterEach(() => {
-  statements.length = 0;
+  recorded.statements.length = 0;
+  recorded.connections = 0;
 });
 
 describe('a transaction on a supabase role-bound client', () => {
@@ -64,17 +104,19 @@ describe('a transaction on a supabase role-bound client', () => {
     });
     await db.close();
 
-    expect(statements).toEqual([
-      'SELECT set_config($1, $2, false)',
-      'SELECT set_config($1, $2, false)',
-      'BEGIN',
-      'SELECT "id" AS "id" FROM "public"."profile"',
-      'UPDATE profile SET username = username',
-      'SELECT "id" AS "id" FROM "public"."profile" WHERE "username" = $1',
-      'SELECT "profile"."id" AS "id", "profile"."userId" AS "userId", "profile"."username" AS "username" FROM "public"."profile" WHERE "profile"."username" = $1',
-      'COMMIT',
-      'RESET ALL',
-    ]);
+    expect(recorded.statements).toEqual(
+      underRole('anon', [
+        ['BEGIN'],
+        ['SELECT "id" AS "id" FROM "public"."profile"', []],
+        ['UPDATE profile SET username = username', []],
+        [selectByName, ['ada']],
+        [
+          'SELECT "profile"."id" AS "id", "profile"."userId" AS "userId", "profile"."username" AS "username" FROM "public"."profile" WHERE "profile"."username" = $1',
+          ['ada'],
+        ],
+        ['COMMIT'],
+      ]),
+    );
   });
 
   it('prepares a statement on a role-bound client that runs under its role', async () => {
@@ -95,11 +137,27 @@ describe('a transaction on a supabase role-bound client', () => {
     await byName.query(anon, { username: 'ada' });
     await db.close();
 
-    expect(statements).toEqual([
-      'SELECT set_config($1, $2, false)',
-      'SELECT set_config($1, $2, false)',
-      'SELECT "id" AS "id" FROM "public"."profile" WHERE "username" = $1',
-      'RESET ALL',
-    ]);
+    expect(recorded.statements).toEqual(underRole('anon', [[selectByName, ['ada']]]));
+  });
+
+  it('runs a statement prepared on the service role client under the service role', async () => {
+    const db = await supabase({
+      contract,
+      url: 'postgres://localhost/db',
+      verifyMarker: false,
+      jwtSecret: 'fixture-jwt-signing-input-not-a-real-credential',
+    });
+    const serviceRole = db.asServiceRole();
+
+    const byName = await serviceRole.prepare({ username: 'pg/text@1' }, (params) =>
+      serviceRole.sql.public.profile
+        .select('id')
+        .where((f, fns) => fns.eq(f.username, params.username))
+        .build(),
+    );
+    await byName.query(serviceRole, { username: 'ada' });
+    await db.close();
+
+    expect(recorded.statements).toEqual(underRole('service_role', [[selectByName, ['ada']]]));
   });
 });

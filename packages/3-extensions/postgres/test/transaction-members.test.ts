@@ -3,16 +3,29 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Contract } from './fixtures/generated/contract';
 import fixtureContractJson from './fixtures/generated/contract.json' with { type: 'json' };
 
-const statements = vi.hoisted(() => [] as string[]);
+const recorded = vi.hoisted(() => ({
+  statements: [] as Array<{ readonly connection: number; readonly text: string }>,
+  connections: 0,
+}));
 
 vi.mock('pg', () => {
-  const query = vi.fn(async (request: string | { readonly text: string }) => {
-    statements.push(typeof request === 'string' ? request : request.text);
-    return { rows: [], rowCount: 0 };
-  });
+  function recordingQuery(connection: number) {
+    return vi.fn(async (request: string | { readonly text: string }) => {
+      recorded.statements.push({
+        connection,
+        text: typeof request === 'string' ? request : request.text,
+      });
+      return { rows: [], rowCount: 0 };
+    });
+  }
   class Pool {
     on = vi.fn().mockReturnThis();
-    connect = vi.fn().mockResolvedValue({ query, release: vi.fn(), on: vi.fn(), off: vi.fn() });
+    connect = vi.fn(async () => ({
+      query: recordingQuery(++recorded.connections),
+      release: vi.fn(),
+      on: vi.fn(),
+      off: vi.fn(),
+    }));
     end = vi.fn().mockResolvedValue(undefined);
     totalCount = 0;
     idleCount = 0;
@@ -21,7 +34,7 @@ vi.mock('pg', () => {
   class Client {
     on = vi.fn().mockReturnThis();
     connect = vi.fn().mockResolvedValue(undefined);
-    query = query;
+    query = recordingQuery(++recorded.connections);
     end = vi.fn().mockResolvedValue(undefined);
     release = vi.fn();
   }
@@ -72,8 +85,14 @@ const everyStatementInTheTransaction = [
   'COMMIT',
 ];
 
+function onOneConnection(texts: readonly string[]) {
+  const connection = recorded.statements[0]?.connection;
+  return texts.map((text) => ({ connection, text }));
+}
+
 afterEach(() => {
-  statements.length = 0;
+  recorded.statements.length = 0;
+  recorded.connections = 0;
 });
 
 describe('a postgres transaction', () => {
@@ -83,7 +102,7 @@ describe('a postgres transaction', () => {
     await db.transaction(useEveryMember);
     await db.close();
 
-    expect(statements).toEqual(everyStatementInTheTransaction);
+    expect(recorded.statements).toEqual(onOneConnection(everyStatementInTheTransaction));
   });
 
   it('runs a statement prepared on the client inside the transaction it is given', async () => {
@@ -100,7 +119,7 @@ describe('a postgres transaction', () => {
     });
     await db.close();
 
-    expect(statements).toEqual(['BEGIN', selectById, 'COMMIT']);
+    expect(recorded.statements).toEqual(onOneConnection(['BEGIN', selectById, 'COMMIT']));
   });
 
   it('refuses a prepared statement run on the transaction after it ends', async () => {
@@ -123,10 +142,10 @@ describe('a transaction on a serverless connection', () => {
   it('offers sql, raw, prepare and orm, and runs every statement inside the transaction', async () => {
     const serverless = postgresServerless({ contract, verifyMarker: false, collections });
     await using db = await serverless.connect({ url });
-    statements.length = 0;
+    recorded.statements.length = 0;
 
     await db.transaction(useEveryMember);
 
-    expect(statements).toEqual(everyStatementInTheTransaction);
+    expect(recorded.statements).toEqual(onOneConnection(everyStatementInTheTransaction));
   });
 });
