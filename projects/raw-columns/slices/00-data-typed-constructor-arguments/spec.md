@@ -46,7 +46,7 @@ On SQLite (`sqlite/src/core/data-type-entries.ts:20`) every whole number becomes
 
 ### Constructors shared by several targets
 
-`sql.String` is contributed by the SQL family, which cannot name a target's data type. It becomes a builder that the target calls with its whole-number data type, `sqlFamilyTypeConstructors({ wholeNumber })`, and Postgres and SQLite each contribute the result. `type.sql.String(...)` keeps its path. A target-level role name resolved at assembly (`dataType: 'wholeNumber'`) was considered and dropped: it is a small vocabulary of family types, which ADR 254 rejects.
+`sql.String` is contributed by the SQL family, which cannot name a target's data type. It becomes a builder that the target calls with its size type, the data type of a length or a precision, `sqlTargetTypeConstructors({ sizeType })`, and Postgres and SQLite each contribute the result. `type.sql.String(...)` keeps its path. A target-level role name resolved at assembly (`dataType: 'wholeNumber'`) was considered and dropped: it is a small vocabulary of family types, which ADR 254 rejects.
 
 ### Argument table
 
@@ -69,7 +69,7 @@ Every type constructor in the repo with at least one argument, after TML-3607 re
 | Postgres `:236` | `VarBit` | `length?` | `number`, integer | `value` of `pg/int4` |
 | Postgres `:246` | `Interval` | `precision?` | `number`, integer | `value` of `pg/int4` |
 | Postgres (`postgres/src/core/authoring.ts:148`) | `pg.enum` | the enum | `entityRefArg` | unchanged: reference |
-| SQL family (`2-sql/9-family/src/core/authoring-type-constructors.ts:3`) | `sql.String` | `length` | `number`, integer | `value` of the target's whole-number type: `pg/int4`; SQLite see open question 1 |
+| SQL family (`2-sql/9-family/src/core/authoring-type-constructors.ts:3`) | `sql.String` | `length` | `number`, integer | `value` of the target's size type: `pg/int4`; `sqlite/real` on SQLite (decision 1) |
 | pgvector (`3-extensions/pgvector/src/core/authoring.ts:5`) | `pgvector.Vector` | `length` | `number`, integer | `value` of `pg/int4` |
 | PostGIS (`3-extensions/postgis/src/core/authoring.ts:6`) | `postgis.Geometry` | `srid?` | `number`, integer | `value` of `pg/int4` |
 | SQL family (`2-sql/9-family/src/core/authoring-type-constructors.ts`) | `Raw` | `sql` | `string` | `value` of `sql/expression` |
@@ -126,7 +126,7 @@ Out: Field presets, option arguments and type aliases, which TML-3607 changes. G
 
 ## Decisions
 
-1. **SQLite's whole-number argument type is `sqlite/real`** (Will, 2026-10-19). SQLite has no data type whose canonical whole number is a JavaScript number: `sqlite/integer` stores digit text so it holds every 64-bit value exactly, and type parameters are JSON numbers. A written whole number reads as `sqlite/integer` and casts to `sqlite/real` as a number (`asReal`), so `sql.String(255)` gives `255`; a fraction reads as `sqlite/real` and the length schema refuses it as not an integer. The cast is exact for every length the schema accepts. The alternative is a new SQLite data type that holds a whole number as a JavaScript number, which no SQLite column has, and which ADR 254 argues against.
+1. **SQLite's whole-number argument type is `sqlite/real`** (Will, 2026-10-19). SQLite has no data type whose canonical whole number is a JavaScript number: `sqlite/integer` stores digit text so it holds every 64-bit value exactly, and type parameters are JSON numbers. A written whole number reads as `sqlite/integer` and casts to `sqlite/real` as a number (`asReal`), so `sql.String(255)` gives `255`; a fraction reads as `sqlite/real` and the length schema refuses it as not an integer. The cast is exact for every length the schema accepts, which is at most 2147483647, SQLite's largest string length. The alternative is a new SQLite data type that holds a whole number as a JavaScript number, which no SQLite column has, and which ADR 254 argues against.
 2. **nanoid's `size` limit stays with the generator** (Will, 2026-10-19). TML-3607 removes the nanoid preset; its size becomes a generator argument (`@onCreate(nanoid(16))`), which this slice does not read. So a `value` argument carries no bounds.
 
 ## Dispatch plan
