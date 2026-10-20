@@ -118,7 +118,7 @@ export type {
   AssembledAuthoringContributions,
   ControlStack,
   CreateControlStackInput,
-  DataTypeInvariantInput,
+  HelperCodecInvariantInput,
 } from '../control/control-stack';
 export {
   assembleAuthoringContributions,
@@ -126,7 +126,7 @@ export {
   assertUniqueCodecOwner,
   buildExtensionLoadOrder,
   createControlStack,
-  enforceDataTypeInvariants,
+  enforceHelperCodecInvariants,
   extractCodecLookup,
   extractCodecTypeImports,
   extractComponentIds,

@@ -41,6 +41,28 @@ changes:
         - 'temporalCodecPresetWithPrecision\('
         - 'assembleAuthoringDataTypes'
         - 'temporalStringAuthoringPresets'
+  - id: composed-helpers-take-no-data-type-lookup
+    summary: |
+      `createComposedAuthoringHelpers` no longer takes `dataTypeLookup`. It builds its data types
+      from the family, target and extension packs it is given, with `assembleDataTypeSupport`.
+      Remove the option; a pack whose arguments take a data type must register it in `dataTypes`
+      and `authoring.dataTypes`.
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      matches:
+        - 'createComposedAuthoringHelpers\('
+  - id: helper-codec-invariants
+    summary: |
+      `enforceDataTypeInvariants` is renamed `enforceHelperCodecInvariants`, and
+      `DataTypeInvariantInput` is renamed `HelperCodecInvariantInput`. It now checks only type
+      constructors and field presets against the stack's codecs, and takes `lookup`, `helpers`
+      (formerly `constructors`) and `codecDescriptorFor`. `declaredTypes`, `codecs` and
+      `authoringEntries` are removed: `assembleDataTypeSupport` checks data types, their entries,
+      casts and written forms, through `enforceDataTypeAssemblyInvariants`.
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      matches:
+        - 'enforceDataTypeInvariants|DataTypeInvariantInput'
 ---
 
 # Type-constructor arguments are values of data types
@@ -89,3 +111,32 @@ To type a descriptor of a value argument on its own, use `AuthoringValueArgument
 Pass the stack's `DataTypeSupport` to `mapPslHelperArgs({ ..., dataTypes })` and `instantiatePslFieldPreset({ ..., dataTypes })`. Replace `parsePslPositionalArgs` with the values of the call you built, and `pslTypeArgumentText` with `writtenTypeArguments(descriptor, args, dataTypes)`. A SQL target spreads `sqlTargetTypeConstructors({ sizeType: '<its size data type>' })` from `@prisma/orm-family-sql/family/pack` into its type namespace, and passes the same `sizeType` to `temporalCodecPresetWithPrecision`. Import `temporalCodecPresetWithPrecision` and `temporalStringAuthoringPresets` from `family/pack` too; `family/control` no longer exports them. The size type is the data type of a length or a precision: `pg/int4` on Postgres.
 
 Import `assembleAuthoringDataTypes` from `components/authoring` instead of `components/control`. To build the data types a set of components reads values with, call `assembleDataTypeSupport(components, dataTypeOfCodec)`; it refuses a duplicate data type or entry, and a value argument whose data type is unregistered or that nothing writes.
+
+## `composed-helpers-take-no-data-type-lookup`
+
+Drop `dataTypeLookup` from the options of `createComposedAuthoringHelpers`:
+
+```ts
+// Before
+createComposedAuthoringHelpers({ family, target, extensions, codecLookup, dataTypeLookup });
+
+// After
+createComposedAuthoringHelpers({ family, target, extensions, codecLookup });
+```
+
+The helpers read value arguments, and build entity helpers, with the data types the packs register. A pack that registers no data types but whose arguments take one now fails with `CONTRACT.DATA_TYPE_UNREGISTERED`; add the data type to the pack's `dataTypes` and its entry to `authoring.dataTypes`.
+
+## `helper-codec-invariants`
+
+Rename the call and pass the type constructors and field presets as `helpers`:
+
+```ts
+// Before
+enforceDataTypeInvariants({ lookup, declaredTypes, codecs, authoringEntries, constructors, codecDescriptorFor });
+
+// After
+enforceHelperCodecInvariants({ lookup, helpers, codecDescriptorFor });
+```
+
+The checks on data types, entries, casts and written forms now run when you build data types with `assembleDataTypeSupport(components, dataTypeOfCodec)` from `components/authoring`; call it with the same components instead of passing `declaredTypes`, `codecs` and `authoringEntries`.
+

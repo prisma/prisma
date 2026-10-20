@@ -364,9 +364,9 @@ export function assembleAuthoringContributions(
   };
 }
 
-export interface DataTypeInvariantInput {
+export interface HelperCodecInvariantInput {
   readonly lookup: DataTypeLookup;
-  readonly constructors: ReadonlyArray<ContributedHelper>;
+  readonly helpers: ReadonlyArray<ContributedHelper>;
   readonly codecDescriptorFor: (
     codecId: string,
   ) => Pick<AnyCodecDescriptor, 'dataType' | 'paramsSchema'> | undefined;
@@ -389,9 +389,9 @@ function argumentMappedKeys(
  *
  * {@link assembleDataTypeSupport} checks data types, their entries and casts, and the value arguments of type constructors and field presets.
  */
-export function enforceDataTypeInvariants(input: DataTypeInvariantInput): void {
+export function enforceHelperCodecInvariants(input: HelperCodecInvariantInput): void {
   const inferredBy = new Map<string, ContributedHelper>();
-  for (const contributed of input.constructors) {
+  for (const contributed of input.helpers) {
     const { path, descriptor, contributedBy } = contributed;
     const kind = descriptor.kind === 'typeConstructor' ? 'Type constructor' : 'Field preset';
     const codecId = descriptor.output.codecId;
@@ -725,9 +725,9 @@ export function createControlStack<TFamilyId extends string, TTargetId extends s
   );
   const codecDescriptors = collectCodecDescriptors(allDescriptors);
 
-  enforceDataTypeInvariants({
+  enforceHelperCodecInvariants({
     lookup: dataTypes.support.lookup,
-    constructors: allDescriptors.flatMap(contributedHelpers),
+    helpers: allDescriptors.flatMap(contributedHelpers),
     codecDescriptorFor: (codecId) => codecLookup.descriptorFor?.(codecId),
   });
 

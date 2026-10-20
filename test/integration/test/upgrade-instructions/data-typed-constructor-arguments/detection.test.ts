@@ -75,7 +75,25 @@ describe('extension detection', () => {
   it.each([
     ['psl-and-print-helpers-take-data-types', "import { assembleAuthoringDataTypes } from 'x';"],
     ['psl-and-print-helpers-take-data-types', 'temporalCodecPresetWithPrecision({ codecId })'],
+    [
+      'composed-helpers-take-no-data-type-lookup',
+      'createComposedAuthoringHelpers({ family, target, codecLookup, dataTypeLookup })',
+    ],
+    ['helper-codec-invariants', 'enforceDataTypeInvariants({ lookup, constructors })'],
+    ['helper-codec-invariants', 'const input: DataTypeInvariantInput = build();'],
   ])('%s detects %s', (id, line) => {
     expect(detects('extension', id, line)).toBe(true);
+  });
+});
+
+describe('extension detection of the renamed helper codec check', () => {
+  it('does not detect the new names', () => {
+    expect(
+      detects(
+        'extension',
+        'helper-codec-invariants',
+        'enforceHelperCodecInvariants({ lookup, helpers, codecDescriptorFor })',
+      ),
+    ).toBe(false);
   });
 });

@@ -2,7 +2,7 @@ import { InternalError } from '@internal/utils/internal-error';
 import { type Type, type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import type { CreateControlStackInput } from '../src/control/control-stack';
-import { createControlStack, enforceDataTypeInvariants } from '../src/control/control-stack';
+import { createControlStack, enforceHelperCodecInvariants } from '../src/control/control-stack';
 import type { AnyCodecDescriptor } from '../src/shared/codec-descriptor';
 import {
   assembleDataTypes,
@@ -268,9 +268,9 @@ describe('enforceDataTypeAssemblyInvariants', () => {
   });
 });
 
-describe('enforceDataTypeInvariants on type constructors and field presets', () => {
-  const check = (constructors: readonly ContributedHelper[]) => () =>
-    enforceDataTypeInvariants({ lookup: demoLookup, constructors, codecDescriptorFor });
+describe('enforceHelperCodecInvariants on type constructors and field presets', () => {
+  const check = (helpers: readonly ContributedHelper[]) => () =>
+    enforceHelperCodecInvariants({ lookup: demoLookup, helpers, codecDescriptorFor });
 
   it('refuses a type constructor naming a codec nobody registered, naming the contributor and the id', () => {
     expect(check([constructorNamed('Gone', 'demo/gone@1')])).toThrow(InternalError);
