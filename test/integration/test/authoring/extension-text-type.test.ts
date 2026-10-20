@@ -15,6 +15,7 @@ import {
 import { createControlStack } from '@internal/framework-components/control';
 import { sqlDataType } from '@internal/sql-contract/data-type';
 import { prismaContract } from '@internal/sql-contract-psl/provider';
+import type { ProjectionExpr } from '@internal/sql-relational-core/ast';
 import {
   definePostgresCodecs,
   PostgresCodecDescriptor,
@@ -23,8 +24,6 @@ import postgres from '@internal/target-postgres/control';
 import { pgText } from '@internal/target-postgres/data-types';
 import postgresPackRef from '@internal/target-postgres/pack';
 import { postgresCreateNamespace } from '@internal/target-postgres/types';
-import type { StandardSchemaV1 } from '@standard-schema/spec';
-import { type as arktype } from 'arktype';
 import { join } from 'pathe';
 import { afterAll, describe, expect, it } from 'vitest';
 
@@ -63,7 +62,10 @@ class CitextDescriptor extends PostgresCodecDescriptor<Record<string, never>> {
   override readonly dataType = testtextCitext.id;
   override readonly codecId = CITEXT_CODEC_ID;
   override readonly traits = ['equality'] as const;
-  override readonly paramsSchema: StandardSchemaV1<Record<string, never>> = arktype({});
+  override readonly paramsSchema = undefined;
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override factory(): (ctx: CodecInstanceContext) => CitextCodec {
     return () => new CitextCodec(this);
   }
