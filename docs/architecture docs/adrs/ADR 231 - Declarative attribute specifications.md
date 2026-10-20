@@ -255,7 +255,7 @@ A spec may be assembled from context known by the owning family before interpret
 
 ### SQL defaults
 
-SQL constructs `@default` specs per field. Scalar fields accept flexible string, number, and boolean literals plus one pinned `funcCall(name, signature)` arm for every active default-function registry entry. List fields accept a list of those scalar literals plus the registry calls. Enum fields use one pinned `identifier(member)` arm per enum member.
+SQL constructs `@default` specs per field. Scalar fields accept flexible string, number, and boolean literals plus one arm for every active default-function registry entry, built by `defaultFunctionCall(name, entry, dataTypes)`. List fields accept a list of those scalar literals plus the registry calls. Enum fields use one pinned `identifier(member)` arm per enum member.
 
 A registry entry's signature is either a `FuncCallSig` or a function from the stack's data types to one, because a component writes its registry before a stack exists and an argument that is a `dataTypeValue` needs the stack's types. `defaultFunctionCall` builds the arm from either form:
 
