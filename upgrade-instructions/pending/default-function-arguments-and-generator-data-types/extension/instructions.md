@@ -2,14 +2,14 @@
 changes:
   - id: generator-applicable-data-types
     summary: |
-      `MutationDefaultGeneratorDescriptor.applicableCodecIds` (`@prisma/orm-framework/components/control`) is replaced by `applicableDataTypes`, a list of data type ids. One entry covers every codec of that data type. A generator that writes text sets `writesText: true` instead of listing text types, and then applies to every one of the stack's text data types (`textDataTypes`). A descriptor that still sets `applicableCodecIds` is treated as having no list, so `@default(...)` refuses the generator with the message that points at the field preset.
+      `MutationDefaultGeneratorDescriptor.applicableCodecIds` (`@prisma/orm-framework/components/control`) is replaced by `applicableDataTypes`, a list of data type ids. One entry covers every codec of that data type. A generator that writes text sets `writesText: true` instead of listing text types, and then applies to every one of the stack's text data types (`textDataTypes`). A descriptor may also set the optional `writtenLength(params)`, the number of characters the generator writes; a column whose length, in its data type's normal form, is shorter then refuses the generator. A descriptor that still sets `applicableCodecIds` is treated as having no list, so `@default(...)` refuses the generator with the message that points at the field preset.
     detection:
       glob: "**/*.{ts,mts,cts,tsx,js,mjs,cjs}"
       matches:
         - '\bapplicableCodecIds\b'
   - id: builtin-generator-metadata-writes-uuid
     summary: |
-      `builtinGeneratorRegistryMetadata` (`@prisma/orm-framework/ids`) gives `{ id, writesUuid }` for each built-in generator instead of `{ id, applicableCodecIds }`. A SQL target builds its descriptors with `sqlBuiltinGeneratorDescriptors({ uuid })` from `@prisma/orm-family-sql/family/control`, passing its UUID data types. Every built-in generator writes text, so it applies to the stack's text data types as well.
+      `builtinGeneratorRegistryMetadata` (`@prisma/orm-framework/ids`) gives `{ id, writesUuid, writtenLength }` for each built-in generator instead of `{ id, applicableCodecIds }`; `writtenLength(params)` is the number of characters the generator writes. A SQL target builds its descriptors with `sqlBuiltinGeneratorDescriptors({ uuid })` from `@prisma/orm-family-sql/family/control`, passing its UUID data types. Every built-in generator writes text, so it applies to the stack's text data types as well.
     detection:
       glob: "**/*.{ts,mts,cts,tsx,js,mjs,cjs}"
       matches:
@@ -60,7 +60,7 @@ import { dataTypeId } from '@prisma/orm-framework/components/codec';
 generatorDescriptors: [{ id: 'slugid', applicableDataTypes: [dataTypeId('pg/text')] }],
 
 // Or, for a generator that writes text, every text type of the stack:
-generatorDescriptors: [{ id: 'slugid', writesText: true }],
+generatorDescriptors: [{ id: 'slugid', writesText: true, writtenLength: () => 12 }],
 ```
 
 The check compares the column's data type, the one its codec declares, so a codec of `pg/text` from any pack takes the generator. A generator reachable only through a field preset still leaves the list out.
@@ -81,7 +81,7 @@ import { pgUuid } from '@prisma/orm-postgres/target/data-types';
 generatorDescriptors: sqlBuiltinGeneratorDescriptors({ uuid: [pgUuid.id] }),
 ```
 
-`writesUuid` is `true` for `uuidv4` and `uuidv7`, which also apply to the `uuid` data types. The text types come from the stack's `textDataTypes`, which the target names.
+`writesUuid` is `true` for `uuidv4` and `uuidv7`, which also apply to the `uuid` data types. `writtenLength` gives each generator's length (36 for a UUID, `nanoid`'s size or 21), which `sqlBuiltinGeneratorDescriptors` passes on so a column too short for the value refuses the generator. The text types come from the stack's `textDataTypes`, which the target names.
 
 ## `default-function-signature-from-data-types`
 
