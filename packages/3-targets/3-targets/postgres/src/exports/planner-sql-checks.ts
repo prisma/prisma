@@ -1,6 +1,6 @@
 export {
-  alterTypeCheckText,
-  buildExpectedFormatType,
+  alterTypeCheck,
+  type ColumnTypeCheck,
   qualifyTableName,
   stackDataTypes,
 } from '../core/migrations/planner-sql-checks';

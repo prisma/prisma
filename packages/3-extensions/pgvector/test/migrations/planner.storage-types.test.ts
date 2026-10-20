@@ -1,6 +1,5 @@
 import postgresAdapterDescriptor, {
   createPostgresBuiltinCodecLookup,
-  PostgresControlAdapter,
 } from '@internal/adapter-postgres/control';
 import { type Contract, coreHash, profileHash } from '@internal/contract/types';
 import type { CodecControlHooks, SqlMigrationPlanOperation } from '@internal/family-sql/control';
@@ -23,9 +22,10 @@ import {
 import { applicationDomainOf } from '@repo/test-utils';
 import { expectNarrowedType } from '@repo/test-utils/typed-expectations';
 import { describe, expect, it } from 'vitest';
+import { createTestPostgresControlAdapter } from '../../../../3-targets/6-adapters/postgres/test/helpers/test-control-adapter';
 import pgvectorDescriptor from '../../src/exports/control';
 
-const testAdapter = new PostgresControlAdapter(
+const testAdapter = createTestPostgresControlAdapter(
   createPostgresBuiltinCodecLookup(),
   createPostgresBuiltinDataTypeLookup(),
 );

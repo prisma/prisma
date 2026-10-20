@@ -41,7 +41,7 @@ const AUTOINCREMENT: ColumnDefault = { kind: 'function', expression: 'autoincrem
 function ordersContract(options: {
   readonly table: string;
   readonly column: string;
-  readonly nativeType: string;
+  readonly typeText: string;
   readonly numberDefault: ColumnDefault | undefined;
 }): Contract<SqlStorage> {
   const hash = JSON.stringify(options);
@@ -60,8 +60,8 @@ function ordersContract(options: {
                 columns: {
                   id: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
                   [options.column]: {
-                    dataType: `pg/${options.nativeType}`,
-                    codecId: `pg/${options.nativeType}@1`,
+                    dataType: `pg/${options.typeText}`,
+                    codecId: `pg/${options.typeText}@1`,
                     nullable: false,
                     ...(options.numberDefault === undefined
                       ? {}
@@ -192,7 +192,7 @@ describe('the sequence an autoincrement() column owns, under another name', {
       ordersContract({
         table: 'orders',
         column: 'number',
-        nativeType: 'int4',
+        typeText: 'int4',
         numberDefault: AUTOINCREMENT,
       }),
     );
@@ -201,7 +201,7 @@ describe('the sequence an autoincrement() column owns, under another name', {
     const widened = ordersContract({
       table: 'purchases',
       column: 'number',
-      nativeType: 'int8',
+      typeText: 'int8',
       numberDefault: AUTOINCREMENT,
     });
 
@@ -222,7 +222,7 @@ describe('the sequence an autoincrement() column owns, under another name', {
       ordersContract({
         table: 'orders',
         column: 'number',
-        nativeType: 'int4',
+        typeText: 'int4',
         numberDefault: AUTOINCREMENT,
       }),
     );
@@ -230,7 +230,7 @@ describe('the sequence an autoincrement() column owns, under another name', {
     const widened = ordersContract({
       table: 'orders',
       column: 'serial',
-      nativeType: 'int8',
+      typeText: 'int8',
       numberDefault: AUTOINCREMENT,
     });
 
@@ -251,7 +251,7 @@ describe('the sequence an autoincrement() column owns, under another name', {
     const widened = ordersContract({
       table: 'orders',
       column: 'number',
-      nativeType: 'int8',
+      typeText: 'int8',
       numberDefault: AUTOINCREMENT,
     });
 
@@ -270,7 +270,7 @@ describe('the sequence an autoincrement() column owns, under another name', {
       ordersContract({
         table: 'orders',
         column: 'number',
-        nativeType: 'int4',
+        typeText: 'int4',
         numberDefault: AUTOINCREMENT,
       }),
     );
@@ -278,7 +278,7 @@ describe('the sequence an autoincrement() column owns, under another name', {
       ordersContract({
         table: 'orders',
         column: 'number',
-        nativeType: 'int4',
+        typeText: 'int4',
         numberDefault: undefined,
       }),
     );
@@ -287,7 +287,7 @@ describe('the sequence an autoincrement() column owns, under another name', {
     const withAutoincrement = ordersContract({
       table: 'purchases',
       column: 'number',
-      nativeType: 'int4',
+      typeText: 'int4',
       numberDefault: AUTOINCREMENT,
     });
 
@@ -313,7 +313,7 @@ describe('the sequence an autoincrement() column owns, under another name', {
     const widened = ordersContract({
       table: 'orders',
       column: 'number',
-      nativeType: 'int8',
+      typeText: 'int8',
       numberDefault: AUTOINCREMENT,
     });
 

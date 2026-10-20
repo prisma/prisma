@@ -19,7 +19,7 @@ const policy = new PostgresPolicySchemaNode({
 
 const tableA = new PostgresTableSchemaNode({
   name: 'profiles',
-  columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+  columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
   foreignKeys: [],
   uniques: [],
   indexes: [],
@@ -29,7 +29,7 @@ const tableA = new PostgresTableSchemaNode({
 
 const tableB = new PostgresTableSchemaNode({
   name: 'orders',
-  columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+  columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
   foreignKeys: [],
   uniques: [],
   indexes: [],

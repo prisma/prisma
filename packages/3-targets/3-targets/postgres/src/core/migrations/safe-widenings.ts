@@ -1,12 +1,5 @@
-import { dataTypeParams } from '@internal/framework-components/codec';
-import {
-  resolveWrittenSqlTypes,
-  type SqlTypeLookups,
-  type SqlTypeParams,
-  sqlDataTypeOfCodec,
-} from '@internal/sql-contract/data-type';
-import type { SqlColumnIR } from '@internal/sql-schema-ir/types';
-import { InternalError } from '@internal/utils/internal-error';
+import type { DataTypeParams } from '@internal/framework-components/codec';
+import type { SqlColumnIR, SqlColumnType } from '@internal/sql-schema-ir/types';
 import {
   pgFloat4,
   pgFloat8,
@@ -21,14 +14,7 @@ import {
   pgTimetz,
   pgVarbit,
   pgVarchar,
-  postgresDataTypes,
 } from '../data-types';
-
-/** A column's data type and its parameters in normal form. */
-export interface ColumnType {
-  readonly dataType: string;
-  readonly params: SqlTypeParams;
-}
 
 /** The changes between data types that keep every value: each pair is `from→to` by data type id. */
 const SAFE_WIDENINGS = new Set([
@@ -59,7 +45,7 @@ const PRECISION_ROUNDED = new Set<string>([
   pgTimestamptz.id,
 ]);
 
-function numberParam(params: SqlTypeParams, key: string): number | undefined {
+function numberParam(params: DataTypeParams, key: string): number | undefined {
   const value = params[key];
   return typeof value === 'number' ? value : undefined;
 }
@@ -73,7 +59,7 @@ function capGrows(from: number | undefined, to: number | undefined): boolean {
  * A `numeric` keeps every value when it allows at least as many digits before the point and after
  * it; an unconstrained `numeric` holds any value.
  */
-function numericGrows(from: SqlTypeParams, to: SqlTypeParams): boolean {
+function numericGrows(from: DataTypeParams, to: DataTypeParams): boolean {
   const toPrecision = numberParam(to, 'precision');
   if (toPrecision === undefined) return true;
   const fromPrecision = numberParam(from, 'precision');
@@ -83,57 +69,27 @@ function numericGrows(from: SqlTypeParams, to: SqlTypeParams): boolean {
   return toScale >= fromScale && toPrecision - toScale >= fromPrecision - fromScale;
 }
 
-/** Whether changing a column from one type to another keeps every value. */
-export function isSafeTypeWidening(from: ColumnType, to: ColumnType): boolean {
-  if (SAFE_WIDENINGS.has(`${from.dataType}→${to.dataType}`)) return true;
-  if (from.dataType !== to.dataType) return false;
-  if (LENGTH_CAPPED.has(from.dataType)) {
-    return capGrows(numberParam(from.params, 'length'), numberParam(to.params, 'length'));
+/** Whether changing a column from one type to another keeps every value: both have a stored type, and the pair is a safe widening by stored type id and parameters in normal form. */
+export function isSafeTypeWidening(from: SqlColumnType, to: SqlColumnType): boolean {
+  if (from.storedType === undefined || to.storedType === undefined) return false;
+  const fromId = from.storedType.id;
+  const toId = to.storedType.id;
+  const fromParams = from.storedTypeParams ?? {};
+  const toParams = to.storedTypeParams ?? {};
+  if (SAFE_WIDENINGS.has(`${fromId}→${toId}`)) return true;
+  if (fromId !== toId) return false;
+  if (LENGTH_CAPPED.has(fromId)) {
+    return capGrows(numberParam(fromParams, 'length'), numberParam(toParams, 'length'));
   }
-  if (PRECISION_ROUNDED.has(from.dataType)) {
-    return capGrows(numberParam(from.params, 'precision'), numberParam(to.params, 'precision'));
+  if (PRECISION_ROUNDED.has(fromId)) {
+    return capGrows(numberParam(fromParams, 'precision'), numberParam(toParams, 'precision'));
   }
-  if (from.dataType === pgNumeric.id) return numericGrows(from.params, to.params);
+  if (fromId === pgNumeric.id) return numericGrows(fromParams, toParams);
   return false;
 }
 
-function isParamRecord(value: unknown): value is SqlTypeParams {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
-
-/** The data type a column node's codec represents, with its parameters. */
-export function columnType(column: SqlColumnIR, types: SqlTypeLookups): ColumnType {
-  if (column.codecRef === undefined) {
-    throw new InternalError(
-      `Column "${column.name}" carries no codec, so its data type is unknown; a type change is planned only between columns built from contracts.`,
-    );
-  }
-  const type = sqlDataTypeOfCodec(column.codecRef.codecId, types);
-  const typeParams = column.codecRef.typeParams;
-  const params = isParamRecord(typeParams) ? dataTypeParams(type, typeParams) : {};
-  return { dataType: type.id, params: type.sql.normalize(params) };
-}
-
-/** The type of an introspected column, read from the type name introspection reports. */
-function introspectedColumnType(column: SqlColumnIR): ColumnType | undefined {
-  if (column.resolvedNativeType === undefined) return undefined;
-  const [only, ...others] = resolveWrittenSqlTypes(column.resolvedNativeType, postgresDataTypes);
-  return only === undefined || others.length > 0
-    ? undefined
-    : { dataType: only.dataType, params: only.typeParams };
-}
-
-/**
- * Whether changing a live column to the contract's column keeps every value. A column introspected
- * from the database carries no codec, so its type is read from the name introspection reports.
- */
-export function liveColumnWidensSafely(
-  expected: SqlColumnIR,
-  actual: SqlColumnIR,
-  types: SqlTypeLookups,
-): boolean {
+/** Whether changing a live column to the contract's column keeps every value. A list column never widens safely. */
+export function liveColumnWidensSafely(expected: SqlColumnIR, actual: SqlColumnIR): boolean {
   if (expected.many === true || actual.many === true) return false;
-  const from =
-    actual.codecRef === undefined ? introspectedColumnType(actual) : columnType(actual, types);
-  return from !== undefined && isSafeTypeWidening(from, columnType(expected, types));
+  return isSafeTypeWidening(actual, expected);
 }

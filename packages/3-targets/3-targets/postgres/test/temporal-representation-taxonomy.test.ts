@@ -24,7 +24,7 @@ import {
 
 interface ColumnSpecShape {
   readonly codecId: string;
-  readonly nativeType?: string;
+  readonly typeText?: string;
   readonly typeParams: Record<string, unknown> | undefined;
 }
 
@@ -44,7 +44,7 @@ interface Representation {
 }
 
 interface TaxonomyRow {
-  readonly nativeType: string;
+  readonly typeText: string;
   readonly dataType: string;
   readonly precisionBearing: boolean;
   readonly temporal: Representation;
@@ -54,7 +54,7 @@ interface TaxonomyRow {
 
 const TAXONOMY: readonly TaxonomyRow[] = [
   {
-    nativeType: 'date',
+    typeText: 'date',
     dataType: 'pg/date',
     precisionBearing: false,
     temporal: {
@@ -69,7 +69,7 @@ const TAXONOMY: readonly TaxonomyRow[] = [
     },
   },
   {
-    nativeType: 'timestamp',
+    typeText: 'timestamp',
     dataType: 'pg/timestamp',
     precisionBearing: true,
     temporal: {
@@ -84,7 +84,7 @@ const TAXONOMY: readonly TaxonomyRow[] = [
     },
   },
   {
-    nativeType: 'timestamptz',
+    typeText: 'timestamptz',
     dataType: 'pg/timestamptz',
     precisionBearing: true,
     temporal: {
@@ -104,7 +104,7 @@ const TAXONOMY: readonly TaxonomyRow[] = [
     },
   },
   {
-    nativeType: 'time',
+    typeText: 'time',
     dataType: 'pg/time',
     precisionBearing: true,
     temporal: {

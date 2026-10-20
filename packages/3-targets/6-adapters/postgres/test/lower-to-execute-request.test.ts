@@ -16,12 +16,12 @@ import { PostgresCreateTable } from '@internal/target-postgres/ddl';
 import { postgresCreateNamespace } from '@internal/target-postgres/types';
 import { createContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../src/core/control-adapter';
 import { encodeControlQueryParams } from '../src/core/control-codecs';
 import type { PostgresContract } from '../src/core/types';
+import { createTestPostgresControlAdapter } from './helpers/test-control-adapter';
 import { defineTestCodec } from './test-codec';
 
-const adapter = new PostgresControlAdapter(
+const adapter = createTestPostgresControlAdapter(
   createPostgresBuiltinCodecLookup(),
   createPostgresBuiltinDataTypeLookup(),
 );
@@ -56,7 +56,7 @@ const transformingDescriptor = postgresCodec(transformingCodecDescriptor, {
 const transformingCodecRegistry = createPostgresCodecRegistryWithBuiltins([transformingDescriptor]);
 
 describe('PostgresControlAdapter.lowerToExecuteRequest — DDL literal defaults', () => {
-  it('inlines a string default with single-quoting and ::nativeType cast on non-text columns', async () => {
+  it('inlines a string default with single-quoting and a cast to the column type on non-text columns', async () => {
     const ast = new PostgresCreateTable({
       table: 'events',
       columns: [col('status', 'my_enum', { default: lit('active') })],
@@ -77,7 +77,7 @@ describe('PostgresControlAdapter.lowerToExecuteRequest — DDL literal defaults'
     expect(result.params).toEqual([]);
   });
 
-  it('inlines a Date default as ISO string with ::nativeType cast', async () => {
+  it('inlines a Date default as ISO string with a cast to the column type', async () => {
     const date = new Date('2025-06-01T00:00:00.000Z');
     const ast = new PostgresCreateTable({
       table: 'events',
@@ -196,7 +196,7 @@ describe('PostgresControlAdapter.lowerToExecuteRequest — guards', () => {
   });
 
   it('routes a codec-bearing literal default through codec.toWire (not raw type-branching)', async () => {
-    const codecAdapter = new PostgresControlAdapter(
+    const codecAdapter = createTestPostgresControlAdapter(
       transformingCodecRegistry,
       createPostgresBuiltinDataTypeLookup(),
     );
@@ -264,7 +264,7 @@ const jsonbTable = pgTable(
   },
 );
 
-const codecAdapter = new PostgresControlAdapter(
+const codecAdapter = createTestPostgresControlAdapter(
   transformingCodecRegistry,
   createPostgresBuiltinDataTypeLookup(),
 );
@@ -368,7 +368,7 @@ describe('PostgresControlAdapter.lowerToExecuteRequest — extension codec end-t
 
   it('encodes a query param through an extension codec when the adapter receives the descriptor', async () => {
     const { contract, table } = buildExtContractAndTable();
-    const extAdapter = new PostgresControlAdapter(
+    const extAdapter = createTestPostgresControlAdapter(
       extCodecRegistry,
       createPostgresBuiltinDataTypeLookup(),
     );
@@ -382,7 +382,7 @@ describe('PostgresControlAdapter.lowerToExecuteRequest — extension codec end-t
 
   it('throws when a contract column references a codec absent from the adapter lookup', async () => {
     const { contract, table } = buildExtContractAndTable();
-    const noExtAdapter = new PostgresControlAdapter(
+    const noExtAdapter = createTestPostgresControlAdapter(
       createPostgresBuiltinCodecLookup(),
       createPostgresBuiltinDataTypeLookup(),
     );

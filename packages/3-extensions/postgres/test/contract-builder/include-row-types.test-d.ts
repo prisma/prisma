@@ -2,8 +2,8 @@ import { expectTypeOf, test } from 'vitest';
 import { defineContract, field, model, rel } from '../../src/exports/contract-builder';
 import postgres from '../../src/exports/runtime';
 
-const int4 = { codecId: 'pg/int4@1', nativeType: 'int4' } as const;
-const text = { codecId: 'pg/text@1', nativeType: 'text' } as const;
+const int4 = { codecId: 'pg/int4@1' } as const;
+const text = { codecId: 'pg/text@1' } as const;
 
 const User = model('User', {
   fields: { id: field.column(int4).id(), email: field.column(text) },

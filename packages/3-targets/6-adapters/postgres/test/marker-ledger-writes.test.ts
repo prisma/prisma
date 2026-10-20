@@ -1,7 +1,7 @@
 import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
 import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from './helpers/test-control-adapter';
 
 interface CapturedCall {
   readonly sql: string;
@@ -23,7 +23,7 @@ function createCapturingDriver(rows: Record<string, unknown>[] = []) {
 }
 
 describe('PostgresControlAdapter marker/ledger write lowering', () => {
-  const adapter = new PostgresControlAdapter(
+  const adapter = createTestPostgresControlAdapter(
     createPostgresBuiltinCodecLookup(),
     createPostgresBuiltinDataTypeLookup(),
   );

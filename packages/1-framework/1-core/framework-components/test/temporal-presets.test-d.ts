@@ -19,14 +19,14 @@ test('presets are field-preset descriptors', () => {
 
 test('the storage template and generator id survive as literals', () => {
   expectTypeOf(presets.createdAt.output.codecId).toEqualTypeOf<'test/date@1'>();
-  expectTypeOf(presets.updatedAt.output).not.toHaveProperty('nativeType');
+  expectTypeOf(presets.updatedAt.output).not.toHaveProperty('typeText');
   expectTypeOf(
     presets.updatedAt.output.executionDefaults.onUpdate.id,
   ).toEqualTypeOf<'timestampNow'>();
   expectTypeOf(custom.createdAt.output.executionDefaults.onCreate.id).toEqualTypeOf<
     'dateNow' | 'timestampNow'
   >();
-  expectTypeOf(codecPreset.output).not.toHaveProperty('nativeType');
+  expectTypeOf(codecPreset.output).not.toHaveProperty('typeText');
   expectTypeOf(customCodecPreset.output.executionDefaults.onCreate.cases.now.id).toEqualTypeOf<
     'dateNow' | 'timestampNow'
   >();

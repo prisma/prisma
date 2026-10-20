@@ -3,11 +3,11 @@ import { buildSignMarkerBootstrapQueries } from '@internal/target-postgres/contr
 import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
 import type { PostgresDdlNode } from '@internal/target-postgres/ddl';
 import { describe, expect, test } from 'vitest';
-import { PostgresControlAdapter } from '../../src/core/control-adapter';
 import type { PostgresContract } from '../../src/core/types';
+import { createTestPostgresControlAdapter } from '../helpers/test-control-adapter';
 
 describe('Postgres marker table DDL lowering', () => {
-  const adapter = new PostgresControlAdapter(
+  const adapter = createTestPostgresControlAdapter(
     createPostgresBuiltinCodecLookup(),
     createPostgresBuiltinDataTypeLookup(),
   );

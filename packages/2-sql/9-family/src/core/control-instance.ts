@@ -1023,7 +1023,7 @@ export function createSqlFamilyInstance<TTargetId extends string>(
 
           const columnNodes: SchemaTreeNode[] = [];
           for (const [columnName, column] of Object.entries(table.columns)) {
-            const typeDisplay = column.nativeType;
+            const typeDisplay = column.typeText;
             const nullability = column.nullable ? 'nullable' : 'not nullable';
             const label = `${columnName}: ${typeDisplay} (${nullability})`;
             columnNodes.push(
@@ -1032,7 +1032,7 @@ export function createSqlFamilyInstance<TTargetId extends string>(
                 id: `column-${displayName}-${columnName}`,
                 label,
                 meta: {
-                  nativeType: column.nativeType,
+                  typeText: column.typeText,
                   nullable: column.nullable,
                   ...ifDefined('default', column.default),
                 },

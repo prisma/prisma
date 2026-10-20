@@ -8,9 +8,9 @@ import {
 import { PostgresCreateType, PostgresDropType } from '@internal/target-postgres/ddl';
 import { AddColumnCall, DropDefaultCall } from '@internal/target-postgres/op-factory-call';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../src/core/control-adapter';
+import { createTestPostgresControlAdapter } from './helpers/test-control-adapter';
 
-const adapter = new PostgresControlAdapter(
+const adapter = createTestPostgresControlAdapter(
   createPostgresBuiltinCodecLookup(),
   createPostgresBuiltinDataTypeLookup(),
 );

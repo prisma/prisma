@@ -4,8 +4,8 @@ import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/code
 import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
 import { PostgresCreateTable } from '@internal/target-postgres/ddl';
 import { describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../src/core/control-adapter';
 import type { PostgresContract } from '../src/core/types';
+import { createTestPostgresControlAdapter } from './helpers/test-control-adapter';
 
 /**
  * The planner hands CREATE TABLE a default in canonical form; the literals below are the ones the
@@ -21,7 +21,7 @@ async function createTableDefault(
     table: 't',
     columns: [col('v', typeText, { default: lit(value), codecRef: { codecId, many } })],
   });
-  const adapter = new PostgresControlAdapter(
+  const adapter = createTestPostgresControlAdapter(
     createPostgresBuiltinCodecLookup(),
     createPostgresBuiltinDataTypeLookup(),
   );
@@ -73,7 +73,7 @@ describe('a date or time default in CREATE TABLE', () => {
     ['jsonb[]', 'pg/jsonb@1'],
     ['timestamptz[]', 'pg/timestamptz-temporal@1'],
   ])('writes a null %s container as SQL NULL with %s', async (typeText, codecId) => {
-    const adapter = new PostgresControlAdapter(
+    const adapter = createTestPostgresControlAdapter(
       createPostgresBuiltinCodecLookup(),
       createPostgresBuiltinDataTypeLookup(),
     );

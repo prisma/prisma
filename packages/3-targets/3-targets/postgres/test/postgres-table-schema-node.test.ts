@@ -18,8 +18,8 @@ const basePolicy = new PostgresPolicySchemaNode({
 const tableInput = {
   name: 'profiles',
   columns: {
-    id: { name: 'id', nativeType: 'int4', nullable: false },
-    user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
+    id: { name: 'id', typeText: 'int4', nullable: false },
+    user_id: { name: 'user_id', typeText: 'int4', nullable: false },
   },
   foreignKeys: [],
   uniques: [],
@@ -98,9 +98,9 @@ describe('PostgresTableSchemaNode', () => {
     const table = new PostgresTableSchemaNode({
       name: 'orders',
       columns: {
-        id: { name: 'id', nativeType: 'int4', nullable: false },
-        user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
-        status: { name: 'status', nativeType: 'text', nullable: false },
+        id: { name: 'id', typeText: 'int4', nullable: false },
+        user_id: { name: 'user_id', typeText: 'int4', nullable: false },
+        status: { name: 'status', typeText: 'text', nullable: false },
       },
       primaryKey: { columns: ['id'] },
       foreignKeys: [{ columns: ['user_id'], referencedTable: 'users', referencedColumns: ['id'] }],
@@ -147,8 +147,8 @@ describe('PostgresTableSchemaNode', () => {
     const table = new PostgresTableSchemaNode({
       name: 'orders',
       columns: {
-        id: { name: 'id', nativeType: 'int4', nullable: false },
-        user_id: { name: 'user_id', nativeType: 'int4', nullable: false },
+        id: { name: 'id', typeText: 'int4', nullable: false },
+        user_id: { name: 'user_id', typeText: 'int4', nullable: false },
       },
       primaryKey: { columns: ['id'] },
       foreignKeys: [{ columns: ['user_id'], referencedTable: 'users', referencedColumns: ['id'] }],
@@ -165,7 +165,7 @@ describe('PostgresTableSchemaNode', () => {
     const table = new PostgresTableSchemaNode({
       name: 'orders',
       columns: {
-        id: { name: 'id', nativeType: 'int4', nullable: false },
+        id: { name: 'id', typeText: 'int4', nullable: false },
       },
       primaryKey: { columns: ['id'] },
       foreignKeys: [],
@@ -188,7 +188,7 @@ describe('PostgresTableSchemaNode', () => {
   it('carries columns from SqlTableIR', () => {
     const table = new PostgresTableSchemaNode({ ...tableInput });
     expect(Object.keys(table.columns)).toEqual(['id', 'user_id']);
-    expect(table.columns['id']?.nativeType).toBe('int4');
+    expect(table.columns['id']?.typeText).toBe('int4');
   });
 
   it('instance is frozen', () => {
