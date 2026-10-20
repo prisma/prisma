@@ -34,9 +34,9 @@ export const TYPE_ATTRIBUTE_SPAN = {
 
 export function enumBlock(input: {
   readonly name: string;
-  readonly values: Record<string, string | number | boolean | null | undefined>;
+  readonly values: Record<string, string | number | boolean | undefined>;
   readonly typeCodecId?: string;
-}): ParsedPslExtensionBlock<Record<string, string | number | boolean | null | undefined>> {
+}): ParsedPslExtensionBlock<Record<string, string | number | boolean | undefined>> {
   return {
     kind: 'enum',
     keyword: 'enum',

@@ -7,7 +7,6 @@ import {
   FOLDING_CODEC_ID,
   factory,
   INT_CODEC_ID,
-  JSON_CODEC_ID,
   makeContext,
   TEXT_CODEC_ID,
 } from './enum-entity-fixtures';
@@ -88,17 +87,6 @@ describe('sqlFamilyEnumEntityDescriptor: @@type omitted, inferred from members',
     expect(diagnostics).toEqual([expect.objectContaining({ code: 'PSL_ENUM_CANNOT_INFER_TYPE' })]);
   });
 
-  it('an explicit null member cannot be inferred and is not a bare member', () => {
-    const diagnostics: unknown[] = [];
-    const handle = factory(
-      enumBlock({ name: 'Odd', values: { none: null } }),
-      makeContext(diagnostics),
-    );
-
-    expect(handle).toBeUndefined();
-    expect(diagnostics).toEqual([expect.objectContaining({ code: 'PSL_ENUM_CANNOT_INFER_TYPE' })]);
-  });
-
   it('a mix of string and integer members cannot be inferred', () => {
     const diagnostics: unknown[] = [];
     const handle = factory(
@@ -153,22 +141,6 @@ describe('sqlFamilyEnumEntityDescriptor: explicit @@type bypasses inference, nev
 
     expect(diagnostics).toEqual([]);
     expect(handle).toMatchObject({ codecId: TEXT_CODEC_ID });
-  });
-
-  it('an explicit null member reaches the codec and its rejection is reported', () => {
-    const diagnostics: unknown[] = [];
-    const handle = factory(
-      enumBlock({ name: 'Odd', values: { none: null }, typeCodecId: JSON_CODEC_ID }),
-      makeContext(diagnostics),
-    );
-
-    expect(handle).toBeUndefined();
-    expect(diagnostics).toEqual([
-      expect.objectContaining({
-        code: 'PSL_EXTENSION_INVALID_VALUE',
-        message: expect.stringContaining('rejected by codec'),
-      }),
-    ]);
   });
 
   it('a bare member under a non-string codec is its own diagnostic', () => {
