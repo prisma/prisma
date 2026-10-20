@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { interpretSchemaText, loadFixtureSchema, loadFixtureTable } from './support';
+import {
+  interpretSchemaText,
+  interpretSchemaTextResult,
+  loadFixtureSchema,
+  loadFixtureTable,
+} from './support';
 
 const raw = (sql: string) => ({ dataType: 'sql/raw', codecId: 'sql/raw@1', typeParams: { sql } });
 
@@ -73,5 +78,26 @@ model Post {
     expect(
       contract.storage.namespaces['public']?.entries.table?.['Post']?.columns['tag']?.typeParams,
     ).toEqual({ sql: '"My Type"' });
+  });
+
+  it('refuses text a sql literal cannot hold, through the sql/expression canonical form', () => {
+    const result = interpretSchemaTextResult(`datasource db {
+  provider = "postgresql"
+}
+
+model Post {
+  id  Int                        @id
+  tag Unsupported("tsv\\u0000ector")?
+}
+`);
+    expect(
+      result.ok ? [] : result.failure.diagnostics.map(({ code, message }) => ({ code, message })),
+    ).toEqual([
+      {
+        code: 'PSL.PRISMA7_UNSUPPORTED_TYPE',
+        message:
+          'Field "Post.tag": Unsupported("tsv\\u0000ector") is not one type name: a sql literal cannot hold it, because it has a NUL character or is too large.',
+      },
+    ]);
   });
 });

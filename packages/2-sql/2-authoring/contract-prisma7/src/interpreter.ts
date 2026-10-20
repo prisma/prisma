@@ -6,14 +6,12 @@ import type { Contract, ExecutionMutationDefaultValue } from '@internal/contract
 import type {
   AuthoringEntityContext,
   AuthoringEntityTypeDescriptor,
-  AuthoringTypeConstructorDescriptor,
   DataTypeSupport,
-  ScalarTypeConstructorOutput,
 } from '@internal/framework-components/authoring';
 import {
   getAuthoringTypeConstructor,
   instantiateAuthoringEntityType,
-  instantiateAuthoringTypeConstructor,
+  instantiateAuthoringTypeConstructorFromValues,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
@@ -53,6 +51,7 @@ import {
   declaredIndexesServeForeignKey,
 } from '@internal/sql-contract/foreign-key-materialization';
 import { type AuthoredIndexInput, lowerAuthoredIndex } from '@internal/sql-contract/index-naming';
+import { storedSqlText } from '@internal/sql-contract/sql-expression';
 import type { SqlNamespaceBase, SqlNamespaceInput } from '@internal/sql-contract/types';
 import { deriveValueSetFromEntity } from '@internal/sql-contract/value-set-derivation-hook';
 import {
@@ -990,25 +989,6 @@ type Prisma7FieldType =
       readonly values: readonly unknown[];
     };
 
-/** The column a constructor makes from the values of its arguments, or why its codec's parameter schema refuses them. */
-function instantiateWithValues(
-  descriptor: AuthoringTypeConstructorDescriptor,
-  values: readonly unknown[],
-  codecLookup: CodecLookupWithDescriptors,
-): Result<ScalarTypeConstructorOutput, string> {
-  const output = instantiateAuthoringTypeConstructor(descriptor, values);
-  const schema = codecLookup.descriptorFor(descriptor.output.codecId)?.paramsSchema;
-  if (schema === undefined) return ok(output);
-  const result = schema['~standard'].validate(output.typeParams ?? {});
-  if (result instanceof Promise) {
-    throw new InternalError(
-      `The parameter schema of codec "${descriptor.output.codecId}" is asynchronous; authoring requires a synchronous schema.`,
-    );
-  }
-  const refusal = result.issues?.[0]?.message;
-  return refusal === undefined ? ok(output) : notOk(refusal);
-}
-
 function nativeTypeMessage(label: string, nativeType: string): string {
   return `${label}: native type "@db.${nativeType}" has no Prisma 8 codec yet, and Prisma 8 cannot read this schema until it supports the column type. @ignore on the field or @@ignore on the model does not help: Prisma 8 keeps the columns of ignored fields and models in the contract. Changing the field's type to one Prisma 8 supports changes the column type on Prisma 7's next migration.`;
 }
@@ -1193,11 +1173,19 @@ function readField(args: ReadFieldArgs): void {
   const enumDeclaration = unsupported ? undefined : args.enums.get(field.typeName);
   let fieldType: Prisma7FieldType;
   if (unsupportedArgument !== undefined) {
-    fieldType = {
-      kind: 'values',
-      path: RAW_TYPE_CONSTRUCTOR,
-      values: [unsupportedArgument.text],
-    };
+    const sqlText = storedSqlText(unsupportedArgument.text);
+    if (sqlText === undefined) {
+      diagnostics.push(
+        prisma7Diagnostic(
+          'PSL.PRISMA7_UNSUPPORTED_TYPE',
+          `${label}: Unsupported(${unsupportedArgument.written.value}) is not one type name: a sql literal cannot hold it, because it has a NUL character or is too large.`,
+          sourceId,
+          unsupportedArgument.written.span,
+        ),
+      );
+      return;
+    }
+    fieldType = { kind: 'values', path: RAW_TYPE_CONSTRUCTOR, values: [sqlText] };
   } else if (enumDeclaration !== undefined) {
     if (enumDeclaration.namespaceId !== model.namespaceId) {
       diagnostics.push(
@@ -1292,16 +1280,16 @@ function readField(args: ReadFieldArgs): void {
     });
     diagnostics.push(...typeDiagnostics.toExternal());
   } else {
-    const instantiated = instantiateWithValues(
+    const instantiated = instantiateAuthoringTypeConstructorFromValues(
       typeConstructor,
       fieldType.values,
-      input.codecLookup,
+      input.codecLookup.descriptorFor(typeConstructor.output.codecId)?.paramsSchema,
     );
     if (!instantiated.ok && unsupportedArgument !== undefined) {
       diagnostics.push(
         prisma7Diagnostic(
           'PSL.PRISMA7_UNSUPPORTED_TYPE',
-          `${label}: Unsupported(${unsupportedArgument.written.value}) is not one type name: ${instantiated.failure}`,
+          `${label}: Unsupported(${unsupportedArgument.written.value}) is not one type name: ${instantiated.failure.message}`,
           sourceId,
           unsupportedArgument.written.span,
         ),
@@ -1310,7 +1298,7 @@ function readField(args: ReadFieldArgs): void {
     }
     if (!instantiated.ok) {
       throw new InternalError(
-        `The Prisma 7 target binding maps ${label} to constructor "${fieldType.path.join('.')}" with arguments its codec refuses: ${instantiated.failure}`,
+        `The Prisma 7 target binding maps ${label} to constructor "${fieldType.path.join('.')}" with arguments its codec refuses: ${instantiated.failure.message}`,
       );
     }
     resolved = { ok: true, descriptor: instantiated.value };
