@@ -387,6 +387,17 @@ function readPslHelperArgument(
   }
 
   const { expression } = argument;
+  if (expression === undefined && argument.node !== undefined) {
+    pushInvalidPslHelperArgument({
+      diagnostics: input.diagnostics,
+      source: input.source,
+      span: argument.span,
+      entityLabel: input.entityLabel,
+      helperLabel: input.helperLabel,
+      message: `${argumentLabel} has no value.`,
+    });
+    return INVALID_AUTHORING_ARGUMENT;
+  }
   if (expression === undefined) {
     throw new InternalError(
       `${input.entityLabel} ${input.helperLabel} received ${argumentLabel} with no expression. A value argument is read from the expression a schema writes; a reader that builds a call must pass the arguments it parsed, or instantiate the constructor with values.`,

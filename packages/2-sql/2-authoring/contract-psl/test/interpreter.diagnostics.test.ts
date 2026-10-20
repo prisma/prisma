@@ -528,6 +528,27 @@ model InvalidNativeTypes {
     },
   );
 
+  it.each(['VarChar(length: )', 'VarChar(length:)'])(
+    'refuses %s, a named argument with no value, at the argument',
+    (call) => {
+      const schema = `model T {\n  id Int @id\n  value ${call}\n}\n`;
+      const result = interpretSqlContract(schema, {
+        ...baseInput,
+        controlMutationDefaults: builtinControlMutationDefaults,
+      });
+      const argument = call.slice('VarChar('.length, -1);
+      expect(result.ok ? [] : result.failure.diagnostics).toEqual([
+        expect.objectContaining({
+          code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+          message: 'Field "T.value" constructor "VarChar" named argument "length" has no value.',
+          span: expect.objectContaining({
+            start: expect.objectContaining({ offset: schema.indexOf(argument) }),
+          }),
+        }),
+      ]);
+    },
+  );
+
   it('reports Timestamp(7) through the data type’s bounds, at the argument', () => {
     const schema = 'model T {\n  id Int @id\n  value Timestamp(7)\n}\n';
     const result = interpretSqlContract(schema, {

@@ -51,4 +51,14 @@ model Account {
       },
     ]);
   });
+
+  it('refuses a named argument with no value, at the argument', () => {
+    expect(diagnosticsOf('@db.VarChar(length: )')).toEqual([
+      {
+        code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+        message: 'Field "Account.name" constructor "VarChar" named argument "length" has no value.',
+        columns: [27, 34],
+      },
+    ]);
+  });
 });
