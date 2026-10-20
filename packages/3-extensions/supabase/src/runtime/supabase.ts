@@ -6,6 +6,11 @@ import type {
   AsyncIterableResult,
   RuntimeExecuteOptions,
 } from '@internal/framework-components/runtime';
+import {
+  buildPostgresTransactionQueryMembers,
+  type PostgresTransactionQueryMembers,
+  withTransactionMembers,
+} from '@internal/postgres/internal/transaction-members';
 import { validatePostgresContract } from '@internal/postgres/internal/validate-contract';
 import {
   buildNamespacedNativeEnums,
@@ -79,8 +84,16 @@ export interface RoleBoundDb<
     plan: SqlExecutionPlan | SqlQueryPlan,
     options?: RuntimeExecuteOptions,
   ): Promise<SqlStatementStats>;
-  transaction<R>(fn: (tx: TransactionContext) => PromiseLike<R>): Promise<R>;
+  transaction<R>(
+    fn: (tx: SupabaseTransactionContext<TContract, TCollections>) => PromiseLike<R>,
+  ): Promise<R>;
 }
+
+/** A transaction on a role-bound client: the Postgres transaction query members, run under the bound role. */
+export type SupabaseTransactionContext<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
+> = TransactionContext & PostgresTransactionQueryMembers<TContract, TCollections>;
 
 /**
  * Query surface for the Supabase-internal contract (`auth`, `storage`). Exposed
@@ -396,8 +409,25 @@ export default async function supabase<
       ): Promise<SqlStatementStats> {
         return runtime.executeWithRole(plan, binding, execOptions);
       },
-      transaction<R>(fn: (tx: TransactionContext) => PromiseLike<R>): Promise<R> {
-        return withTransaction({ connection: () => runtime.openRoleSession(binding) }, fn);
+      transaction<R>(
+        fn: (tx: SupabaseTransactionContext<TContract, TCollections>) => PromiseLike<R>,
+      ): Promise<R> {
+        return withTransaction({ connection: () => runtime.openRoleSession(binding) }, (txCtx) =>
+          fn(
+            withTransactionMembers(
+              txCtx,
+              buildPostgresTransactionQueryMembers<TContract, TCollections>(
+                {
+                  context,
+                  collections: options.collections,
+                  rawCodecInferer,
+                  prepareRuntime: () => runtime,
+                },
+                txCtx,
+              ),
+            ),
+          ),
+        );
       },
     };
   }
