@@ -202,9 +202,9 @@ Pass `log` (an object with `info`, `warn`, `error` and an optional `debug` metho
 ```ts
 await db.transaction(async (tx) => {
   const posts = await tx.orm.public.Post.published().forUpdate().all();
-  await tx.execute(tx.raw.sql`UPDATE post SET pinned = false WHERE id = ${posts[0]!.id}`.affectedCount().build());
+  await tx.execute(tx.raw.sql`UPDATE posts SET pinned = false WHERE id = ${posts[0]!.id}`.affectedCount().build());
   const byId = await tx.prepare({ id: 'pg/int4@1' }, (params) =>
-    tx.sql.public.post.select('id').where((f, fns) => fns.eq(f.id, params.id)).build(),
+    tx.sql.public.posts.select('id').where((f, fns) => fns.eq(f.id, params.id)).build(),
   );
   await byId.query(tx, { id: 1 });
 });
