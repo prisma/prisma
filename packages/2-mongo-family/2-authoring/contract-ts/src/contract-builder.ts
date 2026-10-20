@@ -70,6 +70,7 @@ import {
   type MongoStorageShape,
   type MongoTypeMaps,
   mongoValueSetsOf,
+  unsupportedStoredNameReason,
 } from '@internal/mongo-contract';
 import { assertMongoFieldTypeParams } from '@internal/mongo-contract/data-type';
 import type { BsonInputValue, BsonValue } from '@internal/mongo-value';
@@ -1976,6 +1977,14 @@ function buildStorageFields(
   const fieldsByStoredName = new Map<string, string>();
   for (const [fieldName, fieldBuilder] of Object.entries(fields)) {
     const storedName = storedNameOf(fieldName, fieldBuilder);
+    const unsupported = unsupportedStoredNameReason(storedName);
+    if (unsupported !== undefined) {
+      throw contractError(
+        'CONTRACT.ARGUMENT_INVALID',
+        `Model "${modelName}" field "${fieldName}" ${unsupported}. Give it another stored name.`,
+        { meta: { modelName, fieldName, reason: 'stored-name-unsupported' } },
+      );
+    }
     const existingField = fieldsByStoredName.get(storedName);
     if (existingField !== undefined) {
       throw contractError(

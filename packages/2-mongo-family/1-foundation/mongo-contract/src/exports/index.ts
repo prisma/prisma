@@ -132,6 +132,7 @@ export {
   ownStoredNameOf,
   ownStoredNamesOf,
   storedNamesOf,
+  unsupportedStoredNameReason,
   valueObjectStoredNamesOf,
 } from '../stored-names';
 export { validateMongoStorage } from '../validate-storage';

@@ -546,6 +546,22 @@ model Item {
       ]);
     });
 
+    it('refuses a field stored as __proto__', () => {
+      const result = interpret(`
+        model Item {
+          id    ObjectId @id @map("_id")
+          label String @map("__proto__")
+        }
+      `);
+      expect(result.ok ? [] : result.failure.diagnostics).toEqual([
+        expect.objectContaining({
+          code: 'PSL_STORED_NAME_UNSUPPORTED',
+          message:
+            'Field "Item.label" is stored as "__proto__", which JavaScript reads as the prototype of an object rather than as a key. Give the field another stored name with @map.',
+        }),
+      ]);
+    });
+
     it('refuses @map on a field of a composite type', () => {
       const result = interpret(`
         type Address {

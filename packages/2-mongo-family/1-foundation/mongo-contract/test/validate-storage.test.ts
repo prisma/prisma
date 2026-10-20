@@ -738,6 +738,31 @@ describe('validateMongoStorage()', () => {
       );
     });
 
+    it('rejects a field and an embed relation stored as __proto__', () => {
+      const contract = makeMinimalContract({
+        models: {
+          Item: {
+            fields: { id: objectId, label: text },
+            storage: {
+              collection: 'items',
+              fields: { id: { field: '_id' }, label: { field: '__proto__' } },
+              relations: { comments: { field: '__proto__' } },
+            },
+            relations: { comments: { to: crossRef('Comment'), cardinality: '1:N' } },
+          },
+          Comment: {
+            fields: { body: text },
+            storage: { fields: { body: { field: 'body' } } },
+            relations: {},
+            owner: 'Item',
+          },
+        },
+      });
+      expect(() => validateMongoStorage(contract)).toThrow(
+        'Contract storage validation failed:\n- Model "__unbound__:Item" field "label" is stored as "__proto__", which JavaScript reads as the prototype of an object rather than as a key\n- Model "__unbound__:Item" embed relation "comments" is stored as "__proto__", which JavaScript reads as the prototype of an object rather than as a key',
+      );
+    });
+
     it('treats a field stored as _id as the document id of the back side of a 1:1', () => {
       const contract = makeMinimalContract({
         roots: { users: crossRef('User') },

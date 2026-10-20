@@ -8,6 +8,13 @@ export const DOCUMENT_ID = '_id';
 
 type StoredNamesModel = Pick<MongoModelDefinition, 'fields' | 'storage'>;
 
+/** Why a field or embed relation cannot be stored as `storedName`, if it cannot; the subject is the field or relation. */
+export function unsupportedStoredNameReason(storedName: string): string | undefined {
+  return storedName === '__proto__'
+    ? 'is stored as "__proto__", which JavaScript reads as the prototype of an object rather than as a key'
+    : undefined;
+}
+
 /** The stored name of each of `model`'s own fields, keyed by field name. */
 export function ownStoredNamesOf(model: StoredNamesModel): Readonly<Record<string, string>> {
   const storageFields = model.storage.fields;

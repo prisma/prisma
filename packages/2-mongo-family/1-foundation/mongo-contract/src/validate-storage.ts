@@ -6,7 +6,12 @@ import type { MongoContract, MongoModelDefinition } from './contract-types';
 import { documentIdRefusalOf } from './document-id-refusal';
 import { modelAndBasesOf, mongoModelsOf } from './mongo-models';
 import { resolveMongoToOneRelationFields } from './relation-fields';
-import { ownDocumentIdFieldOf, ownEmbedStoredNamesOf, ownStoredNamesOf } from './stored-names';
+import {
+  ownDocumentIdFieldOf,
+  ownEmbedStoredNamesOf,
+  ownStoredNamesOf,
+  unsupportedStoredNameReason,
+} from './stored-names';
 import { type ValidatorShape, validatorRootShapesOf } from './validator-shapes';
 
 function bsonTypesOf(schema: object): readonly string[] {
@@ -97,6 +102,7 @@ function fieldStorageErrors(
       );
     }
   }
+  errors.push(...unsupportedStoredNameErrors(qualifiedName, model));
   if (errors.length > 0) return errors;
   const chain = [...modelAndBasesOf(models, modelName)].reverse();
   if (!chain.every(hasCompleteFieldStorage)) return errors;
@@ -117,6 +123,21 @@ function fieldStorageErrors(
     membersByStoredName.set(storedName, member);
   }
   return errors;
+}
+
+function unsupportedStoredNameErrors(qualifiedName: string, model: MongoModelDefinition): string[] {
+  const members = [
+    ...Object.entries(model.storage.fields).map(
+      ([name, { field }]) => [`field "${name}"`, field] as const,
+    ),
+    ...Object.entries(model.storage.relations ?? {}).map(
+      ([name, { field }]) => [`embed relation "${name}"`, field] as const,
+    ),
+  ];
+  return members.flatMap(([member, storedName]) => {
+    const reason = unsupportedStoredNameReason(storedName);
+    return reason === undefined ? [] : [`Model "${qualifiedName}" ${member} ${reason}`];
+  });
 }
 
 function hasCompleteFieldStorage(model: MongoModelDefinition): boolean {

@@ -46,6 +46,7 @@ import {
   mongoContractRefusalsOf,
   mongoValueSetsOf,
   ownStoredNameOf,
+  unsupportedStoredNameReason,
 } from '@internal/mongo-contract';
 import type { CollationOptions } from '@internal/mongo-value/mongodb-types';
 import type {
@@ -1610,6 +1611,15 @@ export function interpretPslDocumentToMongoContract(
       if (!resolved) continue;
 
       const mappedName = physicalName(physicalNames, field);
+      const unsupported = unsupportedStoredNameReason(mappedName);
+      if (unsupported !== undefined) {
+        diagnostics.push({
+          code: 'PSL_STORED_NAME_UNSUPPORTED',
+          message: `Field "${pslModel.name}.${field.name}" ${unsupported}. Give the field another stored name with @map.`,
+          ...diagnosticSource(sources, field.node.syntax).at(field.span),
+        });
+        continue;
+      }
       const sharingField = fieldsByStoredName.get(mappedName);
       if (sharingField !== undefined) {
         diagnostics.push({

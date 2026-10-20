@@ -124,6 +124,24 @@ describe('stored names in the Mongo contract builder', () => {
     );
   });
 
+  it('refuses a field stored as __proto__', () => {
+    const User = model('User', {
+      collection: 'users',
+      fields: {
+        id: field.objectId().mongo({ field: '_id' }),
+        label: field.string().mongo({ field: '__proto__' }),
+      },
+    });
+    expect(() => build({ User })).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.ARGUMENT_INVALID',
+        message:
+          'Model "User" field "label" is stored as "__proto__", which JavaScript reads as the prototype of an object rather than as a key. Give it another stored name.',
+        meta: { modelName: 'User', fieldName: 'label', reason: 'stored-name-unsupported' },
+      }),
+    );
+  });
+
   it('refuses a stored name on a field of a value object', () => {
     const Address = valueObject('Address', {
       fields: { street: field.string().mongo({ field: 'st' }) },
