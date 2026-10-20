@@ -40,9 +40,9 @@ On Postgres, a parameter of a data type that declares `nameIsCatalogText` is sen
 
 ### Verify and migrations
 
-DDL already renders a column's type through its data type, so a raw column's DDL is its `sql` text. Verify compares a raw column's text with the type the database reports (the catalog's text, with no schema for a base type, as introspection's reported type gives it). It must not compare through the alias table that rewrites `integer` to `int4`: `Raw("integer")` verifies and `Raw("int4")` does not, as ADR 273 says.
+DDL already renders a column's type through its data type, so a raw column's DDL is its `sql` text. Verify compares a raw column's text with the type the database reports (the catalog's text, with no schema for a base type, as introspection's reported type gives it). It must not compare by data type, as other columns do, since `sql/raw` claims no reported type: the contract-derived column carries its text as `catalogText`, and `sqlColumnTypesEqual` compares that text with the reported text exactly. `Raw("integer")` verifies and `Raw("int4")` does not, as ADR 273 says.
 
-A change from one raw text to another plans `ALTER COLUMN ... TYPE`. The planner writes the call with `raw: true`, and `alterTypeCheckText` checks a type so marked as written, after the raw text check, instead of reading it back through `resolveWrittenSqlTypes`, which no data type reads; any other type is still read through the data types, so a misspelt type stays an error. Without a cast between the two types, Postgres refuses the alter; `--convert` is the answer, as for any lossy type change.
+A change from one raw text to another plans `ALTER COLUMN ... TYPE`. The planner writes the call with `raw: true`, and `alterTypeCheck` checks a type so marked by its text as written (a `catalog-text` check), after the raw text check, instead of reading it back through `resolveWrittenSqlTypes`, which no data type reads; any other type is still read through the data types, so a misspelt type stays an error. Without a cast between the two types, Postgres refuses the alter; `--convert` is the answer, as for any lossy type change.
 
 ### `contract print`
 
