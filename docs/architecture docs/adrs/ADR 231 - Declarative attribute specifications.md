@@ -228,7 +228,7 @@ This trade-off keeps the leaf contract small and allows backtracking, at the cos
 
 ### Typed function calls
 
-`funcCall(name, signature, { label })` matches one unqualified function name and parses its positional and named arguments through the same parameter-binding engine used by attributes. `label` is the phrase its binding diagnostics use; default functions use `Default function "<name>"`, where attributes say `Attribute "<name>"`:
+`funcCall(name, signature, { label })` matches one unqualified function name and parses its positional and named arguments through the same parameter-binding engine used by attributes. `label` is the phrase its binding diagnostics use; default functions use `Default function "<name>"` and generator functions `Generator function "<name>"`, where attributes say `Attribute "<name>"`:
 
 ```ts
 interface FuncCallSig {
@@ -258,7 +258,7 @@ A spec may be assembled from context known by the owning family before interpret
 
 SQL constructs `@default` specs per field. Scalar fields accept flexible string, number, and boolean literals plus one arm for every active default-function registry entry, built by `defaultFunctionCall(name, entry, dataTypes)`. List fields accept a list of those scalar literals plus the registry calls. Enum fields use one pinned `identifier(member)` arm per enum member.
 
-A registry entry's signature is either a `FuncCallSig` or a function from the stack's data types to one, because a component writes its registry before a stack exists and an argument that is a `dataTypeValue` needs the stack's types. `defaultFunctionCall` builds the arm from either form:
+A registry entry's signature is either a `FuncCallSig` or a function from the stack's data types to one, because a component writes its registry before a stack exists and an argument that is a `dataTypeValue` needs the stack's types. Generator functions' signatures ([ADR 275](ADR%20275%20-%20Client%20generators%20are%20field%20attributes%2C%20and%20a%20type%20alias%20is%20expanded%20into%20each%20column.md)) take the same two forms, built with `generatorFunctionCall`. `defaultFunctionCall` builds the arm from either form:
 
 ```ts
 const functionArms = registryEntries.map(([name, entry]) =>
