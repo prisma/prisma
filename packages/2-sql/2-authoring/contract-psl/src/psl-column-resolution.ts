@@ -952,6 +952,11 @@ export function lowerDefaultForField(input: {
       `Field "${input.modelName}.${input.fieldName}": no codec descriptor is registered for "${input.columnDescriptor.codecId}", but the column was resolved from one.`,
     );
   }
+  if (generatorDescriptor.writesText === true && input.textDataTypes.length === 0) {
+    throw new InternalError(
+      'The stack names no text data types, so no generator that writes text can apply; the target names its text types in its authoring contributions.',
+    );
+  }
   const applies =
     (generatorDescriptor.applicableDataTypes?.includes(descriptor.dataType) ?? false) ||
     (generatorDescriptor.writesText === true && input.textDataTypes.includes(descriptor.dataType));

@@ -330,6 +330,43 @@ describe('composed mutation default registries', () => {
     );
   });
 
+  it('throws an internal error when a text-writing generator is checked and the stack names no text data types', () => {
+    expect(() =>
+      interpretPostgresSchema(
+        `model User {
+  id   Int    @id
+  slug String @default(slugid())
+}
+`,
+        {
+          authoringContributions: { textDataTypes: [] },
+          controlMutationDefaults: {
+            defaultFunctionRegistry: new Map([
+              [
+                'slugid',
+                {
+                  signature: { documentation: 'Generates a slug identifier.' },
+                  lower: () => ({
+                    ok: true as const,
+                    value: {
+                      kind: 'execution' as const,
+                      generated: { kind: 'generator' as const, id: 'slugid' },
+                    },
+                  }),
+                },
+              ],
+            ]),
+            generatorDescriptors: [{ id: 'slugid', writesText: true }],
+          },
+        },
+      ),
+    ).toThrow(
+      new InternalError(
+        'The stack names no text data types, so no generator that writes text can apply; the target names its text types in its authoring contributions.',
+      ),
+    );
+  });
+
   it('emits applicability diagnostics for incompatible generator codec ids', () => {
     const result = interpretPostgresSchema(
       `model User {
