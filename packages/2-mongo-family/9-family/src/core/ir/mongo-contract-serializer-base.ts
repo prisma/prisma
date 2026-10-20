@@ -9,6 +9,7 @@ import {
   createMongoContractSchema,
   type MongoContract,
   MongoContractSchema,
+  type MongoModelDefinition,
   type MongoNamespaceEntries,
   resolveMongoToOneRelationFields,
   validateMongoStorage,
@@ -48,7 +49,13 @@ import { type as arktypeType, type Type } from 'arktype';
  */
 function withMongoToOneRelationNullability(contract: MongoContract): MongoContract {
   const domain = withDerivedToOneRelationNullability(contract.domain, ({ model, relation }) => {
-    const { ownsForeignKey, fields } = resolveMongoToOneRelationFields(model, relation);
+    const { ownsForeignKey, fields } = resolveMongoToOneRelationFields(
+      blindCast<
+        MongoModelDefinition,
+        'the contract schema validated every model of a MongoDB contract'
+      >(model),
+      relation,
+    );
     return {
       ownsReference: ownsForeignKey,
       localFieldNullability: fields.map((field) => field.nullable),

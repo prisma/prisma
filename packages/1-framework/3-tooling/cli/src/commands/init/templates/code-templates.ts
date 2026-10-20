@@ -165,7 +165,7 @@ export const contract = defineContract(
       User: model('User', {
         collection: 'users',
         fields: {
-          _id: field.objectId(),
+          id: field.objectId().mongo({ field: '_id' }),
           email: field.string(),
           username: field.string().optional(),
           name: field.string().optional(),
@@ -275,26 +275,26 @@ export const contract = defineContract(
       User: model('User', {
         collection: 'users',
         fields: {
-          _id: field.objectId(),
+          id: field.objectId().mongo({ field: '_id' }),
           email: field.string(),
           username: field.string().optional(),
           name: field.string().optional(),
         },
         relations: {
-          posts: rel.hasMany('Post', { from: '_id', to: 'authorId' }),
+          posts: rel.hasMany('Post', { from: 'id', to: 'authorId' }),
         },
       }),
 
       Post: model('Post', {
         collection: 'posts',
         fields: {
-          _id: field.objectId(),
+          id: field.objectId().mongo({ field: '_id' }),
           title: field.string(),
           content: field.string().optional(),
           authorId: field.objectId(),
         },
         relations: {
-          author: rel.belongsTo('User', { from: 'authorId', to: '_id' }),
+          author: rel.belongsTo('User', { from: 'authorId', to: 'id' }),
         },
       }),
     },

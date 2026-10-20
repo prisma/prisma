@@ -19,13 +19,6 @@
         "models": {
           "CommentOptional": {
             "fields": {
-              "_id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "mongo/objectId@1",
-                  "kind": "scalar"
-                }
-              },
               "content": {
                 "nullable": true,
                 "type": {
@@ -39,22 +32,33 @@
                   "codecId": "mongo/string@1",
                   "kind": "scalar"
                 }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
+                  "kind": "scalar"
+                }
               }
             },
             "relations": {},
             "storage": {
-              "collection": "comments_optional"
+              "collection": "comments_optional",
+              "fields": {
+                "content": {
+                  "field": "content"
+                },
+                "country": {
+                  "field": "country"
+                },
+                "id": {
+                  "field": "_id"
+                }
+              }
             }
           },
           "CommentRequired": {
             "fields": {
-              "_id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "mongo/objectId@1",
-                  "kind": "scalar"
-                }
-              },
               "content": {
                 "nullable": false,
                 "type": {
@@ -68,11 +72,29 @@
                   "codecId": "mongo/string@1",
                   "kind": "scalar"
                 }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
+                  "kind": "scalar"
+                }
               }
             },
             "relations": {},
             "storage": {
-              "collection": "comments_required"
+              "collection": "comments_required",
+              "fields": {
+                "content": {
+                  "field": "content"
+                },
+                "country": {
+                  "field": "country"
+                },
+                "id": {
+                  "field": "_id"
+                }
+              }
             }
           }
         },

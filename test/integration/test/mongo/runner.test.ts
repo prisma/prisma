@@ -78,7 +78,10 @@ function buildAppContract(): MongoContract {
             },
           },
           relations: {},
-          storage: { collection: 'users' },
+          storage: {
+            collection: 'users',
+            fields: { _id: { field: '_id' }, email: { field: 'email' } },
+          },
         },
         Post: {
           fields: {
@@ -94,7 +97,10 @@ function buildAppContract(): MongoContract {
             },
           },
           relations: {},
-          storage: { collection: 'posts' },
+          storage: {
+            collection: 'posts',
+            fields: { _id: { field: '_id' }, slug: { field: 'slug' } },
+          },
         },
       },
     }),
@@ -167,7 +173,10 @@ function buildAppContractMissingPosts(): MongoContract {
             },
           },
           relations: {},
-          storage: { collection: 'users' },
+          storage: {
+            collection: 'users',
+            fields: { _id: { field: '_id' }, email: { field: 'email' } },
+          },
         },
       },
     }),

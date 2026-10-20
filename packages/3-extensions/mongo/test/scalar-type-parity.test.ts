@@ -105,7 +105,7 @@ describe('mongo scalar types derived from the unified namespace', () => {
     ]);
   });
 
-  it('resolves ObjectId fields (incl. the mandated _id) through the derived map', () => {
+  it('resolves ObjectId fields (incl. the one stored as _id) through the derived map', () => {
     const result = emit();
 
     expect(result.ok).toBe(true);
@@ -117,9 +117,10 @@ describe('mongo scalar types derived from the unified namespace', () => {
             models: {
               sample: {
                 fields: {
-                  _id: { type: { kind: 'scalar', codecId: 'mongo/objectId@1' } },
+                  id: { type: { kind: 'scalar', codecId: 'mongo/objectId@1' } },
                   parentRef: { type: { kind: 'scalar', codecId: 'mongo/objectId@1' } },
                 },
+                storage: { fields: { id: { field: '_id' } } },
               },
             },
           },

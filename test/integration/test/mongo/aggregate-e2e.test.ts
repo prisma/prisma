@@ -90,7 +90,10 @@ function buildAppContract(): MongoContract {
             },
           },
           relations: {},
-          storage: { collection: 'users' },
+          storage: {
+            collection: 'users',
+            fields: { _id: { field: '_id' }, email: { field: 'email' } },
+          },
         },
       },
     }),

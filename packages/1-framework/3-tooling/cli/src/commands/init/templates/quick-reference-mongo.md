@@ -22,7 +22,7 @@ const user = await db.orm.users
   .first();
 
 // Your editor will show the type of user as
-// { _id: ObjectId; email: string; username: string | null; name: string | null; posts: Post[] } | null
+// { id: ObjectId; email: string; username: string | null; name: string | null; posts: Post[] } | null
 ```
 
 `db` connects to MongoDB lazily on the first query, so there is no manual `connect(...)` step in your application code. Call `await db.close()` if you need to release the underlying connection (typically only in tests or short-lived scripts). After `close()` the client is single-shot — any further query, `connect()`, or `runtime()` call rejects with `"Mongo client is closed"`. Construct a new `mongo({...})` if you need to use it again.

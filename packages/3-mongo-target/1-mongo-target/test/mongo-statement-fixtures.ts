@@ -24,6 +24,10 @@ export const NS = asNamespaceId('__unbound__');
 export interface ModelSpec {
   readonly collection: string;
   readonly fields: readonly string[];
+  /** The stored name of each field stored under a name other than its own. */
+  readonly storedAs?: Readonly<Record<string, string>>;
+  /** The stored name of each embed relation, keyed by relation name. */
+  readonly embeds?: Readonly<Record<string, string>>;
   readonly relations?: readonly string[];
   readonly base?: string;
   readonly discriminator?: string;
@@ -81,8 +85,8 @@ export function contract(
               name,
               {
                 fields: Object.fromEntries(spec.fields.map((field) => [field, {}])),
-                relations: Object.fromEntries(
-                  (spec.relations ?? []).map((relation) => [
+                relations: Object.fromEntries([
+                  ...(spec.relations ?? []).map((relation) => [
                     relation,
                     {
                       to: { model: 'Other', namespace: '__unbound__' },
@@ -90,8 +94,27 @@ export function contract(
                       on: { localFields: ['otherId'], targetFields: ['_id'] },
                     },
                   ]),
-                ),
-                storage: { collection: spec.collection },
+                  ...Object.keys(spec.embeds ?? {}).map((relation) => [
+                    relation,
+                    { to: { model: 'Embedded', namespace: '__unbound__' }, cardinality: '1:N' },
+                  ]),
+                ]),
+                storage: {
+                  collection: spec.collection,
+                  fields: Object.fromEntries(
+                    spec.fields.map((field) => [field, { field: spec.storedAs?.[field] ?? field }]),
+                  ),
+                  ...(spec.embeds === undefined
+                    ? {}
+                    : {
+                        relations: Object.fromEntries(
+                          Object.entries(spec.embeds).map(([relation, field]) => [
+                            relation,
+                            { field },
+                          ]),
+                        ),
+                      }),
+                },
                 ...(spec.base === undefined
                   ? {}
                   : { base: { namespace: '__unbound__', model: spec.base } }),

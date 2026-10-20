@@ -15,24 +15,32 @@
         "models": {
           "users": {
             "fields": {
-              "_id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "mongo/objectId@1",
-                  "kind": "scalar"
-                }
-              },
               "firstName": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
                   "kind": "scalar"
                 }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
+                  "kind": "scalar"
+                }
               }
             },
             "relations": {},
             "storage": {
-              "collection": "users"
+              "collection": "users",
+              "fields": {
+                "firstName": {
+                  "field": "firstName"
+                },
+                "id": {
+                  "field": "_id"
+                }
+              }
             }
           }
         }

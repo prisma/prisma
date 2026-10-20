@@ -23,7 +23,7 @@ function withComposites(fn: Parameters<typeof withMongoPort<Contract>>[1]) {
 }
 
 const dataB = (id: string) => ({
-  _id: id,
+  id,
   country: 'France',
   contents: [
     {
@@ -58,7 +58,7 @@ describe('ports/prisma/functional/composites/list/update', () => {
   it(
     'set',
     run(async () => {
-      const comment = await db.comment_required_list.where({ _id: id }).update({
+      const comment = await db.comment_required_list.where({ id }).update({
         country: 'Mars',
         contents: [
           {
@@ -77,7 +77,7 @@ describe('ports/prisma/functional/composites/list/update', () => {
           },
         ],
       });
-      expect(comment?._id).toEqual(expect.any(String));
+      expect(comment?.id).toEqual(expect.any(String));
     }),
     timeouts.spinUpMongoMemoryServer,
   );
@@ -86,7 +86,7 @@ describe('ports/prisma/functional/composites/list/update', () => {
     'set null',
     run(async () => {
       // @ts-expect-error required `contents` list cannot be null
-      const promise = db.comment_required_list.where({ _id: id }).update({
+      const promise = db.comment_required_list.where({ id }).update({
         country: 'France',
         contents: null,
       });
@@ -98,7 +98,7 @@ describe('ports/prisma/functional/composites/list/update', () => {
   it(
     'set nested list',
     run(async () => {
-      const comment = await db.comment_required_list.where({ _id: id }).update({
+      const comment = await db.comment_required_list.where({ id }).update({
         country: 'Mars',
         contents: [
           {
@@ -123,7 +123,7 @@ describe('ports/prisma/functional/composites/list/update', () => {
           },
         ],
       });
-      expect(comment?._id).toEqual(expect.any(String));
+      expect(comment?.id).toEqual(expect.any(String));
     }),
     timeouts.spinUpMongoMemoryServer,
   );
@@ -132,7 +132,7 @@ describe('ports/prisma/functional/composites/list/update', () => {
     'push',
     run(async () => {
       const comment = await db.comment_required_list
-        .where({ _id: id })
+        .where({ id })
         .update((u) => [u.contents.push({ text: 'Goodbye World', upvotes: [] })]);
 
       expect(comment).toMatchObject({
@@ -144,7 +144,7 @@ describe('ports/prisma/functional/composites/list/update', () => {
           { text: 'Goodbye World', upvotes: [] },
         ],
       });
-      expect(comment?._id).toEqual(expect.any(String));
+      expect(comment?.id).toEqual(expect.any(String));
     }),
     timeouts.spinUpMongoMemoryServer,
   );

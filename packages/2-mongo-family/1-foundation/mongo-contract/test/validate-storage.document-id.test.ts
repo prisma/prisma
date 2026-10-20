@@ -62,7 +62,11 @@ function contractWith(
   };
 }
 
-const item: MongoModelDefinition = { fields: {}, storage: { collection: 'items' }, relations: {} };
+const item: MongoModelDefinition = {
+  fields: {},
+  storage: { fields: {}, collection: 'items' },
+  relations: {},
+};
 
 describe('validateMongoStorage() and the rules every MongoDB contract source follows', () => {
   it('accepts a collection without a validator, as a Prisma 6 contract has', () => {
@@ -105,12 +109,48 @@ describe('validateMongoStorage() and the rules every MongoDB contract source fol
       fields: {
         _id: { type: { kind: 'scalar', codecId: 'mongo/bson@1' }, nullable: false, many: false },
       },
+      storage: { collection: 'items', fields: { _id: { field: '_id' } } },
     };
     expect(() =>
       validateMongoStorage(
         contractWith({ Item: withId }, { ...objectIdSchema, properties: { _id: {} } }),
       ),
     ).toThrow(`Model "Item" field "_id" ${documentIdRefusalReason('mongo/bson@1', [])}`);
+  });
+
+  it('reports a field without a storage entry, not an internal error, when a validator is present', () => {
+    const withId: MongoModelDefinition = {
+      ...item,
+      fields: {
+        _id: {
+          type: { kind: 'scalar', codecId: 'mongo/objectId@1' },
+          nullable: false,
+          many: false,
+        },
+      },
+    };
+    expect(() => validateMongoStorage(contractWith({ Item: withId }, objectIdSchema))).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.VALIDATION_FAILED',
+        message:
+          'Contract storage validation failed:\n- Model "__unbound__:Item" field "_id" has no entry in storage.fields',
+      }),
+    );
+  });
+
+  it('names the field stored as _id by its own name', () => {
+    const withId: MongoModelDefinition = {
+      ...item,
+      fields: {
+        id: { type: { kind: 'scalar', codecId: 'mongo/bson@1' }, nullable: false, many: false },
+      },
+      storage: { collection: 'items', fields: { id: { field: '_id' } } },
+    };
+    expect(() =>
+      validateMongoStorage(
+        contractWith({ Item: withId }, { ...objectIdSchema, properties: { _id: {} } }),
+      ),
+    ).toThrow(`Model "Item" field "id" ${documentIdRefusalReason('mongo/bson@1', [])}`);
   });
 
   it.each([
@@ -123,6 +163,7 @@ describe('validateMongoStorage() and the rules every MongoDB contract source fol
       const withId: MongoModelDefinition = {
         ...item,
         fields: { _id: { type: { kind: 'scalar', codecId }, nullable: false, many: false } },
+        storage: { collection: 'items', fields: { _id: { field: '_id' } } },
       };
       expect(() =>
         validateMongoStorage(
@@ -140,13 +181,13 @@ describe('validateMongoStorage() and the rules every MongoDB contract source fol
             Item: { ...item, relations: { task: { to: ref('Task'), cardinality: '1:1' } } },
             Task: {
               fields: {},
-              storage: {},
+              storage: { fields: {} },
               relations: {},
               owner: 'Item',
               discriminator: { field: 'type' },
               variants: { bug: ref('Bug') },
             },
-            Bug: { fields: {}, storage: {}, relations: {}, base: ref('Task') },
+            Bug: { fields: {}, storage: { fields: {} }, relations: {}, base: ref('Task') },
           },
           undefined,
         ),

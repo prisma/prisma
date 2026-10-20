@@ -47,6 +47,8 @@ import {
   type MongoIndexKeyDirection,
   mongoContractRefusalsOf,
   mongoValueSetsOf,
+  ownStoredNameOf,
+  unsupportedStoredNameReason,
 } from '@internal/mongo-contract';
 import type { CollationOptions } from '@internal/mongo-value/mongodb-types';
 import type {
@@ -311,7 +313,10 @@ function physicalName(
 interface MongoModelEntry {
   readonly fields: Record<string, ContractField>;
   readonly relations: Record<string, ContractReferenceRelation>;
-  readonly storage: { readonly collection: string };
+  readonly storage: {
+    readonly collection: string;
+    readonly fields: Readonly<Record<string, { readonly field: string }>>;
+  };
   readonly discriminator?: { readonly field: string };
   readonly variants?: Record<string, CrossReference>;
   readonly base?: CrossReference;
@@ -462,12 +467,7 @@ function resolvePolymorphism(input: {
     const model = patched[modelName];
     if (!model) continue;
 
-    const mappedDiscriminatorField = physicalName(
-      physicalNames,
-      declaration.fields[decl.fieldName],
-    );
-
-    if (!Object.hasOwn(model.fields, mappedDiscriminatorField)) {
+    if (!Object.hasOwn(model.fields, decl.fieldName)) {
       diagnostics.push({
         code: 'PSL_DISCRIMINATOR_FIELD_NOT_FOUND',
         message: `Discriminator field "${decl.fieldName}" is not a field on model "${modelName}"`,
@@ -502,7 +502,7 @@ function resolvePolymorphism(input: {
 
     patched = {
       ...patched,
-      [modelName]: { ...model, discriminator: { field: mappedDiscriminatorField }, variants },
+      [modelName]: { ...model, discriminator: { field: decl.fieldName }, variants },
     };
   }
 
@@ -542,7 +542,7 @@ function resolvePolymorphism(input: {
         [variantName]: {
           ...variantModel,
           base: crossRef(baseName, input.namespaceId),
-          storage: { collection: baseCollection },
+          storage: { ...variantModel.storage, collection: baseCollection },
         },
       };
     }
@@ -562,7 +562,11 @@ function resolvePolymorphism(input: {
     const baseColl = collections[baseCollection];
 
     const baseModelEntry = patched[baseName];
-    const discriminatorField = baseModelEntry?.discriminator?.field;
+    const discriminatorDomainField = baseModelEntry?.discriminator?.field;
+    const discriminatorField =
+      baseModelEntry === undefined || discriminatorDomainField === undefined
+        ? undefined
+        : ownStoredNameOf(baseModelEntry, discriminatorDomainField);
     const scopedVariantIndexes: MongoIndex[] = [];
     if (discriminatorField) {
       for (const idx of variantOwnIndexes) {
@@ -1624,6 +1628,8 @@ export function interpretPslDocumentToMongoContract(
     const specContext = specContextFor(pslModel);
 
     const fields: Record<string, ContractField> = {};
+    const storageFields: Record<string, { readonly field: string }> = {};
+    const fieldsByStoredName = new Map<string, string>();
     const relations: Record<string, ContractReferenceRelation> = {};
 
     for (const field of Object.values(pslModel.fields)) {
@@ -1678,20 +1684,14 @@ export function interpretPslDocumentToMongoContract(
             continue;
           }
           if (!physicalNames.has(target)) continue;
-          const localMapped = relation.fields.map((name) =>
-            physicalName(physicalNames, pslModel.fields[name]),
-          );
-          const targetMapped = relation.references.map((name) =>
-            physicalName(physicalNames, target.fields[name]),
-          );
 
           relations[field.name] = {
             to: crossRef(target.name, defaultNamespace.id),
             cardinality: 'N:1' as const,
             nullable: field.optional,
             on: {
-              localFields: localMapped,
-              targetFields: targetMapped,
+              localFields: relation.fields,
+              targetFields: relation.references,
             },
           };
 
@@ -1699,8 +1699,8 @@ export function interpretPslDocumentToMongoContract(
             declaringModel: pslModel.name,
             targetModel: target.name,
             ...ifDefined('relationName', relation.name),
-            localFields: localMapped,
-            targetFields: targetMapped,
+            localFields: relation.fields,
+            targetFields: relation.references,
           });
         }
         continue;
@@ -1717,8 +1717,28 @@ export function interpretPslDocumentToMongoContract(
       if (!resolved) continue;
 
       const mappedName = physicalName(physicalNames, field);
-      fields[mappedName] = resolved.field;
-      fieldSymbols.set(fieldKey(pslModel.name, mappedName), field);
+      const unsupported = unsupportedStoredNameReason(mappedName);
+      if (unsupported !== undefined) {
+        diagnostics.push({
+          code: 'PSL_STORED_NAME_UNSUPPORTED',
+          message: `Field "${pslModel.name}.${field.name}" ${unsupported}. Give the field another stored name with @map.`,
+          ...diagnosticSource(sources, field.node.syntax).at(field.span),
+        });
+        continue;
+      }
+      const sharingField = fieldsByStoredName.get(mappedName);
+      if (sharingField !== undefined) {
+        diagnostics.push({
+          code: 'PSL_DUPLICATE_STORED_NAME',
+          message: `Fields "${pslModel.name}.${sharingField}" and "${pslModel.name}.${field.name}" are both stored as "${mappedName}". Give each field its own stored name with @map.`,
+          ...diagnosticSource(sources, field.node.syntax).at(field.span),
+        });
+        continue;
+      }
+      fieldsByStoredName.set(mappedName, field.name);
+      fields[field.name] = resolved.field;
+      storageFields[field.name] = { field: mappedName };
+      fieldSymbols.set(fieldKey(pslModel.name, field.name), field);
       const generated = lowerGeneratorAttributes({
         field,
         model: pslModel,
@@ -1790,7 +1810,11 @@ export function interpretPslDocumentToMongoContract(
       });
     }
 
-    models[pslModel.name] = { fields, relations, storage: { collection: collectionName } };
+    models[pslModel.name] = {
+      fields,
+      relations,
+      storage: { collection: collectionName, fields: storageFields },
+    };
     const modelIndexes = collectIndexes(
       pslModel,
       specContext,
@@ -1816,6 +1840,16 @@ export function interpretPslDocumentToMongoContract(
   for (const compositeType of allCompositeTypes) {
     const fields: Record<string, ContractField> = {};
     for (const field of Object.values(compositeType.fields)) {
+      const fieldMap = field.attributes.find((attr) => attr.name === 'map');
+      if (fieldMap !== undefined) {
+        diagnostics.push({
+          code: 'PSL_MONGO_TYPE_FIELD_MAP_UNSUPPORTED',
+          message: `Field "${compositeType.name}.${field.name}" has @map, but a field of a composite type is stored under its own name. Remove @map, or rename the field to the name it is stored under.`,
+          ...diagnosticSource(sources, fieldMap.node.syntax).at(
+            nodePslSpan(fieldMap.node.syntax, sources),
+          ),
+        });
+      }
       const resolved = resolveNonRelationField(
         field,
         { name: compositeType.name, kind: 'compositeType' },
