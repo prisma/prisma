@@ -5,6 +5,7 @@ import type {
   TypedDefaultFunctionCall,
 } from '@internal/framework-components/control';
 import { dataTypeValue, type FuncCallSig, leafDiagnostic, refineArg } from '@internal/psl-parser';
+import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok } from '@internal/utils/result';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
@@ -277,6 +278,56 @@ describe('composed mutation default registries', () => {
         onCreate: { kind: 'generator', id: 'slugid' },
       },
     ]);
+  });
+
+  it('throws an internal error when the column was resolved from a codec no descriptor is registered for', () => {
+    const codecLookup = {
+      ...fixtureInterpreterTypes.codecLookup,
+      descriptorFor: (codecId: string) =>
+        codecId === 'pg/text@1'
+          ? undefined
+          : fixtureInterpreterTypes.codecLookup.descriptorFor(codecId),
+    };
+    expect(() =>
+      interpretSqlContract(
+        `model User {
+  id Int @id
+  slug String @default(slugid())
+}
+`,
+        {
+          target: postgresTarget,
+          scalarColumnDescriptors: postgresScalarTypeDescriptors,
+          composedExtensionContracts: new Map(),
+          createNamespace: createTestSqlNamespace,
+          ...fixtureInterpreterTypes,
+          codecLookup,
+          capabilities: { sql: { scalarList: true } },
+          controlMutationDefaults: {
+            defaultFunctionRegistry: new Map([
+              [
+                'slugid',
+                {
+                  signature: { documentation: 'Generates a slug identifier.' },
+                  lower: () => ({
+                    ok: true as const,
+                    value: {
+                      kind: 'execution' as const,
+                      generated: { kind: 'generator' as const, id: 'slugid' },
+                    },
+                  }),
+                },
+              ],
+            ]),
+            generatorDescriptors: [{ id: 'slugid', applicableDataTypes: [dataTypeId('pg/text')] }],
+          },
+        },
+      ),
+    ).toThrow(
+      new InternalError(
+        'Field "User.slug": no codec descriptor is registered for "pg/text@1", but the column was resolved from one.',
+      ),
+    );
   });
 
   it('emits applicability diagnostics for incompatible generator codec ids', () => {

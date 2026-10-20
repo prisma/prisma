@@ -928,11 +928,16 @@ export function lowerDefaultForField(input: {
     return {};
   }
 
-  const dataType = input.codecLookup.descriptorFor(input.columnDescriptor.codecId)?.dataType;
-  if (dataType === undefined || !generatorDescriptor.applicableDataTypes.includes(dataType)) {
+  const descriptor = input.codecLookup.descriptorFor(input.columnDescriptor.codecId);
+  if (descriptor === undefined) {
+    throw new InternalError(
+      `Field "${input.modelName}.${input.fieldName}": no codec descriptor is registered for "${input.columnDescriptor.codecId}", but the column was resolved from one.`,
+    );
+  }
+  if (!generatorDescriptor.applicableDataTypes.includes(descriptor.dataType)) {
     input.diagnostics.push({
       code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
-      message: `Default generator "${generatorDescriptor.id}" is not applicable to "${input.modelName}.${input.fieldName}" with ${dataType === undefined ? `codec "${input.columnDescriptor.codecId}"` : `data type "${dataType}"`}.`,
+      message: `Default generator "${generatorDescriptor.id}" is not applicable to "${input.modelName}.${input.fieldName}" with data type "${descriptor.dataType}".`,
       ...source.at(call.span),
     });
     return {};
