@@ -62,13 +62,15 @@ A change from one raw text to another plans `ALTER COLUMN ... TYPE`. The `alterC
 
 ## The Prisma 7 reader
 
-This section records the design of the reader's part, which arrives in a later change. Until it does, the Prisma 7 reader does not read `Unsupported(...)` fields as raw columns.
-
 The reader (ADR 252) turns `Unsupported("X")` into a raw column with `sql: "X"`, and gives the model no field for it. Prisma 7's generated client leaves such a field out of the model's rows and inputs, and leaves out `create`, `createMany` and `upsert` when the field is required and has no default. So the Prisma 8 ORM shows the model with the shape the Prisma 7 client had.
 
 The reader reads `Unsupported` as written. It does not substitute a data type an extension pack provides, even where one claims the text, as pgvector claims `vector(1536)`. Moving such a column to its real type is a choice the author makes when converting to a Prisma 8 schema.
 
-Prisma 7 accepts only `@default(dbgenerated("..."))` on an `Unsupported` field. The reader already lowers it to a `sql` expression default, so a raw column read from Prisma 7 needs nothing more.
+The reader reads `Unsupported("X")` as the SQL family's `Raw("X")`, so the text is checked as any `Raw` text is, and the column is kept like an `@ignore` field's (ADR 267): on its model's table, with its uniques and indexes, and with no field.
+
+Prisma 7 accepts only `@default(dbgenerated("..."))` on an `Unsupported` field. The reader lowers it to a `sql` expression default, and refuses any other default, `@db.*` and `@updatedAt` on such a field, as Prisma 7 does. It accepts `@ignore` on an `Unsupported` field, which Prisma 7 refuses, because the column already has no field and the meaning is not in doubt.
+
+A model needs a field that identifies a row, so `@id` or `@@id` over an `Unsupported` field is refused on a model that is not `@@ignore`; the edit is `@@ignore` on the model, which keeps its table and primary key. A relation that is not `@ignore` cannot join on an `Unsupported` field, because Prisma 8 relations join on fields; the edit is `@ignore` on the relation field, which keeps its foreign key. Prisma 7 accepts both, so both are Prisma 7 edits with no migration.
 
 Prisma 7 never compares an `Unsupported` type with the database: its migrations write the text into DDL as given, and its diff plans nothing when the text changes, even from `tsvector` to `circle`. So a Prisma 7 schema may hold an `Unsupported` text that does not match the database, and Prisma 8's `db verify` is the first to report it. Correcting the text in the Prisma 7 schema makes Prisma 7 plan nothing.
 
@@ -76,7 +78,7 @@ Prisma 7 never compares an `Unsupported` type with the database: its migrations 
 
 - A Prisma 7 project with `Unsupported` fields can adopt Prisma 8. Its raw columns are created, verified and kept, and its query code sees the models it saw before.
 - A Prisma 8 schema can declare any column type the database has, without waiting for a data type.
-- `contract print` writes a raw column as `Raw("...")`, so a converted Prisma 7 project keeps its raw columns.
+- `contract print` writes a raw column a field maps as `Raw("...")`. A raw column read from Prisma 7 has no field, and `contract print` refuses it until Prisma 8 PSL can declare a column with no field, so such a project keeps its Prisma 7 schema as the contract source until then.
 - A required raw column with no default and no field makes every ORM insert into its table fail. The lowering warns about it (`PN_COLUMN_REQUIRED_UNMAPPED`), as it does for any such column (ADR 267). Prisma 7 left `create` out of the client instead.
 - After Prisma 8 owns a project's migrations, changing a raw column's text changes the column's type, and the planner must plan it. Under Prisma 7 the same edit did nothing.
 - A raw column's type must be on the `search_path` that migrations run with. A project that installs a type in a schema outside that path must add the schema to it, as it must for an extension type.

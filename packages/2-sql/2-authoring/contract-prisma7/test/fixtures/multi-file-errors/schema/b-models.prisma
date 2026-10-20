@@ -1,4 +1,4 @@
 model User {
-  id     Int @id
-  search Unsupported("tsvector")?
+  id      Int     @id
+  balance Decimal @db.Money
 }

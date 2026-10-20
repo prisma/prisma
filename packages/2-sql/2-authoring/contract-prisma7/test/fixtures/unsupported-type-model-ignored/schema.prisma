@@ -15,3 +15,10 @@ model Post {
 
   @@ignore
 }
+
+model Legacy {
+  key  Unsupported("cidr") @id
+  note String?
+
+  @@ignore
+}

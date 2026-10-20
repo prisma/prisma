@@ -72,18 +72,28 @@ view ActiveUsers {
 }
 `;
 
+const UNSUPPORTED_SCHEMA = `datasource db {
+  provider = "postgresql"
+}
+
+model Post {
+  id     Int                      @id
+  search Unsupported("tsvector")?
+}
+`;
+
 const NO_DATABASE = 'postgres://user:password@localhost:5432/unused';
 
 /**
- * The schema without its `@ignore` fields and `@@ignore` models, so the contract it emits has no
- * storage that Prisma 8 PSL cannot write.
+ * The schema without its `@ignore` fields, `Unsupported(...)` fields and `@@ignore` models, so the
+ * contract it emits has no storage that Prisma 8 PSL cannot write.
  */
 function withoutIgnoredStorage(schema: string): string {
   const stripped = schema
     .replace(/^model \w+ \{[^}]*@@ignore[^}]*\}\n+/gm, '')
-    .replace(/^.*\s@ignore\n/gm, '');
-  if (stripped.includes('@ignore')) {
-    throw new Error('the schema still has an @ignore this helper does not remove');
+    .replace(/^.*\s(@ignore|Unsupported\(.*)\n/gm, '');
+  if (stripped.includes('@ignore') || stripped.includes('Unsupported(')) {
+    throw new Error('the schema still has storage this helper does not remove');
   }
   return stripped;
 }
@@ -309,6 +319,21 @@ withTempDir(({ createTempDir }) => {
 
       expect(print.exitCode, output(print)).toBe(2);
       expect(errorOf(print).code).toBe('CONTRACT.PRINT_UNSUPPORTED');
+      expect(existsSync(join(ctx.testDir, 'contract.prisma'))).toBe(false);
+    });
+
+    it('refuses a Prisma 7 schema with an Unsupported field and writes nothing', async () => {
+      const ctx = setupPrisma7Project(createTempDir, NO_DATABASE, { text: UNSUPPORTED_SCHEMA });
+
+      const print = await runContractPrint(ctx, ['--output', 'contract.prisma', '--json']);
+
+      expect(print.exitCode, output(print)).toBe(2);
+      expect(errorOf(print)).toMatchObject({
+        code: 'CONTRACT.PRINT_UNSUPPORTED',
+        summary: expect.stringContaining(
+          'column "public"."Post"."search" is not stored by any field',
+        ),
+      });
       expect(existsSync(join(ctx.testDir, 'contract.prisma'))).toBe(false);
     });
 
