@@ -297,7 +297,7 @@ describe('createComposedAuthoringHelpers', () => {
       dataTypes: [otherSql],
       authoring: {
         dataTypes: {
-          [otherSql.id]: sqlExpressionRegistration.authoring.dataTypes['sql/expression'],
+          [otherSql.id]: sqlExpressionAuthoringEntry,
         },
       },
     };
