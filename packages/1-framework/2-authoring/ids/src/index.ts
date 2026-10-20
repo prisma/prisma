@@ -1,10 +1,12 @@
 import type { ExecutionMutationDefaultValue } from '@internal/contract/types';
 import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
 import { ifDefined } from '@internal/utils/defined';
+import { NANOID_SIZE } from './argument-limits';
 import { contractError } from './contract-errors';
 import { type BuiltinGeneratorId, builtinGeneratorIds } from './generator-ids';
 import type { IdGeneratorOptionsById } from './generators';
 
+export { CUID_VERSION, NANOID_SIZE, UUID_VERSIONS } from './argument-limits';
 export { builtinGeneratorIds };
 
 const GENERATED_CHAR_TYPE = { codecId: 'sql/char@1' } as const;
@@ -39,10 +41,15 @@ function nanoidStorage(options?: NanoidOptions): GeneratedStorage {
   if (rawSize === undefined) {
     return charStorage(NANOID_DEFAULT_SIZE);
   }
-  if (typeof rawSize !== 'number' || !Number.isInteger(rawSize) || rawSize < 2 || rawSize > 255) {
+  if (
+    typeof rawSize !== 'number' ||
+    !Number.isInteger(rawSize) ||
+    rawSize < NANOID_SIZE.min ||
+    rawSize > NANOID_SIZE.max
+  ) {
     throw contractError(
       'CONTRACT.ARGUMENT_INVALID',
-      'nanoid size must be an integer between 2 and 255',
+      `nanoid size must be an integer between ${NANOID_SIZE.min} and ${NANOID_SIZE.max}`,
       { meta: { helperPath: 'nanoid', paramName: 'size', received: rawSize } },
     );
   }

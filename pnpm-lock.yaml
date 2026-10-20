@@ -2644,6 +2644,9 @@ importers:
         specifier: 'catalog:'
         version: 0.2.17
     devDependencies:
+      '@internal/ids':
+        specifier: workspace:8.0.0-rc.18
+        version: link:../../../1-framework/2-authoring/ids
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.18
         version: link:../../../../test/utils
@@ -2699,6 +2702,9 @@ importers:
         specifier: ^9.6.0
         version: 9.6.0
     devDependencies:
+      '@internal/ids':
+        specifier: workspace:8.0.0-rc.18
+        version: link:../../../1-framework/2-authoring/ids
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.18
         version: link:../../../../test/utils
@@ -2943,6 +2949,9 @@ importers:
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.18
         version: link:../../1-framework/1-core/framework-components
+      '@internal/ids':
+        specifier: workspace:8.0.0-rc.18
+        version: link:../../1-framework/2-authoring/ids
       '@internal/migration-tools':
         specifier: workspace:8.0.0-rc.18
         version: link:../../1-framework/3-tooling/migration
