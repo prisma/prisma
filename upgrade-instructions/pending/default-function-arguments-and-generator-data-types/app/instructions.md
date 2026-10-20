@@ -27,11 +27,11 @@ changes:
         - '\bwith codecId \\?"'
   - id: discriminator-must-be-text
     summary: |
-      A `@@discriminator` field that is not text is refused with the message `must be text, such as String, but is "<type>"` instead of `must be of type String, but is "<type>"`. A discriminator may now also be a `Char(n)` or `VarChar(n)` column, and a `@@base` value is checked against the column's type, so a value longer than a `VarChar(n)` column holds is refused.
+      A SQL `@@discriminator` field that is not text is refused with the message `must be text, such as String, but is "<type>"` instead of `must be of type String, but is "<type>"`. A discriminator may now also be a `Char(n)` or `VarChar(n)` column, and a `@@base` value is checked against the column's type, so a value longer than a `VarChar(n)` column holds is refused. Mongo's message is unchanged.
     detection:
       glob: "**/*.{ts,mts,cts,tsx,js,mjs,cjs,json}"
       matches:
-        - 'must be of type String'
+        - '(?<![\s\S])(?![\s\S]*[Mm]ongo)[\s\S]*must be of type String'
 ---
 
 ## `prisma7-default-function-arguments-checked`
@@ -82,6 +82,8 @@ The messages are `uuid: version must be 4 or 7, got <n>`, `cuid: version must be
 ```
 
 ## `discriminator-must-be-text`
+
+This applies to SQL schemas only; a Mongo schema's discriminator message is unchanged.
 
 ```ts
 // Before

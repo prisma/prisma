@@ -112,6 +112,18 @@ describe('app detection', () => {
   });
 });
 
+describe('app detection of the discriminator message', () => {
+  it('skips a Mongo project, whose message is unchanged', () => {
+    expect(
+      detects(
+        'app',
+        'discriminator-must-be-text',
+        `import { mongoContract } from '@prisma/orm-mongo/contract-psl/provider';\nexpect(message).toContain('must be of type String');`,
+      ),
+    ).toBe(false);
+  });
+});
+
 describe('extension detection', () => {
   it.each([
     [
