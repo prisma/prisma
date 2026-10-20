@@ -5,20 +5,12 @@
  */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import postgresAdapter from '@internal/adapter-postgres/control';
-import type { Contract } from '@internal/contract/types';
-import postgresDriver from '@internal/driver-postgres/control';
-import sql from '@internal/family-sql/control';
-import { createControlStack } from '@internal/framework-components/control';
-import type { SqlStorage } from '@internal/sql-contract/types';
-import { prisma7Contract } from '@internal/sql-contract-prisma7/provider';
-import postgres from '@internal/target-postgres/control';
-import { prisma7PostgresBinding } from '@internal/target-postgres/prisma7-binding';
 import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { withClient } from '@repo/test-utils';
 import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { runSchemaVerify, timeouts, useDevDatabase } from '../family.schema-verify.helpers';
+import { loadPrisma7Schema } from './load-prisma7-schema';
 
 const fixtureDir = join(
   dirname(fileURLToPath(import.meta.url)),
@@ -35,32 +27,11 @@ describe('an Unsupported text not in catalog form', () => {
         await client.query('DROP TABLE IF EXISTS "Legacy"');
         await client.query(readFileSync(join(fixtureDir, 'migration.sql'), 'utf8'));
       });
-      const schemaPath = join(fixtureDir, 'schema.prisma');
-      const stack = createControlStack({
-        family: sql,
-        target: postgres,
-        adapter: postgresAdapter,
-        driver: postgresDriver,
-        extensions: [],
-      });
-      const loaded = await prisma7Contract(schemaPath, {
-        binding: prisma7PostgresBinding,
-      }).source.load({
-        composedExtensions: [],
-        defaultNamespaceId: stack.target.defaultNamespaceId,
-        composedExtensionContracts: stack.extensionContracts,
-        authoringContributions: stack.authoringContributions,
-        codecLookup: stack.codecLookup,
-        dataTypes: stack.dataTypes,
-        controlMutationDefaults: stack.controlMutationDefaults,
-        resolvedInputs: [schemaPath],
-        capabilities: stack.capabilities,
-      });
-      if (!loaded.ok) throw new Error(JSON.stringify(loaded.failure.diagnostics));
+      const contract = await loadPrisma7Schema(join(fixtureDir, 'schema.prisma'));
 
       const verified = await runSchemaVerify(
         getConnectionString(),
-        new PostgresContractSerializer().serializeContract(loaded.value as Contract<SqlStorage>),
+        new PostgresContractSerializer().serializeContract(contract),
       );
 
       expect(
