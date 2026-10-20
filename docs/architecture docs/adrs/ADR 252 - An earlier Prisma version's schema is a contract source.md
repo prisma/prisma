@@ -161,7 +161,7 @@ For as long as the Prisma version it reads is supported. The repository's [READM
 
 **A behaviour flag, or letting each tool detect the version.** A flag such as `viewBodyAsModelFields` has no meaning on its own: it exists only because the Prisma 7 grammar reads `view` bodies that way, and no Prisma 8 source would set it. Naming the grammar says why, and absorbs any further Prisma 7 grammar difference without a second flag. The framework vocabulary rule forbids names of Prisma versions before 8, but the parser is the authority on its own grammar, so the rule records that exception for the grammar names. Detecting the version from the file, for example from a missing `// use prisma-8` line, would make every tool repeat a guess that can be wrong. A parse function on the source, instead of options, is more than the problem needs, and the config loader cannot check a function. The source declares its grammar instead.
 
-**Build the missing Prisma 8 features as part of the reader.** Views and column types with no Prisma 8 codec, such as `Unsupported("tsvector")` or `@db.Money`, are each their own piece of work with their own design. Bundling them into the reader would tie a transition tool to features it does not need.
+**Build the missing Prisma 8 features as part of the reader.** Views and column types with no Prisma 8 codec, such as `Unsupported("tsvector")` or `@db.Money`, are each their own piece of work with their own design. Bundling them into the reader would tie a transition tool to features it does not need. `Unsupported("...")` is now read, as a raw column with no field, because ADR 273 gave Prisma 8 a data type for such columns.
 
 ## Amendment (October 9, 2026) — the earlier version's migration ledger is not described
 
