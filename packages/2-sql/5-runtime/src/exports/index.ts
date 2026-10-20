@@ -99,3 +99,4 @@ export type {
   TransactionContext,
 } from '../sql-runtime';
 export { SqlRuntimeBase, withTransaction, withTransactionMembers } from '../sql-runtime';
+export { createToSql, type RenderedSql, type ToSqlMember } from '../to-sql';

@@ -37,6 +37,8 @@ export interface PostgresExecutionOptions {
   readonly verifyMarker?: VerifyMarkerOption;
   readonly log?: Log;
   readonly cursor?: PostgresCursorOptions;
+  /** Passed to middleware as `ctx.mode`. `'strict'` (the default) makes `budgets` block a query its `'warn'` severity would only warn about. */
+  readonly mode?: 'strict' | 'permissive';
 }
 
 const cursorOptionsSchema = type({
@@ -72,5 +74,6 @@ export function toRuntimeOptions(options: PostgresExecutionOptions) {
     ...ifDefined('verifyMarker', options.verifyMarker),
     ...ifDefined('middleware', options.middleware),
     ...ifDefined('log', options.log),
+    ...ifDefined('mode', options.mode),
   };
 }

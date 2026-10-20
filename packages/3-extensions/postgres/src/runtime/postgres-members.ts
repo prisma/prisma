@@ -13,6 +13,7 @@ import {
 } from '@internal/sql-orm-client';
 import type { CodecTypesBase, RawCodecInferer } from '@internal/sql-relational-core/expression';
 import type { Preparable, SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import type { RuntimeScope } from '@internal/sql-relational-core/types';
 import type {
   BindSiteParams,
   Declaration,
@@ -42,7 +43,8 @@ type OrmClient<
 export interface PostgresQueryMembers<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
-> extends PrepareMember<TContract> {
+> extends PrepareMember<TContract>,
+    RuntimeScope {
   readonly sql: Db<TContract>;
   readonly orm: OrmClient<TContract, TCollections>;
   readonly raw: RawLane<TContract>;
@@ -79,6 +81,12 @@ export function buildPostgresQueryMembers<
 ): PostgresQueryMembers<TContract, TCollections> {
   const { context, collections, rawCodecInferer, prepareRuntime } = options;
   return {
+    query(plan, execOptions) {
+      return txCtx.query(plan, execOptions);
+    },
+    execute(plan, execOptions) {
+      return txCtx.execute(plan, execOptions);
+    },
     sql: sqlBuilder<TContract>({ context, rawCodecInferer }),
     raw: createRawLane<TContract>({ context, rawCodecInferer }),
     orm: ormBuilder<TContract, TCollections>({
@@ -108,7 +116,8 @@ export interface PostgresStaticMembers<TContract extends Contract<SqlStorage>>
 export interface PostgresRuntimeBoundMembers<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
-> extends PrepareMember<TContract> {
+> extends PrepareMember<TContract>,
+    RuntimeScope {
   readonly orm: OrmClient<TContract, TCollections>;
   runtime(): Runtime;
   transaction<R>(
@@ -181,6 +190,14 @@ export function buildPostgresRuntimeBoundMembers<
 
   return {
     orm,
+
+    query(plan, execOptions) {
+      return getRuntimeForWork().query(plan, execOptions);
+    },
+
+    execute(plan, execOptions) {
+      return getRuntimeForWork().execute(plan, execOptions);
+    },
 
     runtime() {
       return getRuntime();
