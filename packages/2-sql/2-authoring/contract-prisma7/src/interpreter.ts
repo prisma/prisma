@@ -75,10 +75,10 @@ import {
 } from './constraint-names';
 import { lowerPrisma7Default } from './defaults';
 import {
-  ignoredFieldInPrimaryKey,
-  type NoFieldReason,
-  noFieldDiagnostics,
   prisma7Diagnostic,
+  type UnmappedReason,
+  unmappedFieldDiagnostics,
+  unmappedFieldInPrimaryKey,
 } from './diagnostics';
 import { type IndexAttribute, indexNode, parseIndexAttribute } from './indexes';
 import { prisma7NativeTypeMapping, prisma7ScalarMapping } from './native-types';
@@ -164,9 +164,9 @@ interface ModelBuild {
   readonly declaration: ModelDeclaration;
   readonly columns: Map<string, FieldNode>;
   /** The columns the table keeps and no field of the model maps: those of `@ignore` and `Unsupported(...)` fields, or every column of an `@@ignore` model. */
-  readonly ignoredColumns: Map<string, ColumnNode>;
-  /** Fields the model has no Prisma 8 field for, and why. */
-  readonly ignoredFields: Map<string, NoFieldReason>;
+  readonly unmappedColumns: Map<string, ColumnNode>;
+  /** The fields a primary key or a relation join may not use, because the model has no Prisma 8 field for them, and why: `@ignore` fields, relation fields to an `@@ignore` model, and `Unsupported(...)` fields. An `Unsupported` field of an `@@ignore` model is left out, because that model keeps its primary key. */
+  readonly unmappedFields: Map<string, UnmappedReason>;
   readonly ignoredRelationFields: RelationField[];
   readonly rejectedFields: Set<string>;
   idFields: readonly string[];
@@ -395,8 +395,8 @@ export function interpretPrisma7Documents(
     const build: ModelBuild = {
       declaration,
       columns: new Map(),
-      ignoredColumns: new Map(),
-      ignoredFields: new Map(),
+      unmappedColumns: new Map(),
+      unmappedFields: new Map(),
       ignoredRelationFields: [],
       rejectedFields: new Set(),
       idFields: declaration.id?.fields ?? [],
@@ -420,7 +420,7 @@ export function interpretPrisma7Documents(
       if (
         diagnostics.length > reported &&
         !build.columns.has(field.name) &&
-        !build.ignoredColumns.has(field.name)
+        !build.unmappedColumns.has(field.name)
       ) {
         build.rejectedFields.add(field.name);
       }
@@ -441,8 +441,8 @@ export function interpretPrisma7Documents(
       sourceId: build.declaration.sourceId,
       sources: build.declaration.sources,
       columns: build.columns,
-      ignoredColumns: build.ignoredColumns,
-      ignoredFields: build.ignoredFields,
+      unmappedColumns: build.unmappedColumns,
+      unmappedFields: build.unmappedFields,
       ignoredRelationFields: build.ignoredRelationFields,
       rejectedFields: build.rejectedFields,
       idFields: build.idFields,
@@ -462,15 +462,18 @@ export function interpretPrisma7Documents(
     const idAttribute = build.declaration.id;
     if (idAttribute?.fields !== undefined) {
       diagnostics.push(
-        ...noFieldDiagnostics(idAttribute.fields, build.ignoredFields, (fieldNames, reason) =>
-          ignoredFieldInPrimaryKey({
-            modelName,
-            fieldNames,
-            reason,
-            usedBy: `@@id on model "${modelName}"`,
-            sourceId: model.sourceId,
-            span: idAttribute.span,
-          }),
+        ...unmappedFieldDiagnostics(
+          idAttribute.fields,
+          build.unmappedFields,
+          (fieldNames, reason) =>
+            unmappedFieldInPrimaryKey({
+              modelName,
+              fieldNames,
+              reason,
+              usedBy: `@@id on model "${modelName}"`,
+              sourceId: model.sourceId,
+              span: idAttribute.span,
+            }),
         ),
       );
     }
@@ -509,9 +512,9 @@ export function interpretPrisma7Documents(
       ...(indexes.length > 0 ? { indexes } : {}),
       ...(foreignKeys !== undefined ? { foreignKeys } : {}),
     });
-    const ignoredColumns = [...build.ignoredColumns.values()];
+    const unmappedColumns = [...build.unmappedColumns.values()];
     if (model.ignored) {
-      tables.push({ ...tableProperties, namespaceId: model.namespaceId, columns: ignoredColumns });
+      tables.push({ ...tableProperties, namespaceId: model.namespaceId, columns: unmappedColumns });
       continue;
     }
     modelNodes.push({
@@ -521,11 +524,11 @@ export function interpretPrisma7Documents(
       fields: [...build.columns.values()],
       ...(relations !== undefined ? { relations } : {}),
     });
-    if (ignoredColumns.length > 0) {
+    if (unmappedColumns.length > 0) {
       tables.push({
         namespaceId: model.namespaceId,
         tableName: model.tableName,
-        columns: ignoredColumns,
+        columns: unmappedColumns,
       });
     }
   }
@@ -689,7 +692,7 @@ function keyColumns(
 ): readonly string[] | undefined {
   const columns: string[] = [];
   for (const fieldName of fieldNames) {
-    const column = model.columns.get(fieldName) ?? model.ignoredColumns.get(fieldName);
+    const column = model.columns.get(fieldName) ?? model.unmappedColumns.get(fieldName);
     if (column === undefined) return undefined;
     columns.push(column.columnName);
   }
@@ -989,9 +992,9 @@ function readField(args: ReadFieldArgs): void {
     field.attributes.some((attribute) => attribute.name === 'ignore') ||
     (isRelationField && args.ignoredModels.has(field.typeName));
   const unsupported = isUnsupportedType(field.typeConstructor);
-  const noFieldReason: NoFieldReason | undefined =
+  const unmappedReason: UnmappedReason | undefined =
     unsupported && !model.ignored ? 'unsupported' : fieldIgnored ? 'ignored' : undefined;
-  if (noFieldReason !== undefined) build.ignoredFields.set(field.name, noFieldReason);
+  if (unmappedReason !== undefined) build.unmappedFields.set(field.name, unmappedReason);
   const ignored = fieldIgnored || model.ignored || unsupported;
 
   let columnName = field.name;
@@ -1027,12 +1030,12 @@ function readField(args: ReadFieldArgs): void {
         build.idFields = [field.name];
         build.idMap = parsed.map;
       }
-      if (noFieldReason !== undefined) {
+      if (unmappedReason !== undefined) {
         diagnostics.push(
-          ignoredFieldInPrimaryKey({
+          unmappedFieldInPrimaryKey({
             modelName: model.symbol.name,
             fieldNames: [field.name],
-            reason: noFieldReason,
+            reason: unmappedReason,
             usedBy: 'its @id',
             sourceId,
             span: attribute.span,
@@ -1248,7 +1251,7 @@ function readField(args: ReadFieldArgs): void {
           attribute: defaultAttribute,
           field,
           modelName: model.symbol.name,
-          unsupportedType: unsupported,
+          onlyDbgenerated: unsupported,
           codecId: resolved.descriptor.codecId,
           typeParams: resolved.descriptor.typeParams,
           codecLookup: input.codecLookup,
@@ -1277,7 +1280,7 @@ function readField(args: ReadFieldArgs): void {
     ...ifDefined('default', lowered?.storage),
   };
   if (ignored) {
-    build.ignoredColumns.set(field.name, column);
+    build.unmappedColumns.set(field.name, column);
     return;
   }
   const executionDefaults =

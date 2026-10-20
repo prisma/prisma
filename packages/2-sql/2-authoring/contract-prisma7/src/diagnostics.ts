@@ -46,19 +46,21 @@ export function fieldList(modelName: string, fieldNames: readonly string[]): str
   return andList(fieldNames.map((name) => `"${modelName}.${name}"`));
 }
 
-/** Why a model has no field for a column its table keeps: the field is `@ignore`, or its type is `Unsupported(...)`. */
-export type NoFieldReason = 'ignored' | 'unsupported';
+const UNMAPPED_REASONS = ['ignored', 'unsupported'] as const;
 
-function noFieldClause(reason: NoFieldReason, one: boolean): string {
+/** Why a model has no field for a column its table keeps: the field is `@ignore`, or its type is `Unsupported(...)`. */
+export type UnmappedReason = (typeof UNMAPPED_REASONS)[number];
+
+function unmappedClause(reason: UnmappedReason, one: boolean): string {
   if (reason === 'ignored') return `${one ? 'is' : 'are'} marked @ignore`;
   return `${one ? 'has' : 'have'} type Unsupported(...), so the Prisma 8 model has no field for ${one ? 'it' : 'them'}`;
 }
 
 /** A field with no Prisma 8 field in the model's primary key: without it the model has no field that identifies a row. */
-export function ignoredFieldInPrimaryKey(input: {
+export function unmappedFieldInPrimaryKey(input: {
   readonly modelName: string;
   readonly fieldNames: readonly string[];
-  readonly reason: NoFieldReason;
+  readonly reason: UnmappedReason;
   readonly usedBy: string;
   readonly sourceId: string;
   readonly span: PslSpan;
@@ -72,17 +74,17 @@ export function ignoredFieldInPrimaryKey(input: {
       : `Add ${modelIgnore}`;
   return prisma7Diagnostic(
     'PSL.PRISMA7_IGNORED_FIELD_REFERENCED',
-    `${one ? 'Field' : 'Fields'} ${fields} ${noFieldClause(input.reason, one)}, but ${input.usedBy} uses ${one ? 'it' : 'them'}, and without ${one ? 'it' : 'them'} model "${input.modelName}" has no field that identifies a row, so Prisma 8 could not update, delete or relate its rows. ${edits}`,
+    `${one ? 'Field' : 'Fields'} ${fields} ${unmappedClause(input.reason, one)}, but ${input.usedBy} uses ${one ? 'it' : 'them'}, and without ${one ? 'it' : 'them'} model "${input.modelName}" has no field that identifies a row, so Prisma 8 could not update, delete or relate its rows. ${edits}`,
     input.sourceId,
     input.span,
   );
 }
 
 /** A relation that is not `@ignore` joins on fields with no Prisma 8 field: Prisma 8 relations join on fields. */
-export function ignoredFieldJoined(input: {
+export function unmappedFieldJoined(input: {
   readonly modelName: string;
   readonly fieldNames: readonly string[];
-  readonly reason: NoFieldReason;
+  readonly reason: UnmappedReason;
   readonly relationField: string;
   readonly sourceId: string;
   readonly span: PslSpan;
@@ -97,21 +99,20 @@ export function ignoredFieldJoined(input: {
       : `Mark ${relationIgnore}`;
   return prisma7Diagnostic(
     'PSL.PRISMA7_IGNORED_FIELD_REFERENCED',
-    `${one ? 'Field' : 'Fields'} ${fields} ${noFieldClause(input.reason, one)}, but ${relation} joins on ${one ? 'it' : 'them'}, and Prisma 8 relations join on fields. ${edits}`,
+    `${one ? 'Field' : 'Fields'} ${fields} ${unmappedClause(input.reason, one)}, but ${relation} joins on ${one ? 'it' : 'them'}, and Prisma 8 relations join on fields. ${edits}`,
     input.sourceId,
     input.span,
   );
 }
 
 /** The diagnostics for the fields among `fieldNames` that have no Prisma 8 field, one per reason. */
-export function noFieldDiagnostics(
+export function unmappedFieldDiagnostics(
   fieldNames: readonly string[],
-  noField: ReadonlyMap<string, NoFieldReason>,
-  diagnostic: (fieldNames: readonly string[], reason: NoFieldReason) => ContractSourceDiagnostic,
+  unmapped: ReadonlyMap<string, UnmappedReason>,
+  diagnostic: (fieldNames: readonly string[], reason: UnmappedReason) => ContractSourceDiagnostic,
 ): ContractSourceDiagnostic[] {
-  const reasons: readonly NoFieldReason[] = ['ignored', 'unsupported'];
-  return reasons.flatMap((reason) => {
-    const names = fieldNames.filter((name) => noField.get(name) === reason);
+  return UNMAPPED_REASONS.flatMap((reason) => {
+    const names = fieldNames.filter((name) => unmapped.get(name) === reason);
     return names.length === 0 ? [] : [diagnostic(names, reason)];
   });
 }

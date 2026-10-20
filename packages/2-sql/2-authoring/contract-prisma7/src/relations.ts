@@ -36,11 +36,11 @@ import {
 import {
   andList,
   fieldList,
-  ignoredFieldJoined,
-  type NoFieldReason,
-  noFieldDiagnostics,
   type Prisma7DiagnosticCode,
   prisma7Diagnostic,
+  type UnmappedReason,
+  unmappedFieldDiagnostics,
+  unmappedFieldJoined,
 } from './diagnostics';
 import { prisma7ConstraintName } from './indexes';
 import type { Prisma7TargetBinding } from './target-binding';
@@ -75,10 +75,10 @@ export interface RelationModel {
   readonly sourceId: string;
   readonly sources: PslSources;
   readonly columns: ReadonlyMap<string, FieldNode>;
-  /** The columns the table keeps and no field of the model maps: those of `@ignore` fields, or every column of an `@@ignore` model. */
-  readonly ignoredColumns: ReadonlyMap<string, ColumnNode>;
-  /** Fields the model has no Prisma 8 field for, and why: those marked `@ignore`, relation fields to an `@@ignore` model, and `Unsupported(...)` fields of a model that is not `@@ignore`. */
-  readonly ignoredFields: ReadonlyMap<string, NoFieldReason>;
+  /** The columns the table keeps and no field of the model maps: those of `@ignore` and `Unsupported(...)` fields, or every column of an `@@ignore` model. */
+  readonly unmappedColumns: ReadonlyMap<string, ColumnNode>;
+  /** The fields a primary key or a relation join may not use, because the model has no Prisma 8 field for them, and why: `@ignore` fields, relation fields to an `@@ignore` model, and `Unsupported(...)` fields. An `Unsupported` field of an `@@ignore` model is left out, because that model keeps its primary key. */
+  readonly unmappedFields: ReadonlyMap<string, UnmappedReason>;
   /** Relation fields marked `@ignore`: their foreign keys are kept, and they and their back-relations stay out of the domain. */
   readonly ignoredRelationFields: readonly RelationField[];
   /** Fields whose type or attributes were reported; keys and relations over them report nothing more. */
@@ -209,7 +209,7 @@ export function parseRelationAttribute(
 }
 
 function storageColumn(model: RelationModel, fieldName: string): ColumnNode | undefined {
-  return model.columns.get(fieldName) ?? model.ignoredColumns.get(fieldName);
+  return model.columns.get(fieldName) ?? model.unmappedColumns.get(fieldName);
 }
 
 /** A foreign key reaches a table with a model through the model, and an `@@ignore` model's table by its name. */
@@ -441,8 +441,8 @@ export function lowerRelations(
               { owner: model, names: attribute.fields },
               { owner: target, names: attribute.references ?? [] },
             ].flatMap(({ owner, names }) =>
-              noFieldDiagnostics(names, owner.ignoredFields, (fieldNames, reason) =>
-                ignoredFieldJoined({
+              unmappedFieldDiagnostics(names, owner.unmappedFields, (fieldNames, reason) =>
+                unmappedFieldJoined({
                   modelName: owner.modelName,
                   fieldNames,
                   reason,
@@ -849,7 +849,7 @@ function singleIdColumn(
 ): ColumnNode | undefined {
   if (
     side.model.idFields.some(
-      (name) => side.model.ignoredFields.has(name) || side.model.rejectedFields.has(name),
+      (name) => side.model.unmappedFields.has(name) || side.model.rejectedFields.has(name),
     )
   ) {
     return undefined;
