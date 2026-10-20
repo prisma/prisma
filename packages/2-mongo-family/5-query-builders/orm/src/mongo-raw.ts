@@ -1,5 +1,9 @@
-import { domainModelsAtDefaultNamespace, type PlanMeta } from '@internal/contract/types';
-import type { MongoContract, MongoModelDefinition } from '@internal/mongo-contract';
+import type { PlanMeta } from '@internal/contract/types';
+import {
+  defaultMongoDomainNamespaceId,
+  type MongoContract,
+  mongoModelsOf,
+} from '@internal/mongo-contract';
 import { ormError } from './orm-errors';
 import { createRawMongoCollection, type RawMongoCollection } from './raw-collection';
 
@@ -15,7 +19,7 @@ export function mongoRaw<TContract extends MongoContract>(options: {
   return {
     collection<K extends keyof TContract['roots'] & string>(rootName: K): RawMongoCollection {
       const modelName = contract.roots[rootName]?.model;
-      const models = domainModelsAtDefaultNamespace(contract.domain);
+      const models = mongoModelsOf(contract.domain, defaultMongoDomainNamespaceId);
       if (!modelName || !Object.hasOwn(models, modelName)) {
         throw ormError(
           'ORM.MODEL_UNKNOWN',
@@ -23,8 +27,7 @@ export function mongoRaw<TContract extends MongoContract>(options: {
           { meta: { model: modelName ?? '', root: rootName } },
         );
       }
-      const model = models[modelName] as MongoModelDefinition;
-      const collectionName = model.storage.collection ?? modelName;
+      const collectionName = models[modelName]?.storage.collection ?? modelName;
 
       const meta: PlanMeta = {
         target: 'mongo',

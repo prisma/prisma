@@ -53,7 +53,7 @@
               "field": "kind"
             },
             "fields": {
-              "_id": {
+              "id": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -70,7 +70,15 @@
             },
             "relations": {},
             "storage": {
-              "collection": "assets"
+              "collection": "assets",
+              "fields": {
+                "id": {
+                  "field": "_id"
+                },
+                "kind": {
+                  "field": "kind"
+                }
+              }
             },
             "variants": {
               "photo": {
@@ -81,13 +89,6 @@
           },
           "Author": {
             "fields": {
-              "_id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "mongo/objectId@1",
-                  "kind": "scalar"
-                }
-              },
               "address": {
                 "nullable": true,
                 "type": {
@@ -106,6 +107,13 @@
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/decimal128@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
                   "kind": "scalar"
                 }
               },
@@ -135,7 +143,7 @@
                 "cardinality": "1:N",
                 "on": {
                   "localFields": [
-                    "_id"
+                    "id"
                   ],
                   "targetFields": [
                     "authorId"
@@ -148,19 +156,39 @@
               }
             },
             "storage": {
-              "collection": "authors"
+              "collection": "authors",
+              "fields": {
+                "address": {
+                  "field": "address"
+                },
+                "avatar": {
+                  "field": "avatar"
+                },
+                "balance": {
+                  "field": "balance"
+                },
+                "id": {
+                  "field": "_id"
+                },
+                "karma": {
+                  "field": "karma"
+                },
+                "role": {
+                  "field": "role"
+                }
+              }
             }
           },
           "Book": {
             "fields": {
-              "_id": {
+              "authorId": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
                   "kind": "scalar"
                 }
               },
-              "authorId": {
+              "id": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -184,7 +212,7 @@
                     "authorId"
                   ],
                   "targetFields": [
-                    "_id"
+                    "id"
                   ]
                 },
                 "to": {
@@ -194,7 +222,18 @@
               }
             },
             "storage": {
-              "collection": "books"
+              "collection": "books",
+              "fields": {
+                "authorId": {
+                  "field": "authorId"
+                },
+                "id": {
+                  "field": "_id"
+                },
+                "title": {
+                  "field": "title"
+                }
+              }
             }
           },
           "Photo": {
@@ -230,12 +269,23 @@
             },
             "relations": {},
             "storage": {
-              "collection": "assets"
+              "collection": "assets",
+              "fields": {
+                "exif": {
+                  "field": "exif"
+                },
+                "ownerId": {
+                  "field": "ownerId"
+                },
+                "stamps": {
+                  "field": "stamps"
+                }
+              }
             }
           },
           "Post": {
             "fields": {
-              "_id": {
+              "id": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -287,22 +337,45 @@
             },
             "relations": {},
             "storage": {
-              "collection": "posts"
+              "collection": "posts",
+              "fields": {
+                "id": {
+                  "field": "_id"
+                },
+                "meta": {
+                  "field": "meta"
+                },
+                "notes": {
+                  "field": "notes"
+                },
+                "price": {
+                  "field": "price"
+                },
+                "raw": {
+                  "field": "raw"
+                },
+                "thumbnail": {
+                  "field": "thumbnail"
+                },
+                "views": {
+                  "field": "views"
+                }
+              }
             }
           },
           "Reading": {
             "fields": {
-              "_id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "mongo/objectId@1",
-                  "kind": "scalar"
-                }
-              },
               "count": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/int32@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
                   "kind": "scalar"
                 }
               },
@@ -316,18 +389,22 @@
             },
             "relations": {},
             "storage": {
-              "collection": "readings"
+              "collection": "readings",
+              "fields": {
+                "count": {
+                  "field": "count"
+                },
+                "id": {
+                  "field": "_id"
+                },
+                "ratio": {
+                  "field": "ratio"
+                }
+              }
             }
           },
           "Series": {
             "fields": {
-              "_id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "mongo/objectId@1",
-                  "kind": "scalar"
-                }
-              },
               "bytes": {
                 "many": {
                   "elementNullable": false
@@ -375,6 +452,13 @@
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
                   "kind": "scalar"
                 }
               },
@@ -431,7 +515,42 @@
             },
             "relations": {},
             "storage": {
-              "collection": "series"
+              "collection": "series",
+              "fields": {
+                "bytes": {
+                  "field": "bytes"
+                },
+                "dates": {
+                  "field": "dates"
+                },
+                "decimals": {
+                  "field": "decimals"
+                },
+                "doubles": {
+                  "field": "doubles"
+                },
+                "flags": {
+                  "field": "flags"
+                },
+                "id": {
+                  "field": "_id"
+                },
+                "ids": {
+                  "field": "ids"
+                },
+                "ints": {
+                  "field": "ints"
+                },
+                "longs": {
+                  "field": "longs"
+                },
+                "points": {
+                  "field": "points"
+                },
+                "words": {
+                  "field": "words"
+                }
+              }
             }
           }
         },

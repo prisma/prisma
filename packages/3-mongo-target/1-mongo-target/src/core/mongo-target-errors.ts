@@ -7,9 +7,20 @@ export type MongoTargetErrorCode =
   | 'RUNTIME.ENCODE_FAILED';
 
 type MigrationSubcode =
+  | 'DATA_TRANSFORM_CHECK_NOT_READ_ONLY'
   | 'FIELD_NAME_UNSUPPORTED'
   | 'INVALID_OPERATION_ENTRY'
   | 'OPERATION_UNSUPPORTED';
+
+/** The codes the Mongo migration runner returns a failure with. */
+export type MongoMigrationRunnerErrorCode =
+  | 'MIGRATION.EXECUTION_FAILED'
+  | 'MIGRATION.MARKER_CAS_FAILURE'
+  | 'MIGRATION.MARKER_ORIGIN_MISMATCH'
+  | 'MIGRATION.POLICY_VIOLATION'
+  | 'MIGRATION.POSTCHECK_FAILED'
+  | 'MIGRATION.PRECHECK_FAILED'
+  | 'MIGRATION.SCHEMA_VERIFY_FAILED';
 
 export function mongoTargetError(
   code: MongoTargetErrorCode,

@@ -15,7 +15,7 @@
         "models": {
           "Menu": {
             "fields": {
-              "_id": {
+              "id": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -42,7 +42,18 @@
             },
             "relations": {},
             "storage": {
-              "collection": "menus"
+              "collection": "menus",
+              "fields": {
+                "id": {
+                  "field": "_id"
+                },
+                "items": {
+                  "field": "items"
+                },
+                "name": {
+                  "field": "name"
+                }
+              }
             }
           }
         },

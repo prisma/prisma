@@ -305,8 +305,21 @@ describe('side-by-side contract examples', () => {
         cardinality: '1:N',
         to: { namespace: '__unbound__', model: 'Post' },
         on: {
-          localFields: ['_id'],
+          localFields: ['id'],
           targetFields: ['authorId'],
+        },
+      });
+      expect(
+        validatedContract.contract.domain.namespaces['__unbound__']!.models['User']?.storage,
+      ).toEqual({
+        collection: 'users',
+        fields: {
+          id: { field: '_id' },
+          name: { field: 'name' },
+          email: { field: 'email' },
+          bio: { field: 'bio' },
+          role: { field: 'role' },
+          address: { field: 'address' },
         },
       });
       expect(
@@ -318,7 +331,7 @@ describe('side-by-side contract examples', () => {
         to: { namespace: '__unbound__', model: 'User' },
         on: {
           localFields: ['authorId'],
-          targetFields: ['_id'],
+          targetFields: ['id'],
         },
       });
 

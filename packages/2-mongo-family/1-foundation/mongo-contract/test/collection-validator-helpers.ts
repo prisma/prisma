@@ -1,9 +1,6 @@
-import type {
-  ContractEmbedRelation,
-  ContractField,
-  ContractModelBase,
-} from '@internal/contract/types';
+import type { ContractEmbedRelation, ContractField } from '@internal/contract/types';
 import { type CrossReference, crossRef } from '@internal/contract/types';
+import type { MongoModelDefinition, MongoModelStorage } from '../src/contract-types';
 import {
   type CollectionValidatorsInput,
   deriveCollectionValidators,
@@ -16,14 +13,27 @@ export type Model = CollectionValidatorsInput['models'][string];
 
 export function model(
   fields: Record<string, ContractField>,
-  extra: Partial<
-    Pick<
-      ContractModelBase,
-      'relations' | 'discriminator' | 'variants' | 'storage' | 'base' | 'owner'
-    >
-  > = {},
+  {
+    storage,
+    ...extra
+  }: Partial<
+    Pick<MongoModelDefinition, 'relations' | 'discriminator' | 'variants' | 'base' | 'owner'>
+  > & {
+    readonly storage?: Partial<MongoModelStorage>;
+  } = {},
 ): Model {
-  return { fields, relations: {}, storage: {}, ...extra };
+  return {
+    fields,
+    relations: {},
+    storage: { fields: identityStorageFields(fields), ...storage },
+    ...extra,
+  };
+}
+
+export function identityStorageFields(
+  fields: Record<string, ContractField>,
+): MongoModelStorage['fields'] {
+  return Object.fromEntries(Object.keys(fields).map((name) => [name, { field: name }]));
 }
 
 export function embedOne(to: string): ContractEmbedRelation {
@@ -45,7 +55,9 @@ export function derive(
   const stored = { ...models };
   for (const [collection, root] of Object.entries(roots)) {
     const model = stored[root.model];
-    if (model !== undefined) stored[root.model] = { ...model, storage: { collection } };
+    if (model !== undefined) {
+      stored[root.model] = { ...model, storage: { ...model.storage, collection } };
+    }
   }
   return deriveCollectionValidators({
     lookups: mongoTypeLookups,
@@ -84,7 +96,7 @@ export interface VariantFields {
   readonly fields: Record<string, ContractField>;
 }
 
-/** The validator of collection `items`, whose root model has `baseFields` and one variant model per entry of `variants`. */
+/** The validator of collection `items`, whose root model has `baseFields`, a string discriminator field `discriminatorField` unless `baseFields` declares it, and one variant model per entry of `variants`. */
 export function polymorphicRootValidator(
   baseFields: Record<string, ContractField>,
   discriminatorField: string,
@@ -95,15 +107,18 @@ export function polymorphicRootValidator(
     derive({
       roots: { items: crossRef('Item') },
       models: {
-        Item: model(baseFields, {
-          discriminator: { field: discriminatorField },
-          variants: Object.fromEntries(
-            variants.map((variant) => [
-              variant.discriminatorValue,
-              crossRef(variantModelName(variant)),
-            ]),
-          ),
-        }),
+        Item: model(
+          { [discriminatorField]: scalarField('mongo/string@1'), ...baseFields },
+          {
+            discriminator: { field: discriminatorField },
+            variants: Object.fromEntries(
+              variants.map((variant) => [
+                variant.discriminatorValue,
+                crossRef(variantModelName(variant)),
+              ]),
+            ),
+          },
+        ),
         ...Object.fromEntries(
           variants.map((variant) => [variantModelName(variant), model(variant.fields)]),
         ),

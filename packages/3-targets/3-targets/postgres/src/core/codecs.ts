@@ -19,6 +19,9 @@ import {
   type ColumnHelperForStrict,
   column,
   type DataTypeValue,
+  decimalTextBigintLiteral,
+  decimalTextNumberLiteral,
+  floatNumberLiteral,
   floatToJson,
   isNonFiniteText,
   readJsonFloat,
@@ -52,9 +55,6 @@ import { blindCast } from '@internal/utils/casts';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { definePostgresCodecs, PostgresCodecDescriptor, postgresCodec } from './codec-descriptor';
 import {
-  decimalTextBigintLiteral,
-  decimalTextNumberLiteral,
-  floatNumberLiteral,
   type PrecisionParams,
   pgBigintDigits,
   pgBigintEncode,
@@ -123,6 +123,7 @@ import {
   pgInterval,
   pgJson,
   pgJsonb,
+  pgJsonbEnumRefusal,
   pgNumeric,
   pgNumericParams,
   pgPrecisionParams,
@@ -224,12 +225,14 @@ const printedTextJsonProjection = (expression: ProjectionExpr): ProjectionExpr =
 
 export const postgresSqlCharDescriptor = postgresCodec(sqlCharDescriptor, {
   dataType: pgChar,
+  renderValueLiteral: renderTsLiteral,
   jsonProjection: unpaddedCharJsonProjection,
   factory: (descriptor, dataType, params) => () => new SqlCharCodec(descriptor, dataType, params),
 });
 
 export const postgresSqlVarcharDescriptor = postgresCodec(sqlVarcharDescriptor, {
   dataType: pgVarchar,
+  renderValueLiteral: renderTsLiteral,
   jsonProjection: identityJsonProjection,
   factory: (descriptor, dataType, params) => () =>
     new SqlVarcharCodec(descriptor, dataType, params),
@@ -237,18 +240,21 @@ export const postgresSqlVarcharDescriptor = postgresCodec(sqlVarcharDescriptor, 
 
 export const postgresSqlIntDescriptor = postgresCodec(sqlIntDescriptor, {
   dataType: pgInt4,
+  renderValueLiteral: renderTsLiteral,
   jsonProjection: identityJsonProjection,
   factory: (descriptor, dataType) => () => new PgIntCodec(descriptor, dataType),
 });
 
 export const postgresSqlFloatDescriptor = postgresCodec(sqlFloatDescriptor, {
   dataType: pgFloat8,
+  renderValueLiteral: floatNumberLiteral,
   jsonProjection: identityJsonProjection,
   factory: (descriptor, dataType) => () => new PgFloatCodec(descriptor, dataType),
 });
 
 export const postgresSqlTextDescriptor = postgresCodec(sqlTextDescriptor, {
   dataType: pgText,
+  renderValueLiteral: renderTsLiteral,
   jsonProjection: identityJsonProjection,
   factory: (descriptor, dataType) => () => new SqlTextCodec(descriptor, dataType),
 });
@@ -378,6 +384,8 @@ export class PgEnumDescriptor extends PostgresCodecDescriptor<PgEnumParams> {
   override readonly dataType = pgEnum.id;
   override readonly codecId = PG_ENUM_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
+  override readonly enumRefusal =
+    'A pg/enum codec types the column of a native enum, whose values the database enforces with an enum type of its own. Declare a native enum instead: native_enum in PSL, or nativeEnum in TypeScript.';
   override readonly paramsSchema = pgEnumParams satisfies StandardSchemaV1<PgEnumParams>;
   override renderValueLiteral(value: JsonValue): string | undefined {
     return renderTsLiteral(value);
@@ -858,6 +866,7 @@ export class PgNumericDescriptor extends PostgresCodecDescriptor<NumericParams> 
   override readonly dataType = pgNumeric.id;
   override readonly codecId = PG_NUMERIC_CODEC_ID;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
+  override readonly keepsWrittenForm = true as const;
   override readonly paramsSchema = pgNumericParams satisfies StandardSchemaV1<NumericParams>;
   override factory(params: NumericParams): (ctx: CodecInstanceContext) => PgNumericCodec {
     return () => new PgNumericCodec(this, pgNumeric, params ?? {});
@@ -950,6 +959,8 @@ export class PgTimetzDescriptor extends PostgresCodecDescriptor<PrecisionParams>
   override readonly dataType = pgTimetz.id;
   override readonly codecId = PG_TIMETZ_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
+  override readonly enumRefusal =
+    'A query reads each value as the text PostgreSQL prints, such as "12:34:56+02", while the contract stores it in ISO 8601, such as "12:34:56+02:00", so a value read back need not equal the member written. No enum can use a timetz codec; use a text enum instead.';
   override readonly paramsSchema = pgPrecisionParams satisfies StandardSchemaV1<PrecisionParams>;
   override factory(params: PrecisionParams): (ctx: CodecInstanceContext) => PgTimetzCodec {
     return () => new PgTimetzCodec(this, pgTimetz, params ?? {});
@@ -992,6 +1003,9 @@ export class PgBitDescriptor extends PostgresCodecDescriptor<LengthParams> {
   override readonly codecId = PG_BIT_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly paramsSchema = pgBitLengthParams satisfies StandardSchemaV1<LengthParams>;
+  override renderValueLiteral(value: JsonValue): string | undefined {
+    return renderTsLiteral(value);
+  }
   override factory(params: LengthParams): (ctx: CodecInstanceContext) => PgBitCodec {
     return () => new PgBitCodec(this, pgBit, params ?? {});
   }
@@ -1033,6 +1047,9 @@ export class PgVarbitDescriptor extends PostgresCodecDescriptor<LengthParams> {
   override readonly codecId = PG_VARBIT_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly paramsSchema = pgBitLengthParams satisfies StandardSchemaV1<LengthParams>;
+  override renderValueLiteral(value: JsonValue): string | undefined {
+    return renderTsLiteral(value);
+  }
   override factory(params: LengthParams): (ctx: CodecInstanceContext) => PgVarbitCodec {
     return () => new PgVarbitCodec(this, pgVarbit, params ?? {});
   }
@@ -1117,6 +1134,9 @@ export class PgUuidDescriptor extends PostgresCodecDescriptor<void> {
   override readonly codecId = PG_UUID_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly paramsSchema = undefined;
+  override renderValueLiteral(value: JsonValue): string | undefined {
+    return renderTsLiteral(value);
+  }
   override factory(): (ctx: CodecInstanceContext) => PgUuidCodec {
     return () => new PgUuidCodec(this, pgUuid);
   }
@@ -1158,6 +1178,9 @@ export class PgInetDescriptor extends PostgresCodecDescriptor<void> {
   override readonly codecId = PG_INET_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly paramsSchema = undefined;
+  override renderValueLiteral(value: JsonValue): string | undefined {
+    return renderTsLiteral(value);
+  }
   override factory(): (ctx: CodecInstanceContext) => PgInetCodec {
     return () => new PgInetCodec(this, pgInet);
   }
@@ -1273,6 +1296,7 @@ export class PgIntervalDescriptor extends PostgresCodecDescriptor<PrecisionParam
   override readonly dataType = pgInterval.id;
   override readonly codecId = PG_INTERVAL_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
+  override readonly keepsWrittenForm = true as const;
   override readonly paramsSchema = pgPrecisionParams satisfies StandardSchemaV1<PrecisionParams>;
   override factory(params: PrecisionParams): (ctx: CodecInstanceContext) => PgIntervalCodec {
     return () => new PgIntervalCodec(this, pgInterval, params ?? {});
@@ -1315,7 +1339,7 @@ export class PgJsonDescriptor extends PostgresCodecDescriptor<void> {
   override readonly codecId = PG_JSON_CODEC_ID;
   override readonly traits = [] as const;
   override readonly enumRefusal =
-    'The json type has no equality operator, so no CHECK can compare a value with the members. Use pg/jsonb@1, whose type has one.';
+    'The json type has no equality operator, so no CHECK can compare a value with the members. No enum can use a json codec; use a text enum instead.';
   override readonly paramsSchema = undefined;
   override factory(): (ctx: CodecInstanceContext) => PgJsonCodec {
     return () => new PgJsonCodec(this, pgJson);
@@ -1357,6 +1381,7 @@ export class PgJsonbDescriptor extends PostgresCodecDescriptor<void> {
   override readonly dataType = pgJsonb.id;
   override readonly codecId = PG_JSONB_CODEC_ID;
   override readonly traits = ['equality'] as const;
+  override readonly enumRefusal = pgJsonbEnumRefusal;
   override readonly paramsSchema = undefined;
   override factory(): (ctx: CodecInstanceContext) => PgJsonbCodec {
     return () => new PgJsonbCodec(this, pgJsonb);

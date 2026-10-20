@@ -39,6 +39,7 @@ export { bool } from '../attribute-spec/combinators/bool';
 export { dataTypeValue } from '../attribute-spec/combinators/data-type-value';
 export { leafDiagnostic } from '../attribute-spec/combinators/diagnostic';
 export { entityRef } from '../attribute-spec/combinators/entity-ref';
+export { enumMemberValue } from '../attribute-spec/combinators/enum-member-value';
 export { fieldRef, referencedFieldRef } from '../attribute-spec/combinators/field-ref';
 export { funcCall } from '../attribute-spec/combinators/func-call';
 export { identifier } from '../attribute-spec/combinators/identifier';

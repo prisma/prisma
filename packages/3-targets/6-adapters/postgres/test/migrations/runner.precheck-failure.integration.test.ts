@@ -125,15 +125,21 @@ describe('PostgresMigrationRunner - replay on a database already ahead', {
       ],
     });
 
-    expect(result.ok ? undefined : result.failure).toMatchObject({
+    expect(
+      result.ok ? undefined : { code: result.failure.code, meta: result.failure.meta },
+    ).toEqual({
       code: 'MIGRATION.PRECHECK_FAILED',
-      failingSpace: APP_SPACE_ID,
-      failedCheck: {
-        operationId: 'column.public.item.x',
-        phase: 'precheck',
-        description: 'ensure column "x" is missing',
+      meta: {
+        failingSpace: APP_SPACE_ID,
+        failedCheck: {
+          operationId: 'column.public.item.x',
+          phase: 'precheck',
+          description: 'ensure column "x" is missing',
+        },
       },
     });
-    expect(result.ok ? undefined : result.failure.why).toBeUndefined();
+    expect(result.ok ? undefined : result.failure.why).toBe(
+      'Before operation column.public.item.x runs, it checks: ensure column "x" is missing. That check failed: the database already has column "x".',
+    );
   });
 });

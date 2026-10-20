@@ -85,6 +85,8 @@ describe('written values on SQLite', () => {
       '9223372036854775807',
     ],
     ['a number with a fraction on a Float column', 'Float @default(1.5)', 'sqlite/real@1', 1.5],
+    ['Infinity on a Float column', 'Float @default(Infinity)', 'sqlite/real@1', 'Infinity'],
+    ['-Infinity on a Float column', 'Float @default(-Infinity)', 'sqlite/real@1', '-Infinity'],
     [
       'a whole number on a Float column, through the cast from integer',
       'Float @default(2)',
@@ -222,18 +224,26 @@ describe('enum members on SQLite', () => {
     ['sqlite/bigint@1', '"9223372036854775807"', '9223372036854775807'],
     ['sqlite/bigintnumber@1', '"42"', '42'],
   ])(
-    'accepts a %s member written as the string %s, read by the codec',
-    async (codecId, written, stored) => {
-      expect(await storedEnumValues(codecId, `Low = ${written}`)).toEqual({ values: [stored] });
+    'refuses a %s member written as the string %s, which is text, saying to write the number',
+    async (codecId, written, number) => {
+      expect(await storedEnumValues(codecId, `Low = ${written}`)).toEqual({
+        diagnostics: [
+          {
+            code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+            message: `enum "Priority" member "Low": Expected a number; write ${number}`,
+          },
+        ],
+      });
     },
   );
 
   it.each([
-    [`'"low"'`, '"low"'],
-    [`'{"a":1,"b":2}'`, '{"a":1,"b":2}'],
-    ['"1"', '1'],
+    ['json`"low"`', '"low"'],
+    ['json`{"a":1,"b":2}`', '{"a":1,"b":2}'],
+    ['json`{"b": 2, "a": 1}`', '{"a":1,"b":2}'],
+    ['json`1`', '1'],
   ])(
-    'accepts a sqlite/json@1 member written as the JSON text sqlite/json stores, %s',
+    'stores a sqlite/json@1 member written as %s as the JSON text sqlite/json stores',
     async (written, stored) => {
       expect(await storedEnumValues('sqlite/json@1', `Low = ${written}`)).toEqual({
         values: [stored],
@@ -241,20 +251,53 @@ describe('enum members on SQLite', () => {
     },
   );
 
-  it('refuses a sqlite/json@1 member written as JSON text in another spelling, naming the one sqlite/json stores', async () => {
-    expect(
-      (await storedEnumValues('sqlite/json@1', `Low = '{"b": 2, "a": 1}'`)).diagnostics,
-    ).toContainEqual({
-      code: 'PSL_EXTENSION_INVALID_VALUE',
-      message:
-        'enum "Priority" member "Low" was rejected by codec "sqlite/json@1": sqlite/json JSON value must be "{\\"a\\":1,\\"b\\":2}", as sqlite/json stores this value',
+  it('refuses a sqlite/json@1 member written as quoted text, saying to write it with the json tag', async () => {
+    expect(await storedEnumValues('sqlite/json@1', `Low = '"low"'`)).toEqual({
+      diagnostics: [
+        {
+          code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+          message: 'enum "Priority" member "Low": Expected json`...`; write json`"low"`',
+        },
+      ],
     });
   });
 
+  it('refuses a sqlite/json@1 member whose tagged literal holds a NUL character, rather than storing null', async () => {
+    expect(await storedEnumValues('sqlite/json@1', `Low = ${json('"a\0b"')}`)).toEqual({
+      diagnostics: [
+        {
+          code: 'PSL_TAGGED_LITERAL_NUL',
+          message: 'Tagged literals must not contain NUL characters.',
+        },
+      ],
+    });
+  });
+
+  it('refuses a sqlite/datetime@1 member whose tagged literal is not a date', async () => {
+    expect(
+      await storedEnumValues(
+        'sqlite/datetime@1',
+        `Launch = datetime${BACKTICK}not a date${BACKTICK}`,
+      ),
+    ).toEqual({ diagnostics: [{ code: 'PSL_INVALID_LITERAL', message: expect.any(String) }] });
+  });
+
   it('refuses a sqlite/json@1 member written as a number, which no cast takes to a document', async () => {
-    expect((await storedEnumValues('sqlite/json@1', 'Low = 1')).diagnostics).toContainEqual({
-      code: 'PSL_EXTENSION_INVALID_VALUE',
-      message: 'enum "Priority" member "Low": Expected json`...`',
+    expect((await storedEnumValues('sqlite/json@1', 'Low = 1')).diagnostics).toEqual([
+      {
+        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+        message: 'enum "Priority" member "Low": Expected json`...`',
+      },
+    ]);
+  });
+
+  it('stores an Infinity member of a sqlite/real@1 enum, and refuses NaN, which SQLite cannot store', async () => {
+    expect({
+      infinity: await storedEnumValues('sqlite/real@1', 'Low = Infinity'),
+      nan: await storedEnumValues('sqlite/real@1', 'Low = NaN'),
+    }).toEqual({
+      infinity: { values: ['Infinity'] },
+      nan: { diagnostics: [{ code: expect.any(String), message: expect.stringContaining('NaN') }] },
     });
   });
 });

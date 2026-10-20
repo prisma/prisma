@@ -48,7 +48,12 @@
             },
             "relations": {},
             "storage": {
-              "collection": "posts"
+              "collection": "posts",
+              "fields": {
+                "body": {
+                  "field": "body"
+                }
+              }
             }
           },
           "Link": {
@@ -67,7 +72,12 @@
             },
             "relations": {},
             "storage": {
-              "collection": "posts"
+              "collection": "posts",
+              "fields": {
+                "url": {
+                  "field": "url"
+                }
+              }
             }
           },
           "Post": {
@@ -123,7 +133,21 @@
               }
             },
             "storage": {
-              "collection": "posts"
+              "collection": "posts",
+              "fields": {
+                "_id": {
+                  "field": "_id"
+                },
+                "authorId": {
+                  "field": "authorId"
+                },
+                "kind": {
+                  "field": "kind"
+                },
+                "title": {
+                  "field": "title"
+                }
+              }
             },
             "variants": {
               "article": {
@@ -308,7 +332,69 @@
             },
             "relations": {},
             "storage": {
-              "collection": "users"
+              "collection": "users",
+              "fields": {
+                "_id": {
+                  "field": "_id"
+                },
+                "active": {
+                  "field": "active"
+                },
+                "age": {
+                  "field": "age"
+                },
+                "avatar": {
+                  "field": "avatar"
+                },
+                "balance": {
+                  "field": "balance"
+                },
+                "email": {
+                  "field": "email"
+                },
+                "embedding": {
+                  "field": "embedding"
+                },
+                "home": {
+                  "field": "home"
+                },
+                "joinedAt": {
+                  "field": "joinedAt"
+                },
+                "nickname": {
+                  "field": "nickname"
+                },
+                "nicknames": {
+                  "field": "nicknames"
+                },
+                "pastHomes": {
+                  "field": "pastHomes"
+                },
+                "pastRoles": {
+                  "field": "pastRoles"
+                },
+                "raw": {
+                  "field": "raw"
+                },
+                "rawEmbedding": {
+                  "field": "rawEmbedding"
+                },
+                "role": {
+                  "field": "role"
+                },
+                "score": {
+                  "field": "score"
+                },
+                "scores": {
+                  "field": "scores"
+                },
+                "settings": {
+                  "field": "settings"
+                },
+                "visits": {
+                  "field": "visits"
+                }
+              }
             }
           }
         },

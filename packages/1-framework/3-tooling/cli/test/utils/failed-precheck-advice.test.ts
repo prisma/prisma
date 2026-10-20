@@ -1,16 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { mapDbInitFailure } from '../../src/utils/db-init-failure';
-import { mapDbUpdateFailure } from '../../src/utils/db-update-failure';
-import { mapMigrateFailure } from '../../src/utils/migrate-failure';
+import { dbInitError, dbUpdateError, migrateError } from './runner-failure-errors';
 
 const PROJECT = { cwd: '/work/app', configPath: undefined, dbGiven: false };
 
 const runnerFailed = {
-  code: 'RUNNER_FAILED',
   summary:
     'Operation index.Item.Item_state_idx failed during precheck: ensure index "Item_state_idx" does not exist',
   why: undefined,
-  meta: {},
 } as const;
 
 function failedPrecheck(description: string, planStartsFromMarker: boolean) {
@@ -19,7 +15,7 @@ function failedPrecheck(description: string, planStartsFromMarker: boolean) {
 
 describe('the advice for a check that fails before an operation runs', () => {
   it('on db migrate without a marker, says the name is taken and points to db sign', () => {
-    const error = mapMigrateFailure(
+    const error = migrateError(
       {
         ...runnerFailed,
         failedPrecheck: failedPrecheck('ensure index "Item_state_idx" does not exist', false),
@@ -34,7 +30,7 @@ describe('the advice for a check that fails before an operation runs', () => {
   });
 
   it('on db migrate with a marker, says the database drifted from its migration history and points to db verify', () => {
-    const error = mapMigrateFailure(
+    const error = migrateError(
       {
         ...runnerFailed,
         failedPrecheck: failedPrecheck('ensure column "x" is missing', true),
@@ -50,10 +46,8 @@ describe('the advice for a check that fails before an operation runs', () => {
 
   it('reads a check that something exists, and leaves any other check as written', () => {
     const whyOf = (description: string) =>
-      mapMigrateFailure(
-        { ...runnerFailed, failedPrecheck: failedPrecheck(description, true) },
-        PROJECT,
-      ).why;
+      migrateError({ ...runnerFailed, failedPrecheck: failedPrecheck(description, true) }, PROJECT)
+        .why;
 
     expect([
       whyOf('ensure constraint "Item_pkey" exists'),
@@ -67,7 +61,7 @@ describe('the advice for a check that fails before an operation runs', () => {
   });
 
   it('on db init, points to db sign', () => {
-    const error = mapDbInitFailure(
+    const error = dbInitError(
       {
         ...runnerFailed,
         conflicts: undefined,
@@ -82,7 +76,7 @@ describe('the advice for a check that fails before an operation runs', () => {
   });
 
   it('on db update, explains the check that failed', () => {
-    const error = mapDbUpdateFailure(
+    const error = dbUpdateError(
       {
         ...runnerFailed,
         conflicts: undefined,

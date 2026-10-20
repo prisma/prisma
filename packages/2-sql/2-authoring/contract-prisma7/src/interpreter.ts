@@ -6,11 +6,13 @@ import type { Contract, ExecutionMutationDefaultValue } from '@internal/contract
 import type {
   AuthoringEntityContext,
   AuthoringEntityTypeDescriptor,
+  AuthoringTypeConstructorDescriptor,
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
 import {
   getAuthoringTypeConstructor,
   instantiateAuthoringEntityType,
+  instantiateAuthoringTypeConstructor,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
@@ -25,6 +27,7 @@ import type {
   ParsedPslExtensionBlock,
   PslSpan,
   ResolvedAttribute,
+  ResolvedAttributeArg,
   ResolvedTypeConstructorCall,
 } from '@internal/psl-parser';
 import {
@@ -74,7 +77,12 @@ import {
   statedConstraintName,
 } from './constraint-names';
 import { lowerPrisma7Default } from './defaults';
-import { ignoredFieldInPrimaryKey, prisma7Diagnostic } from './diagnostics';
+import {
+  prisma7Diagnostic,
+  type UnmappedReason,
+  unmappedFieldDiagnostics,
+  unmappedFieldInPrimaryKey,
+} from './diagnostics';
 import { type IndexAttribute, indexNode, parseIndexAttribute } from './indexes';
 import { prisma7NativeTypeMapping, prisma7ScalarMapping } from './native-types';
 import {
@@ -158,10 +166,10 @@ interface ModelDeclaration {
 interface ModelBuild {
   readonly declaration: ModelDeclaration;
   readonly columns: Map<string, FieldNode>;
-  /** The columns the table keeps and no field of the model maps: those of `@ignore` fields, or every column of an `@@ignore` model. */
-  readonly ignoredColumns: Map<string, ColumnNode>;
-  /** Fields marked `@ignore`, and relation fields to an `@@ignore` model. */
-  readonly ignoredFields: Set<string>;
+  /** The columns the table keeps and no field of the model maps: those of `@ignore` and `Unsupported(...)` fields, or every column of an `@@ignore` model. */
+  readonly unmappedColumns: Map<string, ColumnNode>;
+  /** The fields a primary key or a relation join may not use, because the model has no Prisma 8 field for them, and why: `@ignore` fields, relation fields to an `@@ignore` model, and `Unsupported(...)` fields. An `Unsupported` field of an `@@ignore` model is left out, because that model keeps its primary key. */
+  readonly unmappedFields: Map<string, UnmappedReason>;
   readonly ignoredRelationFields: RelationField[];
   readonly rejectedFields: Set<string>;
   idFields: readonly string[];
@@ -390,8 +398,8 @@ export function interpretPrisma7Documents(
     const build: ModelBuild = {
       declaration,
       columns: new Map(),
-      ignoredColumns: new Map(),
-      ignoredFields: new Set(),
+      unmappedColumns: new Map(),
+      unmappedFields: new Map(),
       ignoredRelationFields: [],
       rejectedFields: new Set(),
       idFields: declaration.id?.fields ?? [],
@@ -415,7 +423,7 @@ export function interpretPrisma7Documents(
       if (
         diagnostics.length > reported &&
         !build.columns.has(field.name) &&
-        !build.ignoredColumns.has(field.name)
+        !build.unmappedColumns.has(field.name)
       ) {
         build.rejectedFields.add(field.name);
       }
@@ -436,8 +444,8 @@ export function interpretPrisma7Documents(
       sourceId: build.declaration.sourceId,
       sources: build.declaration.sources,
       columns: build.columns,
-      ignoredColumns: build.ignoredColumns,
-      ignoredFields: build.ignoredFields,
+      unmappedColumns: build.unmappedColumns,
+      unmappedFields: build.unmappedFields,
       ignoredRelationFields: build.ignoredRelationFields,
       rejectedFields: build.rejectedFields,
       idFields: build.idFields,
@@ -454,19 +462,22 @@ export function interpretPrisma7Documents(
   for (const [modelName, build] of builds) {
     const model = relationModels.get(modelName);
     if (model === undefined) continue;
-    const ignoredAmong = (fieldNames: readonly string[] | undefined): readonly string[] =>
-      fieldNames?.filter((name) => build.ignoredFields.has(name)) ?? [];
     const idAttribute = build.declaration.id;
-    const ignoredIdFields = ignoredAmong(idAttribute?.fields);
-    if (idAttribute !== undefined && ignoredIdFields.length > 0) {
+    if (idAttribute?.fields !== undefined) {
       diagnostics.push(
-        ignoredFieldInPrimaryKey({
-          modelName,
-          fieldNames: ignoredIdFields,
-          usedBy: `@@id on model "${modelName}"`,
-          sourceId: model.sourceId,
-          span: idAttribute.span,
-        }),
+        ...unmappedFieldDiagnostics(
+          idAttribute.fields,
+          build.unmappedFields,
+          (fieldNames, reason) =>
+            unmappedFieldInPrimaryKey({
+              modelName,
+              fieldNames,
+              reason,
+              usedBy: `@@id on model "${modelName}"`,
+              sourceId: model.sourceId,
+              span: idAttribute.span,
+            }),
+        ),
       );
     }
     const id = keyColumns(model, model.idFields);
@@ -504,9 +515,9 @@ export function interpretPrisma7Documents(
       ...(indexes.length > 0 ? { indexes } : {}),
       ...(foreignKeys !== undefined ? { foreignKeys } : {}),
     });
-    const ignoredColumns = [...build.ignoredColumns.values()];
+    const unmappedColumns = [...build.unmappedColumns.values()];
     if (model.ignored) {
-      tables.push({ ...tableProperties, namespaceId: model.namespaceId, columns: ignoredColumns });
+      tables.push({ ...tableProperties, namespaceId: model.namespaceId, columns: unmappedColumns });
       continue;
     }
     modelNodes.push({
@@ -516,11 +527,11 @@ export function interpretPrisma7Documents(
       fields: [...build.columns.values()],
       ...(relations !== undefined ? { relations } : {}),
     });
-    if (ignoredColumns.length > 0) {
+    if (unmappedColumns.length > 0) {
       tables.push({
         namespaceId: model.namespaceId,
         tableName: model.tableName,
-        columns: ignoredColumns,
+        columns: unmappedColumns,
       });
     }
   }
@@ -684,7 +695,7 @@ function keyColumns(
 ): readonly string[] | undefined {
   const columns: string[] = [];
   for (const fieldName of fieldNames) {
-    const column = model.columns.get(fieldName) ?? model.ignoredColumns.get(fieldName);
+    const column = model.columns.get(fieldName) ?? model.unmappedColumns.get(fieldName);
     if (column === undefined) return undefined;
     columns.push(column.columnName);
   }
@@ -944,6 +955,46 @@ function lowerNativeEnums(
   return result;
 }
 
+/** The SQL family's type constructor for a column of a type no data type claims (ADR 273). */
+const RAW_TYPE_CONSTRUCTOR: readonly string[] = ['Raw'];
+
+/** Prisma 7's `Unsupported("...")`, which this source reads as `Raw("...")`. */
+function isUnsupportedType(call: ResolvedTypeConstructorCall | undefined): boolean {
+  return call?.path.length === 1 && call.path[0] === 'Unsupported';
+}
+
+/** The one double-quoted string `Unsupported(...)` takes, as written and with its escapes undone. */
+function unsupportedTypeArgument(
+  call: ResolvedTypeConstructorCall,
+): { readonly written: ResolvedAttributeArg; readonly text: string } | undefined {
+  const [written, ...rest] = call.args;
+  if (written === undefined || rest.length > 0 || written.kind !== 'positional') return undefined;
+  const literal =
+    written.expression === undefined
+      ? undefined
+      : StringLiteralExprAst.cast(written.expression.syntax);
+  const text = literal?.quote() === '"' ? literal.value() : undefined;
+  return text === undefined ? undefined : { written, text };
+}
+
+/** Why the type parameters a constructor makes from `args` fail its codec's parameter schema, or undefined when they pass. */
+function typeParamsRefusal(
+  descriptor: AuthoringTypeConstructorDescriptor,
+  args: readonly unknown[],
+  codecLookup: CodecLookupWithDescriptors,
+): string | undefined {
+  const { typeParams } = instantiateAuthoringTypeConstructor(descriptor, args);
+  const schema = codecLookup.descriptorFor(descriptor.output.codecId)?.paramsSchema;
+  if (schema === undefined) return undefined;
+  const result = schema['~standard'].validate(typeParams ?? {});
+  if (result instanceof Promise) {
+    throw new InternalError(
+      `The parameter schema of codec "${descriptor.output.codecId}" is asynchronous; authoring requires a synchronous schema.`,
+    );
+  }
+  return result.issues?.[0]?.message;
+}
+
 function nativeTypeMessage(label: string, nativeType: string): string {
   return `${label}: native type "@db.${nativeType}" has no Prisma 8 codec yet, and Prisma 8 cannot read this schema until it supports the column type. @ignore on the field or @@ignore on the model does not help: Prisma 8 keeps the columns of ignored fields and models in the contract. Changing the field's type to one Prisma 8 supports changes the column type on Prisma 7's next migration.`;
 }
@@ -971,8 +1022,11 @@ function readField(args: ReadFieldArgs): void {
   const fieldIgnored =
     field.attributes.some((attribute) => attribute.name === 'ignore') ||
     (isRelationField && args.ignoredModels.has(field.typeName));
-  if (fieldIgnored) build.ignoredFields.add(field.name);
-  const ignored = fieldIgnored || model.ignored;
+  const unsupported = isUnsupportedType(field.typeConstructor);
+  const unmappedReason: UnmappedReason | undefined =
+    unsupported && !model.ignored ? 'unsupported' : fieldIgnored ? 'ignored' : undefined;
+  if (unmappedReason !== undefined) build.unmappedFields.set(field.name, unmappedReason);
+  const ignored = fieldIgnored || model.ignored || unsupported;
 
   let columnName = field.name;
   let nativeType: { readonly name: string; readonly attribute: ResolvedAttribute } | undefined;
@@ -1007,11 +1061,12 @@ function readField(args: ReadFieldArgs): void {
         build.idFields = [field.name];
         build.idMap = parsed.map;
       }
-      if (fieldIgnored) {
+      if (unmappedReason !== undefined) {
         diagnostics.push(
-          ignoredFieldInPrimaryKey({
+          unmappedFieldInPrimaryKey({
             modelName: model.symbol.name,
             fieldNames: [field.name],
+            reason: unmappedReason,
             usedBy: 'its @id',
             sourceId,
             span: attribute.span,
@@ -1047,11 +1102,37 @@ function readField(args: ReadFieldArgs): void {
   }
 
   if (field.malformedType) return;
-  if (field.typeConstructor !== undefined) {
+  if (field.typeConstructor !== undefined && !unsupported) {
     diagnostics.push(
       prisma7Diagnostic(
         'PSL.PRISMA7_UNSUPPORTED_TYPE',
-        `${label} has type "${field.typeConstructor.path.join('.')}(...)", which has no Prisma 8 codec yet, and Prisma 8 cannot read this schema until it supports the column type. @@ignore on model "${model.symbol.name}" does not help: Prisma 8 keeps the columns of ignored models in the contract. Removing the field drops its column on Prisma 7's next migration.`,
+        `${label} has type "${field.typeConstructor.path.join('.')}(...)", which is not a Prisma 7 type. Prisma 7 refuses this schema too.`,
+        sourceId,
+        field.typeConstructor.span,
+      ),
+    );
+    return;
+  }
+  if (unsupported && nativeType !== undefined) {
+    diagnostics.push(
+      prisma7Diagnostic(
+        'PSL.PRISMA7_UNKNOWN_ATTRIBUTE',
+        `${label} has type Unsupported(...), which takes no native type, but has attribute "@db.${nativeType.name}". Prisma 7 refuses this schema too: "Attribute not known". Remove "@db.${nativeType.name}".`,
+        sourceId,
+        nativeType.attribute.span,
+      ),
+    );
+    return;
+  }
+  const unsupportedArgument =
+    field.typeConstructor === undefined
+      ? undefined
+      : unsupportedTypeArgument(field.typeConstructor);
+  if (field.typeConstructor !== undefined && unsupportedArgument === undefined) {
+    diagnostics.push(
+      prisma7Diagnostic(
+        'PSL.PRISMA7_UNSUPPORTED_TYPE',
+        `${label}: Unsupported(...) takes one string, the column's type as the database prints it, such as Unsupported("tsvector").`,
         sourceId,
         field.typeConstructor.span,
       ),
@@ -1095,9 +1176,21 @@ function readField(args: ReadFieldArgs): void {
     return;
   }
 
-  const enumDeclaration = args.enums.get(field.typeName);
+  const enumDeclaration = unsupported ? undefined : args.enums.get(field.typeName);
   let call: ResolvedTypeConstructorCall;
-  if (enumDeclaration !== undefined) {
+  if (unsupportedArgument !== undefined) {
+    call = {
+      path: RAW_TYPE_CONSTRUCTOR,
+      args: [
+        {
+          kind: 'positional',
+          value: `"${unsupportedArgument.text}"`,
+          span: unsupportedArgument.written.span,
+        },
+      ],
+      span: unsupportedArgument.written.span,
+    };
+  } else if (enumDeclaration !== undefined) {
     if (enumDeclaration.namespaceId !== model.namespaceId) {
       diagnostics.push(
         prisma7Diagnostic(
@@ -1168,6 +1261,21 @@ function readField(args: ReadFieldArgs): void {
     );
     return;
   }
+  const refusal =
+    unsupportedArgument === undefined
+      ? undefined
+      : typeParamsRefusal(typeConstructor, [unsupportedArgument.text], input.codecLookup);
+  if (unsupportedArgument !== undefined && refusal !== undefined) {
+    diagnostics.push(
+      prisma7Diagnostic(
+        'PSL.PRISMA7_UNSUPPORTED_TYPE',
+        `${label}: Unsupported(${unsupportedArgument.written.value}) is not one type name: ${refusal}`,
+        sourceId,
+        unsupportedArgument.written.span,
+      ),
+    );
+    return;
+  }
   const typeDiagnostics = createPslDiagnosticCollector(model.sources);
   const resolved = instantiateFieldTypeConstructor({
     call,
@@ -1212,6 +1320,7 @@ function readField(args: ReadFieldArgs): void {
           attribute: defaultAttribute,
           field,
           modelName: model.symbol.name,
+          onlyDbgenerated: unsupported,
           codecId: resolved.descriptor.codecId,
           typeParams: resolved.descriptor.typeParams,
           codecLookup: input.codecLookup,
@@ -1240,7 +1349,7 @@ function readField(args: ReadFieldArgs): void {
     ...ifDefined('default', lowered?.storage),
   };
   if (ignored) {
-    build.ignoredColumns.set(field.name, column);
+    build.unmappedColumns.set(field.name, column);
     return;
   }
   const executionDefaults =

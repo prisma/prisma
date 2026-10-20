@@ -112,7 +112,7 @@ The `Collection` class with fluent chaining is the shared ORM interface for all 
 | **Terminal compilation** | `CollectionState` → `SqlQueryPlan` (SQL AST) | `CollectionState` → `MongoQueryPlan` (FindCommand / AggregateCommand) |
 | **Include resolution** | Lateral joins, correlated subqueries, multi-query stitching | `$lookup` pipeline stages; embedded relations auto-projected |
 | **Where expression output** | SQL AST nodes (`AnyWhereExpr`) | Mongo filter documents (`MongoExpr`) |
-| **Field mapping** | Column remapping via `model.storage.fields` | Identity mapping (domain fields = document fields) |
+| **Field mapping** | Column remapping via `model.storage.fields` | Stored-name remapping via `model.storage.fields` |
 | **Mutation compilation** | `INSERT...RETURNING`, `ON CONFLICT`, FK cascades | `insertOne`, `updateOne` with update operators (`$set`, `$inc`, `$push`) |
 
 ### Approach: spike then extract

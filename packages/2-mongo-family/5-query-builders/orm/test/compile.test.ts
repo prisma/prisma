@@ -18,7 +18,18 @@ import { emptyCollectionState } from '../src/collection-state';
 import { compileMongoQuery } from '../src/compile';
 
 const testUserModel: MongoModelDefinition = {
-  storage: { collection: 'users' },
+  storage: {
+    fields: {
+      _id: { field: '_id' },
+      name: { field: 'name' },
+      email: { field: 'email' },
+      age: { field: 'age' },
+      active: { field: 'active' },
+      tags: { field: 'tags' },
+      address: { field: 'address' },
+    },
+    collection: 'users',
+  },
   relations: {},
   fields: {
     _id: {
@@ -60,7 +71,10 @@ const testUserModel: MongoModelDefinition = {
 };
 
 const testPostModel: MongoModelDefinition = {
-  storage: { collection: 'posts' },
+  storage: {
+    fields: { _id: { field: '_id' }, title: { field: 'title' }, authorId: { field: 'authorId' } },
+    collection: 'posts',
+  },
   relations: {},
   fields: {
     _id: {
@@ -196,6 +210,7 @@ describe('compileMongoQuery', () => {
       includes: [
         {
           relationName: 'author',
+          targetModelName: 'User',
           targetModel: testUserModel,
           from: 'users',
           localField: 'authorId',
@@ -224,6 +239,7 @@ describe('compileMongoQuery', () => {
       includes: [
         {
           relationName: 'posts',
+          targetModelName: 'Post',
           targetModel: testPostModel,
           from: 'posts',
           localField: '_id',
@@ -243,6 +259,7 @@ describe('compileMongoQuery', () => {
       includes: [
         {
           relationName: 'posts',
+          targetModelName: 'Post',
           targetModel: testPostModel,
           from: 'posts',
           localField: '_id',
@@ -300,6 +317,7 @@ describe('compileMongoQuery', () => {
         includes: [
           {
             relationName: 'author',
+            targetModelName: 'User',
             targetModel: testUserModel,
             from: 'users',
             localField: 'authorId',
@@ -329,6 +347,7 @@ describe('compileMongoQuery', () => {
         includes: [
           {
             relationName: 'posts',
+            targetModelName: 'Post',
             targetModel: testPostModel,
             from: 'posts',
             localField: '_id',
@@ -352,6 +371,7 @@ describe('compileMongoQuery', () => {
         includes: [
           {
             relationName: 'author',
+            targetModelName: 'User',
             targetModel: testUserModel,
             from: 'users',
             localField: 'authorId',

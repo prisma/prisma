@@ -219,28 +219,6 @@ export function errorSchemaVerificationFailed(options: {
 }
 
 /**
- * Migration runner failed during execution.
- */
-export function errorRunnerFailed(
-  summary: string,
-  options?: {
-    readonly why?: string;
-    readonly fix?: string;
-    readonly nextActions?: readonly NextAction[];
-    readonly meta?: Record<string, unknown>;
-    readonly cause?: unknown;
-  },
-): CliStructuredError {
-  return new CliStructuredError('MIGRATION.RUNNER_FAILED', summary, {
-    why: options?.why ?? 'Migration runner failed',
-    fix: options?.fix ?? 'Inspect the reported conflict and reconcile schema drift',
-    ...ifDefined('nextActions', options?.nextActions),
-    ...(options?.meta ? { meta: options.meta } : {}),
-    ...ifDefined('cause', options?.cause),
-  });
-}
-
-/**
  * Generic runtime error carrying a caller-provided dotted code.
  */
 export function errorRuntime(

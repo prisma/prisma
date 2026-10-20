@@ -44,6 +44,7 @@ export type {
 } from '../domain-types';
 export { ContractExecutionSectionSchema } from '../execution-section-schema';
 export type {
+  EnumMemberValueType,
   FieldTypesFromDomain,
   StoredValueType,
   ValueObjectTypesFromDomain,

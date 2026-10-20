@@ -66,7 +66,10 @@ export function contract(
               {
                 fields: Object.fromEntries(spec.fields.map((field) => [field, {}])),
                 relations: {},
-                storage: { collection: spec.collection },
+                storage: {
+                  collection: spec.collection,
+                  fields: Object.fromEntries(spec.fields.map((field) => [field, { field }])),
+                },
                 ...(spec.base === undefined
                   ? {}
                   : { base: { namespace: '__unbound__', model: spec.base } }),

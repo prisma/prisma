@@ -44,6 +44,8 @@ import contractJson from './fixtures/example-app/contract.json' with { type: 'js
 import { createDb, fixtureJwt } from './fixtures/example-app/db';
 import { setUpSupabaseMockSchema } from './fixtures/supabase-reference/set-up-mock-schema';
 
+const TEST_INVOCATION = { cwd: process.cwd(), configPath: undefined, dbGiven: false };
+
 async function signJwt(
   payload: Record<string, unknown>,
   secret = fixtureJwt,
@@ -88,9 +90,14 @@ async function runDbInit(connectionString: string, migrationsDir: string): Promi
 
   try {
     await client.connect(connectionString);
-    const result = await client.dbInit({ contract: contractJson, mode: 'apply', migrationsDir });
+    const result = await client.dbInit({
+      invocation: TEST_INVOCATION,
+      contract: contractJson,
+      mode: 'apply',
+      migrationsDir,
+    });
     if (!result.ok) {
-      throw new Error(`dbInit apply failed: ${result.failure.summary}`);
+      throw new Error(`dbInit apply failed: ${result.failure.message}`);
     }
   } finally {
     await client.close();

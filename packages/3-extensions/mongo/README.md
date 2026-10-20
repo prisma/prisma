@@ -172,6 +172,8 @@ await control.dbUpdate({
   contract,
   mode: 'apply',
   migrationsDir: 'migrations',
+  // Where the commands an error's advice prints are run from, and the --config and --db they repeat.
+  invocation: { cwd: process.cwd(), configPath: undefined, dbGiven: false },
   answerQuestions: async (questions) => {
     if (questions.length > 0) throw new Error('db update would lose data or widen access');
     return [];

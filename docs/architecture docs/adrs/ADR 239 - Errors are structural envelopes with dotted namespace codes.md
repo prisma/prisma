@@ -135,7 +135,7 @@ This ADR collapsed five parallel error systems — a numeric `PN-DOMAIN-NNNN` cl
 
 ## The scheme
 
-**Format.** `NAMESPACE.SUBCODE`. `NAMESPACE` is one of the closed list below. `SUBCODE` is `UPPER_SNAKE_CASE`, noun-first (`MARKER_MISSING`, `HASH_MISMATCH`, `RUNNER_FAILED`) so codes group by subject. A quoted exact-match search for a code finds every occurrence.
+**Format.** `NAMESPACE.SUBCODE`. `NAMESPACE` is one of the closed list below. `SUBCODE` is `UPPER_SNAKE_CASE`, noun-first (`MARKER_MISSING`, `HASH_MISMATCH`, `SCHEMA_VERIFY_FAILED`) so codes group by subject. A quoted exact-match search for a code finds every occurrence.
 
 **Namespaces are meaning-based and closed.** The list is governed by this ADR; each namespace has exactly one owning module that declares its code union. Ownership and meaning coincide: an error detected by the CLI but *about* the contract↔DB relationship is `CONTRACT`, not `CLI`; a runner apply failure surfaced through the CLI is `MIGRATION`, not `CLI`.
 
@@ -326,7 +326,7 @@ The 46 numeric codes. Grouped by destination namespace; a `↦ merges` note mark
 |---|---|---|
 | PN-CLI-4020 | `errorMigrationPlanningFailed` | `MIGRATION.PLANNING_FAILED` |
 | PN-CLI-4021 | `errorTargetMigrationNotSupported` | `MIGRATION.TARGET_UNSUPPORTED` |
-| PN-RUN-3020 | `errorRunnerFailed` | `MIGRATION.RUNNER_FAILED` |
+| PN-RUN-3020 | `errorRunnerFailed` | `MIGRATION.RUNNER_FAILED` (since removed: `db init`, `db update` and `db migrate` report the runner's own code) |
 | PN-RUN-3030 | `errorDestructiveChanges` | `MIGRATION.DESTRUCTIVE_CHANGES` |
 | PN-MIG-2001 | `errorUnfilledPlaceholder` / `placeholder` | `MIGRATION.UNFILLED_PLACEHOLDER` |
 | PN-MIG-2002 | `errorMigrationFileMissing` | `MIGRATION.FILE_MISSING` ↦ merges with existing tooling code |

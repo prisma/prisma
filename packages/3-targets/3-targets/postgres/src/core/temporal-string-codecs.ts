@@ -1,3 +1,4 @@
+import type { JsonValue } from '@internal/contract/types';
 import {
   type CodecCallContext,
   CodecImpl,
@@ -6,6 +7,7 @@ import {
   type ColumnHelperForStrict,
   column,
   type DataTypeValue,
+  renderTsLiteral,
 } from '@internal/framework-components/codec';
 import { CastExpr, type ProjectionExpr } from '@internal/sql-relational-core/ast';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
@@ -49,6 +51,9 @@ export class PgDateStringDescriptor extends PostgresCodecDescriptor<void> {
   override readonly codecId = PG_DATE_STRING_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly paramsSchema = undefined;
+  override renderValueLiteral(value: JsonValue): string | undefined {
+    return renderTsLiteral(value);
+  }
   override factory(): (ctx: CodecInstanceContext) => PgDateStringCodec {
     return () => new PgDateStringCodec(this, pgDate);
   }
@@ -210,6 +215,9 @@ export class PgTimeStringDescriptor extends PostgresCodecDescriptor<PrecisionPar
   override readonly codecId = PG_TIME_STRING_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly paramsSchema = pgPrecisionParams satisfies StandardSchemaV1<PrecisionParams>;
+  override renderValueLiteral(value: JsonValue): string | undefined {
+    return renderTsLiteral(value);
+  }
   override factory(params: PrecisionParams): (ctx: CodecInstanceContext) => PgTimeStringCodec {
     return () => new PgTimeStringCodec(this, pgTime, params ?? {});
   }

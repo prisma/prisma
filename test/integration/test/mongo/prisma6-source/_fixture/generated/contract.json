@@ -19,17 +19,17 @@
         "models": {
           "Counter": {
             "fields": {
-              "_id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "mongo/objectId@1",
-                  "kind": "scalar"
-                }
-              },
               "hits": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/int64Number@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
                   "kind": "scalar"
                 }
               },
@@ -57,18 +57,28 @@
             },
             "relations": {},
             "storage": {
-              "collection": "Counter"
+              "collection": "Counter",
+              "fields": {
+                "hits": {
+                  "field": "hits"
+                },
+                "id": {
+                  "field": "_id"
+                },
+                "large": {
+                  "field": "large"
+                },
+                "name": {
+                  "field": "name"
+                },
+                "small": {
+                  "field": "small"
+                }
+              }
             }
           },
           "Tally": {
             "fields": {
-              "_id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "mongo/objectId@1",
-                  "kind": "scalar"
-                }
-              },
               "address": {
                 "nullable": true,
                 "type": {
@@ -84,6 +94,13 @@
                 "type": {
                   "kind": "valueObject",
                   "name": "Address"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
+                  "kind": "scalar"
                 }
               },
               "name": {
@@ -106,7 +123,24 @@
             },
             "relations": {},
             "storage": {
-              "collection": "Tally"
+              "collection": "Tally",
+              "fields": {
+                "address": {
+                  "field": "address"
+                },
+                "addresses": {
+                  "field": "addresses"
+                },
+                "id": {
+                  "field": "_id"
+                },
+                "name": {
+                  "field": "name"
+                },
+                "scores": {
+                  "field": "scores"
+                }
+              }
             }
           }
         },

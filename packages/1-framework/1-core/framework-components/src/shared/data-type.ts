@@ -94,6 +94,8 @@ export interface DataType {
   valueFrom<J extends JsonValue>(json: J, params: DataTypeParams): DataTypeValue<J>;
   /** The JSON `contract.json` stores for `value`. */
   toContract(value: DataTypeValue): JsonValue;
+  /** A key two stored forms share exactly when the type's equality holds them equal. Declared by a type whose equal values have more than one stored form, as `numeric` stores `0.5` and `0.50`; for every other type, values are equal when their stored forms are. */
+  readonly equalityKey?: (json: JsonValue) => string;
 }
 
 export interface DataTypeSpec {
@@ -104,6 +106,8 @@ export interface DataTypeSpec {
   readonly read: DataTypeReader;
   /** Gives an accepted value its one spelling; a type whose values have one spelling only declares none. */
   readonly spell?: DataTypeSpelling;
+  /** See {@link DataType.equalityKey}. */
+  readonly equalityKey?: (json: JsonValue) => string;
   /** The one form of parameters that mean the same type, such as `numeric(10)` and `numeric(10,0)`; a value stores its parameters in it. A type whose parameters have one form only declares none. */
   normalize?(params: DataTypeParams): DataTypeParams;
 }
@@ -180,6 +184,7 @@ export function dataType(id: string, spec: DataTypeSpec): DataType {
         construct(spelledUnder(json, params), params),
       ),
     toContract: (value) => requireValueOf(typeId, value, `Data type ${typeId}`).value,
+    ...ifDefined('equalityKey', spec.equalityKey),
   };
 }
 

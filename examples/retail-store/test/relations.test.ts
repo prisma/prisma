@@ -16,7 +16,7 @@ describe('relation loading via $lookup', { timeout: timeouts.spinUpMongoMemorySe
       address: null,
     });
 
-    await upsertCart(ctx.db, user._id, [
+    await upsertCart(ctx.db, user.id, [
       {
         productId: 'prod-1',
         name: 'Widget',
@@ -27,7 +27,7 @@ describe('relation loading via $lookup', { timeout: timeouts.spinUpMongoMemorySe
       },
     ]);
 
-    const cartWithUser = await getCartWithUser(ctx.db, user._id);
+    const cartWithUser = await getCartWithUser(ctx.db, user.id);
     expect(cartWithUser).not.toBeNull();
     expect(cartWithUser!.user).toMatchObject({
       name: 'Alice',
@@ -44,7 +44,7 @@ describe('relation loading via $lookup', { timeout: timeouts.spinUpMongoMemorySe
     });
 
     const order = await createOrder(ctx.db, {
-      userId: user._id,
+      userId: user.id,
       items: [
         {
           productId: 'prod-1',
@@ -61,7 +61,7 @@ describe('relation loading via $lookup', { timeout: timeouts.spinUpMongoMemorySe
     });
 
     const invoice = await createInvoice(ctx.db, {
-      orderId: order._id,
+      orderId: order.id,
       items: [{ name: 'Item', amount: 1, unitPrice: 100, lineTotal: 100 }],
       subtotal: 100,
       tax: 8.5,
@@ -69,7 +69,7 @@ describe('relation loading via $lookup', { timeout: timeouts.spinUpMongoMemorySe
       issuedAt: new Date('2026-03-15'),
     });
 
-    const invoiceWithOrder = await findInvoiceWithOrder(ctx.db, invoice._id);
+    const invoiceWithOrder = await findInvoiceWithOrder(ctx.db, invoice.id);
     expect(invoiceWithOrder).not.toBeNull();
     expect(invoiceWithOrder!.order).toMatchObject({
       shippingAddress: '789 St',

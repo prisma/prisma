@@ -149,6 +149,19 @@
                 "value": "paid"
               }
             ]
+          },
+          "Ratio": {
+            "codecId": "pg/numeric@1",
+            "members": [
+              {
+                "name": "Half",
+                "value": "0.5"
+              },
+              {
+                "name": "Whole",
+                "value": "1.50"
+              }
+            ]
           }
         },
         "models": {
@@ -910,6 +923,19 @@
                   "plane": "domain"
                 }
               },
+              "ratio": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "Ratio",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
               "seenAt": {
                 "nullable": false,
                 "type": {
@@ -1112,6 +1138,9 @@
                 },
                 "plan": {
                   "column": "plan"
+                },
+                "ratio": {
+                  "column": "ratio"
                 },
                 "seenAt": {
                   "column": "seenAt"
@@ -1852,6 +1881,11 @@
                   "expression": "\"plan\" IN ('free', 'paid')",
                   "name": "users_plan_check_af7dbeb0",
                   "prefix": "users_plan_check"
+                },
+                {
+                  "expression": "\"ratio\" IN ('0.5', '1.50')",
+                  "name": "users_ratio_check_adc94216",
+                  "prefix": "users_ratio_check"
                 }
               ],
               "columns": {
@@ -1920,6 +1954,17 @@
                   "valueSet": {
                     "entityKind": "valueSet",
                     "entityName": "Plan",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "ratio": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "Ratio",
                     "namespaceId": "public",
                     "plane": "storage"
                   }
@@ -2061,6 +2106,13 @@
                 "free",
                 "paid"
               ]
+            },
+            "Ratio": {
+              "kind": "valueSet",
+              "values": [
+                "0.5",
+                "1.50"
+              ]
             }
           }
         },
@@ -2068,7 +2120,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "7b726ff2c750b13ac5dd2966b8a7c42317a368c40faae5b2231611ac56a0dc59",
+    "storageHash": "67dcecb0dbd20137538fa4534d1016b3107d87bba11434f79aed258feea22cd5",
     "types": {
       "TimestampString3": {
         "codecId": "pg/timestamp-string@1",

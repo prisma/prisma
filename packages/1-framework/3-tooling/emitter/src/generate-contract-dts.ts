@@ -4,7 +4,7 @@ import type {
   ContractModelBase,
   ContractValueObject,
 } from '@internal/contract/types';
-import { type CodecLookup, readContractValue } from '@internal/framework-components/codec';
+import type { CodecLookup } from '@internal/framework-components/codec';
 import {
   type EmissionSpi,
   type GenerateContractTypesOptions,
@@ -26,6 +26,7 @@ import {
   generateValueObjectsDescriptorType,
   generateValueObjectTypeAliases,
   parameterizedOutputTypeFunctionsAlias,
+  renderValueLiteralType,
   serializeExecutionType,
   serializeObjectKey,
   serializeValue,
@@ -46,36 +47,22 @@ function generateEnumBlockType(enums: Record<string, ContractEnum>): string {
 }
 
 /**
- * Types each enum member as the value a query returns for it: the literal its codec reads from the stored form, or the codec's output type when that value has no literal type or the lookup has no codec.
+ * Types each enum member as the value a query returns for it: the literal its codec renders for the stored form, or the codec's output type when the codec renders none.
  */
 function generateEnumMemberTypesBlock(
   enums: Record<string, ContractEnum>,
   codecLookup: CodecLookup | undefined,
 ): string {
   const entries = Object.entries(enums).map(([name, entry]) => {
-    const codec = codecLookup?.get(entry.codecId);
     const memberTupleItems = entry.members.map((m) => {
-      const literal =
-        codec === undefined ? undefined : literalType(readContractValue(codec, m.value, undefined));
-      const valueType = literal ?? `CodecTypes[${serializeValue(entry.codecId)}]["output"]`;
+      const valueType =
+        renderValueLiteralType(m.value, entry.codecId, 'output', codecLookup) ??
+        `CodecTypes[${serializeValue(entry.codecId)}]["output"]`;
       return `{ readonly name: ${serializeValue(m.name)}; readonly value: ${valueType} }`;
     });
     return `readonly ${serializeObjectKey(name)}: readonly [${memberTupleItems.join(', ')}]`;
   });
   return `{ ${entries.join('; ')} }`;
-}
-
-function literalType(value: unknown): string | undefined {
-  switch (typeof value) {
-    case 'string':
-    case 'boolean':
-    case 'bigint':
-      return serializeValue(value);
-    case 'number':
-      return Number.isFinite(value) ? serializeValue(value) : undefined;
-    default:
-      return undefined;
-  }
 }
 
 export function generateContractDts(

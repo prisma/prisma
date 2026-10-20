@@ -240,11 +240,23 @@ type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 type FieldTypeOverrides = {
   readonly public: {
     readonly models: {
+      readonly Network: {
+        readonly hosts: {
+          readonly output: '127.0.0.1' | '10.0.0.0/8' | '::1';
+          readonly input: '127.0.0.1' | '10.0.0.0/8' | '::1';
+        };
+      };
       readonly Reading: {
         readonly float8: { readonly output: 1.5 | 2.25; readonly input: 1.5 | 2.25 };
         readonly int4: { readonly output: 1 | 10; readonly input: 1 | 10 };
         readonly int8: { readonly output: 1n | 10n; readonly input: 1n | 10n };
         readonly text: { readonly output: 'low' | 'high'; readonly input: 'low' | 'high' };
+        readonly uuid: {
+          readonly output:
+            'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' | 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12';
+          readonly input:
+            'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' | 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12';
+        };
       };
     };
   };
@@ -265,11 +277,23 @@ export type FieldInputTypes = FieldTypesFromDomain<
 >;
 type ColumnTypeOverrides = {
   readonly public: {
+    readonly networks: {
+      readonly hosts: {
+        readonly output: '127.0.0.1' | '10.0.0.0/8' | '::1';
+        readonly input: '127.0.0.1' | '10.0.0.0/8' | '::1';
+      };
+    };
     readonly readings: {
       readonly float8: { readonly output: 1.5 | 2.25; readonly input: 1.5 | 2.25 };
       readonly int4: { readonly output: 1 | 10; readonly input: 1 | 10 };
       readonly int8: { readonly output: 1n | 10n; readonly input: 1n | 10n };
       readonly text: { readonly output: 'low' | 'high'; readonly input: 'low' | 'high' };
+      readonly uuid: {
+        readonly output:
+          'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' | 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12';
+        readonly input:
+          'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' | 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12';
+      };
     };
   };
 };
@@ -760,8 +784,8 @@ type ContractBase = Omit<
             { readonly name: 'High'; readonly value: 10n },
           ];
           readonly Ratio: readonly [
-            { readonly name: 'Half'; readonly value: '0.5' },
-            { readonly name: 'Whole'; readonly value: '1.50' },
+            { readonly name: 'Half'; readonly value: CodecTypes['pg/numeric@1']['output'] },
+            { readonly name: 'Whole'; readonly value: CodecTypes['pg/numeric@1']['output'] },
           ];
           readonly StampLevel: readonly [
             {
