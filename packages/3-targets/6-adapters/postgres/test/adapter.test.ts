@@ -185,6 +185,25 @@ describe('Postgres adapter', () => {
     );
   });
 
+  it('splits a JSON object with more than 50 entries into merged jsonb_build_object calls', () => {
+    const entries = Array.from({ length: 51 }, (_, index) =>
+      JsonObjectExpr.entry(
+        `c${index}`,
+        new NativeJsonValueProjection(ColumnRef.of('user', `c${index}`)),
+      ),
+    );
+    const ast = SelectAst.from(TableSource.named('user')).withProjection([
+      ProjectionItem.of('object', JsonObjectExpr.fromEntries(entries)),
+    ]);
+
+    const lowered = adapter.lower(ast, { contract, params: [] });
+
+    const pairs = entries.map((_, index) => `'c${index}', "user"."c${index}"`);
+    expect(lowered.sql).toBe(
+      `SELECT (jsonb_build_object(${pairs.slice(0, 50).join(', ')}) || jsonb_build_object(${pairs[50]}))::json AS "object" FROM "user"`,
+    );
+  });
+
   it('renders nested scalar projection expressions with exact precedence', () => {
     const decision = CaseExpr.of(
       [

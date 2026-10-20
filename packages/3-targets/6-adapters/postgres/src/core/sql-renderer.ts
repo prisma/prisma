@@ -705,18 +705,27 @@ function projectJsonThroughCodec(
   return descriptor.projectJson(value, codec);
 }
 
+// PostgreSQL caps a function call at 100 arguments, and each entry takes two.
+const JSON_BUILD_OBJECT_MAX_ENTRIES = 50;
+
 function renderJsonObjectExpr(
   expr: JsonObjectExpr,
   contract: PostgresContract,
   pim: ParamIndexMap,
 ): string {
-  const args = expr.entries
-    .flatMap((entry): [string, string] => {
-      const key = `'${escapeLiteral(entry.key)}'`;
-      return [key, renderJsonValueProjection(entry.value, contract, pim)];
-    })
-    .join(', ');
-  return `json_build_object(${args})`;
+  const pairs = expr.entries.map((entry) => {
+    const key = `'${escapeLiteral(entry.key)}'`;
+    return `${key}, ${renderJsonValueProjection(entry.value, contract, pim)}`;
+  });
+  if (pairs.length <= JSON_BUILD_OBJECT_MAX_ENTRIES) {
+    return `json_build_object(${pairs.join(', ')})`;
+  }
+  const chunks: string[] = [];
+  for (let start = 0; start < pairs.length; start += JSON_BUILD_OBJECT_MAX_ENTRIES) {
+    const chunk = pairs.slice(start, start + JSON_BUILD_OBJECT_MAX_ENTRIES);
+    chunks.push(`jsonb_build_object(${chunk.join(', ')})`);
+  }
+  return `(${chunks.join(' || ')})::json`;
 }
 
 function renderOrderByItems(
