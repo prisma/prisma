@@ -42,6 +42,32 @@ describe('Prisma 7 default function arguments', () => {
     ]);
   });
 
+  it('refuses a named argument', () => {
+    expect(refusals('uuid(version: 7)')).toEqual([
+      {
+        code: 'PSL.PRISMA7_UNKNOWN_DEFAULT',
+        message: 'Field "Row.value": Generator function "uuid" received unknown argument "version"',
+        line: 7,
+        columns: columnsOf('uuid(version: 7)', 'version: 7'),
+      },
+    ]);
+  });
+
+  it('refuses a column too short for what the generator writes', () => {
+    const result = interpretSchemaTextResult(
+      'datasource db {\n  provider = "postgresql"\n}\n\nmodel Row {\n  id Int @id\n  value String @db.Char(5) @default(uuid())\n}\n',
+    );
+    expect(
+      result.ok ? [] : result.failure.diagnostics.map(({ code, message }) => ({ code, message })),
+    ).toEqual([
+      {
+        code: 'PSL.PRISMA7_GENERATOR_REFUSED',
+        message:
+          'Field "Row.value": @default(uuid()) cannot fill its column: uuid() writes 36 characters, which does not fit a column of 5 characters.',
+      },
+    ]);
+  });
+
   it.each([
     ['uuid()', { kind: 'generator', id: 'uuidv4' }],
     ['uuid(7)', { kind: 'generator', id: 'uuidv7' }],
