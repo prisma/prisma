@@ -17,21 +17,21 @@ The typical requests from Will, and what each one means:
 
 ## State on 2026-10-20
 
-GA readiness is 13 of 36 Must projects done (36%). 15 are in progress and 8 are not started. Since 2026-10-16, Will's rule is that **a project that has started is Must**, whatever it was placed as before.
+GA readiness is 15 of 36 Must projects done (42%). 13 are in progress and 8 are not started. Since 2026-10-16, Will's rule is that **a project that has started is Must**, whatever it was placed as before.
 
 | Stream | Done |
 | --- | --- |
 | 1 Foundations and breaking changes | 3 of 8 |
 | 2 Upgrade path from Prisma 7 | 1 of 7 |
 | 3 Editor and tools | 2 of 5 |
-| 4 Query features | 6 of 11 |
+| 4 Query features | 8 of 11 |
 | 5 Docs and the new user's first hour | 1 of 5 |
 
-Last refresh: 2026-10-20, commit `086df96c9f`. These PRs were approved but not merged at that time: prisma/orm#30780 (TML-3607 slice 1), prisma/orm#30773 and prisma/orm#30779 (migration statements), prisma/orm#30770 and prisma/orm#30775 (activity tree slice 4 and close-out), prisma/orm#30535 (file watching) and prisma/orm#30495 (skill data transforms, approved since 2026-09-29). These were waiting for Will's review: prisma/orm#30776 (client surfaces slice 2) and prisma/orm#30774 (Prisma 7 planner gaps). Check them all first; several will have merged.
+Last refresh: 2026-10-20 afternoon, by icarus-42. Open at that time: prisma/orm#30535 (file watching) and prisma/orm#30495 (skill data transforms), both approved and not merged. In review: prisma/orm#30774 (Prisma 7 planner gaps), prisma/orm#30789 (client surfaces slice 3), prisma/orm#30788 (Prisma 7 `Unsupported` reader), prisma/orm#30790 (enum members, part of TML-3389) and prisma/orm#30734 (nested writes, Serhii). Check them all first.
 
-The next unstarted row for Will is the **early MySQL attempt** (stream 1, row 3). No PR, ticket or recent branch exists for it. After it come stream 2's upgrade guide rewrite (TML-3540), the codecs (TML-3270) and the enum membership check on adoption.
+The next unstarted row for Will is the **early MySQL attempt** (stream 1, row 3). No PR, ticket or recent branch exists for it; the only MySQL branches are Prisma 7 adapter work from June 2025. After it come stream 2's upgrade guide rewrite (TML-3540), the codecs (TML-3270) and the enum membership check on adoption.
 
-Open item: stream 1 row 9, removing the `unbound` / `__unbound__` namespace alias, is Serhii's proposal (prisma/orm#30751, not merged) and is "Not decided". Raise it with Will only if he asks about stream 1.
+Open item: stream 1 row 9, removing the `unbound` / `__unbound__` namespace alias, is Serhii's proposal (prisma/orm#30751, approved, not merged) and is "Not decided". Raise it with Will only if he asks about stream 1.
 
 ## Mistakes made in this work, and the rule each one taught
 

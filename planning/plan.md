@@ -21,9 +21,9 @@ Counts the projects marked Must in each stream. A project counts as done only wh
 | Foundations and breaking changes | 3 of 8 (38%) | `████░░░░░░` | 4 | 1 |
 | Upgrade path from Prisma 7 | 1 of 7 (14%) | `█░░░░░░░░░` | 3 | 3 |
 | Editor and tools | 2 of 5 (40%) | `████░░░░░░` | 2 | 1 |
-| Query features | 6 of 11 (55%) | `██████░░░░` | 3 | 2 |
+| Query features | 8 of 11 (73%) | `███████░░░` | 1 | 2 |
 | Docs and the new user's first hour | 1 of 5 (20%) | `██░░░░░░░░` | 3 | 1 |
-| **All streams** | **13 of 36 (36%)** | `████░░░░░░` | **15** | **8** |
+| **All streams** | **15 of 36 (42%)** | `████░░░░░░` | **13** | **8** |
 
 ## Stream 1: Foundations and breaking changes
 
@@ -33,14 +33,14 @@ GA is the last chance to make breaking changes, so this stream decides the date.
 
 | # | Progress | Project | GA | Owner | Status | Next |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | 🔄 5/6 | Finish ADR 254: data types own column types | Must | Will | 5 of 6 tickets merged. Verify and the planner compare column types as data types (TML-3387), merged 2026-10-20. The cast rule (TML-3389) is left, in backlog | Build TML-3389: the cast rule checks default function arguments, enum member values and discriminator values |
+| 1 | 🔄 5/6 | Finish ADR 254: data types own column types | Must | Will | 5 of 6 tickets merged. The cast rule (TML-3389) is in progress. Its enum member item is in a PR in review, which also makes enum members values of their data type | Review the enum member PR, then finish TML-3389: default function arguments and discriminator values |
 | 2 | ✅ 2/2 | One CLI and one config file | Must | Will | Done 2026-10-08 |  |
 | 3 | ⏳ | Early MySQL attempt, to find shared code that assumes PostgreSQL | Must | Will | Not started, no ticket |  |
 | 4 | ✅ 6/6 | SQL expression literals | Must | Will | Done 2026-10-12 |  |
-| 5 | 🔄 4/5 | PSL mixins, then remove field presets; generated values become `@onCreate` and `@onUpdate`, and type aliases become an authoring shorthand | Must | Serhii (mixins), Will (TML-3607) | Mixins done 2026-10-14. ADR 275 merged 2026-10-19. TML-3607 has 3 slices: slice 1, `@onCreate` and `@onUpdate`, approved 2026-10-20 | Merge slice 1, then slice 2 (type aliases expand into each column) and slice 3 (presets removed) |
+| 5 | 🔄 3/5 | PSL mixins, then remove field presets; generated values become `@onCreate` and `@onUpdate`, and type aliases become an authoring shorthand | Must | Serhii (mixins), Will (TML-3607) | Mixins done 2026-10-14. ADR 275 merged 2026-10-19. TML-3607 has 3 slices: slice 1, `@onCreate` and `@onUpdate`, merged 2026-10-20 | Slice 2 (type aliases expand into each column), then slice 3 (presets removed) |
 | 6 | ✅ 1/1 | Remove `@noCheck` and `.noCheck()` | Must | Will | Done 2026-10-16 |  |
-| 7 | 🔄 4/7 | Migration statements: the planner refuses data loss, the user states renames, deletes, conversions and backfills | Must | Will | 4 of 7 slices merged. The TypeScript MongoDB validator slice: PR 1 merged, PR 2 approved, PR 3 (a MongoDB field keeps its own name in code) approved | Merge PRs 2 and 3, then the remaining Postgres and SQLite renames (TML-3537) |
-| 8 | 🔄 1/4 | Client surfaces: a client takes a typed contract value, custom collections on every client and transaction | Must | Will | Slice 1 merged 2026-10-19; it is breaking: `postgres<Contract>({ contractJson })` became `postgres({ contract: contractFromJson<Contract>(json) })`. Slice 2, custom collections on every SQL client, in review. 2 tickets in progress | Review slice 2 (TML-3546) |
+| 7 | 🔄 5/7 | Migration statements: the planner refuses data loss, the user states renames, deletes, conversions and backfills | Must | Will | 5 of 7 slices merged. The TypeScript MongoDB validator slice merged 2026-10-20, with a MongoDB field keeping its own name in code. Left: renames and deletes of enum values, namespaces, value object fields and variants on Postgres and SQLite (TML-3537), and convert and backfill on MongoDB (TML-3538), both in backlog | Build TML-3537 |
+| 8 | 🔄 2/4 | Client surfaces: a client takes a typed contract value, custom collections on every client and transaction | Must | Will | Slice 1 merged 2026-10-19; it is breaking: `postgres<Contract>({ contractJson })` became `postgres({ contract: contractFromJson<Contract>(json) })`. Slice 2, custom collections on every SQL client, merged 2026-10-20. Slice 3, a transaction offers the client's query members, in review | Review slice 3 (TML-3603) |
 | 9 | ⏳ | Remove the `unbound` / `__unbound__` namespace alias, keeping one name | Not decided | Serhii | Serhii proposed it in a docs PR to the RC plan, not merged. Not started | |
 
 ## Stream 2: Upgrade path from Prisma 7
@@ -56,7 +56,7 @@ Test: an existing Prisma 7 database can be signed by Prisma 8.
 | 3 | ✅ 7/7 | Storage a model does not map: a table may hold columns its model does not map, and a table may have no model | Must | Will | Done 2026-10-13: 4 slices, ADR 267, the fix for a model with no fields, and the close-out merged |  |
 | 4 | ⏳ | Upgrade guide rewrite | Must | Will | Ticket in backlog. One known error in the guide |  |
 | 5 | ⏳ 0/5 | Codecs for `citext`, `bit`, `varbit`, `xml`, `oid` | Must | Will | Backlog |  |
-| 6 | 🔄 0/3 | Columns whose type has no codec | Must | Will | Designed (ADR 273). Slice 1, `Raw("...")` and the `sql/raw` data type, is held: it waits on TML-3615 (`Raw` takes `sql`…``), which waits on TML-3607. Slice 2, the Prisma 7 reader (TML-3596), in backlog | Build TML-3615 once TML-3607 lands |
+| 6 | 🔄 1/3 | Columns whose type has no codec | Must | Will | Designed (ADR 273). Slice 1, `Raw("...")` and the `sql/raw` data type, merged 2026-10-20. Slice 2, the Prisma 7 reader reads `Unsupported(...)` as a raw column, in review. TML-3615 (`Raw` takes `sql`…``) in backlog | Review slice 2 (TML-3596) |
 | 7 | ⏳ | Adopt a Prisma 7 database without changing it: the enum membership check | Must | Will | Not designed |  |
 | 8 | ⏳ | Medium and low upgrade issues | Later | Will | Backlog | |
 | 9 | ⏳ | `money` codec | Later | Will | Backlog | |
@@ -70,14 +70,14 @@ Test: an existing Prisma 7 database can be signed by Prisma 8.
 | # | Progress | Project | GA | Owner | Status | Next |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | 🔄 4/5 | Emulator controls in the `prisma` CLI: start, stop, list, reset | Must, urgent | Will | 4 of 5 slices merged. `prisma` has `prisma dev --detach`, `prisma dev stop`, `prisma dev url` and `prisma emulator list` since 2026-10-19. The docs slice is left. Reset is not in this project | The docs slice: Composer's pages stop hard-coding ports. Decide whether reset is still needed |
-| 2 | 🔄 2/4 | VS Code extension: formatter without the CLI, go-to-definition, multi-file PSL, emulator controls | Must | Serhii | Go-to-definition and multi-file PSL done. Rename merged. File watching approved, not merged. Formatter without the CLI unverified. Emulator controls wait on row 1 | Merge the file-watching PR. Verify the formatter works without the CLI |
+| 2 | 🔄 2/4 | VS Code extension: formatter without the CLI, go-to-definition, multi-file PSL, emulator controls | Must | Serhii | Go-to-definition and multi-file PSL done. Rename merged. File watching approved, not merged; a fix to removing a file watcher merged 2026-10-20. Formatter without the CLI unverified. Emulator controls wait on row 1 | Merge the file-watching PR. Verify the formatter works without the CLI |
 | 3 | ⏳ | Make the extension's handling of local and remote Prisma Postgres match the CLI and its emulators | Must | Serhii | Not started |  |
 | 4 | ✅ 1/1 | Multi-file PSL | Must | Serhii | Done 2026-09-30 | |
 | 5 | ✅ 1/1 | Several `types` blocks in a schema, so type aliases can sit beside the models that use them | Must | Serhii | Done 2026-10-16. It already worked; a PR added the tests and docs |  |
 
 ## Stream 4: Query features
 
-**GA readiness:** 6 of 11 Must projects done (55%). 3 in progress, 2 not started.
+**GA readiness:** 8 of 11 Must projects done (73%). 1 in progress, 2 not started.
 
 Everything here is additive, so nothing here can block a breaking change.
 
@@ -90,8 +90,8 @@ Everything here is additive, so nothing here can block a breaking change.
 | 4 | ⏳ | Expressions in updates (what `increment` and `decrement` did in Prisma 7) | When there is time | Serhii | Not designed | |
 | 5 | ✅ 1/1 | A query that fails when nothing matches (what `firstOrThrow` did in Prisma 7) | Must | Serhii | `firstOrThrow` on collections merged 2026-10-08 |  |
 | 6 | ⏳ | JSON filters and list filters | Later | Serhii | PR stalled since July | |
-| 7 | 🔄 4/5 | Middleware sees a tree of activities | Must | Will | ADR 271 and slices 1 to 3 merged. Slice 4, the cache invalidates once a write is finalized, approved 2026-10-20. Close-out approved | Merge slice 4 and the close-out |
-| 8 | 🔄 3/4 | Cache middleware | Must | Will | Invalidation, keys and the after-transaction stage merged. Invalidation after commit is row 7's slice 4, approved | |
+| 7 | ✅ 5/5 | Middleware sees a tree of activities | Must | Will | Done 2026-10-20. Slice 4 and the close-out merged together | |
+| 8 | ✅ 4/4 | Cache middleware | Must | Will | Done 2026-10-20. Invalidation after commit merged with row 7's slice 4 | |
 | 9 | ✅ 3/3 | Row locking on a select | Must | Will | Done 2026-10-07 | |
 | 10 | ✅ 4/4 | Collection classes, query fragments and indexes | Must | Will | Done 2026-10-15. Closed out 2026-10-16 | |
 | 11 | ✅ 1/1 | `variant()` selects by discriminator value | Must | Serhii | Merged 2026-10-06 | |
