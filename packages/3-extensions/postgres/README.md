@@ -197,39 +197,22 @@ Pass `log` (an object with `info`, `warn`, `error` and an optional `debug` metho
 
 ### Running plans and rendering SQL
 
-`db.query(plan)` runs a plan from `db.sql`, `db.raw` or the ORM and returns its rows as an `AsyncIterableResult`; `await` it for an array. `db.execute(plan)` runs a plan and resolves its statistics, `{ affectedRows }`, with no rows. Both have the types `tx.query` and `tx.execute` have inside `db.transaction(...)`. For an ORM plan such as `db.orm.public.Post.where({ published: true }).prepared.all().plan`, `db.query` yields the database rows, not the result the ORM builds from them.
+`db.query(plan)` runs a plan from `db.sql`, `db.raw` or the ORM and returns its rows as an `AsyncIterableResult`; `await` it for an array. `db.execute(plan)` runs a plan and resolves its statistics, `{ affectedRows }`, with no rows. Both have the types `tx.query` and `tx.execute` have inside `db.transaction(...)`. For an ORM plan such as `db.orm.public.Post.published().prepared.all().plan`, `db.query` yields the database rows, not the result the ORM builds from them.
 
-`db.toSql(plan)` returns the SQL and parameters the plan would run, `{ sql, params }`, with no database. `params` are the values the plan holds, before codecs encode them for the driver. Middleware rewrites (`beforeCompile`) are not applied, because they belong to running a query. A plan with `prepare` bind sites throws `RUNTIME.PREPARE_BIND_ON_ADHOC`. `postgresStatic()` has `toSql` too.
+`db.toSql(plan)` returns the SQL and parameters the plan would run, `{ sql, params }`, with no database. `params` are the values the plan holds, before codecs encode them for the driver. Middleware rewrites (`beforeCompile`) are not applied, because they belong to running a query. A plan with `prepare` bind sites throws `RUNTIME.PREPARE_BIND_ON_ADHOC`, and a plan built for another contract throws `PLAN.HASH_MISMATCH`, as running it would. `postgresStatic()` has `toSql` too.
 
 ```ts
-const plan = db.sql.public.post.select('id', 'title').limit(10).build();
+const plan = db.sql.public.posts.select('id', 'title').limit(10).build();
 console.log(db.toSql(plan));
 for await (const row of db.query(plan)) console.log(row);
-await db.execute(db.raw.sql`UPDATE post SET pinned = false`.affectedCount().build());
+await db.execute(db.raw.sql`UPDATE posts SET views = 0`.affectedCount().build());
 ```
 
 `mode` is `'strict'` by default, and every `budgets()` violation throws. Pass `mode: 'permissive'` and a violation whose severity is `'warn'` goes to `log.warn` instead, and the query runs; a violation whose severity is `'error'` still throws. `budgets()` gives latency `'warn'` and the row count `'error'` by default, so a row-count limit warns only with `severities: { rowCount: 'warn' }`.
 
 ### Transactions
 
-`db.transaction(async (tx) => ...)` commits when the callback returns and rolls back when it throws. `tx` offers the client's query members, with the same types: `sql`, `orm` (with the client's custom collection classes), `raw`, `prepare`, `query`, `execute`, `enums` and `nativeEnums`. Every statement they send runs inside the transaction. `tx` has no `close`, `[Symbol.asyncDispose]`, `transaction` or `runtime()`. A transaction on a serverless connection (`await postgres.connect({ url })`) offers the same members. The type is `PostgresTransactionContext<Contract>`.
-
-```ts
-await db.transaction(async (tx) => {
-  const posts = await tx.orm.public.Post.published().forUpdate().all();
-  await tx.execute(tx.raw.sql`UPDATE posts SET pinned = false WHERE id = ${posts[0]!.id}`.affectedCount().build());
-  const byId = await tx.prepare({ id: 'pg/int4@1' }, (params) =>
-    tx.sql.public.posts.select('id').where((f, fns) => fns.eq(f.id, params.id)).build(),
-  );
-  await byId.query(tx, { id: 1 });
-});
-```
-
-`published()` is a method of a custom `PostCollection`. `tx.prepare` lets code inside a transaction prepare a statement without the outer client. Preparing sends nothing to the database.
-
-### Transactions
-
-`db.transaction(async (tx) => ...)` commits when the callback returns and rolls back when it throws. `tx` offers the client's query members, with the same types: `sql`, `orm` (with the client's custom collection classes), `raw`, `prepare`, `query`, `execute`, `enums` and `nativeEnums`. Every statement they send runs inside the transaction. `tx` has no `close`, `[Symbol.asyncDispose]`, `transaction` or `runtime()`. A transaction on a serverless connection (`await postgres.connect({ url })`) offers the same members. The type is `PostgresTransactionContext<Contract>`.
+`db.transaction(async (tx) => ...)` commits when the callback returns and rolls back when it throws. `tx` offers the client's query members, with the same types: `sql`, `orm` (with the client's custom collection classes), `raw`, `prepare`, `query`, `execute`, `toSql`, `enums` and `nativeEnums`. Every statement they send runs inside the transaction. `tx` has no `close`, `[Symbol.asyncDispose]`, `transaction` or `runtime()`. A transaction on a serverless connection (`await postgres.connect({ url })`) offers the same members. The type is `PostgresTransactionContext<Contract>`.
 
 ```ts
 await db.transaction(async (tx) => {

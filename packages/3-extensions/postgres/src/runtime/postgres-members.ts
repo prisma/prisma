@@ -21,6 +21,7 @@ import type {
   ParamsFromDeclaration,
   Runtime,
   SqlExecutionStackWithDriver,
+  ToSqlMember,
   TransactionContext,
 } from '@internal/sql-runtime';
 import {
@@ -50,11 +51,16 @@ export interface PostgresQueryMembers<
   readonly raw: RawLane<TContract>;
 }
 
+type PostgresTransactionQueryMembers<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses,
+> = Omit<PostgresQueryMembers<TContract, TCollections>, keyof RuntimeScope> & ToSqlMember;
+
 export interface PostgresTransactionContext<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
 > extends TransactionContext,
-    PostgresQueryMembers<TContract, TCollections> {
+    PostgresTransactionQueryMembers<TContract, TCollections> {
   readonly enums: NamespacedEnums<TContract>;
   readonly nativeEnums: NamespacedNativeEnums<TContract>;
 }
@@ -66,11 +72,12 @@ export interface PostgresQueryMembersOptions<
   readonly context: ExecutionContext<TContract>;
   readonly collections: TCollections | undefined;
   readonly rawCodecInferer: RawCodecInferer;
+  readonly toSql: ToSqlMember['toSql'];
   readonly prepareRuntime: () => Runtime;
 }
 
 /**
- * Builds the query members of a Postgres transaction over `txCtx`, so every statement they run goes through the transaction. Preparing sends nothing to the database, so `prepare` uses `prepareRuntime`; the prepared statement runs on the queryable it is given.
+ * Builds the query members of a Postgres transaction over `txCtx`, so every statement they run goes through the transaction. `query` and `execute` are the transaction's own. Preparing sends nothing to the database, so `prepare` uses `prepareRuntime`; the prepared statement runs on the queryable it is given.
  */
 export function buildPostgresQueryMembers<
   TContract extends Contract<SqlStorage>,
@@ -78,15 +85,10 @@ export function buildPostgresQueryMembers<
 >(
   options: PostgresQueryMembersOptions<TContract, TCollections>,
   txCtx: TransactionContext,
-): PostgresQueryMembers<TContract, TCollections> {
-  const { context, collections, rawCodecInferer, prepareRuntime } = options;
+): PostgresTransactionQueryMembers<TContract, TCollections> {
+  const { context, collections, rawCodecInferer, toSql, prepareRuntime } = options;
   return {
-    query(plan, execOptions) {
-      return txCtx.query(plan, execOptions);
-    },
-    execute(plan, execOptions) {
-      return txCtx.execute(plan, execOptions);
-    },
+    toSql,
     sql: sqlBuilder<TContract>({ context, rawCodecInferer }),
     raw: createRawLane<TContract>({ context, rawCodecInferer }),
     orm: ormBuilder<TContract, TCollections>({
@@ -116,8 +118,7 @@ export interface PostgresStaticMembers<TContract extends Contract<SqlStorage>>
 export interface PostgresRuntimeBoundMembers<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
-> extends PrepareMember<TContract>,
-    RuntimeScope {
+> extends PrepareMember<TContract> {
   readonly orm: OrmClient<TContract, TCollections>;
   runtime(): Runtime;
   transaction<R>(
@@ -139,6 +140,7 @@ export interface PostgresRuntimeBoundMembersOptions<
   readonly rawCodecInferer: RawCodecInferer;
   readonly enums: NamespacedEnums<TContract>;
   readonly nativeEnums: NamespacedNativeEnums<TContract>;
+  readonly toSql: ToSqlMember['toSql'];
   readonly getRuntime: () => Runtime;
   // The runtime that ORM queries, transaction() and prepare() run on. An owner whose close() should let continuing work finish returns its runtime even after close(), so the runtime's own rule decides; otherwise it is getRuntime.
   readonly getRuntimeForWork: () => Runtime;
@@ -149,13 +151,14 @@ export function buildPostgresRuntimeBoundMembers<
   TCollections extends CollectionClasses,
 >(
   options: PostgresRuntimeBoundMembersOptions<TContract, TCollections>,
-): PostgresRuntimeBoundMembers<TContract, TCollections> {
+): PostgresRuntimeBoundMembers<TContract, TCollections> & RuntimeScope {
   const {
     context,
     collections,
     rawCodecInferer,
     enums,
     nativeEnums,
+    toSql,
     getRuntime,
     getRuntimeForWork,
   } = options;
@@ -213,7 +216,7 @@ export function buildPostgresRuntimeBoundMembers<
           txCtx,
           {
             ...buildPostgresQueryMembers(
-              { context, collections, rawCodecInferer, prepareRuntime: getRuntimeForWork },
+              { context, collections, rawCodecInferer, toSql, prepareRuntime: getRuntimeForWork },
               txCtx,
             ),
             enums,

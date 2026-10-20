@@ -1,6 +1,7 @@
 import type { PostgresDriverCreateOptions } from '@internal/driver-postgres/runtime';
 import type {
   Log,
+  RuntimeMode,
   SqlMiddleware,
   SqlRuntimeExtensionDescriptor,
   VerifyMarkerOption,
@@ -37,8 +38,7 @@ export interface PostgresExecutionOptions {
   readonly verifyMarker?: VerifyMarkerOption;
   readonly log?: Log;
   readonly cursor?: PostgresCursorOptions;
-  /** Passed to middleware as `ctx.mode`. `'strict'` (the default) makes `budgets` block a query its `'warn'` severity would only warn about. */
-  readonly mode?: 'strict' | 'permissive';
+  readonly mode?: RuntimeMode;
 }
 
 const cursorOptionsSchema = type({

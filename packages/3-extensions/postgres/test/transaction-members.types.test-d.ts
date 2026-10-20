@@ -30,8 +30,9 @@ test('query and execute have one type on a client, a serverless connection and a
   expectTypeOf<Connection['execute']>().toEqualTypeOf<Client['execute']>();
 });
 
-test('toSql has one type on a client and a serverless connection', () => {
+test('toSql has one type on a client, a serverless connection and a transaction', () => {
   expectTypeOf<Connection['toSql']>().toEqualTypeOf<Client['toSql']>();
+  expectTypeOf<Tx['toSql']>().toEqualTypeOf<Client['toSql']>();
 });
 
 test('a serverless connection gives its transactions the same members', () => {

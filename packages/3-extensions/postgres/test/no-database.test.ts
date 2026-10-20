@@ -8,6 +8,9 @@ const created = vi.hoisted(() => ({ pools: 0, clients: 0 }));
 
 vi.mock('pg', () => {
   class Pool {
+    on() {
+      return this;
+    }
     constructor() {
       created.pools += 1;
     }
@@ -72,6 +75,20 @@ describe('a postgres client with no database', () => {
       selectTitled,
     );
     expectNothingCreated();
+  });
+});
+
+describe('a postgres client given a URL', () => {
+  it('creates its pool and driver on the first use', () => {
+    const db = postgres({ contract, url: 'postgres://localhost:5432/db' });
+    db.toSql(db.sql.public.posts.select('id').build());
+
+    expectNothingCreated();
+
+    db.runtime();
+
+    expect(created.pools).toBe(1);
+    expect(driverCreate).toHaveBeenCalledTimes(1);
   });
 });
 
