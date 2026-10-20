@@ -19,16 +19,16 @@ import type {
   AuthoringFieldNamespace,
   AuthoringTypeConstructorDescriptor,
   AuthoringTypeNamespace,
-  DataTypeAuthoringEntry,
-  DataTypeSupport,
+  DataTypeComponent,
 } from '@internal/framework-components/authoring';
-import { assertNoCrossRegistryCollisions } from '@internal/framework-components/authoring';
 import {
-  type CodecLookupWithDescriptors,
-  createDataTypeLookup,
-  type DataType,
-  type DataTypeLookup,
-  type TypeLookups,
+  assembleDataTypeSupport,
+  assertNoCrossRegistryCollisions,
+} from '@internal/framework-components/authoring';
+import type {
+  CodecLookupWithDescriptors,
+  DataTypeLookup,
+  TypeLookups,
 } from '@internal/framework-components/codec';
 import {
   createGeneratorHelpers,
@@ -230,35 +230,9 @@ export type ComposedAuthoringHelpers<
   readonly gen: GeneratorHelpersOf<Family | Target | ExtensionPackValues<Extensions>>;
 };
 
-type AuthoringComponent = {
-  readonly dataTypes?: readonly DataType[];
-  readonly authoring?: {
-    readonly type?: unknown;
-    readonly field?: unknown;
-    readonly entityTypes?: unknown;
-    readonly dataTypes?: Readonly<Record<string, DataTypeAuthoringEntry>>;
-  };
+type AuthoringComponent = DataTypeComponent & {
+  readonly authoring?: { readonly entityTypes?: unknown };
 };
-
-/**
- * The data types the helpers read `value` arguments as: the authoring entries and data types every component contributes, such as the SQL family's `sql/expression`, then any other type `lookups` holds.
- */
-function composeDataTypeSupport(
-  components: readonly AuthoringComponent[],
-  lookups: TypeLookups<CodecLookupWithDescriptors, DataTypeLookup>,
-): DataTypeSupport {
-  const declared = createDataTypeLookup(
-    components.flatMap((component) => component.dataTypes ?? []),
-  );
-  return {
-    entries: Object.assign({}, ...components.map((component) => component.authoring?.dataTypes)),
-    lookup: {
-      get: (id) => declared.get(id) ?? lookups.dataTypeLookup.get(id),
-      has: (id) => declared.has(id) || lookups.dataTypeLookup.has(id),
-    },
-    dataTypeOfCodec: (codecId) => lookups.codecLookup.descriptorFor(codecId)?.dataType,
-  };
-}
 
 function composeTypeNamespace(components: readonly AuthoringComponent[]): AuthoringTypeNamespace {
   return composePackAuthoringNamespace(components, 'type');
@@ -364,7 +338,10 @@ export function createComposedAuthoringHelpers<
   assertNoBuiltInEntityCollisions(entityNamespace);
   const helperLookups: AuthoringHelperLookups = {
     codecLookup: options.codecLookup,
-    dataTypes: composeDataTypeSupport(components, options),
+    dataTypes: assembleDataTypeSupport(
+      components,
+      (codecId) => options.codecLookup.descriptorFor(codecId)?.dataType,
+    ).support,
   };
 
   return blindCast<

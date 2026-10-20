@@ -9,7 +9,14 @@ import type { Codec } from '../shared/codec';
 import type { AnyCodecDescriptor } from '../shared/codec-descriptor';
 import type { CodecRef, CodecRegistry } from '../shared/codec-types';
 import type { DataType, DataTypeId, DataTypeLookup } from '../shared/data-type';
-import { assembleDataTypes, objectSchemaKeys } from '../shared/data-type';
+import { objectSchemaKeys } from '../shared/data-type';
+import {
+  assembleAuthoringDataTypes,
+  assembleDataTypeSupport,
+  type ContributedConstructor,
+  contributedConstructors,
+  writableDataTypes,
+} from '../shared/data-type-support';
 import type {
   AuthoringAttributeSpecContributions,
   AuthoringContributions,
@@ -28,8 +35,6 @@ import {
   collectContributedDescriptorPaths,
   collectScalarTypeConstructors,
   isAuthoringArgRef,
-  isAuthoringFieldPresetDescriptor,
-  isAuthoringTypeConstructorDescriptor,
   mergeAuthoringAttributeSpecs,
   mergeAuthoringNamespaces,
 } from '../shared/framework-authoring';
@@ -357,32 +362,6 @@ export function assembleAuthoringContributions(
   };
 }
 
-/** Merge every component's PSL support for its data types, refusing two claims on one key. */
-export function assembleAuthoringDataTypes(
-  descriptors: ReadonlyArray<{ readonly id?: string; readonly authoring?: AuthoringContributions }>,
-): Readonly<Record<string, DataTypeAuthoringEntry>> {
-  const merged: Record<string, DataTypeAuthoringEntry> = {};
-  const owners = new Map<string, string>();
-
-  for (const descriptor of descriptors) {
-    const contributedBy = descriptor.id ?? '<unknown>';
-    for (const [key, entry] of Object.entries(descriptor.authoring?.dataTypes ?? {})) {
-      const existingOwner = owners.get(key);
-      if (existingOwner !== undefined) {
-        throw runtimeError(
-          'CONTRACT.DATA_TYPE_ENTRY_DUPLICATE',
-          `Duplicate authoring entry for "${key}". Component "${contributedBy}" conflicts with "${existingOwner}".`,
-          { key, contributedBy, owner: existingOwner },
-        );
-      }
-      owners.set(key, contributedBy);
-      merged[key] = entry;
-    }
-  }
-
-  return merged;
-}
-
 export interface DataTypeInvariantInput {
   readonly lookup: DataTypeLookup;
   readonly declaredTypes: ReadonlyArray<{
@@ -405,39 +384,6 @@ export interface DataTypeInvariantInput {
   ) => Pick<AnyCodecDescriptor, 'dataType' | 'paramsSchema'> | undefined;
 }
 
-/** A type constructor or field preset, with the path it is registered under and who registered it. */
-export interface ContributedConstructor {
-  readonly path: string;
-  readonly descriptor: AuthoringTypeConstructorDescriptor | AuthoringFieldPresetDescriptor;
-  readonly contributedBy: string;
-}
-
-type AuthoringTree<D> = { readonly [name: string]: D | AuthoringTree<D> };
-
-function descriptorsIn<D>(
-  namespace: AuthoringTree<D> | undefined,
-  isLeaf: (value: D | AuthoringTree<D>) => value is D,
-  path: readonly string[] = [],
-): ReadonlyArray<{ readonly path: string; readonly descriptor: D }> {
-  return Object.entries(namespace ?? {}).flatMap(([key, value]) => {
-    const currentPath = [...path, key];
-    if (isLeaf(value)) return [{ path: currentPath.join('.'), descriptor: value }];
-    if (typeof value !== 'object' || value === null || Array.isArray(value)) return [];
-    return descriptorsIn(value, isLeaf, currentPath);
-  });
-}
-
-/** Every type constructor and field preset a component contributes. */
-export function contributedConstructors(descriptor: {
-  readonly id: string;
-  readonly authoring?: AuthoringContributions;
-}): readonly ContributedConstructor[] {
-  return [
-    ...descriptorsIn(descriptor.authoring?.type, isAuthoringTypeConstructorDescriptor),
-    ...descriptorsIn(descriptor.authoring?.field, isAuthoringFieldPresetDescriptor),
-  ].map((entry) => ({ ...entry, contributedBy: descriptor.id }));
-}
-
 function argumentMappedKeys(
   descriptor: AuthoringTypeConstructorDescriptor | AuthoringFieldPresetDescriptor,
 ): readonly string[] {
@@ -446,40 +392,7 @@ function argumentMappedKeys(
   );
 }
 
-/** Refuses a value argument whose data type is unregistered, or that no contract source can write, directly or through a cast. */
-function enforceValueArguments(
-  input: DataTypeInvariantInput,
-  contributed: ContributedConstructor,
-  writable: ReadonlySet<string>,
-): void {
-  const { path, descriptor, contributedBy } = contributed;
-  const kind = descriptor.kind === 'typeConstructor' ? 'type constructor' : 'field preset';
-  for (const [index, argument] of (descriptor.args ?? []).entries()) {
-    if (argument.kind !== 'value') continue;
-    const label = `Argument ${argument.name === undefined ? `#${index + 1}` : `"${argument.name}"`} of ${kind} "${path}"`;
-    const type = input.lookup.get(argument.dataType);
-    if (type === undefined) {
-      throw runtimeError(
-        'CONTRACT.DATA_TYPE_UNREGISTERED',
-        `${label} names data type "${argument.dataType}", which no component registers. Contributed by "${contributedBy}".`,
-        { dataType: argument.dataType, contributedBy },
-      );
-    }
-    const admitted = [argument.dataType, ...Object.keys(type.casts)];
-    if (!admitted.some((admittedType) => writable.has(admittedType))) {
-      throw runtimeError(
-        'CONTRACT.DATA_TYPE_NOT_WRITABLE',
-        `${label} contributed by "${contributedBy}" takes a value of data type "${argument.dataType}", which no contract source can write.`,
-        { dataType: argument.dataType, contributedBy },
-      );
-    }
-  }
-}
-
-function enforceConstructorInvariants(
-  input: DataTypeInvariantInput,
-  writable: ReadonlySet<string>,
-): void {
+function enforceConstructorInvariants(input: DataTypeInvariantInput): void {
   const inferredBy = new Map<string, ContributedConstructor>();
   for (const contributed of input.constructors) {
     const { path, descriptor, contributedBy } = contributed;
@@ -491,7 +404,6 @@ function enforceConstructorInvariants(
         `${kind} "${path}" contributed by "${contributedBy}" names codec "${codecId}", which no component registers.`,
       );
     }
-    enforceValueArguments(input, contributed, writable);
     if (descriptor.kind !== 'typeConstructor') continue;
 
     const codecKeys = codec.paramsSchema === undefined ? [] : objectSchemaKeys(codec.paramsSchema);
@@ -530,9 +442,9 @@ function enforceConstructorInvariants(
  *    is never exercised;
  * 5. every type constructor and field preset names a registered codec;
  * 6. a type constructor maps its arguments only onto parameters its data type or codec declares;
- * 7. at most one type constructor per data type is marked inferred;
- * 8. every value argument of a type constructor or field preset names a registered data type that
- *    a contract source can write.
+ * 7. at most one type constructor per data type is marked inferred.
+ *
+ * {@link assembleDataTypeSupport} checks the value arguments of type constructors and field presets.
  */
 export function enforceDataTypeInvariants(input: DataTypeInvariantInput): void {
   const unregistered = (contributedBy: string, id: string, what: string): never => {
@@ -564,13 +476,8 @@ export function enforceDataTypeInvariants(input: DataTypeInvariantInput): void {
 
   // A type a classifier can return is written as a plain number, so it is writable even though the
   // entry that reads it is keyed under another type.
-  const writable = new Set(
-    input.authoringEntries.flatMap(({ key, entry }) => [
-      key,
-      ...(entry.written.kind === 'plain' && entry.written.syntax === 'number'
-        ? entry.written.types
-        : []),
-    ]),
+  const writable = writableDataTypes(
+    Object.fromEntries(input.authoringEntries.map(({ key, entry }) => [key, entry])),
   );
 
   for (const { type, contributedBy } of input.declaredTypes) {
@@ -610,7 +517,7 @@ export function enforceDataTypeInvariants(input: DataTypeInvariantInput): void {
     claimants.set(claim, { key, contributedBy });
   }
 
-  enforceConstructorInvariants(input, writable);
+  enforceConstructorInvariants(input);
 }
 
 export function assembleControlMutationDefaults(
@@ -901,10 +808,13 @@ export function createControlStack<TFamilyId extends string, TTargetId extends s
   const codecLookup = extractCodecLookup(allDescriptors);
   const authoringContributions = assembleAuthoringContributions(allDescriptors);
   const codecDescriptors = collectCodecDescriptors(allDescriptors);
-  const dataTypes = assembleDataTypes(allDescriptors);
+  const dataTypes = assembleDataTypeSupport(
+    allDescriptors,
+    (codecId) => codecLookup.descriptorFor?.(codecId)?.dataType,
+  );
 
   enforceDataTypeInvariants({
-    lookup: dataTypes.lookup,
+    lookup: dataTypes.support.lookup,
     declaredTypes: dataTypes.declared,
     codecs: allDescriptors.flatMap((descriptor) =>
       (descriptor.types?.codecTypes?.codecDescriptors ?? []).map((codecDescriptor) => ({
@@ -940,11 +850,7 @@ export function createControlStack<TFamilyId extends string, TTargetId extends s
     extensionIds: extractComponentIds(family, target, adapter, orderedExtensions),
     codecLookup,
     codecDescriptors,
-    dataTypes: {
-      entries: authoringContributions.dataTypes,
-      lookup: dataTypes.lookup,
-      dataTypeOfCodec: (codecId) => codecLookup.descriptorFor?.(codecId)?.dataType,
-    },
+    dataTypes: dataTypes.support,
     declaredDataTypes: dataTypes.declared,
     aggregateDescriptors: collectAggregateDescriptors(allDescriptors),
     authoringContributions,

@@ -9,7 +9,7 @@ import type {
   TargetPackRef,
 } from '@internal/framework-components/components';
 import { sqlDataType } from '@internal/sql-contract/data-type';
-import { sql } from '@internal/sql-contract/sql-expression';
+import { sql, sqlExpressionRegistration } from '@internal/sql-contract/sql-expression';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import {
@@ -250,6 +250,41 @@ describe('createComposedAuthoringHelpers', () => {
     );
   });
 
+  it('refuses a value argument whose data type no composed pack registers, as the control stack does', () => {
+    const targetPack = {
+      ...bareTargetPack,
+      authoring: { type: nestedTypeNamespace },
+    } as const satisfies TargetPackRef<'sql', 'postgres'>;
+
+    expect(() =>
+      createComposedAuthoringHelpers({
+        ...testTypeLookups,
+        family: bareFamilyPack,
+        target: targetPack,
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.DATA_TYPE_UNREGISTERED',
+        message:
+          'Argument "length" of type constructor "pgvector.Vector" names data type "pg/int4", which no component registers. Contributed by "postgres".',
+      }),
+    );
+  });
+
+  it('refuses two packs registering an authoring entry for one data type', () => {
+    const { dataTypes } = sqlExpressionRegistration.authoring;
+    const familyPack = { ...bareFamilyPack, authoring: { dataTypes } };
+    const targetPack = { ...bareTargetPack, authoring: { dataTypes } };
+
+    expect(() =>
+      createComposedAuthoringHelpers({
+        ...testTypeLookups,
+        family: familyPack,
+        target: targetPack,
+      }),
+    ).toThrow(expect.objectContaining({ code: 'CONTRACT.DATA_TYPE_ENTRY_DUPLICATE' }));
+  });
+
   it('rejects extension helpers that collide with reserved core field helper names', () => {
     const reservedFieldPack = {
       kind: 'extension',
@@ -425,7 +460,7 @@ describe('createComposedAuthoringHelpers', () => {
 
     it('refuses a string where a number goes', () => {
       expect(() => helpers.Sized('255')).toThrow(
-        refusal('Argument "length" of Sized: Expected a number'),
+        refusal('Argument "length" of Sized: Expected a number; write 255'),
       );
     });
 

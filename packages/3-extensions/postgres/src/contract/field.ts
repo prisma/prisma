@@ -7,7 +7,7 @@ import {
 import { assemblePostgresCodecRegistryWithBuiltins } from '@internal/target-postgres/codecs';
 import postgresPack from '@internal/target-postgres/pack';
 
-const dataTypeLookup = assembleDataTypes([postgresPack]).lookup;
+const dataTypeLookup = assembleDataTypes([sqlFamilyPack, postgresPack]).lookup;
 
 const helpers = createComposedAuthoringHelpers({
   family: sqlFamilyPack,

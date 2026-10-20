@@ -122,7 +122,6 @@ export type {
 } from '../control/control-stack';
 export {
   assembleAuthoringContributions,
-  assembleAuthoringDataTypes,
   assembleControlMutationDefaults,
   assertUniqueCodecOwner,
   buildExtensionLoadOrder,

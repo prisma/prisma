@@ -188,7 +188,8 @@ export function defineContract(
     definition.extensions ?? {},
   );
   const dataTypeLookup =
-    definition.dataTypeLookup ?? assembleDataTypes([postgresPack, ...extensions]).lookup;
+    definition.dataTypeLookup ??
+    assembleDataTypes([sqlFamilyPack, postgresPack, ...extensions]).lookup;
   const bound = {
     ...definition,
     adapter,

@@ -170,7 +170,8 @@ export function defineContract(
     createNamespace: sqliteCreateNamespace,
     codecLookup: definition.codecLookup ?? assembleSqliteCodecRegistry(target, extensionPacks),
     dataTypeLookup:
-      definition.dataTypeLookup ?? assembleDataTypes([target, ...extensionPacks]).lookup,
+      definition.dataTypeLookup ??
+      assembleDataTypes([sqlFamilyPack, target, ...extensionPacks]).lookup,
   };
   if (factory !== undefined) {
     return buildBoundContract(sqlFamilyPack, sqlitePack, bound, factory);
