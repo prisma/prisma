@@ -142,9 +142,21 @@ describe('a MongoDB contract whose fields are stored under other names', () => {
   it(
     'filters by field names, through raw paths into a value object and an embedded model, and inside $expr',
     () =>
-      withMongoPort<Contract>({ contractJson }, async ({ db }) => {
+      withMongoPort<Contract>({ contractJson }, async ({ db, mongoDb }) => {
         const id = String((await db.users.create(ada as never)).id);
-        await db.users.create({ ...ada, displayName: 'Bob', addresses: [] } as never);
+        await db.users.create({
+          ...ada,
+          displayName: 'Bob',
+          tags: ['b'],
+          home: { city: 'Paris' },
+          addresses: [{ street: 'Side', city: 'Paris' }],
+        } as never);
+        await mongoDb
+          .collection('users')
+          .insertOne(
+            { display_name: 'Cy', email: null, visit_count: 0, user_addresses: [] },
+            { bypassDocumentValidation: true },
+          );
         const names = async (users: { all(): { toArray(): Promise<unknown[]> } }) =>
           (await users.all().toArray()).map((row) => (row as { displayName: string }).displayName);
         expect([
@@ -164,7 +176,7 @@ describe('a MongoDB contract whose fields are stored under other names', () => {
           await names(db.users.orderBy({ displayName: -1 })),
           await names(db.users.where({ tags: 'a' })),
           await names(db.users.where({ tags: null } as never)),
-        ]).toEqual([['Ada'], ['Ada', 'Bob'], ['Ada'], ['Ada'], ['Bob', 'Ada'], ['Ada', 'Bob'], []]);
+        ]).toEqual([['Ada'], ['Ada'], ['Ada'], ['Ada'], ['Cy', 'Bob', 'Ada'], ['Ada'], ['Cy']]);
       }),
     timeouts.spinUpMongoMemoryServer,
   );
