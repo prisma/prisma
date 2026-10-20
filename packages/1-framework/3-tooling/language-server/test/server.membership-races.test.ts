@@ -11,8 +11,10 @@ import {
   FileChangeType,
   type FileEvent,
   InitializeRequest,
+  RegistrationRequest,
   StreamMessageReader,
   StreamMessageWriter,
+  UnregistrationRequest,
 } from 'vscode-languageserver/node';
 import type { ConfigResolution } from '../src/config-resolution';
 import { DocumentStore } from '../src/document-store';
@@ -109,10 +111,14 @@ async function setup(pull: boolean) {
       }
     }),
   );
-  vi.spyOn(connection.client, 'register').mockResolvedValue({
-    dispose: vi.fn(),
-    disposeSingle: vi.fn(),
-  });
+  const sendRequest = connection.sendRequest;
+  vi.spyOn(connection, 'sendRequest').mockImplementation(((type: unknown, ...params: unknown[]) =>
+    type === RegistrationRequest.type || type === UnregistrationRequest.type
+      ? Promise.resolve(null)
+      : Reflect.apply(sendRequest, connection, [
+          type,
+          ...params,
+        ])) as typeof connection.sendRequest);
   const publish = vi.spyOn(connection, 'sendDiagnostics').mockResolvedValue(undefined);
   const diagnostics = connection.languages.diagnostics;
   vi.spyOn(connection.languages, 'diagnostics', 'get').mockReturnValue(diagnostics);

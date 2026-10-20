@@ -3911,6 +3911,39 @@ describe('language server disposal', { timeout: timeouts.databaseOperation }, ()
     );
   });
 
+  it('does not reject when a watcher unregistration is still pending at dispose', async () => {
+    const unhandled: unknown[] = [];
+    const onUnhandled = (reason: unknown): void => {
+      unhandled.push(reason);
+    };
+    process.on('unhandledRejection', onUnhandled);
+    try {
+      harness = startHarness(resolveToSchema, watchedFilesCapabilities);
+      const unregistering = deferred<void>();
+      harness.client.onRequest(UnregistrationRequest.type, () => {
+        unregistering.resolve();
+        return new Promise<void>(() => undefined);
+      });
+      await harness.initialize();
+      openDocument(harness, schemaUri, duplicateModelSource);
+      await harness.waitForDiagnostics(schemaUri);
+      const activeHarness = harness;
+      await waitUntil(() => activeHarness.schemaWatcherRegistrationIds().length > 0);
+
+      harness.notifyConfigChanged();
+      await unregistering.promise;
+      harness.disconnect();
+      harness = undefined;
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(unhandled).toEqual([]);
+    } finally {
+      process.off('unhandledRejection', onUnhandled);
+    }
+  });
+
   it('does not reject when a client notification is still being written at dispose', async () => {
     const unhandled: unknown[] = [];
     const onUnhandled = (reason: unknown): void => {
