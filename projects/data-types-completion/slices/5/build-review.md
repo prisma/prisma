@@ -12,6 +12,7 @@
 | e | 1 | `5ba8816b9e..c4421f6562` | 0 | 2 | 2 | ANOTHER ROUND NEEDED |
 | branch review fixes | 1 | `14335e1dd3..24528d379e` | 0 | 1 | 3 | SATISFIED once S5-BR-R1-1 is fixed |
 | f (port onto ADR 275) | 1 | `9a3eeb66b2..656998d34d` | 0 | 1 | 3 | SATISFIED once S5-f-R1-1 is fixed |
+| f (port onto ADR 275) | 2 | `abbf900bdd`, `cd161b2ba5`, `397205593b`, `fe4fe6a215` (+ ADR `9dbc5aac5e`) | 0 | 0 | 1 | SATISFIED |
 
 ## Dispatch a, round 1
 
@@ -378,3 +379,26 @@ What is wrong: it is still true for schemas that build, but the reader now refus
 Change: add that the reader checks client-function arguments and column length as Prisma 8 does (TML-3389), so those schemas are refused.
 
 Verdict: SATISFIED once S5-f-R1-1 is fixed; the lows can go with it.
+
+## Dispatch f, round 2
+
+All four round 1 findings are closed.
+- **S5-f-R1-1:** `GeneratorFunctionField.length` is now a required `number | undefined`, so the root typecheck proves every caller of `resolve` and `callFor` states it. The SQL callers compute it with the new `sqlCodecColumnLength(dataTypes, codecId, typeParams)` in `@internal/sql-contract/data-type`: the PSL reader, the Prisma 7 reader (client functions and `nowGeneratorFor`) and Postgres `contract print`. The TypeScript builder uses `columnLengthOf`, whose lookups are now required: `buildContractDefinition` takes `codecLookup` and `dataTypeLookup`, which the orchestrator accepted, with an extension note. Mongo's three resolvers pass `length: undefined`, which is right, because Mongo strings have no length.
+- **`sqlCodecColumnLength`** maps the codec to its data type and returns `sqlColumnLength`, the length in normal form. The integration tests show both edges: a bare `Char` with `uuid(7)` is refused as "a column of 1 character", and SQLite's `sql.String(5)` and `sql.String(3)` take generators.
+- **`contract print`:** `generated-values.test.ts` tests the refusal for `uuidv4` on `char(5)` (`CONTRACT.PRINT_UNSUPPORTED`).
+- **S5-f-R1-2, R1-3 and R1-4:** the doc comment is back above `lowerGeneratorAttributesForField`, the grep row expects nothing, and ADR 275 notes the Prisma 7 reader's new refusals (`9dbc5aac5e`).
+
+Checks run on `fe4fe6a215`, at load average 8 to 20:
+- **Repo checks:** `pnpm build`, root `typecheck:agent`, `lint:agent`, `lint:deps`, `lint:framework-vocabulary`, `lint:docs`, `check:publish-deps`, `lint:publishability`, `check:error-reference`, `check:upgrade-coverage --mode pr` and `fixtures:check:agent` pass, and the tree stays clean.
+- **Package tests:** `pnpm test --coverage` with thresholds, and `pnpm lint`, pass in framework-components, SQL contract, SQL contract-psl, contract-ts, contract-prisma7, family-sql, both targets, both adapters, Mongo contract-psl, Mongo contract-ts, Mongo contract-prisma6 and sql-orm-client.
+- **Integration files:** these pass: `authoring/generator-column-length`, `authoring/generator-function-arguments`, `sql-orm-client/unmapped-storage`, the `generator-function-arguments-and-column-length` detection test (52), `psl-print/generated-values-roundtrip`, `prisma7-source/supported` and `authoring/discriminator-values`.
+
+### S5-f-R2-1 (low): the `contract print` refusal does not say why the call reads back as nothing
+
+Where: `packages/2-sql/9-family/src/core/psl-build/generator-calls.ts` (`reads-back-differently`), and the message the Postgres target builds from it.
+
+What is wrong: for `uuidv4` on `char(5)` the message is `... but @onCreate(uuid()) reads back as no generator.` The binding's own reason, `uuid() writes 36 characters, which does not fit a column of 5 characters.`, is dropped, so the reader is not told the column is too short.
+
+Change: carry the read-back refusal's message into the refusal, and append it. This can be a follow-up; it does not block manual QA.
+
+Verdict: SATISFIED. Dispatch f is closed, and the slice is ready for manual QA.
