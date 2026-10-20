@@ -78,4 +78,4 @@ Read the facts from these `meta` keys:
 | `meta.operationId`, `meta.phase`, `meta.stepDescription` of a failed check | `meta.failedCheck.operationId`, `meta.failedCheck.phase`, `meta.failedCheck.description` |
 | `meta.runnerErrorCode` | `code` |
 
-`meta.failingSpace` is unchanged. A failure also carries `meta.failedTypeChange` and `meta.rowsWithoutValue` when the runner found them.
+`meta.failingSpace` is unchanged. `MIGRATION.PATH_UNREACHABLE` for a database with no marker now has `'empty'`, the empty contract's hash, in `meta.fromHash`, where it had `'<empty>'`. A failure also carries `meta.failedTypeChange` and `meta.rowsWithoutValue` when the runner found them.
