@@ -757,7 +757,7 @@ describe('db update', () => {
         summary: 'runner failed',
         why: undefined,
         conflicts: undefined,
-        meta: { runnerErrorCode: 'MIGRATION.LEGACY_MARKER_SHAPE' },
+        meta: { runnerErrorCode: 'MIGRATION.EXECUTION_FAILED' },
       }),
     );
 

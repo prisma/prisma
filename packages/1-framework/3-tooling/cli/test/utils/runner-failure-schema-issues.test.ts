@@ -33,14 +33,17 @@ const PROJECT = '/work/app';
 const invocation = { cwd: PROJECT, configPath: undefined, dbGiven: false };
 const FROM = 'b'.repeat(64);
 
-function schemaCheckFailure(issues: unknown) {
+function schemaCheckFailure(issues: readonly SchemaDiffIssue[]) {
   return {
     code: 'RUNNER_FAILED',
     summary: 'Database schema does not satisfy contract',
     why: RUNNER_WHY,
     meta: { runnerErrorCode: 'MIGRATION.SCHEMA_VERIFY_FAILED', issues },
+    schemaIssues: issues,
   } as const;
 }
+
+const { schemaIssues: _, ...withoutIssues } = schemaCheckFailure([explained]);
 
 describe('a failed schema check after apply', () => {
   describe('on db migrate', () => {
@@ -83,10 +86,8 @@ describe('a failed schema check after apply', () => {
       );
     });
 
-    it('keeps the runner why for an issue the CLI cannot read', () => {
-      expect(
-        mapMigrateFailure(schemaCheckFailure([explained, { path: ['x'] }]), invocation).why,
-      ).toBe(RUNNER_WHY);
+    it('reads the issues only from the typed field, not from meta', () => {
+      expect(mapMigrateFailure(withoutIssues, invocation).why).toBe(RUNNER_WHY);
     });
   });
 
@@ -102,11 +103,8 @@ describe('a failed schema check after apply', () => {
       });
     });
 
-    it('keeps the runner why and its advice when there are no issues', () => {
-      const error = mapDbUpdateFailure(
-        { ...schemaCheckFailure([]), conflicts: undefined },
-        invocation,
-      );
+    it('keeps the runner why and its advice for a failure that carries no issues', () => {
+      const error = mapDbUpdateFailure({ ...withoutIssues, conflicts: undefined }, invocation);
       expect({ why: error.why, fix: error.fix }).toEqual({
         why: RUNNER_WHY,
         fix: 'Inspect the reported conflict, reconcile schema drift if needed, then re-run `{bin} db update`',
@@ -126,10 +124,10 @@ describe('a failed schema check after apply', () => {
       });
     });
 
-    it('keeps the runner why when there are no issues', () => {
-      expect(
-        mapDbInitFailure({ ...schemaCheckFailure([]), conflicts: undefined }, invocation).why,
-      ).toBe(RUNNER_WHY);
+    it('keeps the runner why for a failure that carries no issues', () => {
+      expect(mapDbInitFailure({ ...withoutIssues, conflicts: undefined }, invocation).why).toBe(
+        RUNNER_WHY,
+      );
     });
   });
 });

@@ -91,6 +91,7 @@ import type {
   VariantSelectable,
 } from './types';
 import { upsertPipeline } from './upsert-pipeline';
+import { whereEquality } from './where-equality';
 
 type ModelFieldKeys<
   TContract extends MongoContract,
@@ -113,7 +114,7 @@ export interface MongoCollection<
     this: VariantSelectable<TVariantValue>,
     value: V,
   ): MongoCollection<TContract, ModelName, TIncludes, V>;
-  /** Appends equality filters from a plain object. Values are encoded through codecs. */
+  /** Appends equality filters from a plain object. Values are encoded through codecs. On a list field, one element matches lists containing it, a whole list matches exactly, and `null` matches a null or missing field. */
   where(
     filter: MongoWhereFilter<TContract, ModelName>,
   ): MongoCollection<TContract, ModelName, TIncludes, TVariantValue>;
@@ -1007,8 +1008,10 @@ class MongoCollectionImpl<
     for (const [key, value] of Object.entries(data)) {
       if (value === undefined) continue;
       const storedName = storedNameOfCallerField(this.#storedNames(), key);
-      const wrapped = this.#wrapFieldValue(value, fields[key], key, 'filter');
-      filters.push(MongoFieldFilter.eq(storedName, wrapped));
+      const field = fields[key];
+      filters.push(
+        whereEquality(storedName, field, this.#wrapFieldValue(value, field, key, 'filter')),
+      );
     }
     return filters;
   }

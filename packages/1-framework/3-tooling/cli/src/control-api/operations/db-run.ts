@@ -16,6 +16,7 @@ import type {
   MigrationPlanSubjects,
   OperationPreview,
   ResolvedMigrationStatement,
+  SchemaDiffIssue,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 import {
@@ -462,6 +463,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       ...ifDefined('failedTypeChange', applied.failure.failedTypeChange),
       ...ifDefined('rowsWithoutValue', applied.failure.rowsWithoutValue),
       ...ifDefined('failedPrecheck', applied.failure.failedPrecheck),
+      ...ifDefined('schemaIssues', applied.failure.schemaIssues),
       ...ifDefined('databaseStorageHash', databaseStorageHash),
       ...ifDefined('cause', applied.failure.cause),
     });
@@ -763,6 +765,7 @@ function buildRunnerFailure(args: {
   readonly failedTypeChange?: FailedTypeChangeReport;
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
   readonly failedPrecheck?: FailedPrecheckReport;
+  readonly schemaIssues?: readonly SchemaDiffIssue[];
   /** The contract the database is at, when a migration of the graph ends at it. */
   readonly databaseStorageHash?: string;
   readonly cause?: unknown;
@@ -777,6 +780,7 @@ function buildRunnerFailure(args: {
     ...ifDefined('failedTypeChange', args.failedTypeChange),
     ...ifDefined('rowsWithoutValue', args.rowsWithoutValue),
     ...ifDefined('failedPrecheck', args.failedPrecheck),
+    ...ifDefined('schemaIssues', args.schemaIssues),
     ...ifDefined('databaseStorageHash', args.databaseStorageHash),
     ...ifDefined('cause', args.cause),
   };

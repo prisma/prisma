@@ -32,7 +32,6 @@ import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import type { Result } from '@internal/utils/result';
 import { notOk, ok, okVoid } from '@internal/utils/result';
-import { MARKER_TABLE_NAME } from '../control-tables';
 import { sqliteError } from '../errors';
 import { quoteIdentifier } from '../sql-utils';
 import { verifySqliteDatabaseSchema } from './diff-database-schema';
@@ -129,6 +128,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
         return runnerFailure('MIGRATION.SCHEMA_VERIFY_FAILED', schemaVerifyResult.summary, {
           why: 'The resulting database schema does not satisfy the destination contract.',
           meta: { issues: schemaVerifyResult.schema.issues },
+          schemaIssues: schemaVerifyResult.schema.issues,
         });
       }
     }
@@ -331,42 +331,11 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
     driver: SqlMigrationRunnerExecuteOptions<SqlitePlanTargetDetails>['driver'],
     contract: Contract<SqlStorage>,
   ): Promise<Result<void, SqlMigrationRunnerFailure>> {
-    const legacyDetection = await this.detectLegacyMarkerShape(driver);
-    if (!legacyDetection.ok) {
-      return legacyDetection;
-    }
     const lowererContext = { contract };
     for (const query of this.family.bootstrapControlTableQueries()) {
       await this.executeStatement(driver, await this.family.lowerAst(query, lowererContext));
     }
     return okVoid();
-  }
-
-  private async detectLegacyMarkerShape(
-    driver: SqlMigrationRunnerExecuteOptions<SqlitePlanTargetDetails>['driver'],
-  ): Promise<Result<void, SqlMigrationRunnerFailure>> {
-    const tableInfo = await driver.query<{ name: string }>(
-      `PRAGMA table_info(${quoteIdentifier(MARKER_TABLE_NAME)})`,
-    );
-    if (tableInfo.rows.length === 0) {
-      return okVoid();
-    }
-    const columns = new Set(tableInfo.rows.map((row) => row.name));
-    if (columns.has('space')) {
-      return okVoid();
-    }
-    return runnerFailure(
-      'MIGRATION.LEGACY_MARKER_SHAPE',
-      `Legacy marker-table shape detected on ${MARKER_TABLE_NAME} (no \`space\` column). ` +
-        'Prisma 8 is in pre-1.0; the previous transitional auto-migration to the per-space-row schema has been removed. ' +
-        `Drop \`${MARKER_TABLE_NAME}\` and re-run \`dbInit\` to reinitialise from a clean baseline.`,
-      {
-        meta: {
-          table: MARKER_TABLE_NAME,
-          columns: [...columns].sort(),
-        },
-      },
-    );
   }
 
   private async runExpectationSteps(
