@@ -227,6 +227,23 @@ await db.transaction(async (tx) => {
 
 `published()` is a method of a custom `PostCollection`. `tx.prepare` lets code inside a transaction prepare a statement without the outer client. Preparing sends nothing to the database.
 
+### Transactions
+
+`db.transaction(async (tx) => ...)` commits when the callback returns and rolls back when it throws. `tx` offers the client's query members, with the same types: `sql`, `orm` (with the client's custom collection classes), `raw`, `prepare`, `query`, `execute`, `enums` and `nativeEnums`. Every statement they send runs inside the transaction. `tx` has no `close`, `[Symbol.asyncDispose]`, `transaction` or `runtime()`. A transaction on a serverless connection (`await postgres.connect({ url })`) offers the same members. The type is `PostgresTransactionContext<Contract>`.
+
+```ts
+await db.transaction(async (tx) => {
+  const posts = await tx.orm.public.Post.published().forUpdate().all();
+  await tx.execute(tx.raw.sql`UPDATE posts SET pinned = false WHERE id = ${posts[0]!.id}`.affectedCount().build());
+  const byId = await tx.prepare({ id: 'pg/int4@1' }, (params) =>
+    tx.sql.public.posts.select('id').where((f, fns) => fns.eq(f.id, params.id)).build(),
+  );
+  await byId.query(tx, { id: 1 });
+});
+```
+
+`published()` is a method of a custom `PostCollection`. `tx.prepare` lets code inside a transaction prepare a statement without the outer client. Preparing sends nothing to the database.
+
 ### Prepared SQL and ORM rows
 
 Use `db.prepare(declaration, params => ...)` to prepare SQL queries, ORM row reads or ORM aggregates once and execute them with different parameter values.

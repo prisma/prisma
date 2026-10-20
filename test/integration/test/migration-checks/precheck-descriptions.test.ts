@@ -1,5 +1,5 @@
 /**
- * When a check before an operation fails, the CLI explains it from the check's description (`readCheckDescription` in the CLI source, imported by path as it is not part of any package's public surface): an object that should be absent is already in the database, or one that should be present is not. This test builds the prechecks of every operation each target's factories make and pins what each description reads as, so rewording a check in a target fails here instead of quietly changing or losing the explanation.
+ * When a check before an operation fails, a runner explains it from the check's description (`readCheckDescription` in the framework-components source, imported by path as it is not part of any package's public surface): an object that should be absent is already in the database, or one that should be present is not. This test builds the prechecks of every operation each target's factories make and pins what each description reads as, so rewording a check in a target fails here instead of quietly changing or losing the explanation.
  */
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { DdlColumn } from '@internal/sql-relational-core/ast';
@@ -21,7 +21,7 @@ import * as pg from '@internal/target-postgres/op-factory-call';
 import { PostgresRlsPolicy } from '@internal/target-postgres/types';
 import * as sqlite from '@internal/target-sqlite/op-factory-call';
 import { describe, expect, it } from 'vitest';
-import { readCheckDescription } from '../../../../packages/1-framework/3-tooling/cli/src/utils/check-description';
+import { readCheckDescription } from '../../../../packages/1-framework/1-core/framework-components/src/control/runner-failure-why';
 
 type Reading = 'absent' | 'present' | 'neither';
 

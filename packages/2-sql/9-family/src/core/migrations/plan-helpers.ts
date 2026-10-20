@@ -1,13 +1,10 @@
-import type {
-  AppliedMigrationStatement,
-  FailedCheck,
-  FailedTypeChange,
-  MigrationPlanSubjects,
-  RowsWithoutValue,
-  SchemaDiffIssue,
+import {
+  type AppliedMigrationStatement,
+  type MigrationPlanSubjects,
+  type MigrationRunnerFailureMeta,
+  migrationRunnerFailure,
 } from '@internal/framework-components/control';
 import { blindCast } from '@internal/utils/casts';
-import { ifDefined } from '@internal/utils/defined';
 import type { NotOk, Ok } from '@internal/utils/result';
 import { notOk, ok } from '@internal/utils/result';
 import type {
@@ -205,23 +202,9 @@ export function runnerFailure(
   code: SqlMigrationRunnerErrorCode,
   summary: string,
   options?: {
-    why?: string;
-    meta?: AnyRecord;
-    failedCheck?: FailedCheck | undefined;
-    failedTypeChange?: FailedTypeChange | undefined;
-    rowsWithoutValue?: readonly RowsWithoutValue[] | undefined;
-    schemaIssues?: readonly SchemaDiffIssue[] | undefined;
+    readonly why?: string | undefined;
+    readonly meta?: MigrationRunnerFailureMeta;
   },
 ): NotOk<SqlMigrationRunnerFailure> {
-  const failure: SqlMigrationRunnerFailure = Object.freeze({
-    code,
-    summary,
-    ...(options?.why ? { why: options.why } : {}),
-    ...(options?.meta ? { meta: cloneRecord(options.meta) } : {}),
-    ...ifDefined('failedCheck', options?.failedCheck),
-    ...ifDefined('failedTypeChange', options?.failedTypeChange),
-    ...ifDefined('rowsWithoutValue', options?.rowsWithoutValue),
-    ...ifDefined('schemaIssues', options?.schemaIssues),
-  });
-  return notOk(failure);
+  return notOk(migrationRunnerFailure(code, summary, options));
 }

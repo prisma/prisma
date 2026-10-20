@@ -428,7 +428,6 @@ export type SqlMigrationRunnerErrorCode =
 
 export interface SqlMigrationRunnerFailure extends MigrationRunnerFailure {
   readonly code: SqlMigrationRunnerErrorCode;
-  readonly meta?: AnyRecord;
 }
 
 export interface SqlMigrationRunnerSuccessValue extends MigrationRunnerPerSpaceSuccessValue {}

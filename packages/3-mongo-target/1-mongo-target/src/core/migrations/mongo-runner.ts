@@ -1,5 +1,4 @@
 import type { ContractMarkerRecord } from '@internal/contract/types';
-import { errorRunnerFailed } from '@internal/errors/execution';
 import { fieldRewriteOf } from '@internal/family-mongo/control';
 import type {
   MarkerOperations,
@@ -10,14 +9,17 @@ import type { TargetBoundComponentDescriptor } from '@internal/framework-compone
 import {
   APP_SPACE_ID,
   type FailedCheck,
+  failedPrecheckWhy,
   type MigrationOperationPolicy,
   type MigrationPlan,
   type MigrationPlanOperation,
   type MigrationRunnerExecutionChecks,
   type MigrationRunnerFailure,
+  type MigrationRunnerFailureMeta,
   type MigrationRunnerPerSpaceSuccessValue,
+  migrationRunnerFailure,
   type OperationContext,
-  type SchemaDiffIssue,
+  schemaCheckWhy,
   type VerifyDatabaseSchemaResult,
 } from '@internal/framework-components/control';
 import type { AggregateMigrationEdgeRef } from '@internal/migration-tools/aggregate';
@@ -40,6 +42,7 @@ import {
 import { blindCast } from '@internal/utils/casts';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
+import { type MongoMigrationRunnerErrorCode, mongoTargetError } from '../mongo-target-errors';
 import { FilterEvaluator } from './filter-evaluator';
 import { deserializeMongoOps } from './mongo-ops-serializer';
 
@@ -72,26 +75,22 @@ export interface MongoMigrationRunnerExecuteOptions {
   readonly migrationEdges: readonly AggregateMigrationEdgeRef[];
 }
 
+/** A failure of the Mongo runner: one of the codes it returns. */
+export interface MongoMigrationRunnerFailure extends MigrationRunnerFailure {
+  readonly code: MongoMigrationRunnerErrorCode;
+}
+
 export type MongoMigrationRunnerResult = Result<
   MigrationRunnerPerSpaceSuccessValue,
-  MigrationRunnerFailure
+  MongoMigrationRunnerFailure
 >;
 
 function runnerFailure(
-  code: string,
+  code: MongoMigrationRunnerErrorCode,
   summary: string,
-  opts?: {
-    why?: string;
-    meta?: Record<string, unknown>;
-    failedCheck?: FailedCheck;
-    schemaIssues?: readonly SchemaDiffIssue[];
-  },
+  options?: { readonly why?: string; readonly meta?: MigrationRunnerFailureMeta },
 ): MongoMigrationRunnerResult {
-  return notOk<MigrationRunnerFailure>({
-    code,
-    summary,
-    ...opts,
-  });
+  return notOk(migrationRunnerFailure(code, summary, options));
 }
 
 /**
@@ -248,23 +247,17 @@ export class MongoMigrationRunner {
             filterEvaluator,
           );
           if (failed !== undefined) {
+            const failedCheck: FailedCheck = {
+              operationId: operation.id,
+              phase: 'precheck',
+              description: failed.description,
+            };
             return (
               renameTargetExistsRefusal(operation, failed) ??
               runnerFailure(
                 'MIGRATION.PRECHECK_FAILED',
                 `Operation ${operation.id} failed during precheck: ${failed.description}`,
-                {
-                  meta: {
-                    operationId: operation.id,
-                    phase: 'precheck',
-                    stepDescription: failed.description,
-                  },
-                  failedCheck: {
-                    operationId: operation.id,
-                    phase: 'precheck',
-                    description: failed.description,
-                  },
-                },
+                { why: failedPrecheckWhy(failedCheck), meta: { failedCheck } },
               )
             );
           }
@@ -343,9 +336,8 @@ export class MongoMigrationRunner {
         : rawVerifyResult;
       if (!verifyResult.ok) {
         return runnerFailure('MIGRATION.SCHEMA_VERIFY_FAILED', verifyResult.summary, {
-          why: 'The resulting database schema does not satisfy the destination contract.',
-          meta: { issues: verifyResult.schema.issues },
-          schemaIssues: verifyResult.schema.issues,
+          why: schemaCheckWhy(verifyResult.schema.issues),
+          meta: { schemaIssues: verifyResult.schema.issues },
         });
       }
 
@@ -490,7 +482,8 @@ export class MongoMigrationRunner {
     for (const check of checks) {
       const commandKind = check.source.command.kind;
       if (!READ_ONLY_CHECK_COMMAND_KINDS.has(commandKind)) {
-        throw errorRunnerFailed(
+        throw mongoTargetError(
+          'MIGRATION.DATA_TRANSFORM_CHECK_NOT_READ_ONLY',
           `Data-transform check rejected: command kind "${commandKind}" is not read-only`,
           {
             why: 'Data-transform checks must use aggregate or rawAggregate commands so the pre/postcheck path cannot mutate the database.',

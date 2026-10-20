@@ -53,9 +53,9 @@ Every code is a dotted `NAMESPACE.SUBCODE`; the namespace is the prefix (`CONFIG
 
 **3. SQL driver errors** — surface as `SqlQueryError` / `SqlConnectionError` (see `packages/2-sql/1-core/errors/`). Fields on `SqlQueryError`: `kind: 'sql_query'`, `sqlState` (Postgres SQLSTATE, e.g. `'23505'`), `constraint`, `table`, `column`, `detail`, `cause`. These carry no dotted code — route on `sqlState` and the constraint metadata. SQL driver errors are typically wrapped by middleware before reaching the user, but raw-SQL paths can surface them directly.
 
-### Wrapped errors
+### Migration apply failures
 
-`db migrate`, `db init`, and `db update` map an apply failure the runner did not classify into `MIGRATION.RUNNER_FAILED`, passing the failure's own `meta` through unchanged and its detail into `why`. Migration-tools failures that *are* classified (`MIGRATION.HASH_MISMATCH`, `MIGRATION.PATH_UNREACHABLE`, …) arrive under their own code. **When `code` is `MIGRATION.RUNNER_FAILED`, read `why` and `meta`** — that is where the routing-quality information lives (`meta.runnerErrorCode` names the runner's own code, such as `MIGRATION.SCHEMA_VERIFY_FAILED` when the schema check after apply failed).
+`db migrate`, `db init`, and `db update` report a failure of the migration runner with the runner's own code, such as `MIGRATION.SCHEMA_VERIFY_FAILED`, `MIGRATION.PRECHECK_FAILED`, `MIGRATION.POSTCHECK_FAILED` or `MIGRATION.EXECUTION_FAILED`, and its `meta` unchanged. The facts are typed `meta` keys: `schemaIssues` (the schema check's issues), `failedCheck` (`operationId`, `phase`, `description`), `failedTypeChange`, `rowsWithoutValue`, and `failingSpace`, the contract space whose plan failed. Read `why` for what failed and `nextActions` for the way out.
 
 ### How to ask for the full envelope
 
@@ -95,7 +95,8 @@ The single source of truth: read the envelope, find the row by `code`, follow th
 | `CONTRACT.MARKER_MISMATCH` | `db verify` (exit 4), runtime startup (warning) | Marker disagrees with contract hash (`meta.expected` / `meta.actual`). Either migrate forward (`db migrate` / `db update`), or — if the DB is correct after a manual fix-up — `db sign`. See `references/migrations.md`. |
 | `CONTRACT.TARGET_MISMATCH` | `db verify`, runtime startup | Contract target ≠ config target; align them (see `meta.expected` / `meta.actual`). |
 | `CONTRACT.SCHEMA_VERIFICATION_FAILED` | `db verify`, `db sign` (both exit 4 with the finding) | Live schema does not satisfy the contract; `meta.issues` lists the drifted paths per `meta.space`. Run `db update` to reconcile, or adjust the contract. |
-| `MIGRATION.RUNNER_FAILED` | `db migrate`, `db update`, `db init` | Wrapper for an unclassified apply failure; `why` and `meta` carry the detail. Reconcile the reported failure, then re-run. Previously applied migrations are preserved. |
+| `MIGRATION.SCHEMA_VERIFY_FAILED` | `db migrate`, `db update`, `db init` | The schema after apply does not satisfy the contract; the marker stays at its origin, and on SQL targets the apply rolled back (on MongoDB the operations that ran stay applied). `meta.schemaIssues` lists the issues and `why` names them. Change the contract source to resolve them, re-emit, and re-run; `db migrate` also says how to plan the failed migration again. |
+| `MIGRATION.PRECHECK_FAILED` | `db migrate`, `db update`, `db init` | An operation's check before it ran did not hold (`meta.failedCheck`); the apply rolled back on SQL targets. `meta.rowsWithoutValue` is set when a field becoming required has rows with no value. Follow `nextActions`. |
 | `CLI.CONSENT_REQUIRED` | `migration plan` / `db update` when a plan would lose data (or, on `db update`, widen access) and nobody can answer (`--no-interactive`, CI, `--yes`) | `meta.unanswered[]` and `nextActions` list each question with its flags. Re-run with `--delete <subject>`, `--rename <subject>:<new name>` or `--allow <Model>` as each subject means. `--confirm` and `--yes` answer none of them. `db migrate` does not ask. |
 | `CLI.CONSENT_UNUSED` | `migration plan` / `db update` | Every question was answered, and a `--delete` or `--allow` was left over: a typo, a subject the plan does not touch, or a `--confirm` (which consents to nothing). Fix or drop the flag. A typo next to a question nobody answered is reported as `CLI.CONSENT_REQUIRED` instead, which names the flag that matched nothing. On `db update --dry-run` the same mistake is `MIGRATION.STATEMENT_ANSWERS_NO_QUESTION`. |
 | `MIGRATION.STATEMENT_DID_NOT_RESOLVE_LOSS` | A rename typed at the data-loss prompt | The rename still loses the subject's data. Answer with `delete`, or give a rename whose old name is the subject. |
@@ -122,7 +123,7 @@ If the envelope's `code` is not in this table, follow the envelope's `fix` field
 
 1. **Reading only `summary`, not the rest of the envelope.** `code`, `severity`, `why`, `fix`, `meta`/`details`, and (for CLI errors) `where` all carry information the recovery depends on. The agent routes on `code`; the user sees `summary`.
 2. **Ignoring `severity`.** `migration status` emits warn-level diagnostics and **exits 0**. An agent that only checks exit code misses every concurrent-migration warning.
-3. **Stopping at `code` on `MIGRATION.RUNNER_FAILED`.** That envelope is a wrapper — the detail lives in `why` and `meta`.
+3. **Matching `MIGRATION.RUNNER_FAILED`.** That code no longer exists: an apply failure carries the runner's own code, and its facts are in typed `meta` keys.
 4. **Treating drift as something to silence with `db sign`.** `db sign` writes the marker from the current contract hash and, by default, advances the `db` ref to it (`--no-advance-ref` skips the ref), but it requires schema verification to pass first. Run `db verify` before reaching for `db sign`.
 5. **Re-running `db migrate` after a partial failure without inspecting state.** `db schema --db <url>` shows the live shape; `migration status --db <url> --json` shows where the marker actually is.
 
@@ -142,7 +143,7 @@ If the envelope's `code` is not in this table, follow the envelope's `fix` field
 
 - [ ] Identified which envelope shape (`CliErrorEnvelope`, `RuntimeErrorEnvelope`, `SqlQueryError`).
 - [ ] Read every field — `code`, `severity`, `why`, `fix`, `meta` (or `details`), `where` if present.
-- [ ] If `code` is `MIGRATION.RUNNER_FAILED`, also read `why` and `meta`.
+- [ ] For an apply failure, read the typed `meta` keys (`schemaIssues`, `failedCheck`, `rowsWithoutValue`, `failedTypeChange`).
 - [ ] Routed on `code` to the next move (and chained to the matching authoring skill where the table says so).
 - [ ] Re-verified with the relevant CLI command (`db verify`, `migration status --json`, `contract emit`, `db migrate`).
 - [ ] Did not confabulate a Studio / EXPLAIN / query-log API — used the documented workaround and routed unmet capability gaps to `references/feedback.md`.

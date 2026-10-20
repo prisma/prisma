@@ -76,6 +76,8 @@ await control.dbUpdate({
   contract,
   mode: 'apply',
   migrationsDir: 'migrations',
+  // Where the commands an error's advice prints are run from, and the --config and --db they repeat.
+  invocation: { cwd: process.cwd(), configPath: undefined, dbGiven: false },
   answerQuestions: async (questions) => {
     if (questions.length > 0) throw new Error('db update would lose data or widen access');
     return [];
@@ -118,6 +120,29 @@ await db.execute(db.raw.sql`UPDATE post SET pinned = false`.affectedCount().buil
 ```
 
 `mode` is `'strict'` by default, and every `budgets()` violation throws. Pass `mode: 'permissive'` and a violation whose severity is `'warn'` goes to `log.warn` instead, and the query runs; a violation whose severity is `'error'` still throws. `budgets()` gives latency `'warn'` and the row count `'error'` by default, so a row-count limit warns only with `severities: { rowCount: 'warn' }`.
+
+### Transactions
+
+`db.transaction(async (tx) => ...)` commits when the callback returns and rolls back when it throws. `tx` offers the client's query members, with the same types: `sql`, `orm` (with the client's custom collection classes and `fragment`), `raw`, `prepare`, `query`, `execute` and `enums`. Every statement they send runs inside the transaction. `tx` has no `close`, `[Symbol.asyncDispose]`, `transaction` or `runtime()`. The type is `SqliteTransactionContext<Contract>`.
+
+```ts
+await db.transaction(async (tx) => {
+  await tx.execute(tx.raw.sql`UPDATE posts SET views = 0`.affectedCount().build());
+  const byId = await tx.prepare({ id: 'sqlite/integer@1' }, (params) =>
+    tx.sql.posts.select('id').where((f, fns) => fns.eq(f.id, params.id)).build(),
+  );
+  await byId.query(tx, { id: 1 });
+});
+```
+
+`db.orm` offers `fragment` beside the models, unless a model is named `fragment`. A fragment is a reusable query step:
+
+```ts
+const titled = db.orm.fragment({ title: { codecId: 'sqlite/text@1', nullable: false } }, (rows) =>
+  rows.where((r) => r.title.eq('Hello')),
+);
+await db.orm.Post.with(titled).all();
+```
 
 ### Transactions
 

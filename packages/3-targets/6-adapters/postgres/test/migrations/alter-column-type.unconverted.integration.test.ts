@@ -185,16 +185,18 @@ describe('a Postgres type change the database casts', { concurrent: false }, () 
     const result = await retype(['12', 'abc']);
     expect(result.ok ? undefined : result.failure).toMatchObject({
       code: 'MIGRATION.EXECUTION_FAILED',
-      failedTypeChange: {
-        field: {
-          kind: 'field',
-          namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID),
-          model: 'User',
-          field: 'age',
+      meta: {
+        failedTypeChange: {
+          field: {
+            kind: 'field',
+            namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID),
+            model: 'User',
+            field: 'age',
+          },
+          by: 'cast',
+          reason: 'value',
+          operationIndex: 0,
         },
-        by: 'cast',
-        reason: 'value',
-        operationIndex: 0,
       },
     });
     const rows = await driver!.query<{ age: string }>('SELECT age FROM "User" ORDER BY id');
@@ -226,7 +228,7 @@ describe('a Postgres type change the database casts', { concurrent: false }, () 
       userContract('timestamptz?', 'c'.repeat(64)),
       userContract('int4?', 'd'.repeat(64)),
     );
-    expect(result.ok ? undefined : result.failure.failedTypeChange).toMatchObject({
+    expect(result.ok ? undefined : result.failure.meta.failedTypeChange).toMatchObject({
       field: { model: 'User', field: 'age' },
       by: 'cast',
       reason: 'noCast',
