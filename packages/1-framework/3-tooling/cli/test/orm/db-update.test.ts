@@ -319,6 +319,24 @@ describe('db update --rename', () => {
     });
   });
 
+  it('lists the access an apply would widen on a dry run, marked answered by an --allow', async () => {
+    const user = { kind: 'model', namespaceId: 'app', model: 'User' } as const;
+    mocks.dbUpdate.mockResolvedValue(
+      ok({
+        ...planSuccess(),
+        accessWidening: [{ operationIndex: 0, subject: user, text: 'User' }],
+      }),
+    );
+
+    const run = await harness().run(['db', 'update', '--dry-run', '--allow', 'User', '--json'], {
+      cwd: projectDir,
+    });
+
+    expect(run.presented?.data).toMatchObject({
+      accessWidening: [{ operationIndex: 0, subject: user, text: 'User', answered: true }],
+    });
+  });
+
   it('marks the questions the flags of a dry run answer, and repeats the flags in the apply it suggests', async () => {
     const legacy = { kind: 'model', namespaceId: 'app', model: 'Legacy' } as const;
     const audit = { kind: 'storage', name: "audit log's" } as const;
@@ -806,6 +824,24 @@ describe('db update', () => {
       exitCode: 2,
       kinds: ['message', 'result'],
       first: expect.objectContaining({ kind: 'message', severity: 'warn', text: WARNING.summary }),
+    });
+  });
+
+  it('reports a contract the client refuses as a contract validation failure at the contract path', async () => {
+    mocks.dbUpdate.mockRejectedValue(
+      structuredError('CONTRACT.VALIDATION_FAILED', 'storage.storageHash is missing'),
+    );
+
+    const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
+
+    expect(run.exitCode).toBe(2);
+    expect(envelopeOf(run.json)).toMatchObject({
+      ok: false,
+      error: {
+        code: 'CONTRACT.VALIDATION_FAILED',
+        summary: 'Contract validation failed',
+        why: expect.stringContaining('storage.storageHash is missing'),
+      },
     });
   });
 
