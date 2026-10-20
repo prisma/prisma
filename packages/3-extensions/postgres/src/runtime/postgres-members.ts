@@ -8,6 +8,7 @@ import {
   type NoCollectionClasses,
   orm as ormBuilder,
   type PreparedFrom,
+  type PrepareMember,
   prepareQuery,
 } from '@internal/sql-orm-client';
 import type { CodecTypesBase, RawCodecInferer } from '@internal/sql-relational-core/expression';
@@ -21,8 +22,12 @@ import type {
   SqlExecutionStackWithDriver,
   TransactionContext,
 } from '@internal/sql-runtime';
-import { activitySource, delegatingActivitySource, withTransaction } from '@internal/sql-runtime';
-import { castAs } from '@internal/utils/casts';
+import {
+  activitySource,
+  delegatingActivitySource,
+  withTransaction,
+  withTransactionMembers,
+} from '@internal/sql-runtime';
 import { ifDefined } from '@internal/utils/defined';
 import type { PostgresStaticContext } from '../static/postgres-static';
 import type { NamespacedNativeEnums } from './native-enums';
@@ -33,22 +38,11 @@ type OrmClient<
   TCollections extends CollectionClasses,
 > = ReturnType<typeof ormBuilder<TContract, TCollections>>;
 
-export interface PostgresPrepareMember<TContract extends Contract<SqlStorage>> {
-  prepare<
-    D extends Declaration<CT>,
-    Q extends SqlQueryPlan | Preparable<unknown, unknown>,
-    CT extends CodecTypesBase = ExtractCodecTypes<TContract>,
-  >(
-    declaration: D,
-    callback: (params: BindSiteParams<D>) => Q,
-  ): Promise<PreparedFrom<ParamsFromDeclaration<D, CT>, Q>>;
-}
-
-/** The query members every Postgres transaction offers, with the same types as on the client. */
-export interface PostgresTransactionQueryMembers<
+/** The query members of a Postgres client, which its transactions and Supabase's role-bound clients offer with the same types. */
+export interface PostgresQueryMembers<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
-> extends PostgresPrepareMember<TContract> {
+> extends PrepareMember<TContract> {
   readonly sql: Db<TContract>;
   readonly orm: OrmClient<TContract, TCollections>;
   readonly raw: RawLane<TContract>;
@@ -58,7 +52,7 @@ export interface PostgresTransactionContext<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
 > extends TransactionContext,
-    PostgresTransactionQueryMembers<TContract, TCollections> {
+    PostgresQueryMembers<TContract, TCollections> {
   readonly enums: NamespacedEnums<TContract>;
   readonly nativeEnums: NamespacedNativeEnums<TContract>;
 }
@@ -82,7 +76,7 @@ export function buildPostgresTransactionQueryMembers<
 >(
   options: PostgresTransactionQueryMembersOptions<TContract, TCollections>,
   txCtx: TransactionContext,
-): PostgresTransactionQueryMembers<TContract, TCollections> {
+): PostgresQueryMembers<TContract, TCollections> {
   const { context, collections, rawCodecInferer, prepareRuntime } = options;
   return {
     sql: sqlBuilder<TContract>({ context, rawCodecInferer }),
@@ -106,16 +100,6 @@ export function buildPostgresTransactionQueryMembers<
   };
 }
 
-/**
- * Adds `members` to a transaction context. The context is the prototype rather than spread, so live accessors such as `invalidated` keep reading the transaction's state.
- */
-export function withTransactionMembers<TMembers extends object>(
-  txCtx: TransactionContext,
-  members: TMembers,
-): TransactionContext & TMembers {
-  return Object.assign(castAs<TransactionContext>(Object.create(txCtx)), members);
-}
-
 export interface PostgresStaticMembers<TContract extends Contract<SqlStorage>>
   extends PostgresStaticContext<TContract> {
   readonly stack: SqlExecutionStackWithDriver<PostgresTargetId>;
@@ -124,7 +108,7 @@ export interface PostgresStaticMembers<TContract extends Contract<SqlStorage>>
 export interface PostgresRuntimeBoundMembers<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
-> extends PostgresPrepareMember<TContract> {
+> extends PrepareMember<TContract> {
   readonly orm: OrmClient<TContract, TCollections>;
   runtime(): Runtime;
   transaction<R>(

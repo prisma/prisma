@@ -6,17 +6,13 @@ import type {
   AsyncIterableResult,
   RuntimeExecuteOptions,
 } from '@internal/framework-components/runtime';
-import {
-  buildPostgresTransactionQueryMembers,
-  type PostgresPrepareMember,
-  type PostgresTransactionQueryMembers,
-  withTransactionMembers,
-} from '@internal/postgres/internal/transaction-members';
+import { buildPostgresTransactionQueryMembers } from '@internal/postgres/internal/transaction-members';
 import { validatePostgresContract } from '@internal/postgres/internal/validate-contract';
 import {
   buildNamespacedNativeEnums,
   isPgPool,
   type NamespacedNativeEnums,
+  type PostgresQueryMembers,
 } from '@internal/postgres/runtime';
 import { createRawLane, sql } from '@internal/sql-builder/runtime';
 import type { Db, RawLane } from '@internal/sql-builder/types';
@@ -46,8 +42,11 @@ import {
   createExecutionContext,
   createSqlExecutionStack,
   withTransaction,
+  withTransactionMembers,
 } from '@internal/sql-runtime';
 import {
+  type PreparedStatementExecuteTarget,
+  type PreparedStatementQueryTarget,
   preparedStatementExecute,
   preparedStatementQuery,
 } from '@internal/sql-runtime/internal/prepared-query';
@@ -80,10 +79,9 @@ type KeyMaterial =
 export interface RoleBoundDb<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
-> extends PostgresPrepareMember<TContract> {
-  readonly sql: Db<TContract>;
-  readonly orm: OrmClient<TContract, TCollections>;
-  readonly raw: RawLane<TContract>;
+> extends PostgresQueryMembers<TContract, TCollections>,
+    PreparedStatementQueryTarget,
+    PreparedStatementExecuteTarget {
   query<Row>(
     plan: (SqlExecutionPlan<Row> | SqlQueryPlan<Row>) & { readonly _row?: Row },
     options?: RuntimeExecuteOptions,
@@ -101,7 +99,7 @@ export interface RoleBoundDb<
 export type SupabaseTransactionContext<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
-> = TransactionContext & PostgresTransactionQueryMembers<TContract, TCollections>;
+> = TransactionContext & PostgresQueryMembers<TContract, TCollections>;
 
 /**
  * Query surface for the Supabase-internal contract (`auth`, `storage`). Exposed
@@ -408,6 +406,21 @@ export default async function supabase<
       prepare(declaration, callback) {
         return prepareQuery(runtime, declaration, callback);
       },
+      [preparedStatementQuery]<Params, Row>(
+        statement: PreparedStatement<Params, Row>,
+        params: Params,
+        execOptions?: RuntimeExecuteOptions,
+      ): AsyncIterableResult<Row> {
+        return runtime.preparedQueryWithRole(statement, params, binding, execOptions);
+      },
+      [preparedStatementExecute]<Params>(
+        statement: PreparedExecution<Params>,
+        params: Params,
+        execOptions?: RuntimeExecuteOptions,
+      ): Promise<SqlStatementStats> {
+        return runtime.preparedExecuteWithRole(statement, params, binding, execOptions);
+      },
+
       query<Row>(
         plan: (SqlExecutionPlan<Row> | SqlQueryPlan<Row>) & { readonly _row?: Row },
         execOptions?: RuntimeExecuteOptions,
@@ -441,22 +454,7 @@ export default async function supabase<
         );
       },
     };
-    return Object.assign(roleBound, {
-      [preparedStatementQuery]<Params, Row>(
-        statement: PreparedStatement<Params, Row>,
-        params: Params,
-        execOptions?: RuntimeExecuteOptions,
-      ): AsyncIterableResult<Row> {
-        return runtime.preparedQueryWithRole(statement, params, binding, execOptions);
-      },
-      [preparedStatementExecute]<Params>(
-        statement: PreparedExecution<Params>,
-        params: Params,
-        execOptions?: RuntimeExecuteOptions,
-      ): Promise<SqlStatementStats> {
-        return runtime.preparedExecuteWithRole(statement, params, binding, execOptions);
-      },
-    });
+    return roleBound;
   }
 
   const serviceRoleBinding: SupabaseRoleBinding = {
