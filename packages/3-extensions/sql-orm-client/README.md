@@ -77,8 +77,10 @@ await db.orm.public.User.first({ id: 1 }, (meta) => meta.annotate(cacheAnnotatio
 
 ## Basic Usage
 
+An application reaches the ORM through its client, `postgres()`, `postgresServerless()`'s connections, `sqlite()` or `supabase()`'s role-bound clients:
+
 ```ts
-const db = orm({ contract, runtime });
+const db = postgres({ contract, url }).orm.public;
 
 const posts = await db.Post
   .where((post) => post.userId.eq(userId))
@@ -138,19 +140,25 @@ The registry is global to a program: if anything in the program imports a packag
 
 ## Custom collections
 
-An application extends `Collection` with its own query methods and registers the class with `orm({ collections })`:
+An application extends `Collection` with its own query methods and passes the class to its database client with the `collections` option:
 
 ```ts
+import { Collection } from '@prisma/orm-postgres/orm-client';
+import postgres from '@prisma/orm-postgres/runtime';
+
 class PostCollection extends Collection<Contract, 'Post'> {
   withTitle(term: string) { return this.where((p) => p.title.ilike(`%${term}%`)); }
   newestFirst()           { return this.orderBy((p) => p.createdAt.desc()); }
 }
 
-const db = orm({ runtime, context, collections: { Post: PostCollection } }).public;
+const client = postgres({ contract, url, collections: { Post: PostCollection } });
+const db = client.orm.public;
 
 db.Post.where({ userId }).withTitle('orm').newestFirst().limit(10).all();
 db.Post.include('user').withTitle('orm');
 ```
+
+Every SQL client takes the option: `postgres()`, `postgresServerless()` (every connection), `sqlite()` and `supabase()` (every role-bound client). The classes reach every ORM the client offers, including `tx.orm` inside `client.transaction(...)`, and the client's type carries them as its second type parameter, such as `PostgresClient<Contract, { Post: typeof PostCollection }>`. The clients are built on `orm({ runtime, context, collections })`, which takes the same classes; an application has no reason to call it.
 
 `where`, `orderBy`, `limit`, `offset`, `distinct`, `distinctOn`, `cursor` and `include` return the collection they were called on, so the class's methods stay available. What a chain has established is added to the type as a fact: `where` gives `Filtered<Self>`, `orderBy` gives `Ordered<Self>`, and `include` gives `Including<Self, ...>`, whose rows also have the included relation. Write a filtered collection's type as `Filtered<C>`; it is `C & HasWhere`, and `HasWhere` is the name error messages print. `select` changes the row and `variant` changes the collection's type argument, so both return the base `Collection` type and the class's methods are gone after them.
 

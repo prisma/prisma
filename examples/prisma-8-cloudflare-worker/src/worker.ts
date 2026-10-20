@@ -1,7 +1,6 @@
 import 'temporal-polyfill/full/global';
 
 import { Client } from 'pg';
-import { createOrmClient } from './orm-client/client';
 import { postgres, streamingPostgres } from './prisma/db';
 
 interface Env {
@@ -52,8 +51,7 @@ export default {
 
     if (url.pathname === '/orm/users') {
       const limit = parseLimit(url.searchParams.get('limit'), 10);
-      const orm = createOrmClient(db);
-      const rows = await orm.User.newestFirst().limit(limit).all();
+      const rows = await db.orm.public.User.newestFirst().limit(limit).all();
       return Response.json({ ok: true, route: 'orm/users', count: rows.length, rows });
     }
 
@@ -179,9 +177,6 @@ export default {
       }
     }
 
-    // The Task collection and its Bug and Feature variants are registered in
-    // `src/orm-client/collections.ts` for parity with the demo schema; no
-    // route queries them.
     return notFound(url);
   },
 };
