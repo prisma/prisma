@@ -6,7 +6,7 @@ import type {
   AsyncIterableResult,
   RuntimeExecuteOptions,
 } from '@internal/framework-components/runtime';
-import { buildPostgresTransactionQueryMembers } from '@internal/postgres/internal/transaction-members';
+import { buildPostgresQueryMembers } from '@internal/postgres/internal/transaction-members';
 import { validatePostgresContract } from '@internal/postgres/internal/validate-contract';
 import {
   buildNamespacedNativeEnums,
@@ -95,7 +95,7 @@ export interface RoleBoundDb<
   ): Promise<R>;
 }
 
-/** A transaction on a role-bound client: the Postgres transaction query members, run under the bound role. */
+/** A transaction on a role-bound client: the `PostgresQueryMembers` of the client, run under the bound role. */
 export type SupabaseTransactionContext<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
@@ -440,7 +440,7 @@ export default async function supabase<
           fn(
             withTransactionMembers(
               txCtx,
-              buildPostgresTransactionQueryMembers<TContract, TCollections>(
+              buildPostgresQueryMembers<TContract, TCollections>(
                 {
                   context,
                   collections: options.collections,

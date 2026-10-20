@@ -57,7 +57,7 @@ export interface PostgresTransactionContext<
   readonly nativeEnums: NamespacedNativeEnums<TContract>;
 }
 
-export interface PostgresTransactionQueryMembersOptions<
+export interface PostgresQueryMembersOptions<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses,
 > {
@@ -70,11 +70,11 @@ export interface PostgresTransactionQueryMembersOptions<
 /**
  * Builds the query members of a Postgres transaction over `txCtx`, so every statement they run goes through the transaction. Preparing sends nothing to the database, so `prepare` uses `prepareRuntime`; the prepared statement runs on the queryable it is given.
  */
-export function buildPostgresTransactionQueryMembers<
+export function buildPostgresQueryMembers<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses,
 >(
-  options: PostgresTransactionQueryMembersOptions<TContract, TCollections>,
+  options: PostgresQueryMembersOptions<TContract, TCollections>,
   txCtx: TransactionContext,
 ): PostgresQueryMembers<TContract, TCollections> {
   const { context, collections, rawCodecInferer, prepareRuntime } = options;
@@ -195,7 +195,7 @@ export function buildPostgresRuntimeBoundMembers<
         const tx: PostgresTransactionContext<TContract, TCollections> = withTransactionMembers(
           txCtx,
           {
-            ...buildPostgresTransactionQueryMembers(
+            ...buildPostgresQueryMembers(
               { context, collections, rawCodecInferer, prepareRuntime: getRuntimeForWork },
               txCtx,
             ),

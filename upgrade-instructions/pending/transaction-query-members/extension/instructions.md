@@ -24,4 +24,6 @@ Code that only reads these types needs no change. Code that creates an object of
 | `OrmClientRootMembers` (ORM client) | newly exported: the members of the ORM client beside its namespaces, today `fragment` |
 | `PrepareMember` (ORM client) | newly exported: the `prepare` member a client and its transactions offer |
 
+A hand-built `RoleBoundDb`, such as a test double, must also implement the two prepared-statement entry points, keyed by the symbols `preparedStatementQuery` and `preparedStatementExecute`. Import them from `@prisma/orm-postgres/family-runtime/internal/prepared-query` (or `@prisma/orm-family-sql/runtime/internal/prepared-query`). Like every `internal/` entry, it can change without notice.
+
 A callback typed to take a plain `TransactionContext` still compiles where a transaction context is passed, because each new context type extends it.
