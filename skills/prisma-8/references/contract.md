@@ -506,6 +506,7 @@ Infer captures indexes at full fidelity — expression, partial (`where:`), uniq
 5. **Confusing the config `extensions` with the TS builder's `extensions`.** Same packs, two surfaces, one field name but two shapes: `ormConfig({ extensions: [pgvector] })` (array of *control* descriptors from `@internal/extension-<name>/control`) versus `defineContract({ extensions: { pgvector } })` (record of *pack* descriptors from `@internal/extension-<name>/pack`).
 6. **Writing a flat `prisma.config.ts`.** `export default defineConfig({ contract, extensions })` from the target config alone is the pre-rc.4 shape and fails with `CONFIG.VERSION_MARKER_MISSING`. Wrap it: `definePrismaConfig({ orm: ormConfig({...}) })`.
 7. **Renaming a model or field and expecting the planner to detect it.** The contract does not record renames, so the planner sees a destructive drop+add. State the rename on the command line with `--rename old:new` on `migration plan` or `db update` (see `references/migrations.md`); the planner then renames instead of dropping. Do not invent a rename attribute in the contract source.
+8. **Quoting a type-constructor argument.** A type constructor's argument is a value, read as an attribute argument is. Write a length, precision or scale as a plain whole number: `VarChar(255)`, `Numeric(10, 2)`. `VarChar("255")` is refused with `Expected a number; write 255`, and on Postgres `VarChar(255.0)` is refused too, because a number with a fraction is not a 32-bit integer.
 
 ## What Prisma 8 doesn't do yet
 
