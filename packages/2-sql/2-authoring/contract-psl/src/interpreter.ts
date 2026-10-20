@@ -30,7 +30,7 @@ import {
   isAuthoringEntityTypeDescriptor,
   isAuthoringModelAttributeDescriptor,
 } from '@internal/framework-components/authoring';
-import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import type { CodecLookupWithDescriptors, DataTypeId } from '@internal/framework-components/codec';
 import type {
   CapabilityMatrix,
   ExtensionPackRef,
@@ -42,12 +42,11 @@ import type {
   ControlMutationDefaults,
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import type { Binder } from '@internal/psl-parser';
+import type { Binder, ParsedWrittenScalar } from '@internal/psl-parser';
 import {
   type AttributeSpecContext,
   type BlockSymbol,
   type CompositeTypeSymbol,
-  contributedTypeOf,
   createPslDiagnosticCollector,
   type DiagnosticSource,
   diagnosticSource,
@@ -118,7 +117,11 @@ import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { contractError } from './contract-errors';
-import { readWrittenValueForCodec } from './data-type-default';
+import {
+  type DefaultColumn,
+  lowerDataTypeDefault,
+  readWrittenValueForCodec,
+} from './data-type-default';
 import { defaultTableName } from './default-table-name';
 import {
   getAttribute,
@@ -1565,6 +1568,7 @@ type DiscriminatorDeclaration = {
   readonly model: ModelSymbol;
   readonly source: DiagnosticSource;
   readonly fieldName: string;
+  readonly column: DefaultColumn;
   readonly span: ContractSourceDiagnosticSpan;
 };
 
@@ -1579,25 +1583,31 @@ type BaseDeclaration = {
   readonly namespaceId: string;
   readonly source: DiagnosticSource;
   readonly base: ModelIdentity;
-  readonly value: string;
+  /** The discriminator value as the discriminator column stores it; `undefined` when the base has no discriminator or the value was refused. */
+  readonly value: string | undefined;
   readonly span: ContractSourceDiagnosticSpan;
 };
 
-function isStringTyped(
-  field: FieldSymbol,
-  stringCodecId: string | undefined,
-  binder: Binder,
+type PendingBaseDeclaration = Omit<BaseDeclaration, 'value'> & {
+  readonly written: ParsedWrittenScalar;
+};
+
+/** The column a field is stored in, when it is a single-valued scalar column. */
+type DiscriminatorColumnOf = (model: ModelSymbol, fieldName: string) => DefaultColumn | undefined;
+
+/** Whether the column's data type is one of the stack's text data types. */
+function isTextColumn(
+  column: DefaultColumn,
+  codecLookup: CodecLookupWithDescriptors,
+  textDataTypes: readonly DataTypeId[],
 ): boolean {
-  const node = typeReferenceNode(field);
-  const scalar = contributedTypeOf(
-    node === undefined ? undefined : binder.symbolForNode(node),
-    binder,
-  );
-  return (
-    stringCodecId !== undefined &&
-    scalar?.descriptor.kind === 'typeConstructor' &&
-    scalar.descriptor.output.codecId === stringCodecId
-  );
+  if (textDataTypes.length === 0) {
+    throw new InternalError(
+      'The stack names no text data types, so no column can be a discriminator; the target names its text types in its authoring contributions.',
+    );
+  }
+  const dataType = codecLookup.descriptorFor(column.codecId)?.dataType;
+  return dataType !== undefined && textDataTypes.includes(dataType);
 }
 
 function collectPolymorphismDeclarations(
@@ -1606,14 +1616,17 @@ function collectPolymorphismDeclarations(
   sources: PslSources,
   binder: Binder,
   specContextFor: (model: ModelSymbol) => AttributeSpecContext,
-  stringCodecId: string | undefined,
+  discriminatorColumnOf: DiscriminatorColumnOf,
+  codecLookup: CodecLookupWithDescriptors,
+  dataTypes: DataTypeSupport,
+  textDataTypes: readonly DataTypeId[],
   diagnostics: PslDiagnosticCollector,
 ): {
   discriminatorDeclarations: Map<string, DiscriminatorDeclaration>;
   baseDeclarations: Map<string, BaseDeclaration>;
 } {
   const discriminatorDeclarations = new Map<string, DiscriminatorDeclaration>();
-  const baseDeclarations = new Map<string, BaseDeclaration>();
+  const pendingBaseDeclarations = new Map<string, PendingBaseDeclaration>();
 
   for (const { model, namespaceId, key } of identities.values()) {
     const source = diagnosticSource(sources, model.node.syntax);
@@ -1631,14 +1644,21 @@ function collectPolymorphismDeclarations(
       if (parsed !== undefined) {
         const span = nodePslSpan(discriminatorNode.syntax, sources);
         const discField = model.fields[parsed.field];
-        if (discField && !isStringTyped(discField, stringCodecId, binder)) {
+        const column = discriminatorColumnOf(model, parsed.field);
+        if (column === undefined || !isTextColumn(column, codecLookup, textDataTypes)) {
           diagnostics.push({
             code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-            message: `Discriminator field "${parsed.field}" on model "${model.name}" must be of type String, but is "${discField.typeName}"`,
+            message: `Discriminator field "${parsed.field}" on model "${model.name}" must be text, such as String, but is "${discField?.typeName ?? parsed.field}"`,
             ...source.at(span),
           });
         } else {
-          discriminatorDeclarations.set(key, { model, fieldName: parsed.field, span, source });
+          discriminatorDeclarations.set(key, {
+            model,
+            fieldName: parsed.field,
+            column,
+            span,
+            source,
+          });
         }
       }
     }
@@ -1660,19 +1680,79 @@ function collectPolymorphismDeclarations(
           base !== undefined,
           `Resolved base model "${parsed.base.declaration.name}" is missing from the collected model identities`,
         );
-        baseDeclarations.set(key, {
+        pendingBaseDeclarations.set(key, {
           model,
           namespaceId,
           source,
           base,
-          value: parsed.value,
+          written: parsed.value,
           span: nodePslSpan(baseNode.syntax, sources),
         });
       }
     }
   }
 
+  const baseDeclarations = new Map<string, BaseDeclaration>();
+  for (const [key, { written, ...declaration }] of pendingBaseDeclarations) {
+    const discriminator = discriminatorDeclarations.get(declaration.base.key);
+    baseDeclarations.set(key, {
+      ...declaration,
+      value:
+        discriminator === undefined
+          ? undefined
+          : storedDiscriminatorValue(written, declaration, discriminator, {
+              codecLookup,
+              dataTypes,
+              diagnostics,
+            }),
+    });
+  }
+
   return { discriminatorDeclarations, baseDeclarations };
+}
+
+/**
+ * A `@@base` value read like a default of the discriminator column: written, cast into the column's data type and checked by its codec. A refusal is reported at the value.
+ */
+function storedDiscriminatorValue(
+  written: ParsedWrittenScalar,
+  declaration: Omit<BaseDeclaration, 'value'>,
+  discriminator: DiscriminatorDeclaration,
+  input: {
+    readonly codecLookup: CodecLookupWithDescriptors;
+    readonly dataTypes: DataTypeSupport;
+    readonly diagnostics: PslDiagnosticCollector;
+  },
+): string | undefined {
+  if (written.written === undefined) {
+    throw new InternalError(
+      'A @@base value is a quoted string, a number or a boolean, never a tagged literal.',
+    );
+  }
+  const lowered = lowerDataTypeDefault({
+    written: written.written,
+    spans: { attribute: written.span, value: written.span, elements: [] },
+    isList: false,
+    column: discriminator.column,
+    codecLookup: input.codecLookup,
+    dataTypes: input.dataTypes,
+    fieldPath: `${discriminator.model.name}.${discriminator.fieldName}`,
+    sourceElementIndexes: undefined,
+  });
+  if (!lowered.ok) {
+    input.diagnostics.push({
+      code: lowered.code,
+      message: lowered.message,
+      ...declaration.source.at(lowered.span),
+    });
+    return undefined;
+  }
+  if (typeof lowered.value !== 'string') {
+    throw new InternalError(
+      `Discriminator column codec "${discriminator.column.codecId}" stores a text value as ${typeof lowered.value}.`,
+    );
+  }
+  return lowered.value;
 }
 
 function modelLabel(namespaceId: string, modelName: string, qualified: boolean): string {
@@ -1720,7 +1800,7 @@ function resolvePolymorphism(
     const variants: Record<string, CrossReference> = {};
 
     for (const baseDecl of baseDeclarations.values()) {
-      if (baseDecl.base.key !== modelKey) continue;
+      if (baseDecl.base.key !== modelKey || baseDecl.value === undefined) continue;
       const variantName = baseDecl.model.name;
 
       const existingVariant = variants[baseDecl.value];
@@ -2501,13 +2581,24 @@ export function interpretPslDocumentToSqlContract(
       { model, namespaceId, key: modelCoordinateKey(namespaceId, model.name) },
     ]),
   );
+  const discriminatorColumnOf: DiscriminatorColumnOf = (model, fieldName) => {
+    const field = modelNodes.get(model)?.fields.find((node) => node.fieldName === fieldName);
+    if (field === undefined || !('columnName' in field) || field.many === true) return undefined;
+    return {
+      codecId: field.descriptor.codecId,
+      typeParams: resolvedTypeParams(field.descriptor, namedTypeResult.storageTypes),
+    };
+  };
   const { discriminatorDeclarations, baseDeclarations } = collectPolymorphismDeclarations(
     modelIdentities,
     input.symbolTable,
     input.sources,
     binder,
     specContextFor,
-    input.scalarColumnDescriptors.get('String')?.codecId,
+    discriminatorColumnOf,
+    input.codecLookup,
+    dataTypes,
+    input.authoringContributions?.textDataTypes ?? [],
     diagnostics,
   );
 

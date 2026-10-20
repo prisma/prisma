@@ -13,7 +13,10 @@ import {
 } from '../core/generator-functions';
 
 export { sqlTargetTypeConstructors } from '../core/authoring-type-constructors';
-export { idGeneratorFunctionBindings } from '../core/generator-functions';
+export {
+  idGeneratorFunctionBindings,
+  sqlIntegerArgumentGeneratorFunctions,
+} from '../core/generator-functions';
 export {
   temporalCodecPresetWithPrecision,
   temporalStringAuthoringPresets,

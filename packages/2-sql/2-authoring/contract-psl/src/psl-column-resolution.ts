@@ -61,6 +61,7 @@ import {
   reportTypeConstructorNotCalled,
 } from '@internal/psl-parser/interpret';
 import type { PslSources } from '@internal/psl-parser/syntax';
+import { sqlCodecColumnLength } from '@internal/sql-contract/data-type';
 import {
   SQL_EXPRESSION_DATA_TYPE_ID,
   SQL_EXPRESSION_TAG,
@@ -971,7 +972,15 @@ export function lowerGeneratorAttributesForField(input: {
     const call = interpreted.value;
     const resolution = input.generatorFunctions.resolve(
       { name: call.fn, args: call.args },
-      { codecId: input.columnDescriptor.codecId, typeParams: input.columnTypeParams },
+      {
+        codecId: input.columnDescriptor.codecId,
+        typeParams: input.columnTypeParams,
+        length: sqlCodecColumnLength(
+          input.dataTypes,
+          input.columnDescriptor.codecId,
+          input.columnTypeParams,
+        ),
+      },
     );
     if (resolution.ok) {
       phases[phase] = resolution.generator;

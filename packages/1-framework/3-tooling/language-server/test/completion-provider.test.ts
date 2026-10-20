@@ -23,8 +23,10 @@ import {
   type BlockSpecContext,
   blockAttribute,
   buildSymbolTable,
+  EMPTY_DATA_TYPES,
   entityRef,
   type FieldAttributeSpecContext,
+  type FuncCallSig,
   fieldAttribute,
   identifier,
   int,
@@ -47,6 +49,7 @@ import {
 } from 'vscode-languageserver';
 import { classifyPslCompletionContext } from '../src/completion-context';
 import { providePslCompletionItems } from '../src/completion-provider';
+import { renderSignatureLabel, resolveSignatureParameters } from '../src/signature-help';
 import { testBinder } from './helpers/binder';
 
 const scalarTypes = ['String', 'Int', 'Boolean', 'DateTime'] as const;
@@ -1798,6 +1801,28 @@ namespace app {
     }).items;
     expect(completionItemByLabel(snippetItems, 'now').textEdit?.newText).toBe('now()');
   }, 5_000);
+
+  it('labels each generator function argument by the values the function takes', async () => {
+    const postgres = await importFromPackageRoot<{
+      readonly postgresGeneratorFunctions: readonly {
+        readonly name: string;
+        readonly signature?: unknown;
+      }[];
+    }>('../../../3-targets/3-targets/postgres/src/core/generator-functions.ts');
+    const labelOf = (name: string) => {
+      const declared = postgres.postgresGeneratorFunctions.find(
+        (contribution) => contribution.name === name && contribution.signature !== undefined,
+      )!.signature as (dataTypes: unknown) => FuncCallSig;
+      const signature = declared(EMPTY_DATA_TYPES);
+      return renderSignatureLabel(name, signature, resolveSignatureParameters(signature, undefined))
+        .label;
+    };
+    expect(['uuid', 'cuid', 'nanoid'].map(labelOf)).toEqual([
+      'uuid((4 | 7)?)',
+      'cuid(2)',
+      'nanoid(integer from 2 to 255?)',
+    ]);
+  });
 
   it('offers each registered tag inside @default( with its own documentation', async () => {
     const stack = await actualSqlStack();

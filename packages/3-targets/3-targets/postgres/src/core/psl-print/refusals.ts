@@ -187,9 +187,14 @@ export function refuseGeneratorReadingBackDifferently(input: {
   readonly call: string;
   readonly stored: ExecutionMutationDefaultValue;
   readonly readBack: ExecutionMutationDefaultValue | undefined;
+  readonly refusedBecause: string | undefined;
 }): never {
+  const readBack =
+    input.refusedBecause === undefined
+      ? `reads back as ${describeGenerator(input.readBack)}`
+      : `is refused: ${input.refusedBecause}`;
   throw unsupported(
-    `column ${input.coordinate} generates ${describeGenerator(input.stored)} ${PHASE_TEXT[input.phase]}, but @${input.phase}(${input.call}) reads back as ${describeGenerator(input.readBack)}.`,
+    `column ${input.coordinate} generates ${describeGenerator(input.stored)} ${PHASE_TEXT[input.phase]}, but @${input.phase}(${input.call}) ${readBack.endsWith('.') ? readBack.slice(0, -1) : readBack}.`,
     "The printer writes each generator as the call of the generator function the configured stack binds to the column's codec, and that call must resolve back to the stored generator and params on the column.",
     KEEP_SOURCE,
     {
@@ -198,6 +203,7 @@ export function refuseGeneratorReadingBackDifferently(input: {
       call: input.call,
       stored: input.stored,
       readBack: input.readBack,
+      refusedBecause: input.refusedBecause,
     },
   );
 }

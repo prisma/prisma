@@ -33,7 +33,7 @@ describe('@updatedAt on Postgres', () => {
     expect(
       generatorFunctions?.resolve(
         { name: 'now', args: {} },
-        { codecId: codecId ?? '', typeParams: undefined },
+        { codecId: codecId ?? '', typeParams: undefined, length: undefined },
       ),
     ).toMatchObject({ ok: true, generator: { kind: 'generator' } });
   });

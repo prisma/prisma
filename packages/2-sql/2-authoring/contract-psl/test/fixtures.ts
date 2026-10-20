@@ -20,6 +20,7 @@ import {
   readEnumBlockMembers,
   resolveEnumCodecId,
 } from '@internal/framework-components/authoring';
+import { dataTypeId } from '@internal/framework-components/codec';
 import type { ExtensionPackRef, TargetPackRef } from '@internal/framework-components/components';
 import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import type {
@@ -81,6 +82,13 @@ function testEnumFactory(
 
   return enumType(block.name, { codecId }, ...members);
 }
+
+/** The fixture stack's text data types, as the Postgres target names them. */
+const fixtureTextDataTypes = [
+  dataTypeId('pg/text'),
+  dataTypeId('pg/char'),
+  dataTypeId('pg/varchar'),
+];
 
 export const testEnumPslBlockDescriptor = {
   kind: 'pslBlock' as const,
@@ -322,6 +330,7 @@ export const postgresNativeScalarTypeDescriptors = collectScalarTypeConstructors
  */
 export const pgvectorAuthoringContributions = {
   dataTypes: {},
+  textDataTypes: fixtureTextDataTypes,
   entityTypes: {},
   field: {},
   pslBlockDescriptors: {},
@@ -442,6 +451,7 @@ function contextForInterpretOptions(
       modelAttributes: authoring?.modelAttributes ?? {},
       attributeSpecs: authoring?.attributeSpecs ?? sqlAttributeSpecs,
       dataTypes: authoring?.dataTypes ?? options.dataTypes.entries,
+      textDataTypes: authoring?.textDataTypes ?? fixtureTextDataTypes,
       ...(authoring?.valueObjectStorageType === undefined
         ? {}
         : { valueObjectStorageType: authoring.valueObjectStorageType }),
@@ -525,6 +535,7 @@ export function createPostgresTestContext(
     composedExtensionContracts: new Map(),
     authoringContributions: {
       dataTypes: fixtureDataTypeSupport.entries,
+      textDataTypes: fixtureTextDataTypes,
       field: {},
       type: postgresScalarAuthoringTypes,
       entityTypes: {},

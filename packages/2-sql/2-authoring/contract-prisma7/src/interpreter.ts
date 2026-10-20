@@ -14,12 +14,17 @@ import {
   instantiateAuthoringTypeConstructorFromValues,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
-import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
-import type {
-  AssembledAuthoringContributions,
-  ControlMutationDefaults,
+import {
+  EMPTY_GENERATOR_FUNCTIONS,
+  type GeneratorFunctionRegistry,
+} from '@internal/framework-components/components';
+import {
+  type AssembledAuthoringContributions,
+  assembleAuthoringContributions,
+  type ControlMutationDefaults,
 } from '@internal/framework-components/control';
 import type {
+  AttributeCtx,
   BlockSymbol,
   FieldSymbol,
   ModelSymbol,
@@ -30,9 +35,12 @@ import type {
   ResolvedTypeConstructorCall,
 } from '@internal/psl-parser';
 import {
+  type BinderContext,
   buildSymbolTable,
+  createBinder,
   createPslDiagnosticCollector,
   diagnosticSource,
+  EMPTY_DATA_TYPES,
   keywordPslSpan,
   nodePslSpan,
   readResolvedAttribute,
@@ -45,7 +53,7 @@ import type {
   SourceFile,
 } from '@internal/psl-parser/syntax';
 import { dottedPathsIn, printSyntax, StringLiteralExprAst } from '@internal/psl-parser/syntax';
-import { sqlDataTypeOfCodec } from '@internal/sql-contract/data-type';
+import { sqlCodecColumnLength, sqlDataTypeOfCodec } from '@internal/sql-contract/data-type';
 import {
   declaredBackingObjectName,
   declaredIndexesServeForeignKey,
@@ -97,6 +105,7 @@ import type { Prisma7TargetBinding } from './target-binding';
 /** The generator `now()` resolves to for a column, which `@updatedAt` writes on create and on update; `undefined` when no generator function binds `now` to its codec. */
 function nowGeneratorFor(
   generatorFunctions: GeneratorFunctionRegistry,
+  dataTypes: DataTypeSupport,
   column: {
     readonly codecId: string;
     readonly typeParams?: Readonly<Record<string, unknown>> | undefined;
@@ -104,7 +113,11 @@ function nowGeneratorFor(
 ): ExecutionMutationDefaultValue | undefined {
   const resolution = generatorFunctions.resolve(
     { name: 'now', args: {} },
-    { codecId: column.codecId, typeParams: column.typeParams },
+    {
+      codecId: column.codecId,
+      typeParams: column.typeParams,
+      length: sqlCodecColumnLength(dataTypes, column.codecId, column.typeParams),
+    },
   );
   return resolution.ok ? resolution.generator : undefined;
 }
@@ -162,7 +175,19 @@ interface ModelDeclaration {
   readonly id: IndexAttribute | undefined;
   readonly uniqueIndexes: readonly IndexAttribute[];
   readonly indexes: readonly IndexAttribute[];
+  /** The context a default function's arguments are parsed in, built for the model's document when first asked for. */
+  readonly argumentContext: () => AttributeCtx;
 }
+
+/**
+ * The binder context of a Prisma 7 document's argument context. A default function's arguments are literals, so the binder needs no Prisma 8 attribute specs, functions or data types.
+ */
+const ARGUMENT_BINDER_CONTEXT: BinderContext = {
+  authoringContributions: assembleAuthoringContributions([]),
+  controlMutationDefaults: { defaultFunctionRegistry: new Map() },
+  generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
+  dataTypes: EMPTY_DATA_TYPES,
+};
 
 interface ModelBuild {
   readonly declaration: ModelDeclaration;
@@ -366,10 +391,27 @@ export function interpretPrisma7Documents(
       'PSL_INVALID_EXTENSION_BLOCK_MEMBER',
       symbolTable.defaultNamespace.blocks,
     );
+    let argumentContext: AttributeCtx | undefined;
+    const argumentContextOf = (): AttributeCtx => {
+      argumentContext ??= {
+        sources,
+        symbols: symbolTable,
+        binder: createBinder({ sources, symbolTable, context: ARGUMENT_BINDER_CONTEXT }).binder,
+      };
+      return argumentContext;
+    };
     for (const symbol of Object.values(symbolTable.defaultNamespace.models)) {
       if (!claimName('model', symbol.name, sourceId, symbol.span)) continue;
       models.push(
-        readModelDeclaration(symbol, sourceId, sources, defaultNamespaceId, binding, diagnostics),
+        readModelDeclaration(
+          symbol,
+          sourceId,
+          sources,
+          defaultNamespaceId,
+          binding,
+          diagnostics,
+          argumentContextOf,
+        ),
       );
     }
   }
@@ -710,6 +752,7 @@ function readModelDeclaration(
   defaultNamespaceId: string,
   binding: Pick<Prisma7TargetBinding, 'indexTypes' | 'identifierMaxBytes'>,
   diagnostics: ContractSourceDiagnostic[],
+  argumentContext: () => AttributeCtx,
 ): ModelDeclaration {
   const { indexTypes } = binding;
   let ignored = false;
@@ -794,6 +837,7 @@ function readModelDeclaration(
     id,
     uniqueIndexes,
     indexes,
+    argumentContext,
   };
 }
 
@@ -1310,7 +1354,7 @@ function readField(args: ReadFieldArgs): void {
   const updatedAtGenerator =
     updatedAt === undefined || ignored
       ? undefined
-      : nowGeneratorFor(input.generatorFunctions, resolved.descriptor);
+      : nowGeneratorFor(input.generatorFunctions, input.dataTypes, resolved.descriptor);
   if (updatedAt !== undefined && !ignored && updatedAtGenerator === undefined) {
     if (nativeType === undefined) {
       throw new InternalError(
@@ -1349,6 +1393,7 @@ function readField(args: ReadFieldArgs): void {
               ? undefined
               : new Map(enumDeclaration.members.map((member) => [member.name, member.value])),
           controlMutationDefaults: input.controlMutationDefaults,
+          argumentContext: model.argumentContext,
           generatorFunctions: input.generatorFunctions,
           sourceId,
           diagnostics,

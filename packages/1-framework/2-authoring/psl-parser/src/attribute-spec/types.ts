@@ -272,6 +272,8 @@ export interface DataTypeValueArgType<Ctx extends AttributeCtx = AttributeCtx>
   readonly tags: readonly string[];
   /** The documentation of this type's authoring entry, or '' when it has none. */
   readonly documentation: string;
+  /** Written values offered for completion besides the tags, such as the versions a function takes. */
+  readonly suggestions: readonly string[];
 }
 
 type ArgTypeMetadata<Type> = Type extends object

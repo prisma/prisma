@@ -1229,7 +1229,7 @@ function lowerGeneratorAttributes(input: {
       type.kind === 'scalar'
         ? input.generatorFunctions.resolve(
             { name: call.fn, args: call.args },
-            { codecId: type.codecId, typeParams: type.typeParams },
+            { codecId: type.codecId, typeParams: type.typeParams, length: undefined },
           )
         : undefined;
     if (resolution?.ok === true) {

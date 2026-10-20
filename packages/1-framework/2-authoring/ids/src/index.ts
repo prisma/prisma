@@ -1,10 +1,14 @@
 import type { ExecutionMutationDefaultValue } from '@internal/contract/types';
 import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
+import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { contractError } from './contract-errors';
 import { type BuiltinGeneratorId, builtinGeneratorIds } from './generator-ids';
+import { NANOID_SIZE } from './generator-limits';
 import type { IdGeneratorOptionsById } from './generators';
 
+export { CUID_VERSION, NANOID_SIZE, UUID_VERSIONS } from './generator-limits';
+export type { BuiltinGeneratorId };
 export { builtinGeneratorIds };
 
 const GENERATED_CHAR_TYPE = { codecId: 'sql/char@1' } as const;
@@ -39,10 +43,15 @@ function nanoidStorage(options?: NanoidOptions): GeneratedStorage {
   if (rawSize === undefined) {
     return charStorage(NANOID_DEFAULT_SIZE);
   }
-  if (typeof rawSize !== 'number' || !Number.isInteger(rawSize) || rawSize < 2 || rawSize > 255) {
+  if (
+    typeof rawSize !== 'number' ||
+    !Number.isInteger(rawSize) ||
+    rawSize < NANOID_SIZE.min ||
+    rawSize > NANOID_SIZE.max
+  ) {
     throw contractError(
       'CONTRACT.ARGUMENT_INVALID',
-      'nanoid size must be an integer between 2 and 255',
+      `nanoid size must be an integer between ${NANOID_SIZE.min} and ${NANOID_SIZE.max}`,
       { meta: { helperPath: 'nanoid', paramName: 'size', received: rawSize } },
     );
   }
@@ -74,6 +83,19 @@ const builtinGeneratorMetadataById = {
     generatedStorage: () => charStorage(27),
   },
 } as const satisfies Record<BuiltinGeneratorId, BuiltinGeneratorMetadata>;
+
+/** The number of characters the built-in generator `id` writes under `params`, such as 36 for a UUID or a Nano ID's size. */
+export function generatedLength(
+  id: BuiltinGeneratorId,
+  params: Readonly<Record<string, unknown>> | undefined,
+): number {
+  return builtinGeneratorMetadataById[id].generatedStorage(
+    blindCast<
+      never,
+      'A generator ignores params it does not take, and nanoid reads its size from them.'
+    >(params),
+  ).typeParams.length;
+}
 
 export type GeneratedColumnSpec<TCodecId extends string = string> = {
   readonly type: ColumnTypeDescriptor<TCodecId>;

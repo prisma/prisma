@@ -645,6 +645,10 @@ export interface AuthoringContributions {
    * names.
    */
   readonly valueObjectStorageType?: string;
+  /**
+   * The data types whose values are text, such as a target's variable-length, fixed-length and bounded text types. A family uses the list where only text is meaningful, such as a polymorphic model's discriminator column. Assembly takes every component's list.
+   */
+  readonly textDataTypes?: readonly DataTypeId[];
 }
 
 export function isAuthoringArgRef(value: unknown): value is AuthoringArgRef {

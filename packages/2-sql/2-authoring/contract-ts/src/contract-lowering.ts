@@ -13,6 +13,7 @@ import {
   assembleGeneratorFunctions,
   type GeneratorFunctionRegistry,
 } from '@internal/framework-components/components';
+import { sqlColumnLength } from '@internal/sql-contract/data-type';
 import {
   providesEntityHandleLowering,
   type ResolvedEntityHandleRef,
@@ -918,17 +919,20 @@ function resolveGeneratorCalls(input: {
   readonly descriptor: ColumnTypeDescriptor;
   readonly storageTypes: Record<string, AuthoredStorageTypeInstance>;
   readonly generatorFunctions: GeneratorFunctionRegistry;
+  readonly columnLength: ColumnLength;
 }): ExecutionMutationDefaultPhases | undefined {
   const { modelName, fieldName, fieldState, descriptor, generatorFunctions } = input;
   const calls = fieldState.generatorCalls;
   if (calls === undefined) return fieldState.executionDefaults;
+  const typeParams =
+    descriptor.typeParams ??
+    (descriptor.typeRef === undefined
+      ? undefined
+      : input.storageTypes[descriptor.typeRef]?.typeParams);
   const column = {
     codecId: descriptor.codecId,
-    typeParams:
-      descriptor.typeParams ??
-      (descriptor.typeRef === undefined
-        ? undefined
-        : input.storageTypes[descriptor.typeRef]?.typeParams),
+    typeParams,
+    length: input.columnLength(descriptor.codecId, typeParams),
   };
   const phases: {
     onCreate?: ExecutionMutationDefaultValue;
@@ -985,6 +989,7 @@ function resolveModelNode(
   storageTypes: Record<string, AuthoredStorageTypeInstance>,
   storageTypeReverseLookup: ReadonlyMap<AuthoredStorageTypeInstance, string>,
   generatorFunctions: GeneratorFunctionRegistry,
+  columnLength: ColumnLength,
   extensions?: Record<string, ExtensionPackRef<'sql', string>>,
 ): ModelNode {
   const fields: FieldNode[] = [];
@@ -1017,6 +1022,7 @@ function resolveModelNode(
       descriptor,
       storageTypes,
       generatorFunctions,
+      columnLength,
     });
 
     fields.push({
@@ -1120,9 +1126,25 @@ function resolveModelNode(
  * `ContractInput`'s `Extensions` parameter defaults to `undefined`, but lowering
  * reads the extension-pack record at runtime, so the input is widened here.
  */
-type LoweringInput = Omit<ContractInput, 'extensions' | 'codecLookup' | 'dataTypeLookup'> & {
+type LoweringInput = Omit<ContractInput, 'extensions'> & {
   readonly extensions?: Record<string, ExtensionPackRef<'sql', string>> | undefined;
 };
+
+type ColumnLength = (
+  codecId: string,
+  typeParams: Readonly<Record<string, unknown>> | undefined,
+) => number | undefined;
+
+function columnLengthOf(definition: LoweringInput): ColumnLength {
+  const { codecLookup, dataTypeLookup } = definition;
+  return (codecId, typeParams) => {
+    const dataTypeId = codecLookup.descriptorFor(codecId)?.dataType;
+    return sqlColumnLength(
+      dataTypeId === undefined ? undefined : dataTypeLookup.get(dataTypeId),
+      typeParams,
+    );
+  };
+}
 
 function collectRuntimeModelSpecs(definition: LoweringInput): RuntimeCollection {
   const storageTypes = { ...(definition.types ?? {}) } as Record<
@@ -1207,6 +1229,7 @@ function collectRuntimeModelSpecs(definition: LoweringInput): RuntimeCollection 
 function lowerModels(
   collection: RuntimeCollection,
   generatorFunctions: GeneratorFunctionRegistry,
+  columnLength: ColumnLength,
   extensions?: Record<string, ExtensionPackRef<'sql', string>>,
 ): readonly ModelNode[] {
   emitTypedCrossModelFallbackWarnings(collection);
@@ -1219,6 +1242,7 @@ function lowerModels(
       collection.storageTypes,
       storageTypeReverseLookup,
       generatorFunctions,
+      columnLength,
       extensions,
     ),
   );
@@ -1377,7 +1401,12 @@ export function buildContractDefinition(definition: LoweringInput): ContractDefi
     definition.target,
     ...Object.values<ExtensionPackRef<'sql', string>>(definition.extensions ?? {}),
   ]);
-  const models = lowerModels(collection, generatorFunctions, definition.extensions);
+  const models = lowerModels(
+    collection,
+    generatorFunctions,
+    columnLengthOf(definition),
+    definition.extensions,
+  );
   const attachedEntities = lowerPackEntityHandles(definition, collection.modelSpecs);
 
   return {

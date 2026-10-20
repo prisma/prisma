@@ -220,7 +220,7 @@ model UuidNativeBad {
     expect(result.failure.diagnostics).toEqual([
       {
         code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
-        message: 'Attribute "cuid" is missing required argument "version"',
+        message: 'Generator function "cuid" is missing required argument "version"',
         sourceId: 'schema.prisma',
         span: {
           start: { line: 3, column: 30, offset: 66 },
@@ -228,8 +228,8 @@ model UuidNativeBad {
         },
       },
       {
-        code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
-        message: 'Expected one of: 4 | 7',
+        code: 'PSL_INVALID_GENERATOR_ARGUMENT',
+        message: 'uuid: version must be 4 or 7, got 5',
         sourceId: 'schema.prisma',
         span: {
           start: { line: 4, column: 33, offset: 106 },
@@ -237,8 +237,8 @@ model UuidNativeBad {
         },
       },
       {
-        code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
-        message: 'Expected an integer between 2 and 255',
+        code: 'PSL_INVALID_GENERATOR_ARGUMENT',
+        message: 'nanoid: size must be between 2 and 255, got 1',
         sourceId: 'schema.prisma',
         span: {
           start: { line: 5, column: 37, offset: 146 },
