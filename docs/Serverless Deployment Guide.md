@@ -208,13 +208,16 @@ Reads are buffered by default. To stream on one route, create a second serverles
 
 ```ts
 // src/prisma/db.ts
-export const postgres = postgresServerless({ contract });
+const collections = { User: UserCollection, Post: PostCollection };
+
+export const postgres = postgresServerless({ contract, collections });
 
 /**
  * Serverless client with cursors on, used only by the `/cursor/large` route to stream a large result. Reads through its connections hang behind Cloudflare Hyperdrive.
  */
 export const streamingPostgres = postgresServerless({
   contract,
+  collections,
   cursor: { batchSize: 100 },
 });
 
@@ -249,33 +252,28 @@ if (url.pathname === '/cursor/large') {
 
 ### Wiring the ORM client
 
-`db.orm` is the default way to use the ORM on a connection. When you register custom collection classes, build an ORM client from the connection's runtime and context:
+`db.orm` is the ORM on a connection. To give models their own query methods, pass custom collection classes to the Worker's serverless client with the `collections` option. Every connection's `db.orm`, and the `tx.orm` of its transactions, then returns those classes. A serverless client has the classes only if it is given `collections`, so the streaming client from the previous section is given the same `collections` constant:
 
 ```ts
-// src/orm-client/client.ts
-import { orm } from '@prisma/orm-postgres/orm-client';
-import type { PostgresServerlessConnection } from '@prisma/orm-postgres/serverless';
-import type { Contract } from '../prisma/contract.d';
-import { PostCollection, UserCollection } from './collections';
+// src/prisma/db.ts
+import postgresServerless from '@prisma/orm-postgres/serverless';
+import { contractFromJson } from '@prisma/orm-postgres/static';
+import { PostCollection, UserCollection } from '../orm-client/collections';
+import type { Contract } from './contract.d';
+import contractJson from './contract.json' with { type: 'json' };
 
-export function createOrmClient(
-  db: Pick<PostgresServerlessConnection<Contract>, 'runtime' | 'context'>,
-) {
-  return orm({
-    runtime: db.runtime(),
-    context: db.context,
-    collections: {
-      User: UserCollection,
-      Post: PostCollection,
-    },
-  }).public;
-}
+export const contract = contractFromJson<Contract>(contractJson);
+
+const collections = { User: UserCollection, Post: PostCollection };
+
+export const postgres = postgresServerless({ contract, collections });
 
 // in fetch:
-// const rows = await createOrmClient(db).User.newestFirst().limit(10).all();
+// await using db = await postgres.connect({ url: env.HYPERDRIVE.connectionString });
+// const rows = await db.orm.public.User.newestFirst().limit(10).all();
 ```
 
-Pass `db.runtime()` to `orm()`, not `db` itself. The same holds for anything else that takes a runtime, such as `withTransaction` and a prepared statement's `query(runtime, params)`. Call the factory inside `fetch`, so the ORM client runs on that request's connection.
+The classes are registered once, at module scope, and hold no database connection. Each query still runs on the connection it is called through. Anything that takes a runtime, such as `withTransaction` and a prepared statement's `query(runtime, params)`, takes `db.runtime()`, not `db` itself.
 
 ## Other per-request runtimes
 

@@ -1,16 +1,16 @@
 import type { Vector } from '@prisma/orm-extension-pgvector/codec-types';
-import type { Runtime } from '@prisma/orm-postgres/family-runtime';
 import type { CollectionRowOf, HasOrderBy, HasWhere } from '@prisma/orm-postgres/orm-client';
+import type { PostgresClient } from '@prisma/orm-postgres/runtime';
 import { websearchToTsquery } from '@prisma/orm-postgres/target/full-text';
 import { describe, expectTypeOf, test } from 'vitest';
-import { createOrmClient } from '../src/orm-client/client';
 import type { PostCollection } from '../src/orm-client/collections';
+import type { Contract } from '../src/prisma/contract.d';
 import { db } from '../src/prisma/db';
 
-declare const runtime: Runtime;
+const custom = db.orm.public;
+declare const plainDb: PostgresClient<Contract>;
 
-const custom = createOrmClient(runtime);
-const plain = db.orm.public;
+const plain = plainDb.orm.public;
 const q = websearchToTsquery('zebra');
 
 describe('collection methods from the Postgres facade and pgvector, through built output', () => {

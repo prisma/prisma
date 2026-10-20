@@ -96,39 +96,40 @@ Contract artifacts are `contract.json` and `contract.d.ts`. Static roots are `sq
 
 ## ORM Client Examples
 
-The demo includes ORM client examples under `src/orm-client/`:
+The demo includes ORM client examples under `src/orm-client/`. `src/prisma/db.ts` registers the custom collection classes from `src/orm-client/collections.ts` on the client with `postgres({ contract, collections })`, so `db.orm.public` and every transaction's `tx.orm.public` have their methods. Each example takes that ORM as its `orm` argument: the CLI passes `db.orm.public`, and the tests pass the ORM of a client bound to their own database.
 
-- `ormClientGetUsers(limit, runtime)` — list users using ORM client API
-- `ormClientGetAdminUsers(limit, runtime)` — filter through a custom collection scope
-- `ormClientFindUserByEmail(email, runtime)` — `first()` with collection helpers
-- `ormClientGetUserPosts(userId, limit, runtime)` — fetch user posts with collection filters + ordering
-- `ormClientGetUserProfile(userId, runtime)` — **`Shape`-declared response type**: `UserProfile` is `Shape<Models.public_User, { '-': 'email'; posts: { '+': 'id' | 'title' | 'tags' } }>`; the nested include (`User → posts → tags`) is an implementation detail the compiler checks at the `return`
-- `ormClientGetDashboardUsers(emailDomain, postTitleTerm, limit, postsPerUser, runtime)` — compound `and/or/not` filters + relation filters + `select()` and `include()` composition
-- `ormClientGetPostFeed(postTitleTerm, limit, runtime)` — to-one include (`post -> user`) with projected fields
-- `ormClientGetUserTaskBoard(limit, runtime)` — **polymorphic-target include**: `User.include('tasks')` where `Task` is a discriminated base; each included row is decoded into its variant shape (`Bug` → `severity`/`stepsToRepro`, `Feature` → `priority`/`targetRelease`) in a single read
-- `ormClientGetUserBugTriage(severity, limit, runtime)` — `.variant('bug')`-narrowed include filtered by the Bug-only `severity` column
-- `ormClientGetFeatureRoadmap(targetRelease, limit, runtime)` — `.variant('feature')`-narrowed include filtered by the Feature-only `targetRelease` column (a multi-table-inheritance variant column reached through the variant join)
-- `ormClientGetPostTags(postId, runtime)` — **many-to-many include**: `Post.include('tags', …)` traversing the `post_tag` junction transparently
-- `ormClientGetTagPosts(tagId, runtime)` — the same junction walked from the other side (`Tag.include('posts', …)`)
-- `ormClientGetPostsByTagFilter(mode, label, runtime)` — `some`/`none`/`every` relation filter predicates on the N:M `tags` relation (EXISTS through the junction)
-- `ormClientConnectPostTags(postId, tagIds, runtime)` — `update({ tags: (t) => t.connect([…]) })` inserting junction rows
-- `ormClientDisconnectPostTags(postId, tagIds, runtime)` — `update({ tags: (t) => t.disconnect([…]) })` deleting junction rows
-- `ormClientCreatePostWithTags(input, runtime)` — nested `create`: insert a post + new tags + junction rows in one mutation
-- `ormClientCreatePostConnectTags(input, runtime)` — nested `connect` in the create flow: insert a post and link existing tags
-- `ormClientGetUsersByIdCursor(cursor, limit, runtime)` — cursor pagination with `orderBy()` + `cursor()`
-- `ormClientGetLatestUserPerKind(runtime)` — `distinctOn()` with deterministic ordering
-- `ormClientGetUserInsights(limit, runtime)` — `include().combine()` metrics and latest related row
-- `ormClientGetUserKindBreakdown(minUsers, runtime)` — `groupBy().having().aggregate()` breakdown
-- `ormClientGetPostEngagement(limit, runtime)` — the three engagement counters side by side, one per integer representation (`BigIntNumber`, `BigInt`, `UnboundedInt`)
-- `ormClientGetEngagementPrecision(runtime)` — `count`/`sum`/`avg` beside `countBigInt`/`sumBigInt`/`avgDecimal`, including the bare `sum` that raises rather than rounding
-- `ormClientGetEngagementSpread(runtime)` — an extension-contributed `stddev` aggregate, called like a built-in
-- `ormClientUpsertUser(data, runtime)` — `upsert()` for create-or-update by primary key
-- `ormClientFindUserByIdCached(id, runtime, options?)` — opt-in cached `first({ id })` lookup via `cacheAnnotation({ bypass? })` from `@internal/middleware-cache`
-- `ormClientGetUsersCached(limit, runtime, options?)` — opt-in cached `User.all()` listing, with optional explicit cache-key override
-- `ormClientGetRecentPosts(since, orderBy, direction, limit, runtime)` — **query fragments**: `createdSince` (`db.orm.fragment`, a scope for any model with a `createdAt` field), `orderByField` (a field to order by, named in the request and checked at run time) and `postSummary` (`db.orm.public.Post.fragment`, the shared `select` and `include` of a post), from `src/orm-client/fragments.ts`
-- `ormClientGetFilteredPosts({ userId?, before? }, limit, runtime)` — **a conditional query with `with`**: `db.Post.with((posts) => (input.userId !== undefined ? posts.where({ userId: input.userId }) : posts))` applies a filter only when the input names it, and `createdBefore` is a row fragment for any model with a `createdAt` field, run with `where` and typed with `CodecField` in `src/orm-client/fragments.ts`
-- `ormClientGetRecentUsers(since, limit, runtime)` — the same `createdSince` on users and on their included posts, which `postSummary` shapes inside the include refinement
-- `ormClientSearchPostsByTitle(query, limit, runtime)` — **full-text search**: `p.title.fullTextMatches(websearchToTsquery(query))` filtered and `p.title.fullTextRank(websearchToTsquery(query)).desc()` ordered, over the GIN index `@@fullTextIndex([title])` declares
+- `ormClientGetUsers(limit, orm)` — list users using ORM client API
+- `ormClientGetAdminUsers(limit, orm)` — filter through a custom collection scope
+- `ormClientFindUserByEmail(email, orm)` — `first()` with collection helpers
+- `ormClientGetUserPosts(userId, limit, orm)` — fetch user posts with collection filters + ordering
+- `ormClientLockUserPosts(userId, orm)` — **a custom class method under a row lock**: `orm.Post.forUser(userId).newestFirst().select('id', 'title').forUpdate().all()`. Its caller opens the transaction and passes the transaction's ORM, `db.transaction((tx) => ormClientLockUserPosts(userId, tx.orm.public))`, so the `PostCollection` methods run in the transaction and `FOR UPDATE` holds the selected rows until it commits. The function runs on any ORM, including `db.orm.public`, but its row lock holds only inside a transaction: outside one, each statement commits at once and the lock is released immediately.
+- `ormClientGetUserProfile(userId, orm)` — **`Shape`-declared response type**: `UserProfile` is `Shape<Models.public_User, { '-': 'email'; posts: { '+': 'id' | 'title' | 'tags' } }>`; the nested include (`User → posts → tags`) is an implementation detail the compiler checks at the `return`
+- `ormClientGetDashboardUsers(emailDomain, postTitleTerm, limit, postsPerUser, orm)` — compound `and/or/not` filters + relation filters + `select()` and `include()` composition
+- `ormClientGetPostFeed(postTitleTerm, limit, orm)` — to-one include (`post -> user`) with projected fields
+- `ormClientGetUserTaskBoard(limit, orm)` — **polymorphic-target include**: `User.include('tasks')` where `Task` is a discriminated base; each included row is decoded into its variant shape (`Bug` → `severity`/`stepsToRepro`, `Feature` → `priority`/`targetRelease`) in a single read
+- `ormClientGetUserBugTriage(severity, limit, orm)` — `.variant('bug')`-narrowed include filtered by the Bug-only `severity` column
+- `ormClientGetFeatureRoadmap(targetRelease, limit, orm)` — `.variant('feature')`-narrowed include filtered by the Feature-only `targetRelease` column (a multi-table-inheritance variant column reached through the variant join)
+- `ormClientGetPostTags(postId, orm)` — **many-to-many include**: `Post.include('tags', …)` traversing the `post_tag` junction transparently
+- `ormClientGetTagPosts(tagId, orm)` — the same junction walked from the other side (`Tag.include('posts', …)`)
+- `ormClientGetPostsByTagFilter(mode, label, orm)` — `some`/`none`/`every` relation filter predicates on the N:M `tags` relation (EXISTS through the junction)
+- `ormClientConnectPostTags(postId, tagIds, orm)` — `update({ tags: (t) => t.connect([…]) })` inserting junction rows
+- `ormClientDisconnectPostTags(postId, tagIds, orm)` — `update({ tags: (t) => t.disconnect([…]) })` deleting junction rows
+- `ormClientCreatePostWithTags(input, orm)` — nested `create`: insert a post + new tags + junction rows in one mutation
+- `ormClientCreatePostConnectTags(input, orm)` — nested `connect` in the create flow: insert a post and link existing tags
+- `ormClientGetUsersByIdCursor(cursor, limit, orm)` — cursor pagination with `orderBy()` + `cursor()`
+- `ormClientGetLatestUserPerKind(orm)` — `distinctOn()` with deterministic ordering
+- `ormClientGetUserInsights(limit, orm)` — `include().combine()` metrics and latest related row
+- `ormClientGetUserKindBreakdown(minUsers, orm)` — `groupBy().having().aggregate()` breakdown
+- `ormClientGetPostEngagement(limit, orm)` — the three engagement counters side by side, one per integer representation (`BigIntNumber`, `BigInt`, `UnboundedInt`)
+- `ormClientGetEngagementPrecision(orm)` — `count`/`sum`/`avg` beside `countBigInt`/`sumBigInt`/`avgDecimal`, including the bare `sum` that raises rather than rounding
+- `ormClientGetEngagementSpread(orm)` — an extension-contributed `stddev` aggregate, called like a built-in
+- `ormClientUpsertUser(data, orm)` — `upsert()` for create-or-update by primary key
+- `ormClientFindUserByIdCached(id, orm, options?)` — opt-in cached `first({ id })` lookup via `cacheAnnotation({ bypass? })` from `@internal/middleware-cache`
+- `ormClientGetUsersCached(limit, orm, options?)` — opt-in cached `User.all()` listing, with optional explicit cache-key override
+- `ormClientGetRecentPosts(since, orderBy, direction, limit, orm)` — **query fragments**: `createdSince` (`db.orm.fragment`, a scope for any model with a `createdAt` field), `orderByField` (a field to order by, named in the request and checked at run time) and `postSummary` (`db.orm.public.Post.fragment`, the shared `select` and `include` of a post), from `src/orm-client/fragments.ts`
+- `ormClientGetFilteredPosts({ userId?, before? }, limit, orm)` — **a conditional query with `with`**: `orm.Post.with((posts) => (input.userId !== undefined ? posts.where({ userId: input.userId }) : posts))` applies a filter only when the input names it, and `createdBefore` is a row fragment for any model with a `createdAt` field, run with `where` and typed with `CodecField` in `src/orm-client/fragments.ts`
+- `ormClientGetRecentUsers(since, limit, orm)` — the same `createdSince` on users and on their included posts, which `postSummary` shapes inside the include refinement
+- `ormClientSearchPostsByTitle(query, limit, orm)` — **full-text search**: `p.title.fullTextMatches(websearchToTsquery(query))` filtered and `p.title.fullTextRank(websearchToTsquery(query)).desc()` ordered, over the GIN index `@@fullTextIndex([title])` declares
 
 Run from the CLI:
 
@@ -137,6 +138,7 @@ pnpm start -- repo-users 5
 pnpm start -- repo-admins 5
 pnpm start -- repo-user admin@example.com
 pnpm start -- repo-posts user_001 10
+pnpm start -- repo-lock-posts user_001
 pnpm start -- repo-dashboard example.com post 10 2
 pnpm start -- repo-post-feed post 10
 pnpm start -- repo-recent-posts 2024-01-01T00:00:00Z title asc 10
@@ -373,8 +375,8 @@ Speedup: 26.2x faster
 
 The corresponding source files:
 
-- `src/orm-client/find-user-by-id-cached.ts` — `db.User.first({ id }, (meta) => meta.annotate(cacheAnnotation({ bypass })))`
-- `src/orm-client/get-users-cached.ts` — `db.User.limit(n).all((meta) => meta.annotate(cacheAnnotation({ key? })))`
+- `src/orm-client/find-user-by-id-cached.ts` — `orm.User.first({ id }, (meta) => meta.annotate(cacheAnnotation({ bypass })))`
+- `src/orm-client/get-users-cached.ts` — `orm.User.limit(n).all((meta) => meta.annotate(cacheAnnotation({ key? })))`
 - `src/queries/get-users-cached.ts` — `db.sql.public.user.select(...).annotate(cacheAnnotation({})).build()`
 
 Relevant points:
@@ -435,8 +437,8 @@ Run `pnpm dev` for the Vite app that visualizes the contract. It renders directl
 - `src/prisma/contract.d.ts` - Emitted types (emit workflow only)
 - `src/prisma/db.ts` - One-liner Postgres client + query roots (emit workflow)
 - `src/prisma-no-emit/context.ts` - Env-free execution stack/context + query roots (no-emit workflow)
-- `src/prisma-no-emit/runtime.ts` - Runtime factory (no-emit workflow)
-- `src/orm-client/client.ts` - ORM client, registering the custom collection classes in `collections.ts`
+- `src/prisma-no-emit/runtime.ts` - Connects a client with the custom collection classes and returns its runtime and ORM (no-emit workflow)
+- `src/orm-client/collections.ts` - Custom collection classes, registered on the client in `src/prisma/db.ts`
 - `src/orm-client/*.ts` - End-to-end ORM client query examples
 - `src/extensions/engagement-stats.ts` - Local extension contributing the `stddev` aggregate operation
 - `src/main.ts` - App entrypoint with arktype config validation (emit workflow)
@@ -450,7 +452,7 @@ Run `pnpm dev` for the Vite app that visualizes the contract. It renders directl
 
 ## Features Demonstrated
 
-- **Vector Similarity Search**: The demo includes a `similarity-search.ts` query that demonstrates cosine distance operations using the pgvector extension pack. Through the ORM, `src/orm-client/search-posts-by-embedding.ts` calls `db.Post.using.embedding_nearest(vector, maxDistance)`, the collection method the pgvector package contributes for each vector field: the posts nearest to the vector by cosine distance, nearest first.
+- **Vector Similarity Search**: The demo includes a `similarity-search.ts` query that demonstrates cosine distance operations using the pgvector extension pack. Through the ORM, `src/orm-client/search-posts-by-embedding.ts` calls `orm.Post.using.embedding_nearest(vector, maxDistance)`, the collection method the pgvector package contributes for each vector field: the posts nearest to the vector by cosine distance, nearest first.
 - **Full-Text Search**: `Post` declares `@@fullTextIndex([title], name: "post_title_search")` (the TypeScript twin is `fullTextIndex(cols.title, { name: 'post_title_search' })`), which emits a GIN index over `to_tsvector('english', "title")`. `src/orm-client/search-posts-by-title.ts` searches through the ORM with `fullTextMatches` and `fullTextRank`; `src/queries/full-text-search.ts` searches the same index through the SQL DSL, read from the table as `post.indexes.post_title_search`, so the query searches the document the index was built over, and adds the rank and a `<mark>`-highlighted `fullTextHeadline`. The query argument is a `tsquery`: both files wrap the search string in `websearchToTsquery` (imported from `@prisma/orm-postgres/target/full-text` in the ORM file, a `fns` member in the DSL file), which binds it as a parameter and parses it with `websearch_to_tsquery`, so `"an exact phrase"`, `-excluded` and `or` work as in a search box. A bare string is a type error; for a typeahead prefix match, `` tsquery`${term}:*` `` from the same import quotes the typed text as one term. Try `pnpm start -- repo-search-posts-text second` and `pnpm start -- full-text-search "first or second"`.
-- **Weighted Full-Text Search**: `Post` also declares `@@fullTextIndex([title, body], name: "post_search")`: one search document over the title (weight A) and the body (weight B). `src/orm-client/search-posts.ts` searches it with `db.Post.using.post_search(q)`, the collection method the Postgres package contributes for each full-text index, named after the index. It filters to the matching posts and orders them by relevance, searching the document the index was built over, so a title match ranks above a body match and Postgres uses the index. Try `pnpm start -- repo-search-posts-weighted "second or third"` after `pnpm seed`.
+- **Weighted Full-Text Search**: `Post` also declares `@@fullTextIndex([title, body], name: "post_search")`: one search document over the title (weight A) and the body (weight B). `src/orm-client/search-posts.ts` searches it with `orm.Post.using.post_search(q)`, the collection method the Postgres package contributes for each full-text index, named after the index. It filters to the matching posts and orders them by relevance, searching the document the index was built over, so a title match ranks above a body match and Postgres uses the index. Try `pnpm start -- repo-search-posts-weighted "second or third"` after `pnpm seed`.
 - **Extension Packs**: Shows how to configure and use extension packs (pgvector) in `prisma.config.ts`.
