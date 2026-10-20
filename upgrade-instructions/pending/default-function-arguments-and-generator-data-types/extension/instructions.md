@@ -45,7 +45,7 @@ changes:
         - '\boneOf\([^;]*\bdataTypeValue\('
   - id: text-data-types
     summary: |
-      A component's authoring contributions may name `textDataTypes`, the data types whose values are text. A SQL `@@discriminator` field must be one of them. An extension that adds a text type and wants it usable as a discriminator, or wants the built-in ID generators to apply to it, names it there and in the `text` list of its generator descriptors.
+      A component's authoring contributions may name `textDataTypes`, the data types whose values are text. Only SQL `@@discriminator` reads the list: a discriminator field must be stored in one of them. An extension that adds a text type and wants it usable as a discriminator names it there. The built-in ID generators apply only to the data types the target passes to `sqlBuiltinGeneratorDescriptors`.
 ---
 
 ## `generator-applicable-data-types`
