@@ -26,6 +26,7 @@ export async function loadPrisma7Schema(schemaPath: string): Promise<Contract<Sq
       codecLookup: stack.codecLookup,
       dataTypes: stack.dataTypes,
       controlMutationDefaults: stack.controlMutationDefaults,
+      generatorFunctions: stack.generatorFunctions,
       resolvedInputs: [schemaPath],
       capabilities: stack.capabilities,
     },
