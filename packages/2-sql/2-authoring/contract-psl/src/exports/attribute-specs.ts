@@ -7,4 +7,4 @@ export type {
   EnumMemberListDefault,
   ParsedNullLiteral,
 } from '../sql-attribute-specs';
-export { sqlAttributeSpecs } from '../sql-attribute-specs';
+export { defaultFunctionCall, sqlAttributeSpecs } from '../sql-attribute-specs';

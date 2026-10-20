@@ -2,7 +2,10 @@ import type {
   AuthoringModelAttributeDescriptor,
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
-import type { ControlMutationDefaultRegistry } from '@internal/framework-components/control';
+import type {
+  ControlMutationDefaultEntry,
+  ControlMutationDefaultRegistry,
+} from '@internal/framework-components/control';
 import type { ContributedPslDiagnosticCode } from '@internal/framework-components/psl-ast';
 import type {
   ArgType,
@@ -247,18 +250,21 @@ type DefaultArgValue =
 /** A default function's signature, or a function that builds it from the stack's data types when its arguments are values of a data type. */
 export type DefaultFunctionSignature = FuncCallSig | ((dataTypes: DataTypeSupport) => FuncCallSig);
 
-function signatureFor(signature: DefaultFunctionSignature, dataTypes: DataTypeSupport) {
-  return typeof signature === 'function' ? signature(dataTypes) : signature;
-}
-
-function defaultFunctionArm(
+/**
+ * A call to the registered default function `name`, with its signature built from the stack's data types when it needs them. Its binding diagnostics name it as a default function.
+ */
+export function defaultFunctionCall(
   name: string,
-  signature: FuncCallSig,
-): ArgType<DefaultFunctionCall, AttributeCtx> {
-  return mapArg(funcCall(name, signature, { label: `Default function "${name}"` }), (call) => ({
-    kind: 'default-function',
-    call,
-  }));
+  entry: ControlMutationDefaultEntry,
+  dataTypes: DataTypeSupport,
+): ArgType<TypedFuncCall, AttributeCtx> {
+  const signature = blindCast<
+    DefaultFunctionSignature,
+    'The registry stores each signature opaquely as `unknown` because FuncCallSig lives in the authoring layer that core cannot name; the SQL family owns these entries and guarantees every one declares a DefaultFunctionSignature.'
+  >(entry.signature);
+  return funcCall(name, typeof signature === 'function' ? signature(dataTypes) : signature, {
+    label: `Default function "${name}"`,
+  });
 }
 
 /** The data type of the column a field declares, when its type, or the named type it is declared with, is a constructor or preset the stack knows. */
@@ -326,15 +332,9 @@ function scalarDefaultArms(
     );
   const listArm = () => writtenList(literal());
   const funcArms = [...defaultFunctionRegistry.entries()].map(([name, entry]) =>
-    defaultFunctionArm(
-      name,
-      signatureFor(
-        blindCast<
-          DefaultFunctionSignature,
-          'The registry stores each signature opaquely as `unknown` because FuncCallSig lives in the authoring layer that core cannot name; the SQL family owns these entries and guarantees every one declares a DefaultFunctionSignature.'
-        >(entry.signature),
-        dataTypes,
-      ),
+    mapArg(
+      defaultFunctionCall(name, entry, dataTypes),
+      (call): DefaultFunctionCall => ({ kind: 'default-function', call }),
     ),
   );
   return isList
