@@ -447,7 +447,7 @@ withTempDir(({ createTempDir }) => {
         expect(offered).not.toContain('--convert');
 
         const failed = await runDbUpdate(ctx, ['--delete', 'User.age', '--json']);
-        expect(engineError(failed)?.code).toBe('MIGRATION.RUNNER_FAILED');
+        expect(engineError(failed)?.code).toBe('MIGRATION.EXECUTION_FAILED');
         expect(JSON.stringify(engineError(failed)?.nextActions)).toContain('--convert User.age');
         await sql(db.connectionString, `UPDATE "user" SET age = '7' WHERE id = 2`);
         const cast = await runDbUpdate(ctx, ['--delete', 'User.age']);

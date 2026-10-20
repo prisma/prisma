@@ -244,11 +244,11 @@ describe('MongoMigrationRunner - field rewrites', () => {
         .find(JSON.parse(printedFind?.[1] ?? 'null'), { projection: { _id: 0 } })
         .toArray();
       expect({
-        summary: stopped.failure.summary,
+        message: stopped.failure.message,
         found,
         indexes: (await db.collection('users').indexes()).map(({ name }) => name),
       }).toEqual({
-        summary:
+        message:
           'Operation field.users.name.rename(fullName) stopped: some documents in collection users already hold fullName as well as name',
         found: [{ name: 'Dee', fullName: 'Dee D.' }],
         indexes: ['_id_'],

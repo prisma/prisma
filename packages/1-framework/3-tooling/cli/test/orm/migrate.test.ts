@@ -1,6 +1,12 @@
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import {
+  type MigrationPlanOperation,
+  migrationRunnerFailure,
+  type SchemaDiffIssue,
+  schemaCheckWhy,
+} from '@internal/framework-components/control';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { writeMigrationPackage } from '@internal/migration-tools/io';
@@ -10,10 +16,19 @@ import type { EngineEvent, StreamEvent } from '@prisma/cli-engine';
 import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { runnerFailureFacts } from '../../src/control-api/operations/run-migration';
 import type { ControlClient } from '../../src/control-api/types';
 import { BIN_GROUPS, createBinCommands } from '../../src/orm/cli';
+import { errorPathUnreachable } from '../../src/utils/cli-errors';
+import { migrateRunnerFailureError } from '../../src/utils/migrate-failure';
+import { stdoutErrorMeta } from '../helpers/json-frames';
 import { createOrmTestCli } from '../helpers/orm-test-cli';
 import { createTestProjectDir, writeProjectManifest } from '../utils/test-project-dir';
+
+const MISSING_COLUMN: SchemaDiffIssue = {
+  path: ['public', 'event', 'id'],
+  expected: { id: 'id', nodeKind: 'sql-column', isEqualTo: () => false, children: () => [] },
+};
 
 const mocks = {
   connect: vi.fn(),
@@ -403,12 +418,18 @@ describe('migrate', () => {
   it('maps an unreachable path to its migration code', async () => {
     const cwd = await buildProject();
     mocks.migrate.mockResolvedValue(
-      notOk({
-        code: 'MIGRATION_PATH_NOT_FOUND',
-        summary: 'no path',
-        why: 'no recorded path',
-        meta: { fromHash: '<empty>', targetHash: C2 },
-      }),
+      notOk(
+        errorPathUnreachable({
+          summary: 'no path',
+          why: 'no recorded path',
+          meta: {
+            spaceId: 'app',
+            fromHash: EMPTY_CONTRACT_HASH,
+            targetHash: C2,
+            kind: 'pathUnreachable',
+          },
+        }),
+      ),
     );
 
     const run = await harness(ormConfig(cwd)).run(['db', 'migrate', '--json'], { cwd });
@@ -418,6 +439,50 @@ describe('migrate', () => {
       ok: false,
       error: { code: 'MIGRATION.PATH_UNREACHABLE' },
     });
+  });
+
+  it('reports a runner failure with the runner code and meta, and the advice', async () => {
+    const cwd = await buildProject();
+    const runnerFailure = migrationRunnerFailure(
+      'MIGRATION.SCHEMA_VERIFY_FAILED',
+      'Database schema does not satisfy contract',
+      {
+        why: schemaCheckWhy([MISSING_COLUMN]),
+        meta: { schemaIssues: [MISSING_COLUMN], failingSpace: 'app' },
+      },
+    );
+    const invocation = { cwd, configPath: undefined, dbGiven: false };
+    mocks.migrate.mockResolvedValue(
+      notOk(
+        migrateRunnerFailureError(
+          runnerFailure,
+          runnerFailureFacts(runnerFailure, []),
+          { directory: join(cwd, 'migrations', 'app', '20261015T1200_initial'), from: C1 },
+          invocation,
+        ),
+      ),
+    );
+
+    const run = await harness(ormConfig(cwd)).run(['db', 'migrate', '--json'], { cwd });
+
+    expect(run.exitCode).toBe(2);
+    expect(envelopeOf(run.json)).toMatchObject({
+      ok: false,
+      error: {
+        code: 'MIGRATION.SCHEMA_VERIFY_FAILED',
+        summary: 'Database schema does not satisfy contract',
+        why: 'The schema check after apply found: missing: public/event/id.',
+        nextActions: [
+          {
+            kind: 'user-choice',
+            label: `The failed apply changed nothing. Change the contract source to resolve the issues listed, re-run \`prisma-test contract emit\`, delete \`migrations/app/20261015T1200_initial\` (copy any code you wrote in its migration.ts first), plan it again with \`prisma-test migration plan --from ${C1} --name initial\`, put any code you copied into the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`prisma-test db migrate\`.`,
+          },
+        ],
+        meta: { schemaIssues: [{ path: ['public', 'event', 'id'] }], failingSpace: 'app' },
+      },
+    });
+    expect(stdoutErrorMeta(run.stdout)).toEqual(JSON.parse(JSON.stringify(runnerFailure.meta)));
+    expect(mocks.migrate).toHaveBeenCalledWith(expect.objectContaining({ invocation }));
   });
 
   describe('a close that fails on the way out', () => {

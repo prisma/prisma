@@ -1,10 +1,11 @@
+import type { MigrationRunnerFailure } from '@internal/framework-components/control';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { basename, join } from 'pathe';
 import { statementFlag } from '../control-api/statements/statement-flag';
 import type {
   FailedTypeChangeReport,
-  MigrateFailure,
   RowsWithoutValueReport,
+  RunnerFailureFacts,
 } from '../control-api/types';
 import { migrateFailedPrecheckFix } from './failed-precheck-advice';
 import {
@@ -14,8 +15,13 @@ import {
   printedPlanCommand,
   selfEmitCommand,
 } from './printed-command';
+import { schemaCheckIssues } from './schema-check-issues';
 
-type FailedMigration = NonNullable<MigrateFailure['failedMigration']>;
+/** The written migration of the failed operation: its directory, and the contract it starts from. */
+export interface FailedMigrationOnDisk {
+  readonly directory: string;
+  readonly from: string;
+}
 
 /** What a runner failure says of a type change that failed: who converted the values, and how it failed. */
 export function failedTypeChangeText(change: FailedTypeChangeReport): string {
@@ -122,7 +128,7 @@ interface FailedMigrationText {
 }
 
 function failedMigrationText(
-  failed: FailedMigration,
+  failed: FailedMigrationOnDisk,
   invocation: CliInvocation,
 ): FailedMigrationText {
   const dirName = basename(failed.directory);
@@ -253,22 +259,25 @@ function migrateSchemaCheckFix(
  * The way out of a failed `db migrate` apply: every path and command it prints works from where the
  * CLI ran, with the `--config` it was given.
  */
-export function migrateFix(failure: MigrateFailure, invocation: CliInvocation): string {
+export function migrateFix(
+  failure: MigrationRunnerFailure,
+  facts: RunnerFailureFacts,
+  failedOnDisk: FailedMigrationOnDisk | undefined,
+  invocation: CliInvocation,
+): string {
   const failedMigration =
-    failure.failedMigration === undefined
-      ? undefined
-      : failedMigrationText(failure.failedMigration, invocation);
-  if (failure.failedTypeChange !== undefined) {
-    return migrateFailedTypeChangeFix(failure.failedTypeChange, failedMigration, invocation);
+    failedOnDisk === undefined ? undefined : failedMigrationText(failedOnDisk, invocation);
+  if (facts.failedTypeChange !== undefined) {
+    return migrateFailedTypeChangeFix(facts.failedTypeChange, failedMigration, invocation);
   }
-  if (failure.rowsWithoutValue !== undefined) {
-    return migrateRowsWithoutValueFix(failure.rowsWithoutValue, failedMigration, invocation);
+  if (facts.rowsWithoutValue !== undefined) {
+    return migrateRowsWithoutValueFix(facts.rowsWithoutValue, failedMigration, invocation);
   }
-  if (failure.schemaIssues !== undefined) {
+  if (schemaCheckIssues(failure) !== undefined) {
     return migrateSchemaCheckFix(failedMigration, invocation);
   }
-  if (failure.failedPrecheck !== undefined) {
-    return migrateFailedPrecheckFix(failure.failedPrecheck, invocation);
+  if (facts.failedPrecheck !== undefined) {
+    return migrateFailedPrecheckFix(facts.failedPrecheck, invocation);
   }
   return `Fix the issue and re-run \`${cliCommand(invocation, 'db migrate', ['--to', '<contract>'])}\` — previously applied migrations are preserved.`;
 }

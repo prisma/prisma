@@ -954,7 +954,7 @@ withTempDir(({ createTempDir }) => {
         const error = parseJsonOutput<{ readonly code: string; readonly nextActions: unknown }>(
           failed,
         );
-        expect(error.code).toBe('MIGRATION.RUNNER_FAILED');
+        expect(error.code).toBe('MIGRATION.POSTCHECK_FAILED');
         expect(JSON.stringify(error.nextActions)).toContain('--convert User.age');
         exec(ctx.dbPath, `UPDATE "User" SET age = '7' WHERE id = 2`);
         const cast = await runDbUpdate(ctx, ['--delete', 'User.age']);

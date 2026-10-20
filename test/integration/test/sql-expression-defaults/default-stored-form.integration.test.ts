@@ -126,13 +126,12 @@ describe('a raw SQL default the database stores in its own form', { concurrent: 
       expect(result.ok).toBe(false);
       if (result.ok) return;
       expect(result.failure.code).toBe('MIGRATION.SCHEMA_VERIFY_FAILED');
-      const issues = result.failure.meta?.['issues'];
+      const issues = result.failure.meta.schemaIssues;
       expect(
-        Array.isArray(issues) &&
-          issues.map((issue) => ({
-            path: issue.path.join('/'),
-            explanation: issue.explanation,
-          })),
+        issues?.map((issue) => ({
+          path: issue.path.join('/'),
+          explanation: issue.explanation,
+        })),
       ).toEqual([
         {
           path: 'database/public/Event/column:at/default',

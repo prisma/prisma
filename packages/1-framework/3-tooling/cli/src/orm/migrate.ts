@@ -52,7 +52,6 @@ import {
 import { TONE_MIGRATION_GRAPH_PALETTE } from '../utils/formatters/migration-graph-palette';
 import { createToneMigrationListStyler } from '../utils/formatters/migration-list-styler';
 import { toneDrawing } from '../utils/formatters/tone-markup';
-import { mapMigrateFailure } from '../utils/migrate-failure';
 import { runCommandAction } from '../utils/next-actions';
 import { type CliInvocation, cliCommand, cliInvocation } from '../utils/printed-command';
 import { snapshotVerifierFor } from '../utils/snapshot-content-verification';
@@ -468,15 +467,14 @@ export function createMigrateCommand(createClient: CreateControlClient) {
         const applied = await client.migrate({
           contract: applyContract,
           migrationsDir,
+          invocation: cliInvocation(ctx, args.flags.db),
           onProgress: controlProgressReporter(ctx.report),
           ...ifDefined('refHash', refEntry?.hash),
           ...(refEntry?.invariants === undefined ? {} : { refInvariants: refEntry.invariants }),
           ...ifDefined('refName', target.refName),
         });
         if (!applied.ok) {
-          return notOk(
-            normalizeError(mapMigrateFailure(applied.failure, cliInvocation(ctx, args.flags.db))),
-          );
+          return notOk(normalizeError(applied.failure));
         }
         const { value } = applied;
 

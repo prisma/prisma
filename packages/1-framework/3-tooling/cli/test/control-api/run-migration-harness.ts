@@ -17,7 +17,11 @@ import {
 } from '@internal/migration-tools/aggregate';
 import { notOk } from '@internal/utils/result';
 import { vi } from 'vitest';
-import { runMigration } from '../../src/control-api/operations/run-migration';
+import {
+  collectOrdered,
+  runMigration,
+  runnerFailureFacts,
+} from '../../src/control-api/operations/run-migration';
 
 export const APP_HASH = `${'a'.repeat(64)}`;
 
@@ -75,7 +79,7 @@ function makePerSpacePlan(): PerSpacePlan {
   } as unknown as PerSpacePlan;
 }
 
-/** The failure `runMigration` returns when the runner of the one space, `app`, fails with `runnerFailure`. */
+/** The facts the advice names when the runner of the one space, `app`, fails with `runnerFailure`. */
 export async function failureOf(
   runnerFailure: MigrationRunnerFailure,
   origin: MigrationPlan['origin'],
@@ -89,14 +93,12 @@ export async function failureOf(
     ControlFamilyInstance<'sql', unknown>
   >;
   const perSpacePlan = makePerSpacePlan();
+  const perSpacePlans = new Map([
+    ['app', { ...perSpacePlan, plan: { ...perSpacePlan.plan, origin } } as unknown as PerSpacePlan],
+  ]);
   const result = await runMigration<'sql', 'postgres'>({
     aggregate: makeAggregate(),
-    perSpacePlans: new Map([
-      [
-        'app',
-        { ...perSpacePlan, plan: { ...perSpacePlan.plan, origin } } as unknown as PerSpacePlan,
-      ],
-    ]),
+    perSpacePlans,
     applyOrder: ['app'],
     driver: {} as ControlDriverInstance<'sql', 'postgres'>,
     familyInstance: { familyId: 'sql' } as unknown as ControlFamilyInstance<'sql', unknown>,
@@ -105,5 +107,7 @@ export async function failureOf(
     policy: { allowedOperationClasses: ['additive', 'widening', 'destructive', 'data'] },
     action: 'migrate',
   });
-  return result.ok ? undefined : result.failure;
+  return result.ok
+    ? undefined
+    : runnerFailureFacts(result.failure, collectOrdered(['app'], perSpacePlans));
 }
