@@ -188,7 +188,7 @@ The language server takes tag completion and documentation from the same entries
 PSL has three kinds of expression, and each has one rule.
 
 - **A literal** is written plainly or with a tag. The interpreter finds its entry, calls `parse`, and has a value of a known type.
-- **A reference** is an identifier that resolves through the symbol table to a declaration. An enum member resolves to the member declared in its `enum` block, and the only check is that it belongs to this column's enum. No parsing and no cast.
+- **A reference** is an identifier that resolves through the symbol table to a declaration. An enum member resolves to the member declared in its `enum` block, and the only check is that it belongs to this column's enum. No parsing and no cast: the member's value was read by the cast rule when its `enum` block was, as "Codecs" describes.
 - **A call** names a registered function. A parameter whose value the database receives names a data type, so its argument is admitted by the same rule as a default. A parameter of a client-side generator, such as `nanoid`'s size, is grammar and keeps its shape check ([ADR 231](ADR%20231%20-%20Declarative%20attribute%20specifications.md)).
 
 Reading a default is then:
@@ -403,14 +403,14 @@ model Place {
 - **The column decides a written number's type.** One piece of syntax would not name one type, and a size error would surface inside a codec instead of as a missing cast.
 - **A closed set of types in the framework.** An extension could not add one, and the framework would own a vocabulary that belongs to targets.
 - **A list data type.** A list is several values of one type; its shape belongs to the column or to the receiving type's cast.
-- **Enum members as string values.** A member name is a reference to a declaration, resolved in scope like a field name.
+- **Enum member names in a default as string values.** A member name is a reference to a declaration, resolved in scope like a field name.
 - **A vector type casting from the JSON type.** It matches on storage shape; a vector is several numbers.
 
 ## Not decided here
 
 - Whether a codec writes the `sql` representation of a value (the DDL half of ADR 184).
 - Mongo casts and written values. Mongo codecs have the same four methods and Mongo data types the same values; Mongo's verification runs through the collection validator.
-- Enum CHECK constraints, Mongo validator enums and discriminator values, which use a stored value as a database value without a codec.
+- Mongo validator enums and discriminator values, which use a stored value as a database value without a codec. An enum CHECK lists stored forms the same way; "Codecs" says which members it can list and how it compares them.
 
 ## Related
 
