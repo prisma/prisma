@@ -362,12 +362,20 @@ export interface MigrationRunnerSuccessValue {
   }>;
 }
 
+/** What a check states of the database: that the object, named as a reader names it (`index "Item_state_idx"`), is `absent` or `present`. */
+export interface CheckExpectation {
+  readonly expects: 'absent' | 'present';
+  readonly object: string;
+}
+
 /** A check of an operation that did not hold: before the operation ran (`precheck`), or after it (`postcheck`). */
 export interface FailedCheck {
   readonly operationId: string;
   readonly phase: 'precheck' | 'postcheck';
   /** The check, as the operation describes it. */
   readonly description: string;
+  /** What the check states of the database, when it states an object's absence or presence. */
+  readonly expectation?: CheckExpectation;
 }
 
 /** A failed migration run: a structured error whose `message` is the summary. */

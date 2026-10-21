@@ -26,7 +26,12 @@ export function schemaCheckWhy(issues: readonly SchemaDiffIssue[]): string {
     : schemaIssuesWhy('The schema check after apply found', issues);
 }
 
-/** What a failed check before an operation means: the operation and the check description as written. */
+/** What a failed check before an operation means: the operation, the check description as written, and what the check's expectation says of the database when it has one. */
 export function failedPrecheckWhy(check: FailedCheck): string {
-  return `Before operation ${check.operationId} runs, it checks: ${check.description}. That check failed on this database.`;
+  const checked = `Before operation ${check.operationId} runs, it checks: ${check.description}.`;
+  const { expectation } = check;
+  if (expectation === undefined) return `${checked} That check failed on this database.`;
+  return expectation.expects === 'absent'
+    ? `${checked} That check failed: the database already has ${expectation.object}.`
+    : `${checked} That check failed: the database has no ${expectation.object}.`;
 }
