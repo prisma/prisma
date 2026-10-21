@@ -94,6 +94,7 @@ describe.each(['app', 'extension'] as const)('the %s script', (audience) => {
       stdout:
         moved(['src/comment.ts', 'src/default-as.ts']) +
         notExported('src/default-export.ts') +
+        notExported('src/default-reexport.ts') +
         moved(['src/nested-object.ts', 'src/value-with-comma.ts']),
       stderr: '',
       tree: fixtureTree('shapes', 'after'),

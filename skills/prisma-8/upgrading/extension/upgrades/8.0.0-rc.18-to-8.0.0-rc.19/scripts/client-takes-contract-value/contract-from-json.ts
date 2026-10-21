@@ -301,6 +301,10 @@ function hasDefaultExport(ts: typeof TS, sourceFile: TS.SourceFile): boolean {
   return sourceFile.statements.some(
     (statement) =>
       (ts.isExportAssignment(statement) && !statement.isExportEquals) ||
+      (ts.isExportDeclaration(statement) &&
+        statement.exportClause !== undefined &&
+        ts.isNamedExports(statement.exportClause) &&
+        statement.exportClause.elements.some((element) => element.name.text === 'default')) ||
       (ts.canHaveModifiers(statement) &&
         (ts.getModifiers(statement)?.some((m) => m.kind === ts.SyntaxKind.DefaultKeyword) ??
           false)),
