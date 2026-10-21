@@ -1,5 +1,5 @@
 /**
- * Builds the before and after fixture projects from live framework code. The before side is a project as an earlier release stored it: each column typed by a `types {}` alias carries a `typeRef` naming a `storage.types` entry that holds the alias's params. The after side is what the upgrade makes of it: the params on the column, the referenced entries gone, an entry no column references kept, and every hash refreshed. The project also holds pgvector's space snapshot, whose `vector` entry no column references. This holds only while the fragment is pending; see the record-upgrade-instructions skill for what happens to it at release.
+ * Builds the before and after fixture projects from live framework code. The before side is a project as an earlier release stored it: each column typed by a `types {}` alias carries a `typeRef` naming a `storage.types` entry that holds the alias's params, and an alias the source declares but no column uses is stored too. The after side is what the upgrade makes of it, which is what a re-emit gives: the params on the column, every entry of the app's space gone, and every hash refreshed. The project also holds pgvector's space snapshot, whose `vector` entry no column references and which the upgrade keeps. This holds only while the fragment is pending; see the record-upgrade-instructions skill for what happens to it at release.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import postgresAdapter from '@internal/adapter-postgres/control';
@@ -41,10 +41,20 @@ interface Source {
   readonly unused: Readonly<Record<string, JsonRecord>>;
 }
 
+const CODE_ALIAS: Readonly<Record<string, JsonRecord>> = {
+  Code: {
+    codecId: 'sql/char@1',
+    dataType: 'pg/char',
+    kind: 'codec-instance',
+    typeParams: { length: 8 },
+  },
+};
+
 export const INITIAL: Source = {
   psl: `types {
   Slug      = VarChar(64)
   Embedding = pgvector.Vector(3)
+  Code      = Char(8)
 }
 
 model Post {
@@ -56,20 +66,14 @@ model Post {
 }
 `,
   aliased: { slug: 'Slug', embedding: 'Embedding' },
-  unused: {
-    Code: {
-      codecId: 'sql/char@1',
-      dataType: 'pg/char',
-      kind: 'codec-instance',
-      typeParams: { length: 8 },
-    },
-  },
+  unused: CODE_ALIAS,
 };
 
 export const SECOND: Source = {
   psl: `types {
   Slug      = VarChar(64)
   Embedding = pgvector.Vector(3)
+  Code      = Char(8)
 }
 
 model Post {
@@ -82,7 +86,7 @@ model Post {
 }
 `,
   aliased: { slug: 'Slug', title: 'Slug', embedding: 'Embedding' },
-  unused: {},
+  unused: CODE_ALIAS,
 };
 
 function isRecord(value: unknown): value is JsonRecord {
@@ -222,7 +226,6 @@ const DTS_COLUMN_PARAMS = /^( *)readonly typeParams: (\{[^\n]*\});\n(?= *readonl
 async function storedPair(source: Source): Promise<Stored> {
   const fromSource = await emitted(source.psl);
   const aliases = aliasEntries(fromSource.json, source);
-  const afterEmit = await emittedWithTypes(fromSource.json, source.unused);
   const beforeEmit = await emittedWithTypes(fromSource.json, { ...aliases, ...source.unused });
 
   const before = record(JSON.parse(beforeEmit.json));
@@ -254,14 +257,14 @@ async function storedPair(source: Source): Promise<Stored> {
       hash: beforeHash,
     },
     after: {
-      contract: record(JSON.parse(afterEmit.json)),
-      dts: afterEmit.dts,
-      hash: afterEmit.hash,
+      contract: record(JSON.parse(fromSource.json)),
+      dts: fromSource.dts,
+      hash: fromSource.hash,
     },
   };
 }
 
-function snapshotForm(contract: JsonRecord): string {
+export function snapshotForm(contract: JsonRecord): string {
   return `${JSON.stringify(sortKeys(contract))}\n`;
 }
 
@@ -306,7 +309,12 @@ export function migrationTs(from: string | null, to: string): string {
   ].join('\n');
 }
 
-function migrationPackage(name: string, from: string | null, to: string, createdAt: string): Tree {
+export function migrationPackage(
+  name: string,
+  from: string | null,
+  to: string,
+  createdAt: string,
+): Tree {
   const metadata = { from, to, providedInvariants: [], createdAt };
   const migrationHash = computeMigrationHash(metadata, []);
   return {

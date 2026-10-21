@@ -32,7 +32,7 @@ changes:
 
 A type alias is now authoring shorthand only. In PSL, `types { Slug = VarChar(64) }` still works, but the contract no longer stores `Slug` in `storage.types` with a `typeRef` on each column that uses it. Each column stores the alias's codec and parameters itself. In TypeScript, an alias is a constant field builder.
 
-Do the steps in this order: rewrite the stored contracts and sign the databases (`stored-contracts-expand-type-aliases`), then change the TypeScript contract source (`ts-types-key-removed`), then re-emit.
+Do the steps in this order: run the script that rewrites the stored contracts (`stored-contracts-expand-type-aliases`), change the TypeScript contract source if you have one (`ts-types-key-removed`), re-emit the contract, and then sign every database.
 
 ## `stored-contracts-expand-type-aliases`
 
@@ -44,7 +44,7 @@ node <guide>/scripts/expand-type-aliases/expand-type-aliases.ts
 
 `<guide>` is the directory that holds this guide. Node 24 or later runs the TypeScript script directly; it needs no `tsx`. The script reads and writes files only and needs no database. It rewrites every SQL contract under the root, skipping `node_modules`, `.git`, `dist` and `build`. That includes a test fixture of an old contract: if you keep one on purpose, restore it with git afterwards.
 
-In each contract it replaces every column's `typeRef` with the parameters of the `storage.types` entry it names, and removes each entry a column named. It makes the same change in the `contract.d.ts` next to the contract. An entry that no column names is kept, because it may be a database type an extension registers, such as pgvector's `vector`. The script lists each kept entry.
+In each contract it replaces every column's `typeRef` with the parameters of the `storage.types` entry it names, and removes each entry a column named. In a contract of your app's own contract space it also removes every entry that no column names: an alias that the source declares but no field uses, which a re-emit drops as well. In a contract of an extension's contract space, such as the copy of pgvector's space in `migrations/snapshots/`, an entry that no column names is a database type the extension registers, such as `vector`, so the script keeps it and lists it. It makes the same change in the `contract.d.ts` next to the contract. The script tells the spaces apart by the migrations directory: a snapshot that a migration or ref under `migrations/app/` names is your app's, and one that a migration or ref under any other `migrations/<space>/` names is an extension's. The emitted `contract.json` is your app's.
 
 The storage hash changes, so the script renames each changed snapshot directory to its new hash. It rewrites every `migration.json`, ref, `migration.ts` and `contract.d.ts` that names an old hash, and gives each changed migration a new `migrationHash`. When it finishes, it prints how many files it rewrote, how many snapshot directories it renamed, each storage hash it replaced (`<old> -> <new>`) and each entry it kept. A project with no `typeRef` is left unchanged, and the script says so. The script replaces the hashes in the import paths of `migration.ts` where they are, so if your project sorts imports with a linter, run its fix command afterwards.
 
@@ -53,21 +53,22 @@ It changes no file and exits 1 in these cases, and names the file:
 - a `contract.json`, `migration.json` or ref is not valid JSON;
 - a contract's stored storage hash, or the name of its snapshot directory, does not match its content;
 - a column names an alias that `storage.types` does not declare, stores both `typeRef` and `typeParams`, or has a codec or data type other than its alias's;
+- two snapshots that a migration or ref names become the same snapshot once their aliases are written into their columns;
 - a renamed snapshot directory already exists with different content.
 
-For the first three cases, restore that file from version control, or re-emit it, and run the script again. If it stops partway, for example on a full disk, it says so; run it again to finish.
+For the first three cases, restore that file from version control, or re-emit it, and run the script again. Two snapshots become the same one when the only change between them was an alias: a migration that replaced `slug VarChar(64)` with `types { Slug = VarChar(64) }` and `slug Slug`, or that renamed an alias. Such a migration has no operations, and after the upgrade it would go from a snapshot to itself, which a migration may not do. The script names the migration. Delete it and the snapshot directory it goes to, replace that snapshot's hash with the hash of the snapshot it came from in every other `migration.json`, `migration.ts` and ref, and run the script again. If it stops partway, for example on a full disk, it says so; run it again to finish.
 
 If the same upgrade also asks you to run `remove-nocheck.ts`, the two scripts may run in either order: each checks the hash of the content it reads.
 
-Each database's marker still holds the old storage hash, so `prisma db verify` and `prisma db migrate` refuse it until you sign it. The database itself does not change. Run `prisma db sign` against every database (development, staging, production) right after the script:
+Then re-emit the contract with `prisma contract emit`. A contract written in PSL gives the contract the script wrote, so the latest snapshot, the head ref and the emitted contract keep one storage hash. A contract written in TypeScript needs `ts-types-key-removed` first.
+
+Each database's marker still holds the old storage hash, so `prisma db verify` and `prisma db migrate` refuse it until you sign it. The database itself does not change. After the re-emit, run `prisma db sign` against every database (development, staging, production):
 
 ```sh
 prisma db sign --db "$DATABASE_URL"
 ```
 
 The script also gives each rewritten migration a new hash, and the database's migration history keeps the old ones. After the upgrade, `prisma migration status` therefore no longer marks the migrations applied before it as applied, although it still reports the database as up to date. `prisma db migrate` runs none of them again, and `prisma db verify` passes.
-
-Then re-emit the contract with `prisma contract emit`. A contract written in PSL gives the contract the script wrote. A contract written in TypeScript needs `ts-types-key-removed` first.
 
 ## `psl-alias-attributes`
 

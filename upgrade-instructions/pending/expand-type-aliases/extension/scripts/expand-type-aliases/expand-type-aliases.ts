@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 /**
- * Writes every type alias a column of a SQL contract is typed by into the column. Contracts emitted before this release store an alias as a `storage.types` entry and each column typed by it as a `typeRef` naming the entry; this release stores the alias's params on the column itself and refuses a stored `typeRef`. In each contract the script replaces every column's `typeRef` with the entry's `typeParams`, removes each entry a column named, and makes the same change in `contract.d.ts`. An entry no column names is kept and listed, because it may be a database type an extension registers. The script then renames the snapshot directories and rewrites every migration, ref, `migration.ts` and `contract.d.ts` that names an old storage hash.
+ * Writes every type alias a column of a SQL contract is typed by into the column. Contracts emitted before this release store an alias as a `storage.types` entry and each column typed by it as a `typeRef` naming the entry; this release stores the alias's params on the column itself and refuses a stored `typeRef`. In each contract the script replaces every column's `typeRef` with the entry's `typeParams`, removes each entry a column named, and makes the same change in `contract.d.ts`. In a contract of the app's own contract space it also removes every entry no column names, an alias nothing uses, so the result is what a re-emit gives. In a contract of an extension's contract space, where registered database types live, it keeps such an entry and lists it. The script then renames the snapshot directories and rewrites every migration, ref, `migration.ts` and `contract.d.ts` that names an old storage hash.
+ *
+ * A contract belongs to an extension's contract space when a ref or migration of an extension space names its hash: one under `migrations/<space>/` other than `migrations/app/`, or one in a package's own single-space `migrations/` directory. Otherwise its migrations directory decides: one with an `app/` space directory, or none at all, is the app's; one with `refs/` directly in it is a package's own space.
  *
  * Usage: node expand-type-aliases.ts [project-root]
  *
- * The project root defaults to the working directory. The script reads and writes files only. It needs no database, network or configured stack, and a project with no `typeRef` is left unchanged. When it stops (a file it must read is not valid JSON, a contract whose stored hash does not match its content, a column whose alias is missing or has another codec or data type, or a snapshot directory that already exists with different content) it changes no file, prints one line per case and exits 1. When it finishes it prints how many files and snapshot directories it changed, each storage hash it replaced and each entry it kept.
+ * The project root defaults to the working directory. The script reads and writes files only. It needs no database, network or configured stack, and a project with no `typeRef` and no unused alias in the app's space is left unchanged. When it stops (a file it must read is not valid JSON, a contract whose stored hash does not match its content, a column whose alias is missing or has another codec or data type, two snapshots a migration or ref names that become the same snapshot, or a snapshot directory that already exists with different content) it changes no file, prints one line per case and exits 1. When it finishes it prints how many files and snapshot directories it changed, each storage hash it replaced and each entry it kept.
  *
  * The storage hash and migration hash rules are copied from `@internal/contract` and `@internal/migration-tools` because a project's strict `node_modules` does not expose them.
  */
@@ -30,6 +32,7 @@ interface JsonRecord {
 }
 
 const SKIPPED_DIRECTORIES = new Set(['node_modules', '.git', 'dist', 'build']);
+const APP_SPACE_ID = 'app';
 const HASH = /^[0-9a-f]{64}$/;
 const TEMPORARY_SUFFIX = '.expand-type-aliases-tmp';
 
@@ -415,8 +418,10 @@ const DTS_LINE_WIDTH = 100;
 interface Rewrite {
   readonly contract: JsonRecord;
   readonly changed: boolean;
-  /** The `storage.types` entries a column referenced, which the rewrite removed. */
+  /** The `storage.types` entries a column referenced, whose params the rewrite wrote into the columns. */
   readonly expanded: ReadonlyMap<string, JsonRecord>;
+  /** Every `storage.types` entry the rewrite removed: the referenced ones, and in the app's space the unreferenced ones too. */
+  readonly removed: ReadonlySet<string>;
   /** The `storage.types` entries no column referenced, which the rewrite kept. */
   readonly kept: readonly string[];
   readonly problems: readonly string[];
@@ -442,12 +447,19 @@ function describeType(record: JsonRecord): string {
   return `codec ${String(record['codecId'])} and data type ${String(record['dataType'])}`;
 }
 
-/** The contract with every column's type alias written into the column, and the aliases it named removed from `storage.types`. */
-function rewriteContract(contract: JsonRecord): Rewrite {
+/** The contract with every column's type alias written into the column, the aliases it named removed from `storage.types`, and in the app's space every other entry too. */
+function rewriteContract(contract: JsonRecord, space: SpaceKind): Rewrite {
   const copy = parseJson(JSON.stringify(contract));
   const storage = isRecord(copy) ? copy['storage'] : undefined;
   if (!isRecord(copy) || !isRecord(storage))
-    return { contract, changed: false, expanded: new Map(), kept: [], problems: [] };
+    return {
+      contract,
+      changed: false,
+      expanded: new Map(),
+      removed: new Set(),
+      kept: [],
+      problems: [],
+    };
   const types = isRecord(storage['types']) ? storage['types'] : {};
   const expanded = new Map<string, JsonRecord>();
   const problems: string[] = [];
@@ -486,10 +498,18 @@ function rewriteContract(contract: JsonRecord): Rewrite {
       }
     }
   }
-  for (const alias of expanded.keys()) delete types[alias];
-  if (expanded.size > 0 && Object.keys(types).length === 0) delete storage['types'];
+  const removed = new Set(space === 'app' ? Object.keys(types) : expanded.keys());
+  for (const alias of removed) delete types[alias];
+  if (removed.size > 0 && Object.keys(types).length === 0) delete storage['types'];
   const kept = Object.keys(types).sort(compareCodeUnits);
-  return { contract: copy, changed, expanded, kept, problems };
+  return {
+    contract: copy,
+    changed: changed || removed.size > 0,
+    expanded,
+    removed,
+    kept,
+    problems,
+  };
 }
 
 function withStorageHash(contract: JsonRecord, hash: string): JsonRecord {
@@ -670,6 +690,7 @@ interface Edit {
 function rewriteDts(
   text: string,
   expanded: ReadonlyMap<string, JsonRecord>,
+  removedEntries: ReadonlySet<string>,
   hashes: ReadonlyMap<string, string>,
 ): string {
   const blocks = scanBlocks(text);
@@ -705,7 +726,7 @@ function rewriteDts(
     }
   }
   if (typesBlock !== undefined) {
-    const removed = entryBlocks.filter((block) => expanded.has(block.label));
+    const removed = entryBlocks.filter((block) => removedEntries.has(block.label));
     if (removed.length > 0 && removed.length === entryBlocks.length) {
       edits.push({
         start: lineStart(text, typesBlock.start),
@@ -737,7 +758,70 @@ interface ContractPlan {
   readonly newHash: string;
   readonly content: string;
   readonly expanded: ReadonlyMap<string, JsonRecord>;
+  readonly removed: ReadonlySet<string>;
   readonly kept: readonly string[];
+}
+
+/** Whose contract space a contract is: the app's own, or an extension's, which registers database types. */
+type SpaceKind = 'app' | 'extension';
+
+/** A hash a migration or ref names, and the space whose directory holds it. */
+interface HashReference {
+  readonly path: string;
+  readonly space: SpaceKind;
+  readonly hashes: readonly string[];
+  /** A migration's `from` and `to`; `undefined` for a ref. */
+  readonly edge: { readonly from: string; readonly to: string } | undefined;
+}
+
+/** The space of the directory that holds a migration package or a `refs` directory: `migrations/app` is the app's; any other space directory, or a package's own single-space `migrations`, an extension's. */
+function spaceOfDirectory(spaceDir: string): SpaceKind {
+  return basename(spaceDir) === APP_SPACE_ID ? 'app' : 'extension';
+}
+
+function hashReferences(files: ProjectFiles): HashReference[] {
+  const references: HashReference[] = [];
+  for (const path of files.migrationJson) {
+    const metadata = parseJson(readFileSync(path, 'utf8'));
+    if (!isRecord(metadata)) continue;
+    const from = metadata['from'];
+    const to = metadata['to'];
+    const hashes = [from, to].filter((hash): hash is string => typeof hash === 'string');
+    references.push({
+      path: dirname(path),
+      space: spaceOfDirectory(dirname(dirname(path))),
+      hashes,
+      edge: typeof from === 'string' && typeof to === 'string' ? { from, to } : undefined,
+    });
+  }
+  for (const path of files.refs) {
+    const ref = parseJson(readFileSync(path, 'utf8'));
+    const hash = isRecord(ref) ? ref['hash'] : undefined;
+    if (typeof hash !== 'string') continue;
+    references.push({
+      path,
+      space: spaceOfDirectory(dirname(dirname(path))),
+      hashes: [hash],
+      edge: undefined,
+    });
+  }
+  return references;
+}
+
+/** The space of a migrations directory, by its layout: an `app` space directory, or no `refs` directly in it, is the app's. */
+function spaceOfMigrationsDirectory(dir: string): SpaceKind {
+  if (isDirectory(join(dir, APP_SPACE_ID))) return 'app';
+  return isDirectory(join(dir, 'refs')) ? 'extension' : 'app';
+}
+
+/** The space of a contract that no ref or migration names: that of its snapshot store, or of the nearest `migrations` directory above it, or the app's when there is none. */
+function spaceByLayout(path: string, snapshot: boolean, root: string): SpaceKind {
+  if (snapshot) return spaceOfMigrationsDirectory(dirname(dirname(dirname(path))));
+  for (let dir = dirname(path); ; dir = dirname(dir)) {
+    const migrations = join(dir, 'migrations');
+    if (isDirectory(migrations)) return spaceOfMigrationsDirectory(migrations);
+    if (dir === root || dirname(dir) === dir) return 'app';
+  }
 }
 
 function summary(
@@ -765,9 +849,63 @@ function summary(
   if (kept.length === 0) return lines;
   return [
     ...lines,
-    'Kept storage.types entries that no column references. Each is a database type an extension registers, or a type alias nothing uses:',
+    "Kept storage.types entries that no column references, in contracts of an extension's contract space. Each is a database type the extension registers, or a type alias nothing uses:",
     ...kept.map(([path, names]) => `  ${path}: ${names.join(', ')}`),
   ];
+}
+
+/**
+ * A line for each set of snapshots in one snapshot store that the rewrite turns into one snapshot, when a migration or ref names more than one of them. Expanding the aliases can make two contracts equal: one that wrote a type inline and one that wrote it through an alias, or two that named one alias differently. A migration between them would then go from a snapshot to itself, which a migration may not do. A snapshot nothing names, such as a copy an interrupted run left, is not counted.
+ */
+function mergedSnapshots(
+  files: ProjectFiles,
+  plans: readonly ContractPlan[],
+  references: readonly HashReference[],
+  display: (path: string) => string,
+): { readonly lines: readonly string[]; readonly directories: ReadonlySet<string> } {
+  const planned = new Map(plans.map((plan) => [plan.path, plan.newHash]));
+  const referenced = new Set(references.flatMap((reference) => reference.hashes));
+  const stores = new Map<string, Map<string, Set<string>>>();
+  for (const path of files.json) {
+    if (!isSnapshotContract(path)) continue;
+    const hash = basename(dirname(path));
+    if (!referenced.has(hash)) continue;
+    const store = dirname(dirname(path));
+    const merged = stores.get(store) ?? new Map<string, Set<string>>();
+    stores.set(store, merged);
+    const newHash = planned.get(path) ?? hash;
+    merged.set(newHash, new Set([...(merged.get(newHash) ?? []), hash]));
+  }
+  const lines: string[] = [];
+  const directories = new Set<string>();
+  for (const [store, merged] of stores) {
+    for (const [newHash, oldHashes] of merged) {
+      if (oldHashes.size < 2) continue;
+      directories.add(join(store, newHash));
+      const between = references.flatMap(({ path, edge }) =>
+        edge !== undefined &&
+        edge.from !== edge.to &&
+        oldHashes.has(edge.from) &&
+        oldHashes.has(edge.to) &&
+        path.startsWith(`${dirname(store)}${sep}`)
+          ? [{ path, ...edge }]
+          : [],
+      );
+      const names = [...oldHashes].sort(compareCodeUnits).join(' and ');
+      const opening = `${display(store)}: the snapshots ${names} become the same snapshot, ${newHash}, once their type aliases are written into their columns.`;
+      const advice =
+        between.length === 0
+          ? ' No migration goes from one to the other. Keep one of them: delete the snapshot directory of each other one, replace its hash with the kept one in every migration.json, migration.ts and ref, and run the script again.'
+          : between
+              .map(
+                ({ path, from, to }) =>
+                  ` Migration ${display(path)} goes from ${from} to ${to}, so it would go from ${newHash} to itself, which a migration may not do. Delete that migration and the snapshot directory ${to}, replace ${to} with ${from} in every other migration.json, migration.ts and ref, and run the script again.`,
+              )
+              .join('');
+      lines.push(`${opening}${advice}`);
+    }
+  }
+  return { lines, directories };
 }
 
 const JSON_FILES_THAT_MUST_PARSE = new Set(['contract.json', 'migration.json']);
@@ -775,6 +913,17 @@ const JSON_FILES_THAT_MUST_PARSE = new Set(['contract.json', 'migration.json']);
 function main(root: string): number {
   const display = (path: string): string => relative(root, path).split(sep).join('/');
   const files = listFiles(root);
+  const references = hashReferences(files);
+  const spacesByHash = new Map<string, Set<SpaceKind>>();
+  for (const reference of references)
+    for (const hash of reference.hashes)
+      spacesByHash.set(hash, new Set([...(spacesByHash.get(hash) ?? []), reference.space]));
+  const spaceOf = (path: string, snapshot: boolean, hash: string): SpaceKind => {
+    const spaces = spacesByHash.get(hash);
+    if (spaces?.has('extension')) return 'extension';
+    if (spaces?.has('app')) return 'app';
+    return spaceByLayout(path, snapshot, root);
+  };
   const plans: ContractPlan[] = [];
   const stops: string[] = [];
   let contractsFound = 0;
@@ -797,11 +946,11 @@ function main(root: string): number {
     )
       continue;
     contractsFound++;
-    const rewrite = rewriteContract(contract);
-    if (!rewrite.changed) continue;
     const snapshot = isSnapshotContract(path);
     const stored = contract['storage']['storageHash'];
     const oldHash = snapshot ? basename(dirname(path)) : typeof stored === 'string' ? stored : '';
+    const rewrite = rewriteContract(contract, spaceOf(path, snapshot, oldHash));
+    if (!rewrite.changed) continue;
     const computed = computeStorageHash(contract);
     if (computed !== oldHash || (typeof stored === 'string' && stored !== oldHash)) {
       stops.push(
@@ -824,6 +973,7 @@ function main(root: string): number {
       newHash,
       content: writtenForm(withStorageHash(rewrite.contract, newHash), contract, text),
       expanded: rewrite.expanded,
+      removed: rewrite.removed,
       kept: rewrite.kept,
     });
   }
@@ -832,6 +982,8 @@ function main(root: string): number {
   for (const plan of [...plans].sort((a, b) => Number(b.snapshot) - Number(a.snapshot)))
     if (plan.oldHash !== plan.newHash && !hashes.has(plan.oldHash))
       hashes.set(plan.oldHash, plan.newHash);
+  const merged = mergedSnapshots(files, plans, references, display);
+  stops.push(...merged.lines);
 
   const newDirectories = new Map<string, Map<string, string>>();
   const directorySources = new Map<string, string>();
@@ -847,7 +999,7 @@ function main(root: string): number {
       : `${plan.path.slice(0, -'.json'.length)}.d.ts`;
     const dtsHashes = new Map([...hashes, [plan.oldHash, plan.newHash]]);
     const dts = existsSync(dtsPath)
-      ? rewriteDts(readFileSync(dtsPath, 'utf8'), plan.expanded, dtsHashes)
+      ? rewriteDts(readFileSync(dtsPath, 'utf8'), plan.expanded, plan.removed, dtsHashes)
       : undefined;
     const writtenPath = plan.snapshot
       ? join(dirname(dirname(plan.path)), plan.newHash, 'contract.json')
@@ -872,7 +1024,8 @@ function main(root: string): number {
     if (dts !== undefined) content.set('contract.d.ts', dts);
     const planned = newDirectories.get(newDir);
     if (planned !== undefined && !sameFiles(planned, content)) {
-      stops.push(`${display(newDir)}: snapshot directory already exists with different content`);
+      if (!merged.directories.has(newDir))
+        stops.push(`${display(newDir)}: snapshot directory already exists with different content`);
       continue;
     }
     newDirectories.set(newDir, content);
@@ -881,7 +1034,8 @@ function main(root: string): number {
   for (const [dir, content] of newDirectories) {
     if (sourceDirectories.has(dir) || !existsSync(dir)) continue;
     if (sameFiles(readDirectory(dir), content)) newDirectories.delete(dir);
-    else stops.push(`${display(dir)}: snapshot directory already exists with different content`);
+    else if (!merged.directories.has(dir))
+      stops.push(`${display(dir)}: snapshot directory already exists with different content`);
   }
 
   for (const path of files.migrationJson) {

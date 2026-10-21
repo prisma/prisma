@@ -28,7 +28,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'78fe911ddbf330f3fe4e309069941c5349c28ddb45c6f31a08d4b344c72a84e7'>;
+  StorageHashBase<'b125bc8a23cb005d4a843e746b19417156e64c9104e9199ce1a059dac6f70fbb'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -349,6 +349,12 @@ type ContractBase = Omit<
       };
     };
     readonly types: {
+      readonly Code: {
+        readonly kind: 'codec-instance';
+        readonly codecId: 'sql/char@1';
+        readonly dataType: 'pg/char';
+        readonly typeParams: { readonly length: 8 };
+      };
       readonly Embedding: {
         readonly kind: 'codec-instance';
         readonly codecId: 'pg/vector@1';

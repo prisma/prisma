@@ -6,6 +6,7 @@ import {
   emitted,
   type Fixtures,
   generateFixtures,
+  migrationPackage,
   postColumns,
   SECOND,
   storageHashOf,
@@ -16,6 +17,7 @@ import {
   extensionScript,
   fixturesDir,
   fixtureTree,
+  makeWorkDir,
   readTree,
   removeWorkDirs,
   runScript,
@@ -62,16 +64,56 @@ function initialHashes(): readonly [string, string] {
 }
 
 function summary(files: number, directories: number): string {
-  const [, initialHash] = initialHashes();
   return [
     `Rewrote ${files} files and renamed ${directories} snapshot directories. Storage hashes changed (old -> new):`,
     ...[...generated.hashes]
       .sort(([a], [b]) => (a < b ? -1 : 1))
       .map(([oldHash, newHash]) => `  ${oldHash} -> ${newHash}`),
-    'Kept storage.types entries that no column references. Each is a database type an extension registers, or a type alias nothing uses:',
-    `  migrations/snapshots/${initialHash}/contract.json: Code`,
     '',
   ].join('\n');
+}
+
+const RESTORE = 'restore the file from version control, or re-emit it, and run the script again';
+
+/** A contract of the before fixture changed by `change`, with its stored hash refreshed so only the change is wrong. */
+function withChangedContract(change: (contract: Record<string, unknown>) => void): string {
+  const root = copyFixture('before');
+  const path = join(root, 'prisma/contract.json');
+  const contract = JSON.parse(readFileSync(path, 'utf8'));
+  change(contract);
+  contract.storage.storageHash = storageHashOf(contract);
+  writeFileSync(path, JSON.stringify(contract, null, 2));
+  return root;
+}
+
+/** The before fixture with a first migration to the contract written inline, and a migration that only introduces the aliases, which expanding the aliases turns into one snapshot. */
+function inlineThenAliased(): {
+  readonly tree: Tree;
+  readonly inline: string;
+  readonly aliased: string;
+} {
+  const [aliased, inline] = initialHashes();
+  const tree: Tree = Object.fromEntries(
+    Object.entries(fixtureTree('before')).filter(
+      ([path]) =>
+        !path.startsWith('migrations/app/20260101T0000_initial/') || path.endsWith('.prisma'),
+    ),
+  );
+  const after = fixtureTree('after');
+  for (const name of ['contract.json', 'contract.d.ts'])
+    tree[`migrations/snapshots/${inline}/${name}`] =
+      after[`migrations/snapshots/${inline}/${name}`] ?? '';
+  Object.assign(
+    tree,
+    migrationPackage('20260101T0000_initial', null, inline, '2026-01-01T00:00:00.000Z'),
+    migrationPackage('20260115T0000_use_aliases', inline, aliased, '2026-01-15T00:00:00.000Z'),
+  );
+  return { tree, inline, aliased };
+}
+
+function mergedSnapshotsLine(inline: string, aliased: string): string {
+  const names = [inline, aliased].sort().join(' and ');
+  return `migrations/snapshots: the snapshots ${names} become the same snapshot, ${inline}, once their type aliases are written into their columns. Migration migrations/app/20260115T0000_use_aliases goes from ${inline} to ${aliased}, so it would go from ${inline} to itself, which a migration may not do. Delete that migration and the snapshot directory ${aliased}, replace ${aliased} with ${inline} in every other migration.json, migration.ts and ref, and run the script again.\n`;
 }
 
 function sortKeysDeep(value: unknown): unknown {
@@ -101,6 +143,36 @@ describe('the fixtures', () => {
       slug: (columns['slug'] as Record<string, unknown>)['typeRef'],
       embedding: (columns['embedding'] as Record<string, unknown>)['typeRef'],
     }).toEqual({ slug: 'Slug', embedding: 'Embedding' });
+  });
+
+  it('before the upgrade, store the alias the source declares but no column uses in the latest snapshot and in contract.json', () => {
+    const [, latest] = generated.hashes[1] ?? [];
+    const before = fixtureTree('before');
+    const latestOld = generated.hashes[1]?.[0] ?? '';
+    const typesOf = (text: string | undefined) =>
+      Object.keys(JSON.parse(text ?? '{}').storage?.types ?? {}).sort();
+    expect({
+      source: SECOND.psl.includes('Code      = Char(8)'),
+      snapshot: typesOf(before[`migrations/snapshots/${latestOld}/contract.json`]),
+      emitted: typesOf(before['prisma/contract.json']),
+      after: typesOf(fixtureTree('after')[`migrations/snapshots/${latest}/contract.json`]),
+    }).toEqual({
+      source: true,
+      snapshot: ['Code', 'Embedding', 'Slug'],
+      emitted: ['Code', 'Embedding', 'Slug'],
+      after: [],
+    });
+  });
+
+  it('keep the vector entry of the pgvector space snapshot', () => {
+    const pgvectorHead = JSON.parse(
+      fixtureTree('after')['migrations/pgvector/refs/head.json'] ?? '{}',
+    );
+    const snapshot = `migrations/snapshots/${pgvectorHead.hash}/contract.json`;
+    expect({
+      before: fixtureTree('before')[snapshot],
+      after: Object.keys(JSON.parse(fixtureTree('after')[snapshot] ?? '{}').storage.types),
+    }).toEqual({ before: fixtureTree('after')[snapshot], after: ['vector'] });
   });
 
   it('after the upgrade, load as contracts whose stored hashes match their content', () => {
@@ -253,6 +325,114 @@ describe('expand-type-aliases', () => {
         '',
       ].join('\n'),
       tree: before,
+    });
+  });
+
+  it('stops without changing a file when a column names an alias storage.types does not declare', () => {
+    const root = withChangedContract((contract) => {
+      delete (contract['storage'] as { types: Record<string, unknown> }).types['Slug'];
+    });
+    const before = readTree(root);
+    const run = runScript(root);
+    expect({
+      status: run.status,
+      stdout: run.stdout,
+      stderr: run.stderr,
+      tree: readTree(root),
+    }).toEqual({
+      status: 1,
+      stdout: '',
+      stderr: [
+        `prisma/contract.json: column post.slug is typed by the type alias "Slug", which storage.types does not declare; ${RESTORE}`,
+        `prisma/contract.json: column post.title is typed by the type alias "Slug", which storage.types does not declare; ${RESTORE}`,
+        '',
+      ].join('\n'),
+      tree: before,
+    });
+  });
+
+  it('stops without changing a file when a column stores both typeRef and typeParams', () => {
+    const root = withChangedContract((contract) => {
+      (postColumns(contract)['slug'] as Record<string, unknown>)['typeParams'] = { length: 64 };
+    });
+    const before = readTree(root);
+    const run = runScript(root);
+    expect({
+      status: run.status,
+      stdout: run.stdout,
+      stderr: run.stderr,
+      tree: readTree(root),
+    }).toEqual({
+      status: 1,
+      stdout: '',
+      stderr: `prisma/contract.json: column post.slug stores both typeRef and typeParams; ${RESTORE}\n`,
+      tree: before,
+    });
+  });
+
+  it('stops without changing a file when a contract, migration or ref is not valid JSON', () => {
+    const root = copyFixture('before');
+    for (const path of [
+      'prisma/contract.json',
+      'migrations/app/20260201T0000_add_title/migration.json',
+      'migrations/app/refs/head.json',
+    ])
+      writeFileSync(join(root, path), '{');
+    const before = readTree(root);
+    const run = runScript(root);
+    expect({
+      status: run.status,
+      stdout: run.stdout,
+      stderr: run.stderr,
+      tree: readTree(root),
+    }).toEqual({
+      status: 1,
+      stdout: '',
+      stderr: [
+        'migrations/app/20260201T0000_add_title/migration.json: not valid JSON',
+        'migrations/app/refs/head.json: not valid JSON',
+        'prisma/contract.json: not valid JSON',
+        '',
+      ].join('\n'),
+      tree: before,
+    });
+  });
+
+  it('stops without changing a file when a migration goes between two snapshots that become the same one', () => {
+    const { tree, inline, aliased } = inlineThenAliased();
+    const root = makeWorkDir();
+    writeTree(root, tree);
+    const run = runScript(root);
+    expect({
+      status: run.status,
+      stdout: run.stdout,
+      stderr: run.stderr,
+      tree: readTree(root),
+    }).toEqual({
+      status: 1,
+      stdout: '',
+      stderr: mergedSnapshotsLine(inline, aliased),
+      tree,
+    });
+  });
+
+  it('stops the same way when those two snapshots would have different files', () => {
+    const { tree, inline, aliased } = inlineThenAliased();
+    tree[`migrations/snapshots/${inline}/contract.d.ts`] =
+      `// Formatted by hand.\n${tree[`migrations/snapshots/${inline}/contract.d.ts`] ?? ''}`;
+    const root = makeWorkDir();
+    writeTree(root, tree);
+    const run = runScript(root);
+    expect({
+      status: run.status,
+      stdout: run.stdout,
+      stderr: run.stderr,
+      tree: readTree(root),
+    }).toEqual({
+      status: 1,
+      stdout: '',
+      stderr: mergedSnapshotsLine(inline, aliased),
+      tree,
     });
   });
 

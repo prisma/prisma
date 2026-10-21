@@ -28,7 +28,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'78fe911ddbf330f3fe4e309069941c5349c28ddb45c6f31a08d4b344c72a84e7'>;
+  StorageHashBase<'f9fe553123fbfef2c6915c522258b03161a755a2ce41757ef560bc17cf4196fe'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -280,7 +280,6 @@ export namespace Models {
     embedding: FieldOutputTypes['public']['Post']['embedding'];
     id: FieldOutputTypes['public']['Post']['id'];
     slug: FieldOutputTypes['public']['Post']['slug'];
-    title: FieldOutputTypes['public']['Post']['title'];
     readonly [RelationKeys]?: never;
   };
 }
@@ -315,7 +314,7 @@ type ContractBase = Omit<
                   readonly dataType: 'pgvector/vector';
                   readonly codecId: 'pg/vector@1';
                   readonly nullable: true;
-                  readonly typeRef: 'Embedding';
+                  readonly typeParams: { readonly length: 3 };
                   readonly many: false;
                 };
                 readonly id: {
@@ -328,14 +327,7 @@ type ContractBase = Omit<
                   readonly dataType: 'pg/varchar';
                   readonly codecId: 'sql/varchar@1';
                   readonly nullable: false;
-                  readonly typeRef: 'Slug';
-                  readonly many: false;
-                };
-                readonly title: {
-                  readonly dataType: 'pg/varchar';
-                  readonly codecId: 'sql/varchar@1';
-                  readonly nullable: false;
-                  readonly typeRef: 'Slug';
+                  readonly typeParams: { readonly length: 64 };
                   readonly many: false;
                 };
               };
@@ -346,20 +338,6 @@ type ContractBase = Omit<
             };
           };
         };
-      };
-    };
-    readonly types: {
-      readonly Embedding: {
-        readonly kind: 'codec-instance';
-        readonly codecId: 'pg/vector@1';
-        readonly dataType: 'pgvector/vector';
-        readonly typeParams: { readonly length: 3 };
-      };
-      readonly Slug: {
-        readonly kind: 'codec-instance';
-        readonly codecId: 'sql/varchar@1';
-        readonly dataType: 'pg/varchar';
-        readonly typeParams: { readonly length: 64 };
       };
     };
     readonly storageHash: StorageHash;
@@ -397,14 +375,6 @@ type ContractBase = Omit<
                   readonly typeParams: { readonly length: 64 };
                 };
               };
-              readonly title: {
-                readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'sql/varchar@1';
-                  readonly typeParams: { readonly length: 64 };
-                };
-              };
             };
             readonly relations: Record<string, never>;
             readonly storage: {
@@ -414,7 +384,6 @@ type ContractBase = Omit<
                 readonly embedding: { readonly column: 'embedding' };
                 readonly id: { readonly column: 'id' };
                 readonly slug: { readonly column: 'slug' };
-                readonly title: { readonly column: 'title' };
               };
             };
           };
