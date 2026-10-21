@@ -1,7 +1,6 @@
-import { APP_SPACE_ID } from '@internal/framework-components/control';
+import { APP_SPACE_ID, expectAbsent } from '@internal/framework-components/control';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
-import { expectAbsent } from '../src/core/migrations/check-expectation';
 import {
   createMigrationPlan,
   plannerFailure,

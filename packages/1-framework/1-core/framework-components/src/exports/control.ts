@@ -1,4 +1,9 @@
 export type { ImportRequirement } from '@internal/ts-render';
+export {
+  checkExpectationOf,
+  expectAbsent,
+  expectPresent,
+} from '../control/check-expectation';
 export type { ContractSerializer } from '../control/contract-serializer';
 export {
   CONTRACT_SNAPSHOTS_DIRNAME,
@@ -77,8 +82,8 @@ export type {
 export {
   migrationRunnerFailure,
   planOriginOf,
+  withDatabaseUnchanged,
   withFailingSpace,
-  withRolledBack,
 } from '../control/control-migration-types';
 export type {
   OperationPreview,
@@ -170,6 +175,7 @@ export {
 } from '../control/migration-statements';
 export { orderIssuesByDependencies } from '../control/order-issues-by-dependencies';
 export {
+  failedPostcheckWhy,
   failedPrecheckWhy,
   issueLabel,
   schemaCheckWhy,

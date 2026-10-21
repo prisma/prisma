@@ -16,7 +16,7 @@
           "value": "orders"
         },
         "expect": "exists",
-        "object": "collection orders"
+        "object": "collection \"orders\""
       }
     ],
     "execute": [
@@ -249,7 +249,7 @@
           "value": "products"
         },
         "expect": "exists",
-        "object": "collection products"
+        "object": "collection \"products\""
       }
     ],
     "execute": [

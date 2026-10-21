@@ -122,7 +122,10 @@ withTempDir(({ createTempDir }) => {
           `why: The schema check after apply found: mismatch: database/public/Event/column:at/default. The database reads this default back as ${literal}; the contract declares ${written}. ${HEDGE} If they do, write the default as ${literal}.`,
         );
 
-        const advised = /write the default as ([\s\S]+?)\.\n→/.exec(shown)?.[1];
+        const advised =
+          /write the default as ([\s\S]+?)\. The failed apply changed nothing\.\n→/.exec(
+            shown,
+          )?.[1];
         const fix =
           /delete `([^`]+)` \(copy any code you wrote in its migration\.ts first\), plan it again with `\S+ migration plan ([^`]+)`, put any code you copied into the migration\.ts it writes, run that migration\.ts with the `node` command `migration plan` prints, and run `\S+ db migrate`/.exec(
             shown,
@@ -186,7 +189,10 @@ model Tag {
         const failed = await runMigrate(ctx);
         const shown = shownOutput(failed);
         expect(failed.exitCode, shown).not.toBe(0);
-        const advised = /write the default as ([\s\S]+?)\.\n→/.exec(shown)?.[1];
+        const advised =
+          /write the default as ([\s\S]+?)\. The failed apply changed nothing\.\n→/.exec(
+            shown,
+          )?.[1];
         const fix =
           /delete `([^`]+)` \(copy any code you wrote in its migration\.ts first\), plan it again with `\S+ migration plan ([^`]+)`, put any code you copied into the migration\.ts it writes, run that migration\.ts with the `node` command `migration plan` prints, and run `\S+ db migrate`/.exec(
             shown,

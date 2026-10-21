@@ -81,11 +81,11 @@ describe('PostgresMigrationRunner - Error Scenarios', { concurrent: false }, () 
       expect(failure.code).toBe('MIGRATION.SCHEMA_VERIFY_FAILED');
       expect({
         metaKeys: Object.keys(failure.meta).sort(),
-        rolledBack: failure.meta.rolledBack,
+        databaseUnchanged: failure.meta.databaseUnchanged,
         found: (failure.meta.schemaIssues?.length ?? 0) > 0,
       }).toEqual({
-        metaKeys: ['failingSpace', 'rolledBack', 'schemaIssues'],
-        rolledBack: true,
+        metaKeys: ['databaseUnchanged', 'failingSpace', 'schemaIssues'],
+        databaseUnchanged: true,
         found: true,
       });
 

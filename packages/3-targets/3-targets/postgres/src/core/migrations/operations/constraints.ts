@@ -1,5 +1,5 @@
-import { expectAbsent, expectPresent } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { expectAbsent, expectPresent } from '@internal/framework-components/control';
 import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
 import type { ReferentialAction } from '@internal/sql-contract/types';
 import { checkExpression } from '@internal/sql-relational-core/contract-free';

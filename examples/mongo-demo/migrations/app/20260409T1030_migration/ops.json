@@ -19,7 +19,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index (email:1) on users"
+        "object": "index \"email_1\" on \"users\""
       }
     ],
     "execute": [

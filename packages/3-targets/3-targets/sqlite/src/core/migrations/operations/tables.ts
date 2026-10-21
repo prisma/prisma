@@ -1,14 +1,12 @@
 import {
   convertedColumnMeta,
-  expectAbsent,
-  expectPresent,
   type MigrationOperationClass,
   requiredColumnMeta,
   type SqlMigrationPlanOperationStep,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import type { RowsWithoutValue, SchemaDiffIssue } from '@internal/framework-components/control';
-import { issueOutcome } from '@internal/framework-components/control';
+import { expectAbsent, expectPresent, issueOutcome } from '@internal/framework-components/control';
 import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
 import type { ReferentialAction } from '@internal/sql-contract/types';
 import {

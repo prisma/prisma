@@ -35,3 +35,13 @@ export function failedPrecheckWhy(check: FailedCheck): string {
     ? `${checked} That check failed: the database already has ${expectation.object}.`
     : `${checked} That check failed: the database has no ${expectation.object}.`;
 }
+
+/** What a failed check after an operation means: the operation, the check description as written, and what the check's expectation says of the database when it has one. */
+export function failedPostcheckWhy(check: FailedCheck): string {
+  const checked = `After operation ${check.operationId} ran, it checks: ${check.description}.`;
+  const { expectation } = check;
+  if (expectation === undefined) return `${checked} That check failed on this database.`;
+  return expectation.expects === 'absent'
+    ? `${checked} That check failed: the database still has ${expectation.object}.`
+    : `${checked} That check failed: the database has no ${expectation.object}.`;
+}

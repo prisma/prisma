@@ -14,8 +14,6 @@ import { unfilledPlaceholderOperation } from '@internal/errors/migration';
 import {
   checkSqlExpressionText,
   createSqlTextSources,
-  expectAbsent,
-  expectPresent,
   isUnfilledSlot,
   type MigrationOperationClass,
   type SqlMigrationPlanOperation,
@@ -26,6 +24,7 @@ import {
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer, Lowerer } from '@internal/family-sql/control-adapter';
 import type { OpFactoryCall as FrameworkOpFactoryCall } from '@internal/framework-components/control';
+import { expectAbsent, expectPresent } from '@internal/framework-components/control';
 import type {
   AnyDdlColumnDefault,
   DdlColumn,

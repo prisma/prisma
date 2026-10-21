@@ -351,7 +351,7 @@ withTempDir(({ createTempDir }) => {
           readonly nextActions: readonly { readonly label: string }[];
         }>(failed);
         expect(error.why).toBe(
-          `The value 'ten' of column "age" on "User" is still stored as text, which INTEGER cannot hold.`,
+          `The value 'ten' of column "age" on "User" is still stored as text, which INTEGER cannot hold. The failed apply changed nothing.`,
         );
         const advice = error.nextActions.map(({ label }) => label).join('\n');
         const followed = /delete `([^`]+)`.*?plan it again with `\S+ migration plan ([^`]+)`/i.exec(

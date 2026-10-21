@@ -289,7 +289,7 @@ function formatKeys(keys: ReadonlyArray<MongoIndexKey>): string {
 }
 
 function indexObject(collectionName: string, keys: ReadonlyArray<MongoIndexKey>): string {
-  return `index (${formatKeys(keys)}) on ${collectionName}`;
+  return `index "${defaultMongoIndexName(keys)}" on "${collectionName}"`;
 }
 
 function isTextIndex(keys: ReadonlyArray<MongoIndexKey>): boolean {
@@ -528,7 +528,7 @@ export function createCollection(
         source: new ListCollectionsCommand(),
         filter: f.name.eq(collectionName),
         expect: 'notExists',
-        object: `collection ${collectionName}`,
+        object: `collection "${collectionName}"`,
       },
     ],
     execute: [
@@ -564,7 +564,7 @@ function collectionCheck(name: string, expect: 'exists' | 'notExists') {
     source: new ListCollectionsCommand(),
     filter: MongoFieldFilter.eq('name', name),
     expect,
-    object: `collection ${name}`,
+    object: `collection "${name}"`,
   };
 }
 
@@ -642,7 +642,7 @@ export function collMod(
               source: new ListCollectionsCommand(),
               filter: MongoFieldFilter.eq('name', collectionName),
               expect: 'exists' as const,
-              object: `collection ${collectionName}`,
+              object: `collection "${collectionName}"`,
             },
           ]
         : [],

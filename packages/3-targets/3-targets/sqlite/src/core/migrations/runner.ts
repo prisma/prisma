@@ -26,10 +26,12 @@ import type {
 } from '@internal/framework-components/control';
 import {
   APP_SPACE_ID,
+  checkExpectationOf,
+  failedPostcheckWhy,
   failedPrecheckWhy,
   schemaCheckWhy,
+  withDatabaseUnchanged,
   withFailingSpace,
-  withRolledBack,
 } from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
 import { SqlQueryError } from '@internal/sql-errors';
@@ -185,42 +187,11 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
       await this.beginExclusiveTransaction(driver);
       let committed = false;
       try {
-        const perSpaceResults: Array<{
-          space: string;
-          value: SqlMigrationRunnerSuccessValue;
-        }> = [];
-        let lastProcessedSpace: string | undefined;
-        for (const spaceOptions of perSpaceOptions) {
-          const space = spaceOptions.space ?? spaceOptions.plan.spaceId;
-          const result = await this.executeOnConnection({ ...spaceOptions, driver, space });
-          if (!result.ok) {
-            return notOk(withRolledBack(withFailingSpace(result.failure, space), true));
-          }
-          perSpaceResults.push({ space, value: result.value });
-          lastProcessedSpace = space;
-        }
-
-        if (fkWasEnabled) {
-          const fkIntegrityCheck = await this.verifyForeignKeyIntegrity(driver);
-          if (!fkIntegrityCheck.ok) {
-            // Post-loop integrity violations cannot be attributed to a
-            // single per-space step (the cumulative effect of all
-            // applied plans was needed to reveal the broken
-            // reference). Surface the last successfully-applied space
-            // so operators can investigate from the most recent
-            // migration first.
-            return notOk(
-              withRolledBack(
-                withFailingSpace(fkIntegrityCheck.failure, lastProcessedSpace ?? APP_SPACE_ID),
-                true,
-              ),
-            );
-          }
-        }
-
+        const result = await this.executeSpaces(driver, perSpaceOptions, fkWasEnabled);
+        if (!result.ok) return notOk(withDatabaseUnchanged(result.failure, true));
         await this.commitTransaction(driver);
         committed = true;
-        return ok({ perSpaceResults });
+        return result;
       } finally {
         if (!committed) {
           await this.rollbackTransaction(driver);
@@ -231,6 +202,43 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
         await driver.query('PRAGMA foreign_keys = ON');
       }
     }
+  }
+
+  private async executeSpaces(
+    driver: SqlControlDriverInstance<string>,
+    perSpaceOptions: ReadonlyArray<SqlMigrationRunnerExecuteOptions<SqlitePlanTargetDetails>>,
+    fkWasEnabled: boolean,
+  ): Promise<MigrationRunnerResult> {
+    const perSpaceResults: Array<{
+      space: string;
+      value: SqlMigrationRunnerSuccessValue;
+    }> = [];
+    let lastProcessedSpace: string | undefined;
+    for (const spaceOptions of perSpaceOptions) {
+      const space = spaceOptions.space ?? spaceOptions.plan.spaceId;
+      const result = await this.executeOnConnection({ ...spaceOptions, driver, space });
+      if (!result.ok) {
+        return notOk(withFailingSpace(result.failure, space));
+      }
+      perSpaceResults.push({ space, value: result.value });
+      lastProcessedSpace = space;
+    }
+
+    if (fkWasEnabled) {
+      const fkIntegrityCheck = await this.verifyForeignKeyIntegrity(driver);
+      if (!fkIntegrityCheck.ok) {
+        // Post-loop integrity violations cannot be attributed to a
+        // single per-space step (the cumulative effect of all
+        // applied plans was needed to reveal the broken
+        // reference). Surface the last successfully-applied space
+        // so operators can investigate from the most recent
+        // migration first.
+        return notOk(
+          withFailingSpace(fkIntegrityCheck.failure, lastProcessedSpace ?? APP_SPACE_ID),
+        );
+      }
+    }
+    return ok({ perSpaceResults });
   }
 
   private async readForeignKeysEnabled(
@@ -366,7 +374,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
           operationId: operation.id,
           phase,
           description: step.description,
-          ...ifDefined('expectation', step.expectation),
+          ...ifDefined('expectation', checkExpectationOf(step.expectation)),
         };
         const unconverted =
           converted === undefined ? undefined : await this.unconvertedValueText(driver, converted);
@@ -376,7 +384,10 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
           {
             ...ifDefined(
               'why',
-              unconverted ?? (phase === 'precheck' ? failedPrecheckWhy(failedCheck) : undefined),
+              unconverted ??
+                (phase === 'precheck'
+                  ? failedPrecheckWhy(failedCheck)
+                  : failedPostcheckWhy(failedCheck)),
             ),
             meta: {
               failedCheck,

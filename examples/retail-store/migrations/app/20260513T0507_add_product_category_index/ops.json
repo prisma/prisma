@@ -20,7 +20,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index (primaryCategory:1, articleType:1) on products"
+        "object": "index \"primaryCategory_1_articleType_1\" on \"products\""
       }
     ],
     "execute": [

@@ -392,11 +392,11 @@ export interface MigrationRunnerFailureMeta {
    */
   readonly failingSpace?: string;
   /**
-   * Whether the failed apply left the database as it was before it: `true` when the runner rolled
-   * it back or failed before any operation changed the database, `false` when operations that ran
-   * stay applied. Absent when the runner does not say.
+   * Whether the database is as it was before the failed apply: `true` when the runner rolled the
+   * apply back or failed before it changed anything, `false` when what it changed stays. Absent when
+   * the runner does not say.
    */
-  readonly rolledBack?: boolean;
+  readonly databaseUnchanged?: boolean;
   /** The check that did not hold, when a precheck or postcheck failed. */
   readonly failedCheck?: FailedCheck;
   /** The type change that failed, when the failed step converts a column's values. */
@@ -430,33 +430,38 @@ export function migrationRunnerFailure<TCode extends MigrationRunnerFailure['cod
   return Object.assign(error, { code, meta });
 }
 
-function withMeta<TCode extends MigrationRunnerFailure['code']>(
+/** The same failure, attributed to the space whose plan failed. */
+export function withFailingSpace<TCode extends MigrationRunnerFailure['code']>(
   failure: MigrationRunnerFailure & { readonly code: TCode },
-  meta: MigrationRunnerFailureMeta,
+  failingSpace: string,
 ): MigrationRunnerFailure & { readonly code: TCode } {
   const attributed = migrationRunnerFailure(failure.code, failure.message, {
     why: failure.why,
-    meta: { ...failure.meta, ...meta },
+    meta: { ...failure.meta, failingSpace },
     ...ifDefined('cause', failure.cause),
   });
   if (failure.stack !== undefined) attributed.stack = failure.stack;
   return attributed;
 }
 
-/** The same failure, attributed to the space whose plan failed. */
-export function withFailingSpace<TCode extends MigrationRunnerFailure['code']>(
+/**
+ * The same failure, saying whether the database is as it was before the failed apply, in its meta
+ * and at the end of its why.
+ */
+export function withDatabaseUnchanged<TCode extends MigrationRunnerFailure['code']>(
   failure: MigrationRunnerFailure & { readonly code: TCode },
-  failingSpace: string,
+  databaseUnchanged: boolean,
 ): MigrationRunnerFailure & { readonly code: TCode } {
-  return withMeta(failure, { failingSpace });
-}
-
-/** The same failure, saying whether the failed apply left the database as it was before. */
-export function withRolledBack<TCode extends MigrationRunnerFailure['code']>(
-  failure: MigrationRunnerFailure & { readonly code: TCode },
-  rolledBack: boolean,
-): MigrationRunnerFailure & { readonly code: TCode } {
-  return withMeta(failure, { rolledBack });
+  const outcome = databaseUnchanged
+    ? 'The failed apply changed nothing.'
+    : 'The operations that ran before the failure stay applied.';
+  const attributed = migrationRunnerFailure(failure.code, failure.message, {
+    why: failure.why === undefined ? outcome : `${failure.why} ${outcome}`,
+    meta: { ...failure.meta, databaseUnchanged },
+    ...ifDefined('cause', failure.cause),
+  });
+  if (failure.stack !== undefined) attributed.stack = failure.stack;
+  return attributed;
 }
 
 /** A field that is to become required while existing rows have no value for it. */

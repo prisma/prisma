@@ -27,10 +27,12 @@ import type {
 } from '@internal/framework-components/control';
 import {
   APP_SPACE_ID,
+  checkExpectationOf,
+  failedPostcheckWhy,
   failedPrecheckWhy,
   schemaCheckWhy,
+  withDatabaseUnchanged,
   withFailingSpace,
-  withRolledBack,
 } from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
 import { SqlQueryError } from '@internal/sql-errors';
@@ -249,27 +251,35 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
     await this.beginTransaction(driver);
     let committed = false;
     try {
-      const perSpaceResults: Array<{
-        space: string;
-        value: SqlMigrationRunnerSuccessValue;
-      }> = [];
-      for (const spaceOptions of perSpaceOptions) {
-        const space = spaceOptions.space ?? spaceOptions.plan.spaceId;
-        const result = await this.executeOnConnection({ ...spaceOptions, driver, space });
-        if (!result.ok) {
-          return notOk(withRolledBack(withFailingSpace(result.failure, space), true));
-        }
-        perSpaceResults.push({ space, value: result.value });
-      }
-
+      const result = await this.executeSpaces(driver, perSpaceOptions);
+      if (!result.ok) return notOk(withDatabaseUnchanged(result.failure, true));
       await this.commitTransaction(driver);
       committed = true;
-      return ok({ perSpaceResults });
+      return result;
     } finally {
       if (!committed) {
         await this.rollbackTransaction(driver);
       }
     }
+  }
+
+  private async executeSpaces(
+    driver: SqlControlDriverInstance<string>,
+    perSpaceOptions: ReadonlyArray<SqlMigrationRunnerExecuteOptions<PostgresPlanTargetDetails>>,
+  ): Promise<MigrationRunnerResult> {
+    const perSpaceResults: Array<{
+      space: string;
+      value: SqlMigrationRunnerSuccessValue;
+    }> = [];
+    for (const spaceOptions of perSpaceOptions) {
+      const space = spaceOptions.space ?? spaceOptions.plan.spaceId;
+      const result = await this.executeOnConnection({ ...spaceOptions, driver, space });
+      if (!result.ok) {
+        return notOk(withFailingSpace(result.failure, space));
+      }
+      perSpaceResults.push({ space, value: result.value });
+    }
+    return ok({ perSpaceResults });
   }
 
   private async applyPlan(
@@ -387,7 +397,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
           operationId: operation.id,
           phase,
           description: step.description,
-          ...ifDefined('expectation', step.expectation),
+          ...ifDefined('expectation', checkExpectationOf(step.expectation)),
         };
         return runnerFailure(code, rowsWithoutValue?.summary ?? failed, {
           ...ifDefined(
@@ -396,7 +406,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
               ? failed
               : phase === 'precheck'
                 ? failedPrecheckWhy(failedCheck)
-                : undefined,
+                : failedPostcheckWhy(failedCheck),
           ),
           meta: {
             failedCheck,

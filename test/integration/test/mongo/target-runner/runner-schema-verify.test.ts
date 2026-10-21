@@ -182,9 +182,13 @@ describe('MongoMigrationRunner schema verification (integration)', () => {
       expect(tamperedResult.failure.code).toBe('MIGRATION.SCHEMA_VERIFY_FAILED');
       expect({
         metaKeys: Object.keys(tamperedResult.failure.meta).sort(),
-        rolledBack: tamperedResult.failure.meta.rolledBack,
+        databaseUnchanged: tamperedResult.failure.meta.databaseUnchanged,
         found: (tamperedResult.failure.meta.schemaIssues?.length ?? 0) > 0,
-      }).toEqual({ metaKeys: ['rolledBack', 'schemaIssues'], rolledBack: false, found: true });
+      }).toEqual({
+        metaKeys: ['databaseUnchanged', 'schemaIssues'],
+        databaseUnchanged: false,
+        found: true,
+      });
     }
 
     const markerAfterFailure = await controlAdapter.readMarker(

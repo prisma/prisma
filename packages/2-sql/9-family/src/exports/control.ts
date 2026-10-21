@@ -22,7 +22,6 @@ export type {
 } from '../core/control-target-descriptor';
 export type { SqlDefaultFunctionName } from '../core/default-functions';
 export { sqlDefaultFunctions } from '../core/default-functions';
-export { expectAbsent, expectPresent } from '../core/migrations/check-expectation';
 export type {
   ContractToSchemaIROptions,
   DefaultResolver,

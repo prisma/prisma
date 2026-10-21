@@ -296,7 +296,7 @@ const CheckJson = type({
   source: 'Record<string, unknown>',
   filter: 'Record<string, unknown>',
   expect: '"exists" | "notExists"',
-  'object?': 'string',
+  'object?': 'string > 0',
 });
 
 const StepJson = type({
@@ -318,7 +318,6 @@ const DmlCheckJson = type({
   source: 'Record<string, unknown>',
   filter: 'Record<string, unknown>',
   expect: '"exists" | "notExists"',
-  'object?': 'string',
 });
 
 const DmlOperationJson = type({
@@ -777,7 +776,6 @@ function deserializeDmlCheck(json: unknown): MongoDmlCheck {
     source: deserializeMongoQueryPlan(data.source),
     filter: deserializeFilterExpr(data.filter),
     expect: data.expect,
-    ...ifDefined('object', data.object),
   };
 }
 

@@ -1,5 +1,5 @@
-import { expectAbsent, expectPresent } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { expectAbsent, expectPresent } from '@internal/framework-components/control';
 import { ifDefined } from '@internal/utils/defined';
 import {
   rlsEnabledAst,

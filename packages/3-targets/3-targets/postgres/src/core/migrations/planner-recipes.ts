@@ -1,9 +1,6 @@
-import {
-  expectAbsent,
-  expectPresent,
-  type SqlMigrationPlanOperation,
-} from '@internal/family-sql/control';
+import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { expectAbsent, expectPresent } from '@internal/framework-components/control';
 import { FunctionColumnDefault, opaqueSql } from '@internal/sql-relational-core/ast';
 import { col } from '@internal/sql-relational-core/contract-free';
 import { ifDefined } from '@internal/utils/defined';

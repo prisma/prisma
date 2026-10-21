@@ -12,7 +12,7 @@ export interface MongoMigrationCheck {
   readonly source: AnyMongoInspectionCommand;
   readonly filter: MongoFilterExpr;
   readonly expect: 'exists' | 'notExists';
-  /** The object the check expects to exist or not, as a reader names it (`collection orders`), when the check is about one object. */
+  /** The object the check expects to exist or not, as a reader names it (`collection "orders"`), when the check is about one object. */
   readonly object?: string;
 }
 
@@ -32,8 +32,6 @@ export interface MongoDmlCheck {
   readonly source: MongoQueryPlan;
   readonly filter: MongoFilterExpr;
   readonly expect: 'exists' | 'notExists';
-  /** The object the check expects to exist or not, as a reader names it (`collection orders`), when the check is about one object. */
-  readonly object?: string;
 }
 
 /**

@@ -25,8 +25,6 @@ import {
   checkSqlDefaultText,
   checkSqlExpressionText,
   createSqlTextSources,
-  expectAbsent,
-  expectPresent,
   isUnfilledSlot,
   type SqlMigrationPlanOperation,
   type SqlSlot,
@@ -40,6 +38,7 @@ import type {
   OpFactoryCall as FrameworkOpFactoryCall,
   MigrationOperationClass,
 } from '@internal/framework-components/control';
+import { expectAbsent, expectPresent } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { AnyDdlColumnDefault, DdlTableConstraint } from '@internal/sql-relational-core/ast';
 import {

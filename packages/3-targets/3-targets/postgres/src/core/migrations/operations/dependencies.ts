@@ -1,5 +1,5 @@
-import { expectAbsent, expectPresent } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { expectAbsent, expectPresent } from '@internal/framework-components/control';
 import { extensionExistsAst } from '../../../contract-free/checks';
 import { DEFAULT_NAMESPACE_ID } from '../../namespace-ids';
 import { quoteIdentifier } from '../../sql-utils';

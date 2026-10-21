@@ -1,5 +1,5 @@
-import { expectAbsent, expectPresent } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { expectAbsent, expectPresent } from '@internal/framework-components/control';
 import { columnExistsAst, columnNameTakenAst } from '../../../contract-free/checks';
 import { quoteIdentifier } from '../../sql-utils';
 import { sqliteIdentifiersCollide } from '../identifier-case';
@@ -140,10 +140,9 @@ export async function renameColumn(
   const fromChecks = columnExistsAst(tableName, fromName);
   const toChecks = columnExistsAst(tableName, toName);
   const fromPresent = await lowerer.lowerToExecuteRequest(fromChecks.columnPresent());
+  const onlyCase = sqliteIdentifiersCollide(fromName, toName);
   const toAbsent = await lowerer.lowerToExecuteRequest(
-    sqliteIdentifiersCollide(fromName, toName)
-      ? toChecks.columnAbsent()
-      : columnNameTakenAst(tableName, toName).nameFree(),
+    onlyCase ? toChecks.columnAbsent() : columnNameTakenAst(tableName, toName).nameFree(),
   );
   const toPresent = await lowerer.lowerToExecuteRequest(toChecks.columnPresent());
   const fromAbsent = await lowerer.lowerToExecuteRequest(fromChecks.columnAbsent());
@@ -164,7 +163,11 @@ export async function renameColumn(
         `ensure column "${toName}" does not exist on "${tableName}"`,
         toAbsent.sql,
         toAbsent.params,
-        expectAbsent(`column "${toName}" on "${tableName}"`),
+        expectAbsent(
+          onlyCase
+            ? `column "${toName}" on "${tableName}"`
+            : `a column named "${toName}" on "${tableName}" in any case`,
+        ),
       ),
     ],
     execute: [

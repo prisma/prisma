@@ -1,10 +1,6 @@
-import {
-  convertedColumnMeta,
-  expectAbsent,
-  expectPresent,
-  requiredColumnMeta,
-} from '@internal/family-sql/control';
+import { convertedColumnMeta, requiredColumnMeta } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { expectAbsent, expectPresent } from '@internal/framework-components/control';
 import type { DdlColumn } from '@internal/sql-relational-core/ast';
 import { ifDefined } from '@internal/utils/defined';
 import {

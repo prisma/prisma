@@ -16,7 +16,7 @@
           "value": "carts"
         },
         "expect": "notExists",
-        "object": "collection carts"
+        "object": "collection \"carts\""
       }
     ],
     "execute": [
@@ -109,7 +109,7 @@
           "value": "events"
         },
         "expect": "notExists",
-        "object": "collection events"
+        "object": "collection \"events\""
       }
     ],
     "execute": [
@@ -251,7 +251,7 @@
           "value": "invoices"
         },
         "expect": "notExists",
-        "object": "collection invoices"
+        "object": "collection \"invoices\""
       }
     ],
     "execute": [
@@ -333,7 +333,7 @@
           "value": "locations"
         },
         "expect": "notExists",
-        "object": "collection locations"
+        "object": "collection \"locations\""
       }
     ],
     "execute": [
@@ -393,7 +393,7 @@
           "value": "orders"
         },
         "expect": "notExists",
-        "object": "collection orders"
+        "object": "collection \"orders\""
       }
     ],
     "execute": [
@@ -508,7 +508,7 @@
           "value": "products"
         },
         "expect": "notExists",
-        "object": "collection products"
+        "object": "collection \"products\""
       }
     ],
     "execute": [
@@ -608,7 +608,7 @@
           "value": "users"
         },
         "expect": "notExists",
-        "object": "collection users"
+        "object": "collection \"users\""
       }
     ],
     "execute": [
@@ -688,7 +688,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index (userId:1) on carts"
+        "object": "index \"userId_1\" on \"carts\""
       }
     ],
     "execute": [
@@ -788,7 +788,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index (userId:1, timestamp:-1) on events"
+        "object": "index \"userId_1_timestamp_-1\" on \"events\""
       }
     ],
     "execute": [
@@ -894,7 +894,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index (timestamp:1) on events"
+        "object": "index \"timestamp_1\" on \"events\""
       }
     ],
     "execute": [
@@ -997,7 +997,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index (orderId:1) on invoices"
+        "object": "index \"orderId_1\" on \"invoices\""
       }
     ],
     "execute": [
@@ -1098,7 +1098,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index (issuedAt:-1) on invoices"
+        "object": "index \"issuedAt_-1\" on \"invoices\""
       }
     ],
     "execute": [
@@ -1198,7 +1198,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index (city:1, country:1) on locations"
+        "object": "index \"city_1_country_1\" on \"locations\""
       }
     ],
     "execute": [
@@ -1315,7 +1315,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index (userId:1) on orders"
+        "object": "index \"userId_1\" on \"orders\""
       }
     ],
     "execute": [
@@ -1414,7 +1414,7 @@
           "value": "text"
         },
         "expect": "notExists",
-        "object": "index (name:text, description:text) on products"
+        "object": "index \"name_text_description_text\" on \"products\""
       }
     ],
     "execute": [
@@ -1546,7 +1546,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index (brand:1, subCategory:1) on products"
+        "object": "index \"brand_1_subCategory_1\" on \"products\""
       }
     ],
     "execute": [
@@ -1652,7 +1652,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index (code:hashed) on products"
+        "object": "index \"code_hashed\" on \"products\""
       }
     ],
     "execute": [
@@ -1753,7 +1753,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index (email:1) on users"
+        "object": "index \"email_1\" on \"users\""
       }
     ],
     "execute": [

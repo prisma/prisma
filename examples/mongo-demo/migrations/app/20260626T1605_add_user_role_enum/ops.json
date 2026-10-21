@@ -16,7 +16,7 @@
           "value": "users"
         },
         "expect": "exists",
-        "object": "collection users"
+        "object": "collection \"users\""
       }
     ],
     "execute": [

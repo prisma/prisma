@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { failedPrecheckWhy } from '../src/control/runner-failure-why';
+import { failedPostcheckWhy, failedPrecheckWhy } from '../src/control/runner-failure-why';
 
 const check = {
   operationId: 'op',
@@ -36,5 +36,33 @@ describe('failedPrecheckWhy', () => {
     ).toBe(
       'Before operation op runs, it checks: ensure table "x" exists. That check failed: the database has no table "x".',
     );
+  });
+});
+
+describe('failedPostcheckWhy', () => {
+  const postcheck = {
+    operationId: 'op',
+    phase: 'postcheck',
+    description: 'verify index "Item_state_idx" exists',
+  } as const;
+
+  it('says what the database has no copy of, still has, or only that the check failed', () => {
+    expect([
+      failedPostcheckWhy({
+        ...postcheck,
+        expectation: { expects: 'present', object: 'index "Item_state_idx"' },
+      }),
+      failedPostcheckWhy({
+        operationId: 'op',
+        phase: 'postcheck',
+        description: 'verify index "Item_state_idx" no longer exists',
+        expectation: { expects: 'absent', object: 'index "Item_state_idx"' },
+      }),
+      failedPostcheckWhy(postcheck),
+    ]).toEqual([
+      'After operation op ran, it checks: verify index "Item_state_idx" exists. That check failed: the database has no index "Item_state_idx".',
+      'After operation op ran, it checks: verify index "Item_state_idx" no longer exists. That check failed: the database still has index "Item_state_idx".',
+      'After operation op ran, it checks: verify index "Item_state_idx" exists. That check failed on this database.',
+    ]);
   });
 });
