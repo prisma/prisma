@@ -690,6 +690,7 @@ describe('executeDbUpdate', () => {
       expect(error).toMatchObject({
         code: 'MIGRATION.STATEMENT_ANSWERS_NO_QUESTION',
         message: 'Statements "--delete Nope" and "--allow post" answer no question of the plan',
+        why: 'A delete or allow statement consents to an operation the plan asks about, and these name no subject the plan would lose data from or change access to.',
         meta: {
           statements: [
             { verb: 'delete', text: 'Nope' },

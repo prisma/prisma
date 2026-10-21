@@ -707,7 +707,7 @@ export function errorStatementAnswersNoQuestion(
     'MIGRATION.STATEMENT_ANSWERS_NO_QUESTION',
     `${listed} no question of the plan`,
     {
-      why: 'A delete or allow statement consents to an operation the plan asks about, and these name no subject the plan would lose data from or widen access to.',
+      why: 'A delete or allow statement consents to an operation the plan asks about, and these name no subject the plan would lose data from or change access to.',
       fix,
       nextActions: [chooseAction(fix)],
       meta: {
