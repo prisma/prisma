@@ -123,7 +123,7 @@ PR 3 is separate because it changes the contract shape and every contract with v
 | --- | --- |
 | An enum member keeps its name but its stored value changes | No statement can say this. Asked with `--delete` only; the advice says to write the update by hand, as for `@@map` today |
 | A removed variant with no columns of its own | Now asked as a model, so its rows are not left behind silently |
-| Renaming `public` | Allowed when no other contract space declares it. Models outside any `namespace` block then live in the new schema |
+| Renaming `public` | Refused. `public` is target-owned (ADR 223) and Postgres puts it on every search path. On PGlite a non-superuser database owner can run `ALTER SCHEMA public RENAME`, and a plain role cannot, but the refusal does not depend on that. The message says to move the models with `--rename Model:new.Model` instead |
 | `--delete billing` and `--rename billing.Invoice:Invoice` in one run | The rename runs first, so that model is kept, and the delete covers the rest |
 
 ## Done when
