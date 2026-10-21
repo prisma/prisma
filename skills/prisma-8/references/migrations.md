@@ -30,7 +30,7 @@ Once the contract changes, you choose how the change reaches the database. This 
 
 ## Key Concepts
 
-- **`db update` (quick path).** Reads the emitted contract, diffs against the live DB, applies the change. Optional `--dry-run` prints the plan without executing. Before an apply it asks what each operation that would lose data means, answered by `--delete <subject>` or `--rename <subject>:<new name>`, and whether each operation that would widen who can read or write a model's rows may run, answered by `--allow <Model>` (see *Answer the data-loss questions* below). **Writes no migration directory.** Operations needing data transforms are not handled by this path — `db update` excludes the `data` operation class entirely and short-circuits where a data transform would be required. It refuses `--convert` and `--backfill` (`MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE`) and prints the `migration plan` command to run instead. Use only against a database that has no shared history with anyone else (your local dev DB).
+- **`db update` (quick path).** Reads the emitted contract, diffs against the live DB, applies the change. Optional `--dry-run` prints the plan without executing. Before an apply it asks what each operation that would lose data means, answered by `--delete <subject>` or `--rename <subject>:<new name>`, and whether each operation that would change who can read or write a model's data may run, answered by `--allow <Model>` (see *Answer the data-loss questions* below). **Writes no migration directory.** Operations needing data transforms are not handled by this path — `db update` excludes the `data` operation class entirely and short-circuits where a data transform would be required. It refuses `--convert` and `--backfill` (`MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE`) and prints the `migration plan` command to run instead. Use only against a database that has no shared history with anyone else (your local dev DB).
 - **`migration plan` (formal path).** Reads the emitted contract, diffs it against a resolved origin — explicit `--from`, else the `db` ref, else the empty database; there is no "head of the graph" to chain from (see `references/migration-model.md`) — and writes a new migration package under `migrations/app/<YYYYMMDDTHHMM>_<snake_slug>/`. A plan that would lose data is written only once `--delete`, `--rename` or, for a type change, `--convert` says what each such operation means. The package's `migration.ts` contains `placeholder(...)` calls only where `--convert` or `--backfill` asked for a slot (see *Type changes and new required fields*).
 - **The `app/` segment in migration paths is the consuming application's contract-space id.** Every migration *you* author lives under `migrations/app/`. Extensions your contract depends on get their own sibling directories (`migrations/<extension-space-id>/`) — those are managed by the extension package and you don't write into them. The `app/` segment lands automatically the first time you run `migration plan` / `db init` against an app-level config.
 - **Migration package files** (inside each `migrations/app/<dir>/`):
@@ -150,7 +150,7 @@ Canonical detail: [Migration System § Contract resolution through the snapshot 
 
 ## Workflow — `db update` (quick path)
 
-The concept: `db update` resolves the destination (`emitted contract`) against the live DB and applies the difference. Preview with `--dry-run`, which asks nothing and lists the questions an apply would ask under `dataLoss` and `accessWidening`. An apply that would lose data or widen access asks first (see *Answer the data-loss questions*). The path excludes operations of the `data` class entirely — if the diff requires a data transform, `db update` fails with a planning error and you switch to `migration plan` to author the transform.
+The concept: `db update` resolves the destination (`emitted contract`) against the live DB and applies the difference. Preview with `--dry-run`, which asks nothing and lists the questions an apply would ask under `dataLoss` and `accessChanges`. An apply that would lose data or change access asks first (see *Answer the data-loss questions*). The path excludes operations of the `data` class entirely — if the diff requires a data transform, `db update` fails with a planning error and you switch to `migration plan` to author the transform.
 
 Run after a contract edit:
 
@@ -512,7 +512,7 @@ The concept: the planner cannot tell whether a dropped model or field was meant 
 
 - `--delete <subject>` lets the data go: `--delete Legacy`, `--delete User.nickname`. A subject no model stores is named by its storage name (`public.audit_log` on Postgres, `audit_log` on SQLite, `profiles.nickname` for a MongoDB field when `db update` has no snapshot of the origin contract) and can only be deleted. On MongoDB, removing a field from a model is asked about, and `--delete` removes it from every document that holds it.
 - `--rename <subject>:<new name>` keeps it under a new name: `--rename Profile:User`, or for a field `--rename User.nickname:User.handle` (the new name keeps its model). A field of a renamed model is named through the new name (`--delete User.nickname` after `--rename Profile:User`).
-- `--allow <Model>` (`db update` only) lets an operation that changes who can read or write the model's rows run: one flag per operation, so a policy drop and disabling row-level security on one model take `--allow User --allow User`.
+- `--allow <Model>` (`db update` only) lets an operation that changes who can read or write the model's data run: one flag per operation, so on Postgres a policy drop and disabling row-level security on one model take `--allow User --allow User`.
 
 ```bash
 pnpm prisma migration plan --name drop_legacy --delete Legacy
@@ -575,4 +575,4 @@ The CLI collects anonymous usage data by default. To opt out, set `PRISMA_DISABL
 - [ ] Used `db verify` only when diagnosing drift — not as a routine post-apply step.
 - [ ] Did NOT use `db update` against a shared or production database.
 - [ ] Did NOT edit `ops.json` directly.
-- [ ] Answered each data-loss question deliberately: `--rename` for a rename, `--delete` only for data that may go, `--allow` only for a widening that is meant.
+- [ ] Answered each data-loss question deliberately: `--rename` for a rename, `--delete` only for data that may go, `--allow` only for an access change that is meant.
