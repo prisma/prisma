@@ -10,6 +10,8 @@ import {
   modelStatementText,
   type ResolvedMigrationStatement,
 } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import {
@@ -32,6 +34,8 @@ export type PlanQuestionVerb = 'rename' | 'convert' | ConsentVerb;
 export interface PlanQuestion {
   readonly question: string;
   readonly subject: string;
+  /** The named namespace of a data-loss question's model or field: a `delete` of it answers the question too. */
+  readonly namespace?: string;
   readonly verbs: readonly PlanQuestionVerb[];
   readonly forms: { readonly rename?: string; readonly convert?: string };
   readonly validate: (verb: PlanQuestionVerb, text: string) => string | undefined;
@@ -398,18 +402,29 @@ export interface ConsentedSubject {
 
 const keyOf = (planned: PlannedSubject) => migrationSubjectKey(planned.subject);
 
+/** The named namespace of the model or field a subject names, which a `delete` may name instead. */
+export function subjectNamespace(subject: MigrationSubject): string | undefined {
+  return subject.kind !== 'storage' && subject.namespaceId !== UNBOUND_NAMESPACE_ID
+    ? subject.namespaceId
+    : undefined;
+}
+
 /**
- * The pre-answers that answer a question about `text`: every `delete` of the subject, or the
- * first `allow` of it no earlier question took, since an `allow` answers one operation.
+ * The pre-answers that answer a question about `text`: every `delete` of the subject or of its
+ * namespace, or the first `allow` of it no earlier question took, since an `allow` answers one
+ * operation.
  */
 function givenFor(
   verb: ConsentVerb,
-  text: string,
+  entry: { readonly text: string; readonly namespace: string | undefined },
   preAnswers: readonly StatementText[],
   taken: ReadonlySet<StatementText>,
 ): readonly StatementText[] {
   const matching = preAnswers.filter(
-    (statement) => statement.verb === verb && statement.text === text,
+    (statement) =>
+      statement.verb === verb &&
+      (statement.text === entry.text ||
+        (verb === 'delete' && entry.namespace !== undefined && statement.text === entry.namespace)),
   );
   if (verb === 'delete') return matching;
   const first = matching.find((statement) => !taken.has(statement));
@@ -535,7 +550,12 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
     ] as const) {
       for (const entry of entries) {
         const text = subjectText(entry.subject, contracts);
-        const given = givenFor(verb, text, input.preAnswers, usedPreAnswers);
+        const given = givenFor(
+          verb,
+          { text, namespace: subjectNamespace(entry.subject) },
+          input.preAnswers,
+          usedPreAnswers,
+        );
         for (const statement of given) usedPreAnswers.add(statement);
         if (input.consentAll[verb] || given.length > 0) consent(verb, entry, text);
       }
@@ -545,7 +565,13 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
     if (losses.length + accessChanges.length === 0 && round > 0) break;
     const questions = [
       ...withRecoveryOnFirstStorageQuestion(
-        losses.map((loss) => ({ loss, question: dataLossQuestion(loss, contracts) })),
+        losses.map((loss) => ({
+          loss,
+          question: {
+            ...dataLossQuestion(loss, contracts),
+            ...ifDefined('namespace', subjectNamespace(loss.subject)),
+          },
+        })),
         !input.originKnown,
       ),
       ...accessChanges.map((change) => accessChangeQuestion(change, contracts)),
@@ -630,8 +656,16 @@ export function refuseUnusedConsents(input: {
     ['allow', input.plan.accessChanges],
   ] as const) {
     for (const entry of entries) {
-      const text = subjectText(entry.subject, input.contracts);
-      for (const statement of givenFor(verb, text, input.statements, used)) used.add(statement);
+      const given = givenFor(
+        verb,
+        {
+          text: subjectText(entry.subject, input.contracts),
+          namespace: subjectNamespace(entry.subject),
+        },
+        input.statements,
+        used,
+      );
+      for (const statement of given) used.add(statement);
     }
   }
   const unused = input.statements.filter(

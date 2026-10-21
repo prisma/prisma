@@ -345,7 +345,7 @@ export function createMigrationPlanCommand(createClient: CreateControlClient) {
           statements: (['rename', 'convert', 'backfill'] as const).flatMap((verb) =>
             ctx.statements.take(verb).map(({ text }) => ({ verb, text })),
           ),
-          answerQuestions: promptPlanQuestions(ctx.prompt),
+          answerQuestions: promptPlanQuestions(ctx.prompt, ctx.statements),
           client: createClient({
             family: ctx.config.family,
             target: ctx.config.target,

@@ -362,7 +362,7 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
           mode,
           migrationsDir,
           statements: [...renames, ...previewConsents],
-          answerQuestions: promptPlanQuestions(ctx.prompt),
+          answerQuestions: promptPlanQuestions(ctx.prompt, ctx.statements),
           onProgress: controlProgressReporter(ctx.report),
         });
         if (!result.ok) {
