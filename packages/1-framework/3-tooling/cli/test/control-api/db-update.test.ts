@@ -635,7 +635,7 @@ describe('executeDbUpdate', () => {
         },
         {
           question:
-            'Disable row-level security on user would widen who can read and write its rows.',
+            'Disable row-level security on user would widen who can read and write its data.',
           subject: 'user',
           verbs: ['allow'],
         },
@@ -761,7 +761,7 @@ describe('executeDbUpdate', () => {
       expect(error).toBeInstanceOf(InternalError);
       expect(error).toMatchObject({
         message:
-          'answerQuestions answered "Disable row-level security on user would widen who can read and write its rows." with delete, which it does not accept; it accepts allow.',
+          'answerQuestions answered "Disable row-level security on user would widen who can read and write its data." with delete, which it does not accept; it accepts allow.',
         cause: { question: 'user', verbs: ['allow'], answer: { verb: 'delete', text: 'user' } },
       });
       expect(execute).not.toHaveBeenCalled();

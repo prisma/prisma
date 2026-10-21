@@ -178,8 +178,8 @@ describe('questions about access', () => {
     });
 
     expect(asked).toEqual([
-      'Drop RLS policy "readers" on "T" would change who can read and write its rows.',
-      'Disable row-level security on "T" would widen who can read and write its rows.',
+      'Drop RLS policy "readers" on "T" would change who can read and write its data.',
+      'Disable row-level security on "T" would widen who can read and write its data.',
     ]);
     expect(
       result.ok &&
@@ -230,7 +230,7 @@ describe('allow statements given as pre-answers', () => {
 
     expect((await result).ok).toBe(true);
     expect(asked).toEqual([
-      'Disable row-level security on "T" would widen who can read and write its rows.',
+      'Disable row-level security on "T" would widen who can read and write its data.',
     ]);
   });
 

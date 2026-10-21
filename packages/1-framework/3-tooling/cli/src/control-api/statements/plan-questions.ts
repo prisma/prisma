@@ -70,7 +70,7 @@ export interface PlannedDataLoss extends PlannedSubject {
   readonly keepDataAdvice?: string;
 }
 
-/** An operation of a plan that changes who can read or write its subject's rows. */
+/** An operation of a plan that changes who can read or write its subject's data. */
 export interface PlannedAccessChange extends PlannedSubject {
   readonly widens: boolean;
 }
@@ -366,9 +366,9 @@ export function dataLossQuestion(
 }
 
 /**
- * The question for one operation that changes who can read or write its subject's rows: it widens
- * access, as disabling row-level security does, or changes it either way, as dropping a policy
- * does. Each such operation is its own question, answered by its own `allow`.
+ * The question for one operation that changes who can read or write its subject's data: it widens
+ * access, or changes it in a way that can go either way. Each such operation is its own question,
+ * answered by its own `allow`.
  */
 export function accessWideningQuestion(
   widening: PlannedAccessChange,
@@ -376,7 +376,7 @@ export function accessWideningQuestion(
 ): PlanQuestion {
   const subject = subjectText(widening.subject, contracts);
   return {
-    question: `${widening.label} would ${widening.widens ? 'widen' : 'change'} who can read and write its rows.`,
+    question: `${widening.label} would ${widening.widens ? 'widen' : 'change'} who can read and write its data.`,
     subject,
     verbs: ['allow'],
     forms: {},
