@@ -874,15 +874,27 @@ function byPath(
     .sort(([a], [b]) => compareCodeUnits(a, b));
 }
 
-/** Whether a migration package holds an operation of class `data`, the one kind that lets a migration go from a snapshot to itself. The migration checker's rule (`checkIntegrity` in `@internal/migration-tools`). */
-function hasDataOperation(migrationDir: string): boolean {
-  const opsPath = join(migrationDir, 'ops.json');
-  const ops = existsSync(opsPath) ? parseJson(readFileSync(opsPath, 'utf8')) : undefined;
+interface MigrationOps {
+  readonly path: string;
+  /** `undefined` when the package has no `ops.json` or it is not valid JSON. */
+  readonly ops: Json | undefined;
+  readonly unreadable: boolean;
+}
+
+function readOps(migrationDir: string): MigrationOps {
+  const path = join(migrationDir, 'ops.json');
+  if (!existsSync(path)) return { path, ops: undefined, unreadable: false };
+  const ops = parseJson(readFileSync(path, 'utf8'));
+  return { path, ops, unreadable: ops === undefined };
+}
+
+/** Whether the operations hold one of class `data`, the one kind that lets a migration go from a snapshot to itself. The migration checker's rule (`checkIntegrity` in `@internal/migration-tools`). */
+function hasDataOperation(ops: Json | undefined): boolean {
   return Array.isArray(ops) && ops.some((op) => isRecord(op) && op['operationClass'] === 'data');
 }
 
 /**
- * The snapshot directories that the rewrite turns two or more snapshots into, and a stop line for each migration between such snapshots that has no data operation. Expanding the aliases can make two contracts equal: one that wrote a type inline and one that wrote it through an alias, or two that named one alias differently. A migration between them then goes from a snapshot to itself, which the migration checker allows only for a migration with a data operation. A snapshot nothing names, such as a copy an interrupted run left, is not counted.
+ * The snapshot directories that the rewrite turns two or more snapshots into, and a stop line for each migration between such snapshots that has no data operation, naming too each of its snapshots that nothing else names, or, when its `ops.json` is not valid JSON, for that file. Expanding the aliases can make two contracts equal: one that wrote a type inline and one that wrote it through an alias, or two that named one alias differently. A migration between them then goes from a snapshot to itself, which the migration checker allows only for a migration with a data operation. A snapshot nothing names, such as a copy an interrupted run left, is not counted.
  */
 function mergedSnapshots(
   files: ProjectFiles,
@@ -916,12 +928,25 @@ function mergedSnapshots(
           edge.from === edge.to ||
           !oldHashes.has(edge.from) ||
           !oldHashes.has(edge.to) ||
-          !path.startsWith(`${dirname(store)}${sep}`) ||
-          hasDataOperation(path)
+          !path.startsWith(`${dirname(store)}${sep}`)
         )
           continue;
+        const ops = readOps(path);
+        if (ops.unreadable) {
+          lines.push(`${display(ops.path)}: not valid JSON`);
+          continue;
+        }
+        if (hasDataOperation(ops.ops)) continue;
+        const orphaned = [edge.from, edge.to].filter(
+          (hash) => !references.some((other) => other.path !== path && other.hashes.includes(hash)),
+        );
+        const snapshots = orphaned.map((hash) => display(join(store, hash)));
+        const toDelete =
+          snapshots.length === 0
+            ? `the migration directory ${display(path)}`
+            : `the migration directory ${display(path)} and the snapshot ${snapshots.length === 1 ? 'directory' : 'directories'} ${snapshots.join(' and ')}, which no other migration or ref names,`;
         lines.push(
-          `${display(store)}: the snapshots ${names} become the same snapshot, ${newHash}, once their type aliases are written into their columns. Migration ${display(path)} goes from ${edge.from} to ${edge.to} and has no data operation, so it would go from ${newHash} to itself, which only a migration with a data operation may do. Delete the migration directory ${display(path)} and run the script again.`,
+          `${display(store)}: the snapshots ${names} become the same snapshot, ${newHash}, once their type aliases are written into their columns. Migration ${display(path)} goes from ${edge.from} to ${edge.to} and has no data operation, so it would go from ${newHash} to itself, which only a migration with a data operation may do. Delete ${toDelete} and run the script again.`,
         );
       }
     }
@@ -1070,9 +1095,8 @@ function main(root: string): number {
     const nextFrom = typeof from === 'string' ? (hashes.get(from) ?? from) : from;
     const nextTo = typeof to === 'string' ? (hashes.get(to) ?? to) : to;
     if (nextFrom === from && nextTo === to) continue;
-    const opsPath = join(dirname(path), 'ops.json');
-    const ops = existsSync(opsPath) ? parseJson(readFileSync(opsPath, 'utf8')) : undefined;
-    if (existsSync(opsPath) && ops === undefined) {
+    const { path: opsPath, ops, unreadable } = readOps(dirname(path));
+    if (unreadable) {
       stops.push(`${display(opsPath)}: not valid JSON`);
       continue;
     }

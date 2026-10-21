@@ -10,6 +10,10 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { loadContractSpaceAggregate } from '@internal/migration-tools/aggregate';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import { findPath } from '@internal/migration-tools/migration-graph';
+import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { dirname, join, relative } from 'pathe';
 
 const SCRIPT_PATHS = {
@@ -74,4 +78,52 @@ export function runScript(root: string, script = appScript): Run {
 
 export function fixtureTree(side: 'before' | 'after'): Tree {
   return readTree(join(fixturesDir, side));
+}
+
+const SNAPSHOT_IMPORT = /^import [^;]*?'\.\.\/\.\.\/snapshots\/[\s\S]*?;\n/gm;
+
+/** A `migration.ts` with its imports in source order, as a formatter leaves them after the script renames the snapshots they name. */
+function withSortedImports(text: string): string {
+  const imports = text.match(SNAPSHOT_IMPORT) ?? [];
+  const source = (statement: string) => /from '([^']*)'/.exec(statement)?.[1] ?? '';
+  const sorted = [...imports].sort((a, b) => (source(a) < source(b) ? -1 : 1));
+  let index = 0;
+  return text.replace(SNAPSHOT_IMPORT, () => sorted[index++] ?? '');
+}
+
+export function formatted(tree: Tree): Tree {
+  return Object.fromEntries(
+    Object.entries(tree).map(([path, text]) => [
+      path,
+      path.endsWith('migration.ts') ? withSortedImports(text) : text,
+    ]),
+  );
+}
+
+export function withoutMigration(tree: Tree, dir: string): Tree {
+  return Object.fromEntries(Object.entries(tree).filter(([path]) => !path.startsWith(`${dir}/`)));
+}
+
+/** What the migration checker finds in the project at `root`: every integrity violation, and the app migrations from the empty contract to the emitted one. */
+export async function checked(root: string): Promise<{
+  readonly violations: readonly unknown[];
+  readonly path: readonly string[] | undefined;
+}> {
+  const serializer = new PostgresContractSerializer();
+  const appContract = serializer.deserializeContract(
+    JSON.parse(readFileSync(join(root, 'prisma/contract.json'), 'utf8')),
+  );
+  const aggregate = await loadContractSpaceAggregate({
+    migrationsDir: join(root, 'migrations'),
+    deserializeContract: (raw) => serializer.deserializeContract(raw),
+    appContract,
+  });
+  return {
+    violations: aggregate.checkIntegrity({ checkContracts: true }),
+    path: findPath(
+      aggregate.app.graph(),
+      EMPTY_CONTRACT_HASH,
+      appContract.storage.storageHash,
+    )?.map((edge) => edge.dirName),
+  };
 }

@@ -50,13 +50,13 @@ The storage hash changes, so the script renames each changed snapshot directory 
 
 It changes no file and exits 1 in these cases, and names the file:
 
-- a `contract.json`, `migration.json` or ref is not valid JSON;
+- a `contract.json`, `migration.json`, `ops.json` or ref is not valid JSON;
 - a contract's stored storage hash, or the name of its snapshot directory, does not match its content;
 - a column names an alias that `storage.types` does not declare, stores both `typeRef` and `typeParams`, or has a codec or data type other than its alias's;
 - a migration goes between two snapshots that become the same snapshot once their aliases are written into their columns, and has no data operation;
 - a renamed snapshot directory already exists with different content.
 
-For the first three cases, restore that file from version control, or re-emit it, and run the script again. Two snapshots become the same one when the only change between them was an alias: a migration that replaced `slug VarChar(64)` with `types { Slug = VarChar(64) }` and `slug Slug`, or that renamed an alias. After the upgrade such a migration goes from a snapshot to itself, which only a migration with a data operation may do. The script names each such migration that has no data operation. Delete its directory and run the script again. The script then writes the hash of the merged snapshot into every `migration.json`, ref and `migration.ts` that names either old hash, and gives each changed migration a new `migrationHash`. A migration with a data operation keeps its operations and goes from the merged snapshot to itself. If it stops partway, for example on a full disk, it says so; run it again to finish.
+For the first three cases, restore that file from version control, or re-emit it, and run the script again. Two snapshots become the same one when the only change between them was an alias: a migration that replaced `slug VarChar(64)` with `types { Slug = VarChar(64) }` and `slug Slug`, or that renamed an alias. After the upgrade such a migration goes from a snapshot to itself, which only a migration with a data operation may do. The script names each such migration that has no data operation. Delete its directory and run the script again. When that migration is your latest, nothing else names its target snapshot, so the script names that snapshot directory too; delete it as well. The script then writes the hash of the merged snapshot into every `migration.json`, ref and `migration.ts` that names either old hash, and gives each changed migration a new `migrationHash`. A migration with a data operation keeps its operations and goes from the merged snapshot to itself. If it stops partway, for example on a full disk, it says so; run it again to finish.
 
 If the same upgrade also asks you to run `remove-nocheck.ts`, the two scripts may run in either order: each checks the hash of the content it reads.
 
