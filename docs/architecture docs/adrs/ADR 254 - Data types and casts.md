@@ -386,6 +386,8 @@ model Place {
 
 ## Alternatives considered
 
+- **Keeping `nativeType` in `contract.json` as a copy derived from the data type.** Two fields would state one fact for as long as the format lasts. Prisma 8 had not shipped, so this was the last change to the format that needed no major version.
+- **Databases signed with old hashes keep working through a map from old hashes to new ones, or a one-time command that rewrites them.** A map is code that every hash comparison must consult forever, and a rewrite command is a migration of Prisma's own tables that only exists for this change. Re-signing with `db sign` uses a command that already exists. Its cost is that the migration ledger keeps the old hashes, so `migration status` no longer marks earlier migrations as applied.
 - **The codec defines the stored form.** Several codecs represent one type, so the form would depend on the codec an application chose, and moving from `Date` to `Temporal` would change the contract.
 - **A canonical-form function per type that codecs and verification call, separate from the type's reader.** It is a second definition of a value beside the tag's `parse`. The type's `spell` does this job inside the type, after its `read`, so the value keeps one owner. Where two kinds of value share one type, as a date and a document would share `sqlite/text`, it has to live on the codec, which gives the value two owners and a helper that chooses between them.
 - **Codec methods that receive PSL text** (`encodePsl` and `decodePsl`, sketched in [ADR 184](ADR%20184%20-%20Codec-owned%20value%20serialization.md)). Every codec becomes coupled to PSL's tokenizer and escaping, and nothing checks a value before a codec fails on it.
