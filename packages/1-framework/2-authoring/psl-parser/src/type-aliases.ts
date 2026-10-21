@@ -179,9 +179,9 @@ export function typeAliasAttributeNames(
   alias: TypeAlias | ContributedTypeAlias,
 ): ReadonlySet<string> {
   if ('symbol' in alias) return new Set(alias.attributes.map(({ name }) => name));
-  const { default: columnDefault, onCreate, onUpdate } = alias.descriptor.output;
+  const { default: aliasDefault, onCreate, onUpdate } = alias.descriptor.output;
   return new Set(
-    Object.entries({ default: columnDefault, onCreate, onUpdate }).flatMap(([name, value]) =>
+    Object.entries({ default: aliasDefault, onCreate, onUpdate }).flatMap(([name, value]) =>
       value === undefined ? [] : [name],
     ),
   );
