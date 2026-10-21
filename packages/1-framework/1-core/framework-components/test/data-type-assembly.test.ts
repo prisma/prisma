@@ -1,4 +1,3 @@
-import { blindCast } from '@internal/utils/casts';
 import { InternalError } from '@internal/utils/internal-error';
 import { type Type, type } from 'arktype';
 import { describe, expect, it } from 'vitest';
@@ -19,10 +18,7 @@ import {
   type DataTypeComponent,
   enforceDataTypeAssemblyInvariants,
 } from '../src/shared/data-type-support';
-import type {
-  AuthoringFieldPresetDescriptor,
-  AuthoringTypeConstructorDescriptor,
-} from '../src/shared/framework-authoring';
+import type { AuthoringFieldPresetDescriptor } from '../src/shared/framework-authoring';
 import { isRuntimeError } from '../src/shared/runtime-error';
 
 const int2 = dataType('demo/int2', { read: (json) => json });
@@ -490,9 +486,7 @@ describe('assembleDataTypeSupport', () => {
           id: 'x-pack',
           authoring: {
             type: {
-              x: {
-                Thing: blindCast<AuthoringTypeConstructorDescriptor, 'an old kind'>(numberArgument),
-              },
+              x: { Thing: numberArgument },
             },
           },
         }),
@@ -500,8 +494,36 @@ describe('assembleDataTypeSupport', () => {
     ).toEqual({
       code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
       message:
-        'Argument "size" of type constructor "x.Thing" contributed by "x-pack" is a "number" argument, but a type constructor\'s argument is a value of a data type. Declare it as { kind: \'value\', dataType: ... }, naming the data type its value belongs to.',
+        'Argument "size" of type constructor "x.Thing" contributed by "x-pack" is an argument of kind "number", but a type constructor\'s argument is a value of a data type. Declare it as { kind: \'value\', dataType: ... }, naming the data type its value belongs to.',
     });
+  });
+
+  it('refuses an unnamed type constructor argument by its position, with the documented payload', () => {
+    const run = assemble({
+      id: 'x-pack',
+      authoring: {
+        type: {
+          Thing: {
+            kind: 'typeConstructor',
+            args: [{ kind: 'option', values: ['a'] }],
+            output: { codecId: 'demo/sized@1' },
+          },
+        },
+      },
+    });
+    expect(run).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        message: expect.stringMatching(
+          /^Argument #1 of type constructor "Thing" contributed by "x-pack" is an argument of kind "option"/,
+        ),
+        details: {
+          packId: 'x-pack',
+          contribution: 'Thing',
+          reason: 'type-constructor-argument-not-a-value',
+        },
+      }),
+    );
   });
 
   it('accepts a field preset argument of another kind, which field presets keep for now', () => {

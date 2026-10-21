@@ -137,7 +137,7 @@ function writableDataTypes(
   );
 }
 
-/** Refuses a value argument whose data type is unregistered, or that no contract source can write, directly or through a cast. */
+/** Refuses a value argument whose data type is unregistered, or that no contract source can write, directly or through a cast, and a type-constructor argument that is not a value. */
 function enforceValueArguments(
   support: DataTypeSupport,
   contributed: ContributedHelper,
@@ -150,7 +150,7 @@ function enforceValueArguments(
     if (argument.kind !== 'value' && descriptor.kind === 'typeConstructor') {
       throw runtimeError(
         'CONTRACT.PACK_CONTRIBUTION_INVALID',
-        `${label} contributed by "${contributedBy}" is a "${argument.kind}" argument, but a type constructor's argument is a value of a data type. Declare it as { kind: 'value', dataType: ... }, naming the data type its value belongs to.`,
+        `${label} contributed by "${contributedBy}" is an argument of kind "${argument.kind}", but a type constructor's argument is a value of a data type. Declare it as { kind: 'value', dataType: ... }, naming the data type its value belongs to.`,
         {
           packId: contributedBy,
           contribution: path,
@@ -272,7 +272,7 @@ export function enforceDataTypeAssemblyInvariants(input: DataTypeAssemblyInput):
 }
 
 /**
- * The data types the components register, with their authoring entries, as every contract source reads values with. Refuses two registrations of one data type or one entry key, every case {@link enforceDataTypeAssemblyInvariants} lists, and a value argument of a type constructor or field preset whose data type is unregistered or that no contract source can write. ADR 254.
+ * The data types the components register, with their authoring entries, as every contract source reads values with. Refuses two registrations of one data type or one entry key, every case {@link enforceDataTypeAssemblyInvariants} lists, a value argument of a type constructor or field preset whose data type is unregistered or that no contract source can write, and a type-constructor argument that is not a value. ADR 254.
  */
 export function assembleDataTypeSupport(
   components: ReadonlyArray<DataTypeComponent>,
