@@ -7,6 +7,7 @@ import {
   type Diagnostic,
   isStructuredError,
   type NextAction,
+  type StructuredError,
 } from '@internal/utils/structured-error';
 import { CliStructuredError } from './control';
 
@@ -122,12 +123,8 @@ function isDriverError(err: unknown): boolean {
   return isStructuredError(err) && err.code.startsWith('DRIVER.');
 }
 
-function isMarkerRowParseError(err: unknown): err is Error {
-  return (
-    err instanceof Error &&
-    (err.message.startsWith('Invalid contract marker row:') ||
-      err.message.startsWith('Invalid marker doc on'))
-  );
+function isMarkerRowCorruptError(err: unknown): err is StructuredError {
+  return isStructuredError(err) && err.code === 'CONTRACT.MARKER_ROW_CORRUPT';
 }
 
 export function rethrowMarkerReadError(
@@ -137,7 +134,7 @@ export function rethrowMarkerReadError(
   if (CliStructuredError.is(err) || isDriverError(err)) {
     throw err;
   }
-  if (isMarkerRowParseError(err)) {
+  if (isMarkerRowCorruptError(err)) {
     throw errorMarkerRowCorrupt({
       why: err.message,
       space: context.space,

@@ -82,7 +82,7 @@ function validatePurity(value: unknown, entryPath: string): void {
     path.add(value);
 
     try {
-      for (const key in value) {
+      for (const key of Object.keys(value)) {
         const descriptor = Object.getOwnPropertyDescriptor(value, key);
         if (descriptor && (descriptor.get || descriptor.set)) {
           throw contractSourceError(
@@ -105,14 +105,11 @@ function validatePurity(value: unknown, entryPath: string): void {
     }
   }
 
+  check(value);
   try {
-    check(value);
     JSON.stringify(value);
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message.includes('getter') || error.message.includes('circular')) {
-        throw error;
-      }
       throw contractSourceError(
         'CONTRACT.EXPORT_INVALID',
         `Contract export is not JSON-serializable: ${error.message}`,
