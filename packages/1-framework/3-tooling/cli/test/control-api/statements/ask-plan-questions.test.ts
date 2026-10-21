@@ -143,6 +143,63 @@ describe('questions about storage when the origin contract is unknown', () => {
 });
 
 describe('questions about access', () => {
+  it('name a model the plan moves by its new name, as a field of it is named', async () => {
+    const from = contractOf({
+      billing: { models: { Invoice: { fields: ['id', 'number'] } } },
+      app: { models: { User: {} } },
+    });
+    const to = contractOf({
+      finance: { models: { Invoice: { fields: ['id'] } } },
+      app: { models: { User: {} } },
+    });
+    const invoice = {
+      kind: 'model',
+      namespaceId: asNamespaceId('billing'),
+      model: 'Invoice',
+    } as const;
+    const subjects: string[] = [];
+
+    await askPlanQuestions({
+      plan: {
+        dataLoss: [
+          {
+            operationIndex: 1,
+            label: 'Drop column "number" from "Invoice"',
+            loss: 'drop',
+            subject: { ...invoice, kind: 'field', field: 'number' },
+          },
+        ],
+        accessChanges: [
+          {
+            operationIndex: 0,
+            label: 'Drop RLS policy "r" on "Invoice"',
+            subject: invoice,
+            widens: false,
+          },
+        ],
+      },
+      askAccess: true,
+      canConvert: false,
+      statements: [{ verb: 'rename', text: 'billing.Invoice:finance.Invoice' }],
+      preAnswers: [],
+      consentAll: { delete: false, allow: false },
+      origin: from,
+      originKnown: true,
+      destination: to,
+      defaultNamespaceId: 'public',
+      answer: async (questions) => {
+        subjects.push(...questions.map(({ subject }) => subject));
+        return questions.map(({ subject, verbs }) => ({
+          verb: verbs.includes('allow') ? 'allow' : 'delete',
+          text: subject,
+        }));
+      },
+      replan: async () => ok({ dataLoss: [], accessChanges: [] }),
+    });
+
+    expect(subjects).toEqual(['finance.Invoice.number', 'finance.Invoice']);
+  });
+
   it('ask once per operation, and say a policy drop changes access where disabling row-level security widens it', async () => {
     const user = { kind: 'model', namespaceId: asNamespaceId('app'), model: 'T' } as const;
     const asked: string[] = [];

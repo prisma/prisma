@@ -149,13 +149,17 @@ function destinationField(
 /**
  * The subject as a statement names it: `Model` or `Model.field`, with the namespace when its
  * contract has several, or the storage name when no model stores what the operation is about. A
- * field of a model the plan renames is named through the model's new name, as a rename of the
- * field is written.
+ * model the plan renames or moves, and a field of it, are named through the model's new name, as a
+ * rename of the field is written.
  */
 export function subjectText(subject: MigrationSubject, contracts: StatementContracts): string {
   switch (subject.kind) {
-    case 'model':
-      return modelStatementText(contracts.origin, subject);
+    case 'model': {
+      const renamed = renamedModel(subject, contracts);
+      return renamed === undefined || contracts.destination === undefined
+        ? modelStatementText(contracts.origin, subject)
+        : modelStatementText(contracts.destination, renamed);
+    }
     case 'field': {
       const renamed = renamedModel(subject, contracts);
       const model =
