@@ -1,4 +1,7 @@
 import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { loadContractSpaceAggregate } from '@internal/migration-tools/aggregate';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import { findPath } from '@internal/migration-tools/migration-graph';
 import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { join } from 'pathe';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -6,6 +9,7 @@ import {
   emitted,
   type Fixtures,
   generateFixtures,
+  type MigrationOp,
   migrationPackage,
   postColumns,
   SECOND,
@@ -63,12 +67,25 @@ function initialHashes(): readonly [string, string] {
   return [oldHash ?? '', newHash ?? ''];
 }
 
+/** The summary line of every storage.types entry the script removed, per contract it wrote. */
+function removedEntries(): readonly string[] {
+  const entries = 'Code, Embedding, Slug';
+  return [
+    'Removed storage.types entries:',
+    ...generated.hashes
+      .map(([, newHash]) => `  migrations/snapshots/${newHash}/contract.json: ${entries}`)
+      .sort(),
+    `  prisma/contract.json: ${entries}`,
+  ];
+}
+
 function summary(files: number, directories: number): string {
   return [
     `Rewrote ${files} files and renamed ${directories} snapshot directories. Storage hashes changed (old -> new):`,
     ...[...generated.hashes]
       .sort(([a], [b]) => (a < b ? -1 : 1))
       .map(([oldHash, newHash]) => `  ${oldHash} -> ${newHash}`),
+    ...removedEntries(),
     '',
   ].join('\n');
 }
@@ -111,9 +128,39 @@ function inlineThenAliased(): {
   return { tree, inline, aliased };
 }
 
+const USE_ALIASES = 'migrations/app/20260115T0000_use_aliases';
+
 function mergedSnapshotsLine(inline: string, aliased: string): string {
   const names = [inline, aliased].sort().join(' and ');
-  return `migrations/snapshots: the snapshots ${names} become the same snapshot, ${inline}, once their type aliases are written into their columns. Migration migrations/app/20260115T0000_use_aliases goes from ${inline} to ${aliased}, so it would go from ${inline} to itself, which a migration may not do. Delete that migration and the snapshot directory ${aliased}, replace ${aliased} with ${inline} in every other migration.json, migration.ts and ref, and run the script again.\n`;
+  return `migrations/snapshots: the snapshots ${names} become the same snapshot, ${inline}, once their type aliases are written into their columns. Migration ${USE_ALIASES} goes from ${inline} to ${aliased} and has no data operation, so it would go from ${inline} to itself, which only a migration with a data operation may do. Delete the migration directory ${USE_ALIASES} and run the script again.\n`;
+}
+
+function withoutMigration(tree: Tree, dir: string): Tree {
+  return Object.fromEntries(Object.entries(tree).filter(([path]) => !path.startsWith(`${dir}/`)));
+}
+
+/** What the migration checker finds in the project at `root`: every integrity violation, and the app migrations from the empty contract to the emitted one. */
+async function checked(root: string): Promise<{
+  readonly violations: readonly unknown[];
+  readonly path: readonly string[] | undefined;
+}> {
+  const serializer = new PostgresContractSerializer();
+  const appContract = serializer.deserializeContract(
+    JSON.parse(readFileSync(join(root, 'prisma/contract.json'), 'utf8')),
+  );
+  const aggregate = await loadContractSpaceAggregate({
+    migrationsDir: join(root, 'migrations'),
+    deserializeContract: (raw) => serializer.deserializeContract(raw),
+    appContract,
+  });
+  return {
+    violations: aggregate.checkIntegrity({ checkContracts: true }),
+    path: findPath(
+      aggregate.app.graph(),
+      EMPTY_CONTRACT_HASH,
+      appContract.storage.storageHash,
+    )?.map((edge) => edge.dirName),
+  };
 }
 
 function sortKeysDeep(value: unknown): unknown {
@@ -433,6 +480,78 @@ describe('expand-type-aliases', () => {
       stdout: '',
       stderr: mergedSnapshotsLine(inline, aliased),
       tree,
+    });
+  });
+
+  it('keeps the vector entry of a pgvector space snapshot that no migration or ref names', () => {
+    const root = copyFixture('before');
+    rmSync(join(root, 'migrations/pgvector'), { recursive: true });
+    const run = runScript(root);
+    expect({
+      status: run.status,
+      stdout: run.stdout,
+      stderr: run.stderr,
+      tree: formatted(readTree(root)),
+    }).toEqual({
+      status: 0,
+      stdout: summary(7, 2),
+      stderr: '',
+      tree: withoutMigration(fixtureTree('after'), 'migrations/pgvector'),
+    });
+  });
+
+  it('upgrades the project once the migration it stopped on is deleted, and the migration checker accepts it', async () => {
+    const { tree } = inlineThenAliased();
+    const root = makeWorkDir();
+    writeTree(root, withoutMigration(tree, USE_ALIASES));
+    const run = runScript(root);
+    expect({
+      status: run.status,
+      stderr: run.stderr,
+      tree: formatted(readTree(root)),
+      checked: await checked(root),
+    }).toEqual({
+      status: 0,
+      stderr: '',
+      tree: fixtureTree('after'),
+      checked: { violations: [], path: ['20260101T0000_initial', '20260201T0000_add_title'] },
+    });
+  });
+
+  it('upgrades a migration between two snapshots that become one when it has a data operation, and the migration checker accepts it', async () => {
+    const { tree, inline, aliased } = inlineThenAliased();
+    const ops: readonly MigrationOp[] = [
+      { id: 'data.backfill-slug', label: 'Backfill slug', operationClass: 'data' },
+    ];
+    const createdAt = '2026-01-15T00:00:00.000Z';
+    Object.assign(
+      tree,
+      migrationPackage('20260115T0000_use_aliases', inline, aliased, createdAt, ops),
+    );
+    const root = makeWorkDir();
+    writeTree(root, tree);
+    const run = runScript(root);
+    const upgraded = formatted(readTree(root));
+    const migrationTs = `${USE_ALIASES}/migration.ts`;
+    expect({
+      status: run.status,
+      stderr: run.stderr,
+      tree: { ...upgraded, [migrationTs]: undefined },
+      migrationTs: upgraded[migrationTs]?.includes(aliased),
+      checked: await checked(root),
+    }).toEqual({
+      status: 0,
+      stderr: '',
+      tree: {
+        ...fixtureTree('after'),
+        ...migrationPackage('20260115T0000_use_aliases', inline, inline, createdAt, ops),
+        [migrationTs]: undefined,
+      },
+      migrationTs: false,
+      checked: {
+        violations: [],
+        path: ['20260101T0000_initial', '20260201T0000_add_title'],
+      },
     });
   });
 

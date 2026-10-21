@@ -309,17 +309,25 @@ export function migrationTs(from: string | null, to: string): string {
   ].join('\n');
 }
 
+export interface MigrationOp {
+  readonly id: string;
+  readonly label: string;
+  readonly operationClass: 'additive' | 'widening' | 'destructive' | 'data';
+}
+
 export function migrationPackage(
   name: string,
   from: string | null,
   to: string,
   createdAt: string,
+  ops: readonly MigrationOp[] = [],
 ): Tree {
   const metadata = { from, to, providedInvariants: [], createdAt };
-  const migrationHash = computeMigrationHash(metadata, []);
+  const migrationHash = computeMigrationHash(metadata, ops);
   return {
     [`migrations/app/${name}/migration.json`]: `${JSON.stringify({ ...metadata, migrationHash }, null, 2)}\n`,
-    [`migrations/app/${name}/ops.json`]: '[]\n',
+    [`migrations/app/${name}/ops.json`]:
+      ops.length === 0 ? '[]\n' : `${JSON.stringify(ops, null, 2)}\n`,
     [`migrations/app/${name}/migration.ts`]: migrationTs(from, to),
   };
 }
