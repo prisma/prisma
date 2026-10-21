@@ -400,6 +400,30 @@ describe('MongoMigrationRunner.executeDmlOperation', () => {
     ]);
   });
 
+  it.each([
+    ['changed no document', { matchedCount: 0, modifiedCount: 0 }, true],
+    ['changed a document', { matchedCount: 1, modifiedCount: 1 }, false],
+  ])(
+    'says whether the database changed when a run that %s fails its postcheck',
+    async (_, runResult, databaseUnchanged) => {
+      const harness = makeHarness();
+      const op = dataTransform('backfill-status', {
+        check: { source: () => makeCheckPlan() },
+        run: () => makeRunPlan(),
+      });
+      harness.driver.queueResponse([{ _id: 'u1' }]);
+      harness.driver.queueResponse([runResult]);
+      harness.driver.queueResponse([{ _id: 'u1' }]);
+
+      const result = await execute(harness, [op], { idempotencyChecks: false });
+
+      expect(failureFields(result.assertNotOk())).toMatchObject({
+        code: 'MIGRATION.POSTCHECK_FAILED',
+        meta: { databaseUnchanged },
+      });
+    },
+  );
+
   it('rejects a check whose source is not an aggregate command before invoking driver.execute', async () => {
     const harness = makeHarness();
     const op = dataTransform('backfill-status', {

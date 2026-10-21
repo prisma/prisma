@@ -53,6 +53,22 @@ import { deserializeMongoOps } from './mongo-ops-serializer';
 
 const READ_ONLY_CHECK_COMMAND_KINDS: ReadonlySet<string> = new Set(['aggregate', 'rawAggregate']);
 
+const CHANGED_DOCUMENT_COUNTS = [
+  'insertedCount',
+  'modifiedCount',
+  'upsertedCount',
+  'deletedCount',
+] as const;
+
+/** Whether a write command's result row says it changed no document: every count it carries is zero. */
+function reportsNoChangedDocuments(row: unknown): boolean {
+  if (typeof row !== 'object' || row === null) return false;
+  const counts = CHANGED_DOCUMENT_COUNTS.map((field) => Reflect.get(row, field)).filter(
+    (count) => count !== undefined,
+  );
+  return counts.length > 0 && counts.every((count) => count === 0);
+}
+
 function failedCheckOf(
   operationId: string,
   phase: FailedCheck['phase'],
@@ -499,10 +515,13 @@ export class MongoMigrationRunner {
     for (const plan of op.run) {
       const wireCommand = await adapter.lower(plan, {});
       try {
-        for await (const _ of driver.execute(wireCommand)) {
-          /* consume */
+        let reportedNoChange = false;
+        let reportedChange = false;
+        for await (const row of driver.execute<unknown>(wireCommand)) {
+          if (reportsNoChangedDocuments(row)) reportedNoChange = true;
+          else reportedChange = true;
         }
-        wrote();
+        if (reportedChange || !reportedNoChange) wrote();
       } catch (error) {
         const refusal = bypassValidationRefusal(op, plan, error);
         if (refusal === undefined) throw error;
