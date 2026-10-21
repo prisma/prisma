@@ -1,24 +1,27 @@
+import type { JsonValue } from '@internal/contract/types';
 import {
   type AuthoringTypeConstructorCall,
   type AuthoringTypeConstructorDescriptor,
   type AuthoringTypeNamespace,
   authoringTypeConstructorArguments,
   authoringTypeConstructors,
+  type DataTypeSupport,
   instantiateAuthoringTypeConstructor,
 } from '@internal/framework-components/authoring';
 import type {
   CodecLookupWithDescriptors,
   DataTypeLookup,
 } from '@internal/framework-components/codec';
-import { dataTypeParams } from '@internal/framework-components/codec';
+import { dataTypeId, dataTypeParams } from '@internal/framework-components/codec';
 import { canonicalizeJson } from '@internal/framework-components/utils';
 import {
   isSqlDataType,
   type SqlDataType,
   type SqlTypeParams,
 } from '@internal/sql-contract/data-type';
-import { escapePslString } from '@internal/sql-contract/data-type-support';
+import { blindCast } from '@internal/utils/casts';
 import { isInternalError } from '@internal/utils/internal-error';
+import { writeDataTypeValue } from './default-mapping';
 
 /** The type constructor `contract infer` writes for a data type, with the data type it produces. */
 export interface InferredTypeConstructor {
@@ -83,11 +86,27 @@ export function fewestArgumentsCall(
 }
 
 /**
- * A type constructor argument as PSL writes it: a number or boolean as written, a string between quotes.
- * Undefined for any other value, such as an array or an object, and for a string PSL cannot carry, because a quote, backslash or line break in it would read back differently.
+ * Each argument of a call to `descriptor` as PSL writes it: a value argument as a literal of its data type that reads back as the same value. `undefined` when an argument is not a value argument or no literal reads back as it.
  */
-export function pslTypeArgumentText(value: unknown): string | undefined {
-  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
-  if (typeof value !== 'string') return undefined;
-  return escapePslString(value) === value ? `"${value}"` : undefined;
+export function writtenTypeArguments(
+  descriptor: AuthoringTypeConstructorDescriptor,
+  args: readonly unknown[],
+  dataTypes: DataTypeSupport,
+): readonly string[] | undefined {
+  const written: string[] = [];
+  for (const [index, value] of args.entries()) {
+    const argument = descriptor.args?.[index];
+    if (argument?.kind !== 'value') return undefined;
+    const text = writeDataTypeValue(
+      blindCast<
+        JsonValue,
+        'a type constructor argument is a type parameter, which contract.json stores as JSON'
+      >(value),
+      dataTypeId(argument.dataType),
+      dataTypes,
+    );
+    if (text === undefined) return undefined;
+    written.push(text);
+  }
+  return written;
 }

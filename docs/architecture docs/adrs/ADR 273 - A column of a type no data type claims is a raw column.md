@@ -4,15 +4,16 @@
 
 A column whose database type no data type in the stack claims is a raw column. Its data type is `sql/raw`, with one parameter, `sql`: the column's type exactly as the database catalog prints it. Its codec, `sql/raw@1`, passes values through unchanged, and the ORM types them `unknown`. Migrations create the column from the `sql` text, and `db verify` compares that text with the catalog's.
 
-In a Prisma 8 schema, a field declares one with `Raw(...)`:
+In a Prisma 8 schema, a field declares one with `Raw(...)`, whose argument is a `sql` literal (ADR 268), because the text is SQL the database reads:
 
 ```prisma
 model Category {
   id        Int           @id @default(autoincrement())
   name      String
-  path      Raw("ltree")
-  search    Raw("tsvector")?
-  area      Raw("circle") @default(sql`'<(0,0),1>'::circle`)
+  path      Raw(sql`ltree`)
+  search    Raw(sql`tsvector`)?
+  area      Raw(sql`circle`) @default(sql`'<(0,0),1>'::circle`)
+  tags      Raw(sql`"MyTag"[]`)
   embedding Vector(1536)?
 
   @@map("categories")
@@ -42,15 +43,15 @@ Every part of the system already works through a column's data type and codec. T
 
 ## The data type and the codec
 
-`sql/raw` is a SQL data type (ADR 254) whose name in SQL is its `sql` parameter, written as given. Every other data type writes its name from a fixed pattern such as `vector({length})`; `sql/raw` declares `nameIsCatalogText`, has no texts, and renders the parameter itself. Its catalog text is the parameter too, so verify's expected text is exactly what the author wrote. The data type claims no reported type: introspection never reads a column as `sql/raw` on its own, and `contract infer` refuses a type no data type claims. The SQL family contributes the `Raw` type constructor for PSL and the TypeScript builder (`type.Raw("tsvector")`), not marked as inferred; the Postgres and SQLite adapters also export `rawColumn(sql)`.
+`sql/raw` is a SQL data type (ADR 254) whose name in SQL is its `sql` parameter, written as given. Every other data type writes its name from a fixed pattern such as `vector({length})`; `sql/raw` declares `nameIsCatalogText`, has no texts, and renders the parameter itself. Its catalog text is the parameter too, so verify's expected text is exactly what the author wrote. The data type claims no reported type: introspection never reads a column as `sql/raw` on its own, and `contract infer` refuses a type no data type claims. The SQL family contributes the `Raw` type constructor for PSL and the TypeScript builder (``type.Raw(sql`tsvector`)``), not marked as inferred; the Postgres and SQLite adapters also export ``rawColumn(sql`tsvector`)``. Its argument is a value of `sql/expression` (ADR 254), so only a `sql` literal is admitted: `Raw("tsvector")` is refused with ``Expected sql`...`; write sql`tsvector` ``.
 
 None of this is keyed on `sql/raw`. A data type declares `nameIsCatalogText`, and every consumer reads that declaration: such a type's catalog text is what it renders; it has no base name, since its parameters cannot be separated from its name; verify compares its name with the reported text; SQLite writes it as given instead of in upper case; and Postgres sends its parameters without a cast. Another data type that declares it is treated the same way.
 
 The `sql` text must be one type name, and the data type's parameters accept only texts of that form, so every source refuses any other: PSL, the TypeScript builder, a hand-written `contract.json` and an `alterColumnType` call marked `raw: true`. The text is words of letters, digits and underscores, or double-quoted names with each double quote inside doubled, as Postgres prints them (`"a""b"`), separated by single spaces; the first may follow one schema name and a dot; each may be followed by parentheses holding only letters, digits, underscores, commas, spaces and a minus sign before a digit; and one `[]` may end it. `double precision`, `timestamp(3) with time zone`, `geometry(Point,4326)`, `numeric(10,-2)`, `app.email` and `"my,type"[]` are accepted. Outside a double-quoted name, single quotes, dollar quoting, operators and every other character are refused. The check is an allowlist of type-name forms, not a SQL parser: words such as `integer UNIQUE` pass it and add a clause to the DDL. Verify after the migration then finds the column's type is not the text, and the migration's transaction rolls back.
 
-The text must also be the type as the catalog prints it: `integer`, not `int4`; `character varying(10)`, not `varchar(10)`. Other columns compare by data type: the database side gets the data type that claims the type it reports, so `int4` and `integer` are both `pg/int4`. A raw column cannot compare that way, because `sql/raw` claims no reported type, and a raw text may name a type another data type claims, such as `Raw("integer")`. So the contract-derived column of a type that declares `nameIsCatalogText` carries the text it expects as its `catalogText`, and `sqlColumnTypesEqual` compares it, exactly and with `[]` for a list, with the other column's catalog text or the text the database reports. A text in any other form reports a mismatch, and the finding names both texts. On SQLite the reported type is the declared type, which migrations write as given, so the comparison is exact there too.
+The text must also be the type as the catalog prints it: `integer`, not `int4`; `character varying(10)`, not `varchar(10)`. Other columns compare by data type: the database side gets the data type that claims the type it reports, so `int4` and `integer` are both `pg/int4`. A raw column cannot compare that way, because `sql/raw` claims no reported type, and a raw text may name a type another data type claims, such as ``Raw(sql`integer`)``. So the contract-derived column of a type that declares `nameIsCatalogText` carries the text it expects as its `catalogText`, and `sqlColumnTypesEqual` compares it, exactly and with `[]` for a list, with the other column's catalog text or the text the database reports. A text in any other form reports a mismatch, and the finding names both texts. On SQLite the reported type is the declared type, which migrations write as given, so the comparison is exact there too.
 
-A PSL string has no escapes, so a `Raw("...")` text cannot hold a double quote. A type whose name needs quoting, such as one with capital letters, is out of reach in PSL, and `contract print` refuses a contract that holds one.
+A `sql` literal holds double quotes as written, so a type whose name needs quoting, such as one with capital letters, is written ``Raw(sql`"MyType"`)``, and `contract print` writes it the same way.
 
 For a base type the text names no schema. Introspection reports a base type from outside `pg_catalog` without its schema, as it does for the types extensions provide, so `ltree` matches whether the type lives in `public` or in `extensions`. Migrations write the text as given, so the type is found through the database's `search_path`, as it is for every extension type and as it was under Prisma 7. A type that is not a base type, such as a domain, an enum or a composite type, is printed with its schema when that schema is not on the `search_path`, so its text names the schema: `app.email`.
 
@@ -66,7 +67,7 @@ The reader (ADR 252) turns `Unsupported("X")` into a raw column with `sql: "X"`,
 
 The reader reads `Unsupported` as written. It does not substitute a data type an extension pack provides, even where one claims the text, as pgvector claims `vector(1536)`. Moving such a column to its real type is a choice the author makes when converting to a Prisma 8 schema.
 
-The reader reads `Unsupported("X")` as the SQL family's `Raw("X")`, so the text is checked as any `Raw` text is, and the column is kept like an `@ignore` field's (ADR 267): on its model's table, with its uniques and indexes, and with no field.
+The reader reads `Unsupported("X")` as the SQL family's ``Raw(sql`X`)``, so the text is checked as any `Raw` text is, and the column is kept like an `@ignore` field's (ADR 267): on its model's table, with its uniques and indexes, and with no field.
 
 Prisma 7 accepts only `@default(dbgenerated("..."))` on an `Unsupported` field. The reader lowers it to a `sql` expression default, and refuses any other default, `@db.*` and `@updatedAt` on such a field, as Prisma 7 does. It accepts `@ignore` on an `Unsupported` field, which Prisma 7 refuses, because the column already has no field and the meaning is not in doubt.
 
@@ -78,11 +79,11 @@ Prisma 7 never compares an `Unsupported` type with the database: its migrations 
 
 - A Prisma 7 project with `Unsupported` fields can adopt Prisma 8. Its raw columns are created, verified and kept, and its query code sees the models it saw before.
 - A Prisma 8 schema can declare any column type the database has, without waiting for a data type.
-- `contract print` writes a raw column a field maps as `Raw("...")`. A raw column read from Prisma 7 has no field, and `contract print` refuses it until Prisma 8 PSL can declare a column with no field, so such a project keeps its Prisma 7 schema as the contract source until then.
+- `contract print` writes a raw column a field maps as ``Raw(sql`...`)``. A raw column read from Prisma 7 has no field, and `contract print` refuses it until Prisma 8 PSL can declare a column with no field, so such a project keeps its Prisma 7 schema as the contract source until then.
 - A required raw column with no default and no field makes every ORM insert into its table fail. The lowering warns about it (`PN_COLUMN_REQUIRED_UNMAPPED`), as it does for any such column (ADR 267). Prisma 7 left `create` out of the client instead.
 - After Prisma 8 owns a project's migrations, changing a raw column's text changes the column's type, and the planner must plan it. Under Prisma 7 the same edit did nothing.
 - A raw column's type must be on the `search_path` that migrations run with. A project that installs a type in a schema outside that path must add the schema to it, as it must for an extension type.
-- Choosing `Raw(...)` over a data type the stack has is the author's call. Nothing refuses `Raw("vector(1536)")` when pgvector is installed.
+- Choosing `Raw(...)` over a data type the stack has is the author's call. Nothing refuses ``Raw(sql`vector(1536)`)`` when pgvector is installed.
 
 ## Alternatives considered
 
@@ -97,5 +98,7 @@ Prisma 7 never compares an `Unsupported` type with the database: its migrations 
 **Refuse `Raw(...)` for a type a data type claims.** It would keep raw columns to types Prisma 8 cannot model, but it takes the choice away from the author for no gain in safety: the column is verified either way.
 
 **Normalize the `sql` text through the database before comparing.** `'int4'::regtype` would let authors write any alias. It needs a database round trip wherever the text is compared, and requiring the catalog's form is simpler and explicit.
+
+**Write the text as a quoted string, `Raw("ltree")`.** This was the first form. A PSL string does not read as SQL: it is a value of a text type, and a type name that needs double quotes would need escapes inside it. The text is SQL the database reads, so it is a `sql` literal, as every other place that takes SQL is (ADR 268).
 
 **Call it `opaque`, `passthrough`, `untyped` or `native`.** `opaque` and `passthrough` describe the codec, not the column. `untyped` is wrong: the column has a type. `native` fits every column. A raw `hstore` column, set with raw SQL, names what it is.

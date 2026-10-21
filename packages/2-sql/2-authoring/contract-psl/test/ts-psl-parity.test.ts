@@ -13,6 +13,7 @@ import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { fixtureInterpreterTypes, fixtureTypeLookups } from './fixture-codec-descriptors';
+import { fixtureDataTypeEntries, fixtureDataTypes } from './fixture-data-types';
 import {
   createBuiltinLikeControlMutationDefaults,
   interpretSqlContract,
@@ -153,7 +154,9 @@ const postgresTimestampTargetPack = {
   targetId: 'postgres',
   version: '0.0.1',
   defaultNamespaceId: 'public',
+  dataTypes: fixtureDataTypes,
   authoring: {
+    dataTypes: fixtureDataTypeEntries,
     field: {
       int: {
         kind: 'fieldPreset',

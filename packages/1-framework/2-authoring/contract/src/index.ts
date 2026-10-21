@@ -1,5 +1,7 @@
 export type {
   ArgTypeFromDescriptor,
+  CanonicalArguments,
+  DataTypeArgumentTypes,
   ObjectArgumentType,
   OptionalObjectArgumentKeys,
   ResolveTemplateValue,
@@ -38,7 +40,10 @@ export {
   composePackAuthoringNamespace,
   createFieldHelpersFromNamespace,
 } from './field-preset-helpers';
-export type { ExtractParameterizedOutputTypesFromPack } from './pack-type-slots';
+export type {
+  ExtractDataTypeArgumentTypesFromPack,
+  ExtractParameterizedOutputTypesFromPack,
+} from './pack-type-slots';
 export type {
   LocalFieldNullabilityLookup,
   ToOneRelationNullability,

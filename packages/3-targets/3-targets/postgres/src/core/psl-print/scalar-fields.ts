@@ -149,7 +149,7 @@ export function buildScalarFields(input: {
               column,
               inferredConstructors,
               authoringTypes: context.authoringContributions.type,
-              dataTypeLookup: context.dataTypes.lookup,
+              dataTypes: context.dataTypes,
               enumBlockNames: enums.blockNamesByTypeName,
               coordinate,
               namespaceId: entry.namespaceId,

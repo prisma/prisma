@@ -1511,6 +1511,7 @@ export function interpretPslDocumentToMongoContract(
     sources,
     diagnostics,
     typeLookups: { codecLookup, dataTypeLookup: input.dataTypes.lookup },
+    dataTypes: input.dataTypes,
     warnPresetWithoutEffect: presetWithoutEffectWarner({
       types: input.authoringContributions?.type,
       scalarTypeCodecIds,
