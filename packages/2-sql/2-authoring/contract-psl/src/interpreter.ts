@@ -86,12 +86,10 @@ import {
 import { FOREIGN_KEY_INDEX_UNRESOLVED } from '@internal/sql-contract/foreign-key-materialization';
 import { isAuthoredIndexInput } from '@internal/sql-contract/index-naming';
 import { sqlTextFromStored } from '@internal/sql-contract/sql-expression';
-import {
-  type AuthoredStorageTypeInstance,
-  resolvedTypeParams,
-  type SqlModelStorage,
-  type SqlNamespaceBase,
-  type SqlNamespaceInput,
+import type {
+  SqlModelStorage,
+  SqlNamespaceBase,
+  SqlNamespaceInput,
 } from '@internal/sql-contract/types';
 import { deriveValueSetFromEntity } from '@internal/sql-contract/value-set-derivation-hook';
 import {
@@ -130,18 +128,14 @@ import {
   storageName,
 } from './psl-attribute-parsing';
 import type { ColumnDescriptor } from './psl-column-resolution';
-import {
-  bareTypeConstructorOf,
-  getAuthoringEntity,
-  resolveFieldTypeDescriptor,
-} from './psl-column-resolution';
+import { getAuthoringEntity, resolveFieldTypeDescriptor } from './psl-column-resolution';
 import {
   collectResolvedFields,
   type ModelNamespaceEntry,
   modelCoordinateKey,
   type ResolvedField,
 } from './psl-field-resolution';
-import { resolveNamedTypeDeclarations } from './psl-named-type-resolution';
+import { type ResolvedTypeAlias, resolveNamedTypeDeclarations } from './psl-named-type-resolution';
 import {
   applyBackrelationCandidates,
   type FkRelationMetadata,
@@ -528,9 +522,7 @@ interface BuildModelNodeInput {
   /** The value objects the composite types declare, by name. */
   readonly valueObjectTypes: ValueObjectTypes;
   readonly enumTypeDescriptors: ReadonlyMap<BlockSymbol, ColumnDescriptor>;
-  readonly namedTypeDescriptors: ReadonlyMap<NamedTypeSymbol, ColumnDescriptor>;
-  /** The storage types the named types declare, by name, whose parameters a column declared with one takes. */
-  readonly namedTypes: Record<string, AuthoredStorageTypeInstance>;
+  readonly typeAliases: ReadonlyMap<NamedTypeSymbol, ResolvedTypeAlias>;
   /** Extension contracts keyed by space ID for cross-space FK table-name resolution. */
   readonly composedExtensionContracts: ReadonlyMap<string, Contract>;
   readonly familyId: string;
@@ -654,8 +646,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
     physicalNames: input.physicalNames,
     symbolTable: input.symbolTable,
     enumTypeDescriptors: input.enumTypeDescriptors,
-    namedTypeDescriptors: input.namedTypeDescriptors,
-    namedTypes: input.namedTypes,
+    typeAliases: input.typeAliases,
     valueObjectTypes: input.valueObjectTypes,
     authoringContributions: input.authoringContributions,
     targetId: input.targetId,
@@ -1471,9 +1462,7 @@ interface BuildValueObjectNodesInput {
   readonly compositeTypes: readonly CompositeTypeSymbol[];
   readonly enumTypeDescriptors: ReadonlyMap<BlockSymbol, ColumnDescriptor>;
   readonly enumHandles: ReadonlyMap<BlockSymbol, EnumTypeHandle>;
-  readonly namedTypeDescriptors: ReadonlyMap<NamedTypeSymbol, ColumnDescriptor>;
-  /** The named types; a member typed by one takes its parameters inline. */
-  readonly namedTypes: Record<string, AuthoredStorageTypeInstance>;
+  readonly typeAliases: ReadonlyMap<NamedTypeSymbol, ResolvedTypeAlias>;
   readonly diagnostics: PslDiagnosticCollector;
   readonly sources: PslSources;
   /** Composite types are placed in the default namespace, so their members resolve against it. */
@@ -1523,7 +1512,7 @@ function buildValueObjectNodes(input: BuildValueObjectNodesInput): ValueObjectNo
         field,
         resolution: fieldTypeResolution,
         enumTypeDescriptors: input.enumTypeDescriptors,
-        namedTypeDescriptors: input.namedTypeDescriptors,
+        typeAliases: input.typeAliases,
         diagnostics,
         sources,
         entityLabel: `Field "${compositeType.name}.${field.name}"`,
@@ -1544,17 +1533,28 @@ function buildValueObjectNodes(input: BuildValueObjectNodesInput): ValueObjectNo
         });
         continue;
       }
+      const typeAlias =
+        fieldTypeResolution?.kind === 'namedType'
+          ? input.typeAliases.get(fieldTypeResolution.symbol)
+          : undefined;
+      for (const attribute of typeAlias?.alias.attributes ?? []) {
+        diagnostics.push({
+          code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
+          message: `Member "${field.name}" of composite type "${compositeType.name}" is typed by the type alias "${field.typeName}", which carries "@${attribute.name}", an attribute a composite type member does not take`,
+          ...diagnosticSource(sources, field.node.syntax).at(field.span),
+        });
+      }
       fields.push({
         ...common,
         descriptor: {
           codecId: descriptor.codecId,
-          ...ifDefined('typeParams', resolvedTypeParams(descriptor, input.namedTypes)),
+          ...ifDefined('typeParams', descriptor.typeParams),
         },
         ...ifDefined(
           'enumTypeHandle',
           fieldTypeResolution?.kind === 'block'
             ? enumHandles.get(fieldTypeResolution.symbol)
-            : undefined,
+            : typeAlias?.enumHandle,
         ),
       });
     }
@@ -1734,7 +1734,7 @@ function storedDiscriminatorValue(
     column: discriminator.column,
     codecLookup: input.codecLookup,
     dataTypes: input.dataTypes,
-    fieldPath: `${discriminator.model.name}.${discriminator.fieldName}`,
+    subject: `Field "${discriminator.model.name}.${discriminator.fieldName}"`,
     sourceElementIndexes: undefined,
   });
   if (!lowered.ok) {
@@ -2410,34 +2410,19 @@ export function interpretPslDocumentToSqlContract(
   // ready for field resolution. The checkpoint after field resolution catches
   // this pass's failures too.
 
-  // Resolve scalar-refinement bindings ahead of alias/constructor bindings,
-  // preserving the emission order the retired scalar/alias symbol-table split
-  // induced — emitted artifacts stay byte-identical across that refactor.
-  const isScalarRefinement = (symbol: NamedTypeSymbol): boolean => {
-    const reference = typeReferenceNode(symbol);
-    return (
-      !symbol.isConstructor &&
-      symbol.baseType !== undefined &&
-      reference !== undefined &&
-      bareTypeConstructorOf(binder.symbolForNode(reference)) !== undefined
-    );
-  };
-  const allNamedTypes = Object.values(input.symbolTable.namedTypes);
-  const namedTypeSymbols: readonly NamedTypeSymbol[] = [
-    ...allNamedTypes.filter(isScalarRefinement),
-    ...allNamedTypes.filter((symbol) => !isScalarRefinement(symbol)),
-  ];
-
-  const namedTypeResult = resolveNamedTypeDeclarations({
-    declarations: namedTypeSymbols,
-    source,
+  const typeAliases = resolveNamedTypeDeclarations({
+    declarations: Object.values(input.symbolTable.namedTypes),
+    sources: input.sources,
+    symbolTable: input.symbolTable,
     binder,
     enumTypeDescriptors: allEnumTypeDescriptors,
+    enumHandles,
     codecLookup: input.codecLookup,
+    defaultFunctionRegistry,
+    generatorFunctions,
+    dataTypes,
     diagnostics,
   });
-
-  const storageTypes = { ...namedTypeResult.storageTypes };
 
   const modelNodes = new Map<ModelSymbol, ModelNode>();
   const fkRelationMetadata: FkRelationMetadata<ModelSymbol>[] = [];
@@ -2457,8 +2442,7 @@ export function interpretPslDocumentToSqlContract(
     compositeTypes,
     enumTypeDescriptors: allEnumTypeDescriptors,
     enumHandles,
-    namedTypeDescriptors: namedTypeResult.namedTypeDescriptors,
-    namedTypes: namedTypeResult.storageTypes,
+    typeAliases,
     diagnostics,
     sources: input.sources,
     defaultNamespaceId,
@@ -2483,8 +2467,7 @@ export function interpretPslDocumentToSqlContract(
       namespaceId,
       valueObjectTypes,
       enumTypeDescriptors: allEnumTypeDescriptors,
-      namedTypeDescriptors: namedTypeResult.namedTypeDescriptors,
-      namedTypes: namedTypeResult.storageTypes,
+      typeAliases,
       composedExtensionContracts,
       familyId: input.target.familyId,
       targetId: input.target.targetId,
@@ -2582,7 +2565,7 @@ export function interpretPslDocumentToSqlContract(
     if (field === undefined || !('columnName' in field) || field.many === true) return undefined;
     return {
       codecId: field.descriptor.codecId,
-      typeParams: resolvedTypeParams(field.descriptor, namedTypeResult.storageTypes),
+      typeParams: field.descriptor.typeParams,
     };
   };
   const { discriminatorDeclarations, baseDeclarations } = collectPolymorphismDeclarations(
@@ -2733,7 +2716,6 @@ export function interpretPslDocumentToSqlContract(
             input.composedExtensionPackRefs,
           ),
         ),
-        ...(Object.keys(storageTypes).length > 0 ? { storageTypes } : {}),
         ...(Object.keys(validEnumHandles).length > 0 ? { enums: validEnumHandles } : {}),
         // A namespace that carries extension entities but no models (e.g.
         // `namespace unbound { role anon {} }`) would otherwise never enter

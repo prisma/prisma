@@ -29,6 +29,7 @@ import type {
   PslSpan,
   RejectingArgType,
   SymbolTable,
+  TypeAttributeSpecContext,
   TypedFuncCall,
 } from '@internal/psl-parser';
 import {
@@ -57,6 +58,9 @@ import {
   referencedFieldRef,
   str,
   taggedLiteral,
+  typeAttribute,
+  typeAttributeSpecContextOfField,
+  typeAttributeSubjectLabel,
   typeReferenceNode,
   writtenList,
   writtenScalar,
@@ -180,6 +184,27 @@ export function interpretFieldAttribute<Out>(input: {
   return result.value;
 }
 
+/** Interprets an attribute that reads only its type, such as `@default` on a field or a type alias, draining parse failures into `diagnostics`. */
+export function interpretTypeAttribute<Out>(input: {
+  readonly symbols: SymbolTable;
+  readonly node: FieldAttributeAst;
+  readonly spec: AttributeSpec<Out, AttributeCtx>;
+  readonly sources: PslSources;
+  readonly binder: Binder;
+  readonly diagnostics: PslDiagnosticCollector;
+}): Out | undefined {
+  const result = interpretAttribute(input.node, input.spec, {
+    sources: input.sources,
+    symbols: input.symbols,
+    binder: input.binder,
+  });
+  if (!result.ok) {
+    input.diagnostics.push(...result.failure);
+    return undefined;
+  }
+  return result.value;
+}
+
 function validateMappedName(
   value: { readonly name: string },
   ctx: AttributeCtx,
@@ -271,7 +296,7 @@ export function defaultFunctionCall(
 }
 
 /** The data type of the column a field declares, when its type, or the named type it is declared with, is a constructor or preset the stack knows. */
-function receivingDataType(ctx: FieldAttributeSpecContext): string | undefined {
+function receivingDataType(ctx: TypeAttributeSpecContext): string | undefined {
   const typeConstructor = ctx.typeConstructor;
   return typeConstructor === undefined
     ? undefined
@@ -364,7 +389,7 @@ function defaultValueArm(
   ],
   registry: ControlMutationDefaultRegistry,
   generatorFunctions: GeneratorFunctionRegistry,
-  fieldPath: string,
+  subject: string,
 ) {
   const value = arms.length === 1 && arms[0].kind === 'list' ? arms[0] : oneOf(...arms);
   return {
@@ -387,7 +412,7 @@ function defaultValueArm(
           leafDiagnostic(
             ctx,
             arg,
-            `Field "${fieldPath}": ${call} is a value the client generates, and @default sets a database default only. Write @onCreate(${call}) instead.`,
+            `${subject}: ${call} is a value the client generates, and @default sets a database default only. Write @onCreate(${call}) instead.`,
             'PSL_GENERATOR_IN_DEFAULT',
           ),
         ]);
@@ -406,7 +431,7 @@ function noEnumMember(): RejectingArgType<never, AttributeCtx> {
   };
 }
 
-function enumMemberNames(ctx: FieldAttributeSpecContext): readonly string[] | undefined {
+function enumMemberNames(ctx: TypeAttributeSpecContext): readonly string[] | undefined {
   const resolution = ctx.typeResolution;
   if (resolution?.kind !== 'block' || resolution.symbol.keyword !== 'enum') return undefined;
   const block = resolution.symbol;
@@ -444,18 +469,19 @@ function enumDefaultArms(
   return [member(first), ...rest.map(member)];
 }
 
-function defaultFieldSpec(ctx: FieldAttributeSpecContext) {
+/** The spec of `@default` on a field or a type alias, offering the values its type takes. */
+export function typeDefaultSpec(ctx: TypeAttributeSpecContext) {
   const members = enumMemberNames(ctx);
   const valueArms =
     members === undefined
       ? scalarDefaultArms(
-          ctx.field.list,
+          ctx.list,
           receivingDataType(ctx),
           ctx.dataTypes,
           ctx.defaultFunctionRegistry,
         )
-      : enumDefaultArms(members, ctx.field.typeName, ctx.field.list);
-  return fieldAttribute('default', {
+      : enumDefaultArms(members, ctx.typeName, ctx.list);
+  return typeAttribute('default', {
     documentation: 'Supplies a default value when this field is omitted from a mutation.',
     positional: [
       {
@@ -464,7 +490,7 @@ function defaultFieldSpec(ctx: FieldAttributeSpecContext) {
           valueArms,
           ctx.defaultFunctionRegistry,
           ctx.generatorFunctions,
-          `${ctx.model.name}.${ctx.field.name}`,
+          typeAttributeSubjectLabel(ctx.subject),
         ),
         documentation:
           'A literal, enum member, or registered default function compatible with this field.',
@@ -873,7 +899,8 @@ export const sqlAttributeSpecs = {
     id: (_ctx: FieldAttributeSpecContext) => idFieldSpec,
     unique: (_ctx: FieldAttributeSpecContext) => uniqueFieldSpec,
     relation: (_ctx: FieldAttributeSpecContext) => relationFieldSpec,
-    default: defaultFieldSpec,
+    default: (ctx: FieldAttributeSpecContext) =>
+      typeDefaultSpec(typeAttributeSpecContextOfField(ctx)),
     onCreate: generatorAttributeSpec('onCreate'),
     onUpdate: generatorAttributeSpec('onUpdate'),
   },

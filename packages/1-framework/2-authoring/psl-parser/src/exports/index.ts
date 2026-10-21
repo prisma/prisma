@@ -60,11 +60,12 @@ export type {
   ParsedWrittenScalar,
 } from '../attribute-spec/combinators/written-scalar';
 export { writtenList, writtenScalar } from '../attribute-spec/combinators/written-scalar';
-export { fieldAttribute } from '../attribute-spec/field-attribute';
+export { fieldAttribute, typeAttribute } from '../attribute-spec/field-attribute';
 export {
   generatorAttributeSpec,
   generatorFunctionCall,
   nodeSourceText,
+  typeGeneratorAttributeSpec,
 } from '../attribute-spec/generator-attribute';
 export type { ArgBindingSpec } from '../attribute-spec/interpret';
 export { interpretArgs, interpretAttribute } from '../attribute-spec/interpret';
@@ -77,8 +78,14 @@ export type {
   FieldAttributeSpecContext,
   FieldAttributeSpecFactory,
   ModelAttributeSpecFactory,
+  TypeAttributeSpecContext,
+  TypeAttributeSubject,
 } from '../attribute-spec/spec-context';
-export { EMPTY_DATA_TYPES } from '../attribute-spec/spec-context';
+export {
+  EMPTY_DATA_TYPES,
+  typeAttributeSpecContextOfField,
+  typeAttributeSubjectLabel,
+} from '../attribute-spec/spec-context';
 export type {
   ArgType,
   ArgTypeKind,
@@ -214,5 +221,13 @@ export type {
 } from '../symbol-table';
 export { buildSymbolTable } from '../symbol-table';
 export { isPslIdentifier } from '../tokenizer';
+export type { TypeAlias, TypeAliasBase } from '../type-aliases';
+export {
+  refuseRepeatedTypeAliasAttributes,
+  resolveTypeAliases,
+  TYPE_ALIAS_ATTRIBUTE_NAMES,
+  typeAliasOfField,
+  typeAliasSpecContext,
+} from '../type-aliases';
 export type { WrittenScalarResult } from '../written-scalar';
 export { readWrittenScalar } from '../written-scalar';
