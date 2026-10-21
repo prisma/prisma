@@ -296,6 +296,7 @@ const CheckJson = type({
   source: 'Record<string, unknown>',
   filter: 'Record<string, unknown>',
   expect: '"exists" | "notExists"',
+  'object?': 'string',
 });
 
 const StepJson = type({
@@ -317,6 +318,7 @@ const DmlCheckJson = type({
   source: 'Record<string, unknown>',
   filter: 'Record<string, unknown>',
   expect: '"exists" | "notExists"',
+  'object?': 'string',
 });
 
 const DmlOperationJson = type({
@@ -740,6 +742,7 @@ function deserializeCheck(json: unknown): MongoMigrationCheck {
     source: deserializeInspectionCommand(data.source),
     filter: deserializeFilterExpr(data.filter),
     expect: data.expect,
+    ...ifDefined('object', data.object),
   };
 }
 
@@ -774,6 +777,7 @@ function deserializeDmlCheck(json: unknown): MongoDmlCheck {
     source: deserializeMongoQueryPlan(data.source),
     filter: deserializeFilterExpr(data.filter),
     expect: data.expect,
+    ...ifDefined('object', data.object),
   };
 }
 

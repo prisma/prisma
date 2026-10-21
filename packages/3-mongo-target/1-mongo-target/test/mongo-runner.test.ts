@@ -902,12 +902,41 @@ describe('MongoMigrationRunner, a DDL precheck that does not hold', () => {
       code: 'MIGRATION.PRECHECK_FAILED',
       message:
         'Operation collection.orders.create failed during precheck: collection orders does not exist',
-      why: 'Before operation collection.orders.create runs, it checks: collection orders does not exist. That check failed on this database.',
+      why: 'Before operation collection.orders.create runs, it checks: collection orders does not exist. That check failed: the database already has collection orders.',
       meta: {
         failedCheck: {
           operationId: 'collection.orders.create',
           phase: 'precheck',
           description: 'collection orders does not exist',
+          expectation: { expects: 'absent', object: 'collection orders' },
+        },
+      },
+    });
+  });
+});
+
+describe('MongoMigrationRunner, a DDL postcheck that does not hold', () => {
+  it('reports the failed check in meta.failedCheck, with what it expected', async () => {
+    const harness = makeHarness();
+    harness.inspectionExecutor.collections = [{ name: 'events' }];
+
+    const result = await execute(harness, [renameCollection('events', 'occasions')], {
+      prechecks: true,
+      postchecks: true,
+      idempotencyChecks: false,
+    });
+
+    expect(failureFields(result.assertNotOk())).toEqual({
+      code: 'MIGRATION.POSTCHECK_FAILED',
+      message:
+        'Operation collection.events.rename(occasions) failed during postcheck: collection occasions exists',
+      meta: {
+        operationId: 'collection.events.rename(occasions)',
+        failedCheck: {
+          operationId: 'collection.events.rename(occasions)',
+          phase: 'postcheck',
+          description: 'collection occasions exists',
+          expectation: { expects: 'present', object: 'collection occasions' },
         },
       },
     });

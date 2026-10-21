@@ -40,6 +40,7 @@ import {
   RawUpdateManyCommand,
 } from '@internal/mongo-query-ast/execution';
 import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { type MongoMigrationRunnerErrorCode, mongoTargetError } from '../mongo-target-errors';
@@ -47,6 +48,24 @@ import { FilterEvaluator } from './filter-evaluator';
 import { deserializeMongoOps } from './mongo-ops-serializer';
 
 const READ_ONLY_CHECK_COMMAND_KINDS: ReadonlySet<string> = new Set(['aggregate', 'rawAggregate']);
+
+function failedCheckOf(
+  operationId: string,
+  phase: FailedCheck['phase'],
+  check: MongoMigrationCheck,
+): FailedCheck {
+  return {
+    operationId,
+    phase,
+    description: check.description,
+    ...ifDefined(
+      'expectation',
+      check.object === undefined
+        ? undefined
+        : { expects: check.expect === 'exists' ? 'present' : 'absent', object: check.object },
+    ),
+  };
+}
 
 export interface MongoMigrationRunnerExecuteOptions {
   readonly plan: MigrationPlan;
@@ -247,11 +266,7 @@ export class MongoMigrationRunner {
             filterEvaluator,
           );
           if (failed !== undefined) {
-            const failedCheck: FailedCheck = {
-              operationId: operation.id,
-              phase: 'precheck',
-              description: failed.description,
-            };
+            const failedCheck = failedCheckOf(operation.id, 'precheck', failed);
             return (
               renameTargetExistsRefusal(operation, failed) ??
               runnerFailure(
@@ -268,16 +283,21 @@ export class MongoMigrationRunner {
         }
 
         if (runPostchecks) {
-          const postcheckResult = await this.evaluateChecks(
+          const failed = await this.firstFailingCheck(
             operation.postcheck,
             inspectionExecutor,
             filterEvaluator,
           );
-          if (!postcheckResult) {
+          if (failed !== undefined) {
             return runnerFailure(
               'MIGRATION.POSTCHECK_FAILED',
-              `Operation ${operation.id} failed during postcheck`,
-              { meta: { operationId: operation.id } },
+              `Operation ${operation.id} failed during postcheck: ${failed.description}`,
+              {
+                meta: {
+                  operationId: operation.id,
+                  failedCheck: failedCheckOf(operation.id, 'postcheck', failed),
+                },
+              },
             );
           }
         }

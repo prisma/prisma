@@ -279,11 +279,12 @@ describe('MongoMigrationRunner', () => {
           operationId: expect.any(String),
           phase: 'precheck',
           description: 'index does not already exist on users',
+          expectation: { expects: 'absent', object: 'index (email:1) on users' },
         },
       },
     });
     expect(result.ok ? undefined : result.failure.why).toMatch(
-      /^Before operation .* runs, it checks: index does not already exist on users\. That check failed/,
+      /^Before operation .* runs, it checks: index does not already exist on users\. That check failed: the database already has index \(email:1\) on users\.$/,
     );
   });
 

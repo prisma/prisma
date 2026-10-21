@@ -288,6 +288,10 @@ function formatKeys(keys: ReadonlyArray<MongoIndexKey>): string {
   return keys.map((k) => `${k.field}:${k.direction}`).join(', ');
 }
 
+function indexObject(collectionName: string, keys: ReadonlyArray<MongoIndexKey>): string {
+  return `index (${formatKeys(keys)}) on ${collectionName}`;
+}
+
 function isTextIndex(keys: ReadonlyArray<MongoIndexKey>): boolean {
   return keys.some((k) => k.direction === 'text');
 }
@@ -447,6 +451,7 @@ export function createIndex(
         source: new ListIndexesCommand(collectionName),
         filter,
         expect: 'notExists',
+        object: indexObject(collectionName, keys),
       },
     ],
     execute: [
@@ -486,6 +491,7 @@ export function dropIndex(
         source: new ListIndexesCommand(collectionName),
         filter,
         expect: 'exists',
+        object: indexObject(collectionName, keys),
       },
     ],
     execute: [
@@ -500,6 +506,7 @@ export function dropIndex(
         source: new ListIndexesCommand(collectionName),
         filter,
         expect: 'notExists',
+        object: indexObject(collectionName, keys),
       },
     ],
   };
@@ -521,6 +528,7 @@ export function createCollection(
         source: new ListCollectionsCommand(),
         filter: f.name.eq(collectionName),
         expect: 'notExists',
+        object: `collection ${collectionName}`,
       },
     ],
     execute: [
@@ -556,6 +564,7 @@ function collectionCheck(name: string, expect: 'exists' | 'notExists') {
     source: new ListCollectionsCommand(),
     filter: MongoFieldFilter.eq('name', name),
     expect,
+    object: `collection ${name}`,
   };
 }
 
@@ -633,6 +642,7 @@ export function collMod(
               source: new ListCollectionsCommand(),
               filter: MongoFieldFilter.eq('name', collectionName),
               expect: 'exists' as const,
+              object: `collection ${collectionName}`,
             },
           ]
         : [],

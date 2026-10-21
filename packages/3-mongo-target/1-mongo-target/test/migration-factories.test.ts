@@ -162,12 +162,14 @@ describe('renameCollection', () => {
       source: new ListCollectionsCommand(),
       filter: MongoFieldFilter.eq('name', 'profiles'),
       expect,
+      object: 'collection profiles',
     });
     const targetIs = (expect: 'exists' | 'notExists') => ({
       description: 'collection users exists',
       source: new ListCollectionsCommand(),
       filter: MongoFieldFilter.eq('name', 'users'),
       expect,
+      object: 'collection users',
     });
 
     expect(renameCollection('profiles', 'users')).toEqual({
@@ -585,6 +587,7 @@ describe('serialization round-trip', () => {
           source: new ListIndexesCommand('users'),
           filter: MongoFieldFilter.eq('key', keysToKeySpec(keys)),
           expect: 'notExists',
+          object: 'index (email:1) on users',
         },
       ],
       execute: [
