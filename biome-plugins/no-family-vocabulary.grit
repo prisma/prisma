@@ -89,7 +89,7 @@
 //
 // Severity is "info" so the plugin runs without breaking existing builds
 // (hundreds of pre-existing sites). The CI ratchet
-// (scripts/lint-framework-vocabulary.mjs) enforces the threshold by counting
+// (scripts/lint-ratchets.mjs) enforces the threshold by counting
 // these diagnostics from biome's JSON reporter, deduplicated by file and line;
 // "info" entries still appear there with the distinctive
 // `no-family-vocabulary: ` prefix.
