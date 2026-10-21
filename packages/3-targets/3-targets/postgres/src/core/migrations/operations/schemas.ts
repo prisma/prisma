@@ -1,8 +1,10 @@
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   schemaExistsAst,
   schemaHoldsNoObjectsAst,
   tableExistsAst,
+  unboundTableMovedAst,
 } from '../../../contract-free/checks';
 import * as contractFreeDdl from '../../../contract-free/ddl';
 import { boundSchema } from '../bound-schema';
@@ -29,7 +31,11 @@ export async function setTableSchema(
     }),
   );
   const toPresent = await lowerer.lowerToExecuteRequest(to.tablePresent());
-  const fromAbsent = await lowerer.lowerToExecuteRequest(from.tableAbsent());
+  const fromAbsent = await lowerer.lowerToExecuteRequest(
+    schemaName === UNBOUND_NAMESPACE_ID
+      ? unboundTableMovedAst(tableName, toSchemaName)
+      : from.tableAbsent(),
+  );
   return {
     id: `setTableSchema.${tableName}`,
     label: `Move table "${tableName}" to schema "${toSchemaName}"`,

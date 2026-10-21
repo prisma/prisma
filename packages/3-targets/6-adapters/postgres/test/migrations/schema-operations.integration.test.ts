@@ -7,7 +7,6 @@ import type {
   SqlMigrationPlanOperation,
   SqlMigrationPlanOperationStep,
 } from '@internal/family-sql/control';
-import { APP_SPACE_ID } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   DropSchemaCall,
@@ -25,6 +24,7 @@ import {
   createTestDatabase,
   familyInstance,
   frameworkComponents,
+  LEDGER_TEST_SPACE_ID,
   type PostgresControlDriver,
   postgresTargetDescriptor,
   resetDatabase,
@@ -50,6 +50,7 @@ describe('Postgres schema operations', { concurrent: false }, () => {
   beforeEach(async () => {
     driver = await createDriver(database.connectionString);
     await resetDatabase(driver);
+    await driver.query('reset search_path');
     await driver.query('drop schema if exists billing cascade');
     await driver.query('drop schema if exists finance cascade');
   }, testTimeout);
@@ -74,23 +75,27 @@ describe('Postgres schema operations', { concurrent: false }, () => {
     expect(await holds(op.postcheck), 'postchecks after').toEqual(op.postcheck.map(() => true));
   }
 
-  async function runnerResult(op: Op) {
+  /**
+   * Runs the operations through the runner in a space other than the application's, so the run
+   * does not compare the database with the fixture contract afterwards.
+   */
+  async function runnerResult(ops: readonly Op[], on: PostgresControlDriver = driver) {
     const plan = createMigrationPlan<PostgresPlanTargetDetails>({
       targetId: 'postgres',
-      spaceId: APP_SPACE_ID,
+      spaceId: LEDGER_TEST_SPACE_ID,
       origin: null,
       destination: toPlanContractInfo(contract),
-      operations: [op],
+      operations: ops,
       providedInvariants: [],
     });
     return postgresTargetDescriptor.createRunner(familyInstance).execute({
-      driver,
+      driver: on,
       perSpaceOptions: [
         {
-          space: APP_SPACE_ID,
+          space: LEDGER_TEST_SPACE_ID,
           plan,
           migrationEdges: synthEdges(plan),
-          driver,
+          driver: on,
           destinationContract: contract,
           policy: { allowedOperationClasses: ['additive', 'widening', 'destructive'] },
           frameworkComponents,
@@ -98,6 +103,56 @@ describe('Postgres schema operations', { concurrent: false }, () => {
       ],
     });
   }
+
+  async function operationsExecuted(
+    ops: readonly Op[],
+    on: PostgresControlDriver = driver,
+  ): Promise<number> {
+    const result = await runnerResult(ops, on);
+    if (!result.ok) throw new Error(`${result.failure.code}: ${result.failure.summary}`);
+    return result.value.perSpaceResults.reduce(
+      (sum, { value }) => sum + value.operationsExecuted,
+      0,
+    );
+  }
+
+  it('runs each operation once through the runner, and a second run executes nothing', {
+    timeout: testTimeout,
+  }, async () => {
+    await driver.query('create schema billing');
+    await driver.query('create schema finance');
+    await driver.query('create table billing.invoice (id int primary key)');
+    const move = await new SetTableSchemaCall('billing', 'invoice', 'finance').toOp(controlAdapter);
+    const rename = await new RenameSchemaCall('finance', 'accounts').toOp(controlAdapter);
+    const drop = await new DropSchemaCall('billing').toOp(controlAdapter);
+
+    for (const op of [move, rename, drop]) {
+      expect(await operationsExecuted([op]), `first run of ${op.id}`).toBe(1);
+      expect(await operationsExecuted([op]), `second run of ${op.id}`).toBe(0);
+    }
+    expect((await driver.query('select id from accounts.invoice')).rows).toEqual([]);
+    await driver.query('drop schema accounts cascade');
+  });
+
+  it('moves a table of the unbound namespace into a schema on the search path, and a second run executes nothing', {
+    timeout: testTimeout,
+  }, async () => {
+    await driver.query('create schema billing');
+    await driver.query('create table public.invoice (id int primary key)');
+    await driver.query('set search_path = billing, public');
+    expect((await driver.query('show search_path')).rows).toEqual([
+      { search_path: 'billing, public' },
+    ]);
+    const op = await new SetTableSchemaCall(UNBOUND_NAMESPACE_ID, 'invoice', 'billing').toOp(
+      controlAdapter,
+    );
+
+    expect(await operationsExecuted([op])).toBe(1);
+    expect(await operationsExecuted([op])).toBe(0);
+    expect(
+      (await driver.query("select to_regclass('billing.invoice') is not null as moved")).rows,
+    ).toEqual([{ moved: true }]);
+  });
 
   it('moves a table with its rows, primary key, index and sequence, and a foreign key from another table follows it', {
     timeout: testTimeout,
@@ -198,7 +253,7 @@ describe('Postgres schema operations', { concurrent: false }, () => {
     await driver.query('create schema billing');
     await driver.query('create table billing.invoice (id int primary key)');
 
-    const result = await runnerResult(await new DropSchemaCall('billing').toOp(controlAdapter));
+    const result = await runnerResult([await new DropSchemaCall('billing').toOp(controlAdapter)]);
 
     expect(result.ok).toBe(false);
     expect(result.assertNotOk()).toMatchObject({

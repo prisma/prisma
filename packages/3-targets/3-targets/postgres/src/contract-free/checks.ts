@@ -1,3 +1,4 @@
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SelectAst } from '@internal/sql-relational-core/ast';
 import {
   type CfExpr,
@@ -938,5 +939,17 @@ export function schemaHoldsNoObjectsAst(schema: string): SelectAst {
         cfExpr.notExists(objectsInSchema('pg_proc', 'pronamespace', schema)),
       ]),
     )
+    .build();
+}
+
+/**
+ * After a table of the unbound namespace moves to `toSchema`: the search path finds no table of that
+ * name, or finds only the moved one, which it does when `toSchema` is on the search path.
+ */
+export function unboundTableMovedAst(table: string, toSchema: string): SelectAst {
+  const found = toRegclass(checkNamespace(UNBOUND_NAMESPACE_ID).qualifyTable(table));
+  const moved = toRegclass(checkNamespace(toSchema).qualifyTable(table));
+  return exprSelect()
+    .project('result', found.isNull().or(found.eqExpr(moved)))
     .build();
 }

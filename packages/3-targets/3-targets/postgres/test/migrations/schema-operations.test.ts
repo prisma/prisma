@@ -5,6 +5,7 @@ import {
   schemaExistsAst,
   schemaHoldsNoObjectsAst,
   tableExistsAst,
+  unboundTableMovedAst,
 } from '../../src/contract-free/checks';
 import {
   PostgresAlterSchemaRename,
@@ -81,13 +82,14 @@ describe('setTableSchema', () => {
     });
   });
 
-  it('leaves the source unqualified for the unbound namespace', async () => {
+  it('leaves the source unqualified for the unbound namespace, and lets the search path find the moved table afterwards', async () => {
     const { lowerer, received } = recordingLowerer();
     await setTableSchema(UNBOUND_NAMESPACE_ID, 'invoice', 'billing', lowerer);
 
     expect(received).toContainEqual(
       new PostgresAlterTableSetSchema({ schema: undefined, table: 'invoice', to: 'billing' }),
     );
+    expect(received.at(-1)).toEqual(unboundTableMovedAst('invoice', 'billing'));
   });
 });
 
