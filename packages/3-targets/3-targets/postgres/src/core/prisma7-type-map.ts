@@ -29,10 +29,10 @@ import {
 import { postgresCodecDescriptorRegistry } from './registry';
 import { postgresPslTypeConstructors } from './type-constructors';
 
-/** A Prisma 8 constructor call: its name and its arguments as written. */
+/** A Prisma 8 constructor call: its name and the values of its arguments. */
 export interface ConstructorCall {
   readonly constructorName: string;
-  readonly args: readonly string[];
+  readonly args: readonly unknown[];
 }
 
 /** The data type and parameters of the column Prisma 7 creates. */
@@ -92,7 +92,7 @@ const marked = inferredTypeConstructors({
 });
 
 /**
- * The constructor marked `inferred` for the column's data type, with every parameter Prisma 7 gives the column as an argument. The reader builds a contract, so it keeps each parameter rather than the fewest arguments printed PSL writes (design 13.8).
+ * The constructor marked `inferred` for the column's data type, with every parameter Prisma 7 gives the column as an argument. The reader builds a contract, so it keeps each parameter rather than the fewest arguments printed PSL writes.
  */
 function mappingOf({ dataType, params }: Prisma7ColumnType): ConstructorCall {
   const markedConstructor = marked.get(dataType);
@@ -108,7 +108,7 @@ function mappingOf({ dataType, params }: Prisma7ColumnType): ConstructorCall {
       `No constructor marked inferred writes ${dataType} with these parameters.`,
     );
   }
-  return { constructorName: markedConstructor.path.join('.'), args: args.map(String) };
+  return { constructorName: markedConstructor.path.join('.'), args };
 }
 
 function mappingsOf(

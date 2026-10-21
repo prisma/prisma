@@ -183,9 +183,5 @@ export {
   readColumnDefault,
   readReportedDefault,
 } from '../core/reported-defaults';
-export {
-  temporalCodecPresetWithPrecision,
-  temporalStringAuthoringPresets,
-} from '../core/timestamp-now-generator';
 
 export default new SqlFamilyDescriptor();

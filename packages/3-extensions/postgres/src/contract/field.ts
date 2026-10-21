@@ -1,5 +1,5 @@
 import sqlFamilyPack from '@internal/family-sql/pack';
-import { assembleDataTypes } from '@internal/framework-components/codec';
+import { assembleDataTypeSupport } from '@internal/framework-components/authoring';
 import {
   type ComposedAuthoringHelpers,
   createComposedAuthoringHelpers,
@@ -7,13 +7,12 @@ import {
 import { assemblePostgresCodecRegistryWithBuiltins } from '@internal/target-postgres/codecs';
 import postgresPack from '@internal/target-postgres/pack';
 
-const dataTypeLookup = assembleDataTypes([postgresPack]).lookup;
+const { support } = assembleDataTypeSupport([sqlFamilyPack, postgresPack], () => undefined);
 
 const helpers = createComposedAuthoringHelpers({
   family: sqlFamilyPack,
   target: postgresPack,
-  codecLookup: assemblePostgresCodecRegistryWithBuiltins([], dataTypeLookup),
-  dataTypeLookup,
+  codecLookup: assemblePostgresCodecRegistryWithBuiltins([], support.lookup),
 });
 
 type PostgresHelpers = ComposedAuthoringHelpers<

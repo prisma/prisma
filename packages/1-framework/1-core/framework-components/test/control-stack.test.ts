@@ -170,7 +170,6 @@ describe('assembleAuthoringContributions', () => {
     const result = assembleAuthoringContributions([createDescriptor()]);
     expect(result).toEqual({
       dataTypes: {},
-      textDataTypes: [],
       field: {},
       type: {},
       entityTypes: {},
@@ -1491,7 +1490,6 @@ describe('createControlStack', () => {
     expect(state.extensionIds).toEqual(['fam', 'tgt']);
     expect(state.authoringContributions).toEqual({
       dataTypes: {},
-      textDataTypes: [],
       field: {},
       type: {},
       entityTypes: {},
@@ -1530,7 +1528,7 @@ describe('createControlStack', () => {
               sql: {
                 String: {
                   kind: 'typeConstructor',
-                  args: [{ kind: 'number', name: 'length' }],
+                  args: [{ kind: 'value', dataType: stubDataType.id, name: 'length' }],
                   output: { codecId: 'sql/varchar@1' },
                 },
               },
@@ -1541,6 +1539,15 @@ describe('createControlStack', () => {
           kind: 'target',
           id: 'tgt',
           dataTypes: [stubDataType],
+          authoring: {
+            dataTypes: {
+              [stubDataType.id]: {
+                written: { kind: 'tag', tag: 'stub', parse: (text: string) => text },
+                print: String,
+                documentation: 'A stub value.',
+              },
+            },
+          },
           types: {
             codecTypes: {
               codecDescriptors: ['sql/varchar@1', 'pg/text@1', 'pg/int4@1'].map(registeredCodec),

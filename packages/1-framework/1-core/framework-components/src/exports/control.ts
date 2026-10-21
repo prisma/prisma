@@ -121,16 +121,15 @@ export type {
   AssembledAuthoringContributions,
   ControlStack,
   CreateControlStackInput,
-  DataTypeInvariantInput,
+  HelperCodecInvariantInput,
 } from '../control/control-stack';
 export {
   assembleAuthoringContributions,
-  assembleAuthoringDataTypes,
   assembleControlMutationDefaults,
   assertUniqueCodecOwner,
   buildExtensionLoadOrder,
   createControlStack,
-  enforceDataTypeInvariants,
+  enforceHelperCodecInvariants,
   extractCodecLookup,
   extractCodecTypeImports,
   extractComponentIds,

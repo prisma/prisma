@@ -504,7 +504,6 @@ export function buildBoundContract(
         target,
         extensions: definition.extensions,
         codecLookup: definition.codecLookup,
-        dataTypeLookup: definition.dataTypeLookup,
       }),
     );
     const mergedEnums = { ...(definition.enums ?? {}), ...built.enums };

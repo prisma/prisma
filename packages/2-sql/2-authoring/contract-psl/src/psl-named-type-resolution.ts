@@ -1,3 +1,4 @@
+import type { DataTypeSupport } from '@internal/framework-components/authoring';
 import { instantiateAuthoringTypeConstructor } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type {
@@ -27,6 +28,7 @@ export interface ResolveNamedTypeDeclarationsInput {
   readonly binder: Binder;
   readonly enumTypeDescriptors: ReadonlyMap<BlockSymbol, ColumnDescriptor>;
   readonly codecLookup: CodecLookupWithDescriptors;
+  readonly dataTypes: DataTypeSupport;
   readonly diagnostics: PslDiagnosticCollector;
 }
 
@@ -128,6 +130,7 @@ export function resolveNamedTypeDeclarations(input: ResolveNamedTypeDeclarations
         diagnostics: input.diagnostics,
         source,
         entityLabel: `Named type "${declaration.name}"`,
+        dataTypes: input.dataTypes,
       });
       if (!storageType) {
         continue;

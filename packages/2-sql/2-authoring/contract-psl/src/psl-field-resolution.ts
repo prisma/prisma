@@ -412,6 +412,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       ...ifDefined('namespaceExtensionEntities', namespaceExtensionEntities),
       binder,
       codecLookup,
+      dataTypes,
     };
 
     if (isValueObjectField) {

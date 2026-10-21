@@ -118,7 +118,7 @@ flowchart TD
 - Used in `contract.d.ts` generation
 
 **Column Types Export (`column-types.ts`)**
-- Exports column descriptors for built-in types: `textColumn`, `integerColumn`, `realColumn`, `blobColumn`, `datetimeColumn`, `jsonColumn`, `bigintColumn`, and `rawColumn(sql)` for a column of any other type, written as given (ADR 273)
+- Exports column descriptors for built-in types: `textColumn`, `integerColumn`, `realColumn`, `blobColumn`, `datetimeColumn`, `jsonColumn`, `bigintColumn`, and ``rawColumn(sql`geometry`)`` for a column of any other type, its type written as a `sql` literal and used as given (ADR 273)
 - Uses `as const` to preserve literal `codecId` types through the type system
 
 **Types Export (`types.ts`)**

@@ -251,7 +251,7 @@ type ErroredEnvelope = {
 
 ## Banning bare throws
 
-A `throw new Error(...)` is neither a structured failure nor a labeled bug — it is an unrecognizable string. A Biome GritQL plugin `no-bare-throw.grit` flags `throw new Error(` at severity `info`, and a CI ratchet (`scripts/lint-throws.mjs`, modeled on the cast ratchet) counts the diagnostics at HEAD versus the merge base and fails if the count rises. The count only falls; each sweep converts a cluster to `StructuredError` (user-facing) or `InternalError` (bug) and ratchets down.
+A `throw new Error(...)` is neither a structured failure nor a labeled bug — it is an unrecognizable string. A Biome GritQL plugin `no-bare-throw.grit` flags `throw new Error(` at severity `info`, and a CI ratchet (`scripts/lint-ratchets.mjs`, shared with the cast ratchet) counts the diagnostics at HEAD versus the merge base and fails if the count rises. The count only falls; each sweep converts a cluster to `StructuredError` (user-facing) or `InternalError` (bug) and ratchets down.
 
 Scope of the ban:
 

@@ -65,7 +65,6 @@ function contextForInterpretOptions(
       pslBlockDescriptors: authoring?.pslBlockDescriptors ?? {},
       modelAttributes: authoring?.modelAttributes ?? {},
       attributeSpecs: authoring?.attributeSpecs ?? mongoAttributeSpecs,
-      textDataTypes: [],
       dataTypes: authoring?.dataTypes ?? {},
     },
     pslDiagnostics: {

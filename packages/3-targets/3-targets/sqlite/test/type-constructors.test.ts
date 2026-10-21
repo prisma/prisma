@@ -11,10 +11,20 @@ import sqliteTargetPack from '../src/exports/pack';
 describe('the type constructors the SQLite target contributes', () => {
   it('are only the target’s own; the adapter contributes the base scalars', () => {
     expect(sqliteTargetPack.authoring.type).toBe(sqliteAuthoringTypes);
-    expect(Object.keys(sqliteAuthoringTypes)).toEqual(['BigIntNumber']);
+    expect(Object.keys(sqliteAuthoringTypes)).toEqual(['sql', 'BigIntNumber']);
   });
 
-  const allConstructors = { ...sqliteAuthoringTypes, ...sqlitePslTypeConstructors };
+  it('contributes the family’s sql.String, whose length is a value of sqlite/real', () => {
+    expect(sqliteAuthoringTypes.sql.String.args).toEqual([
+      { kind: 'value', dataType: 'sqlite/real', name: 'length' },
+    ]);
+  });
+
+  const allConstructors = {
+    ...sqliteAuthoringTypes.sql,
+    BigIntNumber: sqliteAuthoringTypes.BigIntNumber,
+    ...sqlitePslTypeConstructors,
+  };
 
   const scalarNames = [
     ['String', 'sqlite/text@1', 'text'],

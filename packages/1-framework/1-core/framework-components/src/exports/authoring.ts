@@ -7,6 +7,14 @@ export {
   authoringTypeConstructors,
   findAuthoringTypeConstructorCall,
 } from '../shared/authoring-type-constructor-call';
+export type {
+  AssembledDataTypeSupport,
+  DataTypeComponent,
+} from '../shared/data-type-support';
+export {
+  assembleAuthoringDataTypes,
+  assembleDataTypeSupport,
+} from '../shared/data-type-support';
 export {
   type EnumBlockDiagnostic,
   type EnumBlockMember,
@@ -58,6 +66,8 @@ export type {
   AuthoringTypeConstructorDescriptor,
   AuthoringTypeConstructorEntityRef,
   AuthoringTypeNamespace,
+  AuthoringTypeParamsIssue,
+  AuthoringValueArgument,
   AuthoringWarning,
   AuthoringWarningSink,
   DataTypeAuthoringEntry,
@@ -74,6 +84,7 @@ export {
   instantiateAuthoringEntityType,
   instantiateAuthoringFieldPreset,
   instantiateAuthoringTypeConstructor,
+  instantiateAuthoringTypeConstructorFromValues,
   isAuthoringArgRef,
   isAuthoringEntityTypeDescriptor,
   isAuthoringFieldPresetDescriptor,
@@ -136,5 +147,6 @@ export {
   exactRewrite,
   knownTags,
   readWrittenValue,
+  readWrittenValueAs,
   tagForm,
 } from '../shared/written-value';

@@ -203,6 +203,16 @@ model Widget {
         diagnosticCodes: ['PSL_UNRESOLVED_REFERENCE'],
       },
       {
+        name: 'a type-constructor argument with no value',
+        text: `// use prisma-8
+model Widget {
+  id Int @id @default(autoincrement())
+  label VarChar(length: )
+}`,
+        exitCode: 2,
+        diagnosticCodes: ['PSL_INVALID_ATTRIBUTE_ARGUMENT'],
+      },
+      {
         name: 'unbound models next to a named namespace',
         text: `// use prisma-8
 namespace unbound {
