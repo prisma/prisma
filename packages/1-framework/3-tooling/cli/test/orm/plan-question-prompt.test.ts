@@ -256,4 +256,66 @@ describe('a namespace rename typed at the prompt, then planned again', () => {
     ]);
     expect(asked).toEqual(['billing.Receipt', 'finance.Invoice.note']);
   });
+
+  it('asks again about a model of the namespace that also changed its name', async () => {
+    const renamedOrigin = contractOf({
+      app: { models: { User: {} } },
+      billing: { models: { Invoice: {}, Receipt: {} } },
+    });
+    const renamedDestination = contractOf({
+      app: { models: { User: {} } },
+      finance: { models: { Bill: {}, Receipt: {} } },
+    });
+    const drop = (model: string, operationIndex: number) => ({
+      operationIndex,
+      label: `Drop table "${model}"`,
+      loss: 'drop' as const,
+      subject: { kind: 'model' as const, namespaceId: billing, model },
+    });
+    const first: PlannedQuestions = {
+      dataLoss: [drop('Invoice', 0), drop('Receipt', 1)],
+      accessChanges: [],
+    };
+    const asked: string[] = [];
+    const prompt = {
+      statements: vi.fn(async (questions: readonly { readonly subject: string }[]) => {
+        asked.push(...questions.map(({ subject }) => subject));
+        return questions.map(() =>
+          asked.length === 1
+            ? { verb: 'rename', text: 'billing:finance', values: [] }
+            : { verb: 'rename', text: 'billing.Invoice:finance.Bill', values: [] },
+        );
+      }),
+    } as unknown as PromptSurface;
+    const statements: StatementSurface = {
+      take: vi.fn(() => []) as StatementSurface['take'],
+      values: () => [],
+    };
+
+    const outcome = await askPlanQuestions({
+      plan: first,
+      askAccess: false,
+      canConvert: false,
+      statements: [],
+      preAnswers: [],
+      consentAll: { delete: false, allow: false },
+      origin: renamedOrigin,
+      originKnown: true,
+      destination: renamedDestination,
+      defaultNamespaceId: 'public',
+      answer: promptPlanQuestions(prompt, statements),
+      replan: async (planned) =>
+        ok(
+          planned.length === 1
+            ? { dataLoss: [drop('Invoice', 0)], accessChanges: [] }
+            : { dataLoss: [], accessChanges: [] },
+        ),
+    });
+
+    expect(outcome.ok && outcome.value.statements.map(({ text }) => text)).toEqual([
+      'billing:finance',
+      'billing.Invoice:finance.Bill',
+    ]);
+    expect(asked).toEqual(['billing.Invoice', 'billing.Invoice']);
+  });
 });
