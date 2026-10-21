@@ -176,6 +176,7 @@ function resolveDeclaredTypeAliases(
     binder: input.binder,
     sources: input.sources,
     diagnostics: input.diagnostics,
+    typeNoun: 'column type',
     describeUnsupportedAttribute: describeUnsupportedSqlAliasAttribute,
   });
   const resolved = new Map<NamedTypeSymbol, ResolvedTypeAlias>();

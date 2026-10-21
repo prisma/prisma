@@ -212,12 +212,12 @@ model Post {
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
         message:
-          'Type alias "Key" cannot carry @id. @id and @unique describe a model\'s field, not a column type; write them on the field.',
+          'Type alias "Key" cannot carry @id. @id and @unique describe a model\'s field, not a field type; write them on the field.',
       },
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
         message:
-          'Type alias "Key" cannot carry @unique. @id and @unique describe a model\'s field, not a column type; write them on the field.',
+          'Type alias "Key" cannot carry @unique. @id and @unique describe a model\'s field, not a field type; write them on the field.',
       },
     ]);
   });

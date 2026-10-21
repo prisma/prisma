@@ -223,6 +223,7 @@ export function resolveMongoTypeAliases(input: ResolveMongoTypeAliasesInput): Mo
     binder: input.binder,
     sources: input.sources,
     diagnostics: input.diagnostics,
+    typeNoun: 'field type',
     acceptedAttributes: MONGO_TYPE_ALIAS_ATTRIBUTE_NAMES,
     describeUnsupportedAttribute: describeUnsupportedMongoAliasAttribute,
   });

@@ -71,6 +71,7 @@ function resolve(schema: string, options: ResolveOptions = {}) {
     binder,
     sources: pslSources,
     diagnostics,
+    typeNoun: 'column type',
     ...options,
   });
   const reported = () =>

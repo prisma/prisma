@@ -18,6 +18,7 @@ import type { Type } from 'arktype';
 import type { CodecLookupWithDescriptors } from './codec-types';
 import type { DataTypeId, DataTypeLookup } from './data-type';
 import type { GeneratorFunctionCall, GeneratorFunctionRegistry } from './generator-functions';
+import type { LoweredDefaultValue } from './mutation-default-types';
 import type { AuthoringOption } from './option-descriptor';
 import type { ParsedPslExtensionBlock, PslSpan } from './psl-extension-block';
 import { runtimeError } from './runtime-error';
@@ -181,7 +182,8 @@ export interface AuthoringTypeAliasDescriptor {
   readonly documentation?: string;
   readonly output: {
     readonly type: AuthoringStorageTypeTemplate;
-    readonly default?: AuthoringColumnDefaultTemplate;
+    /** The database default, as `@default(...)` lowers to. An alias takes no arguments, so it is written as stored. */
+    readonly default?: LoweredDefaultValue['defaultValue'];
     /** Resolved by the column's codec, as `@onCreate(fn())` is. Assembly refuses a call that does not resolve. */
     readonly onCreate?: GeneratorFunctionCall;
     readonly onUpdate?: GeneratorFunctionCall;
@@ -1949,7 +1951,7 @@ export function instantiateAuthoringTypeConstructor(
 /** What a field typed by a contributed type alias takes: the column type, and the alias's default and generator calls. */
 export interface AuthoringTypeAliasOutput {
   readonly type: ScalarTypeConstructorOutput;
-  readonly default?: ColumnDefault;
+  readonly default?: AuthoringTypeAliasDescriptor['output']['default'];
   readonly onCreate?: GeneratorFunctionCall;
   readonly onUpdate?: GeneratorFunctionCall;
 }
@@ -1960,12 +1962,7 @@ export function instantiateAuthoringTypeAlias(
   const { output } = descriptor;
   return {
     type: resolveAuthoringStorageTypeTemplate(output.type, []),
-    ...ifDefined(
-      'default',
-      output.default === undefined
-        ? undefined
-        : resolveAuthoringColumnDefaultTemplate(output.default, []),
-    ),
+    ...ifDefined('default', output.default),
     ...ifDefined('onCreate', output.onCreate),
     ...ifDefined('onUpdate', output.onUpdate),
   };

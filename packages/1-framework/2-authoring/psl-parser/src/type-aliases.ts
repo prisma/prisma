@@ -75,9 +75,10 @@ function baseOf(
 function fieldOnlyAttributeMessage(
   attribute: ResolvedAttribute<FieldAttributeAst>,
   declaration: NamedTypeSymbol,
+  typeNoun: string,
 ): string | undefined {
   return attribute.name === 'id' || attribute.name === 'unique'
-    ? `Type alias "${declaration.name}" cannot carry @${attribute.name}. @id and @unique describe a model's field, not a column type; write them on the field.`
+    ? `Type alias "${declaration.name}" cannot carry @${attribute.name}. @id and @unique describe a model's field, not a ${typeNoun}; write them on the field.`
     : undefined;
 }
 
@@ -89,6 +90,8 @@ export function resolveTypeAliases(input: {
   readonly binder: Binder;
   readonly sources: PslSources;
   readonly diagnostics: PslDiagnosticCollector;
+  /** The family's word for what a type alias stands for, in the refusal of `@id` and `@unique`. */
+  readonly typeNoun: string;
   /** The attributes the family lets a type alias carry; `TYPE_ALIAS_ATTRIBUTE_NAMES` by default. */
   readonly acceptedAttributes?: ReadonlySet<string>;
   /** The family's wording for an attribute no type alias takes, or `undefined` for the shared wording. */
@@ -137,7 +140,7 @@ export function resolveTypeAliases(input: {
         continue;
       }
       const message =
-        fieldOnlyAttributeMessage(attribute, declaration) ??
+        fieldOnlyAttributeMessage(attribute, declaration, input.typeNoun) ??
         input.describeUnsupportedAttribute?.(attribute, declaration) ??
         `Named type "${declaration.name}" uses unsupported attribute "${attribute.name}"`;
       input.diagnostics.push({
