@@ -41,6 +41,25 @@ export function invoiceTable(): StorageTable {
   });
 }
 
+/** The invoice table, with a `customerId` column whose foreign key references `customer`. */
+function invoiceTableReferencing(
+  namespaceId: string,
+  customer: { readonly namespace: string; readonly table: string },
+): StorageTable {
+  return new StorageTable({
+    columns: { id: int4, number: text, customerId: int4 },
+    primaryKey: { columns: ['id'] },
+    uniques: [{ columns: ['number'] }],
+    indexes: [],
+    foreignKeys: [
+      {
+        source: { namespaceId, tableName: 'Invoice', columns: ['customerId'] },
+        target: { namespaceId: customer.namespace, tableName: customer.table, columns: ['id'] },
+      },
+    ],
+  });
+}
+
 function paymentTable(
   paymentNamespace: string,
   invoiceNamespace: string,
@@ -83,6 +102,8 @@ export function contractWith(options: {
   readonly extraTables?: Readonly<Record<string, { namespace: string; table: StorageTable }>>;
   /** A select policy on the invoice table, by its wire name, with row-level security enabled. */
   readonly invoicePolicy?: string;
+  /** A table the invoice table's foreign key references, by its namespace and name. */
+  readonly invoiceReferences?: { readonly namespace: string; readonly table: string };
   readonly seed: string;
 }): Contract<SqlStorage> {
   const invoiceModel = options.invoiceModel ?? 'Invoice';
@@ -96,7 +117,13 @@ export function contractWith(options: {
   const add = (namespace: string, name: string, table: StorageTable) => {
     tables[namespace] = { ...tables[namespace], [name]: table };
   };
-  add(options.invoiceNamespace, invoiceTableName, invoiceTable());
+  add(
+    options.invoiceNamespace,
+    invoiceTableName,
+    options.invoiceReferences === undefined
+      ? invoiceTable()
+      : invoiceTableReferencing(options.invoiceNamespace, options.invoiceReferences),
+  );
   for (const [name, extra] of Object.entries(options.extraTables ?? {})) {
     add(extra.namespace, name, extra.table);
   }

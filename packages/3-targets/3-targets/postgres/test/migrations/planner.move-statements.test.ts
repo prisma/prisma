@@ -231,3 +231,27 @@ describe('Postgres planner, a model statement that moves the table to another na
     ]);
   });
 });
+
+describe('Postgres planner, a moved table whose foreign key references a table that stays', () => {
+  const customer = { namespace: 'billing', table: 'customer' };
+  const extraTables = { customer: { namespace: 'billing', table: receiptTable() } };
+  const from = contractWith({
+    invoiceNamespace: 'billing',
+    invoiceReferences: customer,
+    extraTables,
+    seed: 'references-from',
+  });
+  const to = contractWith({
+    invoiceNamespace: 'finance',
+    invoiceReferences: customer,
+    extraTables,
+    seed: 'references-to',
+  });
+
+  it('moves the table and plans nothing for its foreign key, which still references the table in the source schema', async () => {
+    expect(await labelsOf(plan(from, to, moveStatement('billing', 'finance')))).toEqual([
+      'Create schema "finance"',
+      'Move table "Invoice" to schema "finance"',
+    ]);
+  });
+});

@@ -402,10 +402,15 @@ export function moveTableInPostgresSchema(
       ...unchanged,
       policy: (policy) =>
         isMoved ? { ...unchanged.policy(policy), namespaceId: to } : unchanged.policy(policy),
-      foreignKey: (fk) =>
-        (fk.resolvedReferencedNamespace ?? tableSchema) === from && fk.referencedTable === tableName
-          ? { ...unchanged.foreignKey(fk), referencedSchema: to }
-          : unchanged.foreignKey(fk),
+      foreignKey: (fk) => {
+        const referencedSchema = fk.resolvedReferencedNamespace ?? tableSchema;
+        if (referencedSchema === from && fk.referencedTable === tableName) {
+          return { ...unchanged.foreignKey(fk), referencedSchema: to };
+        }
+        return isMoved && fk.resolvedReferencedNamespace === undefined
+          ? { ...unchanged.foreignKey(fk), referencedSchema }
+          : unchanged.foreignKey(fk);
+      },
     };
   });
   const source = rewritten.namespaces[from];
