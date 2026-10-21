@@ -41,7 +41,6 @@ function createParamTypesTestContract(
         codecId: string;
         nullable: boolean;
         typeParams?: Record<string, unknown>;
-        typeRef?: string;
       }
     >;
   }>,
@@ -89,10 +88,9 @@ describe('parameterized types', () => {
       const context = createTestContext(contract, createStubAdapter());
 
       expect(context.contract.storage.types).toEqual({});
-      expect(context.types).toEqual({});
     });
 
-    it('creates context with storage.types containing valid type instances', () => {
+    it('creates context with storage.types holding a registered database type', () => {
       const contract = createParamTypesTestContract({
         types: {
           Vector1536: {
@@ -113,131 +111,11 @@ describe('parameterized types', () => {
           typeParams: { length: 1536 },
         },
       });
-      // types registry should contain the raw type instance (no init hook provided)
-      expect(context.types['Vector1536']).toBeDefined();
     });
   });
 
-  describe('typeParams validation with paramsSchema', () => {
-    const vectorParamsSchema = arktype({
-      length: 'number',
-    });
-
-    function createVectorExtensionDescriptor(options?: {
-      paramsSchema?: Type<{ length: number }>;
-    }): SqlRuntimeExtensionDescriptor<'postgres'> {
-      const sharedCodec = vectorCodecInstance();
-      const parameterizedDescriptors: RuntimeParameterizedCodecDescriptor<{ length: number }>[] = [
-        {
-          codecId: 'pg/vector@1',
-          dataType: dataTypeId('pg/vector'),
-          traits: [],
-          paramsSchema: options?.paramsSchema ?? vectorParamsSchema,
-          isParameterized: true,
-          factory: (_params) => (_ctx) => sharedCodec,
-        },
-      ];
-
-      return {
-        kind: 'extension' as const,
-        id: 'pgvector',
-        version: '0.0.1',
-        familyId: 'sql' as const,
-        targetId: 'postgres' as const,
-        codecs: () => parameterizedDescriptors as unknown as ReadonlyArray<CodecDescriptor>,
-        create() {
-          return {
-            familyId: 'sql' as const,
-            targetId: 'postgres' as const,
-          };
-        },
-      };
-    }
-
-    it('validates typeParams against codec paramsSchema', () => {
-      const contract = createParamTypesTestContract({
-        types: {
-          Vector1536: {
-            kind: 'codec-instance',
-            codecId: 'pg/vector@1',
-            dataType: 'pgvector/vector',
-            typeParams: { length: 1536 },
-          },
-        },
-      });
-
-      const context = createTestContext(contract, createStubAdapter(), {
-        extensions: [createVectorExtensionDescriptor()],
-      });
-
-      expect(context.types['Vector1536']).toBeDefined();
-    });
-
-    it('rejects invalid typeParams with stable error code', () => {
-      const contract = createParamTypesTestContract({
-        types: {
-          InvalidVector: {
-            kind: 'codec-instance',
-            codecId: 'pg/vector@1',
-            dataType: 'pgvector/vector',
-            typeParams: { length: 'not-a-number' },
-          },
-        },
-      });
-
-      let thrownError: unknown;
-      try {
-        createTestContext(contract, createStubAdapter(), {
-          extensions: [createVectorExtensionDescriptor()],
-        });
-      } catch (e) {
-        thrownError = e;
-      }
-
-      expect(thrownError).toBeDefined();
-      expect(thrownError).toMatchObject({
-        code: 'RUNTIME.TYPE_PARAMS_INVALID',
-        category: 'RUNTIME',
-        severity: 'error',
-        details: {
-          codecId: 'pg/vector@1',
-          typeName: 'InvalidVector',
-        },
-      });
-    });
-
-    it('rejects missing required typeParams with stable error code', () => {
-      const contract = createParamTypesTestContract({
-        types: {
-          InvalidVector: {
-            kind: 'codec-instance',
-            codecId: 'pg/vector@1',
-            dataType: 'pgvector/vector',
-            typeParams: {},
-          },
-        },
-      });
-
-      let thrownError: unknown;
-      try {
-        createTestContext(contract, createStubAdapter(), {
-          extensions: [createVectorExtensionDescriptor()],
-        });
-      } catch (e) {
-        thrownError = e;
-      }
-
-      expect(thrownError).toBeDefined();
-      expect(thrownError).toMatchObject({
-        code: 'RUNTIME.TYPE_PARAMS_INVALID',
-        category: 'RUNTIME',
-        severity: 'error',
-      });
-    });
-  });
-
-  // The unified descriptor uses `factory: (P) => (CodecInstanceContext) => Codec`; per-instance state lives in the resolved codec returned by the factory. The `TypeHelperRegistry` (`context.types`) carries the resolved codec for every typed instance — or, for codec ids without a parameterized descriptor, the raw `StorageTypeInstance` for typeParams metadata.
-  describe('factory for type helpers', () => {
+  // The unified descriptor uses `factory: (P) => (CodecInstanceContext) => Codec`; per-instance state lives in the resolved codec returned by the factory.
+  describe('codec factory context', () => {
     function createPgVectorExt(opts?: {
       paramsSchema?: Type<{ length: number }>;
       factory?: (params: { length: number }) => (ctx: CodecInstanceContext) => Codec;
@@ -272,38 +150,7 @@ describe('parameterized types', () => {
       };
     }
 
-    it('calls factory(params)(ctx) and stores resolved codec in context.types', () => {
-      const taggedCodec = vectorCodecInstance({ dimensions: 1536, isVector: true });
-      const factory = (_params: { length: number }) => (_ctx: CodecInstanceContext) => taggedCodec;
-      const extensionDescriptor = createPgVectorExt({ factory });
-
-      const contract = createParamTypesTestContract({
-        types: {
-          Vector1536: {
-            kind: 'codec-instance',
-            codecId: 'pg/vector@1',
-            dataType: 'pgvector/vector',
-            typeParams: { length: 1536 },
-          },
-        },
-      });
-
-      const context = createTestContext(contract, createStubAdapter(), {
-        extensions: [extensionDescriptor],
-      });
-
-      expect(context.types['Vector1536']).toBe(taggedCodec);
-      // The factory returned the `taggedCodec` instance with its test-side `meta` sentinel; the runtime materialization path preserves the exact instance, so the sentinel is still there.
-      expect(
-        (
-          context.types['Vector1536'] as unknown as {
-            meta?: { dimensions?: number };
-          }
-        ).meta?.dimensions,
-      ).toBe(1536);
-    });
-
-    it('threads ctx (name + usedAt) through to the factory', () => {
+    it('names the codec instance of a column with type params after the column, even when a registered database type has equal params', () => {
       const observedCtxs: SqlCodecInstanceContext[] = [];
       const sharedCodec = vectorCodecInstance();
       // SQL extensions that read `usedAt` author against the SQL-extended ctx; the descriptor's factory slot is family-agnostic, so we cast through the base. This mirrors what production SQL extensions do (see `pgvector/src/exports/runtime.ts`'s family-agnostic cast).
@@ -331,7 +178,7 @@ describe('parameterized types', () => {
             dataType: 'pgvector/vector',
             codecId: 'pg/vector@1',
             nullable: false,
-            typeRef: 'Vector1536',
+            typeParams: { length: 1536 },
           },
         },
       });
@@ -340,33 +187,9 @@ describe('parameterized types', () => {
         extensions: [extensionDescriptor],
       });
 
-      // Locate the per-column factory call by the type-instance ctx the test contract declares.
-      const perColumnCtx = observedCtxs.find((ctx) => ctx.name === 'Vector1536');
-      expect(perColumnCtx?.name).toBe('Vector1536');
-      expect(perColumnCtx?.usedAt).toEqual([{ table: 'test', column: 'embedding' }]);
-    });
-
-    it('stores full type instance for codec ids without a parameterized descriptor', () => {
-      // No extension contributes a parameterized descriptor for `pg/vector@1`. The named instance can't be materialized; the helper falls back to the raw type instance for callers that need typeParams metadata.
-      const contract = createParamTypesTestContract({
-        types: {
-          Vector1536: {
-            kind: 'codec-instance',
-            codecId: 'pg/vector@1',
-            dataType: 'pgvector/vector',
-            typeParams: { length: 1536 },
-          },
-        },
-      });
-
-      const context = createTestContext(contract, createStubAdapter());
-
-      expect(context.types['Vector1536']).toEqual({
-        kind: 'codec-instance',
-        codecId: 'pg/vector@1',
-        dataType: 'pgvector/vector',
-        typeParams: { length: 1536 },
-      });
+      expect(observedCtxs).toEqual([
+        { name: '<col:test.embedding>', usedAt: [{ table: 'test', column: 'embedding' }] },
+      ]);
     });
   });
 

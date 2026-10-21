@@ -81,7 +81,6 @@ export type {
   SqlRuntimeExtensionInstance,
   SqlRuntimeTargetDescriptor,
   SqlStaticContributions,
-  TypeHelperRegistry,
 } from '../sql-context';
 export {
   createExecutionContext,

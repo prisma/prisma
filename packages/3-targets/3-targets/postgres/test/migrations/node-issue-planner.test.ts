@@ -1,10 +1,8 @@
 import { asNamespaceId } from '@internal/contract/types';
 import type { SchemaDiffIssue } from '@internal/framework-components/control';
 import { index } from '@internal/sql-contract/factories';
-import { toStorageTypeInstance } from '@internal/sql-contract/types';
 import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { SqlForeignKeyIR } from '@internal/sql-schema-ir/types';
-import { ifDefined } from '@internal/utils/defined';
 import { describe, expect, it } from 'vitest';
 import { postgresDataTypes } from '../../src/core/data-types';
 import { buildPostgresPlanDiff } from '../../src/core/migrations/diff-database-schema';
@@ -346,57 +344,6 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
     });
   });
 
-  it('checks a type change of a column that references a storage type against the catalog text of the referenced type', () => {
-    const contract = makeContract(
-      {
-        user: {
-          columns: {
-            id: { dataType: 'pg/uuid', codecId: 'pg/uuid@1', nullable: false },
-            visits: {
-              dataType: 'pg/int8',
-              codecId: 'pg/int8@1',
-              nullable: false,
-              typeRef: 'Count',
-            },
-          },
-          primaryKey: { columns: ['id'] },
-          foreignKeys: [],
-          uniques: [],
-          indexes: [],
-        },
-      },
-      { Count: toStorageTypeInstance({ codecId: 'pg/int8@1', dataType: 'pg/int8' }) },
-    );
-    const actual = rootOf({
-      user: new PostgresTableSchemaNode({
-        name: 'user',
-        columns: {
-          id: introspectedColumn({
-            name: 'id',
-            typeText: 'uuid',
-            nullable: false,
-          }),
-          visits: introspectedColumn({
-            name: 'visits',
-            typeText: 'int4',
-            nullable: false,
-          }),
-        },
-        primaryKey: { columns: ['id'] },
-        foreignKeys: [],
-        uniques: [],
-        indexes: [],
-        policies: [],
-        rlsEnabled: false,
-      }),
-    });
-    const [call] = planFor(contract, actual);
-    expect(call).toBeInstanceOf(AlterColumnTypeCall);
-    expect(
-      call instanceof AlterColumnTypeCall && { type: call.type, checkType: call.checkType },
-    ).toEqual({ type: 'int8', checkType: { kind: 'catalog-text', text: 'bigint' } });
-  });
-
   it.each([
     { from: 'tsvector', to: 'circle', checkType: 'circle' },
     { from: 'tsvector', to: 'character varying(10)', checkType: 'character varying(10)' },
@@ -453,31 +400,26 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
   );
 
   it.each([
-    { typeName: 'UserRole', typeRef: 'UserRole', checked: '"UserRole"' },
-    { typeName: 'UserRole', typeRef: undefined, checked: '"UserRole"' },
-    { typeName: 'user_role', typeRef: 'user_role', checked: '"user_role"' },
-    { typeName: 'user_role', typeRef: undefined, checked: '"user_role"' },
-    { typeName: 'select', typeRef: undefined, checked: '"select"' },
-    { typeName: 'app.status', typeRef: undefined, checked: '"app"."status"' },
+    { typeName: 'UserRole', checked: '"UserRole"' },
+    { typeName: 'user_role', checked: '"user_role"' },
+    { typeName: 'select', checked: '"select"' },
+    { typeName: 'app.status', checked: '"app"."status"' },
   ])(
-    'checks a type change to enum $typeName (typeRef $typeRef) by the identity of $checked',
-    ({ typeName, typeRef, checked }) => {
+    'checks a type change to enum $typeName by the identity of $checked',
+    ({ typeName, checked }) => {
       const enumType = { dataType: 'pg/enum', codecId: 'pg/enum@1', typeParams: { typeName } };
-      const contract = makeContract(
-        {
-          user: {
-            columns: {
-              id: { dataType: 'pg/uuid', codecId: 'pg/uuid@1', nullable: false },
-              role: { ...enumType, nullable: false, ...ifDefined('typeRef', typeRef) },
-            },
-            primaryKey: { columns: ['id'] },
-            foreignKeys: [],
-            uniques: [],
-            indexes: [],
+      const contract = makeContract({
+        user: {
+          columns: {
+            id: { dataType: 'pg/uuid', codecId: 'pg/uuid@1', nullable: false },
+            role: { ...enumType, nullable: false },
           },
+          primaryKey: { columns: ['id'] },
+          foreignKeys: [],
+          uniques: [],
+          indexes: [],
         },
-        typeRef === undefined ? undefined : { [typeRef]: toStorageTypeInstance(enumType) },
-      );
+      });
       const actual = rootOf({
         user: new PostgresTableSchemaNode({
           name: 'user',
@@ -559,7 +501,6 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
       schemaName: 'public',
       codecHooks: new Map(),
       types: postgresTypeLookups,
-      storageTypes: {},
       frameworkComponents: postgresTypeComponents,
       statementColumns: {
         convert: [
@@ -646,7 +587,6 @@ describe('mapNodeIssueToCall — synthesized namespace issue', () => {
       schemaName: 'public',
       codecHooks: new Map(),
       types: postgresTypeLookups,
-      storageTypes: {},
       schema: undefined as never,
       policy: { allowedOperationClasses: ['additive'] as const },
       frameworkComponents: postgresTypeComponents,
@@ -840,7 +780,6 @@ describe('mapNodeIssueToCall — table rlsEnabled drift', () => {
     schemaName: 'public',
     codecHooks: new Map(),
     types: postgresTypeLookups,
-    storageTypes: {},
     schema: undefined as never,
     policy: { allowedOperationClasses: ['additive', 'widening', 'destructive'] as const },
     frameworkComponents: postgresTypeComponents,
@@ -941,7 +880,6 @@ describe('operation-class gating of a RenameIndexCall', () => {
       schemaName: 'public',
       codecHooks: new Map(),
       types: postgresTypeLookups,
-      storageTypes: contract.storage.types ?? {},
       policy: { allowedOperationClasses: ['additive'] },
       strategies: [renameEmittingStrategy],
     });
@@ -995,7 +933,6 @@ describe('statement columns', () => {
       schemaName: 'public',
       codecHooks: new Map(),
       types: postgresTypeLookups,
-      storageTypes: {},
       statementColumns,
       strategies: [
         (issues, context) => {

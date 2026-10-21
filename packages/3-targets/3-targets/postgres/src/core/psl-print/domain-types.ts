@@ -8,15 +8,10 @@ import type {
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
 import type { InferredTypeConstructors } from '@internal/family-sql/psl-build';
 import { requiredParamKeys, validateCodecTypeParams } from '@internal/framework-components/codec';
-import type {
-  PslCompositeType,
-  PslField,
-  PslNamedTypeDeclaration,
-  PslTypesBlock,
-} from '@internal/framework-components/psl-ast';
+import type { PslCompositeType, PslField } from '@internal/framework-components/psl-ast';
 import { isSqlDataType } from '@internal/sql-contract/data-type';
 import type { SqlStorage } from '@internal/sql-contract/types';
-import { resolvedTypeParams, StorageColumn } from '@internal/sql-contract/types';
+import { nonEmptyTypeParams, StorageColumn } from '@internal/sql-contract/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { SYNTHETIC_SPAN } from '../psl-build/psl-literals';
@@ -46,7 +41,7 @@ function dataTypeOfMember(
   if (dataType === undefined || !isSqlDataType(dataType)) {
     refuseMemberCodecWithoutNativeType(codecId, coordinate);
   }
-  const typeParams = resolvedTypeParams(type, undefined);
+  const typeParams = nonEmptyTypeParams(type.typeParams);
   if (typeParams === undefined) {
     if (requiredParamKeys(dataType).length > 0) {
       refuseMemberCodecNeedingTypeParameters(codecId, coordinate);
@@ -142,39 +137,4 @@ export function buildCompositeTypes(input: {
       span: SYNTHETIC_SPAN,
     };
   });
-}
-
-/** The document's `types { … }` block, one declaration per named storage type. */
-export function buildTypesBlock(
-  contract: Contract<SqlStorage>,
-  inferredConstructors: InferredTypeConstructors,
-  context: SqlPslBuildContext,
-): PslTypesBlock | undefined {
-  const declarations: PslNamedTypeDeclaration[] = [];
-  for (const [name, instance] of Object.entries(contract.storage.types ?? {})) {
-    refuseUnwritableName('named type', name);
-    const { typeName, typeConstructor } = buildColumnType({
-      column: new StorageColumn({
-        dataType: instance.dataType,
-        codecId: instance.codecId,
-        nullable: false,
-        ...ifDefined('typeParams', instance.typeParams),
-      }),
-      inferredConstructors,
-      authoringTypes: context.authoringContributions.type,
-      dataTypeLookup: context.dataTypes.lookup,
-      enumBlockNames: new Map(),
-      coordinate: `types.${name}`,
-    });
-    declarations.push({
-      kind: 'namedType',
-      name,
-      ...(typeConstructor === undefined ? { baseType: typeName } : { typeConstructor }),
-      attributes: [],
-      span: SYNTHETIC_SPAN,
-    });
-  }
-  return declarations.length === 0
-    ? undefined
-    : { kind: 'types', declarations, span: SYNTHETIC_SPAN };
 }

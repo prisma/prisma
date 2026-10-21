@@ -286,8 +286,8 @@ function withSupabaseDescriptor(
 /**
  * Deserializes the Supabase extension's own emitted contract into a runtime
  * contract: namespaces hydrate into `PostgresSchema` instances (with
- * `qualifyTable`), and `typeRef` columns (`Timestamptz`, `Uuid`) resolve
- * through the codec registry. Exposed only via `service_role`'s `.supabase`
+ * `qualifyTable`), and each column resolves its codec through the codec
+ * registry. Exposed only via `service_role`'s `.supabase`
  * secondary root — never merged into the app contract.
  */
 function buildExtensionContract(): SupabaseExtensionContract {

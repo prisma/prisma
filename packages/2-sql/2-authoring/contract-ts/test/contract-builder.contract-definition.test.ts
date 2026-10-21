@@ -60,7 +60,7 @@ describe('shared contract definition lowering', () => {
                 columnName: 'role',
                 descriptor: {
                   codecId: 'app/test-enum@1',
-                  typeRef: 'Role',
+                  typeParams: { values: ['USER', 'ADMIN'] },
                 },
                 nullable: false,
                 many: false,

@@ -16,5 +16,5 @@ test('no value-object member carries a column name', () => {
 });
 
 test('a scalar member descriptor carries no storage part', () => {
-  expectTypeOf<Extract<keyof ScalarMemberNode['descriptor'], 'typeRef' | 'valueSet'>>().toBeNever();
+  expectTypeOf<Extract<keyof ScalarMemberNode['descriptor'], 'valueSet'>>().toBeNever();
 });

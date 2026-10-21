@@ -42,6 +42,7 @@ import { contractError } from './contract-errors';
 import { buildContractDefinition } from './contract-lowering';
 import type { SqlContractResult } from './contract-types';
 import type { EnumTypeHandle } from './enum-type';
+import { refuseTypesKey } from './refuse-types-key';
 
 export { buildSqlContractFromDefinition } from './build-contract';
 
@@ -128,16 +129,6 @@ type ContractFactory<
   readonly enums?: Enums;
   readonly entities?: readonly PackEntityHandle[];
 };
-
-function refuseTypesKey(definition: object): void {
-  if (!Object.hasOwn(definition, 'types')) return;
-  const types: unknown = Reflect.get(definition, 'types');
-  throw contractError(
-    'CONTRACT.TYPES_KEY_REMOVED',
-    'defineContract no longer takes a "types" key. Write a type alias as a constant, such as const Slug = field.column(type.VarChar(64)), and use it as a field. Register a database type of a contract space under "databaseTypes".',
-    { meta: { keys: typeof types === 'object' && types !== null ? Object.keys(types) : [] } },
-  );
-}
 
 function validateTargetPackRef(
   family: FamilyPackRef<string>,
@@ -505,7 +496,7 @@ export function buildBoundContract(
       })
     | undefined,
 ) {
-  refuseTypesKey(definition);
+  refuseTypesKey(definition, 'defineContract', 'databaseTypes');
   const full = { ...definition, family, target };
 
   if (factory !== undefined) {
@@ -518,7 +509,7 @@ export function buildBoundContract(
         dataTypeLookup: definition.dataTypeLookup,
       }),
     );
-    refuseTypesKey(built);
+    refuseTypesKey(built, 'defineContract', 'databaseTypes');
     const mergedEnums = { ...(definition.enums ?? {}), ...built.enums };
     const mergedEntities = [...(definition.entities ?? []), ...(built.entities ?? [])];
     return buildContractFromDsl({

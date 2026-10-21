@@ -46,15 +46,13 @@ export type NamingConfig = {
   readonly columns?: NamingStrategy;
 };
 
-type NamedStorageTypeRef = EnumTypeHandle;
-
 type NamedConstraintNameSpec<Name extends string = string> = {
   readonly name: Name;
 };
 
 export type ScalarFieldState<
   Descriptor extends ColumnTypeDescriptor = ColumnTypeDescriptor,
-  TypeRef extends NamedStorageTypeRef | undefined = undefined,
+  EnumHandle extends EnumTypeHandle | undefined = undefined,
   Nullable extends boolean = boolean,
   ColumnName extends string | undefined = string | undefined,
   IdSpec extends NamedConstraintSpec | undefined = undefined,
@@ -66,7 +64,7 @@ export type ScalarFieldState<
   /** Exists only in types: whether the column has a database default and whether the client generates a value on create. */
   readonly __defaultPresence?: Defaults;
   readonly descriptor?: Descriptor | undefined;
-  readonly typeRef?: TypeRef | undefined;
+  readonly enumHandle?: EnumHandle | undefined;
   readonly nullable: Nullable;
   readonly columnName?: ColumnName | undefined;
   readonly default?: AuthoredColumnDefault | undefined;
@@ -90,7 +88,7 @@ export type FieldGeneratorCalls = {
 type WithExecutionDefault<State extends AnyScalarFieldState> =
   State extends ScalarFieldState<
     infer Descriptor,
-    infer TypeRef,
+    infer EnumHandle,
     infer Nullable,
     infer ColumnName,
     infer IdSpec,
@@ -100,7 +98,7 @@ type WithExecutionDefault<State extends AnyScalarFieldState> =
   >
     ? ScalarFieldState<
         Descriptor,
-        TypeRef,
+        EnumHandle,
         Nullable,
         ColumnName,
         IdSpec,
@@ -145,7 +143,7 @@ function withColumnDefault<State extends AnyScalarFieldState>(
 type WithColumnDefault<State extends AnyScalarFieldState> =
   State extends ScalarFieldState<
     infer Descriptor,
-    infer TypeRef,
+    infer EnumHandle,
     infer Nullable,
     infer ColumnName,
     infer IdSpec,
@@ -155,7 +153,7 @@ type WithColumnDefault<State extends AnyScalarFieldState> =
   >
     ? ScalarFieldState<
         Descriptor,
-        TypeRef,
+        EnumHandle,
         Nullable,
         ColumnName,
         IdSpec,
@@ -168,7 +166,7 @@ type WithColumnDefault<State extends AnyScalarFieldState> =
 type AnyScalarFieldState = {
   readonly kind: 'scalar';
   readonly descriptor?: ColumnTypeDescriptor | undefined;
-  readonly typeRef?: NamedStorageTypeRef | undefined;
+  readonly enumHandle?: EnumTypeHandle | undefined;
   readonly nullable: boolean;
   readonly columnName?: string | undefined;
   readonly default?: AuthoredColumnDefault | undefined;
@@ -182,7 +180,7 @@ type AnyScalarFieldState = {
 type HasNamedConstraintId<State extends AnyScalarFieldState> =
   State extends ScalarFieldState<
     ColumnTypeDescriptor,
-    NamedStorageTypeRef | undefined,
+    EnumTypeHandle | undefined,
     boolean,
     string | undefined,
     infer IdSpec,
@@ -197,7 +195,7 @@ type HasNamedConstraintId<State extends AnyScalarFieldState> =
 type HasNamedConstraintUnique<State extends AnyScalarFieldState> =
   State extends ScalarFieldState<
     ColumnTypeDescriptor,
-    NamedStorageTypeRef | undefined,
+    EnumTypeHandle | undefined,
     boolean,
     string | undefined,
     NamedConstraintSpec | undefined,
@@ -224,7 +222,7 @@ type ApplyFieldSqlSpec<
 > =
   State extends ScalarFieldState<
     infer Descriptor,
-    infer TypeRef,
+    infer EnumHandle,
     infer Nullable,
     infer ColumnName,
     infer IdSpec,
@@ -234,7 +232,7 @@ type ApplyFieldSqlSpec<
   >
     ? ScalarFieldState<
         Descriptor,
-        TypeRef,
+        EnumHandle,
         Nullable,
         Spec extends { readonly column: infer NextColumn extends string } ? NextColumn : ColumnName,
         Spec extends { readonly id: { readonly name: infer IdName extends string } }
@@ -286,10 +284,10 @@ type DefaultLiteralOf<State> =
       ? readonly (DefaultInputOf<State> | NullElementOf<State>)[]
       : DefaultInputOf<State>;
 
-type EnumHandleOf<State> = State extends { readonly typeRef?: infer TypeRef }
-  ? string extends TypeRef
+type EnumHandleOf<State> = State extends { readonly enumHandle?: infer EnumHandle }
+  ? string extends EnumHandle
     ? never
-    : Extract<TypeRef, EnumTypeHandle>
+    : Extract<EnumHandle, EnumTypeHandle>
   : never;
 
 type DefaultArgumentOf<State> =
@@ -332,7 +330,7 @@ function sqlExpressionDefault(value: SqlExpression): AuthoredColumnDefault {
 type ApplyMany<State extends AnyScalarFieldState, ElementsNullable extends boolean> =
   State extends ScalarFieldState<
     infer Descriptor,
-    infer TypeRef,
+    infer EnumHandle,
     infer Nullable,
     infer ColumnName,
     infer IdSpec,
@@ -342,7 +340,7 @@ type ApplyMany<State extends AnyScalarFieldState, ElementsNullable extends boole
   >
     ? ScalarFieldState<
         Descriptor,
-        TypeRef,
+        EnumHandle,
         Nullable,
         ColumnName,
         IdSpec,
@@ -376,7 +374,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
   optional(): ScalarFieldBuilder<
     State extends ScalarFieldState<
       infer Descriptor,
-      infer TypeRef,
+      infer EnumHandle,
       boolean,
       infer ColumnName,
       infer IdSpec,
@@ -384,14 +382,23 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
       infer Many,
       infer Defaults
     >
-      ? ScalarFieldState<Descriptor, TypeRef, true, ColumnName, IdSpec, UniqueSpec, Many, Defaults>
+      ? ScalarFieldState<
+          Descriptor,
+          EnumHandle,
+          true,
+          ColumnName,
+          IdSpec,
+          UniqueSpec,
+          Many,
+          Defaults
+        >
       : AnyScalarFieldState
   > {
     return new ScalarFieldBuilder(
       blindCast<
         State extends ScalarFieldState<
           infer Descriptor,
-          infer TypeRef,
+          infer EnumHandle,
           boolean,
           infer ColumnName,
           infer IdSpec,
@@ -401,7 +408,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
         >
           ? ScalarFieldState<
               Descriptor,
-              TypeRef,
+              EnumHandle,
               true,
               ColumnName,
               IdSpec,
@@ -423,7 +430,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
   ): ScalarFieldBuilder<
     State extends ScalarFieldState<
       infer Descriptor,
-      infer TypeRef,
+      infer EnumHandle,
       infer Nullable,
       string | undefined,
       infer IdSpec,
@@ -433,7 +440,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
     >
       ? ScalarFieldState<
           Descriptor,
-          TypeRef,
+          EnumHandle,
           Nullable,
           ColumnName,
           IdSpec,
@@ -447,7 +454,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
       blindCast<
         State extends ScalarFieldState<
           infer Descriptor,
-          infer TypeRef,
+          infer EnumHandle,
           infer Nullable,
           string | undefined,
           infer IdSpec,
@@ -457,7 +464,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
         >
           ? ScalarFieldState<
               Descriptor,
-              TypeRef,
+              EnumHandle,
               Nullable,
               ColumnName,
               IdSpec,
@@ -528,7 +535,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
   ): ScalarFieldBuilder<
     State extends ScalarFieldState<
       infer Descriptor,
-      infer TypeRef,
+      infer EnumHandle,
       infer Nullable,
       infer ColumnName,
       NamedConstraintSpec | undefined,
@@ -538,7 +545,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
     >
       ? ScalarFieldState<
           Descriptor,
-          TypeRef,
+          EnumHandle,
           Nullable,
           ColumnName,
           NamedConstraintSpec<Name>,
@@ -552,7 +559,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
       blindCast<
         State extends ScalarFieldState<
           infer Descriptor,
-          infer TypeRef,
+          infer EnumHandle,
           infer Nullable,
           infer ColumnName,
           NamedConstraintSpec | undefined,
@@ -562,7 +569,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
         >
           ? ScalarFieldState<
               Descriptor,
-              TypeRef,
+              EnumHandle,
               Nullable,
               ColumnName,
               NamedConstraintSpec<Name>,
@@ -584,7 +591,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
   ): ScalarFieldBuilder<
     State extends ScalarFieldState<
       infer Descriptor,
-      infer TypeRef,
+      infer EnumHandle,
       infer Nullable,
       infer ColumnName,
       infer IdSpec,
@@ -594,7 +601,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
     >
       ? ScalarFieldState<
           Descriptor,
-          TypeRef,
+          EnumHandle,
           Nullable,
           ColumnName,
           IdSpec,
@@ -608,7 +615,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
       blindCast<
         State extends ScalarFieldState<
           infer Descriptor,
-          infer TypeRef,
+          infer EnumHandle,
           infer Nullable,
           infer ColumnName,
           infer IdSpec,
@@ -618,7 +625,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
         >
           ? ScalarFieldState<
               Descriptor,
-              TypeRef,
+              EnumHandle,
               Nullable,
               ColumnName,
               IdSpec,
@@ -820,7 +827,7 @@ const namedTypeField: NamedTypeFieldHelper = (handle) =>
       'literal object lacks explicit many; cast to the full ScalarFieldState so optional() conditional resolves Many = false'
     >({
       kind: 'scalar',
-      typeRef: handle,
+      enumHandle: handle,
       nullable: false,
       many: false,
     }),

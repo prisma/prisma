@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { testTypeLookups } from '../../../1-core/contract/test/test-type-lookups';
 import { createComposedAuthoringHelpers } from '../src/composed-authoring-helpers';
-import { defineContract } from '../src/contract-builder';
+import { buildSqlContractFromDefinition, defineContract } from '../src/contract-builder';
+import { buildContractDefinition } from '../src/contract-lowering';
 import { now } from '../src/default-functions';
 import { familyPack, targetPack as generatorTargetPack } from './helpers/generator-function-packs';
 import { unboundTables } from './unbound-tables';
@@ -277,6 +278,45 @@ describe('the types key', () => {
     } as const;
     expect(() => defineContract(definition)).toThrow(
       expect.objectContaining({ code: 'CONTRACT.TYPES_KEY_REMOVED', message }),
+    );
+  });
+
+  it('is refused by buildContractDefinition', () => {
+    const definition = {
+      ...scaffold,
+      types: { Slug: { kind: 'codec-instance', codecId: 'sql/varchar@1', typeParams: {} } },
+    };
+    expect(() => buildContractDefinition(definition)).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.TYPES_KEY_REMOVED',
+        message:
+          'buildContractDefinition no longer takes a "types" key. Write a type alias as a constant, such as const Slug = field.column(type.VarChar(64)), and use it as a field. Register a database type of a contract space under "databaseTypes".',
+        meta: { keys: ['Slug'] },
+      }),
+    );
+  });
+
+  it('is refused by buildSqlContractFromDefinition', () => {
+    const definition = {
+      warnings: undefined,
+      target: targetPack,
+      createNamespace: createTestSqlNamespace,
+      models: [],
+      types: { Slug: { kind: 'codec-instance', codecId: 'sql/varchar@1', typeParams: {} } },
+    };
+    expect(() =>
+      buildSqlContractFromDefinition(
+        definition,
+        testTypeLookups.codecLookup,
+        testTypeLookups.dataTypeLookup,
+      ),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.TYPES_KEY_REMOVED',
+        message:
+          'buildSqlContractFromDefinition no longer takes a "types" key. Write a type alias as a constant, such as const Slug = field.column(type.VarChar(64)), and use it as a field. Register a database type of a contract space under "storageTypes".',
+        meta: { keys: ['Slug'] },
+      }),
     );
   });
 });

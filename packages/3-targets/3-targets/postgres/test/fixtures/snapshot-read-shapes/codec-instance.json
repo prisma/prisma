@@ -22,7 +22,7 @@
                   "codecId": "pg/vector@1",
                   "dataType": "pgvector/vector",
                   "nullable": false,
-                  "typeRef": "Embedding1536"
+                  "typeParams": { "length": 1536 }
                 }
               },
               "foreignKeys": [],

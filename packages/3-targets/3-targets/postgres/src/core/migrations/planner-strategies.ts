@@ -141,7 +141,6 @@ export interface StrategyContext {
   readonly codecHooks: ReadonlyMap<string, CodecControlHooks>;
   /** The composed stack's codecs and data types, which write each column's type. */
   readonly types: TypeLookups;
-  readonly storageTypes: Readonly<Record<string, StorageTypeInstance>>;
   readonly schema: SqlSchemaIR;
   readonly policy: MigrationOperationPolicy;
   readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;

@@ -70,6 +70,7 @@ import {
 import { contractError } from './contract-errors';
 import { emitTypedCrossModelFallbackWarnings } from './contract-warnings';
 import { isEnumTypeHandle } from './enum-type';
+import { refuseTypesKey } from './refuse-types-key';
 import { toOneNullabilityContradictionMessage } from './to-one-nullability-message';
 
 type RuntimeModel = ContractModelBuilder<
@@ -113,8 +114,8 @@ function resolveFieldDescriptor(
     return withoutEmptyTypeParams(fieldState.descriptor);
   }
 
-  if ('typeRef' in fieldState && isEnumTypeHandle(fieldState.typeRef)) {
-    return { codecId: fieldState.typeRef.codecId };
+  if ('enumHandle' in fieldState && isEnumTypeHandle(fieldState.enumHandle)) {
+    return { codecId: fieldState.enumHandle.codecId };
   }
 
   throw contractError(
@@ -886,18 +887,13 @@ function resolveGeneratorCalls(input: {
   readonly fieldName: string;
   readonly fieldState: FieldStateOf<ScalarFieldBuilder>;
   readonly descriptor: ColumnTypeDescriptor;
-  readonly storageTypes: Record<string, AuthoredStorageTypeInstance>;
   readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly columnLength: ColumnLength;
 }): ExecutionMutationDefaultPhases | undefined {
   const { modelName, fieldName, fieldState, descriptor, generatorFunctions } = input;
   const calls = fieldState.generatorCalls;
   if (calls === undefined) return fieldState.executionDefaults;
-  const typeParams =
-    descriptor.typeParams ??
-    (descriptor.typeRef === undefined
-      ? undefined
-      : input.storageTypes[descriptor.typeRef]?.typeParams);
+  const typeParams = descriptor.typeParams;
   const column = {
     codecId: descriptor.codecId,
     typeParams,
@@ -955,7 +951,6 @@ function resolveGeneratorCalls(input: {
 function resolveModelNode(
   spec: RuntimeModelSpec,
   allSpecs: ReadonlyMap<string, RuntimeModelSpec>,
-  storageTypes: Record<string, AuthoredStorageTypeInstance>,
   generatorFunctions: GeneratorFunctionRegistry,
   columnLength: ColumnLength,
   extensions?: Record<string, ExtensionPackRef<'sql', string>>,
@@ -974,15 +969,14 @@ function resolveModelNode(
     fieldCodecIds[fieldName] = descriptor.codecId;
 
     const enumHandle =
-      'typeRef' in fieldState && isEnumTypeHandle(fieldState.typeRef)
-        ? fieldState.typeRef
+      'enumHandle' in fieldState && isEnumTypeHandle(fieldState.enumHandle)
+        ? fieldState.enumHandle
         : undefined;
     const executionDefaults = resolveGeneratorCalls({
       modelName: spec.modelName,
       fieldName,
       fieldState,
       descriptor,
-      storageTypes,
       generatorFunctions,
       columnLength,
     });
@@ -1194,14 +1188,7 @@ function lowerModels(
   emitTypedCrossModelFallbackWarnings(collection);
 
   return Array.from(collection.modelSpecs.values()).map((spec) =>
-    resolveModelNode(
-      spec,
-      collection.modelSpecs,
-      collection.storageTypes,
-      generatorFunctions,
-      columnLength,
-      extensions,
-    ),
+    resolveModelNode(spec, collection.modelSpecs, generatorFunctions, columnLength, extensions),
   );
 }
 
@@ -1352,6 +1339,7 @@ function lowerPackEntityHandles(
 }
 
 export function buildContractDefinition(definition: LoweringInput): ContractDefinition {
+  refuseTypesKey(definition, 'buildContractDefinition', 'databaseTypes');
   const collection = collectRuntimeModelSpecs(definition);
   const packs = [
     definition.family,

@@ -43,7 +43,7 @@ export {
   type AuthoredStorageTypeInstance,
   CODEC_INSTANCE_KIND,
   isStorageTypeInstance,
-  resolvedTypeParams,
+  nonEmptyTypeParams,
   type StorageTypeInstance,
   type StorageTypeInstanceInput,
   toStorageTypeInstance,

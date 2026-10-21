@@ -96,7 +96,7 @@ describe('SQL field types from the binder resolution', () => {
     expect(table?.primaryKey).toEqual({ columns: ['id'] });
   });
 
-  it('refuses a call to a named type', () => {
+  it('refuses a call to a type alias', () => {
     expect(
       diagnosticsOf(`types {
   Slug = String
@@ -111,7 +111,7 @@ model Doc {
       {
         code: 'PSL_UNSUPPORTED_FIELD_TYPE',
         message:
-          'Field "Doc.slug" calls "Slug", which is a named type, not a type constructor. Remove the arguments.',
+          'Field "Doc.slug" calls "Slug", which is a type alias, not a type constructor. Remove the arguments.',
       },
     ]);
   });

@@ -37,18 +37,10 @@ function emit(schema: string) {
   );
 }
 
-interface StorageTypeShape {
-  readonly kind: string;
-  readonly codecId: string;
-  readonly dataType: string;
-  readonly typeParams: Record<string, unknown>;
-}
-
 interface ColumnShape {
   readonly codecId: string;
   readonly dataType: string;
   readonly typeParams?: Record<string, unknown>;
-  readonly typeRef?: string;
   readonly many?: false | { readonly elementNullable: boolean };
 }
 
@@ -56,7 +48,7 @@ function storageOf(value: unknown) {
   return (
     value as {
       readonly storage: {
-        readonly types?: Record<string, StorageTypeShape>;
+        readonly types?: Record<string, unknown>;
         readonly namespaces: Record<
           string,
           {
@@ -78,6 +70,7 @@ function schemaFor(bare: string, alias: string): string {
 
 model sample {
   id Int @id
+  viaAlias Alias
   viaNamed Named
   direct ${bare}
 }
@@ -352,30 +345,18 @@ describe('native types as bare scalar types — parity with the live bare-type p
     if (!result.ok) return;
 
     const storage = storageOf(result.value);
-    const aliasType = storage.types?.['Alias'];
-    const namedType = storage.types?.['Named'];
-
-    expect(aliasType).toEqual({ kind: 'codec-instance', ...expected });
-    expect(namedType).toEqual(aliasType);
-
     const columns = storage.namespaces['public']?.entries.table['sample']?.columns;
-    const direct = columns?.['direct'];
-    expect(direct).toBeDefined();
-    if (!direct || !aliasType) return;
+    const shape = (column: ColumnShape | undefined) => ({
+      dataType: column?.dataType,
+      codecId: column?.codecId,
+      typeParams: column?.typeParams ?? {},
+    });
     expect({
-      dataType: direct.dataType,
-      codecId: direct.codecId,
-      typeParams: direct.typeParams ?? {},
-    }).toEqual({
-      dataType: aliasType.dataType,
-      codecId: aliasType.codecId,
-      typeParams: aliasType.typeParams,
-    });
-
-    expect(columns?.['viaNamed']).toMatchObject({
-      codecId: expected.codecId,
-      typeRef: 'Named',
-    });
+      types: storage.types,
+      viaAlias: shape(columns?.['viaAlias']),
+      viaNamed: shape(columns?.['viaNamed']),
+      direct: shape(columns?.['direct']),
+    }).toEqual({ types: undefined, viaAlias: expected, viaNamed: expected, direct: expected });
   });
 
   it('lowers the Date updatedAt shorthand identically to explicit Date clock phases', () => {

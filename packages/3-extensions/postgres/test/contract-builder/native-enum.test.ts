@@ -87,7 +87,6 @@ describe('nativeEnum + pg.enum (TS native-enum authoring)', () => {
         entityName: 'Role',
       },
     });
-    expect(column?.typeRef).toBeUndefined();
     expect(ns.table['accounts']?.checks ?? []).toEqual([]);
   });
 
@@ -131,7 +130,6 @@ describe('nativeEnum + pg.enum (TS native-enum authoring)', () => {
         entityName: 'AalLevel',
       },
     });
-    expect(column?.typeRef).toBeUndefined();
     expect(ns.table['sessions']?.checks ?? []).toEqual([]);
   });
 

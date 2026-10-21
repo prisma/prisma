@@ -10,7 +10,7 @@
  * `codecId`), so the member tuple survives into the field's built state.
  * The field's type override is the `DescriptorValueSetUnion` read off that
  * descriptor (structurally, via `entityRef.entity.members`), as an enum
- * field's is the `EnumValueUnion` read off its `typeRef`.
+ * field's is the `EnumValueUnion` read off its enum handle.
  */
 import type {
   ExtractTypeMapsFromContract,

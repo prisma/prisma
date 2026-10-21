@@ -32,7 +32,7 @@ export function step(
 
 /**
  * Flat, fully-resolved column shape consumed by `createTable`, `addColumn`,
- * and `recreateTable`. Codec / `typeRef` / default expansion happens at the
+ * and `recreateTable`. Codec / default expansion happens at the
  * call-construction site (in the issue-planner / strategies) so the
  * operation factories deal only in pre-rendered SQL fragments — mirrors the
  * Postgres `ColumnSpec` pattern.

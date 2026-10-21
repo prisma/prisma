@@ -27,8 +27,8 @@ function vectorCodecLookup(): CodecLookup {
   };
 }
 
-describe('contract.d.ts types of a column typed by a named type', () => {
-  it('types the field by its domain type parameters and the column by its named type', () => {
+describe('contract.d.ts types of a column with type parameters', () => {
+  it('types the field by its domain type parameters and the column by its own', () => {
     const contract = createContract({
       models: {
         Post: {
@@ -59,20 +59,13 @@ describe('contract.d.ts types of a column typed by a named type', () => {
                 dataType: 'pgvector/vector',
                 codecId: 'pg/vector@1',
                 nullable: true,
-                typeRef: 'Embedding1536',
+                typeParams: { length: 1536 },
               },
             },
             primaryKey: { columns: ['id'] },
             uniques: [],
             indexes: [],
             foreignKeys: [],
-          },
-        },
-        types: {
-          Embedding1536: {
-            codecId: 'pg/vector@1',
-            dataType: 'pgvector/vector',
-            typeParams: { length: 1536 },
           },
         },
       },
@@ -95,7 +88,7 @@ describe('contract.d.ts types of a column typed by a named type', () => {
     );
   });
 
-  it('types the field by its domain type and the column by its named type when the two differ', () => {
+  it('types the field by its domain type and the column by its own when the two differ', () => {
     const contract = createContract({
       models: {
         Post: {
@@ -125,20 +118,13 @@ describe('contract.d.ts types of a column typed by a named type', () => {
                 dataType: 'pgvector/vector',
                 codecId: 'pg/vector@1',
                 nullable: false,
-                typeRef: 'Embedding1536',
+                typeParams: { length: 1536 },
               },
             },
             primaryKey: { columns: ['embedding'] },
             uniques: [],
             indexes: [],
             foreignKeys: [],
-          },
-        },
-        types: {
-          Embedding1536: {
-            codecId: 'pg/vector@1',
-            dataType: 'pgvector/vector',
-            typeParams: { length: 1536 },
           },
         },
       },
@@ -158,6 +144,42 @@ describe('contract.d.ts types of a column typed by a named type', () => {
     );
     expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
       'readonly embedding: { readonly output: Vector<1536> }',
+    );
+  });
+
+  it('writes the column with its own type parameters', () => {
+    const contract = createContract({
+      storage: {
+        tables: {
+          post: {
+            columns: {
+              embedding: {
+                dataType: 'pgvector/vector',
+                codecId: 'pg/vector@1',
+                nullable: true,
+                typeParams: { length: 1536 },
+              },
+            },
+            primaryKey: { columns: ['embedding'] },
+            uniques: [],
+            indexes: [],
+            foreignKeys: [],
+          },
+        },
+      },
+    });
+
+    const dts = generateContractDts(
+      contract,
+      sqlEmission,
+      [],
+      testHashes,
+      undefined,
+      vectorCodecLookup(),
+    );
+
+    expect(dts).toContain(
+      'readonly embedding: { readonly dataType: "pgvector/vector"; readonly codecId: "pg/vector@1"; readonly nullable: true; readonly typeParams: { readonly length: 1536 }; readonly many: false }',
     );
   });
 });

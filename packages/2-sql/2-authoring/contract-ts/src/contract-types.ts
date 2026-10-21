@@ -388,8 +388,8 @@ type FieldDescriptorOf<FieldState> = Present<
   FieldState extends { readonly descriptor?: infer Descriptor } ? Descriptor : never
 >;
 
-type FieldTypeRefOf<FieldState> = Present<
-  FieldState extends { readonly typeRef?: infer TypeRef } ? TypeRef : never
+type FieldEnumHandleOf<FieldState> = Present<
+  FieldState extends { readonly enumHandle?: infer EnumHandle } ? EnumHandle : never
 >;
 
 type FieldNullableOf<FieldState> = FieldState extends {
@@ -445,20 +445,13 @@ type DescriptorTypeParams<Descriptor> = Descriptor extends {
     : TypeParams
   : undefined;
 
-type DescriptorTypeRef<Descriptor> = Descriptor extends {
-  readonly typeRef: infer TypeRef extends string;
-}
-  ? TypeRef
-  : undefined;
-
-// An enum-typed field carries its `EnumTypeHandle` as the field's `typeRef`;
-// the resolvers read the codec straight off the handle. The
-// `[...] extends [never]` guard excludes plain column fields, whose `typeRef`
-// is `never`.
-type EnumFieldHandle<FieldState> = [FieldTypeRefOf<FieldState>] extends [never]
+// The resolvers read an enum-typed field's codec straight off its handle. The
+// `[...] extends [never]` guard excludes plain column fields, whose handle is
+// `never`.
+type EnumFieldHandle<FieldState> = [FieldEnumHandleOf<FieldState>] extends [never]
   ? never
-  : FieldTypeRefOf<FieldState> extends EnumTypeHandle
-    ? FieldTypeRefOf<FieldState>
+  : FieldEnumHandleOf<FieldState> extends EnumTypeHandle
+    ? FieldEnumHandleOf<FieldState>
     : never;
 
 type EnumHandleDescriptor<Handle> = Handle extends {
@@ -471,15 +464,7 @@ type ResolveFieldDescriptor<FieldState> = [EnumFieldHandle<FieldState>] extends 
   ? FieldDescriptorOf<FieldState>
   : EnumHandleDescriptor<EnumFieldHandle<FieldState>>;
 
-type ResolveFieldColumnTypeRef<FieldState> = [EnumFieldHandle<FieldState>] extends [never]
-  ? DescriptorTypeRef<FieldDescriptorOf<FieldState>>
-  : undefined;
-
-type ResolveFieldColumnTypeParams<FieldState> = [ResolveFieldColumnTypeRef<FieldState>] extends [
-  string,
-]
-  ? undefined
-  : DescriptorTypeParams<FieldDescriptorOf<FieldState>>;
+type ResolveFieldColumnTypeParams<FieldState> = DescriptorTypeParams<FieldDescriptorOf<FieldState>>;
 
 type ModelTableName<Definition, ModelName extends ModelNames<Definition>> = [
   Present<
@@ -573,7 +558,6 @@ type ModelIdName<Definition, ModelName extends ModelNames<Definition>> = [
 type StorageColumn<
   CodecId extends string,
   Nullable extends boolean,
-  TypeRef extends string | undefined = undefined,
   TypeParams extends Record<string, unknown> | undefined = undefined,
   Many extends false | { readonly elementNullable: boolean } = false,
   HasDefault extends boolean = false,
@@ -582,7 +566,6 @@ type StorageColumn<
   readonly codecId: CodecId;
   readonly nullable: Nullable;
 } & (HasDefault extends true ? { readonly default: ColumnDefault } : Record<never, never>) &
-  (TypeRef extends string ? { readonly typeRef: TypeRef } : Record<never, never>) &
   (TypeParams extends Record<string, unknown>
     ? { readonly typeParams: TypeParams }
     : Record<never, never>) & {
@@ -600,7 +583,6 @@ type ModelStorageColumn<
           ResolveFieldDescriptor<ModelFieldState<Definition, ModelName, FieldName>>
         >,
         FieldNullableOf<ModelFieldState<Definition, ModelName, FieldName>>,
-        ResolveFieldColumnTypeRef<ModelFieldState<Definition, ModelName, FieldName>>,
         ResolveFieldColumnTypeParams<ModelFieldState<Definition, ModelName, FieldName>>,
         FieldManyOf<ModelFieldState<Definition, ModelName, FieldName>>,
         FieldHasColumnDefault<ModelFieldState<Definition, ModelName, FieldName>>
@@ -1483,9 +1465,9 @@ type BuiltStorage<Definition> = {
 };
 
 // The enum value union for an enum-typed field, or `never` for a non-enum
-// field. The field's `typeRef` carries the authored `EnumTypeHandle`, whose
+// field. The field carries the authored `EnumTypeHandle`, whose
 // `Values` tuple preserves the literal member values (text or numeric).
-type EnumValueUnion<FieldState> = [FieldTypeRefOf<FieldState>] extends [
+type EnumValueUnion<FieldState> = [FieldEnumHandleOf<FieldState>] extends [
   EnumTypeHandle<string, infer Values>,
 ]
   ? readonly unknown[] extends Values

@@ -145,30 +145,6 @@ describe('the data type a built contract stores', () => {
     ).toMatchObject({ dataType: 't/enum', typeParams: { typeName: 'app.status' } });
   });
 
-  it('names the data type of a column that references a storage type from the storage type’s codec', () => {
-    expect(
-      columnsOf(
-        definitionWith(
-          [
-            {
-              fieldName: 'code',
-              columnName: 'code',
-              descriptor: { codecId: 't/varchar@1', typeRef: 'Code' },
-              nullable: false,
-            },
-          ],
-          {
-            Code: {
-              kind: 'codec-instance',
-              codecId: 't/varchar@1',
-              typeParams: { length: 8 },
-            },
-          },
-        ),
-      )?.['code'],
-    ).toMatchObject({ dataType: 't/varchar', typeRef: 'Code' });
-  });
-
   it('adds to each storage type the data type its codec represents', () => {
     const contract = buildSqlContractFromDefinition(
       definitionWith([], {
@@ -213,30 +189,6 @@ describe('the data type a built contract stores', () => {
         },
       }),
     );
-  });
-
-  it('refuses a column whose referenced storage type has parameters its data type does not accept', () => {
-    expect(() =>
-      columnsOf(
-        definitionWith(
-          [
-            {
-              fieldName: 'code',
-              columnName: 'code',
-              descriptor: { codecId: 't/varchar@1', typeRef: 'Code' },
-              nullable: false,
-            },
-          ],
-          {
-            Code: {
-              kind: 'codec-instance',
-              codecId: 't/varchar@1',
-              typeParams: { length: 0 },
-            },
-          },
-        ),
-      ),
-    ).toThrow(expect.objectContaining({ code: 'CONTRACT.TYPE_PARAMS_INVALID' }));
   });
 
   it('builds a storage type no column references without checking its parameters', () => {

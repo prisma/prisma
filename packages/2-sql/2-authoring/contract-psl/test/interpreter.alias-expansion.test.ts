@@ -277,4 +277,23 @@ model Post {
       },
     ]);
   });
+
+  it('refuses arguments on a field typed by an alias', () => {
+    expect(
+      diagnostics(`types {
+  Key = VarChar(8)
+}
+
+model Post {
+  id  Int @id
+  key Key(3)
+}`),
+    ).toEqual([
+      {
+        code: 'PSL_UNSUPPORTED_FIELD_TYPE',
+        message:
+          'Field "Post.key" calls "Key", which is a type alias, not a type constructor. Remove the arguments.',
+      },
+    ]);
+  });
 });

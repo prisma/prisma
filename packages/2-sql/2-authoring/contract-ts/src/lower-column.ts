@@ -6,9 +6,8 @@ import {
   validateSqlTypeParams,
 } from '@internal/sql-contract/data-type';
 import {
-  type AuthoredStorageTypeInstance,
   CheckConstraint,
-  resolvedTypeParams,
+  nonEmptyTypeParams,
   type StorageColumn,
 } from '@internal/sql-contract/types';
 import { composeCheckWirePrefix, computeCheckContentHash } from '@internal/sql-schema-ir/naming';
@@ -78,7 +77,6 @@ function validateColumnTypeParams(
 
 export interface ColumnLoweringContext {
   readonly lookups: TypeLookups<CodecLookupWithDescriptors>;
-  readonly storageTypes: Record<string, AuthoredStorageTypeInstance>;
   readonly defaultNamespaceId: string;
   readonly qualifyColumnType: ColumnTypeQualifier | undefined;
   readonly renderCheckExpressions: CheckExpressionRenderer | undefined;
@@ -124,7 +122,7 @@ export function lowerColumn(
   const elementNullable = many !== false && many.elementNullable;
 
   const codecId = descriptor.codecId;
-  const typeParams = resolvedTypeParams(descriptor, context.storageTypes);
+  const typeParams = nonEmptyTypeParams(descriptor.typeParams);
   const dataType = sqlDataTypeOfCodec(codecId, context.lookups);
   validateColumnTypeParams(dataType, typeParams, site);
   const encodedDefault =
@@ -153,7 +151,6 @@ export function lowerColumn(
     many,
     ...ifDefined('typeParams', descriptor.typeParams),
     ...ifDefined('default', encodedDefault),
-    ...ifDefined('typeRef', descriptor.typeRef),
     ...ifDefined('valueSet', valueSet),
   };
 
