@@ -49,11 +49,12 @@ export interface PlanAnswer {
  * Asks every question at once and returns one answer per question, in question order, with a verb
  * and text the question accepts. To refuse, throw. It is called at least once per apply, with an
  * empty list when nothing is in question, including under `acceptDataLoss: true`; return `[]`
- * then.
+ * then. Beside a `rename` or `convert` answer, which plans again, a question may be left
+ * `undefined`: it is asked again, as the new plan has it.
  */
 export type AnswerPlanQuestions = (
   questions: readonly PlanQuestion[],
-) => Promise<readonly PlanAnswer[]>;
+) => Promise<readonly (PlanAnswer | undefined)[]>;
 
 /**
  * An operation of a plan with its subject and the label of that operation. `operationIndex` is
@@ -111,18 +112,36 @@ function sameModel(left: ModelCoordinate, right: ModelCoordinate): boolean {
   return left.namespaceId === right.namespaceId && left.model === right.model;
 }
 
-/** The model a rename statement of `contracts` gives `coordinate` in the destination, if any. */
+/**
+ * The model a rename statement of `contracts` gives `coordinate` in the destination, if any: a
+ * rename of the model, or else a rename of its namespace, under which the model keeps its name when
+ * the destination has it there.
+ */
 function renamedModel(
   coordinate: ModelCoordinate,
   contracts: StatementContracts,
 ): ModelCoordinate | undefined {
-  for (const statement of resolvedRenames(contracts)) {
+  const renames = resolvedRenames(contracts);
+  for (const statement of renames) {
     if (
       statement.kind === 'rename' &&
       statement.entity === 'model' &&
       sameModel(statement.from, coordinate)
     ) {
       return statement.to;
+    }
+  }
+  for (const statement of renames) {
+    if (
+      statement.kind === 'rename' &&
+      statement.entity === 'namespace' &&
+      statement.from === coordinate.namespaceId
+    ) {
+      const moved = { namespaceId: statement.to, model: coordinate.model };
+      const destinationHas =
+        contracts.destination?.domain.namespaces[moved.namespaceId]?.models[moved.model] !==
+        undefined;
+      return destinationHas ? moved : undefined;
     }
   }
   return undefined;
@@ -481,7 +500,20 @@ function questionKey(verb: ConsentVerb, entry: PlannedSubject): string {
   return verb === 'allow' ? `allow:${entry.label}:${keyOf(entry)}` : `delete:${keyOf(entry)}`;
 }
 
-function checkAnswers(questions: readonly PlanQuestion[], answers: readonly PlanAnswer[]): void {
+function checkAnswers(
+  questions: readonly PlanQuestion[],
+  answers: readonly (PlanAnswer | undefined)[],
+): void {
+  const plansAgain = answers.some(
+    (answer) => answer?.verb === 'rename' || answer?.verb === 'convert',
+  );
+  const open = answers.findIndex((answer) => answer === undefined);
+  if (open !== -1 && !plansAgain) {
+    throw new InternalError(
+      `answerQuestions left "${questions[open]?.question}" open, which it may do only beside a rename or convert answer that plans again.`,
+      { cause: { questions: questions.map(({ subject }) => subject), answers } },
+    );
+  }
   if (answers.length !== questions.length) {
     const noun = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
     throw new InternalError(
@@ -699,13 +731,23 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
     ];
     const answers = await input.answer(questions);
     checkAnswers(questions, answers);
-    const typed: { readonly statement: StatementText; readonly loss: PlannedSubject }[] = [];
+    const typed: {
+      readonly statement: StatementText;
+      readonly loss: PlannedSubject;
+      readonly ofNamespace: boolean;
+    }[] = [];
     answers.forEach((answer, index) => {
       const entry = [...losses, ...accessChanges][index];
       const question = questions[index];
-      if (entry === undefined || question === undefined) return;
+      if (answer === undefined || entry === undefined || question === undefined) return;
       if (answer.verb === 'rename' || answer.verb === 'convert') {
-        typed.push({ statement: { verb: answer.verb, text: answer.text }, loss: entry });
+        typed.push({
+          statement: { verb: answer.verb, text: answer.text },
+          loss: entry,
+          ofNamespace:
+            question.removedNamespace !== undefined &&
+            answer.text.startsWith(`${question.removedNamespace}:`),
+        });
       } else consent(answer.verb, entry, question.subject);
     });
     if (typed.length === 0) {
@@ -733,7 +775,9 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
     }
     const operationOf = (entry: PlannedSubject) => `${entry.label}:${keyOf(entry)}`;
     const stillPlanned = new Set(plan.dataLoss.map(operationOf));
-    const unresolved = typed.find(({ loss }) => stillPlanned.has(operationOf(loss)));
+    const unresolved = typed.find(
+      ({ loss, ofNamespace }) => !ofNamespace && stillPlanned.has(operationOf(loss)),
+    );
     if (unresolved !== undefined) {
       return notOk(
         errorStatementDidNotResolveLoss(

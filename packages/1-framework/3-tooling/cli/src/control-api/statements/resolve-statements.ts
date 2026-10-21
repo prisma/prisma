@@ -104,6 +104,8 @@ interface ResolutionState {
   readonly originOfRenamedModel: Map<string, ModelCoordinate>;
   /** The origin field of each renamed field, keyed by the field as the destination names it. */
   readonly originOfRenamedField: Map<string, FieldCoordinate>;
+  /** The origin id of each renamed namespace, keyed by its destination id. */
+  readonly originOfRenamedNamespace: Map<string, string>;
   readonly renamedFrom: Set<string>;
   readonly renamedTo: Set<string>;
   /** Each field a convert or backfill statement names, keyed by its verb and the field. */
@@ -307,8 +309,12 @@ function originCounterpart(
   state: ResolutionState,
   destinationModel: ModelCoordinate,
 ): FoundModel | undefined {
+  const namespaceOrigin = state.originOfRenamedNamespace.get(destinationModel.namespaceId);
   const coordinate =
-    state.originOfRenamedModel.get(qualifiedModel(destinationModel)) ?? destinationModel;
+    state.originOfRenamedModel.get(qualifiedModel(destinationModel)) ??
+    (namespaceOrigin === undefined
+      ? destinationModel
+      : { namespaceId: asNamespaceId(namespaceOrigin), model: destinationModel.model });
   const model = modelAt(state.origin.contract, coordinate);
   return model === undefined ? undefined : { coordinate, model };
 }
@@ -769,6 +775,7 @@ function resolveNamespaceRename(
   }
   state.renamedFrom.add(fromKey);
   state.renamedTo.add(toKey);
+  state.originOfRenamedNamespace.set(rename.to, rename.from);
   return ok({
     kind: 'rename',
     entity: 'namespace',
@@ -1071,6 +1078,7 @@ export function resolveStatements(
     destination: { name: 'destination', contract: input.destination },
     originOfRenamedModel: new Map(),
     originOfRenamedField: new Map(),
+    originOfRenamedNamespace: new Map(),
     renamedFrom: new Set(),
     renamedTo: new Set(),
     fieldStatements: new Set(),

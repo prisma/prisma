@@ -118,7 +118,7 @@ function askThenApply(questions: () => readonly PlanQuestion[]) {
   };
 }
 
-const answers: PlanAnswer[] = [];
+const answers: (PlanAnswer | undefined)[] = [];
 
 beforeEach(() => {
   projectDir = createTestProjectDir('orm-db-update-consent');
@@ -280,7 +280,7 @@ describe('db update questions', () => {
     });
 
     expect(run.exitCode).toBe(0);
-    expect(answers.map(({ verb }) => verb)).toEqual(['delete', 'delete', 'allow']);
+    expect(answers.map((answer) => answer?.verb)).toEqual(['delete', 'delete', 'allow']);
   });
 
   it('does not take --confirm or --yes as an answer', async () => {

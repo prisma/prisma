@@ -341,3 +341,103 @@ describe('a namespace answer typed at the prompt', () => {
     expect(replanned).toEqual([['rename billing:finance']]);
   });
 });
+
+describe('a namespace rename answered at one question', () => {
+  const renamedWithBill = contractOf({
+    app: { models: { User: {} } },
+    finance: { models: { Bill: {}, Receipt: {} } },
+  });
+
+  it('plans the rename, then asks again about a model of the namespace that changed its name', async () => {
+    const replanned: string[][] = [];
+    const rounds: string[][] = [];
+    const left: PlannedQuestions = { dataLoss: [dropModel('Invoice', 0)], accessChanges: [] };
+    const outcome = await askPlanQuestions({
+      plan,
+      askAccess: false,
+      canConvert: false,
+      statements: [],
+      preAnswers: [],
+      consentAll: { delete: false, allow: false },
+      origin,
+      originKnown: true,
+      destination: renamedWithBill,
+      defaultNamespaceId: 'public',
+      answer: async (batch) => {
+        rounds.push(batch.map(({ subject }) => subject));
+        return batch.map(({ subject }) =>
+          subject === 'billing.Receipt'
+            ? { verb: 'rename', text: 'billing:finance' }
+            : rounds.length === 1
+              ? undefined
+              : { verb: 'rename', text: 'billing.Invoice:finance.Bill' },
+        );
+      },
+      replan: async (statements) => {
+        replanned.push(statements.map(({ text }) => text));
+        return ok(statements.length === 1 ? left : { dataLoss: [], accessChanges: [] });
+      },
+    });
+
+    expect(outcome.ok).toBe(true);
+    expect(rounds).toEqual([['billing.Invoice', 'billing.Receipt'], ['billing.Invoice']]);
+    expect(replanned).toEqual([
+      ['billing:finance'],
+      ['billing:finance', 'billing.Invoice:finance.Bill'],
+    ]);
+  });
+});
+
+describe('a field of a model in a namespace the run renames', () => {
+  it('is named through the new namespace, and may be renamed there', async () => {
+    const from = contractOf({
+      app: { models: { User: {} } },
+      billing: { models: { Invoice: { fields: ['id', 'note'] } } },
+    });
+    const to = contractOf({
+      app: { models: { User: {} } },
+      finance: { models: { Invoice: { fields: ['id', 'memo'] } } },
+    });
+    const dropNote = {
+      operationIndex: 0,
+      label: 'Drop column "note" from "Invoice"',
+      loss: 'drop' as const,
+      subject: {
+        kind: 'field' as const,
+        namespaceId: asNamespaceId('billing'),
+        model: 'Invoice',
+        field: 'note',
+      },
+    };
+    const notePlan: PlannedQuestions = { dataLoss: [dropNote], accessChanges: [] };
+    const asked: { subject: string; verbs: readonly string[]; renames: string | undefined }[] = [];
+
+    await askPlanQuestions({
+      plan: notePlan,
+      askAccess: false,
+      canConvert: false,
+      statements: [{ verb: 'rename', text: 'billing:finance' }],
+      preAnswers: [],
+      consentAll: { delete: false, allow: false },
+      origin: from,
+      originKnown: true,
+      destination: to,
+      defaultNamespaceId: 'public',
+      answer: async (batch) => {
+        asked.push(
+          ...batch.map((question) => ({
+            subject: question.subject,
+            verbs: question.verbs,
+            renames: question.validate('rename', 'finance.Invoice.note:finance.Invoice.memo'),
+          })),
+        );
+        return batch.map(({ subject }) => ({ verb: 'delete', text: subject }));
+      },
+      replan: async () => ok(notePlan),
+    });
+
+    expect(asked).toEqual([
+      { subject: 'finance.Invoice.note', verbs: ['rename', 'delete'], renames: undefined },
+    ]);
+  });
+});

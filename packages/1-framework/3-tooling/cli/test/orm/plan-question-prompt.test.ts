@@ -1,7 +1,14 @@
+import { asNamespaceId } from '@internal/contract/types';
+import { ok } from '@internal/utils/result';
 import type { PromptSurface, StatementSurface } from '@prisma/cli-engine';
 import { describe, expect, it, vi } from 'vitest';
-import type { PlanQuestion } from '../../src/control-api/statements/plan-questions';
+import {
+  askPlanQuestions,
+  type PlannedQuestions,
+  type PlanQuestion,
+} from '../../src/control-api/statements/plan-questions';
 import { promptPlanQuestions } from '../../src/orm/plan-question-prompt';
+import { contractOf } from '../control-api/statements/statement-fixtures';
 
 function question(subject: string, namespace?: string): PlanQuestion {
   return {
@@ -57,7 +64,7 @@ describe('a plan question asked through the engine', () => {
 
     const answers = await promptPlanQuestions(prompt, statements)([invoice, user]);
 
-    expect(answers.map(({ text }) => text)).toEqual(['billing.Invoice', 'app.User']);
+    expect(answers.map((answer) => answer?.text)).toEqual(['billing.Invoice', 'app.User']);
     expect(asked).toEqual([[]]);
   });
 
@@ -139,7 +146,7 @@ describe('a namespace answer typed at the prompt', () => {
     expect(asked).toEqual([['billing.Invoice'], ['app.User'], []]);
   });
 
-  it('answers the rest of the namespace with a rename of it, without asking them', async () => {
+  it('answers only the question a namespace rename was typed at, and leaves the rest of the namespace open', async () => {
     const { statements, prompt, asked } = typing(() => ({
       verb: 'rename',
       text: 'billing:finance',
@@ -147,10 +154,7 @@ describe('a namespace answer typed at the prompt', () => {
 
     const answers = await promptPlanQuestions(prompt, statements)([invoice, receipt]);
 
-    expect(answers).toEqual([
-      { verb: 'rename', text: 'billing:finance' },
-      { verb: 'rename', text: 'billing:finance' },
-    ]);
+    expect(answers).toEqual([{ verb: 'rename', text: 'billing:finance' }, undefined]);
     expect(asked).toEqual([['billing.Invoice'], []]);
   });
 
@@ -180,5 +184,76 @@ describe('a namespace answer typed at the prompt', () => {
       ['billing.Invoice'],
       ['billing.Invoice', 'app.User', 'billing.Receipt'],
     ]);
+  });
+});
+
+describe('a namespace rename typed at the prompt, then planned again', () => {
+  const billing = asNamespaceId('billing');
+  const origin = contractOf({
+    app: { models: { User: {} } },
+    billing: { models: { Receipt: {}, Invoice: { fields: ['id', 'note'] } } },
+  });
+  const destination = contractOf({
+    app: { models: { User: {} } },
+    finance: { models: { Receipt: {}, Invoice: { fields: ['id', 'note'] } } },
+  });
+  const dropReceipt = {
+    operationIndex: 0,
+    label: 'Drop table "Receipt"',
+    loss: 'drop' as const,
+    subject: { kind: 'model' as const, namespaceId: billing, model: 'Receipt' },
+  };
+  const retypeNote = {
+    operationIndex: 1,
+    label: 'Alter type of "Invoice"."note" to int4',
+    loss: 'typeChange' as const,
+    subject: { kind: 'field' as const, namespaceId: billing, model: 'Invoice', field: 'note' },
+  };
+
+  it('asks the questions the rename leaves, and never answers a question with a verb it does not accept', async () => {
+    const asked: string[] = [];
+    const prompt = {
+      statements: vi.fn(
+        async (
+          questions: readonly { readonly subject: string; readonly verbs: readonly string[] }[],
+        ) => {
+          asked.push(...questions.map(({ subject }) => subject));
+          return questions.map(({ subject }) =>
+            subject === 'billing.Receipt'
+              ? { verb: 'rename', text: 'billing:finance', values: [] }
+              : { verb: 'delete', text: subject, values: [] },
+          );
+        },
+      ),
+    } as unknown as PromptSurface;
+    const statements: StatementSurface = {
+      take: vi.fn(() => []) as StatementSurface['take'],
+      values: () => [],
+    };
+    const first: PlannedQuestions = { dataLoss: [dropReceipt, retypeNote], accessChanges: [] };
+    const second: PlannedQuestions = { dataLoss: [retypeNote], accessChanges: [] };
+
+    const outcome = await askPlanQuestions({
+      plan: first,
+      askAccess: false,
+      canConvert: false,
+      statements: [],
+      preAnswers: [],
+      consentAll: { delete: false, allow: false },
+      origin,
+      originKnown: true,
+      destination,
+      defaultNamespaceId: 'public',
+      answer: promptPlanQuestions(prompt, statements),
+      replan: async (planned) => ok(planned.length === 0 ? first : second),
+    });
+
+    expect(outcome.ok && outcome.value.statements).toEqual([
+      { verb: 'rename', text: 'billing:finance' },
+    ]);
+    expect(outcome.ok && outcome.value.consented.map(({ text }) => text)).toEqual([
+      'finance.Invoice.note',
+    ]);
+    expect(asked).toEqual(['billing.Receipt', 'finance.Invoice.note']);
   });
 });

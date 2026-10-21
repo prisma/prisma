@@ -89,23 +89,27 @@ function isConsentRequired(error: unknown): boolean {
 }
 
 /**
- * Asks the questions one at a time, so an answer typed for a namespace the destination removed, a
- * `delete` or a `rename` of it, answers the rest of that namespace's questions without asking them.
- * When nobody can answer a question, the engine is asked every question still open at once, so its
- * refusal names them all.
+ * Asks the questions one at a time, so a `delete` typed for a namespace the destination removed
+ * answers the rest of that namespace's questions without asking them. A `rename` of the namespace
+ * answers only its own question and leaves the rest open: the command plans again with it and asks
+ * what is left, such as a model of the namespace that also changed its name. When nobody can
+ * answer a question, the engine is asked every question still open at once, so its refusal names
+ * them all.
  */
 async function askOneAtATime(
   prompt: PromptSurface,
   asked: readonly { readonly question: PlanQuestion; readonly index: number }[],
 ): Promise<ReadonlyMap<number, PlanAnswer>> {
   const answered = new Map<number, PlanAnswer>();
-  const namespaceAnswers = new Map<string, PlanAnswer>();
+  const namespaceDeleted = new Map<string, PlanAnswer>();
+  const namespaceRenamed = new Set<string>();
   for (const [position, { question, index }] of asked.entries()) {
     const { removedNamespace } = question;
-    const given =
-      removedNamespace === undefined ? undefined : namespaceAnswers.get(removedNamespace);
-    if (given !== undefined) {
-      answered.set(index, given);
+    if (removedNamespace !== undefined && namespaceRenamed.has(removedNamespace)) continue;
+    const deleted =
+      removedNamespace === undefined ? undefined : namespaceDeleted.get(removedNamespace);
+    if (deleted !== undefined) {
+      answered.set(index, deleted);
       continue;
     }
     const [typed] = await prompt
@@ -122,7 +126,8 @@ async function askOneAtATime(
     const answer: PlanAnswer = { verb: typed.verb, text: typed.text };
     answered.set(index, answer);
     if (removedNamespace !== undefined && answersNamespace(answer, removedNamespace)) {
-      namespaceAnswers.set(removedNamespace, answer);
+      if (answer.verb === 'delete') namespaceDeleted.set(removedNamespace, answer);
+      else namespaceRenamed.add(removedNamespace);
     }
   }
   await prompt.statements([], { last: true });
@@ -132,15 +137,15 @@ async function askOneAtATime(
 /**
  * Asks a plan's questions through the engine's statement prompt. Flags answer first; where nobody
  * can answer, the engine refuses and lists every question. A `--delete` that names a namespace
- * answers every question about a model or field of it, and so does a `delete` or `rename` of the
- * namespace typed at the prompt. Without such a namespace, the questions are asked in one batch
+ * answers every question about a model or field of it, and so does a `delete` of the namespace
+ * typed at the prompt; a typed `rename` of it plans again before the rest are asked. Without such a namespace, the questions are asked in one batch
  * that refuses a statement nothing consumed before the command acts.
  */
 export function promptPlanQuestions(
   prompt: PromptSurface,
   statements: StatementSurface,
 ): AnswerPlanQuestions {
-  return async (questions): Promise<readonly PlanAnswer[]> => {
+  return async (questions): Promise<readonly (PlanAnswer | undefined)[]> => {
     const answered = namespaceDeletes(questions, statements) ?? new Map<number, PlanAnswer>();
     const asked = questions
       .map((question, index) => ({ question, index }))
@@ -158,6 +163,6 @@ export function promptPlanQuestions(
         if (answer !== undefined) byIndex.set(index, { verb: answer.verb, text: answer.text });
       });
     }
-    return questions.flatMap((_, index) => byIndex.get(index) ?? []);
+    return questions.map((_, index) => byIndex.get(index));
   };
 }
