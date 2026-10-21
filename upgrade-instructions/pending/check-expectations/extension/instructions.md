@@ -6,7 +6,7 @@ changes:
     detection:
       glob: "**/ops.json"
       matches:
-        - '(?<![\s\S])(?![\s\S]*"(?:expectation|object)":)[\s\S]*"(?:precheck|postcheck)": \[\s*\{'
+        - '(?<![\s\S])(?![\s\S]*"(?:expectation|object)":)(?=[\s\S]*(?:"kind": "list(?:Indexes|Collections)"|information_schema|\\"pg_(?:class|constraint|extension|indexes|policies|type|enum|namespace)\\"|to_regclass|sqlite_master|sqlite_schema|pragma_table_info|pragma_index_list))'
   - id: check-expectation-raw-sql
     summary: |
       A precheck or postcheck you write by hand in a `rawSql` operation of a `migration.ts` can carry `expectation`, `{ expects: 'absent' | 'present', object }`, so a failure of it names the object. Add it where the check asks whether one object exists, then run `node migration.ts` for a migration no database has applied yet.
