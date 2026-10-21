@@ -1,6 +1,8 @@
 import type { TargetPackRef } from '@internal/framework-components/components';
 import { singleGeneratorBinding } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { mongoTestCodecDescriptors } from '@internal/mongo-contract/test';
+import { type } from 'arktype';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { type ContractAuthoringHelpers, defineContract } from '../src/contract-builder';
 import { mongoTargetPack as baseTargetPack, mongoFamilyPack } from './mongo-test-packs';
@@ -104,6 +106,46 @@ describe('Mongo .onCreate and .onUpdate', () => {
 });
 
 describe('Mongo contributed type aliases', () => {
+  function contractWithVectorAlias(dimensions: number) {
+    const target = {
+      ...mongoTargetPack,
+      types: {
+        codecTypes: {
+          codecDescriptors: mongoTestCodecDescriptors.map((descriptor) =>
+            descriptor.codecId === 'mongo/vector@1'
+              ? { ...descriptor, paramsSchema: type({ dimensions: 'number.integer > 0' }) }
+              : descriptor,
+          ),
+        },
+      },
+      authoring: {
+        type: {
+          vectors: {
+            Fixed: {
+              kind: 'typeAlias',
+              output: { type: { codecId: 'mongo/vector@1', typeParams: { dimensions } } },
+            },
+          },
+        },
+      },
+    } as const satisfies TargetPackRef<'mongo', 'mongo'>;
+    return () => defineContract({ family: mongoFamilyPack, target }, () => ({ models: {} }));
+  }
+
+  it('build when the codec takes the fixed type params', () => {
+    expect(contractWithVectorAlias(3)).not.toThrow();
+  });
+
+  it('are refused at assembly when the codec refuses the fixed type params', () => {
+    expect(contractWithVectorAlias(0)).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        message:
+          'Type alias "vectors.Fixed" fixes type parameters its codec "mongo/vector@1" refuses: dimensions must be positive (was 0)',
+      }),
+    );
+  });
+
   it('are refused at assembly when a generator call does not apply to the codec', () => {
     const target = {
       ...mongoTargetPack,
