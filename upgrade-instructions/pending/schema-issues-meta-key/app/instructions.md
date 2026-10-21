@@ -15,13 +15,16 @@ When `db verify` or `db sign` finds that the database schema does not match the 
 
 Each issue has a `path`, the location of the difference as a list of names, and `expected` and `actual`, the contract's and the database's side, one of which is absent for a missing or an extra object. It has an `explanation` with a `text` when the CLI can say more.
 
-In code that reads the diagnostic, read `meta.schemaIssues` where it read `meta.issues`. Where it used the label strings, build them from the issue:
+In code that reads the diagnostic, read `meta.schemaIssues` where it read `meta.issues`. Where it used the label strings, build them from the issue. A label was the outcome, then the path: `missing` when only `expected` is set, `extra` when only `actual` is set, and `mismatch` when both are:
 
 ```typescript
 // before
 const labels: string[] = diagnostic.meta.issues;
 // after
-const labels = diagnostic.meta.schemaIssues.map((issue) => issue.path.join('/'));
+const labels = diagnostic.meta.schemaIssues.map((issue) => {
+  const outcome = issue.actual === undefined ? 'missing' : issue.expected === undefined ? 'extra' : 'mismatch';
+  return `${outcome}: ${issue.path.join('/')}`;
+});
 ```
 
 The `why` of the diagnostic still lists every difference as text.

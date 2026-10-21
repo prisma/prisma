@@ -9,7 +9,7 @@ changes:
         - '(?<![\s\S])(?![\s\S]*"(?:expectation|object)":)[\s\S]*"(?:precheck|postcheck)": \[\s*\{'
   - id: check-expectation-raw-sql
     summary: |
-      A check written by hand in a `rawSql` operation of a `migration.ts` can carry `expectation` too.
+      A precheck or postcheck you write by hand in a `rawSql` operation of a `migration.ts` can carry `expectation`, `{ expects: 'absent' | 'present', object }`, so a failure of it names the object. Add it where the check asks whether one object exists, then run `node migration.ts` for a migration no database has applied yet.
     detection:
       glob: "**/migration.ts"
       matches:
