@@ -77,12 +77,17 @@ function activitySourceOf(target: RuntimeScope): ActivitySource {
   return source;
 }
 
+/** An activity source that calls `source()` each time it is used, for an object whose source is created later, such as on the first query. */
+export function lazyActivitySource(source: () => ActivitySource): ActivitySource {
+  return {
+    startActivity: (activity) => source().startActivity(activity),
+    planContentHash: (plan) => source().planContentHash(plan),
+  };
+}
+
 /** An activity source that starts activities on whatever queryable `target()` returns when called, for an object that sends its statements to a queryable it looks up each time. */
 export function delegatingActivitySource(target: () => RuntimeScope): ActivitySource {
-  return {
-    startActivity: (activity) => startActivityOn(target(), activity),
-    planContentHash: (plan) => planContentHashOn(target(), plan),
-  };
+  return lazyActivitySource(() => activitySourceOf(target()));
 }
 
 /** Starts an activity on a queryable through its `activitySource` member. */

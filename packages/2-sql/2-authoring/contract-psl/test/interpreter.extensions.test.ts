@@ -139,47 +139,6 @@ model Document {
     });
   });
 
-  it('parses stringArray arguments whose elements contain commas', () => {
-    const result = interpretSqlContract(
-      `types {
-  Tag = sql.Enum('Tag', ["hello, world", "a,b,c", 'plain'])
-}
-
-model Post {
-  id Int @id
-  tag Tag
-}
-`,
-      {
-        ...baseInput,
-        authoringContributions: {
-          type: {
-            sql: {
-              Enum: {
-                kind: 'typeConstructor',
-                args: [{ kind: 'string' }, { kind: 'stringArray' }],
-                output: {
-                  codecId: 'custom/enum@1',
-                  typeParams: {
-                    name: { kind: 'arg', index: 0 },
-                    values: { kind: 'arg', index: 1 },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    );
-
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    expect(columnsOf(result.value, 'Post')?.['tag']).toMatchObject({
-      codecId: 'custom/enum@1',
-      typeParams: { name: 'Tag', values: ['hello, world', 'a,b,c', 'plain'] },
-    });
-  });
-
   it('instantiates family-owned and extension-owned constructor expressions from shared authoring contributions', () => {
     const result = interpretSqlContract(
       `types {
@@ -334,7 +293,7 @@ model Document {
                     kind: 'object',
                     properties: {
                       length: { kind: 'number', integer: true, minimum: 1 },
-                      label: { kind: 'string', optional: true },
+                      label: { kind: 'option', values: ['short'], optional: true },
                     },
                   },
                 ],
@@ -371,7 +330,7 @@ model Document {
                 kind: 'object' as const,
                 properties: {
                   length: { kind: 'number' as const, integer: true, minimum: 1 },
-                  label: { kind: 'string' as const, optional: true },
+                  label: { kind: 'option' as const, values: ['short'], optional: true },
                 },
               },
             ],

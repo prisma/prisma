@@ -24,6 +24,7 @@ describe('the type constructors the target contributes', () => {
       ...postgresAuthoringTypes,
     });
     expect(Object.keys(postgresAuthoringTypes)).toEqual([
+      'sql',
       'BigIntNumber',
       'UnboundedInt',
       'pg',
@@ -31,9 +32,15 @@ describe('the type constructors the target contributes', () => {
     ]);
   });
 
+  it('contributes the family’s sql.String, whose length is a value of pg/int4', () => {
+    expect(postgresAuthoringTypes.sql.String.args).toEqual([
+      { kind: 'value', dataType: 'pg/int4', name: 'length' },
+    ]);
+  });
+
   it.each([
     ...Object.entries(postgresAuthoringTypes).filter(
-      ([name]) => name !== 'pg' && name !== 'temporal',
+      ([name]) => name !== 'pg' && name !== 'sql' && name !== 'temporal',
     ),
     ...Object.entries(postgresAuthoringTypes.temporal),
   ])('documents %s', (_name, descriptor) => {
@@ -334,7 +341,7 @@ describe('postgresNativeAuthoringTypes', () => {
       kind: 'typeConstructor',
       documentation:
         'An instant stored as PostgreSQL timestamptz and represented as a JavaScript Date.',
-      args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
+      args: [{ kind: 'value', dataType: 'pg/int4', name: 'precision', optional: true }],
       output: {
         codecId: 'pg/timestamptz-date@1',
         typeParams: { precision: { kind: 'arg', index: 0 } },
@@ -347,7 +354,7 @@ describe('postgresNativeAuthoringTypes', () => {
   });
 });
 
-describe('precision bounds live on the data type', () => {
+describe('precision is a value of pg/int4, bounded by the data type', () => {
   it.each([
     'Timestamp',
     'Timestamptz',
@@ -359,9 +366,9 @@ describe('precision bounds live on the data type', () => {
   ] as const)('%s declares no bound of its own on precision', (typeName) => {
     const typeConstructor = postgresPslTypeConstructors[typeName];
     expect(typeConstructor.args?.find((arg) => arg.name === 'precision')).toEqual({
-      kind: 'number',
+      kind: 'value',
+      dataType: 'pg/int4',
       name: 'precision',
-      integer: true,
       optional: true,
     });
   });

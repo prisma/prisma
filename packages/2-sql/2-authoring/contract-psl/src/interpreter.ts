@@ -1466,6 +1466,7 @@ interface BuildValueObjectNodesInput {
   readonly enumTypeDescriptors: ReadonlyMap<BlockSymbol, ColumnDescriptor>;
   readonly enumHandles: ReadonlyMap<BlockSymbol, EnumTypeHandle>;
   readonly typeAliases: ResolvedTypeAliases;
+  readonly dataTypes: DataTypeSupport;
   readonly diagnostics: PslDiagnosticCollector;
   readonly sources: PslSources;
   /** Composite types are placed in the default namespace, so their members resolve against it. */
@@ -1523,6 +1524,7 @@ function buildValueObjectNodes(input: BuildValueObjectNodesInput): ValueObjectNo
         namespaceExtensionEntities: input.namespaceExtensionEntities,
         binder,
         codecLookup: input.codecLookup,
+        dataTypes: input.dataTypes,
       });
       if (!resolved.ok) {
         continue;
@@ -2450,6 +2452,7 @@ export function interpretPslDocumentToSqlContract(
     defaultNamespaceId,
     namespaceExtensionEntities,
     codecLookup: input.codecLookup,
+    dataTypes: input.dataTypes,
     binder,
   });
   const valueObjectTypes: ValueObjectTypes = {
@@ -2579,7 +2582,7 @@ export function interpretPslDocumentToSqlContract(
     discriminatorColumnOf,
     input.codecLookup,
     dataTypes,
-    input.authoringContributions?.textDataTypes ?? [],
+    dataTypes.textDataTypes ?? [],
     diagnostics,
   );
 

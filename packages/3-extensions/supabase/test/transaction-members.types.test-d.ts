@@ -1,3 +1,4 @@
+import type { PostgresClient } from '@internal/postgres/runtime';
 import type { Collection } from '@internal/sql-orm-client';
 import { expectTypeOf, test } from 'vitest';
 import type { RoleBoundDb, SupabaseTransactionContext } from '../src/exports/runtime';
@@ -19,7 +20,17 @@ test('each query member of a transaction has the type it has on the role-bound c
   expectTypeOf<Tx['orm']>().toEqualTypeOf<Client['orm']>();
   expectTypeOf<Tx['raw']>().toEqualTypeOf<Client['raw']>();
   expectTypeOf<Tx['prepare']>().toEqualTypeOf<Client['prepare']>();
+  expectTypeOf<Tx['query']>().toEqualTypeOf<Client['query']>();
+  expectTypeOf<Tx['execute']>().toEqualTypeOf<Client['execute']>();
+  expectTypeOf<Tx['toSql']>().toEqualTypeOf<Client['toSql']>();
   expectTypeOf<Tx['orm']['public']['Profile']['named']>().toBeFunction();
+});
+
+test('query, execute and toSql have the types a postgres client has', () => {
+  type Postgres = PostgresClient<Contract, Classes>;
+  expectTypeOf<Client['query']>().toEqualTypeOf<Postgres['query']>();
+  expectTypeOf<Client['execute']>().toEqualTypeOf<Postgres['execute']>();
+  expectTypeOf<Client['toSql']>().toEqualTypeOf<Postgres['toSql']>();
 });
 
 test('a transaction has no lifecycle members, transaction or runtime', () => {

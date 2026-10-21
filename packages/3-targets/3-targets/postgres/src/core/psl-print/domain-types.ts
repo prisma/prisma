@@ -89,7 +89,7 @@ function buildMemberType(input: {
     }),
     inferredConstructors: input.inferredConstructors,
     authoringTypes: input.context.authoringContributions.type,
-    dataTypeLookup: input.context.dataTypes.lookup,
+    dataTypes: input.context.dataTypes,
     enumBlockNames: input.enumBlockNames,
     coordinate,
   });

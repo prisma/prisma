@@ -4,6 +4,7 @@ import { temporalCodecPresetWithPrecision } from '../src/core/timestamp-now-gene
 
 const withPrecision = temporalCodecPresetWithPrecision({
   codecId: 'pg/timestamp-temporal@1',
+  sizeType: 'pg/int4',
 });
 const withoutPrecision = temporalCodecPreset({
   codecId: 'sqlite/datetime@1',

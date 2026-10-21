@@ -1,4 +1,6 @@
+import { printTaggedLiteral } from '@internal/framework-components/authoring';
 import type { DescribeUnresolvedType } from '@internal/psl-parser';
+import { SQL_EXPRESSION_TAG } from '@internal/sql-contract/sql-expression';
 import { parseQuotedStringLiteral } from './psl-attribute-parsing';
 
 /**
@@ -16,6 +18,6 @@ export function describeUnresolvedSqlType(): DescribeUnresolvedType {
     const typeName =
       argument?.kind === 'positional' ? parseQuotedStringLiteral(argument.value) : undefined;
     if (typeName === undefined) return undefined;
-    return `Unsupported(${JSON.stringify(typeName)}) is not a Prisma 8 type. Write the column's type with a type constructor, or as Raw(${JSON.stringify(typeName)}) when no type constructor names it. If ${JSON.stringify(typeName)} comes from a database extension that has a Prisma 8 pack, add the pack to extensions in prisma.config.ts.`;
+    return `Unsupported(${JSON.stringify(typeName)}) is not a Prisma 8 type. Write the column's type with a type constructor, or as Raw(${printTaggedLiteral(SQL_EXPRESSION_TAG, typeName)}) when no type constructor names it. If ${JSON.stringify(typeName)} comes from a database extension that has a Prisma 8 pack, add the pack to extensions in prisma.config.ts.`;
   };
 }

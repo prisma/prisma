@@ -100,6 +100,7 @@ function aliasDescriptor(
       diagnostics: input.diagnostics,
       source,
       entityLabel: `Named type "${symbol.name}"`,
+      dataTypes: input.dataTypes,
     });
   }
   const descriptor = input.enumTypeDescriptors.get(base.symbol);

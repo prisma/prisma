@@ -1,9 +1,14 @@
-import { type InferredTypeConstructors, pslTypeArgumentText } from '@internal/family-sql/psl-build';
+import {
+  type InferredTypeConstructors,
+  writtenTypeArguments,
+} from '@internal/family-sql/psl-build';
 import {
   type AuthoringTypeConstructorCall,
   type AuthoringTypeNamespace,
   authoringTypeConstructorArguments,
+  type DataTypeSupport,
   findAuthoringTypeConstructorCall,
+  getAuthoringTypeConstructor,
 } from '@internal/framework-components/authoring';
 import type { DataTypeLookup } from '@internal/framework-components/codec';
 import { dataTypeParams } from '@internal/framework-components/codec';
@@ -39,9 +44,16 @@ function baseTypeName(
   return unquotedSqlBaseName(dataType, dataTypeParams(dataType, column.typeParams));
 }
 
-/** A type argument as PSL writes it: a number as written, a string between quotes. */
-function typeArgumentText(value: unknown, coordinate: string): string {
-  return pslTypeArgumentText(value) ?? refuseUnwritableTypeArgument(String(value), coordinate);
+/** The arguments of `call` as PSL writes them, each a literal of its data type that reads back as the argument. */
+function typeArgumentTexts(
+  call: AuthoringTypeConstructorCall,
+  authoringTypes: AuthoringTypeNamespace,
+  dataTypes: DataTypeSupport,
+  coordinate: string,
+): readonly string[] {
+  const descriptor = getAuthoringTypeConstructor({ type: authoringTypes }, call.path);
+  const written = descriptor && writtenTypeArguments(descriptor, call.args, dataTypes);
+  return written ?? refuseUnwritableTypeArgument(call, coordinate);
 }
 
 function typeCall(path: readonly string[], args: readonly string[]): PslColumnType {
@@ -88,13 +100,13 @@ export function buildColumnType(input: {
   readonly column: StorageColumn;
   readonly inferredConstructors: InferredTypeConstructors;
   readonly authoringTypes: AuthoringTypeNamespace;
-  readonly dataTypeLookup: DataTypeLookup;
+  readonly dataTypes: DataTypeSupport;
   readonly enumBlockNames: ReadonlyMap<string, string>;
   readonly coordinate: string;
   readonly namespaceId?: string;
 }): PslColumnType {
   const { column, inferredConstructors, authoringTypes, enumBlockNames, coordinate } = input;
-  const baseName = baseTypeName(column, input.dataTypeLookup, coordinate);
+  const baseName = baseTypeName(column, input.dataTypes.lookup, coordinate);
 
   const enumBlockName = column.valueSet?.entityName ?? enumBlockNames.get(baseName);
   if (column.codecId === PG_ENUM_CODEC_ID && enumBlockName !== undefined) {
@@ -127,7 +139,7 @@ export function buildColumnType(input: {
   if (call !== undefined) {
     return typeCall(
       call.path,
-      call.args.map((value) => typeArgumentText(value, coordinate)),
+      typeArgumentTexts(call, authoringTypes, input.dataTypes, coordinate),
     );
   }
 

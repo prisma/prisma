@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { CliStructuredError } from '@internal/errors/control';
-import { renameLegacyDirective } from '@internal/psl-parser';
+import { EMPTY_DATA_TYPES, renameLegacyDirective } from '@internal/psl-parser';
 import { format, resolveFormatOptions } from '@internal/psl-parser/format';
 import {
   type CompletionItem,
@@ -198,6 +198,7 @@ export class Project {
         position,
         binder: data.artifacts.binder(),
         pslBlockDescriptors: data.controlStack.pslBlockDescriptors,
+        dataTypes: data.controlStack.dataTypes ?? EMPTY_DATA_TYPES,
       });
     } catch {
       return null;

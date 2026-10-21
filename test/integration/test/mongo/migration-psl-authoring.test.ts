@@ -101,7 +101,6 @@ function pslToContract(schema: string): MongoContract {
         pslBlockDescriptors: {},
         modelAttributes: {},
         attributeSpecs: mongoAttributeSpecs,
-        textDataTypes: [],
         dataTypes: {},
       },
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedMongoAttribute },

@@ -371,21 +371,17 @@ Two components in the composed stack register the same data type id, which has e
 
 Two components contribute an authoring entry under the same key, so the stack cannot tell which one reads that data type's written form. Raised while merging authoring contributions. Payload: `key`, `contributedBy`, `owner`.
 
-### CONTRACT.DATA_TYPE_ENTRY_KEY_INVALID
-
-An authoring entry is filed under the wrong key for what it reads. An entry whose tag names the data type its body is (`type` on a tag form) must sit under `tagEntryKey(tag)`, and an entry under a `tag:` key must name that type; every other value entry sits under its data type's id and names none. Raised while checking the assembled data types. Payload: `key`, `contributedBy`.
-
 ### CONTRACT.DATA_TYPE_ID_INVALID
 
 A string given where a data type id belongs is not `owner/name` in lower case, or carries a version (a versioned id names a codec, not a data type). Raised by `dataTypeId()` while declaring a data type or a cast. Payload: `id`.
 
 ### CONTRACT.DATA_TYPE_NOT_WRITABLE
 
-A data type declares a cast from a type no contract source can write, so the cast could never be exercised. Raised while checking the assembled data types. Payload: `dataType`, `source`, `contributedBy`.
+A data type declares a cast from a type no contract source can write, so the cast could never be exercised. Raised while checking the assembled data types. Payload: `dataType`, `source`, `contributedBy`. Also raised when a type constructor or field preset has a value argument (`{ kind: 'value', dataType }`) whose data type no contract source can write, itself or through a type it casts from, so no schema could give the argument. Payload: `dataType`, `contributedBy`.
 
 ### CONTRACT.DATA_TYPE_UNREGISTERED
 
-Something names a data type that no component in the stack registers: a codec's `dataType`, an authoring entry's key, a type its number classifier returns, or a type a cast takes values of. Raised while checking the assembled data types. Payload: `dataType`, `contributedBy`. Also raised while a SQL contract is authored, when a column's codec is registered but the data type it represents is not, so the column's database type cannot be named. List the pack that declares the data type, usually the pack that provides the codec. Payload (meta): `codecId`, `dataType`. Also raised when a PostgreSQL adapter is built with a codec whose data type is not passed beside it (`createPostgresAdapter` without the codec's type in `dataTypes`, or an extension that contributes codecs without their `dataTypes`), because a parameter of that codec could not be cast. Payload (meta): `codecId`, `dataType`.
+Something names a data type that no component in the stack registers: a codec's `dataType`, an authoring entry's key, a type its number classifier returns, a type a cast takes values of, or the data type of a type constructor's or field preset's value argument. Raised while checking the assembled data types. Payload: `dataType`, `contributedBy`. Also raised while a SQL contract is authored, when a column's codec is registered but the data type it represents is not, so the column's database type cannot be named. List the pack that declares the data type, usually the pack that provides the codec. Payload (meta): `codecId`, `dataType`. Also raised when a PostgreSQL adapter is built with a codec whose data type is not passed beside it (`createPostgresAdapter` without the codec's type in `dataTypes`, or an extension that contributes codecs without their `dataTypes`), because a parameter of that codec could not be cast. Payload (meta): `codecId`, `dataType`.
 
 ### CONTRACT.DATA_TYPE_WRITTEN_FORM_DUPLICATE
 
@@ -457,7 +453,7 @@ The Postgres `fullTextIndex` helper also raises it when its fields are not one t
 
 ### CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED
 
-`contract infer` found columns whose type Prisma 8 cannot write with the configured stack, so it prints no schema. A column type can be written only when a data type that the target or an extension pack declares claims it, and that data type has a type constructor marked to be written by infer. `tsquery`, for example, has a data type but no such constructor. The message starts `contract infer: Prisma 8 cannot write these column types with the configured stack:` and lists every such column as `<schema>.<table>.<column>: <type as the database reports it>`, with `[]` for a list. Some forms stay unclaimed even with their pack configured: a `vector` column with no dimension (`pgvector`), and `geometry(Point,<srid>)` and the other geometry subtypes (`postgis`). Some types have no data type at all: `interval` with fields, such as `interval year to month`, `"char"`, domains, and `hstore`. Fix path: no configured pack has a type for these columns. If a type comes from a database extension that has a Prisma 8 pack (for example `pgvector` or `postgis`), add the pack to `extensions` in `prisma.config.ts`. Otherwise, to keep such a column, write the schema by hand and declare its field as `Raw("<type>")` with the type as listed (ADR 273), or change the column's type or remove the column from the database. Payload: `columns`.
+`contract infer` found columns whose type Prisma 8 cannot write with the configured stack, so it prints no schema. A column type can be written only when a data type that the target or an extension pack declares claims it, and that data type has a type constructor marked to be written by infer. `tsquery`, for example, has a data type but no such constructor. The message starts `contract infer: Prisma 8 cannot write these column types with the configured stack:` and lists every such column as `<schema>.<table>.<column>: <type as the database reports it>`, with `[]` for a list. Some forms stay unclaimed even with their pack configured: a `vector` column with no dimension (`pgvector`), and `geometry(Point,<srid>)` and the other geometry subtypes (`postgis`). Some types have no data type at all: `interval` with fields, such as `interval year to month`, `"char"`, domains, and `hstore`. Fix path: no configured pack has a type for these columns. If a type comes from a database extension that has a Prisma 8 pack (for example `pgvector` or `postgis`), add the pack to `extensions` in `prisma.config.ts`. Otherwise, to keep such a column, write the schema by hand and declare its field as ``Raw(sql`<type>`)`` with the type as listed (ADR 273), or change the column's type or remove the column from the database. Payload: `columns`.
 
 ### CONTRACT.INFER_UNSUPPORTED
 
@@ -473,7 +469,7 @@ The text of a JSON default is not a JSON document, or holds a number outside the
 
 ### CONTRACT.LITERAL_VALUES_ABSENT
 
-A literal default names a value of a data type that has no literal values: a raw column, declared with `Raw("...")` or `rawColumn(...)` (ADR 273), whose values Prisma does not interpret. The data type's reader refuses every value, so the refusal is the same wherever the default comes from. The TypeScript builder raises `CONTRACT.DEFAULT_INVALID` with this error as its cause, naming the field; loading a hand-written `contract.json` raises `CONTRACT.VALIDATION_FAILED`, naming the table and column; a PSL schema refuses the literal earlier, with `PSL_VALUE_TYPE_INCOMPATIBLE` (``Expected sql`...` ``). Write the default as a SQL expression: ``@default(sql`...`)`` in a schema or ``.default(sql`...`)`` in TypeScript.
+A literal default names a value of a data type that has no literal values: a raw column, declared with ``Raw(sql`...`)`` or ``rawColumn(sql`...`)`` (ADR 273), whose values Prisma does not interpret. The data type's reader refuses every value, so the refusal is the same wherever the default comes from. The TypeScript builder raises `CONTRACT.DEFAULT_INVALID` with this error as its cause, naming the field; loading a hand-written `contract.json` raises `CONTRACT.VALIDATION_FAILED`, naming the table and column; a PSL schema refuses the literal earlier, with `PSL_VALUE_TYPE_INCOMPATIBLE` (``Expected sql`...` ``). Write the default as a SQL expression: ``@default(sql`...`)`` in a schema or ``.default(sql`...`)`` in TypeScript.
 
 ### CONTRACT.MARKER_MISMATCH
 
@@ -554,6 +550,8 @@ The Mongo `defineContract` builder raises it for a model field, a value object f
 An extension pack's index type whose `accessMethod` differs from its type name is refused with this code when the registry is assembled, at the same points. Only the target converts such a type into an index of its access method, so an extension pack's index type must be an access method itself. Message: `Index type "<type>" registered by extension pack "<packId>" declares the access method "<accessMethod>", but an extension pack's index type must be an access method itself.` `fix`: register the access method under its own name, or leave `accessMethod` out. Payload: `indexType`, `accessMethod`, and `packId` when the pack is known.
 
 The generator functions of a stack (`@onCreate(fn())`, `@onUpdate(fn())` and the TypeScript builder's `gen` calls) are refused with this code when they are assembled, naming the components involved: two components declare a signature for one function (`Generator function "<name>" is declared by both "<component>" and "<component>".`); a component binds a function no component declares (`"<component>" binds generator function "<name>", which no component declares.`); two bindings cover one function and one codec (`Generator function "<name>" is bound to codec "<codecId>" by both "<component>" and "<component>".`); two functions write the same generator for one codec, so `contract print` could not choose one (`Generator "<generatorId>" on codec "<codecId>" is written by both function "<name>" from "<component>" and function "<name>" from "<component>".`); a binding produces a generator no generator descriptor registers (`Generator function "<name>" from "<component>" produces generator "<generatorId>", which no generator descriptor in the stack registers.`); a signature declares a named parameter, which a `gen` call cannot pass (`Generator function "<name>" from "<component>" declares the named parameter "<parameter>". …`); or two components register one generator id (`Generator "<generatorId>" is registered by both "<component>" and "<component>". Register each generator once, in the component that defines it.`). The SQL family registers the identifier generators, so a SQL target, adapter or extension that also registers `uuidv4`, `uuidv7`, `cuid2`, `ulid`, `nanoid` or `ksuid` gets the last one; remove its registration. The control stack and the TypeScript builders run the same checks.
+
+A type constructor whose argument is not a value argument, such as `{ kind: 'number', name: 'size' }`, is refused with this code when the stack's data types are assembled, by the control stack and the TypeScript builder alike. Message: `Argument "<name>" of type constructor "<path>" contributed by "<component>" is a "<kind>" argument, but a type constructor's argument is a value of a data type. Declare it as { kind: 'value', dataType: ... }, naming the data type its value belongs to.` Field presets keep their other argument kinds. Payload: `packId`, `contribution` (the constructor's path), `reason: 'type-constructor-argument-not-a-value'`.
 
 ### CONTRACT.PACK_FAMILY_MISMATCH
 
@@ -1856,11 +1854,11 @@ A ref name was used (read, resolved, or deleted via `migration ref` commands) bu
 
 ### PLAN.HASH_MISMATCH
 
-At execute time, the plan's `meta.storageHash` does not match the runtime contract's storage hash: the plan was built against a different version of the contract than the one the runtime holds. Rebuild the plan against the current contract. Payload: `planStorageHash`, `runtimeStorageHash`.
+When a plan runs or is rendered with `toSql`, its `meta.storageHash` does not match the storage hash of the contract it runs against: the plan was built against another contract, or another version of it. Rebuild the plan against the current contract. Payload: `planStorageHash`, `contractStorageHash`.
 
 ### PLAN.TARGET_MISMATCH
 
-At execute time, the plan's `meta.target` does not match the runtime contract's target, e.g. a plan built for postgres submitted to a sqlite runtime. Payload: `planTarget`, `runtimeTarget`.
+When a plan runs or is rendered with `toSql`, its `meta.target` does not match the target of the contract it runs against, e.g. a plan built for postgres passed to a sqlite client. Payload: `planTarget`, `contractTarget`.
 
 ## BUDGET
 

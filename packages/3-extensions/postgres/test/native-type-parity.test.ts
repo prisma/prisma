@@ -413,7 +413,7 @@ describe('native types as bare scalar types — parity with the live bare-type p
       {
         code: 'PSL_UNRESOLVED_REFERENCE',
         message:
-          'Unsupported("hstore") is not a Prisma 8 type. Write the column\'s type with a type constructor, or as Raw("hstore") when no type constructor names it. If "hstore" comes from a database extension that has a Prisma 8 pack, add the pack to extensions in prisma.config.ts.',
+          'Unsupported("hstore") is not a Prisma 8 type. Write the column\'s type with a type constructor, or as Raw(sql`hstore`) when no type constructor names it. If "hstore" comes from a database extension that has a Prisma 8 pack, add the pack to extensions in prisma.config.ts.',
       },
     ]);
   });
@@ -498,7 +498,7 @@ model sample {
     );
   });
 
-  it('rejects a non-integer precision via the declarative integer constraint', () => {
+  it('rejects a non-integer precision, which pg/int4 cannot hold', () => {
     const result = emit(`model sample {
   id Int @id
   at Timestamp(1.5)
@@ -506,14 +506,12 @@ model sample {
 `);
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-          message: expect.stringContaining('must be an integer'),
-        }),
-      ]),
-    );
+    expect(result.failure.diagnostics).toEqual([
+      expect.objectContaining({
+        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+        message: 'Expected a number that pg/int4 can hold; got pg/numeric',
+      }),
+    ]);
   });
 
   it('rejects arguments on a no-arg native type', () => {

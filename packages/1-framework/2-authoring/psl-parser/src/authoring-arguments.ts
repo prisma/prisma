@@ -1,7 +1,14 @@
-import type { AuthoringArgumentDescriptor } from '@internal/framework-components/authoring';
+import type {
+  AuthoringArgumentDescriptor,
+  AuthoringValueArgument,
+  DataTypeSupport,
+} from '@internal/framework-components/authoring';
+import { dataTypeId } from '@internal/framework-components/codec';
 import type { PslSpan } from '@internal/framework-components/psl-ast';
+import { InternalError } from '@internal/utils/internal-error';
 import type { DiagnosticSource, PslDiagnosticCollector } from './diagnostic';
-import type { ResolvedAttributeArg } from './resolve';
+import { readExpressionAs } from './read-expression-as';
+import { nodePslSpan, type ResolvedAttributeArg } from './resolve';
 
 function unquoteStringLiteral(value: string): string {
   const trimmed = value.trim();
@@ -271,19 +278,6 @@ function parseJsLikeLiteral(value: string): ParsedPslLiteral | typeof INVALID_AU
   return index === value.length ? parsed : INVALID_AUTHORING_ARGUMENT;
 }
 
-function parseStringArrayLiteral(
-  value: string,
-): readonly string[] | typeof INVALID_AUTHORING_ARGUMENT {
-  const parsed = parseJsLikeLiteral(value);
-  if (parsed === INVALID_AUTHORING_ARGUMENT || !Array.isArray(parsed)) {
-    return INVALID_AUTHORING_ARGUMENT;
-  }
-  if (!parsed.every((item): item is string => typeof item === 'string')) {
-    return INVALID_AUTHORING_ARGUMENT;
-  }
-  return parsed;
-}
-
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -313,25 +307,17 @@ function parsePslObjectLiteral(
   return parsed;
 }
 
-function parsePslAuthoringArgumentValue(
-  descriptor: AuthoringArgumentDescriptor,
+type TextArgumentDescriptor = Exclude<AuthoringArgumentDescriptor, AuthoringValueArgument>;
+
+function parsePslAuthoringArgumentText(
+  descriptor: TextArgumentDescriptor,
   rawValue: string,
 ): unknown | typeof INVALID_AUTHORING_ARGUMENT {
   switch (descriptor.kind) {
-    case 'string':
-      return unquoteStringLiteral(rawValue);
-    case 'boolean': {
-      const trimmed = rawValue.trim();
-      if (trimmed === 'true') return true;
-      if (trimmed === 'false') return false;
-      return INVALID_AUTHORING_ARGUMENT;
-    }
     case 'number': {
       const parsed = Number(unquoteStringLiteral(rawValue));
       return Number.isNaN(parsed) ? INVALID_AUTHORING_ARGUMENT : parsed;
     }
-    case 'stringArray':
-      return parseStringArrayLiteral(rawValue);
     case 'object':
       return parsePslObjectLiteral(rawValue);
     case 'option': {
@@ -362,26 +348,7 @@ function pushInvalidPslHelperArgument(input: {
   return undefined;
 }
 
-/**
- * The values of positional PSL arguments, each written as its PSL text in `rawArgs`, read as `descriptors` say, as the PSL reader reads a type constructor call. `undefined` when there are more arguments than descriptors or one does not parse.
- */
-export function parsePslPositionalArgs(
-  descriptors: readonly AuthoringArgumentDescriptor[],
-  rawArgs: readonly string[],
-): readonly unknown[] | undefined {
-  if (rawArgs.length > descriptors.length) return undefined;
-  const values: unknown[] = [];
-  for (const [index, rawArg] of rawArgs.entries()) {
-    const descriptor = descriptors[index];
-    if (descriptor === undefined) return undefined;
-    const value = parsePslAuthoringArgumentValue(descriptor, rawArg);
-    if (value === INVALID_AUTHORING_ARGUMENT) return undefined;
-    values.push(value);
-  }
-  return values;
-}
-
-export function mapPslHelperArgs(input: {
+interface MapPslHelperArgsInput {
   readonly args: readonly ResolvedAttributeArg[];
   readonly descriptors: readonly AuthoringArgumentDescriptor[];
   readonly helperLabel: string;
@@ -389,7 +356,67 @@ export function mapPslHelperArgs(input: {
   readonly diagnostics: PslDiagnosticCollector;
   readonly source: DiagnosticSource;
   readonly entityLabel: string;
-}): readonly unknown[] | undefined {
+  /** The stack's data types, which a `value` argument is read as. ADR 254. */
+  readonly dataTypes: DataTypeSupport;
+}
+
+/**
+ * The value of one argument as `descriptor` reads it: a `value` argument as a value of its data type, read from its expression as attribute arguments are, and any other kind from its text. A refusal is pushed as a diagnostic at the argument.
+ */
+function readPslHelperArgument(
+  input: MapPslHelperArgsInput,
+  descriptor: AuthoringArgumentDescriptor,
+  argument: ResolvedAttributeArg,
+  argumentLabel: string,
+): unknown | typeof INVALID_AUTHORING_ARGUMENT {
+  const invalid = (): typeof INVALID_AUTHORING_ARGUMENT => {
+    pushInvalidPslHelperArgument({
+      diagnostics: input.diagnostics,
+      source: input.source,
+      span: argument.span,
+      entityLabel: input.entityLabel,
+      helperLabel: input.helperLabel,
+      message: `cannot parse ${argumentLabel} for descriptor kind "${descriptor.kind}".`,
+    });
+    return INVALID_AUTHORING_ARGUMENT;
+  };
+
+  if (descriptor.kind !== 'value') {
+    const value = parsePslAuthoringArgumentText(descriptor, argument.value);
+    return value === INVALID_AUTHORING_ARGUMENT ? invalid() : value;
+  }
+
+  const { expression } = argument;
+  if (expression === undefined && argument.node !== undefined) {
+    pushInvalidPslHelperArgument({
+      diagnostics: input.diagnostics,
+      source: input.source,
+      span: argument.span,
+      entityLabel: input.entityLabel,
+      helperLabel: input.helperLabel,
+      message: `${argumentLabel} has no value.`,
+    });
+    return INVALID_AUTHORING_ARGUMENT;
+  }
+  if (expression === undefined) {
+    throw new InternalError(
+      `${input.entityLabel} ${input.helperLabel} received ${argumentLabel} with no expression. A value argument is read from the expression a schema writes; a reader that builds a call must pass the arguments it parsed, or instantiate the constructor with values.`,
+    );
+  }
+  const read = readExpressionAs(input.dataTypes, dataTypeId(descriptor.dataType), expression);
+  if (read.ok) return read.value.value;
+  input.diagnostics.push({
+    code: read.failure.code,
+    message: read.failure.message,
+    ...input.source.at(nodePslSpan(expression.syntax, input.source.sources)),
+  });
+  return INVALID_AUTHORING_ARGUMENT;
+}
+
+/**
+ * The arguments of a type constructor or field preset call, positional and named, each read as its descriptor says. `undefined`, with a diagnostic pushed, when one cannot be read or does not match a descriptor.
+ */
+export function mapPslHelperArgs(input: MapPslHelperArgsInput): readonly unknown[] | undefined {
   const mappedArgs: unknown[] = input.descriptors.map(() => undefined);
 
   const positionalArgs = input.args.filter((arg) => arg.kind === 'positional');
@@ -419,18 +446,8 @@ export function mapPslHelperArgs(input: {
       });
     }
 
-    const value = parsePslAuthoringArgumentValue(descriptor, argument.value);
-    if (value === INVALID_AUTHORING_ARGUMENT) {
-      return pushInvalidPslHelperArgument({
-        diagnostics: input.diagnostics,
-        source: input.source,
-        span: argument.span,
-        entityLabel: input.entityLabel,
-        helperLabel: input.helperLabel,
-        message: `cannot parse argument #${index + 1} for descriptor kind "${descriptor.kind}".`,
-      });
-    }
-
+    const value = readPslHelperArgument(input, descriptor, argument, `argument #${index + 1}`);
+    if (value === INVALID_AUTHORING_ARGUMENT) return undefined;
     mappedArgs[index] = value;
   }
 
@@ -472,18 +489,13 @@ export function mapPslHelperArgs(input: {
       });
     }
 
-    const value = parsePslAuthoringArgumentValue(descriptor, argument.value);
-    if (value === INVALID_AUTHORING_ARGUMENT) {
-      return pushInvalidPslHelperArgument({
-        diagnostics: input.diagnostics,
-        source: input.source,
-        span: argument.span,
-        entityLabel: input.entityLabel,
-        helperLabel: input.helperLabel,
-        message: `cannot parse named argument "${argument.name}" for descriptor kind "${descriptor.kind}".`,
-      });
-    }
-
+    const value = readPslHelperArgument(
+      input,
+      descriptor,
+      argument,
+      `named argument "${argument.name}"`,
+    );
+    if (value === INVALID_AUTHORING_ARGUMENT) return undefined;
     mappedArgs[descriptorIndex] = value;
   }
 

@@ -59,6 +59,7 @@ export const interpretPostgresSchema = (
         ...interpreterInput.authoringContributions?.dataTypes,
       },
       lookup: fixtureTypeLookups.dataTypeLookup,
+      textDataTypes: fixtureDataTypeSupport.textDataTypes,
       dataTypeOfCodec: (codecId) => fixtureTypeLookups.codecLookup.descriptorFor(codecId)?.dataType,
     },
   });

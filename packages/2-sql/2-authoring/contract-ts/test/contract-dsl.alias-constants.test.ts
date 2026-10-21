@@ -1,13 +1,32 @@
-import type { TargetPackRef } from '@internal/framework-components/components';
+import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { testTypeLookups } from '../../../1-core/contract/test/test-type-lookups';
+import {
+  fixtureDataTypeEntries,
+  fixtureDataTypes,
+} from '../../contract-psl/test/fixture-data-types';
 import { createComposedAuthoringHelpers } from '../src/composed-authoring-helpers';
 import { buildSqlContractFromDefinition, defineContract } from '../src/contract-builder';
 import { buildContractDefinition } from '../src/contract-lowering';
 import { now } from '../src/default-functions';
-import { familyPack, targetPack as generatorTargetPack } from './helpers/generator-function-packs';
+import {
+  familyPack as generatorFamilyPack,
+  targetPack as generatorTargetPack,
+} from './helpers/generator-function-packs';
 import { unboundTables } from './unbound-tables';
+
+const familyPackBase = {
+  ...generatorFamilyPack,
+  dataTypes: fixtureDataTypes,
+  authoring: { dataTypes: fixtureDataTypeEntries },
+} as const satisfies FamilyPackRef<'sql'>;
+
+const familyPack: typeof familyPackBase & {
+  readonly __dataTypeArguments?: {
+    readonly 'pg/int4': { readonly argument: number; readonly parameter: number };
+  };
+} = familyPackBase;
 
 const targetPack = {
   ...generatorTargetPack,
@@ -15,12 +34,12 @@ const targetPack = {
     type: {
       VarChar: {
         kind: 'typeConstructor',
-        args: [{ kind: 'number', name: 'length', integer: true, optional: true }],
+        args: [{ kind: 'value', dataType: 'pg/int4', name: 'length', optional: true }],
         output: { codecId: 'sql/varchar@1', typeParams: { length: { kind: 'arg', index: 0 } } },
       },
       Time: {
         kind: 'typeConstructor',
-        args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
+        args: [{ kind: 'value', dataType: 'pg/int4', name: 'precision', optional: true }],
         output: {
           codecId: 'pg/time-temporal@1',
           typeParams: { precision: { kind: 'arg', index: 0 } },

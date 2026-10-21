@@ -38,7 +38,7 @@ describe('interpretPslDocumentToSqlContract — polymorphism', () => {
       Partial<
         Pick<
           InterpretPslDocumentToSqlContractInput,
-          'composedExtensionContracts' | 'generatorFunctions'
+          'composedExtensionContracts' | 'generatorFunctions' | 'dataTypes'
         >
       >,
   ) =>
@@ -1024,7 +1024,7 @@ model Bug {
 }`,
           {
             controlMutationDefaults: builtinControlMutationDefaults,
-            authoringContributions: { textDataTypes: [] },
+            dataTypes: { ...fixtureInterpreterTypes.dataTypes, textDataTypes: [] },
           },
         ),
       ).toThrow(

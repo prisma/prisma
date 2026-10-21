@@ -50,7 +50,7 @@ Concretely:
    - `decodeField` is single-armed: call codec → await → run JSON-Schema validation on the resolved value → return plain value.
    - Rows yielded to user code (one-shot `.first()` / `.all()` and streaming via `AsyncIterableResult`) carry plain field values. No `Promise`-typed fields ever reach user code.
 
-4. **Build-time stays synchronous.** `validateContract<Contract>(contractJson)` returns synchronously. `postgres({...})` and equivalent client constructors stay synchronous. Build-time `decodeJson` / `encodeJson` are not awaited anywhere on the load path.
+4. **Build-time stays synchronous.** `contractFromJson<Contract>(contractJson)` returns synchronously. `postgres({...})` and equivalent client constructors stay synchronous. Build-time `decodeJson` / `encodeJson` are not awaited anywhere on the load path.
 
 5. **ORM client type surfaces are uniform.** `DefaultModelRow` / `InferRootRow` field types are plain `T`. Write surfaces (`MutationUpdateInput`, `CreateInput`, `UniqueConstraintCriterion`, `ShorthandWhereFilter`, `DefaultModelInputRow`) accept plain `T`. Read and write share **one** field type-map.
 

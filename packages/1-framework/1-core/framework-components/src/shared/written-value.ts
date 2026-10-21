@@ -32,6 +32,8 @@ export interface DataTypeSupport {
   readonly entries: Readonly<Record<string, DataTypeAuthoringEntry>>;
   readonly lookup: DataTypeLookup;
   readonly dataTypeOfCodec: (codecId: string) => DataTypeId | undefined;
+  /** Every component's {@link AuthoringContributions.textDataTypes}, each once: the data types whose values are text. None when the stack names none. */
+  readonly textDataTypes?: readonly DataTypeId[];
 }
 
 export type ReadRefusal =
@@ -301,6 +303,25 @@ export function castTypedValue(
     return notOk({ kind: 'unreadable', message: messageOf(error) });
   }
   return valueOfType(support, receivingType, () => json, receivingParams, refusedByType);
+}
+
+/**
+ * Reads `written` as a value of `receivingType`: through the authoring entry for its syntax, then into `receivingType` directly or through a cast it declares. A refusal is worded for a diagnostic at the written value. The read every value of a fixed receiving type takes: an attribute argument, a type-constructor argument, and its TypeScript counterpart. ADR 254.
+ */
+export function readWrittenValueAs(
+  support: DataTypeSupport,
+  receivingType: DataTypeId,
+  written: WrittenScalar,
+): Result<DataTypeValue, RefusalDescription> {
+  const forms = admittedForms(support, [receivingType]);
+  const read = readWrittenValue(support, written);
+  if (!read.ok) {
+    return notOk(describeRefusal(read.failure, support, { forms, rewrite: undefined }));
+  }
+  const cast = castTypedValue(support, receivingType, {}, read.value);
+  if (cast.ok) return cast;
+  const rewrite = exactRewrite(support, { receivingType, receivingParams: {} }, written);
+  return notOk(describeRefusal(cast.failure, support, { forms, rewrite }));
 }
 
 /** The type itself, then each type it casts from, in key order. */

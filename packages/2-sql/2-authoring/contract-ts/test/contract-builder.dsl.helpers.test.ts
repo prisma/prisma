@@ -10,6 +10,10 @@ import {
   testSqlTypeLookups,
   testTypeLookups,
 } from '../../../1-core/contract/test/test-type-lookups';
+import {
+  fixtureDataTypeEntries,
+  fixtureDataTypes,
+} from '../../contract-psl/test/fixture-data-types';
 import { defineContract, rel } from '../src/contract-builder';
 import { modelsOf } from './contract-test-helpers';
 import { documentScopedTypes } from './cross-ref-helpers';
@@ -24,12 +28,14 @@ type PortableSqlCodecTypes = {
   readonly 'test/timestamp@1': { output: string };
 };
 
-const sqlFamilyPack = {
+const sqlFamilyPackBase = {
   kind: 'family',
   id: 'sql',
   familyId: 'sql',
   version: '0.0.1',
+  dataTypes: fixtureDataTypes,
   authoring: {
+    dataTypes: fixtureDataTypeEntries,
     field: {
       text: {
         kind: 'fieldPreset',
@@ -102,6 +108,13 @@ const sqlFamilyPack = {
   },
 } as const satisfies FamilyPackRef<'sql'>;
 
+const sqlFamilyPack: typeof sqlFamilyPackBase & {
+  readonly __dataTypeArguments?: {
+    readonly 'pg/int4': { readonly argument: number; readonly parameter: number };
+    readonly 'pg/text': { readonly argument: string; readonly parameter: string };
+  };
+} = sqlFamilyPackBase;
+
 const postgresTargetPack = {
   kind: 'target',
   id: 'postgres',
@@ -113,12 +126,12 @@ const postgresTargetPack = {
     type: {
       enum: {
         kind: 'typeConstructor',
-        args: [{ kind: 'string' }, { kind: 'stringArray' }],
+        args: [{ kind: 'value', dataType: 'pg/text' }],
         output: {
           codecId: 'app/test-enum@1',
           typeParams: {
             name: { kind: 'arg', index: 0 },
-            values: { kind: 'arg', index: 1 },
+            values: ['USER', 'ADMIN'],
           },
         },
       },
@@ -139,7 +152,7 @@ const pgvectorExtensionPack = {
       pgvector: {
         Vector: {
           kind: 'typeConstructor',
-          args: [{ kind: 'number', name: 'length', integer: true, minimum: 1, maximum: 2000 }],
+          args: [{ kind: 'value', dataType: 'pg/int4', name: 'length' }],
           output: {
             codecId: 'pg/vector@1',
             typeParams: {
@@ -492,7 +505,7 @@ describe('contract DSL helper vocabulary', () => {
         createNamespace: createTestSqlNamespace,
       },
       ({ type, field, model }) => {
-        const Role = field.column(type.enum('role', ['USER', 'ADMIN'] as const));
+        const Role = field.column(type.enum('role'));
 
         return {
           models: {
@@ -610,7 +623,7 @@ describe('contract DSL helper vocabulary', () => {
           type: {
             enum: {
               kind: 'typeConstructor',
-              args: [{ kind: 'string' }, { kind: 'stringArray' }],
+              args: [{ kind: 'option', values: ['role'] }],
               output: {
                 codecId: 'conflict/enum@1',
                 typeParams: {

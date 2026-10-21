@@ -44,13 +44,44 @@ function columnsOf(result: ReturnType<typeof emit>): Record<string, unknown> {
 }
 
 describe('Raw(...) in a Postgres schema', () => {
+  it('declares a raw column of a type whose name needs double quotes', () => {
+    const columns = columnsOf(
+      emit(`model Category {
+  id   Int @id
+  tags Raw(sql\`"MyType"[]\`)
+}
+`),
+    );
+    expect(columns['tags']).toEqual({
+      codecId: 'sql/raw@1',
+      dataType: 'sql/raw',
+      typeParams: { sql: '"MyType"[]' },
+      many: false,
+      nullable: false,
+    });
+  });
+
+  it('refuses a quoted string, saying which sql literal to write', () => {
+    const result = emit(`model Category {
+  id     Int @id
+  search Raw("tsvector")
+}
+`);
+    expect(result.ok ? [] : result.failure.diagnostics).toEqual([
+      expect.objectContaining({
+        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+        message: 'Expected sql`...`; write sql`tsvector`',
+      }),
+    ]);
+  });
+
   it('declares a raw column with the text as its sql parameter', () => {
     const columns = columnsOf(
       emit(`model Category {
   id     Int @id
-  search Raw("tsvector")
-  area   Raw("circle") @default(sql\`'<(0,0),1>'::circle\`)
-  net    Raw("cidr")?
+  search Raw(sql\`tsvector\`)
+  area   Raw(sql\`circle\`) @default(sql\`'<(0,0),1>'::circle\`)
+  net    Raw(sql\`cidr\`)?
 }
 `),
     );
@@ -83,7 +114,7 @@ describe('Raw(...) in a Postgres schema', () => {
   it('refuses a literal default, saying a raw default is a sql expression', () => {
     const result = emit(`model Category {
   id   Int @id
-  area Raw("circle") @default("<(0,0),1>")
+  area Raw(sql\`circle\`) @default("<(0,0),1>")
 }
 `);
     expect(result.ok ? [] : result.failure.diagnostics).toEqual([
@@ -104,7 +135,7 @@ describe('the text of Raw(...) in a Postgres schema', () => {
   ])('is refused when it has %s', (_name, sql) => {
     const result = emit(`model Category {
   id   Int @id
-  area Raw("${sql}")
+  area Raw(sql\`${sql}\`)
 }
 `);
     expect(result.ok ? [] : result.failure.diagnostics.map((d) => d.message)).toEqual([

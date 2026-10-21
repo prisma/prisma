@@ -1,7 +1,12 @@
 import { SelectAst, TableSource } from '@internal/sql-relational-core/ast';
 import type { RuntimeScope } from '@internal/sql-relational-core/types';
-import { describe, expect, it } from 'vitest';
-import { delegatingActivitySource, startActivityOn } from '../src/activity-handle';
+import { describe, expect, it, vi } from 'vitest';
+import {
+  delegatingActivitySource,
+  findActivitySource,
+  lazyActivitySource,
+  startActivityOn,
+} from '../src/activity-handle';
 import type { SqlMiddleware, SqlMiddlewareContext } from '../src/middleware/sql-middleware';
 import { testCall } from './client-activity-kinds';
 import { createSetup, meta } from './transaction-activity-fixtures';
@@ -57,5 +62,23 @@ describe('delegatingActivitySource', () => {
       ['runtime', undefined],
       ['connection', callCtx],
     ]);
+  });
+});
+
+describe('lazyActivitySource', () => {
+  it('looks up the source at each call, not when it is created', async () => {
+    const { runtime } = createSetup();
+    const runtimeSource = findActivitySource(runtime);
+    if (runtimeSource === undefined) throw new Error('the runtime has no activity source');
+    const lookup = vi.fn(() => runtimeSource);
+
+    const source = lazyActivitySource(lookup);
+    expect(lookup).not.toHaveBeenCalled();
+
+    const handle = await source.startActivity(testCall);
+    await handle.end({ outcome: 'succeeded' });
+    await source.planContentHash(queryPlan());
+
+    expect(lookup).toHaveBeenCalledTimes(2);
   });
 });

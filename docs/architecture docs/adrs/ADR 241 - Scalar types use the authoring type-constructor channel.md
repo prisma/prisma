@@ -22,7 +22,7 @@ const postgresPslTypeConstructors = {
   },
   VarChar: {
     kind: 'typeConstructor',
-    args: [{ kind: 'number', name: 'length', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: 'pg/int4', name: 'length', optional: true }],
     output: {
       codecId: 'sql/varchar@1',
       typeParams: { length: { kind: 'arg', index: 0 } },

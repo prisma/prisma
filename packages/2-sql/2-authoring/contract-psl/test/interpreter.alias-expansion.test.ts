@@ -24,7 +24,7 @@ const authoringContributions = {
     ...pgvectorAuthoringContributions.type,
     TimestampString: {
       kind: 'typeConstructor',
-      args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
+      args: [{ kind: 'value', dataType: 'pg/int4', name: 'precision', optional: true }],
       output: {
         codecId: 'pg/timestamp-string@1',
         typeParams: { precision: { kind: 'arg', index: 0 } },

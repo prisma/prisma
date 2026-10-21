@@ -13,7 +13,7 @@ import {
   type MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/components';
 import { assembleAuthoringContributions } from '@internal/framework-components/control';
-import { buildSymbolTable } from '@internal/psl-parser';
+import { buildSymbolTable, EMPTY_DATA_TYPES } from '@internal/psl-parser';
 import { parse } from '@internal/psl-parser/syntax';
 import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
@@ -169,6 +169,7 @@ describe('generator attributes in the language server', {
         position: sourceFile.positionAt(offset),
         binder,
         pslBlockDescriptors: stack.pslBlockDescriptors,
+        dataTypes: EMPTY_DATA_TYPES,
       })?.contents,
     ).toEqual({
       kind: 'markdown',

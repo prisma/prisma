@@ -12,6 +12,7 @@ import { invariant } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type { Type } from 'arktype';
 import type { CodecLookupWithDescriptors } from './codec-types';
@@ -67,23 +68,32 @@ interface AuthoringArgumentDescriptorCommon {
   readonly optional?: boolean;
 }
 
+interface ValueArgumentKind {
+  readonly kind: 'value';
+  readonly dataType: string;
+}
+
 export type AuthoringArgumentDescriptor = AuthoringArgumentDescriptorCommon &
   (
-    | { readonly kind: 'string' }
-    | { readonly kind: 'boolean' }
+    | ValueArgumentKind
     | {
         readonly kind: 'number';
         readonly integer?: boolean;
         readonly minimum?: number;
         readonly maximum?: number;
       }
-    | { readonly kind: 'stringArray' }
     | {
         readonly kind: 'object';
         readonly properties: Record<string, AuthoringArgumentDescriptor>;
       }
     | AuthoringOption
   );
+
+/** An argument that is a value of the data type `dataType`, read and cast as attribute arguments are. ADR 254. */
+export type AuthoringValueArgument = Extract<
+  AuthoringArgumentDescriptor,
+  { readonly kind: 'value' }
+>;
 
 /**
  * What a type constructor or field preset produces: a codec and its parameters. The database type
@@ -1660,29 +1670,7 @@ function validateAuthoringArgument(
     throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} is missing`);
   }
 
-  if (descriptor.kind === 'string') {
-    if (typeof value !== 'string') {
-      throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} must be a string`);
-    }
-    return;
-  }
-
-  if (descriptor.kind === 'boolean') {
-    if (typeof value !== 'boolean') {
-      throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} must be a boolean`);
-    }
-    return;
-  }
-
-  if (descriptor.kind === 'stringArray') {
-    if (!Array.isArray(value)) {
-      throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} must be an array of strings`);
-    }
-    for (const entry of value) {
-      if (typeof entry !== 'string') {
-        throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} must be an array of strings`);
-      }
-    }
+  if (descriptor.kind === 'value') {
     return;
   }
 
@@ -1800,6 +1788,33 @@ function issueKey(issue: StandardSchemaV1.Issue): string | undefined {
   return typeof key === 'string' ? key : undefined;
 }
 
+/** Why a constructor's or preset's type parameters fail its codec's parameter schema, and the argument the failing parameter came from. */
+export interface AuthoringTypeParamsIssue {
+  readonly message: string;
+  readonly argumentIndex: number | undefined;
+}
+
+function authoringTypeParamsIssue(
+  template: AuthoringStorageTypeTemplate,
+  typeParams: Record<string, unknown> | undefined,
+  paramsSchema: StandardSchemaV1<unknown> | undefined,
+): AuthoringTypeParamsIssue | undefined {
+  if (template.typeParams === undefined || paramsSchema === undefined) return undefined;
+  const result = paramsSchema['~standard'].validate(typeParams ?? {});
+  if (result instanceof Promise) {
+    throw new InternalError(
+      `The parameter schema of codec "${template.codecId}" is asynchronous; authoring requires a synchronous schema.`,
+    );
+  }
+  const [issue] = result.issues ?? [];
+  if (issue === undefined) return undefined;
+  const key = issueKey(issue);
+  return {
+    message: issue.message,
+    argumentIndex: key === undefined ? undefined : argumentIndexOf(template.typeParams[key]),
+  };
+}
+
 /**
  * Checks the type parameters a constructor or preset produced against its codec's parameter schema, which is where the bounds of a data type's parameters are written. A failure names the argument the failing parameter came from.
  */
@@ -1809,17 +1824,9 @@ export function validateAuthoringTypeParams(
   typeParams: Record<string, unknown> | undefined,
   paramsSchema: StandardSchemaV1<unknown> | undefined,
 ): void {
-  if (template.typeParams === undefined || paramsSchema === undefined) return;
-  const result = paramsSchema['~standard'].validate(typeParams ?? {});
-  if (result instanceof Promise) {
-    throw new InternalError(
-      `The parameter schema of codec "${template.codecId}" is asynchronous; authoring requires a synchronous schema.`,
-    );
-  }
-  const [issue] = result.issues ?? [];
+  const issue = authoringTypeParamsIssue(template, typeParams, paramsSchema);
   if (issue === undefined) return;
-  const key = issueKey(issue);
-  const argumentIndex = key === undefined ? undefined : argumentIndexOf(template.typeParams[key]);
+  const { argumentIndex } = issue;
   throw runtimeError(
     'CONTRACT.ARGUMENT_INVALID',
     argumentIndex === undefined
@@ -2017,6 +2024,19 @@ export function assertTypeAliasGeneratorsResolve(
       resolveTypeAliasGenerators({ path, descriptor, generatorFunctions, length: undefined });
     }
   }
+}
+
+/**
+ * The column a type constructor makes from the stored values of its arguments, as a reader that holds values rather than written arguments has them, or why its codec's parameter schema refuses the parameters they give. The schema check is {@link validateAuthoringTypeParams}'s.
+ */
+export function instantiateAuthoringTypeConstructorFromValues(
+  descriptor: AuthoringTypeConstructorDescriptor,
+  values: readonly unknown[],
+  paramsSchema: StandardSchemaV1<unknown> | undefined,
+): Result<ScalarTypeConstructorOutput, AuthoringTypeParamsIssue> {
+  const output = instantiateAuthoringTypeConstructor(descriptor, values);
+  const issue = authoringTypeParamsIssue(descriptor.output, output.typeParams, paramsSchema);
+  return issue === undefined ? ok(output) : notOk(issue);
 }
 
 export function instantiateAuthoringEntityType<TOutput = unknown>(
