@@ -494,7 +494,7 @@ describe('assembleDataTypeSupport', () => {
     ).toEqual({
       code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
       message:
-        'Argument "size" of type constructor "x.Thing" contributed by "x-pack" is a "number" argument, but a type constructor\'s argument is a value of a data type. Declare it as { kind: \'value\', dataType: ... }, naming the data type its value belongs to.',
+        'Argument "size" of type constructor "x.Thing" contributed by "x-pack" is an argument of kind "number", but a type constructor\'s argument is a value of a data type. Declare it as { kind: \'value\', dataType: ... }, naming the data type its value belongs to.',
     });
   });
 
@@ -515,7 +515,7 @@ describe('assembleDataTypeSupport', () => {
       expect.objectContaining({
         code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
         message: expect.stringMatching(
-          /^Argument #1 of type constructor "Thing" contributed by "x-pack" is a "option" argument/,
+          /^Argument #1 of type constructor "Thing" contributed by "x-pack" is an argument of kind "option"/,
         ),
         details: {
           packId: 'x-pack',
