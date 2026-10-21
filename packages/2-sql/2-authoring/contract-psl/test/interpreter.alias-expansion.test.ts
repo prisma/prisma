@@ -256,7 +256,8 @@ model Post {
     ).toEqual([
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-        message: 'Type alias "B" references unsupported base type "A"',
+        message:
+          'Type alias "B" is written as the type alias "A", and a type alias cannot be written as another one. Write what "A" is written as instead: B = VarChar(8)',
       },
     ]);
   });

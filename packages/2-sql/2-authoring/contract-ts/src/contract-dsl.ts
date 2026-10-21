@@ -119,7 +119,7 @@ function withGeneratorCall<State extends AnyScalarFieldState>(
   ) {
     throw contractError(
       'CONTRACT.DEFAULT_INVALID',
-      `.${phase}() is called on a field that already generates a value ${phase === 'onCreate' ? 'on create' : 'on update'}. Set each phase once, and do not combine .${phase}() with a field preset that sets it.`,
+      `.${phase}() is called on a field that already generates a value ${phase === 'onCreate' ? 'on create' : 'on update'}. Set each phase once, and do not combine .${phase}() with a field preset, type alias or alias constant that sets it.`,
       { meta: { reason: 'generator-phase-set-twice', phase } },
     );
   }

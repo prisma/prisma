@@ -54,6 +54,43 @@ function writtenBase(declaration: NamedTypeSymbol, sources: PslSources): string 
   return sources.sourceFileFor(node).text.slice(node.offset, node.endOffset).trim();
 }
 
+/** What a declaration is written as after its `=`: its type and its attributes. */
+function writtenDefinition(declaration: NamedTypeSymbol, sources: PslSources): string {
+  const annotation = declaration.node.typeAnnotation()?.syntax;
+  if (annotation === undefined) return '';
+  const last = [...declaration.node.attributes()].at(-1)?.syntax ?? annotation;
+  return sources
+    .sourceFileFor(annotation)
+    .text.slice(annotation.offset, last.endOffset)
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** The refusal of an alias written as another alias, saying what to write instead; `undefined` when its base is not an alias. */
+function aliasBaseMessage(
+  declaration: NamedTypeSymbol,
+  resolution: Resolution | undefined,
+  declarations: readonly NamedTypeSymbol[],
+  sources: PslSources,
+): string | undefined {
+  const refusal = (base: string) =>
+    `Type alias "${declaration.name}" is written as the type alias "${base}", and a type alias cannot be written as another one.`;
+  const declared = declarations.find(
+    (other) => other !== declaration && other.name === writtenBase(declaration, sources),
+  );
+  if (declared !== undefined) {
+    return `${refusal(declared.name)} Write what "${declared.name}" is written as instead: ${declaration.name} = ${writtenDefinition(declared, sources)}`;
+  }
+  const contributed = contributedTypeAliasOf(resolution);
+  if (contributed === undefined) return undefined;
+  const { onCreate, onUpdate } = contributed.descriptor.output;
+  const attributes = Object.entries({ onCreate, onUpdate }).flatMap(([phase, call]) =>
+    call === undefined ? [] : [`@${phase}(${call.name}())`],
+  );
+  const written = attributes.length === 0 ? '' : ` with ${attributes.join(' ')}`;
+  return `${refusal(contributed.name)} Type the fields ${contributed.name} instead, or write ${declaration.name} as a type constructor${written}.`;
+}
+
 function baseOf(
   declaration: NamedTypeSymbol,
   resolution: Resolution | undefined,
@@ -124,7 +161,8 @@ export function resolveTypeAliases(input: {
       } else {
         refuseBase(
           'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-          `Type alias "${declaration.name}" references unsupported base type "${writtenBase(declaration, input.sources)}"`,
+          aliasBaseMessage(declaration, resolution, input.declarations, input.sources) ??
+            `Type alias "${declaration.name}" references unsupported base type "${writtenBase(declaration, input.sources)}"`,
         );
       }
       continue;

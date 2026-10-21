@@ -112,7 +112,7 @@ types {
 
   it('refuses a base that is another alias, a preset, a constructor that needs arguments, or missing', () => {
     const { aliases, reported } = resolve(`types {
-  A = String
+  A = String @default("a")
   B = A
   C = temporal.createdAt()
   D = VarChar
@@ -123,7 +123,8 @@ types {
       reported: [
         {
           code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-          message: 'Type alias "B" references unsupported base type "A"',
+          message:
+            'Type alias "B" is written as the type alias "A", and a type alias cannot be written as another one. Write what "A" is written as instead: B = String @default("a")',
           line: 3,
         },
         {

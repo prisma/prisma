@@ -479,19 +479,17 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     const ownGeneratorAttribute = GENERATOR_ATTRIBUTE_NAMES.map((name) =>
       getAttribute(field.attributes, name),
     ).find((attribute) => attribute !== undefined);
-    const generatorText =
-      ownGeneratorAttribute === undefined
-        ? typeAlias?.generatorText
-        : {
-            phase: ownGeneratorAttribute.name,
-            call:
-              ownGeneratorAttribute.args.find((arg) => arg.kind === 'positional')?.value.trim() ??
-              '',
-          };
-    if (isListField && generatorText !== undefined && generatedValues !== undefined) {
+    if (isListField && generatedValues !== undefined) {
+      const fieldLabel = `Field "${model.name}.${field.name}"`;
+      const perElement = 'Lists have no per-element generated values;';
+      const call =
+        ownGeneratorAttribute?.args.find((arg) => arg.kind === 'positional')?.value.trim() ?? '';
       diagnostics.push({
         code: 'PSL_LIST_EXECUTION_DEFAULT_UNSUPPORTED',
-        message: `Field "${model.name}.${field.name}" is a list and cannot use @${generatorText.phase}(${generatorText.call}). Lists have no per-element generated values; remove @${generatorText.phase}(...).`,
+        message:
+          ownGeneratorAttribute === undefined
+            ? `${fieldLabel} is a list, and its type alias "${typeAlias?.name}" generates a value. ${perElement} remove "[]" or type the field without the alias.`
+            : `${fieldLabel} is a list and cannot use @${ownGeneratorAttribute.name}(${call}). ${perElement} remove @${ownGeneratorAttribute.name}(...).`,
         ...source.at(ownGeneratorAttribute?.span ?? field.span),
       });
       continue;

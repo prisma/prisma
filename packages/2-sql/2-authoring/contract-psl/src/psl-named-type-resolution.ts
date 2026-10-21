@@ -52,8 +52,6 @@ export interface ResolvedTypeAlias {
   readonly enumHandle: EnumTypeHandle | undefined;
   readonly defaultValue: AuthoredColumnDefault | undefined;
   readonly executionDefaults: ExecutionMutationDefaultPhases | undefined;
-  /** The first generator the alias sets, as `@onCreate(now())` writes it, for a diagnostic. */
-  readonly generatorText: { readonly phase: string; readonly call: string } | undefined;
 }
 
 /** The type aliases of a document: those its `types {}` block declares, and those the stack contributes. */
@@ -143,15 +141,13 @@ function resolveContributedTypeAlias(
   alias: ContributedTypeAlias,
   input: ResolveNamedTypeDeclarationsInput,
 ): ResolvedTypeAlias {
-  const { type: descriptor, ...calls } = instantiateAuthoringTypeAlias(alias.descriptor);
+  const { type: descriptor } = instantiateAuthoringTypeAlias(alias.descriptor);
   const executionDefaults = resolveTypeAliasGenerators({
     path: alias.name,
     descriptor: alias.descriptor,
     generatorFunctions: input.generatorFunctions,
     length: sqlCodecColumnLength(input.dataTypes, descriptor.codecId, descriptor.typeParams),
   });
-  const phase = calls.onCreate === undefined ? 'onUpdate' : 'onCreate';
-  const call = calls[phase];
   return {
     alias,
     name: alias.name,
@@ -160,7 +156,6 @@ function resolveContributedTypeAlias(
     enumHandle: undefined,
     defaultValue: undefined,
     executionDefaults,
-    generatorText: call === undefined ? undefined : { phase, call: `${call.name}()` },
   };
 }
 
@@ -204,9 +199,6 @@ function resolveDeclaredTypeAliases(
       columnDescriptor: descriptor,
       columnTypeParams: descriptor.typeParams,
     });
-    const generatorAttribute = alias.attributes.find(
-      ({ name }) => name === 'onCreate' || name === 'onUpdate',
-    );
     resolved.set(alias.symbol, {
       alias,
       name: alias.symbol.name,
@@ -215,15 +207,6 @@ function resolveDeclaredTypeAliases(
       enumHandle,
       defaultValue,
       executionDefaults,
-      generatorText:
-        generatorAttribute === undefined
-          ? undefined
-          : {
-              phase: generatorAttribute.name,
-              call:
-                generatorAttribute.args.find((arg) => arg.kind === 'positional')?.value.trim() ??
-                '',
-            },
     });
   }
   return resolved;

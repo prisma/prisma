@@ -1463,7 +1463,7 @@ export function assertNoCrossRegistryCollisions(
     if (typePaths.has(fieldPath)) {
       throw runtimeError(
         'CONTRACT.PACK_CONTRIBUTION_INVALID',
-        `Ambiguous authoring registry path "${fieldPath}". The same path is registered as both a type constructor and a field preset; PSL resolution would be ambiguous. ${ambiguityHint}`,
+        `Ambiguous authoring registry path "${fieldPath}". The same path is registered as both a type constructor or type alias and a field preset; PSL resolution would be ambiguous. ${ambiguityHint}`,
       );
     }
   }
@@ -1471,7 +1471,7 @@ export function assertNoCrossRegistryCollisions(
     if (typePaths.has(entityPath) || fieldPaths.has(entityPath)) {
       throw runtimeError(
         'CONTRACT.PACK_CONTRIBUTION_INVALID',
-        `Ambiguous authoring registry path "${entityPath}". The same path is registered as an entity contribution AND as a type constructor or field preset; PSL resolution would be ambiguous. ${ambiguityHint}`,
+        `Ambiguous authoring registry path "${entityPath}". The same path is registered as an entity contribution AND as a type constructor, type alias or field preset; PSL resolution would be ambiguous. ${ambiguityHint}`,
       );
     }
   }

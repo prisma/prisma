@@ -271,10 +271,10 @@ export interface FieldBuilder<
     StoredName
   >;
   readonly optional: FilledOnWrite<ExecutionDefaults> extends true
-    ? (this: 'A preset fills this field on write, so it cannot be optional') => never
+    ? (this: 'This field generates a value on write, so it cannot be optional') => never
     : () => FieldBuilder<Type, true, Many, Handle, ExecutionDefaults, StoredName>;
   readonly many: FilledOnWrite<ExecutionDefaults> extends true
-    ? (this: 'A preset fills this field on write, so it cannot be a list') => never
+    ? (this: 'This field generates a value on write, so it cannot be a list') => never
     : {
         (): FieldBuilder<
           Type,
@@ -1357,7 +1357,7 @@ function createFieldBuilder<
     if (generatorCalls?.[phase] !== undefined || executionDefaults?.[phase] !== undefined) {
       throw contractError(
         'CONTRACT.DEFAULT_INVALID',
-        `.${phase}() is called on a field that already generates a value ${phase === 'onCreate' ? 'on create' : 'on update'}. Set each phase once, and do not combine .${phase}() with a field preset that sets it.`,
+        `.${phase}() is called on a field that already generates a value ${phase === 'onCreate' ? 'on create' : 'on update'}. Set each phase once, and do not combine .${phase}() with a field preset, type alias or alias constant that sets it.`,
         { meta: { reason: 'generator-phase-set-twice', phase } },
       );
     }
@@ -2702,7 +2702,7 @@ function buildExecutionDefaults(
           modelName,
           fieldName,
           'nullable-with-executionDefaults',
-          'is filled on write by a preset such as temporal.createdAt(), so it cannot be optional; remove .optional().',
+          'generates a value on write, so it cannot be optional; remove .optional().',
         );
       }
       if (fieldBuilder.__many) {
@@ -2710,7 +2710,7 @@ function buildExecutionDefaults(
           modelName,
           fieldName,
           'many-with-executionDefaults',
-          'is filled on write by a preset such as temporal.createdAt(), so it cannot be a list; remove .many().',
+          'generates a value on write, so it cannot be a list; remove .many().',
         );
       }
       if (modelBuilder.__base !== undefined) {

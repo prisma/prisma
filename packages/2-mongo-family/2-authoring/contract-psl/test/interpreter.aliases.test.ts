@@ -34,7 +34,7 @@ const generatorFunctions = assembleGeneratorFunctions([
 const mongoDate = { codecId: 'mongo/date@1' } as const;
 
 const authoringContributions: AuthoringContributions = {
-  type: { temporal: temporalTypeAliases(mongoDate) },
+  type: { temporal: temporalTypeAliases(mongoDate, 'a JavaScript Date') },
   field: { temporal: temporalAuthoringPresets(mongoDate) },
   entityTypes: {
     enum: {
@@ -420,11 +420,13 @@ model Post {
     ).toEqual([
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-        message: 'Type alias "B" references unsupported base type "A"',
+        message:
+          'Type alias "B" is written as the type alias "A", and a type alias cannot be written as another one. Write what "A" is written as instead: B = Date',
       },
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-        message: 'Type alias "X" references unsupported base type "temporal.UpdatedAt"',
+        message:
+          'Type alias "X" is written as the type alias "temporal.UpdatedAt", and a type alias cannot be written as another one. Type the fields temporal.UpdatedAt instead, or write X as a type constructor with @onCreate(now()) @onUpdate(now()).',
       },
     ]);
   });

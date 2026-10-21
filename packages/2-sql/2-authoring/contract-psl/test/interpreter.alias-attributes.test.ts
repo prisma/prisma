@@ -264,7 +264,7 @@ model Event {
       {
         code: 'PSL_LIST_EXECUTION_DEFAULT_UNSUPPORTED',
         message:
-          'Field "Event.stamps" is a list and cannot use @onCreate(now()). Lists have no per-element generated values; remove @onCreate(...).',
+          'Field "Event.stamps" is a list, and its type alias "Stamp" generates a value. Lists have no per-element generated values; remove "[]" or type the field without the alias.',
         line: 7,
       },
     ]);

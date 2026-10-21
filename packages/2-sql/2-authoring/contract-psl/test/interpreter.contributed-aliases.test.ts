@@ -134,7 +134,7 @@ describe('a contributed type alias', () => {
       {
         code: 'PSL_LIST_EXECUTION_DEFAULT_UNSUPPORTED',
         message:
-          'Field "Event.stamps" is a list and cannot use @onCreate(now()). Lists have no per-element generated values; remove @onCreate(...).',
+          'Field "Event.stamps" is a list, and its type alias "temporal.CreatedAt" generates a value. Lists have no per-element generated values; remove "[]" or type the field without the alias.',
       },
     ]);
   });
@@ -151,7 +151,8 @@ model Event {
     ).toEqual([
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-        message: 'Type alias "Stamp" references unsupported base type "temporal.UpdatedAt"',
+        message:
+          'Type alias "Stamp" is written as the type alias "temporal.UpdatedAt", and a type alias cannot be written as another one. Type the fields temporal.UpdatedAt instead, or write Stamp as a type constructor with @onCreate(now()) @onUpdate(now()).',
       },
     ]);
   });
