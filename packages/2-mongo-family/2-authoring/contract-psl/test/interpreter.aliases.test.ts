@@ -426,7 +426,45 @@ model Post {
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
         message:
-          'Type alias "X" is written as the type alias "temporal.UpdatedAt", and a type alias cannot be written as another one. Type the fields temporal.UpdatedAt instead, or write X as a type constructor with @onCreate(now()) @onUpdate(now()).',
+          'Type alias "X" is written as the type alias "temporal.UpdatedAt", and a type alias cannot be written as another one. Type the fields temporal.UpdatedAt instead, or write: X = Date @onCreate(now()) @onUpdate(now())',
+      },
+    ]);
+  });
+
+  it('refuse an alias chain, a cycle and an alias with a comment, suggesting what each stands for', () => {
+    expect(
+      diagnostics(`types {
+  A = Date // the day
+    @onCreate(now())
+  B = A
+  C = B
+  X = Y
+  Y = X
+}
+
+model Post {
+  id ObjectId @id @map("_id")
+}`),
+    ).toEqual([
+      {
+        code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
+        message:
+          'Type alias "B" is written as the type alias "A", and a type alias cannot be written as another one. Write what "A" is written as instead: B = Date @onCreate(now())',
+      },
+      {
+        code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
+        message:
+          'Type alias "C" is written as the type alias "B", and a type alias cannot be written as another one. Write what "B" stands for instead: C = Date @onCreate(now())',
+      },
+      {
+        code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
+        message:
+          'Type alias "X" is written as the type alias "Y", and a type alias cannot be written as another one.',
+      },
+      {
+        code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
+        message:
+          'Type alias "Y" is written as the type alias "X", and a type alias cannot be written as another one.',
       },
     ]);
   });

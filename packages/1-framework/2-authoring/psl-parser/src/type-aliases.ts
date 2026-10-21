@@ -1,7 +1,10 @@
-import type {
-  AuthoringTypeAliasDescriptor,
-  AuthoringTypeConstructorDescriptor,
-  DataTypeSupport,
+import {
+  type AuthoringTypeAliasDescriptor,
+  type AuthoringTypeConstructorDescriptor,
+  type AuthoringTypeNamespace,
+  type DataTypeSupport,
+  findAuthoringTypeConstructorCall,
+  instantiateAuthoringTypeAlias,
 } from '@internal/framework-components/authoring';
 import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
 import type { ControlMutationDefaultRegistry } from '@internal/framework-components/control';
@@ -18,6 +21,8 @@ import type {
   SymbolTable,
 } from './symbol-table';
 import type { FieldAttributeAst } from './syntax/ast/attributes';
+import { isTrivia } from './syntax/navigation';
+import type { SyntaxNode } from './syntax/red';
 import { isBareTypeConstructor } from './type-constructor-calls';
 
 /** The attributes a type alias may carry. Every field typed by the alias takes them. */
@@ -54,32 +59,100 @@ function writtenBase(declaration: NamedTypeSymbol, sources: PslSources): string 
   return sources.sourceFileFor(node).text.slice(node.offset, node.endOffset).trim();
 }
 
-/** What a declaration is written as after its `=`: its type and its attributes. */
-function writtenDefinition(declaration: NamedTypeSymbol, sources: PslSources): string {
-  const annotation = declaration.node.typeAnnotation()?.syntax;
-  if (annotation === undefined) return '';
-  const last = [...declaration.node.attributes()].at(-1)?.syntax ?? annotation;
-  return sources
-    .sourceFileFor(annotation)
-    .text.slice(annotation.offset, last.endOffset)
-    .replace(/\s+/g, ' ')
-    .trim();
+/** A node's text without its comments, each run of whitespace and comments written as one space. */
+function writtenText(node: SyntaxNode): string {
+  let text = '';
+  let pendingSpace = false;
+  for (const token of node.tokens()) {
+    if (isTrivia(token)) {
+      pendingSpace = text.length > 0;
+      continue;
+    }
+    text += `${pendingSpace ? ' ' : ''}${token.text}`;
+    pendingSpace = false;
+  }
+  return text;
+}
+
+/** The alias `declaration` is written as, if it is written as another `types {}` declaration. */
+function declaredBaseOf(
+  declaration: NamedTypeSymbol,
+  declarations: readonly NamedTypeSymbol[],
+  sources: PslSources,
+): NamedTypeSymbol | undefined {
+  const base = writtenBase(declaration, sources);
+  return declarations.find((other) => other !== declaration && other.name === base);
+}
+
+/**
+ * What `declaration` stands for, written as one alias with a base that is not an alias: the type of the last alias of the chain, and the attributes of every alias in it, a nearer alias's attribute replacing a farther one's. `undefined` when the chain loops or ends at a contributed alias.
+ */
+function expandedDefinition(
+  declaration: NamedTypeSymbol,
+  declarations: readonly NamedTypeSymbol[],
+  sources: PslSources,
+  binder: Binder,
+): string | undefined {
+  const chain = [declaration];
+  let next = declaredBaseOf(declaration, declarations, sources);
+  while (next !== undefined) {
+    if (chain.includes(next)) return undefined;
+    chain.push(next);
+    next = declaredBaseOf(next, declarations, sources);
+  }
+  const last = chain.at(-1) ?? declaration;
+  const reference = typeReferenceNode(last);
+  const annotation = last.node.typeAnnotation()?.syntax;
+  if (annotation === undefined || reference === undefined) return undefined;
+  if (contributedTypeAliasOf(binder.symbolForNode(reference)) !== undefined) return undefined;
+  const attributes = new Map<string, string>();
+  for (const alias of [...chain].reverse()) {
+    for (const attribute of alias.attributes) {
+      attributes.set(attribute.name, writtenText(attribute.node.syntax));
+    }
+  }
+  return [writtenText(annotation), ...attributes.values()].join(' ');
+}
+
+/** `path`, called with `args` when it takes any; `undefined` when an argument is not a number, string or boolean. */
+function writtenCall(path: readonly string[], args: readonly unknown[]): string | undefined {
+  const written: string[] = [];
+  for (const arg of args) {
+    if (typeof arg === 'string') written.push(JSON.stringify(arg));
+    else if (typeof arg === 'number' || typeof arg === 'boolean') written.push(String(arg));
+    else return undefined;
+  }
+  const name = path.join('.');
+  return written.length === 0 ? name : `${name}(${written.join(', ')})`;
 }
 
 /** The refusal of an alias written as another alias, saying what to write instead; `undefined` when its base is not an alias. */
 function aliasBaseMessage(
   declaration: NamedTypeSymbol,
   resolution: Resolution | undefined,
-  declarations: readonly NamedTypeSymbol[],
-  sources: PslSources,
+  input: {
+    readonly declarations: readonly NamedTypeSymbol[];
+    readonly sources: PslSources;
+    readonly binder: Binder;
+    readonly authoringTypes: AuthoringTypeNamespace | undefined;
+  },
 ): string | undefined {
   const refusal = (base: string) =>
     `Type alias "${declaration.name}" is written as the type alias "${base}", and a type alias cannot be written as another one.`;
-  const declared = declarations.find(
-    (other) => other !== declaration && other.name === writtenBase(declaration, sources),
-  );
+  const declared = declaredBaseOf(declaration, input.declarations, input.sources);
   if (declared !== undefined) {
-    return `${refusal(declared.name)} Write what "${declared.name}" is written as instead: ${declaration.name} = ${writtenDefinition(declared, sources)}`;
+    const expanded = expandedDefinition(
+      declaration,
+      input.declarations,
+      input.sources,
+      input.binder,
+    );
+    if (expanded === undefined) return refusal(declared.name);
+    const meaning =
+      declaredBaseOf(declared, input.declarations, input.sources) === undefined
+        ? 'is written as'
+        : 'stands for';
+    return `${refusal(declared.name)} Write what "${declared.name}" ${meaning} instead: ${declaration.name} = ${expanded}`;
   }
   const contributed = contributedTypeAliasOf(resolution);
   if (contributed === undefined) return undefined;
@@ -87,8 +160,20 @@ function aliasBaseMessage(
   const attributes = Object.entries({ onCreate, onUpdate }).flatMap(([phase, call]) =>
     call === undefined ? [] : [`@${phase}(${call.name}())`],
   );
+  const insteadOfAlias = `${refusal(contributed.name)} Type the fields ${contributed.name} instead`;
+  const call =
+    input.authoringTypes === undefined
+      ? undefined
+      : findAuthoringTypeConstructorCall(
+          input.authoringTypes,
+          instantiateAuthoringTypeAlias(contributed.descriptor).type,
+        );
+  const type = call === undefined ? undefined : writtenCall(call.path, call.args);
+  if (type !== undefined) {
+    return `${insteadOfAlias}, or write: ${[`${declaration.name} = ${type}`, ...attributes].join(' ')}`;
+  }
   const written = attributes.length === 0 ? '' : ` with ${attributes.join(' ')}`;
-  return `${refusal(contributed.name)} Type the fields ${contributed.name} instead, or write ${declaration.name} as a type constructor${written}.`;
+  return `${insteadOfAlias}, or write ${declaration.name} as a type constructor${written}.`;
 }
 
 function baseOf(
@@ -126,6 +211,8 @@ export function resolveTypeAliases(input: {
   readonly binder: Binder;
   readonly sources: PslSources;
   readonly diagnostics: PslDiagnosticCollector;
+  /** The stack's type constructors, which the refusal of an alias written as a contributed alias suggests from. */
+  readonly authoringTypes: AuthoringTypeNamespace | undefined;
   /** The attributes the family lets a type alias carry; `TYPE_ALIAS_ATTRIBUTE_NAMES` by default. */
   readonly acceptedAttributes?: ReadonlySet<string>;
   /** The family's wording for an attribute no type alias takes, or `undefined` for the shared wording. */
@@ -161,7 +248,7 @@ export function resolveTypeAliases(input: {
       } else {
         refuseBase(
           'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-          aliasBaseMessage(declaration, resolution, input.declarations, input.sources) ??
+          aliasBaseMessage(declaration, resolution, input) ??
             `Type alias "${declaration.name}" references unsupported base type "${writtenBase(declaration, input.sources)}"`,
         );
       }

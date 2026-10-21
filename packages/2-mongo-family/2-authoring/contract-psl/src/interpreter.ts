@@ -1691,6 +1691,7 @@ export function interpretPslDocumentToMongoContract(
     defaultFunctionRegistry: input.defaultFunctionRegistry,
     generatorFunctions,
     dataTypes: input.dataTypes,
+    authoringTypes: input.authoringContributions?.type,
   });
 
   const models: Record<string, MongoModelEntry> = {};

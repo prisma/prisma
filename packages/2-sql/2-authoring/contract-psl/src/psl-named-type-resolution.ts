@@ -1,5 +1,6 @@
 import type { ExecutionMutationDefaultPhases } from '@internal/contract/types';
 import {
+  type AuthoringTypeNamespace,
   type DataTypeSupport,
   instantiateAuthoringTypeAlias,
   instantiateAuthoringTypeConstructor,
@@ -73,6 +74,7 @@ export interface ResolveNamedTypeDeclarationsInput {
   readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
   readonly diagnostics: PslDiagnosticCollector;
+  readonly authoringTypes: AuthoringTypeNamespace | undefined;
 }
 
 function describeUnsupportedSqlAliasAttribute(
@@ -167,6 +169,7 @@ function resolveDeclaredTypeAliases(
     binder: input.binder,
     sources: input.sources,
     diagnostics: input.diagnostics,
+    authoringTypes: input.authoringTypes,
     describeUnsupportedAttribute: describeUnsupportedSqlAliasAttribute,
   });
   const resolved = new Map<NamedTypeSymbol, ResolvedTypeAlias>();

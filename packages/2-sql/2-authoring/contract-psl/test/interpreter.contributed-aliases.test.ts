@@ -152,7 +152,7 @@ model Event {
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
         message:
-          'Type alias "Stamp" is written as the type alias "temporal.UpdatedAt", and a type alias cannot be written as another one. Type the fields temporal.UpdatedAt instead, or write Stamp as a type constructor with @onCreate(now()) @onUpdate(now()).',
+          'Type alias "Stamp" is written as the type alias "temporal.UpdatedAt", and a type alias cannot be written as another one. Type the fields temporal.UpdatedAt instead, or write: Stamp = DateTime @onCreate(now()) @onUpdate(now())',
       },
     ]);
   });

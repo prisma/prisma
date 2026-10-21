@@ -2426,6 +2426,7 @@ export function interpretPslDocumentToSqlContract(
     generatorFunctions,
     dataTypes,
     diagnostics,
+    authoringTypes: input.authoringContributions?.type,
   });
 
   const modelNodes = new Map<ModelSymbol, ModelNode>();

@@ -1,5 +1,6 @@
 import type {
   AuthoringFieldPresetDescriptor,
+  AuthoringTypeAliasDescriptor,
   AuthoringTypeConstructorDescriptor,
 } from '@internal/framework-components/authoring';
 import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
@@ -29,6 +30,25 @@ const varchar: AuthoringTypeConstructorDescriptor = {
   output: { codecId: 'fixture/varchar@1' },
 };
 
+const timestamp: AuthoringTypeConstructorDescriptor = {
+  kind: 'typeConstructor',
+  output: { codecId: 'fixture/timestamp@1' },
+};
+
+const updatedAt: AuthoringTypeAliasDescriptor = {
+  kind: 'typeAlias',
+  output: {
+    type: { codecId: 'fixture/timestamp@1' },
+    onCreate: { name: 'now', args: {} },
+    onUpdate: { name: 'now', args: {} },
+  },
+};
+
+const dated: AuthoringTypeAliasDescriptor = {
+  kind: 'typeAlias',
+  output: { type: { codecId: 'fixture/date@1' }, onCreate: { name: 'now', args: {} } },
+};
+
 const createdAt: AuthoringFieldPresetDescriptor = {
   kind: 'fieldPreset',
   output: { codecId: 'fixture/timestamp@1' },
@@ -37,7 +57,12 @@ const createdAt: AuthoringFieldPresetDescriptor = {
 function context(): BinderContext {
   return {
     authoringContributions: {
-      type: { String: text, VarChar: varchar },
+      type: {
+        String: text,
+        VarChar: varchar,
+        Timestamp: timestamp,
+        temporal: { UpdatedAt: updatedAt, Dated: dated },
+      },
       field: { temporal: { createdAt } },
       entityTypes: {},
       attributeSpecs: { model: {}, field: {} },
@@ -71,6 +96,7 @@ function resolve(schema: string, options: ResolveOptions = {}) {
     binder,
     sources: pslSources,
     diagnostics,
+    authoringTypes: context().authoringContributions.type,
     ...options,
   });
   const reported = () =>
@@ -143,6 +169,88 @@ types {
           line: 6,
         },
       ],
+    });
+  });
+
+  describe('the refusal of an alias written as another alias', () => {
+    it('follows a chain to the first base that is not an alias', () => {
+      const { reported } = resolve(`types {
+  A = String @default("a")
+  B = A @onUpdate(f())
+  C = B
+}`);
+      expect(reported()).toEqual([
+        {
+          code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
+          message:
+            'Type alias "B" is written as the type alias "A", and a type alias cannot be written as another one. Write what "A" is written as instead: B = String @default("a") @onUpdate(f())',
+          line: 3,
+        },
+        {
+          code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
+          message:
+            'Type alias "C" is written as the type alias "B", and a type alias cannot be written as another one. Write what "B" stands for instead: C = String @default("a") @onUpdate(f())',
+          line: 4,
+        },
+      ]);
+    });
+
+    it('suggests nothing for a cycle', () => {
+      const { reported } = resolve(`types {
+  X = Y
+  Y = X
+}`);
+      expect(reported()).toEqual([
+        {
+          code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
+          message:
+            'Type alias "X" is written as the type alias "Y", and a type alias cannot be written as another one.',
+          line: 2,
+        },
+        {
+          code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
+          message:
+            'Type alias "Y" is written as the type alias "X", and a type alias cannot be written as another one.',
+          line: 3,
+        },
+      ]);
+    });
+
+    it('leaves out comments', () => {
+      const { reported } = resolve(`types {
+  A = VarChar(8) // the short one
+    @default("a  b")
+  B = A
+}`);
+      expect(reported()).toEqual([
+        {
+          code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
+          message:
+            'Type alias "B" is written as the type alias "A", and a type alias cannot be written as another one. Write what "A" is written as instead: B = VarChar(8) @default("a  b")',
+          line: 4,
+        },
+      ]);
+    });
+
+    it('writes the whole line for a contributed alias when a type constructor gives its type', () => {
+      const { reported } = resolve(`types {
+  X = temporal.UpdatedAt
+  Y = temporal.Dated
+}`);
+      expect(reported()).toEqual([
+        {
+          code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
+          message:
+            'Type alias "X" is written as the type alias "temporal.UpdatedAt", and a type alias cannot be written as another one. Type the fields temporal.UpdatedAt instead, or write: X = Timestamp @onCreate(now()) @onUpdate(now())',
+          line: 2,
+        },
+        {
+          code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
+          message:
+            'Type alias "Y" is written as the type alias "temporal.Dated", and a type alias cannot be written as another one. Type the fields temporal.Dated instead, or write Y as a type constructor with @onCreate(now()).',
+          line: 3,
+        },
+      ]);
     });
   });
 

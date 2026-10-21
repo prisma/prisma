@@ -262,6 +262,44 @@ model Post {
     ]);
   });
 
+  it('refuses an alias chain, a cycle and an alias with a comment, suggesting what each stands for', () => {
+    expect(
+      diagnostics(`types {
+  A = VarChar(8) // the short one
+    @default("x")
+  B = A
+  C = B
+  X = Y
+  Y = X
+}
+
+model Post {
+  id Int @id
+}`),
+    ).toEqual([
+      {
+        code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
+        message:
+          'Type alias "B" is written as the type alias "A", and a type alias cannot be written as another one. Write what "A" is written as instead: B = VarChar(8) @default("x")',
+      },
+      {
+        code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
+        message:
+          'Type alias "C" is written as the type alias "B", and a type alias cannot be written as another one. Write what "B" stands for instead: C = VarChar(8) @default("x")',
+      },
+      {
+        code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
+        message:
+          'Type alias "X" is written as the type alias "Y", and a type alias cannot be written as another one.',
+      },
+      {
+        code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
+        message:
+          'Type alias "Y" is written as the type alias "X", and a type alias cannot be written as another one.',
+      },
+    ]);
+  });
+
   it('refuses an alias whose base is a contributed name that is not a type constructor', () => {
     expect(
       diagnostics(`types {

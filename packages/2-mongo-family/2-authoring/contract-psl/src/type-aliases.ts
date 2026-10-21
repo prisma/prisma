@@ -6,6 +6,7 @@ import type {
 } from '@internal/contract/types';
 import {
   type AuthoringTypeConstructorDescriptor,
+  type AuthoringTypeNamespace,
   type DataTypeSupport,
   instantiateAuthoringTypeAlias,
   instantiateAuthoringTypeConstructor,
@@ -74,6 +75,7 @@ interface ResolveMongoTypeAliasesInput {
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
   readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
+  readonly authoringTypes: AuthoringTypeNamespace | undefined;
 }
 
 const GENERATOR_PHASES = ['onCreate', 'onUpdate'] as const;
@@ -220,6 +222,7 @@ export function resolveMongoTypeAliases(input: ResolveMongoTypeAliasesInput): Re
     binder: input.binder,
     sources: input.sources,
     diagnostics: input.diagnostics,
+    authoringTypes: input.authoringTypes,
     acceptedAttributes: MONGO_TYPE_ALIAS_ATTRIBUTE_NAMES,
     describeUnsupportedAttribute: describeUnsupportedMongoAliasAttribute,
   });
