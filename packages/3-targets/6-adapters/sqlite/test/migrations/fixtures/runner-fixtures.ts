@@ -3,7 +3,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { type Contract, coreHash, profileHash } from '@internal/contract/types';
-import sqliteDriverDescriptor from '@internal/driver-sqlite/control';
+import sqliteDriverDescriptor, {
+  SqliteControlDriver as DriverSqliteControlDriver,
+} from '@internal/driver-sqlite/control';
 import sqlFamilyDescriptor, {
   createMigrationPlan,
   type SqlMigrationPlanOperation,
@@ -107,19 +109,7 @@ export function createTestDatabase(): TestDatabase {
   const db = new DatabaseSync(dbPath);
   db.exec('PRAGMA foreign_keys = ON');
 
-  const driver: SqliteControlDriver & { db: DatabaseSync } = {
-    familyId: 'sql' as const,
-    targetId: 'sqlite' as const,
-    async query<Row = Record<string, unknown>>(sql: string, params?: readonly unknown[]) {
-      const stmt = db.prepare(sql);
-      const rows = stmt.all(...((params ?? []) as Array<string | number | null>)) as Row[];
-      return { rows };
-    },
-    async close() {
-      db.close();
-    },
-    db,
-  };
+  const driver = Object.assign(new DriverSqliteControlDriver(db, dbPath), { db });
 
   return {
     driver,
@@ -133,6 +123,20 @@ export function createTestDatabase(): TestDatabase {
       rmSync(dir, { recursive: true, force: true });
     },
   };
+}
+
+/** The driver, with the message of every error its queries throw replaced, so a test can show the runner does not read it. */
+export function withRewordedQueryErrors(driver: TestDatabase['driver']): TestDatabase['driver'] {
+  const query = <Row = Record<string, unknown>>(sql: string, params?: readonly unknown[]) =>
+    driver.query<Row>(sql, params).catch((error: unknown) => {
+      if (error instanceof Error) {
+        Object.defineProperty(error, 'message', { value: 'reworded by the test' });
+      }
+      throw error;
+    });
+  return new Proxy(driver, {
+    get: (target, key, receiver) => (key === 'query' ? query : Reflect.get(target, key, receiver)),
+  });
 }
 
 export function createFailingPlan() {
