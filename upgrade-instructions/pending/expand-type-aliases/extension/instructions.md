@@ -2,7 +2,7 @@
 changes:
   - id: stored-contracts-expand-type-aliases
     summary: |
-      A stored SQL contract whose columns name a type alias in `typeRef` no longer loads. Run `scripts/expand-type-aliases/expand-type-aliases.ts` from the extension's package root, then re-emit the bundled contract. If the re-emit drops a type alias that no field uses, add a migration with no operations to the re-emitted hash and move the head ref to it. The script writes each alias's parameters into the columns typed by it, in every stored contract the extension ships, its migration snapshots included, and rewrites the hashes and references that change.
+      A stored SQL contract whose columns name a type alias in `typeRef` no longer loads. Run `scripts/expand-type-aliases/expand-type-aliases.ts` from the extension's package root, then re-emit the bundled contract. If the re-emit drops a type alias that no field uses, add a migration with no operations to the re-emitted hash, move the head ref to it, and add it to the migrations the descriptor ships. The script writes each alias's parameters into the columns typed by it, in every stored contract the extension ships, its migration snapshots included, and rewrites the hashes and references that change.
     detection:
       glob: "**/contract.json"
       matches:
@@ -50,7 +50,7 @@ It changes no file and exits 1, naming the file, when a `contract.json`, `migrat
 
 Then re-emit the bundled contract with the extension's own emit script, and ship the new `contract.json` and `contract.d.ts` together. A bundled contract written in PSL may keep its `types {}` aliases.
 
-If the re-emitted `storage.storageHash` differs from the hash in `migrations/refs/head.json`, the re-emit dropped an alias that no field uses. An application would then refuse to load the extension with `MIGRATION.DESCRIPTOR_HEAD_HASH_MISMATCH`, because the head ref must name the bundled contract's hash. Write a migration with no operations from the head ref's hash to the re-emitted hash, in a new directory under `migrations/`:
+If the re-emitted `storage.storageHash` differs from the hash in `migrations/refs/head.json`, the re-emit dropped an alias that no field uses. An application would then refuse to load the extension with `MIGRATION.DESCRIPTOR_HEAD_HASH_MISMATCH`, because the head ref must name the bundled contract's hash. Write a migration with no operations from the head ref's hash to the re-emitted hash, in a new directory under `migrations/`. Import `Migration` and `MigrationCLI` from your target's migration module, as your existing `migration.ts` files do. The example uses Postgres's, `@internal/postgres/migration`:
 
 ```ts
 #!/usr/bin/env -S node
@@ -70,6 +70,22 @@ MigrationCLI.run(import.meta.url, M);
 ```
 
 Run `node migration.ts` in that directory to write its `ops.json` and `migration.json`. Copy the re-emitted `contract.json` and `contract.d.ts` into `migrations/snapshots/<the re-emitted storageHash>/`. Then set `hash` in `migrations/refs/head.json` to the re-emitted hash, and keep its `invariants`. The new migration changes nothing in the database.
+
+Then add the new migration to the migrations your descriptor ships, after the existing ones. An application gets the extension's migrations only from that list. Without it, an application's database that is empty or at the head ref's old hash cannot reach the new head. In pgvector, PostGIS and ParadeDB the list is the `migrations` argument of `contractSpaceFromJson`:
+
+```ts
+import removeUnusedAliasMetadata from '../../migrations/<the new directory>/migration.json' with { type: 'json' };
+import removeUnusedAliasOps from '../../migrations/<the new directory>/ops.json' with { type: 'json' };
+
+const contractSpace = contractSpaceFromJson<Contract<SqlStorage>>({
+  contractJson,
+  migrations: [
+    { dirName: BASELINE_DIR_NAME, metadata: baselineMetadata, ops: baselineOps },
+    { dirName: '<the new directory>', metadata: removeUnusedAliasMetadata, ops: removeUnusedAliasOps },
+  ],
+  headRef,
+});
+```
 
 If the storage hash of the bundled contract changed, tell the applications that use the extension, in your release notes, to run `prisma db sign` against every database after they upgrade, and name the old and new hash. The old hash is the one the bundled contract had before you ran the script, and the new hash is the one in `migrations/refs/head.json` when you publish. The Supabase extension's contract is an example: its hash changes from `292489649ae6d6928de98a32b544bd9caf6b7d49718c10fe2720b83545a4b5a2` to `110ad99e1e466691bdb0a4349a17365561e76ad017f58beb272f4496b05b8e9e`. Tell them too that `prisma migration status` no longer marks the extension's migrations applied before the upgrade as applied, because each rewritten migration has a new hash. `prisma db migrate` runs none of them again, and `prisma db verify` passes.
 
