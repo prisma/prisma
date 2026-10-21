@@ -115,6 +115,7 @@ export type {
   PlannedStatements,
   SingleOperationCall,
   StatementColumn,
+  StatementPlaces,
   StatementPlanningTarget,
   TableMove,
   TableRenameByHand,
@@ -127,6 +128,7 @@ export {
   fieldStatementColumns,
   modelRenameStorageEffect,
   planStatements,
+  UNCHANGED_PLACES,
 } from '../core/migrations/statement-planning';
 export type { TableNameCaseGuardTable } from '../core/migrations/table-name-case-guard';
 export {

@@ -1,5 +1,9 @@
 import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
-import { type FieldEventCall, subjectsOfCalls } from '@internal/family-sql/control';
+import {
+  type FieldEventCall,
+  subjectsOfCalls,
+  UNCHANGED_PLACES,
+} from '@internal/family-sql/control';
 import type { OpFactoryCall } from '@internal/framework-components/control';
 import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { applicationDomainOf } from '@repo/test-utils';
@@ -80,7 +84,7 @@ function subjectsOf(calls: readonly OpFactoryCall[], fieldEvents: readonly Field
       fromContract: contract,
       contract,
       byHand: postgresTableRenameByHand(contract),
-      statements: [],
+      places: UNCHANGED_PLACES,
     },
   ).dataLoss;
 }

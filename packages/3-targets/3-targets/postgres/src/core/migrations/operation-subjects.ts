@@ -11,6 +11,7 @@ import type { MigrationDataLossKind, OpFactoryCall } from '@internal/framework-c
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { parseWireName } from '@internal/sql-schema-ir/naming';
+import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { resolveNamespaceIdForDdlSchema } from './control-policy';
 import {
   AddColumnWithTemporaryDefaultCall,
@@ -30,10 +31,17 @@ interface Locator {
   readonly fieldEvents: ReadonlyMap<OpFactoryCall, FieldEventCall>;
 }
 
+/**
+ * The namespace a schema stands for in the locator's contract, or, for a schema that contract does
+ * not declare, such as the new name of a renamed namespace, the schema's own name: a named Postgres
+ * namespace's schema is its id.
+ */
 function storageNamespaceId(locator: Locator, schemaName: string): string {
-  return schemaName === UNBOUND_NAMESPACE_ID
-    ? UNBOUND_NAMESPACE_ID
-    : resolveNamespaceIdForDdlSchema(locator.contract, schemaName);
+  if (schemaName === UNBOUND_NAMESPACE_ID) return UNBOUND_NAMESPACE_ID;
+  const namespaceId = resolveNamespaceIdForDdlSchema(locator.contract, schemaName);
+  return namespaceId === UNBOUND_NAMESPACE_ID && schemaName !== DEFAULT_NAMESPACE_ID
+    ? schemaName
+    : namespaceId;
 }
 
 function qualified(schemaName: string, name: string): string {

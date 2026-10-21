@@ -172,4 +172,33 @@ describe('a namespace rename', () => {
     ]);
     expect(planIn([statement, modelStatement])).toEqual(planIn([modelStatement, statement]));
   });
+
+  it('reports where each origin table and column now is, read the other way round', () => {
+    const result = planStatements({
+      statements: [
+        statement,
+        renameModel('Invoice', 'Bill', 'billing', 'finance'),
+        renameField('Invoice', 'total', 'amount', 'Bill', 'billing', 'finance'),
+      ],
+      fromContract: inBilling,
+      contract: contractOf({
+        Bill: { table: 'Bill', namespace: 'finance', fields: { amount: 'amount' } },
+      }),
+      policy: ALL_CLASSES,
+      target: fakeTarget(['billing.Invoice', 'billing.Other'], { 'billing.Invoice': ['total'] }),
+    });
+    if (!result.ok) throw new Error(result.failure.summary);
+    const { places } = result.value;
+    const origin = { namespaceId: 'billing', table: 'Invoice' };
+
+    expect({
+      moved: places.originTable({ namespaceId: 'finance', table: 'Bill' }),
+      untouched: places.originTable({ namespaceId: 'finance', table: 'Other' }),
+      column: places.originColumn(origin, 'amount'),
+    }).toEqual({
+      moved: origin,
+      untouched: { namespaceId: 'billing', table: 'Other' },
+      column: 'total',
+    });
+  });
 });

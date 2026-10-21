@@ -219,6 +219,24 @@ function operationsOf(call: CallWithCompanions): readonly SingleOperationCall[] 
   return [call, ...call.companions];
 }
 
+/**
+ * Where a table or column of the working schema came from in the origin contract, after the
+ * statements' renames and moves: the statement planner records it, and the questions name a
+ * subject through it.
+ */
+export interface StatementPlaces {
+  /** The origin place of a table of the working schema. */
+  originTable(current: ModelTable): ModelTable;
+  /** The origin name of a column, now named `column`, of the origin table `origin`. */
+  originColumn(origin: ModelTable, column: string): string;
+}
+
+/** The places of a plan whose statements renamed and moved nothing. */
+export const UNCHANGED_PLACES: StatementPlaces = {
+  originTable: (current) => current,
+  originColumn: (_origin, column) => column,
+};
+
 export interface PlannedStatements<TCall extends CallWithCompanions> {
   /**
    * The calls, which a target puts first in its plan: each statement's `operationIndexes` count
@@ -228,6 +246,7 @@ export interface PlannedStatements<TCall extends CallWithCompanions> {
   readonly tableRenames: readonly TableRename[];
   readonly columnRenames: readonly ColumnRename[];
   readonly appliedStatements: readonly AppliedMigrationStatement[];
+  readonly places: StatementPlaces;
 }
 
 interface ConflictLocation extends ModelTable {
@@ -369,6 +388,14 @@ class StatementPlanner<TCall extends CallWithCompanions> {
   readonly #target: StatementPlanningTarget<TCall>;
   /** Where each table renamed or moved so far is in the working schema, keyed by its origin place. */
   readonly #renamedTables = new Map<string, ModelTable>();
+  /** The origin place of each table renamed or moved so far, keyed as `#renamedTables`. */
+  readonly #originTables = new Map<string, ModelTable>();
+  /** Each column renamed so far: its origin table, and its name before and after. */
+  readonly #renamedColumns: {
+    readonly origin: ModelTable;
+    readonly from: string;
+    readonly to: string;
+  }[] = [];
   /** The name each namespace renamed so far has in the working schema, keyed by its origin name. */
   readonly #renamedNamespaces = new Map<string, string>();
   readonly calls: TCall[] = [];
@@ -564,6 +591,7 @@ class StatementPlanner<TCall extends CallWithCompanions> {
     if (planned.ok) {
       this.tableRenames.push(rename);
       this.#renamedTables.set(tableKey(origin), destinationTable);
+      this.#originTables.set(tableKey(origin), origin);
     }
     return planned;
   }
@@ -631,6 +659,7 @@ class StatementPlanner<TCall extends CallWithCompanions> {
     );
     if (!planned.ok) return planned;
     this.#renamedTables.set(tableKey(origin), moved);
+    this.#originTables.set(tableKey(origin), origin);
     if (to.table === from.table) return planned;
     const renamed = this.#planTableRename(statement, origin, {
       namespaceId: to.namespaceId,
@@ -710,8 +739,32 @@ class StatementPlanner<TCall extends CallWithCompanions> {
       { ...tableLocation, column: rename.from },
       this.#target.renameColumnCall(rename),
     );
-    if (planned.ok) this.columnRenames.push(rename);
+    if (planned.ok) {
+      this.columnRenames.push(rename);
+      this.#renamedColumns.push({ origin: effect.table, from: effect.from, to: effect.to });
+    }
     return planned;
+  }
+
+  /** The origin places of the working schema's tables and columns, as the statements left them. */
+  places(): StatementPlaces {
+    const sameTable = (left: ModelTable, right: ModelTable) =>
+      left.namespaceId === right.namespaceId && left.table === right.table;
+    return {
+      originTable: (current) => {
+        for (const origin of this.#originTables.values()) {
+          if (sameTable(this.#current(origin), current)) return origin;
+        }
+        for (const [origin, renamed] of this.#renamedNamespaces) {
+          if (renamed === current.namespaceId) return { namespaceId: origin, table: current.table };
+        }
+        return current;
+      },
+      originColumn: (origin, column) =>
+        this.#renamedColumns.find(
+          (renamed) => sameTable(renamed.origin, origin) && renamed.to === column,
+        )?.from ?? column,
+    };
   }
 }
 
@@ -733,7 +786,13 @@ export function planStatements<TCall extends CallWithCompanions>(input: {
   const { fromContract } = input;
   const [first] = input.statements;
   if (first === undefined) {
-    return ok({ calls: [], tableRenames: [], columnRenames: [], appliedStatements: [] });
+    return ok({
+      calls: [],
+      tableRenames: [],
+      columnRenames: [],
+      appliedStatements: [],
+      places: UNCHANGED_PLACES,
+    });
   }
   if (fromContract === null) {
     return notOk(
@@ -761,6 +820,7 @@ export function planStatements<TCall extends CallWithCompanions>(input: {
     tableRenames: planner.tableRenames,
     columnRenames: planner.columnRenames,
     appliedStatements,
+    places: planner.places(),
   });
 }
 

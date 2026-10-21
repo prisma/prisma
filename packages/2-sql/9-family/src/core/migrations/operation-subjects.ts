@@ -7,16 +7,14 @@ import type {
   MigrationSubject,
   MigrationTemporaryValue,
   ModelCoordinate,
-  ResolvedMigrationStatement,
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SqlModelStorage } from '@internal/sql-contract/types';
 import { ifDefined } from '@internal/utils/defined';
 import { fieldOfColumn } from './field-of-column';
 import {
-  fieldRenameStorageEffect,
   isSqlModelStorage,
-  modelRenameStorageEffect,
+  type StatementPlaces,
   type TableRenameByHand,
 } from './statement-planning';
 
@@ -92,46 +90,9 @@ export interface TemporaryColumnValue {
 interface SubjectContext {
   readonly fromContract: ContractWithDomain | null;
   readonly contract: ContractWithDomain;
-  /** The statements the plan applied: a target names what their renames renamed the new way. */
-  readonly statements: readonly ResolvedMigrationStatement[];
+  /** Where the plan's statements put the origin's tables and columns. */
+  readonly places: StatementPlaces;
   readonly byHand: TableRenameByHand;
-}
-
-function originTable(
-  context: SubjectContext & { readonly fromContract: ContractWithDomain },
-  namespaceId: string,
-  table: string,
-): string {
-  for (const statement of context.statements) {
-    if (statement.kind !== 'rename' || statement.entity !== 'model') continue;
-    const effect = modelRenameStorageEffect(statement, context.fromContract, context.contract);
-    if (!effect.ok || effect.value.kind !== 'renameTable') continue;
-    const { rename } = effect.value;
-    if (rename.namespaceId === namespaceId && rename.to === table) return rename.from;
-  }
-  return table;
-}
-
-function originColumn(
-  context: SubjectContext & { readonly fromContract: ContractWithDomain },
-  namespaceId: string,
-  table: string,
-  column: string,
-): string {
-  for (const statement of context.statements) {
-    if (statement.kind !== 'rename' || statement.entity !== 'field') continue;
-    const effect = fieldRenameStorageEffect(statement, context.fromContract, context.contract);
-    if (!effect.ok || effect.value.kind !== 'renameColumn') continue;
-    const rename = effect.value;
-    if (
-      rename.table.namespaceId === namespaceId &&
-      rename.table.table === table &&
-      rename.to === column
-    ) {
-      return rename.from;
-    }
-  }
-  return column;
 }
 
 interface StoringModel {
@@ -166,15 +127,16 @@ function subjectOf(target: SubjectStorage, context: SubjectContext): MigrationSu
   const storage: MigrationSubject = { kind: 'storage', name: target.storageName };
   const { fromContract } = context;
   if (target.table === undefined || fromContract === null) return storage;
-  const withOrigin = { ...context, fromContract };
-  const { namespaceId } = target.table;
-  const table = originTable(withOrigin, namespaceId, target.table.table);
-  const models = modelsStoring(fromContract, namespaceId, table);
+  const origin = context.places.originTable({
+    namespaceId: target.table.namespaceId,
+    table: target.table.table,
+  });
+  const models = modelsStoring(fromContract, origin.namespaceId, origin.table);
   if (target.table.column === undefined) {
     const model = models.find(({ isRoot }) => isRoot) ?? models[0];
     return model === undefined ? storage : { kind: 'model', ...model.coordinate };
   }
-  const column = originColumn(withOrigin, namespaceId, table, target.table.column);
+  const column = context.places.originColumn(origin, target.table.column);
   for (const model of [...models].sort((a, b) => Number(b.isRoot) - Number(a.isRoot))) {
     const field = Object.entries(model.fields).find(([, stored]) => stored.column === column)?.[0];
     if (field !== undefined) return { kind: 'field', ...model.coordinate, field };

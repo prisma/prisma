@@ -8,8 +8,11 @@ import {
   subjectsOfCalls,
   unknownCallNames,
 } from '../src/core/migrations/operation-subjects';
-import type { TableRenameByHand } from '../src/core/migrations/statement-planning';
-import { contractOf, convertField, renameField, renameModel } from './statement-fixtures';
+import {
+  type TableRenameByHand,
+  UNCHANGED_PLACES,
+} from '../src/core/migrations/statement-planning';
+import { contractOf } from './statement-fixtures';
 
 const app = asNamespaceId('app');
 
@@ -59,7 +62,7 @@ describe('subjectsOfCalls', () => {
         fromContract: origin,
         contract: contractOf({ User: { table: 'user', fields: { id: 'id' } } }),
         byHand,
-        statements: [],
+        places: UNCHANGED_PLACES,
       }),
     ).toEqual({
       dataLoss: [
@@ -94,7 +97,7 @@ describe('subjectsOfCalls', () => {
           },
           losing(table('legacy')),
         ],
-        { fromContract: origin, contract: origin, byHand, statements: [] },
+        { fromContract: origin, contract: origin, byHand, places: UNCHANGED_PLACES },
       ).dataLoss,
     ).toEqual([
       {
@@ -118,10 +121,12 @@ describe('subjectsOfCalls', () => {
         fromContract: from,
         contract: destination,
         byHand,
-        statements: [
-          renameModel('User', 'Account'),
-          renameField('User', 'name', 'displayName', 'Account'),
-        ],
+        places: {
+          originTable: (current) =>
+            current.table === 'account' ? { namespaceId: app, table: 'user' } : current,
+          originColumn: (origin, column) =>
+            origin.table === 'user' && column === 'display_name' ? 'full_name' : column,
+        },
       }).dataLoss,
     ).toEqual([
       {
@@ -145,7 +150,7 @@ describe('subjectsOfCalls', () => {
             temporaryValues: [],
           },
         ],
-        { fromContract: origin, contract: origin, byHand, statements: [] },
+        { fromContract: origin, contract: origin, byHand, places: UNCHANGED_PLACES },
       ).dataLoss,
     ).toEqual([
       {
@@ -166,7 +171,7 @@ describe('subjectsOfCalls', () => {
         fromContract: origin,
         contract: destination,
         byHand,
-        statements: [convertField('User', 'name')],
+        places: UNCHANGED_PLACES,
       }).dataLoss.map(({ subject }) => subject),
     ).toEqual([{ kind: 'field', namespaceId: app, model: 'User', field: 'name' }]);
   });
@@ -179,7 +184,7 @@ describe('subjectsOfCalls', () => {
           fromContract: origin,
           contract: origin,
           byHand,
-          statements: [],
+          places: UNCHANGED_PLACES,
         },
       ).dataLoss,
     ).toEqual([
@@ -204,7 +209,7 @@ describe('subjectsOfCalls', () => {
         fromContract: null,
         contract: origin,
         byHand,
-        statements: [],
+        places: UNCHANGED_PLACES,
       }).dataLoss,
     ).toEqual([
       {
@@ -228,7 +233,7 @@ describe('subjectsOfCalls', () => {
         fromContract: origin,
         contract: origin,
         byHand,
-        statements: [],
+        places: UNCHANGED_PLACES,
       }).dataLoss,
     ).toEqual([
       {
@@ -253,7 +258,7 @@ describe('subjectsOfCalls', () => {
             temporaryValues: [],
           },
         ],
-        { fromContract: origin, contract: origin, byHand, statements: [] },
+        { fromContract: origin, contract: origin, byHand, places: UNCHANGED_PLACES },
       ),
     ).toEqual({
       dataLoss: [],
@@ -281,7 +286,7 @@ describe('subjectsOfCalls', () => {
           fromContract: sharing,
           contract: sharing,
           byHand,
-          statements: [],
+          places: UNCHANGED_PLACES,
         }).dataLoss.map(({ subject }) => subject),
       ).toEqual([
         { kind: 'model', namespaceId: app, model: 'User' },
@@ -295,7 +300,7 @@ describe('subjectsOfCalls', () => {
           fromContract: sharing,
           contract: sharing,
           byHand,
-          statements: [],
+          places: UNCHANGED_PLACES,
         }).dataLoss.map(({ subject }) => subject),
       ).toEqual([{ kind: 'field', namespaceId: app, model: 'Admin', field: 'level' }]);
     });
@@ -326,7 +331,7 @@ describe('fieldEventStorage', () => {
           fieldEventStorage({ namespaceId: 'app', tableName: 'user', columnName: 'nickname' }),
         ),
       ],
-      { fromContract: origin, contract: origin, byHand, statements: [] },
+      { fromContract: origin, contract: origin, byHand, places: UNCHANGED_PLACES },
     );
     expect(subjects.dataLoss.map(({ subject }) => subject)).toEqual([
       { kind: 'field', namespaceId: app, model: 'User', field: 'name' },
@@ -349,7 +354,7 @@ describe('subjectsOfCalls for a table whose model keeps its name', () => {
       subjectsOfCalls([losing(table('profiles'))], {
         fromContract: from,
         contract: to,
-        statements: [],
+        places: UNCHANGED_PLACES,
         byHand,
       }).dataLoss,
     ).toEqual([
@@ -371,7 +376,7 @@ describe('subjectsOfCalls for a table whose model keeps its name', () => {
       subjectsOfCalls([losing(table('profiles'))], {
         fromContract: from,
         contract: to,
-        statements: [],
+        places: UNCHANGED_PLACES,
         byHand,
       }).dataLoss,
     ).toEqual([
@@ -395,7 +400,7 @@ describe('subjectsOfCalls for a table whose model keeps its name', () => {
       subjectsOfCalls([losing(table('profiles'))], {
         fromContract: withPeople,
         contract: to,
-        statements: [],
+        places: UNCHANGED_PLACES,
         byHand,
       }).dataLoss.map(({ keepDataAdvice }) => keepDataAdvice),
     ).toEqual([undefined]);
