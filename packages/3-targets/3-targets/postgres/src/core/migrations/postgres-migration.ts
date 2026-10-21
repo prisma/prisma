@@ -52,13 +52,16 @@ import {
   DropNativeEnumTypeCall,
   DropNotNullCall,
   DropPostgresRlsPolicyCall,
+  DropSchemaCall,
   DropTableCall,
   EnableRowLevelSecurityCall,
   RenameConstraintCall,
   RenameIndexCall,
   RenamePostgresRlsPolicyCall,
+  RenameSchemaCall,
   SetDefaultCall,
   SetNotNullCall,
+  SetTableSchemaCall,
 } from './op-factory-call';
 import type { AlterColumnTypeClass } from './operations/columns';
 import type { RenamableConstraintKind } from './operations/constraints';
@@ -228,6 +231,43 @@ export abstract class PostgresMigration<
     readonly ifNotExists?: boolean;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     return new CreateSchemaCall(options.schema).toOp(this.controlAdapterFor('createSchema'));
+  }
+
+  /**
+   * Emit an `ALTER TABLE … SET SCHEMA` operation that moves `table` from `schema` to the schema
+   * `to`. Leave out `schema` for a table of the unbound namespace. Indexes, constraints and owned
+   * sequences move with the table, and foreign keys from other tables keep pointing at it.
+   */
+  protected setTableSchema(options: {
+    readonly schema?: string;
+    readonly table: string;
+    readonly to: string;
+  }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    return new SetTableSchemaCall(
+      options.schema ?? UNBOUND_NAMESPACE_ID,
+      options.table,
+      options.to,
+    ).toOp(this.controlAdapterFor('setTableSchema'));
+  }
+
+  /** Emit an `ALTER SCHEMA … RENAME TO` operation. Everything in the schema keeps its place in it. */
+  protected renameSchema(options: {
+    readonly schema: string;
+    readonly to: string;
+  }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    return new RenameSchemaCall(options.schema, options.to).toOp(
+      this.controlAdapterFor('renameSchema'),
+    );
+  }
+
+  /**
+   * Emit a `DROP SCHEMA` operation, without `CASCADE`. Drop or move the schema's tables first: the
+   * operation fails its precheck while the schema still holds anything.
+   */
+  protected dropSchema(options: {
+    readonly schema: string;
+  }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    return new DropSchemaCall(options.schema).toOp(this.controlAdapterFor('dropSchema'));
   }
 
   /**

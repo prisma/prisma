@@ -118,6 +118,7 @@ import {
   enableRowLevelSecurity,
   renameRlsPolicy,
 } from './operations/rls';
+import { dropSchema, renameSchema, setTableSchema } from './operations/schemas';
 import type { ForeignKeySpec } from './operations/shared';
 import { step, targetDetails } from './operations/shared';
 import { dropTable, renameTable } from './operations/tables';
@@ -1885,6 +1886,123 @@ export class CreateSchemaCall extends PostgresOpFactoryCallNode {
   }
 }
 
+function requireLowerer(
+  lowerer: ExecuteRequestLowerer | undefined,
+  factory: string,
+  subject: string,
+): ExecuteRequestLowerer {
+  if (lowerer === undefined) {
+    throw postgresError(
+      'MIGRATION.POSTGRES_CONTROL_STACK_MISSING',
+      `${factory}.toOp: a lowerer is required on the Postgres planner path (${subject}). Pass the control adapter to createPostgresMigrationPlanner.`,
+      { meta: { factory } },
+    );
+  }
+  return lowerer;
+}
+
+export class SetTableSchemaCall extends PostgresOpFactoryCallNode {
+  readonly factoryName = 'setTableSchema' as const;
+  readonly operationClass = 'widening' as const;
+  readonly schemaName: string;
+  readonly tableName: string;
+  readonly toSchemaName: string;
+  readonly label: string;
+
+  constructor(schemaName: string, tableName: string, toSchemaName: string) {
+    super();
+    this.schemaName = schemaName;
+    this.tableName = tableName;
+    this.toSchemaName = toSchemaName;
+    this.label = `Move table "${tableName}" to schema "${toSchemaName}"`;
+    this.freeze();
+  }
+
+  async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
+    return setTableSchema(
+      this.schemaName,
+      this.tableName,
+      this.toSchemaName,
+      requireLowerer(lowerer, 'SetTableSchemaCall', `table "${this.tableName}"`),
+    );
+  }
+
+  renderTypeScript(): string {
+    const opts: string[] = [];
+    if (this.schemaName !== UNBOUND_NAMESPACE_ID) {
+      opts.push(`schema: ${jsonToTsSource(this.schemaName)}`);
+    }
+    opts.push(`table: ${jsonToTsSource(this.tableName)}`);
+    opts.push(`to: ${jsonToTsSource(this.toSchemaName)}`);
+    return `this.setTableSchema({ ${opts.join(', ')} })`;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [];
+  }
+}
+
+export class RenameSchemaCall extends PostgresOpFactoryCallNode {
+  readonly factoryName = 'renameSchema' as const;
+  readonly operationClass = 'widening' as const;
+  readonly schemaName: string;
+  readonly toSchemaName: string;
+  readonly label: string;
+
+  constructor(schemaName: string, toSchemaName: string) {
+    super();
+    this.schemaName = schemaName;
+    this.toSchemaName = toSchemaName;
+    this.label = `Rename schema "${schemaName}" to "${toSchemaName}"`;
+    this.freeze();
+  }
+
+  async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
+    return renameSchema(
+      this.schemaName,
+      this.toSchemaName,
+      requireLowerer(lowerer, 'RenameSchemaCall', `schema "${this.schemaName}"`),
+    );
+  }
+
+  renderTypeScript(): string {
+    return `this.renameSchema({ schema: ${jsonToTsSource(this.schemaName)}, to: ${jsonToTsSource(this.toSchemaName)} })`;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [];
+  }
+}
+
+export class DropSchemaCall extends PostgresOpFactoryCallNode {
+  readonly factoryName = 'dropSchema' as const;
+  readonly operationClass = 'widening' as const;
+  readonly schemaName: string;
+  readonly label: string;
+
+  constructor(schemaName: string) {
+    super();
+    this.schemaName = schemaName;
+    this.label = `Drop schema "${schemaName}"`;
+    this.freeze();
+  }
+
+  async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
+    return dropSchema(
+      this.schemaName,
+      requireLowerer(lowerer, 'DropSchemaCall', `schema "${this.schemaName}"`),
+    );
+  }
+
+  renderTypeScript(): string {
+    return `this.dropSchema({ schema: ${jsonToTsSource(this.schemaName)} })`;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [];
+  }
+}
+
 // ============================================================================
 // Native enum types
 // ============================================================================
@@ -2380,6 +2498,9 @@ export type PostgresOpFactoryCall =
   | RawSqlCall
   | CreateExtensionCall
   | CreateSchemaCall
+  | SetTableSchemaCall
+  | RenameSchemaCall
+  | DropSchemaCall
   | CreateNativeEnumTypeCall
   | DropNativeEnumTypeCall
   | AddNativeEnumValueCall

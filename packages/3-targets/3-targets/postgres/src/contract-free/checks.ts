@@ -881,3 +881,62 @@ export function sequenceValuesFitAst(options: {
     .where(cfExpr.columnRef('s', 'seqrelid').eqExpr(ownedSequenceOf(options)).and(pastMax));
   return exprSelect().project('result', cfExpr.notExists(narrowedPastMax)).build();
 }
+
+export interface SchemaExistsCheckBuilder {
+  schemaPresent(): SelectAst;
+  schemaAbsent(): SelectAst;
+}
+
+/** Typed schema existence check over `pg_namespace`, with the schema name bound as a text parameter. */
+export function schemaExistsAst(schema: string): SchemaExistsCheckBuilder {
+  const inner = () =>
+    exprSelect()
+      .from(cfTable('pg_namespace'))
+      .project('one', cfExpr.lit(1))
+      .where(cfExpr.identifierRef('nspname').eqParam(schema, PG_TEXT_CODEC_ID));
+  return {
+    schemaPresent: () => exprSelect().project('result', cfExpr.exists(inner())).build(),
+    schemaAbsent: () => exprSelect().project('result', cfExpr.notExists(inner())).build(),
+  };
+}
+
+function objectsInSchema(
+  catalog: string,
+  namespaceColumn: string,
+  schema: string,
+  only: readonly CfExpr[] = [],
+): CfExprSelectQuery {
+  return exprSelect()
+    .from(cfTable(catalog, 'o'))
+    .join(
+      cfTable('pg_namespace', 'n'),
+      cfExpr.columnRef('n', 'oid').eqExpr(cfExpr.columnRef('o', namespaceColumn)),
+    )
+    .project('one', cfExpr.lit(1))
+    .where(
+      cfExpr.allOf([cfExpr.columnRef('n', 'nspname').eqParam(schema, PG_TEXT_CODEC_ID), ...only]),
+    );
+}
+
+/**
+ * Whether a schema holds no relations (tables, views, sequences, indexes), no types of its own and
+ * no functions, so `DROP SCHEMA` without `CASCADE` succeeds. A table's row type and an array type
+ * belong to another object and are not counted.
+ */
+export function schemaHoldsNoObjectsAst(schema: string): SelectAst {
+  return exprSelect()
+    .project(
+      'result',
+      cfExpr.allOf([
+        cfExpr.notExists(objectsInSchema('pg_class', 'relnamespace', schema)),
+        cfExpr.notExists(
+          objectsInSchema('pg_type', 'typnamespace', schema, [
+            cfExpr.columnRef('o', 'typrelid').eqLit(0),
+            cfExpr.columnRef('o', 'typelem').eqLit(0),
+          ]),
+        ),
+        cfExpr.notExists(objectsInSchema('pg_proc', 'pronamespace', schema)),
+      ]),
+    )
+    .build();
+}

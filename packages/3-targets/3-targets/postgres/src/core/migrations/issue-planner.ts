@@ -131,6 +131,7 @@ type CallCategory =
   | 'drop'
   | 'dropType'
   | 'table'
+  | 'dropSchema'
   | 'rlsEnable'
   | 'rlsPolicy'
   | 'column'
@@ -174,7 +175,11 @@ function classifyCall(call: PostgresOpFactoryCall): CallCategory {
       return 'unique'; // after uniques, before indexes
     case 'createTable':
     case 'renameTable':
+    case 'setTableSchema':
+    case 'renameSchema':
       return 'table';
+    case 'dropSchema':
+      return 'dropSchema';
     case 'enableRowLevelSecurity':
     case 'disableRowLevelSecurity':
       return 'rlsEnable';
@@ -1104,6 +1109,8 @@ export function planIssues(
     // no live column still uses it.
     ...byCategory('dropType'),
     ...byCategory('table'),
+    // DROP SCHEMA after the tables it held are dropped or moved out.
+    ...byCategory('dropSchema'),
     ...byCategory('column'),
     ...gatedRecipe,
     ...byCategory('alter'),

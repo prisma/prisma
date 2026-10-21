@@ -4,6 +4,11 @@ import type { OpFactoryCall } from '@internal/framework-components/control';
 import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
+import {
+  DropSchemaCall,
+  RenameSchemaCall,
+  SetTableSchemaCall,
+} from '../../src/core/migrations/op-factory-call';
 import { postgresCallSubjects } from '../../src/core/migrations/operation-subjects';
 import { postgresTableRenameByHand } from '../../src/core/migrations/table-rename-calls';
 import { PostgresSchema } from '../../src/core/postgres-schema';
@@ -143,5 +148,21 @@ describe('postgresCallSubjects', () => {
         label: 'Drop the search config: purge',
       },
     ]);
+  });
+});
+
+describe('schema operations', () => {
+  it('ask nothing: a table move, a schema rename and a schema drop lose no data and change no access', () => {
+    const calls = [
+      new SetTableSchemaCall('public', 'User', 'billing'),
+      new RenameSchemaCall('billing', 'finance'),
+      new DropSchemaCall('finance'),
+    ];
+
+    expect(
+      postgresCallSubjects(calls, { contract, fieldEvents: new Map() }).map(
+        ({ dataLoss, accessChanges }) => ({ dataLoss, accessChanges }),
+      ),
+    ).toEqual(calls.map(() => ({ dataLoss: [], accessChanges: [] })));
   });
 });
