@@ -6,7 +6,12 @@
  */
 import { createHash } from 'node:crypto';
 import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
-import { APP_SPACE_ID, planOriginOf } from '@internal/framework-components/control';
+import {
+  APP_SPACE_ID,
+  planOriginOf,
+  type SchemaOwnership,
+} from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { createPostgresMigrationPlanner } from '../../src/core/migrations/planner';
@@ -83,6 +88,7 @@ function plan(
   options: {
     readonly fromContract?: Contract<SqlStorage> | null;
     readonly schema?: PostgresDatabaseSchemaNode;
+    readonly ownership?: SchemaOwnership;
   } = {},
 ) {
   const fromContract = options.fromContract === undefined ? from : options.fromContract;
@@ -96,7 +102,23 @@ function plan(
     frameworkComponents: postgresTypeComponents,
     spaceId: APP_SPACE_ID,
     snapshotsImportPath: '../../snapshots',
+    ...(options.ownership === undefined ? {} : { ownership: options.ownership }),
   });
+}
+
+/** A sibling space that declares `table` in `namespaceId`, and the namespaces `namespaces`. */
+function sibling(
+  declared: { readonly namespaceId: string; readonly table: string },
+  namespaces: readonly string[] = [],
+): SchemaOwnership {
+  return {
+    declaresEntity: (coordinate) =>
+      coordinate.entityKind === 'table' &&
+      coordinate.namespaceId === declared.namespaceId &&
+      coordinate.entityName === declared.table,
+    namespaceDeclaringSpaces: (namespaceId) =>
+      namespaces.includes(namespaceId) ? [APP_SPACE_ID, 'sibling'] : [APP_SPACE_ID],
+  };
 }
 
 async function planned(result: ReturnType<typeof plan>) {
@@ -152,5 +174,43 @@ describe('Postgres planner, a namespace the destination removes', () => {
     const onlyBilling = contractOf({ billing: ['invoice'] }, 'only-billing');
 
     expect((await planned(plan(inPublic, onlyBilling))).labels).toEqual(['Drop table "user"']);
+  });
+
+  it("keeps a removed schema another space declares, and its table there, and drops the app's table in it", async () => {
+    const origin = contractOf({ public: ['user'], auth: ['profiles'] }, 'auth-origin');
+    const live = postgresContractToSchema(
+      contractOf({ public: ['user'], auth: ['profiles', 'users'] }, 'auth-live'),
+      postgresTypeComponents,
+    );
+
+    expect(
+      await planned(
+        plan(origin, contractOf({ public: ['user'] }, 'auth-destination'), {
+          schema: live,
+          ownership: sibling({ namespaceId: 'auth', table: 'users' }, ['auth']),
+        }),
+      ),
+    ).toEqual({
+      labels: ['Drop table "profiles"'],
+      dataLoss: [
+        expect.objectContaining({
+          subject: { kind: 'model', namespaceId: asNamespaceId('auth'), model: 'Profiles' },
+        }),
+      ],
+    });
+  });
+
+  it('drops a table of the removed schema whose name a sibling space uses in another namespace', async () => {
+    const origin = contractOf({ public: ['account'], billing: ['user'] }, 'user-origin');
+
+    expect(
+      (
+        await planned(
+          plan(origin, contractOf({ public: ['account'] }, 'user-destination'), {
+            ownership: sibling({ namespaceId: UNBOUND_NAMESPACE_ID, table: 'user' }),
+          }),
+        )
+      ).labels,
+    ).toEqual(['Drop table "user"', 'Drop schema "billing"']);
   });
 });

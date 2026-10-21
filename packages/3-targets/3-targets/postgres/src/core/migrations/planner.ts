@@ -304,7 +304,9 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     const coalesced = coalesceSubtreeIssues(
       relationalDiffIssues.filter((issue) => !isRemovedNamespaceIssue(issue, removedSchemas)),
     );
-    const owned = retainUnownedExtras(coalesced, options.ownership, options.contract);
+    const owned = retainUnownedExtras(coalesced, options.ownership, (ddlSchemaName) =>
+      namespaceIdOfSchema(options, ddlSchemaName),
+    );
     const gated = strict ? owned : owned.filter((issue) => issueOutcome(issue) !== 'not-expected');
 
     // Namespace presence (`CREATE SCHEMA`) is a planner-only op-generation
@@ -995,10 +997,29 @@ function policyCanBlock(call: PostgresOpFactoryCall): boolean {
  * coordinate (a namespace, or a deeper column/constraint drift on an owned
  * table) is this space's own and is always kept. No oracle ⇒ keep everything.
  */
+/**
+ * The namespace a live schema stands for: the destination's, or, for a schema only the origin
+ * declares, such as one the destination removed, the origin's.
+ */
+function namespaceIdOfSchema(
+  options: SqlMigrationPlannerPlanOptions,
+  ddlSchemaName: string,
+): string {
+  const namespaceId = resolveNamespaceIdForDdlSchema(options.contract, ddlSchemaName);
+  if (
+    namespaceId !== UNBOUND_NAMESPACE_ID ||
+    ddlSchemaName === DEFAULT_NAMESPACE_ID ||
+    options.fromContract === null
+  ) {
+    return namespaceId;
+  }
+  return resolveNamespaceIdForDdlSchema(options.fromContract, ddlSchemaName);
+}
+
 function retainUnownedExtras(
   issues: readonly SchemaDiffIssue<SqlSchemaDiffNode>[],
   ownership: SchemaOwnership | undefined,
-  contract: Contract<SqlStorage>,
+  namespaceIdOf: (ddlSchemaName: string) => string,
 ): readonly SchemaDiffIssue<SqlSchemaDiffNode>[] {
   if (ownership === undefined) return issues;
   return issues.filter((issue) => {
@@ -1009,8 +1030,7 @@ function retainUnownedExtras(
     if (coordinate === undefined) return true;
     const ddlSchemaName = issueSchemaName(issue);
     if (ddlSchemaName === undefined) return true;
-    const namespaceId = resolveNamespaceIdForDdlSchema(contract, ddlSchemaName);
-    return !ownership.declaresEntity({ namespaceId, ...coordinate });
+    return !ownership.declaresEntity({ namespaceId: namespaceIdOf(ddlSchemaName), ...coordinate });
   });
 }
 
