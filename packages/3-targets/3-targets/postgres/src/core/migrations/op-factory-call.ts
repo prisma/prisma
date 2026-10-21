@@ -1841,6 +1841,7 @@ export class CreateSchemaCall extends PostgresOpFactoryCallNode {
   readonly operationClass = 'additive' as const;
   readonly schemaName: string;
   readonly label: string;
+  readonly companions: readonly [] = [];
 
   constructor(schemaName: string) {
     super();
@@ -1908,6 +1909,7 @@ export class SetTableSchemaCall extends PostgresOpFactoryCallNode {
   readonly tableName: string;
   readonly toSchemaName: string;
   readonly label: string;
+  readonly companions: readonly [] = [];
 
   constructor(schemaName: string, tableName: string, toSchemaName: string) {
     super();

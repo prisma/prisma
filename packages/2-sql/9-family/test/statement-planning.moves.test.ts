@@ -196,4 +196,22 @@ describe('a model moved to another namespace', () => {
       why: 'A table of the unbound namespace lives wherever the connection that uses it looks, so a migration cannot move a table there. Move the table yourself and leave out this statement, or keep the model in namespace "app".',
     });
   });
+
+  it('names the unbound namespace in words, never by its internal id', () => {
+    const conflict = rejection(
+      planStatements({
+        statements: [renameModel('Invoice', 'Invoice', UNBOUND_NAMESPACE_ID, 'billing')],
+        fromContract: contractOf({
+          Invoice: { table: 'Invoice', namespace: UNBOUND_NAMESPACE_ID },
+        }),
+        contract: invoiceInBilling,
+        policy: ALL_CLASSES,
+        target: fakeTarget([`${UNBOUND_NAMESPACE_ID}.Invoice`, 'billing.Invoice']),
+      }),
+    );
+
+    expect(conflict.summary).toBe(
+      'Cannot move table "Invoice" from the unbound namespace to namespace "billing": the schema being planned from already has a table "billing.Invoice"',
+    );
+  });
 });

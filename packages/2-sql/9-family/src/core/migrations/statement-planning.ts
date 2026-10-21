@@ -157,11 +157,10 @@ export interface SingleOperationCall {
 
 /**
  * A call that lowers to its own operation, then each companion's, in that order: a table or column
- * rename, whether a statement plans it or a hand-written migration calls it. A call with no
- * companions, such as a table move, leaves them out.
+ * rename, whether a statement plans it or a hand-written migration calls it. A table move has none.
  */
 export interface CallWithCompanions extends SingleOperationCall {
-  readonly companions?: readonly SingleOperationCall[];
+  readonly companions: readonly SingleOperationCall[];
 }
 
 /** A table moving, under its own name, from one storage namespace to another. */
@@ -200,7 +199,7 @@ export interface StatementPlanningTarget<TCall extends CallWithCompanions>
 }
 
 function operationsOf(call: CallWithCompanions): readonly SingleOperationCall[] {
-  return [call, ...(call.companions ?? [])];
+  return [call, ...call.companions];
 }
 
 export interface PlannedStatements<TCall extends CallWithCompanions> {
@@ -260,6 +259,12 @@ function tableControlPolicy(contract: Contract<SqlStorage>, table: ModelTable) {
 
 function tableKey(table: ModelTable): string {
   return JSON.stringify([table.namespaceId, table.table]);
+}
+
+function namespaceText(namespaceId: string): string {
+  return namespaceId === UNBOUND_NAMESPACE_ID
+    ? 'the unbound namespace'
+    : `namespace "${namespaceId}"`;
 }
 
 function qualifiedTable(table: ModelTable): string {
@@ -474,14 +479,14 @@ class StatementPlanner<TCall extends CallWithCompanions> {
       return notOk(
         statementRefused(
           statement,
-          `Cannot move table "${from.table}" from namespace "${from.namespaceId}" to the unbound namespace: the unbound namespace has no fixed place in the database`,
-          `A table of the unbound namespace lives wherever the connection that uses it looks, so a migration cannot move a table there. Move the table yourself and leave out this statement, or keep the model in namespace "${from.namespaceId}".`,
+          `Cannot move table "${from.table}" from ${namespaceText(from.namespaceId)} to the unbound namespace: the unbound namespace has no fixed place in the database`,
+          `A table of the unbound namespace lives wherever the connection that uses it looks, so a migration cannot move a table there. Move the table yourself and leave out this statement, or keep the model in ${namespaceText(from.namespaceId)}.`,
           from,
         ),
       );
     }
     const moved = { namespaceId: to.namespaceId, table: from.table };
-    const label = `Cannot move table "${from.table}" from namespace "${from.namespaceId}" to namespace "${to.namespaceId}"`;
+    const label = `Cannot move table "${from.table}" from ${namespaceText(from.namespaceId)} to ${namespaceText(to.namespaceId)}`;
     const policyRefusal = this.#controlPolicyRefusal(statement, label, to);
     if (policyRefusal !== undefined) return notOk(policyRefusal);
     const tables = this.#target.tables();

@@ -44,6 +44,7 @@ import { namingOf, parseWireName } from '@internal/sql-schema-ir/naming';
 import type { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import { ok, type Result } from '@internal/utils/result';
 import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { PostgresRlsPolicy } from '../postgres-rls-policy';
@@ -771,12 +772,16 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
             ? []
             : [new CreateSchemaCall(schemaName)];
         },
-        moveTableCall: (move) =>
-          new SetTableSchemaCall(
-            emissionSchemaForNamespace(options.contract, move.from),
+        moveTableCall: (move) => {
+          if (options.fromContract === null) {
+            throw new InternalError('A table move is planned only from an origin contract');
+          }
+          return new SetTableSchemaCall(
+            emissionSchemaForNamespace(options.fromContract, move.from),
             move.table,
             ddlSchemaOf(move.to),
-          ),
+          );
+        },
         renameTableCall: (rename) =>
           postgresTableRenameCall({
             previous: working.current,
