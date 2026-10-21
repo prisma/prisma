@@ -5,7 +5,22 @@ import {
   type PlanAnswer,
   type PlanQuestion,
 } from '../control-api/statements/plan-questions';
-import { errorConsentUnused } from '../utils/cli-errors';
+import { errorConsentUnused, type UnusedConsent } from '../utils/cli-errors';
+
+/** The flag that already answered the question a `--delete` value names, if any did. */
+function answeredBefore(
+  text: string,
+  questions: readonly PlanQuestion[],
+  answeredWith: ReadonlyMap<string, string>,
+): UnusedConsent['answeredBy'] {
+  const flag = answeredWith.get(text);
+  if (flag !== undefined) {
+    return { kind: 'subject', subject: text, flag: { verb: 'delete', text: flag } };
+  }
+  return questions.some(({ removedNamespace }) => removedNamespace === text)
+    ? { kind: 'namespace', namespace: text }
+    : undefined;
+}
 
 /**
  * The answers the `--delete` values give when one of them names a namespace of the questions: the
@@ -23,18 +38,24 @@ function namespaceDeletes(
   const taken = statements.take('delete').map(({ text }) => text);
   const answered = new Map<number, PlanAnswer>();
   const used = new Set<string>();
+  const answeredWith = new Map<string, string>();
   questions.forEach((question, index) => {
     if (!question.verbs.includes('delete')) return;
     const target = { text: question.subject, removedNamespace: question.removedNamespace };
     const given = taken.find((text) => consentAnswers('delete', text, target));
     if (given === undefined) return;
     used.add(given);
+    answeredWith.set(question.subject, given);
     answered.set(index, { verb: 'delete', text: question.subject });
   });
   const unused = taken.filter((text) => !used.has(text));
   if (unused.length > 0) {
     throw errorConsentUnused(
-      unused.map((text) => ({ verb: 'delete', text })),
+      unused.map((text) => ({
+        verb: 'delete',
+        text,
+        answeredBy: answeredBefore(text, questions, answeredWith),
+      })),
       questions.map(({ subject }) => subject),
     );
   }

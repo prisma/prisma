@@ -80,4 +80,28 @@ describe('a plan question asked through the engine', () => {
       meta: { unused: [{ verb: 'delete', values: ['nope'] }], asked: ['billing.Invoice'] },
     });
   });
+
+  it('says a --delete of a subject was already answered by the namespace --delete given before it', async () => {
+    const { statements, prompt } = surfaces(['billing', 'billing.Invoice']);
+
+    await expect(promptPlanQuestions(prompt, statements)([invoice, receipt])).rejects.toMatchObject(
+      {
+        code: 'CLI.CONSENT_UNUSED',
+        message:
+          '--delete billing.Invoice was given, but the question about billing.Invoice was already answered by --delete billing.',
+        nextActions: [{ kind: 'user-choice', label: 'Give one flag per question.' }],
+      },
+    );
+  });
+
+  it('says a namespace --delete answered nothing new when other flags answered every question of it', async () => {
+    const { statements, prompt } = surfaces(['billing.Invoice', 'billing']);
+
+    await expect(promptPlanQuestions(prompt, statements)([invoice])).rejects.toMatchObject({
+      code: 'CLI.CONSENT_UNUSED',
+      message:
+        '--delete billing was given, but every question about namespace "billing" was already answered by another flag.',
+      nextActions: [{ kind: 'user-choice', label: 'Give one flag per question.' }],
+    });
+  });
 });
