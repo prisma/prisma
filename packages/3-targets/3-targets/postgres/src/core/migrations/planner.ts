@@ -311,7 +311,9 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       options.policy.allowedOperationClasses.includes('widening') ||
       options.policy.allowedOperationClasses.includes('destructive');
     const coalesced = coalesceSubtreeIssues(
-      relationalDiffIssues.filter((issue) => !isRemovedNamespaceIssue(issue, removedSchemas)),
+      relationalDiffIssues.filter(
+        (issue) => !isOriginNamespaceIssue(issue, originSchemaNames(options.fromContract)),
+      ),
     );
     const owned = retainUnownedExtras(coalesced, options.ownership, (ddlSchemaName) =>
       namespaceIdOfSchema(options, ddlSchemaName),
@@ -860,12 +862,28 @@ function isWithin(path: readonly string[], ancestor: readonly string[]): boolean
   );
 }
 
-/** The DDL schemas the origin contract declares; none without an origin contract. */
+/**
+ * The DDL schemas in which the origin contract declares tables; none without an origin contract.
+ * A namespace with no tables, such as the `public` the target always adds, owns nothing.
+ */
 function originSchemaNames(fromContract: Contract<SqlStorage> | null): readonly string[] {
   if (fromContract === null) return [];
-  return Object.keys(fromContract.storage.namespaces)
-    .filter((namespaceId) => namespaceId !== UNBOUND_NAMESPACE_ID)
-    .map((namespaceId) => resolveDdlSchemaForNamespaceStorage(fromContract.storage, namespaceId));
+  return Object.entries(fromContract.storage.namespaces)
+    .filter(
+      ([namespaceId, namespace]) =>
+        namespaceId !== UNBOUND_NAMESPACE_ID &&
+        Object.keys(namespace.entries.table ?? {}).length > 0,
+    )
+    .map(([namespaceId]) => resolveDdlSchemaForNamespaceStorage(fromContract.storage, namespaceId));
+}
+
+/** Every DDL schema the contract declares, with or without tables. */
+function declaredSchemaNames(contract: Contract<SqlStorage>): ReadonlySet<string> {
+  return new Set(
+    Object.keys(contract.storage.namespaces)
+      .filter((namespaceId) => namespaceId !== UNBOUND_NAMESPACE_ID)
+      .map((namespaceId) => resolveDdlSchemaForNamespaceStorage(contract.storage, namespaceId)),
+  );
 }
 
 /**
@@ -876,31 +894,35 @@ function removedNamespaceSchemas(
   options: SqlMigrationPlannerPlanOptions,
   schema: PostgresDatabaseSchemaNode,
 ): readonly string[] {
-  const destination = new Set(originSchemaNames(options.contract));
+  const destination = declaredSchemaNames(options.contract);
   return originSchemaNames(options.fromContract).filter(
-    (schemaName) => !destination.has(schemaName) && schema.namespaces[schemaName] !== undefined,
+    (schemaName) =>
+      schemaName !== DEFAULT_NAMESPACE_ID &&
+      !destination.has(schemaName) &&
+      schema.namespaces[schemaName] !== undefined,
   );
 }
 
 /**
- * The issue a removed schema raises for itself, which would cover the issues of its tables: they
- * are kept instead, so each table is dropped and asked about on its own.
+ * The issue a schema of the origin contract raises for itself when the destination declares no
+ * tables there, which would cover the issues of its tables: they are kept instead, so each table is
+ * dropped and asked about on its own, and a removed schema is dropped after them.
  */
-function isRemovedNamespaceIssue(
+function isOriginNamespaceIssue(
   issue: SchemaDiffIssue<SqlSchemaDiffNode>,
-  removedSchemas: readonly string[],
+  originSchemas: readonly string[],
 ): boolean {
   const node = issueNode(issue);
   return (
     node !== undefined &&
     node.nodeKind === PostgresSchemaNodeKind.namespace &&
-    removedSchemas.includes(issue.path[1] ?? '')
+    originSchemas.includes(issue.path[1] ?? '')
   );
 }
 
-/** A removed schema that stays: `public`, which Prisma owns, or one another contract space declares. */
+/** A removed schema that stays because another contract space declares it. */
 function keptSchema(options: SqlMigrationPlannerPlanOptions, schemaName: string): boolean {
-  if (schemaName === DEFAULT_NAMESPACE_ID || options.fromContract === null) return true;
+  if (options.fromContract === null) return true;
   const namespaceId = resolveNamespaceIdForDdlSchema(options.fromContract, schemaName);
   return (options.ownership?.namespaceDeclaringSpaces(namespaceId) ?? []).some(
     (spaceId) => spaceId !== options.spaceId,

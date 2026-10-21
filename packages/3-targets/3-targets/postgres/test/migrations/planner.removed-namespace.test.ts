@@ -9,6 +9,7 @@ import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/c
 import {
   APP_SPACE_ID,
   planOriginOf,
+  type ResolvedMigrationStatement,
   type SchemaOwnership,
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
@@ -138,6 +139,7 @@ function plan(
     readonly fromContract?: Contract<SqlStorage> | null;
     readonly schema?: PostgresDatabaseSchemaNode;
     readonly ownership?: SchemaOwnership;
+    readonly statements?: readonly ResolvedMigrationStatement[];
   } = {},
 ) {
   const fromContract = options.fromContract === undefined ? from : options.fromContract;
@@ -147,7 +149,7 @@ function plan(
     policy: ALL_CLASSES,
     fromContract,
     origin: fromContract === null ? null : planOriginOf(fromContract),
-    statements: [],
+    statements: options.statements ?? [],
     frameworkComponents: postgresTypeComponents,
     spaceId: APP_SPACE_ID,
     snapshotsImportPath: '../../snapshots',
@@ -302,5 +304,54 @@ describe('Postgres planner, a namespace the destination removes', () => {
       labels: ['Drop table "invoice"', 'Drop schema "billing"'],
     });
     expect(result.kind === 'success' && result.accessChanges).toEqual([]);
+  });
+
+  describe('the default namespace public', () => {
+    it('plans nothing for an unchanged contract whose models are all in a named namespace', async () => {
+      const onlyBilling = contractOf({ public: [], billing: ['invoice'] }, 'only-billing-public');
+
+      expect(await planned(plan(onlyBilling, onlyBilling))).toEqual({ labels: [], dataLoss: [] });
+    });
+
+    it('asks about the last model removed from public, and keeps the schema', async () => {
+      const before = contractOf({ public: ['user'], billing: ['invoice'] }, 'last-before');
+      const after = contractOf({ public: [], billing: ['invoice'] }, 'last-after');
+
+      expect(await planned(plan(before, after))).toEqual({
+        labels: ['Drop table "user"'],
+        dataLoss: [
+          expect.objectContaining({
+            subject: { kind: 'model', namespaceId: asNamespaceId('public'), model: 'User' },
+          }),
+        ],
+      });
+    });
+
+    it('moves a model out of a public the destination no longer declares, and keeps the schema', async () => {
+      const before = contractOf({ public: ['user'] }, 'public-before');
+      const after = contractOf({ app: ['user'] }, 'app-after');
+      const move: ResolvedMigrationStatement = {
+        kind: 'rename',
+        entity: 'model',
+        from: { namespaceId: asNamespaceId('public'), model: 'User' },
+        to: { namespaceId: asNamespaceId('app'), model: 'User' },
+      };
+
+      expect((await planned(plan(before, after, { statements: [move] }))).labels).toEqual([
+        'Create schema "app"',
+        'Move table "user" to schema "app"',
+      ]);
+    });
+
+    it('asks about a model of a public the destination no longer declares', async () => {
+      const before = contractOf({ public: ['user'] }, 'public-before-2');
+      const after = contractOf({ app: ['user'] }, 'app-after-2');
+
+      expect((await planned(plan(before, after))).dataLoss).toEqual([
+        expect.objectContaining({
+          subject: { kind: 'model', namespaceId: asNamespaceId('public'), model: 'User' },
+        }),
+      ]);
+    });
   });
 });

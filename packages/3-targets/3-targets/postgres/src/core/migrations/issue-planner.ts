@@ -385,7 +385,9 @@ export function issueColumnName(issue: SchemaDiffIssue): string | undefined {
  */
 export function emissionSchemaName(ctx: StrategyContext, ddlSchemaName: string): string {
   const namespaceId = resolveNamespaceIdForDdlSchema(ctx.toContract, ddlSchemaName);
-  return namespaceId === UNBOUND_NAMESPACE_ID && ddlSchemaName === DEFAULT_NAMESPACE_ID
+  return namespaceId === UNBOUND_NAMESPACE_ID &&
+    ddlSchemaName === DEFAULT_NAMESPACE_ID &&
+    Object.hasOwn(ctx.toContract.storage.namespaces, UNBOUND_NAMESPACE_ID)
     ? UNBOUND_NAMESPACE_ID
     : ddlSchemaName;
 }
