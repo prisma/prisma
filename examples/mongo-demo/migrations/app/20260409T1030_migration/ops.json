@@ -18,7 +18,8 @@
             "email": 1
           }
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "index (email:1) on users"
       }
     ],
     "execute": [

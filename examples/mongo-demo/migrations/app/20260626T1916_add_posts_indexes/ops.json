@@ -18,7 +18,8 @@
             "authorId": 1
           }
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "index (authorId:1) on posts"
       }
     ],
     "execute": [
@@ -119,7 +120,8 @@
             "authorId": 1
           }
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "index (createdAt:-1, authorId:1) on posts"
       }
     ],
     "execute": [

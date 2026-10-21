@@ -15,7 +15,8 @@
           "op": "$eq",
           "value": "carts"
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "collection carts"
       }
     ],
     "execute": [
@@ -107,7 +108,8 @@
           "op": "$eq",
           "value": "events"
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "collection events"
       }
     ],
     "execute": [
@@ -248,7 +250,8 @@
           "op": "$eq",
           "value": "invoices"
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "collection invoices"
       }
     ],
     "execute": [
@@ -329,7 +332,8 @@
           "op": "$eq",
           "value": "locations"
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "collection locations"
       }
     ],
     "execute": [
@@ -388,7 +392,8 @@
           "op": "$eq",
           "value": "orders"
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "collection orders"
       }
     ],
     "execute": [
@@ -502,7 +507,8 @@
           "op": "$eq",
           "value": "products"
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "collection products"
       }
     ],
     "execute": [
@@ -601,7 +607,8 @@
           "op": "$eq",
           "value": "users"
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "collection users"
       }
     ],
     "execute": [
@@ -680,7 +687,8 @@
             "userId": 1
           }
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "index (userId:1) on carts"
       }
     ],
     "execute": [
@@ -779,7 +787,8 @@
             "timestamp": -1
           }
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "index (userId:1, timestamp:-1) on events"
       }
     ],
     "execute": [
@@ -884,7 +893,8 @@
             "timestamp": 1
           }
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "index (timestamp:1) on events"
       }
     ],
     "execute": [
@@ -986,7 +996,8 @@
             "orderId": 1
           }
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "index (orderId:1) on invoices"
       }
     ],
     "execute": [
@@ -1086,7 +1097,8 @@
             "issuedAt": -1
           }
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "index (issuedAt:-1) on invoices"
       }
     ],
     "execute": [
@@ -1185,7 +1197,8 @@
             "country": 1
           }
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "index (city:1, country:1) on locations"
       }
     ],
     "execute": [
@@ -1301,7 +1314,8 @@
             "userId": 1
           }
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "index (userId:1) on orders"
       }
     ],
     "execute": [
@@ -1399,7 +1413,8 @@
           "op": "$eq",
           "value": "text"
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "index (name:text, description:text) on products"
       }
     ],
     "execute": [
@@ -1530,7 +1545,8 @@
             "subCategory": 1
           }
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "index (brand:1, subCategory:1) on products"
       }
     ],
     "execute": [
@@ -1635,7 +1651,8 @@
             "code": "hashed"
           }
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "index (code:hashed) on products"
       }
     ],
     "execute": [
@@ -1735,7 +1752,8 @@
             "email": 1
           }
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "index (email:1) on users"
       }
     ],
     "execute": [
