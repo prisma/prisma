@@ -28,7 +28,7 @@ function invalidDate(): RangeError {
 
 function isRepresentable(value: Date): boolean {
   return (
-    value instanceof Date &&
+    Object.prototype.toString.call(value) === '[object Date]' &&
     Number.isFinite(value.getTime()) &&
     value.getTime() >= EARLIEST_POSTGRES_TIMESTAMP_MILLISECONDS
   );
