@@ -159,3 +159,21 @@ When a removed namespace has questions, the `CLI.CONSENT_REQUIRED` refusal's `ne
 **Found:** slice 3b PR 1 code review (2026-10-21).
 
 `--rename billing.Invoice:finance.Invoice` moves the table with `ALTER TABLE … SET SCHEMA`. Postgres keeps a foreign key from another contract space's table pointing at it, and the app's plan is right, but the other space's contract still names the old schema, so that space's next plan sees drift. A table rename has the same gap on main. It needs a cross-space design: either refuse a move or rename of a table another space references, or tell the other space's plan about it.
+
+## One model with two access questions needs `--allow` twice
+
+**Found:** slice 3b PR 1 manual QA (2026-10-21), F5. Older than this PR: on main an `--allow` answers one operation.
+
+Reproduction: remove `@@rls` and the policy from a model `Invoice`, then run `db update --no-interactive`. It refuses with two questions about `"Invoice"`, one for dropping the policy and one for disabling row-level security, each answered by `--allow Invoice`. `db update --allow Invoice` still refuses, with "Run the command again with --allow Invoice"; only `--allow Invoice --allow Invoice` applies. To resolve it, either let one `--allow <model>` answer every access question about the model (the control API's `givenFor` and the dry run's `answeredByFlags` match all of them, and the CLI engine needs to accept one flag for several questions with the same subject, as `--delete <namespace>` works around today), or give each access question its own subject, such as the policy name.
+
+## A planner warning about the unbound namespace on every multi-namespace run
+
+**Found:** slice 3b PR 1 manual QA (2026-10-21), F9; referred by the system-design review. Older than this PR: main prints it too.
+
+Reproduction: emit a PSL contract with a `namespace public` block and a `namespace billing` block (for example `test/integration/test/fixtures/cli/cli-e2e-test-app/fixtures/cli-journeys/contract-namespace-statements-from.prisma`) and run `db update --json`, then `db update --dry-run --json`. Both carry the warning `control policy suppressed: namespace "__unbound__" — namespace '__unbound__' has effective control 'external' but declared 'external'`, checked on origin/main at `1e98c69e1b` and on this branch. Something plans a namespace-level call or issue for the unbound namespace, whose control policy is `external`, and `partitionCallsByControlPolicy` or `partitionIssuesByControlPolicy` in `packages/2-sql/9-family/src/core/migrations/control-policy.ts` records it as a suppression. Find what plans it and stop planning it, or record no suppression for the unbound namespace, which has no fixed place in the database.
+
+## A dry run with unanswered questions suggests an apply command that is refused
+
+**Found:** slice 3b PR 1 manual QA (2026-10-21), F12. Older than this PR.
+
+`db update --dry-run` ends with `→ Apply the planned operations: prisma db update`, repeating the statements it was given. When the plan has questions that no given statement answers, running that command non-interactively fails with `CLI.CONSENT_REQUIRED`. The next action in `migrationResultNextActions` (`packages/1-framework/3-tooling/cli/src/orm/db/migration-blocks.ts`) could say to answer the questions listed above, or point at them, when any is unanswered.
