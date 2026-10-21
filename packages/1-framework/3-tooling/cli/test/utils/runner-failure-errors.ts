@@ -19,8 +19,8 @@ interface AdviceInput extends Omit<RunnerFailureFacts, 'failedMigration'> {
   readonly schemaIssues?: readonly SchemaDiffIssue[];
   readonly databaseStorageHash?: string;
   readonly conflicts?: undefined;
-  /** Whether the failed apply was rolled back; the SQL runners say it was. */
-  readonly rolledBack?: boolean | undefined;
+  /** Whether the database is as it was before the failed apply; the SQL runners say it is. */
+  readonly databaseUnchanged?: boolean | undefined;
 }
 
 /** The failure as a runner builds it: it explains a failed precheck it has no other words for. */
@@ -38,7 +38,10 @@ function runnerFailureOf(input: AdviceInput) {
           })),
     meta: {
       ...ifDefined('schemaIssues', input.schemaIssues),
-      ...ifDefined('rolledBack', 'rolledBack' in input ? input.rolledBack : true),
+      ...ifDefined(
+        'databaseUnchanged',
+        'databaseUnchanged' in input ? input.databaseUnchanged : true,
+      ),
     },
   });
 }

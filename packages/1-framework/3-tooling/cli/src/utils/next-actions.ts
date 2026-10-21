@@ -13,3 +13,8 @@ export function runCommandAction(label: string, command: string): NextAction {
 export function chooseAction(label: string): NextAction {
   return { kind: 'user-choice', label };
 }
+
+/** Advice that changes a file before anything runs again. */
+export function editFileAction(label: string): NextAction {
+  return { kind: 'edit-file', label };
+}

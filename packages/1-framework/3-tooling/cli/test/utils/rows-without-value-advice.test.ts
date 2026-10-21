@@ -25,7 +25,7 @@ describe('the advice for rows a required field has no value for', () => {
         FROM_PROJECT,
       ).fix,
     ).toBe(
-      `Set a value in those rows. Or keep the field optional. Or plan it with \`{bin} migration plan --from ${DATABASE} --backfill Item.note\`, fill the backfill steps in the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and apply it with \`{bin} db migrate\`.`,
+      `Set a value in those rows. Or: Keep the field optional. Or: Plan it with \`{bin} migration plan --from ${DATABASE} --backfill Item.note\`, fill the backfill steps in the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and apply it with \`{bin} db migrate\`.`,
     );
   });
 
@@ -46,7 +46,7 @@ describe('the advice for rows a required field has no value for', () => {
         FROM_PROJECT,
       ).fix,
     ).toBe(
-      `Plan it with \`{bin} migration plan --from ${DATABASE} --backfill 'My Model.code' --backfill 'My Model.role'\`, fill the backfill steps in the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and apply it with \`{bin} db migrate\`. Or make the field optional.`,
+      `Plan it with \`{bin} migration plan --from ${DATABASE} --backfill 'My Model.code' --backfill 'My Model.role'\`, fill the backfill steps in the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and apply it with \`{bin} db migrate\`. Or: Make the field optional.`,
     );
   });
 
@@ -69,7 +69,7 @@ describe('the advice for rows a required field has no value for', () => {
         FROM_PROJECT,
       ).fix,
     ]).toEqual([
-      'Set a value in those rows. Or keep the field optional.',
+      'Set a value in those rows. Or: Keep the field optional.',
       'Make the field optional.',
     ]);
   });
@@ -94,7 +94,7 @@ describe('the advice for rows a required field has no value for', () => {
       { field: 'Item.role', reason: 'newField' },
       { field: 'Item.code', reason: 'newField' },
     ] as const;
-    const replan = `delete \`migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), plan it again with \`{bin} migration plan --from ${FROM} --name note --backfill Item.role --backfill Item.code\`, adding any other statements you planned it with, fill in the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`{bin} db migrate\``;
+    const replan = `\`migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), plan it again with \`{bin} migration plan --from ${FROM} --name note --backfill Item.role --backfill Item.code\`, adding any other statements you planned it with, fill in the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`{bin} db migrate\``;
     expect([
       migrateError({ ...runnerFailed, rowsWithoutValue, failedMigration }, FROM_PROJECT).fix,
       migrateError(
@@ -106,8 +106,8 @@ describe('the advice for rows a required field has no value for', () => {
         FROM_PROJECT,
       ).fix,
     ]).toEqual([
-      `The failed apply changed nothing. To keep the field required, ${replan}. Or make the field optional, and plan it again.`,
-      `The migration also adds a required field the existing rows have no value for, so setting values is not enough. The failed apply changed nothing. D${replan.slice(1)}.`,
+      `To keep the field required, delete ${replan}. Or: Make the field optional, and plan it again.`,
+      `The migration also adds a required field the existing rows have no value for, so setting values is not enough. Delete ${replan}.`,
     ]);
     expect(
       migrateError(
@@ -121,7 +121,7 @@ describe('the advice for rows a required field has no value for', () => {
         FROM_PROJECT,
       ).fix,
     ).toBe(
-      'Set a value in the rows that hold NULL in each of "Item.note", "Item.nick" and re-run `{bin} db migrate`. Or keep those fields optional, and plan the migration again.',
+      'Set a value in the rows that hold NULL in each of "Item.note", "Item.nick" and re-run `{bin} db migrate`. Or: Keep those fields optional, and plan the migration again.',
     );
   });
 
@@ -136,7 +136,7 @@ describe('the advice for rows a required field has no value for', () => {
         FROM_PROJECT,
       ).fix,
     ).toBe(
-      `Set a value in those rows and re-run \`{bin} db migrate\`. Or delete \`migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), plan it again with \`{bin} migration plan --from ${FROM} --name note --backfill Item.note\`, adding any other statements you planned it with, fill in the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`{bin} db migrate\`. Or keep the field optional: make it optional in the contract again, delete \`migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), and plan it again with \`{bin} migration plan --from ${FROM} --name note\`, adding any other statements you planned it with, put back any code you copied, run that migration.ts with the \`node\` command \`migration plan\` prints, and apply it with \`{bin} db migrate\`.`,
+      `Set a value in those rows and re-run \`{bin} db migrate\`. Or: Delete \`migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), plan it again with \`{bin} migration plan --from ${FROM} --name note --backfill Item.note\`, adding any other statements you planned it with, fill in the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`{bin} db migrate\`. Or: Keep the field optional: make it optional in the contract again, delete \`migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), and plan it again with \`{bin} migration plan --from ${FROM} --name note\`, adding any other statements you planned it with, put back any code you copied, run that migration.ts with the \`node\` command \`migration plan\` prints, and apply it with \`{bin} db migrate\`.`,
     );
   });
 
@@ -150,13 +150,13 @@ describe('the advice for rows a required field has no value for', () => {
       FROM_PROJECT,
     );
     expect(error.nextActions?.map(({ kind, command }) => ({ kind, command }))).toEqual([
-      { kind: 'run-command', command: '{bin} db migrate' },
-      {
-        kind: 'run-command',
-        command: `{bin} migration plan --from ${FROM} --name note --backfill Item.note`,
-      },
-      { kind: 'run-command', command: `{bin} migration plan --from ${FROM} --name note` },
+      { kind: 'user-choice', command: undefined },
+      { kind: 'user-choice', command: undefined },
+      { kind: 'edit-file', command: undefined },
     ]);
+    expect(error.nextActions?.[0]?.label).toBe(
+      'Set a value in those rows and re-run `{bin} db migrate`',
+    );
   });
 
   it('never says a migration is planned again with "its other statements", which the CLI does not store', () => {
@@ -187,7 +187,7 @@ describe('the advice for rows a required field has no value for', () => {
         { cwd: '/work', configPath: 'app/prisma.config.ts', dbGiven: false },
       ).fix,
     ).toBe(
-      `Set a value in those rows and re-run \`{bin} db migrate --config app/prisma.config.ts\`. Or delete \`app/migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), plan it again with \`{bin} migration plan --from ${FROM} --name note --backfill Item.note --config app/prisma.config.ts\`, adding any other statements you planned it with, fill in the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`{bin} db migrate --config app/prisma.config.ts\`. Or keep the field optional: make it optional in the contract again, delete \`app/migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), and plan it again with \`{bin} migration plan --from ${FROM} --name note --config app/prisma.config.ts\`, adding any other statements you planned it with, put back any code you copied, run that migration.ts with the \`node\` command \`migration plan\` prints, and apply it with \`{bin} db migrate --config app/prisma.config.ts\`.`,
+      `Set a value in those rows and re-run \`{bin} db migrate --config app/prisma.config.ts\`. Or: Delete \`app/migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), plan it again with \`{bin} migration plan --from ${FROM} --name note --backfill Item.note --config app/prisma.config.ts\`, adding any other statements you planned it with, fill in the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`{bin} db migrate --config app/prisma.config.ts\`. Or: Keep the field optional: make it optional in the contract again, delete \`app/migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), and plan it again with \`{bin} migration plan --from ${FROM} --name note --config app/prisma.config.ts\`, adding any other statements you planned it with, put back any code you copied, run that migration.ts with the \`node\` command \`migration plan\` prints, and apply it with \`{bin} db migrate --config app/prisma.config.ts\`.`,
     );
   });
 
@@ -211,7 +211,7 @@ describe('the advice for rows a required field has no value for', () => {
         withConfig,
       ).fix,
     ]).toEqual([
-      'Plan it with `{bin} migration plan --backfill Item.note --config app/prisma.config.ts`, fill the backfill steps in the migration.ts it writes, run that migration.ts with the `node` command `migration plan` prints, and apply it with `{bin} db migrate --config app/prisma.config.ts`. Or make the field optional.',
+      'Plan it with `{bin} migration plan --backfill Item.note --config app/prisma.config.ts`, fill the backfill steps in the migration.ts it writes, run that migration.ts with the `node` command `migration plan` prints, and apply it with `{bin} db migrate --config app/prisma.config.ts`. Or: Make the field optional.',
       'Run `{bin} db init --config app/prisma.config.ts` with field "Item.note" optional, then make it required with `{bin} db update --config app/prisma.config.ts`, which says how to give the rows a value.',
     ]);
   });
@@ -227,8 +227,8 @@ describe('the advice for rows a required field has no value for', () => {
         { cwd: '/work', configPath: 'app/prisma.config.ts', dbGiven: false },
       ).fix;
     expect([advice(failedMigration), advice(undefined)]).toEqual([
-      'The backfill step of field "Item.note" left those rows without a value. The failed apply changed nothing. Make its run fill every row in `app/migrations/app/20261012T1200_note/migration.ts`, run `node app/migrations/app/20261012T1200_note/migration.ts --config app/prisma.config.ts`, and re-run `{bin} db migrate --config app/prisma.config.ts`.',
-      'The backfill step of field "Item.note" left those rows without a value. The failed apply changed nothing. Make its run fill every row in the migration.ts of the failed migration, run that file with node, and re-run `{bin} db migrate --config app/prisma.config.ts`.',
+      'The backfill step of field "Item.note" left those rows without a value. Make its run fill every row in `app/migrations/app/20261012T1200_note/migration.ts`, run `node app/migrations/app/20261012T1200_note/migration.ts --config app/prisma.config.ts`, and re-run `{bin} db migrate --config app/prisma.config.ts`.',
+      'The backfill step of field "Item.note" left those rows without a value. Make its run fill every row in the migration.ts of the failed migration, run that file with node, and re-run `{bin} db migrate --config app/prisma.config.ts`.',
     ]);
   });
 
@@ -252,9 +252,9 @@ describe('the advice for rows a required field has no value for', () => {
         withDb,
       ).fix,
     ]).toEqual([
-      'The backfill step of field "Item.note" left those rows without a value. The failed apply changed nothing. Make its run fill every row in the migration.ts of the failed migration, run that file with node, and re-run `{bin} db migrate --config app/prisma.config.ts --db <url>`.',
-      'Fix the issue and re-run `{bin} db migrate --to <contract> --config app/prisma.config.ts --db <url>` — previously applied migrations are preserved.',
-      'Plan it with `{bin} migration plan --backfill Item.note --config app/prisma.config.ts`, fill the backfill steps in the migration.ts it writes, run that migration.ts with the `node` command `migration plan` prints, and apply it with `{bin} db migrate --config app/prisma.config.ts --db <url>`. Or make the field optional.',
+      'The backfill step of field "Item.note" left those rows without a value. Make its run fill every row in the migration.ts of the failed migration, run that file with node, and re-run `{bin} db migrate --config app/prisma.config.ts --db <url>`.',
+      'Fix the issue and re-run `{bin} db migrate --to <contract> --config app/prisma.config.ts --db <url>`.',
+      'Plan it with `{bin} migration plan --backfill Item.note --config app/prisma.config.ts`, fill the backfill steps in the migration.ts it writes, run that migration.ts with the `node` command `migration plan` prints, and apply it with `{bin} db migrate --config app/prisma.config.ts --db <url>`. Or: Make the field optional.',
     ]);
   });
 

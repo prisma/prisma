@@ -43,20 +43,24 @@ const FROM = 'b'.repeat(64);
 
 function schemaCheckFailure(
   issues: readonly SchemaDiffIssue[] | undefined,
-  rolledBack = true,
+  databaseUnchanged = true,
 ): MigrationRunnerFailure {
   return migrationRunnerFailure(
     'MIGRATION.SCHEMA_VERIFY_FAILED',
     'Database schema does not satisfy contract',
     {
       why: (issues === undefined ? undefined : schemaCheckWhy(issues)) ?? RUNNER_WHY,
-      meta: issues === undefined ? { rolledBack } : { schemaIssues: issues, rolledBack },
+      meta:
+        issues === undefined ? { databaseUnchanged } : { schemaIssues: issues, databaseUnchanged },
     },
   );
 }
 
-const CAUSES = (file: string) =>
-  `The database the migration left does not match its destination contract. Either the contract source does not describe the schema you want, or ${file} does not reach its destination contract, for example after a hand edit.`;
+const CONTRACT_CAUSE = (directory: string, plan: string) =>
+  `If the contract source does not describe the schema you want, change it to resolve the issues listed, re-run \`{bin} contract emit\`, delete ${directory} (copy any code you wrote in its migration.ts first), plan it again with \`${plan}\`, put any code you copied into the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`{bin} db migrate\``;
+const MIGRATION_CAUSE = (file: string, run: string) =>
+  `If ${file} does not reach its destination contract, for example after a hand edit, change its operations to resolve the issues listed, ${run}, and run \`{bin} db migrate\``;
+const INITIAL = 'migrations/app/20261015T1200_initial';
 
 const withoutIssues = schemaCheckFailure(undefined);
 
@@ -102,8 +106,8 @@ describe('a failed schema check after apply', () => {
         code: 'MIGRATION.SCHEMA_VERIFY_FAILED',
         message: 'Database schema does not satisfy contract',
         why: LISTED,
-        fix: `The failed apply changed nothing. ${CAUSES('`migrations/app/20261015T1200_initial/migration.ts`')} If the contract source is wrong, change it to resolve the issues listed, re-run \`{bin} contract emit\`, delete \`migrations/app/20261015T1200_initial\` (copy any code you wrote in its migration.ts first), plan it again with \`{bin} migration plan --from ${FROM} --name initial\`, put any code you copied into the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`{bin} db migrate\`. Or if \`migrations/app/20261015T1200_initial/migration.ts\` is wrong, change its operations to resolve the issues listed, run \`node migrations/app/20261015T1200_initial/migration.ts\`, and run \`{bin} db migrate\`.`,
-        meta: { schemaIssues: [explained, plain], rolledBack: true },
+        fix: `${CONTRACT_CAUSE(`\`${INITIAL}\``, `{bin} migration plan --from ${FROM} --name initial`)}. Or: ${MIGRATION_CAUSE(`\`${INITIAL}/migration.ts\``, `run \`node ${INITIAL}/migration.ts\``)}.`,
+        meta: { schemaIssues: [explained, plain], databaseUnchanged: true },
         cause: failure,
       });
       expect(error.cause).toBe(failure);
@@ -120,29 +124,34 @@ describe('a failed schema check after apply', () => {
 
     it('says to carry written code over when the runner names no migration', () => {
       expect(migrateError(schemaCheckFailure([explained])).fix).toBe(
-        `The failed apply changed nothing. ${CAUSES('the migration.ts of the failed migration')} If the contract source is wrong, change it to resolve the issues listed, re-run \`{bin} contract emit\`, delete the failed migration's directory (copy any code you wrote in its migration.ts first), plan it again with \`{bin} migration plan\`, put any code you copied into the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`{bin} db migrate\`. Or if the migration.ts of the failed migration is wrong, change its operations to resolve the issues listed, run that file with node, and run \`{bin} db migrate\`.`,
+        `${CONTRACT_CAUSE("the failed migration's directory", '{bin} migration plan')}. Or: ${MIGRATION_CAUSE('the migration.ts of the failed migration', 'run that file with node')}.`,
       );
     });
 
-    it('gives each cause its own next action', () => {
-      const failed = { directory: `${PROJECT}/migrations/app/20261015T1200_initial`, from: FROM };
-      expect(
-        migrateError(schemaCheckFailure([plain]), failed).nextActions?.map(({ kind, command }) => ({
-          kind,
-          command,
-        })),
-      ).toEqual([
-        { kind: 'run-command', command: `{bin} migration plan --from ${FROM} --name initial` },
-        { kind: 'edit-file', command: undefined },
+    it('gives each cause its own next action, an edit of a file that names the commands to run after it', () => {
+      const failed = { directory: `${PROJECT}/${INITIAL}`, from: FROM };
+      expect(migrateError(schemaCheckFailure([plain]), failed).nextActions).toEqual([
+        {
+          kind: 'edit-file',
+          label: CONTRACT_CAUSE(
+            `\`${INITIAL}\``,
+            `{bin} migration plan --from ${FROM} --name initial`,
+          ),
+        },
+        {
+          kind: 'edit-file',
+          label: MIGRATION_CAUSE(
+            `\`${INITIAL}/migration.ts\``,
+            `run \`node ${INITIAL}/migration.ts\``,
+          ),
+        },
       ]);
     });
 
-    it('says the operations that ran stay applied when the runner did not roll back, as on MongoDB', () => {
-      const { fix } = migrateError(schemaCheckFailure([plain], false));
-      expect({
-        changedNothing: fix?.includes('changed nothing'),
-        stays: fix?.startsWith('The operations that ran before the failure stay applied.'),
-      }).toEqual({ changedNothing: false, stays: true });
+    it('gives the same advice whether or not the apply changed the database, which the runner says in its why', () => {
+      expect(migrateError(schemaCheckFailure([plain], false)).fix).toBe(
+        migrateError(schemaCheckFailure([plain], true)).fix,
+      );
     });
 
     it('keeps the runner why when the check reported no issues', () => {
@@ -185,13 +194,12 @@ describe('a failed schema check after apply', () => {
     });
   });
 
-  it("reports the runner's why unchanged on every command, and says where things stand in the reason of each next action", () => {
+  it("reports the runner's why unchanged on every command", () => {
     const failure = schemaCheckFailure([plain]);
-    const errors = [migrateError(failure), dbUpdateError(failure), dbInitError(failure)];
-    expect(errors.map((error) => error.why)).toEqual([failure.why, failure.why, failure.why]);
-    expect(errors[0]?.nextActions?.map(({ reason }) => reason)).toEqual([
-      `The failed apply changed nothing. ${CAUSES('the migration.ts of the failed migration')}`,
-      `The failed apply changed nothing. ${CAUSES('the migration.ts of the failed migration')}`,
-    ]);
+    expect(
+      [migrateError(failure), dbUpdateError(failure), dbInitError(failure)].map(
+        (error) => error.why,
+      ),
+    ).toEqual([failure.why, failure.why, failure.why]);
   });
 });

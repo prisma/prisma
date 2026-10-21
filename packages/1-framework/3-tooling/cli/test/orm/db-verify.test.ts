@@ -614,8 +614,8 @@ describe('db verify', () => {
       });
 
       expect(run.exitCode).toBe(4);
-      expect(diagnosticsOf(run).map((entry) => entry.code)).toEqual([
-        'CONTRACT.SCHEMA_VERIFICATION_FAILED',
+      expect(diagnosticsOf(run).map(({ code, meta }) => ({ code, meta }))).toEqual([
+        { code: 'CONTRACT.SCHEMA_VERIFICATION_FAILED', meta: { schemaIssues: [] } },
       ]);
     });
 

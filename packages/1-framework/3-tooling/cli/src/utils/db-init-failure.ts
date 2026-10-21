@@ -10,9 +10,8 @@ import type { RunnerFailureFacts } from '../control-api/types';
 import type { CliStructuredError } from './cli-errors';
 import { ActionableCliError, errorMigrationPlanningFailed } from './cli-errors';
 import { dbInitFailedPrecheckAdvice } from './failed-precheck-advice';
-import { runCommandAction } from './next-actions';
+import { chooseAction, editFileAction, runCommandAction } from './next-actions';
 import { type CliInvocation, cliCommand } from './printed-command';
-import { adviceOf, commandAlternative } from './runner-advice';
 import { dbInitRowsWithoutValueAdvice } from './runner-failure-advice';
 import { runnerFailureError } from './runner-failure-error';
 import { schemaCheckIssues } from './schema-check-issues';
@@ -90,25 +89,17 @@ export function dbInitRunnerFailureError(
     facts.rowsWithoutValue !== undefined
       ? dbInitRowsWithoutValueAdvice(facts.rowsWithoutValue, invocation)
       : schemaCheckIssues(failure) !== undefined
-        ? adviceOf(
-            [],
-            [
-              commandAlternative(
-                `Change the contract source to resolve the issues listed, re-run \`${cliCommand(invocation, 'contract emit')}\`, then re-run \`${init}\``,
-                init,
-              ),
-            ],
-          )
+        ? [
+            editFileAction(
+              `Change the contract source to resolve the issues listed, re-run \`${cliCommand(invocation, 'contract emit')}\`, then re-run \`${init}\``,
+            ),
+          ]
         : facts.failedPrecheck !== undefined
           ? dbInitFailedPrecheckAdvice(invocation)
-          : adviceOf(
-              [],
-              [
-                commandAlternative(
-                  `Fix the schema mismatch (db init is additive-only), or drop/reset the database and re-run \`${init}\``,
-                  init,
-                ),
-              ],
-            );
+          : [
+              chooseAction(
+                `Fix the schema mismatch (db init is additive-only), or drop/reset the database and re-run \`${init}\``,
+              ),
+            ];
   return runnerFailureError(failure, advice);
 }

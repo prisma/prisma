@@ -1,8 +1,8 @@
 import type { MigrationRunnerFailure } from '@internal/framework-components/control';
 import type { RunnerFailureFacts } from '../control-api/types';
 import type { CliStructuredError } from './cli-errors';
+import { chooseAction, editFileAction } from './next-actions';
 import { type CliInvocation, cliCommand } from './printed-command';
-import { adviceOf, commandAlternative } from './runner-advice';
 import {
   dbUpdateFailedTypeChangeAdvice,
   dbUpdateRowsWithoutValueAdvice,
@@ -31,23 +31,15 @@ export function dbUpdateRunnerFailureError(
       : facts.rowsWithoutValue !== undefined
         ? dbUpdateRowsWithoutValueAdvice(facts.rowsWithoutValue, databaseStorageHash, invocation)
         : schemaCheckIssues(failure) !== undefined
-          ? adviceOf(
-              [],
-              [
-                commandAlternative(
-                  `Change the contract source to resolve the issues listed, re-run \`${cliCommand(invocation, 'contract emit')}\`, then re-run \`${update}\``,
-                  update,
-                ),
-              ],
-            )
-          : adviceOf(
-              [],
-              [
-                commandAlternative(
-                  `Inspect the reported conflict, reconcile schema drift if needed, then re-run \`${update}\``,
-                  update,
-                ),
-              ],
-            );
+          ? [
+              editFileAction(
+                `Change the contract source to resolve the issues listed, re-run \`${cliCommand(invocation, 'contract emit')}\`, then re-run \`${update}\``,
+              ),
+            ]
+          : [
+              chooseAction(
+                `Inspect the reported conflict, reconcile schema drift if needed, then re-run \`${update}\``,
+              ),
+            ];
   return runnerFailureError(failure, advice);
 }

@@ -1,5 +1,6 @@
 import type { MigrationRunnerFailure } from '@internal/framework-components/control';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import type { NextAction } from '@prisma/cli-engine/protocol';
 import { basename, join } from 'pathe';
 import { statementFlag } from '../control-api/statements/statement-flag';
 import type {
@@ -8,6 +9,7 @@ import type {
   RunnerFailureFacts,
 } from '../control-api/types';
 import { migrateFailedPrecheckAdvice } from './failed-precheck-advice';
+import { chooseAction, editFileAction } from './next-actions';
 import {
   type CliInvocation,
   cliCommand,
@@ -15,15 +17,7 @@ import {
   printedPlanCommand,
   selfEmitCommand,
 } from './printed-command';
-import {
-  type AdviceAlternative,
-  adviceOf,
-  applyOutcomeText,
-  choiceAlternative,
-  commandAlternative,
-  editAlternative,
-  type RunnerAdvice,
-} from './runner-advice';
+import type { RunnerAdvice } from './runner-advice';
 import { schemaCheckIssues } from './schema-check-issues';
 
 /** The written migration of the failed operation: its directory, and the contract it starts from. */
@@ -47,14 +41,6 @@ export function failedTypeChangeText(change: FailedTypeChangeReport): string {
     case 'expressionError':
       return `The conversion of field "${change.field}" failed with an error in its expression.`;
   }
-}
-
-function migrationPlanCommand(
-  invocation: CliInvocation,
-  flags: readonly string[],
-  from: string | undefined,
-): string {
-  return printedPlanCommand(invocation, from, flags);
 }
 
 function quoted(command: string): string {
@@ -88,20 +74,14 @@ export function dbUpdateFailedTypeChangeAdvice(
   databaseStorageHash: string | undefined,
   invocation: CliInvocation,
 ): RunnerAdvice {
-  const plan = migrationPlanCommand(
-    invocation,
-    [statementFlag({ verb: 'convert', text: change.field })],
-    databaseStorageHash,
-  );
-  return adviceOf(
-    [failedTypeChangeText(change)],
-    [
-      commandAlternative(
-        `Plan the change with ${quoted(plan)}, write the conversion in the migration.ts it writes, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}`,
-        plan,
-      ),
-    ],
-  );
+  const plan = printedPlanCommand(invocation, databaseStorageHash, [
+    statementFlag({ verb: 'convert', text: change.field }),
+  ]);
+  return [
+    chooseAction(
+      `${failedTypeChangeText(change)} Plan the change with ${quoted(plan)}, write the conversion in the migration.ts it writes, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}`,
+    ),
+  ];
 }
 
 /** The way out of rows without a value for `db update`, which plans and applies in one step. */
@@ -111,28 +91,22 @@ export function dbUpdateRowsWithoutValueAdvice(
   invocation: CliInvocation,
 ): RunnerAdvice {
   const flags = backfillFlags(reports);
-  const plan =
-    flags.length === 0 ? undefined : migrationPlanCommand(invocation, flags, databaseStorageHash);
   const planned =
-    plan === undefined
+    flags.length === 0
       ? []
       : [
-          commandAlternative(
-            `Plan it with ${quoted(plan)}, fill the backfill steps in the migration.ts it writes, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}`,
-            plan,
+          chooseAction(
+            `Plan it with ${quoted(printedPlanCommand(invocation, databaseStorageHash, flags))}, fill the backfill steps in the migration.ts it writes, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}`,
           ),
         ];
   if (reports[0]?.reason === 'nullValues') {
-    return adviceOf(
-      [],
-      [
-        choiceAlternative('Set a value in those rows'),
-        choiceAlternative('Keep the field optional'),
-        ...planned,
-      ],
-    );
+    return [
+      chooseAction('Set a value in those rows'),
+      editFileAction('Keep the field optional'),
+      ...planned,
+    ];
   }
-  return adviceOf([], [...planned, choiceAlternative('Make the field optional')]);
+  return [...planned, editFileAction('Make the field optional')];
 }
 
 /**
@@ -145,16 +119,11 @@ export function dbInitRowsWithoutValueAdvice(
 ): RunnerAdvice {
   const field = reports[0]?.field;
   const subject = field === undefined ? 'it' : `field "${field}"`;
-  const init = cliCommand(invocation, 'db init');
-  return adviceOf(
-    [],
-    [
-      commandAlternative(
-        `Run ${quoted(init)} with ${subject} optional, then make it required with ${quoted(cliCommand(invocation, 'db update'))}, which says how to give the rows a value`,
-        init,
-      ),
-    ],
-  );
+  return [
+    editFileAction(
+      `Run ${quoted(cliCommand(invocation, 'db init'))} with ${subject} optional, then make it required with ${quoted(cliCommand(invocation, 'db update'))}, which says how to give the rows a value`,
+    ),
+  ];
 }
 
 /**
@@ -186,27 +155,25 @@ function failedMigrationText(
   };
 }
 
-/** Planning the failed migration again with `flags`, after `lead` when it says why. */
+/**
+ * Planning the failed migration again with `flags`. `opening` is the words before the directory,
+ * so the sentence can start the advice or follow why it is needed.
+ */
 function replan(
+  opening: string,
   flags: readonly string[],
   failed: FailedMigrationText,
-  options: { readonly except?: string; readonly lead?: string } = {},
-): AdviceAlternative {
+  except: string | undefined = undefined,
+): NextAction {
   const others =
-    options.except === undefined
-      ? OTHER_STATEMENTS
-      : `${OTHER_STATEMENTS} except any ${options.except}`;
-  const plan = migrationPlanCommand(
-    failed.invocation,
-    ['--name', failed.name, ...flags],
-    failed.from,
-  );
-  const steps = `delete \`${failed.directory}\` (copy any code you wrote in its migration.ts first), plan it again with ${quoted(plan)}, ${others}, fill in the migration.ts it writes, ${RUN_PLANNED_FILE}, and run ${dbMigrateCommand(failed.invocation)}`;
-  return commandAlternative(
-    options.lead === undefined
-      ? `${steps.charAt(0).toUpperCase()}${steps.slice(1)}`
-      : `${options.lead}, ${steps}`,
-    plan,
+    except === undefined ? OTHER_STATEMENTS : `${OTHER_STATEMENTS} except any ${except}`;
+  const plan = printedPlanCommand(failed.invocation, failed.from, [
+    '--name',
+    failed.name,
+    ...flags,
+  ]);
+  return chooseAction(
+    `${opening} \`${failed.directory}\` (copy any code you wrote in its migration.ts first), plan it again with ${quoted(plan)}, ${others}, fill in the migration.ts it writes, ${RUN_PLANNED_FILE}, and run ${dbMigrateCommand(failed.invocation)}`,
   );
 }
 
@@ -228,51 +195,37 @@ function failedMigrationFile(failedMigration: FailedMigrationText | undefined): 
 }
 
 function migrateFailedTypeChangeAdvice(
-  failure: MigrationRunnerFailure,
   change: FailedTypeChangeReport,
   failedMigration: FailedMigrationText | undefined,
   invocation: CliInvocation,
 ): RunnerAdvice {
   const changeText = failedTypeChangeText(change);
+  const { file, run } = failedMigrationFile(failedMigration);
   if (change.by === 'conversion') {
-    const { file, run } = failedMigrationFile(failedMigration);
-    return adviceOf(
-      [changeText, applyOutcomeText(failure)],
-      [
-        editAlternative(
-          `Fix the conversion in ${file}, ${run}, and re-run ${dbMigrateCommand(invocation)}`,
-        ),
-      ],
-    );
+    return [
+      editFileAction(
+        `${changeText} Fix the conversion in ${file}, ${run}, and re-run ${dbMigrateCommand(invocation)}`,
+      ),
+    ];
   }
   const convert = statementFlag({ verb: 'convert', text: change.field });
   if (failedMigration === undefined) {
-    const plan = migrationPlanCommand(invocation, [convert], undefined);
-    return adviceOf(
-      [changeText],
-      [
-        commandAlternative(
-          `Plan the type change again with ${quoted(plan)}, write the conversion in the migration.ts it writes, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}`,
-          plan,
-        ),
-      ],
-    );
+    return [
+      chooseAction(
+        `${changeText} Plan the type change again with ${quoted(printedPlanCommand(invocation, undefined, [convert]))}, write the conversion in the migration.ts it writes, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}`,
+      ),
+    ];
   }
   const deleted = `\`${statementFlag({ verb: 'delete', text: change.field })}\``;
-  const { file, run } = failedMigrationFile(failedMigration);
-  return adviceOf(
-    [changeText, applyOutcomeText(failure)],
-    [
-      editAlternative(
-        `${file} has no conversion for field "${change.field}": write one there, ${run}, and re-run ${dbMigrateCommand(invocation)}`,
-      ),
-      replan([convert], failedMigration, { except: deleted }),
-    ],
-  );
+  return [
+    editFileAction(
+      `${changeText} ${file} has no conversion for field "${change.field}": write one there, ${run}, and re-run ${dbMigrateCommand(invocation)}`,
+    ),
+    replan('Delete', [convert], failedMigration, deleted),
+  ];
 }
 
 function migrateRowsWithoutValueAdvice(
-  failure: MigrationRunnerFailure,
   reports: readonly RowsWithoutValueReport[],
   failedMigration: FailedMigrationText | undefined,
   invocation: CliInvocation,
@@ -284,55 +237,45 @@ function migrateRowsWithoutValueAdvice(
       first.field === undefined
         ? 'The backfill step'
         : `The backfill step of field "${first.field}"`;
-    return adviceOf(
-      [`${step} left those rows without a value.`, applyOutcomeText(failure)],
-      [
-        editAlternative(
-          `Make its run fill every row in ${file}, ${run}, and re-run ${dbMigrateCommand(invocation)}`,
-        ),
-      ],
-    );
+    return [
+      editFileAction(
+        `${step} left those rows without a value. Make its run fill every row in ${file}, ${run}, and re-run ${dbMigrateCommand(invocation)}`,
+      ),
+    ];
   }
   const flags = backfillFlags(reports);
-  const again = (lead?: string) =>
+  const again = (opening: string) =>
     flags.length === 0 || failedMigration === undefined
       ? undefined
-      : replan(flags, failedMigration, lead === undefined ? {} : { lead });
+      : replan(opening, flags, failedMigration);
   const one = reports.length === 1;
   if (reports.every(({ reason }) => reason === 'nullValues')) {
-    const migrate = cliCommand(invocation, 'db migrate');
-    const rerun = commandAlternative(
+    const rerun = chooseAction(
       one
-        ? `Set a value in those rows and re-run ${quoted(migrate)}`
-        : `Set a value in the rows that hold NULL in each of ${fieldList(reports)} and re-run ${quoted(migrate)}`,
-      migrate,
+        ? `Set a value in those rows and re-run ${dbMigrateCommand(invocation)}`
+        : `Set a value in the rows that hold NULL in each of ${fieldList(reports)} and re-run ${dbMigrateCommand(invocation)}`,
     );
-    const backfill = again();
+    const backfill = again('Delete');
     const fields = one ? 'the field' : 'those fields';
     const keep =
       failedMigration === undefined
-        ? choiceAlternative(`Keep ${fields} optional, and plan the migration again`)
+        ? editFileAction(`Keep ${fields} optional, and plan the migration again`)
         : keepOptional(fields, one ? 'it' : 'them', failedMigration, invocation);
-    return adviceOf([], [rerun, ...(backfill === undefined ? [] : [backfill]), keep]);
+    return [rerun, ...(backfill === undefined ? [] : [backfill]), keep];
   }
   if (first?.reason === 'nullValues') {
     const notEnough =
       'The migration also adds a required field the existing rows have no value for, so setting values is not enough.';
-    const backfill = again();
-    return backfill === undefined
-      ? adviceOf(
-          [notEnough],
-          [choiceAlternative('Make the new fields optional, and plan the migration again')],
-        )
-      : adviceOf([notEnough, applyOutcomeText(failure)], [backfill]);
+    const backfill = again(`${notEnough} Delete`);
+    return [
+      backfill ??
+        editFileAction(`${notEnough} Make the new fields optional, and plan the migration again`),
+    ];
   }
-  const required = again('To keep the field required');
+  const required = again('To keep the field required, delete');
   return required === undefined
-    ? adviceOf([], [choiceAlternative('Make the field optional, and plan the migration again')])
-    : adviceOf(
-        [applyOutcomeText(failure)],
-        [required, choiceAlternative('Make the field optional, and plan it again')],
-      );
+    ? [editFileAction('Make the field optional, and plan the migration again')]
+    : [required, editFileAction('Make the field optional, and plan it again')];
 }
 
 function keepOptional(
@@ -340,15 +283,13 @@ function keepOptional(
   pronoun: string,
   failedMigration: FailedMigrationText,
   invocation: CliInvocation,
-): AdviceAlternative {
-  const plan = migrationPlanCommand(
-    invocation,
-    ['--name', failedMigration.name],
-    failedMigration.from,
-  );
-  return commandAlternative(
+): NextAction {
+  const plan = printedPlanCommand(invocation, failedMigration.from, [
+    '--name',
+    failedMigration.name,
+  ]);
+  return editFileAction(
     `Keep ${fields} optional: make ${pronoun} optional in the contract again, delete \`${failedMigration.directory}\` (copy any code you wrote in its migration.ts first), and plan it again with ${quoted(plan)}, ${OTHER_STATEMENTS}, put back any code you copied, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}`,
-    plan,
   );
 }
 
@@ -360,36 +301,28 @@ function fieldList(reports: readonly RowsWithoutValueReport[]): string {
 }
 
 function migrateSchemaCheckAdvice(
-  failure: MigrationRunnerFailure,
   failedMigration: FailedMigrationText | undefined,
   invocation: CliInvocation,
 ): RunnerAdvice {
   const emit = quoted(cliCommand(invocation, 'contract emit'));
-  const plan = migrationPlanCommand(
+  const plan = printedPlanCommand(
     invocation,
-    failedMigration === undefined ? [] : ['--name', failedMigration.name],
     failedMigration?.from,
+    failedMigration === undefined ? [] : ['--name', failedMigration.name],
   );
   const directory =
     failedMigration === undefined
       ? "the failed migration's directory"
       : `\`${failedMigration.directory}\``;
   const { file, run } = failedMigrationFile(failedMigration);
-  return adviceOf(
-    [
-      applyOutcomeText(failure),
-      `The database the migration left does not match its destination contract. Either the contract source does not describe the schema you want, or ${file} does not reach its destination contract, for example after a hand edit.`,
-    ],
-    [
-      commandAlternative(
-        `If the contract source is wrong, change it to resolve the issues listed, re-run ${emit}, delete ${directory} (copy any code you wrote in its migration.ts first), plan it again with ${quoted(plan)}, put any code you copied into the migration.ts it writes, ${RUN_PLANNED_FILE}, and run ${dbMigrateCommand(invocation)}`,
-        plan,
-      ),
-      editAlternative(
-        `If ${file} is wrong, change its operations to resolve the issues listed, ${run}, and run ${dbMigrateCommand(invocation)}`,
-      ),
-    ],
-  );
+  return [
+    editFileAction(
+      `If the contract source does not describe the schema you want, change it to resolve the issues listed, re-run ${emit}, delete ${directory} (copy any code you wrote in its migration.ts first), plan it again with ${quoted(plan)}, put any code you copied into the migration.ts it writes, ${RUN_PLANNED_FILE}, and run ${dbMigrateCommand(invocation)}`,
+    ),
+    editFileAction(
+      `If ${file} does not reach its destination contract, for example after a hand edit, change its operations to resolve the issues listed, ${run}, and run ${dbMigrateCommand(invocation)}`,
+    ),
+  ];
 }
 
 /**
@@ -405,33 +338,20 @@ export function migrateAdvice(
   const failedMigration =
     failedOnDisk === undefined ? undefined : failedMigrationText(failedOnDisk, invocation);
   if (facts.failedTypeChange !== undefined) {
-    return migrateFailedTypeChangeAdvice(
-      failure,
-      facts.failedTypeChange,
-      failedMigration,
-      invocation,
-    );
+    return migrateFailedTypeChangeAdvice(facts.failedTypeChange, failedMigration, invocation);
   }
   if (facts.rowsWithoutValue !== undefined) {
-    return migrateRowsWithoutValueAdvice(
-      failure,
-      facts.rowsWithoutValue,
-      failedMigration,
-      invocation,
-    );
+    return migrateRowsWithoutValueAdvice(facts.rowsWithoutValue, failedMigration, invocation);
   }
   if (schemaCheckIssues(failure) !== undefined) {
-    return migrateSchemaCheckAdvice(failure, failedMigration, invocation);
+    return migrateSchemaCheckAdvice(failedMigration, invocation);
   }
   if (facts.failedPrecheck !== undefined) {
     return migrateFailedPrecheckAdvice(facts.failedPrecheck, invocation);
   }
-  return adviceOf(
-    [],
-    [
-      choiceAlternative(
-        `Fix the issue and re-run \`${cliCommand(invocation, 'db migrate', ['--to', '<contract>'])}\` — previously applied migrations are preserved`,
-      ),
-    ],
-  );
+  return [
+    chooseAction(
+      `Fix the issue and re-run \`${cliCommand(invocation, 'db migrate', ['--to', '<contract>'])}\``,
+    ),
+  ];
 }

@@ -896,10 +896,9 @@ describe('db update', () => {
         why: 'The schema check after apply found: missing: public/event/id.',
         nextActions: [
           {
-            kind: 'run-command',
+            kind: 'edit-file',
             label:
               'Change the contract source to resolve the issues listed, re-run `prisma-test contract emit`, then re-run `prisma-test db update`',
-            command: 'prisma-test db update',
           },
         ],
         meta: { schemaIssues: [{ path: ['public', 'event', 'id'] }], failingSpace: 'app' },

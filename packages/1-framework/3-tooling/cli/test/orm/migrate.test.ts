@@ -448,7 +448,7 @@ describe('migrate', () => {
       'Database schema does not satisfy contract',
       {
         why: schemaCheckWhy([MISSING_COLUMN]),
-        meta: { schemaIssues: [MISSING_COLUMN], failingSpace: 'app', rolledBack: true },
+        meta: { schemaIssues: [MISSING_COLUMN], failingSpace: 'app', databaseUnchanged: true },
       },
     );
     const invocation = { cwd, configPath: undefined, dbGiven: false };
@@ -474,20 +474,19 @@ describe('migrate', () => {
         why: 'The schema check after apply found: missing: public/event/id.',
         nextActions: [
           {
-            kind: 'run-command',
-            label: `If the contract source is wrong, change it to resolve the issues listed, re-run \`prisma-test contract emit\`, delete \`migrations/app/20261015T1200_initial\` (copy any code you wrote in its migration.ts first), plan it again with \`prisma-test migration plan --from ${C1} --name initial\`, put any code you copied into the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`prisma-test db migrate\``,
-            command: `prisma-test migration plan --from ${C1} --name initial`,
+            kind: 'edit-file',
+            label: `If the contract source does not describe the schema you want, change it to resolve the issues listed, re-run \`prisma-test contract emit\`, delete \`migrations/app/20261015T1200_initial\` (copy any code you wrote in its migration.ts first), plan it again with \`prisma-test migration plan --from ${C1} --name initial\`, put any code you copied into the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`prisma-test db migrate\``,
           },
           {
             kind: 'edit-file',
             label:
-              'If `migrations/app/20261015T1200_initial/migration.ts` is wrong, change its operations to resolve the issues listed, run `node migrations/app/20261015T1200_initial/migration.ts`, and run `prisma-test db migrate`',
+              'If `migrations/app/20261015T1200_initial/migration.ts` does not reach its destination contract, for example after a hand edit, change its operations to resolve the issues listed, run `node migrations/app/20261015T1200_initial/migration.ts`, and run `prisma-test db migrate`',
           },
         ],
         meta: {
           schemaIssues: [{ path: ['public', 'event', 'id'] }],
           failingSpace: 'app',
-          rolledBack: true,
+          databaseUnchanged: true,
         },
       },
     });
