@@ -103,7 +103,17 @@ describe('the serverless client', () => {
     const serverless = postgresServerless({ contract });
 
     expect(Object.keys(serverless).sort()).toEqual(
-      ['connect', 'context', 'contract', 'enums', 'nativeEnums', 'raw', 'sql', 'stack'].sort(),
+      [
+        'connect',
+        'context',
+        'contract',
+        'enums',
+        'nativeEnums',
+        'raw',
+        'sql',
+        'stack',
+        'toSql',
+      ].sort(),
     );
   });
 
@@ -179,6 +189,7 @@ describe('postgresServerless connect()', () => {
     expect(db.raw).toBe(serverless.raw);
     expect(db.enums).toBe(serverless.enums);
     expect(db.nativeEnums).toBe(serverless.nativeEnums);
+    expect(db.toSql).toBe(serverless.toSql);
     expect(db.context).toBe(serverless.context);
     expect(db.contract).toBe(serverless.contract);
     expect(db.stack).toBe(serverless.stack);

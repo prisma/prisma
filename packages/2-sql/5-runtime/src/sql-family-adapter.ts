@@ -1,5 +1,5 @@
 import type { Contract } from '@internal/contract/types';
-import type { ExecutionPlan } from '@internal/framework-components/runtime';
+import type { ExecutionPlan, QueryPlan } from '@internal/framework-components/runtime';
 import { runtimeError } from '@internal/framework-components/runtime';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { AdapterProfile } from '@internal/sql-relational-core/ast';
@@ -17,22 +17,24 @@ export class SqlFamilyAdapter<TContract extends Contract<SqlStorage>>
   }
 
   validatePlan(plan: ExecutionPlan, contract: TContract): void {
-    if (plan.meta.target !== contract.target) {
-      throw runtimeError('PLAN.TARGET_MISMATCH', 'Plan target does not match runtime target', {
-        planTarget: plan.meta.target,
-        runtimeTarget: contract.target,
-      });
-    }
+    validateSqlPlan(plan, contract);
+  }
+}
 
-    if (plan.meta.storageHash !== contract.storage.storageHash) {
-      throw runtimeError(
-        'PLAN.HASH_MISMATCH',
-        'Plan storage hash does not match runtime contract',
-        {
-          planStorageHash: plan.meta.storageHash,
-          runtimeStorageHash: contract.storage.storageHash,
-        },
-      );
-    }
+/** Rejects a plan built for another target or contract: `PLAN.TARGET_MISMATCH` or `PLAN.HASH_MISMATCH`. */
+export function validateSqlPlan(plan: QueryPlan, contract: Contract<SqlStorage>): void {
+  if (plan.meta.target !== contract.target) {
+    throw runtimeError(
+      'PLAN.TARGET_MISMATCH',
+      'The plan was built for another target than the contract',
+      { planTarget: plan.meta.target, contractTarget: contract.target },
+    );
+  }
+
+  if (plan.meta.storageHash !== contract.storage.storageHash) {
+    throw runtimeError('PLAN.HASH_MISMATCH', 'The plan was built for another contract', {
+      planStorageHash: plan.meta.storageHash,
+      contractStorageHash: contract.storage.storageHash,
+    });
   }
 }

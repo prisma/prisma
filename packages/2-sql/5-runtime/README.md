@@ -51,7 +51,7 @@ const db = postgres({
   middleware: [budgets()],
 });
 
-for await (const row of db.runtime().execute(plan)) {
+for await (const row of db.query(plan)) {
   console.log(row);
 }
 ```

@@ -1,6 +1,7 @@
 import type { PostgresDriverCreateOptions } from '@internal/driver-postgres/runtime';
 import type {
   Log,
+  RuntimeMode,
   SqlMiddleware,
   SqlRuntimeExtensionDescriptor,
   VerifyMarkerOption,
@@ -37,6 +38,7 @@ export interface PostgresExecutionOptions {
   readonly verifyMarker?: VerifyMarkerOption;
   readonly log?: Log;
   readonly cursor?: PostgresCursorOptions;
+  readonly mode?: RuntimeMode;
 }
 
 const cursorOptionsSchema = type({
@@ -72,5 +74,6 @@ export function toRuntimeOptions(options: PostgresExecutionOptions) {
     ...ifDefined('verifyMarker', options.verifyMarker),
     ...ifDefined('middleware', options.middleware),
     ...ifDefined('log', options.log),
+    ...ifDefined('mode', options.mode),
   };
 }
