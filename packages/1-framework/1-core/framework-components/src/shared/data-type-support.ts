@@ -146,8 +146,19 @@ function enforceValueArguments(
   const { path, descriptor, contributedBy } = contributed;
   const kind = descriptor.kind === 'typeConstructor' ? 'type constructor' : 'field preset';
   for (const [index, argument] of (descriptor.args ?? []).entries()) {
-    if (argument.kind !== 'value') continue;
     const label = `Argument ${argument.name === undefined ? `#${index + 1}` : `"${argument.name}"`} of ${kind} "${path}"`;
+    if (argument.kind !== 'value' && descriptor.kind === 'typeConstructor') {
+      throw runtimeError(
+        'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        `${label} contributed by "${contributedBy}" is a "${argument.kind}" argument, but a type constructor's argument is a value of a data type. Declare it as { kind: 'value', dataType: ... }, naming the data type its value belongs to, such as 'pg/int4' for a Postgres length.`,
+        {
+          packId: contributedBy,
+          contribution: path,
+          reason: 'type-constructor-argument-not-a-value',
+        },
+      );
+    }
+    if (argument.kind !== 'value') continue;
     const type = support.lookup.get(argument.dataType);
     if (type === undefined) {
       throw runtimeError(

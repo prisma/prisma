@@ -111,6 +111,7 @@ const sqlFamilyPackBase = {
 const sqlFamilyPack: typeof sqlFamilyPackBase & {
   readonly __dataTypeArguments?: {
     readonly 'pg/int4': { readonly argument: number; readonly parameter: number };
+    readonly 'pg/text': { readonly argument: string; readonly parameter: string };
   };
 } = sqlFamilyPackBase;
 
@@ -125,7 +126,7 @@ const postgresTargetPack = {
     type: {
       enum: {
         kind: 'typeConstructor',
-        args: [{ kind: 'option', values: ['role'] }],
+        args: [{ kind: 'value', dataType: 'pg/text' }],
         output: {
           codecId: 'app/test-enum@1',
           typeParams: {
@@ -151,7 +152,7 @@ const pgvectorExtensionPack = {
       pgvector: {
         Vector: {
           kind: 'typeConstructor',
-          args: [{ kind: 'number', name: 'length', integer: true, minimum: 1, maximum: 2000 }],
+          args: [{ kind: 'value', dataType: 'pg/int4', name: 'length' }],
           output: {
             codecId: 'pg/vector@1',
             typeParams: {

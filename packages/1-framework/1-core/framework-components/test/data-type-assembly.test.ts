@@ -1,3 +1,4 @@
+import { blindCast } from '@internal/utils/casts';
 import { InternalError } from '@internal/utils/internal-error';
 import { type Type, type } from 'arktype';
 import { describe, expect, it } from 'vitest';
@@ -18,7 +19,10 @@ import {
   type DataTypeComponent,
   enforceDataTypeAssemblyInvariants,
 } from '../src/shared/data-type-support';
-import type { AuthoringFieldPresetDescriptor } from '../src/shared/framework-authoring';
+import type {
+  AuthoringFieldPresetDescriptor,
+  AuthoringTypeConstructorDescriptor,
+} from '../src/shared/framework-authoring';
 import { isRuntimeError } from '../src/shared/runtime-error';
 
 const int2 = dataType('demo/int2', { read: (json) => json });
@@ -469,6 +473,52 @@ describe('assembleDataTypeSupport', () => {
       message:
         'Argument "length" of type constructor "Sized" names data type "demo/gone", which no component registers. Contributed by "x-pack".',
     });
+  });
+
+  it('refuses a type constructor argument that is not a value argument, saying how to declare it', () => {
+    const numberArgument = {
+      kind: 'typeConstructor' as const,
+      args: [{ kind: 'number' as const, name: 'size', integer: true }],
+      output: {
+        codecId: 'demo/sized@1',
+        typeParams: { length: { kind: 'arg' as const, index: 0 } },
+      },
+    };
+    expect(
+      thrownBy(
+        assemble({
+          id: 'x-pack',
+          authoring: {
+            type: {
+              x: {
+                Thing: blindCast<AuthoringTypeConstructorDescriptor, 'an old kind'>(numberArgument),
+              },
+            },
+          },
+        }),
+      ),
+    ).toEqual({
+      code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+      message:
+        'Argument "size" of type constructor "x.Thing" contributed by "x-pack" is a "number" argument, but a type constructor\'s argument is a value of a data type. Declare it as { kind: \'value\', dataType: ... }, naming the data type its value belongs to, such as \'pg/int4\' for a Postgres length.',
+    });
+  });
+
+  it('accepts a field preset argument of another kind, which field presets keep for now', () => {
+    expect(
+      assemble({
+        id: 'x-pack',
+        authoring: {
+          field: {
+            sized: {
+              kind: 'fieldPreset',
+              args: [{ kind: 'number', name: 'size' }],
+              output: { codecId: 'demo/sized@1' },
+            },
+          },
+        },
+      }),
+    ).not.toThrow();
   });
 
   it('refuses a value argument of a data type nothing in the components writes', () => {
