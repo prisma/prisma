@@ -472,7 +472,7 @@ describe('db verify', () => {
         {
           code: 'CONTRACT.SCHEMA_VERIFICATION_FAILED',
           severity: 'error',
-          meta: { space: 'app', issues: ['missing: public/users/email'] },
+          meta: { space: 'app', schemaIssues: [MISSING_COLUMN] },
         },
       ]);
     });

@@ -13,6 +13,7 @@ import {
   HASH_PREVIOUS,
   harness,
   MASKED_CONNECTION,
+  MISSING_COLUMN,
   mocks,
   ormConfig,
   PROFILE_HASH,
@@ -209,14 +210,14 @@ describe('db sign', () => {
           code: entry.code,
           severity: entry.severity,
           summary: entry.summary,
-          space: entry.meta?.['space'],
+          meta: entry.meta,
         })),
       ).toEqual([
         {
           code: 'CONTRACT.SCHEMA_VERIFICATION_FAILED',
           severity: 'error',
           summary: 'Database schema does not satisfy contract',
-          space: 'app',
+          meta: { space: 'app', schemaIssues: [MISSING_COLUMN] },
         },
       ]);
       expect(diagnosticsOf(run)[0]?.nextActions).toEqual([

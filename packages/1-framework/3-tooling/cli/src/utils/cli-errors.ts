@@ -40,7 +40,6 @@ export {
   errorMarkerMissing,
   errorMarkerRequired,
   errorRuntime,
-  errorSchemaVerificationFailed,
   errorTargetMismatch,
 } from '@internal/errors/execution';
 export {
