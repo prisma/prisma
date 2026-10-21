@@ -49,7 +49,7 @@ export function scalarTypeOfConstructor(
 }
 
 /** A type alias resolved once: the field type it gives each field typed by it, and the values it generates for them. */
-export interface MongoTypeAlias {
+export interface ResolvedTypeAlias {
   readonly alias: TypeAlias | ContributedTypeAlias;
   /** As a field writes it, such as `Stamp` or `temporal.UpdatedAt`. */
   readonly name: string;
@@ -59,9 +59,9 @@ export interface MongoTypeAlias {
 }
 
 /** The type aliases of a document: those its `types {}` block declares, and those the stack contributes. */
-export interface MongoTypeAliases {
+export interface ResolvedTypeAliases {
   /** The alias a field's type resolves to, if it resolves to one that resolved without error. */
-  ofResolution(resolution: Resolution | undefined): MongoTypeAlias | undefined;
+  ofResolution(resolution: Resolution | undefined): ResolvedTypeAlias | undefined;
 }
 
 interface ResolveMongoTypeAliasesInput {
@@ -138,7 +138,7 @@ export function lowerGeneratorAttribute(input: {
 function aliasType(
   alias: TypeAlias,
   input: ResolveMongoTypeAliasesInput,
-): Pick<MongoTypeAlias, 'type' | 'valueSet'> | undefined {
+): Pick<ResolvedTypeAlias, 'type' | 'valueSet'> | undefined {
   const { base, symbol } = alias;
   if (base.kind === 'typeConstructor') {
     return { type: scalarTypeOfConstructor(base.descriptor, base.call), valueSet: undefined };
@@ -194,7 +194,7 @@ function lowerAliasGenerators(
 function resolveContributedTypeAlias(
   alias: ContributedTypeAlias,
   generatorFunctions: GeneratorFunctionRegistry,
-): MongoTypeAlias {
+): ResolvedTypeAlias {
   const { type } = instantiateAuthoringTypeAlias(alias.descriptor);
   return {
     alias,
@@ -213,8 +213,8 @@ function resolveContributedTypeAlias(
 /**
  * Resolves each `types {}` alias once: its field type and the values its `@onCreate` and `@onUpdate` generate. MongoDB has no database defaults, so an alias's `@default` is refused here, once, not at each field typed by it.
  */
-export function resolveMongoTypeAliases(input: ResolveMongoTypeAliasesInput): MongoTypeAliases {
-  const declared = new Map<NamedTypeSymbol, MongoTypeAlias>();
+export function resolveMongoTypeAliases(input: ResolveMongoTypeAliasesInput): ResolvedTypeAliases {
+  const declared = new Map<NamedTypeSymbol, ResolvedTypeAlias>();
   const aliases = resolveTypeAliases({
     declarations: input.declarations,
     binder: input.binder,
@@ -233,7 +233,7 @@ export function resolveMongoTypeAliases(input: ResolveMongoTypeAliasesInput): Mo
       executionDefaults: lowerAliasGenerators(alias, resolved.type, input),
     });
   }
-  const contributed = new Map<ContributedTypeAlias['descriptor'], MongoTypeAlias>();
+  const contributed = new Map<ContributedTypeAlias['descriptor'], ResolvedTypeAlias>();
   return {
     ofResolution(resolution) {
       if (resolution?.kind === 'namedType') return declared.get(resolution.symbol);

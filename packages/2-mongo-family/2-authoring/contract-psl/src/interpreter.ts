@@ -120,8 +120,8 @@ import {
 import { defaultCollectionName, getAttribute } from './psl-helpers';
 import {
   lowerGeneratorAttribute,
-  type MongoTypeAlias,
-  type MongoTypeAliases,
+  type ResolvedTypeAlias,
+  type ResolvedTypeAliases,
   resolveMongoTypeAliases,
   scalarTypeOfConstructor,
 } from './type-aliases';
@@ -1242,10 +1242,13 @@ interface ResolvedNonRelationField {
   /** What the field's preset generates. */
   readonly executionDefaults?: ExecutionMutationDefaultPhases;
   /** The type alias the field is typed by. */
-  readonly typeAlias?: MongoTypeAlias;
+  readonly typeAlias?: ResolvedTypeAlias;
 }
 
-function fieldOfTypeAlias(field: FieldSymbol, typeAlias: MongoTypeAlias): ResolvedNonRelationField {
+function fieldOfTypeAlias(
+  field: FieldSymbol,
+  typeAlias: ResolvedTypeAlias,
+): ResolvedNonRelationField {
   return {
     field: {
       type: typeAlias.type,
@@ -1263,7 +1266,7 @@ function fieldOfTypeAlias(field: FieldSymbol, typeAlias: MongoTypeAlias): Resolv
 function acceptsTypeAliasGenerators(input: {
   readonly field: FieldSymbol;
   readonly modelName: string;
-  readonly typeAlias: MongoTypeAlias;
+  readonly typeAlias: ResolvedTypeAlias;
   readonly sources: PslSources;
   readonly diagnostics: PslDiagnosticCollector;
 }): boolean {
@@ -1308,7 +1311,7 @@ function resolveNonRelationField(
   codecIdByEnumName: ReadonlyMap<string, string>,
   presetContext: FieldPresetContext,
   scalarNames: ScalarNames,
-  typeAliases: MongoTypeAliases,
+  typeAliases: ResolvedTypeAliases,
 ): ResolvedNonRelationField | undefined {
   const ownerName = owner.name;
   if (resolution?.kind === 'compositeType') {
