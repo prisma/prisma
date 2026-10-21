@@ -1,6 +1,10 @@
 import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
-import { migrationRunnerFailure, withFailingSpace } from '../src/control/control-migration-types';
+import {
+  migrationRunnerFailure,
+  withFailingSpace,
+  withRolledBack,
+} from '../src/control/control-migration-types';
 
 describe('migrationRunnerFailure', () => {
   it('builds a structured error with the summary as its message', () => {
@@ -66,5 +70,31 @@ describe('withFailingSpace', () => {
     withFailingSpace(original, 'ext');
 
     expect(original.meta).toEqual({});
+  });
+});
+
+describe('withRolledBack', () => {
+  it('keeps the failure and says in meta whether the apply was rolled back', () => {
+    const original = migrationRunnerFailure('MIGRATION.SCHEMA_VERIFY_FAILED', 'Schema differs', {
+      meta: { schemaIssues: [], failingSpace: 'app' },
+    });
+
+    expect(
+      [true, false].map((rolledBack) => {
+        const failure = withRolledBack(original, rolledBack);
+        return { code: failure.code, message: failure.message, meta: failure.meta };
+      }),
+    ).toEqual([
+      {
+        code: 'MIGRATION.SCHEMA_VERIFY_FAILED',
+        message: 'Schema differs',
+        meta: { schemaIssues: [], failingSpace: 'app', rolledBack: true },
+      },
+      {
+        code: 'MIGRATION.SCHEMA_VERIFY_FAILED',
+        message: 'Schema differs',
+        meta: { schemaIssues: [], failingSpace: 'app', rolledBack: false },
+      },
+    ]);
   });
 });

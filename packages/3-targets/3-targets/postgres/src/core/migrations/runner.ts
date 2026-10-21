@@ -30,6 +30,7 @@ import {
   failedPrecheckWhy,
   schemaCheckWhy,
   withFailingSpace,
+  withRolledBack,
 } from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
 import { SqlQueryError } from '@internal/sql-errors';
@@ -256,7 +257,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
         const space = spaceOptions.space ?? spaceOptions.plan.spaceId;
         const result = await this.executeOnConnection({ ...spaceOptions, driver, space });
         if (!result.ok) {
-          return notOk(withFailingSpace(result.failure, space));
+          return notOk(withRolledBack(withFailingSpace(result.failure, space), true));
         }
         perSpaceResults.push({ space, value: result.value });
       }

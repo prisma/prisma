@@ -29,6 +29,7 @@ import {
   failedPrecheckWhy,
   schemaCheckWhy,
   withFailingSpace,
+  withRolledBack,
 } from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
 import { SqlQueryError } from '@internal/sql-errors';
@@ -193,7 +194,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
           const space = spaceOptions.space ?? spaceOptions.plan.spaceId;
           const result = await this.executeOnConnection({ ...spaceOptions, driver, space });
           if (!result.ok) {
-            return notOk(withFailingSpace(result.failure, space));
+            return notOk(withRolledBack(withFailingSpace(result.failure, space), true));
           }
           perSpaceResults.push({ space, value: result.value });
           lastProcessedSpace = space;
@@ -209,7 +210,10 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
             // so operators can investigate from the most recent
             // migration first.
             return notOk(
-              withFailingSpace(fkIntegrityCheck.failure, lastProcessedSpace ?? APP_SPACE_ID),
+              withRolledBack(
+                withFailingSpace(fkIntegrityCheck.failure, lastProcessedSpace ?? APP_SPACE_ID),
+                true,
+              ),
             );
           }
         }

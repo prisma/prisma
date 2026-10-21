@@ -68,6 +68,7 @@ describe('SqliteMigrationRunner - replay on a database already ahead', {
       code: 'MIGRATION.PRECHECK_FAILED',
       why: 'Before operation column.user.nickname runs, it checks: ensure column "nickname" is missing. That check failed: the database already has column "nickname" on "user".',
       meta: {
+        rolledBack: true,
         failingSpace: 'app',
         failedCheck: {
           operationId: expect.any(String),

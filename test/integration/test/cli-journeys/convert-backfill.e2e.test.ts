@@ -153,7 +153,10 @@ withTempDir(({ createTempDir }) => {
         expect(emitted.exitCode, `self-emit: ${emitted.stderr}`).toBe(0);
         const wrong = await runMigrate(ctx, ['--json']);
         expect(wrong.exitCode, 'the conversion fails on a value').not.toBe(0);
-        const wrongAdvice = JSON.stringify(engineError(wrong)?.nextActions);
+        const wrongAdvice = JSON.stringify([
+          engineError(wrong)?.why,
+          engineError(wrong)?.nextActions,
+        ]);
         expect(wrongAdvice).toContain(
           'The conversion of field \\"User.age\\" failed on a value its new type cannot hold.',
         );
@@ -173,7 +176,10 @@ withTempDir(({ createTempDir }) => {
         const expressionError = await runMigrate(ctx, ['--json']);
         expect(expressionError.exitCode, 'the conversion has a SQL error').not.toBe(0);
         expect(engineError(expressionError)?.why).toContain('operator does not exist');
-        const expressionErrorAdvice = JSON.stringify(engineError(expressionError)?.nextActions);
+        const expressionErrorAdvice = JSON.stringify([
+          engineError(expressionError)?.why,
+          engineError(expressionError)?.nextActions,
+        ]);
         expect(expressionErrorAdvice).toContain(
           'The conversion of field \\"User.age\\" failed with an error in its expression.',
         );
@@ -365,7 +371,7 @@ withTempDir(({ createTempDir }) => {
           .map((action) => action.label)
           .join('\n');
         const followed =
-          /keep the field optional: .*?delete `([^`]+)`.*?plan it again with `\S+ migration plan ([^`]+)`/.exec(
+          /keep the field optional: .*?delete `([^`]+)`.*?plan it again with `\S+ migration plan ([^`]+)`/i.exec(
             advice,
           );
         expect(followed, advice).not.toBeNull();

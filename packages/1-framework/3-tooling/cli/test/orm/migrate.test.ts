@@ -448,7 +448,7 @@ describe('migrate', () => {
       'Database schema does not satisfy contract',
       {
         why: schemaCheckWhy([MISSING_COLUMN]),
-        meta: { schemaIssues: [MISSING_COLUMN], failingSpace: 'app' },
+        meta: { schemaIssues: [MISSING_COLUMN], failingSpace: 'app', rolledBack: true },
       },
     );
     const invocation = { cwd, configPath: undefined, dbGiven: false };
@@ -471,14 +471,24 @@ describe('migrate', () => {
       error: {
         code: 'MIGRATION.SCHEMA_VERIFY_FAILED',
         summary: 'Database schema does not satisfy contract',
-        why: 'The schema check after apply found: missing: public/event/id.',
+        why: 'The schema check after apply found: missing: public/event/id. The failed apply changed nothing. The database the migration left does not match its destination contract. Either the contract source does not describe the schema you want, or `migrations/app/20261015T1200_initial/migration.ts` does not reach its destination contract, for example after a hand edit.',
         nextActions: [
           {
-            kind: 'user-choice',
-            label: `The failed apply changed nothing. Change the contract source to resolve the issues listed, re-run \`prisma-test contract emit\`, delete \`migrations/app/20261015T1200_initial\` (copy any code you wrote in its migration.ts first), plan it again with \`prisma-test migration plan --from ${C1} --name initial\`, put any code you copied into the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`prisma-test db migrate\`.`,
+            kind: 'run-command',
+            label: `If the contract source is wrong, change it to resolve the issues listed, re-run \`prisma-test contract emit\`, delete \`migrations/app/20261015T1200_initial\` (copy any code you wrote in its migration.ts first), plan it again with \`prisma-test migration plan --from ${C1} --name initial\`, put any code you copied into the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`prisma-test db migrate\``,
+            command: `prisma-test migration plan --from ${C1} --name initial`,
+          },
+          {
+            kind: 'edit-file',
+            label:
+              'If `migrations/app/20261015T1200_initial/migration.ts` is wrong, change its operations to resolve the issues listed, run `node migrations/app/20261015T1200_initial/migration.ts`, and run `prisma-test db migrate`',
           },
         ],
-        meta: { schemaIssues: [{ path: ['public', 'event', 'id'] }], failingSpace: 'app' },
+        meta: {
+          schemaIssues: [{ path: ['public', 'event', 'id'] }],
+          failingSpace: 'app',
+          rolledBack: true,
+        },
       },
     });
     expect(stdoutErrorMeta(run.stdout)).toEqual(JSON.parse(JSON.stringify(runnerFailure.meta)));

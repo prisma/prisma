@@ -275,6 +275,7 @@ describe('MongoMigrationRunner', () => {
     ).toEqual({
       code: 'MIGRATION.PRECHECK_FAILED',
       meta: {
+        rolledBack: true,
         failedCheck: {
           operationId: expect.any(String),
           phase: 'precheck',

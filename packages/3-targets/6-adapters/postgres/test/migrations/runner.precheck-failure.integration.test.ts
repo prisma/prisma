@@ -130,6 +130,7 @@ describe('PostgresMigrationRunner - replay on a database already ahead', {
     ).toEqual({
       code: 'MIGRATION.PRECHECK_FAILED',
       meta: {
+        rolledBack: true,
         failingSpace: APP_SPACE_ID,
         failedCheck: {
           operationId: 'column.public.item.x',

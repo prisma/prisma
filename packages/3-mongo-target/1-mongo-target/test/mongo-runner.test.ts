@@ -354,7 +354,7 @@ describe('MongoMigrationRunner.executeDmlOperation', () => {
     expect(failureFields(result.assertNotOk())).toEqual({
       code: 'MIGRATION.PRECHECK_FAILED',
       message: `Operation ${op.id} failed during precheck`,
-      meta: { operationId: op.id, name: op.name },
+      meta: { operationId: op.id, name: op.name, rolledBack: true },
     });
     expect(harness.driver.executeCalls).toEqual([
       { kind: 'aggregate', collection: RUN_COLLECTION },
@@ -379,7 +379,7 @@ describe('MongoMigrationRunner.executeDmlOperation', () => {
     expect(failureFields(result.assertNotOk())).toEqual({
       code: 'MIGRATION.POSTCHECK_FAILED',
       message: `Operation ${op.id} failed during postcheck`,
-      meta: { operationId: op.id, name: op.name },
+      meta: { operationId: op.id, name: op.name, rolledBack: false },
     });
     expect(harness.driver.executeCalls.map((c) => c.kind)).toEqual([
       'aggregate',
@@ -502,6 +502,7 @@ describe('MongoMigrationRunner schema verification', () => {
     expect(failure.code).toBe('MIGRATION.SCHEMA_VERIFY_FAILED');
     expect(failure.why).toBe('The schema check after apply found: extra: rogue.');
     expect(failure.meta).toEqual({
+      rolledBack: false,
       schemaIssues: expect.arrayContaining([expect.objectContaining({ path: ['rogue'] })]),
     });
     expect(calls).toEqual({ initMarker: 0, updateMarker: 0, writeLedgerEntry: 0 });
@@ -832,7 +833,12 @@ describe('MongoMigrationRunner, a document rewrite without the privilege to skip
       message:
         'Operation field.users.nickname.unset failed: the database user may not skip document validation',
       why: 'Renaming or removing a field rewrites documents with bypassDocumentValidation, because the old validator requires the old field. MongoDB refused it with error 13 (Unauthorized). Grant the user the bypassDocumentValidation action on the database, for example with the dbAdmin or restore role, then run the command again; operations that already ran are skipped.',
-      meta: { operationId: 'field.users.nickname.unset', mongoCode: 13, codeName: 'Unauthorized' },
+      meta: {
+        operationId: 'field.users.nickname.unset',
+        mongoCode: 13,
+        codeName: 'Unauthorized',
+        rolledBack: true,
+      },
     });
   });
 
@@ -862,6 +868,7 @@ describe('MongoMigrationRunner, a field rename stopped because documents already
         'Operation field.posts.title.rename(headline).where({"type":"bug"}) stopped: some documents in collection posts already hold headline as well as title',
       why: 'Renaming title to headline would overwrite their headline. Find them with db.getCollection("posts").find({"$and":[{"type":"bug"},{"title":{"$exists":true}},{"headline":{"$exists":true}}]}) in mongosh, and move or remove one of the two values in each. Nothing was renamed. The operations before this one in the plan already ran, such as dropping an index on title; once the documents are fixed, run the command again and the plan finishes from here.',
       meta: {
+        rolledBack: true,
         operationId: 'field.posts.title.rename(headline).where({"type":"bug"})',
         name: 'field.posts.title.rename(headline).where({"type":"bug"})',
       },
@@ -882,7 +889,7 @@ describe('MongoMigrationRunner, a collection rename stopped because the new coll
       message:
         'Operation collection.events.rename(occasions) stopped: collection occasions already exists, so collection events cannot be renamed to it',
       why: 'Nothing was renamed. If occasions holds nothing you need, drop it, then run the command again; operations that already ran are skipped. If an earlier operation of the same migration created occasions, as a createIndex on occasions does, make renameCollection("events", "occasions") the first operation of its migration.ts, run node on that migration.ts, and then drop occasions and run the command again.',
-      meta: { operationId: 'collection.events.rename(occasions)' },
+      meta: { operationId: 'collection.events.rename(occasions)', rolledBack: true },
     });
   });
 });
@@ -904,6 +911,7 @@ describe('MongoMigrationRunner, a DDL precheck that does not hold', () => {
         'Operation collection.orders.create failed during precheck: collection orders does not exist',
       why: 'Before operation collection.orders.create runs, it checks: collection orders does not exist. That check failed: the database already has collection orders.',
       meta: {
+        rolledBack: true,
         failedCheck: {
           operationId: 'collection.orders.create',
           phase: 'precheck',
@@ -931,6 +939,7 @@ describe('MongoMigrationRunner, a DDL postcheck that does not hold', () => {
       message:
         'Operation collection.events.rename(occasions) failed during postcheck: collection occasions exists',
       meta: {
+        rolledBack: false,
         operationId: 'collection.events.rename(occasions)',
         failedCheck: {
           operationId: 'collection.events.rename(occasions)',

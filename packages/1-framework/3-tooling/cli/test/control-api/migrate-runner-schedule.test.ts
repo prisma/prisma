@@ -304,14 +304,16 @@ describe('executeMigrate runner schedule', () => {
         : {
             code: result.failure.code,
             message: result.failure.message,
-            why: result.failure.why,
+            why: result.failure.why?.startsWith(
+              'The schema check after apply found: missing: public/event/id. Operations that ran before the failure may stay applied.',
+            ),
             meta: result.failure.meta,
             replans: result.failure.fix?.includes('plan it again with'),
           },
     ).toEqual({
       code: 'MIGRATION.SCHEMA_VERIFY_FAILED',
       message: 'Database schema does not satisfy contract',
-      why: 'The schema check after apply found: missing: public/event/id.',
+      why: true,
       meta: { schemaIssues: [issue], failingSpace: 'app' },
       replans: true,
     });

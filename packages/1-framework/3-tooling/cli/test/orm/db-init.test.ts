@@ -645,9 +645,10 @@ describe('db init', () => {
         why: 'The schema check after apply found: missing: public/event/id.',
         nextActions: [
           {
-            kind: 'user-choice',
+            kind: 'run-command',
             label:
-              'Change the contract source to resolve the issues listed, re-run `prisma-test contract emit`, then re-run `prisma-test db init`.',
+              'Change the contract source to resolve the issues listed, re-run `prisma-test contract emit`, then re-run `prisma-test db init`',
+            command: 'prisma-test db init',
           },
         ],
         meta: { schemaIssues: [{ path: ['public', 'event', 'id'] }], failingSpace: 'app' },

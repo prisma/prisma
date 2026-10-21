@@ -2,7 +2,11 @@ import type { MigrationRunnerFailure } from '@internal/framework-components/cont
 import type { RunnerFailureFacts } from '../control-api/types';
 import type { CliStructuredError } from './cli-errors';
 import { type CliInvocation, cliCommand } from './printed-command';
-import { dbUpdateFailedTypeChangeFix, dbUpdateRowsWithoutValueFix } from './runner-failure-advice';
+import { adviceOf, commandAlternative } from './runner-advice';
+import {
+  dbUpdateFailedTypeChangeAdvice,
+  dbUpdateRowsWithoutValueAdvice,
+} from './runner-failure-advice';
 import { runnerFailureError } from './runner-failure-error';
 import { schemaCheckIssues } from './schema-check-issues';
 
@@ -20,13 +24,30 @@ export function dbUpdateRunnerFailureError(
   },
 ): CliStructuredError {
   const { databaseStorageHash, invocation } = context;
-  const fix =
+  const update = cliCommand(invocation, 'db update');
+  const advice =
     facts.failedTypeChange !== undefined
-      ? dbUpdateFailedTypeChangeFix(facts.failedTypeChange, databaseStorageHash, invocation)
+      ? dbUpdateFailedTypeChangeAdvice(facts.failedTypeChange, databaseStorageHash, invocation)
       : facts.rowsWithoutValue !== undefined
-        ? dbUpdateRowsWithoutValueFix(facts.rowsWithoutValue, databaseStorageHash, invocation)
+        ? dbUpdateRowsWithoutValueAdvice(facts.rowsWithoutValue, databaseStorageHash, invocation)
         : schemaCheckIssues(failure) !== undefined
-          ? `Change the contract source to resolve the issues listed, re-run \`${cliCommand(invocation, 'contract emit')}\`, then re-run \`${cliCommand(invocation, 'db update')}\`.`
-          : `Inspect the reported conflict, reconcile schema drift if needed, then re-run \`${cliCommand(invocation, 'db update')}\``;
-  return runnerFailureError(failure, { fix });
+          ? adviceOf(
+              [],
+              [
+                commandAlternative(
+                  `Change the contract source to resolve the issues listed, re-run \`${cliCommand(invocation, 'contract emit')}\`, then re-run \`${update}\``,
+                  update,
+                ),
+              ],
+            )
+          : adviceOf(
+              [],
+              [
+                commandAlternative(
+                  `Inspect the reported conflict, reconcile schema drift if needed, then re-run \`${update}\``,
+                  update,
+                ),
+              ],
+            );
+  return runnerFailureError(failure, advice);
 }

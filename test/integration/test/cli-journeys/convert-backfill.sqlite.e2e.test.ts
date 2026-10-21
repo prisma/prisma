@@ -256,8 +256,8 @@ withTempDir(({ createTempDir }) => {
             readonly nextActions: readonly { readonly label: string }[];
           }>(failed);
           expect(error.why).toContain(expected.why);
+          expect(error.why).toContain(expected.text);
           const advice = error.nextActions.map(({ label }) => label).join('\n');
-          expect(advice).toContain(expected.text);
           expect(advice).toContain(
             `Fix the conversion in \`${relative(ctx.testDir, migrationTs)}\`, run \`node ${relative(ctx.testDir, migrationTs)}`,
           );
@@ -349,10 +349,10 @@ withTempDir(({ createTempDir }) => {
           readonly nextActions: readonly { readonly label: string }[];
         }>(failed);
         expect(error.why).toBe(
-          `The value 'ten' of column "age" on "User" is still stored as text, which INTEGER cannot hold.`,
+          `The value 'ten' of column "age" on "User" is still stored as text, which INTEGER cannot hold. A value of field "User.age" cannot be converted to its new type by the database's cast. The failed apply changed nothing.`,
         );
         const advice = error.nextActions.map(({ label }) => label).join('\n');
-        const followed = /delete `([^`]+)`.*?plan it again with `\S+ migration plan ([^`]+)`/.exec(
+        const followed = /delete `([^`]+)`.*?plan it again with `\S+ migration plan ([^`]+)`/i.exec(
           advice,
         );
         expect(followed, advice).not.toBeNull();
@@ -424,11 +424,11 @@ withTempDir(({ createTempDir }) => {
           expect(emitted.exitCode, `self-emit: ${emitted.stderr}`).toBe(0);
           const failed = await runMigrate(ctx, ['--json']);
           expect(failed.exitCode, 'the rebuild fails').not.toBe(0);
-          return parseJsonOutput<{
+          const error = parseJsonOutput<{
+            readonly why: string;
             readonly nextActions: readonly { readonly label: string }[];
-          }>(failed)
-            .nextActions.map(({ label }) => label)
-            .join('\n');
+          }>(failed);
+          return [error.why, ...error.nextActions.map(({ label }) => label)].join('\n');
         };
 
         const castFailed = await adviceOf(`'CAST("age" AS INTEGER)'`);
@@ -852,7 +852,7 @@ withTempDir(({ createTempDir }) => {
           .nextActions.map(({ label }) => label)
           .join('\n');
         expect(advice).not.toContain('re-run');
-        const directory = /delete `([^`]+)`/.exec(advice)?.[1];
+        const directory = /delete `([^`]+)`/i.exec(advice)?.[1];
         const command = /`\S+ migration plan ([^`]+)`/.exec(advice)?.[1];
         const args = (command ?? '').split(' ');
         expect(args).toEqual(expect.arrayContaining(['User.nickname', 'User.role']));
@@ -898,7 +898,7 @@ withTempDir(({ createTempDir }) => {
           readonly nextActions: readonly { readonly label: string }[];
         }>(failed);
         const advice = error.nextActions.map(({ label }) => label).join('\n');
-        const directory = /delete `([^`]+)`/.exec(advice)?.[1];
+        const directory = /delete `([^`]+)`/i.exec(advice)?.[1];
         const command = /`\S+ migration plan ([^`]+)`/.exec(advice)?.[1];
         expect([directory, command], advice).toEqual([expect.any(String), expect.any(String)]);
         const args = (command ?? '').split(' ');

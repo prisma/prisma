@@ -78,6 +78,7 @@ export {
   migrationRunnerFailure,
   planOriginOf,
   withFailingSpace,
+  withRolledBack,
 } from '../control/control-migration-types';
 export type {
   OperationPreview,

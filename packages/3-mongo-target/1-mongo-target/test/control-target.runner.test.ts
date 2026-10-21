@@ -46,11 +46,13 @@ describe('the Mongo target runner across spaces', () => {
       code: failure.code,
       message: failure.message,
       failingSpace: failure.meta.failingSpace,
+      rolledBack: failure.meta.rolledBack,
     }).toEqual({
       code: 'MIGRATION.POLICY_VIOLATION',
       message:
         'Operation collection.orders.create has class "additive" which is not allowed by policy.',
       failingSpace: 'audit',
+      rolledBack: true,
     });
   });
 });

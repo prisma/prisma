@@ -59,8 +59,13 @@ describe('SqliteMigrationRunner - Error Scenarios', { timeout: timeouts.database
     expect(failure.code).toBe('MIGRATION.SCHEMA_VERIFY_FAILED');
     expect({
       metaKeys: Object.keys(failure.meta).sort(),
+      rolledBack: failure.meta.rolledBack,
       found: (failure.meta.schemaIssues?.length ?? 0) > 0,
-    }).toEqual({ metaKeys: ['failingSpace', 'schemaIssues'], found: true });
+    }).toEqual({
+      metaKeys: ['failingSpace', 'rolledBack', 'schemaIssues'],
+      rolledBack: true,
+      found: true,
+    });
 
     await expectNoMarkerOrLedgerWrites(driver);
   });

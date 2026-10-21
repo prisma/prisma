@@ -21,6 +21,7 @@ import {
   type OperationContext,
   schemaCheckWhy,
   type VerifyDatabaseSchemaResult,
+  withRolledBack,
 } from '@internal/framework-components/control';
 import type { AggregateMigrationEdgeRef } from '@internal/migration-tools/aggregate';
 import type { MongoContract } from '@internal/mongo-contract';
@@ -46,6 +47,11 @@ import { notOk, ok, type Result } from '@internal/utils/result';
 import { type MongoMigrationRunnerErrorCode, mongoTargetError } from '../mongo-target-errors';
 import { FilterEvaluator } from './filter-evaluator';
 import { deserializeMongoOps } from './mongo-ops-serializer';
+
+/** Whether a command of the apply has changed the database yet. */
+interface ApplyProgress {
+  changedDatabase: boolean;
+}
 
 const READ_ONLY_CHECK_COMMAND_KINDS: ReadonlySet<string> = new Set(['aggregate', 'rawAggregate']);
 
@@ -201,6 +207,15 @@ export class MongoMigrationRunner {
   constructor(private readonly deps: MongoRunnerDependencies) {}
 
   async execute(options: MongoMigrationRunnerExecuteOptions): Promise<MongoMigrationRunnerResult> {
+    const progress: ApplyProgress = { changedDatabase: false };
+    const result = await this.executeTracking(options, progress);
+    return result.ok ? result : notOk(withRolledBack(result.failure, !progress.changedDatabase));
+  }
+
+  private async executeTracking(
+    options: MongoMigrationRunnerExecuteOptions,
+    progress: ApplyProgress,
+  ): Promise<MongoMigrationRunnerResult> {
     const { inspectionExecutor, adapter, driver, executeDdl, markerOps } = this.deps;
     const operations = deserializeMongoOps(
       blindCast<
@@ -242,6 +257,7 @@ export class MongoMigrationRunner {
             runIdempotency,
             runPrechecks,
             runPostchecks,
+            progress,
           );
           if (result.failure) return result.failure;
           if (result.executed) {
@@ -280,6 +296,7 @@ export class MongoMigrationRunner {
 
         for (const step of operation.execute) {
           await executeDdl(step.command);
+          progress.changedDatabase = true;
         }
 
         if (runPostchecks) {
@@ -432,6 +449,7 @@ export class MongoMigrationRunner {
     runIdempotency: boolean,
     runPrechecks: boolean,
     runPostchecks: boolean,
+    progress: ApplyProgress,
   ): Promise<{ executed: boolean; failure?: MongoMigrationRunnerResult }> {
     if (runPostchecks && runIdempotency && op.postcheck.length > 0) {
       const allSatisfied = await this.evaluateDmlChecks(
@@ -467,6 +485,7 @@ export class MongoMigrationRunner {
         for await (const _ of driver.execute(wireCommand)) {
           /* consume */
         }
+        progress.changedDatabase = true;
       } catch (error) {
         const refusal = bypassValidationRefusal(op, plan, error);
         if (refusal === undefined) throw error;

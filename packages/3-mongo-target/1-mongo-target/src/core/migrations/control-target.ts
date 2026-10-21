@@ -14,6 +14,7 @@ import {
   type MigrationRunnerResult,
   type VerifyDatabaseSchemaResult,
   withFailingSpace,
+  withRolledBack,
 } from '@internal/framework-components/control';
 import type { MongoContract } from '@internal/mongo-contract';
 import { blindCast } from '@internal/utils/casts';
@@ -117,7 +118,11 @@ export const mongoTargetDescriptor: MongoControlTargetDescriptor<MongoTargetCont
             const { space, ...runnerOptions } = spaceOptions;
             const result = await runMongo(driver, { ...runnerOptions, scopeVerifyResult });
             if (!result.ok) {
-              return notOk(withFailingSpace(result.failure, space));
+              const earlierSpaceApplied = perSpaceResults.some(
+                ({ value }) => value.operationsExecuted > 0,
+              );
+              const failure = withFailingSpace(result.failure, space);
+              return notOk(earlierSpaceApplied ? withRolledBack(failure, false) : failure);
             }
             perSpaceResults.push({ space, value: result.value });
           }
