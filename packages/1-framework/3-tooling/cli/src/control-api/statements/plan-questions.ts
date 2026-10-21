@@ -520,7 +520,6 @@ function withNamespaceDeleteOnFirstQuestion(
   contracts: StatementContracts,
 ): readonly PlanQuestion[] {
   const told = new Set<string>();
-  const added = addedNamespaces(contracts);
   return questions.map((question) => {
     const { removedNamespace } = question;
     if (removedNamespace === undefined || told.has(removedNamespace)) return question;
@@ -528,7 +527,7 @@ function withNamespaceDeleteOnFirstQuestion(
     const lines = [
       question.question,
       `--delete ${removedNamespace} answers every question about namespace "${removedNamespace}", which the destination contract no longer has.`,
-      namespaceRenameAdvice(removedNamespace, added),
+      namespaceRenameAdvice(removedNamespace, addedNamespaces(contracts)),
     ];
     return { ...question, question: lines.filter((line) => line !== undefined).join('\n') };
   });
