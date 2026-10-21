@@ -115,12 +115,8 @@ jobs:
         run: pnpm lint:workflows
       - name: Test scripts/
         run: pnpm test:scripts
-      - name: Lint casts
-        run: pnpm lint:casts
-      - name: Lint throws
-        run: pnpm lint:throws
-      - name: Lint framework vocabulary
-        run: pnpm lint:framework-vocabulary
+      - name: Lint ratchets (casts, throws, framework vocabulary)
+        run: pnpm lint:ratchets
       - name: Lint consumer internal imports
         run: pnpm lint:consumer-internal-imports
       - name: Lint the legacy product name

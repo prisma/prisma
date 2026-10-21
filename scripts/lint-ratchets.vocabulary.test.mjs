@@ -7,12 +7,9 @@ import { execPath } from 'node:process';
 import { afterEach, beforeEach, describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { dedupeSites, filterVocabularyDiags } from './lint-framework-vocabulary.mjs';
+import { dedupeSites, filterVocabularyDiags } from './lint-ratchets.mjs';
 
-const SCRIPT_PATH = join(
-  fileURLToPath(new URL('.', import.meta.url)),
-  'lint-framework-vocabulary.mjs',
-);
+const SCRIPT_PATH = join(fileURLToPath(new URL('.', import.meta.url)), 'lint-ratchets.mjs');
 
 // The plugin is scoped to packages/1-framework by a $filename guard, so
 // fixtures have to live under that path to be seen at all.
@@ -77,18 +74,26 @@ function writeRepoFile(relPath, content) {
 
 function writeConfig(threshold) {
   writeRepoFile(
-    'scripts/lint-framework-vocabulary.config.json',
+    'scripts/framework-vocabulary-thresholds.json',
     JSON.stringify({ scopes: [{ path: SCOPE, threshold }] }, null, 2),
   );
 }
 
+// HEAD at origin/main leaves the merge-base ratchets nothing to compare, so
+// only the vocabulary check acts.
 function runScript(...args) {
+  git('add', '-A');
+  git('commit', '--quiet', '--allow-empty', '-m', 'fixture');
+  git('update-ref', 'refs/remotes/origin/main', 'HEAD');
   return spawnSync(execPath, [SCRIPT_PATH, ...args], { cwd: repo, encoding: 'utf-8' });
 }
 
 beforeEach(() => {
-  repo = mkdtempSync(join(tmpdir(), 'pn-lint-framework-vocab-'));
+  repo = mkdtempSync(join(tmpdir(), 'pn-lint-ratchets-vocabulary-'));
   git('init', '--quiet', '--initial-branch=main');
+  git('config', 'user.email', 'test@example.com');
+  git('config', 'user.name', 'Test');
+  git('config', 'commit.gpgsign', 'false');
 });
 
 afterEach(() => {
@@ -139,7 +144,7 @@ describe('dedupeSites', () => {
   });
 });
 
-describe('lint-framework-vocabulary — threshold met', () => {
+describe('lint-ratchets — vocabulary threshold met', () => {
   it('exits 0 when count equals threshold', () => {
     writeConfig(1);
     writeRepoFile(`${SCOPE}/src/app.ts`, FILE_ONE_SITE);
@@ -150,7 +155,7 @@ describe('lint-framework-vocabulary — threshold met', () => {
   });
 });
 
-describe('lint-framework-vocabulary — count above threshold', () => {
+describe('lint-ratchets — vocabulary count above threshold', () => {
   it('exits 1 and instructs removing violations or raising the threshold', () => {
     writeConfig(0);
     writeRepoFile(`${SCOPE}/src/app.ts`, FILE_ONE_SITE);
@@ -170,7 +175,7 @@ describe('lint-framework-vocabulary — count above threshold', () => {
   });
 });
 
-describe('lint-framework-vocabulary — count below threshold', () => {
+describe('lint-ratchets — vocabulary count below threshold', () => {
   it('exits 1 and instructs lowering the threshold', () => {
     writeConfig(5);
     writeRepoFile(`${SCOPE}/src/app.ts`, FILE_ONE_SITE);
@@ -182,7 +187,7 @@ describe('lint-framework-vocabulary — count below threshold', () => {
   });
 });
 
-describe('lint-framework-vocabulary — counting', () => {
+describe('lint-ratchets — vocabulary counting', () => {
   it('counts a line carrying several terms once', () => {
     writeConfig(1);
     writeRepoFile(`${SCOPE}/src/app.ts`, FILE_ONE_LINE_MANY_TERMS);
@@ -440,7 +445,7 @@ describe('lint-framework-vocabulary — counting', () => {
   });
 });
 
-describe('lint-framework-vocabulary — exclusions', () => {
+describe('lint-ratchets — vocabulary exclusions', () => {
   it('ignores test files and test directories', () => {
     writeConfig(0);
     writeRepoFile(`${SCOPE}/src/app.test.ts`, FILE_ONE_SITE);
@@ -453,7 +458,7 @@ describe('lint-framework-vocabulary — exclusions', () => {
   });
 });
 
-describe('lint-framework-vocabulary — product versions', () => {
+describe('lint-ratchets — vocabulary product versions', () => {
   it('counts names of Prisma versions before 8 in framework packages, including the PSL parser', () => {
     writeConfig(8);
     writeRepoFile(`${SCOPE}/1-core/config/src/versions.ts`, FILE_EARLIER_PRODUCT_VERSIONS);
