@@ -17,7 +17,7 @@ import { postgresGeneratorDescriptors, postgresGeneratorFunctions } from './gene
 import { postgresIndexTypes } from './index-types';
 import { DEFAULT_NAMESPACE_ID } from './namespace-ids';
 import { postgresCreateNamespace } from './postgres-schema';
-import { postgresPslTypeConstructors } from './type-constructors';
+import { postgresScalarAndNativeTypeConstructors } from './type-constructors';
 
 const postgresTargetDescriptorMetaBase = {
   ...postgresTargetDescriptorMetaRuntime,
@@ -25,7 +25,7 @@ const postgresTargetDescriptorMetaBase = {
   supportsNamespaces: true,
   indexTypes: postgresIndexTypes,
   authoring: {
-    type: { ...postgresPslTypeConstructors, ...postgresAuthoringTypes },
+    type: { ...postgresScalarAndNativeTypeConstructors, ...postgresAuthoringTypes },
     field: postgresAuthoringFieldPresets,
     dataTypes: postgresDataTypeEntries(),
     textDataTypes: postgresTextDataTypes,

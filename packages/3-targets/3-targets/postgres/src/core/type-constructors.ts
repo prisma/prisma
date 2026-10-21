@@ -262,7 +262,7 @@ export const postgresNativeAuthoringTypes = {
 /**
  * The base scalars and native types as type constructors. The target contributes them, so PSL and the TypeScript builder's `type.*` see the same names.
  */
-export const postgresPslTypeConstructors = {
+export const postgresScalarAndNativeTypeConstructors = {
   ...postgresScalarAuthoringTypes,
   ...postgresNativeAuthoringTypes,
 } as const satisfies AuthoringTypeNamespace;

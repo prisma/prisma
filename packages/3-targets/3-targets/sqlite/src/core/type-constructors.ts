@@ -18,7 +18,7 @@ import {
  *
  * The target contributes them, so PSL and the TypeScript builder's `type.*` see the same names.
  */
-export const sqlitePslTypeConstructors = {
+export const sqliteScalarTypeConstructors = {
   String: {
     kind: 'typeConstructor',
     documentation: 'Variable-length text stored as SQLite text.',

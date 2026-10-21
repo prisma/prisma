@@ -12,7 +12,7 @@ import { createPostgresBuiltinCodecLookup } from '../src/core/codec-registry';
 import { postgresDataTypes } from '../src/core/data-types';
 import {
   postgresNativeAuthoringTypes,
-  postgresPslTypeConstructors,
+  postgresScalarAndNativeTypeConstructors,
   postgresScalarAuthoringTypes,
 } from '../src/core/type-constructors';
 import postgresTargetPack from '../src/exports/pack';
@@ -20,7 +20,7 @@ import postgresTargetPack from '../src/exports/pack';
 describe('the type constructors the target contributes', () => {
   it('are the scalar, native and target-only ones, so PSL and type.* see the same names', () => {
     expect(postgresTargetPack.authoring.type).toEqual({
-      ...postgresPslTypeConstructors,
+      ...postgresScalarAndNativeTypeConstructors,
       ...postgresAuthoringTypes,
     });
     expect(Object.keys(postgresAuthoringTypes)).toEqual([
@@ -97,7 +97,7 @@ const now = { name: 'now', args: {} };
 
 const everyPostgresConstructor = {
   ...postgresAuthoringTypes,
-  ...postgresPslTypeConstructors,
+  ...postgresScalarAndNativeTypeConstructors,
 };
 
 /** The constructor `contract infer` prints for each data type that has one. */
@@ -364,7 +364,7 @@ describe('precision is a value of pg/int4, bounded by the data type', () => {
     'TimestamptzString',
     'TimeString',
   ] as const)('%s declares no bound of its own on precision', (typeName) => {
-    const typeConstructor = postgresPslTypeConstructors[typeName];
+    const typeConstructor = postgresScalarAndNativeTypeConstructors[typeName];
     expect(typeConstructor.args?.find((arg) => arg.name === 'precision')).toEqual({
       kind: 'value',
       dataType: 'pg/int4',

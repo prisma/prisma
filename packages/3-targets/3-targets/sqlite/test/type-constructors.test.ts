@@ -5,13 +5,13 @@ import { describe, expect, it } from 'vitest';
 import { sqliteAuthoringTypes } from '../src/core/authoring';
 import { createSqliteBuiltinCodecLookup } from '../src/core/codec-registry';
 import { sqliteDataTypes } from '../src/core/data-types';
-import { sqlitePslTypeConstructors } from '../src/core/type-constructors';
+import { sqliteScalarTypeConstructors } from '../src/core/type-constructors';
 import sqliteTargetPack from '../src/exports/pack';
 
 describe('the type constructors the SQLite target contributes', () => {
   it('are the base scalars and the target’s own, so PSL and type.* see the same names', () => {
     expect(sqliteTargetPack.authoring.type).toEqual({
-      ...sqlitePslTypeConstructors,
+      ...sqliteScalarTypeConstructors,
       ...sqliteAuthoringTypes,
     });
     expect(Object.keys(sqliteAuthoringTypes)).toEqual(['sql', 'BigIntNumber', 'temporal']);
@@ -35,7 +35,7 @@ describe('the type constructors the SQLite target contributes', () => {
   const allConstructors = {
     ...sqliteAuthoringTypes.sql,
     BigIntNumber: sqliteAuthoringTypes.BigIntNumber,
-    ...sqlitePslTypeConstructors,
+    ...sqliteScalarTypeConstructors,
   };
 
   const scalarNames = [
@@ -50,7 +50,7 @@ describe('the type constructors the SQLite target contributes', () => {
   ] as const;
 
   it('pins every base scalar to its codec', () => {
-    expect(Object.fromEntries(collectScalarTypeConstructors(sqlitePslTypeConstructors))).toEqual(
+    expect(Object.fromEntries(collectScalarTypeConstructors(sqliteScalarTypeConstructors))).toEqual(
       Object.fromEntries(scalarNames.map(([name, codecId]) => [name, { codecId }])),
     );
   });
