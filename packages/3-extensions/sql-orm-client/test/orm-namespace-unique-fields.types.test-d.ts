@@ -303,3 +303,7 @@ test('each User facet resolves select/distinct/cursor/conflictOn fields within i
   writeDb.auth.User.orderBy((user) => user.token.asc()).cursor({ token: 'tok' });
   writeDb.auth.User.createAll([{ token: 'tok' }], { onConflict: 'skip', conflictOn: ['token'] });
 });
+
+test('the auth-namespace User facet resolves upsert update input to its own field `token`', async () => {
+  await writeDb.auth.User.upsert({ create: { token: 'tok' }, update: { token: 'tok-2' } });
+});

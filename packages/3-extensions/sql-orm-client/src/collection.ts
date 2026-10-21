@@ -2512,7 +2512,7 @@ export class CollectionBase<
     this: Self,
     input: {
       create: ResolvedScalarCreateInput<TContract, ModelName, State['variantValue'], State['nsId']>;
-      update: ScalarUpdateInput<TContract, ModelName>;
+      update: ScalarUpdateInput<TContract, ModelName, State['nsId']>;
       conflictOn?: UniqueConstraintCriterion<TContract, ModelName>;
     },
     configure?: (meta: MetaBuilder<'write'>) => void,
@@ -2520,7 +2520,7 @@ export class CollectionBase<
   async upsert(
     input: {
       create: ResolvedScalarCreateInput<TContract, ModelName, State['variantValue'], State['nsId']>;
-      update: ScalarUpdateInput<TContract, ModelName>;
+      update: ScalarUpdateInput<TContract, ModelName, State['nsId']>;
       conflictOn?: UniqueConstraintCriterion<TContract, ModelName>;
     },
     configure?: (meta: MetaBuilder<'write'>) => void,
@@ -2528,7 +2528,7 @@ export class CollectionBase<
   async upsert(
     input: {
       create: ResolvedScalarCreateInput<TContract, ModelName, State['variantValue'], State['nsId']>;
-      update: ScalarUpdateInput<TContract, ModelName>;
+      update: ScalarUpdateInput<TContract, ModelName, State['nsId']>;
       conflictOn?: UniqueConstraintCriterion<TContract, ModelName>;
     },
     configure?: (meta: MetaBuilder<'write'>) => void,
