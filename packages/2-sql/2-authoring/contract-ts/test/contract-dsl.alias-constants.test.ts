@@ -333,7 +333,7 @@ describe('the types key', () => {
       expect.objectContaining({
         code: 'CONTRACT.TYPES_KEY_REMOVED',
         message:
-          'buildSqlContractFromDefinition no longer takes a "types" key. Write a type alias as a constant, such as const Slug = field.column(type.VarChar(64)), and use it as a field. Register a database type of a contract space under "storageTypes".',
+          'buildSqlContractFromDefinition no longer takes a "types" key. Write a type alias as a constant, such as const Slug = field.column(type.VarChar(64)), and use it as a field. Register a database type of a contract space under "databaseTypes".',
         meta: { keys: ['Slug'] },
       }),
     );

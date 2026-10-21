@@ -157,7 +157,7 @@ export function buildSqlContractFromDefinition(
   codecLookup: CodecLookupWithDescriptors,
   dataTypeLookup: DataTypeLookup,
 ): Contract<SqlStorage> {
-  refuseTypesKey(definition, 'buildSqlContractFromDefinition', 'storageTypes');
+  refuseTypesKey(definition, 'buildSqlContractFromDefinition');
   const lookups: TypeLookups<CodecLookupWithDescriptors> = { codecLookup, dataTypeLookup };
   const target = definition.target.targetId;
   const defaultNamespaceId = definition.target.defaultNamespaceId;
@@ -166,7 +166,7 @@ export function buildSqlContractFromDefinition(
     Object.values(definition.extensions ?? {}),
   );
   const qualifyColumnType = resolveColumnTypeQualifier(definition.target);
-  const storageTypes = definition.storageTypes ?? {};
+  const databaseTypes = definition.databaseTypes ?? {};
   const targetFamily = 'sql';
 
   // Build per-namespace registries for `enumType()` handles.
@@ -264,7 +264,7 @@ export function buildSqlContractFromDefinition(
   // (which always carries the discriminator). Each entry stores the data type
   // its codec represents.
   const documentTypes: Record<string, StorageTypeInstance> = Object.fromEntries(
-    Object.entries(storageTypes).map(([name, entry]) => [
+    Object.entries(databaseTypes).map(([name, entry]) => [
       name,
       toStorageTypeInstance({
         codecId: entry.codecId,

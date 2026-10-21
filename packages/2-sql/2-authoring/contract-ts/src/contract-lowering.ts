@@ -94,7 +94,7 @@ type RuntimeModelSpec = {
 };
 
 type RuntimeCollection = {
-  readonly storageTypes: Record<string, AuthoredStorageTypeInstance>;
+  readonly databaseTypes: Record<string, AuthoredStorageTypeInstance>;
   readonly models: Record<string, RuntimeModel>;
   readonly modelSpecs: ReadonlyMap<string, RuntimeModelSpec>;
 };
@@ -1103,7 +1103,7 @@ function columnLengthOf(definition: LoweringInput): ColumnLength {
 }
 
 function collectRuntimeModelSpecs(definition: LoweringInput): RuntimeCollection {
-  const storageTypes: Record<string, AuthoredStorageTypeInstance> = {
+  const databaseTypes: Record<string, AuthoredStorageTypeInstance> = {
     ...definition.databaseTypes,
   };
   const models = { ...(definition.models ?? {}) } as Record<string, RuntimeModel>;
@@ -1173,7 +1173,7 @@ function collectRuntimeModelSpecs(definition: LoweringInput): RuntimeCollection 
   }
 
   return {
-    storageTypes,
+    databaseTypes,
     models,
     modelSpecs,
   };
@@ -1339,7 +1339,7 @@ function lowerPackEntityHandles(
 }
 
 export function buildContractDefinition(definition: LoweringInput): ContractDefinition {
-  refuseTypesKey(definition, 'buildContractDefinition', 'databaseTypes');
+  refuseTypesKey(definition, 'buildContractDefinition');
   const collection = collectRuntimeModelSpecs(definition);
   const packs = [
     definition.family,
@@ -1363,8 +1363,8 @@ export function buildContractDefinition(definition: LoweringInput): ContractDefi
     ...ifDefined('capabilities', definition.adapter?.capabilities),
     ...(definition.storageHash ? { storageHash: definition.storageHash } : {}),
     ...(definition.foreignKeyDefaults ? { foreignKeyDefaults: definition.foreignKeyDefaults } : {}),
-    ...(Object.keys(collection.storageTypes).length > 0
-      ? { storageTypes: collection.storageTypes }
+    ...(Object.keys(collection.databaseTypes).length > 0
+      ? { databaseTypes: collection.databaseTypes }
       : {}),
     ...(definition.namespaces ? { namespaces: definition.namespaces } : {}),
     warnings: undefined,

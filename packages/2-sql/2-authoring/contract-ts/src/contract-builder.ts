@@ -496,7 +496,7 @@ export function buildBoundContract(
       })
     | undefined,
 ) {
-  refuseTypesKey(definition, 'defineContract', 'databaseTypes');
+  refuseTypesKey(definition, 'defineContract');
   const full = { ...definition, family, target };
 
   if (factory !== undefined) {
@@ -508,7 +508,7 @@ export function buildBoundContract(
         codecLookup: definition.codecLookup,
       }),
     );
-    refuseTypesKey(built, 'defineContract', 'databaseTypes');
+    refuseTypesKey(built, 'defineContract');
     const mergedEnums = { ...(definition.enums ?? {}), ...built.enums };
     const mergedEntities = [...(definition.entities ?? []), ...(built.entities ?? [])];
     return buildContractFromDsl({

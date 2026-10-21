@@ -32,7 +32,7 @@ describe('shared contract definition lowering', () => {
         warnings: undefined,
         target: postgresTargetPack,
         createNamespace: createTestSqlNamespace,
-        storageTypes: {
+        databaseTypes: {
           Role: {
             kind: 'codec-instance',
             codecId: 'app/test-enum@1',

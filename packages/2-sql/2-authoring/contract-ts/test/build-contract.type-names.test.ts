@@ -73,13 +73,13 @@ const targetPack: TargetPackRef<'sql', 'postgres'> = {
 
 function definitionWith(
   fields: readonly FieldNode[],
-  storageTypes: ContractDefinition['storageTypes'] = {},
+  databaseTypes: ContractDefinition['databaseTypes'] = {},
 ): ContractDefinition {
   return {
     warnings: undefined,
     target: targetPack,
     createNamespace: createTestSqlNamespace,
-    storageTypes,
+    databaseTypes,
     models: [
       {
         modelName: 'Item',

@@ -337,7 +337,7 @@ export interface ContractDefinition {
    */
   readonly storageHash?: string;
   readonly foreignKeyDefaults?: ForeignKeyDefaultsState;
-  readonly storageTypes?: Record<string, AuthoredStorageTypeInstance>;
+  readonly databaseTypes?: Record<string, AuthoredStorageTypeInstance>;
   /**
    * Declared namespace coordinates for this contract — populates
    * `SqlStorage.namespaces` together with `createNamespace`.
