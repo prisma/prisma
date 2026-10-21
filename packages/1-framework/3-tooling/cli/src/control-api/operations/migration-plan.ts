@@ -325,6 +325,7 @@ async function answerPlannedDataLoss(input: {
   readonly origin: ContractWithDomain;
   readonly originKnown: boolean;
   readonly destination: ContractWithDomain;
+  readonly defaultNamespaceId: string;
   readonly answer: AnswerPlanQuestions;
   readonly planDelta: (
     statements: readonly StatementText[],
@@ -353,6 +354,7 @@ async function answerPlannedDataLoss(input: {
     origin: input.origin,
     originKnown: input.originKnown,
     destination: input.destination,
+    defaultNamespaceId: input.defaultNamespaceId,
     answer: input.answer,
     replan: async (statements) => {
       const replanned = await input.planDelta(statements);
@@ -782,6 +784,7 @@ async function executeMigrationPlanCommandInner(
         origin: fromContract ?? EMPTY_ORIGIN,
         originKnown: true,
         destination: toContract,
+        defaultNamespaceId: config.target.defaultNamespaceId,
         answer: options.answerQuestions,
         planDelta: async (planned) => {
           const resolved = resolveStatements({

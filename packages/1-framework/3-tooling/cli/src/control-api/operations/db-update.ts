@@ -45,6 +45,8 @@ export interface ExecuteDbUpdateOptions<TFamilyId extends string, TTargetId exte
   readonly acceptAccessChanges?: boolean;
   readonly migrationsDir: string;
   readonly targetId: TTargetId;
+  /** The target's default namespace, which is never removed and never a rename's new name. */
+  readonly defaultNamespaceId: string;
   readonly extensions?: ReadonlyArray<ControlExtensionDescriptor<TFamilyId, TTargetId>>;
   /** Content check for contract snapshots the aggregate loader resolves. */
   readonly verifySnapshotContent?: SnapshotContentVerifier;
@@ -76,6 +78,7 @@ export async function executeDbUpdate<TFamilyId extends string, TTargetId extend
     frameworkComponents: options.frameworkComponents,
     migrationsDir: options.migrationsDir,
     targetId: options.targetId,
+    defaultNamespaceId: options.defaultNamespaceId,
     extensions: options.extensions ?? [],
     policy: DB_UPDATE_POLICY,
     action: 'dbUpdate',

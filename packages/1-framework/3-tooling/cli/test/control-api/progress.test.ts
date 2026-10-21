@@ -34,6 +34,7 @@ describe('executeDbInit progress emission', () => {
           appliedStatements: [],
           plan: {
             targetId: 'postgres',
+            defaultNamespaceId: 'public',
             destination: { storageHash: 'test-hash' },
             operations: [],
           },
@@ -69,6 +70,7 @@ describe('executeDbInit progress emission', () => {
       frameworkComponents: mockFrameworkComponents,
       migrationsDir: FAKE_MIGRATIONS_DIR,
       targetId: 'postgres',
+      defaultNamespaceId: 'public',
       onProgress: (event) => {
         events.push(event);
       },
@@ -118,6 +120,7 @@ describe('executeDbInit progress emission', () => {
           appliedStatements: [],
           plan: {
             targetId: 'postgres',
+            defaultNamespaceId: 'public',
             destination: { storageHash: 'test-hash' },
             operations: mockOperations,
           },
@@ -156,6 +159,7 @@ describe('executeDbInit progress emission', () => {
       frameworkComponents: mockFrameworkComponents,
       migrationsDir: FAKE_MIGRATIONS_DIR,
       targetId: 'postgres',
+      defaultNamespaceId: 'public',
       onProgress: (event) => {
         events.push(event);
       },
@@ -190,6 +194,7 @@ describe('executeDbInit progress emission', () => {
           appliedStatements: [],
           plan: {
             targetId: 'postgres',
+            defaultNamespaceId: 'public',
             destination: { storageHash: 'test-hash' },
             operations: [],
           },
@@ -225,6 +230,7 @@ describe('executeDbInit progress emission', () => {
       frameworkComponents: mockFrameworkComponents,
       migrationsDir: FAKE_MIGRATIONS_DIR,
       targetId: 'postgres',
+      defaultNamespaceId: 'public',
     });
 
     expect(result.ok).toBe(true);

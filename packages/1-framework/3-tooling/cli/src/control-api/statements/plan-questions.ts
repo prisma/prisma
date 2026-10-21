@@ -92,6 +92,8 @@ export interface StatementContracts {
   readonly destination?: ContractWithDomain;
   /** The rename, convert and backfill statements the plan carries out, in the order given. */
   readonly statements: readonly StatementText[];
+  /** The target's default namespace, which is never removed and never a rename's new name. */
+  readonly defaultNamespaceId?: string;
 }
 
 /** The plan's renames, resolved; empty when there are none or they do not resolve. */
@@ -402,18 +404,30 @@ export interface ConsentedSubject {
 
 const keyOf = (planned: PlannedSubject) => migrationSubjectKey(planned.subject);
 
+function namespacesRenamedByPlan(contracts: StatementContracts): ReadonlySet<string> {
+  return new Set(
+    resolvedRenames(contracts).flatMap((statement) =>
+      statement.kind === 'rename' && statement.entity === 'namespace' ? [statement.from] : [],
+    ),
+  );
+}
+
 /**
  * The namespace of the model or field a subject names, when the destination contract no longer has
- * it: a `delete` of that namespace answers the question too.
+ * it and no statement of the plan renames it: a `delete` of that namespace answers the question
+ * too. The target's default namespace is never removed.
  */
 export function removedNamespaceOf(
   subject: MigrationSubject,
-  destination: ContractWithDomain | undefined,
+  contracts: StatementContracts,
 ): string | undefined {
   if (subject.kind === 'storage' || subject.namespaceId === UNBOUND_NAMESPACE_ID) return undefined;
+  const { destination } = contracts;
   if (
     destination === undefined ||
-    Object.hasOwn(destination.domain.namespaces, subject.namespaceId)
+    subject.namespaceId === contracts.defaultNamespaceId ||
+    Object.hasOwn(destination.domain.namespaces, subject.namespaceId) ||
+    namespacesRenamedByPlan(contracts).has(subject.namespaceId)
   ) {
     return undefined;
   }
@@ -497,6 +511,7 @@ function addedNamespaces(contracts: StatementContracts): readonly string[] {
   return Object.keys(contracts.destination.domain.namespaces).filter(
     (namespace) =>
       namespace !== UNBOUND_NAMESPACE_ID &&
+      namespace !== contracts.defaultNamespaceId &&
       !Object.hasOwn(contracts.origin.domain.namespaces, namespace),
   );
 }
@@ -568,6 +583,8 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
   readonly origin: ContractWithDomain;
   readonly originKnown: boolean;
   readonly destination: ContractWithDomain;
+  /** The target's default namespace, which is never removed and never a rename's new name. */
+  readonly defaultNamespaceId: string;
   readonly answer: AnswerPlanQuestions;
   readonly replan: (statements: readonly StatementText[]) => Promise<Result<TPlan, TFailure>>;
 }): Promise<
@@ -589,6 +606,7 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
       origin: input.origin,
       originKnown: input.originKnown,
       destination: input.destination,
+      defaultNamespaceId: input.defaultNamespaceId,
       canConvert: input.canConvert,
       statements,
     };
@@ -618,7 +636,7 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
         const text = subjectText(entry.subject, contracts);
         const given = givenFor(
           verb,
-          { text, removedNamespace: removedNamespaceOf(entry.subject, contracts.destination) },
+          { text, removedNamespace: removedNamespaceOf(entry.subject, contracts) },
           input.preAnswers,
           usedPreAnswers,
         );
@@ -636,10 +654,7 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
             loss,
             question: {
               ...dataLossQuestion(loss, contracts),
-              ...ifDefined(
-                'removedNamespace',
-                removedNamespaceOf(loss.subject, contracts.destination),
-              ),
+              ...ifDefined('removedNamespace', removedNamespaceOf(loss.subject, contracts)),
             },
           })),
           !input.originKnown,
@@ -732,7 +747,7 @@ export function refuseUnusedConsents(input: {
         verb,
         {
           text: subjectText(entry.subject, input.contracts),
-          removedNamespace: removedNamespaceOf(entry.subject, input.contracts.destination),
+          removedNamespace: removedNamespaceOf(entry.subject, input.contracts),
         },
         input.statements,
         used,

@@ -188,6 +188,7 @@ function update(options: {
     migrationsDir: options.migrationsDir,
     answerQuestions: async () => [],
     targetId: 'postgres',
+    defaultNamespaceId: 'public',
     statements: [...renameStatements(options.renames), ...(options.fieldStatements ?? [])],
     ...(options.verifySnapshotContent === undefined
       ? {}

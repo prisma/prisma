@@ -141,6 +141,7 @@ describe('executeDbUpdate', () => {
       migrationsDir: FAKE_MIGRATIONS_DIR,
       answerQuestions: noQuestions,
       targetId: 'postgres',
+      defaultNamespaceId: 'public',
     });
 
     expect(result.ok).toBe(true);
@@ -174,6 +175,7 @@ describe('executeDbUpdate', () => {
       migrationsDir: FAKE_MIGRATIONS_DIR,
       answerQuestions: noQuestions,
       targetId: 'postgres',
+      defaultNamespaceId: 'public',
     });
 
     expect(result.ok).toBe(false);
@@ -233,6 +235,7 @@ describe('executeDbUpdate', () => {
       migrationsDir: FAKE_MIGRATIONS_DIR,
       answerQuestions: noQuestions,
       targetId: 'postgres',
+      defaultNamespaceId: 'public',
     });
 
     expect(result.ok).toBe(true);
@@ -270,6 +273,7 @@ describe('executeDbUpdate', () => {
       migrationsDir: FAKE_MIGRATIONS_DIR,
       answerQuestions: noQuestions,
       targetId: 'postgres',
+      defaultNamespaceId: 'public',
     });
 
     expect(result.ok).toBe(false);
@@ -308,6 +312,7 @@ describe('executeDbUpdate', () => {
       migrationsDir: FAKE_MIGRATIONS_DIR,
       answerQuestions: noQuestions,
       targetId: 'postgres',
+      defaultNamespaceId: 'public',
     });
 
     expect(
@@ -353,6 +358,7 @@ describe('executeDbUpdate', () => {
       migrationsDir: FAKE_MIGRATIONS_DIR,
       answerQuestions: noQuestions,
       targetId: 'postgres',
+      defaultNamespaceId: 'public',
     });
 
     expect(result.ok).toBe(true);
@@ -412,6 +418,7 @@ describe('executeDbUpdate', () => {
       migrationsDir: FAKE_MIGRATIONS_DIR,
       answerQuestions: noQuestions,
       targetId: 'postgres',
+      defaultNamespaceId: 'public',
     });
 
     expect(result.ok).toBe(true);
@@ -470,6 +477,7 @@ describe('executeDbUpdate', () => {
       migrationsDir: FAKE_MIGRATIONS_DIR,
       answerQuestions: noQuestions,
       targetId: 'postgres',
+      defaultNamespaceId: 'public',
     });
 
     expect(result.ok).toBe(true);
@@ -490,6 +498,7 @@ describe('executeDbUpdate', () => {
       appliedStatements: [],
       plan: {
         targetId: 'postgres',
+        defaultNamespaceId: 'public',
         destination: { storageHash: 'dest' },
         operations: [],
       },
@@ -525,6 +534,7 @@ describe('executeDbUpdate', () => {
       migrationsDir: FAKE_MIGRATIONS_DIR,
       answerQuestions: noQuestions,
       targetId: 'postgres',
+      defaultNamespaceId: 'public',
     });
 
     expect(planFn).toHaveBeenCalledWith(
@@ -597,6 +607,7 @@ describe('executeDbUpdate', () => {
         frameworkComponents: [],
         migrationsDir: FAKE_MIGRATIONS_DIR,
         targetId: 'postgres' as const,
+        defaultNamespaceId: 'public',
         answerQuestions: noQuestions,
         ...overrides,
       };
@@ -843,6 +854,7 @@ describe('executeDbUpdate', () => {
           appliedStatements: [],
           plan: {
             targetId: 'postgres',
+            defaultNamespaceId: 'public',
             destination: { storageHash: 'dest' },
             operations: [
               {
@@ -875,6 +887,7 @@ describe('executeDbUpdate', () => {
       migrationsDir: FAKE_MIGRATIONS_DIR,
       answerQuestions: noQuestions,
       targetId: 'postgres',
+      defaultNamespaceId: 'public',
     });
 
     expect(result.ok).toBe(true);
@@ -907,6 +920,7 @@ describe('executeDbUpdate', () => {
         migrationsDir: FAKE_MIGRATIONS_DIR,
         answerQuestions: noQuestions,
         targetId: 'postgres',
+        defaultNamespaceId: 'public',
         onProgress: (event) => events.push(event),
       });
 
@@ -935,6 +949,7 @@ describe('executeDbUpdate', () => {
         migrationsDir: FAKE_MIGRATIONS_DIR,
         answerQuestions: noQuestions,
         targetId: 'postgres',
+        defaultNamespaceId: 'public',
         onProgress: (event) => events.push(event),
       });
 
@@ -969,6 +984,7 @@ describe('executeDbUpdate', () => {
         migrationsDir: FAKE_MIGRATIONS_DIR,
         answerQuestions: noQuestions,
         targetId: 'postgres',
+        defaultNamespaceId: 'public',
         onProgress: (event) => events.push(event),
       });
 
@@ -998,6 +1014,7 @@ describe('executeDbUpdate', () => {
         migrationsDir: FAKE_MIGRATIONS_DIR,
         answerQuestions: noQuestions,
         targetId: 'postgres',
+        defaultNamespaceId: 'public',
         onProgress: (event) => events.push(event),
       });
 

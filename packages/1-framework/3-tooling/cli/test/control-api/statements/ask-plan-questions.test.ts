@@ -55,6 +55,7 @@ function run(replanned: PlannedQuestions, typed: readonly (readonly string[])[])
       origin,
       originKnown: true,
       destination,
+      defaultNamespaceId: 'public',
       answer: async (questions: readonly PlanQuestion[]) => {
         asked.push(questions.map(({ question }) => question));
         const answers = typed[round] ?? [];
@@ -115,6 +116,7 @@ describe('questions about storage when the origin contract is unknown', () => {
       origin,
       originKnown: false,
       destination,
+      defaultNamespaceId: 'public',
       answer: async (questions) => {
         asked.push(...questions.map(({ question }) => question));
         return questions.map(({ subject }) => ({ verb: 'delete', text: subject }));
@@ -170,6 +172,7 @@ describe('questions about access', () => {
       origin,
       originKnown: true,
       destination,
+      defaultNamespaceId: 'public',
       answer: async (questions) => {
         asked.push(...questions.map(({ question }) => question));
         return questions.map(({ subject }) => ({ verb: 'allow', text: subject }));
@@ -216,6 +219,7 @@ describe('allow statements given as pre-answers', () => {
       origin,
       originKnown: true,
       destination,
+      defaultNamespaceId: 'public',
       answer: async (questions) => {
         asked.push(...questions.map(({ question }) => question));
         return questions.map(({ subject }) => ({ verb: 'allow', text: subject }));
@@ -276,6 +280,7 @@ describe('an access change consented before a typed rename', () => {
       origin,
       originKnown: true,
       destination,
+      defaultNamespaceId: 'public',
       answer: async (questions) => {
         rounds += 1;
         return questions.map(({ subject, verbs }) =>
@@ -323,6 +328,7 @@ describe('a convert typed at the prompt', () => {
       origin: typedOrigin,
       originKnown: true,
       destination: typedDestination,
+      defaultNamespaceId: 'public',
       answer: async (questions) =>
         questions.map(() => ({ verb: 'convert', text: 'T.ratio' }) as const),
       replan: async (statements) => {
@@ -365,6 +371,7 @@ describe('a delete that answers a type change', () => {
       origin,
       originKnown: true,
       destination,
+      defaultNamespaceId: 'public',
       answer: async () => [],
       replan: async () => ok({ dataLoss: [], accessChanges: [] }),
     });

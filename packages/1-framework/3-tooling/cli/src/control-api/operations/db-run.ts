@@ -123,6 +123,8 @@ export interface ExecuteRunSharedOptions<TFamilyId extends string, TTargetId ext
   readonly migrationsDir: string;
   readonly extensions: ReadonlyArray<ControlExtensionDescriptor<TFamilyId, TTargetId>>;
   readonly targetId: TTargetId;
+  /** The target's default namespace, which is never removed and never a rename's new name. */
+  readonly defaultNamespaceId: string;
   readonly policy: MigrationOperationPolicy;
   /** Content check for contract snapshots the aggregate loader resolves. */
   readonly verifySnapshotContent?: SnapshotContentVerifier;
@@ -184,6 +186,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     migrationsDir,
     extensions,
     targetId,
+    defaultNamespaceId,
     policy,
     action,
     onProgress,
@@ -333,6 +336,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       origin: fromContract ?? EMPTY_ORIGIN,
       originKnown: fromContract !== null,
       destination: contract,
+      defaultNamespaceId,
       answer: options.answerQuestions,
       replan: (planned) => plan(resolveRenames(planned)),
     });
@@ -354,6 +358,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
         origin: fromContract ?? EMPTY_ORIGIN,
         destination: contract,
         statements: plannedTexts,
+        defaultNamespaceId,
       },
     });
     if (!refused.ok) {
@@ -400,12 +405,13 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     origin: fromContract ?? EMPTY_ORIGIN,
     destination: contract,
     statements: plannedTexts,
+    defaultNamespaceId,
   };
   const asked = <TEntry extends MigrationOperationSubject>(entries: readonly TEntry[]) =>
     entries.map((entry) => ({
       ...entry,
       text: subjectText(entry.subject, contractsAsked),
-      ...ifDefined('removedNamespace', removedNamespaceOf(entry.subject, contract)),
+      ...ifDefined('removedNamespace', removedNamespaceOf(entry.subject, contractsAsked)),
     }));
   const databaseStorageHash =
     action === 'dbUpdate' ? recordedDatabaseContract(aggregate, markerRows) : undefined;
