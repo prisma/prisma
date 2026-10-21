@@ -371,10 +371,6 @@ Two components in the composed stack register the same data type id, which has e
 
 Two components contribute an authoring entry under the same key, so the stack cannot tell which one reads that data type's written form. Raised while merging authoring contributions. Payload: `key`, `contributedBy`, `owner`.
 
-### CONTRACT.DATA_TYPE_ENTRY_KEY_INVALID
-
-An authoring entry is filed under the wrong key for what it reads. An entry whose tag names the data type its body is (`type` on a tag form) must sit under `tagEntryKey(tag)`, and an entry under a `tag:` key must name that type; every other value entry sits under its data type's id and names none. Raised while checking the assembled data types. Payload: `key`, `contributedBy`.
-
 ### CONTRACT.DATA_TYPE_ID_INVALID
 
 A string given where a data type id belongs is not `owner/name` in lower case, or carries a version (a versioned id names a codec, not a data type). Raised by `dataTypeId()` while declaring a data type or a cast. Payload: `id`.
