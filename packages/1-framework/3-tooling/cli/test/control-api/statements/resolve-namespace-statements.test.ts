@@ -57,6 +57,13 @@ describe('resolveStatements, namespace renames', () => {
     });
   });
 
+  it('on a re-run, says the origin has no namespace or model of the old name', () => {
+    const failure = expectFailure(resolve(['billing:finance'], finance, finance), UNRESOLVED);
+    expect(failure.why).toBe(
+      'The origin contract has no namespace or model "billing" (namespaces: app, finance; models: app.User, finance.Invoice).',
+    );
+  });
+
   it('refuses a namespace the destination still has', () => {
     const both = contractOf({ billing: { models: { Invoice: {} } }, finance: {} });
     const failure = expectFailure(resolve(['billing:finance'], billing, both), UNRESOLVED);

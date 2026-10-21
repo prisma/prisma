@@ -217,6 +217,12 @@ function lookupModelInNamespace(
   };
 }
 
+function modelNames(contract: NamedContract): readonly string[] {
+  return Object.entries(contract.contract.domain.namespaces).flatMap(([id, namespace]) =>
+    Object.keys(namespace.models).map((model) => displayName(id, model)),
+  );
+}
+
 function lookupModel(
   contract: NamedContract,
   namespaceId: string | undefined,
@@ -257,12 +263,11 @@ function lookupModel(
   if (Object.values(namespaces).some((namespace) => hasValueObject(namespace, name))) {
     return { kind: 'refused', ...valueObjectRefusal(name) };
   }
-  const models = Object.entries(namespaces).flatMap(([id, namespace]) =>
-    Object.keys(namespace.models).map((model) => displayName(id, model)),
-  );
   return {
     kind: 'missing',
-    ...missing(`the ${contract.name} contract has no model "${name}" (models: ${listed(models)})`),
+    ...missing(
+      `the ${contract.name} contract has no model "${name}" (models: ${listed(modelNames(contract))})`,
+    ),
   };
 }
 
@@ -794,6 +799,29 @@ function renamedElsewhere(
  * A statement with one name on each side reads as a namespace rename or a model rename. Exactly
  * one reading must resolve; `undefined` leaves the statement to the model reading.
  */
+/**
+ * A one-name statement whose new name is a namespace of the destination, and whose old name is no
+ * namespace or model of the origin, as when a namespace rename is given again.
+ */
+function neitherNamespaceNorModel(
+  state: ResolutionState,
+  statement: ParsedRename,
+  from: string,
+  to: string,
+): Result<ResolvedMigrationStatement, CliStructuredError> | undefined {
+  if (!namespacesOf(state.destination).includes(to)) return undefined;
+  const fromModel = lookupModel(state.origin, undefined, from);
+  if (fromModel.kind !== 'missing') return undefined;
+  return notOk(
+    unresolved(
+      statement,
+      missing(
+        `the origin contract has no namespace or model "${from}" (namespaces: ${listed(namespacesOf(state.origin))}; models: ${listed(modelNames(state.origin))})`,
+      ),
+    ),
+  );
+}
+
 function resolveOneNameStatement(
   state: ResolutionState,
   statement: ParsedRename,
@@ -802,7 +830,7 @@ function resolveOneNameStatement(
   to: string,
 ): Result<ResolvedMigrationStatement, CliStructuredError> | undefined {
   const asNamespace = readNamespaceRename(state, from, to);
-  if (asNamespace === undefined) return undefined;
+  if (asNamespace === undefined) return neitherNamespaceNorModel(state, statement, from, to);
   const fromModel = readModel(state, 'old', undefined, from);
   const toModel = readModel(state, 'new', undefined, to);
   if (
