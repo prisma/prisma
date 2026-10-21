@@ -467,6 +467,32 @@ function checkAnswers(questions: readonly PlanQuestion[], answers: readonly Plan
   });
 }
 
+/**
+ * The first question about a model or field of a namespace the destination contract no longer has
+ * says that a `delete` of the namespace answers every question about it.
+ */
+function withNamespaceDeleteOnFirstQuestion(
+  questions: readonly PlanQuestion[],
+  destination: ContractWithDomain,
+): readonly PlanQuestion[] {
+  const told = new Set<string>();
+  return questions.map((question) => {
+    const { namespace } = question;
+    if (
+      namespace === undefined ||
+      told.has(namespace) ||
+      Object.hasOwn(destination.domain.namespaces, namespace)
+    ) {
+      return question;
+    }
+    told.add(namespace);
+    return {
+      ...question,
+      question: `${question.question}\n--delete ${namespace} answers every question about namespace "${namespace}", which the destination contract no longer has.`,
+    };
+  });
+}
+
 function withRecoveryOnFirstStorageQuestion(
   asked: readonly { readonly loss: PlannedDataLoss; readonly question: PlanQuestion }[],
   recoveryApplies: boolean,
@@ -564,15 +590,18 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
     const accessChanges = input.askAccess ? pending('allow', plan.accessChanges) : [];
     if (losses.length + accessChanges.length === 0 && round > 0) break;
     const questions = [
-      ...withRecoveryOnFirstStorageQuestion(
-        losses.map((loss) => ({
-          loss,
-          question: {
-            ...dataLossQuestion(loss, contracts),
-            ...ifDefined('namespace', subjectNamespace(loss.subject)),
-          },
-        })),
-        !input.originKnown,
+      ...withNamespaceDeleteOnFirstQuestion(
+        withRecoveryOnFirstStorageQuestion(
+          losses.map((loss) => ({
+            loss,
+            question: {
+              ...dataLossQuestion(loss, contracts),
+              ...ifDefined('namespace', subjectNamespace(loss.subject)),
+            },
+          })),
+          !input.originKnown,
+        ),
+        input.destination,
       ),
       ...accessChanges.map((change) => accessChangeQuestion(change, contracts)),
     ];

@@ -78,4 +78,29 @@ describe('--delete with a namespace of the origin contract', () => {
       }).ok,
     ).toBe(true);
   });
+
+  it('says once, on the first question about the removed namespace, that --delete of it answers them all', async () => {
+    const questions: string[] = [];
+    await askPlanQuestions({
+      plan,
+      askAccess: false,
+      canConvert: false,
+      statements: [],
+      preAnswers: [],
+      consentAll: { delete: false, allow: false },
+      origin,
+      originKnown: true,
+      destination,
+      answer: async (batch) => {
+        questions.push(...batch.map(({ question }) => question));
+        return batch.map(({ subject }) => ({ verb: 'delete', text: subject }));
+      },
+      replan: async () => ok(plan),
+    });
+
+    expect(questions).toEqual([
+      'Drop table "invoice" would lose the data of model "billing.Invoice".\n--delete billing answers every question about namespace "billing", which the destination contract no longer has.',
+      'Drop table "receipt" would lose the data of model "billing.Receipt".',
+    ]);
+  });
 });

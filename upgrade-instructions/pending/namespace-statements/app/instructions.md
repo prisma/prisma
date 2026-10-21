@@ -15,4 +15,6 @@ prisma db update --delete billing
 
 To keep a model's data, move it to a namespace the contract keeps in the same run, for example `--rename billing.Invoice:Invoice`, or put the namespace back in the contract.
 
+A table in that schema that no contract declared, such as one created by hand, is asked about too, by its storage name: `--delete billing.audit_log`. `--delete billing` does not answer it. Another object no contract declared, such as a view or a function, makes the schema drop fail; drop or move it yourself, then run the command again.
+
 A namespace that only another contract space declares, and a schema no contract ever declared, such as Supabase's `auth`, are still left alone.
