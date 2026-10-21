@@ -90,11 +90,9 @@ Will, 2026-09-30: the emulator controls (start, stop, list, reset) are now urgen
 
 ## Changes of 2026-10-21
 
+- New work found after the plan was made goes into its own stream, "Work found along the way" (stream 6), not into the stream it belongs to (Will). Reason: the first five streams kept growing as work was found, so their progress looked like it went backwards. The `unbound` alias and shrinking the generated contract files moved there from stream 1.
 - Prisma 8 needs a Prisma Studio command in the `prisma` CLI before GA, as soon as possible (Will). Stream 3, row 1b, Must and urgent. Checked 2026-10-21: no Studio command exists in prisma/orm, prisma/prisma-cli or prisma/composer, and there is no PR or Linear ticket for one.
-
-## Changes of 2026-10-21
-
-- The generated contract files must shrink before GA (Will). `contract.d.ts` and `contract.json` are regenerated into fixtures and migration snapshots across the repo, and they make small PRs show tens of thousands of changed lines. Will's first idea is to minify them or strip whitespace; the approach is not decided. Stream 1, row 10, Must. It is in stream 1 because it changes what `migration plan` writes into a user's project.
+- The generated contract files must shrink before GA (Will). `contract.d.ts` and `contract.json` are regenerated into fixtures and migration snapshots across the repo, and they make small PRs show tens of thousands of changed lines. Will's first idea is to minify them or strip whitespace; the approach is not decided. Must. It changes what `migration plan` writes into a user's project, so it must land before GA. Now stream 6, row 2.
 
 ## Changes of 2026-10-16
 

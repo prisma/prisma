@@ -31,7 +31,7 @@ Last refresh: 2026-10-20 afternoon, by icarus-42. Open at that time: prisma/orm#
 
 The next unstarted row for Will is the **early MySQL attempt** (stream 1, row 3). No PR, ticket or recent branch exists for it; the only MySQL branches are Prisma 7 adapter work from June 2025. After it come stream 2's upgrade guide rewrite (TML-3540), the codecs (TML-3270) and the enum membership check on adoption.
 
-Open item: stream 1 row 9, removing the `unbound` / `__unbound__` namespace alias, is Serhii's proposal (prisma/orm#30751, approved, not merged) and is "Not decided". Raise it with Will only if he asks about stream 1.
+Open item: stream 6 row 1, removing the `unbound` / `__unbound__` namespace alias, is Serhii's proposal (prisma/orm#30751, approved, not merged) and is "Not decided". Raise it with Will only if he asks about it.
 
 ## Mistakes made in this work, and the rule each one taught
 

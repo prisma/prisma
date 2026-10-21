@@ -18,16 +18,17 @@ Counts the projects marked Must in each stream. A project counts as done only wh
 
 | Stream | Done | Bar | In progress | Not started |
 | --- | --- | --- | --- | --- |
-| Foundations and breaking changes | 5 of 9 (56%) | `██████░░░░` | 2 | 2 |
+| Foundations and breaking changes | 5 of 8 (63%) | `██████░░░░` | 2 | 1 |
 | Upgrade path from Prisma 7 | 2 of 7 (29%) | `███░░░░░░░` | 2 | 3 |
-| Editor and tools | 2 of 6 (33%) | `███░░░░░░░` | 2 | 2 |
+| Editor and tools | 3 of 6 (50%) | `█████░░░░░` | 1 | 2 |
 | Query features | 8 of 11 (73%) | `███████░░░` | 1 | 2 |
 | Docs and the new user's first hour | 1 of 5 (20%) | `██░░░░░░░░` | 3 | 1 |
-| **All streams** | **18 of 38 (47%)** | `█████░░░░░` | **10** | **10** |
+| Work found along the way | 0 of 1 (0%) | `░░░░░░░░░░` | 0 | 1 |
+| **All streams** | **19 of 38 (50%)** | `█████░░░░░` | **9** | **10** |
 
 ## Stream 1: Foundations and breaking changes
 
-**GA readiness:** 5 of 9 Must projects done (56%). 2 in progress, 2 not started.
+**GA readiness:** 5 of 8 Must projects done (63%). 2 in progress, 1 not started.
 
 GA is the last chance to make breaking changes, so this stream decides the date.
 
@@ -37,12 +38,10 @@ GA is the last chance to make breaking changes, so this stream decides the date.
 | 2 | ✅ 2/2 | One CLI and one config file | Must | Will | Done 2026-10-08 |  |
 | 3 | ⏳ | Early MySQL attempt, to find shared code that assumes PostgreSQL | Must | Will | Not started, no ticket |  |
 | 4 | ✅ 6/6 | SQL expression literals | Must | Will | Done 2026-10-12 |  |
-| 5 | 🔄 3/5 | PSL mixins, then remove field presets; generated values become `@onCreate` and `@onUpdate`, and type aliases become an authoring shorthand | Must | Serhii (mixins), Will (TML-3607) | Mixins done 2026-10-14. ADR 275 merged 2026-10-19. TML-3607 has 3 slices: slice 1, `@onCreate` and `@onUpdate`, merged 2026-10-20 | Slice 2 (type aliases expand into each column), then slice 3 (presets removed) |
+| 5 | 🔄 3/5 | PSL mixins, then remove field presets; generated values become `@onCreate` and `@onUpdate`, and type aliases become an authoring shorthand | Must | Serhii (mixins), Will (TML-3607) | Mixins done 2026-10-14. ADR 275 merged 2026-10-19. TML-3607 has 3 slices: slice 1, `@onCreate` and `@onUpdate`, merged 2026-10-20. Slice 2, type aliases expand into each column, is approved and not merged | Merge slice 2, then build slice 3 (presets removed) |
 | 6 | ✅ 1/1 | Remove `@noCheck` and `.noCheck()` | Must | Will | Done 2026-10-16 |  |
 | 7 | 🔄 5/7 | Migration statements: the planner refuses data loss, the user states renames, deletes, conversions and backfills | Must | Will | 5 of 7 slices merged. The TypeScript MongoDB validator slice merged 2026-10-20, with a MongoDB field keeping its own name in code. Left: renames and deletes of enum values, namespaces, value object fields and variants on Postgres and SQLite (TML-3537), and convert and backfill on MongoDB (TML-3538), both in backlog | Build TML-3537 |
 | 8 | ✅ 4/4 | Client surfaces: a client takes a typed contract value, custom collections on every client and transaction | Must | Will | Slice 1 merged 2026-10-19; it is breaking: `postgres<Contract>({ contractJson })` became `postgres({ contract: contractFromJson<Contract>(json) })`. Slice 2, custom collections on every SQL client, merged 2026-10-20. Slice 3, a transaction offers the client's query members, merged 2026-10-20. Slice 4, a client loads without a database and renders plans as SQL, merged 2026-10-21. Done 2026-10-21 (Will); the close-out is in progress |  |
-| 9 | ⏳ | Remove the `unbound` / `__unbound__` namespace alias, keeping one name | Not decided | Serhii | Serhii proposed it in a docs PR to the RC plan, not merged. Not started | |
-| 10 | ⏳ | Shrink the generated contract files, so a PR's line count shows the change and not the regenerated `contract.d.ts` and `contract.json` | Must | Will | Not started, no ticket. Migration snapshots in every user's `migrations/` folder hold both files. Possibly minify them or strip whitespace (Will, 2026-10-21) |  |
 
 ## Stream 2: Upgrade path from Prisma 7
 
@@ -66,11 +65,11 @@ Test: an existing Prisma 7 database can be signed by Prisma 8.
 
 ## Stream 3: Editor and tools
 
-**GA readiness:** 2 of 6 Must projects done (33%). 2 in progress, 2 not started.
+**GA readiness:** 3 of 6 Must projects done (50%). 1 in progress, 2 not started.
 
 | # | Progress | Project | GA | Owner | Status | Next |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | 🔄 4/5 | Emulator controls in the `prisma` CLI: start, stop, list, reset | Must, urgent | Will | 4 of 5 slices merged. `prisma` has `prisma dev --detach`, `prisma dev stop`, `prisma dev url` and `prisma emulator list` since 2026-10-19. The docs slice is left. Reset is not in this project | The docs slice: Composer's pages stop hard-coding ports. Decide whether reset is still needed |
+| 1 | ✅ 5/5 | Emulator controls in the `prisma` CLI: start, stop, list, reset | Must, urgent | Will | Done 2026-10-21. `prisma dev --detach`, `prisma dev stop`, `prisma dev url` and `prisma emulator list` ship in `prisma@8.0.0-rc.24`, and the docs slice merged. Reset was not built | Decide whether reset is still needed |
 | 1b | ⏳ | A Prisma Studio command in the `prisma` CLI | Must, urgent | Serhii | Not started, no ticket. Prisma 8's `prisma` has no Studio command; Prisma 7's `prisma studio` has no replacement |  |
 | 2 | 🔄 2/4 | VS Code extension: formatter without the CLI, go-to-definition, multi-file PSL, emulator controls | Must | Serhii | Go-to-definition and multi-file PSL done. Rename merged. File watching approved, not merged; a fix to removing a file watcher merged 2026-10-20. Formatter without the CLI unverified. Emulator controls wait on row 1 | Merge the file-watching PR. Verify the formatter works without the CLI |
 | 3 | ⏳ | Make the extension's handling of local and remote Prisma Postgres match the CLI and its emulators | Must | Serhii | Not started |  |
@@ -115,6 +114,17 @@ Test: the getting-started eval passes, in few steps and with no workarounds.
 | 5 | 🔄 | Docs restructure | Must | Will | Draft since 2026-09-30 | |
 | 6 | ⏳ | Document that cursor pagination starts after the cursor row | Aim | Will | Not tracked | |
 | 7 | ⏳ | Update the records that contradict the code | Aim | Will | Not started |  |
+
+## Stream 6: Work found along the way
+
+**GA readiness:** 0 of 1 Must projects done (0%). 0 in progress, 1 not started.
+
+Work found after the plan was made goes here, so the first five streams keep the scope they started with (Will, 2026-10-21).
+
+| # | Progress | Project | GA | Owner | Status | Next |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | ⏳ | Remove the `unbound` / `__unbound__` namespace alias, keeping one name | Not decided | Serhii | Serhii proposed it in a docs PR to the RC plan, not merged. Not started | |
+| 2 | ⏳ | Shrink the generated contract files, so a PR's line count shows the change and not the regenerated `contract.d.ts` and `contract.json` | Must | Will | Not started, no ticket. Migration snapshots in every user's `migrations/` folder hold both files. Possibly minify them or strip whitespace (Will, 2026-10-21) |  |
 
 ## Databases
 
