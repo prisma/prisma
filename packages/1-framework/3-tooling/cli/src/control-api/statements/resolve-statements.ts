@@ -772,6 +772,24 @@ function resolveNamespaceRename(
   });
 }
 
+/** Whether an earlier or a later statement of the run renames the model with its namespace. */
+function renamedElsewhere(
+  state: ResolutionState,
+  later: readonly ParsedRename[],
+  model: ModelCoordinate,
+): boolean {
+  if (state.renamedFrom.has(`${MODEL_RENAMES}:${qualifiedModel(model)}`)) return true;
+  return later.some((candidate) => {
+    if (candidate.from.length !== 2) return false;
+    const reading = readSide(state, 'old', candidate.from);
+    return (
+      reading.ok &&
+      reading.value.entity === 'model' &&
+      qualifiedModel(reading.value.coordinate) === qualifiedModel(model)
+    );
+  });
+}
+
 /**
  * A statement with one name on each side reads as a namespace rename or a model rename. Exactly
  * one reading must resolve; `undefined` leaves the statement to the model reading.
@@ -779,6 +797,7 @@ function resolveNamespaceRename(
 function resolveOneNameStatement(
   state: ResolutionState,
   statement: ParsedRename,
+  later: readonly ParsedRename[],
   from: string,
   to: string,
 ): Result<ResolvedMigrationStatement, CliStructuredError> | undefined {
@@ -786,6 +805,13 @@ function resolveOneNameStatement(
   if (asNamespace === undefined) return undefined;
   const fromModel = readModel(state, 'old', undefined, from);
   const toModel = readModel(state, 'new', undefined, to);
+  if (
+    asNamespace.ok &&
+    fromModel.ok &&
+    renamedElsewhere(state, later, fromModel.value.coordinate)
+  ) {
+    return resolveNamespaceRename(state, statement, asNamespace.value);
+  }
   if (asNamespace.ok && fromModel.ok && toModel.ok) {
     const oldModel = qualifiedModel(fromModel.value.coordinate);
     const newModel = qualifiedModel(toModel.value.coordinate);
@@ -793,7 +819,7 @@ function resolveOneNameStatement(
       errorStatementUnresolved(
         statement,
         `"${statement.text}" reads both as a rename of namespace "${from}" to "${to}" and as a rename of model "${oldModel}" to "${newModel}".`,
-        `To rename the model, name it with its namespace: --${statement.verb} ${oldModel}:${newModel}. A namespace is named by its name alone, so to rename the namespace, rename the model in a plan of its own first.`,
+        `To rename the model, name it with its namespace: --${statement.verb} ${oldModel}:${newModel}. To rename both the namespace and the model, give both statements: --${statement.verb} ${oldModel}:${newModel} --${statement.verb} ${statement.text}.`,
       ),
     );
   }
@@ -808,7 +834,13 @@ function resolveStatement(
   later: readonly ParsedRename[],
 ): Result<ResolvedMigrationStatement, CliStructuredError> {
   if (statement.from.length === 1 && statement.to.length === 1) {
-    const oneName = resolveOneNameStatement(state, statement, statement.from[0], statement.to[0]);
+    const oneName = resolveOneNameStatement(
+      state,
+      statement,
+      later,
+      statement.from[0],
+      statement.to[0],
+    );
     if (oneName !== undefined) return oneName;
   }
   const from = readSide(state, 'old', statement.from);

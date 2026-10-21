@@ -53,7 +53,7 @@ describe('resolveStatements, namespace renames', () => {
     const failure = expectFailure(resolve(['billing:finance'], origin, destination), UNRESOLVED);
     expect({ why: failure.why, fix: failure.fix }).toEqual({
       why: '"billing:finance" reads both as a rename of namespace "billing" to "finance" and as a rename of model "app.billing" to "app.finance".',
-      fix: 'To rename the model, name it with its namespace: --rename app.billing:app.finance. A namespace is named by its name alone, so to rename the namespace, rename the model in a plan of its own first.',
+      fix: 'To rename the model, name it with its namespace: --rename app.billing:app.finance. To rename both the namespace and the model, give both statements: --rename app.billing:app.finance --rename billing:finance.',
     });
   });
 
@@ -90,5 +90,30 @@ describe('resolveStatements, namespace renames', () => {
       INVALID,
     );
     expect(failure.why).toBe('An earlier statement already renames namespace "billing".');
+  });
+
+  it('reads one name as the namespace when another statement renames the model of that name, in either order', () => {
+    const origin = contractOf({
+      app: { models: { billing: {} } },
+      billing: { models: { Invoice: {} } },
+    });
+    const destination = contractOf({
+      app: { models: { finance: {} } },
+      finance: { models: { Invoice: {} } },
+    });
+    const namespace = { kind: 'rename', entity: 'namespace', from: 'billing', to: 'finance' };
+    const model = {
+      kind: 'rename',
+      entity: 'model',
+      from: { namespaceId: 'app', model: 'billing' },
+      to: { namespaceId: 'app', model: 'finance' },
+    };
+
+    expect(
+      expectValue(resolve(['app.billing:app.finance', 'billing:finance'], origin, destination)),
+    ).toEqual([model, namespace]);
+    expect(
+      expectValue(resolve(['billing:finance', 'app.billing:app.finance'], origin, destination)),
+    ).toEqual([namespace, model]);
   });
 });
