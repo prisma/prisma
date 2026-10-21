@@ -23,6 +23,7 @@ import type {
   CallWithCompanions,
   planStatements,
   StatementPlanningTarget,
+  TableMove,
 } from '../src/core/migrations/statement-planning';
 
 export interface ModelSpec {
@@ -151,12 +152,14 @@ export function renameField(
   from: string,
   to: string,
   newModel = model,
+  fromNs = 'app',
+  toNs = fromNs,
 ): ResolvedFieldRenameStatement {
   return {
     kind: 'rename',
     entity: 'field',
-    from: { namespaceId: asNamespaceId('app'), model, field: from },
-    to: { namespaceId: asNamespaceId('app'), model: newModel, field: to },
+    from: { namespaceId: asNamespaceId(fromNs), model, field: from },
+    to: { namespaceId: asNamespaceId(toNs), model: newModel, field: to },
   };
 }
 
@@ -180,7 +183,7 @@ export function backfillField(
   };
 }
 
-/** A fake target's call: its text names the rename, and it carries one companion. */
+/** A fake target's call: its text names the rename or move, and a rename carries one companion. */
 export interface FakeCall extends CallWithCompanions {
   readonly text: string;
 }
@@ -188,15 +191,18 @@ export interface FakeCall extends CallWithCompanions {
 /**
  * A target whose calls carry a text naming the rename and one companion, and whose working schema
  * maps each qualified table name to its columns. Every operation has the first of
- * `operationClasses`.
+ * `operationClasses`. `namespaces` lists the namespaces the working schema has; when it is left
+ * out, it has every namespace, and a move creates none.
  */
 export function fakeTarget(
   initial: readonly string[],
   columns: Readonly<Record<string, readonly string[]>> = {},
   operationClasses: readonly MigrationOperationClass[] = ['widening'],
   sameName: (left: string, right: string) => boolean = (left, right) => left === right,
+  namespaces?: readonly string[],
 ): StatementPlanningTarget<FakeCall> {
   const tables = new Map(initial.map((table) => [table, new Set(columns[table] ?? [])]));
+  const existingNamespaces = namespaces === undefined ? undefined : new Set(namespaces);
   const schemaTables: SchemaTables = {
     hasTable: (namespaceId, table) => tables.has(`${namespaceId}.${table}`),
     hasColumn: (namespaceId, table, column) =>
@@ -220,6 +226,15 @@ export function fakeTarget(
   });
   return {
     tables: () => schemaTables,
+    createNamespaceCalls: (namespaceId: string) =>
+      existingNamespaces === undefined || existingNamespaces.has(namespaceId)
+        ? []
+        : [{ text: `namespace ${namespaceId}`, operationClass: 'additive', companions: [] }],
+    moveTableCall: (move: TableMove) => ({
+      text: `move ${move.from}.${move.table} -> ${move.to}`,
+      operationClass,
+      companions: [],
+    }),
     renameTableCall: (rename: TableRename) =>
       call(`table ${rename.namespaceId}.${rename.from} -> ${rename.to}`),
     renameColumnCall: (rename: ColumnRename) =>
@@ -231,6 +246,17 @@ export function fakeTarget(
     ],
     apply: ({ text }) => {
       const [kind, from, , to] = text.split(' ');
+      if (kind === 'namespace' && from !== undefined) {
+        existingNamespaces?.add(from);
+        return;
+      }
+      if (kind === 'move' && from !== undefined && to !== undefined) {
+        const [, table] = from.split('.');
+        const existing = tables.get(from) ?? new Set<string>();
+        tables.delete(from);
+        tables.set(`${to}.${table}`, existing);
+        return;
+      }
       if (from === undefined || to === undefined) return;
       const parts = from.split('.');
       if (kind === 'table') {

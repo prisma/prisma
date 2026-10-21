@@ -73,6 +73,7 @@ import type { PostgresOpFactoryCall } from './op-factory-call';
 import {
   AlterColumnTypeCall,
   CreatePostgresRlsPolicyCall,
+  CreateSchemaCall,
   DropColumnCall,
   DropNativeEnumTypeCall,
   DropPostgresRlsPolicyCall,
@@ -81,11 +82,15 @@ import {
   type RenameColumnCall,
   RenamePostgresRlsPolicyCall,
   type RenameTableCall,
+  SetTableSchemaCall,
 } from './op-factory-call';
 import { postgresCallSubjects } from './operation-subjects';
 import { TypeScriptRenderablePostgresMigration } from './planner-produced-postgres-migration';
 import { postgresPlannerStrategies } from './planner-strategies';
-import { resolveDdlSchemaForNamespaceStorage } from './resolve-ddl-schema';
+import {
+  emissionSchemaForNamespace,
+  resolveDdlSchemaForNamespaceStorage,
+} from './resolve-ddl-schema';
 import { postgresSchemaTables } from './schema-tables';
 import {
   postgresColumnRenameCall,
@@ -745,19 +750,33 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     options: SqlMigrationPlannerPlanOptions,
     schema: PostgresDatabaseSchemaNode,
   ): Result<
-    PlannedStatements<RenameTableCall | RenameColumnCall> & {
+    PlannedStatements<StatementCall> & {
       readonly schema: PostgresDatabaseSchemaNode;
     },
     SqlPlannerConflict
   > {
     const working = createWorkingSchema(schema);
-    const planned = planStatements<RenameTableCall | RenameColumnCall>({
+    const ddlSchemaOf = (namespaceId: string) =>
+      resolveDdlSchemaForNamespaceStorage(options.contract.storage, namespaceId);
+    const planned = planStatements<StatementCall>({
       statements: options.statements.filter(isRenameStatement),
       fromContract: options.fromContract,
       contract: options.contract,
       policy: options.policy,
       target: {
         tables: () => postgresSchemaTables(working.current, options.contract),
+        createNamespaceCalls: (namespaceId) => {
+          const schemaName = ddlSchemaOf(namespaceId);
+          return working.current.existingSchemas.includes(schemaName)
+            ? []
+            : [new CreateSchemaCall(schemaName)];
+        },
+        moveTableCall: (move) =>
+          new SetTableSchemaCall(
+            emissionSchemaForNamespace(options.contract, move.from),
+            move.table,
+            ddlSchemaOf(move.to),
+          ),
         renameTableCall: (rename) =>
           postgresTableRenameCall({
             previous: working.current,
@@ -793,6 +812,8 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     return null;
   }
 }
+
+type StatementCall = RenameTableCall | RenameColumnCall | CreateSchemaCall | SetTableSchemaCall;
 
 /**
  * A diff issue whose node is an RLS policy — the structural half of the one

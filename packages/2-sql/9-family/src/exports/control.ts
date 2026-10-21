@@ -115,6 +115,7 @@ export type {
   SingleOperationCall,
   StatementColumn,
   StatementPlanningTarget,
+  TableMove,
   TableRenameByHand,
 } from '../core/migrations/statement-planning';
 export {

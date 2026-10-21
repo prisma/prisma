@@ -236,18 +236,22 @@ export abstract class PostgresMigration<
   /**
    * Emit an `ALTER TABLE … SET SCHEMA` operation that moves `table` from `schema` to the schema
    * `to`. Leave out `schema` for a table of the unbound namespace. Indexes, constraints and owned
-   * sequences move with the table, and foreign keys from other tables keep pointing at it.
+   * sequences move with the table, and foreign keys from other tables keep pointing at it. Later
+   * rename calls find the table in its new schema.
    */
   protected setTableSchema(options: {
     readonly schema?: string;
     readonly table: string;
     readonly to: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    return new SetTableSchemaCall(
+    const call = new SetTableSchemaCall(
       options.schema ?? UNBOUND_NAMESPACE_ID,
       options.table,
       options.to,
-    ).toOp(this.controlAdapterFor('setTableSchema'));
+    );
+    const op = call.toOp(this.controlAdapterFor('setTableSchema'));
+    this.#renames.push(call);
+    return op;
   }
 
   /** Emit an `ALTER SCHEMA … RENAME TO` operation. Everything in the schema keeps its place in it. */

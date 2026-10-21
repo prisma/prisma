@@ -18,6 +18,7 @@ import {
   type ResolvedModelRenameStatement,
   type ResolvedRenameStatement,
 } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { type SqlModelStorage, type SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import {
@@ -156,10 +157,18 @@ export interface SingleOperationCall {
 
 /**
  * A call that lowers to its own operation, then each companion's, in that order: a table or column
- * rename, whether a statement plans it or a hand-written migration calls it.
+ * rename, whether a statement plans it or a hand-written migration calls it. A call with no
+ * companions, such as a table move, leaves them out.
  */
 export interface CallWithCompanions extends SingleOperationCall {
-  readonly companions: readonly SingleOperationCall[];
+  readonly companions?: readonly SingleOperationCall[];
+}
+
+/** A table moving, under its own name, from one storage namespace to another. */
+export interface TableMove {
+  readonly table: string;
+  readonly from: string;
+  readonly to: string;
 }
 
 /** How a user renames a table by hand, written for the target. */
@@ -177,6 +186,13 @@ export interface StatementPlanningTarget<TCall extends CallWithCompanions>
   tables(): SchemaTables;
   /** The call that renames a table, with its companions, computed against the working schema. */
   renameTableCall(rename: TableRename): TCall;
+  /**
+   * The calls a table moving into `namespaceId` needs first, such as creating the namespace: none
+   * when the working schema has it.
+   */
+  createNamespaceCalls(namespaceId: string): readonly TCall[];
+  /** The call that moves a table to another namespace, computed against the working schema. */
+  moveTableCall(move: TableMove): TCall;
   /** The call that renames a column, with its companions, computed against the working schema. */
   renameColumnCall(rename: ColumnRename): TCall;
   /** Applies a call to the working schema. */
@@ -184,7 +200,7 @@ export interface StatementPlanningTarget<TCall extends CallWithCompanions>
 }
 
 function operationsOf(call: CallWithCompanions): readonly SingleOperationCall[] {
-  return [call, ...call.companions];
+  return [call, ...(call.companions ?? [])];
 }
 
 export interface PlannedStatements<TCall extends CallWithCompanions> {
@@ -244,6 +260,12 @@ function tableControlPolicy(contract: Contract<SqlStorage>, table: ModelTable) {
 
 function tableKey(table: ModelTable): string {
   return JSON.stringify([table.namespaceId, table.table]);
+}
+
+function qualifiedTable(table: ModelTable): string {
+  return table.namespaceId === UNBOUND_NAMESPACE_ID
+    ? table.table
+    : `${table.namespaceId}.${table.table}`;
 }
 
 function tableRenameRefused(
@@ -323,8 +345,8 @@ class StatementPlanner<TCall extends CallWithCompanions> {
   readonly #contract: Contract<SqlStorage>;
   readonly #policy: MigrationOperationPolicy;
   readonly #target: StatementPlanningTarget<TCall>;
-  /** The name each table renamed so far has in the working schema, keyed by its origin name. */
-  readonly #renamedTables = new Map<string, string>();
+  /** Where each table renamed or moved so far is in the working schema, keyed by its origin place. */
+  readonly #renamedTables = new Map<string, ModelTable>();
   readonly calls: TCall[] = [];
   /** How many operations the calls planned so far lower to. */
   #operationCount = 0;
@@ -406,17 +428,14 @@ class StatementPlanner<TCall extends CallWithCompanions> {
     }
     const effect = worked.value;
     if (effect.kind === 'unchanged') return ok([]);
-    if (effect.kind === 'moveNamespace') {
-      return notOk(
-        statementRefused(
-          statement,
-          `Moving a model to another namespace is not supported in this release: "${modelDisplayName(statement.from)}" to "${modelDisplayName(statement.to)}"`,
-          `The model's table would move from namespace "${effect.from.namespaceId}" to namespace "${effect.to.namespaceId}". Leave out this statement and move the table yourself in a hand-written migration, or keep the model in namespace "${effect.from.namespaceId}".`,
-          effect.from,
-        ),
-      );
-    }
-    const { rename } = effect;
+    if (effect.kind === 'moveNamespace') return this.#planMove(statement, effect.from, effect.to);
+    return this.#planTableRename(statement, effect.rename);
+  }
+
+  #planTableRename(
+    statement: ResolvedModelRenameStatement,
+    rename: TableRename,
+  ): Result<readonly number[], SqlPlannerConflict> {
     const destinationTable = { namespaceId: rename.namespaceId, table: rename.to };
     const label = `Cannot rename table "${rename.from}" to "${rename.to}"`;
     const policyRefusal = this.#controlPolicyRefusal(statement, label, destinationTable);
@@ -435,10 +454,83 @@ class StatementPlanner<TCall extends CallWithCompanions> {
       this.tableRenames.push(rename);
       this.#renamedTables.set(
         tableKey({ namespaceId: rename.namespaceId, table: rename.from }),
-        rename.to,
+        destinationTable,
       );
     }
     return planned;
+  }
+
+  /**
+   * Moves the table to the destination namespace under its own name, creating the namespace first
+   * when the working schema lacks it, then renames it there when the destination names it
+   * differently. The statement accounts for the move and the rename, not the namespace's creation.
+   */
+  #planMove(
+    statement: ResolvedModelRenameStatement,
+    from: ModelTable,
+    to: ModelTable,
+  ): Result<readonly number[], SqlPlannerConflict> {
+    if (to.namespaceId === UNBOUND_NAMESPACE_ID) {
+      return notOk(
+        statementRefused(
+          statement,
+          `Cannot move table "${from.table}" from namespace "${from.namespaceId}" to the unbound namespace: the unbound namespace has no fixed place in the database`,
+          `A table of the unbound namespace lives wherever the connection that uses it looks, so a migration cannot move a table there. Move the table yourself and leave out this statement, or keep the model in namespace "${from.namespaceId}".`,
+          from,
+        ),
+      );
+    }
+    const moved = { namespaceId: to.namespaceId, table: from.table };
+    const label = `Cannot move table "${from.table}" from namespace "${from.namespaceId}" to namespace "${to.namespaceId}"`;
+    const policyRefusal = this.#controlPolicyRefusal(statement, label, to);
+    if (policyRefusal !== undefined) return notOk(policyRefusal);
+    const tables = this.#target.tables();
+    if (!tables.hasTable(from.namespaceId, from.table)) {
+      return notOk(
+        statementRefused(
+          statement,
+          `${label}: the schema being planned from has no table "${qualifiedTable(from)}"`,
+          `The database has no table "${qualifiedTable(from)}", although the contract it was last updated to names it, ${DRIFTED}`,
+          from,
+        ),
+      );
+    }
+    const [taken] = [
+      ...tables.tablesNamed(to.namespaceId, from.table),
+      ...tables.tablesNamed(to.namespaceId, to.table),
+    ];
+    if (taken !== undefined) {
+      const takenTable = qualifiedTable({ namespaceId: to.namespaceId, table: taken });
+      return notOk(
+        statementRefused(
+          statement,
+          `${label}: the schema being planned from already has a table "${takenTable}"`,
+          `A move cannot replace a table that already exists. Rename, move or drop table "${takenTable}" first, or leave out this statement.`,
+          { namespaceId: to.namespaceId, table: taken },
+        ),
+      );
+    }
+    for (const call of this.#target.createNamespaceCalls(to.namespaceId)) {
+      const created = this.#emit(statement, label, moved, call);
+      if (!created.ok) return created;
+    }
+    const planned = this.#emit(
+      statement,
+      label,
+      moved,
+      this.#target.moveTableCall({ table: from.table, from: from.namespaceId, to: to.namespaceId }),
+    );
+    if (!planned.ok) return planned;
+    this.#renamedTables.set(tableKey(from), moved);
+    if (to.table === from.table) return planned;
+    const renamed = this.#planTableRename(statement, {
+      namespaceId: to.namespaceId,
+      from: from.table,
+      to: to.table,
+    });
+    if (!renamed.ok) return renamed;
+    this.#renamedTables.set(tableKey(from), to);
+    return ok([...planned.value, ...renamed.value]);
   }
 
   #planField(
@@ -467,15 +559,15 @@ class StatementPlanner<TCall extends CallWithCompanions> {
     }
     const effect = worked.value;
     if (effect.kind === 'unchanged') return ok([]);
-    const table = this.#renamedTables.get(tableKey(effect.table)) ?? effect.table.table;
+    const current = this.#renamedTables.get(tableKey(effect.table)) ?? effect.table;
+    const table = current.table;
     const destinationTable = modelTable(this.#contract, statement.to);
     if (
       destinationTable !== undefined &&
-      (destinationTable.namespaceId !== effect.table.namespaceId ||
-        destinationTable.table !== table)
+      (destinationTable.namespaceId !== current.namespaceId || destinationTable.table !== table)
     ) {
       const tableRename = {
-        namespaceId: effect.table.namespaceId,
+        namespaceId: current.namespaceId,
         from: table,
         to: destinationTable.table,
       };
@@ -486,12 +578,12 @@ class StatementPlanner<TCall extends CallWithCompanions> {
           statement,
           `Cannot rename column "${table}"."${effect.from}": the model's table changes from "${table}" to "${destinationTable.table}", and no statement renames the table`,
           `The column would be renamed on a table the plan then drops and creates under the new name, and a migration that only changes the table name is planned the same way. With migration plan, rename the table by hand in its own migration first. Change the contract so that only the table name changes, and run prisma contract emit. Run prisma migration new --name <name> --from <hash of the migration the database is at>, add ${this.#target.renderTableRename(tableRename)} to the operations of its migration.ts, and run node on that migration.ts to write its ops.json. Then change the contract to its final form, emit it, and plan the field rename with --from that migration. With db update, change the contract so that only the table name changes, and run prisma contract emit. Rename the table in the database yourself with ${this.#target.tableRenameByHand(tableRename).join('; ')}, check that prisma db update --dry-run plans no drop of a table or column, and run prisma db update to store that contract. Then emit the final contract and run prisma db update --rename ${fieldText}.`,
-          { namespaceId: effect.table.namespaceId, table, column: effect.from },
+          { namespaceId: current.namespaceId, table, column: effect.from },
         ),
       );
     }
     const rename: ColumnRename = {
-      namespaceId: effect.table.namespaceId,
+      namespaceId: current.namespaceId,
       table,
       from: effect.from,
       to: effect.to,

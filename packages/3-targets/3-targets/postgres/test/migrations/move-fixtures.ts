@@ -1,0 +1,120 @@
+import { createHash } from 'node:crypto';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { postgresCreateNamespace } from '../../src/core/postgres-schema';
+
+const int4 = { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false };
+const text = { dataType: 'pg/text', codecId: 'pg/text@1', nullable: false };
+
+interface Placement {
+  /** The namespace of each table, by table name. */
+  readonly [table: string]: string;
+}
+
+export function invoiceTable(): StorageTable {
+  return new StorageTable({
+    columns: { id: int4, number: text },
+    primaryKey: { columns: ['id'] },
+    uniques: [{ columns: ['number'] }],
+    indexes: [],
+    foreignKeys: [],
+  });
+}
+
+function paymentTable(
+  paymentNamespace: string,
+  invoiceNamespace: string,
+  invoiceTableName: string,
+): StorageTable {
+  return new StorageTable({
+    columns: { id: int4, invoiceId: int4 },
+    primaryKey: { columns: ['id'] },
+    uniques: [],
+    indexes: [],
+    foreignKeys: [
+      {
+        source: { namespaceId: paymentNamespace, tableName: 'payment', columns: ['invoiceId'] },
+        target: { namespaceId: invoiceNamespace, tableName: invoiceTableName, columns: ['id'] },
+      },
+    ],
+  });
+}
+
+export function receiptTable(): StorageTable {
+  return new StorageTable({
+    columns: { id: int4 },
+    primaryKey: { columns: ['id'] },
+    uniques: [],
+    indexes: [],
+    foreignKeys: [],
+  });
+}
+
+/**
+ * A contract with model `Payment` in `public`, whose foreign key references the invoice table, and
+ * the invoice model `invoiceModel` in table `invoiceTableName` of `invoiceNamespace`.
+ * `extraTables` adds tables with no model.
+ */
+export function contractWith(options: {
+  readonly invoiceNamespace: string;
+  readonly paymentNamespace?: string;
+  readonly invoiceModel?: string;
+  readonly invoiceTableName?: string;
+  readonly extraTables?: Readonly<Record<string, { namespace: string; table: StorageTable }>>;
+  readonly seed: string;
+}): Contract<SqlStorage> {
+  const invoiceModel = options.invoiceModel ?? 'Invoice';
+  const invoiceTableName = options.invoiceTableName ?? 'Invoice';
+  const paymentNamespace = options.paymentNamespace ?? 'public';
+  const tables: Record<string, Record<string, StorageTable>> = {
+    [paymentNamespace]: {
+      payment: paymentTable(paymentNamespace, options.invoiceNamespace, invoiceTableName),
+    },
+  };
+  const add = (namespace: string, name: string, table: StorageTable) => {
+    tables[namespace] = { ...tables[namespace], [name]: table };
+  };
+  add(options.invoiceNamespace, invoiceTableName, invoiceTable());
+  for (const [name, extra] of Object.entries(options.extraTables ?? {})) {
+    add(extra.namespace, name, extra.table);
+  }
+  const placement: Placement = {
+    payment: paymentNamespace,
+    [invoiceTableName]: options.invoiceNamespace,
+  };
+  const model = (table: string) => ({
+    fields: {},
+    relations: {},
+    storage: { table, namespaceId: placement[table] ?? paymentNamespace, fields: {} },
+  });
+  const models: Record<string, Record<string, ReturnType<typeof model>>> = {
+    [paymentNamespace]: { Payment: model('payment') },
+  };
+  models[options.invoiceNamespace] = {
+    ...models[options.invoiceNamespace],
+    [invoiceModel]: model(invoiceTableName),
+  };
+  return {
+    target: 'postgres',
+    targetFamily: 'sql',
+    profileHash: profileHash(options.seed),
+    storage: new SqlStorage({
+      storageHash: coreHash(createHash('sha256').update(options.seed).digest('hex')),
+      namespaces: Object.fromEntries(
+        Object.entries(tables).map(([id, entries]) => [
+          id,
+          postgresCreateNamespace({ id, entries: { table: entries } }),
+        ]),
+      ),
+    }),
+    roots: {},
+    domain: {
+      namespaces: Object.fromEntries(
+        Object.entries(models).map(([id, namespaceModels]) => [id, { models: namespaceModels }]),
+      ),
+    },
+    capabilities: {},
+    extensions: {},
+    meta: {},
+  };
+}
