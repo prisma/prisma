@@ -472,7 +472,7 @@ export interface AskedSubject extends MigrationOperationSubject {
   /** The subject's namespace when the destination removed it: a `--delete` of it answers the question. */
   readonly removedNamespace?: string;
   /** The namespaces the destination adds, any of which a rename of the removed namespace may name. */
-  readonly namespaceRenameTargets?: readonly string[];
+  readonly addedNamespaces?: readonly string[];
 }
 
 /** An operation an apply asks about because it loses its subject's data. */

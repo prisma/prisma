@@ -383,8 +383,16 @@ describe('db update --rename', () => {
     });
     expect(json.presented?.data).toMatchObject({
       dataLoss: [
-        { answered: true, answeredBy: '--delete billing', removedNamespace: 'billing' },
-        { answered: true, answeredBy: '--delete billing', removedNamespace: 'billing' },
+        {
+          answered: true,
+          answeredBy: { verb: 'delete', text: 'billing' },
+          removedNamespace: 'billing',
+        },
+        {
+          answered: true,
+          answeredBy: { verb: 'delete', text: 'billing' },
+          removedNamespace: 'billing',
+        },
       ],
     });
   });
@@ -400,7 +408,7 @@ describe('db update --rename', () => {
             subject: invoice,
             text: 'billing.Invoice',
             removedNamespace: 'billing',
-            namespaceRenameTargets: ['finance'],
+            addedNamespaces: ['finance'],
           },
         ],
       }),

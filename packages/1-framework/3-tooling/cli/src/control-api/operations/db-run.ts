@@ -415,7 +415,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     const targets = addedNamespaces(contractsAsked);
     return {
       removedNamespace,
-      ...(targets.length === 0 ? {} : { namespaceRenameTargets: targets }),
+      ...(targets.length === 0 ? {} : { addedNamespaces: targets }),
     };
   };
   const asked = <TEntry extends MigrationOperationSubject>(entries: readonly TEntry[]) =>

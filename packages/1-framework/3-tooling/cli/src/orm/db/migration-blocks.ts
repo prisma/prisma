@@ -186,8 +186,10 @@ function namespaceAnswerLines(
   }
   return [...byNamespace].map(([namespace, ofNamespace]) => {
     const deleteFlag = statementFlag({ verb: 'delete', text: namespace });
-    const answered = ofNamespace.some(({ answeredBy }) => answeredBy === deleteFlag);
-    const targets = ofNamespace[0]?.namespaceRenameTargets ?? [];
+    const answered = ofNamespace.some(
+      ({ answeredBy }) => answeredBy?.verb === 'delete' && answeredBy.text === namespace,
+    );
+    const targets = ofNamespace[0]?.addedNamespaces ?? [];
     const rename =
       targets.length === 0
         ? ''

@@ -55,12 +55,12 @@ export interface PlannedSubjectJson {
   readonly text: string;
   /** Whether a `--delete` or `--allow` the dry run was given answers this question. */
   readonly answered: boolean;
-  /** The flag that answers it, when one does, such as `--delete billing`. */
-  readonly answeredBy?: string;
+  /** The statement that answers it, when one does, such as `{ verb: 'delete', text: 'billing' }`. */
+  readonly answeredBy?: { readonly verb: 'delete' | 'allow'; readonly text: string };
   /** The subject's namespace when the destination removed it: `--delete` of it answers the question. */
   readonly removedNamespace?: string;
   /** The namespaces the destination adds, any of which a rename of the removed namespace may name. */
-  readonly namespaceRenameTargets?: readonly string[];
+  readonly addedNamespaces?: readonly string[];
 }
 
 export interface MigrationCommandResult {

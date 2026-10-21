@@ -25,7 +25,7 @@ import {
   preflightRefAdvancement,
 } from '../../control-api/operations/ref-advancement';
 import { retryCommandFor } from '../../control-api/operations/ref-resolution';
-import { consentAnswers } from '../../control-api/statements/plan-questions';
+import { consentAnswers, matchDeletes } from '../../control-api/statements/plan-questions';
 import { shellQuoted, statementFlag } from '../../control-api/statements/statement-flag';
 import { isStatementVerb, type StatementText } from '../../control-api/statements/statement-text';
 import type {
@@ -109,28 +109,47 @@ function answeredByFlags(
   entries: readonly AskedSubject[],
   verb: 'delete' | 'allow',
   given: readonly StatementText[],
-): readonly (StatementText | undefined)[] {
-  const flags = given.filter((statement) => statement.verb === verb);
-  const taken = new Set<StatementText>();
+): readonly (ConsentStatement | undefined)[] {
+  const flags = given.filter((statement) => statement.verb === verb).map(({ text }) => text);
+  if (verb === 'delete') {
+    const matched = matchDeletes(
+      entries.map(({ text, removedNamespace }) => ({ text, removedNamespace })),
+      flags,
+    );
+    return entries.map((entry) => {
+      const text = [...matched.answered].find(
+        ([index]) => entries[index]?.text === entry.text,
+      )?.[1];
+      return text === undefined ? undefined : { verb, text };
+    });
+  }
+  const taken = new Set<number>();
   return entries.map((entry) => {
-    const target = { text: entry.text, removedNamespace: entry.removedNamespace };
-    const matching = flags.filter((flag) => consentAnswers(verb, flag.text, target));
-    if (verb === 'delete') return matching[0];
-    const first = matching.find((flag) => !taken.has(flag));
-    if (first !== undefined) taken.add(first);
-    return first;
+    const position = flags.findIndex(
+      (flag, index) =>
+        !taken.has(index) &&
+        consentAnswers(verb, flag, { text: entry.text, removedNamespace: entry.removedNamespace }),
+    );
+    if (position === -1) return undefined;
+    taken.add(position);
+    return { verb, text: flags[position] ?? '' };
   });
 }
 
-function subjectEntryJson(entry: AskedSubject, answeredBy: StatementText | undefined) {
+interface ConsentStatement {
+  readonly verb: 'delete' | 'allow';
+  readonly text: string;
+}
+
+function subjectEntryJson(entry: AskedSubject, answeredBy: ConsentStatement | undefined) {
   return {
     operationIndex: entry.operationIndex,
     subject: migrationSubjectJson(entry.subject),
     text: entry.text,
     answered: answeredBy !== undefined,
-    ...ifDefined('answeredBy', answeredBy === undefined ? undefined : statementFlag(answeredBy)),
+    ...ifDefined('answeredBy', answeredBy),
     ...ifDefined('removedNamespace', entry.removedNamespace),
-    ...ifDefined('namespaceRenameTargets', entry.namespaceRenameTargets),
+    ...ifDefined('addedNamespaces', entry.addedNamespaces),
   };
 }
 
