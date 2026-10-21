@@ -91,6 +91,40 @@ describe('describeMigrationStatement', () => {
     ).toBe('rename model "app.Profile" to "app.User"');
   });
 
+  it('names a model moved to another namespace as moved, with both namespaces', () => {
+    const move: ResolvedMigrationStatement = {
+      kind: 'rename',
+      entity: 'model',
+      from: { namespaceId: asNamespaceId('billing'), model: 'Invoice' },
+      to: { namespaceId: asNamespaceId('public'), model: 'Invoice' },
+    };
+
+    expect(
+      describeMigrationStatement(
+        move,
+        contractWith({ billing: ['Invoice'] }),
+        contractWith({ public: ['Invoice'] }),
+      ),
+    ).toBe('move model "billing.Invoice" to namespace "public"');
+  });
+
+  it('names both namespaces when a model is moved and renamed', () => {
+    const moveAndRename: ResolvedMigrationStatement = {
+      kind: 'rename',
+      entity: 'model',
+      from: { namespaceId: asNamespaceId('billing'), model: 'Invoice' },
+      to: { namespaceId: asNamespaceId('finance'), model: 'Bill' },
+    };
+
+    expect(
+      describeMigrationStatement(
+        moveAndRename,
+        contractWith({ billing: ['Invoice'] }),
+        contractWith({ finance: ['Bill'] }),
+      ),
+    ).toBe('rename model "billing.Invoice" to "finance.Bill"');
+  });
+
   it('names the old field through the model as the destination names it', () => {
     expect(
       describeMigrationStatement(

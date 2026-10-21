@@ -283,9 +283,16 @@ export function migrationSubjectJson(subject: MigrationSubject): MigrationSubjec
   }
 }
 
+function qualifiedModelText(coordinate: ModelCoordinate): string {
+  return coordinate.namespaceId === UNBOUND_NAMESPACE_ID
+    ? coordinate.model
+    : `${coordinate.namespaceId}.${coordinate.model}`;
+}
+
 /**
  * The text that reports a statement, in domain names: a model or field is named with its
- * namespace only when its contract has more than one. A renamed field is named through its model as
+ * namespace only when its contract has more than one, and a model moved to another namespace always
+ * is. A renamed field is named through its model as
  * the destination contract names it, as the statement itself is written.
  */
 export function describeMigrationStatement(
@@ -300,7 +307,14 @@ export function describeMigrationStatement(
     return `rename namespace "${statement.from}" to "${statement.to}"`;
   }
   if (statement.entity === 'model') {
-    return `rename model "${modelStatementText(fromContract, statement.from)}" to "${modelStatementText(contract, statement.to)}"`;
+    const { from, to } = statement;
+    if (from.namespaceId === to.namespaceId) {
+      return `rename model "${modelStatementText(fromContract, from)}" to "${modelStatementText(contract, to)}"`;
+    }
+    if (from.model === to.model) {
+      return `move model "${qualifiedModelText(from)}" to namespace "${to.namespaceId}"`;
+    }
+    return `rename model "${qualifiedModelText(from)}" to "${qualifiedModelText(to)}"`;
   }
   const model = modelStatementText(contract, statement.to);
   return `rename field "${model}.${statement.from.field}" to "${model}.${statement.to.field}"`;
