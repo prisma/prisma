@@ -1,5 +1,5 @@
 /**
- * The upgrade of a Prisma 7 project whose database was signed under the previous release, when the Prisma 7 reader stored every list with non-null elements and a waived element check. The test writes that stored contract and signs the database with its hash, then follows the app upgrade fragment `upgrade-instructions/pending/remove-nocheck/app/instructions.md` step by step: run the script, `prisma db sign --db "$DATABASE_URL"`, `prisma contract emit`. `db verify` then passes with no migration.
+ * The upgrade of a Prisma 7 project whose database was signed under the previous release, when the Prisma 7 reader stored every list with non-null elements and a waived element check. The test writes that stored contract and signs the database with its hash, then follows the app upgrade guide `skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md` step by step: run the script, `prisma db sign --db "$DATABASE_URL"`, `prisma contract emit`. `db verify` then passes with no migration.
  */
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

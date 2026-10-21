@@ -11,11 +11,20 @@ interface Change {
   readonly patterns: readonly RegExp[];
 }
 
+const GUIDE_PATH =
+  'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md';
+
+const FRAGMENT_CHANGES: Record<string, (id: string) => boolean> = {
+  'postgres-postchecks-check-full-definition': (id) =>
+    id.startsWith('postgres-postcheck-') || id === 'postgres-alter-column-type-unchanged-refused',
+  'postgres-autoincrement-sequence-follows-column-type': (id) =>
+    id === 'postgres-autoincrement-sequence-follows-column-type',
+};
+
 function changesOf(fragment: string): readonly Change[] {
-  const guide = readFileSync(
-    join(repoRoot, 'upgrade-instructions/pending', fragment, 'app/instructions.md'),
-    'utf-8',
-  );
+  const belongs = FRAGMENT_CHANGES[fragment];
+  if (belongs === undefined) throw new Error(`No changes listed for ${fragment}`);
+  const guide = readFileSync(join(repoRoot, GUIDE_PATH), 'utf-8');
   return guide
     .split(/\n {2}- id: /)
     .slice(1)
@@ -24,7 +33,8 @@ function changesOf(fragment: string): readonly Change[] {
       patterns: [...block.matchAll(/^ {8}- '(.*)'$/gm)].map(
         ([, pattern]) => new RegExp((pattern ?? '').replaceAll("''", "'")),
       ),
-    }));
+    }))
+    .filter(({ id }) => belongs(id));
 }
 
 function opsJsonChanges(fragment: string): readonly Change[] {

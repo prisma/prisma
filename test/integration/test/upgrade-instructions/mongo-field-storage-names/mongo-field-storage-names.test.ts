@@ -6,7 +6,7 @@ import { dirname, join, relative } from 'pathe';
 import { afterAll, describe, expect, it } from 'vitest';
 
 const SCRIPT_PATHS = {
-  app: 'upgrade-instructions/pending/mongo-field-storage-names/app/scripts/mongo-field-storage-names.ts',
+  app: 'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/scripts/mongo-field-storage-names/mongo-field-storage-names.ts',
 } as const;
 
 const here = dirname(fileURLToPath(import.meta.url));

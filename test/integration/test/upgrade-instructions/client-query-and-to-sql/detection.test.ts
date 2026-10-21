@@ -4,15 +4,19 @@ import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 
 const GUIDE_PATHS = [
-  'upgrade-instructions/pending/client-query-and-to-sql/app/instructions.md',
-  'upgrade-instructions/pending/client-query-and-to-sql/extension/instructions.md',
+  'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md',
+  'skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md',
 ];
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../../../../..');
 
 function detects(guidePath: string, content: string): boolean {
   const guide = readFileSync(join(repoRoot, guidePath), 'utf8');
-  return [...guide.matchAll(/^ {8}- '(.*)'$/gm)]
+  const entry = guide
+    .split(/\n {2}- id: /)
+    .find((block) => block.startsWith('client-query-and-to-sql\n'));
+  if (entry === undefined) throw new Error(`${guidePath} has no change client-query-and-to-sql`);
+  return [...entry.matchAll(/^ {8}- '(.*)'$/gm)]
     .map(([, pattern]) => new RegExp((pattern ?? '').replaceAll("''", "'")))
     .some((pattern) => pattern.test(content));
 }
