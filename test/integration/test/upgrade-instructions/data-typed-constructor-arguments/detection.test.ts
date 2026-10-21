@@ -85,15 +85,15 @@ describe('extension detection', () => {
     ['value-arguments-name-a-data-type', "args: [{ kind: 'string', name: 'sql' }]"],
     [
       'psl-and-print-helpers-take-data-types',
-      "import { assembleAuthoringDataTypes } from '@prisma/orm-framework/components/control';",
+      "import { assembleAuthoringDataTypes } from '@vendor/orm-framework/components/control';",
     ],
     [
       'psl-and-print-helpers-take-data-types',
-      "import {\n  temporalCodecPresetWithPrecision,\n  temporalStringAuthoringPresets,\n} from '@prisma/orm-family-sql/family/control';",
+      "import {\n  temporalCodecPresetWithPrecision,\n  temporalStringAuthoringPresets,\n} from '@vendor/orm-family-sql/family/control';",
     ],
     [
       'psl-and-print-helpers-take-data-types',
-      "import { temporalCodecPresetWithPrecision } from '@internal/family-sql/control';",
+      "import { temporalCodecPresetWithPrecision } from '@vendor/family-sql/control';",
     ],
     ['psl-and-print-helpers-take-data-types', 'const args = parsePslPositionalArgs(call);'],
     [
@@ -118,11 +118,11 @@ describe('extension detection', () => {
     ['value-arguments-name-a-data-type', "readonly written: { kind: 'number', text }"],
     [
       'psl-and-print-helpers-take-data-types',
-      "import { assembleAuthoringDataTypes } from '@prisma/orm-framework/components/authoring';",
+      "import { assembleAuthoringDataTypes } from '@vendor/orm-framework/components/authoring';",
     ],
     [
       'psl-and-print-helpers-take-data-types',
-      "import { temporalCodecPresetWithPrecision } from '@prisma/orm-family-sql/family/pack';",
+      "import { temporalCodecPresetWithPrecision } from '@vendor/orm-family-sql/family/pack';",
     ],
     [
       'psl-and-print-helpers-take-data-types',
