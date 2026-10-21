@@ -10,8 +10,8 @@ changes:
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
-        - "kind:\\s*['\"](?:string|boolean|stringArray)['\"]\\s*,\\s*name:"
-        - "kind:\\s*['\"]number['\"]\\s*,\\s*name:"
+        - 'kind:\s*[''"](?:number|string|boolean|stringArray)[''"](?=[^}]*\b(?:name|integer|minimum|maximum|optional)\s*:)'
+        - '\b(?:name|optional)\s*:[^,}]*,\s*kind:\s*[''"](?:number|string|boolean|stringArray)[''"]'
   - id: value-argument-types-in-typescript
     summary: |
       The TypeScript builder types a `value` argument through `__dataTypeArguments`, a map a pack
@@ -38,9 +38,7 @@ changes:
       glob: "**/*.{ts,mts,cts}"
       matches:
         - 'parsePslPositionalArgs|pslTypeArgumentText'
-        - 'temporalCodecPresetWithPrecision\('
-        - 'assembleAuthoringDataTypes'
-        - 'temporalStringAuthoringPresets'
+        - 'import\s*(?:type\s*)?\{[^}]*\b(?:assembleAuthoringDataTypes|temporalCodecPresetWithPrecision|temporalStringAuthoringPresets)\b[^}]*\}\s*from\s*[''"][^''"]*/(?:components|family|family-sql)/control[''"]'
   - id: composed-helpers-take-no-data-type-lookup
     summary: |
       `createComposedAuthoringHelpers` no longer takes `dataTypeLookup`. It builds its data types
@@ -50,7 +48,7 @@ changes:
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
-        - 'createComposedAuthoringHelpers\('
+        - 'createComposedAuthoringHelpers\(\{[^}]*\bdataTypeLookup\b'
   - id: helper-codec-invariants
     summary: |
       `enforceDataTypeInvariants` is renamed `enforceHelperCodecInvariants`, and

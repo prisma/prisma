@@ -73,27 +73,70 @@ describe('app detection of raw columns written with a string', () => {
 
 describe('extension detection', () => {
   it.each([
-    ['psl-and-print-helpers-take-data-types', "import { assembleAuthoringDataTypes } from 'x';"],
-    ['psl-and-print-helpers-take-data-types', 'temporalCodecPresetWithPrecision({ codecId })'],
+    [
+      'value-arguments-name-a-data-type',
+      "args: [{ kind: 'number', name: 'length', integer: true, minimum: 1 }]",
+    ],
+    [
+      'value-arguments-name-a-data-type',
+      "const TEMPORAL_PRECISION_ARG = { name: 'precision', kind: 'number', optional: true, integer: true };",
+    ],
+    ['value-arguments-name-a-data-type', "args: [{ kind: 'number', integer: true }]"],
+    ['value-arguments-name-a-data-type', "args: [{ kind: 'string', name: 'sql' }]"],
+    [
+      'psl-and-print-helpers-take-data-types',
+      "import { assembleAuthoringDataTypes } from '@prisma/orm-framework/components/control';",
+    ],
+    [
+      'psl-and-print-helpers-take-data-types',
+      "import {\n  temporalCodecPresetWithPrecision,\n  temporalStringAuthoringPresets,\n} from '@prisma/orm-family-sql/family/control';",
+    ],
+    [
+      'psl-and-print-helpers-take-data-types',
+      "import { temporalCodecPresetWithPrecision } from '@internal/family-sql/control';",
+    ],
+    ['psl-and-print-helpers-take-data-types', 'const args = parsePslPositionalArgs(call);'],
     [
       'composed-helpers-take-no-data-type-lookup',
       'createComposedAuthoringHelpers({ family, target, codecLookup, dataTypeLookup })',
+    ],
+    [
+      'composed-helpers-take-no-data-type-lookup',
+      'createComposedAuthoringHelpers({\n  family,\n  dataTypeLookup: lookup,\n})',
     ],
     ['helper-codec-invariants', 'enforceDataTypeInvariants({ lookup, constructors })'],
     ['helper-codec-invariants', 'const input: DataTypeInvariantInput = build();'],
   ])('%s detects %s', (id, line) => {
     expect(detects('extension', id, line)).toBe(true);
   });
-});
 
-describe('extension detection of the renamed helper codec check', () => {
-  it('does not detect the new names', () => {
-    expect(
-      detects(
-        'extension',
-        'helper-codec-invariants',
-        'enforceHelperCodecInvariants({ lookup, helpers, codecDescriptorFor })',
-      ),
-    ).toBe(false);
+  it.each([
+    [
+      'value-arguments-name-a-data-type',
+      "args: [{ kind: 'value', dataType: 'pg/int4', name: 'length' }]",
+    ],
+    ['value-arguments-name-a-data-type', "readonly written: { kind: 'number', text }"],
+    [
+      'psl-and-print-helpers-take-data-types',
+      "import { assembleAuthoringDataTypes } from '@prisma/orm-framework/components/authoring';",
+    ],
+    [
+      'psl-and-print-helpers-take-data-types',
+      "import { temporalCodecPresetWithPrecision } from '@prisma/orm-family-sql/family/pack';",
+    ],
+    [
+      'psl-and-print-helpers-take-data-types',
+      "timestamp: temporalCodecPresetWithPrecision({ codecId, sizeType: 'pg/int4' }),",
+    ],
+    [
+      'composed-helpers-take-no-data-type-lookup',
+      'createComposedAuthoringHelpers({ family, target, codecLookup })',
+    ],
+    [
+      'helper-codec-invariants',
+      'enforceHelperCodecInvariants({ lookup, helpers, codecDescriptorFor })',
+    ],
+  ])('%s does not detect upgraded code: %s', (id, line) => {
+    expect(detects('extension', id, line)).toBe(false);
   });
 });
