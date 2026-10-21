@@ -11,7 +11,7 @@ changes:
       glob: "**/*.{ts,mts,cts}"
       matches:
         - 'kind:\s*[''"](?:number|string|boolean|stringArray)[''"](?=[^}]*\b(?:name|integer|minimum|maximum|optional)\s*:)'
-        - '\b(?:name|optional)\s*:[^,}]*,\s*kind:\s*[''"](?:number|string|boolean|stringArray)[''"]'
+        - '\b(?:name|integer|minimum|maximum|optional)\s*:[^{}]*\bkind:\s*[''"](?:number|string|boolean|stringArray)[''"]'
   - id: value-argument-types-in-typescript
     summary: |
       The TypeScript builder types a `value` argument through `__dataTypeArguments`, a map a pack
@@ -19,8 +19,10 @@ changes:
       TypeScript value an author passes, and the type parameter it gives. A pack that registers a
       data type its own type constructors take must declare it, or the argument types as `never`.
       The TypeScript builder reads value arguments only with the data types and authoring entries
-      the composed packs register, so a pack must register in `dataTypes` and
-      `authoring.dataTypes` every data type its arguments take.
+      the composed packs register, so every data type an argument takes must be registered, with
+      a writable `authoring.dataTypes` entry, by some pack in the stack: the family, the target or
+      an extension. An extension whose arguments take a target's data type, such as `pg/int4`,
+      registers nothing; registering it again is refused as a duplicate.
   - id: psl-and-print-helpers-take-data-types
     summary: |
       `mapPslHelperArgs` and `instantiatePslFieldPreset` take the stack's `dataTypes`;
@@ -122,7 +124,7 @@ createComposedAuthoringHelpers({ family, target, extensions, codecLookup, dataTy
 createComposedAuthoringHelpers({ family, target, extensions, codecLookup });
 ```
 
-The helpers read value arguments, and build entity helpers, with the data types the packs register. A pack that registers no data types but whose arguments take one now fails with `CONTRACT.DATA_TYPE_UNREGISTERED`; add the data type to the pack's `dataTypes` and its entry to `authoring.dataTypes`.
+The helpers read value arguments, and build entity helpers, with the data types the packs register. An argument whose data type no pack in the stack registers now fails with `CONTRACT.DATA_TYPE_UNREGISTERED`. Register it, with an `authoring.dataTypes` entry, in the pack that owns it. An extension whose arguments take a target's data type, such as `pg/int4`, registers nothing: the target already does, and a second registration is refused as a duplicate.
 
 ## `helper-codec-invariants`
 

@@ -500,7 +500,7 @@ describe('assembleDataTypeSupport', () => {
     ).toEqual({
       code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
       message:
-        'Argument "size" of type constructor "x.Thing" contributed by "x-pack" is a "number" argument, but a type constructor\'s argument is a value of a data type. Declare it as { kind: \'value\', dataType: ... }, naming the data type its value belongs to, such as \'pg/int4\' for a Postgres length.',
+        'Argument "size" of type constructor "x.Thing" contributed by "x-pack" is a "number" argument, but a type constructor\'s argument is a value of a data type. Declare it as { kind: \'value\', dataType: ... }, naming the data type its value belongs to.',
     });
   });
 

@@ -84,6 +84,11 @@ describe('extension detection', () => {
     ['value-arguments-name-a-data-type', "args: [{ kind: 'number', integer: true }]"],
     ['value-arguments-name-a-data-type', "args: [{ kind: 'string', name: 'sql' }]"],
     [
+      'value-arguments-name-a-data-type',
+      "args: [{ name: 'length', integer: true, kind: 'number' }]",
+    ],
+    ['value-arguments-name-a-data-type', "args: [{ minimum: 1, kind: 'number' }]"],
+    [
       'psl-and-print-helpers-take-data-types',
       "import { assembleAuthoringDataTypes } from '@vendor/orm-framework/components/control';",
     ],
@@ -116,6 +121,10 @@ describe('extension detection', () => {
       "args: [{ kind: 'value', dataType: 'pg/int4', name: 'length' }]",
     ],
     ['value-arguments-name-a-data-type', "readonly written: { kind: 'number', text }"],
+    [
+      'value-arguments-name-a-data-type',
+      "const literal = { name: 'x', written: { kind: 'number', text: '1' } };",
+    ],
     [
       'psl-and-print-helpers-take-data-types',
       "import { assembleAuthoringDataTypes } from '@vendor/orm-framework/components/authoring';",

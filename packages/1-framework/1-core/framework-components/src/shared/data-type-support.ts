@@ -150,7 +150,7 @@ function enforceValueArguments(
     if (argument.kind !== 'value' && descriptor.kind === 'typeConstructor') {
       throw runtimeError(
         'CONTRACT.PACK_CONTRIBUTION_INVALID',
-        `${label} contributed by "${contributedBy}" is a "${argument.kind}" argument, but a type constructor's argument is a value of a data type. Declare it as { kind: 'value', dataType: ... }, naming the data type its value belongs to, such as 'pg/int4' for a Postgres length.`,
+        `${label} contributed by "${contributedBy}" is a "${argument.kind}" argument, but a type constructor's argument is a value of a data type. Declare it as { kind: 'value', dataType: ... }, naming the data type its value belongs to.`,
         {
           packId: contributedBy,
           contribution: path,
