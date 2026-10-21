@@ -82,7 +82,7 @@ function validatePurity(value: unknown, entryPath: string): void {
     path.add(value);
 
     try {
-      for (const key in value) {
+      for (const key of Object.keys(value)) {
         const descriptor = Object.getOwnPropertyDescriptor(value, key);
         if (descriptor && (descriptor.get || descriptor.set)) {
           throw contractSourceError(
