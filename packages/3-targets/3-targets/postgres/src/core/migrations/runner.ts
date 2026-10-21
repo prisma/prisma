@@ -39,6 +39,12 @@ import { quoteIdentifier } from '../sql-utils';
 import { MARKER_LOCK_KEY, MARKER_LOCK_SQL } from './marker-lock';
 import { qualifyTableName } from './planner-sql-checks';
 import type { PostgresPlanTargetDetails } from './planner-target-details';
+import {
+  SCHEMA_OBJECTS_SQL,
+  type SchemaObject,
+  schemaContentsOf,
+  schemaObjectsSummary,
+} from './schema-contents';
 
 interface ApplyPlanSuccessValue {
   readonly operationsExecuted: number;
@@ -375,6 +381,23 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
         const code =
           phase === 'precheck' ? 'MIGRATION.PRECHECK_FAILED' : 'MIGRATION.POSTCHECK_FAILED';
         const failed = `Operation ${operation.id} failed during ${phase}: ${step.description}`;
+        const blockedSchema = schemaContentsOf(step);
+        const objects =
+          blockedSchema === undefined
+            ? undefined
+            : await driver.query<SchemaObject>(SCHEMA_OBJECTS_SQL, [blockedSchema]);
+        if (blockedSchema !== undefined && objects !== undefined && objects.rows.length > 0) {
+          return runnerFailure(code, schemaObjectsSummary(blockedSchema, objects.rows), {
+            why: failed,
+            meta: {
+              operationId: operation.id,
+              phase,
+              stepDescription: step.description,
+              schemaObjects: objects.rows.map(({ kind, name }) => ({ kind, name })),
+            },
+            failedCheck: { operationId: operation.id, phase, description: step.description },
+          });
+        }
         const required = requiredColumnOf(step);
         const rowsWithoutValue =
           required === undefined

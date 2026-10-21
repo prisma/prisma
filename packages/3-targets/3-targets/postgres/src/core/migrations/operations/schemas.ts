@@ -8,6 +8,7 @@ import {
 } from '../../../contract-free/checks';
 import * as contractFreeDdl from '../../../contract-free/ddl';
 import { boundSchema } from '../bound-schema';
+import { schemaContentsMeta } from '../schema-contents';
 import { type Op, step, targetDetails } from './shared';
 
 export async function setTableSchema(
@@ -117,11 +118,14 @@ export async function dropSchema(schemaName: string, lowerer: ExecuteRequestLowe
     operationClass: 'widening',
     target: { id: 'postgres' },
     precheck: [
-      step(
-        `ensure schema "${schemaName}" holds no tables, views, sequences, types or functions`,
-        empty.sql,
-        empty.params,
-      ),
+      {
+        ...step(
+          `ensure schema "${schemaName}" holds no tables, views, sequences, types or functions`,
+          empty.sql,
+          empty.params,
+        ),
+        meta: schemaContentsMeta(schemaName),
+      },
     ],
     execute: [step(`drop schema "${schemaName}"`, statement.sql, statement.params)],
     postcheck: [step(`verify schema "${schemaName}" does not exist`, absent.sql, absent.params)],

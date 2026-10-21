@@ -259,11 +259,26 @@ describe('Postgres schema operations', { concurrent: false }, () => {
     expect(result.assertNotOk()).toMatchObject({
       code: 'MIGRATION.PRECHECK_FAILED',
       summary:
-        'Operation dropSchema.billing failed during precheck: ensure schema "billing" holds no tables, views, sequences, types or functions',
+        'Schema "billing" still holds table "billing"."invoice", so it cannot be dropped. Drop or move it yourself, then run the command again.',
+      why: 'Operation dropSchema.billing failed during precheck: ensure schema "billing" holds no tables, views, sequences, types or functions',
+      meta: { schemaObjects: [{ kind: 'table', name: 'invoice' }] },
     });
     expect(
       (await driver.query("select to_regclass('billing.invoice') is not null as kept")).rows,
     ).toEqual([{ kept: true }]);
+  });
+
+  it('names every object that blocks the schema drop', { timeout: testTimeout }, async () => {
+    await driver.query('create schema billing');
+    await driver.query('create sequence billing.counter');
+    await driver.query('create view billing.recent as select 1 as one');
+    await driver.query("create function billing.answer() returns int as 'select 42' language sql");
+
+    const result = await runnerResult([await new DropSchemaCall('billing').toOp(controlAdapter)]);
+
+    expect(result.assertNotOk().summary).toBe(
+      'Schema "billing" still holds function "billing"."answer", sequence "billing"."counter" and view "billing"."recent", so it cannot be dropped. Drop or move them yourself, then run the command again.',
+    );
   });
 
   it('fails the schema drop at its precheck while it holds a type of its own', {

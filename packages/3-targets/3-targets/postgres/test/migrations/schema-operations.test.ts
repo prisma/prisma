@@ -143,6 +143,7 @@ describe('dropSchema', () => {
           description:
             'ensure schema "billing" holds no tables, views, sequences, types or functions',
           ...lowered(1),
+          meta: { schemaContents: { schema: 'billing' } },
         },
       ],
       execute: [{ description: 'drop schema "billing"', ...lowered(2) }],
