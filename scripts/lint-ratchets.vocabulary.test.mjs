@@ -74,7 +74,7 @@ function writeRepoFile(relPath, content) {
 
 function writeConfig(threshold) {
   writeRepoFile(
-    'scripts/lint-framework-vocabulary.config.json',
+    'scripts/framework-vocabulary-thresholds.json',
     JSON.stringify({ scopes: [{ path: SCOPE, threshold }] }, null, 2),
   );
 }

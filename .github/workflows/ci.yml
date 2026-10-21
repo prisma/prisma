@@ -115,7 +115,7 @@ jobs:
         run: pnpm lint:workflows
       - name: Test scripts/
         run: pnpm test:scripts
-      - name: Lint plugin ratchets (casts, throws, framework vocabulary)
+      - name: Lint ratchets (casts, throws, framework vocabulary)
         run: pnpm lint:ratchets
       - name: Lint consumer internal imports
         run: pnpm lint:consumer-internal-imports

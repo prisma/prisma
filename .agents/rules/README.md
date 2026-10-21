@@ -79,7 +79,7 @@ Rules below are listed by bare filename; the canonical file is `.agents/rules/<n
 
 ## Imports & Layering
 - `import-validation.mdc` — Layering rules and exceptions
-- `no-family-vocabulary-in-framework.mdc` — No family/target vocabulary in packages/1-framework, and no name of a Prisma version before 8 outside its CLI; enforced by the `no-family-vocabulary` Biome plugin + the `lint:ratchets` ratchet
+- `no-family-vocabulary-in-framework.mdc` — No family/target vocabulary in packages/1-framework, and no name of a Prisma version before 8 outside its CLI; enforced by the `no-family-vocabulary` Biome plugin + `pnpm lint:ratchets`
 - `no-inline-imports.mdc` — Prohibit inline type imports in source files
 - `shared-plane-packages.mdc` — Pattern for creating shared plane packages
 - `multi-plane-packages.mdc` — Packages that span multiple planes (shared, migration, runtime)

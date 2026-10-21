@@ -85,7 +85,8 @@
 // open with substring checks: the file must be in the framework, and the
 // lowercased token must contain the stem of some term. Every regex below needs
 // one of those stems, so the check removes no match; it only means the regexes
-// run on a few hundred tokens instead of millions.
+// run on a few hundred tokens instead of millions. The long s `ſ` is listed on
+// its own because the regexes' `(?i:s)` matches it but `lowercase` keeps it.
 //
 // Severity is "info" so the plugin runs without breaking existing builds
 // (hundreds of pre-existing sites). The CI ratchet
@@ -131,7 +132,8 @@ or {
     includes "rls",
     includes "native",
     includes "primar",
-    includes "foreig"
+    includes "foreig",
+    includes "ſ"
   },
   not $filename <: r".*\.(?:test|test-d)\.ts",
   not $filename <: r".*/test/.*\.ts",

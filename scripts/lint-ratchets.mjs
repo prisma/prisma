@@ -10,10 +10,11 @@
  *   - no-bare-cast, no-bare-throw: the HEAD count may not exceed the
  *     merge-base count. New sites are printed as file:line.
  *   - no-family-vocabulary: for each scope in
- *     scripts/lint-framework-vocabulary.config.json, the HEAD count,
+ *     scripts/framework-vocabulary-thresholds.json, the HEAD count,
  *     deduplicated by file and line, must equal the recorded threshold. A
  *     lower count fails too, so the author lowers the threshold and the
- *     reduction stays locked in. `--list` prints every current site.
+ *     reduction stays locked in. `--list` prints every current site and
+ *     skips the merge-base ratchets.
  *
  * Exit codes:
  *   0 — every ratchet passed
@@ -36,7 +37,7 @@ const BIOME_BIN = join(REAL_REPO_ROOT, 'node_modules', '.bin', 'biome');
 const BIOME_CONFIG = join(REAL_REPO_ROOT, 'biome.jsonc');
 
 const GIT_ROOT = process.cwd();
-const VOCABULARY_CONFIG_PATH = join(GIT_ROOT, 'scripts', 'lint-framework-vocabulary.config.json');
+const VOCABULARY_CONFIG_PATH = join(GIT_ROOT, 'scripts', 'framework-vocabulary-thresholds.json');
 
 // Paths the throw ratchet does not count: plugin fixtures exist to fire the
 // diagnostic on purpose, and repo tooling scripts plus published upgrade-step
@@ -92,7 +93,11 @@ function lintWithBiome(scanDir) {
   }
 
   const raw = (result.stdout ?? '').trim();
-  if (!raw) return [];
+  if (!raw) {
+    throw new Error(
+      `biome printed no report (exit status ${result.status}):\n${(result.stderr ?? '').slice(0, 2000)}`,
+    );
+  }
 
   try {
     return JSON.parse(raw).diagnostics ?? [];
@@ -179,7 +184,7 @@ function checkVocabularyScope(scope, headDiags, list) {
       '  `// biome-ignore lint/plugin/no-family-vocabulary: <why>` and lower the threshold.',
     );
     console.error(
-      `  Otherwise raise "threshold" to ${count} in scripts/lint-framework-vocabulary.config.json with justification in review.`,
+      `  Otherwise raise "threshold" to ${count} in scripts/framework-vocabulary-thresholds.json with justification in review.`,
     );
     return false;
   }
@@ -188,7 +193,7 @@ function checkVocabularyScope(scope, headDiags, list) {
       `lint:ratchets: scope=${scope.path} improved (count=${count} < threshold=${threshold}).`,
     );
     console.error(
-      `  Lower "threshold" to ${count} in scripts/lint-framework-vocabulary.config.json to lock in the reduction.`,
+      `  Lower "threshold" to ${count} in scripts/framework-vocabulary-thresholds.json to lock in the reduction.`,
     );
     return false;
   }
@@ -213,6 +218,11 @@ function main() {
 
   for (const scope of vocabularyConfig.scopes) {
     passed = checkVocabularyScope(scope, headDiags, list) && passed;
+  }
+
+  if (list) {
+    if (!passed) process.exit(1);
+    return;
   }
 
   const mergeBase = resolveMergeBase();

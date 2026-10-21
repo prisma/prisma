@@ -64,8 +64,8 @@ function commitFeature(files) {
   commitAll('feature');
 }
 
-function runScript() {
-  return spawnSync(execPath, [SCRIPT_PATH], { cwd: repo, encoding: 'utf-8' });
+function runScript(...args) {
+  return spawnSync(execPath, [SCRIPT_PATH, ...args], { cwd: repo, encoding: 'utf-8' });
 }
 
 beforeEach(() => {
@@ -75,7 +75,7 @@ beforeEach(() => {
   git('config', 'user.name', 'Test');
   git('config', 'commit.gpgsign', 'false');
   writeRepoFile(
-    'scripts/lint-framework-vocabulary.config.json',
+    'scripts/framework-vocabulary-thresholds.json',
     JSON.stringify({ scopes: [{ path: 'packages/1-framework', threshold: 0 }] }),
   );
 });
@@ -136,13 +136,42 @@ describe('lint-ratchets — merge-base ratchets', () => {
     assert.match(result.stdout, /HEAD is at the merge base/);
   });
 
-  it('fails when origin/main is not available', () => {
+  it('fails when origin/main is not available, after still reporting the vocabulary count', () => {
     writeRepoFile('src/app.ts', FILE_CLEAN);
     commitAll('base');
 
     const result = runScript();
     assert.equal(result.status, 1);
+    assert.match(
+      result.stdout,
+      /no-family-vocabulary scope=packages\/1-framework count=0 threshold=0/,
+    );
     assert.match(result.stderr, /origin\/main is not available/);
+  });
+
+  it('reports a vocabulary failure and a cast failure from the same run', () => {
+    commitBase({ 'src/app.ts': FILE_CLEAN });
+    commitFeature({
+      'src/cast.ts': FILE_WITH_CAST,
+      'packages/1-framework/src/app.ts': "export const nativeType = 'int4';\n",
+    });
+
+    const result = runScript();
+    assert.equal(result.status, 1, `expected exit 1; stdout=${result.stdout}`);
+    assert.match(
+      result.stdout,
+      /no-family-vocabulary scope=packages\/1-framework count=1 threshold=0/,
+    );
+    assert.match(result.stdout, /no-bare-cast current=1 merge-base=0 delta=\+1/);
+  });
+
+  it('skips the merge-base ratchets under --list', () => {
+    commitBase({ 'src/app.ts': FILE_CLEAN });
+    commitFeature({ 'src/cast.ts': FILE_WITH_CAST });
+
+    const result = runScript('--list');
+    assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
+    assert.doesNotMatch(result.stdout, /no-bare-cast/);
   });
 
   it('reports a new cast and a new throw from the same run', () => {
