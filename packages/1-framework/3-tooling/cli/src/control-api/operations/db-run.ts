@@ -48,6 +48,7 @@ import { join } from 'pathe';
 import { CliStructuredError } from '../../utils/cli-errors';
 import {
   type AnswerPlanQuestions,
+  addedNamespaces,
   askPlanQuestions,
   type ConsentedSubject,
   type PlannedQuestions,
@@ -408,11 +409,20 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     statements: plannedTexts,
     defaultNamespaceId,
   };
+  const namespaceAnswersOf = (subject: MigrationOperationSubject['subject']) => {
+    const removedNamespace = removedNamespaceOf(subject, contractsAsked);
+    if (removedNamespace === undefined) return {};
+    const targets = addedNamespaces(contractsAsked);
+    return {
+      removedNamespace,
+      ...(targets.length === 0 ? {} : { namespaceRenameTargets: targets }),
+    };
+  };
   const asked = <TEntry extends MigrationOperationSubject>(entries: readonly TEntry[]) =>
     entries.map((entry) => ({
       ...entry,
       text: subjectText(entry.subject, contractsAsked),
-      ...ifDefined('removedNamespace', removedNamespaceOf(entry.subject, contractsAsked)),
+      ...namespaceAnswersOf(entry.subject),
     }));
   const databaseStorageHash =
     action === 'dbUpdate' ? recordedDatabaseContract(aggregate, markerRows) : undefined;

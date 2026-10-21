@@ -194,6 +194,22 @@ describe('modelDisplayName', () => {
 });
 
 describe('migrationStatementJson', () => {
+  it('writes a namespace rename with coordinates, as it writes a model rename', () => {
+    expect(
+      migrationStatementJson({
+        kind: 'rename',
+        entity: 'namespace',
+        from: asNamespaceId('billing'),
+        to: asNamespaceId('finance'),
+      }),
+    ).toEqual({
+      kind: 'rename',
+      entity: 'namespace',
+      from: { namespaceId: 'billing' },
+      to: { namespaceId: 'finance' },
+    });
+  });
+
   it('leaves namespaceId out for the unbound namespace and keeps it otherwise', () => {
     const unbound = asNamespaceId(UNBOUND_NAMESPACE_ID);
     expect([
@@ -290,15 +306,6 @@ describe('a namespace rename', () => {
     expect(describeMigrationStatement(statement, contract, contract)).toBe(
       'rename namespace "billing" to "finance"',
     );
-  });
-
-  it('is written to JSON as it is', () => {
-    expect(migrationStatementJson(statement)).toEqual({
-      kind: 'rename',
-      entity: 'namespace',
-      from: 'billing',
-      to: 'finance',
-    });
   });
 
   it('is a rename statement', () => {

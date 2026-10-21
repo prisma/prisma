@@ -109,25 +109,28 @@ function answeredByFlags(
   entries: readonly AskedSubject[],
   verb: 'delete' | 'allow',
   given: readonly StatementText[],
-): readonly boolean[] {
+): readonly (StatementText | undefined)[] {
   const flags = given.filter((statement) => statement.verb === verb);
   const taken = new Set<StatementText>();
   return entries.map((entry) => {
     const target = { text: entry.text, removedNamespace: entry.removedNamespace };
     const matching = flags.filter((flag) => consentAnswers(verb, flag.text, target));
-    if (verb === 'delete') return matching.length > 0;
+    if (verb === 'delete') return matching[0];
     const first = matching.find((flag) => !taken.has(flag));
     if (first !== undefined) taken.add(first);
-    return first !== undefined;
+    return first;
   });
 }
 
-function subjectEntryJson(entry: AskedSubject, answered: boolean | undefined) {
+function subjectEntryJson(entry: AskedSubject, answeredBy: StatementText | undefined) {
   return {
     operationIndex: entry.operationIndex,
     subject: migrationSubjectJson(entry.subject),
     text: entry.text,
-    answered: answered === true,
+    answered: answeredBy !== undefined,
+    ...ifDefined('answeredBy', answeredBy === undefined ? undefined : statementFlag(answeredBy)),
+    ...ifDefined('removedNamespace', entry.removedNamespace),
+    ...ifDefined('namespaceRenameTargets', entry.namespaceRenameTargets),
   };
 }
 

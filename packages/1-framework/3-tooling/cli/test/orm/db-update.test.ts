@@ -376,12 +376,55 @@ describe('db update --rename', () => {
           children: [
             { label: 'drop relation legacy: --delete billing.Invoice (answered)' },
             { label: 'drop relation legacy: --delete billing.Receipt (answered)' },
+            { label: 'every question about namespace "billing": --delete billing (answered)' },
           ],
         },
       ],
     });
     expect(json.presented?.data).toMatchObject({
-      dataLoss: [{ answered: true }, { answered: true }],
+      dataLoss: [
+        { answered: true, answeredBy: '--delete billing', removedNamespace: 'billing' },
+        { answered: true, answeredBy: '--delete billing', removedNamespace: 'billing' },
+      ],
+    });
+  });
+
+  it('lists the namespace answers of a removed namespace, with the rename to a namespace the destination adds', async () => {
+    const invoice = { kind: 'model', namespaceId: 'billing', model: 'Invoice' } as const;
+    mocks.dbUpdate.mockResolvedValue(
+      ok({
+        ...planSuccess(),
+        dataLoss: [
+          {
+            operationIndex: 0,
+            subject: invoice,
+            text: 'billing.Invoice',
+            removedNamespace: 'billing',
+            namespaceRenameTargets: ['finance'],
+          },
+        ],
+      }),
+    );
+
+    const human = await harness().run(['db', 'update', '--dry-run'], {
+      cwd: projectDir,
+      isTty: { stdout: true },
+    });
+
+    expect(human.presented?.presentation.human).toContainEqual({
+      kind: 'tree',
+      roots: [
+        {
+          label: 'An apply asks about',
+          children: [
+            { label: 'drop relation legacy: --delete billing.Invoice' },
+            {
+              label:
+                'every question about namespace "billing": --delete billing, or --rename billing:finance if it was renamed',
+            },
+          ],
+        },
+      ],
     });
   });
 

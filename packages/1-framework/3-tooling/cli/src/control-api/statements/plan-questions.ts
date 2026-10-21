@@ -509,7 +509,8 @@ function checkAnswers(questions: readonly PlanQuestion[], answers: readonly Plan
   });
 }
 
-function addedNamespaces(contracts: StatementContracts): readonly string[] {
+/** The namespaces the destination adds, which a rename of a removed namespace may name. */
+export function addedNamespaces(contracts: StatementContracts): readonly string[] {
   if (contracts.destination === undefined) return [];
   return Object.keys(contracts.destination.domain.namespaces).filter(
     (namespace) =>

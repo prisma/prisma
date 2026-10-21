@@ -203,8 +203,8 @@ export type MigrationStatementJson =
   | {
       readonly kind: 'rename';
       readonly entity: 'namespace';
-      readonly from: NamespaceId;
-      readonly to: NamespaceId;
+      readonly from: { readonly namespaceId: NamespaceId };
+      readonly to: { readonly namespaceId: NamespaceId };
     }
   | {
       readonly kind: 'rename';
@@ -245,7 +245,11 @@ export function migrationStatementJson(
   if (statement.kind !== 'rename') return { ...statement, field: coordinateJson(statement.field) };
   switch (statement.entity) {
     case 'namespace':
-      return statement;
+      return {
+        ...statement,
+        from: { namespaceId: statement.from },
+        to: { namespaceId: statement.to },
+      };
     case 'model':
       return {
         ...statement,

@@ -5,6 +5,7 @@ import { statementFlag } from '../../control-api/statements/statement-flag';
 import type { PerSpaceExecutionEntry } from '../../control-api/types';
 import {
   type MigrationCommandResult,
+  type PlannedSubjectJson,
   previewBlockHeader,
   renderPreviewStatement,
 } from '../../utils/formatters/migrations';
@@ -171,6 +172,32 @@ function applySummaryText(result: MigrationCommandResult): string {
   return `Applied ${executed} operation(s)${across}`;
 }
 
+/** For each namespace the destination removed, the answers that answer all of its questions. */
+function namespaceAnswerLines(
+  entries: readonly PlannedSubjectJson[],
+): readonly { label: string }[] {
+  const byNamespace = new Map<string, PlannedSubjectJson[]>();
+  for (const entry of entries) {
+    if (entry.removedNamespace === undefined) continue;
+    byNamespace.set(entry.removedNamespace, [
+      ...(byNamespace.get(entry.removedNamespace) ?? []),
+      entry,
+    ]);
+  }
+  return [...byNamespace].map(([namespace, ofNamespace]) => {
+    const deleteFlag = statementFlag({ verb: 'delete', text: namespace });
+    const answered = ofNamespace.some(({ answeredBy }) => answeredBy === deleteFlag);
+    const targets = ofNamespace[0]?.namespaceRenameTargets ?? [];
+    const rename =
+      targets.length === 0
+        ? ''
+        : `, or ${targets.map((target) => statementFlag({ verb: 'rename', text: `${namespace}:${target}` })).join(' or ')} if it was renamed`;
+    return {
+      label: `every question about namespace "${namespace}": ${deleteFlag}${rename}${answered ? ' (answered)' : ''}`,
+    };
+  });
+}
+
 /**
  * The questions an apply would ask, as a dry run lists them: each operation that would lose data,
  * answered by `--delete` or `--rename`, and each that would change access, answered by `--allow`.
@@ -189,9 +216,12 @@ function questionBlocks(result: MigrationCommandResult): readonly Block[] {
       roots: [
         {
           label: 'An apply asks about',
-          children: entries.map(({ entry, verb }) => ({
-            label: `${result.plan.operations[entry.operationIndex]?.label ?? 'an operation'}: ${statementFlag({ verb, text: entry.text })}${entry.answered ? ' (answered)' : ''}`,
-          })),
+          children: [
+            ...entries.map(({ entry, verb }) => ({
+              label: `${result.plan.operations[entry.operationIndex]?.label ?? 'an operation'}: ${statementFlag({ verb, text: entry.text })}${entry.answered ? ' (answered)' : ''}`,
+            })),
+            ...namespaceAnswerLines(result.dataLoss ?? []),
+          ],
         },
       ],
     },
