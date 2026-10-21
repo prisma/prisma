@@ -280,3 +280,64 @@ describe('namespace hints that would not work', () => {
     ]);
   });
 });
+
+describe('a namespace answer typed at the prompt', () => {
+  const finance = contractOf({
+    app: { models: { User: {} } },
+    finance: { models: { Invoice: {}, Receipt: {} } },
+  });
+
+  it('accepts delete of the removed namespace for each of its questions', async () => {
+    const outcome = await askPlanQuestions({
+      plan,
+      askAccess: false,
+      canConvert: false,
+      statements: [],
+      preAnswers: [],
+      consentAll: { delete: false, allow: false },
+      origin,
+      originKnown: true,
+      destination,
+      defaultNamespaceId: 'public',
+      answer: async (batch) => {
+        for (const question of batch)
+          expect(question.validate('delete', 'billing')).toBeUndefined();
+        return batch.map(() => ({ verb: 'delete', text: 'billing' }));
+      },
+      replan: async () => ok(plan),
+    });
+
+    expect(
+      outcome.ok && outcome.value.consented.map(({ verb, text }) => `${verb} ${text}`),
+    ).toEqual(['delete billing.Invoice', 'delete billing.Receipt']);
+  });
+
+  it('accepts a rename of the removed namespace, and plans it once', async () => {
+    const replanned: (readonly string[])[] = [];
+    const outcome = await askPlanQuestions({
+      plan,
+      askAccess: false,
+      canConvert: false,
+      statements: [],
+      preAnswers: [],
+      consentAll: { delete: false, allow: false },
+      origin,
+      originKnown: true,
+      destination: finance,
+      defaultNamespaceId: 'public',
+      answer: async (batch) => {
+        for (const question of batch) {
+          expect(question.validate('rename', 'billing:finance')).toBeUndefined();
+        }
+        return batch.map(() => ({ verb: 'rename', text: 'billing:finance' }));
+      },
+      replan: async (statements) => {
+        replanned.push(statements.map(({ verb, text }) => `${verb} ${text}`));
+        return ok({ dataLoss: [], accessChanges: [] });
+      },
+    });
+
+    expect(outcome.ok).toBe(true);
+    expect(replanned).toEqual([['rename billing:finance']]);
+  });
+});

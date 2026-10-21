@@ -11,7 +11,6 @@ import {
   type ResolvedMigrationStatement,
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import {
@@ -548,6 +547,35 @@ function withNamespaceDeleteOnFirstQuestion(
   });
 }
 
+/**
+ * A question about a model or field of a namespace the destination removed, which also accepts the
+ * namespace's own answers: a `delete` of the namespace, or a `rename` of it to another one.
+ */
+function acceptingNamespaceAnswers(
+  question: PlanQuestion,
+  removedNamespace: string | undefined,
+  contracts: StatementContracts & { readonly destination: ContractWithDomain },
+): PlanQuestion {
+  if (removedNamespace === undefined) return question;
+  const answersNamespace = (verb: PlanQuestionVerb, text: string): boolean => {
+    if (verb === 'delete') return text === removedNamespace;
+    if (verb !== 'rename') return false;
+    const resolved = resolvesWith({ verb, text }, contracts);
+    return (
+      resolved.ok &&
+      resolved.value?.kind === 'rename' &&
+      resolved.value.entity === 'namespace' &&
+      resolved.value.from === removedNamespace
+    );
+  };
+  return {
+    ...question,
+    removedNamespace,
+    validate: (verb, text) =>
+      answersNamespace(verb, text) ? undefined : question.validate(verb, text),
+  };
+}
+
 function withRecoveryOnFirstStorageQuestion(
   asked: readonly { readonly loss: PlannedDataLoss; readonly question: PlanQuestion }[],
   recoveryApplies: boolean,
@@ -652,10 +680,11 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
         withRecoveryOnFirstStorageQuestion(
           losses.map((loss) => ({
             loss,
-            question: {
-              ...dataLossQuestion(loss, contracts),
-              ...ifDefined('removedNamespace', removedNamespaceOf(loss.subject, contracts)),
-            },
+            question: acceptingNamespaceAnswers(
+              dataLossQuestion(loss, contracts),
+              removedNamespaceOf(loss.subject, contracts),
+              contracts,
+            ),
           })),
           !input.originKnown,
         ),
@@ -678,7 +707,13 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
       if (losses.length + accessChanges.length === 0) break;
       continue;
     }
-    statements = [...statements, ...typed.map(({ statement }) => statement)];
+    const given = new Set(statements.map(({ verb, text }) => `${verb} ${text}`));
+    for (const { statement } of typed) {
+      const key = `${statement.verb} ${statement.text}`;
+      if (given.has(key)) continue;
+      given.add(key);
+      statements = [...statements, statement];
+    }
     const replanned = await input.replan(statements);
     if (!replanned.ok) return replanned;
     plan = replanned.value;

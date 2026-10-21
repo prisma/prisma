@@ -49,7 +49,7 @@ describe('a plan question asked through the engine', () => {
       { verb: 'delete', text: 'app.User' },
       { verb: 'delete', text: 'billing.Receipt' },
     ]);
-    expect(asked).toEqual([['app.User']]);
+    expect(asked).toEqual([['app.User'], []]);
   });
 
   it('answers a --delete of a subject given beside a namespace --delete', async () => {
@@ -67,7 +67,7 @@ describe('a plan question asked through the engine', () => {
     await promptPlanQuestions(prompt, statements)([invoice, user]);
 
     expect(statements.take).not.toHaveBeenCalled();
-    expect(asked).toEqual([['billing.Invoice', 'app.User']]);
+    expect(asked).toEqual([['billing.Invoice'], ['app.User'], []]);
   });
 
   it('refuses a --delete that answers nothing beside a namespace --delete, as the engine refuses an unused flag', async () => {
@@ -103,5 +103,82 @@ describe('a plan question asked through the engine', () => {
         '--delete billing was given, but every question about namespace "billing" was already answered by another flag.',
       nextActions: [{ kind: 'user-choice', label: 'Give one flag per question.' }],
     });
+  });
+});
+
+describe('a namespace answer typed at the prompt', () => {
+  function typing(answerFor: (subject: string) => { verb: string; text: string }) {
+    const asked: string[][] = [];
+    const statements: StatementSurface = {
+      take: vi.fn(() => []) as StatementSurface['take'],
+      values: () => [],
+    };
+    const prompt = {
+      statements: vi.fn(async (questions: readonly { readonly subject: string }[]) => {
+        asked.push(questions.map(({ subject }) => subject));
+        return questions.map(({ subject }) => ({ ...answerFor(subject), values: [] }));
+      }),
+    } as unknown as PromptSurface;
+    return { statements, prompt, asked };
+  }
+
+  it('answers the rest of the namespace with a delete of it, without asking them', async () => {
+    const { statements, prompt, asked } = typing((subject) =>
+      subject === 'billing.Invoice'
+        ? { verb: 'delete', text: 'billing' }
+        : { verb: 'delete', text: subject },
+    );
+
+    const answers = await promptPlanQuestions(prompt, statements)([invoice, user, receipt]);
+
+    expect(answers).toEqual([
+      { verb: 'delete', text: 'billing' },
+      { verb: 'delete', text: 'app.User' },
+      { verb: 'delete', text: 'billing' },
+    ]);
+    expect(asked).toEqual([['billing.Invoice'], ['app.User'], []]);
+  });
+
+  it('answers the rest of the namespace with a rename of it, without asking them', async () => {
+    const { statements, prompt, asked } = typing(() => ({
+      verb: 'rename',
+      text: 'billing:finance',
+    }));
+
+    const answers = await promptPlanQuestions(prompt, statements)([invoice, receipt]);
+
+    expect(answers).toEqual([
+      { verb: 'rename', text: 'billing:finance' },
+      { verb: 'rename', text: 'billing:finance' },
+    ]);
+    expect(asked).toEqual([['billing.Invoice'], []]);
+  });
+
+  it('lets the engine refuse every question still unanswered at once when nobody can answer', async () => {
+    const asked: string[][] = [];
+    const statements: StatementSurface = {
+      take: vi.fn(() => []) as StatementSurface['take'],
+      values: () => [],
+    };
+    const prompt = {
+      statements: vi.fn(async (questions: readonly { readonly subject: string }[]) => {
+        asked.push(questions.map(({ subject }) => subject));
+        throw Object.assign(new Error('needs a statement'), {
+          code: 'CLI.CONSENT_REQUIRED',
+          unanswered: questions.map(({ subject }) => subject),
+        });
+      }),
+    } as unknown as PromptSurface;
+
+    await expect(
+      promptPlanQuestions(prompt, statements)([invoice, user, receipt]),
+    ).rejects.toMatchObject({
+      code: 'CLI.CONSENT_REQUIRED',
+      unanswered: ['billing.Invoice', 'app.User', 'billing.Receipt'],
+    });
+    expect(asked).toEqual([
+      ['billing.Invoice'],
+      ['billing.Invoice', 'app.User', 'billing.Receipt'],
+    ]);
   });
 });
