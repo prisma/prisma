@@ -24,6 +24,7 @@ function executionDefaultsOf(fields: Record<string, ScalarFieldBuilder>) {
     target: targetPack,
     extensions: { slugid: slugidPack },
     createNamespace: createTestSqlNamespace,
+    ...testTypeLookups,
     models: { Event: model('Event', { fields }) },
   });
   return Object.fromEntries(
@@ -119,6 +120,7 @@ describe('.onCreate and .onUpdate', () => {
         target: targetPack,
         extensions: { 'uuid-codec-pack': uuidCodecPack },
         createNamespace: createTestSqlNamespace,
+        ...testTypeLookups,
         models: {},
       }),
     ).toThrow(
@@ -177,6 +179,7 @@ describe('.onCreate and .onUpdate', () => {
       target: targetPack,
       extensions: { slugid: slugidPack },
       createNamespace: createTestSqlNamespace,
+      ...testTypeLookups,
       models: {
         Event: model('Event', {
           fields: {

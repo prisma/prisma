@@ -2,6 +2,7 @@ import { crossRef } from '@internal/contract/types';
 import { validateContractDomain } from '@internal/contract/validate-domain';
 import type { SqlModelStorage, SqlStorage } from '@internal/sql-contract/types';
 import { validateSqlContractFully } from '@internal/sql-contract/validators';
+import { InternalError } from '@internal/utils/internal-error';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import type { InterpretPslDocumentToSqlContractInput } from '../src/interpreter';
@@ -978,7 +979,7 @@ model Bug {
       );
     });
 
-    it('diagnoses non-String discriminator field', () => {
+    it('diagnoses a discriminator field that is not text', () => {
       const result = interpretPostgresSchema(
         `model Task {
   id    Int    @id @default(autoincrement())
@@ -1004,9 +1005,36 @@ model Bug {
         expect.arrayContaining([
           expect.objectContaining({
             code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-            message: expect.stringContaining('must be of type String'),
+            message: expect.stringContaining('must be text, such as String'),
           }),
         ]),
+      );
+    });
+
+    it('throws an internal error when the stack names no text data types', () => {
+      expect(() =>
+        interpretPostgresSchema(
+          `model Task {
+  id   Int    @id
+  type String
+
+  @@discriminator(type)
+}
+
+model Bug {
+  severity String
+
+  @@base(Task, "bug")
+}`,
+          {
+            controlMutationDefaults: builtinControlMutationDefaults,
+            authoringContributions: { textDataTypes: [] },
+          },
+        ),
+      ).toThrow(
+        new InternalError(
+          'The stack names no text data types, so no column can be a discriminator; the target names its text types in its authoring contributions.',
+        ),
       );
     });
 
@@ -1072,7 +1100,7 @@ model Bug {
         {
           code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
           message:
-            'Discriminator field "type" on model "Task" must be of type String, but is "String"',
+            'Discriminator field "type" on model "Task" must be text, such as String, but is "String"',
           sourceId: 'schema.prisma',
           span: {
             start: { line: 11, column: 3, offset: 189 },

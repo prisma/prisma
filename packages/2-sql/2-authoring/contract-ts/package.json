@@ -29,6 +29,7 @@
     "ts-toolbelt": "^9.6.0"
   },
   "devDependencies": {
+    "@internal/ids": "workspace:8.0.0-rc.18",
     "@repo/test-utils": "workspace:8.0.0-rc.18",
     "@repo/tsconfig": "workspace:8.0.0-rc.18",
     "@types/pg": "catalog:",

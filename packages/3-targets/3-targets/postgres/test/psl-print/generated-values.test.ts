@@ -105,6 +105,22 @@ describe('generated values', () => {
     });
   });
 
+  it('refuses a generator on a column too short for what it writes, which would not emit again', () => {
+    expect(
+      refusalOf(() => withGenerator(char(5), { onCreate: generator('uuidv4') })),
+    ).toMatchObject({
+      code: 'CONTRACT.PRINT_UNSUPPORTED',
+      message:
+        'contract print: column "public"."Widget"."value" generates "uuidv4" on create, but @onCreate(uuid()) is refused: uuid() writes 36 characters, which does not fit a column of 5 characters.',
+      meta: {
+        call: 'uuid()',
+        stored: { kind: 'generator', id: 'uuidv4' },
+        readBack: undefined,
+        refusedBecause: 'uuid() writes 36 characters, which does not fit a column of 5 characters.',
+      },
+    });
+  });
+
   it('writes a now generator on create and on update', () => {
     const now = generator(postgresNowGeneratorIds[PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID]);
     expect(withGenerator(timestamptz, { onCreate: now, onUpdate: now })).toBe(

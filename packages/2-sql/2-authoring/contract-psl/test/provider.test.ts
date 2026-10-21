@@ -826,6 +826,7 @@ model User {
       const result = await contract.source.load(
         createPostgresTestContext({
           authoringContributions: {
+            textDataTypes: [],
             dataTypes: {},
             field: {},
             type: {

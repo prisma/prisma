@@ -59,6 +59,8 @@ const idSpec = nanoid({ size: 12 });
 - Each helper binds its own descriptor internally (char-based SQL descriptors today).
 - Different helpers can move to different codecs independently (for example `ulid` binary and `nanoid` char/varchar).
 - `nanoid({ size })` also sets descriptor metadata to `character(size)` so contract shape matches generator output length.
+- The default function argument limits are written once, here: `UUID_VERSIONS` (4 and 7), `CUID_VERSION` (2) and `NANOID_SIZE` (2 to 255). The `nanoid` helper, the SQL family's field presets and generator function signatures import them.
+- `generatedLength(id, params)` gives the number of characters a built-in generator writes, which the SQL family's generator function bindings check a column's length against.
 
 Runtime usage:
 

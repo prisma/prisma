@@ -1,4 +1,5 @@
 import type { AuthoringArgumentDescriptor } from '@internal/framework-components/authoring';
+import { NANOID_SIZE } from '@internal/ids';
 
 /**
  * Hand-written mirrors of family-sql's shipping
@@ -26,7 +27,13 @@ export const nanoidOptionsArgumentMirror = {
   kind: 'object',
   optional: true,
   properties: {
-    size: { kind: 'number', optional: true, integer: true, minimum: 2, maximum: 255 },
+    size: {
+      kind: 'number',
+      optional: true,
+      integer: true,
+      minimum: NANOID_SIZE.min,
+      maximum: NANOID_SIZE.max,
+    },
   },
 } as const satisfies AuthoringArgumentDescriptor;
 

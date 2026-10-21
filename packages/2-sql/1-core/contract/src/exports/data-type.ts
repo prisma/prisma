@@ -19,6 +19,8 @@ export {
   resolveWrittenSqlTypes,
   sameSqlColumnType,
   sqlBaseName,
+  sqlCodecColumnLength,
+  sqlColumnLength,
   sqlDataType,
   sqlDataTypeOfCodec,
   sqlStorageType,

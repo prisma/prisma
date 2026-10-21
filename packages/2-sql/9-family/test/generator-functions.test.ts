@@ -1,9 +1,11 @@
+import type { DataTypeId } from '@internal/framework-components/codec';
 import { assembleGeneratorFunctions } from '@internal/framework-components/components';
 import { builtinGeneratorIds } from '@internal/ids';
 import { describe, expect, it } from 'vitest';
 import {
   idGeneratorFunctionBindings,
   sqlFamilyGeneratorDescriptors,
+  sqlIntegerArgumentGeneratorFunctions,
 } from '../src/core/generator-functions';
 import sqlFamilyPack from '../src/exports/pack';
 
@@ -11,20 +13,18 @@ const registry = assembleGeneratorFunctions([
   sqlFamilyPack,
   {
     id: 'target',
-    generatorFunctions: idGeneratorFunctionBindings({
-      text: ['demo/char@1', 'demo/text@1', 'demo/varchar@1'],
-      uuid: ['demo/uuid@1'],
-    }),
+    generatorFunctions: [
+      ...sqlIntegerArgumentGeneratorFunctions({ integer: 'demo/int' as DataTypeId }),
+      ...idGeneratorFunctionBindings({
+        text: ['demo/char@1', 'demo/text@1', 'demo/varchar@1'],
+        uuid: ['demo/uuid@1'],
+      }),
+    ],
   },
 ]);
 
-function resolve(
-  name: string,
-  args: Record<string, unknown>,
-  codecId: string,
-  typeParams?: Record<string, unknown>,
-) {
-  return registry.resolve({ name, args }, { codecId, typeParams });
+function resolve(name: string, args: Record<string, unknown>, codecId: string, length?: number) {
+  return registry.resolve({ name, args }, { codecId, typeParams: undefined, length });
 }
 
 function generator(id: string, params?: Record<string, unknown>) {
@@ -59,14 +59,14 @@ describe('SQL family generator functions', () => {
     'demo/varchar@1',
     'demo/text@1',
   ])('resolves every identifier function on %s', (codecId) => {
-    const typeParams = codecId.endsWith('char@1') ? { length: 36 } : undefined;
+    const length = codecId.endsWith('char@1') ? 36 : undefined;
     expect({
-      uuid: resolve('uuid', {}, codecId, typeParams),
-      uuid7: resolve('uuid', { version: 7 }, codecId, typeParams),
-      cuid: resolve('cuid', { version: 2 }, codecId, typeParams),
-      ulid: resolve('ulid', {}, codecId, typeParams),
-      ksuid: resolve('ksuid', {}, codecId, typeParams),
-      nanoid: resolve('nanoid', { size: 36 }, codecId, typeParams),
+      uuid: resolve('uuid', {}, codecId, length),
+      uuid7: resolve('uuid', { version: 7 }, codecId, length),
+      cuid: resolve('cuid', { version: 2 }, codecId, length),
+      ulid: resolve('ulid', {}, codecId, length),
+      ksuid: resolve('ksuid', {}, codecId, length),
+      nanoid: resolve('nanoid', { size: 36 }, codecId, length),
     }).toEqual({
       uuid: generator('uuidv4'),
       uuid7: generator('uuidv7'),
@@ -108,11 +108,11 @@ describe('SQL family generator functions', () => {
   describe('nanoid', () => {
     it('never takes its size from the column', () => {
       expect({
-        char36: resolve('nanoid', {}, 'sql/char@1', { length: 36 }),
-        char21: resolve('nanoid', {}, 'sql/char@1', { length: 21 }),
-        varchar255: resolve('nanoid', {}, 'sql/varchar@1', { length: 255 }),
+        char36: resolve('nanoid', {}, 'sql/char@1', 36),
+        char21: resolve('nanoid', {}, 'sql/char@1', 21),
+        varchar255: resolve('nanoid', {}, 'sql/varchar@1', 255),
         text: resolve('nanoid', {}, 'sql/text@1'),
-        char36Sized: resolve('nanoid', { size: 16 }, 'sql/char@1', { length: 36 }),
+        char36Sized: resolve('nanoid', { size: 16 }, 'sql/char@1', 36),
       }).toEqual({
         char36: generator('nanoid'),
         char21: generator('nanoid'),
@@ -124,8 +124,8 @@ describe('SQL family generator functions', () => {
 
     it('refuses a size that does not fit the column', () => {
       expect({
-        char: resolve('nanoid', { size: 16 }, 'sql/char@1', { length: 10 }),
-        varchar: resolve('nanoid', {}, 'sql/varchar@1', { length: 10 }),
+        char: resolve('nanoid', { size: 16 }, 'sql/char@1', 10),
+        varchar: resolve('nanoid', {}, 'sql/varchar@1', 10),
       }).toEqual({
         char: {
           ok: false,
@@ -141,6 +141,46 @@ describe('SQL family generator functions', () => {
     });
   });
 
+  it('refuses a column shorter than what each generator writes, and checks no length when the column gives none', () => {
+    expect({
+      uuid: resolve('uuid', {}, 'sql/char@1', 35),
+      uuid7: resolve('uuid', { version: 7 }, 'sql/char@1', 1),
+      cuid: resolve('cuid', { version: 2 }, 'sql/varchar@1', 23),
+      ulid: resolve('ulid', {}, 'sql/char@1', 25),
+      ksuid: resolve('ksuid', {}, 'sql/varchar@1', 26),
+      fits: resolve('ksuid', {}, 'sql/varchar@1', 27),
+      noLength: resolve('uuid', {}, 'sql/varchar@1'),
+    }).toEqual({
+      uuid: {
+        ok: false,
+        reason: 'refused',
+        message: 'uuid() writes 36 characters, which does not fit a column of 35 characters.',
+      },
+      uuid7: {
+        ok: false,
+        reason: 'refused',
+        message: 'uuid(7) writes 36 characters, which does not fit a column of 1 character.',
+      },
+      cuid: {
+        ok: false,
+        reason: 'refused',
+        message: 'cuid(2) writes 24 characters, which does not fit a column of 23 characters.',
+      },
+      ulid: {
+        ok: false,
+        reason: 'refused',
+        message: 'ulid() writes 26 characters, which does not fit a column of 25 characters.',
+      },
+      ksuid: {
+        ok: false,
+        reason: 'refused',
+        message: 'ksuid() writes 27 characters, which does not fit a column of 26 characters.',
+      },
+      fits: generator('ksuid'),
+      noLength: generator('uuidv4'),
+    });
+  });
+
   it('checks the argument ranges', () => {
     expect({
       uuid: resolve('uuid', { version: 5 }, 'demo/text@1'),
@@ -149,29 +189,29 @@ describe('SQL family generator functions', () => {
       nanoidLarge: resolve('nanoid', { size: 256 }, 'demo/text@1'),
       nanoidFraction: resolve('nanoid', { size: 2.5 }, 'demo/text@1'),
     }).toEqual({
-      uuid: { ok: false, reason: 'refused', message: 'uuid takes version 4 or 7, not 5.' },
-      cuid: { ok: false, reason: 'refused', message: 'cuid takes version 2, not 1.' },
+      uuid: { ok: false, reason: 'refused', message: 'uuid: version must be 4 or 7, got 5' },
+      cuid: { ok: false, reason: 'refused', message: 'cuid: version must be 2, got 1' },
       nanoidSmall: {
         ok: false,
         reason: 'refused',
-        message: 'nanoid takes a size from 2 through 255, not 1.',
+        message: 'nanoid: size must be between 2 and 255, got 1',
       },
       nanoidLarge: {
         ok: false,
         reason: 'refused',
-        message: 'nanoid takes a size from 2 through 255, not 256.',
+        message: 'nanoid: size must be between 2 and 255, got 256',
       },
       nanoidFraction: {
         ok: false,
         reason: 'refused',
-        message: 'nanoid takes a size from 2 through 255, not 2.5.',
+        message: 'nanoid: size must be between 2 and 255, got 2.5',
       },
     });
   });
 
   it('writes the call for each identifier generator', () => {
-    const text = { codecId: 'demo/text@1', typeParams: undefined };
-    const char36 = { codecId: 'sql/char@1', typeParams: { length: 36 } };
+    const text = { codecId: 'demo/text@1', typeParams: undefined, length: undefined };
+    const char36 = { codecId: 'sql/char@1', typeParams: { length: 36 }, length: 36 };
     expect({
       uuidv4: registry.callFor({ kind: 'generator', id: 'uuidv4' }, text)?.text,
       uuidv7: registry.callFor({ kind: 'generator', id: 'uuidv7' }, text)?.text,
