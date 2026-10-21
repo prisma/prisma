@@ -287,3 +287,19 @@ test('each User facet rejects the unique field of the other namespace in create/
   // @ts-expect-error `token` belongs to auth.User, not public.User
   writeDb.public.User.where({ token: 'tok' });
 });
+
+test('each User facet resolves select/distinct/cursor/conflictOn fields within its own namespace', () => {
+  expectTypeOf(writeDb.public.User.select('email').all()).resolves.items.toEqualTypeOf<{
+    email: string;
+  }>();
+  expectTypeOf(writeDb.auth.User.select('token').all()).resolves.items.toEqualTypeOf<{
+    token: string;
+  }>();
+  expectTypeOf(writeDb.auth.User.select('id').all()).resolves.items.toEqualTypeOf<{
+    id: number;
+  }>();
+  writeDb.auth.User.distinct('token');
+  writeDb.auth.User.orderBy((user) => user.token.asc()).distinctOn('token');
+  writeDb.auth.User.orderBy((user) => user.token.asc()).cursor({ token: 'tok' });
+  writeDb.auth.User.createAll([{ token: 'tok' }], { onConflict: 'skip', conflictOn: ['token'] });
+});
