@@ -51,6 +51,7 @@ import {
   type ConsentedSubject,
   type PlannedQuestions,
   refuseUnusedConsents,
+  removedNamespaceOf,
   subjectText,
 } from '../statements/plan-questions';
 import {
@@ -401,7 +402,11 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     statements: plannedTexts,
   };
   const asked = <TEntry extends MigrationOperationSubject>(entries: readonly TEntry[]) =>
-    entries.map((entry) => ({ ...entry, text: subjectText(entry.subject, contractsAsked) }));
+    entries.map((entry) => ({
+      ...entry,
+      text: subjectText(entry.subject, contractsAsked),
+      ...ifDefined('removedNamespace', removedNamespaceOf(entry.subject, contract)),
+    }));
   const databaseStorageHash =
     action === 'dbUpdate' ? recordedDatabaseContract(aggregate, markerRows) : undefined;
   const subjects =

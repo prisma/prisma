@@ -25,7 +25,7 @@ import {
   preflightRefAdvancement,
 } from '../../control-api/operations/ref-advancement';
 import { retryCommandFor } from '../../control-api/operations/ref-resolution';
-import { subjectNamespace } from '../../control-api/statements/plan-questions';
+import { consentAnswers } from '../../control-api/statements/plan-questions';
 import { shellQuoted, statementFlag } from '../../control-api/statements/statement-flag';
 import { isStatementVerb, type StatementText } from '../../control-api/statements/statement-text';
 import type {
@@ -110,20 +110,15 @@ function answeredByFlags(
   verb: 'delete' | 'allow',
   given: readonly StatementText[],
 ): readonly boolean[] {
-  const flagsLeft = new Map<string, number>();
-  for (const statement of given) {
-    if (statement.verb === verb) {
-      flagsLeft.set(statement.text, (flagsLeft.get(statement.text) ?? 0) + 1);
-    }
-  }
+  const flags = given.filter((statement) => statement.verb === verb);
+  const taken = new Set<StatementText>();
   return entries.map((entry) => {
-    const namespace = subjectNamespace(entry.subject);
-    if (verb === 'delete' && namespace !== undefined && (flagsLeft.get(namespace) ?? 0) > 0) {
-      return true;
-    }
-    const left = flagsLeft.get(entry.text) ?? 0;
-    if (left > 0 && verb === 'allow') flagsLeft.set(entry.text, left - 1);
-    return left > 0;
+    const target = { text: entry.text, removedNamespace: entry.removedNamespace };
+    const matching = flags.filter((flag) => consentAnswers(verb, flag.text, target));
+    if (verb === 'delete') return matching.length > 0;
+    const first = matching.find((flag) => !taken.has(flag));
+    if (first !== undefined) taken.add(first);
+    return first !== undefined;
   });
 }
 

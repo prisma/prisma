@@ -1,8 +1,9 @@
 import type { PromptSurface, StatementSurface } from '@prisma/cli-engine';
-import type {
-  AnswerPlanQuestions,
-  PlanAnswer,
-  PlanQuestion,
+import {
+  type AnswerPlanQuestions,
+  consentAnswers,
+  type PlanAnswer,
+  type PlanQuestion,
 } from '../control-api/statements/plan-questions';
 import { errorConsentUnused } from '../utils/cli-errors';
 
@@ -17,17 +18,15 @@ function namespaceDeletes(
   statements: StatementSurface,
 ): ReadonlyMap<number, PlanAnswer> | undefined {
   const deletes = statements.values().filter(({ verb }) => verb === 'delete');
-  const namespaces = new Set(questions.flatMap(({ namespace }) => namespace ?? []));
-  if (!deletes.some(({ text }) => namespaces.has(text))) return undefined;
+  const removed = new Set(questions.flatMap(({ removedNamespace }) => removedNamespace ?? []));
+  if (!deletes.some(({ text }) => removed.has(text))) return undefined;
   const taken = statements.take('delete').map(({ text }) => text);
   const answered = new Map<number, PlanAnswer>();
   const used = new Set<string>();
   questions.forEach((question, index) => {
-    const given = taken.find(
-      (text) =>
-        text === question.subject ||
-        (text === question.namespace && question.verbs.includes('delete')),
-    );
+    if (!question.verbs.includes('delete')) return;
+    const target = { text: question.subject, removedNamespace: question.removedNamespace };
+    const given = taken.find((text) => consentAnswers('delete', text, target));
     if (given === undefined) return;
     used.add(given);
     answered.set(index, { verb: 'delete', text: question.subject });

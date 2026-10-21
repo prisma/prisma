@@ -348,8 +348,18 @@ describe('db update --rename', () => {
       ok({
         ...planSuccess(),
         dataLoss: [
-          { operationIndex: 0, subject: invoice, text: 'billing.Invoice' },
-          { operationIndex: 0, subject: receipt, text: 'billing.Receipt' },
+          {
+            operationIndex: 0,
+            subject: invoice,
+            text: 'billing.Invoice',
+            removedNamespace: 'billing',
+          },
+          {
+            operationIndex: 0,
+            subject: receipt,
+            text: 'billing.Receipt',
+            removedNamespace: 'billing',
+          },
         ],
       }),
     );

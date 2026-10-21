@@ -7,7 +7,7 @@ function question(subject: string, namespace?: string): PlanQuestion {
   return {
     question: `Drop ${subject}?`,
     subject,
-    ...(namespace === undefined ? {} : { namespace }),
+    ...(namespace === undefined ? {} : { removedNamespace: namespace }),
     verbs: ['delete'],
     forms: {},
     validate: () => undefined,

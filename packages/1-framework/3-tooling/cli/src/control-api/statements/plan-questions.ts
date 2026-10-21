@@ -34,8 +34,8 @@ export type PlanQuestionVerb = 'rename' | 'convert' | ConsentVerb;
 export interface PlanQuestion {
   readonly question: string;
   readonly subject: string;
-  /** The named namespace of a data-loss question's model or field: a `delete` of it answers the question too. */
-  readonly namespace?: string;
+  /** The namespace of a data-loss question's model or field when the destination removed it: a `delete` of it answers the question too. */
+  readonly removedNamespace?: string;
   readonly verbs: readonly PlanQuestionVerb[];
   readonly forms: { readonly rename?: string; readonly convert?: string };
   readonly validate: (verb: PlanQuestionVerb, text: string) => string | undefined;
@@ -402,29 +402,54 @@ export interface ConsentedSubject {
 
 const keyOf = (planned: PlannedSubject) => migrationSubjectKey(planned.subject);
 
-/** The named namespace of the model or field a subject names, which a `delete` may name instead. */
-export function subjectNamespace(subject: MigrationSubject): string | undefined {
-  return subject.kind !== 'storage' && subject.namespaceId !== UNBOUND_NAMESPACE_ID
-    ? subject.namespaceId
-    : undefined;
+/**
+ * The namespace of the model or field a subject names, when the destination contract no longer has
+ * it: a `delete` of that namespace answers the question too.
+ */
+export function removedNamespaceOf(
+  subject: MigrationSubject,
+  destination: ContractWithDomain | undefined,
+): string | undefined {
+  if (subject.kind === 'storage' || subject.namespaceId === UNBOUND_NAMESPACE_ID) return undefined;
+  if (
+    destination === undefined ||
+    Object.hasOwn(destination.domain.namespaces, subject.namespaceId)
+  ) {
+    return undefined;
+  }
+  return subject.namespaceId;
+}
+
+/** A question as a consent statement can answer it: by its subject, or by a namespace the destination removed. */
+export interface ConsentTarget {
+  readonly text: string;
+  readonly removedNamespace: string | undefined;
 }
 
 /**
- * The pre-answers that answer a question about `text`: every `delete` of the subject or of its
- * namespace, or the first `allow` of it no earlier question took, since an `allow` answers one
- * operation.
+ * Whether a `delete` or `allow` statement with `text` answers a question: it names the subject, or,
+ * for a `delete`, the namespace the destination removed. Every place that matches a consent flag to
+ * a question asks this.
+ */
+export function consentAnswers(verb: ConsentVerb, text: string, target: ConsentTarget): boolean {
+  return (
+    text === target.text ||
+    (verb === 'delete' && target.removedNamespace !== undefined && text === target.removedNamespace)
+  );
+}
+
+/**
+ * The pre-answers that answer a question: every `delete` that answers it, or the first `allow` of
+ * it no earlier question took, since an `allow` answers one operation.
  */
 function givenFor(
   verb: ConsentVerb,
-  entry: { readonly text: string; readonly namespace: string | undefined },
+  target: ConsentTarget,
   preAnswers: readonly StatementText[],
   taken: ReadonlySet<StatementText>,
 ): readonly StatementText[] {
   const matching = preAnswers.filter(
-    (statement) =>
-      statement.verb === verb &&
-      (statement.text === entry.text ||
-        (verb === 'delete' && entry.namespace !== undefined && statement.text === entry.namespace)),
+    (statement) => statement.verb === verb && consentAnswers(verb, statement.text, target),
   );
   if (verb === 'delete') return matching;
   const first = matching.find((statement) => !taken.has(statement));
@@ -473,22 +498,15 @@ function checkAnswers(questions: readonly PlanQuestion[], answers: readonly Plan
  */
 function withNamespaceDeleteOnFirstQuestion(
   questions: readonly PlanQuestion[],
-  destination: ContractWithDomain,
 ): readonly PlanQuestion[] {
   const told = new Set<string>();
   return questions.map((question) => {
-    const { namespace } = question;
-    if (
-      namespace === undefined ||
-      told.has(namespace) ||
-      Object.hasOwn(destination.domain.namespaces, namespace)
-    ) {
-      return question;
-    }
-    told.add(namespace);
+    const { removedNamespace } = question;
+    if (removedNamespace === undefined || told.has(removedNamespace)) return question;
+    told.add(removedNamespace);
     return {
       ...question,
-      question: `${question.question}\n--delete ${namespace} answers every question about namespace "${namespace}", which the destination contract no longer has.`,
+      question: `${question.question}\n--delete ${removedNamespace} answers every question about namespace "${removedNamespace}", which the destination contract no longer has.`,
     };
   });
 }
@@ -578,7 +596,7 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
         const text = subjectText(entry.subject, contracts);
         const given = givenFor(
           verb,
-          { text, namespace: subjectNamespace(entry.subject) },
+          { text, removedNamespace: removedNamespaceOf(entry.subject, contracts.destination) },
           input.preAnswers,
           usedPreAnswers,
         );
@@ -596,12 +614,14 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
             loss,
             question: {
               ...dataLossQuestion(loss, contracts),
-              ...ifDefined('namespace', subjectNamespace(loss.subject)),
+              ...ifDefined(
+                'removedNamespace',
+                removedNamespaceOf(loss.subject, contracts.destination),
+              ),
             },
           })),
           !input.originKnown,
         ),
-        input.destination,
       ),
       ...accessChanges.map((change) => accessChangeQuestion(change, contracts)),
     ];
@@ -689,7 +709,7 @@ export function refuseUnusedConsents(input: {
         verb,
         {
           text: subjectText(entry.subject, input.contracts),
-          namespace: subjectNamespace(entry.subject),
+          removedNamespace: removedNamespaceOf(entry.subject, input.contracts.destination),
         },
         input.statements,
         used,

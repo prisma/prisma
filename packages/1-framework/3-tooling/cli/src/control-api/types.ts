@@ -466,6 +466,8 @@ export type DbInitResult = Result<DbInitSuccess, DbInitFailure>;
 /** An operation an apply asks about, with its subject written as the question writes it: `User.nickname`. */
 export interface AskedSubject extends MigrationOperationSubject {
   readonly text: string;
+  /** The subject's namespace when the destination removed it: a `--delete` of it answers the question. */
+  readonly removedNamespace?: string;
 }
 
 /** An operation an apply asks about because it loses its subject's data. */

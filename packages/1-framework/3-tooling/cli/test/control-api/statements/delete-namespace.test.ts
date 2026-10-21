@@ -103,4 +103,49 @@ describe('--delete with a namespace of the origin contract', () => {
       'Drop table "receipt" would lose the data of model "billing.Receipt".',
     ]);
   });
+
+  it('does not answer a question about a namespace the destination still has', async () => {
+    const kept = contractOf({
+      app: { models: { User: { fields: ['id'] } } },
+      billing: { models: { Invoice: {}, Receipt: {} } },
+    });
+    const nickname = {
+      operationIndex: 0,
+      label: 'Drop column "nickname" from "User"',
+      loss: 'drop' as const,
+      subject: {
+        kind: 'field' as const,
+        namespaceId: asNamespaceId('app'),
+        model: 'User',
+        field: 'nickname',
+      },
+    };
+    const keptPlan: PlannedQuestions = { dataLoss: [nickname], accessChanges: [] };
+    const asked: string[] = [];
+
+    const outcome = await askPlanQuestions({
+      plan: keptPlan,
+      askAccess: false,
+      canConvert: false,
+      statements: [],
+      preAnswers: [{ verb: 'delete', text: 'app' }],
+      consentAll: { delete: false, allow: false },
+      origin: contractOf({
+        app: { models: { User: { fields: ['id', 'nickname'] } } },
+        billing: { models: { Invoice: {}, Receipt: {} } },
+      }),
+      originKnown: true,
+      destination: kept,
+      answer: async (questions) => {
+        asked.push(...questions.map(({ subject }) => subject));
+        return questions.map(({ subject }) => ({ verb: 'delete', text: subject }));
+      },
+      replan: async () => ok(keptPlan),
+    });
+
+    expect(asked).toEqual(['app.User.nickname']);
+    expect(!outcome.ok && outcome.failure).toMatchObject({
+      code: 'MIGRATION.STATEMENT_ANSWERS_NO_QUESTION',
+    });
+  });
 });
