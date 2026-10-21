@@ -104,6 +104,50 @@ describe('--delete with a namespace of the origin contract', () => {
     ]);
   });
 
+  async function firstQuestion(to: ReturnType<typeof contractOf>): Promise<string | undefined> {
+    const questions: string[] = [];
+    await askPlanQuestions({
+      plan,
+      askAccess: false,
+      canConvert: false,
+      statements: [],
+      preAnswers: [],
+      consentAll: { delete: false, allow: false },
+      origin,
+      originKnown: true,
+      destination: to,
+      answer: async (batch) => {
+        questions.push(...batch.map(({ question }) => question));
+        return batch.map(({ subject }) => ({ verb: 'delete', text: subject }));
+      },
+      replan: async () => ok(plan),
+    });
+    return questions[0];
+  }
+
+  it('offers a rename to the one namespace the destination adds', async () => {
+    const renamed = contractOf({
+      app: { models: { User: {} } },
+      finance: { models: { Invoice: {}, Receipt: {} } },
+    });
+
+    expect(await firstQuestion(renamed)).toBe(
+      'Drop table "invoice" would lose the data of model "billing.Invoice".\n--delete billing answers every question about namespace "billing", which the destination contract no longer has.\nIf namespace "billing" was renamed, --rename billing:finance renames it instead.',
+    );
+  });
+
+  it('offers a rename to each namespace the destination adds when it adds several', async () => {
+    const renamed = contractOf({
+      app: { models: { User: {} } },
+      finance: { models: { Invoice: {} } },
+      ledger: { models: { Receipt: {} } },
+    });
+
+    expect(await firstQuestion(renamed)).toBe(
+      'Drop table "invoice" would lose the data of model "billing.Invoice".\n--delete billing answers every question about namespace "billing", which the destination contract no longer has.\nIf namespace "billing" was renamed, --rename billing:<new namespace> renames it instead, where <new namespace> is finance or ledger.',
+    );
+  });
+
   it('does not answer a question about a namespace the destination still has', async () => {
     const kept = contractOf({
       app: { models: { User: { fields: ['id'] } } },

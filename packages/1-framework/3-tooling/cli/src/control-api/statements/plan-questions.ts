@@ -492,22 +492,45 @@ function checkAnswers(questions: readonly PlanQuestion[], answers: readonly Plan
   });
 }
 
+function addedNamespaces(contracts: StatementContracts): readonly string[] {
+  if (contracts.destination === undefined) return [];
+  return Object.keys(contracts.destination.domain.namespaces).filter(
+    (namespace) =>
+      namespace !== UNBOUND_NAMESPACE_ID &&
+      !Object.hasOwn(contracts.origin.domain.namespaces, namespace),
+  );
+}
+
+function namespaceRenameAdvice(removed: string, added: readonly string[]): string | undefined {
+  const [only] = added;
+  if (only === undefined) return undefined;
+  const lead = `If namespace "${removed}" was renamed, --rename ${removed}:`;
+  if (added.length === 1) return `${lead}${only} renames it instead.`;
+  const choices = `${added.slice(0, -1).join(', ')} or ${added.at(-1)}`;
+  return `${lead}<new namespace> renames it instead, where <new namespace> is ${choices}.`;
+}
+
 /**
  * The first question about a model or field of a namespace the destination contract no longer has
- * says that a `delete` of the namespace answers every question about it.
+ * says that a `delete` of the namespace answers every question about it, and, when the destination
+ * adds a namespace, how to rename the namespace instead.
  */
 function withNamespaceDeleteOnFirstQuestion(
   questions: readonly PlanQuestion[],
+  contracts: StatementContracts,
 ): readonly PlanQuestion[] {
   const told = new Set<string>();
+  const added = addedNamespaces(contracts);
   return questions.map((question) => {
     const { removedNamespace } = question;
     if (removedNamespace === undefined || told.has(removedNamespace)) return question;
     told.add(removedNamespace);
-    return {
-      ...question,
-      question: `${question.question}\n--delete ${removedNamespace} answers every question about namespace "${removedNamespace}", which the destination contract no longer has.`,
-    };
+    const lines = [
+      question.question,
+      `--delete ${removedNamespace} answers every question about namespace "${removedNamespace}", which the destination contract no longer has.`,
+      namespaceRenameAdvice(removedNamespace, added),
+    ];
+    return { ...question, question: lines.filter((line) => line !== undefined).join('\n') };
   });
 }
 
@@ -622,6 +645,7 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
           })),
           !input.originKnown,
         ),
+        contracts,
       ),
       ...accessChanges.map((change) => accessChangeQuestion(change, contracts)),
     ];
