@@ -716,9 +716,11 @@ class StatementPlanner<TCall extends CallWithCompanions> {
 }
 
 /**
- * Plans the statements in order against a target's working schema: each model rename becomes a
- * table rename and each field rename a column rename, computed against the schema earlier
- * statements left, then applied to it. The first statement that cannot be planned fails the whole
+ * Plans the statements against a target's working schema, namespace renames first and the rest in
+ * the order given: model and field statements name the origin and destination contracts, so the
+ * namespace renames' place among them does not matter. Each model rename becomes a table rename
+ * and each field rename a column rename, computed against the schema earlier statements left, then
+ * applied to it. The first statement that cannot be planned fails the whole
  * plan with a `statementRefused` conflict that carries the statement.
  */
 export function planStatements<TCall extends CallWithCompanions>(input: {
@@ -745,7 +747,11 @@ export function planStatements<TCall extends CallWithCompanions>(input: {
   }
   const planner = new StatementPlanner({ ...input, fromContract });
   const appliedStatements: AppliedMigrationStatement[] = [];
-  for (const statement of input.statements) {
+  const namespacesFirst = [
+    ...input.statements.filter((statement) => statement.entity === 'namespace'),
+    ...input.statements.filter((statement) => statement.entity !== 'namespace'),
+  ];
+  for (const statement of namespacesFirst) {
     const operationIndexes = planner.plan(statement);
     if (!operationIndexes.ok) return operationIndexes;
     appliedStatements.push({ statement, operationIndexes: operationIndexes.value });

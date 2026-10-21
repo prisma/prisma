@@ -150,4 +150,26 @@ describe('a namespace rename', () => {
       ),
     ).toMatchObject({ refusedOperationClass: 'widening' });
   });
+
+  it('plans namespace renames first, so the order the statements are given in does not matter', () => {
+    const modelStatement = renameModel('Invoice', 'Bill', 'billing', 'finance');
+    const planIn = (
+      statements: readonly ReturnType<typeof renameModel | typeof renameNamespace>[],
+    ) =>
+      planned(
+        planStatements({
+          statements,
+          fromContract: inBilling,
+          contract: contractOf({ Bill: { table: 'Bill', namespace: 'finance' } }),
+          policy: ALL_CLASSES,
+          target: fakeTarget(['billing.Invoice']),
+        }),
+      ).calls;
+
+    expect(planIn([modelStatement, statement])).toEqual([
+      'rename-namespace billing -> finance',
+      'table finance.Invoice -> Bill',
+    ]);
+    expect(planIn([statement, modelStatement])).toEqual(planIn([modelStatement, statement]));
+  });
 });
