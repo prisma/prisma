@@ -139,12 +139,12 @@ interface CacheEntry<TMeta = unknown, TValue = CachedValue> {
 interface CacheStore<TMeta = unknown, TValue = CachedValue> {
   get(target: {
     readonly key: string;
-    readonly meta: TMeta | undefined;
+    readonly meta?: TMeta | undefined;
   }): Promise<CacheEntry<TMeta, TValue>>;
   set(entry: CacheEntry<TMeta, TValue>, value: TValue): Promise<boolean>;
   unset(target: {
-    readonly keys: readonly string[] | undefined;
-    readonly meta: TMeta | undefined;
+    readonly keys?: readonly string[] | undefined;
+    readonly meta?: TMeta | undefined;
   }): Promise<void>;
 }
 

@@ -63,12 +63,12 @@ export interface CacheEntry<TMeta = unknown, TValue = CachedValue> {
 export interface CacheStore<TMeta = unknown, TValue = CachedValue> {
   get(target: {
     readonly key: string;
-    readonly meta: TMeta | undefined;
+    readonly meta?: TMeta | undefined;
   }): Promise<CacheEntry<TMeta, TValue>>;
   set(entry: CacheEntry<TMeta, TValue>, value: TValue): Promise<boolean>;
   unset(target: {
-    readonly keys: readonly string[] | undefined;
-    readonly meta: TMeta | undefined;
+    readonly keys?: readonly string[] | undefined;
+    readonly meta?: TMeta | undefined;
   }): Promise<void>;
 }
 
@@ -250,7 +250,7 @@ export function createInMemoryCacheStore<TMeta = unknown>(
 
   async function get(target: {
     readonly key: string;
-    readonly meta: TMeta | undefined;
+    readonly meta?: TMeta | undefined;
   }): Promise<CacheEntry<TMeta, CachedValue>> {
     const record = liveRecord(target.key);
     return {
@@ -278,8 +278,8 @@ export function createInMemoryCacheStore<TMeta = unknown>(
   }
 
   async function unset(target: {
-    readonly keys: readonly string[] | undefined;
-    readonly meta: TMeta | undefined;
+    readonly keys?: readonly string[] | undefined;
+    readonly meta?: TMeta | undefined;
   }): Promise<void> {
     if (target.meta !== undefined) {
       throw metaUnsupported();

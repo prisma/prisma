@@ -130,7 +130,7 @@ To prevent this, the store keeps a version number for every key, including keys 
 const store = createInMemoryCacheStore();
 const cache = createCacheMiddleware({ store });
 
-const entry = await store.get({ key: 'user-1', meta: undefined }); // version 0, no value
+const entry = await store.get({ key: 'user-1' }); // version 0, no value
 await cache.invalidate({ keys: ['user-1'] });                      // the store moves user-1 to version 1
 await store.set(entry, rows);                                      // false: version 0 is no longer current
 ```
@@ -173,12 +173,12 @@ export interface CacheEntry<TMeta = unknown, TValue = CachedValue> {
 export interface CacheStore<TMeta = unknown, TValue = CachedValue> {
   get(target: {
     readonly key: string;
-    readonly meta: TMeta | undefined;
+    readonly meta?: TMeta | undefined;
   }): Promise<CacheEntry<TMeta, TValue>>;
   set(entry: CacheEntry<TMeta, TValue>, value: TValue): Promise<boolean>;
   unset(target: {
-    readonly keys: readonly string[] | undefined;
-    readonly meta: TMeta | undefined;
+    readonly keys?: readonly string[] | undefined;
+    readonly meta?: TMeta | undefined;
   }): Promise<void>;
 }
 ```
