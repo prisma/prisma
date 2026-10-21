@@ -141,3 +141,21 @@ A SQLite table rebuild renders as a 40-line `recreateTable` call full of interna
 **Found:** slice 3b spec discussion with Will (2026-10-21).
 
 Slice 3b plans each row rewrite as one plain operation: an `UPDATE` for an enum value rename, a discriminator conversion or a value object key rename, and a `DELETE` for a removed variant's rows. A migration runs in one transaction, so on a large production table the rewrite blocks writes to every row it touches until it commits, and next to DDL such as a check rebuild it blocks the whole table. Nothing batches it or runs it in the background. 3a's `--backfill` and type conversions have the same cost. Will ruled that 3b's goal is that the planner sees these changes; making the rewrites cheap is a later optimization.
+
+## `--delete billing` is not offered as a next action, and the CLI copies the engine's unused-flag error
+
+**Found:** slice 3b PR 1 system-design review (2026-10-21), S04.
+
+When a removed namespace has questions, the `CLI.CONSENT_REQUIRED` refusal's `nextActions` list one `--delete` per model; `--delete billing` appears only in the question text. And because the CLI engine answers a question only with a flag equal to its subject, `db update` and `migration plan` take the `--delete` values from the engine themselves and raise `CLI.CONSENT_UNUSED` through their own `errorConsentUnused` in `packages/1-framework/3-tooling/cli/src/utils/cli-errors.ts`, a copy of the engine's error. Resolve it in the CLI engine (prisma/prisma-cli): let a question name extra flag values that answer it, such as its namespace, so the engine matches `--delete billing`, lists it in `nextActions`, and raises its own error for an unused flag. Then delete the copy and the command-side matching.
+
+## `SchemaTables` is asked about namespace ids of the origin contract
+
+**Found:** slice 3b PR 1 system-design review (2026-10-21), S07.
+
+`SchemaTables` in `packages/2-sql/9-family/src/core/migrations/schema-tables.ts` says it is addressed by the contract's namespace ids, meaning the destination's. A namespace rename asks `hasNamespace(rename.from)` and a move asks `hasTable` of its source, both origin ids. Postgres's `postgresSchemaTables` resolves them through the destination contract's storage and falls back to the id, which works only because a named Postgres schema's name is its id. Either document that ids of either contract are accepted, or have the family pass a name resolved through the right contract.
+
+## A model move of a table that another contract space's table references by foreign key
+
+**Found:** slice 3b PR 1 code review (2026-10-21).
+
+`--rename billing.Invoice:finance.Invoice` moves the table with `ALTER TABLE … SET SCHEMA`. Postgres keeps a foreign key from another contract space's table pointing at it, and the app's plan is right, but the other space's contract still names the old schema, so that space's next plan sees drift. A table rename has the same gap on main. It needs a cross-space design: either refuse a move or rename of a table another space references, or tell the other space's plan about it.
