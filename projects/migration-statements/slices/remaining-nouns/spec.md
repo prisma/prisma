@@ -105,7 +105,7 @@ Every operation the planner writes is also something a user could write in `migr
 | --- | --- | --- |
 | 1 | Namespaces: move, rename, delete, and a removed namespace becomes a question. The access question wording and rename | — |
 | 2 | Enum values: rename and delete in scalar and list columns, on Postgres and SQLite | 1 merged |
-| 3 | Storage records value object shapes and discriminator values (decision 1), with the new ADR. Contracts re-emitted, with an upgrade fragment. No statements yet | 2 merged |
+| 3 | Storage records value object shapes and discriminator values (decision 1), with the new ADR. A storage change that needs no database operation, such as a new optional value object field or a new SQLite enum value, plans a migration with no operations; today `migration plan` fails with "no operations". Contracts re-emitted, with an upgrade fragment. No statements yet | 2 merged |
 | 4 | Value object field rename and delete, including enum values inside JSON. Variant convert and delete | 3 merged |
 
 PR 3 is separate because it changes every contract with value objects or variants and needs its own review, as slice 4p's first PR did. Slice 4b reuses PR 4's value object statement support for MongoDB.
