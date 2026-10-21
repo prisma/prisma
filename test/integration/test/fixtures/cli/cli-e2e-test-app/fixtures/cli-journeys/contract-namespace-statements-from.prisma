@@ -1,0 +1,18 @@
+// use prisma-8
+
+namespace public {
+  model User {
+    id Int @id
+  }
+}
+
+namespace billing {
+  model Invoice {
+    id     Int    @id
+    number String @unique
+  }
+
+  model Receipt {
+    id Int @id
+  }
+}

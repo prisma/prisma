@@ -247,6 +247,18 @@ export const pslContractFixtures = {
     'contract-move-statements-from.prisma',
   ),
   'contract-move-statements-to': join(JOURNEY_FIXTURES_DIR, 'contract-move-statements-to.prisma'),
+  'contract-namespace-statements-from': join(
+    JOURNEY_FIXTURES_DIR,
+    'contract-namespace-statements-from.prisma',
+  ),
+  'contract-namespace-statements-renamed': join(
+    JOURNEY_FIXTURES_DIR,
+    'contract-namespace-statements-renamed.prisma',
+  ),
+  'contract-namespace-statements-removed': join(
+    JOURNEY_FIXTURES_DIR,
+    'contract-namespace-statements-removed.prisma',
+  ),
 } as const;
 
 export type PslContractVariant = keyof typeof pslContractFixtures;

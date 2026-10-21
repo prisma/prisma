@@ -259,7 +259,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
   });
   const schemaIR = await familyInstance.introspect({
     driver,
-    contract: collectAggregateNamespaces(aggregate),
+    contract: collectAggregateNamespaces(aggregate, fromContract),
   });
   onProgress?.({ action, kind: 'spanEnd', spanId: SPAN_IDS.introspect, outcome: 'ok' });
 
