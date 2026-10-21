@@ -43,7 +43,6 @@ import {
   createTypeHelpersFromNamespace,
 } from './authoring-helper-runtime';
 import type { FieldHelpersFromNamespace } from './authoring-type-utils';
-import type { AuthoredColumnDefault } from './contract-definition';
 import type {
   AnyRelationBuilder,
   ColumnFieldHelper,
@@ -129,14 +128,11 @@ type TypeAliasHelperFunction<Descriptor extends AuthoringTypeAliasDescriptor> = 
   }
     ? TypeParams
     : Record<never, never>;
-} & (Descriptor['output'] extends { readonly default: object }
-  ? { readonly default: AuthoredColumnDefault }
-  : unknown) &
-  (Descriptor['output'] extends
-    | { readonly onCreate: GeneratorFunctionCall }
-    | { readonly onUpdate: GeneratorFunctionCall }
-    ? { readonly generatorCalls: AliasGeneratorCalls<Descriptor['output']> }
-    : unknown);
+} & (Descriptor['output'] extends
+  | { readonly onCreate: GeneratorFunctionCall }
+  | { readonly onUpdate: GeneratorFunctionCall }
+  ? { readonly generatorCalls: AliasGeneratorCalls<Descriptor['output']> }
+  : unknown);
 
 type TypeHelpersFromNamespace<Namespace, ValueTypes extends DataTypeArgumentTypes> = {
   readonly [K in keyof Namespace]: Namespace[K] extends AuthoringTypeConstructorDescriptor

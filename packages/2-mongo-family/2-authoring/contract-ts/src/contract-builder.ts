@@ -41,7 +41,7 @@ import type {
 } from '@internal/framework-components/authoring';
 import {
   assertNoCrossRegistryCollisions,
-  assertTypeAliasGeneratorsResolve,
+  assertTypeAliasesValid,
   instantiateAuthoringFieldPreset,
   validateAuthoringHelperArguments,
 } from '@internal/framework-components/authoring';
@@ -2789,17 +2789,18 @@ function buildContractFromDefinition<
     ...Object.values(definition.extensions ?? {}),
   ];
   const generatorFunctions = assembleGeneratorFunctions(components);
-  assertTypeAliasGeneratorsResolve(
-    composePackAuthoringNamespace(components, 'type'),
+  const codecLookup = extractCodecLookup(components);
+  assertTypeAliasesValid(composePackAuthoringNamespace(components, 'type'), {
     generatorFunctions,
-  );
+    paramsSchemaOf: (codecId) => codecLookup.descriptorFor(codecId)?.paramsSchema,
+    fieldLength: () => undefined,
+  });
   const execution = buildExecutionSection({
     target: definition.target.targetId,
     targetFamily: definition.family.familyId,
     defaults: buildExecutionDefaults(definition.models, generatorFunctions),
   });
 
-  const codecLookup = extractCodecLookup(components);
   const lookups: TypeLookups = {
     codecLookup,
     dataTypeLookup: assembleDataTypes(components).lookup,

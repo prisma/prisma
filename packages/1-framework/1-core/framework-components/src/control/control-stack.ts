@@ -33,7 +33,7 @@ import {
   AUTHORING_TYPE_DESCRIPTOR_KINDS,
   assertNoCrossRegistryCollisions,
   assertResolvableTypeConstructorTemplates,
-  assertTypeAliasGeneratorsResolve,
+  assertTypeAliasesValid,
   collectContributedDescriptorPaths,
   collectScalarTypeConstructors,
   isAuthoringArgRef,
@@ -747,7 +747,11 @@ export function createControlStack<TFamilyId extends string, TTargetId extends s
 
   const controlMutationDefaults = assembleControlMutationDefaults(allDescriptors);
   const generatorFunctions = assembleGeneratorFunctions(allDescriptors);
-  assertTypeAliasGeneratorsResolve(authoringContributions.type, generatorFunctions);
+  assertTypeAliasesValid(authoringContributions.type, {
+    generatorFunctions,
+    paramsSchemaOf: (codecId) => codecLookup.descriptorFor(codecId)?.paramsSchema,
+    fieldLength: (field) => family.fieldLength?.(field, dataTypes.support),
+  });
 
   return {
     family,

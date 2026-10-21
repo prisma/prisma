@@ -17,8 +17,11 @@ import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type { Type } from 'arktype';
 import type { CodecLookupWithDescriptors } from './codec-types';
 import type { DataTypeId, DataTypeLookup } from './data-type';
-import type { GeneratorFunctionCall, GeneratorFunctionRegistry } from './generator-functions';
-import type { LoweredDefaultValue } from './mutation-default-types';
+import type {
+  GeneratorFunctionCall,
+  GeneratorFunctionField,
+  GeneratorFunctionRegistry,
+} from './generator-functions';
 import type { AuthoringOption } from './option-descriptor';
 import type { ParsedPslExtensionBlock, PslSpan } from './psl-extension-block';
 import { runtimeError } from './runtime-error';
@@ -175,16 +178,15 @@ export interface AuthoringFieldPresetDescriptor {
 }
 
 /**
- * A type alias a pack contributes: a column type with fixed params, and the default and generators every field typed by it takes. It takes no arguments, and is written bare, such as `temporal.CreatedAt`.
+ * A type alias a pack contributes: a type with fixed params, and the generators every field typed by it takes. It takes no arguments, and is written bare, such as `temporal.CreatedAt`.
  */
 export interface AuthoringTypeAliasDescriptor {
   readonly kind: 'typeAlias';
   readonly documentation?: string;
   readonly output: {
+    /** Assembly refuses params the codec's parameter schema refuses. */
     readonly type: AuthoringStorageTypeTemplate;
-    /** The database default, as `@default(...)` lowers to. An alias takes no arguments, so it is written as stored. */
-    readonly default?: LoweredDefaultValue['defaultValue'];
-    /** Resolved by the column's codec, as `@onCreate(fn())` is. Assembly refuses a call that does not resolve. */
+    /** Resolved by the field's codec, as `@onCreate(fn())` is. Assembly refuses a call that does not resolve. */
     readonly onCreate?: GeneratorFunctionCall;
     readonly onUpdate?: GeneratorFunctionCall;
   };
@@ -1948,10 +1950,9 @@ export function instantiateAuthoringTypeConstructor(
   return resolveAuthoringStorageTypeTemplate(descriptor.output, args);
 }
 
-/** What a field typed by a contributed type alias takes: the column type, and the alias's default and generator calls. */
+/** What a field typed by a contributed type alias takes: the type, and the alias's generator calls. */
 export interface AuthoringTypeAliasOutput {
   readonly type: ScalarTypeConstructorOutput;
-  readonly default?: AuthoringTypeAliasDescriptor['output']['default'];
   readonly onCreate?: GeneratorFunctionCall;
   readonly onUpdate?: GeneratorFunctionCall;
 }
@@ -1962,7 +1963,6 @@ export function instantiateAuthoringTypeAlias(
   const { output } = descriptor;
   return {
     type: resolveAuthoringStorageTypeTemplate(output.type, []),
-    ...ifDefined('default', output.default),
     ...ifDefined('onCreate', output.onCreate),
     ...ifDefined('onUpdate', output.onUpdate),
   };
@@ -2009,17 +2009,40 @@ export function resolveTypeAliasGenerators(input: {
   return phases.onCreate === undefined && phases.onUpdate === undefined ? undefined : phases;
 }
 
+/** What assembly checks a contributed type alias against: the stack's generator functions, each codec's parameter schema, and the length the family gives a field of a type. */
+export interface TypeAliasAssemblyLookups {
+  readonly generatorFunctions: GeneratorFunctionRegistry;
+  readonly paramsSchemaOf: (codecId: string) => StandardSchemaV1<unknown> | undefined;
+  readonly fieldLength: (field: Omit<GeneratorFunctionField, 'length'>) => number | undefined;
+}
+
 /**
- * Refuses a type alias of `namespace` whose generator call does not resolve for the alias's codec in `generatorFunctions`. The control stack and the TypeScript builders call it on their assembled namespace and generator functions, so PSL and TypeScript refuse the same packs.
+ * Refuses a type alias of `namespace` whose fixed type params its codec's parameter schema refuses, or whose generator call does not resolve for its codec and length. The control stack and the TypeScript builders call it on their assembled namespace, so PSL and TypeScript refuse the same packs, before any schema is read.
  */
-export function assertTypeAliasGeneratorsResolve(
+export function assertTypeAliasesValid(
   namespace: AuthoringTypeNamespace,
-  generatorFunctions: GeneratorFunctionRegistry,
+  lookups: TypeAliasAssemblyLookups,
 ): void {
   for (const [path, descriptor] of collectDescriptorNodes(namespace, isAuthoringTypeDescriptor)) {
-    if (isAuthoringTypeAliasDescriptor(descriptor)) {
-      resolveTypeAliasGenerators({ path, descriptor, generatorFunctions, length: undefined });
+    if (!isAuthoringTypeAliasDescriptor(descriptor)) continue;
+    const { type } = instantiateAuthoringTypeAlias(descriptor);
+    const issue = authoringTypeParamsIssue(
+      descriptor.output.type,
+      type.typeParams,
+      lookups.paramsSchemaOf(type.codecId),
+    );
+    if (issue !== undefined) {
+      throw runtimeError(
+        'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        `Type alias "${path}" fixes type parameters its codec "${type.codecId}" refuses: ${issue.message}`,
+      );
     }
+    resolveTypeAliasGenerators({
+      path,
+      descriptor,
+      generatorFunctions: lookups.generatorFunctions,
+      length: lookups.fieldLength({ codecId: type.codecId, typeParams: type.typeParams }),
+    });
   }
 }
 

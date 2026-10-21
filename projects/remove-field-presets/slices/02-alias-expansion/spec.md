@@ -63,7 +63,7 @@ model Post {
 Refused:
 
 ```
-PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE: Type alias "Key" cannot carry @id. @id and @unique describe a model's field, not a column type; write them on the field.
+PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE: Type alias "Key" cannot carry @id. @id and @unique belong to a model's field, not to its type; write them on the field.
 PSL_DUPLICATE_ATTRIBUTE: Field "Post.updatedAt" writes @onUpdate, which its type alias "UpdatedAt" already sets. Remove one of them.
 ```
 
@@ -172,17 +172,18 @@ interface AuthoringTypeAliasDescriptor {
   readonly documentation?: string;
   readonly output: {
     readonly type: AuthoringTypeConstructorOutput;
-    readonly default?: AuthoringFieldPresetDefault;
     readonly onCreate?: GeneratorFunctionCall;
     readonly onUpdate?: GeneratorFunctionCall;
   };
 }
 ```
 
-It may appear in `AuthoringContributions.type` (`AuthoringTypeNamespace`, `:165`). It has no `args` (R23). Its output names the codec and fixed params directly, as a type constructor's output does, plus generator calls from slice 1's `GeneratorFunctionCall`, resolved by the column's codec like any attribute. Assembly validates each call against the assembled generator function registry and throws `CONTRACT.PACK_CONTRIBUTION_INVALID` when a call does not resolve for the alias's codec.
+It may appear in `AuthoringContributions.type` (`AuthoringTypeNamespace`, `:165`). It has no `args` (R23). Its output names the codec and fixed params directly, as a type constructor's output does, plus generator calls from slice 1's `GeneratorFunctionCall`, resolved by the column's codec like any attribute. Assembly checks the fixed params against the codec's params schema, as a type constructor's params are checked, and resolves each call against the assembled generator function registry for the codec and the length the fixed params give. It throws `CONTRACT.PACK_CONTRIBUTION_INVALID` when either fails, so a broken pack never surfaces while a user's schema is read. The family gives the length (`ControlFamilyDescriptor.fieldLength`); Mongo gives none.
+
+Amended 2026-10-21: a contributed alias carries a type and generators only. It has no database default: no contributed alias needs one, and a default is a SQL concept Mongo cannot use. A database default can be added to the descriptor later, when a pack needs one, with its own check at assembly.
 
 - PSL: `isContributedTypeDescriptor` and the `ContributedTypeDescriptor` union (`contributed-type-scope.ts:6-8`, `:35-39`) add `typeAlias`. A field typed `temporal.CreatedAt` resolves to the alias's descriptor and attributes, then follows D1 and D2. It is written bare. `temporal.CreatedAt(3)` is refused with the message `temporal.CreatedAt is a type alias and takes no arguments.`, under the code the interpreter already uses for wrong type constructor arguments; the implementer names that code in the test.
-- TypeScript: `createTypeHelpersFromNamespace` gives `type.temporal.CreatedAt()`, which returns the column descriptor plus `default` and `generatorCalls`. `field.column(...)` copies them into the builder state, and its return type sets `FieldDefaultPresence.execution` when the alias generates on create, as `.onCreate` does.
+- TypeScript: `createTypeHelpersFromNamespace` gives `type.temporal.CreatedAt()`, which returns the column descriptor plus `generatorCalls`. `field.column(...)` copies them into the builder state, and its return type sets `FieldDefaultPresence.execution` when the alias generates on create, as `.onCreate` does.
 - Language server: `completion-scope.ts:84-107` renders a `typeAlias` as a non-callable type with its documentation.
 
 Why `field.column(type.temporal.UpdatedAt())` and not `type.temporal.UpdatedAt()` as the field itself, as ADR 275's table shows: every `type.*` helper returns a column type that `field.column` takes, and a field needs the builder for `.optional()`, `.id()`, `.default()` and the rest. A helper that returned a builder would be the one `type.*` member that is not a type. ADR 275's table is amended.

@@ -1383,14 +1383,6 @@ function resolveNonRelationField(
     }
     const typeAlias = typeAliases.ofResolution(resolution);
     invariant(typeAlias !== undefined, 'A contributed type alias always resolves');
-    if (typeAlias.setsDefault) {
-      presetContext.diagnostics.push({
-        code: 'PSL_UNSUPPORTED_FIELD_TYPE',
-        message: `${entityLabel} is typed by the type alias "${typeAlias.name}", which sets a default; MongoDB has no database defaults.`,
-        ...source.at(field.span),
-      });
-      return undefined;
-    }
     return fieldOfTypeAlias(field, typeAlias);
   }
   if (descriptor.kind === 'fieldPreset') {

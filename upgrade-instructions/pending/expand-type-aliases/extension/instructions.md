@@ -25,7 +25,7 @@ changes:
         - '[cC]ontext\.types(?![\w$])'
   - id: type-alias-descriptor
     summary: |
-      No action is needed. A pack may now contribute a type alias in its `type` namespace, a descriptor of `kind: 'typeAlias'` whose output names a column type and optional `default`, `onCreate` and `onUpdate`.
+      No action is needed. A pack may now contribute a type alias in its `type` namespace, a descriptor of `kind: 'typeAlias'` whose output names a column type and optional `onCreate` and `onUpdate` generator calls. Assembly refuses, with `CONTRACT.PACK_CONTRIBUTION_INVALID`, fixed type parameters the codec's parameter schema refuses and a generator call that does not resolve for the codec.
 ---
 
 # Type aliases are written into each column

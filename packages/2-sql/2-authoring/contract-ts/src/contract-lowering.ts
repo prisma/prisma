@@ -8,7 +8,7 @@ import {
 } from '@internal/contract-authoring';
 import {
   type AuthoringEntityTypeNamespace,
-  assertTypeAliasGeneratorsResolve,
+  assertTypeAliasesValid,
   isAuthoringEntityTypeDescriptor,
 } from '@internal/framework-components/authoring';
 import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
@@ -1347,16 +1347,13 @@ export function buildContractDefinition(definition: LoweringInput): ContractDefi
     ...Object.values<ExtensionPackRef<'sql', string>>(definition.extensions ?? {}),
   ];
   const generatorFunctions = assembleGeneratorFunctions(packs);
-  assertTypeAliasGeneratorsResolve(
-    composePackAuthoringNamespace(packs, 'type'),
+  const columnLength = columnLengthOf(definition);
+  assertTypeAliasesValid(composePackAuthoringNamespace(packs, 'type'), {
     generatorFunctions,
-  );
-  const models = lowerModels(
-    collection,
-    generatorFunctions,
-    columnLengthOf(definition),
-    definition.extensions,
-  );
+    paramsSchemaOf: (codecId) => definition.codecLookup.descriptorFor(codecId)?.paramsSchema,
+    fieldLength: ({ codecId, typeParams }) => columnLength(codecId, typeParams),
+  });
+  const models = lowerModels(collection, generatorFunctions, columnLength, definition.extensions);
   const attachedEntities = lowerPackEntityHandles(definition, collection.modelSpecs);
 
   return {

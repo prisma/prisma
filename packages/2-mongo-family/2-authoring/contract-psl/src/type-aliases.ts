@@ -56,8 +56,6 @@ export interface MongoTypeAlias {
   readonly type: ScalarFieldType;
   readonly valueSet: ValueSetRef | undefined;
   readonly executionDefaults: ExecutionMutationDefaultPhases | undefined;
-  /** Whether a contributed alias sets a default, which MongoDB has no place for. */
-  readonly setsDefault: boolean;
 }
 
 /** The type aliases of a document: those its `types {}` block declares, and those the stack contributes. */
@@ -197,13 +195,12 @@ function resolveContributedTypeAlias(
   alias: ContributedTypeAlias,
   generatorFunctions: GeneratorFunctionRegistry,
 ): MongoTypeAlias {
-  const { type, default: columnDefault } = instantiateAuthoringTypeAlias(alias.descriptor);
+  const { type } = instantiateAuthoringTypeAlias(alias.descriptor);
   return {
     alias,
     name: alias.name,
     type: { kind: 'scalar', codecId: type.codecId, ...ifDefined('typeParams', type.typeParams) },
     valueSet: undefined,
-    setsDefault: columnDefault !== undefined,
     executionDefaults: resolveTypeAliasGenerators({
       path: alias.name,
       descriptor: alias.descriptor,
@@ -235,7 +232,6 @@ export function resolveMongoTypeAliases(input: ResolveMongoTypeAliasesInput): Mo
       name: alias.symbol.name,
       ...resolved,
       executionDefaults: lowerAliasGenerators(alias, resolved.type, input),
-      setsDefault: false,
     });
   }
   const contributed = new Map<ContributedTypeAlias['descriptor'], MongoTypeAlias>();

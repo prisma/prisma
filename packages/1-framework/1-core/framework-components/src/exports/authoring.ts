@@ -81,7 +81,7 @@ export {
   AUTHORING_TYPE_DESCRIPTOR_KINDS,
   assertNoCrossRegistryCollisions,
   assertResolvableTypeConstructorTemplates,
-  assertTypeAliasGeneratorsResolve,
+  assertTypeAliasesValid,
   classifyEnumMemberType,
   collectScalarTypeConstructors,
   flushAuthoringWarnings,

@@ -1,6 +1,8 @@
+import { type as arktype } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import type { CreateControlStackInput } from '../src/control/control-stack';
 import { createControlStack } from '../src/control/control-stack';
+import { dataType } from '../src/shared/data-type';
 import type { GeneratorFunctionContribution } from '../src/shared/generator-functions';
 
 function stubInput(input: Record<string, unknown>): CreateControlStackInput {
@@ -124,12 +126,56 @@ describe('createControlStack generator functions', () => {
   });
 });
 
+const textDataType = dataType('demo/text', { read: (json) => json });
+
+const boundedText = {
+  codecId: 'text@1',
+  dataType: textDataType.id,
+  traits: [],
+  isParameterized: true,
+  paramsSchema: arktype({ length: 'number <= 10' }),
+  factory: () => () => ({}),
+};
+
+const shortSlugid: GeneratorFunctionContribution = {
+  ...slugid,
+  bindings: [
+    {
+      ...slugid.bindings[0]!,
+      resolve: ({ field }) =>
+        field.length !== undefined && field.length < 22
+          ? {
+              ok: false,
+              message: `slugid() needs 22 characters; the column holds ${field.length}.`,
+            }
+          : { ok: true, generator: { kind: 'generator', id: 'slugid' } },
+    },
+  ],
+};
+
 describe('createControlStack type aliases', () => {
-  function stackWithAlias(output: Record<string, unknown>) {
+  function stackWithAlias(
+    output: Record<string, unknown>,
+    options: {
+      readonly fieldLength?: (field: { readonly typeParams?: unknown }) => number | undefined;
+      readonly generatorFunction?: GeneratorFunctionContribution;
+    } = {},
+  ) {
     return createControlStack(
       stubInput({
-        family: { kind: 'family', id: 'family', version: '0.0.1' },
-        target: { kind: 'target', id: 'target', version: '0.0.1' },
+        family: {
+          kind: 'family',
+          id: 'family',
+          version: '0.0.1',
+          ...(options.fieldLength === undefined ? {} : { fieldLength: options.fieldLength }),
+        },
+        target: {
+          kind: 'target',
+          id: 'target',
+          version: '0.0.1',
+          dataTypes: [textDataType],
+          types: { codecTypes: { codecDescriptors: [boundedText] } },
+        },
         adapter: {
           kind: 'adapter',
           id: 'adapter',
@@ -144,7 +190,7 @@ describe('createControlStack type aliases', () => {
             kind: 'extension',
             id: 'slugid-pack',
             version: '0.0.1',
-            generatorFunctions: [slugid],
+            generatorFunctions: [options.generatorFunction ?? slugid],
             authoring: { type: { slugs: { Slug: { kind: 'typeAlias', output } } } },
           },
         ],
@@ -193,6 +239,42 @@ describe('createControlStack type aliases', () => {
         code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
         message:
           'Type alias "slugs.Slug" calls cuid() on create, but no component declares the generator function "cuid".',
+      }),
+    );
+  });
+
+  it('refuses an alias whose fixed type params its codec refuses', () => {
+    expect(() =>
+      stackWithAlias({ type: { codecId: 'text@1', typeParams: { length: 64 } } }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        message:
+          'Type alias "slugs.Slug" fixes type parameters its codec "text@1" refuses: length must be at most 10 (was 64)',
+      }),
+    );
+  });
+
+  it("resolves an alias's generator calls for the length its fixed params give", () => {
+    expect(() =>
+      stackWithAlias(
+        {
+          type: { codecId: 'text@1', typeParams: { length: 8 } },
+          onCreate: { name: 'slugid', args: {} },
+        },
+        {
+          generatorFunction: shortSlugid,
+          fieldLength: ({ typeParams }) =>
+            typeof typeParams === 'object' && typeParams !== null && 'length' in typeParams
+              ? Number(typeParams.length)
+              : undefined,
+        },
+      ),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        message:
+          'Type alias "slugs.Slug" calls slugid() on create, which its codec "text@1" refuses: slugid() needs 22 characters; the column holds 8.',
       }),
     );
   });

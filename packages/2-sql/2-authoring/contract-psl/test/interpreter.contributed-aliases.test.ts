@@ -28,10 +28,6 @@ const authoringContributions = {
         kind: 'typeAlias',
         output: { type: timestamptz, onCreate: now, onUpdate: now },
       },
-      Stamped: {
-        kind: 'typeAlias',
-        output: { type: timestamptz, default: { kind: 'function', expression: 'now()' } },
-      },
     },
   },
 } satisfies AuthoringContributions;
@@ -65,13 +61,11 @@ describe('a contributed type alias', () => {
   id        Int                @id
   createdAt temporal.CreatedAt
   updatedAt temporal.UpdatedAt
-  stamped   temporal.Stamped
 }`);
     const onTheField = lowered(`model Event {
   id        Int         @id
   createdAt Timestamptz @onCreate(now())
   updatedAt Timestamptz @onCreate(now()) @onUpdate(now())
-  stamped   Timestamptz @default(now())
 }`);
     expect(throughAlias).toEqual(onTheField);
     expect(throughAlias.defaults).toEqual([
@@ -120,18 +114,12 @@ describe('a contributed type alias', () => {
       diagnostics(`model Event {
   id        Int                @id
   createdAt temporal.CreatedAt @onCreate(now())
-  stamped   temporal.Stamped   @default(now())
 }`),
     ).toEqual([
       {
         code: 'PSL_DUPLICATE_ATTRIBUTE',
         message:
           'Field "Event.createdAt" writes @onCreate, which its type alias "temporal.CreatedAt" already sets. Remove one of them.',
-      },
-      {
-        code: 'PSL_DUPLICATE_ATTRIBUTE',
-        message:
-          'Field "Event.stamped" writes @default, which its type alias "temporal.Stamped" already sets. Remove one of them.',
       },
     ]);
   });

@@ -143,11 +143,7 @@ function resolveContributedTypeAlias(
   alias: ContributedTypeAlias,
   input: ResolveNamedTypeDeclarationsInput,
 ): ResolvedTypeAlias {
-  const {
-    type: descriptor,
-    default: defaultValue,
-    ...calls
-  } = instantiateAuthoringTypeAlias(alias.descriptor);
+  const { type: descriptor, ...calls } = instantiateAuthoringTypeAlias(alias.descriptor);
   const executionDefaults = resolveTypeAliasGenerators({
     path: alias.name,
     descriptor: alias.descriptor,
@@ -162,7 +158,7 @@ function resolveContributedTypeAlias(
     attributes: [],
     descriptor,
     enumHandle: undefined,
-    defaultValue,
+    defaultValue: undefined,
     executionDefaults,
     generatorText: call === undefined ? undefined : { phase, call: `${call.name}()` },
   };

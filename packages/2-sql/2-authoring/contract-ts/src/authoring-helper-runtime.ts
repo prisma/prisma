@@ -142,12 +142,7 @@ export function createTypeHelpersFromNamespace(
       const helperPath = currentPath.join('.');
       helpers[key] = (...args: readonly unknown[]): TypeAliasColumnType => {
         validateAuthoringHelperArguments(helperPath, [], args);
-        const {
-          type,
-          default: columnDefault,
-          onCreate,
-          onUpdate,
-        } = instantiateAuthoringTypeAlias(value);
+        const { type, onCreate, onUpdate } = instantiateAuthoringTypeAlias(value);
         const generatorCalls = {
           ...ifDefined('onCreate', onCreate),
           ...ifDefined('onUpdate', onUpdate),
@@ -156,7 +151,6 @@ export function createTypeHelpersFromNamespace(
           kind: CODEC_INSTANCE_KIND,
           codecId: type.codecId,
           typeParams: type.typeParams ?? {},
-          ...ifDefined('default', columnDefault),
           ...(Object.keys(generatorCalls).length === 0 ? {} : { generatorCalls }),
         };
       };

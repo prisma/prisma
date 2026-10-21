@@ -463,44 +463,6 @@ describe('Mongo PSL contributed type aliases', () => {
     ]);
   });
 
-  it('refuse a field typed by one that sets a default', () => {
-    const result = interpretMongoContract(
-      `model Post {
-  id    ObjectId    @id @map("_id")
-  title text.Title
-}`,
-      {
-        scalarTypeCodecIds: new Map([['ObjectId', 'mongo/objectId@1']]),
-        defaultFunctionRegistry: new Map(),
-        generatorFunctions,
-        codecLookup: mongoCodecLookup,
-        dataTypes: { entries: {}, lookup: mongoDataTypeLookup, dataTypeOfCodec: () => undefined },
-        authoringContributions: {
-          type: {
-            text: {
-              Title: {
-                kind: 'typeAlias',
-                output: {
-                  type: { codecId: 'mongo/string@1' },
-                  default: { kind: 'literal', value: 'untitled' },
-                },
-              },
-            },
-          },
-        },
-      },
-    );
-    expect(
-      result.ok ? [] : result.failure.diagnostics.map(({ code, message }) => ({ code, message })),
-    ).toEqual([
-      {
-        code: 'PSL_UNSUPPORTED_FIELD_TYPE',
-        message:
-          'Field "Post.title" is typed by the type alias "text.Title", which sets a default; MongoDB has no database defaults.',
-      },
-    ]);
-  });
-
   it('refuse arguments', () => {
     expect(
       diagnostics(`model Post {
