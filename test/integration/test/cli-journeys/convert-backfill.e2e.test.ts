@@ -325,7 +325,7 @@ withTempDir(({ createTempDir }) => {
           '1 row of "user" holds NULL in "nick", so it cannot become required.',
         );
         expect(JSON.stringify(engineError(failed)?.nextActions)).toContain(
-          'Set a value in those rows and re-run',
+          'Set a value in that row and re-run',
         );
 
         await sql(db.connectionString, `UPDATE "user" SET nick = 'anon' WHERE nick IS NULL`);

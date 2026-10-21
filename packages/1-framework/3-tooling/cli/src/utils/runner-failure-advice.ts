@@ -99,14 +99,15 @@ export function dbUpdateRowsWithoutValueAdvice(
             `Plan it with ${quoted(printedPlanCommand(invocation, databaseStorageHash, flags))}, fill the backfill steps in the migration.ts it writes, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}`,
           ),
         ];
-  if (reports[0]?.reason === 'nullValues') {
+  const [first] = reports;
+  if (first?.reason === 'nullValues') {
     return [
-      chooseAction('Set a value in those rows'),
-      editFileAction('Keep the field optional'),
+      chooseAction(`Set a value in ${theRows(first.rows)}`),
+      editFileAction('Keep the field optional in the contract source'),
       ...planned,
     ];
   }
-  return [...planned, editFileAction('Make the field optional')];
+  return [...planned, editFileAction('Make the field optional in the contract source')];
 }
 
 /**
@@ -121,7 +122,7 @@ export function dbInitRowsWithoutValueAdvice(
   const subject = field === undefined ? 'it' : `field "${field}"`;
   return [
     editFileAction(
-      `Run ${quoted(cliCommand(invocation, 'db init'))} with ${subject} optional, then make it required with ${quoted(cliCommand(invocation, 'db update'))}, which says how to give the rows a value`,
+      `Make ${subject} optional in the contract source, run ${quoted(cliCommand(invocation, 'db init'))}, then make it required with ${quoted(cliCommand(invocation, 'db update'))}, which says how to give the rows a value`,
     ),
   ];
 }
@@ -252,14 +253,16 @@ function migrateRowsWithoutValueAdvice(
   if (reports.every(({ reason }) => reason === 'nullValues')) {
     const rerun = chooseAction(
       one
-        ? `Set a value in those rows and re-run ${dbMigrateCommand(invocation)}`
+        ? `Set a value in ${theRows(first?.rows ?? 0)} and re-run ${dbMigrateCommand(invocation)}`
         : `Set a value in the rows that hold NULL in each of ${fieldList(reports)} and re-run ${dbMigrateCommand(invocation)}`,
     );
     const backfill = again('Delete');
     const fields = one ? 'the field' : 'those fields';
     const keep =
       failedMigration === undefined
-        ? editFileAction(`Keep ${fields} optional, and plan the migration again`)
+        ? editFileAction(
+            `Keep ${fields} optional in the contract source, and plan the migration again`,
+          )
         : keepOptional(fields, one ? 'it' : 'them', failedMigration, invocation);
     return [rerun, ...(backfill === undefined ? [] : [backfill]), keep];
   }
@@ -269,13 +272,22 @@ function migrateRowsWithoutValueAdvice(
     const backfill = again(`${notEnough} Delete`);
     return [
       backfill ??
-        editFileAction(`${notEnough} Make the new fields optional, and plan the migration again`),
+        editFileAction(
+          `${notEnough} Make the new fields optional in the contract source, and plan the migration again`,
+        ),
     ];
   }
   const required = again('To keep the field required, delete');
   return required === undefined
-    ? [editFileAction('Make the field optional, and plan the migration again')]
-    : [required, editFileAction('Make the field optional, and plan it again')];
+    ? [
+        editFileAction(
+          'Make the field optional in the contract source, and plan the migration again',
+        ),
+      ]
+    : [
+        required,
+        editFileAction('Make the field optional in the contract source, and plan it again'),
+      ];
 }
 
 function keepOptional(
@@ -289,8 +301,12 @@ function keepOptional(
     failedMigration.name,
   ]);
   return editFileAction(
-    `Keep ${fields} optional: make ${pronoun} optional in the contract again, delete \`${failedMigration.directory}\` (copy any code you wrote in its migration.ts first), and plan it again with ${quoted(plan)}, ${OTHER_STATEMENTS}, put back any code you copied, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}`,
+    `Keep ${fields} optional: make ${pronoun} optional in the contract source again, delete \`${failedMigration.directory}\` (copy any code you wrote in its migration.ts first), and plan it again with ${quoted(plan)}, ${OTHER_STATEMENTS}, put back any code you copied, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}`,
   );
+}
+
+function theRows(rows: number): string {
+  return rows === 1 ? 'that row' : `those ${rows} rows`;
 }
 
 function fieldList(reports: readonly RowsWithoutValueReport[]): string {
