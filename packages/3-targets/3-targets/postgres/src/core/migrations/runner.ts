@@ -469,7 +469,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
               : `Operation ${operation.id} failed during execution: ${step.description}`,
             {
               why: error.message,
-              blockingObjects: dependents,
+              blockingObjects: dependents.length > 0 ? dependents : undefined,
               failedTypeChange: failedTypeChangeOf(step, error.sqlState, plan),
               meta: {
                 operationId: operation.id,
