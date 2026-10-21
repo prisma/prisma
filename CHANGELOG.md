@@ -202,6 +202,7 @@ The upgrade recipes for this hop: the [app recipe](https://github.com/prisma/orm
 - A MongoDB collection that stores several unrelated models gets a validator that accepts all of them, where it described only the last model. ([#30773](https://github.com/prisma/orm/pull/30773))
 - An enum field inside a value object is typed by its enum's members, as an enum field of a model is. ([#30747](https://github.com/prisma/orm/pull/30747))
 - The language server no longer leaves an unhandled rejection when it removes a file watcher after the editor connection has closed. ([#30787](https://github.com/prisma/orm/pull/30787))
+- A cache store's `get` and `unset` take optional fields, so code that calls a store directly passes only the fields it needs, where it had to pass `undefined` for the others. `cache.invalidate` and `cacheAnnotation` accept `undefined` for their optional fields under `exactOptionalPropertyTypes`. Stores written against the old shape still fit. ([#30822](https://github.com/prisma/orm/pull/30822))
 
 ## v8.0.0-rc.18
 
