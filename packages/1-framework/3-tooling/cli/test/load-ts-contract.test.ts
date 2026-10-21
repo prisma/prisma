@@ -223,6 +223,33 @@ describe('loadContractFromTs structured error codes', () => {
     timeouts.typeScriptCompilation,
   );
 
+  it.each([
+    ['non-serializable.ts', 'getter'],
+    ['function-in-object.ts', 'function'],
+    ['circular-reference.ts', 'circular'],
+  ])(
+    'reports the purity check on %s once, with its own reason and no wrapping',
+    async (fixture, reason) => {
+      const error = await capture(join(fixturesDir, fixture));
+      expect(error).toMatchObject({ code: 'CONTRACT.EXPORT_INVALID', meta: { reason } });
+      expect(error).not.toHaveProperty('cause');
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    "wraps V8's circular-structure error from JSON.stringify as a serialization failure",
+    async () => {
+      const error = await capture(join(fixturesDir, 'to-json-circular.ts'));
+      expect(error).toMatchObject({
+        code: 'CONTRACT.EXPORT_INVALID',
+        meta: { reason: 'not-json-serializable' },
+        cause: expect.any(TypeError),
+      });
+    },
+    timeouts.typeScriptCompilation,
+  );
+
   it(
     'raises CONTRACT.SOURCE_LOAD_FAILED when module evaluation throws a non-Error',
     async () => {

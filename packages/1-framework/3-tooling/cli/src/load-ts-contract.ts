@@ -105,14 +105,11 @@ function validatePurity(value: unknown, entryPath: string): void {
     }
   }
 
+  check(value);
   try {
-    check(value);
     JSON.stringify(value);
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message.includes('getter') || error.message.includes('circular')) {
-        throw error;
-      }
       throw contractSourceError(
         'CONTRACT.EXPORT_INVALID',
         `Contract export is not JSON-serializable: ${error.message}`,
