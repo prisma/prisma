@@ -25,7 +25,7 @@ describe('objects that depend on what an operation removes', () => {
         ],
       ),
     ).toBe(
-      'Drop column "total" from "invoice" cannot run while view billing.a and view billing.b depend on what it changes. Drop or change them yourself, then run the command again.',
+      'Drop column "total" from "invoice" cannot run while view billing.a and view billing.b depend on what it changes.',
     );
   });
 });

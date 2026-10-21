@@ -258,8 +258,7 @@ describe('Postgres schema operations', { concurrent: false }, () => {
     expect(result.ok).toBe(false);
     expect(result.assertNotOk()).toMatchObject({
       code: 'MIGRATION.PRECHECK_FAILED',
-      summary:
-        'Schema "billing" still holds table "billing"."invoice", so it cannot be dropped. Drop or move it yourself, then run the command again.',
+      summary: 'Schema "billing" still holds table "billing"."invoice", so it cannot be dropped.',
       why: 'Operation dropSchema.billing failed during precheck: ensure schema "billing" holds no tables, views, sequences, types or functions',
       blockingObjects: [{ kind: 'table', name: 'billing.invoice' }],
     });
@@ -282,7 +281,7 @@ describe('Postgres schema operations', { concurrent: false }, () => {
     expect(result.assertNotOk()).toMatchObject({
       code: 'MIGRATION.EXECUTION_FAILED',
       summary:
-        'Table "billing"."audit_log" cannot be dropped while view billing.v_paid depends on it. Drop or change it yourself, then run the command again.',
+        'Table "billing"."audit_log" cannot be dropped while view billing.v_paid depends on it.',
       blockingObjects: [{ kind: 'view', name: 'billing.v_paid' }],
     });
     expect(
@@ -299,7 +298,7 @@ describe('Postgres schema operations', { concurrent: false }, () => {
     const result = await runnerResult([await new DropSchemaCall('billing').toOp(controlAdapter)]);
 
     expect(result.assertNotOk().summary).toBe(
-      'Schema "billing" still holds function "billing"."answer", sequence "billing"."counter" and view "billing"."recent", so it cannot be dropped. Drop or move them yourself, then run the command again.',
+      'Schema "billing" still holds function "billing"."answer", sequence "billing"."counter" and view "billing"."recent", so it cannot be dropped.',
     );
   });
 

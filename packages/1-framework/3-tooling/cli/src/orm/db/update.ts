@@ -380,6 +380,15 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
           }
         };
 
+        const rerunArgs = [
+          ...(args.flags.to === undefined ? [] : ['--to', shellQuoted(args.flags.to)]),
+          ...(args.flags.advanceRef === undefined
+            ? []
+            : ['--advance-ref', shellQuoted(args.flags.advanceRef)]),
+          ...[...renames, ...previewConsents, ...unansweredConsents(ctx.statements)].map(
+            statementFlag,
+          ),
+        ];
         const result = await client.dbUpdate({
           contract: contractJson,
           mode,
@@ -391,7 +400,9 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
         if (!result.ok) {
           reportPlannerWarnings(result.failure.warnings ?? []);
           return notOk(
-            normalizeError(mapDbUpdateFailure(result.failure, cliInvocation(ctx, args.flags.db))),
+            normalizeError(
+              mapDbUpdateFailure(result.failure, cliInvocation(ctx, args.flags.db), rerunArgs),
+            ),
           );
         }
 

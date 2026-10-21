@@ -16,8 +16,8 @@ const blocked = {
 
 describe('the advice for an operation that objects in the database block', () => {
   it('on db update, says to drop or change the objects named, then run it again', () => {
-    expect(mapDbUpdateFailure(blocked, PROJECT).fix).toBe(
-      'Drop or change view billing.v_paid in the database yourself, then re-run `{bin} db update`.',
+    expect(mapDbUpdateFailure(blocked, PROJECT, ['--delete', 'billing']).fix).toBe(
+      'Drop or change view billing.v_paid in the database yourself, then re-run `{bin} db update --delete billing`.',
     );
   });
 

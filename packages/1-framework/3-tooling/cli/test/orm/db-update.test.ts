@@ -845,6 +845,37 @@ describe('db update', () => {
     expect(stripAnsi(run.stderr)).toContain('control policy suppressed: table "auth.x"');
   });
 
+  it('repeats the statements of the run in the re-run it advises after a view blocks a drop', async () => {
+    mocks.dbUpdate.mockResolvedValue(
+      notOk({
+        code: 'RUNNER_FAILED',
+        summary:
+          'Table "billing"."Invoice" cannot be dropped while view billing.v_paid depends on it.',
+        why: undefined,
+        conflicts: undefined,
+        meta: undefined,
+        blockingObjects: [{ kind: 'view', name: 'billing.v_paid' }],
+      }),
+    );
+
+    const run = await harness().run(['db', 'update', '--delete', 'billing', '--json'], {
+      cwd: projectDir,
+    });
+
+    expect(envelopeOf(run.json)).toMatchObject({
+      ok: false,
+      error: {
+        code: 'MIGRATION.RUNNER_FAILED',
+        nextActions: [
+          {
+            label:
+              'Drop or change view billing.v_paid in the database yourself, then re-run `prisma-test db update --delete billing`.',
+          },
+        ],
+      },
+    });
+  });
+
   it('maps a runner failure to its migration code', async () => {
     mocks.dbUpdate.mockResolvedValue(
       notOk({

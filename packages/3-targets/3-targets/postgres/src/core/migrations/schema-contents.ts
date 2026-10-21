@@ -55,6 +55,5 @@ export function schemaObjectsSummary(schema: string, objects: readonly SchemaObj
     .map(({ kind, name }) => `${kind} "${schema}"."${name}"`);
   const more = objects.length - named.length;
   const items = more > 0 ? [...named, `${more} more`] : named;
-  const pronoun = objects.length === 1 ? 'it' : 'them';
-  return `Schema "${schema}" still holds ${listed(items)}, so it cannot be dropped. Drop or move ${pronoun} yourself, then run the command again.`;
+  return `Schema "${schema}" still holds ${listed(items)}, so it cannot be dropped.`;
 }

@@ -27,10 +27,8 @@ export function dependentsSummary(
   dependents: readonly BlockingObject[],
 ): string {
   const named = listed(dependents.map(({ kind, name }) => `${kind} ${name}`));
-  const one = dependents.length === 1;
-  const blocked =
-    details.objectType === 'table' && details.table === undefined
-      ? `Table "${details.schema}"."${details.name}" cannot be dropped while ${named} ${one ? 'depends' : 'depend'} on it.`
-      : `${label} cannot run while ${named} ${one ? 'depends' : 'depend'} on what it changes.`;
-  return `${blocked} Drop or change ${one ? 'it' : 'them'} yourself, then run the command again.`;
+  const depend = dependents.length === 1 ? 'depends' : 'depend';
+  return details.objectType === 'table' && details.table === undefined
+    ? `Table "${details.schema}"."${details.name}" cannot be dropped while ${named} ${depend} on it.`
+    : `${label} cannot run while ${named} ${depend} on what it changes.`;
 }

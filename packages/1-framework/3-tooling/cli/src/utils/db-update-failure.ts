@@ -21,6 +21,7 @@ import { schemaCheckWhy } from './schema-issues';
 export function mapDbUpdateFailure(
   failure: DbUpdateFailure,
   invocation: CliInvocation,
+  rerunArgs: readonly string[] = [],
 ): CliStructuredError {
   if (failure.code === 'PLANNING_FAILED') {
     return errorMigrationPlanningFailed({ conflicts: failure.conflicts ?? [] });
@@ -29,7 +30,10 @@ export function mapDbUpdateFailure(
   if (failure.code === 'RUNNER_FAILED') {
     const fix =
       failure.blockingObjects !== undefined
-        ? blockingObjectsFix(failure.blockingObjects, cliCommand(invocation, 'db update'))
+        ? blockingObjectsFix(
+            failure.blockingObjects,
+            cliCommand(invocation, 'db update', rerunArgs),
+          )
         : failure.failedTypeChange !== undefined
           ? dbUpdateFailedTypeChangeFix(
               failure.failedTypeChange,
