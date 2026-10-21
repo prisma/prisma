@@ -20,11 +20,11 @@ Four pull requests, in the order the spec gives. This plan covers PR 1. Each lat
 
 | # | Outcome | Builds on |
 | --- | --- | --- |
-| 1 | The access question says "data", not "rows"; `accessWidening` is `accessChanges` and `acceptAccessWidening` is `acceptAccessChanges` everywhere, with an app upgrade fragment; framework doc comments carry no row-level-security examples | — |
-| 2 | Three Postgres operations exist end to end, usable from a hand-written `migration.ts`: move a table to another schema, rename a schema, drop a schema. Each with a call class, checks, rendering, a facade method and a subjects entry | — |
-| 3 | `--rename Invoice:billing.Invoice` plans the table move on both commands, through the working schema; foreign keys from other tables follow; the `moveNamespace` refusal is gone | 2 |
-| 4 | `--rename billing:finance` renames the schema; a namespace the origin declares and the destination does not is asked about per model; `--delete billing` answers every one of them and drops the schema after its tables; a schema another contract space declares is refused | 2, 3 |
-| 5 | Journeys for the spec's namespace rows through both commands; docs (Migration System § Statements and its rename limits, error reference, CLI README, `skills/prisma-8/references/migrations.md`); ADR 223's multi-namespace statement corrected; the PR text | 1, 3, 4 |
+| 1 (done) | The access question says "data", not "rows"; `accessWidening` is `accessChanges` and `acceptAccessWidening` is `acceptAccessChanges` everywhere, with an app upgrade fragment; framework doc comments carry no row-level-security examples | — |
+| 2 (done) | Three Postgres operations exist end to end, usable from a hand-written `migration.ts`: move a table to another schema, rename a schema, drop a schema. Each with a call class, checks, rendering, a facade method and a subjects entry | — |
+| 3 (done) | `--rename Invoice:billing.Invoice` plans the table move on both commands, through the working schema; foreign keys from other tables follow; the `moveNamespace` refusal is gone | 2 |
+| 4 (done) | `--rename billing:finance` renames the schema; a namespace the origin declares and the destination does not is asked about per model; `--delete billing` answers every one of them and drops the schema after its tables; a schema another contract space declares is refused | 2, 3 |
+| 5 (done) | Journeys for the spec's namespace rows through both commands; docs (Migration System § Statements and its rename limits, error reference, CLI README, `skills/prisma-8/references/migrations.md`); ADR 223's multi-namespace statement corrected; the PR text | 1, 3, 4 |
 
 **Hand-offs**
 - 1 → 5: the new names are used in docs and output.

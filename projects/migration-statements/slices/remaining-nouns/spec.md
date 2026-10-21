@@ -21,9 +21,9 @@ Without the statements, both commands refuse and print them, as they do today fo
 
 | Change in the schema | Today | After this slice |
 | --- | --- | --- |
-| Model moved to another namespace | Refused, even with `--rename` | `--rename Invoice:billing.Invoice` moves the table (`SET SCHEMA`) |
-| Namespace renamed | Old schema and its tables kept silently; new ones created empty | Asked. `--rename billing:finance` renames the schema |
-| Namespace removed | Its tables kept silently | Asked. `--delete billing` drops its tables and the schema |
+| Model moved to another namespace | Refused, even with `--rename` | `--rename Invoice:billing.Invoice` moves the table (`SET SCHEMA`), creating the schema first when the database lacks it |
+| Namespace renamed | Old schema and its tables kept silently; new ones created empty | Asked. `--rename billing:finance` renames the schema, before any other statement. `public` and a schema another contract space declares are refused |
+| Namespace removed | Its tables kept silently | Asked, one question per model, and the first question says `--delete billing` answers them all. `--delete billing` drops its tables and the schema. A table no contract declares is its own question, by its storage name |
 | Enum value renamed (stored value changes) | Postgres: the new CHECK fails at apply on rows with the old value. SQLite: planning fails with "no operations" | Asked. `--rename Status.A:Status.B` updates the rows |
 | Enum value removed | Same as above | Asked. `--delete Status.A` sets it to NULL where the field is optional; refused where it is required |
 | Enum value renamed, stored value unchanged (`@map`) | Nothing planned | Same. A `--rename` is accepted and reported with no operations |
@@ -73,8 +73,8 @@ Each side of a statement is still one to three names separated by dots. New thin
 
 **Namespaces (Postgres)**
 - Model move: `ALTER TABLE … SET SCHEMA`. Constraints and indexes keep their names. A foreign key from another table follows the table.
-- Namespace rename: `ALTER SCHEMA … RENAME TO`. Refused for a schema another contract space also declares, such as `public` when an extension installed its types there.
-- Namespace delete: drops each table, then `DROP SCHEMA`. `--delete billing` is expanded by the CLI into an answer for each of the namespace's questions before the questions are asked. The CLI engine matches a flag only to its own subject.
+- Namespace rename: `ALTER SCHEMA … RENAME TO`. Refused for `public` and for a schema another contract space also declares. Namespace renames are planned before every other statement.
+- Namespace delete: drops each table, a table before the tables its foreign keys reference and with its policies, then `DROP SCHEMA`. `--delete billing` answers each of the namespace's questions: the control API matches it to each subject, and the command takes the `--delete` values from the CLI engine when one names a namespace, since the engine matches a flag only to its own subject. A table no contract declares is asked about by its storage name; another undeclared object blocks the schema drop at its precheck.
 
 **Enum values (Postgres and SQLite)**
 - The storage effect is worked out from stored values, not member names.
@@ -125,6 +125,8 @@ PR 3 is separate because it changes the contract shape and every contract with v
 | A removed variant with no columns of its own | Now asked as a model, so its rows are not left behind silently |
 | Renaming `public` | Refused. `public` is target-owned (ADR 223) and Postgres puts it on every search path. On PGlite a non-superuser database owner can run `ALTER SCHEMA public RENAME`, and a plain role cannot, but the refusal does not depend on that. The message says to move the models with `--rename Model:new.Model` instead |
 | `--delete billing` and `--rename billing.Invoice:Invoice` in one run | The rename runs first, so that model is kept, and the delete covers the rest |
+| A removed namespace that holds a table no contract declares | That table is its own question, `--delete billing.audit_log`; `--delete billing` does not answer it |
+| A one-name statement that is both a namespace and a model | Refused, unless another statement of the run renames the model; the message says to name the model with its namespace, or give both statements |
 
 ## Done when
 
