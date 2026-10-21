@@ -88,6 +88,7 @@ describe('extension detection', () => {
       "args: [{ name: 'length', integer: true, kind: 'number' }]",
     ],
     ['value-arguments-name-a-data-type', "args: [{ minimum: 1, kind: 'number' }]"],
+    ['value-arguments-name-a-data-type', "args: [{ kind: 'number' }]"],
     [
       'psl-and-print-helpers-take-data-types',
       "import { assembleAuthoringDataTypes } from '@vendor/orm-framework/components/control';",

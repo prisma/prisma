@@ -12,6 +12,7 @@ changes:
       matches:
         - 'kind:\s*[''"](?:number|string|boolean|stringArray)[''"](?=[^}]*\b(?:name|integer|minimum|maximum|optional)\s*:)'
         - '\b(?:name|integer|minimum|maximum|optional)\s*:[^{}]*\bkind:\s*[''"](?:number|string|boolean|stringArray)[''"]'
+        - '\{\s*kind:\s*[''"](?:number|string|boolean|stringArray)[''"]\s*\}'
   - id: value-argument-types-in-typescript
     summary: |
       The TypeScript builder types a `value` argument through `__dataTypeArguments`, a map a pack
