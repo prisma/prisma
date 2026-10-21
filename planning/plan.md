@@ -10,7 +10,7 @@ This page lists the projects in priority order, by stream. Work the streams in p
 
 **Progress column:** one symbol, then done/total where the row has countable units. ✅ done · 🟡 code done, waiting on review or docs · 🔄 in progress · ⏳ not started · ❓ needs a decision from Will. The units are the slices, pull requests, tickets or items the Status column names; a row with no units yet has no count.
 
-States were last checked against GitHub and Linear on 2026-10-20 at 16:30 UTC.
+States were last checked against GitHub and Linear on 2026-10-21.
 
 ## How far from GA
 
@@ -18,29 +18,29 @@ Counts the projects marked Must in each stream. A project counts as done only wh
 
 | Stream | Done | Bar | In progress | Not started |
 | --- | --- | --- | --- | --- |
-| Foundations and breaking changes | 3 of 8 (38%) | `████░░░░░░` | 4 | 1 |
+| Foundations and breaking changes | 4 of 8 (50%) | `█████░░░░░` | 3 | 1 |
 | Upgrade path from Prisma 7 | 1 of 7 (14%) | `█░░░░░░░░░` | 3 | 3 |
 | Editor and tools | 2 of 5 (40%) | `████░░░░░░` | 2 | 1 |
 | Query features | 8 of 11 (73%) | `███████░░░` | 1 | 2 |
 | Docs and the new user's first hour | 1 of 5 (20%) | `██░░░░░░░░` | 3 | 1 |
-| **All streams** | **15 of 36 (42%)** | `████░░░░░░` | **13** | **8** |
+| **All streams** | **16 of 36 (44%)** | `████░░░░░░` | **12** | **8** |
 
 ## Stream 1: Foundations and breaking changes
 
-**GA readiness:** 3 of 8 Must projects done (38%). 4 in progress, 1 not started.
+**GA readiness:** 4 of 8 Must projects done (50%). 3 in progress, 1 not started.
 
 GA is the last chance to make breaking changes, so this stream decides the date.
 
 | # | Progress | Project | GA | Owner | Status | Next |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | 🔄 5/6 | Finish ADR 254: data types own column types | Must | Will | 5 of 6 tickets merged. The cast rule (TML-3389) is in progress. Its enum member item merged 2026-10-20. The rest, generator arguments and discriminator values, is in a PR that is approved and not merged | Merge the TML-3389 PR |
+| 1 | ✅ 6/6 | Finish ADR 254: data types own column types | Must | Will | Done 2026-10-20. The cast rule (TML-3389) merged last. Bugs found along the way stay in the project's backlog |  |
 | 2 | ✅ 2/2 | One CLI and one config file | Must | Will | Done 2026-10-08 |  |
 | 3 | ⏳ | Early MySQL attempt, to find shared code that assumes PostgreSQL | Must | Will | Not started, no ticket |  |
 | 4 | ✅ 6/6 | SQL expression literals | Must | Will | Done 2026-10-12 |  |
 | 5 | 🔄 3/5 | PSL mixins, then remove field presets; generated values become `@onCreate` and `@onUpdate`, and type aliases become an authoring shorthand | Must | Serhii (mixins), Will (TML-3607) | Mixins done 2026-10-14. ADR 275 merged 2026-10-19. TML-3607 has 3 slices: slice 1, `@onCreate` and `@onUpdate`, merged 2026-10-20 | Slice 2 (type aliases expand into each column), then slice 3 (presets removed) |
 | 6 | ✅ 1/1 | Remove `@noCheck` and `.noCheck()` | Must | Will | Done 2026-10-16 |  |
 | 7 | 🔄 5/7 | Migration statements: the planner refuses data loss, the user states renames, deletes, conversions and backfills | Must | Will | 5 of 7 slices merged. The TypeScript MongoDB validator slice merged 2026-10-20, with a MongoDB field keeping its own name in code. Left: renames and deletes of enum values, namespaces, value object fields and variants on Postgres and SQLite (TML-3537), and convert and backfill on MongoDB (TML-3538), both in backlog | Build TML-3537 |
-| 8 | 🔄 2/4 | Client surfaces: a client takes a typed contract value, custom collections on every client and transaction | Must | Will | Slice 1 merged 2026-10-19; it is breaking: `postgres<Contract>({ contractJson })` became `postgres({ contract: contractFromJson<Contract>(json) })`. Slice 2, custom collections on every SQL client, merged 2026-10-20. Slice 3, a transaction offers the client's query members, approved and not merged. TML-3604 is left | Merge slice 3 (TML-3603), then build TML-3604 |
+| 8 | 🔄 3/4 | Client surfaces: a client takes a typed contract value, custom collections on every client and transaction | Must | Will | Slice 1 merged 2026-10-19; it is breaking: `postgres<Contract>({ contractJson })` became `postgres({ contract: contractFromJson<Contract>(json) })`. Slice 2, custom collections on every SQL client, merged 2026-10-20. Slice 3, a transaction offers the client's query members, merged 2026-10-20. Slice 4, a client loads without a database and renders plans as SQL, in review | Review slice 4 (TML-3604) |
 | 9 | ⏳ | Remove the `unbound` / `__unbound__` namespace alias, keeping one name | Not decided | Serhii | Serhii proposed it in a docs PR to the RC plan, not merged. Not started | |
 
 ## Stream 2: Upgrade path from Prisma 7
@@ -56,7 +56,7 @@ Test: an existing Prisma 7 database can be signed by Prisma 8.
 | 3 | ✅ 7/7 | Storage a model does not map: a table may hold columns its model does not map, and a table may have no model | Must | Will | Done 2026-10-13: 4 slices, ADR 267, the fix for a model with no fields, and the close-out merged |  |
 | 4 | ⏳ | Upgrade guide rewrite | Must | Will | Ticket in backlog. One known error in the guide |  |
 | 5 | ⏳ 0/5 | Codecs for `citext`, `bit`, `varbit`, `xml`, `oid` | Must | Will | Backlog |  |
-| 6 | 🔄 1/3 | Columns whose type has no codec | Must | Will | Designed (ADR 273). Slice 1, `Raw("...")` and the `sql/raw` data type, merged 2026-10-20. Slice 2, the Prisma 7 reader reads `Unsupported(...)` as a raw column, approved and not merged. TML-3615 (`Raw` takes `sql`…``) in backlog | Merge slice 2 (TML-3596) |
+| 6 | 🔄 2/3 | Columns whose type has no codec | Must | Will | Designed (ADR 273). Slice 1, `Raw("...")` and the `sql/raw` data type, merged 2026-10-20. Slice 2, the Prisma 7 reader reads `Unsupported(...)` as a raw column, merged 2026-10-20. TML-3615 (`Raw` takes `sql`…``) is approved and not merged | Merge TML-3615 |
 | 7 | ⏳ | Adopt a Prisma 7 database without changing it: the enum membership check | Must | Will | Not designed |  |
 | 8 | ⏳ | Medium and low upgrade issues | Later | Will | Backlog | |
 | 9 | ⏳ | `money` codec | Later | Will | Backlog | |
