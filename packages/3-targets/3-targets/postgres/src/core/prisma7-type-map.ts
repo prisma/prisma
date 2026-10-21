@@ -92,7 +92,7 @@ const marked = inferredTypeConstructors({
 });
 
 /**
- * The constructor marked `inferred` for the column's data type, with every parameter Prisma 7 gives the column as an argument. The reader builds a contract, so it keeps each parameter rather than the fewest arguments printed PSL writes (design 13.8).
+ * The constructor marked `inferred` for the column's data type, with every parameter Prisma 7 gives the column as an argument. The reader builds a contract, so it keeps each parameter rather than the fewest arguments printed PSL writes.
  */
 function mappingOf({ dataType, params }: Prisma7ColumnType): ConstructorCall {
   const markedConstructor = marked.get(dataType);
