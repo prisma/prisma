@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, relative } from 'pathe';
 
 const SCRIPT_PATHS = {
-  app: 'upgrade-instructions/pending/data-type-values/app/scripts/data-type-values.ts',
+  app: 'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/scripts/data-type-values/data-type-values.ts',
 } as const;
 
 const here = dirname(fileURLToPath(import.meta.url));

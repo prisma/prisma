@@ -6,16 +6,14 @@ import { describe, expect, it } from 'vitest';
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '../../../../..');
 
+const GUIDE_PATHS = {
+  app: 'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md',
+  extension:
+    'skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md',
+} as const;
+
 function detectionOf(audience: 'app' | 'extension', id: string): readonly RegExp[] {
-  const guide = readFileSync(
-    join(
-      repoRoot,
-      'upgrade-instructions/pending/column-types-through-data-types',
-      audience,
-      'instructions.md',
-    ),
-    'utf-8',
-  );
+  const guide = readFileSync(join(repoRoot, GUIDE_PATHS[audience]), 'utf-8');
   const entry = guide.split(/\n {2}- id: /).find((block) => block.startsWith(`${id}\n`));
   if (entry === undefined) throw new Error(`The ${audience} fragment has no change ${id}`);
   return [...entry.matchAll(/^ {8}- '(.*)'$/gm)].map(
