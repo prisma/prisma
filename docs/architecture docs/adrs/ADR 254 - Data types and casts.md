@@ -411,6 +411,8 @@ model Place {
 - **A list data type.** A list is several values of one type; its shape belongs to the column or to the receiving type's cast.
 - **Enum member names in a default as string values.** A member name is a reference to a declaration, resolved in scope like a field name.
 - **A vector type casting from the JSON type.** It matches on storage shape; a vector is several numbers.
+- **A role name for the argument of a constructor every SQL target contributes**, such as `sql.String`'s length declared `dataType: 'wholeNumber'` and resolved by each target at assembly. It is a small vocabulary of family types, which this ADR rejects above. The family builds the constructor with the target's size type instead (`sqlTargetTypeConstructors({ sizeType })`).
+- **A SQLite data type that holds a whole number as a JavaScript number, for type-constructor sizes.** No SQLite column has such a type. `sqlite/real` already holds every size exactly, and a written whole number casts to it.
 
 ## Not decided here
 
