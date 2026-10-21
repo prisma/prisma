@@ -1014,6 +1014,23 @@ function resolveFieldStatement(
   return ok({ kind: verb, entity: 'field', field: coordinate });
 }
 
+/** A delete that names what a rename of the same run renames: both cannot happen. */
+function deleteOfRenamed(
+  deletes: readonly StatementText[],
+  renames: readonly ParsedRename[],
+): CliStructuredError | undefined {
+  for (const deleted of deletes) {
+    const renamed = renames.find((rename) => rename.from.join('.') === deleted.text);
+    if (renamed === undefined) continue;
+    return errorStatementInvalid(
+      deleted,
+      `--delete ${deleted.text} names what --rename ${renamed.text} renames in the same run, so it cannot also be deleted.`,
+      `Leave out --delete ${deleted.text} to keep the data under its new name, or leave out --rename ${renamed.text} to delete it.`,
+    );
+  }
+  return undefined;
+}
+
 /**
  * Resolves the statements a user gave against the origin and destination contracts. Renames
  * resolve first, in the order given, so a convert or backfill statement can name a renamed field
@@ -1025,12 +1042,14 @@ export function resolveStatements(
   input: ResolveStatementsInput,
 ): Result<readonly ResolvedMigrationStatement[], CliStructuredError> {
   const renames: { readonly index: number; readonly statement: ParsedRename }[] = [];
+  const deletes: StatementText[] = [];
   const fieldStatements: { readonly index: number; readonly statement: ParsedFieldStatement }[] =
     [];
   for (const [index, entry] of input.statements.entries()) {
     if (entry.verb === 'delete' || entry.verb === 'allow') {
       const statement = parseConsentStatement({ ...entry, verb: entry.verb });
       if (!statement.ok) return statement;
+      if (entry.verb === 'delete') deletes.push(entry);
       continue;
     }
     if (input.origin.kind === 'missing') {
@@ -1058,6 +1077,8 @@ export function resolveStatements(
   };
   const resolved: { readonly index: number; readonly statement: ResolvedMigrationStatement }[] = [];
   const parsedRenames = renames.map(({ statement }) => statement);
+  const contradicted = deleteOfRenamed(deletes, parsedRenames);
+  if (contradicted !== undefined) return notOk(contradicted);
   for (const [position, { index, statement }] of renames.entries()) {
     const result = resolveStatement(state, statement, parsedRenames.slice(position + 1));
     if (!result.ok) return result;
