@@ -24,13 +24,21 @@ import { stubLowerer } from './rename-table-fixtures';
 const ALL_CLASSES = { allowedOperationClasses: ['additive', 'widening', 'destructive'] as const };
 const int4 = { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false };
 
-function table(): StorageTable {
+function table(namespaceId: string, name: string, references?: string): StorageTable {
   return new StorageTable({
-    columns: { id: int4 },
+    columns: { id: int4, ...(references === undefined ? {} : { refId: int4 }) },
     primaryKey: { columns: ['id'] },
     uniques: [],
     indexes: [],
-    foreignKeys: [],
+    foreignKeys:
+      references === undefined
+        ? []
+        : [
+            {
+              source: { namespaceId, tableName: name, columns: ['refId'] },
+              target: { namespaceId, tableName: references, columns: ['id'] },
+            },
+          ],
   });
 }
 
@@ -38,6 +46,7 @@ function table(): StorageTable {
 function contractOf(
   namespaces: Readonly<Record<string, readonly string[]>>,
   seed: string,
+  references: Readonly<Record<string, string>> = {},
 ): Contract<SqlStorage> {
   const modelName = (tableName: string) => `${tableName[0]?.toUpperCase()}${tableName.slice(1)}`;
   return {
@@ -51,7 +60,11 @@ function contractOf(
           id,
           postgresCreateNamespace({
             id,
-            entries: { table: Object.fromEntries(tables.map((name) => [name, table()])) },
+            entries: {
+              table: Object.fromEntries(
+                tables.map((name) => [name, table(id, name, references[name])]),
+              ),
+            },
           }),
         ]),
       ),
@@ -212,5 +225,31 @@ describe('Postgres planner, a namespace the destination removes', () => {
         )
       ).labels,
     ).toEqual(['Drop table "user"', 'Drop schema "billing"']);
+  });
+
+  it('drops a table of the removed schema before the table its foreign key references', async () => {
+    const origin = contractOf({ public: ['user'], billing: ['invoice', 'receipt'] }, 'fk-origin', {
+      receipt: 'invoice',
+    });
+
+    expect((await planned(plan(origin, withoutBilling))).labels).toEqual([
+      'Drop table "receipt"',
+      'Drop table "invoice"',
+      'Drop schema "billing"',
+    ]);
+  });
+
+  it('plans the drop of two tables of the removed schema that reference each other', async () => {
+    const origin = contractOf(
+      { public: ['user'], billing: ['invoice', 'receipt'] },
+      'cycle-origin',
+      { receipt: 'invoice', invoice: 'receipt' },
+    );
+
+    expect((await planned(plan(origin, withoutBilling))).labels).toEqual([
+      'Drop table "invoice"',
+      'Drop table "receipt"',
+      'Drop schema "billing"',
+    ]);
   });
 });

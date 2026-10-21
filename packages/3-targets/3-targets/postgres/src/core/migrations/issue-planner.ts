@@ -410,9 +410,41 @@ export function coalesceSubtreeIssues<TNode extends DiffableNode = DiffableNode>
     .filter((issue) => issueOutcome(issue) !== 'not-equal')
     .map((issue) => issue.path);
   if (collapsingPaths.length === 0) return issues;
-  return issues.filter(
-    (issue) => !collapsingPaths.some((ancestor) => isStrictDescendantPath(issue.path, ancestor)),
-  );
+  const isCollapsed = (issue: SchemaDiffIssue<TNode>) =>
+    collapsingPaths.some((ancestor) => isStrictDescendantPath(issue.path, ancestor));
+  const collapsed = issues.filter(isCollapsed);
+  const kept = issues.filter((issue) => !isCollapsed(issue));
+  const inherited = new Map(kept.map((issue) => [issue, subtreeDependencies(issue, collapsed)]));
+  const dependsOnTarget = (from: SchemaDiffIssue<TNode>, to: SchemaDiffIssue<TNode>) =>
+    (inherited.get(from) ?? []).some((path) => samePath(path, to.path));
+  return kept.map((issue) => {
+    const extra = (inherited.get(issue) ?? []).filter(
+      (path) => !kept.some((other) => samePath(other.path, path) && dependsOnTarget(other, issue)),
+    );
+    return extra.length === 0
+      ? issue
+      : { ...issue, dependsOn: [...(issue.dependsOn ?? []), ...extra] };
+  });
+}
+
+/**
+ * The dependencies a dropped issue's collapsed subtree has outside the subtree, such as the tables
+ * its foreign keys name, so a whole-table drop runs before the drop of a table it references. Two
+ * dropped tables that reference each other keep neither edge.
+ */
+function subtreeDependencies<TNode extends DiffableNode>(
+  issue: SchemaDiffIssue<TNode>,
+  collapsed: readonly SchemaDiffIssue<TNode>[],
+): readonly (readonly string[])[] {
+  if (issueOutcome(issue) !== 'not-expected') return [];
+  return collapsed
+    .filter((descendant) => isStrictDescendantPath(descendant.path, issue.path))
+    .flatMap((descendant) => descendant.dependsOn ?? [])
+    .filter((path) => !isStrictDescendantPath(path, issue.path) && !samePath(path, issue.path));
+}
+
+function samePath(left: readonly string[], right: readonly string[]): boolean {
+  return left.length === right.length && left.every((segment, index) => segment === right[index]);
 }
 
 function isStrictDescendantPath(path: readonly string[], ancestor: readonly string[]): boolean {
