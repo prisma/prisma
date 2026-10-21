@@ -168,6 +168,51 @@ describe('Postgres planner, a model statement that moves the table to another na
     );
   });
 
+  it('drops a policy the destination removes in the schema the table moved to', () => {
+    const from = contractWith({
+      invoiceNamespace: 'public',
+      invoicePolicy: 'invoice_read_ab12cd34',
+      seed: 'policy-from',
+    });
+    const migration = succeeded(plan(from, inBilling, moveStatement('public', 'billing'))).plan;
+
+    expect(
+      migration
+        .renderTypeScript(keepInternalSpecifiers)
+        .split('\n')
+        .filter((line) => line.includes('RlsPolicy')),
+    ).toEqual([
+      expect.stringContaining(
+        'this.dropRlsPolicy({ schema: "billing", table: "Invoice", policy: "invoice_read_ab12cd34" })',
+      ),
+    ]);
+  });
+
+  it('renames a policy whose name the destination changes, in the schema the table moved to', () => {
+    const from = contractWith({
+      invoiceNamespace: 'public',
+      invoicePolicy: 'invoice_read_ab12cd34',
+      seed: 'policy-rename-from',
+    });
+    const to = contractWith({
+      invoiceNamespace: 'billing',
+      invoicePolicy: 'invoice_select_ab12cd34',
+      seed: 'policy-rename-to',
+    });
+    const migration = succeeded(plan(from, to, moveStatement('public', 'billing'))).plan;
+
+    expect(
+      migration
+        .renderTypeScript(keepInternalSpecifiers)
+        .split('\n')
+        .filter((line) => line.includes('RlsPolicy')),
+    ).toEqual([
+      expect.stringContaining(
+        'this.renameRlsPolicy({ schema: "billing", table: "Invoice", from: "invoice_read_ab12cd34", to: "invoice_select_ab12cd34" })',
+      ),
+    ]);
+  });
+
   it('refuses a move onto a table the destination schema already has', () => {
     const occupied = contractWith({
       invoiceNamespace: 'public',

@@ -1,6 +1,9 @@
 import { createHash } from 'node:crypto';
 import { type Contract, coreHash, profileHash } from '@internal/contract/types';
 import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { parseNaming } from '@internal/sql-schema-ir/naming';
+import { PostgresRlsEnablement } from '../../src/core/postgres-rls-enablement';
+import { PostgresRlsPolicy } from '../../src/core/postgres-rls-policy';
 import { postgresCreateNamespace } from '../../src/core/postgres-schema';
 
 const int4 = { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false };
@@ -9,6 +12,23 @@ const text = { dataType: 'pg/text', codecId: 'pg/text@1', nullable: false };
 interface Placement {
   /** The namespace of each table, by table name. */
   readonly [table: string]: string;
+}
+
+function invoicePolicyEntries(name: string, namespaceId: string, tableName: string) {
+  const policy = new PostgresRlsPolicy({
+    naming: parseNaming(name, name.replace(/_[0-9a-f]{8}$/, '')),
+    tableName,
+    namespaceId,
+    operation: 'select',
+    roles: ['app_user'],
+    using: '(id > 0)',
+    withCheck: undefined,
+    permissive: true,
+  });
+  return {
+    policy: { [policy.name]: policy },
+    rls: { [tableName]: new PostgresRlsEnablement({ tableName, namespaceId }) },
+  };
 }
 
 export function invoiceTable(): StorageTable {
@@ -61,6 +81,8 @@ export function contractWith(options: {
   readonly invoiceModel?: string;
   readonly invoiceTableName?: string;
   readonly extraTables?: Readonly<Record<string, { namespace: string; table: StorageTable }>>;
+  /** A select policy on the invoice table, by its wire name, with row-level security enabled. */
+  readonly invoicePolicy?: string;
   readonly seed: string;
 }): Contract<SqlStorage> {
   const invoiceModel = options.invoiceModel ?? 'Invoice';
@@ -103,7 +125,15 @@ export function contractWith(options: {
       namespaces: Object.fromEntries(
         Object.entries(tables).map(([id, entries]) => [
           id,
-          postgresCreateNamespace({ id, entries: { table: entries } }),
+          postgresCreateNamespace({
+            id,
+            entries: {
+              table: entries,
+              ...(id === options.invoiceNamespace && options.invoicePolicy !== undefined
+                ? invoicePolicyEntries(options.invoicePolicy, id, invoiceTableName)
+                : {}),
+            },
+          }),
         ]),
       ),
     }),

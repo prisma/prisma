@@ -187,13 +187,17 @@ function withCheck(
 
 function withPolicy(
   policy: PostgresPolicySchemaNode,
-  overrides: { readonly naming: SqlObjectNaming; readonly tableName: string },
+  overrides: {
+    readonly naming: SqlObjectNaming;
+    readonly tableName: string;
+    readonly namespaceId?: string;
+  },
   rewrite: RefRewrite,
 ): PostgresPolicySchemaNode {
   return new PostgresPolicySchemaNode({
     naming: overrides.naming,
     tableName: overrides.tableName,
-    namespaceId: policy.namespaceId,
+    namespaceId: overrides.namespaceId ?? policy.namespaceId,
     operation: policy.operation,
     roles: policy.roles,
     using: policy.using,
@@ -224,6 +228,7 @@ interface TableEdit {
   readonly policy: (policy: PostgresPolicySchemaNode) => {
     readonly naming: SqlObjectNaming;
     readonly tableName: string;
+    readonly namespaceId?: string;
   };
 }
 
@@ -390,8 +395,11 @@ export function moveTableInPostgresSchema(
   };
   const rewritten = mapTables(schema, rewrite, (tableSchema, table) => {
     const unchanged = unchangedEdit(table);
+    const isMoved = tableSchema === from && table.name === tableName;
     return {
       ...unchanged,
+      policy: (policy) =>
+        isMoved ? { ...unchanged.policy(policy), namespaceId: to } : unchanged.policy(policy),
       foreignKey: (fk) =>
         (fk.resolvedReferencedNamespace ?? tableSchema) === from && fk.referencedTable === tableName
           ? { ...unchanged.foreignKey(fk), referencedSchema: to }
