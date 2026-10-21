@@ -109,3 +109,53 @@ cd test/integration && pnpm test test/authoring/attribute-specs.lsp-consumabilit
 ```
 
 Both must pass. State in the report that completion was not checked by hand in an editor.
+
+# Slice 2: aliases are expanded
+
+This section checks slice 2 through the real CLI. A `types {}` alias is written into each column that uses it, an alias may carry `@default`, `@onCreate` and `@onUpdate`, the targets contribute `temporal.CreatedAt` and `temporal.UpdatedAt`, and an upgrade script rewrites stored contracts. Use the setup above. Run the branch's CLI as `node <repo>/node_modules/@internal/cli/dist/bin.mjs`. A scratch project needs a `package.json` that lists `@prisma/orm-postgres` (or `@prisma/orm-mongo`) as a dependency, or `contract.d.ts` imports `@internal/*` paths.
+
+## 8. Upgrade an existing project
+
+1. Copy `origin/main`'s `examples/prisma-8-demo` into `wip/qa/s2-upgrade/` with `git archive origin/main examples/prisma-8-demo | tar -x --strip-components=2`. Link its `node_modules`. Commit a baseline in a local git repository there.
+2. Start a database. Try `prisma db migrate` with the branch's CLI. It must refuse the stored contract and name the upgrade guide. To bring the database to `main`'s state, extract `origin/main` into `wip/qa/s2-main/` with `git archive`, run `pnpm install --frozen-lockfile --offline` and `pnpm build` there (only the packages and the CLI are needed; stop the build if an example app's web build hangs), and run `main`'s CLI against the copy with `node_modules` linked to `main`'s example: `db migrate`, `db sign`, `db verify`.
+3. Relink `node_modules` to the branch's example. Follow `upgrade-instructions/pending/expand-type-aliases/app/instructions.md` step by step: run `node <guide>/scripts/expand-type-aliases/expand-type-aliases.ts` from the project root and read its summary; run `prisma contract emit`; run `prisma db sign`; run `prisma db verify`. Record every command and its output. `db verify` must report no issues, and the re-emit must give the storage hash the script wrote. Run the script a second time; it must change nothing. The demo also has a TypeScript contract source: apply `ts-types-key-removed` to `prisma/contract.ts`, emit it with `--config prisma.config.contract-ts.ts`, and run `tsc` on the project with the PSL contract emitted.
+
+## 9. A new project with the at-a-glance schema
+
+1. In `wip/qa/s2-new/`, write the slice spec's "At a glance" PSL (`Slug`, `UpdatedAt`, `temporal.CreatedAt`). Run `prisma contract emit`. `contract.json` must have no `storage.types` and no `typeRef`; `slug` has `typeParams.length` 64; `createdAt` is `pg/timestamptz-temporal@1` with `instantNow` on create; `updatedAt` is `pg/timestamp-string@1` with `precision` 3, the database default `now()`, and `timestampStringNow` on create and update.
+2. Emit the preset form (`temporal.createdAt()`, `temporal.timestampString(3, onCreate: now, onUpdate: now) @default(now())`, `VarChar(64)`). `contract.json` and `contract.d.ts` must equal step 1.
+3. Run `prisma db init`. Create and update a row through `db.orm.public.Post`, logging the parameters. `id` is a version 4 UUID; the update writes `updatedAt` with 3 fractional digits and leaves `createdAt` alone; a raw insert without `updatedAt` gets the database default.
+4. Run `prisma contract print --format human > printed/contract.prisma`, emit the printed file, and compare. The hashes and the whole `contract.json` must equal step 1.
+
+## 10. Refusals
+
+Emit one small schema per case. Check each message is clear and says what to do.
+
+| Case | Expected |
+| --- | --- |
+| `types { Key = String @id }` | `PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE`, says to write `@id` on the field |
+| `types { Email = String @unique }` | same, for `@unique` |
+| a field writing `@onUpdate(now())` with the alias `UpdatedAt` | `PSL_DUPLICATE_ATTRIBUTE`, names the alias |
+| a field writing `@default(now())` with an alias that sets it | `PSL_DUPLICATE_ATTRIBUTE`, names the alias |
+| `temporal.CreatedAt @onCreate(now())` | `PSL_DUPLICATE_ATTRIBUTE`, names `temporal.CreatedAt` |
+| `temporal.CreatedAt(3)` | says it is a type alias and takes no arguments |
+| `B = A`, and `X = temporal.UpdatedAt` | `PSL_UNSUPPORTED_NAMED_TYPE_BASE` |
+| `Blob = Bytes @onCreate(uuid())` used by two fields | `PSL_GENERATOR_NOT_APPLICABLE`, reported once, on the alias |
+| `Stamp[]` where `Stamp` sets `@onCreate` | `PSL_LIST_EXECUTION_DEFAULT_UNSUPPORTED` |
+| `main`'s stored `contract.json` loaded by `db migrate` | `CONTRACT.VALIDATION_FAILED`, names `expand-type-aliases.ts` and the column path |
+| a TypeScript contract returning a `types` key | `CONTRACT.TYPES_KEY_REMOVED`, says what to write instead |
+| `.default()` on an alias constant that has a default | `CONTRACT.DEFAULT_INVALID`, `default-set-twice` |
+| `field.column(type.temporal.UpdatedAt()).onUpdate(gen.now())` | `CONTRACT.DEFAULT_INVALID`, phase set twice |
+| `field.namedType(type.sql.String(5))`, `field.namedType('Slug')`, `type.temporal.CreatedAt(3)` | `tsc` type errors |
+
+## 11. TypeScript
+
+Write the at-a-glance schema with `defineContract({}, ({ field, model, type }) => ...)`, a constant `UpdatedAt = field.column(type.TimestampString(3)).onCreate(gen.now()).onUpdate(gen.now())`, `field.column(type.VarChar(64))`, `field.column(type.temporal.CreatedAt())` and `UpdatedAt.default(now())`, with `.sql({ table: 'Post' })`. Emit it. `contract.json` and `contract.d.ts` must equal section 9. `tsc` on it must pass.
+
+## 12. MongoDB
+
+In `wip/qa/s2-mongo/`, with `@prisma/orm-mongo/config`, emit a schema with `types { Stamp = Date @onCreate(now()) @onUpdate(now()); Key = ObjectId }`, a `@map`-ped field typed `Stamp`, `temporal.CreatedAt` and `temporal.UpdatedAt`. It must equal the same schema written with the presets and inline attributes. On `mongodb-memory-server`, run `prisma db init`, create and update a document through the ORM, and check the stamps and the collection validator. Also emit an alias with `@default`, an optional field typed by a generating alias, and `@updatedAt`; each must be refused with a hint.
+
+## 13. The language server
+
+Spawn `prisma lsp --stdio` from the section 9 project with a small LSP client (`wip/qa/s2-lsp/client.mjs`). Open the schema with `createdAt temporal.` and request completion after the dot. `CreatedAt` and `UpdatedAt` must be listed as types with their documentation. Hover `temporal.CreatedAt` in the full schema. Also run `pnpm test test/completion-provider.test.ts test/hover.test.ts` in `packages/1-framework/3-tooling/language-server`.
