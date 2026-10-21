@@ -1,6 +1,6 @@
 # ADR 274 — A client takes a typed contract value, so every other option is inferred
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-10-16
 **Domain:** Adapters / Targets, Runtime
 **Builds on:** [ADR 159 — Definition-only contracts and type-only codec-operation maps](ADR%20159%20-%20Definition-only%20contracts%20and%20type-only%20codec-operation%20maps.md), [ADR 263 — A serverless Postgres connection has the same query interface as a postgres client](ADR%20263%20-%20A%20serverless%20Postgres%20connection%20has%20the%20same%20query%20interface%20as%20a%20postgres%20client.md), [ADR 265 — A collection keeps its class through the chain](ADR%20265%20-%20A%20collection%20keeps%20its%20class%20through%20the%20chain.md)
