@@ -34,6 +34,7 @@ import type {
 } from '@internal/psl-parser';
 import {
   bool,
+  contributedTypeCodecId,
   contributedTypeOf,
   dataTypeValue,
   diagnosticSource,
@@ -300,7 +301,7 @@ function receivingDataType(ctx: TypeAttributeSpecContext): string | undefined {
   const typeConstructor = ctx.typeConstructor;
   return typeConstructor === undefined
     ? undefined
-    : ctx.dataTypes.dataTypeOfCodec(typeConstructor.descriptor.output.codecId);
+    : ctx.dataTypes.dataTypeOfCodec(contributedTypeCodecId(typeConstructor.descriptor));
 }
 
 /** Whether a value of `type` can be written for a column of `receiving`: it is that type, or the column's type casts from it. An unknown column takes every type. */

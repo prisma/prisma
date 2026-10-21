@@ -6,6 +6,7 @@ import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/compon
 import { describe, expect, it } from 'vitest';
 import { EMPTY_DATA_TYPES, typeAttributeSubjectLabel } from '../src/attribute-spec/spec-context';
 import { type BinderContext, createBinder } from '../src/binder';
+import { contributedTypeCodecId } from '../src/contributed-type-scope';
 import { createPslDiagnosticCollector } from '../src/diagnostic';
 import { parse } from '../src/parse';
 import { PslSources } from '../src/source-file';
@@ -200,7 +201,10 @@ model Post {
       subject: context === undefined ? undefined : typeAttributeSubjectLabel(context.subject),
       list: context?.list,
       typeName: context?.typeName,
-      codecId: context?.typeConstructor?.descriptor.output.codecId,
+      codecId:
+        context?.typeConstructor === undefined
+          ? undefined
+          : contributedTypeCodecId(context.typeConstructor.descriptor),
     }).toEqual({
       alias: 'Slug',
       untyped: undefined,

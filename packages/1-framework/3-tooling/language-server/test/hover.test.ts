@@ -147,6 +147,11 @@ const authoringContributions = assembleAuthoringContributions([
             documentation: '',
             output: { codecId: 'fixture/flag' },
           },
+          CreatedAt: {
+            kind: 'typeAlias',
+            documentation: 'Set to now when a row is created.',
+            output: { type: { codecId: 'fixture/text' }, onCreate: { name: 'now', args: {} } },
+          },
         },
       },
       field: {
@@ -472,6 +477,17 @@ describe('providePslHover', () => {
         value: '```prisma\npg.Varchar(length: number)\n```\n\nA variable-length string.',
       },
       range: { start: { line: 1, character: 11 }, end: { line: 1, character: 18 } },
+    });
+  });
+
+  it('shows a contributed type alias with its documentation', () => {
+    const result = hover('model Product {\n  createdAt pg.Created|At\n}');
+    expect(result).toEqual({
+      contents: {
+        kind: 'markdown',
+        value: '```prisma\npg.CreatedAt\n```\n\nSet to now when a row is created.',
+      },
+      range: { start: { line: 1, character: 15 }, end: { line: 1, character: 24 } },
     });
   });
 

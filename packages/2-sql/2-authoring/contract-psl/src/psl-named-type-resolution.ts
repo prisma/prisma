@@ -1,7 +1,9 @@
 import type { ExecutionMutationDefaultPhases } from '@internal/contract/types';
 import {
   type DataTypeSupport,
+  instantiateAuthoringTypeAlias,
   instantiateAuthoringTypeConstructor,
+  resolveTypeAliasGenerators,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
@@ -9,14 +11,22 @@ import type { ControlMutationDefaultRegistry } from '@internal/framework-compone
 import type {
   Binder,
   BlockSymbol,
+  ContributedTypeAlias,
   NamedTypeSymbol,
   PslDiagnosticCollector,
+  Resolution,
   ResolvedAttribute,
   SymbolTable,
   TypeAlias,
 } from '@internal/psl-parser';
-import { diagnosticSource, resolveTypeAliases, typeAliasSpecContext } from '@internal/psl-parser';
+import {
+  contributedTypeAliasOf,
+  diagnosticSource,
+  resolveTypeAliases,
+  typeAliasSpecContext,
+} from '@internal/psl-parser';
 import type { FieldAttributeAst, PslSources } from '@internal/psl-parser/syntax';
+import { sqlCodecColumnLength } from '@internal/sql-contract/data-type';
 import type {
   AuthoredColumnDefault,
   EnumTypeHandle,
@@ -31,13 +41,26 @@ import {
   type TypeAttributeOwner,
 } from './psl-column-resolution';
 
-/** A type alias resolved once at its declaration: the column it gives each field typed by it, and the default and generators that column takes. */
+/** A type alias resolved once: the column it gives each field typed by it, and the default and generators that column takes. */
 export interface ResolvedTypeAlias {
-  readonly alias: TypeAlias;
+  readonly alias: TypeAlias | ContributedTypeAlias;
+  /** As a field writes it, such as `Slug` or `temporal.CreatedAt`. */
+  readonly name: string;
+  /** The attributes written on a `types {}` alias; none for a contributed one. */
+  readonly attributes: readonly ResolvedAttribute<FieldAttributeAst>[];
   readonly descriptor: ColumnDescriptor;
   readonly enumHandle: EnumTypeHandle | undefined;
   readonly defaultValue: AuthoredColumnDefault | undefined;
   readonly executionDefaults: ExecutionMutationDefaultPhases | undefined;
+  /** The first generator the alias sets, as `@onCreate(now())` writes it, for a diagnostic. */
+  readonly generatorText: { readonly phase: string; readonly call: string } | undefined;
+}
+
+/** The type aliases of a document: those its `types {}` block declares, and those the stack contributes. */
+export interface ResolvedTypeAliases {
+  get(symbol: NamedTypeSymbol): ResolvedTypeAlias | undefined;
+  /** The alias a type reference resolves to, if it resolves to one. */
+  ofResolution(resolution: Resolution | undefined): ResolvedTypeAlias | undefined;
 }
 
 export interface ResolveNamedTypeDeclarationsInput {
@@ -99,6 +122,57 @@ function aliasDescriptor(
  */
 export function resolveNamedTypeDeclarations(
   input: ResolveNamedTypeDeclarationsInput,
+): ResolvedTypeAliases {
+  const declared = resolveDeclaredTypeAliases(input);
+  const contributed = new Map<ContributedTypeAlias['descriptor'], ResolvedTypeAlias>();
+  const resolveContributed = (alias: ContributedTypeAlias): ResolvedTypeAlias => {
+    const existing = contributed.get(alias.descriptor);
+    if (existing !== undefined) return existing;
+    const resolved = resolveContributedTypeAlias(alias, input);
+    contributed.set(alias.descriptor, resolved);
+    return resolved;
+  };
+  return {
+    get: (symbol) => declared.get(symbol),
+    ofResolution(resolution) {
+      if (resolution?.kind === 'namedType') return declared.get(resolution.symbol);
+      const alias = contributedTypeAliasOf(resolution);
+      return alias === undefined ? undefined : resolveContributed(alias);
+    },
+  };
+}
+
+function resolveContributedTypeAlias(
+  alias: ContributedTypeAlias,
+  input: ResolveNamedTypeDeclarationsInput,
+): ResolvedTypeAlias {
+  const {
+    type: descriptor,
+    default: defaultValue,
+    ...calls
+  } = instantiateAuthoringTypeAlias(alias.descriptor);
+  const executionDefaults = resolveTypeAliasGenerators({
+    path: alias.name,
+    descriptor: alias.descriptor,
+    generatorFunctions: input.generatorFunctions,
+    length: sqlCodecColumnLength(input.dataTypes, descriptor.codecId, descriptor.typeParams),
+  });
+  const phase = calls.onCreate === undefined ? 'onUpdate' : 'onCreate';
+  const call = calls[phase];
+  return {
+    alias,
+    name: alias.name,
+    attributes: [],
+    descriptor,
+    enumHandle: undefined,
+    defaultValue,
+    executionDefaults,
+    generatorText: call === undefined ? undefined : { phase, call: `${call.name}()` },
+  };
+}
+
+function resolveDeclaredTypeAliases(
+  input: ResolveNamedTypeDeclarationsInput,
 ): Map<NamedTypeSymbol, ResolvedTypeAlias> {
   const aliases = resolveTypeAliases({
     declarations: input.declarations,
@@ -137,7 +211,27 @@ export function resolveNamedTypeDeclarations(
       columnDescriptor: descriptor,
       columnTypeParams: descriptor.typeParams,
     });
-    resolved.set(alias.symbol, { alias, descriptor, enumHandle, defaultValue, executionDefaults });
+    const generatorAttribute = alias.attributes.find(
+      ({ name }) => name === 'onCreate' || name === 'onUpdate',
+    );
+    resolved.set(alias.symbol, {
+      alias,
+      name: alias.symbol.name,
+      attributes: alias.attributes,
+      descriptor,
+      enumHandle,
+      defaultValue,
+      executionDefaults,
+      generatorText:
+        generatorAttribute === undefined
+          ? undefined
+          : {
+              phase: generatorAttribute.name,
+              call:
+                generatorAttribute.args.find((arg) => arg.kind === 'positional')?.value.trim() ??
+                '',
+            },
+    });
   }
   return resolved;
 }

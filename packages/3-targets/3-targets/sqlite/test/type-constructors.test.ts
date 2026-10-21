@@ -14,10 +14,20 @@ describe('the type constructors the SQLite target contributes', () => {
       ...sqlitePslTypeConstructors,
       ...sqliteAuthoringTypes,
     });
-    expect(Object.keys(sqliteAuthoringTypes)).toEqual(['BigIntNumber']);
+    expect(Object.keys(sqliteAuthoringTypes)).toEqual(['BigIntNumber', 'temporal']);
   });
 
-  const allConstructors = { ...sqliteAuthoringTypes, ...sqlitePslTypeConstructors };
+  it('contribute the temporal type aliases on DateTime', () => {
+    const now = { name: 'now', args: {} };
+    const { CreatedAt, UpdatedAt } = sqliteAuthoringTypes.temporal;
+    expect([CreatedAt.output, UpdatedAt.output]).toEqual([
+      { type: { codecId: 'sqlite/datetime@1' }, onCreate: now },
+      { type: { codecId: 'sqlite/datetime@1' }, onCreate: now, onUpdate: now },
+    ]);
+  });
+
+  const { temporal, ...targetConstructors } = sqliteAuthoringTypes;
+  const allConstructors = { ...targetConstructors, ...sqlitePslTypeConstructors };
 
   const scalarNames = [
     ['String', 'sqlite/text@1', 'text'],
@@ -54,7 +64,10 @@ describe('the type constructors the SQLite target contributes', () => {
     );
   });
 
-  it.each(Object.entries(allConstructors))('documents %s', (_name, descriptor) => {
-    expect(descriptor).toHaveProperty('documentation', expect.stringMatching(/\S.+/));
-  });
+  it.each([...Object.entries(allConstructors), ...Object.entries(temporal)])(
+    'documents %s',
+    (_name, descriptor) => {
+      expect(descriptor).toHaveProperty('documentation', expect.stringMatching(/\S.+/));
+    },
+  );
 });

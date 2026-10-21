@@ -715,6 +715,22 @@ export class EnumScalarFieldBuilder<
 
 type CodecTypesOfNoPacks = Record<never, never>;
 
+/** What a contributed type alias's `type.*` helper returns: its column type, and the default and generator calls every field typed by it takes. */
+export type TypeAliasColumnType = AuthoredStorageTypeInstance & {
+  readonly default?: AuthoredColumnDefault;
+  readonly generatorCalls?: FieldGeneratorCalls;
+};
+
+/** The defaults a field built from `Descriptor` starts with: those of a contributed type alias, or none. */
+type ColumnDefaultPresence<Descriptor> = {
+  readonly column: Descriptor extends { readonly default: object } ? true : boolean;
+  readonly execution: Descriptor extends {
+    readonly generatorCalls: { readonly onCreate: GeneratorFunctionCall };
+  }
+    ? true
+    : boolean;
+};
+
 export type ColumnFieldHelper<CodecTypes extends CodecTypeMap = CodecTypesOfNoPacks> = <
   const Descriptor extends ColumnTypeDescriptor,
 >(
@@ -724,7 +740,11 @@ export type ColumnFieldHelper<CodecTypes extends CodecTypeMap = CodecTypesOfNoPa
     WithCodecInput<Descriptor, CodecInput<CodecTypes, Descriptor>>,
     undefined,
     false,
-    undefined
+    undefined,
+    undefined,
+    undefined,
+    false,
+    ColumnDefaultPresence<Descriptor>
   >
 >;
 
@@ -732,13 +752,29 @@ export type NamedTypeFieldHelper = <Handle extends EnumTypeHandle>(
   handle: Handle,
 ) => EnumScalarFieldBuilder<Handle>;
 
-const columnField: ColumnFieldHelper = (descriptor) =>
-  new ScalarFieldBuilder({
+function isTypeAliasColumnType(
+  descriptor: ColumnTypeDescriptor,
+): descriptor is ColumnTypeDescriptor & TypeAliasColumnType {
+  return 'generatorCalls' in descriptor || 'default' in descriptor;
+}
+
+const columnField: ColumnFieldHelper = (descriptor) => {
+  if (!isTypeAliasColumnType(descriptor)) {
+    return new ScalarFieldBuilder({ kind: 'scalar', descriptor, nullable: false, many: false });
+  }
+  const { default: columnDefault, generatorCalls, ...columnType } = descriptor;
+  return new ScalarFieldBuilder({
     kind: 'scalar',
-    descriptor,
+    descriptor: blindCast<
+      typeof descriptor,
+      'the column keeps the codec and params of the alias; its default and generator calls move to the field'
+    >(columnType),
     nullable: false,
     many: false,
+    ...ifDefined('default', columnDefault),
+    ...ifDefined('generatorCalls', generatorCalls),
   });
+};
 
 type WithGeneratedTypeParams<Descriptor, TypeParams> =
   TypeParams extends Record<string, unknown>

@@ -1312,6 +1312,14 @@ function resolveNonRelationField(
   const call = field.typeConstructor;
   const entityLabel = `Field "${ownerName}.${field.name}"`;
   const source = diagnosticSource(presetContext.sources, field.node.syntax);
+  if (descriptor.kind === 'typeAlias') {
+    presetContext.diagnostics.push({
+      code: 'PSL_UNSUPPORTED_FIELD_TYPE',
+      message: `Field "${ownerName}.${field.name}" type "${field.typeName}" is not supported in Mongo PSL interpreter`,
+      ...source.at(field.span),
+    });
+    return undefined;
+  }
   if (descriptor.kind === 'fieldPreset') {
     if (call === undefined) {
       reportPresetNotCalled({

@@ -2,9 +2,13 @@ import type {
   ExecutionMutationDefaultPhases,
   ExecutionMutationDefaultValue,
 } from '@internal/contract/types';
-import { resolveToOneRelationNullable } from '@internal/contract-authoring';
+import {
+  composePackAuthoringNamespace,
+  resolveToOneRelationNullable,
+} from '@internal/contract-authoring';
 import {
   type AuthoringEntityTypeNamespace,
+  assertTypeAliasGeneratorsResolve,
   isAuthoringEntityTypeDescriptor,
 } from '@internal/framework-components/authoring';
 import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
@@ -1349,11 +1353,16 @@ function lowerPackEntityHandles(
 
 export function buildContractDefinition(definition: LoweringInput): ContractDefinition {
   const collection = collectRuntimeModelSpecs(definition);
-  const generatorFunctions = assembleGeneratorFunctions([
+  const packs = [
     definition.family,
     definition.target,
     ...Object.values<ExtensionPackRef<'sql', string>>(definition.extensions ?? {}),
-  ]);
+  ];
+  const generatorFunctions = assembleGeneratorFunctions(packs);
+  assertTypeAliasGeneratorsResolve(
+    composePackAuthoringNamespace(packs, 'type'),
+    generatorFunctions,
+  );
   const models = lowerModels(
     collection,
     generatorFunctions,

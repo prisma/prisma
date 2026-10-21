@@ -13,6 +13,7 @@ import type {
   AuthoringArgumentDescriptor,
   AuthoringEntityTypeNamespace,
   AuthoringFieldNamespace,
+  AuthoringTypeAliasDescriptor,
   AuthoringTypeConstructorDescriptor,
   AuthoringTypeNamespace,
 } from '@internal/framework-components/authoring';
@@ -27,6 +28,7 @@ import {
   type ExtensionPackRef,
   type ExtensionPackValues,
   type FamilyPackRef,
+  type GeneratorFunctionCall,
   type GeneratorHelpersOf,
   type TargetPackRef,
 } from '@internal/framework-components/components';
@@ -36,6 +38,7 @@ import {
   createTypeHelpersFromNamespace,
 } from './authoring-helper-runtime';
 import type { FieldHelpersFromNamespace } from './authoring-type-utils';
+import type { AuthoredColumnDefault } from './contract-definition';
 import type {
   AnyRelationBuilder,
   ColumnFieldHelper,
@@ -102,12 +105,38 @@ type TypeHelperFunction<Descriptor extends AuthoringTypeConstructorDescriptor> =
       ) => StorageTypeFromDescriptor<Descriptor, Params>
     : () => StorageTypeFromDescriptor<Descriptor, readonly []>;
 
+type AliasGeneratorCalls<Output> = (Output extends { readonly onCreate: GeneratorFunctionCall }
+  ? { readonly onCreate: GeneratorFunctionCall }
+  : unknown) &
+  (Output extends { readonly onUpdate: GeneratorFunctionCall }
+    ? { readonly onUpdate: GeneratorFunctionCall }
+    : unknown);
+
+type TypeAliasHelperFunction<Descriptor extends AuthoringTypeAliasDescriptor> = () => {
+  readonly kind: 'codec-instance';
+  readonly codecId: Descriptor['output']['type']['codecId'];
+  readonly typeParams: Descriptor['output']['type'] extends {
+    readonly typeParams: infer TypeParams extends Record<string, unknown>;
+  }
+    ? TypeParams
+    : Record<never, never>;
+} & (Descriptor['output'] extends { readonly default: object }
+  ? { readonly default: AuthoredColumnDefault }
+  : unknown) &
+  (Descriptor['output'] extends
+    | { readonly onCreate: GeneratorFunctionCall }
+    | { readonly onUpdate: GeneratorFunctionCall }
+    ? { readonly generatorCalls: AliasGeneratorCalls<Descriptor['output']> }
+    : unknown);
+
 type TypeHelpersFromNamespace<Namespace> = {
   readonly [K in keyof Namespace]: Namespace[K] extends AuthoringTypeConstructorDescriptor
     ? TypeHelperFunction<Namespace[K]>
-    : Namespace[K] extends Record<string, unknown>
-      ? TypeHelpersFromNamespace<Namespace[K]>
-      : never;
+    : Namespace[K] extends AuthoringTypeAliasDescriptor
+      ? TypeAliasHelperFunction<Namespace[K]>
+      : Namespace[K] extends Record<string, unknown>
+        ? TypeHelpersFromNamespace<Namespace[K]>
+        : never;
 };
 
 type CoreFieldHelpers = Pick<typeof field, 'column' | 'generated' | 'namedType'>;

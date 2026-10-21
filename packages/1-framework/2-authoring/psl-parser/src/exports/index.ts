@@ -177,6 +177,7 @@ export type {
   ContributedTypeScope,
   ContributedTypeSymbol,
 } from '../contributed-type-scope';
+export { contributedTypeCodecId } from '../contributed-type-scope';
 export type { DiagnosticSource, PslDiagnostic, PslDiagnosticCollector } from '../diagnostic';
 export {
   createPslDiagnosticCollector,
@@ -221,11 +222,13 @@ export type {
 } from '../symbol-table';
 export { buildSymbolTable } from '../symbol-table';
 export { isPslIdentifier } from '../tokenizer';
-export type { TypeAlias, TypeAliasBase } from '../type-aliases';
+export type { ContributedTypeAlias, TypeAlias, TypeAliasBase } from '../type-aliases';
 export {
+  contributedTypeAliasOf,
   refuseRepeatedTypeAliasAttributes,
   resolveTypeAliases,
   TYPE_ALIAS_ATTRIBUTE_NAMES,
+  typeAliasAttributeNames,
   typeAliasOfField,
   typeAliasSpecContext,
 } from '../type-aliases';

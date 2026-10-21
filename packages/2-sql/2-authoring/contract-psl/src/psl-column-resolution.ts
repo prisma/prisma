@@ -17,6 +17,7 @@ import type {
 } from '@internal/framework-components/authoring';
 import {
   type DataTypeSupport,
+  instantiateAuthoringTypeAlias,
   instantiateAuthoringTypeConstructor,
   isAuthoringEntityTypeDescriptor,
   readWrittenValue,
@@ -527,7 +528,9 @@ export function resolveFieldTypeDescriptor(
     readonly field: FieldSymbol;
     readonly resolution: Resolution | undefined;
     readonly enumTypeDescriptors: ReadonlyMap<BlockSymbol, ColumnDescriptor>;
-    readonly typeAliases: ReadonlyMap<NamedTypeSymbol, { readonly descriptor: ColumnDescriptor }>;
+    readonly typeAliases: {
+      get(symbol: NamedTypeSymbol): { readonly descriptor: ColumnDescriptor } | undefined;
+    };
     readonly sources: PslSources;
   },
 ): ResolveFieldTypeResult {
@@ -551,6 +554,17 @@ export function resolveFieldTypeDescriptor(
     case 'contributedType': {
       const { descriptor, path } = resolution.symbol;
       const written = path.join('.');
+      if (descriptor.kind === 'typeAlias') {
+        if (call !== undefined) {
+          diagnostics.push({
+            code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+            message: `${written} is a type alias and takes no arguments.`,
+            ...source.at(call.span),
+          });
+          return NOT_RESOLVED;
+        }
+        return { ok: true, descriptor: instantiateAuthoringTypeAlias(descriptor).type };
+      }
       if (descriptor.kind === 'fieldPreset') {
         if (call === undefined) {
           reportPresetNotCalled({

@@ -16,7 +16,6 @@ import type {
   FieldAttributeSpecContext,
   FieldSymbol,
   ModelSymbol,
-  NamedTypeSymbol,
   ResolvedAttribute,
   SymbolTable,
 } from '@internal/psl-parser';
@@ -47,7 +46,7 @@ import {
   lowerGeneratorAttributesForField,
   resolveFieldTypeDescriptor,
 } from './psl-column-resolution';
-import type { ResolvedTypeAlias } from './psl-named-type-resolution';
+import type { ResolvedTypeAliases } from './psl-named-type-resolution';
 import {
   fieldSpecContext,
   interpretFieldAttribute,
@@ -98,7 +97,7 @@ export interface CollectResolvedFieldsInput {
   readonly physicalNames: ReadonlyMap<ModelSymbol | FieldSymbol, string>;
   readonly symbolTable: SymbolTable;
   readonly enumTypeDescriptors: ReadonlyMap<BlockSymbol, ColumnDescriptor>;
-  readonly typeAliases: ReadonlyMap<NamedTypeSymbol, ResolvedTypeAlias>;
+  readonly typeAliases: ResolvedTypeAliases;
   /** The value objects the composite types declare, by name. */
   readonly valueObjectTypes: ValueObjectTypes;
   readonly authoringContributions: AuthoringContributions | undefined;
@@ -389,10 +388,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       continue;
     }
 
-    const typeAlias =
-      fieldTypeResolution?.kind === 'namedType'
-        ? typeAliases.get(fieldTypeResolution.symbol)
-        : undefined;
+    const typeAlias = typeAliases.ofResolution(fieldTypeResolution);
     if (typeAlias !== undefined) {
       refuseRepeatedTypeAliasAttributes({
         field,
@@ -451,7 +447,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     if (isListField && typeAlias?.defaultValue !== undefined) {
       diagnostics.push({
         code: 'PSL_DEFAULT_LIST_EXPECTED',
-        message: `Field "${model.name}.${field.name}" is a list, but its type alias "${typeAlias.alias.symbol.name}" sets @default for a single value. Remove "[]" or the @default of the alias.`,
+        message: `Field "${model.name}.${field.name}" is a list, but its type alias "${typeAlias.name}" sets @default for a single value. Remove "[]" or the @default of the alias.`,
         ...source.at(field.span),
       });
       continue;
@@ -482,17 +478,19 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     const ownGeneratorAttribute = GENERATOR_ATTRIBUTE_NAMES.map((name) =>
       getAttribute(field.attributes, name),
     ).find((attribute) => attribute !== undefined);
-    const generatorAttribute =
-      ownGeneratorAttribute ??
-      GENERATOR_ATTRIBUTE_NAMES.map((name) =>
-        getAttribute(typeAlias?.alias.attributes ?? [], name),
-      ).find((attribute) => attribute !== undefined);
-    if (isListField && generatorAttribute !== undefined && generatedValues !== undefined) {
-      const argument =
-        generatorAttribute.args.find((arg) => arg.kind === 'positional')?.value.trim() ?? '';
+    const generatorText =
+      ownGeneratorAttribute === undefined
+        ? typeAlias?.generatorText
+        : {
+            phase: ownGeneratorAttribute.name,
+            call:
+              ownGeneratorAttribute.args.find((arg) => arg.kind === 'positional')?.value.trim() ??
+              '',
+          };
+    if (isListField && generatorText !== undefined && generatedValues !== undefined) {
       diagnostics.push({
         code: 'PSL_LIST_EXECUTION_DEFAULT_UNSUPPORTED',
-        message: `Field "${model.name}.${field.name}" is a list and cannot use @${generatorAttribute.name}(${argument}). Lists have no per-element generated values; remove @${generatorAttribute.name}(...).`,
+        message: `Field "${model.name}.${field.name}" is a list and cannot use @${generatorText.phase}(${generatorText.call}). Lists have no per-element generated values; remove @${generatorText.phase}(...).`,
         ...source.at(ownGeneratorAttribute?.span ?? field.span),
       });
       continue;

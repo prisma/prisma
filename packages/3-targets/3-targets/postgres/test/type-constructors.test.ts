@@ -23,16 +23,70 @@ describe('the type constructors the target contributes', () => {
       ...postgresPslTypeConstructors,
       ...postgresAuthoringTypes,
     });
-    expect(Object.keys(postgresAuthoringTypes)).toEqual(['BigIntNumber', 'UnboundedInt', 'pg']);
+    expect(Object.keys(postgresAuthoringTypes)).toEqual([
+      'BigIntNumber',
+      'UnboundedInt',
+      'pg',
+      'temporal',
+    ]);
   });
 
-  it.each(Object.entries(postgresAuthoringTypes).filter(([name]) => name !== 'pg'))(
-    'documents %s',
-    (_name, descriptor) => {
-      expect(descriptor).toHaveProperty('documentation', expect.stringMatching(/\S.+/));
-    },
-  );
+  it.each([
+    ...Object.entries(postgresAuthoringTypes).filter(
+      ([name]) => name !== 'pg' && name !== 'temporal',
+    ),
+    ...Object.entries(postgresAuthoringTypes.temporal),
+  ])('documents %s', (_name, descriptor) => {
+    expect(descriptor).toHaveProperty('documentation', expect.stringMatching(/\S.+/));
+  });
+
+  it('contribute the temporal type aliases, one pair per timestamptz codec', () => {
+    expect(
+      Object.fromEntries(
+        Object.entries(postgresAuthoringTypes.temporal).map(([name, { kind, output }]) => [
+          name,
+          { kind, ...output },
+        ]),
+      ),
+    ).toEqual({
+      CreatedAt: {
+        kind: 'typeAlias',
+        type: { codecId: 'pg/timestamptz-temporal@1' },
+        onCreate: now,
+      },
+      UpdatedAt: {
+        kind: 'typeAlias',
+        type: { codecId: 'pg/timestamptz-temporal@1' },
+        onCreate: now,
+        onUpdate: now,
+      },
+      CreatedAtString: {
+        kind: 'typeAlias',
+        type: { codecId: 'pg/timestamptz-string@1' },
+        onCreate: now,
+      },
+      UpdatedAtString: {
+        kind: 'typeAlias',
+        type: { codecId: 'pg/timestamptz-string@1' },
+        onCreate: now,
+        onUpdate: now,
+      },
+      CreatedAtJsDate: {
+        kind: 'typeAlias',
+        type: { codecId: 'pg/timestamptz-date@1' },
+        onCreate: now,
+      },
+      UpdatedAtJsDate: {
+        kind: 'typeAlias',
+        type: { codecId: 'pg/timestamptz-date@1' },
+        onCreate: now,
+        onUpdate: now,
+      },
+    });
+  });
 });
+
+const now = { name: 'now', args: {} };
 
 const everyPostgresConstructor = {
   ...postgresAuthoringTypes,

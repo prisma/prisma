@@ -2,6 +2,7 @@ import type { DataTypeSupport } from '@internal/framework-components/authoring';
 import type { GeneratorPhase } from '@internal/framework-components/components';
 import { blindCast } from '@internal/utils/casts';
 import { notOk } from '@internal/utils/result';
+import { contributedTypeCodecId } from '../contributed-type-scope';
 import type { PslDiagnostic } from '../diagnostic';
 import { FunctionCallAst } from '../syntax/ast/expressions';
 import type { AstNode } from '../syntax/ast-helpers';
@@ -67,7 +68,10 @@ export function generatorFunctionCall(
  * The generator function arms for a field's codec. A call to a function that does not apply to the codec, or that no component declares, is refused before the arms are tried, so the author is told which functions do apply.
  */
 function generatorCallArm(ctx: TypeAttributeSpecContext) {
-  const codecId = ctx.typeConstructor?.descriptor.output.codecId;
+  const codecId =
+    ctx.typeConstructor === undefined
+      ? undefined
+      : contributedTypeCodecId(ctx.typeConstructor.descriptor);
   const functions = codecId === undefined ? [] : ctx.generatorFunctions.functionsFor(codecId);
   const subject = typeAttributeSubjectLabel(ctx.subject);
   const target = codecId === undefined ? "the field's type" : `codec "${codecId}"`;

@@ -1,3 +1,7 @@
+import {
+  assembleGeneratorFunctions,
+  type GeneratorFunctionCall,
+} from '@internal/framework-components/components';
 import { describe, expect, it } from 'vitest';
 import { mongoTargetDescriptorMeta } from '../src/core/descriptor-meta';
 import mongoTargetPack from '../src/exports/pack';
@@ -62,6 +66,28 @@ describe('mongo temporal field presets', () => {
   it('keeps authoring contributions out of the runtime descriptor', () => {
     expect(mongoRuntimeTargetDescriptor).not.toHaveProperty('authoring');
     expect(mongoRuntimeTargetDescriptor).not.toHaveProperty('controlMutationDefaults');
+  });
+});
+
+describe('mongo temporal type aliases', () => {
+  it('generate on create, and on update, what the matching presets generate', () => {
+    const { CreatedAt, UpdatedAt } = mongoTargetDescriptorMeta.authoring.type.temporal;
+    const field = { codecId: 'mongo/date@1', typeParams: undefined, length: undefined };
+    const generatorFunctions = assembleGeneratorFunctions([mongoTargetDescriptorMeta]);
+    const resolved = (call: GeneratorFunctionCall | undefined) =>
+      call === undefined ? undefined : generatorFunctions.resolve(call, field);
+    const timestampNow = { ok: true, generator: { kind: 'generator', id: 'timestampNow' } };
+    expect({
+      createdAt: [CreatedAt.output.type, resolved(CreatedAt.output.onCreate)],
+      updatedAt: [
+        UpdatedAt.output.type,
+        resolved(UpdatedAt.output.onCreate),
+        resolved(UpdatedAt.output.onUpdate),
+      ],
+    }).toEqual({
+      createdAt: [{ codecId: 'mongo/date@1' }, timestampNow],
+      updatedAt: [{ codecId: 'mongo/date@1' }, timestampNow, timestampNow],
+    });
   });
 });
 

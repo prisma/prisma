@@ -123,3 +123,77 @@ describe('createControlStack generator functions', () => {
     );
   });
 });
+
+describe('createControlStack type aliases', () => {
+  function stackWithAlias(output: Record<string, unknown>) {
+    return createControlStack(
+      stubInput({
+        family: { kind: 'family', id: 'family', version: '0.0.1' },
+        target: { kind: 'target', id: 'target', version: '0.0.1' },
+        adapter: {
+          kind: 'adapter',
+          id: 'adapter',
+          version: '0.0.1',
+          controlMutationDefaults: {
+            defaultFunctionRegistry: new Map(),
+            generatorDescriptors: [{ id: 'slugid' }],
+          },
+        },
+        extensions: [
+          {
+            kind: 'extension',
+            id: 'slugid-pack',
+            version: '0.0.1',
+            generatorFunctions: [slugid],
+            authoring: { type: { slugs: { Slug: { kind: 'typeAlias', output } } } },
+          },
+        ],
+      }),
+    );
+  }
+
+  it('assembles an alias whose generator calls resolve for its codec', () => {
+    const output = { type: { codecId: 'text@1' }, onCreate: { name: 'slugid', args: {} } };
+    expect(stackWithAlias(output).authoringContributions.type).toEqual({
+      slugs: { Slug: { kind: 'typeAlias', output } },
+    });
+  });
+
+  it('refuses an alias whose generator function is bound to another codec', () => {
+    expect(() =>
+      stackWithAlias({ type: { codecId: 'int@1' }, onUpdate: { name: 'slugid', args: {} } }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        message:
+          'Type alias "slugs.Slug" calls slugid() on update, which does not apply to its codec "int@1".',
+      }),
+    );
+  });
+
+  it('refuses an alias whose type reads an argument', () => {
+    expect(() =>
+      stackWithAlias({
+        type: { codecId: 'text@1', typeParams: { length: { kind: 'arg', index: 0 } } },
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        message:
+          'Invalid authoring type alias "slugs.Slug" contributed by descriptor "slugid-pack". output.type.typeParams.length references an argument, but a type alias takes none. Write the value itself.',
+      }),
+    );
+  });
+
+  it('refuses an alias that calls a generator function no component declares', () => {
+    expect(() =>
+      stackWithAlias({ type: { codecId: 'text@1' }, onCreate: { name: 'cuid', args: {} } }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        message:
+          'Type alias "slugs.Slug" calls cuid() on create, but no component declares the generator function "cuid".',
+      }),
+    );
+  });
+});

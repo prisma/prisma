@@ -55,7 +55,6 @@ import {
   interpretExtensionBlocks,
   type ModelAttributeSpecFactory,
   type ModelSymbol,
-  type NamedTypeSymbol,
   type NamespaceSymbol,
   nodePslSpan,
   type PslDiagnostic,
@@ -64,6 +63,7 @@ import {
   type ResolvedAttribute,
   type ResolvedEntityReference,
   type SymbolTable,
+  typeAliasAttributeNames,
   typeReferenceNode,
 } from '@internal/psl-parser';
 import {
@@ -135,7 +135,10 @@ import {
   modelCoordinateKey,
   type ResolvedField,
 } from './psl-field-resolution';
-import { type ResolvedTypeAlias, resolveNamedTypeDeclarations } from './psl-named-type-resolution';
+import {
+  type ResolvedTypeAliases,
+  resolveNamedTypeDeclarations,
+} from './psl-named-type-resolution';
 import {
   applyBackrelationCandidates,
   type FkRelationMetadata,
@@ -522,7 +525,7 @@ interface BuildModelNodeInput {
   /** The value objects the composite types declare, by name. */
   readonly valueObjectTypes: ValueObjectTypes;
   readonly enumTypeDescriptors: ReadonlyMap<BlockSymbol, ColumnDescriptor>;
-  readonly typeAliases: ReadonlyMap<NamedTypeSymbol, ResolvedTypeAlias>;
+  readonly typeAliases: ResolvedTypeAliases;
   /** Extension contracts keyed by space ID for cross-space FK table-name resolution. */
   readonly composedExtensionContracts: ReadonlyMap<string, Contract>;
   readonly familyId: string;
@@ -1462,7 +1465,7 @@ interface BuildValueObjectNodesInput {
   readonly compositeTypes: readonly CompositeTypeSymbol[];
   readonly enumTypeDescriptors: ReadonlyMap<BlockSymbol, ColumnDescriptor>;
   readonly enumHandles: ReadonlyMap<BlockSymbol, EnumTypeHandle>;
-  readonly typeAliases: ReadonlyMap<NamedTypeSymbol, ResolvedTypeAlias>;
+  readonly typeAliases: ResolvedTypeAliases;
   readonly diagnostics: PslDiagnosticCollector;
   readonly sources: PslSources;
   /** Composite types are placed in the default namespace, so their members resolve against it. */
@@ -1533,14 +1536,13 @@ function buildValueObjectNodes(input: BuildValueObjectNodesInput): ValueObjectNo
         });
         continue;
       }
-      const typeAlias =
-        fieldTypeResolution?.kind === 'namedType'
-          ? input.typeAliases.get(fieldTypeResolution.symbol)
-          : undefined;
-      for (const attribute of typeAlias?.alias.attributes ?? []) {
+      const typeAlias = input.typeAliases.ofResolution(fieldTypeResolution);
+      for (const attribute of typeAlias === undefined
+        ? []
+        : typeAliasAttributeNames(typeAlias.alias)) {
         diagnostics.push({
           code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
-          message: `Member "${field.name}" of composite type "${compositeType.name}" is typed by the type alias "${field.typeName}", which carries "@${attribute.name}", an attribute a composite type member does not take`,
+          message: `Member "${field.name}" of composite type "${compositeType.name}" is typed by the type alias "${field.typeName}", which carries "@${attribute}", an attribute a composite type member does not take`,
           ...diagnosticSource(sources, field.node.syntax).at(field.span),
         });
       }

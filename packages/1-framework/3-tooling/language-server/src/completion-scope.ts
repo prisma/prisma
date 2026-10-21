@@ -83,6 +83,11 @@ export function scopeCompletionItems(
         break;
       case 'contributedType': {
         const descriptor = resolution.symbol.descriptor;
+        if (descriptor.kind === 'typeAlias') {
+          item.kind = CompletionItemKind.Class;
+          item.detail = descriptor.documentation || 'Type alias';
+          break;
+        }
         const callable =
           descriptor.kind === 'fieldPreset' ||
           descriptor.args !== undefined ||

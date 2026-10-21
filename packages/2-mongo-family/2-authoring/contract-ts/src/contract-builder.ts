@@ -41,6 +41,7 @@ import type {
 } from '@internal/framework-components/authoring';
 import {
   assertNoCrossRegistryCollisions,
+  assertTypeAliasGeneratorsResolve,
   instantiateAuthoringFieldPreset,
   validateAuthoringHelperArguments,
 } from '@internal/framework-components/authoring';
@@ -2782,24 +2783,22 @@ function buildContractFromDefinition<
   const capabilities: Record<string, Record<string, boolean>> = {};
   const collections = buildCollections(definition.models);
   assertNoValueObjectExecutionDefaults(definition.valueObjects);
-  const execution = buildExecutionSection({
-    target: definition.target.targetId,
-    targetFamily: definition.family.familyId,
-    defaults: buildExecutionDefaults(
-      definition.models,
-      assembleGeneratorFunctions([
-        definition.family,
-        definition.target,
-        ...Object.values(definition.extensions ?? {}),
-      ]),
-    ),
-  });
-
   const components = [
     definition.family,
     definition.target,
     ...Object.values(definition.extensions ?? {}),
   ];
+  const generatorFunctions = assembleGeneratorFunctions(components);
+  assertTypeAliasGeneratorsResolve(
+    composePackAuthoringNamespace(components, 'type'),
+    generatorFunctions,
+  );
+  const execution = buildExecutionSection({
+    target: definition.target.targetId,
+    targetFamily: definition.family.familyId,
+    defaults: buildExecutionDefaults(definition.models, generatorFunctions),
+  });
+
   const codecLookup = extractCodecLookup(components);
   const lookups: TypeLookups = {
     codecLookup,

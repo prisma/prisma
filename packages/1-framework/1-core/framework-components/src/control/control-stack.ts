@@ -13,6 +13,7 @@ import { assembleDataTypes, objectSchemaKeys } from '../shared/data-type';
 import type {
   AuthoringAttributeSpecContributions,
   AuthoringContributions,
+  AuthoringDescriptorKinds,
   AuthoringEntityTypeNamespace,
   AuthoringFieldNamespace,
   AuthoringFieldPresetDescriptor,
@@ -23,13 +24,16 @@ import type {
   DataTypeAuthoringEntry,
 } from '../shared/framework-authoring';
 import {
+  AUTHORING_TYPE_DESCRIPTOR_KINDS,
   assertNoCrossRegistryCollisions,
   assertResolvableTypeConstructorTemplates,
+  assertTypeAliasGeneratorsResolve,
   collectContributedDescriptorPaths,
   collectScalarTypeConstructors,
   isAuthoringArgRef,
   isAuthoringFieldPresetDescriptor,
   isAuthoringTypeConstructorDescriptor,
+  isAuthoringTypeDescriptor,
   mergeAuthoringAttributeSpecs,
   mergeAuthoringNamespaces,
 } from '../shared/framework-authoring';
@@ -226,7 +230,7 @@ export function assembleAuthoringContributions(
   const pathOwners = new Map<string, string>();
   const claimContributedPaths = (
     namespace: Record<string, unknown>,
-    descriptorKind: string,
+    descriptorKind: AuthoringDescriptorKinds,
     label: string,
     descriptorId: string,
   ): void => {
@@ -268,9 +272,20 @@ export function assembleAuthoringContributions(
       mergeAuthoringNamespaces(field, descriptor.authoring.field, [], 'fieldPreset', 'field');
     }
     if (descriptor.authoring?.type) {
-      claimContributedPaths(descriptor.authoring.type, 'typeConstructor', 'type', descriptorId);
+      claimContributedPaths(
+        descriptor.authoring.type,
+        AUTHORING_TYPE_DESCRIPTOR_KINDS,
+        'type',
+        descriptorId,
+      );
       assertResolvableTypeConstructorTemplates(descriptor.authoring.type, descriptorId);
-      mergeAuthoringNamespaces(type, descriptor.authoring.type, [], 'typeConstructor', 'type');
+      mergeAuthoringNamespaces(
+        type,
+        descriptor.authoring.type,
+        [],
+        AUTHORING_TYPE_DESCRIPTOR_KINDS,
+        'type',
+      );
     }
     if (descriptor.authoring?.entityTypes) {
       claimContributedPaths(descriptor.authoring.entityTypes, 'entity', 'entity', descriptorId);
@@ -438,7 +453,14 @@ export function contributedConstructors(descriptor: {
   readonly authoring?: AuthoringContributions;
 }): readonly ContributedConstructor[] {
   return [
-    ...descriptorsIn(descriptor.authoring?.type, isAuthoringTypeConstructorDescriptor),
+    ...descriptorsIn(descriptor.authoring?.type, isAuthoringTypeDescriptor).filter(
+      (
+        entry,
+      ): entry is {
+        readonly path: string;
+        readonly descriptor: AuthoringTypeConstructorDescriptor;
+      } => isAuthoringTypeConstructorDescriptor(entry.descriptor),
+    ),
     ...descriptorsIn(descriptor.authoring?.field, isAuthoringFieldPresetDescriptor),
   ].map((entry) => ({ ...entry, contributedBy: descriptor.id }));
 }
@@ -894,6 +916,8 @@ export function createControlStack<TFamilyId extends string, TTargetId extends s
   });
 
   const controlMutationDefaults = assembleControlMutationDefaults(allDescriptors);
+  const generatorFunctions = assembleGeneratorFunctions(allDescriptors);
+  assertTypeAliasGeneratorsResolve(authoringContributions.type, generatorFunctions);
 
   return {
     family,
@@ -919,7 +943,7 @@ export function createControlStack<TFamilyId extends string, TTargetId extends s
     authoringContributions,
     scalarTypes: [...collectScalarTypeConstructors(authoringContributions.type).keys()],
     controlMutationDefaults,
-    generatorFunctions: assembleGeneratorFunctions(allDescriptors),
+    generatorFunctions,
     capabilities: mergeCapabilityMatrices({}, [
       target,
       ...(adapter ? [adapter] : []),

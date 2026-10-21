@@ -1,4 +1,5 @@
 import type {
+  AuthoringTypeAliasDescriptor,
   AuthoringTypeConstructorDescriptor,
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
@@ -144,6 +145,35 @@ export function resolveTypeAliases(input: {
   return aliases;
 }
 
+/** A type alias a pack contributes, such as `temporal.CreatedAt`. */
+export interface ContributedTypeAlias {
+  /** The alias's path, as a field writes it. */
+  readonly name: string;
+  readonly descriptor: AuthoringTypeAliasDescriptor;
+}
+
+/** The contributed type alias a type reference resolves to, if it resolves to one. */
+export function contributedTypeAliasOf(
+  resolution: Resolution | undefined,
+): ContributedTypeAlias | undefined {
+  if (resolution?.kind !== 'contributedType') return undefined;
+  const { descriptor, path } = resolution.symbol;
+  return descriptor.kind === 'typeAlias' ? { name: path.join('.'), descriptor } : undefined;
+}
+
+/** The names of the attributes a type alias sets for every field typed by it. */
+export function typeAliasAttributeNames(
+  alias: TypeAlias | ContributedTypeAlias,
+): ReadonlySet<string> {
+  if ('symbol' in alias) return new Set(alias.attributes.map(({ name }) => name));
+  const { default: columnDefault, onCreate, onUpdate } = alias.descriptor.output;
+  return new Set(
+    Object.entries({ default: columnDefault, onCreate, onUpdate }).flatMap(([name, value]) =>
+      value === undefined ? [] : [name],
+    ),
+  );
+}
+
 /** The type alias a field is typed by, if it is typed by one. */
 export function typeAliasOfField(
   field: FieldSymbol,
@@ -186,17 +216,18 @@ export function refuseRepeatedTypeAliasAttributes(input: {
   readonly field: FieldSymbol;
   /** `Model.field`. */
   readonly fieldPath: string;
-  readonly alias: TypeAlias;
+  readonly alias: TypeAlias | ContributedTypeAlias;
   readonly sources: PslSources;
   readonly diagnostics: PslDiagnosticCollector;
 }): boolean {
-  const carried = new Set(input.alias.attributes.map(({ name }) => name));
+  const carried = typeAliasAttributeNames(input.alias);
+  const aliasName = 'symbol' in input.alias ? input.alias.symbol.name : input.alias.name;
   const repeated = input.field.attributes.filter(({ name }) => carried.has(name));
   const source = diagnosticSource(input.sources, input.field.node.syntax);
   for (const attribute of repeated) {
     input.diagnostics.push({
       code: 'PSL_DUPLICATE_ATTRIBUTE',
-      message: `Field "${input.fieldPath}" writes @${attribute.name}, which its type alias "${input.alias.symbol.name}" already sets. Remove one of them.`,
+      message: `Field "${input.fieldPath}" writes @${attribute.name}, which its type alias "${aliasName}" already sets. Remove one of them.`,
       ...source.at(attribute.span),
     });
   }

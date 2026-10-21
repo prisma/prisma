@@ -31,3 +31,25 @@ test('the contract takes databaseTypes, not types', () => {
     types: {},
   });
 });
+
+/** Whether the contract types say the client generates the field's value on create, which makes the create input optional. */
+type GeneratesOnCreate<Builder> = Builder extends { readonly __state: infer State }
+  ? State extends { readonly __defaultPresence?: infer Presence }
+    ? NonNullable<Presence> extends { readonly execution: true }
+      ? true
+      : false
+    : false
+  : false;
+
+test('a field typed by temporal.CreatedAt is optional on create', () => {
+  defineContract({}, ({ type, field }) => {
+    const createdAt = field.column(type.temporal.CreatedAt());
+    const updatedAt = field.column(type.temporal.UpdatedAtString()).optional();
+    const plain = field.column(type.Timestamptz());
+    expectTypeOf<GeneratesOnCreate<typeof createdAt>>().toEqualTypeOf<true>();
+    expectTypeOf<GeneratesOnCreate<typeof updatedAt>>().toEqualTypeOf<true>();
+    expectTypeOf<GeneratesOnCreate<typeof plain>>().toEqualTypeOf<false>();
+    expectTypeOf(type.temporal.CreatedAtJsDate().codecId).toEqualTypeOf<'pg/timestamptz-date@1'>();
+    return { models: {} };
+  });
+});

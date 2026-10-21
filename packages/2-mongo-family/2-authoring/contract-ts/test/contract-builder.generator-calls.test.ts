@@ -102,3 +102,33 @@ describe('Mongo .onCreate and .onUpdate', () => {
     );
   });
 });
+
+describe('Mongo contributed type aliases', () => {
+  it('are refused at assembly when a generator call does not apply to the codec', () => {
+    const target = {
+      ...mongoTargetPack,
+      authoring: {
+        type: {
+          temporal: {
+            Broken: {
+              kind: 'typeAlias',
+              output: {
+                type: { codecId: 'mongo/string@1' },
+                onUpdate: { name: 'now', args: {} },
+              },
+            },
+          },
+        },
+      },
+    } as const satisfies TargetPackRef<'mongo', 'mongo'>;
+    expect(() =>
+      defineContract({ family: mongoFamilyPack, target }, () => ({ models: {} })),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        message:
+          'Type alias "temporal.Broken" calls now() on update, which does not apply to its codec "mongo/string@1".',
+      }),
+    );
+  });
+});

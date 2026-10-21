@@ -25,6 +25,23 @@ const targetPack = {
           typeParams: { precision: { kind: 'arg', index: 0 } },
         },
       },
+      temporal: {
+        CreatedAt: {
+          kind: 'typeAlias',
+          output: {
+            type: { codecId: 'pg/time-temporal@1', typeParams: { precision: 3 } },
+            onCreate: { name: 'now', args: {} },
+          },
+        },
+        UpdatedAt: {
+          kind: 'typeAlias',
+          output: {
+            type: { codecId: 'pg/time-temporal@1', typeParams: { precision: 3 } },
+            onCreate: { name: 'now', args: {} },
+            onUpdate: { name: 'now', args: {} },
+          },
+        },
+      },
     },
   },
 } as const satisfies TargetPackRef<'sql', 'postgres'>;
@@ -140,6 +157,95 @@ describe('alias constants', () => {
       expect.objectContaining({
         code: 'CONTRACT.DEFAULT_INVALID',
         meta: { reason: 'generator-phase-set-twice', phase: 'onUpdate' },
+      }),
+    );
+  });
+});
+
+describe('contributed type aliases', () => {
+  it('give the column type and generator calls of the alias', () => {
+    const contract = defineContract(scaffold, ({ type }) => {
+      expect(type.temporal.UpdatedAt()).toEqual({
+        kind: 'codec-instance',
+        codecId: 'pg/time-temporal@1',
+        typeParams: { precision: 3 },
+        generatorCalls: {
+          onCreate: { name: 'now', args: {} },
+          onUpdate: { name: 'now', args: {} },
+        },
+      });
+      return { models: {} };
+    });
+    expect(contract.storage.types).toBeUndefined();
+  });
+
+  it('store what the same column and generator calls store, written on the field', () => {
+    const throughAlias = defineContract(scaffold, ({ type, model }) => ({
+      models: {
+        Event: model('Event', {
+          fields: {
+            id: field.column(type.VarChar(36)).id(),
+            createdAt: field.column(type.temporal.CreatedAt()).onUpdate(gen.now()),
+            updatedAt: field.column(type.temporal.UpdatedAt()).optional(),
+          },
+        }).sql({ table: 'event' }),
+      },
+    }));
+    const onTheField = defineContract(scaffold, ({ type, model }) => ({
+      models: {
+        Event: model('Event', {
+          fields: {
+            id: field.column(type.VarChar(36)).id(),
+            createdAt: field.column(type.Time(3)).onCreate(gen.now()).onUpdate(gen.now()),
+            updatedAt: field
+              .column(type.Time(3))
+              .onCreate(gen.now())
+              .onUpdate(gen.now())
+              .optional(),
+          },
+        }).sql({ table: 'event' }),
+      },
+    }));
+    expect(throughAlias).toEqual(onTheField);
+    expect(throughAlias.execution?.mutations.defaults).toHaveLength(2);
+  });
+
+  it('refuse a generator phase the alias already sets', () => {
+    defineContract(scaffold, ({ type }) => {
+      expect(() => field.column(type.temporal.UpdatedAt()).onUpdate(gen.now())).toThrow(
+        expect.objectContaining({
+          code: 'CONTRACT.DEFAULT_INVALID',
+          meta: { reason: 'generator-phase-set-twice', phase: 'onUpdate' },
+        }),
+      );
+      return { models: {} };
+    });
+  });
+
+  it('are refused at assembly when a generator call does not apply to the codec', () => {
+    const brokenTarget = {
+      ...targetPack,
+      authoring: {
+        type: {
+          temporal: {
+            Broken: {
+              kind: 'typeAlias',
+              output: {
+                type: { codecId: 'pg/time-temporal@1' },
+                onCreate: { name: 'uuid', args: {} },
+              },
+            },
+          },
+        },
+      },
+    } as const satisfies TargetPackRef<'sql', 'postgres'>;
+    expect(() =>
+      defineContract({ ...scaffold, target: brokenTarget }, () => ({ models: {} })),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        message:
+          'Type alias "temporal.Broken" calls uuid() on create, which does not apply to its codec "pg/time-temporal@1".',
       }),
     );
   });
