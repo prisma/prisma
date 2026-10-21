@@ -545,7 +545,9 @@ Namespaces are declared (contract-level list or a model-level `namespace`) on a 
 
 ### CONTRACT.PACK_CONTRIBUTION_INVALID
 
-A composed pack's contribution is malformed or collides with another contribution; this is the extension-author-facing bucket. Covers: entity types colliding with reserved helper keys, duplicate entity kinds or index-type registrations, a registered entity kind with no `lowerEntityHandles` lowering, an invalid `indexTypes` shape, entries-slot collisions between a model attribute and a block entry kind, a model attribute that lowers to a malformed index, bad authoring-helper paths, a codec registered with an entity-ref arg but no `columnFromEntity` hook, and print-time contribution mismatches (a block keyword with no PSL block descriptor, or a descriptor whose discriminator disagrees with the block's kind). Raised during contract authoring/lowering and PSL printing. Payload: `packId`, `contribution`, `reason`, `keyword`, `paramName`, `codecId`.
+A composed pack's contribution is malformed or collides with another contribution; this is the extension-author-facing bucket. Covers: entity types colliding with reserved helper keys, duplicate entity kinds or index-type registrations, a registered entity kind with no `lowerEntityHandles` lowering, an invalid `indexTypes` shape, entries-slot collisions between a model attribute and a block entry kind, a model attribute that lowers to a malformed index, bad authoring-helper paths, a codec registered with an entity-ref arg but no `columnFromEntity` hook, and print-time contribution mismatches (a block keyword with no PSL block descriptor, or a descriptor whose discriminator disagrees with the block's kind). Raised during contract authoring/lowering and PSL printing.
+
+A contributed type alias (`kind: 'typeAlias'`, such as `temporal.CreatedAt`) is refused when the stack is assembled, by the control stack and by the TypeScript builders, so PSL and TypeScript refuse the same packs. Its type params may not reference an argument, because a type alias takes none: `Invalid authoring type alias "<path>" contributed by descriptor "<id>". output.type.typeParams.<key> references an argument, but a type alias takes none. Write the value itself.` Each generator call must resolve for the alias's codec: `Type alias "<path>" calls now() on create, which does not apply to its codec "<codecId>".`, `…, which its codec "<codecId>" refuses: <reason>`, or `…, but no component declares the generator function "<name>".` Payload: `packId`, `contribution`, `reason`, `keyword`, `paramName`, `codecId`.
 
 The Mongo `defineContract` builder raises it for a model field, a value object field or an enum whose codec represents a data type that is not a MongoDB data type (`reason: 'data-type-not-mongo'`): the pack declared the data type without `mongoDataType`, so its BSON type is unknown and the contract cannot describe the field. The Mongo PSL interpreter reports the same case at the field as `PSL_UNSUPPORTED_FIELD_TYPE`. Payload (meta): `modelName`, `valueObjectName` or `enumName`, `fieldName` for a field, `codecId`, `dataType`, `reason`.
 
@@ -966,15 +968,31 @@ Two Mongo models stored in the same collection declare field presets with differ
 
 ### PSL_LIST_EXECUTION_DEFAULT_UNSUPPORTED
 
-A list field writes `@onCreate(...)` or `@onUpdate(...)`: `Field "<Model>.<field>" is a list and cannot use @onCreate(uuid()). Lists have no per-element generated values; remove @onCreate(...).` Reported at the attribute, in SQL and Mongo schemas.
+A list field writes `@onCreate(...)` or `@onUpdate(...)`: `Field "<Model>.<field>" is a list and cannot use @onCreate(uuid()). Lists have no per-element generated values; remove @onCreate(...).` Reported at the attribute, in SQL and Mongo schemas. A list field typed by a type alias that generates a value is refused at the field: `Field "<Model>.<field>" is a list, and its type alias "<Alias>" generates a value. Lists have no per-element generated values; remove "[]" or type the field without the alias.`
 
 ### PSL_OPTIONAL_EXECUTION_DEFAULT_UNSUPPORTED
 
-An optional field in a Mongo schema writes `@onCreate(...)` or `@onUpdate(...)`: `Field "<Model>.<field>" is optional, and a generated value needs a required field in MongoDB. Remove "?" or remove @onUpdate(...).` Remove `?` from the field, or remove the attribute. Reported at the attribute. SQL schemas accept a generator on an optional field.
+An optional field in a Mongo schema writes `@onCreate(...)` or `@onUpdate(...)`: `Field "<Model>.<field>" is optional, and a generated value needs a required field in MongoDB. Remove "?" or remove @onUpdate(...).` Remove `?` from the field, or remove the attribute. Reported at the attribute. An optional Mongo field typed by a type alias that generates a value is refused at the field: `Field "<Model>.<field>" is optional, and its type alias "<Alias>" generates a value, which needs a required field in MongoDB. Remove "?" or type the field without the alias.` SQL schemas accept a generator on an optional field, from an attribute or from an alias.
 
 ### PSL_DUPLICATE_ATTRIBUTE
 
-An attribute that may appear once is written twice. On a model: ``` `@@control` declared more than once on model "<Model>". ``` On a field, for `@onCreate(...)` or `@onUpdate(...)`: ``` `@onCreate` declared more than once on field "<Model>.<field>". ``` A field has one generator for each phase; remove one of the attributes. Reported at the second attribute, in SQL and Mongo schemas.
+An attribute that may appear once is written twice. On a model: ``` `@@control` declared more than once on model "<Model>". ``` On a field, for `@onCreate(...)` or `@onUpdate(...)`: ``` `@onCreate` declared more than once on field "<Model>.<field>". ``` A field has one generator for each phase; remove one of the attributes. Reported at the second attribute, in SQL and Mongo schemas. A field typed by a type alias may not write `@default`, `@onCreate` or `@onUpdate` when its alias already sets it: `Field "<Model>.<field>" writes @onUpdate, which its type alias "UpdatedAt" already sets. Remove one of them.` The alias is a `types {}` declaration or a contributed alias such as `temporal.UpdatedAt`. Reported at the field's attribute. A field may add any attribute its alias does not set, including `@id` and `@unique`.
+
+### PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE
+
+A type alias in a `types {}` block carries an attribute a type alias does not take. A type alias may carry `@default`, `@onCreate` and `@onUpdate`; every field typed by it takes them. `@id` and `@unique` are refused with `Type alias "<Alias>" cannot carry @id. @id and @unique describe a model's field, not a column type; write them on the field.` A `@db.*` attribute keeps its own migration message. Any other attribute is refused with `Named type "<Alias>" uses unsupported attribute "<attribute>"`. In a Mongo schema, `@default` is refused too, because MongoDB has no database defaults: `Type alias "<Alias>" uses unsupported attribute "@default". Use @onCreate(now()) instead; MongoDB has no database defaults.` Reported at the attribute. The refused attribute is dropped and the alias is kept, so the fields typed by it are not refused as well.
+
+### PSL_UNSUPPORTED_NAMED_TYPE_BASE
+
+A type alias in a `types {}` block has no base, or its base is not a type constructor or a block such as an enum: `Named type "<Alias>" references unsupported base type "<base>"`, or `Named type "<Alias>" must declare a base type or constructor`. An alias may not name another alias, `B = A`, or a contributed alias, `X = temporal.UpdatedAt`. Write the base type itself. A field preset call as a base is `PSL_UNSUPPORTED_NAMED_TYPE_CONSTRUCTOR`: `Named type "<Alias>" references unsupported constructor "<path>"`. Reported at the declaration.
+
+### PSL_INVALID_ATTRIBUTE_ARGUMENT
+
+An argument of an attribute or a type constructor is invalid. One case is a contributed type alias written with arguments, as in `temporal.CreatedAt(3)`: `temporal.CreatedAt is a type alias and takes no arguments.` Write it bare, `temporal.CreatedAt`, or write the type with the attributes, as in `Timestamptz(3) @onCreate(now())`. Reported at the call, in SQL and Mongo schemas. In a Mongo schema, a `types {}` alias written with arguments is `PSL_UNSUPPORTED_FIELD_TYPE`: `Field "<Model>.<field>" calls "<Alias>", which is a type alias, not a type constructor. Remove the arguments.`
+
+### PSL_UNSUPPORTED_FIELD_ATTRIBUTE
+
+A field carries an attribute the schema's family does not take. For `@updatedAt`, which Prisma 8 PSL does not take, the message names the replacement: `Field "<Model>.<field>" uses unsupported attribute "@updatedAt". Use @onCreate(now()) @onUpdate(now()), or type the field temporal.UpdatedAt.` The hint is left out when the field already writes `@onUpdate`. Reported at the attribute, in SQL and Mongo schemas.
 
 ## ORM
 

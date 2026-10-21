@@ -84,7 +84,6 @@ const db = postgres({
 - `createExecutionContext` - Create an execution context from contract + descriptors-only stack
 - `createSqlExecutionStack` - SQL-specific stack factory that preserves descriptor types
 - `ExecutionContext` - Context type for SQL operations
-- `TypeHelperRegistry` - Registry for type helper lookup
 
 ### Descriptors & Stack
 

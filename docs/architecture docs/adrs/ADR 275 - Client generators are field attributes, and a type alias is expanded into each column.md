@@ -5,6 +5,7 @@
 **Builds on:** [ADR 158 — Execution mutation defaults](ADR%20158%20-%20Execution%20mutation%20defaults.md), [ADR 241 — Scalar types use the authoring type-constructor channel](ADR%20241%20-%20Scalar%20types%20use%20the%20authoring%20type-constructor%20channel.md), [ADR 269 — PSL mixins](ADR%20269%20-%20PSL%20mixins.md)
 **Supersedes:** the field-preset half of [ADR 170 — Pack-provided type constructors and field presets](ADR%20170%20-%20Pack-provided%20type%20constructors%20and%20field%20presets.md); [ADR 246 — Option arguments and select templates for authoring helpers](ADR%20246%20-%20Option%20arguments%20and%20select%20templates%20for%20authoring%20helpers.md), except its two omission rules
 **Amends:** [ADR 104](ADR%20104%20-%20PSL%20extension%20namespacing%20%26%20syntax.md), [ADR 158](ADR%20158%20-%20Execution%20mutation%20defaults.md), [ADR 169 — Declared applicability for mutation default generators](ADR%20169%20-%20Declared%20applicability%20for%20mutation%20default%20generators.md), [ADR 208 — Higher-order codecs for parameterized types](ADR%20208%20-%20Higher-order%20codecs%20for%20parameterized%20types.md), [ADR 212 — AST-bound codec resolution](ADR%20212%20-%20AST-bound%20codec%20resolution.md), [ADR 231](ADR%20231%20-%20Declarative%20attribute%20specifications.md), [ADR 241](ADR%20241%20-%20Scalar%20types%20use%20the%20authoring%20type-constructor%20channel.md), [ADR 249](ADR%20249%20-%20Central%20attribute-spec%20registry.md), [ADR 254](ADR%20254%20-%20Data%20types%20and%20casts.md)
+**Amended 2026-10-21:** the TypeScript `types` key is renamed `databaseTypes` and registers database types only; a contributed alias is used as `field.column(type.temporal.UpdatedAt())`; Mongo's contributed aliases are on `Date`; the Mongo TypeScript builder gets no contributed aliases yet. Each change is marked "Amended 2026-10-21" below.
 
 ---
 
@@ -123,7 +124,7 @@ What this changes elsewhere:
 
 A pack's `type` namespace gains a type alias descriptor (new). Its output names a type constructor with fixed arguments, an optional database default, and a generator function for each phase. The PSL interpreter and the TypeScript builder expand it exactly like a user alias.
 
-The Postgres target contributes `temporal.CreatedAt` and `temporal.UpdatedAt` on `Timestamptz`, with `String` and `JsDate` variants on the string and `Date` codecs (all new names). SQLite contributes `temporal.CreatedAt` and `temporal.UpdatedAt` on `DateTime`; Mongo the same on its `DateTime`. Contributed aliases take no parameters, so a column with a precision is written with the attributes:
+The Postgres target contributes `temporal.CreatedAt` and `temporal.UpdatedAt` on `Timestamptz`, with `String` and `JsDate` variants on the string and `Date` codecs (all new names). SQLite contributes `temporal.CreatedAt` and `temporal.UpdatedAt` on `DateTime`; Mongo the same on its `DateTime`. (Amended 2026-10-21: Mongo's aliases are on `Date`, because Mongo's `DateTime` constructor is deprecated. Both name the codec `mongo/date@1`, so the stored column is the same. The Postgres variants are named `temporal.CreatedAtString`, `temporal.UpdatedAtString`, `temporal.CreatedAtJsDate` and `temporal.UpdatedAtJsDate`.) Contributed aliases take no parameters, so a column with a precision is written with the attributes:
 
 ```prisma
 model Event {
@@ -155,15 +156,19 @@ const Post = model('Post', {
 
 `type.*` gets a helper for every PSL type constructor of the stack (most are new, such as `type.TimestampString(3)`), and `field.column` accepts the result. Contributed aliases appear as `type.temporal.UpdatedAt()` (new). `field.generated(...)`, the codec-instance use of `field.namedType(...)`, the `types` key for codec instances and every preset helper are removed.
 
+(Amended 2026-10-21.) The `types` key cannot simply go. pgvector and PostGIS register their database types, `vector` and `geometry`, through it, because PSL has no syntax for an extension to register a database type. The key is renamed `databaseTypes`, and it means only "register a database type in this contract space". No column can reference an entry, because `field.namedType(...)` keeps only its enum-handle form. A definition that still has a `types` key is refused with `CONTRACT.TYPES_KEY_REMOVED`, whose message says to write an alias as a constant and a registered type under `databaseTypes`. Keeping the old name would silently turn every existing user alias into a registered database type. pgvector's and PostGIS's contracts and hashes do not change.
+
+A contributed alias is used through `field.column`, like every other `type.*` helper: `field.column(type.temporal.UpdatedAt())`. Every `type.*` helper returns a column type, and a field needs the builder for `.optional()`, `.id()`, `.default()` and the rest. `.default()` on a builder that already has a default is refused with `CONTRACT.DEFAULT_INVALID` (reason `default-set-twice`), as a repeated attribute is in PSL. The table's second row is amended accordingly.
+
 | Today | After |
 | --- | --- |
 | `field.temporal.timestamp(3, 'now', 'now')` | `field.column(type.Timestamp(3)).onCreate(gen.now()).onUpdate(gen.now())` |
-| `field.temporal.updatedAt()` | `type.temporal.UpdatedAt()` |
+| `field.temporal.updatedAt()` | `field.column(type.temporal.UpdatedAt())` (amended 2026-10-21) |
 | `field.id.uuidv4String()` | `field.column(charColumn(36)).id().onCreate(gen.uuid())` |
 
 ### Mongo
 
-Mongo has no `@default` attribute and no `types {}` block today, its default function registry is empty, and its only generators come from the `temporal.*` presets. After this decision Mongo PSL accepts `@onCreate` and `@onUpdate` with `now()` for `mongo/date@1`, accepts `types {}` aliases (expanded, so Mongo storage gains nothing), and gets the contributed `temporal.CreatedAt` and `temporal.UpdatedAt`. The Mongo TypeScript builder gets `.onCreate` and `.onUpdate`. The Prisma 6 reader resolves `@updatedAt` and `@default(now())` through the generator registry instead of a fixed generator id.
+Mongo has no `@default` attribute and no `types {}` block today, its default function registry is empty, and its only generators come from the `temporal.*` presets. After this decision Mongo PSL accepts `@onCreate` and `@onUpdate` with `now()` for `mongo/date@1`, accepts `types {}` aliases (expanded, so Mongo storage gains nothing), and gets the contributed `temporal.CreatedAt` and `temporal.UpdatedAt`. The Mongo TypeScript builder gets `.onCreate` and `.onUpdate`. (Amended 2026-10-21: the Mongo TypeScript builder has no `type.*` helpers and no `field.column`, so it gets no contributed aliases for now. Its form of `field.temporal.updatedAt()` is `field.date().onCreate(gen.now()).onUpdate(gen.now())`. A type-constructor surface for the Mongo builder is its own design.) The Prisma 6 reader resolves `@updatedAt` and `@default(now())` through the generator registry instead of a fixed generator id.
 
 ### The Prisma 7 reader
 

@@ -2,12 +2,134 @@
 changes:
   - id: stored-contracts-expand-type-aliases
     summary: |
-      A stored SQL contract whose columns name a type alias in `typeRef` no longer loads. Run `scripts/expand-type-aliases/expand-type-aliases.ts` from the project root, then re-emit the contract, then run `prisma db sign` against every database.
+      A stored SQL contract whose columns name a type alias in `typeRef` no longer loads. Run `scripts/expand-type-aliases/expand-type-aliases.ts` from the project root, then re-emit the contract, then run `prisma db sign` against every database. The script writes each alias's parameters into the columns typed by it, in every stored contract, migration snapshots and the emitted `contract.json` included, and refreshes every hash and reference that changes.
     detection:
       glob: "**/contract.json"
       matches:
         - '"typeRef"\s*:'
     script: scripts/expand-type-aliases/expand-type-aliases.ts
+  - id: psl-alias-attributes
+    summary: |
+      No action is needed. A `types {}` alias in PSL may now carry `@default`, `@onCreate` and `@onUpdate`, and the targets contribute `temporal.CreatedAt` and `temporal.UpdatedAt`. Aliases are still valid PSL, so a `contract.prisma` that uses them does not change.
+  - id: ts-types-key-removed
+    summary: |
+      The TypeScript contract builder no longer takes a `types` key, and `field.namedType(...)` accepts only an enum. Replace `types: { X: type.Y(...) }` and each `field.namedType(types.X)` with a constant `const X = field.column(type.Y(...))` used as the field, and remove `types` from the object the contract returns. A `types` entry written as `{ kind: 'codec-instance', ... }` registers a database type; move it to `databaseTypes`. Re-emit the contract. The detection matches TypeScript files that call `field.namedType` with an alias or a string, or that return a `types` key from `defineContract`.
+    detection:
+      glob: "**/*.{ts,mts,cts,tsx}"
+      matches:
+        - '(?<![\w$])field\.namedType\(\s*(?:types\b|[\x27"`])'
+        - '(?<![\s\S])(?=[\s\S]*\bdefineContract\()[\s\S]*(?<![\w$.\x27"])types\s*(?::(?!\s*(?:field\.|\{\s*codecTypes\b))|,|\})'
+  - id: supabase-contract-expanded
+    summary: |
+      The `@prisma/orm-extension-supabase` contract no longer stores its nine type aliases, so the Supabase space's storage hash changes. Run `prisma db sign` against every database after upgrading.
+    detection:
+      glob: "**/package.json"
+      matches:
+        - '"@prisma/orm-extension-supabase"'
 ---
 
 # Type aliases are written into each column
+
+A type alias is now authoring shorthand only. In PSL, `types { Slug = VarChar(64) }` still works, but the contract no longer stores `Slug` in `storage.types` with a `typeRef` on each column that uses it. Each column stores the alias's codec and parameters itself. In TypeScript, an alias is a constant field builder.
+
+Do the steps in this order: rewrite the stored contracts and sign the databases (`stored-contracts-expand-type-aliases`), then change the TypeScript contract source (`ts-types-key-removed`), then re-emit.
+
+## `stored-contracts-expand-type-aliases`
+
+Migration snapshots, the emitted `contract.json` and any other stored contract written by an earlier release may have a column with a `typeRef`. This release refuses such a contract and says to re-emit it or run this script. A historical snapshot cannot be re-emitted from today's source, so run the script. Commit your work first so the script's changes can be reviewed and undone with git. Run it from the project root:
+
+```sh
+node <guide>/scripts/expand-type-aliases/expand-type-aliases.ts
+```
+
+`<guide>` is the directory that holds this guide. Node 24 or later runs the TypeScript script directly; it needs no `tsx`. The script reads and writes files only and needs no database. It rewrites every SQL contract under the root, skipping `node_modules`, `.git`, `dist` and `build`. That includes a test fixture of an old contract: if you keep one on purpose, restore it with git afterwards.
+
+In each contract it replaces every column's `typeRef` with the parameters of the `storage.types` entry it names, and removes each entry a column named. It makes the same change in the `contract.d.ts` next to the contract. An entry that no column names is kept, because it may be a database type an extension registers, such as pgvector's `vector`. The script lists each kept entry.
+
+The storage hash changes, so the script renames each changed snapshot directory to its new hash. It rewrites every `migration.json`, ref, `migration.ts` and `contract.d.ts` that names an old hash, and gives each changed migration a new `migrationHash`. When it finishes, it prints how many files it rewrote, how many snapshot directories it renamed, each storage hash it replaced (`<old> -> <new>`) and each entry it kept. A project with no `typeRef` is left unchanged, and the script says so. The script replaces the hashes in the import paths of `migration.ts` where they are, so if your project sorts imports with a linter, run its fix command afterwards.
+
+It changes no file and exits 1 in these cases, and names the file:
+
+- a `contract.json`, `migration.json` or ref is not valid JSON;
+- a contract's stored storage hash, or the name of its snapshot directory, does not match its content;
+- a column names an alias that `storage.types` does not declare, stores both `typeRef` and `typeParams`, or has a codec or data type other than its alias's;
+- a renamed snapshot directory already exists with different content.
+
+For the first three cases, restore that file from version control, or re-emit it, and run the script again. If it stops partway, for example on a full disk, it says so; run it again to finish.
+
+If the same upgrade also asks you to run `remove-nocheck.ts`, the two scripts may run in either order: each checks the hash of the content it reads.
+
+Each database's marker still holds the old storage hash, so `prisma db verify` and `prisma db migrate` refuse it until you sign it. The database itself does not change. Run `prisma db sign` against every database (development, staging, production) right after the script:
+
+```sh
+prisma db sign --db "$DATABASE_URL"
+```
+
+The script also gives each rewritten migration a new hash, and the database's migration history keeps the old ones. After the upgrade, `prisma migration status` therefore no longer marks the migrations applied before it as applied, although it still reports the database as up to date. `prisma db migrate` runs none of them again, and `prisma db verify` passes.
+
+Then re-emit the contract with `prisma contract emit`. A contract written in PSL gives the contract the script wrote. A contract written in TypeScript needs `ts-types-key-removed` first.
+
+## `psl-alias-attributes`
+
+There is nothing to change. PSL gains two things:
+
+```prisma
+types {
+  Slug      = VarChar(64)
+  UpdatedAt = TimestampString(3) @onCreate(now()) @onUpdate(now())
+}
+
+model Post {
+  id        String             @id @onCreate(uuid())
+  slug      Slug
+  createdAt temporal.CreatedAt
+  updatedAt UpdatedAt          @default(now())
+}
+```
+
+- An alias may carry `@default`, `@onCreate` and `@onUpdate`. Each field typed by it gets them. A field may add an attribute its alias does not set, but writing one the alias already sets is the error `PSL_DUPLICATE_ATTRIBUTE`. `@id` and `@unique` belong on the field, not the alias.
+- Postgres, SQLite and MongoDB contribute `temporal.CreatedAt` and `temporal.UpdatedAt`, written bare as a field type. Each stores exactly what `temporal.createdAt()` and `temporal.updatedAt()` store. Postgres also has `temporal.CreatedAtString`, `temporal.UpdatedAtString`, `temporal.CreatedAtJsDate` and `temporal.UpdatedAtJsDate`.
+
+## `ts-types-key-removed`
+
+Write an alias as a constant field builder and use it as the field:
+
+```ts
+// Before
+({ field, model, type }) => {
+  const types = { Embedding1536: type.pgvector.Vector(1536) } as const;
+  const Post = model('Post', {
+    fields: {
+      embedding: field.namedType(types.Embedding1536).optional(),
+    },
+  });
+  return { types, models: { Post } };
+}
+
+// After
+({ field, model, type }) => {
+  const Embedding1536 = field.column(type.pgvector.Vector(1536));
+  const Post = model('Post', {
+    fields: {
+      embedding: Embedding1536.optional(),
+    },
+  });
+  return { models: { Post } };
+}
+```
+
+A field builder is immutable, so one constant serves every model. `type.*` now has a helper for every PSL type constructor of the stack, such as `type.VarChar(64)` and `type.TimestampString(3)`, and for the contributed aliases, such as `field.column(type.temporal.UpdatedAt())`. A string such as `field.namedType('Slug')` named an alias the same way; replace it with the alias's constant.
+
+`field.namedType(...)` still takes an enum handle, such as `field.namedType(Priority)`; leave those calls alone.
+
+A `types` key left in the definition fails with `CONTRACT.TYPES_KEY_REMOVED`. If an entry is written `{ kind: 'codec-instance', codecId: ..., typeParams: ... }` and no field uses it, it registers a database type in the contract's `storage.types`; rename the key to `databaseTypes` and keep the entry.
+
+Two calls that set the same thing on one builder now fail instead of the second one winning. `.default()` on a builder that already has a default throws `CONTRACT.DEFAULT_INVALID` with reason `default-set-twice`, and `.onCreate()` or `.onUpdate()` on a builder that already sets that phase throws, as before.
+
+Re-emit the contract. If you ran `stored-contracts-expand-type-aliases`, the column gets the same type and parameters it had, so there is nothing more to sign or migrate.
+
+## `supabase-contract-expanded`
+
+The `@prisma/orm-extension-supabase` contract is re-emitted from its PSL, which keeps its nine aliases. The contract no longer stores them in `storage.types`, and each column stores its own type. The Supabase space's storage hash changes from `292489649ae6d6928de98a32b544bd9caf6b7d49718c10fe2720b83545a4b5a2` to `110ad99e1e466691bdb0a4349a17365561e76ad017f58beb272f4496b05b8e9e`.
+
+A contract that composes the Supabase space references it by id, so your own `contract.json` and `contract.d.ts` do not change. A database that was signed against the previous Supabase contract no longer matches the new hash, so run `prisma db sign` against it after upgrading. The Supabase database itself does not change.

@@ -109,7 +109,7 @@ const closest = await db.runtime().execute(
 
 ### PSL
 
-`postgis.Geometry(srid)` declares an SRID-constrained `geometry` column. Aliasing it via a `types {}` block keeps the SRID in one place when you have several geometry fields.
+`postgis.Geometry(srid)` declares an SRID-constrained `geometry` column. Aliasing it via a `types {}` block keeps the SRID in one place when you have several geometry fields. The alias is expanded into each column, so every column stores its own `srid` and the contract does not store the alias.
 
 ```prisma
 types {

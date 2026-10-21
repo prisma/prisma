@@ -46,6 +46,8 @@ model User {
 
 `String`, `Uuid`, and bare `VarChar` are zero-argument instantiations. `VarChar(191)` uses the same contribution with one argument, producing structured `typeParams`. A constructor names only the codec; the database type, its name and the bounds of its parameters come from the data type the codec represents ([ADR 254](ADR%20254%20-%20Data%20types%20and%20casts.md)), so the `length` argument carries no `minimum` of its own.
 
+> **Amended by [ADR 275](ADR%20275%20-%20Client%20generators%20are%20field%20attributes%2C%20and%20a%20type%20alias%20is%20expanded%20into%20each%20column.md) (2026-10-21).** The contract no longer stores the alias. The two JSON blocks below show the earlier form. Today the column stores the parameters inline, `{ "codecId": "sql/varchar@1", "dataType": "pg/varchar", "nullable": false, "typeParams": { "length": 191 } }`, and `storage.types` has no `Slug` entry.
+
 The contract stores the alias as a `storage.types` entry with the codec, the data type the codec represents and the parameters, and the column names the entry:
 
 ```json
