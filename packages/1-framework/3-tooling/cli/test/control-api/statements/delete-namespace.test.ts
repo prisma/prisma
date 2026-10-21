@@ -101,7 +101,7 @@ describe('--delete with a namespace of the origin contract', () => {
     });
 
     expect(questions).toEqual([
-      'Drop table "invoice" would lose the data of model "billing.Invoice".\n--delete billing answers every question about namespace "billing", which the destination contract no longer has.',
+      'Drop table "invoice" would lose the data of model "billing.Invoice".\n--delete billing answers this question and every other about a model or field of namespace "billing", which the destination contract no longer has.',
       'Drop table "receipt" would lose the data of model "billing.Receipt".',
     ]);
   });
@@ -135,7 +135,7 @@ describe('--delete with a namespace of the origin contract', () => {
     });
 
     expect(await firstQuestion(renamed)).toBe(
-      'Drop table "invoice" would lose the data of model "billing.Invoice".\n--delete billing answers every question about namespace "billing", which the destination contract no longer has.\nIf namespace "billing" was renamed, --rename billing:finance renames it instead.',
+      'Drop table "invoice" would lose the data of model "billing.Invoice".\n--delete billing answers this question and every other about a model or field of namespace "billing", which the destination contract no longer has.\nIf namespace "billing" was renamed, --rename billing:finance renames it instead.',
     );
   });
 
@@ -147,7 +147,7 @@ describe('--delete with a namespace of the origin contract', () => {
     });
 
     expect(await firstQuestion(renamed)).toBe(
-      'Drop table "invoice" would lose the data of model "billing.Invoice".\n--delete billing answers every question about namespace "billing", which the destination contract no longer has.\nIf namespace "billing" was renamed, --rename billing:<new namespace> renames it instead, where <new namespace> is finance or ledger.',
+      'Drop table "invoice" would lose the data of model "billing.Invoice".\n--delete billing answers this question and every other about a model or field of namespace "billing", which the destination contract no longer has.\nIf namespace "billing" was renamed, --rename billing:<new namespace> renames it instead, where <new namespace> is finance or ledger.',
     );
   });
 
@@ -276,7 +276,7 @@ describe('namespace hints that would not work', () => {
     });
 
     expect(questions).toEqual([
-      'Drop table "Invoice" would lose the data of model "Invoice".\n--delete billing answers every question about namespace "billing", which the destination contract no longer has.',
+      'Drop table "Invoice" would lose the data of model "Invoice".\n--delete billing answers this question and every other about a model or field of namespace "billing", which the destination contract no longer has.',
     ]);
   });
 });

@@ -133,7 +133,7 @@ describe('a namespace rename', () => {
 
     expect(conflict).toMatchObject({
       summary:
-        'Cannot rename namespace "billing" to "finance": the schema being planned from already has a namespace "finance"',
+        'Cannot rename namespace "billing" to "finance": the database already has a namespace "finance"',
       why: 'The database already has a namespace "finance", which the contract it was last updated to does not declare. If it holds nothing, drop or rename it in the database yourself; otherwise move each model with --rename billing.<Model>:finance.<Model> instead of this statement.',
     });
   });

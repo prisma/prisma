@@ -545,7 +545,7 @@ function withNamespaceDeleteOnFirstQuestion(
     told.add(removedNamespace);
     const lines = [
       question.question,
-      `--delete ${removedNamespace} answers every question about namespace "${removedNamespace}", which the destination contract no longer has.`,
+      `--delete ${removedNamespace} answers this question and every other about a model or field of namespace "${removedNamespace}", which the destination contract no longer has.`,
       namespaceRenameAdvice(removedNamespace, addedNamespaces(contracts)),
     ];
     return { ...question, question: lines.filter((line) => line !== undefined).join('\n') };

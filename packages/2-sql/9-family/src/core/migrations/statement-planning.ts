@@ -529,7 +529,7 @@ class StatementPlanner<TCall extends CallWithCompanions> {
       return notOk(
         statementRefused(
           statement,
-          `${label}: the schema being planned from already has a namespace "${rename.to}"`,
+          `${label}: the database already has a namespace "${rename.to}"`,
           `The database already has a namespace "${rename.to}", which the contract it was last updated to does not declare. If it holds nothing, drop or rename it in the database yourself; otherwise move each model with ${movePerModel} instead of this statement.`,
           undefined,
         ),

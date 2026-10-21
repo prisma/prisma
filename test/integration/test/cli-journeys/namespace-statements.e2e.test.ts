@@ -304,7 +304,7 @@ withTempDir(({ createTempDir }) => {
           engineError(refused)?.why,
           'N3.04: says --delete billing answers them all',
         ).toContain(
-          '--delete billing answers every question about namespace "billing", which the destination contract no longer has.',
+          '--delete billing answers this question and every other about a model or field of namespace "billing", which the destination contract no longer has.',
         );
         expect(await schemas(db.connectionString), 'N3.04: nothing dropped').toEqual(['billing']);
 
