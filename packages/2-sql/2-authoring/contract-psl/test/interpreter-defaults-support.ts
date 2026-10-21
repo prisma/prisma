@@ -1,7 +1,7 @@
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import type { InterpretPslDocumentToSqlContractInput } from '../src/interpreter';
 import { fixtureTypeLookups } from './fixture-codec-descriptors';
-import { fixtureDataTypeSupport } from './fixture-data-types';
+import { fixtureDataTypeSupport, fixtureTextDataTypes } from './fixture-data-types';
 import { fixtureGeneratorFunctions } from './fixture-generator-functions';
 import {
   createBuiltinLikeControlMutationDefaults,
@@ -59,7 +59,7 @@ export const interpretPostgresSchema = (
         ...interpreterInput.authoringContributions?.dataTypes,
       },
       lookup: fixtureTypeLookups.dataTypeLookup,
-      textDataTypes: fixtureDataTypeSupport.textDataTypes,
+      textDataTypes: fixtureTextDataTypes,
       dataTypeOfCodec: (codecId) => fixtureTypeLookups.codecLookup.descriptorFor(codecId)?.dataType,
     },
   });
