@@ -1,9 +1,10 @@
+import type { Contract } from '@internal/contract/types';
 import {
   type CodecControlHooks,
   type FieldEvent,
   planFieldEventOperations,
 } from '@internal/family-sql/control';
-import type { SqlContract } from '@internal/sql-contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { describe, expect, it } from 'vitest';
 import { emitted, SECOND, stack } from './fixture-generator';
@@ -11,11 +12,11 @@ import { fixtureTree } from './test-helpers';
 
 const serializer = new PostgresContractSerializer();
 
-function contractOf(json: string | undefined): SqlContract {
+function contractOf(json: string | undefined): Contract<SqlStorage> {
   return serializer.deserializeContract(JSON.parse(json ?? '{}'));
 }
 
-function codecIdsOf(contract: SqlContract): readonly string[] {
+function codecIdsOf(contract: Contract<SqlStorage>): readonly string[] {
   return Object.values(contract.storage.namespaces).flatMap((namespace) =>
     Object.values(namespace.entries.table ?? {}).flatMap((table) =>
       Object.values(table.columns).map((column) => column.codecId),
@@ -23,7 +24,7 @@ function codecIdsOf(contract: SqlContract): readonly string[] {
   );
 }
 
-function fieldEvents(prior: SqlContract, next: SqlContract): readonly string[] {
+function fieldEvents(prior: Contract<SqlStorage>, next: Contract<SqlStorage>): readonly string[] {
   const calls: string[] = [];
   const hook: CodecControlHooks = {
     onFieldEvent: (event: FieldEvent, ctx) => {
