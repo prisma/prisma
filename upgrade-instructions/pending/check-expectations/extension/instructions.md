@@ -6,7 +6,14 @@ changes:
     detection:
       glob: "**/ops.json"
       matches:
-        - '"description": "(?:ensure|verify) (?:table|temp table|column|index|constraint|primary key|FK|RLS policy|enum type|value|extension) \\"(?:[^"\\]|\\.)*?\\"(?: on \\"(?:[^"\\]|\\.)*?\\")? (?:does not exist|is missing|no longer exists|is absent|exists|is gone|is not already enabled|is absent from enum type \\"(?:[^"\\]|\\.)*?\\"|exists on enum type \\"(?:[^"\\]|\\.)*?\\")(?: (?:on|from) \\"(?:[^"\\]|\\.)*?\\")?",\s*"sql": "(?:[^"\\]|\\.)*"(?:,\s*"params": \[[^\]]*\])?\s*\}'
+        - '(?<![\s\S])(?![\s\S]*"(?:expectation|object)":)[\s\S]*"(?:precheck|postcheck)": \[\s*\{'
+  - id: check-expectation-raw-sql
+    summary: |
+      A check written by hand in a `rawSql` operation of a `migration.ts` can carry `expectation` too.
+    detection:
+      glob: "**/migration.ts"
+      matches:
+        - '\brawSql\(\{[\s\S]*?\b(?:precheck|postcheck):\s*\[\s*\{(?![\s\S]*?\bexpectation:)'
 ---
 
 # Checks say which object they expect absent or present
