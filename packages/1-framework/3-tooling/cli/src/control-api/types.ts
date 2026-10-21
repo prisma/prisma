@@ -7,6 +7,7 @@ import type {
 import type { Contract, ContractMarkerRecord, LedgerEntryRecord } from '@internal/contract/types';
 import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
 import type {
+  BlockingObject,
   ControlAdapterDescriptor,
   ControlDriverConnectOptions,
   ControlDriverDescriptor,
@@ -441,6 +442,8 @@ export interface DbInitFailure {
   readonly meta: Record<string, unknown> | undefined;
   /** The fields that were to become required while rows had no value for them; the failed one first. */
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  /** The objects in the database that kept the failed operation from running. */
+  readonly blockingObjects?: readonly BlockingObject[];
   /** The check that failed before its operation ran. */
   readonly failedPrecheck?: FailedPrecheckReport;
   /** The differences the schema check after apply found, when that check failed. */
@@ -572,6 +575,8 @@ export interface DbUpdateFailure {
   readonly meta: Record<string, unknown> | undefined;
   /** The fields that were to become required while rows had no value for them; the failed one first. */
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  /** The objects in the database that kept the failed operation from running. */
+  readonly blockingObjects?: readonly BlockingObject[];
   /** The check that failed before its operation ran. */
   readonly failedPrecheck?: FailedPrecheckReport;
   /** The differences the schema check after apply found, when that check failed. */
@@ -798,6 +803,8 @@ export interface MigrateFailure {
   readonly meta: Record<string, unknown> | undefined;
   /** The fields that were to become required while rows had no value for them; the failed one first. */
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  /** The objects in the database that kept the failed operation from running. */
+  readonly blockingObjects?: readonly BlockingObject[];
   /** The check that failed before its operation ran. */
   readonly failedPrecheck?: FailedPrecheckReport;
   /** The differences the schema check after apply found, when that check failed. */

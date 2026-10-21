@@ -1,3 +1,4 @@
+import type { BlockingObject } from '@internal/framework-components/control';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { basename, join } from 'pathe';
 import { statementFlag } from '../control-api/statements/statement-flag';
@@ -249,6 +250,14 @@ function migrateSchemaCheckFix(
   return `The failed apply changed nothing. Change the contract source to resolve the issues listed, re-run ${emit}, delete \`${failedMigration.directory}\` (copy any code you wrote in its migration.ts first), plan it again with ${plan}, put any code you copied into the migration.ts it writes, ${RUN_PLANNED_FILE}, and run ${dbMigrateCommand(invocation)}.`;
 }
 
+/** The way out when objects in the database keep an operation from running. */
+export function blockingObjectsFix(objects: readonly BlockingObject[], rerun: string): string {
+  const named = objects.map(({ kind, name }) => `${kind} ${name}`);
+  const listed =
+    named.length === 1 ? named[0] : `${named.slice(0, -1).join(', ')} and ${named.at(-1)}`;
+  return `Drop or change ${listed} in the database yourself, then re-run \`${rerun}\`.`;
+}
+
 /**
  * The way out of a failed `db migrate` apply: every path and command it prints works from where the
  * CLI ran, with the `--config` it was given.
@@ -258,6 +267,9 @@ export function migrateFix(failure: MigrateFailure, invocation: CliInvocation): 
     failure.failedMigration === undefined
       ? undefined
       : failedMigrationText(failure.failedMigration, invocation);
+  if (failure.blockingObjects !== undefined) {
+    return blockingObjectsFix(failure.blockingObjects, cliCommand(invocation, 'db migrate'));
+  }
   if (failure.failedTypeChange !== undefined) {
     return migrateFailedTypeChangeFix(failure.failedTypeChange, failedMigration, invocation);
   }

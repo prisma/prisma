@@ -261,10 +261,32 @@ describe('Postgres schema operations', { concurrent: false }, () => {
       summary:
         'Schema "billing" still holds table "billing"."invoice", so it cannot be dropped. Drop or move it yourself, then run the command again.',
       why: 'Operation dropSchema.billing failed during precheck: ensure schema "billing" holds no tables, views, sequences, types or functions',
-      meta: { schemaObjects: [{ kind: 'table', name: 'invoice' }] },
+      blockingObjects: [{ kind: 'table', name: 'billing.invoice' }],
     });
     expect(
       (await driver.query("select to_regclass('billing.invoice') is not null as kept")).rows,
+    ).toEqual([{ kept: true }]);
+  });
+
+  it('names the view that blocks a table drop, and drops nothing', {
+    timeout: testTimeout,
+  }, async () => {
+    await driver.query('create schema billing');
+    await driver.query('create table billing.audit_log (id int primary key)');
+    await driver.query('create view billing.v_paid as select id from billing.audit_log');
+
+    const result = await runnerResult([
+      await new DropTableCall('billing', 'audit_log').toOp(controlAdapter),
+    ]);
+
+    expect(result.assertNotOk()).toMatchObject({
+      code: 'MIGRATION.EXECUTION_FAILED',
+      summary:
+        'Table "billing"."audit_log" cannot be dropped while view billing.v_paid depends on it. Drop or change it yourself, then run the command again.',
+      blockingObjects: [{ kind: 'view', name: 'billing.v_paid' }],
+    });
+    expect(
+      (await driver.query("select to_regclass('billing.audit_log') is not null as kept")).rows,
     ).toEqual([{ kept: true }]);
   });
 

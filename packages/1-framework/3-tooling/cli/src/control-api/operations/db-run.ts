@@ -5,6 +5,7 @@
 import type { Contract } from '@internal/contract/types';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
+  BlockingObject,
   ControlAdapterInstance,
   ControlDriverInstance,
   ControlExtensionDescriptor,
@@ -473,6 +474,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       ...ifDefined('warnings', plannerWarnings),
       ...ifDefined('failedTypeChange', applied.failure.failedTypeChange),
       ...ifDefined('rowsWithoutValue', applied.failure.rowsWithoutValue),
+      ...ifDefined('blockingObjects', applied.failure.blockingObjects),
       ...ifDefined('failedPrecheck', applied.failure.failedPrecheck),
       ...ifDefined('schemaIssues', applied.failure.schemaIssues),
       ...ifDefined('databaseStorageHash', databaseStorageHash),
@@ -775,6 +777,7 @@ function buildRunnerFailure(args: {
   readonly warnings?: readonly MigrationPlannerConflict[];
   readonly failedTypeChange?: FailedTypeChangeReport;
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  readonly blockingObjects?: readonly BlockingObject[];
   readonly failedPrecheck?: FailedPrecheckReport;
   readonly schemaIssues?: readonly SchemaDiffIssue[];
   /** The contract the database is at, when a migration of the graph ends at it. */
@@ -790,6 +793,7 @@ function buildRunnerFailure(args: {
     ...ifDefined('warnings', args.warnings),
     ...ifDefined('failedTypeChange', args.failedTypeChange),
     ...ifDefined('rowsWithoutValue', args.rowsWithoutValue),
+    ...ifDefined('blockingObjects', args.blockingObjects),
     ...ifDefined('failedPrecheck', args.failedPrecheck),
     ...ifDefined('schemaIssues', args.schemaIssues),
     ...ifDefined('databaseStorageHash', args.databaseStorageHash),

@@ -394,8 +394,17 @@ export interface MigrationRunnerFailure {
    * step fail: first the field of the failed step, then the others of the same migration.
    */
   readonly rowsWithoutValue?: readonly RowsWithoutValue[];
+  /** The objects in the database that kept the failed operation from running, such as a view on a table to drop. */
+  readonly blockingObjects?: readonly BlockingObject[];
   /** The differences the schema check after apply found, when that check failed. */
   readonly schemaIssues?: readonly SchemaDiffIssue[];
+}
+
+/** An object in the database, named as the database names it, that keeps an operation from running. */
+export interface BlockingObject {
+  /** What the object is, in the database's words, such as `view` or `sequence`. */
+  readonly kind: string;
+  readonly name: string;
 }
 
 /** A field that is to become required while existing rows have no value for it. */

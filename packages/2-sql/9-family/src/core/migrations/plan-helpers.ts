@@ -1,5 +1,6 @@
 import type {
   AppliedMigrationStatement,
+  BlockingObject,
   FailedCheck,
   FailedTypeChange,
   MigrationPlanSubjects,
@@ -210,6 +211,7 @@ export function runnerFailure(
     failedCheck?: FailedCheck | undefined;
     failedTypeChange?: FailedTypeChange | undefined;
     rowsWithoutValue?: readonly RowsWithoutValue[] | undefined;
+    blockingObjects?: readonly BlockingObject[] | undefined;
     schemaIssues?: readonly SchemaDiffIssue[] | undefined;
   },
 ): NotOk<SqlMigrationRunnerFailure> {
@@ -221,6 +223,7 @@ export function runnerFailure(
     ...ifDefined('failedCheck', options?.failedCheck),
     ...ifDefined('failedTypeChange', options?.failedTypeChange),
     ...ifDefined('rowsWithoutValue', options?.rowsWithoutValue),
+    ...ifDefined('blockingObjects', options?.blockingObjects),
     ...ifDefined('schemaIssues', options?.schemaIssues),
   });
   return notOk(failure);

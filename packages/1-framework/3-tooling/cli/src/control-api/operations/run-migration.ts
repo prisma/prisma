@@ -5,6 +5,7 @@
 
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
+  BlockingObject,
   ControlDriverInstance,
   ControlFamilyInstance,
   FailedTypeChange,
@@ -59,6 +60,8 @@ export interface RunnerFailure {
   readonly failedTypeChange?: FailedTypeChangeReport;
   /** The fields that were to become required while rows had no value for them; the failed one first. */
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  /** The objects in the database that kept the failed operation from running. */
+  readonly blockingObjects?: readonly BlockingObject[];
   /** The check that failed before its operation ran, when the runner gave no explanation of its own. */
   readonly failedPrecheck?: FailedPrecheckReport;
   /** The differences the schema check after apply found, when that check failed. */
@@ -276,6 +279,7 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
         runnerErrorCode: runnerResult.failure.code,
       },
       ...failureReports(runnerResult.failure, orderedResolutions),
+      ...ifDefined('blockingObjects', runnerResult.failure.blockingObjects),
       ...ifDefined('failedPrecheck', failedPrecheckOf(runnerResult.failure, orderedResolutions)),
       ...ifDefined('schemaIssues', schemaIssuesOf(runnerResult.failure)),
       cause: runnerResult.failure,

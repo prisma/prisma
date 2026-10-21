@@ -5,7 +5,11 @@ import type { CliStructuredError } from './cli-errors';
 import { errorMigrationPlanningFailed, errorRunnerFailed } from './cli-errors';
 import { failedPrecheckWhy } from './failed-precheck-advice';
 import { type CliInvocation, cliCommand } from './printed-command';
-import { dbUpdateFailedTypeChangeFix, dbUpdateRowsWithoutValueFix } from './runner-failure-advice';
+import {
+  blockingObjectsFix,
+  dbUpdateFailedTypeChangeFix,
+  dbUpdateRowsWithoutValueFix,
+} from './runner-failure-advice';
 import { schemaCheckWhy } from './schema-issues';
 
 /**
@@ -24,21 +28,23 @@ export function mapDbUpdateFailure(
 
   if (failure.code === 'RUNNER_FAILED') {
     const fix =
-      failure.failedTypeChange !== undefined
-        ? dbUpdateFailedTypeChangeFix(
-            failure.failedTypeChange,
-            failure.databaseStorageHash,
-            invocation,
-          )
-        : failure.rowsWithoutValue !== undefined
-          ? dbUpdateRowsWithoutValueFix(
-              failure.rowsWithoutValue,
+      failure.blockingObjects !== undefined
+        ? blockingObjectsFix(failure.blockingObjects, cliCommand(invocation, 'db update'))
+        : failure.failedTypeChange !== undefined
+          ? dbUpdateFailedTypeChangeFix(
+              failure.failedTypeChange,
               failure.databaseStorageHash,
               invocation,
             )
-          : failure.schemaIssues !== undefined
-            ? `Change the contract source to resolve the issues listed, re-run \`${cliCommand(invocation, 'contract emit')}\`, then re-run \`${cliCommand(invocation, 'db update')}\`.`
-            : `Inspect the reported conflict, reconcile schema drift if needed, then re-run \`${cliCommand(invocation, 'db update')}\``;
+          : failure.rowsWithoutValue !== undefined
+            ? dbUpdateRowsWithoutValueFix(
+                failure.rowsWithoutValue,
+                failure.databaseStorageHash,
+                invocation,
+              )
+            : failure.schemaIssues !== undefined
+              ? `Change the contract source to resolve the issues listed, re-run \`${cliCommand(invocation, 'contract emit')}\`, then re-run \`${cliCommand(invocation, 'db update')}\`.`
+              : `Inspect the reported conflict, reconcile schema drift if needed, then re-run \`${cliCommand(invocation, 'db update')}\``;
     return errorRunnerFailed(failure.summary, {
       why:
         schemaCheckWhy(failure.schemaIssues) ??

@@ -23,6 +23,10 @@ const result = await client.dbUpdate({ contract, mode: 'apply', migrationsDir, a
 if (result.ok) console.log(result.value.accessChanges);
 ```
 
-A script that reads `prisma db update --dry-run --json` reads `accessChanges` in place of `accessWidening`, for example `jq '.accessChanges'`.
+A script that reads `prisma db update --dry-run --json` reads `accessChanges` in place of `accessWidening`. The output is one JSON object per line, and the result is in the last one:
+
+```bash
+prisma db update --dry-run --json | jq -s 'last | .envelope.result.accessChanges'
+```
 
 The question `db update` asks now ends with "who can read and write its data" in place of "who can read and write its rows". A script that matches the question text changes the same way.

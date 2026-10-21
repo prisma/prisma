@@ -36,6 +36,11 @@ import type { Result } from '@internal/utils/result';
 import { notOk, ok, okVoid } from '@internal/utils/result';
 import { postgresError } from '../errors';
 import { quoteIdentifier } from '../sql-utils';
+import {
+  DEPENDENT_OBJECTS_STILL_EXIST,
+  dependentsOf,
+  dependentsSummary,
+} from './dependent-objects';
 import { MARKER_LOCK_KEY, MARKER_LOCK_SQL } from './marker-lock';
 import { qualifyTableName } from './planner-sql-checks';
 import type { PostgresPlanTargetDetails } from './planner-target-details';
@@ -389,13 +394,12 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
         if (blockedSchema !== undefined && objects !== undefined && objects.rows.length > 0) {
           return runnerFailure(code, schemaObjectsSummary(blockedSchema, objects.rows), {
             why: failed,
-            meta: {
-              operationId: operation.id,
-              phase,
-              stepDescription: step.description,
-              schemaObjects: objects.rows.map(({ kind, name }) => ({ kind, name })),
-            },
+            meta: { operationId: operation.id, phase, stepDescription: step.description },
             failedCheck: { operationId: operation.id, phase, description: step.description },
+            blockingObjects: objects.rows.map(({ kind, name }) => ({
+              kind,
+              name: `${blockedSchema}.${name}`,
+            })),
           });
         }
         const required = requiredColumnOf(step);
@@ -455,11 +459,17 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
         await driver.query(step.sql, step.params ?? []);
       } catch (error: unknown) {
         if (SqlQueryError.is(error)) {
+          const dependents =
+            error.sqlState === DEPENDENT_OBJECTS_STILL_EXIST ? dependentsOf(error.detail) : [];
+          const details = operation.target.details;
           return runnerFailure(
             'MIGRATION.EXECUTION_FAILED',
-            `Operation ${operation.id} failed during execution: ${step.description}`,
+            dependents.length > 0 && details !== undefined
+              ? dependentsSummary(details, operation.label, dependents)
+              : `Operation ${operation.id} failed during execution: ${step.description}`,
             {
               why: error.message,
+              blockingObjects: dependents,
               failedTypeChange: failedTypeChangeOf(step, error.sqlState, plan),
               meta: {
                 operationId: operation.id,
