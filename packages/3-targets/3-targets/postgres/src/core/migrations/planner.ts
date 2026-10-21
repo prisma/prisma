@@ -272,7 +272,16 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       frameworkComponents: options.frameworkComponents,
       originSchemas: originSchemaNames(options.fromContract),
     });
-    const policyDiffIssues = rawIssues.filter((issue) => isPolicyDiffIssue(issue));
+    const droppedTables = rawIssues.filter(
+      (issue) =>
+        issueOutcome(issue) === 'not-expected' &&
+        issueNode(issue)?.nodeKind === PostgresSchemaNodeKind.table,
+    );
+    const policyDiffIssues = rawIssues.filter(
+      (issue) =>
+        isPolicyDiffIssue(issue) &&
+        !droppedTables.some((table) => isWithin(issue.path, table.path)),
+    );
     // Role diff issues resolve to the `external` control policy (see
     // `resolvePostgresNodeIssueControlPolicySubject`'s role branch), so the
     // control-policy partition below suppresses them to zero ops on its own,
@@ -842,6 +851,13 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     }
     return null;
   }
+}
+
+/** Whether `path` lies under `ancestor`: a dropped table's policies go with it. */
+function isWithin(path: readonly string[], ancestor: readonly string[]): boolean {
+  return (
+    path.length > ancestor.length && ancestor.every((segment, index) => path[index] === segment)
+  );
 }
 
 /** The DDL schemas the origin contract declares; none without an origin contract. */

@@ -16,6 +16,8 @@ import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { createPostgresMigrationPlanner } from '../../src/core/migrations/planner';
 import { postgresContractToSchema } from '../../src/core/migrations/postgres-contract-to-schema';
+import { PostgresRlsEnablement } from '../../src/core/postgres-rls-enablement';
+import { PostgresRlsPolicy } from '../../src/core/postgres-rls-policy';
 import { postgresCreateNamespace } from '../../src/core/postgres-schema';
 import type { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { postgresTypeComponents } from '../postgres-type-lookups';
@@ -42,11 +44,38 @@ function table(namespaceId: string, name: string, references?: string): StorageT
   });
 }
 
+function policyEntries(namespaceId: string, policies: readonly (readonly [string, string])[]) {
+  if (policies.length === 0) return {};
+  const nodes = policies.map(
+    ([tableName, name]) =>
+      new PostgresRlsPolicy({
+        naming: { kind: 'exact', name },
+        tableName,
+        namespaceId,
+        operation: 'select',
+        roles: ['app_user'],
+        using: '(id > 0)',
+        withCheck: undefined,
+        permissive: true,
+      }),
+  );
+  return {
+    policy: Object.fromEntries(nodes.map((policy) => [policy.name, policy])),
+    rls: Object.fromEntries(
+      policies.map(([tableName]) => [
+        tableName,
+        new PostgresRlsEnablement({ tableName, namespaceId }),
+      ]),
+    ),
+  };
+}
+
 /** A contract with one model per table, named after it with a capital letter, in each namespace. */
 function contractOf(
   namespaces: Readonly<Record<string, readonly string[]>>,
   seed: string,
   references: Readonly<Record<string, string>> = {},
+  policies: Readonly<Record<string, string>> = {},
 ): Contract<SqlStorage> {
   const modelName = (tableName: string) => `${tableName[0]?.toUpperCase()}${tableName.slice(1)}`;
   return {
@@ -63,6 +92,13 @@ function contractOf(
             entries: {
               table: Object.fromEntries(
                 tables.map((name) => [name, table(id, name, references[name])]),
+              ),
+              ...policyEntries(
+                id,
+                tables.flatMap((name) => {
+                  const policy = policies[name];
+                  return policy === undefined ? [] : [[name, policy] as const];
+                }),
               ),
             },
           }),
@@ -251,5 +287,20 @@ describe('Postgres planner, a namespace the destination removes', () => {
       'Drop table "receipt"',
       'Drop schema "billing"',
     ]);
+  });
+
+  it('drops a table with its policies, so the policies raise no question of their own', async () => {
+    const origin = contractOf(
+      { public: ['user'], billing: ['invoice'] },
+      'policy-origin',
+      {},
+      { invoice: 'invoice_read' },
+    );
+    const result = plan(origin, withoutBilling);
+
+    expect(await planned(result)).toMatchObject({
+      labels: ['Drop table "invoice"', 'Drop schema "billing"'],
+    });
+    expect(result.kind === 'success' && result.accessChanges).toEqual([]);
   });
 });

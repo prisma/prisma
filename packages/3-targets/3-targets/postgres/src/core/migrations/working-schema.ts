@@ -469,18 +469,20 @@ export function renameSchemaInPostgresSchema(
   });
   return new PostgresDatabaseSchemaNode({
     namespaces: Object.fromEntries(
-      Object.entries(rewritten.namespaces).map(([key, namespace]) =>
-        key === from
-          ? [
-              to,
-              new PostgresNamespaceSchemaNode({
-                schemaName: to,
-                nativeEnums: namespace.nativeEnums,
-                tables: namespace.tables,
-              }),
-            ]
-          : [key, namespace],
-      ),
+      Object.entries(rewritten.namespaces)
+        .filter(([key]) => key !== to)
+        .map(([key, namespace]) =>
+          key === from
+            ? [
+                to,
+                new PostgresNamespaceSchemaNode({
+                  schemaName: to,
+                  nativeEnums: namespace.nativeEnums,
+                  tables: namespace.tables,
+                }),
+              ]
+            : [key, namespace],
+        ),
     ),
     roles: rewritten.roles,
     existingSchemas: rewritten.existingSchemas.map((name) => (name === from ? to : name)),

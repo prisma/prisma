@@ -15,6 +15,8 @@ import type { SqlStorage } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { createPostgresMigrationPlanner } from '../../src/core/migrations/planner';
 import { postgresContractToSchema } from '../../src/core/migrations/postgres-contract-to-schema';
+import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
+import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { postgresTypeComponents } from '../postgres-type-lookups';
 import { contractWith, receiptTable } from './move-fixtures';
 import { stubLowerer } from './rename-table-fixtures';
@@ -129,5 +131,32 @@ describe('Postgres planner, a namespace statement', () => {
         why: 'Renaming the schema would rename it under contract space "ledger" too, whose contract still names it "billing". Leave out this statement, or move each model with --rename <Model>:finance.<Model> instead.',
       }),
     ]);
+  });
+
+  it('renames into a name the database lacks although the read schema lists it with no tables', async () => {
+    const schema = postgresContractToSchema(inBilling, postgresTypeComponents);
+    const withPlaceholder = new PostgresDatabaseSchemaNode({
+      namespaces: {
+        ...schema.namespaces,
+        finance: new PostgresNamespaceSchemaNode({ schemaName: 'finance', tables: {} }),
+      },
+      roles: schema.roles,
+      existingSchemas: schema.existingSchemas,
+      pgVersion: schema.pgVersion,
+    });
+
+    const result = createPostgresMigrationPlanner(stubLowerer).plan({
+      contract: inFinance,
+      schema: withPlaceholder,
+      policy: ALL_CLASSES,
+      fromContract: inBilling,
+      origin: planOriginOf(inBilling),
+      statements: [billingToFinance],
+      frameworkComponents: postgresTypeComponents,
+      spaceId: APP_SPACE_ID,
+      snapshotsImportPath: '../../snapshots',
+    });
+
+    expect(await labelsOf(result)).toEqual(['Rename schema "billing" to "finance"']);
   });
 });

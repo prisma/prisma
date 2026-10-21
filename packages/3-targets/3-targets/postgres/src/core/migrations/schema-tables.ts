@@ -27,9 +27,7 @@ export function postgresSchemaTables(
       Object.hasOwn(tableIn(namespaceId, table)?.columns ?? {}, column) ? [column] : [],
     hasNamespace: (namespaceId) => {
       const schemaName = resolveDdlSchemaForNamespaceStorage(contract.storage, namespaceId);
-      return (
-        schema.existingSchemas.includes(schemaName) || schema.namespaces[schemaName] !== undefined
-      );
+      return schema.existingSchemas.includes(schemaName);
     },
     namespacesWithTable: (table) =>
       Object.keys(contract.storage.namespaces).filter((namespaceId) =>
