@@ -7,12 +7,25 @@ namespace public {
 }
 
 namespace finance {
-  model Invoice {
-    id     Int    @id
-    number String @unique
+  model Bill {
+    id       Int       @id
+    number   String    @unique
+    status   String
+    receipts Receipt[]
+
+    @@index([status])
+    @@rls
   }
 
   model Receipt {
-    id Int @id
+    id        Int  @id
+    invoiceId Int
+    invoice   Bill @relation(fields: [invoiceId], references: [id])
+  }
+
+  policy_select invoice_read {
+    target = Bill
+    roles  = [app_user]
+    using  = sql`(id > 0)`
   }
 }

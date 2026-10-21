@@ -1,9 +1,13 @@
 /**
  * Namespace statements on Postgres.
  *
- * `--rename billing:finance` renames schema `billing` with `ALTER SCHEMA … RENAME TO`, so its tables keep their rows. A namespace the destination no longer declares is asked about one model at a time, and `--delete billing` answers every one of those questions; the plan drops the tables, then the schema.
+ * Namespace `billing` holds `Invoice` (rows, a unique field, a secondary index, row-level security with a policy) and `Receipt`, whose foreign key references `Invoice`.
  *
- * N1 renames the namespace with `migration plan`, re-runs the written `migration.ts`, which reproduces `ops.json` byte for byte, and migrates. N2 deletes the namespace with `db update --delete billing`. N3 plans the same delete with `migration plan` and re-runs its `migration.ts`.
+ * `--rename billing:finance` renames the schema with `ALTER SCHEMA … RENAME TO`, and `--rename billing.Invoice:finance.Bill` in the same run renames the table inside it: N1 through `migration plan` and `migrate`, N2 through `db update`.
+ *
+ * A namespace the destination no longer declares is asked about one model at a time, and the refusal says that `--delete billing` answers them all. N3 answers with `--delete billing` through `db update`; N4 answers with one `--delete` per model through `migration plan`. N5 and N6 keep `Invoice` by moving it to `public` in the same run, through `db update` and `migration plan`. N7 adds a table no contract declares to `billing`: it is its own question, answered by its storage name. N8 refuses to rename `public` through both commands.
+ *
+ * Every journey ends with `db verify --schema-only` clean and a further plan empty, and every `migration.ts` written is run again and reproduces its `ops.json` and `migration.json` byte for byte.
  */
 
 import { readFileSync } from 'node:fs';
@@ -11,12 +15,15 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
+  engineError,
+  getMigrationDirs,
   type JourneyContext,
   latestMigrationDirName,
   parseJsonOutput,
   planMigrationAndSelfEmit,
   runContractEmit,
   runDbUpdate,
+  runDbVerify,
   runMigrate,
   runMigrationPlan,
   selfEmitMigration,
@@ -26,6 +33,13 @@ import {
   timeouts,
   useDevDatabase,
 } from '../utils/journey-test-helpers';
+
+type Variant =
+  | 'contract-namespace-statements-from'
+  | 'contract-namespace-statements-renamed'
+  | 'contract-namespace-statements-removed'
+  | 'contract-namespace-statements-kept'
+  | 'contract-namespace-statements-public-renamed';
 
 interface PlannedOperation {
   readonly label: string;
@@ -37,14 +51,17 @@ interface AppliedStatementReport {
   readonly operationIndexes: readonly number[];
 }
 
-async function emitContract(
-  ctx: JourneyContext,
-  variant:
-    | 'contract-namespace-statements-from'
-    | 'contract-namespace-statements-renamed'
-    | 'contract-namespace-statements-removed',
-  label: string,
-): Promise<void> {
+const RENAME = ['--rename', 'billing:finance', '--rename', 'billing.Invoice:finance.Bill'] as const;
+const KEEP = ['--delete', 'billing', '--rename', 'billing.Invoice:Invoice'] as const;
+
+async function createAppUserRole(connectionString: string): Promise<void> {
+  await sql(
+    connectionString,
+    'DO $$ BEGIN CREATE ROLE app_user; EXCEPTION WHEN duplicate_object THEN NULL; END $$',
+  );
+}
+
+async function emitContract(ctx: JourneyContext, variant: Variant, label: string): Promise<void> {
   swapPslContract(ctx, variant);
   const emit = await runContractEmit(ctx);
   expect(emit.exitCode, `${label}: emit ${variant}: ${emit.stderr}`).toBe(0);
@@ -53,9 +70,36 @@ async function emitContract(
 async function seedRows(connectionString: string): Promise<void> {
   await sql(
     connectionString,
-    `INSERT INTO "billing"."Invoice" (id, number) VALUES (1, 'A-1'), (2, 'A-2');
-     INSERT INTO "billing"."Receipt" (id) VALUES (10)`,
+    `INSERT INTO "billing"."Invoice" (id, number, status) VALUES (1, 'A-1', 'open'), (2, 'A-2', 'paid');
+     INSERT INTO "billing"."Receipt" (id, "invoiceId") VALUES (10, 1)`,
   );
+}
+
+/** A journey whose database holds the origin contract with rows, set up by `migrate` or `db update`. */
+async function startAt(
+  db: { readonly connectionString: string },
+  createTempDir: () => string,
+  via: 'migrate' | 'db update',
+  label: string,
+): Promise<{ readonly ctx: JourneyContext; readonly origin: string | undefined }> {
+  const ctx = setupJourney({
+    connectionString: db.connectionString,
+    createTempDir,
+    contractMode: 'psl',
+  });
+  await createAppUserRole(db.connectionString);
+  await emitContract(ctx, 'contract-namespace-statements-from', `${label}.01`);
+  if (via === 'migrate') {
+    const initial = await planMigrationAndSelfEmit(ctx, ['--name', 'initial']);
+    expect(initial.exitCode, `${label}.02: plan initial: ${initial.stderr}`).toBe(0);
+    const migrate = await runMigrate(ctx);
+    expect(migrate.exitCode, `${label}.02: migrate initial: ${migrate.stderr}`).toBe(0);
+  } else {
+    const create = await runDbUpdate(ctx, ['--json']);
+    expect(create.exitCode, `${label}.02: db update creates the tables: ${create.stderr}`).toBe(0);
+  }
+  await seedRows(db.connectionString);
+  return { ctx, origin: via === 'migrate' ? latestMigrationDirName(ctx) : undefined };
 }
 
 async function schemas(connectionString: string): Promise<readonly string[]> {
@@ -75,121 +119,178 @@ function packageFiles(ctx: JourneyContext, dirName: string) {
   };
 }
 
-async function planned(
+/** Plans with `statements`, re-runs the written `migration.ts`, and migrates. */
+async function planReEmitAndMigrate(
   ctx: JourneyContext,
   origin: string,
-  name: string,
   statements: readonly string[],
   label: string,
 ) {
   const plan = await runMigrationPlan(ctx, [
     '--name',
-    name,
+    'namespace-change',
     '--from',
     origin,
     ...statements,
     '--json',
   ]);
   expect(plan.exitCode, `${label}: plan: ${plan.stderr}`).toBe(0);
-  return parseJsonOutput<{
+  const planned = parseJsonOutput<{
     operations: readonly PlannedOperation[];
     appliedStatements: readonly AppliedStatementReport[];
   }>(plan);
-}
-
-async function expectReEmitted(ctx: JourneyContext, dirName: string, label: string) {
+  const dirName = latestMigrationDirName(ctx);
   const written = packageFiles(ctx, dirName);
   const reEmit = await selfEmitMigration(ctx, ['--dir', `migrations/app/${dirName}`]);
   expect(reEmit.exitCode, `${label}: re-run migration.ts: ${reEmit.stderr}`).toBe(0);
   const reEmitted = packageFiles(ctx, dirName);
   expect(reEmitted.ops, `${label}: ops.json is byte-identical after re-emit`).toBe(written.ops);
   expect(reEmitted.migration, `${label}: migration.json is byte-identical`).toBe(written.migration);
-  return written.source;
+  const migrate = await runMigrate(ctx);
+  expect(migrate.exitCode, `${label}: migrate: ${migrate.stderr}`).toBe(0);
+  return { ...planned, source: written.source, dirName };
+}
+
+/** `db verify --schema-only` is clean, and a further plan or dry run plans nothing. */
+async function expectSettled(
+  ctx: JourneyContext,
+  via: 'migrate' | 'db update',
+  from: string | undefined,
+  label: string,
+): Promise<void> {
+  const verify = await runDbVerify(ctx, ['--schema-only']);
+  expect(verify.exitCode, `${label}: db verify --schema-only: ${verify.stderr}`).toBe(0);
+  if (via === 'migrate' && from !== undefined) {
+    const count = getMigrationDirs(ctx).length;
+    const fresh = await runMigrationPlan(ctx, ['--from', from, '--json']);
+    expect(fresh.exitCode, `${label}: plan with no change: ${fresh.stderr}`).toBe(0);
+    expect(parseJsonOutput<{ noOp: boolean }>(fresh).noOp, `${label}: plan is empty`).toBe(true);
+    expect(getMigrationDirs(ctx), `${label}: nothing written`).toHaveLength(count);
+    return;
+  }
+  const dryRun = await runDbUpdate(ctx, ['--dry-run', '--json']);
+  expect(dryRun.exitCode, `${label}: db update --dry-run: ${dryRun.stderr}`).toBe(0);
+  expect(
+    parseJsonOutput<{ plan: { operations: readonly PlannedOperation[] } }>(dryRun).plan.operations,
+    `${label}: nothing left to plan`,
+  ).toEqual([]);
+}
+
+async function expectRenamedState(connectionString: string, label: string): Promise<void> {
+  expect(await schemas(connectionString), `${label}: the schema has its new name`).toEqual([
+    'finance',
+  ]);
+  expect(
+    (await sql(connectionString, 'SELECT id, number, status FROM "finance"."Bill" ORDER BY id'))
+      .rows,
+    `${label}: the rows are in the renamed table`,
+  ).toEqual([
+    { id: 1, number: 'A-1', status: 'open' },
+    { id: 2, number: 'A-2', status: 'paid' },
+  ]);
+  const live = await sql(
+    connectionString,
+    `SELECT
+       (SELECT array_agg(confrelid::regclass::text) FROM pg_constraint
+         WHERE conrelid = '"finance"."Receipt"'::regclass AND contype = 'f') AS receipt_references,
+       (SELECT count(*)::int FROM pg_policies WHERE schemaname = 'finance' AND tablename = 'Bill') AS policies,
+       (SELECT count(*)::int FROM pg_indexes WHERE schemaname = 'finance' AND tablename = 'Bill') AS indexes`,
+  );
+  expect(live.rows[0], `${label}: the foreign key, policy and indexes follow`).toEqual({
+    receipt_references: ['finance."Bill"'],
+    policies: 1,
+    indexes: 3,
+  });
+}
+
+async function expectKeptInvoice(connectionString: string, label: string): Promise<void> {
+  expect(await schemas(connectionString), `${label}: billing is gone`).toEqual([]);
+  expect(
+    (await sql(connectionString, 'SELECT id, number FROM "public"."Invoice" ORDER BY id')).rows,
+    `${label}: Invoice kept its rows in public`,
+  ).toEqual([
+    { id: 1, number: 'A-1' },
+    { id: 2, number: 'A-2' },
+  ]);
+}
+
+function nextActionsOf(result: Parameters<typeof engineError>[0]): string {
+  return JSON.stringify(engineError(result)?.nextActions ?? []);
 }
 
 withTempDir(({ createTempDir }) => {
-  describe('N1: rename a namespace with migration plan --rename', () => {
+  describe('N1: rename a namespace and a model in it with migration plan', () => {
     const db = useDevDatabase();
 
     it(
-      'renames the schema, re-emits byte for byte, and keeps the rows under the new name',
+      'renames the schema, then the table in it, and keeps every row and object',
       async () => {
-        const ctx = setupJourney({
-          connectionString: db.connectionString,
-          createTempDir,
-          contractMode: 'psl',
-        });
-        await emitContract(ctx, 'contract-namespace-statements-from', 'N1.01');
-        const initial = await planMigrationAndSelfEmit(ctx, ['--name', 'initial']);
-        expect(initial.exitCode, `N1.02: plan initial: ${initial.stderr}`).toBe(0);
-        expect((await runMigrate(ctx)).exitCode, 'N1.03: migrate initial').toBe(0);
-        await seedRows(db.connectionString);
-        const origin = latestMigrationDirName(ctx);
-        await emitContract(ctx, 'contract-namespace-statements-renamed', 'N1.04');
+        const { ctx, origin } = await startAt(db, createTempDir, 'migrate', 'N1');
+        await emitContract(ctx, 'contract-namespace-statements-renamed', 'N1.03');
 
-        const plan = await planned(
-          ctx,
-          origin,
-          'rename-billing',
-          ['--rename', 'billing:finance'],
-          'N1.05',
-        );
-        expect(plan.operations, 'N1.05: only the schema rename').toEqual([
-          expect.objectContaining({ label: 'Rename schema "billing" to "finance"' }),
-        ]);
-        expect(plan.appliedStatements).toEqual([
-          expect.objectContaining({
-            description: 'rename namespace "billing" to "finance"',
-            operationIndexes: [0],
-          }),
-        ]);
-
-        const source = await expectReEmitted(ctx, latestMigrationDirName(ctx), 'N1.06');
-        expect(source, 'N1.06: migration.ts holds the facade call').toContain(
-          "this.renameSchema({ schema: 'billing', to: 'finance' })",
-        );
-
-        const apply = await runMigrate(ctx);
-        expect(apply.exitCode, `N1.07: migrate: ${apply.stderr}`).toBe(0);
-        expect(await schemas(db.connectionString), 'N1.07: the schema has its new name').toEqual([
-          'finance',
+        const planned = await planReEmitAndMigrate(ctx, origin ?? '', RENAME, 'N1.04');
+        expect(planned.operations.slice(0, 2).map(({ label }) => label)).toEqual([
+          'Rename schema "billing" to "finance"',
+          'Rename table "Invoice" to "Bill"',
         ]);
         expect(
-          (await sql(db.connectionString, 'SELECT id, number FROM "finance"."Invoice" ORDER BY id'))
-            .rows,
-          'N1.07: the rows are there under the new name',
-        ).toEqual([
-          { id: 1, number: 'A-1' },
-          { id: 2, number: 'A-2' },
+          planned.operations.filter(({ operationClass }) => operationClass !== 'widening'),
+          'N1.04: renames only',
+        ).toEqual([]);
+        expect(planned.appliedStatements.map(({ description }) => description)).toEqual([
+          'rename namespace "billing" to "finance"',
+          'rename model "billing.Invoice" to "finance.Bill"',
         ]);
+        expect(planned.source).toContain("this.renameSchema({ schema: 'billing', to: 'finance' })");
+
+        await expectRenamedState(db.connectionString, 'N1.05');
+        await expectSettled(ctx, 'migrate', planned.dirName, 'N1.06');
       },
       timeouts.spinUpPpgDev,
     );
   });
 
-  describe('N2: delete a namespace with db update --delete', () => {
+  describe('N2: rename a namespace and a model in it with db update', () => {
     const db = useDevDatabase();
 
     it(
-      'asks about each model, and with --delete billing drops the tables and the schema',
+      'renames the schema, then the table in it, without asking anything',
       async () => {
-        const ctx = setupJourney({
-          connectionString: db.connectionString,
-          createTempDir,
-          contractMode: 'psl',
-        });
-        await emitContract(ctx, 'contract-namespace-statements-from', 'N2.01');
-        const create = await runDbUpdate(ctx, ['--json']);
-        expect(create.exitCode, `N2.02: db update creates the tables: ${create.stderr}`).toBe(0);
-        await seedRows(db.connectionString);
-        await emitContract(ctx, 'contract-namespace-statements-removed', 'N2.03');
+        const { ctx } = await startAt(db, createTempDir, 'db update', 'N2');
+        await emitContract(ctx, 'contract-namespace-statements-renamed', 'N2.03');
+
+        const update = await runDbUpdate(ctx, [...RENAME, '--no-interactive', '--json']);
+        expect(update.exitCode, `N2.04: db update: ${JSON.stringify(engineError(update))}`).toBe(0);
+
+        await expectRenamedState(db.connectionString, 'N2.05');
+        await expectSettled(ctx, 'db update', undefined, 'N2.06');
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('N3: delete a removed namespace with db update --delete billing', () => {
+    const db = useDevDatabase();
+
+    it(
+      'is refused with the flags that answer, then drops the tables and the schema',
+      async () => {
+        const { ctx } = await startAt(db, createTempDir, 'db update', 'N3');
+        await emitContract(ctx, 'contract-namespace-statements-removed', 'N3.03');
 
         const refused = await runDbUpdate(ctx, ['--no-interactive', '--json']);
-        expect(refused.exitCode, 'N2.04: refused without --delete').not.toBe(0);
-        expect(refused.stdout + refused.stderr, 'N2.04: asks about each model').toContain(
-          'billing.Invoice',
+        expect(engineError(refused)?.code, 'N3.04: nobody to answer').toBe('CLI.CONSENT_REQUIRED');
+        expect(nextActionsOf(refused), 'N3.04: one flag per model').toContain(
+          '--delete billing.Invoice',
         );
-        expect(await schemas(db.connectionString), 'N2.04: nothing dropped').toEqual(['billing']);
+        expect(nextActionsOf(refused)).toContain('--delete billing.Receipt');
+        expect(
+          engineError(refused)?.why,
+          'N3.04: says --delete billing answers them all',
+        ).toContain(
+          '--delete billing answers every question about namespace "billing", which the destination contract no longer has.',
+        );
+        expect(await schemas(db.connectionString), 'N3.04: nothing dropped').toEqual(['billing']);
 
         const update = await runDbUpdate(ctx, [
           '--delete',
@@ -197,53 +298,157 @@ withTempDir(({ createTempDir }) => {
           '--no-interactive',
           '--json',
         ]);
-        expect(update.exitCode, `N2.05: db update --delete billing: ${update.stderr}`).toBe(0);
+        expect(
+          update.exitCode,
+          `N3.05: db update --delete billing: ${JSON.stringify(engineError(update))}`,
+        ).toBe(0);
         const updated = parseJsonOutput<{
           plan: { operations: readonly PlannedOperation[] };
           appliedStatements: readonly AppliedStatementReport[];
         }>(update);
-        expect(updated.plan.operations.map(({ label }) => label)).toEqual([
-          'Drop table "Invoice"',
-          'Drop table "Receipt"',
+        expect(updated.plan.operations.map(({ label }) => label).at(-1)).toBe(
           'Drop schema "billing"',
-        ]);
-        expect(updated.appliedStatements.map(({ description }) => description)).toEqual([
+        );
+        expect(updated.appliedStatements.map(({ description }) => description).sort()).toEqual([
           'delete model "billing.Invoice"',
           'delete model "billing.Receipt"',
         ]);
-        expect(await schemas(db.connectionString), 'N2.06: the schema is gone').toEqual([]);
+        expect(await schemas(db.connectionString), 'N3.06: the schema is gone').toEqual([]);
+        await expectSettled(ctx, 'db update', undefined, 'N3.07');
       },
       timeouts.spinUpPpgDev,
     );
   });
 
-  describe('N3: delete a namespace with migration plan --delete', () => {
+  describe('N4: delete a removed namespace with migration plan, one --delete per model', () => {
     const db = useDevDatabase();
 
     it(
-      'plans the drops and the schema drop, and re-emits byte for byte',
+      'is refused, then plans the drops and the schema drop with the per-model flags',
       async () => {
-        const ctx = setupJourney({
-          connectionString: db.connectionString,
-          createTempDir,
-          contractMode: 'psl',
-        });
-        await emitContract(ctx, 'contract-namespace-statements-from', 'N3.01');
-        const initial = await planMigrationAndSelfEmit(ctx, ['--name', 'initial']);
-        expect(initial.exitCode, `N3.02: plan initial: ${initial.stderr}`).toBe(0);
-        const origin = latestMigrationDirName(ctx);
-        await emitContract(ctx, 'contract-namespace-statements-removed', 'N3.03');
+        const { ctx, origin } = await startAt(db, createTempDir, 'migrate', 'N4');
+        await emitContract(ctx, 'contract-namespace-statements-removed', 'N4.03');
 
-        const plan = await planned(ctx, origin, 'drop-billing', ['--delete', 'billing'], 'N3.04');
-        expect(plan.operations.map(({ label }) => label)).toEqual([
-          'Drop table "Invoice"',
-          'Drop table "Receipt"',
-          'Drop schema "billing"',
-        ]);
-        const source = await expectReEmitted(ctx, latestMigrationDirName(ctx), 'N3.05');
-        expect(source, 'N3.05: migration.ts holds the facade call').toContain(
-          "this.dropSchema({ schema: 'billing' })",
+        const refused = await runMigrationPlan(ctx, ['--from', origin ?? '', '--json']);
+        expect(engineError(refused)?.code, 'N4.04: nobody to answer').toBe('CLI.CONSENT_REQUIRED');
+        expect(nextActionsOf(refused)).toContain('--delete billing.Invoice');
+        expect(nextActionsOf(refused)).toContain('--delete billing.Receipt');
+
+        const planned = await planReEmitAndMigrate(
+          ctx,
+          origin ?? '',
+          ['--delete', 'billing.Invoice', '--delete', 'billing.Receipt'],
+          'N4.05',
         );
+        expect(planned.operations.map(({ label }) => label).at(-1)).toBe('Drop schema "billing"');
+        expect(planned.source).toContain("this.dropSchema({ schema: 'billing' })");
+        expect(await schemas(db.connectionString), 'N4.06: the schema is gone').toEqual([]);
+        await expectSettled(ctx, 'migrate', planned.dirName, 'N4.07');
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('N5: keep one model of a removed namespace with db update', () => {
+    const db = useDevDatabase();
+
+    it(
+      'moves Invoice to public and deletes the rest of billing',
+      async () => {
+        const { ctx } = await startAt(db, createTempDir, 'db update', 'N5');
+        await emitContract(ctx, 'contract-namespace-statements-kept', 'N5.03');
+
+        const update = await runDbUpdate(ctx, [...KEEP, '--no-interactive', '--json']);
+        expect(update.exitCode, `N5.04: db update: ${JSON.stringify(engineError(update))}`).toBe(0);
+
+        await expectKeptInvoice(db.connectionString, 'N5.05');
+        await expectSettled(ctx, 'db update', undefined, 'N5.06');
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('N6: keep one model of a removed namespace with migration plan', () => {
+    const db = useDevDatabase();
+
+    it(
+      'moves Invoice to public and deletes the rest of billing',
+      async () => {
+        const { ctx, origin } = await startAt(db, createTempDir, 'migrate', 'N6');
+        await emitContract(ctx, 'contract-namespace-statements-kept', 'N6.03');
+
+        const planned = await planReEmitAndMigrate(ctx, origin ?? '', KEEP, 'N6.04');
+        expect(planned.source).toContain(
+          "this.setTableSchema({ schema: 'billing', table: 'Invoice', to: 'public' })",
+        );
+
+        await expectKeptInvoice(db.connectionString, 'N6.05');
+        await expectSettled(ctx, 'migrate', planned.dirName, 'N6.06');
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('N7: a removed namespace with a table no contract declares', () => {
+    const db = useDevDatabase();
+
+    it(
+      'asks about that table by its storage name, which --delete billing does not answer',
+      async () => {
+        const { ctx } = await startAt(db, createTempDir, 'db update', 'N7');
+        await sql(db.connectionString, 'CREATE TABLE "billing"."audit_log" (id int PRIMARY KEY)');
+        await emitContract(ctx, 'contract-namespace-statements-removed', 'N7.03');
+
+        const refused = await runDbUpdate(ctx, [
+          '--delete',
+          'billing',
+          '--no-interactive',
+          '--json',
+        ]);
+        expect(engineError(refused)?.code, 'N7.04: the table is still in question').toBe(
+          'CLI.CONSENT_REQUIRED',
+        );
+        expect(nextActionsOf(refused)).toContain('--delete billing.audit_log');
+
+        const update = await runDbUpdate(ctx, [
+          '--delete',
+          'billing',
+          '--delete',
+          'billing.audit_log',
+          '--no-interactive',
+          '--json',
+        ]);
+        expect(update.exitCode, `N7.05: db update: ${JSON.stringify(engineError(update))}`).toBe(0);
+        expect(await schemas(db.connectionString), 'N7.06: the schema is gone').toEqual([]);
+        await expectSettled(ctx, 'db update', undefined, 'N7.07');
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('N8: public cannot be renamed', () => {
+    const db = useDevDatabase();
+
+    it(
+      'refuses --rename public:app through both commands, and says to move the models',
+      async () => {
+        const { ctx, origin } = await startAt(db, createTempDir, 'migrate', 'N8');
+        await emitContract(ctx, 'contract-namespace-statements-public-renamed', 'N8.03');
+        const summary =
+          'Cannot rename namespace "public" to "app": "public" is the default schema of every Postgres database';
+        const fix =
+          'Prisma owns schema "public", and Postgres puts it on every search path, so a migration does not rename it. Move each model to the new namespace with --rename <Model>:app.<Model> instead.';
+
+        for (const result of [
+          await runMigrationPlan(ctx, ['--from', origin ?? '', '--rename', 'public:app', '--json']),
+          await runDbUpdate(ctx, ['--rename', 'public:app', '--no-interactive', '--json']),
+        ]) {
+          expect(result.exitCode, 'N8.04: refused').not.toBe(0);
+          const error = engineError(result);
+          expect(error?.code).toBe('MIGRATION.PLANNING_FAILED');
+          expect(error?.why).toBe(summary);
+          expect(error?.nextActions?.map(({ label }) => label)).toEqual([fix]);
+        }
       },
       timeouts.spinUpPpgDev,
     );

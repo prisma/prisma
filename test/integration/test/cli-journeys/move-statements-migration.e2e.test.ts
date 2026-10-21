@@ -57,10 +57,17 @@ async function emitContract(
   expect(emit.exitCode, `${label}: emit ${variant}: ${emit.stderr}`).toBe(0);
 }
 
+async function createAppUserRole(connectionString: string): Promise<void> {
+  await sql(
+    connectionString,
+    'DO $$ BEGIN CREATE ROLE app_user; EXCEPTION WHEN duplicate_object THEN NULL; END $$',
+  );
+}
+
 async function seedRows(connectionString: string): Promise<void> {
   await sql(
     connectionString,
-    `INSERT INTO "public"."Invoice" (id, number) VALUES (1, 'A-1'), (2, 'A-2');
+    `INSERT INTO "public"."Invoice" (id, number, status) VALUES (1, 'A-1', 'open'), (2, 'A-2', 'paid');
      INSERT INTO "public"."Payment" (id, "invoiceId") VALUES (10, 1)`,
   );
 }
@@ -97,11 +104,18 @@ async function expectMovedState(
     `SELECT
        to_regclass('"public"."Invoice"') AS old,
        (SELECT array_agg(confrelid::regclass::text) FROM pg_constraint
-         WHERE conrelid = '"public"."Payment"'::regclass AND contype = 'f') AS payment_references`,
+         WHERE conrelid = '"public"."Payment"'::regclass AND contype = 'f') AS payment_references,
+       (SELECT count(*)::int FROM pg_policies WHERE schemaname = 'billing' AND tablename = 'Invoice') AS policies,
+       (SELECT count(*)::int FROM pg_indexes WHERE schemaname = 'billing' AND tablename = 'Invoice') AS indexes`,
   );
-  expect(live.rows[0], `${label}: the old table is gone, and the foreign key follows`).toEqual({
+  expect(
+    live.rows[0],
+    `${label}: the old table is gone, and the foreign key, policy and indexes follow`,
+  ).toEqual({
     old: null,
     payment_references: ['billing."Invoice"'],
+    policies: 1,
+    indexes: 3,
   });
   const verify = await runDbVerify(ctx, ['--schema-only']);
   expect(verify.exitCode, `${label}: db verify --schema-only: ${verify.stderr}`).toBe(0);
@@ -128,6 +142,7 @@ withTempDir(({ createTempDir }) => {
           createTempDir,
           contractMode: 'psl',
         });
+        await createAppUserRole(db.connectionString);
         await emitContract(ctx, 'contract-move-statements-from', 'M1.01');
         const initial = await planMigrationAndSelfEmit(ctx, ['--name', 'initial']);
         expect(initial.exitCode, `M1.02: plan initial: ${initial.stderr}`).toBe(0);
@@ -191,6 +206,7 @@ withTempDir(({ createTempDir }) => {
           createTempDir,
           contractMode: 'psl',
         });
+        await createAppUserRole(db.connectionString);
         await emitContract(ctx, 'contract-move-statements-from', 'M2.01');
         const create = await runDbUpdate(ctx, ['--json']);
         expect(create.exitCode, `M2.02: db update creates the tables: ${create.stderr}`).toBe(0);
