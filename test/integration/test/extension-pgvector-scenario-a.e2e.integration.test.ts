@@ -324,6 +324,7 @@ describe('pgvector Scenario A end-to-end (PGlite, T4.3)', {
       frameworkComponents: [...frameworkComponents],
       migrationsDir: project.migrationsDir,
       targetId: 'postgres',
+      defaultNamespaceId: 'public',
       extensions: [pgvectorExtensionDescriptor],
     });
 
@@ -358,6 +359,7 @@ describe('pgvector Scenario A end-to-end (PGlite, T4.3)', {
       frameworkComponents: [...frameworkComponents],
       migrationsDir: project.migrationsDir,
       targetId: 'postgres',
+      defaultNamespaceId: 'public',
       extensions: [pgvectorExtensionDescriptor],
     });
 
