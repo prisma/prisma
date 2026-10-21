@@ -25,7 +25,7 @@ import { makeWorkDir, repoRoot, type Tree } from './test-helpers';
 type JsonRecord = Record<string, unknown>;
 
 const serializer = new PostgresContractSerializer();
-const stack = createControlStack({
+export const stack = createControlStack({
   family: sql,
   target: postgres,
   adapter: postgresAdapter,
