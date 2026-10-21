@@ -23,6 +23,7 @@ import { testSqlTypeLookups } from '../../../1-core/contract/test/test-type-look
 import {
   fixtureDataTypeSupport,
   fixtureDataTypes,
+  fixtureTextDataTypes,
   pgBool,
   pgBytea,
   pgChar,
@@ -239,6 +240,6 @@ export const fixtureInterpreterTypes: {
     entries: fixtureDataTypeSupport.entries,
     lookup: fixtureTypeLookups.dataTypeLookup,
     dataTypeOfCodec: () => undefined,
-    textDataTypes: fixtureDataTypeSupport.textDataTypes,
+    textDataTypes: fixtureTextDataTypes,
   },
 };
