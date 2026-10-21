@@ -92,6 +92,10 @@ Will, 2026-09-30: the emulator controls (start, stop, list, reset) are now urgen
 
 - Prisma 8 needs a Prisma Studio command in the `prisma` CLI before GA, as soon as possible (Will). Stream 3, row 1b, Must and urgent. Checked 2026-10-21: no Studio command exists in prisma/orm, prisma/prisma-cli or prisma/composer, and there is no PR or Linear ticket for one.
 
+## Changes of 2026-10-21
+
+- The generated contract files must shrink before GA (Will). `contract.d.ts` and `contract.json` are regenerated into fixtures and migration snapshots across the repo, and they make small PRs show tens of thousands of changed lines. Will's first idea is to minify them or strip whitespace; the approach is not decided. Stream 1, row 10, Must. It is in stream 1 because it changes what `migration plan` writes into a user's project.
+
 ## Changes of 2026-10-16
 
 - A project that has started is Must (Will). It counts toward GA readiness. Nested writes, the `firstOrThrow` need and the docs restructure became Must. The six unranked projects in stream 4 became ranked Must rows 7 to 12. The items beside the streams (manifesto, one lowering, Asks, eval harness) are not GA projects and are not counted.

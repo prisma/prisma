@@ -18,16 +18,16 @@ Counts the projects marked Must in each stream. A project counts as done only wh
 
 | Stream | Done | Bar | In progress | Not started |
 | --- | --- | --- | --- | --- |
-| Foundations and breaking changes | 5 of 8 (63%) | `██████░░░░` | 2 | 1 |
+| Foundations and breaking changes | 5 of 9 (56%) | `██████░░░░` | 2 | 2 |
 | Upgrade path from Prisma 7 | 2 of 7 (29%) | `███░░░░░░░` | 2 | 3 |
 | Editor and tools | 2 of 6 (33%) | `███░░░░░░░` | 2 | 2 |
 | Query features | 8 of 11 (73%) | `███████░░░` | 1 | 2 |
 | Docs and the new user's first hour | 1 of 5 (20%) | `██░░░░░░░░` | 3 | 1 |
-| **All streams** | **18 of 37 (49%)** | `█████░░░░░` | **10** | **9** |
+| **All streams** | **18 of 38 (47%)** | `█████░░░░░` | **10** | **10** |
 
 ## Stream 1: Foundations and breaking changes
 
-**GA readiness:** 5 of 8 Must projects done (63%). 2 in progress, 1 not started.
+**GA readiness:** 5 of 9 Must projects done (56%). 2 in progress, 2 not started.
 
 GA is the last chance to make breaking changes, so this stream decides the date.
 
@@ -42,6 +42,7 @@ GA is the last chance to make breaking changes, so this stream decides the date.
 | 7 | 🔄 5/7 | Migration statements: the planner refuses data loss, the user states renames, deletes, conversions and backfills | Must | Will | 5 of 7 slices merged. The TypeScript MongoDB validator slice merged 2026-10-20, with a MongoDB field keeping its own name in code. Left: renames and deletes of enum values, namespaces, value object fields and variants on Postgres and SQLite (TML-3537), and convert and backfill on MongoDB (TML-3538), both in backlog | Build TML-3537 |
 | 8 | ✅ 4/4 | Client surfaces: a client takes a typed contract value, custom collections on every client and transaction | Must | Will | Slice 1 merged 2026-10-19; it is breaking: `postgres<Contract>({ contractJson })` became `postgres({ contract: contractFromJson<Contract>(json) })`. Slice 2, custom collections on every SQL client, merged 2026-10-20. Slice 3, a transaction offers the client's query members, merged 2026-10-20. Slice 4, a client loads without a database and renders plans as SQL, merged 2026-10-21. Done 2026-10-21 (Will); the close-out is in progress |  |
 | 9 | ⏳ | Remove the `unbound` / `__unbound__` namespace alias, keeping one name | Not decided | Serhii | Serhii proposed it in a docs PR to the RC plan, not merged. Not started | |
+| 10 | ⏳ | Shrink the generated contract files, so a PR's line count shows the change and not the regenerated `contract.d.ts` and `contract.json` | Must | Will | Not started, no ticket. Migration snapshots in every user's `migrations/` folder hold both files. Possibly minify them or strip whitespace (Will, 2026-10-21) |  |
 
 ## Stream 2: Upgrade path from Prisma 7
 
