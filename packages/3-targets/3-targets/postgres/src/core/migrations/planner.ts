@@ -14,6 +14,7 @@ import {
   extractCodecControlHooks,
   fieldStatementColumns,
   type NamespaceRename,
+  otherSpaceDeclaring,
   partitionCallsByControlPolicy,
   partitionIssuesByControlPolicy,
   planFieldEventCalls,
@@ -790,34 +791,36 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       fromContract: options.fromContract,
       contract: options.contract,
       policy: options.policy,
+      ownership: { oracle: options.ownership, spaceId: options.spaceId },
       target: {
         tables: () => postgresSchemaTables(working.current, options.contract),
-        createNamespaceCalls: (namespaceId) => {
-          const schemaName = ddlSchemaOf(namespaceId);
-          return working.current.existingSchemas.includes(schemaName)
-            ? []
-            : [new CreateSchemaCall(schemaName)];
-        },
-        moveTableCall: (move) => {
-          if (options.fromContract === null) {
-            throw new InternalError('A table move is planned only from an origin contract');
-          }
-          return new SetTableSchemaCall(
-            emissionSchemaForNamespace(options.fromContract, move.from),
-            move.table,
-            ddlSchemaOf(move.to),
-          );
-        },
-        namespaceRenameRefusal: (rename) =>
-          postgresNamespaceRenameRefusal(rename, options.ownership, options.spaceId),
-        renameNamespaceCall: (rename) => {
-          if (options.fromContract === null) {
-            throw new InternalError('A namespace rename is planned only from an origin contract');
-          }
-          return new RenameSchemaCall(
-            resolveDdlSchemaForNamespaceStorage(options.fromContract.storage, rename.from),
-            ddlSchemaOf(rename.to),
-          );
+        namespaces: {
+          createNamespaceCalls: (namespaceId) => {
+            const schemaName = ddlSchemaOf(namespaceId);
+            return working.current.existingSchemas.includes(schemaName)
+              ? []
+              : [new CreateSchemaCall(schemaName)];
+          },
+          moveTableCall: (move) => {
+            if (options.fromContract === null) {
+              throw new InternalError('A table move is planned only from an origin contract');
+            }
+            return new SetTableSchemaCall(
+              emissionSchemaForNamespace(options.fromContract, move.from),
+              move.table,
+              ddlSchemaOf(move.to),
+            );
+          },
+          namespaceRenameRefusal: postgresNamespaceRenameRefusal,
+          renameNamespaceCall: (rename) => {
+            if (options.fromContract === null) {
+              throw new InternalError('A namespace rename is planned only from an origin contract');
+            }
+            return new RenameSchemaCall(
+              resolveDdlSchemaForNamespaceStorage(options.fromContract.storage, rename.from),
+              ddlSchemaOf(rename.to),
+            );
+          },
         },
         renameTableCall: (rename) =>
           postgresTableRenameCall({
@@ -924,8 +927,9 @@ function isOriginNamespaceIssue(
 function keptSchema(options: SqlMigrationPlannerPlanOptions, schemaName: string): boolean {
   if (options.fromContract === null) return true;
   const namespaceId = resolveNamespaceIdForDdlSchema(options.fromContract, schemaName);
-  return (options.ownership?.namespaceDeclaringSpaces(namespaceId) ?? []).some(
-    (spaceId) => spaceId !== options.spaceId,
+  return (
+    otherSpaceDeclaring({ oracle: options.ownership, spaceId: options.spaceId }, namespaceId) !==
+    undefined
   );
 }
 
@@ -947,26 +951,21 @@ type StatementCall =
  * Why a namespace cannot be renamed: `public` is the default schema Prisma owns and Postgres puts
  * on every search path, and a schema another contract space declares would be renamed for it too.
  */
-function postgresNamespaceRenameRefusal(
-  rename: NamespaceRename,
-  ownership: SchemaOwnership | undefined,
-  spaceId: string,
-): TargetRefusal | undefined {
-  const movePerModel = `--rename <Model>:${rename.to}.<Model>`;
+function postgresNamespaceRenameRefusal(rename: NamespaceRename): TargetRefusal | undefined {
+  const reason = `"${DEFAULT_NAMESPACE_ID}" is the default schema of every Postgres database`;
   if (rename.from === DEFAULT_NAMESPACE_ID) {
     return {
-      reason: `"${rename.from}" is the default schema of every Postgres database`,
-      fix: `Prisma owns schema "${rename.from}", and Postgres puts it on every search path, so a migration does not rename it. Move each model to the new namespace with ${movePerModel} instead.`,
+      reason,
+      fix: `Prisma owns schema "${rename.from}", and Postgres puts it on every search path, so a migration does not rename it. Move each model to the new namespace with --rename <Model>:${rename.to}.<Model> instead.`,
     };
   }
-  const [other] = (ownership?.namespaceDeclaringSpaces(rename.from) ?? []).filter(
-    (id) => id !== spaceId,
-  );
-  if (other === undefined) return undefined;
-  return {
-    reason: `contract space "${other}" also declares it`,
-    fix: `Renaming the schema would rename it under contract space "${other}" too, whose contract still names it "${rename.from}". Leave out this statement, or move each model with ${movePerModel} instead.`,
-  };
+  if (rename.to === DEFAULT_NAMESPACE_ID) {
+    return {
+      reason,
+      fix: `Every Postgres database already has schema "${rename.to}", so no schema can be renamed to it. Move each model with --rename ${rename.from}.<Model>:<Model> instead.`,
+    };
+  }
+  return undefined;
 }
 
 /**

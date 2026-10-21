@@ -231,21 +231,23 @@ export function fakeTarget(
   });
   return {
     tables: () => schemaTables,
-    createNamespaceCalls: (namespaceId: string) =>
-      existingNamespaces === undefined || existingNamespaces.has(namespaceId)
-        ? []
-        : [{ text: `namespace ${namespaceId}`, operationClass: 'additive', companions: [] }],
-    namespaceRenameRefusal: () => undefined,
-    renameNamespaceCall: (rename: NamespaceRename) => ({
-      text: `rename-namespace ${rename.from} -> ${rename.to}`,
-      operationClass,
-      companions: [],
-    }),
-    moveTableCall: (move: TableMove) => ({
-      text: `move ${move.from}.${move.table} -> ${move.to}`,
-      operationClass,
-      companions: [],
-    }),
+    namespaces: {
+      createNamespaceCalls: (namespaceId: string) =>
+        existingNamespaces === undefined || existingNamespaces.has(namespaceId)
+          ? []
+          : [{ text: `namespace ${namespaceId}`, operationClass: 'additive', companions: [] }],
+      namespaceRenameRefusal: () => undefined,
+      renameNamespaceCall: (rename: NamespaceRename) => ({
+        text: `rename-namespace ${rename.from} -> ${rename.to}`,
+        operationClass,
+        companions: [],
+      }),
+      moveTableCall: (move: TableMove) => ({
+        text: `move ${move.from}.${move.table} -> ${move.to}`,
+        operationClass,
+        companions: [],
+      }),
+    },
     renameTableCall: (rename: TableRename) =>
       call(`table ${rename.namespaceId}.${rename.from} -> ${rename.to}`),
     renameColumnCall: (rename: ColumnRename) =>
@@ -295,12 +297,21 @@ export function fakeTarget(
   };
 }
 
+/** `target` as one of a database without namespaces. */
+export function withoutNamespaces(
+  target: StatementPlanningTarget<FakeCall>,
+): StatementPlanningTarget<FakeCall> {
+  return { ...target, namespaces: undefined };
+}
+
 /** `target`, refusing every namespace rename with `refusal`. */
 export function refusingNamespaceRenames(
   target: StatementPlanningTarget<FakeCall>,
   refusal: { readonly reason: string; readonly fix: string },
 ): StatementPlanningTarget<FakeCall> {
-  return { ...target, namespaceRenameRefusal: () => refusal };
+  const { namespaces } = target;
+  if (namespaces === undefined) return target;
+  return { ...target, namespaces: { ...namespaces, namespaceRenameRefusal: () => refusal } };
 }
 
 export function renameNamespace(from: string, to: string): ResolvedNamespaceRenameStatement {

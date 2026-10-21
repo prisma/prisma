@@ -128,7 +128,22 @@ describe('Postgres planner, a namespace statement', () => {
         kind: 'statementRefused',
         summary:
           'Cannot rename namespace "billing" to "finance": contract space "ledger" also declares it',
-        why: 'Renaming the schema would rename it under contract space "ledger" too, whose contract still names it "billing". Leave out this statement, or move each model with --rename <Model>:finance.<Model> instead.',
+        why: 'Renaming the namespace would rename it under contract space "ledger" too, whose contract still names it "billing". Leave out this statement, or move each model with --rename billing.<Model>:finance.<Model> instead.',
+      }),
+    ]);
+  });
+
+  it('refuses a rename to public, and says to move the models instead', () => {
+    const inPublic = contractWith({ invoiceNamespace: 'public', seed: 'public' });
+
+    const result = plan(inBilling, inPublic, renameNamespace('billing', 'public'));
+
+    expect(result.kind === 'failure' && result.conflicts).toEqual([
+      expect.objectContaining({
+        kind: 'statementRefused',
+        summary:
+          'Cannot rename namespace "billing" to "public": "public" is the default schema of every Postgres database',
+        why: 'Every Postgres database already has schema "public", so no schema can be renamed to it. Move each model with --rename billing.<Model>:<Model> instead.',
       }),
     ]);
   });

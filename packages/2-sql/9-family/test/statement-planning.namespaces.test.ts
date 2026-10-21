@@ -10,6 +10,7 @@ import {
   renameField,
   renameModel,
   renameNamespace,
+  withoutNamespaces,
 } from './statement-fixtures';
 
 const inBilling = contractOf({
@@ -133,7 +134,7 @@ describe('a namespace rename', () => {
     expect(conflict).toMatchObject({
       summary:
         'Cannot rename namespace "billing" to "finance": the schema being planned from already has a namespace "finance"',
-      why: 'A rename cannot replace a namespace that already exists. Rename or drop namespace "finance" first, or leave out this statement.',
+      why: 'The database already has a namespace "finance", which the contract it was last updated to does not declare. If it holds nothing, drop or rename it in the database yourself; otherwise move each model with --rename billing.<Model>:finance.<Model> instead of this statement.',
     });
   });
 
@@ -199,6 +200,70 @@ describe('a namespace rename', () => {
       moved: origin,
       untouched: { namespaceId: 'billing', table: 'Other' },
       column: 'total',
+    });
+  });
+});
+
+describe('a namespace rename refused by the family', () => {
+  it('refuses a namespace another contract space declares, naming the space', () => {
+    const conflict = rejection(
+      planStatements({
+        statements: [statement],
+        fromContract: inBilling,
+        contract: inFinance,
+        policy: ALL_CLASSES,
+        target: fakeTarget(['billing.Invoice']),
+        ownership: {
+          oracle: {
+            declaresEntity: () => false,
+            namespaceDeclaringSpaces: (namespaceId) =>
+              namespaceId === 'billing' ? ['app', 'ledger'] : ['app'],
+          },
+          spaceId: 'app',
+        },
+      }),
+    );
+
+    expect(conflict).toMatchObject({
+      summary:
+        'Cannot rename namespace "billing" to "finance": contract space "ledger" also declares it',
+      why: 'Renaming the namespace would rename it under contract space "ledger" too, whose contract still names it "billing". Leave out this statement, or move each model with --rename billing.<Model>:finance.<Model> instead.',
+    });
+  });
+
+  it('refuses a namespace rename for a target without namespaces', () => {
+    const conflict = rejection(
+      planStatements({
+        statements: [statement],
+        fromContract: inBilling,
+        contract: inFinance,
+        policy: ALL_CLASSES,
+        target: withoutNamespaces(fakeTarget(['billing.Invoice'])),
+      }),
+    );
+
+    expect(conflict).toMatchObject({
+      summary:
+        'Cannot rename namespace "billing" to "finance": the database target keeps every table in one namespace',
+      why: 'This database target has no namespaces, so a statement cannot rename a namespace or move a model to another one. Leave out this statement.',
+    });
+  });
+
+  it('refuses a model move for a target without namespaces', () => {
+    const conflict = rejection(
+      planStatements({
+        statements: [renameModel('Invoice', 'Invoice', 'billing', 'finance')],
+        fromContract: inBilling,
+        contract: inFinance,
+        policy: ALL_CLASSES,
+        target: withoutNamespaces(fakeTarget(['billing.Invoice'])),
+      }),
+    );
+
+    expect(conflict).toMatchObject({
+      summary:
+        'Cannot move table "Invoice" from namespace "billing" to namespace "finance": the database target keeps every table in one namespace',
+      why: 'This database target has no namespaces, so a statement cannot rename a namespace or move a model to another one. Leave out this statement.',
     });
   });
 });

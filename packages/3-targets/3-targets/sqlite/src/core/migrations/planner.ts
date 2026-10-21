@@ -41,7 +41,6 @@ import {
   type SqlSchemaIR,
   SqlTableIR,
 } from '@internal/sql-schema-ir/types';
-import { InternalError } from '@internal/utils/internal-error';
 import { ok, type Result } from '@internal/utils/result';
 import { buildSqlitePlanDiff, sqliteActualSchema } from './diff-database-schema';
 import { indexNameCaseChange, pairIndexReplacements } from './index-replacements';
@@ -319,18 +318,6 @@ export class SqliteMigrationPlanner
       policy: options.policy,
       target: {
         tables: () => sqliteSchemaTables(working.current),
-        createNamespaceCalls: () => [],
-        namespaceRenameRefusal: () => undefined,
-        renameNamespaceCall: (rename) => {
-          throw new InternalError(
-            `SQLite stores every table in one namespace, so no statement renames namespace "${rename.from}" to "${rename.to}"`,
-          );
-        },
-        moveTableCall: (move) => {
-          throw new InternalError(
-            `SQLite stores every table in one namespace, so no statement moves table "${move.table}" from namespace "${move.from}" to "${move.to}"`,
-          );
-        },
         renameTableCall: (rename) =>
           sqliteTableRenameCall({
             previous: working.current,
