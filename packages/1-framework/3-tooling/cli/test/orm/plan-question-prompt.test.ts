@@ -70,11 +70,14 @@ describe('a plan question asked through the engine', () => {
     expect(asked).toEqual([['billing.Invoice', 'app.User']]);
   });
 
-  it('refuses a --delete that answers nothing beside a namespace --delete', async () => {
+  it('refuses a --delete that answers nothing beside a namespace --delete, as the engine refuses an unused flag', async () => {
     const { statements, prompt } = surfaces(['billing', 'nope']);
 
     await expect(promptPlanQuestions(prompt, statements)([invoice])).rejects.toMatchObject({
-      code: 'MIGRATION.STATEMENT_ANSWERS_NO_QUESTION',
+      code: 'CLI.CONSENT_UNUSED',
+      message: '--delete nope was given but nothing in this run asked about nope.',
+      why: 'The run asked about billing.Invoice.',
+      meta: { unused: [{ verb: 'delete', values: ['nope'] }], asked: ['billing.Invoice'] },
     });
   });
 });

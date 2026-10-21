@@ -4,7 +4,7 @@ import type {
   PlanAnswer,
   PlanQuestion,
 } from '../control-api/statements/plan-questions';
-import { errorStatementAnswersNoQuestion } from '../utils/cli-errors';
+import { errorConsentUnused } from '../utils/cli-errors';
 
 /**
  * The answers the `--delete` values give when one of them names a namespace of the questions: the
@@ -34,7 +34,7 @@ function namespaceDeletes(
   });
   const unused = taken.filter((text) => !used.has(text));
   if (unused.length > 0) {
-    throw errorStatementAnswersNoQuestion(
+    throw errorConsentUnused(
       unused.map((text) => ({ verb: 'delete', text })),
       questions.map(({ subject }) => subject),
     );
