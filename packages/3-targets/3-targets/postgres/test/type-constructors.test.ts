@@ -47,6 +47,30 @@ describe('the type constructors the target contributes', () => {
     expect(descriptor).toHaveProperty('documentation', expect.stringMatching(/\S.+/));
   });
 
+  it('document what each temporal type alias sets and the value it gives', () => {
+    expect(
+      Object.fromEntries(
+        Object.entries(postgresAuthoringTypes.temporal).map(([name, { documentation }]) => [
+          name,
+          documentation,
+        ]),
+      ),
+    ).toEqual({
+      CreatedAt:
+        'A timestamp the client sets to now when a row is created. Its value is a Temporal.Instant.',
+      UpdatedAt:
+        'A timestamp the client sets to now when a row is created and every time it is updated. Its value is a Temporal.Instant.',
+      CreatedAtString:
+        'A timestamp the client sets to now when a row is created. Its value is a string, the timestamp as Postgres writes it, such as 2024-01-02 03:04:05+00.',
+      UpdatedAtString:
+        'A timestamp the client sets to now when a row is created and every time it is updated. Its value is a string, the timestamp as Postgres writes it, such as 2024-01-02 03:04:05+00.',
+      CreatedAtJsDate:
+        'A timestamp the client sets to now when a row is created. Its value is a JavaScript Date.',
+      UpdatedAtJsDate:
+        'A timestamp the client sets to now when a row is created and every time it is updated. Its value is a JavaScript Date.',
+    });
+  });
+
   it('contribute the temporal type aliases, one pair per timestamptz codec', () => {
     expect(
       Object.fromEntries(

@@ -18,7 +18,10 @@ export const sqliteAuthoringTypes = {
       codecId: 'sqlite/bigintnumber@1',
     },
   },
-  temporal: /* @__PURE__ */ temporalTypeAliases({ codecId: 'sqlite/datetime@1' }),
+  temporal: /* @__PURE__ */ temporalTypeAliases(
+    { codecId: 'sqlite/datetime@1' },
+    'a JavaScript Date',
+  ),
 } as const satisfies AuthoringTypeNamespace;
 
 export const sqliteAuthoringFieldPresets = {

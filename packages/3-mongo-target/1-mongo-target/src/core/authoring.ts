@@ -17,5 +17,5 @@ export const mongoAuthoringFieldPresets = {
 } as const satisfies AuthoringFieldNamespace;
 
 export const mongoAuthoringTypes = {
-  temporal: temporalTypeAliases(mongoDateStorage),
+  temporal: temporalTypeAliases(mongoDateStorage, 'a JavaScript Date'),
 } as const satisfies AuthoringTypeNamespace;

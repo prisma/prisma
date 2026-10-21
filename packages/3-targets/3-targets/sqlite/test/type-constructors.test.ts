@@ -32,6 +32,14 @@ describe('the type constructors the SQLite target contributes', () => {
     ]);
   });
 
+  it('document what each temporal type alias sets and the value it gives', () => {
+    const { CreatedAt, UpdatedAt } = sqliteAuthoringTypes.temporal;
+    expect([CreatedAt.documentation, UpdatedAt.documentation]).toEqual([
+      'A timestamp the client sets to now when a row is created. Its value is a JavaScript Date.',
+      'A timestamp the client sets to now when a row is created and every time it is updated. Its value is a JavaScript Date.',
+    ]);
+  });
+
   const allConstructors = {
     ...sqliteAuthoringTypes.sql,
     BigIntNumber: sqliteAuthoringTypes.BigIntNumber,
