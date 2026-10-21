@@ -63,7 +63,7 @@ Some “maps” are runtime-real:
 
 Other “maps” are **compile-time-only typing channels**:
 
-- codecId → TypeScript output type (including parameterized codecs where output depends on per-column `typeParams` / `typeRef`)
+- codecId → TypeScript output type (including parameterized codecs where output depends on per-column `typeParams`)
 - operation method → argument/return TypeScript types
 
 These typing channels are essential for lane inference, but they are not derivable from JSON at runtime and cannot be inferred from runtime registries without losing precision (especially for parameterized codecs).
