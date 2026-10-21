@@ -357,10 +357,20 @@ export function planStatements(input: {
 
   for (const statement of input.statements) {
     const label = `Cannot ${describeMigrationStatement(statement, input.fromContract, input.contract)}`;
-    const outcome =
-      statement.entity === 'model'
-        ? planModelStatement(statement, label, schema, input)
-        : planFieldStatement(statement, label, renamedCollections, schema, input);
+    const outcome: StatementOutcome =
+      statement.entity === 'namespace'
+        ? {
+            kind: 'refused',
+            conflict: refused(
+              statement,
+              label,
+              'MongoDB does not rename namespaces in this release',
+              LEAVE_OUT,
+            ),
+          }
+        : statement.entity === 'model'
+          ? planModelStatement(statement, label, schema, input)
+          : planFieldStatement(statement, label, renamedCollections, schema, input);
     if (outcome.kind === 'refused') {
       conflicts.push(outcome.conflict);
       callOfStatement.push(undefined);

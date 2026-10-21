@@ -110,6 +110,7 @@ interface ResolutionState {
   readonly fieldStatements: Set<string>;
 }
 
+const NAMESPACE_RENAMES = 'namespace';
 const MODEL_RENAMES = 'model';
 const FIELD_RENAMES = 'field';
 const LISTED_LIMIT = 20;
@@ -695,11 +696,121 @@ function oldSideRefusal(
   return unresolved(statement, refusal);
 }
 
+function namespacesOf(contract: NamedContract): readonly string[] {
+  return Object.keys(contract.contract.domain.namespaces).filter(
+    (id) => id !== UNBOUND_NAMESPACE_ID,
+  );
+}
+
+/**
+ * The namespace reading of a statement with one name on each side: `undefined` when the old name
+ * is no namespace of the origin contract, so the statement is not about a namespace.
+ */
+function readNamespaceRename(
+  state: ResolutionState,
+  from: string,
+  to: string,
+): Result<{ readonly from: string; readonly to: string }, Refusal> | undefined {
+  if (!namespacesOf(state.origin).includes(from)) return undefined;
+  if (namespacesOf(state.destination).includes(from)) {
+    return notOk(
+      missing(
+        `namespace "${from}" still exists in the destination contract, so it was not renamed`,
+      ),
+    );
+  }
+  const destinationNamespaces = namespacesOf(state.destination);
+  if (!destinationNamespaces.includes(to)) {
+    return notOk(
+      missing(
+        `the destination contract has no namespace "${to}" (namespaces: ${listed(destinationNamespaces)})`,
+      ),
+    );
+  }
+  if (namespacesOf(state.origin).includes(to)) {
+    return notOk(
+      missing(
+        `namespace "${to}" already exists in the origin contract, so it cannot be the new name of a namespace`,
+      ),
+    );
+  }
+  return ok({ from, to });
+}
+
+function resolveNamespaceRename(
+  state: ResolutionState,
+  statement: ParsedRename,
+  rename: { readonly from: string; readonly to: string },
+): Result<ResolvedMigrationStatement, CliStructuredError> {
+  const fromKey = `${NAMESPACE_RENAMES}:${rename.from}`;
+  const toKey = `${NAMESPACE_RENAMES}:${rename.to}`;
+  if (state.renamedFrom.has(fromKey)) {
+    return notOk(
+      errorStatementInvalid(
+        statement,
+        `An earlier statement already renames namespace "${rename.from}".`,
+        REPEATED_NAME_FIX,
+      ),
+    );
+  }
+  if (state.renamedTo.has(toKey)) {
+    return notOk(
+      errorStatementInvalid(
+        statement,
+        `An earlier statement already renames a namespace to "${rename.to}".`,
+        REPEATED_NAME_FIX,
+      ),
+    );
+  }
+  state.renamedFrom.add(fromKey);
+  state.renamedTo.add(toKey);
+  return ok({
+    kind: 'rename',
+    entity: 'namespace',
+    from: asNamespaceId(rename.from),
+    to: asNamespaceId(rename.to),
+  });
+}
+
+/**
+ * A statement with one name on each side reads as a namespace rename or a model rename. Exactly
+ * one reading must resolve; `undefined` leaves the statement to the model reading.
+ */
+function resolveOneNameStatement(
+  state: ResolutionState,
+  statement: ParsedRename,
+  from: string,
+  to: string,
+): Result<ResolvedMigrationStatement, CliStructuredError> | undefined {
+  const asNamespace = readNamespaceRename(state, from, to);
+  if (asNamespace === undefined) return undefined;
+  const fromModel = readModel(state, 'old', undefined, from);
+  const toModel = readModel(state, 'new', undefined, to);
+  if (asNamespace.ok && fromModel.ok && toModel.ok) {
+    const oldModel = qualifiedModel(fromModel.value.coordinate);
+    const newModel = qualifiedModel(toModel.value.coordinate);
+    return notOk(
+      errorStatementUnresolved(
+        statement,
+        `"${statement.text}" reads both as a rename of namespace "${from}" to "${to}" and as a rename of model "${oldModel}" to "${newModel}".`,
+        `To rename the model, name it with its namespace: --${statement.verb} ${oldModel}:${newModel}. A namespace is named by its name alone, so to rename the namespace, rename the model in a plan of its own first.`,
+      ),
+    );
+  }
+  if (asNamespace.ok) return resolveNamespaceRename(state, statement, asNamespace.value);
+  if (fromModel.ok) return undefined;
+  return notOk(unresolved(statement, asNamespace.failure));
+}
+
 function resolveStatement(
   state: ResolutionState,
   statement: ParsedRename,
   later: readonly ParsedRename[],
 ): Result<ResolvedMigrationStatement, CliStructuredError> {
+  if (statement.from.length === 1 && statement.to.length === 1) {
+    const oneName = resolveOneNameStatement(state, statement, statement.from[0], statement.to[0]);
+    if (oneName !== undefined) return oneName;
+  }
   const from = readSide(state, 'old', statement.from);
   if (!from.ok) return notOk(oldSideRefusal(state, statement, later, from.failure));
   const to = readSide(state, 'new', statement.to);

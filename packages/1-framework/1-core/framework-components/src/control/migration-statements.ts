@@ -29,8 +29,19 @@ export interface ResolvedFieldRenameStatement {
   readonly to: FieldCoordinate;
 }
 
+/** A namespace renamed: `from` is a namespace of the origin contract and `to` one of the destination. */
+export interface ResolvedNamespaceRenameStatement {
+  readonly kind: 'rename';
+  readonly entity: 'namespace';
+  readonly from: NamespaceId;
+  readonly to: NamespaceId;
+}
+
 /** A rename: `from` is a coordinate of the origin contract and `to` one of the destination contract. */
-export type ResolvedRenameStatement = ResolvedModelRenameStatement | ResolvedFieldRenameStatement;
+export type ResolvedRenameStatement =
+  | ResolvedNamespaceRenameStatement
+  | ResolvedModelRenameStatement
+  | ResolvedFieldRenameStatement;
 
 /** A field whose values the migration converts to its new type with code the user writes. */
 export interface ResolvedFieldConvertStatement {
@@ -191,6 +202,12 @@ export interface FieldCoordinateJson extends ModelCoordinateJson {
 export type MigrationStatementJson =
   | {
       readonly kind: 'rename';
+      readonly entity: 'namespace';
+      readonly from: NamespaceId;
+      readonly to: NamespaceId;
+    }
+  | {
+      readonly kind: 'rename';
       readonly entity: 'model';
       readonly from: ModelCoordinateJson;
       readonly to: ModelCoordinateJson;
@@ -225,14 +242,22 @@ function coordinateJson<T extends ModelCoordinate>(
 export function migrationStatementJson(
   statement: ResolvedMigrationStatement,
 ): MigrationStatementJson {
-  switch (statement.kind) {
-    case 'rename':
-      return statement.entity === 'model'
-        ? { ...statement, from: coordinateJson(statement.from), to: coordinateJson(statement.to) }
-        : { ...statement, from: coordinateJson(statement.from), to: coordinateJson(statement.to) };
-    case 'convert':
-    case 'backfill':
-      return { ...statement, field: coordinateJson(statement.field) };
+  if (statement.kind !== 'rename') return { ...statement, field: coordinateJson(statement.field) };
+  switch (statement.entity) {
+    case 'namespace':
+      return statement;
+    case 'model':
+      return {
+        ...statement,
+        from: coordinateJson(statement.from),
+        to: coordinateJson(statement.to),
+      };
+    case 'field':
+      return {
+        ...statement,
+        from: coordinateJson(statement.from),
+        to: coordinateJson(statement.to),
+      };
   }
 }
 
@@ -270,6 +295,9 @@ export function describeMigrationStatement(
 ): string {
   if (statement.kind !== 'rename') {
     return `${statement.kind} field "${modelStatementText(contract, statement.field)}.${statement.field.field}"`;
+  }
+  if (statement.entity === 'namespace') {
+    return `rename namespace "${statement.from}" to "${statement.to}"`;
   }
   if (statement.entity === 'model') {
     return `rename model "${modelStatementText(fromContract, statement.from)}" to "${modelStatementText(contract, statement.to)}"`;

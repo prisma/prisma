@@ -149,6 +149,7 @@ export type {
   ResolvedFieldRenameStatement,
   ResolvedMigrationStatement,
   ResolvedModelRenameStatement,
+  ResolvedNamespaceRenameStatement,
   ResolvedRenameStatement,
 } from '../control/migration-statements';
 export {

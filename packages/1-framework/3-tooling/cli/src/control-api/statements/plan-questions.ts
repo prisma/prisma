@@ -212,7 +212,8 @@ export const ORIGIN_SNAPSHOT_RECOVERY = [
 ].join('\n');
 
 function sameCoordinate(statement: ResolvedMigrationStatement, subject: MigrationSubject): boolean {
-  if (statement.kind !== 'rename' || subject.kind === 'storage') return false;
+  if (statement.kind !== 'rename' || statement.entity === 'namespace' || subject.kind === 'storage')
+    return false;
   const { from } = statement;
   if (from.namespaceId !== subject.namespaceId || from.model !== subject.model) return false;
   return subject.kind === 'field'

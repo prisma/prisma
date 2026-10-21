@@ -242,3 +242,32 @@ describe('migrationSubjectKey', () => {
     expect(keys.size).toBe(3);
   });
 });
+
+describe('a namespace rename', () => {
+  const statement: ResolvedMigrationStatement = {
+    kind: 'rename',
+    entity: 'namespace',
+    from: asNamespaceId('billing'),
+    to: asNamespaceId('finance'),
+  };
+
+  it('is described by its namespace names', () => {
+    const contract = contractWith({ billing: ['Invoice'], app: ['User'] });
+    expect(describeMigrationStatement(statement, contract, contract)).toBe(
+      'rename namespace "billing" to "finance"',
+    );
+  });
+
+  it('is written to JSON as it is', () => {
+    expect(migrationStatementJson(statement)).toEqual({
+      kind: 'rename',
+      entity: 'namespace',
+      from: 'billing',
+      to: 'finance',
+    });
+  });
+
+  it('is a rename statement', () => {
+    expect(isRenameStatement(statement)).toBe(true);
+  });
+});
