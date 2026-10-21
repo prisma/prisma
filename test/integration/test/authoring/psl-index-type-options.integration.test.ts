@@ -47,7 +47,6 @@ function interpret(schema: string) {
         pslBlockDescriptors: {},
         modelAttributes: {},
         attributeSpecs: sqlAttributeSpecs,
-        textDataTypes: [],
         dataTypes: {},
       },
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },

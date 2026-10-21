@@ -2598,7 +2598,7 @@ export function interpretPslDocumentToSqlContract(
     discriminatorColumnOf,
     input.codecLookup,
     dataTypes,
-    input.authoringContributions?.textDataTypes ?? [],
+    dataTypes.textDataTypes ?? [],
     diagnostics,
   );
 

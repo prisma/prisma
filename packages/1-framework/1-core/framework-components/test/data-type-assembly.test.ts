@@ -114,6 +114,7 @@ const invariants = (overrides: Partial<Parameters<typeof enforceDataTypeAssembly
     declaredTypes: [{ type: int2, contributedBy: 'demo' }],
     codecs: [],
     authoringEntries: [],
+    textDataTypes: [],
     ...overrides,
   });
 
@@ -428,6 +429,27 @@ describe('assembleDataTypeSupport', () => {
       code: 'CONTRACT.DATA_TYPE_UNREGISTERED',
       message:
         'Codec "x/gone@1" names data type "demo/gone", which no component registers. Contributed by "x-pack".',
+    });
+  });
+
+  it('holds every component’s text data types, each once', () => {
+    const { support } = assembleDataTypeSupport(
+      [
+        { ...demo, authoring: { ...demo.authoring, textDataTypes: [text.id] } },
+        { id: 'other', authoring: { textDataTypes: [text.id, sized.id] } },
+      ],
+      () => undefined,
+    );
+    expect(support.textDataTypes).toEqual([text.id, sized.id]);
+  });
+
+  it('refuses a text data type no component registers, naming the contributor', () => {
+    expect(
+      thrownBy(assemble({ id: 'x-pack', authoring: { textDataTypes: [dataTypeId('demo/gone')] } })),
+    ).toEqual({
+      code: 'CONTRACT.DATA_TYPE_UNREGISTERED',
+      message:
+        'The text data types names data type "demo/gone", which no component registers. Contributed by "x-pack".',
     });
   });
 

@@ -8,7 +8,7 @@ import { mergeCapabilityMatrices } from '../shared/capabilities';
 import type { Codec } from '../shared/codec';
 import type { AnyCodecDescriptor } from '../shared/codec-descriptor';
 import type { CodecRef, CodecRegistry } from '../shared/codec-types';
-import type { DataType, DataTypeId, DataTypeLookup } from '../shared/data-type';
+import type { DataType, DataTypeLookup } from '../shared/data-type';
 import { objectSchemaKeys } from '../shared/data-type';
 import {
   assembleAuthoringDataTypes,
@@ -74,8 +74,6 @@ export interface AssembledAuthoringContributions {
   readonly dataTypes: Readonly<Record<string, DataTypeAuthoringEntry>>;
   /** The single {@link AuthoringContributions.valueObjectStorageType} declared across the composed components, validated at assembly against the merged `type` namespace. */
   readonly valueObjectStorageType?: string;
-  /** Every component's {@link AuthoringContributions.textDataTypes}, each once. */
-  readonly textDataTypes: readonly DataTypeId[];
 }
 
 export interface ControlStack<
@@ -354,9 +352,6 @@ export function assembleAuthoringContributions(
 
   return {
     dataTypes,
-    textDataTypes: [
-      ...new Set(descriptors.flatMap((descriptor) => descriptor.authoring?.textDataTypes ?? [])),
-    ],
     field: fieldNamespace,
     type: typeNamespace,
     entityTypes: entityTypeNamespace,

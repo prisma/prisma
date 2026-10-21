@@ -32,6 +32,8 @@ export interface DataTypeSupport {
   readonly entries: Readonly<Record<string, DataTypeAuthoringEntry>>;
   readonly lookup: DataTypeLookup;
   readonly dataTypeOfCodec: (codecId: string) => DataTypeId | undefined;
+  /** Every component's {@link AuthoringContributions.textDataTypes}, each once: the data types whose values are text. None when the stack names none. */
+  readonly textDataTypes?: readonly DataTypeId[];
 }
 
 export type ReadRefusal =

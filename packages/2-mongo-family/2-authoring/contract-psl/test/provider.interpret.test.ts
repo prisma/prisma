@@ -47,7 +47,6 @@ function createMongoTestContext(overrides?: Partial<ContractSourceContext>): Con
     defaultNamespaceId: '__unbound__',
     composedExtensionContracts: new Map(),
     authoringContributions: {
-      textDataTypes: [],
       dataTypes: {},
       field: {},
       type: mongoScalarAuthoringTypes,

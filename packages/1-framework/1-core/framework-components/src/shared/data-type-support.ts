@@ -19,7 +19,10 @@ import type { DataTypeSupport } from './written-value';
 export interface DataTypeComponent {
   readonly id?: string;
   readonly dataTypes?: ReadonlyArray<DataType>;
-  readonly authoring?: Pick<AuthoringContributions, 'dataTypes' | 'type' | 'field'>;
+  readonly authoring?: Pick<
+    AuthoringContributions,
+    'dataTypes' | 'type' | 'field' | 'textDataTypes'
+  >;
   readonly types?: {
     readonly [slot: string]: unknown;
     readonly codecTypes?: {
@@ -46,6 +49,10 @@ export interface DataTypeAssemblyInput {
   readonly authoringEntries: ReadonlyArray<{
     readonly key: string;
     readonly entry: DataTypeAuthoringEntry;
+    readonly contributedBy: string;
+  }>;
+  readonly textDataTypes: ReadonlyArray<{
+    readonly dataType: DataTypeId;
     readonly contributedBy: string;
   }>;
 }
@@ -160,13 +167,25 @@ function enforceValueArguments(
   }
 }
 
+function textDataTypesOf(
+  components: ReadonlyArray<DataTypeComponent>,
+): DataTypeAssemblyInput['textDataTypes'] {
+  return components.flatMap((component) =>
+    (component.authoring?.textDataTypes ?? []).map((dataType) => ({
+      dataType,
+      contributedBy: component.id ?? UNKNOWN_CONTRIBUTOR,
+    })),
+  );
+}
+
 /**
  * The checks assembly makes across components on their data types, each naming the component and the id at fault:
  *
  * 1. every codec names a registered data type;
  * 2. every authoring entry, and every type a number classifier returns, names a registered data type;
  * 3. every type a cast takes values of is registered and can be written, because a cast from a type nobody can write is never exercised;
- * 4. no two entries claim one tag or one plain form.
+ * 4. no two entries claim one tag or one plain form;
+ * 5. every text data type a component names is registered.
  */
 export function enforceDataTypeAssemblyInvariants(input: DataTypeAssemblyInput): void {
   const unregistered = (contributedBy: string, id: string, what: string): never => {
@@ -193,6 +212,12 @@ export function enforceDataTypeAssemblyInvariants(input: DataTypeAssemblyInput):
           unregistered(contributedBy, classified, `The classifier of authoring entry "${key}"`);
         }
       }
+    }
+  }
+
+  for (const { dataType, contributedBy } of input.textDataTypes) {
+    if (!input.lookup.has(dataType)) {
+      unregistered(contributedBy, dataType, 'The text data types');
     }
   }
 
@@ -263,8 +288,16 @@ export function assembleDataTypeSupport(
       })),
     ),
     authoringEntries,
+    textDataTypes: textDataTypesOf(components),
   });
-  const support: DataTypeSupport = { entries, lookup, dataTypeOfCodec };
+  const support: DataTypeSupport = {
+    entries,
+    lookup,
+    dataTypeOfCodec,
+    textDataTypes: [
+      ...new Set(components.flatMap((component) => component.authoring?.textDataTypes ?? [])),
+    ],
+  };
   const writable = writableDataTypes(authoringEntries);
   for (const contributed of components.flatMap(contributedHelpers)) {
     enforceValueArguments(support, contributed, writable);

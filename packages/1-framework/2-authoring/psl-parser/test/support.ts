@@ -143,7 +143,6 @@ export function binderContext(
       pslBlockDescriptors: input.pslBlockDescriptors ?? {},
       modelAttributes: {},
       attributeSpecs: input.attributeSpecs ?? { model: {}, field: {} },
-      textDataTypes: [],
       dataTypes: dataTypes.entries,
     },
     controlMutationDefaults: {

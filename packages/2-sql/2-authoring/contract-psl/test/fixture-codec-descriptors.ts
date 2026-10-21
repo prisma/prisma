@@ -239,5 +239,6 @@ export const fixtureInterpreterTypes: {
     entries: fixtureDataTypeSupport.entries,
     lookup: fixtureTypeLookups.dataTypeLookup,
     dataTypeOfCodec: () => undefined,
+    textDataTypes: fixtureDataTypeSupport.textDataTypes,
   },
 };
