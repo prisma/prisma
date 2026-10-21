@@ -6,14 +6,14 @@ changes:
     detection:
       glob: "**/ops.json"
       matches:
-        - '(?<![\s\S])(?![\s\S]*"(?:expectation|object)":)(?=[\s\S]*(?:"kind": "list(?:Indexes|Collections)"|information_schema|\\"pg_(?:class|constraint|extension|indexes|policies|type|enum|namespace)\\"|to_regclass|sqlite_master|sqlite_schema|pragma_table_info|pragma_index_list))'
+        - '(?:\{\s*"description": "(?:[^"\\]|\\.)*",\s*"sql": "(?:SELECT (?:NOT )?EXISTS \(SELECT 1 AS \\"one\\" FROM \\"(?:information_schema\\"\.\\"columns|pg_extension|pg_constraint|pg_class|pg_policies|pg_type|pg_enum|pg_indexes|pg_namespace)\\"(?: AS \\"\w+\\")?(?: INNER JOIN \\"pg_(?:namespace|type|class)\\" AS \\"\w+\\" ON \\"\w+\\"\.\\"\w+\\" = \\"\w+\\"\.\\"\w+\\")* WHERE (?:[^"\\]|\\"(?:table_schema|table_name|column_name|extname|conname|connamespace|conrelid|nspname|schemaname|tablename|policyname|indexname|typname|typnamespace|enumlabel|enumtypid|relname|relkind|oid|type|name|c|n|t|e|i|p)\\")*?\) AS \\"result\\"|SELECT \(to_regclass\(\$\d+\)\) IS (?:NOT )?NULL AS \\"result\\"|SELECT COUNT\(\*\) (?:= 0|> 0) AS \\"result\\" FROM (?:\\"sqlite_master\\"|pragma_table_info\([^)"]*\)|pragma_index_list\([^)"]*\)) WHERE (?:[^"\\]|\\"(?:table_schema|table_name|column_name|extname|conname|connamespace|conrelid|nspname|schemaname|tablename|policyname|indexname|typname|typnamespace|enumlabel|enumtypid|relname|relkind|oid|type|name|c|n|t|e|i|p)\\")*?)"(?:,\s*"params": \[[^\]]*\])?\s*\}|"source": \{\s*"kind": "list(?:Indexes|Collections)"(?:,\s*"collection": "(?:[^"\\]|\\.)*")?\s*\},\s*"filter": \{\s*"kind": "field",(?:[^{}]|\{[^{}]*\})*\},\s*"expect": "(?:exists|notExists)"\s*\})'
   - id: check-expectation-raw-sql
     summary: |
       A precheck or postcheck you write by hand in a `rawSql` operation of a `migration.ts` can carry `expectation`, `{ expects: 'absent' | 'present', object }`, so a failure of it names the object. Add it where the check asks whether one object exists, then run `node migration.ts` for a migration no database has applied yet.
     detection:
       glob: "**/migration.ts"
       matches:
-        - '\brawSql\(\{[\s\S]*?\b(?:precheck|postcheck):\s*\[\s*\{(?![\s\S]*?\bexpectation:)'
+        - '\brawSql\(\{[\s\S]*?\b(?:precheck|postcheck):\s*\[(?:\s*\{(?:[^{}]|\{[^{}]*\})*\},)*?\s*\{[^{}]*\}'
 ---
 
 # Checks say which object they expect absent or present

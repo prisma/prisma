@@ -63,4 +63,49 @@ describe.each(['app', 'extension'])('the %s check-expectation detection', (audie
       matches('check-expectation-raw-sql', rawSqlMigration),
     ]).toEqual([true, false]);
   });
+
+  it('matches an ops.json where one check carries an expectation and another, after or before it, does not', () => {
+    const [first, second] = JSON.parse(sqlOps) as { precheck: Record<string, unknown>[] }[];
+    const stripped = (op: { precheck: Record<string, unknown>[] } | undefined) =>
+      op === undefined
+        ? []
+        : [
+            {
+              ...op,
+              precheck: op.precheck.map(({ expectation: _, ...check }) => check),
+            },
+          ];
+    const mixed = (ops: unknown[]) => JSON.stringify(ops, null, 2);
+    expect([
+      matches('check-expectation', mixed([first, ...stripped(second)])),
+      matches('check-expectation', mixed([...stripped(first), second])),
+      matches('check-expectation', mixed([first, second])),
+    ]).toEqual([true, true, false]);
+  });
+
+  it('matches a migration.ts where one rawSql check carries an expectation and another does not', () => {
+    const check = (description: string, expectation: string) => `{
+            description: '${description}',
+            sql: "SELECT NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'vector')",${expectation}
+          }`;
+    const withIt =
+      "\n            expectation: { expects: 'absent', object: 'extension \"vector\"' },";
+    const rawSql = (...checks: string[]) => `
+      rawSql({
+        id: 'extension.vector',
+        precheck: [
+          ${checks.join(',\n          ')},
+        ],
+        execute: [],
+        postcheck: [],
+      }),`;
+    expect([
+      matches('check-expectation-raw-sql', rawSql(check('first', withIt), check('second', ''))),
+      matches(
+        'check-expectation-raw-sql',
+        rawSql(check('first', withIt)) + rawSql(check('second', '')),
+      ),
+      matches('check-expectation-raw-sql', rawSql(check('first', withIt), check('second', withIt))),
+    ]).toEqual([true, true, false]);
+  });
 });
