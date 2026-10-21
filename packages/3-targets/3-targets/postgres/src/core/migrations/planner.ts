@@ -54,7 +54,7 @@ import { postgresNodeStorageCoordinate } from '../schema-ir/node-storage-coordin
 import { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import { PostgresPolicySchemaNode } from '../schema-ir/postgres-policy-schema-node';
 import { PostgresTableSchemaNode } from '../schema-ir/postgres-table-schema-node';
-import type { SqlSchemaDiffNode } from '../schema-ir/schema-node-kinds';
+import { PostgresSchemaNodeKind, type SqlSchemaDiffNode } from '../schema-ir/schema-node-kinds';
 import { plannedConstraintNameRenames } from './constraint-name-renames';
 import {
   renderPostgresSuppression,
@@ -80,6 +80,7 @@ import {
   DropColumnCall,
   DropNativeEnumTypeCall,
   DropPostgresRlsPolicyCall,
+  DropSchemaCall,
   DropTableCall,
   RawSqlCall,
   type RenameColumnCall,
@@ -90,7 +91,7 @@ import {
 } from './op-factory-call';
 import { postgresCallSubjects } from './operation-subjects';
 import { TypeScriptRenderablePostgresMigration } from './planner-produced-postgres-migration';
-import { postgresPlannerStrategies } from './planner-strategies';
+import { type CallMigrationStrategy, postgresPlannerStrategies } from './planner-strategies';
 import {
   emissionSchemaForNamespace,
   resolveDdlSchemaForNamespaceStorage,
@@ -264,10 +265,12 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       return plannerFailure([statements.failure]);
     }
     const { schema } = statements.value;
+    const removedSchemas = removedNamespaceSchemas(options, schema);
     const { issues: rawIssues, expected: expectedSchema } = buildPostgresPlanDiff({
       contract: options.contract,
       actualSchema: schema,
       frameworkComponents: options.frameworkComponents,
+      originSchemas: originSchemaNames(options.fromContract),
     });
     const policyDiffIssues = rawIssues.filter((issue) => isPolicyDiffIssue(issue));
     // Role diff issues resolve to the `external` control policy (see
@@ -298,7 +301,9 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     const strict =
       options.policy.allowedOperationClasses.includes('widening') ||
       options.policy.allowedOperationClasses.includes('destructive');
-    const coalesced = coalesceSubtreeIssues(relationalDiffIssues);
+    const coalesced = coalesceSubtreeIssues(
+      relationalDiffIssues.filter((issue) => !isRemovedNamespaceIssue(issue, removedSchemas)),
+    );
     const owned = retainUnownedExtras(coalesced, options.ownership, options.contract);
     const gated = strict ? owned : owned.filter((issue) => issueOutcome(issue) !== 'not-expected');
 
@@ -401,7 +406,12 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       policy: options.policy,
       frameworkComponents: options.frameworkComponents,
       statementColumns: fieldStatementColumns(options.statements, options.contract),
-      strategies: postgresPlannerStrategies,
+      strategies: [
+        ...postgresPlannerStrategies,
+        dropRemovedSchemasStrategy(
+          removedSchemas.filter((schemaName) => !keptSchema(options, schemaName)),
+        ),
+      ],
     });
 
     // Relational conflicts and policy-drift conflicts compose into ONE
@@ -830,6 +840,60 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     }
     return null;
   }
+}
+
+/** The DDL schemas the origin contract declares; none without an origin contract. */
+function originSchemaNames(fromContract: Contract<SqlStorage> | null): readonly string[] {
+  if (fromContract === null) return [];
+  return Object.keys(fromContract.storage.namespaces)
+    .filter((namespaceId) => namespaceId !== UNBOUND_NAMESPACE_ID)
+    .map((namespaceId) => resolveDdlSchemaForNamespaceStorage(fromContract.storage, namespaceId));
+}
+
+/**
+ * The live schemas the origin contract declares and the destination does not: each is dropped,
+ * its tables first, each table a data-loss question.
+ */
+function removedNamespaceSchemas(
+  options: SqlMigrationPlannerPlanOptions,
+  schema: PostgresDatabaseSchemaNode,
+): readonly string[] {
+  const destination = new Set(originSchemaNames(options.contract));
+  return originSchemaNames(options.fromContract).filter(
+    (schemaName) => !destination.has(schemaName) && schema.namespaces[schemaName] !== undefined,
+  );
+}
+
+/**
+ * The issue a removed schema raises for itself, which would cover the issues of its tables: they
+ * are kept instead, so each table is dropped and asked about on its own.
+ */
+function isRemovedNamespaceIssue(
+  issue: SchemaDiffIssue<SqlSchemaDiffNode>,
+  removedSchemas: readonly string[],
+): boolean {
+  const node = issueNode(issue);
+  return (
+    node !== undefined &&
+    node.nodeKind === PostgresSchemaNodeKind.namespace &&
+    removedSchemas.includes(issue.path[1] ?? '')
+  );
+}
+
+/** A removed schema that stays: `public`, which Prisma owns, or one another contract space declares. */
+function keptSchema(options: SqlMigrationPlannerPlanOptions, schemaName: string): boolean {
+  if (schemaName === DEFAULT_NAMESPACE_ID || options.fromContract === null) return true;
+  const namespaceId = resolveNamespaceIdForDdlSchema(options.fromContract, schemaName);
+  return (options.ownership?.namespaceDeclaringSpaces(namespaceId) ?? []).some(
+    (spaceId) => spaceId !== options.spaceId,
+  );
+}
+
+function dropRemovedSchemasStrategy(schemaNames: readonly string[]): CallMigrationStrategy {
+  return (issues) =>
+    schemaNames.length === 0
+      ? { kind: 'no_match' }
+      : { kind: 'match', issues, calls: schemaNames.map((name) => new DropSchemaCall(name)) };
 }
 
 type StatementCall =

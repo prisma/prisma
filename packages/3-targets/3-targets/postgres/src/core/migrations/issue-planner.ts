@@ -48,6 +48,7 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import type { Result } from '@internal/utils/result';
 import { notOk, ok } from '@internal/utils/result';
+import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import type { PostgresNamespaceSchemaNode } from '../schema-ir/postgres-namespace-schema-node';
 import type { PostgresNativeEnumSchemaNode } from '../schema-ir/postgres-native-enum-schema-node';
 import type { PostgresTableSchemaNode } from '../schema-ir/postgres-table-schema-node';
@@ -379,11 +380,14 @@ export function issueColumnName(issue: SchemaDiffIssue): string | undefined {
  * at runtime (`boundSchema`). Recovers the logical namespace id via the
  * contract and substitutes the unbound sentinel back in when it resolves
  * there; every other namespace's `ddlSchemaName` already agrees between the
- * two resolution paths, so it passes through unchanged.
+ * two resolution paths, so it passes through unchanged. A schema the contract
+ * does not declare, such as one the origin contract had, stays qualified.
  */
 export function emissionSchemaName(ctx: StrategyContext, ddlSchemaName: string): string {
   const namespaceId = resolveNamespaceIdForDdlSchema(ctx.toContract, ddlSchemaName);
-  return namespaceId === UNBOUND_NAMESPACE_ID ? UNBOUND_NAMESPACE_ID : ddlSchemaName;
+  return namespaceId === UNBOUND_NAMESPACE_ID && ddlSchemaName === DEFAULT_NAMESPACE_ID
+    ? UNBOUND_NAMESPACE_ID
+    : ddlSchemaName;
 }
 
 // ----------------------------------------------------------------------------

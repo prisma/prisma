@@ -221,6 +221,11 @@ export function buildPostgresPlanDiff(input: {
   readonly contract: Contract<SqlStorage>;
   readonly actualSchema: SqlSchemaIRNode;
   readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
+  /**
+   * The DDL schemas the plan's origin contract declares. Their live objects are this plan's too,
+   * so a schema the destination no longer declares reaches the diff as extras to drop.
+   */
+  readonly originSchemas?: readonly string[];
 }): PostgresPlanDiff {
   const postgresContract = blindCast<
     PostgresContract,
@@ -238,8 +243,9 @@ export function buildPostgresPlanDiff(input: {
   const fullExpected = contractToPostgresDatabaseSchemaNode(postgresContract, projectionOptions);
   const expected = pruneTableLessNamespaces(fullExpected);
   const paddedActual = padActualNamespaces(expected, actual);
-  const relationalOwned = ownedSchemaNames(expected);
-  const structuralOwned = ownedSchemaNames(fullExpected);
+  const originSchemas = input.originSchemas ?? [];
+  const relationalOwned = new Set([...ownedSchemaNames(expected), ...originSchemas]);
+  const structuralOwned = new Set([...ownedSchemaNames(fullExpected), ...originSchemas]);
   const issues = blindCast<
     readonly SchemaDiffIssue<SqlSchemaDiffNode>[],
     'both trees are PostgresDatabaseSchemaNodes, so every diff-issue node is a SqlSchemaDiffNode'
