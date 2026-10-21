@@ -1,9 +1,5 @@
 export type { ImportRequirement } from '@internal/ts-render';
-export {
-  CheckExpectationSchema,
-  expectAbsent,
-  expectPresent,
-} from '../control/check-expectation';
+export { expectAbsent, expectPresent } from '../control/check-expectation';
 export type { ContractSerializer } from '../control/contract-serializer';
 export {
   CONTRACT_SNAPSHOTS_DIRNAME,

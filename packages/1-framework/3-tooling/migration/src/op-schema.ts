@@ -1,5 +1,10 @@
-import { CheckExpectationSchema } from '@internal/framework-components/control';
 import { type } from 'arktype';
+
+/** The shape a check's expectation must have where it is read from an `ops.json`. */
+const CheckExpectationSchema = type({
+  expects: "'absent' | 'present'",
+  object: 'string > 0',
+});
 
 /** What a check may say of the object it is about: an expectation, or the object's name alone. */
 const CheckSchema = type({
