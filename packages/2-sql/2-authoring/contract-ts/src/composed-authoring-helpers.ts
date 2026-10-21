@@ -114,7 +114,7 @@ type CoreFieldHelpers = Pick<typeof field, 'column' | 'generated' | 'namedType'>
 
 type FieldHelpersForCodecs<CodecTypes extends CodecTypeMap> = Pick<typeof field, 'generated'> & {
   readonly column: ColumnFieldHelper<CodecTypes>;
-  readonly namedType: NamedTypeFieldHelper<CodecTypes>;
+  readonly namedType: NamedTypeFieldHelper;
 };
 
 type CodecTypesOfPacks<Family, Target, Extensions> = ExtractCodecTypesFromPack<Family> &

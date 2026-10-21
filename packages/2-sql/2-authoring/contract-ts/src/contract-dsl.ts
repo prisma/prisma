@@ -38,7 +38,6 @@ import type { NamedConstraintSpec } from './authoring-type-utils';
 import type { AuthoredColumnDefault, CapabilityContributor } from './contract-definition';
 import { contractError } from './contract-errors';
 import type { EnumTypeHandle } from './enum-type';
-import { isEnumTypeHandle } from './enum-type';
 
 export type NamingStrategy = 'identity' | 'snake_case';
 
@@ -47,7 +46,7 @@ export type NamingConfig = {
   readonly columns?: NamingStrategy;
 };
 
-type NamedStorageTypeRef = string | AuthoredStorageTypeInstance | EnumTypeHandle;
+type NamedStorageTypeRef = EnumTypeHandle;
 
 type NamedConstraintNameSpec<Name extends string = string> = {
   readonly name: Name;
@@ -127,6 +126,20 @@ function withGeneratorCall<State extends AnyScalarFieldState>(
     );
   }
   return { ...state, generatorCalls: { ...state.generatorCalls, [phase]: call } };
+}
+
+function withColumnDefault<State extends AnyScalarFieldState>(
+  state: State,
+  columnDefault: AuthoredColumnDefault,
+): State {
+  if (state.default !== undefined) {
+    throw contractError(
+      'CONTRACT.DEFAULT_INVALID',
+      '.default() is called on a field that already has a default. Set the default once, and do not combine .default() with a field preset or alias constant that sets one.',
+      { meta: { reason: 'default-set-twice' } },
+    );
+  }
+  return { ...state, default: columnDefault };
 }
 
 type WithColumnDefault<State extends AnyScalarFieldState> =
@@ -484,12 +497,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
     return blindCast<
       ScalarFieldBuilder<WithColumnDefault<State>>,
       'object spread does not narrow the generic State conditional; runtime shape is correct'
-    >(
-      new ScalarFieldBuilder({
-        ...this.state,
-        default: toColumnDefault(value),
-      }),
-    );
+    >(new ScalarFieldBuilder(withColumnDefault(this.state, toColumnDefault(value))));
   }
 
   /** Generates the field's value in the client when a row is created without one, with a call from `gen`, such as `gen.uuid()`. */
@@ -512,12 +520,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
     return blindCast<
       ScalarFieldBuilder<WithColumnDefault<State>>,
       'object spread does not narrow the generic State conditional; runtime shape is correct'
-    >(
-      new ScalarFieldBuilder({
-        ...this.state,
-        default: { kind: 'function', expression },
-      }),
-    );
+    >(new ScalarFieldBuilder(withColumnDefault(this.state, { kind: 'function', expression })));
   }
 
   id<const Name extends string | undefined = undefined>(
@@ -695,7 +698,7 @@ export class EnumScalarFieldBuilder<
       'object spread does not narrow the generic State conditional; runtime shape is correct'
     >(
       new EnumScalarFieldBuilder(
-        { ...this.build(), default: { kind: 'literal', value } },
+        withColumnDefault(this.build(), { kind: 'literal', value }),
         this.#handle,
       ),
     );
@@ -725,22 +728,9 @@ export type ColumnFieldHelper<CodecTypes extends CodecTypeMap = CodecTypesOfNoPa
   >
 >;
 
-export type NamedTypeFieldHelper<CodecTypes extends CodecTypeMap = CodecTypesOfNoPacks> = {
-  <TypeRef extends string>(
-    typeRef: TypeRef,
-  ): ScalarFieldBuilder<ScalarFieldState<ColumnTypeDescriptor, TypeRef, false, undefined>>;
-  <TypeRef extends AuthoredStorageTypeInstance>(
-    typeRef: TypeRef,
-  ): ScalarFieldBuilder<
-    ScalarFieldState<
-      WithCodecInput<ColumnTypeDescriptor<TypeRef['codecId']>, CodecInput<CodecTypes, TypeRef>>,
-      TypeRef,
-      false,
-      undefined
-    >
-  >;
-  <Handle extends EnumTypeHandle>(typeRef: Handle): EnumScalarFieldBuilder<Handle>;
-};
+export type NamedTypeFieldHelper = <Handle extends EnumTypeHandle>(
+  handle: Handle,
+) => EnumScalarFieldBuilder<Handle>;
 
 const columnField: ColumnFieldHelper = (descriptor) =>
   new ScalarFieldBuilder({
@@ -787,33 +777,19 @@ function generatedField<
   });
 }
 
-function untypedNamedTypeField(typeRef: NamedStorageTypeRef): ScalarFieldBuilder {
-  if (isEnumTypeHandle(typeRef)) {
-    return new EnumScalarFieldBuilder(
-      blindCast<
-        ScalarFieldState<ColumnTypeDescriptor, typeof typeRef, false, undefined>,
-        'literal object lacks explicit many; cast to the full ScalarFieldState so optional() conditional resolves Many = false'
-      >({
-        kind: 'scalar',
-        typeRef,
-        nullable: false,
-        many: false,
-      }),
-      typeRef,
-    );
-  }
-  return new ScalarFieldBuilder({
-    kind: 'scalar',
-    typeRef,
-    nullable: false,
-    many: false,
-  });
-}
-
-const namedTypeField = blindCast<
-  NamedTypeFieldHelper,
-  'the overloads narrow the returned state by the kind of type reference; the implementation returns the builder for that kind'
->(untypedNamedTypeField);
+const namedTypeField: NamedTypeFieldHelper = (handle) =>
+  new EnumScalarFieldBuilder(
+    blindCast<
+      ScalarFieldState<ColumnTypeDescriptor, typeof handle, false, undefined>,
+      'literal object lacks explicit many; cast to the full ScalarFieldState so optional() conditional resolves Many = false'
+    >({
+      kind: 'scalar',
+      typeRef: handle,
+      nullable: false,
+      many: false,
+    }),
+    handle,
+  );
 
 export function buildFieldPreset(
   descriptor: AuthoringFieldPresetDescriptor,
@@ -2231,7 +2207,7 @@ function normalizeRelationModelSource(
 export type ContractInput<
   Family extends FamilyPackRef<string> = FamilyPackRef<string>,
   Target extends TargetPackRef<'sql', string> = TargetPackRef<'sql', string>,
-  Types extends Record<string, AuthoredStorageTypeInstance> = Record<never, never>,
+  DatabaseTypes extends Record<string, AuthoredStorageTypeInstance> = Record<never, never>,
   Models extends Record<
     string,
     ContractModelBuilder<
@@ -2292,7 +2268,8 @@ export type ContractInput<
    * late-bound slot stays available regardless of authoring choices).
    */
   readonly createNamespace: (input: SqlNamespaceInput) => SqlNamespaceBase;
-  readonly types?: Types;
+  /** The database types this contract space registers in `storage.types`, such as an extension's base type. No column references them. */
+  readonly databaseTypes?: DatabaseTypes;
   readonly models?: Models;
   /** The codecs of the packs the contract is authored with; a column's database type is its codec's data type's. */
   readonly codecLookup: CodecLookupWithDescriptors;

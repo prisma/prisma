@@ -27,7 +27,7 @@ import type { RlsEntityHandle } from './rls';
 type SqlFamily = typeof sqlFamilyPack;
 type PostgresPack = typeof postgresPack;
 
-type TypesConstraint = Record<string, AuthoredStorageTypeInstance>;
+type DatabaseTypesConstraint = Record<string, AuthoredStorageTypeInstance>;
 type ModelsConstraint = Record<string, ModelLike>;
 type EnumsConstraint = Record<string, EnumTypeHandle>;
 type ForeignKeyDefaultsConstraint = ContractInput['foreignKeyDefaults'];
@@ -39,7 +39,7 @@ type PostgresAdapter = typeof postgresAdapterContractContributions;
 const adapter: PostgresAdapter = postgresAdapterContractContributions;
 
 type PostgresResult<
-  Types extends TypesConstraint,
+  DatabaseTypes extends DatabaseTypesConstraint,
   Models extends ModelsConstraint,
   Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined,
   Enums extends EnumsConstraint,
@@ -50,7 +50,7 @@ type PostgresResult<
     SqlFamily,
     PostgresPack,
     {
-      readonly types?: Types;
+      readonly databaseTypes?: DatabaseTypes;
       readonly models?: Models;
       readonly extensions?: Extensions;
       readonly enums?: Enums;
@@ -73,7 +73,7 @@ type PostgresBaseScaffold<
   | 'target'
   | 'adapter'
   | 'foreignKeyDefaults'
-  | 'types'
+  | 'databaseTypes'
   | 'models'
   | 'enums'
   | 'namespaces'
@@ -99,14 +99,14 @@ type PostgresBaseScaffold<
 };
 
 type PostgresDefinition<
-  Types extends TypesConstraint,
+  DatabaseTypes extends DatabaseTypesConstraint,
   Models extends ModelsConstraint,
   Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined,
   Enums extends EnumsConstraint,
   Namespaces extends NamespacesConstraint,
   ForeignKeyDefaults extends ForeignKeyDefaultsConstraint,
 > = PostgresBaseScaffold<Extensions, ForeignKeyDefaults> & {
-  readonly types?: Types;
+  readonly databaseTypes?: DatabaseTypes;
   readonly models?: Models;
   readonly enums?: Enums;
   readonly namespaces?: Namespaces;
@@ -118,25 +118,32 @@ type PostgresScaffold<
   Namespaces extends NamespacesConstraint,
   ForeignKeyDefaults extends ForeignKeyDefaultsConstraint,
 > = PostgresBaseScaffold<Extensions, ForeignKeyDefaults> & {
-  readonly types?: never;
+  readonly databaseTypes?: never;
   readonly models?: never;
   readonly enums?: Enums;
   readonly namespaces?: Namespaces;
 };
 
 export function defineContract<
-  const Types extends TypesConstraint = Record<never, never>,
+  const DatabaseTypes extends DatabaseTypesConstraint = Record<never, never>,
   const Models extends ModelsConstraint = Record<never, never>,
   const Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined = undefined,
   const Enums extends EnumsConstraint = Record<never, never>,
   const Namespaces extends NamespacesConstraint = undefined,
   const ForeignKeyDefaults extends ForeignKeyDefaultsConstraint = undefined,
 >(
-  definition: PostgresDefinition<Types, Models, Extensions, Enums, Namespaces, ForeignKeyDefaults>,
-): PostgresResult<Types, Models, Extensions, Enums, Namespaces, ForeignKeyDefaults>;
+  definition: PostgresDefinition<
+    DatabaseTypes,
+    Models,
+    Extensions,
+    Enums,
+    Namespaces,
+    ForeignKeyDefaults
+  >,
+): PostgresResult<DatabaseTypes, Models, Extensions, Enums, Namespaces, ForeignKeyDefaults>;
 
 export function defineContract<
-  const Types extends TypesConstraint = Record<never, never>,
+  const DatabaseTypes extends DatabaseTypesConstraint = Record<never, never>,
   const Models extends ModelsConstraint = Record<never, never>,
   const Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined = undefined,
   const ScaffoldEnums extends EnumsConstraint = Record<never, never>,
@@ -146,12 +153,12 @@ export function defineContract<
 >(
   scaffold: PostgresScaffold<Extensions, ScaffoldEnums, Namespaces, ForeignKeyDefaults>,
   factory: (helpers: ComposedAuthoringHelpers<SqlFamily, PostgresPack, Extensions>) => {
-    readonly types?: Types;
+    readonly databaseTypes?: DatabaseTypes;
     readonly models?: Models;
     readonly enums?: FactoryEnums;
   },
 ): PostgresResult<
-  Types,
+  DatabaseTypes,
   Models,
   Extensions,
   MergeEnums<ScaffoldEnums, FactoryEnums>,
@@ -164,7 +171,7 @@ export function defineContract<
 // build lowers `entities` through the pack-registered entity-handle hook.
 export function defineContract(
   definition: PostgresDefinition<
-    TypesConstraint,
+    DatabaseTypesConstraint,
     ModelsConstraint,
     undefined,
     EnumsConstraint,
@@ -172,12 +179,12 @@ export function defineContract(
     ForeignKeyDefaultsConstraint
   >,
   factory?: (helpers: ComposedAuthoringHelpers<SqlFamily, PostgresPack, undefined>) => {
-    readonly types?: TypesConstraint;
+    readonly databaseTypes?: DatabaseTypesConstraint;
     readonly models?: ModelsConstraint;
     readonly enums?: EnumsConstraint;
   },
 ): PostgresResult<
-  TypesConstraint,
+  DatabaseTypesConstraint,
   ModelsConstraint,
   undefined,
   EnumsConstraint,

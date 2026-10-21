@@ -18,8 +18,11 @@ import {
 import postgresTargetPack from '../src/exports/pack';
 
 describe('the type constructors the target contributes', () => {
-  it('are only the target’s own; the adapter contributes the scalar and native ones', () => {
-    expect(postgresTargetPack.authoring.type).toBe(postgresAuthoringTypes);
+  it('are the scalar, native and target-only ones, so PSL and type.* see the same names', () => {
+    expect(postgresTargetPack.authoring.type).toEqual({
+      ...postgresPslTypeConstructors,
+      ...postgresAuthoringTypes,
+    });
     expect(Object.keys(postgresAuthoringTypes)).toEqual(['BigIntNumber', 'UnboundedInt', 'pg']);
   });
 

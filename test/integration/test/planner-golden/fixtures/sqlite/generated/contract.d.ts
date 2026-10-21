@@ -19,7 +19,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'79b20e2c4ed3decb2dd7e26a3380f65f3d70711c9421d72f4e3e683f5bf4143c'>;
+  StorageHashBase<'65449fc3c32073124545aa03d9f5643e0f9343f6574e4256e5d66b718786f47f'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'260b8608d1aacaf1f690779a6cff39a12947c599597c5ba464ca75b9e775df53'>;
@@ -279,7 +279,7 @@ type ContractBase = Omit<
                   readonly dataType: 'sqlite/character-varying';
                   readonly codecId: 'sql/varchar@1';
                   readonly nullable: false;
-                  readonly typeRef: 'ShortText';
+                  readonly typeParams: { readonly length: 255 };
                   readonly many: false;
                 };
                 readonly sqlFloat: {
@@ -321,14 +321,6 @@ type ContractBase = Omit<
             };
           };
         };
-      };
-    };
-    readonly types: {
-      readonly ShortText: {
-        readonly kind: 'codec-instance';
-        readonly codecId: 'sql/varchar@1';
-        readonly dataType: 'sqlite/character-varying';
-        readonly typeParams: { readonly length: 255 };
       };
     };
     readonly storageHash: StorageHash;

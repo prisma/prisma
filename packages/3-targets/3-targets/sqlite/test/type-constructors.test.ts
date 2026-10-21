@@ -9,8 +9,11 @@ import { sqlitePslTypeConstructors } from '../src/core/type-constructors';
 import sqliteTargetPack from '../src/exports/pack';
 
 describe('the type constructors the SQLite target contributes', () => {
-  it('are only the target’s own; the adapter contributes the base scalars', () => {
-    expect(sqliteTargetPack.authoring.type).toBe(sqliteAuthoringTypes);
+  it('are the base scalars and the target’s own, so PSL and type.* see the same names', () => {
+    expect(sqliteTargetPack.authoring.type).toEqual({
+      ...sqlitePslTypeConstructors,
+      ...sqliteAuthoringTypes,
+    });
     expect(Object.keys(sqliteAuthoringTypes)).toEqual(['BigIntNumber']);
   });
 

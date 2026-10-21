@@ -62,7 +62,7 @@ type ModelLike = {
 type ContractDefinition<
   Family extends FamilyPackRef<string>,
   Target extends TargetPackRef<'sql', string>,
-  Types extends Record<string, AuthoredStorageTypeInstance>,
+  DatabaseTypes extends Record<string, AuthoredStorageTypeInstance>,
   Models extends Record<string, ModelLike>,
   Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined,
   Naming extends ContractInput['naming'] | undefined,
@@ -80,7 +80,7 @@ type ContractDefinition<
   readonly defaultControlPolicy?: ControlPolicy;
   readonly namespaces?: Namespaces;
   readonly createNamespace: (input: SqlNamespaceInput) => SqlNamespaceBase;
-  readonly types?: Types;
+  readonly databaseTypes?: DatabaseTypes;
   readonly models?: Models;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypeLookup: DataTypeLookup;
@@ -107,7 +107,7 @@ type ContractScaffold<
   readonly defaultControlPolicy?: ControlPolicy;
   readonly namespaces?: Namespaces;
   readonly createNamespace: (input: SqlNamespaceInput) => SqlNamespaceBase;
-  readonly types?: never;
+  readonly databaseTypes?: never;
   readonly models?: never;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypeLookup: DataTypeLookup;
@@ -118,16 +118,26 @@ type ContractScaffold<
 type ContractFactory<
   Family extends FamilyPackRef<string>,
   Target extends TargetPackRef<'sql', string>,
-  Types extends Record<string, AuthoredStorageTypeInstance>,
+  DatabaseTypes extends Record<string, AuthoredStorageTypeInstance>,
   Models extends Record<string, ModelLike>,
   Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined,
   Enums extends Record<string, EnumTypeHandle> = Record<string, EnumTypeHandle>,
 > = (helpers: ComposedAuthoringHelpers<Family, Target, Extensions>) => {
-  readonly types?: Types;
+  readonly databaseTypes?: DatabaseTypes;
   readonly models?: Models;
   readonly enums?: Enums;
   readonly entities?: readonly PackEntityHandle[];
 };
+
+function refuseTypesKey(definition: object): void {
+  if (!Object.hasOwn(definition, 'types')) return;
+  const types: unknown = Reflect.get(definition, 'types');
+  throw contractError(
+    'CONTRACT.TYPES_KEY_REMOVED',
+    'defineContract no longer takes a "types" key. Write a type alias as a constant, such as const Slug = field.column(type.VarChar(64)), and use it as a field. Register a database type of a contract space under "databaseTypes".',
+    { meta: { keys: typeof types === 'object' && types !== null ? Object.keys(types) : [] } },
+  );
+}
 
 function validateTargetPackRef(
   family: FamilyPackRef<string>,
@@ -376,7 +386,7 @@ function buildContractFromDsl<Definition extends ContractInput>(
 // Input for buildBoundContract — all fields from ContractInput except family/target
 // (those are injected by the builder, pre-bound at the call site).
 type BoundDefinitionInput<
-  Types extends Record<string, AuthoredStorageTypeInstance> = Record<never, never>,
+  DatabaseTypes extends Record<string, AuthoredStorageTypeInstance> = Record<never, never>,
   Models extends Record<string, ModelLike> = Record<never, never>,
   Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined = undefined,
   Naming extends ContractInput['naming'] | undefined = undefined,
@@ -391,7 +401,7 @@ type BoundDefinitionInput<
   readonly defaultControlPolicy?: ControlPolicy;
   readonly namespaces?: Namespaces;
   readonly createNamespace: (input: SqlNamespaceInput) => SqlNamespaceBase;
-  readonly types?: Types;
+  readonly databaseTypes?: DatabaseTypes;
   readonly models?: Models;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypeLookup: DataTypeLookup;
@@ -462,7 +472,7 @@ export function buildBoundContract<
     readonly string[] | undefined
   >,
   const Built extends {
-    readonly types?: Record<string, AuthoredStorageTypeInstance>;
+    readonly databaseTypes?: Record<string, AuthoredStorageTypeInstance>;
     readonly models?: Record<string, ModelLike>;
     readonly enums?: Record<string, EnumTypeHandle>;
     readonly entities?: readonly PackEntityHandle[];
@@ -488,13 +498,14 @@ export function buildBoundContract(
           Record<string, ExtensionPackRef<'sql', string>> | undefined
         >,
       ) => {
-        readonly types?: Record<string, AuthoredStorageTypeInstance>;
+        readonly databaseTypes?: Record<string, AuthoredStorageTypeInstance>;
         readonly models?: Record<string, ModelLike>;
         readonly enums?: Record<string, EnumTypeHandle>;
         readonly entities?: readonly PackEntityHandle[];
       })
     | undefined,
 ) {
+  refuseTypesKey(definition);
   const full = { ...definition, family, target };
 
   if (factory !== undefined) {
@@ -507,11 +518,12 @@ export function buildBoundContract(
         dataTypeLookup: definition.dataTypeLookup,
       }),
     );
+    refuseTypesKey(built);
     const mergedEnums = { ...(definition.enums ?? {}), ...built.enums };
     const mergedEntities = [...(definition.entities ?? []), ...(built.entities ?? [])];
     return buildContractFromDsl({
       ...full,
-      ...ifDefined('types', built.types),
+      ...ifDefined('databaseTypes', built.databaseTypes),
       ...ifDefined('models', built.models),
       ...ifDefined('enums', Object.keys(mergedEnums).length > 0 ? mergedEnums : undefined),
       ...ifDefined('entities', mergedEntities.length > 0 ? mergedEntities : undefined),
@@ -524,7 +536,7 @@ export function buildBoundContract(
 export function defineContract<
   const Family extends FamilyPackRef<string>,
   const Target extends TargetPackRef<'sql', string>,
-  const Types extends Record<string, AuthoredStorageTypeInstance> = Record<never, never>,
+  const DatabaseTypes extends Record<string, AuthoredStorageTypeInstance> = Record<never, never>,
   const Models extends Record<string, ModelLike> = Record<never, never>,
   const Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined = undefined,
   const Naming extends ContractInput['naming'] | undefined = undefined,
@@ -536,7 +548,7 @@ export function defineContract<
   definition: ContractDefinition<
     Family,
     Target,
-    Types,
+    DatabaseTypes,
     Models,
     Extensions,
     Naming,
@@ -549,7 +561,7 @@ export function defineContract<
   ContractDefinition<
     Family,
     Target,
-    Types,
+    DatabaseTypes,
     Models,
     Extensions,
     Naming,
@@ -562,7 +574,7 @@ export function defineContract<
 export function defineContract<
   const Family extends FamilyPackRef<string>,
   const Target extends TargetPackRef<'sql', string>,
-  const Types extends Record<string, AuthoredStorageTypeInstance> = Record<never, never>,
+  const DatabaseTypes extends Record<string, AuthoredStorageTypeInstance> = Record<never, never>,
   const Models extends Record<string, ModelLike> = Record<never, never>,
   const Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined = undefined,
   const Naming extends ContractInput['naming'] | undefined = undefined,
@@ -582,12 +594,12 @@ export function defineContract<
     Namespaces,
     ScaffoldEnums
   >,
-  factory: ContractFactory<Family, Target, Types, Models, Extensions, FactoryEnums>,
+  factory: ContractFactory<Family, Target, DatabaseTypes, Models, Extensions, FactoryEnums>,
 ): SqlContractResult<
   ContractDefinition<
     Family,
     Target,
-    Types,
+    DatabaseTypes,
     Models,
     Extensions,
     Naming,

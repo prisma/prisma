@@ -3,13 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { vector } from '../src/exports/column-types';
 import pgvector from '../src/exports/pack';
 
-function embeddingDefault(literal: number[], form: 'namedType' | 'column'): unknown {
+function embeddingDefault(literal: number[], form: 'typeHelper' | 'column'): unknown {
   const contract = defineContract({ extensions: { pgvector } }, ({ field, model, type }) => {
-    const types = { Embedding: type.pgvector.Vector(3) };
-    const embedding =
-      form === 'namedType' ? field.namedType(types.Embedding) : field.column(vector(3));
+    const embedding = field.column(form === 'typeHelper' ? type.pgvector.Vector(3) : vector(3));
     return {
-      types,
       models: {
         Doc: model('Doc', {
           fields: { id: field.id.uuidv4String(), embedding: embedding.default(literal) },
@@ -34,16 +31,16 @@ const lengthRefusal = expect.objectContaining({
 });
 
 describe('literal defaults on a codec contributed through extensions', () => {
-  describe('on a named type with type parameters', () => {
+  describe('on a column typed by type.pgvector.Vector', () => {
     it('stores a vector of the declared length', () => {
-      expect(embeddingDefault([1, 2, 3], 'namedType')).toEqual({
+      expect(embeddingDefault([1, 2, 3], 'typeHelper')).toEqual({
         kind: 'literal',
         value: [1, 2, 3],
       });
     });
 
     it('refuses a vector of another length', () => {
-      expect(() => embeddingDefault([1, 2], 'namedType')).toThrow(lengthRefusal);
+      expect(() => embeddingDefault([1, 2], 'typeHelper')).toThrow(lengthRefusal);
     });
   });
 

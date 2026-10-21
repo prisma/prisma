@@ -264,10 +264,10 @@ type DefinitionNamespaces<Definition> = Definition extends {
   : never;
 
 type DefinitionTypes<Definition> = Definition extends {
-  readonly types?: unknown;
+  readonly databaseTypes?: unknown;
 }
-  ? Present<Definition['types']> extends Record<string, StorageType>
-    ? Present<Definition['types']>
+  ? Present<Definition['databaseTypes']> extends Record<string, StorageType>
+    ? Present<Definition['databaseTypes']>
     : Record<never, never>
   : Record<never, never>;
 
@@ -440,7 +440,9 @@ type ColumnSpecCodecId<Descriptor> = Descriptor extends {
 type DescriptorTypeParams<Descriptor> = Descriptor extends {
   readonly typeParams: infer TypeParams extends Record<string, unknown>;
 }
-  ? TypeParams
+  ? [keyof TypeParams] extends [never]
+    ? undefined
+    : TypeParams
   : undefined;
 
 type DescriptorTypeRef<Descriptor> = Descriptor extends {
@@ -449,38 +451,10 @@ type DescriptorTypeRef<Descriptor> = Descriptor extends {
   ? TypeRef
   : undefined;
 
-type LookupNamedStorageTypeKeyByValue<Definition, TypeRef extends StorageType> = {
-  [TypeName in keyof DefinitionTypes<Definition> & string]: [TypeRef] extends [
-    DefinitionTypes<Definition>[TypeName],
-  ]
-    ? [DefinitionTypes<Definition>[TypeName]] extends [TypeRef]
-      ? TypeName
-      : never
-    : never;
-}[keyof DefinitionTypes<Definition> & string];
-
-type ResolveNamedStorageTypeKey<Definition, TypeRef> = TypeRef extends string
-  ? TypeRef
-  : TypeRef extends StorageType
-    ? [LookupNamedStorageTypeKeyByValue<Definition, TypeRef>] extends [never]
-      ? string
-      : LookupNamedStorageTypeKeyByValue<Definition, TypeRef>
-    : never;
-
-type ResolveNamedStorageType<Definition, TypeRef> =
-  ResolveNamedStorageTypeKey<Definition, TypeRef> extends infer TypeName extends string
-    ? TypeName extends keyof DefinitionTypes<Definition>
-      ? DefinitionTypes<Definition>[TypeName]
-      : AuthoredStorageTypeInstance
-    : AuthoredStorageTypeInstance;
-
-// An enum-typed field carries its `EnumTypeHandle` (an object with a `codecId`
-// but no `kind`) as the field's `typeRef`. It is neither a string nor a
-// registered `StorageType`, so the named-type lookup cannot reach it;
-// `EnumFieldHandle` short-circuits the resolvers to read the codec straight
-// off the handle, with no column type-ref (the enum name is carried
-// elsewhere). The `[...] extends [never]` guard excludes plain column fields,
-// whose `typeRef` is `never`.
+// An enum-typed field carries its `EnumTypeHandle` as the field's `typeRef`;
+// the resolvers read the codec straight off the handle. The
+// `[...] extends [never]` guard excludes plain column fields, whose `typeRef`
+// is `never`.
 type EnumFieldHandle<FieldState> = [FieldTypeRefOf<FieldState>] extends [never]
   ? never
   : FieldTypeRefOf<FieldState> extends EnumTypeHandle
@@ -493,23 +467,17 @@ type EnumHandleDescriptor<Handle> = Handle extends {
   ? { readonly codecId: CodecId }
   : never;
 
-type ResolveFieldDescriptor<Definition, FieldState> = [EnumFieldHandle<FieldState>] extends [never]
-  ? [FieldDescriptorOf<FieldState>] extends [never]
-    ? ResolveNamedStorageType<Definition, FieldTypeRefOf<FieldState>>
-    : FieldDescriptorOf<FieldState>
+type ResolveFieldDescriptor<FieldState> = [EnumFieldHandle<FieldState>] extends [never]
+  ? FieldDescriptorOf<FieldState>
   : EnumHandleDescriptor<EnumFieldHandle<FieldState>>;
 
-type ResolveFieldColumnTypeRef<Definition, FieldState> = [EnumFieldHandle<FieldState>] extends [
-  never,
-]
-  ? [FieldTypeRefOf<FieldState>] extends [never]
-    ? DescriptorTypeRef<FieldDescriptorOf<FieldState>>
-    : ResolveNamedStorageTypeKey<Definition, FieldTypeRefOf<FieldState>>
+type ResolveFieldColumnTypeRef<FieldState> = [EnumFieldHandle<FieldState>] extends [never]
+  ? DescriptorTypeRef<FieldDescriptorOf<FieldState>>
   : undefined;
 
-type ResolveFieldColumnTypeParams<Definition, FieldState> = [
-  ResolveFieldColumnTypeRef<Definition, FieldState>,
-] extends [string]
+type ResolveFieldColumnTypeParams<FieldState> = [ResolveFieldColumnTypeRef<FieldState>] extends [
+  string,
+]
   ? undefined
   : DescriptorTypeParams<FieldDescriptorOf<FieldState>>;
 
@@ -629,11 +597,11 @@ type ModelStorageColumn<
   FieldName extends ModelFieldNames<Definition, ModelName>
     ? StorageColumn<
         DescriptorCodecId<
-          ResolveFieldDescriptor<Definition, ModelFieldState<Definition, ModelName, FieldName>>
+          ResolveFieldDescriptor<ModelFieldState<Definition, ModelName, FieldName>>
         >,
         FieldNullableOf<ModelFieldState<Definition, ModelName, FieldName>>,
-        ResolveFieldColumnTypeRef<Definition, ModelFieldState<Definition, ModelName, FieldName>>,
-        ResolveFieldColumnTypeParams<Definition, ModelFieldState<Definition, ModelName, FieldName>>,
+        ResolveFieldColumnTypeRef<ModelFieldState<Definition, ModelName, FieldName>>,
+        ResolveFieldColumnTypeParams<ModelFieldState<Definition, ModelName, FieldName>>,
         FieldManyOf<ModelFieldState<Definition, ModelName, FieldName>>,
         FieldHasColumnDefault<ModelFieldState<Definition, ModelName, FieldName>>
       >
@@ -854,7 +822,7 @@ type BuiltModels<Definition> = {
           readonly kind: 'scalar';
           readonly codecId: ModelStorageColumn<Definition, ModelName, FieldName>['codecId'];
         } & DomainFieldTypeParams<
-          FieldColumnTypeParams<Definition, ModelFieldState<Definition, ModelName, FieldName>>
+          FieldColumnTypeParams<ModelFieldState<Definition, ModelName, FieldName>>
         >;
       } & DomainFieldMany<FieldManyOf<ModelFieldState<Definition, ModelName, FieldName>>>;
     };
@@ -1550,15 +1518,7 @@ type DescriptorValueSetUnion<FieldState> = [FieldDescriptorOf<FieldState>] exten
     ? never
     : DescriptorEntityMembers<FieldDescriptorOf<FieldState>>[number];
 
-type FieldColumnTypeParams<Definition, FieldState> =
-  ResolveFieldColumnTypeRef<Definition, FieldState> extends infer TypeRef extends
-    keyof DefinitionTypes<Definition>
-    ? DefinitionTypes<Definition>[TypeRef] extends {
-        readonly typeParams: infer TypeParams extends Record<string, unknown>;
-      }
-      ? TypeParams
-      : undefined
-    : DescriptorTypeParams<FieldDescriptorOf<FieldState>>;
+type FieldColumnTypeParams<FieldState> = DescriptorTypeParams<FieldDescriptorOf<FieldState>>;
 
 type ParameterizedOutputTypesFromDefinition<Definition> = {
   [K in keyof AllPacks<Definition>]: ExtractParameterizedOutputTypesFromPack<
