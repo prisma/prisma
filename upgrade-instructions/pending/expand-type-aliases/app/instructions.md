@@ -68,6 +68,8 @@ Each database's marker still holds the old storage hash, so `prisma db verify` a
 prisma db sign --db "$DATABASE_URL"
 ```
 
+The script has already written the new hash into each ref, so when `db sign` advances a ref, such as `migrations/app/refs/db.json`, it prints the new hash twice: `Advanced ref "db" → <new hash> (was <new hash>)`. This is expected, and the database is signed.
+
 The script also gives each rewritten migration a new hash, and the database's migration history keeps the old ones. After the upgrade, `prisma migration status` therefore no longer marks the migrations applied before it as applied, although it still reports the database as up to date. `prisma db migrate` runs none of them again, and `prisma db verify` passes.
 
 ## `psl-alias-attributes`
