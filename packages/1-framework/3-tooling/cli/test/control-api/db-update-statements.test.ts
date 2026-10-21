@@ -114,7 +114,7 @@ function recordingMigrations(
         return {
           kind: 'success',
           dataLoss,
-          accessWidening: [],
+          accessChanges: [],
           temporaryValues: [],
           appliedStatements: options.statements.map((statement) => ({
             statement,

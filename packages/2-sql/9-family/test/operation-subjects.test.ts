@@ -34,7 +34,7 @@ function losing(...targets: readonly SubjectStorage[]): CallSubjects {
     operationCount: 1,
     label: 'Drop',
     dataLoss: targets.map((target) => ({ ...target, loss: 'drop' })),
-    accessWidening: [],
+    accessChanges: [],
     temporaryValues: [],
   };
 }
@@ -43,7 +43,7 @@ const unchanged: CallSubjects = {
   operationCount: 1,
   label: 'Unchanged',
   dataLoss: [],
-  accessWidening: [],
+  accessChanges: [],
   temporaryValues: [],
 };
 
@@ -76,7 +76,7 @@ describe('subjectsOfCalls', () => {
           label: 'Drop',
         },
       ],
-      accessWidening: [],
+      accessChanges: [],
       temporaryValues: [],
     });
   });
@@ -89,7 +89,7 @@ describe('subjectsOfCalls', () => {
             operationCount: 3,
             label: 'Rename',
             dataLoss: [],
-            accessWidening: [],
+            accessChanges: [],
             temporaryValues: [],
           },
           losing(table('legacy')),
@@ -141,7 +141,7 @@ describe('subjectsOfCalls', () => {
             operationCount: 1,
             label: 'Alter type',
             dataLoss: [{ ...column('user', 'full_name'), loss: 'typeChange' }],
-            accessWidening: [],
+            accessChanges: [],
             temporaryValues: [],
           },
         ],
@@ -240,7 +240,7 @@ describe('subjectsOfCalls', () => {
     ]);
   });
 
-  it('lists access-widening operations with the model of their table', () => {
+  it('lists access changes with the model of their table', () => {
     expect(
       subjectsOfCalls(
         [
@@ -249,7 +249,7 @@ describe('subjectsOfCalls', () => {
             operationCount: 1,
             label: 'Drop policy',
             dataLoss: [],
-            accessWidening: [{ ...table('user'), widens: false }],
+            accessChanges: [{ ...table('user'), widens: false }],
             temporaryValues: [],
           },
         ],
@@ -257,7 +257,7 @@ describe('subjectsOfCalls', () => {
       ),
     ).toEqual({
       dataLoss: [],
-      accessWidening: [
+      accessChanges: [
         {
           operationIndex: 1,
           subject: { kind: 'model', namespaceId: app, model: 'User' },

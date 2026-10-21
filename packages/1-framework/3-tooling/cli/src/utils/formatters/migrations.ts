@@ -100,8 +100,8 @@ export interface MigrationCommandResult {
   readonly temporaryValues?: readonly TemporaryValueReport[];
   /** `db update --dry-run` only: the operations an apply would ask about because they lose data. */
   readonly dataLoss?: readonly PlannedSubjectJson[];
-  /** `db update --dry-run` only: the operations an apply would ask about because they widen access. */
-  readonly accessWidening?: readonly PlannedSubjectJson[];
+  /** `db update --dry-run` only: the operations an apply would ask about because they change access. */
+  readonly accessChanges?: readonly PlannedSubjectJson[];
   readonly advancedRef?: { readonly name: string; readonly hash: string } | null;
   readonly plannedAdvanceRef?: { readonly name: string; readonly hash: string } | null;
   readonly summary: string;

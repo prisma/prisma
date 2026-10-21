@@ -70,7 +70,7 @@ function createMockMigrations(overrides?: {
   const planResult: MigrationPlannerResult = overrides?.planResult ?? {
     kind: 'success',
     dataLoss: [],
-    accessWidening: [],
+    accessChanges: [],
     temporaryValues: [],
     appliedStatements: [],
     plan: {
@@ -190,7 +190,7 @@ describe('executeDbUpdate', () => {
       planResult: {
         kind: 'success',
         dataLoss: [],
-        accessWidening: [],
+        accessChanges: [],
         temporaryValues: [],
         appliedStatements: [],
         plan: {
@@ -390,7 +390,7 @@ describe('executeDbUpdate', () => {
         planResult: {
           kind: 'success',
           dataLoss: [],
-          accessWidening: [],
+          accessChanges: [],
           temporaryValues: [],
           appliedStatements: [],
           plan: {
@@ -433,7 +433,7 @@ describe('executeDbUpdate', () => {
       planResult: {
         kind: 'success',
         dataLoss: [],
-        accessWidening: [],
+        accessChanges: [],
         temporaryValues: [],
         appliedStatements: [],
         plan: {
@@ -485,7 +485,7 @@ describe('executeDbUpdate', () => {
     const planFn = vi.fn().mockReturnValue({
       kind: 'success',
       dataLoss: [],
-      accessWidening: [],
+      accessChanges: [],
       temporaryValues: [],
       appliedStatements: [],
       plan: {
@@ -548,7 +548,7 @@ describe('executeDbUpdate', () => {
           dataLoss: [
             { operationIndex: 0, subject: NICKNAME, loss: 'drop', label: 'Drop column nickname' },
           ],
-          accessWidening: [{ operationIndex: 2, subject: USER, widens: true }],
+          accessChanges: [{ operationIndex: 2, subject: USER, widens: true }],
           temporaryValues: [],
           appliedStatements: [],
           plan: {
@@ -602,7 +602,7 @@ describe('executeDbUpdate', () => {
       };
     }
 
-    it('asks about each loss and each access widening in one batch before applying', async () => {
+    it('asks about each loss and each access change in one batch before applying', async () => {
       const asked: { question: string; subject: string; verbs: readonly string[] }[] = [];
       const execute = vi.fn().mockResolvedValue(
         ok({
@@ -717,10 +717,10 @@ describe('executeDbUpdate', () => {
       expect(asked).toEqual(['user']);
     });
 
-    it('answers every question with acceptDataLoss and acceptAccessWidening', async () => {
+    it('answers every question with acceptDataLoss and acceptAccessChanges', async () => {
       const answerQuestions = vi.fn(noQuestions);
       const result = await executeDbUpdate(
-        applyInputs({ acceptDataLoss: true, acceptAccessWidening: true, answerQuestions }),
+        applyInputs({ acceptDataLoss: true, acceptAccessChanges: true, answerQuestions }),
       );
 
       expect(result.ok).toBe(true);
@@ -809,7 +809,7 @@ describe('executeDbUpdate', () => {
       expect(
         result.ok && {
           dataLoss: result.value.dataLoss,
-          accessWidening: result.value.accessWidening,
+          accessChanges: result.value.accessChanges,
         },
       ).toEqual({
         dataLoss: [
@@ -821,7 +821,7 @@ describe('executeDbUpdate', () => {
             text: 'user.nickname',
           },
         ],
-        accessWidening: [{ operationIndex: 2, subject: USER, widens: true, text: 'user' }],
+        accessChanges: [{ operationIndex: 2, subject: USER, widens: true, text: 'user' }],
       });
     });
   });
@@ -837,7 +837,7 @@ describe('executeDbUpdate', () => {
         plan: vi.fn().mockReturnValue({
           kind: 'success',
           dataLoss: [],
-          accessWidening: [],
+          accessChanges: [],
           temporaryValues: [],
           appliedStatements: [],
           plan: {

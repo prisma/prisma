@@ -25,7 +25,7 @@ export const DB_UPDATE_POLICY = {
  * Same loader → planner → runner pipeline as `db init`, but with the
  * widened operation policy (additive + widening + destructive). An apply
  * asks `answerQuestions` what each operation that would lose data means and
- * whether each that would widen access may run, before it applies anything.
+ * whether each that would change access may run, before it applies anything.
  */
 export interface ExecuteDbUpdateOptions<TFamilyId extends string, TTargetId extends string> {
   readonly driver: ControlDriverInstance<TFamilyId, TTargetId>;
@@ -41,8 +41,8 @@ export interface ExecuteDbUpdateOptions<TFamilyId extends string, TTargetId exte
   readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<TFamilyId, TTargetId>>;
   /** Consents to every operation that would lose data, without asking. */
   readonly acceptDataLoss?: boolean;
-  /** Consents to every operation that would widen who can read or write rows, without asking. */
-  readonly acceptAccessWidening?: boolean;
+  /** Consents to every operation that would change who can read or write data, without asking. */
+  readonly acceptAccessChanges?: boolean;
   readonly migrationsDir: string;
   readonly targetId: TTargetId;
   readonly extensions?: ReadonlyArray<ControlExtensionDescriptor<TFamilyId, TTargetId>>;
@@ -83,7 +83,7 @@ export async function executeDbUpdate<TFamilyId extends string, TTargetId extend
     statements: options.statements ?? [],
     answerQuestions: options.answerQuestions,
     acceptDataLoss: options.acceptDataLoss ?? false,
-    acceptAccessWidening: options.acceptAccessWidening ?? false,
+    acceptAccessChanges: options.acceptAccessChanges ?? false,
     ...ifDefined('verifySnapshotContent', options.verifySnapshotContent),
     ...ifDefined('onProgress', options.onProgress),
   })) as DbUpdateResult;

@@ -77,7 +77,7 @@ export interface CallSubjects {
   /** What the call's operation loses, one entry per model, field or storage name, and how. */
   readonly dataLoss: readonly (SubjectStorage & { readonly loss: MigrationDataLossKind })[];
   /** What the call's operation changes access to, and whether it widens it. */
-  readonly accessWidening: readonly (SubjectStorage & { readonly widens: boolean })[];
+  readonly accessChanges: readonly (SubjectStorage & { readonly widens: boolean })[];
   /** The new required columns the call's operation gives a temporary value in existing rows, and the value. */
   readonly temporaryValues: readonly TemporaryColumnValue[];
 }
@@ -206,7 +206,7 @@ function keepTableAdvice(
 }
 
 /**
- * The subject of each operation that loses data and each that widens access, at its position in
+ * The subject of each operation that loses data and each that changes access, at its position in
  * the plan. A subject is a model or a field of the origin contract when one stores it, found under
  * its origin name when a rename statement renamed its table or column earlier in the plan.
  */
@@ -215,7 +215,7 @@ export function subjectsOfCalls(
   context: SubjectContext,
 ): MigrationPlanSubjects {
   const dataLoss: MigrationDataLoss[] = [];
-  const accessWidening: MigrationAccessChange[] = [];
+  const accessChanges: MigrationAccessChange[] = [];
   const temporaryValues: MigrationTemporaryValue[] = [];
   let operationIndex = 0;
   for (const call of calls) {
@@ -239,8 +239,8 @@ export function subjectsOfCalls(
         ...ifDefined('keepDataAdvice', keepTableAdvice(target, subject, context)),
       });
     }
-    for (const target of call.accessWidening) {
-      accessWidening.push({
+    for (const target of call.accessChanges) {
+      accessChanges.push({
         operationIndex,
         subject: subjectOf(target, context),
         widens: target.widens,
@@ -248,5 +248,5 @@ export function subjectsOfCalls(
     }
     operationIndex += call.operationCount;
   }
-  return { dataLoss, accessWidening, temporaryValues };
+  return { dataLoss, accessChanges, temporaryValues };
 }

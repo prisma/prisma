@@ -29,7 +29,7 @@ function planWith(
 ): PlannedQuestions {
   return {
     dataLoss: losses.map((loss) => ({ loss: 'drop', ...loss, subject: ratio })),
-    accessWidening: [],
+    accessChanges: [],
   };
 }
 
@@ -106,7 +106,7 @@ describe('questions about storage when the origin contract is unknown', () => {
       loss: 'drop' as const,
     });
     await askPlanQuestions({
-      plan: { dataLoss: [storage('Legacy', 0), storage('Profile', 1)], accessWidening: [] },
+      plan: { dataLoss: [storage('Legacy', 0), storage('Profile', 1)], accessChanges: [] },
       askAccess: false,
       canConvert: true,
       statements: [],
@@ -119,7 +119,7 @@ describe('questions about storage when the origin contract is unknown', () => {
         asked.push(...questions.map(({ question }) => question));
         return questions.map(({ subject }) => ({ verb: 'delete', text: subject }));
       },
-      replan: async () => ok({ dataLoss: [], accessWidening: [] }),
+      replan: async () => ok({ dataLoss: [], accessChanges: [] }),
     });
 
     expect(asked).toEqual([
@@ -147,7 +147,7 @@ describe('questions about access', () => {
     const result = await askPlanQuestions({
       plan: {
         dataLoss: [],
-        accessWidening: [
+        accessChanges: [
           {
             operationIndex: 0,
             label: 'Drop RLS policy "readers" on "T"',
@@ -174,7 +174,7 @@ describe('questions about access', () => {
         asked.push(...questions.map(({ question }) => question));
         return questions.map(({ subject }) => ({ verb: 'allow', text: subject }));
       },
-      replan: async () => ok({ dataLoss: [], accessWidening: [] }),
+      replan: async () => ok({ dataLoss: [], accessChanges: [] }),
     });
 
     expect(asked).toEqual([
@@ -199,7 +199,7 @@ describe('allow statements given as pre-answers', () => {
   const t = { kind: 'model', namespaceId: asNamespaceId('app'), model: 'T' } as const;
   const plan = {
     dataLoss: [],
-    accessWidening: [
+    accessChanges: [
       { operationIndex: 0, label: 'Drop RLS policy "readers" on "T"', subject: t, widens: false },
       { operationIndex: 1, label: 'Disable row-level security on "T"', subject: t, widens: true },
     ],
@@ -220,7 +220,7 @@ describe('allow statements given as pre-answers', () => {
         asked.push(...questions.map(({ question }) => question));
         return questions.map(({ subject }) => ({ verb: 'allow', text: subject }));
       },
-      replan: async () => ok({ dataLoss: [], accessWidening: [] }),
+      replan: async () => ok({ dataLoss: [], accessChanges: [] }),
     });
     return { asked, result };
   };
@@ -266,7 +266,7 @@ describe('an access change consented before a typed rename', () => {
     const result = await askPlanQuestions({
       plan: {
         dataLoss: [{ ...dropRatio, operationIndex: 0, subject: ratio, loss: 'drop' }],
-        accessWidening: [{ ...policyDrop, operationIndex: 1 }],
+        accessChanges: [{ ...policyDrop, operationIndex: 1 }],
       },
       askAccess: true,
       canConvert: false,
@@ -285,7 +285,7 @@ describe('an access change consented before a typed rename', () => {
         );
       },
       replan: async () =>
-        ok({ dataLoss: [], accessWidening: [{ ...policyDrop, operationIndex: 3 }] }),
+        ok({ dataLoss: [], accessChanges: [{ ...policyDrop, operationIndex: 3 }] }),
     });
 
     expect(rounds).toBe(1);
@@ -334,7 +334,7 @@ describe('a convert typed at the prompt', () => {
   }
 
   it('plans again with the convert, and returns it among the statements', async () => {
-    const { replans, result } = ask({ dataLoss: [], accessWidening: [] });
+    const { replans, result } = ask({ dataLoss: [], accessChanges: [] });
 
     const outcome = await result;
     expect({ replans, statements: outcome.ok && outcome.value.statements }).toEqual({
@@ -366,7 +366,7 @@ describe('a delete that answers a type change', () => {
       originKnown: true,
       destination,
       answer: async () => [],
-      replan: async () => ok({ dataLoss: [], accessWidening: [] }),
+      replan: async () => ok({ dataLoss: [], accessChanges: [] }),
     });
 
     expect(result.ok && result.value.consented.map(({ verb, loss }) => ({ verb, loss }))).toEqual([

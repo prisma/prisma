@@ -193,7 +193,7 @@ function updateDocument(inputs: {
     ...(value.mode === 'plan'
       ? {
           dataLoss: dataLossEntriesJson(value.dataLoss, inputs.statements),
-          accessWidening: accessEntriesJson(value.accessWidening, inputs.statements),
+          accessChanges: accessEntriesJson(value.accessChanges, inputs.statements),
         }
       : {}),
     ...ifDefined('warnings', value.warnings),
@@ -222,9 +222,9 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
         'close the gap, whether or not the database was bootstrapped with `db init`.\n' +
         'Before it applies an operation that would lose data, it asks what the\n' +
         'operation means: --rename keeps the data under a new name, --delete lets it\n' +
-        'go. Before it widens who can read or write rows, it asks for --allow. Where\n' +
-        'nobody can answer, it refuses and lists every question. Use --dry-run to see\n' +
-        'the operations and the questions without applying anything.',
+        "go. Before it changes who can read or write a model's data, it asks for\n" +
+        '--allow. Where nobody can answer, it refuses and lists every question. Use\n' +
+        '--dry-run to see the operations and the questions without applying anything.',
       examples: [
         'db update',
         'db update --dry-run',

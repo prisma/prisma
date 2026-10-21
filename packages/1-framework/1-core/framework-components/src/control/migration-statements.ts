@@ -92,12 +92,9 @@ export interface MigrationOperationSubject {
   readonly subject: MigrationSubject;
 }
 
-/** An operation that changes who can read or write the rows of its subject. */
+/** An operation that changes who can read or write its subject's data. */
 export interface MigrationAccessChange extends MigrationOperationSubject {
-  /**
-   * True when it lets more people read or write, such as disabling row-level security; false when
-   * the change can go either way, such as dropping a policy.
-   */
+  /** True when it lets more people read or write; false when the change can go either way. */
   readonly widens: boolean;
 }
 
@@ -138,7 +135,7 @@ export interface MigrationPlanSubjects<
   /** Each operation that loses data, in plan order, with what it loses. */
   readonly dataLoss: readonly TLoss[];
   /** Each operation that changes who can read or write data, in plan order, with what it is about. */
-  readonly accessWidening: readonly TAccess[];
+  readonly accessChanges: readonly TAccess[];
   /** Each new required field whose existing rows the plan gives a temporary value, in plan order. */
   readonly temporaryValues: readonly TTemporary[];
 }

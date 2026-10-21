@@ -341,7 +341,7 @@ async function answerPlannedDataLoss(input: {
   const legs = (delta: PlannerSuccess | undefined) => ({
     delta,
     dataLoss: [...(input.baseline?.dataLoss ?? []), ...(delta?.dataLoss ?? [])],
-    accessWidening: [],
+    accessChanges: [],
   });
   const answered = await askPlanQuestions({
     plan: legs(input.delta),

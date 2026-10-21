@@ -98,7 +98,7 @@ function applySuccess(): Record<string, unknown> {
     mode: 'apply',
     appliedStatements: [],
     dataLoss: [],
-    accessWidening: [],
+    accessChanges: [],
     destination: { storageHash: DEST_HASH },
     plan: {
       operations: [
@@ -128,7 +128,7 @@ function planSuccess(): Record<string, unknown> {
     mode: 'plan',
     appliedStatements: [],
     dataLoss: [],
-    accessWidening: [],
+    accessChanges: [],
     destination: { storageHash: DEST_HASH },
     plan: {
       operations: [{ id: 'op-2', label: 'drop relation legacy', operationClass: 'destructive' }],
@@ -299,7 +299,7 @@ describe('db update --rename', () => {
           answered: false,
         },
       ],
-      accessWidening: [],
+      accessChanges: [],
     });
   });
 

@@ -78,7 +78,7 @@ export interface PlannedAccessChange extends PlannedSubject {
 /** What a plan would lose, and whose access it would change. */
 export interface PlannedQuestions {
   readonly dataLoss: readonly PlannedDataLoss[];
-  readonly accessWidening: readonly PlannedAccessChange[];
+  readonly accessChanges: readonly PlannedAccessChange[];
 }
 
 /** The contracts a statement names things in, and the statements the plan carries out so far. */
@@ -370,13 +370,13 @@ export function dataLossQuestion(
  * access, or changes it in a way that can go either way. Each such operation is its own question,
  * answered by its own `allow`.
  */
-export function accessWideningQuestion(
-  widening: PlannedAccessChange,
+export function accessChangeQuestion(
+  change: PlannedAccessChange,
   contracts: StatementContracts,
 ): PlanQuestion {
-  const subject = subjectText(widening.subject, contracts);
+  const subject = subjectText(change.subject, contracts);
   return {
-    question: `${widening.label} would ${widening.widens ? 'widen' : 'change'} who can read and write its data.`,
+    question: `${change.label} would ${change.widens ? 'widen' : 'change'} who can read and write its data.`,
     subject,
     verbs: ['allow'],
     forms: {},
@@ -467,7 +467,7 @@ function withRecoveryOnFirstStorageQuestion(
 
 /**
  * Asks about every operation of a plan that would lose data and, when `askAccess`, every one that
- * would widen access, until each is answered. A `delete` or `allow` text in `preAnswers`, or
+ * would change access, until each is answered. A `delete` or `allow` text in `preAnswers`, or
  * `consentAll` for its verb, answers its question without asking. A rename or convert typed at the
  * prompt is a statement the plan did not have, so the plan is made again with every statement, and
  * the operation it answered must be gone; a loss the new plan has on the same subject, such as a
@@ -530,7 +530,7 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
       });
     for (const [verb, entries] of [
       ['delete', pending('delete', plan.dataLoss)],
-      ['allow', input.askAccess ? pending('allow', plan.accessWidening) : []],
+      ['allow', input.askAccess ? pending('allow', plan.accessChanges) : []],
     ] as const) {
       for (const entry of entries) {
         const text = subjectText(entry.subject, contracts);
@@ -540,20 +540,20 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
       }
     }
     const losses = pending('delete', plan.dataLoss);
-    const widenings = input.askAccess ? pending('allow', plan.accessWidening) : [];
-    if (losses.length + widenings.length === 0 && round > 0) break;
+    const accessChanges = input.askAccess ? pending('allow', plan.accessChanges) : [];
+    if (losses.length + accessChanges.length === 0 && round > 0) break;
     const questions = [
       ...withRecoveryOnFirstStorageQuestion(
         losses.map((loss) => ({ loss, question: dataLossQuestion(loss, contracts) })),
         !input.originKnown,
       ),
-      ...widenings.map((widening) => accessWideningQuestion(widening, contracts)),
+      ...accessChanges.map((change) => accessChangeQuestion(change, contracts)),
     ];
     const answers = await input.answer(questions);
     checkAnswers(questions, answers);
     const typed: { readonly statement: StatementText; readonly loss: PlannedSubject }[] = [];
     answers.forEach((answer, index) => {
-      const entry = [...losses, ...widenings][index];
+      const entry = [...losses, ...accessChanges][index];
       const question = questions[index];
       if (entry === undefined || question === undefined) return;
       if (answer.verb === 'rename' || answer.verb === 'convert') {
@@ -561,14 +561,14 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
       } else consent(answer.verb, entry, question.subject);
     });
     if (typed.length === 0) {
-      if (losses.length + widenings.length === 0) break;
+      if (losses.length + accessChanges.length === 0) break;
       continue;
     }
     statements = [...statements, ...typed.map(({ statement }) => statement)];
     const replanned = await input.replan(statements);
     if (!replanned.ok) return replanned;
     plan = replanned.value;
-    for (const entry of plan.accessWidening) {
+    for (const entry of plan.accessChanges) {
       const allowed = consented.get(questionKey('allow', entry));
       if (allowed !== undefined) {
         consented.set(questionKey('allow', entry), {
@@ -606,7 +606,7 @@ function questionSubjects(
   askAccess: boolean,
   contracts: StatementContracts,
 ): readonly string[] {
-  const subjects = [...plan.dataLoss, ...(askAccess ? plan.accessWidening : [])].map((entry) =>
+  const subjects = [...plan.dataLoss, ...(askAccess ? plan.accessChanges : [])].map((entry) =>
     subjectText(entry.subject, contracts),
   );
   return [...new Set(subjects)];
@@ -626,7 +626,7 @@ export function refuseUnusedConsents(input: {
   const used = new Set<StatementText>();
   for (const [verb, entries] of [
     ['delete', input.plan.dataLoss],
-    ['allow', input.plan.accessWidening],
+    ['allow', input.plan.accessChanges],
   ] as const) {
     for (const entry of entries) {
       const text = subjectText(entry.subject, input.contracts);

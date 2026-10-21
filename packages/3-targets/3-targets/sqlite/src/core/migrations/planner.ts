@@ -80,7 +80,7 @@ export type SqlitePlanResult =
       readonly plan: TypeScriptRenderableSqliteMigration;
       readonly appliedStatements: readonly AppliedMigrationStatement[];
       readonly dataLoss: readonly MigrationDataLoss[];
-      readonly accessWidening: readonly MigrationAccessChange[];
+      readonly accessChanges: readonly MigrationAccessChange[];
       readonly temporaryValues: readonly MigrationTemporaryValue[];
     }
   | SqlPlannerFailureResult;

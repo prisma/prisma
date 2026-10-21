@@ -149,11 +149,11 @@ export interface AggregateMigrationEdgeRef {
  *   migration packages at all; the aggregate declares the no-op directly
  *   without invoking either). Surfaced for diagnostics; not consumed by
  *   the runner.
- * - `dataLoss` and `accessWidening`: what the operations of `plan` lose
- *   and whose access they widen. A recorded path names each destructive
+ * - `dataLoss` and `accessChanges`: what the operations of `plan` lose
+ *   and whose access they change. A recorded path names each destructive
  *   operation by its storage name, since no planner mapped it to a model,
  *   lists each as a `drop`, since a recorded operation does not say whether
- *   it drops or changes a type, and lists no widening: a written migration is
+ *   it drops or changes a type, and lists no access change: a written migration is
  *   reviewed before it runs.
  * - `temporaryValues`: the new required fields whose existing rows the plan
  *   gives a temporary value. A recorded path lists none.

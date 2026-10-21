@@ -173,12 +173,12 @@ function applySummaryText(result: MigrationCommandResult): string {
 
 /**
  * The questions an apply would ask, as a dry run lists them: each operation that would lose data,
- * answered by `--delete` or `--rename`, and each that would widen access, answered by `--allow`.
+ * answered by `--delete` or `--rename`, and each that would change access, answered by `--allow`.
  */
 function questionBlocks(result: MigrationCommandResult): readonly Block[] {
   const entries = [
     ...(result.dataLoss ?? []).map((entry) => ({ entry, verb: 'delete' as const })),
-    ...(result.accessWidening ?? []).map((entry) => ({ entry, verb: 'allow' as const })),
+    ...(result.accessChanges ?? []).map((entry) => ({ entry, verb: 'allow' as const })),
   ];
   if (entries.length === 0) {
     return [];

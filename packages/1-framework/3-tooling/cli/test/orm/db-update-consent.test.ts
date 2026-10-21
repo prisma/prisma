@@ -5,7 +5,7 @@ import type { StreamEvent } from '@prisma/cli-engine';
 import { join } from 'pathe';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  accessWideningQuestion,
+  accessChangeQuestion,
   dataLossQuestion,
   type PlanAnswer,
   type PlanQuestion,
@@ -96,7 +96,7 @@ function planQuestions(): readonly PlanQuestion[] {
       },
       contracts,
     ),
-    accessWideningQuestion(
+    accessChangeQuestion(
       {
         operationIndex: 2,
         label: 'Disable row-level security on "User"',
@@ -172,7 +172,7 @@ function applySuccess(mode: 'plan' | 'apply'): Record<string, unknown> {
     marker: { storageHash: MARKER_HASH },
     appliedStatements: [],
     dataLoss: [],
-    accessWidening: [],
+    accessChanges: [],
     summary: 'Database updated',
   };
 }

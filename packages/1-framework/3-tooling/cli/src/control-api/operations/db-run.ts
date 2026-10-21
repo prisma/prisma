@@ -131,8 +131,8 @@ export interface ExecuteRunSharedOptions<TFamilyId extends string, TTargetId ext
 /**
  * `db init` takes no statements. `db update` takes the statements as the user wrote them, in
  * order, and the answer to each question its plan raises: what an operation that would lose data
- * means and, when it applies, whether an operation may widen access. `acceptDataLoss` answers
- * every data-loss question with consent, and `acceptAccessWidening` every access question.
+ * means and, when it applies, whether an operation may change access. `acceptDataLoss` answers
+ * every data-loss question with consent, and `acceptAccessChanges` every access question.
  */
 export type ExecuteRunOptions<
   TFamilyId extends string,
@@ -145,7 +145,7 @@ export type ExecuteRunOptions<
         readonly statements: readonly StatementText[];
         readonly answerQuestions: AnswerPlanQuestions;
         readonly acceptDataLoss: boolean;
-        readonly acceptAccessWidening: boolean;
+        readonly acceptAccessChanges: boolean;
       }
   );
 
@@ -295,7 +295,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     const subjects: MigrationPlanSubjects =
       action === 'dbUpdate'
         ? subjectsAcrossSpaces(orderedResolutions)
-        : { dataLoss: [], accessWidening: [], temporaryValues: [] };
+        : { dataLoss: [], accessChanges: [], temporaryValues: [] };
     const operations = orderedResolutions.flatMap((r) => r.entry.displayOps);
     const labelled = <TEntry extends MigrationOperationSubject>(entries: readonly TEntry[]) =>
       entries.map((entry) => ({
@@ -307,7 +307,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       orderedResolutions,
       subjects,
       dataLoss: labelled(subjects.dataLoss).map((entry) => ({ ...entry, loss: entry.loss })),
-      accessWidening: labelled(subjects.accessWidening),
+      accessChanges: labelled(subjects.accessChanges),
     });
   };
 
@@ -319,7 +319,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
   let plannedTexts: readonly StatementText[] = statementTexts.filter(isPlannedStatement);
   let consented: readonly ConsentedSubject[] = [];
   // 3a. Questions: an apply of `db update` asks what each operation that would lose data means,
-  // and whether each that would widen access may run, before it applies anything. A dry run asks
+  // and whether each that would change access may run, before it applies anything. A dry run asks
   // nothing and lists them.
   if (options.action === 'dbUpdate' && mode === 'apply') {
     const answered = await askPlanQuestions({
@@ -328,7 +328,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       canConvert: false,
       statements: plannedTexts,
       preAnswers: statementTexts.filter((statement) => !isPlannedStatement(statement)),
-      consentAll: { delete: options.acceptDataLoss, allow: options.acceptAccessWidening },
+      consentAll: { delete: options.acceptDataLoss, allow: options.acceptAccessChanges },
       origin: fromContract ?? EMPTY_ORIGIN,
       originKnown: fromContract !== null,
       destination: contract,
@@ -408,7 +408,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     action === 'dbUpdate'
       ? {
           dataLoss: asked(run.subjects.dataLoss),
-          accessWidening: asked(run.subjects.accessWidening),
+          accessChanges: asked(run.subjects.accessChanges),
           temporaryValues: reportTemporaryValues(run.subjects.temporaryValues, contract),
         }
       : undefined;
@@ -494,7 +494,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
 /** The origin of a database whose marker names no readable contract: no models. */
 const EMPTY_ORIGIN = { domain: { namespaces: {} } };
 
-/** A plan of every space, and what it would lose and whose access it would widen. */
+/** A plan of every space, and what it would lose and whose access it would change. */
 interface PlannedRun extends PlannedQuestions {
   readonly planned: AggregatePlan;
   readonly orderedResolutions: readonly OrderedResolution[];
@@ -558,7 +558,7 @@ function operationsBefore(
 }
 
 /**
- * What the planned operations lose and whose access they widen, across every space, each at its
+ * What the planned operations lose and whose access they change, across every space, each at its
  * position in the operations the result reports.
  */
 function subjectsAcrossSpaces(
@@ -577,8 +577,8 @@ function subjectsAcrossSpaces(
     dataLoss: orderedResolutions.flatMap((resolution) =>
       offset(resolution, resolution.entry.dataLoss),
     ),
-    accessWidening: orderedResolutions.flatMap((resolution) =>
-      offset(resolution, resolution.entry.accessWidening),
+    accessChanges: orderedResolutions.flatMap((resolution) =>
+      offset(resolution, resolution.entry.accessChanges),
     ),
     temporaryValues: orderedResolutions.flatMap((resolution) =>
       offset(resolution, resolution.entry.temporaryValues),
