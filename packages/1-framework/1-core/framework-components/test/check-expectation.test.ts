@@ -1,8 +1,13 @@
+import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
-import { checkExpectationOf, expectAbsent, expectPresent } from '../src/control/check-expectation';
+import {
+  CheckExpectationSchema,
+  expectAbsent,
+  expectPresent,
+} from '../src/control/check-expectation';
 
-describe('checkExpectationOf', () => {
-  it('keeps an expectation of the right shape and drops any other value', () => {
+describe('CheckExpectationSchema', () => {
+  it('accepts an expectation the constructors build and refuses any other shape', () => {
     expect(
       [
         expectAbsent('index "x" on "users"'),
@@ -11,16 +16,7 @@ describe('checkExpectationOf', () => {
         { expects: 'absent' },
         { expects: 'absent', object: '' },
         'index "x"',
-        undefined,
-      ].map(checkExpectationOf),
-    ).toEqual([
-      { expects: 'absent', object: 'index "x" on "users"' },
-      { expects: 'present', object: 'table "users"' },
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-    ]);
+      ].map((value) => !(CheckExpectationSchema(value) instanceof type.errors)),
+    ).toEqual([true, true, false, false, false, false]);
   });
 });

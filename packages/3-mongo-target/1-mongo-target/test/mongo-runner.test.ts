@@ -45,6 +45,7 @@ import { MongoServerError } from 'mongodb';
 import { describe, expect, it } from 'vitest';
 import {
   createCollection,
+  createIndex,
   dataTransform,
   renameCollection,
   renameField,
@@ -148,10 +149,11 @@ class StubMongoAdapter implements MongoAdapter {
 class StubInspectionExecutor implements MongoInspectionCommandVisitor<Promise<Row[]>> {
   readonly calls: AnyMongoInspectionCommand[] = [];
   collections: Row[] = [];
+  indexes: Row[] = [];
 
   async listIndexes(command: AnyMongoInspectionCommand): Promise<Row[]> {
     this.calls.push(command);
-    return [];
+    return this.indexes;
   }
   async listCollections(command: AnyMongoInspectionCommand): Promise<Row[]> {
     this.calls.push(command);
@@ -1013,5 +1015,26 @@ describe('MongoMigrationRunner, a failure after an earlier space changed the dat
       databaseUnchanged: false,
       why: 'Before operation collection.orders.create runs, it checks: collection orders does not exist. That check failed: the database already has collection "orders". The operations that ran before the failure stay applied.',
     });
+  });
+});
+
+describe('MongoMigrationRunner, an index check that finds an index of the same keys', () => {
+  it('names the keys it matched, not a name the check does not test', async () => {
+    const harness = makeHarness();
+    harness.inspectionExecutor.indexes = [{ name: 'by_email', key: { email: 1 } }];
+
+    const result = await execute(
+      harness,
+      [createIndex('users', [{ field: 'email', direction: 1 }])],
+      {
+        prechecks: true,
+        postchecks: false,
+        idempotencyChecks: false,
+      },
+    );
+
+    expect(result.assertNotOk().why).toBe(
+      'Before operation index.users.create(email:1) runs, it checks: index does not already exist on users. That check failed: the database already has an index on { email: 1 } in "users". The failed apply changed nothing.',
+    );
   });
 });

@@ -19,7 +19,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index \"authorId_1\" on \"posts\""
+        "object": "an index on { authorId: 1 } in \"posts\""
       }
     ],
     "execute": [
@@ -121,7 +121,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index \"createdAt_-1_authorId_1\" on \"posts\""
+        "object": "an index on { createdAt: -1, authorId: 1 } in \"posts\""
       }
     ],
     "execute": [

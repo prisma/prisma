@@ -288,8 +288,11 @@ function formatKeys(keys: ReadonlyArray<MongoIndexKey>): string {
   return keys.map((k) => `${k.field}:${k.direction}`).join(', ');
 }
 
+/** What an index check matches, which is the index's keys and collection, not its name. */
 function indexObject(collectionName: string, keys: ReadonlyArray<MongoIndexKey>): string {
-  return `index "${defaultMongoIndexName(keys)}" on "${collectionName}"`;
+  if (isTextIndex(keys)) return `a text index in "${collectionName}"`;
+  const spec = keys.map((key) => `${key.field}: ${JSON.stringify(key.direction)}`).join(', ');
+  return `an index on { ${spec} } in "${collectionName}"`;
 }
 
 function isTextIndex(keys: ReadonlyArray<MongoIndexKey>): boolean {

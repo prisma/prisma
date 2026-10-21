@@ -26,7 +26,6 @@ import type {
 } from '@internal/framework-components/control';
 import {
   APP_SPACE_ID,
-  checkExpectationOf,
   failedPostcheckWhy,
   failedPrecheckWhy,
   schemaCheckWhy,
@@ -374,7 +373,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
           operationId: operation.id,
           phase,
           description: step.description,
-          ...ifDefined('expectation', checkExpectationOf(step.expectation)),
+          ...ifDefined('expectation', step.expectation),
         };
         const unconverted =
           converted === undefined ? undefined : await this.unconvertedValueText(driver, converted);

@@ -688,7 +688,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index \"userId_1\" on \"carts\""
+        "object": "an index on { userId: 1 } in \"carts\""
       }
     ],
     "execute": [
@@ -788,7 +788,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index \"userId_1_timestamp_-1\" on \"events\""
+        "object": "an index on { userId: 1, timestamp: -1 } in \"events\""
       }
     ],
     "execute": [
@@ -894,7 +894,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index \"timestamp_1\" on \"events\""
+        "object": "an index on { timestamp: 1 } in \"events\""
       }
     ],
     "execute": [
@@ -997,7 +997,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index \"orderId_1\" on \"invoices\""
+        "object": "an index on { orderId: 1 } in \"invoices\""
       }
     ],
     "execute": [
@@ -1098,7 +1098,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index \"issuedAt_-1\" on \"invoices\""
+        "object": "an index on { issuedAt: -1 } in \"invoices\""
       }
     ],
     "execute": [
@@ -1198,7 +1198,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index \"city_1_country_1\" on \"locations\""
+        "object": "an index on { city: 1, country: 1 } in \"locations\""
       }
     ],
     "execute": [
@@ -1315,7 +1315,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index \"userId_1\" on \"orders\""
+        "object": "an index on { userId: 1 } in \"orders\""
       }
     ],
     "execute": [
@@ -1414,7 +1414,7 @@
           "value": "text"
         },
         "expect": "notExists",
-        "object": "index \"name_text_description_text\" on \"products\""
+        "object": "a text index in \"products\""
       }
     ],
     "execute": [
@@ -1546,7 +1546,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index \"brand_1_subCategory_1\" on \"products\""
+        "object": "an index on { brand: 1, subCategory: 1 } in \"products\""
       }
     ],
     "execute": [
@@ -1652,7 +1652,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index \"code_hashed\" on \"products\""
+        "object": "an index on { code: \"hashed\" } in \"products\""
       }
     ],
     "execute": [
@@ -1753,7 +1753,7 @@
           }
         },
         "expect": "notExists",
-        "object": "index \"email_1\" on \"users\""
+        "object": "an index on { email: 1 } in \"users\""
       }
     ],
     "execute": [

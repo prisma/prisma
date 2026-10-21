@@ -362,7 +362,11 @@ export interface MigrationRunnerSuccessValue {
   }>;
 }
 
-/** What a check states of the database: that the object, named as a reader names it (`index "Item_state_idx"`), is `absent` or `present`. */
+/**
+ * What a check states of the database: that the object is `absent` or `present`. `object` is
+ * display text, the object as a reader names it (`index "Item_state_idx"`); no code reads it to
+ * decide anything.
+ */
 export interface CheckExpectation {
   readonly expects: 'absent' | 'present';
   readonly object: string;
@@ -444,6 +448,11 @@ export function withFailingSpace<TCode extends MigrationRunnerFailure['code']>(
   return attributed;
 }
 
+function asSentence(text: string): string {
+  const trimmed = text.trimEnd();
+  return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+}
+
 /**
  * The same failure, saying whether the database is as it was before the failed apply, in its meta
  * and at the end of its why.
@@ -456,7 +465,7 @@ export function withDatabaseUnchanged<TCode extends MigrationRunnerFailure['code
     ? 'The failed apply changed nothing.'
     : 'The operations that ran before the failure stay applied.';
   const attributed = migrationRunnerFailure(failure.code, failure.message, {
-    why: failure.why === undefined ? outcome : `${failure.why} ${outcome}`,
+    why: failure.why === undefined ? outcome : `${asSentence(failure.why)} ${outcome}`,
     meta: { ...failure.meta, databaseUnchanged },
     ...ifDefined('cause', failure.cause),
   });

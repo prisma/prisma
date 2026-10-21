@@ -1,6 +1,6 @@
 export type { ImportRequirement } from '@internal/ts-render';
 export {
-  checkExpectationOf,
+  CheckExpectationSchema,
   expectAbsent,
   expectPresent,
 } from '../control/check-expectation';

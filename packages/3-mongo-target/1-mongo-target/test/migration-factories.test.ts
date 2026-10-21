@@ -587,7 +587,7 @@ describe('serialization round-trip', () => {
           source: new ListIndexesCommand('users'),
           filter: MongoFieldFilter.eq('key', keysToKeySpec(keys)),
           expect: 'notExists',
-          object: 'index "email_1" on "users"',
+          object: 'an index on { email: 1 } in "users"',
         },
       ],
       execute: [

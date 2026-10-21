@@ -80,12 +80,16 @@ describe('withDatabaseUnchanged', () => {
       meta: { schemaIssues: [], failingSpace: 'app' },
     });
     const bare = migrationRunnerFailure('MIGRATION.POLICY_VIOLATION', 'Not allowed');
+    const driverMessage = migrationRunnerFailure('MIGRATION.EXECUTION_FAILED', 'Copy failed', {
+      why: 'UNIQUE constraint failed: _prisma_new_user.nickname',
+    });
 
     expect(
       [
         withDatabaseUnchanged(original, true),
         withDatabaseUnchanged(original, false),
         withDatabaseUnchanged(bare, true),
+        withDatabaseUnchanged(driverMessage, true),
       ].map(({ code, message, why, meta }) => ({ code, message, why, meta })),
     ).toEqual([
       {
@@ -104,6 +108,12 @@ describe('withDatabaseUnchanged', () => {
         code: 'MIGRATION.POLICY_VIOLATION',
         message: 'Not allowed',
         why: 'The failed apply changed nothing.',
+        meta: { databaseUnchanged: true },
+      },
+      {
+        code: 'MIGRATION.EXECUTION_FAILED',
+        message: 'Copy failed',
+        why: 'UNIQUE constraint failed: _prisma_new_user.nickname. The failed apply changed nothing.',
         meta: { databaseUnchanged: true },
       },
     ]);

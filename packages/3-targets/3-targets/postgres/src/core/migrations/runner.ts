@@ -27,7 +27,6 @@ import type {
 } from '@internal/framework-components/control';
 import {
   APP_SPACE_ID,
-  checkExpectationOf,
   failedPostcheckWhy,
   failedPrecheckWhy,
   schemaCheckWhy,
@@ -397,7 +396,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
           operationId: operation.id,
           phase,
           description: step.description,
-          ...ifDefined('expectation', checkExpectationOf(step.expectation)),
+          ...ifDefined('expectation', step.expectation),
         };
         return runnerFailure(code, rowsWithoutValue?.summary ?? failed, {
           ...ifDefined(

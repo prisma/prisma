@@ -214,17 +214,26 @@ export class MongoMigrationRunner {
   constructor(private readonly deps: MongoRunnerDependencies) {}
 
   async execute(options: MongoMigrationRunnerExecuteOptions): Promise<MongoMigrationRunnerResult> {
-    const { inspectionExecutor, adapter, driver, executeDdl, markerOps } = this.deps;
     let changedDatabase = false;
-    const failed = (result: MongoMigrationRunnerResult): MongoMigrationRunnerResult =>
-      result.ok
-        ? result
-        : notOk(
-            withDatabaseUnchanged(
-              result.failure,
-              options.databaseChangedBefore !== true && !changedDatabase,
-            ),
-          );
+    const result = await this.apply(options, () => {
+      changedDatabase = true;
+    });
+    return result.ok
+      ? ok({ ...result.value, changedDatabase })
+      : notOk(
+          withDatabaseUnchanged(
+            result.failure,
+            options.databaseChangedBefore !== true && !changedDatabase,
+          ),
+        );
+  }
+
+  /** Applies the plan, calling `wrote` after each command that changes the database. */
+  private async apply(
+    options: MongoMigrationRunnerExecuteOptions,
+    wrote: () => void,
+  ): Promise<Result<MigrationRunnerPerSpaceSuccessValue, MongoMigrationRunnerFailure>> {
+    const { inspectionExecutor, adapter, driver, executeDdl, markerOps } = this.deps;
     const operations = deserializeMongoOps(
       blindCast<
         readonly unknown[],
@@ -237,12 +246,12 @@ export class MongoMigrationRunner {
     const space = options.plan.spaceId ?? APP_SPACE_ID;
 
     const policyCheck = this.enforcePolicyCompatibility(options.policy, operations);
-    if (policyCheck) return failed(policyCheck);
+    if (policyCheck) return policyCheck;
 
     const existingMarker = await markerOps.readMarker(space);
 
     const markerCheck = this.ensureMarkerCompatibility(existingMarker, options.plan);
-    if (markerCheck) return failed(markerCheck);
+    if (markerCheck) return markerCheck;
 
     const checks = options.executionChecks;
     const runPrechecks = checks?.prechecks !== false;
@@ -265,9 +274,9 @@ export class MongoMigrationRunner {
             runIdempotency,
             runPrechecks,
             runPostchecks,
+            wrote,
           );
-          changedDatabase ||= result.wrote;
-          if (result.failure) return failed(result.failure);
+          if (result.failure) return result.failure;
           if (result.executed) {
             operationsExecuted += 1;
           }
@@ -291,20 +300,20 @@ export class MongoMigrationRunner {
           );
           if (failing !== undefined) {
             const failedCheck = failedCheckOf(operation.id, 'precheck', failing);
-            return failed(
+            return (
               renameTargetExistsRefusal(operation, failing) ??
-                runnerFailure(
-                  'MIGRATION.PRECHECK_FAILED',
-                  `Operation ${operation.id} failed during precheck: ${failing.description}`,
-                  { why: failedPrecheckWhy(failedCheck), meta: { failedCheck } },
-                ),
+              runnerFailure(
+                'MIGRATION.PRECHECK_FAILED',
+                `Operation ${operation.id} failed during precheck: ${failing.description}`,
+                { why: failedPrecheckWhy(failedCheck), meta: { failedCheck } },
+              )
             );
           }
         }
 
         for (const step of operation.execute) {
           await executeDdl(step.command);
-          changedDatabase = true;
+          wrote();
         }
 
         if (runPostchecks) {
@@ -315,15 +324,13 @@ export class MongoMigrationRunner {
           );
           if (failing !== undefined) {
             const failedCheck = failedCheckOf(operation.id, 'postcheck', failing);
-            return failed(
-              runnerFailure(
-                'MIGRATION.POSTCHECK_FAILED',
-                `Operation ${operation.id} failed during postcheck: ${failing.description}`,
-                {
-                  why: failedPostcheckWhy(failedCheck),
-                  meta: { operationId: operation.id, failedCheck },
-                },
-              ),
+            return runnerFailure(
+              'MIGRATION.POSTCHECK_FAILED',
+              `Operation ${operation.id} failed during postcheck: ${failing.description}`,
+              {
+                why: failedPostcheckWhy(failedCheck),
+                meta: { operationId: operation.id, failedCheck },
+              },
             );
           }
         }
@@ -381,12 +388,10 @@ export class MongoMigrationRunner {
         ? options.scopeVerifyResult(rawVerifyResult)
         : rawVerifyResult;
       if (!verifyResult.ok) {
-        return failed(
-          runnerFailure('MIGRATION.SCHEMA_VERIFY_FAILED', verifyResult.summary, {
-            why: schemaCheckWhy(verifyResult.schema.issues),
-            meta: { schemaIssues: verifyResult.schema.issues },
-          }),
-        );
+        return runnerFailure('MIGRATION.SCHEMA_VERIFY_FAILED', verifyResult.summary, {
+          why: schemaCheckWhy(verifyResult.schema.issues),
+          meta: { schemaIssues: verifyResult.schema.issues },
+        });
       }
 
       if (existingMarker) {
@@ -397,19 +402,17 @@ export class MongoMigrationRunner {
         });
         if (!updated) {
           const found = await markerOps.readMarker(space);
-          return failed(
-            runnerFailure(
-              'MIGRATION.MARKER_CAS_FAILURE',
-              'Marker was modified by another process during migration execution.',
-              {
-                meta: {
-                  space,
-                  expectedStorageHash: existingMarker.storageHash,
-                  foundStorageHash: found?.storageHash ?? null,
-                  destinationStorageHash: destination.storageHash,
-                },
+          return runnerFailure(
+            'MIGRATION.MARKER_CAS_FAILURE',
+            'Marker was modified by another process during migration execution.',
+            {
+              meta: {
+                space,
+                expectedStorageHash: existingMarker.storageHash,
+                foundStorageHash: found?.storageHash ?? null,
+                destinationStorageHash: destination.storageHash,
               },
-            ),
+            },
           );
         }
       } else {
@@ -419,15 +422,12 @@ export class MongoMigrationRunner {
           invariants: incomingInvariants,
         });
       }
+      wrote();
 
       await this.recordLedgerEntries(markerOps, space, options);
     }
 
-    return ok({
-      operationsPlanned: operations.length,
-      operationsExecuted,
-      changedDatabase: changedDatabase || !isNoOp,
-    });
+    return ok({ operationsPlanned: operations.length, operationsExecuted });
   }
 
   private async recordLedgerEntries(
@@ -466,7 +466,8 @@ export class MongoMigrationRunner {
     runIdempotency: boolean,
     runPrechecks: boolean,
     runPostchecks: boolean,
-  ): Promise<{ executed: boolean; wrote: boolean; failure?: MongoMigrationRunnerResult }> {
+    wrote: () => void,
+  ): Promise<{ executed: boolean; failure?: MongoMigrationRunnerResult }> {
     if (runPostchecks && runIdempotency && op.postcheck.length > 0) {
       const allSatisfied = await this.evaluateDmlChecks(
         op.postcheck,
@@ -474,7 +475,7 @@ export class MongoMigrationRunner {
         driver,
         filterEvaluator,
       );
-      if (allSatisfied) return { executed: false, wrote: false };
+      if (allSatisfied) return { executed: false };
     }
 
     if (runPrechecks && op.precheck.length > 0) {
@@ -482,7 +483,6 @@ export class MongoMigrationRunner {
       if (!passed) {
         return {
           executed: false,
-          wrote: false,
           failure:
             renameOverwriteRefusal(op) ??
             runnerFailure(
@@ -496,18 +496,17 @@ export class MongoMigrationRunner {
       }
     }
 
-    let wrote = false;
     for (const plan of op.run) {
       const wireCommand = await adapter.lower(plan, {});
       try {
         for await (const _ of driver.execute(wireCommand)) {
           /* consume */
         }
-        wrote = true;
+        wrote();
       } catch (error) {
         const refusal = bypassValidationRefusal(op, plan, error);
         if (refusal === undefined) throw error;
-        return { executed: false, wrote, failure: refusal };
+        return { executed: false, failure: refusal };
       }
     }
 
@@ -516,7 +515,6 @@ export class MongoMigrationRunner {
       if (!passed) {
         return {
           executed: false,
-          wrote,
           failure: runnerFailure(
             'MIGRATION.POSTCHECK_FAILED',
             `Operation ${op.id} failed during postcheck`,
@@ -528,7 +526,7 @@ export class MongoMigrationRunner {
       }
     }
 
-    return { executed: true, wrote };
+    return { executed: true };
   }
 
   private async evaluateDmlChecks(
