@@ -135,3 +135,9 @@ A SQLite table rebuild renders as a 40-line `recreateTable` call full of interna
 **Found:** slice 4p review, PR 2 round 5 (2026-10-19).
 
 `validatedEnumNames` in `packages/2-mongo-family/1-foundation/mongo-contract/src/contract-refusals.ts` works out which enums a managed collection's validator lists by walking root models, variants, embedded models and value objects. `deriveCollectionValidators` already walks the same types, and is the authority on what a validator lists, for example below the entry point of a recursive group. Have the derivation report the enums it listed, for example by returning `{ validators, listedEnums }` from one internal walk, and refuse from that, so the two walks cannot drift apart.
+
+## A planner-written row rewrite holds its locks for its whole run
+
+**Found:** slice 3b spec discussion with Will (2026-10-21).
+
+Slice 3b plans each row rewrite as one plain operation: an `UPDATE` for an enum value rename, a discriminator conversion or a value object key rename, and a `DELETE` for a removed variant's rows. A migration runs in one transaction, so on a large production table the rewrite blocks writes to every row it touches until it commits, and next to DDL such as a check rebuild it blocks the whole table. Nothing batches it or runs it in the background. 3a's `--backfill` and type conversions have the same cost. Will ruled that 3b's goal is that the planner sees these changes; making the rewrites cheap is a later optimization.

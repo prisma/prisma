@@ -37,20 +37,18 @@ Namespace items are Postgres only: SQLite has no namespaces. Everything else wor
 
 ## Decisions to check
 
-1. **Storage records what value objects and variants store.** This is the main decision, and the last three PRs need it. Today a value object field rename, a discriminator value change and a variant removal with no own columns change only the domain. The storage hash covers only storage, so the hash stays the same. That breaks the statements in three ways:
+1. **Storage records what value objects and variants store, so the planner can see changes to them** (agreed with Will, 2026-10-21). Today a value object field rename, a discriminator value change and a variant removal with no own columns change only the domain. The storage hash covers only storage, so it stays the same, and the migration system cannot see the change at all:
    - `migration plan` reports "No changes detected".
-   - A migration whose start and end hash are equal fails the integrity check, unless it has a `data` operation. `db update` does not run `data` operations.
-   - Snapshots are keyed by storage hash, and the first write wins. So the origin contract `db update` reads can be the wrong one, and statements cannot resolve against it.
+   - A migration whose start and end hash are equal fails the integrity check, unless it has a `data` operation.
+   - Snapshots are keyed by storage hash, and the first write wins. So the origin contract a plan reads can be several changes old.
 
-   **My recommendation:** the keys inside a value object's JSON and the discriminator values in a table are stored data, so storage records them. This is what slice 4p did for MongoDB: the validator put field names into storage. It is also ADR 172's rule that storage describes what is stored.
-   - A JSON column that holds value objects records their shape: keys, nesting, and lists.
-   - A discriminator column records its values as a value set.
+   Storage therefore describes what is stored, not only what the database enforces, as it already does for SQLite enum value sets:
+   - **Discriminator values** are a value set. The base table's discriminator column names it with a `valueSet` reference, the existing primitive (ADR 156, ADR 157). No check is derived, so rows of the base model itself are never rejected. No new storage format.
+   - **Value object shapes** are described in the storage block: each JSON column that holds value objects records their keys, nesting and lists. This is new in the storage format and reverses ADR 178's "value objects need no special storage mapping". A new ADR records the decision and the exact shape: [ADR 278](../../../../docs/architecture%20docs/adrs/ADR%20278%20-%20Storage%20records%20the%20shape%20of%20value%20objects%20and%20the%20values%20of%20discriminators.md), which lands with PR 3. It is recorded, not enforced.
 
-   On Postgres the discriminator value set gets a CHECK, as an enum column does. The JSON shape is recorded but not enforced.
+   **Cost:** every contract with value objects or variants gets a new storage hash once and is re-emitted, with an upgrade fragment. Their next plan has a changed hash and possibly no operations.
 
-   **Cost:** a contract change. Every contract with value objects or variants gets a new storage hash and is re-emitted. Users need an upgrade fragment, because their next plan has a changed hash and possibly no operations.
-
-   **The alternative:** allow migrations with equal start and end hashes, and key snapshots by the whole contract. I recommend against it. The marker stores only the storage hash, so `db update` still could not find the right origin. It also leaves stored data that storage does not describe.
+   **Not in this slice: efficient rewrites.** Once the planner sees a change, it plans the rewrite as one plain operation (an `UPDATE` or `DELETE` over the matching rows), as the rest of this spec describes. On a large production table that operation holds row locks for its whole run, and nothing batches it or runs it in the background. Making these rewrites cheap is a later optimization, recorded in `deferred.md`. Seeing the change comes first, because without it no later optimization is possible.
 2. **Native Postgres enums stay hand-written.** You ruled on 2026-10-13 that Prisma 8 does not rename, remove or reorder native enum values itself. A native enum also has no member names in the contract, so a statement has nothing to name. Enum value statements therefore cover enums that the contract declares, which are stored as a column with a CHECK on Postgres and a plain column on SQLite. The native enum refusal stays as it is, pointing to a hand-written migration. The project spec and design notes say "native Postgres enums rename the value". I'll correct them.
 3. **A removed namespace becomes a question.** Today the Postgres planner ignores every schema the destination contract does not declare. That protects schemas Prisma does not manage, such as Supabase's `auth`. After this slice, a schema that the origin contract declared and the destination does not is a removal: its tables are asked about, and `--delete billing` answers all of them. A schema the origin contract never declared is still ignored. Without an origin contract (`db update` with no snapshot), nothing changes.
 4. **`--convert` on a variant works on `db update` too.** Both values are known, so there is no placeholder and no file to fill. The row updates, like MongoDB's document rewrites, are classed by their effect: renames and conversions are `widening`, and deleting rows or setting values to NULL is `destructive`. So `db update` can run them.
@@ -107,14 +105,14 @@ Every operation the planner writes is also something a user could write in `migr
 | --- | --- | --- |
 | 1 | Namespaces: move, rename, delete, and a removed namespace becomes a question. The access question wording and rename | — |
 | 2 | Enum values: rename and delete in scalar and list columns, on Postgres and SQLite | 1 merged |
-| 3 | Storage records value object shapes and discriminator values (decision 1). Contracts re-emitted, with an upgrade fragment. No statements yet | 2 merged, decision 1 |
+| 3 | Storage records value object shapes and discriminator values (decision 1), with the new ADR. Contracts re-emitted, with an upgrade fragment. No statements yet | 2 merged |
 | 4 | Value object field rename and delete, including enum values inside JSON. Variant convert and delete | 3 merged |
 
 PR 3 is separate because it changes every contract with value objects or variants and needs its own review, as slice 4p's first PR did. Slice 4b reuses PR 4's value object statement support for MongoDB.
 
 ## Scope
 
-**In:** everything in the table above; error reference, Migration System § Statements and its "Rename limits", the CLI README, `skills/prisma-8/references/migrations.md`; upgrade fragments for the access rename (PR 1) and the storage change (PR 3); correcting ADR 223's statement that emission rejects several namespaces.
+**In:** everything in the table above; error reference, Migration System § Statements and its "Rename limits", the CLI README, `skills/prisma-8/references/migrations.md`; upgrade fragments for the access rename (PR 1) and the storage change (PR 3); the new ADR, with update notes on ADR 172 and ADR 178 (PR 3); correcting ADR 223's statement that emission rejects several namespaces.
 
 **Out:**
 - Native Postgres enum values (decision 2).
@@ -129,7 +127,6 @@ PR 3 is separate because it changes every contract with value objects or variant
 | --- | --- |
 | An enum member keeps its name but its stored value changes | No statement can say this. Asked with `--delete` only; the advice says to write the update by hand, as for `@@map` today |
 | A removed variant with no columns of its own | Now asked as a model, so its rows are not left behind silently |
-| Rows of the base model itself, whose discriminator value no variant claims | Not checked yet: whether the base model can have rows of its own, and which value they hold. PR 3 checks this first. A Postgres CHECK must not reject them, so if the contract cannot name their values, the discriminator value set is recorded but not enforced |
 | Renaming `public` | Allowed when no other contract space declares it. Models outside any `namespace` block then live in the new schema |
 | `--delete billing` and `--rename billing.Invoice:Invoice` in one run | The rename runs first, so that model is kept, and the delete covers the rest |
 
