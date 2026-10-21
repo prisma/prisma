@@ -25,6 +25,7 @@ import {
   preflightRefAdvancement,
 } from '../../control-api/operations/ref-advancement';
 import { retryCommandFor } from '../../control-api/operations/ref-resolution';
+import { subjectNamespace } from '../../control-api/statements/plan-questions';
 import { shellQuoted, statementFlag } from '../../control-api/statements/statement-flag';
 import { isStatementVerb, type StatementText } from '../../control-api/statements/statement-text';
 import type {
@@ -101,7 +102,8 @@ function updatePresentations(inputs: {
 
 /**
  * Whether a flag the run was given answers each entry's question: a `--delete` answers every loss
- * of its subject, and an `--allow` one operation, in order.
+ * of its subject, or of every subject in the namespace it names, and an `--allow` one operation, in
+ * order.
  */
 function answeredByFlags(
   entries: readonly AskedSubject[],
@@ -115,6 +117,10 @@ function answeredByFlags(
     }
   }
   return entries.map((entry) => {
+    const namespace = subjectNamespace(entry.subject);
+    if (verb === 'delete' && namespace !== undefined && (flagsLeft.get(namespace) ?? 0) > 0) {
+      return true;
+    }
     const left = flagsLeft.get(entry.text) ?? 0;
     if (left > 0 && verb === 'allow') flagsLeft.set(entry.text, left - 1);
     return left > 0;

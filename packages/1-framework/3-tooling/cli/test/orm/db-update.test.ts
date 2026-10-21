@@ -341,6 +341,40 @@ describe('db update --rename', () => {
     ]);
   });
 
+  it('marks every question about a model of a namespace a dry run --delete names as answered', async () => {
+    const invoice = { kind: 'model', namespaceId: 'billing', model: 'Invoice' } as const;
+    const receipt = { kind: 'model', namespaceId: 'billing', model: 'Receipt' } as const;
+    mocks.dbUpdate.mockResolvedValue(
+      ok({
+        ...planSuccess(),
+        dataLoss: [
+          { operationIndex: 0, subject: invoice, text: 'billing.Invoice' },
+          { operationIndex: 0, subject: receipt, text: 'billing.Receipt' },
+        ],
+      }),
+    );
+    const args = ['db', 'update', '--dry-run', '--delete', 'billing'];
+
+    const human = await harness().run(args, { cwd: projectDir, isTty: { stdout: true } });
+    const json = await harness().run([...args, '--json'], { cwd: projectDir });
+
+    expect(human.presented?.presentation.human).toContainEqual({
+      kind: 'tree',
+      roots: [
+        {
+          label: 'An apply asks about',
+          children: [
+            { label: 'drop relation legacy: --delete billing.Invoice (answered)' },
+            { label: 'drop relation legacy: --delete billing.Receipt (answered)' },
+          ],
+        },
+      ],
+    });
+    expect(json.presented?.data).toMatchObject({
+      dataLoss: [{ answered: true }, { answered: true }],
+    });
+  });
+
   it('suggests the apply with the database as a placeholder and the ref it advances', async () => {
     mocks.dbUpdate.mockResolvedValue(ok(planSuccess()));
     const run = await harness().run(
