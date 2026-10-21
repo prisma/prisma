@@ -16,6 +16,7 @@ import {
   type ResolvedFieldRenameStatement,
   type ResolvedMigrationStatement,
   type ResolvedModelRenameStatement,
+  type ResolvedNamespaceRenameStatement,
   type ResolvedRenameStatement,
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
@@ -163,6 +164,18 @@ export interface CallWithCompanions extends SingleOperationCall {
   readonly companions: readonly SingleOperationCall[];
 }
 
+/** A namespace renamed: `from` names it in the origin contract and `to` in the destination. */
+export interface NamespaceRename {
+  readonly from: string;
+  readonly to: string;
+}
+
+/** Why a target cannot carry out a statement, in its words. */
+export interface TargetRefusal {
+  readonly reason: string;
+  readonly fix: string;
+}
+
 /** A table moving, under its own name, from one storage namespace to another. */
 export interface TableMove {
   readonly table: string;
@@ -192,6 +205,10 @@ export interface StatementPlanningTarget<TCall extends CallWithCompanions>
   createNamespaceCalls(namespaceId: string): readonly TCall[];
   /** The call that moves a table to another namespace, computed against the working schema. */
   moveTableCall(move: TableMove): TCall;
+  /** Why the target cannot rename the namespace, or `undefined` when it can. */
+  namespaceRenameRefusal(rename: NamespaceRename): TargetRefusal | undefined;
+  /** The call that renames a namespace, computed against the working schema. */
+  renameNamespaceCall(rename: NamespaceRename): TCall;
   /** The call that renames a column, with its companions, computed against the working schema. */
   renameColumnCall(rename: ColumnRename): TCall;
   /** Applies a call to the working schema. */
@@ -352,6 +369,8 @@ class StatementPlanner<TCall extends CallWithCompanions> {
   readonly #target: StatementPlanningTarget<TCall>;
   /** Where each table renamed or moved so far is in the working schema, keyed by its origin place. */
   readonly #renamedTables = new Map<string, ModelTable>();
+  /** The name each namespace renamed so far has in the working schema, keyed by its origin name. */
+  readonly #renamedNamespaces = new Map<string, string>();
   readonly calls: TCall[] = [];
   /** How many operations the calls planned so far lower to. */
   #operationCount = 0;
@@ -372,7 +391,78 @@ class StatementPlanner<TCall extends CallWithCompanions> {
 
   /** Plans one statement; the result is the positions of the operations it accounts for. */
   plan(statement: ResolvedRenameStatement): Result<readonly number[], SqlPlannerConflict> {
-    return statement.entity === 'model' ? this.#planModel(statement) : this.#planField(statement);
+    switch (statement.entity) {
+      case 'namespace':
+        return this.#planNamespace(statement);
+      case 'model':
+        return this.#planModel(statement);
+      case 'field':
+        return this.#planField(statement);
+    }
+  }
+
+  /** Where a table of the origin is in the working schema, after the renames planned so far. */
+  #current(origin: ModelTable): ModelTable {
+    const table = this.#renamedTables.get(tableKey(origin)) ?? origin;
+    return {
+      namespaceId: this.#renamedNamespaces.get(table.namespaceId) ?? table.namespaceId,
+      table: table.table,
+    };
+  }
+
+  #planNamespace(
+    statement: ResolvedNamespaceRenameStatement,
+  ): Result<readonly number[], SqlPlannerConflict> {
+    const rename = { from: statement.from, to: statement.to };
+    const label = `Cannot rename namespace "${rename.from}" to "${rename.to}"`;
+    const refusal = this.#target.namespaceRenameRefusal(rename);
+    if (refusal !== undefined) {
+      return notOk(
+        statementRefused(statement, `${label}: ${refusal.reason}`, refusal.fix, undefined),
+      );
+    }
+    const tables = Object.keys(this.#contract.storage.namespaces[rename.to]?.entries.table ?? {});
+    for (const table of tables) {
+      const controlPolicy = tableControlPolicy(this.#contract, { namespaceId: rename.to, table });
+      if (controlPolicy === 'managed') continue;
+      return notOk(
+        statementRefused(
+          statement,
+          `${label}: table "${table}" has control policy "${controlPolicy}"`,
+          `Statements rename only namespaces whose tables all have control policy "managed"; table "${table}" is "${controlPolicy}". Make the change in the database yourself and leave out this statement.`,
+          { namespaceId: rename.to, table },
+        ),
+      );
+    }
+    const schemaTables = this.#target.tables();
+    if (!schemaTables.hasNamespace(rename.from)) {
+      return notOk(
+        statementRefused(
+          statement,
+          `${label}: the schema being planned from has no namespace "${rename.from}"`,
+          `The database has no namespace "${rename.from}", although the contract it was last updated to names it, ${DRIFTED}`,
+          undefined,
+        ),
+      );
+    }
+    if (schemaTables.hasNamespace(rename.to)) {
+      return notOk(
+        statementRefused(
+          statement,
+          `${label}: the schema being planned from already has a namespace "${rename.to}"`,
+          `A rename cannot replace a namespace that already exists. Rename or drop namespace "${rename.to}" first, or leave out this statement.`,
+          undefined,
+        ),
+      );
+    }
+    const planned = this.#emit(
+      statement,
+      label,
+      undefined,
+      this.#target.renameNamespaceCall(rename),
+    );
+    if (planned.ok) this.#renamedNamespaces.set(rename.from, rename.to);
+    return planned;
   }
 
   #controlPolicyRefusal(
@@ -393,7 +483,7 @@ class StatementPlanner<TCall extends CallWithCompanions> {
   #emit(
     statement: ResolvedMigrationStatement,
     label: string,
-    location: ConflictLocation,
+    location: ConflictLocation | undefined,
     call: TCall,
   ): Result<readonly number[], SqlPlannerConflict> {
     const refused = operationsOf(call)
@@ -433,12 +523,28 @@ class StatementPlanner<TCall extends CallWithCompanions> {
     }
     const effect = worked.value;
     if (effect.kind === 'unchanged') return ok([]);
-    if (effect.kind === 'moveNamespace') return this.#planMove(statement, effect.from, effect.to);
-    return this.#planTableRename(statement, effect.rename);
+    const [origin, destination] =
+      effect.kind === 'moveNamespace'
+        ? [effect.from, effect.to]
+        : [
+            { namespaceId: effect.rename.namespaceId, table: effect.rename.from },
+            { namespaceId: effect.rename.namespaceId, table: effect.rename.to },
+          ];
+    const current = this.#current(origin);
+    if (current.namespaceId === destination.namespaceId) {
+      if (current.table === destination.table) return ok([]);
+      return this.#planTableRename(statement, origin, {
+        namespaceId: destination.namespaceId,
+        from: current.table,
+        to: destination.table,
+      });
+    }
+    return this.#planMove(statement, origin, current, destination);
   }
 
   #planTableRename(
     statement: ResolvedModelRenameStatement,
+    origin: ModelTable,
     rename: TableRename,
   ): Result<readonly number[], SqlPlannerConflict> {
     const destinationTable = { namespaceId: rename.namespaceId, table: rename.to };
@@ -457,10 +563,7 @@ class StatementPlanner<TCall extends CallWithCompanions> {
     );
     if (planned.ok) {
       this.tableRenames.push(rename);
-      this.#renamedTables.set(
-        tableKey({ namespaceId: rename.namespaceId, table: rename.from }),
-        destinationTable,
-      );
+      this.#renamedTables.set(tableKey(origin), destinationTable);
     }
     return planned;
   }
@@ -472,6 +575,7 @@ class StatementPlanner<TCall extends CallWithCompanions> {
    */
   #planMove(
     statement: ResolvedModelRenameStatement,
+    origin: ModelTable,
     from: ModelTable,
     to: ModelTable,
   ): Result<readonly number[], SqlPlannerConflict> {
@@ -526,15 +630,14 @@ class StatementPlanner<TCall extends CallWithCompanions> {
       this.#target.moveTableCall({ table: from.table, from: from.namespaceId, to: to.namespaceId }),
     );
     if (!planned.ok) return planned;
-    this.#renamedTables.set(tableKey(from), moved);
+    this.#renamedTables.set(tableKey(origin), moved);
     if (to.table === from.table) return planned;
-    const renamed = this.#planTableRename(statement, {
+    const renamed = this.#planTableRename(statement, origin, {
       namespaceId: to.namespaceId,
       from: from.table,
       to: to.table,
     });
     if (!renamed.ok) return renamed;
-    this.#renamedTables.set(tableKey(from), to);
     return ok([...planned.value, ...renamed.value]);
   }
 
@@ -564,7 +667,7 @@ class StatementPlanner<TCall extends CallWithCompanions> {
     }
     const effect = worked.value;
     if (effect.kind === 'unchanged') return ok([]);
-    const current = this.#renamedTables.get(tableKey(effect.table)) ?? effect.table;
+    const current = this.#current(effect.table);
     const table = current.table;
     const destinationTable = modelTable(this.#contract, statement.to);
     if (

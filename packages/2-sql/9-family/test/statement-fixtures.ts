@@ -13,6 +13,7 @@ import type {
   ResolvedFieldConvertStatement,
   ResolvedFieldRenameStatement,
   ResolvedModelRenameStatement,
+  ResolvedNamespaceRenameStatement,
 } from '@internal/framework-components/control';
 import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
@@ -21,6 +22,7 @@ import type { TableRename } from '../src/core/migrations/resolve-table-rename';
 import type { SchemaTables } from '../src/core/migrations/schema-tables';
 import type {
   CallWithCompanions,
+  NamespaceRename,
   planStatements,
   StatementPlanningTarget,
   TableMove,
@@ -217,6 +219,9 @@ export function fakeTarget(
         sameName(existing, column),
       ),
     namespacesWithTable: () => [],
+    hasNamespace: (namespaceId) =>
+      existingNamespaces?.has(namespaceId) ??
+      [...tables.keys()].some((key) => key.startsWith(`${namespaceId}.`)),
   };
   const operationClass = operationClasses[0] ?? 'widening';
   const call = (text: string): FakeCall => ({
@@ -230,6 +235,12 @@ export function fakeTarget(
       existingNamespaces === undefined || existingNamespaces.has(namespaceId)
         ? []
         : [{ text: `namespace ${namespaceId}`, operationClass: 'additive', companions: [] }],
+    namespaceRenameRefusal: () => undefined,
+    renameNamespaceCall: (rename: NamespaceRename) => ({
+      text: `rename-namespace ${rename.from} -> ${rename.to}`,
+      operationClass,
+      companions: [],
+    }),
     moveTableCall: (move: TableMove) => ({
       text: `move ${move.from}.${move.table} -> ${move.to}`,
       operationClass,
@@ -248,6 +259,16 @@ export function fakeTarget(
       const [kind, from, , to] = text.split(' ');
       if (kind === 'namespace' && from !== undefined) {
         existingNamespaces?.add(from);
+        return;
+      }
+      if (kind === 'rename-namespace' && from !== undefined && to !== undefined) {
+        for (const [key, existing] of [...tables.entries()]) {
+          if (!key.startsWith(`${from}.`)) continue;
+          tables.delete(key);
+          tables.set(`${to}.${key.slice(from.length + 1)}`, existing);
+        }
+        existingNamespaces?.delete(from);
+        existingNamespaces?.add(to);
         return;
       }
       if (kind === 'move' && from !== undefined && to !== undefined) {
@@ -271,6 +292,23 @@ export function fakeTarget(
       existing?.delete(column ?? '');
       existing?.add(to);
     },
+  };
+}
+
+/** `target`, refusing every namespace rename with `refusal`. */
+export function refusingNamespaceRenames(
+  target: StatementPlanningTarget<FakeCall>,
+  refusal: { readonly reason: string; readonly fix: string },
+): StatementPlanningTarget<FakeCall> {
+  return { ...target, namespaceRenameRefusal: () => refusal };
+}
+
+export function renameNamespace(from: string, to: string): ResolvedNamespaceRenameStatement {
+  return {
+    kind: 'rename',
+    entity: 'namespace',
+    from: asNamespaceId(from),
+    to: asNamespaceId(to),
   };
 }
 

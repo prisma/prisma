@@ -110,6 +110,7 @@ export type {
   FieldStorageEffect,
   ModelStorageEffect,
   ModelTable,
+  NamespaceRename,
   NoTable,
   PlannedStatements,
   SingleOperationCall,
@@ -117,6 +118,7 @@ export type {
   StatementPlanningTarget,
   TableMove,
   TableRenameByHand,
+  TargetRefusal,
 } from '../core/migrations/statement-planning';
 export {
   appliedStatementsInOrder,
