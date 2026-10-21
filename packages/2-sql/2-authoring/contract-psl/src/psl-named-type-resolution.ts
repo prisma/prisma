@@ -79,11 +79,7 @@ export interface ResolveNamedTypeDeclarationsInput {
 
 function describeUnsupportedSqlAliasAttribute(
   attribute: ResolvedAttribute<FieldAttributeAst>,
-  declaration: NamedTypeSymbol,
 ): string | undefined {
-  if (attribute.name === 'id' || attribute.name === 'unique') {
-    return `Type alias "${declaration.name}" cannot carry @${attribute.name}. @id and @unique describe a model's field, not a column type; write them on the field.`;
-  }
   return attribute.name.startsWith('db.')
     ? formatDbAttributeMigrationMessage(attribute)
     : undefined;

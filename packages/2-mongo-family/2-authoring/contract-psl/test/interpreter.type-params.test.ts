@@ -38,27 +38,31 @@ function vectorPreset(length: number): AuthoringContributions {
 }
 
 function interpret(length: number) {
-  return interpretMongoContract(
+  return interpretSchema(
     `model Doc {
   id     ObjectId    @id @map("_id")
   values embedding()
 }
 `,
-    {
-      scalarTypeCodecIds: new Map([['ObjectId', 'mongo/objectId@1']]),
-      defaultFunctionRegistry: new Map(),
-      codecLookup,
-      dataTypes: {
-        entries: {},
-        lookup: {
-          get: (id) => dataTypeLookup.get(id) ?? mongoDataTypeLookup.get(id),
-          has: (id) => dataTypeLookup.has(id) || mongoDataTypeLookup.has(id),
-        },
-        dataTypeOfCodec: (codecId) => (codecId === 'test/vector@1' ? vector.id : undefined),
-      },
-      authoringContributions: vectorPreset(length),
-    },
+    vectorPreset(length),
   );
+}
+
+function interpretSchema(schema: string, authoringContributions: AuthoringContributions) {
+  return interpretMongoContract(schema, {
+    scalarTypeCodecIds: new Map([['ObjectId', 'mongo/objectId@1']]),
+    defaultFunctionRegistry: new Map(),
+    codecLookup,
+    dataTypes: {
+      entries: {},
+      lookup: {
+        get: (id) => dataTypeLookup.get(id) ?? mongoDataTypeLookup.get(id),
+        has: (id) => dataTypeLookup.has(id) || mongoDataTypeLookup.has(id),
+      },
+      dataTypeOfCodec: (codecId) => (codecId === 'test/vector@1' ? vector.id : undefined),
+    },
+    authoringContributions,
+  });
 }
 
 describe('Mongo PSL field type parameters', () => {
@@ -84,5 +88,39 @@ describe('Mongo PSL field type parameters', () => {
         span: expect.objectContaining({ start: expect.any(Object) }),
       }),
     ]);
+  });
+
+  it('keeps the type parameters of a bare type constructor, on a field and through a types {} alias', () => {
+    const result = interpretSchema(
+      `types {
+  Embedding = Vector3
+}
+
+model Doc {
+  id      ObjectId  @id @map("_id")
+  values  Vector3
+  aliased Embedding
+}
+`,
+      {
+        type: {
+          Vector3: {
+            kind: 'typeConstructor',
+            output: { codecId: 'test/vector@1', typeParams: { length: 3 } },
+          },
+        },
+      },
+    );
+    if (!result.ok) throw new Error(JSON.stringify(result.failure));
+    const vector3 = {
+      nullable: false,
+      many: false,
+      type: { kind: 'scalar', codecId: 'test/vector@1', typeParams: { length: 3 } },
+    };
+    expect(result.value.domain.namespaces['__unbound__']?.models['Doc']?.fields).toEqual({
+      id: { nullable: false, many: false, type: { kind: 'scalar', codecId: 'mongo/objectId@1' } },
+      values: vector3,
+      aliased: vector3,
+    });
   });
 });

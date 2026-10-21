@@ -72,14 +72,25 @@ function baseOf(
     : undefined;
 }
 
+function fieldOnlyAttributeMessage(
+  attribute: ResolvedAttribute<FieldAttributeAst>,
+  declaration: NamedTypeSymbol,
+): string | undefined {
+  return attribute.name === 'id' || attribute.name === 'unique'
+    ? `Type alias "${declaration.name}" cannot carry @${attribute.name}. @id and @unique describe a model's field, not a column type; write them on the field.`
+    : undefined;
+}
+
 /**
- * Reads each `types {}` declaration as a type alias. A base must be a type constructor or a block; another alias, a field preset or anything else is refused, as is an alias with no base. Of the attributes, `@default`, `@onCreate` and `@onUpdate` are kept and every other one is refused and dropped, keeping the alias, so its fields are not refused for it too.
+ * Reads each `types {}` declaration as a type alias. A base must be a type constructor or a block; another alias, a field preset or anything else is refused, as is an alias with no base. Of the attributes, those the family accepts are kept and every other one is refused and dropped, keeping the alias, so its fields are not refused for it too.
  */
 export function resolveTypeAliases(input: {
   readonly declarations: readonly NamedTypeSymbol[];
   readonly binder: Binder;
   readonly sources: PslSources;
   readonly diagnostics: PslDiagnosticCollector;
+  /** The attributes the family lets a type alias carry; `TYPE_ALIAS_ATTRIBUTE_NAMES` by default. */
+  readonly acceptedAttributes?: ReadonlySet<string>;
   /** The family's wording for an attribute no type alias takes, or `undefined` for the shared wording. */
   readonly describeUnsupportedAttribute?: (
     attribute: ResolvedAttribute<FieldAttributeAst>,
@@ -87,6 +98,7 @@ export function resolveTypeAliases(input: {
   ) => string | undefined;
 }): Map<NamedTypeSymbol, TypeAlias> {
   const aliases = new Map<NamedTypeSymbol, TypeAlias>();
+  const accepted = input.acceptedAttributes ?? TYPE_ALIAS_ATTRIBUTE_NAMES;
   for (const declaration of input.declarations) {
     const source = diagnosticSource(input.sources, declaration.node.syntax);
     const refuseBase = (code: string, message: string, span = declaration.span) =>
@@ -120,11 +132,12 @@ export function resolveTypeAliases(input: {
 
     const attributes: ResolvedAttribute<FieldAttributeAst>[] = [];
     for (const attribute of declaration.attributes) {
-      if (TYPE_ALIAS_ATTRIBUTE_NAMES.has(attribute.name)) {
+      if (accepted.has(attribute.name)) {
         attributes.push(attribute);
         continue;
       }
       const message =
+        fieldOnlyAttributeMessage(attribute, declaration) ??
         input.describeUnsupportedAttribute?.(attribute, declaration) ??
         `Named type "${declaration.name}" uses unsupported attribute "${attribute.name}"`;
       input.diagnostics.push({

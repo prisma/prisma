@@ -52,10 +52,12 @@ function context(): BinderContext {
   };
 }
 
-function resolve(
-  schema: string,
-  options?: Parameters<typeof resolveTypeAliases>[0]['describeUnsupportedAttribute'],
-) {
+type ResolveOptions = Pick<
+  Parameters<typeof resolveTypeAliases>[0],
+  'describeUnsupportedAttribute' | 'acceptedAttributes'
+>;
+
+function resolve(schema: string, options: ResolveOptions = {}) {
   const { document, sources } = parse(schema, 'schema.prisma');
   const pslSources = new PslSources([[document.syntax, sources.sourceFileFor(document.syntax)]]);
   const { symbolTable } = buildSymbolTable({
@@ -70,7 +72,7 @@ function resolve(
     binder,
     sources: pslSources,
     diagnostics,
-    ...(options === undefined ? {} : { describeUnsupportedAttribute: options }),
+    ...options,
   });
   const reported = () =>
     diagnostics.toExternal().map(({ code, message, span }) => ({
@@ -147,10 +149,12 @@ types {
   it('refuses and drops any other attribute, keeping the alias, in the family wording when it gives one', () => {
     const { aliases, reported } = resolve(
       `types {
-  Slug = String @map("x") @id
+  Slug = String @map("x") @db.Text
 }`,
-      (attribute, declaration) =>
-        attribute.name === 'id' ? `${declaration.name} takes no @id` : undefined,
+      {
+        describeUnsupportedAttribute: (attribute, declaration) =>
+          attribute.name === 'db.Text' ? `${declaration.name} takes no @db.Text` : undefined,
+      },
     );
     expect({
       attributes: [...aliases.values()].map((alias) => alias.attributes),
@@ -163,7 +167,56 @@ types {
           message: 'Named type "Slug" uses unsupported attribute "map"',
           line: 2,
         },
-        { code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE', message: 'Slug takes no @id', line: 2 },
+        {
+          code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
+          message: 'Slug takes no @db.Text',
+          line: 2,
+        },
+      ],
+    });
+  });
+
+  it('refuses @id and @unique, which belong on a field, in every family', () => {
+    const { reported } = resolve(
+      `types {
+  Key = String @id @unique
+}`,
+      { describeUnsupportedAttribute: () => 'family wording' },
+    );
+    expect(reported()).toEqual([
+      {
+        code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
+        message:
+          'Type alias "Key" cannot carry @id. @id and @unique describe a model\'s field, not a column type; write them on the field.',
+        line: 2,
+      },
+      {
+        code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
+        message:
+          'Type alias "Key" cannot carry @unique. @id and @unique describe a model\'s field, not a column type; write them on the field.',
+        line: 2,
+      },
+    ]);
+  });
+
+  it('keeps only the attributes the family accepts', () => {
+    const { aliases, reported } = resolve(
+      `types {
+  Stamp = String @default("x") @onCreate(now())
+}`,
+      { acceptedAttributes: new Set(['onCreate', 'onUpdate']) },
+    );
+    expect({
+      attributes: [...aliases.values()].map((alias) => alias.attributes.map(({ name }) => name)),
+      reported: reported(),
+    }).toEqual({
+      attributes: [['onCreate']],
+      reported: [
+        {
+          code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
+          message: 'Named type "Stamp" uses unsupported attribute "default"',
+          line: 2,
+        },
       ],
     });
   });
