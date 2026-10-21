@@ -727,7 +727,7 @@ namespace app {
       'Declares a mixin for model blocks.',
       'Defines a reusable composite type.',
       'Declares a mixin for type blocks.',
-      'Defines reusable named types.',
+      'Defines reusable type aliases.',
       'Groups declarations belonging to the same database schema or database.',
       'Generic block keyword',
       'Declares a mixin for audit blocks.',

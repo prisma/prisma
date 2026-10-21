@@ -151,7 +151,7 @@ model Doc {
       {
         code: 'PSL_UNRESOLVED_REFERENCE',
         message:
-          '"auth" is a namespace; a type reference must name a model, composite type, enum, or named type',
+          '"auth" is a namespace; a type reference must name a model, composite type, enum, or type alias',
       },
     ]);
   });

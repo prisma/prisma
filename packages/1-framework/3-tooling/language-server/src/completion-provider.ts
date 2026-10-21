@@ -112,7 +112,7 @@ const documentNativeDeclarationKeywords: readonly DeclarationKeywordCompletionCa
     'types',
     'types ',
     'types {\n  $' + '{0:// Type aliases}\n}',
-    'Defines reusable named types.',
+    'Defines reusable type aliases.',
   ),
   nativeDeclarationKeyword(
     'namespace',

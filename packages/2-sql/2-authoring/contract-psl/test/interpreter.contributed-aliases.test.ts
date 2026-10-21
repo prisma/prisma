@@ -151,7 +151,7 @@ model Event {
     ).toEqual([
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-        message: 'Named type "Stamp" references unsupported base type "temporal.UpdatedAt"',
+        message: 'Type alias "Stamp" references unsupported base type "temporal.UpdatedAt"',
       },
     ]);
   });

@@ -1372,7 +1372,7 @@ describe('createBinder — one kind-blind scope chain', () => {
       symbol: app,
     });
     expect(diagnostics.map(({ message }) => message)).toEqual([
-      '"app" is a namespace; a type reference must name a model, composite type, enum, or named type',
+      '"app" is a namespace; a type reference must name a model, composite type, enum, or type alias',
     ]);
   });
 

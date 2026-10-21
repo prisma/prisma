@@ -2079,7 +2079,7 @@ function relationTargetKindLabel(resolution: Resolution): string | undefined {
     case 'compositeType':
       return 'composite type';
     case 'namedType':
-      return 'named type';
+      return 'type alias';
     case 'block':
       return resolution.symbol.keyword;
     case 'namespace':

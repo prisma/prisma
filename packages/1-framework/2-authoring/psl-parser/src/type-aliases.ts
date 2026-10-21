@@ -75,10 +75,9 @@ function baseOf(
 function fieldOnlyAttributeMessage(
   attribute: ResolvedAttribute<FieldAttributeAst>,
   declaration: NamedTypeSymbol,
-  typeNoun: string,
 ): string | undefined {
   return attribute.name === 'id' || attribute.name === 'unique'
-    ? `Type alias "${declaration.name}" cannot carry @${attribute.name}. @id and @unique describe a model's field, not a ${typeNoun}; write them on the field.`
+    ? `Type alias "${declaration.name}" cannot carry @${attribute.name}. @id and @unique belong to a model's field, not to its type; write them on the field.`
     : undefined;
 }
 
@@ -90,8 +89,6 @@ export function resolveTypeAliases(input: {
   readonly binder: Binder;
   readonly sources: PslSources;
   readonly diagnostics: PslDiagnosticCollector;
-  /** The family's word for what a type alias stands for, in the refusal of `@id` and `@unique`. */
-  readonly typeNoun: string;
   /** The attributes the family lets a type alias carry; `TYPE_ALIAS_ATTRIBUTE_NAMES` by default. */
   readonly acceptedAttributes?: ReadonlySet<string>;
   /** The family's wording for an attribute no type alias takes, or `undefined` for the shared wording. */
@@ -112,7 +109,7 @@ export function resolveTypeAliases(input: {
     if (written === undefined) {
       refuseBase(
         'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-        `Named type "${declaration.name}" must declare a base type or constructor`,
+        `Type alias "${declaration.name}" must declare a base type or constructor`,
       );
       continue;
     }
@@ -121,13 +118,13 @@ export function resolveTypeAliases(input: {
       if (declaration.typeConstructor !== undefined) {
         refuseBase(
           'PSL_UNSUPPORTED_NAMED_TYPE_CONSTRUCTOR',
-          `Named type "${declaration.name}" references unsupported constructor "${declaration.typeConstructor.path.join('.')}"`,
+          `Type alias "${declaration.name}" references unsupported constructor "${declaration.typeConstructor.path.join('.')}"`,
           declaration.typeConstructor.span,
         );
       } else {
         refuseBase(
           'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-          `Named type "${declaration.name}" references unsupported base type "${writtenBase(declaration, input.sources)}"`,
+          `Type alias "${declaration.name}" references unsupported base type "${writtenBase(declaration, input.sources)}"`,
         );
       }
       continue;
@@ -140,9 +137,9 @@ export function resolveTypeAliases(input: {
         continue;
       }
       const message =
-        fieldOnlyAttributeMessage(attribute, declaration, input.typeNoun) ??
+        fieldOnlyAttributeMessage(attribute, declaration) ??
         input.describeUnsupportedAttribute?.(attribute, declaration) ??
-        `Named type "${declaration.name}" uses unsupported attribute "${attribute.name}"`;
+        `Type alias "${declaration.name}" uses unsupported attribute "${attribute.name}"`;
       input.diagnostics.push({
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
         message,

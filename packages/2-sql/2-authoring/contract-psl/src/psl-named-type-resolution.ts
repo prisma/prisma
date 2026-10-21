@@ -99,7 +99,7 @@ function aliasDescriptor(
       codecLookup: input.codecLookup,
       diagnostics: input.diagnostics,
       source,
-      entityLabel: `Named type "${symbol.name}"`,
+      entityLabel: `Type alias "${symbol.name}"`,
       dataTypes: input.dataTypes,
     });
   }
@@ -107,7 +107,7 @@ function aliasDescriptor(
   if (descriptor === undefined) {
     input.diagnostics.push({
       code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-      message: `Named type "${symbol.name}" references unsupported base type "${alias.baseName}"`,
+      message: `Type alias "${symbol.name}" references unsupported base type "${alias.baseName}"`,
       ...source.at(symbol.span),
     });
   }
@@ -172,7 +172,6 @@ function resolveDeclaredTypeAliases(
     binder: input.binder,
     sources: input.sources,
     diagnostics: input.diagnostics,
-    typeNoun: 'column type',
     describeUnsupportedAttribute: describeUnsupportedSqlAliasAttribute,
   });
   const resolved = new Map<NamedTypeSymbol, ResolvedTypeAlias>();

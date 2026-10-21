@@ -99,13 +99,13 @@ model Event {
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
         message:
-          'Type alias "Key" cannot carry @id. @id and @unique describe a model\'s field, not a column type; write them on the field.',
+          'Type alias "Key" cannot carry @id. @id and @unique belong to a model\'s field, not to its type; write them on the field.',
         line: 2,
       },
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
         message:
-          'Type alias "Slug" cannot carry @unique. @id and @unique describe a model\'s field, not a column type; write them on the field.',
+          'Type alias "Slug" cannot carry @unique. @id and @unique belong to a model\'s field, not to its type; write them on the field.',
         line: 3,
       },
     ]);
@@ -124,7 +124,7 @@ model Event {
     ).toEqual([
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
-        message: 'Named type "Slug" uses unsupported attribute "map"',
+        message: 'Type alias "Slug" uses unsupported attribute "map"',
         line: 2,
       },
     ]);

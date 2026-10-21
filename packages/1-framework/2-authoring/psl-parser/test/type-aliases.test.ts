@@ -71,7 +71,6 @@ function resolve(schema: string, options: ResolveOptions = {}) {
     binder,
     sources: pslSources,
     diagnostics,
-    typeNoun: 'column type',
     ...options,
   });
   const reported = () =>
@@ -124,22 +123,22 @@ types {
       reported: [
         {
           code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-          message: 'Named type "B" references unsupported base type "A"',
+          message: 'Type alias "B" references unsupported base type "A"',
           line: 3,
         },
         {
           code: 'PSL_UNSUPPORTED_NAMED_TYPE_CONSTRUCTOR',
-          message: 'Named type "C" references unsupported constructor "temporal.createdAt"',
+          message: 'Type alias "C" references unsupported constructor "temporal.createdAt"',
           line: 4,
         },
         {
           code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-          message: 'Named type "D" references unsupported base type "VarChar"',
+          message: 'Type alias "D" references unsupported base type "VarChar"',
           line: 5,
         },
         {
           code: 'PSL_UNSUPPORTED_NAMED_TYPE_CONSTRUCTOR',
-          message: 'Named type "E" references unsupported constructor "Missing"',
+          message: 'Type alias "E" references unsupported constructor "Missing"',
           line: 6,
         },
       ],
@@ -164,7 +163,7 @@ types {
       reported: [
         {
           code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
-          message: 'Named type "Slug" uses unsupported attribute "map"',
+          message: 'Type alias "Slug" uses unsupported attribute "map"',
           line: 2,
         },
         {
@@ -187,13 +186,13 @@ types {
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
         message:
-          'Type alias "Key" cannot carry @id. @id and @unique describe a model\'s field, not a column type; write them on the field.',
+          'Type alias "Key" cannot carry @id. @id and @unique belong to a model\'s field, not to its type; write them on the field.',
         line: 2,
       },
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
         message:
-          'Type alias "Key" cannot carry @unique. @id and @unique describe a model\'s field, not a column type; write them on the field.',
+          'Type alias "Key" cannot carry @unique. @id and @unique belong to a model\'s field, not to its type; write them on the field.',
         line: 2,
       },
     ]);
@@ -214,7 +213,7 @@ types {
       reported: [
         {
           code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
-          message: 'Named type "Stamp" uses unsupported attribute "default"',
+          message: 'Type alias "Stamp" uses unsupported attribute "default"',
           line: 2,
         },
       ],

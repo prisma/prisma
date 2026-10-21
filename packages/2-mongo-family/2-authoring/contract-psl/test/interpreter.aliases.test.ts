@@ -212,12 +212,12 @@ model Post {
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
         message:
-          'Type alias "Key" cannot carry @id. @id and @unique describe a model\'s field, not a field type; write them on the field.',
+          'Type alias "Key" cannot carry @id. @id and @unique belong to a model\'s field, not to its type; write them on the field.',
       },
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
         message:
-          'Type alias "Key" cannot carry @unique. @id and @unique describe a model\'s field, not a field type; write them on the field.',
+          'Type alias "Key" cannot carry @unique. @id and @unique belong to a model\'s field, not to its type; write them on the field.',
       },
     ]);
   });
@@ -378,7 +378,7 @@ model Post {
     ).toEqual([
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
-        message: 'Named type "Stamp" uses unsupported attribute "map"',
+        message: 'Type alias "Stamp" uses unsupported attribute "map"',
       },
       {
         code: 'PSL_DUPLICATE_ATTRIBUTE',
@@ -420,11 +420,11 @@ model Post {
     ).toEqual([
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-        message: 'Named type "B" references unsupported base type "A"',
+        message: 'Type alias "B" references unsupported base type "A"',
       },
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-        message: 'Named type "X" references unsupported base type "temporal.UpdatedAt"',
+        message: 'Type alias "X" references unsupported base type "temporal.UpdatedAt"',
       },
     ]);
   });

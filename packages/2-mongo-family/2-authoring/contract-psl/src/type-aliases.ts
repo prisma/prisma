@@ -146,7 +146,7 @@ function aliasType(
   if (base.symbol.keyword !== 'enum') {
     input.diagnostics.push({
       code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-      message: `Named type "${symbol.name}" references unsupported base type "${alias.baseName}"`,
+      message: `Type alias "${symbol.name}" references unsupported base type "${alias.baseName}"`,
       ...diagnosticSource(input.sources, symbol.node.syntax).at(symbol.span),
     });
     return undefined;
@@ -220,7 +220,6 @@ export function resolveMongoTypeAliases(input: ResolveMongoTypeAliasesInput): Mo
     binder: input.binder,
     sources: input.sources,
     diagnostics: input.diagnostics,
-    typeNoun: 'field type',
     acceptedAttributes: MONGO_TYPE_ALIAS_ATTRIBUTE_NAMES,
     describeUnsupportedAttribute: describeUnsupportedMongoAliasAttribute,
   });

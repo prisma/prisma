@@ -194,7 +194,7 @@ model Post {
     ).toEqual([
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-        message: 'Named type "P" references unsupported base type "Post"',
+        message: 'Type alias "P" references unsupported base type "Post"',
       },
     ]);
   });
@@ -256,7 +256,7 @@ model Post {
     ).toEqual([
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-        message: 'Named type "B" references unsupported base type "A"',
+        message: 'Type alias "B" references unsupported base type "A"',
       },
     ]);
   });
@@ -273,7 +273,7 @@ model Post {
     ).toEqual([
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-        message: 'Named type "X" references unsupported base type "temporal.UpdatedAt"',
+        message: 'Type alias "X" references unsupported base type "temporal.UpdatedAt"',
       },
     ]);
   });
