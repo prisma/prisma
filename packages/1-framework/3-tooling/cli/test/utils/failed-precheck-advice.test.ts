@@ -24,8 +24,8 @@ describe('the advice for a check that fails before an operation runs', () => {
     );
 
     expect({ why: error.why, fix: error.fix }).toEqual({
-      why: 'Before operation index.Item.Item_state_idx runs, it checks: ensure index "Item_state_idx" does not exist. That check failed on this database. The database has no migration marker, so `{bin} db migrate` applies every migration from the first, and the database may already be ahead of this one.',
-      fix: 'If its schema already matches the contract, adopt it with `{bin} db sign` instead.',
+      why: 'Before operation index.Item.Item_state_idx runs, it checks: ensure index "Item_state_idx" does not exist. That check failed on this database.',
+      fix: 'The database has no migration marker, so `{bin} db migrate` applies every migration from the first, and the database may already be ahead of this one. If its schema already matches the contract, adopt it with `{bin} db sign` instead.',
     });
   });
 
@@ -39,8 +39,8 @@ describe('the advice for a check that fails before an operation runs', () => {
     );
 
     expect({ why: error.why, fix: error.fix }).toEqual({
-      why: 'Before operation index.Item.Item_state_idx runs, it checks: ensure column "x" is missing. That check failed on this database. The database has drifted from its migration history: it is not in the state the migrations before this one leave.',
-      fix: 'See how it differs from the contract with `{bin} db verify`, change the database or the migration so they agree, and run `{bin} db migrate` again.',
+      why: 'Before operation index.Item.Item_state_idx runs, it checks: ensure column "x" is missing. That check failed on this database.',
+      fix: 'The database has drifted from its migration history: it is not in the state the migrations before this one leave. See how it differs from the contract with `{bin} db verify`, change the database or the migration so they agree, and run `{bin} db migrate` again.',
     });
   });
 
@@ -54,9 +54,9 @@ describe('the advice for a check that fails before an operation runs', () => {
       whyOf('collection items does not exist'),
       whyOf('ensure no NULL values in "note"'),
     ]).toEqual([
-      'Before operation index.Item.Item_state_idx runs, it checks: ensure constraint "Item_pkey" exists. That check failed on this database. The database has drifted from its migration history: it is not in the state the migrations before this one leave.',
-      'Before operation index.Item.Item_state_idx runs, it checks: collection items does not exist. That check failed on this database. The database has drifted from its migration history: it is not in the state the migrations before this one leave.',
-      'Before operation index.Item.Item_state_idx runs, it checks: ensure no NULL values in "note". That check failed on this database. The database has drifted from its migration history: it is not in the state the migrations before this one leave.',
+      'Before operation index.Item.Item_state_idx runs, it checks: ensure constraint "Item_pkey" exists. That check failed on this database.',
+      'Before operation index.Item.Item_state_idx runs, it checks: collection items does not exist. That check failed on this database.',
+      'Before operation index.Item.Item_state_idx runs, it checks: ensure no NULL values in "note". That check failed on this database.',
     ]);
   });
 
@@ -70,7 +70,7 @@ describe('the advice for a check that fails before an operation runs', () => {
       PROJECT,
     );
 
-    expect(error.advice).toBe(
+    expect(error.fix).toBe(
       'The database already holds part of the schema `{bin} db init` would create. If its schema already matches the contract, adopt it with `{bin} db sign` instead.',
     );
   });

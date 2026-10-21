@@ -7,7 +7,7 @@ export interface AdviceAlternative {
   readonly action: NextAction;
 }
 
-/** What the CLI says about a failed apply: sentences that say where things stand, which it adds to the why, then each way out. */
+/** What the CLI says about a failed apply: sentences that say where things stand, then each way out. */
 export interface RunnerAdvice {
   readonly context: readonly string[];
   readonly alternatives: readonly AdviceAlternative[];
@@ -39,11 +39,18 @@ function orSentence(text: string): string {
   return `Or ${text.charAt(0).toLowerCase()}${text.slice(1)}.`;
 }
 
-/** The ways out as prose: the first, and every other one after "Or". */
-export function alternativesText(alternatives: readonly AdviceAlternative[]): string {
-  return alternatives
-    .map(({ text }, index) => (index === 0 ? `${text}.` : orSentence(text)))
-    .join(' ');
+/** The advice as prose: where things stand, the first way out, and every other one after "Or". */
+export function adviceText(advice: RunnerAdvice): string {
+  return [
+    ...advice.context,
+    ...advice.alternatives.map(({ text }, index) => (index === 0 ? `${text}.` : orSentence(text))),
+  ].join(' ');
+}
+
+/** Each way out as a next action, with where things stand as its reason. */
+export function adviceActions(advice: RunnerAdvice): readonly NextAction[] {
+  const reason = advice.context.join(' ');
+  return advice.alternatives.map(({ action }) => (reason === '' ? action : { ...action, reason }));
 }
 
 /** What the failed apply left in the database, as far as the runner says. */

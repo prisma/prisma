@@ -176,10 +176,7 @@ withTempDir(({ createTempDir }) => {
         const expressionError = await runMigrate(ctx, ['--json']);
         expect(expressionError.exitCode, 'the conversion has a SQL error').not.toBe(0);
         expect(engineError(expressionError)?.why).toContain('operator does not exist');
-        const expressionErrorAdvice = JSON.stringify([
-          engineError(expressionError)?.why,
-          engineError(expressionError)?.nextActions,
-        ]);
+        const expressionErrorAdvice = JSON.stringify(engineError(expressionError)?.nextActions);
         expect(expressionErrorAdvice).toContain(
           'The conversion of field \\"User.age\\" failed with an error in its expression.',
         );

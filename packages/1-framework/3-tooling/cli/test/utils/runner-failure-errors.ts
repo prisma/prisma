@@ -5,7 +5,6 @@ import {
 } from '@internal/framework-components/control';
 import { ifDefined } from '@internal/utils/defined';
 import type { RunnerFailureFacts } from '../../src/control-api/types';
-import type { CliStructuredError } from '../../src/utils/cli-errors';
 import { dbInitRunnerFailureError } from '../../src/utils/db-init-failure';
 import { dbUpdateRunnerFailureError } from '../../src/utils/db-update-failure';
 import { migrateRunnerFailureError } from '../../src/utils/migrate-failure';
@@ -52,37 +51,22 @@ function factsOf(input: AdviceInput): RunnerFailureFacts {
   };
 }
 
-/**
- * The error, with `advice`: what the CLI added to the runner's why, then its `fix`, as one text, so
- * a test reads the whole advice in the order the CLI prints it.
- */
-function withAdvice(error: CliStructuredError, runnerWhy: string | undefined) {
-  const added = (error.why ?? '').slice((runnerWhy ?? '').length).trim();
-  return Object.assign(error, {
-    advice: [added, error.fix ?? ''].filter((text) => text !== '').join(' '),
-  });
-}
-
 export function migrateError(input: AdviceInput, invocation: CliInvocation) {
-  const failure = runnerFailureOf(input);
-  return withAdvice(
-    migrateRunnerFailureError(failure, factsOf(input), input.failedMigration, invocation),
-    failure.why,
+  return migrateRunnerFailureError(
+    runnerFailureOf(input),
+    factsOf(input),
+    input.failedMigration,
+    invocation,
   );
 }
 
 export function dbUpdateError(input: AdviceInput, invocation: CliInvocation) {
-  const failure = runnerFailureOf(input);
-  return withAdvice(
-    dbUpdateRunnerFailureError(failure, factsOf(input), {
-      databaseStorageHash: input.databaseStorageHash,
-      invocation,
-    }),
-    failure.why,
-  );
+  return dbUpdateRunnerFailureError(runnerFailureOf(input), factsOf(input), {
+    databaseStorageHash: input.databaseStorageHash,
+    invocation,
+  });
 }
 
 export function dbInitError(input: AdviceInput, invocation: CliInvocation) {
-  const failure = runnerFailureOf(input);
-  return withAdvice(dbInitRunnerFailureError(failure, factsOf(input), invocation), failure.why);
+  return dbInitRunnerFailureError(runnerFailureOf(input), factsOf(input), invocation);
 }

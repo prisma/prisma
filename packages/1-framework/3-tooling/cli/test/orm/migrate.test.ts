@@ -471,7 +471,7 @@ describe('migrate', () => {
       error: {
         code: 'MIGRATION.SCHEMA_VERIFY_FAILED',
         summary: 'Database schema does not satisfy contract',
-        why: 'The schema check after apply found: missing: public/event/id. The failed apply changed nothing. The database the migration left does not match its destination contract. Either the contract source does not describe the schema you want, or `migrations/app/20261015T1200_initial/migration.ts` does not reach its destination contract, for example after a hand edit.',
+        why: 'The schema check after apply found: missing: public/event/id.',
         nextActions: [
           {
             kind: 'run-command',
