@@ -7,6 +7,9 @@ changes:
       precision, scale or SRID. The argument kinds `string`, `boolean` and `stringArray` are
       removed, and a type constructor's `number` argument becomes a `value` argument. Drop
       `integer`, `minimum` and `maximum`: the data type's parameter schema checks the value.
+      Assembly refuses a type constructor argument of any other kind, `option` and `object`
+      included. A field preset keeps its `number`, `option` and `object` arguments, so a match
+      inside a field preset needs no change.
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
@@ -46,8 +49,9 @@ changes:
     summary: |
       `createComposedAuthoringHelpers` no longer takes `dataTypeLookup`. It builds its data types
       from the family, target and extension packs it is given, with `assembleDataTypeSupport`.
-      Remove the option; a pack whose arguments take a data type must register it in `dataTypes`
-      and `authoring.dataTypes`.
+      Remove the option. Every data type an argument takes must be registered, with an
+      `authoring.dataTypes` entry, by some pack in the stack; an extension whose arguments take a
+      target's data type, such as `pg/int4`, registers nothing.
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
@@ -88,7 +92,9 @@ Vector: {
 },
 ```
 
-Move any bound the argument carried to the data type's `params` schema, which the codec's `paramsSchema` references. A string argument becomes a value of the data type it names; an argument that holds SQL, such as a type name, is a value of `sql/expression`, written ``sql`...` ``. The data type must be registered in the stack and written by some authoring entry, itself or through a type it casts from: assembly refuses a value argument otherwise, with `CONTRACT.DATA_TYPE_UNREGISTERED` or `CONTRACT.DATA_TYPE_NOT_WRITABLE`. A type constructor argument still declared with another kind is refused when the stack is assembled, with `CONTRACT.PACK_CONTRIBUTION_INVALID` naming the constructor and the argument.
+Move any bound the argument carried to the data type's `params` schema, which the codec's `paramsSchema` references. A string argument becomes a value of the data type it names; an argument that holds SQL, such as a type name, is a value of `sql/expression`, written ``sql`...` ``. The data type must be registered in the stack and written by some authoring entry, itself or through a type it casts from: assembly refuses a value argument otherwise, with `CONTRACT.DATA_TYPE_UNREGISTERED` or `CONTRACT.DATA_TYPE_NOT_WRITABLE`. A type constructor argument still declared with another kind, `option` and `object` included, is refused when the stack is assembled, with `CONTRACT.PACK_CONTRIBUTION_INVALID` naming the constructor and the argument.
+
+A field preset's `number`, `option` and `object` arguments are unchanged; convert only a type constructor's arguments. Detection cannot tell the two apart, so it also reports a field preset's arguments: leave those as they are, including the properties of an `object` argument.
 
 ## `value-argument-types-in-typescript`
 
