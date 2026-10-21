@@ -14,9 +14,11 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import {
+  errorConsentUnused,
   errorStatementAnswersNoQuestion,
   errorStatementDidNotResolveLoss,
   STORE_ORIGIN_SNAPSHOT_STEPS,
+  type UnusedConsent,
 } from '../../utils/cli-errors';
 import type { ConsentVerb } from './parse-consent';
 import { resolveStatements } from './resolve-statements';
@@ -822,27 +824,84 @@ export function refuseUnusedConsents(input: {
 }): Result<void, CliStructuredError> {
   const subjects = questionSubjects(input.plan, true, input.contracts);
   const used = new Set<StatementText>();
-  for (const [verb, entries] of [
-    ['delete', input.plan.dataLoss],
-    ['allow', input.plan.accessChanges],
-  ] as const) {
-    for (const entry of entries) {
-      const given = givenFor(
-        verb,
-        {
-          text: subjectText(entry.subject, input.contracts),
-          removedNamespace: removedNamespaceOf(entry.subject, input.contracts),
-        },
-        input.statements,
-        used,
-      );
-      for (const statement of given) used.add(statement);
-    }
+  for (const entry of input.plan.accessChanges) {
+    const target = {
+      text: subjectText(entry.subject, input.contracts),
+      removedNamespace: undefined,
+    };
+    for (const statement of givenFor('allow', target, input.statements, used)) used.add(statement);
   }
-  const unused = input.statements.filter(
-    (statement) => !isPlannedStatement(statement) && !used.has(statement),
+  const deleteTargets = [
+    ...new Map(
+      input.plan.dataLoss.map((entry) => {
+        const text = subjectText(entry.subject, input.contracts);
+        return [
+          text,
+          { text, removedNamespace: removedNamespaceOf(entry.subject, input.contracts) },
+        ];
+      }),
+    ).values(),
+  ];
+  const deletes = input.statements.filter(({ verb }) => verb === 'delete');
+  const matched = matchDeletes(
+    deleteTargets,
+    deletes.map(({ text }) => text),
   );
-  return unused.length === 0
-    ? ok(undefined)
-    : notOk(errorStatementAnswersNoQuestion(unused, subjects));
+  const duplicates = matched.unused.filter(({ answeredBy }) => answeredBy !== undefined);
+  const unusedDeletes = new Set(matched.unused.map(({ text }) => text));
+  for (const statement of deletes) if (!unusedDeletes.has(statement.text)) used.add(statement);
+  const unused = input.statements.filter(
+    (statement) =>
+      !isPlannedStatement(statement) &&
+      !used.has(statement) &&
+      !duplicates.some(({ text }) => statement.verb === 'delete' && statement.text === text),
+  );
+  if (unused.length > 0) return notOk(errorStatementAnswersNoQuestion(unused, subjects));
+  return duplicates.length === 0 ? ok(undefined) : notOk(errorConsentUnused(duplicates, subjects));
+}
+
+/** The questions `--delete` values answered, and the values no question took. */
+export interface DeleteMatch {
+  /** The value that answers each target, by the target's position. */
+  readonly answered: ReadonlyMap<number, string>;
+  readonly unused: readonly UnusedConsent[];
+}
+
+/**
+ * Matches `--delete` values to questions as an apply does, one value per question: each question
+ * takes the first value, in the order given, that answers it. A value no question took is unused,
+ * and says which value had already answered its question, if one had. A dry run and an apply both
+ * ask this, so they refuse the same flags.
+ */
+export function matchDeletes(
+  targets: readonly ConsentTarget[],
+  texts: readonly string[],
+): DeleteMatch {
+  const answered = new Map<number, string>();
+  const answeredWith = new Map<string, string>();
+  const used = new Set<number>();
+  targets.forEach((target, index) => {
+    const position = texts.findIndex((text) => consentAnswers('delete', text, target));
+    const given = texts[position];
+    if (given === undefined) return;
+    used.add(position);
+    answered.set(index, given);
+    answeredWith.set(target.text, given);
+  });
+  const unused = texts
+    .filter((_, position) => !used.has(position))
+    .map((text): UnusedConsent => {
+      const flag = answeredWith.get(text);
+      return {
+        verb: 'delete',
+        text,
+        answeredBy:
+          flag !== undefined
+            ? { kind: 'subject', subject: text, flag: { verb: 'delete', text: flag } }
+            : targets.some(({ removedNamespace }) => removedNamespace === text)
+              ? { kind: 'namespace', namespace: text }
+              : undefined,
+      };
+    });
+  return { answered, unused };
 }

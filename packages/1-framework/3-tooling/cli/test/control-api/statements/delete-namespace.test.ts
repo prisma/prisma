@@ -1,11 +1,13 @@
 import { asNamespaceId } from '@internal/contract/types';
 import { ok } from '@internal/utils/result';
-import { describe, expect, it } from 'vitest';
+import type { PromptSurface, StatementSurface } from '@prisma/cli-engine';
+import { describe, expect, it, vi } from 'vitest';
 import {
   askPlanQuestions,
   type PlannedQuestions,
   refuseUnusedConsents,
 } from '../../../src/control-api/statements/plan-questions';
+import { promptPlanQuestions } from '../../../src/orm/plan-question-prompt';
 import { contractOf } from './statement-fixtures';
 
 const origin = contractOf({
@@ -439,5 +441,52 @@ describe('a field of a model in a namespace the run renames', () => {
     expect(asked).toEqual([
       { subject: 'finance.Invoice.note', verbs: ['rename', 'delete'], renames: undefined },
     ]);
+  });
+});
+
+describe('a --delete of a subject beside a --delete of its namespace', () => {
+  const flags = [
+    { verb: 'delete' as const, text: 'billing' },
+    { verb: 'delete' as const, text: 'billing.Invoice' },
+  ];
+
+  it('is refused the same way by a dry run and by an apply', async () => {
+    const dryRun = refuseUnusedConsents({
+      plan,
+      statements: flags,
+      contracts: { origin, destination, statements: [], defaultNamespaceId: 'public' },
+    });
+    let remaining = flags.map(({ verb, text }) => ({ verb, text, values: [text] }));
+    const statements: StatementSurface = {
+      take: vi.fn((verb: string) => {
+        const taken = remaining.filter((value) => value.verb === verb);
+        remaining = remaining.filter((value) => value.verb !== verb);
+        return taken;
+      }) as StatementSurface['take'],
+      values: () => remaining,
+    };
+    const prompt = { statements: vi.fn(async () => []) } as unknown as PromptSurface;
+    const apply = askPlanQuestions({
+      plan,
+      askAccess: false,
+      canConvert: false,
+      statements: [],
+      preAnswers: [],
+      consentAll: { delete: false, allow: false },
+      origin,
+      originKnown: true,
+      destination,
+      defaultNamespaceId: 'public',
+      answer: promptPlanQuestions(prompt, statements),
+      replan: async () => ok(plan),
+    });
+
+    const refusal = {
+      code: 'CLI.CONSENT_UNUSED',
+      message:
+        '--delete billing.Invoice was given, but the question about billing.Invoice was already answered by --delete billing.',
+    };
+    expect(!dryRun.ok && dryRun.failure).toMatchObject(refusal);
+    await expect(apply).rejects.toMatchObject(refusal);
   });
 });
