@@ -1,7 +1,6 @@
 import postgresAdapter from '@internal/adapter-postgres/runtime';
 import type { Contract } from '@internal/contract/types';
 import postgresDriver, { suppressIdleConnectionErrors } from '@internal/driver-postgres/runtime';
-import { instantiateExecutionStack } from '@internal/framework-components/execution';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { CollectionClasses, NoCollectionClasses } from '@internal/sql-orm-client';
 import type { Runtime } from '@internal/sql-runtime';
@@ -122,10 +121,10 @@ export default function postgresServerless<
     driver: postgresDriver,
   });
   const rawCodecInferer = stack.adapter.rawCodecInferer;
-  const { sql, raw, enums, nativeEnums } = buildPostgresStaticContext<TContract>(
+  const { sql, raw, enums, nativeEnums, toSql } = buildPostgresStaticContext<TContract>(
     contract,
     context,
-    rawCodecInferer,
+    stack,
   );
 
   const buildRuntimeBoundMembers = (getRuntime: () => Runtime, getRuntimeForWork: () => Runtime) =>
@@ -135,6 +134,7 @@ export default function postgresServerless<
       rawCodecInferer,
       enums,
       nativeEnums,
+      toSql,
       getRuntime,
       getRuntimeForWork,
     });
@@ -169,6 +169,7 @@ export default function postgresServerless<
       raw,
       enums,
       nativeEnums,
+      toSql,
       context,
       contract,
       stack,
@@ -183,6 +184,7 @@ export default function postgresServerless<
     raw,
     enums,
     nativeEnums,
+    toSql,
     context,
     stack,
     contract,
@@ -195,7 +197,7 @@ export default function postgresServerless<
         throw new InternalError('Driver descriptor missing from execution stack');
       }
 
-      const stackInstance = instantiateExecutionStack(stack);
+      const adapter = stack.adapter.create(stack);
       const driver = driverDescriptor.create({
         cursor: toDriverCursorOptions(cursor),
       });
@@ -213,7 +215,7 @@ export default function postgresServerless<
       // A connection belongs to one request, so its close admits work that continues that request.
       const runtime = new PostgresRuntimeImpl({
         context,
-        adapter: stackInstance.adapter,
+        adapter,
         driver,
         ...toRuntimeOptions(options),
         closeRefusal: 'when-idle',

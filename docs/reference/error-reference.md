@@ -1834,11 +1834,11 @@ A ref name was used (read, resolved, or deleted via `migration ref` commands) bu
 
 ### PLAN.HASH_MISMATCH
 
-At execute time, the plan's `meta.storageHash` does not match the runtime contract's storage hash: the plan was built against a different version of the contract than the one the runtime holds. Rebuild the plan against the current contract. Payload: `planStorageHash`, `runtimeStorageHash`.
+When a plan runs or is rendered with `toSql`, its `meta.storageHash` does not match the storage hash of the contract it runs against: the plan was built against another contract, or another version of it. Rebuild the plan against the current contract. Payload: `planStorageHash`, `contractStorageHash`.
 
 ### PLAN.TARGET_MISMATCH
 
-At execute time, the plan's `meta.target` does not match the runtime contract's target, e.g. a plan built for postgres submitted to a sqlite runtime. Payload: `planTarget`, `runtimeTarget`.
+When a plan runs or is rendered with `toSql`, its `meta.target` does not match the target of the contract it runs against, e.g. a plan built for postgres passed to a sqlite client. Payload: `planTarget`, `contractTarget`.
 
 ## BUDGET
 

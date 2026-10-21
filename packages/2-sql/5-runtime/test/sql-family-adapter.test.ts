@@ -77,7 +77,10 @@ describe('SqlFamilyAdapter', () => {
     };
 
     expect(() => adapter.validatePlan(plan, testContract)).toThrow(
-      'Plan target does not match runtime target',
+      expect.objectContaining({
+        message: 'The plan was built for another target than the contract',
+        details: { planTarget: 'mysql', contractTarget: testContract.target },
+      }),
     );
   });
 
@@ -95,7 +98,13 @@ describe('SqlFamilyAdapter', () => {
     };
 
     expect(() => adapter.validatePlan(plan, testContract)).toThrow(
-      'Plan storage hash does not match runtime contract',
+      expect.objectContaining({
+        message: 'The plan was built for another contract',
+        details: {
+          planStorageHash: 'different-hash',
+          contractStorageHash: testContract.storage.storageHash,
+        },
+      }),
     );
   });
 });

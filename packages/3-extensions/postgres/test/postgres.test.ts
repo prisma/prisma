@@ -131,9 +131,7 @@ describe('postgres', () => {
   });
 
   it('allows deferred binding during client construction', () => {
-    const db = postgres({
-      contract,
-    } as Parameters<typeof postgres<typeof contract>>[0]);
+    const db = postgres({ contract });
 
     const runtime = db.runtime();
     expect(runtime).toBeDefined();
@@ -142,9 +140,7 @@ describe('postgres', () => {
   });
 
   it('connects with explicit binding after construction', async () => {
-    const db = postgres({
-      contract,
-    } as Parameters<typeof postgres<typeof contract>>[0]);
+    const db = postgres({ contract });
 
     await db.connect({
       url: 'postgres://localhost:5432/db',

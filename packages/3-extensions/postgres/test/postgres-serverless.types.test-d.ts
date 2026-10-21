@@ -15,7 +15,7 @@ type Connection = Awaited<ReturnType<Serverless['connect']>>;
 
 test('the serverless client has the static members and connect', () => {
   expectTypeOf<keyof Serverless>().toEqualTypeOf<
-    'sql' | 'raw' | 'enums' | 'nativeEnums' | 'context' | 'contract' | 'stack' | 'connect'
+    'sql' | 'raw' | 'enums' | 'nativeEnums' | 'toSql' | 'context' | 'contract' | 'stack' | 'connect'
   >();
 });
 
@@ -25,7 +25,7 @@ test('the connection has the members of a client except connect', () => {
 
 test('the connection is not a Runtime', () => {
   expectTypeOf<Connection>().not.toMatchTypeOf<Runtime>();
-  expectTypeOf<Extract<keyof Connection, 'query' | 'execute'>>().toBeNever();
+  expectTypeOf<Extract<keyof Connection, 'connection' | 'telemetry'>>().toBeNever();
 });
 
 test('the connection types orm and the transaction context from the contract', async () => {

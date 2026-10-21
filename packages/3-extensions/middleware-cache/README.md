@@ -323,7 +323,7 @@ await db.transaction(async (tx) => {
   );
 }); // invalidates here, once the transaction has committed
 
-await db.runtime().execute(
+await db.execute(
   db.sql.public.users
     .update({ name: 'Alicia' })
     .where((f, fns) => fns.eq(f.id, 1))

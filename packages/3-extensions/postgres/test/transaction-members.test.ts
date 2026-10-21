@@ -105,6 +105,15 @@ describe('a postgres transaction', () => {
     expect(recorded.statements).toEqual(onOneConnection(everyStatementInTheTransaction));
   });
 
+  it("offers the client's toSql", async () => {
+    const db = postgres({ contract, url, verifyMarker: false });
+
+    const toSql = await db.transaction(async (tx) => tx.toSql);
+    await db.close();
+
+    expect(toSql).toBe(db.toSql);
+  });
+
   it('runs a statement prepared on the client inside the transaction it is given', async () => {
     const db = postgres({ contract, url, verifyMarker: false });
     const byId = await db.prepare({ id: 'pg/int4@1' }, (params) =>
