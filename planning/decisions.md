@@ -88,6 +88,10 @@ Stopping point for the open upgrade issues: every urgent and high issue is close
 
 Will, 2026-09-30: the emulator controls (start, stop, list, reset) are now urgent and start immediately. They were already required for GA; what changed is the order. They move to the top of the editor and tools stream. The VS Code extension work that depends on them (items 2 and 3 of that stream) waits on them. Background from 2026-09-28: several emulators of each type can run, so status is a list; the eval found that stopping `prisma dev` leaves the emulator processes running and no stop or cleanup command exists.
 
+## Changes of 2026-10-21
+
+- Prisma 8 needs a Prisma Studio command in the `prisma` CLI before GA, as soon as possible (Will). Stream 3, row 1b, Must and urgent. Checked 2026-10-21: no Studio command exists in prisma/orm, prisma/prisma-cli or prisma/composer, and there is no PR or Linear ticket for one.
+
 ## Changes of 2026-10-16
 
 - A project that has started is Must (Will). It counts toward GA readiness. Nested writes, the `firstOrThrow` need and the docs restructure became Must. The six unranked projects in stream 4 became ranked Must rows 7 to 12. The items beside the streams (manifesto, one lowering, Asks, eval harness) are not GA projects and are not counted.

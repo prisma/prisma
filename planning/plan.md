@@ -20,10 +20,10 @@ Counts the projects marked Must in each stream. A project counts as done only wh
 | --- | --- | --- | --- | --- |
 | Foundations and breaking changes | 4 of 8 (50%) | `█████░░░░░` | 3 | 1 |
 | Upgrade path from Prisma 7 | 1 of 7 (14%) | `█░░░░░░░░░` | 3 | 3 |
-| Editor and tools | 2 of 5 (40%) | `████░░░░░░` | 2 | 1 |
+| Editor and tools | 2 of 6 (33%) | `███░░░░░░░` | 2 | 2 |
 | Query features | 8 of 11 (73%) | `███████░░░` | 1 | 2 |
 | Docs and the new user's first hour | 1 of 5 (20%) | `██░░░░░░░░` | 3 | 1 |
-| **All streams** | **16 of 36 (44%)** | `████░░░░░░` | **12** | **8** |
+| **All streams** | **16 of 37 (43%)** | `████░░░░░░` | **12** | **9** |
 
 ## Stream 1: Foundations and breaking changes
 
@@ -65,11 +65,12 @@ Test: an existing Prisma 7 database can be signed by Prisma 8.
 
 ## Stream 3: Editor and tools
 
-**GA readiness:** 2 of 5 Must projects done (40%). 2 in progress, 1 not started.
+**GA readiness:** 2 of 6 Must projects done (33%). 2 in progress, 2 not started.
 
 | # | Progress | Project | GA | Owner | Status | Next |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | 🔄 4/5 | Emulator controls in the `prisma` CLI: start, stop, list, reset | Must, urgent | Will | 4 of 5 slices merged. `prisma` has `prisma dev --detach`, `prisma dev stop`, `prisma dev url` and `prisma emulator list` since 2026-10-19. The docs slice is left. Reset is not in this project | The docs slice: Composer's pages stop hard-coding ports. Decide whether reset is still needed |
+| 1b | ⏳ | A Prisma Studio command in the `prisma` CLI | Must, urgent | Serhii | Not started, no ticket. Prisma 8's `prisma` has no Studio command; Prisma 7's `prisma studio` has no replacement |  |
 | 2 | 🔄 2/4 | VS Code extension: formatter without the CLI, go-to-definition, multi-file PSL, emulator controls | Must | Serhii | Go-to-definition and multi-file PSL done. Rename merged. File watching approved, not merged; a fix to removing a file watcher merged 2026-10-20. Formatter without the CLI unverified. Emulator controls wait on row 1 | Merge the file-watching PR. Verify the formatter works without the CLI |
 | 3 | ⏳ | Make the extension's handling of local and remote Prisma Postgres match the CLI and its emulators | Must | Serhii | Not started |  |
 | 4 | ✅ 1/1 | Multi-file PSL | Must | Serhii | Done 2026-09-30 | |
