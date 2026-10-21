@@ -66,7 +66,7 @@ Renaming `street` changes the storage entity, so it changes `storageHash`. The p
 1. **A value object is a storage entity.** It lives at `storage.namespaces.<ns>.entries.valueObject.<Name>`, in both families, with the same definition it had in the domain plane: `fields`, each with `nullable`, `type` and, for a list, `many`. A domain field that holds one refers to it by entity coordinate, as a field typed by an enum refers to its value set. A value object field that holds another value object refers to it the same way.
 2. **A discriminator column names a value set.** The build writes one value set per base model that has variants, holding each variant's discriminator value as the column stores it, and the base table's discriminator column refers to it, as an enum column refers to its value set ([ADR 157](ADR%20157%20-%20Execution%20enums.md)).
 
-Both are recorded, not enforced. No check is derived from either. A storage change that needs no database operation, such as a new optional value object field, is planned as a migration with no operations, which moves the database to the new hash.
+Both are enforced where the database can enforce them, as an enum's value set is: on a managed Postgres table the build derives a check for the discriminator column and for a column that holds a value object, and on MongoDB the collection validator lists the value object's fields and the discriminator's values.
 
 ## Why
 
@@ -86,17 +86,21 @@ Storage already holds stored facts the database does not enforce. SQLite derives
 
 **Value objects.** The storage entity keeps the field definition the domain plane used, so every reader of a value object's fields reads the same shape, from the storage plane. Scalar members carry their codec and, when an enum types them, a `valueSet` reference. A member that is a value object refers to its storage entity by coordinate, so a value object that contains itself, such as a `NavItem` whose `children` are `NavItem`s, is one entity that refers to itself. On SQL the column that holds a value object stays a JSON column; on MongoDB the validator is derived from the storage entity, as it is from the definition today.
 
-**Discriminators.** The value set is keyed `<Base>.<discriminator field>`, such as `Task.type`. An enum's name cannot contain a dot, so the key never collides with an enum's value set. A variant stored in its own table changes nothing here: its rows are still told apart by the base table's column. No check is derived, because a check would reject rows of the base model whose value no variant names.
+**Discriminators.** The value set is keyed `<Base>.<discriminator field>`, such as `Task.type`. An enum's name cannot contain a dot, so the key never collides with an enum's value set. A variant stored in its own table changes nothing here: its rows are still told apart by the base table's column. The ORM writes a row only through a variant, so every row's value names a variant, and the derived check (`"type" IN ('bug', 'feature')`) rejects only a value no variant names, as an enum's check does.
 
 ```json
 "type": { "codecId": "pg/text@1", "dataType": "pg/text", "nullable": false, "valueSet": { "entityKind": "valueSet", "entityName": "Task.type", "namespaceId": "public", "plane": "storage" } }
 ```
 
-**Who reads them.** The migration planner compares them between the origin and destination contracts, to find renamed and removed value object fields and changed discriminator values. Schema verification skips both, as it skips a SQLite enum's value set, since the database holds nothing to compare them with. Type emission and the ORM read value objects from the storage plane through the domain field's reference.
+**Enforcement on Postgres.** A column that holds a value object gets a derived check, as an enum column does, written with `jsonb` operators: the required keys are present (`"address" ?& array['street', 'city']`) and no other key is (`"address" - array['street', 'city', 'zip'] = '{}'`), with a nullable column allowed to be null. A nested value object and a list are checked through `jsonpath`. The check is opaque and content-named ([ADR 244](ADR%20244%20-%20Check%20constraints%20are%20opaque%20wire-named%20expressions.md)), so any change to the value object changes the check's name, and the diff drops the old check and adds the new one.
+
+**Why every change is an operation.** The storage hash identifies a database state. Two different hashes are two different database states, so the migration between them does something to the database. Because the value object and the discriminator values are enforced, a change to either is a change to a check or a validator, which is an operation. A plan that changes the storage hash and produces no operation is therefore unexpected: it means the database cannot tell the two states apart. Such cases will still arise, so the system handles them rather than refusing: `migration plan` writes the package with no operations and says so, naming what changed, and `db migrate` applies it by moving the marker to the new hash.
+
+**Who reads them.** The migration planner compares them between the origin and destination contracts, to find renamed and removed value object fields and changed discriminator values, and to order the row rewrite between the old check's drop and the new check's creation, as for an enum value. Type emission and the ORM read value objects from the storage plane through the domain field's reference.
 
 ## Consequences
 
-- Any change to a value object, and any change to a variant's discriminator value, changes `storageHash`. The planner asks about the ones that lose data and plans their rewrite, as for any other storage change. The ones that need no database operation plan as empty migrations.
+- Any change to a value object, and any change to a variant's discriminator value, changes `storageHash` and the enforcing check or validator. The planner asks about the ones that lose data and plans their rewrite, as for any other storage change.
 - A removed variant that has no columns of its own is visible to the planner through the value set.
 - Whether the rows are rewritten, and how efficiently, is a separate decision. This one only makes the change visible.
 - `valueObjects` is no longer a domain namespace key.
@@ -107,7 +111,7 @@ Storage already holds stored facts the database does not enforce. SQLite derives
 - **Keep them in the domain plane and record such a change as a migration from a hash to itself.** A migration with a hand-written data operation can already do this. But snapshots are saved by storage hash, so a plan's "previous contract" can be several changes old. Fixing that means a different snapshot key, a larger change than this one, and `db update`, which runs no data operations, still could not apply it.
 - **Copy the definition into the storage plane and keep the domain copy.** The hash would change, but two copies of one definition invite drift, and the domain plane can already refer to storage.
 - **Feed the domain value objects into the storage hash without moving them.** The hash would change, but the planner compares storage, so it still could not tell what changed, and every reader of the hash would have to know that part of the domain plane feeds it.
-- **Derive a check from the discriminator values, as from an enum's values.** The database would then reject rows of the base model itself.
+- **Record the facts in storage without enforcing them.** The hash would change while the database stayed the same, so a change would need a migration with no operations. That contradicts what the hash means, and it leaves rows the contract no longer describes.
 
 ## Related
 
