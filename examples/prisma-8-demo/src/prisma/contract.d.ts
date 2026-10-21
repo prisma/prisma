@@ -29,7 +29,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'0cc3858331779e3853a61a911a7fe85ca764430aa9de12c2a0bb36bfa3165743'>;
+  StorageHashBase<'0ce1b6cf3e03ac1498f39eb8ef08d36d73ee2f0bc7fe368b97f1497ba050501a'>;
 export type ExecutionHash =
   ExecutionHashBase<'eb9bffd4c01945792e83de10d571b20df42f5bf40405ec8c642c6592f7dc4655'>;
 export type ProfileHash =
@@ -535,7 +535,7 @@ type ContractBase = Omit<
                   readonly dataType: 'pgvector/vector';
                   readonly codecId: 'pg/vector@1';
                   readonly nullable: true;
-                  readonly typeRef: 'Embedding1536';
+                  readonly typeParams: { readonly length: 1536 };
                   readonly many: false;
                 };
                 readonly expiresAt: {
@@ -849,14 +849,6 @@ type ContractBase = Omit<
             };
           };
         };
-      };
-    };
-    readonly types: {
-      readonly Embedding1536: {
-        readonly kind: 'codec-instance';
-        readonly codecId: 'pg/vector@1';
-        readonly dataType: 'pgvector/vector';
-        readonly typeParams: { readonly length: 1536 };
       };
     };
     readonly storageHash: StorageHash;
