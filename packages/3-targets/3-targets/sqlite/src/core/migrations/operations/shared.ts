@@ -5,6 +5,7 @@ import type {
   SqlMigrationPlanOperationStep,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import type { CheckExpectation } from '@internal/framework-components/control';
 import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
 import type { ReferentialAction } from '@internal/sql-contract/types';
 import {
@@ -26,8 +27,14 @@ export function step(
   description: string,
   sql: string,
   params?: readonly unknown[],
+  expectation?: CheckExpectation,
 ): SqlMigrationPlanOperationStep {
-  return { description, sql, ...ifDefined('params', params) };
+  return {
+    description,
+    sql,
+    ...ifDefined('params', params),
+    ...ifDefined('expectation', expectation),
+  };
 }
 
 /**

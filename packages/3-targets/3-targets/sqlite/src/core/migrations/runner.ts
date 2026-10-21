@@ -358,7 +358,12 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
           phase === 'precheck' ? 'MIGRATION.PRECHECK_FAILED' : 'MIGRATION.POSTCHECK_FAILED';
         const field = plan === undefined ? undefined : unconvertedFieldOf(step, plan.contract);
         const converted = convertedColumnOf(step);
-        const failedCheck = { operationId: operation.id, phase, description: step.description };
+        const failedCheck = {
+          operationId: operation.id,
+          phase,
+          description: step.description,
+          ...ifDefined('expectation', step.expectation),
+        };
         const unconverted =
           converted === undefined ? undefined : await this.unconvertedValueText(driver, converted);
         return runnerFailure(

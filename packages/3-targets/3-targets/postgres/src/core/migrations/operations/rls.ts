@@ -1,3 +1,4 @@
+import { expectAbsent, expectPresent } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { ifDefined } from '@internal/utils/defined';
 import {
@@ -76,7 +77,12 @@ export async function createRlsPolicy(
     operationClass: 'additive',
     target: targetDetails('rlsPolicy', policy.name, schemaName, tableName),
     precheck: [
-      step(`ensure RLS policy "${policy.name}" does not exist`, absent.sql, absent.params),
+      step(
+        `ensure RLS policy "${policy.name}" does not exist`,
+        absent.sql,
+        absent.params,
+        expectAbsent(`RLS policy "${policy.name}" on "${tableName}"`),
+      ),
     ],
     execute: [step(`create RLS policy "${policy.name}"`, execute.sql, execute.params)],
     postcheck: [
@@ -105,9 +111,23 @@ export async function dropRlsPolicy(
     label: `Drop RLS policy "${policyName}" on "${tableName}"`,
     operationClass: 'widening',
     target: targetDetails('rlsPolicy', policyName, schemaName, tableName),
-    precheck: [step(`ensure RLS policy "${policyName}" exists`, present.sql, present.params)],
+    precheck: [
+      step(
+        `ensure RLS policy "${policyName}" exists`,
+        present.sql,
+        present.params,
+        expectPresent(`RLS policy "${policyName}" on "${tableName}"`),
+      ),
+    ],
     execute: [step(`drop RLS policy "${policyName}"`, execute.sql, execute.params)],
-    postcheck: [step(`verify RLS policy "${policyName}" is absent`, absent.sql, absent.params)],
+    postcheck: [
+      step(
+        `verify RLS policy "${policyName}" is absent`,
+        absent.sql,
+        absent.params,
+        expectAbsent(`RLS policy "${policyName}" on "${tableName}"`),
+      ),
+    ],
   };
 }
 
@@ -202,8 +222,18 @@ export async function renameRlsPolicy(
     operationClass: 'widening',
     target: targetDetails('rlsPolicy', newPolicyName, schemaName, tableName),
     precheck: [
-      step(`ensure RLS policy "${oldPolicyName}" exists`, oldPresent.sql, oldPresent.params),
-      step(`ensure RLS policy "${newPolicyName}" does not exist`, newAbsent.sql, newAbsent.params),
+      step(
+        `ensure RLS policy "${oldPolicyName}" exists`,
+        oldPresent.sql,
+        oldPresent.params,
+        expectPresent(`RLS policy "${oldPolicyName}" on "${tableName}"`),
+      ),
+      step(
+        `ensure RLS policy "${newPolicyName}" does not exist`,
+        newAbsent.sql,
+        newAbsent.params,
+        expectAbsent(`RLS policy "${newPolicyName}" on "${tableName}"`),
+      ),
     ],
     execute: [
       step(
@@ -213,11 +243,17 @@ export async function renameRlsPolicy(
       ),
     ],
     postcheck: [
-      step(`verify RLS policy "${newPolicyName}" exists`, newPresent.sql, newPresent.params),
+      step(
+        `verify RLS policy "${newPolicyName}" exists`,
+        newPresent.sql,
+        newPresent.params,
+        expectPresent(`RLS policy "${newPolicyName}" on "${tableName}"`),
+      ),
       step(
         `verify RLS policy "${oldPolicyName}" no longer exists`,
         oldAbsent.sql,
         oldAbsent.params,
+        expectAbsent(`RLS policy "${oldPolicyName}" on "${tableName}"`),
       ),
     ],
   };

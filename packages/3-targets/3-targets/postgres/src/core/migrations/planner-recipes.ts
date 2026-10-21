@@ -1,4 +1,8 @@
-import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import {
+  expectAbsent,
+  expectPresent,
+  type SqlMigrationPlanOperation,
+} from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { FunctionColumnDefault, opaqueSql } from '@internal/sql-relational-core/ast';
 import { col } from '@internal/sql-relational-core/contract-free';
@@ -92,7 +96,14 @@ export async function buildAddNotNullColumnWithTemporaryDefaultOperation(options
   return {
     ...buildAddColumnOperationIdentity(schema, tableName, columnName),
     operationClass: 'additive',
-    precheck: [step(`ensure column "${columnName}" is missing`, absent.sql, absent.params)],
+    precheck: [
+      step(
+        `ensure column "${columnName}" is missing`,
+        absent.sql,
+        absent.params,
+        expectAbsent(`column "${columnName}" on "${tableName}"`),
+      ),
+    ],
     execute: [
       {
         description: `add column "${columnName}"`,
@@ -104,7 +115,12 @@ export async function buildAddNotNullColumnWithTemporaryDefaultOperation(options
       },
     ],
     postcheck: [
-      step(`verify column "${columnName}" exists`, present.sql, present.params),
+      step(
+        `verify column "${columnName}" exists`,
+        present.sql,
+        present.params,
+        expectPresent(`column "${columnName}" on "${tableName}"`),
+      ),
       step(`verify column "${columnName}" is NOT NULL`, notNullable.sql, notNullable.params),
       step(
         `verify column "${columnName}" has no default after temporary default removal`,

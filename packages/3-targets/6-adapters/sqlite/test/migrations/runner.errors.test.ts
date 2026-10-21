@@ -90,6 +90,9 @@ describe('SqliteMigrationRunner - Error Scenarios', { timeout: timeouts.database
     const failure = result.assertNotOk();
     expect(failure.code).toBe('MIGRATION.PRECHECK_FAILED');
     expect(failure.message).toMatch(/precheck/i);
+    expect(failure.why).toBe(
+      'Before operation table.user runs, it checks: always false. That check failed on this database.',
+    );
 
     await expectNoMarkerOrLedgerWrites(driver);
   });

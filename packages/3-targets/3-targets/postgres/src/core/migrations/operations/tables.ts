@@ -1,3 +1,4 @@
+import { expectAbsent, expectPresent } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { tableExistsAst } from '../../../contract-free/checks';
 import { quoteIdentifier } from '../../sql-utils';
@@ -18,9 +19,23 @@ export async function dropTable(
     label: `Drop table "${tableName}"`,
     operationClass: 'destructive',
     target: targetDetails('table', tableName, schemaName),
-    precheck: [step(`ensure table "${tableName}" exists`, present.sql, present.params)],
+    precheck: [
+      step(
+        `ensure table "${tableName}" exists`,
+        present.sql,
+        present.params,
+        expectPresent(`table "${tableName}"`),
+      ),
+    ],
     execute: [step(`drop table "${tableName}"`, `DROP TABLE ${qualified}`)],
-    postcheck: [step(`verify table "${tableName}" does not exist`, absent.sql, absent.params)],
+    postcheck: [
+      step(
+        `verify table "${tableName}" does not exist`,
+        absent.sql,
+        absent.params,
+        expectAbsent(`table "${tableName}"`),
+      ),
+    ],
   };
 }
 
@@ -50,8 +65,18 @@ export async function renameTable(
     operationClass: 'widening',
     target: targetDetails('table', toName, schemaName),
     precheck: [
-      step(`ensure table "${fromName}" exists`, fromPresent.sql, fromPresent.params),
-      step(`ensure table "${toName}" does not exist`, toAbsent.sql, toAbsent.params),
+      step(
+        `ensure table "${fromName}" exists`,
+        fromPresent.sql,
+        fromPresent.params,
+        expectPresent(`table "${fromName}"`),
+      ),
+      step(
+        `ensure table "${toName}" does not exist`,
+        toAbsent.sql,
+        toAbsent.params,
+        expectAbsent(`table "${toName}"`),
+      ),
     ],
     execute: [
       step(
@@ -63,8 +88,18 @@ export async function renameTable(
     // holds, and "the new table exists" alone would skip a rename that never
     // happened when both tables exist.
     postcheck: [
-      step(`verify table "${toName}" exists`, toPresent.sql, toPresent.params),
-      step(`verify table "${fromName}" no longer exists`, fromAbsent.sql, fromAbsent.params),
+      step(
+        `verify table "${toName}" exists`,
+        toPresent.sql,
+        toPresent.params,
+        expectPresent(`table "${toName}"`),
+      ),
+      step(
+        `verify table "${fromName}" no longer exists`,
+        fromAbsent.sql,
+        fromAbsent.params,
+        expectAbsent(`table "${fromName}"`),
+      ),
     ],
   };
 }

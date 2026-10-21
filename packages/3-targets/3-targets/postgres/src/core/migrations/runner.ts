@@ -382,7 +382,12 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
           required === undefined
             ? undefined
             : await this.rowsWithoutValue(driver, operation, required, plan);
-        const failedCheck = { operationId: operation.id, phase, description: step.description };
+        const failedCheck = {
+          operationId: operation.id,
+          phase,
+          description: step.description,
+          ...ifDefined('expectation', step.expectation),
+        };
         return runnerFailure(code, rowsWithoutValue?.summary ?? failed, {
           ...ifDefined(
             'why',

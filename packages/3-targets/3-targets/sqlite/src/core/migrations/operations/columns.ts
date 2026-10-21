@@ -1,3 +1,4 @@
+import { expectAbsent, expectPresent } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { columnExistsAst, columnNameTakenAst } from '../../../contract-free/checks';
 import { quoteIdentifier } from '../../sql-utils';
@@ -46,12 +47,24 @@ export async function addColumn(
     summary: `Adds column ${column.name} on ${tableName}`,
     operationClass: 'additive',
     target: { id: 'sqlite', details: buildTargetDetails('column', column.name, tableName) },
-    precheck: [step(`ensure column "${column.name}" is missing`, absent.sql, absent.params)],
+    precheck: [
+      step(
+        `ensure column "${column.name}" is missing`,
+        absent.sql,
+        absent.params,
+        expectAbsent(`column "${column.name}" on "${tableName}"`),
+      ),
+    ],
     execute: [
       step(`add column "${column.name}"`, addColumnExecuteSql(tableName, column, defaultClause)),
     ],
     postcheck: [
-      step(`verify column "${column.name}" exists`, present.sql, present.params),
+      step(
+        `verify column "${column.name}" exists`,
+        present.sql,
+        present.params,
+        expectPresent(`column "${column.name}" on "${tableName}"`),
+      ),
       columnShapeCheck(tableName, {
         name: column.name,
         typeSql: column.typeSql,
@@ -76,7 +89,12 @@ export async function dropColumn(
     operationClass: 'destructive',
     target: { id: 'sqlite', details: buildTargetDetails('column', columnName, tableName) },
     precheck: [
-      step(`ensure column "${columnName}" exists on "${tableName}"`, present.sql, present.params),
+      step(
+        `ensure column "${columnName}" exists on "${tableName}"`,
+        present.sql,
+        present.params,
+        expectPresent(`column "${columnName}" on "${tableName}"`),
+      ),
     ],
     execute: [
       step(
@@ -85,7 +103,12 @@ export async function dropColumn(
       ),
     ],
     postcheck: [
-      step(`verify column "${columnName}" is gone from "${tableName}"`, absent.sql, absent.params),
+      step(
+        `verify column "${columnName}" is gone from "${tableName}"`,
+        absent.sql,
+        absent.params,
+        expectAbsent(`column "${columnName}" on "${tableName}"`),
+      ),
     ],
   };
 }
@@ -135,11 +158,13 @@ export async function renameColumn(
         `ensure column "${fromName}" exists on "${tableName}"`,
         fromPresent.sql,
         fromPresent.params,
+        expectPresent(`column "${fromName}" on "${tableName}"`),
       ),
       step(
         `ensure column "${toName}" does not exist on "${tableName}"`,
         toAbsent.sql,
         toAbsent.params,
+        expectAbsent(`column "${toName}" on "${tableName}"`),
       ),
     ],
     execute: [
@@ -149,11 +174,17 @@ export async function renameColumn(
       ),
     ],
     postcheck: [
-      step(`verify column "${toName}" exists on "${tableName}"`, toPresent.sql, toPresent.params),
+      step(
+        `verify column "${toName}" exists on "${tableName}"`,
+        toPresent.sql,
+        toPresent.params,
+        expectPresent(`column "${toName}" on "${tableName}"`),
+      ),
       step(
         `verify column "${fromName}" no longer exists on "${tableName}"`,
         fromAbsent.sql,
         fromAbsent.params,
+        expectAbsent(`column "${fromName}" on "${tableName}"`),
       ),
     ],
   };

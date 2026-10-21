@@ -46,6 +46,7 @@ function freezeSteps(
         sql: step.sql,
         ...(step.params ? { params: Object.freeze([...step.params]) } : {}),
         ...(step.meta ? { meta: cloneRecord(step.meta) } : {}),
+        ...(step.expectation ? { expectation: Object.freeze({ ...step.expectation }) } : {}),
       }),
     ),
   );

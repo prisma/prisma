@@ -1,3 +1,4 @@
+import { expectAbsent, expectPresent } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { indexDefinitionAst, indexExistsAst } from '../../../contract-free/checks';
@@ -77,7 +78,14 @@ export async function createIndex(
     label: `Create index "${indexName}" on "${tableName}"`,
     operationClass: 'additive',
     target: targetDetails('index', indexName, schemaName, tableName),
-    precheck: [step(`ensure index "${indexName}" does not exist`, absent.sql, absent.params)],
+    precheck: [
+      step(
+        `ensure index "${indexName}" does not exist`,
+        absent.sql,
+        absent.params,
+        expectAbsent(`index "${indexName}"`),
+      ),
+    ],
     execute: [step(`create index "${indexName}"`, execute.sql, execute.params)],
     postcheck: [
       step(
@@ -123,13 +131,33 @@ export async function renameIndex(
     operationClass: 'widening',
     target: targetDetails('index', toName, schemaName, tableName),
     precheck: [
-      step(`ensure index "${fromName}" exists`, fromPresent.sql, fromPresent.params),
-      step(`ensure index "${toName}" does not exist`, toAbsent.sql, toAbsent.params),
+      step(
+        `ensure index "${fromName}" exists`,
+        fromPresent.sql,
+        fromPresent.params,
+        expectPresent(`index "${fromName}"`),
+      ),
+      step(
+        `ensure index "${toName}" does not exist`,
+        toAbsent.sql,
+        toAbsent.params,
+        expectAbsent(`index "${toName}"`),
+      ),
     ],
     execute: [step(`rename index "${fromName}" to "${toName}"`, execute.sql, execute.params)],
     postcheck: [
-      step(`verify index "${toName}" exists`, toPresent.sql, toPresent.params),
-      step(`verify index "${fromName}" no longer exists`, fromAbsent.sql, fromAbsent.params),
+      step(
+        `verify index "${toName}" exists`,
+        toPresent.sql,
+        toPresent.params,
+        expectPresent(`index "${toName}"`),
+      ),
+      step(
+        `verify index "${fromName}" no longer exists`,
+        fromAbsent.sql,
+        fromAbsent.params,
+        expectAbsent(`index "${fromName}"`),
+      ),
     ],
   };
 }
@@ -148,8 +176,22 @@ export async function dropIndex(
     label: `Drop index "${indexName}"`,
     operationClass: 'widening',
     target: targetDetails('index', indexName, schemaName, tableName),
-    precheck: [step(`ensure index "${indexName}" exists`, present.sql, present.params)],
+    precheck: [
+      step(
+        `ensure index "${indexName}" exists`,
+        present.sql,
+        present.params,
+        expectPresent(`index "${indexName}"`),
+      ),
+    ],
     execute: [step(`drop index "${indexName}"`, execute.sql, execute.params)],
-    postcheck: [step(`verify index "${indexName}" does not exist`, absent.sql, absent.params)],
+    postcheck: [
+      step(
+        `verify index "${indexName}" does not exist`,
+        absent.sql,
+        absent.params,
+        expectAbsent(`index "${indexName}"`),
+      ),
+    ],
   };
 }

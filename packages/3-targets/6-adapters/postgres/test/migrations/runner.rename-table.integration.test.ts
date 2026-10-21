@@ -84,6 +84,7 @@ describe('PostgresMigrationRunner - renameTable', { concurrent: false }, () => {
           operationId: 'renameTable.userProfile',
           phase: 'precheck',
           description: 'ensure table "UserProfile" does not exist',
+          expectation: { expects: 'absent', object: 'table "UserProfile"' },
         },
       },
     });

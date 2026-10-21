@@ -25,6 +25,8 @@ import {
   checkSqlDefaultText,
   checkSqlExpressionText,
   createSqlTextSources,
+  expectAbsent,
+  expectPresent,
   isUnfilledSlot,
   type SqlMigrationPlanOperation,
   type SqlSlot,
@@ -336,7 +338,14 @@ export class CreateTableCall extends PostgresOpFactoryCallNode {
       summary: `Creates table "${tableName}"`,
       operationClass: 'additive',
       target: targetDetails('table', tableName, schemaName),
-      precheck: [step(`ensure table "${tableName}" does not exist`, absent.sql, absent.params)],
+      precheck: [
+        step(
+          `ensure table "${tableName}" does not exist`,
+          absent.sql,
+          absent.params,
+          expectAbsent(`table "${tableName}"`),
+        ),
+      ],
       execute: [
         {
           description: `create table "${tableName}"`,
@@ -344,7 +353,14 @@ export class CreateTableCall extends PostgresOpFactoryCallNode {
           params: statement.params ?? [],
         },
       ],
-      postcheck: [step(`verify table "${tableName}" exists`, isTable.sql, isTable.params)],
+      postcheck: [
+        step(
+          `verify table "${tableName}" exists`,
+          isTable.sql,
+          isTable.params,
+          expectPresent(`table "${tableName}"`),
+        ),
+      ],
     };
   }
 
@@ -560,10 +576,22 @@ export class AddColumnCall extends PostgresOpFactoryCallNode {
       label: `Add column "${columnName}" to "${tableName}"`,
       operationClass: 'additive',
       target: targetDetails('column', columnName, schemaName, tableName),
-      precheck: [step(`ensure column "${columnName}" is missing`, absent.sql, absent.params)],
+      precheck: [
+        step(
+          `ensure column "${columnName}" is missing`,
+          absent.sql,
+          absent.params,
+          expectAbsent(`column "${columnName}" on "${tableName}"`),
+        ),
+      ],
       execute: [step(`add column "${columnName}"`, statement.sql)],
       postcheck: [
-        step(`verify column "${columnName}" exists`, present.sql, present.params),
+        step(
+          `verify column "${columnName}" exists`,
+          present.sql,
+          present.params,
+          expectPresent(`column "${columnName}" on "${tableName}"`),
+        ),
         hasType,
         ...notNullable.map((check) =>
           step(`verify column "${columnName}" is NOT NULL`, check.sql, check.params),
@@ -2032,11 +2060,17 @@ export class AddNativeEnumValueCall extends PostgresOpFactoryCallNode {
       operationClass: 'additive',
       target: targetDetails('type', typeName, schemaName),
       precheck: [
-        step(`ensure enum type "${typeName}" exists`, typePresent.sql, typePresent.params),
+        step(
+          `ensure enum type "${typeName}" exists`,
+          typePresent.sql,
+          typePresent.params,
+          expectPresent(`enum type "${typeName}"`),
+        ),
         step(
           `ensure value "${value}" is absent from enum type "${typeName}"`,
           valueAbsent.sql,
           valueAbsent.params,
+          expectAbsent(`value "${value}" in enum type "${typeName}"`),
         ),
       ],
       execute: [
@@ -2050,6 +2084,7 @@ export class AddNativeEnumValueCall extends PostgresOpFactoryCallNode {
           `verify value "${value}" exists on enum type "${typeName}"`,
           valuePresent.sql,
           valuePresent.params,
+          expectPresent(`value "${value}" in enum type "${typeName}"`),
         ),
       ],
     };

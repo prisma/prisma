@@ -1,5 +1,7 @@
 import {
   convertedColumnMeta,
+  expectAbsent,
+  expectPresent,
   type MigrationOperationClass,
   requiredColumnMeta,
   type SqlMigrationPlanOperationStep,
@@ -93,11 +95,25 @@ export async function createTable(
     summary: `Creates table ${tableName} with required columns`,
     operationClass: 'additive',
     target: { id: 'sqlite', details: buildTargetDetails('table', tableName) },
-    precheck: [step(`ensure table "${tableName}" does not exist`, absent.sql, absent.params)],
+    precheck: [
+      step(
+        `ensure table "${tableName}" does not exist`,
+        absent.sql,
+        absent.params,
+        expectAbsent(`table "${tableName}"`),
+      ),
+    ],
     execute: [
       step(`create table "${tableName}"`, renderCreateTableSql(tableName, spec, defaultClauses)),
     ],
-    postcheck: [step(`verify table "${tableName}" exists`, present.sql, present.params)],
+    postcheck: [
+      step(
+        `verify table "${tableName}" exists`,
+        present.sql,
+        present.params,
+        expectPresent(`table "${tableName}"`),
+      ),
+    ],
   };
 }
 
@@ -259,11 +275,17 @@ export async function recreateTable(
     operationClass,
     target: { id: 'sqlite', details: buildTargetDetails('table', tableName) },
     precheck: [
-      step(`ensure table "${tableName}" exists`, tableSteps.present.sql, tableSteps.present.params),
+      step(
+        `ensure table "${tableName}" exists`,
+        tableSteps.present.sql,
+        tableSteps.present.params,
+        expectPresent(`table "${tableName}"`),
+      ),
       step(
         `ensure temp table "${tempName}" does not exist`,
         tempSteps.absent.sql,
         tempSteps.absent.params,
+        expectAbsent(`temp table "${tempName}"`),
       ),
       sourceColumnsCheck(tableName, schemaColumnNames),
     ],
@@ -281,11 +303,17 @@ export async function recreateTable(
       ...indexStatements,
     ],
     postcheck: [
-      step(`verify table "${tableName}" exists`, tableSteps.present.sql, tableSteps.present.params),
+      step(
+        `verify table "${tableName}" exists`,
+        tableSteps.present.sql,
+        tableSteps.present.params,
+        expectPresent(`table "${tableName}"`),
+      ),
       step(
         `verify temp table "${tempName}" is gone`,
         tempSteps.absent.sql,
         tempSteps.absent.params,
+        expectAbsent(`temp table "${tempName}"`),
       ),
       rebuiltTableCheck(tableName, renderCreateTableSql(tableName, contractTable, defaultClauses)),
       ...postchecks.flatMap((check) =>

@@ -1,3 +1,4 @@
+import { expectAbsent, expectPresent } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
 import type { ReferentialAction } from '@internal/sql-contract/types';
@@ -102,7 +103,12 @@ export async function addPrimaryKey(
     operationClass: 'additive',
     target: targetDetails('primaryKey', constraintName, schemaName, tableName),
     precheck: [
-      step(`ensure primary key "${constraintName}" does not exist`, absent.sql, absent.params),
+      step(
+        `ensure primary key "${constraintName}" does not exist`,
+        absent.sql,
+        absent.params,
+        expectAbsent(`primary key "${constraintName}" on "${tableName}"`),
+      ),
     ],
     execute: [
       step(
@@ -139,7 +145,12 @@ export async function addUnique(
     operationClass: 'additive',
     target: targetDetails('unique', constraintName, schemaName, tableName),
     precheck: [
-      step(`ensure constraint "${constraintName}" does not exist`, absent.sql, absent.params),
+      step(
+        `ensure constraint "${constraintName}" does not exist`,
+        absent.sql,
+        absent.params,
+        expectAbsent(`constraint "${constraintName}" on "${tableName}"`),
+      ),
     ],
     execute: [
       step(
@@ -185,7 +196,14 @@ export async function addForeignKey(
     label: `Add foreign key "${fk.name}" on "${tableName}"`,
     operationClass: 'additive',
     target: targetDetails('foreignKey', fk.name, schemaName, tableName),
-    precheck: [step(`ensure FK "${fk.name}" does not exist`, absent.sql, absent.params)],
+    precheck: [
+      step(
+        `ensure FK "${fk.name}" does not exist`,
+        absent.sql,
+        absent.params,
+        expectAbsent(`FK "${fk.name}" on "${tableName}"`),
+      ),
+    ],
     execute: [step(`add FK "${fk.name}"`, renderForeignKeySql(schemaName, tableName, fk))],
     postcheck: [defined],
   };
@@ -221,7 +239,12 @@ export async function addCheckConstraint(
     operationClass: 'additive',
     target: targetDetails('checkConstraint', constraintName, schemaName, tableName),
     precheck: [
-      step(`ensure constraint "${constraintName}" does not exist`, absent.sql, absent.params),
+      step(
+        `ensure constraint "${constraintName}" does not exist`,
+        absent.sql,
+        absent.params,
+        expectAbsent(`constraint "${constraintName}" on "${tableName}"`),
+      ),
     ],
     execute: [step(`add check constraint "${constraintName}"`, addCheck.sql)],
     postcheck: [defined],
@@ -284,8 +307,18 @@ export async function renameConstraint(
     // convention indexes and policies already follow.
     target: targetDetails(kind, toName, schemaName, tableName),
     precheck: [
-      step(`ensure constraint "${fromName}" exists`, from.present.sql, from.present.params),
-      step(`ensure constraint "${toName}" does not exist`, to.absent.sql, to.absent.params),
+      step(
+        `ensure constraint "${fromName}" exists`,
+        from.present.sql,
+        from.present.params,
+        expectPresent(`constraint "${fromName}" on "${tableName}"`),
+      ),
+      step(
+        `ensure constraint "${toName}" does not exist`,
+        to.absent.sql,
+        to.absent.params,
+        expectAbsent(`constraint "${toName}" on "${tableName}"`),
+      ),
     ],
     execute: [
       step(
@@ -294,8 +327,18 @@ export async function renameConstraint(
       ),
     ],
     postcheck: [
-      step(`verify constraint "${toName}" exists`, to.present.sql, to.present.params),
-      step(`verify constraint "${fromName}" no longer exists`, from.absent.sql, from.absent.params),
+      step(
+        `verify constraint "${toName}" exists`,
+        to.present.sql,
+        to.present.params,
+        expectPresent(`constraint "${toName}" on "${tableName}"`),
+      ),
+      step(
+        `verify constraint "${fromName}" no longer exists`,
+        from.absent.sql,
+        from.absent.params,
+        expectAbsent(`constraint "${fromName}" on "${tableName}"`),
+      ),
     ],
   };
 }
@@ -317,7 +360,14 @@ export async function dropCheckConstraint(
     label: `Drop check constraint "${constraintName}" on "${tableName}"`,
     operationClass: 'widening',
     target: targetDetails('checkConstraint', constraintName, schemaName, tableName),
-    precheck: [step(`ensure constraint "${constraintName}" exists`, present.sql, present.params)],
+    precheck: [
+      step(
+        `ensure constraint "${constraintName}" exists`,
+        present.sql,
+        present.params,
+        expectPresent(`constraint "${constraintName}" on "${tableName}"`),
+      ),
+    ],
     execute: [
       step(
         `drop check constraint "${constraintName}"`,
@@ -325,7 +375,12 @@ export async function dropCheckConstraint(
       ),
     ],
     postcheck: [
-      step(`verify constraint "${constraintName}" does not exist`, absent.sql, absent.params),
+      step(
+        `verify constraint "${constraintName}" does not exist`,
+        absent.sql,
+        absent.params,
+        expectAbsent(`constraint "${constraintName}" on "${tableName}"`),
+      ),
     ],
   };
 }
@@ -355,7 +410,14 @@ export async function dropConstraint(
     label: `Drop constraint "${constraintName}" on "${tableName}"`,
     operationClass: 'widening',
     target: targetDetails(kind, constraintName, schemaName, tableName),
-    precheck: [step(`ensure constraint "${constraintName}" exists`, present.sql, present.params)],
+    precheck: [
+      step(
+        `ensure constraint "${constraintName}" exists`,
+        present.sql,
+        present.params,
+        expectPresent(`constraint "${constraintName}" on "${tableName}"`),
+      ),
+    ],
     execute: [
       step(
         `drop constraint "${constraintName}"`,
@@ -363,7 +425,12 @@ export async function dropConstraint(
       ),
     ],
     postcheck: [
-      step(`verify constraint "${constraintName}" does not exist`, absent.sql, absent.params),
+      step(
+        `verify constraint "${constraintName}" does not exist`,
+        absent.sql,
+        absent.params,
+        expectAbsent(`constraint "${constraintName}" on "${tableName}"`),
+      ),
     ],
   };
 }

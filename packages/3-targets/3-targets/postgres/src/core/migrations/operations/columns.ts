@@ -1,4 +1,9 @@
-import { convertedColumnMeta, requiredColumnMeta } from '@internal/family-sql/control';
+import {
+  convertedColumnMeta,
+  expectAbsent,
+  expectPresent,
+  requiredColumnMeta,
+} from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import type { DdlColumn } from '@internal/sql-relational-core/ast';
 import { ifDefined } from '@internal/utils/defined';
@@ -81,14 +86,28 @@ export async function dropColumn(
     label: `Drop column "${columnName}" from "${tableName}"`,
     operationClass: 'destructive',
     target: targetDetails('column', columnName, schemaName, tableName),
-    precheck: [step(`ensure column "${columnName}" exists`, present.sql, present.params)],
+    precheck: [
+      step(
+        `ensure column "${columnName}" exists`,
+        present.sql,
+        present.params,
+        expectPresent(`column "${columnName}" on "${tableName}"`),
+      ),
+    ],
     execute: [
       step(
         `drop column "${columnName}"`,
         `ALTER TABLE ${qualified} DROP COLUMN ${quoteIdentifier(columnName)}`,
       ),
     ],
-    postcheck: [step(`verify column "${columnName}" does not exist`, absent.sql, absent.params)],
+    postcheck: [
+      step(
+        `verify column "${columnName}" does not exist`,
+        absent.sql,
+        absent.params,
+        expectAbsent(`column "${columnName}" on "${tableName}"`),
+      ),
+    ],
   };
 }
 
@@ -128,8 +147,18 @@ export async function renameColumn(
     operationClass: 'widening',
     target: targetDetails('column', toName, schemaName, tableName),
     precheck: [
-      step(`ensure column "${fromName}" exists`, from.present.sql, from.present.params),
-      step(`ensure column "${toName}" does not exist`, to.absent.sql, to.absent.params),
+      step(
+        `ensure column "${fromName}" exists`,
+        from.present.sql,
+        from.present.params,
+        expectPresent(`column "${fromName}" on "${tableName}"`),
+      ),
+      step(
+        `ensure column "${toName}" does not exist`,
+        to.absent.sql,
+        to.absent.params,
+        expectAbsent(`column "${toName}" on "${tableName}"`),
+      ),
     ],
     execute: [
       step(
@@ -138,8 +167,18 @@ export async function renameColumn(
       ),
     ],
     postcheck: [
-      step(`verify column "${toName}" exists`, to.present.sql, to.present.params),
-      step(`verify column "${fromName}" no longer exists`, from.absent.sql, from.absent.params),
+      step(
+        `verify column "${toName}" exists`,
+        to.present.sql,
+        to.present.params,
+        expectPresent(`column "${toName}" on "${tableName}"`),
+      ),
+      step(
+        `verify column "${fromName}" no longer exists`,
+        from.absent.sql,
+        from.absent.params,
+        expectAbsent(`column "${fromName}" on "${tableName}"`),
+      ),
     ],
   };
 }
@@ -207,7 +246,12 @@ export async function alterColumnType(
     operationClass,
     target: targetDetails('column', columnName, schemaName, tableName),
     precheck: [
-      step(`ensure column "${columnName}" exists`, present.sql, present.params),
+      step(
+        `ensure column "${columnName}" exists`,
+        present.sql,
+        present.params,
+        expectPresent(`column "${columnName}" on "${tableName}"`),
+      ),
       ...sequenceSteps.precheck,
     ],
     execute: [
@@ -322,7 +366,12 @@ export async function setNotNull(
     operationClass: 'widening',
     target: targetDetails('column', columnName, schemaName, tableName),
     precheck: [
-      step(`ensure column "${columnName}" exists`, present.sql, present.params),
+      step(
+        `ensure column "${columnName}" exists`,
+        present.sql,
+        present.params,
+        expectPresent(`column "${columnName}" on "${tableName}"`),
+      ),
       {
         ...step(`ensure no NULL values in "${columnName}"`, noNulls.sql, noNulls.params),
         meta: requiredColumnMeta(tableName, columnName, 'nullValues'),
@@ -365,7 +414,14 @@ export async function dropNotNull(
     label: `Drop NOT NULL on "${tableName}"."${columnName}"`,
     operationClass: 'widening',
     target: targetDetails('column', columnName, schemaName, tableName),
-    precheck: [step(`ensure column "${columnName}" exists`, present.sql, present.params)],
+    precheck: [
+      step(
+        `ensure column "${columnName}" exists`,
+        present.sql,
+        present.params,
+        expectPresent(`column "${columnName}" on "${tableName}"`),
+      ),
+    ],
     execute: [
       step(
         `drop NOT NULL on "${columnName}"`,
@@ -417,7 +473,14 @@ export async function setDefault(
     label: `Set default on "${tableName}"."${columnName}"`,
     operationClass,
     target: targetDetails('column', columnName, schemaName, tableName),
-    precheck: [step(`ensure column "${columnName}" exists`, present.sql, present.params)],
+    precheck: [
+      step(
+        `ensure column "${columnName}" exists`,
+        present.sql,
+        present.params,
+        expectPresent(`column "${columnName}" on "${tableName}"`),
+      ),
+    ],
     execute: [
       step(
         `set default on "${columnName}"`,
@@ -475,7 +538,12 @@ async function setAutoincrementDefault(
     operationClass,
     target: targetDetails('column', columnName, schemaName, tableName),
     precheck: [
-      step(`ensure column "${columnName}" exists`, present.sql, present.params),
+      step(
+        `ensure column "${columnName}" exists`,
+        present.sql,
+        present.params,
+        expectPresent(`column "${columnName}" on "${tableName}"`),
+      ),
       step(
         `ensure column "${columnName}" owns a sequence or no relation is named ${qualifiedSequence} (rename that relation, or write this migration with migration new)`,
         nameAvailable.sql,
@@ -545,7 +613,14 @@ export async function dropDefault(
     label: `Drop default on "${tableName}"."${columnName}"`,
     operationClass: 'widening',
     target: targetDetails('column', columnName, schemaName, tableName),
-    precheck: [step(`ensure column "${columnName}" exists`, present.sql, present.params)],
+    precheck: [
+      step(
+        `ensure column "${columnName}" exists`,
+        present.sql,
+        present.params,
+        expectPresent(`column "${columnName}" on "${tableName}"`),
+      ),
+    ],
     execute: [step(`drop default on "${columnName}"`, dropDefaultExec.sql)],
     postcheck: [
       step(`verify column "${columnName}" has no default`, noDefault.sql, noDefault.params),
@@ -602,7 +677,12 @@ export async function addRequiredColumnToEmptyTable(
     operationClass: 'additive',
     target: targetDetails('column', columnName, schemaName, tableName),
     precheck: [
-      step(`ensure column "${columnName}" is missing`, absent.sql, absent.params),
+      step(
+        `ensure column "${columnName}" is missing`,
+        absent.sql,
+        absent.params,
+        expectAbsent(`column "${columnName}" on "${tableName}"`),
+      ),
       {
         ...step(
           `ensure table "${tableName}" is empty before adding NOT NULL column without default`,
@@ -614,7 +694,12 @@ export async function addRequiredColumnToEmptyTable(
     ],
     execute: [step(`add column "${columnName}"`, addColumn.sql)],
     postcheck: [
-      step(`verify column "${columnName}" exists`, present.sql, present.params),
+      step(
+        `verify column "${columnName}" exists`,
+        present.sql,
+        present.params,
+        expectPresent(`column "${columnName}" on "${tableName}"`),
+      ),
       step(`verify column "${columnName}" is NOT NULL`, notNullable.sql, notNullable.params),
       hasType,
     ],
