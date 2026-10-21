@@ -81,8 +81,8 @@ export interface MigrationMetadata {
  *   every value fails instead, so a tightened constraint is widening: `SET NOT NULL` fails on a
  *   NULL, and a MongoDB validator applies to later writes only. So are a rename, a relaxed
  *   constraint, a type change that keeps every value, and a drop of an object that holds no data,
- *   such as an index, a constraint, a default or a row-level-security policy. Dropping a policy or
- *   disabling row-level security widens who can read and write rows.
+ *   such as an index, a constraint or a default. An operation that changes who can read or write
+ *   data is asked about by `db update`.
  * - 'destructive': can lose rows or values: dropping a table, a column or a collection, or a type
  *   change that can change values.
  * - 'data': reads and writes rows, such as a backfill or a type conversion, as its author wrote.
