@@ -5,7 +5,7 @@
  *
  * `--rename billing:finance` renames the schema with `ALTER SCHEMA … RENAME TO`, and `--rename billing.Invoice:finance.Bill` in the same run renames the table inside it: N1 through `migration plan` and `migrate`, N2 through `db update`.
  *
- * A namespace the destination no longer declares is asked about one model at a time, and the refusal says that `--delete billing` answers them all. N3 answers with `--delete billing` through `db update`; N4 answers with one `--delete` per model through `migration plan`. N5 and N6 keep `Invoice` by moving it to `public` in the same run, through `db update` and `migration plan`. N7 adds a table no contract declares to `billing`: it is its own question, answered by its storage name. N8 refuses to rename `public` through both commands.
+ * A namespace the destination no longer declares is asked about one model at a time, and the refusal says that `--delete billing` answers them all. N3 answers with `--delete billing` through `db update`; N4 answers with one `--delete` per model through `migration plan`. N5 and N6 keep `Invoice` by moving it to `public` in the same run, through `db update` and `migration plan`. N7 adds a table no contract declares to `billing`: it is its own question, answered by its storage name. N8 refuses to rename `public` through both commands, then follows the refusal's advice and moves `User` to `app`, so the contract no longer declares `public`; N9 does the same move through `db update`. Each then plans nothing more.
  *
  * Every journey ends with `db verify --schema-only` clean and a further plan empty, and every `migration.ts` written is run again and reproduces its `ops.json` and `migration.json` byte for byte.
  */
@@ -53,6 +53,7 @@ interface AppliedStatementReport {
 
 const RENAME = ['--rename', 'billing:finance', '--rename', 'billing.Invoice:finance.Bill'] as const;
 const KEEP = ['--delete', 'billing', '--rename', 'billing.Invoice:Invoice'] as const;
+const MOVE_USER = ['--rename', 'User:app.User'] as const;
 
 async function createAppUserRole(connectionString: string): Promise<void> {
   await sql(
@@ -212,6 +213,21 @@ async function expectKeptInvoice(connectionString: string, label: string): Promi
     { id: 1, number: 'A-1' },
     { id: 2, number: 'A-2' },
   ]);
+}
+
+async function expectUserMovedOutOfPublic(connectionString: string, label: string) {
+  const tables = await sql(
+    connectionString,
+    `SELECT schemaname, tablename FROM pg_tables WHERE tablename = 'User' ORDER BY schemaname`,
+  );
+  expect(tables.rows, `${label}: User is in app only`).toEqual([
+    { schemaname: 'app', tablename: 'User' },
+  ]);
+  const publicSchema = await sql(
+    connectionString,
+    `SELECT count(*)::int AS schemas FROM pg_namespace WHERE nspname = 'public'`,
+  );
+  expect(publicSchema.rows[0], `${label}: public stays`).toEqual({ schemas: 1 });
 }
 
 function nextActionsOf(result: Parameters<typeof engineError>[0]): string {
@@ -449,6 +465,33 @@ withTempDir(({ createTempDir }) => {
           expect(error?.why).toBe(summary);
           expect(error?.nextActions?.map(({ label }) => label)).toEqual([fix]);
         }
+
+        const moved = await planReEmitAndMigrate(ctx, origin ?? '', MOVE_USER, 'N8.05');
+        expect(moved.operations.map(({ label }) => label)).toEqual([
+          'Create schema "app"',
+          'Move table "User" to schema "app"',
+        ]);
+        await expectUserMovedOutOfPublic(db.connectionString, 'N8.06');
+        await expectSettled(ctx, 'migrate', moved.dirName, 'N8.07');
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('N9: move the last model out of public with db update', () => {
+    const db = useDevDatabase();
+
+    it(
+      'follows the advice of the public refusal, and a further run plans nothing',
+      async () => {
+        const { ctx } = await startAt(db, createTempDir, 'db update', 'N9');
+        await emitContract(ctx, 'contract-namespace-statements-public-renamed', 'N9.03');
+
+        const update = await runDbUpdate(ctx, [...MOVE_USER, '--no-interactive', '--json']);
+        expect(update.exitCode, `N9.04: db update: ${JSON.stringify(engineError(update))}`).toBe(0);
+
+        await expectUserMovedOutOfPublic(db.connectionString, 'N9.05');
+        await expectSettled(ctx, 'db update', undefined, 'N9.06');
       },
       timeouts.spinUpPpgDev,
     );
