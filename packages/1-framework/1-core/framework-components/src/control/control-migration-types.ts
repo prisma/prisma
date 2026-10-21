@@ -525,6 +525,8 @@ export interface SchemaOwnership {
    * entity at this coordinate.
    */
   declaresEntity(coordinate: SchemaEntityCoordinate): boolean;
+  /** The ids of the contract spaces whose contracts declare the storage namespace, the planned one included. */
+  namespaceDeclaringSpaces(namespaceId: string): readonly string[];
 }
 
 /**

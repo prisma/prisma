@@ -62,4 +62,35 @@ describe('this.setTableSchema', () => {
       'Rename unique constraint "Invoice_number_key" to "Bill_number_key" on "Bill"',
     ]);
   });
+
+  it('this.renameSchema renames the schema for the rename calls after it', async () => {
+    const start = jsonOf(contractWith({ invoiceNamespace: 'billing', seed: 'billing-start' }));
+    const end = jsonOf(
+      contractWith({
+        invoiceNamespace: 'finance',
+        invoiceModel: 'Bill',
+        invoiceTableName: 'Bill',
+        seed: 'finance-end',
+      }),
+    );
+    class RenameSchemaThenTable extends PostgresMigration {
+      override readonly startContractJson = start;
+      override readonly endContractJson = end;
+      override get operations(): readonly Promise<Op>[] {
+        return [
+          this.renameSchema({ schema: 'billing', to: 'finance' }),
+          ...this.renameTable({ schema: 'finance', table: 'Invoice', to: 'Bill' }),
+        ];
+      }
+    }
+
+    const ops = await Promise.all(new RenameSchemaThenTable(stack).operations);
+
+    expect(ops.map((op) => op.label)).toEqual([
+      'Rename schema "billing" to "finance"',
+      'Rename table "Invoice" to "Bill"',
+      'Rename primary key "Invoice_pkey" to "Bill_pkey" on "Bill"',
+      'Rename unique constraint "Invoice_number_key" to "Bill_number_key" on "Bill"',
+    ]);
+  });
 });

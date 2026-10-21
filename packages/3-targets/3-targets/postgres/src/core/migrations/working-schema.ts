@@ -25,6 +25,7 @@ import {
   RenameConstraintCall,
   RenameIndexCall,
   type RenamePostgresRlsPolicyCall,
+  RenameSchemaCall,
   RenameTableCall,
   SetTableSchemaCall,
 } from './op-factory-call';
@@ -42,6 +43,7 @@ export interface SchemaTableRename {
 
 export type WorkingSchemaCall =
   | CreateSchemaCall
+  | RenameSchemaCall
   | SetTableSchemaCall
   | RenameTableCall
   | RenameColumnCall
@@ -432,6 +434,60 @@ export function moveTableInPostgresSchema(
   });
 }
 
+/** A schema renamed: both are DDL schema names. */
+export interface SchemaRename {
+  readonly from: string;
+  readonly to: string;
+}
+
+/**
+ * The schema with one schema renamed, as `ALTER SCHEMA … RENAME TO` renames it: its tables and
+ * their policies keep their place in it, and foreign keys and dependencies that name it follow.
+ */
+export function renameSchemaInPostgresSchema(
+  schema: PostgresDatabaseSchemaNode,
+  rename: SchemaRename,
+): PostgresDatabaseSchemaNode {
+  const { from, to } = rename;
+  const rewrite: RefRewrite = (ref) =>
+    ref[1]?.nodeKind === PostgresSchemaNodeKind.namespace && ref[1].id === from
+      ? ref.map((step, index) => (index === 1 ? { nodeKind: step.nodeKind, id: to } : step))
+      : ref;
+  const rewritten = mapTables(schema, rewrite, (tableSchema, table) => {
+    const unchanged = unchangedEdit(table);
+    return {
+      ...unchanged,
+      policy: (policy) =>
+        tableSchema === from
+          ? { ...unchanged.policy(policy), namespaceId: to }
+          : unchanged.policy(policy),
+      foreignKey: (fk) =>
+        (fk.resolvedReferencedNamespace ?? tableSchema) === from
+          ? { ...unchanged.foreignKey(fk), referencedSchema: to }
+          : unchanged.foreignKey(fk),
+    };
+  });
+  return new PostgresDatabaseSchemaNode({
+    namespaces: Object.fromEntries(
+      Object.entries(rewritten.namespaces).map(([key, namespace]) =>
+        key === from
+          ? [
+              to,
+              new PostgresNamespaceSchemaNode({
+                schemaName: to,
+                nativeEnums: namespace.nativeEnums,
+                tables: namespace.tables,
+              }),
+            ]
+          : [key, namespace],
+      ),
+    ),
+    roles: rewritten.roles,
+    existingSchemas: rewritten.existingSchemas.map((name) => (name === from ? to : name)),
+    pgVersion: rewritten.pgVersion,
+  });
+}
+
 function withSchema(
   schema: PostgresDatabaseSchemaNode,
   schemaName: string,
@@ -617,6 +673,9 @@ function applied(
   call: WorkingSchemaCall,
 ): PostgresDatabaseSchemaNode {
   if (call instanceof CreateSchemaCall) return withSchema(schema, call.schemaName);
+  if (call instanceof RenameSchemaCall) {
+    return renameSchemaInPostgresSchema(schema, { from: call.schemaName, to: call.toSchemaName });
+  }
   if (call instanceof SetTableSchemaCall) {
     return moveTableInPostgresSchema(schema, {
       table: call.tableName,

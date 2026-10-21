@@ -13,6 +13,7 @@ import {
   detectTableNameCaseChanges,
   extractCodecControlHooks,
   fieldStatementColumns,
+  type NamespaceRename,
   partitionCallsByControlPolicy,
   partitionIssuesByControlPolicy,
   planFieldEventCalls,
@@ -20,6 +21,7 @@ import {
   planStatements,
   sqlTypeLookupsOf,
   subjectsOfCalls,
+  type TargetRefusal,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
@@ -82,6 +84,7 @@ import {
   RawSqlCall,
   type RenameColumnCall,
   RenamePostgresRlsPolicyCall,
+  RenameSchemaCall,
   type RenameTableCall,
   SetTableSchemaCall,
 } from './op-factory-call';
@@ -782,6 +785,17 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
             ddlSchemaOf(move.to),
           );
         },
+        namespaceRenameRefusal: (rename) =>
+          postgresNamespaceRenameRefusal(rename, options.ownership, options.spaceId),
+        renameNamespaceCall: (rename) => {
+          if (options.fromContract === null) {
+            throw new InternalError('A namespace rename is planned only from an origin contract');
+          }
+          return new RenameSchemaCall(
+            resolveDdlSchemaForNamespaceStorage(options.fromContract.storage, rename.from),
+            ddlSchemaOf(rename.to),
+          );
+        },
         renameTableCall: (rename) =>
           postgresTableRenameCall({
             previous: working.current,
@@ -818,7 +832,38 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
   }
 }
 
-type StatementCall = RenameTableCall | RenameColumnCall | CreateSchemaCall | SetTableSchemaCall;
+type StatementCall =
+  | RenameTableCall
+  | RenameColumnCall
+  | CreateSchemaCall
+  | SetTableSchemaCall
+  | RenameSchemaCall;
+
+/**
+ * Why a namespace cannot be renamed: `public` is the default schema Prisma owns and Postgres puts
+ * on every search path, and a schema another contract space declares would be renamed for it too.
+ */
+function postgresNamespaceRenameRefusal(
+  rename: NamespaceRename,
+  ownership: SchemaOwnership | undefined,
+  spaceId: string,
+): TargetRefusal | undefined {
+  const movePerModel = `--rename <Model>:${rename.to}.<Model>`;
+  if (rename.from === DEFAULT_NAMESPACE_ID) {
+    return {
+      reason: `"${rename.from}" is the default schema of every Postgres database`,
+      fix: `Prisma owns schema "${rename.from}", and Postgres puts it on every search path, so a migration does not rename it. Move each model to the new namespace with ${movePerModel} instead.`,
+    };
+  }
+  const [other] = (ownership?.namespaceDeclaringSpaces(rename.from) ?? []).filter(
+    (id) => id !== spaceId,
+  );
+  if (other === undefined) return undefined;
+  return {
+    reason: `contract space "${other}" also declares it`,
+    fix: `Renaming the schema would rename it under contract space "${other}" too, whose contract still names it "${rename.from}". Leave out this statement, or move each model with ${movePerModel} instead.`,
+  };
+}
 
 /**
  * A diff issue whose node is an RLS policy — the structural half of the one

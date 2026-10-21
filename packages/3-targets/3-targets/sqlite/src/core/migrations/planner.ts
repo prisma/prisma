@@ -320,6 +320,12 @@ export class SqliteMigrationPlanner
       target: {
         tables: () => sqliteSchemaTables(working.current),
         createNamespaceCalls: () => [],
+        namespaceRenameRefusal: () => undefined,
+        renameNamespaceCall: (rename) => {
+          throw new InternalError(
+            `SQLite stores every table in one namespace, so no statement renames namespace "${rename.from}" to "${rename.to}"`,
+          );
+        },
         moveTableCall: (move) => {
           throw new InternalError(
             `SQLite stores every table in one namespace, so no statement moves table "${move.table}" from namespace "${move.from}" to "${move.to}"`,

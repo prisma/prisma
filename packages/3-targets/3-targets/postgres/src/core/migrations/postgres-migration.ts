@@ -254,14 +254,18 @@ export abstract class PostgresMigration<
     return op;
   }
 
-  /** Emit an `ALTER SCHEMA … RENAME TO` operation. Everything in the schema keeps its place in it. */
+  /**
+   * Emit an `ALTER SCHEMA … RENAME TO` operation. Everything in the schema keeps its place in it,
+   * and later rename calls find its tables under the new name.
+   */
   protected renameSchema(options: {
     readonly schema: string;
     readonly to: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    return new RenameSchemaCall(options.schema, options.to).toOp(
-      this.controlAdapterFor('renameSchema'),
-    );
+    const call = new RenameSchemaCall(options.schema, options.to);
+    const op = call.toOp(this.controlAdapterFor('renameSchema'));
+    this.#renames.push(call);
+    return op;
   }
 
   /**

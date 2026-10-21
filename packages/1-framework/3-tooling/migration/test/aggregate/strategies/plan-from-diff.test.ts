@@ -21,7 +21,10 @@ const POLICY: MigrationOperationPolicy = {
 const STUB_ADAPTER: ControlAdapterInstance<'sql', 'postgres'> =
   {} as unknown as ControlAdapterInstance<'sql', 'postgres'>;
 
-const STUB_OWNERSHIP: SchemaOwnership = { declaresEntity: () => false };
+const STUB_OWNERSHIP: SchemaOwnership = {
+  declaresEntity: () => false,
+  namespaceDeclaringSpaces: () => [],
+};
 
 function makeSpace(spaceId: string, tables: Record<string, unknown>): AggregateContractSpace {
   return makeAggregateContractSpace({
@@ -94,6 +97,7 @@ describe('planFromDiff', () => {
     // verbatim. Here `cipher_state` is owned by some (sibling) space.
     const ownership: SchemaOwnership = {
       declaresEntity: (coordinate) => coordinate.entityName === 'cipher_state',
+      namespaceDeclaringSpaces: () => [],
     };
 
     const outcome = await planFromDiff({

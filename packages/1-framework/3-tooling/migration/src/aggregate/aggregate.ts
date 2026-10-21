@@ -346,6 +346,10 @@ export function createContractSpaceAggregate(args: {
     declaresEntity: (coordinate) => ordered.some((space) => spaceDeclares(space, coordinate)),
     declaringSpaces: (coordinate) =>
       ordered.filter((space) => spaceDeclares(space, coordinate)).map((s) => s.spaceId),
+    namespaceDeclaringSpaces: (namespaceId) =>
+      ordered
+        .filter((space) => Object.hasOwn(space.contract().storage.namespaces, namespaceId))
+        .map((space) => space.spaceId),
     checkIntegrity,
   };
 }

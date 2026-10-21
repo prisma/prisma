@@ -1950,6 +1950,7 @@ export class RenameSchemaCall extends PostgresOpFactoryCallNode {
   readonly schemaName: string;
   readonly toSchemaName: string;
   readonly label: string;
+  readonly companions: readonly [] = [];
 
   constructor(schemaName: string, toSchemaName: string) {
     super();
