@@ -1,0 +1,15 @@
+// use prisma-8
+
+namespace public {
+  model Invoice {
+    id       Int       @id
+    number   String    @unique
+    payments Payment[]
+  }
+
+  model Payment {
+    id        Int     @id
+    invoiceId Int
+    invoice   Invoice @relation(fields: [invoiceId], references: [id])
+  }
+}
