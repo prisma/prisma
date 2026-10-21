@@ -109,7 +109,7 @@ describe('Postgres schema operations', { concurrent: false }, () => {
     on: PostgresControlDriver = driver,
   ): Promise<number> {
     const result = await runnerResult(ops, on);
-    if (!result.ok) throw new Error(`${result.failure.code}: ${result.failure.summary}`);
+    if (!result.ok) throw new Error(`${result.failure.code}: ${result.failure.message}`);
     return result.value.perSpaceResults.reduce(
       (sum, { value }) => sum + value.operationsExecuted,
       0,
@@ -258,9 +258,9 @@ describe('Postgres schema operations', { concurrent: false }, () => {
     expect(result.ok).toBe(false);
     expect(result.assertNotOk()).toMatchObject({
       code: 'MIGRATION.PRECHECK_FAILED',
-      summary: 'Schema "billing" still holds table "billing"."invoice", so it cannot be dropped.',
+      message: 'Schema "billing" still holds table "billing"."invoice", so it cannot be dropped.',
       why: 'Operation dropSchema.billing failed during precheck: ensure schema "billing" holds no tables, views, sequences, types or functions',
-      blockingObjects: [{ kind: 'table', name: 'billing.invoice' }],
+      meta: { blockingObjects: [{ kind: 'table', name: 'billing.invoice' }] },
     });
     expect(
       (await driver.query("select to_regclass('billing.invoice') is not null as kept")).rows,
@@ -280,9 +280,9 @@ describe('Postgres schema operations', { concurrent: false }, () => {
 
     expect(result.assertNotOk()).toMatchObject({
       code: 'MIGRATION.EXECUTION_FAILED',
-      summary:
+      message:
         'Table "billing"."audit_log" cannot be dropped while view billing.v_paid depends on it.',
-      blockingObjects: [{ kind: 'view', name: 'billing.v_paid' }],
+      meta: { blockingObjects: [{ kind: 'view', name: 'billing.v_paid' }] },
     });
     expect(
       (await driver.query("select to_regclass('billing.audit_log') is not null as kept")).rows,
@@ -297,7 +297,7 @@ describe('Postgres schema operations', { concurrent: false }, () => {
 
     const result = await runnerResult([await new DropSchemaCall('billing').toOp(controlAdapter)]);
 
-    expect(result.assertNotOk().summary).toBe(
+    expect(result.assertNotOk().message).toBe(
       'Schema "billing" still holds function "billing"."answer", sequence "billing"."counter" and view "billing"."recent", so it cannot be dropped.',
     );
   });

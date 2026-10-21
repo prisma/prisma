@@ -1,9 +1,11 @@
 import { APP_SPACE_ID } from '@internal/framework-components/control';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import {
   createMigrationPlan,
   plannerFailure,
   plannerSuccess,
+  runnerFailure,
 } from '../src/core/migrations/plan-helpers';
 import type {
   SqlMigrationPlan,
@@ -201,5 +203,29 @@ describe('planner helpers', () => {
     expect(Object.isFrozen(failure.conflicts)).toBe(true);
     expect(Object.isFrozen(failure.conflicts[0]!)).toBe(true);
     expect(failure.conflicts[0]?.location?.entityName).toBe('user');
+  });
+});
+
+describe('runnerFailure', () => {
+  it('returns a structured error with the summary as its message and the facts in meta', () => {
+    const result = runnerFailure(
+      'MIGRATION.PRECHECK_FAILED',
+      'Operation op failed during precheck',
+      {
+        meta: { failedCheck: { operationId: 'op', phase: 'precheck', description: 'check' } },
+      },
+    );
+
+    expect(result.ok).toBe(false);
+    expect(isStructuredError(result.failure)).toBe(true);
+    expect({
+      code: result.failure.code,
+      message: result.failure.message,
+      meta: result.failure.meta,
+    }).toEqual({
+      code: 'MIGRATION.PRECHECK_FAILED',
+      message: 'Operation op failed during precheck',
+      meta: { failedCheck: { operationId: 'op', phase: 'precheck', description: 'check' } },
+    });
   });
 });

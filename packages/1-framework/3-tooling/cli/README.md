@@ -695,7 +695,7 @@ The command needs a `driver` in the config, as `db verify` does.
 1. **Load the contract spaces**: the application contract (emitted, or the one the contract reference names) and the contract space of every extension in `config.extensions`, as `migrate` loads them.
 2. **Read the markers**: the marker of every space is read before the schema is.
 3. **Verify each space**: each space's contract is checked against the live schema without strict mode.
-4. **Sign**: the family's `signSpaces` writes the marker of every space that verified, but only while the marker still holds what step 2 read. On PostgreSQL and SQLite it first takes the lock `migrate` takes (one transaction-scoped advisory lock for the marker table on PostgreSQL, `BEGIN IMMEDIATE` on SQLite), and all markers are written in one transaction, so a failed write leaves every marker as it was. A marker that already holds the contract's hashes is left unchanged.
+4. **Sign**: the family's `signSpaces` writes the marker of every space that verified, but only while the marker still holds what step 2 read. On PostgreSQL and SQLite it first takes the lock `migrate` takes (one transaction-scoped advisory lock for the marker table on PostgreSQL, `BEGIN IMMEDIATE` on SQLite), and all markers are written in one transaction, so a failed write leaves every marker as it was. On MongoDB, which has no lock or transaction for this, each space's marker is written on its own with a compare-and-swap, so a failed write leaves the spaces signed before it signed. A marker that already holds the contract's hashes is left unchanged.
 5. **Advance refs**: each signed or unchanged space's `db` ref (or the `--advance-ref` name) is advanced to its contract hash, and the contract is written into that space's snapshot store. `--no-advance-ref` skips this step. A ref or snapshot that cannot be written does not undo the markers: the command still writes every other ref, then fails with `MIGRATION.SIGN_REFS_NOT_WRITTEN`, which says the database was signed, names each ref it could not write and why, and gives the `db sign` command to run again once the cause is fixed.
 
 A space that fails verification is not signed. Its differences are reported, the other spaces are still signed, and the command exits with code 4. A space whose marker another process, such as `migrate`, changed after step 2 is not signed either: its marker is left as that process wrote it, the other spaces are still signed, and the command exits with code 4. Running `db sign` again once the other process has finished signs it.
@@ -969,7 +969,7 @@ Where nobody can answer (the run is not interactive, or `--yes` is set), the com
 **When rows have no value:** a field made required while rows hold NULL, or a new required field that can be added to an empty table only (unique, part of a key, or from a value set), fails the apply, which changes nothing. The error counts the rows, for example `3 rows of "Item" hold NULL in "note", so it cannot become required.`, and says how to fix them: set a value in those rows, keep the field optional, or plan the change with `migration plan --backfill Item.note`, which names every field of the plan that needs a value. The printed command starts with `--from <hash>` only when a migration on disk ends at the contract the database's marker names; otherwise it has no `--from` and starts from the `db` ref. A `--delete` that answers a type change whose cast fails is reported the same way, with `migration plan --convert <field>`.
 
 **Error codes (additional to shared CLI/runtime codes):**
-- `RUNNER_FAILED`: runner rejected apply (origin mismatch, failed checks, policy failures, or execution errors)
+- The runner's own `MIGRATION.*` code when it rejects the apply, such as `MIGRATION.PRECHECK_FAILED` or `MIGRATION.SCHEMA_VERIFY_FAILED`, with its `meta`
 - `CLI.CONSENT_REQUIRED`, `CLI.CONSENT_UNUSED`: a question nobody answered, or a `--delete` or `--allow` that answered no question
 - `MIGRATION.STATEMENT_DID_NOT_RESOLVE_LOSS`: a rename typed at the prompt did not stop the loss it answered
 - `MIGRATION.STATEMENT_INVALID`, `MIGRATION.STATEMENT_UNRESOLVED`, `MIGRATION.STATEMENT_ORIGIN_UNKNOWN`: a `--rename` statement is malformed, does not resolve in the contracts, or has no origin contract to resolve against
@@ -1469,11 +1469,14 @@ try {
 
   // Run operations
   const verifyResult = await client.verify({ contract });
-  const initResult = await client.dbInit({ contract, mode: 'apply', migrationsDir: 'migrations' });
+  // Where the commands an error's advice prints are run from, and the --config and --db they repeat.
+  const invocation = { cwd: process.cwd(), configPath: undefined, dbGiven: false };
+  const initResult = await client.dbInit({ contract, mode: 'apply', migrationsDir: 'migrations', invocation });
   const updateResult = await client.dbUpdate({
     contract,
     mode: 'apply',
     migrationsDir: 'migrations',
+    invocation,
     // Asked before an apply about each operation that would lose data or change access.
     // Answer each question in order, as `{ verb, text }`, or throw to refuse.
     answerQuestions: async (questions) => {
@@ -1511,9 +1514,9 @@ Operations return structured result types:
 - `verify()` → `VerifyDatabaseResult`
 - `schemaVerify()` → `VerifyDatabaseSchemaResult`
 - `dbSign()` → `ExecuteDbSignResult`, a `Result` whose success lists one `DbSignSpaceOutcome` per contract space
-- `dbInit()` → `Result<DbInitSuccess, DbInitFailure>` (uses Result pattern)
-- `dbUpdate()` → `Result<DbUpdateSuccess, DbUpdateFailure>` (uses Result pattern)
-- `migrate()` → `Result<MigrateSuccess, MigrateFailure>` (uses Result pattern)
+- `dbInit()` → `Result<DbInitSuccess, CliStructuredError>` (uses Result pattern)
+- `dbUpdate()` → `Result<DbUpdateSuccess, CliStructuredError>` (uses Result pattern)
+- `migrate()` → `Result<MigrateSuccess, CliStructuredError>` (uses Result pattern)
 - `introspect()` → Schema IR (family-specific)
 
 ### Error Handling

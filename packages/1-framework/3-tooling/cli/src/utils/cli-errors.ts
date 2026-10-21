@@ -26,12 +26,12 @@ import {
   errorTargetMigrationNotSupported,
   errorUnexpected,
 } from '@internal/errors/control';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import type { RefResolutionError } from '@internal/migration-tools/ref-resolution';
 import { ifDefined } from '@internal/utils/defined';
 import type { NextAction } from '@prisma/cli-engine/protocol';
 import { statementFlag } from '../control-api/statements/statement-flag';
 import type { StatementText } from '../control-api/statements/statement-text';
-import type { MigrateFailure } from '../control-api/types';
 import { chooseAction, runCommandAction } from './next-actions';
 import { type CliInvocation, cliCommand, printedPlanCommand } from './printed-command';
 
@@ -39,7 +39,6 @@ export {
   errorHashMismatch,
   errorMarkerMissing,
   errorMarkerRequired,
-  errorRunnerFailed,
   errorRuntime,
   errorSchemaVerificationFailed,
   errorTargetMismatch,
@@ -958,56 +957,51 @@ const ROLLBACK_IS_DESTRUCTIVE =
 const RENAMES_AND_DATA_NEED_MORE =
   'Plan a rename with --rename old:new; re-adding a required field without a safe default, or a type change that needs data, may need you to fill in the planned migration.ts';
 
-export function errorPathUnreachable(failure: MigrateFailure): ActionableCliError {
-  const meta = failure.meta ?? {};
-  const fromHashMeta = typeof meta['fromHash'] === 'string' ? meta['fromHash'] : null;
-  // `buildPathNotFoundFailure` uses this sentinel in meta when the live marker is null.
-  const planFromHash = fromHashMeta === '<empty>' ? null : fromHashMeta;
-  const targetHash =
-    typeof meta['targetHash'] === 'string'
-      ? meta['targetHash']
-      : typeof meta['target'] === 'string'
-        ? meta['target']
-        : null;
-  const deadEnds = meta['deadEnds'];
-  const deadEndsSuffix =
-    Array.isArray(deadEnds) && deadEnds.length > 0
-      ? ` Dead-ends: ${deadEnds.map(String).join(', ')}.`
-      : '';
-  // Plan-then-apply recovery. The planner destination is the missing edge's
-  // target; `migration plan --to` (built for arbitrary targets) makes this a
-  // real command, so the diagnostic that sends you here is now honest.
-  //
+/**
+ * The `meta` of `MIGRATION.PATH_UNREACHABLE`: no path joins the two hashes in the space's graph
+ * (`pathUnreachable`, where a space with no marker starts from the empty contract's hash), or the
+ * space has no migrations at all (`neverPlanned`).
+ */
+export type PathUnreachableMeta =
+  | {
+      readonly kind: 'pathUnreachable';
+      readonly spaceId: string;
+      readonly fromHash: string;
+      readonly targetHash: string;
+    }
+  | { readonly kind: 'neverPlanned'; readonly spaceId: string; readonly targetHash: string };
+
+/** What a replay found when no migration path reaches its target. */
+export interface PathUnreachable {
+  readonly summary: string;
+  readonly why: string;
+  readonly meta: PathUnreachableMeta;
+}
+
+/** The advice for a `PATH_UNREACHABLE` the caller knows better than a plan-then-apply of the app space. */
+export interface PathUnreachableAdvice {
+  readonly fix: string;
+  readonly nextActions: readonly NextAction[];
+}
+
+function planThenApply(meta: PathUnreachableMeta): PathUnreachableAdvice {
   // Never-planned spaces have an EMPTY migration graph, and contract-ref
   // resolution only resolves full hashes against graph nodes — a
   // `--to <hash>` remediation would reject its own input. `migration plan`
   // without `--to` targets the working contract (the same contract the app
   // space's synthesized head ref carries), so the bare form is the one that
-  // runs verbatim.
-  const neverPlanned = meta['kind'] === 'neverPlanned';
-  const planCommand = (() => {
-    if (neverPlanned) {
-      return '{bin} migration plan --name <slug>';
-    }
-    if (planFromHash !== null && targetHash !== null) {
-      return `{bin} migration plan --from ${planFromHash} --to ${targetHash} --name <slug>`;
-    }
-    if (targetHash !== null) {
-      return `{bin} migration plan --to ${targetHash} --name <slug>`;
-    }
-    if (planFromHash !== null) {
-      return `{bin} migration plan --from ${planFromHash} --name <slug>`;
-    }
-    return '{bin} migration plan';
-  })();
+  // runs verbatim. With no marker, the live origin `migration plan` uses
+  // without `--from` is the empty contract, so the printed command leaves
+  // `--from` out.
+  const planCommand =
+    meta.kind === 'neverPlanned'
+      ? '{bin} migration plan --name <slug>'
+      : meta.fromHash === EMPTY_CONTRACT_HASH
+        ? `{bin} migration plan --to ${meta.targetHash} --name <slug>`
+        : `{bin} migration plan --from ${meta.fromHash} --to ${meta.targetHash} --name <slug>`;
   const applyCommand =
-    targetHash !== null && !neverPlanned
-      ? `{bin} db migrate --to ${targetHash}`
-      : '{bin} db migrate';
-  return new ActionableCliError('MIGRATION.PATH_UNREACHABLE', failure.summary, {
-    why:
-      failure.why ??
-      `Cannot reach target "${targetHash ?? '<unknown>'}" from current marker "${fromHashMeta ?? '<unknown>'}".${deadEndsSuffix}`,
+    meta.kind === 'neverPlanned' ? '{bin} db migrate' : `{bin} db migrate --to ${meta.targetHash}`;
+  return {
     fix: [
       'Plan the missing edge, then apply it:',
       `  1. ${planCommand}`,
@@ -1027,9 +1021,19 @@ export function errorPathUnreachable(failure: MigrateFailure): ActionableCliErro
         '{bin} migration show <bundle>',
       ),
     ],
-    meta: {
-      ...meta,
-    },
+  };
+}
+
+/** `MIGRATION.PATH_UNREACHABLE`, advising to plan the missing edge and apply it unless `advice` says otherwise. */
+export function errorPathUnreachable(
+  failure: PathUnreachable,
+  advice: PathUnreachableAdvice = planThenApply(failure.meta),
+): ActionableCliError {
+  return new ActionableCliError('MIGRATION.PATH_UNREACHABLE', failure.summary, {
+    why: failure.why,
+    fix: advice.fix,
+    nextActions: advice.nextActions,
+    meta: failure.meta,
   });
 }
 

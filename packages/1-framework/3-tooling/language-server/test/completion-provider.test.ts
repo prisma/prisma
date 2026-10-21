@@ -7,7 +7,7 @@ import type {
   DataTypeAuthoringEntry,
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
-import { createDataTypeLookup } from '@internal/framework-components/codec';
+import { createDataTypeLookup, dataType } from '@internal/framework-components/codec';
 import {
   EMPTY_GENERATOR_FUNCTIONS,
   type GeneratorFunctionRegistry,
@@ -23,8 +23,10 @@ import {
   type BlockSpecContext,
   blockAttribute,
   buildSymbolTable,
+  EMPTY_DATA_TYPES,
   entityRef,
   type FieldAttributeSpecContext,
+  type FuncCallSig,
   fieldAttribute,
   identifier,
   int,
@@ -47,6 +49,7 @@ import {
 } from 'vscode-languageserver';
 import { classifyPslCompletionContext } from '../src/completion-context';
 import { providePslCompletionItems } from '../src/completion-provider';
+import { renderSignatureLabel, resolveSignatureParameters } from '../src/signature-help';
 import { testBinder } from './helpers/binder';
 
 const scalarTypes = ['String', 'Int', 'Boolean', 'DateTime'] as const;
@@ -373,6 +376,30 @@ async function actualMongoStack(): Promise<CompletionTestStack> {
   };
 }
 
+const fixtureInt = dataType('fixture/int', { read: (json) => json });
+const fixtureExpression = dataType('fixture/expression', { read: (json) => json });
+const constructorArgumentDataTypes: DataTypeSupport = {
+  entries: {
+    [fixtureInt.id]: {
+      written: {
+        kind: 'plain',
+        syntax: 'number',
+        types: [fixtureInt.id],
+        classify: (text) => ({ type: fixtureInt.id, value: Number(text) }),
+      },
+      print: String,
+      documentation: 'A whole number.',
+    },
+    [fixtureExpression.id]: {
+      written: { kind: 'tag', tag: 'sql', parse: (text) => text },
+      print: String,
+      documentation: 'A SQL expression.',
+    },
+  },
+  lookup: createDataTypeLookup([fixtureInt, fixtureExpression]),
+  dataTypeOfCodec: () => undefined,
+};
+
 async function sqlExpressionDataTypes(): Promise<Readonly<Record<string, DataTypeAuthoringEntry>>> {
   const family = await importFromPackageRoot<ActualSqlExpressionModule>(
     '../../../2-sql/1-core/contract/src/exports/sql-expression.ts',
@@ -557,15 +584,15 @@ namespace other { model Hidden { id Int } }`,
         Required: {
           kind: 'typeConstructor',
           args: [
-            { name: 'size', kind: 'number' },
-            { name: 'label', kind: 'string' },
-            { name: 'scale', kind: 'number', optional: true },
+            { name: 'size', kind: 'value', dataType: 'fixture/int' },
+            { name: 'label', kind: 'value', dataType: 'fixture/expression' },
+            { name: 'scale', kind: 'value', dataType: 'fixture/int', optional: true },
           ],
           output: { codecId: 'fixture/value' },
         },
         Optional: {
           kind: 'typeConstructor',
-          args: [{ name: 'size', kind: 'number', optional: true }],
+          args: [{ name: 'size', kind: 'value', dataType: 'fixture/int', optional: true }],
           output: { codecId: 'fixture/value' },
         },
         Entity: {
@@ -583,12 +610,13 @@ namespace other { model Hidden { id Int } }`,
           authoringContributions: assembleAuthoringContributions([
             { id: 'constructors', authoring: { type: { ...types, custom: types } } },
           ]),
+          dataTypes: constructorArgumentDataTypes,
         });
         for (const [label, snippet] of [
           ['Scalar', 'Scalar'],
           ['Deprecated', 'Deprecated'],
           ['Empty', 'Empty()'],
-          ['Required', 'Required($' + '{1:size}, "$' + '{2:label}")'],
+          ['Required', 'Required($' + '{1:size}, sql`$' + '{2:label}`)'],
           ['Optional', 'Optional($' + '{1:})'],
           ['Entity', 'Entity($' + '{1:choice})'],
         ] as const) {
@@ -1773,6 +1801,28 @@ namespace app {
     }).items;
     expect(completionItemByLabel(snippetItems, 'now').textEdit?.newText).toBe('now()');
   }, 5_000);
+
+  it('labels each generator function argument by the values the function takes', async () => {
+    const postgres = await importFromPackageRoot<{
+      readonly postgresGeneratorFunctions: readonly {
+        readonly name: string;
+        readonly signature?: unknown;
+      }[];
+    }>('../../../3-targets/3-targets/postgres/src/core/generator-functions.ts');
+    const labelOf = (name: string) => {
+      const declared = postgres.postgresGeneratorFunctions.find(
+        (contribution) => contribution.name === name && contribution.signature !== undefined,
+      )!.signature as (dataTypes: unknown) => FuncCallSig;
+      const signature = declared(EMPTY_DATA_TYPES);
+      return renderSignatureLabel(name, signature, resolveSignatureParameters(signature, undefined))
+        .label;
+    };
+    expect(['uuid', 'cuid', 'nanoid'].map(labelOf)).toEqual([
+      'uuid((4 | 7)?)',
+      'cuid(2)',
+      'nanoid(integer from 2 to 255?)',
+    ]);
+  });
 
   it('offers each registered tag inside @default( with its own documentation', async () => {
     const stack = await actualSqlStack();

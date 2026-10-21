@@ -20,16 +20,15 @@ import {
   codecForRef,
   readContractValue,
 } from '@internal/framework-components/codec';
-import { parsePslPositionalArgs } from '@internal/psl-parser/interpret';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { isInternalError } from '@internal/utils/internal-error';
 import { PG_TEXT_CODEC_ID } from '../codec-ids';
 
-/** The type `contract infer` writes for a column: the path of its type constructor and the arguments of the call. */
+/** The type `contract infer` writes for a column: the path of its type constructor and the value of each argument of the call. */
 export interface InferredPslType {
   readonly path: readonly string[];
-  readonly args?: readonly string[];
+  readonly values?: readonly unknown[];
 }
 
 /** What `contract infer` asks about a column's literal default. */
@@ -48,9 +47,7 @@ export interface InferredColumnDefaults {
 }
 
 /**
- * The codec reference `contract emit` builds for a column of `pslType`: the codec its type
- * constructor names, with the type parameters the call's arguments give. An enum column's default
- * is a member name, which is text either way, so it reads through the text codec.
+ * The codec reference `contract emit` builds for a column of `pslType`: the codec its type constructor names, with the type parameters the values of the call's arguments give. Infer writes each argument only when its literal reads back as that value. An enum column's default is a member name, which is text either way, so it reads through the text codec.
  */
 export function inferredCodecRef(
   context: SqlPslBuildContext,
@@ -60,8 +57,7 @@ export function inferredCodecRef(
   if (isEnum) return { codecId: PG_TEXT_CODEC_ID };
   const descriptor = getAuthoringTypeConstructor(context.authoringContributions, pslType.path);
   if (descriptor === undefined) return undefined;
-  const args = parsePslPositionalArgs(descriptor.args ?? [], pslType.args ?? []);
-  if (args === undefined) return undefined;
+  const args = pslType.values ?? [];
   validateAuthoringHelperArguments(pslType.path.join('.'), descriptor.args, args);
   const { codecId, typeParams } = instantiateAuthoringTypeConstructor(descriptor, args);
   return {

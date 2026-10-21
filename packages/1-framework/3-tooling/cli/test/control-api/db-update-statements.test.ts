@@ -25,6 +25,8 @@ import {
 } from '../../src/control-api/statements/statement-text';
 import { createTestProjectDir } from '../utils/test-project-dir';
 
+const TEST_INVOCATION = { cwd: '/work/app', configPath: undefined, dbGiven: false };
+
 const ORIGIN_HASH = 'a'.repeat(64);
 const DESTINATION_HASH = 'b'.repeat(64);
 
@@ -176,6 +178,7 @@ function update(options: {
   >;
 }) {
   return executeDbUpdate({
+    invocation: TEST_INVOCATION,
     driver,
     adapter: {} as unknown as ControlAdapterInstance<'sql', 'postgres'>,
     familyInstance: familyWithMarker(options.marker, {

@@ -20,15 +20,25 @@ import postgresTargetPack from '../src/exports/pack';
 describe('the type constructors the target contributes', () => {
   it('are only the target’s own; the adapter contributes the scalar and native ones', () => {
     expect(postgresTargetPack.authoring.type).toBe(postgresAuthoringTypes);
-    expect(Object.keys(postgresAuthoringTypes)).toEqual(['BigIntNumber', 'UnboundedInt', 'pg']);
+    expect(Object.keys(postgresAuthoringTypes)).toEqual([
+      'sql',
+      'BigIntNumber',
+      'UnboundedInt',
+      'pg',
+    ]);
   });
 
-  it.each(Object.entries(postgresAuthoringTypes).filter(([name]) => name !== 'pg'))(
-    'documents %s',
-    (_name, descriptor) => {
-      expect(descriptor).toHaveProperty('documentation', expect.stringMatching(/\S.+/));
-    },
-  );
+  it('contributes the family’s sql.String, whose length is a value of pg/int4', () => {
+    expect(postgresAuthoringTypes.sql.String.args).toEqual([
+      { kind: 'value', dataType: 'pg/int4', name: 'length' },
+    ]);
+  });
+
+  it.each(
+    Object.entries(postgresAuthoringTypes).filter(([name]) => name !== 'pg' && name !== 'sql'),
+  )('documents %s', (_name, descriptor) => {
+    expect(descriptor).toHaveProperty('documentation', expect.stringMatching(/\S.+/));
+  });
 });
 
 const everyPostgresConstructor = {
@@ -277,7 +287,7 @@ describe('postgresNativeAuthoringTypes', () => {
       kind: 'typeConstructor',
       documentation:
         'An instant stored as PostgreSQL timestamptz and represented as a JavaScript Date.',
-      args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
+      args: [{ kind: 'value', dataType: 'pg/int4', name: 'precision', optional: true }],
       output: {
         codecId: 'pg/timestamptz-date@1',
         typeParams: { precision: { kind: 'arg', index: 0 } },
@@ -290,7 +300,7 @@ describe('postgresNativeAuthoringTypes', () => {
   });
 });
 
-describe('precision bounds live on the data type', () => {
+describe('precision is a value of pg/int4, bounded by the data type', () => {
   it.each([
     'Timestamp',
     'Timestamptz',
@@ -302,9 +312,9 @@ describe('precision bounds live on the data type', () => {
   ] as const)('%s declares no bound of its own on precision', (typeName) => {
     const typeConstructor = postgresPslTypeConstructors[typeName];
     expect(typeConstructor.args?.find((arg) => arg.name === 'precision')).toEqual({
-      kind: 'number',
+      kind: 'value',
+      dataType: 'pg/int4',
       name: 'precision',
-      integer: true,
       optional: true,
     });
   });

@@ -214,22 +214,20 @@ export async function createDriver(connectionString: string): Promise<PostgresCo
 
 /**
  * Formats a runner failure into a human-readable string for test error messages.
- * Includes code, summary, why, and meta (with issues) for easy debugging.
+ * Includes code, message, why, and meta (with schema issues) for easy debugging.
  */
 export function formatRunnerFailure(failure: MigrationRunnerFailure): string {
-  const parts = [`[${failure.code}] ${failure.summary}`];
+  const parts = [`[${failure.code}] ${failure.message}`];
   if (failure.why) {
     parts.push(`  why: ${failure.why}`);
   }
-  if (failure.meta) {
-    const issues = failure.meta['issues'];
-    if (Array.isArray(issues)) {
-      for (const issue of issues) {
-        parts.push(`  - ${JSON.stringify(issue)}`);
-      }
-    } else {
-      parts.push(`  meta: ${JSON.stringify(failure.meta, null, 2)}`);
+  const issues = failure.meta.schemaIssues;
+  if (issues !== undefined) {
+    for (const issue of issues) {
+      parts.push(`  - ${JSON.stringify(issue)}`);
     }
+  } else {
+    parts.push(`  meta: ${JSON.stringify(failure.meta, null, 2)}`);
   }
   return parts.join('\n');
 }

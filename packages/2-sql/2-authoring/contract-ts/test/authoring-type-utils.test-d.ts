@@ -81,13 +81,13 @@ test('optional descriptors get optional tuple slots', () => {
 
 test('required descriptors keep required tuple slots', () => {
   const args = [
-    { kind: 'string' },
+    { kind: 'option', values: ['name'] },
     { kind: 'number', optional: true },
   ] as const satisfies readonly AuthoringArgumentDescriptor[];
 
   type Params = TupleFromArgumentDescriptors<typeof args>;
 
-  expectTypeOf<Params>().toEqualTypeOf<readonly [string, number?]>();
+  expectTypeOf<Params>().toEqualTypeOf<readonly ['name', number?]>();
 
   function acceptsParams<const P extends Params>(...args: P): P {
     return args;

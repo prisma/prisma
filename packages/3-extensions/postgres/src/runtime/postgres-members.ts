@@ -1,17 +1,19 @@
 import type { NamespacedEnums } from '@internal/contract/enum-accessor';
 import type { Contract } from '@internal/contract/types';
-import { sql as sqlBuilder } from '@internal/sql-builder/runtime';
-import type { Db } from '@internal/sql-builder/types';
+import { createRawLane, sql as sqlBuilder } from '@internal/sql-builder/runtime';
+import type { Db, RawLane } from '@internal/sql-builder/types';
 import type { ExtractCodecTypes, SqlStorage } from '@internal/sql-contract/types';
 import {
   type CollectionClasses,
   type NoCollectionClasses,
   orm as ormBuilder,
   type PreparedFrom,
+  type PrepareMember,
   prepareQuery,
 } from '@internal/sql-orm-client';
 import type { CodecTypesBase, RawCodecInferer } from '@internal/sql-relational-core/expression';
 import type { Preparable, SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import type { RuntimeScope } from '@internal/sql-relational-core/types';
 import type {
   BindSiteParams,
   Declaration,
@@ -19,10 +21,15 @@ import type {
   ParamsFromDeclaration,
   Runtime,
   SqlExecutionStackWithDriver,
+  ToSqlMember,
   TransactionContext,
 } from '@internal/sql-runtime';
-import { activitySource, delegatingActivitySource, withTransaction } from '@internal/sql-runtime';
-import { castAs } from '@internal/utils/casts';
+import {
+  activitySource,
+  delegatingActivitySource,
+  withTransaction,
+  withTransactionMembers,
+} from '@internal/sql-runtime';
 import { ifDefined } from '@internal/utils/defined';
 import type { PostgresStaticContext } from '../static/postgres-static';
 import type { NamespacedNativeEnums } from './native-enums';
@@ -33,14 +40,70 @@ type OrmClient<
   TCollections extends CollectionClasses,
 > = ReturnType<typeof ormBuilder<TContract, TCollections>>;
 
+/** The query members of a Postgres client, which its transactions and Supabase's role-bound clients offer with the same types. */
+export interface PostgresQueryMembers<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
+> extends PrepareMember<TContract>,
+    RuntimeScope,
+    ToSqlMember {
+  readonly sql: Db<TContract>;
+  readonly orm: OrmClient<TContract, TCollections>;
+  readonly raw: RawLane<TContract>;
+}
+
 export interface PostgresTransactionContext<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
-> extends TransactionContext {
-  readonly sql: Db<TContract>;
-  readonly orm: OrmClient<TContract, TCollections>;
+> extends TransactionContext,
+    PostgresQueryMembers<TContract, TCollections> {
   readonly enums: NamespacedEnums<TContract>;
   readonly nativeEnums: NamespacedNativeEnums<TContract>;
+}
+
+export interface PostgresQueryMembersOptions<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses,
+> {
+  readonly context: ExecutionContext<TContract>;
+  readonly collections: TCollections | undefined;
+  readonly rawCodecInferer: RawCodecInferer;
+  readonly toSql: ToSqlMember['toSql'];
+  readonly prepareRuntime: () => Runtime;
+}
+
+/**
+ * Builds the query members of a Postgres transaction over `txCtx`, so every statement they run goes through the transaction. `query` and `execute` are the transaction's own. Preparing sends nothing to the database, so `prepare` uses `prepareRuntime`; the prepared statement runs on the queryable it is given.
+ */
+export function buildPostgresQueryMembers<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses,
+>(
+  options: PostgresQueryMembersOptions<TContract, TCollections>,
+  txCtx: TransactionContext,
+): Omit<PostgresQueryMembers<TContract, TCollections>, keyof RuntimeScope> {
+  const { context, collections, rawCodecInferer, toSql, prepareRuntime } = options;
+  return {
+    toSql,
+    sql: sqlBuilder<TContract>({ context, rawCodecInferer }),
+    raw: createRawLane<TContract>({ context, rawCodecInferer }),
+    orm: ormBuilder<TContract, TCollections>({
+      runtime: {
+        query(plan) {
+          return txCtx.query(plan);
+        },
+        execute(plan) {
+          return txCtx.execute(plan);
+        },
+        [activitySource]: delegatingActivitySource(() => txCtx),
+      },
+      context,
+      ...ifDefined('collections', collections),
+    }),
+    prepare(declaration, callback) {
+      return prepareQuery(prepareRuntime(), declaration, callback);
+    },
+  };
 }
 
 export interface PostgresStaticMembers<TContract extends Contract<SqlStorage>>
@@ -51,20 +114,12 @@ export interface PostgresStaticMembers<TContract extends Contract<SqlStorage>>
 export interface PostgresRuntimeBoundMembers<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
-> {
+> extends PrepareMember<TContract> {
   readonly orm: OrmClient<TContract, TCollections>;
   runtime(): Runtime;
   transaction<R>(
     fn: (tx: PostgresTransactionContext<TContract, TCollections>) => PromiseLike<R>,
   ): Promise<R>;
-  prepare<
-    D extends Declaration<CT>,
-    Q extends SqlQueryPlan | Preparable<unknown, unknown>,
-    CT extends CodecTypesBase = ExtractCodecTypes<TContract>,
-  >(
-    declaration: D,
-    callback: (params: BindSiteParams<D>) => Q,
-  ): Promise<PreparedFrom<ParamsFromDeclaration<D, CT>, Q>>;
 }
 
 export interface PostgresLifecycleMembers {
@@ -81,6 +136,7 @@ export interface PostgresRuntimeBoundMembersOptions<
   readonly rawCodecInferer: RawCodecInferer;
   readonly enums: NamespacedEnums<TContract>;
   readonly nativeEnums: NamespacedNativeEnums<TContract>;
+  readonly toSql: ToSqlMember['toSql'];
   readonly getRuntime: () => Runtime;
   // The runtime that ORM queries, transaction() and prepare() run on. An owner whose close() should let continuing work finish returns its runtime even after close(), so the runtime's own rule decides; otherwise it is getRuntime.
   readonly getRuntimeForWork: () => Runtime;
@@ -91,13 +147,14 @@ export function buildPostgresRuntimeBoundMembers<
   TCollections extends CollectionClasses,
 >(
   options: PostgresRuntimeBoundMembersOptions<TContract, TCollections>,
-): PostgresRuntimeBoundMembers<TContract, TCollections> {
+): PostgresRuntimeBoundMembers<TContract, TCollections> & RuntimeScope {
   const {
     context,
     collections,
     rawCodecInferer,
     enums,
     nativeEnums,
+    toSql,
     getRuntime,
     getRuntimeForWork,
   } = options;
@@ -133,6 +190,14 @@ export function buildPostgresRuntimeBoundMembers<
   return {
     orm,
 
+    query(plan, execOptions) {
+      return getRuntimeForWork().query(plan, execOptions);
+    },
+
+    execute(plan, execOptions) {
+      return getRuntimeForWork().execute(plan, execOptions);
+    },
+
     runtime() {
       return getRuntime();
     },
@@ -143,32 +208,16 @@ export function buildPostgresRuntimeBoundMembers<
       fn: (tx: PostgresTransactionContext<TContract, TCollections>) => PromiseLike<R>,
     ): Promise<R> {
       return withTransaction(getRuntimeForWork(), (txCtx) => {
-        const txSql: Db<TContract> = sqlBuilder<TContract>({
-          context,
-          rawCodecInferer,
-        });
-
-        const txOrm: OrmClient<TContract, TCollections> = ormBuilder<TContract, TCollections>({
-          runtime: {
-            query(plan) {
-              return txCtx.query(plan);
-            },
-            execute(plan) {
-              return txCtx.execute(plan);
-            },
-            [activitySource]: delegatingActivitySource(() => txCtx),
+        const tx: PostgresTransactionContext<TContract, TCollections> = withTransactionMembers(
+          txCtx,
+          {
+            ...buildPostgresQueryMembers(
+              { context, collections, rawCodecInferer, toSql, prepareRuntime: getRuntimeForWork },
+              txCtx,
+            ),
+            enums,
+            nativeEnums,
           },
-          context,
-          ...ifDefined('collections', collections),
-        });
-
-        // Use `txCtx` as the prototype instead of spreading it so that live
-        // accessors (notably the `invalidated` getter, which reads a closure
-        // variable in `withTransaction`) remain wired to the original object.
-        // Spreading would evaluate the getter once and freeze its value.
-        const tx: PostgresTransactionContext<TContract, TCollections> = Object.assign(
-          castAs<TransactionContext>(Object.create(txCtx)),
-          { sql: txSql, orm: txOrm, enums, nativeEnums },
         );
 
         return fn(tx);

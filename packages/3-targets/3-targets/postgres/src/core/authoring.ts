@@ -1,7 +1,8 @@
 import {
+  sqlTargetTypeConstructors,
   temporalCodecPresetWithPrecision,
   temporalStringAuthoringPresets,
-} from '@internal/family-sql/control';
+} from '@internal/family-sql/pack';
 import type {
   AuthoringEntityContext,
   AuthoringEntityTypeFactoryOutput,
@@ -101,6 +102,7 @@ import {
   type FullTextSearchLanguage,
   POSTGRES_TEXT_SEARCH_LANGUAGES,
 } from './text-search-languages';
+import { PG_SIZE_TYPE } from './type-constructors';
 
 // Contributed diagnostic codes, declared once as typed consts — the
 // `ContributedPslDiagnosticCode` type is the only thing enforcing the
@@ -137,6 +139,7 @@ const PSL_ROLE_BLOCK_OUTSIDE_UNBOUND_NAMESPACE: ContributedPslDiagnosticCode =
  * `pg/enum` data type, which renders `typeParams.typeName`.
  */
 export const postgresAuthoringTypes = {
+  .../* @__PURE__ */ sqlTargetTypeConstructors({ sizeType: PG_SIZE_TYPE }),
   BigIntNumber: {
     kind: 'typeConstructor',
     documentation:
@@ -902,6 +905,7 @@ export const postgresAuthoringFieldPresets = {
       generatorId: postgresNowGeneratorIds[PG_TIMESTAMPTZ_DATE_CODEC_ID],
     }).updatedAt,
     timestamptzJsDate: /* @__PURE__ */ temporalCodecPresetWithPrecision({
+      sizeType: PG_SIZE_TYPE,
       codecId: PG_TIMESTAMPTZ_DATE_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIMESTAMPTZ_DATE_CODEC_ID],
     }),
@@ -914,18 +918,22 @@ export const postgresAuthoringFieldPresets = {
       generatorId: postgresNowGeneratorIds[PG_TIMESTAMPTZ_STRING_CODEC_ID],
     }),
     timestamp: /* @__PURE__ */ temporalCodecPresetWithPrecision({
+      sizeType: PG_SIZE_TYPE,
       codecId: PG_TIMESTAMP_TEMPORAL_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIMESTAMP_TEMPORAL_CODEC_ID],
     }),
     timestamptz: /* @__PURE__ */ temporalCodecPresetWithPrecision({
+      sizeType: PG_SIZE_TYPE,
       codecId: PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID],
     }),
     timestampString: /* @__PURE__ */ temporalCodecPresetWithPrecision({
+      sizeType: PG_SIZE_TYPE,
       codecId: PG_TIMESTAMP_STRING_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIMESTAMP_STRING_CODEC_ID],
     }),
     timestamptzString: /* @__PURE__ */ temporalCodecPresetWithPrecision({
+      sizeType: PG_SIZE_TYPE,
       codecId: PG_TIMESTAMPTZ_STRING_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIMESTAMPTZ_STRING_CODEC_ID],
     }),
@@ -938,17 +946,20 @@ export const postgresAuthoringFieldPresets = {
       generatorId: postgresNowGeneratorIds[PG_DATE_STRING_CODEC_ID],
     }),
     time: /* @__PURE__ */ temporalCodecPresetWithPrecision({
+      sizeType: PG_SIZE_TYPE,
       codecId: PG_TIME_TEMPORAL_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIME_TEMPORAL_CODEC_ID],
       nowTakesPrecision: postgresNowGeneratorTakesPrecision[PG_TIME_TEMPORAL_CODEC_ID],
     }),
     timeString: /* @__PURE__ */ temporalCodecPresetWithPrecision({
+      sizeType: PG_SIZE_TYPE,
       codecId: PG_TIME_STRING_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIME_STRING_CODEC_ID],
       nowTakesPrecision: postgresNowGeneratorTakesPrecision[PG_TIME_STRING_CODEC_ID],
     }),
     /** Produces a string: no Temporal type holds a time of day with an offset. */
     timetz: /* @__PURE__ */ temporalCodecPresetWithPrecision({
+      sizeType: PG_SIZE_TYPE,
       codecId: PG_TIMETZ_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIMETZ_CODEC_ID],
       nowTakesPrecision: postgresNowGeneratorTakesPrecision[PG_TIMETZ_CODEC_ID],

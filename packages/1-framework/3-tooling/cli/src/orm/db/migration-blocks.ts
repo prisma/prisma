@@ -123,10 +123,7 @@ function previewBlocks(preview: OperationPreview | undefined): readonly Block[] 
     : [header, { kind: 'drawing', lines: statements }];
 }
 
-/**
- * What the planner flagged without refusing to plan it. Only `db update`
- * produces these — the additive-only policies cannot reach the branch.
- */
+/** What the planner flagged without refusing to plan it. */
 function plannerWarningBlocks(result: MigrationCommandResult): readonly Block[] {
   const warnings = result.warnings ?? [];
   if (warnings.length === 0) {

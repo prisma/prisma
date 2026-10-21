@@ -6,7 +6,7 @@ import postgresPack from '../src/exports/pack';
 const registry = assembleGeneratorFunctions([sqlFamilyPack, postgresPack]);
 
 function resolve(name: string, codecId: string, typeParams?: Record<string, unknown>, args = {}) {
-  return registry.resolve({ name, args }, { codecId, typeParams });
+  return registry.resolve({ name, args }, { codecId, typeParams, length: undefined });
 }
 
 describe('the Postgres generator functions', () => {
@@ -43,7 +43,7 @@ describe('the Postgres generator functions', () => {
   });
 
   it('write now() for a time generator and read it back', () => {
-    const column = { codecId: 'pg/time-string@1', typeParams: { precision: 3 } };
+    const column = { codecId: 'pg/time-string@1', typeParams: { precision: 3 }, length: undefined };
     const generator = { kind: 'generator', id: 'timeStringNow', params: { precision: 3 } } as const;
     const call = registry.callFor(generator, column);
     expect({

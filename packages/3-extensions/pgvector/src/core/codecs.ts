@@ -146,6 +146,8 @@ export class PgVectorDescriptor extends PostgresCodecDescriptor<VectorParams> {
   override readonly dataType = pgvectorVector.id;
   override readonly codecId = VECTOR_CODEC_ID;
   override readonly traits = ['equality'] as const;
+  override readonly enumRefusal =
+    'The contract stores a vector member as an array of numbers, which no CHECK can list. No enum can use a vector codec; use a text enum instead.';
   override readonly paramsSchema: StandardSchemaV1<VectorParams> = pgvectorVectorParams;
   override factory(params: VectorParams): (ctx: CodecInstanceContext) => PgVectorCodec {
     return () => new PgVectorCodec(this, params.length);

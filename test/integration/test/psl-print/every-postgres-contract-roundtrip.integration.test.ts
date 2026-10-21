@@ -151,7 +151,7 @@ const expectedRefusals: ReadonlyMap<string, ExpectedRefusal> = new Map<string, E
       meta: { model: 'Profile', field: 'user', space: 'supabase' },
     },
   ],
-  // Prisma 7 `@ignore` and `@@ignore` keep storage that no field or model maps, which Prisma 8 PSL cannot write until TML-3469.
+  // Prisma 7 `@ignore`, `@@ignore` and `Unsupported(...)` keep storage that no field or model maps, which Prisma 8 PSL cannot write until TML-3469.
   [
     'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/ignore/expected-contract.json',
     {
@@ -218,6 +218,24 @@ const expectedRefusals: ReadonlyMap<string, ExpectedRefusal> = new Map<string, E
       reason: 'that no relation of model "Post" travels',
       meta: { namespaceId: 'public', table: 'Post', columns: ['legacyOwnerId'] },
     },
+  ],
+  [
+    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/unsupported-type/expected-contract.json',
+    {
+      reason: 'that no relation of model "Host" travels',
+      meta: { namespaceId: 'public', table: 'Host', columns: ['net'] },
+    },
+  ],
+  [
+    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/unsupported-type-ignored/expected-contract.json',
+    {
+      reason: 'is not stored by any field',
+      meta: { namespaceId: 'public', table: 'Post', column: 'search' },
+    },
+  ],
+  [
+    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/unsupported-type-model-ignored/expected-contract.json',
+    { reason: 'has no model stored in it', meta: { namespaceId: 'public', table: 'Post' } },
   ],
   [
     'packages/2-sql/4-lanes/sql-builder/test/fixtures/generated/contract.json',

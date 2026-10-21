@@ -10,14 +10,12 @@ import type {
 import type { SnapshotContentVerifier } from '@internal/migration-tools/contract-snapshot-store';
 import { ifDefined } from '@internal/utils/defined';
 import { errorStatementNeedsMigrationFile } from '../../utils/cli-errors';
+import type { CliInvocation } from '../../utils/printed-command';
 import type { AnswerPlanQuestions } from '../statements/plan-questions';
 import type { StatementText } from '../statements/statement-text';
-import type { DbUpdateResult, OnControlProgress } from '../types';
+import type { DbUpdateResult, OnControlProgress, PlannerWarningsListener } from '../types';
 import { executeRun } from './db-run';
-
-export const DB_UPDATE_POLICY = {
-  allowedOperationClasses: ['additive', 'widening', 'destructive'] as const,
-} as const;
+import { DB_UPDATE_POLICY } from './db-update-policy';
 
 /**
  * Options for the `db update` operation.
@@ -27,7 +25,8 @@ export const DB_UPDATE_POLICY = {
  * asks `answerQuestions` what each operation that would lose data means and
  * whether each that would change access may run, before it applies anything.
  */
-export interface ExecuteDbUpdateOptions<TFamilyId extends string, TTargetId extends string> {
+export interface ExecuteDbUpdateOptions<TFamilyId extends string, TTargetId extends string>
+  extends PlannerWarningsListener {
   readonly driver: ControlDriverInstance<TFamilyId, TTargetId>;
   readonly adapter: ControlAdapterInstance<TFamilyId, TTargetId>;
   readonly familyInstance: ControlFamilyInstance<TFamilyId, unknown>;
@@ -58,6 +57,8 @@ export interface ExecuteDbUpdateOptions<TFamilyId extends string, TTargetId exte
   readonly statements?: readonly StatementText[];
   /** Asks the questions no statement answered; see {@link AnswerPlanQuestions}. */
   readonly answerQuestions: AnswerPlanQuestions;
+  /** The command line the advice of a failure repeats. */
+  readonly invocation: CliInvocation;
   readonly onProgress?: OnControlProgress;
 }
 
@@ -81,6 +82,7 @@ export async function executeDbUpdate<TFamilyId extends string, TTargetId extend
     defaultNamespaceId: options.defaultNamespaceId,
     extensions: options.extensions ?? [],
     policy: DB_UPDATE_POLICY,
+    invocation: options.invocation,
     action: 'dbUpdate',
     mode: options.mode,
     statements: options.statements ?? [],
@@ -88,6 +90,7 @@ export async function executeDbUpdate<TFamilyId extends string, TTargetId extend
     acceptDataLoss: options.acceptDataLoss ?? false,
     acceptAccessChanges: options.acceptAccessChanges ?? false,
     ...ifDefined('verifySnapshotContent', options.verifySnapshotContent),
+    ...ifDefined('onPlannerWarnings', options.onPlannerWarnings),
     ...ifDefined('onProgress', options.onProgress),
   })) as DbUpdateResult;
 }

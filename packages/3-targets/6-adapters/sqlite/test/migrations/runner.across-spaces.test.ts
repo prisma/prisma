@@ -234,7 +234,13 @@ describe('SqliteMigrationRunner.execute', {
 
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error('expected failure');
-    expect(result.failure.failingSpace).toBe('app');
+    expect({
+      message: result.failure.message,
+      failingSpace: result.failure.meta.failingSpace,
+    }).toEqual({
+      message: 'Operation ext.create-helper failed during execution: always fails',
+      failingSpace: 'app',
+    });
 
     // The first space's helper table must NOT exist (transaction
     // rolled back).

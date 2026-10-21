@@ -39,6 +39,7 @@ export { bool } from '../attribute-spec/combinators/bool';
 export { dataTypeValue } from '../attribute-spec/combinators/data-type-value';
 export { leafDiagnostic } from '../attribute-spec/combinators/diagnostic';
 export { entityRef } from '../attribute-spec/combinators/entity-ref';
+export { enumMemberValue } from '../attribute-spec/combinators/enum-member-value';
 export { fieldRef, referencedFieldRef } from '../attribute-spec/combinators/field-ref';
 export { funcCall } from '../attribute-spec/combinators/func-call';
 export { identifier } from '../attribute-spec/combinators/identifier';
@@ -47,7 +48,7 @@ export { json } from '../attribute-spec/combinators/json';
 export { jsonValue } from '../attribute-spec/combinators/json-value';
 export type { ListOptions } from '../attribute-spec/combinators/list';
 export { list } from '../attribute-spec/combinators/list';
-export { mapArg } from '../attribute-spec/combinators/map-arg';
+export { mapArg, refineArg } from '../attribute-spec/combinators/map-arg';
 export { num } from '../attribute-spec/combinators/num';
 export { numLiteral } from '../attribute-spec/combinators/num-literal';
 export { oneOf } from '../attribute-spec/combinators/one-of';
@@ -60,7 +61,11 @@ export type {
 } from '../attribute-spec/combinators/written-scalar';
 export { writtenList, writtenScalar } from '../attribute-spec/combinators/written-scalar';
 export { fieldAttribute } from '../attribute-spec/field-attribute';
-export { generatorAttributeSpec, nodeSourceText } from '../attribute-spec/generator-attribute';
+export {
+  generatorAttributeSpec,
+  generatorFunctionCall,
+  nodeSourceText,
+} from '../attribute-spec/generator-attribute';
 export type { ArgBindingSpec } from '../attribute-spec/interpret';
 export { interpretArgs, interpretAttribute } from '../attribute-spec/interpret';
 export { modelAttribute } from '../attribute-spec/model-attribute';
@@ -181,6 +186,8 @@ export type {
 export { entityReference, matchesSelector } from '../entity-reference';
 export { findBlockDescriptor } from '../extension-block';
 export { NAME_THE_PSL_SOURCE_LOSES } from '../name-the-psl-source-loses';
+export type { DataTypeValueRefusal } from '../read-expression-as';
+export { readExpressionAs } from '../read-expression-as';
 export {
   keywordPslSpan,
   nodePslSpan,

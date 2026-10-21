@@ -11,6 +11,8 @@ import { describe, expect, it } from 'vitest';
 import { executeDbInit } from '../../src/control-api/operations/db-init';
 import type { ControlProgressEvent } from '../../src/control-api/types';
 
+const TEST_INVOCATION = { cwd: '/work/app', configPath: undefined, dbGiven: false };
+
 const FAKE_MIGRATIONS_DIR = '/tmp/__test-db-init-progress';
 
 describe('executeDbInit progress emission', () => {
@@ -58,6 +60,7 @@ describe('executeDbInit progress emission', () => {
       [];
 
     await executeDbInit({
+      invocation: TEST_INVOCATION,
       driver: mockDriver,
       adapter: {} as unknown as ControlAdapterInstance<string, string>,
       familyInstance: mockFamilyInstance,
@@ -147,6 +150,7 @@ describe('executeDbInit progress emission', () => {
       [];
 
     await executeDbInit({
+      invocation: TEST_INVOCATION,
       driver: mockDriver,
       adapter: {} as unknown as ControlAdapterInstance<string, string>,
       familyInstance: mockFamilyInstance,
@@ -218,6 +222,7 @@ describe('executeDbInit progress emission', () => {
       [];
 
     const result = await executeDbInit({
+      invocation: TEST_INVOCATION,
       driver: mockDriver,
       adapter: {} as unknown as ControlAdapterInstance<string, string>,
       familyInstance: mockFamilyInstance,

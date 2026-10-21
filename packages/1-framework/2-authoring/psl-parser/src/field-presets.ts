@@ -1,5 +1,6 @@
 import {
   type AuthoringFieldPresetDescriptor,
+  type DataTypeSupport,
   instantiateAuthoringFieldPreset,
   validateAuthoringHelperArguments,
 } from '@internal/framework-components/authoring';
@@ -33,6 +34,7 @@ export function instantiatePslFieldPreset(input: {
   readonly diagnostics: PslDiagnosticCollector;
   readonly source: DiagnosticSource;
   readonly entityLabel: string;
+  readonly dataTypes: DataTypeSupport;
 }): ReturnType<typeof instantiateAuthoringFieldPreset> | undefined {
   const helperPath = input.call.path.join('.');
   const args = mapPslHelperArgs({
@@ -43,6 +45,7 @@ export function instantiatePslFieldPreset(input: {
     diagnostics: input.diagnostics,
     source: input.source,
     entityLabel: input.entityLabel,
+    dataTypes: input.dataTypes,
   });
   if (!args) {
     return undefined;

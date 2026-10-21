@@ -70,7 +70,7 @@ In addition to the canonical slice DoD:
 - If the slice touches `packages/3-*-extensions/**`, the slice plan must include a `pnpm fixtures:check` dispatch step.
 - If the slice touches package boundaries / imports, the slice plan must include `pnpm lint:deps`.
 - If the slice changes typed surfaces consumed elsewhere, the slice plan must include a downstream `pnpm typecheck` after the producing package's `pnpm build`.
-- If a dispatch adds a JavaScript or TypeScript file outside a package, `projects/` included, the gate includes `pnpm lint:throws` and `pnpm lint:casts`: CI's Lint job runs them over those files too. (Added 2026-10-07, lsp-find-references: a QA driver under `projects/` failed CI's Lint job on a bare `throw new Error`.)
+- If a dispatch adds a JavaScript or TypeScript file outside a package, `projects/` included, the checks include `pnpm lint:ratchets`: CI's Lint job runs it over those files too. (Added 2026-10-07, lsp-find-references: a QA driver under `projects/` failed CI's Lint job on a bare `throw new Error`.)
 
 ### PR-side items
 
@@ -79,6 +79,7 @@ In addition to the canonical slice DoD:
 - [ ] PR description follows `drive-pr-description` shape (decision-led, narrative).
 - [ ] PR linked to its Linear issue via GitHub integration (auto-close on merge works).
 - [ ] No `projects/` references in long-lived files added by the slice (per the doc-maintenance rule; grep gate in [`grep-library.md`](./grep-library.md)).
+- [ ] Before enabling auto-merge, after the last merge of `main`: run the checks that only the merge queue or CI's Lint job runs. That is the PSL print sweeps (`test/integration/test/psl-print/every-postgres-contract-roundtrip.integration.test.ts` and the other `psl-print` files) when the slice changes contracts, columns or printing; every journey that runs a changed command ([`failure-modes.md § F44`](./failure-modes.md#f44-a-change-in-what-a-command-does-passes-pr-ci-and-fails-in-the-merge-queue-in-integration-tests-the-slice-never-touched)); and `pnpm lint:ratchets` (the cast, throw and framework vocabulary ratchets) and `pnpm check:upgrade-coverage --mode pr --prev <PR base sha> --head HEAD`, which `lint:agent` skips. `grep -rhoE "run: pnpm [a-z:-]+" .github/workflows/*.yml | sort -u` lists the single-line `pnpm` steps in the GitHub workflows; read the workflows for steps it misses, such as multi-line `run` blocks. (Added 2026-10-21, raw-columns: the queue dropped one slice for an unrun print sweep and another for an unrun journey and the vocabulary lint.)
 
 ### QA-side items
 

@@ -61,6 +61,7 @@ import {
   reportTypeConstructorNotCalled,
 } from '@internal/psl-parser/interpret';
 import type { PslSources } from '@internal/psl-parser/syntax';
+import { sqlCodecColumnLength } from '@internal/sql-contract/data-type';
 import {
   SQL_EXPRESSION_DATA_TYPE_ID,
   SQL_EXPRESSION_TAG,
@@ -198,6 +199,7 @@ export function instantiatePslTypeConstructor(input: {
   readonly diagnostics: PslDiagnosticCollector;
   readonly source: DiagnosticSource;
   readonly entityLabel: string;
+  readonly dataTypes: DataTypeSupport;
 }): ScalarTypeConstructorOutput | undefined {
   const helperPath = input.call.path.join('.');
   const args = mapPslHelperArgs({
@@ -208,6 +210,7 @@ export function instantiatePslTypeConstructor(input: {
     diagnostics: input.diagnostics,
     source: input.source,
     entityLabel: input.entityLabel,
+    dataTypes: input.dataTypes,
   });
   if (!args) {
     return undefined;
@@ -407,6 +410,8 @@ interface FieldTypeConstructorContext {
   readonly diagnostics: PslDiagnosticCollector;
   readonly source: DiagnosticSource;
   readonly entityLabel: string;
+  /** The stack's data types, which a type constructor's value arguments are read as. */
+  readonly dataTypes: DataTypeSupport;
   /**
    * The field's namespace id — required to build a `valueSet` ref (`{
    * namespaceId, entityName, … }`) when an entity-ref type constructor
@@ -461,6 +466,7 @@ export function instantiateFieldTypeConstructor(
     diagnostics: input.diagnostics,
     source: input.source,
     entityLabel: input.entityLabel,
+    dataTypes: input.dataTypes,
   });
   return instantiated === undefined ? NOT_RESOLVED : { ok: true, descriptor: instantiated };
 }
@@ -472,6 +478,7 @@ function instantiateFieldPreset(input: {
   readonly diagnostics: PslDiagnosticCollector;
   readonly source: DiagnosticSource;
   readonly entityLabel: string;
+  readonly dataTypes: DataTypeSupport;
 }): ResolveFieldTypeResult {
   const instantiated = instantiatePslFieldPreset(input);
   if (!instantiated) {
@@ -575,6 +582,7 @@ export function resolveFieldTypeDescriptor(
           diagnostics,
           source,
           entityLabel,
+          dataTypes: input.dataTypes,
         });
       }
       if (call !== undefined) {
@@ -964,7 +972,15 @@ export function lowerGeneratorAttributesForField(input: {
     const call = interpreted.value;
     const resolution = input.generatorFunctions.resolve(
       { name: call.fn, args: call.args },
-      { codecId: input.columnDescriptor.codecId, typeParams: input.columnTypeParams },
+      {
+        codecId: input.columnDescriptor.codecId,
+        typeParams: input.columnTypeParams,
+        length: sqlCodecColumnLength(
+          input.dataTypes,
+          input.columnDescriptor.codecId,
+          input.columnTypeParams,
+        ),
+      },
     );
     if (resolution.ok) {
       phases[phase] = resolution.generator;

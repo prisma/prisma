@@ -3,6 +3,7 @@ import type {
   Contract,
   ContractExecutionSection,
   ContractRelation,
+  EnumMemberValueType,
   FieldTypesFromDomain,
   JsonValue,
   NamespaceId,
@@ -34,7 +35,7 @@ import type { EnumTypeHandle } from './enum-type';
 export type PublicCodecTypes<CodecTypes extends Record<string, { readonly output: unknown }>> = {
   readonly [CodecId in keyof CodecTypes]: Pick<
     CodecTypes[CodecId],
-    Extract<keyof CodecTypes[CodecId], 'input' | 'output' | 'traits'>
+    Extract<keyof CodecTypes[CodecId], 'input' | 'output' | 'traits' | 'keepsWrittenForm'>
   >;
 };
 
@@ -1384,8 +1385,21 @@ type EnumHandleEntries<Enums> = {
 };
 
 // The `enumMemberTypes` for enums authored with `enumType`: each member with the value the application reads, as an emitted `contract.d.ts` types it. `db.enums` reads its accessors from it.
-type EnumHandleMemberTypes<Enums> = {
-  readonly [K in keyof Enums as HandleName<Enums[K]>]: EnumHandleMembers<Enums[K], false>;
+type EnumHandleMemberTypes<Enums, CodecTypes> = {
+  readonly [K in keyof Enums as HandleName<Enums[K]>]: Enums[K] extends EnumTypeHandle<
+    string,
+    infer Values,
+    infer Names,
+    Record<string, unknown>,
+    infer CodecId
+  >
+    ? {
+        readonly [I in keyof Values]: {
+          readonly name: I extends keyof Names ? Names[I] : never;
+          readonly value: EnumMemberValueType<CodecTypes, CodecId, Values[I]>;
+        };
+      }
+    : never;
 };
 
 // The storage `valueSet` entries for enums authored with `enumType`: each enum's member values as they are stored.
@@ -1417,7 +1431,10 @@ type BuiltDomainNamespace<Definition, Ns extends string> = {
 } & (HoldsDefinitionEnums<Definition, Ns> extends true
   ? {
       readonly enum: EnumHandleEntries<DefinitionEnums<Definition>>;
-      readonly enumMemberTypes?: EnumHandleMemberTypes<DefinitionEnums<Definition>>;
+      readonly enumMemberTypes?: EnumHandleMemberTypes<
+        DefinitionEnums<Definition>,
+        CodecTypesFromDefinition<Definition>
+      >;
     }
   : Record<never, never>);
 

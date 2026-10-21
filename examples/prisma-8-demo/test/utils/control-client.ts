@@ -88,13 +88,14 @@ export async function initTestDatabase(options: {
       await materialisePgvectorPinnedArtifacts(migrationsDir);
     }
     const initResult = await client.dbInit({
+      invocation: { cwd: process.cwd(), configPath: undefined, dbGiven: false },
       contract: options.contract,
       mode: 'apply',
       migrationsDir,
     });
     if (!initResult.ok) {
       throw new Error(
-        `dbInit failed: ${initResult.failure.summary}\n\n${JSON.stringify(initResult.failure, null, 2)}`,
+        `dbInit failed: ${initResult.failure.message}\n\n${JSON.stringify(initResult.failure, null, 2)}`,
       );
     }
   } finally {

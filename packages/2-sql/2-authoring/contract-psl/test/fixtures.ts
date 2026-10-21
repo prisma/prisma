@@ -27,7 +27,13 @@ import type {
   ControlMutationDefaults,
 } from '@internal/framework-components/control';
 import type { FuncCallSig, PslBlockSpecDescriptor, SymbolTable } from '@internal/psl-parser';
-import { blockAttribute, buildSymbolTable, jsonValue, mapBlock, str } from '@internal/psl-parser';
+import {
+  blockAttribute,
+  buildSymbolTable,
+  enumMemberValue,
+  mapBlock,
+  str,
+} from '@internal/psl-parser';
 import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
 import type { DocumentAst, PslSources, SourceFile } from '@internal/psl-parser/syntax';
 import { parse } from '@internal/psl-parser/syntax';
@@ -83,7 +89,7 @@ export const testEnumPslBlockDescriptor = {
   name: { required: true },
   spec: () =>
     mapBlock({
-      value: { type: jsonValue(), documentation: 'The explicit member value.' },
+      value: { type: enumMemberValue(), documentation: 'The explicit member value.' },
       allowBare: true,
     }),
   attributes: {
@@ -245,7 +251,7 @@ export const postgresScalarAuthoringTypes: AuthoringTypeNamespace = {
   Date: { kind: 'typeConstructor', output: { codecId: 'pg/date-temporal@1' } },
   VarChar: {
     kind: 'typeConstructor',
-    args: [{ kind: 'number', name: 'length', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: 'pg/int4', name: 'length', optional: true }],
     output: {
       codecId: 'sql/varchar@1',
       typeParams: { length: { kind: 'arg', index: 0 } },
@@ -253,7 +259,7 @@ export const postgresScalarAuthoringTypes: AuthoringTypeNamespace = {
   },
   Char: {
     kind: 'typeConstructor',
-    args: [{ kind: 'number', name: 'length', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: 'pg/int4', name: 'length', optional: true }],
     output: {
       codecId: 'sql/char@1',
       typeParams: { length: { kind: 'arg', index: 0 } },
@@ -262,8 +268,8 @@ export const postgresScalarAuthoringTypes: AuthoringTypeNamespace = {
   Numeric: {
     kind: 'typeConstructor',
     args: [
-      { kind: 'number', name: 'precision', integer: true, optional: true },
-      { kind: 'number', name: 'scale', integer: true, optional: true },
+      { kind: 'value', dataType: 'pg/int4', name: 'precision', optional: true },
+      { kind: 'value', dataType: 'pg/int4', name: 'scale', optional: true },
     ],
     output: {
       codecId: 'pg/numeric@1',
@@ -275,7 +281,7 @@ export const postgresScalarAuthoringTypes: AuthoringTypeNamespace = {
   },
   Timestamp: {
     kind: 'typeConstructor',
-    args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: 'pg/int4', name: 'precision', optional: true }],
     output: {
       codecId: 'pg/timestamp-temporal@1',
       typeParams: { precision: { kind: 'arg', index: 0 } },
@@ -283,7 +289,7 @@ export const postgresScalarAuthoringTypes: AuthoringTypeNamespace = {
   },
   Timestamptz: {
     kind: 'typeConstructor',
-    args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: 'pg/int4', name: 'precision', optional: true }],
     output: {
       codecId: 'pg/timestamptz-temporal@1',
       typeParams: { precision: { kind: 'arg', index: 0 } },
@@ -291,7 +297,7 @@ export const postgresScalarAuthoringTypes: AuthoringTypeNamespace = {
   },
   Time: {
     kind: 'typeConstructor',
-    args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: 'pg/int4', name: 'precision', optional: true }],
     output: {
       codecId: 'pg/time-temporal@1',
       typeParams: { precision: { kind: 'arg', index: 0 } },
@@ -299,7 +305,7 @@ export const postgresScalarAuthoringTypes: AuthoringTypeNamespace = {
   },
   Timetz: {
     kind: 'typeConstructor',
-    args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: 'pg/int4', name: 'precision', optional: true }],
     output: {
       codecId: 'pg/timetz@1',
       typeParams: { precision: { kind: 'arg', index: 0 } },
@@ -326,7 +332,7 @@ export const pgvectorAuthoringContributions = {
     pgvector: {
       Vector: {
         kind: 'typeConstructor',
-        args: [{ kind: 'number', name: 'length', integer: true }],
+        args: [{ kind: 'value', dataType: 'pg/int4', name: 'length' }],
         output: {
           codecId: 'pg/vector@1',
           typeParams: {
@@ -641,9 +647,9 @@ export function buildEnumCapturingFactory(): {
  */
 const TEMPORAL_MIRROR_PRECISION_ARG = {
   name: 'precision',
-  kind: 'number',
+  kind: 'value',
+  dataType: 'pg/int4',
   optional: true,
-  integer: true,
 } as const;
 const TEMPORAL_MIRROR_ON_CREATE_ARG = {
   name: 'onCreate',

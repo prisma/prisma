@@ -176,7 +176,7 @@ describe('columns and fields', () => {
         geo: {
           Shape: {
             kind: 'typeConstructor',
-            args: [{ kind: 'string', name: 'shape' }],
+            args: [{ kind: 'value', dataType: 'sql/expression', name: 'shape' }],
             output: {
               codecId: 'pg/geometry@1',
               typeParams: { shape: { kind: 'arg', index: 0 } },
@@ -243,13 +243,17 @@ describe('columns and fields', () => {
       );
     });
 
-    it('writes a string type argument between quotes', () => {
-      expect(withShape({ shape: 'Point' })).not.toThrow();
+    it('writes a type argument as a literal of its data type, double quotes included', () => {
+      expect(withShape({ shape: 'Point "A"' })).not.toThrow();
     });
 
-    it('refuses a string type argument the PSL source would read back differently', () => {
-      expect(withShape({ shape: 'Point "A"' })).toThrow(
-        refusal({ coordinate: '"public"."Widget"."area"', argument: 'Point "A"' }),
+    it('refuses a type argument no literal of its data type reads back as', () => {
+      expect(withShape({ shape: 'Point\u0000' })).toThrow(
+        refusal({
+          coordinate: '"public"."Widget"."area"',
+          path: 'geo.Shape',
+          arguments: ['Point\u0000'],
+        }),
       );
     });
 

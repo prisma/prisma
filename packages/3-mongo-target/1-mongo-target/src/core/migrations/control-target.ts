@@ -8,11 +8,12 @@ import type {
   MongoControlAdapter,
   MongoRunnerDependencies,
 } from '@internal/family-mongo/control-adapter';
-import type {
-  MigrationRunner,
-  MigrationRunnerPerSpaceSuccessValue,
-  MigrationRunnerResult,
-  VerifyDatabaseSchemaResult,
+import {
+  type MigrationRunner,
+  type MigrationRunnerPerSpaceSuccessValue,
+  type MigrationRunnerResult,
+  type VerifyDatabaseSchemaResult,
+  withFailingSpace,
 } from '@internal/framework-components/control';
 import type { MongoContract } from '@internal/mongo-contract';
 import { blindCast } from '@internal/utils/casts';
@@ -116,10 +117,7 @@ export const mongoTargetDescriptor: MongoControlTargetDescriptor<MongoTargetCont
             const { space, ...runnerOptions } = spaceOptions;
             const result = await runMongo(driver, { ...runnerOptions, scopeVerifyResult });
             if (!result.ok) {
-              return notOk({
-                ...result.failure,
-                failingSpace: space,
-              });
+              return notOk(withFailingSpace(result.failure, space));
             }
             perSpaceResults.push({ space, value: result.value });
           }

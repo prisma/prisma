@@ -24,6 +24,8 @@ import { executeDbUpdate } from '../../src/control-api/operations/db-update';
 import { renameStatements } from '../../src/control-api/statements/statement-text';
 import { createTestProjectDir } from '../utils/test-project-dir';
 
+const TEST_INVOCATION = { cwd: '/work/app', configPath: undefined, dbGiven: false };
+
 const ORIGIN_HASH = 'a'.repeat(64);
 const DESTINATION_HASH = 'b'.repeat(64);
 const AUDIT_SPACE = 'audit';
@@ -190,6 +192,7 @@ async function migrationsDirWithPendingExtension(): Promise<string> {
 describe('executeDbUpdate statement positions', () => {
   it('index the plan operations of every space, after the operations of spaces applied before the app', async () => {
     const result = await executeDbUpdate({
+      invocation: TEST_INVOCATION,
       driver,
       adapter: {} as unknown as ControlAdapterInstance<'sql', 'postgres'>,
       familyInstance: family,

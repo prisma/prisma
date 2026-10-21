@@ -29,6 +29,7 @@ export {
   delegatingActivitySource,
   findActivitySource,
   type HashablePlan,
+  lazyActivitySource,
   planContentHashOn,
   startActivityOn,
 } from '../activity-handle';
@@ -93,9 +94,11 @@ export type {
   ConnectionProvider,
   Runtime,
   RuntimeConnection,
+  RuntimeMode,
   RuntimeOptions,
   RuntimeQueryable,
   RuntimeTransaction,
   TransactionContext,
 } from '../sql-runtime';
-export { SqlRuntimeBase, withTransaction } from '../sql-runtime';
+export { SqlRuntimeBase, withTransaction, withTransactionMembers } from '../sql-runtime';
+export { createToSql, type RenderedSql, type ToSqlMember } from '../to-sql';

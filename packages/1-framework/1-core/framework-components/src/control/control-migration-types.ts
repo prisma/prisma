@@ -11,7 +11,9 @@
 
 import type { Contract } from '@internal/contract/types';
 import type { ImportRequirement } from '@internal/ts-render';
+import { ifDefined } from '@internal/utils/defined';
 import type { Result } from '@internal/utils/result';
+import { type StructuredError, structuredError } from '@internal/utils/structured-error';
 import type { TargetBoundComponentDescriptor } from '../shared/framework-components';
 import type { ImportSpecifierResolver } from '../shared/import-specifier-resolver';
 import type {
@@ -368,18 +370,14 @@ export interface FailedCheck {
   readonly description: string;
 }
 
-/**
- * Failure details for migration runner execution.
- */
-export interface MigrationRunnerFailure {
-  /** Error code for the failure. */
-  readonly code: string;
-  /** Human-readable summary of the failure. */
-  readonly summary: string;
-  /** Optional explanation of why the failure occurred. */
-  readonly why?: string;
-  /** Optional metadata for debugging and UX (e.g., schema issues, SQL state). */
-  readonly meta?: Record<string, unknown>;
+/** A failed migration run: a structured error whose `message` is the summary. */
+export interface MigrationRunnerFailure extends StructuredError {
+  readonly code: `MIGRATION.${string}`;
+  readonly meta: MigrationRunnerFailureMeta;
+}
+
+/** The facts of a failed migration run. Each fact appears once. */
+export interface MigrationRunnerFailureMeta {
   /**
    * Identifier of the space whose plan caused the rollback when
    * {@link MigrationRunner.execute} processes multiple spaces.
@@ -398,6 +396,40 @@ export interface MigrationRunnerFailure {
   readonly blockingObjects?: readonly BlockingObject[];
   /** The differences the schema check after apply found, when that check failed. */
   readonly schemaIssues?: readonly SchemaDiffIssue[];
+  /** Further facts for the code, such as `sqlState` or the marker hashes. */
+  readonly [key: string]: unknown;
+}
+
+export function migrationRunnerFailure<TCode extends MigrationRunnerFailure['code']>(
+  code: TCode,
+  message: string,
+  options?: {
+    readonly why?: string | undefined;
+    readonly meta?: MigrationRunnerFailureMeta;
+    readonly cause?: unknown;
+  },
+): MigrationRunnerFailure & { readonly code: TCode } {
+  const meta = options?.meta ?? {};
+  const error = structuredError(code, message, {
+    ...ifDefined('why', options?.why),
+    meta,
+    ...ifDefined('cause', options?.cause),
+  });
+  return Object.assign(error, { code, meta });
+}
+
+/** The same failure, attributed to the space whose plan failed. */
+export function withFailingSpace<TCode extends MigrationRunnerFailure['code']>(
+  failure: MigrationRunnerFailure & { readonly code: TCode },
+  failingSpace: string,
+): MigrationRunnerFailure & { readonly code: TCode } {
+  const attributed = migrationRunnerFailure(failure.code, failure.message, {
+    why: failure.why,
+    meta: { ...failure.meta, failingSpace },
+    ...ifDefined('cause', failure.cause),
+  });
+  if (failure.stack !== undefined) attributed.stack = failure.stack;
+  return attributed;
 }
 
 /** An object in the database, named as the database names it, that keeps an operation from running. */

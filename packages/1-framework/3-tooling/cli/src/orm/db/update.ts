@@ -1,5 +1,9 @@
 import { ormConfigSection } from '@internal/config-loader';
-import { APP_SPACE_ID, migrationSubjectJson } from '@internal/framework-components/control';
+import {
+  APP_SPACE_ID,
+  type MigrationPlannerConflict,
+  migrationSubjectJson,
+} from '@internal/framework-components/control';
 import { readMigrationsDir } from '@internal/migration-tools/io';
 import { ifDefined } from '@internal/utils/defined';
 import { isStructuredError } from '@internal/utils/structured-error';
@@ -42,7 +46,6 @@ import {
 import { closeQuietly } from '../../utils/command-helpers';
 import { RECORDED_CONTRACT_REF_FORMS } from '../../utils/contract-ref-forms';
 import { contractValidationMeta } from '../../utils/contract-validation-meta';
-import { mapDbUpdateFailure } from '../../utils/db-update-failure';
 import type { MigrationCommandResult } from '../../utils/formatters/migrations';
 import { type CliInvocation, cliCommand, cliInvocation } from '../../utils/printed-command';
 import { defineOrmCommand } from '../define-command';
@@ -53,6 +56,7 @@ import { promptPlanQuestions } from '../plan-question-prompt';
 import { controlProgressReporter } from '../progress';
 import { dbUpdateStatementVerbs } from '../statement-verbs';
 import { migrationResultBlocks, migrationResultNextActions } from './migration-blocks';
+import { plannerWarningsCollector } from './planner-warnings';
 import { prepareMigrationRun } from './prepare';
 
 function updatePresentations(inputs: {
@@ -176,6 +180,7 @@ function updateDocument(inputs: {
   readonly startedAt: number;
   /** The statements the run was given, which a dry run's questions are marked answered by. */
   readonly statements: readonly StatementText[];
+  readonly plannerWarnings: readonly MigrationPlannerConflict[];
 }): MigrationCommandResult {
   const { value } = inputs;
   return {
@@ -219,7 +224,7 @@ function updateDocument(inputs: {
           accessChanges: accessEntriesJson(value.accessChanges, inputs.statements),
         }
       : {}),
-    ...ifDefined('warnings', value.warnings),
+    ...(inputs.plannerWarnings.length > 0 ? { warnings: inputs.plannerWarnings } : {}),
     advancedRef: inputs.advancedRef,
     plannedAdvanceRef: inputs.plannedAdvanceRef,
     summary: value.summary,
@@ -371,15 +376,7 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
       try {
         await client.connect(dbConnection);
 
-        // A refused or failed run has no result to carry the planner's warnings,
-        // and an errored envelope renders no meta, so they are reported as events
-        // to reach both channels.
-        const reportPlannerWarnings = (warnings: readonly { readonly summary: string }[]): void => {
-          for (const warning of warnings) {
-            ctx.report({ kind: 'message', severity: 'warn', text: warning.summary });
-          }
-        };
-
+        const plannerWarnings = plannerWarningsCollector(ctx.report);
         const rerunArgs = [
           ...(args.flags.to === undefined ? [] : ['--to', shellQuoted(args.flags.to)]),
           ...(args.flags.advanceRef === undefined
@@ -395,15 +392,13 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
           migrationsDir,
           statements: [...renames, ...previewConsents],
           answerQuestions: promptPlanQuestions(ctx.prompt, ctx.statements),
+          invocation: { ...cliInvocation(ctx, args.flags.db), rerunArgs },
+          onPlannerWarnings: plannerWarnings.onPlannerWarnings,
           onProgress: controlProgressReporter(ctx.report),
         });
         if (!result.ok) {
-          reportPlannerWarnings(result.failure.warnings ?? []);
-          return notOk(
-            normalizeError(
-              mapDbUpdateFailure(result.failure, cliInvocation(ctx, args.flags.db), rerunArgs),
-            ),
-          );
+          plannerWarnings.reportCollected();
+          return notOk(normalizeError(result.failure));
         }
 
         const advancementHash =
@@ -433,6 +428,7 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
           plannedAdvanceRef: advanced.value.plannedAdvanceRef,
           startedAt,
           statements: previewConsents,
+          plannerWarnings: plannerWarnings.collected(),
         });
       } catch (error) {
         // A refused, mistyped or cancelled answer is the engine's own error, and

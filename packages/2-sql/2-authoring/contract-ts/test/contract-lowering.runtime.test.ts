@@ -38,13 +38,14 @@ const { model } = createComposedAuthoringHelpers({
 function buildDefinition(
   definition: Omit<
     Parameters<typeof buildContractDefinition>[0],
-    'target' | 'family' | 'createNamespace'
+    'target' | 'family' | 'createNamespace' | 'codecLookup' | 'dataTypeLookup'
   >,
 ) {
   return buildContractDefinition({
     family: bareFamilyPack,
     target: postgresTargetPack,
     createNamespace: createTestSqlNamespace,
+    ...testTypeLookups,
     ...definition,
   });
 }

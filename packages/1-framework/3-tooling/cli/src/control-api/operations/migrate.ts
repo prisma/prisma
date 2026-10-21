@@ -26,14 +26,14 @@ import {
 } from '@internal/migration-tools/aggregate';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import type { SnapshotContentVerifier } from '@internal/migration-tools/contract-snapshot-store';
-import { errorNoInvariantPath } from '@internal/migration-tools/errors';
-import { findPathWithDecision } from '@internal/migration-tools/migration-graph';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok } from '@internal/utils/result';
 import { join } from 'pathe';
+import { type CliStructuredError, errorPathUnreachable } from '../../utils/cli-errors';
+import { migrateRunnerFailureError } from '../../utils/migrate-failure';
+import type { CliInvocation } from '../../utils/printed-command';
 import type {
-  MigrateFailure,
   MigratePathDecision,
   MigrateResult,
   MigrateSuccess,
@@ -44,7 +44,13 @@ import {
   type BuildAggregateInputs,
   buildContractSpaceAggregate,
 } from './contract-space-aggregate-loader';
-import { buildPerSpaceBreakdown, runMigration } from './run-migration';
+import { noInvariantPathError } from './no-invariant-path';
+import {
+  buildPerSpaceBreakdown,
+  collectOrdered,
+  runMigration,
+  runnerFailureFacts,
+} from './run-migration';
 
 /**
  * Inputs for the aggregate-walking `migrate` control-api
@@ -93,6 +99,8 @@ export interface ExecuteMigrateOptions<TFamilyId extends string, TTargetId exten
    * Ignored when `refHash` is absent.
    */
   readonly refName?: string;
+  /** The command line the advice of a failure repeats. */
+  readonly invocation: CliInvocation;
   readonly onProgress?: OnControlProgress;
 }
 
@@ -206,27 +214,13 @@ export async function executeMigrate<TFamilyId extends string, TTargetId extends
       // string here would leave the structural lookup with a hash that
       // is never a graph node, producing an empty `structuralPath` and
       // a less actionable diagnostic.
-      const structural = findPathWithDecision(
-        outcome.targetSpace.graph(),
-        outcome.liveHash,
-        spaceTargetHash,
-        { required: new Set<string>() },
-      );
-      const structuralPath =
-        structural.kind === 'ok'
-          ? structural.decision.selectedPath.map((edge) => ({
-              dirName: edge.dirName,
-              migrationHash: edge.migrationHash,
-              from: edge.from,
-              to: edge.to,
-              invariants: edge.invariants,
-            }))
-          : [];
-      throw errorNoInvariantPath({
-        ...(outcome.refName !== undefined ? { refName: outcome.refName } : {}),
+      throw noInvariantPathError({
+        graph: outcome.targetSpace.graph(),
+        fromHash: outcome.liveHash,
+        targetHash: spaceTargetHash,
         required: outcome.targetInvariants,
         missing: outcome.missing,
-        structuralPath,
+        ...(outcome.refName !== undefined ? { refName: outcome.refName } : {}),
       });
     }
 
@@ -292,25 +286,17 @@ export async function executeMigrate<TFamilyId extends string, TTargetId extends
   });
 
   if (!applied.ok) {
-    const failure: MigrateFailure = {
-      code: 'RUNNER_FAILED',
-      summary: applied.failure.summary,
-      why: applied.failure.why,
-      meta: applied.failure.meta,
-      ...ifDefined('failedTypeChange', applied.failure.failedTypeChange),
-      ...ifDefined('rowsWithoutValue', applied.failure.rowsWithoutValue),
-      ...ifDefined('blockingObjects', applied.failure.blockingObjects),
-      ...ifDefined('failedPrecheck', applied.failure.failedPrecheck),
-      ...ifDefined('schemaIssues', applied.failure.schemaIssues),
-      ...ifDefined(
-        'failedMigration',
-        applied.failure.failedMigration === undefined
+    const facts = runnerFailureFacts(applied.failure, collectOrdered(applyOrder, perSpacePlans));
+    return notOk(
+      migrateRunnerFailureError(
+        applied.failure,
+        facts,
+        facts.failedMigration === undefined
           ? undefined
-          : failedMigrationOnDisk(applied.failure.failedMigration, migrationsDir),
+          : failedMigrationOnDisk(facts.failedMigration, migrationsDir),
+        options.invocation,
       ),
-      ...ifDefined('cause', applied.failure.cause),
-    };
-    return notOk(failure);
+    );
   }
 
   // Merge the plans kept from the runner back into the canonical order so
@@ -638,13 +624,12 @@ export function buildNeverPlannedFailure(
   spaceId: string,
   targetHash: string,
   migrationsDir: string,
-): MigrateFailure {
-  return {
-    code: 'MIGRATION_PATH_NOT_FOUND',
+): CliStructuredError {
+  return errorPathUnreachable({
     summary: `No on-disk migrations for contract space "${spaceId}"`,
     why: `migrate is replay-only: a contract space that declares managed storage elements must have an authored migration graph on disk. Space "${spaceId}" has no migrations under \`${migrationsDir}/${spaceId}/\` but its head ref targets "${targetHash}".`,
-    meta: { spaceId, target: targetHash, kind: 'neverPlanned' },
-  };
+    meta: { spaceId, targetHash, kind: 'neverPlanned' },
+  });
 }
 
 /**
@@ -661,8 +646,9 @@ export function buildPathNotFoundFailure(
   spaceId: string,
   marker: ContractMarkerRecordLike | null,
   targetHash: string,
-): MigrateFailure {
-  const fromHash = marker?.storageHash ?? '<empty>';
+): CliStructuredError {
+  const fromHash = marker?.storageHash ?? EMPTY_CONTRACT_HASH;
+  const fromText = marker === null ? 'the empty contract' : `the current state "${fromHash}"`;
   // The app-case phrasing names the user-visible condition (a
   // contract has been emitted that no on-disk migration reaches) so
   // the error reads naturally for the app space. Extension spaces
@@ -671,12 +657,11 @@ export function buildPathNotFoundFailure(
     spaceId === 'app'
       ? 'Current contract has no planned migration path'
       : `Current contract has no planned migration path for contract space "${spaceId}"`;
-  return {
-    code: 'MIGRATION_PATH_NOT_FOUND',
+  return errorPathUnreachable({
     summary,
-    why: `No migration edge connects the current state "${fromHash}" to the target "${targetHash}" in contract space "${spaceId}". The on-disk migration graph does not join the two, and migrate replays existing edges — it never invents one.`,
+    why: `No migration edge connects ${fromText} to the target "${targetHash}" in contract space "${spaceId}". The on-disk migration graph does not join the two, and migrate replays existing edges — it never invents one.`,
     meta: { spaceId, fromHash, targetHash, kind: 'pathUnreachable' },
-  };
+  });
 }
 
 function failedMigrationOnDisk(

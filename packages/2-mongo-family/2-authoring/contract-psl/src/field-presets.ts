@@ -2,6 +2,7 @@ import type { ContractField, ExecutionMutationDefaultPhases } from '@internal/co
 import type {
   AuthoringContributions,
   AuthoringFieldPresetDescriptor,
+  DataTypeSupport,
 } from '@internal/framework-components/authoring';
 import type { TypeLookups } from '@internal/framework-components/codec';
 import { codecTypeParamsProblem } from '@internal/mongo-contract/data-type';
@@ -21,6 +22,7 @@ export interface FieldPresetContext {
   readonly sources: PslSources;
   readonly diagnostics: PslDiagnosticCollector;
   readonly typeLookups: TypeLookups;
+  readonly dataTypes: DataTypeSupport;
   readonly warnPresetWithoutEffect: (preset: PresetWithoutEffect) => void;
 }
 
@@ -97,6 +99,7 @@ export function resolveFieldPreset(input: {
     diagnostics,
     source,
     entityLabel,
+    dataTypes: context.dataTypes,
   });
   if (!instantiated) {
     return INVALID;

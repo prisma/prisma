@@ -1,3 +1,4 @@
+import type { AuthoringTypeConstructorCall } from '@internal/framework-components/authoring';
 /**
  * Every part of a contract `contract print` cannot write as Prisma 8 PSL that reads back the same,
  * one function per case in the `CONTRACT.PRINT_UNSUPPORTED` list of
@@ -71,15 +72,18 @@ export function refuseColumnWithoutPslType(column: StorageColumn, coordinate: st
 }
 
 /**
- * Refuses a string type argument the PSL source would read back differently: it reads a string
- * argument between its quotes as written, with no escapes.
+ * Refuses a type constructor call whose arguments no PSL literal writes: an argument that is not a value of a data type, or a value no literal of its data type reads back as.
  */
-export function refuseUnwritableTypeArgument(value: string, coordinate: string): never {
+export function refuseUnwritableTypeArgument(
+  call: AuthoringTypeConstructorCall,
+  coordinate: string,
+): never {
+  const written = `${call.path.join('.')}(${call.args.map((arg) => JSON.stringify(arg)).join(', ')})`;
   throw unsupported(
-    `column ${coordinate} takes the type argument ${JSON.stringify(value)}, which a PSL type argument cannot carry.`,
-    'The PSL source reads a string type argument as written between its quotes, with no escapes, so a quote, backslash or line break in it would read back differently.',
+    `column ${coordinate} is written ${written}, and an argument has no PSL literal that reads back as it.`,
+    'Each argument of a type constructor is written as a literal of its data type, and contract print writes it only when the literal reads back as the same value.',
     KEEP_SOURCE,
-    { coordinate, argument: value },
+    { coordinate, path: call.path.join('.'), arguments: call.args },
   );
 }
 
@@ -93,6 +97,19 @@ export function refuseDefaultOutsideEnum(input: {
     'A default on a domain enum column is written as the member name, and no member carries this value.',
     'Give the column a default that is one of the enum members, or drop it.',
     { coordinate: input.coordinate, pslTypeName: input.pslTypeName },
+  );
+}
+
+export function refuseUnwritableEnumMember(input: {
+  readonly enumName: string;
+  readonly member: string;
+  readonly value: unknown;
+}): never {
+  throw unsupported(
+    `enum "${input.enumName}" member "${input.member}" stores ${JSON.stringify(input.value)}, which no Prisma 8 PSL literal of the enum's data type writes.`,
+    'Writing the value in any other form would parse, but the PSL source would read it back as a different value.',
+    'Type the enum with a codec whose values PSL writes, such as pg/text@1, before printing.',
+    { enumName: input.enumName, member: input.member },
   );
 }
 
@@ -170,9 +187,14 @@ export function refuseGeneratorReadingBackDifferently(input: {
   readonly call: string;
   readonly stored: ExecutionMutationDefaultValue;
   readonly readBack: ExecutionMutationDefaultValue | undefined;
+  readonly refusedBecause: string | undefined;
 }): never {
+  const readBack =
+    input.refusedBecause === undefined
+      ? `reads back as ${describeGenerator(input.readBack)}`
+      : `is refused: ${input.refusedBecause}`;
   throw unsupported(
-    `column ${input.coordinate} generates ${describeGenerator(input.stored)} ${PHASE_TEXT[input.phase]}, but @${input.phase}(${input.call}) reads back as ${describeGenerator(input.readBack)}.`,
+    `column ${input.coordinate} generates ${describeGenerator(input.stored)} ${PHASE_TEXT[input.phase]}, but @${input.phase}(${input.call}) ${readBack.endsWith('.') ? readBack.slice(0, -1) : readBack}.`,
     "The printer writes each generator as the call of the generator function the configured stack binds to the column's codec, and that call must resolve back to the stored generator and params on the column.",
     KEEP_SOURCE,
     {
@@ -181,6 +203,7 @@ export function refuseGeneratorReadingBackDifferently(input: {
       call: input.call,
       stored: input.stored,
       readBack: input.readBack,
+      refusedBecause: input.refusedBecause,
     },
   );
 }

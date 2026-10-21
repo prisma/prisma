@@ -23,9 +23,8 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'a1a6367c39c0b1bd40a786c62aaabbead137e7ce221f9d983c7eb67deee88c7b'>;
-export type ExecutionHash =
-  ExecutionHashBase<'d1b9b4a64beb4dad525e44f724c5103b32a6ab5ee1b0eae24917a72c54557beb'>;
+  StorageHashBase<'ab2ff20849e86a2735e2fe019c70041c29265444b53bfc08f9102931db9af214'>;
+export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -308,6 +307,10 @@ type ContractBase = Omit<
                   readonly dataType: 'pg/uuid';
                   readonly codecId: 'pg/uuid@1';
                   readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'gen_random_uuid()';
+                  };
                   readonly many: false;
                 };
                 readonly userId: {
@@ -421,22 +424,7 @@ type ContractBase = Omit<
       readonly id: 'supabase';
       readonly kind: 'extension';
       readonly targetId: 'postgres';
-      readonly version: '8.0.0-rc.18';
-    };
-  };
-  readonly execution: {
-    readonly executionHash: ExecutionHash;
-    readonly mutations: {
-      readonly defaults: readonly [
-        {
-          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
-          readonly ref: {
-            readonly entry: 'profile';
-            readonly field: 'id';
-            readonly namespace: 'public';
-          };
-        },
-      ];
+      readonly version: '8.0.0-rc.19';
     };
   };
   readonly meta: {};

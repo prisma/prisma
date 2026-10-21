@@ -9,14 +9,15 @@ import {
 } from '@internal/framework-components/authoring';
 import { enumRefusalOf, requiredParamKeys } from '@internal/framework-components/codec';
 import type { InferBlock, PslBlockSpecDescriptor } from '@internal/psl-parser';
-import { blockAttribute, jsonValue, mapBlock, str } from '@internal/psl-parser';
+import { blockAttribute, enumMemberValue, mapBlock, str } from '@internal/psl-parser';
 import { type EnumTypeHandle, enumType } from '@internal/sql-contract-ts/contract-builder';
 
 export function sqlFamilyEnumSpec() {
   return mapBlock({
     value: {
-      type: jsonValue(),
-      documentation: 'The stored member value; a bare member stores its own name.',
+      type: enumMemberValue(),
+      documentation:
+        "The member's value, written as a value of the enum's data type; a bare member stores its own name.",
     },
     allowBare: true,
   });

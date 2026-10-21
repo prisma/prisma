@@ -1,7 +1,6 @@
 import postgresAdapter from '@internal/adapter-postgres/runtime';
 import type { Contract } from '@internal/contract/types';
 import postgresDriver, { suppressIdleConnectionErrors } from '@internal/driver-postgres/runtime';
-import { instantiateExecutionStack } from '@internal/framework-components/execution';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { CollectionClasses, NoCollectionClasses } from '@internal/sql-orm-client';
 import type { Runtime } from '@internal/sql-runtime';
@@ -21,6 +20,7 @@ import {
 import {
   buildPostgresRuntimeBoundMembers,
   type PostgresLifecycleMembers,
+  type PostgresQueryMembers,
   type PostgresRuntimeBoundMembers,
   type PostgresStaticMembers,
 } from './postgres-members';
@@ -37,7 +37,8 @@ import type { PostgresTargetId } from './postgres-target-id';
 export interface PostgresClient<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses = NoCollectionClasses,
-> extends PostgresStaticMembers<TContract>,
+> extends PostgresQueryMembers<TContract, TCollections>,
+    PostgresStaticMembers<TContract>,
     PostgresRuntimeBoundMembers<TContract, TCollections>,
     PostgresLifecycleMembers {
   connect(bindingInput?: PostgresBindingInput): Promise<Runtime>;
@@ -128,7 +129,8 @@ export default function postgres<
     raw: rawSqlTag,
     enums,
     nativeEnums,
-  } = buildPostgresStaticContext<TContract>(contract, context, stack.adapter.rawCodecInferer);
+    toSql,
+  } = buildPostgresStaticContext<TContract>(contract, context, stack);
 
   let runtimeInstance: Runtime | undefined;
   let runtimeDriver: { connect(binding: unknown): Promise<void> } | undefined;
@@ -181,7 +183,7 @@ export default function postgres<
       return runtimeInstance;
     }
 
-    const stackInstance = instantiateExecutionStack(stack);
+    const adapter = stack.adapter.create(stack);
     const driverDescriptor = stack.driver;
     if (!driverDescriptor) {
       throw new InternalError('Driver descriptor missing from execution stack');
@@ -194,7 +196,7 @@ export default function postgres<
     // A client is shared by many callers, so its runtime stops admitting work when close() is called.
     const runtime = new PostgresRuntimeImpl({
       context,
-      adapter: stackInstance.adapter,
+      adapter,
       driver,
       ...toRuntimeOptions(options),
       closeRefusal: 'at-once',
@@ -223,6 +225,7 @@ export default function postgres<
     rawCodecInferer: stack.adapter.rawCodecInferer,
     enums,
     nativeEnums,
+    toSql,
     getRuntime,
     getRuntimeForWork: getRuntime,
   });
@@ -233,6 +236,7 @@ export default function postgres<
     enums,
     nativeEnums,
     raw: rawSqlTag,
+    toSql,
     context,
     contract,
     stack,

@@ -1,5 +1,14 @@
 import type { AuthoringArgumentDescriptor } from '@internal/framework-components/authoring';
 
+/**
+ * For each data type id, the TypeScript value a `value` argument of that data type takes (`argument`) and the type parameter it gives the constructor (`parameter`). A pack declares an entry for each data type it registers that arguments take, as `__dataTypeArguments` in its type.
+ */
+export type DataTypeArgumentTypes = {
+  readonly [dataType: string]: { readonly argument: unknown; readonly parameter: unknown };
+};
+
+type NoDataTypeArgumentTypes = Record<never, never>;
+
 export type OptionalObjectArgumentKeys<
   Properties extends Record<string, AuthoringArgumentDescriptor>,
 > = {
@@ -17,42 +26,52 @@ type RequiredObjectArgumentKeys<Properties extends Record<string, AuthoringArgum
  * argument validation, so this check is the only thing rejecting a foreign key
  * such as `field.nanoid({ bogus: 1 })`.
  */
-export type ObjectArgumentType<Properties extends Record<string, AuthoringArgumentDescriptor>> = [
-  RequiredObjectArgumentKeys<Properties>,
-] extends [never]
+export type ObjectArgumentType<
+  Properties extends Record<string, AuthoringArgumentDescriptor>,
+  ValueTypes extends DataTypeArgumentTypes = NoDataTypeArgumentTypes,
+> = [RequiredObjectArgumentKeys<Properties>] extends [never]
   ? {
-      readonly [K in OptionalObjectArgumentKeys<Properties>]?: ArgTypeFromDescriptor<Properties[K]>;
+      readonly [K in OptionalObjectArgumentKeys<Properties>]?: ArgTypeFromDescriptor<
+        Properties[K],
+        ValueTypes
+      >;
     }
   : {
-      readonly [K in RequiredObjectArgumentKeys<Properties>]: ArgTypeFromDescriptor<Properties[K]>;
+      readonly [K in RequiredObjectArgumentKeys<Properties>]: ArgTypeFromDescriptor<
+        Properties[K],
+        ValueTypes
+      >;
     } & {
-      readonly [K in OptionalObjectArgumentKeys<Properties>]?: ArgTypeFromDescriptor<Properties[K]>;
+      readonly [K in OptionalObjectArgumentKeys<Properties>]?: ArgTypeFromDescriptor<
+        Properties[K],
+        ValueTypes
+      >;
     };
 
-export type ArgTypeFromDescriptor<Arg extends AuthoringArgumentDescriptor> = Arg extends {
-  readonly kind: 'string';
-}
-  ? string
-  : Arg extends { readonly kind: 'boolean' }
-    ? boolean
-    : Arg extends { readonly kind: 'number' }
-      ? number
-      : Arg extends { readonly kind: 'stringArray' }
-        ? readonly string[]
-        : Arg extends {
-              readonly kind: 'option';
-              readonly values: infer Values extends readonly string[];
-            }
-          ? Values[number]
-          : Arg extends {
-                readonly kind: 'object';
-                readonly properties: infer Properties extends Record<
-                  string,
-                  AuthoringArgumentDescriptor
-                >;
-              }
-            ? ObjectArgumentType<Properties>
-            : never;
+/** The TypeScript type of one argument. A `value` argument takes what `ValueTypes` declares for its data type, and nothing when no pack declares it. */
+export type ArgTypeFromDescriptor<
+  Arg extends AuthoringArgumentDescriptor,
+  ValueTypes extends DataTypeArgumentTypes = NoDataTypeArgumentTypes,
+> = Arg extends { readonly kind: 'value'; readonly dataType: infer DataType extends string }
+  ? DataType extends keyof ValueTypes
+    ? ValueTypes[DataType]['argument']
+    : never
+  : Arg extends { readonly kind: 'number' }
+    ? number
+    : Arg extends {
+          readonly kind: 'option';
+          readonly values: infer Values extends readonly string[];
+        }
+      ? Values[number]
+      : Arg extends {
+            readonly kind: 'object';
+            readonly properties: infer Properties extends Record<
+              string,
+              AuthoringArgumentDescriptor
+            >;
+          }
+        ? ObjectArgumentType<Properties, ValueTypes>
+        : never;
 
 /**
  * Recursive rewrite (not a mapped tuple type) so a descriptor marked
@@ -63,15 +82,50 @@ export type ArgTypeFromDescriptor<Arg extends AuthoringArgumentDescriptor> = Arg
  * (`validateAuthoringHelperArguments`'s `minimumArgs`) already treats an
  * optional-before-required arg as effectively required.
  */
-export type TupleFromArgumentDescriptors<Args extends readonly AuthoringArgumentDescriptor[]> =
-  Args extends readonly [
-    infer Head extends AuthoringArgumentDescriptor,
-    ...infer Tail extends readonly AuthoringArgumentDescriptor[],
-  ]
-    ? Head extends { readonly optional: true }
-      ? readonly [ArgTypeFromDescriptor<Head>?, ...TupleFromArgumentDescriptors<Tail>]
-      : readonly [ArgTypeFromDescriptor<Head>, ...TupleFromArgumentDescriptors<Tail>]
-    : readonly [];
+export type TupleFromArgumentDescriptors<
+  Args extends readonly AuthoringArgumentDescriptor[],
+  ValueTypes extends DataTypeArgumentTypes = NoDataTypeArgumentTypes,
+> = Args extends readonly [
+  infer Head extends AuthoringArgumentDescriptor,
+  ...infer Tail extends readonly AuthoringArgumentDescriptor[],
+]
+  ? Head extends { readonly optional: true }
+    ? readonly [
+        ArgTypeFromDescriptor<Head, ValueTypes>?,
+        ...TupleFromArgumentDescriptors<Tail, ValueTypes>,
+      ]
+    : readonly [
+        ArgTypeFromDescriptor<Head, ValueTypes>,
+        ...TupleFromArgumentDescriptors<Tail, ValueTypes>,
+      ]
+  : readonly [];
+
+type CanonicalArgument<
+  Arg extends AuthoringArgumentDescriptor,
+  Param,
+  ValueTypes extends DataTypeArgumentTypes,
+> = Arg extends { readonly kind: 'value'; readonly dataType: infer DataType extends string }
+  ? DataType extends keyof ValueTypes
+    ? Param extends ValueTypes[DataType]['parameter'] | undefined
+      ? Param
+      : ValueTypes[DataType]['parameter'] | Extract<Param, undefined>
+    : Param
+  : Param;
+
+/**
+ * The arguments of a call as the constructor receives them: each `value` argument as the canonical value of its data type, kept literal when the written value already is one, so `VarChar(255)` still gives `255` and `` Raw(sql`circle`) `` gives a `string`.
+ */
+export type CanonicalArguments<
+  Args extends readonly AuthoringArgumentDescriptor[],
+  Params extends readonly unknown[],
+  ValueTypes extends DataTypeArgumentTypes = NoDataTypeArgumentTypes,
+> = {
+  readonly [Index in keyof Params]: Index extends `${infer Position extends number}`
+    ? Args[Position] extends infer Arg extends AuthoringArgumentDescriptor
+      ? CanonicalArgument<Arg, Params[Index], ValueTypes>
+      : Params[Index]
+    : Params[Index];
+};
 
 export type ResolveTemplateValue<Template, Args extends readonly unknown[]> = Template extends {
   readonly kind: 'arg';

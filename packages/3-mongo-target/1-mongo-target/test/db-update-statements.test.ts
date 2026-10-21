@@ -15,6 +15,8 @@ import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
 import { mongoTargetDescriptor } from '../src/core/migrations/control-target';
 
+const TEST_INVOCATION = { cwd: process.cwd(), configPath: undefined, dbGiven: false };
+
 const ORIGIN_HASH = 'a'.repeat(64);
 const DESTINATION_HASH = 'b'.repeat(64);
 
@@ -78,6 +80,7 @@ describe('db update with statements on MongoDB', () => {
     });
 
     const result = await executeDbUpdate({
+      invocation: TEST_INVOCATION,
       answerQuestions: async (questions) =>
         questions.map((question) => ({
           verb: question.verbs.includes('allow') ? ('allow' as const) : ('delete' as const),

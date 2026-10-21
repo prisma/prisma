@@ -29,6 +29,16 @@ const contract: Contract<SqlStorage> = {
 };
 
 describe('sqlite transaction()', () => {
+  it("offers the client's toSql", async () => {
+    const db = sqlite({ contract, path: ':memory:' });
+    await db.connect({ path: ':memory:' });
+
+    const toSql = await db.transaction(async (tx) => tx.toSql);
+    await db.close();
+
+    expect(toSql).toBe(db.toSql);
+  });
+
   it('transaction() runs the callback and returns its result', async () => {
     const db = sqlite({ contract, path: ':memory:' });
     await db.connect({ path: ':memory:' });

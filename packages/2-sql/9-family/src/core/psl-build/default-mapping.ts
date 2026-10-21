@@ -257,6 +257,17 @@ function writeScalar(
   return undefined;
 }
 
+/**
+ * `value`, a value of `dataType` as `contract.json` stores it, written as the literal of a type that `dataType` takes, proven to read back as `value`: `255` for `pg/int4`, ``sql`"MyType"[]` `` for `sql/expression`. `undefined` when no literal reads back as it.
+ */
+export function writeDataTypeValue(
+  value: JsonValue,
+  dataType: DataTypeId,
+  support: DataTypeSupport,
+): string | undefined {
+  return writeScalar(value, { id: dataType, params: {} }, writingSurface(support));
+}
+
 const DECIMAL_WITH_FRACTION = /^-?\d+\.\d+$/;
 
 function withoutTrailingFractionZeros(value: JsonValue): string | undefined {
@@ -315,7 +326,8 @@ function writeListCast(
   return stored !== undefined && sameForm(stored, value) ? `[${parts.join(', ')}]` : undefined;
 }
 
-function writeDefaultLiteral(
+/** The PSL literal a stored value is written as for the column `options` describe, or `undefined` when it has no written form that reads back as that value. */
+export function writeDefaultLiteral(
   value: ColumnDefaultLiteralInputValue,
   options: DefaultMappingOptions | undefined,
 ): string | undefined {

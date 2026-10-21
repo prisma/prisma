@@ -28,6 +28,8 @@ import {
 } from './fixtures/runner-fixtures';
 import { textCodecDescriptor } from './fixtures/sqlite-components';
 
+const TEST_INVOCATION = { cwd: process.cwd(), configPath: undefined, dbGiven: false };
+
 /**
  * End-to-end coverage for the CLI aggregate `db init` / `db update`
  * pipeline against a real SQLite database with on-disk
@@ -280,6 +282,7 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
     const { migrationsDir } = await setupBaseline(tmpDir);
 
     const result = await executeDbInit({
+      invocation: TEST_INVOCATION,
       driver: testDb!.driver,
       adapter: controlAdapter,
       familyInstance,
@@ -330,6 +333,7 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
     const baseline = await setupBaseline(tmpDir);
 
     const initResult = await executeDbInit({
+      invocation: TEST_INVOCATION,
       driver: testDb!.driver,
       adapter: controlAdapter,
       familyInstance,
@@ -374,6 +378,7 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
     }
 
     const updateResult = await executeDbUpdate({
+      invocation: TEST_INVOCATION,
       answerQuestions: async (questions) =>
         questions.map((question) => ({
           verb: question.verbs.includes('allow') ? ('allow' as const) : ('delete' as const),
@@ -511,6 +516,7 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
     } as TargetBoundComponentDescriptor<'sql', 'sqlite'>;
 
     const result = await executeDbInit({
+      invocation: TEST_INVOCATION,
       driver: testDb!.driver,
       adapter: controlAdapter,
       familyInstance,
@@ -554,6 +560,7 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
     await mkdir(migrationsDir, { recursive: true });
 
     const initResult = await executeDbInit({
+      invocation: TEST_INVOCATION,
       driver: testDb!.driver,
       adapter: controlAdapter,
       familyInstance,
@@ -594,6 +601,7 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
     // a no-op — proves the aggregate path's marker / hash check still
     // short-circuits when n=1.
     const updateResult = await executeDbUpdate({
+      invocation: TEST_INVOCATION,
       answerQuestions: async (questions) =>
         questions.map((question) => ({
           verb: question.verbs.includes('allow') ? ('allow' as const) : ('delete' as const),
@@ -631,6 +639,7 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
     const baseline = await setupBaseline(tmpDir);
 
     const initResult = await executeDbInit({
+      invocation: TEST_INVOCATION,
       driver: testDb!.driver,
       adapter: controlAdapter,
       familyInstance,
@@ -678,6 +687,7 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
     }
 
     const updateResult = await executeDbUpdate({
+      invocation: TEST_INVOCATION,
       answerQuestions: async (questions) =>
         questions.map((question) => ({
           verb: question.verbs.includes('allow') ? ('allow' as const) : ('delete' as const),
@@ -704,7 +714,7 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
 
     expect(updateResult.ok).toBe(false);
     if (updateResult.ok) throw new Error('expected failure');
-    expect(updateResult.failure.code).toBe('RUNNER_FAILED');
+    expect(updateResult.failure.code).toBe('MIGRATION.EXECUTION_FAILED');
     expect(updateResult.failure.meta).toMatchObject({ failingSpace: EXT_SPACE_ID });
 
     const markersAfter = await testDb!.driver.query<{ space: string; core_hash: string }>(

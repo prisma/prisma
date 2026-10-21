@@ -67,6 +67,8 @@ import postgresTargetDescriptor, { parsePostgresListText } from '@internal/targe
 import { applicationDomainOf, createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
+const TEST_INVOCATION = { cwd: process.cwd(), configPath: undefined, dbGiven: false };
+
 // String constants pinned by source of truth in
 // `packages/3-extensions/pgvector/src/core/constants.ts` and
 // `contract-space-constants.ts`. Inlined here so this test can consume
@@ -315,6 +317,7 @@ describe('pgvector Scenario A end-to-end (PGlite, T4.3)', {
     project = await setupTestProject({ migration: pgvectorBaselineMigration });
 
     const result = await executeDbInit({
+      invocation: TEST_INVOCATION,
       driver: driver!,
       adapter: controlAdapter,
       familyInstance,
@@ -350,6 +353,7 @@ describe('pgvector Scenario A end-to-end (PGlite, T4.3)', {
     project = await setupTestProject({ migration: buildSyntheticBaselineMigration() });
 
     const result = await executeDbInit({
+      invocation: TEST_INVOCATION,
       driver: driver!,
       adapter: controlAdapter,
       familyInstance,

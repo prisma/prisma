@@ -12,6 +12,7 @@ import { invariant } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type { Type } from 'arktype';
 import type { CodecLookupWithDescriptors } from './codec-types';
@@ -19,6 +20,7 @@ import type { DataTypeId, DataTypeLookup } from './data-type';
 import type { AuthoringOption } from './option-descriptor';
 import type { ParsedPslExtensionBlock, PslSpan } from './psl-extension-block';
 import { runtimeError } from './runtime-error';
+import type { WrittenScalar } from './written-value';
 
 export type EnumInferredMemberType = 'text' | 'int';
 
@@ -65,23 +67,32 @@ interface AuthoringArgumentDescriptorCommon {
   readonly optional?: boolean;
 }
 
+interface ValueArgumentKind {
+  readonly kind: 'value';
+  readonly dataType: string;
+}
+
 export type AuthoringArgumentDescriptor = AuthoringArgumentDescriptorCommon &
   (
-    | { readonly kind: 'string' }
-    | { readonly kind: 'boolean' }
+    | ValueArgumentKind
     | {
         readonly kind: 'number';
         readonly integer?: boolean;
         readonly minimum?: number;
         readonly maximum?: number;
       }
-    | { readonly kind: 'stringArray' }
     | {
         readonly kind: 'object';
         readonly properties: Record<string, AuthoringArgumentDescriptor>;
       }
     | AuthoringOption
   );
+
+/** An argument that is a value of the data type `dataType`, read and cast as attribute arguments are. ADR 254. */
+export type AuthoringValueArgument = Extract<
+  AuthoringArgumentDescriptor,
+  { readonly kind: 'value' }
+>;
 
 /**
  * What a type constructor or field preset produces: a codec and its parameters. The database type
@@ -259,10 +270,10 @@ export function flushAuthoringWarnings(warnings: readonly AuthoringWarning[]): v
   }
 }
 
-/** A written value read for a codec: its stored form, or why it is refused. */
+/** A written value read for a codec: its stored form, or why it is refused, as a diagnostic's code and message. */
 export type WrittenValueReading =
   | { readonly ok: true; readonly value: JsonValue }
-  | { readonly ok: false; readonly message: string };
+  | { readonly ok: false; readonly code: string; readonly message: string };
 
 export interface AuthoringEntityContext {
   readonly family: string;
@@ -278,10 +289,10 @@ export interface AuthoringEntityContext {
   /** Push channel for non-fatal authoring-time warnings emitted by the factory. */
   readonly warnings?: AuthoringWarningSink;
   /**
-   * Reads a number literal written in the contract source, such as an enum member's value, from its source text the way a column default is read: the literal gives a value of a data type, the codec's data type takes it directly or through a cast, and the codec checks it. Returns the value's stored form, or why it is refused, worded for `subject`. Without it, or when it returns `undefined` for a codec the stack registers no descriptor for, the codec's data type and then the codec read the number.
+   * Reads a value written in the contract source outside a default, such as an enum member's value, the way a column default is read: the value's syntax gives it a data type, the codec's data type takes it directly or through a cast, and the codec checks it. Returns the value's stored form, or why it is refused, worded for `subject`. Without it, or when it returns `undefined` for a codec the stack registers no descriptor for, the codec's data type and then the codec read the value as JSON.
    */
-  readonly readWrittenNumber?: (input: {
-    readonly text: string;
+  readonly readWrittenValueForCodec?: (input: {
+    readonly written: WrittenScalar;
     readonly codecId: string;
     readonly subject: string;
   }) => WrittenValueReading | undefined;
@@ -634,6 +645,10 @@ export interface AuthoringContributions {
    * names.
    */
   readonly valueObjectStorageType?: string;
+  /**
+   * The data types whose values are text, such as a target's variable-length, fixed-length and bounded text types. A family uses the list where only text is meaningful, such as a polymorphic model's discriminator column. Assembly takes every component's list.
+   */
+  readonly textDataTypes?: readonly DataTypeId[];
 }
 
 export function isAuthoringArgRef(value: unknown): value is AuthoringArgRef {
@@ -1592,29 +1607,7 @@ function validateAuthoringArgument(
     throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} is missing`);
   }
 
-  if (descriptor.kind === 'string') {
-    if (typeof value !== 'string') {
-      throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} must be a string`);
-    }
-    return;
-  }
-
-  if (descriptor.kind === 'boolean') {
-    if (typeof value !== 'boolean') {
-      throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} must be a boolean`);
-    }
-    return;
-  }
-
-  if (descriptor.kind === 'stringArray') {
-    if (!Array.isArray(value)) {
-      throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} must be an array of strings`);
-    }
-    for (const entry of value) {
-      if (typeof entry !== 'string') {
-        throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} must be an array of strings`);
-      }
-    }
+  if (descriptor.kind === 'value') {
     return;
   }
 
@@ -1732,6 +1725,33 @@ function issueKey(issue: StandardSchemaV1.Issue): string | undefined {
   return typeof key === 'string' ? key : undefined;
 }
 
+/** Why a constructor's or preset's type parameters fail its codec's parameter schema, and the argument the failing parameter came from. */
+export interface AuthoringTypeParamsIssue {
+  readonly message: string;
+  readonly argumentIndex: number | undefined;
+}
+
+function authoringTypeParamsIssue(
+  template: AuthoringStorageTypeTemplate,
+  typeParams: Record<string, unknown> | undefined,
+  paramsSchema: StandardSchemaV1<unknown> | undefined,
+): AuthoringTypeParamsIssue | undefined {
+  if (template.typeParams === undefined || paramsSchema === undefined) return undefined;
+  const result = paramsSchema['~standard'].validate(typeParams ?? {});
+  if (result instanceof Promise) {
+    throw new InternalError(
+      `The parameter schema of codec "${template.codecId}" is asynchronous; authoring requires a synchronous schema.`,
+    );
+  }
+  const [issue] = result.issues ?? [];
+  if (issue === undefined) return undefined;
+  const key = issueKey(issue);
+  return {
+    message: issue.message,
+    argumentIndex: key === undefined ? undefined : argumentIndexOf(template.typeParams[key]),
+  };
+}
+
 /**
  * Checks the type parameters a constructor or preset produced against its codec's parameter schema, which is where the bounds of a data type's parameters are written. A failure names the argument the failing parameter came from.
  */
@@ -1741,17 +1761,9 @@ export function validateAuthoringTypeParams(
   typeParams: Record<string, unknown> | undefined,
   paramsSchema: StandardSchemaV1<unknown> | undefined,
 ): void {
-  if (template.typeParams === undefined || paramsSchema === undefined) return;
-  const result = paramsSchema['~standard'].validate(typeParams ?? {});
-  if (result instanceof Promise) {
-    throw new InternalError(
-      `The parameter schema of codec "${template.codecId}" is asynchronous; authoring requires a synchronous schema.`,
-    );
-  }
-  const [issue] = result.issues ?? [];
+  const issue = authoringTypeParamsIssue(template, typeParams, paramsSchema);
   if (issue === undefined) return;
-  const key = issueKey(issue);
-  const argumentIndex = key === undefined ? undefined : argumentIndexOf(template.typeParams[key]);
+  const { argumentIndex } = issue;
   throw runtimeError(
     'CONTRACT.ARGUMENT_INVALID',
     argumentIndex === undefined
@@ -1869,6 +1881,19 @@ export function instantiateAuthoringTypeConstructor(
   args: readonly unknown[],
 ): ScalarTypeConstructorOutput {
   return resolveAuthoringStorageTypeTemplate(descriptor.output, args);
+}
+
+/**
+ * The column a type constructor makes from the stored values of its arguments, as a reader that holds values rather than written arguments has them, or why its codec's parameter schema refuses the parameters they give. The schema check is {@link validateAuthoringTypeParams}'s.
+ */
+export function instantiateAuthoringTypeConstructorFromValues(
+  descriptor: AuthoringTypeConstructorDescriptor,
+  values: readonly unknown[],
+  paramsSchema: StandardSchemaV1<unknown> | undefined,
+): Result<ScalarTypeConstructorOutput, AuthoringTypeParamsIssue> {
+  const output = instantiateAuthoringTypeConstructor(descriptor, values);
+  const issue = authoringTypeParamsIssue(descriptor.output, output.typeParams, paramsSchema);
+  return issue === undefined ? ok(output) : notOk(issue);
 }
 
 export function instantiateAuthoringEntityType<TOutput = unknown>(
