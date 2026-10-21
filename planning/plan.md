@@ -19,11 +19,11 @@ Counts the projects marked Must in each stream. A project counts as done only wh
 | Stream | Done | Bar | In progress | Not started |
 | --- | --- | --- | --- | --- |
 | Foundations and breaking changes | 4 of 8 (50%) | `█████░░░░░` | 3 | 1 |
-| Upgrade path from Prisma 7 | 1 of 7 (14%) | `█░░░░░░░░░` | 3 | 3 |
+| Upgrade path from Prisma 7 | 2 of 7 (29%) | `███░░░░░░░` | 2 | 3 |
 | Editor and tools | 2 of 6 (33%) | `███░░░░░░░` | 2 | 2 |
 | Query features | 8 of 11 (73%) | `███████░░░` | 1 | 2 |
 | Docs and the new user's first hour | 1 of 5 (20%) | `██░░░░░░░░` | 3 | 1 |
-| **All streams** | **16 of 37 (43%)** | `████░░░░░░` | **12** | **9** |
+| **All streams** | **17 of 37 (46%)** | `█████░░░░░` | **11** | **9** |
 
 ## Stream 1: Foundations and breaking changes
 
@@ -45,7 +45,7 @@ GA is the last chance to make breaking changes, so this stream decides the date.
 
 ## Stream 2: Upgrade path from Prisma 7
 
-**GA readiness:** 1 of 7 Must projects done (14%). 3 in progress, 3 not started.
+**GA readiness:** 2 of 7 Must projects done (29%). 2 in progress, 3 not started.
 
 Test: an existing Prisma 7 database can be signed by Prisma 8.
 
@@ -56,7 +56,7 @@ Test: an existing Prisma 7 database can be signed by Prisma 8.
 | 3 | ✅ 7/7 | Storage a model does not map: a table may hold columns its model does not map, and a table may have no model | Must | Will | Done 2026-10-13: 4 slices, ADR 267, the fix for a model with no fields, and the close-out merged |  |
 | 4 | ⏳ | Upgrade guide rewrite | Must | Will | Ticket in backlog. One known error in the guide |  |
 | 5 | ⏳ 0/5 | Codecs for `citext`, `bit`, `varbit`, `xml`, `oid` | Must | Will | Backlog |  |
-| 6 | 🔄 2/3 | Columns whose type has no codec | Must | Will | Designed (ADR 273). Slice 1, `Raw("...")` and the `sql/raw` data type, merged 2026-10-20. Slice 2, the Prisma 7 reader reads `Unsupported(...)` as a raw column, merged 2026-10-20. TML-3615 (`Raw` takes `sql`…``) is approved and not merged | Merge TML-3615 |
+| 6 | ✅ 3/3 | Columns whose type has no codec | Must | Will | Done 2026-10-21 (Will). ADR 273: such a column is a raw column, `Raw("...")` in a Prisma 8 schema, and a Prisma 7 `Unsupported(...)` field is read as one. The close-out is in progress |  |
 | 7 | ⏳ | Adopt a Prisma 7 database without changing it: the enum membership check | Must | Will | Not designed |  |
 | 8 | ⏳ | Medium and low upgrade issues | Later | Will | Backlog | |
 | 9 | ⏳ | `money` codec | Later | Will | Backlog | |
