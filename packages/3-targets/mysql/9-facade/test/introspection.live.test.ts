@@ -7,7 +7,12 @@ import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import mysql from '@internal/target-mysql/control';
 import { withMysqlDatabase } from '@repo/test-utils/mysql-database';
 import { describe, expect, it } from 'vitest';
-import { exampleContractSchema, exampleTablesDdl, loadExampleContract } from './example-contract';
+import {
+  exampleContractSchema,
+  exampleTablesDdl,
+  frameworkComponents,
+  loadExampleContract,
+} from './example-contract';
 
 const autoincrement = { kind: 'function', expression: 'autoincrement()' } as const;
 
@@ -39,6 +44,13 @@ describe('introspecting a MySQL database made by hand', () => {
         const actual = await introspect(driver, loadExampleContract());
 
         expect(diffSchemas(exampleContractSchema(), actual)).toEqual([]);
+        expect(
+          mysql.diffSchema({
+            contract: loadExampleContract(),
+            schema: actual,
+            frameworkComponents,
+          }).issues,
+        ).toEqual([]);
         expect(actual).toEqual(
           new SqlSchemaIR({
             tables: {
@@ -137,7 +149,9 @@ describe('introspecting a MySQL database made by hand', () => {
       withExampleTables(url, [userWithOtherMembers, postTable], async (driver) => {
         const actual = await introspect(driver, loadExampleContract());
         expect(
-          diffSchemas(exampleContractSchema(), actual).map((issue) => issue.path.join('/')),
+          mysql
+            .diffSchema({ contract: loadExampleContract(), schema: actual, frameworkComponents })
+            .issues.map((issue) => issue.path.join('/')),
         ).toEqual([expect.stringContaining('role')]);
       }),
     );

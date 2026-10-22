@@ -4,6 +4,13 @@ import type { TargetBoundComponentDescriptor } from '@internal/framework-compone
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import mysql from '@internal/target-mysql/control';
+import {
+  autoincrement,
+  defineContract,
+  enumType,
+  member,
+  rel,
+} from '../src/exports/contract-builder';
 import contractJson from './fixtures/generated/contract.json' with { type: 'json' };
 
 /** The components of a MySQL stack that `contractToSchema` reads data types and codecs from. */
@@ -23,6 +30,42 @@ export function exampleContractSchema(): SqlSchemaIR {
     loadExampleContract(),
     frameworkComponents,
   ) as SqlSchemaIR;
+}
+
+/** The example contract written with `defineContract` instead of PSL. */
+export function exampleContractFromTypeScript() {
+  const Role = enumType(
+    'Role',
+    { codecId: 'mysql/enum@1' },
+    member('USER', 'USER'),
+    member('ADMIN', 'ADMIN'),
+  );
+  return defineContract({ enums: { Role } }, ({ field, model, type }) => {
+    const User = model('User', {
+      fields: {
+        id: field.column(type.Int()).id().default(autoincrement()),
+        email: field.column(type.String()).unique(),
+        role: field.namedType(Role),
+      },
+    });
+    const Post = model('Post', {
+      fields: {
+        id: field.column(type.Int()).id().default(autoincrement()),
+        title: field.column(type.String()),
+        authorId: field.column(type.Int()),
+      },
+    });
+    return {
+      models: {
+        User: User.relations({ posts: rel.hasMany(Post, { by: 'authorId' }) }),
+        Post: Post.relations({ author: rel.belongsTo(User, { from: 'authorId', to: 'id' }) }).sql(
+          ({ cols, constraints }) => ({
+            foreignKeys: [constraints.foreignKey(cols.authorId, User.refs.id)],
+          }),
+        ),
+      },
+    };
+  });
 }
 
 /** The tables of the example contract, written by hand as a MySQL user would create them. */

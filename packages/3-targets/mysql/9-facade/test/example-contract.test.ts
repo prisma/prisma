@@ -1,6 +1,10 @@
 import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
-import { exampleContractSchema, loadExampleContract } from './example-contract';
+import {
+  exampleContractFromTypeScript,
+  exampleContractSchema,
+  loadExampleContract,
+} from './example-contract';
 
 const autoincrement = { kind: 'function', expression: 'autoincrement()' } as const;
 
@@ -11,6 +15,15 @@ describe('the example contract on MySQL', () => {
       target: 'mysql',
       capabilities: { sql: { enums: true, foreignKeys: true, limit: true, orderBy: true } },
     });
+  });
+
+  it('has the same storage and storage hash when written with defineContract', () => {
+    const fromPsl = loadExampleContract();
+    const fromTypeScript = exampleContractFromTypeScript();
+    expect(JSON.parse(JSON.stringify(fromTypeScript.storage))).toEqual(
+      JSON.parse(JSON.stringify(fromPsl.storage)),
+    );
+    expect(fromTypeScript.storage.storageHash).toBe(fromPsl.storage.storageHash);
   });
 
   it('describes the schema IR a MySQL database with its tables introspects to', () => {
