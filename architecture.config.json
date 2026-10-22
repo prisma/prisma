@@ -229,43 +229,49 @@
       "plane": "runtime"
     },
     {
-      "glob": "packages/3-targets/postgres/1-target/src/core/data-types.ts",
+      "glob": "packages/3-targets/postgres/1-target/src/core/*.ts",
       "domain": "extensions",
       "layer": "targets",
       "plane": "shared"
     },
     {
-      "glob": "packages/3-targets/postgres/1-target/src/core/data-type-entries.ts",
+      "glob": "packages/3-targets/postgres/1-target/src/core/migrations/**",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/aggregates.ts",
       "domain": "extensions",
       "layer": "targets",
       "plane": "shared"
     },
     {
-      "glob": "packages/3-targets/postgres/1-target/src/core/sql-utils.ts",
+      "glob": "packages/3-targets/postgres/1-target/src/exports/codec-descriptor.ts",
       "domain": "extensions",
       "layer": "targets",
       "plane": "shared"
     },
     {
-      "glob": "packages/3-targets/postgres/1-target/src/core/postgres-keywords.ts",
+      "glob": "packages/3-targets/postgres/1-target/src/exports/codec-ids.ts",
       "domain": "extensions",
       "layer": "targets",
       "plane": "shared"
     },
     {
-      "glob": "packages/3-targets/postgres/1-target/src/core/errors.ts",
+      "glob": "packages/3-targets/postgres/1-target/src/exports/codec-types.ts",
       "domain": "extensions",
       "layer": "targets",
       "plane": "shared"
     },
     {
-      "glob": "packages/3-targets/postgres/1-target/src/core/codec-helpers.ts",
+      "glob": "packages/3-targets/postgres/1-target/src/exports/codecs.ts",
       "domain": "extensions",
       "layer": "targets",
       "plane": "shared"
     },
     {
-      "glob": "packages/3-targets/postgres/1-target/src/exports/data-types.ts",
+      "glob": "packages/3-targets/postgres/1-target/src/exports/contract-free.ts",
       "domain": "extensions",
       "layer": "targets",
       "plane": "shared"
@@ -277,13 +283,265 @@
       "plane": "migration"
     },
     {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/data-transform.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/data-types.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/ddl.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/default-normalizer.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/diff-database-schema.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/errors.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/full-text-index-authoring.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/full-text.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/issue-planner.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/marker-lock.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/migration.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/native-type-normalizer.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/op-factory-call.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/operation-types.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/pack.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/planner-ddl-builders.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/planner-identity-values.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/planner-produced-postgres-migration.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/planner-schema-lookup.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/planner-sql-checks.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/planner-target-details.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/planner.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/prisma7-binding.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/render-ops.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/render-typescript.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/rls-canonicalize.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
       "glob": "packages/3-targets/postgres/1-target/src/exports/runtime.ts",
       "domain": "extensions",
       "layer": "targets",
       "plane": "runtime"
     },
     {
-      "glob": "packages/3-targets/postgres/2-adapter/src/core/**",
+      "glob": "packages/3-targets/postgres/1-target/src/exports/schema-ir-annotations.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/sql-utils.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/exports/types.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/temporal-global.d.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/contract-free/**",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/core/ast/**",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/core/ddl/**",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/core/psl-build/**",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/core/psl-infer/**",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/core/psl-print/**",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/core/rls/**",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/core/schema-ir/**",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/1-target/src/types/**",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/2-adapter/src/core/*.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/2-adapter/src/core/migrations/**",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/2-adapter/src/exports/adapter.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/2-adapter/src/exports/column-types.ts",
       "domain": "targets",
       "layer": "adapters",
       "plane": "shared"
@@ -301,9 +559,39 @@
       "plane": "runtime"
     },
     {
-      "glob": "packages/3-targets/postgres/4-codec-testkit/src/**",
+      "glob": "packages/3-targets/postgres/2-adapter/src/exports/sql-renderer.ts",
       "domain": "targets",
       "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/2-adapter/src/exports/types.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/3-driver/src/core/*.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/3-driver/src/core/migrations/**",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/3-driver/src/callback-to-promise.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/3-driver/src/driver-error.ts",
+      "domain": "targets",
+      "layer": "drivers",
       "plane": "shared"
     },
     {
@@ -319,7 +607,37 @@
       "plane": "runtime"
     },
     {
-      "glob": "packages/3-targets/postgres/9-facade/src/config/**",
+      "glob": "packages/3-targets/postgres/3-driver/src/named-cursor.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/3-driver/src/normalize-error.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/3-driver/src/postgres-driver.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/3-driver/src/server-text-types.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/4-codec-testkit/src/**",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/postgres/9-facade/src/errors.ts",
       "domain": "extensions",
       "layer": "adapters",
       "plane": "shared"
@@ -331,25 +649,13 @@
       "plane": "shared"
     },
     {
-      "glob": "packages/3-targets/postgres/9-facade/src/runtime/**",
-      "domain": "extensions",
-      "layer": "adapters",
-      "plane": "runtime"
-    },
-    {
-      "glob": "packages/3-targets/postgres/9-facade/src/exports/runtime.ts",
-      "domain": "extensions",
-      "layer": "adapters",
-      "plane": "runtime"
-    },
-    {
       "glob": "packages/3-targets/postgres/9-facade/src/exports/contract-builder.ts",
       "domain": "extensions",
       "layer": "adapters",
       "plane": "shared"
     },
     {
-      "glob": "packages/3-targets/postgres/9-facade/src/exports/migration.ts",
+      "glob": "packages/3-targets/postgres/9-facade/src/exports/control.ts",
       "domain": "extensions",
       "layer": "adapters",
       "plane": "migration"
@@ -361,109 +667,121 @@
       "plane": "shared"
     },
     {
+      "glob": "packages/3-targets/postgres/9-facade/src/exports/internal-transaction-members.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/postgres/9-facade/src/exports/internal-validate-contract.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/postgres/9-facade/src/exports/migration.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/postgres/9-facade/src/exports/runtime.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/postgres/9-facade/src/exports/serverless.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/postgres/9-facade/src/exports/static.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
       "glob": "packages/3-targets/postgres/9-facade/src/exports/target.ts",
       "domain": "extensions",
       "layer": "adapters",
       "plane": "shared"
     },
     {
-      "glob": "packages/3-targets/mongo/9-facade/src/config/**",
+      "glob": "packages/3-targets/postgres/9-facade/src/config/**",
       "domain": "extensions",
       "layer": "adapters",
       "plane": "shared"
     },
     {
-      "glob": "packages/3-targets/mongo/9-facade/src/exports/config.ts",
+      "glob": "packages/3-targets/postgres/9-facade/src/contract/**",
       "domain": "extensions",
       "layer": "adapters",
       "plane": "shared"
     },
     {
-      "glob": "packages/3-targets/mongo/9-facade/src/runtime/**",
+      "glob": "packages/3-targets/postgres/9-facade/src/runtime/**",
       "domain": "extensions",
       "layer": "adapters",
       "plane": "runtime"
     },
     {
-      "glob": "packages/3-targets/mongo/9-facade/src/exports/runtime.ts",
+      "glob": "packages/3-targets/postgres/9-facade/src/static/**",
       "domain": "extensions",
       "layer": "adapters",
       "plane": "runtime"
     },
     {
-      "glob": "packages/3-targets/sqlite/9-facade/src/config/**",
+      "glob": "packages/3-targets/sqlite/1-target/src/core/*.ts",
       "domain": "extensions",
-      "layer": "adapters",
+      "layer": "targets",
       "plane": "shared"
     },
     {
-      "glob": "packages/3-targets/sqlite/9-facade/src/exports/config.ts",
+      "glob": "packages/3-targets/sqlite/1-target/src/core/migrations/**",
       "domain": "extensions",
-      "layer": "adapters",
-      "plane": "shared"
-    },
-    {
-      "glob": "packages/3-targets/sqlite/9-facade/src/contract/**",
-      "domain": "extensions",
-      "layer": "adapters",
-      "plane": "shared"
-    },
-    {
-      "glob": "packages/3-targets/sqlite/9-facade/src/exports/contract-builder.ts",
-      "domain": "extensions",
-      "layer": "adapters",
-      "plane": "shared"
-    },
-    {
-      "glob": "packages/3-targets/sqlite/9-facade/src/exports/control.ts",
-      "domain": "extensions",
-      "layer": "adapters",
+      "layer": "targets",
       "plane": "migration"
     },
     {
-      "glob": "packages/3-targets/sqlite/9-facade/src/exports/migration.ts",
+      "glob": "packages/3-targets/sqlite/1-target/src/exports/aggregates.ts",
       "domain": "extensions",
-      "layer": "adapters",
-      "plane": "migration"
-    },
-    {
-      "glob": "packages/3-targets/mongo/9-facade/src/exports/bson.ts",
-      "domain": "extensions",
-      "layer": "adapters",
+      "layer": "targets",
       "plane": "shared"
     },
     {
-      "glob": "packages/3-targets/mongo/9-facade/src/exports/contract-builder.ts",
+      "glob": "packages/3-targets/sqlite/1-target/src/exports/codec-descriptor.ts",
       "domain": "extensions",
-      "layer": "adapters",
+      "layer": "targets",
       "plane": "shared"
     },
     {
-      "glob": "packages/3-targets/mongo/9-facade/src/exports/control.ts",
+      "glob": "packages/3-targets/sqlite/1-target/src/exports/codec-ids.ts",
       "domain": "extensions",
-      "layer": "adapters",
-      "plane": "migration"
-    },
-    {
-      "glob": "packages/3-targets/mongo/9-facade/src/contract/**",
-      "domain": "extensions",
-      "layer": "adapters",
+      "layer": "targets",
       "plane": "shared"
     },
     {
-      "glob": "packages/3-targets/mongo/9-facade/src/exports/family.ts",
+      "glob": "packages/3-targets/sqlite/1-target/src/exports/codec-types.ts",
       "domain": "extensions",
-      "layer": "adapters",
+      "layer": "targets",
       "plane": "shared"
     },
     {
-      "glob": "packages/3-targets/mongo/9-facade/src/exports/target.ts",
+      "glob": "packages/3-targets/sqlite/1-target/src/exports/codecs.ts",
       "domain": "extensions",
-      "layer": "adapters",
+      "layer": "targets",
       "plane": "shared"
     },
     {
-      "glob": "packages/3-targets/sqlite/1-target/src/core/**",
+      "glob": "packages/3-targets/sqlite/1-target/src/exports/contract-free.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/1-target/src/exports/control-tables.ts",
       "domain": "extensions",
       "layer": "targets",
       "plane": "shared"
@@ -481,10 +799,58 @@
       "plane": "shared"
     },
     {
+      "glob": "packages/3-targets/sqlite/1-target/src/exports/ddl.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/1-target/src/exports/default-normalizer.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/1-target/src/exports/migration.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/1-target/src/exports/op-factory-call.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
       "glob": "packages/3-targets/sqlite/1-target/src/exports/pack.ts",
       "domain": "extensions",
       "layer": "targets",
       "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/1-target/src/exports/planner-produced-sqlite-migration.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/1-target/src/exports/planner-target-details.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/1-target/src/exports/planner.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/1-target/src/exports/render-ops.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
     },
     {
       "glob": "packages/3-targets/sqlite/1-target/src/exports/runtime.ts",
@@ -493,10 +859,34 @@
       "plane": "runtime"
     },
     {
-      "glob": "packages/3-targets/sqlite/2-adapter/src/core/**",
+      "glob": "packages/3-targets/sqlite/1-target/src/exports/sql-utils.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/1-target/src/contract-free/**",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/1-target/src/core/ddl/**",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/2-adapter/src/core/*.ts",
       "domain": "targets",
       "layer": "adapters",
       "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/2-adapter/src/core/migrations/**",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "migration"
     },
     {
       "glob": "packages/3-targets/sqlite/2-adapter/src/exports/adapter.ts",
@@ -529,22 +919,28 @@
       "plane": "runtime"
     },
     {
+      "glob": "packages/3-targets/sqlite/2-adapter/src/exports/sql-renderer.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
       "glob": "packages/3-targets/sqlite/2-adapter/src/exports/types.ts",
       "domain": "targets",
       "layer": "adapters",
       "plane": "shared"
     },
     {
-      "glob": "packages/3-targets/sqlite/4-codec-testkit/src/**",
-      "domain": "targets",
-      "layer": "adapters",
-      "plane": "shared"
-    },
-    {
-      "glob": "packages/3-targets/sqlite/3-driver/src/core/**",
+      "glob": "packages/3-targets/sqlite/3-driver/src/core/*.ts",
       "domain": "targets",
       "layer": "drivers",
       "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/3-driver/src/core/migrations/**",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "migration"
     },
     {
       "glob": "packages/3-targets/sqlite/3-driver/src/exports/control.ts",
@@ -559,16 +955,310 @@
       "plane": "runtime"
     },
     {
-      "glob": "packages/3-targets/sqlite/9-facade/src/runtime/**",
+      "glob": "packages/3-targets/sqlite/3-driver/src/normalize-error.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/3-driver/src/sqlite-driver.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/3-driver/src/sqlite-params.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/4-codec-testkit/src/**",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/9-facade/src/errors.ts",
       "domain": "extensions",
       "layer": "adapters",
-      "plane": "runtime"
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/9-facade/src/exports/config.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/9-facade/src/exports/contract-builder.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/9-facade/src/exports/control.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/9-facade/src/exports/migration.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "migration"
     },
     {
       "glob": "packages/3-targets/sqlite/9-facade/src/exports/runtime.ts",
       "domain": "extensions",
       "layer": "adapters",
       "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/9-facade/src/exports/static.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/9-facade/src/config/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/9-facade/src/contract/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/9-facade/src/runtime/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/9-facade/src/static/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/mongo/1-target/src/core/*.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/1-target/src/core/migrations/**",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/mongo/1-target/src/exports/codec-ids.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/1-target/src/exports/codec-types.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/1-target/src/exports/codecs.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/1-target/src/exports/control.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/mongo/1-target/src/exports/data-types.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/1-target/src/exports/migration.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/mongo/1-target/src/exports/pack.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/1-target/src/exports/prisma6-binding.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/1-target/src/exports/runtime.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/mongo/2-adapter/src/core/*.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/2-adapter/src/core/migrations/**",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/mongo/2-adapter/src/exports/control.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/mongo/2-adapter/src/exports/index.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/mongo/2-adapter/src/exports/runtime.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/mongo/2-adapter/src/lowering.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/2-adapter/src/mongo-adapter.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/2-adapter/src/resolve-value.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/3-driver/src/core/*.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/3-driver/src/core/migrations/**",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/mongo/3-driver/src/exports/control.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/mongo/3-driver/src/exports/index.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/mongo/3-driver/src/mongo-driver.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/9-facade/src/exports/bson.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/9-facade/src/exports/config.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/9-facade/src/exports/contract-builder.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/9-facade/src/exports/control.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/mongo/9-facade/src/exports/family.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/9-facade/src/exports/runtime.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/mongo/9-facade/src/exports/static.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/9-facade/src/exports/target.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/9-facade/src/config/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/9-facade/src/contract/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mongo/9-facade/src/runtime/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/mongo/9-facade/src/static/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
     },
     {
       "glob": "packages/3-extensions/paradedb/src/core/**",
@@ -709,7 +1399,7 @@
       "plane": "runtime"
     },
     {
-      "glob": "packages/2-mongo-family/5-query-builders/pipeline-builder/**",
+      "glob": "packages/2-mongo-family/5-query-builders/query-builder/**",
       "domain": "mongo",
       "layer": "query-builders",
       "plane": "runtime"
@@ -737,66 +1427,6 @@
       "domain": "mongo",
       "layer": "family",
       "plane": "migration"
-    },
-    {
-      "glob": "packages/3-targets/mongo/1-target/src/core/*.ts",
-      "domain": "extensions",
-      "layer": "targets",
-      "plane": "shared"
-    },
-    {
-      "glob": "packages/3-targets/mongo/1-target/src/core/migrations/**",
-      "domain": "extensions",
-      "layer": "targets",
-      "plane": "migration"
-    },
-    {
-      "glob": "packages/3-targets/mongo/1-target/src/exports/control.ts",
-      "domain": "extensions",
-      "layer": "targets",
-      "plane": "migration"
-    },
-    {
-      "glob": "packages/3-targets/mongo/1-target/src/exports/pack.ts",
-      "domain": "extensions",
-      "layer": "targets",
-      "plane": "shared"
-    },
-    {
-      "glob": "packages/3-targets/mongo/1-target/src/exports/runtime.ts",
-      "domain": "extensions",
-      "layer": "targets",
-      "plane": "runtime"
-    },
-    {
-      "glob": "packages/3-targets/mongo/2-adapter/src/core/**",
-      "domain": "targets",
-      "layer": "adapters",
-      "plane": "shared"
-    },
-    {
-      "glob": "packages/3-targets/mongo/2-adapter/src/exports/control.ts",
-      "domain": "targets",
-      "layer": "adapters",
-      "plane": "migration"
-    },
-    {
-      "glob": "packages/3-targets/mongo/2-adapter/src/exports/index.ts",
-      "domain": "targets",
-      "layer": "adapters",
-      "plane": "runtime"
-    },
-    {
-      "glob": "packages/3-targets/mongo/2-adapter/src/exports/runtime.ts",
-      "domain": "targets",
-      "layer": "adapters",
-      "plane": "runtime"
-    },
-    {
-      "glob": "packages/3-targets/mongo/3-driver/**",
-      "domain": "targets",
-      "layer": "drivers",
-      "plane": "runtime"
     }
   ],
   "rules": {
