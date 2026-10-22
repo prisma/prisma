@@ -24,6 +24,7 @@ import {
   emptyRoot,
   makeContract,
   planFor,
+  planTrees,
   rootOf,
   type TableSpec,
 } from './node-issue-planner-fixtures';
@@ -186,6 +187,8 @@ describe('the convert and backfill strategies compare by data type', () => {
     codecHooks: new Map(),
     types: postgresTypeLookups,
     schema: undefined as never,
+    ...planTrees(),
+    allIssues: [],
     policy: { allowedOperationClasses: ['additive', 'widening', 'destructive', 'data'] },
     frameworkComponents: postgresTypeComponents,
     statementColumns,

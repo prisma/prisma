@@ -38,6 +38,7 @@ import {
   DropNativeEnumTypeCall,
   DropNotNullCall,
   DropPostgresRlsPolicyCall,
+  DropSchemaCall,
   DropTableCall,
   EnableRowLevelSecurityCall,
   RawSqlCall,
@@ -45,9 +46,11 @@ import {
   RenameConstraintCall,
   RenameIndexCall,
   RenamePostgresRlsPolicyCall,
+  RenameSchemaCall,
   RenameTableCall,
   SetDefaultCall,
   SetNotNullCall,
+  SetTableSchemaCall,
 } from '../../src/core/migrations/op-factory-call';
 import { renderCallsToTypeScript } from '../../src/core/migrations/render-typescript';
 import { PostgresRlsPolicy } from '../../src/core/postgres-rls-policy';
@@ -250,6 +253,9 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
     new RawSqlCall(rawOp),
     new CreateExtensionCall('citext'),
     new CreateSchemaCall('app'),
+    new SetTableSchemaCall('public', 'note', 'app'),
+    new RenameSchemaCall('app', 'application'),
+    new DropSchemaCall('legacy'),
     new CreateNativeEnumTypeCall('public', 'mood', ['happy']),
     new DropNativeEnumTypeCall('public', 'mood'),
     new AddNativeEnumValueCall('public', 'mood', 'grumpy'),

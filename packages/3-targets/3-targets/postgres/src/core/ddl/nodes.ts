@@ -119,6 +119,9 @@ export interface PostgresDdlVisitor<R> {
   dropIndex(node: PostgresDropIndex): R;
   alterIndexRename(node: PostgresAlterIndexRename): R;
   disableRowLevelSecurity(node: PostgresDisableRowLevelSecurity): R;
+  alterTableSetSchema(node: PostgresAlterTableSetSchema): R;
+  alterSchemaRename(node: PostgresAlterSchemaRename): R;
+  dropSchema(node: PostgresDropSchema): R;
 }
 
 export abstract class PostgresDdlNode extends DdlNode {
@@ -445,6 +448,62 @@ export class PostgresDisableRowLevelSecurity extends PostgresDdlNode {
   }
 }
 
+export class PostgresAlterTableSetSchema extends PostgresDdlNode {
+  readonly kind = 'alter-table-set-schema' as const;
+  /** Absent ⇔ unqualified (the unbound namespace). */
+  readonly schema: string | undefined;
+  readonly table: string;
+  readonly to: string;
+
+  constructor(options: {
+    readonly schema: string | undefined;
+    readonly table: string;
+    readonly to: string;
+  }) {
+    super();
+    this.schema = options.schema;
+    this.table = options.table;
+    this.to = options.to;
+    this.freeze();
+  }
+
+  override accept<R>(visitor: PostgresDdlVisitor<R>): R {
+    return visitor.alterTableSetSchema(this);
+  }
+}
+
+export class PostgresAlterSchemaRename extends PostgresDdlNode {
+  readonly kind = 'alter-schema-rename' as const;
+  readonly schema: string;
+  readonly to: string;
+
+  constructor(options: { readonly schema: string; readonly to: string }) {
+    super();
+    this.schema = options.schema;
+    this.to = options.to;
+    this.freeze();
+  }
+
+  override accept<R>(visitor: PostgresDdlVisitor<R>): R {
+    return visitor.alterSchemaRename(this);
+  }
+}
+
+export class PostgresDropSchema extends PostgresDdlNode {
+  readonly kind = 'drop-schema' as const;
+  readonly schema: string;
+
+  constructor(options: { readonly schema: string }) {
+    super();
+    this.schema = options.schema;
+    this.freeze();
+  }
+
+  override accept<R>(visitor: PostgresDdlVisitor<R>): R {
+    return visitor.dropSchema(this);
+  }
+}
+
 export type AnyPostgresDdlNode =
   | PostgresCreateTable
   | PostgresCreateSchema
@@ -457,4 +516,7 @@ export type AnyPostgresDdlNode =
   | PostgresCreateIndex
   | PostgresDropIndex
   | PostgresAlterIndexRename
-  | PostgresDisableRowLevelSecurity;
+  | PostgresDisableRowLevelSecurity
+  | PostgresAlterTableSetSchema
+  | PostgresAlterSchemaRename
+  | PostgresDropSchema;

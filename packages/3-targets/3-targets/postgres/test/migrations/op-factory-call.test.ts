@@ -50,13 +50,23 @@ describe('CreateTableCall', () => {
       relationKindAst({ schema: 'public', name: 'user', kinds: ['r', 'p'] }),
     ]);
     expect(op.precheck).toEqual([
-      { description: 'ensure table "user" does not exist', sql: 'LOWERED 2', params: ['p2'] },
+      {
+        description: 'ensure table "user" does not exist',
+        expectation: { expects: 'absent', object: 'table "user"' },
+        sql: 'LOWERED 2',
+        params: ['p2'],
+      },
     ]);
     expect(op.execute).toEqual([
       { description: 'create table "user"', sql: 'LOWERED 1', params: ['p1'] },
     ]);
     expect(op.postcheck).toEqual([
-      { description: 'verify table "user" exists', sql: 'LOWERED 3', params: ['p3'] },
+      {
+        description: 'verify table "user" exists',
+        expectation: { expects: 'present', object: 'table "user"' },
+        sql: 'LOWERED 3',
+        params: ['p3'],
+      },
     ]);
   });
 
@@ -112,6 +122,7 @@ describe('AddPrimaryKeyCall', () => {
     expect(op.precheck).toEqual([
       {
         description: 'ensure primary key "user_pkey" does not exist',
+        expectation: { expects: 'absent', object: 'primary key "user_pkey" on "user"' },
         sql: 'LOWERED 1',
         params: ['p1'],
       },

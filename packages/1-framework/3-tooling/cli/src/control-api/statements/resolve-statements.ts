@@ -104,12 +104,15 @@ interface ResolutionState {
   readonly originOfRenamedModel: Map<string, ModelCoordinate>;
   /** The origin field of each renamed field, keyed by the field as the destination names it. */
   readonly originOfRenamedField: Map<string, FieldCoordinate>;
+  /** The origin id of each renamed namespace, keyed by its destination id. */
+  readonly originOfRenamedNamespace: Map<string, string>;
   readonly renamedFrom: Set<string>;
   readonly renamedTo: Set<string>;
   /** Each field a convert or backfill statement names, keyed by its verb and the field. */
   readonly fieldStatements: Set<string>;
 }
 
+const NAMESPACE_RENAMES = 'namespace';
 const MODEL_RENAMES = 'model';
 const FIELD_RENAMES = 'field';
 const LISTED_LIMIT = 20;
@@ -216,6 +219,12 @@ function lookupModelInNamespace(
   };
 }
 
+function modelNames(contract: NamedContract): readonly string[] {
+  return Object.entries(contract.contract.domain.namespaces).flatMap(([id, namespace]) =>
+    Object.keys(namespace.models).map((model) => displayName(id, model)),
+  );
+}
+
 function lookupModel(
   contract: NamedContract,
   namespaceId: string | undefined,
@@ -256,12 +265,11 @@ function lookupModel(
   if (Object.values(namespaces).some((namespace) => hasValueObject(namespace, name))) {
     return { kind: 'refused', ...valueObjectRefusal(name) };
   }
-  const models = Object.entries(namespaces).flatMap(([id, namespace]) =>
-    Object.keys(namespace.models).map((model) => displayName(id, model)),
-  );
   return {
     kind: 'missing',
-    ...missing(`the ${contract.name} contract has no model "${name}" (models: ${listed(models)})`),
+    ...missing(
+      `the ${contract.name} contract has no model "${name}" (models: ${listed(modelNames(contract))})`,
+    ),
   };
 }
 
@@ -301,8 +309,12 @@ function originCounterpart(
   state: ResolutionState,
   destinationModel: ModelCoordinate,
 ): FoundModel | undefined {
+  const namespaceOrigin = state.originOfRenamedNamespace.get(destinationModel.namespaceId);
   const coordinate =
-    state.originOfRenamedModel.get(qualifiedModel(destinationModel)) ?? destinationModel;
+    state.originOfRenamedModel.get(qualifiedModel(destinationModel)) ??
+    (namespaceOrigin === undefined
+      ? destinationModel
+      : { namespaceId: asNamespaceId(namespaceOrigin), model: destinationModel.model });
   const model = modelAt(state.origin.contract, coordinate);
   return model === undefined ? undefined : { coordinate, model };
 }
@@ -695,11 +707,177 @@ function oldSideRefusal(
   return unresolved(statement, refusal);
 }
 
+function namespacesOf(contract: NamedContract): readonly string[] {
+  return Object.keys(contract.contract.domain.namespaces).filter(
+    (id) => id !== UNBOUND_NAMESPACE_ID,
+  );
+}
+
+/**
+ * The namespace reading of a statement with one name on each side: `undefined` when the old name
+ * is no namespace of the origin contract, so the statement is not about a namespace.
+ */
+function readNamespaceRename(
+  state: ResolutionState,
+  from: string,
+  to: string,
+): Result<{ readonly from: string; readonly to: string }, Refusal> | undefined {
+  if (!namespacesOf(state.origin).includes(from)) return undefined;
+  if (namespacesOf(state.destination).includes(from)) {
+    return notOk(
+      missing(
+        `namespace "${from}" still exists in the destination contract, so it was not renamed`,
+      ),
+    );
+  }
+  const destinationNamespaces = namespacesOf(state.destination);
+  if (!destinationNamespaces.includes(to)) {
+    return notOk(
+      missing(
+        `the destination contract has no namespace "${to}" (namespaces: ${listed(destinationNamespaces)})`,
+      ),
+    );
+  }
+  if (namespacesOf(state.origin).includes(to)) {
+    return notOk(
+      missing(
+        `namespace "${to}" already exists in the origin contract, so it cannot be the new name of a namespace`,
+      ),
+    );
+  }
+  return ok({ from, to });
+}
+
+function resolveNamespaceRename(
+  state: ResolutionState,
+  statement: ParsedRename,
+  rename: { readonly from: string; readonly to: string },
+): Result<ResolvedMigrationStatement, CliStructuredError> {
+  const fromKey = `${NAMESPACE_RENAMES}:${rename.from}`;
+  const toKey = `${NAMESPACE_RENAMES}:${rename.to}`;
+  if (state.renamedFrom.has(fromKey)) {
+    return notOk(
+      errorStatementInvalid(
+        statement,
+        `An earlier statement already renames namespace "${rename.from}".`,
+        REPEATED_NAME_FIX,
+      ),
+    );
+  }
+  if (state.renamedTo.has(toKey)) {
+    return notOk(
+      errorStatementInvalid(
+        statement,
+        `An earlier statement already renames a namespace to "${rename.to}".`,
+        REPEATED_NAME_FIX,
+      ),
+    );
+  }
+  state.renamedFrom.add(fromKey);
+  state.renamedTo.add(toKey);
+  state.originOfRenamedNamespace.set(rename.to, rename.from);
+  return ok({
+    kind: 'rename',
+    entity: 'namespace',
+    from: asNamespaceId(rename.from),
+    to: asNamespaceId(rename.to),
+  });
+}
+
+/** Whether an earlier or a later statement of the run renames the model with its namespace. */
+function renamedElsewhere(
+  state: ResolutionState,
+  later: readonly ParsedRename[],
+  model: ModelCoordinate,
+): boolean {
+  if (state.renamedFrom.has(`${MODEL_RENAMES}:${qualifiedModel(model)}`)) return true;
+  return later.some((candidate) => {
+    if (candidate.from.length !== 2) return false;
+    const reading = readSide(state, 'old', candidate.from);
+    return (
+      reading.ok &&
+      reading.value.entity === 'model' &&
+      qualifiedModel(reading.value.coordinate) === qualifiedModel(model)
+    );
+  });
+}
+
+/**
+ * A statement with one name on each side reads as a namespace rename or a model rename. Exactly
+ * one reading must resolve; `undefined` leaves the statement to the model reading.
+ */
+/**
+ * A one-name statement whose new name is a namespace of the destination, and whose old name is no
+ * namespace or model of the origin, as when a namespace rename is given again.
+ */
+function neitherNamespaceNorModel(
+  state: ResolutionState,
+  statement: ParsedRename,
+  from: string,
+  to: string,
+): Result<ResolvedMigrationStatement, CliStructuredError> | undefined {
+  if (!namespacesOf(state.destination).includes(to)) return undefined;
+  const fromModel = lookupModel(state.origin, undefined, from);
+  if (fromModel.kind !== 'missing') return undefined;
+  return notOk(
+    unresolved(
+      statement,
+      missing(
+        `the origin contract has no namespace or model "${from}" (namespaces: ${listed(namespacesOf(state.origin))}; models: ${listed(modelNames(state.origin))})`,
+      ),
+    ),
+  );
+}
+
+function resolveOneNameStatement(
+  state: ResolutionState,
+  statement: ParsedRename,
+  later: readonly ParsedRename[],
+  from: string,
+  to: string,
+): Result<ResolvedMigrationStatement, CliStructuredError> | undefined {
+  const asNamespace = readNamespaceRename(state, from, to);
+  if (asNamespace === undefined) return neitherNamespaceNorModel(state, statement, from, to);
+  const fromModel = readModel(state, 'old', undefined, from);
+  const toModel = readModel(state, 'new', undefined, to);
+  if (
+    asNamespace.ok &&
+    fromModel.ok &&
+    renamedElsewhere(state, later, fromModel.value.coordinate)
+  ) {
+    return resolveNamespaceRename(state, statement, asNamespace.value);
+  }
+  if (asNamespace.ok && fromModel.ok && toModel.ok) {
+    const oldModel = qualifiedModel(fromModel.value.coordinate);
+    const newModel = qualifiedModel(toModel.value.coordinate);
+    return notOk(
+      errorStatementUnresolved(
+        statement,
+        `"${statement.text}" reads both as a rename of namespace "${from}" to "${to}" and as a rename of model "${oldModel}" to "${newModel}".`,
+        `To rename the model, name it with its namespace: --${statement.verb} ${oldModel}:${newModel}. To rename both the namespace and the model, give both statements: --${statement.verb} ${oldModel}:${newModel} --${statement.verb} ${statement.text}.`,
+      ),
+    );
+  }
+  if (asNamespace.ok) return resolveNamespaceRename(state, statement, asNamespace.value);
+  if (fromModel.ok) return undefined;
+  return notOk(unresolved(statement, asNamespace.failure));
+}
+
 function resolveStatement(
   state: ResolutionState,
   statement: ParsedRename,
   later: readonly ParsedRename[],
 ): Result<ResolvedMigrationStatement, CliStructuredError> {
+  if (statement.from.length === 1 && statement.to.length === 1) {
+    const oneName = resolveOneNameStatement(
+      state,
+      statement,
+      later,
+      statement.from[0],
+      statement.to[0],
+    );
+    if (oneName !== undefined) return oneName;
+  }
   const from = readSide(state, 'old', statement.from);
   if (!from.ok) return notOk(oldSideRefusal(state, statement, later, from.failure));
   const to = readSide(state, 'new', statement.to);
@@ -843,6 +1021,23 @@ function resolveFieldStatement(
   return ok({ kind: verb, entity: 'field', field: coordinate });
 }
 
+/** A delete that names what a rename of the same run renames: both cannot happen. */
+function deleteOfRenamed(
+  deletes: readonly StatementText[],
+  renames: readonly ParsedRename[],
+): CliStructuredError | undefined {
+  for (const deleted of deletes) {
+    const renamed = renames.find((rename) => rename.from.join('.') === deleted.text);
+    if (renamed === undefined) continue;
+    return errorStatementInvalid(
+      deleted,
+      `--delete ${deleted.text} names what --rename ${renamed.text} renames in the same run, so it cannot also be deleted.`,
+      `Leave out --delete ${deleted.text} to keep the data under its new name, or leave out --rename ${renamed.text} to delete it.`,
+    );
+  }
+  return undefined;
+}
+
 /**
  * Resolves the statements a user gave against the origin and destination contracts. Renames
  * resolve first, in the order given, so a convert or backfill statement can name a renamed field
@@ -854,12 +1049,14 @@ export function resolveStatements(
   input: ResolveStatementsInput,
 ): Result<readonly ResolvedMigrationStatement[], CliStructuredError> {
   const renames: { readonly index: number; readonly statement: ParsedRename }[] = [];
+  const deletes: StatementText[] = [];
   const fieldStatements: { readonly index: number; readonly statement: ParsedFieldStatement }[] =
     [];
   for (const [index, entry] of input.statements.entries()) {
     if (entry.verb === 'delete' || entry.verb === 'allow') {
       const statement = parseConsentStatement({ ...entry, verb: entry.verb });
       if (!statement.ok) return statement;
+      if (entry.verb === 'delete') deletes.push(entry);
       continue;
     }
     if (input.origin.kind === 'missing') {
@@ -881,12 +1078,15 @@ export function resolveStatements(
     destination: { name: 'destination', contract: input.destination },
     originOfRenamedModel: new Map(),
     originOfRenamedField: new Map(),
+    originOfRenamedNamespace: new Map(),
     renamedFrom: new Set(),
     renamedTo: new Set(),
     fieldStatements: new Set(),
   };
   const resolved: { readonly index: number; readonly statement: ResolvedMigrationStatement }[] = [];
   const parsedRenames = renames.map(({ statement }) => statement);
+  const contradicted = deleteOfRenamed(deletes, parsedRenames);
+  if (contradicted !== undefined) return notOk(contradicted);
   for (const [position, { index, statement }] of renames.entries()) {
     const result = resolveStatement(state, statement, parsedRenames.slice(position + 1));
     if (!result.ok) return result;

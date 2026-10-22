@@ -7,17 +7,15 @@ import type {
   MigrationSubject,
   MigrationTemporaryValue,
   ModelCoordinate,
-  ResolvedMigrationStatement,
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SqlModelStorage } from '@internal/sql-contract/types';
 import { ifDefined } from '@internal/utils/defined';
 import { fieldOfColumn } from './field-of-column';
 import {
-  fieldRenameStorageEffect,
   isSqlModelStorage,
-  modelRenameStorageEffect,
   type TableRenameByHand,
+  type WorkingSchemaOrigins,
 } from './statement-planning';
 
 /**
@@ -77,7 +75,7 @@ export interface CallSubjects {
   /** What the call's operation loses, one entry per model, field or storage name, and how. */
   readonly dataLoss: readonly (SubjectStorage & { readonly loss: MigrationDataLossKind })[];
   /** What the call's operation changes access to, and whether it widens it. */
-  readonly accessWidening: readonly (SubjectStorage & { readonly widens: boolean })[];
+  readonly accessChanges: readonly (SubjectStorage & { readonly widens: boolean })[];
   /** The new required columns the call's operation gives a temporary value in existing rows, and the value. */
   readonly temporaryValues: readonly TemporaryColumnValue[];
 }
@@ -92,46 +90,9 @@ export interface TemporaryColumnValue {
 interface SubjectContext {
   readonly fromContract: ContractWithDomain | null;
   readonly contract: ContractWithDomain;
-  /** The statements the plan applied: a target names what their renames renamed the new way. */
-  readonly statements: readonly ResolvedMigrationStatement[];
+  /** Where the plan's statements put the origin's tables and columns. */
+  readonly origins: WorkingSchemaOrigins;
   readonly byHand: TableRenameByHand;
-}
-
-function originTable(
-  context: SubjectContext & { readonly fromContract: ContractWithDomain },
-  namespaceId: string,
-  table: string,
-): string {
-  for (const statement of context.statements) {
-    if (statement.kind !== 'rename' || statement.entity !== 'model') continue;
-    const effect = modelRenameStorageEffect(statement, context.fromContract, context.contract);
-    if (!effect.ok || effect.value.kind !== 'renameTable') continue;
-    const { rename } = effect.value;
-    if (rename.namespaceId === namespaceId && rename.to === table) return rename.from;
-  }
-  return table;
-}
-
-function originColumn(
-  context: SubjectContext & { readonly fromContract: ContractWithDomain },
-  namespaceId: string,
-  table: string,
-  column: string,
-): string {
-  for (const statement of context.statements) {
-    if (statement.kind !== 'rename' || statement.entity !== 'field') continue;
-    const effect = fieldRenameStorageEffect(statement, context.fromContract, context.contract);
-    if (!effect.ok || effect.value.kind !== 'renameColumn') continue;
-    const rename = effect.value;
-    if (
-      rename.table.namespaceId === namespaceId &&
-      rename.table.table === table &&
-      rename.to === column
-    ) {
-      return rename.from;
-    }
-  }
-  return column;
 }
 
 interface StoringModel {
@@ -166,15 +127,16 @@ function subjectOf(target: SubjectStorage, context: SubjectContext): MigrationSu
   const storage: MigrationSubject = { kind: 'storage', name: target.storageName };
   const { fromContract } = context;
   if (target.table === undefined || fromContract === null) return storage;
-  const withOrigin = { ...context, fromContract };
-  const { namespaceId } = target.table;
-  const table = originTable(withOrigin, namespaceId, target.table.table);
-  const models = modelsStoring(fromContract, namespaceId, table);
+  const origin = context.origins.originTable({
+    namespaceId: target.table.namespaceId,
+    table: target.table.table,
+  });
+  const models = modelsStoring(fromContract, origin.namespaceId, origin.table);
   if (target.table.column === undefined) {
     const model = models.find(({ isRoot }) => isRoot) ?? models[0];
     return model === undefined ? storage : { kind: 'model', ...model.coordinate };
   }
-  const column = originColumn(withOrigin, namespaceId, table, target.table.column);
+  const column = context.origins.originColumn(origin, target.table.column);
   for (const model of [...models].sort((a, b) => Number(b.isRoot) - Number(a.isRoot))) {
     const field = Object.entries(model.fields).find(([, stored]) => stored.column === column)?.[0];
     if (field !== undefined) return { kind: 'field', ...model.coordinate, field };
@@ -206,7 +168,7 @@ function keepTableAdvice(
 }
 
 /**
- * The subject of each operation that loses data and each that widens access, at its position in
+ * The subject of each operation that loses data and each that changes access, at its position in
  * the plan. A subject is a model or a field of the origin contract when one stores it, found under
  * its origin name when a rename statement renamed its table or column earlier in the plan.
  */
@@ -215,7 +177,7 @@ export function subjectsOfCalls(
   context: SubjectContext,
 ): MigrationPlanSubjects {
   const dataLoss: MigrationDataLoss[] = [];
-  const accessWidening: MigrationAccessChange[] = [];
+  const accessChanges: MigrationAccessChange[] = [];
   const temporaryValues: MigrationTemporaryValue[] = [];
   let operationIndex = 0;
   for (const call of calls) {
@@ -239,8 +201,8 @@ export function subjectsOfCalls(
         ...ifDefined('keepDataAdvice', keepTableAdvice(target, subject, context)),
       });
     }
-    for (const target of call.accessWidening) {
-      accessWidening.push({
+    for (const target of call.accessChanges) {
+      accessChanges.push({
         operationIndex,
         subject: subjectOf(target, context),
         widens: target.widens,
@@ -248,5 +210,5 @@ export function subjectsOfCalls(
     }
     operationIndex += call.operationCount;
   }
-  return { dataLoss, accessWidening, temporaryValues };
+  return { dataLoss, accessChanges, temporaryValues };
 }

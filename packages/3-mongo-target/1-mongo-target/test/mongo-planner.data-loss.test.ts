@@ -97,7 +97,7 @@ function plan(
       (operation) => operation.label,
     ),
     dataLoss: result.dataLoss,
-    accessWidening: result.accessWidening,
+    accessChanges: result.accessChanges,
   };
 }
 
@@ -117,7 +117,7 @@ describe('MongoDB planner, data loss', () => {
           label: 'Drop collection events',
         },
       ],
-      accessWidening: [],
+      accessChanges: [],
     });
   });
 

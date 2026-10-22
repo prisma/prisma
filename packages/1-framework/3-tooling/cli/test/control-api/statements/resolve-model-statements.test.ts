@@ -55,7 +55,11 @@ describe('resolveStatements, model renames', () => {
     const destination = contractOf({ app: { models: { User: {}, Article: {} } } });
     const resolved = expectValue(resolve(['Post:Article', 'Profile:User'], origin, destination));
     expect(
-      resolved.map((statement) => (statement.kind === 'rename' ? statement.to.model : undefined)),
+      resolved.map((statement) =>
+        statement.kind === 'rename' && statement.entity === 'model'
+          ? statement.to.model
+          : undefined,
+      ),
     ).toEqual(['Article', 'User']);
   });
 

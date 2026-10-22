@@ -27,4 +27,9 @@ describe('sqliteSchemaTables', () => {
     expect(tables.namespacesWithTable('userProfile')).toEqual([UNBOUND_NAMESPACE_ID]);
     expect(tables.namespacesWithTable('ghost')).toEqual([]);
   });
+
+  it('has the unbound namespace only', () => {
+    expect(tables.hasNamespace(UNBOUND_NAMESPACE_ID)).toBe(true);
+    expect(tables.hasNamespace('billing')).toBe(false);
+  });
 });

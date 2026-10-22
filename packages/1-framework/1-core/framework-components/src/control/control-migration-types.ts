@@ -24,6 +24,7 @@ import type {
 import type { OperationContext } from './control-operation-results';
 import type {
   AppliedMigrationStatement,
+  MigrationPlanNamespaces,
   MigrationPlanSubjects,
   MigrationSubject,
   ResolvedMigrationStatement,
@@ -83,8 +84,8 @@ export interface MigrationMetadata {
  *   every value fails instead, so a tightened constraint is widening: `SET NOT NULL` fails on a
  *   NULL, and a MongoDB validator applies to later writes only. So are a rename, a relaxed
  *   constraint, a type change that keeps every value, and a drop of an object that holds no data,
- *   such as an index, a constraint, a default or a row-level-security policy. Dropping a policy or
- *   disabling row-level security widens who can read and write rows.
+ *   such as an index, a constraint or a default. An operation that changes who can read or write
+ *   data is asked about by `db update`.
  * - 'destructive': can lose rows or values: dropping a table, a column or a collection, or a type
  *   change that can change values.
  * - 'data': reads and writes rows, such as a backfill or a type conversion, as its author wrote.
@@ -323,6 +324,8 @@ export interface MigrationPlannerSuccessResult extends MigrationPlanSubjects {
   readonly warnings?: readonly MigrationPlannerConflict[];
   /** The statements the plan applied, one per statement it was given, in order. */
   readonly appliedStatements: readonly AppliedMigrationStatement[];
+  /** The namespaces the plan removes and adds; absent from a planner without namespaces. */
+  readonly namespaces?: MigrationPlanNamespaces;
 }
 
 /**
@@ -362,12 +365,24 @@ export interface MigrationRunnerSuccessValue {
   }>;
 }
 
+/**
+ * What a check states of the database: that the object is `absent` or `present`. `object` is
+ * display text, the object as a reader names it (`index "Item_state_idx"`); no code reads it to
+ * decide anything.
+ */
+export interface CheckExpectation {
+  readonly expects: 'absent' | 'present';
+  readonly object: string;
+}
+
 /** A check of an operation that did not hold: before the operation ran (`precheck`), or after it (`postcheck`). */
 export interface FailedCheck {
   readonly operationId: string;
   readonly phase: 'precheck' | 'postcheck';
   /** The check, as the operation describes it. */
   readonly description: string;
+  /** What the check states of the database, when it states an object's absence or presence. */
+  readonly expectation?: CheckExpectation;
 }
 
 /** A failed migration run: a structured error whose `message` is the summary. */
@@ -383,6 +398,12 @@ export interface MigrationRunnerFailureMeta {
    * {@link MigrationRunner.execute} processes multiple spaces.
    */
   readonly failingSpace?: string;
+  /**
+   * Whether the database is as it was before the failed apply: `true` when the runner rolled the
+   * apply back or failed before it changed anything, `false` when what it changed stays. Absent when
+   * the runner does not say.
+   */
+  readonly databaseUnchanged?: boolean;
   /** The check that did not hold, when a precheck or postcheck failed. */
   readonly failedCheck?: FailedCheck;
   /** The type change that failed, when the failed step converts a column's values. */
@@ -392,6 +413,8 @@ export interface MigrationRunnerFailureMeta {
    * step fail: first the field of the failed step, then the others of the same migration.
    */
   readonly rowsWithoutValue?: readonly RowsWithoutValue[];
+  /** The objects in the database that kept the failed operation from running, such as a view on a table to drop. */
+  readonly blockingObjects?: readonly BlockingObject[];
   /** The differences the schema check after apply found, when that check failed. */
   readonly schemaIssues?: readonly SchemaDiffIssue[];
   /** Further facts for the code, such as `sqlState` or the marker hashes. */
@@ -424,6 +447,38 @@ export function withFailingSpace<TCode extends MigrationRunnerFailure['code']>(
   const attributed = migrationRunnerFailure(failure.code, failure.message, {
     why: failure.why,
     meta: { ...failure.meta, failingSpace },
+    ...ifDefined('cause', failure.cause),
+  });
+  if (failure.stack !== undefined) attributed.stack = failure.stack;
+  return attributed;
+}
+
+/** An object in the database, named as the database names it, that keeps an operation from running. */
+export interface BlockingObject {
+  /** What the object is, in the database's words, such as `view` or `sequence`. */
+  readonly kind: string;
+  readonly name: string;
+}
+
+function asSentence(text: string): string {
+  const trimmed = text.trimEnd();
+  return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+}
+
+/**
+ * The same failure, saying whether the database is as it was before the failed apply, in its meta
+ * and at the end of its why.
+ */
+export function withDatabaseUnchanged<TCode extends MigrationRunnerFailure['code']>(
+  failure: MigrationRunnerFailure & { readonly code: TCode },
+  databaseUnchanged: boolean,
+): MigrationRunnerFailure & { readonly code: TCode } {
+  const outcome = databaseUnchanged
+    ? 'The failed apply changed nothing.'
+    : 'The operations that ran before the failure stay applied.';
+  const attributed = migrationRunnerFailure(failure.code, failure.message, {
+    why: failure.why === undefined ? outcome : `${asSentence(failure.why)} ${outcome}`,
+    meta: { ...failure.meta, databaseUnchanged },
     ...ifDefined('cause', failure.cause),
   });
   if (failure.stack !== undefined) attributed.stack = failure.stack;
@@ -557,6 +612,8 @@ export interface SchemaOwnership {
    * entity at this coordinate.
    */
   declaresEntity(coordinate: SchemaEntityCoordinate): boolean;
+  /** The ids of the contract spaces whose contracts declare the storage namespace, the planned one included. */
+  namespaceDeclaringSpaces(namespaceId: string): readonly string[];
 }
 
 /**

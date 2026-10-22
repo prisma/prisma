@@ -8,8 +8,11 @@ import {
   subjectsOfCalls,
   unknownCallNames,
 } from '../src/core/migrations/operation-subjects';
-import type { TableRenameByHand } from '../src/core/migrations/statement-planning';
-import { contractOf, convertField, renameField, renameModel } from './statement-fixtures';
+import {
+  NO_RENAMED_ORIGINS,
+  type TableRenameByHand,
+} from '../src/core/migrations/statement-planning';
+import { contractOf } from './statement-fixtures';
 
 const app = asNamespaceId('app');
 
@@ -34,7 +37,7 @@ function losing(...targets: readonly SubjectStorage[]): CallSubjects {
     operationCount: 1,
     label: 'Drop',
     dataLoss: targets.map((target) => ({ ...target, loss: 'drop' })),
-    accessWidening: [],
+    accessChanges: [],
     temporaryValues: [],
   };
 }
@@ -43,7 +46,7 @@ const unchanged: CallSubjects = {
   operationCount: 1,
   label: 'Unchanged',
   dataLoss: [],
-  accessWidening: [],
+  accessChanges: [],
   temporaryValues: [],
 };
 
@@ -59,7 +62,7 @@ describe('subjectsOfCalls', () => {
         fromContract: origin,
         contract: contractOf({ User: { table: 'user', fields: { id: 'id' } } }),
         byHand,
-        statements: [],
+        origins: NO_RENAMED_ORIGINS,
       }),
     ).toEqual({
       dataLoss: [
@@ -76,7 +79,7 @@ describe('subjectsOfCalls', () => {
           label: 'Drop',
         },
       ],
-      accessWidening: [],
+      accessChanges: [],
       temporaryValues: [],
     });
   });
@@ -89,12 +92,12 @@ describe('subjectsOfCalls', () => {
             operationCount: 3,
             label: 'Rename',
             dataLoss: [],
-            accessWidening: [],
+            accessChanges: [],
             temporaryValues: [],
           },
           losing(table('legacy')),
         ],
-        { fromContract: origin, contract: origin, byHand, statements: [] },
+        { fromContract: origin, contract: origin, byHand, origins: NO_RENAMED_ORIGINS },
       ).dataLoss,
     ).toEqual([
       {
@@ -118,10 +121,12 @@ describe('subjectsOfCalls', () => {
         fromContract: from,
         contract: destination,
         byHand,
-        statements: [
-          renameModel('User', 'Account'),
-          renameField('User', 'name', 'displayName', 'Account'),
-        ],
+        origins: {
+          originTable: (current) =>
+            current.table === 'account' ? { namespaceId: app, table: 'user' } : current,
+          originColumn: (origin, column) =>
+            origin.table === 'user' && column === 'display_name' ? 'full_name' : column,
+        },
       }).dataLoss,
     ).toEqual([
       {
@@ -141,11 +146,11 @@ describe('subjectsOfCalls', () => {
             operationCount: 1,
             label: 'Alter type',
             dataLoss: [{ ...column('user', 'full_name'), loss: 'typeChange' }],
-            accessWidening: [],
+            accessChanges: [],
             temporaryValues: [],
           },
         ],
-        { fromContract: origin, contract: origin, byHand, statements: [] },
+        { fromContract: origin, contract: origin, byHand, origins: NO_RENAMED_ORIGINS },
       ).dataLoss,
     ).toEqual([
       {
@@ -166,7 +171,7 @@ describe('subjectsOfCalls', () => {
         fromContract: origin,
         contract: destination,
         byHand,
-        statements: [convertField('User', 'name')],
+        origins: NO_RENAMED_ORIGINS,
       }).dataLoss.map(({ subject }) => subject),
     ).toEqual([{ kind: 'field', namespaceId: app, model: 'User', field: 'name' }]);
   });
@@ -179,7 +184,7 @@ describe('subjectsOfCalls', () => {
           fromContract: origin,
           contract: origin,
           byHand,
-          statements: [],
+          origins: NO_RENAMED_ORIGINS,
         },
       ).dataLoss,
     ).toEqual([
@@ -204,7 +209,7 @@ describe('subjectsOfCalls', () => {
         fromContract: null,
         contract: origin,
         byHand,
-        statements: [],
+        origins: NO_RENAMED_ORIGINS,
       }).dataLoss,
     ).toEqual([
       {
@@ -228,7 +233,7 @@ describe('subjectsOfCalls', () => {
         fromContract: origin,
         contract: origin,
         byHand,
-        statements: [],
+        origins: NO_RENAMED_ORIGINS,
       }).dataLoss,
     ).toEqual([
       {
@@ -240,7 +245,7 @@ describe('subjectsOfCalls', () => {
     ]);
   });
 
-  it('lists access-widening operations with the model of their table', () => {
+  it('lists access changes with the model of their table', () => {
     expect(
       subjectsOfCalls(
         [
@@ -249,15 +254,15 @@ describe('subjectsOfCalls', () => {
             operationCount: 1,
             label: 'Drop policy',
             dataLoss: [],
-            accessWidening: [{ ...table('user'), widens: false }],
+            accessChanges: [{ ...table('user'), widens: false }],
             temporaryValues: [],
           },
         ],
-        { fromContract: origin, contract: origin, byHand, statements: [] },
+        { fromContract: origin, contract: origin, byHand, origins: NO_RENAMED_ORIGINS },
       ),
     ).toEqual({
       dataLoss: [],
-      accessWidening: [
+      accessChanges: [
         {
           operationIndex: 1,
           subject: { kind: 'model', namespaceId: app, model: 'User' },
@@ -281,7 +286,7 @@ describe('subjectsOfCalls', () => {
           fromContract: sharing,
           contract: sharing,
           byHand,
-          statements: [],
+          origins: NO_RENAMED_ORIGINS,
         }).dataLoss.map(({ subject }) => subject),
       ).toEqual([
         { kind: 'model', namespaceId: app, model: 'User' },
@@ -295,7 +300,7 @@ describe('subjectsOfCalls', () => {
           fromContract: sharing,
           contract: sharing,
           byHand,
-          statements: [],
+          origins: NO_RENAMED_ORIGINS,
         }).dataLoss.map(({ subject }) => subject),
       ).toEqual([{ kind: 'field', namespaceId: app, model: 'Admin', field: 'level' }]);
     });
@@ -326,7 +331,7 @@ describe('fieldEventStorage', () => {
           fieldEventStorage({ namespaceId: 'app', tableName: 'user', columnName: 'nickname' }),
         ),
       ],
-      { fromContract: origin, contract: origin, byHand, statements: [] },
+      { fromContract: origin, contract: origin, byHand, origins: NO_RENAMED_ORIGINS },
     );
     expect(subjects.dataLoss.map(({ subject }) => subject)).toEqual([
       { kind: 'field', namespaceId: app, model: 'User', field: 'name' },
@@ -349,7 +354,7 @@ describe('subjectsOfCalls for a table whose model keeps its name', () => {
       subjectsOfCalls([losing(table('profiles'))], {
         fromContract: from,
         contract: to,
-        statements: [],
+        origins: NO_RENAMED_ORIGINS,
         byHand,
       }).dataLoss,
     ).toEqual([
@@ -371,7 +376,7 @@ describe('subjectsOfCalls for a table whose model keeps its name', () => {
       subjectsOfCalls([losing(table('profiles'))], {
         fromContract: from,
         contract: to,
-        statements: [],
+        origins: NO_RENAMED_ORIGINS,
         byHand,
       }).dataLoss,
     ).toEqual([
@@ -395,7 +400,7 @@ describe('subjectsOfCalls for a table whose model keeps its name', () => {
       subjectsOfCalls([losing(table('profiles'))], {
         fromContract: withPeople,
         contract: to,
-        statements: [],
+        origins: NO_RENAMED_ORIGINS,
         byHand,
       }).dataLoss.map(({ keepDataAdvice }) => keepDataAdvice),
     ).toEqual([undefined]);
