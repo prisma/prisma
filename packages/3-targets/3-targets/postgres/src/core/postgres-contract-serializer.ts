@@ -6,6 +6,7 @@ import {
   type AuthoringEntityContext,
   type AuthoringEntityTypeFactoryOutput,
   type AuthoringEntityTypeNamespace,
+  assembleDataTypeSupport,
   isAuthoringEntityTypeDescriptor,
 } from '@internal/framework-components/authoring';
 import { requiredSchemaKeys } from '@internal/framework-components/codec';
@@ -24,7 +25,7 @@ import { postgresAuthoringEntityTypes } from './authoring';
 import { PG_INT_CODEC_ID, PG_TEXT_CODEC_ID } from './codec-ids';
 import { createPostgresBuiltinCodecLookup } from './codec-registry';
 import { postgresDataTypeEntries } from './data-type-entries';
-import { createPostgresBuiltinDataTypeLookup } from './data-types';
+import { postgresDataTypes, postgresTextDataTypes } from './data-types';
 import {
   nativeEnumEntityKind,
   policyEntityKind,
@@ -36,18 +37,21 @@ import { postgresCodecTraitsOf } from './postgres-codec-traits';
 import { PostgresSchema } from './postgres-schema';
 
 const POSTGRES_CODEC_LOOKUP = createPostgresBuiltinCodecLookup();
-const POSTGRES_DATA_TYPE_LOOKUP = createPostgresBuiltinDataTypeLookup();
 
 const POSTGRES_AUTHORING_CTX: AuthoringEntityContext = {
   family: 'sql',
   target: 'postgres',
   codecLookup: POSTGRES_CODEC_LOOKUP,
-  dataTypeLookup: POSTGRES_DATA_TYPE_LOOKUP,
-  dataTypes: {
-    entries: postgresDataTypeEntries(),
-    lookup: POSTGRES_DATA_TYPE_LOOKUP,
-    dataTypeOfCodec: (codecId) => POSTGRES_CODEC_LOOKUP.descriptorFor(codecId)?.dataType,
-  },
+  dataTypes: assembleDataTypeSupport(
+    [
+      {
+        id: 'postgres',
+        dataTypes: postgresDataTypes,
+        authoring: { dataTypes: postgresDataTypeEntries(), textDataTypes: postgresTextDataTypes },
+      },
+    ],
+    (codecId) => POSTGRES_CODEC_LOOKUP.descriptorFor(codecId)?.dataType,
+  ).support,
   enumInferenceCodecs: { text: PG_TEXT_CODEC_ID, int: PG_INT_CODEC_ID },
 };
 
