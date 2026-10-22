@@ -46,7 +46,10 @@ import {
 import { closeQuietly } from '../../utils/command-helpers';
 import { RECORDED_CONTRACT_REF_FORMS } from '../../utils/contract-ref-forms';
 import { contractValidationMeta } from '../../utils/contract-validation-meta';
-import type { MigrationCommandResult } from '../../utils/formatters/migrations';
+import type {
+  MigrationCommandResult,
+  RemovedNamespaceJson,
+} from '../../utils/formatters/migrations';
 import { type CliInvocation, cliCommand, cliInvocation } from '../../utils/printed-command';
 import { defineOrmCommand } from '../define-command';
 import { dbFlag } from '../flags';
@@ -138,8 +141,24 @@ function subjectEntryJson(entry: AskedSubject, answeredBy: ConsentStatement | un
     answered: answeredBy !== undefined,
     ...ifDefined('answeredBy', answeredBy),
     ...ifDefined('removedNamespace', entry.removedNamespace),
-    ...ifDefined('addedNamespaces', entry.addedNamespaces),
   };
+}
+
+/** The namespaces the plan removes, each with the `--delete` of it that answers its questions, if one does. */
+function removedNamespacesJson(
+  value: DbUpdateSuccess,
+  given: readonly StatementText[],
+): readonly RemovedNamespaceJson[] {
+  const answered = answeredByFlags(value.dataLoss, 'delete', given);
+  return (value.namespaces?.removed ?? []).map((namespaceId) => ({
+    namespaceId,
+    ...ifDefined(
+      'answeredBy',
+      answered.some((statement) => statement?.text === namespaceId)
+        ? { verb: 'delete' as const, text: namespaceId }
+        : undefined,
+    ),
+  }));
 }
 
 /** The data-loss entries a dry run lists, each with how it loses data and whether a flag answers it. */
@@ -207,6 +226,8 @@ function updateDocument(inputs: {
       ? {
           dataLoss: dataLossEntriesJson(value.dataLoss, inputs.statements),
           accessChanges: accessEntriesJson(value.accessChanges, inputs.statements),
+          removedNamespaces: removedNamespacesJson(value, inputs.statements),
+          addedNamespaces: value.namespaces?.added ?? [],
         }
       : {}),
     ...(inputs.plannerWarnings.length > 0 ? { warnings: inputs.plannerWarnings } : {}),

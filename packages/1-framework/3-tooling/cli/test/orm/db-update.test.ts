@@ -395,6 +395,7 @@ describe('db update --rename', () => {
             removedNamespace: 'billing',
           },
         ],
+        namespaces: { removed: ['billing'], added: [] },
       }),
     );
     const args = ['db', 'update', '--dry-run', '--delete', 'billing'];
@@ -428,6 +429,10 @@ describe('db update --rename', () => {
           removedNamespace: 'billing',
         },
       ],
+      removedNamespaces: [
+        { namespaceId: 'billing', answeredBy: { verb: 'delete', text: 'billing' } },
+      ],
+      addedNamespaces: [],
     });
   });
 
@@ -442,15 +447,24 @@ describe('db update --rename', () => {
             subject: invoice,
             text: 'billing.Invoice',
             removedNamespace: 'billing',
-            addedNamespaces: ['finance'],
           },
         ],
+        namespaces: { removed: ['billing'], added: ['finance'] },
       }),
     );
 
     const human = await harness().run(['db', 'update', '--dry-run'], {
       cwd: projectDir,
       isTty: { stdout: true },
+    });
+    const json = await harness().run(['db', 'update', '--dry-run', '--json'], { cwd: projectDir });
+
+    expect(json.presented?.data).toMatchObject({
+      removedNamespaces: [{ namespaceId: 'billing' }],
+      addedNamespaces: ['finance'],
+    });
+    expect(json.presented?.data).toMatchObject({
+      dataLoss: [expect.not.objectContaining({ addedNamespaces: expect.anything() })],
     });
 
     expect(human.presented?.presentation.human).toContainEqual({

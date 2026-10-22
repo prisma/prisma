@@ -20,6 +20,7 @@ import type {
   MigrationAccessChange,
   MigrationDataLoss,
   MigrationOperationSubject,
+  MigrationPlanNamespaces,
   MigrationPlannerConflict,
   MigrationPlanOperation,
   MigrationPlanSubjects,
@@ -440,8 +441,6 @@ export interface AskedSubject extends MigrationOperationSubject {
   readonly text: string;
   /** The subject's namespace when the destination removed it: a `--delete` of it answers the question. */
   readonly removedNamespace?: string;
-  /** The namespaces the destination adds, any of which a rename of the removed namespace may name. */
-  readonly addedNamespaces?: readonly string[];
 }
 
 /** An operation an apply asks about because it loses its subject's data. */
@@ -456,6 +455,8 @@ export interface AskedAccessChange extends AskedSubject, MigrationAccessChange {
 export interface DbUpdateSuccess
   extends MigrationPlanSubjects<AskedDataLoss, AskedAccessChange, TemporaryValueReport> {
   readonly mode: 'plan' | 'apply';
+  /** The namespaces the application space's plan removes and adds, when its planner reports them. */
+  readonly namespaces?: MigrationPlanNamespaces;
   readonly plan: {
     readonly operations: ReadonlyArray<{
       readonly id: string;

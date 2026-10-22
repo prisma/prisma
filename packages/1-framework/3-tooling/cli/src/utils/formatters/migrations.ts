@@ -59,8 +59,12 @@ export interface PlannedSubjectJson {
   readonly answeredBy?: { readonly verb: 'delete' | 'allow'; readonly text: string };
   /** The subject's namespace when the destination removed it: `--delete` of it answers the question. */
   readonly removedNamespace?: string;
-  /** The namespaces the destination adds, any of which a rename of the removed namespace may name. */
-  readonly addedNamespaces?: readonly string[];
+}
+
+/** A namespace the plan removes, as a dry run lists it, with the `--delete` given for it, if any. */
+export interface RemovedNamespaceJson {
+  readonly namespaceId: string;
+  readonly answeredBy?: { readonly verb: 'delete'; readonly text: string };
 }
 
 export interface MigrationCommandResult {
@@ -108,6 +112,10 @@ export interface MigrationCommandResult {
   readonly dataLoss?: readonly PlannedSubjectJson[];
   /** `db update --dry-run` only: the operations an apply would ask about because they change access. */
   readonly accessChanges?: readonly PlannedSubjectJson[];
+  /** `db update --dry-run` only: the namespaces the plan removes, each answered by a `--delete` of it. */
+  readonly removedNamespaces?: readonly RemovedNamespaceJson[];
+  /** `db update --dry-run` only: the namespaces the destination adds, which a rename of a removed one may name. */
+  readonly addedNamespaces?: readonly string[];
   readonly advancedRef?: { readonly name: string; readonly hash: string } | null;
   readonly plannedAdvanceRef?: { readonly name: string; readonly hash: string } | null;
   readonly summary: string;

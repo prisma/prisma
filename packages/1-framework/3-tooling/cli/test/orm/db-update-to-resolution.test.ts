@@ -293,6 +293,8 @@ describe('db update --to bundle resolution', () => {
       appliedStatements: [],
       dataLoss: [],
       accessChanges: [],
+      removedNamespaces: [],
+      addedNamespaces: [],
       advancedRef: null,
       plannedAdvanceRef: { name: 'db', hash: HASH_B },
       summary: 'Plan ready',

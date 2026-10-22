@@ -439,6 +439,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
           dataLoss: asked(run.subjects.dataLoss),
           accessChanges: asked(run.subjects.accessChanges),
           temporaryValues: reportTemporaryValues(run.subjects.temporaryValues, contract),
+          ...ifDefined('namespaces', run.namespaces),
         }
       : undefined;
 

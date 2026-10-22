@@ -5,7 +5,6 @@ import { statementFlag } from '../../control-api/statements/statement-flag';
 import type { PerSpaceExecutionEntry } from '../../control-api/types';
 import {
   type MigrationCommandResult,
-  type PlannedSubjectJson,
   previewBlockHeader,
   renderPreviewStatement,
 } from '../../utils/formatters/migrations';
@@ -169,30 +168,17 @@ function applySummaryText(result: MigrationCommandResult): string {
   return `Applied ${executed} operation(s)${across}`;
 }
 
-/** For each namespace the destination removed, the answers that answer all of its questions. */
-function namespaceAnswerLines(
-  entries: readonly PlannedSubjectJson[],
-): readonly { label: string }[] {
-  const byNamespace = new Map<string, PlannedSubjectJson[]>();
-  for (const entry of entries) {
-    if (entry.removedNamespace === undefined) continue;
-    byNamespace.set(entry.removedNamespace, [
-      ...(byNamespace.get(entry.removedNamespace) ?? []),
-      entry,
-    ]);
-  }
-  return [...byNamespace].map(([namespace, ofNamespace]) => {
-    const deleteFlag = statementFlag({ verb: 'delete', text: namespace });
-    const answered = ofNamespace.some(
-      ({ answeredBy }) => answeredBy?.verb === 'delete' && answeredBy.text === namespace,
-    );
-    const targets = ofNamespace[0]?.addedNamespaces ?? [];
+/** For each namespace the plan removes, the answers that answer all of its questions. */
+function namespaceAnswerLines(result: MigrationCommandResult): readonly { label: string }[] {
+  const added = result.addedNamespaces ?? [];
+  return (result.removedNamespaces ?? []).map(({ namespaceId, answeredBy }) => {
+    const deleteFlag = statementFlag({ verb: 'delete', text: namespaceId });
     const rename =
-      targets.length === 0
+      added.length === 0
         ? ''
-        : `, or ${targets.map((target) => statementFlag({ verb: 'rename', text: `${namespace}:${target}` })).join(' or ')} if it was renamed`;
+        : `, or ${added.map((target) => statementFlag({ verb: 'rename', text: `${namespaceId}:${target}` })).join(' or ')} if it was renamed`;
     return {
-      label: `every question about namespace "${namespace}": ${deleteFlag}${rename}${answered ? ' (answered)' : ''}`,
+      label: `every question about namespace "${namespaceId}": ${deleteFlag}${rename}${answeredBy === undefined ? '' : ' (answered)'}`,
     };
   });
 }
@@ -219,7 +205,7 @@ function questionBlocks(result: MigrationCommandResult): readonly Block[] {
             ...entries.map(({ entry, verb }) => ({
               label: `${result.plan.operations[entry.operationIndex]?.label ?? 'an operation'}: ${statementFlag({ verb, text: entry.text })}${entry.answered ? ' (answered)' : ''}`,
             })),
-            ...namespaceAnswerLines(result.dataLoss ?? []),
+            ...namespaceAnswerLines(result),
           ],
         },
       ],
