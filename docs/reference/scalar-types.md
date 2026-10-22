@@ -66,6 +66,26 @@ Two limitations to know about:
 
 These are the current names. The Postgres and SQLite rename project will change several of them to the target's own type names and update this table.
 
+The date and time types have two layers ([ADR 279](../architecture%20docs/adrs/ADR%20279%20-%20Convenience%20date%20and%20time%20types%20choose%20an%20explicit%20type%20from%20their%20arguments.md)). Each explicit type in the table below names one column type and one kind of value. The convenience types `DateTime`, `Date`, `Time` and `Duration` are named for what a field means, and each becomes one explicit type, chosen by its optional `value` and `column` arguments; `precision` is passed on to the explicit type. The contract stores only the explicit type, so `DateTime(value: temporal)` and `TimestamptzTemporal` emit the same contract.
+
+| Convenience type | `value` | `column` | Becomes |
+| --- | --- | --- | --- |
+| `DateTime(value?, column?, precision?)` | `jsDate` (default) | `timestamptz` (default) | `TimestamptzJsDate`, precision 3 unless written |
+| | `temporal` | `timestamptz` | `TimestamptzTemporal` |
+| | `string` | `timestamptz` | `TimestamptzString` |
+| | `jsDate` | `timestamp` | `TimestampJsDate`, precision 3 unless written |
+| | `temporal` | `timestamp` | `TimestampInstant` |
+| | `string` | `timestamp` | `TimestampString` |
+| `Date(value?, column?)` | `string` (default) | `date` (default) | `DateString` |
+| | `temporal` | `date` | `DateTemporal` |
+| `Time(value?, column?, precision?)` | `string` (default) | `time` (default) | `TimeString` |
+| | `temporal` | `time` | `TimeTemporal` |
+| | `string` | `timetz` | `Timetz` |
+| `Duration(value?, column?, precision?)` | `string` (default) | `interval` (default) | `IntervalString` |
+| | `parts` | `interval` | `IntervalParts` |
+
+The arguments are written as bare names, by name or in this order: `DateTime(value: string, precision: 6)`, `DateTime(temporal, timestamp)`. A combination the table does not list, such as `Time(value: temporal, column: timetz)` or `Date(value: jsDate)`, is refused at the argument that makes it invalid, naming the values it accepts; so is a `precision` the chosen type does not take. No default needs a global `Temporal`. In a TypeScript contract the helpers take the same arguments in the same order, `type.DateTime('string', undefined, 6)`, and are typed as the explicit type they choose. `contract print` and `contract infer` write the explicit type.
+
 | PSL name | TS helper | Codec id | Storage type | Application type |
 | --- | --- | --- | --- | --- |
 | `String` | `field.text()` | `pg/text@1` | `text` | `string` |
@@ -80,16 +100,16 @@ These are the current names. The Postgres and SQLite rename project will change 
 | `Real` | — | `pg/float4@1` | `float4` | `number` |
 | `Float` | `field.float()` | `pg/float8@1` | `float8` | `number` |
 | `Decimal`, `Numeric(p?, s?)` | `field.decimal()` | `pg/numeric@1` | `numeric` | `string` (decimal text) |
-| `DateTime`, `TimestamptzTemporal(p?)` | `field.dateTime()` | `pg/timestamptz-temporal@1` | `timestamptz` | `Temporal.Instant` |
+| `TimestamptzTemporal(p?)` | `field.dateTime()` | `pg/timestamptz-temporal@1` | `timestamptz` | `Temporal.Instant` |
 | `TimestamptzJsDate(p?)` | — | `pg/timestamptz-date@1` | `timestamptz` | `Date` |
 | `TimestamptzString(p?)` | — | `pg/timestamptz-string@1` | `timestamptz` | `string` |
 | `TimestampTemporal(p?)` | — | `pg/timestamp-temporal@1` | `timestamp` | `Temporal.PlainDateTime` |
 | `TimestampString(p?)` | — | `pg/timestamp-string@1` | `timestamp` | `string` |
 | `TimestampJsDate(p?)` | — | `pg/timestamp-date@1` | `timestamp` | `Date`, the stored date and time read as UTC |
 | `TimestampInstant(p?)` | — | `pg/timestamp-instant@1` | `timestamp` | `Temporal.Instant`, the stored date and time read as UTC |
-| `Date`, `DateTemporal` | — | `pg/date-temporal@1` | `date` | `Temporal.PlainDate` |
+| `DateTemporal` | — | `pg/date-temporal@1` | `date` | `Temporal.PlainDate` |
 | `DateString` | — | `pg/date-string@1` | `date` | `string` |
-| `Time(p?)`, `TimeTemporal(p?)` | — | `pg/time-temporal@1` | `time` | `Temporal.PlainTime` |
+| `TimeTemporal(p?)` | — | `pg/time-temporal@1` | `time` | `Temporal.PlainTime` |
 | `TimeString(p?)` | — | `pg/time-string@1` | `time` | `string` |
 | `Timetz(p?)` | — | `pg/timetz@1` | `timetz` | `string` |
 | `Uuid` | `field.uuidNative()` | `pg/uuid@1` | `uuid` | `string` |
@@ -107,7 +127,7 @@ These are the current names. The Postgres and SQLite rename project will change 
 
 A literal default of a date, time, interval or bytes type is written with the tag of its type, as in `@default(timestamptz`2024-01-01T00:00:00Z`)` or `@default(bytea`\x0102`)`; a quoted string is refused with a message that shows the tag. It is stored in the one form its data type stores, whichever codec the column uses and however the default was written, and a default with more fraction digits or more scale than its column holds is refused rather than rounded; [ADR 254](../architecture%20docs/adrs/ADR%20254%20-%20Data%20types%20and%20casts.md#date-and-time-types) states each form.
 
-The tools that write a schema for you use the text date and time types. In a PSL schema, `prisma orm init` writes `createdAt TimestamptzString @default(now())` and `updatedAt temporal.updatedAtString()`. In a TypeScript contract, it writes `field.temporal.createdAtString()` and `field.temporal.updatedAtString()`. All of these are `TimestamptzString` columns. `prisma contract infer` and `prisma7Schema(...)` write `TimestampString(p)`, `TimestamptzString(p)`, `DateString` and `TimeString(p)`. Five types read and write `Temporal` values: `TimestamptzTemporal` (also written `DateTime`), `TimestampTemporal`, `TimestampInstant`, `DateTemporal` (also written `Date`) and `TimeTemporal` (also written `Time`). Their TypeScript types come from `temporal-spec`, so a project needs no global `Temporal` declarations to type them. An application that uses them needs a global `Temporal`: on a runtime without one, such as Node.js 24, install it, for example with `import 'temporal-polyfill/full/global'`.
+The tools that write a schema for you use the text date and time types. In a PSL schema, `prisma orm init` writes `createdAt TimestamptzString @default(now())` and `updatedAt temporal.updatedAtString()`. In a TypeScript contract, it writes `field.temporal.createdAtString()` and `field.temporal.updatedAtString()`. All of these are `TimestamptzString` columns. `prisma contract infer` and `prisma7Schema(...)` write `TimestampString(p)`, `TimestamptzString(p)`, `DateString` and `TimeString(p)`. Five types read and write `Temporal` values: `TimestamptzTemporal`, `TimestampTemporal`, `TimestampInstant`, `DateTemporal` and `TimeTemporal`, which the convenience types choose with `value: temporal`. Their TypeScript types come from `temporal-spec`, so a project needs no global `Temporal` declarations to type them. An application that uses them needs a global `Temporal`: on a runtime without one, such as Node.js 24, install it, for example with `import 'temporal-polyfill/full/global'`.
 
 ## SQLite
 
@@ -139,7 +159,7 @@ The PSL name on each target for a concept, and the Prisma 6/7 name a migrating s
 | double | `Float` | `Float` | `Float` | `Double` |
 | decimal | `Decimal` | `Decimal`, `Numeric(p?, s?)` | `Decimal` (stored as text) | `Decimal128` |
 | boolean | `Boolean` | `Boolean` | — | `Bool` |
-| timestamp | `DateTime` | `DateTime`, `TimestamptzTemporal(p?)` | `DateTime` | `Date` |
+| timestamp | `DateTime` | `DateTime` (a `TimestamptzJsDate(3)`) | `DateTime` | `Date` |
 | text | `String` | `String` | `String` | `String` |
 | bytes | `Bytes` | `Bytes` | `Bytes` | `Binary` |
 | JSON | `Json` | `Json`, `Jsonb` | `Json` | `Json` |
