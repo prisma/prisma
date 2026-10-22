@@ -21,6 +21,13 @@ changes:
   - id: mongo-newly-accepted
     summary: |
       No action is needed. An optional field that a preset, a type alias, `@onCreate(...)`/`@onUpdate(...)` or `.onCreate(...)`/`.onUpdate(...)` fills is now accepted, as on SQL; a list that generates a value is still refused. A TypeScript variant may leave its `collection` out and is stored in its base's. The PSL preset-without-effect warning is no longer reported next to `@onCreate(...)` or `@onUpdate(...)`, which do fill the field, and is now reported even when the schema is refused. `defineContract` now reports the same case as the warning `PN_PRESET_WITHOUT_EFFECT`.
+  - id: contract-source-warnings
+    summary: |
+      A contract source's warnings now reach the caller when the source then fails. `loadContractSource` (`@prisma/orm-toolchain/cli/control-api`) no longer takes `onWarning`; it returns `{ contract, warnings }` on success and adds `warnings` to its failure. The control client's `emit` failure (`EmitFailure`) gains `sourceWarnings`, as its success already had. Read `result.value.contract` where you read `result.value`, and report `warnings` instead of passing `onWarning`.
+    detection:
+      glob: "**/*.{ts,mts,cts,tsx}"
+      matches:
+        - '\bloadContractSource\('
   - id: mongo-prisma6-merged-indexes
     summary: |
       A Prisma 6 schema read by `prisma6Schema()` in which one collection holds two identical indexes, such as `@unique` and `@@unique` on one field, or the same `@@index` on two models stored in one collection, now gives one index, as the database holds one. That contract's storage hash changes. Run `prisma contract emit`, then `prisma db sign` to record the new hash; the database itself needs no change.
@@ -56,6 +63,21 @@ Declare every enum a value object field uses in `defineContract({ enums })`.
 ## `mongo-newly-accepted`
 
 Nothing to change.
+
+## `contract-source-warnings`
+
+This change is not MongoDB-specific; it ships with the same release. The detection matches every call to `loadContractSource`.
+
+```typescript
+// Before
+const result = await loadContractSource(config, { onWarning: (warning) => warnings.push(warning) });
+if (result.ok) use(result.value);
+
+// After
+const result = await loadContractSource(config);
+const { warnings } = result.ok ? result.value : result.failure;
+if (result.ok) use(result.value.contract);
+```
 
 ## `mongo-prisma6-merged-indexes`
 

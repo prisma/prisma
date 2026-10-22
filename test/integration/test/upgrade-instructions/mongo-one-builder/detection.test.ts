@@ -66,3 +66,15 @@ describe.each(['app', 'extension'])('the %s mongo-one-builder detection', (audie
     ]).toEqual([true, true, true, true, true, false, false]);
   });
 });
+
+describe('the extension contract-source-warnings detection', () => {
+  const matches = (content: string) =>
+    patternsOf('extension', 'contract-source-warnings').some((pattern) => pattern.test(content));
+
+  it('matches a call to loadContractSource, and not one to loadContractSourceWithStack', () => {
+    expect([
+      matches('const result = await loadContractSource(config, { onWarning });'),
+      matches('const loaded = await loadContractSourceWithStack({ stack, source, cwd });'),
+    ]).toEqual([true, false]);
+  });
+});
