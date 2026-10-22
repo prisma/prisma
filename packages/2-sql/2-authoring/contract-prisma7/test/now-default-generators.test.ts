@@ -83,4 +83,23 @@ model Post {
       'Field "Post.stamp": @default(now()) needs a date or time column, but "@db.Text" makes it a column that is not a date or time. Prisma 7 refuses this schema too: "Native type Text is not compatible with declared field type DateTime". Remove @default(now()), or use a date or time native type such as @db.Timestamp.',
     ]);
   });
+
+  it('is refused on a list field, like every client function', () => {
+    const result = interpretSchemaTextResult(`datasource db {
+  provider = "postgresql"
+}
+
+model Post {
+  id   Int        @id
+  at   DateTime[] @default(now())
+  days DateTime[] @default(now()) @db.Date
+  ids  String[]   @default(uuid())
+}
+`);
+    expect(result.ok ? [] : result.failure.diagnostics.map(({ message }) => message)).toEqual([
+      'Field "Post.at": @default(now()) cannot fill a list field. Write a list literal, such as @default([]), or remove @default(now()).',
+      'Field "Post.days": @default(now()) cannot fill a list field. Write a list literal, such as @default([]), or remove @default(now()).',
+      'Field "Post.ids": @default(uuid()) cannot fill a list field. Write a list literal, such as @default([]), or remove @default(uuid()).',
+    ]);
+  });
 });

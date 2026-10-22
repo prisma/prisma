@@ -363,6 +363,18 @@ function lowerFunction(
       span,
     );
   }
+  if (input.field.list) {
+    const written = `@default(${printSyntax(expression.syntax).trim()})`;
+    input.diagnostics.push(
+      prisma7Diagnostic(
+        'PSL.PRISMA7_UNKNOWN_DEFAULT',
+        `${label}: ${written} cannot fill a list field. Write a list literal, such as @default([]), or remove ${written}.`,
+        input.sourceId,
+        span,
+      ),
+    );
+    return undefined;
+  }
   if (entry === undefined) {
     if (generator === undefined) {
       return unknown(`function "${fn}()" cannot fill a column of codec "${input.codecId}".`, span);
