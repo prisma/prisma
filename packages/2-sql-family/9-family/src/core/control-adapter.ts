@@ -169,6 +169,11 @@ export interface SqlControlAdapter<TTarget extends string = string>
   lockMarker(driver: SqlControlDriverInstance<TTarget>): Promise<void>;
 
   /**
+   * For a target whose DDL ends an open transaction: takes the marker lock outside any transaction, runs `work`, and releases the lock when `work` ends. `signSpaces` then creates the marker table inside `work`, under the lock, before the transaction that writes the markers. Without it, `signSpaces` takes the lock with {@link lockMarker} and creates the marker table inside that transaction.
+   */
+  holdMarkerLock?<T>(driver: SqlControlDriverInstance<TTarget>, work: () => Promise<T>): Promise<T>;
+
+  /**
    * Introspects a database schema and returns the target's schema-IR node.
    *
    * This is a pure schema discovery operation that queries the database catalog
@@ -199,9 +204,7 @@ export interface SqlControlAdapter<TTarget extends string = string>
 
   /**
    * Ordered DDL queries that bootstrap the marker table (and Postgres schema) for
-   * `sign` — excludes the ledger table. Each must be idempotent: `signSpaces` runs them before the
-   * transaction that locks and writes markers, because a target whose DDL commits implicitly would
-   * otherwise end that transaction.
+   * `sign` — excludes the ledger table.
    */
   bootstrapSignMarkerQueries(): readonly DdlNode[];
 }

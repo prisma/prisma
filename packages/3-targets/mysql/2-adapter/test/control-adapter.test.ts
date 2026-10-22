@@ -140,6 +140,35 @@ describe('MysqlControlAdapter', () => {
     ]);
   });
 
+  it('holds the marker lock outside a transaction while the work it guards runs, and releases it when that work ends', async () => {
+    const adapter = createAdapter();
+    const driver = recordingDriver((sql) =>
+      sql.startsWith('SELECT GET_LOCK') ? [{ acquired: '1' }] : [],
+    );
+    const held = await adapter.holdMarkerLock(driver, async () => {
+      await driver.query('CREATE TABLE IF NOT EXISTS marker');
+      return adapter.withTransaction(driver, async () => 'signed');
+    });
+    await expect(
+      adapter.holdMarkerLock(driver, async () => {
+        throw new Error('boom');
+      }),
+    ).rejects.toThrow('boom');
+
+    expect({ held, statements: driver.statements.map((sql) => sql.split('(')[0]) }).toEqual({
+      held: 'signed',
+      statements: [
+        'SELECT GET_LOCK',
+        'CREATE TABLE IF NOT EXISTS marker',
+        'START TRANSACTION',
+        'COMMIT',
+        'SELECT RELEASE_LOCK',
+        'SELECT GET_LOCK',
+        'SELECT RELEASE_LOCK',
+      ],
+    });
+  });
+
   it('refuses to go on when another process holds the marker lock', async () => {
     const adapter = createAdapter();
     const driver = recordingDriver((sql) =>

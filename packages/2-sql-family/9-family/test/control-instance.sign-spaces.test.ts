@@ -20,7 +20,11 @@ const EXT_HASH = 'e'.repeat(64);
  */
 function createMarkerStore(
   initial: Record<string, StoredMarker>,
-  options: { readonly casLosesOn?: string; readonly bootstrapSql?: string } = {},
+  options: {
+    readonly casLosesOn?: string;
+    readonly bootstrapSql?: string;
+    readonly holdsMarkerLockOutsideTransaction?: boolean;
+  } = {},
 ) {
   let markers = new Map(Object.entries(initial));
   const events: string[] = [];
@@ -47,6 +51,18 @@ function createMarkerStore(
     async lockMarker() {
       events.push('lock');
     },
+    ...(options.holdsMarkerLockOutsideTransaction === true
+      ? {
+          async holdMarkerLock<T>(_driver: unknown, work: () => Promise<T>): Promise<T> {
+            events.push('hold lock');
+            try {
+              return await work();
+            } finally {
+              events.push('release lock');
+            }
+          },
+        }
+      : {}),
     async readMarker(_driver: unknown, space: string) {
       const stored = markers.get(space);
       return stored === undefined
@@ -274,7 +290,7 @@ describe('sql family signSpaces', () => {
     });
   });
 
-  it('creates the marker table before the transaction that locks and writes markers', async () => {
+  it('takes the lock and creates the marker table inside the transaction that writes markers', async () => {
     const store = createMarkerStore({}, { bootstrapSql: 'CREATE TABLE IF NOT EXISTS marker' });
 
     await store.instance.signSpaces({
@@ -283,11 +299,35 @@ describe('sql family signSpaces', () => {
     });
 
     expect(store.events).toEqual([
-      'CREATE TABLE IF NOT EXISTS marker',
       'BEGIN',
       'lock',
+      'CREATE TABLE IF NOT EXISTS marker',
       'insert app',
       'COMMIT',
+    ]);
+  });
+
+  it('creates the marker table under a lock held outside the transaction when the adapter holds one', async () => {
+    const store = createMarkerStore(
+      {},
+      {
+        bootstrapSql: 'CREATE TABLE IF NOT EXISTS marker',
+        holdsMarkerLockOutsideTransaction: true,
+      },
+    );
+
+    await store.instance.signSpaces({
+      driver: store.driver,
+      spaces: [{ space: APP_SPACE_ID, contract: appContract, expected: null }],
+    });
+
+    expect(store.events).toEqual([
+      'hold lock',
+      'CREATE TABLE IF NOT EXISTS marker',
+      'BEGIN',
+      'insert app',
+      'COMMIT',
+      'release lock',
     ]);
   });
 

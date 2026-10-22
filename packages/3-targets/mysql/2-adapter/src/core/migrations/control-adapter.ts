@@ -189,6 +189,16 @@ export class MysqlControlAdapter implements SqlControlAdapter<'mysql'> {
     this.#lockHolders.add(driver);
   }
 
+  /** Takes `GET_LOCK` before `work` runs and releases it when `work` ends, so `db sign` creates the marker table, whose DDL would end a transaction, under the lock. */
+  async holdMarkerLock<T>(driver: Driver, work: () => Promise<T>): Promise<T> {
+    await acquireMarkerLock(driver);
+    try {
+      return await work();
+    } finally {
+      await releaseMarkerLock(driver);
+    }
+  }
+
   async withTransaction<T>(driver: Driver, fn: () => Promise<T>): Promise<T> {
     try {
       return await this.#inTransaction(driver, fn);
