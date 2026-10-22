@@ -7,7 +7,8 @@ import {
 import type { TargetPackRef } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
-import { defineContract, type FieldBuilder } from '../src/contract-builder';
+import { defineContract } from '../src/contract-builder';
+import type { FieldBuilder } from '../src/contract-dsl';
 import { mongoFamilyPack, mongoTargetPack as mongoTestTargetPack } from './mongo-test-packs';
 
 /** What a JavaScript caller, whom the types do not stop, can write on a preset field. */

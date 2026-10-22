@@ -26,8 +26,8 @@ type MongoHelpers = Parameters<
 
 // Input types omit family + target AND explicitly forbid them so that
 // `@ts-expect-error` tests can verify the fields are rejected. The result type omits them again:
-// a `family?: never` left in the definition would make the whole definition type `never`.
-type MongoDefinitionInput = Omit<
+// a `family?: never` left in the input would make the whole input type `never`.
+type MongoContractInput = Omit<
   ContractInput<MongoFamilyPack, MongoTargetPack>,
   'family' | 'target'
 > & {
@@ -43,11 +43,11 @@ type MongoScaffoldInput = Omit<
   readonly target?: never;
 };
 
-// Overload 1: definition form — models / valueObjects inline in the definition object.
-export function defineContract<const Definition extends MongoDefinitionInput>(
-  definition: Definition,
+// Overload 1: input form — models / valueObjects inline in the input object.
+export function defineContract<const Input extends MongoContractInput>(
+  input: Input,
 ): MongoContractResult<
-  Omit<Definition, 'family' | 'target'> & {
+  Omit<Input, 'family' | 'target'> & {
     readonly family: MongoFamilyPack;
     readonly target: MongoTargetPack;
   }
@@ -55,24 +55,24 @@ export function defineContract<const Definition extends MongoDefinitionInput>(
 
 // Overload 2: factory form — models / valueObjects provided by a factory function.
 export function defineContract<
-  const Definition extends MongoScaffoldInput,
+  const Scaffold extends MongoScaffoldInput,
   const Built extends {
     readonly models?: Record<string, unknown>;
     readonly valueObjects?: Record<string, unknown>;
     readonly roots?: Record<string, string>;
   },
 >(
-  scaffold: Definition,
+  scaffold: Scaffold,
   factory: (helpers: MongoHelpers) => Built,
 ): MongoContractResult<
-  Omit<Definition, 'family' | 'target'> &
+  Omit<Scaffold, 'family' | 'target'> &
     Built & { readonly family: MongoFamilyPack; readonly target: MongoTargetPack }
 >;
 
 // Implementation — delegates to buildBoundContract which pre-binds family/target
-// and calls buildContractFromDefinition directly, carrying zero casts at this layer.
+// and builds the contract, carrying zero casts at this layer.
 export function defineContract(
-  definition: MongoDefinitionInput,
+  input: MongoContractInput,
   factory?: ContractFactory<
     Record<string, never>,
     Record<string, never>,
@@ -83,7 +83,7 @@ export function defineContract(
   >,
 ) {
   if (factory !== undefined) {
-    return buildBoundContract(mongoFamilyPack, mongoTargetPack, definition, factory);
+    return buildBoundContract(mongoFamilyPack, mongoTargetPack, input, factory);
   }
-  return buildBoundContract(mongoFamilyPack, mongoTargetPack, definition);
+  return buildBoundContract(mongoFamilyPack, mongoTargetPack, input);
 }

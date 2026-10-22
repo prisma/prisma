@@ -4,12 +4,7 @@ export type {
   ContractInput,
   ContractScaffold,
   ExtractCodecTypesFromPack,
-  FieldBuilder,
-  FieldReference,
-  ModelBuilder,
   MongoContractResult,
-  RelationBuilder,
-  ValueObjectBuilder,
 } from '../contract-builder';
 export {
   buildBoundContract,
@@ -20,5 +15,12 @@ export {
   rel,
   valueObject,
 } from '../contract-builder';
+export type {
+  FieldBuilder,
+  FieldReference,
+  ModelBuilder,
+  RelationBuilder,
+  ValueObjectBuilder,
+} from '../contract-dsl';
 export type { BoundEnumType, CodecTypeMap, EnumMember, EnumTypeHandle } from '../enum-type';
 export { bindEnumType, enumType, isEnumTypeHandle, member } from '../enum-type';

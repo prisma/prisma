@@ -5,7 +5,8 @@ import {
 } from '@internal/framework-components/authoring';
 import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
 import { expectTypeOf, test } from 'vitest';
-import { defineContract, type FieldBuilder } from '../src/contract-builder';
+import { defineContract } from '../src/contract-builder';
+import type { FieldBuilder } from '../src/contract-dsl';
 import type { EnumTypeHandle } from '../src/enum-type';
 
 const mongoDate = { codecId: 'mongo/date@1' } as const;
