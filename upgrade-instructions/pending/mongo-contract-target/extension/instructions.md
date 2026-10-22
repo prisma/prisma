@@ -25,4 +25,4 @@ import mongoTargetPack from '@prisma/orm-target-mongo/pack';
 const contract = mongoContract('./prisma/schema.prisma', { target: mongoTargetPack });
 ```
 
-Keep any other options you pass, such as `output`, in the same object. A config that names its contract through `defineConfig({ contract: './prisma/schema.prisma' })` from `@prisma/orm-mongo/config` already passes the pack.
+Keep any other options you pass, such as `output`, in the same object. A config that names its contract through `defineConfig({ contract: './prisma/schema.prisma' })` from `@prisma/orm-mongo/config` already passes the pack. A call without `target` is refused with `CONTRACT.ARGUMENT_INVALID` (`reason: 'target-pack-missing'`).

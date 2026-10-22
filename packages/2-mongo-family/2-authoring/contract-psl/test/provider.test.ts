@@ -403,3 +403,21 @@ model User {
     });
   });
 });
+
+describe('mongoContract without a target pack', () => {
+  it.each([
+    ['no options', undefined],
+    ['options without target', { output: 'out/contract.json' }],
+  ])('refuses %s with the pack to pass', (_, options) => {
+    expect(() =>
+      mongoContract('./schema.prisma', options as unknown as Parameters<typeof mongoContract>[1]),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.ARGUMENT_INVALID',
+        message:
+          'mongoContract("./schema.prisma") needs the MongoDB target pack, which the contract records.',
+        meta: { schemaPath: './schema.prisma', reason: 'target-pack-missing' },
+      }),
+    );
+  });
+});

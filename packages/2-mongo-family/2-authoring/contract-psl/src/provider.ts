@@ -15,6 +15,7 @@ import { parse } from '@internal/psl-parser/syntax';
 import { assertDefined } from '@internal/utils/assertions';
 import { ifDefined } from '@internal/utils/defined';
 import { notOk } from '@internal/utils/result';
+import { structuredError } from '@internal/utils/structured-error';
 
 import { interpretPslDocumentToMongoContract } from './interpreter';
 
@@ -33,7 +34,21 @@ function collectScalarTypeCodecIds(namespace: AuthoringTypeNamespace): ReadonlyM
   );
 }
 
+function hasTarget(options: MongoContractOptions | undefined): boolean {
+  return options?.target !== undefined;
+}
+
 export function mongoContract(schemaPath: string, options: MongoContractOptions): ContractConfig {
+  if (!hasTarget(options)) {
+    throw structuredError(
+      'CONTRACT.ARGUMENT_INVALID',
+      `mongoContract("${schemaPath}") needs the MongoDB target pack, which the contract records.`,
+      {
+        fix: "Pass { target: mongoTargetPack }, with mongoTargetPack imported from '@prisma/orm-mongo/target/pack', or name the schema in defineConfig({ contract }) from '@prisma/orm-mongo/config', which passes it for you.",
+        meta: { schemaPath, reason: 'target-pack-missing' },
+      },
+    );
+  }
   const source: PslInterpretCapable = {
     format: 'psl',
     inputs: [schemaPath],
