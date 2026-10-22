@@ -10,6 +10,7 @@ import type { PslDiagnostic } from '../../diagnostic';
 import { readExpressionAs } from '../../read-expression-as';
 import { nodePslSpan } from '../../resolve';
 import type { ExpressionAst } from '../../syntax/ast/expressions';
+import { UNION_LABEL_SEPARATOR } from '../type-label';
 import type { AttributeCtx, DataTypeValueArgType, ParsedTypedValue } from '../types';
 import { leafDiagnostic } from './diagnostic';
 
@@ -20,23 +21,29 @@ export function dataTypeValue(
   options: {
     /** Written values offered for completion besides the tags. */
     readonly suggestions?: readonly string[];
-    /** The label shown for the argument in place of the forms its type admits, such as the values a function takes. */
+    /** The label shown for the argument in place of the forms its type admits. */
     readonly label?: string;
+    /** The label lists the suggestions as a union's alternatives, as the versions a function takes do. */
+    readonly labelListsSuggestions?: boolean;
   } = {},
 ): DataTypeValueArgType<AttributeCtx> {
   const tags = admittedTags(support, dataType);
   const [firstTag] = tags;
+  const suggestions = options.suggestions ?? [];
+  const labelListsSuggestions = options.labelListsSuggestions ?? false;
   return {
     kind: 'dataTypeValue',
-    label:
-      options.label ??
-      (firstTag === undefined
-        ? describeAdmittedForms(support, dataType)
-        : tagForm(firstTag).phrase),
+    label: labelListsSuggestions
+      ? suggestions.join(UNION_LABEL_SEPARATOR)
+      : (options.label ??
+        (firstTag === undefined
+          ? describeAdmittedForms(support, dataType)
+          : tagForm(firstTag).phrase)),
+    labelListsAlternatives: labelListsSuggestions && suggestions.length > 1,
     dataType,
     tags,
     documentation: support.entries[dataType]?.documentation ?? '',
-    suggestions: options.suggestions ?? [],
+    suggestions,
     parse: (arg, ctx) => parseDataTypeValue(arg, ctx, dataType, support),
   };
 }

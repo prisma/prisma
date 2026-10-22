@@ -86,6 +86,7 @@ export {
   typeAttributeSpecContextOfField,
   typeAttributeSubjectLabel,
 } from '../attribute-spec/spec-context';
+export { groupedTypeLabel } from '../attribute-spec/type-label';
 export type {
   ArgType,
   ArgTypeKind,
