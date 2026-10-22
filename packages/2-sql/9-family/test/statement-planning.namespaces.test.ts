@@ -189,13 +189,13 @@ describe('a namespace rename', () => {
       target: fakeTarget(['billing.Invoice', 'billing.Other'], { 'billing.Invoice': ['total'] }),
     });
     if (!result.ok) throw new Error(result.failure.summary);
-    const { places } = result.value;
+    const { origins } = result.value;
     const origin = { namespaceId: 'billing', table: 'Invoice' };
 
     expect({
-      moved: places.originTable({ namespaceId: 'finance', table: 'Bill' }),
-      untouched: places.originTable({ namespaceId: 'finance', table: 'Other' }),
-      column: places.originColumn(origin, 'amount'),
+      moved: origins.originTable({ namespaceId: 'finance', table: 'Bill' }),
+      untouched: origins.originTable({ namespaceId: 'finance', table: 'Other' }),
+      column: origins.originColumn(origin, 'amount'),
     }).toEqual({
       moved: origin,
       untouched: { namespaceId: 'billing', table: 'Other' },

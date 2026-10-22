@@ -1,8 +1,8 @@
 import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
 import {
   type FieldEventCall,
+  NO_RENAMED_ORIGINS,
   subjectsOfCalls,
-  UNCHANGED_PLACES,
 } from '@internal/family-sql/control';
 import type { OpFactoryCall } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
@@ -76,7 +76,12 @@ function subjectsOf(calls: readonly OpFactoryCall[], fieldEvents: readonly Field
       calls,
       new Map(fieldEvents.map((fieldEvent) => [fieldEvent.call, fieldEvent])),
     ),
-    { fromContract: contract, contract, byHand: sqliteTableRenameByHand, places: UNCHANGED_PLACES },
+    {
+      fromContract: contract,
+      contract,
+      byHand: sqliteTableRenameByHand,
+      origins: NO_RENAMED_ORIGINS,
+    },
   ).dataLoss;
 }
 

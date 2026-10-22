@@ -231,15 +231,15 @@ function operationsOf(call: CallWithCompanions): readonly SingleOperationCall[] 
  * statements' renames and moves: the statement planner records it, and the questions name a
  * subject through it.
  */
-export interface StatementPlaces {
+export interface WorkingSchemaOrigins {
   /** The origin place of a table of the working schema. */
   originTable(current: ModelTable): ModelTable;
   /** The origin name of a column, now named `column`, of the origin table `origin`. */
   originColumn(origin: ModelTable, column: string): string;
 }
 
-/** The places of a plan whose statements renamed and moved nothing. */
-export const UNCHANGED_PLACES: StatementPlaces = {
+/** The origins of a plan whose statements renamed and moved nothing. */
+export const NO_RENAMED_ORIGINS: WorkingSchemaOrigins = {
   originTable: (current) => current,
   originColumn: (_origin, column) => column,
 };
@@ -253,7 +253,7 @@ export interface PlannedStatements<TCall extends CallWithCompanions> {
   readonly tableRenames: readonly TableRename[];
   readonly columnRenames: readonly ColumnRename[];
   readonly appliedStatements: readonly AppliedMigrationStatement[];
-  readonly places: StatementPlaces;
+  readonly origins: WorkingSchemaOrigins;
 }
 
 interface ConflictLocation extends ModelTable {
@@ -796,8 +796,8 @@ class StatementPlanner<TCall extends CallWithCompanions> {
     return planned;
   }
 
-  /** The origin places of the working schema's tables and columns, as the statements left them. */
-  places(): StatementPlaces {
+  /** The origins of the working schema's tables and columns, as the statements left them. */
+  origins(): WorkingSchemaOrigins {
     const sameTable = (left: ModelTable, right: ModelTable) =>
       left.namespaceId === right.namespaceId && left.table === right.table;
     return {
@@ -842,7 +842,7 @@ export function planStatements<TCall extends CallWithCompanions>(input: {
       tableRenames: [],
       columnRenames: [],
       appliedStatements: [],
-      places: UNCHANGED_PLACES,
+      origins: NO_RENAMED_ORIGINS,
     });
   }
   if (fromContract === null) {
@@ -875,7 +875,7 @@ export function planStatements<TCall extends CallWithCompanions>(input: {
     tableRenames: planner.tableRenames,
     columnRenames: planner.columnRenames,
     appliedStatements,
-    places: planner.places(),
+    origins: planner.origins(),
   });
 }
 

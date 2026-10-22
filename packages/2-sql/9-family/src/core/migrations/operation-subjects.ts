@@ -14,8 +14,8 @@ import { ifDefined } from '@internal/utils/defined';
 import { fieldOfColumn } from './field-of-column';
 import {
   isSqlModelStorage,
-  type StatementPlaces,
   type TableRenameByHand,
+  type WorkingSchemaOrigins,
 } from './statement-planning';
 
 /**
@@ -91,7 +91,7 @@ interface SubjectContext {
   readonly fromContract: ContractWithDomain | null;
   readonly contract: ContractWithDomain;
   /** Where the plan's statements put the origin's tables and columns. */
-  readonly places: StatementPlaces;
+  readonly origins: WorkingSchemaOrigins;
   readonly byHand: TableRenameByHand;
 }
 
@@ -127,7 +127,7 @@ function subjectOf(target: SubjectStorage, context: SubjectContext): MigrationSu
   const storage: MigrationSubject = { kind: 'storage', name: target.storageName };
   const { fromContract } = context;
   if (target.table === undefined || fromContract === null) return storage;
-  const origin = context.places.originTable({
+  const origin = context.origins.originTable({
     namespaceId: target.table.namespaceId,
     table: target.table.table,
   });
@@ -136,7 +136,7 @@ function subjectOf(target: SubjectStorage, context: SubjectContext): MigrationSu
     const model = models.find(({ isRoot }) => isRoot) ?? models[0];
     return model === undefined ? storage : { kind: 'model', ...model.coordinate };
   }
-  const column = context.places.originColumn(origin, target.table.column);
+  const column = context.origins.originColumn(origin, target.table.column);
   for (const model of [...models].sort((a, b) => Number(b.isRoot) - Number(a.isRoot))) {
     const field = Object.entries(model.fields).find(([, stored]) => stored.column === column)?.[0];
     if (field !== undefined) return { kind: 'field', ...model.coordinate, field };

@@ -292,7 +292,7 @@ export class SqliteMigrationPlanner
         {
           fromContract: options.fromContract,
           contract: options.contract,
-          places: statements.value.places,
+          origins: statements.value.origins,
           byHand: sqliteTableRenameByHand,
         },
       ),

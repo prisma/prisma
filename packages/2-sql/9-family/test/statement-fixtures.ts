@@ -326,7 +326,7 @@ export function renameNamespace(from: string, to: string): ResolvedNamespaceRena
 /** The planned statements, with each call given by its text. */
 export function planned(result: ReturnType<typeof planStatements<FakeCall>>) {
   if (!result.ok) throw new Error(`expected a plan, got: ${result.failure.summary}`);
-  const { places: _places, ...value } = result.value;
+  const { origins: _origins, ...value } = result.value;
   return { ...value, calls: value.calls.map((call) => call.text) };
 }
 

@@ -119,11 +119,11 @@ export type {
   SingleOperationCall,
   StatementColumn,
   StatementOwnership,
-  StatementPlaces,
   StatementPlanningTarget,
   TableMove,
   TableRenameByHand,
   TargetRefusal,
+  WorkingSchemaOrigins,
 } from '../core/migrations/statement-planning';
 export {
   appliedStatementsInOrder,
@@ -131,9 +131,9 @@ export {
   fieldRenameStorageEffect,
   fieldStatementColumns,
   modelRenameStorageEffect,
+  NO_RENAMED_ORIGINS,
   otherSpaceDeclaring,
   planStatements,
-  UNCHANGED_PLACES,
 } from '../core/migrations/statement-planning';
 export type { TableNameCaseGuardTable } from '../core/migrations/table-name-case-guard';
 export {
