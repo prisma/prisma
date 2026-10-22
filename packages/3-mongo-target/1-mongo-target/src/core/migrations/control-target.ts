@@ -18,8 +18,6 @@ import {
 import type { MongoContract } from '@internal/mongo-contract';
 import { blindCast } from '@internal/utils/casts';
 import { notOk, ok } from '@internal/utils/result';
-import { mongoDataTypeEntries } from '../data-type-entries';
-import { mongoTextDataTypes } from '../data-types';
 import { mongoTargetDescriptorMeta } from '../descriptor-meta';
 import type { MongoTargetContract } from '../mongo-target-contract';
 import { MongoTargetContractSerializer } from '../mongo-target-contract-serializer';
@@ -42,11 +40,6 @@ export type { MongoControlTargetDescriptor };
  */
 export const mongoTargetDescriptor: MongoControlTargetDescriptor<MongoTargetContract> = {
   ...mongoTargetDescriptorMeta,
-  authoring: {
-    ...mongoTargetDescriptorMeta.authoring,
-    dataTypes: mongoDataTypeEntries(),
-    textDataTypes: mongoTextDataTypes,
-  },
   contractSerializer: new MongoTargetContractSerializer(),
   schemaVerifier: new MongoTargetSchemaVerifier(),
   migrations: {
