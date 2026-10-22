@@ -1,0 +1,20 @@
+<section id="breaking" data-transition="fade" style="background:#ECEAE3;color:#12202F;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<h2 style="font-size:72px;font-weight:600;line-height:1.1">Breaking changes that landed</h2>
+<div style="display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<h3 style="font-size:32px;font-weight:600">A client takes its contract as a typed value</h3>
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:26px;color:#6B7280;text-decoration:line-through">postgres&lt;Contract&gt;({ contractJson })</p>
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:26px;color:#0E7C66">postgres({ contract: contractFromJson&lt;Contract&gt;(json) })</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<h3 style="font-size:32px;font-weight:600">A value the client generates is <b>@onCreate</b>; <b>@default</b> means the database</h3>
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:26px;color:#6B7280;text-decoration:line-through">id String @id @default(uuid())</p>
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:26px;color:#0E7C66">id String @id @onCreate(uuid())</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<h3 style="font-size:32px;font-weight:600">Type aliases replace field presets</h3>
+<p style="font-size:28px;line-height:1.4;color:#4A5568">An alias can carry <b>@onCreate</b> and <b>@onUpdate</b>, and the contract stores the real column type. Postgres, SQLite and MongoDB ship <b>temporal.CreatedAt</b> and <b>temporal.UpdatedAt</b>. Removing the presets is next.</p>
+</div>
+</div>
+<aside>The first two merged on Monday and Tuesday. Field presets still work until the third and last slice of TML-3607 removes them.</aside>
+</section>

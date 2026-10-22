@@ -1,0 +1,13 @@
+<section id="upgrade" data-transition="fade" style="background:#F6F5F1;color:#12202F;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<h2 style="font-size:72px;font-weight:600;line-height:1.1">More Prisma 7 projects can move to Prisma 8</h2>
+<table style="font-size:30px;color:#12202F;font-family:'IBM Plex Sans', Arial, sans-serif">
+<tr><th style="width:62%;text-align:left">A Prisma 7 project that…</th><th style="width:38%;text-align:left">now</th></tr>
+<tr><td>has <b>Unsupported("tsvector")</b> fields</td><td>loads; each field is a raw column</td></tr>
+<tr><td>has <b>@updatedAt</b> beside <b>@default(now())</b></td><td>adopts Prisma 8 as it is</td></tr>
+<tr><td>changes a relation’s referential action</td><td>gets a planned migration</td></tr>
+<tr><td>changes a model’s primary key</td><td>gets a planned migration</td></tr>
+<tr><td>runs <b>prisma migrate dev</b> after the handover</td><td>is told the Prisma 8 command</td></tr>
+</table>
+<p style="font-size:28px;line-height:1.4;color:#4A5568">Prisma 8 taking over migrations in a Prisma 7 project is now 6 of 7 done. The last gap: the datasource’s extensions list.</p>
+<aside>The handover means Prisma 8 owns migrations while the project still reads schema.prisma. The referential action and primary key fixes merged this morning, Thursday.</aside>
+</section>

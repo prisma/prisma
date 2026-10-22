@@ -1,0 +1,36 @@
+<section id="finished" data-section="The six projects finished and what changed for users" data-transition="fade" style="background:#F6F5F1;color:#12202F;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<h2 style="font-size:72px;font-weight:600;line-height:1.1">Six projects finished</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px">
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFFFC;border:1px solid #DCD9D0;border-radius:16px;padding:36px">
+<p style="font-size:24px;color:#0E7C66;font-weight:600">Foundations · Tue 20</p>
+<h3 style="font-size:32px;font-weight:600;line-height:1.2">Data types own column types</h3>
+<p style="font-size:24px;line-height:1.4;color:#4A5568">Defaults, enum members, generator arguments, verify and the planner all read values through their data type (ADR 254).</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFFFC;border:1px solid #DCD9D0;border-radius:16px;padding:36px">
+<p style="font-size:24px;color:#0E7C66;font-weight:600">Foundations · Wed 21</p>
+<h3 style="font-size:32px;font-weight:600;line-height:1.2">Client surfaces</h3>
+<p style="font-size:24px;line-height:1.4;color:#4A5568">A client takes a typed contract value. Custom collections work on every SQL client and transaction. A client can render a plan as SQL without a database.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFFFC;border:1px solid #DCD9D0;border-radius:16px;padding:36px">
+<p style="font-size:24px;color:#0E7C66;font-weight:600">Upgrade path · Wed 21</p>
+<h3 style="font-size:32px;font-weight:600;line-height:1.2">Raw columns</h3>
+<p style="font-size:24px;line-height:1.4;color:#4A5568">A column of any database type: <b>Raw("ltree")</b> in Prisma 8, and Prisma 7’s <b>Unsupported(...)</b> read as one (ADR 273).</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFFFC;border:1px solid #DCD9D0;border-radius:16px;padding:36px">
+<p style="font-size:24px;color:#0E7C66;font-weight:600">Editor and tools · Wed 21</p>
+<h3 style="font-size:32px;font-weight:600;line-height:1.2">Emulator controls</h3>
+<p style="font-size:24px;line-height:1.4;color:#4A5568">Start, stop, find and list local emulators from <b>prisma</b>, with docs. Shipped in prisma 8.0.0-rc.24.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFFFC;border:1px solid #DCD9D0;border-radius:16px;padding:36px">
+<p style="font-size:24px;color:#0E7C66;font-weight:600">Query features · Tue 20</p>
+<h3 style="font-size:32px;font-weight:600;line-height:1.2">Middleware sees activities</h3>
+<p style="font-size:24px;line-height:1.4;color:#4A5568">Statements, transactions and ORM calls are activities with lifecycle events and interceptors (ADR 271).</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFFFC;border:1px solid #DCD9D0;border-radius:16px;padding:36px">
+<p style="font-size:24px;color:#0E7C66;font-weight:600">Query features · Tue 20</p>
+<h3 style="font-size:32px;font-weight:600;line-height:1.2">Cache middleware</h3>
+<p style="font-size:24px;line-height:1.4;color:#4A5568">The cache stores whole ORM calls, and removes a write’s keys once the write has committed.</p>
+</div>
+</div>
+<aside>The day on each card is the day the project’s last part merged. Data types finished with the cast rule on Tuesday evening. Client surfaces, raw columns and the emulator docs finished on Wednesday.</aside>
+</section>

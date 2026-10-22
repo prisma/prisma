@@ -47,6 +47,8 @@ Open item: stream 6 row 1, removing the `unbound` / `__unbound__` namespace alia
 
 On 2026-10-16 Will asked for a presentation of the last two weeks for the team. It is published at https://claude.ai/artifact/WPWi6ksfoLrmUGRSoMv8ST (private; Will shares it). Its source is [presentations/2026-10-16-progress.html](presentations/2026-10-16-progress.html). To update the published version, read the artifact by its URL with the Artifact tool, then publish to the same `url`. Its figures date from 2026-10-16 (12 of 34) and are now out of date.
 
+On 2026-10-22 Will asked for a deck of what he delivered that week (Monday 19 to Thursday 22 October). It is https://claude.ai/artifact/7AjeCxANGc92yArFFRt9hh (private; Will shares it), made from the Slides artifact type. Its source is [presentations/2026-10-22-week/](presentations/2026-10-22-week/): `project/deck.json` and one file per slide. To change it, publish the changed files to the same `url`, with `root` set to that folder.
+
 ## Where the context is
 
 - This session's transcript (brigid-15, 2026-10-16 to 2026-10-20): `~/.claude/projects/-Users-wmadden-Projects-prisma-orm--claude-worktrees-prisma-8-ga-planning-6cd801/e10720d1-c3ac-432b-9fd4-f391bc90df69.jsonl`

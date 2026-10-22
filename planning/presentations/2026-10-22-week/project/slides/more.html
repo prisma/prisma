@@ -1,0 +1,30 @@
+<section id="more" data-section="The rest of the week's work, in numbers, and Asks" data-transition="fade" style="background:#F6F5F1;color:#12202F;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<h2 style="font-size:72px;font-weight:600;line-height:1.1">Also this week</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:28px 64px">
+<div style="display:flex;flex-direction:column;gap:8px;border-top:3px solid #0E7C66;padding:20px 0 0 0">
+<h3 style="font-size:32px;font-weight:600">Migration statements</h3>
+<p style="font-size:26px;line-height:1.4;color:#4A5568">Rename, move and delete Postgres namespaces. 5 of 7 slices done.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;border-top:3px solid #0E7C66;padding:20px 0 0 0">
+<h3 style="font-size:32px;font-weight:600">MongoDB</h3>
+<p style="font-size:26px;line-height:1.4;color:#4A5568">TypeScript contracts get the same collection validator as PSL. A field keeps its own name in code.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;border-top:3px solid #0E7C66;padding:20px 0 0 0">
+<h3 style="font-size:32px;font-weight:600">Clearer failures</h3>
+<p style="font-size:26px;line-height:1.4;color:#4A5568">A failed migration names what its check expected and says whether the database changed.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;border-top:3px solid #0E7C66;padding:20px 0 0 0">
+<h3 style="font-size:32px;font-weight:600">MySQL has started</h3>
+<p style="font-size:26px;line-height:1.4;color:#4A5568">Shaped: one folder per database, then a narrow MySQL and MariaDB target.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;border-top:3px solid #0E7C66;padding:20px 0 0 0">
+<h3 style="font-size:32px;font-weight:600">Faster CI</h3>
+<p style="font-size:26px;line-height:1.4;color:#4A5568">Lint in prisma/orm went from 13 minutes to 2.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;border-top:3px solid #0E7C66;padding:20px 0 0 0">
+<h3 style="font-size:32px;font-weight:600">Deploys</h3>
+<p style="font-size:26px;line-height:1.4;color:#4A5568">An interrupted deploy resumes. The Postgres binding builds clients with the app’s options, such as pgvector.</p>
+</div>
+</div>
+<aside>MySQL is the early attempt from stream 1: its job is to find shared SQL code that assumes Postgres while we can still break APIs. The folder move is in review.</aside>
+</section>
