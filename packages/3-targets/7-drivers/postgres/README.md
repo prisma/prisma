@@ -111,9 +111,11 @@ await driver.connect({ kind: 'url', url: process.env.DATABASE_URL });
 
 Binding variants:
 
-- `{ kind: 'url', url }`: Driver creates a Pool from the connection string
-- `{ kind: 'pgPool', pool }`: Use an existing pg Pool
-- `{ kind: 'pgClient', client }`: Use an existing pg Client (direct connection)
+- `{ kind: 'url', url }`: Driver creates a Pool from the connection string, with `DateStyle=ISO` added as a startup option after any `options` the URL gives
+- `{ kind: 'pgPool', pool }`: Use an existing pg Pool, whose settings are left as they are
+- `{ kind: 'pgClient', client }`: Use an existing pg Client (direct connection), whose settings are left as they are
+
+The string date and time codecs read only text PostgreSQL prints under `DateStyle=ISO`. `isoDateStyleConnectionConfig(url)`, exported from `./runtime`, gives the pg settings for a URL with that option; the control driver and the Postgres and Supabase clients use it for every connection they open.
 
 With `cursor: { disabled: true }` (or buffered cursor fallback), driver-level pool queries return their connection after fetching, before yielding buffered rows for decoding or consumption. Cursor streams retain the connection until completion or iterator cleanup. Queries on caller-owned connections and transactions never release the caller's lease.
 
@@ -121,6 +123,7 @@ With `cursor: { disabled: true }` (or buffered cursor fallback), driver-level po
 
 - `./runtime`: Runtime entry point for driver implementation
   - Default: `postgresRuntimeDriverDescriptor` — use `create()` for unbound driver, then `connect(binding)`
+  - `isoDateStyleConnectionConfig(url)`: the pg settings of a connection Prisma opens from a URL
   - Types: `PostgresBinding`, `PostgresDriverCreateOptions`, `QueryResult`
 - `./control`: Control plane entry point for driver descriptors
   - Default export: `DriverDescriptor` for use in `prisma.config.ts`
