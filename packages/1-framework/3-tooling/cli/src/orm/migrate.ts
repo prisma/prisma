@@ -2,6 +2,7 @@ import { ormConfigSection } from '@internal/config-loader';
 import type { Contract } from '@internal/contract/types';
 import { createControlStack } from '@internal/framework-components/control';
 import { contractHashAtMarker } from '@internal/migration-tools/aggregate';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
 import { isLiveMarkerRef } from '@internal/migration-tools/ref-resolution';
 import type { RefEntry } from '@internal/migration-tools/refs';
@@ -56,6 +57,7 @@ import { toneDrawing } from '../utils/formatters/tone-markup';
 import { runCommandAction } from '../utils/next-actions';
 import { type CliInvocation, cliCommand, cliInvocation } from '../utils/printed-command';
 import { snapshotVerifierFor } from '../utils/snapshot-content-verification';
+import { dataLine } from './data-lines';
 import { perSpaceBlocks } from './db/migration-blocks';
 import { prepareMigrationRun } from './db/prepare';
 import { defineOrmCommand } from './define-command';
@@ -98,6 +100,10 @@ function statusAction(invocation: CliInvocation): NextAction {
   );
 }
 
+function fromField(from: string): string | undefined {
+  return from === EMPTY_CONTRACT_HASH ? undefined : from;
+}
+
 /**
  * The route the migration will take. The graph is a drawing — the engine cannot
  * derive a lane gutter — and the ordered list under it is drawn with the same
@@ -115,7 +121,10 @@ function showPresentations(inputs: {
   const { document, graph, runList } = inputs;
   const count = document.migrations.length;
   return {
-    stdout: () => [],
+    stdout: () =>
+      document.migrations.map((migration) =>
+        dataLine([migration.spaceId, migration.dirName, fromField(migration.from), migration.to]),
+      ),
     next: () => [],
     human: (): readonly Block[] => [
       {
@@ -154,7 +163,16 @@ function applyPresentations(inputs: {
   const { document } = inputs;
   const advanced = document.advancedRef;
   return {
-    stdout: () => [],
+    stdout: () =>
+      document.applied.map((migration) =>
+        dataLine([
+          migration.spaceId,
+          migration.dirName,
+          fromField(migration.from),
+          migration.to,
+          migration.operationsExecuted,
+        ]),
+      ),
     human: (): readonly Block[] => [
       {
         kind: 'fields',

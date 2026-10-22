@@ -20,6 +20,7 @@ const postgresTargetPack: TargetPackRef<'sql', 'postgres'> = {
   targetId: 'postgres',
   version: '0.0.1',
   defaultNamespaceId: 'public',
+  displayName: 'Postgres',
 };
 
 const sqliteTargetPack: TargetPackRef<'sql', 'sqlite'> = {
@@ -29,6 +30,8 @@ const sqliteTargetPack: TargetPackRef<'sql', 'sqlite'> = {
   targetId: 'sqlite',
   version: '0.0.1',
   defaultNamespaceId: '__unbound__',
+  supportsNamespaces: false,
+  displayName: 'SQLite',
 };
 
 const int4Column = columnDescriptor('pg/int4@1');
@@ -159,7 +162,7 @@ describe('per-model `namespace` field (TS builder)', () => {
     ).toThrow(/unbound.*Postgres.*namespace unbound/);
   });
 
-  it('rejects per-model `namespace` on SQLite outright — SQLite has no schema concept', () => {
+  it('rejects per-model `namespace` on SQLite outright', () => {
     expect(() =>
       defineContract({
         ...testTypeLookups,
@@ -170,7 +173,9 @@ describe('per-model `namespace` field (TS builder)', () => {
           User: model('User', { namespace: 'auth', ...userModelArgs }),
         },
       }),
-    ).toThrow(/SQLite/);
+    ).toThrow(
+      'defineContract: model "User" sets `namespace: "auth"` but the target is SQLite, which does not support namespaces (remove the per-model `namespace` field).',
+    );
 
     expect(() =>
       defineContract({

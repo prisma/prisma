@@ -7,6 +7,7 @@ import type {
 } from '@internal/framework-components/control';
 import { ifDefined } from '@internal/utils/defined';
 import type { Block, Presentations, Span, TreeNode } from '@prisma/cli-engine';
+import { noDataLines } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import { createControlClient } from '../../control-api/client';
 import { errorFromCaught } from '../../control-api/operations/caught-errors';
@@ -66,7 +67,9 @@ function schemaPresentations(inputs: {
 }): Presentations {
   const { document, schemaView, database } = inputs;
   return {
-    stdout: () => [],
+    stdout: noDataLines(
+      'Data lines are not defined: the schema is a tree whose shape depends on the database family. --json carries it.',
+    ),
     next: () => [],
     human: (): readonly Block[] => [
       ...(database === undefined

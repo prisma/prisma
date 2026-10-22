@@ -1055,7 +1055,7 @@ export type FieldBuilderFromPresetDescriptor<
 >;
 
 /**
- * A phase template is either a generator value or a `select` over one option argument, which yields no phase when the argument is absent or names no case. Inference can widen an argument to "the option or undefined" (`timestamp(undefined, 'now')` infers `['now'?, 'now'?]`), so the result can be "the phase or undefined"; such a phase becomes an optional key.
+ * A phase template is either a generator value or a `select` over one option argument, which yields no phase when the argument is absent or names no case. An argument typed "the option or undefined", such as a variable of type `'now' | undefined`, gives "the phase or undefined"; such a phase becomes an optional key.
  */
 type ResolvePhaseTemplate<Template, Args extends readonly unknown[]> = Template extends {
   readonly kind: 'select';

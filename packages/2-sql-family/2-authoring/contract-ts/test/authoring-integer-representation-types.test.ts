@@ -54,6 +54,8 @@ const sqliteTargetPackBase = {
   targetId: 'sqlite',
   version: '0.0.1',
   defaultNamespaceId: '__unbound__',
+  supportsNamespaces: false,
+  displayName: 'SQLite',
   authoring: {
     type: {
       BigIntNumber: {
