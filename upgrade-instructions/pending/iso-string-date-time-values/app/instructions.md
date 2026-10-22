@@ -2,13 +2,20 @@
 changes:
   - id: iso-string-date-time-values
     summary: |
-      The PostgreSQL text date and time types (`TimestamptzString`, `TimestampString`, `DateString`, `TimeString`, `Timetz`) read and write ISO 8601, the form the contract stores, instead of the text PostgreSQL prints. A `timestamptz` reads as the instant in UTC whatever the session's time zone, as in `2024-01-01T00:00:00Z`. A literal default or enum member on these types must be written in that form. Prisma sets `DateStyle=ISO` on the connections it opens; a `pg.Pool` or `pg.Client` passed to Prisma with another `DateStyle` fails reads with `RUNTIME.DATE_STYLE_NOT_ISO`.
+      The PostgreSQL text date and time types (`TimestamptzString`, `TimestampString`, `DateString`, `TimeString`, `Timetz`) read and write ISO 8601, the form the contract stores, instead of the text PostgreSQL prints. A `timestamptz` reads as the instant in UTC whatever the session's time zone, as in `2024-01-01T00:00:00Z`. A literal default or enum member on these types must be written in that form.
     detection:
       glob: "**/*.{prisma,ts,tsx,mts,cts,js,mjs,cjs}"
       matches:
         - '(?<![\w$])(?:TimestamptzString|TimestampString|DateString|TimeString|Timetz)(?![\w$])'
         - '(?<![\w$])(?:timestamptzStringColumn|timestampStringColumn|dateStringColumn|timeStringColumn|timetzColumn|createdAtString|updatedAtString)(?![\w$])'
         - 'pg/(?:timestamptz-string|timestamp-string|date-string|time-string|timetz)@1'
+  - id: date-style-iso-required
+    summary: |
+      Prisma sets `DateStyle=ISO` as a startup option on every PostgreSQL connection it opens from a URL. A `pg.Pool` or `pg.Client` passed to Prisma with another `DateStyle` fails every read of a date or timestamp, with any of its codecs (text, `Temporal` or `Date`), with `RUNTIME.DATE_STYLE_NOT_ISO`.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts,js,mjs,cjs}"
+      matches:
+        - 'new\s+(?:pg\.)?(?:Pool|Client)\s*\('
 ---
 
 # Text date and time values are ISO 8601
@@ -42,10 +49,12 @@ scheduledAt: field.column(timestamptzStringColumn).default('2024-01-15T10:30:00Z
 
 `contract emit` refuses a default in another form with `CONTRACT.DEFAULT_INVALID`, and the message shows the form to write. A PSL default written with a tag, such as `` @default(timestamptz`2024-01-15 10:30:00+00`) ``, is unchanged. An enum on `TimestampString`, `TimestamptzString` or `Timetz` is now allowed.
 
+## `DateStyle=ISO` is required
+
 Prisma sets `DateStyle=ISO` as a startup option on every connection it opens from a URL. A `pg.Pool` or `pg.Client` you pass to Prisma keeps its own settings. If its `DateStyle` is not ISO, give it the option:
 
 ```ts
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, options: '-c DateStyle=ISO' });
 ```
 
-Without it, reading a date or timestamp fails with `RUNTIME.DATE_STYLE_NOT_ISO`. A connection pooler that refuses startup options needs `ALTER ROLE <role> SET DateStyle = 'ISO'` instead.
+Without it, every date and time codec that reads a date or timestamp (text, `Temporal` or `Date`) fails with `RUNTIME.DATE_STYLE_NOT_ISO`. Behind a connection pooler that refuses or drops startup options, run `ALTER ROLE <role> SET DateStyle = 'ISO'` (or set it on the database) and pass Prisma your own `pg.Pool`, because a connection Prisma opens from a URL always sends the startup option.
