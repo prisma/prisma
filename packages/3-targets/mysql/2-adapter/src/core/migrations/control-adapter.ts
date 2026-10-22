@@ -19,15 +19,29 @@ import {
   buildControlTableBootstrapQueries,
   buildSignMarkerBootstrapQueries,
 } from '@internal/target-mysql/contract-free';
-import { LEDGER_TABLE_NAME, MARKER_TABLE_NAME } from '@internal/target-mysql/control-tables';
+import {
+  acquireMarkerLock,
+  LEDGER_TABLE_NAME,
+  MARKER_TABLE_NAME,
+  releaseMarkerLock,
+} from '@internal/target-mysql/control-tables';
 import { MysqlCreateTable } from '@internal/target-mysql/ddl';
-import { mysqlNotYetSupported, mysqlQueryNotYetSupported } from '@internal/target-mysql/errors';
+import { mysqlQueryNotYetSupported } from '@internal/target-mysql/errors';
 import { structuredError } from '@internal/utils/structured-error';
 import { renderMysqlColumnDefault, renderMysqlCreateTable } from './ddl-renderer';
 import { declaredIndexes } from './declared-indexes';
 import { buildMysqlSchemaIR } from './introspection';
 import { readMysqlCatalog } from './introspection-queries';
-import { decodeMysqlMarkerRow, readLedgerEntries, readMarkerRows } from './marker-ledger';
+import {
+  compareAndSwapMarkerRow,
+  decodeMysqlMarkerRow,
+  insertLedgerRow,
+  insertMarkerRow,
+  type MarkerDestination,
+  readLedgerEntries,
+  readMarkerRows,
+  upsertMarkerRow,
+} from './marker-ledger';
 
 type Driver = SqlControlDriverInstance<'mysql'>;
 
@@ -40,11 +54,12 @@ function unsupportedDdl(ast: DdlNode): Error {
 }
 
 /**
- * The MySQL control adapter. It introspects the connection's database from `information_schema`, reads the marker and ledger tables, creates them, and runs work in a transaction. Writing markers and the ledger and the marker lock refuse with `MIGRATION.TARGET_UNSUPPORTED` until the migration slice builds them; query lowering refuses with `RUNTIME.AST_UNSUPPORTED`.
+ * The MySQL control adapter. It introspects the connection's database from `information_schema`, creates, reads and writes the marker and ledger tables, takes the marker lock, and runs work in a transaction. Query lowering refuses with `RUNTIME.AST_UNSUPPORTED`.
  */
 export class MysqlControlAdapter implements SqlControlAdapter<'mysql'> {
   readonly familyId = 'sql' as const;
   readonly targetId = 'mysql' as const;
+  readonly #lockHolders = new WeakSet<Driver>();
 
   /** `declaredDataTypes` are the stack's data types, which introspection resolves each column's reported type over. */
   constructor(
@@ -129,27 +144,53 @@ export class MysqlControlAdapter implements SqlControlAdapter<'mysql'> {
     });
   }
 
-  async insertMarker(): Promise<void> {
-    throw mysqlNotYetSupported('Writing the contract marker');
+  async insertMarker(driver: Driver, space: string, destination: MarkerDestination): Promise<void> {
+    await insertMarkerRow(driver, space, destination);
   }
 
-  async initMarker(): Promise<void> {
-    throw mysqlNotYetSupported('Writing the contract marker');
+  async initMarker(driver: Driver, space: string, destination: MarkerDestination): Promise<void> {
+    await upsertMarkerRow(driver, space, destination);
   }
 
-  async updateMarker(): Promise<boolean> {
-    throw mysqlNotYetSupported('Writing the contract marker');
+  async updateMarker(
+    driver: Driver,
+    space: string,
+    expectedFrom: string,
+    destination: MarkerDestination,
+  ): Promise<boolean> {
+    return compareAndSwapMarkerRow(driver, space, expectedFrom, destination);
   }
 
-  async writeLedgerEntry(): Promise<void> {
-    throw mysqlNotYetSupported('Writing the migration ledger');
+  async writeLedgerEntry(
+    driver: Driver,
+    space: string,
+    entry: {
+      readonly edgeId: string;
+      readonly from: string;
+      readonly to: string;
+      readonly migrationName: string;
+      readonly migrationHash: string;
+      readonly operations: readonly unknown[];
+    },
+  ): Promise<void> {
+    await insertLedgerRow(driver, space, entry);
   }
 
-  async lockMarker(): Promise<void> {
-    throw mysqlNotYetSupported('Locking the contract marker');
+  /** Takes `GET_LOCK`, which MySQL holds for the session; the `withTransaction` it runs in releases it when the transaction ends. */
+  async lockMarker(driver: Driver): Promise<void> {
+    await acquireMarkerLock(driver);
+    this.#lockHolders.add(driver);
   }
 
   async withTransaction<T>(driver: Driver, fn: () => Promise<T>): Promise<T> {
+    try {
+      return await this.#inTransaction(driver, fn);
+    } finally {
+      if (this.#lockHolders.delete(driver)) await releaseMarkerLock(driver);
+    }
+  }
+
+  async #inTransaction<T>(driver: Driver, fn: () => Promise<T>): Promise<T> {
     await driver.query('START TRANSACTION');
     let result: T;
     try {

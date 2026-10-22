@@ -3,3 +3,8 @@ export {
   LEDGER_TABLE_NAME,
   MARKER_TABLE_NAME,
 } from '../core/control-tables';
+export {
+  acquireMarkerLock,
+  MARKER_LOCK_TIMEOUT_SECONDS,
+  releaseMarkerLock,
+} from '../core/marker-lock';

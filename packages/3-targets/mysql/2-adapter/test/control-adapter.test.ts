@@ -112,27 +112,61 @@ describe('MysqlControlAdapter', () => {
     ]);
   });
 
-  it('refuses what the migration slice builds', async () => {
-    const adapter: SqlControlAdapter<'mysql'> = createAdapter();
-    const driver = recordingDriver();
-    const destination = { storageHash: 'a', profileHash: 'b' };
-    const refusals = [
-      adapter.insertMarker(driver, 'app', destination),
-      adapter.initMarker(driver, 'app', destination),
-      adapter.updateMarker(driver, 'app', 'x', destination),
-      adapter.writeLedgerEntry(driver, 'app', {
-        edgeId: 'e',
-        from: 'a',
-        to: 'b',
-        migrationName: 'm',
-        migrationHash: 'h',
-        operations: [],
+  it('takes the marker lock in a transaction and releases it when the transaction ends', async () => {
+    const adapter = createAdapter();
+    const driver = recordingDriver((sql) =>
+      sql.startsWith('SELECT GET_LOCK') ? [{ acquired: '1' }] : [],
+    );
+    await adapter.withTransaction(driver, () => adapter.lockMarker(driver));
+    await expect(
+      adapter.withTransaction(driver, async () => {
+        await adapter.lockMarker(driver);
+        throw new Error('boom');
       }),
-      adapter.lockMarker(driver),
-    ];
-    for (const refusal of refusals) {
-      await expect(refusal).rejects.toMatchObject({ code: 'MIGRATION.TARGET_UNSUPPORTED' });
-    }
+    ).rejects.toThrow('boom');
+    await adapter.withTransaction(driver, async () => 'no lock');
+
+    expect(driver.statements.map((sql) => sql.split('(')[0])).toEqual([
+      'START TRANSACTION',
+      'SELECT GET_LOCK',
+      'COMMIT',
+      'SELECT RELEASE_LOCK',
+      'START TRANSACTION',
+      'SELECT GET_LOCK',
+      'ROLLBACK',
+      'SELECT RELEASE_LOCK',
+      'START TRANSACTION',
+      'COMMIT',
+    ]);
+  });
+
+  it('refuses to go on when another process holds the marker lock', async () => {
+    const adapter = createAdapter();
+    const driver = recordingDriver((sql) =>
+      sql.startsWith('SELECT GET_LOCK') ? [{ acquired: '0' }] : [],
+    );
+    await expect(adapter.lockMarker(driver)).rejects.toMatchObject({
+      code: 'MIGRATION.MARKER_LOCK_TIMEOUT',
+    });
+  });
+
+  it('advances the marker only when the locked row still holds the expected hash', async () => {
+    const adapter = createAdapter();
+    const stored = { core_hash: 'sha256:old', invariants: '["b"]' };
+    const driver = recordingDriver((sql) => (sql.includes('FOR UPDATE') ? [stored] : []));
+    const destination = { storageHash: 'sha256:new', profileHash: 'p', invariants: ['a'] };
+
+    expect(await adapter.updateMarker(driver, 'app', 'sha256:other', destination)).toBe(false);
+    expect(await adapter.updateMarker(driver, 'app', 'sha256:old', destination)).toBe(true);
+    expect(driver.statements).toEqual([
+      'SELECT core_hash, invariants FROM `_prisma_marker` WHERE space = ? FOR UPDATE',
+      'SELECT core_hash, invariants FROM `_prisma_marker` WHERE space = ? FOR UPDATE',
+      'UPDATE `_prisma_marker` SET core_hash = ?, profile_hash = ?, updated_at = CURRENT_TIMESTAMP(3), invariants = ? WHERE space = ? AND core_hash = ?',
+    ]);
+  });
+
+  it('refuses query lowering', async () => {
+    const adapter: SqlControlAdapter<'mysql'> = createAdapter();
     const queryLoweringRefusal = {
       code: 'RUNTIME.AST_UNSUPPORTED',
       message: 'Lowering queries is not yet supported on MySQL.',
