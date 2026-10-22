@@ -27,7 +27,7 @@ import { runSchemaVerify, timeouts, useDevDatabase } from '../family.schema-veri
 
 const fixturesDir = join(
   dirname(fileURLToPath(import.meta.url)),
-  '../../../../packages/2-sql/2-authoring/contract-prisma7/test/fixtures',
+  '../../../../packages/2-sql-family/2-authoring/contract-prisma7/test/fixtures',
 );
 
 const successFixtures = readdirSync(fixturesDir, { withFileTypes: true })

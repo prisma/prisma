@@ -1,6 +1,6 @@
 import type { Collection } from '@internal/sql-orm-client';
 import { expectTypeOf, test } from 'vitest';
-import type { Contract } from '../../../3-targets/3-targets/sqlite/test/fixtures/sqlite-contract.d';
+import type { Contract } from '../../1-target/test/fixtures/sqlite-contract.d';
 import type { SqliteClient, SqliteTransactionContext } from '../src/exports/runtime';
 import type { SqliteStaticContext } from '../src/exports/static';
 

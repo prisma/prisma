@@ -5,8 +5,8 @@ import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
 import { SqliteContractSerializer } from '@internal/target-sqlite/runtime';
 import { createContract } from '@repo/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { Contract } from '../../../3-targets/3-targets/sqlite/test/fixtures/sqlite-contract.d';
-import fixtureContractJson from '../../../3-targets/3-targets/sqlite/test/fixtures/sqlite-contract.json' with {
+import type { Contract } from '../../1-target/test/fixtures/sqlite-contract.d';
+import fixtureContractJson from '../../1-target/test/fixtures/sqlite-contract.json' with {
   type: 'json',
 };
 import sqlite from '../src/exports/runtime';

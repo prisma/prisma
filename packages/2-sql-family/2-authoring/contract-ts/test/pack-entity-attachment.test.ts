@@ -59,7 +59,7 @@ class TestNativeEnum extends IRNodeBase {
 }
 
 // Mirrors the real Postgres `nativeEnumEntityTypeOutput` shape
-// (packages/3-targets/3-targets/postgres/src/core/authoring.ts): checked
+// (packages/3-targets/postgres/1-target/src/core/authoring.ts): checked
 // against the intersection type standalone so the entity-types map's
 // `satisfies AuthoringEntityTypeNamespace` check doesn't trip an
 // excess-property error over the extra `deriveValueSet` hook.

@@ -426,7 +426,7 @@ The Mongo target package owns every built-in Mongo codec, as the Postgres target
 | `@internal/target-mongo/data-types` | the data type each codec represents |
 | `@internal/target-mongo/codec-types` | the `CodecTypes` map emitted `contract.d.ts` files import |
 
-The source lives in `packages/3-mongo-target/1-mongo-target/src/core/{codec-ids,codecs,bson-scalar-helpers,data-types}.ts` and `src/exports/codec-types.ts`. The adapter's runtime descriptor registers `buildStandardCodecRegistry()`, and its control descriptor names each PSL scalar (`mongoScalarAuthoringTypes` in `packages/3-mongo-target/2-mongo-adapter/src/exports/control.ts`). The TypeScript builder in `@internal/mongo-contract-ts` keeps its own copy of the `CodecTypes` map; keep the two in step. `BsonScalar`, `BsonValue` and `BsonInputValue` are declared once in `@internal/mongo-value`, which both maps import, and `@internal/target-mongo/codec-types` re-exports them.
+The source lives in `packages/3-targets/mongo/1-target/src/core/{codec-ids,codecs,bson-scalar-helpers,data-types}.ts` and `src/exports/codec-types.ts`. The adapter's runtime descriptor registers `buildStandardCodecRegistry()`, and its control descriptor names each PSL scalar (`mongoScalarAuthoringTypes` in `packages/3-targets/mongo/2-adapter/src/exports/control.ts`). The TypeScript builder in `@internal/mongo-contract-ts` keeps its own copy of the `CodecTypes` map; keep the two in step. `BsonScalar`, `BsonValue` and `BsonInputValue` are declared once in `@internal/mongo-value`, which both maps import, and `@internal/target-mongo/codec-types` re-exports them.
 
 The PSL name, TS helper, BSON storage types and application type of every Mongo codec are listed in [Scalar types](scalar-types.md#mongodb). What that page does not list is the JSON form `contract.json` stores for each codec's values, which its data type reads and the codec's `toDataTypeValue` returns:
 
@@ -837,7 +837,7 @@ class PgCharDescriptor extends PostgresCodecDescriptor<LengthParams> {
 
 This keeps target ownership explicit: adaptation is for a reusable descriptor with its existing id; target-owned subclassing is for a PostgreSQL codec with PostgreSQL identity or behavior. In both cases the result satisfies the PostgreSQL descriptor protocol and can participate in `definePostgresCodecs(...)`.
 
-See [packages/3-targets/3-targets/postgres/src/core/codecs.ts](../../packages/3-targets/3-targets/postgres/src/core/codecs.ts) (`postgresSqlCharDescriptor`, `PgCharDescriptor`) for both patterns.
+See [packages/3-targets/postgres/1-target/src/core/codecs.ts](../../packages/3-targets/postgres/1-target/src/core/codecs.ts) (`postgresSqlCharDescriptor`, `PgCharDescriptor`) for both patterns.
 
 ## Aggregate result codecs
 
@@ -845,7 +845,7 @@ What an aggregate returns is a declaration of its target, not a property of the 
 
 ## Heterogeneous storage at the runtime layer
 
-The framework's descriptor registry is keyed by `codecId: string` and stores type-erased descriptor instances. The canonical erasure type is `AnyCodecDescriptor` (defined in `packages/1-framework/1-core/framework-components/src/shared/codec-descriptor.ts`). An excerpt of the SQL registry's interface (`packages/2-sql/4-lanes/relational-core/src/query-lane-context.ts`):
+The framework's descriptor registry is keyed by `codecId: string` and stores type-erased descriptor instances. The canonical erasure type is `AnyCodecDescriptor` (defined in `packages/1-framework/1-core/framework-components/src/shared/codec-descriptor.ts`). An excerpt of the SQL registry's interface (`packages/2-sql-family/4-lanes/relational-core/src/query-lane-context.ts`):
 
 ```ts
 import type { CodecDescriptor } from '@internal/framework-components/codec';
@@ -871,9 +871,9 @@ The class hierarchy does not preserve literal types; the per-codec helpers' dire
 
 ## Reference implementations in the repo
 
-- **Non-parameterized base codecs** (text, int, float, bool, etc.): `packages/2-sql/4-lanes/relational-core/src/ast/sql-codecs.ts`.
-- **PostgreSQL target codecs and generic descriptor adapters**: `packages/3-targets/3-targets/postgres/src/core/codecs.ts`.
-- **SQLite target codecs and generic descriptor adapters**: `packages/3-targets/3-targets/sqlite/src/core/codecs.ts`.
+- **Non-parameterized base codecs** (text, int, float, bool, etc.): `packages/2-sql-family/4-lanes/relational-core/src/ast/sql-codecs.ts`.
+- **PostgreSQL target codecs and generic descriptor adapters**: `packages/3-targets/postgres/1-target/src/core/codecs.ts`.
+- **SQLite target codecs and generic descriptor adapters**: `packages/3-targets/sqlite/1-target/src/core/codecs.ts`.
 - **Parameterized codec with literal preservation** (pgvector): `packages/3-extensions/pgvector/src/core/codecs.ts`.
 - **Parameterized codec with typed schema** (arktype-json): `packages/3-extensions/arktype-json/src/core/arktype-json-codec.ts`.
 

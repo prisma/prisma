@@ -14,7 +14,7 @@ import type { StorageTable } from '../src/ir/storage-table';
 import type { StorageValueSet } from '../src/ir/storage-value-set';
 
 /**
- * Minimal concrete `SqlNamespaceBase` for use in `packages/2-sql/**` unit tests.
+ * Minimal concrete `SqlNamespaceBase` for use in `packages/2-sql-family/**` unit tests.
  *
  * This is a legitimate target concretion — not a materialised family
  * namespace.  Production code never constructs one; the target-specific

@@ -1,7 +1,7 @@
 import type { HasOrderBy, HasWhere } from '@internal/sql-orm-client';
 import { websearchToTsquery } from '@internal/target-postgres/full-text';
 import { describe, expectTypeOf, test } from 'vitest';
-import type { Contract } from '../../sql-orm-client/test/fixtures/generated/contract';
+import type { Contract } from '../../../../3-extensions/sql-orm-client/test/fixtures/generated/contract';
 import type { PostgresClient } from '../src/runtime/postgres';
 import type { PostgresServerlessClient } from '../src/runtime/postgres-serverless';
 

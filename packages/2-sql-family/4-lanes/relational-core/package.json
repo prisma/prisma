@@ -70,6 +70,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/orm.git",
-    "directory": "packages/2-sql/4-lanes/relational-core"
+    "directory": "packages/2-sql-family/4-lanes/relational-core"
   }
 }

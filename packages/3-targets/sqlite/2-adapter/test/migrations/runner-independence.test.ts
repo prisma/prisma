@@ -44,7 +44,7 @@ import {
  * migration, proving both the reader and the runner tolerate its absence.
  *
  * Mirrors the Postgres equivalent at
- * `packages/3-targets/6-adapters/postgres/test/migrations/runner-independence.integration.test.ts`.
+ * `packages/3-targets/postgres/2-adapter/test/migrations/runner-independence.integration.test.ts`.
  */
 
 const STORAGE_HASH_C1 = '1'.repeat(64);

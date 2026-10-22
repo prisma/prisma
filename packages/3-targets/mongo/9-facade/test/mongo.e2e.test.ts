@@ -1,8 +1,8 @@
 import { timeouts } from '@repo/test-utils';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { Contract } from '../../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract';
-import contractJson from '../../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract.json' with {
+import type { Contract } from '../../../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract';
+import contractJson from '../../../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract.json' with {
   type: 'json',
 };
 import mongo from '../src/runtime/mongo';

@@ -65,6 +65,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/orm.git",
-    "directory": "packages/3-targets/7-drivers/postgres"
+    "directory": "packages/3-targets/postgres/3-driver"
   }
 }

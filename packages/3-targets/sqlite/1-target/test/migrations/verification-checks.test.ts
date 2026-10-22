@@ -143,5 +143,5 @@ describe('indexExistsAst — SQLite sqlite_master index check builder', () => {
 });
 
 // Rendered-SQL lowering coverage lives in the adapter package
-// (packages/3-targets/6-adapters/sqlite/test/verification-checks-lowering.test.ts):
+// (packages/3-targets/sqlite/2-adapter/test/verification-checks-lowering.test.ts):
 // the adapter depends on this target package, never the reverse.

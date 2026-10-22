@@ -1,5 +1,5 @@
 /**
- * Native SQLite target codecs (TML-2357). Mirrors the Postgres codec class form in `packages/3-targets/3-targets/postgres/src/core/codecs.ts`.
+ * Native SQLite target codecs (TML-2357). Mirrors the Postgres codec class form in `packages/3-targets/postgres/1-target/src/core/codecs.ts`.
  *
  * Each codec ships as three artifacts:
  *

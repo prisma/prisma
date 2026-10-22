@@ -77,6 +77,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/orm.git",
-    "directory": "packages/2-sql/9-family"
+    "directory": "packages/2-sql-family/9-family"
   }
 }

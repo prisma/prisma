@@ -1,6 +1,6 @@
 import { expectTypeOf, test } from 'vitest';
-import type { Contract } from '../../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract';
-import contractJson from '../../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract.json' with {
+import type { Contract } from '../../../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract';
+import contractJson from '../../../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract.json' with {
   type: 'json',
 };
 import mongo, { type MongoClient } from '../src/exports/runtime';

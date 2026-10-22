@@ -11,7 +11,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 const SNAPSHOTS_IMPORT_PATH = './snapshots';
 const execFileAsync = promisify(execFile);
 const packageRoot = resolve(import.meta.dirname, '..');
-const repoRoot = resolve(packageRoot, '../../..');
+const repoRoot = resolve(packageRoot, '../../../..');
 const tsxPath = join(repoRoot, 'node_modules/.bin/tsx');
 
 const familyMongoRoot = resolve(repoRoot, 'packages/2-mongo-family/9-family');
@@ -27,10 +27,10 @@ const familyMongoControlExport = pathToFileURL(
   resolve(familyMongoRoot, 'src/exports/control.ts'),
 ).href;
 const targetMongoControlExport = pathToFileURL(
-  resolve(repoRoot, 'packages/3-mongo-target/1-mongo-target/src/exports/control.ts'),
+  resolve(repoRoot, 'packages/3-targets/mongo/1-target/src/exports/control.ts'),
 ).href;
 const adapterMongoControlExport = pathToFileURL(
-  resolve(repoRoot, 'packages/3-mongo-target/2-mongo-adapter/src/exports/control.ts'),
+  resolve(repoRoot, 'packages/3-targets/mongo/2-adapter/src/exports/control.ts'),
 ).href;
 
 /**

@@ -12,7 +12,7 @@ This package owns the SQL TypeScript authoring API for Prisma 8.
 
 ## Overview
 
-This package is part of the SQL family namespace (`packages/2-sql/2-authoring/contract-ts`) and provides:
+This package is part of the SQL family namespace (`packages/2-sql-family/2-authoring/contract-ts`) and provides:
 
 - the SQL contract DSL centered on `defineContract(...)`
 - the base structural helpers exported from `./contract-builder`: `field.column(...)`, `field.generated(...)`, `field.namedType(...)`, plus `model(...)` and `rel.*`

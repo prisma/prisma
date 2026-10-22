@@ -570,7 +570,7 @@ model Member {
     });
   });
 
-  // Round-trip companion to packages/2-sql/9-family/test/psl-contract-infer/print-psl/print-psl.core.test.ts
+  // Round-trip companion to packages/2-sql-family/9-family/test/psl-contract-infer/print-psl/print-psl.core.test.ts
   // The PSL strings below are copied verbatim from the printer's snapshots so
   // a drift on either side breaks one of the two suites. Spec: id-less SQL
   // tables and composite-PK tables emitted by introspection must round-trip

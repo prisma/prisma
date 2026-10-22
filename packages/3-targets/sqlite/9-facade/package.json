@@ -72,6 +72,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/orm.git",
-    "directory": "packages/3-extensions/sqlite"
+    "directory": "packages/3-targets/sqlite/9-facade"
   }
 }

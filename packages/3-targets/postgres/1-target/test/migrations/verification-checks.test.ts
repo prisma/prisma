@@ -275,5 +275,5 @@ describe('D3 catalog check builders — construction pins', () => {
 });
 
 // Rendered-SQL lowering coverage lives in the adapter package
-// (packages/3-targets/6-adapters/postgres/test/verification-checks-lowering.test.ts):
+// (packages/3-targets/postgres/2-adapter/test/verification-checks-lowering.test.ts):
 // the adapter depends on this target package, never the reverse.

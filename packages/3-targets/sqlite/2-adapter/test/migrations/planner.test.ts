@@ -12,7 +12,7 @@ import { sqliteDataTypes } from '@internal/target-sqlite/data-types';
 import { createSqliteMigrationPlanner } from '@internal/target-sqlite/planner';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { introspectedColumn as introspectedColumnOver } from '../../../../../2-sql/1-core/contract/test/introspected-column';
+import { introspectedColumn as introspectedColumnOver } from '../../../../../2-sql-family/1-core/contract/test/introspected-column';
 import { createTestSqliteControlAdapter } from '../helpers/test-control-adapter';
 import { sqliteComponents } from './fixtures/sqlite-components';
 

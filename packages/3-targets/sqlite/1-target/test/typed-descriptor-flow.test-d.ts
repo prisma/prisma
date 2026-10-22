@@ -1,5 +1,5 @@
 /**
- * Constructive type tests for the sqlite per-target descriptor record layer (TML-2357). Mirrors the postgres test (`packages/3-targets/3-targets/postgres/test/typed-descriptor-flow.test-d.ts`).
+ * Constructive type tests for the sqlite per-target descriptor record layer (TML-2357). Mirrors the postgres test (`packages/3-targets/postgres/1-target/test/typed-descriptor-flow.test-d.ts`).
  */
 
 import type { CodecTrait } from '@internal/framework-components/codec';

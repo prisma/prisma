@@ -75,14 +75,17 @@ const tscPath = join(repoRoot, 'node_modules/.bin/tsc');
 async function writeTypecheckDir(dir: string, renderedSource: string): Promise<void> {
   const tsSource = renderedSource.replace(
     "'@internal/postgres/migration'",
-    `'${resolve(repoRoot, 'packages/3-extensions/postgres/dist/migration.mjs')}'`,
+    `'${resolve(repoRoot, 'packages/3-targets/postgres/9-facade/dist/migration.mjs')}'`,
   );
   await writeFile(join(dir, 'migration.ts'), tsSource);
   const contractDistTypes = resolve(
     repoRoot,
     'packages/1-framework/0-foundation/contract/dist/types.mjs',
   );
-  const sqlContractDistTypes = resolve(repoRoot, 'packages/2-sql/1-core/contract/dist/types.mjs');
+  const sqlContractDistTypes = resolve(
+    repoRoot,
+    'packages/2-sql-family/1-core/contract/dist/types.mjs',
+  );
   const realContractType = `export type Contract = import('${contractDistTypes}').Contract<\n  import('${sqlContractDistTypes}').SqlStorage\n>;\n`;
   for (const hash of [META.to, META.from]) {
     await writeFile(

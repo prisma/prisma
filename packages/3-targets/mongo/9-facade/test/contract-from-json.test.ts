@@ -1,8 +1,8 @@
 import { validateContractOnce } from '@internal/contract/validate-once';
 import { MongoContractSerializer } from '@internal/family-mongo/ir';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { Contract } from '../../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract';
-import fixtureContractJson from '../../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract.json' with {
+import type { Contract } from '../../../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract';
+import fixtureContractJson from '../../../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract.json' with {
   type: 'json',
 };
 import { defineContract, enumType, field, member, model } from '../src/exports/contract-builder';

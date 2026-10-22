@@ -38,7 +38,7 @@ import {
 import postgresRuntimeTargetDescriptor from '@internal/target-postgres/runtime';
 import { applicationDomainOf, createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createTestSqlNamespace } from '../../../../2-sql/1-core/contract/test/test-support';
+import { createTestSqlNamespace } from '../../../../2-sql-family/1-core/contract/test/test-support';
 import postgresRuntimeAdapterDescriptorFull from '../src/exports/runtime';
 import { defineTestCodec } from './test-codec';
 

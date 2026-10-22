@@ -100,7 +100,7 @@ SQL codec authors extend the framework `CodecImpl` base (and pair the codec with
 - All four must be implemented — there is no identity-default fallback.
 
 ```ts
-// Non-parameterized codec (P = void) — see packages/3-targets/3-targets/postgres/src/core/codecs.ts
+// Non-parameterized codec (P = void) — see packages/3-targets/postgres/1-target/src/core/codecs.ts
 // for the production form.
 import {
   CodecImpl,

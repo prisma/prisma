@@ -32,7 +32,7 @@ import {
  * remain isolated.
  *
  * The qualifier-routing test
- * (`packages/3-extensions/postgres/test/psl-namespace-qualifier-routing.test.ts`)
+ * (`packages/3-targets/postgres/9-facade/test/psl-namespace-qualifier-routing.test.ts`)
  * proves the contract-side substrate; this test proves the runtime
  * side end-to-end with PGlite-backed Postgres.
  */

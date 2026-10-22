@@ -9,7 +9,7 @@ changes:
       `@internal/*` package they are workspace-private — a published home under the `@prisma/*`
       scope is a follow-up — so today's consumers are packs developed in this repository. A pack
       that reached the in-repo harness through a relative cross-package import
-      (`../../../3-targets/6-adapters/postgres/test/codec-conformance/harness`) adds the matching
+      (`../../../3-targets/postgres/2-adapter/test/codec-conformance/harness`) adds the matching
       testkit as a workspace devDependency and imports `runPostgresCodecProjection` /
       `runSqliteCodecProjection` from the package instead; a `tsconfig` whose `rootDir` was widened
       to reach across that boundary can be narrowed back to the pack. The harness API is unchanged —

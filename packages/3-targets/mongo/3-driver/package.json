@@ -57,6 +57,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/orm.git",
-    "directory": "packages/3-mongo-target/3-mongo-driver"
+    "directory": "packages/3-targets/mongo/3-driver"
   }
 }

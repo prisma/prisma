@@ -10,7 +10,7 @@ import {
 } from '../../../9-family/src/core/generator-functions';
 
 const postgresGeneratorFunctionsUrl = new URL(
-  '../../../../3-targets/3-targets/postgres/src/core/generator-functions.ts',
+  '../../../../3-targets/postgres/1-target/src/core/generator-functions.ts',
   import.meta.url,
 ).href;
 

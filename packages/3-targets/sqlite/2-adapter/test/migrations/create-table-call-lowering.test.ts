@@ -16,10 +16,10 @@ import {
 import { createSqliteBuiltinCodecLookup } from '@internal/target-sqlite/codecs';
 import { CreateTableCall } from '@internal/target-sqlite/op-factory-call';
 import { describe, expect, it } from 'vitest';
-import type { SqliteTableSpec } from '../../../../3-targets/sqlite/src/core/migrations/operations/shared';
+import type { SqliteTableSpec } from '../../../1-target/src/core/migrations/operations/shared';
 // Pre-slice oracle: the createTable function and SqliteTableSpec type from the
 // internal tables module (kept on disk for Phase 2 recreateTable use).
-import { createTable as preSliceCreateTableOp } from '../../../../3-targets/sqlite/src/core/migrations/operations/tables';
+import { createTable as preSliceCreateTableOp } from '../../../1-target/src/core/migrations/operations/tables';
 import { createTestSqliteControlAdapter } from '../helpers/test-control-adapter';
 
 const lowerer = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());

@@ -360,7 +360,7 @@ function generateDocumentScopedStorageTypesType(types: SqlStorage['types']): str
  * Literalizes the `valueSet` entries slot — a core SQL entity kind (alongside
  * `table`), not a pack-contributed one, so naming it here isn't a
  * family→target layering leak. This is the only non-`table` entries slot with
- * a type-level consumer (`db.nativeEnums`, `packages/3-extensions/postgres`):
+ * a type-level consumer (`db.nativeEnums`, `packages/3-targets/postgres/9-facade`):
  * pack-contributed slots (`role`, `policy`, `native_enum`, …) have none and
  * are not emitted.
  */

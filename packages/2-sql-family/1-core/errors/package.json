@@ -46,6 +46,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/orm.git",
-    "directory": "packages/2-sql/1-core/errors"
+    "directory": "packages/2-sql-family/1-core/errors"
   }
 }

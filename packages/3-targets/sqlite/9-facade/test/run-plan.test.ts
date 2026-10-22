@@ -1,9 +1,7 @@
 import type { SqlMiddleware } from '@internal/sql-runtime';
 import { describe, expect, it } from 'vitest';
-import type { Contract } from '../../../3-targets/3-targets/sqlite/test/fixtures/sqlite-contract.d';
-import contractJson from '../../../3-targets/3-targets/sqlite/test/fixtures/sqlite-contract.json' with {
-  type: 'json',
-};
+import type { Contract } from '../../1-target/test/fixtures/sqlite-contract.d';
+import contractJson from '../../1-target/test/fixtures/sqlite-contract.json' with { type: 'json' };
 import sqlite from '../src/exports/runtime';
 import { contractFromJson } from '../src/exports/static';
 

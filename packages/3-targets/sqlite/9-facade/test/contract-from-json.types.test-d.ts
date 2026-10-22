@@ -1,8 +1,6 @@
 import { expectTypeOf, test } from 'vitest';
-import type { Contract } from '../../../3-targets/3-targets/sqlite/test/fixtures/sqlite-contract.d';
-import contractJson from '../../../3-targets/3-targets/sqlite/test/fixtures/sqlite-contract.json' with {
-  type: 'json',
-};
+import type { Contract } from '../../1-target/test/fixtures/sqlite-contract.d';
+import contractJson from '../../1-target/test/fixtures/sqlite-contract.json' with { type: 'json' };
 import sqlite, { type SqliteClient } from '../src/exports/runtime';
 import sqliteStatic, { contractFromJson, type SqliteStaticContext } from '../src/exports/static';
 

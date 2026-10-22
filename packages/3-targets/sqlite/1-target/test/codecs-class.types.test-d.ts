@@ -1,7 +1,7 @@
 /**
  * Type tests for the SQLite target codecs.
  *
- * Mirrors `packages/3-targets/3-targets/postgres/test/codecs-class.types.test-d.ts`.
+ * Mirrors `packages/3-targets/postgres/1-target/test/codecs-class.types.test-d.ts`.
  *
  * Coverage selection: every SQLite codec is non-parameterized, so the tests focus on representative codecs that exercise distinct input/wire types — a numeric (`integer`), a typed `Date` mapping (`datetime`, wire `string` ≠ input `Date`), a binary mapping (`blob`, wire `Uint8Array`), and a bigint mapping (`bigint`, wire `number | bigint` ≠ input `bigint`). The framework-level type discipline is exercised in `framework-components/test/codec.types.test-d.ts`.
  */

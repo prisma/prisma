@@ -145,11 +145,11 @@ The runner returns structured errors with the following codes:
 ## How to debug `db init`
 
 - **CLI orchestration**: `packages/1-framework/3-tooling/cli/src/commands/db-init.ts`
-- **Planner/runner SPI types**: `packages/2-sql/3-tooling/family/src/core/migrations/types.ts`
-- **Pure schema verifier (used by planner + runner)**: `@internal/family-sql/schema-verify` (source: `packages/2-sql/3-tooling/family/src/core/schema-verify/`)
+- **Planner/runner SPI types**: `packages/2-sql-family/3-tooling/family/src/core/migrations/types.ts`
+- **Pure schema verifier (used by planner + runner)**: `@internal/family-sql/schema-verify` (source: `packages/2-sql-family/3-tooling/family/src/core/schema-verify/`)
 - **Postgres implementation**:
-  - Planner: `packages/3-targets/3-targets/postgres/src/core/migrations/planner.ts`
-  - Runner: `packages/3-targets/3-targets/postgres/src/core/migrations/runner.ts`
+  - Planner: `packages/3-targets/postgres/1-target/src/core/migrations/planner.ts`
+  - Runner: `packages/3-targets/postgres/1-target/src/core/migrations/runner.ts`
 - **Tests**:
   - CLI integration: `test/integration/test/cli.db-init.e2e.test.ts`
-  - Target unit/integration: `packages/3-targets/3-targets/postgres/test/migrations/*`
+  - Target unit/integration: `packages/3-targets/postgres/1-target/test/migrations/*`

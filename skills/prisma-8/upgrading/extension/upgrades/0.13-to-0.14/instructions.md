@@ -155,14 +155,14 @@ extension-author API change. Incidental substrate diff only.
 TML-2867: codec-routed DDL defaults. The pgvector extension test files were updated
 to await lazy plan operations (`Promise.all(result.plan.operations)`) and to use
 `PostgresControlAdapter` instead of the removed `createPostgresAdapter`. The
-`packages/3-extensions/postgres re-export test` deletion was already declared by
+`packages/3-targets/postgres/9-facade re-export test` deletion was already declared by
 TML-2859 above. No extension-author API change. Incidental substrate diff only.
 -->
 
 <!--
 TML-2859: SQLite createTable authoring method. The free `createTable` function from
 `@internal/sqlite/migration` is now a protected method on the `SqliteMigration`
-base class. The `createTable` re-export test in `packages/3-extensions/sqlite/` was
+base class. The `createTable` re-export test in `packages/3-targets/sqlite/9-facade/` was
 removed (it asserted the free function was exported, which is no longer true). The
 README was updated to reflect the current authoring surface. No extension-author action
 beyond what the `sqlite-create-table-method` entry in the 0.12-to-0.13 instructions

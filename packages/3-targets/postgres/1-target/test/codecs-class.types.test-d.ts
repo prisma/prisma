@@ -1,7 +1,7 @@
 /**
  * Type tests for the Postgres target codecs.
  *
- * Mirrors `packages/2-sql/4-lanes/relational-core/test/ast/sql-codecs.types.test-d.ts`.
+ * Mirrors `packages/2-sql-family/4-lanes/relational-core/test/ast/sql-codecs.types.test-d.ts`.
  *
  * Representative codecs only — the framework-level type discipline is exercised in `framework-components/test/codec.types.test-d.ts`. Per-target coverage focuses on:
  *

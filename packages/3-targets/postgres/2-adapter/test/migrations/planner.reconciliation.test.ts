@@ -21,7 +21,7 @@ import {
 } from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { introspectedColumn as introspectedColumnOver } from '../../../../../2-sql/1-core/contract/test/introspected-column';
+import { introspectedColumn as introspectedColumnOver } from '../../../../../2-sql-family/1-core/contract/test/introspected-column';
 import { createTestPostgresControlAdapter } from '../helpers/test-control-adapter';
 import { postgresComponents } from './fixtures/postgres-components';
 

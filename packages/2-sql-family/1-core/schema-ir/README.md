@@ -136,5 +136,5 @@ This package sits at the core layer in the shared plane, making it accessible to
 
 - `docs/briefs/11-schema-ir.md` - Schema IR project brief
 - `docs/briefs/SQL Schema IR and Verification.md` - Detailed design document
-- `packages/2-sql/3-tooling/family/src/core/instance.ts` - SQL family instance with `schemaVerify()` method
-- `packages/3-targets/6-adapters/postgres/src/exports/control.ts` - Postgres introspection entrypoint
+- `packages/2-sql-family/3-tooling/family/src/core/instance.ts` - SQL family instance with `schemaVerify()` method
+- `packages/3-targets/postgres/2-adapter/src/exports/control.ts` - Postgres introspection entrypoint

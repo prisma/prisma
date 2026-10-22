@@ -19,20 +19,20 @@ export const testAdapter = createTestPostgresControlAdapter(
 );
 const packageRoot = resolve(import.meta.dirname, '../../..');
 export const repoRoot = resolve(packageRoot, '../../../..');
-const targetPostgresRoot = resolve(repoRoot, 'packages/3-targets/3-targets/postgres');
+const targetPostgresRoot = resolve(repoRoot, 'packages/3-targets/postgres/1-target');
 export const tsxPath = join(repoRoot, 'node_modules/.bin/tsx');
 
 const targetPostgresMigrationExport = pathToFileURL(
   resolve(targetPostgresRoot, 'src/exports/migration.ts'),
 ).href;
 const relationalCoreContractFreeExport = pathToFileURL(
-  resolve(repoRoot, 'packages/2-sql/4-lanes/relational-core/src/exports/contract-free.ts'),
+  resolve(repoRoot, 'packages/2-sql-family/4-lanes/relational-core/src/exports/contract-free.ts'),
 ).href;
 const cliConfigTypesExport = pathToFileURL(
   resolve(repoRoot, 'packages/1-framework/3-tooling/cli/src/exports/config-types.ts'),
 ).href;
 const familySqlControlExport = pathToFileURL(
-  resolve(repoRoot, 'packages/2-sql/9-family/src/exports/control.ts'),
+  resolve(repoRoot, 'packages/2-sql-family/9-family/src/exports/control.ts'),
 ).href;
 const targetPostgresControlExport = pathToFileURL(
   resolve(targetPostgresRoot, 'src/exports/control.ts'),

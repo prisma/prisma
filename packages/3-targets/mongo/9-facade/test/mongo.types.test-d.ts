@@ -12,7 +12,7 @@ import type {
 } from '@internal/mongo-orm';
 import type { MongoExecutionContext } from '@internal/mongo-runtime';
 import { expectTypeOf, test } from 'vitest';
-import type { Contract } from '../../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract';
+import type { Contract } from '../../../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract';
 import { defineContract, enumType, field, member, model } from '../src/exports/contract-builder';
 import type { MongoClient } from '../src/runtime/mongo';
 import type { MongoStaticContext } from '../src/static/mongo-static';

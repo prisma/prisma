@@ -63,6 +63,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/orm.git",
-    "directory": "packages/2-sql/5-runtime"
+    "directory": "packages/2-sql-family/5-runtime"
   }
 }

@@ -3,7 +3,7 @@ import { buildOperation, createRawSql, param } from '@internal/sql-relational-co
 import { sqliteCodecDescriptorRegistry } from '@internal/target-sqlite/codecs';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../2-sql/9-family/test/test-sql-contract-serializer';
+import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../2-sql-family/9-family/test/test-sql-contract-serializer';
 import { renderLoweredSql, sqliteRawCodecInferer } from '../src/core/adapter';
 import type { SqliteContract } from '../src/core/types';
 

@@ -79,7 +79,7 @@ export default definePrismaConfig({
 What the project needs around that file:
 
 - `db.connection` is the database URL Prisma 6 reads from its `datasource` block, usually the same `DATABASE_URL` variable. The schema keeps `url` in the `datasource` block as Prisma 6 wants it; this source reads only `provider`, which must be `"mongodb"`.
-- The schema uses only what Prisma 8 supports on MongoDB. A construct it does not support (a composite `@@id`, a list relation, a `@default` other than `now()` on a `DateTime`, a referential action, a `view`, and so on) fails `contract emit` with one `PSL.PRISMA6_MONGO_*` diagnostic per construct and writes nothing. Each diagnostic says what its fix does to the running Prisma 6 app. The codes are listed in the [error reference](../../../docs/reference/error-reference.md).
+- The schema uses only what Prisma 8 supports on MongoDB. A construct it does not support (a composite `@@id`, a list relation, a `@default` other than `now()` on a `DateTime`, a referential action, a `view`, and so on) fails `contract emit` with one `PSL.PRISMA6_MONGO_*` diagnostic per construct and writes nothing. Each diagnostic says what its fix does to the running Prisma 6 app. The codes are listed in the [error reference](../../../../docs/reference/error-reference.md).
 - Both CLIs installed side by side, as the next section describes. `contract emit` reads the nearest `package.json` to decide which package names `contract.d.ts` imports.
 
 The contract carries no `$jsonSchema` validators, because a Prisma 6 database has none. Indexes are matched by keys and options, not by name, so the names Prisma 6 gives them (`Post_authorId_idx`, `User_email_key`) need no change.

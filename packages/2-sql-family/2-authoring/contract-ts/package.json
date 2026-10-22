@@ -65,6 +65,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/orm.git",
-    "directory": "packages/2-sql/2-authoring/contract-ts"
+    "directory": "packages/2-sql-family/2-authoring/contract-ts"
   }
 }

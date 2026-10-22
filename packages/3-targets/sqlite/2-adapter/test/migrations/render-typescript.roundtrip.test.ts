@@ -38,7 +38,7 @@ const execFileAsync = promisify(execFile);
 const testAdapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
 const packageRoot = resolve(import.meta.dirname, '../..');
 const repoRoot = resolve(packageRoot, '../../../..');
-const targetSqliteRoot = resolve(repoRoot, 'packages/3-targets/3-targets/sqlite');
+const targetSqliteRoot = resolve(repoRoot, 'packages/3-targets/sqlite/1-target');
 const tsxPath = join(repoRoot, 'node_modules/.bin/tsx');
 
 const targetSqliteMigrationExport = pathToFileURL(
@@ -48,7 +48,7 @@ const cliConfigTypesExport = pathToFileURL(
   resolve(repoRoot, 'packages/1-framework/3-tooling/cli/src/exports/config-types.ts'),
 ).href;
 const familySqlControlExport = pathToFileURL(
-  resolve(repoRoot, 'packages/2-sql/9-family/src/exports/control.ts'),
+  resolve(repoRoot, 'packages/2-sql-family/9-family/src/exports/control.ts'),
 ).href;
 const targetSqliteControlExport = pathToFileURL(
   resolve(targetSqliteRoot, 'src/exports/control.ts'),

@@ -17,7 +17,7 @@ Prisma 8 separates `family → target → adapter → driver`. For D1 we add a s
 
 ### What we reuse from the SQLite target unchanged
 
-- **Adapter SQL generation** (`packages/3-targets/6-adapters/sqlite/src/core/adapter.ts`). Pure SQL rendering, no runtime coupling, no Node-specific imports. D1 understands this SQL as-is.
+- **Adapter SQL generation** (`packages/3-targets/sqlite/2-adapter/src/core/adapter.ts`). Pure SQL rendering, no runtime coupling, no Node-specific imports. D1 understands this SQL as-is.
 - **Codecs and column types** (`codecs.ts`, `column-types.ts`).
 - **PSL type mappings** (`control-mutation-defaults.ts` from PR #341) — maps PSL scalars to SQLite native types; identical for D1.
 - **Schema introspection** (`control-adapter.ts` from PR #341). Uses `SELECT FROM sqlite_master` plus read-only PRAGMAs (`table_info`, `foreign_key_list`, `index_list`, `index_info`), all of which D1 honors as regular queries.
@@ -27,7 +27,7 @@ Prisma 8 separates `family → target → adapter → driver`. For D1 we add a s
 
 ### What's new for D1
 
-- A driver package (`@internal/driver-sqlite-d1` or similar, in `packages/3-targets/7-drivers/sqlite-d1/`) exporting both a runtime driver and a control driver.
+- A driver package (`@internal/driver-sqlite-d1` or similar, in `packages/3-targets/sqlite/3-driver-d1/`) exporting both a runtime driver and a control driver.
 - A D1-specific migration runner. PR #341's runner cannot execute on D1 because it relies on interactive reads inside a `BEGIN EXCLUSIVE` transaction. The new runner reshapes the lifecycle around D1's import API, which accepts a self-contained SQL file and runs it atomically server-side.
 - An extension to the shared `ControlDriverInstance` interface adding a bulk-atomic-apply primitive alongside `query`. The D1 runner needs a way to ship a multi-statement script atomically; the existing `query` method is a read-with-results contract and a poor fit. See "Driver interface" below.
 - New capability declarations on the driver side to gate runtime operations that require interactive transactions.
