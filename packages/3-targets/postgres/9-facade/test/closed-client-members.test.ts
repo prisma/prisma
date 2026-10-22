@@ -120,3 +120,45 @@ describe('db.runtime() on a closed postgres() client', () => {
     expect(() => db.runtime()).toThrow(expect.objectContaining(notConnected));
   });
 });
+
+describe('the moment a postgres() client looks up its runtime', () => {
+  it('is the call, so a result created before close() and read after it fails with "Runtime is closed"', async () => {
+    const db = postgres({ contract, url, verifyMarker: false });
+    await db.query(db.sql.public.users.select('id').build()).toArray();
+    const rows = db.query(db.sql.public.users.select('id').build());
+    await db.close();
+
+    await expect(rows.toArray()).rejects.toMatchObject({
+      code: 'DRIVER.NOT_CONNECTED',
+      message: 'Runtime is closed',
+    });
+  });
+
+  it('creates the driver when the first member is called, before its result is read', () => {
+    const create = vi.spyOn(postgresDriver, 'create');
+    const db = postgres({ contract, url, verifyMarker: false });
+
+    db.query(db.sql.public.users.select('id').build());
+
+    expect(create).toHaveBeenCalledOnce();
+    create.mockRestore();
+  });
+});
+
+describe('tx.prepare on a postgres() transaction still open after close()', () => {
+  it('rejects instead of throwing at the call', async () => {
+    const db = postgres({ contract, url, verifyMarker: false });
+
+    const outcome = await db.transaction(async (tx) => {
+      const closing = db.close();
+      const prepared = callWithoutThrowing(() =>
+        tx.prepare({}, () => tx.sql.public.users.select('id').build()),
+      );
+      const result = await Promise.resolve(prepared).catch((error: unknown) => error);
+      return { result, closing };
+    });
+    await outcome.closing;
+
+    expect(outcome.result).toMatchObject(notConnected);
+  });
+});

@@ -151,3 +151,19 @@ describe.each(['commit', 'rollback'] as const)(
     });
   },
 );
+
+describe('a prepared statement given a target that is not a runtime, connection or transaction', () => {
+  it('throws at the call, because the call itself is a mistake', async () => {
+    const { runtime } = setup();
+    const prepared = await runtime.prepare({}, () => rowsPlan());
+    const update = await runtime.prepare({}, () => affectedCountPlan());
+    const notATarget = { query: () => undefined, execute: () => undefined } as never;
+
+    expect(() => prepared.query(notATarget, {})).toThrow(
+      'RuntimeQueryable is missing the prepared statement query bridge',
+    );
+    expect(() => update.execute(notATarget, {})).toThrow(
+      'RuntimeQueryable is missing the prepared statement execute bridge',
+    );
+  });
+});

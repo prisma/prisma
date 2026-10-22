@@ -37,9 +37,8 @@ import {
   activitySource,
   createExecutionContext,
   createSqlExecutionStack,
-  deferPromise,
-  deferRows,
   delegatingActivitySource,
+  runtimeFrom,
   withTransaction,
   withTransactionMembers,
 } from '@internal/sql-runtime';
@@ -138,7 +137,7 @@ interface SqliteTransactionMembersOptions<
   readonly rawCodecInferer: RawCodecInferer;
   readonly enums: SqliteStaticContext<TContract>['enums'];
   readonly toSql: ToSqlMember['toSql'];
-  readonly prepareRuntime: () => Runtime;
+  readonly prepareRuntime: Pick<Runtime, 'prepare'>;
 }
 
 /**
@@ -178,7 +177,7 @@ function buildSqliteTransactionMembers<
     enums,
     toSql,
     prepare(declaration, callback) {
-      return prepareQuery(prepareRuntime(), declaration, callback);
+      return prepareQuery(prepareRuntime, declaration, callback);
     },
   };
 }
@@ -311,22 +310,13 @@ export default function sqlite<
     return runtimeInstance;
   };
 
+  const work = runtimeFrom(getRuntime);
+
   const orm: SqliteOrm<TContract, TCollections> = sqliteOrm(
     ormBuilder<TContract, TCollections>({
       context,
       ...ifDefined('collections', options.collections),
-      runtime: {
-        query(plan) {
-          return deferRows(() => getRuntime().query(plan));
-        },
-        execute(plan) {
-          return deferPromise(() => getRuntime().execute(plan));
-        },
-        connection() {
-          return deferPromise(() => getRuntime().connection());
-        },
-        [activitySource]: delegatingActivitySource(() => getRuntime()),
-      },
+      runtime: work,
     }),
   );
 
@@ -338,7 +328,7 @@ export default function sqlite<
     declaration: D,
     callback: (params: BindSiteParams<D>) => Q,
   ): Promise<PreparedFrom<ParamsFromDeclaration<D, CT>, Q>> {
-    return deferPromise(() => prepareQuery<D, Q, CT>(getRuntime(), declaration, callback));
+    return prepareQuery<D, Q, CT>(work, declaration, callback);
   }
 
   return {
@@ -351,10 +341,10 @@ export default function sqlite<
     contract,
     stack,
     query(plan, execOptions) {
-      return deferRows(() => getRuntime().query(plan, execOptions));
+      return work.query(plan, execOptions);
     },
     execute(plan, execOptions) {
-      return deferPromise(() => getRuntime().execute(plan, execOptions));
+      return work.execute(plan, execOptions);
     },
     async connect(bindingInput) {
       if (closed) {
@@ -399,26 +389,24 @@ export default function sqlite<
     transaction<R>(
       fn: (tx: SqliteTransactionContext<TContract, TCollections>) => PromiseLike<R>,
     ): Promise<R> {
-      return deferPromise(() =>
-        withTransaction(getRuntime(), (txCtx) => {
-          const tx: SqliteTransactionContext<TContract, TCollections> = withTransactionMembers(
+      return withTransaction(work, (txCtx) => {
+        const tx: SqliteTransactionContext<TContract, TCollections> = withTransactionMembers(
+          txCtx,
+          buildSqliteTransactionMembers<TContract, TCollections>(
+            {
+              context,
+              collections: options.collections,
+              rawCodecInferer: stack.adapter.rawCodecInferer,
+              enums,
+              toSql,
+              prepareRuntime: work,
+            },
             txCtx,
-            buildSqliteTransactionMembers<TContract, TCollections>(
-              {
-                context,
-                collections: options.collections,
-                rawCodecInferer: stack.adapter.rawCodecInferer,
-                enums,
-                toSql,
-                prepareRuntime: getRuntime,
-              },
-              txCtx,
-            ),
-          );
+          ),
+        );
 
-          return fn(tx);
-        }),
-      );
+        return fn(tx);
+      });
     },
 
     close(): Promise<void> {

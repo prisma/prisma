@@ -40,7 +40,6 @@ export {
   validateCodecRegistryCompleteness,
   validateContractCodecMappings,
 } from '../codecs/validation';
-export { deferPromise, deferRows } from '../deferred-results';
 export { lowerSqlPlan } from '../lower-sql-plan';
 export type { BudgetsOptions } from '../middleware/budgets';
 export { budgets } from '../middleware/budgets';
@@ -64,6 +63,7 @@ export type {
   PreparedFor,
   PreparedStatement,
 } from '../prepared/types';
+export { type RuntimeLookup, runtimeFrom } from '../runtime-from';
 export type {
   MarkerReader,
   RuntimeFamilyAdapter,

@@ -82,3 +82,35 @@ describe.each([
     await expect(callWithoutThrowing(() => call(closed))).rejects.toMatchObject(notConnected);
   });
 });
+
+describe('the moment a sqlite() client looks up its runtime', () => {
+  it('is the call, so a result created before close() and read after it fails with the driver error', async () => {
+    const db = sqlite({ contract, path: ':memory:' });
+    await db.query(rowsPlan()).toArray();
+    const rows = db.query(rowsPlan());
+    await db.close();
+
+    await expect(rows.toArray()).rejects.toMatchObject({
+      code: 'DRIVER.NOT_CONNECTED',
+      message:
+        'SQLite driver not connected. Call connect(binding) before acquireConnection or execute.',
+    });
+  });
+});
+
+describe('tx.prepare on a sqlite() transaction still open after close()', () => {
+  it('rejects instead of throwing at the call', async () => {
+    const db = sqlite({ contract, path: ':memory:' });
+
+    const outcome = await db.transaction(async (tx) => {
+      const closing = db.close();
+      const result = await callWithoutThrowing(() => tx.prepare({}, () => rowsPlan())).catch(
+        (error: unknown) => error,
+      );
+      return { result, closing };
+    });
+    await outcome.closing;
+
+    expect(outcome.result).toMatchObject(notConnected);
+  });
+});
