@@ -10,6 +10,7 @@ import type { AsyncIterableResult } from '@internal/framework-components/runtime
 import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { expectTypeOf, test } from 'vitest';
+import type * as runtimeEntry from '../src/exports/runtime';
 import type { RoleBoundDb, SupabaseInternalDb } from '../src/runtime/supabase';
 import type { RoleSession, SupabaseRuntime } from '../src/runtime/supabase-runtime';
 
@@ -61,4 +62,9 @@ test('the role-bound and internal clients do not expose startActivity or planCon
   expectTypeOf<RoleBoundDb<never>>().not.toHaveProperty('planContentHash');
   expectTypeOf<SupabaseInternalDb>().not.toHaveProperty('startActivity');
   expectTypeOf<SupabaseInternalDb>().not.toHaveProperty('planContentHash');
+});
+
+test('forRole is the only published way to get a role scope', () => {
+  expectTypeOf<typeof runtimeEntry>().not.toHaveProperty('roleScope');
+  expectTypeOf<typeof runtimeEntry.SupabaseRuntimeImpl>().not.toHaveProperty('roleScope');
 });

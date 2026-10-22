@@ -64,6 +64,24 @@ export interface SupabaseRoleBinding {
  */
 export interface RoleSession extends RuntimeConnection {}
 
+type RoleScopeBuilder = <C extends Contract<SqlStorage>>(
+  runtime: () => SupabaseRuntimeImpl<C>,
+  binding: SupabaseRoleBinding,
+) => SupabaseRoleScope & ActivitySourceTarget;
+
+// Assigned in the class's static block, which may call the runtime's private and protected methods.
+let buildRoleScope: RoleScopeBuilder;
+
+/**
+ * The operations under `binding` of the runtime `runtime()` returns. Each operation calls `runtime()` when it runs, so a client can build its role scope before its runtime exists; when `runtime()` throws, the operation rejects. For the facade only; the package entry does not export it.
+ */
+export function roleScope<C extends Contract<SqlStorage>>(
+  runtime: () => SupabaseRuntimeImpl<C>,
+  binding: SupabaseRoleBinding,
+): SupabaseRoleScope & ActivitySourceTarget {
+  return buildRoleScope(runtime, binding);
+}
+
 export class SupabaseRuntimeImpl<
   TContract extends Contract<SqlStorage> = Contract<SqlStorage>,
 > extends PostgresRuntimeImpl<TContract> {
@@ -162,68 +180,64 @@ export class SupabaseRuntimeImpl<
   }
 
   forRole(binding: SupabaseRoleBinding): SupabaseRoleScope & ActivitySourceTarget {
-    return SupabaseRuntimeImpl.roleScope(() => this, binding);
+    return buildRoleScope(() => this, binding);
   }
 
-  /**
-   * The operations under `binding` of the runtime `runtime()` returns. Each operation calls `runtime()` when it runs, so a client can build its role scope before its runtime exists; when `runtime()` throws, the operation rejects.
-   */
-  static roleScope<C extends Contract<SqlStorage>>(
-    runtime: () => SupabaseRuntimeImpl<C>,
-    binding: SupabaseRoleBinding,
-  ): SupabaseRoleScope & ActivitySourceTarget {
-    const open = (options: ActivityExecuteOptions | undefined) => async () =>
-      (await runtime().openRoleConnection(binding, options)).session;
-    const scope: SupabaseRoleScope & ActivitySourceTarget = {
-      query<Row>(
-        plan: SqlOrmPlan<Row>,
-        options?: ActivityExecuteOptions,
-      ): AsyncIterableResult<Row> {
-        return streamOnSession(open(options), (session) => session.query<Row>(plan, options));
-      },
-      execute(plan: SqlOrmPlan, options?: ActivityExecuteOptions): Promise<SqlStatementStats> {
-        return executeOnSession(open(options), (session) => session.execute(plan, options));
-      },
-      [preparedStatementQuery]<Params, Row>(
-        statement: PreparedStatement<Params, Row>,
-        params: Params,
-        options?: ActivityExecuteOptions,
-      ): AsyncIterableResult<Row> {
-        return streamOnSession<Row>(open(options), (session) =>
-          session[preparedStatementQuery](statement, params, options),
-        );
-      },
-      [preparedStatementExecute]<Params>(
-        statement: PreparedExecution<Params>,
-        params: Params,
-        options?: ActivityExecuteOptions,
-      ): Promise<SqlStatementStats> {
-        return executeOnSession(open(options), (session) =>
-          session[preparedStatementExecute](statement, params, options),
-        );
-      },
-      connection: open(undefined),
-      [activitySource]: {
-        startActivity: async (activity) =>
-          runtime().startActivityOnRoute(route, activity, undefined),
-        planContentHash: async (plan) =>
-          runtime().planContentHashFor(plan, 'connection', undefined),
-      },
+  static {
+    buildRoleScope = (runtime, binding) => {
+      const open = (options: ActivityExecuteOptions | undefined) => async () =>
+        (await runtime().openRoleConnection(binding, options)).session;
+      const scope: SupabaseRoleScope & ActivitySourceTarget = {
+        query<Row>(
+          plan: SqlOrmPlan<Row>,
+          options?: ActivityExecuteOptions,
+        ): AsyncIterableResult<Row> {
+          return streamOnSession(open(options), (session) => session.query<Row>(plan, options));
+        },
+        execute(plan: SqlOrmPlan, options?: ActivityExecuteOptions): Promise<SqlStatementStats> {
+          return executeOnSession(open(options), (session) => session.execute(plan, options));
+        },
+        [preparedStatementQuery]<Params, Row>(
+          statement: PreparedStatement<Params, Row>,
+          params: Params,
+          options?: ActivityExecuteOptions,
+        ): AsyncIterableResult<Row> {
+          return streamOnSession<Row>(open(options), (session) =>
+            session[preparedStatementQuery](statement, params, options),
+          );
+        },
+        [preparedStatementExecute]<Params>(
+          statement: PreparedExecution<Params>,
+          params: Params,
+          options?: ActivityExecuteOptions,
+        ): Promise<SqlStatementStats> {
+          return executeOnSession(open(options), (session) =>
+            session[preparedStatementExecute](statement, params, options),
+          );
+        },
+        connection: open(undefined),
+        [activitySource]: {
+          startActivity: async (activity) =>
+            runtime().startActivityOnRoute(route, activity, undefined),
+          planContentHash: async (plan) =>
+            runtime().planContentHashFor(plan, 'connection', undefined),
+        },
+      };
+      // Each statement of a role-bound activity runs on a role session of its own, as a role-bound query does; its transaction holds one session until it settles.
+      const route: ActivityRoute = {
+        scope: 'connection',
+        parent: () => undefined,
+        runtimeWork: true,
+        query: (plan, options) => scope.query(plan, options),
+        execute: (plan, options) => scope.execute(plan, options),
+        preparedQuery: (statement, params, options) =>
+          scope[preparedStatementQuery](statement, params, options),
+        preparedExecute: (statement, params, options) =>
+          scope[preparedStatementExecute](statement, params, options),
+        transaction: (parent) => runtime().beginRoleTransaction(binding, parent),
+      };
+      return scope;
     };
-    // Each statement of a role-bound activity runs on a role session of its own, as a role-bound query does; its transaction holds one session until it settles.
-    const route: ActivityRoute = {
-      scope: 'connection',
-      parent: () => undefined,
-      runtimeWork: true,
-      query: (plan, options) => scope.query(plan, options),
-      execute: (plan, options) => scope.execute(plan, options),
-      preparedQuery: (statement, params, options) =>
-        scope[preparedStatementQuery](statement, params, options),
-      preparedExecute: (statement, params, options) =>
-        scope[preparedStatementExecute](statement, params, options),
-      transaction: (parent) => runtime().beginRoleTransaction(binding, parent),
-    };
-    return scope;
   }
 
   private async beginRoleTransaction(

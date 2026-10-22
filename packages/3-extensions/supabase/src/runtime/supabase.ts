@@ -62,7 +62,7 @@ import { supabaseRuntimeDescriptor } from './descriptor';
 import type { SupabaseExtensionContract } from './ext-contract-type';
 import { supabaseError } from './supabase-errors';
 import type { SupabaseRoleBinding } from './supabase-runtime';
-import { SupabaseRuntimeImpl } from './supabase-runtime';
+import { roleScope, SupabaseRuntimeImpl } from './supabase-runtime';
 
 export type SupabaseTargetId = 'postgres';
 
@@ -449,7 +449,7 @@ export default async function supabase<
   }
 
   function buildRoleBoundDb(binding: SupabaseRoleBinding): RoleBoundDb<TContract, TCollections> {
-    const role = SupabaseRuntimeImpl.roleScope(runtime, binding);
+    const role = roleScope(runtime, binding);
     const roleOrm: OrmClient<TContract, TCollections> = orm<TContract, TCollections>({
       runtime: role,
       context: context,
@@ -502,7 +502,7 @@ export default async function supabase<
     claims: {},
   };
 
-  const serviceRole = SupabaseRuntimeImpl.roleScope(extRuntime, serviceRoleBinding);
+  const serviceRole = roleScope(extRuntime, serviceRoleBinding);
 
   const supabaseInternal: SupabaseInternalDb = {
     sql: extStatic.sql,
