@@ -809,8 +809,12 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
             if (options.fromContract === null) {
               throw new InternalError('A table move is planned only from an origin contract');
             }
+            const sourceContract =
+              options.contract.storage.namespaces[move.from] === undefined
+                ? options.fromContract
+                : options.contract;
             return new SetTableSchemaCall(
-              emissionSchemaForNamespace(options.fromContract, move.from),
+              emissionSchemaForNamespace(sourceContract, move.from),
               move.table,
               ddlSchemaOf(move.to),
             );
