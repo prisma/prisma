@@ -26,7 +26,7 @@ import {
   setTableSchema,
 } from '../../src/core/migrations/operations/schemas';
 import { postgresTypeLookups } from '../postgres-type-lookups';
-import { makeContract } from './node-issue-planner-fixtures';
+import { makeContract, planTrees } from './node-issue-planner-fixtures';
 
 function recordingLowerer(): { lowerer: ExecuteRequestLowerer; received: unknown[] } {
   const received: unknown[] = [];
@@ -244,6 +244,7 @@ describe('schema operation order in a plan', () => {
     ];
     const result = planIssues({
       issues: [],
+      ...planTrees(),
       toContract: contract,
       fromContract: null,
       schemaName: 'public',
