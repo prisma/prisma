@@ -22,34 +22,36 @@ function patternsOf(audience: string, id: string): readonly RegExp[] {
   );
 }
 
-const published = (subpath: string) => `'${['@prisma', subpath].join('/')}'`;
-
 describe.each(['app', 'extension'])('the %s mongo-definition-names detection', (audience) => {
   const matches = (id: string, content: string) =>
     patternsOf(audience, id).some((pattern) => pattern.test(content));
 
-  it('matches ContractDefinition imported from a MongoDB contract builder until it is renamed', () => {
+  it('matches ContractDefinition imported or re-exported from a MongoDB contract builder until it is renamed', () => {
     expect([
       matches(
         'mongo-contract-input',
-        `import type { ContractDefinition } from ${published('orm-mongo/contract-builder')};`,
+        "import type { ContractDefinition } from '@prisma/orm-mongo/contract-builder';",
       ),
       matches(
         'mongo-contract-input',
-        `import {\n  type ContractDefinition,\n  defineContract,\n} from ${published('orm-family-mongo/contract-ts/contract-builder')};`,
+        "import {\n  type ContractDefinition,\n  defineContract,\n} from '@prisma/orm-family-mongo/contract-ts/contract-builder';",
       ),
       matches(
         'mongo-contract-input',
-        `import type { ContractInput } from ${published('orm-mongo/contract-builder')};`,
+        "export type { ContractDefinition } from '@prisma/orm-mongo/contract-builder';",
       ),
-    ]).toEqual([true, true, false]);
+      matches(
+        'mongo-contract-input',
+        "import type { ContractInput } from '@prisma/orm-mongo/contract-builder';",
+      ),
+    ]).toEqual([true, true, true, false]);
   });
 
   it('does not match SQL ContractDefinition', () => {
     expect(
       matches(
         'mongo-contract-input',
-        `import type { ContractDefinition } from ${published('orm-postgres/contract-builder')};`,
+        "import type { ContractDefinition } from '@prisma/orm-postgres/contract-builder';",
       ),
     ).toBe(false);
   });
@@ -58,7 +60,7 @@ describe.each(['app', 'extension'])('the %s mongo-definition-names detection', (
     expect([
       matches(
         'mongo-model-definition-removed',
-        `import type { MongoModelDefinition } from ${published('orm-mongo/family-contract')};`,
+        "import type { MongoModelDefinition } from '@prisma/orm-mongo/family-contract';",
       ),
       matches(
         'mongo-model-definition-removed',

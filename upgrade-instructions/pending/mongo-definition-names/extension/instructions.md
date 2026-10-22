@@ -6,7 +6,7 @@ changes:
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - 'import\s+(?:type\s+)?\{[^}]*\bContractDefinition\b[^}]*\}\s*from\s*[\x27"]@prisma/orm-(?:mongo/contract-builder|family-mongo/contract-ts(?:/contract-builder)?)[\x27"]'
+        - '(?:import|export)\s+(?:type\s+)?\{[^}]*\bContractDefinition\b[^}]*\}\s*from\s*[\x27"]@prisma/orm-(?:mongo/contract-builder|family-mongo/contract-ts(?:/contract-builder)?)[\x27"]'
   - id: mongo-model-definition-removed
     summary: |
       `MongoModelDefinition` is removed. It was another name for `ContractModel<MongoModelStorage>`. Write `ContractModel<MongoModelStorage>` instead, with `ContractModel` from `@prisma/orm-framework/contract/types` and `MongoModelStorage` from `@prisma/orm-family-mongo/contract`.
