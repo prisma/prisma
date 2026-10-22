@@ -47,10 +47,14 @@ describe('@internal/driver-postgres control', () => {
     await descriptor.create('postgres://localhost/test', { connectTimeoutMs: 3000 });
     await descriptor.create('postgres://localhost/test');
 
-    expect(configs).toEqual([
-      { connectionString: 'postgres://localhost/test', connectionTimeoutMillis: 3000 },
-      { connectionString: 'postgres://localhost/test' },
-    ]);
+    const connection = {
+      host: 'localhost',
+      database: 'test',
+      user: '',
+      password: '',
+      options: '-c DateStyle=ISO',
+    };
+    expect(configs).toEqual([{ ...connection, connectionTimeoutMillis: 3000 }, connection]);
     vi.doUnmock('pg');
   });
 

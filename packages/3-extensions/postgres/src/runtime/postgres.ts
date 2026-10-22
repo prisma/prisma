@@ -1,6 +1,9 @@
 import postgresAdapter from '@internal/adapter-postgres/runtime';
 import type { Contract } from '@internal/contract/types';
-import postgresDriver, { suppressIdleConnectionErrors } from '@internal/driver-postgres/runtime';
+import postgresDriver, {
+  isoDateStyleConnectionConfig,
+  suppressIdleConnectionErrors,
+} from '@internal/driver-postgres/runtime';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { CollectionClasses, NoCollectionClasses } from '@internal/sql-orm-client';
 import type { Runtime } from '@internal/sql-runtime';
@@ -78,7 +81,7 @@ function toRuntimeBinding<
     kind: 'pgPool',
     pool: suppressIdleConnectionErrors(
       new Pool({
-        connectionString: binding.url,
+        ...isoDateStyleConnectionConfig(binding.url),
         connectionTimeoutMillis:
           options.poolOptions?.connectionTimeoutMillis ?? DEFAULT_CONNECT_TIMEOUT_MILLIS,
         idleTimeoutMillis: options.poolOptions?.idleTimeoutMillis ?? 30_000,

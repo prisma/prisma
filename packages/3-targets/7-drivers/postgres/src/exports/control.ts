@@ -11,6 +11,7 @@ import { redactDatabaseUrl } from '@internal/utils/redact-db-url';
 import { suppressIdleConnectionErrors } from '@internal/utils/suppress-idle-connection-errors';
 import { Client } from 'pg';
 import { postgresDriverDescriptorMeta } from '../core/descriptor-meta';
+import { isoDateStyleConnectionConfig } from '../iso-date-style';
 import { normalizePgError } from '../normalize-error';
 import { controlTextTypes } from '../server-text-types';
 
@@ -63,7 +64,7 @@ const postgresDriverDescriptor: ControlDriverDescriptor<'sql', 'postgres', Postg
     ): Promise<PostgresControlDriver> {
       const client = suppressIdleConnectionErrors(
         new Client({
-          connectionString: url,
+          ...isoDateStyleConnectionConfig(url),
           ...ifDefined('connectionTimeoutMillis', options?.connectTimeoutMs),
         }),
       );

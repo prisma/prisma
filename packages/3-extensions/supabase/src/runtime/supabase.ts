@@ -1,7 +1,10 @@
 import postgresAdapter from '@internal/adapter-postgres/runtime';
 import type { NamespacedEnums } from '@internal/contract/enum-accessor';
 import type { Contract } from '@internal/contract/types';
-import postgresDriver, { suppressIdleConnectionErrors } from '@internal/driver-postgres/runtime';
+import postgresDriver, {
+  isoDateStyleConnectionConfig,
+  suppressIdleConnectionErrors,
+} from '@internal/driver-postgres/runtime';
 import type {
   AsyncIterableResult,
   RuntimeExecuteOptions,
@@ -281,7 +284,7 @@ function toPool<TContract extends Contract<SqlStorage>>(
     return {
       pool: suppressIdleConnectionErrors(
         new Pool({
-          connectionString: options.url,
+          ...isoDateStyleConnectionConfig(options.url),
           connectionTimeoutMillis: options.poolOptions?.connectionTimeoutMillis ?? 20_000,
           idleTimeoutMillis: options.poolOptions?.idleTimeoutMillis ?? 30_000,
         }),

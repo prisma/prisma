@@ -181,6 +181,7 @@ const postgresRuntimeDriverDescriptor: RuntimeDriverDescriptor<
 
 export default postgresRuntimeDriverDescriptor;
 export { suppressIdleConnectionErrors } from '@internal/utils/suppress-idle-connection-errors';
+export { isoDateStyleConnectionConfig } from '../iso-date-style';
 export type {
   PostgresBinding,
   PostgresDriverCreateOptions,

@@ -24,6 +24,7 @@ import { Pool } from 'pg';
 import Cursor from 'pg-cursor';
 import { callbackToPromise } from './callback-to-promise';
 import { type DriverRuntimeError, driverError } from './driver-error';
+import { isoDateStyleConnectionConfig } from './iso-date-style';
 import { NamedCursor } from './named-cursor';
 import { isAlreadyConnectedError, isPostgresError, normalizePgError } from './normalize-error';
 import { serverTextTypes } from './server-text-types';
@@ -812,7 +813,7 @@ export function createBoundDriverFromBinding(
     case 'url': {
       const pool = suppressIdleConnectionErrors(
         new Pool({
-          connectionString: binding.url,
+          ...isoDateStyleConnectionConfig(binding.url),
           connectionTimeoutMillis: 20_000,
           idleTimeoutMillis: 30_000,
         }),
