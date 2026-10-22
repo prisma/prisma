@@ -173,8 +173,7 @@ export interface ListCodecRef {
  * Derives the `{ codecId, typeParams, many }` codec reference for a list column
  * straight from the authored contract, so AST params/projections match what the
  * PSL path actually emitted. Parameterized codecs (e.g. `pg/numeric@1`) carry
- * their typeParams either inline on the column or via a `typeRef` into
- * `storage.types`; both are resolved here.
+ * their typeParams on the column.
  */
 export function listCodecRefFor(contract: Contract<SqlStorage>, columnName: string): ListCodecRef {
   const column = findStorageColumn(contract, columnName);
@@ -186,13 +185,7 @@ export function listCodecRefFor(contract: Contract<SqlStorage>, columnName: stri
     throw new Error(`column "${columnName}" has no codecId`);
   }
 
-  let typeParams = column['typeParams'] as JsonValue | undefined;
-  const typeRef = column['typeRef'];
-  if (typeParams === undefined && typeof typeRef === 'string') {
-    const storageTypes = (contract.storage as unknown as { types?: Record<string, unknown> }).types;
-    const typeEntry = storageTypes?.[typeRef] as { typeParams?: JsonValue } | undefined;
-    typeParams = typeEntry?.typeParams;
-  }
+  const typeParams = column['typeParams'] as JsonValue | undefined;
 
   return {
     codecId,

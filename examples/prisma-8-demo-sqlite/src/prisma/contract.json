@@ -366,8 +366,7 @@
                 "viewCount": {
                   "codecId": "sqlite/bigintnumber@1",
                   "dataType": "sqlite/integer",
-                  "nullable": true,
-                  "typeRef": "BigIntNumber"
+                  "nullable": true
                 }
               },
               "foreignKeys": [
@@ -566,14 +565,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "e429c73ec99d27b790baaacc9d16734cea79a2a64169dde8b8a1dd7fcccbac57",
-    "types": {
-      "BigIntNumber": {
-        "codecId": "sqlite/bigintnumber@1",
-        "dataType": "sqlite/integer",
-        "kind": "codec-instance"
-      }
-    }
+    "storageHash": "5da56ffe117eb468ffdea757f746a1688071e3c6c258db37e0e71ca253424eeb"
   },
   "execution": {
     "executionHash": "a6bd95c41e717d2a7dd3d556af8befa35950b61ccf39569e36ab3a357b40457e",

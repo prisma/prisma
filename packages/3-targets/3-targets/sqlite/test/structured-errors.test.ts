@@ -4,13 +4,11 @@ import { describe, expect, it } from 'vitest';
 import { sqliteBigintDescriptor } from '../src/core/codecs';
 import sqliteControlTargetDescriptor from '../src/core/control-target';
 import { CreateTableCall, DropTableCall } from '../src/core/migrations/op-factory-call';
-import { buildColumnTypeSql } from '../src/core/migrations/planner-ddl-builders';
 import { renderOps } from '../src/core/migrations/render-ops';
 import { createSqliteMigrationRunner } from '../src/core/migrations/runner';
 import { escapeLiteral, quoteIdentifier } from '../src/core/sql-utils';
 import { sqliteCreateNamespace } from '../src/core/sqlite-unbound-database';
 import { fromContractJson } from './contract-json';
-import { sqliteTestTypes } from './sqlite-test-types';
 
 function capture(fn: () => unknown): unknown {
   try {
@@ -75,14 +73,6 @@ describe('structured error codes', () => {
     );
     expect(isStructuredError(error)).toBe(true);
     expect(error).toMatchObject({ code: 'CONTRACT.TARGET_MISMATCH' });
-  });
-
-  it('unknown typeRef raises CONTRACT.TYPE_UNKNOWN', () => {
-    const error = capture(() =>
-      buildColumnTypeSql({ codecId: 'sqlite/text@1', typeRef: 'missing' }, sqliteTestTypes, {}),
-    );
-    expect(isStructuredError(error)).toBe(true);
-    expect(error).toMatchObject({ code: 'CONTRACT.TYPE_UNKNOWN', meta: { typeRef: 'missing' } });
   });
 
   it('toOp without a lowerer raises MIGRATION.SQLITE_CONTROL_STACK_MISSING', async () => {

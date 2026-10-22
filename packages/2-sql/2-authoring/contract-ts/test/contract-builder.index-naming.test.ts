@@ -29,12 +29,18 @@ const postgresTargetPack: TargetPackRef<'sql', 'postgres'> = {
 };
 
 function defineTestContract<
-  const Types extends NonNullable<ContractInput['types']> = Record<never, never>,
+  const DatabaseTypes extends NonNullable<ContractInput['databaseTypes']> = Record<never, never>,
   const Models extends NonNullable<ContractInput['models']> = Record<never, never>,
   const Extensions extends NonNullable<ContractInput['extensions']> | undefined = undefined,
 >(
   definition: Omit<
-    ContractInput<typeof bareFamilyPack, typeof postgresTargetPack, Types, Models, Extensions>,
+    ContractInput<
+      typeof bareFamilyPack,
+      typeof postgresTargetPack,
+      DatabaseTypes,
+      Models,
+      Extensions
+    >,
     'family' | 'target' | 'createNamespace' | 'codecLookup' | 'dataTypeLookup'
   >,
 ) {

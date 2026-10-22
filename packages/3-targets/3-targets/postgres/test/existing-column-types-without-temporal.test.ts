@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { prisma7PostgresTypeMap } from '../src/core/prisma7-type-map';
-import { postgresPslTypeConstructors } from '../src/core/type-constructors';
+import { postgresScalarAndNativeTypeConstructors } from '../src/core/type-constructors';
 
 const TEMPORAL_CODEC_IDS = [
   'pg/date-temporal@1',
@@ -10,7 +10,7 @@ const TEMPORAL_CODEC_IDS = [
 ];
 
 const constructorNames = [
-  ...Object.entries(postgresPslTypeConstructors)
+  ...Object.entries(postgresScalarAndNativeTypeConstructors)
     .filter(([, descriptor]) => 'inferred' in descriptor)
     .map(([name]) => ({ source: 'contract infer', name })),
   ...[
@@ -20,8 +20,10 @@ const constructorNames = [
 ];
 
 function codecIdOf(name: string): string | undefined {
-  return Object.hasOwn(postgresPslTypeConstructors, name)
-    ? postgresPslTypeConstructors[name as keyof typeof postgresPslTypeConstructors].output.codecId
+  return Object.hasOwn(postgresScalarAndNativeTypeConstructors, name)
+    ? postgresScalarAndNativeTypeConstructors[
+        name as keyof typeof postgresScalarAndNativeTypeConstructors
+      ].output.codecId
     : undefined;
 }
 
@@ -43,7 +45,7 @@ describe('the types contract infer and prisma7Schema write', () => {
 describe('the constructors marked inferred', () => {
   it('name no codec that needs Temporal', () => {
     expect(
-      Object.entries(postgresPslTypeConstructors)
+      Object.entries(postgresScalarAndNativeTypeConstructors)
         .filter(([, descriptor]) => 'inferred' in descriptor)
         .map(([name, descriptor]) => ({ name, codecId: descriptor.output.codecId }))
         .filter(({ codecId }) => TEMPORAL_CODEC_IDS.includes(codecId)),

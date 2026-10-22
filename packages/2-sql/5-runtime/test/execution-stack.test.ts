@@ -125,7 +125,6 @@ describe('createExecutionStack', () => {
     expect(context.codecDescriptors.descriptorFor('pg/text@1')).toBeDefined();
     expect(context.codecDescriptors.descriptorFor('pg/uuid@1')).toBeDefined();
     expect(context.queryOperations.entries()['example']).toBeDefined();
-    expect(context.types).toEqual({});
   });
 });
 

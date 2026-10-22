@@ -88,7 +88,6 @@ id TUuid @id @onCreate(uuid())
       codecId: 'pg/uuid@1',
       dataType: 'pg/uuid',
       nullable: false,
-      typeRef: 'TUuid',
     });
   });
 
@@ -214,7 +213,6 @@ id TId @id @onCreate(uuid())
       codecId: 'pg/text@1',
       dataType: 'pg/text',
       nullable: false,
-      typeRef: 'TId',
     });
   });
 

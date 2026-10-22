@@ -159,7 +159,7 @@ describe('Mongo TS temporal preset misuse', () => {
       expect.objectContaining({
         code: 'CONTRACT.DEFAULT_INVALID',
         message:
-          'Field "Post.createdAt" is filled on write by a preset such as temporal.createdAt(), so it cannot be optional; remove .optional().',
+          'Field "Post.createdAt" generates a value on write, so it cannot be optional; remove .optional().',
         meta: expect.objectContaining({
           modelName: 'Post',
           fieldName: 'createdAt',
@@ -186,7 +186,7 @@ describe('Mongo TS temporal preset misuse', () => {
       expect.objectContaining({
         code: 'CONTRACT.DEFAULT_INVALID',
         message:
-          'Field "Post.createdAt" is filled on write by a preset such as temporal.createdAt(), so it cannot be a list; remove .many().',
+          'Field "Post.createdAt" generates a value on write, so it cannot be a list; remove .many().',
         meta: expect.objectContaining({ reason: 'many-with-executionDefaults' }),
       }),
     );

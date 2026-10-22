@@ -75,6 +75,8 @@ import {
   nodePslSpan,
   type PslDiagnostic,
   type PslDiagnosticCollector,
+  refuseRepeatedTypeAliasAttributes,
+  typeAttributeSpecContextOfField,
   typeReferenceNode,
 } from '@internal/psl-parser';
 import {
@@ -116,6 +118,13 @@ import {
   pairMongoBackRelations,
 } from './pair-back-relations';
 import { defaultCollectionName, getAttribute } from './psl-helpers';
+import {
+  lowerGeneratorAttribute,
+  type ResolvedTypeAlias,
+  type ResolvedTypeAliases,
+  resolveMongoTypeAliases,
+  scalarTypeOfConstructor,
+} from './type-aliases';
 
 export interface InterpretPslDocumentToMongoContractInput {
   readonly documents: readonly DocumentAst[];
@@ -1159,7 +1168,6 @@ const GENERATOR_PHASES = ['onCreate', 'onUpdate'] as const;
  */
 function lowerGeneratorAttributes(input: {
   readonly field: FieldSymbol;
-  readonly model: ModelSymbol;
   readonly modelName: string;
   readonly resolved: ResolvedNonRelationField;
   readonly specContext: FieldAttributeSpecContext;
@@ -1212,46 +1220,88 @@ function lowerGeneratorAttributes(input: {
       });
       return 'invalid';
     }
-    const interpreted = interpretFieldAttribute({
+    const generator = lowerGeneratorAttribute({
+      phase,
+      attribute,
+      specContext: typeAttributeSpecContextOfField(input.specContext),
+      type: input.resolved.field.type,
       symbols: input.specContext.symbols,
-      node: attribute.node,
-      spec: mongoAttributeSpecs.field[phase](input.specContext),
-      model: input.model,
-      field,
-      sources: input.sources,
       binder: input.binder,
+      sources: input.sources,
+      generatorFunctions: input.generatorFunctions,
       diagnostics,
     });
-    if (interpreted === undefined) return 'invalid';
-    const type = input.resolved.field.type;
-    const call = interpreted.value;
-    const resolution =
-      type.kind === 'scalar'
-        ? input.generatorFunctions.resolve(
-            { name: call.fn, args: call.args },
-            { codecId: type.codecId, typeParams: type.typeParams, length: undefined },
-          )
-        : undefined;
-    if (resolution?.ok === true) {
-      phases[phase] = resolution.generator;
-      continue;
-    }
-    diagnostics.push({
-      code: 'PSL_GENERATOR_NOT_APPLICABLE',
-      message:
-        resolution?.reason === 'refused'
-          ? `${fieldLabel}: ${resolution.message}`
-          : `${fieldLabel}: ${call.fn}() does not apply to this field's type.`,
-      ...diagnosticSource(input.sources, field.node.syntax).at(call.span),
-    });
-    return 'invalid';
+    if (generator === undefined) return 'invalid';
+    phases[phase] = generator;
   }
   return phases.onCreate === undefined && phases.onUpdate === undefined ? undefined : phases;
 }
 
 interface ResolvedNonRelationField {
   readonly field: ContractField;
+  /** What the field's preset generates. */
   readonly executionDefaults?: ExecutionMutationDefaultPhases;
+  /** The type alias the field is typed by. */
+  readonly typeAlias?: ResolvedTypeAlias;
+}
+
+function fieldOfTypeAlias(
+  field: FieldSymbol,
+  typeAlias: ResolvedTypeAlias,
+): ResolvedNonRelationField {
+  return {
+    field: {
+      type: typeAlias.type,
+      nullable: field.optional,
+      many: field.list ? { elementNullable: field.elementOptional } : false,
+      ...ifDefined('valueSet', typeAlias.valueSet),
+    },
+    typeAlias,
+  };
+}
+
+/**
+ * Whether a field may take what its type alias carries: it repeats none of the alias's attributes, and, when the alias generates a value, it is required and not a list. Reports each refusal at the field.
+ */
+function acceptsTypeAliasGenerators(input: {
+  readonly field: FieldSymbol;
+  readonly modelName: string;
+  readonly typeAlias: ResolvedTypeAlias;
+  readonly sources: PslSources;
+  readonly diagnostics: PslDiagnosticCollector;
+}): boolean {
+  const { field, typeAlias, diagnostics } = input;
+  const fieldPath = `${input.modelName}.${field.name}`;
+  if (
+    refuseRepeatedTypeAliasAttributes({
+      field,
+      fieldPath,
+      alias: typeAlias.alias,
+      sources: input.sources,
+      diagnostics,
+    })
+  ) {
+    return false;
+  }
+  if (typeAlias.executionDefaults === undefined) return true;
+  const at = diagnosticSource(input.sources, field.node.syntax).at(field.span);
+  if (field.list) {
+    diagnostics.push({
+      code: 'PSL_LIST_EXECUTION_DEFAULT_UNSUPPORTED',
+      message: `Field "${fieldPath}" is a list, and its type alias "${typeAlias.name}" generates a value. Lists have no per-element generated values; remove "[]" or type the field without the alias.`,
+      ...at,
+    });
+    return false;
+  }
+  if (field.optional) {
+    diagnostics.push({
+      code: 'PSL_OPTIONAL_EXECUTION_DEFAULT_UNSUPPORTED',
+      message: `Field "${fieldPath}" is optional, and its type alias "${typeAlias.name}" generates a value, which needs a required field in MongoDB. Remove "?" or type the field without the alias.`,
+      ...at,
+    });
+    return false;
+  }
+  return true;
 }
 
 function resolveNonRelationField(
@@ -1261,6 +1311,7 @@ function resolveNonRelationField(
   codecIdByEnumName: ReadonlyMap<string, string>,
   presetContext: FieldPresetContext,
   scalarNames: ScalarNames,
+  typeAliases: ResolvedTypeAliases,
 ): ResolvedNonRelationField | undefined {
   const ownerName = owner.name;
   if (resolution?.kind === 'compositeType') {
@@ -1292,9 +1343,21 @@ function resolveNonRelationField(
     };
   }
 
+  if (resolution?.kind === 'namedType') {
+    if (field.typeConstructor !== undefined) {
+      presetContext.diagnostics.push({
+        code: 'PSL_UNSUPPORTED_FIELD_TYPE',
+        message: `Field "${ownerName}.${field.name}" calls "${field.typeConstructor.path.join('.')}", which is a type alias, not a type constructor. Remove the arguments.`,
+        ...diagnosticSource(presetContext.sources, field.node.syntax).at(field.span),
+      });
+      return undefined;
+    }
+    const typeAlias = typeAliases.ofResolution(resolution);
+    return typeAlias === undefined ? undefined : fieldOfTypeAlias(field, typeAlias);
+  }
+
   if (
     resolution?.kind === 'model' ||
-    resolution?.kind === 'namedType' ||
     resolution?.kind === 'block' ||
     resolution?.kind === 'crossSpace'
   ) {
@@ -1312,6 +1375,19 @@ function resolveNonRelationField(
   const call = field.typeConstructor;
   const entityLabel = `Field "${ownerName}.${field.name}"`;
   const source = diagnosticSource(presetContext.sources, field.node.syntax);
+  if (descriptor.kind === 'typeAlias') {
+    if (call !== undefined) {
+      presetContext.diagnostics.push({
+        code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+        message: `${path.join('.')} is a type alias and takes no arguments.`,
+        ...source.at(call.span),
+      });
+      return undefined;
+    }
+    const typeAlias = typeAliases.ofResolution(resolution);
+    invariant(typeAlias !== undefined, 'A contributed type alias always resolves');
+    return fieldOfTypeAlias(field, typeAlias);
+  }
   if (descriptor.kind === 'fieldPreset') {
     if (call === undefined) {
       reportPresetNotCalled({
@@ -1352,7 +1428,7 @@ function resolveNonRelationField(
   if (call === undefined) scalarNames.warnDeprecated(field, descriptor);
   return {
     field: {
-      type: { kind: 'scalar', codecId: descriptor.output.codecId },
+      type: scalarTypeOfConstructor(descriptor, call),
       nullable: field.optional,
       many: field.list ? { elementNullable: field.elementOptional } : false,
     },
@@ -1605,6 +1681,18 @@ export function interpretPslDocumentToMongoContract(
   const codecIdByEnumName: Map<string, string> = new Map(
     Object.entries(builtEnums).map(([name, e]) => [name, e.codecId]),
   );
+  const typeAliases = resolveMongoTypeAliases({
+    declarations: Object.values(symbolTable.namedTypes),
+    symbols: symbolTable,
+    binder,
+    sources,
+    diagnostics,
+    codecIdByEnumName,
+    defaultFunctionRegistry: input.defaultFunctionRegistry,
+    generatorFunctions,
+    dataTypes: input.dataTypes,
+    authoringTypes: input.authoringContributions?.type,
+  });
 
   const models: Record<string, MongoModelEntry> = {};
   const collections: Record<string, Record<string, unknown>> = {};
@@ -1714,8 +1802,21 @@ export function interpretPslDocumentToMongoContract(
         codecIdByEnumName,
         presetContext,
         scalarNames,
+        typeAliases,
       );
       if (!resolved) continue;
+      if (
+        resolved.typeAlias !== undefined &&
+        !acceptsTypeAliasGenerators({
+          field,
+          modelName: pslModel.name,
+          typeAlias: resolved.typeAlias,
+          sources,
+          diagnostics,
+        })
+      ) {
+        continue;
+      }
 
       const mappedName = physicalName(physicalNames, field);
       const unsupported = unsupportedStoredNameReason(mappedName);
@@ -1742,7 +1843,6 @@ export function interpretPslDocumentToMongoContract(
       fieldSymbols.set(fieldKey(pslModel.name, field.name), field);
       const generated = lowerGeneratorAttributes({
         field,
-        model: pslModel,
         modelName: pslModel.name,
         resolved,
         specContext: {
@@ -1757,10 +1857,8 @@ export function interpretPslDocumentToMongoContract(
         diagnostics,
       });
       if (generated === 'invalid') continue;
-      const phases =
-        resolved.executionDefaults === undefined
-          ? generated
-          : { ...resolved.executionDefaults, ...generated };
+      const inherited = resolved.executionDefaults ?? resolved.typeAlias?.executionDefaults;
+      const phases = inherited === undefined ? generated : { ...inherited, ...generated };
       if (phases !== undefined) {
         presetExecutionDefaults.push({
           modelName: pslModel.name,
@@ -1858,8 +1956,17 @@ export function interpretPslDocumentToMongoContract(
         codecIdByEnumName,
         presetContext,
         scalarNames,
+        typeAliases,
       );
       if (!resolved) continue;
+      if (resolved.typeAlias?.executionDefaults !== undefined) {
+        diagnostics.push({
+          code: 'PSL_UNSUPPORTED_FIELD_TYPE',
+          message: `Member "${field.name}" of composite type "${compositeType.name}" is typed by the type alias "${resolved.typeAlias.name}", which generates a value; a composite type member has no generated values.`,
+          ...diagnosticSource(sources, field.node.syntax).at(field.span),
+        });
+        continue;
+      }
       fields[field.name] = resolved.field;
       fieldSymbols.set(fieldKey(compositeType.name, field.name), field);
     }

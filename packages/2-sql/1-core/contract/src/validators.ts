@@ -244,24 +244,45 @@ function storedTypeNameProblems(storage: unknown): readonly string[] {
   );
 }
 
-/**
- * Contracts emitted before generated checks became mandatory stored the checks a column waived in `noCheck`. One sentence says what to do, followed by the first five such columns and a count of the rest.
- */
-function checkWaiverProblems(storage: unknown): readonly string[] {
-  const paths = pathsHolding(storedColumnEntries(storage), 'noCheck');
+/** One sentence that says what to do about a removed column key, followed by the first five columns that hold it and a count of the rest. */
+function removedColumnKeyProblems(
+  storage: unknown,
+  key: string,
+  whatToDo: string,
+): readonly string[] {
+  const paths = pathsHolding(storedColumnEntries(storage), key);
   if (paths.length === 0) return [];
-  const listed = paths.slice(0, LISTED_REMOVED_KEYS).map((path) => `${path}.noCheck`);
+  const listed = paths.slice(0, LISTED_REMOVED_KEYS).map((path) => `${path}.${key}`);
   const unlisted = paths.length - listed.length;
   const more = unlisted > 0 ? `, and ${unlisted} more (${paths.length} in all)` : '';
-  return [
-    `contracts no longer store check waivers in "noCheck", so re-emit the contract from its source, or rewrite a stored contract such as a migration snapshot with remove-nocheck.ts, which ships in the remove-nocheck scripts of the Prisma 8 upgrade guide. Columns: ${listed.join(', ')}${more}`,
-  ];
+  return [`${whatToDo} Columns: ${listed.join(', ')}${more}`];
 }
 
-/** The removed keys of the oldest format the contract is in: a contract that still stores `nativeType` is refused for that first, since its `noCheck` keys are rewritten at a later step of the upgrade. */
+/** Contracts emitted before generated checks became mandatory stored the checks a column waived in `noCheck`. */
+function checkWaiverProblems(storage: unknown): readonly string[] {
+  return removedColumnKeyProblems(
+    storage,
+    'noCheck',
+    'contracts no longer store check waivers in "noCheck", so re-emit the contract from its source, or rewrite a stored contract such as a migration snapshot with remove-nocheck.ts, which ships in the remove-nocheck scripts of the Prisma 8 upgrade guide.',
+  );
+}
+
+/** Contracts emitted before type aliases were expanded into each column stored the alias a column was typed by in `typeRef`. */
+function typeAliasProblems(storage: unknown): readonly string[] {
+  return removedColumnKeyProblems(
+    storage,
+    'typeRef',
+    'contracts no longer store type aliases, so re-emit the contract from its source, or rewrite a stored contract such as a migration snapshot with expand-type-aliases.ts, which ships in the expand-type-aliases scripts of the Prisma 8 upgrade guide.',
+  );
+}
+
+/** The removed keys of the oldest format the contract is in: a contract that still stores `nativeType` is refused for that first, then one that stores `noCheck`, since each is rewritten at an earlier step of the upgrade than the next. */
 function removedKeyProblems(storage: unknown): readonly string[] {
-  const storedTypeNames = storedTypeNameProblems(storage);
-  return storedTypeNames.length > 0 ? storedTypeNames : checkWaiverProblems(storage);
+  for (const problems of [storedTypeNameProblems, checkWaiverProblems, typeAliasProblems]) {
+    const found = problems(storage);
+    if (found.length > 0) return found;
+  }
+  return [];
 }
 
 type NamespacedStorageWalk = {

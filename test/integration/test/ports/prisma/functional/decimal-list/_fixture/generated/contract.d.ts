@@ -23,7 +23,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'c6c83c549521a55ba3c48ff5de68cc452e794635ddcb91a995706528c86fc772'>;
+  StorageHashBase<'279b5b17ef96e317de4d4c1b9ee8996d72478695f5b40c482bcd911e735b1390'>;
 export type ExecutionHash =
   ExecutionHashBase<'e18dbda8332f8974e92016590064ce897aa2fb8f1ca059429e3460e668f4e488'>;
 export type ProfileHash =
@@ -307,7 +307,7 @@ type ContractBase = Omit<
                   readonly dataType: 'pg/numeric';
                   readonly codecId: 'pg/numeric@1';
                   readonly nullable: false;
-                  readonly typeRef: 'D';
+                  readonly typeParams: { readonly precision: 65; readonly scale: 30 };
                   readonly many: { readonly elementNullable: false };
                 };
                 readonly id: {
@@ -324,14 +324,6 @@ type ContractBase = Omit<
             };
           };
         };
-      };
-    };
-    readonly types: {
-      readonly D: {
-        readonly kind: 'codec-instance';
-        readonly codecId: 'pg/numeric@1';
-        readonly dataType: 'pg/numeric';
-        readonly typeParams: { readonly precision: 65; readonly scale: 30 };
       };
     };
     readonly storageHash: StorageHash;

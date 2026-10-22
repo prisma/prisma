@@ -87,15 +87,15 @@ test('a field a preset fills cannot be made optional or a list', () => {
   });
 });
 
-test('the type error for optional() or many() on a preset field says why', () => {
+test('the type error for optional() or many() on a field that generates a value says why', () => {
   defineContract({ family: mongoFamilyPack, target: mongoTargetPack }, ({ field }) => {
     const createdAt = field.temporal.createdAt();
     expectTypeOf<
       ThisParameterType<typeof createdAt.optional>
-    >().toEqualTypeOf<'A preset fills this field on write, so it cannot be optional'>();
+    >().toEqualTypeOf<'This field generates a value on write, so it cannot be optional'>();
     expectTypeOf<
       ThisParameterType<typeof createdAt.many>
-    >().toEqualTypeOf<'A preset fills this field on write, so it cannot be a list'>();
+    >().toEqualTypeOf<'This field generates a value on write, so it cannot be a list'>();
     return { models: {} };
   });
 });

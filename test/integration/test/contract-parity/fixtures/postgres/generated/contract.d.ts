@@ -24,7 +24,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'67dcecb0dbd20137538fa4534d1016b3107d87bba11434f79aed258feea22cd5'>;
+  StorageHashBase<'4e5aa929c76c9181dd640f59692e6743a0626b5ab9023a02e5960ec96509c225'>;
 export type ExecutionHash =
   ExecutionHashBase<'4c8b52aa880ed951466684d8a101a1fc3992151da635fe969fe2926dbd8964eb'>;
 export type ProfileHash =
@@ -1057,7 +1057,7 @@ type ContractBase = Omit<
                   readonly dataType: 'pg/timestamp';
                   readonly codecId: 'pg/timestamp-string@1';
                   readonly nullable: false;
-                  readonly typeRef: 'TimestampString3';
+                  readonly typeParams: { readonly precision: 3 };
                   readonly many: false;
                 };
                 readonly timestamptz: {
@@ -1078,7 +1078,7 @@ type ContractBase = Omit<
                   readonly dataType: 'pg/timestamptz';
                   readonly codecId: 'pg/timestamptz-string@1';
                   readonly nullable: true;
-                  readonly typeRef: 'TimestamptzString3';
+                  readonly typeParams: { readonly precision: 3 };
                   readonly many: false;
                 };
                 readonly ulid: {
@@ -1141,20 +1141,6 @@ type ContractBase = Omit<
             };
           };
         };
-      };
-    };
-    readonly types: {
-      readonly TimestampString3: {
-        readonly kind: 'codec-instance';
-        readonly codecId: 'pg/timestamp-string@1';
-        readonly dataType: 'pg/timestamp';
-        readonly typeParams: { readonly precision: 3 };
-      };
-      readonly TimestamptzString3: {
-        readonly kind: 'codec-instance';
-        readonly codecId: 'pg/timestamptz-string@1';
-        readonly dataType: 'pg/timestamptz';
-        readonly typeParams: { readonly precision: 3 };
       };
     };
     readonly storageHash: StorageHash;

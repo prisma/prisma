@@ -26,7 +26,7 @@ function dataTypeOf(codecId: string): string {
 }
 
 /**
- * `forColumn(table, column)` dispatch materializes a shared codec instance keyed by `(codecId, typeParams)` and exposes it through a `SqlCodecInstanceContext` whose `name` carries the shared marker (`<codec:codecId>`, `<col:Table.column>`, or the `storage.types` alias). Multiple columns whose `CodecRef`s canonicalize to the same key share that single instance and aggregate their sites into `usedAt`.
+ * `forColumn(table, column)` dispatch materializes a shared codec instance keyed by `(codecId, typeParams)` and exposes it through a `SqlCodecInstanceContext` whose `name` carries the shared marker (`<codec:codecId>` or `<col:Table.column>`). Multiple columns whose `CodecRef`s canonicalize to the same key share that single instance and aggregate their sites into `usedAt`.
  */
 describe('buildContractCodecRegistry — per-column codec instance context', () => {
   function createCtxCapturingExtension(captures: SqlCodecInstanceContext[]): {
@@ -159,7 +159,7 @@ describe('buildContractCodecRegistry — forCodecRef content-keyed cache', () =>
           ...anyJsonConversions,
         };
         return Object.assign({}, codec, {
-          meta: { length: params.length, ctxName: ctx.name },
+          meta: { length: params.length, ctxName: ctx.name, usedAt: ctx.usedAt },
         }) as Codec;
       }) as unknown as CodecDescriptor<{ length: number }>['factory'],
     };
@@ -181,7 +181,7 @@ describe('buildContractCodecRegistry — forCodecRef content-keyed cache', () =>
   }
 
   function contractWithVector(
-    columns: Record<string, { typeRef?: string; typeParams?: { length: number } }>,
+    columns: Record<string, { typeParams?: { length: number } }>,
     types?: Record<string, { length: number }>,
   ): Contract<SqlStorage> {
     const tables: Record<string, StorageTable> = {};
@@ -193,7 +193,6 @@ describe('buildContractCodecRegistry — forCodecRef content-keyed cache', () =>
             codecId: 'pgvector/vector@1',
             nullable: false,
             many: false,
-            ...ifDefined('typeRef', spec.typeRef),
             ...ifDefined('typeParams', spec.typeParams),
           },
         },
@@ -320,10 +319,10 @@ describe('buildContractCodecRegistry — forCodecRef content-keyed cache', () =>
     expect(factoryCalls()).toBe(before + 1);
   });
 
-  it('typeRef-shared columns resolve through forCodecRef to the same named-instance codec', () => {
+  it('names the codec of columns with equal type params after the first column, and lists every column in usedAt', () => {
     const { descriptor } = createCountingVectorExtension();
     const contract = contractWithVector(
-      { Doc: { typeRef: 'V1536' }, Page: { typeRef: 'V1536' } },
+      { Doc: { typeParams: { length: 1536 } }, Page: { typeParams: { length: 1536 } } },
       { V1536: { length: 1536 } },
     );
 
@@ -336,36 +335,14 @@ describe('buildContractCodecRegistry — forCodecRef content-keyed cache', () =>
       typeParams: { length: 1536 },
     });
 
-    expect(codec).toBeDefined();
-    // Pre-population uses the typeRef ctx — the cached codec's meta.ctxName carries the `storage.types` name.
-    expect((codec as Codec & { meta: { ctxName: string } }).meta.ctxName).toBe('V1536');
-
-    // The shared-per-codec invariant: forColumn lookups on either typeRef-sharing column resolve to the very same instance returned by forCodecRef. A regression that re-materialised per-column instances would still pass the existence/name asserts above; identity is what guards against that.
-    const fromDoc = context.contractCodecs.forColumn('__unbound__', 'Doc', 'embedding');
-    const fromPage = context.contractCodecs.forColumn('__unbound__', 'Page', 'embedding');
-    expect(fromDoc).toBe(codec);
-    expect(fromPage).toBe(codec);
-  });
-
-  it('storage.types aliases that canonicalize to the same CodecRef merge their usedAt sites', () => {
-    const { descriptor } = createCountingVectorExtension();
-    // V1536A and V1536B both resolve to (pgvector/vector@1, { length: 1536 }) — i.e. one shared codec instance.
-    const contract = contractWithVector(
-      { Doc: { typeRef: 'V1536A' }, Page: { typeRef: 'V1536B' } },
-      { V1536A: { length: 1536 }, V1536B: { length: 1536 } },
-    );
-
-    const context = createTestContext(contract, createStubAdapter(), {
-      extensions: [descriptor],
+    expect((codec as Codec & { meta: unknown }).meta).toEqual({
+      length: 1536,
+      ctxName: '<col:Doc.embedding>',
+      usedAt: [
+        { table: 'Doc', column: 'embedding' },
+        { table: 'Page', column: 'embedding' },
+      ],
     });
-
-    const codec = context.contractCodecs.forCodecRef({
-      codecId: 'pgvector/vector@1',
-      typeParams: { length: 1536 },
-    });
-
-    expect(codec).toBeDefined();
-    // forColumn on both columns should reach the same instance.
     expect(context.contractCodecs.forColumn('__unbound__', 'Doc', 'embedding')).toBe(codec);
     expect(context.contractCodecs.forColumn('__unbound__', 'Page', 'embedding')).toBe(codec);
   });

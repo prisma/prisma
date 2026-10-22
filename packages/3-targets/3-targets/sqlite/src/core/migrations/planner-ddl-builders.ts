@@ -2,34 +2,23 @@ import { dataTypeParams, type TypeLookups } from '@internal/framework-components
 /**
  * Low-level DDL fragment builders for SQLite migrations.
  *
- * These helpers consume `StorageColumn` (the contract shape, possibly with
- * `typeRef`) and produce string fragments. They are called once per column
- * at the call-construction boundary in `issue-planner.ts` / strategies to
- * build flat `SqliteColumnSpec`s; the operation factories themselves never
- * see `StorageColumn` or `storageTypes`.
+ * These helpers consume `StorageColumn` (the contract shape) and produce string fragments. They are called once per column at the call-construction boundary in `issue-planner.ts` / strategies to build flat `SqliteColumnSpec`s; the operation factories themselves never see `StorageColumn`.
  */
 
 import { renderSqlTypeName, sqlStorageTypeOfCodec } from '@internal/sql-contract/data-type';
-import type {
-  StorageColumn,
-  StorageTable,
-  StorageTypeInstance,
-} from '@internal/sql-contract/types';
-import { sqliteError } from '../errors';
+import type { StorageColumn, StorageTable } from '@internal/sql-contract/types';
 import { quoteIdentifier } from '../sql-utils';
 
 /**
  * Renders the column's DDL type token (e.g. `"INTEGER"`, `"TEXT"`): the name the type its codec's
- * data type is stored as is written with, in upper case. Resolves `typeRef` against `storageTypes`.
+ * data type is stored as is written with, in upper case.
  */
 export function buildColumnTypeSql(
-  column: Pick<StorageColumn, 'codecId' | 'typeParams' | 'typeRef'>,
+  column: Pick<StorageColumn, 'codecId' | 'typeParams'>,
   types: TypeLookups,
-  storageTypes: Record<string, StorageTypeInstance> = {},
 ): string {
-  const resolved = resolveColumnTypeMetadata(column, storageTypes);
-  const storage = sqlStorageTypeOfCodec(resolved.codecId, types);
-  return renderSqlTypeName(storage, dataTypeParams(storage, resolved.typeParams)).toUpperCase();
+  const storage = sqlStorageTypeOfCodec(column.codecId, types);
+  return renderSqlTypeName(storage, dataTypeParams(storage, column.typeParams)).toUpperCase();
 }
 
 export function buildCreateIndexSql(
@@ -58,27 +47,4 @@ export function isInlineAutoincrementPrimaryKey(table: StorageTable, columnName:
   if (table.primaryKey.columns[0] !== columnName) return false;
   const column = table.columns[columnName];
   return column?.default?.kind === 'function' && column.default.expression === 'autoincrement()';
-}
-
-type ResolvedColumnTypeMetadata = Pick<StorageColumn, 'codecId' | 'typeParams'>;
-
-export function resolveColumnTypeMetadata(
-  column: Pick<StorageColumn, 'codecId' | 'typeParams' | 'typeRef'>,
-  storageTypes: Record<string, StorageTypeInstance>,
-): ResolvedColumnTypeMetadata {
-  if (!column.typeRef) {
-    return column;
-  }
-  const referencedType = storageTypes[column.typeRef];
-  if (!referencedType) {
-    throw sqliteError(
-      'CONTRACT.TYPE_UNKNOWN',
-      `Storage type "${column.typeRef}" referenced by column is not defined in storage.types.`,
-      { meta: { typeRef: column.typeRef } },
-    );
-  }
-  return {
-    codecId: referencedType.codecId,
-    typeParams: referencedType.typeParams,
-  };
 }

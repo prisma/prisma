@@ -642,6 +642,60 @@ namespace other { model Hidden { id Int } }`,
     },
   );
 
+  it('renders a contributed type alias as a type with its documentation', () => {
+    const now = { name: 'now', args: {} } as const;
+    const { items } = completeWithSource({
+      markedSource: 'model Owner { value temporal.| }',
+      pslBlockDescriptors: {},
+      scalarTypes: [],
+      clientSupportsSnippets: true,
+      authoringContributions: assembleAuthoringContributions([
+        {
+          id: 'aliases',
+          authoring: {
+            type: {
+              temporal: {
+                CreatedAt: {
+                  kind: 'typeAlias',
+                  documentation: 'Set to now when a row is created.',
+                  output: { type: { codecId: 'fixture/value' }, onCreate: now },
+                },
+                UpdatedAt: {
+                  kind: 'typeAlias',
+                  output: { type: { codecId: 'fixture/value' }, onCreate: now, onUpdate: now },
+                },
+              },
+            },
+          },
+        },
+      ]),
+    });
+    expect(
+      items.map((item) => ({
+        label: item.label,
+        kind: item.kind,
+        detail: item.detail,
+        newText: item.textEdit?.newText,
+        format: item.insertTextFormat,
+      })),
+    ).toEqual([
+      {
+        label: 'CreatedAt',
+        kind: CompletionItemKind.Class,
+        detail: 'Set to now when a row is created.',
+        newText: 'CreatedAt',
+        format: undefined,
+      },
+      {
+        label: 'UpdatedAt',
+        kind: CompletionItemKind.Class,
+        detail: 'Type alias',
+        newText: 'UpdatedAt',
+        format: undefined,
+      },
+    ]);
+  });
+
   it('does not complete a global namespace when its qualifier is shadowed locally', () => {
     const { items } = complete(`namespace remote { model Item { id Int } }
 namespace app {
@@ -673,7 +727,7 @@ namespace app {
       'Declares a mixin for model blocks.',
       'Defines a reusable composite type.',
       'Declares a mixin for type blocks.',
-      'Defines reusable named types.',
+      'Defines reusable type aliases.',
       'Groups declarations belonging to the same database schema or database.',
       'Generic block keyword',
       'Declares a mixin for audit blocks.',

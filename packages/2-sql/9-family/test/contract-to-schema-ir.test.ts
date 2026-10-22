@@ -318,7 +318,7 @@ describe('contractToSchemaIR', () => {
     );
   });
 
-  it('drops codecId and typeRef from columns, and every type parameter its data type does not declare', () => {
+  it('drops codecId from columns, and every type parameter its data type does not declare', () => {
     const storage = new SqlStorage({
       storageHash: 'test' as StorageHashBase<string>,
       namespaces: {
@@ -332,29 +332,16 @@ describe('contractToSchemaIR', () => {
                     codecId: 'pgvector/vector@1',
                     typeParams: { dimensions: 1536 },
                   }),
-                  b: col({
-                    codecId: 'pgvector/vector@1',
-                    typeRef: 'MyVector',
-                  }),
                 },
               }),
             },
           },
         }),
       },
-      types: {
-        MyVector: {
-          kind: 'codec-instance',
-          codecId: 'pgvector/vector@1',
-          dataType: 'pgvector/vector',
-          typeParams: { dimensions: 1536 },
-        },
-      },
     });
 
     const result = contractToSchemaIR(wrap(storage));
     const columnA = result.tables['T']!.columns['a']!;
-    const columnB = result.tables['T']!.columns['b']!;
 
     expect(columnA).toEqual(
       new SqlColumnIR({
@@ -365,17 +352,6 @@ describe('contractToSchemaIR', () => {
     );
     expect('codecId' in columnA).toBe(false);
     expect(columnA.storedTypeParams).toEqual({});
-    expect('typeRef' in columnA).toBe(false);
-    expect(columnB).toEqual(
-      new SqlColumnIR({
-        name: 'b',
-        typeText: 'vector',
-        nullable: false,
-      }),
-    );
-    expect('codecId' in columnB).toBe(false);
-    expect(columnB.storedTypeParams).toEqual({});
-    expect('typeRef' in columnB).toBe(false);
   });
 
   it('writes each column type from its codec data type and parameters', () => {
@@ -523,7 +499,7 @@ describe('contractToSchemaIR', () => {
     );
   });
 
-  it('resolves typeRef against storage.types before writing the type', () => {
+  it("writes the type from the column's own parameters, not those of a registered database type", () => {
     const storage = new SqlStorage({
       storageHash: 'test' as StorageHashBase<string>,
       namespaces: {
@@ -537,7 +513,7 @@ describe('contractToSchemaIR', () => {
                     dataType: 'pgvector/vector',
                     codecId: 'pg/vector@1',
                     nullable: true,
-                    typeRef: 'Embedding1536',
+                    typeParams: { length: 768 },
                   }),
                 },
               }),
@@ -557,7 +533,7 @@ describe('contractToSchemaIR', () => {
 
     const result = contractToSchemaIR(wrap(storage));
 
-    expect(result.tables['Post']!.columns['embedding']!.typeText).toBe('vector(1536)');
+    expect(result.tables['Post']!.columns['embedding']!.typeText).toBe('vector(768)');
   });
 
   it('omits default field when column has no default', () => {
@@ -936,7 +912,7 @@ describe('contractToSchemaIR', () => {
                   embedding: col({
                     dataType: 'pgvector/vector',
                     codecId: 'pg/vector@1',
-                    typeRef: 'Embedding',
+                    typeParams: { length: 1536 },
                   }),
                 },
               }),

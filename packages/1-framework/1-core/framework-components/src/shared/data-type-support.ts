@@ -11,6 +11,7 @@ import {
   type DataTypeAuthoringEntry,
   isAuthoringFieldPresetDescriptor,
   isAuthoringTypeConstructorDescriptor,
+  isAuthoringTypeDescriptor,
 } from './framework-authoring';
 import { runtimeError } from './runtime-error';
 import type { DataTypeSupport } from './written-value';
@@ -118,7 +119,10 @@ export function contributedHelpers(
   component: Pick<DataTypeComponent, 'id' | 'authoring'>,
 ): readonly ContributedHelper[] {
   return [
-    ...descriptorsIn(component.authoring?.type, isAuthoringTypeConstructorDescriptor),
+    ...descriptorsIn(component.authoring?.type, isAuthoringTypeDescriptor).flatMap(
+      ({ path, descriptor }) =>
+        isAuthoringTypeConstructorDescriptor(descriptor) ? [{ path, descriptor }] : [],
+    ),
     ...descriptorsIn(component.authoring?.field, isAuthoringFieldPresetDescriptor),
   ].map((entry) => ({ ...entry, contributedBy: component.id ?? UNKNOWN_CONTRIBUTOR }));
 }

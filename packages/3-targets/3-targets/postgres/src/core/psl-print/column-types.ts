@@ -20,9 +20,9 @@ import { positionalArg, SYNTHETIC_SPAN } from '../psl-build/psl-literals';
 import { refuseColumnWithoutPslType, refuseUnwritableTypeArgument } from './refusals';
 
 /**
- * What a column's PSL type stands for. `dataType` is a type that stands for the column's codec and type params alone, written as a bare name such as `String` or a call such as `Timestamptz(3)`. A named type, a value object or an enum, including a native enum written `pg.enum(<Block>)`, names something more.
+ * What a column's PSL type stands for. `dataType` is a type that stands for the column's codec and type params alone, written as a bare name such as `String` or a call such as `Timestamptz(3)`. A value object or an enum, including a native enum written `pg.enum(<Block>)`, names something more.
  */
-export type PslColumnTypeKind = 'dataType' | 'namedType' | 'valueObject' | 'enum';
+export type PslColumnTypeKind = 'dataType' | 'valueObject' | 'enum';
 
 /** The PSL type position of one column: its name and what it stands for, and the type-constructor call when it is written as one. */
 export interface PslColumnType {

@@ -18,16 +18,14 @@ import {
 } from '@internal/postgres/contract-builder';
 import { type } from 'arktype';
 
-const timestampString3 = {
-  kind: 'codec-instance',
+const TimestampString3 = field.column({
   codecId: 'pg/timestamp-string@1',
   typeParams: { precision: 3 },
-} as const;
-const timestamptzString3 = {
-  kind: 'codec-instance',
+} as const);
+const TimestamptzString3 = field.column({
   codecId: 'pg/timestamptz-string@1',
   typeParams: { precision: 3 },
-} as const;
+} as const);
 
 const Plan = enumType(
   'Plan',
@@ -61,8 +59,8 @@ const User = model('User', {
     timestamptz: field.temporal.timestamptz(6, 'now'),
     timestampString: field.temporal.timestampString(3),
     timestamptzString: field.temporal.timestamptzString(3, 'now', 'now'),
-    timestampStringAlias: field.namedType(timestampString3),
-    timestamptzStringAlias: field.namedType(timestamptzString3).optional(),
+    timestampStringAlias: TimestampString3,
+    timestamptzStringAlias: TimestamptzString3.optional(),
     seenAt: field.temporal.timestamptzJsDate(3),
     handle: field.column(pgVarchar20),
     plan: field.namedType(Plan),
@@ -174,7 +172,6 @@ export const contract = defineContract({
   extensions: { 'arktype-json': arktypeJsonPack },
   namespaces: ['auth'],
   enums: { Plan, Ratio },
-  types: { TimestampString3: timestampString3, TimestamptzString3: timestamptzString3 },
   models: {
     User: User.relations({
       posts: rel.hasMany(Post, { by: 'authorId' }),

@@ -21,12 +21,6 @@ interface CharOutputTypes extends ParameterizedOutputTypesFunction {
 }
 
 type Storage = {
-  readonly types: {
-    readonly Code: {
-      readonly codecId: 'test/char@1';
-      readonly typeParams: { readonly length: 8 };
-    };
-  };
   readonly namespaces: {
     readonly public: {
       readonly entries: {
@@ -42,7 +36,7 @@ type Storage = {
               readonly code: {
                 readonly codecId: 'test/char@1';
                 readonly nullable: true;
-                readonly typeRef: 'Code';
+                readonly typeParams: { readonly length: 8 };
                 readonly many: false;
               };
               readonly mood: {
@@ -75,7 +69,7 @@ type ColumnOutput = ColumnTypesFromStorage<
 >;
 
 describe('storage column types from a contract storage', () => {
-  test('a column takes its own type parameters, or those of its named type', () => {
+  test('a column takes its own type parameters', () => {
     expectTypeOf<ColumnOutput['public']['users']['id']>().toEqualTypeOf<Char<24>>();
     expectTypeOf<ColumnOutput['public']['users']['code']>().toEqualTypeOf<Char<8> | null>();
   });

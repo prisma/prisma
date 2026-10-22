@@ -218,9 +218,6 @@ test('integrated callback authoring exposes composition-shaped type helpers', ()
       expectTypeOf(Embedding.typeParams.length).toEqualTypeOf<1536>();
 
       return {
-        types: {
-          Embedding,
-        },
         models: {
           User: model('User', {
             fields: {
@@ -230,7 +227,7 @@ test('integrated callback authoring exposes composition-shaped type helpers', ()
               isActive: field.boolean().default(true),
               score: field.float().optional(),
               profile: field.json().optional(),
-              embedding: field.namedType(Embedding).optional(),
+              embedding: field.column(Embedding).optional(),
               createdAt: field.temporal.createdAt(),
             },
           }).sql({
@@ -241,9 +238,7 @@ test('integrated callback authoring exposes composition-shaped type helpers', ()
     },
   );
 
-  type CallbackStorageTypes = NonNullable<typeof contract.storage.types>;
-
-  expectTypeOf<CallbackStorageTypes['Embedding']['codecId']>().toEqualTypeOf<'pg/vector@1'>();
+  expectTypeOf<keyof NonNullable<typeof contract.storage.types>>().toBeNever();
   expectTypeOf(
     contract.storage.namespaces['public'].entries.table.user.columns.id.codecId,
   ).toEqualTypeOf<'pg/int4@1'>();
@@ -265,12 +260,9 @@ test('integrated callback authoring exposes composition-shaped type helpers', ()
   expectTypeOf(
     contract.storage.namespaces['public'].entries.table.user.columns.createdAt.codecId,
   ).toEqualTypeOf<'pg/timestamptz-temporal@1'>();
-  // `role.typeRef` and `embedding.typeRef` capture is gated on the
-  // descriptor-level generic forwarding noted above; the contract
-  // still carries the correct typeRef strings at runtime.
   expectTypeOf(
-    contract.storage.namespaces['public'].entries.table.user.columns.embedding.typeRef,
-  ).toEqualTypeOf<'Embedding'>();
+    contract.storage.namespaces['public'].entries.table.user.columns.embedding.typeParams,
+  ).toEqualTypeOf<{ readonly length: 1536 }>();
 });
 
 test('integrated callback authoring hides extension namespaces when packs are absent', () => {

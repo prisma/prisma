@@ -131,7 +131,7 @@ describe('interpretPslDocumentToSqlContract field-preset default lowering', () =
         code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
         sourceId: 'schema.prisma',
         message:
-          'Field "Stale.updatedAt" uses unsupported attribute "@updatedAt". Use @onCreate(now()) @onUpdate(now()) instead.',
+          'Field "Stale.updatedAt" uses unsupported attribute "@updatedAt". Use @onCreate(now()) @onUpdate(now()), or type the field temporal.UpdatedAt.',
       },
     ]);
   });
