@@ -601,9 +601,11 @@ export class CollectionBase<
 
   whereUnique<Self>(
     this: Self,
-    criterion: UniqueConstraintCriterion<TContract, ModelName>,
+    criterion: UniqueConstraintCriterion<TContract, ModelName, State['nsId']>,
   ): UniquelyFiltered<Self>;
-  whereUnique(criterion: UniqueConstraintCriterion<TContract, ModelName>): UniquelyFiltered<this> {
+  whereUnique(
+    criterion: UniqueConstraintCriterion<TContract, ModelName, State['nsId']>,
+  ): UniquelyFiltered<this> {
     if (this.includeRefinementMode) {
       throw ormError(
         'ORM.INCLUDE_INVALID',
@@ -2513,7 +2515,7 @@ export class CollectionBase<
     input: {
       create: ResolvedScalarCreateInput<TContract, ModelName, State['variantValue'], State['nsId']>;
       update: ScalarUpdateInput<TContract, ModelName, State['nsId']>;
-      conflictOn?: UniqueConstraintCriterion<TContract, ModelName>;
+      conflictOn?: UniqueConstraintCriterion<TContract, ModelName, State['nsId']>;
     },
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): Promise<CollectionRowOf<Self>>;
@@ -2521,7 +2523,7 @@ export class CollectionBase<
     input: {
       create: ResolvedScalarCreateInput<TContract, ModelName, State['variantValue'], State['nsId']>;
       update: ScalarUpdateInput<TContract, ModelName, State['nsId']>;
-      conflictOn?: UniqueConstraintCriterion<TContract, ModelName>;
+      conflictOn?: UniqueConstraintCriterion<TContract, ModelName, State['nsId']>;
     },
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): Promise<CollectionRowOf<this>>;
@@ -2529,7 +2531,7 @@ export class CollectionBase<
     input: {
       create: ResolvedScalarCreateInput<TContract, ModelName, State['variantValue'], State['nsId']>;
       update: ScalarUpdateInput<TContract, ModelName, State['nsId']>;
-      conflictOn?: UniqueConstraintCriterion<TContract, ModelName>;
+      conflictOn?: UniqueConstraintCriterion<TContract, ModelName, State['nsId']>;
     },
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): Promise<unknown> {

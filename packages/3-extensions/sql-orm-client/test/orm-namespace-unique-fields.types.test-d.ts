@@ -307,3 +307,20 @@ test('each User facet resolves select/distinct/cursor/conflictOn fields within i
 test('the auth-namespace User facet resolves upsert update input to its own field `token`', async () => {
   await writeDb.auth.User.upsert({ create: { token: 'tok' }, update: { token: 'tok-2' } });
 });
+
+test('each User facet resolves upsert conflictOn and whereUnique within its own namespace', async () => {
+  await writeDb.auth.User.upsert({
+    create: { token: 'tok' },
+    update: {},
+    conflictOn: { token: 'tok' },
+  });
+  await writeDb.auth.User.upsert({
+    create: { token: 'tok' },
+    update: {},
+    // @ts-expect-error `email` belongs to public.User, not auth.User
+    conflictOn: { email: 'a@example.com' },
+  });
+  writeDb.auth.User.whereUnique({ token: 'tok' });
+  // @ts-expect-error `email` belongs to public.User, not auth.User
+  writeDb.auth.User.whereUnique({ email: 'a@example.com' });
+});
