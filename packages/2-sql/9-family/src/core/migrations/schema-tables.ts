@@ -16,4 +16,5 @@ export interface SchemaTables {
    */
   columnsNamed(namespaceId: string, table: string, column: string): readonly string[];
   namespacesWithTable(table: string): readonly string[];
+  hasNamespace(namespaceId: string): boolean;
 }

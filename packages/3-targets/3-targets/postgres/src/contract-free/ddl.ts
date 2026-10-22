@@ -13,7 +13,9 @@ import {
   DropDefaultAction,
   PostgresAlterIndexRename,
   PostgresAlterPolicyRename,
+  PostgresAlterSchemaRename,
   PostgresAlterTable,
+  PostgresAlterTableSetSchema,
   PostgresCreateIndex,
   PostgresCreatePolicy,
   PostgresCreateSchema,
@@ -22,6 +24,7 @@ import {
   PostgresDisableRowLevelSecurity,
   PostgresDropIndex,
   PostgresDropPolicy,
+  PostgresDropSchema,
   PostgresDropType,
   type RlsPolicyOperation,
 } from '../core/ddl/nodes';
@@ -247,4 +250,29 @@ export function disableRowLevelSecurity(options: {
   readonly table: string;
 }): PostgresDisableRowLevelSecurity {
   return new PostgresDisableRowLevelSecurity(options);
+}
+
+/**
+ * Build a Postgres `ALTER TABLE … SET SCHEMA` DDL node. Identifiers are quoted by the renderer; an
+ * absent `schema` leaves the table unqualified (the unbound namespace).
+ */
+export function alterTableSetSchema(options: {
+  readonly schema: string | undefined;
+  readonly table: string;
+  readonly to: string;
+}): PostgresAlterTableSetSchema {
+  return new PostgresAlterTableSetSchema(options);
+}
+
+/** Build a Postgres `ALTER SCHEMA … RENAME TO` DDL node. Identifiers are quoted by the renderer. */
+export function alterSchemaRename(options: {
+  readonly schema: string;
+  readonly to: string;
+}): PostgresAlterSchemaRename {
+  return new PostgresAlterSchemaRename(options);
+}
+
+/** Build a Postgres `DROP SCHEMA` DDL node, without `CASCADE`. The name is quoted by the renderer. */
+export function dropSchema(options: { readonly schema: string }): PostgresDropSchema {
+  return new PostgresDropSchema(options);
 }

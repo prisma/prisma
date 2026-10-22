@@ -55,6 +55,16 @@ export interface PlannedSubjectJson {
   readonly text: string;
   /** Whether a `--delete` or `--allow` the dry run was given answers this question. */
   readonly answered: boolean;
+  /** The statement that answers it, when one does, such as `{ verb: 'delete', text: 'billing' }`. */
+  readonly answeredBy?: { readonly verb: 'delete' | 'allow'; readonly text: string };
+  /** The subject's namespace when the destination removed it: `--delete` of it answers the question. */
+  readonly removedNamespace?: string;
+}
+
+/** A namespace the plan removes, as a dry run lists it, with the `--delete` given for it, if any. */
+export interface RemovedNamespaceJson {
+  readonly namespaceId: string;
+  readonly answeredBy?: { readonly verb: 'delete'; readonly text: string };
 }
 
 export interface MigrationCommandResult {
@@ -100,8 +110,12 @@ export interface MigrationCommandResult {
   readonly temporaryValues?: readonly TemporaryValueReport[];
   /** `db update --dry-run` only: the operations an apply would ask about because they lose data. */
   readonly dataLoss?: readonly PlannedSubjectJson[];
-  /** `db update --dry-run` only: the operations an apply would ask about because they widen access. */
-  readonly accessWidening?: readonly PlannedSubjectJson[];
+  /** `db update --dry-run` only: the operations an apply would ask about because they change access. */
+  readonly accessChanges?: readonly PlannedSubjectJson[];
+  /** `db update --dry-run` only: the namespaces the plan removes, each answered by a `--delete` of it. */
+  readonly removedNamespaces?: readonly RemovedNamespaceJson[];
+  /** `db update --dry-run` only: the namespaces the destination adds, which a rename of a removed one may name. */
+  readonly addedNamespaces?: readonly string[];
   readonly advancedRef?: { readonly name: string; readonly hash: string } | null;
   readonly plannedAdvanceRef?: { readonly name: string; readonly hash: string } | null;
   readonly summary: string;

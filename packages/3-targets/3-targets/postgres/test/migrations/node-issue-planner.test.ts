@@ -3,6 +3,7 @@ import type { SchemaDiffIssue } from '@internal/framework-components/control';
 import { index } from '@internal/sql-contract/factories';
 import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { SqlForeignKeyIR } from '@internal/sql-schema-ir/types';
+import { ifDefined } from '@internal/utils/defined';
 import { describe, expect, it } from 'vitest';
 import { postgresDataTypes } from '../../src/core/data-types';
 import { buildPostgresPlanDiff } from '../../src/core/migrations/diff-database-schema';
@@ -23,6 +24,7 @@ import {
   emptyRoot,
   makeContract,
   planFor,
+  planTrees,
   rootOf,
   type TableSpec,
 } from './node-issue-planner-fixtures';
@@ -496,6 +498,7 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
 
     const result = planNodeIssues({
       issues: coalesceSubtreeIssues(issues),
+      ...planTrees(actual),
       toContract: contract,
       fromContract: contract,
       schemaName: 'public',
@@ -588,6 +591,10 @@ describe('mapNodeIssueToCall — synthesized namespace issue', () => {
       codecHooks: new Map(),
       types: postgresTypeLookups,
       schema: undefined as never,
+      startTree: emptyRoot(),
+      endTree: emptyRoot(),
+      allIssues: [],
+      foreignKeyDropAuthority: () => 'allowed' as const,
       policy: { allowedOperationClasses: ['additive'] as const },
       frameworkComponents: postgresTypeComponents,
       statementColumns: { convert: [], backfill: [] },
@@ -781,6 +788,10 @@ describe('mapNodeIssueToCall — table rlsEnabled drift', () => {
     codecHooks: new Map(),
     types: postgresTypeLookups,
     schema: undefined as never,
+    startTree: emptyRoot(),
+    endTree: emptyRoot(),
+    allIssues: [],
+    foreignKeyDropAuthority: () => 'allowed' as const,
     policy: { allowedOperationClasses: ['additive', 'widening', 'destructive'] as const },
     frameworkComponents: postgresTypeComponents,
     statementColumns: { convert: [], backfill: [] },
@@ -875,6 +886,7 @@ describe('operation-class gating of a RenameIndexCall', () => {
 
     const result = planNodeIssues({
       issues: coalesced,
+      ...planTrees(),
       toContract: contract,
       fromContract: null,
       schemaName: 'public',
@@ -928,6 +940,7 @@ describe('statement columns', () => {
     const seen: unknown[] = [];
     planNodeIssues({
       issues: [],
+      ...planTrees(),
       toContract: contract,
       fromContract: null,
       schemaName: 'public',
@@ -943,5 +956,162 @@ describe('statement columns', () => {
     });
 
     expect(seen).toEqual([statementColumns]);
+  });
+});
+
+describe('a foreign key whose referential actions change', () => {
+  const postSpec = (fk: { name?: string; onDelete?: 'cascade' | 'restrict' }): TableSpec => ({
+    columns: {
+      id: { dataType: 'pg/uuid', codecId: 'pg/uuid@1', nullable: false },
+      userId: { dataType: 'pg/uuid', codecId: 'pg/uuid@1', nullable: false },
+    },
+    primaryKey: { columns: ['id'] },
+    foreignKeys: [
+      {
+        source: { namespaceId: 'public', tableName: 'post', columns: ['userId'] },
+        target: { namespaceId: 'public', tableName: 'user', columns: ['id'] },
+        ...ifDefined('name', fk.name),
+        ...ifDefined('onDelete', fk.onDelete),
+      },
+    ],
+    uniques: [],
+    indexes: [],
+  });
+
+  function liveTables(fkName: string) {
+    const uuid = (name: string) => introspectedColumn({ name, typeText: 'uuid', nullable: false });
+    return rootOf({
+      user: new PostgresTableSchemaNode({
+        name: 'user',
+        columns: { id: uuid('id'), email: uuid('email') },
+        primaryKey: { columns: ['id'] },
+        foreignKeys: [],
+        uniques: [],
+        indexes: [],
+        policies: [],
+        rlsEnabled: false,
+      }),
+      post: new PostgresTableSchemaNode({
+        name: 'post',
+        columns: { id: uuid('id'), userId: uuid('userId') },
+        primaryKey: { columns: ['id'] },
+        foreignKeys: [
+          {
+            columns: ['userId'],
+            referencedTable: 'user',
+            referencedColumns: ['id'],
+            referencedSchema: 'public',
+            name: fkName,
+            onDelete: 'restrict',
+            onUpdate: 'noAction',
+          },
+        ],
+        uniques: [],
+        indexes: [],
+        policies: [],
+        rlsEnabled: false,
+      }),
+    });
+  }
+
+  const userWithEmail: TableSpec = {
+    ...userTable,
+    columns: {
+      id: { dataType: 'pg/uuid', codecId: 'pg/uuid@1', nullable: false },
+      email: { dataType: 'pg/uuid', codecId: 'pg/uuid@1', nullable: false },
+    },
+  };
+
+  function constraintCalls(contract: ReturnType<typeof makeContract>, fkName: string) {
+    return planFor(contract, liveTables(fkName)).map((call) =>
+      call.factoryName === 'dropConstraint'
+        ? { factoryName: call.factoryName, constraintName: call.constraintName, kind: call.kind }
+        : call.factoryName === 'addForeignKey'
+          ? { factoryName: call.factoryName, fk: call.fk }
+          : { factoryName: call.factoryName },
+    );
+  }
+
+  it('plans a drop of the old constraint, then an add with the new actions', () => {
+    const contract = makeContract({ user: userWithEmail, post: postSpec({ onDelete: 'cascade' }) });
+    expect(constraintCalls(contract, 'post_userId_fkey')).toEqual([
+      { factoryName: 'dropConstraint', constraintName: 'post_userId_fkey', kind: 'foreignKey' },
+      {
+        factoryName: 'addForeignKey',
+        fk: {
+          name: 'post_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+          onDelete: 'cascade',
+        },
+      },
+    ]);
+  });
+
+  it('drops the old stated name and adds the new one when the name changes too', () => {
+    const contract = makeContract({
+      user: userWithEmail,
+      post: postSpec({ name: 'post_written_by', onDelete: 'cascade' }),
+    });
+    expect(constraintCalls(contract, 'post_author_link')).toEqual([
+      { factoryName: 'dropConstraint', constraintName: 'post_author_link', kind: 'foreignKey' },
+      {
+        factoryName: 'addForeignKey',
+        fk: {
+          name: 'post_written_by',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+          onDelete: 'cascade',
+        },
+      },
+    ]);
+  });
+});
+
+describe('a primary key change without the primary key strategy', () => {
+  function liveUser(primaryKey: readonly string[] | undefined) {
+    return rootOf({
+      user: new PostgresTableSchemaNode({
+        name: 'user',
+        columns: {
+          id: introspectedColumn({ name: 'id', typeText: 'uuid', nullable: false }),
+          email: introspectedColumn({ name: 'email', typeText: 'text', nullable: false }),
+        },
+        ...(primaryKey === undefined ? {} : { primaryKey: { columns: [...primaryKey] } }),
+        foreignKeys: [],
+        uniques: [],
+        indexes: [],
+        policies: [],
+        rlsEnabled: false,
+      }),
+    });
+  }
+
+  it('adds a missing key', () => {
+    expect(
+      planFor(makeContract({ user: userTable }), liveUser(undefined)).map((c) => c.factoryName),
+    ).toEqual(['addPrimaryKey']);
+  });
+
+  it.each([
+    [
+      'a moved key',
+      makeContract({ user: { ...userTable, primaryKey: { columns: ['id', 'email'] } } }),
+    ],
+    [
+      'a removed key',
+      makeContract({
+        user: {
+          columns: userTable.columns,
+          foreignKeys: [],
+          uniques: [],
+          indexes: [],
+        },
+      }),
+    ],
+  ])('is refused for %s, which only the strategy plans', (_label, contract) => {
+    expect(() => planFor(contract, liveUser(['id']))).toThrow(
+      /"kind":"indexIncompatible","summary":"database\/public\/user\/primary-key"/,
+    );
   });
 });

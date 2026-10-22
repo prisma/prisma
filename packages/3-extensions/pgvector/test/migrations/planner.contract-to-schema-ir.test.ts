@@ -881,6 +881,7 @@ function createDemoContract(
 const ownsUserTypeEnum: SchemaOwnership = {
   declaresEntity: (coordinate) =>
     coordinate.entityKind === 'native_enum' && coordinate.entityName === 'user_type',
+  namespaceDeclaringSpaces: () => [],
 };
 
 describe('incremental migration with full contract surface (enums, FKs)', () => {

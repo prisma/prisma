@@ -35,6 +35,7 @@ import {
   resolveContractRef,
   retryCommandFor,
 } from '../control-api/operations/ref-resolution';
+import { shellQuoted } from '../control-api/statements/statement-flag';
 import type {
   CreateControlClient,
   MigratePathDecision,
@@ -467,7 +468,15 @@ export function createMigrateCommand(createClient: CreateControlClient) {
         const applied = await client.migrate({
           contract: applyContract,
           migrationsDir,
-          invocation: cliInvocation(ctx, args.flags.db),
+          invocation: {
+            ...cliInvocation(ctx, args.flags.db),
+            rerunArgs: [
+              ...(args.flags.to === undefined ? [] : ['--to', shellQuoted(args.flags.to)]),
+              ...(args.flags.advanceRef === undefined
+                ? []
+                : ['--advance-ref', shellQuoted(args.flags.advanceRef)]),
+            ],
+          },
           onProgress: controlProgressReporter(ctx.report),
           ...ifDefined('refHash', refEntry?.hash),
           ...(refEntry?.invariants === undefined ? {} : { refInvariants: refEntry.invariants }),

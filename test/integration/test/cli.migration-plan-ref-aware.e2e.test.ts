@@ -25,29 +25,6 @@ const JOURNEY_FIXTURES_DIR = join(
   'fixtures/cli/cli-e2e-test-app/fixtures/cli-journeys',
 );
 
-function writeCompositePkContract(ctx: JourneyContext): void {
-  writeFileSync(
-    join(ctx.testDir, 'contract.ts'),
-    `import { int4Column, textColumn } from '@internal/adapter-postgres/column-types';
-import { defineContract, field, model } from '@internal/postgres/contract-builder';
-
-const User = model('User', {
-  fields: {
-    id: field.column(int4Column),
-    email: field.column(textColumn),
-  },
-})
-  .attributes(({ fields, constraints }) => ({
-    id: constraints.id([fields.id, fields.email]),
-  }))
-  .sql({ table: 'user' });
-
-export const contract = defineContract({ models: { User } });
-`,
-    'utf-8',
-  );
-}
-
 interface MigrationManifest {
   readonly from: string | null;
   readonly to: string;
@@ -433,7 +410,7 @@ withTempDir(({ createTempDir }) => {
             expect((await runContractEmit(ctx)).exitCode).toBe(0);
             expect((await runDbInit(ctx)).exitCode).toBe(0);
 
-            writeCompositePkContract(ctx);
+            swapContract(ctx, 'contract-destructive');
             expect((await runContractEmit(ctx)).exitCode).toBe(0);
 
             const plan = await runMigrationPlan(ctx, ['--name', 'blocked-delta', '--json']);
