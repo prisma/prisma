@@ -229,6 +229,7 @@ function statusPresentations(inputs: {
             migration.name,
             migration.fromContract,
             migration.toContract,
+            migration.operationCount,
             migration.status,
           ]),
         ),

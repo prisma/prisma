@@ -308,7 +308,7 @@ describe('migration status', () => {
     expect(run.stdout).toBe('');
   });
 
-  it('prints one data line per migration, in document order: space, name, from, to and status, empty when unknown', async () => {
+  it('prints the migration list fields plus status per migration, in document order; status is empty when it is null', async () => {
     const project = await projectWithTwoMigrations();
     const db = fakeDatabase({ markers: markersAt(HASH_BASE) });
 
@@ -317,8 +317,8 @@ describe('migration status', () => {
     });
 
     expect(run.stdout).toBe(
-      `app\t${DIR_HEAD}\t${HASH_BASE}\t${HASH_HEAD}\tpending\n` +
-        `app\t${DIR_BASE}\t\t${HASH_BASE}\t\n`,
+      `app\t${DIR_HEAD}\t${HASH_BASE}\t${HASH_HEAD}\t1\tpending\n` +
+        `app\t${DIR_BASE}\t\t${HASH_BASE}\t1\t\n`,
     );
   });
 
