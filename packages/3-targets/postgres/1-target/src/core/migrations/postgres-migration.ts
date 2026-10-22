@@ -5,12 +5,15 @@ import {
   resolveColumnRenameAgainst,
   resolveTableRenameAgainst,
   type SqlMigrationPlanOperation,
+  type StoredValueCodec,
+  sqlTypeLookupsOf,
   type TableRenameRequest,
   unmatchedColumnRename,
   unmatchedTableRename,
 } from '@internal/family-sql/control';
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import { Migration as SqlMigration } from '@internal/family-sql/migration';
+import type { CodecRef } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { ControlStack } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
@@ -157,6 +160,16 @@ export abstract class PostgresMigration<
     ];
   }
 
+  /** The codec `codecRef` names, built from the stack's codecs; a codec needs a stack. */
+  private storedValueCodec(
+    operation: string,
+    codecRef: CodecRef | undefined,
+  ): StoredValueCodec | undefined {
+    if (codecRef === undefined) return undefined;
+    this.controlAdapterFor(operation);
+    return { codecRef, codecs: sqlTypeLookupsOf(this.frameworkComponents()).codecLookup };
+  }
+
   private dataTypes(): ReturnType<typeof stackDataTypes> {
     return stackDataTypes(this.frameworkComponents());
   }
@@ -290,6 +303,8 @@ export abstract class PostgresMigration<
     readonly from: string | number;
     readonly to: string | number;
     readonly many?: boolean;
+    /** The column's codec: the values are then written as the contract stores them, and the codec writes them as the database does. */
+    readonly codecRef?: CodecRef;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     return new ReplaceStoredValueCall(
       options.schema ?? UNBOUND_NAMESPACE_ID,
@@ -298,6 +313,7 @@ export abstract class PostgresMigration<
       options.from,
       options.to,
       options.many === true,
+      this.storedValueCodec('replaceStoredValue', options.codecRef),
     ).toOp();
   }
 
@@ -310,6 +326,8 @@ export abstract class PostgresMigration<
     readonly column: string;
     readonly value: string | number;
     readonly many?: boolean;
+    /** The column's codec, as for `replaceStoredValue`. */
+    readonly codecRef?: CodecRef;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     return new RemoveStoredValueCall(
       options.schema ?? UNBOUND_NAMESPACE_ID,
@@ -317,6 +335,7 @@ export abstract class PostgresMigration<
       options.column,
       options.value,
       options.many === true,
+      this.storedValueCodec('removeStoredValue', options.codecRef),
     ).toOp(this.controlAdapterFor('removeStoredValue'));
   }
 

@@ -25,10 +25,12 @@ import {
   checkSqlDefaultText,
   checkSqlExpressionText,
   createSqlTextSources,
+  encodeStoredValue,
   isUnfilledSlot,
   type SqlMigrationPlanOperation,
   type SqlSlot,
   type SqlTextSources,
+  type StoredValueCodec,
   slotSource,
   sqlOfSlot,
 } from '@internal/family-sql/control';
@@ -2229,6 +2231,10 @@ export class AddNativeEnumValueCall extends PostgresOpFactoryCallNode {
 // Stored values
 // ============================================================================
 
+function codecRefSource(codec: StoredValueCodec | undefined): readonly string[] {
+  return codec === undefined ? [] : [`codecRef: ${jsonToTsSource(codec.codecRef)}`];
+}
+
 function requireStoredValue(
   value: string | number,
   factory: string,
@@ -2256,6 +2262,8 @@ export class ReplaceStoredValueCall extends PostgresOpFactoryCallNode {
   readonly from: string | number;
   readonly to: string | number;
   readonly many: boolean;
+  /** The column's codec, which writes `from` and `to` as the database stores them. */
+  readonly codec: StoredValueCodec | undefined;
   readonly label: string;
 
   constructor(
@@ -2265,9 +2273,11 @@ export class ReplaceStoredValueCall extends PostgresOpFactoryCallNode {
     from: string | number,
     to: string | number,
     many: boolean,
+    codec?: StoredValueCodec,
   ) {
     super();
     const location = columnCallLocation(schemaName, tableName, columnName);
+    this.codec = codec;
     this.schemaName = schemaName;
     this.tableName = tableName;
     this.columnName = columnName;
@@ -2283,8 +2293,8 @@ export class ReplaceStoredValueCall extends PostgresOpFactoryCallNode {
       this.schemaName,
       this.tableName,
       this.columnName,
-      this.from,
-      this.to,
+      await encodeStoredValue(this.from, this.codec),
+      await encodeStoredValue(this.to, this.codec),
       this.many,
     );
   }
@@ -2295,6 +2305,7 @@ export class ReplaceStoredValueCall extends PostgresOpFactoryCallNode {
       `from: ${jsonToTsSource(this.from)}`,
       `to: ${jsonToTsSource(this.to)}`,
       ...(this.many ? ['many: true'] : []),
+      ...codecRefSource(this.codec),
     ];
     return `this.replaceStoredValue({ ${opts.join(', ')} })`;
   }
@@ -2313,6 +2324,8 @@ export class RemoveStoredValueCall extends PostgresOpFactoryCallNode {
   readonly columnName: string;
   readonly value: string | number;
   readonly many: boolean;
+  /** The column's codec, which writes `value` as the database stores it. */
+  readonly codec: StoredValueCodec | undefined;
   readonly label: string;
 
   constructor(
@@ -2321,8 +2334,10 @@ export class RemoveStoredValueCall extends PostgresOpFactoryCallNode {
     columnName: string,
     value: string | number,
     many: boolean,
+    codec?: StoredValueCodec,
   ) {
     super();
+    this.codec = codec;
     this.schemaName = schemaName;
     this.tableName = tableName;
     this.columnName = columnName;
@@ -2342,7 +2357,7 @@ export class RemoveStoredValueCall extends PostgresOpFactoryCallNode {
       this.schemaName,
       this.tableName,
       this.columnName,
-      this.value,
+      await encodeStoredValue(this.value, this.codec),
       this.many,
       requireLowerer(
         lowerer,
@@ -2357,6 +2372,7 @@ export class RemoveStoredValueCall extends PostgresOpFactoryCallNode {
       ...columnCallLocation(this.schemaName, this.tableName, this.columnName),
       `value: ${jsonToTsSource(this.value)}`,
       ...(this.many ? ['many: true'] : []),
+      ...codecRefSource(this.codec),
     ];
     return `this.removeStoredValue({ ${opts.join(', ')} })`;
   }

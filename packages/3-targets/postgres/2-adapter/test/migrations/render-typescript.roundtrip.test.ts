@@ -18,6 +18,7 @@ import { keepInternalSpecifiers } from '@internal/framework-components/emission'
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { formatMigrationTs } from '@internal/migration-tools/migration-ts';
 import { checkExpression, col, fn, primaryKey } from '@internal/sql-relational-core/contract-free';
+import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
 import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import {
   AddColumnCall,
@@ -212,6 +213,10 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       new ReplaceStoredValueCall('public', 'user', 'nickname', "it's", 'it"s', false),
       new ReplaceStoredValueCall(UNBOUND_NAMESPACE_ID, 'audit', 'tags', 'a', 'b', true),
       new RemoveStoredValueCall('public', 'user', 'code', 3, false),
+      new ReplaceStoredValueCall('public', 'user', 'rank', '7', '8', false, {
+        codecRef: { codecId: 'pg/int8@1' },
+        codecs: createPostgresBuiltinCodecLookup(),
+      }),
       new SetTableSchemaCall('public', 'user', 'app'),
       new SetTableSchemaCall(UNBOUND_NAMESPACE_ID, 'audit', 'app'),
       new RenameSchemaCall('app', 'application'),

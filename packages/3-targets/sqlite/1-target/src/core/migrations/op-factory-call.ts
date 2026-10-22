@@ -14,11 +14,13 @@ import { unfilledPlaceholderOperation } from '@internal/errors/migration';
 import {
   checkSqlExpressionText,
   createSqlTextSources,
+  encodeStoredValue,
   isUnfilledSlot,
   type MigrationOperationClass,
   type SqlMigrationPlanOperation,
   type SqlSlot,
   type SqlTextSources,
+  type StoredValueCodec,
   slotSource,
   sqlOfSlot,
 } from '@internal/family-sql/control';
@@ -1093,6 +1095,10 @@ export class DropIndexCall extends SqliteOpFactoryCallNode {
 // Stored values
 // ============================================================================
 
+function codecRefSource(codec: StoredValueCodec | undefined): readonly string[] {
+  return codec === undefined ? [] : [`codecRef: ${jsonToTsSource(codec.codecRef)}`];
+}
+
 function requireStoredValue(
   value: string | number,
   factory: string,
@@ -1119,10 +1125,19 @@ export class ReplaceStoredValueCall extends SqliteOpFactoryCallNode {
   readonly columnName: string;
   readonly from: string | number;
   readonly to: string | number;
+  /** The column's codec, which writes `from` and `to` as the database stores them. */
+  readonly codec: StoredValueCodec | undefined;
   readonly label: string;
 
-  constructor(tableName: string, columnName: string, from: string | number, to: string | number) {
+  constructor(
+    tableName: string,
+    columnName: string,
+    from: string | number,
+    to: string | number,
+    codec?: StoredValueCodec,
+  ) {
     super();
+    this.codec = codec;
     this.tableName = tableName;
     this.columnName = columnName;
     this.from = requireStoredValue(from, this.factoryName, tableName, columnName, 'from');
@@ -1132,11 +1147,23 @@ export class ReplaceStoredValueCall extends SqliteOpFactoryCallNode {
   }
 
   async toOp(): Promise<Op> {
-    return replaceStoredValue(this.tableName, this.columnName, this.from, this.to);
+    return replaceStoredValue(
+      this.tableName,
+      this.columnName,
+      await encodeStoredValue(this.from, this.codec),
+      await encodeStoredValue(this.to, this.codec),
+    );
   }
 
   renderTypeScript(): string {
-    return `this.replaceStoredValue({ table: ${jsonToTsSource(this.tableName)}, column: ${jsonToTsSource(this.columnName)}, from: ${jsonToTsSource(this.from)}, to: ${jsonToTsSource(this.to)} })`;
+    const opts = [
+      `table: ${jsonToTsSource(this.tableName)}`,
+      `column: ${jsonToTsSource(this.columnName)}`,
+      `from: ${jsonToTsSource(this.from)}`,
+      `to: ${jsonToTsSource(this.to)}`,
+      ...codecRefSource(this.codec),
+    ];
+    return `this.replaceStoredValue({ ${opts.join(', ')} })`;
   }
 
   override importRequirements(): readonly ImportRequirement[] {
@@ -1151,10 +1178,18 @@ export class RemoveStoredValueCall extends SqliteOpFactoryCallNode {
   readonly tableName: string;
   readonly columnName: string;
   readonly value: string | number;
+  /** The column's codec, which writes `value` as the database stores it. */
+  readonly codec: StoredValueCodec | undefined;
   readonly label: string;
 
-  constructor(tableName: string, columnName: string, value: string | number) {
+  constructor(
+    tableName: string,
+    columnName: string,
+    value: string | number,
+    codec?: StoredValueCodec,
+  ) {
     super();
+    this.codec = codec;
     this.tableName = tableName;
     this.columnName = columnName;
     this.value = requireStoredValue(value, this.factoryName, tableName, columnName, 'value');
@@ -1163,11 +1198,21 @@ export class RemoveStoredValueCall extends SqliteOpFactoryCallNode {
   }
 
   async toOp(): Promise<Op> {
-    return removeStoredValue(this.tableName, this.columnName, this.value);
+    return removeStoredValue(
+      this.tableName,
+      this.columnName,
+      await encodeStoredValue(this.value, this.codec),
+    );
   }
 
   renderTypeScript(): string {
-    return `this.removeStoredValue({ table: ${jsonToTsSource(this.tableName)}, column: ${jsonToTsSource(this.columnName)}, value: ${jsonToTsSource(this.value)} })`;
+    const opts = [
+      `table: ${jsonToTsSource(this.tableName)}`,
+      `column: ${jsonToTsSource(this.columnName)}`,
+      `value: ${jsonToTsSource(this.value)}`,
+      ...codecRefSource(this.codec),
+    ];
+    return `this.removeStoredValue({ ${opts.join(', ')} })`;
   }
 
   override importRequirements(): readonly ImportRequirement[] {

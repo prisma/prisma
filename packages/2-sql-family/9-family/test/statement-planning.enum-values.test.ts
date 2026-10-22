@@ -1,15 +1,15 @@
 import { asNamespaceId } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import { planStatements } from '../src/core/migrations/statement-planning';
-import { ALL_CLASSES, contractOf, fakeTarget, rejection } from './statement-fixtures';
+import { ALL_CLASSES, contractOf, fakeTarget, planned } from './statement-fixtures';
 
 describe('an enum value rename', () => {
-  it('is refused until enum value statements are planned', () => {
+  it('plans no call among the renames: its rewrites are planned with the diff', () => {
     const app = asNamespaceId('app');
     const contract = contractOf({ User: { table: 'User', fields: { status: 'status' } } });
 
     expect(
-      rejection(
+      planned(
         planStatements({
           statements: [
             {
@@ -25,10 +25,6 @@ describe('an enum value rename', () => {
           target: fakeTarget(['app.User']),
         }),
       ),
-    ).toMatchObject({
-      kind: 'statementRefused',
-      summary:
-        'Cannot rename enum value "Status.ARCHIVED" to "Status.RETIRED": enum value statements are not planned yet',
-    });
+    ).toMatchObject({ calls: [], appliedStatements: [{ operationIndexes: [] }] });
   });
 });

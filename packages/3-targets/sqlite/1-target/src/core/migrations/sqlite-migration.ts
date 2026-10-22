@@ -6,6 +6,7 @@ import {
   resolveTableRenameAgainst,
   type SqlMigrationPlanOperation,
   type SqlSlot,
+  type StoredValueCodec,
   sqlTypeLookupsOf,
   type TableRenameRequest,
   unmatchedColumnRename,
@@ -13,6 +14,7 @@ import {
 } from '@internal/family-sql/control';
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import { Migration as SqlMigration } from '@internal/family-sql/migration';
+import type { CodecRef } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { ControlStack } from '@internal/framework-components/control';
 import { MigrationContractViews } from '@internal/migration-tools/migration';
@@ -113,6 +115,16 @@ export abstract class SqliteMigration<
       ...(stack.adapter === undefined ? [] : [stack.adapter]),
       ...stack.extensions,
     ];
+  }
+
+  /** The codec `codecRef` names, built from the stack's codecs; a codec needs a stack. */
+  private storedValueCodec(
+    operation: string,
+    codecRef: CodecRef | undefined,
+  ): StoredValueCodec | undefined {
+    if (codecRef === undefined) return undefined;
+    this.controlAdapterFor(operation);
+    return { codecRef, codecs: sqlTypeLookupsOf(this.frameworkComponents()).codecLookup };
   }
 
   /**
@@ -296,8 +308,15 @@ export abstract class SqliteMigration<
     readonly table: string;
     readonly column: string;
     readonly value: string | number;
+    /** The column's codec, as for `replaceStoredValue`. */
+    readonly codecRef?: CodecRef;
   }): Promise<Op> {
-    return new RemoveStoredValueCall(options.table, options.column, options.value).toOp();
+    return new RemoveStoredValueCall(
+      options.table,
+      options.column,
+      options.value,
+      this.storedValueCodec('removeStoredValue', options.codecRef),
+    ).toOp();
   }
 
   protected createIndex(options: {

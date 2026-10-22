@@ -10,6 +10,7 @@ import {
   removeStoredValue,
   replaceStoredValue,
 } from '../../src/core/migrations/operations/stored-values';
+import { postgresTypeLookups } from '../postgres-type-lookups';
 
 function recordingLowerer(): { lowerer: ExecuteRequestLowerer; received: unknown[] } {
   const received: unknown[] = [];
@@ -184,6 +185,23 @@ describe('stored value calls', () => {
     await expect(remove.toOp()).rejects.toMatchObject({
       code: 'MIGRATION.POSTGRES_CONTROL_STACK_MISSING',
     });
+  });
+
+  it('write a value through the column codec they carry, and render the codec', async () => {
+    const codec = { codecRef: { codecId: 'pg/int8@1' }, codecs: postgresTypeLookups.codecLookup };
+    const call = new ReplaceStoredValueCall('app', 'task', 'rank', '7', '8', false, codec);
+
+    expect((await call.toOp()).execute[0]?.params).toEqual(['7', '8']);
+    expect(call.renderTypeScript()).toBe(
+      'this.replaceStoredValue({ schema: "app", table: "task", column: "rank", from: "7", to: "8", codecRef: { codecId: "pg/int8@1" } })',
+    );
+    await expect(
+      new ReplaceStoredValueCall('app', 'task', 'rank', '07', '8', false, codec).toOp(),
+    ).rejects.toThrow('pg/int8 JSON value must be "7"');
+    const remove = new RemoveStoredValueCall('app', 'task', 'rank', '07', false, codec);
+    await expect(remove.toOp(recordingLowerer().lowerer)).rejects.toThrow(
+      'pg/int8 JSON value must be "7"',
+    );
   });
 
   it('refuse a value that is neither a string nor a number, which would match no row', () => {

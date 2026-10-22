@@ -39,6 +39,17 @@ export {
   partitionIssuesByControlPolicy,
 } from '../core/migrations/control-policy';
 export type {
+  StoredEnumValue,
+  StoredValueCodec,
+  StoredValueRewrite,
+} from '../core/migrations/enum-value-planning';
+export {
+  encodeStoredValue,
+  keptNameAdvice,
+  planEnumValueRewrites,
+  withEnumValueOperations,
+} from '../core/migrations/enum-value-planning';
+export type {
   FieldEventCall,
   PlanFieldEventOperationsOptions,
 } from '../core/migrations/field-event-planner';

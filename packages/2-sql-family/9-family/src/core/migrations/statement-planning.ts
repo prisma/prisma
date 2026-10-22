@@ -7,7 +7,6 @@ import {
 import {
   type AppliedMigrationStatement,
   describeMigrationStatement,
-  enumValueStatementText,
   type FieldCoordinate,
   fieldStatementText,
   type MigrationOperationClass,
@@ -293,7 +292,7 @@ function statementRefused(
   };
 }
 
-function tableControlPolicy(contract: Contract<SqlStorage>, table: ModelTable) {
+export function tableControlPolicy(contract: Contract<SqlStorage>, table: ModelTable) {
   const node = contract.storage.namespaces[table.namespaceId]?.entries.table?.[table.table];
   return governingControlPolicy(
     { explicitNodeControlPolicy: StorageTable.is(node) ? node.control : undefined },
@@ -465,14 +464,7 @@ class StatementPlanner<TCall extends CallWithCompanions> {
       case 'field':
         return this.#planField(statement);
       case 'enumValue':
-        return notOk(
-          statementRefused(
-            statement,
-            `Cannot rename enum value "${enumValueStatementText(this.#fromContract, statement.from)}" to "${enumValueStatementText(this.#contract, statement.to)}": enum value statements are not planned yet`,
-            'This version does not plan enum value statements yet. Leave out this statement.',
-            undefined,
-          ),
-        );
+        return ok([]);
     }
   }
 

@@ -1,5 +1,6 @@
 import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
 import { describe, expect, it } from 'vitest';
+import { createSqliteBuiltinCodecLookup } from '../../src/core/codec-registry';
 import {
   RemoveStoredValueCall,
   ReplaceStoredValueCall,
@@ -146,6 +147,22 @@ class ExposedMigration extends SqliteMigration<Contract, Contract> {
     return this.removeStoredValue(options);
   }
 }
+
+describe('stored value codecs', () => {
+  it('write a value through the column codec the call carries, and render the codec', async () => {
+    const codec = {
+      codecRef: { codecId: 'sqlite/bigint@1' },
+      codecs: createSqliteBuiltinCodecLookup(),
+    };
+    const call = new ReplaceStoredValueCall('task', 'rank', '7', '8', codec);
+
+    expect((await call.toOp()).execute[0]?.params).toEqual(['7', '8']);
+    expect(call.renderTypeScript()).toBe(
+      'this.replaceStoredValue({ table: "task", column: "rank", from: "7", to: "8", codecRef: { codecId: "sqlite/bigint@1" } })',
+    );
+    await expect(new RemoveStoredValueCall('task', 'rank', 'x', codec).toOp()).rejects.toThrow();
+  });
+});
 
 describe('stored value arguments', () => {
   it('refuse a value that is neither a string nor a number, which would match no row', () => {
