@@ -246,6 +246,12 @@ export type TargetPackRef<
   /** The namespace a bare (un-namespaced) entity name resolves to for this target (e.g. Postgres `'public'`). */
   readonly defaultNamespaceId: string;
   readonly supportsNamespaces?: boolean;
+  /** The target's name as messages show it, such as `Postgres`. Absent means the target id. */
+  readonly displayName?: string;
+  /** Why a contract for this target cannot declare namespaces, when `supportsNamespaces` is false, such as `SQLite has no schema concept`. */
+  readonly namespacesUnsupportedReason?: string;
+  /** The name a PSL contract writes for the unbound namespace, such as Postgres's `unbound`. A TypeScript contract cannot declare a namespace of that name. */
+  readonly unboundNamespaceName?: string;
 };
 
 export type AdapterPackRef<

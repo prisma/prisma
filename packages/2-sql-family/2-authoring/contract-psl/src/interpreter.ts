@@ -242,18 +242,20 @@ function declarationsHoldingModels(namespace: NamespaceSymbol): ReadonlySet<Synt
 
 function validateNamespaceBlocksForSqlTarget(input: {
   readonly namespaces: readonly NamespaceSymbol[];
-  readonly targetId: string;
+  readonly target: TargetPackRef<'sql', string>;
   readonly source: DiagnosticSource;
   readonly sources: PslSources;
   readonly binder: Binder;
   readonly diagnostics: PslDiagnosticCollector;
 }): void {
-  if (input.targetId === 'sqlite') {
+  if (input.target.supportsNamespaces === false) {
+    const targetName = input.target.displayName ?? input.target.targetId;
+    const reason = input.target.namespacesUnsupportedReason ?? `${targetName} has no namespaces`;
     for (const namespace of input.namespaces) {
       for (const { node, span } of namespace.declarations) {
         input.diagnostics.push({
           code: 'PSL_UNSUPPORTED_NAMESPACE_BLOCK',
-          message: `SQLite does not support \`namespace ${node.name()?.name() ?? namespace.name} { … }\` blocks (SQLite has no schema concept; declare models at the document top level instead).`,
+          message: `${targetName} does not support \`namespace ${node.name()?.name() ?? namespace.name} { … }\` blocks (${reason}; declare models at the document top level instead).`,
           ...diagnosticSource(input.sources, node.syntax).at(span),
         });
       }
@@ -261,31 +263,29 @@ function validateNamespaceBlocksForSqlTarget(input: {
     return;
   }
 
-  if (input.targetId === 'postgres') {
-    const unboundNamespace = input.namespaces.find(
-      (namespace) =>
-        namespace.id === UNBOUND_NAMESPACE_ID && Object.keys(namespace.models).length > 0,
-    );
-    const hasSibling = input.namespaces.some(
-      (namespace) => namespace.id !== UNBOUND_NAMESPACE_ID && namespace.declarations.length > 0,
-    );
-    // Late binding is a MODEL story: a model in `namespace unbound { }` gets
-    // its schema resolved by the connection's search_path, which contradicts
-    // sibling namespaces that pin schemas explicitly. Extension blocks (e.g.
-    // `role`) carry no such conflict — a blocks-only unbound namespace is
-    // legal next to named namespaces and lowers into the unbound bucket.
-    if (unboundNamespace !== undefined && hasSibling) {
-      const holdingModels = declarationsHoldingModels(unboundNamespace);
-      for (const { node, span } of unboundNamespace.declarations) {
-        if (!holdingModels.has(node.syntax)) continue;
-        input.diagnostics.push({
-          code: 'PSL_RESERVED_NAMESPACE_NAME',
-          message:
-            'Namespace "unbound" is reserved for the late-binding sentinel mapping; a `namespace unbound { … }` containing models cannot appear alongside other named namespace blocks. ' +
-            'Use `namespace unbound { … }` alone (no sibling named namespaces) for late-binding multi-tenant contracts.',
-          ...diagnosticSource(input.sources, node.syntax).at(span),
-        });
-      }
+  const unboundNamespace = input.namespaces.find(
+    (namespace) =>
+      namespace.id === UNBOUND_NAMESPACE_ID && Object.keys(namespace.models).length > 0,
+  );
+  const hasSibling = input.namespaces.some(
+    (namespace) => namespace.id !== UNBOUND_NAMESPACE_ID && namespace.declarations.length > 0,
+  );
+  // Late binding is a MODEL story: a model in `namespace unbound { }` gets
+  // its schema resolved by the connection's search_path, which contradicts
+  // sibling namespaces that pin schemas explicitly. Extension blocks (e.g.
+  // `role`) carry no such conflict — a blocks-only unbound namespace is
+  // legal next to named namespaces and lowers into the unbound bucket.
+  if (unboundNamespace !== undefined && hasSibling) {
+    const holdingModels = declarationsHoldingModels(unboundNamespace);
+    for (const { node, span } of unboundNamespace.declarations) {
+      if (!holdingModels.has(node.syntax)) continue;
+      input.diagnostics.push({
+        code: 'PSL_RESERVED_NAMESPACE_NAME',
+        message:
+          'Namespace "unbound" is reserved for the late-binding sentinel mapping; a `namespace unbound { … }` containing models cannot appear alongside other named namespace blocks. ' +
+          'Use `namespace unbound { … }` alone (no sibling named namespaces) for late-binding multi-tenant contracts.',
+        ...diagnosticSource(input.sources, node.syntax).at(span),
+      });
     }
   }
 }
@@ -2177,7 +2177,7 @@ export function interpretPslDocumentToSqlContract(
   const namespaceSymbols = Object.values(input.symbolTable.namespaces);
   validateNamespaceBlocksForSqlTarget({
     namespaces: namespaceSymbols,
-    targetId: input.target.targetId,
+    target: input.target,
     source,
     sources: input.sources,
     binder,

@@ -20,6 +20,8 @@ const postgresTargetPack: TargetPackRef<'sql', 'postgres'> = {
   targetId: 'postgres',
   version: '0.0.1',
   defaultNamespaceId: 'public',
+  displayName: 'Postgres',
+  unboundNamespaceName: 'unbound',
 };
 
 const sqliteTargetPack: TargetPackRef<'sql', 'sqlite'> = {
@@ -29,6 +31,9 @@ const sqliteTargetPack: TargetPackRef<'sql', 'sqlite'> = {
   targetId: 'sqlite',
   version: '0.0.1',
   defaultNamespaceId: '__unbound__',
+  supportsNamespaces: false,
+  displayName: 'SQLite',
+  namespacesUnsupportedReason: 'SQLite has no schema concept',
 };
 
 const int4Column = columnDescriptor('pg/int4@1');
