@@ -682,18 +682,18 @@ describe('INSERT multi-row', () => {
       } as unknown as ExecutionContext<typeof sqlContract>,
       rawCodecInferer: stubInferer,
     });
-    d.public.users.insert([{ id: 1, name: 'A' }]).build();
+    d.public.articles.insert([{ title: 'A' }]).build();
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledWith({
       op: 'create',
-      entry: 'users',
+      entry: 'articles',
       namespace: 'public',
-      values: { id: 1, name: 'A' },
+      values: { title: 'A' },
     });
   });
 
   it('multi-row calls applyMutationDefaults once per row', () => {
-    const spy = vi.fn(() => [{ field: 'email', value: 'default@x.com' }]);
+    const spy = vi.fn(() => [{ field: 'id', value: 'generated-id' }]);
     const d = sql({
       context: {
         ...stubBase,
@@ -702,23 +702,18 @@ describe('INSERT multi-row', () => {
       } as unknown as ExecutionContext<typeof sqlContract>,
       rawCodecInferer: stubInferer,
     });
-    const plan = d.public.users
-      .insert([
-        { id: 1, name: 'A' },
-        { id: 2, name: 'B' },
-      ])
-      .build();
+    const plan = d.public.articles.insert([{ title: 'A' }, { title: 'B' }]).build();
     expect(spy).toHaveBeenCalledTimes(2);
     const params = plan.ast.collectParamRefs();
-    expect(params).toHaveLength(6); // id + name + email (default) for each of 2 rows
+    expect(params).toHaveLength(4); // title + id (default) for each of 2 rows
   });
 
   it('multi-row with differing column sets passes each row through with its own columns only', () => {
     const d = db();
     const plan = d.public.users
       .insert([
-        { id: 1, name: 'A' },
-        { id: 2, email: 'b@x.com' },
+        { id: 1, name: 'A', email: 'a@x.com' },
+        { id: 2, name: 'B', email: 'b@x.com', invited_by_id: 1 },
       ])
       .build();
     const ast = plan.ast;
@@ -726,14 +721,14 @@ describe('INSERT multi-row', () => {
     if (ast.kind !== 'insert') throw new Error('expected insert');
     expect(ast.rows).toHaveLength(2);
     // each row carries exactly the columns the caller supplied — no cross-row fill
-    expect(Object.keys(ast.rows[0]!).sort()).toEqual(['id', 'name']);
-    expect(Object.keys(ast.rows[1]!).sort()).toEqual(['email', 'id']);
+    expect(Object.keys(ast.rows[0]!).sort()).toEqual(['email', 'id', 'name']);
+    expect(Object.keys(ast.rows[1]!).sort()).toEqual(['email', 'id', 'invited_by_id', 'name']);
   });
 
   it('multi-row with defaults hook: each row gets its own defaults independently', () => {
     const spy = vi.fn((args: { values: Record<string, unknown> }) => {
-      if ('id' in args.values && (args.values['id'] as number) === 1) {
-        return [{ field: 'email', value: 'default@x.com' }];
+      if (args.values['title'] === 'A') {
+        return [{ field: 'id', value: 'generated-id' }];
       }
       return [];
     });
@@ -745,19 +740,14 @@ describe('INSERT multi-row', () => {
       } as unknown as ExecutionContext<typeof sqlContract>,
       rawCodecInferer: stubInferer,
     });
-    const plan = d.public.users
-      .insert([
-        { id: 1, name: 'A' },
-        { id: 2, name: 'B' },
-      ])
-      .build();
+    const plan = d.public.articles.insert([{ title: 'A' }, { title: 'B' }]).build();
     expect(spy).toHaveBeenCalledTimes(2);
     const ast = plan.ast;
     if (ast.kind !== 'insert') throw new Error('expected insert');
     expect(ast.rows).toHaveLength(2);
-    // row 0 got email from defaults; row 1 did not — no cross-row fill
-    expect(Object.keys(ast.rows[0]!).sort()).toEqual(['email', 'id', 'name']);
-    expect(Object.keys(ast.rows[1]!).sort()).toEqual(['id', 'name']);
+    // row 0 got id from defaults; row 1 did not — no cross-row fill
+    expect(Object.keys(ast.rows[0]!).sort()).toEqual(['id', 'title']);
+    expect(Object.keys(ast.rows[1]!).sort()).toEqual(['title']);
   });
 });
 
@@ -796,7 +786,7 @@ describe('UPDATE callback overload', () => {
 
   it('returning projections carry the codec of each returned column', () => {
     const insertAst = db()
-      .public.users.insert([{ name: 'Alice' }])
+      .public.users.insert([{ id: 1, name: 'Alice', email: 'alice@example.com' }])
       .returning('id', 'name')
       .build().ast;
     const updateAst = db()

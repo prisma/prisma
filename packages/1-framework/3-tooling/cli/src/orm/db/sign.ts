@@ -32,6 +32,7 @@ import { closeQuietly, maskConnectionUrl } from '../../utils/command-helpers';
 import { RECORDED_CONTRACT_REF_FORMS } from '../../utils/contract-ref-forms';
 import { contractValidationMeta } from '../../utils/contract-validation-meta';
 import { type CliInvocation, cliCommand, cliInvocation } from '../../utils/printed-command';
+import { dataLine } from '../data-lines';
 import { defineOrmCommand } from '../define-command';
 import { dbFlag } from '../flags';
 import { appRefsDirFor, baseDirFor, migrationsDirFor } from '../migration/paths';
@@ -270,7 +271,10 @@ function signPresentations(inputs: {
 }): Presentations {
   const { document } = inputs;
   return {
-    stdout: () => [],
+    stdout: () =>
+      document.spaces.map((space) =>
+        dataLine([space.space, space.status, space.contract.storageHash]),
+      ),
     next: () => [],
     human: (): readonly Block[] => [
       inputs.header,
