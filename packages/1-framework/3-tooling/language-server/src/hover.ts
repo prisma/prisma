@@ -1,5 +1,4 @@
 import {
-  type AuthoringArgumentDescriptor,
   type AuthoringPslBlockDescriptorNamespace,
   type DataTypeSupport,
   describeAdmittedForms,
@@ -178,16 +177,9 @@ function renderContributedTypeLabel(
   if (args.length === 0) return path;
   const labels = args.map((arg, index) => {
     const key = arg.name ?? `arg${index + 1}`;
-    return `${key}${arg.optional === true ? '?' : ''}: ${argumentTypeLabel(arg, dataTypes)}`;
+    return `${key}${arg.optional === true ? '?' : ''}: ${describeAdmittedForms(dataTypes, dataTypeId(arg.dataType))}`;
   });
   return `${path}(${labels.join(', ')})`;
-}
-
-function argumentTypeLabel(arg: AuthoringArgumentDescriptor, dataTypes: DataTypeSupport): string {
-  if (arg.kind === 'value') return describeAdmittedForms(dataTypes, dataTypeId(arg.dataType));
-  if (arg.kind === 'number') return 'number';
-  if (arg.kind === 'object') return 'object';
-  return arg.values.map((value) => `'${value}'`).join(' | ');
 }
 
 function blockKeywordDocumentationAt(

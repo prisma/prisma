@@ -60,7 +60,6 @@ function contextForInterpretOptions(
     composedExtensionContracts: new Map(),
     authoringContributions: {
       type: { ...scalarsFromCodecIds, ...authoring?.type },
-      field: authoring?.field ?? {},
       entityTypes: authoring?.entityTypes ?? {},
       pslBlockDescriptors: authoring?.pslBlockDescriptors ?? {},
       modelAttributes: authoring?.modelAttributes ?? {},

@@ -113,7 +113,6 @@ describe('createBinder', () => {
       composedExtensionContracts: new Map(),
       authoringContributions: {
         dataTypes: fixtureDataTypeSupport.entries,
-        field: {},
         type: authoringType,
         entityTypes: {},
         pslBlockDescriptors: {},
@@ -224,7 +223,6 @@ describe('createBinder', () => {
       composedExtensionContracts: new Map(),
       authoringContributions: {
         dataTypes: fixtureDataTypeSupport.entries,
-        field: {},
         type: authoringType,
         entityTypes: {},
         pslBlockDescriptors: {},

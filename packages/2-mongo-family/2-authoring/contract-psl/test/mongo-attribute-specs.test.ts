@@ -33,7 +33,6 @@ function createBinderFor(symbolTable: SymbolTable, sources: PslSources) {
     composedExtensionContracts: new Map(),
     authoringContributions: {
       type: {},
-      field: {},
       entityTypes: {},
       pslBlockDescriptors: {},
       modelAttributes: {},

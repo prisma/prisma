@@ -56,7 +56,7 @@ const postgresTargetPack = {
   targetId: 'postgres',
   version: '0.0.1',
   defaultNamespaceId: 'public',
-  authoring: { field: {}, renderCheckExpressions },
+  authoring: { type: {}, renderCheckExpressions },
 } as const;
 
 const pgText = { codecId: 'pg/text@1' as const } as const;

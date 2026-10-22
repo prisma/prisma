@@ -111,7 +111,6 @@ describe('createBinder', () => {
       composedExtensionContracts: new Map(),
       authoringContributions: {
         dataTypes: {},
-        field: {},
         type: mongoScalarAuthoringTypes,
         entityTypes: {},
         pslBlockDescriptors: {},
@@ -217,7 +216,6 @@ describe('createBinder', () => {
       composedExtensionContracts: new Map(),
       authoringContributions: {
         dataTypes: {},
-        field: {},
         type: mongoScalarAuthoringTypes,
         entityTypes: {},
         pslBlockDescriptors: {},

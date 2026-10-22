@@ -91,7 +91,6 @@ function interpretWithEnum(handle: EnumTypeHandle) {
     codecLookup,
     dataTypes: { entries: {}, lookup: dataTypeLookup, dataTypeOfCodec: () => undefined },
     authoringContributions: {
-      field: {},
       type: {},
       modelAttributes: {},
       entityTypes: {

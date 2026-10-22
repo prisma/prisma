@@ -140,12 +140,6 @@ const authoringContributions = assembleAuthoringContributions([
             args: [{ name: 'sql', kind: 'value', dataType: 'fixture/expression' }],
             output: { codecId: 'fixture/raw' },
           },
-          Mode: {
-            kind: 'typeConstructor',
-            documentation: 'A deletion mode.',
-            args: [{ name: 'mode', kind: 'option', values: ['cascade', 'restrict'] }],
-            output: { codecId: 'fixture/mode' },
-          },
           Flag: {
             kind: 'typeConstructor',
             documentation: '',
@@ -535,17 +529,6 @@ describe('providePslHover', () => {
         value: '```prisma\npg.Raw(sql: sql`...`)\n```\n\nA type written as SQL.',
       },
       range: { start: { line: 1, character: 12 }, end: { line: 1, character: 15 } },
-    });
-  });
-
-  it('shows an option contributed-type arg as its joined allowed values', () => {
-    const result = hover('model Product {\n  onDelete pg.Mo|de(cascade)\n}');
-    expect(result).toEqual({
-      contents: {
-        kind: 'markdown',
-        value: "```prisma\npg.Mode(mode: 'cascade' | 'restrict')\n```\n\nA deletion mode.",
-      },
-      range: { start: { line: 1, character: 14 }, end: { line: 1, character: 18 } },
     });
   });
 

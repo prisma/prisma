@@ -58,7 +58,6 @@ const interpretContext = {
     type: {
       Int: { kind: 'typeConstructor', output: { codecId: 'test/Int@1' } },
     },
-    field: {},
     entityTypes: {},
     pslBlockDescriptors: {},
     generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,

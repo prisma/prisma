@@ -211,4 +211,4 @@ export {
   resolveTemplateTagEscapes,
   TAGGED_LITERAL_MAX_BYTES,
 } from '../shared/tagged-literal';
-export { timestampNowControlDescriptor } from '../shared/temporal-presets';
+export { timestampNowControlDescriptor } from '../shared/temporal-type-aliases';

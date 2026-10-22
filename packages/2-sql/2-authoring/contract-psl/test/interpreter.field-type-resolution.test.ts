@@ -27,7 +27,6 @@ const authoringTypes = {
 
 const authoringContributions = {
   entityTypes: {},
-  field: {},
   pslBlockDescriptors: {},
   modelAttributes: {},
   type: authoringTypes,

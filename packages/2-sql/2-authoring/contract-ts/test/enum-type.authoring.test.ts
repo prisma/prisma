@@ -28,7 +28,7 @@ const postgresTargetPack = {
 } as const satisfies TargetPackRef<'sql', 'postgres'>;
 
 // A minimal codec descriptor that carries the codecId the
-// `enumType` API requires — same shape as a FieldPreset output / ColumnTypeDescriptor.
+// `enumType` API requires — same shape as a ColumnTypeDescriptor.
 const pgText = { codecId: 'pg/text@1' as const } as const;
 
 // ---------------------------------------------------------------------------

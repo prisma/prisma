@@ -9,69 +9,11 @@ export type DataTypeArgumentTypes = {
 
 type NoDataTypeArgumentTypes = Record<never, never>;
 
-export type OptionalObjectArgumentKeys<
-  Properties extends Record<string, AuthoringArgumentDescriptor>,
-> = {
-  readonly [K in keyof Properties]: Properties[K] extends { readonly optional: true } ? K : never;
-}[keyof Properties];
-
-type RequiredObjectArgumentKeys<Properties extends Record<string, AuthoringArgumentDescriptor>> =
-  Exclude<keyof Properties, OptionalObjectArgumentKeys<Properties>>;
-
-/**
- * When every property is optional the result must be a plain weak type rather
- * than `{} & { … }`: TypeScript's weak-type check rejects an object sharing
- * none of the target's properties, but only when the target is weak — and an
- * intersection with `{}` is not. The TS authoring surface runs no runtime
- * argument validation, so this check is the only thing rejecting a foreign key
- * such as `field.nanoid({ bogus: 1 })`.
- */
-export type ObjectArgumentType<
-  Properties extends Record<string, AuthoringArgumentDescriptor>,
-  ValueTypes extends DataTypeArgumentTypes = NoDataTypeArgumentTypes,
-> = [RequiredObjectArgumentKeys<Properties>] extends [never]
-  ? {
-      readonly [K in OptionalObjectArgumentKeys<Properties>]?: ArgTypeFromDescriptor<
-        Properties[K],
-        ValueTypes
-      >;
-    }
-  : {
-      readonly [K in RequiredObjectArgumentKeys<Properties>]: ArgTypeFromDescriptor<
-        Properties[K],
-        ValueTypes
-      >;
-    } & {
-      readonly [K in OptionalObjectArgumentKeys<Properties>]?: ArgTypeFromDescriptor<
-        Properties[K],
-        ValueTypes
-      >;
-    };
-
-/** The TypeScript type of one argument. A `value` argument takes what `ValueTypes` declares for its data type, and nothing when no pack declares it. */
+/** The TypeScript type of one argument: what `ValueTypes` declares for its data type, and nothing when no pack declares it. */
 export type ArgTypeFromDescriptor<
   Arg extends AuthoringArgumentDescriptor,
   ValueTypes extends DataTypeArgumentTypes = NoDataTypeArgumentTypes,
-> = Arg extends { readonly kind: 'value'; readonly dataType: infer DataType extends string }
-  ? DataType extends keyof ValueTypes
-    ? ValueTypes[DataType]['argument']
-    : never
-  : Arg extends { readonly kind: 'number' }
-    ? number
-    : Arg extends {
-          readonly kind: 'option';
-          readonly values: infer Values extends readonly string[];
-        }
-      ? Values[number]
-      : Arg extends {
-            readonly kind: 'object';
-            readonly properties: infer Properties extends Record<
-              string,
-              AuthoringArgumentDescriptor
-            >;
-          }
-        ? ObjectArgumentType<Properties, ValueTypes>
-        : never;
+> = Arg['dataType'] extends keyof ValueTypes ? ValueTypes[Arg['dataType']]['argument'] : never;
 
 /**
  * Recursive rewrite (not a mapped tuple type) so a descriptor marked
@@ -130,40 +72,10 @@ export type CanonicalArguments<
 export type ResolveTemplateValue<Template, Args extends readonly unknown[]> = Template extends {
   readonly kind: 'arg';
   readonly index: infer Index extends number;
-  readonly path?: infer Path extends readonly string[] | undefined;
-  readonly default?: infer Default;
 }
-  ? ResolveTemplateArgValue<Args[Index], Path, Default, Args>
+  ? Args[Index]
   : Template extends readonly unknown[]
     ? { readonly [K in keyof Template]: ResolveTemplateValue<Template[K], Args> }
     : Template extends Record<string, unknown>
       ? { readonly [K in keyof Template]: ResolveTemplateValue<Template[K], Args> }
       : Template;
-
-type ResolveTemplatePathValue<
-  Value,
-  Path extends readonly string[] | undefined,
-> = Path extends readonly [infer Segment extends string, ...infer Rest extends readonly string[]]
-  ? Segment extends keyof NonNullable<Value>
-    ? ResolveTemplatePathValue<NonNullable<Value>[Segment], Rest>
-    : never
-  : Value;
-
-type ResolveTemplateDefaultValue<
-  Value,
-  Default,
-  Args extends readonly unknown[],
-> = Default extends undefined
-  ? Value
-  : [Value] extends [never]
-    ? ResolveTemplateValue<Default, Args>
-    : undefined extends Value
-      ? Exclude<Value, undefined> | ResolveTemplateValue<Default, Args>
-      : Value;
-
-type ResolveTemplateArgValue<
-  Value,
-  Path extends readonly string[] | undefined,
-  Default,
-  Args extends readonly unknown[],
-> = ResolveTemplateDefaultValue<ResolveTemplatePathValue<Value, Path>, Default, Args>;

@@ -2,8 +2,6 @@ export type {
   ArgTypeFromDescriptor,
   CanonicalArguments,
   DataTypeArgumentTypes,
-  ObjectArgumentType,
-  OptionalObjectArgumentKeys,
   ResolveTemplateValue,
   TupleFromArgumentDescriptors,
 } from './authoring-argument-types';
@@ -38,8 +36,7 @@ export {
 export {
   assertSafeAuthoringHelperKey,
   composePackAuthoringNamespace,
-  createFieldHelpersFromNamespace,
-} from './field-preset-helpers';
+} from './pack-authoring-namespaces';
 export type {
   ExtractDataTypeArgumentTypesFromPack,
   ExtractParameterizedOutputTypesFromPack,

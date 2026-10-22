@@ -4,7 +4,7 @@ import {
   type TargetPackRef,
 } from '@internal/framework-components/components';
 import type { CodecTypes, ParameterizedOutputTypesForTypeParams } from '../exports/codec-types';
-import { mongoAuthoringFieldPresets, mongoAuthoringTypes } from './authoring';
+import { mongoAuthoringTypes } from './authoring';
 import { MONGO_DATE_CODEC_ID } from './codec-ids';
 import { mongoTargetDescriptorMetaRuntime } from './descriptor-meta-runtime';
 
@@ -12,7 +12,6 @@ const mongoTargetDescriptorMetaBase = {
   ...mongoTargetDescriptorMetaRuntime,
   authoring: {
     type: mongoAuthoringTypes,
-    field: mongoAuthoringFieldPresets,
   },
   controlMutationDefaults: {
     defaultFunctionRegistry: new Map(),

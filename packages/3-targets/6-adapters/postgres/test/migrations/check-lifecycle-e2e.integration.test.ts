@@ -76,7 +76,7 @@ const authoringTargetPack = {
   targetId: 'postgres',
   version: '0.0.1',
   defaultNamespaceId: 'public',
-  authoring: { field: {}, renderCheckExpressions: postgresRenderCheckExpressions },
+  authoring: { type: {}, renderCheckExpressions: postgresRenderCheckExpressions },
 } as const;
 
 type ColumnSpec = {

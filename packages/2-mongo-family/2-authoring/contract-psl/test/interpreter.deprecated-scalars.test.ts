@@ -34,7 +34,7 @@ const scalarTypeCodecIds: ReadonlyMap<string, string> = new Map(
   Object.entries(type).map(([name, descriptor]) => [name, descriptor.output.codecId]),
 );
 
-const authoringContributions = { type, field: {} } as unknown as AuthoringContributions;
+const authoringContributions = { type } as unknown as AuthoringContributions;
 
 function interpret(schema: string) {
   const warnings: ContractSourceDiagnostic[] = [];

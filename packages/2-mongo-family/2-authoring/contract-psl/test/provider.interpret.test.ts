@@ -48,7 +48,6 @@ function createMongoTestContext(overrides?: Partial<ContractSourceContext>): Con
     composedExtensionContracts: new Map(),
     authoringContributions: {
       dataTypes: {},
-      field: {},
       type: mongoScalarAuthoringTypes,
       entityTypes: {},
       pslBlockDescriptors: {},

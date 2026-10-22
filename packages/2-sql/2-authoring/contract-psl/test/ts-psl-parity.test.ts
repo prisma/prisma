@@ -25,28 +25,7 @@ const sqlFamilyPack = {
   id: 'sql',
   familyId: 'sql',
   version: '0.0.1',
-  authoring: {
-    field: {
-      text: {
-        kind: 'fieldPreset',
-        output: {
-          codecId: 'sql/text@1',
-        },
-      },
-      temporal: {
-        createdAt: {
-          kind: 'fieldPreset',
-          output: {
-            codecId: 'test/timestamp@1',
-            default: {
-              kind: 'function',
-              expression: 'now()',
-            },
-          },
-        },
-      },
-    },
-  },
+  authoring: {},
 } as const satisfies FamilyPackRef<'sql'>;
 
 const portablePostgresTargetPack = {
@@ -74,7 +53,7 @@ const pgvectorExtensionPack = {
       pgvector: {
         Vector: {
           kind: 'typeConstructor',
-          args: [{ kind: 'number', name: 'length', integer: true, minimum: 1, maximum: 2000 }],
+          args: [{ kind: 'value', dataType: 'pg/int4', name: 'length' }],
           output: {
             codecId: 'pg/vector@1',
             typeParams: {
@@ -88,7 +67,6 @@ const pgvectorExtensionPack = {
 } as const satisfies ExtensionPackRef<'sql', 'postgres'>;
 
 const authoringContributions = {
-  field: sqlFamilyPack.authoring.field,
   entityTypes: portablePostgresTargetPack.authoring.entityTypes,
   type: {
     ...portablePostgresTargetPack.authoring.type,

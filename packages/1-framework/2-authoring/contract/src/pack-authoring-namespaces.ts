@@ -2,10 +2,8 @@ import {
   AUTHORING_TYPE_DESCRIPTOR_KINDS,
   type AuthoringDescriptorKinds,
   type AuthoringEntityTypeNamespace,
-  type AuthoringFieldNamespace,
-  type AuthoringFieldPresetDescriptor,
   type AuthoringTypeNamespace,
-  isAuthoringFieldPresetDescriptor,
+  assertNoAuthoringFieldNamespace,
   mergeAuthoringNamespaces,
 } from '@internal/framework-components/authoring';
 import { blindCast } from '@internal/utils/casts';
@@ -24,44 +22,12 @@ export function assertSafeAuthoringHelperKey(key: string, path: readonly string[
   }
 }
 
-/**
- * Walks a field-preset namespace and produces the callable surface mirroring its tree shape. Each leaf descriptor becomes the helper `createLeafHelper` returns; nested namespaces recurse.
- */
-export function createFieldHelpersFromNamespace(
-  namespace: AuthoringFieldNamespace,
-  createLeafHelper: (options: {
-    readonly helperPath: string;
-    readonly descriptor: AuthoringFieldPresetDescriptor;
-  }) => (...rawArgs: readonly unknown[]) => unknown,
-  path: readonly string[] = [],
-): Record<string, unknown> {
-  const helpers: Record<string, unknown> = {};
-
-  for (const [key, value] of Object.entries(namespace)) {
-    assertSafeAuthoringHelperKey(key, path);
-    const currentPath = [...path, key];
-
-    if (isAuthoringFieldPresetDescriptor(value)) {
-      helpers[key] = createLeafHelper({
-        helperPath: currentPath.join('.'),
-        descriptor: value,
-      });
-      continue;
-    }
-
-    helpers[key] = createFieldHelpersFromNamespace(value, createLeafHelper, currentPath);
-  }
-
-  return helpers;
-}
-
 function isNonEmptyRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && Object.keys(value).length > 0;
 }
 
 const descriptorKindByNamespace = {
   type: { descriptorKind: AUTHORING_TYPE_DESCRIPTOR_KINDS, label: 'type' },
-  field: { descriptorKind: 'fieldPreset', label: 'field' },
   entityTypes: { descriptorKind: 'entity', label: 'entity' },
 } as const satisfies Record<
   AuthoringNamespaceKey,
@@ -70,15 +36,15 @@ const descriptorKindByNamespace = {
 
 interface AuthoringNamespaceByKey {
   readonly type: AuthoringTypeNamespace;
-  readonly field: AuthoringFieldNamespace;
   readonly entityTypes: AuthoringEntityTypeNamespace;
 }
 
 /**
- * Merges one authoring namespace (`type`, `field` or `entityTypes`) across the family, target and extension packs, in order. A duplicate helper path across packs throws.
+ * Merges one authoring namespace (`type` or `entityTypes`) across the family, target and extension packs, in order. A duplicate helper path across packs throws, and so does a pack that still contributes `authoring.field`.
  */
 export function composePackAuthoringNamespace<Key extends AuthoringNamespaceKey>(
   components: readonly {
+    readonly id?: string;
     readonly authoring?: { readonly [K in AuthoringNamespaceKey]?: unknown };
   }[],
   key: Key,
@@ -86,6 +52,7 @@ export function composePackAuthoringNamespace<Key extends AuthoringNamespaceKey>
   const { descriptorKind, label } = descriptorKindByNamespace[key];
   const merged: Record<string, unknown> = {};
   for (const component of components) {
+    assertNoAuthoringFieldNamespace(component.id ?? '<unknown>', component.authoring);
     const namespace = component.authoring?.[key];
     if (isNonEmptyRecord(namespace)) {
       mergeAuthoringNamespaces(merged, namespace, [], descriptorKind, label);

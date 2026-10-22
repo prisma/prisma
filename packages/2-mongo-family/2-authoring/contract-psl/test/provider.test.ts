@@ -96,7 +96,6 @@ function createMongoTestContext(overrides?: Partial<ContractSourceContext>): Con
     dataTypes: mongoDataTypeSupport,
     authoringContributions: {
       dataTypes: {},
-      field: {},
       type: mongoScalarAuthoringTypes,
       entityTypes: {},
       pslBlockDescriptors: {},

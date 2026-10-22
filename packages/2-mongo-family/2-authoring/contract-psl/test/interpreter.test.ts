@@ -233,7 +233,6 @@ model Item {
       composedExtensionContracts: new Map(),
       authoringContributions: {
         type: {},
-        field: {},
         entityTypes: {},
         pslBlockDescriptors: authoringContributions.pslBlockDescriptors,
         modelAttributes: {},
@@ -2532,7 +2531,6 @@ model Item {
         `,
         {
           authoringContributions: {
-            field: {},
             type: {},
             entityTypes: {
               enum: {

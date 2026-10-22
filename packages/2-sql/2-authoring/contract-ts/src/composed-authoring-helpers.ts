@@ -288,7 +288,7 @@ export function createComposedAuthoringHelpers<
   const entityNamespace = composeEntityNamespace(components);
   // Mirrors the call in `assembleAuthoringContributions`: PSL composes via
   // `createControlStack`, the TS DSL composes here. Both seams need the guard.
-  assertNoCrossRegistryCollisions(typeNamespace, {}, entityNamespace);
+  assertNoCrossRegistryCollisions(typeNamespace, entityNamespace);
   assertNoBuiltInEntityCollisions(entityNamespace);
   const { support } = assembleDataTypeSupport(
     components,

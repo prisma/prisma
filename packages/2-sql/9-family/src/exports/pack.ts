@@ -5,7 +5,6 @@ import {
 } from '@internal/sql-contract/sql-expression';
 import { sqlAttributeSpecs } from '@internal/sql-contract-psl/attribute-specs';
 import { sqlFamilyEntityTypes, sqlFamilyPslBlockDescriptors } from '../core/authoring-entity-types';
-import { sqlFamilyAuthoringFieldPresets } from '../core/authoring-field-presets';
 import { sqlFamilyAuthoringTypes } from '../core/authoring-type-constructors';
 import {
   sqlFamilyGeneratorDescriptors,
@@ -17,10 +16,6 @@ export {
   idGeneratorFunctionBindings,
   sqlIntegerArgumentGeneratorFunctions,
 } from '../core/generator-functions';
-export {
-  temporalCodecPresetWithPrecision,
-  temporalStringAuthoringPresets,
-} from '../core/timestamp-now-generator';
 
 const sqlFamilyPackBase = {
   kind: 'family',
@@ -29,7 +24,6 @@ const sqlFamilyPackBase = {
   version: '0.0.1',
   dataTypes: sqlExpressionRegistration.dataTypes,
   authoring: {
-    field: sqlFamilyAuthoringFieldPresets,
     type: sqlFamilyAuthoringTypes,
     dataTypes: sqlExpressionRegistration.authoring.dataTypes,
     entityTypes: sqlFamilyEntityTypes,

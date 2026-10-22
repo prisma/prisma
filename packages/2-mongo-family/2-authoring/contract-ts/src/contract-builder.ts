@@ -1054,7 +1054,7 @@ function composeMongoAuthoringHelpers<
   const extensionPacks: Record<string, ExtensionPackRef<string, string>> = extensions ?? {};
   const components = [family, target, ...Object.values(extensionPacks)];
   const entityNamespace = composePackAuthoringNamespace(components, 'entityTypes');
-  assertNoCrossRegistryCollisions({}, {}, entityNamespace);
+  assertNoCrossRegistryCollisions({}, entityNamespace);
   // Pack-contributed entity types flatten onto the same top-level shape
   // as the built-in helpers (`model`, `rel`, `field`, `index`,
   // `valueObject`). Detect collisions explicitly so a contributed name

@@ -25,7 +25,7 @@ const text: AuthoringTypeConstructorDescriptor = {
 
 const varchar: AuthoringTypeConstructorDescriptor = {
   kind: 'typeConstructor',
-  args: [{ kind: 'number', name: 'length' }],
+  args: [{ kind: 'value', dataType: 'fixture/int', name: 'length' }],
   output: { codecId: 'fixture/varchar@1' },
 };
 
@@ -57,7 +57,6 @@ function context(): BinderContext {
         Timestamp: timestamp,
         temporal: { UpdatedAt: updatedAt, Dated: dated },
       },
-      field: {},
       entityTypes: {},
       attributeSpecs: { model: {}, field: {} },
       modelAttributes: {},

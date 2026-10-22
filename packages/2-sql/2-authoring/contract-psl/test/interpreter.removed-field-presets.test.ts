@@ -80,7 +80,6 @@ function inputFor(
     scalarColumnDescriptors: collectScalarTypeConstructors(types),
     authoringContributions: {
       entityTypes: {},
-      field: {},
       pslBlockDescriptors: {},
       modelAttributes: {},
       type: types,

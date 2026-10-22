@@ -99,9 +99,9 @@ const postgresTargetPack = {
   targetId: 'postgres',
   version: '0.0.1',
   defaultNamespaceId: 'public',
-  // `field: {}` is what makes this a real `AuthoringContributions` rather
-  // than a weak-type mismatch; the production pack carries presets here.
-  authoring: { field: {}, renderCheckExpressions },
+  // `type: {}` is what makes this a real `AuthoringContributions` rather
+  // than a weak-type mismatch; the production pack carries its type constructors here.
+  authoring: { type: {}, renderCheckExpressions },
 } as const;
 
 const bareTargetPack = {
