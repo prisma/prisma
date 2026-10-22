@@ -1156,10 +1156,7 @@ function createFieldBuilder<
       StoredName,
       'optional param widens to StoredName | undefined; StoredName defaults to undefined when no stored name is passed'
     >(storedName),
-    optional: blindCast<
-      FieldBuilder<Type, Nullable, Many, Handle, ExecutionDefaults, StoredName>['optional'],
-      'every builder has the method at runtime, for a JavaScript caller the type does not stop; the type refuses it on a field a preset fills'
-    >(() =>
+    optional: () =>
       createFieldBuilder<Type, true, Many, Handle, ExecutionDefaults, StoredName>(
         {
           type: spec.type,
@@ -1172,7 +1169,6 @@ function createFieldBuilder<
         generatorCalls,
         presetContribution,
       ),
-    ),
     many: blindCast<
       FieldBuilder<Type, Nullable, Many, Handle, ExecutionDefaults, StoredName>['many'],
       'every builder has the method at runtime, for a JavaScript caller the type does not stop; the type refuses it on a field a preset fills'

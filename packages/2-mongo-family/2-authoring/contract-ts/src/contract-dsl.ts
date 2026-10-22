@@ -66,9 +66,7 @@ export interface FieldBuilder<
     WithGeneratedPhase<ExecutionDefaults, 'onUpdate'>,
     StoredName
   >;
-  readonly optional: FilledOnWrite<ExecutionDefaults> extends true
-    ? (this: 'This field generates a value on write, so it cannot be optional') => never
-    : () => FieldBuilder<Type, true, Many, Handle, ExecutionDefaults, StoredName>;
+  readonly optional: () => FieldBuilder<Type, true, Many, Handle, ExecutionDefaults, StoredName>;
   readonly many: FilledOnWrite<ExecutionDefaults> extends true
     ? (this: 'This field generates a value on write, so it cannot be a list') => never
     : {

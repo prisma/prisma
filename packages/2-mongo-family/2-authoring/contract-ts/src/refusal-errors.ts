@@ -380,12 +380,6 @@ export function refusalError(refusal: MongoBuildRefusal): StructuredError {
           },
         },
       );
-    case 'generatedOptional':
-      return defaultError(
-        refusal.key,
-        'nullable-with-executionDefaults',
-        'generates a value on write, so it cannot be optional; remove .optional().',
-      );
     case 'generatedList':
       return defaultError(
         refusal.key,

@@ -74,13 +74,11 @@ test('preset options accept only the values the preset lists', () => {
   });
 });
 
-test('a field a preset fills cannot be made optional or a list', () => {
+test('a field a preset fills can be optional but not a list', () => {
   defineContract({ family: mongoFamilyPack, target: mongoTargetPack }, ({ field }) => {
-    // @ts-expect-error temporal.createdAt() fills the field, so it cannot be optional
     field.temporal.createdAt().optional();
     // @ts-expect-error temporal.updatedAt() fills the field, so it cannot be a list
     field.temporal.updatedAt().many();
-    // @ts-expect-error a phase fills the field, so it cannot be optional
     field.temporal.timestamp(undefined, 'now').optional();
     field.temporal.timestamp().optional();
     field.string().optional().many();
@@ -88,12 +86,9 @@ test('a field a preset fills cannot be made optional or a list', () => {
   });
 });
 
-test('the type error for optional() or many() on a field that generates a value says why', () => {
+test('the type error for many() on a field that generates a value says why', () => {
   defineContract({ family: mongoFamilyPack, target: mongoTargetPack }, ({ field }) => {
     const createdAt = field.temporal.createdAt();
-    expectTypeOf<
-      ThisParameterType<typeof createdAt.optional>
-    >().toEqualTypeOf<'This field generates a value on write, so it cannot be optional'>();
     expectTypeOf<
       ThisParameterType<typeof createdAt.many>
     >().toEqualTypeOf<'This field generates a value on write, so it cannot be a list'>();

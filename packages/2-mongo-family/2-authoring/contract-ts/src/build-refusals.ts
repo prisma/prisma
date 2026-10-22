@@ -133,7 +133,6 @@ export type MongoBuildRefusal =
       readonly key: FieldKey;
       readonly phase: GeneratorPhase;
     }
-  | { readonly kind: 'generatedOptional'; readonly key: FieldKey }
   | { readonly kind: 'generatedList'; readonly key: FieldKey }
   | {
       readonly kind: 'generatedOnVariant';

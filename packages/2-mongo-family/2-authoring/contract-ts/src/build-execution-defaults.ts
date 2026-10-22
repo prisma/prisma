@@ -119,10 +119,6 @@ export function buildExecutionDefaults(input: {
       const key = modelFieldKey(modelName, fieldName);
       const phases = executionDefaultsOf(field, key, generatorFunctions, refusals);
       if (phases === undefined) continue;
-      if (field.nullable) {
-        refusals.push({ kind: 'generatedOptional', key });
-        continue;
-      }
       if (field.many) {
         refusals.push({ kind: 'generatedList', key });
         continue;

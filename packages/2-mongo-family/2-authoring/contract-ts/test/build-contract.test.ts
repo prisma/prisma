@@ -5,12 +5,19 @@ import {
 import { extractCodecLookup } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { MongoContract } from '@internal/mongo-contract';
+import { mongoDataType } from '@internal/mongo-contract/data-type';
+import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { buildMongoContractFromDefinition } from '../src/build-contract';
 import { defineContract, field, index, model } from '../src/contract-builder';
 import type { ContractDefinition, FieldNode, ModelNode } from '../src/contract-definition';
 import { enumType, member } from '../src/enum-type';
-import { mongoFamilyPack, mongoTargetPack } from './mongo-test-packs';
+import {
+  identityCodec,
+  identityCodecDescriptor,
+  mongoFamilyPack,
+  mongoTargetPack,
+} from './mongo-test-packs';
 
 const codecLookup = extractCodecLookup([mongoFamilyPack, mongoTargetPack]);
 const { support: dataTypes } = assembleDataTypeSupport(
@@ -150,6 +157,16 @@ describe('buildMongoContractFromDefinition', () => {
         preset: 'plain',
         codecId: 'mongo/string@1',
       },
+    ]);
+  });
+
+  it('builds an optional field that generates a value', () => {
+    const contract = contractOf({
+      models: [user([scalar('at', { nullable: true, executionDefaults: { onCreate: now } })])],
+    });
+
+    expect(contract.execution?.mutations.defaults).toEqual([
+      { ref: { namespace: UNBOUND_NAMESPACE_ID, entry: 'users', field: 'at' }, onCreate: now },
     ]);
   });
 
@@ -344,13 +361,6 @@ describe('buildMongoContractFromDefinition refusals', () => {
       [{ kind: 'generatorPhaseSetTwice', key: modelField('User', 'at') }],
     ],
     [
-      'a generated optional field',
-      {
-        models: [user([scalar('at', { nullable: true, executionDefaults: { onCreate: now } })])],
-      },
-      [{ kind: 'generatedOptional', key: modelField('User', 'at') }],
-    ],
-    [
       'a generated list field',
       {
         models: [
@@ -500,4 +510,96 @@ describe('buildMongoContractFromDefinition refusals', () => {
       expect(refusalsOf(overrides)).toEqual(expected);
     },
   );
+});
+
+describe('buildMongoContractFromDefinition refusals with their whole data', () => {
+  const sized = mongoDataType('test/sized', {
+    read: (json) => json,
+    bsonTypes: ['string'],
+    params: type({ 'length?': 'number.integer >= 1' }),
+  });
+  const choosy = mongoDataType('test/choosy', { read: (json) => json, bsonTypes: ['string'] });
+  const target = {
+    ...mongoTargetPack,
+    dataTypes: [...mongoTargetPack.dataTypes, sized, choosy],
+    types: {
+      codecTypes: {
+        codecDescriptors: [
+          ...mongoTargetPack.types.codecTypes.codecDescriptors,
+          identityCodecDescriptor('test/sized@1', sized),
+          {
+            ...identityCodecDescriptor('test/choosy@1', choosy),
+            factory: () => () => ({
+              ...identityCodec('test/choosy@1', choosy),
+              toDataTypeValue: (value: unknown) => {
+                if (value === 'bad') throw new Error('bad is not allowed');
+                return choosy.valueFrom(String(value), {});
+              },
+            }),
+          },
+        ],
+      },
+    },
+  } as const;
+  const stackCodecs = extractCodecLookup([mongoFamilyPack, target]);
+  const { support: stackDataTypes } = assembleDataTypeSupport(
+    [mongoFamilyPack, target],
+    (codecId) => stackCodecs.descriptorFor(codecId)?.dataType,
+  );
+  const refusalsWith = (overrides: Partial<ContractDefinition>) => {
+    const built = buildMongoContractFromDefinition(
+      definitionOf({ target, ...overrides }),
+      stackCodecs,
+      stackDataTypes,
+    );
+    return built.ok ? [] : built.failure;
+  };
+
+  it("refuses type parameters the field's data type does not accept", () => {
+    expect(
+      refusalsWith({
+        models: [
+          user([
+            scalar('code', {
+              type: { kind: 'scalar', codecId: 'test/sized@1', typeParams: { length: 0 } },
+            }),
+          ]),
+        ],
+      }),
+    ).toEqual([
+      {
+        kind: 'typeParamsInvalid',
+        key: modelField('User', 'code'),
+        problem: {
+          dataType: 'test/sized',
+          message: expect.stringContaining('test/sized: length must be'),
+          parameters: ['length'],
+        },
+      },
+    ]);
+  });
+
+  it('refuses one enum member its codec refuses', () => {
+    const Grade = enumType(
+      'Grade',
+      { codecId: 'test/choosy@1' },
+      member('Good', 'good'),
+      member('Bad', 'bad'),
+    );
+
+    expect(refusalsWith({ models: [], enums: { Grade } })).toEqual([
+      {
+        kind: 'enumMemberProblem',
+        key: { kind: 'enumMember', enumName: 'Grade', member: 'Bad' },
+        enumName: 'Grade',
+        codecId: 'test/choosy@1',
+        problem: {
+          kind: 'codec-refused-member',
+          member: 'Bad',
+          reason: 'bad is not allowed',
+          cause: expect.any(Error),
+        },
+      },
+    ]);
+  });
 });
