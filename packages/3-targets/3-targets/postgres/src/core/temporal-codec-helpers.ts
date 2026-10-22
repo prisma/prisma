@@ -191,6 +191,6 @@ export function utcTimestampText(value: Date, codecId: string): string {
 }
 
 /** ISO text in UTC without its trailing `Z`. */
-export function withoutUtcDesignator(isoText: string): string {
+function withoutUtcDesignator(isoText: string): string {
   return isoText.endsWith('Z') ? isoText.slice(0, -1) : isoText;
 }

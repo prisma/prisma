@@ -106,9 +106,11 @@ describe.each(['app', 'extension'])('the %s explicit date and time type detectio
   });
 });
 
-describe('the app temporal-spec detection', () => {
+describe.each(['app', 'extension'])('the %s temporal-spec detection', (audience) => {
   const matches = (content: string) =>
-    patternsOf('app', 'temporal-types-from-temporal-spec').some((pattern) => pattern.test(content));
+    patternsOf(audience, 'temporal-types-from-temporal-spec').some((pattern) =>
+      pattern.test(content),
+    );
 
   it('matches a type test that compares with a global Temporal type, until it imports temporal-spec', () => {
     expect({

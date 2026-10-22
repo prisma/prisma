@@ -29,6 +29,16 @@ changes:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
         - 'import\s+(?:type\s+)?\{[^}]*(?<![\w$])(?:Timestamptz|Timestamp|Time|Interval)(?![\w$])[^}]*\}\s*from\s*[\x27"]@prisma/orm-postgres/(?:contract-builder|target/codec-types)[\x27"]'
+  - id: temporal-types-from-temporal-spec
+    summary: |
+      Temporal fields are now typed with the `Temporal` types of the `temporal-spec` package rather than a global `Temporal` declaration, so they are typed even in a project without the polyfill's global types. The values are the same and assign to and from the global types. An extension's type test that requires a field to be exactly `Temporal.Instant` (or another `Temporal` type) from the global declarations now fails: add `temporal-spec` (`1.0.1`) to your development dependencies and import the type with `import type { Temporal } from 'temporal-spec'` in that test.
+    detection:
+      glob: "**/*.{ts,mts,cts,tsx}"
+      matches:
+        - '(?<![\s\S])(?![\s\S]*from\s*[\x27"]temporal-spec[\x27"])[\s\S]*toEqualTypeOf<\s*Temporal\.'
+  - id: contract-types-list-new-aggregates
+    summary: |
+      Optional. An emitted `contract.d.ts` lists the aggregates of every codec in the stack, so `prisma contract emit` now adds rows for the three new codecs to it, and the contract itself does not change. An extension that commits an emitted `contract.d.ts` re-emits it when it next changes the contract; until then the existing `contract.d.ts` keeps working. A migration snapshot's `contract.d.ts` does not need the new rows; it needs only the import change `branded-time-types-removed` describes.
 ---
 
 # Explicit date and time types carry the kind of value they read
@@ -85,3 +95,13 @@ import type {
   JsonValue,
 } from '@prisma/orm-postgres/target/codec-types'; // was also importing Interval, Time, Timestamp and Timestamptz
 ```
+
+## `temporal-types-from-temporal-spec`
+
+```ts
+import type { Temporal } from 'temporal-spec';
+
+expectTypeOf<Row['createdAt']>().toEqualTypeOf<Temporal.Instant>();
+```
+
+If the test file also creates `Temporal` values, import the type under another name, such as `import type { Temporal as TemporalTypes } from 'temporal-spec'`, so the runtime `Temporal` stays in scope.
