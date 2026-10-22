@@ -7,6 +7,7 @@ import type {
 } from '@internal/framework-components/control';
 import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import { basename } from 'pathe';
+import { closeDatabase, wasClosedByDriver } from '../database-state';
 import { normalizeSqliteError } from '../normalize-error';
 import { sqliteParams } from '../sqlite-params';
 import { sqliteDriverDescriptorMeta } from './descriptor-meta';
@@ -29,7 +30,7 @@ export class SqliteControlDriver implements SqlControlDriverInstance<'sqlite'> {
       const rows = stmt.all(...sqliteParams(params)) as Row[];
       return { rows };
     } catch (error) {
-      throw normalizeSqliteError(error);
+      throw normalizeSqliteError(error, wasClosedByDriver(this.db));
     }
   }
 
@@ -42,7 +43,7 @@ export class SqliteControlDriver implements SqlControlDriverInstance<'sqlite'> {
   }
 
   async close(): Promise<void> {
-    this.db.close();
+    closeDatabase(this.db);
   }
 }
 

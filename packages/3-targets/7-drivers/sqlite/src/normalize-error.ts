@@ -24,9 +24,11 @@ const SQLITE_CANTOPEN = 14;
 // Base code 26 = SQLITE_NOTADB
 const SQLITE_NOTADB = 26;
 
-// node:sqlite's code for using a database or statement in the wrong state. In this driver that
-// means the database is closed.
-const DATABASE_NOT_OPEN_CODE = 'ERR_INVALID_STATE';
+// node:sqlite's code for using a database or statement in the wrong state: a closed database, but
+// also an unknown named parameter.
+const INVALID_STATE_CODE = 'ERR_INVALID_STATE';
+
+const GENERAL_ERROR_SQLSTATE = 'HY000';
 
 function isConstraintError(errcode: number): boolean {
   return (errcode & 0xff) === SQLITE_CONSTRAINT_BASE;
@@ -73,11 +75,18 @@ function mapErrCodeToSqlState(errcode: number): string {
       if (isConstraintError(errcode)) {
         return '23000'; // integrity_constraint_violation
       }
-      return 'HY000'; // general error
+      return GENERAL_ERROR_SQLSTATE;
   }
 }
 
-export function normalizeSqliteError(error: unknown): SqlQueryError | SqlConnectionError | Error {
+/**
+ * Normalizes a node:sqlite error. `databaseClosedByDriver` says whether the driver closed the
+ * database the failing call used; only then is a wrong-state error a closed-database connection error.
+ */
+export function normalizeSqliteError(
+  error: unknown,
+  databaseClosedByDriver: boolean,
+): SqlQueryError | SqlConnectionError | Error {
   if (!(error instanceof Error)) {
     return new Error(String(error));
   }
@@ -110,11 +119,10 @@ export function normalizeSqliteError(error: unknown): SqlQueryError | SqlConnect
     });
   }
 
-  if ('code' in error && error.code === DATABASE_NOT_OPEN_CODE) {
-    return new SqlConnectionError(error.message, {
-      cause: error,
-      transient: false,
-    });
+  if ('code' in error && error.code === INVALID_STATE_CODE) {
+    return databaseClosedByDriver
+      ? new SqlConnectionError(error.message, { cause: error, transient: false })
+      : new SqlQueryError(error.message, { cause: error, sqlState: GENERAL_ERROR_SQLSTATE });
   }
 
   return error;

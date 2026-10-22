@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { closeDatabase, wasClosedByDriver } from '../src/database-state';
 import { normalizeSqliteError } from '../src/normalize-error';
 
 let testDir: string;
@@ -29,7 +30,7 @@ describe('normalizeSqliteError', () => {
     const cause = thrownBy(() => new DatabaseSync(join(testDir, 'missing-dir', 'test.db')));
 
     expect(cause).toMatchObject({ code: 'ERR_SQLITE_ERROR', errcode: 14 });
-    expect(normalizeSqliteError(cause)).toMatchObject({
+    expect(normalizeSqliteError(cause, false)).toMatchObject({
       kind: 'sql_connection',
       transient: false,
       cause,
@@ -42,22 +43,34 @@ describe('normalizeSqliteError', () => {
     const cause = thrownBy(() => new DatabaseSync(path).exec('select * from sqlite_master'));
 
     expect(cause).toMatchObject({ code: 'ERR_SQLITE_ERROR', errcode: 26 });
-    expect(normalizeSqliteError(cause)).toMatchObject({
+    expect(normalizeSqliteError(cause, false)).toMatchObject({
       kind: 'sql_connection',
       transient: false,
       cause,
     });
   });
 
-  it('classifies a statement on a closed database as a connection error', () => {
+  it('classifies a statement on a database the driver closed as a connection error', () => {
     const db = new DatabaseSync(':memory:');
-    db.close();
+    closeDatabase(db);
     const cause = thrownBy(() => db.exec('select 1'));
 
     expect(cause).toMatchObject({ code: 'ERR_INVALID_STATE' });
-    expect(normalizeSqliteError(cause)).toMatchObject({
+    expect(normalizeSqliteError(cause, wasClosedByDriver(db))).toMatchObject({
       kind: 'sql_connection',
       transient: false,
+      cause,
+    });
+  });
+
+  it('keeps a wrong-state error on an open database a query error', () => {
+    const db = new DatabaseSync(':memory:');
+    const cause = thrownBy(() => db.prepare('select $a as a').all({ b: 1 }));
+
+    expect(cause).toMatchObject({ code: 'ERR_INVALID_STATE' });
+    expect(normalizeSqliteError(cause, wasClosedByDriver(db))).toMatchObject({
+      kind: 'sql_query',
+      sqlState: 'HY000',
       cause,
     });
   });
@@ -68,7 +81,10 @@ describe('normalizeSqliteError', () => {
       errcode: 5,
     });
 
-    expect(normalizeSqliteError(cause)).toMatchObject({ kind: 'sql_connection', transient: true });
+    expect(normalizeSqliteError(cause, false)).toMatchObject({
+      kind: 'sql_connection',
+      transient: true,
+    });
   });
 
   it('extracts the constraint name of a unique violation', () => {
@@ -77,7 +93,7 @@ describe('normalizeSqliteError', () => {
     db.exec("insert into user values ('a@example.com')");
     const cause = thrownBy(() => db.exec("insert into user values ('a@example.com')"));
 
-    expect(normalizeSqliteError(cause)).toMatchObject({
+    expect(normalizeSqliteError(cause, false)).toMatchObject({
       kind: 'sql_query',
       sqlState: '23505',
       constraint: 'user.email',
@@ -87,6 +103,6 @@ describe('normalizeSqliteError', () => {
   it('returns a non-SQLite error with a lock message as-is', () => {
     const error = new Error('database is locked');
 
-    expect(normalizeSqliteError(error)).toBe(error);
+    expect(normalizeSqliteError(error, false)).toBe(error);
   });
 });
