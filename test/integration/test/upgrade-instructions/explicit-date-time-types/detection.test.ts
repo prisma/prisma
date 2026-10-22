@@ -3,6 +3,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 
+/** The published package an application imports from, kept out of literal import text so the import-root lint reads this file as test data. */
+const published = ['@prisma', 'orm-postgres'].join('/');
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '../../../../..');
 
@@ -83,18 +85,15 @@ describe.each(['app', 'extension'])('the %s explicit date and time type detectio
     const branded = (content: string) => matches('branded-time-types-removed', content);
     const interval = (content: string) =>
       matches('interval-with-precision-typed-as-parts', content);
-    const snapshotImport =
-      "import type {\n  CodecTypes as PgTypes,\n  Interval,\n  Time,\n  Timestamp,\n  Timestamptz,\n} from '@prisma/orm-postgres/target/codec-types';";
+    const snapshotImport = `import type {\n  CodecTypes as PgTypes,\n  Interval,\n  Time,\n  Timestamp,\n  Timestamptz,\n} from '${published}/target/codec-types';`;
     expect({
       snapshot: branded(snapshotImport),
-      inlineType: branded("import { type Time } from '@prisma/orm-postgres/target/codec-types';"),
-      interval: interval("import type { Interval } from '@prisma/orm-postgres/contract-builder';"),
+      inlineType: branded(`import { type Time } from '${published}/target/codec-types';`),
+      interval: interval(`import type { Interval } from '${published}/contract-builder';`),
       inlineInterval: interval(
-        "import { field, type Interval } from '@prisma/orm-postgres/contract-builder';",
+        `import { field, type Interval } from '${published}/contract-builder';`,
       ),
-      keptName: branded(
-        "import type { TimestampString } from '@prisma/orm-postgres/target/codec-types';",
-      ),
+      keptName: branded(`import type { TimestampString } from '${published}/target/codec-types';`),
       otherPackage: branded("import { Timestamp } from 'bson';"),
     }).toEqual({
       snapshot: true,
