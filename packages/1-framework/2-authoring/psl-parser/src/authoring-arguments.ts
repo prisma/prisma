@@ -5,6 +5,7 @@ import type {
 import { dataTypeId } from '@internal/framework-components/codec';
 import type { PslSpan } from '@internal/framework-components/psl-ast';
 import { InternalError } from '@internal/utils/internal-error';
+import { bindCallArguments } from './call-arguments';
 import type { DiagnosticSource, PslDiagnosticCollector } from './diagnostic';
 import { readExpressionAs } from './read-expression-as';
 import { nodePslSpan, type ResolvedAttributeArg } from './resolve';
@@ -79,86 +80,52 @@ function readPslHelperArgument(
  * The arguments of a type constructor call, positional and named, each read as its descriptor says. `undefined`, with a diagnostic pushed, when one cannot be read or does not match a descriptor.
  */
 export function mapPslHelperArgs(input: MapPslHelperArgsInput): readonly unknown[] | undefined {
-  const mappedArgs: unknown[] = input.descriptors.map(() => undefined);
-
-  const positionalArgs = input.args.filter((arg) => arg.kind === 'positional');
-  const namedArgs = input.args.filter((arg) => arg.kind === 'named');
-
-  if (positionalArgs.length > input.descriptors.length) {
-    return pushInvalidPslHelperArgument({
+  const refuse = (span: PslSpan, message: string) =>
+    pushInvalidPslHelperArgument({
       diagnostics: input.diagnostics,
       source: input.source,
-      span: input.span,
+      span,
       entityLabel: input.entityLabel,
       helperLabel: input.helperLabel,
-      message: `accepts at most ${input.descriptors.length} argument(s), received ${positionalArgs.length}.`,
+      message,
     });
+
+  const bound = bindCallArguments(
+    input.args,
+    input.descriptors.map((descriptor) => descriptor?.name),
+  );
+  if (!bound.ok) {
+    const failure = bound.failure;
+    switch (failure.kind) {
+      case 'tooManyPositional':
+        return refuse(
+          input.span,
+          `accepts at most ${input.descriptors.length} argument(s), received ${failure.received}.`,
+        );
+      case 'unknownName':
+        return refuse(
+          failure.argument.span,
+          `received unknown named argument "${failure.argument.name}".`,
+        );
+      case 'filledTwice':
+        return refuse(
+          failure.argument.span,
+          `received duplicate value for argument "${failure.argument.name}".`,
+        );
+    }
   }
 
-  for (const [index, argument] of positionalArgs.entries()) {
+  const mappedArgs: unknown[] = input.descriptors.map(() => undefined);
+  for (const { argument, index } of bound.value) {
     const descriptor = input.descriptors[index];
     if (!descriptor) {
-      return pushInvalidPslHelperArgument({
-        diagnostics: input.diagnostics,
-        source: input.source,
-        span: argument.span,
-        entityLabel: input.entityLabel,
-        helperLabel: input.helperLabel,
-        message: `does not define positional argument #${index + 1}.`,
-      });
+      return refuse(argument.span, `does not define positional argument #${index + 1}.`);
     }
-
-    const value = readPslHelperArgument(input, descriptor, argument, `argument #${index + 1}`);
+    const label =
+      argument.kind === 'named' ? `named argument "${argument.name}"` : `argument #${index + 1}`;
+    const value = readPslHelperArgument(input, descriptor, argument, label);
     if (value === INVALID_AUTHORING_ARGUMENT) return undefined;
     mappedArgs[index] = value;
-  }
-
-  for (const argument of namedArgs) {
-    const descriptorIndex = input.descriptors.findIndex(
-      (descriptor) => descriptor.name === argument.name,
-    );
-    if (descriptorIndex < 0) {
-      return pushInvalidPslHelperArgument({
-        diagnostics: input.diagnostics,
-        source: input.source,
-        span: argument.span,
-        entityLabel: input.entityLabel,
-        helperLabel: input.helperLabel,
-        message: `received unknown named argument "${argument.name}".`,
-      });
-    }
-
-    if (mappedArgs[descriptorIndex] !== undefined) {
-      return pushInvalidPslHelperArgument({
-        diagnostics: input.diagnostics,
-        source: input.source,
-        span: argument.span,
-        entityLabel: input.entityLabel,
-        helperLabel: input.helperLabel,
-        message: `received duplicate value for argument "${argument.name}".`,
-      });
-    }
-
-    const descriptor = input.descriptors[descriptorIndex];
-    if (!descriptor) {
-      return pushInvalidPslHelperArgument({
-        diagnostics: input.diagnostics,
-        source: input.source,
-        span: argument.span,
-        entityLabel: input.entityLabel,
-        helperLabel: input.helperLabel,
-        message: `does not define named argument "${argument.name}".`,
-      });
-    }
-
-    const value = readPslHelperArgument(
-      input,
-      descriptor,
-      argument,
-      `named argument "${argument.name}"`,
-    );
-    if (value === INVALID_AUTHORING_ARGUMENT) return undefined;
-    mappedArgs[descriptorIndex] = value;
   }
 
   return mappedArgs;

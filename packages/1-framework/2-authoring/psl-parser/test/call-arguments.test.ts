@@ -42,11 +42,20 @@ describe('argumentsByParameter', () => {
     );
   });
 
+  it('fills the first parameter with a positional argument written after a named one, as mapPslHelperArgs does', () => {
+    expect(argumentsByParameter(callOf('f(onUpdate: now, 3)').args, parameters)).toEqual(
+      new Map([
+        ['precision', '3'],
+        ['onUpdate', 'now'],
+      ]),
+    );
+  });
+
   it.each([
     ['a positional argument past the last parameter', 'f(3, now, now, now)'],
     ['a name no parameter has', 'f(frequency: now)'],
     ['a parameter filled twice', 'f(3, precision: 4)'],
-    ['a positional argument after a named one', 'f(onCreate: now, 3)'],
+    ['a parameter a later positional argument fills', 'f(precision: 4, 3)'],
   ])('refuses %s', (_, type) => {
     expect(argumentsByParameter(callOf(type).args, parameters)).toBeUndefined();
   });

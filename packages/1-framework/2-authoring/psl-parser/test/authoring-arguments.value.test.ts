@@ -216,6 +216,18 @@ describe('mapPslHelperArgs positional and named dispatch', () => {
     });
   });
 
+  it('maps a positional argument written after a named one to the first parameter', () => {
+    expect(callWith('y: "two", 1', descriptors)).toEqual({ result: [1, 'two'], diagnostics: [] });
+  });
+
+  it('rejects a named argument for a parameter a later positional argument fills', () => {
+    const { result, diagnostics } = callWith('x: 2, 1', descriptors);
+    expect(result).toBeUndefined();
+    expect(diagnostics.map((d) => d.message)).toEqual([
+      'Field "Model.field" constructor "Sized" received duplicate value for argument "x".',
+    ]);
+  });
+
   it('leaves an optional trailing descriptor unset when no argument supplies it', () => {
     expect(callWith('1', descriptors)).toEqual({ result: [1, undefined], diagnostics: [] });
   });
