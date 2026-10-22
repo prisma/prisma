@@ -129,7 +129,7 @@ export function numericColumn(
 
 /**
  * Representation-explicit temporal descriptors share storage types but select different application
- * values: `Temporal.*`, PostgreSQL text, or a JavaScript `Date` for `timestamptz`.
+ * values: `Temporal.*`, ISO 8601 text, or a JavaScript `Date` for `timestamptz`.
  */
 export const dateTemporalColumn = {
   codecId: PG_DATE_TEMPORAL_CODEC_ID,

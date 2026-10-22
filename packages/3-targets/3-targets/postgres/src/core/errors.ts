@@ -76,7 +76,7 @@ export function errorTemporalUnavailable(codecId: string, operation: string): St
     `Codec '${codecId}' cannot ${operation} a value because this runtime has no global Temporal implementation.`,
     {
       why: 'Temporal-backed codecs read and write their values through the global Temporal API, which this runtime does not provide.',
-      fix: "Run on a runtime with Temporal available, install a Temporal polyfill before creating the client, or author the column with its *String type to read and write PostgreSQL's own text instead.",
+      fix: 'Run on a runtime with Temporal available, install a Temporal polyfill before creating the client, or author the column with its *String type to read and write ISO 8601 text instead.',
       meta: { codecId, operation },
     },
   );
@@ -88,7 +88,7 @@ export function errorTemporalUnavailableForDefault(generatorId: string): Structu
     `Mutation default generator '${generatorId}' cannot produce a value because this runtime has no global Temporal implementation.`,
     {
       why: 'The generator answers a Temporal-backed column, so the value it produces is a Temporal.Instant, which this runtime cannot construct.',
-      fix: "Run on a runtime with Temporal available, install a Temporal polyfill before creating the client, or author the column with `temporal.createdAtString()` / `temporal.updatedAtString()` to store PostgreSQL's own text instead.",
+      fix: 'Run on a runtime with Temporal available, install a Temporal polyfill before creating the client, or author the column with `temporal.createdAtString()` / `temporal.updatedAtString()` to store ISO 8601 text instead.',
       meta: { generatorId },
     },
   );
@@ -106,10 +106,10 @@ export function errorTemporalUnrepresentable(options: {
   const direction = operation === 'decode' ? 'PostgreSQL returned' : 'the application supplied';
   return postgresError(
     operation === 'decode' ? 'RUNTIME.DECODE_FAILED' : 'RUNTIME.ENCODE_FAILED',
-    `Codec '${codecId}' cannot represent the value ${direction}: ${JSON.stringify(value)} — ${detail}. Use ${stringType} to carry this column as PostgreSQL's own text.`,
+    `Codec '${codecId}' cannot represent the value ${direction}: ${JSON.stringify(value)} — ${detail}. Use ${stringType} to carry this column as ISO 8601 text.`,
     {
       why: `${detail}. Temporal is the authoritative parser and range check for this codec, so a value it cannot express has no representation on this column.`,
-      fix: `Author the column as ${stringType} to read and write PostgreSQL's own text for it, which preserves every value the database accepts.`,
+      fix: `Author the column as ${stringType} to read and write it as ISO 8601 text, which holds every value the database accepts.`,
       meta: { codecId, operation, value, stringType },
       ...(options.cause === undefined ? {} : { cause: options.cause }),
     },
@@ -127,7 +127,7 @@ export function errorTemporalWrongType(
     `Codec '${codecId}' encodes a ${temporalTag}, but received ${received}.`,
     {
       why: "The codec serializes through the Temporal value's own toString(). A different type reaches PostgreSQL in a spelling it does not accept, and the resulting error names the column rather than the codec.",
-      fix: `Pass a ${temporalTag}, or author the column with its ${stringType} type to write PostgreSQL text directly.`,
+      fix: `Pass a ${temporalTag}, or author the column with its ${stringType} type to write ISO 8601 text.`,
       meta: { codecId, temporalTag, stringType, received },
     },
   );
@@ -139,8 +139,8 @@ export function errorDateStyleNotIso(codecId: string, received: string): Structu
     'RUNTIME.DATE_STYLE_NOT_ISO',
     `Codec '${codecId}' read ${JSON.stringify(received)}, which PostgreSQL prints only when the connection's DateStyle is not ISO. Prisma reads dates and times only in DateStyle ISO.`,
     {
-      why: 'PostgreSQL prints a date or timestamp in the DateStyle of the connection. Prisma sets DateStyle=ISO on every connection it opens, so this connection was supplied by the application, or a statement changed its DateStyle.',
-      fix: "Set DateStyle=ISO on the connection: give the pg.Pool or pg.Client you pass to Prisma the option options: '-c DateStyle=ISO', or run ALTER ROLE <role> SET DateStyle = 'ISO'.",
+      why: 'PostgreSQL prints a date or timestamp in the DateStyle of the connection. Prisma sets DateStyle=ISO as a startup option on every connection it opens from a URL, so the connection was supplied by the application, a statement changed its DateStyle, or a connection pooler between Prisma and PostgreSQL dropped the startup option, as PgBouncer does when ignore_startup_parameters lists options.',
+      fix: "Set DateStyle=ISO on the connection: give the pg.Pool or pg.Client you pass to Prisma the option options: '-c DateStyle=ISO'. Behind a pooler that drops startup options, set it on the role or database (ALTER ROLE <role> SET DateStyle = 'ISO') and pass Prisma your own pg.Pool.",
       meta: { codecId, received: received.slice(0, 100) },
     },
   );
