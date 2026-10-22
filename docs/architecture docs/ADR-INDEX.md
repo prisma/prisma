@@ -2,6 +2,17 @@
 
 This document provides a comprehensive index of all Architectural Decision Records (ADRs) for the Prisma 8 prototype, organized by category and ADR number.
 
+## Steering list
+
+Open these before you propose a new feature or surface, or judge a feature request or a pull request. Each records a request the maintainers have answered with a no, and what to use instead. Proposed ADRs are not decisions yet, so they are not on this list. How to judge a request is on the [vision](../design/00-purpose/vision.md#how-to-use-this-page) page.
+
+- [ADR 289 — Prisma 8 has no `$extends` client extensions](adrs/ADR%20289%20-%20Prisma%208%20has%20no%20%24extends%20client%20extensions.md)
+- [ADR 291 — Prisma 8 has no `$on` events](adrs/ADR%20291%20-%20Prisma%208%20has%20no%20%24on%20events.md)
+- [ADR 293 — Validations, lifecycle callbacks, soft delete and default scopes are not in the core](adrs/ADR%20293%20-%20Validations,%20lifecycle%20callbacks,%20soft%20delete%20and%20default%20scopes%20are%20not%20in%20the%20core.md)
+- [ADR 296 — Prisma 8 has no `relationLoadStrategy`](adrs/ADR%20296%20-%20Prisma%208%20has%20no%20relationLoadStrategy.md)
+
+To add to this list, write an ADR when the maintainers have said no to something that will be proposed again. Its title states the no; its decision names the existing feature to use instead; its consequences say what would reopen it. Half a page is enough. To change a decision, write a new ADR and mark the old one superseded rather than rewriting it. An agent drafting one sets its status to `Proposed`, and the pull request that adds it is the draft.
+
 ## Core Architecture
 
 | ADR | Title | Description | Link |
@@ -195,6 +206,32 @@ This document provides a comprehensive index of all Architectural Decision Recor
 | 102 | Squash-first policy & squash advisor | Defines policy for keeping migration graphs small through regular baselines | [ADR 102 - Squash-first policy & squash advisor.md](adrs/ADR%20102%20-%20Squash-first%20policy%20&%20squash%20advisor.md) |
 | 122 | Database Initialization & Adoption | Covers greenfield, brownfield-conservative, and brownfield-incremental adoption strategies including introspection, multi-service namespacing, and incremental contract expansion | [ADR 122 - Database Initialization & Adoption.md](adrs/ADR%20122%20-%20Database%20Initialization%20%26%20Adoption.md) |
 | 123 | Drift Detection, Recovery & Reconciliation | Comprehensive drift taxonomy (marker, schema, graph, capability, transactional, cache, canonicalization), detection mechanisms, and recovery strategies with idempotency patterns | [ADR 123 - Drift Detection, Recovery & Reconciliation.md](adrs/ADR%20123%20-%20Drift%20Detection%2C%20Recovery%20%26%20Reconciliation.md) |
+
+## Product scope
+
+Requests the maintainers have answered, with what to use instead. Accepted ones are also on the [steering list](#steering-list).
+
+| ADR | Title | Description | Link |
+| ----- | ------- | ------------- | ------ |
+| 279 | Prisma 8 does not generate client code | **Proposed.** The emitter writes `contract.json` and `contract.d.ts` only; tools read the contract at runtime | [ADR 279 - Prisma 8 does not generate client code.md](adrs/ADR%20279%20-%20Prisma%208%20does%20not%20generate%20client%20code.md) |
+| 280 | Prisma 8 does not batch queries automatically | **Proposed.** One query lane call is one statement; no hidden batching or data loader. Use `.include(...)`, a key-list filter or `db.transaction(...)` | [ADR 280 - Prisma 8 does not batch queries automatically.md](adrs/ADR%20280%20-%20Prisma%208%20does%20not%20batch%20queries%20automatically.md) |
+| 281 | Prisma 8 has no `$queryRaw` method and no `Prisma.sql` helpers | **Proposed.** Raw SQL is the raw lane, `db.raw.sql`, and `fns.raw` inside a builder query | [ADR 281 - Prisma 8 has no $queryRaw method and no Prisma.sql helpers.md](adrs/ADR%20281%20-%20Prisma%208%20has%20no%20%24queryRaw%20method%20and%20no%20Prisma.sql%20helpers.md) |
+| 282 | TypedSQL is not in Prisma 8.0 | **Proposed.** Not in 8.0; if built, ADR 019 fixes its shape. Use `db.prepare(...)` or the raw lane | [ADR 282 - TypedSQL is not in Prisma 8.0.md](adrs/ADR%20282%20-%20TypedSQL%20is%20not%20in%20Prisma%208.0.md) |
+| 283 | `@default` does not call client-side generators | **Proposed.** `@default` is a database default; client generators are `@onCreate(...)` and `@onUpdate(...)` (ADR 275) | [ADR 283 - @default does not call client-side generators.md](adrs/ADR%20283%20-%20%40default%20does%20not%20call%20client-side%20generators.md) |
+| 284 | Prisma 8 has no `dbgenerated(...)` | **Proposed.** Raw SQL in a schema is a `sql` literal: `` @default(sql`...`) `` (ADR 268) | [ADR 284 - Prisma 8 has no dbgenerated.md](adrs/ADR%20284%20-%20Prisma%208%20has%20no%20dbgenerated.md) |
+| 285 | Prisma 8 has no `Unsupported("...")` field type | **Proposed.** A column of a type no data type claims is ``Raw(sql`...`)`` (ADR 273) | [ADR 285 - Prisma 8 has no Unsupported field type.md](adrs/ADR%20285%20-%20Prisma%208%20has%20no%20Unsupported%20field%20type.md) |
+| 286 | Prisma 8 does not fully manage native Postgres enums | **Proposed.** A contract `enum` is stored with a `CHECK` constraint; native enums managed elsewhere only gain appended values | [ADR 286 - Prisma 8 does not fully manage native Postgres enums.md](adrs/ADR%20286%20-%20Prisma%208%20does%20not%20fully%20manage%20native%20Postgres%20enums.md) |
+| 287 | Prisma 8 has no `db push` to production | **Proposed.** `db update` is for development; production changes go through `migration plan` and `db migrate` | [ADR 287 - Prisma 8 has no db push to production.md](adrs/ADR%20287%20-%20Prisma%208%20has%20no%20db%20push%20to%20production.md) |
+| 288 | Prisma 8 has no implicit many-to-many relations | **Proposed.** Write the join model out; `.include(...)` and nested writes traverse it | [ADR 288 - Prisma 8 has no implicit many-to-many relations.md](adrs/ADR%20288%20-%20Prisma%208%20has%20no%20implicit%20many-to-many%20relations.md) |
+| 289 | Prisma 8 has no `$extends` client extensions | Extend with middleware (ADR 271), extension packages, contributed collection methods (ADR 272) and collection classes (ADR 265) | [ADR 289 - Prisma 8 has no $extends client extensions.md](adrs/ADR%20289%20-%20Prisma%208%20has%20no%20%24extends%20client%20extensions.md) |
+| 290 | Prisma 8 has no numeric `P` error codes | **Proposed.** Errors carry dotted `NAMESPACE.SUBCODE` codes; branch on `code` | [ADR 290 - Prisma 8 has no numeric P error codes.md](adrs/ADR%20290%20-%20Prisma%208%20has%20no%20numeric%20P%20error%20codes.md) |
+| 291 | Prisma 8 has no `$on` events | Middleware on the lifecycle events covers what `$on` did (ADR 271) | [ADR 291 - Prisma 8 has no $on events.md](adrs/ADR%20291%20-%20Prisma%208%20has%20no%20%24on%20events.md) |
+| 292 | Prisma 8 has no `db seed` command | **Proposed.** Not in 8.0. Run a TypeScript script that imports your `db` client | [ADR 292 - Prisma 8 has no db seed command.md](adrs/ADR%20292%20-%20Prisma%208%20has%20no%20db%20seed%20command.md) |
+| 293 | Validations, lifecycle callbacks, soft delete and default scopes are not in the core | Each can be built in an extension or user code: arktype, middleware, a `notDeleted` scope, named scopes | [ADR 293 - Validations, lifecycle callbacks, soft delete and default scopes are not in the core.md](adrs/ADR%20293%20-%20Validations,%20lifecycle%20callbacks,%20soft%20delete%20and%20default%20scopes%20are%20not%20in%20the%20core.md) |
+| 294 | Prisma 8 does not publish CommonJS | **Proposed.** ESM-only (ADR 222) | [ADR 294 - Prisma 8 does not publish CommonJS.md](adrs/ADR%20294%20-%20Prisma%208%20does%20not%20publish%20CommonJS.md) |
+| 295 | New features do not land on Prisma 7 | **Proposed.** Prisma 7 gets bug fixes and security updates for eighteen months after `8.0.0` final, nothing else | [ADR 295 - New features do not land on Prisma 7.md](adrs/ADR%20295%20-%20New%20features%20do%20not%20land%20on%20Prisma%207.md) |
+| 296 | Prisma 8 has no `relationLoadStrategy` | Include the relation and the database joins it; there is nothing to choose | [ADR 296 - Prisma 8 has no relationLoadStrategy.md](adrs/ADR%20296%20-%20Prisma%208%20has%20no%20relationLoadStrategy.md) |
+| 297 | Prisma 8 has no built-in query log or tracing spans | **Proposed.** Not in 8.0. Write logging and tracing as middleware (ADR 271) | [ADR 297 - Prisma 8 has no built-in query log or tracing spans.md](adrs/ADR%20297%20-%20Prisma%208%20has%20no%20built-in%20query%20log%20or%20tracing%20spans.md) |
 
 ## Notes
 
