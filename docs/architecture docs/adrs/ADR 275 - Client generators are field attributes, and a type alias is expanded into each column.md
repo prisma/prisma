@@ -1,11 +1,12 @@
 # ADR 275 — Client generators are field attributes, and a type alias is expanded into each column
 
-**Status:** Accepted
+**Status:** Implemented
 **Date:** 2026-10-16
 **Builds on:** [ADR 158 — Execution mutation defaults](ADR%20158%20-%20Execution%20mutation%20defaults.md), [ADR 241 — Scalar types use the authoring type-constructor channel](ADR%20241%20-%20Scalar%20types%20use%20the%20authoring%20type-constructor%20channel.md), [ADR 269 — PSL mixins](ADR%20269%20-%20PSL%20mixins.md)
 **Supersedes:** the field-preset half of [ADR 170 — Pack-provided type constructors and field presets](ADR%20170%20-%20Pack-provided%20type%20constructors%20and%20field%20presets.md); [ADR 246 — Option arguments and select templates for authoring helpers](ADR%20246%20-%20Option%20arguments%20and%20select%20templates%20for%20authoring%20helpers.md), except its two omission rules
 **Amends:** [ADR 104](ADR%20104%20-%20PSL%20extension%20namespacing%20%26%20syntax.md), [ADR 158](ADR%20158%20-%20Execution%20mutation%20defaults.md), [ADR 169 — Declared applicability for mutation default generators](ADR%20169%20-%20Declared%20applicability%20for%20mutation%20default%20generators.md), [ADR 208 — Higher-order codecs for parameterized types](ADR%20208%20-%20Higher-order%20codecs%20for%20parameterized%20types.md), [ADR 212 — AST-bound codec resolution](ADR%20212%20-%20AST-bound%20codec%20resolution.md), [ADR 231](ADR%20231%20-%20Declarative%20attribute%20specifications.md), [ADR 241](ADR%20241%20-%20Scalar%20types%20use%20the%20authoring%20type-constructor%20channel.md), [ADR 249](ADR%20249%20-%20Central%20attribute-spec%20registry.md), [ADR 254](ADR%20254%20-%20Data%20types%20and%20casts.md)
 **Amended 2026-10-21:** the TypeScript `types` key is renamed `databaseTypes` and registers database types only; a contributed alias is used as `field.column(type.temporal.UpdatedAt())`; a contributed alias carries no database default; Mongo's contributed aliases are on `Date`; the Mongo TypeScript builder gets no contributed aliases yet. Each change is marked "Amended 2026-10-21" below.
+**Amended 2026-10-22:** every SQL target gains the type constructor `sql.Char(n)`, because SQLite had no other way to write the `sql/char@1` column of the identifier presets; a preset call is refused with its exact rewrite; the `number` and `object` argument kinds and an argument reference's `path` and `default` go with `option` and `select`; `@prisma/orm-postgres/contract-builder` exports `type`. Each change is marked "Amended 2026-10-22" below.
 
 ---
 
@@ -137,6 +138,8 @@ model Event {
 
 The identifier presets have no alias form, because an alias may not carry `@id`. `id.uuidv4String()` becomes `Char(36) @id @onCreate(uuid())`, and `id.uuidv7Native()` becomes `Uuid @id @onCreate(uuid(7))`. The plain scalar presets (`text`, `int`, `boolean`, …) are already PSL type constructors (`String`, `Int`, `Boolean`, …).
 
+(Amended 2026-10-22.) The SQL family contributed its identifier presets to SQLite too, and SQLite had no type constructor for their `sql/char@1` column, since `Char(n)` is a Postgres constructor. So every SQL target gets `sql.Char(n)`, beside `sql.String(n)`, and the replacement of a family preset is written with it: `sql.Char(36) @id @onCreate(uuid())`. On Postgres, `Char(36)` stores the same column and stays the form that `contract print` writes and the docs use. A preset call is refused with `PSL_UNRESOLVED_REFERENCE`, through the family's `describeUnresolvedType`, and the message is the exact rewrite: `id.uuidv4String() was a field preset, and Prisma 8 removed field presets. Write sql.Char(36) @id @onCreate(uuid()).` A component whose `authoring` still has a `field` key is refused with `CONTRACT.PACK_CONTRIBUTION_INVALID`, so an extension built against the old types does not lose its presets silently.
+
 ### The TypeScript builder
 
 The builder mirrors PSL. The field builder gets `.onCreate(...)` and `.onUpdate(...)` (new), immutable like `.default()`. They take a generator function call from a `gen` namespace (new): `gen.now()`, `gen.uuid(7)`, `gen.nanoid()`, and so on. `gen` is built from the composed packs, as the `type` helpers are, so a stack's `gen` holds exactly the functions its packs declare, an extension's included. Lowering resolves the call by the column's codec through the same registry PSL uses. `.default()` keeps taking a literal or the database functions `now()` and `autoincrement()`.
@@ -154,7 +157,7 @@ const Post = model('Post', {
 });
 ```
 
-`type.*` gets a helper for every PSL type constructor of the stack (most are new, such as `type.TimestampString(3)`), and `field.column` accepts the result. Contributed aliases appear as `type.temporal.UpdatedAt()` (new). `field.generated(...)`, the codec-instance use of `field.namedType(...)`, the `types` key for codec instances and every preset helper are removed.
+`type.*` gets a helper for every PSL type constructor of the stack (most are new, such as `type.TimestampString(3)`), and `field.column` accepts the result. Contributed aliases appear as `type.temporal.UpdatedAt()` (new). `field.generated(...)`, the codec-instance use of `field.namedType(...)`, the `types` key for codec instances and every preset helper are removed. (Amended 2026-10-22.) The `field` that `@prisma/orm-postgres/contract-builder` exports for query fragments had the presets, so the entry also exports `type`, and a fragment writes `field.column(type.Timestamptz())`, as a contract does.
 
 (Amended 2026-10-21.) The `types` key cannot simply go. pgvector and PostGIS register their database types, `vector` and `geometry`, through it, because PSL has no syntax for an extension to register a database type. The key is renamed `databaseTypes`, and it means only "register a database type in this contract space". No column can reference an entry, because `field.namedType(...)` keeps only its enum-handle form. A definition that still has a `types` key is refused with `CONTRACT.TYPES_KEY_REMOVED`, whose message says to write an alias as a constant and a registered type under `databaseTypes`. Keeping the old name would silently turn every existing user alias into a registered database type. pgvector's and PostGIS's contracts and hashes do not change.
 
@@ -164,7 +167,7 @@ A contributed alias is used through `field.column`, like every other `type.*` he
 | --- | --- |
 | `field.temporal.timestamp(3, 'now', 'now')` | `field.column(type.Timestamp(3)).onCreate(gen.now()).onUpdate(gen.now())` |
 | `field.temporal.updatedAt()` | `field.column(type.temporal.UpdatedAt())` (amended 2026-10-21) |
-| `field.id.uuidv4String()` | `field.column(charColumn(36)).id().onCreate(gen.uuid())` |
+| `field.id.uuidv4String()` | `field.column(type.Char(36)).id().onCreate(gen.uuid())` on Postgres, `field.column(type.sql.Char(36)).id().onCreate(gen.uuid())` on every SQL target (amended 2026-10-22) |
 
 ### Mongo
 
@@ -186,8 +189,8 @@ The Prisma 7 reader builds the contract directly and writes no aliases. It reads
 - **Hashes.** Rewriting a preset or `@default(uuid())` as attributes changes no hash when the column and generators are the same. A contract with a `types {}` block or TypeScript `types` gets a new storage hash, because its columns lose `typeRef` and gain inline params. Supabase's space contract gets a new hash. pgvector's and PostGIS's do not.
 - **Upgrade.** The upgrade instructions ship a script that rewrites stored contracts and migration snapshots into the expanded form and refreshes their hashes, as the removal of `@noCheck` did. Users then re-emit and run `db sign` against every database. `migration plan` alone cannot record the new hash, because the change has no operations. The instructions also give the PSL and TypeScript rewrites for presets.
 - **Breaking for extension authors.** A default function can no longer lower to a client generator: `ControlMutationDefaultEntry.lower` returns a database default only. An extension that generated a value through a default function, such as `slugid()`, contributes a generator function with a binding for each codec it fills instead. `printArguments` and `applicableCodecIds` are removed; a binding declares the codecs it fills and how `contract print` writes each generator.
-- **Diagnostics.** The `PSL_PRESET_*` diagnostics and the refusal of preset-only generators in `@default` are removed. `@default(uuid())` gets a refusal that names `@onCreate(uuid())`.
-- **Less code.** The `fieldPreset` descriptor kind, `instantiateAuthoringFieldPreset`, the `option` argument kind, the `select` template node, the temporal preset builders and the preset print search are removed. The language server loses its field-preset completion branch.
+- **Diagnostics.** The `PSL_PRESET_*` diagnostics and the refusal of preset-only generators in `@default` are removed. `@default(uuid())` gets a refusal that names `@onCreate(uuid())`. (Amended 2026-10-22.) A preset call is `PSL_UNRESOLVED_REFERENCE` with its rewrite. Mongo's `PSL_PRESET_ON_VARIANT_FIELD` and `PSL_PRESET_CONFLICT`, which also fire for `@onCreate` and `@onUpdate`, are renamed `PSL_GENERATOR_ON_VARIANT_FIELD` and `PSL_GENERATOR_CONFLICT`.
+- **Less code.** The `fieldPreset` descriptor kind, `instantiateAuthoringFieldPreset`, the `authoring.field` namespace, the `option`, `number` and `object` argument kinds, the `select` template node, the `path` and `default` of an argument reference, the PSL text parsers only those kinds used, the temporal preset builders, `field.generated(...)` with the `@internal/ids` spec helpers, and the preset print search are removed (amended 2026-10-22). Only the `value` argument kind is left. The language server loses its field-preset completion and hover branches.
 
 ## ADRs this changes
 

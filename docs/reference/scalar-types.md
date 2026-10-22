@@ -46,10 +46,9 @@ A contract written in Prisma 8 PSL and one built with the TypeScript builder get
 
 The PSL names `Int`, `Float`, `Boolean` and `DateTime` are deprecated aliases of `Int32`, `Double`, `Bool` and `Date`; they report `PSL_DEPRECATED_SCALAR_NAME` as a warning and will be removed.
 
-Two limitations to know about:
+One limitation to know about:
 
 - `Binary` reads every binData subtype back as its bytes and writes subtype 0, so a UUID stored as subtype 4 round-trips as subtype 0. Use `Bson` to keep the subtype.
-- `field.temporal.timestamp(undefined, 'now')` sets an update default only, and TypeScript infers both phases as optional, so its update default is typed as possibly absent. `field.temporal.timestamp()` and `field.temporal.timestamp('now', 'now')` are typed exactly.
 
 ### Values through the Mongo ORM
 
@@ -69,8 +68,8 @@ These are the current names. The Postgres and SQLite rename project will change 
 | PSL name | TS helper | Codec id | Storage type | Application type |
 | --- | --- | --- | --- | --- |
 | `String` | `field.column(type.String())` | `pg/text@1` | `text` | `string` |
-| `VarChar(n?)` | — | `sql/varchar@1` | `character varying` | `string` |
-| `Char(n?)` | — | `sql/char@1` | `character` | `string` |
+| `VarChar(n?)`, `sql.String(n)` | `field.column(type.VarChar(n))` | `sql/varchar@1` | `character varying` | `string` |
+| `Char(n?)`, `sql.Char(n)` | `field.column(type.Char(n))` | `sql/char@1` | `character` | `string` |
 | `Boolean` | `field.column(type.Boolean())` | `pg/bool@1` | `bool` | `boolean` |
 | `SmallInt` | — | `pg/int2@1` | `int2` | `number` |
 | `Int` | `field.column(type.Int())` | `pg/int4@1` | `int4` | `number` |
@@ -106,7 +105,7 @@ The tools that write a schema for you use the text date and time types. In a PSL
 
 ## SQLite
 
-These are the current names; the Postgres and SQLite rename project will update this table. SQLite has no scalar TS helpers; use `field.column(...)`.
+These are the current names; the Postgres and SQLite rename project will update this table. Write a TypeScript field as `field.column(type.X())` with the type of the PSL name, such as `field.column(type.DateTime())`, or `field.column(...)` with a column type from `adapter/column-types`. `sql.String(n)` and `sql.Char(n)` exist on every SQL target; SQLite accepts their length and does not enforce it.
 
 | PSL name | TS helper | Codec id | Storage type | Application type |
 | --- | --- | --- | --- | --- |
@@ -119,6 +118,8 @@ These are the current names; the Postgres and SQLite rename project will update 
 | `DateTime` | — | `sqlite/datetime@1` | `text` | `Date` |
 | `Json` | — | `sqlite/json@1` | `text` | `JsonValue` |
 | `Bytes` | — | `sqlite/blob@1` | `blob` | `Uint8Array` |
+| `sql.String(n)` | `field.column(type.sql.String(n))` | `sql/varchar@1` | `character varying` | `string` |
+| `sql.Char(n)` | `field.column(type.sql.Char(n))` | `sql/char@1` | `character` | `string` |
 
 A `DateTime` default is written with the `datetime` tag, as in `@default(datetime`2024-01-01T00:00:00Z`)`, and a `Json` default with the `json` tag. A `DateTime` column has the data type `sqlite/datetime` and a `Json` column `sqlite/json`, both stored as `text`. A `DateTime` default is stored as the instant in UTC with three fraction digits, the text every row holds, however it was written; [ADR 254](../architecture%20docs/adrs/ADR%20254%20-%20Data%20types%20and%20casts.md#date-and-time-types) states the form and the text it takes.
 

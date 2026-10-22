@@ -19,7 +19,7 @@ Provides the SQL family descriptor (`ControlFamilyDescriptor`) that includes:
 - **Destructive Change Detection**: Compares two `SqlStorage` values and identifies destructive changes (dropped tables/columns) for migration policy enforcement
 - **Storage Type Control Hooks**: Extracts codec-owned control hooks for planning/verification/introspection of `storage.types` without adding enum-specific fields to shared IR
 - **Codec Ownership**: Enforces a single owner per `codecId` for parameterized renderers and control-plane hooks to prevent ambiguous conflicts during assembly
-- **Authoring Contribution Assembly**: Assembles authoring contributions (type constructors, field presets) from composed components for PSL interpretation
+- **Authoring Contribution Assembly**: Assembles authoring contributions (type constructors, type aliases) from composed components for PSL interpretation
 - **Raw columns**: Contributes the ``Raw(sql`...`)`` type constructor, for a column of a type no other column type covers, on every SQL target (ADR 273); each target contributes `sql.String` and `sql.Char`, built by `sqlTargetTypeConstructors({ sizeType })` from `@internal/family-sql/pack` with its size type, the data type of a length or a precision
 - **Column Type Verification**: Compares each column by the data type it is stored as, its parameters in normal form, and whether it is a list. Introspection resolves the type the database reports to the data type that claims it; a type no data type in the stack claims is reported as a mismatch naming that type
 - **Schema Defaults Policy**: Ignores execution mutation defaults during schema verification since they are applied before DB writes
