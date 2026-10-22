@@ -18,12 +18,13 @@ model Event {
   span      IntervalString(3)
   day       Date
   clock     Time
-  clock3    Time(3)
+  clock3    Time(precision: 3)
   zonedText TimestamptzString(3)
   localText TimestampString(3)
   dayText   DateString
   clockText TimeString(3)
   offset    Timetz
+  lasts     Duration
 }
 `;
 
@@ -39,12 +40,12 @@ function fieldTypes(printed: string): Record<string, string> {
 }
 
 describe('contract print spells each date and time column', () => {
-  it('as the type contract infer writes, or else as the explicit type that reads the column back', async () => {
+  it('as the type contract infer writes, or else as the explicit type that reads the column back, a convenience type included', async () => {
     const contract = await readPsl(SCHEMA);
 
     expect(fieldTypes(printContract(contract).text)).toEqual({
       id: 'Int',
-      instant: 'TimestamptzTemporal',
+      instant: 'TimestamptzJsDate(3)',
       zoned: 'TimestamptzTemporal',
       zoned3: 'TimestamptzTemporal(3)',
       local: 'TimestampTemporal',
@@ -55,14 +56,15 @@ describe('contract print spells each date and time column', () => {
       clockT: 'TimeTemporal(0)',
       period: 'IntervalParts',
       span: 'IntervalString(3)',
-      day: 'DateTemporal',
-      clock: 'TimeTemporal',
-      clock3: 'TimeTemporal(3)',
+      day: 'DateString',
+      clock: 'TimeString',
+      clock3: 'TimeString(3)',
       zonedText: 'TimestamptzString(3)',
       localText: 'TimestampString(3)',
       dayText: 'DateString',
       clockText: 'TimeString(3)',
       offset: 'Timetz',
+      lasts: 'IntervalString',
     });
     expect(await printAndReadBack(contract)).toEqual(contract);
   });

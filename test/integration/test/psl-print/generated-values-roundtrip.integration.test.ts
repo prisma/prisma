@@ -130,8 +130,8 @@ describe('every generated value the stack reads prints as PSL that reads back', 
 model Event {
   id        String      @id @onCreate(uuid(7))
   code      VarChar(32) @onCreate(nanoid())
-  seenAt    Time(3)     @onUpdate(now())
-  createdAt DateTime    @default(now()) @onCreate(now())
+  seenAt    TimeTemporal(3)     @onUpdate(now())
+  createdAt TimestamptzTemporal    @default(now()) @onCreate(now())
 }
 `);
       const fieldLines = printContract(authored)

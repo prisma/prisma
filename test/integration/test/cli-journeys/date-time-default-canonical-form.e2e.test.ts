@@ -178,8 +178,8 @@ withTempDir(({ createTempDir }) => {
 
 model Created {
   id      Int       @id
-  instant DateTime  @default(timestamptz\`0044-03-15 00:00:00+00 BC\`)
-  day     Date      @default(date\`0044-03-15 BC\`)
+  instant TimestamptzTemporal  @default(timestamptz\`0044-03-15 00:00:00+00 BC\`)
+  day     DateTemporal      @default(date\`0044-03-15 BC\`)
   local   TimestampTemporal @default(timestamp\`-000043-03-15T12:00:00\`)
 
   @@map("created")
@@ -187,8 +187,8 @@ model Created {
 `;
     const altered = (defaults: boolean) => `model Altered {
   id      Int       @id
-  instant DateTime  ${defaults ? '@default(timestamptz`-000043-03-15T00:00:00Z`)' : ''}
-  day     Date      ${defaults ? '@default(date`-000043-03-15`)' : ''}
+  instant TimestamptzTemporal  ${defaults ? '@default(timestamptz`-000043-03-15T00:00:00Z`)' : ''}
+  day     DateTemporal      ${defaults ? '@default(date`-000043-03-15`)' : ''}
   local   TimestampTemporal ${defaults ? '@default(timestamp`0044-03-15 12:00:00 BC`)' : ''}
 
   @@map("altered")

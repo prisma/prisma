@@ -13,7 +13,6 @@ const contract = defineContract({}, ({ type, field, model }) => ({
         local: field.column(type.TimestampTemporal()),
         day: field.column(type.DateTemporal()),
         opens: field.column(type.TimeTemporal(0)),
-        legacyDay: field.column(type.Date()),
         utcAt: field.column(type.TimestampInstant(6)),
         utcDate: field.column(type.TimestampJsDate(3)),
         span: field.column(type.IntervalString(3)),
@@ -30,7 +29,6 @@ test('a Temporal field is typed precisely in a project without the global Tempor
   expectTypeOf<EventRow['local']>().toEqualTypeOf<Temporal.PlainDateTime>();
   expectTypeOf<EventRow['day']>().toEqualTypeOf<Temporal.PlainDate>();
   expectTypeOf<EventRow['opens']>().toEqualTypeOf<Temporal.PlainTime>();
-  expectTypeOf<EventRow['legacyDay']>().toEqualTypeOf<Temporal.PlainDate>();
   expectTypeOf<EventRow['utcAt']>().not.toBeAny();
   expectTypeOf<EventRow['utcAt']>().toEqualTypeOf<Temporal.Instant>();
 });
@@ -52,4 +50,64 @@ test('every Temporal codec names its type through an import', () => {
 test('a timestamp read as a Date reads a Date, and an interval read as a string reads a string', () => {
   expectTypeOf<EventRow['utcDate']>().toEqualTypeOf<Date>();
   expectTypeOf<EventRow['span']>().toEqualTypeOf<string>();
+});
+
+const convenience = defineContract({}, ({ type, field, model }) => ({
+  models: {
+    Order: model('Order', {
+      fields: {
+        id: field.id.uuidv4String(),
+        paidAt: field.column(type.DateTime()),
+        settledAt: field.column(type.DateTime('temporal')),
+        textAt: field.column(type.DateTime('string', undefined, 6)),
+        legacyAt: field.column(type.DateTime(undefined, 'timestamp')),
+        utcAt: field.column(type.DateTime('temporal', 'timestamp')),
+        shipBy: field.column(type.Date()),
+        shipOn: field.column(type.Date('temporal')),
+        opensAt: field.column(type.Time(undefined, undefined, 0)),
+        opensAtT: field.column(type.Time('temporal')),
+        localAt: field.column(type.Time(undefined, 'timetz')),
+        period: field.column(type.Duration()),
+        parts: field.column(type.Duration('parts')),
+        textAtExplicit: field.column(type.TimestamptzString(6)),
+        opensAtExplicit: field.column(type.TimeString(0)),
+        localAtExplicit: field.column(type.Timetz()),
+        partsExplicit: field.column(type.IntervalParts()),
+      },
+    }),
+  },
+}));
+
+type OrderRow = DefaultModelRow<typeof convenience, 'Order'>;
+
+test('a convenience type is typed as the value of the explicit type it chooses', () => {
+  expectTypeOf<OrderRow['paidAt']>().toEqualTypeOf<Date>();
+  expectTypeOf<OrderRow['settledAt']>().toEqualTypeOf<Temporal.Instant>();
+  expectTypeOf<OrderRow['textAt']>().toEqualTypeOf<OrderRow['textAtExplicit']>();
+  expectTypeOf<OrderRow['legacyAt']>().toEqualTypeOf<Date>();
+  expectTypeOf<OrderRow['utcAt']>().toEqualTypeOf<Temporal.Instant>();
+  expectTypeOf<OrderRow['shipBy']>().toEqualTypeOf<string>();
+  expectTypeOf<OrderRow['shipOn']>().toEqualTypeOf<Temporal.PlainDate>();
+  expectTypeOf<OrderRow['opensAt']>().toEqualTypeOf<OrderRow['opensAtExplicit']>();
+  expectTypeOf<OrderRow['opensAtT']>().toEqualTypeOf<Temporal.PlainTime>();
+  expectTypeOf<OrderRow['localAt']>().toEqualTypeOf<OrderRow['localAtExplicit']>();
+  expectTypeOf<OrderRow['period']>().toEqualTypeOf<string>();
+  expectTypeOf<OrderRow['parts']>().not.toBeAny();
+  expectTypeOf<OrderRow['parts']>().toEqualTypeOf<OrderRow['partsExplicit']>();
+});
+
+test('a convenience type helper refuses a combination with no explicit type', () => {
+  defineContract({}, ({ type, field, model }) => ({
+    models: {
+      Order: model('Order', {
+        fields: {
+          id: field.id.uuidv4String(),
+          // @ts-expect-error Temporal.PlainTime cannot hold a timetz offset
+          at: field.column(type.Time('temporal', 'timetz')),
+          // @ts-expect-error a calendar date is never a JavaScript Date
+          day: field.column(type.Date('jsDate')),
+        },
+      }),
+    },
+  }));
 });

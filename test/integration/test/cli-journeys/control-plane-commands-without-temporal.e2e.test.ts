@@ -43,7 +43,7 @@ const EMIT_SCHEMA = `// use prisma-8
 
 model Event {
   id        Int      @id
-  createdAt DateTime @default(timestamptz\`2024-01-01T00:00:00Z\`)
+  createdAt TimestamptzTemporal @default(timestamptz\`2024-01-01T00:00:00Z\`)
 }
 `;
 
@@ -51,9 +51,9 @@ const ONE_INSTANT_SCHEMA = `// use prisma-8
 
 model Event {
   id Int      @id
-  a  DateTime @default(timestamptz\`2024-01-01T00:00:00Z\`)
-  b  DateTime @default(timestamptz\`2024-01-01T00:00:00.000Z\`)
-  c  DateTime @default(timestamptz\`2024-01-01T01:00:00+01:00\`)
+  a  TimestamptzTemporal @default(timestamptz\`2024-01-01T00:00:00Z\`)
+  b  TimestamptzTemporal @default(timestamptz\`2024-01-01T00:00:00.000Z\`)
+  c  TimestamptzTemporal @default(timestamptz\`2024-01-01T01:00:00+01:00\`)
 }
 `;
 
