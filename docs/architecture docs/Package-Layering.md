@@ -76,16 +76,18 @@ The SQL domain (`packages/2-sql-family/`) contains SQL-specific packages organiz
 * 2-sql-family
 |-- 1-core (shared plane)
 |   |-- contract/      → @internal/sql-contract
+|   |-- errors/        → @internal/sql-errors
 |   |-- operations/    → @internal/sql-operations
 |   |-- schema-ir/     → @internal/sql-schema-ir
 |-- 2-authoring (migration plane)
+|   |-- contract-prisma7/ → @internal/sql-contract-prisma7
+|   |-- contract-psl/  → @internal/sql-contract-psl
 |   |-- contract-ts/   → @internal/sql-contract-ts
 |-- 3-tooling (migration plane)
 |   |-- emitter/       → @internal/sql-contract-emitter
 |-- 4-lanes (runtime plane)
 |   |-- relational-core/ → @internal/sql-relational-core
-|   |-- sql-lane/      → @internal/sql-lane
-|   |-- orm-lane/      → @internal/sql-orm-lane
+|   |-- sql-builder/   → @internal/sql-builder
 |-- 5-runtime (runtime plane)
     |-- → @internal/sql-runtime
 |-- 9-family (migration plane)
@@ -162,7 +164,7 @@ Clean Architecture layers for Prisma 8:
 - **Runtime** – per-family runtime implementations that extend `RuntimeCore` from `@internal/framework-components/runtime` (core layer).
 - **Adapters** – database adapters/drivers and optional compat layers.
 
-Dependencies flow downward (toward core); lateral dependencies within the same layer are permitted. Example: `@internal/sql-lane` and `@internal/sql-orm-lane` both live in the Lanes layer, so they may share helpers via `@internal/sql-relational-core`, but neither may depend on Runtime or Adapters. Optional compat packages live at the edge alongside adapters; they can depend on inner layers but do not form a separate layer.
+Dependencies flow downward (toward core); lateral dependencies within the same layer are permitted. Example: `@internal/sql-builder` lives in the Lanes layer, so it may use helpers from `@internal/sql-relational-core` in the same layer, but may not depend on Runtime or Adapters. Optional compat packages live at the edge alongside adapters; they can depend on inner layers but do not form a separate layer.
 
 ```
 Core → Authoring → Targets → Lanes → Runtime → Adapters
@@ -202,7 +204,7 @@ The runtime ring is a single layer: `RuntimeCore` (the abstract base) lives on `
 
 **Within a domain:**
 - Layers may depend laterally (same layer) and downward (toward core), never upward.
-- Example: `@internal/sql-lane` and `@internal/sql-orm-lane` both live in the Lanes layer, so they may share helpers via `@internal/sql-relational-core`, but neither may depend on Runtime or Adapters.
+- Example: `@internal/sql-builder` lives in the Lanes layer, so it may use helpers from `@internal/sql-relational-core` in the same layer, but may not depend on Runtime or Adapters.
 
 **Cross-domain:**
 - Cross-domain imports are forbidden except when importing framework packages.
@@ -212,7 +214,7 @@ The runtime ring is a single layer: `RuntimeCore` (the abstract base) lives on `
 - Migration plane (authoring, tooling, targets) must not import runtime plane code.
 - Runtime plane may consume artifacts (JSON/manifests) from migration, but not code imports.
 - Shared plane must not import from migration or runtime planes.
-- Example: `@internal/sql-contract-ts` (migration plane) cannot import from `@internal/sql-lane` (runtime plane).
+- Example: `@internal/sql-contract-ts` (migration plane) cannot import from `@internal/sql-builder` (runtime plane).
 
 Plane import constraints are enforced declaratively via `planeRules` in `architecture.config.json`. Each plane specifies which planes it can import from (`allow`) and which are forbidden (`forbid`), with optional exceptions for temporary refactoring needs.
 
@@ -263,8 +265,7 @@ Target-family specific emitter hooks and family-provided helpers for CLI assembl
 Lanes consume targets and relational-core helpers to produce AST plans. Packages in this layer may depend laterally on other lane utilities (e.g., shared relational helpers) and on inner layers, but not on runtime/adapter layers.
 
 - `packages/2-sql-family/4-lanes/relational-core/` → `@internal/sql-relational-core` – shared schema/column builders, operation attachment, AST factories
-- `packages/2-sql-family/4-lanes/sql-lane/` → `@internal/sql-lane` – SQL DSL + raw lane (Phase 1 refactor keeps API stable while using shared factories)
-- `packages/2-sql-family/4-lanes/orm-lane/` → `@internal/sql-orm-lane` – ORM builder (Phase 1 removes dependency on `sql-lane`)
+- `packages/2-sql-family/4-lanes/sql-builder/` → `@internal/sql-builder` – the SQL query builder and raw SQL lane
 
 ### Runtime Layer
 
@@ -280,19 +281,13 @@ Per-family runtime implementations that extend the abstract `RuntimeCore` from `
 
 ### Adapters Layer (Targets Domain, Multi-Plane)
 
-Database adapters, drivers, and targets (dialects) live in the Targets domain as separate packages. Adapters use multi-plane entrypoints to support both control (migration) and runtime usage.
+A database's target pack, adapter and driver are separate packages in `packages/3-targets/<db>/`. Each spans planes through its entrypoints: `src/exports/control.ts` (migration), `src/exports/runtime.ts` (runtime), and shared code under `src/core/`.
 
-**Targets (Migration Plane):**
-- `packages/3-targets/postgres/1-target/` → `@internal/target-postgres` - Postgres target descriptor
-
-**Adapters (Multi-Plane: Shared, Migration, Runtime):**
-- `packages/3-targets/postgres/2-adapter/` → `@internal/adapter-postgres` - Postgres adapter with multi-plane entrypoints:
-  - `src/core/**` → shared plane (adapter SPI implementation)
-  - `src/exports/control.ts` → migration plane (control plane descriptor)
-  - `src/exports/runtime.ts` → runtime plane (runtime factory)
-
-**Drivers (Runtime Plane):**
+- `packages/3-targets/postgres/1-target/` → `@internal/target-postgres` - Postgres target pack: descriptor, codecs, data types, migration planner and runner
+- `packages/3-targets/postgres/2-adapter/` → `@internal/adapter-postgres` - Postgres adapter: lowering, control adapter
 - `packages/3-targets/postgres/3-driver/` → `@internal/driver-postgres` - Postgres driver
+
+In `architecture.config.json` the target pack and facade are registered in the `extensions` domain and the adapter, driver and codec testkit in the `targets` domain. They do not yet share one domain.
 
 ## Naming Conventions
 
@@ -335,10 +330,9 @@ Database adapters, drivers, and targets (dialects) live in the Targets domain as
 | `packages/2-sql-family/1-core/schema-ir/` | `@internal/sql-schema-ir` |
 | `packages/2-sql-family/2-authoring/contract-ts/` | `@internal/sql-contract-ts` |
 | `packages/2-sql-family/3-tooling/emitter/` | `@internal/sql-contract-emitter` |
-| `packages/2-sql-family/3-tooling/family/` | `@internal/family-sql` |
+| `packages/2-sql-family/9-family/` | `@internal/family-sql` |
 | `packages/2-sql-family/4-lanes/relational-core/` | `@internal/sql-relational-core` |
-| `packages/2-sql-family/4-lanes/sql-lane/` | `@internal/sql-lane` |
-| `packages/2-sql-family/4-lanes/orm-lane/` | `@internal/sql-orm-lane` |
+| `packages/2-sql-family/4-lanes/sql-builder/` | `@internal/sql-builder` |
 | `packages/2-sql-family/5-runtime/` | `@internal/sql-runtime` |
 | `packages/3-targets/mongo/1-target/` | `@internal/target-mongo` |
 | `packages/3-targets/mongo/2-adapter/` | `@internal/adapter-mongo` |
@@ -366,7 +360,7 @@ Database adapters, drivers, and targets (dialects) live in the Targets domain as
 - **`2-sql-family/3-tooling/*`** → can import from `1-core/*` and `2-authoring/*` only
 - **`2-mongo-family/3-tooling/*`** and **`2-mongo-family/9-family`** → can import from `1-core/*` and `2-authoring/*` only
 - **`2-sql-family/4-lanes/*`** → can import from `1-core/*`, `2-authoring/*`, `2-sql-family/3-tooling/*` only
-- **`2-sql-family/5-runtime`** → can import from `1-framework/1-core/framework-components` (for `RuntimeCore` / `RuntimeMiddleware` / `runWithMiddleware`), `2-sql-family/3-tooling/*`, `2-sql-family/4-lanes/*`, and `3-targets/<db>/2-adapter` only
+- **`2-sql-family/5-runtime`** → can import from `1-framework/1-core/framework-components` (for `RuntimeCore` / `RuntimeMiddleware` / `runWithMiddleware`), `2-sql-family/3-tooling/*`, and `2-sql-family/4-lanes/*` only; it never imports a concrete database's packages
 - **`2-mongo-family/4-query/*`, `5-query-builders/*`, `6-transport/*`, `7-runtime`** → follow the same downward-only rule within the Mongo family plus allowed framework imports (notably `1-framework/1-core/framework-components` for the runtime SPI)
 - **`3-targets/<db>/2-adapter`** (SQL databases) → can import from `2-sql-family/3-tooling/*` and `2-sql-family/5-runtime` only
 - **`3-targets/mongo/2-adapter`** → can import from Mongo family shared/runtime layers, not SQL family packages
@@ -385,7 +379,7 @@ Use curated subpath exports to keep public API stable across internal moves:
 
 ```json
 {
-  "name": "@internal/sql-lane",
+  "name": "@internal/sql-builder",
   "type": "module",
   "exports": {
     ".": {
@@ -443,14 +437,14 @@ Dependency Cruiser:
 - Maps package directory globs to {domain, layer, plane} based on configuration
 - Converts glob patterns to regex patterns in `dependency-cruiser.config.mjs`
 - Uses TypeScript path resolution for accurate module resolution
-- Allows same-layer imports (e.g., `orm-lane` can import from `sql-relational-core`)
+- Allows same-layer imports (e.g., `sql-builder` can import from `sql-relational-core`)
 - Enforces cross-domain rules (only framework can be imported cross-domain)
 - Enforces plane boundaries via declarative `planeRules` in `architecture.config.json`:
   - Shared plane cannot import from migration or runtime
   - Migration plane cannot import from runtime
   - Runtime plane cannot import from migration (with documented exceptions)
 
-**Status:** ✅ Import validation is active and enforces Domains/Layers/Planes dependency rules using Dependency Cruiser with data-driven configuration. Plane rules are defined declaratively in `architecture.config.json` rather than hardcoded in the dependency cruiser config.
+**Status:** Import validation checks imports between files of the same package. It does not yet see imports from one workspace package to another: those resolve to `dist/`, which is excluded. Plane rules are defined declaratively in `architecture.config.json` rather than hardcoded in the dependency cruiser config.
 
 ## Adding New Packages
 
@@ -461,7 +455,7 @@ When adding a new package:
 3. **Choose the correct plane** (migration, runtime, or shared)
 4. **Follow naming conventions** - use hyphenated names, encode family in prefix
 5. **Add package mapping** to `architecture.config.json` with domain/layer/plane
-   - For multi-plane packages, add separate globs for each plane (e.g., `src/core/**` for shared, `src/exports/cli.ts` for migration, `src/exports/runtime.ts` for runtime)
+   - For multi-plane packages, add separate, non-overlapping globs for each plane (e.g., `src/core/*.ts` for shared, `src/core/migrations/**` and `src/exports/control.ts` for migration, `src/exports/runtime.ts` for runtime). Every source file must match exactly one glob
 6. **Add project references** to `tsconfig.base.json`.
 7. **Add workspace pattern** to `pnpm-workspace.yaml` if needed
 8. **Create README.md** documenting purpose, dependencies, and architecture with domain/layer/plane labels
@@ -471,12 +465,13 @@ When adding a new package:
 
 Some packages span multiple planes (e.g., adapters that have both control plane entry points and runtime code). These packages use a structured layout:
 
-- **`src/core/**`**: Shared plane code that can be imported by both migration and runtime planes
+- **`src/core/*.ts`**: Shared plane code that can be imported by both migration and runtime planes
+- **`src/core/migrations/**`**: Migration plane code (planner, runner, operations)
 - **`src/exports/control.ts`**: Migration plane entry point (control plane descriptors)
 - **`src/exports/runtime.ts`**: Runtime plane entry point (runtime factories)
 
 **Example:** `@internal/adapter-postgres` spans three planes:
-- `packages/3-targets/postgres/2-adapter/src/core/**` → domain: `targets`, layer: `adapters`, plane: `shared`
+- `packages/3-targets/postgres/2-adapter/src/core/*.ts` → domain: `targets`, layer: `adapters`, plane: `shared`
 - `packages/3-targets/postgres/2-adapter/src/exports/control.ts` → domain: `targets`, layer: `adapters`, plane: `migration`
 - `packages/3-targets/postgres/2-adapter/src/exports/runtime.ts` → domain: `targets`, layer: `adapters`, plane: `runtime`
 

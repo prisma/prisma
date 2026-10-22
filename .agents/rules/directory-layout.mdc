@@ -39,7 +39,7 @@ Planes (shared, migration, runtime) are not directories. `architecture.config.js
 
 ## Registering a target package
 
-Register every package under `3-targets/<db>/` in `architecture.config.json` with the recipe in [Repo-Map-and-Layering.md](../../docs/onboarding/Repo-Map-and-Layering.md): `src/core/*.ts` shared, `src/core/migrations/**` migration, `src/exports/control.ts` migration, `src/exports/runtime.ts` runtime, `src/exports/pack.ts` shared. Never register both `src/core/**` and `src/core/migrations/**`: overlapping globs put a file in both groups. Every target keeps a `test/layering.test.ts` that fails if it imports its own adapter or driver.
+Register every package under `3-targets/<db>/` in `architecture.config.json` with the recipe in [Repo-Map-and-Layering.md](../../docs/onboarding/Repo-Map-and-Layering.md): `src/core/*.ts` shared, `src/core/migrations/**` migration, `src/core/runtime/**` runtime, `src/exports/control.ts` migration, `src/exports/runtime.ts` runtime, `src/exports/pack.ts` shared. Control-only code goes in `src/core/migrations/`, runtime-only code in `src/core/runtime/`. `pnpm lint:deps` fails when a source file matches no glob or more than one, and when a package in a database folder depends on a sibling that is not numbered lower or on another database's packages.
 
 ## Multi-Plane Entrypoints
 

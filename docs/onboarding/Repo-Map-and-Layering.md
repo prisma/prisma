@@ -29,5 +29,7 @@ A database's packages live together in `packages/3-targets/<db>/`: `1-target`, `
 1. Register `src/exports/runtime.ts` as `plane: runtime`.
 2. Register `src/exports/control.ts` as `plane: migration` (and `pack.ts` as `plane: shared` if the target has one).
 3. Register `src/core/*.ts` as `plane: shared`.
-4. Register `src/core/migrations/**` as `plane: migration` *even if the directory does not exist yet* — keeps target registrations symmetric and prevents code added later from inheriting the shared registration by accident.
-5. Give the target a `test/layering.test.ts` that fails if it imports its own adapter or driver. `pnpm lint:deps` cannot catch that import, because the target pack is in the `extensions` domain, which may import the `targets` domain.
+4. Register `src/core/migrations/**` as `plane: migration` and `src/core/runtime/**` as `plane: runtime` *even if the directories do not exist yet* — keeps target registrations symmetric and prevents code added later from inheriting the shared registration by accident. Put control-only code in `migrations/` and runtime-only code in `runtime/`.
+5. Register any other entry point (each extra file in `src/exports/`, loose files directly in `src/`) with its own plane. `pnpm lint:deps` fails when a source file matches no glob or more than one (`scripts/lint-architecture-registration.mjs`).
+
+No new test is needed for dependency order: `scripts/lint-target-layering.mjs`, run by `pnpm lint:deps`, checks every database folder and fails when a package depends on a sibling that is not numbered lower, or on another database's packages.

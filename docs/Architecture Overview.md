@@ -290,16 +290,16 @@ packages/
       operations/        # SQL operation types (shared plane)
       schema-ir/         # SQL schema IR types
     2-authoring/
+      contract-psl/      # SQL PSL interpretation
       contract-ts/       # SQL TS authoring surface
+      contract-prisma7/  # reads a Prisma 7 schema as a contract source
     3-tooling/
       emitter/           # SQL emitter hook
-      family/            # SQL family descriptor and helpers
     4-lanes/
-      relational-core/   # schema + column builders, operation attachment
-      sql-lane/          # relational DSL + raw lane
-      orm-lane/          # ORM builder, includes, relation filters
-      query-builder/     # query builder lane
+      relational-core/   # AST, column builders, operation attachment
+      sql-builder/       # SQL query builder + raw lane
     5-runtime/           # SQL runtime extending RuntimeCore from framework-components
+    9-family/            # SQL family descriptor and helpers
   2-mongo-family/        # Domain 2: Mongo family
     1-foundation/
       mongo-contract/    # Mongo contract types + validation

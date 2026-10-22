@@ -36,10 +36,10 @@ A new database adds one folder under `3-targets/`.
 ## Decision
 
 1. **A database's target, adapter, driver, codec testkit and facade live in `packages/3-targets/<db>/`.** Each is its own package, as before.
-2. **Folders inside a database folder are numbered by dependency order.** The adapter imports the target, the facade imports the target, adapter and driver, and the driver imports none of them. A database that has no codec testkit skips `4-`.
+2. **Folders inside a database folder are numbered by dependency order.** A package may depend only on lower-numbered packages in its own folder, and never on another database's packages: the adapter imports the target, the facade imports the target, adapter and driver, and the driver imports none of them. `scripts/lint-target-layering.mjs`, run by `pnpm lint:deps`, walks every database folder and checks this, so a new database is covered without a new check. A database that has no codec testkit skips `4-`.
 3. **Family folders are named `2-<family>-family`.** `2-sql` became `2-sql-family`, matching `2-mongo-family`.
 4. **Extension packs stay in `packages/3-extensions/`,** including packs that only work with one database, such as pgvector.
-5. **Every package under `3-targets/<db>/` registers the same globs in `architecture.config.json`,** the recipe in `docs/onboarding/Repo-Map-and-Layering.md`, and every target has a test that it imports neither its adapter nor its driver.
+5. **Every package under `3-targets/<db>/` registers the same globs in `architecture.config.json`,** the recipe in `docs/onboarding/Repo-Map-and-Layering.md`, and `pnpm lint:deps` fails when a source file matches no glob or more than one.
 
 Package names did not change, so no import, published name or emitted file changed.
 
@@ -47,7 +47,7 @@ Package names did not change, so no import, published name or emitted file chang
 
 ### The role folders checked nothing
 
-Before this ADR, SQL targets were split by role: `3-targets/3-targets/<db>`, `3-targets/6-adapters/<db>` and `3-targets/7-drivers/<db>`, with the facade in `3-extensions/<db>`. The numbers 3, 6 and 7 looked like layers. They were not checked: `pnpm lint:deps` takes each file's domain, layer and plane from globs in `architecture.config.json`, and that file defines no layer order for the `targets` and `extensions` domains. The folders only spread one database across four places.
+Before this ADR, SQL targets were split by role: `3-targets/3-targets/<db>`, `3-targets/6-adapters/<db>` and `3-targets/7-drivers/<db>`, with the facade in `3-extensions/<db>`. The numbers 3, 6 and 7 looked like layers. They were not checked: `pnpm lint:deps` takes each file's domain, layer and plane from globs in `architecture.config.json`, and that file defines no layer order for the `targets` and `extensions` domains. The folders only spread one database across four places. The numbers inside a database folder are checked, by the check in decision 2.
 
 ### Mongo had already grouped by database, without a recorded reason
 
@@ -60,8 +60,9 @@ A facade composes one database's target, adapter and driver into the client an a
 ## Consequences
 
 - A developer working on one database opens one folder.
-- Adding MySQL and MariaDB adds `3-targets/mysql/` and `3-targets/mariadb/`.
-- Paths are named in `architecture.config.json`, `packages/0-shared/publish-surface/src/shells.ts`, `coverage.config.json`, `tsconfig.base.json` and a few lint scripts. Those changed with the move; nothing else depends on folder depth.
+- Adding MySQL and MariaDB adds `3-targets/mysql/` and `3-targets/mariadb/`. The ordering check and the upgrade-coverage check (a facade counts as extension code) pick up a new folder without changes; `architecture.config.json`, `shells.ts` and `coverage.config.json` still need its entries.
+- Folder paths also appear in package scripts, tests and fixtures, which use relative paths; moving a package means recomputing them (`.agents/rules/moving-packages.mdc`).
+- The registration does not yet match the folder: the target pack and facade are in the `extensions` domain and the adapter and driver in the `targets` domain. And `pnpm lint:deps` does not yet see imports between workspace packages, only imports inside one. Both are known gaps to close; until then, the ordering check is what checks the folder numbers.
 
 ## Alternatives considered
 
