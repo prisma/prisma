@@ -6,8 +6,11 @@
 
 import type { JsonValue } from '@internal/contract/types';
 import type { DataTypeAuthoringEntry } from '@internal/framework-components/authoring';
-import { numeralText } from '@internal/sql-contract/data-type';
-import { createNumberClassifier, signedRange } from '@internal/sql-contract/data-type-support';
+import {
+  createNumberClassifier,
+  numeralText,
+  signedRange,
+} from '@internal/framework-components/codec';
 import { mysqlBigint, mysqlInt, mysqlText } from './data-types';
 
 const classifyMysqlNumber = createNumberClassifier({

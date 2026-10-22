@@ -13,15 +13,16 @@ import {
   type DataTypeParams,
   type DataTypeReader,
   type DataTypeSpelling,
+  dateTimeStoredText,
   INT32_RANGE,
   INT64_RANGE,
+  numeralText,
   readJsonInteger,
   readJsonIntegerText,
   readJsonString,
   refuseJsonValue,
 } from '@internal/framework-components/codec';
-import { numeralText, sqlDataType, sqlRawDataType } from '@internal/sql-contract/data-type';
-import { dateTimeStoredText } from '@internal/sql-contract/data-type-support';
+import { sqlDataType, sqlRawDataType } from '@internal/sql-contract/data-type';
 import { structuredError } from '@internal/utils/structured-error';
 import { type as arktype } from 'arktype';
 import { mysqlError } from './errors';
