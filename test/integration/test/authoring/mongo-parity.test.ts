@@ -18,6 +18,9 @@ import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { emit } from '../../utils/emit';
 
+/**
+ * Each case under mongo-parity/ writes one contract as contract.ts and as contract.prisma. A case with expected.contract.json must emit the same contract.json from both. A case with expected-refusal.json must be refused by both, each in its own wording: one case for each rule of the MongoDB contract builder that both sources can write. In refused-value-object-unknown-enum, PSL refuses the undeclared enum earlier, when it resolves the type name, so the builder's own check is reached only from TypeScript.
+ */
 const casesDir = join(dirname(fileURLToPath(import.meta.url)), 'mongo-parity');
 const writeExpected = process.env['UPDATE_MONGO_PARITY_EXPECTED'] === '1';
 
