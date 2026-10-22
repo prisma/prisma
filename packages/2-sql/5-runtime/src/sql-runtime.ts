@@ -281,6 +281,8 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   readonly #inFlight = new InFlightOperations();
   // Transactions from their start until their commit or rollback settles. close() waits for them once it refuses, but an open transaction alone does not keep a 'when-idle' close from starting to refuse.
   readonly #openTransactionWork = new InFlightOperations();
+  // Ends the open-transaction record of the transaction most recently begun on each connection.
+  readonly #transactionWorkOn = new WeakMap<SqlQueryable, () => void>();
   #openActivityHandles = 0;
   #refusing = false;
   // Connections and transactions this runtime handed out. When the first query of the runtime runs on one of them, the runtime-wide marker read runs on it too, so it works while close() waits for their release, and concurrent first queries share its result. Other queryables, such as a subclass's raw connection, read the marker through the driver.
@@ -768,15 +770,23 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     } finally {
       endOperation();
     }
-    const inFlight = this.#inFlight;
-    return {
+    // A transaction still open when its connection is released or destroyed can no longer settle, so close() stops waiting for it.
+    const dispose = async (teardown: () => Promise<void>): Promise<void> => {
+      try {
+        await this.#inFlight.track(teardown);
+      } finally {
+        this.#transactionWorkOn.get(held)?.();
+      }
+    };
+    const held: SqlConnection = {
       query: (request) => connection.query(request),
       execute: (request) => connection.execute(request),
       beginTransaction: () => connection.beginTransaction(),
       ...ifDefined('explain', connection.explain?.bind(connection)),
-      release: () => inFlight.track(() => connection.release()),
-      destroy: (reason) => inFlight.track(() => connection.destroy(reason)),
+      release: () => dispose(() => connection.release()),
+      destroy: (reason) => dispose(() => connection.destroy(reason)),
     };
+    return held;
   }
 
   private async setupDriverExecution(
@@ -808,14 +818,16 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     };
   }
 
-  // A handle never ended keeps close() waiting with no other trace, so close() says so once.
-  private warnWhenWaitingOnlyForActivities(warned: { done: boolean }): void {
-    if (warned.done || this.#openActivityHandles === 0) return;
+  // A handle never ended, or a transaction never committed or rolled back, keeps close() waiting with no other trace, so close() says so once. Open transactions count only once close() refuses, because until then they do not hold it.
+  private warnWhenWaitingOnlyForUnendedWork(warned: { done: boolean }): void {
+    const openTransactions = this.#refusing ? this.#openTransactionWork.count : 0;
+    if (warned.done || (this.#openActivityHandles === 0 && openTransactions === 0)) return;
     if (this.#inFlight.count !== this.#openActivityHandles) return;
     warned.done = true;
     this.sqlCtx.log.warn({
       event: 'runtime.close.waiting-for-activities',
       openActivities: this.#openActivityHandles,
+      openTransactions,
     });
   }
 
@@ -1395,6 +1407,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       throw error;
     }
     const endTransactionWork = this.#openTransactionWork.begin();
+    this.#transactionWorkOn.set(connection, endTransactionWork);
     let driverTx: SqlTransaction;
     try {
       driverTx = await connection.beginTransaction();
@@ -1450,6 +1463,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
         try {
           await self.#inFlight.track(() => driverTx.commit());
         } catch (error) {
+          endTransactionWork();
           await activity.end({ by: 'commit', outcome: 'failed' });
           throw error;
         }
@@ -1469,7 +1483,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
         }
         if (settlement.rolledBack) return;
         try {
-          await driverTx.rollback();
+          await self.#inFlight.track(() => driverTx.rollback());
         } catch (error) {
           endTransactionWork();
           await activity.end({ by: 'rollback', outcome: 'failed', commitAttempted });
@@ -1571,9 +1585,10 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       await this.waitForIdleTurn(warned);
     }
     this.#refusing = true;
-    this.warnWhenWaitingOnlyForActivities(warned);
+    this.warnWhenWaitingOnlyForUnendedWork(warned);
     while (this.#inFlight.active || this.#openTransactionWork.active) {
       await this.#inFlight.drained();
+      this.warnWhenWaitingOnlyForUnendedWork(warned);
       await this.#openTransactionWork.drained();
     }
   }
@@ -1585,7 +1600,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       if (!this.#inFlight.active && this.#inFlight.started === startedBefore) {
         return;
       }
-      this.warnWhenWaitingOnlyForActivities(warned);
+      this.warnWhenWaitingOnlyForUnendedWork(warned);
       await this.#inFlight.drained();
     }
   }

@@ -182,6 +182,13 @@ function activityParent(state: { readonly open: boolean }): ActivityParent {
   return { acceptsChildren: () => state.open } as unknown as ActivityParent;
 }
 
+function settlesWithin(operation: Promise<void>, ms = 50): Promise<'settled' | 'pending'> {
+  return Promise.race([
+    operation.then(() => 'settled' as const),
+    new Promise<'pending'>((settle) => setTimeout(() => settle('pending'), ms)),
+  ]);
+}
+
 function afterIdleTurns(): Promise<void> {
   return new Promise((settle) => setTimeout(settle, 5));
 }
@@ -191,6 +198,7 @@ function createTestSetup(options?: {
   readMarker?: (queryable: SqlQueryable) => Promise<MarkerReadResult>;
   closeRefusal?: CloseRefusal;
   ownsDriver?: boolean;
+  log?: RuntimeOptions['log'];
 }) {
   const base = createStubAdapter();
   const adapter =
@@ -230,6 +238,7 @@ function createTestSetup(options?: {
     middleware: options?.middleware ?? [],
     closeRefusal: options?.closeRefusal,
     ownsDriver: options?.ownsDriver,
+    ...(options?.log === undefined ? {} : { log: options.log }),
   };
 
   const runtime = new TestRuntime(runtimeOptions);
@@ -364,6 +373,63 @@ describe('acquireRawConnection', () => {
 
     expect(connection.queryCalls).toEqual([{ sql: 'SET LOCAL role = $1', params: ['viewer'] }]);
     expect(observedSqls).toHaveLength(0);
+  });
+});
+
+describe('a transaction that never settles', () => {
+  function stubTransaction(connection: ReturnType<typeof createTestSetup>['connection']) {
+    const transaction = {
+      query: connection.query,
+      execute: connection.execute,
+      commit: vi.fn().mockRejectedValue(new Error('commit failed')),
+      rollback: vi.fn().mockResolvedValue(undefined),
+    };
+    connection.beginTransaction.mockResolvedValue(transaction);
+    return transaction;
+  }
+
+  it('does not keep close() waiting after its commit failed and nothing rolled it back', async () => {
+    const { runtime, driver, connection } = createTestSetup();
+    stubTransaction(connection);
+    const raw = await runtime.acquireRawConn();
+    const transaction = await runtime.beginOn(raw);
+    await expect(transaction.commit()).rejects.toThrow('commit failed');
+    await raw.release();
+
+    await expect(settlesWithin(runtime.close())).resolves.toBe('settled');
+    expect(driver.close).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    ['released', 'release'],
+    ['destroyed', 'destroy'],
+  ] as const)('does not keep close() waiting once its connection is %s', async (_name, dispose) => {
+    const { runtime, driver, connection } = createTestSetup();
+    stubTransaction(connection);
+    const raw = await runtime.acquireRawConn();
+    await runtime.beginOn(raw);
+    await raw[dispose]();
+
+    await expect(settlesWithin(runtime.close())).resolves.toBe('settled');
+    expect(driver.close).toHaveBeenCalledOnce();
+  });
+
+  it('is named in the warning close() logs while it waits only for it', async () => {
+    const warn = vi.fn();
+    const { runtime, connection } = createTestSetup({
+      log: { info: vi.fn(), warn, error: vi.fn() },
+    });
+    stubTransaction(connection).commit.mockResolvedValue(undefined);
+    const transaction = await runtime.beginOn(await runtime.acquireRawConn());
+
+    const closing = runtime.close();
+    await afterIdleTurns();
+    await transaction.commit();
+    await closing;
+
+    expect(warn.mock.calls).toEqual([
+      [{ event: 'runtime.close.waiting-for-activities', openActivities: 0, openTransactions: 1 }],
+    ]);
   });
 });
 

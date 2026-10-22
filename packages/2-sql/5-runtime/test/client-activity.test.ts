@@ -370,7 +370,7 @@ describe('startActivity', () => {
       await closing;
 
       expect(warn.mock.calls).toEqual([
-        [{ event: 'runtime.close.waiting-for-activities', openActivities: 1 }],
+        [{ event: 'runtime.close.waiting-for-activities', openActivities: 1, openTransactions: 0 }],
       ]);
     });
 
