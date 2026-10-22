@@ -16,22 +16,18 @@ $ prisma db sign
 
 `migration plan` writes `CREATE TABLE` for `User` and `Post` with their primary keys, the unique index on `email`, the `enum('USER','ADMIN')` column and the foreign key. Adding a nullable field and planning again writes `ALTER TABLE … ADD COLUMN`; removing it, with `--delete`, writes `DROP COLUMN`.
 
-A failed apply on MySQL reports that the spaces already applied stay applied, and running `db migrate` again finishes the rest:
-
-```text
-✖ Migration failed in space "app". Spaces applied before it stay applied; run db migrate again to finish.
-```
+A failed apply on MySQL reports, in the runner's own failure, which space failed and that the operations already run stay applied. Running `db migrate` again skips what was applied and finishes the rest.
 
 ## Chosen design
 
 - **Planner and operations, narrow.** Create table (columns, primary key, defaults including `auto_increment`), create and drop index and unique index, add and drop foreign key, add and drop column, drop table, with backtick-quoted DDL rendered by the target. Every other change (type change, nullability change, default change, renames) is refused with a planner conflict that says it is not yet supported on MySQL. Model the strategies on Postgres's ALTER strategies, not SQLite's recreate-table ones. `migration.ts` rendering follows SQLite's class-flow authoring.
 - **Runner applies one space at a time.** Following the Mongo target (`packages/3-targets/mongo/1-target/src/core/migrations/control-target.ts`): for each space in order, apply its operations with pre- and postchecks, verify that space's schema, then write its marker and ledger entry. On failure, stop and return a failure with `failingSpace` and `databaseUnchanged` set from what was actually applied. Re-running skips spaces whose marker is at the head and operations whose postchecks already hold.
-- **Atomicity is a fact the target states.** `TargetMigrationsCapability` (`packages/1-framework/1-core/framework-components/src/control/control-migration-types.ts`) gains a required `applyAtomicity: 'all-spaces' | 'per-space'`. Postgres and SQLite state `'all-spaces'`, Mongo and MySQL `'per-space'`. The CLI picks its wording from it before applying (`db migrate`, `db init`, `db update`, and the `db sign` help), and reports what happened from the failure's `databaseUnchanged` and `failingSpace`. Every place that promises "a failure rolls back every space" says it of `'all-spaces'` targets only: the SQL runner type doc, `control-instances.ts`, the CLI operations, ADR 212, the Migration System and MongoDB Family docs. No target name appears in framework or family code.
+- **What a failed apply leaves is stated per run by the runner.** The runner's failure carries `failingSpace` and `databaseUnchanged`, and its message says what stayed. On targets whose DDL is transactional (Postgres, SQLite) the runner rolls back and reports `databaseUnchanged: true`; on Mongo and MySQL the operations that ran stay applied. The CLI shows the runner's failure as it is. Every place that promised "a failure rolls back every space" now says this instead: the SQL runner type doc, `control-instances.ts`, the CLI operations, ADR 212, the Migration System and MongoDB Family docs. No target name appears in framework or family code. (Revised 2026-10-22 after review: a static `applyAtomicity` field on the migrations capability was built and removed, because its only reader repeated what the failure already says.)
 - **Marker writes without `RETURNING`.** `updateMarker`'s compare-and-swap re-selects the marker inside the transaction it holds. `initMarker` uses `INSERT … ON DUPLICATE KEY UPDATE` written in the target's own control SQL (the shared upsert AST is slice 4).
-- **The marker lock is released.** `lockMarker` takes `GET_LOCK` with a timeout and the adapter releases it with `RELEASE_LOCK` when the work it guards ends, success or failure. The shared `lockMarker` doc stops promising "until the transaction ends" and says the adapter decides how long the lock lives and releases it (coupling row 6).
-- **`db sign` creates the marker table first.** `signSpaces` runs the idempotent bootstrap DDL before the transaction that locks and writes markers, for every target (coupling row 5).
+- **The marker lock is released.** `lockMarker` takes `GET_LOCK` with a timeout and the adapter releases it with `RELEASE_LOCK` when the work it guards ends, success or failure. A failed release never hides the error that ended the work. The shared `lockMarker` doc stops promising "until the transaction ends" and says the adapter decides how long the lock lives and releases it (coupling row 6).
+- **`db sign` order is the adapter's.** Postgres and SQLite keep one transaction for lock, bootstrap and writes. An adapter may provide `holdMarkerLock`; MySQL does, so it takes `GET_LOCK`, creates the marker table, then writes markers in a transaction, all under the lock (coupling row 5).
 - **Plan target details.** `SqlPlanTargetDetails.schema` becomes optional; SQLite stops faking `'main'` and MySQL passes nothing (coupling row 13).
-- **Marker table names in messages.** The CLI and verifier messages that name a marker table take the name from the target (coupling row 22).
+- **Marker table names in messages.** Each control adapter names its marker location once, and the CLI and verifier messages read it from there (coupling row 22).
 - **`db verify` and `db sign`** use the descriptor's `diffSchema` and the introspection from 2a.
 
 ## Coherence rationale
@@ -50,10 +46,10 @@ One reviewer reads this as "MySQL can migrate, verify and sign", plus one shared
 | --- | --- |
 | A DDL statement commits on MySQL | The runner never wraps DDL in a transaction it promises to roll back; markers are written after the space verifies |
 | `GET_LOCK` is per session, not per transaction | Release explicitly in a `finally`; use one connection for the lock and the work |
-| Two runners at once | The second waits on `GET_LOCK`, then sees the marker already at the head |
+| Two runners at once | The second waits on `GET_LOCK`, then fails with `MIGRATION.MARKER_ORIGIN_MISMATCH` and `databaseUnchanged: true`; the marker ends at the destination |
 | A failed space after others succeeded | `failingSpace` names it; earlier markers stay advanced; re-run converges |
 | Postgres and SQLite behaviour | Unchanged; only the wording source changes. Their tests stay green without edits other than reading the new field |
-| Mongo already per-space | It states `'per-space'`; its docs stop describing itself as the exception |
+| Mongo already keeps applied operations | Its docs stop describing it as the exception |
 | Destructive git operations | Forbidden without orchestrator approval |
 
 ## Done when
