@@ -30,6 +30,7 @@ export default class M extends Migration<never, End> {
           {
             description: 'verify extension "vector" is not already enabled',
             sql: "SELECT NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'vector')",
+            expectation: { expects: 'absent', object: 'extension "vector"' },
           },
         ],
         execute: [
@@ -42,6 +43,7 @@ export default class M extends Migration<never, End> {
           {
             description: 'confirm extension "vector" is enabled',
             sql: "SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'vector')",
+            expectation: { expects: 'present', object: 'extension "vector"' },
           },
         ],
       }),

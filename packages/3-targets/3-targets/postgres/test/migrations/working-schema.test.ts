@@ -1,7 +1,11 @@
 import type { SchemaNodeRef } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { computeCheckContentHash, computeIndexContentHash } from '@internal/sql-schema-ir/naming';
-import { RelationalSchemaNodeKind, SqlCheckConstraintIR } from '@internal/sql-schema-ir/types';
+import {
+  RelationalSchemaNodeKind,
+  SqlCheckConstraintIR,
+  SqlForeignKeyIR,
+} from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import {
   RenameConstraintCall,
@@ -12,6 +16,7 @@ import {
 import { postgresContractToSchema } from '../../src/core/migrations/postgres-contract-to-schema';
 import {
   createWorkingSchema,
+  moveTableInPostgresSchema,
   renameTableInPostgresSchema,
 } from '../../src/core/migrations/working-schema';
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
@@ -312,5 +317,50 @@ describe('WorkingSchema.apply', () => {
     expect(working.current).not.toBe(before);
     expect(Object.keys(before.namespaces['public']?.tables ?? {})).toContain('userProfile');
     expect(tableIn(before, 'post').foreignKeys[0]?.referencedTable).toBe('userProfile');
+  });
+});
+
+describe('moveTableInPostgresSchema', () => {
+  const table = (name: string, foreignKeys: PostgresTableSchemaNode['foreignKeys'] = []) =>
+    new PostgresTableSchemaNode({
+      name,
+      columns: {},
+      foreignKeys,
+      uniques: [],
+      indexes: [],
+      rlsEnabled: false,
+    });
+
+  it('keeps a foreign key of the moved table pointing at the table that stays, though the key names no schema', () => {
+    const schema = new PostgresDatabaseSchemaNode({
+      namespaces: {
+        billing: new PostgresNamespaceSchemaNode({
+          schemaName: 'billing',
+          tables: {
+            customer: table('customer'),
+            invoice: table('invoice', [
+              new SqlForeignKeyIR({
+                columns: ['customerId'],
+                referencedTable: 'customer',
+                referencedColumns: ['id'],
+              }),
+            ]),
+          },
+        }),
+      },
+      roles: [],
+      existingSchemas: ['billing'],
+      pgVersion: '17',
+    });
+
+    const moved = moveTableInPostgresSchema(schema, {
+      table: 'invoice',
+      from: 'billing',
+      to: 'finance',
+    });
+
+    expect(moved.namespaces['finance']?.tables['invoice']?.foreignKeys).toMatchObject([
+      { referencedTable: 'customer', resolvedReferencedNamespace: 'billing' },
+    ]);
   });
 });

@@ -1,4 +1,5 @@
 export type { ImportRequirement } from '@internal/ts-render';
+export { expectAbsent, expectPresent } from '../control/check-expectation';
 export type { ContractSerializer } from '../control/contract-serializer';
 export {
   CONTRACT_SNAPSHOTS_DIRNAME,
@@ -42,6 +43,8 @@ export type {
   ControlTargetInstance,
 } from '../control/control-instances';
 export type {
+  BlockingObject,
+  CheckExpectation,
   FailedCast,
   FailedCheck,
   FailedConversion,
@@ -76,6 +79,7 @@ export type {
 export {
   migrationRunnerFailure,
   planOriginOf,
+  withDatabaseUnchanged,
   withFailingSpace,
 } from '../control/control-migration-types';
 export type {
@@ -141,6 +145,7 @@ export type {
   MigrationDataLoss,
   MigrationDataLossKind,
   MigrationOperationSubject,
+  MigrationPlanNamespaces,
   MigrationPlanSubjects,
   MigrationStatementJson,
   MigrationSubject,
@@ -153,6 +158,7 @@ export type {
   ResolvedFieldRenameStatement,
   ResolvedMigrationStatement,
   ResolvedModelRenameStatement,
+  ResolvedNamespaceRenameStatement,
   ResolvedRenameStatement,
 } from '../control/migration-statements';
 export {
@@ -167,6 +173,7 @@ export {
 } from '../control/migration-statements';
 export { orderIssuesByDependencies } from '../control/order-issues-by-dependencies';
 export {
+  failedPostcheckWhy,
   failedPrecheckWhy,
   issueLabel,
   schemaCheckWhy,

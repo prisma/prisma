@@ -24,6 +24,7 @@ import {
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer, Lowerer } from '@internal/family-sql/control-adapter';
 import type { OpFactoryCall as FrameworkOpFactoryCall } from '@internal/framework-components/control';
+import { expectAbsent, expectPresent } from '@internal/framework-components/control';
 import type {
   AnyDdlColumnDefault,
   DdlColumn,
@@ -250,7 +251,14 @@ export class CreateTableCall extends SqliteOpFactoryCallNode {
       summary: `Creates table ${tableName} with required columns`,
       operationClass: 'additive',
       target: { id: 'sqlite', details: buildTargetDetails('table', tableName) },
-      precheck: [step(`ensure table "${tableName}" does not exist`, absent.sql, absent.params)],
+      precheck: [
+        step(
+          `ensure table "${tableName}" does not exist`,
+          absent.sql,
+          absent.params,
+          expectAbsent(`table "${tableName}"`),
+        ),
+      ],
       execute: [
         {
           description: `create table "${tableName}"`,
@@ -259,7 +267,12 @@ export class CreateTableCall extends SqliteOpFactoryCallNode {
         },
       ],
       postcheck: [
-        step(`verify table "${tableName}" exists`, present.sql, present.params),
+        step(
+          `verify table "${tableName}" exists`,
+          present.sql,
+          present.params,
+          expectPresent(`table "${tableName}"`),
+        ),
         tableColumnsCheck(tableName, columnShapesOf(this.columns, this.constraints)),
       ],
     };
@@ -332,11 +345,25 @@ export class DropTableCall extends SqliteOpFactoryCallNode {
       summary: `Drops table ${this.tableName} which is not in the contract`,
       operationClass: 'destructive',
       target: { id: 'sqlite', details: buildTargetDetails('table', this.tableName) },
-      precheck: [step(`ensure table "${this.tableName}" exists`, present.sql, present.params)],
+      precheck: [
+        step(
+          `ensure table "${this.tableName}" exists`,
+          present.sql,
+          present.params,
+          expectPresent(`table "${this.tableName}"`),
+        ),
+      ],
       execute: [
         step(`drop table "${this.tableName}"`, `DROP TABLE ${quoteIdentifier(this.tableName)}`),
       ],
-      postcheck: [step(`verify table "${this.tableName}" is gone`, absent.sql, absent.params)],
+      postcheck: [
+        step(
+          `verify table "${this.tableName}" is gone`,
+          absent.sql,
+          absent.params,
+          expectAbsent(`table "${this.tableName}"`),
+        ),
+      ],
     };
   }
 
@@ -431,13 +458,23 @@ export class RenameTableCall extends SqliteOpFactoryCallNode {
       operationClass: 'widening',
       target: { id: 'sqlite', details: buildTargetDetails('table', this.tableName) },
       precheck: [
-        step(`ensure table "${this.oldTableName}" exists`, fromPresent.sql, fromPresent.params),
+        step(
+          `ensure table "${this.oldTableName}" exists`,
+          fromPresent.sql,
+          fromPresent.params,
+          expectPresent(`table "${this.oldTableName}"`),
+        ),
         step(
           onlyCase
             ? `ensure table "${this.tableName}" does not exist`
             : `ensure no table or index is named "${this.tableName}" in any case`,
           toAbsent.sql,
           toAbsent.params,
+          expectAbsent(
+            onlyCase
+              ? `table "${this.tableName}"`
+              : `a table or index named "${this.tableName}" in any case`,
+          ),
         ),
         ...(viaAbsent === undefined
           ? []
@@ -446,6 +483,7 @@ export class RenameTableCall extends SqliteOpFactoryCallNode {
                 `ensure table "${viaName}" does not exist (a rename that only changes case passes through this temporary name, because SQLite compares table names without case)`,
                 viaAbsent.sql,
                 viaAbsent.params,
+                expectAbsent(`table "${viaName}"`),
               ),
             ]),
       ],
@@ -454,11 +492,17 @@ export class RenameTableCall extends SqliteOpFactoryCallNode {
       // already holds, and "the new table exists" alone would skip a rename
       // that never happened when both tables exist.
       postcheck: [
-        step(`verify table "${this.tableName}" exists`, toPresent.sql, toPresent.params),
+        step(
+          `verify table "${this.tableName}" exists`,
+          toPresent.sql,
+          toPresent.params,
+          expectPresent(`table "${this.tableName}"`),
+        ),
         step(
           `verify table "${this.oldTableName}" no longer exists`,
           fromAbsent.sql,
           fromAbsent.params,
+          expectAbsent(`table "${this.oldTableName}"`),
         ),
       ],
     };
@@ -861,6 +905,7 @@ export class DropColumnCall extends SqliteOpFactoryCallNode {
           `ensure column "${this.columnName}" exists on "${this.tableName}"`,
           present.sql,
           present.params,
+          expectPresent(`column "${this.columnName}" on "${this.tableName}"`),
         ),
       ],
       execute: [
@@ -874,6 +919,7 @@ export class DropColumnCall extends SqliteOpFactoryCallNode {
           `verify column "${this.columnName}" is gone from "${this.tableName}"`,
           absent.sql,
           absent.params,
+          expectAbsent(`column "${this.columnName}" on "${this.tableName}"`),
         ),
       ],
     };
@@ -936,7 +982,14 @@ export class CreateIndexCall extends SqliteOpFactoryCallNode {
         id: 'sqlite',
         details: buildTargetDetails('index', this.indexName, this.tableName),
       },
-      precheck: [step(`ensure index "${this.indexName}" is missing`, absent.sql, absent.params)],
+      precheck: [
+        step(
+          `ensure index "${this.indexName}" is missing`,
+          absent.sql,
+          absent.params,
+          expectAbsent(`index "${this.indexName}"`),
+        ),
+      ],
       execute: [
         step(
           `create index "${this.indexName}"`,
@@ -944,7 +997,12 @@ export class CreateIndexCall extends SqliteOpFactoryCallNode {
         ),
       ],
       postcheck: [
-        step(`verify index "${this.indexName}" exists`, present.sql, present.params),
+        step(
+          `verify index "${this.indexName}" exists`,
+          present.sql,
+          present.params,
+          expectPresent(`index "${this.indexName}"`),
+        ),
         indexDefinitionCheck(this.tableName, this.indexName, this.columns, false),
       ],
     };
@@ -1001,9 +1059,23 @@ export class DropIndexCall extends SqliteOpFactoryCallNode {
         id: 'sqlite',
         details: buildTargetDetails('index', this.indexName, this.tableName),
       },
-      precheck: [step(`ensure index "${this.indexName}" exists`, present.sql, present.params)],
+      precheck: [
+        step(
+          `ensure index "${this.indexName}" exists`,
+          present.sql,
+          present.params,
+          expectPresent(`index "${this.indexName}"`),
+        ),
+      ],
       execute: [step(`drop index "${this.indexName}"`, buildDropIndexSql(this.indexName))],
-      postcheck: [step(`verify index "${this.indexName}" is gone`, absent.sql, absent.params)],
+      postcheck: [
+        step(
+          `verify index "${this.indexName}" is gone`,
+          absent.sql,
+          absent.params,
+          expectAbsent(`index "${this.indexName}"`),
+        ),
+      ],
     };
   }
 

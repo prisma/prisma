@@ -302,26 +302,4 @@ describe('Postgres planner, model statements', () => {
       }),
     ]);
   });
-
-  it('refuses moving a model to another namespace, naming both coordinates', () => {
-    const fromAuth = withModels(
-      contractOf('User', {}, 'from', () => ({}), 'auth'),
-      { User: 'User' },
-      'auth',
-    );
-    const toBilling = withModels(
-      contractOf('User', {}, 'to', () => ({}), 'billing'),
-      { User: 'User' },
-      'billing',
-    );
-    const statement = renameModel('User', 'User', 'auth', 'billing');
-    expect(conflictsOf(plan(fromAuth, toBilling, [statement]))).toEqual([
-      expect.objectContaining({
-        kind: 'statementRefused',
-        summary:
-          'Moving a model to another namespace is not supported in this release: "auth.User" to "billing.User"',
-        refusedStatement: statement,
-      }),
-    ]);
-  });
 });

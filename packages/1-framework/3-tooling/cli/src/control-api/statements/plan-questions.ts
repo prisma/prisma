@@ -4,6 +4,7 @@ import {
   type FieldCoordinate,
   fieldStatementText,
   type MigrationDataLossKind,
+  type MigrationPlanNamespaces,
   type MigrationSubject,
   type ModelCoordinate,
   migrationSubjectKey,
@@ -13,14 +14,16 @@ import {
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import {
+  errorConsentUnused,
   errorStatementAnswersNoQuestion,
   errorStatementDidNotResolveLoss,
   STORE_ORIGIN_SNAPSHOT_STEPS,
+  type UnusedConsent,
 } from '../../utils/cli-errors';
 import type { ConsentVerb } from './parse-consent';
 import { resolveStatements } from './resolve-statements';
 import { statementFlag } from './statement-flag';
-import { isPlannedStatement, type StatementText } from './statement-text';
+import type { StatementText } from './statement-text';
 
 /** A verb a plan question accepts. */
 export type PlanQuestionVerb = 'rename' | 'convert' | ConsentVerb;
@@ -32,10 +35,20 @@ export type PlanQuestionVerb = 'rename' | 'convert' | ConsentVerb;
 export interface PlanQuestion {
   readonly question: string;
   readonly subject: string;
+  /** The namespace of a data-loss question's model or field when the destination removed it: a `delete` of it answers the question too. */
+  readonly removedNamespace?: string;
   readonly verbs: readonly PlanQuestionVerb[];
   readonly forms: { readonly rename?: string; readonly convert?: string };
   readonly validate: (verb: PlanQuestionVerb, text: string) => string | undefined;
+  /**
+   * Whether an answer is the removed namespace's own, a `delete` or a `rename` of the namespace,
+   * which answers its other questions too; `undefined` for any other answer.
+   */
+  readonly namespaceAnswer?: (verb: PlanQuestionVerb, text: string) => NamespaceAnswer | undefined;
 }
+
+/** How an answer answers a removed namespace as a whole. */
+export type NamespaceAnswer = 'delete' | 'rename';
 
 export interface PlanAnswer {
   readonly verb: PlanQuestionVerb;
@@ -46,11 +59,12 @@ export interface PlanAnswer {
  * Asks every question at once and returns one answer per question, in question order, with a verb
  * and text the question accepts. To refuse, throw. It is called at least once per apply, with an
  * empty list when nothing is in question, including under `acceptDataLoss: true`; return `[]`
- * then.
+ * then. Beside a `rename` or `convert` answer, which plans again, a question may be left
+ * `undefined`: it is asked again, as the new plan has it.
  */
 export type AnswerPlanQuestions = (
   questions: readonly PlanQuestion[],
-) => Promise<readonly PlanAnswer[]>;
+) => Promise<readonly (PlanAnswer | undefined)[]>;
 
 /**
  * An operation of a plan with its subject and the label of that operation. `operationIndex` is
@@ -70,7 +84,7 @@ export interface PlannedDataLoss extends PlannedSubject {
   readonly keepDataAdvice?: string;
 }
 
-/** An operation of a plan that changes who can read or write its subject's rows. */
+/** An operation of a plan that changes who can read or write its subject's data. */
 export interface PlannedAccessChange extends PlannedSubject {
   readonly widens: boolean;
 }
@@ -78,7 +92,9 @@ export interface PlannedAccessChange extends PlannedSubject {
 /** What a plan would lose, and whose access it would change. */
 export interface PlannedQuestions {
   readonly dataLoss: readonly PlannedDataLoss[];
-  readonly accessWidening: readonly PlannedAccessChange[];
+  readonly accessChanges: readonly PlannedAccessChange[];
+  /** The namespaces the planner removes and adds; absent when it reports none. */
+  readonly namespaces?: MigrationPlanNamespaces;
 }
 
 /** The contracts a statement names things in, and the statements the plan carries out so far. */
@@ -106,18 +122,36 @@ function sameModel(left: ModelCoordinate, right: ModelCoordinate): boolean {
   return left.namespaceId === right.namespaceId && left.model === right.model;
 }
 
-/** The model a rename statement of `contracts` gives `coordinate` in the destination, if any. */
+/**
+ * The model a rename statement of `contracts` gives `coordinate` in the destination, if any: a
+ * rename of the model, or else a rename of its namespace, under which the model keeps its name when
+ * the destination has it there.
+ */
 function renamedModel(
   coordinate: ModelCoordinate,
   contracts: StatementContracts,
 ): ModelCoordinate | undefined {
-  for (const statement of resolvedRenames(contracts)) {
+  const renames = resolvedRenames(contracts);
+  for (const statement of renames) {
     if (
       statement.kind === 'rename' &&
       statement.entity === 'model' &&
       sameModel(statement.from, coordinate)
     ) {
       return statement.to;
+    }
+  }
+  for (const statement of renames) {
+    if (
+      statement.kind === 'rename' &&
+      statement.entity === 'namespace' &&
+      statement.from === coordinate.namespaceId
+    ) {
+      const moved = { namespaceId: statement.to, model: coordinate.model };
+      const destinationHas =
+        contracts.destination?.domain.namespaces[moved.namespaceId]?.models[moved.model] !==
+        undefined;
+      return destinationHas ? moved : undefined;
     }
   }
   return undefined;
@@ -144,13 +178,17 @@ function destinationField(
 /**
  * The subject as a statement names it: `Model` or `Model.field`, with the namespace when its
  * contract has several, or the storage name when no model stores what the operation is about. A
- * field of a model the plan renames is named through the model's new name, as a rename of the
- * field is written.
+ * model the plan renames or moves, and a field of it, are named through the model's new name, as a
+ * rename of the field is written.
  */
 export function subjectText(subject: MigrationSubject, contracts: StatementContracts): string {
   switch (subject.kind) {
-    case 'model':
-      return modelStatementText(contracts.origin, subject);
+    case 'model': {
+      const renamed = renamedModel(subject, contracts);
+      return renamed === undefined || contracts.destination === undefined
+        ? modelStatementText(contracts.origin, subject)
+        : modelStatementText(contracts.destination, renamed);
+    }
     case 'field': {
       const renamed = renamedModel(subject, contracts);
       const model =
@@ -212,7 +250,8 @@ export const ORIGIN_SNAPSHOT_RECOVERY = [
 ].join('\n');
 
 function sameCoordinate(statement: ResolvedMigrationStatement, subject: MigrationSubject): boolean {
-  if (statement.kind !== 'rename' || subject.kind === 'storage') return false;
+  if (statement.kind !== 'rename' || statement.entity === 'namespace' || subject.kind === 'storage')
+    return false;
   const { from } = statement;
   if (from.namespaceId !== subject.namespaceId || from.model !== subject.model) return false;
   return subject.kind === 'field'
@@ -366,17 +405,17 @@ export function dataLossQuestion(
 }
 
 /**
- * The question for one operation that changes who can read or write its subject's rows: it widens
- * access, as disabling row-level security does, or changes it either way, as dropping a policy
- * does. Each such operation is its own question, answered by its own `allow`.
+ * The question for one operation that changes who can read or write its subject's data: it widens
+ * access, or changes it in a way that can go either way. Each such operation is its own question,
+ * answered by its own `allow`.
  */
-export function accessWideningQuestion(
-  widening: PlannedAccessChange,
+export function accessChangeQuestion(
+  change: PlannedAccessChange,
   contracts: StatementContracts,
 ): PlanQuestion {
-  const subject = subjectText(widening.subject, contracts);
+  const subject = subjectText(change.subject, contracts);
   return {
-    question: `${widening.label} would ${widening.widens ? 'widen' : 'change'} who can read and write its rows.`,
+    question: `${change.label} would ${change.widens ? 'widen' : 'change'} who can read and write its data.`,
     subject,
     verbs: ['allow'],
     forms: {},
@@ -398,21 +437,23 @@ export interface ConsentedSubject {
 const keyOf = (planned: PlannedSubject) => migrationSubjectKey(planned.subject);
 
 /**
- * The pre-answers that answer a question about `text`: every `delete` of the subject, or the
- * first `allow` of it no earlier question took, since an `allow` answers one operation.
+ * The namespace of the model or field a subject names, when the planner removes that namespace: a
+ * `delete` of the namespace answers the question too.
  */
-function givenFor(
-  verb: ConsentVerb,
-  text: string,
-  preAnswers: readonly StatementText[],
-  taken: ReadonlySet<StatementText>,
-): readonly StatementText[] {
-  const matching = preAnswers.filter(
-    (statement) => statement.verb === verb && statement.text === text,
-  );
-  if (verb === 'delete') return matching;
-  const first = matching.find((statement) => !taken.has(statement));
-  return first === undefined ? [] : [first];
+export function removedNamespaceOf(
+  subject: MigrationSubject,
+  namespaces: MigrationPlanNamespaces | undefined,
+): string | undefined {
+  if (subject.kind === 'storage') return undefined;
+  return namespaces?.removed.includes(subject.namespaceId) === true
+    ? subject.namespaceId
+    : undefined;
+}
+
+/** A question as a consent statement can answer it: by its subject, or by a namespace the planner removes. */
+export interface ConsentQuestion {
+  readonly text: string;
+  readonly removedNamespace: string | undefined;
 }
 
 /**
@@ -423,7 +464,20 @@ function questionKey(verb: ConsentVerb, entry: PlannedSubject): string {
   return verb === 'allow' ? `allow:${entry.label}:${keyOf(entry)}` : `delete:${keyOf(entry)}`;
 }
 
-function checkAnswers(questions: readonly PlanQuestion[], answers: readonly PlanAnswer[]): void {
+function checkAnswers(
+  questions: readonly PlanQuestion[],
+  answers: readonly (PlanAnswer | undefined)[],
+): void {
+  const plansAgain = answers.some(
+    (answer) => answer?.verb === 'rename' || answer?.verb === 'convert',
+  );
+  const open = answers.findIndex((answer) => answer === undefined);
+  if (open !== -1 && !plansAgain) {
+    throw new InternalError(
+      `answerQuestions left "${questions[open]?.question}" open, which it may do only beside a rename or convert answer that plans again.`,
+      { cause: { questions: questions.map(({ subject }) => subject), answers } },
+    );
+  }
   if (answers.length !== questions.length) {
     const noun = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
     throw new InternalError(
@@ -451,6 +505,68 @@ function checkAnswers(questions: readonly PlanQuestion[], answers: readonly Plan
   });
 }
 
+function namespaceRenameAdvice(removed: string, added: readonly string[]): string | undefined {
+  const [only] = added;
+  if (only === undefined) return undefined;
+  const lead = `If namespace "${removed}" was renamed, --rename ${removed}:`;
+  if (added.length === 1) return `${lead}${only} renames it instead.`;
+  const choices = `${added.slice(0, -1).join(', ')} or ${added.at(-1)}`;
+  return `${lead}<new namespace> renames it instead, where <new namespace> is ${choices}.`;
+}
+
+/**
+ * The first question about a model or field of a namespace the destination contract no longer has
+ * says that a `delete` of the namespace answers every question about it, and, when the destination
+ * adds a namespace, how to rename the namespace instead.
+ */
+function withNamespaceDeleteOnFirstQuestion(
+  questions: readonly PlanQuestion[],
+  added: readonly string[],
+): readonly PlanQuestion[] {
+  const told = new Set<string>();
+  return questions.map((question) => {
+    const { removedNamespace } = question;
+    if (removedNamespace === undefined || told.has(removedNamespace)) return question;
+    told.add(removedNamespace);
+    const lines = [
+      question.question,
+      `--delete ${removedNamespace} answers this question and every other about a model or field of namespace "${removedNamespace}", which the destination contract no longer has.`,
+      namespaceRenameAdvice(removedNamespace, added),
+    ];
+    return { ...question, question: lines.filter((line) => line !== undefined).join('\n') };
+  });
+}
+
+/**
+ * A question about a model or field of a namespace the destination removed, which also accepts the
+ * namespace's own answers: a `delete` of the namespace, or a `rename` of it to another one.
+ */
+function acceptingNamespaceAnswers(
+  question: PlanQuestion,
+  removedNamespace: string | undefined,
+  contracts: StatementContracts & { readonly destination: ContractWithDomain },
+): PlanQuestion {
+  if (removedNamespace === undefined) return question;
+  const namespaceAnswer = (verb: PlanQuestionVerb, text: string): NamespaceAnswer | undefined => {
+    if (verb === 'delete') return text === removedNamespace ? 'delete' : undefined;
+    if (verb !== 'rename') return undefined;
+    const resolved = resolvesWith({ verb, text }, contracts);
+    return resolved.ok &&
+      resolved.value?.kind === 'rename' &&
+      resolved.value.entity === 'namespace' &&
+      resolved.value.from === removedNamespace
+      ? 'rename'
+      : undefined;
+  };
+  return {
+    ...question,
+    removedNamespace,
+    namespaceAnswer,
+    validate: (verb, text) =>
+      namespaceAnswer(verb, text) !== undefined ? undefined : question.validate(verb, text),
+  };
+}
+
 function withRecoveryOnFirstStorageQuestion(
   asked: readonly { readonly loss: PlannedDataLoss; readonly question: PlanQuestion }[],
   recoveryApplies: boolean,
@@ -467,7 +583,7 @@ function withRecoveryOnFirstStorageQuestion(
 
 /**
  * Asks about every operation of a plan that would lose data and, when `askAccess`, every one that
- * would widen access, until each is answered. A `delete` or `allow` text in `preAnswers`, or
+ * would change access, until each is answered. A `delete` or `allow` text in `preAnswers`, or
  * `consentAll` for its verb, answers its question without asking. A rename or convert typed at the
  * prompt is a statement the plan did not have, so the plan is made again with every statement, and
  * the operation it answered must be gone; a loss the new plan has on the same subject, such as a
@@ -530,45 +646,85 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
       });
     for (const [verb, entries] of [
       ['delete', pending('delete', plan.dataLoss)],
-      ['allow', input.askAccess ? pending('allow', plan.accessWidening) : []],
+      ['allow', input.askAccess ? pending('allow', plan.accessChanges) : []],
     ] as const) {
-      for (const entry of entries) {
-        const text = subjectText(entry.subject, contracts);
-        const given = givenFor(verb, text, input.preAnswers, usedPreAnswers);
-        for (const statement of given) usedPreAnswers.add(statement);
-        if (input.consentAll[verb] || given.length > 0) consent(verb, entry, text);
+      const texts = entries.map((entry) => subjectText(entry.subject, contracts));
+      const given = input.preAnswers.filter(
+        (statement) =>
+          statement.verb === verb && (verb === 'delete' || !usedPreAnswers.has(statement)),
+      );
+      const matched = matchConsents(
+        verb,
+        entries.map((entry, index) => ({
+          text: texts[index] ?? '',
+          removedNamespace: removedNamespaceOf(entry.subject, plan.namespaces),
+        })),
+        given.map(({ text }) => text),
+      );
+      for (const position of matched.used) {
+        const statement = given[position];
+        if (statement !== undefined) usedPreAnswers.add(statement);
       }
+      entries.forEach((entry, index) => {
+        if (input.consentAll[verb] || matched.answered.has(index)) {
+          consent(verb, entry, texts[index] ?? '');
+        }
+      });
     }
     const losses = pending('delete', plan.dataLoss);
-    const widenings = input.askAccess ? pending('allow', plan.accessWidening) : [];
-    if (losses.length + widenings.length === 0 && round > 0) break;
+    const accessChanges = input.askAccess ? pending('allow', plan.accessChanges) : [];
+    if (losses.length + accessChanges.length === 0 && round > 0) break;
     const questions = [
-      ...withRecoveryOnFirstStorageQuestion(
-        losses.map((loss) => ({ loss, question: dataLossQuestion(loss, contracts) })),
-        !input.originKnown,
+      ...withNamespaceDeleteOnFirstQuestion(
+        withRecoveryOnFirstStorageQuestion(
+          losses.map((loss) => ({
+            loss,
+            question: acceptingNamespaceAnswers(
+              dataLossQuestion(loss, contracts),
+              removedNamespaceOf(loss.subject, plan.namespaces),
+              contracts,
+            ),
+          })),
+          !input.originKnown,
+        ),
+        plan.namespaces?.added ?? [],
       ),
-      ...widenings.map((widening) => accessWideningQuestion(widening, contracts)),
+      ...accessChanges.map((change) => accessChangeQuestion(change, contracts)),
     ];
     const answers = await input.answer(questions);
     checkAnswers(questions, answers);
-    const typed: { readonly statement: StatementText; readonly loss: PlannedSubject }[] = [];
+    const typed: {
+      readonly statement: StatementText;
+      readonly loss: PlannedSubject;
+      readonly ofNamespace: boolean;
+    }[] = [];
     answers.forEach((answer, index) => {
-      const entry = [...losses, ...widenings][index];
+      const entry = [...losses, ...accessChanges][index];
       const question = questions[index];
-      if (entry === undefined || question === undefined) return;
+      if (answer === undefined || entry === undefined || question === undefined) return;
       if (answer.verb === 'rename' || answer.verb === 'convert') {
-        typed.push({ statement: { verb: answer.verb, text: answer.text }, loss: entry });
+        typed.push({
+          statement: { verb: answer.verb, text: answer.text },
+          loss: entry,
+          ofNamespace: question.namespaceAnswer?.(answer.verb, answer.text) === 'rename',
+        });
       } else consent(answer.verb, entry, question.subject);
     });
     if (typed.length === 0) {
-      if (losses.length + widenings.length === 0) break;
+      if (losses.length + accessChanges.length === 0) break;
       continue;
     }
-    statements = [...statements, ...typed.map(({ statement }) => statement)];
+    const given = new Set(statements.map(({ verb, text }) => `${verb} ${text}`));
+    for (const { statement } of typed) {
+      const key = `${statement.verb} ${statement.text}`;
+      if (given.has(key)) continue;
+      given.add(key);
+      statements = [...statements, statement];
+    }
     const replanned = await input.replan(statements);
     if (!replanned.ok) return replanned;
     plan = replanned.value;
-    for (const entry of plan.accessWidening) {
+    for (const entry of plan.accessChanges) {
       const allowed = consented.get(questionKey('allow', entry));
       if (allowed !== undefined) {
         consented.set(questionKey('allow', entry), {
@@ -579,7 +735,9 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
     }
     const operationOf = (entry: PlannedSubject) => `${entry.label}:${keyOf(entry)}`;
     const stillPlanned = new Set(plan.dataLoss.map(operationOf));
-    const unresolved = typed.find(({ loss }) => stillPlanned.has(operationOf(loss)));
+    const unresolved = typed.find(
+      ({ loss, ofNamespace }) => !ofNamespace && stillPlanned.has(operationOf(loss)),
+    );
     if (unresolved !== undefined) {
       return notOk(
         errorStatementDidNotResolveLoss(
@@ -606,7 +764,7 @@ function questionSubjects(
   askAccess: boolean,
   contracts: StatementContracts,
 ): readonly string[] {
-  const subjects = [...plan.dataLoss, ...(askAccess ? plan.accessWidening : [])].map((entry) =>
+  const subjects = [...plan.dataLoss, ...(askAccess ? plan.accessChanges : [])].map((entry) =>
     subjectText(entry.subject, contracts),
   );
   return [...new Set(subjects)];
@@ -623,20 +781,90 @@ export function refuseUnusedConsents(input: {
   readonly contracts: StatementContracts;
 }): Result<void, CliStructuredError> {
   const subjects = questionSubjects(input.plan, true, input.contracts);
-  const used = new Set<StatementText>();
+  const unused: UnusedConsent[] = [];
   for (const [verb, entries] of [
     ['delete', input.plan.dataLoss],
-    ['allow', input.plan.accessWidening],
+    ['allow', input.plan.accessChanges],
   ] as const) {
-    for (const entry of entries) {
-      const text = subjectText(entry.subject, input.contracts);
-      for (const statement of givenFor(verb, text, input.statements, used)) used.add(statement);
-    }
+    const questions = entries.map((entry) => ({
+      text: subjectText(entry.subject, input.contracts),
+      removedNamespace:
+        verb === 'delete' ? removedNamespaceOf(entry.subject, input.plan.namespaces) : undefined,
+    }));
+    const given = input.statements.filter((statement) => statement.verb === verb);
+    unused.push(
+      ...matchConsents(
+        verb,
+        verb === 'delete' ? [...new Map(questions.map((q) => [q.text, q])).values()] : questions,
+        given.map(({ text }) => text),
+      ).unused,
+    );
   }
-  const unused = input.statements.filter(
-    (statement) => !isPlannedStatement(statement) && !used.has(statement),
-  );
-  return unused.length === 0
-    ? ok(undefined)
-    : notOk(errorStatementAnswersNoQuestion(unused, subjects));
+  const answersNothing = unused.filter(({ alreadyAnsweredBy }) => alreadyAnsweredBy === undefined);
+  if (answersNothing.length > 0) {
+    return notOk(errorStatementAnswersNoQuestion(answersNothing, subjects));
+  }
+  return unused.length === 0 ? ok(undefined) : notOk(errorConsentUnused(unused, subjects));
+}
+
+/** Which question each consent flag answered, by position, and the flags no question took. */
+export interface ConsentMatch {
+  /** The flag text that answers each question, by the question's position. */
+  readonly answered: ReadonlyMap<number, string>;
+  /** The positions of the flags some question took. */
+  readonly used: ReadonlySet<number>;
+  readonly unused: readonly UnusedConsent[];
+}
+
+/**
+ * Matches `--delete` or `--allow` flags to questions as an apply does, whatever their order. A
+ * `delete` naming a subject answers every question about it; then a `delete` naming a removed
+ * namespace answers the questions of the namespace still open. An `allow` answers one operation,
+ * so each question takes a flag of its own. A flag no question took is unused, and says what had
+ * already answered its question, if anything had. Every path that matches consent flags asks this,
+ * so a dry run and an apply refuse the same flags.
+ */
+export function matchConsents(
+  verb: ConsentVerb,
+  questions: readonly ConsentQuestion[],
+  texts: readonly string[],
+): ConsentMatch {
+  const answered = new Map<number, string>();
+  const used = new Set<number>();
+  const take = (index: number, position: number) => {
+    const text = texts[position];
+    if (text === undefined) return;
+    answered.set(index, text);
+    used.add(position);
+  };
+  questions.forEach((question, index) => {
+    const position = texts.findIndex(
+      (text, at) => text === question.text && (verb === 'delete' || !used.has(at)),
+    );
+    if (position !== -1) take(index, position);
+  });
+  if (verb === 'delete') {
+    questions.forEach((question, index) => {
+      if (answered.has(index) || question.removedNamespace === undefined) return;
+      const position = texts.indexOf(question.removedNamespace);
+      if (position !== -1) take(index, position);
+    });
+  }
+  const unused = texts.flatMap((text, position): UnusedConsent[] => {
+    if (used.has(position)) return [];
+    const subject = questions.find((question) => question.text === text);
+    return [
+      {
+        verb,
+        text,
+        alreadyAnsweredBy:
+          subject !== undefined
+            ? { kind: 'subject', subject: text, flag: { verb, text } }
+            : questions.some(({ removedNamespace }) => removedNamespace === text)
+              ? { kind: 'namespace', namespace: text }
+              : undefined,
+      },
+    ];
+  });
+  return { answered, used, unused };
 }

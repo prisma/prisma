@@ -460,10 +460,12 @@ describe('mongoTargetDescriptor.execute (across spaces)', {
         code: failingResult.failure.code,
         message: failingResult.failure.message,
         failingSpace: failingResult.failure.meta.failingSpace,
+        databaseUnchanged: failingResult.failure.meta.databaseUnchanged,
       }).toEqual({
         code: 'MIGRATION.SCHEMA_VERIFY_FAILED',
         message: expect.any(String),
         failingSpace: APP_SPACE_ID,
+        databaseUnchanged: false,
       });
       expect(failingResult.failure.message).not.toBe('');
 

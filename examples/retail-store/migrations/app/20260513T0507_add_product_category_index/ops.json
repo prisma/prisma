@@ -19,7 +19,8 @@
             "articleType": 1
           }
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "an index on { primaryCategory: 1, articleType: 1 } in \"products\""
       }
     ],
     "execute": [

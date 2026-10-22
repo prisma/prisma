@@ -115,7 +115,10 @@ describe('renameColumn (sqlite)', () => {
       columnExistsAst('User', 'fullName').columnPresent(),
       columnExistsAst('User', 'name').columnAbsent(),
     ]);
-    expect(op.precheck).toHaveLength(2);
+    expect(op.precheck.map((step) => step.expectation)).toEqual([
+      { expects: 'present', object: 'column "name" on "User"' },
+      { expects: 'absent', object: 'a column named "fullName" on "User" in any case' },
+    ]);
     expect(op.postcheck).toHaveLength(2);
   });
 
@@ -123,6 +126,10 @@ describe('renameColumn (sqlite)', () => {
     const { lowerer, received } = recordingCheckLowerer();
     const op = await renameColumn('User', 'name', 'Name', lowerer);
     expect(received[1]).toEqual(columnExistsAst('User', 'Name').columnAbsent());
+    expect(op.precheck[1]?.expectation).toEqual({
+      expects: 'absent',
+      object: 'column "Name" on "User"',
+    });
     expect(op.execute.map((step) => step.sql)).toEqual([
       'ALTER TABLE "User" RENAME COLUMN "name" TO "Name"',
     ]);

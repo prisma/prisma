@@ -24,6 +24,7 @@ export {
   DropNativeEnumTypeCall,
   DropNotNullCall,
   DropPostgresRlsPolicyCall,
+  DropSchemaCall,
   DropTableCall,
   EnableRowLevelSecurityCall,
   RawSqlCall,
@@ -31,7 +32,9 @@ export {
   RenameConstraintCall,
   RenameIndexCall,
   RenamePostgresRlsPolicyCall,
+  RenameSchemaCall,
   RenameTableCall,
   SetDefaultCall,
   SetNotNullCall,
+  SetTableSchemaCall,
 } from '../core/migrations/op-factory-call';
