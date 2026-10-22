@@ -184,35 +184,21 @@ export interface RunMigrationValue {
 
 export type RunMigrationResult = Result<RunMigrationValue, MigrationRunnerFailure>;
 
-const RERUN_COMMAND: Record<RunAction, string> = {
-  dbInit: 'db init',
-  dbUpdate: 'db update',
-  migrate: 'db migrate',
-};
+const CHANGES_STAY = 'Changes made before the failure stay in the database.';
 
 /**
- * The runner's failure as the CLI reports it. When the failed apply changed the database, the
- * headline names the space it stopped at and says that the spaces before it stay applied; the
- * runner's own message moves into the why.
+ * The runner's failure as the CLI reports it. When the failed apply changed the database, a line
+ * under the runner's own message says that those changes stay.
  */
-export function reportedRunnerFailure(
-  failure: MigrationRunnerFailure,
-  action: RunAction,
-): MigrationRunnerFailure {
-  const { failingSpace, databaseUnchanged } = failure.meta;
-  if (failingSpace === undefined || databaseUnchanged !== false) {
-    return failure;
-  }
-  const runnerMessage = failure.message.replace(/[.!?]?$/, '.');
-  return migrationRunnerFailure(
-    failure.code,
-    `Migration failed in space "${failingSpace}". Spaces applied before it stay applied; run ${RERUN_COMMAND[action]} again to finish.`,
-    {
-      why: failure.why === undefined ? runnerMessage : `${runnerMessage} ${failure.why}`,
-      meta: failure.meta,
-      cause: failure,
-    },
-  );
+export function reportedRunnerFailure(failure: MigrationRunnerFailure): MigrationRunnerFailure {
+  if (failure.meta.databaseUnchanged !== false) return failure;
+  const reported = migrationRunnerFailure(failure.code, `${failure.message}\n${CHANGES_STAY}`, {
+    ...ifDefined('why', failure.why),
+    meta: failure.meta,
+    ...ifDefined('cause', failure.cause),
+  });
+  if (failure.stack !== undefined) reported.stack = failure.stack;
+  return reported;
 }
 
 /**
@@ -277,7 +263,7 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
 
   if (!runnerResult.ok) {
     onProgress?.({ action, kind: 'spanEnd', spanId: RUN_SPAN_ID, outcome: 'error' });
-    return notOk(reportedRunnerFailure(runnerResult.failure, action));
+    return notOk(reportedRunnerFailure(runnerResult.failure));
   }
   onProgress?.({ action, kind: 'spanEnd', spanId: RUN_SPAN_ID, outcome: 'ok' });
 
