@@ -25,18 +25,17 @@ packages/
     3-tooling/           # Layer 3: Tooling
   2-document/            # Domain 2: Document (placeholder)
   2-mongo-family/        # Domain 2: Mongo family
-  2-sql/                 # Domain 2: SQL family
+  2-sql-family/          # Domain 2: SQL family
     1-core/              # Layer 1: Core
     2-authoring/         # Layer 2: Authoring
     3-tooling/           # Layer 3: Tooling
     4-lanes/             # Layer 4: Lanes
     5-runtime/           # Layer 5: Runtime
-  3-mongo-target/        # Domain 3: Mongo target
   3-extensions/          # Domain 3: Extensions
-  3-targets/             # Domain 3: Targets
-    3-targets/           # Layer 3: Target descriptors
-    6-adapters/          # Layer 6: Adapters
-    7-drivers/           # Layer 7: Drivers
+  3-targets/             # Domain 3: Targets, one folder per database (ADR 278)
+    postgres/            # 1-target, 2-adapter, 3-driver, 4-codec-testkit, 9-facade
+    sqlite/              # the same
+    mongo/               # 1-target, 2-adapter, 3-driver, 9-facade
 ```
 
 The numbered prefixes serve two purposes:
@@ -71,10 +70,10 @@ The framework domain (`packages/1-framework/`) contains target-agnostic packages
 
 ### SQL Family Domain
 
-The SQL domain (`packages/2-sql/`) contains SQL-specific packages organized by layer:
+The SQL domain (`packages/2-sql-family/`) contains SQL-specific packages organized by layer:
 
 ```text
-* 2-sql
+* 2-sql-family
 |-- 1-core (shared plane)
 |   |-- contract/      → @internal/sql-contract
 |   |-- operations/    → @internal/sql-operations
@@ -120,32 +119,24 @@ The Mongo family domain (`packages/2-mongo-family/`) contains Mongo-specific pac
     |-- → @internal/family-mongo
 ```
 
-### Targets Domain (Extension Packs)
+### Targets Domain
 
-The targets domain (`packages/3-targets/`) contains concrete target extension packs (e.g., Postgres, MySQL). Dialect (target), adapter, and driver are kept as separate packages to enable mix-and-match:
-
-```
-* 3-targets
-|-- 3-targets/postgres (migration plane)
-|   |-- → @internal/target-postgres (target descriptor)
-|-- 6-adapters/postgres (multi-plane: shared, migration, runtime)
-|   |-- → @internal/adapter-postgres (adapter with control/runtime entrypoints)
-|-- 7-drivers/postgres (runtime plane)
-    |-- → @internal/driver-postgres (driver implementation)
-```
-
-### Mongo Targets Domain
-
-Mongo-specific target packages live under `packages/3-mongo-target/`:
+The targets domain (`packages/3-targets/`) holds one folder per database, for every family ([ADR 278](../adrs/ADR%20278%20-%20Each%20database's%20packages%20live%20in%20one%20folder.md)). Target, adapter, driver and facade stay separate packages, so an application can replace one of them; the folder keeps them together. Inside a database folder the numbers give dependency order: the adapter imports the target, the facade imports all three, the driver imports none of them.
 
 ```text
-* 3-mongo-target
-|-- 1-mongo-target (migration plane)
-|   |-- → @internal/target-mongo (target descriptor / pack)
-|-- 2-mongo-adapter (multi-plane)
-|   |-- → @internal/adapter-mongo
-|-- 3-mongo-driver (runtime plane)
-    |-- → @internal/driver-mongo
+* 3-targets
+|-- postgres
+|   |-- 1-target          → @internal/target-postgres (target pack: descriptor, codecs, data types, migrations)
+|   |-- 2-adapter         → @internal/adapter-postgres (lowering, control adapter; multi-plane)
+|   |-- 3-driver          → @internal/driver-postgres (connections and transport)
+|   |-- 4-codec-testkit   → @internal/postgres-codec-testkit
+|   |-- 9-facade          → @internal/postgres (source of @prisma/orm-postgres)
+|-- sqlite                  (the same five)
+|-- mongo
+    |-- 1-target          → @internal/target-mongo
+    |-- 2-adapter         → @internal/adapter-mongo
+    |-- 3-driver          → @internal/driver-mongo
+    |-- 9-facade          → @internal/mongo (source of @prisma/orm-mongo)
 ```
 
 ### Extensions Domain
@@ -246,7 +237,7 @@ Contract authoring surfaces for creating contracts programmatically.
 - `packages/1-framework/2-authoring/psl-parser/` → `@internal/psl-parser` - PSL parser + IR (future)
 
 **SQL Domain (Migration Plane):**
-- `packages/2-sql/2-authoring/contract-ts/` → `@internal/sql-contract-ts` - SQL TS authoring surface, composed helper DSL, and lowering pipeline
+- `packages/2-sql-family/2-authoring/contract-ts/` → `@internal/sql-contract-ts` - SQL TS authoring surface, composed helper DSL, and lowering pipeline
 
 **Mongo Domain (Migration Plane):**
 - `packages/2-mongo-family/2-authoring/contract-psl/` → `@internal/mongo-contract-psl` - PSL interpretation into Mongo contract input
@@ -258,8 +249,8 @@ Contract authoring surfaces for creating contracts programmatically.
 
 Target-family specific emitter hooks and family-provided helpers for CLI assembly.
 
-- `packages/2-sql/3-tooling/emitter/` → `@internal/sql-contract-emitter` - SQL emitter hook
-- `packages/2-sql/9-family/` → `@internal/family-sql` - SQL family descriptor and authoring-time family pack
+- `packages/2-sql-family/3-tooling/emitter/` → `@internal/sql-contract-emitter` - SQL emitter hook
+- `packages/2-sql-family/9-family/` → `@internal/family-sql` - SQL family descriptor and authoring-time family pack
 - `packages/2-mongo-family/3-tooling/emitter/` → `@internal/mongo-emitter` - Mongo emitter hook
 - `packages/2-mongo-family/9-family/` → `@internal/family-mongo` - Mongo family descriptor and authoring-time family pack
 - `packages/1-framework/3-tooling/cli/src/pack-assembly.ts` - Generic assembly functions that loop over descriptors and delegate to family's `convertOperationManifest()` for conversion
@@ -271,16 +262,16 @@ Target-family specific emitter hooks and family-provided helpers for CLI assembl
 
 Lanes consume targets and relational-core helpers to produce AST plans. Packages in this layer may depend laterally on other lane utilities (e.g., shared relational helpers) and on inner layers, but not on runtime/adapter layers.
 
-- `packages/2-sql/4-lanes/relational-core/` → `@internal/sql-relational-core` – shared schema/column builders, operation attachment, AST factories
-- `packages/2-sql/4-lanes/sql-lane/` → `@internal/sql-lane` – SQL DSL + raw lane (Phase 1 refactor keeps API stable while using shared factories)
-- `packages/2-sql/4-lanes/orm-lane/` → `@internal/sql-orm-lane` – ORM builder (Phase 1 removes dependency on `sql-lane`)
+- `packages/2-sql-family/4-lanes/relational-core/` → `@internal/sql-relational-core` – shared schema/column builders, operation attachment, AST factories
+- `packages/2-sql-family/4-lanes/sql-lane/` → `@internal/sql-lane` – SQL DSL + raw lane (Phase 1 refactor keeps API stable while using shared factories)
+- `packages/2-sql-family/4-lanes/orm-lane/` → `@internal/sql-orm-lane` – ORM builder (Phase 1 removes dependency on `sql-lane`)
 
 ### Runtime Layer
 
 Per-family runtime implementations that extend the abstract `RuntimeCore` from `@internal/framework-components/runtime` (core layer). There is no separate target-agnostic runtime package; the kernel collapsed into `framework-components` per [ADR 204](../adrs/ADR%20204%20-%20Single-tier%20runtime.md).
 
 **SQL Domain (Runtime Plane):**
-- `packages/2-sql/5-runtime/` → `@internal/sql-runtime` – SQL family runtime that extends `RuntimeCore` from `@internal/framework-components/runtime` with SQL adapters (future document runtimes will mirror this)
+- `packages/2-sql-family/5-runtime/` → `@internal/sql-runtime` – SQL family runtime that extends `RuntimeCore` from `@internal/framework-components/runtime` with SQL adapters (future document runtimes will mirror this)
 
 **Mongo Domain (Runtime Plane):**
 - `packages/2-mongo-family/7-runtime/` → `@internal/mongo-runtime` – Mongo family runtime that extends `RuntimeCore` from `@internal/framework-components/runtime` with the Mongo adapter
@@ -292,16 +283,16 @@ Per-family runtime implementations that extend the abstract `RuntimeCore` from `
 Database adapters, drivers, and targets (dialects) live in the Targets domain as separate packages. Adapters use multi-plane entrypoints to support both control (migration) and runtime usage.
 
 **Targets (Migration Plane):**
-- `packages/3-targets/3-targets/postgres/` → `@internal/target-postgres` - Postgres target descriptor
+- `packages/3-targets/postgres/1-target/` → `@internal/target-postgres` - Postgres target descriptor
 
 **Adapters (Multi-Plane: Shared, Migration, Runtime):**
-- `packages/3-targets/6-adapters/postgres/` → `@internal/adapter-postgres` - Postgres adapter with multi-plane entrypoints:
+- `packages/3-targets/postgres/2-adapter/` → `@internal/adapter-postgres` - Postgres adapter with multi-plane entrypoints:
   - `src/core/**` → shared plane (adapter SPI implementation)
   - `src/exports/control.ts` → migration plane (control plane descriptor)
   - `src/exports/runtime.ts` → runtime plane (runtime factory)
 
 **Drivers (Runtime Plane):**
-- `packages/3-targets/7-drivers/postgres/` → `@internal/driver-postgres` - Postgres driver
+- `packages/3-targets/postgres/3-driver/` → `@internal/driver-postgres` - Postgres driver
 
 ## Naming Conventions
 
@@ -312,7 +303,7 @@ Database adapters, drivers, and targets (dialects) live in the Targets domain as
 - Use the published package name as the only import specifier
 - Encode target family in the package name prefix (e.g., `@internal/sql-...`)
 - Collapse nested directories to hyphenated names (no slashes after scope)
-- Keep conventional names for adapters/drivers (e.g., `@internal/adapter-postgres`, `@internal/driver-postgres`). They are located under `packages/3-targets/**` as separate packages (target, adapter, driver) to enable mix-and-match.
+- Keep conventional names for adapters/drivers (e.g., `@internal/adapter-postgres`, `@internal/driver-postgres`). They are separate packages (target, adapter, driver), grouped in `packages/3-targets/<db>/`.
 - Layers constrain dependencies but don't generally appear in package names
 
 ### Examples
@@ -339,22 +330,22 @@ Database adapters, drivers, and targets (dialects) live in the Targets domain as
 | `packages/2-mongo-family/6-transport/mongo-wire/` | `@internal/mongo-wire` |
 | `packages/2-mongo-family/7-runtime/` | `@internal/mongo-runtime` |
 | `packages/2-mongo-family/9-family/` | `@internal/family-mongo` |
-| `packages/2-sql/1-core/contract/` | `@internal/sql-contract` |
-| `packages/2-sql/1-core/operations/` | `@internal/sql-operations` |
-| `packages/2-sql/1-core/schema-ir/` | `@internal/sql-schema-ir` |
-| `packages/2-sql/2-authoring/contract-ts/` | `@internal/sql-contract-ts` |
-| `packages/2-sql/3-tooling/emitter/` | `@internal/sql-contract-emitter` |
-| `packages/2-sql/3-tooling/family/` | `@internal/family-sql` |
-| `packages/2-sql/4-lanes/relational-core/` | `@internal/sql-relational-core` |
-| `packages/2-sql/4-lanes/sql-lane/` | `@internal/sql-lane` |
-| `packages/2-sql/4-lanes/orm-lane/` | `@internal/sql-orm-lane` |
-| `packages/2-sql/5-runtime/` | `@internal/sql-runtime` |
-| `packages/3-mongo-target/1-mongo-target/` | `@internal/target-mongo` |
-| `packages/3-mongo-target/2-mongo-adapter/` | `@internal/adapter-mongo` |
-| `packages/3-mongo-target/3-mongo-driver/` | `@internal/driver-mongo` |
-| `packages/3-targets/3-targets/postgres/` | `@internal/target-postgres` |
-| `packages/3-targets/6-adapters/postgres/` | `@internal/adapter-postgres` |
-| `packages/3-targets/7-drivers/postgres/` | `@internal/driver-postgres` |
+| `packages/2-sql-family/1-core/contract/` | `@internal/sql-contract` |
+| `packages/2-sql-family/1-core/operations/` | `@internal/sql-operations` |
+| `packages/2-sql-family/1-core/schema-ir/` | `@internal/sql-schema-ir` |
+| `packages/2-sql-family/2-authoring/contract-ts/` | `@internal/sql-contract-ts` |
+| `packages/2-sql-family/3-tooling/emitter/` | `@internal/sql-contract-emitter` |
+| `packages/2-sql-family/3-tooling/family/` | `@internal/family-sql` |
+| `packages/2-sql-family/4-lanes/relational-core/` | `@internal/sql-relational-core` |
+| `packages/2-sql-family/4-lanes/sql-lane/` | `@internal/sql-lane` |
+| `packages/2-sql-family/4-lanes/orm-lane/` | `@internal/sql-orm-lane` |
+| `packages/2-sql-family/5-runtime/` | `@internal/sql-runtime` |
+| `packages/3-targets/mongo/1-target/` | `@internal/target-mongo` |
+| `packages/3-targets/mongo/2-adapter/` | `@internal/adapter-mongo` |
+| `packages/3-targets/mongo/3-driver/` | `@internal/driver-mongo` |
+| `packages/3-targets/postgres/1-target/` | `@internal/target-postgres` |
+| `packages/3-targets/postgres/2-adapter/` | `@internal/adapter-postgres` |
+| `packages/3-targets/postgres/3-driver/` | `@internal/driver-postgres` |
 | `packages/3-extensions/sql-orm-client/` | `@internal/sql-orm-client` |
 | `packages/3-extensions/pgvector/` | `@internal/extension-pgvector` |
 
@@ -372,13 +363,13 @@ Database adapters, drivers, and targets (dialects) live in the Targets domain as
 
 - **`core/*`** → cannot import from any other layer
 - **`authoring/*`** → can import from `core/*` only
-- **`2-sql/3-tooling/*`** → can import from `1-core/*` and `2-authoring/*` only
+- **`2-sql-family/3-tooling/*`** → can import from `1-core/*` and `2-authoring/*` only
 - **`2-mongo-family/3-tooling/*`** and **`2-mongo-family/9-family`** → can import from `1-core/*` and `2-authoring/*` only
-- **`2-sql/4-lanes/*`** → can import from `1-core/*`, `2-authoring/*`, `2-sql/3-tooling/*` only
-- **`2-sql/5-runtime`** → can import from `1-framework/1-core/framework-components` (for `RuntimeCore` / `RuntimeMiddleware` / `runWithMiddleware`), `2-sql/3-tooling/*`, `2-sql/4-lanes/*`, and `3-targets/6-adapters/*` only
+- **`2-sql-family/4-lanes/*`** → can import from `1-core/*`, `2-authoring/*`, `2-sql-family/3-tooling/*` only
+- **`2-sql-family/5-runtime`** → can import from `1-framework/1-core/framework-components` (for `RuntimeCore` / `RuntimeMiddleware` / `runWithMiddleware`), `2-sql-family/3-tooling/*`, `2-sql-family/4-lanes/*`, and `3-targets/<db>/2-adapter` only
 - **`2-mongo-family/4-query/*`, `5-query-builders/*`, `6-transport/*`, `7-runtime`** → follow the same downward-only rule within the Mongo family plus allowed framework imports (notably `1-framework/1-core/framework-components` for the runtime SPI)
-- **`3-targets/6-adapters/*`** → can import from `2-sql/3-tooling/*` and `2-sql/5-runtime` only
-- **`3-mongo-target/2-mongo-adapter`** → can import from Mongo family shared/runtime layers, not SQL family packages
+- **`3-targets/<db>/2-adapter`** (SQL databases) → can import from `2-sql-family/3-tooling/*` and `2-sql-family/5-runtime` only
+- **`3-targets/mongo/2-adapter`** → can import from Mongo family shared/runtime layers, not SQL family packages
 
 ### Domain Rules
 
@@ -485,11 +476,11 @@ Some packages span multiple planes (e.g., adapters that have both control plane 
 - **`src/exports/runtime.ts`**: Runtime plane entry point (runtime factories)
 
 **Example:** `@internal/adapter-postgres` spans three planes:
-- `packages/3-targets/6-adapters/postgres/src/core/**` → domain: `targets`, layer: `adapters`, plane: `shared`
-- `packages/3-targets/6-adapters/postgres/src/exports/control.ts` → domain: `targets`, layer: `adapters`, plane: `migration`
-- `packages/3-targets/6-adapters/postgres/src/exports/runtime.ts` → domain: `targets`, layer: `adapters`, plane: `runtime`
+- `packages/3-targets/postgres/2-adapter/src/core/**` → domain: `targets`, layer: `adapters`, plane: `shared`
+- `packages/3-targets/postgres/2-adapter/src/exports/control.ts` → domain: `targets`, layer: `adapters`, plane: `migration`
+- `packages/3-targets/postgres/2-adapter/src/exports/runtime.ts` → domain: `targets`, layer: `adapters`, plane: `runtime`
 
-**Note:** Dialect (target), adapter, and driver are separate packages under `packages/3-targets/**` to enable mix-and-match. The adapter package uses multi-plane entrypoints to support both control plane configuration (migration plane) and runtime usage (runtime plane) while keeping shared core code (shared plane) accessible to both.
+**Note:** Target, adapter, and driver are separate packages, grouped in `packages/3-targets/<db>/`, so an application can replace one of them. The adapter package uses multi-plane entrypoints to support both control plane configuration (migration plane) and runtime usage (runtime plane) while keeping shared core code (shared plane) accessible to both.
 
 This structure allows the same package to provide both control plane configuration (migration plane) and runtime implementation (runtime plane) while keeping shared code (core) accessible to both.
 
@@ -498,8 +489,8 @@ This structure allows the same package to provide both control plane configurati
 **Directory Structure Status:** ✅ Complete
 
 The package layering structure uses numbered directory prefixes for visual hierarchy:
-- All domain directories created with numbered prefixes (`1-framework/`, `2-sql/`, `2-document/`, `3-targets/`, `3-extensions/`)
-- Active Mongo domains also live under numbered prefixes (`2-mongo-family/`, `3-mongo-target/`)
+- All domain directories created with numbered prefixes (`1-framework/`, `2-sql-family/`, `2-document/`, `3-targets/`, `3-extensions/`)
+- Each database's packages live in one folder under `3-targets/` (ADR 278)
 - All layer directories created with numbered prefixes (e.g., `1-core/`, `2-authoring/`, `3-tooling/`, `4-lanes/`, `5-runtime/`)
 - Plane subdirectories removed (`shared/`, `migration/`, `runtime/` intermediate directories flattened)
 - Workspace configuration updated (`pnpm-workspace.yaml`)
@@ -512,10 +503,9 @@ The package layering structure uses numbered directory prefixes for visual hiera
 
 - `packages/1-framework/` - Framework domain (target-agnostic)
 - `packages/2-mongo-family/` - Mongo family domain
-- `packages/2-sql/` - SQL family domain
+- `packages/2-sql-family/` - SQL family domain
 - `packages/2-document/` - Document family domain (placeholder)
-- `packages/3-mongo-target/` - Mongo target domain (target pack, adapter, driver)
-- `packages/3-targets/` - Targets domain (concrete dialects, adapters, drivers)
+- `packages/3-targets/` - Targets domain, one folder per database (target, adapter, driver, codec testkit, facade)
 - `packages/3-extensions/` - Extensions domain (compat layers, extension packs)
 
 The numbered prefixes ensure:
