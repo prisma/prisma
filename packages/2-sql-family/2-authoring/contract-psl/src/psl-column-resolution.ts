@@ -12,7 +12,6 @@ import type {
   AuthoringEntityTypeNamespace,
   AuthoringFieldPresetDescriptor,
   AuthoringStorageTypeTemplate,
-  AuthoringTypeChoiceDescriptor,
   AuthoringTypeConstructorDescriptor,
   ScalarTypeConstructorOutput,
 } from '@internal/framework-components/authoring';
@@ -22,9 +21,7 @@ import {
   instantiateAuthoringTypeConstructor,
   isAuthoringEntityTypeDescriptor,
   readWrittenValue,
-  resolveAuthoringTypeChoice,
   validateAuthoringHelperArguments,
-  validateAuthoringTypeChoiceParams,
   validateAuthoringTypeParams,
   type WrittenScalar,
   type WrittenValue,
@@ -43,7 +40,6 @@ import type { ContributedPslDiagnosticCode } from '@internal/framework-component
 import type {
   Binder,
   BlockSymbol,
-  ContributedTypeSymbol,
   FieldSymbol,
   ModelSymbol,
   NamedTypeSymbol,
@@ -58,6 +54,7 @@ import type {
 import {
   type DiagnosticSource,
   diagnosticSource,
+  isContributedTypeChoice,
   nodePslSpan,
   type PslDiagnosticCollector,
   typeAttributeSpecContextOfField,
@@ -65,7 +62,10 @@ import {
   typeGeneratorAttributeSpec,
 } from '@internal/psl-parser';
 import {
+  argumentIndexOf,
+  argumentSpan,
   instantiatePslFieldPreset,
+  instantiatePslTypeChoice,
   isBareTypeConstructor,
   mapPslHelperArgs,
   reportPresetNotCalled,
@@ -117,18 +117,6 @@ export type ColumnDescriptor = {
   readonly valueSet?: ValueSetRef;
 };
 
-function argumentSpan(
-  call: ResolvedTypeConstructorCall,
-  descriptors: readonly AuthoringArgumentDescriptor[] | undefined,
-  index: number | undefined,
-): PslSpan {
-  if (index === undefined) return call.span;
-  const name = descriptors?.[index]?.name;
-  const named = call.args.find((arg) => arg.kind === 'named' && arg.name === name);
-  const positional = call.args.filter((arg) => arg.kind === 'positional')[index];
-  return (named ?? positional)?.span ?? call.span;
-}
-
 /**
  * Checks the type parameters a constructor or preset produced against its codec's parameter schema,
  * reporting a failure at the argument the failing parameter came from. Returns whether they passed.
@@ -161,15 +149,6 @@ export function checkPslTypeParams(input: {
     });
     return false;
   }
-}
-
-function argumentIndexOf(error: unknown): number | undefined {
-  if (typeof error !== 'object' || error === null || !('details' in error)) return undefined;
-  const { details } = error;
-  if (typeof details !== 'object' || details === null || !('argumentIndex' in details)) {
-    return undefined;
-  }
-  return typeof details.argumentIndex === 'number' ? details.argumentIndex : undefined;
 }
 
 /**
@@ -249,75 +228,6 @@ export function instantiatePslTypeConstructor(input: {
     source: input.source,
   });
   return passed ? output : undefined;
-}
-
-/**
- * The column a field or type alias typed by the type choice `symbol` gets: its call's arguments, read as the choice declares them, choose a type constructor, which is instantiated with the arguments the choice passes on. A refusal is reported at the argument that makes it. `span` is where a bare use is written.
- */
-export function instantiatePslTypeChoice(input: {
-  readonly symbol: ContributedTypeSymbol;
-  readonly descriptor: AuthoringTypeChoiceDescriptor;
-  readonly call: ResolvedTypeConstructorCall | undefined;
-  readonly span: PslSpan;
-  readonly codecLookup: CodecLookupWithDescriptors;
-  readonly diagnostics: PslDiagnosticCollector;
-  readonly source: DiagnosticSource;
-  readonly entityLabel: string;
-  readonly dataTypes: DataTypeSupport;
-}): ScalarTypeConstructorOutput | undefined {
-  const { descriptor, symbol } = input;
-  const helperPath = symbol.path.join('.');
-  const call = input.call ?? { path: symbol.path, args: [], span: input.span };
-  const subject = `${input.entityLabel} type "${helperPath}"`;
-  const args = mapPslHelperArgs({
-    args: call.args,
-    descriptors: descriptor.args,
-    helperLabel: `type "${helperPath}"`,
-    span: call.span,
-    diagnostics: input.diagnostics,
-    source: input.source,
-    entityLabel: input.entityLabel,
-    dataTypes: input.dataTypes,
-  });
-  if (!args) return undefined;
-
-  let chosen: ReturnType<typeof resolveAuthoringTypeChoice>;
-  try {
-    chosen = resolveAuthoringTypeChoice({
-      helperPath,
-      descriptor,
-      args,
-      constructorNamed: (name) => symbol.choiceTypes?.get(name),
-    });
-  } catch (error) {
-    if (isInternalError(error)) throw error;
-    input.diagnostics.push({
-      code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-      message: `${subject}: ${error instanceof Error ? error.message : String(error)}`,
-      ...input.source.at(argumentSpan(call, descriptor.args, argumentIndexOf(error))),
-    });
-    return undefined;
-  }
-
-  const output = instantiateAuthoringTypeConstructor(chosen.descriptor, chosen.args);
-  try {
-    validateAuthoringTypeChoiceParams(
-      helperPath,
-      descriptor,
-      chosen.descriptor,
-      output.typeParams,
-      input.codecLookup.descriptorFor(output.codecId)?.paramsSchema,
-    );
-  } catch (error) {
-    if (isInternalError(error)) throw error;
-    input.diagnostics.push({
-      code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-      message: `${subject}: ${error instanceof Error ? error.message : String(error)}`,
-      ...input.source.at(argumentSpan(call, descriptor.args, argumentIndexOf(error))),
-    });
-    return undefined;
-  }
-  return output;
 }
 
 /**
@@ -631,6 +541,19 @@ export function resolveFieldTypeDescriptor(
     case 'mixin':
       return NOT_RESOLVED;
     case 'contributedType': {
+      if (isContributedTypeChoice(resolution.symbol)) {
+        const instantiated = instantiatePslTypeChoice({
+          symbol: resolution.symbol,
+          call,
+          span: field.span,
+          codecLookup: input.codecLookup,
+          diagnostics,
+          source,
+          entityLabel,
+          dataTypes: input.dataTypes,
+        });
+        return instantiated === undefined ? NOT_RESOLVED : { ok: true, descriptor: instantiated };
+      }
       const { descriptor, path } = resolution.symbol;
       const written = path.join('.');
       if (descriptor.kind === 'typeAlias') {
@@ -643,20 +566,6 @@ export function resolveFieldTypeDescriptor(
           return NOT_RESOLVED;
         }
         return { ok: true, descriptor: instantiateAuthoringTypeAlias(descriptor).type };
-      }
-      if (descriptor.kind === 'typeChoice') {
-        const instantiated = instantiatePslTypeChoice({
-          symbol: resolution.symbol,
-          descriptor,
-          call,
-          span: field.span,
-          codecLookup: input.codecLookup,
-          diagnostics,
-          source,
-          entityLabel,
-          dataTypes: input.dataTypes,
-        });
-        return instantiated === undefined ? NOT_RESOLVED : { ok: true, descriptor: instantiated };
       }
       if (descriptor.kind === 'fieldPreset') {
         if (call === undefined) {

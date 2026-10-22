@@ -363,9 +363,9 @@ model Post {
       list: context?.list,
       typeName: context?.typeName,
       codecId:
-        context?.typeConstructor === undefined
+        context?.contributedType === undefined
           ? undefined
-          : contributedTypeCodecId(context.typeConstructor),
+          : contributedTypeCodecId(context.contributedType, EMPTY_DATA_TYPES),
     }).toEqual({
       alias: 'Slug',
       untyped: undefined,

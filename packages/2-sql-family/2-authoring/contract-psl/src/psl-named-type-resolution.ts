@@ -26,6 +26,7 @@ import {
   resolveTypeAliases,
   typeAliasSpecContext,
 } from '@internal/psl-parser';
+import { instantiatePslTypeChoice } from '@internal/psl-parser/interpret';
 import type { FieldAttributeAst, PslSources } from '@internal/psl-parser/syntax';
 import { sqlCodecColumnLength } from '@internal/sql-contract/data-type';
 import type {
@@ -35,7 +36,6 @@ import type {
 import { formatDbAttributeMigrationMessage } from './psl-attribute-parsing';
 import {
   type ColumnDescriptor,
-  instantiatePslTypeChoice,
   instantiatePslTypeConstructor,
   lowerEnumDefault,
   lowerTypeDefault,
@@ -95,7 +95,6 @@ function aliasDescriptor(
   if (base.kind === 'typeChoice') {
     return instantiatePslTypeChoice({
       symbol: base.symbol,
-      descriptor: base.descriptor,
       call: base.call,
       span: symbol.span,
       codecLookup: input.codecLookup,

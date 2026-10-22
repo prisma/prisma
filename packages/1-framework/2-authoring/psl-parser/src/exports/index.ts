@@ -172,13 +172,18 @@ export type {
 export type {
   ContributedMember,
   ContributedNamespaceSymbol,
+  ContributedTypeChoiceSymbol,
   ContributedTypeDescriptor,
   ContributedTypeNamespace,
   ContributedTypeScope,
   ContributedTypeSymbol,
   ContributedTypeUse,
 } from '../contributed-type-scope';
-export { chosenTypeConstructor, contributedTypeCodecId } from '../contributed-type-scope';
+export {
+  chosenTypeConstructor,
+  contributedTypeCodecId,
+  isContributedTypeChoice,
+} from '../contributed-type-scope';
 export type { DiagnosticSource, PslDiagnostic, PslDiagnosticCollector } from '../diagnostic';
 export {
   createPslDiagnosticCollector,

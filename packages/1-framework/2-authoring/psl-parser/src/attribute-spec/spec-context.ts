@@ -32,7 +32,7 @@ export interface FieldAttributeSpecContext extends AttributeSpecContext {
   readonly field: FieldSymbol;
   readonly typeResolution: Resolution | undefined;
   /** The contributed type the field's type resolves to, through a named type when it is declared with one, with the call it is written with. */
-  readonly typeConstructor: ContributedTypeUse | undefined;
+  readonly contributedType: ContributedTypeUse | undefined;
 }
 
 /** The declaration an attribute that reads its type is written on: a field, or a type alias whose fields take the attribute. */
@@ -55,7 +55,7 @@ export interface TypeAttributeSpecContext extends Omit<AttributeSpecContext, 'mo
   readonly typeName: string;
   readonly typeResolution: Resolution | undefined;
   /** The contributed type the type resolves to, through a named type when it is declared with one, with the call it is written with. */
-  readonly typeConstructor: ContributedTypeUse | undefined;
+  readonly contributedType: ContributedTypeUse | undefined;
 }
 
 export function typeAttributeSpecContextOfField(
@@ -70,7 +70,7 @@ export function typeAttributeSpecContextOfField(
     list: ctx.field.list,
     typeName: ctx.field.typeName,
     typeResolution: ctx.typeResolution,
-    typeConstructor: ctx.typeConstructor,
+    contributedType: ctx.contributedType,
   };
 }
 

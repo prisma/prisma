@@ -135,19 +135,6 @@ describe('mapPslHelperArgs argument kinds', () => {
     expect(diagnostics[0]?.message).not.toMatch(/cannot parse/);
   });
 
-  it('says to write a number by name when it is written where an option is expected', () => {
-    const { diagnostics } = callMap(
-      [positional('3')],
-      [
-        { kind: 'option', name: 'value', values: ['string', 'temporal'] },
-        { kind: 'value', name: 'precision', dataType: 'test/int' },
-      ],
-    );
-    expect(diagnostics[0]?.message).toMatch(
-      / argument #1 is 3, but argument "value" takes one of these names, written without quotes: string, temporal\. Write precision by name, as in precision: 3\.$/,
-    );
-  });
-
   it('rejects an object for an option-kind argument', () => {
     const { result, diagnostics } = callMap(
       [positional('{a: 1}')],

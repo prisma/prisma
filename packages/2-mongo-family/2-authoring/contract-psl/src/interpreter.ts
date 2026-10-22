@@ -80,6 +80,7 @@ import {
   type DiagnosticSource,
   diagnosticSource,
   interpretExtensionBlocks,
+  isContributedTypeChoice,
   mapPslDiagnostics,
   nodePslSpan,
   type PslDiagnostic,
@@ -307,7 +308,7 @@ function resolvePhysicalNames(input: {
             ...specContext,
             field,
             typeResolution: fieldTypeResolution(field, binder),
-            typeConstructor: contributedTypeOf(
+            contributedType: contributedTypeOf(
               fieldTypeResolution(field, binder),
               binder,
               field.typeConstructor,
@@ -1140,7 +1141,7 @@ function collectIndexes(
         ...specContext,
         field,
         typeResolution: fieldTypeResolution(field, binder),
-        typeConstructor: contributedTypeOf(
+        contributedType: contributedTypeOf(
           fieldTypeResolution(field, binder),
           binder,
           field.typeConstructor,
@@ -1511,10 +1512,31 @@ function resolveNonRelationField(
   if (resolution?.kind !== 'contributedType') {
     return undefined;
   }
-  const { descriptor, path } = resolution.symbol;
   const call = field.typeConstructor;
   const entityLabel = `Field "${ownerName}.${field.name}"`;
   const source = diagnosticSource(presetContext.sources, field.node.syntax);
+  if (isContributedTypeChoice(resolution.symbol)) {
+    const type = scalarTypeOfChoice({
+      symbol: resolution.symbol,
+      call,
+      span: field.span,
+      codecLookup: presetContext.typeLookups.codecLookup,
+      diagnostics: presetContext.diagnostics,
+      source,
+      entityLabel,
+      dataTypes: presetContext.dataTypes,
+    });
+    return type === undefined
+      ? undefined
+      : {
+          field: {
+            type,
+            nullable: field.optional,
+            many: field.list ? { elementNullable: field.elementOptional } : false,
+          },
+        };
+  }
+  const { descriptor, path } = resolution.symbol;
   if (descriptor.kind === 'typeAlias') {
     if (call !== undefined) {
       presetContext.diagnostics.push({
@@ -1551,24 +1573,6 @@ function resolveNonRelationField(
     return {
       field: preset.field,
       ...ifDefined('executionDefaults', preset.executionDefaults),
-    };
-  }
-  if (descriptor.kind === 'typeChoice') {
-    const type = scalarTypeOfChoice({ symbol: resolution.symbol, call }, descriptor);
-    if (!type.ok) {
-      presetContext.diagnostics.push({
-        code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-        message: `${entityLabel} type "${path.join('.')}": ${type.failure}`,
-        ...source.at(call?.span ?? field.span),
-      });
-      return undefined;
-    }
-    return {
-      field: {
-        type: type.value,
-        nullable: field.optional,
-        many: field.list ? { elementNullable: field.elementOptional } : false,
-      },
     };
   }
   if (call === undefined && !isBareTypeConstructor(descriptor)) {
@@ -1849,6 +1853,7 @@ export function interpretPslDocumentToMongoContract(
     defaultFunctionRegistry: input.defaultFunctionRegistry,
     generatorFunctions,
     dataTypes: input.dataTypes,
+    codecLookup: input.codecLookup,
     authoringTypes: input.authoringContributions?.type,
   });
 
@@ -1892,7 +1897,7 @@ export function interpretPslDocumentToMongoContract(
                 ...specContext,
                 field,
                 typeResolution: fieldTypeResolution(field, binder),
-                typeConstructor: contributedTypeOf(
+                contributedType: contributedTypeOf(
                   fieldTypeResolution(field, binder),
                   binder,
                   field.typeConstructor,
@@ -2011,7 +2016,7 @@ export function interpretPslDocumentToMongoContract(
           ...specContext,
           field,
           typeResolution: resolution,
-          typeConstructor: contributedTypeOf(resolution, binder, field.typeConstructor),
+          contributedType: contributedTypeOf(resolution, binder, field.typeConstructor),
         },
         generatorFunctions,
         sources,
@@ -2043,7 +2048,7 @@ export function interpretPslDocumentToMongoContract(
           ...specContext,
           field,
           typeResolution: fieldTypeResolution(field, binder),
-          typeConstructor: contributedTypeOf(
+          contributedType: contributedTypeOf(
             fieldTypeResolution(field, binder),
             binder,
             field.typeConstructor,

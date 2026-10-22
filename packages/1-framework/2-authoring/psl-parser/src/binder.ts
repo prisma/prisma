@@ -513,12 +513,12 @@ function bind(options: BindingInputs): BinderResult {
           if (specContext === undefined) return undefined;
           const node = typeReferenceNode(field);
           const typeResolution = node === undefined ? undefined : references.get(node);
-          const typeConstructor = contributedTypeOfResolution(
+          const contributedType = contributedTypeOfResolution(
             typeResolution,
             (base) => references.get(base),
             field.typeConstructor,
           );
-          return factory({ ...specContext, field, typeResolution, typeConstructor });
+          return factory({ ...specContext, field, typeResolution, contributedType });
         },
         { ...context, field },
       );

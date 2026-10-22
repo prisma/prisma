@@ -235,13 +235,17 @@ describe('createBinder — contributed types', () => {
         '  positional Moment(text)',
         '  aliased Stamp',
         '  refused Moment(value: text, column: narrow)',
+        '  unknownNamed Moment(bogus: narrow)',
+        '  twice Moment(text, value: date)',
         '}',
       ].join('\n'),
     );
     const codecOf = (fieldName: string) => {
       const field = symbolTable.defaultNamespace.models['Post']?.fields[fieldName];
       const use = contributedTypeOf(resolve(fieldName), binder, field?.typeConstructor);
-      return use === undefined ? 'no contributed type' : contributedTypeCodecId(use);
+      return use === undefined
+        ? 'no contributed type'
+        : contributedTypeCodecId(use, EMPTY_DATA_TYPES);
     };
 
     it('is the codec of the constructor the call chooses, bare, named or positional', () => {
@@ -260,8 +264,12 @@ describe('createBinder — contributed types', () => {
       expect(codecOf('aliased')).toBe('fixture/wide-text@1');
     });
 
-    it('is unknown for a combination the choice refuses', () => {
-      expect(codecOf('refused')).toBeUndefined();
+    it('is unknown for a call the column refuses, as the column reads the call', () => {
+      expect({
+        refused: codecOf('refused'),
+        unknownNamed: codecOf('unknownNamed'),
+        twice: codecOf('twice'),
+      }).toEqual({ refused: undefined, unknownNamed: undefined, twice: undefined });
     });
   });
 });

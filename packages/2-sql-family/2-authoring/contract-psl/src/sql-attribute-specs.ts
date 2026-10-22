@@ -299,7 +299,9 @@ export function defaultFunctionCall(
 /** The data type of the column a field declares, when its type, or the named type it is declared with, is a constructor or preset the stack knows. */
 function receivingDataType(ctx: TypeAttributeSpecContext): string | undefined {
   const codecId =
-    ctx.typeConstructor === undefined ? undefined : contributedTypeCodecId(ctx.typeConstructor);
+    ctx.contributedType === undefined
+      ? undefined
+      : contributedTypeCodecId(ctx.contributedType, ctx.dataTypes);
   return codecId === undefined ? undefined : ctx.dataTypes.dataTypeOfCodec(codecId);
 }
 
@@ -875,7 +877,7 @@ export function fieldSpecContext(input: {
     model: input.model,
     field: input.field,
     typeResolution,
-    typeConstructor: contributedTypeOf(typeResolution, input.binder, input.field.typeConstructor),
+    contributedType: contributedTypeOf(typeResolution, input.binder, input.field.typeConstructor),
     defaultFunctionRegistry: input.defaultFunctionRegistry,
     generatorFunctions: input.generatorFunctions,
     dataTypes: input.dataTypes,
