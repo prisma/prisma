@@ -1,8 +1,9 @@
 import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
+import { SqlConnectionError } from '@internal/sql-errors';
 import type { SqlitePlanTargetDetails } from '@internal/target-sqlite/planner-target-details';
 import { timeouts } from '@repo/test-utils';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   bootstrapSqliteControlTables,
   contract,
@@ -291,6 +292,62 @@ describe('SqliteMigrationRunner - Error Scenarios', { timeout: timeouts.database
     });
 
     await expectNoMarkerOrLedgerWrites(driver);
+  });
+
+  it('fails with EXECUTION_FAILED when the connection is lost during an execute step', async () => {
+    testDb = createTestDatabase();
+    const { driver } = testDb;
+    const lostSql = 'CREATE TABLE "lost" (id INTEGER)';
+    const query = driver.query.bind(driver);
+    vi.spyOn(driver, 'query').mockImplementation((sql, params) =>
+      sql === lostSql
+        ? Promise.reject(new SqlConnectionError('database is not open', { transient: false }))
+        : query(sql, params),
+    );
+    const plan = createMigrationPlan<SqlitePlanTargetDetails>({
+      targetId: 'sqlite',
+      spaceId: APP_SPACE_ID,
+      origin: null,
+      destination: toPlanContractInfo(contract),
+      operations: [
+        {
+          id: 'table.lost',
+          label: 'Create lost table',
+          summary: 'Creates a table while the connection is lost',
+          operationClass: 'additive',
+          target: { id: 'sqlite', details: { schema: 'main', objectType: 'table', name: 'lost' } },
+          precheck: [],
+          execute: [{ description: 'create lost table', sql: lostSql }],
+          postcheck: [],
+        },
+      ],
+      providedInvariants: [],
+    });
+
+    const result = await sqliteTargetDescriptor.createRunner(familyInstance).execute({
+      driver,
+      perSpaceOptions: [
+        {
+          space: APP_SPACE_ID,
+          plan,
+          migrationEdges: synthEdges(plan),
+          driver,
+          destinationContract: contract,
+          policy: INIT_ADDITIVE_POLICY,
+          frameworkComponents,
+        },
+      ],
+    });
+
+    const failure = result.assertNotOk();
+    expect(failure.code).toBe('MIGRATION.EXECUTION_FAILED');
+    expect(failure.meta).toMatchObject({
+      operationId: 'table.lost',
+      stepDescription: 'create lost table',
+      sql: lostSql,
+      connectionLost: true,
+      transient: false,
+    });
   });
 
   it('fails with DESTINATION_CONTRACT_MISMATCH when plan hash differs from contract', async () => {

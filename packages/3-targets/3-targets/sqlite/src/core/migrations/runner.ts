@@ -33,7 +33,7 @@ import {
   withFailingSpace,
 } from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
-import { SqlQueryError } from '@internal/sql-errors';
+import { SqlConnectionError, SqlQueryError } from '@internal/sql-errors';
 import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -451,6 +451,18 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         const failed = `Operation ${operation.id} failed during execution: ${step.description}`;
+        if (SqlConnectionError.is(error)) {
+          return runnerFailure('MIGRATION.EXECUTION_FAILED', failed, {
+            why: message,
+            meta: {
+              operationId: operation.id,
+              stepDescription: step.description,
+              sql: step.sql,
+              connectionLost: true,
+              transient: error.transient,
+            },
+          });
+        }
         const rowsWithoutValue = await this.rowsWithoutValue(driver, error, plan);
         const failedConversion =
           rowsWithoutValue === undefined

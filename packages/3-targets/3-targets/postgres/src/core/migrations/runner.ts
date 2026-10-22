@@ -35,7 +35,7 @@ import {
   withFailingSpace,
 } from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
-import { SqlQueryError } from '@internal/sql-errors';
+import { SqlConnectionError, SqlQueryError } from '@internal/sql-errors';
 import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -480,6 +480,23 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
       try {
         await driver.query(step.sql, step.params ?? []);
       } catch (error: unknown) {
+        if (SqlConnectionError.is(error)) {
+          return runnerFailure(
+            'MIGRATION.EXECUTION_FAILED',
+            `Operation ${operation.id} failed during execution: ${step.description}`,
+            {
+              why: error.message,
+              meta: {
+                operationId: operation.id,
+                stepDescription: step.description,
+                sql: step.sql,
+                sqlState: error.sqlState,
+                connectionLost: true,
+                transient: error.transient,
+              },
+            },
+          );
+        }
         if (SqlQueryError.is(error)) {
           const dependents =
             error.sqlState === DEPENDENT_OBJECTS_STILL_EXIST ? dependentsOf(error.detail) : [];
