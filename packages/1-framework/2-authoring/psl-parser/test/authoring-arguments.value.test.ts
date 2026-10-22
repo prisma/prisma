@@ -256,6 +256,18 @@ describe('mapPslHelperArgs positional and named dispatch', () => {
     ]);
   });
 
+  it('reports a bad value before a bad name in the same call', () => {
+    expect(callWith('"bad", z: 1', descriptors).diagnostics.map((d) => d.message)).toEqual([
+      'Expected a number',
+    ]);
+  });
+
+  it('reports a bad named value before a later bad name', () => {
+    expect(callWith('y: 2, z: 1', descriptors).diagnostics.map((d) => d.message)).toEqual([
+      'Expected a quoted string',
+    ]);
+  });
+
   it('rejects a positional argument at an index the descriptor array does not define', () => {
     const sparseDescriptors = [
       undefined,

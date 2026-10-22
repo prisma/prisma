@@ -94,29 +94,8 @@ export function mapPslHelperArgs(input: MapPslHelperArgsInput): readonly unknown
     input.args,
     input.descriptors.map((descriptor) => descriptor?.name),
   );
-  if (!bound.ok) {
-    const failure = bound.failure;
-    switch (failure.kind) {
-      case 'tooManyPositional':
-        return refuse(
-          input.span,
-          `accepts at most ${input.descriptors.length} argument(s), received ${failure.received}.`,
-        );
-      case 'unknownName':
-        return refuse(
-          failure.argument.span,
-          `received unknown named argument "${failure.argument.name}".`,
-        );
-      case 'filledTwice':
-        return refuse(
-          failure.argument.span,
-          `received duplicate value for argument "${failure.argument.name}".`,
-        );
-    }
-  }
-
   const mappedArgs: unknown[] = input.descriptors.map(() => undefined);
-  for (const { argument, index } of bound.value) {
+  for (const { argument, index } of bound.ok ? bound.value : bound.failure.bound) {
     const descriptor = input.descriptors[index];
     if (!descriptor) {
       return refuse(argument.span, `does not define positional argument #${index + 1}.`);
@@ -127,6 +106,24 @@ export function mapPslHelperArgs(input: MapPslHelperArgsInput): readonly unknown
     if (value === INVALID_AUTHORING_ARGUMENT) return undefined;
     mappedArgs[index] = value;
   }
+  if (bound.ok) return mappedArgs;
 
-  return mappedArgs;
+  const failure = bound.failure;
+  switch (failure.kind) {
+    case 'tooManyPositional':
+      return refuse(
+        input.span,
+        `accepts at most ${input.descriptors.length} argument(s), received ${failure.received}.`,
+      );
+    case 'unknownName':
+      return refuse(
+        failure.argument.span,
+        `received unknown named argument "${failure.argument.name}".`,
+      );
+    case 'filledTwice':
+      return refuse(
+        failure.argument.span,
+        `received duplicate value for argument "${failure.argument.name}".`,
+      );
+  }
 }
