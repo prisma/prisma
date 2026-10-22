@@ -56,6 +56,13 @@ The `pg` option takes a `pg.Pool`:
 // Before
 const db = await supabase({ contract, pg: new Client({ connectionString }), jwtSecret });
 
-// After
-const db = await supabase({ contract, pg: new Pool({ connectionString }), jwtSecret });
+// After: close() does not end a pool you pass in, so keep it and end it at shutdown
+const pool = new Pool({ connectionString });
+const db = await supabase({ contract, pg: pool, jwtSecret });
+// ...
+await db.close();
+await pool.end();
+
+// Or let Supabase create and end the pool
+const db = await supabase({ contract, url: connectionString, jwtSecret });
 ```

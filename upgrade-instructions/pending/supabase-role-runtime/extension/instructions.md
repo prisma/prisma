@@ -9,7 +9,7 @@ changes:
         - '\.(?:queryWithRole|executeWithRole|preparedQueryWithRole|preparedExecuteWithRole|roleActivitySource)\('
   - id: raw-connection-obeys-close
     summary: |
-      `SqlRuntimeBase.acquireRawConnection()` now follows the close rule of `connection()`: after `close()` has started it rejects with `DRIVER.NOT_CONNECTED` "Runtime is closed", unless you pass `{ activityParent }` of an activity that is still open; the statements and transactions run on the connection are work `close()` waits for, and a connection held between statements is not. A transaction now counts as work from its start until its commit or rollback settles, its commit fails, or its connection is released or destroyed, so `close()` waits for an open transaction on any connection and, while it waits only for transactions still open, logs `runtime.close.waiting-for-activities` with `openTransactions`, their count; it waits for each until it commits or rolls back. A subclass that shares its driver with another runtime builds each runtime with the new `ownsDriver: false` option, closes them all, then closes the driver once. The detection matches files that call `acquireRawConnection`.
+      `SqlRuntimeBase.acquireRawConnection()` now follows the close rule of `connection()`: once the runtime starts refusing new work it rejects with `DRIVER.NOT_CONNECTED` "Runtime is closed" (at once with `closeRefusal: 'at-once'`, after the runtime has been idle for a turn of the event loop with `'when-idle'`), unless you pass `{ activityParent }` of an activity that is still open; the statements and transactions run on the connection are work `close()` waits for, and a connection held between statements is not. A transaction now counts as work from its start until its commit or rollback settles, its commit fails, or its connection is released or destroyed, so `close()` waits for an open transaction on any connection and, while it waits only for transactions still open, logs `runtime.close.waiting-for-activities` with `openTransactions`, their count; it waits for each until it commits or rolls back. A subclass that shares its driver with another runtime builds each runtime with the new `ownsDriver: false` option, closes them all, then closes the driver once. The detection matches files that call `acquireRawConnection`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
@@ -49,7 +49,7 @@ const rows = await runtime.queryWithRole(plan, { role: 'anon' }).toArray();
 const rows = await runtime.forRole({ role: 'anon' }).query(plan).toArray();
 ```
 
-A raw connection now counts as runtime work until it is released:
+The statements and the open transactions on a raw connection keep `close()` waiting; a connection held between statements does not, so release it when you are done:
 
 ```ts
 const connection = await this.acquireRawConnection({ activityParent });
