@@ -40,4 +40,12 @@ describe('a Prisma 7 type the binding maps to a type choice', () => {
       typeParams: { precision: 3 },
     });
   });
+
+  it('names the field and the binding when the values choose no type', () => {
+    expect(() =>
+      interpretSchemaTextResult(SCHEMA, bindingWithDateTime(['jsDate', 'timetz'])),
+    ).toThrow(
+      'The Prisma 7 target binding maps Field "Event.at" to type choice "DateTime" with values it refuses: Argument "column" of DateTime is timetz; write one of: timestamptz, timestamp.',
+    );
+  });
 });

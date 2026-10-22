@@ -80,7 +80,7 @@ import {
 } from '@internal/sql-contract-ts/contract-builder';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
-import { InternalError } from '@internal/utils/internal-error';
+import { InternalError, isInternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { basename } from 'pathe';
 import {
@@ -1009,6 +1009,28 @@ function lowerNativeEnums(
 /** The SQL family's type constructor for a column of a type no data type claims (ADR 273). */
 const RAW_TYPE_CONSTRUCTOR: readonly string[] = ['Raw'];
 
+/** The constructor the values a binding maps a Prisma 7 type to choose from the type choice it names; a refusal is the binding's mistake. */
+function chooseBindingType(
+  label: string,
+  path: readonly string[],
+  typeChoice: NonNullable<ReturnType<typeof getAuthoringTypeChoice>>,
+  values: readonly unknown[],
+): ReturnType<typeof resolveAuthoringTypeChoice> {
+  try {
+    return resolveAuthoringTypeChoice({
+      helperPath: path.join('.'),
+      descriptor: typeChoice.descriptor,
+      args: values,
+      constructorNamed: typeChoice.constructorNamed,
+    });
+  } catch (error) {
+    if (isInternalError(error) || !(error instanceof Error)) throw error;
+    throw new InternalError(
+      `The Prisma 7 target binding maps ${label} to type choice "${path.join('.')}" with values it refuses: ${error.message}`,
+    );
+  }
+}
+
 /** Prisma 7's `Unsupported("...")`, which this source reads as ``Raw(sql`...`)``. */
 function isUnsupportedType(call: ResolvedTypeConstructorCall | undefined): boolean {
   return call?.path.length === 1 && call.path[0] === 'Unsupported';
@@ -1306,12 +1328,7 @@ function readField(args: ReadFieldArgs): void {
   const chosen =
     typeChoice === undefined || fieldType.kind !== 'values'
       ? undefined
-      : resolveAuthoringTypeChoice({
-          helperPath: constructorPath.join('.'),
-          descriptor: typeChoice.descriptor,
-          args: fieldType.values,
-          constructorNamed: typeChoice.constructorNamed,
-        });
+      : chooseBindingType(label, constructorPath, typeChoice, fieldType.values);
   const typeConstructor =
     chosen?.descriptor ??
     getAuthoringTypeConstructor(input.authoringContributions, constructorPath);
