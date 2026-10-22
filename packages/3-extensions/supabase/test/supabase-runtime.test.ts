@@ -261,7 +261,7 @@ describe('SupabaseRuntimeImpl', () => {
     });
   });
 
-  describe('queryWithRole — stream cleanup', () => {
+  describe('forRole(binding).query — stream cleanup', () => {
     it('resets then releases the session after the stream drains', async () => {
       const { runtime, driver } = createTestSetup();
       const cleanupEvents: string[] = [];
@@ -274,7 +274,7 @@ describe('SupabaseRuntimeImpl', () => {
         cleanupEvents.push('release');
       });
 
-      const rows = runtime.queryWithRole(stubPlan(), { role: 'anon' });
+      const rows = runtime.forRole({ role: 'anon' }).query(stubPlan());
       expect(driver.acquireConnectionSpy).not.toHaveBeenCalled();
 
       const iterator = rows[Symbol.asyncIterator]();
@@ -300,7 +300,7 @@ describe('SupabaseRuntimeImpl', () => {
         },
       });
 
-      await expect(runtime.queryWithRole(stubPlan(), { role: 'anon' }).toArray()).rejects.toBe(
+      await expect(runtime.forRole({ role: 'anon' }).query(stubPlan()).toArray()).rejects.toBe(
         streamError,
       );
 
@@ -309,7 +309,7 @@ describe('SupabaseRuntimeImpl', () => {
     });
   });
 
-  describe('executeWithRole — eager cleanup', () => {
+  describe('forRole(binding).execute — eager cleanup', () => {
     it('returns connection statistics then resets and releases', async () => {
       const observedSqls: string[] = [];
       const observer: SqlMiddleware = {
@@ -337,7 +337,7 @@ describe('SupabaseRuntimeImpl', () => {
         cleanupEvents.push('release');
       });
 
-      const stats = await runtime.executeWithRole(stubPlan(), { role: 'service_role' });
+      const stats = await runtime.forRole({ role: 'service_role' }).execute(stubPlan());
 
       expect(stats).toBe(statementStats);
       expect(cleanupEvents).toEqual(['reset', 'release']);
@@ -356,7 +356,7 @@ describe('SupabaseRuntimeImpl', () => {
         return await execute(request);
       });
 
-      await expect(runtime.executeWithRole(stubPlan(), { role: 'anon' })).rejects.toBe(
+      await expect(runtime.forRole({ role: 'anon' }).execute(stubPlan())).rejects.toBe(
         executeError,
       );
 
