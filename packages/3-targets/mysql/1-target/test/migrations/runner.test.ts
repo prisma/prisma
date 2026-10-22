@@ -1,6 +1,8 @@
 import type { SqlControlFamilyInstance } from '@internal/family-sql/control';
 import { createMigrationPlan } from '@internal/family-sql/control';
 import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
+import { InternalError } from '@internal/utils/internal-error';
+import { structuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import type { MysqlPlanTargetDetails } from '../../src/core/migrations/planner-target-details';
 import { createMysqlMigrationRunner } from '../../src/core/migrations/runner';
@@ -42,6 +44,8 @@ function recorder(options: RecorderOptions = {}) {
     bootstrapControlTableQueries: () => [],
     async readMarker() {
       events.push('readMarker');
+      const thrown = options.throwOn?.('readMarker');
+      if (thrown !== undefined) throw thrown;
       return null;
     },
     async introspect() {
@@ -186,6 +190,8 @@ function failureFacts(result: Awaited<ReturnType<typeof run>>) {
 const connectionLost = () =>
   Object.assign(new Error('Connection lost'), { code: 'DRIVER.NOT_CONNECTED' });
 
+const connectionReset = () => Object.assign(new Error('read ECONNRESET'), { code: 'ECONNRESET' });
+
 describe('the MySQL migration runner, when something throws', () => {
   it('keeps the failure of the apply when releasing the lock fails too', async () => {
     const recorded = recorder({
@@ -219,7 +225,7 @@ describe('the MySQL migration runner, when something throws', () => {
         throwOn: (event) => {
           if (event !== thrower) return undefined;
           seen += 1;
-          return seen === throwAt ? connectionLost() : undefined;
+          return seen === throwAt ? connectionReset() : undefined;
         },
       });
       const result = await run(recorded, spaces);
@@ -233,23 +239,43 @@ describe('the MySQL migration runner, when something throws', () => {
           failingSpace: 'app',
           databaseUnchanged: false,
         },
-        errorCode: 'DRIVER.NOT_CONNECTED',
+        errorCode: 'ECONNRESET',
         released: 'RELEASE_LOCK',
       });
     },
   );
 
-  it('keeps the code of a migration error thrown during a space', async () => {
+  it('rethrows a structured error with its own code, fix and docs link, naming the space and whether the database changed', async () => {
+    const corrupt = structuredError('CONTRACT.MARKER_ROW_CORRUPT', 'Marker row is corrupt', {
+      fix: 'Delete the row, then run db sign.',
+      docsUrl: 'https://pris.ly/marker',
+      meta: { space: 'app' },
+    });
+    let reads = 0;
     const recorded = recorder({
-      throwOn: (event) =>
-        event === 'introspect'
-          ? Object.assign(new Error('Lock lost'), { code: 'MIGRATION.MARKER_LOCK_TIMEOUT' })
-          : undefined,
+      throwOn: (event) => (event === 'readMarker' && ++reads === 2 ? corrupt : undefined),
     });
-    expect(failureFacts(await run(recorded, ['app']))).toEqual({
-      code: 'MIGRATION.MARKER_LOCK_TIMEOUT',
-      failingSpace: 'app',
-      databaseUnchanged: false,
+    const thrown = await run(recorded, ['ext', 'app']).catch((error: unknown) => error);
+    expect({
+      same: thrown === corrupt,
+      code: corrupt.code,
+      fix: corrupt.fix,
+      docsUrl: corrupt.docsUrl,
+      meta: corrupt.meta,
+      released: recorded.events.at(-1),
+    }).toEqual({
+      same: true,
+      code: 'CONTRACT.MARKER_ROW_CORRUPT',
+      fix: 'Delete the row, then run db sign.',
+      docsUrl: 'https://pris.ly/marker',
+      meta: { space: 'app', failingSpace: 'app', databaseUnchanged: false },
+      released: 'RELEASE_LOCK',
     });
+  });
+
+  it('rethrows an internal error as it is', async () => {
+    const bug = new InternalError('broken invariant');
+    const recorded = recorder({ throwOn: (event) => (event === 'introspect' ? bug : undefined) });
+    await expect(run(recorded, ['app'])).rejects.toBe(bug);
   });
 });

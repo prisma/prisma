@@ -25,9 +25,9 @@ import {
 import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
-import { InternalError } from '@internal/utils/internal-error';
+import { InternalError, isInternalError } from '@internal/utils/internal-error';
 import { notOk, ok, okVoid, type Result } from '@internal/utils/result';
-import { isStructuredError } from '@internal/utils/structured-error';
+import { isStructuredError, type StructuredError } from '@internal/utils/structured-error';
 import { mysqlError } from '../errors';
 import { acquireMarkerLock, releasingMarkerLock } from '../marker-lock';
 import type { Op } from './operations';
@@ -48,27 +48,24 @@ interface SpaceProgress {
   changedDatabase: boolean;
 }
 
-function isMigrationCode(code: string): code is MigrationRunnerFailure['code'] {
-  return code.startsWith('MIGRATION.');
+/** An error without a structured code, such as a driver's socket error, thrown while a space applied: reported as `MIGRATION.EXECUTION_FAILED`, with its own code, when it has one, in `errorCode`. */
+function failureFromThrown(error: unknown): MigrationRunnerFailure {
+  const errorCode: unknown =
+    typeof error === 'object' && error !== null ? Reflect.get(error, 'code') : undefined;
+  return migrationRunnerFailure(
+    'MIGRATION.EXECUTION_FAILED',
+    error instanceof Error ? error.message : String(error),
+    { meta: typeof errorCode === 'string' ? { errorCode } : {}, cause: error },
+  );
 }
 
-/** An error thrown while a space applied, as a runner failure. A migration error keeps its code; any other is reported as `MIGRATION.EXECUTION_FAILED`, with its own code in `errorCode`. */
-function failureFromThrown(error: unknown): MigrationRunnerFailure {
-  if (!isStructuredError(error)) {
-    return migrationRunnerFailure(
-      'MIGRATION.EXECUTION_FAILED',
-      error instanceof Error ? error.message : String(error),
-      { cause: error },
-    );
-  }
-  const meta = error.meta ?? {};
-  return isMigrationCode(error.code)
-    ? migrationRunnerFailure(error.code, error.message, { why: error.why, meta, cause: error })
-    : migrationRunnerFailure('MIGRATION.EXECUTION_FAILED', error.message, {
-        why: error.why,
-        meta: { ...meta, errorCode: error.code },
-        cause: error,
-      });
+/** The structured error thrown while a space applied, keeping its code, advice and docs link, with the space and whether the database changed added to its facts. */
+function withSpaceFacts<T extends StructuredError>(
+  error: T,
+  failingSpace: string,
+  databaseUnchanged: boolean,
+): T {
+  return Object.assign(error, { meta: { ...(error.meta ?? {}), failingSpace, databaseUnchanged } });
 }
 
 function stepHolds(rows: readonly Record<string, unknown>[]): boolean {
@@ -131,6 +128,9 @@ class MysqlMigrationRunner implements SqlMigrationRunner<MysqlPlanTargetDetails>
       try {
         result = await this.#applySpace({ ...spaceOptions, driver, space }, progress);
       } catch (error) {
+        if (isInternalError(error)) throw error;
+        const databaseUnchanged = !changedBefore && !progress.changedDatabase;
+        if (isStructuredError(error)) throw withSpaceFacts(error, space, databaseUnchanged);
         result = notOk(failureFromThrown(error));
       }
       if (!result.ok) {
