@@ -16,7 +16,7 @@ Never in the core. An extension or user code may provide any of them. Use instea
 
 ## Context
 
-ActiveRecord-style ORMs, such as Rails' Active Record or Sequelize, build these into their models: validation rules declared on a model, soft delete such as Sequelize's `paranoid: true`, and hooks such as `beforeSave` or `afterCreate`. Will Madden, 2026-10-22: "validations are achievable in user space" and "soft delete should be achievable in extension/user space". In the same message: "we will not build in the core features which can be built in extension/user space." The [GA plan](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/plan.md#L150-L152) lists "soft delete, validation rules, lifecycle hooks" under Never.
+ActiveRecord-style ORMs, such as Rails' Active Record or Sequelize, build these into their models: validation rules declared on a model, soft delete such as Sequelize's `paranoid: true`, and hooks such as `beforeSave` or `afterCreate`. Will Madden, 2026-10-22: "validations are achievable in user space" and "soft delete should be achievable in extension/user space". In the same message: "we will not build in the core features which can be built in extension/user space." The [GA plan](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/plan.md?plain=1#L150-L152) lists "soft delete, validation rules, lifecycle hooks" under Never.
 
 ## Consequences
 

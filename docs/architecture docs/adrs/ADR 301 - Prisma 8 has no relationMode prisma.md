@@ -11,7 +11,7 @@ Never. Prisma 8 does not imitate foreign keys in the client. Use instead: foreig
 
 ## Context
 
-With `relationMode = "prisma"`, Prisma 7 imitates foreign keys in the client. The [GA plan](https://github.com/prisma/orm/blob/planning/prisma-8-ga/planning/plan.md#never) lists "`relationMode = "prisma"`" under Never. Will Madden decided it in the planning discussion of 2026-09-28 and 2026-09-29, which the GA plan's [decisions](https://github.com/prisma/orm/blob/planning/prisma-8-ga/planning/decisions.md) record: "Never. Prisma 8 will not imitate foreign keys in the client. The upgrade guide tells those users to add foreign keys" ([Upgrade path](https://github.com/prisma/orm/blob/planning/prisma-8-ga/planning/decisions.md#upgrade-path-what-prisma-8-must-describe)).
+With `relationMode = "prisma"`, Prisma 7 imitates foreign keys in the client. The [GA plan](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/plan.md#never) lists "`relationMode = "prisma"`" under Never. Will Madden decided it in the planning discussion of 2026-09-28 and 2026-09-29, which the GA plan's [decisions](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/decisions.md) record: "Never. Prisma 8 will not imitate foreign keys in the client. The upgrade guide tells those users to add foreign keys" ([Upgrade path](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/decisions.md#upgrade-path-what-prisma-8-must-describe)).
 
 ## Consequences
 

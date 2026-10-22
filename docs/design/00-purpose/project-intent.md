@@ -7,7 +7,7 @@ Read this file before making product-level decisions. The [vision](./vision.md) 
 ## What this project is
 
 - **A framework in which every part is an extension.** The [Prisma ORM Manifesto 2026](https://www.prisma.io/blog/prisma-orm-manifesto-2026#1-prisma-orm-is-an-open-framework-and-an-open-ecosystem) says "every part of Prisma ORM 8 is itself an extension", built with the same tools anyone can use. Postgres support is built on the same public interface any extension author can use ([README, For extension authors](../../../README.md#for-extension-authors)).
-- **A small core that the core team maintains.** The manifesto: "We maintain the framework core" ([principle 5](https://www.prisma.io/blog/prisma-orm-manifesto-2026#5-we-are-stewards-not-gatekeepers)). New behaviour comes from adapters, extension packs and middleware, not from patching the core or adding global flags ([ADR 005](../../architecture%20docs/adrs/ADR%20005%20-%20Thin%20Core%20Fat%20Targets.md), [Architecture Overview](../../Architecture%20Overview.md#compose-dont-configure)).
+- **A small core that the core team maintains.** The manifesto: "We maintain the framework core" ([principle 1](https://www.prisma.io/blog/prisma-orm-manifesto-2026#1-prisma-orm-is-an-open-framework-and-an-open-ecosystem)). New behaviour comes from adapters, extension packs and middleware, not from patching the core or adding global flags ([ADR 005](../../architecture%20docs/adrs/ADR%20005%20-%20Thin%20Core%20Fat%20Targets.md), [Architecture Overview](../../Architecture%20Overview.md#compose-dont-configure)).
 
 ## Who it is for
 
@@ -27,7 +27,7 @@ Optimise for:
 It does not need to optimise for:
 
 - **Runtimes older than its floors, or CommonJS.** A floor starts at the latest release the project tests against and is lowered only when a concrete user need justifies it. No CommonJS entry points are published ([ADR 222](../../architecture%20docs/adrs/ADR%20222%20-%20Version%20support%20policy.md)).
-- **Reproducing Prisma 7 query behaviour.** The Prisma 7 contract source describes a database; it does not commit Prisma 8 to reproducing Prisma 7 query behaviour ([GA plan decisions, principle 4](https://github.com/prisma/orm/blob/planning/prisma-8-ga/planning/decisions.md#principles)).
+- **Reproducing Prisma 7 query behaviour.** The Prisma 7 contract source describes a database; it does not commit Prisma 8 to reproducing Prisma 7 query behaviour ([GA plan decisions, principle 4](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/decisions.md#principles)).
 - **Languages other than TypeScript and JavaScript.** Prisma does not fix bugs or accept feature requests for other languages ([prisma/orm#25843, Programming Language Contexts](https://github.com/prisma/orm/issues/25843)).
 - **Databases outside the first-class list.** Supported databases beyond the first-class ones "are not prioritized for new features or bug fixes" ([prisma/orm#25843, Database Contexts](https://github.com/prisma/orm/issues/25843)).
 
@@ -35,8 +35,8 @@ It does not need to optimise for:
 
 - **Do not assume the core should take a feature that an extension or user code can provide.** Will Madden, 2026-10-22: "we will not build in the core features which can be built in extension/user space."
 - **Do not assume a Prisma 7 feature exists in Prisma 8.** Check the [feature scoreboard](../../../scorecard.md) and the *What Prisma 8 doesn't do yet* sections of the [`prisma-8` skill references](../../../skills/prisma-8/references/).
-- **Do not assume a missing feature is unwanted.** A `❌` on the scoreboard is not a decision: the scoreboard marks [nested `update`](../../../scorecard/12-nested-writes-and-atomic-ops.md) and [`isolationLevel`](../../../scorecard/14-transactions.md) `❌`, and the [GA plan](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/plan.md#L87-L89) must build both before GA. The PR triage guide says "'Not planned' is not by itself a reason to decline" ([PR triage](../../oss/pr-triage.md#step-5--direction-fit)). An accepted ADR is what rules a feature out.
-- **Do not assume the folders under `projects/` are a roadmap.** They hold work in flight, or records of finished work that were not cleaned up ([PR triage](../../oss/pr-triage.md#step-5--direction-fit)).
+- **Do not assume a missing feature is unwanted.** A `❌` on the scoreboard is not a decision: the scoreboard marks [nested `update`](../../../scorecard/12-nested-writes-and-atomic-ops.md) and [`isolationLevel`](../../../scorecard/14-transactions.md) `❌`, and the [GA plan](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/plan.md?plain=1#L87-L89) must build both before GA. The PR triage guide says "'Not planned' is not by itself a reason to decline" ([PR triage](../../oss/pr-triage.md#step-5--direction-fit)). An accepted ADR is what rules a feature out.
+- **Do not assume the folders under `projects/` are a roadmap.** They "describe work in flight, not a roadmap" ([PR triage](../../oss/pr-triage.md#step-5--direction-fit)).
 - **Do not assume the ORM client is the only way to query.** The ORM is an optional layer over the SQL query builder, and there is a raw SQL lane ([ADR 015](../../architecture%20docs/adrs/ADR%20015%20-%20ORM%20as%20Optional%20Extension.md), [ADR 247](../../architecture%20docs/adrs/ADR%20247%20-%20Whole-query%20raw%20SQL%20is%20the%20fragment%20mechanism%20at%20statement%20position.md)). A request is often answered by a surface that already exists.
 
 ## Agent guidance

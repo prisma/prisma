@@ -12,7 +12,7 @@ Never. Prisma 8 has no fluent relation API such as `findUnique(...).posts()`. Us
 
 ## Context
 
-The [scoreboard](../../../scorecard/08-relations.md) marks Prisma 7's fluent relation traversal, `.posts().author()`, ❌. The [GA plan](https://github.com/prisma/orm/blob/planning/prisma-8-ga/planning/plan.md#never) lists "the fluent relation API" under Never. Will Madden decided it in the planning discussion of 2026-09-28 and 2026-09-29, which the GA plan's [decisions](https://github.com/prisma/orm/blob/planning/prisma-8-ga/planning/decisions.md) record: "Never. It belongs to the Prisma 7 query style" ([Query features: decided](https://github.com/prisma/orm/blob/planning/prisma-8-ga/planning/decisions.md#query-features-decided)).
+The [scoreboard](../../../scorecard/08-relations.md) marks Prisma 7's fluent relation traversal, `.posts().author()`, ❌. The [GA plan](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/plan.md#never) lists "the fluent relation API" under Never. Will Madden decided it in the planning discussion of 2026-09-28 and 2026-09-29, which the GA plan's [decisions](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/decisions.md) record: "Never. It belongs to the Prisma 7 query style" ([Query features: decided](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/decisions.md#query-features-decided)).
 
 ## Consequences
 
