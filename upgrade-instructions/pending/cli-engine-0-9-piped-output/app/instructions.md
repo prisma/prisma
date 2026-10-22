@@ -13,7 +13,7 @@ changes:
     detection:
       glob: "**/package.json"
       matches:
-        - '"[^"\n]*\bprisma (?:contract|db|migration|orm) [^"\n]*\|\s*jq\b[^"\n]*"'
+        - '"(?![^"\n]*--json)[^"\n]*\bprisma (?:contract|db|migration|orm) [^"\n|]*\|\s*jq\b[^"\n]*"'
 ---
 
 ## `engine-pin-moves-to-0-9-0`
