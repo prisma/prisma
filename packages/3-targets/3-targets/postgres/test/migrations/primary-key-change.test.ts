@@ -558,7 +558,6 @@ describe('a referencing foreign key an earlier strategy already planned', () => 
       schemaName: 'public',
       codecHooks: new Map(),
       types: postgresTypeLookups,
-      storageTypes: {},
       strategies: [takeForeignKeyIssues, primaryKeyChangeStrategy],
     });
 
