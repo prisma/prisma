@@ -209,7 +209,7 @@ To add to this list, write an ADR when the maintainers have said no to something
 
 ## Product scope
 
-Requests the maintainers have answered, with what to use instead. Accepted ones are also on the [steering list](#steering-list).
+Requests answered with a no, with what to use instead. `Accepted` rows are decisions and are also on the [steering list](#steering-list); `Proposed` rows are drafts a maintainer has not accepted yet.
 
 | ADR | Title | Description | Link |
 | ----- | ------- | ------------- | ------ |

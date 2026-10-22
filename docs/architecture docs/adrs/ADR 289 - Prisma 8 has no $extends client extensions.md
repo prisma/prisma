@@ -16,4 +16,4 @@ Users ask for Prisma 7's `$extends` with result, client or model components, `$a
 
 ## Consequences
 
-Prisma 8 has one way to extend the client: packages and middleware on the [public SPI](../../../README.md#for-extension-authors). No revisit-if condition is recorded.
+The client is extended through packages and middleware on the [public SPI](../../../README.md#for-extension-authors), and an application adds its own query methods with a collection class. No revisit-if condition is recorded.
