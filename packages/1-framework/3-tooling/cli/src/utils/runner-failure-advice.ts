@@ -280,7 +280,10 @@ export function migrateFix(
     failedOnDisk === undefined ? undefined : failedMigrationText(failedOnDisk, invocation);
   const { blockingObjects } = failure.meta;
   if (blockingObjects !== undefined) {
-    return blockingObjectsFix(blockingObjects, cliCommand(invocation, 'db migrate'));
+    return blockingObjectsFix(
+      blockingObjects,
+      cliCommand(invocation, 'db migrate', invocation.rerunArgs ?? []),
+    );
   }
   if (facts.failedTypeChange !== undefined) {
     return migrateFailedTypeChangeFix(facts.failedTypeChange, failedMigration, invocation);

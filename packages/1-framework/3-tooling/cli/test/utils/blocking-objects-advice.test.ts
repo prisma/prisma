@@ -32,4 +32,15 @@ describe('the advice for an operation that objects in the database block', () =>
       'Drop or change view billing.v_paid in the database yourself, then re-run `{bin} db migrate`.',
     );
   });
+
+  it('on db migrate, repeats the --to the run was given', () => {
+    expect(
+      migrateRunnerFailureError(blocked, {}, undefined, {
+        ...PROJECT,
+        rerunArgs: ['--to', 'c1a2b3'],
+      }).fix,
+    ).toBe(
+      'Drop or change view billing.v_paid in the database yourself, then re-run `{bin} db migrate --to c1a2b3`.',
+    );
+  });
 });
