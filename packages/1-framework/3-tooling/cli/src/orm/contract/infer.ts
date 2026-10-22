@@ -37,7 +37,7 @@ function inferPresentations(inputs: {
 }): Presentations {
   const { document, database } = inputs;
   return {
-    stdout: () => [],
+    stdout: () => [document.psl.path],
     next: () => [],
     human: (): readonly Block[] => [
       ...(database === undefined

@@ -376,6 +376,17 @@ describe('migrate --show', () => {
       });
     });
 
+    it('prints one data line per migration that will run: space, name, from and to', async () => {
+      const cwd = await buildProject();
+
+      const run = await harness(ormConfig(cwd)).run(['db', 'migrate', '--show'], { cwd });
+
+      expect(run.stdout).toBe(
+        `app\t20260101_100000_111111\t${EMPTY}\t${C1}\n` +
+          `app\t20260101_100000_222222\t${C1}\t${C2}\n`,
+      );
+    });
+
     it('keeps every arrow in the run list in one column', async () => {
       const cwd = await buildProject();
 

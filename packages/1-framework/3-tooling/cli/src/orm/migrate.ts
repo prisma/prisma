@@ -56,6 +56,7 @@ import { toneDrawing } from '../utils/formatters/tone-markup';
 import { runCommandAction } from '../utils/next-actions';
 import { type CliInvocation, cliCommand, cliInvocation } from '../utils/printed-command';
 import { snapshotVerifierFor } from '../utils/snapshot-content-verification';
+import { dataLine } from './data-lines';
 import { perSpaceBlocks } from './db/migration-blocks';
 import { prepareMigrationRun } from './db/prepare';
 import { defineOrmCommand } from './define-command';
@@ -115,7 +116,10 @@ function showPresentations(inputs: {
   const { document, graph, runList } = inputs;
   const count = document.migrations.length;
   return {
-    stdout: () => [],
+    stdout: () =>
+      document.migrations.map((migration) =>
+        dataLine([migration.spaceId, migration.dirName, migration.from, migration.to]),
+      ),
     next: () => [],
     human: (): readonly Block[] => [
       {
@@ -154,7 +158,16 @@ function applyPresentations(inputs: {
   const { document } = inputs;
   const advanced = document.advancedRef;
   return {
-    stdout: () => [],
+    stdout: () =>
+      document.applied.map((migration) =>
+        dataLine([
+          migration.spaceId,
+          migration.dirName,
+          migration.from,
+          migration.to,
+          migration.operationsExecuted,
+        ]),
+      ),
     human: (): readonly Block[] => [
       {
         kind: 'fields',

@@ -1,4 +1,5 @@
 import type { Block, Presentations, TreeNode } from '@prisma/cli-engine';
+import { noDataLines } from '@prisma/cli-engine';
 import type { NextAction } from '@prisma/cli-engine/protocol';
 import {
   DB_SIGN_STEP,
@@ -117,7 +118,7 @@ export function initPresentations(inputs: {
 }): Presentations {
   const { document } = inputs;
   return {
-    stdout: () => [],
+    stdout: noDataLines('Scaffolding a project has no data; --json lists the files it wrote.'),
     human: (): readonly Block[] => [
       {
         kind: 'fields',

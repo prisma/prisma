@@ -8,7 +8,7 @@ import { spaceMigrationDirectory, spaceRefsDirectory } from '@internal/migration
 import { ifDefined } from '@internal/utils/defined';
 import { notOk as notOkResult, ok as okResult, type Result } from '@internal/utils/result';
 import type { Block, Presentations, Span, Text, TreeNode } from '@prisma/cli-engine';
-import { flag, positional } from '@prisma/cli-engine';
+import { flag, noDataLines, positional } from '@prisma/cli-engine';
 import type { Diagnostic } from '@prisma/cli-engine/protocol';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import { createControlClient } from '../../control-api/client';
@@ -270,7 +270,7 @@ function signPresentations(inputs: {
 }): Presentations {
   const { document } = inputs;
   return {
-    stdout: () => [],
+    stdout: noDataLines('Signing a database has no data; the exit code says whether it worked.'),
     next: () => [],
     human: (): readonly Block[] => [
       inputs.header,
