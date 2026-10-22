@@ -10,6 +10,7 @@ import { buildFabricatedMigrationEdge } from '@internal/migration-tools/aggregat
 import type { SqlStorage } from '@internal/sql-contract/types';
 import mysql, { type MysqlPlanTargetDetails } from '@internal/target-mysql/control';
 import { acquireMarkerLock, releaseMarkerLock } from '@internal/target-mysql/control-tables';
+import { timeouts } from '@repo/test-utils';
 import { withMysqlDatabase } from '@repo/test-utils/mysql-database';
 import { describe, expect, it } from 'vitest';
 import { defineContract } from '../../src/exports/contract-builder';
@@ -160,7 +161,7 @@ async function lockIsFree(url: string): Promise<boolean> {
   }
 }
 
-describe('migrating a MySQL database', () => {
+describe('migrating a MySQL database', { timeout: timeouts.databaseOperation }, () => {
   it('applies the example contract, which then verifies and signs', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver, family) => {
