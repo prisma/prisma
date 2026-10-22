@@ -70,9 +70,6 @@ export interface LowerPrisma7DefaultInput {
   readonly diagnostics: ContractSourceDiagnostic[];
 }
 
-/** The Prisma 7 default functions the client filled on create, though Prisma 7 also wrote them as the column's database default. */
-const PRISMA7_CLIENT_AND_DATABASE_FUNCTIONS: ReadonlySet<string> = new Set(['now']);
-
 /** The default functions of Prisma 7's schema language. */
 const PRISMA7_DEFAULT_FUNCTIONS: ReadonlySet<string> = new Set([
   'autoincrement',
@@ -420,12 +417,12 @@ function lowerFunction(
     return undefined;
   }
   const storage = lowered.value.defaultValue;
-  if (!PRISMA7_CLIENT_AND_DATABASE_FUNCTIONS.has(fn)) return { storage, onCreate: undefined };
+  if (fn !== 'now') return { storage, onCreate: undefined };
   if (!input.generatorFunctions.functionsFor(input.codecId).some(({ name }) => name === fn)) {
     input.diagnostics.push(
       prisma7Diagnostic(
         'PSL.PRISMA7_UNKNOWN_DEFAULT',
-        `${label}: ${notADateOrTimeField(fn, input)}`,
+        `${label}: ${nowOnAColumnThatIsNotADateOrTime(input)}`,
         input.sourceId,
         span,
       ),
@@ -436,19 +433,18 @@ function lowerFunction(
   return onCreate === undefined ? undefined : { storage, onCreate };
 }
 
-/** Why Prisma 7 refuses a date and time default function on a field whose column is not a date or time. */
-function notADateOrTimeField(fn: string, input: LowerPrisma7DefaultInput): string {
-  const written = `@default(${fn}())`;
+/** Why Prisma 7 refuses `@default(now())` on a field whose column is not a date or time. */
+function nowOnAColumnThatIsNotADateOrTime(input: LowerPrisma7DefaultInput): string {
   if (input.field.typeName !== 'DateTime') {
-    return `${written} needs a DateTime field, but the field has type "${input.field.typeName}". Prisma 7 refuses this schema too. Remove ${written}, or change the field's type to DateTime.`;
+    return `@default(now()) needs a DateTime field, but the field has type "${input.field.typeName}". Prisma 7 refuses this schema too. Remove @default(now()), or change the field's type to DateTime.`;
   }
   const nativeType = input.nativeTypeName;
   if (nativeType === undefined) {
     throw new InternalError(
-      `The Prisma 7 target binding has no "${fn}" generator for codec "${input.codecId}", which the DateTime scalar maps to.`,
+      `The Prisma 7 target binding has no "now" generator for codec "${input.codecId}", which the DateTime scalar maps to.`,
     );
   }
-  return `${written} needs a date or time column, but "@db.${nativeType}" makes it a column that is not a date or time. Prisma 7 refuses this schema too: "Native type ${nativeType} is not compatible with declared field type DateTime". Remove ${written}, or use a date or time native type such as @db.Timestamp.`;
+  return `@default(now()) needs a date or time column, but "@db.${nativeType}" makes it a column that is not a date or time. Prisma 7 refuses this schema too: "Native type ${nativeType} is not compatible with declared field type DateTime". Remove @default(now()), or use a date or time native type such as @db.Timestamp.`;
 }
 
 /** The generator a client function resolves to for the field's column, or `undefined` after reporting why it cannot fill it. */
