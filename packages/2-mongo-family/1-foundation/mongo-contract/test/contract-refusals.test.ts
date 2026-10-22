@@ -1,19 +1,19 @@
-import { crossRef } from '@internal/contract/types';
+import { type ContractModel, crossRef } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import { mongoContractRefusalsOf } from '../src/contract-refusals';
-import type { MongoModelDefinition, MongoModelStorage } from '../src/contract-types';
+import type { MongoModelStorage } from '../src/contract-types';
 import { mongoTypeLookups } from '../src/fake-type-lookups';
 import { arrayField, enumField, scalarField, voField } from './derive-json-schema-helpers';
 
 function model(
-  fields: MongoModelDefinition['fields'],
+  fields: ContractModel<MongoModelStorage>['fields'],
   {
     storage,
     ...extra
-  }: Partial<Omit<MongoModelDefinition, 'storage'>> & {
+  }: Partial<Omit<ContractModel<MongoModelStorage>, 'storage'>> & {
     readonly storage?: Partial<MongoModelStorage>;
   } = {},
-): MongoModelDefinition {
+): ContractModel<MongoModelStorage> {
   const identity = Object.fromEntries(Object.keys(fields).map((name) => [name, { field: name }]));
   return { fields, relations: {}, storage: { fields: identity, ...storage }, ...extra };
 }

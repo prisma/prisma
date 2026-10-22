@@ -1,13 +1,14 @@
 import type {
   ContractEnum,
   ContractField,
+  ContractModel,
   ContractModelBase,
   ContractValueObject,
 } from '@internal/contract/types';
 import type { TypeLookups } from '@internal/framework-components/codec';
 import { type CollectionControlPolicies, isManaged } from './collection-control-policies';
 import { collectionRootModelsOf } from './collection-root-models';
-import type { MongoModelDefinition } from './contract-types';
+import type { MongoModelStorage } from './contract-types';
 import { documentIdBsonTypesOf, documentIdRefusalOf } from './document-id-refusal';
 import { type FieldBsonTypeRefusal, fieldBsonTypeRefusalOf } from './field-bson-type-refusal';
 import { bsonTypesOfCodec } from './mongo-data-type';
@@ -69,7 +70,7 @@ export type MongoContractRefusal =
     };
 
 export interface MongoContractRefusalsInput {
-  readonly models: Record<string, MongoModelDefinition>;
+  readonly models: Record<string, ContractModel<MongoModelStorage>>;
   readonly valueObjects: Record<string, ContractValueObject>;
   readonly enums: Record<string, ContractEnum>;
   readonly lookups: TypeLookups;
@@ -187,7 +188,7 @@ function fieldRefusals(
 }
 
 function documentIdRefusals(
-  models: Record<string, MongoModelDefinition>,
+  models: Record<string, ContractModel<MongoModelStorage>>,
   lookups: TypeLookups,
 ): MongoContractRefusal[] {
   return Object.entries(collectionRootModelsOf(models)).flatMap(([collection, modelNames]) =>

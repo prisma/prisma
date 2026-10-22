@@ -1,7 +1,7 @@
 import mongoFamilyPack from '@internal/family-mongo/pack';
 import type {
-  ContractDefinition,
   ContractFactory,
+  ContractInput,
   ContractScaffold,
   MongoContractResult,
 } from '@internal/mongo-contract-ts/contract-builder';
@@ -28,7 +28,7 @@ type MongoHelpers = Parameters<
 // `@ts-expect-error` tests can verify the fields are rejected. The result type omits them again:
 // a `family?: never` left in the definition would make the whole definition type `never`.
 type MongoDefinitionInput = Omit<
-  ContractDefinition<MongoFamilyPack, MongoTargetPack>,
+  ContractInput<MongoFamilyPack, MongoTargetPack>,
   'family' | 'target'
 > & {
   readonly family?: never;

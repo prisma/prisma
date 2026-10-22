@@ -1,7 +1,7 @@
 export type {
   ContractAuthoringHelpers,
-  ContractDefinition,
   ContractFactory,
+  ContractInput,
   ContractScaffold,
   ExtractCodecTypesFromPack,
   FieldBuilder,

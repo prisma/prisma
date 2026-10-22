@@ -1,7 +1,7 @@
-import { domainModelsAtDefaultNamespace } from '@internal/contract/types';
+import { type ContractModel, domainModelsAtDefaultNamespace } from '@internal/contract/types';
 import type {
   MongoContract,
-  MongoModelDefinition,
+  MongoModelStorage,
   MongoModelsMap,
   RootModelName,
 } from '@internal/mongo-contract';
@@ -153,7 +153,7 @@ export function createLookupFrom<
       );
     }
     const model = domainModelsAtDefaultNamespace(contract.domain)[modelName] as
-      | MongoModelDefinition
+      | ContractModel<MongoModelStorage>
       | undefined;
     const foreignCollection = model?.storage?.collection ?? rootName;
     return createLookupBuilder({
@@ -275,7 +275,7 @@ export function extractLookupResult(
     );
   }
   const model = domainModelsAtDefaultNamespace(contract.domain)[result._model] as
-    | MongoModelDefinition
+    | ContractModel<MongoModelStorage>
     | undefined;
   const foreignCollection = model?.storage?.collection ?? result._root;
   return {

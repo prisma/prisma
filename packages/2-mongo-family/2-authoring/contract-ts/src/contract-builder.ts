@@ -5,6 +5,7 @@ import {
   type ContractExecutionSection,
   type ContractField,
   type ContractFieldType,
+  type ContractModel,
   type ContractReferenceRelation,
   type ContractValueObject,
   type ControlPolicy,
@@ -77,7 +78,7 @@ import {
   type MongoIndexFields,
   type MongoIndexInput,
   type MongoIndexOptionsInput,
-  type MongoModelDefinition,
+  type MongoModelStorage,
   type MongoStorageShape,
   type MongoTypeMaps,
   mongoValueSetsOf,
@@ -1274,7 +1275,7 @@ export type ContractScaffold<
   readonly defaultControlPolicy?: ControlPolicy;
 };
 
-export type ContractDefinition<
+export type ContractInput<
   Family extends FamilyPackRef<string>,
   Target extends TargetPackRef<string, string>,
   Models extends Record<string, AnyModelBuilder> = Record<never, never>,
@@ -2242,8 +2243,8 @@ function buildValueObjects(
 
 function buildModels(
   models: Record<string, AnyModelBuilder> | undefined,
-): Record<string, MongoModelDefinition> {
-  const builtModels: Record<string, MongoModelDefinition> = {};
+): Record<string, ContractModel<MongoModelStorage>> {
+  const builtModels: Record<string, ContractModel<MongoModelStorage>> = {};
 
   for (const modelBuilder of Object.values(models ?? {})) {
     if (modelBuilder.__name in builtModels) {
@@ -2774,7 +2775,7 @@ function buildExecutionDefaults(
 }
 
 function buildContractFromDefinition<
-  const Definition extends ContractDefinition<
+  const Definition extends ContractInput<
     FamilyPackRef<string>,
     TargetPackRef<string, string>,
     Record<string, AnyModelBuilder>,
@@ -2942,7 +2943,7 @@ type BoundDefinitionInput<
   readonly enums?: Record<string, EnumTypeHandle>;
 };
 
-// Merges a bound input with the pre-bound family/target to produce a full ContractDefinition.
+// Merges a bound input with the pre-bound family/target to produce a full ContractInput.
 type WithFamilyTarget<
   Input,
   F extends FamilyPackRef<string>,
@@ -3041,7 +3042,7 @@ export function buildBoundContract<
 }
 
 export function defineContract<
-  const Definition extends ContractDefinition<
+  const Definition extends ContractInput<
     FamilyPackRef<string>,
     TargetPackRef<string, string>,
     Record<string, AnyModelBuilder>,

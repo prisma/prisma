@@ -1,5 +1,5 @@
-import type { ContractField, ContractValueObject } from '@internal/contract/types';
-import { type MongoModelDefinition, ownStoredNamesOf } from '@internal/mongo-contract';
+import type { ContractField, ContractModel, ContractValueObject } from '@internal/contract/types';
+import { type MongoModelStorage, ownStoredNamesOf } from '@internal/mongo-contract';
 import type { MongoFieldShape, MongoResultShape } from '@internal/mongo-query-ast/execution';
 import { freezeMongoFieldShape, freezeMongoResultShape } from '@internal/mongo-query-ast/execution';
 
@@ -68,7 +68,7 @@ export function contractFieldToMongoFieldShape(
  * The shape the runtime decodes a model's documents against, keyed by stored name. `selection` names stored names; `includes` is keyed by relation name.
  */
 export function contractModelToMongoResultShape(
-  model: MongoModelDefinition,
+  model: ContractModel<MongoModelStorage>,
   options?: {
     readonly selection?: readonly string[];
     /** The shape of each included relation, keyed by relation name. */
