@@ -163,6 +163,6 @@ export {
   knownTags,
   readWrittenValue,
   readWrittenValueAs,
-  readWrittenValueInto,
+  readWrittenValueIntoCodec,
   tagForm,
 } from '../shared/written-value';

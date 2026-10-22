@@ -8,12 +8,12 @@ import type { Cast, DataType, DataTypeId } from '@internal/framework-components/
 import {
   asFloat,
   asNumeralText,
+  castUnchanged,
   decimalTextEqualityKey,
   readJsonBoolean,
   readJsonFloat,
   readJsonString,
   refuseWrongShape,
-  unchanged,
 } from '@internal/framework-components/codec';
 import { mongoDataType } from '@internal/mongo-contract/data-type';
 import { structuredError } from '@internal/utils/structured-error';
@@ -84,7 +84,7 @@ export const mongoDecimal128 = mongoDataType('mongo/decimal128', {
   spell: spellDecimal128Json,
   equalityKey: decimalTextEqualityKey,
   bsonTypes: ['decimal'],
-  casts: { [mongoInt32.id]: asNumeralText, [mongoInt64.id]: unchanged },
+  casts: { [mongoInt32.id]: asNumeralText, [mongoInt64.id]: castUnchanged },
 });
 export const mongoDouble = mongoDataType('mongo/double', {
   read: (json) => {

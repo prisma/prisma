@@ -212,7 +212,7 @@ The TypeScript builder is not a text surface: `.default(value)` hands the column
 
 ## Enum members and discriminator values
 
-An enum member and a `@@base` value are each a value written for a codec, not for a column, so they have their own reader in the framework, `readWrittenValueInto`. It takes a codec reference (a codec id and type parameters) and reads the written value as a default is read: the entry for its syntax reads it, the codec's data type takes it directly or through a cast, the data type builds it under the type parameters, and the codec checks it. A written list is read element by element into the element types of the data type's list cast, then through the list cast. It returns the value as the data type stores it, or a refusal worded after the subject its caller names, such as `enum "Ratio" member "Half"`:
+An enum member and a `@@base` value are each a value written for a codec, not for a column, so they have their own reader in the framework, `readWrittenValueIntoCodec`. It takes a codec reference (a codec id and type parameters) and reads the written value as a default is read: the entry for its syntax reads it, the codec's data type takes it directly or through a cast, the data type builds it under the type parameters, and the codec checks it. A written list is read element by element into the element types of the data type's list cast, then through the list cast. It returns the value as the data type stores it, or a refusal worded after the subject its caller names, such as `enum "Ratio" member "Half"`:
 
 - syntax no entry reads, or a cast that refuses, is `PSL_INVALID_LITERAL`, and a tag no component registered is `PSL_UNKNOWN_LITERAL_TAG`;
 - a value of a type the receiving type neither is nor casts from is `PSL_VALUE_TYPE_INCOMPATIBLE`, with the literal to write when there is an exact one;
@@ -220,7 +220,7 @@ An enum member and a `@@base` value are each a value written for a codec, not fo
 
 The literal to write is offered only when it stores what the quoted text says: `"0.5"` on `mongo/double@1` says to write `0.5`, but `"-0"` on `mongo/decimal128@1` gets no rewrite, because `-0` is an int32 zero and would store zero without its sign. The families' default readers keep their own default-only codes; reading a default through this function is not decided here.
 
-A discriminator is decided by one rule in the framework, `discriminatorRefusals`, which both families' PSL call. The field must be required, hold one value, and have one of the stack's text data types; each target names its text types (`mongo/string` on MongoDB), and an extension may add to them. So a discriminator is accepted by its data type, not by the name of its type: a type alias of `String` is a discriminator. When an enum types the field, each `@@base` value, read into the field's codec with `readWrittenValueInto`, must be one of the enum's members by the data type's equality. The rule returns its refusals as data, and `describeDiscriminatorRefusal` words them: an optional, list or non-text field at its `@@discriminator`, a value that is not a member at its `@@base`, each as `PSL_INVALID_ATTRIBUTE_ARGUMENT`.
+A discriminator is decided by one rule in the framework, `discriminatorRefusals`, which both families' PSL call. The field must be required, hold one value, and have one of the stack's text data types; each target names its text types (`mongo/string` on MongoDB), and an extension may add to them. So a discriminator is accepted by its data type, not by the name of its type: a type alias of `String` is a discriminator. When an enum types the field, each `@@base` value, read into the field's codec with `readWrittenValueIntoCodec`, must be one of the enum's members by the data type's equality. The rule returns its refusals as data, and `describeDiscriminatorRefusal` words them: an optional, list or non-text field at its `@@discriminator`, a value that is not a member at its `@@base`, each as `PSL_INVALID_ATTRIBUTE_ARGUMENT`.
 
 ## Reading and writing a stored value
 
@@ -277,7 +277,7 @@ export const pgNumeric = sqlDataType('pg/numeric', {
   spell: spellNumeric,
   normalize: (params) =>
     params.precision !== undefined && params.scale === undefined ? { ...params, scale: 0 } : params,
-  casts: { [pgInt2.id]: asNumeralText, [pgInt4.id]: asNumeralText, [pgInt8.id]: unchanged },
+  casts: { [pgInt2.id]: asNumeralText, [pgInt4.id]: asNumeralText, [pgInt8.id]: castUnchanged },
 });
 ```
 
@@ -435,7 +435,7 @@ model Place {
 
 - Whether a codec writes the `sql` representation of a value (the DDL half of ADR 184).
 - Mongo validator enums, which use a stored value as a database value without a codec. Every Mongo member can be written, but a collection validator still cannot list the members of an enum whose codec stores `long`, `date`, `decimal`, `binData` or `objectId`, or a `double` member that is `NaN` or infinite, so those enums are refused on a collection the contract manages. An enum CHECK lists stored forms the same way; "Codecs" says which members it can list and how it compares them.
-- Whether the families' default readers are built on `readWrittenValueInto`.
+- Whether the families' default readers are built on `readWrittenValueIntoCodec`.
 
 ## Related
 

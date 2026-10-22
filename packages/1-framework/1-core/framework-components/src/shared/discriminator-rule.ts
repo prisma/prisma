@@ -35,7 +35,7 @@ export type DiscriminatorRefusal<Key> =
  */
 export function discriminatorRefusals<Key>(input: {
   readonly field: DiscriminatorField;
-  readonly baseValues: readonly { readonly key: Key; readonly stored: JsonValue }[];
+  readonly variantValues: readonly { readonly key: Key; readonly stored: JsonValue }[];
   readonly codecLookup: Pick<CodecLookupWithDescriptors, 'descriptorFor'>;
   readonly dataTypes: Pick<DataTypeSupport, 'lookup' | 'textDataTypes'>;
 }): readonly DiscriminatorRefusal<Key>[] {
@@ -58,7 +58,7 @@ export function discriminatorRefusals<Key>(input: {
     const equalityKey =
       dataType === undefined ? undefined : input.dataTypes.lookup.get(dataType)?.equalityKey;
     const memberKeys = new Set(members.map((member) => storedValueKey(member, equalityKey)));
-    for (const { key, stored } of input.baseValues) {
+    for (const { key, stored } of input.variantValues) {
       if (!memberKeys.has(storedValueKey(stored, equalityKey))) {
         refusals.push({ kind: 'not-a-member', key, stored, members });
       }

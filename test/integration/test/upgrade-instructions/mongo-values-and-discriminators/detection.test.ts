@@ -194,7 +194,7 @@ describe('entity-context-data-types detection', () => {
   it.each([
     [
       'the new reader',
-      'const read = readWrittenValueInto({ support, codecLookup, ref, written });',
+      'const read = readWrittenValueIntoCodec({ support, codecLookup, ref, written });',
     ],
     ['a context passed through', 'function factory(ctx: AuthoringEntityContext) {}'],
   ])('skips %s', (_name, source) => {

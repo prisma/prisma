@@ -46,11 +46,11 @@ const textField: DiscriminatorField = {
 
 function refusals(
   field: DiscriminatorField,
-  baseValues: readonly { readonly key: string; readonly stored: JsonValue }[] = [],
+  variantValues: readonly { readonly key: string; readonly stored: JsonValue }[] = [],
 ) {
   return discriminatorRefusals({
     field,
-    baseValues,
+    variantValues,
     codecLookup,
     dataTypes: { lookup, textDataTypes: [text, folded] },
   });
@@ -92,7 +92,7 @@ describe('discriminatorRefusals', () => {
     expect(() =>
       discriminatorRefusals({
         field: textField,
-        baseValues: [],
+        variantValues: [],
         codecLookup,
         dataTypes: { lookup, textDataTypes: [] },
       }),

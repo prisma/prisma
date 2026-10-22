@@ -9,6 +9,7 @@
 import type { JsonValue } from '@internal/contract/types';
 import {
   type Cast,
+  castUnchanged,
   type DataType,
   type DataTypeId,
   type DataTypeReader,
@@ -21,7 +22,6 @@ import {
   readJsonString,
   refuseJsonValue,
   refuseWrongShape,
-  unchanged,
 } from '@internal/framework-components/codec';
 import { canonicalizeJson } from '@internal/framework-components/utils';
 import { sqlDataType, sqlRawDataType } from '@internal/sql-contract/data-type';
@@ -107,7 +107,7 @@ export const sqliteCharacter = sqlDataType('sqlite/character', {
   texts: [{ text: 'character', written: true, catalog: true }],
   read: (json) => readJsonString('sqlite/character', json),
   normalize: withoutLength,
-  casts: { [sqliteText.id]: unchanged },
+  casts: { [sqliteText.id]: castUnchanged },
 });
 
 export const sqliteCharacterVarying = sqlDataType('sqlite/character-varying', {
@@ -115,7 +115,7 @@ export const sqliteCharacterVarying = sqlDataType('sqlite/character-varying', {
   texts: [{ text: 'character varying', written: true, catalog: true }],
   read: (json) => readJsonString('sqlite/character-varying', json),
   normalize: withoutLength,
-  casts: { [sqliteText.id]: unchanged },
+  casts: { [sqliteText.id]: castUnchanged },
 });
 
 /**

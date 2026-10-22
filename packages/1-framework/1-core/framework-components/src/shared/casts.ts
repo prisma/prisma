@@ -9,7 +9,7 @@ import { isNonFiniteText } from './json-readers';
 import { numeralText } from './numeral-text';
 
 /** A cast between two types that store the same shape: the value is already the form this type stores. */
-export const unchanged: Cast = (value) => value;
+export const castUnchanged: Cast = (value) => value;
 
 /** Refuses a value that is not in the shape the cast's source type stores. */
 export function refuseWrongShape(value: JsonValue, expected: string): never {

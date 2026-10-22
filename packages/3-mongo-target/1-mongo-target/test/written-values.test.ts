@@ -1,6 +1,6 @@
 import {
   assembleDataTypeSupport,
-  readWrittenValueInto,
+  readWrittenValueIntoCodec,
   type WrittenValue,
 } from '@internal/framework-components/authoring';
 import { notOk, ok } from '@internal/utils/result';
@@ -20,7 +20,7 @@ const { support } = assembleDataTypeSupport(
 );
 
 function readInto(codecId: string, written: WrittenValue, typeParams?: { length: number }) {
-  return readWrittenValueInto({
+  return readWrittenValueIntoCodec({
     support,
     codecLookup,
     ref: typeParams === undefined ? { codecId } : { codecId, typeParams },

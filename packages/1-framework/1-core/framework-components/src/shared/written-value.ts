@@ -366,7 +366,7 @@ export function readWrittenValueAs(
  *
  * A refusal is worded for a diagnostic, after `subject` and the element it is about, as in `enum "Ratio" member "Half" at element 2: Expected a number`: syntax no entry reads or a cast refuses is `PSL_INVALID_LITERAL`, a value of a type the data type neither is nor casts from is `PSL_VALUE_TYPE_INCOMPATIBLE`, and a value the data type under the type parameters or the codec refuses is `PSL_VALUE_REFUSED`. ADR 254.
  */
-export function readWrittenValueInto(input: {
+export function readWrittenValueIntoCodec(input: {
   readonly support: DataTypeSupport;
   readonly codecLookup: Pick<CodecLookupWithDescriptors, 'descriptorFor'>;
   readonly ref: CodecRef;

@@ -22,7 +22,7 @@ import {
 import type { DataTypeAuthoringEntry } from '../src/shared/framework-authoring';
 import {
   type DataTypeSupport,
-  readWrittenValueInto,
+  readWrittenValueIntoCodec,
   type WrittenValue,
 } from '../src/shared/written-value';
 
@@ -170,13 +170,13 @@ const codecLookup: Pick<CodecLookupWithDescriptors, 'descriptorFor'> = {
 };
 
 function readInto(ref: CodecRef, written: WrittenValue) {
-  return readWrittenValueInto({ support, codecLookup, ref, written, subject: 'member "M"' });
+  return readWrittenValueIntoCodec({ support, codecLookup, ref, written, subject: 'member "M"' });
 }
 
 const string = (value: string): WrittenValue => ({ kind: 'string', text: value });
 const number = (value: string): WrittenValue => ({ kind: 'number', text: value });
 
-describe('readWrittenValueInto', () => {
+describe('readWrittenValueIntoCodec', () => {
   it("returns the value as the codec's data type stores it", () => {
     expect([
       readInto({ codecId: 't/text@1' }, string('free')),

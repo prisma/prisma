@@ -35,7 +35,7 @@ import {
   instantiateAuthoringEntityType,
   isAuthoringEntityTypeDescriptor,
   isAuthoringTypeConstructorDescriptor,
-  readWrittenValueInto,
+  readWrittenValueIntoCodec,
 } from '@internal/framework-components/authoring';
 import type {
   CodecLookupWithDescriptors,
@@ -492,7 +492,7 @@ function acceptedDiscriminator(
       reading:
         codecId === undefined
           ? undefined
-          : readWrittenValueInto({
+          : readWrittenValueIntoCodec({
               support: input.dataTypes,
               codecLookup: input.codecLookup,
               ref,
@@ -508,7 +508,7 @@ function acceptedDiscriminator(
       many: field.many !== undefined && field.many !== false,
       enumMembers,
     },
-    baseValues: reads.flatMap(({ variant, reading }) =>
+    variantValues: reads.flatMap(({ variant, reading }) =>
       reading?.ok ? [{ key: variant, stored: reading.value }] : [],
     ),
     codecLookup: input.codecLookup,

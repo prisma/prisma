@@ -6,7 +6,7 @@
  * Codec authors `extend` the abstract bases: {@link CodecImpl} and {@link CodecDescriptorImpl}. They write a per-codec column helper that calls `descriptor.factory(...)` directly and tie the helper to its descriptor with `satisfies ColumnHelperFor<D>` (or `ColumnHelperForStrict<D>`).
  */
 
-export { asFloat, asNumeralText, refuseWrongShape, unchanged } from '../shared/casts';
+export { asFloat, asNumeralText, castUnchanged, refuseWrongShape } from '../shared/casts';
 export type { Codec } from '../shared/codec';
 export { CodecImpl, readContractValue } from '../shared/codec';
 export type {

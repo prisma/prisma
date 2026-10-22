@@ -4,7 +4,7 @@ import type { EnumMemberProblem } from './enum-members';
 import { duplicateStoredMembers, type StoredEnumMember } from './enum-stored-members';
 import type { AuthoringEntityContext } from './framework-authoring';
 import type { ParsedPslExtensionBlock, PslSpan } from './psl-extension-block';
-import { readWrittenValueInto, type WrittenValue } from './written-value';
+import { readWrittenValueIntoCodec, type WrittenValue } from './written-value';
 
 export interface EnumBlockMember {
   readonly name: string;
@@ -92,7 +92,7 @@ function writtenMember(
 }
 
 /**
- * Reads the members of an `enum` block through its codec with {@link readWrittenValueInto}: each member's syntax gives it a data type, the codec's data type takes it directly or through a cast, and the codec checks it, so a number keeps every digit and a quoted value is text. A bare member is read from its own name, as text.
+ * Reads the members of an `enum` block through its codec with {@link readWrittenValueIntoCodec}: each member's syntax gives it a data type, the codec's data type takes it directly or through a cast, and the codec checks it, so a number keeps every digit and a quoted value is text. A bare member is read from its own name, as text.
  * Pushes a diagnostic and returns `undefined` when a member is refused, when two members
  * store the same value, or when the block has no members. Shared by every family's enum factory.
  */
@@ -117,7 +117,7 @@ export function readEnumBlockMembers(
 
   for (const [memberName, memberValue] of Object.entries(block.values)) {
     const span = block.parameterSpans[memberName] ?? block.span;
-    const reading = readWrittenValueInto({
+    const reading = readWrittenValueIntoCodec({
       support: ctx.dataTypes,
       codecLookup: ctx.codecLookup,
       ref: { codecId },

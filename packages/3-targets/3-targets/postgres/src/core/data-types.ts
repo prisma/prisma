@@ -15,6 +15,7 @@ import {
   asNumeralText,
   assembleDataTypes,
   type Cast,
+  castUnchanged,
   type DataType,
   type DataTypeId,
   type DataTypeLookup,
@@ -35,7 +36,6 @@ import {
   refuseJsonValue,
   refuseWrongShape,
   storedNumeralText,
-  unchanged,
 } from '@internal/framework-components/codec';
 import { type SqlTypeText, sqlDataType, sqlRawDataType } from '@internal/sql-contract/data-type';
 import type { ReportedSqlType } from '@internal/sql-schema-ir/types';
@@ -389,7 +389,7 @@ export const pgTsquery = namedOnly('pg/tsquery', 'tsquery', readString('pg/tsque
 export const pgInt4 = sqlDataType('pg/int4', {
   texts: [written('int4'), catalog('integer'), claimsOnly('int')],
   read: (json) => readJsonInteger('pg/int4', json, INT32_RANGE),
-  casts: { [pgInt2.id]: unchanged },
+  casts: { [pgInt2.id]: castUnchanged },
 });
 
 export const pgInt8 = sqlDataType('pg/int8', {
@@ -419,7 +419,7 @@ export const pgNumeric = sqlDataType('pg/numeric', {
   casts: {
     [pgInt2.id]: asNumeralText,
     [pgInt4.id]: asNumeralText,
-    [pgInt8.id]: unchanged,
+    [pgInt8.id]: castUnchanged,
   },
 });
 
@@ -459,13 +459,13 @@ export const pgFloat8 = sqlDataType('pg/float8', {
   casts: floatCastsOf(asFloat),
 });
 
-export const pgJsonb = namedOnly('pg/jsonb', 'jsonb', anyJson, { [pgJson.id]: unchanged });
+export const pgJsonb = namedOnly('pg/jsonb', 'jsonb', anyJson, { [pgJson.id]: castUnchanged });
 
 /** Why no enum can use a codec of `pg/jsonb`, which every such codec gives as its `enumRefusal`. */
 export const pgJsonbEnumRefusal =
   'A CHECK lists a string member as SQL text, which PostgreSQL reads as the JSON text of a document rather than as a string, and a number member as a number, which PostgreSQL cannot compare with jsonb, so no CHECK can compare a value with the members. No enum can use a jsonb codec; use a text enum instead.';
 
-const fromText: Readonly<Record<string, Cast>> = { [pgText.id]: unchanged };
+const fromText: Readonly<Record<string, Cast>> = { [pgText.id]: castUnchanged };
 
 export const pgChar = sqlDataType('pg/char', {
   params: pgCharacterLengthParams,

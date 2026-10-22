@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { asFloat, asNumeralText, unchanged } from '../src/shared/casts';
+import { asFloat, asNumeralText, castUnchanged } from '../src/shared/casts';
 
-describe('unchanged', () => {
+describe('castUnchanged', () => {
   it('returns the value it is given', () => {
-    expect(unchanged({ a: [1] })).toEqual({ a: [1] });
+    expect(castUnchanged({ a: [1] })).toEqual({ a: [1] });
   });
 });
 
