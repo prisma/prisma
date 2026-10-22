@@ -1,8 +1,8 @@
 # 0008 — Prisma 8 does not fully manage native Postgres enums
 
-> **Draft — for maintainer acceptance.**
+> Draft — unconfirmed. No maintainer has accepted this record yet, so it does not count as a decision.
 
-**Status:** `never`
+**Status:** `proposed`. Intended status: `never`.
 
 ## The request
 

@@ -1,8 +1,8 @@
 # 0003 — No `$queryRaw` method or `Prisma.sql` helpers
 
-> **Draft — for maintainer acceptance.**
+> Draft — unconfirmed. No maintainer has accepted this record yet, so it does not count as a decision.
 
-**Status:** `never`
+**Status:** `proposed`. Intended status: `never`.
 
 ## The request
 

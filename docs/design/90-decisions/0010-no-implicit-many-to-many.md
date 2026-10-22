@@ -1,8 +1,8 @@
 # 0010 — No implicit many-to-many relations
 
-> **Draft — for maintainer acceptance.**
+> Draft — unconfirmed. No maintainer has accepted this record yet, so it does not count as a decision.
 
-**Status:** `not-yet`
+**Status:** `proposed`. Intended status: `not-yet`.
 
 ## The request
 

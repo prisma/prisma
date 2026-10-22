@@ -1,8 +1,8 @@
 # 0005 — `@default` does not call client-side generators
 
-> **Draft — for maintainer acceptance.**
+> Draft — unconfirmed. No maintainer has accepted this record yet, so it does not count as a decision.
 
-**Status:** `never`
+**Status:** `proposed`. Intended status: `never`.
 
 ## The request
 
