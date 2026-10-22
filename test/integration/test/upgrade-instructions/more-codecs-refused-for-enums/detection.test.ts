@@ -168,7 +168,7 @@ describe('psl-enum-members-read-by-the-cast-rule detection', () => {
     ],
     ['a quoted SQLite text member', 'enum L {\n  @@type("sqlite/text@1")\n  Low = "low"\n}'],
     [
-      'a quoted Mongo member, whose PSL is unchanged',
+      'a quoted Mongo member, on a codec this change does not refuse',
       'enum L {\n  @@type("mongo/int32@1")\n  Low = "1"\n}',
     ],
     ['an enum with no @@type', 'enum Level {\n  Low = "low"\n}'],
@@ -240,7 +240,7 @@ describe('enum-block-written-values detection', () => {
   it.each([
     ['a read of writtenValues', 'const written = block.writtenValues?.[name];'],
     [
-      'the renamed hook',
+      'the hook that replaced readWrittenNumber, which a later release removes',
       'const ctx = { readWrittenValueForCodec: ({ written }) => read(written) };',
     ],
     ['a longer name', 'const t = block.numberTextsByKey;'],
