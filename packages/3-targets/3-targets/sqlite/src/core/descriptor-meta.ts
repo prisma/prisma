@@ -5,13 +5,14 @@ import { sqliteDataTypeEntries } from './data-type-entries';
 import { sqliteTextDataTypes } from './data-types';
 import { sqliteTargetDescriptorMetaRuntime } from './descriptor-meta-runtime';
 import { sqliteGeneratorDescriptors, sqliteGeneratorFunctions } from './generator-functions';
+import { sqliteScalarTypeConstructors } from './type-constructors';
 
 const sqliteTargetDescriptorMetaBase = {
   ...sqliteTargetDescriptorMetaRuntime,
   defaultNamespaceId: UNBOUND_NAMESPACE_ID,
   supportsNamespaces: false,
   authoring: {
-    type: sqliteAuthoringTypes,
+    type: { ...sqliteScalarTypeConstructors, ...sqliteAuthoringTypes },
     field: sqliteAuthoringFieldPresets,
     dataTypes: sqliteDataTypeEntries(),
     textDataTypes: sqliteTextDataTypes,

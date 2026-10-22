@@ -75,24 +75,16 @@ const postgresContract = defineContract(
     target: postgresTargetPack,
     createNamespace: createTestSqlNamespace,
   },
-  ({ field, model, type }) => {
-    const types = {
-      BigIntNumber: type.BigIntNumber(),
-      UnboundedInt: type.UnboundedInt(),
-    } as const;
-
-    return {
-      types,
-      models: {
-        Sample: model('Sample', {
-          fields: {
-            bounded: field.namedType(types.BigIntNumber),
-            unbounded: field.namedType(types.UnboundedInt),
-          },
-        }).sql({ table: 'sample' }),
-      },
-    };
-  },
+  ({ field, model, type }) => ({
+    models: {
+      Sample: model('Sample', {
+        fields: {
+          bounded: field.column(type.BigIntNumber()),
+          unbounded: field.column(type.UnboundedInt()),
+        },
+      }).sql({ table: 'sample' }),
+    },
+  }),
 );
 
 const sqliteContract = defineContract(
@@ -102,22 +94,15 @@ const sqliteContract = defineContract(
     target: sqliteTargetPack,
     createNamespace: createTestSqlNamespace,
   },
-  ({ field, model, type }) => {
-    const types = {
-      BigIntNumber: type.BigIntNumber(),
-    } as const;
-
-    return {
-      types,
-      models: {
-        Sample: model('Sample', {
-          fields: {
-            bounded: field.namedType(types.BigIntNumber),
-          },
-        }).sql({ table: 'sample' }),
-      },
-    };
-  },
+  ({ field, model, type }) => ({
+    models: {
+      Sample: model('Sample', {
+        fields: {
+          bounded: field.column(type.BigIntNumber()),
+        },
+      }).sql({ table: 'sample' }),
+    },
+  }),
 );
 
 describe('integer representation type helpers', () => {
@@ -156,7 +141,7 @@ describe('integer representation type helpers', () => {
     expect(sqliteHelpers.field).not.toHaveProperty('bigIntNumber');
   });
 
-  it('lowers PostgreSQL named type builders with number and bigint application types', () => {
+  it('lowers PostgreSQL type helpers with number and bigint application types', () => {
     expect(postgresContract).toMatchObject({
       storage: {
         namespaces: {
@@ -184,7 +169,7 @@ describe('integer representation type helpers', () => {
     expectTypeOf<Input['unbounded']>().toEqualTypeOf<bigint>();
   });
 
-  it('lowers the SQLite named type builder with a number application type', () => {
+  it('lowers the SQLite type helper with a number application type', () => {
     expect(sqliteContract).toMatchObject({
       storage: {
         namespaces: {

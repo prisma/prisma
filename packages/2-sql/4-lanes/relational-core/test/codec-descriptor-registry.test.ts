@@ -1,11 +1,6 @@
 import type { CodecDescriptor } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import {
-  SqlStorage,
-  type SqlStorageTypeEntry,
-  type StorageTableInput,
-} from '@internal/sql-contract/types';
-import { ifDefined } from '@internal/utils/defined';
+import { SqlStorage, type StorageTableInput } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import type { AnyCodecDescriptor } from '../src/ast/codec-types';
@@ -72,10 +67,7 @@ describe('buildCodecDescriptorRegistry', () => {
 });
 
 describe('buildCodecDescriptorRegistry — codecRefForColumn', () => {
-  function storageWith(parts: {
-    tables: Record<string, StorageTableInput>;
-    types?: Record<string, SqlStorageTypeEntry>;
-  }): SqlStorage {
+  function storageWith(parts: { tables: Record<string, StorageTableInput> }): SqlStorage {
     return new SqlStorage({
       storageHash: 'test' as SqlStorage['storageHash'],
       namespaces: {
@@ -84,7 +76,6 @@ describe('buildCodecDescriptorRegistry — codecRefForColumn', () => {
           entries: { table: parts.tables },
         }),
       },
-      ...ifDefined('types', parts.types),
     });
   }
 
@@ -95,42 +86,7 @@ describe('buildCodecDescriptorRegistry — codecRefForColumn', () => {
     expect(registry.codecRefForColumn(UNBOUND_NAMESPACE_ID, 'Doc', 'embedding')).toBeUndefined();
   });
 
-  it('derives `{codecId, typeParams}` from `storage.types` for a typeRef column', () => {
-    const storage = storageWith({
-      tables: {
-        Doc: {
-          columns: {
-            embedding: {
-              dataType: 'pgvector/vector',
-              codecId: 'pg/vector@1',
-              nullable: false,
-              typeRef: 'Vector1536',
-            },
-          },
-          primaryKey: { columns: ['embedding'] },
-          uniques: [],
-          indexes: [],
-          foreignKeys: [],
-        },
-      },
-      types: {
-        Vector1536: {
-          kind: 'codec-instance',
-          codecId: 'pg/vector@1',
-          dataType: 'pgvector/vector',
-          typeParams: { length: 1536 },
-        },
-      },
-    });
-
-    const registry = buildCodecDescriptorRegistry(descriptors, storage);
-    expect(registry.codecRefForColumn(UNBOUND_NAMESPACE_ID, 'Doc', 'embedding')).toEqual({
-      codecId: 'pg/vector@1',
-      typeParams: { length: 1536 },
-    });
-  });
-
-  it('derives `{codecId, typeParams}` from inline `column.typeParams` when no typeRef is set', () => {
+  it('derives `{codecId, typeParams}` from inline `column.typeParams`', () => {
     const storage = storageWith({
       tables: {
         Doc: {
@@ -202,30 +158,6 @@ describe('buildCodecDescriptorRegistry — codecRefForColumn', () => {
     expect(
       registry.codecRefForColumn(UNBOUND_NAMESPACE_ID, 'NoSuchTable', 'whatever'),
     ).toBeUndefined();
-  });
-
-  it('returns undefined when the typeRef points at an undefined storage type', () => {
-    const storage = storageWith({
-      tables: {
-        Doc: {
-          columns: {
-            embedding: {
-              dataType: 'pgvector/vector',
-              codecId: 'pg/vector@1',
-              nullable: false,
-              typeRef: 'Missing',
-            },
-          },
-          primaryKey: { columns: ['embedding'] },
-          uniques: [],
-          indexes: [],
-          foreignKeys: [],
-        },
-      },
-    });
-
-    const registry = buildCodecDescriptorRegistry(descriptors, storage);
-    expect(registry.codecRefForColumn(UNBOUND_NAMESPACE_ID, 'Doc', 'embedding')).toBeUndefined();
   });
 });
 

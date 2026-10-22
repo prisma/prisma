@@ -63,8 +63,7 @@ export interface SqlColumnIRInput {
    * end)` op-path called. Carried the same way the query AST carries
    * `CodecRef` (TML-2456) and the migration DDL renderer (TML-2918).
    * Stamped on the EXPECTED (contract-derived) column at derivation,
-   * post-`typeRef` resolution (the referenced storage type's own
-   * codec/params, not the column's `typeRef` pointer). Absent on
+   * from the column's own codec and params. Absent on
    * introspected/hand-built nodes — the actual side never renders DDL —
    * and never compared by `isEqualTo`.
    */

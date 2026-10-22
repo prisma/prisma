@@ -786,7 +786,7 @@ const DEMO_BASE_TABLES = {
       kind: col({
         dataType: 'app/test-type',
         codecId: 'app/test-type@1',
-        typeRef: 'user_type',
+        typeParams: { typeName: 'user_type', values: ['admin', 'user'] },
       }),
     },
     primaryKey: { columns: ['id'] },

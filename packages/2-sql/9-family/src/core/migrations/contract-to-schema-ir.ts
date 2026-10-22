@@ -26,11 +26,9 @@ import {
   type CheckConstraint,
   type ForeignKey,
   type Index,
-  isStorageTypeInstance,
   type SqlStorage,
   type StorageColumn,
   StorageTable,
-  type StorageTypeInstance,
   type UniqueConstraint,
 } from '@internal/sql-contract/types';
 import { namingOf } from '@internal/sql-schema-ir/naming';
@@ -47,7 +45,7 @@ import {
 } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
-import { InternalError, isInternalError } from '@internal/utils/internal-error';
+import { isInternalError } from '@internal/utils/internal-error';
 import { isStructuredError, structuredError } from '@internal/utils/structured-error';
 import { sqlFamilyError } from '../errors';
 
@@ -67,16 +65,12 @@ type DefaultHooks = Pick<ContractToSchemaIROptions, 'resolveDefault'>;
 function convertColumn(
   name: string,
   column: StorageColumn,
-  storageTypes: ResolvedStorageTypes,
   types: TypeLookups,
   hooks: DefaultHooks,
 ): SqlColumnIRInput {
-  // A `typeRef` column is written exactly as a column of the referenced
-  // `storage.types` entry's codec and parameters.
-  const resolved = resolveColumnTypeMetadata(column, storageTypes);
-  const dataType = sqlDataTypeOfCodec(resolved.codecId, types);
+  const dataType = sqlDataTypeOfCodec(column.codecId, types);
   const storage = sqlStorageType(dataType, types.dataTypeLookup);
-  const typeText = schemaTypeText(storage, resolved.typeParams);
+  const typeText = schemaTypeText(storage, column.typeParams);
   const many = column.many !== undefined && column.many !== false;
   const rawColumnDefault = column.default ?? undefined;
   const resolvedColumnDefault =
@@ -96,21 +90,21 @@ function convertColumn(
     // carries `CodecRef` (TML-2456) — the migration planner's op-builders
     // resolve DDL rendering from this at plan time (Decision 5), instead of
     // reading a derivation-precomputed render payload.
-    codecRef: buildColumnCodecRef(resolved, many ? true : undefined),
+    codecRef: buildColumnCodecRef(column, many ? true : undefined),
     storedType: storage,
-    storedTypeParams: storage.sql.normalize(dataTypeParams(storage, resolved.typeParams)),
+    storedTypeParams: storage.sql.normalize(dataTypeParams(storage, column.typeParams)),
     ...ifDefined('catalogText', nameIsCatalogText(storage) ? typeText : undefined),
     ...ifDefined(
       'defaultValue',
       rawColumnDefault?.kind === 'literal' && rawColumnDefault.value instanceof Date
         ? dateDefaultValue(
             rawColumnDefault.value,
-            codecForRef(types.codecLookup, buildColumnCodecRef(resolved, undefined)),
+            codecForRef(types.codecLookup, buildColumnCodecRef(column, undefined)),
           )
         : contractDefaultValue(
             rawColumnDefault,
             dataType,
-            dataTypeParams(dataType, resolved.typeParams),
+            dataTypeParams(dataType, column.typeParams),
             many,
           ),
     ),
@@ -178,59 +172,25 @@ function schemaTypeText(
 }
 
 /**
- * Builds the column's `CodecRef` from its resolved (post-`typeRef`) codec
- * identity — the same construction the query AST and the migration DDL
- * renderer already use (TML-2456, TML-2918).
+ * Builds the column's `CodecRef` from its codec identity — the same construction the query AST and the migration DDL renderer already use (TML-2456, TML-2918).
  */
 function buildColumnCodecRef(
-  resolved: Pick<StorageColumn, 'codecId' | 'typeParams'>,
+  column: Pick<StorageColumn, 'codecId' | 'typeParams'>,
   many: boolean | undefined,
 ): CodecRef {
   return {
-    codecId: resolved.codecId,
+    codecId: column.codecId,
     ...ifDefined(
       'typeParams',
-      resolved.typeParams !== undefined
+      column.typeParams !== undefined
         ? blindCast<
             JsonValue,
-            'resolved.typeParams is JsonValue-shaped storage metadata; the narrowed (non-undefined) value lands in CodecRef.typeParams which is JsonValue'
-          >(resolved.typeParams)
+            'column.typeParams is JsonValue-shaped storage metadata; the narrowed (non-undefined) value lands in CodecRef.typeParams which is JsonValue'
+          >(column.typeParams)
         : undefined,
     ),
     ...ifDefined('many', many),
   };
-}
-
-type ResolvedStorageTypes = Readonly<Record<string, StorageTypeInstance>>;
-
-function resolveColumnTypeMetadata(
-  column: StorageColumn,
-  storageTypes: ResolvedStorageTypes,
-): Pick<StorageColumn, 'codecId' | 'typeParams'> {
-  if (!column.typeRef) {
-    return column;
-  }
-  const referenced = storageTypes[column.typeRef];
-  if (!referenced) {
-    throw sqlFamilyError(
-      'CONTRACT.TYPE_UNKNOWN',
-      `Column references storage type "${column.typeRef}" but it is not defined in storage.types.`,
-      {
-        why: 'The column typeRef does not resolve to any entry in the contract storage.types map.',
-        fix: 'Regenerate the contract from its authoring source; do not hand-edit contract JSON.',
-        meta: { typeRef: column.typeRef },
-      },
-    );
-  }
-  if (isStorageTypeInstance(referenced)) {
-    return {
-      codecId: referenced.codecId,
-      typeParams: referenced.typeParams,
-    };
-  }
-  throw new InternalError(
-    `Storage type "${column.typeRef}" has an unknown polymorphic kind; expected a codec-typed StorageTypeInstance.`,
-  );
 }
 
 function convertCheck(
@@ -367,7 +327,6 @@ function withColumnInErrors<T>(table: string, column: string, build: () => T): T
 function convertTable(
   name: string,
   table: StorageTable,
-  storageTypes: ResolvedStorageTypes,
   types: TypeLookups,
   hooks: DefaultHooks,
   storage: SqlStorage,
@@ -375,7 +334,7 @@ function convertTable(
   const columns: Record<string, SqlColumnIRInput> = {};
   for (const [colName, colDef] of Object.entries(table.columns)) {
     columns[colName] = withColumnInErrors(name, colName, () =>
-      convertColumn(colName, colDef, storageTypes, types, hooks),
+      convertColumn(colName, colDef, types, hooks),
     );
   }
 
@@ -507,18 +466,10 @@ export function contractNamespaceToSchemaIR(
   if (!namespace) {
     return new SqlSchemaIR({ tables: {} });
   }
-  const storageTypes: ResolvedStorageTypes = { ...(storage.types ?? {}) };
   const tables: Record<string, SqlTableIR> = {};
   for (const [tableName, tableDefRaw] of Object.entries(namespace.entries.table ?? {})) {
     StorageTable.assert(tableDefRaw, `namespaces.${namespaceId}.entries.table.${tableName}`);
-    tables[tableName] = convertTable(
-      tableName,
-      tableDefRaw,
-      storageTypes,
-      options,
-      options,
-      storage,
-    );
+    tables[tableName] = convertTable(tableName, tableDefRaw, options, options, storage);
   }
   return new SqlSchemaIR({ tables });
 }
@@ -526,10 +477,9 @@ export function contractNamespaceToSchemaIR(
 /**
  * Converts a `Contract` to `SqlSchemaIR`.
  *
- * Reads `contract.storage` for tables, and `contract.storage.types` for the
- * types `typeRef` columns name.
+ * Reads `contract.storage` for tables.
  *
- * Drops codec metadata (`codecId`, `typeRef`) since the schema IR only represents
+ * Drops codec metadata (`codecId`) since the schema IR only represents
  * structural information. Each column's type is written from the data type its codec
  * represents, with its parameters (e.g. `character` + `{ length: 36 }` → `character(36)`),
  * so the resulting IR compares correctly against the "to" contract during planning.
@@ -557,7 +507,6 @@ export function contractToSchemaIR(
   }
 
   const storage = contract.storage;
-  const storageTypes: ResolvedStorageTypes = { ...(storage.types ?? {}) };
   const tables: Record<string, SqlTableIR> = {};
   for (const ns of Object.values(storage.namespaces)) {
     for (const [tableName, tableDefRaw] of Object.entries(ns.entries.table ?? {})) {
@@ -574,14 +523,7 @@ export function contractToSchemaIR(
           },
         );
       }
-      tables[tableName] = convertTable(
-        tableName,
-        tableDef,
-        storageTypes,
-        options,
-        options,
-        storage,
-      );
+      tables[tableName] = convertTable(tableName, tableDef, options, options, storage);
     }
   }
 

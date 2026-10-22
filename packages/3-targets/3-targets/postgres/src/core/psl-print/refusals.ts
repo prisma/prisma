@@ -24,7 +24,7 @@ import { sqlTextsReadBack } from '@internal/sql-contract/sql-expression';
 import {
   type ForeignKey,
   type Index,
-  resolvedTypeParams,
+  nonEmptyTypeParams,
   type SqlStorage,
   StorageColumn,
 } from '@internal/sql-contract/types';
@@ -236,8 +236,6 @@ export function refuseFieldColumnMismatch(input: {
   readonly modelName: string;
   readonly singleTableVariant: boolean;
   readonly domainEnumNames: ReadonlySet<string>;
-  /** The contract's named types, whose parameters a column typed by one takes. */
-  readonly namedTypes: NonNullable<SqlStorage['types']>;
 }): void {
   const { field, column, coordinate } = input;
   const fix =
@@ -271,10 +269,7 @@ export function refuseFieldColumnMismatch(input: {
   if (
     field.type.kind === 'scalar' &&
     (field.type.codecId !== column.codecId ||
-      !sameJson(
-        resolvedTypeParams(field.type, undefined),
-        resolvedTypeParams(column, input.namedTypes),
-      ))
+      !sameJson(nonEmptyTypeParams(field.type.typeParams), nonEmptyTypeParams(column.typeParams)))
   ) {
     throw unsupported(
       `field ${coordinate} has a different codec or type parameters from its column, which cannot be written in Prisma 8 PSL.`,
@@ -386,29 +381,6 @@ export function refuseStorageOfUndeclaredField(input: {
   );
 }
 
-/**
- * Refuses a column typed by a named type when the contract declares no such type, or when the
- * column's data type or codec is not the named type's. PSL writes the column as the name of the
- * type, and the PSL source copies both from the named type.
- */
-export function refuseColumnDifferingFromNamedType(input: {
-  readonly column: StorageColumn;
-  readonly typeRef: string;
-  readonly namedType: { readonly dataType: string; readonly codecId: string } | undefined;
-  readonly coordinate: string;
-}): void {
-  const { column, typeRef, namedType, coordinate } = input;
-  if (namedType?.dataType === column.dataType && namedType.codecId === column.codecId) return;
-  throw unsupported(
-    namedType === undefined
-      ? `column ${coordinate} is typed by the named type "${typeRef}", which the contract does not declare, so it cannot be written in Prisma 8 PSL.`
-      : `column ${coordinate} is typed by the named type "${typeRef}" but has a different data type or codec from it, which cannot be written in Prisma 8 PSL.`,
-    'PSL writes such a column as the name of its named type, and the PSL source gives the column the data type and codec of that named type.',
-    'Make the column and its named type agree, or keep authoring this contract in its current source.',
-    { coordinate, typeRef },
-  );
-}
-
 export function refuseColumnControl(column: StorageColumn, coordinate: string): void {
   if (column.control === undefined) return;
   throw unsupported(
@@ -489,7 +461,6 @@ export function refuseUnderivedVariantLink(entry: ModelWithTable, variant: Varia
             codecId: base.codecId,
             nullable: false,
             ...ifDefined('typeParams', base.typeParams),
-            ...ifDefined('typeRef', base.typeRef),
           });
     return sameJson(entry.table.columns[column], expected);
   });
@@ -906,6 +877,18 @@ export function refuseNamespaceNamedUnbound(namespaceId: string): void {
 }
 
 /** Refuses top-level `meta` entries: the PSL source reads back an empty `meta`. */
+/** Refuses a contract that registers database types in `storage.types`: only an extension's contract space does, and PSL has no syntax to declare one. */
+export function refuseRegisteredDatabaseTypes(contract: Contract<SqlStorage>): void {
+  const types = Object.keys(contract.storage.types ?? {}).sort();
+  if (types.length === 0) return;
+  throw unsupported(
+    `This contract registers the database types ${types.join(', ')}, which PSL cannot declare. It is an extension's contract space, written in TypeScript.`,
+    'Printing it would drop the registered types and change its storage hash.',
+    'Keep authoring this contract space in TypeScript.',
+    { types },
+  );
+}
+
 export function refuseContractMeta(contract: Contract<SqlStorage>): void {
   const keys = Object.keys(contract.meta);
   if (keys.length === 0) return;
@@ -1078,7 +1061,7 @@ export function refuseUnwritableMappedName(kind: 'table' | 'column', name: strin
 
 /**
  * Refuses a name the printer writes where PSL reads an identifier: a namespace, model, field, value
- * object, enum, enum member, native enum, named type, policy, role or index option key.
+ * object, enum, enum member, native enum, policy, role or index option key.
  */
 export function refuseUnwritableName(kind: string, name: string): void {
   refuseNameThePslSourceLoses(kind, name);

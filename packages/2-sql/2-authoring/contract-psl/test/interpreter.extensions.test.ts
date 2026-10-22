@@ -1,3 +1,4 @@
+import type { Contract } from '@internal/contract/types';
 import { structBlock } from '@internal/psl-parser';
 import type { SqlNamespaceBase, SqlNamespaceInput } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
@@ -11,6 +12,12 @@ import {
   postgresScalarTypeDescriptors,
   postgresTarget,
 } from './fixtures';
+import { sqlStorageFromSuccessfulSqlInterpretation } from './interpret-sql-contract-storage';
+import { unboundTables } from './unbound-tables';
+
+function columnsOf(contract: Contract, table: string) {
+  return unboundTables(sqlStorageFromSuccessfulSqlInterpretation(contract))[table]?.columns;
+}
 
 const baseInput = {
   ...fixtureInterpreterTypes,
@@ -183,15 +190,10 @@ model Document {
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(documentScopedTypes(result.value)).toMatchObject({
-      ShortName: {
-        codecId: 'custom/varchar@1',
-        typeParams: { length: 35 },
-      },
-      Embedding1536: {
-        codecId: 'custom/vector@1',
-        typeParams: { length: 1536 },
-      },
+    expect(documentScopedTypes(result.value)).toBeUndefined();
+    expect(columnsOf(result.value, 'Document')).toMatchObject({
+      shortName: { codecId: 'custom/varchar@1', typeParams: { length: 35 } },
+      embedding: { codecId: 'custom/vector@1', typeParams: { length: 1536 } },
     });
   });
 
@@ -311,14 +313,9 @@ model Document {
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(documentScopedTypes(result.value)).toMatchObject({
-      ShortName: {
-        codecId: 'custom/varchar@1',
-        typeParams: {
-          length: 35,
-          label: 'short',
-        },
-      },
+    expect(columnsOf(result.value, 'Document')?.['shortName']).toMatchObject({
+      codecId: 'custom/varchar@1',
+      typeParams: { length: 35, label: 'short' },
     });
   });
 
@@ -367,8 +364,8 @@ model Doc {
 `);
       expect(result.ok).toBe(true);
       if (!result.ok) return;
-      expect(documentScopedTypes(result.value)).toMatchObject({
-        Short: { typeParams: { length: 35, label: 'short' } },
+      expect(columnsOf(result.value, 'Doc')?.['s']).toMatchObject({
+        typeParams: { length: 35, label: 'short' },
       });
     });
 

@@ -19,6 +19,7 @@ import {
 import type {
   AuthoringAttributeSpecContributions,
   AuthoringContributions,
+  AuthoringDescriptorKinds,
   AuthoringEntityTypeNamespace,
   AuthoringFieldNamespace,
   AuthoringFieldPresetDescriptor,
@@ -29,8 +30,10 @@ import type {
   DataTypeAuthoringEntry,
 } from '../shared/framework-authoring';
 import {
+  AUTHORING_TYPE_DESCRIPTOR_KINDS,
   assertNoCrossRegistryCollisions,
   assertResolvableTypeConstructorTemplates,
+  assertTypeAliasesValid,
   collectContributedDescriptorPaths,
   collectScalarTypeConstructors,
   isAuthoringArgRef,
@@ -231,7 +234,7 @@ export function assembleAuthoringContributions(
   const pathOwners = new Map<string, string>();
   const claimContributedPaths = (
     namespace: Record<string, unknown>,
-    descriptorKind: string,
+    descriptorKind: AuthoringDescriptorKinds,
     label: string,
     descriptorId: string,
   ): void => {
@@ -273,9 +276,20 @@ export function assembleAuthoringContributions(
       mergeAuthoringNamespaces(field, descriptor.authoring.field, [], 'fieldPreset', 'field');
     }
     if (descriptor.authoring?.type) {
-      claimContributedPaths(descriptor.authoring.type, 'typeConstructor', 'type', descriptorId);
+      claimContributedPaths(
+        descriptor.authoring.type,
+        AUTHORING_TYPE_DESCRIPTOR_KINDS,
+        'type',
+        descriptorId,
+      );
       assertResolvableTypeConstructorTemplates(descriptor.authoring.type, descriptorId);
-      mergeAuthoringNamespaces(type, descriptor.authoring.type, [], 'typeConstructor', 'type');
+      mergeAuthoringNamespaces(
+        type,
+        descriptor.authoring.type,
+        [],
+        AUTHORING_TYPE_DESCRIPTOR_KINDS,
+        'type',
+      );
     }
     if (descriptor.authoring?.entityTypes) {
       claimContributedPaths(descriptor.authoring.entityTypes, 'entity', 'entity', descriptorId);
@@ -732,6 +746,12 @@ export function createControlStack<TFamilyId extends string, TTargetId extends s
   });
 
   const controlMutationDefaults = assembleControlMutationDefaults(allDescriptors);
+  const generatorFunctions = assembleGeneratorFunctions(allDescriptors);
+  assertTypeAliasesValid(authoringContributions.type, {
+    generatorFunctions,
+    paramsSchemaOf: (codecId) => codecLookup.descriptorFor(codecId)?.paramsSchema,
+    fieldLength: (field) => family.fieldLength?.(field, dataTypes.support),
+  });
 
   return {
     family,
@@ -753,7 +773,7 @@ export function createControlStack<TFamilyId extends string, TTargetId extends s
     authoringContributions,
     scalarTypes: [...collectScalarTypeConstructors(authoringContributions.type).keys()],
     controlMutationDefaults,
-    generatorFunctions: assembleGeneratorFunctions(allDescriptors),
+    generatorFunctions,
     capabilities: mergeCapabilityMatrices({}, [
       target,
       ...(adapter ? [adapter] : []),

@@ -29,7 +29,7 @@ const baseInput = {
 describe('interpretPslDocumentToSqlContract types', () => {
   const builtinControlMutationDefaults = createBuiltinLikeControlMutationDefaults();
 
-  it('lowers preserved native type named types into storage descriptors', () => {
+  it('expands each named type into the columns typed by it, with its params inline', () => {
     const result = interpretSqlContract(
       `types {
   Id = Uuid
@@ -60,24 +60,7 @@ model Event {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(documentScopedTypes(result.value)).toMatchObject({
-      Id: { codecId: 'pg/uuid@1' },
-      Slug: {
-        codecId: 'sql/varchar@1',
-        typeParams: { length: 191 },
-      },
-      Rating: { codecId: 'pg/int2@1' },
-      HappenedAt: {
-        codecId: 'pg/time-temporal@1',
-        typeParams: { precision: 3 },
-      },
-      PublishDay: { codecId: 'pg/date-temporal@1' },
-      Payload: { codecId: 'pg/json@1' },
-      Amount: {
-        codecId: 'pg/numeric@1',
-        typeParams: { precision: 10, scale: 2 },
-      },
-    });
+    expect(documentScopedTypes(result.value)).toBeUndefined();
     expect(result.value.storage).toMatchObject({
       namespaces: {
         public: {
@@ -85,42 +68,39 @@ model Event {
             table: {
               Event: {
                 columns: {
-                  id: { codecId: 'pg/uuid@1', dataType: 'pg/uuid', nullable: false, typeRef: 'Id' },
+                  id: { codecId: 'pg/uuid@1', dataType: 'pg/uuid', nullable: false },
                   slug: {
                     codecId: 'sql/varchar@1',
                     dataType: 'pg/varchar',
                     nullable: false,
-                    typeRef: 'Slug',
+                    typeParams: { length: 191 },
                   },
                   rating: {
                     codecId: 'pg/int2@1',
                     dataType: 'pg/int2',
                     nullable: false,
-                    typeRef: 'Rating',
                   },
                   happenedAt: {
                     codecId: 'pg/time-temporal@1',
                     dataType: 'pg/time',
                     nullable: false,
-                    typeRef: 'HappenedAt',
+                    typeParams: { precision: 3 },
                   },
                   publishDay: {
                     codecId: 'pg/date-temporal@1',
                     dataType: 'pg/date',
                     nullable: false,
-                    typeRef: 'PublishDay',
                   },
                   payload: {
                     codecId: 'pg/json@1',
                     dataType: 'pg/json',
                     nullable: false,
-                    typeRef: 'Payload',
                   },
                   amount: {
                     codecId: 'pg/numeric@1',
                     dataType: 'pg/numeric',
                     nullable: false,
-                    typeRef: 'Amount',
+                    typeParams: { precision: 10, scale: 2 },
                   },
                 },
                 primaryKey: { columns: ['id'] },
@@ -133,7 +113,7 @@ model Event {
     expect(result.value.roots).toEqual({ Event: crossRef('Event', 'public') });
   });
 
-  it('merges named types declared across several types blocks', () => {
+  it('reads named types declared across several types blocks', () => {
     const result = interpretSqlContract(
       `types {
   Id = Uuid
@@ -157,13 +137,31 @@ types {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(documentScopedTypes(result.value)).toEqual({
-      Id: { kind: 'codec-instance', codecId: 'pg/uuid@1', dataType: 'pg/uuid', typeParams: {} },
-      Slug: {
-        kind: 'codec-instance',
-        codecId: 'sql/varchar@1',
-        dataType: 'pg/varchar',
-        typeParams: { length: 191 },
+    expect({
+      types: documentScopedTypes(result.value),
+      columns: result.value.storage,
+    }).toMatchObject({
+      types: undefined,
+      columns: {
+        namespaces: {
+          public: {
+            entries: {
+              table: {
+                Event: {
+                  columns: {
+                    id: { codecId: 'pg/uuid@1', dataType: 'pg/uuid', nullable: false },
+                    slug: {
+                      codecId: 'sql/varchar@1',
+                      dataType: 'pg/varchar',
+                      nullable: false,
+                      typeParams: { length: 191 },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
   });
@@ -200,7 +198,7 @@ model Event {
     ]);
   });
 
-  it('lowers additional Postgres native type attributes on named types', () => {
+  it('expands additional Postgres native type named types into their columns', () => {
     const result = interpretSqlContract(
       `types {
   Code = Char(12)
@@ -229,30 +227,7 @@ model Event {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(documentScopedTypes(result.value)).toMatchObject({
-      Code: {
-        codecId: 'sql/char@1',
-        typeParams: { length: 12 },
-      },
-      Score: {
-        codecId: 'pg/float4@1',
-      },
-      CreatedAt: {
-        codecId: 'pg/timestamp-temporal@1',
-        typeParams: { precision: 3 },
-      },
-      PublishedAt: {
-        codecId: 'pg/timestamptz-temporal@1',
-        typeParams: { precision: 6 },
-      },
-      ReminderAt: {
-        codecId: 'pg/timetz@1',
-        typeParams: { precision: 2 },
-      },
-      Ip: {
-        codecId: 'pg/inet@1',
-      },
-    });
+    expect(documentScopedTypes(result.value)).toBeUndefined();
     expect(result.value.storage).toMatchObject({
       namespaces: {
         public: {
@@ -265,37 +240,35 @@ model Event {
                     codecId: 'sql/char@1',
                     dataType: 'pg/char',
                     nullable: false,
-                    typeRef: 'Code',
+                    typeParams: { length: 12 },
                   },
                   score: {
                     codecId: 'pg/float4@1',
                     dataType: 'pg/float4',
                     nullable: false,
-                    typeRef: 'Score',
                   },
                   createdAt: {
                     codecId: 'pg/timestamp-temporal@1',
                     dataType: 'pg/timestamp',
                     nullable: false,
-                    typeRef: 'CreatedAt',
+                    typeParams: { precision: 3 },
                   },
                   publishedAt: {
                     codecId: 'pg/timestamptz-temporal@1',
                     dataType: 'pg/timestamptz',
                     nullable: false,
-                    typeRef: 'PublishedAt',
+                    typeParams: { precision: 6 },
                   },
                   reminderAt: {
                     codecId: 'pg/timetz@1',
                     dataType: 'pg/timetz',
                     nullable: false,
-                    typeRef: 'ReminderAt',
+                    typeParams: { precision: 2 },
                   },
                   ip: {
                     codecId: 'pg/inet@1',
                     dataType: 'pg/inet',
                     nullable: false,
-                    typeRef: 'Ip',
                   },
                 },
               },

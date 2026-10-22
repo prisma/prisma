@@ -29,7 +29,7 @@ import type { TargetBoundComponentDescriptor } from '@internal/framework-compone
 import type { DiffableNode, SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome, orderIssuesByDependencies } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import type { SqlStorage, StorageTypeInstance } from '@internal/sql-contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import type { DdlTableConstraint } from '@internal/sql-relational-core/ast';
 import * as contractFree from '@internal/sql-relational-core/contract-free';
 import {
@@ -1018,7 +1018,6 @@ export interface IssuePlannerOptions {
   readonly codecHooks: ReadonlyMap<string, CodecControlHooks>;
   /** The composed stack's codecs and data types, which write each column's type. */
   readonly types: TypeLookups;
-  readonly storageTypes: Readonly<Record<string, StorageTypeInstance>>;
   /**
    * Current database schema IR. Strategies read this to detect whether a
    * structure already exists (e.g. `buildSchemaLookupMap` for shared-temp-
@@ -1064,7 +1063,6 @@ export function planIssues(
     schemaName: options.schemaName,
     codecHooks: options.codecHooks,
     types: options.types,
-    storageTypes: options.storageTypes,
     schema,
     policy,
     frameworkComponents,

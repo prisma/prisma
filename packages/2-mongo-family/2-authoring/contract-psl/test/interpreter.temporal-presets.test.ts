@@ -167,7 +167,7 @@ describe('Mongo PSL temporal preset misuse', () => {
       {
         code: 'PSL_UNRESOLVED_REFERENCE',
         message:
-          '"timestamp" is a namespace; a type reference must name a model, composite type, enum, or named type',
+          '"timestamp" is a namespace; a type reference must name a model, composite type, enum, or type alias',
         sourceId: 'schema.prisma',
       },
     ]);

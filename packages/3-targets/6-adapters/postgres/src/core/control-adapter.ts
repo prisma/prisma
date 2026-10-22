@@ -2022,18 +2022,18 @@ function pgRenderCreateSchema(node: PostgresCreateSchema): SqlExecuteRequest {
 }
 
 function pgRenderCreateType(node: PostgresCreateType): SqlExecuteRequest {
-  const typeRef = pgQualify(node.schema, node.name);
+  const qualifiedName = pgQualify(node.schema, node.name);
   const values = node.values.map((value: string) => `'${escapeLiteral(value)}'`).join(', ');
   return {
-    sql: `CREATE TYPE ${typeRef} AS ENUM (${values})`,
+    sql: `CREATE TYPE ${qualifiedName} AS ENUM (${values})`,
     params: [],
   };
 }
 
 function pgRenderDropType(node: PostgresDropType): SqlExecuteRequest {
-  const typeRef = pgQualify(node.schema, node.name);
+  const qualifiedName = pgQualify(node.schema, node.name);
   return {
-    sql: `DROP TYPE ${typeRef}`,
+    sql: `DROP TYPE ${qualifiedName}`,
     params: [],
   };
 }

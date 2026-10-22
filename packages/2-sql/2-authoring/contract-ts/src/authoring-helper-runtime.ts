@@ -9,7 +9,9 @@ import type {
 import {
   describeAdmittedForms,
   instantiateAuthoringFieldPreset,
+  instantiateAuthoringTypeAlias,
   instantiateAuthoringTypeConstructor,
+  isAuthoringTypeAliasDescriptor,
   isAuthoringTypeConstructorDescriptor,
   readWrittenValueAs,
   validateAuthoringHelperArguments,
@@ -26,6 +28,8 @@ import {
   type AuthoredStorageTypeInstance,
   CODEC_INSTANCE_KIND,
 } from '@internal/sql-contract/types';
+import { ifDefined } from '@internal/utils/defined';
+import type { TypeAliasColumnType } from './contract-dsl';
 import { contractError } from './contract-errors';
 
 /** What the type and field helpers read their arguments with: the stack's codecs, and its data types with their authoring entries. */
@@ -129,6 +133,25 @@ export function createTypeHelpersFromNamespace(
           kind: CODEC_INSTANCE_KIND,
           codecId: output.codecId,
           typeParams: output.typeParams ?? {},
+        };
+      };
+      continue;
+    }
+
+    if (isAuthoringTypeAliasDescriptor(value)) {
+      const helperPath = currentPath.join('.');
+      helpers[key] = (...args: readonly unknown[]): TypeAliasColumnType => {
+        validateAuthoringHelperArguments(helperPath, [], args);
+        const { type, onCreate, onUpdate } = instantiateAuthoringTypeAlias(value);
+        const generatorCalls = {
+          ...ifDefined('onCreate', onCreate),
+          ...ifDefined('onUpdate', onUpdate),
+        };
+        return {
+          kind: CODEC_INSTANCE_KIND,
+          codecId: type.codecId,
+          typeParams: type.typeParams ?? {},
+          ...(Object.keys(generatorCalls).length === 0 ? {} : { generatorCalls }),
         };
       };
       continue;

@@ -19,9 +19,7 @@ const AUTOINCREMENT = 'autoincrement()';
  * Reconstructs the `StorageColumn`-shaped fields the DDL builder functions
  * (`buildColumnTypeSql`, `resolveIdentityValue`)
  * expect, from a column node's own stamped codec identity (`codecRef`,
- * Decision 5) — never the contract. The node's fields
- * are already resolved past any `typeRef` indirection, so the builders get
- * no `storageTypes` catalog.
+ * Decision 5) — never the contract.
  */
 function columnLike(
   column: SqlColumnIR,
@@ -135,14 +133,14 @@ export function buildSetDefaultColumn(
   if (authored === undefined) return undefined;
   const typeLike = columnTypeLike('column default', defaultNode);
   if (authored.kind === 'function' && authored.expression === AUTOINCREMENT) {
-    return contractFree.col(columnName, buildColumnTypeSql(typeLike, types, {}, false), {
+    return contractFree.col(columnName, buildColumnTypeSql(typeLike, types, false), {
       default: contractFree.fn(AUTOINCREMENT),
       ...ifDefined('codecRef', defaultNode.codecRef),
     });
   }
   const ddlDefault = postgresDefaultToDdlColumnDefault(authored);
   if (ddlDefault === undefined) return undefined;
-  return contractFree.col(columnName, buildColumnTypeSql(typeLike, types, {}, false), {
+  return contractFree.col(columnName, buildColumnTypeSql(typeLike, types, false), {
     default: ddlDefault,
     ...ifDefined('codecRef', defaultNode.codecRef),
   });

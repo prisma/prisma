@@ -1,11 +1,7 @@
 import type { JsonValue } from '@internal/contract/types';
 import type { CodecRef } from '@internal/framework-components/codec';
 import { resolveStorageTable } from '@internal/sql-contract/resolve-storage-table';
-import {
-  isStorageTypeInstance,
-  resolvedTypeParams,
-  type SqlStorage,
-} from '@internal/sql-contract/types';
+import { nonEmptyTypeParams, type SqlStorage } from '@internal/sql-contract/types';
 import { blindCast } from '@internal/utils/casts';
 
 /**
@@ -13,11 +9,10 @@ import { blindCast } from '@internal/utils/casts';
  *
  * Resolution rules over namespace `entries.table[table].columns[column]`:
  *
- * - `typeRef` column → `{codecId, typeParams}` from `storage.types[typeRef]` (multiple columns sharing the typeRef share one ref → one memoised codec).
- * - inline `typeParams` column → `{codecId, typeParams}` from the column itself.
+ * - `typeParams` column → `{codecId, typeParams}` from the column itself.
  * - non-parameterized column → `{codecId}` with `typeParams` undefined.
  *
- * Returns `undefined` when the table or column is unknown, or when a `typeRef` column references a `storage.types` entry that does not exist.
+ * Returns `undefined` when the table or column is unknown.
  *
  * `namespaceId` leads the coordinate args and is always supplied: every
  * model/table sits in an explicit namespace, so the table is resolved strictly
@@ -34,7 +29,7 @@ export function codecRefForStorageColumn(
   const tableDef = resolved.table;
   const columnDef = tableDef.columns[columnName];
   if (!columnDef) return undefined;
-  const typeParams = resolvedTypeParams(columnDef, storage.types);
+  const typeParams = nonEmptyTypeParams(columnDef.typeParams);
   const params =
     typeParams === undefined
       ? {}
@@ -44,11 +39,6 @@ export function codecRefForStorageColumn(
             'column typeParams is a validated contract record; its values are JSON-serialisable'
           >(typeParams),
         };
-  if (columnDef.typeRef !== undefined) {
-    const instance = storage.types?.[columnDef.typeRef];
-    if (!instance || !isStorageTypeInstance(instance)) return undefined;
-    return { codecId: instance.codecId, ...params };
-  }
   return columnDef.many
     ? { codecId: columnDef.codecId, ...params, many: true }
     : { codecId: columnDef.codecId, ...params };

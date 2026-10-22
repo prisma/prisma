@@ -26,9 +26,7 @@ export const contract = defineContract(
     extensions: { pgvector },
   },
   ({ field, model, type }) => {
-    const types = {
-      Embedding1536: type.pgvector.Vector(1536),
-    } as const;
+    const Embedding1536 = field.column(type.pgvector.Vector(1536));
 
     const User = model('User', {
       fields: {
@@ -53,13 +51,12 @@ export const contract = defineContract(
           .column(timestamptzTemporalColumn)
           .default(sql`(now() + '7 days'::interval)`),
         updatedAt: field.temporal.updatedAt(),
-        embedding: field.namedType(types.Embedding1536).optional(),
+        embedding: Embedding1536.optional(),
       },
     });
 
     return {
       enums: { Priority, user_type: UserEnum },
-      types,
       models: {
         User: User.relations({
           posts: rel.hasMany(Post, { by: 'userId' }),

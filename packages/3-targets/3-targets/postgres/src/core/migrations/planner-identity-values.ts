@@ -1,7 +1,7 @@
 import type { CodecControlHooks } from '@internal/family-sql/control';
 import type { TypeLookups } from '@internal/framework-components/codec';
 import { sqlDataTypeOfCodec } from '@internal/sql-contract/data-type';
-import type { StorageColumn, StorageTypeInstance } from '@internal/sql-contract/types';
+import type { StorageColumn } from '@internal/sql-contract/types';
 import { ifDefined } from '@internal/utils/defined';
 import {
   pgBit,
@@ -35,14 +35,11 @@ import {
  * then falls back to the built-in map, keyed by the data type the column's codec represents.
  */
 export function resolveIdentityValue(
-  column: Pick<StorageColumn, 'codecId' | 'typeParams' | 'typeRef' | 'many'>,
+  column: Pick<StorageColumn, 'codecId' | 'typeParams' | 'many'>,
   codecHooks: ReadonlyMap<string, CodecControlHooks>,
   types: TypeLookups,
-  storageTypes: Record<string, StorageTypeInstance> = {},
 ): string | null {
-  const referencedType = column.typeRef ? storageTypes[column.typeRef] : undefined;
-  const codecId = referencedType?.codecId ?? column.codecId;
-  const typeParams = referencedType?.typeParams ?? column.typeParams;
+  const { codecId, typeParams } = column;
   if (column.many) return "'{}'";
   const dataType = sqlDataTypeOfCodec(codecId, types).id;
 

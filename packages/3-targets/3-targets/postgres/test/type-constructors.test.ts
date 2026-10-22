@@ -12,19 +12,23 @@ import { createPostgresBuiltinCodecLookup } from '../src/core/codec-registry';
 import { postgresDataTypes } from '../src/core/data-types';
 import {
   postgresNativeAuthoringTypes,
-  postgresPslTypeConstructors,
+  postgresScalarAndNativeTypeConstructors,
   postgresScalarAuthoringTypes,
 } from '../src/core/type-constructors';
 import postgresTargetPack from '../src/exports/pack';
 
 describe('the type constructors the target contributes', () => {
-  it('are only the target’s own; the adapter contributes the scalar and native ones', () => {
-    expect(postgresTargetPack.authoring.type).toBe(postgresAuthoringTypes);
+  it('are the scalar, native and target-only ones, so PSL and type.* see the same names', () => {
+    expect(postgresTargetPack.authoring.type).toEqual({
+      ...postgresScalarAndNativeTypeConstructors,
+      ...postgresAuthoringTypes,
+    });
     expect(Object.keys(postgresAuthoringTypes)).toEqual([
       'sql',
       'BigIntNumber',
       'UnboundedInt',
       'pg',
+      'temporal',
     ]);
   });
 
@@ -34,16 +38,90 @@ describe('the type constructors the target contributes', () => {
     ]);
   });
 
-  it.each(
-    Object.entries(postgresAuthoringTypes).filter(([name]) => name !== 'pg' && name !== 'sql'),
-  )('documents %s', (_name, descriptor) => {
+  it.each([
+    ...Object.entries(postgresAuthoringTypes).filter(
+      ([name]) => name !== 'pg' && name !== 'sql' && name !== 'temporal',
+    ),
+    ...Object.entries(postgresAuthoringTypes.temporal),
+  ])('documents %s', (_name, descriptor) => {
     expect(descriptor).toHaveProperty('documentation', expect.stringMatching(/\S.+/));
+  });
+
+  it('document what each temporal type alias sets and the value it gives', () => {
+    expect(
+      Object.fromEntries(
+        Object.entries(postgresAuthoringTypes.temporal).map(([name, { documentation }]) => [
+          name,
+          documentation,
+        ]),
+      ),
+    ).toEqual({
+      CreatedAt:
+        'A timestamp the client sets to now when a row is created. Its value is a Temporal.Instant.',
+      UpdatedAt:
+        'A timestamp the client sets to now when a row is created and every time it is updated. Its value is a Temporal.Instant.',
+      CreatedAtString:
+        'A timestamp the client sets to now when a row is created. Its value is a string, the timestamp as Postgres writes it, such as 2024-01-02 03:04:05+00.',
+      UpdatedAtString:
+        'A timestamp the client sets to now when a row is created and every time it is updated. Its value is a string, the timestamp as Postgres writes it, such as 2024-01-02 03:04:05+00.',
+      CreatedAtJsDate:
+        'A timestamp the client sets to now when a row is created. Its value is a JavaScript Date.',
+      UpdatedAtJsDate:
+        'A timestamp the client sets to now when a row is created and every time it is updated. Its value is a JavaScript Date.',
+    });
+  });
+
+  it('contribute the temporal type aliases, one pair per timestamptz codec', () => {
+    expect(
+      Object.fromEntries(
+        Object.entries(postgresAuthoringTypes.temporal).map(([name, { kind, output }]) => [
+          name,
+          { kind, ...output },
+        ]),
+      ),
+    ).toEqual({
+      CreatedAt: {
+        kind: 'typeAlias',
+        type: { codecId: 'pg/timestamptz-temporal@1' },
+        onCreate: now,
+      },
+      UpdatedAt: {
+        kind: 'typeAlias',
+        type: { codecId: 'pg/timestamptz-temporal@1' },
+        onCreate: now,
+        onUpdate: now,
+      },
+      CreatedAtString: {
+        kind: 'typeAlias',
+        type: { codecId: 'pg/timestamptz-string@1' },
+        onCreate: now,
+      },
+      UpdatedAtString: {
+        kind: 'typeAlias',
+        type: { codecId: 'pg/timestamptz-string@1' },
+        onCreate: now,
+        onUpdate: now,
+      },
+      CreatedAtJsDate: {
+        kind: 'typeAlias',
+        type: { codecId: 'pg/timestamptz-date@1' },
+        onCreate: now,
+      },
+      UpdatedAtJsDate: {
+        kind: 'typeAlias',
+        type: { codecId: 'pg/timestamptz-date@1' },
+        onCreate: now,
+        onUpdate: now,
+      },
+    });
   });
 });
 
+const now = { name: 'now', args: {} };
+
 const everyPostgresConstructor = {
   ...postgresAuthoringTypes,
-  ...postgresPslTypeConstructors,
+  ...postgresScalarAndNativeTypeConstructors,
 };
 
 /** The constructor `contract infer` prints for each data type that has one. */
@@ -310,7 +388,7 @@ describe('precision is a value of pg/int4, bounded by the data type', () => {
     'TimestamptzString',
     'TimeString',
   ] as const)('%s declares no bound of its own on precision', (typeName) => {
-    const typeConstructor = postgresPslTypeConstructors[typeName];
+    const typeConstructor = postgresScalarAndNativeTypeConstructors[typeName];
     expect(typeConstructor.args?.find((arg) => arg.name === 'precision')).toEqual({
       kind: 'value',
       dataType: 'pg/int4',

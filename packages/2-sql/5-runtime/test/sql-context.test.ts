@@ -225,15 +225,14 @@ describe('comprehensive descriptor-based derivation', () => {
   });
 });
 
-describe('context.types presence', () => {
-  it('exists as empty object when no parameterized codecs are registered', () => {
+describe('the execution context', () => {
+  it('carries no type helpers', () => {
     const context = createExecutionContext({
       contract: testContract,
       stack: createStack(),
     });
 
-    expect(context.types).toBeDefined();
-    expect(context.types).toEqual({});
+    expect(Object.hasOwn(context, 'types')).toBe(false);
   });
 });
 

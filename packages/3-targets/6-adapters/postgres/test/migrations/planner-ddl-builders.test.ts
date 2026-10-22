@@ -1,5 +1,4 @@
 import { createDataTypeLookup, type TypeLookups } from '@internal/framework-components/codec';
-import { toStorageTypeInstance } from '@internal/sql-contract/types';
 import { col as ddlColumn, fn, lit } from '@internal/sql-relational-core/contract-free';
 import {
   createPostgresBuiltinCodecLookup,
@@ -55,18 +54,6 @@ describe('buildColumnTypeSql', () => {
       default: { kind: 'function', expression: 'autoincrement()' },
     });
     expect(buildColumnTypeSql(column, types)).toBe('SMALLSERIAL');
-  });
-
-  it('writes a typeRef column as a column of the referenced type', () => {
-    const column = col({ typeRef: 'AalLevel' });
-    const storageTypes = {
-      AalLevel: toStorageTypeInstance({
-        codecId: 'pg/enum@1',
-        dataType: 'pg/enum',
-        typeParams: { typeName: 'auth.aal_level' },
-      }),
-    };
-    expect(buildColumnTypeSql(column, types, storageTypes)).toBe('"auth"."aal_level"');
   });
 
   it('renders an unqualified named-type column as a single quoted identifier', () => {

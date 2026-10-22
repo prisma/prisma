@@ -1,7 +1,9 @@
 import {
   type AuthoringFieldNamespace,
+  type AuthoringTypeNamespace,
   temporalAuthoringPresets,
   temporalCodecPreset,
+  temporalTypeAliases,
 } from '@internal/framework-components/authoring';
 import { MONGO_DATE_CODEC_ID } from './codec-ids';
 
@@ -13,3 +15,7 @@ export const mongoAuthoringFieldPresets = {
     timestamp: temporalCodecPreset(mongoDateStorage),
   },
 } as const satisfies AuthoringFieldNamespace;
+
+export const mongoAuthoringTypes = {
+  temporal: temporalTypeAliases(mongoDateStorage, 'a JavaScript Date'),
+} as const satisfies AuthoringTypeNamespace;

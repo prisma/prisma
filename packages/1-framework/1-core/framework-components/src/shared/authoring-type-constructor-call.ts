@@ -4,6 +4,7 @@ import {
   type AuthoringTypeNamespace,
   instantiateAuthoringTypeConstructor,
   isAuthoringArgRef,
+  isAuthoringTypeAliasDescriptor,
   isAuthoringTypeConstructorDescriptor,
 } from './framework-authoring';
 
@@ -27,7 +28,7 @@ export function* authoringTypeConstructors(
   for (const [name, value] of Object.entries(namespace)) {
     if (isAuthoringTypeConstructorDescriptor(value)) {
       yield { path: [...path, name], descriptor: value };
-    } else {
+    } else if (!isAuthoringTypeAliasDescriptor(value)) {
       yield* authoringTypeConstructors(value, [...path, name]);
     }
   }
