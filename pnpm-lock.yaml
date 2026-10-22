@@ -1871,6 +1871,9 @@ importers:
       '@internal/mongo-contract-psl':
         specifier: workspace:8.0.0-rc.19
         version: link:../contract-psl
+      '@internal/mongo-contract-ts':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../contract-ts
       '@internal/psl-parser':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../1-framework/2-authoring/psl-parser

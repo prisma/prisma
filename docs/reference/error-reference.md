@@ -733,9 +733,13 @@ The schema path could not be read, or the schema directory holds no `.prisma` fi
 
 `@@schema` on a model or enum; a MongoDB contract has one database, bound by the connection string. Remove `@@schema`. Reported by the Prisma 6 MongoDB contract source (`prisma6Schema`) during `contract emit`, as a finding in the `diagnostics` list of `CONTRACT.SOURCE_LOAD_FAILED`, never on its own. `summary` is `<file>:<line>:<column> <message>`, with only the file when there is no position (the terminal prints the code before it), and `where` carries `path` and, when known, `line`. Payload: none.
 
+### PSL.PRISMA6_MONGO_GENERATED_VALUE_CONFLICT
+
+Two models stored in one collection generate a value for the same stored field differently, such as `@default(now())` on one and `@updatedAt` on the other: `Field "<Model>.<field>" generates its value differently from "<Other>.<field>", which is stored in the same field "<stored>" of collection "<collection>". Give both fields the same @default(now()) or @updatedAt.` A generated value applies to every document in the collection, so both models must agree. Reported at the second field by the Prisma 6 MongoDB contract source (`prisma6Schema`) during `contract emit`, as a finding in the `diagnostics` list of `CONTRACT.SOURCE_LOAD_FAILED`, never on its own. Payload: none.
+
 ### PSL.PRISMA6_MONGO_TEXT_INDEX_LIMIT
 
-A model with more than one `@@fulltext`; MongoDB allows one text index per collection. Merge the fields into one `@@fulltext`. Reported by the Prisma 6 MongoDB contract source (`prisma6Schema`) during `contract emit`, as a finding in the `diagnostics` list of `CONTRACT.SOURCE_LOAD_FAILED`, never on its own. `summary` is `<file>:<line>:<column> <message>`, with only the file when there is no position (the terminal prints the code before it), and `where` carries `path` and, when known, `line`. Payload: none.
+A model with more than one `@@fulltext`, or two models stored in one collection that each have one; MongoDB allows one text index per collection. Merge the fields into one `@@fulltext`. Reported by the Prisma 6 MongoDB contract source (`prisma6Schema`) during `contract emit`, as a finding in the `diagnostics` list of `CONTRACT.SOURCE_LOAD_FAILED`, never on its own. `summary` is `<file>:<line>:<column> <message>`, with only the file when there is no position (the terminal prints the code before it), and `where` carries `path` and, when known, `line`. Payload: none.
 
 ### PSL.PRISMA6_MONGO_UNKNOWN_ATTRIBUTE
 

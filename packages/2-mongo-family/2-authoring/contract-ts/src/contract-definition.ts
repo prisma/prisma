@@ -121,7 +121,7 @@ export interface ContractDefinition {
   readonly enums?: Readonly<Record<string, EnumTypeHandle>>;
   /** Root name to model name. Derived from the models when absent. */
   readonly roots?: Readonly<Record<string, string>>;
-  /** Whether each collection gets a validator derived from its models. */
+  /** Whether each collection gets a validator derived from its models. Without validators, nothing is refused for what a validator could not describe. */
   readonly collectionValidators: boolean;
   /** Warnings the source collected before the build, reported with the build's own. */
   readonly warnings: readonly AuthoringWarning[] | undefined;

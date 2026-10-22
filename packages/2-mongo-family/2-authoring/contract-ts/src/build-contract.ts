@@ -99,13 +99,15 @@ export function buildMongoContractFromDefinition(
     ),
     defaultControlPolicy: definition.defaultControlPolicy,
   };
-  const validatorRefusals = mongoContractRefusalsOf({
-    models: builtModels,
-    valueObjects: builtValueObjects,
-    enums: builtEnums,
-    lookups,
-    controlPolicies,
-  });
+  const validatorRefusals = definition.collectionValidators
+    ? mongoContractRefusalsOf({
+        models: builtModels,
+        valueObjects: builtValueObjects,
+        enums: builtEnums,
+        lookups,
+        controlPolicies,
+      })
+    : [];
   if (validatorRefusals.length > 0) {
     return notOk(
       validatorRefusals.map((refusal) => ({

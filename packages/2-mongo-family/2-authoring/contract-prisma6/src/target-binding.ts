@@ -1,7 +1,9 @@
-import type { TargetPackRef } from '@internal/framework-components/components';
+import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
 
 /** Everything the Mongo target supplies to the Prisma 6 schema reader. */
 export interface Prisma6TargetBinding {
+  /** The family and target packs, which the contract records. */
+  readonly family: FamilyPackRef<'mongo'>;
   readonly target: TargetPackRef<'mongo', string>;
   /** The datasource `provider` values the target reads; messages name the first. */
   readonly providers: readonly [string, ...string[]];

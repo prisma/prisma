@@ -180,6 +180,22 @@ describe('buildMongoContractFromDefinition', () => {
     ]);
   });
 
+  it('refuses nothing a validator could not describe when collections get no validators', () => {
+    const documentIdModel: ModelNode = {
+      modelName: 'Doc',
+      collection: 'docs',
+      fields: [scalar('_id', { type: vectorType })],
+    };
+
+    expect({
+      withValidators: refusalsOf({ models: [documentIdModel] }),
+      withoutValidators: refusalsOf({ models: [documentIdModel], collectionValidators: false }),
+    }).toEqual({
+      withValidators: [{ kind: 'validator', key: modelField('Doc', '_id') }],
+      withoutValidators: [],
+    });
+  });
+
   it('stores a variant that names no collection in its base collection', () => {
     const { collection: _, ...bugWithoutCollection } = bug;
     const contract = contractOf({ models: [task, bugWithoutCollection] });
