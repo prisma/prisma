@@ -11,6 +11,7 @@ export {
   isAuthoringTypeChoiceOption,
   resolveAuthoringTypeChoice,
   typeChoiceCombinationText,
+  typeConstructorLookup,
 } from '../shared/authoring-type-choice';
 export type {
   AuthoringTypeConstructorCall,
@@ -133,7 +134,6 @@ export {
   resolveAuthoringTemplateValue,
   resolveEnumCodecId,
   resolveTypeAliasGenerators,
-  typeConstructorLookup,
   validateAuthoringHelperArguments,
   validateAuthoringTypeChoiceParams,
   validateAuthoringTypeParams,

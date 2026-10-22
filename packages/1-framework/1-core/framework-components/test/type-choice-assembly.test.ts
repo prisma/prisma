@@ -120,6 +120,37 @@ describe('assertTypeChoicesValid', () => {
     );
   });
 
+  it('refuses two rows for one combination', () => {
+    expect(
+      check(
+        choice({
+          choices: [
+            { when: { value: 'date' }, type: 'WideDate' },
+            { when: { value: 'text' }, type: 'WideText' },
+            { when: { value: 'date' }, type: 'WideText' },
+          ],
+        }),
+      ),
+    ).toThrow(
+      'Type choice "Moment" contributed by "x-pack" has two rows for value: date; each combination chooses one type.',
+    );
+  });
+
+  it('refuses a parameter default the chosen constructor does not take', () => {
+    expect(
+      check(
+        choice({
+          choices: [
+            { when: { value: 'date' }, type: 'WideDate' },
+            { when: { value: 'text' }, type: 'WideText', defaults: { precision: 3 } },
+          ],
+        }),
+      ),
+    ).toThrow(
+      'Type choice "Moment" contributed by "x-pack" gives a default for "precision" to "WideText", which takes no argument of that name.',
+    );
+  });
+
   it('refuses a passed-on argument of another data type than the chosen constructor takes', () => {
     expect(check(choice({ args: [valueOption, { ...precision, dataType: 'test/text' }] }))).toThrow(
       'Type choice "Moment" contributed by "x-pack" passes "precision" as a value of data type "test/text" to "WideDate", which takes "test/int".',

@@ -151,6 +151,16 @@ export function resolveAuthoringTypeChoice(input: {
 
 type TypeNamespaceLevel = { readonly [name: string]: unknown };
 
+/** Looks a type constructor up by name in one level of a type namespace, as a type choice's rows name them. */
+export function typeConstructorLookup(
+  namespace: TypeNamespaceLevel,
+): (name: string) => AuthoringTypeConstructorDescriptor | undefined {
+  return (name) => {
+    const member = Object.hasOwn(namespace, name) ? namespace[name] : undefined;
+    return isTypeConstructor(member) ? member : undefined;
+  };
+}
+
 function isTypeChoice(value: unknown): value is AuthoringTypeChoiceDescriptor {
   return (
     typeof value === 'object' && value !== null && 'kind' in value && value.kind === 'typeChoice'
@@ -185,6 +195,7 @@ function assertTypeChoiceValid(
   const invalid = (detail: string): never => {
     throw invalidError(detail);
   };
+  const constructorNamed = typeConstructorLookup(level);
   const options = descriptor.args.filter(isAuthoringTypeChoiceOption);
   const passed = descriptor.args.filter(
     (argument): argument is AuthoringTypeChoicePassedArgument =>
@@ -204,8 +215,15 @@ function assertTypeChoiceValid(
         `has a row for ${typeChoiceCombinationText(row)}, which does not give every option one of its values.`,
       );
     }
-    const chosenType = Object.hasOwn(level, row.type) ? level[row.type] : undefined;
-    if (!isTypeConstructor(chosenType)) {
+    const names = options.map((option) => option.name);
+    const chosen = new Map(Object.entries(row.when));
+    if (descriptor.choices.filter((other) => rowMatches(other, chosen, names)).length > 1) {
+      invalid(
+        `has two rows for ${typeChoiceCombinationText(row)}; each combination chooses one type.`,
+      );
+    }
+    const chosenType = constructorNamed(row.type);
+    if (chosenType === undefined) {
       throw invalidError(
         `chooses "${row.type}", which is not a type constructor any component registers beside it.`,
       );
@@ -213,6 +231,11 @@ function assertTypeChoiceValid(
     for (const name of Object.keys(row.defaults ?? {})) {
       if (!passed.some((argument) => argument.name === name)) {
         invalid(`gives a default for "${name}", which is not an argument it passes on.`);
+      }
+      if (!chosenType.args?.some((parameter) => parameter.name === name)) {
+        invalid(
+          `gives a default for "${name}" to "${row.type}", which takes no argument of that name.`,
+        );
       }
     }
     for (const argument of passed) {

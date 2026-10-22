@@ -1,12 +1,14 @@
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
-import { resolveAuthoringTypeChoice } from '../src/shared/authoring-type-choice';
+import {
+  resolveAuthoringTypeChoice,
+  typeConstructorLookup,
+} from '../src/shared/authoring-type-choice';
 import {
   type AuthoringTypeConstructorDescriptor,
   type AuthoringTypeNamespace,
   collectScalarTypeConstructors,
   instantiateAuthoringTypeCall,
-  typeConstructorLookup,
   validateAuthoringTypeChoiceParams,
 } from '../src/shared/framework-authoring';
 

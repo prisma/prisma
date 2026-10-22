@@ -18,6 +18,7 @@ import type { Type } from 'arktype';
 import {
   type AuthoringTypeChoiceDescriptor,
   resolveAuthoringTypeChoice,
+  typeConstructorLookup,
 } from './authoring-type-choice';
 import type { CodecLookupWithDescriptors } from './codec-types';
 import type { DataTypeId } from './data-type';
@@ -755,18 +756,6 @@ export function isAuthoringTypeDescriptor(
     isAuthoringTypeAliasDescriptor(value) ||
     isAuthoringTypeChoiceDescriptor(value)
   );
-}
-
-/** Looks a type constructor up by name in one level of a type namespace, as a type choice's rows name them. */
-export function typeConstructorLookup(
-  namespace: AuthoringTypeNamespace,
-): (name: string) => AuthoringTypeConstructorDescriptor | undefined {
-  return (name) => {
-    const member = Object.hasOwn(namespace, name) ? namespace[name] : undefined;
-    return member !== undefined && isAuthoringTypeConstructorDescriptor(member)
-      ? member
-      : undefined;
-  };
 }
 
 /** The type constructor at `path` in the contributions' type namespace, or `undefined` when none is there. */
