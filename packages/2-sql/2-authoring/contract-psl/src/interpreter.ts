@@ -25,10 +25,10 @@ import type {
   AuthoringWarning,
   DataTypeSupport,
   DiscriminatorField,
-  DiscriminatorRefusal,
   ParsedPslExtensionBlock,
 } from '@internal/framework-components/authoring';
 import {
+  describeDiscriminatorRefusal,
   discriminatorRefusals,
   encodeEnumMembers,
   instantiateAuthoringEntityType,
@@ -1751,19 +1751,26 @@ function acceptedDiscriminator(
       reading.ok ? [{ key, stored: reading.value }] : [],
     ),
     codecLookup: input.codecLookup,
-    textDataTypes: input.dataTypes.textDataTypes ?? [],
+    dataTypes: input.dataTypes,
   });
+  const baseOf = (variantKey: string): PendingBaseDeclaration => {
+    const base = reads.find(({ key }) => key === variantKey)?.base;
+    invariant(base !== undefined, 'A refused @@base value belongs to a collected variant');
+    return base;
+  };
+  const subject = {
+    modelName: model.name,
+    fieldName,
+    typeName: discField?.typeName ?? fieldName,
+    enumName,
+    variantName: (variantKey: string) => baseOf(variantKey).model.name,
+  };
   const fieldRefusals = refusals.filter((refusal) => refusal.kind !== 'not-a-member');
   if (fieldRefusals.length > 0) {
     for (const refusal of fieldRefusals) {
       input.diagnostics.push({
         code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-        message: discriminatorFieldRefusalMessage(
-          refusal,
-          model.name,
-          fieldName,
-          discField?.typeName,
-        ),
+        message: describeDiscriminatorRefusal(refusal, subject),
         ...at,
       });
     }
@@ -1774,11 +1781,10 @@ function acceptedDiscriminator(
   for (const refusal of refusals) {
     if (refusal.kind !== 'not-a-member') continue;
     notMembers.add(refusal.key);
-    const base = reads.find(({ key }) => key === refusal.key)?.base;
-    invariant(base !== undefined, 'A refused @@base value belongs to a collected variant');
+    const base = baseOf(refusal.key);
     input.diagnostics.push({
       code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-      message: `Model "${base.model.name}" declares @@base value ${JSON.stringify(refusal.stored)}, which is not a member of enum "${enumName}", the type of discriminator field "${model.name}.${fieldName}". Write one of: ${refusal.members.map((member) => JSON.stringify(member)).join(', ')}`,
+      message: describeDiscriminatorRefusal(refusal, subject),
       ...base.source.at(base.written.span),
     });
   }
@@ -1802,24 +1808,6 @@ function acceptedDiscriminator(
     values.set(key, reading.value);
   }
   return values;
-}
-
-/** A refusal of the discriminator field itself, worded at the `@@discriminator` attribute. */
-function discriminatorFieldRefusalMessage(
-  refusal: Exclude<DiscriminatorRefusal<string>, { readonly kind: 'not-a-member' }>,
-  modelName: string,
-  fieldName: string,
-  typeName: string | undefined,
-): string {
-  const subject = `Discriminator field "${fieldName}" on model "${modelName}"`;
-  switch (refusal.kind) {
-    case 'optional':
-      return `${subject} must be required, but it is optional. Remove the "?"`;
-    case 'list':
-      return `${subject} must hold one value, but it is a list. Remove the "[]"`;
-    case 'not-text':
-      return `${subject} must be text, such as String, but is "${typeName ?? fieldName}"`;
-  }
 }
 
 function modelLabel(namespaceId: string, modelName: string, qualified: boolean): string {

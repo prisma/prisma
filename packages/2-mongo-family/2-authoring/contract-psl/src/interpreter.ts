@@ -24,11 +24,11 @@ import type {
   AuthoringTypeConstructorDescriptor,
   AuthoringTypeNamespace,
   DataTypeSupport,
-  DiscriminatorRefusal,
   EnumBlockSite,
   ParsedPslExtensionBlock,
 } from '@internal/framework-components/authoring';
 import {
+  describeDiscriminatorRefusal,
   discriminatorRefusals,
   encodeEnumMembers,
   enumMemberProblemDiagnostic,
@@ -372,6 +372,8 @@ function collectPolymorphismDeclarations(input: {
 }): {
   discriminatorDeclarations: Map<ModelSymbol, DiscriminatorDeclaration>;
   baseDeclarations: Map<ModelSymbol, BaseDeclaration>;
+  /** Models whose `@@discriminator` the discriminator rule refused, already reported. */
+  refusedDiscriminators: Set<ModelSymbol>;
 } {
   const { sources, binder, diagnostics } = input;
   const pendingDiscriminators = new Map<ModelSymbol, DiscriminatorDeclaration>();
@@ -422,6 +424,7 @@ function collectPolymorphismDeclarations(input: {
   }
 
   const discriminatorDeclarations = new Map<ModelSymbol, DiscriminatorDeclaration>();
+  const refusedDiscriminators = new Set<ModelSymbol>();
   const values = new Map<ModelSymbol, string>();
   for (const [model, declaration] of pendingDiscriminators) {
     const field = input.entries[model.name]?.fields[declaration.fieldName];
@@ -431,7 +434,10 @@ function collectPolymorphismDeclarations(input: {
     }
     const bases = [...pendingBases].filter(([, base]) => base.base === model);
     const accepted = acceptedDiscriminator(model, declaration, field, bases, input);
-    if (accepted === undefined) continue;
+    if (accepted === undefined) {
+      refusedDiscriminators.add(model);
+      continue;
+    }
     discriminatorDeclarations.set(model, declaration);
     for (const [variant, value] of accepted) values.set(variant, value);
   }
@@ -440,7 +446,7 @@ function collectPolymorphismDeclarations(input: {
   for (const [model, { base, collectionName, source, span }] of pendingBases) {
     baseDeclarations.set(model, { base, collectionName, source, span, value: values.get(model) });
   }
-  return { discriminatorDeclarations, baseDeclarations };
+  return { discriminatorDeclarations, baseDeclarations, refusedDiscriminators };
 }
 
 /**
@@ -506,15 +512,22 @@ function acceptedDiscriminator(
       reading?.ok ? [{ key: variant, stored: reading.value }] : [],
     ),
     codecLookup: input.codecLookup,
-    textDataTypes: input.dataTypes.textDataTypes ?? [],
+    dataTypes: input.dataTypes,
   });
+  const subject = {
+    modelName: model.name,
+    fieldName,
+    typeName,
+    enumName,
+    variantName: (variant: ModelSymbol) => variant.name,
+  };
   const at = declaration.source.at(declaration.span);
   const fieldRefusals = refusals.filter((refusal) => refusal.kind !== 'not-a-member');
   if (fieldRefusals.length > 0) {
     for (const refusal of fieldRefusals) {
       input.diagnostics.push({
         code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-        message: discriminatorFieldRefusalMessage(refusal, model.name, fieldName, typeName),
+        message: describeDiscriminatorRefusal(refusal, subject),
         ...at,
       });
     }
@@ -531,7 +544,7 @@ function acceptedDiscriminator(
     }
     input.diagnostics.push({
       code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-      message: `Model "${refusal.key.name}" declares @@base value ${JSON.stringify(refusal.stored)}, which is not a member of enum "${enumName}", the type of discriminator field "${model.name}.${fieldName}". Write one of: ${refusal.members.map((member) => JSON.stringify(member)).join(', ')}`,
+      message: describeDiscriminatorRefusal(refusal, subject),
       ...base.source.at(base.written.span),
     });
   }
@@ -557,30 +570,13 @@ function acceptedDiscriminator(
   return values;
 }
 
-/** A refusal of the discriminator field itself, worded at the `@@discriminator` attribute. */
-function discriminatorFieldRefusalMessage(
-  refusal: Exclude<DiscriminatorRefusal<ModelSymbol>, { readonly kind: 'not-a-member' }>,
-  modelName: string,
-  fieldName: string,
-  typeName: string,
-): string {
-  const subject = `Discriminator field "${fieldName}" on model "${modelName}"`;
-  switch (refusal.kind) {
-    case 'optional':
-      return `${subject} must be required, but it is optional. Remove the "?"`;
-    case 'list':
-      return `${subject} must hold one value, but it is a list. Remove the "[]"`;
-    case 'not-text':
-      return `${subject} must be text, such as String, but is "${typeName}"`;
-  }
-}
-
 function resolvePolymorphism(input: {
   models: Record<string, MongoModelEntry>;
   roots: Record<string, CrossReference>;
   collections: Record<string, Record<string, unknown>>;
   discriminatorDeclarations: Map<ModelSymbol, DiscriminatorDeclaration>;
   baseDeclarations: Map<ModelSymbol, BaseDeclaration>;
+  refusedDiscriminators: ReadonlySet<ModelSymbol>;
   indexSpans: Map<MongoIndex, PslSpan>;
   modelIndexesByName: Map<string, readonly MongoIndex[]>;
   physicalNames: ReadonlyMap<ModelSymbol | FieldSymbol, string>;
@@ -645,6 +641,10 @@ function resolvePolymorphism(input: {
     }
 
     if (Object.keys(variants).length === 0) {
+      const valueRefused = [...baseDeclarations.values()].some(
+        (baseDecl) => baseDecl.base === declaration && baseDecl.value === undefined,
+      );
+      if (valueRefused) continue;
       diagnostics.push({
         code: 'PSL_ORPHANED_DISCRIMINATOR',
         message: `Model "${modelName}" has @@discriminator but no variant models declare @@base(${modelName}, ...)`,
@@ -663,6 +663,7 @@ function resolvePolymorphism(input: {
     const variantName = variant.name;
     const baseName = baseDecl.base.name;
     if (!discriminatorDeclarations.has(baseDecl.base)) {
+      if (input.refusedDiscriminators.has(baseDecl.base)) continue;
       diagnostics.push({
         code: 'PSL_ORPHANED_BASE',
         message: `Model "${variantName}" declares @@base(${baseName}, ...) but "${baseName}" has no @@discriminator`,
@@ -2131,18 +2132,19 @@ export function interpretPslDocumentToMongoContract(
     if (modelEntry) modelEntry.relations[fieldName] = relation;
   }
 
-  const { discriminatorDeclarations, baseDeclarations } = collectPolymorphismDeclarations({
-    models: allModels,
-    entries: models,
-    enums: builtEnums,
-    specContextFor,
-    physicalNames,
-    sources,
-    binder,
-    codecLookup,
-    dataTypes: input.dataTypes,
-    diagnostics,
-  });
+  const { discriminatorDeclarations, baseDeclarations, refusedDiscriminators } =
+    collectPolymorphismDeclarations({
+      models: allModels,
+      entries: models,
+      enums: builtEnums,
+      specContextFor,
+      physicalNames,
+      sources,
+      binder,
+      codecLookup,
+      dataTypes: input.dataTypes,
+      diagnostics,
+    });
   const polyResult = resolvePolymorphism({
     namespaceId: defaultNamespace.id,
     sources,
@@ -2151,6 +2153,7 @@ export function interpretPslDocumentToMongoContract(
     collections,
     discriminatorDeclarations,
     baseDeclarations,
+    refusedDiscriminators,
     indexSpans,
     modelIndexesByName,
     physicalNames,

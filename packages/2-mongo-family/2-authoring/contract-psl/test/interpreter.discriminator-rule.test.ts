@@ -81,7 +81,6 @@ describe('the discriminator rule in MongoDB PSL', () => {
         message:
           'Discriminator field "kind" on model "Asset" must be required, but it is optional. Remove the "?"',
       },
-      expect.objectContaining({ code: 'PSL_ORPHANED_BASE' }),
     ]);
   });
 
@@ -92,7 +91,6 @@ describe('the discriminator rule in MongoDB PSL', () => {
         message:
           'Discriminator field "kind" on model "Asset" must hold one value, but it is a list. Remove the "[]"',
       },
-      expect.objectContaining({ code: 'PSL_ORPHANED_BASE' }),
     ]);
   });
 
@@ -118,7 +116,6 @@ describe('the discriminator rule in MongoDB PSL', () => {
         message:
           'Model "Photo" declares @@base value "audio", which is not a member of enum "Kind", the type of discriminator field "Asset.kind". Write one of: "photo", "video"',
       },
-      expect.objectContaining({ code: 'PSL_ORPHANED_DISCRIMINATOR' }),
     ]);
   });
 });

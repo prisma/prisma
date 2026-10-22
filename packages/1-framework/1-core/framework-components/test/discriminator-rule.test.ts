@@ -1,15 +1,27 @@
 import type { JsonValue } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import type { CodecLookupWithDescriptors } from '../src/shared/codec-types';
-import { dataTypeId } from '../src/shared/data-type';
-import { type DiscriminatorField, discriminatorRefusals } from '../src/shared/discriminator-rule';
+import { createDataTypeLookup, dataType } from '../src/shared/data-type';
+import {
+  type DiscriminatorField,
+  describeDiscriminatorRefusal,
+  discriminatorRefusals,
+} from '../src/shared/discriminator-rule';
 
-const text = dataTypeId('t/text');
-const int = dataTypeId('t/int');
+const textType = dataType('t/text', { read: (json) => json });
+/** Text compared without case, so `PHOTO` and `photo` are one value. */
+const foldedType = dataType('t/folded', {
+  read: (json) => json,
+  equalityKey: (json) => String(json).toLowerCase(),
+});
+const text = textType.id;
+const folded = foldedType.id;
+const int = dataType('t/int', { read: (json) => json }).id;
+const lookup = createDataTypeLookup([textType, foldedType]);
 
 const codecLookup: Pick<CodecLookupWithDescriptors, 'descriptorFor'> = {
   descriptorFor: (codecId) => {
-    const dataType = { 't/text@1': text, 't/int@1': int }[codecId];
+    const dataType = { 't/text@1': text, 't/folded@1': folded, 't/int@1': int }[codecId];
     return dataType === undefined
       ? undefined
       : {
@@ -36,7 +48,12 @@ function refusals(
   field: DiscriminatorField,
   baseValues: readonly { readonly key: string; readonly stored: JsonValue }[] = [],
 ) {
-  return discriminatorRefusals({ field, baseValues, codecLookup, textDataTypes: [text] });
+  return discriminatorRefusals({
+    field,
+    baseValues,
+    codecLookup,
+    dataTypes: { lookup, textDataTypes: [text, folded] },
+  });
 }
 
 describe('discriminatorRefusals', () => {
@@ -50,13 +67,13 @@ describe('discriminatorRefusals', () => {
     ).toEqual([
       { kind: 'optional' },
       { kind: 'list' },
-      { kind: 'not-text', dataType: int, textDataTypes: [text] },
+      { kind: 'not-text', dataType: int, textDataTypes: [text, folded] },
     ]);
   });
 
   it('refuses a field whose codec names no data type as not text', () => {
     expect(refusals({ ...textField, ref: { codecId: 't/unknown@1' } })).toEqual([
-      { kind: 'not-text', dataType: undefined, textDataTypes: [text] },
+      { kind: 'not-text', dataType: undefined, textDataTypes: [text, folded] },
     ]);
   });
 
@@ -73,7 +90,52 @@ describe('discriminatorRefusals', () => {
 
   it('throws when the stack names no text data types, since no field could be a discriminator', () => {
     expect(() =>
-      discriminatorRefusals({ field: textField, baseValues: [], codecLookup, textDataTypes: [] }),
+      discriminatorRefusals({
+        field: textField,
+        baseValues: [],
+        codecLookup,
+        dataTypes: { lookup, textDataTypes: [] },
+      }),
     ).toThrow(expect.objectContaining({ name: 'InternalError' }));
+  });
+
+  it("compares a base value with the members by the field's data type's equality", () => {
+    expect(
+      refusals({ ...textField, ref: { codecId: 't/folded@1' }, enumMembers: ['photo'] }, [
+        { key: 'Photo', stored: 'PHOTO' },
+        { key: 'Audio', stored: 'audio' },
+      ]),
+    ).toEqual([{ kind: 'not-a-member', key: 'Audio', stored: 'audio', members: ['photo'] }]);
+  });
+});
+
+describe('describeDiscriminatorRefusal', () => {
+  const subject = {
+    modelName: 'Asset',
+    fieldName: 'kind',
+    typeName: 'Int',
+    enumName: 'Kind',
+    variantName: (key: string) => key,
+  };
+
+  it('words each refusal', () => {
+    expect(
+      [
+        { kind: 'optional' as const },
+        { kind: 'list' as const },
+        { kind: 'not-text' as const, dataType: int, textDataTypes: [text] },
+        {
+          kind: 'not-a-member' as const,
+          key: 'Audio',
+          stored: 'audio',
+          members: ['photo', 'video'],
+        },
+      ].map((refusal) => describeDiscriminatorRefusal(refusal, subject)),
+    ).toEqual([
+      'Discriminator field "kind" on model "Asset" must be required, but it is optional. Remove the "?"',
+      'Discriminator field "kind" on model "Asset" must hold one value, but it is a list. Remove the "[]"',
+      'Discriminator field "kind" on model "Asset" must be text, such as String, but is "Int"',
+      'Model "Audio" declares @@base value "audio", which is not a member of enum "Kind", the type of discriminator field "Asset.kind". Write one of: "photo", "video"',
+    ]);
   });
 });

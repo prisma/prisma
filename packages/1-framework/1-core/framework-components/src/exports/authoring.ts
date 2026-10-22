@@ -16,7 +16,10 @@ export {
   assembleDataTypeSupport,
 } from '../shared/data-type-support';
 export type { DiscriminatorField, DiscriminatorRefusal } from '../shared/discriminator-rule';
-export { discriminatorRefusals } from '../shared/discriminator-rule';
+export {
+  describeDiscriminatorRefusal,
+  discriminatorRefusals,
+} from '../shared/discriminator-rule';
 export {
   type EnumBlockDiagnostic,
   type EnumBlockMember,

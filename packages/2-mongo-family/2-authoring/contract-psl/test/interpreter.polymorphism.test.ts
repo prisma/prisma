@@ -476,15 +476,6 @@ namespace scoped {
             end: { line: 10, column: 32, offset: 171 },
           },
         },
-        {
-          code: 'PSL_ORPHANED_BASE',
-          message: 'Model "Bug" declares @@base(Task, ...) but "Task" has no @@discriminator',
-          sourceId: 'test.prisma',
-          span: {
-            start: { line: 16, column: 11, offset: 239 },
-            end: { line: 16, column: 30, offset: 258 },
-          },
-        },
       ]);
     });
 
