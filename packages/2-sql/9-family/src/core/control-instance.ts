@@ -1048,7 +1048,7 @@ export function createSqlFamilyInstance<TTargetId extends string>(
               new SchemaTreeNode({
                 kind: 'collection',
                 id: `columns-${displayName}`,
-                label: 'columns',
+                labelParts: [{ text: 'columns', role: 'keyword' }],
                 children: columnNodes,
               }),
             );
@@ -1145,7 +1145,7 @@ export function createSqlFamilyInstance<TTargetId extends string>(
         root: new SchemaTreeNode({
           kind: 'root',
           id: 'sql-schema',
-          label: 'database',
+          labelParts: [{ text: 'database', role: 'title' }],
           ...(tableNodes.length > 0 ? { children: tableNodes } : {}),
         }),
       };

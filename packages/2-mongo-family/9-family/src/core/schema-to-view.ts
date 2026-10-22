@@ -13,7 +13,7 @@ export function mongoSchemaToView(schema: MongoSchemaIR): CoreSchemaView {
     root: new SchemaTreeNode({
       kind: 'root',
       id: 'mongo-schema',
-      label: 'database',
+      labelParts: [{ text: 'database', role: 'title' }],
       ...ifDefined('children', collectionNodes.length > 0 ? collectionNodes : undefined),
     }),
   };

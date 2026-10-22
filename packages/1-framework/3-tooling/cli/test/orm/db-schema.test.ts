@@ -40,6 +40,7 @@ const SCHEMA_VIEW = {
     kind: 'root',
     id: 'sql-schema',
     label: 'sql schema (1 entity)',
+    labelParts: [{ text: 'sql schema (1 entity)', role: 'title' }],
     children: [
       {
         kind: 'entity',
@@ -55,6 +56,7 @@ const SCHEMA_VIEW = {
             kind: 'collection',
             id: 'fields-user',
             label: 'columns',
+            labelParts: [{ text: 'columns', role: 'keyword' }],
             children: [
               {
                 kind: 'field',
@@ -218,6 +220,7 @@ describe('db schema', () => {
         kind: 'root',
         id: 'mongo-schema',
         label: 'database',
+        labelParts: [{ text: 'database', role: 'title' }],
         children: [
           {
             kind: 'index',
@@ -232,7 +235,12 @@ describe('db schema', () => {
               { text: '(ttl: 60s)', role: 'detail' },
             ],
           },
-          { kind: 'field', id: 'plain', label: 'name: value (detail)' },
+          {
+            kind: 'field',
+            id: 'plain',
+            label: 'name: value (detail)',
+            labelParts: [{ text: 'name: value (detail)' }],
+          },
         ],
       },
     });
@@ -264,14 +272,20 @@ describe('db schema', () => {
     });
   });
 
-  it('mutes a group node without parts and colours a collection named by its parts', async () => {
+  it('mutes a group node marked as a keyword and colours a collection named by its parts', async () => {
     mocks.toSchemaView.mockReturnValue({
       root: {
         kind: 'root',
         id: 'schema',
         label: 'database',
+        labelParts: [{ text: 'database', role: 'title' }],
         children: [
-          { kind: 'collection', id: 'columns-user', label: 'columns' },
+          {
+            kind: 'collection',
+            id: 'columns-user',
+            label: 'columns',
+            labelParts: [{ text: 'columns', role: 'keyword' }],
+          },
           {
             kind: 'collection',
             id: 'collection-users',

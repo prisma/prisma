@@ -22,11 +22,4 @@ describe('SchemaTreeNode', () => {
       ],
     });
   });
-
-  it('keeps a plain label without parts', () => {
-    const node = new SchemaTreeNode({ kind: 'root', id: 'root', label: 'database' });
-
-    expect(node.label).toBe('database');
-    expect(node.labelParts).toBeUndefined();
-  });
 });

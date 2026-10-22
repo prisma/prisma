@@ -30,6 +30,7 @@ interface SchemaDocument {
 const SUMMARY = 'Schema read successfully';
 
 const PART_TONES = {
+  title: 'emphasis',
   keyword: 'muted',
   name: 'identifier',
   detail: 'muted',
@@ -43,17 +44,7 @@ function partSpan(part: SchemaLabelPart): Span {
 
 /** A node's label in tones, taken from the parts its family marked. */
 function labelSpans(node: SchemaTreeNode): readonly Span[] {
-  if (node.labelParts !== undefined) {
-    return node.labelParts.map(partSpan);
-  }
-  switch (node.kind) {
-    case 'root':
-      return [{ text: node.label, tone: 'emphasis' }];
-    case 'collection':
-      return [{ text: node.label, tone: 'muted' }];
-    default:
-      return [{ text: node.label }];
-  }
+  return node.labelParts.map(partSpan);
 }
 
 function treeNode(node: SchemaTreeNode): TreeNode {
