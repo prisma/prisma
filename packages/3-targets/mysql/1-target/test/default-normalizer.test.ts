@@ -13,7 +13,36 @@ describe('readMysqlDefault', () => {
       'DEFAULT_GENERATED on update CURRENT_TIMESTAMP',
       { kind: 'function', expression: 'now()' },
     ],
-    ["_utf8mb4\\'{}\\'", 'DEFAULT_GENERATED', { kind: 'function', expression: "_utf8mb4\\'{}\\'" }],
+    [
+      "_utf8mb4\\'{}\\'",
+      'DEFAULT_GENERATED',
+      { kind: 'literal', literal: { kind: 'value', body: '{}' } },
+    ],
+    [
+      "_utf8mb4\\'\\'",
+      'DEFAULT_GENERATED',
+      { kind: 'literal', literal: { kind: 'value', body: '' } },
+    ],
+    [
+      "_utf8mb4\\'it\\\\\\'s\\'",
+      'DEFAULT_GENERATED',
+      { kind: 'literal', literal: { kind: 'value', body: "it's" } },
+    ],
+    [
+      "_latin1\\'back\\\\\\\\slash, a\\\\nb and \\'\\'q\\'\\'\\'",
+      'DEFAULT_GENERATED',
+      { kind: 'literal', literal: { kind: 'value', body: "back\\slash, a\nb and 'q'" } },
+    ],
+    [
+      "_utf8mb4\\'a\\' + _utf8mb4\\'b\\'",
+      'DEFAULT_GENERATED',
+      { kind: 'function', expression: "_utf8mb4\\'a\\' + _utf8mb4\\'b\\'" },
+    ],
+    [
+      "concat(_utf8mb4\\'a\\')",
+      'DEFAULT_GENERATED',
+      { kind: 'function', expression: "concat(_utf8mb4\\'a\\')" },
+    ],
     ['hello', '', { kind: 'literal', literal: { kind: 'value', body: 'hello' } }],
     ['42', '', { kind: 'literal', literal: { kind: 'value', body: '42' } }],
   ])('reads COLUMN_DEFAULT %j with EXTRA %j', (columnDefault, extra, expected) => {

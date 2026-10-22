@@ -140,7 +140,7 @@ async function columnOf(
       ? {}
       : reported.kind === 'function'
         ? { resolvedDefault: reported satisfies ColumnDefault }
-        : await readLiteralDefault(row.table_name, row.column_name, row.column_default ?? '');
+        : await readLiteralDefault(row.table_name, row.column_name, reported.literal.body);
   const reportedType = {
     text: row.column_type,
     kind: undefined,

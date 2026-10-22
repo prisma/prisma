@@ -40,6 +40,19 @@ function contractWithBothKindsOfUniqueness() {
   }));
 }
 
+function contractWithTextDefault() {
+  return defineContract({}, ({ field, model, type }) => ({
+    models: {
+      Note: model('Note', {
+        fields: {
+          id: field.column(type.Int()).id(),
+          body: field.column({ codecId: 'mysql/text@1' }).default("it's a \\ b"),
+        },
+      }),
+    },
+  }));
+}
+
 async function withExampleTables<T>(
   url: string,
   ddl: readonly string[],
@@ -150,6 +163,24 @@ describe('introspecting a MySQL database made by hand', () => {
           uniqueIndexName,
           issues: mysql.diffSchema({ contract, schema: actual, frameworkComponents }).issues,
         }).toEqual({ uniqueIndexName: expect.stringMatching(/^Account_handle_/), issues: [] });
+      }),
+    );
+  });
+
+  it('reads a literal default on a text column as the literal', async (test) => {
+    const contract = contractWithTextDefault();
+    const noteDdl = `CREATE TABLE \`Note\` (
+      \`id\` int NOT NULL,
+      \`body\` text NOT NULL DEFAULT ('it''s a \\\\ b'),
+      PRIMARY KEY (\`id\`)
+    )`;
+    await withMysqlDatabase(test, ({ url }) =>
+      withExampleTables(url, [noteDdl], async (driver) => {
+        const actual = await introspect(driver, contract);
+        expect({
+          resolvedDefault: actual.tables['Note']?.columns['body']?.resolvedDefault,
+          issues: mysql.diffSchema({ contract, schema: actual, frameworkComponents }).issues,
+        }).toEqual({ resolvedDefault: { kind: 'literal', value: "it's a \\ b" }, issues: [] });
       }),
     );
   });
