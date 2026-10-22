@@ -54,6 +54,35 @@ function contractWithTextDefault() {
   }));
 }
 
+function contractWithIndexNamedLikeItsForeignKey() {
+  return defineContract({}, ({ field, model, type }) => {
+    const User = model('User', { fields: { id: field.column(type.Int()).id() } });
+    const Post = model('Post', {
+      fields: { id: field.column(type.Int()).id(), authorId: field.column(type.Int()) },
+    });
+    return {
+      models: {
+        User,
+        Post: Post.sql(({ cols, constraints }) => ({
+          foreignKeys: [constraints.foreignKey(cols.authorId, User.refs.id, { index: false })],
+          indexes: [constraints.index([cols.authorId], { map: 'fk_x' })],
+        })),
+      },
+    };
+  });
+}
+
+const tablesWithIndexNamedLikeItsForeignKey = [
+  'CREATE TABLE `User` (`id` int NOT NULL, PRIMARY KEY (`id`))',
+  `CREATE TABLE \`Post\` (
+    \`id\` int NOT NULL,
+    \`authorId\` int NOT NULL,
+    PRIMARY KEY (\`id\`),
+    KEY \`fk_x\` (\`authorId\`),
+    CONSTRAINT \`fk_x\` FOREIGN KEY (\`authorId\`) REFERENCES \`User\` (\`id\`)
+  )`,
+];
+
 async function withExampleTables<T>(
   url: string,
   ddl: readonly string[],
@@ -209,6 +238,31 @@ describe('introspecting a MySQL database made by hand', {
             }),
           ],
         });
+      }),
+    );
+  });
+
+  it('keeps an index the contract declares under the name and columns of a foreign key', async (test) => {
+    const contract = contractWithIndexNamedLikeItsForeignKey();
+    await withMysqlDatabase(test, ({ url }) =>
+      withExampleTables(url, tablesWithIndexNamedLikeItsForeignKey, async (driver) => {
+        const actual = await introspect(driver, contract);
+        expect({
+          indexes: actual.tables['Post']?.indexes.map(({ name, columns }) => ({ name, columns })),
+          issues: mysql.diffSchema({ contract, schema: actual, frameworkComponents }).issues,
+        }).toEqual({ indexes: [{ name: 'fk_x', columns: ['authorId'] }], issues: [] });
+      }),
+    );
+  });
+
+  it('leaves out an index named like a foreign key when the contract does not declare it', async (test) => {
+    await withMysqlDatabase(test, ({ url }) =>
+      withExampleTables(url, tablesWithIndexNamedLikeItsForeignKey, async (driver) => {
+        const post = (await introspect(driver)).tables['Post'];
+        expect({
+          indexes: post?.indexes,
+          foreignKeys: post?.foreignKeys.map(({ name }) => name),
+        }).toEqual({ indexes: [], foreignKeys: ['fk_x'] });
       }),
     );
   });

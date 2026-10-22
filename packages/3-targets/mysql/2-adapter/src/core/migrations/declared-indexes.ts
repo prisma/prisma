@@ -1,4 +1,4 @@
-import type { DeclaresUniqueIndex } from './introspection';
+import type { DeclaredIndexes } from './introspection';
 
 type Loose = Readonly<Record<string, unknown>>;
 
@@ -15,11 +15,12 @@ function tableIndexKey(tableName: string, indexName: string): string {
   return JSON.stringify([tableName, indexName]);
 }
 
-/** The unique indexes the contract handed to introspection declares, read from every contract space it holds. */
-export function declaredUniqueIndexes(contract: unknown): DeclaresUniqueIndex {
+/** The indexes the contract handed to introspection declares, read from every contract space it holds. */
+export function declaredIndexes(contract: unknown): DeclaredIndexes {
   const contracts =
     isLoose(contract) && Array.isArray(contract['contracts']) ? contract['contracts'] : [contract];
   const declared = new Set<string>();
+  const declaredUnique = new Set<string>();
   for (const space of contracts) {
     for (const namespace of Object.values(child(child(space, 'storage'), 'namespaces') ?? {})) {
       for (const [tableName, table] of Object.entries(
@@ -27,12 +28,17 @@ export function declaredUniqueIndexes(contract: unknown): DeclaresUniqueIndex {
       )) {
         const indexes = isLoose(table) ? table['indexes'] : undefined;
         for (const index of Array.isArray(indexes) ? indexes : []) {
-          if (isLoose(index) && index['unique'] === true && typeof index['name'] === 'string') {
-            declared.add(tableIndexKey(tableName, index['name']));
-          }
+          if (!isLoose(index) || typeof index['name'] !== 'string') continue;
+          const key = tableIndexKey(tableName, index['name']);
+          declared.add(key);
+          if (index['unique'] === true) declaredUnique.add(key);
         }
       }
     }
   }
-  return (tableName, indexName) => declared.has(tableIndexKey(tableName, indexName));
+  return {
+    declaresIndex: (tableName, indexName) => declared.has(tableIndexKey(tableName, indexName)),
+    declaresUniqueIndex: (tableName, indexName) =>
+      declaredUnique.has(tableIndexKey(tableName, indexName)),
+  };
 }

@@ -24,7 +24,7 @@ import { MysqlCreateTable } from '@internal/target-mysql/ddl';
 import { mysqlNotYetSupported, mysqlQueryNotYetSupported } from '@internal/target-mysql/errors';
 import { structuredError } from '@internal/utils/structured-error';
 import { renderMysqlColumnDefault, renderMysqlCreateTable } from './ddl-renderer';
-import { declaredUniqueIndexes } from './declared-unique-indexes';
+import { declaredIndexes } from './declared-indexes';
 import { buildMysqlSchemaIR } from './introspection';
 import { readMysqlCatalog } from './introspection-queries';
 import { decodeMysqlMarkerRow, readLedgerEntries, readMarkerRows } from './marker-ledger';
@@ -182,7 +182,7 @@ export class MysqlControlAdapter implements SqlControlAdapter<'mysql'> {
           undefined,
         );
       },
-      declaredUniqueIndexes(contract),
+      declaredIndexes(contract),
     );
   }
 }

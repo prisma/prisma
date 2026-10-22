@@ -236,7 +236,10 @@ describe('buildMysqlSchemaIR', () => {
       },
       mysqlDataTypes,
       readLiteral,
-      (table, name) => table === 'T' && name === 'T_handle_idx',
+      {
+        declaresIndex: (table, name) => table === 'T' && name === 'T_handle_idx',
+        declaresUniqueIndex: (table, name) => table === 'T' && name === 'T_handle_idx',
+      },
     );
     expect({ uniques: schema.tables['T']?.uniques, indexes: schema.tables['T']?.indexes }).toEqual({
       uniques: [expect.objectContaining({ columns: ['email'], name: 'T_email_key' })],
@@ -248,6 +251,30 @@ describe('buildMysqlSchemaIR', () => {
         }),
       ],
     });
+  });
+
+  it('leaves out the index InnoDB creates for a foreign key', async () => {
+    const schema = await buildMysqlSchemaIR(rows, mysqlDataTypes, readLiteral);
+    expect(schema.tables['Post']?.indexes.map((entry) => entry.name)).toEqual([
+      'Post_authorId_idx',
+    ]);
+  });
+
+  it('keeps an index the contract declares with the name and columns of a foreign key', async () => {
+    const schema = await buildMysqlSchemaIR(rows, mysqlDataTypes, readLiteral, {
+      declaresIndex: (table, name) => table === 'Post' && name === 'Post_editorId_fkey',
+      declaresUniqueIndex: () => false,
+    });
+    expect(
+      schema.tables['Post']?.indexes.map(({ name, columns, unique }) => ({
+        name,
+        columns,
+        unique,
+      })),
+    ).toEqual([
+      { name: 'Post_authorId_idx', columns: ['authorId'], unique: false },
+      { name: 'Post_editorId_fkey', columns: ['editorId'], unique: false },
+    ]);
   });
 
   it('reports a unique expression index as an index with its expression', async () => {

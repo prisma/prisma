@@ -66,8 +66,18 @@ export interface MysqlCatalogRows {
   readonly foreignKeys: readonly MysqlForeignKeyRow[];
 }
 
-/** Whether the contract declares, on `tableName`, a unique index named `indexName`. */
-export type DeclaresUniqueIndex = (tableName: string, indexName: string) => boolean;
+/** The indexes the contract declares, which introspection tells apart from the ones MySQL reports on its own. */
+export interface DeclaredIndexes {
+  /** Whether the contract declares, on `tableName`, an index named `indexName`. */
+  readonly declaresIndex: (tableName: string, indexName: string) => boolean;
+  /** Whether the contract declares, on `tableName`, a unique index named `indexName`. */
+  readonly declaresUniqueIndex: (tableName: string, indexName: string) => boolean;
+}
+
+const NOTHING_DECLARED: DeclaredIndexes = {
+  declaresIndex: () => false,
+  declaresUniqueIndex: () => false,
+};
 
 /** What a column's reported literal default reads as, through the codec of the column the contract declares. */
 export type ReadLiteralDefault = (
@@ -221,12 +231,15 @@ function foreignKeysOf(
 }
 
 /**
- * The index InnoDB creates for a foreign key that no index already serves: it carries the key's name and exactly the key's columns. Introspection leaves it out, because the contract describes the key, not that index.
+ * The index InnoDB creates for a foreign key that no index already serves: it carries the key's name and exactly the key's columns. Introspection leaves it out, because the contract describes the key, not that index. An explicit index can look the same, so one the contract declares is kept.
  */
 function isForeignKeyIndex(
+  tableName: string,
   index: IndexShape,
   foreignKeys: readonly SqlForeignKeyIRInput[],
+  declared: DeclaredIndexes,
 ): boolean {
+  if (declared.declaresIndex(tableName, index.name)) return false;
   return foreignKeys.some(
     (fk) =>
       fk.name === index.name &&
@@ -245,7 +258,7 @@ async function tableOf(
   },
   dataTypes: readonly DataType[],
   readLiteralDefault: ReadLiteralDefault,
-  declaresUniqueIndex: DeclaresUniqueIndex,
+  declared: DeclaredIndexes,
 ): Promise<SqlTableIR> {
   const columns: Record<string, SqlColumnIRInput> = {};
   for (const row of [...rows.columns].sort(byPosition((column) => column.ordinal_position))) {
@@ -263,7 +276,7 @@ async function tableOf(
         (constraint) =>
           constraint.constraint_type === 'UNIQUE' &&
           !expressionIndexNames.has(constraint.constraint_name) &&
-          !declaresUniqueIndex(tableName, constraint.constraint_name),
+          !declared.declaresUniqueIndex(tableName, constraint.constraint_name),
       )
       .map((constraint) => constraint.constraint_name),
   );
@@ -287,7 +300,7 @@ async function tableOf(
       (index) =>
         index.name !== PRIMARY_INDEX &&
         !uniqueConstraintNames.has(index.name) &&
-        !isForeignKeyIndex(index, foreignKeys),
+        !isForeignKeyIndex(tableName, index, foreignKeys, declared),
     )
     .map((index) => {
       const base = {
@@ -316,13 +329,13 @@ async function tableOf(
 }
 
 /**
- * The schema IR of the database the rows describe: one flat tree of its tables. MySQL lists every unique index as a UNIQUE constraint, so one is reported as a unique constraint unless the contract declares a unique index of that name on the table, or it indexes an expression.
+ * The schema IR of the database the rows describe: one flat tree of its tables. MySQL lists every unique index as a UNIQUE constraint, so one is reported as a unique constraint unless the contract declares a unique index of that name on the table, or it indexes an expression. The index InnoDB creates for a foreign key is left out, unless the contract declares an index of that name on the table.
  */
 export async function buildMysqlSchemaIR(
   rows: MysqlCatalogRows,
   dataTypes: readonly DataType[],
   readLiteralDefault: ReadLiteralDefault,
-  declaresUniqueIndex: DeclaresUniqueIndex = () => false,
+  declared: DeclaredIndexes = NOTHING_DECLARED,
 ): Promise<SqlSchemaIR> {
   const columnsByTable = groupBy(rows.columns, (row) => row.table_name);
   const indexesByTable = groupBy(rows.indexes, (row) => row.table_name);
@@ -340,7 +353,7 @@ export async function buildMysqlSchemaIR(
       },
       dataTypes,
       readLiteralDefault,
-      declaresUniqueIndex,
+      declared,
     );
   }
   return new SqlSchemaIR({ tables });
