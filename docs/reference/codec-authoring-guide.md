@@ -55,7 +55,7 @@ An enum compares values with its members, so every enum authoring surface (`enum
 
 The consumer-facing [`BigInt`, `BigIntNumber`, and `UnboundedInt` representation choices](./integer-representation-types.md), are documented separately from this contributor guide.
 
-The PostgreSQL temporal codecs pair a `Temporal`-valued codec with a raw-text one for each native type — `pg/timestamptz-temporal@1` reads a `Temporal.Instant`, `pg/timestamptz-string@1` reads PostgreSQL's own text, and the contract names which one a column uses. A text codec's `fromWire` keeps PostgreSQL's year text, ` BC` included, and its `toWire` converts the stored ISO year into it.
+The PostgreSQL temporal codecs pair a `Temporal`-valued codec with a raw-text one for each native type — `pg/timestamptz-temporal@1` reads a `Temporal.Instant`, `pg/timestamptz-string@1` reads PostgreSQL's own text, and the contract names which one a column uses. A type may have more codecs: `timestamptz` and `timestamp` also have a `Date` codec, `timestamp` a second `Temporal` codec, `pg/timestamp-instant@1`, that reads the stored date and time as a UTC `Temporal.Instant`, and `interval` a codec that reads an ISO 8601 duration string. A codec of one type differs from its siblings only in the application value, so a new one is a codec, never a new data type. A text codec's `fromWire` keeps PostgreSQL's year text, ` BC` included, and its `toWire` converts the stored ISO year into it.
 
 ## Three case studies
 
