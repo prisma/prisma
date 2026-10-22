@@ -17,11 +17,18 @@ changes:
         - '(?<![\w$])intervalColumn(?![\w$])'
   - id: interval-with-precision-typed-as-parts
     summary: |
-      An `IntervalParts(p)` column, an interval with a precision, is now typed as the `{ months, days, micros }` object its codec reads, as an interval without a precision already was, instead of a string. The branded `Interval` type is no longer exported from `@prisma/orm-postgres/contract-builder` or `@prisma/orm-postgres/target/codec-types`. Remove the import, and type such a value as `PgInterval` from `@prisma/orm-postgres/target/codec-types`. Code that treated the value as a string was wrong at run time and now fails to type-check.
+      An `IntervalParts(p)` column, an interval with a precision, is now typed as the `{ months, days, micros }` object its codec reads, as an interval without a precision already was, instead of a string. Type such a value as `PgInterval` from `@prisma/orm-postgres/target/codec-types`. Code that treated the value as a string was wrong at run time and now fails to type-check.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - 'import\s+type\s*\{[^}]*(?<![\w$])Interval(?![\w$])[^}]*\}\s*from\s*[\x27"]@prisma/orm-postgres/(?:contract-builder|target/codec-types)[\x27"]'
+        - 'import\s+(?:type\s+)?\{[^}]*(?<![\w$])Interval(?![\w$])[^}]*\}\s*from\s*[\x27"]@prisma/orm-postgres/(?:contract-builder|target/codec-types)[\x27"]'
+  - id: branded-time-types-removed
+    summary: |
+      The string types `Timestamp`, `Timestamptz`, `Time` and `Interval` are no longer exported from `@prisma/orm-postgres/target/codec-types` (and `Interval` no longer from `@prisma/orm-postgres/contract-builder`). No column was typed by the first three. Remove each of these names from the import that names it, and delete the import if it names nothing else. A `contract.d.ts` written by an earlier release, such as one in a migration snapshot, imports them without using them, so removing them from its import is the only change it needs.
+    detection:
+      glob: "**/*.{ts,mts,cts,tsx}"
+      matches:
+        - 'import\s+(?:type\s+)?\{[^}]*(?<![\w$])(?:Timestamptz|Timestamp|Time|Interval)(?![\w$])[^}]*\}\s*from\s*[\x27"]@prisma/orm-postgres/(?:contract-builder|target/codec-types)[\x27"]'
 ---
 
 # Explicit date and time types carry the kind of value they read
@@ -66,4 +73,15 @@ field.column(intervalPartsColumn(6)); // was intervalColumn(6)
 import type { PgInterval } from '@prisma/orm-postgres/target/codec-types';
 
 const span: PgInterval = row.span; // an IntervalParts(6) column
+```
+
+## `branded-time-types-removed`
+
+Remove the four names from the import, and leave the rest of the file as it is:
+
+```ts
+import type {
+  CodecTypes as PgTypes,
+  JsonValue,
+} from '@prisma/orm-postgres/target/codec-types'; // was also importing Interval, Time, Timestamp and Timestamptz
 ```

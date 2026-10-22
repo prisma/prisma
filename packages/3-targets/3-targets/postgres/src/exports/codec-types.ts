@@ -34,13 +34,6 @@ export type Numeric<P extends number, S extends number | undefined = undefined> 
 }>;
 export type Bit<N extends number> = BrandedString<{ __bitLength: N }>;
 export type VarBit<N extends number> = BrandedString<{ __varbitLength: N }>;
-export type Timestamp<P extends number | undefined = undefined> = BrandedString<{
-  __timestampPrecision: P;
-}>;
-export type Timestamptz<P extends number | undefined = undefined> = BrandedString<{
-  __timestamptzPrecision: P;
-}>;
-export type Time<P extends number | undefined = undefined> = BrandedString<{ __timePrecision: P }>;
 export type Timetz<P extends number | undefined = undefined> = BrandedString<{
   __timetzPrecision: P;
 }>;
