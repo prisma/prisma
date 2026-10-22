@@ -89,12 +89,18 @@ try {
   await new Promise((resolve) => setTimeout(resolve, 20));
   const updated = await events.where({ id: created.id }).update(writes.update);
   const readAfterUpdate = await events.where({ id: created.id }).first();
+  const [session] = await db.query(
+    db.raw.sql\`SELECT EXTRACT(TIMEZONE FROM CURRENT_TIMESTAMP)::int AS "utcOffsetSeconds"\`
+      .returnsRow({ utcOffsetSeconds: 'pg/int4@1' })
+      .build(),
+  );
   process.stdout.write(
     JSON.stringify({
       created,
       readAfterCreate,
       updated,
       readAfterUpdate,
+      sessionUtcOffsetSeconds: session.utcOffsetSeconds,
       temporalPolyfill: [...loaded].filter((url) => url.includes('temporal-polyfill')),
       timezoneOffset: new Date().getTimezoneOffset(),
     }),
@@ -104,7 +110,8 @@ try {
 }
 `;
 
-const TOKYO_UTC_OFFSET_MILLIS = 9 * 60 * 60 * 1000;
+const TOKYO_UTC_OFFSET_SECONDS = 9 * 60 * 60;
+const TOKYO_UTC_OFFSET_MILLIS = TOKYO_UTC_OFFSET_SECONDS * 1000;
 
 const DATE_COLUMN_CODECS = {
   createdAt: 'pg/timestamp-string@1',
@@ -136,6 +143,7 @@ interface AppResult {
   readonly readAfterCreate: EventRow;
   readonly updated: EventRow;
   readonly readAfterUpdate: EventRow;
+  readonly sessionUtcOffsetSeconds: number;
   readonly temporalPolyfill: readonly string[];
   readonly timezoneOffset: number;
 }
@@ -160,15 +168,6 @@ async function runApp(
   writes: unknown,
   expectedSessionUtcOffsetSeconds = 0,
 ) {
-  const sessionUtcOffset = await withClient(connectionString, async (client) => {
-    const { rows } = await client.query<{ seconds: number }>(
-      'SELECT EXTRACT(TIMEZONE FROM CURRENT_TIMESTAMP)::int AS seconds',
-    );
-    return rows[0]?.seconds;
-  });
-  expect(sessionUtcOffset, 'createdAt is CURRENT_TIMESTAMP in the session time zone').toBe(
-    expectedSessionUtcOffsetSeconds,
-  );
   const script = join(ctx.testDir, 'app.mjs');
   writeFileSync(script, APP_SCRIPT, 'utf-8');
   const before = Date.now();
@@ -185,6 +184,10 @@ async function runApp(
   const result: AppResult = JSON.parse(run.stdout);
   expect(result.temporalPolyfill).toEqual([]);
   expect(result.timezoneOffset, 'the child runs at UTC+3').toBe(-180);
+  expect(
+    result.sessionUtcOffsetSeconds,
+    "the application's database session time zone, which a database now() default uses",
+  ).toBe(expectedSessionUtcOffsetSeconds);
   return { result, before, after };
 }
 
@@ -320,8 +323,6 @@ withTempDir(({ createTempDir }) => {
           expect(emit.exitCode, `contract emit\n${output(emit)}`).toBe(0);
           const sign = await runDbSign(ctx);
           expect(sign.exitCode, `db sign\n${output(sign)}`).toBe(0);
-          // The dev database serves every connection from one session, so the application's
-          // connection starts in this time zone too.
           await withClient(db.connectionString, (client) =>
             client.query("SET TIME ZONE 'Asia/Tokyo'"),
           );
@@ -330,7 +331,7 @@ withTempDir(({ createTempDir }) => {
             ctx,
             db.connectionString,
             { create: { title: 'a', ...WRITTEN }, update: { title: 'b' } },
-            9 * 60 * 60,
+            TOKYO_UTC_OFFSET_SECONDS,
           );
           expectNow(result.created.createdAt, before, after);
           expect(result.readAfterCreate).toEqual(result.created);
