@@ -944,7 +944,7 @@ export interface ControlClient {
 
   /**
    * Advances the database along the migration graph to the target contract, with full execution checks.
-   * The target's `applyAtomicity` says whether a failure rolls back every space or leaves the spaces before it applied.
+   * On a target whose DDL is transactional a failure rolls back every space; otherwise the operations that already ran stay applied.
    * Resume-safe: re-running after failure picks up from the marker of each space.
    *
    * @param options.contract - The target contract to migrate to

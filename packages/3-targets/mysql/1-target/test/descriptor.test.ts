@@ -32,11 +32,8 @@ describe('the MySQL target descriptor', () => {
     ]);
   });
 
-  it('states that a failed apply leaves the spaces before it applied', () => {
-    expect({
-      applyAtomicity: mysqlControlTarget.migrations.applyAtomicity,
-      markerLocation: mysqlControlTarget.migrations.markerLocation,
-    }).toEqual({ applyAtomicity: 'per-space', markerLocation: '_prisma_marker' });
+  it('names its marker table', () => {
+    expect(mysqlControlTarget.migrations.markerLocation).toBe('_prisma_marker');
   });
 
   it('refuses a contract that is not a SQL contract', () => {

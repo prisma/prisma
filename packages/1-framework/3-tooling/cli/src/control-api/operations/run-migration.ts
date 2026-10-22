@@ -8,7 +8,6 @@ import {
   type ControlDriverInstance,
   type ControlFamilyInstance,
   type FailedTypeChange,
-  type MigrationApplyAtomicity,
   type MigrationOperationPolicy,
   type MigrationRunnerFailure,
   type MigrationSubject,
@@ -192,17 +191,16 @@ const RERUN_COMMAND: Record<RunAction, string> = {
 };
 
 /**
- * The runner's failure as the CLI reports it. When the target applies each space on its own and the
- * failed apply changed the database, the headline names the space it stopped at and says that the
- * spaces before it stay applied; the runner's own message moves into the why.
+ * The runner's failure as the CLI reports it. When the failed apply changed the database, the
+ * headline names the space it stopped at and says that the spaces before it stay applied; the
+ * runner's own message moves into the why.
  */
 export function reportedRunnerFailure(
   failure: MigrationRunnerFailure,
-  applyAtomicity: MigrationApplyAtomicity,
   action: RunAction,
 ): MigrationRunnerFailure {
   const { failingSpace, databaseUnchanged } = failure.meta;
-  if (applyAtomicity !== 'per-space' || failingSpace === undefined || databaseUnchanged !== false) {
+  if (failingSpace === undefined || databaseUnchanged !== false) {
     return failure;
   }
   const runnerMessage = failure.message.replace(/[.!?]?$/, '.');
@@ -226,8 +224,8 @@ export function reportedRunnerFailure(
  * The runner writes each space's marker as the last step of applying that
  * space, so this primitive does not advance markers separately — by the time
  * `execute` returns ok, every space's marker has been advanced to its plan's
- * destination. What a failure leaves behind is the target's
- * `applyAtomicity`, which {@link reportedRunnerFailure} reports.
+ * destination. A failure says whether the database changed, which
+ * {@link reportedRunnerFailure} reports.
  *
  * Span emission (`spanStart 'apply'` / `spanEnd 'apply'`) is owned here
  * so callers don't have to duplicate it; the `action` field on each
@@ -279,7 +277,7 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
 
   if (!runnerResult.ok) {
     onProgress?.({ action, kind: 'spanEnd', spanId: RUN_SPAN_ID, outcome: 'error' });
-    return notOk(reportedRunnerFailure(runnerResult.failure, migrations.applyAtomicity, action));
+    return notOk(reportedRunnerFailure(runnerResult.failure, action));
   }
   onProgress?.({ action, kind: 'spanEnd', spanId: RUN_SPAN_ID, outcome: 'ok' });
 

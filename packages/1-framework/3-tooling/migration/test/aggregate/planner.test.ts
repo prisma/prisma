@@ -66,7 +66,6 @@ function makeStubMigrations(
   planner: MigrationPlanner<'sql', 'postgres'>,
 ): TargetMigrationsCapability<'sql', 'postgres', ControlFamilyInstance<'sql', unknown>> {
   return {
-    applyAtomicity: 'all-spaces',
     markerLocation: 'prisma_contract.marker',
     createPlanner: () => planner,
     createRunner: () => {

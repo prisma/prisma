@@ -446,11 +446,12 @@ export interface SqlMigrationRunner<TTargetDetails> {
    * aggregate planner's `applyOrder`: extensions alphabetical, then app). An apply that targets one
    * space passes a one-element `perSpaceOptions` list.
    *
-   * What a failure leaves behind is the target's `applyAtomicity`. An `'all-spaces'` target opens one
-   * transaction around every space (with any connection-level setup it needs, such as SQLite's
-   * `PRAGMA foreign_keys` toggle) and a failure rolls back every space's writes. A `'per-space'`
-   * target applies, verifies and writes the marker of each space in turn, so a failure leaves the
-   * spaces before it applied.
+   * A failure states what it left in `failingSpace` and `databaseUnchanged`. A target whose DDL is
+   * transactional opens one transaction around every space (with any connection-level setup it
+   * needs, such as SQLite's `PRAGMA foreign_keys` toggle), rolls back every space's writes on a
+   * failure and reports `databaseUnchanged: true`. A target whose DDL commits as it runs applies,
+   * verifies and writes the marker of each space in turn, so the operations that already ran stay
+   * applied, and it reports whether the database changed.
    *
    * Each entry must reference the same `driver` as the top-level `driver`.
    */
@@ -461,8 +462,8 @@ export interface SqlMigrationRunner<TTargetDetails> {
 
   /**
    * Apply a single migration plan against an already-open connection **without** opening a
-   * transaction. {@link SqlMigrationRunner.execute} calls it for each space; an `'all-spaces'` target
-   * calls it inside the transaction it opened.
+   * transaction. {@link SqlMigrationRunner.execute} calls it for each space; a target whose DDL is
+   * transactional calls it inside the transaction it opened.
    *
    * Idempotent control-table setup and marker writes use `options.space` to address the per-space
    * marker row.

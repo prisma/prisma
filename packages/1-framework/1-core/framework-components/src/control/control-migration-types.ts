@@ -772,8 +772,10 @@ export interface MigrationRunner<
    * at the load boundary. Runners do not re-verify plans and assume the
    * `(metadata, ops)` pairs on disk have not been tampered with since emit.
    *
-   * Whether a failure rolls back the spaces applied before it is the target's
-   * {@link TargetMigrationsCapability.applyAtomicity}.
+   * A failure states what it left in {@link MigrationRunnerFailureMeta.failingSpace} and
+   * {@link MigrationRunnerFailureMeta.databaseUnchanged}. On a target whose DDL is transactional the
+   * runner rolls the whole apply back and reports `databaseUnchanged: true`; otherwise it reports
+   * whether the database changed, and the operations that already ran stay applied.
    */
   execute(options: {
     readonly driver: ControlDriverInstance<TFamilyId, TTargetId>;
@@ -784,9 +786,6 @@ export interface MigrationRunner<
 // ============================================================================
 // Target Migrations Capability
 // ============================================================================
-
-/** Whether a failed apply rolls back every space or only stops at the failing one; see {@link TargetMigrationsCapability.applyAtomicity}. */
-export type MigrationApplyAtomicity = 'all-spaces' | 'per-space';
 
 /**
  * Optional capability interface for targets that support migrations.
@@ -804,12 +803,6 @@ export interface TargetMigrationsCapability<
     unknown
   >,
 > {
-  /**
-   * What a failed apply leaves behind. `'all-spaces'`: the failure rolls back every space the apply
-   * changed. `'per-space'`: each space is applied and its marker written on its own, so the spaces
-   * applied before the failing one stay applied, and running the apply again finishes the rest.
-   */
-  readonly applyAtomicity: MigrationApplyAtomicity;
   /** Where the database keeps the contract markers, as messages name it to the user, such as `prisma_contract.marker`. */
   readonly markerLocation: string;
   createPlanner(

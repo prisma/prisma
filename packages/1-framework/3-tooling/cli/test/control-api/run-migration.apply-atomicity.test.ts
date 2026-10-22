@@ -13,10 +13,10 @@ const failed = (meta: MigrationRunnerFailureMeta) =>
   );
 
 describe('reportedRunnerFailure', () => {
-  it('names the space a per-space apply stopped at and says the spaces before it stay applied', () => {
+  it('names the space an apply that changed the database stopped at and says the spaces before it stay applied', () => {
     const failure = failed({ failingSpace: 'app', databaseUnchanged: false });
 
-    const reported = reportedRunnerFailure(failure, 'per-space', 'migrate');
+    const reported = reportedRunnerFailure(failure, 'migrate');
 
     expect({
       code: reported.code,
@@ -35,7 +35,7 @@ describe('reportedRunnerFailure', () => {
   it('names the command that applied, so the user runs the same one again', () => {
     const failure = failed({ failingSpace: 'app', databaseUnchanged: false });
 
-    expect(reportedRunnerFailure(failure, 'per-space', 'dbUpdate').message).toBe(
+    expect(reportedRunnerFailure(failure, 'dbUpdate').message).toBe(
       'Migration failed in space "app". Spaces applied before it stay applied; run db update again to finish.',
     );
   });
@@ -43,12 +43,6 @@ describe('reportedRunnerFailure', () => {
   it('keeps the failure of an apply that changed nothing', () => {
     const failure = failed({ failingSpace: 'app', databaseUnchanged: true });
 
-    expect(reportedRunnerFailure(failure, 'per-space', 'migrate')).toBe(failure);
-  });
-
-  it('keeps the failure of a target whose failed apply rolls back every space', () => {
-    const failure = failed({ failingSpace: 'app', databaseUnchanged: false });
-
-    expect(reportedRunnerFailure(failure, 'all-spaces', 'migrate')).toBe(failure);
+    expect(reportedRunnerFailure(failure, 'migrate')).toBe(failure);
   });
 });

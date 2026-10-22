@@ -175,9 +175,9 @@ export type ExecuteRunOptions<
  *    behaviour); every extension space walks its on-disk graph via
  *    `resolveRecordedPath`.
  * 4. **Apply** (when `mode === 'apply'`): every per-space `MigrationPlan`
- *    feeds into the runner's `execute`. A failure on an `'all-spaces'`
- *    target rolls back every space's writes; on a `'per-space'` target the
- *    spaces applied before the failing one stay applied.
+ *    feeds into the runner's `execute`. On a target whose DDL is
+ *    transactional a failure rolls back every space's writes; otherwise
+ *    the operations that already ran stay applied.
  */
 export async function executeRun<TFamilyId extends string, TTargetId extends string>(
   options: ExecuteRunOptions<TFamilyId, TTargetId>,

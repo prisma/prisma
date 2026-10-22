@@ -31,7 +31,6 @@ const mysqlControlTargetDescriptor: SqlControlTargetDescriptor<'mysql', MysqlPla
   classifySubjectGranularity: relationalNodeGranularity,
   classifyEntityKind: relationalNodeEntityKind,
   migrations: {
-    applyAtomicity: 'per-space',
     markerLocation: MARKER_TABLE_NAME,
     createPlanner(adapter: SqlControlAdapter<'mysql'>): MigrationPlanner<'sql', 'mysql'> {
       return createMysqlMigrationPlanner(adapter);

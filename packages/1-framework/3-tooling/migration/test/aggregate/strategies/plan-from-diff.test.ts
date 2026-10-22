@@ -76,7 +76,6 @@ describe('planFromDiff', () => {
       'postgres',
       ControlFamilyInstance<'sql', unknown>
     > = {
-      applyAtomicity: 'all-spaces',
       markerLocation: 'prisma_contract.marker',
       createPlanner: () => stubPlanner,
       createRunner: () => {
@@ -179,7 +178,6 @@ describe('planFromDiff', () => {
       schemaIntrospection: { tables: {} },
       adapter: STUB_ADAPTER,
       migrations: {
-        applyAtomicity: 'all-spaces',
         markerLocation: 'prisma_contract.marker',
         createPlanner: () => stubPlanner,
         createRunner: () => {
@@ -212,7 +210,6 @@ describe('planFromDiff', () => {
       'postgres',
       ControlFamilyInstance<'sql', unknown>
     > = {
-      applyAtomicity: 'all-spaces',
       markerLocation: 'prisma_contract.marker',
       createPlanner: () => stubPlanner,
       createRunner: () => {
@@ -263,7 +260,6 @@ describe('planFromDiff', () => {
       schemaIntrospection: { tables: {} },
       adapter: STUB_ADAPTER,
       migrations: {
-        applyAtomicity: 'all-spaces',
         markerLocation: 'prisma_contract.marker',
         createPlanner: () => stubPlanner,
         createRunner: () => {

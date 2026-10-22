@@ -205,7 +205,7 @@ Three properties hold:
 
 1. **The marker is the truth-of-record** for the live database's per-space applied state.
 2. **The set of marker rows must equal the set of loaded spaces** (`'app'` plus every entry in `extensions`). Mismatches surface as verifier errors with clear remediation.
-3. **A marker never records migrations that did not apply.** On a target whose failed apply rolls back every space, a multi-space apply runs in one outer transaction, so either every marker advances or none does. On a target that applies one space at a time, a space's marker advances only after its operations ran and its schema verified.
+3. **A marker never records migrations that did not apply.** On a target whose DDL is transactional, a multi-space apply runs in one outer transaction, so either every marker advances or none does. On a target whose DDL is not, a space's marker advances only after its operations ran and its schema verified.
 
 ### Per-space planner, runner, verifier
 
@@ -219,12 +219,14 @@ The producer-side helpers (`planAllSpaces`, `concatenateSpaceApplyInputs`, `veri
 
 ### Apply-time atomicity and ordering
 
-What a failed multi-space apply leaves behind is a fact each target states, in `applyAtomicity` on its migrations capability. The runner's `execute({ driver, perSpaceOptions })` takes every space's plan in one call either way.
+> **Changed 2026-10-22, for the MySQL target.** This section used to say that every multi-space apply runs in one outer transaction, so a failure rolls back every space. MySQL commits each DDL statement as it runs, and MongoDB DDL bypasses transactions, so neither can keep that promise. Each failed apply now states what it left, in the failure's `failingSpace` and `databaseUnchanged`.
 
-- **`'all-spaces'`** (Postgres, SQLite). `execute` opens **one** outer transaction and calls `executeOnConnection`, the runner body without `BEGIN`/`COMMIT`, for each space inside it. A failure on any space rolls back every space's writes.
-- **`'per-space'`** (MySQL, whose DDL commits as it runs, and MongoDB, whose DDL bypasses transactions). The runner applies one space at a time, verifies its schema, and only then writes its marker. A failure leaves the spaces before it applied; running the apply again skips them and finishes the rest.
+The runner's `execute({ driver, perSpaceOptions })` takes every space's plan in one call.
 
-Either way the failure names the space that failed (`failingSpace`) and says whether the database is as it was (`databaseUnchanged`), and the CLI reports both.
+- **Targets whose DDL is transactional** (Postgres, SQLite). `execute` opens **one** outer transaction and calls `executeOnConnection`, the runner body without `BEGIN`/`COMMIT`, for each space inside it. A failure on any space rolls back every space's writes and reports `databaseUnchanged: true`.
+- **Targets whose DDL is not** (MySQL, MongoDB). The runner applies one space at a time, verifies its schema, and only then writes its marker. A failure reports whether the database changed. The operations that already ran stay applied, including those of the failing space, and the spaces before it keep their advanced markers. Running the apply again skips what already holds and finishes the rest.
+
+Either way the failure names the space that failed (`failingSpace`), and the CLI reports both facts.
 
 **Cross-space ordering**: extension spaces alphabetical-by-spaceId first, app-space last. The convention is sufficient for v1 (a formal cross-space dependency graph is deferred), and matches the implicit dependency direction — application schema may reference extension-provided types (`Encrypted<String>` → `eql_v2_encrypted`), so extension types must exist before the app's `CREATE TABLE` runs.
 
@@ -361,7 +363,7 @@ The asymmetry between `migrate` (authoring) and the apply/verify path is what ma
 
 - **Extension authors must ship a contract + migration graph**, not just an init-SQL string. The contract-space package layout convention reuses the same CLI pipeline app authors use, so the authoring story is symmetrical: write a TS or PSL schema, run `prisma-next contract emit` + `prisma-next migration plan`, and the descriptor module JSON-imports the resulting artefacts. The framework helpers `emitContractSpaceArtifacts` / `materialiseExtensionMigrationPackageIfMissing` cover the consuming application's repo half; cipherstash, pgvector, and paradedb all ship this convention.
 - **`migrate` becomes the canonical way to materialise extension bumps.** Bumping an extension in `node_modules` without running `migrate` produces stale pinned artefacts; the drift-detection helper surfaces a non-fatal warning at the next `migrate` invocation.
-- **One outer transaction across spaces**, on a target that states `'all-spaces'`, is a stronger correctness guarantee than the per-extension `databaseDependencies.init` path provided. Such a target inherits the constraint that all SQL across all spaces in a single emit must be transactionally compatible (which is already true of the existing single-space path). A `'per-space'` target gives a resumable apply instead.
+- **One outer transaction across spaces**, on a target whose DDL is transactional, is a stronger correctness guarantee than the per-extension `databaseDependencies.init` path provided. Such a target inherits the constraint that all SQL across all spaces in a single emit must be transactionally compatible (which is already true of the existing single-space path). A target whose DDL is not transactional gives a resumable apply instead.
 
 ### Non-goals (deferred)
 
