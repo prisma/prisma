@@ -3883,6 +3883,217 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
+  packages/3-targets/mysql/1-target:
+    dependencies:
+      '@internal/contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/contract
+      '@internal/family-sql':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/9-family
+      '@internal/framework-components':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/framework-components
+      '@internal/sql-contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/contract
+      '@internal/sql-relational-core':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/4-lanes/relational-core
+      '@internal/sql-schema-ir':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/schema-ir
+      '@internal/utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/utils
+      '@standard-schema/spec':
+        specifier: 1.1.0
+        version: 1.1.0
+      arktype:
+        specifier: ^2.2.2
+        version: 2.2.7
+    devDependencies:
+      '@repo/test-utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../../test/utils
+      '@repo/tsconfig':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsdown
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
+
+  packages/3-targets/mysql/2-adapter:
+    dependencies:
+      '@internal/contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/contract
+      '@internal/errors':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/errors
+      '@internal/family-sql':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/9-family
+      '@internal/framework-components':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/framework-components
+      '@internal/migration-tools':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/3-tooling/migration
+      '@internal/sql-contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/contract
+      '@internal/sql-relational-core':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/4-lanes/relational-core
+      '@internal/sql-schema-ir':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/schema-ir
+      '@internal/target-mysql':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../1-target
+      '@internal/utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/utils
+    devDependencies:
+      '@internal/driver-mysql':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../3-driver
+      '@repo/test-utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../../test/utils
+      '@repo/tsconfig':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsdown
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
+
+  packages/3-targets/mysql/3-driver:
+    dependencies:
+      '@internal/errors':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/errors
+      '@internal/framework-components':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/framework-components
+      '@internal/sql-contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/contract
+      '@internal/sql-errors':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/errors
+      '@internal/utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/utils
+      mysql2:
+        specifier: 3.15.3
+        version: 3.15.3
+    devDependencies:
+      '@repo/test-utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../../test/utils
+      '@repo/tsconfig':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsdown
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
+
+  packages/3-targets/mysql/9-facade:
+    dependencies:
+      '@internal/adapter-mysql':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../2-adapter
+      '@internal/cli':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/3-tooling/cli
+      '@internal/config':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/config
+      '@internal/driver-mysql':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../3-driver
+      '@internal/family-sql':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/9-family
+      '@internal/framework-components':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/framework-components
+      '@internal/sql-contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/contract
+      '@internal/sql-contract-psl':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/2-authoring/contract-psl
+      '@internal/sql-contract-ts':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/2-authoring/contract-ts
+      '@internal/target-mysql':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../1-target
+      '@internal/utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/utils
+      pathe:
+        specifier: ^2.0.3
+        version: 2.0.3
+    devDependencies:
+      '@internal/contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/contract
+      '@internal/sql-schema-ir':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/schema-ir
+      '@prisma/cli-engine':
+        specifier: 0.7.0
+        version: 0.7.0(@prisma/management-api-sdk@1.76.0)(magicast@0.5.4)
+      '@repo/test-utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../../test/utils
+      '@repo/tsconfig':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsdown
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
+
   packages/3-targets/postgres/1-target:
     dependencies:
       '@internal/cli':
@@ -5682,6 +5893,9 @@ importers:
       '@internal/target-mongo':
         specifier: workspace:8.0.0-rc.19
         version: link:../../packages/3-targets/mongo/1-target
+      '@internal/target-mysql':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../packages/3-targets/mysql/1-target
       '@internal/target-postgres':
         specifier: workspace:8.0.0-rc.19
         version: link:../../packages/3-targets/postgres/1-target
@@ -5990,6 +6204,9 @@ importers:
       '@types/pg':
         specifier: 'catalog:'
         version: 8.20.4
+      mysql2:
+        specifier: 3.15.3
+        version: 3.15.3
       pg:
         specifier: 'catalog:'
         version: 8.22.0
@@ -7693,6 +7910,12 @@ packages:
 
   '@prisma/adapter-pg@7.10.0':
     resolution: {integrity: sha512-N7nwSor0HO1Kz6xBv0TPAjAPysKK0fac6p4fVN3ensLOuzc/83Fgmln5k92eK/cvzqdkSR/2kkAqlbcdwVrwpw==}
+
+  '@prisma/cli-engine@0.7.0':
+    resolution: {integrity: sha512-CL21NYQQEAR9IEApPfUzMhv/VtbsJs4efRSxlvzHoFT69vynr0Wuu5KNNbZgIlONOEfULqP0djFCD4VaA/HVPg==}
+    engines: {node: '>=22.12.0'}
+    peerDependencies:
+      '@prisma/management-api-sdk': ^1.55.0
 
   '@prisma/cli-engine@0.9.0':
     resolution: {integrity: sha512-M53Xx/KiPQ02iT8FXT2c9X+3fVgMVfWK/emf/tq+jRNFi7b0Ffwaeo1yz8XS4UKOza5DaKRwMs+K8U44z9corg==}
@@ -13462,6 +13685,19 @@ snapshots:
       postgres-array: 3.0.4
     transitivePeerDependencies:
       - pg-native
+
+  '@prisma/cli-engine@0.7.0(@prisma/management-api-sdk@1.76.0)(magicast@0.5.4)':
+    dependencies:
+      '@clack/prompts': 1.5.0
+      '@prisma/management-api-sdk': 1.76.0
+      '@stricli/core': 1.3.0
+      arktype: 2.2.7
+      c12: 3.3.4(magicast@0.5.4)
+      colorette: 2.0.20
+      package-manager-detector: 1.8.0
+      string-width: 8.2.2
+    transitivePeerDependencies:
+      - magicast
 
   '@prisma/cli-engine@0.9.0(@prisma/management-api-sdk@1.76.0)(magicast@0.5.4)':
     dependencies:

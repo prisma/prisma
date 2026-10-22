@@ -40,6 +40,8 @@ const sqliteTargetPack = {
   targetId: 'sqlite',
   version: '0.0.1',
   defaultNamespaceId: '__unbound__',
+  supportsNamespaces: false,
+  displayName: 'SQLite',
 } as const satisfies PortableTargetPack<'sqlite'>;
 
 const uuidColumn = columnDescriptor('sql/char@1', { length: 36 });
