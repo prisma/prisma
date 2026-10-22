@@ -115,9 +115,9 @@ Binding variants:
 - `{ kind: 'pgPool', pool, ownedByDriver }`: Use an existing pg Pool
 - `{ kind: 'pgClient', client, ownedByDriver }`: Use an existing pg Client (direct connection)
 
-`ownedByDriver` says whether the driver ends the pool or client on `close()`. With `false` (a pool or client the caller supplied) the driver never ends it. A client that has not started connecting is connected on first use, whoever owns it; pg has no public flag for this, so the driver reads pg's `_connected` and `_connecting` fields. A client whose connect failed or whose connection dropped cannot be reused: the driver rejects every later use.
+`ownedByDriver` says whether the driver ends the pool or client on `close()`. With `false` (a pool or client the caller supplied) the driver never ends it. A client that has not started connecting is connected on first use, whoever owns it; pg has no public flag for this, so the driver reads pg's `_connected`, `_connecting`, `_ending` and `_queryable` fields, and treats a client that is ending or no longer queryable as lost. A client whose connect failed or whose connection dropped cannot be reused: the driver rejects every later use.
 
-When a connection of a direct driver is destroyed (for example after a failed rollback), a supplied client is left as it is, possibly mid-statement or inside a transaction. End it yourself.
+When a direct driver gives up a supplied client (for example after a failed rollback), it marks the client unusable, sends a `ROLLBACK` for any transaction it opened on it, and never ends it. Binding that client again fails: create a new client.
 
 With `cursor: { disabled: true }` (or buffered cursor fallback), driver-level pool queries return their connection after fetching, before yielding buffered rows for decoding or consumption. Cursor streams retain the connection until completion or iterator cleanup. Queries on caller-owned connections and transactions never release the caller's lease.
 
