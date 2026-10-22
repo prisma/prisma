@@ -226,7 +226,7 @@ The runner's `execute({ driver, perSpaceOptions })` takes every space's plan in 
 - **Targets whose DDL is transactional** (Postgres, SQLite). `execute` opens **one** outer transaction and calls `executeOnConnection`, the runner body without `BEGIN`/`COMMIT`, for each space inside it. A failure on any space rolls back every space's writes and reports `databaseUnchanged: true`.
 - **Targets whose DDL is not** (MySQL, MongoDB). The runner applies one space at a time, verifies its schema, and only then writes its marker. A failure reports whether the database changed. The operations that already ran stay applied, including those of the failing space, and the spaces before it keep their advanced markers. Running the apply again skips what already holds and finishes the rest.
 
-Either way the failure names the space that failed (`failingSpace`), and the CLI reports both facts.
+Either way the failure's payload names the space that failed (`failingSpace`) and says whether the database changed (`databaseUnchanged`). The CLI's `why` names the space when it is not the application's own.
 
 **Cross-space ordering**: extension spaces alphabetical-by-spaceId first, app-space last. The convention is sufficient for v1 (a formal cross-space dependency graph is deferred), and matches the implicit dependency direction — application schema may reference extension-provided types (`Encrypted<String>` → `eql_v2_encrypted`), so extension types must exist before the app's `CREATE TABLE` runs.
 
