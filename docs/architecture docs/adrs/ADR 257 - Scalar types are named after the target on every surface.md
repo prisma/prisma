@@ -15,7 +15,7 @@ When two types store the same thing but give the application different values, t
 The MongoDB adapter's PSL scalar map names each type after the BSON type it stores, and points it at a codec whose id carries the same token:
 
 ```ts
-// packages/3-mongo-target/2-mongo-adapter/src/exports/control.ts
+// packages/3-targets/mongo/2-adapter/src/exports/control.ts
 export const mongoScalarAuthoringTypes = {
   Int32: {
     kind: 'typeConstructor',
