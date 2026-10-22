@@ -246,7 +246,11 @@ export async function createPgIntegrationRuntime(
       executions.length = 0;
     },
     async close() {
-      await realRuntime.close();
+      try {
+        await realRuntime.close();
+      } finally {
+        await client.end();
+      }
     },
     async execute(
       plan: SqlExecutionPlan | SqlQueryPlan,
