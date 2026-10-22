@@ -31,6 +31,7 @@ import {
   withFailingSpace,
 } from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
+import { SqlQueryError } from '@internal/sql-errors';
 import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -42,6 +43,8 @@ import { quoteIdentifier } from '../sql-utils';
 import { verifySqliteDatabaseSchema } from './diff-database-schema';
 import { affinityStorageClasses, conversionCopyOf, rebuiltTableName } from './operations/tables';
 import type { SqlitePlanTargetDetails } from './planner-target-details';
+
+const NOT_NULL_VIOLATION_SQLSTATE = '23502';
 
 /** Where a failed operation sits in its plan, and what the runner needs to name what blocked it. */
 interface PlanPosition {
@@ -429,10 +432,10 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         const failed = `Operation ${operation.id} failed during execution: ${step.description}`;
-        const rowsWithoutValue = await this.rowsWithoutValue(driver, message, plan);
+        const rowsWithoutValue = await this.rowsWithoutValue(driver, error, plan);
         const failedConversion =
           rowsWithoutValue === undefined
-            ? await this.failedConversion(driver, step, message, plan)
+            ? await this.failedConversion(driver, step, error, plan)
             : undefined;
         return runnerFailure('MIGRATION.EXECUTION_FAILED', rowsWithoutValue?.summary ?? failed, {
           why: rowsWithoutValue === undefined ? message : `${failed}: ${message}`,
@@ -458,7 +461,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
   private async failedConversion(
     driver: SqlMigrationRunnerExecuteOptions<SqlitePlanTargetDetails>['driver'],
     step: SqlMigrationPlanOperationStep,
-    message: string,
+    error: unknown,
     plan: PlanPosition,
   ): Promise<FailedConversion | undefined> {
     const copy = conversionCopyOf(step);
@@ -479,7 +482,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
         return this.conversionOf(plan, copy.table, column, 'expressionError');
       }
     }
-    const [, constrainedList] = message.split('constraint failed: ');
+    const constrainedList = SqlQueryError.is(error) ? error.constraint : undefined;
     if (constrainedList === undefined) return undefined;
     const constrained = new Set(constrainedList.split(', '));
     const column = columns.find((name) =>
@@ -509,10 +512,12 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
    */
   private rowsWithoutValue(
     driver: SqlMigrationRunnerExecuteOptions<SqlitePlanTargetDetails>['driver'],
-    message: string,
+    error: unknown,
     plan: PlanPosition,
   ): ReturnType<typeof rowsWithoutValueFailure> {
-    if (!message.includes('NOT NULL constraint failed')) return Promise.resolve(undefined);
+    if (!(SqlQueryError.is(error) && error.sqlState === NOT_NULL_VIOLATION_SQLSTATE)) {
+      return Promise.resolve(undefined);
+    }
     const marks = requiredColumnsOfMigration(plan.operations, plan.edges, plan.operationIndex);
     return rowsWithoutValueFailure({
       failed: marks.filter((mark) => mark.operationIndex === plan.operationIndex),

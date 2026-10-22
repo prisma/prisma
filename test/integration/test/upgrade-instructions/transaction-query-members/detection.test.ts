@@ -4,13 +4,17 @@ import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 
 const GUIDE_PATH =
-  'upgrade-instructions/pending/transaction-query-members/extension/instructions.md';
+  'skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../../../../..');
 
 function detects(content: string): boolean {
   const guide = readFileSync(join(repoRoot, GUIDE_PATH), 'utf8');
-  return [...guide.matchAll(/^ {8}- '(.*)'$/gm)]
+  const entry = guide
+    .split(/\n {2}- id: /)
+    .find((block) => block.startsWith('transaction-query-members\n'));
+  if (entry === undefined) throw new Error(`${GUIDE_PATH} has no transaction-query-members`);
+  return [...entry.matchAll(/^ {8}- '(.*)'$/gm)]
     .map(([, pattern]) => new RegExp((pattern ?? '').replaceAll("''", "'")))
     .some((pattern) => pattern.test(content));
 }

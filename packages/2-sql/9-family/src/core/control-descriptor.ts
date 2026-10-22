@@ -1,6 +1,7 @@
 import type { DataType } from '@internal/framework-components/codec';
 import type { ControlFamilyDescriptor, ControlStack } from '@internal/framework-components/control';
 import type { EmissionSpi } from '@internal/framework-components/emission';
+import { sqlCodecColumnLength } from '@internal/sql-contract/data-type';
 import { sqlExpressionRegistration } from '@internal/sql-contract/sql-expression';
 import { sqlEmission } from '@internal/sql-contract-emitter';
 import {
@@ -39,6 +40,10 @@ export class SqlFamilyDescriptor
     defaultFunctionRegistry: new Map(),
     generatorDescriptors: sqlFamilyGeneratorDescriptors,
   };
+  readonly fieldLength: NonNullable<ControlFamilyDescriptor<'sql'>['fieldLength']> = (
+    { codecId, typeParams },
+    dataTypes,
+  ) => sqlCodecColumnLength(dataTypes, codecId, typeParams);
   readonly pslDiagnostics = {
     describeUnsupportedAttribute: sqlFamilyDescribeUnsupportedAttribute,
     describeUnresolvedType: sqlFamilyDescribeUnresolvedType,

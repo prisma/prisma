@@ -24,7 +24,7 @@ describe('the advice for a check that fails before an operation runs', () => {
     );
 
     expect({ why: error.why, fix: error.fix }).toEqual({
-      why: 'Before operation index.Item.Item_state_idx runs, it checks: ensure index "Item_state_idx" does not exist. That check failed: the database already has index "Item_state_idx".',
+      why: 'Before operation index.Item.Item_state_idx runs, it checks: ensure index "Item_state_idx" does not exist. That check failed on this database.',
       fix: 'The database has no migration marker, so `{bin} db migrate` applies every migration from the first, and the database may already be ahead of this one. If its schema already matches the contract, adopt it with `{bin} db sign` instead.',
     });
   });
@@ -39,12 +39,12 @@ describe('the advice for a check that fails before an operation runs', () => {
     );
 
     expect({ why: error.why, fix: error.fix }).toEqual({
-      why: 'Before operation index.Item.Item_state_idx runs, it checks: ensure column "x" is missing. That check failed: the database already has column "x".',
+      why: 'Before operation index.Item.Item_state_idx runs, it checks: ensure column "x" is missing. That check failed on this database.',
       fix: 'The database has drifted from its migration history: it is not in the state the migrations before this one leave. See how it differs from the contract with `{bin} db verify`, change the database or the migration so they agree, and run `{bin} db migrate` again.',
     });
   });
 
-  it('reads a check that something exists, and leaves any other check as written', () => {
+  it('shows any check description as written', () => {
     const whyOf = (description: string) =>
       migrateError({ ...runnerFailed, failedPrecheck: failedPrecheck(description, true) }, PROJECT)
         .why;
@@ -54,8 +54,8 @@ describe('the advice for a check that fails before an operation runs', () => {
       whyOf('collection items does not exist'),
       whyOf('ensure no NULL values in "note"'),
     ]).toEqual([
-      'Before operation index.Item.Item_state_idx runs, it checks: ensure constraint "Item_pkey" exists. That check failed: the database has no constraint "Item_pkey".',
-      'Before operation index.Item.Item_state_idx runs, it checks: collection items does not exist. That check failed: the database already has collection items.',
+      'Before operation index.Item.Item_state_idx runs, it checks: ensure constraint "Item_pkey" exists. That check failed on this database.',
+      'Before operation index.Item.Item_state_idx runs, it checks: collection items does not exist. That check failed on this database.',
       'Before operation index.Item.Item_state_idx runs, it checks: ensure no NULL values in "note". That check failed on this database.',
     ]);
   });
@@ -86,7 +86,7 @@ describe('the advice for a check that fails before an operation runs', () => {
     );
 
     expect(error.why).toBe(
-      'Before operation index.Item.Item_state_idx runs, it checks: ensure index "Item_state_idx" does not exist. That check failed: the database already has index "Item_state_idx".',
+      'Before operation index.Item.Item_state_idx runs, it checks: ensure index "Item_state_idx" does not exist. That check failed on this database.',
     );
   });
 });

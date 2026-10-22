@@ -1,4 +1,6 @@
 import {
+  AUTHORING_TYPE_DESCRIPTOR_KINDS,
+  type AuthoringDescriptorKinds,
   type AuthoringEntityTypeNamespace,
   type AuthoringFieldNamespace,
   type AuthoringFieldPresetDescriptor,
@@ -58,10 +60,13 @@ function isNonEmptyRecord(value: unknown): value is Record<string, unknown> {
 }
 
 const descriptorKindByNamespace = {
-  type: { descriptorKind: 'typeConstructor', label: 'type' },
+  type: { descriptorKind: AUTHORING_TYPE_DESCRIPTOR_KINDS, label: 'type' },
   field: { descriptorKind: 'fieldPreset', label: 'field' },
   entityTypes: { descriptorKind: 'entity', label: 'entity' },
-} as const satisfies Record<AuthoringNamespaceKey, { descriptorKind: string; label: string }>;
+} as const satisfies Record<
+  AuthoringNamespaceKey,
+  { descriptorKind: AuthoringDescriptorKinds; label: string }
+>;
 
 interface AuthoringNamespaceByKey {
   readonly type: AuthoringTypeNamespace;

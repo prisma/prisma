@@ -373,7 +373,7 @@ describe('a named type whose base names a mixin', () => {
     ).toEqual([
       {
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-        message: 'Named type "Stamps" references unsupported base type "Timestamps"',
+        message: 'Type alias "Stamps" references unsupported base type "Timestamps"',
         line: 5,
       },
     ]);

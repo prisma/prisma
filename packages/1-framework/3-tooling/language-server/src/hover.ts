@@ -143,7 +143,7 @@ function renderContributedTypeContent(
 ): string {
   const fence = ['```prisma', renderContributedTypeLabel(symbol, dataTypes), '```'].join('\n');
   const documentation =
-    symbol.descriptor.kind === 'typeConstructor' ? symbol.descriptor.documentation : undefined;
+    symbol.descriptor.kind === 'fieldPreset' ? undefined : symbol.descriptor.documentation;
   return withDocumentation(fence, documentation);
 }
 
@@ -175,7 +175,8 @@ function renderContributedTypeLabel(
   dataTypes: DataTypeSupport,
 ): string {
   const path = symbol.path.join('.');
-  const args = symbol.descriptor.args ?? [];
+  const { descriptor } = symbol;
+  const args = descriptor.kind === 'typeAlias' ? [] : (descriptor.args ?? []);
   if (args.length === 0) return path;
   const labels = args.map((arg, index) => {
     const key = arg.name ?? `arg${index + 1}`;

@@ -242,13 +242,6 @@ const expectedRefusals: ReadonlyMap<string, ExpectedRefusal> = new Map<string, E
     { reason: 'has no foreign key in storage', meta: { model: 'Post', field: 'author' } },
   ],
   [
-    'packages/3-extensions/pgvector/src/contract.json',
-    {
-      reason: 'no PSL type in the configured stack',
-      meta: { coordinate: 'types.vector', dataType: 'pgvector/vector', codecId: 'pg/vector@1' },
-    },
-  ],
-  [
     'packages/3-extensions/postgres/test/fixtures/generated/contract.json',
     { reason: 'has no foreign key in storage', meta: { model: 'Post', field: 'author' } },
   ],
@@ -378,9 +371,27 @@ const refusedAtLoad: ReadonlyMap<string, readonly string[]> = new Map([
 
 const contracts = trackedPostgresContracts();
 
+function registeredDatabaseTypes(file: string): readonly string[] {
+  const json: unknown = JSON.parse(readFileSync(join(repoRoot, file), 'utf-8'));
+  const types: unknown = Reflect.get(Reflect.get(json as object, 'storage') ?? {}, 'types');
+  return typeof types === 'object' && types !== null ? Object.keys(types).sort() : [];
+}
+
+/** The contracts print refuses only because they register database types in `storage.types`: an extension's contract space, written in TypeScript. */
+const registeringDatabaseTypes = contracts.filter(
+  (file) => !expectedRefusals.has(file) && registeredDatabaseTypes(file).length > 0,
+);
+
 describe('every Postgres contract in the repo prints as PSL that reads back as the same contract', () => {
   it('finds the contracts', () => {
     expect(contracts.length).toBeGreaterThan(200);
+  });
+
+  it('skips only the contract spaces of pgvector and PostGIS, which register database types', () => {
+    expect(registeringDatabaseTypes).toEqual([
+      'packages/3-extensions/pgvector/src/contract.json',
+      'packages/3-extensions/postgis/src/contract.json',
+    ]);
   });
 
   it.each(contracts)('%s', async (file) => {
@@ -403,7 +414,9 @@ describe('every Postgres contract in the repo prints as PSL that reads back as t
       );
       return;
     }
-    const refusal = expectedRefusals.get(file);
+    const refusal = registeringDatabaseTypes.includes(file)
+      ? { reason: 'registers the database types', meta: { types: registeredDatabaseTypes(file) } }
+      : expectedRefusals.get(file);
     if (refusal !== undefined) {
       expect(() => printContract(contract, composition.stack)).toThrow(
         expect.objectContaining({

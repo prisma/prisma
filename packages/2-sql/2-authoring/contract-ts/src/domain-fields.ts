@@ -1,5 +1,5 @@
 import type { ContractField } from '@internal/contract/types';
-import { type AuthoredStorageTypeInstance, resolvedTypeParams } from '@internal/sql-contract/types';
+import { nonEmptyTypeParams } from '@internal/sql-contract/types';
 import { ifDefined } from '@internal/utils/defined';
 import {
   isValueObjectMember,
@@ -11,7 +11,6 @@ import { enumValueSetRefs } from './enum-members';
 export function buildDomainField(
   field: ScalarMemberNode | ValueObjectMemberNode,
   defaultNamespaceId: string,
-  storageTypes: Record<string, AuthoredStorageTypeInstance>,
 ): ContractField {
   if (isValueObjectMember(field)) {
     return {
@@ -25,7 +24,7 @@ export function buildDomainField(
     type: {
       kind: 'scalar',
       codecId: field.descriptor.codecId,
-      ...ifDefined('typeParams', resolvedTypeParams(field.descriptor, storageTypes)),
+      ...ifDefined('typeParams', nonEmptyTypeParams(field.descriptor.typeParams)),
     },
     nullable: field.nullable,
     many: field.many ? { elementNullable: field.elementNullable === true } : false,

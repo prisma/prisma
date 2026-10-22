@@ -19,6 +19,7 @@ import {
   sqliteTargetDescriptor,
   synthEdges,
   type TestDatabase,
+  withRewordedQueryErrors,
 } from './fixtures/runner-fixtures';
 
 const DB_UPDATE: MigrationOperationPolicy = {
@@ -126,8 +127,11 @@ describe('a SQLite column that becomes required while rows have no value', {
     return result.plan;
   }
 
-  function execute(planned: ReturnType<typeof plan>, contract: Contract<SqlStorage>) {
-    const { driver } = testDb;
+  function execute(
+    planned: ReturnType<typeof plan>,
+    contract: Contract<SqlStorage>,
+    driver: TestDatabase['driver'] = testDb.driver,
+  ) {
     return sqliteTargetDescriptor.createRunner(familyInstance).execute({
       driver,
       perSpaceOptions: [
@@ -177,6 +181,18 @@ describe('a SQLite column that becomes required while rows have no value', {
 
     await testDb.driver.query(`UPDATE "Item" SET note = 'x' WHERE note IS NULL`);
     expect((await execute(plan(optionalNote, requiredNote), requiredNote)).ok).toBe(true);
+  });
+
+  it("counts the rows from the driver's NOT NULL violation code, whatever the error's message", async () => {
+    await seeded([null, 'a']);
+    const result = await execute(
+      plan(optionalNote, requiredNote),
+      requiredNote,
+      withRewordedQueryErrors(testDb.driver),
+    );
+    expect(result.ok ? undefined : result.failure).toMatchObject({
+      message: '1 row of "Item" holds NULL in "note", so it cannot become required.',
+    });
   });
 
   it('counts the rows a new required column has no value for', async () => {

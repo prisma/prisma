@@ -1130,7 +1130,7 @@ function resolveTypeReference(
     const kind = found.kind === 'mixin' ? 'mixin' : 'namespace';
     return {
       resolution: found,
-      message: `"${written}" is a ${kind}; a type reference must name a model, composite type, enum, or named type`,
+      message: `"${written}" is a ${kind}; a type reference must name a model, composite type, enum, or type alias`,
       name: written,
     };
   }
@@ -1164,7 +1164,7 @@ function describeQualifier(resolution: ScopeResolution): string {
     case 'compositeType':
       return 'a composite type';
     case 'namedType':
-      return 'a named type';
+      return 'a type alias';
     case 'block':
       return `${resolution.symbol.keyword === 'enum' ? 'an' : 'a'} ${resolution.symbol.keyword}`;
     default:

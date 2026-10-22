@@ -32,28 +32,24 @@ model Meter {
 }
 ```
 
-TypeScript contracts can register composed type instances and reuse those exact instances with `field.namedType(...)`:
+TypeScript contracts pass the composed type to `field.column(...)`, and can keep it in a constant that several fields share:
 
 ```typescript
-const types = {
-  BigIntNumber: type.BigIntNumber(),
-  UnboundedInt: type.UnboundedInt(),
-} as const;
+const BigIntNumber = field.column(type.BigIntNumber());
 
 return {
-  types,
   models: {
     Meter: model('Meter', {
       fields: {
-        peak: field.namedType(types.BigIntNumber),
-        lifetime: field.namedType(types.UnboundedInt),
+        peak: BigIntNumber,
+        lifetime: field.column(type.UnboundedInt()),
       },
     }),
   },
 };
 ```
 
-For direct per-column declarations, use `field.column(pgInt8NumberColumn())` or `field.column(pgUnboundedIntColumn())` on PostgreSQL, and `field.column(sqliteBigintNumberColumn())` on SQLite. The named and direct forms select the same codecs and application types.
+For direct per-column declarations, use `field.column(pgInt8NumberColumn())` or `field.column(pgUnboundedIntColumn())` on PostgreSQL, and `field.column(sqliteBigintNumberColumn())` on SQLite. Both forms select the same codecs and application types.
 
 Introspection chooses a codec for a reported type from the target's own table of codecs, which names only the original codecs, so PostgreSQL `int8` and `numeric` and SQLite `integer` in type position keep their existing codecs and introspection remains unambiguous. Authoring availability does not make a reverse-introspection claim.
 

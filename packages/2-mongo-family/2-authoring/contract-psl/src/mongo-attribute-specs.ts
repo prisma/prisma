@@ -68,12 +68,13 @@ function buildFieldAttributeCtx(input: {
 }
 
 const UNLOWERED_FIELD_ATTRIBUTE_HINTS: ReadonlyMap<string, string> = new Map([
-  ['updatedAt', 'Use @onCreate(now()) @onUpdate(now()) instead.'],
+  ['updatedAt', 'Use @onCreate(now()) @onUpdate(now()), or type the field temporal.UpdatedAt.'],
 ]);
 
 const DEFAULT_NOW_HINT = 'Use @onCreate(now()) instead; MongoDB has no database defaults.';
 
-function unloweredAttributeHint(attribute: ResolvedAttribute): string | undefined {
+/** The hint for an attribute MongoDB PSL does not lower, naming what to write instead. */
+export function unloweredAttributeHint(attribute: ResolvedAttribute): string | undefined {
   if (attribute.name === 'default' && attribute.args[0]?.value.replace(/\s/g, '') === 'now()') {
     return DEFAULT_NOW_HINT;
   }

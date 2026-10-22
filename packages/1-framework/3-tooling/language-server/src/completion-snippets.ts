@@ -27,7 +27,7 @@ export function typeConstructorSnippet(
   descriptor: ContributedTypeDescriptor,
   dataTypes: DataTypeSupport,
 ): string {
-  const args = descriptor.args ?? [];
+  const args = descriptor.kind === 'typeAlias' ? [] : (descriptor.args ?? []);
   const reference = descriptor.kind === 'typeConstructor' ? descriptor.entityRefArg : undefined;
   const count = Math.max(args.length, (reference?.index ?? -1) + 1);
   const values: string[] = [];

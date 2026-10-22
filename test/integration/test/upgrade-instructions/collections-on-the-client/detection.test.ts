@@ -4,15 +4,21 @@ import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 
 const GUIDE_PATHS = {
-  app: 'upgrade-instructions/pending/collections-on-the-client/app/instructions.md',
-  extension: 'upgrade-instructions/pending/collections-on-the-client/extension/instructions.md',
+  app: 'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md',
+  extension:
+    'skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md',
 } as const;
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../../../../..');
 
 function detection(audience: keyof typeof GUIDE_PATHS): readonly RegExp[] {
   const guide = readFileSync(join(repoRoot, GUIDE_PATHS[audience]), 'utf8');
-  const patterns = [...guide.matchAll(/^ {8}- '(.*)'$/gm)].map(
+  const entry = guide
+    .split(/\n {2}- id: /)
+    .find((block) => block.startsWith('collections-on-the-client\n'));
+  if (entry === undefined)
+    throw new Error(`${GUIDE_PATHS[audience]} has no change collections-on-the-client`);
+  const patterns = [...entry.matchAll(/^ {8}- '(.*)'$/gm)].map(
     ([, pattern]) => new RegExp((pattern ?? '').replaceAll("''", "'")),
   );
   if (patterns.length === 0) throw new Error(`${GUIDE_PATHS[audience]} has no detection pattern`);

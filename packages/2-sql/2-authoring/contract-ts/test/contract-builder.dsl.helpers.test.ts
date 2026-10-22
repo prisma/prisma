@@ -192,17 +192,6 @@ function expectTypedFallbackWarnings(run: () => void, expectedFragments: readonl
   }
 }
 
-function expectNoTypedFallbackWarnings(run: () => void): void {
-  const emitWarning = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
-
-  try {
-    run();
-    expect(emitWarning).not.toHaveBeenCalled();
-  } finally {
-    emitWarning.mockRestore();
-  }
-}
-
 describe('contract DSL helper vocabulary', () => {
   it('lowers portable scalar helpers and explicit uuidv4 primary keys via factory callback', () => {
     const contract = defineContract(
@@ -387,7 +376,7 @@ describe('contract DSL helper vocabulary', () => {
     ]);
   });
 
-  it('accepts named storage type refs from the local types object', () => {
+  it('lowers a codec instance constant inline', () => {
     const contract = defineContract(
       {
         ...testSqlTypeLookups({ 'app/test-enum@1': 'role' }),
@@ -396,11 +385,10 @@ describe('contract DSL helper vocabulary', () => {
         createNamespace: createTestSqlNamespace,
       },
       ({ field, model }) => ({
-        types: roleTypes,
         models: {
           User: model('User', {
             fields: {
-              role: field.namedType(roleTypes.Role),
+              role: field.column(roleTypes.Role),
             },
           }).sql({
             table: 'app_user',
@@ -409,40 +397,22 @@ describe('contract DSL helper vocabulary', () => {
       }),
     );
 
-    expect(unboundTables(contract.storage)['app_user']!.columns['role']).toMatchObject({
-      codecId: 'app/test-enum@1',
-      dataType: 'app/test-enum',
-      nullable: false,
-      typeRef: 'Role',
+    expect({
+      types: contract.storage.types,
+      role: unboundTables(contract.storage)['app_user']!.columns['role'],
+    }).toEqual({
+      types: undefined,
+      role: {
+        codecId: 'app/test-enum@1',
+        dataType: 'app/test-enum',
+        nullable: false,
+        many: false,
+        typeParams: { values: ['USER', 'ADMIN'] },
+      },
     });
   });
 
   it.each([
-    {
-      name: 'a string named type ref',
-      run: () =>
-        defineContract(
-          {
-            ...testTypeLookups,
-            family: sqlFamilyPack,
-            target: postgresTargetPack,
-            createNamespace: createTestSqlNamespace,
-          },
-          ({ field, model }) => ({
-            types: roleTypes,
-            models: {
-              User: model('User', {
-                fields: {
-                  role: field.namedType('Role'),
-                },
-              }).sql({
-                table: 'app_user',
-              }),
-            },
-          }),
-        ),
-      expectedFragments: [`field.namedType('Role')`],
-    },
     {
       name: 'a string relation target',
       run: () =>
@@ -526,31 +496,6 @@ describe('contract DSL helper vocabulary', () => {
     expectTypedFallbackWarnings(run, expectedFragments);
   });
 
-  it('does not warn when named storage types use the local types object directly', () => {
-    expectNoTypedFallbackWarnings(() =>
-      defineContract(
-        {
-          ...testTypeLookups,
-          family: sqlFamilyPack,
-          target: postgresTargetPack,
-          createNamespace: createTestSqlNamespace,
-        },
-        ({ field, model }) => ({
-          types: roleTypes,
-          models: {
-            User: model('User', {
-              fields: {
-                role: field.namedType(roleTypes.Role),
-              },
-            }).sql({
-              table: 'app_user',
-            }),
-          },
-        }),
-      ),
-    );
-  });
-
   it('supports integrated contract callbacks with target-owned type helpers', () => {
     const contract = defineContract(
       {
@@ -560,16 +505,13 @@ describe('contract DSL helper vocabulary', () => {
         createNamespace: createTestSqlNamespace,
       },
       ({ type, field, model }) => {
-        const types = {
-          Role: type.enum('role'),
-        } as const;
+        const Role = field.column(type.enum('role'));
 
         return {
-          types,
           models: {
             User: model('User', {
               fields: {
-                role: field.namedType(types.Role),
+                role: Role,
               },
             }).sql({
               table: 'app_user',
@@ -579,15 +521,10 @@ describe('contract DSL helper vocabulary', () => {
       },
     );
 
-    expect(documentScopedTypes(contract)?.['Role']).toEqual({
-      kind: 'codec-instance',
-      codecId: 'app/test-enum@1',
-      dataType: 'app/test-enum',
-      typeParams: { name: 'role', values: ['USER', 'ADMIN'] },
-    });
+    expect(documentScopedTypes(contract)).toBeUndefined();
     expect(unboundTables(contract.storage)['app_user']!.columns['role']).toMatchObject({
       codecId: 'app/test-enum@1',
-      typeRef: 'Role',
+      typeParams: { name: 'role', values: ['USER', 'ADMIN'] },
     });
   });
 
@@ -650,16 +587,13 @@ describe('contract DSL helper vocabulary', () => {
         },
       },
       ({ type, field, model }) => {
-        const types = {
-          Embedding1536: type.pgvector.Vector(1536),
-        } as const;
+        const Embedding1536 = field.column(type.pgvector.Vector(1536));
 
         return {
-          types,
           models: {
             Document: model('Document', {
               fields: {
-                embedding: field.namedType(types.Embedding1536),
+                embedding: Embedding1536,
               },
             }).sql({
               table: 'document',
@@ -669,15 +603,10 @@ describe('contract DSL helper vocabulary', () => {
       },
     );
 
-    expect(documentScopedTypes(contract)?.['Embedding1536']).toEqual({
-      kind: 'codec-instance',
-      codecId: 'pg/vector@1',
-      dataType: 'pgvector/vector',
-      typeParams: { length: 1536 },
-    });
+    expect(documentScopedTypes(contract)).toBeUndefined();
     expect(unboundTables(contract.storage)['document']!.columns['embedding']).toMatchObject({
       codecId: 'pg/vector@1',
-      typeRef: 'Embedding1536',
+      typeParams: { length: 1536 },
     });
   });
 

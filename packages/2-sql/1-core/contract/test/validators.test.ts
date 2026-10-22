@@ -268,36 +268,6 @@ describe('SQL contract validators', () => {
       } as unknown;
       expect(() => validateStorage(invalid)).toThrow();
     });
-
-    it('throws when column declares both typeParams and typeRef', () => {
-      const invalid = {
-        storageHash: 'test',
-        namespaces: {
-          [UNBOUND_NAMESPACE_ID]: {
-            id: UNBOUND_NAMESPACE_ID,
-            entries: {
-              table: {
-                user: {
-                  columns: {
-                    embedding: {
-                      dataType: 'pgvector/vector',
-                      codecId: 'pg/vector@1',
-                      nullable: false,
-                      typeParams: { dimensions: 1536 },
-                      typeRef: 'vector_1536',
-                    },
-                  },
-                  uniques: [],
-                  indexes: [],
-                  foreignKeys: [],
-                },
-              },
-            },
-          },
-        },
-      } as unknown;
-      expect(() => validateStorage(invalid)).toThrow(/either typeParams or typeRef, not both/);
-    });
   });
 
   describe('the stored data type', () => {
@@ -1339,6 +1309,64 @@ describe('SQL contract validators', () => {
       column.nativeType = 'text';
       expect(() => validateSqlContractFully(c)).toThrow(
         `Contract structural validation failed: storage.namespaces.${UNBOUND_NAMESPACE_ID}.entries.table.user.columns.tags.nativeType: contracts no longer store a column's database type name; the column names its data type in "dataType"`,
+      );
+    });
+
+    it('refuses a contract that stores type aliases, naming the first five paths and counting the rest', () => {
+      const names = ['a', 'b', 'c', 'd', 'e', 'f'];
+      const userTable = table(
+        Object.fromEntries(names.map((name) => [name, col('pg/text', 'pg/text@1')])),
+      );
+      const c = JSON.parse(
+        JSON.stringify(createContract<SqlStorage>({ storage: unboundTables({ user: userTable }) })),
+      );
+      for (const name of names) {
+        c.storage.namespaces[UNBOUND_NAMESPACE_ID].entries.table.user.columns[name].typeRef =
+          'Slug';
+      }
+      const listed = names
+        .slice(0, 5)
+        .map(
+          (name) =>
+            `storage.namespaces.${UNBOUND_NAMESPACE_ID}.entries.table.user.columns.${name}.typeRef`,
+        )
+        .join(', ');
+      expect(() => validateSqlContractFully(c)).toThrow(
+        expect.objectContaining({
+          message: `Contract structural validation failed: contracts no longer store type aliases, so re-emit the contract from its source, or rewrite a stored contract such as a migration snapshot with expand-type-aliases.ts, which ships in the expand-type-aliases scripts of the Prisma 8 upgrade guide. Columns: ${listed}, and 1 more (6 in all)`,
+        }),
+      );
+    });
+
+    it('refuses a stored storage section with a type alias', () => {
+      const userTable = table({ slug: col('pg/text', 'pg/text@1') });
+      const c = JSON.parse(
+        JSON.stringify(createContract<SqlStorage>({ storage: unboundTables({ user: userTable }) })),
+      );
+      c.storage.namespaces[UNBOUND_NAMESPACE_ID].entries.table.user.columns.slug.typeRef = 'Slug';
+      expect(() => validateStorage(c.storage)).toThrow(
+        `Storage validation failed: contracts no longer store type aliases, so re-emit the contract from its source, or rewrite a stored contract such as a migration snapshot with expand-type-aliases.ts, which ships in the expand-type-aliases scripts of the Prisma 8 upgrade guide. Columns: storage.namespaces.${UNBOUND_NAMESPACE_ID}.entries.table.user.columns.slug.typeRef`,
+      );
+    });
+
+    it('refuses a contract that stores type names, check waivers and type aliases for its type names first, then its check waivers', () => {
+      const userTable = table({ tags: col('pg/text', 'pg/text@1') });
+      const c = JSON.parse(
+        JSON.stringify(createContract<SqlStorage>({ storage: unboundTables({ user: userTable }) })),
+      );
+      const path = `storage.namespaces.${UNBOUND_NAMESPACE_ID}.entries.table.user.columns.tags`;
+      const column = c.storage.namespaces[UNBOUND_NAMESPACE_ID].entries.table.user.columns.tags;
+      column.typeRef = 'Tags';
+      column.noCheck = ['elementNotNull'];
+      column.nativeType = 'text';
+      const withTypeName = structuredClone(c);
+      delete column.nativeType;
+      const withCheckWaiver = c;
+      expect(() => validateSqlContractFully(withTypeName)).toThrow(
+        `Contract structural validation failed: ${path}.nativeType: contracts no longer store a column's database type name; the column names its data type in "dataType"`,
+      );
+      expect(() => validateSqlContractFully(withCheckWaiver)).toThrow(
+        `Contract structural validation failed: contracts no longer store check waivers in "noCheck", so re-emit the contract from its source, or rewrite a stored contract such as a migration snapshot with remove-nocheck.ts, which ships in the remove-nocheck scripts of the Prisma 8 upgrade guide. Columns: ${path}.noCheck`,
       );
     });
 

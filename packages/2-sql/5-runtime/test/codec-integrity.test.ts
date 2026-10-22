@@ -128,7 +128,6 @@ describe('createExecutionContext — column codec integrity', () => {
   function contractWithColumn(column: {
     readonly codecId: string;
     readonly typeParams?: Record<string, unknown>;
-    readonly typeRef?: string;
   }): Contract<SqlStorage> {
     const storage: SqlStorage = new SqlStorage({
       storageHash: coreHash('test'),
@@ -144,7 +143,6 @@ describe('createExecutionContext — column codec integrity', () => {
                     codecId: column.codecId,
                     nullable: false,
                     ...(column.typeParams ? { typeParams: column.typeParams } : {}),
-                    ...(column.typeRef ? { typeRef: column.typeRef } : {}),
                   },
                 },
                 primaryKey: { columns: ['field'] },
@@ -209,59 +207,6 @@ describe('createExecutionContext — column codec integrity', () => {
       codecId: 'test/scalar@1',
       typeParams: {},
     });
-    expect(() =>
-      createTestContext(contract, createStubAdapter(), {
-        extensions: [nonParameterizedExtension()],
-      }),
-    ).not.toThrow();
-  });
-
-  it('accepts a typeRef column whose typed instance carries empty-object typeParams against a non-parameterized codec', () => {
-    const storage: SqlStorage = new SqlStorage({
-      storageHash: coreHash('test'),
-      namespaces: {
-        [UNBOUND_NAMESPACE_ID]: createTestSqlNamespace({
-          id: UNBOUND_NAMESPACE_ID,
-          entries: {
-            table: {
-              Doc: {
-                columns: {
-                  uuidCol: {
-                    dataType: 'test/scalar',
-                    codecId: 'test/scalar@1',
-                    nullable: false,
-                    typeRef: 'Uuid',
-                  },
-                },
-                primaryKey: { columns: ['uuidCol'] },
-                uniques: [],
-                indexes: [],
-                foreignKeys: [],
-              },
-            },
-          },
-        }),
-      },
-      types: {
-        Uuid: {
-          kind: 'codec-instance',
-          codecId: 'test/scalar@1',
-          dataType: 'test/scalar',
-          typeParams: {},
-        },
-      },
-    });
-    const contract: Contract<SqlStorage> = {
-      targetFamily: 'sql',
-      target: 'postgres',
-      profileHash: profileHash('test'),
-      domain: applicationDomainOf({ models: {} }),
-      roots: {},
-      storage,
-      extensions: {},
-      capabilities: {},
-      meta: {},
-    };
     expect(() =>
       createTestContext(contract, createStubAdapter(), {
         extensions: [nonParameterizedExtension()],
@@ -335,58 +280,5 @@ describe('createExecutionContext — column codec integrity', () => {
         extensions: [asyncParamsSchemaExtension()],
       }),
     ).toThrow(/TYPE_PARAMS_INVALID|Promise|synchronous/);
-  });
-
-  it('accepts a typeRef column whose typed instance carries typeParams', () => {
-    const storage: SqlStorage = new SqlStorage({
-      storageHash: coreHash('test'),
-      namespaces: {
-        [UNBOUND_NAMESPACE_ID]: createTestSqlNamespace({
-          id: UNBOUND_NAMESPACE_ID,
-          entries: {
-            table: {
-              Doc: {
-                columns: {
-                  embedding: {
-                    dataType: 'pgvector/vector',
-                    codecId: 'pgvector/vector@1',
-                    nullable: false,
-                    typeRef: 'V1536',
-                  },
-                },
-                primaryKey: { columns: ['embedding'] },
-                uniques: [],
-                indexes: [],
-                foreignKeys: [],
-              },
-            },
-          },
-        }),
-      },
-      types: {
-        V1536: {
-          kind: 'codec-instance',
-          codecId: 'pgvector/vector@1',
-          dataType: 'pgvector/vector',
-          typeParams: { length: 1536 },
-        },
-      },
-    });
-    const contract: Contract<SqlStorage> = {
-      targetFamily: 'sql',
-      target: 'postgres',
-      profileHash: profileHash('test'),
-      domain: applicationDomainOf({ models: {} }),
-      roots: {},
-      storage,
-      extensions: {},
-      capabilities: {},
-      meta: {},
-    };
-    expect(() =>
-      createTestContext(contract, createStubAdapter(), {
-        extensions: [parameterizedExtension()],
-      }),
-    ).not.toThrow();
   });
 });

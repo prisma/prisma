@@ -80,7 +80,7 @@ Supported timestamp authoring surface:
 - `createdAt DateTime @default(now())` lowers to the target storage default and does not create an execution mutation default.
 - `createdAt temporal.createdAt()` generates a client-side timestamp on create, without a database default.
 - `updatedAt temporal.updatedAt()` uses the same execution generator on create and on non-empty update mutations. Matching representations share one generated value per operation; updates leave `createdAt` unchanged. These semantics are application-side, not database triggers.
-- The Prisma-flavored `@updatedAt` attribute is not supported; references produce `PSL_UNSUPPORTED_FIELD_ATTRIBUTE` with a migration hint pointing at `temporal.updatedAt()`. The hint is suppressed when the field already declares any `temporal.*` preset.
+- The Prisma-flavored `@updatedAt` attribute is not supported; references produce `PSL_UNSUPPORTED_FIELD_ATTRIBUTE` with the hint `Use @onCreate(now()) @onUpdate(now()), or type the field temporal.UpdatedAt.` The hint is left out when the field already writes `@onUpdate`.
 - `@createdAt` is not supported as a PSL alias.
 
 Field-preset calls in type position:
@@ -94,6 +94,28 @@ Generated values:
 - `@onCreate(fn())` and `@onUpdate(fn())` set the generator the client runs on create and on every update. `fn` is one of the generator functions the stack binds to the field's codec: `now()` on every date and time type, and `uuid()`, `uuid(7)`, `cuid(2)`, `ulid()`, `nanoid()`, `nanoid(n)` and `ksuid()` on every text type (`uuid` also on `Uuid`). The spec of each attribute offers only the functions bound to the field's codec, and the call resolves through `generatorFunctions` with the column's codec and type params: `now()` on a `Time(3)` column takes `precision: 3`. `nanoid()` writes 21 characters, or the size the call gives, on every column. A generator is refused on a column shorter than what it writes (`uuid` 36, `ksuid` 27, `ulid` 26, `cuid` 24), with the column's length read in its type's normal form, so a bare `Char` holds 1; SQLite does not limit the length. A function that does not apply is `PSL_GENERATOR_NOT_APPLICABLE`, an unknown one `PSL_UNKNOWN_GENERATOR_FUNCTION`, either attribute on a list field `PSL_LIST_EXECUTION_DEFAULT_UNSUPPORTED`, and the same attribute twice on one field `PSL_DUPLICATE_ATTRIBUTE`.
 - `@default(now()) @onCreate(now())` on one column keeps both: the client writes its time on create and the database default fills other inserts. `@onUpdate(...)` alone is allowed.
 - A generator works on an optional field, such as `token String? @onCreate(uuid())`. On create and update, a value left out is generated and an explicit `null` is stored.
+
+Type aliases:
+
+```prisma
+types {
+  Slug      = VarChar(64)
+  UpdatedAt = TimestampString(3) @onCreate(now()) @onUpdate(now())
+}
+
+model Post {
+  id        String             @id @onCreate(uuid())
+  slug      Slug
+  createdAt temporal.CreatedAt
+  updatedAt UpdatedAt          @default(now())
+}
+```
+
+- A `types {}` alias is authoring shorthand. The interpreter expands it into each field typed by it: the column stores the alias's codec and type params inline, and the contract stores neither the alias nor a `typeRef`.
+- An alias's base is a type constructor, called or bare, or an enum. It may not name another alias or a contributed alias (`PSL_UNSUPPORTED_NAMED_TYPE_BASE`).
+- An alias may carry `@default`, `@onCreate` and `@onUpdate`. They are lowered once, at the declaration, so a diagnostic is reported once, on the alias. Every field typed by the alias takes them. `@id` and `@unique` on an alias are `PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE`, because they belong to a model's field, not to its type; write them on the field. A refused attribute is dropped and the alias is kept.
+- A field may add any attribute its alias does not set, including `@id` and `@unique`. A field that writes an attribute its alias already sets is `PSL_DUPLICATE_ATTRIBUTE`, naming the alias. A list field typed by an alias that generates a value is `PSL_LIST_EXECUTION_DEFAULT_UNSUPPORTED`; an optional field may use one.
+- The targets contribute aliases with no arguments, written bare: `temporal.CreatedAt` (`now()` on create) and `temporal.UpdatedAt` (`now()` on create and on update). On Postgres they are `Timestamptz`, with `temporal.CreatedAtString` / `temporal.UpdatedAtString` on `TimestamptzString` and `temporal.CreatedAtJsDate` / `temporal.UpdatedAtJsDate` on `TimestamptzJsDate`; on SQLite they are `DateTime`. Each stores what the matching `temporal.createdAt()` or `temporal.updatedAt()` preset stores. `temporal.CreatedAt(3)` is `PSL_INVALID_ATTRIBUTE_ARGUMENT`; write a precision with the attributes, as in `Timestamptz(3) @onCreate(now())`.
 
 Integer representation authoring surface:
 

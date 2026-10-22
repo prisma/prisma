@@ -3,7 +3,7 @@ import {
   textColumn,
   timestamptzTemporalColumn,
 } from '@internal/adapter-postgres/column-types';
-import { field } from '@internal/sql-contract-ts/contract-builder';
+import { enumType, field, member } from '@internal/sql-contract-ts/contract-builder';
 import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it, vi } from 'vitest';
 import { createFragmentsOrm } from './fragments-fixture';
@@ -142,7 +142,7 @@ describe('client.fragment', () => {
         blindCast<
           { readonly kind: ReturnType<typeof field.column<typeof textColumn>> },
           'a JavaScript caller passes a named type builder'
-        >({ kind: field.namedType('user_type') }),
+        >({ kind: field.namedType(enumType('user_type', textColumn, member('admin', 'admin'))) }),
         (rows) => rows.limit(1),
       ),
     ).toThrow(

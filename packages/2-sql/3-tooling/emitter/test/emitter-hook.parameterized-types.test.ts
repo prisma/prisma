@@ -68,7 +68,7 @@ describe('sql-target-family-hook parameterized type emission', () => {
       const types = generateContractDts(ir, sqlEmission, [], testHashes);
 
       expect(types).toContain('readonly namespaces:');
-      expect(types).not.toContain('readonly Vector1536');
+      expect(types).not.toContain('readonly types:');
     });
 
     it('handles undefined storage.types (no types key)', () => {

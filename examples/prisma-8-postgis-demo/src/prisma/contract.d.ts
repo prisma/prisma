@@ -25,7 +25,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'254e34b6bf4a1f74980cfdfb8c038a58e2c06fdc73c1b19bd6f4019373e3ca58'>;
+  StorageHashBase<'28b5e5f98ce0e148f03e345518c9c53cb7a04a82e8e58de74a87c1b4ae08cf65'>;
 export type ExecutionHash =
   ExecutionHashBase<'73426d737fd7fe88107a86f2a5602ff842560bf4a193aaf5ae7355b79f511658'>;
 export type ProfileHash =
@@ -332,7 +332,7 @@ type ContractBase = Omit<
                   readonly dataType: 'postgis/geometry';
                   readonly codecId: 'pg/geometry@1';
                   readonly nullable: false;
-                  readonly typeRef: 'WgsGeometry';
+                  readonly typeParams: { readonly srid: 4326 };
                   readonly many: false;
                 };
                 readonly name: {
@@ -353,7 +353,7 @@ type ContractBase = Omit<
                   readonly dataType: 'postgis/geometry';
                   readonly codecId: 'pg/geometry@1';
                   readonly nullable: false;
-                  readonly typeRef: 'WgsGeometry';
+                  readonly typeParams: { readonly srid: 4326 };
                   readonly many: false;
                 };
                 readonly id: {
@@ -394,7 +394,7 @@ type ContractBase = Omit<
                   readonly dataType: 'postgis/geometry';
                   readonly codecId: 'pg/geometry@1';
                   readonly nullable: false;
-                  readonly typeRef: 'WgsGeometry';
+                  readonly typeParams: { readonly srid: 4326 };
                   readonly many: false;
                 };
               };
@@ -405,14 +405,6 @@ type ContractBase = Omit<
             };
           };
         };
-      };
-    };
-    readonly types: {
-      readonly WgsGeometry: {
-        readonly kind: 'codec-instance';
-        readonly codecId: 'pg/geometry@1';
-        readonly dataType: 'postgis/geometry';
-        readonly typeParams: { readonly srid: 4326 };
       };
     };
     readonly storageHash: StorageHash;

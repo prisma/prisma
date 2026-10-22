@@ -599,6 +599,28 @@ describe('assembleAuthoringContributions', () => {
     ).toThrow(/Ambiguous authoring registry path "custom.Json"/);
   });
 
+  it('rejects field preset and type alias path collisions, naming the type alias', () => {
+    expect(() =>
+      assembleAuthoringContributions([
+        createDescriptor({
+          authoring: {
+            field: { custom: { Stamp: { kind: 'fieldPreset', output: { codecId: 'a@1' } } } },
+          },
+        }),
+        createDescriptor({
+          id: 'other',
+          authoring: {
+            type: {
+              custom: { Stamp: { kind: 'typeAlias', output: { type: { codecId: 'b@1' } } } },
+            },
+          },
+        }),
+      ]),
+    ).toThrow(
+      'Ambiguous authoring registry path "custom.Stamp". The same path is registered as both a type constructor or type alias and a field preset;',
+    );
+  });
+
   it('merges entityTypes namespaces from multiple descriptors', () => {
     const result = assembleAuthoringContributions([
       createDescriptor({

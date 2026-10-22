@@ -328,11 +328,7 @@ namespace b {
 
     expect(result.value.roots).toEqual({});
     expect(modelsOf(result.value)).toEqual({});
-    expect(documentScopedTypes(result.value)).toMatchObject({
-      Email: {
-        codecId: 'pg/text@1',
-      },
-    });
+    expect(documentScopedTypes(result.value)).toBeUndefined();
   });
 
   describe('@@discriminator and @@base — happy paths', () => {

@@ -815,7 +815,9 @@
                   "codecId": "pg/vector@1",
                   "dataType": "pgvector/vector",
                   "nullable": true,
-                  "typeRef": "Embedding1536"
+                  "typeParams": {
+                    "length": 1536
+                  }
                 },
                 "expiresAt": {
                   "codecId": "pg/timestamptz-temporal@1",
@@ -1221,17 +1223,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "0cc3858331779e3853a61a911a7fe85ca764430aa9de12c2a0bb36bfa3165743",
-    "types": {
-      "Embedding1536": {
-        "codecId": "pg/vector@1",
-        "dataType": "pgvector/vector",
-        "kind": "codec-instance",
-        "typeParams": {
-          "length": 1536
-        }
-      }
-    }
+    "storageHash": "0ce1b6cf3e03ac1498f39eb8ef08d36d73ee2f0bc7fe368b97f1497ba050501a"
   },
   "execution": {
     "executionHash": "eb9bffd4c01945792e83de10d571b20df42f5bf40405ec8c642c6592f7dc4655",
