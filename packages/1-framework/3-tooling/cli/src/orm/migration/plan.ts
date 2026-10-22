@@ -209,13 +209,14 @@ function planBlocks(result: MigrationPlanResult, migrationsRelative: string): re
 }
 
 function writtenDirs(result: MigrationPlanResult, migrationsRelative: string): readonly string[] {
-  return [
+  const dirs = [
     ...(result.baselineDir === undefined ? [] : [result.baselineDir]),
     ...(result.dir === undefined ? [] : [result.dir]),
     ...result.emittedExtensionDirs.map((entry) =>
       join(migrationsRelative, entry.spaceId, entry.dirName),
     ),
   ];
+  return [...new Set(dirs)];
 }
 
 function planNextActions(

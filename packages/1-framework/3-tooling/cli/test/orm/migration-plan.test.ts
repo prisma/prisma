@@ -1076,6 +1076,7 @@ describe('migration plan', () => {
       block.kind === 'fields' ? block.rows : [],
     );
     expect(fieldRows).toContainEqual({ label: 'space cipherstash', value: extensionDir });
+    expect(run.stdout.trimEnd().split('\n').at(-1)).toBe(extensionDir);
     expect(run.presented?.presentation.next?.at(0)).toMatchObject({
       kind: 'edit-file',
       label: expect.stringContaining(extensionDir),
@@ -1101,6 +1102,38 @@ describe('migration plan', () => {
     const dirs = await plannedDirs(project);
 
     expect(run.stdout).toBe(`${join('migrations', 'app', dirs.at(-1) ?? '')}\n`);
+  });
+
+  it('prints the baseline directory before the delta directory', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+    await seedContractSnapshot({ migrationsDir: project.migrationsDir, storageHash: HASH_FROM });
+    await seedDbRef({ appMigrationsDir: project.appMigrationsDir, storageHash: HASH_FROM });
+
+    const run = await harness(project).run(['migration', 'plan', '--name', 'delta'], {
+      cwd: project.dir,
+    });
+    const dirs = await plannedDirs(project);
+
+    expect(run.stdout).toBe(
+      `${join('migrations', 'app', dirs[0] ?? '')}\n${join('migrations', 'app', dirs[1] ?? '')}\n`,
+    );
+  });
+
+  it('prints a baseline with placeholders and no delta once', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+    await seedContractSnapshot({ migrationsDir: project.migrationsDir, storageHash: HASH_TO });
+    await seedDbRef({ appMigrationsDir: project.appMigrationsDir, storageHash: HASH_TO });
+
+    const run = await harness(project, {
+      script: {
+        operations: [ADDITIVE_OP],
+        throwOnOperations: errorUnfilledPlaceholder('backfill'),
+      },
+    }).run(['migration', 'plan'], { cwd: project.dir });
+    const dirs = await plannedDirs(project);
+
+    expect(dirs).toHaveLength(1);
+    expect(run.stdout).toBe(`${join('migrations', 'app', dirs[0] ?? '')}\n`);
   });
 
   it('errors when the contract has not been emitted', async () => {
