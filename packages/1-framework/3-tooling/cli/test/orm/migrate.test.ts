@@ -491,7 +491,9 @@ describe('migrate', () => {
       },
     });
     expect(stdoutErrorMeta(run.stdout)).toEqual(JSON.parse(JSON.stringify(runnerFailure.meta)));
-    expect(mocks.migrate).toHaveBeenCalledWith(expect.objectContaining({ invocation }));
+    expect(mocks.migrate).toHaveBeenCalledWith(
+      expect.objectContaining({ invocation: { ...invocation, rerunArgs: [] } }),
+    );
   });
 
   describe('a close that fails on the way out', () => {

@@ -56,6 +56,7 @@ function schemaTables(
   const columnsOf = (namespaceId: string, table: string) => namespaces[namespaceId]?.[table];
   return {
     hasTable: (namespaceId, table) => columnsOf(namespaceId, table) !== undefined,
+    hasNamespace: (namespaceId) => Object.hasOwn(namespaces, namespaceId),
     hasColumn: (namespaceId, table, column) =>
       columnsOf(namespaceId, table)?.includes(column) === true,
     tablesNamed: (namespaceId, table) =>

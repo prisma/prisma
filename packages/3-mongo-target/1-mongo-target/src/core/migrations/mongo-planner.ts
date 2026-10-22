@@ -580,7 +580,7 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
         }),
         ...fieldLoss,
       ].sort((a, b) => a.operationIndex - b.operationIndex),
-      accessWidening: [],
+      accessChanges: [],
       temporaryValues: [],
       ...(warnings.length > 0 ? { warnings } : {}),
     };

@@ -43,6 +43,7 @@ export type {
   ControlTargetInstance,
 } from '../control/control-instances';
 export type {
+  BlockingObject,
   CheckExpectation,
   FailedCast,
   FailedCheck,
@@ -144,6 +145,7 @@ export type {
   MigrationDataLoss,
   MigrationDataLossKind,
   MigrationOperationSubject,
+  MigrationPlanNamespaces,
   MigrationPlanSubjects,
   MigrationStatementJson,
   MigrationSubject,
@@ -156,6 +158,7 @@ export type {
   ResolvedFieldRenameStatement,
   ResolvedMigrationStatement,
   ResolvedModelRenameStatement,
+  ResolvedNamespaceRenameStatement,
   ResolvedRenameStatement,
 } from '../control/migration-statements';
 export {

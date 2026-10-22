@@ -20,6 +20,7 @@ import type {
   MigrationAccessChange,
   MigrationDataLoss,
   MigrationOperationSubject,
+  MigrationPlanNamespaces,
   MigrationPlannerConflict,
   MigrationPlanOperation,
   MigrationPlanSubjects,
@@ -235,8 +236,8 @@ export interface DbUpdateOptions extends PlannerWarningsListener {
   readonly connection?: unknown;
   /** Consents to every operation that would lose data, without asking. */
   readonly acceptDataLoss?: boolean;
-  /** Consents to every operation that would widen who can read or write rows, without asking. */
-  readonly acceptAccessWidening?: boolean;
+  /** Consents to every operation that would change who can read or write data, without asking. */
+  readonly acceptAccessChanges?: boolean;
   /**
    * On-disk migrations directory. Always required — every `db update`
    * routes through the per-space flow, which reads on-disk
@@ -253,7 +254,7 @@ export interface DbUpdateOptions extends PlannerWarningsListener {
   readonly statements?: readonly StatementText[];
   /**
    * Asks, before an apply, what each operation that would lose data means and
-   * whether each that would widen who can read or write rows may run, for the
+   * whether each that would change who can read or write data may run, for the
    * questions no statement answered. The `db update` command asks through its
    * prompt.
    */
@@ -438,12 +439,14 @@ export type DbInitResult = Result<DbInitSuccess, CliStructuredError>;
 /** An operation an apply asks about, with its subject written as the question writes it: `User.nickname`. */
 export interface AskedSubject extends MigrationOperationSubject {
   readonly text: string;
+  /** The subject's namespace when the destination removed it: a `--delete` of it answers the question. */
+  readonly removedNamespace?: string;
 }
 
 /** An operation an apply asks about because it loses its subject's data. */
 export interface AskedDataLoss extends AskedSubject, MigrationDataLoss {}
 
-/** An operation an apply asks about because it changes who can read or write its subject's rows. */
+/** An operation an apply asks about because it changes who can read or write its subject's data. */
 export interface AskedAccessChange extends AskedSubject, MigrationAccessChange {}
 
 /**
@@ -452,6 +455,8 @@ export interface AskedAccessChange extends AskedSubject, MigrationAccessChange {
 export interface DbUpdateSuccess
   extends MigrationPlanSubjects<AskedDataLoss, AskedAccessChange, TemporaryValueReport> {
   readonly mode: 'plan' | 'apply';
+  /** The namespaces the application space's plan removes and adds, when its planner reports them. */
+  readonly namespaces?: MigrationPlanNamespaces;
   readonly plan: {
     readonly operations: ReadonlyArray<{
       readonly id: string;

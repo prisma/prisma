@@ -21,5 +21,6 @@ export function sqliteSchemaTables(schema: SqlSchemaIR): SchemaTables {
       ),
     namespacesWithTable: (table) =>
       hasTable(UNBOUND_NAMESPACE_ID, table) ? [UNBOUND_NAMESPACE_ID] : [],
+    hasNamespace: (namespaceId) => namespaceId === UNBOUND_NAMESPACE_ID,
   };
 }

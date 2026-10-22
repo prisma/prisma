@@ -1,4 +1,7 @@
-import type { MigrationRunnerFailure } from '@internal/framework-components/control';
+import type {
+  BlockingObject,
+  MigrationRunnerFailure,
+} from '@internal/framework-components/control';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import type { NextAction } from '@prisma/cli-engine/protocol';
 import { basename, join } from 'pathe';
@@ -341,6 +344,19 @@ function migrateSchemaCheckAdvice(
   ];
 }
 
+/** The way out when objects in the database keep an operation from running. */
+export function blockingObjectsAdvice(
+  objects: readonly BlockingObject[],
+  rerun: string,
+): RunnerAdvice {
+  const named = objects.map(({ kind, name }) => `${kind} ${name}`);
+  const listed =
+    named.length === 1 ? named[0] : `${named.slice(0, -1).join(', ')} and ${named.at(-1)}`;
+  return [
+    chooseAction(`Drop or change ${listed} in the database yourself, then re-run \`${rerun}\``),
+  ];
+}
+
 /**
  * The way out of a failed `db migrate` apply: every path and command it prints works from where the
  * CLI ran, with the `--config` it was given.
@@ -353,6 +369,13 @@ export function migrateAdvice(
 ): RunnerAdvice {
   const failedMigration =
     failedOnDisk === undefined ? undefined : failedMigrationText(failedOnDisk, invocation);
+  const { blockingObjects } = failure.meta;
+  if (blockingObjects !== undefined) {
+    return blockingObjectsAdvice(
+      blockingObjects,
+      cliCommand(invocation, 'db migrate', invocation.rerunArgs ?? []),
+    );
+  }
   if (facts.failedTypeChange !== undefined) {
     return migrateFailedTypeChangeAdvice(facts.failedTypeChange, failedMigration, invocation);
   }

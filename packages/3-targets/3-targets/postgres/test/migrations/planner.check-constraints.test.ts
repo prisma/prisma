@@ -9,6 +9,7 @@ import { describe, expect, it } from 'vitest';
 import { planIssues } from '../../src/core/migrations/issue-planner';
 import { postgresCreateNamespace } from '../../src/core/postgres-schema';
 import { postgresTypeLookups } from '../postgres-type-lookups';
+import { planTrees } from './node-issue-planner-fixtures';
 
 const TABLE_NAME = 'user';
 const SCHEMA_NAME = 'public';
@@ -107,6 +108,7 @@ function checkIssue(options: {
 }
 
 const defaultCtx = {
+  ...planTrees(),
   schemaName: SCHEMA_NAME,
   codecHooks: new Map(),
   types: postgresTypeLookups,

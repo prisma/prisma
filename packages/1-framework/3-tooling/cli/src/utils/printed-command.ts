@@ -9,6 +9,8 @@ export interface CliInvocation {
   readonly cwd: string;
   readonly configPath: string | undefined;
   readonly dbGiven: boolean;
+  /** The arguments a re-run of the same command repeats, such as its statements. */
+  readonly rerunArgs?: readonly string[];
 }
 
 /** The invocation of a command run with `ctx`, given `--db` when `db` is defined. */

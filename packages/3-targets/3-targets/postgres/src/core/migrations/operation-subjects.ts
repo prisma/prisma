@@ -11,6 +11,7 @@ import type { MigrationDataLossKind, OpFactoryCall } from '@internal/framework-c
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { parseWireName } from '@internal/sql-schema-ir/naming';
+import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { resolveNamespaceIdForDdlSchema } from './control-policy';
 import {
   AddColumnWithTemporaryDefaultCall,
@@ -30,10 +31,17 @@ interface Locator {
   readonly fieldEvents: ReadonlyMap<OpFactoryCall, FieldEventCall>;
 }
 
+/**
+ * The namespace a schema stands for in the locator's contract, or, for a schema that contract does
+ * not declare, such as the new name of a renamed namespace, the schema's own name: a named Postgres
+ * namespace's schema is its id.
+ */
 function storageNamespaceId(locator: Locator, schemaName: string): string {
-  return schemaName === UNBOUND_NAMESPACE_ID
-    ? UNBOUND_NAMESPACE_ID
-    : resolveNamespaceIdForDdlSchema(locator.contract, schemaName);
+  if (schemaName === UNBOUND_NAMESPACE_ID) return UNBOUND_NAMESPACE_ID;
+  const namespaceId = resolveNamespaceIdForDdlSchema(locator.contract, schemaName);
+  return namespaceId === UNBOUND_NAMESPACE_ID && schemaName !== DEFAULT_NAMESPACE_ID
+    ? schemaName
+    : namespaceId;
 }
 
 function qualified(schemaName: string, name: string): string {
@@ -97,11 +105,16 @@ function createdPolicies(calls: readonly OpFactoryCall[]): ReadonlySet<string> {
   );
 }
 
-function accessWideningOf(
+/**
+ * Disabling row-level security widens access: every role with table privileges then reads and
+ * writes every row. Dropping a policy changes access either way, since a permissive policy grants
+ * access and a restrictive one limits it, unless the plan creates the policy again.
+ */
+function accessChangesOf(
   locator: Locator,
   call: OpFactoryCall,
   replaced: ReadonlySet<string>,
-): CallSubjects['accessWidening'] {
+): CallSubjects['accessChanges'] {
   if (call instanceof DisableRowLevelSecurityCall) {
     return [{ ...target(locator, call.schemaName, call.tableName, undefined), widens: true }];
   }
@@ -118,7 +131,7 @@ function operationCountOf(call: OpFactoryCall): number {
   return 'companions' in call && Array.isArray(call.companions) ? 1 + call.companions.length : 1;
 }
 
-/** What each call of a Postgres plan loses, and whose access it widens. */
+/** What each call of a Postgres plan loses, and whose access it changes. */
 export function postgresCallSubjects(
   calls: readonly OpFactoryCall[],
   locator: Locator,
@@ -142,7 +155,7 @@ export function postgresCallSubjects(
           : unknownName !== undefined
             ? [{ storageName: unknownName, table: undefined, loss }]
             : [],
-      accessWidening: accessWideningOf(locator, call, replaced),
+      accessChanges: accessChangesOf(locator, call, replaced),
       temporaryValues:
         call instanceof AddColumnWithTemporaryDefaultCall
           ? [{ table: call.tableName, column: call.columnName, value: call.temporaryDefault }]

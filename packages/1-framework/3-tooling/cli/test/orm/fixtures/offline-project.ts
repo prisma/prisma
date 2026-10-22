@@ -279,7 +279,7 @@ function fakePlanner(script: FakePlannerScript): Record<string, unknown> {
               label: (operations ?? [ADDITIVE_OP])[entry.operationIndex]?.label,
               ...entry,
             })),
-            accessWidening: [],
+            accessChanges: [],
             temporaryValues: script.temporaryValues ?? [],
             appliedStatements: options.statements.map((statement) => ({
               statement,
