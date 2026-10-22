@@ -400,7 +400,8 @@ export interface MigrationRunnerFailureMeta {
   /**
    * Whether the database is as it was before the failed apply: `true` when the runner rolled the
    * apply back or failed before it changed anything, `false` when what it changed stays. Absent when
-   * the runner does not say.
+   * the runner does not say. Creating the runner's own control tables (the marker and the ledger)
+   * does not count as a change: it is `true` when only those were created.
    */
   readonly databaseUnchanged?: boolean;
   /** The check that did not hold, when a precheck or postcheck failed. */

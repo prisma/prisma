@@ -451,7 +451,8 @@ export interface SqlMigrationRunner<TTargetDetails> {
    * needs, such as SQLite's `PRAGMA foreign_keys` toggle), rolls back every space's writes on a
    * failure and reports `databaseUnchanged: true`. A target whose DDL commits as it runs applies,
    * verifies and writes the marker of each space in turn, so the operations that already ran stay
-   * applied, and it reports whether the database changed.
+   * applied, and it reports whether the database changed. Creating the marker and ledger tables does
+   * not count as a change.
    *
    * Each entry must reference the same `driver` as the top-level `driver`.
    */
