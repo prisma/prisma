@@ -9,7 +9,6 @@
 import type { AsyncIterableResult } from '@internal/framework-components/runtime';
 import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
-import type { RuntimeTransaction } from '@internal/sql-runtime';
 import { expectTypeOf, test } from 'vitest';
 import type { RoleBoundDb, SupabaseInternalDb } from '../src/runtime/supabase';
 import type { RoleSession, SupabaseRuntime } from '../src/runtime/supabase-runtime';
@@ -32,12 +31,11 @@ test('role-bound public roots expose row query and statistics execute', () => {
   expectTypeOf(internalDb.execute(plan)).toEqualTypeOf<Promise<SqlStatementStats>>();
 });
 
-test('a role runtime exposes row query, statistics execute, its session and a transaction', () => {
+test('a role scope exposes row query, statistics execute and its session', () => {
   const role = runtime.forRole({ role: 'anon' });
   expectTypeOf(role.query(plan)).toEqualTypeOf<AsyncIterableResult<Row>>();
   expectTypeOf(role.execute(plan)).toEqualTypeOf<Promise<SqlStatementStats>>();
   expectTypeOf(role.connection()).toEqualTypeOf<Promise<RoleSession>>();
-  expectTypeOf(role.transaction()).toEqualTypeOf<Promise<RuntimeTransaction>>();
 });
 
 test('a Supabase runtime has no method that takes a role binding per call', () => {

@@ -15,8 +15,7 @@ import {
   type PostgresQueryMembers,
   type PostgresTransactionContext,
 } from '@internal/postgres/runtime';
-import { createRawLane, sql } from '@internal/sql-builder/runtime';
-import type { Db, RawLane } from '@internal/sql-builder/types';
+import type { Db } from '@internal/sql-builder/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import {
   type CollectionClasses,
@@ -28,11 +27,8 @@ import {
 import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
-  ActivitySourceTarget,
   ExecutionContext,
   Log,
-  PreparedExecution,
-  PreparedStatement,
   RuntimeMode,
   SqlExecutionStackWithDriver,
   SqlMiddleware,
@@ -44,7 +40,6 @@ import {
   activitySource,
   createExecutionContext,
   createSqlExecutionStack,
-  lazyActivitySource,
   withTransaction,
   withTransactionMembers,
 } from '@internal/sql-runtime';
@@ -66,7 +61,7 @@ import { isSupabaseRole, SUPABASE_JWT_ROLE_CLAIM, SupabaseRole } from '../contra
 import { supabaseRuntimeDescriptor } from './descriptor';
 import type { SupabaseExtensionContract } from './ext-contract-type';
 import { supabaseError } from './supabase-errors';
-import type { SupabaseRoleBinding, SupabaseRoleRuntime } from './supabase-runtime';
+import type { SupabaseRoleBinding } from './supabase-runtime';
 import { SupabaseRuntimeImpl } from './supabase-runtime';
 
 export type SupabaseTargetId = 'postgres';
@@ -190,11 +185,12 @@ const contractSerializer = new PostgresContractSerializer();
 interface SupabaseRuntimes<TContract extends Contract<SqlStorage>> {
   readonly runtime: SupabaseRuntimeImpl<TContract>;
   readonly extRuntime: SupabaseRuntimeImpl<SupabaseExtensionContract>;
+  readonly driver: { close(): Promise<void> };
   readonly ownedPool: Pool | undefined;
 }
 
 function closedClientError() {
-  return structuredError('DRIVER.NOT_CONNECTED', 'Supabase client is closed', {
+  return structuredError('DRIVER.NOT_CONNECTED', 'Runtime is closed', {
     why: 'close() was called on this client.',
     fix: 'Create a new supabase(...) client.',
     meta: { extension: 'supabase' },
@@ -273,43 +269,6 @@ function checkPgOption(pg: Pool | undefined): void {
     fix: 'Pass a pg.Pool as pg, or pass url.',
     meta: { reason: 'pg is not a pg.Pool' },
   });
-}
-
-// Forwards each operation to the role runtime `role()` returns when it is called, so a client can be built before its runtime exists.
-function lazyRoleRuntime(
-  role: () => SupabaseRoleRuntime & ActivitySourceTarget,
-): SupabaseRoleRuntime & ActivitySourceTarget {
-  return {
-    query<Row>(
-      plan: (SqlExecutionPlan<Row> | SqlQueryPlan<Row>) & { readonly _row?: Row },
-      options?: RuntimeExecuteOptions,
-    ): AsyncIterableResult<Row> {
-      return role().query<Row>(plan, options);
-    },
-    execute(
-      plan: SqlExecutionPlan | SqlQueryPlan,
-      options?: RuntimeExecuteOptions,
-    ): Promise<SqlStatementStats> {
-      return role().execute(plan, options);
-    },
-    [preparedStatementQuery]<Params, Row>(
-      statement: PreparedStatement<Params, Row>,
-      params: Params,
-      options?: RuntimeExecuteOptions,
-    ): AsyncIterableResult<Row> {
-      return role()[preparedStatementQuery](statement, params, options);
-    },
-    [preparedStatementExecute]<Params>(
-      statement: PreparedExecution<Params>,
-      params: Params,
-      options?: RuntimeExecuteOptions,
-    ): Promise<SqlStatementStats> {
-      return role()[preparedStatementExecute](statement, params, options);
-    },
-    connection: () => role().connection(),
-    transaction: () => role().transaction(),
-    [activitySource]: lazyActivitySource(() => role()[activitySource]),
-  };
 }
 
 function toPool<TContract extends Contract<SqlStorage>>(
@@ -393,7 +352,13 @@ export default async function supabase<
   checkCollectionClasses(contract, options.collections);
   const rawCodecInferer = stack.adapter.rawCodecInferer;
 
-  const { toSql, enums, nativeEnums } = buildPostgresStaticContext(contract, context, stack);
+  const {
+    sql: appSql,
+    raw,
+    toSql,
+    enums,
+    nativeEnums,
+  } = buildPostgresStaticContext(contract, context, stack);
 
   // The Supabase-internal contract (auth/storage) as a separate secondary root.
   // It is contract-bound: a plan built against it carries the extension's
@@ -434,6 +399,7 @@ export default async function supabase<
       ...ifDefined('log', options.log),
       ...ifDefined('mode', options.mode),
       closeRefusal: 'at-once',
+      ownsDriver: false,
     } as const;
     const runtime = new SupabaseRuntimeImpl({
       context,
@@ -455,7 +421,7 @@ export default async function supabase<
       });
     }
 
-    runtimes = { runtime, extRuntime, ownedPool };
+    runtimes = { runtime, extRuntime, driver, ownedPool };
     return runtimes;
   }
 
@@ -484,12 +450,7 @@ export default async function supabase<
   }
 
   function buildRoleBoundDb(binding: SupabaseRoleBinding): RoleBoundDb<TContract, TCollections> {
-    const role = lazyRoleRuntime(() => runtime().forRole(binding));
-    const roleSql: Db<TContract> = sql<TContract>({ context: context, rawCodecInferer });
-    const roleRaw: RawLane<TContract> = createRawLane<TContract>({
-      context: context,
-      rawCodecInferer,
-    });
+    const role = SupabaseRuntimeImpl.roleScope(runtime, binding);
     const roleOrm: OrmClient<TContract, TCollections> = orm<TContract, TCollections>({
       runtime: role,
       context: context,
@@ -497,9 +458,9 @@ export default async function supabase<
     });
 
     const roleBound: RoleBoundDb<TContract, TCollections> = {
-      sql: roleSql,
+      sql: appSql,
       orm: roleOrm,
-      raw: roleRaw,
+      raw,
       toSql,
       enums,
       nativeEnums,
@@ -513,7 +474,7 @@ export default async function supabase<
       transaction<R>(
         fn: (tx: SupabaseTransactionContext<TContract, TCollections>) => PromiseLike<R>,
       ): Promise<R> {
-        return withTransaction({ connection: () => role.connection() }, (txCtx) =>
+        return withTransaction(role, (txCtx) =>
           fn(
             withTransactionMembers(txCtx, {
               ...buildPostgresQueryMembers<TContract, TCollections>(
@@ -526,6 +487,8 @@ export default async function supabase<
                 },
                 txCtx,
               ),
+              sql: appSql,
+              raw,
               enums,
               nativeEnums,
             }),
@@ -541,7 +504,7 @@ export default async function supabase<
     claims: {},
   };
 
-  const serviceRole = lazyRoleRuntime(() => extRuntime().forRole(serviceRoleBinding));
+  const serviceRole = SupabaseRuntimeImpl.roleScope(extRuntime, serviceRoleBinding);
 
   const supabaseInternal: SupabaseInternalDb = {
     sql: extStatic.sql,
@@ -554,12 +517,12 @@ export default async function supabase<
 
   let closePromise: Promise<void> | undefined;
 
-  // Both runtimes share one driver: refuse new work on both at once, wait for both, then close the driver once, and only when it holds a pool this client created.
+  // Both runtimes share one driver this client owns, so neither closes it: close both, which refuses new work on both at once and waits for both, then close the driver once, and only when it holds a pool this client created.
   async function closeRuntimes(): Promise<void> {
     if (runtimes === undefined) return;
-    const { runtime, extRuntime, ownedPool } = runtimes;
-    await Promise.all([runtime.drain(), extRuntime.drain()]);
-    if (ownedPool !== undefined) await runtime.close();
+    const { runtime, extRuntime, driver, ownedPool } = runtimes;
+    await Promise.all([runtime.close(), extRuntime.close()]);
+    if (ownedPool !== undefined) await driver.close();
   }
 
   function closeDb(): Promise<void> {

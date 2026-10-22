@@ -1,8 +1,9 @@
+import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
 import { RawQueryAst } from '@internal/sql-relational-core/ast';
 import type { AffectedCount } from '@internal/sql-relational-core/expression';
 import { planFromAst, type SqlQueryPlan } from '@internal/sql-relational-core/plan';
-import { activitySource } from '@internal/sql-runtime';
-import { describe, expect, it } from 'vitest';
+import { activitySource, withTransaction } from '@internal/sql-runtime';
+import { describe, expect, it, vi } from 'vitest';
 import type { SupabaseRoleBinding, SupabaseRuntimeImpl } from '../src/runtime/supabase-runtime';
 import { createTestSetup, stubPlan, testContract } from './supabase-runtime-fixtures';
 
@@ -12,7 +13,7 @@ declare module '@internal/framework-components/runtime' {
   }
 }
 
-type RoleRuntime = ReturnType<SupabaseRuntimeImpl['forRole']>;
+type RoleScope = ReturnType<SupabaseRuntimeImpl['forRole']>;
 
 const binding: SupabaseRoleBinding = { role: 'authenticated', claims: { sub: 'user-1' } };
 const closedError = { code: 'DRIVER.NOT_CONNECTED', message: 'Runtime is closed' };
@@ -53,12 +54,10 @@ describe('forRole(binding)', () => {
     });
   });
 
-  it('begins a transaction on a role session it releases after the commit', async () => {
+  it('runs a transaction on a role session it releases after the commit', async () => {
     const { runtime, driver } = createTestSetup();
 
-    const transaction = await runtime.forRole(binding).transaction();
-    await transaction.execute(stubPlan());
-    await transaction.commit();
+    await withTransaction(runtime.forRole(binding), (tx) => tx.execute(stubPlan()));
 
     expect({
       connectionSql: driver.connection.executeCalls.map((call) => call.sql),
@@ -90,11 +89,11 @@ describe('forRole(binding)', () => {
 
 describe('forRole(binding) after close()', () => {
   it.each([
-    ['query', (role: RoleRuntime) => role.query(stubPlan()).toArray()],
-    ['execute', (role: RoleRuntime) => role.execute(stubPlan())],
-    ['connection', (role: RoleRuntime) => role.connection()],
-    ['transaction', (role: RoleRuntime) => role.transaction()],
-    ['an activity', (role: RoleRuntime) => role[activitySource].startActivity(testCall)],
+    ['query', (role: RoleScope) => role.query(stubPlan()).toArray()],
+    ['execute', (role: RoleScope) => role.execute(stubPlan())],
+    ['connection', (role: RoleScope) => role.connection()],
+    ['a transaction', (role: RoleScope) => withTransaction(role, async () => undefined)],
+    ['an activity', (role: RoleScope) => role[activitySource].startActivity(testCall)],
   ] as const)('refuses %s without opening a session', async (_name, run) => {
     const { runtime, driver } = createTestSetup();
     const role = runtime.forRole(binding);
@@ -128,25 +127,99 @@ describe('forRole(binding) after close()', () => {
     }).toEqual({ closedBeforeEnd: false, sessions: 2, released: 2, driverClosed: 1 });
   });
 
-  it('makes close() wait for an open role transaction to commit', async () => {
-    const { runtime, driver } = createTestSetup();
-    const transaction = await runtime.forRole(binding).transaction();
+  it.each(['commit', 'rollback'] as const)(
+    'makes close() wait for an open role transaction until its %s, then resets and releases the session',
+    async (end) => {
+      const { runtime, driver } = createTestSetup();
+      const { inside, finish, transaction } = openTransaction(runtime.forRole(binding), end);
+      await inside;
 
-    let closed = false;
-    const closing = runtime.close().then(() => {
-      closed = true;
+      let closed = false;
+      const closing = runtime.close().then(() => {
+        closed = true;
+      });
+      await nextTurn();
+      await nextTurn();
+      const closedWhileOpen = closed;
+      finish();
+      await transaction.catch(() => undefined);
+      await closing;
+
+      expect({
+        closedWhileOpen,
+        transactionSql: driver.connection.transaction.executeCalls.map((call) => call.sql),
+        lastConnectionSql: driver.connection.executeCalls.at(-1)?.sql,
+        released: driver.connection.release.mock.calls.length,
+        destroyed: driver.connection.destroy.mock.calls.length,
+        driverClosed: driver.close.mock.calls.length,
+      }).toEqual({
+        closedWhileOpen: false,
+        transactionSql: ['select 1'],
+        lastConnectionSql: 'RESET ALL',
+        released: 1,
+        destroyed: 0,
+        driverClosed: 1,
+      });
+    },
+  );
+
+  it('destroys a session released after close() when its reset fails', async () => {
+    const { runtime, driver } = createTestSetup();
+    const execute = driver.connection.execute;
+    driver.connection.execute = vi.fn().mockImplementation(async (request: SqlExecuteRequest) => {
+      if (request.sql === 'RESET ALL') throw new Error('reset failed');
+      return await execute(request);
     });
+    const { inside, finish, transaction } = openTransaction(runtime.forRole(binding), 'commit');
+    await inside;
+
+    const closing = runtime.close();
     await nextTurn();
-    await nextTurn();
-    await transaction.execute(stubPlan());
-    const closedWhileOpen = closed;
-    await transaction.commit();
+    finish();
+    await transaction;
     await closing;
 
     expect({
-      closedWhileOpen,
-      transactionSql: driver.connection.transaction.executeCalls.map((call) => call.sql),
-      driverClosed: driver.close.mock.calls.length,
-    }).toEqual({ closedWhileOpen: false, transactionSql: ['select 1'], driverClosed: 1 });
+      released: driver.connection.release.mock.calls.length,
+      destroyed: driver.connection.destroy.mock.calls.length,
+    }).toEqual({ released: 0, destroyed: 1 });
+  });
+
+  it('does not wait for a role session held idle', async () => {
+    const { runtime, driver } = createTestSetup();
+    await runtime.forRole(binding).connection();
+
+    await runtime.close();
+
+    expect(driver.close).toHaveBeenCalledOnce();
+  });
+
+  it('does not wait for a role-bound stream that was read in part and dropped', async () => {
+    const { runtime, driver } = createTestSetup();
+    const rows = runtime.forRole(binding).query(stubPlan())[Symbol.asyncIterator]();
+    await rows.next();
+
+    await runtime.close();
+
+    expect(driver.close).toHaveBeenCalledOnce();
   });
 });
+
+// Runs a role transaction that executes one statement once `finish()` is called, then ends with `end`.
+function openTransaction(role: RoleScope, end: 'commit' | 'rollback') {
+  let enter: () => void = () => undefined;
+  let finish: () => void = () => undefined;
+  const inside = new Promise<void>((resolve) => {
+    enter = resolve;
+  });
+  const finished = new Promise<void>((resolve) => {
+    finish = resolve;
+  });
+  const transaction = withTransaction(role, async (tx) => {
+    enter();
+    await finished;
+    await tx.execute(stubPlan());
+    if (end === 'rollback') throw new Error('roll back');
+  });
+  return { inside, finish, transaction };
+}
