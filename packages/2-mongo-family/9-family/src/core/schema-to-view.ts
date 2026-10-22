@@ -35,13 +35,20 @@ function collectionToSchemaNode(name: string, collection: MongoSchemaCollection)
     if (index.sparse) options.push('sparse');
     if (index.expireAfterSeconds != null) options.push(`ttl: ${index.expireAfterSeconds}s`);
     if (index.partialFilterExpression) options.push('partial');
-    const optsSuffix = options.length > 0 ? ` (${options.join(', ')})` : '';
 
     children.push(
       new SchemaTreeNode({
         kind: 'index',
         id: `index-${name}-${index.keys.map((k) => `${k.field}_${k.direction}`).join('_')}`,
-        label: `${prefix} (${keysSummary})${optsSuffix}`,
+        labelParts: [
+          { text: prefix, role: 'keyword' },
+          { text: ' (' },
+          { text: keysSummary, role: 'name' },
+          { text: ')' },
+          ...(options.length > 0
+            ? [{ text: ' ' }, { text: `(${options.join(', ')})`, role: 'detail' as const }]
+            : []),
+        ],
         meta: {
           keys: index.keys,
           unique: index.unique,
@@ -74,7 +81,11 @@ function collectionToSchemaNode(name: string, collection: MongoSchemaCollection)
         new SchemaTreeNode({
           kind: 'field',
           id: `field-${name}-${propName}`,
-          label: `${propName}: ${bsonType}${required ? ' (required)' : ''}`,
+          labelParts: [
+            { text: propName, role: 'name' },
+            { text: `: ${bsonType}` },
+            ...(required ? [{ text: ' ' }, { text: '(required)', role: 'detail' as const }] : []),
+          ],
         }),
       );
     }
@@ -83,7 +94,14 @@ function collectionToSchemaNode(name: string, collection: MongoSchemaCollection)
       new SchemaTreeNode({
         kind: 'field',
         id: `validator-${name}`,
-        label: `validator (level: ${collection.validator.validationLevel}, action: ${collection.validator.validationAction})`,
+        labelParts: [
+          { text: 'validator', role: 'keyword' },
+          { text: ' ' },
+          {
+            text: `(level: ${collection.validator.validationLevel}, action: ${collection.validator.validationAction})`,
+            role: 'detail',
+          },
+        ],
         meta: {
           validationLevel: collection.validator.validationLevel,
           validationAction: collection.validator.validationAction,
@@ -108,7 +126,11 @@ function collectionToSchemaNode(name: string, collection: MongoSchemaCollection)
         new SchemaTreeNode({
           kind: 'field',
           id: `options-${name}`,
-          label: `options (${optLabels.join(', ')})`,
+          labelParts: [
+            { text: 'options', role: 'keyword' },
+            { text: ' ' },
+            { text: `(${optLabels.join(', ')})`, role: 'detail' },
+          ],
           meta: {
             ...ifDefined('capped', opts.capped ?? undefined),
             ...ifDefined('timeseries', opts.timeseries ?? undefined),
@@ -127,7 +149,11 @@ function collectionToSchemaNode(name: string, collection: MongoSchemaCollection)
   return new SchemaTreeNode({
     kind: 'collection',
     id: `collection-${name}`,
-    label: `collection ${name}`,
+    labelParts: [
+      { text: 'collection', role: 'keyword' },
+      { text: ' ' },
+      { text: name, role: 'name' },
+    ],
     ...ifDefined('children', children.length > 0 ? children : undefined),
   });
 }

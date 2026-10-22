@@ -45,17 +45,49 @@ const SCHEMA_VIEW = {
         kind: 'entity',
         id: 'entity-user',
         label: 'table user',
+        labelParts: [
+          { text: 'table', role: 'keyword' },
+          { text: ' ' },
+          { text: 'user', role: 'name' },
+        ],
         children: [
           {
             kind: 'collection',
             id: 'fields-user',
             label: 'columns',
             children: [
-              { kind: 'field', id: 'user-id', label: 'id: int4 (not null)' },
-              { kind: 'field', id: 'user-email', label: 'email: text (nullable)' },
+              {
+                kind: 'field',
+                id: 'user-id',
+                label: 'id: int4 (not null)',
+                labelParts: [
+                  { text: 'id', role: 'name' },
+                  { text: ': int4 ' },
+                  { text: '(not null)', role: 'detail' },
+                ],
+              },
+              {
+                kind: 'field',
+                id: 'user-email',
+                label: 'email: text (nullable)',
+                labelParts: [
+                  { text: 'email', role: 'name' },
+                  { text: ': text ' },
+                  { text: '(nullable)', role: 'detail' },
+                ],
+              },
             ],
           },
-          { kind: 'index', id: 'user-pk', label: 'primary key: id' },
+          {
+            kind: 'index',
+            id: 'user-pk',
+            label: 'primary key: id',
+            labelParts: [
+              { text: 'primary key', role: 'keyword' },
+              { text: ': ' },
+              { text: 'id', role: 'name' },
+            ],
+          },
         ],
       },
     ],
@@ -174,6 +206,58 @@ describe('db schema', () => {
                 },
               ],
             },
+          ],
+        },
+      ],
+    });
+  });
+
+  it('colours from label parts, not from the shape of the label text', async () => {
+    mocks.toSchemaView.mockReturnValue({
+      root: {
+        kind: 'root',
+        id: 'mongo-schema',
+        label: 'database',
+        children: [
+          {
+            kind: 'index',
+            id: 'index-users',
+            label: 'unique index (email) (ttl: 60s)',
+            labelParts: [
+              { text: 'unique index', role: 'keyword' },
+              { text: ' (' },
+              { text: 'email', role: 'name' },
+              { text: ')' },
+              { text: ' ' },
+              { text: '(ttl: 60s)', role: 'detail' },
+            ],
+          },
+          { kind: 'field', id: 'plain', label: 'name: value (detail)' },
+        ],
+      },
+    });
+    const run = await harness(ormConfig()).run(['db', 'schema'], {
+      cwd: '/tmp',
+      isTty: { stdout: true },
+    });
+
+    expect(run.presented?.presentation.human?.[1]).toEqual({
+      kind: 'tree',
+      roots: [
+        {
+          label: [{ text: 'database', tone: 'emphasis' }],
+          children: [
+            {
+              label: [
+                { text: 'unique index', tone: 'muted' },
+                { text: ' (' },
+                { text: 'email', tone: 'identifier' },
+                { text: ')' },
+                { text: ' ' },
+                { text: '(ttl: 60s)', tone: 'muted' },
+              ],
+            },
+            { label: [{ text: 'name: value (detail)' }] },
           ],
         },
       ],

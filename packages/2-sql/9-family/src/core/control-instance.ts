@@ -1023,12 +1023,15 @@ export function createSqlFamilyInstance<TTargetId extends string>(
           for (const [columnName, column] of Object.entries(table.columns)) {
             const typeDisplay = column.typeText;
             const nullability = column.nullable ? 'nullable' : 'not nullable';
-            const label = `${columnName}: ${typeDisplay} (${nullability})`;
             columnNodes.push(
               new SchemaTreeNode({
                 kind: 'field',
                 id: `column-${displayName}-${columnName}`,
-                label,
+                labelParts: [
+                  { text: columnName, role: 'name' },
+                  { text: `: ${typeDisplay} ` },
+                  { text: `(${nullability})`, role: 'detail' },
+                ],
                 meta: {
                   typeText: column.typeText,
                   nullable: column.nullable,
@@ -1055,7 +1058,11 @@ export function createSqlFamilyInstance<TTargetId extends string>(
               new SchemaTreeNode({
                 kind: 'index',
                 id: `primary-key-${displayName}`,
-                label: `primary key: ${pkColumns}`,
+                labelParts: [
+                  { text: 'primary key', role: 'keyword' },
+                  { text: ': ' },
+                  { text: pkColumns, role: 'name' },
+                ],
                 meta: {
                   columns: table.primaryKey.columns,
                   ...(table.primaryKey.name ? { name: table.primaryKey.name } : {}),
@@ -1066,12 +1073,15 @@ export function createSqlFamilyInstance<TTargetId extends string>(
 
           for (const unique of table.uniques) {
             const name = unique.name ?? `${tableName}_${unique.columns.join('_')}_unique`;
-            const label = `unique ${name}`;
             children.push(
               new SchemaTreeNode({
                 kind: 'index',
                 id: `unique-${displayName}-${name}`,
-                label,
+                labelParts: [
+                  { text: 'unique', role: 'keyword' },
+                  { text: ' ' },
+                  { text: name, role: 'name' },
+                ],
                 meta: {
                   columns: unique.columns,
                   unique: true,
@@ -1082,12 +1092,15 @@ export function createSqlFamilyInstance<TTargetId extends string>(
 
           for (const index of table.indexes) {
             const name = index.name;
-            const label = index.unique ? `unique index ${name}` : `index ${name}`;
             children.push(
               new SchemaTreeNode({
                 kind: 'index',
                 id: `index-${displayName}-${name}`,
-                label,
+                labelParts: [
+                  { text: index.unique ? 'unique index' : 'index', role: 'keyword' },
+                  { text: ' ' },
+                  { text: name, role: 'name' },
+                ],
                 meta: {
                   columns: index.columns,
                   unique: index.unique,
@@ -1115,7 +1128,11 @@ export function createSqlFamilyInstance<TTargetId extends string>(
           return new SchemaTreeNode({
             kind: 'entity',
             id: `table-${displayName}`,
-            label: `table ${displayName}`,
+            labelParts: [
+              { text: 'table', role: 'keyword' },
+              { text: ' ' },
+              { text: displayName, role: 'name' },
+            ],
             ...(Object.keys(tableMeta).length > 0 ? { meta: tableMeta } : {}),
             ...(children.length > 0 ? { children } : {}),
           });

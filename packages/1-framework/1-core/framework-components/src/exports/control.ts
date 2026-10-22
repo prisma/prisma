@@ -106,6 +106,8 @@ export {
 } from '../control/control-operation-results';
 export type {
   CoreSchemaView,
+  SchemaLabelPart,
+  SchemaLabelPartRole,
   SchemaTreeNodeOptions,
   SchemaTreeVisitor,
   SchemaViewNodeKind,
