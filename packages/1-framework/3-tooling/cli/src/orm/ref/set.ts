@@ -10,7 +10,7 @@ import { normalizeError } from '../normalize-error';
 
 function setPresentations(document: RefSetResult): Presentations {
   return {
-    stdout: () => [],
+    stdout: () => [document.hash],
     next: () => [],
     human: (): readonly Block[] => [
       {

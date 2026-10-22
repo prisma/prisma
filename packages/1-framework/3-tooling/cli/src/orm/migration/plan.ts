@@ -208,6 +208,16 @@ function planBlocks(result: MigrationPlanResult, migrationsRelative: string): re
   ];
 }
 
+function writtenDirs(result: MigrationPlanResult, migrationsRelative: string): readonly string[] {
+  return [
+    ...(result.baselineDir === undefined ? [] : [result.baselineDir]),
+    ...(result.dir === undefined ? [] : [result.dir]),
+    ...result.emittedExtensionDirs.map((entry) =>
+      join(migrationsRelative, entry.spaceId, entry.dirName),
+    ),
+  ];
+}
+
 function planNextActions(
   result: MigrationPlanResult,
   migrationsRelative: string,
@@ -227,13 +237,7 @@ function planNextActions(
       ),
     ];
   }
-  const written = [
-    ...(result.baselineDir === undefined ? [] : [result.baselineDir]),
-    ...(result.dir === undefined ? [] : [result.dir]),
-    ...result.emittedExtensionDirs.map((entry) =>
-      join(migrationsRelative, entry.spaceId, entry.dirName),
-    ),
-  ];
+  const written = writtenDirs(result, migrationsRelative);
   if (written.length === 0) {
     return [];
   }
@@ -254,7 +258,7 @@ function planPresentations(inputs: {
   readonly invocation: CliInvocation;
 }): Presentations {
   return {
-    stdout: () => [],
+    stdout: () => writtenDirs(inputs.document, inputs.migrationsRelative),
     human: (): readonly Block[] => [
       {
         kind: 'fields',

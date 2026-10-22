@@ -19,7 +19,7 @@ function formattedBlock(path: string, cwd: string): Block {
 
 function formatPresentations(document: FormatOperationResult, cwd: string): Presentations {
   return {
-    stdout: () => [],
+    stdout: () => (document.formatted ? document.paths.map((path) => relative(cwd, path)) : []),
     next: () => [],
     human: (): readonly Block[] =>
       document.formatted

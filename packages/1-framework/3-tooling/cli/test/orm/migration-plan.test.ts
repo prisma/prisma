@@ -1094,16 +1094,13 @@ describe('migration plan', () => {
     });
   });
 
-  it('writes nothing to stdout in human mode', async () => {
+  it('prints the directory it wrote', async () => {
     const project = await plannableProject();
 
-    const run = await harness(project).run(['migration', 'plan'], {
-      cwd: project.dir,
-      isTty: { stdout: true, stderr: true },
-    });
+    const run = await harness(project).run(['migration', 'plan'], { cwd: project.dir });
+    const dirs = await plannedDirs(project);
 
-    expect(run.stdout).toBe('');
-    expect(run.presented?.presentation.stdout).toEqual([]);
+    expect(run.stdout).toBe(`${join('migrations', 'app', dirs.at(-1) ?? '')}\n`);
   });
 
   it('errors when the contract has not been emitted', async () => {
