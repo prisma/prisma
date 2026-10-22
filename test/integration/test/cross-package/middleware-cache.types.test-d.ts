@@ -29,9 +29,9 @@ test('a read accepts cacheAnnotation', () => {
 });
 
 test('a write refuses cacheAnnotation', () => {
-  // @ts-expect-error - cacheAnnotation declares applicableTo: ['read'], not 'write'
   db.public.users
     .insert([{ id: 1, name: 'Alice', email: 'a@b.com' }])
+    // @ts-expect-error - cacheAnnotation declares applicableTo: ['read'], not 'write'
     .annotate(cacheAnnotation({}));
 
   // @ts-expect-error - cacheAnnotation declares applicableTo: ['read'], not 'write'

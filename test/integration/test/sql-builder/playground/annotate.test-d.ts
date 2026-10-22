@@ -154,9 +154,9 @@ describe('InsertQuery.annotate (write-typed)', () => {
   });
 
   test('rejects a read-only annotation (negative)', () => {
-    // @ts-expect-error - cache declares applicableTo: ['read'], not 'write'
     db.public.users
       .insert([{ id: 1, name: 'Alice', email: 'a@b.com' }])
+      // @ts-expect-error - cache declares applicableTo: ['read'], not 'write'
       .annotate(cacheAnnotation({ ttl: 60 }));
   });
 
