@@ -1,3 +1,4 @@
+import { types } from 'node:util';
 import {
   type CodecCallContext,
   CodecImpl,
@@ -28,7 +29,7 @@ function invalidDate(): RangeError {
 
 function isRepresentable(value: Date): boolean {
   return (
-    value instanceof Date &&
+    types.isDate(value) &&
     Number.isFinite(value.getTime()) &&
     value.getTime() >= EARLIEST_POSTGRES_TIMESTAMP_MILLISECONDS
   );
