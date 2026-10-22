@@ -11,7 +11,7 @@ Never. Prisma 8 has no built-in primary and replica router. Use instead: create 
 
 ## Context
 
-The [`prisma-8` skill](../../../skills/prisma-8/references/runtime.md) says Prisma 8 doesn't ship a built-in primary/replica router. The [GA plan](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/plan.md#never) lists "read replicas" under Never. The GA plan's [decisions](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/decisions.md#query-features-decided) list read replicas as "Not planned".
+The [GA plan](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/plan.md#never) lists "read replicas" under Never. The source gives no reason.
 
 ## Consequences
 

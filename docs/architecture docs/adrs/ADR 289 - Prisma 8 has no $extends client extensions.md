@@ -12,7 +12,7 @@ Never. Prisma 8 has no `$extends`. Its behaviour is extended through packages an
 
 ## Context
 
-Prisma 7's `$extends` takes result, client or model components, `$allModels`, or `defineExtension` ([scoreboard](../../../scorecard/18-extensions.md)). Will Madden decided on 2026-10-22: `$extends` will never be in Prisma 8. The decision rests on the rule that the core does not build a feature that can be built in an extension or in user space. Will Madden, 2026-10-22: "we will not build in the core features which can be built in extension/user space."
+Prisma 7's `$extends` takes result, client or model components, `$allModels`, or `defineExtension`. Will Madden decided on 2026-10-22: "$extends - never". The GA plan's decisions give the reason: "Never. Middleware replaces it." ([Query features: decided](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/decisions.md#query-features-decided))
 
 ## Consequences
 

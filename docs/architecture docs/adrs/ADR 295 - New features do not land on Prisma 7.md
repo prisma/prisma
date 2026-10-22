@@ -12,8 +12,8 @@ Prisma 7 receives bug fixes and security updates for eighteen months after `8.0.
 
 ## Context
 
-Contributors open pull requests that add features to Prisma 7, against the `v7` or `7.9.x` branch. The [PR triage guide](../../oss/pr-triage.md#step-2--is-it-in-scope-for-that-line), the [README](../../../README.md) and [SECURITY.md](../../../SECURITY.md) state the maintenance policy. Will Madden, 2026-10-22: Prisma 7 is maintained for 18 months after Prisma 8 GA. The [GA plan](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/decisions.md#goal) records the same: "Prisma ORM 7 gets bug fixes and security updates for 18 months from the day of GA."
+Contributors open pull requests that add features to Prisma 7, against the `v7` or `7.9.x` branch. The [GA plan](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/decisions.md#goal) records the policy: "Prisma ORM 7 gets bug fixes and security updates for 18 months from the day of GA." Will Madden confirmed the eighteen months on 2026-10-22. The source gives no reason.
 
 ## Consequences
 
-None. The maintenance window ends eighteen months after `8.0.0` final.
+Features go to Prisma 8 only. No revisit-if condition is recorded.

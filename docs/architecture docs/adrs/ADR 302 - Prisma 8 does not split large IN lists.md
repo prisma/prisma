@@ -12,7 +12,7 @@ Never. Prisma 8 does not split a large `IN` list into several queries. Use inste
 
 ## Context
 
-The [scoreboard](../../../scorecard/19-observability-and-lifecycle.md), which names the Prisma 7 features Prisma 8 lacks, marks batch-key chunking of large `in` lists ❌. The [GA plan](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/plan.md#never) lists "splitting large `IN` lists" under Never. The GA plan's decisions record, from Will Madden on 2026-09-30: "In Prisma 7 the problem came from joining in memory. Prisma 8 joins in the database, so it does not create large `IN` lists itself" ([Tasks to decide or fix before GA](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/decisions.md#tasks-to-decide-or-fix-before-ga)).
+Prisma 7 splits a large `in` list into several queries. The [GA plan](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/plan.md#never) lists "splitting large `IN` lists" under Never. The GA plan's decisions record the reason, from Will Madden on 2026-09-30: "In Prisma 7 the problem came from joining in memory. Prisma 8 joins in the database, so it does not create large `IN` lists itself" ([Tasks to decide or fix before GA](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/decisions.md#tasks-to-decide-or-fix-before-ga)).
 
 ## Consequences
 

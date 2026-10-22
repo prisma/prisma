@@ -11,7 +11,7 @@ Prisma 8 "deliberately does not offer a push-to-prod-without-a-migration surface
 
 ## Context
 
-Prisma 7's `db push` syncs a database to the schema without a migration. The [`prisma-8` skill](../../../skills/prisma-8/references/quickstart.md) states the decision, and its [migrations reference](../../../skills/prisma-8/references/migrations.md) describes the production path. The [Prisma ORM Manifesto 2026](https://www.prisma.io/blog/prisma-orm-manifesto-2026#2-database-tools-must-be-safe-to-delegate) says database tools must show planned changes and require approval for destructive actions.
+Prisma 7's `db push` syncs a database to the schema without a migration. The [`prisma-8` skill](../../../skills/prisma-8/references/quickstart.md) states the decision, and its [migrations reference](../../../skills/prisma-8/references/migrations.md) describes the production path. The skill gives no reason. The decision matches the manifesto's rule for database tools: "It shows what it will do before it does it, checks its own work afterwards, and asks before it destroys anything." ([principle 2](https://www.prisma.io/blog/prisma-orm-manifesto-2026#2-database-tools-must-be-safe-to-delegate))
 
 ## Consequences
 
