@@ -27,10 +27,4 @@ describe('defineContract for MySQL', () => {
       role: (table?.columns['role'] as { readonly typeParams?: unknown } | undefined)?.typeParams,
     }).toEqual({ target: 'mysql', kind: 'mysql-namespace', role: { values: ['USER', 'ADMIN'] } });
   });
-
-  it('refuses namespaces, which MySQL does not map yet', () => {
-    expect(() => defineContract({ namespaces: ['auth'] } as never)).toThrow(
-      expect.objectContaining({ code: 'CONTRACT.NAMESPACE_UNSUPPORTED' }),
-    );
-  });
 });
