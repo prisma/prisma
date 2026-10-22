@@ -77,7 +77,7 @@ export function readValueArguments(
 ): readonly unknown[] {
   return args.map((value, index) => {
     const descriptor = descriptors?.[index];
-    if (descriptor?.kind !== 'value' || value === undefined) return value;
+    if (descriptor === undefined || value === undefined) return value;
     const label =
       descriptor.name === undefined
         ? `Argument #${index + 1} of ${helperPath}`

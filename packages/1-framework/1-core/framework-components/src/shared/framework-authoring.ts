@@ -1370,16 +1370,6 @@ export function resolveAuthoringTemplateValue(
   return template;
 }
 
-function validateAuthoringArgument(
-  descriptor: AuthoringArgumentDescriptor,
-  value: unknown,
-  path: string,
-): void {
-  if (value === undefined && !descriptor.optional) {
-    throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} is missing`);
-  }
-}
-
 export function validateAuthoringHelperArguments(
   helperPath: string,
   descriptors: readonly AuthoringArgumentDescriptor[] | undefined,
@@ -1398,11 +1388,12 @@ export function validateAuthoringHelperArguments(
   }
 
   expected.forEach((descriptor, index) => {
-    validateAuthoringArgument(
-      descriptor,
-      args[index],
-      argumentLabel(helperPath, descriptor, index),
-    );
+    if (args[index] === undefined && !descriptor.optional) {
+      throw runtimeError(
+        'CONTRACT.ARGUMENT_INVALID',
+        `${argumentLabel(helperPath, descriptor, index)} is missing`,
+      );
+    }
   });
 }
 
@@ -1628,7 +1619,7 @@ export function instantiateAuthoringEntityType<TOutput = unknown>(
   // `EntityHelperFunction`'s extracted `input` parameter, and the factory
   // is free to do its own runtime validation (e.g. arktype Type). The
   // descriptor-level `args` validator is reserved for template-output
-  // entities (which mirror field/type's declarative argument shape).
+  // entities (which mirror a type constructor's declarative argument shape).
   if ('factory' in descriptor.output) {
     const input = args[0];
     // The base `AuthoringEntityTypeDescriptor`'s factory is typed

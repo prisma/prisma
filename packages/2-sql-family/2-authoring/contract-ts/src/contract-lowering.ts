@@ -99,7 +99,7 @@ type RuntimeCollection = {
   readonly modelSpecs: ReadonlyMap<string, RuntimeModelSpec>;
 };
 
-/** A column stores no `typeParams` when it has none, as PSL writes it (ADR 246). */
+/** A column stores no `typeParams` when it has none, as PSL writes it (see "Deterministic emission" in `docs/architecture docs/subsystems/1. Data Contract.md`). */
 function withoutEmptyTypeParams(descriptor: ColumnTypeDescriptor): ColumnTypeDescriptor {
   const { typeParams, ...rest } = descriptor;
   return typeParams === undefined || Object.keys(typeParams).length > 0 ? descriptor : rest;

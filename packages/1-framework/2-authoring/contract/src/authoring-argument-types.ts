@@ -46,12 +46,10 @@ type CanonicalArgument<
   Arg extends AuthoringArgumentDescriptor,
   Param,
   ValueTypes extends DataTypeArgumentTypes,
-> = Arg extends { readonly kind: 'value'; readonly dataType: infer DataType extends string }
-  ? DataType extends keyof ValueTypes
-    ? Param extends ValueTypes[DataType]['parameter'] | undefined
-      ? Param
-      : ValueTypes[DataType]['parameter'] | Extract<Param, undefined>
-    : Param
+> = Arg['dataType'] extends keyof ValueTypes
+  ? Param extends ValueTypes[Arg['dataType']]['parameter'] | undefined
+    ? Param
+    : ValueTypes[Arg['dataType']]['parameter'] | Extract<Param, undefined>
   : Param;
 
 /**
