@@ -14,23 +14,32 @@ import { UNION_LABEL_SEPARATOR } from '../type-label';
 import type { AttributeCtx, DataTypeValueArgType, ParsedTypedValue } from '../types';
 import { leafDiagnostic } from './diagnostic';
 
+/** How a `dataTypeValue` argument is offered and labelled: its own label, or a label that lists its suggestions. */
+export type DataTypeValueOptions =
+  | {
+      /** Written values offered for completion besides the tags. */
+      readonly suggestions?: readonly string[];
+      /** The label shown for the argument in place of the forms its type admits. */
+      readonly label?: string;
+      readonly labelListsSuggestions?: never;
+    }
+  | {
+      readonly suggestions: readonly string[];
+      /** The label lists the suggestions as a union's alternatives, as the versions a function takes do. */
+      readonly labelListsSuggestions: true;
+      readonly label?: never;
+    };
+
 /** An argument typed by a data type: any literal, admitted by the ADR 254 cast rule. Used as a parameter of an attribute, a block or a `funcCall`; `oneOf` refuses it as an arm. ADR 231, ADR 254, ADR 268. */
 export function dataTypeValue(
   dataType: DataTypeId,
   support: DataTypeSupport,
-  options: {
-    /** Written values offered for completion besides the tags. */
-    readonly suggestions?: readonly string[];
-    /** The label shown for the argument in place of the forms its type admits. */
-    readonly label?: string;
-    /** The label lists the suggestions as a union's alternatives, as the versions a function takes do. */
-    readonly labelListsSuggestions?: boolean;
-  } = {},
+  options: DataTypeValueOptions = {},
 ): DataTypeValueArgType<AttributeCtx> {
   const tags = admittedTags(support, dataType);
   const [firstTag] = tags;
   const suggestions = options.suggestions ?? [];
-  const labelListsSuggestions = options.labelListsSuggestions ?? false;
+  const labelListsSuggestions = options.labelListsSuggestions === true;
   return {
     kind: 'dataTypeValue',
     label: labelListsSuggestions
