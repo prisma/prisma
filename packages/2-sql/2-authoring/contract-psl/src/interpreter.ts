@@ -1602,12 +1602,9 @@ type DiscriminatorFieldWithEnum = {
 
 type DiscriminatorFieldOf = (model: ModelSymbol, fieldName: string) => DiscriminatorFieldWithEnum;
 
-/**
- * The `@@discriminator` and `@@base` attributes already reported: a discriminator by its model's key, refused by the discriminator rule or failed to parse, and the base a `@@base` that failed to parse names, as written. No orphan diagnostic is added for them.
- */
+/** The discriminators already reported, by their model's key: refused by the discriminator rule or failed to parse. No orphaned-base diagnostic is added for them. */
 type ReportedPolymorphism = {
   readonly discriminators: Set<string>;
-  readonly baseTargets: Set<string>;
 };
 
 type PendingDiscriminator = {
@@ -1632,7 +1629,7 @@ function collectPolymorphismDeclarations(
 } {
   const pendingDiscriminators = new Map<string, PendingDiscriminator>();
   const pendingBaseDeclarations = new Map<string, PendingBaseDeclaration>();
-  const reported: ReportedPolymorphism = { discriminators: new Set(), baseTargets: new Set() };
+  const reported: ReportedPolymorphism = { discriminators: new Set() };
 
   for (const { model, namespaceId, key } of identities.values()) {
     const source = diagnosticSource(sources, model.node.syntax);
@@ -1662,8 +1659,7 @@ function collectPolymorphismDeclarations(
       }
     }
 
-    const baseAttribute = getAttribute(model.attributes, 'base');
-    const baseNode = baseAttribute?.node;
+    const baseNode = getAttribute(model.attributes, 'base')?.node;
     if (baseNode !== undefined) {
       const parsed = interpretModelAttribute({
         node: baseNode,
@@ -1688,9 +1684,6 @@ function collectPolymorphismDeclarations(
           written: parsed.value,
           span: nodePslSpan(baseNode.syntax, sources),
         });
-      } else {
-        const target = baseAttribute?.args[0]?.value;
-        if (target !== undefined) reported.baseTargets.add(target);
       }
     }
   }
@@ -1850,15 +1843,9 @@ function resolvePolymorphism(
     }
 
     if (Object.keys(variants).length === 0) {
-      const namespaceId = [...baseDeclarations.values()].find(
-        (baseDecl) => baseDecl.base.key === modelKey,
-      )?.base.namespaceId;
-      const alreadyReported =
-        reported.baseTargets.has(modelName) ||
-        (namespaceId !== undefined && reported.baseTargets.has(`${namespaceId}.${modelName}`)) ||
-        [...baseDeclarations.values()].some(
-          (baseDecl) => baseDecl.base.key === modelKey && baseDecl.value === undefined,
-        );
+      const alreadyReported = [...baseDeclarations.values()].some(
+        (baseDecl) => baseDecl.base.key === modelKey && baseDecl.value === undefined,
+      );
       if (alreadyReported) continue;
       diagnostics.push({
         code: 'PSL_ORPHANED_DISCRIMINATOR',
