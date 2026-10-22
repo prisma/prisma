@@ -23,7 +23,6 @@ function interpret(schema: string) {
     codecLookup: mongoCodecLookup,
     dataTypes: mongoDataTypeSupport,
     authoringContributions: {
-      field: {},
       type: {},
       modelAttributes: {},
       entityTypes: {
