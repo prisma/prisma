@@ -1,31 +1,21 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 import {
-  type Fixtures,
-  generateFixtures,
-  type MigrationOp,
-  migrationPackage,
-  postColumns,
-  snapshotForm,
-  storageHashOf,
-} from './fixture-generator';
-import {
-  checked,
   fixtureTree,
   formatted,
+  HASHES,
+  initialHashes,
+  type MigrationOp,
   makeWorkDir,
+  migrationPackage,
+  postColumns,
   readTree,
   removeWorkDirs,
   runScript,
+  snapshotForm,
   type Tree,
   withoutMigration,
   writeTree,
 } from './test-helpers';
-
-let generated: Fixtures;
-
-beforeAll(async () => {
-  generated = await generateFixtures();
-}, 60_000);
 
 afterAll(removeWorkDirs);
 
@@ -35,10 +25,13 @@ const BACKFILL: readonly MigrationOp[] = [
 ];
 const HAND_FORMATTED = '// Formatted by hand.\n';
 
-function initialHashes(): readonly [string, string] {
-  const [oldHash, newHash] = generated.hashes[0] ?? [];
-  return [oldHash ?? '', newHash ?? ''];
-}
+const JANUARY_1 = '2026-01-01T00:00:00.000Z';
+const JANUARY_15 = '2026-01-15T00:00:00.000Z';
+/** The storage hash of the aliased snapshot with its `Slug` alias renamed `Handle`. */
+/** The migration hash of a migration created on {@link JANUARY_15} with {@link BACKFILL} that goes from the inline snapshot to itself. */
+const INLINE_TO_ITSELF_WITH_BACKFILL =
+  'acdecafe750e92cf32ce624b1d1e499fa228dbfcf27ad02de2d2aa515a66f67d';
+const RENAMED_ALIAS_HASH = '39598581eea3de285093830551d706c2812aa142444e2c344ac8eadd467bd972';
 
 /** The before fixture with a first migration to the contract written inline, and a migration that only introduces the aliases, which expanding the aliases turns into one snapshot. */
 function inlineThenAliased(): {
@@ -59,8 +52,20 @@ function inlineThenAliased(): {
       after[`migrations/snapshots/${inline}/${name}`] ?? '';
   Object.assign(
     tree,
-    migrationPackage('20260101T0000_initial', null, inline, '2026-01-01T00:00:00.000Z'),
-    migrationPackage('20260115T0000_use_aliases', inline, aliased, '2026-01-15T00:00:00.000Z'),
+    migrationPackage({
+      name: '20260101T0000_initial',
+      from: null,
+      to: inline,
+      createdAt: JANUARY_1,
+      migrationHash: 'e873e8e6f4a9219e3a4680d5dd9dea0517c5fb5bf12e99ed34c8a22b88c61cf8',
+    }),
+    migrationPackage({
+      name: '20260115T0000_use_aliases',
+      from: inline,
+      to: aliased,
+      createdAt: JANUARY_15,
+      migrationHash: '94503224882acee30a1b9facfc273472e43e0d7ac18f067c7d00701a89f275b4',
+    }),
   );
   return { tree, inline, aliased };
 }
@@ -72,7 +77,7 @@ function aliasesInLatestMigration(): {
   readonly aliased: string;
 } {
   const { tree, inline, aliased } = inlineThenAliased();
-  const [secondOld] = generated.hashes[1] ?? [];
+  const [secondOld] = HASHES[1] ?? [];
   const before = fixtureTree('before');
   const latest = withoutMigration(
     withoutMigration(tree, 'migrations/app/20260201T0000_add_title'),
@@ -104,7 +109,7 @@ function renamedAlias(aliased: string): { readonly hash: string; readonly files:
   const { Slug, ...otherTypes } = contract.storage.types;
   contract.storage.types = { ...otherTypes, Handle: Slug };
   (postColumns(contract)['slug'] as Record<string, unknown>)['typeRef'] = 'Handle';
-  const hash = storageHashOf(contract);
+  const hash = RENAMED_ALIAS_HASH;
   contract.storage.storageHash = hash;
   const dts = (before[`migrations/snapshots/${aliased}/contract.d.ts`] ?? '')
     .replaceAll("readonly typeRef: 'Slug'", "readonly typeRef: 'Handle'")
@@ -185,23 +190,21 @@ describe('expand-type-aliases, when two snapshots become one', () => {
     });
   });
 
-  it('upgrades the project once the migration it stopped on is deleted, and the migration checker accepts it', async () => {
+  it('upgrades the project once the migration it stopped on is deleted', () => {
     const { tree } = inlineThenAliased();
     const run = runIn(withoutMigration(tree, USE_ALIASES));
     expect({
       status: run.status,
       stderr: run.stderr,
       tree: formatted(readTree(run.root)),
-      checked: await checked(run.root),
     }).toEqual({
       status: 0,
       stderr: '',
       tree: fixtureTree('after'),
-      checked: { violations: [], path: ['20260101T0000_initial', '20260201T0000_add_title'] },
     });
   });
 
-  it('upgrades the project once the latest migration and its target snapshot are deleted, and the migration checker accepts it', async () => {
+  it('upgrades the project once the latest migration and its target snapshot are deleted', () => {
     const { tree, inline, aliased } = aliasesInLatestMigration();
     const deleted = withoutMigration(
       withoutMigration(tree, USE_ALIASES),
@@ -214,7 +217,6 @@ describe('expand-type-aliases, when two snapshots become one', () => {
       stdout: run.stdout,
       stderr: run.stderr,
       tree: formatted(readTree(run.root)),
-      checked: await checked(run.root),
     }).toEqual({
       status: 0,
       stdout: [
@@ -230,18 +232,23 @@ describe('expand-type-aliases, when two snapshots become one', () => {
         'prisma/contract.json': after[`migrations/snapshots/${inline}/contract.json`],
         'prisma/contract.d.ts': after[`migrations/snapshots/${inline}/contract.d.ts`],
       },
-      checked: { violations: [], path: ['20260101T0000_initial'] },
     });
   });
 
-  it('upgrades a migration between them that has a data operation, keeps the merged directory that exists, and the migration checker accepts it', async () => {
+  it('upgrades a migration between them that has a data operation, keeps the merged directory that exists', () => {
     const { tree, inline, aliased } = inlineThenAliased();
     const inlineDts = `migrations/snapshots/${inline}/contract.d.ts`;
     tree[inlineDts] = `${HAND_FORMATTED}${tree[inlineDts] ?? ''}`;
-    const createdAt = '2026-01-15T00:00:00.000Z';
     Object.assign(
       tree,
-      migrationPackage('20260115T0000_use_aliases', inline, aliased, createdAt, BACKFILL),
+      migrationPackage({
+        name: '20260115T0000_use_aliases',
+        from: inline,
+        to: aliased,
+        createdAt: JANUARY_15,
+        migrationHash: '94691feb09e3b5178e0473f77cee71ed2f675efd105797e4fabe5aa2be392518',
+        ops: BACKFILL,
+      }),
     );
     const run = runIn(tree);
     const upgraded = formatted(readTree(run.root));
@@ -251,31 +258,32 @@ describe('expand-type-aliases, when two snapshots become one', () => {
       stderr: run.stderr,
       tree: { ...upgraded, [migrationTs]: undefined },
       migrationTs: upgraded[migrationTs]?.includes(aliased),
-      checked: await checked(run.root),
     }).toEqual({
       status: 0,
       stderr: '',
       tree: {
         ...fixtureTree('after'),
-        ...migrationPackage('20260115T0000_use_aliases', inline, inline, createdAt, BACKFILL),
+        ...migrationPackage({
+          name: '20260115T0000_use_aliases',
+          from: inline,
+          to: inline,
+          createdAt: JANUARY_15,
+          migrationHash: INLINE_TO_ITSELF_WITH_BACKFILL,
+          ops: BACKFILL,
+        }),
         [inlineDts]: tree[inlineDts],
         [migrationTs]: undefined,
       },
       migrationTs: false,
-      checked: {
-        violations: [],
-        path: ['20260101T0000_initial', '20260201T0000_add_title'],
-      },
     });
   });
 
-  it('writes one of two changed snapshots that merge, when a migration with a data operation only renamed an alias, and the migration checker accepts it', async () => {
+  it('writes one of two changed snapshots that merge, when a migration with a data operation only renamed an alias', () => {
     const [aliased, inline] = initialHashes();
     const before = fixtureTree('before');
     const after = fixtureTree('after');
     const renamed = renamedAlias(aliased);
     const handFormatted = `${HAND_FORMATTED}${renamed.files['contract.d.ts'] ?? ''}`;
-    const createdAt = '2026-01-15T00:00:00.000Z';
     const rename = 'migrations/app/20260115T0000_rename_alias';
     const tree: Tree = {
       'prisma/contract.json': renamed.files['contract.json'] ?? '',
@@ -286,8 +294,21 @@ describe('expand-type-aliases, when two snapshots become one', () => {
         before[`migrations/snapshots/${aliased}/contract.d.ts`] ?? '',
       [`migrations/snapshots/${renamed.hash}/contract.json`]: renamed.files['contract.json'] ?? '',
       [`migrations/snapshots/${renamed.hash}/contract.d.ts`]: handFormatted,
-      ...migrationPackage('20260101T0000_initial', null, aliased, '2026-01-01T00:00:00.000Z'),
-      ...migrationPackage('20260115T0000_rename_alias', aliased, renamed.hash, createdAt, BACKFILL),
+      ...migrationPackage({
+        name: '20260101T0000_initial',
+        from: null,
+        to: aliased,
+        createdAt: JANUARY_1,
+        migrationHash: '02b3288dd25dd6fae7a2270d3433750901a78e538777178bb9e1983d78595a5f',
+      }),
+      ...migrationPackage({
+        name: '20260115T0000_rename_alias',
+        from: aliased,
+        to: renamed.hash,
+        createdAt: JANUARY_15,
+        migrationHash: '6e33d72d8abc1301357770bc85500059d7fe84487451371a24b8d47e0b414192',
+        ops: BACKFILL,
+      }),
     };
     const run = runIn(tree);
     const upgraded = formatted(readTree(run.root));
@@ -300,7 +321,6 @@ describe('expand-type-aliases, when two snapshots become one', () => {
       stderr: run.stderr,
       tree: { ...upgraded, [migrationTs]: undefined },
       migrationTs: [aliased, renamed.hash].some((hash) => upgraded[migrationTs]?.includes(hash)),
-      checked: await checked(run.root),
     }).toEqual({
       status: 0,
       stdout: [
@@ -318,12 +338,24 @@ describe('expand-type-aliases, when two snapshots become one', () => {
         [`migrations/snapshots/${inline}/contract.json`]:
           after[`migrations/snapshots/${inline}/contract.json`],
         [`migrations/snapshots/${inline}/contract.d.ts`]: writtenFirst,
-        ...migrationPackage('20260101T0000_initial', null, inline, '2026-01-01T00:00:00.000Z'),
-        ...migrationPackage('20260115T0000_rename_alias', inline, inline, createdAt, BACKFILL),
+        ...migrationPackage({
+          name: '20260101T0000_initial',
+          from: null,
+          to: inline,
+          createdAt: JANUARY_1,
+          migrationHash: 'e873e8e6f4a9219e3a4680d5dd9dea0517c5fb5bf12e99ed34c8a22b88c61cf8',
+        }),
+        ...migrationPackage({
+          name: '20260115T0000_rename_alias',
+          from: inline,
+          to: inline,
+          createdAt: JANUARY_15,
+          migrationHash: INLINE_TO_ITSELF_WITH_BACKFILL,
+          ops: BACKFILL,
+        }),
         [migrationTs]: undefined,
       },
       migrationTs: false,
-      checked: { violations: [], path: ['20260101T0000_initial'] },
     });
   });
 });

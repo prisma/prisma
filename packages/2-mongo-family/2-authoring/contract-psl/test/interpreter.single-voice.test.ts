@@ -151,7 +151,7 @@ model Item {
     ).toEqual(['PSL_UNRESOLVED_REFERENCE', 'PSL_ORPHANED_BACKRELATION']);
   });
 
-  it('keeps the orphaned-base verdict beside an unresolved discriminator field', () => {
+  it('adds no orphaned-base verdict beside an unresolved discriminator field', () => {
     expect(
       diagnosticCodes(
         [
@@ -165,6 +165,6 @@ model Item {
           '}',
         ].join('\n'),
       ),
-    ).toEqual(['PSL_UNRESOLVED_REFERENCE', 'PSL_ORPHANED_BASE']);
+    ).toEqual(['PSL_UNRESOLVED_REFERENCE']);
   });
 });

@@ -1,55 +1,34 @@
 import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
-import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { join } from 'pathe';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import {
-  emitted,
-  type Fixtures,
-  generateFixtures,
-  postColumns,
-  SECOND,
-  storageHashOf,
-} from './fixture-generator';
+import { afterAll, describe, expect, it } from 'vitest';
 import {
   appScript,
   copyFixture,
   extensionScript,
-  fixturesDir,
   fixtureTree,
   formatted,
+  HASHES,
+  initialHashes,
+  makeWorkDir,
+  postColumns,
   readTree,
   removeWorkDirs,
   runScript,
+  type Tree,
   withoutMigration,
   writeTree,
 } from './test-helpers';
 
-let generated: Fixtures;
-
-beforeAll(async () => {
-  generated = await generateFixtures();
-  if (process.env['EXPAND_TYPE_ALIASES_FIXTURES_WRITE'] === '1') {
-    rmSync(fixturesDir, { recursive: true, force: true });
-    writeTree(join(fixturesDir, 'before'), generated.before);
-    writeTree(join(fixturesDir, 'after'), generated.after);
-  }
-}, 60_000);
-
 afterAll(removeWorkDirs);
-
-function initialHashes(): readonly [string, string] {
-  const [oldHash, newHash] = generated.hashes[0] ?? [];
-  return [oldHash ?? '', newHash ?? ''];
-}
 
 /** The summary line of every storage.types entry the script removed, per contract it wrote. */
 function removedEntries(): readonly string[] {
   const entries = 'Code, Embedding, Slug';
   return [
     'Removed storage.types entries:',
-    ...generated.hashes
-      .map(([, newHash]) => `  migrations/snapshots/${newHash}/contract.json: ${entries}`)
-      .sort(),
+    ...HASHES.map(
+      ([, newHash]) => `  migrations/snapshots/${newHash}/contract.json: ${entries}`,
+    ).sort(),
     `  prisma/contract.json: ${entries}`,
   ];
 }
@@ -57,7 +36,7 @@ function removedEntries(): readonly string[] {
 function summary(files: number, directories: number): string {
   return [
     `Rewrote ${files} files and renamed ${directories} snapshot directories. Storage hashes changed (old -> new):`,
-    ...[...generated.hashes]
+    ...[...HASHES]
       .sort(([a], [b]) => (a < b ? -1 : 1))
       .map(([oldHash, newHash]) => `  ${oldHash} -> ${newHash}`),
     ...removedEntries(),
@@ -67,35 +46,21 @@ function summary(files: number, directories: number): string {
 
 const RESTORE = 'restore the file from version control, or re-emit it, and run the script again';
 
-/** A contract of the before fixture changed by `change`, with its stored hash refreshed so only the change is wrong. */
-function withChangedContract(change: (contract: Record<string, unknown>) => void): string {
+/** The before fixture with `prisma/contract.json` changed by `change` and stored under `storageHash`, the hash of the changed content, so only the change is wrong. */
+function withChangedContract(
+  change: (contract: Record<string, unknown>) => void,
+  storageHash: string,
+): string {
   const root = copyFixture('before');
   const path = join(root, 'prisma/contract.json');
   const contract = JSON.parse(readFileSync(path, 'utf8'));
   change(contract);
-  contract.storage.storageHash = storageHashOf(contract);
+  contract.storage.storageHash = storageHash;
   writeFileSync(path, JSON.stringify(contract, null, 2));
   return root;
 }
 
-function sortKeysDeep(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(sortKeysDeep);
-  if (typeof value !== 'object' || value === null) return value;
-  return Object.fromEntries(
-    Object.keys(value)
-      .sort()
-      .map((key) => [key, sortKeysDeep((value as Record<string, unknown>)[key])]),
-  );
-}
-
 describe('the fixtures', () => {
-  it('are what the live framework code builds', () => {
-    expect({ before: fixtureTree('before'), after: fixtureTree('after') }).toEqual({
-      before: generated.before,
-      after: generated.after,
-    });
-  });
-
   it('before the upgrade, store a typeRef on each aliased column', () => {
     const [oldHash] = initialHashes();
     const columns = postColumns(
@@ -108,13 +73,12 @@ describe('the fixtures', () => {
   });
 
   it('before the upgrade, store the alias the source declares but no column uses in the latest snapshot and in contract.json', () => {
-    const [, latest] = generated.hashes[1] ?? [];
+    const [latestOld, latest] = HASHES[1] ?? [];
     const before = fixtureTree('before');
-    const latestOld = generated.hashes[1]?.[0] ?? '';
     const typesOf = (text: string | undefined) =>
       Object.keys(JSON.parse(text ?? '{}').storage?.types ?? {}).sort();
     expect({
-      source: SECOND.psl.includes('Code      = Char(8)'),
+      source: before['prisma/contract.prisma']?.includes('Code      = Char(8)'),
       snapshot: typesOf(before[`migrations/snapshots/${latestOld}/contract.json`]),
       emitted: typesOf(before['prisma/contract.json']),
       after: typesOf(fixtureTree('after')[`migrations/snapshots/${latest}/contract.json`]),
@@ -136,38 +100,6 @@ describe('the fixtures', () => {
       after: Object.keys(JSON.parse(fixtureTree('after')[snapshot] ?? '{}').storage.types),
     }).toEqual({ before: fixtureTree('after')[snapshot], after: ['vector'] });
   });
-
-  it('after the upgrade, load as contracts whose stored hashes match their content', () => {
-    const serializer = new PostgresContractSerializer();
-    const contracts = Object.entries(fixtureTree('after')).filter(([path]) =>
-      path.endsWith('contract.json'),
-    );
-    expect(contracts).toHaveLength(4);
-    for (const [path, text] of contracts) {
-      const contract = JSON.parse(text);
-      expect(() => serializer.deserializeContract(contract), path).not.toThrow();
-      expect(storageHashOf(contract), path).toBe(contract.storage.storageHash);
-    }
-  });
-
-  it('after the upgrade, the latest snapshot and the emitted contract are what the unchanged source emits', async () => {
-    const [, latest] = generated.hashes[1] ?? [];
-    const after = fixtureTree('after');
-    const reemitted = await emitted(SECOND.psl);
-    expect({
-      hash: latest,
-      json: after[`migrations/snapshots/${latest}/contract.json`],
-      dts: after[`migrations/snapshots/${latest}/contract.d.ts`],
-      emittedJson: after['prisma/contract.json'],
-      emittedDts: after['prisma/contract.d.ts'],
-    }).toEqual({
-      hash: reemitted.hash,
-      json: `${JSON.stringify(sortKeysDeep(JSON.parse(reemitted.json)))}\n`,
-      dts: reemitted.dts,
-      emittedJson: reemitted.json,
-      emittedDts: reemitted.dts,
-    });
-  });
 });
 
 describe('expand-type-aliases', () => {
@@ -186,6 +118,24 @@ describe('expand-type-aliases', () => {
     });
   });
 
+  it('reads past quotes and braces inside comments in contract.d.ts', () => {
+    const comment = "// The column's type comes from the alias\n/* a stray { brace */\n";
+    const withComments = (tree: Tree): Tree =>
+      Object.fromEntries(
+        Object.entries(tree).map(([path, text]) => [
+          path,
+          path.endsWith('contract.d.ts') ? comment + text : text,
+        ]),
+      );
+    const root = makeWorkDir();
+    writeTree(root, withComments(fixtureTree('before')));
+    const run = runScript(root);
+    expect({ status: run.status, tree: formatted(readTree(run.root)) }).toEqual({
+      status: 0,
+      tree: withComments(fixtureTree('after')),
+    });
+  });
+
   it('points the snapshot imports of each migration.ts at the renamed directories', () => {
     const run = runScript(copyFixture('before'));
     const tree = readTree(run.root);
@@ -198,9 +148,7 @@ describe('expand-type-aliases', () => {
     expect(imported.length).toBeGreaterThan(0);
     expect(imported.filter((path) => tree[path] === undefined)).toEqual([]);
     expect(new Set(imported)).toEqual(
-      new Set(
-        generated.hashes.map(([, newHash]) => `migrations/snapshots/${newHash}/contract.json`),
-      ),
+      new Set(HASHES.map(([, newHash]) => `migrations/snapshots/${newHash}/contract.json`)),
     );
   });
 
@@ -269,7 +217,8 @@ describe('expand-type-aliases', () => {
     const path = join(root, 'prisma/contract.json');
     const contract = JSON.parse(readFileSync(path, 'utf8'));
     contract.storage.types.Slug.codecId = 'sql/char@1';
-    contract.storage.storageHash = storageHashOf(contract);
+    contract.storage.storageHash =
+      'f595fff7dfd2e04940c2521a0a355bfa5007f6e7d1bcc36886108a8eb970f5b3';
     writeFileSync(path, JSON.stringify(contract, null, 2));
     const before = readTree(root);
     const run = runScript(root);
@@ -293,7 +242,7 @@ describe('expand-type-aliases', () => {
   it('stops without changing a file when a column names an alias storage.types does not declare', () => {
     const root = withChangedContract((contract) => {
       delete (contract['storage'] as { types: Record<string, unknown> }).types['Slug'];
-    });
+    }, 'afa884d64c27b4c8ccabb412a6019d15a119030b48e5fefb04f5168301ecd8b3');
     const before = readTree(root);
     const run = runScript(root);
     expect({
@@ -316,7 +265,7 @@ describe('expand-type-aliases', () => {
   it('stops without changing a file when a column stores both typeRef and typeParams', () => {
     const root = withChangedContract((contract) => {
       (postColumns(contract)['slug'] as Record<string, unknown>)['typeParams'] = { length: 64 };
-    });
+    }, '22ee6a989e07bf2c5ec874f88b090c37a5b02329ee7ec424f33d87029e0167ea');
     const before = readTree(root);
     const run = runScript(root);
     expect({

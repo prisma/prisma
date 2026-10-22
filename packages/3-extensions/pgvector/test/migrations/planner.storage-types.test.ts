@@ -22,7 +22,7 @@ import {
 import { applicationDomainOf } from '@repo/test-utils';
 import { expectNarrowedType } from '@repo/test-utils/typed-expectations';
 import { describe, expect, it } from 'vitest';
-import { createTestPostgresControlAdapter } from '../../../../3-targets/6-adapters/postgres/test/helpers/test-control-adapter';
+import { createTestPostgresControlAdapter } from '../../../../3-targets/postgres/2-adapter/test/helpers/test-control-adapter';
 import pgvectorDescriptor from '../../src/exports/control';
 
 const testAdapter = createTestPostgresControlAdapter(

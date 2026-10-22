@@ -6,9 +6,10 @@ import {
   assembleGeneratorFunctions,
   singleGeneratorBinding,
 } from '@internal/framework-components/components';
-import { mongoCodecLookup, mongoDataTypeLookup } from '@internal/mongo-contract/test';
+import { mongoCodecLookup } from '@internal/mongo-contract/test';
 import { describe, expect, it } from 'vitest';
 import { interpretMongoContract } from './interpreter-test-helpers';
+import { mongoDataTypeSupport } from './mongo-type-lookups';
 
 const generatorFunctions = assembleGeneratorFunctions([
   {
@@ -40,7 +41,7 @@ function interpret(schema: string) {
     defaultFunctionRegistry: new Map(),
     generatorFunctions,
     codecLookup: mongoCodecLookup,
-    dataTypes: { entries: {}, lookup: mongoDataTypeLookup, dataTypeOfCodec: () => undefined },
+    dataTypes: mongoDataTypeSupport,
     authoringContributions,
   });
 }

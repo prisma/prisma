@@ -30,7 +30,7 @@ model Order {
 The reasoning and the alternatives rejected are in [`design-notes.md`](./design-notes.md) and ADR 279.
 
 1. **Two layers.** The explicit types stay, named after the database as ADR 257 says, each fixing one codec. The convenience types are named for what a field means in the application, and each becomes exactly one explicit type. Nothing is reversed: the explicit layer is the precise form, the convenience layer is the short form.
-2. **A convenience type is a type constructor whose arguments choose its codec.** Not a codec parameterized by database type (a codec represents one data type, ADR 254), and not a type alias (an alias attaches attributes to one fixed type).
+2. **A convenience type is a type choice: a declaration whose arguments name the explicit type constructor it becomes**, through a table with defaults and refusals. Not a codec parameterized by database type (a codec represents one data type, ADR 254), not a type alias (an alias attaches attributes to one fixed type), and not a select template over option arguments (no defaults or refusals; being removed with the presets). Settled 2026-10-22 when slice 4 was grounded.
 3. **The four PostgreSQL convenience types and their choices:**
 
    | Type | `value:` | `column:` | Default |
