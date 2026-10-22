@@ -1,15 +1,23 @@
 import type { Contract } from '@internal/contract/types';
 import { type SqlControlTargetDescriptor, sqlTypeLookupsOf } from '@internal/family-sql/control';
-import type { ControlTargetInstance } from '@internal/framework-components/control';
+import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
+import type {
+  ControlTargetInstance,
+  MigrationPlanner,
+  MigrationRunner,
+} from '@internal/framework-components/control';
 import { SqlStorage } from '@internal/sql-contract/types';
 import { relationalNodeEntityKind, relationalNodeGranularity } from '@internal/sql-schema-ir/types';
+import { blindCast } from '@internal/utils/casts';
 import { MARKER_TABLE_NAME } from '../control-tables';
 import { mysqlTargetDescriptorMeta } from '../descriptor-meta';
-import { mysqlError, mysqlNotYetSupported } from '../errors';
+import { mysqlError } from '../errors';
 import { MysqlContractSerializer } from '../mysql-contract-serializer';
 import { diffMysqlSchema, mysqlContractToSchema } from './diff-database-schema';
 import { MysqlSchemaVerifier } from './mysql-schema-verifier';
+import { createMysqlMigrationPlanner } from './planner';
 import type { MysqlPlanTargetDetails } from './planner-target-details';
+import { createMysqlMigrationRunner } from './runner';
 
 function isSqlContract(contract: Contract | null): contract is Contract<SqlStorage> | null {
   return contract === null || contract.storage instanceof SqlStorage;
@@ -25,11 +33,14 @@ const mysqlControlTargetDescriptor: SqlControlTargetDescriptor<'mysql', MysqlPla
   migrations: {
     applyAtomicity: 'per-space',
     markerLocation: MARKER_TABLE_NAME,
-    createPlanner() {
-      throw mysqlNotYetSupported('Planning migrations');
+    createPlanner(adapter: SqlControlAdapter<'mysql'>): MigrationPlanner<'sql', 'mysql'> {
+      return createMysqlMigrationPlanner(adapter);
     },
-    createRunner() {
-      throw mysqlNotYetSupported('Running migrations');
+    createRunner(family) {
+      return blindCast<
+        MigrationRunner<'sql', 'mysql'>,
+        'the SQL runner takes SQL per-space options; the framework types them as the generic MigrationRunnerPerSpaceOptions'
+      >(createMysqlMigrationRunner(family));
     },
     contractToSchema(contract, frameworkComponents) {
       if (!isSqlContract(contract)) {
@@ -44,11 +55,11 @@ const mysqlControlTargetDescriptor: SqlControlTargetDescriptor<'mysql', MysqlPla
   create(): ControlTargetInstance<'sql', 'mysql'> {
     return { familyId: 'sql', targetId: 'mysql' };
   },
-  createPlanner() {
-    throw mysqlNotYetSupported('Planning migrations');
+  createPlanner(adapter: SqlControlAdapter<'mysql'>) {
+    return createMysqlMigrationPlanner(adapter);
   },
-  createRunner() {
-    throw mysqlNotYetSupported('Running migrations');
+  createRunner(family) {
+    return createMysqlMigrationRunner(family);
   },
 };
 

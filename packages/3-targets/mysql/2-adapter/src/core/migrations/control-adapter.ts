@@ -25,8 +25,9 @@ import {
   MARKER_TABLE_NAME,
   releaseMarkerLock,
 } from '@internal/target-mysql/control-tables';
-import { MysqlCreateTable } from '@internal/target-mysql/ddl';
+import type { MysqlCreateTable } from '@internal/target-mysql/ddl';
 import { mysqlQueryNotYetSupported } from '@internal/target-mysql/errors';
+import { blindCast } from '@internal/utils/casts';
 import { structuredError } from '@internal/utils/structured-error';
 import { renderMysqlColumnDefault, renderMysqlCreateTable } from './ddl-renderer';
 import { declaredIndexes } from './declared-indexes';
@@ -88,8 +89,14 @@ export class MysqlControlAdapter implements SqlControlAdapter<'mysql'> {
 
   async lowerToExecuteRequest(ast: AnyQueryAst | DdlNode): Promise<SqlExecuteRequest> {
     if (!isDdlNode(ast)) throw mysqlQueryNotYetSupported('Lowering queries');
-    if (!(ast instanceof MysqlCreateTable)) throw unsupportedDdl(ast);
-    return renderMysqlCreateTable(ast, this.codecRegistry);
+    if (ast.kind !== 'create-table') throw unsupportedDdl(ast);
+    return renderMysqlCreateTable(
+      blindCast<
+        MysqlCreateTable,
+        'the MySQL target builds every create-table DDL node; the migration CLI can load it from another copy of the module, so instanceof cannot tell'
+      >(ast),
+      this.codecRegistry,
+    );
   }
 
   async renderColumnDefault(column: DdlColumn, table: string): Promise<string> {

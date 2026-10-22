@@ -15,12 +15,16 @@
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
   "dependencies": {
+    "@internal/cli": "workspace:8.0.0-rc.19",
     "@internal/contract": "workspace:8.0.0-rc.19",
+    "@internal/errors": "workspace:8.0.0-rc.19",
     "@internal/family-sql": "workspace:8.0.0-rc.19",
     "@internal/framework-components": "workspace:8.0.0-rc.19",
+    "@internal/migration-tools": "workspace:8.0.0-rc.19",
     "@internal/sql-contract": "workspace:8.0.0-rc.19",
     "@internal/sql-relational-core": "workspace:8.0.0-rc.19",
     "@internal/sql-schema-ir": "workspace:8.0.0-rc.19",
+    "@internal/ts-render": "workspace:8.0.0-rc.19",
     "@internal/utils": "workspace:8.0.0-rc.19",
     "@standard-schema/spec": "1.1.0",
     "arktype": "^2.2.2"
@@ -57,6 +61,7 @@
     "./ddl": "./dist/ddl.mjs",
     "./default-normalizer": "./dist/default-normalizer.mjs",
     "./errors": "./dist/errors.mjs",
+    "./migration": "./dist/migration.mjs",
     "./pack": "./dist/pack.mjs",
     "./sql-utils": "./dist/sql-utils.mjs",
     "./package.json": "./package.json"

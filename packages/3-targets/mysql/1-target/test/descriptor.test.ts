@@ -32,17 +32,11 @@ describe('the MySQL target descriptor', () => {
     ]);
   });
 
-  it('refuses to plan or run migrations until the migration slice builds them', () => {
-    expect(() => mysqlControlTarget.migrations.createPlanner(undefined as never)).toThrow(
-      'Planning migrations is not yet supported on MySQL.',
-    );
-    expect(() => mysqlControlTarget.createRunner(undefined as never)).toThrow(
-      'Running migrations is not yet supported on MySQL.',
-    );
-    expect(() => mysqlControlTarget.createPlanner(undefined as never)).toThrow(/not yet supported/);
-    expect(() => mysqlControlTarget.migrations.createRunner(undefined as never)).toThrow(
-      /not yet supported/,
-    );
+  it('states that a failed apply leaves the spaces before it applied', () => {
+    expect({
+      applyAtomicity: mysqlControlTarget.migrations.applyAtomicity,
+      markerLocation: mysqlControlTarget.migrations.markerLocation,
+    }).toEqual({ applyAtomicity: 'per-space', markerLocation: '_prisma_marker' });
   });
 
   it('refuses a contract that is not a SQL contract', () => {
