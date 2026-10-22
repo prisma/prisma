@@ -21,7 +21,7 @@ const matches = (id: string, content: string) =>
   patternsOf(id).some((pattern) => pattern.test(content));
 
 describe('the convenience date and time type detection', () => {
-  it('matches a Prisma 8 field or alias typed DateTime, Date or Time, and nothing else', () => {
+  it('matches a Prisma 8 field or alias typed DateTime, Date or Time on any target, and nothing else', () => {
     const psl = (body: string) =>
       matches('psl-date-time-types-are-convenience-types', `// use prisma-8\n\n${body}\n`);
     expect({
@@ -34,6 +34,8 @@ describe('the convenience date and time type detection', () => {
       stringType: psl('model A {\n  day DateString\n}'),
       comment: psl('// a DateTime field\nmodel A {\n  id Int @id\n}'),
       modelName: psl('model Date {\n  id Int @id\n}'),
+      sqliteDateTime: psl('model A {\n  at DateTime @default(datetime`2024-01-01T00:00:00Z`)\n}'),
+      mongoDate: psl('model A {\n  id ObjectId @id @map("_id")\n  at Date\n}'),
       prisma7: psl(
         'datasource db {\n  provider = "postgresql"\n}\nmodel A {\n  at DateTime @db.Timestamptz(3)\n}',
       ),
@@ -47,6 +49,8 @@ describe('the convenience date and time type detection', () => {
       stringType: false,
       comment: false,
       modelName: false,
+      sqliteDateTime: true,
+      mongoDate: true,
       prisma7: false,
     });
   });
@@ -58,12 +62,14 @@ describe('the convenience date and time type detection', () => {
       date: ts('field.column(type.Date())'),
       time: ts('field.column(type.Time(3))'),
       explicit: ts('field.column(type.TimeTemporal(3))'),
+      sqliteDateTime: ts('field.column(type.DateTime())'),
       jsDate: ts('const at = new Date()'),
     }).toEqual({
       dateTime: true,
       date: true,
       time: true,
       explicit: false,
+      sqliteDateTime: true,
       jsDate: false,
     });
   });
