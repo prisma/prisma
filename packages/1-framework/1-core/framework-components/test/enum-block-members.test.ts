@@ -162,11 +162,14 @@ describe('readEnumBlockMembers', () => {
     });
   });
 
-  it('reads a member the block holds no written value for from its name, as text', () => {
-    expect(read({ Low: 'ignored' })).toEqual({
-      members: [{ name: 'Low', value: 'Low' }],
-      diagnostics: [],
-    });
+  it('throws for a member with a value the block holds no written value for, because the block reader records every value', () => {
+    expect(() => read({ Low: 'low' })).toThrow(
+      expect.objectContaining({
+        name: 'InternalError',
+        message:
+          'enum "Key" member "Low" has a value, but the block holds no written value for it.',
+      }),
+    );
   });
 
   it('keeps every digit of a number member, read from its source text', () => {

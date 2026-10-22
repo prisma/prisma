@@ -1,9 +1,10 @@
+import { InternalError } from '@internal/utils/internal-error';
 import { type Codec, readContractValue } from './codec';
 import type { EnumMemberProblem } from './enum-members';
 import { duplicateStoredMembers, type StoredEnumMember } from './enum-stored-members';
 import type { AuthoringEntityContext } from './framework-authoring';
 import type { ParsedPslExtensionBlock, PslSpan } from './psl-extension-block';
-import { readWrittenValueInto } from './written-value';
+import { readWrittenValueInto, type WrittenValue } from './written-value';
 
 export interface EnumBlockMember {
   readonly name: string;
@@ -76,8 +77,22 @@ export function enumMemberProblemDiagnostic(
   }
 }
 
+/** A member as it is written: its recorded written value, or a bare member's name, as text. */
+function writtenMember(
+  block: ParsedPslExtensionBlock<Readonly<Record<string, unknown>>>,
+  memberName: string,
+  memberValue: unknown,
+): WrittenValue {
+  const written = block.writtenValues?.[memberName];
+  if (written !== undefined) return written;
+  if (memberValue === undefined) return { kind: 'string', text: memberName };
+  throw new InternalError(
+    `enum "${block.name}" member "${memberName}" has a value, but the block holds no written value for it.`,
+  );
+}
+
 /**
- * Reads the members of an `enum` block through its codec with {@link readWrittenValueInto}: each member's syntax gives it a data type, the codec's data type takes it directly or through a cast, and the codec checks it, so a number keeps every digit and a quoted value is text. A member the block holds no written value for, such as a bare member, is read from its own name, as text.
+ * Reads the members of an `enum` block through its codec with {@link readWrittenValueInto}: each member's syntax gives it a data type, the codec's data type takes it directly or through a cast, and the codec checks it, so a number keeps every digit and a quoted value is text. A bare member is read from its own name, as text.
  * Pushes a diagnostic and returns `undefined` when a member is refused, when two members
  * store the same value, or when the block has no members. Shared by every family's enum factory.
  */
@@ -106,7 +121,7 @@ export function readEnumBlockMembers(
       support: ctx.dataTypes,
       codecLookup: ctx.codecLookup,
       ref: { codecId },
-      written: block.writtenValues?.[memberName] ?? { kind: 'string', text: memberName },
+      written: writtenMember(block, memberName, memberValue),
       subject: `enum "${block.name}" member "${memberName}"`,
     });
     if (!reading.ok) {

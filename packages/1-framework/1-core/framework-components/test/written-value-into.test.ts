@@ -63,6 +63,15 @@ const vector = dataType('t/vector', {
   },
 });
 
+const sizedVector = dataType('t/sized-vector', {
+  params: type({ 'length?': 'number' }),
+  read: (json, params) => {
+    if (Array.isArray(json) && json.length === params['length']) return json;
+    throw new Error(`${JSON.stringify(json)} does not have ${String(params['length'])} elements`);
+  },
+  listCast: { of: [int.id, dec.id], cast: (elements) => elements.map(Number) },
+});
+
 const entries: Readonly<Record<string, DataTypeAuthoringEntry>> = {
   [text.id]: {
     written: { kind: 'plain', syntax: 'string', parse: (value) => value },
@@ -87,7 +96,7 @@ const entries: Readonly<Record<string, DataTypeAuthoringEntry>> = {
 
 const support: DataTypeSupport = {
   entries,
-  lookup: createDataTypeLookup([text, int, dec, sized, positive, vector]),
+  lookup: createDataTypeLookup([text, int, dec, sized, positive, vector, sizedVector]),
   dataTypeOfCodec: () => undefined,
 };
 
@@ -147,6 +156,10 @@ const descriptors = [
   new FixtureDescriptor('t/sized@1', sized, lengthSchema),
   new FixtureDescriptor('t/positive@1', positive),
   new FixtureDescriptor('t/vector@1', vector),
+  new FixtureDescriptor('t/sized-vector@1', sizedVector, lengthSchema),
+  new FixtureDescriptor('t/no-zero-vector@1', vector, undefined, (value) =>
+    Array.isArray(value) && value.includes(0) ? 't/no-zero-vector@1 does not take 0' : undefined,
+  ),
   new FixtureDescriptor('t/no-forbidden@1', text, undefined, (value) =>
     value === 'forbidden' ? 't/no-forbidden@1 does not take "forbidden"' : undefined,
   ),
@@ -281,6 +294,23 @@ describe('readWrittenValueInto', () => {
         notOk({
           code: 'PSL_INVALID_LITERAL',
           message: 'member "M" at element 1: a list holds values, not other lists',
+        }),
+      );
+    });
+
+    it('refuses a list the list cast takes and the type parameters exclude with PSL_VALUE_REFUSED', () => {
+      expect(
+        readInto({ codecId: 't/sized-vector@1', typeParams: { length: 3 } }, list(number('1'))),
+      ).toEqual(
+        notOk({ code: 'PSL_VALUE_REFUSED', message: 'member "M": [1] does not have 3 elements' }),
+      );
+    });
+
+    it('refuses a list the list cast takes and the codec refuses with PSL_VALUE_REFUSED', () => {
+      expect(readInto({ codecId: 't/no-zero-vector@1' }, list(number('0')))).toEqual(
+        notOk({
+          code: 'PSL_VALUE_REFUSED',
+          message: 'member "M": t/no-zero-vector@1 does not take 0',
         }),
       );
     });
