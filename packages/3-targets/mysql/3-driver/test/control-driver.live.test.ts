@@ -68,6 +68,19 @@ describe('MysqlControlDriver against a MySQL server', () => {
     });
   });
 
+  it('sends an object parameter as a string, not as SQL', async (test) => {
+    await withMysqlDatabase(test, async ({ url }) => {
+      const driver = await mysqlDriver.create(url);
+      try {
+        expect(await driver.query('SELECT ? AS v', [{ id: 1 }])).toEqual({
+          rows: [{ v: '[object Object]' }],
+        });
+      } finally {
+        await driver.close();
+      }
+    });
+  });
+
   it('reports a failed statement as a SqlQueryError with its SQLSTATE', async (test) => {
     await withMysqlDatabase(test, async ({ url }) => {
       const driver = await mysqlDriver.create(url);

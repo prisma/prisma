@@ -21,7 +21,7 @@ function flagsWithoutMultipleStatements(flags: unknown): string[] | undefined {
 }
 
 /**
- * The mysql2 options for a connection URL, read as mysql2 reads one, with multiple statements kept off whatever the URL's parameters say.
+ * The mysql2 options for a connection URL, read as mysql2 reads one, with multiple statements kept off and object parameters sent as text, whatever the URL's parameters say.
  */
 export function mysqlConnectionOptions(url: string, connectTimeoutMs?: number): ConnectionOptions {
   const parsed = new URL(url);
@@ -40,6 +40,7 @@ export function mysqlConnectionOptions(url: string, connectTimeoutMs?: number): 
     database: decodeURIComponent(parsed.pathname.slice(1)),
     ...ifDefined('flags', flagsWithoutMultipleStatements(flags)),
     multipleStatements: false,
+    stringifyObjects: true,
     timezone: 'Z',
     ...ifDefined('connectTimeout', connectTimeoutMs),
   };

@@ -31,6 +31,12 @@ describe('mysqlConnectionOptions', () => {
     ).toMatchObject({ multipleStatements: false, flags: [] });
   });
 
+  it('sends an object parameter as text whatever the URL says', () => {
+    expect(
+      mysqlConnectionOptions('mysql://root@localhost/app?stringifyObjects=false'),
+    ).toMatchObject({ stringifyObjects: true });
+  });
+
   it('passes the connect timeout it is given', () => {
     expect(mysqlConnectionOptions('mysql://root@localhost/app', 500)).toMatchObject({
       connectTimeout: 500,
