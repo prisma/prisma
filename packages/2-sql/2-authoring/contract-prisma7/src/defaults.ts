@@ -37,6 +37,7 @@ import type {
   AuthoredColumnDefault,
   AuthoredColumnDefaultLiteralValue,
 } from '@internal/sql-contract-ts/contract-builder';
+import { InternalError } from '@internal/utils/internal-error';
 import { prisma7Diagnostic } from './diagnostics';
 import type { Prisma7LiteralDefaultForm } from './target-binding';
 
@@ -53,6 +54,8 @@ export interface LowerPrisma7DefaultInput {
   readonly onlyDbgenerated: boolean;
   readonly codecId: string;
   readonly typeParams: Readonly<Record<string, unknown>> | undefined;
+  /** The name after `@db.` of the field's native type attribute, if it has one. */
+  readonly nativeTypeName: string | undefined;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly literalForm: Prisma7LiteralDefaultForm | undefined;
   /** Storage value per member name when the field is typed by a Prisma 7 enum. */
@@ -406,8 +409,34 @@ function lowerFunction(
   }
   const storage = lowered.value.defaultValue;
   if (!PRISMA7_CLIENT_AND_DATABASE_FUNCTIONS.has(fn)) return { storage, onCreate: undefined };
+  if (!input.generatorFunctions.functionsFor(input.codecId).some(({ name }) => name === fn)) {
+    input.diagnostics.push(
+      prisma7Diagnostic(
+        'PSL.PRISMA7_UNKNOWN_DEFAULT',
+        `${label}: ${notADateOrTimeField(fn, input)}`,
+        input.sourceId,
+        span,
+      ),
+    );
+    return undefined;
+  }
   const onCreate = resolveGenerator(fn, {}, input, label, unknown);
   return onCreate === undefined ? undefined : { storage, onCreate };
+}
+
+/** Why Prisma 7 refuses a date and time default function on a field whose column is not a date or time. */
+function notADateOrTimeField(fn: string, input: LowerPrisma7DefaultInput): string {
+  const written = `@default(${fn}())`;
+  if (input.field.typeName !== 'DateTime') {
+    return `${written} needs a DateTime field, but the field has type "${input.field.typeName}". Prisma 7 refuses this schema too. Remove ${written}, or change the field's type to DateTime.`;
+  }
+  const nativeType = input.nativeTypeName;
+  if (nativeType === undefined) {
+    throw new InternalError(
+      `The Prisma 7 target binding has no "${fn}" generator for codec "${input.codecId}", which the DateTime scalar maps to.`,
+    );
+  }
+  return `${written} needs a date or time column, but "@db.${nativeType}" makes it a column that is not a date or time. Prisma 7 refuses this schema too: "Native type ${nativeType} is not compatible with declared field type DateTime". Remove ${written}, or use a date or time native type such as @db.Timestamp.`;
 }
 
 /** The generator a client function resolves to for the field's column, or `undefined` after reporting why it cannot fill it. */
