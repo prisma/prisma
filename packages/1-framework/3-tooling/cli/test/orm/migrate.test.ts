@@ -383,10 +383,10 @@ describe('migrate', () => {
 
     const run = await harness(ormConfig(cwd)).run(['db', 'migrate'], { cwd });
 
-    expect(run.stdout).toBe(`app\t20260101_100000_111111\t${EMPTY}\t${C1}\t1\n`);
+    expect(run.stdout).toBe(`app\t20260101_100000_111111\t\t${C1}\t1\n`);
   });
 
-  it('writes nothing to stdout in human mode', async () => {
+  it('writes no data lines when stdout and stderr share one terminal', async () => {
     const cwd = await buildProject();
 
     const run = await harness(ormConfig(cwd)).run(['db', 'migrate'], {

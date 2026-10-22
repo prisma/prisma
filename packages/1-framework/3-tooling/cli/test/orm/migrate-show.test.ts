@@ -382,8 +382,7 @@ describe('migrate --show', () => {
       const run = await harness(ormConfig(cwd)).run(['db', 'migrate', '--show'], { cwd });
 
       expect(run.stdout).toBe(
-        `app\t20260101_100000_111111\t${EMPTY}\t${C1}\n` +
-          `app\t20260101_100000_222222\t${C1}\t${C2}\n`,
+        `app\t20260101_100000_111111\t\t${C1}\n` + `app\t20260101_100000_222222\t${C1}\t${C2}\n`,
       );
     });
 

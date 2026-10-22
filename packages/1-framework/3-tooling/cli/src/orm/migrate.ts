@@ -2,6 +2,7 @@ import { ormConfigSection } from '@internal/config-loader';
 import type { Contract } from '@internal/contract/types';
 import { createControlStack } from '@internal/framework-components/control';
 import { contractHashAtMarker } from '@internal/migration-tools/aggregate';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
 import { isLiveMarkerRef } from '@internal/migration-tools/ref-resolution';
 import type { RefEntry } from '@internal/migration-tools/refs';
@@ -99,6 +100,10 @@ function statusAction(invocation: CliInvocation): NextAction {
   );
 }
 
+function fromField(from: string): string | undefined {
+  return from === EMPTY_CONTRACT_HASH ? undefined : from;
+}
+
 /**
  * The route the migration will take. The graph is a drawing — the engine cannot
  * derive a lane gutter — and the ordered list under it is drawn with the same
@@ -118,7 +123,7 @@ function showPresentations(inputs: {
   return {
     stdout: () =>
       document.migrations.map((migration) =>
-        dataLine([migration.spaceId, migration.dirName, migration.from, migration.to]),
+        dataLine([migration.spaceId, migration.dirName, fromField(migration.from), migration.to]),
       ),
     next: () => [],
     human: (): readonly Block[] => [
@@ -163,7 +168,7 @@ function applyPresentations(inputs: {
         dataLine([
           migration.spaceId,
           migration.dirName,
-          migration.from,
+          fromField(migration.from),
           migration.to,
           migration.operationsExecuted,
         ]),
