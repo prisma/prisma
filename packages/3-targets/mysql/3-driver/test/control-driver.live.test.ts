@@ -14,10 +14,15 @@ async function connectWhileServerDefaultIncludes(
     const [rows] = await admin.query('SELECT @@GLOBAL.sql_mode AS mode');
     const [{ mode }] = rows as [{ mode: string }];
     await admin.query(`SET GLOBAL sql_mode = '${[mode, sqlMode].filter(Boolean).join(',')}'`);
+    let driver: MysqlControlDriver | undefined;
     try {
-      return await mysqlDriver.create(url);
+      driver = await mysqlDriver.create(url);
+      return driver;
     } finally {
-      await admin.query(`SET GLOBAL sql_mode = '${mode}'`);
+      await admin.query(`SET GLOBAL sql_mode = '${mode}'`).catch(async (error: unknown) => {
+        await driver?.close().catch(() => undefined);
+        throw error;
+      });
     }
   } finally {
     await admin.end();
