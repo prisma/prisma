@@ -10,6 +10,7 @@ import sql, { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
 import {
   type AuthoringTypeNamespace,
   isAuthoringTypeAliasDescriptor,
+  isAuthoringTypeChoiceDescriptor,
   isAuthoringTypeConstructorDescriptor,
 } from '@internal/framework-components/authoring';
 import { dataTypeParams } from '@internal/framework-components/codec';
@@ -38,7 +39,7 @@ const familyInstance = sql.create(controlStack);
 /** The data types whose constructor the stack marks `inferred`, found by walking every constructor. */
 function dataTypesWithMarkedConstructor(namespace: AuthoringTypeNamespace): readonly string[] {
   return Object.values(namespace).flatMap((value) => {
-    if (isAuthoringTypeAliasDescriptor(value)) return [];
+    if (isAuthoringTypeAliasDescriptor(value) || isAuthoringTypeChoiceDescriptor(value)) return [];
     if (!isAuthoringTypeConstructorDescriptor(value)) return dataTypesWithMarkedConstructor(value);
     if (value.inferred !== true) return [];
     const dataType = controlStack.codecLookup.descriptorFor(value.output.codecId)?.dataType;
