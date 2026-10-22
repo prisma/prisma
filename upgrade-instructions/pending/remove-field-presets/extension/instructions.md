@@ -115,7 +115,7 @@ Code that matches a diagnostic by code: a preset call is now `PSL_UNRESOLVED_REF
 
 ## `field-presets-in-extension-code`
 
-Rewrite every preset call in the extension's code, test contracts, messages, doc comments and documentation with the tables of the app upgrade guide. In a `defineContract` callback, take `gen` and `type` from the callback's argument where the rewritten fields use them, adding each missing name at the end of the destructuring, `gen` before `type`. A preset named in a message or doc comment as an example, such as `field.text()` or `field.temporal.timestamptz()`, becomes its replacement, such as `field.column(type.String())` or `field.column(type.Timestamptz())`. If a callback renames `field`, as in `({ field: f })`, the detection does not see `f.id.uuidv4String()`; search for it yourself.
+Rewrite every preset call in the extension's code, test contracts, messages, doc comments and documentation with the tables of the app upgrade guide. In a `defineContract` callback, take `gen` and `type` from the callback's argument where the rewritten fields use them, adding each missing name at the end of the destructuring, `gen` before `type`. A preset named in a message or doc comment as an example, such as `field.text()` or `field.temporal.timestamptz()`, becomes its replacement, such as `field.column(type.String())` or `field.column(type.Timestamptz())`. A sentence that describes the presets themselves, such as one saying a `field` export has the same presets as the callback, says instead that the export gives the same `field` and `type` as the callback. If a callback renames `field`, as in `({ field: f })`, the detection does not see `f.id.uuidv4String()`; search for it yourself.
 
 If your package exports `field` and `gen` from a `createComposedAuthoringHelpers(...)` call so that code outside a contract, such as a query fragment, can declare fields, export that call's `type` too, with a doc comment that names an example such as `type.Timestamptz()`:
 
@@ -123,4 +123,4 @@ If your package exports `field` and `gen` from a `createComposedAuthoringHelpers
 export const type: Helpers['type'] = helpers.type;
 ```
 
-Add it wherever the package re-exports `field` and `gen`.
+Add it wherever the package re-exports `field` and `gen`, and replace the preset examples in the doc comment of `field` with `field.column(type.X())` examples. The app upgrade guide's section `ts-field-presets-removed` covers the rest of a `defineContract` callback: a name `type` that is already bound, code that does not know its target, and a `field` imported outside a callback.

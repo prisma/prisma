@@ -24,7 +24,7 @@ export default defineConfig({
 // prisma/contract.ts
 import { defineContract } from '@internal/sqlite/contract-builder';
 
-export default defineContract({}, ({ field, gen, model, type }) => ({
+export default defineContract({}, ({ field, model, gen, type }) => ({
   models: {
     User: model('User', {
       fields: { id: field.column(type.sql.Char(36)).id().onCreate(gen.uuid()) },
@@ -56,7 +56,7 @@ TypeScript contract authoring DSL (`defineContract`, `field`, `model`, `rel`, â€
 ```typescript
 import { defineContract } from '@internal/sqlite/contract-builder';
 
-export default defineContract({}, ({ field, gen, model, type }) => ({
+export default defineContract({}, ({ field, model, gen, type }) => ({
   models: {
     User: model('User', {
       fields: { id: field.column(type.sql.Char(36)).id().onCreate(gen.uuid()) },

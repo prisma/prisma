@@ -37,7 +37,7 @@ changes:
 
 This guide replaces two pieces of advice from the 8.0.0-rc.19 upgrade guide. That guide said that `field.generated(...)` keeps working for now, and that a field preset keeps its `number`, `option` and `object` arguments. Neither holds any more: this release removes `field.generated(...)` and every field preset, in PSL and in TypeScript, and the tables below give what to write instead.
 
-A field preset was a call in a field's type position that set the column, the identity and the generated values at once, such as `id.uuidv4String()` or `temporal.createdAt()`. Each is now written with what the rest of a contract uses: a type constructor or a contributed alias, such as `Char(36)` or `temporal.CreatedAt`, plus `@id`, `@onCreate(...)` and `@onUpdate(...)` in PSL, or `.id()`, `.onCreate(gen.fn())` and `.onUpdate(gen.fn())` in TypeScript. Every replacement stores the same contract as its preset, with the same storage and execution hashes. So after the rewrite nothing is re-emitted, signed or migrated: `prisma contract emit` writes the `contract.json` you have.
+A field preset was a call in a field's type position that set the column, the identity and the generated values at once, such as `id.uuidv4String()` or `temporal.createdAt()`. Each is now written with what the rest of a contract uses: a type constructor or a contributed alias, such as `Char(36)` or `temporal.CreatedAt`, plus `@id`, `@onCreate(...)` and `@onUpdate(...)` in PSL, or `.id()`, `.onCreate(gen.fn())` and `.onUpdate(gen.fn())` in TypeScript. Every replacement stores the same contract as its preset, with the same storage and execution hashes. So after the rewrite nothing is re-emitted, signed or migrated: `prisma contract emit` writes the `contract.json` you have. Rewrite the calls where your project's comments and documentation show them too, such as a README, in PSL and in TypeScript; the detections look only at `.prisma` and TypeScript files.
 
 ```prisma
 // Before
@@ -207,7 +207,11 @@ Rewrite every preset call in your TypeScript contract and query fragments as the
 
 In a `defineContract` callback, take `type` and `gen` from the callback's argument where the rewritten fields use them. Add each missing name at the end of the destructuring, `gen` before `type`: `({ field, model })` becomes `({ field, model, gen, type })`, and `({ field, model, type })` becomes `({ field, model, type, gen })`. If you rename the callback's `field`, as in `({ field: f })`, a preset call is written `f.id.uuidv4String()`; the detection does not see it, so search for it yourself.
 
-On Postgres, use the constructors in the Postgres table and `type.Char(n)` for the SQL family presets. On SQLite, use `type.sql.Char(n)`.
+On Postgres, use the constructors in the Postgres table and `type.Char(n)` for the SQL family presets. On SQLite, use `type.sql.Char(n)`. Code that does not know its target can write `type.sql.Char(n)`, which every SQL target has.
+
+If the file already has a binding named `type`, such as `import { type } from 'arktype'`, the callback's `type` hides it inside the callback. Rename one of them, as in `({ field, model, gen, type: t })`, if the callback uses both.
+
+A contract that calls the `field` imported from a facade's `contract-builder` outside a callback needs `type` too. `@prisma/orm-postgres/contract-builder` exports it. The other facades do not, so move the models into the `defineContract` callback, `defineContract({}, ({ field, model, gen, type }) => ({ models: { ... } }))`, and remove `field` from the import.
 
 A query fragment that declares its fields with the `field` exported by `@prisma/orm-postgres/contract-builder` imports `type` from the same entry:
 
@@ -233,7 +237,7 @@ A fragment field matches a column by its codec and nullability, so the replaceme
 
 In MongoDB contracts, `field.temporal.*` is the only preset. Take `gen` from the callback and write `field.date()` with `.onCreate(gen.now())` and `.onUpdate(gen.now())`. Leave `field.json()`, `field.date()`, `field.string()` and the other MongoDB field helpers alone; they are not presets.
 
-Rewrite the same calls where your project's comments and documentation show them, so that they show code that compiles. Then type-check the project and run `prisma contract emit`. The contract does not change.
+Then type-check the project and run `prisma contract emit`. The contract does not change.
 
 ## `ts-field-generated-removed`
 
