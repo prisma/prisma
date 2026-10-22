@@ -51,6 +51,23 @@ describe('MysqlControlDriver against a MySQL server', () => {
     });
   });
 
+  it('refuses two statements in one query even when the URL asks for multiple statements', async (test) => {
+    await withMysqlDatabase(test, async ({ url }) => {
+      const withMultipleStatements = new URL(url);
+      withMultipleStatements.searchParams.set('multipleStatements', 'true');
+      withMultipleStatements.searchParams.set('flags', 'MULTI_STATEMENTS');
+      const driver = await mysqlDriver.create(withMultipleStatements.toString());
+      try {
+        await expect(driver.query('SELECT 1; SELECT 2')).rejects.toMatchObject({
+          kind: 'sql_query',
+          sqlState: '42000',
+        });
+      } finally {
+        await driver.close();
+      }
+    });
+  });
+
   it('reports a failed statement as a SqlQueryError with its SQLSTATE', async (test) => {
     await withMysqlDatabase(test, async ({ url }) => {
       const driver = await mysqlDriver.create(url);
