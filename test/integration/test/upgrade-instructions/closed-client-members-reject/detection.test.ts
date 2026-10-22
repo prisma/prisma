@@ -50,6 +50,18 @@ describe.each(['app', 'extension'] as const)('the %s detection', (audience) => {
     ],
     ['a returned ORM read', 'try {\n  return db.orm.public.User.all();\n} catch {}'],
     ['an ORM create', "try {\n  db.orm.public.User.create({ name: 'Ada' });\n} catch {}"],
+    [
+      'an ORM call with a callback filter',
+      'try {\n  const u = db.orm.public.User.where((u) => u.id.eq(1)).first();\n} catch {}',
+    ],
+    [
+      'a chain split across lines',
+      'try {\n  const u = db.orm.public.User\n    .where({ id })\n    .first();\n} catch {}',
+    ],
+    ['a call passed to push', 'try {\n  jobs.push(db.execute(plan));\n} catch {}'],
+    ['a voided transaction', 'try {\n  void db.transaction(work);\n} catch {}'],
+    ['a role-bound client', 'try {\n  userDb.query(plan);\n} catch {}'],
+    ['a client on this', "try {\n  this.db.orm.public.User.create({ name: 'Ada' });\n} catch {}"],
   ])('finds %s', (_name, content) => {
     expect(detects(audience, importsOrm + content)).toBe(true);
   });
@@ -65,6 +77,14 @@ describe.each(['app', 'extension'] as const)('the %s detection', (audience) => {
     ['a call outside try', 'db.transaction(work).catch(handle);'],
     ['a call after the try block', 'try {\n  await setUp();\n} catch {}\ndb.query(plan);'],
     ['another method', 'try {\n  cache.get(key);\n} catch {}'],
+    [
+      'an awaited chain split across lines',
+      'try {\n  const u = await db.orm.public.User\n    .where((u) => u.id.eq(1))\n    .first();\n} catch {}',
+    ],
+    ['Object.create', 'try {\n  const o = Object.create(proto);\n} catch {}'],
+    ['Promise.all', 'try {\n  await x;\n  Promise.all(list);\n} catch {}'],
+    ['a cache delete', 'try {\n  cache.delete(key);\n} catch {}'],
+    ['a pg pool query', 'try {\n  pool.query(sql);\n} catch {}'],
   ])('skips %s', (_name, content) => {
     expect(detects(audience, importsOrm + content)).toBe(false);
   });
