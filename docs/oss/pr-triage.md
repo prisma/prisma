@@ -87,7 +87,7 @@ CodeRabbit reviews PRs based on `main` and `v7`, but not `7.9.x`. On a `7.9.x` P
 
 This applies to features and refactors on `main`. Fixes rarely need it.
 
-Our plans are documented in the repository — the [project intent](../design/00-purpose/project-intent.md), the [direction](../design/00-purpose/direction.md) page, the [decision records](../design/90-decisions/README.md), [`docs/architecture docs/adrs/`](../architecture%20docs/adrs/), and the [feature scoreboard](../../scorecard.md). The specs and plans under [`projects/`](../../projects/) describe work in flight, not a roadmap. Check them before answering, and cite what you found. "Not planned" is not by itself a reason to decline; the plans record what we committed to, not the full set of things we would accept. Lines marked `Draft — unconfirmed` and records with status `proposed` are not yet decisions; do not decline on them.
+Our plans are documented in the repository — the [project intent](../design/00-purpose/project-intent.md), the [vision](../design/00-purpose/vision.md), the [decision records](../design/90-decisions/README.md), [`docs/architecture docs/adrs/`](../architecture%20docs/adrs/), and the [feature scoreboard](../../scorecard.md). The specs and plans under [`projects/`](../../projects/) describe work in flight, not a roadmap. Check them before answering, and cite what you found. "Not planned" is not by itself a reason to decline; the plans record what we committed to, not the full set of things we would accept. Lines marked `Draft — unconfirmed` and records with status `proposed` are not yet decisions; do not decline on them.
 
 Questions that resolve most cases:
 
