@@ -70,9 +70,14 @@ describe('MysqlControlDriver against a MySQL server', () => {
       const missing = new URL(url);
       missing.pathname = '/no_such_database_for_prisma';
       missing.password = 'secret';
-      await expect(mysqlDriver.create(missing.toString())).rejects.toMatchObject({
-        code: 'DRIVER.CONNECTION_FAILED',
-      });
+      const error = await mysqlDriver.create(missing.toString()).then(
+        () => undefined,
+        (reason: unknown) => reason,
+      );
+      expect(error).toMatchObject({ code: 'DRIVER.CONNECTION_FAILED' });
+      const { message, why, meta } = error as { message: string; why: string; meta: unknown };
+      expect(JSON.stringify({ message, why, meta })).not.toContain('secret');
+      expect(JSON.stringify(meta)).toContain('no_such_database_for_prisma');
     });
   });
 });
