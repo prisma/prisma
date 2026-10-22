@@ -1228,7 +1228,7 @@
       "glob": "packages/3-targets/mongo/9-facade/src/exports/static.ts",
       "domain": "extensions",
       "layer": "adapters",
-      "plane": "shared"
+      "plane": "runtime"
     },
     {
       "glob": "packages/3-targets/mongo/9-facade/src/exports/target.ts",
@@ -1258,7 +1258,7 @@
       "glob": "packages/3-targets/mongo/9-facade/src/static/**",
       "domain": "extensions",
       "layer": "adapters",
-      "plane": "shared"
+      "plane": "runtime"
     },
     {
       "glob": "packages/3-extensions/paradedb/src/core/**",
