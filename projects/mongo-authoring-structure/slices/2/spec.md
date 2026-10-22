@@ -31,7 +31,7 @@ Both renames are public: the first through `@prisma/orm-mongo/contract-builder`,
 ### The definition
 
 `ContractDefinition` is plain data, with names already resolved. It carries:
-- **The stack:** family, target, extension pack refs and `defaultControlPolicy`.
+- **The stack:** the target, extension pack refs and `defaultControlPolicy`. The builder reads the family from the target, as SQL's does, so no source passes a family pack.
 - **Models:**
   - collection (a variant's is its base's);
   - owner and storage relations;
@@ -42,7 +42,7 @@ Both renames are public: the first through `@prisma/orm-mongo/contract-builder`,
   - execution defaults from presets and type aliases;
   - unresolved generator calls.
 - **Relations,** as each source writes them. PSL pairs back-relations before it builds the definition, because pairing is about PSL syntax.
-- **Polymorphism:** the base's discriminator field, and each variant's base and its value as written. A TypeScript string becomes `{ kind: 'string', text }`.
+- **Polymorphism:** the base's discriminator field and the variants it lists, and each variant's base and its value as written. A TypeScript string becomes `{ kind: 'string', text }`. A listed variant that no model declares is refused.
 - **Value objects, enums** (`EnumTypeHandle`, as SQL) **and optional explicit roots.**
 - **Whether collections get validators.** The Prisma 6 reader says no, because a Prisma 6 database has none; every other source says yes. Without this, 15 Prisma 6 fixtures would change.
 - **Warnings,** as SQL's definition carries them.
@@ -56,7 +56,7 @@ The builder works in two steps, as SQL's does: `defineContract` turns builder ob
 ### Rules
 
 Every family rule moves into the builder and returns refusals as data. TypeScript throws the first, with today's codes. PSL maps each refusal to a source position and reports all of them. The Prisma 6 reader reports in its own diagnostics.
-- **Keys.** Each refusal names its subject by a key the definition carries: a model, a field (`FieldOwner` plus field name), an enum, an enum member, an index (its model and its position in that model's list), a relation, a discriminator, a base or a collection. PSL keeps, per model, the source position of each index and of each `@@base` value, so it can find every key.
+- **Keys.** Each refusal names its subject by a key the definition carries: a model, a value object, a field (`FieldOwner` plus field name), an enum, an enum member, an index (its model and its position in that model's list), a relation, a discriminator, a base or a collection. PSL keeps, per model, the source position of each index and of each `@@base` value, so it can find every key.
 - **Validator refusals.** `mongoContractRefusalsOf` refusals are one part of the builder's refusal type.
 - **The discriminator rule.** The builder calls the framework's `applyDiscriminatorRule`. An "unreadable" refusal carries PSL wording, so the builder turns it into a TypeScript error for `defineContract`. `describeDiscriminatorRefusal` stays PSL's wording.
 - **Type parameters** are checked per field. `assertMongoFieldTypeParams`'s walk after the build goes away (TML-3616's example).
@@ -64,6 +64,7 @@ Every family rule moves into the builder and returns refusals as data. TypeScrip
   - `@id` placement;
   - back-relation pairing;
   - type-alias syntax;
+  - index arguments that only PSL has: both `include` and `exclude`, and `@@textIndex` with a wildcard;
   - unresolved references;
   - the deprecated scalar name warning.
 
@@ -73,7 +74,7 @@ None of these changes a committed contract or renames a snapshot folder (`differ
 
 | # | Today | Decision |
 | --- | --- | --- |
-| 1 | Duplicate index (after variant scoping): TypeScript refuses; PSL and Prisma 6 keep both, except one variant case where PSL drops one | The builder refuses it in every source. The Prisma 6 reader merges two identical indexes (`@unique` and `@@unique` on one field) first, because the Prisma 6 database holds one index for both |
+| 1 | Duplicate index (after variant scoping): TypeScript refuses; PSL and Prisma 6 keep both, except one variant case where PSL drops one | The builder refuses it in every source. The Prisma 6 reader first merges identical indexes anywhere in one collection (for example `@unique` and `@@unique` on one field, or one index declared by two models), because the database holds one index |
 | 2 | `extensions`: TypeScript records the packs; PSL and Prisma 6 write `{}`. Emit overwrites both with the stack's packs | Every source records its packs |
 | 3 | Roots: TypeScript takes explicit roots or derives them; PSL and Prisma 6 derive | Explicit roots are an optional definition field; PSL and Prisma 6 leave it empty |
 | 4 | Variant collection: PSL inherits the base's and refuses another; TypeScript requires it restated, and only the read-back check refuses another | A variant inherits its base's collection in every source; a different collection is refused by the builder. TypeScript may omit it |
@@ -82,13 +83,13 @@ None of these changes a committed contract or renames a snapshot folder (`differ
 | 7 | Namespace id: TypeScript hard-codes `__unbound__`; PSL reads the target's default (also `__unbound__`) | The target's default namespace in every source |
 | 8 | Discriminator checks: PSL only; TypeScript accepts an Int32 or optional discriminator | In the builder, for every source |
 | 9 | Index shape checks (unique wildcard, wildcard with hashed/2d/2dsphere, hashed on several fields, TTL with wildcard, collation without locale, a second text index): PSL only | In the builder, for every source |
-| 10 | Preset rules (TML-3583): PSL refuses any optional or list preset; TypeScript only one that generates values | The builder follows SQL's rules |
+| 10 | Preset rules (TML-3583): PSL refuses any optional or list preset; TypeScript only one that generates values | The builder follows SQL's rules: a list may not generate a value; an optional preset or generated field is accepted. PSL keeps `PSL_PRESET_NOT_LIST`, as SQL PSL does |
 | 11 | Preset without effect: a PSL warning only | A builder warning, for every source |
 | 12 | Index order: PSL puts field `@unique` first and variant indexes last; TypeScript keeps author order. The storage hash does not sort indexes | Each source keeps its order; the builder does not reorder. Reordering would change storage hashes |
 
 ### Parity suite
 
-A Mongo suite comparing TypeScript and PSL, built like SQL's `test/integration/test/authoring/parity/` harness. Each case writes the same contract both ways and checks the two `contract.json` files are byte-identical. It covers:
+A Mongo suite comparing TypeScript and PSL (`test/integration/test/authoring/mongo-parity.test.ts`), shaped like the existing Mongo side-by-side test, since no case needs its own config. Each case writes the same contract both ways and checks the two `contract.json` files are byte-identical. It covers:
 - indexes in matching order, and duplicate indexes refused;
 - variant index scoping;
 - field `@map`;
@@ -150,7 +151,7 @@ One subject: every Mongo source builds through one definition and one builder. T
 | D4 | Mongo PSL builds the definition and calls the builder; its assembly and duplicated rules are deleted; every refusal reported at its position |
 | D5 | The Prisma 6 reader on the builder: no validators, duplicate indexes merged; fixtures unchanged |
 | D6 | The Mongo parity suite, and the temporal-presets exclusion dropped |
-| D7 | ADR 181 (or a short ADR), the MongoDB Family doc, the error reference, upgrade notes |
+| D7 | ADR 306 (one plain-data definition and one builder per family), the MongoDB Family doc, the error reference, upgrade notes |
 
 Checks per dispatch:
 - `pnpm build`, `typecheck:all`, and `test --coverage` with lint in every touched package;
