@@ -1,12 +1,12 @@
 import { defineContract } from '@internal/mongo/contract-builder';
 
-export const contract = defineContract({}, ({ field, model }) => {
+export const contract = defineContract({}, ({ field, model, gen }) => {
   const Event = model('Event', {
     collection: 'events',
     fields: {
       id: field.objectId().mongo({ field: '_id' }),
       kind: field.string(),
-      createdAt: field.temporal.createdAt(),
+      createdAt: field.date().onCreate(gen.now()),
     },
     discriminator: {
       field: 'kind',
@@ -20,9 +20,13 @@ export const contract = defineContract({}, ({ field, model }) => {
         fields: {
           id: field.objectId().mongo({ field: '_id' }),
           title: field.string(),
-          createdAt: field.temporal.createdAt(),
-          updatedAt: field.temporal.updatedAt().mongo({ field: 'updated_at' }),
-          touchedAt: field.temporal.timestamp(undefined, 'now'),
+          createdAt: field.date().onCreate(gen.now()),
+          updatedAt: field
+            .date()
+            .onCreate(gen.now())
+            .onUpdate(gen.now())
+            .mongo({ field: 'updated_at' }),
+          touchedAt: field.date().onUpdate(gen.now()),
         },
       }),
       Counter: model('Counter', {
@@ -35,7 +39,7 @@ export const contract = defineContract({}, ({ field, model }) => {
           factor: field.double(),
           hits: field.int32(),
           label: field.string().optional(),
-          updatedAt: field.temporal.updatedAt(),
+          updatedAt: field.date().onCreate(gen.now()).onUpdate(gen.now()),
         },
       }),
       Event,

@@ -76,7 +76,7 @@ function withoutKnownStorageGap(contractJson: Record<string, unknown>): Record<s
   return { ...contractJson, storage: { ...restStorage, namespaces: strippedNamespaces } };
 }
 
-describe('Mongo temporal presets from PSL and TS', () => {
+describe('Mongo date generators from PSL and TS', () => {
   it(
     'emit the same contract, execution section and hash included',
     async () => {

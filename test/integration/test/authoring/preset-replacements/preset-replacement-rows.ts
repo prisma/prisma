@@ -287,7 +287,7 @@ export const postgresRows: readonly SqlRow<PostgresHelpers>[] = [
     },
   },
   {
-    model: 'Numeric',
+    model: 'NumericColumn',
     psl: { preset: 'decimal()', replacement: 'Decimal' },
     ts: {
       preset: ({ field }) => field.decimal(),

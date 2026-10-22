@@ -144,8 +144,8 @@
       "model": "NanoidSized",
       "namespace": "public"
     },
-    "Numeric": {
-      "model": "Numeric",
+    "NumericColumn": {
+      "model": "NumericColumn",
       "namespace": "public"
     },
     "OptionalCreatedAt": {
@@ -1276,7 +1276,7 @@
               "table": "NanoidSized"
             }
           },
-          "Numeric": {
+          "NumericColumn": {
             "fields": {
               "id": {
                 "nullable": false,
@@ -1304,7 +1304,7 @@
                 }
               },
               "namespaceId": "public",
-              "table": "Numeric"
+              "table": "NumericColumn"
             }
           },
           "OptionalCreatedAt": {
@@ -2734,7 +2734,7 @@
               },
               "uniques": []
             },
-            "Numeric": {
+            "NumericColumn": {
               "columns": {
                 "id": {
                   "codecId": "pg/int4@1",
@@ -3234,7 +3234,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "04b1c3b9cabecc99688d92abfc47af2401a995460ab4a0dfd06bee186f35ac2a"
+    "storageHash": "7544e37cd9754b23d177e8f4c446463198d9b9f7df336953aabbdddfc8607c55"
   },
   "execution": {
     "executionHash": "7e34a597e8e959eb298b2579d5595cbb1b1b5a6be32eff21fafd083e40cd646a",

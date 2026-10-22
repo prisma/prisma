@@ -245,10 +245,10 @@ defineContract(
     const User = model('User', {
       fields: {
         id: field.column(int4Column).id({ name: 'user_pkey' }),
-        email: field.text().unique({ name: 'user_email_key' }),
+        email: field.column(type.String()).unique({ name: 'user_email_key' }),
         role: field.namedType(Role),
         embedding: field.namedType(types.Embedding1536).optional(),
-        createdAt: field.temporal.createdAt(),
+        createdAt: field.column(type.temporal.CreatedAt()),
       },
       relations: { posts: rel.hasMany(() => Post, { by: 'authorId' }) },
     }).sql({ table: 'user' });
@@ -256,7 +256,7 @@ defineContract(
       fields: {
         id: field.column(int4Column).id({ name: 'post_pkey' }),
         authorId: field.column(int4Column),
-        title: field.text(),
+        title: field.column(type.String()),
       },
       relations: { author: rel.belongsTo(User, { from: 'authorId', to: 'id' }) },
     }).sql(({ cols, constraints }) => ({

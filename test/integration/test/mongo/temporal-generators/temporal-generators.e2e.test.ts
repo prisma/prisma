@@ -16,7 +16,7 @@ function tick(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 5));
 }
 
-describe('Mongo temporal presets end to end', () => {
+describe('Mongo date generators end to end', () => {
   it(
     'creates without timestamps; both fields are stored and read back as one Date',
     () =>
@@ -221,7 +221,7 @@ describe('Mongo temporal presets end to end', () => {
   );
 
   it(
-    'a preset on a polymorphic base model fills every variant create',
+    'a generator on a polymorphic base model fills every variant create',
     () =>
       withMongoPort<Contract>({ contractJson }, async ({ db, mongoDb }) => {
         const click = await db.events.variant('click').create({ url: '/a' });

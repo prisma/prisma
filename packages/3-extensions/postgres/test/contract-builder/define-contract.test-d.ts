@@ -39,9 +39,9 @@ const withModel = defineContract({
 expectTypeOf(withModel.target).toEqualTypeOf<'postgres'>();
 expectTypeOf<SoleNamespaceModels<typeof withModel>['User']>().not.toBeNever();
 
-const withFactory = defineContract({}, ({ model: m, field: f }) => ({
+const withFactory = defineContract({}, ({ model: m, field: f, gen, type }) => ({
   models: {
-    Post: m('Post', { fields: { id: f.id.uuidv4String() } }),
+    Post: m('Post', { fields: { id: f.column(type.Char(36)).id().onCreate(gen.uuid()) } }),
   },
 }));
 expectTypeOf(withFactory.target).toEqualTypeOf<'postgres'>();
@@ -53,10 +53,10 @@ const pgText = { codecId: 'pg/text@1' as const } as const;
 const Role = enumType('Role', pgText, member('User', 'user'), member('Admin', 'admin'));
 const Priority = enumType('Priority', pgText, member('Low', 'low'), member('High', 'high'));
 
-const mixedEnums = defineContract({ enums: { Role } }, ({ model: m, field: f }) => ({
+const mixedEnums = defineContract({ enums: { Role } }, ({ model: m, field: f, gen, type }) => ({
   enums: { Priority },
   models: {
-    Item: m('Item', { fields: { id: f.id.uuidv4String() } }),
+    Item: m('Item', { fields: { id: f.column(type.Char(36)).id().onCreate(gen.uuid()) } }),
   },
 }));
 type MixedAccessors = NamespacedEnums<typeof mixedEnums>['public'];

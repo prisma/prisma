@@ -18,9 +18,9 @@ describe('postgres defineContract wrap', () => {
   });
 
   it('pre-binds family and target (factory form)', () => {
-    const result = defineContract({}, ({ field: f, model: m }) => ({
+    const result = defineContract({}, ({ field: f, model: m, gen, type }) => ({
       models: {
-        Foo: m('Foo', { fields: { id: f.id.uuidv4String() } }),
+        Foo: m('Foo', { fields: { id: f.column(type.Char(36)).id().onCreate(gen.uuid()) } }),
       },
     }));
     expect(result.target).toBe('postgres');

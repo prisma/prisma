@@ -221,14 +221,14 @@ test('integrated callback authoring exposes composition-shaped type helpers', ()
         models: {
           User: model('User', {
             fields: {
-              id: field.int().default(autoincrement()).id(),
-              email: field.text().unique(),
-              age: field.int(),
-              isActive: field.boolean().default(true),
-              score: field.float().optional(),
-              profile: field.json().optional(),
+              id: field.column(type.Int()).default(autoincrement()).id(),
+              email: field.column(type.String()).unique(),
+              age: field.column(type.Int()),
+              isActive: field.column(type.Boolean()).default(true),
+              score: field.column(type.Float()).optional(),
+              profile: field.column(type.Jsonb()).optional(),
               embedding: field.column(Embedding).optional(),
-              createdAt: field.temporal.createdAt(),
+              createdAt: field.column(type.temporal.CreatedAt()),
             },
           }).sql({
             table: 'user',
@@ -294,12 +294,16 @@ test('local field and belongsTo sql overlays stay typed', () => {
       target: postgresPack,
       createNamespace: postgresCreateNamespace,
     },
-    ({ field }) => {
+    ({ field, gen, type }) => {
       const User = model('User', {
         fields: {
-          id: field.id.uuidv4String().sql({ id: { name: 'user_pkey' } }),
+          id: field
+            .column(type.Char(36))
+            .id()
+            .onCreate(gen.uuid())
+            .sql({ id: { name: 'user_pkey' } }),
           email: field
-            .text()
+            .column(type.String())
             .unique()
             .sql({ unique: { name: 'user_email_key' } }),
         },
@@ -307,8 +311,8 @@ test('local field and belongsTo sql overlays stay typed', () => {
 
       const Post = model('Post', {
         fields: {
-          id: field.id.uuidv4String(),
-          authorId: field.uuidString().sql({ column: 'author_id' }),
+          id: field.column(type.Char(36)).id().onCreate(gen.uuid()),
+          authorId: field.column(type.Char(36)).sql({ column: 'author_id' }),
         },
         relations: {
           author: rel
@@ -345,12 +349,12 @@ test('explicit generated id helpers stay typed', () => {
       target: postgresPack,
       createNamespace: postgresCreateNamespace,
     },
-    ({ field }) => {
+    ({ field, gen, type }) => {
       const ShortLink = model('ShortLink', {
         fields: {
-          id: field.id.nanoid({ size: 16 }, { name: 'short_link_pkey' }),
-          ownerId: field.uuidString(),
-          publicId: field.nanoid({ size: 16 }),
+          id: field.column(type.Char(16)).id({ name: 'short_link_pkey' }).onCreate(gen.nanoid(16)),
+          ownerId: field.column(type.Char(36)),
+          publicId: field.column(type.Char(16)),
         },
       }).sql({
         table: 'short_link',
