@@ -19,13 +19,10 @@ Open this list before you propose a new feature or surface, or judge a feature r
 - [ADR 222](adrs/ADR%20222%20-%20Version%20support%20policy.md): no CommonJS; Prisma 8 ships ES modules only.
 - [ADR 239](adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md): no numeric `P2002`-style error codes; branch on the dotted `code` of the error envelope.
 - [ADR 247](adrs/ADR%20247%20-%20Whole-query%20raw%20SQL%20is%20the%20fragment%20mechanism%20at%20statement%20position.md): no `$queryRaw` method and no `Prisma.sql` helpers; write raw SQL with `db.raw.sql`, or `fns.raw` inside a builder query.
-- [ADR 282](adrs/ADR%20282%20-%20TypedSQL%20is%20not%20in%20Prisma%208.0.md): TypedSQL is not in 8.0; use `db.prepare(...)` or the raw lane.
 - [ADR 286](adrs/ADR%20286%20-%20Prisma%208%20does%20not%20fully%20manage%20native%20Postgres%20enums.md): Prisma 8 does not fully manage native Postgres enums; declare an `enum` in the contract, stored with a `CHECK` constraint.
 - [ADR 287](adrs/ADR%20287%20-%20Prisma%208%20has%20no%20db%20push%20to%20production.md): no `db push` to production; run `migration plan`, review the migration, then `db migrate`.
-- [ADR 288](adrs/ADR%20288%20-%20Prisma%208%20has%20no%20implicit%20many-to-many%20relations.md): no implicit many-to-many relations; write the join model out.
 - [ADR 289](adrs/ADR%20289%20-%20Prisma%208%20has%20no%20%24extends%20client%20extensions.md): no `$extends`; use middleware, extension packages, contributed collection methods and collection classes.
 - [ADR 291](adrs/ADR%20291%20-%20Prisma%208%20has%20no%20%24on%20events.md): no `$on` events; use a middleware on the lifecycle events.
-- [ADR 292](adrs/ADR%20292%20-%20Prisma%208%20has%20no%20db%20seed%20command.md): no `db seed` command; run a TypeScript script that imports your `db` client.
 - [ADR 293](adrs/ADR%20293%20-%20Validations,%20lifecycle%20callbacks,%20soft%20delete%20and%20default%20scopes%20are%20not%20in%20the%20core.md): no validations, lifecycle callbacks, soft delete or default scopes in the core; use arktype, middleware, a nullable `deletedAt` column with a `notDeleted` scope, and named scopes.
 - [ADR 295](adrs/ADR%20295%20-%20New%20features%20do%20not%20land%20on%20Prisma%207.md): no new features on Prisma 7; propose them for Prisma 8 on `main`.
 - [ADR 296](adrs/ADR%20296%20-%20Prisma%208%20has%20no%20relationLoadStrategy.md): no `relationLoadStrategy`; include the relation, and the database joins it.
@@ -236,13 +233,10 @@ Requests answered with a no, with what to use instead. Every row is on the [stee
 
 | ADR | Title | Description | Link |
 | ----- | ------- | ------------- | ------ |
-| 282 | TypedSQL is not in Prisma 8.0 | Not in 8.0; if built, ADR 019 fixes its shape. Use `db.prepare(...)` or the raw lane | [ADR 282 - TypedSQL is not in Prisma 8.0.md](adrs/ADR%20282%20-%20TypedSQL%20is%20not%20in%20Prisma%208.0.md) |
 | 286 | Prisma 8 does not fully manage native Postgres enums | A contract `enum` is stored with a `CHECK` constraint; native enums managed elsewhere only gain appended values | [ADR 286 - Prisma 8 does not fully manage native Postgres enums.md](adrs/ADR%20286%20-%20Prisma%208%20does%20not%20fully%20manage%20native%20Postgres%20enums.md) |
 | 287 | Prisma 8 has no `db push` to production | `db update` is for development; production changes go through `migration plan` and `db migrate` | [ADR 287 - Prisma 8 has no db push to production.md](adrs/ADR%20287%20-%20Prisma%208%20has%20no%20db%20push%20to%20production.md) |
-| 288 | Prisma 8 has no implicit many-to-many relations | Write the join model out; `.include(...)` and nested writes traverse it | [ADR 288 - Prisma 8 has no implicit many-to-many relations.md](adrs/ADR%20288%20-%20Prisma%208%20has%20no%20implicit%20many-to-many%20relations.md) |
 | 289 | Prisma 8 has no `$extends` client extensions | Extend with middleware (ADR 271), extension packages, contributed collection methods (ADR 272) and collection classes (ADR 265) | [ADR 289 - Prisma 8 has no $extends client extensions.md](adrs/ADR%20289%20-%20Prisma%208%20has%20no%20%24extends%20client%20extensions.md) |
 | 291 | Prisma 8 has no `$on` events | Middleware on the lifecycle events covers what `$on` did (ADR 271) | [ADR 291 - Prisma 8 has no $on events.md](adrs/ADR%20291%20-%20Prisma%208%20has%20no%20%24on%20events.md) |
-| 292 | Prisma 8 has no `db seed` command | Not in 8.0. Run a TypeScript script that imports your `db` client | [ADR 292 - Prisma 8 has no db seed command.md](adrs/ADR%20292%20-%20Prisma%208%20has%20no%20db%20seed%20command.md) |
 | 293 | Validations, lifecycle callbacks, soft delete and default scopes are not in the core | Each can be built in an extension or user code: arktype, middleware, a `notDeleted` scope, named scopes | [ADR 293 - Validations, lifecycle callbacks, soft delete and default scopes are not in the core.md](adrs/ADR%20293%20-%20Validations,%20lifecycle%20callbacks,%20soft%20delete%20and%20default%20scopes%20are%20not%20in%20the%20core.md) |
 | 295 | New features do not land on Prisma 7 | Prisma 7 gets bug fixes and security updates for eighteen months after `8.0.0` final, nothing else | [ADR 295 - New features do not land on Prisma 7.md](adrs/ADR%20295%20-%20New%20features%20do%20not%20land%20on%20Prisma%207.md) |
 | 296 | Prisma 8 has no `relationLoadStrategy` | Include the relation and the database joins it; there is nothing to choose | [ADR 296 - Prisma 8 has no relationLoadStrategy.md](adrs/ADR%20296%20-%20Prisma%208%20has%20no%20relationLoadStrategy.md) |
