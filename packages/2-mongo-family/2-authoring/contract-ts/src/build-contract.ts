@@ -1,9 +1,5 @@
 import { buildExecutionSection, computeProfileHash } from '@internal/contract/hashing';
-import { composePackAuthoringNamespace } from '@internal/contract-authoring';
-import {
-  assertTypeAliasesValid,
-  type DataTypeSupport,
-} from '@internal/framework-components/authoring';
+import type { DataTypeSupport } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors, TypeLookups } from '@internal/framework-components/codec';
 import { assembleGeneratorFunctions } from '@internal/framework-components/components';
 import {
@@ -70,11 +66,6 @@ export function buildMongoContractFromDefinition(
   const lookups: TypeLookups = { codecLookup, dataTypeLookup: dataTypes.lookup };
   const components = [definition.target, ...Object.values(definition.extensions ?? {})];
   const generatorFunctions = assembleGeneratorFunctions(components);
-  assertTypeAliasesValid(composePackAuthoringNamespace(components, 'type'), {
-    generatorFunctions,
-    paramsSchemaOf: (codecId) => codecLookup.descriptorFor(codecId)?.paramsSchema,
-    fieldLength: () => undefined,
-  });
 
   const models = inheritVariantCollections(definition.models, refusals);
   const builtEnums = buildEnums(definition, codecLookup, refusals);

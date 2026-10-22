@@ -31,6 +31,7 @@ import type {
 import {
   assembleDataTypeSupport,
   assertNoCrossRegistryCollisions,
+  assertTypeAliasesValid,
   type DataTypeSupport,
   flushAuthoringWarnings,
   instantiateAuthoringFieldPreset,
@@ -38,6 +39,7 @@ import {
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import {
+  assembleGeneratorFunctions,
   createGeneratorHelpers,
   type ExtensionPackRef,
   type ExtensionPackValues,
@@ -950,6 +952,11 @@ type StackComponent =
 
 function stackLookupsOf(components: readonly StackComponent[]): StackLookups {
   const codecLookup = extractCodecLookup(components);
+  assertTypeAliasesValid(composePackAuthoringNamespace(components, 'type'), {
+    generatorFunctions: assembleGeneratorFunctions(components),
+    paramsSchemaOf: (codecId) => codecLookup.descriptorFor(codecId)?.paramsSchema,
+    fieldLength: () => undefined,
+  });
   const { support } = assembleDataTypeSupport(
     components,
     (codecId) => codecLookup.descriptorFor(codecId)?.dataType,
