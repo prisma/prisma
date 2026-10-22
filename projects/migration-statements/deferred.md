@@ -186,3 +186,9 @@ Reproduction: emit a PSL contract with a `namespace public` block and a `namespa
 **Found:** slice 3b PR 1 manual QA (2026-10-21), F12. Older than this PR.
 
 `db update --dry-run` ends with `→ Apply the planned operations: prisma db update`, repeating the statements it was given. When the plan has questions that no given statement answers, running that command non-interactively fails with `CLI.CONSENT_REQUIRED`. The next action in `migrationResultNextActions` (`packages/1-framework/3-tooling/cli/src/orm/db/migration-blocks.ts`) could say to answer the questions listed above, or point at them, when any is unanswered.
+
+## `--delete <namespace>` with no snapshot says only that it answers no question
+
+**Found:** second whole-PR review of the namespace statements, fix round (2026-10-22).
+
+`db update --delete billing` against a database whose marker hash has no local snapshot fails with `CLI.CONSENT_UNUSED`: the planner has no origin contract, so it reports no removed namespace, and the namespace's tables stay. Nothing is lost, which is the right outcome, but the message does not say why. `--rename` in the same situation fails with `MIGRATION.STATEMENT_ORIGIN_UNKNOWN`, which names the hash and the snapshot directory. A namespace `--delete` that matches no question should say the same when the origin contract is unknown.

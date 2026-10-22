@@ -249,7 +249,6 @@ describe('schema operation order in a plan', () => {
       schemaName: 'public',
       codecHooks: new Map(),
       types: postgresTypeLookups,
-      storageTypes: {},
       strategies: [(issues) => ({ kind: 'match', issues, calls })],
     });
 
