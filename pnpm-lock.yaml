@@ -5890,6 +5890,9 @@ importers:
       '@internal/target-mongo':
         specifier: workspace:8.0.0-rc.19
         version: link:../../packages/3-targets/mongo/1-target
+      '@internal/target-mysql':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../packages/3-targets/mysql/1-target
       '@internal/target-postgres':
         specifier: workspace:8.0.0-rc.19
         version: link:../../packages/3-targets/postgres/1-target
