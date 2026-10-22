@@ -1,3 +1,4 @@
+import { timeouts } from '@repo/test-utils';
 import { withMysqlDatabase } from '@repo/test-utils/mysql-database';
 import { createConnection } from 'mysql2/promise';
 import { describe, expect, it } from 'vitest';
@@ -23,7 +24,9 @@ async function connectWhileServerDefaultIncludes(
   }
 }
 
-describe('MysqlControlDriver against a MySQL server', () => {
+describe('MysqlControlDriver against a MySQL server', {
+  timeout: timeouts.databaseOperation,
+}, () => {
   it('hands every column over as the text MySQL sends', async (test) => {
     await withMysqlDatabase(test, async ({ url, name }) => {
       const driver = await mysqlDriver.create(url);

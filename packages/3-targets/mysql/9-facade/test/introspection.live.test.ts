@@ -5,6 +5,7 @@ import sql from '@internal/family-sql/control';
 import { createControlStack, diffSchemas } from '@internal/framework-components/control';
 import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import mysql from '@internal/target-mysql/control';
+import { timeouts } from '@repo/test-utils';
 import { withMysqlDatabase } from '@repo/test-utils/mysql-database';
 import { describe, expect, it } from 'vitest';
 import { defineContract } from '../src/exports/contract-builder';
@@ -67,7 +68,9 @@ async function withExampleTables<T>(
   }
 }
 
-describe('introspecting a MySQL database made by hand', () => {
+describe('introspecting a MySQL database made by hand', {
+  timeout: timeouts.databaseOperation,
+}, () => {
   it('yields the schema IR the example contract describes', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withExampleTables(url, exampleTablesDdl, async (driver) => {

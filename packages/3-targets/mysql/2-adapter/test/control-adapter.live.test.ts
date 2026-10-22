@@ -1,9 +1,12 @@
 import mysqlDriver from '@internal/driver-mysql/control';
+import { timeouts } from '@repo/test-utils';
 import { withMysqlDatabase } from '@repo/test-utils/mysql-database';
 import { describe, expect, it } from 'vitest';
 import { createAdapter } from './helpers';
 
-describe('MysqlControlAdapter against a MySQL server', () => {
+describe('MysqlControlAdapter against a MySQL server', {
+  timeout: timeouts.databaseOperation,
+}, () => {
   it('creates the control tables, reads them back, and leaves them out of introspection', async (test) => {
     await withMysqlDatabase(test, async ({ url }) => {
       const adapter = createAdapter();
