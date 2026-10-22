@@ -6,7 +6,7 @@ import type {
 } from '@internal/config/config-types';
 import { expandContractInputs } from '@internal/config-loader';
 import type { Contract } from '@internal/contract/types';
-import type { CliStructuredError } from '@internal/errors/control';
+import { CliStructuredError } from '@internal/errors/control';
 import { type ControlStack, createControlStack } from '@internal/framework-components/control';
 import { abortable } from '@internal/utils/abortable';
 import { ifDefined } from '@internal/utils/defined';
@@ -145,7 +145,7 @@ function sourceDiagnosticsToFindings(
  */
 export function sourceWarningDiagnostic(
   raw: ContractSourceDiagnostic,
-  cwd: string,
+  cwd: string | undefined,
 ): Diagnostic | undefined {
   const finding = sourceDiagnosticToFinding(raw, 'warn', cwd);
   if (finding === undefined) return undefined;
@@ -259,16 +259,61 @@ function validateProviderResult(
  * Every command that loads a contract source goes through here, so each
  * reports a bad source the same way.
  *
+ * A source that reports warnings and then fails keeps them: they follow the failure's own findings in the error's diagnostics, as `warn` findings.
+ *
  * @throws {DOMException} `AbortError` if cancelled via `signal`
  */
-export async function loadContractSourceWithStack(inputs: {
+export async function loadContractSourceWithStack(
+  inputs: LoadContractSourceInputs,
+): Promise<ContractSourceLoadResult> {
+  const { reportWarning } = inputs;
+  if (reportWarning === undefined) return askSource(inputs);
+  const warnings: ContractSourceDiagnostic[] = [];
+  const loaded = await askSource({
+    ...inputs,
+    reportWarning: (diagnostic) => {
+      warnings.push(diagnostic);
+      reportWarning(diagnostic);
+    },
+  });
+  if (loaded.ok || warnings.length === 0) return loaded;
+  return notOk({
+    ...loaded.failure,
+    error: withWarningFindings(loaded.failure.error, warnings, inputs.cwd),
+  });
+}
+
+interface LoadContractSourceInputs {
   readonly stack: ControlStack;
   readonly source: ContractSourceProvider;
   readonly signal?: AbortSignal;
   readonly reportWarning?: (diagnostic: ContractSourceDiagnostic) => void;
   /** The directory the returned error shows locations relative to; `undefined` shows a source's paths as it gave them. */
   readonly cwd: string | undefined;
-}): Promise<ContractSourceLoadResult> {
+}
+
+function withWarningFindings(
+  error: CliStructuredError,
+  warnings: readonly ContractSourceDiagnostic[],
+  cwd: string | undefined,
+): CliStructuredError {
+  const warningFindings = warnings.flatMap(
+    (warning) => sourceWarningDiagnostic(warning, cwd) ?? [],
+  );
+  return new CliStructuredError(error.code, error.message, {
+    severity: error.severity,
+    diagnostics: [...(error.diagnostics ?? []), ...warningFindings],
+    ...ifDefined('why', error.why),
+    ...ifDefined('fix', error.fix),
+    ...ifDefined('nextActions', error.nextActions),
+    ...ifDefined('where', error.where),
+    ...ifDefined('meta', error.meta),
+    ...ifDefined('docsUrl', error.docsUrl),
+    ...ifDefined('cause', error.cause),
+  });
+}
+
+async function askSource(inputs: LoadContractSourceInputs): Promise<ContractSourceLoadResult> {
   const { stack, source } = inputs;
   const signal = inputs.signal ?? new AbortController().signal;
   const unlessAborted = abortable(signal);
