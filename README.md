@@ -16,7 +16,7 @@
 
 ---
 
-> **Using Prisma 7?** It remains fully supported. Its source lives on the [`v7` branch](https://github.com/prisma/orm/tree/v7) of this repository and its docs at [prisma.io/docs/orm/v7](https://www.prisma.io/docs/orm/v7).
+> **Using Prisma 7?** It receives bug fixes and security updates for eighteen months after `8.0.0` final. Its source lives on the [`v7` branch](https://github.com/prisma/orm/tree/v7) of this repository and its docs at [prisma.io/docs/orm/v7](https://www.prisma.io/docs/orm/v7).
 
 > **Prisma 8 is a release candidate.** `8.0.0` final is expected in the next four to eight weeks. Until then a release candidate may include breaking changes, and every release ships with an upgrade recipe that the `prisma-8` skill applies for you. The candidate is a complete implementation we stand behind: we treat bugs in it as urgent, and the risk you take on is a feature that is not built yet rather than churn. The [feature scoreboard](./scorecard.md) names every gap. New projects should start here. Existing Prisma 7 applications can migrate incrementally, and Prisma 7 stays on the [`v7` branch](https://github.com/prisma/orm/tree/v7) with bug fixes and security updates for eighteen months after `8.0.0` final. Star the repo, follow [@prisma on X](https://pris.ly/x), or read along on the [Prisma blog](https://www.prisma.io/blog).
 
@@ -103,7 +103,7 @@ MySQL follows after SQLite. See the [feature scoreboard](./scorecard.md) for wha
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, commands, DCO signoff, and PR expectations. For substantive changes, please open an issue first so we can give direction-fit feedback before you invest implementation time.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, commands, DCO signoff, and PR expectations. For substantive changes, please open an issue first so we can give direction-fit feedback before you invest implementation time. The [vision](./docs/design/00-purpose/vision.md) says where Prisma 8 is going, and the [steering list](./docs/architecture%20docs/ADR-INDEX.md#steering-list) names requests we have already answered, with what to use instead.
 
 Security issues: follow the Private Vulnerability Reporting flow in [SECURITY.md](./SECURITY.md). Please do not file them as public issues.
 

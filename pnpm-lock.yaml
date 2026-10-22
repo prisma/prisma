@@ -1417,19 +1417,19 @@ importers:
     devDependencies:
       '@internal/sql-contract':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/contract
+        version: link:../../../2-sql-family/1-core/contract
       '@internal/sql-contract-emitter':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/3-tooling/emitter
+        version: link:../../../2-sql-family/3-tooling/emitter
       '@internal/sql-contract-ts':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/2-authoring/contract-ts
+        version: link:../../../2-sql-family/2-authoring/contract-ts
       '@internal/sql-operations':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/operations
+        version: link:../../../2-sql-family/1-core/operations
       '@internal/sql-runtime':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/5-runtime
+        version: link:../../../2-sql-family/5-runtime
       '@prisma/cli-engine':
         specifier: 0.7.0
         version: 0.7.0(@prisma/management-api-sdk@1.76.0)(magicast@0.5.4)
@@ -1883,16 +1883,16 @@ importers:
     devDependencies:
       '@internal/adapter-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-mongo-target/2-mongo-adapter
+        version: link:../../../3-targets/mongo/2-adapter
       '@internal/driver-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-mongo-target/3-mongo-driver
+        version: link:../../../3-targets/mongo/3-driver
       '@internal/family-mongo':
         specifier: workspace:8.0.0-rc.19
         version: link:../../9-family
       '@internal/target-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-mongo-target/1-mongo-target
+        version: link:../../../3-targets/mongo/1-target
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../../test/utils
@@ -2159,16 +2159,16 @@ importers:
     devDependencies:
       '@internal/adapter-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-mongo-target/2-mongo-adapter
+        version: link:../../../3-targets/mongo/2-adapter
       '@internal/driver-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-mongo-target/3-mongo-driver
+        version: link:../../../3-targets/mongo/3-driver
       '@internal/mongo-runtime':
         specifier: workspace:8.0.0-rc.19
         version: link:../../7-runtime
       '@internal/target-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-mongo-target/1-mongo-target
+        version: link:../../../3-targets/mongo/1-target
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../../test/utils
@@ -2421,7 +2421,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/2-sql/1-core/contract:
+  packages/2-sql-family/1-core/contract:
     dependencies:
       '@internal/contract':
         specifier: workspace:8.0.0-rc.19
@@ -2458,7 +2458,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/2-sql/1-core/errors:
+  packages/2-sql-family/1-core/errors:
     devDependencies:
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.19
@@ -2479,7 +2479,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/2-sql/1-core/operations:
+  packages/2-sql-family/1-core/operations:
     dependencies:
       '@internal/operations':
         specifier: workspace:8.0.0-rc.19
@@ -2513,7 +2513,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/2-sql/1-core/schema-ir:
+  packages/2-sql-family/1-core/schema-ir:
     dependencies:
       '@internal/contract':
         specifier: workspace:8.0.0-rc.19
@@ -2544,7 +2544,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/2-sql/2-authoring/contract-prisma7:
+  packages/2-sql-family/2-authoring/contract-prisma7:
     dependencies:
       '@internal/config':
         specifier: workspace:8.0.0-rc.19
@@ -2579,19 +2579,19 @@ importers:
     devDependencies:
       '@internal/adapter-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-targets/6-adapters/postgres
+        version: link:../../../3-targets/postgres/2-adapter
       '@internal/config-loader':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../1-framework/3-tooling/config-loader
       '@internal/driver-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-targets/7-drivers/postgres
+        version: link:../../../3-targets/postgres/3-driver
       '@internal/family-sql':
         specifier: workspace:8.0.0-rc.19
         version: link:../../9-family
       '@internal/target-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-targets/3-targets/postgres
+        version: link:../../../3-targets/postgres/1-target
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../../test/utils
@@ -2614,7 +2614,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/2-sql/2-authoring/contract-psl:
+  packages/2-sql-family/2-authoring/contract-psl:
     dependencies:
       '@internal/config':
         specifier: workspace:8.0.0-rc.19
@@ -2672,7 +2672,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/2-sql/2-authoring/contract-ts:
+  packages/2-sql-family/2-authoring/contract-ts:
     dependencies:
       '@internal/config':
         specifier: workspace:8.0.0-rc.19
@@ -2739,7 +2739,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/2-sql/3-tooling/emitter:
+  packages/2-sql-family/3-tooling/emitter:
     dependencies:
       '@internal/contract':
         specifier: workspace:8.0.0-rc.19
@@ -2779,7 +2779,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/2-sql/4-lanes/relational-core:
+  packages/2-sql-family/4-lanes/relational-core:
     dependencies:
       '@internal/contract':
         specifier: workspace:8.0.0-rc.19
@@ -2831,7 +2831,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/2-sql/4-lanes/sql-builder:
+  packages/2-sql-family/4-lanes/sql-builder:
     dependencies:
       '@internal/contract':
         specifier: workspace:8.0.0-rc.19
@@ -2851,7 +2851,7 @@ importers:
     devDependencies:
       '@internal/adapter-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-targets/6-adapters/postgres
+        version: link:../../../3-targets/postgres/2-adapter
       '@internal/family-sql':
         specifier: workspace:8.0.0-rc.19
         version: link:../../9-family
@@ -2863,7 +2863,7 @@ importers:
         version: link:../../2-authoring/contract-ts
       '@internal/target-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-targets/3-targets/postgres
+        version: link:../../../3-targets/postgres/1-target
       '@internal/utils':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../1-framework/0-foundation/utils
@@ -2886,7 +2886,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/2-sql/5-runtime:
+  packages/2-sql-family/5-runtime:
     dependencies:
       '@internal/contract':
         specifier: workspace:8.0.0-rc.19
@@ -2941,7 +2941,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/2-sql/9-family:
+  packages/2-sql-family/9-family:
     dependencies:
       '@internal/contract':
         specifier: workspace:8.0.0-rc.19
@@ -3003,7 +3003,7 @@ importers:
     devDependencies:
       '@internal/driver-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/7-drivers/postgres
+        version: link:../../3-targets/postgres/3-driver
       '@internal/psl-printer':
         specifier: workspace:8.0.0-rc.19
         version: link:../../1-framework/2-authoring/psl-printer
@@ -3039,19 +3039,19 @@ importers:
         version: link:../../1-framework/2-authoring/contract
       '@internal/family-sql':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/9-family
+        version: link:../../2-sql-family/9-family
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.19
         version: link:../../1-framework/1-core/framework-components
       '@internal/sql-relational-core':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/4-lanes/relational-core
+        version: link:../../2-sql-family/4-lanes/relational-core
       '@internal/sql-runtime':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/5-runtime
+        version: link:../../2-sql-family/5-runtime
       '@internal/target-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/3-targets/postgres
+        version: link:../../3-targets/postgres/1-target
       '@standard-schema/spec':
         specifier: ^1.1.0
         version: 1.1.0
@@ -3061,16 +3061,16 @@ importers:
     devDependencies:
       '@internal/adapter-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/6-adapters/postgres
+        version: link:../../3-targets/postgres/2-adapter
       '@internal/driver-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/7-drivers/postgres
+        version: link:../../3-targets/postgres/3-driver
       '@internal/postgres-codec-testkit':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/6-adapters/postgres-codec-testkit
+        version: link:../../3-targets/postgres/4-codec-testkit
       '@internal/sql-contract':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/1-core/contract
+        version: link:../../2-sql-family/1-core/contract
       '@internal/utils':
         specifier: workspace:8.0.0-rc.19
         version: link:../../1-framework/0-foundation/utils
@@ -3121,103 +3121,6 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/3-extensions/mongo:
-    dependencies:
-      '@internal/adapter-mongo':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../3-mongo-target/2-mongo-adapter
-      '@internal/cli':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/3-tooling/cli
-      '@internal/config':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/1-core/config
-      '@internal/contract':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/0-foundation/contract
-      '@internal/contract-authoring':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/2-authoring/contract
-      '@internal/driver-mongo':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../3-mongo-target/3-mongo-driver
-      '@internal/family-mongo':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/9-family
-      '@internal/framework-components':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/1-core/framework-components
-      '@internal/mongo-contract':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/1-foundation/mongo-contract
-      '@internal/mongo-contract-prisma6':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/2-authoring/contract-prisma6
-      '@internal/mongo-contract-psl':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/2-authoring/contract-psl
-      '@internal/mongo-contract-ts':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/2-authoring/contract-ts
-      '@internal/mongo-orm':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/5-query-builders/orm
-      '@internal/mongo-query-builder':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/5-query-builders/query-builder
-      '@internal/mongo-runtime':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/7-runtime
-      '@internal/target-mongo':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../3-mongo-target/1-mongo-target
-      '@internal/utils':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/0-foundation/utils
-      mongodb-connection-string-url:
-        specifier: 'catalog:'
-        version: 7.0.1
-      pathe:
-        specifier: ^2.0.3
-        version: 2.0.3
-      tinyglobby:
-        specifier: 'catalog:'
-        version: 0.2.17
-    devDependencies:
-      '@internal/emitter':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/3-tooling/emitter
-      '@internal/mongo-emitter':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/3-tooling/emitter
-      '@internal/psl-parser':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/2-authoring/psl-parser
-      '@repo/test-utils':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../test/utils
-      '@repo/tsconfig':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../0-config/tsconfig
-      '@repo/tsdown':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../0-config/tsdown
-      mongodb:
-        specifier: 'catalog:'
-        version: 7.5.0(socks@2.8.9)
-      mongodb-memory-server:
-        specifier: 'catalog:'
-        version: 11.2.0(socks@2.8.9)
-      tsdown:
-        specifier: 'catalog:'
-        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: 'catalog:'
-        version: 5.9.3
-      vitest:
-        specifier: 'catalog:'
-        version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
-
   packages/3-extensions/paradedb:
     dependencies:
       '@internal/contract':
@@ -3228,7 +3131,7 @@ importers:
         version: link:../../1-framework/2-authoring/contract
       '@internal/family-sql':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/9-family
+        version: link:../../2-sql-family/9-family
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.19
         version: link:../../1-framework/1-core/framework-components
@@ -3237,16 +3140,16 @@ importers:
         version: link:../../1-framework/3-tooling/migration
       '@internal/sql-contract':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/1-core/contract
+        version: link:../../2-sql-family/1-core/contract
       '@internal/sql-operations':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/1-core/operations
+        version: link:../../2-sql-family/1-core/operations
       '@internal/sql-relational-core':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/4-lanes/relational-core
+        version: link:../../2-sql-family/4-lanes/relational-core
       '@internal/sql-runtime':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/5-runtime
+        version: link:../../2-sql-family/5-runtime
       '@internal/utils':
         specifier: workspace:8.0.0-rc.19
         version: link:../../1-framework/0-foundation/utils
@@ -3256,7 +3159,7 @@ importers:
     devDependencies:
       '@internal/adapter-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/6-adapters/postgres
+        version: link:../../3-targets/postgres/2-adapter
       '@internal/cli':
         specifier: workspace:8.0.0-rc.19
         version: link:../../1-framework/3-tooling/cli
@@ -3265,10 +3168,10 @@ importers:
         version: link:../../1-framework/1-core/operations
       '@internal/sql-contract-ts':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/2-authoring/contract-ts
+        version: link:../../2-sql-family/2-authoring/contract-ts
       '@internal/target-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/3-targets/postgres
+        version: link:../../3-targets/postgres/1-target
       '@prisma/cli-engine':
         specifier: 0.7.0
         version: 0.7.0(@prisma/management-api-sdk@1.76.0)(magicast@0.5.4)
@@ -3301,7 +3204,7 @@ importers:
         version: link:../../1-framework/2-authoring/contract
       '@internal/family-sql':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/9-family
+        version: link:../../2-sql-family/9-family
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.19
         version: link:../../1-framework/1-core/framework-components
@@ -3310,22 +3213,22 @@ importers:
         version: link:../../1-framework/3-tooling/migration
       '@internal/sql-contract':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/1-core/contract
+        version: link:../../2-sql-family/1-core/contract
       '@internal/sql-operations':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/1-core/operations
+        version: link:../../2-sql-family/1-core/operations
       '@internal/sql-relational-core':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/4-lanes/relational-core
+        version: link:../../2-sql-family/4-lanes/relational-core
       '@internal/sql-runtime':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/5-runtime
+        version: link:../../2-sql-family/5-runtime
       '@internal/sql-schema-ir':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/1-core/schema-ir
+        version: link:../../2-sql-family/1-core/schema-ir
       '@internal/target-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/3-targets/postgres
+        version: link:../../3-targets/postgres/1-target
       '@internal/utils':
         specifier: workspace:8.0.0-rc.19
         version: link:../../1-framework/0-foundation/utils
@@ -3338,25 +3241,25 @@ importers:
     devDependencies:
       '@internal/adapter-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/6-adapters/postgres
+        version: link:../../3-targets/postgres/2-adapter
       '@internal/cli':
         specifier: workspace:8.0.0-rc.19
         version: link:../../1-framework/3-tooling/cli
       '@internal/driver-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/7-drivers/postgres
+        version: link:../../3-targets/postgres/3-driver
       '@internal/operations':
         specifier: workspace:8.0.0-rc.19
         version: link:../../1-framework/1-core/operations
       '@internal/postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../postgres
+        version: link:../../3-targets/postgres/9-facade
       '@internal/postgres-codec-testkit':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/6-adapters/postgres-codec-testkit
+        version: link:../../3-targets/postgres/4-codec-testkit
       '@internal/sql-contract-ts':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/2-authoring/contract-ts
+        version: link:../../2-sql-family/2-authoring/contract-ts
       '@prisma/cli-engine':
         specifier: 0.7.0
         version: 0.7.0(@prisma/management-api-sdk@1.76.0)(magicast@0.5.4)
@@ -3389,7 +3292,7 @@ importers:
         version: link:../../1-framework/2-authoring/contract
       '@internal/family-sql':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/9-family
+        version: link:../../2-sql-family/9-family
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.19
         version: link:../../1-framework/1-core/framework-components
@@ -3398,22 +3301,22 @@ importers:
         version: link:../../1-framework/3-tooling/migration
       '@internal/sql-contract':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/1-core/contract
+        version: link:../../2-sql-family/1-core/contract
       '@internal/sql-operations':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/1-core/operations
+        version: link:../../2-sql-family/1-core/operations
       '@internal/sql-relational-core':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/4-lanes/relational-core
+        version: link:../../2-sql-family/4-lanes/relational-core
       '@internal/sql-runtime':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/5-runtime
+        version: link:../../2-sql-family/5-runtime
       '@internal/sql-schema-ir':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/1-core/schema-ir
+        version: link:../../2-sql-family/1-core/schema-ir
       '@internal/target-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/3-targets/postgres
+        version: link:../../3-targets/postgres/1-target
       '@internal/utils':
         specifier: workspace:8.0.0-rc.19
         version: link:../../1-framework/0-foundation/utils
@@ -3426,7 +3329,7 @@ importers:
     devDependencies:
       '@internal/adapter-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/6-adapters/postgres
+        version: link:../../3-targets/postgres/2-adapter
       '@internal/cli':
         specifier: workspace:8.0.0-rc.19
         version: link:../../1-framework/3-tooling/cli
@@ -3435,10 +3338,10 @@ importers:
         version: link:../../1-framework/1-core/operations
       '@internal/postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../postgres
+        version: link:../../3-targets/postgres/9-facade
       '@internal/sql-contract-ts':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/2-authoring/contract-ts
+        version: link:../../2-sql-family/2-authoring/contract-ts
       '@prisma/cli-engine':
         specifier: 0.7.0
         version: 0.7.0(@prisma/management-api-sdk@1.76.0)(magicast@0.5.4)
@@ -3451,115 +3354,6 @@ importers:
       '@repo/tsdown':
         specifier: workspace:8.0.0-rc.19
         version: link:../../0-config/tsdown
-      tsdown:
-        specifier: 'catalog:'
-        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: 'catalog:'
-        version: 5.9.3
-      vitest:
-        specifier: 'catalog:'
-        version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
-
-  packages/3-extensions/postgres:
-    dependencies:
-      '@internal/adapter-postgres':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/6-adapters/postgres
-      '@internal/cli':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/3-tooling/cli
-      '@internal/config':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/1-core/config
-      '@internal/contract':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/0-foundation/contract
-      '@internal/driver-postgres':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/7-drivers/postgres
-      '@internal/family-sql':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/9-family
-      '@internal/framework-components':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/1-core/framework-components
-      '@internal/sql-builder':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/4-lanes/sql-builder
-      '@internal/sql-contract':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/1-core/contract
-      '@internal/sql-contract-prisma7':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/2-authoring/contract-prisma7
-      '@internal/sql-contract-psl':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/2-authoring/contract-psl
-      '@internal/sql-contract-ts':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/2-authoring/contract-ts
-      '@internal/sql-orm-client':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../sql-orm-client
-      '@internal/sql-relational-core':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/4-lanes/relational-core
-      '@internal/sql-runtime':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/5-runtime
-      '@internal/target-postgres':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/3-targets/postgres
-      '@internal/utils':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/0-foundation/utils
-      '@types/node':
-        specifier: 'catalog:'
-        version: 26.1.2
-      '@types/pg':
-        specifier: 'catalog:'
-        version: 8.20.4
-      arktype:
-        specifier: 'catalog:'
-        version: 2.2.7
-      pathe:
-        specifier: ^2.0.3
-        version: 2.0.3
-      pg:
-        specifier: 'catalog:'
-        version: 8.22.0
-      tinyglobby:
-        specifier: 'catalog:'
-        version: 0.2.17
-    devDependencies:
-      '@internal/config-loader':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/3-tooling/config-loader
-      '@internal/emitter':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/3-tooling/emitter
-      '@internal/psl-parser':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/2-authoring/psl-parser
-      '@internal/sql-contract-emitter':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/3-tooling/emitter
-      '@internal/sql-schema-ir':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/1-core/schema-ir
-      '@repo/test-utils':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../test/utils
-      '@repo/tsconfig':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../0-config/tsconfig
-      '@repo/tsdown':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../0-config/tsdown
-      temporal-polyfill:
-        specifier: ^1.0.4
-        version: 1.0.4
       tsdown:
         specifier: 'catalog:'
         version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
@@ -3583,44 +3377,44 @@ importers:
         version: link:../../1-framework/1-core/operations
       '@internal/sql-contract':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/1-core/contract
+        version: link:../../2-sql-family/1-core/contract
       '@internal/sql-errors':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/1-core/errors
+        version: link:../../2-sql-family/1-core/errors
       '@internal/sql-operations':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/1-core/operations
+        version: link:../../2-sql-family/1-core/operations
       '@internal/sql-relational-core':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/4-lanes/relational-core
+        version: link:../../2-sql-family/4-lanes/relational-core
       '@internal/sql-runtime':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/5-runtime
+        version: link:../../2-sql-family/5-runtime
       '@internal/utils':
         specifier: workspace:8.0.0-rc.19
         version: link:../../1-framework/0-foundation/utils
     devDependencies:
       '@internal/adapter-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/6-adapters/postgres
+        version: link:../../3-targets/postgres/2-adapter
       '@internal/cli':
         specifier: workspace:8.0.0-rc.19
         version: link:../../1-framework/3-tooling/cli
       '@internal/driver-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/7-drivers/postgres
+        version: link:../../3-targets/postgres/3-driver
       '@internal/family-sql':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/9-family
+        version: link:../../2-sql-family/9-family
       '@internal/ids':
         specifier: workspace:8.0.0-rc.19
         version: link:../../1-framework/2-authoring/ids
       '@internal/sql-contract-ts':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/2-authoring/contract-ts
+        version: link:../../2-sql-family/2-authoring/contract-ts
       '@internal/target-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/3-targets/postgres
+        version: link:../../3-targets/postgres/1-target
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../test/utils
@@ -3649,90 +3443,11 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/3-extensions/sqlite:
-    dependencies:
-      '@internal/adapter-sqlite':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/6-adapters/sqlite
-      '@internal/cli':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/3-tooling/cli
-      '@internal/config':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/1-core/config
-      '@internal/contract':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/0-foundation/contract
-      '@internal/driver-sqlite':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/7-drivers/sqlite
-      '@internal/family-sql':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/9-family
-      '@internal/framework-components':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/1-core/framework-components
-      '@internal/sql-builder':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/4-lanes/sql-builder
-      '@internal/sql-contract':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/1-core/contract
-      '@internal/sql-contract-psl':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/2-authoring/contract-psl
-      '@internal/sql-contract-ts':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/2-authoring/contract-ts
-      '@internal/sql-orm-client':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../sql-orm-client
-      '@internal/sql-relational-core':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/4-lanes/relational-core
-      '@internal/sql-runtime':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/5-runtime
-      '@internal/target-sqlite':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/3-targets/sqlite
-      '@internal/utils':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/0-foundation/utils
-      pathe:
-        specifier: ^2.0.3
-        version: 2.0.3
-      tinyglobby:
-        specifier: 'catalog:'
-        version: 0.2.17
-    devDependencies:
-      '@internal/psl-parser':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/2-authoring/psl-parser
-      '@repo/test-utils':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../test/utils
-      '@repo/tsconfig':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../0-config/tsconfig
-      '@repo/tsdown':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../0-config/tsdown
-      tsdown:
-        specifier: 'catalog:'
-        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: 'catalog:'
-        version: 5.9.3
-      vitest:
-        specifier: 'catalog:'
-        version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
-
   packages/3-extensions/supabase:
     dependencies:
       '@internal/adapter-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/6-adapters/postgres
+        version: link:../../3-targets/postgres/2-adapter
       '@internal/contract':
         specifier: workspace:8.0.0-rc.19
         version: link:../../1-framework/0-foundation/contract
@@ -3741,10 +3456,10 @@ importers:
         version: link:../../1-framework/2-authoring/contract
       '@internal/driver-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/7-drivers/postgres
+        version: link:../../3-targets/postgres/3-driver
       '@internal/family-sql':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/9-family
+        version: link:../../2-sql-family/9-family
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.19
         version: link:../../1-framework/1-core/framework-components
@@ -3753,34 +3468,34 @@ importers:
         version: link:../../1-framework/3-tooling/migration
       '@internal/postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../postgres
+        version: link:../../3-targets/postgres/9-facade
       '@internal/sql-builder':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/4-lanes/sql-builder
+        version: link:../../2-sql-family/4-lanes/sql-builder
       '@internal/sql-contract':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/1-core/contract
+        version: link:../../2-sql-family/1-core/contract
       '@internal/sql-contract-ts':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/2-authoring/contract-ts
+        version: link:../../2-sql-family/2-authoring/contract-ts
       '@internal/sql-operations':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/1-core/operations
+        version: link:../../2-sql-family/1-core/operations
       '@internal/sql-orm-client':
         specifier: workspace:8.0.0-rc.19
         version: link:../sql-orm-client
       '@internal/sql-relational-core':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/4-lanes/relational-core
+        version: link:../../2-sql-family/4-lanes/relational-core
       '@internal/sql-runtime':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/5-runtime
+        version: link:../../2-sql-family/5-runtime
       '@internal/sql-schema-ir':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/1-core/schema-ir
+        version: link:../../2-sql-family/1-core/schema-ir
       '@internal/target-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/3-targets/postgres
+        version: link:../../3-targets/postgres/1-target
       '@internal/utils':
         specifier: workspace:8.0.0-rc.19
         version: link:../../1-framework/0-foundation/utils
@@ -3817,7 +3532,7 @@ importers:
         version: link:../../1-framework/2-authoring/psl-printer
       '@internal/sql-contract-psl':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-sql/2-authoring/contract-psl
+        version: link:../../2-sql-family/2-authoring/contract-psl
       '@prisma/cli-engine':
         specifier: 0.7.0
         version: 0.7.0(@prisma/management-api-sdk@1.76.0)(magicast@0.5.4)
@@ -3846,53 +3561,53 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/3-mongo-target/1-mongo-target:
+  packages/3-targets/mongo/1-target:
     dependencies:
       '@internal/cli':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/3-tooling/cli
+        version: link:../../../1-framework/3-tooling/cli
       '@internal/contract':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/0-foundation/contract
+        version: link:../../../1-framework/0-foundation/contract
       '@internal/errors':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/1-core/errors
+        version: link:../../../1-framework/1-core/errors
       '@internal/family-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/9-family
+        version: link:../../../2-mongo-family/9-family
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/1-core/framework-components
+        version: link:../../../1-framework/1-core/framework-components
       '@internal/migration-tools':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/3-tooling/migration
+        version: link:../../../1-framework/3-tooling/migration
       '@internal/mongo-codec':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/1-foundation/mongo-codec
+        version: link:../../../2-mongo-family/1-foundation/mongo-codec
       '@internal/mongo-contract':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/1-foundation/mongo-contract
+        version: link:../../../2-mongo-family/1-foundation/mongo-contract
       '@internal/mongo-lowering':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/6-transport/mongo-lowering
+        version: link:../../../2-mongo-family/6-transport/mongo-lowering
       '@internal/mongo-query-ast':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/4-query/query-ast
+        version: link:../../../2-mongo-family/4-query/query-ast
       '@internal/mongo-query-builder':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/5-query-builders/query-builder
+        version: link:../../../2-mongo-family/5-query-builders/query-builder
       '@internal/mongo-schema-ir':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/3-tooling/mongo-schema-ir
+        version: link:../../../2-mongo-family/3-tooling/mongo-schema-ir
       '@internal/mongo-value':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/1-foundation/mongo-value
+        version: link:../../../2-mongo-family/1-foundation/mongo-value
       '@internal/ts-render':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/1-core/ts-render
+        version: link:../../../1-framework/1-core/ts-render
       '@internal/utils':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/0-foundation/utils
+        version: link:../../../1-framework/0-foundation/utils
       arktype:
         specifier: 'catalog:'
         version: 2.2.7
@@ -3902,25 +3617,25 @@ importers:
     devDependencies:
       '@internal/mongo-contract-psl':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/2-authoring/contract-psl
+        version: link:../../../2-mongo-family/2-authoring/contract-psl
       '@internal/mongo-wire':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/6-transport/mongo-wire
+        version: link:../../../2-mongo-family/6-transport/mongo-wire
       '@internal/psl-parser':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/2-authoring/psl-parser
+        version: link:../../../1-framework/2-authoring/psl-parser
       '@internal/publish-surface':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../0-shared/publish-surface
+        version: link:../../../0-shared/publish-surface
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../test/utils
+        version: link:../../../../test/utils
       '@repo/tsconfig':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../0-config/tsconfig
+        version: link:../../../0-config/tsconfig
       '@repo/tsdown':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../0-config/tsdown
+        version: link:../../../0-config/tsdown
       mongodb:
         specifier: 'catalog:'
         version: 7.5.0(socks@2.8.9)
@@ -3937,81 +3652,81 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/3-mongo-target/2-mongo-adapter:
+  packages/3-targets/mongo/2-adapter:
     dependencies:
       '@internal/config':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/1-core/config
+        version: link:../../../1-framework/1-core/config
       '@internal/contract':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/0-foundation/contract
+        version: link:../../../1-framework/0-foundation/contract
       '@internal/errors':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/1-core/errors
+        version: link:../../../1-framework/1-core/errors
       '@internal/family-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/9-family
+        version: link:../../../2-mongo-family/9-family
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/1-core/framework-components
+        version: link:../../../1-framework/1-core/framework-components
       '@internal/migration-tools':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/3-tooling/migration
+        version: link:../../../1-framework/3-tooling/migration
       '@internal/mongo-codec':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/1-foundation/mongo-codec
+        version: link:../../../2-mongo-family/1-foundation/mongo-codec
       '@internal/mongo-contract':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/1-foundation/mongo-contract
+        version: link:../../../2-mongo-family/1-foundation/mongo-contract
       '@internal/mongo-lowering':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/6-transport/mongo-lowering
+        version: link:../../../2-mongo-family/6-transport/mongo-lowering
       '@internal/mongo-query-ast':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/4-query/query-ast
+        version: link:../../../2-mongo-family/4-query/query-ast
       '@internal/mongo-query-builder':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/5-query-builders/query-builder
+        version: link:../../../2-mongo-family/5-query-builders/query-builder
       '@internal/mongo-schema-ir':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/3-tooling/mongo-schema-ir
+        version: link:../../../2-mongo-family/3-tooling/mongo-schema-ir
       '@internal/mongo-value':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/1-foundation/mongo-value
+        version: link:../../../2-mongo-family/1-foundation/mongo-value
       '@internal/mongo-wire':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/6-transport/mongo-wire
+        version: link:../../../2-mongo-family/6-transport/mongo-wire
       '@internal/operations':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/1-core/operations
+        version: link:../../../1-framework/1-core/operations
       '@internal/target-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../1-mongo-target
+        version: link:../1-target
       '@internal/utils':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/0-foundation/utils
+        version: link:../../../1-framework/0-foundation/utils
       arktype:
         specifier: 'catalog:'
         version: 2.2.7
     devDependencies:
       '@internal/driver-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../3-mongo-driver
+        version: link:../3-driver
       '@internal/mongo-contract-psl':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/2-authoring/contract-psl
+        version: link:../../../2-mongo-family/2-authoring/contract-psl
       '@internal/psl-parser':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/2-authoring/psl-parser
+        version: link:../../../1-framework/2-authoring/psl-parser
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../test/utils
+        version: link:../../../../test/utils
       '@repo/tsconfig':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../0-config/tsconfig
+        version: link:../../../0-config/tsconfig
       '@repo/tsdown':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../0-config/tsdown
+        version: link:../../../0-config/tsdown
       mongodb:
         specifier: 'catalog:'
         version: 7.5.0(socks@2.8.9)
@@ -4028,33 +3743,33 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/3-mongo-target/3-mongo-driver:
+  packages/3-targets/mongo/3-driver:
     dependencies:
       '@internal/errors':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/1-core/errors
+        version: link:../../../1-framework/1-core/errors
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/1-core/framework-components
+        version: link:../../../1-framework/1-core/framework-components
       '@internal/mongo-lowering':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/6-transport/mongo-lowering
+        version: link:../../../2-mongo-family/6-transport/mongo-lowering
       '@internal/mongo-wire':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../2-mongo-family/6-transport/mongo-wire
+        version: link:../../../2-mongo-family/6-transport/mongo-wire
       '@internal/utils':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../1-framework/0-foundation/utils
+        version: link:../../../1-framework/0-foundation/utils
     devDependencies:
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../test/utils
+        version: link:../../../../test/utils
       '@repo/tsconfig':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../0-config/tsconfig
+        version: link:../../../0-config/tsconfig
       '@repo/tsdown':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../0-config/tsdown
+        version: link:../../../0-config/tsdown
       mongodb:
         specifier: 'catalog:'
         version: 7.5.0(socks@2.8.9)
@@ -4071,7 +3786,104 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/3-targets/3-targets/postgres:
+  packages/3-targets/mongo/9-facade:
+    dependencies:
+      '@internal/adapter-mongo':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../2-adapter
+      '@internal/cli':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/3-tooling/cli
+      '@internal/config':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/config
+      '@internal/contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/contract
+      '@internal/contract-authoring':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/2-authoring/contract
+      '@internal/driver-mongo':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../3-driver
+      '@internal/family-mongo':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-mongo-family/9-family
+      '@internal/framework-components':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/framework-components
+      '@internal/mongo-contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-mongo-family/1-foundation/mongo-contract
+      '@internal/mongo-contract-prisma6':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-mongo-family/2-authoring/contract-prisma6
+      '@internal/mongo-contract-psl':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-mongo-family/2-authoring/contract-psl
+      '@internal/mongo-contract-ts':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-mongo-family/2-authoring/contract-ts
+      '@internal/mongo-orm':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-mongo-family/5-query-builders/orm
+      '@internal/mongo-query-builder':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-mongo-family/5-query-builders/query-builder
+      '@internal/mongo-runtime':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-mongo-family/7-runtime
+      '@internal/target-mongo':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../1-target
+      '@internal/utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/utils
+      mongodb-connection-string-url:
+        specifier: 'catalog:'
+        version: 7.0.1
+      pathe:
+        specifier: ^2.0.3
+        version: 2.0.3
+      tinyglobby:
+        specifier: 'catalog:'
+        version: 0.2.17
+    devDependencies:
+      '@internal/emitter':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/3-tooling/emitter
+      '@internal/mongo-emitter':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-mongo-family/3-tooling/emitter
+      '@internal/psl-parser':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/2-authoring/psl-parser
+      '@repo/test-utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../../test/utils
+      '@repo/tsconfig':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsdown
+      mongodb:
+        specifier: 'catalog:'
+        version: 7.5.0(socks@2.8.9)
+      mongodb-memory-server:
+        specifier: 'catalog:'
+        version: 11.2.0(socks@2.8.9)
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
+
+  packages/3-targets/postgres/1-target:
     dependencies:
       '@internal/cli':
         specifier: workspace:8.0.0-rc.19
@@ -4084,7 +3896,7 @@ importers:
         version: link:../../../1-framework/1-core/errors
       '@internal/family-sql':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/9-family
+        version: link:../../../2-sql-family/9-family
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../1-framework/1-core/framework-components
@@ -4096,22 +3908,22 @@ importers:
         version: link:../../../1-framework/2-authoring/psl-parser
       '@internal/sql-contract':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/contract
+        version: link:../../../2-sql-family/1-core/contract
       '@internal/sql-contract-psl':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/2-authoring/contract-psl
+        version: link:../../../2-sql-family/2-authoring/contract-psl
       '@internal/sql-errors':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/errors
+        version: link:../../../2-sql-family/1-core/errors
       '@internal/sql-operations':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/operations
+        version: link:../../../2-sql-family/1-core/operations
       '@internal/sql-relational-core':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/4-lanes/relational-core
+        version: link:../../../2-sql-family/4-lanes/relational-core
       '@internal/sql-schema-ir':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/schema-ir
+        version: link:../../../2-sql-family/1-core/schema-ir
       '@internal/ts-render':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../1-framework/1-core/ts-render
@@ -4162,83 +3974,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/3-targets/3-targets/sqlite:
-    dependencies:
-      '@internal/cli':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/3-tooling/cli
-      '@internal/contract':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/0-foundation/contract
-      '@internal/errors':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/1-core/errors
-      '@internal/family-sql':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/9-family
-      '@internal/framework-components':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/1-core/framework-components
-      '@internal/migration-tools':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/3-tooling/migration
-      '@internal/sql-contract':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/contract
-      '@internal/sql-errors':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/errors
-      '@internal/sql-relational-core':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/4-lanes/relational-core
-      '@internal/sql-runtime':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/5-runtime
-      '@internal/sql-schema-ir':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/schema-ir
-      '@internal/ts-render':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/1-core/ts-render
-      '@internal/utils':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/0-foundation/utils
-      '@standard-schema/spec':
-        specifier: 1.1.0
-        version: 1.1.0
-      arktype:
-        specifier: ^2.2.2
-        version: 2.2.7
-    devDependencies:
-      '@internal/driver-sqlite':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../7-drivers/sqlite
-      '@internal/publish-surface':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../0-shared/publish-surface
-      '@repo/test-utils':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../../test/utils
-      '@repo/tsconfig':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../0-config/tsconfig
-      '@repo/tsdown':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../0-config/tsdown
-      temporal-polyfill:
-        specifier: ^1.0.4
-        version: 1.0.4
-      tsdown:
-        specifier: 'catalog:'
-        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: 'catalog:'
-        version: 5.9.3
-      vitest:
-        specifier: 'catalog:'
-        version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
-
-  packages/3-targets/6-adapters/postgres:
+  packages/3-targets/postgres/2-adapter:
     dependencies:
       '@internal/contract':
         specifier: workspace:8.0.0-rc.19
@@ -4251,7 +3987,7 @@ importers:
         version: link:../../../1-framework/1-core/errors
       '@internal/family-sql':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/9-family
+        version: link:../../../2-sql-family/9-family
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../1-framework/1-core/framework-components
@@ -4260,28 +3996,28 @@ importers:
         version: link:../../../1-framework/2-authoring/ids
       '@internal/sql-contract':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/contract
+        version: link:../../../2-sql-family/1-core/contract
       '@internal/sql-contract-psl':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/2-authoring/contract-psl
+        version: link:../../../2-sql-family/2-authoring/contract-psl
       '@internal/sql-contract-ts':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/2-authoring/contract-ts
+        version: link:../../../2-sql-family/2-authoring/contract-ts
       '@internal/sql-operations':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/operations
+        version: link:../../../2-sql-family/1-core/operations
       '@internal/sql-relational-core':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/4-lanes/relational-core
+        version: link:../../../2-sql-family/4-lanes/relational-core
       '@internal/sql-runtime':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/5-runtime
+        version: link:../../../2-sql-family/5-runtime
       '@internal/sql-schema-ir':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/schema-ir
+        version: link:../../../2-sql-family/1-core/schema-ir
       '@internal/target-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/postgres
+        version: link:../1-target
       '@internal/utils':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../1-framework/0-foundation/utils
@@ -4294,7 +4030,7 @@ importers:
         version: link:../../../1-framework/3-tooling/cli
       '@internal/driver-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../7-drivers/postgres
+        version: link:../3-driver
       '@internal/migration-tools':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../1-framework/3-tooling/migration
@@ -4332,181 +4068,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/3-targets/6-adapters/postgres-codec-testkit:
-    dependencies:
-      '@internal/adapter-postgres':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../postgres
-      '@internal/contract':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/0-foundation/contract
-      '@internal/framework-components':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/1-core/framework-components
-      '@internal/sql-contract':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/contract
-      '@internal/sql-relational-core':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/4-lanes/relational-core
-      '@internal/target-postgres':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/postgres
-      '@internal/utils':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/0-foundation/utils
-    devDependencies:
-      '@internal/driver-postgres':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../7-drivers/postgres
-      '@internal/sql-errors':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/errors
-      '@repo/test-utils':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../../test/utils
-      '@repo/tsconfig':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../0-config/tsconfig
-      '@repo/tsdown':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../0-config/tsdown
-      temporal-polyfill:
-        specifier: ^1.0.4
-        version: 1.0.4
-      tsdown:
-        specifier: 'catalog:'
-        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: 'catalog:'
-        version: 5.9.3
-      vitest:
-        specifier: 'catalog:'
-        version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
-
-  packages/3-targets/6-adapters/sqlite:
-    dependencies:
-      '@internal/cli':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/3-tooling/cli
-      '@internal/contract':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/0-foundation/contract
-      '@internal/contract-authoring':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/2-authoring/contract
-      '@internal/errors':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/1-core/errors
-      '@internal/family-sql':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/9-family
-      '@internal/framework-components':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/1-core/framework-components
-      '@internal/ids':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/2-authoring/ids
-      '@internal/sql-contract':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/contract
-      '@internal/sql-contract-psl':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/2-authoring/contract-psl
-      '@internal/sql-contract-ts':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/2-authoring/contract-ts
-      '@internal/sql-operations':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/operations
-      '@internal/sql-relational-core':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/4-lanes/relational-core
-      '@internal/sql-runtime':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/5-runtime
-      '@internal/sql-schema-ir':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/schema-ir
-      '@internal/target-sqlite':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/sqlite
-      '@internal/utils':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/0-foundation/utils
-      arktype:
-        specifier: ^2.2.2
-        version: 2.2.7
-    devDependencies:
-      '@internal/driver-sqlite':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../7-drivers/sqlite
-      '@internal/migration-tools':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/3-tooling/migration
-      '@repo/test-utils':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../../test/utils
-      '@repo/tsconfig':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../0-config/tsconfig
-      '@repo/tsdown':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../0-config/tsdown
-      pathe:
-        specifier: ^2.0.3
-        version: 2.0.3
-      tsdown:
-        specifier: 'catalog:'
-        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: 'catalog:'
-        version: 5.9.3
-      vitest:
-        specifier: 'catalog:'
-        version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
-
-  packages/3-targets/6-adapters/sqlite-codec-testkit:
-    dependencies:
-      '@internal/adapter-sqlite':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../sqlite
-      '@internal/contract':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/0-foundation/contract
-      '@internal/framework-components':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/1-core/framework-components
-      '@internal/sql-contract':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/contract
-      '@internal/sql-relational-core':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/4-lanes/relational-core
-      '@internal/target-sqlite':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../3-targets/sqlite
-      '@internal/utils':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../1-framework/0-foundation/utils
-    devDependencies:
-      '@repo/tsconfig':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../0-config/tsconfig
-      '@repo/tsdown':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../../0-config/tsdown
-      tsdown:
-        specifier: 'catalog:'
-        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: 'catalog:'
-        version: 5.9.3
-      vitest:
-        specifier: 'catalog:'
-        version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
-
-  packages/3-targets/7-drivers/postgres:
+  packages/3-targets/postgres/3-driver:
     dependencies:
       '@internal/contract':
         specifier: workspace:8.0.0-rc.19
@@ -4519,16 +4081,16 @@ importers:
         version: link:../../../1-framework/1-core/framework-components
       '@internal/sql-contract':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/contract
+        version: link:../../../2-sql-family/1-core/contract
       '@internal/sql-errors':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/errors
+        version: link:../../../2-sql-family/1-core/errors
       '@internal/sql-operations':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/operations
+        version: link:../../../2-sql-family/1-core/operations
       '@internal/sql-relational-core':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/4-lanes/relational-core
+        version: link:../../../2-sql-family/4-lanes/relational-core
       '@internal/utils':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../1-framework/0-foundation/utils
@@ -4582,7 +4144,326 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/3-targets/7-drivers/sqlite:
+  packages/3-targets/postgres/4-codec-testkit:
+    dependencies:
+      '@internal/adapter-postgres':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../2-adapter
+      '@internal/contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/contract
+      '@internal/framework-components':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/framework-components
+      '@internal/sql-contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/contract
+      '@internal/sql-relational-core':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/4-lanes/relational-core
+      '@internal/target-postgres':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../1-target
+      '@internal/utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/utils
+    devDependencies:
+      '@internal/driver-postgres':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../3-driver
+      '@internal/sql-errors':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/errors
+      '@repo/test-utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../../test/utils
+      '@repo/tsconfig':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsdown
+      temporal-polyfill:
+        specifier: ^1.0.4
+        version: 1.0.4
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
+
+  packages/3-targets/postgres/9-facade:
+    dependencies:
+      '@internal/adapter-postgres':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../2-adapter
+      '@internal/cli':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/3-tooling/cli
+      '@internal/config':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/config
+      '@internal/contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/contract
+      '@internal/driver-postgres':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../3-driver
+      '@internal/family-sql':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/9-family
+      '@internal/framework-components':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/framework-components
+      '@internal/sql-builder':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/4-lanes/sql-builder
+      '@internal/sql-contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/contract
+      '@internal/sql-contract-prisma7':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/2-authoring/contract-prisma7
+      '@internal/sql-contract-psl':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/2-authoring/contract-psl
+      '@internal/sql-contract-ts':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/2-authoring/contract-ts
+      '@internal/sql-orm-client':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../3-extensions/sql-orm-client
+      '@internal/sql-relational-core':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/4-lanes/relational-core
+      '@internal/sql-runtime':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/5-runtime
+      '@internal/target-postgres':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../1-target
+      '@internal/utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/utils
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.1.2
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.20.4
+      arktype:
+        specifier: 'catalog:'
+        version: 2.2.7
+      pathe:
+        specifier: ^2.0.3
+        version: 2.0.3
+      pg:
+        specifier: 'catalog:'
+        version: 8.22.0
+      tinyglobby:
+        specifier: 'catalog:'
+        version: 0.2.17
+    devDependencies:
+      '@internal/config-loader':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/3-tooling/config-loader
+      '@internal/emitter':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/3-tooling/emitter
+      '@internal/psl-parser':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/2-authoring/psl-parser
+      '@internal/sql-contract-emitter':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/3-tooling/emitter
+      '@internal/sql-schema-ir':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/schema-ir
+      '@repo/test-utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../../test/utils
+      '@repo/tsconfig':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsdown
+      temporal-polyfill:
+        specifier: ^1.0.4
+        version: 1.0.4
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
+
+  packages/3-targets/sqlite/1-target:
+    dependencies:
+      '@internal/cli':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/3-tooling/cli
+      '@internal/contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/contract
+      '@internal/errors':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/errors
+      '@internal/family-sql':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/9-family
+      '@internal/framework-components':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/framework-components
+      '@internal/migration-tools':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/3-tooling/migration
+      '@internal/sql-contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/contract
+      '@internal/sql-errors':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/errors
+      '@internal/sql-relational-core':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/4-lanes/relational-core
+      '@internal/sql-runtime':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/5-runtime
+      '@internal/sql-schema-ir':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/schema-ir
+      '@internal/ts-render':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/ts-render
+      '@internal/utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/utils
+      '@standard-schema/spec':
+        specifier: 1.1.0
+        version: 1.1.0
+      arktype:
+        specifier: ^2.2.2
+        version: 2.2.7
+    devDependencies:
+      '@internal/driver-sqlite':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../3-driver
+      '@internal/publish-surface':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-shared/publish-surface
+      '@repo/test-utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../../test/utils
+      '@repo/tsconfig':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsdown
+      temporal-polyfill:
+        specifier: ^1.0.4
+        version: 1.0.4
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
+
+  packages/3-targets/sqlite/2-adapter:
+    dependencies:
+      '@internal/cli':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/3-tooling/cli
+      '@internal/contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/contract
+      '@internal/contract-authoring':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/2-authoring/contract
+      '@internal/errors':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/errors
+      '@internal/family-sql':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/9-family
+      '@internal/framework-components':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/framework-components
+      '@internal/ids':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/2-authoring/ids
+      '@internal/sql-contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/contract
+      '@internal/sql-contract-psl':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/2-authoring/contract-psl
+      '@internal/sql-contract-ts':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/2-authoring/contract-ts
+      '@internal/sql-operations':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/operations
+      '@internal/sql-relational-core':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/4-lanes/relational-core
+      '@internal/sql-runtime':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/5-runtime
+      '@internal/sql-schema-ir':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/schema-ir
+      '@internal/target-sqlite':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../1-target
+      '@internal/utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/utils
+      arktype:
+        specifier: ^2.2.2
+        version: 2.2.7
+    devDependencies:
+      '@internal/driver-sqlite':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../3-driver
+      '@internal/migration-tools':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/3-tooling/migration
+      '@repo/test-utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../../test/utils
+      '@repo/tsconfig':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsdown
+      pathe:
+        specifier: ^2.0.3
+        version: 2.0.3
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
+
+  packages/3-targets/sqlite/3-driver:
     dependencies:
       '@internal/contract':
         specifier: workspace:8.0.0-rc.19
@@ -4595,16 +4476,16 @@ importers:
         version: link:../../../1-framework/1-core/framework-components
       '@internal/sql-contract':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/contract
+        version: link:../../../2-sql-family/1-core/contract
       '@internal/sql-errors':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/errors
+        version: link:../../../2-sql-family/1-core/errors
       '@internal/sql-operations':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/operations
+        version: link:../../../2-sql-family/1-core/operations
       '@internal/sql-relational-core':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/4-lanes/relational-core
+        version: link:../../../2-sql-family/4-lanes/relational-core
       '@internal/utils':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../1-framework/0-foundation/utils
@@ -4612,6 +4493,125 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
     devDependencies:
+      '@repo/test-utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../../test/utils
+      '@repo/tsconfig':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsdown
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
+
+  packages/3-targets/sqlite/4-codec-testkit:
+    dependencies:
+      '@internal/adapter-sqlite':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../2-adapter
+      '@internal/contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/contract
+      '@internal/framework-components':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/framework-components
+      '@internal/sql-contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/contract
+      '@internal/sql-relational-core':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/4-lanes/relational-core
+      '@internal/target-sqlite':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../1-target
+      '@internal/utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/utils
+    devDependencies:
+      '@repo/tsconfig':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../0-config/tsdown
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.0-rc.2(@types/node@26.1.2)(@vitest/coverage-v8@5.0.0-rc.2)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
+
+  packages/3-targets/sqlite/9-facade:
+    dependencies:
+      '@internal/adapter-sqlite':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../2-adapter
+      '@internal/cli':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/3-tooling/cli
+      '@internal/config':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/config
+      '@internal/contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/contract
+      '@internal/driver-sqlite':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../3-driver
+      '@internal/family-sql':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/9-family
+      '@internal/framework-components':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/1-core/framework-components
+      '@internal/sql-builder':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/4-lanes/sql-builder
+      '@internal/sql-contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/contract
+      '@internal/sql-contract-psl':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/2-authoring/contract-psl
+      '@internal/sql-contract-ts':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/2-authoring/contract-ts
+      '@internal/sql-orm-client':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../3-extensions/sql-orm-client
+      '@internal/sql-relational-core':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/4-lanes/relational-core
+      '@internal/sql-runtime':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/5-runtime
+      '@internal/target-sqlite':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../1-target
+      '@internal/utils':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/utils
+      pathe:
+        specifier: ^2.0.3
+        version: 2.0.3
+      tinyglobby:
+        specifier: 'catalog:'
+        version: 0.2.17
+    devDependencies:
+      '@internal/psl-parser':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/2-authoring/psl-parser
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../../test/utils
@@ -4952,43 +4952,43 @@ importers:
     devDependencies:
       '@internal/family-sql':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/9-family
+        version: link:../../../2-sql-family/9-family
       '@internal/sql-builder':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/4-lanes/sql-builder
+        version: link:../../../2-sql-family/4-lanes/sql-builder
       '@internal/sql-contract':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/contract
+        version: link:../../../2-sql-family/1-core/contract
       '@internal/sql-contract-emitter':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/3-tooling/emitter
+        version: link:../../../2-sql-family/3-tooling/emitter
       '@internal/sql-contract-prisma7':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/2-authoring/contract-prisma7
+        version: link:../../../2-sql-family/2-authoring/contract-prisma7
       '@internal/sql-contract-psl':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/2-authoring/contract-psl
+        version: link:../../../2-sql-family/2-authoring/contract-psl
       '@internal/sql-contract-ts':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/2-authoring/contract-ts
+        version: link:../../../2-sql-family/2-authoring/contract-ts
       '@internal/sql-errors':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/errors
+        version: link:../../../2-sql-family/1-core/errors
       '@internal/sql-operations':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/operations
+        version: link:../../../2-sql-family/1-core/operations
       '@internal/sql-orm-client':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../3-extensions/sql-orm-client
       '@internal/sql-relational-core':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/4-lanes/relational-core
+        version: link:../../../2-sql-family/4-lanes/relational-core
       '@internal/sql-runtime':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/5-runtime
+        version: link:../../../2-sql-family/5-runtime
       '@internal/sql-schema-ir':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../2-sql/1-core/schema-ir
+        version: link:../../../2-sql-family/1-core/schema-ir
       '@repo/tsconfig':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../0-config/tsconfig
@@ -5101,7 +5101,7 @@ importers:
     devDependencies:
       '@internal/mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-extensions/mongo
+        version: link:../../../3-targets/mongo/9-facade
       '@repo/tsconfig':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../0-config/tsconfig
@@ -5153,7 +5153,7 @@ importers:
     devDependencies:
       '@internal/postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-extensions/postgres
+        version: link:../../../3-targets/postgres/9-facade
       '@repo/tsconfig':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../0-config/tsconfig
@@ -5190,7 +5190,7 @@ importers:
     devDependencies:
       '@internal/sqlite':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-extensions/sqlite
+        version: link:../../../3-targets/sqlite/9-facade
       '@repo/tsconfig':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../0-config/tsconfig
@@ -5227,13 +5227,13 @@ importers:
     devDependencies:
       '@internal/adapter-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-mongo-target/2-mongo-adapter
+        version: link:../../../3-targets/mongo/2-adapter
       '@internal/driver-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-mongo-target/3-mongo-driver
+        version: link:../../../3-targets/mongo/3-driver
       '@internal/target-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-mongo-target/1-mongo-target
+        version: link:../../../3-targets/mongo/1-target
       '@repo/tsconfig':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../0-config/tsconfig
@@ -5288,13 +5288,13 @@ importers:
     devDependencies:
       '@internal/adapter-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-targets/6-adapters/postgres
+        version: link:../../../3-targets/postgres/2-adapter
       '@internal/driver-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-targets/7-drivers/postgres
+        version: link:../../../3-targets/postgres/3-driver
       '@internal/target-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-targets/3-targets/postgres
+        version: link:../../../3-targets/postgres/1-target
       '@repo/tsconfig':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../0-config/tsconfig
@@ -5334,13 +5334,13 @@ importers:
     devDependencies:
       '@internal/adapter-sqlite':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-targets/6-adapters/sqlite
+        version: link:../../../3-targets/sqlite/2-adapter
       '@internal/driver-sqlite':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-targets/7-drivers/sqlite
+        version: link:../../../3-targets/sqlite/3-driver
       '@internal/target-sqlite':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../3-targets/3-targets/sqlite
+        version: link:../../../3-targets/sqlite/1-target
       '@repo/tsconfig':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../0-config/tsconfig
@@ -5540,13 +5540,13 @@ importers:
     dependencies:
       '@internal/adapter-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/3-mongo-target/2-mongo-adapter
+        version: link:../../packages/3-targets/mongo/2-adapter
       '@internal/adapter-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/3-targets/6-adapters/postgres
+        version: link:../../packages/3-targets/postgres/2-adapter
       '@internal/adapter-sqlite':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/3-targets/6-adapters/sqlite
+        version: link:../../packages/3-targets/sqlite/2-adapter
       '@internal/cli':
         specifier: workspace:8.0.0-rc.19
         version: link:../../packages/1-framework/3-tooling/cli
@@ -5558,13 +5558,13 @@ importers:
         version: link:../../packages/1-framework/0-foundation/contract
       '@internal/driver-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/3-mongo-target/3-mongo-driver
+        version: link:../../packages/3-targets/mongo/3-driver
       '@internal/driver-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/3-targets/7-drivers/postgres
+        version: link:../../packages/3-targets/postgres/3-driver
       '@internal/driver-sqlite':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/3-targets/7-drivers/sqlite
+        version: link:../../packages/3-targets/sqlite/3-driver
       '@internal/emitter':
         specifier: workspace:8.0.0-rc.19
         version: link:../../packages/1-framework/3-tooling/emitter
@@ -5588,7 +5588,7 @@ importers:
         version: link:../../packages/2-mongo-family/9-family
       '@internal/family-sql':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/2-sql/9-family
+        version: link:../../packages/2-sql-family/9-family
       '@internal/ids':
         specifier: workspace:8.0.0-rc.19
         version: link:../../packages/1-framework/2-authoring/ids
@@ -5597,7 +5597,7 @@ importers:
         version: link:../../packages/1-framework/3-tooling/migration
       '@internal/mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/3-extensions/mongo
+        version: link:../../packages/3-targets/mongo/9-facade
       '@internal/mongo-codec':
         specifier: workspace:8.0.0-rc.19
         version: link:../../packages/2-mongo-family/1-foundation/mongo-codec
@@ -5636,7 +5636,7 @@ importers:
         version: link:../../packages/1-framework/1-core/operations
       '@internal/postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/3-extensions/postgres
+        version: link:../../packages/3-targets/postgres/9-facade
       '@internal/psl-parser':
         specifier: workspace:8.0.0-rc.19
         version: link:../../packages/1-framework/2-authoring/psl-parser
@@ -5645,49 +5645,49 @@ importers:
         version: link:../../packages/1-framework/2-authoring/psl-printer
       '@internal/sql-builder':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/2-sql/4-lanes/sql-builder
+        version: link:../../packages/2-sql-family/4-lanes/sql-builder
       '@internal/sql-contract':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/2-sql/1-core/contract
+        version: link:../../packages/2-sql-family/1-core/contract
       '@internal/sql-contract-emitter':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/2-sql/3-tooling/emitter
+        version: link:../../packages/2-sql-family/3-tooling/emitter
       '@internal/sql-contract-prisma7':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/2-sql/2-authoring/contract-prisma7
+        version: link:../../packages/2-sql-family/2-authoring/contract-prisma7
       '@internal/sql-contract-psl':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/2-sql/2-authoring/contract-psl
+        version: link:../../packages/2-sql-family/2-authoring/contract-psl
       '@internal/sql-contract-ts':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/2-sql/2-authoring/contract-ts
+        version: link:../../packages/2-sql-family/2-authoring/contract-ts
       '@internal/sql-errors':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/2-sql/1-core/errors
+        version: link:../../packages/2-sql-family/1-core/errors
       '@internal/sql-orm-client':
         specifier: workspace:8.0.0-rc.19
         version: link:../../packages/3-extensions/sql-orm-client
       '@internal/sql-relational-core':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/2-sql/4-lanes/relational-core
+        version: link:../../packages/2-sql-family/4-lanes/relational-core
       '@internal/sql-runtime':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/2-sql/5-runtime
+        version: link:../../packages/2-sql-family/5-runtime
       '@internal/sql-schema-ir':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/2-sql/1-core/schema-ir
+        version: link:../../packages/2-sql-family/1-core/schema-ir
       '@internal/sqlite':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/3-extensions/sqlite
+        version: link:../../packages/3-targets/sqlite/9-facade
       '@internal/target-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/3-mongo-target/1-mongo-target
+        version: link:../../packages/3-targets/mongo/1-target
       '@internal/target-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/3-targets/3-targets/postgres
+        version: link:../../packages/3-targets/postgres/1-target
       '@internal/target-sqlite':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../packages/3-targets/3-targets/sqlite
+        version: link:../../packages/3-targets/sqlite/1-target
       '@internal/utils':
         specifier: workspace:8.0.0-rc.19
         version: link:../../packages/1-framework/0-foundation/utils
@@ -5790,25 +5790,25 @@ importers:
     dependencies:
       '@internal/adapter-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/3-mongo-target/2-mongo-adapter
+        version: link:../../../../../../packages/3-targets/mongo/2-adapter
       '@internal/adapter-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/3-targets/6-adapters/postgres
+        version: link:../../../../../../packages/3-targets/postgres/2-adapter
       '@internal/cli':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../../../../packages/1-framework/3-tooling/cli
       '@internal/driver-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/3-mongo-target/3-mongo-driver
+        version: link:../../../../../../packages/3-targets/mongo/3-driver
       '@internal/driver-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/3-targets/7-drivers/postgres
+        version: link:../../../../../../packages/3-targets/postgres/3-driver
       '@internal/family-mongo':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../../../../packages/2-mongo-family/9-family
       '@internal/family-sql':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/2-sql/9-family
+        version: link:../../../../../../packages/2-sql-family/9-family
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../../../../packages/1-framework/1-core/framework-components
@@ -5826,13 +5826,13 @@ importers:
         version: link:../../../../../../packages/2-mongo-family/4-query/query-ast
       '@internal/sql-contract-ts':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/2-sql/2-authoring/contract-ts
+        version: link:../../../../../../packages/2-sql-family/2-authoring/contract-ts
       '@internal/target-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/3-mongo-target/1-mongo-target
+        version: link:../../../../../../packages/3-targets/mongo/1-target
       '@internal/target-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/3-targets/3-targets/postgres
+        version: link:../../../../../../packages/3-targets/postgres/1-target
       '@internal/utils':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../../../../packages/1-framework/0-foundation/utils
@@ -5862,10 +5862,10 @@ importers:
     dependencies:
       '@internal/adapter-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/3-mongo-target/2-mongo-adapter
+        version: link:../../../../../../packages/3-targets/mongo/2-adapter
       '@internal/adapter-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/3-targets/6-adapters/postgres
+        version: link:../../../../../../packages/3-targets/postgres/2-adapter
       '@internal/cli':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../../../../packages/1-framework/3-tooling/cli
@@ -5874,19 +5874,19 @@ importers:
         version: link:../../../../../../packages/1-framework/0-foundation/contract
       '@internal/driver-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/3-targets/7-drivers/postgres
+        version: link:../../../../../../packages/3-targets/postgres/3-driver
       '@internal/family-mongo':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../../../../packages/2-mongo-family/9-family
       '@internal/family-sql':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/2-sql/9-family
+        version: link:../../../../../../packages/2-sql-family/9-family
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../../../../packages/1-framework/1-core/framework-components
       '@internal/mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/3-extensions/mongo
+        version: link:../../../../../../packages/3-targets/mongo/9-facade
       '@internal/mongo-contract-psl':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../../../../packages/2-mongo-family/2-authoring/contract-psl
@@ -5895,19 +5895,19 @@ importers:
         version: link:../../../../../../packages/2-mongo-family/2-authoring/contract-ts
       '@internal/postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/3-extensions/postgres
+        version: link:../../../../../../packages/3-targets/postgres/9-facade
       '@internal/sql-contract':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/2-sql/1-core/contract
+        version: link:../../../../../../packages/2-sql-family/1-core/contract
       '@internal/sql-contract-ts':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/2-sql/2-authoring/contract-ts
+        version: link:../../../../../../packages/2-sql-family/2-authoring/contract-ts
       '@internal/target-mongo':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/3-mongo-target/1-mongo-target
+        version: link:../../../../../../packages/3-targets/mongo/1-target
       '@internal/target-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/3-targets/3-targets/postgres
+        version: link:../../../../../../packages/3-targets/postgres/1-target
       '@internal/utils':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../../../../packages/1-framework/0-foundation/utils
@@ -5940,19 +5940,19 @@ importers:
     dependencies:
       '@internal/adapter-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/3-targets/6-adapters/postgres
+        version: link:../../../../../../packages/3-targets/postgres/2-adapter
       '@internal/cli':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../../../../packages/1-framework/3-tooling/cli
       '@internal/family-sql':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/2-sql/9-family
+        version: link:../../../../../../packages/2-sql-family/9-family
       '@internal/sql-contract-ts':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/2-sql/2-authoring/contract-ts
+        version: link:../../../../../../packages/2-sql-family/2-authoring/contract-ts
       '@internal/target-postgres':
         specifier: workspace:8.0.0-rc.19
-        version: link:../../../../../../packages/3-targets/3-targets/postgres
+        version: link:../../../../../../packages/3-targets/postgres/1-target
       '@prisma/orm-extension-pgvector':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../../../../packages/9-public/@prisma/orm-extension-pgvector

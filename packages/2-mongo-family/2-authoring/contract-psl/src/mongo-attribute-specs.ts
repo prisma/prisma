@@ -34,6 +34,7 @@ import {
   record,
   referencedFieldRef,
   str,
+  writtenScalar,
 } from '@internal/psl-parser';
 import type { FieldAttributeAst, ModelAttributeAst, PslSources } from '@internal/psl-parser/syntax';
 
@@ -226,8 +227,9 @@ export function baseModelSpec() {
       },
       {
         key: 'value',
-        type: str(),
-        documentation: 'The discriminator value identifying this variant.',
+        type: writtenScalar(str()),
+        documentation:
+          "The discriminator value identifying this variant, a value of the discriminator field's type.",
       },
     ],
   });
