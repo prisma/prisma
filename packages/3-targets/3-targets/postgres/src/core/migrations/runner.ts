@@ -22,6 +22,7 @@ import {
   unconvertedFieldOf,
 } from '@internal/family-sql/control';
 import type {
+  BlockingObject,
   FailedTypeChange,
   MigrationRunnerResult,
 } from '@internal/framework-components/control';
@@ -51,7 +52,7 @@ import { qualifyTableName } from './planner-sql-checks';
 import type { PostgresPlanTargetDetails } from './planner-target-details';
 import {
   SCHEMA_OBJECTS_SQL,
-  type SchemaObject,
+  schemaBlockingObjects,
   schemaContentsOf,
   schemaObjectsSummary,
 } from './schema-contents';
@@ -392,16 +393,14 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
         const objects =
           blockedSchema === undefined
             ? undefined
-            : await driver.query<SchemaObject>(SCHEMA_OBJECTS_SQL, [blockedSchema]);
+            : await driver.query<BlockingObject>(SCHEMA_OBJECTS_SQL, [blockedSchema]);
         if (blockedSchema !== undefined && objects !== undefined && objects.rows.length > 0) {
-          return runnerFailure(code, schemaObjectsSummary(blockedSchema, objects.rows), {
+          const blockingObjects = schemaBlockingObjects(blockedSchema, objects.rows);
+          return runnerFailure(code, schemaObjectsSummary(blockedSchema, blockingObjects), {
             why: failed,
             meta: {
               failedCheck: { operationId: operation.id, phase, description: step.description },
-              blockingObjects: objects.rows.map(({ kind, name }) => ({
-                kind,
-                name: `${blockedSchema}.${name}`,
-              })),
+              blockingObjects,
             },
           });
         }

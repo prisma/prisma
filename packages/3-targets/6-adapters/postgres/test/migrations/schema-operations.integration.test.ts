@@ -258,7 +258,7 @@ describe('Postgres schema operations', { concurrent: false }, () => {
     expect(result.ok).toBe(false);
     expect(result.assertNotOk()).toMatchObject({
       code: 'MIGRATION.PRECHECK_FAILED',
-      message: 'Schema "billing" still holds table "billing"."invoice", so it cannot be dropped.',
+      message: 'Schema "billing" still holds table billing.invoice, so it cannot be dropped.',
       why: 'Operation dropSchema.billing failed during precheck: ensure schema "billing" holds no tables, views, sequences, types or functions',
       meta: { blockingObjects: [{ kind: 'table', name: 'billing.invoice' }] },
     });
@@ -298,7 +298,7 @@ describe('Postgres schema operations', { concurrent: false }, () => {
     const result = await runnerResult([await new DropSchemaCall('billing').toOp(controlAdapter)]);
 
     expect(result.assertNotOk().message).toBe(
-      'Schema "billing" still holds function "billing"."answer", sequence "billing"."counter" and view "billing"."recent", so it cannot be dropped.',
+      'Schema "billing" still holds function billing.answer, sequence billing.counter and view billing.recent, so it cannot be dropped.',
     );
   });
 
