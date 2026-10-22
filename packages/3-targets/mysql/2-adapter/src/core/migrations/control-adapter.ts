@@ -19,13 +19,10 @@ import {
   buildControlTableBootstrapQueries,
   buildSignMarkerBootstrapQueries,
 } from '@internal/target-mysql/contract-free';
-import {
-  LEDGER_TABLE_NAME,
-  MARKER_TABLE_NAME,
-  withMarkerLock,
-} from '@internal/target-mysql/control-tables';
+import { LEDGER_TABLE_NAME, MARKER_TABLE_NAME } from '@internal/target-mysql/control-tables';
 import type { MysqlCreateTable, MysqlDdlNode, MysqlDdlVisitor } from '@internal/target-mysql/ddl';
 import { mysqlQueryNotYetSupported } from '@internal/target-mysql/errors';
+import { withMarkerLock } from '@internal/target-mysql/marker-lock';
 import { structuredError } from '@internal/utils/structured-error';
 import { renderMysqlColumnDefault, renderMysqlCreateTable } from './ddl-renderer';
 import { declaredIndexes } from './declared-indexes';

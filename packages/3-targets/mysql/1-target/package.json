@@ -61,6 +61,7 @@
     "./ddl": "./dist/ddl.mjs",
     "./default-normalizer": "./dist/default-normalizer.mjs",
     "./errors": "./dist/errors.mjs",
+    "./marker-lock": "./dist/marker-lock.mjs",
     "./migration": "./dist/migration.mjs",
     "./pack": "./dist/pack.mjs",
     "./sql-utils": "./dist/sql-utils.mjs",

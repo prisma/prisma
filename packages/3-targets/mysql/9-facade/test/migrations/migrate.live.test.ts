@@ -9,7 +9,7 @@ import type { MigrationPlan, MigrationRunnerResult } from '@internal/framework-c
 import { buildFabricatedMigrationEdge } from '@internal/migration-tools/aggregate';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import mysql, { type MysqlPlanTargetDetails } from '@internal/target-mysql/control';
-import { acquireMarkerLock, releaseMarkerLock } from '@internal/target-mysql/control-tables';
+import { acquireMarkerLock, releaseMarkerLock } from '@internal/target-mysql/marker-lock';
 import { timeouts } from '@repo/test-utils';
 import { withMysqlDatabase } from '@repo/test-utils/mysql-database';
 import { describe, expect, it } from 'vitest';

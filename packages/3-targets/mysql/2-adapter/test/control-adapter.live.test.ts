@@ -1,5 +1,5 @@
 import mysqlDriver, { type MysqlControlDriver } from '@internal/driver-mysql/control';
-import { acquireMarkerLock, releaseMarkerLock } from '@internal/target-mysql/control-tables';
+import { acquireMarkerLock, releaseMarkerLock } from '@internal/target-mysql/marker-lock';
 import { timeouts } from '@repo/test-utils';
 import { withMysqlDatabase } from '@repo/test-utils/mysql-database';
 import { describe, expect, it } from 'vitest';

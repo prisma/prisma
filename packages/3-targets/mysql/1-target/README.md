@@ -30,5 +30,6 @@ Declares what MySQL is to the SQL family: its data types, codecs and PSL scalars
 - `./migration`: `MysqlMigration` as `Migration`, the migration calls, the planner and the runner
 - `./codecs`, `./codec-ids`, `./codec-types`, `./codec-descriptor`: codecs and their registry
 - `./data-types`: data types and their PSL authoring entries
-- `./contract-free`, `./ddl`, `./control-tables`: control-table DDL and the marker lock
+- `./contract-free`, `./ddl`, `./control-tables`: control-table DDL and the control table names
+- `./marker-lock`: the marker lock, `withMarkerLock`, which the runner and the control adapter take and release
 - `./default-normalizer`, `./sql-utils`, `./errors`: helpers the adapter shares
