@@ -74,13 +74,7 @@ export type ArgTypeFromDescriptor<
         : never;
 
 /**
- * Recursive rewrite (not a mapped tuple type) so a descriptor marked
- * `optional: true` gets an optional tuple slot (`(Type | undefined)?`), letting callers
- * omit it and every optional arg after it, or pass `undefined` to skip it and still give a later one. Required args must precede
- * optional args in a descriptor's `args` list — TypeScript rejects an
- * optional tuple element followed by a required one, and the runtime
- * (`validateAuthoringHelperArguments`'s `minimumArgs`) already treats an
- * optional-before-required arg as effectively required.
+ * Recursive rewrite (not a mapped tuple type) so a descriptor marked `optional: true` gets an optional tuple slot (`(Type | undefined)?`), letting callers omit it and every optional arg after it, or pass `undefined` to skip it and still give a later one. Required args must precede optional args in a descriptor's `args` list — TypeScript rejects an optional tuple element followed by a required one, and the runtime (`validateAuthoringHelperArguments`'s `minimumArgs`) already treats an optional-before-required arg as effectively required.
  */
 export type TupleFromArgumentDescriptors<
   Args extends readonly AuthoringArgumentDescriptor[],

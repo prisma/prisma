@@ -11,7 +11,11 @@ import type {
   StorageHashBase,
 } from '@internal/contract/types';
 import type { ExtractParameterizedOutputTypesFromPack } from '@internal/contract-authoring';
-import type { ExtensionPackRef, TargetPackRef } from '@internal/framework-components/components';
+import type {
+  ExtensionPackRef,
+  GeneratorPhase,
+  TargetPackRef,
+} from '@internal/framework-components/components';
 import type { StorageType } from '@internal/framework-components/ir';
 import type { IndexTypeRegistration } from '@internal/sql-contract/index-types';
 import type {
@@ -412,7 +416,7 @@ type FieldDefaultPresenceOf<FieldState> = Present<
 type FieldHasColumnDefault<FieldState> =
   FieldDefaultPresenceOf<FieldState> extends { readonly column: true } ? true : false;
 
-type FieldGeneratesIn<FieldState, Phase extends 'onCreate' | 'onUpdate'> =
+type FieldGeneratesIn<FieldState, Phase extends GeneratorPhase> =
   FieldDefaultPresenceOf<FieldState> extends { readonly [K in Phase]: true } ? true : false;
 
 type GeneratedPhaseKeys<FieldState> = (FieldGeneratesIn<FieldState, 'onCreate'> extends true

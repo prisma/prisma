@@ -10,6 +10,7 @@ import type {
   AuthoringFieldPresetDescriptor,
 } from '@internal/framework-components/authoring';
 import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
+import type { GeneratorPhase } from '@internal/framework-components/components';
 import type { ScalarFieldBuilder, ScalarFieldState, WithCodecInput } from './contract-dsl';
 
 export type UnionToIntersection<U> = (U extends unknown ? (value: U) => void : never) extends (
@@ -58,7 +59,7 @@ type PresetTypeParams<
     : Record<never, never>
   : Record<never, never>;
 
-type PresetPhaseTemplate<Defaults, Phase extends 'onCreate' | 'onUpdate'> = Defaults extends {
+type PresetPhaseTemplate<Defaults, Phase extends GeneratorPhase> = Defaults extends {
   readonly [K in Phase]: infer Template;
 }
   ? Template
@@ -80,7 +81,7 @@ type PresetPhasePresent<Template, Args extends readonly unknown[]> = Template ex
 type PresetGeneratesIn<
   Descriptor extends AuthoringFieldPresetDescriptor,
   Args extends readonly unknown[],
-  Phase extends 'onCreate' | 'onUpdate',
+  Phase extends GeneratorPhase,
 > = Descriptor['output'] extends { readonly executionDefaults: infer Defaults }
   ? PresetPhasePresent<PresetPhaseTemplate<Defaults, Phase>, Args>
   : false;
