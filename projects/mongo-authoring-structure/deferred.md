@@ -16,3 +16,4 @@ Work found while shaping that this project does not do. Each item is filed in Li
 - **Mongo `contract infer` and `contract print`.** No ticket yet.
 - **PSL features Mongo's builder already supports:** `@@owner` and embedded models (TML-2250), `@@control`, collection options.
 - **TML-3659.** Rename `authoring.dataTypes`. Order relative to slice 1 does not matter for correctness; whichever lands second renames Mongo's entries too.
+- **`escapePslString` has two homes.** After slice 1's move, `@internal/sql-contract/data-type-support` holds only `escapePslString`, and an unexported copy lives in `packages/1-framework/2-authoring/psl-printer/src/serialize-print-document.ts`. Give it one home both families can import, and rename or remove the SQL entry point. No ticket yet.

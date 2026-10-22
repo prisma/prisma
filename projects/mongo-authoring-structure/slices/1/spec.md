@@ -56,7 +56,7 @@ SQL's `@@base` reading stops going through `lowerDataTypeDefault`, so SQL `@@bas
 
 ### The legacy readers
 
-The Prisma 6 reader (`packages/2-mongo-family/2-authoring/contract-prisma6/src/interpreter.ts`) and the Prisma 7 reader (`packages/2-sql/2-authoring/contract-prisma7/src/interpreter.ts`) build enum blocks with `values` only. They set `writtenValues` to `{ kind: 'string', text: <member name> }` for each member, and their enum fixtures do not change.
+The Prisma 6 reader (`packages/2-mongo-family/2-authoring/contract-prisma6/src/interpreter.ts`) and the Prisma 7 reader (`packages/2-sql/2-authoring/contract-prisma7/src/interpreter.ts`) build enum blocks with `values` only. They set `writtenValues` to `{ kind: 'string', text: <stored text> }` for each member, where the stored text is the member's `@map` value or else its name. Their enum fixtures do not change.
 
 ### Mongo values
 
