@@ -116,7 +116,7 @@ See `architecture.config.json` for the complete mapping and `pnpm lint:deps` to 
 
 ## Check requests and proposals against the vision
 
-Before you judge a feature request or pull request, or propose a feature or solution, read the [project intent](docs/design/00-purpose/project-intent.md) and follow [How to use this page](docs/design/00-purpose/vision.md#how-to-use-this-page). The core does not take a feature that can be built as an extension or in user space.
+Before you judge a feature request or pull request, or propose a feature or solution, read the [project intent](docs/design/00-purpose/project-intent.md), the [vision](docs/design/00-purpose/vision.md#how-to-use-this-page) and the [steering list](docs/architecture%20docs/ADR-INDEX.md#steering-list).
 
 ## Subsystem Deep Dives
 
