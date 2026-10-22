@@ -16,6 +16,7 @@ import { describe, expect, it } from 'vitest';
 import { defineContract } from '../../src/exports/contract-builder';
 import { exampleTablesDdl, frameworkComponents, loadExampleContract } from '../example-contract';
 import {
+  contractRepointedToAdmin,
   contractWithNickname,
   contractWithoutForeignKey,
   contractWithUnindexedForeignKey,
@@ -300,6 +301,39 @@ describe('migrating a MySQL database', { timeout: timeouts.databaseOperation }, 
           ],
           verified: true,
           postIndexes: ['PRIMARY'],
+        });
+      }),
+    );
+  });
+
+  it('re-points a relation on a column with no index, and the database then verifies strictly', async (test) => {
+    await withMysqlDatabase(test, ({ url }) =>
+      withDriver(url, async (driver, family) => {
+        const planned: { id: string; sql: string[] }[][] = [];
+        for (const contract of [contractWithUnindexedForeignKey(), contractRepointedToAdmin()]) {
+          const plan = await planAgainst(driver, family, 'app', contract);
+          planned.push(await operationSql(plan));
+          const applied = await apply(family, driver, [['app', plan, contract]]);
+          if (!applied.ok) throw applied.failure;
+        }
+        const repointed = contractRepointedToAdmin();
+        const verified = family.verifySchema({
+          contract: repointed,
+          schema: await family.introspect({ driver, contract: repointed }),
+          strict: true,
+          frameworkComponents,
+        });
+        expect({
+          order: planned[1]?.map(({ id }) => id),
+          verified: verified.ok,
+        }).toEqual({
+          order: [
+            'dropForeignKey.Post.Post_authorId_fkey',
+            'dropIndex.Post.Post_authorId_fkey',
+            'table.Admin',
+            'foreignKey.Post.Post_authorId_fkey',
+          ],
+          verified: true,
         });
       }),
     );

@@ -155,6 +155,37 @@ describe('MysqlMigrationPlanner', () => {
     ]);
   });
 
+  it("re-points a relation on a column with no index, dropping InnoDB's index before the new key is added", async () => {
+    const post = (target: string) => ({
+      columns: { id: int, authorId: int },
+      primaryKey: { columns: ['id'] },
+      foreignKeys: [
+        {
+          ...fk('Post_authorId_fkey'),
+          target: { namespaceId: '__unbound__', tableName: target, columns: ['id'] },
+        },
+      ],
+    });
+    const from = contractOf('from', { User: user, Admin: user, Post: post('User') });
+    const to = contractOf('to', { User: user, Admin: user, Post: post('Admin') });
+    expect(await sqlOf(plan(from, to))).toEqual([
+      {
+        id: 'dropForeignKey.Post.Post_authorId_fkey',
+        sql: ['ALTER TABLE `Post` DROP FOREIGN KEY `Post_authorId_fkey`'],
+      },
+      {
+        id: 'dropIndex.Post.Post_authorId_fkey',
+        sql: ['DROP INDEX `Post_authorId_fkey` ON `Post`'],
+      },
+      {
+        id: 'foreignKey.Post.Post_authorId_fkey',
+        sql: [
+          'ALTER TABLE `Post` ADD CONSTRAINT `Post_authorId_fkey` FOREIGN KEY (`authorId`) REFERENCES `Admin` (`id`)',
+        ],
+      },
+    ]);
+  });
+
   it('refuses to drop the index a kept foreign key uses, and drops it when another index takes over', async () => {
     const post = (indexes: readonly unknown[]) => ({
       columns: { id: int, authorId: int },

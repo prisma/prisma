@@ -294,7 +294,7 @@ export function mapIssueToCalls(issue: SchemaDiffIssue): Mapped {
 }
 
 /**
- * The order calls run in: foreign keys are dropped before the tables, columns and indexes they use, and added after every table, column and index they need exists.
+ * The order calls run in: foreign keys are dropped before the tables, columns and indexes they use, and added after every table, column and index they need exists. The index InnoDB made for a dropped key is dropped right after the key, before any key is added, so a new key on the same columns makes its own.
  */
 const CALL_ORDER: readonly MysqlOpFactoryCall['factoryName'][] = [
   'dropForeignKey',
@@ -517,16 +517,21 @@ function droppedIndexes(
   });
 }
 
-/** A dropped index that a foreign key of the destination uses, when no index the destination keeps can take over: MySQL refuses that drop. */
+/**
+ * A dropped index that one of `protectedKeys` uses, when no index the destination keeps can take over: MySQL refuses that drop.
+ */
 function conflictForIndexAKeyUses(
   dropped: DroppedIndex,
   expected: SqlSchemaIR,
+  protectedKeys: (tableName: string, fk: SqlForeignKeyIR) => boolean,
 ): SqlPlannerConflict | undefined {
   const tableName = dropped.call.tableName;
   const table = expected.tables[tableName];
   const key = table?.foreignKeys.find(
     (fk) =>
-      servesKey(dropped.columns, fk.columns) && !isKeyServed(table, fk.columns, dropped.indexName),
+      protectedKeys(tableName, fk) &&
+      servesKey(dropped.columns, fk.columns) &&
+      !isKeyServed(table, fk.columns, dropped.indexName),
   );
   if (key === undefined) return undefined;
   return {
@@ -559,17 +564,31 @@ export function planIssues(input: {
       else conflicts.push(conflictForDisallowedCall(call, allowed));
     }
   }
-  const innoDbIndexes = innoDbIndexDrops(calls, input.expected, input.actual);
-  for (const dropped of [...droppedIndexes(calls, input.actual), ...innoDbIndexes]) {
-    const conflict = conflictForIndexAKeyUses(dropped, input.expected);
+  const droppedKeys = new Set(
+    calls.flatMap((call) =>
+      call instanceof DropForeignKeyCall ? [`${call.tableName}.${call.constraintName}`] : [],
+    ),
+  );
+  const isKeptKey = (tableName: string, fk: SqlForeignKeyIR) =>
+    !droppedKeys.has(`${tableName}.${foreignKeySpecOf(fk, tableName).name}`);
+  for (const dropped of droppedIndexes(calls, input.actual)) {
+    const conflict = conflictForIndexAKeyUses(dropped, input.expected, () => true);
     if (conflict !== undefined) conflicts.push(conflict);
   }
-  for (const { call } of innoDbIndexes) {
-    if (allowed.includes(call.operationClass)) calls.push(call);
-    else conflicts.push(conflictForDisallowedCall(call, allowed));
+  const innoDbIndexes = innoDbIndexDrops(calls, input.expected, input.actual);
+  for (const dropped of innoDbIndexes) {
+    const conflict = conflictForIndexAKeyUses(dropped, input.expected, isKeptKey);
+    if (conflict !== undefined) conflicts.push(conflict);
+    if (!allowed.includes(dropped.call.operationClass)) {
+      conflicts.push(conflictForDisallowedCall(dropped.call, allowed));
+    }
   }
   if (conflicts.length > 0) return notOk(conflicts);
-  return ok(
-    CALL_ORDER.flatMap((factoryName) => calls.filter((call) => call.factoryName === factoryName)),
-  );
+  const inOrder = (factoryName: MysqlOpFactoryCall['factoryName']) =>
+    calls.filter((call) => call.factoryName === factoryName);
+  return ok([
+    ...inOrder('dropForeignKey'),
+    ...innoDbIndexes.map(({ call }) => call),
+    ...CALL_ORDER.filter((factoryName) => factoryName !== 'dropForeignKey').flatMap(inOrder),
+  ]);
 }

@@ -99,3 +99,38 @@ export function contractWithoutForeignKey() {
     },
   }));
 }
+
+/** The example contract with an `Admin` model, and `Post.authorId` pointing at `Admin` with no index declared. */
+export function contractRepointedToAdmin() {
+  const Role = role();
+  return defineContract({ enums: { Role } }, ({ field, model, type }) => {
+    const User = model('User', {
+      fields: {
+        id: field.column(type.Int()).id().default(autoincrement()),
+        email: field.column(type.String()).unique(),
+        role: field.namedType(Role),
+      },
+    });
+    const Admin = model('Admin', {
+      fields: { id: field.column(type.Int()).id().default(autoincrement()) },
+    });
+    const Post = model('Post', {
+      fields: {
+        id: field.column(type.Int()).id().default(autoincrement()),
+        title: field.column(type.String()),
+        authorId: field.column(type.Int()),
+      },
+    });
+    return {
+      models: {
+        User,
+        Admin: Admin.relations({ posts: rel.hasMany(Post, { by: 'authorId' }) }),
+        Post: Post.relations({ author: rel.belongsTo(Admin, { from: 'authorId', to: 'id' }) }).sql(
+          ({ cols, constraints }) => ({
+            foreignKeys: [constraints.foreignKey(cols.authorId, Admin.refs.id, { index: false })],
+          }),
+        ),
+      },
+    };
+  });
+}
