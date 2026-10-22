@@ -18,8 +18,12 @@ describe('isRecognisedPnpmResolutionError', () => {
     ).toBe(true);
   });
 
-  it('recognises a version the registry does not have', () => {
-    expect(isRecognisedPnpmResolutionError('ERR_PNPM_NO_MATCHING_VERSION')).toBe(true);
+  it('ignores a version the registry does not have', () => {
+    expect(
+      isRecognisedPnpmResolutionError(
+        ' ERR_PNPM_NO_MATCHING_VERSION  No matching version found for is-number@^999.0.0 while fetching it from the registry',
+      ),
+    ).toBe(false);
   });
 
   it('recognises a code whatever the wording around it', () => {
@@ -41,7 +45,7 @@ describe('isRecognisedPnpmResolutionError', () => {
   });
 
   it('ignores a code that only starts with a recognised one', () => {
-    expect(isRecognisedPnpmResolutionError('ERR_PNPM_NO_MATCHING_VERSION_INSIDE_RANGE')).toBe(
+    expect(isRecognisedPnpmResolutionError('ERR_PNPM_WORKSPACE_PKG_NOT_FOUND_ELSEWHERE')).toBe(
       false,
     );
   });
