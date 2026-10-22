@@ -11,7 +11,7 @@ An `enum` declared in the contract is stored in a column with a `CHECK` constrai
 
 ## Context
 
-Users ask Prisma 8 to create native Postgres enum types from the contract and to manage every change to them in migrations: rename, remove and reorder values. [Why Prisma 8 only supports externally-managed native Postgres enums](../../reference/postgres-native-enums.md) explains the limit: appending a value is the one change Postgres allows without rewriting the table; removing or reordering a value needs a new type and a full-table rewrite; and a value added in a transaction cannot be used in the same transaction, which breaks the atomic migrations Prisma 8 relies on.
+[Why Prisma 8 only supports externally-managed native Postgres enums](../../reference/postgres-native-enums.md) explains the limit: appending a value is the one change Postgres allows without rewriting the table; removing or reordering a value needs a new type and a full-table rewrite; and a value added in a transaction cannot be used in the same transaction, which breaks the atomic migrations Prisma 8 relies on.
 
 ## Consequences
 

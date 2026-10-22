@@ -12,7 +12,7 @@ Never. The runtime exposes one middleware interface that observes every activity
 
 ## Context
 
-Users ask to subscribe to client events with `$on('query')`, `$on('info')`, `$on('warn')` or `$on('error')`, as Prisma 7 allows ([scoreboard](../../../scorecard/19-observability-and-lifecycle.md)). Will Madden decided on 2026-10-22: `$on` will never be in Prisma 8; "middleware already covers this." Will Madden, 2026-10-22: "we will not build in the core features which can be built in extension/user space."
+Prisma 7 subscribes to client events with `$on('query')`, `$on('info')`, `$on('warn')` or `$on('error')` ([scoreboard](../../../scorecard/19-observability-and-lifecycle.md)). Will Madden decided on 2026-10-22: `$on` will never be in Prisma 8: "$on - never, middleware already covers tis". Will Madden, 2026-10-22: "we will not build in the core features which can be built in extension/user space."
 
 ## Consequences
 
