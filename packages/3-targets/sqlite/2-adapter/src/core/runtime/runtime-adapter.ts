@@ -10,8 +10,8 @@ import {
   assembleSqliteCodecRegistry,
   sqliteCodecDescriptorRegistry,
 } from '@internal/target-sqlite/codecs';
-import { createSqliteAdapterWithCodecRegistry, sqliteRawCodecInferer } from './adapter';
-import { sqliteAdapterDescriptorMeta } from './descriptor-meta';
+import { createSqliteAdapterWithCodecRegistry, sqliteRawCodecInferer } from '../adapter';
+import { sqliteAdapterDescriptorMeta } from '../descriptor-meta';
 
 export type SqliteRuntimeAdapterInstance = RuntimeAdapterInstance<'sql', 'sqlite'> &
   ReturnType<typeof createSqliteAdapterWithCodecRegistry>;

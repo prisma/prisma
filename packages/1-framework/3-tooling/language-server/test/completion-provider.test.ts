@@ -1832,7 +1832,7 @@ namespace app {
   it('uses actual adapter default-function signatures through the SQL factory', async () => {
     const stack = await actualSqlStack();
     const defaults = await importFromPackageRoot<ActualPostgresDefaultsModule>(
-      '../../../3-targets/postgres/2-adapter/src/core/control-mutation-defaults.ts',
+      '../../../3-targets/postgres/2-adapter/src/core/migrations/control-mutation-defaults.ts',
     );
     const options = {
       controlMutationDefaults: {

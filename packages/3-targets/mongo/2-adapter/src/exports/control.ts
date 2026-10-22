@@ -16,14 +16,14 @@ import {
   MONGO_STRING_CODEC_ID,
 } from '@internal/target-mongo/codec-ids';
 
-export { MongoInspectionExecutor } from '../core/inspection-executor';
 export { introspectSchema } from '../core/introspect-schema';
-export { MongoControlAdapterImpl } from '../core/mongo-control-adapter';
-export { extractDb, isMongoControlDriver } from '../core/mongo-control-driver';
+export { MongoInspectionExecutor } from '../core/migrations/inspection-executor';
+export { MongoControlAdapterImpl } from '../core/migrations/mongo-control-adapter';
+export { extractDb, isMongoControlDriver } from '../core/migrations/mongo-control-driver';
 export { createMongoAdapter } from '../mongo-adapter';
 export type { MongoControlDriverInstance };
 
-import { MongoControlAdapterImpl } from '../core/mongo-control-adapter';
+import { MongoControlAdapterImpl } from '../core/migrations/mongo-control-adapter';
 
 /**
  * The base PSL scalars as zero-arg type constructors in the unified authoring channel. Each names a codec; the collection validator reads the BSON types from the data type the codec represents, not from the constructor.

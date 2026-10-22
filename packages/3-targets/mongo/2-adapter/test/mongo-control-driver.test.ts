@@ -1,6 +1,6 @@
 import type { ControlDriverInstance } from '@internal/framework-components/control';
 import { describe, expect, it } from 'vitest';
-import { isMongoControlDriver } from '../src/core/mongo-control-driver';
+import { isMongoControlDriver } from '../src/core/migrations/mongo-control-driver';
 
 const taggedClose = { familyId: 'mongo', targetId: 'mongo', close: async () => {} } as const;
 

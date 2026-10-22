@@ -1,7 +1,7 @@
 import type { ControlDriverInstance } from '@internal/framework-components/control';
 import type { MongoControlDriverInstance } from '@internal/mongo-lowering';
 import type { Db } from 'mongodb';
-import { describeReceivedValue, mongoAdapterError } from './errors';
+import { describeReceivedValue, mongoAdapterError } from '../errors';
 
 export function isMongoControlDriver(
   driver: ControlDriverInstance<'mongo', string>,

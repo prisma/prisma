@@ -11,11 +11,11 @@ import { relationalNodeEntityKind, relationalNodeGranularity } from '@internal/s
 import { sqliteTargetDescriptorMeta } from '../descriptor-meta';
 import { sqliteError } from '../errors';
 import { SqliteContractSerializer } from '../sqlite-contract-serializer';
-import { SqliteSchemaVerifier } from '../sqlite-schema-verifier';
 import { diffSqliteSchema, sqliteContractToSchema } from './diff-database-schema';
 import { createSqliteMigrationPlanner } from './planner';
 import type { SqlitePlanTargetDetails } from './planner-target-details';
 import { createSqliteMigrationRunner } from './runner';
+import { SqliteSchemaVerifier } from './sqlite-schema-verifier';
 
 function isSqlContract(contract: Contract | null): contract is Contract<SqlStorage> | null {
   return contract === null || contract.storage instanceof SqlStorage;

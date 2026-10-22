@@ -1,1 +1,1 @@
-export { default, SqliteControlDriver } from '../core/control-driver';
+export { default, SqliteControlDriver } from '../core/migrations/control-driver';

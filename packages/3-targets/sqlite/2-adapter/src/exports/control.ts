@@ -2,8 +2,8 @@ import type { SqlControlAdapterDescriptor } from '@internal/family-sql/control';
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import { assembleSqliteCodecRegistry } from '@internal/target-sqlite/codecs';
 import { SqliteControlAdapter } from '../core/control-adapter';
-import { createSqliteDefaultFunctionRegistry } from '../core/control-mutation-defaults';
 import { sqliteAdapterDescriptorMeta } from '../core/descriptor-meta';
+import { createSqliteDefaultFunctionRegistry } from '../core/migrations/control-mutation-defaults';
 
 const sqliteAdapterDescriptor: SqlControlAdapterDescriptor<'sqlite'> = {
   ...sqliteAdapterDescriptorMeta,

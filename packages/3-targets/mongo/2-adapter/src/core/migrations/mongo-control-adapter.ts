@@ -21,16 +21,16 @@ import type { MongoSchemaIR } from '@internal/mongo-schema-ir';
 import type { MongoValue } from '@internal/mongo-value';
 import { blindCast } from '@internal/utils/casts';
 import type { Document } from 'mongodb';
-import { createMongoAdapter } from '../mongo-adapter';
-import { describeReceivedValue, mongoAdapterError } from './errors';
-import { MongoInspectionExecutor } from './inspection-executor';
-import { introspectSchema } from './introspect-schema';
+import { createMongoAdapter } from '../../mongo-adapter';
+import { describeReceivedValue, mongoAdapterError } from '../errors';
+import { introspectSchema } from '../introspect-schema';
 import {
   MONGO_LEDGER_COLLECTION,
   MONGO_MARKER_COLLECTION,
   parseMongoMarkerDocSafely,
-} from './marker-ledger';
-import { MARKER_LEDGER_COLLECTION, type MarkerLedgerDocShape } from './marker-ledger-collection';
+} from '../marker-ledger';
+import { MARKER_LEDGER_COLLECTION, type MarkerLedgerDocShape } from '../marker-ledger-collection';
+import { MongoInspectionExecutor } from './inspection-executor';
 import { extractDb, isMongoControlDriver, requireMongoControlDriver } from './mongo-control-driver';
 
 /**

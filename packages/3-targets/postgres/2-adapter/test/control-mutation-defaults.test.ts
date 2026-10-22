@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createPostgresDefaultFunctionRegistry } from '../src/core/control-mutation-defaults';
+import { createPostgresDefaultFunctionRegistry } from '../src/core/migrations/control-mutation-defaults';
 import runtimeAdapterDescriptor from '../src/exports/runtime';
 
 const stubSpan = {

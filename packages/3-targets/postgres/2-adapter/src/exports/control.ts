@@ -3,8 +3,8 @@ import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import { assemblePostgresCodecRegistry } from '@internal/target-postgres/codecs';
 import { escapeLiteral, qualifyName, quoteIdentifier } from '@internal/target-postgres/sql-utils';
 import { PostgresControlAdapter } from '../core/control-adapter';
-import { createPostgresDefaultFunctionRegistry } from '../core/control-mutation-defaults';
 import { postgresAdapterDescriptorMeta } from '../core/descriptor-meta';
+import { createPostgresDefaultFunctionRegistry } from '../core/migrations/control-mutation-defaults';
 
 const postgresAdapterDescriptor: SqlControlAdapterDescriptor<'postgres'> = {
   ...postgresAdapterDescriptorMeta,

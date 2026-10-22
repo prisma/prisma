@@ -7,9 +7,9 @@ import type {
 } from '@internal/framework-components/control';
 import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import { basename } from 'pathe';
-import { normalizeSqliteError } from '../normalize-error';
-import { sqliteParams } from '../sqlite-params';
-import { sqliteDriverDescriptorMeta } from './descriptor-meta';
+import { normalizeSqliteError } from '../../normalize-error';
+import { sqliteParams } from '../../sqlite-params';
+import { sqliteDriverDescriptorMeta } from '../descriptor-meta';
 
 export class SqliteControlDriver implements SqlControlDriverInstance<'sqlite'> {
   readonly familyId = 'sql' as const;

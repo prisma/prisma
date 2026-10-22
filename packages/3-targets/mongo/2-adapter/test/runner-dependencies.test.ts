@@ -3,8 +3,8 @@ import { ListCollectionsCommand } from '@internal/mongo-query-ast/control';
 import { MongoSchemaIR } from '@internal/mongo-schema-ir';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it, vi } from 'vitest';
-import { MongoControlAdapterImpl } from '../src/core/mongo-control-adapter';
-import { extractDb } from '../src/core/mongo-control-driver';
+import { MongoControlAdapterImpl } from '../src/core/migrations/mongo-control-adapter';
+import { extractDb } from '../src/core/migrations/mongo-control-driver';
 
 function fakeControlDriver(db: unknown = { __id: 'fake-db' }) {
   return {

@@ -19,7 +19,7 @@ import {
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { MongoInspectionExecutor } from '../src/core/inspection-executor';
+import { MongoInspectionExecutor } from '../src/core/migrations/inspection-executor';
 import { MongoControlAdapterImpl } from '../src/exports/control';
 
 let replSet: MongoMemoryReplSet;
