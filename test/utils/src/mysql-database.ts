@@ -25,7 +25,7 @@ function uniqueDatabaseName(): string {
 }
 
 /**
- * Runs `fn` with a database of its own on the MySQL server `MYSQL_URL` names, and drops the database afterwards. Skips the test when `MYSQL_URL` is not set. Each call creates a database with a unique name, so tests that share a server, as CI shards do, never see each other's tables.
+ * Runs `fn` with a database of its own on the MySQL server `MYSQL_URL` names, and drops the database afterwards. Skips the test when `MYSQL_URL` is not set. Each call creates a database with a unique name, so tests that share a server, as CI shards do, never see each other's tables. When the test fails, a failure to drop the database does not replace the test's error.
  */
 export async function withMysqlDatabase<T>(
   test: SkippableTest,
@@ -42,10 +42,16 @@ export async function withMysqlDatabase<T>(
   const admin = await createConnection({ uri: serverUrl });
   try {
     await admin.query(`CREATE DATABASE \`${name}\``);
+    let testFailed = false;
     try {
       return await fn({ name, url: url.toString() });
+    } catch (error) {
+      testFailed = true;
+      throw error;
     } finally {
-      await admin.query(`DROP DATABASE IF EXISTS \`${name}\``);
+      await admin.query(`DROP DATABASE IF EXISTS \`${name}\``).catch((dropError: unknown) => {
+        if (!testFailed) throw dropError;
+      });
     }
   } finally {
     await admin.end();
