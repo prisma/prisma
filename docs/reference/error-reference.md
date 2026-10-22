@@ -1922,7 +1922,7 @@ A PostGIS geometry constructor (`point`, `polygon`, `bboxPolygon`, …) received
 
 ### SUPABASE.CONFIG_INVALID
 
-The Supabase extension's runtime configuration is invalid: missing or contradictory connection/auth settings (formerly the `SupabaseConfigError` class, removed at 0.17). Payload: `reason`.
+The Supabase extension's runtime configuration is invalid: missing or contradictory connection/auth settings, or a `pg` option that is not a `pg.Pool` (formerly the `SupabaseConfigError` class, removed at 0.17). Payload: `reason`.
 
 ### SUPABASE.JWT_INVALID
 
