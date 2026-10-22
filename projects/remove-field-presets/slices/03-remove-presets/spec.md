@@ -1,6 +1,6 @@
 # Slice 3: field presets removed
 
-_Parent project: `projects/remove-field-presets/`. Linear: TML-3607. One PR. Design: ADR 275. Builds on slice 1 (PR #30780, merged) and slice 2 (PR #30819, in the merge queue). Every path below was checked on `main` at 95eeb76182 and on the slice 2 branch `tml-3607-alias-expansion` at c7e748f693; line numbers are from the slice 2 tip. The build starts from a fresh `main` after slice 2 merges. Outcome: no field preset exists in either family or either authoring surface; every preset call is refused in PSL with the exact rewrite, and its replacement stores the same contract; the `option`, `number` and `object` argument kinds, the `select` template node and the text parsers only they use are gone; the language server has no preset branches._
+_Parent project: `projects/remove-field-presets/`. Linear: TML-3607. One PR. Design: ADR 275. Builds on slice 1 (PR #30780) and slice 2 (PR #30819), both merged. Every path, line number and count below was checked on `main` at 521816af37, which includes slice 2 and release 8.0.0-rc.19. Outcome: no field preset exists in either family or either authoring surface; every preset call is refused in PSL with the exact rewrite, and its replacement stores the same contract; the `option`, `number` and `object` argument kinds, the `select` template node and the text parsers only they use are gone; the language server has no preset branches._
 
 ## Conflicts with the design
 
@@ -77,7 +77,7 @@ fields: {
 
 ## Today
 
-On the slice 2 tip:
+On `main` at 521816af37:
 
 - **Descriptor kind.** `AuthoringFieldPresetDescriptor` and `AuthoringFieldPresetOutput` (`packages/1-framework/1-core/framework-components/src/shared/framework-authoring.ts:165-178`), `AuthoringFieldNamespace` (`:205-207`), `isAuthoringFieldPresetDescriptor` (`:769-773`), the `fieldPreset` case of the descriptor guard (`:825-829`), `instantiateAuthoringFieldPreset` (`:2094-2123`) and the templates only presets resolve: `AuthoringColumnDefaultTemplate`, `AuthoringExecutionDefaultsTemplate` and their resolvers (`:146-163`, `:1870-1943`).
 - **`AuthoringContributions.field`.** Merged by the control stack (`control/control-stack.ts:274-276`), checked for codecs (`:390-410`) and data types (`shared/data-type-support.ts:126`), merged with `type` by the PSL binder (`psl-parser/src/binder.ts:335`), and walked into TypeScript helpers by `createFieldHelpersFromNamespace` (`packages/1-framework/2-authoring/contract/src/field-preset-helpers.ts`). `AuthoringNamespaceKey` includes `'field'` (`contract/src/composed-helpers-scaffolding.ts:32`). `fieldPresetSpellings` and `getAuthoringFieldPreset` (`shared/field-preset-resolution.ts`) have no production caller.
@@ -237,15 +237,17 @@ Why: ADR 259's fragments used presets because the facade's `field` had them. `fi
 
 ### D9. Parity is proved before removal and kept after it
 
-Step 1 adds `test/integration/test/authoring/parity/preset-replacements/`: one table with a row per D2 row and target (preset form and replacement form, in PSL and TypeScript), a test that emits both through the real packs and asserts equal contracts and equal storage and execution hashes, and a committed `expected/<target>.contract.json` holding the replacement forms' contract. On the pre-removal code the test passes, which is the proof. When the presets go (step 5), the preset column leaves the table, and the test asserts the replacement forms still emit the committed contracts, so the proof stays in the suite.
+Step 1 adds `test/integration/test/authoring/preset-replacements/`, beside `parity/` and not inside it, because `listAuthoringParityFixtureCases` (`authoring-parity-test-helpers.ts:40`) reads every directory under `parity/` as a fixture case that must hold `schema.prisma`, `contract.ts`, `packs.ts` and `expected.contract.json`. It has one table with a row per D2 row and target (preset form and replacement form, in PSL and TypeScript), a test that emits both through the real packs and asserts equal contracts and equal storage and execution hashes, and a committed `expected/<target>.contract.json` holding the replacement forms' contract, one model per row. `UPDATE_PRESET_REPLACEMENTS_EXPECTED=1` rewrites the files. On the pre-removal code the test passes, which is the proof. When the presets go (step 5), the preset column leaves the table, and the test asserts the replacement forms still emit the committed contracts, so the proof stays in the suite.
 
 Why a characterization test first: the claim "same contract" cannot be red before the change, because both forms work today. Its value is that it runs while both forms exist, and that the committed contracts keep holding the replacements to it afterwards.
 
-### D10. Pending upgrade fragments are corrected
+### D10. The new fragment corrects released guidance that presets keep working
 
-These unreleased fragments show presets or say they keep working, and ship in the same release: `default-generators-to-on-create/app` (the TypeScript paragraph: `field.generated` "keeps working for now"), `data-typed-constructor-arguments/{app,extension}` (a field preset's precision; "A field preset keeps its `number`, `option` and `object` arguments"; `instantiatePslFieldPreset`, `temporalCodecPresetWithPrecision`), `now-generators-for-every-date-time-type/app` (the string presets), `remove-nocheck/{app,extension}` and `typescript-contract-include-row-types/app` (code samples with `field.text()` and `field.id.uuidv4String()`). Each is rewritten to the replacement forms or says the preset is removed and links the new fragment. Their scripts and detections do not change, except that a detection naming a removed symbol stays only if the fragment still tells the reader what to do about it.
+The fragments that showed presets or said they keep working shipped in 8.0.0-rc.19 and are now history under `upgrade-instructions/releases/8.0.0-rc.18-to-8.0.0-rc.19/sources/`: `default-generators-to-on-create/app` (`field.generated` "keeps working for now"), `data-typed-constructor-arguments/{app,extension}` ("A field preset keeps its `number`, `option` and `object` arguments"; `instantiatePslFieldPreset`, `temporalCodecPresetWithPrecision`), `now-generators-for-every-date-time-type/app` (the string presets), `remove-nocheck/{app,extension}` and `typescript-contract-include-row-types/app` (code samples with presets). Released fragments are not edited. The only pending fragment, slice 2's `expand-type-aliases`, does not mention presets.
 
-Why: the release guide is assembled from pending fragments. Without this it would tell users to write what this slice refuses, as slice 1 found with `contract-print-generated-values`.
+So the new `remove-field-presets` fragment says, in its opening paragraph, that the 8.0.0-rc.19 guidance that `field.generated` keeps working and that a field preset keeps its `number`, `option` and `object` arguments no longer holds, and that its tables replace it.
+
+Why: a user upgrading across 8.0.0-rc.19 reads both guides; the later one must say which earlier advice it overrides.
 
 ## Requirements covered
 
@@ -265,21 +267,21 @@ Why: the release guide is assembled from pending fragments. Without this it woul
 
 ## Preset uses to move
 
-Counted on the slice 2 tip by matching preset call patterns in every tracked file, leaving out released history (`skills/prisma-8/upgrading/`, `upgrade-instructions/releases/`, `docs/releases/`, `CHANGELOG.md`) and project folders:
+Counted on `main` at 521816af37 by matching preset call patterns in every tracked file, leaving out released history (`skills/prisma-8/upgrading/`, `upgrade-instructions/releases/`, `docs/releases/`, `CHANGELOG.md`) and project folders:
 
 | Kind | Code files | Calls | Doc files | Calls |
 |---|---|---|---|---|
-| PSL preset calls in `.prisma` files | 11 | 45 | | |
+| PSL preset calls in `.prisma` files | 11 | 47 | | |
 | PSL preset calls in TypeScript test strings and templates | about 20 | about 57 | | |
-| TypeScript scalar presets (`field.text()`, `field.uuidString()`, …) | 30 | 144 | 17 | 77 |
-| TypeScript `field.id.*` | 46 | 107 | 11 | 36 |
-| TypeScript `field.temporal.*` | 29 | 111 | 10 | 41 |
-| TypeScript `field.generated(...)` | 14 | 28 | 9 | 19 |
+| TypeScript scalar presets (`field.text()`, `field.uuidString()`, …), with Mongo's `field.json()` | 34 | 148 | 14 | 68 |
+| TypeScript `field.id.*` | 47 | 116 | 10 | 34 |
+| TypeScript `field.temporal.*` | 30 | 112 | 10 | 41 |
+| TypeScript `field.generated(...)` | 14 | 28 | 7 | 17 |
 | Query fragments (ADR 259), included above | 5 | 11 | 3 | 18 |
 
-The `.prisma` files are the Postgres and Mongo temporal fixtures (`test/integration/test/temporal-defaults/_fixture*/`, `test/integration/test/mongo/temporal-presets/_fixture/`), six `test/integration/test/ports/prisma/functional/*/_fixture/contract.prisma` and `packages/2-mongo-family/2-authoring/contract-prisma6/test/parity/prisma8.prisma`. The CLI's `prisma init` templates (`packages/1-framework/3-tooling/cli/src/commands/init/templates/code-templates.ts`) write presets into new projects and move with them. The fragment uses are `examples/prisma-8-demo/src/orm-client/fragments.ts`, `examples/prisma-8-demo/test/fixtures/declaration-library.ts`, `examples/prisma-8-demo/test/fragments.types.test-d.ts`, `packages/3-extensions/sql-orm-client/test/declared-fields-fragment.test.ts` and `test/integration/test/namespaced-accessors-fragments.integration.test.ts`, with ADR 259, `packages/3-extensions/sql-orm-client/README.md` and `skills/prisma-8/references/queries-postgres.md`. Mongo's built-in `field.json()` is not a preset and was left out of the count.
+The `.prisma` files are the Postgres and Mongo temporal fixtures (`test/integration/test/temporal-defaults/_fixture*/`, `test/integration/test/mongo/temporal-presets/_fixture/`), six `test/integration/test/ports/prisma/functional/*/_fixture/contract.prisma` and `packages/2-mongo-family/2-authoring/contract-prisma6/test/parity/prisma8.prisma`. The CLI's `prisma init` templates (`packages/1-framework/3-tooling/cli/src/commands/init/templates/code-templates.ts`) write presets into new projects and move with them. The fragment uses are `examples/prisma-8-demo/src/orm-client/fragments.ts`, `examples/prisma-8-demo/test/fixtures/declaration-library.ts`, `examples/prisma-8-demo/test/fragments.types.test-d.ts`, `packages/3-extensions/sql-orm-client/test/declared-fields-fragment.test.ts` and `test/integration/test/namespaced-accessors-fragments.integration.test.ts`, with ADR 259, `packages/3-extensions/sql-orm-client/README.md` and `skills/prisma-8/references/queries-postgres.md`. Mongo's built-in `field.json()` is not a preset; the scalar row's pattern also matches it, so that row counts a few calls that do not move.
 
-Test files that test only preset machinery are deleted, not moved: `framework-components/test/temporal-presets.test{,-d}.ts`, `contract/test/field-preset-helpers.test.ts`, `psl-parser/test/authoring-arguments.test.ts` (its value-argument cases live in `authoring-arguments.value.test.ts`), `mongo contract-psl/test/interpreter.temporal-presets.test.ts`, `sql contract-psl/test/interpreter.defaults.presets.test.ts` and `interpreter.defaults.preset-misuse.test.ts`, `contract-ts/test/authoring-uuid-native-presets.test.ts`, `nanoid-preset-mirror.ts`, `temporal-preset-mirror.ts`, `family-sql/test/authoring-field-presets.test.ts`, `temporal-codec-presets.test{,-d}.ts`, `postgres facade test/contract-builder/field-presets.test.ts`, the Postgres and SQLite targets' `test/authoring-field-presets.test.ts`. Their cases that pin a stored contract move into D9's table first. `test/integration/test/mongo/temporal-presets/` is renamed `temporal-generators/`; its preset `_fixture` becomes the attribute form, and the alias and attribute twins it was compared with stay.
+Test files that test only preset machinery are deleted, not moved: `framework-components/test/temporal-presets.test{,-d}.ts`, `contract/test/field-preset-helpers.test.ts`, `psl-parser/test/authoring-arguments.test.ts` (its value-argument cases live in `authoring-arguments.value.test.ts`), `mongo contract-psl/test/interpreter.temporal-presets.test.ts`, `sql contract-psl/test/interpreter.defaults.presets.test.ts` and `interpreter.defaults.preset-misuse.test.ts`, `contract-ts/test/authoring-uuid-native-presets.test.ts`, `nanoid-preset-mirror.ts`, `temporal-preset-mirror.ts`, `packages/2-sql/9-family/test/authoring-field-presets.test.ts`, `temporal-codec-presets.test{,-d}.ts`, `postgres facade test/contract-builder/field-presets.test.ts`, the Postgres and SQLite targets' `test/authoring-field-presets.test.ts`. Their cases that pin a stored contract move into D9's table first. `test/integration/test/mongo/temporal-presets/` is renamed `temporal-generators/`; its preset `_fixture` becomes the attribute form, and the alias and attribute twins it was compared with stay.
 
 ## Code changes by package
 
@@ -310,7 +312,8 @@ Framework, `packages/1-framework/1-core/framework-components/test/`:
 - `control-stack.test.ts`: a component with `authoring.field` is refused with D1's exact message; a type constructor with a `number` argument is still refused by `assembleDataTypeSupport`.
 - `framework-components.authoring.test.ts`: the `select`, `option`, `object` and `number` cases are deleted; a type-level test (`.test-d.ts`) shows `{ kind: 'option', values: [] }` is not an `AuthoringArgumentDescriptor` and a template `{ kind: 'arg', index: 0, path: ['x'] }` is not an `AuthoringArgRef` (negative type tests with `@ts-expect-error`).
 
-C1, `packages/2-sql/9-family/test/` and the SQLite target:
+C1, in `packages/2-sql/9-family/test/pack.authoring.test.ts`, `test/integration/test/authoring/sql-target-type-constructors.test.ts` (every SQL target contributes `sql.Char`), and the facades' `test/sql-char.test.ts` (`packages/3-extensions/sqlite/`, `packages/3-extensions/postgres/`), beside the SQLite `sql-string-length.test.ts`; the target packages cannot import the PSL interpreter or the TypeScript builder:
+- on Postgres, `sql.Char(36)` stores what `Char(36)` stores, in PSL and TypeScript;
 - `sql.Char(36)` on SQLite PSL stores `{ codecId: 'sql/char@1', dataType: 'sqlite/character', typeParams: { length: 36 } }` (red: unresolved today); `type.sql.Char(36)` in SQLite TypeScript emits the same column; `sql.Char(36) @id @onCreate(uuid())` on SQLite stores `uuidv4` on create.
 
 PSL refusals, red until D3:
@@ -329,7 +332,7 @@ Language server, `packages/1-framework/3-tooling/language-server/test/`: `comple
 R26, `packages/2-sql/2-authoring/contract-psl/test/` and `contract-ts/test/`: `Timestamp` with no arguments stores no `typeParams`; a field with no generator attribute and no alias has no `execution` entry, in PSL and TypeScript.
 
 Integration, one file at a time with `pnpm test <file>` inside `test/integration`:
-- D9's `test/integration/test/authoring/parity/preset-replacements/preset-replacements.test.ts`.
+- D9's `test/integration/test/authoring/preset-replacements/preset-replacements.test.ts`.
 - `test/integration/test/temporal-defaults/` and `test/integration/test/mongo/temporal-generators/`: the rewritten fixtures emit the contracts already committed under `generated/` (`pnpm fixtures:check`).
 - `test/integration/test/contract-parity/` (Postgres and SQLite TypeScript fixtures), `test/integration/test/sql-orm-client/fixtures/`, `test/integration/test/sql-builder/fixtures/`, the six `ports/prisma/functional/*` fixtures: rewritten, contracts unchanged.
 - `test/integration/test/psl-print/every-postgres-contract-roundtrip.integration.test.ts`: unchanged and green.
@@ -354,7 +357,7 @@ New fragment `upgrade-instructions/pending/remove-field-presets/`. Its prose hol
 - `preset-builders-removed`: `instantiateAuthoringFieldPreset`, `instantiatePslFieldPreset`, `reportPresetNotCalled`, `temporalAuthoringPresets`, `temporalCodecPreset`, `temporalCodecPresetWithPrecision`, `temporalStringAuthoringPresets`, `PresetStorageTemplate`, `createFieldHelpersFromNamespace` and the `@internal/ids` spec helpers. Detection by those names.
 - `preset-diagnostics-removed`: `PSL_PRESET_*` codes are removed; two are renamed (D6). Detection `PSL_PRESET_`.
 
-D10 corrects the pending fragments that show presets. Run `pnpm check:upgrade-coverage --mode pr --prev origin/main --head HEAD`.
+D10 adds the opening paragraph that overrides the 8.0.0-rc.19 guidance. Run `pnpm check:upgrade-coverage --mode pr --prev origin/main --head HEAD`.
 
 ## Docs to update
 
@@ -407,4 +410,4 @@ Inherits `drive/calibration/dod.md`. Slice-specific:
 | 3 | PSL: the refusal tests (red), then D3's tables and describers for SQL and Mongo; remove PSL preset resolution in `psl-parser`, SQL and Mongo PSL; D6's Mongo renames; D8. | PSL refuses every preset with its rewrite. |
 | 4 | TypeScript: the type tests (red), then remove `buildFieldPreset`, `createFieldPresetHelper`, the preset types and collision checks in both builders, `field.generated`, the `@internal/ids` spec helpers; D6's messages. | No preset helper on either TypeScript surface. |
 | 5 | Framework and packs: the D1 refusal test (red), then remove the `fieldPreset` kind, `AuthoringContributions.field`, the preset maps in the family and three targets, `timestamp-now-generator.ts`, the temporal preset builders with the file rename, D5's argument kinds, `select`, `path` and `default`, the PSL text parsers, `field-preset-resolution.ts`, `field-preset-helpers.ts`; the language server branches. D9's table loses its preset column. | No preset machinery left; the acceptance greps pass. |
-| 6 | Upgrade fragments (new, with the full table, and D10's corrections), error reference, ADR amendments, READMEs, skills references, `plan.md`; CI-equivalent checks; `/drive-code-review` and its fixes. | Branch ready for review. |
+| 6 | Upgrade fragment (new, with the full table and D10's opening paragraph), error reference, ADR amendments, READMEs, skills references, `plan.md`; CI-equivalent checks; `/drive-code-review` and its fixes. | Branch ready for review. |
