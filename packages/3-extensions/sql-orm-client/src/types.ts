@@ -1632,7 +1632,7 @@ type FieldHasExecutionCreateDefault<
   NsId extends string = never,
 > = HasExecutionCreateDefault<
   TContract,
-  NsId,
+  ResolvedNsId<TContract, ModelName, NsId>,
   ModelTableName<TContract, ModelName, NsId>,
   FieldColumnName<TContract, ModelName, FieldName, NsId>
 >;
@@ -1648,7 +1648,7 @@ type IsOptionalCreateField<
       ? IsOptionalCreateColumn<
           TContract,
           Column,
-          NsId,
+          ResolvedNsId<TContract, ModelName, NsId>,
           ModelTableName<TContract, ModelName, NsId>,
           FieldColumnName<TContract, ModelName, FieldName, NsId>
         >
