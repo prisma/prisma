@@ -1,6 +1,5 @@
 import type { NamespacedEnums } from '@internal/contract/enum-accessor';
 import type { Contract } from '@internal/contract/types';
-import { createRawLane, sql as sqlBuilder } from '@internal/sql-builder/runtime';
 import type { Db, RawLane } from '@internal/sql-builder/types';
 import type { ExtractCodecTypes, SqlStorage } from '@internal/sql-contract/types';
 import {
@@ -11,7 +10,7 @@ import {
   type PrepareMember,
   prepareQuery,
 } from '@internal/sql-orm-client';
-import type { CodecTypesBase, RawCodecInferer } from '@internal/sql-relational-core/expression';
+import type { CodecTypesBase } from '@internal/sql-relational-core/expression';
 import type { Preparable, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type { RuntimeScope } from '@internal/sql-relational-core/types';
 import type {
@@ -67,13 +66,14 @@ export interface PostgresQueryMembersOptions<
 > {
   readonly context: ExecutionContext<TContract>;
   readonly collections: TCollections | undefined;
-  readonly rawCodecInferer: RawCodecInferer;
+  readonly sql: Db<TContract>;
+  readonly raw: RawLane<TContract>;
   readonly toSql: ToSqlMember['toSql'];
   readonly prepareRuntime: () => Runtime;
 }
 
 /**
- * Builds the query members of a Postgres transaction over `txCtx`, so every statement they run goes through the transaction. `query` and `execute` are the transaction's own. Preparing sends nothing to the database, so `prepare` uses `prepareRuntime`; the prepared statement runs on the queryable it is given.
+ * Builds the query members of a Postgres transaction over `txCtx`, so every statement they run goes through the transaction. `query` and `execute` are the transaction's own; `sql`, `raw` and `toSql` are the client's. Preparing sends nothing to the database, so `prepare` uses `prepareRuntime`; the prepared statement runs on the queryable it is given.
  */
 export function buildPostgresQueryMembers<
   TContract extends Contract<SqlStorage>,
@@ -82,11 +82,11 @@ export function buildPostgresQueryMembers<
   options: PostgresQueryMembersOptions<TContract, TCollections>,
   txCtx: TransactionContext,
 ): Omit<PostgresQueryMembers<TContract, TCollections>, keyof RuntimeScope> {
-  const { context, collections, rawCodecInferer, toSql, prepareRuntime } = options;
+  const { context, collections, sql, raw, toSql, prepareRuntime } = options;
   return {
     toSql,
-    sql: sqlBuilder<TContract>({ context, rawCodecInferer }),
-    raw: createRawLane<TContract>({ context, rawCodecInferer }),
+    sql,
+    raw,
     orm: ormBuilder<TContract, TCollections>({
       runtime: {
         query(plan) {
@@ -133,7 +133,8 @@ export interface PostgresRuntimeBoundMembersOptions<
 > {
   readonly context: ExecutionContext<TContract>;
   readonly collections: TCollections | undefined;
-  readonly rawCodecInferer: RawCodecInferer;
+  readonly sql: Db<TContract>;
+  readonly raw: RawLane<TContract>;
   readonly enums: NamespacedEnums<TContract>;
   readonly nativeEnums: NamespacedNativeEnums<TContract>;
   readonly toSql: ToSqlMember['toSql'];
@@ -151,7 +152,8 @@ export function buildPostgresRuntimeBoundMembers<
   const {
     context,
     collections,
-    rawCodecInferer,
+    sql,
+    raw,
     enums,
     nativeEnums,
     toSql,
@@ -212,7 +214,7 @@ export function buildPostgresRuntimeBoundMembers<
           txCtx,
           {
             ...buildPostgresQueryMembers(
-              { context, collections, rawCodecInferer, toSql, prepareRuntime: getRuntimeForWork },
+              { context, collections, sql, raw, toSql, prepareRuntime: getRuntimeForWork },
               txCtx,
             ),
             enums,

@@ -222,7 +222,8 @@ export default function postgres<
   const runtimeBoundMembers = buildPostgresRuntimeBoundMembers<TContract, TCollections>({
     context,
     collections: options.collections,
-    rawCodecInferer: stack.adapter.rawCodecInferer,
+    sql,
+    raw: rawSqlTag,
     enums,
     nativeEnums,
     toSql,
