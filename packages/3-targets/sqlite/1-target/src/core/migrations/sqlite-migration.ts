@@ -292,12 +292,15 @@ export abstract class SqliteMigration<
     readonly column: string;
     readonly from: string | number;
     readonly to: string | number;
+    /** The column's codec: it writes `from` and `to` as the database stores them. */
+    readonly codecRef?: CodecRef;
   }): Promise<Op> {
     return new ReplaceStoredValueCall(
       options.table,
       options.column,
       options.from,
       options.to,
+      this.storedValueCodec('replaceStoredValue', options.codecRef),
     ).toOp();
   }
 

@@ -185,7 +185,7 @@ describe('TypeScriptRenderableSqliteMigration round-trip', () => {
       new ReplaceStoredValueCall('user', 'email', "it's", 'it"s'),
       new RemoveStoredValueCall('user', 'rank', 3),
       new ReplaceStoredValueCall('user', 'rank', '7', '8', {
-        codecRef: { codecId: 'sqlite/bigint@1' },
+        codecRef: { codecId: 'sqlite/integer@1' },
         codecs: createSqliteBuiltinCodecLookup(),
       }),
     ];
