@@ -34,7 +34,7 @@ describe.each(['app', 'extension'])('the %s mongo-definition-names detection', (
       ),
       matches(
         'mongo-contract-input',
-        "import {\n  type ContractDefinition,\n  defineContract,\n} from '@prisma/orm-family-mongo/contract-ts/contract-builder';",
+        "import {\n  type ContractDefinition,\n  defineContract,\n} from '@prisma/orm-family-mongo/contract-ts/contract-builder';\ntype Input = ContractDefinition<Family, Target>;",
       ),
       matches(
         'mongo-contract-input',
@@ -45,6 +45,15 @@ describe.each(['app', 'extension'])('the %s mongo-definition-names detection', (
         "import type { ContractInput } from '@prisma/orm-mongo/contract-builder';",
       ),
     ]).toEqual([true, true, true, false]);
+  });
+
+  it('does not match the plain-data ContractDefinition, which takes no type parameters', () => {
+    expect(
+      matches(
+        'mongo-contract-input',
+        "import type { ContractDefinition } from '@prisma/orm-family-mongo/contract-ts/contract-builder';\nconst definition: ContractDefinition = build();",
+      ),
+    ).toBe(false);
   });
 
   it('does not match SQL ContractDefinition', () => {

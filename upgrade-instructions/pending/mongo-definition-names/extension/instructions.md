@@ -2,11 +2,12 @@
 changes:
   - id: mongo-contract-input
     summary: |
-      The MongoDB type for the object you pass to `defineContract`, `ContractDefinition`, is renamed `ContractInput`. It is the same type under SQL's name for it. Import `ContractInput` from `@prisma/orm-mongo/contract-builder` or `@prisma/orm-family-mongo/contract-ts/contract-builder` where you imported `ContractDefinition`.
+      The MongoDB type for the object you pass to `defineContract`, `ContractDefinition`, is renamed `ContractInput`. It is the same type under SQL's name for it. `ContractDefinition` now names the plain-data definition every MongoDB contract source builds from, which takes no type parameters, so the detection flags an import from `@prisma/orm-family-mongo/contract-ts` only where the file writes `ContractDefinition<...>`. Import `ContractInput` from `@prisma/orm-mongo/contract-builder` or `@prisma/orm-family-mongo/contract-ts/contract-builder` where you imported `ContractDefinition`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - '(?:import|export)\s+(?:type\s+)?\{[^}]*\bContractDefinition\b[^}]*\}\s*from\s*[\x27"]@prisma/orm-(?:mongo/contract-builder|family-mongo/contract-ts(?:/contract-builder)?)[\x27"]'
+        - '(?:import|export)\s+(?:type\s+)?\{[^}]*\bContractDefinition\b[^}]*\}\s*from\s*[\x27"]@prisma/orm-mongo/contract-builder[\x27"]'
+        - '(?:import|export)\s+(?:type\s+)?\{[^}]*\bContractDefinition\b[^}]*\}\s*from\s*[\x27"]@prisma/orm-family-mongo/contract-ts(?:/contract-builder)?[\x27"][\s\S]*\bContractDefinition<'
   - id: mongo-model-definition-removed
     summary: |
       `MongoModelDefinition` is removed. It was another name for `ContractModel<MongoModelStorage>`. Write `ContractModel<MongoModelStorage>` instead, with `ContractModel` from `@prisma/orm-framework/contract/types` and `MongoModelStorage` from `@prisma/orm-family-mongo/contract`.
