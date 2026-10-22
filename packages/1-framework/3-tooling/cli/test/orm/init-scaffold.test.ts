@@ -277,7 +277,9 @@ describe('init scaffold', () => {
         // write fail: `writeFileSync` raises EISDIR whatever the permissions.
         mkdirSync(join(projectDir, '.env.example'), { recursive: true });
 
-        const run = await harness().run(scaffoldArgv(...SKIP_ALL), { cwd: projectDir });
+        const run = await harness().run([...scaffoldArgv(...SKIP_ALL), '--json'], {
+          cwd: projectDir,
+        });
 
         expect(run.exitCode).toBe(2);
         expect(envelopeOf(run)).toMatchObject({
@@ -311,7 +313,7 @@ describe('init scaffold', () => {
         );
         installFakeProjectLocalCli(projectDir);
 
-        const run = await harness().run(scaffoldArgv(), { cwd: projectDir });
+        const run = await harness().run([...scaffoldArgv(), '--json'], { cwd: projectDir });
 
         expect(envelopeOf(run)).toMatchObject({ ok: true });
         expect(run.exitCode).toBe(0);
@@ -360,9 +362,12 @@ describe('init scaffold', () => {
     it(
       'errors under --strict-probe when the probe cannot run',
       async () => {
-        const run = await harness().run(scaffoldArgv('--probe-db', '--strict-probe', ...SKIP_ALL), {
-          cwd: projectDir,
-        });
+        const run = await harness().run(
+          [...scaffoldArgv('--probe-db', '--strict-probe', ...SKIP_ALL), '--json'],
+          {
+            cwd: projectDir,
+          },
+        );
 
         expect(run.exitCode).toBe(2);
         expect(envelopeOf(run)).toMatchObject({
