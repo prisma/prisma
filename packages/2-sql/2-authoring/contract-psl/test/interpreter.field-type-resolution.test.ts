@@ -27,14 +27,7 @@ const authoringTypes = {
 
 const authoringContributions = {
   entityTypes: {},
-  field: {
-    db: {
-      uuid: {
-        kind: 'fieldPreset',
-        output: { codecId: 'pg/uuid@1', id: true },
-      },
-    },
-  },
+  field: {},
   pslBlockDescriptors: {},
   modelAttributes: {},
   type: authoringTypes,
@@ -77,23 +70,6 @@ describe('SQL field types from the binder resolution', () => {
         'body'
       ],
     ).toMatchObject({ codecId: 'pg/text@1', dataType: 'pg/text' });
-  });
-
-  it('resolves a preset and a type constructor that share a namespace', () => {
-    const result = interpretSqlContract(
-      `model Doc {
-  id   db.uuid()
-  body db.Text
-}
-`,
-      baseInput,
-    );
-
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    const table = unboundTables(sqlStorageFromSuccessfulSqlInterpretation(result.value))['Doc'];
-    expect(table?.columns['id']).toMatchObject({ codecId: 'pg/uuid@1', dataType: 'pg/uuid' });
-    expect(table?.primaryKey).toEqual({ columns: ['id'] });
   });
 
   it('refuses a call to a type alias', () => {

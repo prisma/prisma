@@ -158,15 +158,6 @@ const authoringContributions = assembleAuthoringContributions([
           },
         },
       },
-      field: {
-        pg: {
-          Serial: {
-            kind: 'fieldPreset',
-            args: [{ name: 'start', kind: 'number' }],
-            output: { codecId: 'fixture/serial' },
-          },
-        },
-      },
     },
   },
 ]);
@@ -533,14 +524,6 @@ describe('providePslHover', () => {
     expect(result).toEqual({
       contents: { kind: 'markdown', value: '```prisma\npg.Flag\n```' },
       range: { start: { line: 1, character: 10 }, end: { line: 1, character: 14 } },
-    });
-  });
-
-  it('shows a field-preset contributed type as the fence only, with its arg labels', () => {
-    const result = hover('model Counter {\n  value pg.Ser|ial(1)\n}');
-    expect(result).toEqual({
-      contents: { kind: 'markdown', value: '```prisma\npg.Serial(start: number)\n```' },
-      range: { start: { line: 1, character: 11 }, end: { line: 1, character: 17 } },
     });
   });
 

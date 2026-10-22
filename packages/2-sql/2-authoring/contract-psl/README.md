@@ -26,7 +26,7 @@ This keeps core/CLI source-agnostic while giving PSL-first SQL users a one-line 
 - Consume target-bound scalar descriptors, shared authoring contributions, and mutation-default registries assembled by composition layers
 - Compose provider flow for SQL PSL-first config (`read -> parse -> interpret`) without local registry assembly
 - Preserve parser diagnostics and add interpreter diagnostics with stable codes
-- Describe unresolved type names for the binder: `describeUnresolvedSqlType` (exported from `./diagnostics`), which the SQL family contributes as its `pslDiagnostics.describeUnresolvedType`, names a field typed `Unsupported("x")` as no Prisma 8 type and says to write the column's type with a type constructor, or as ``Raw(sql`x`)`` when no type constructor names it, or, if `x` comes from a database extension that has a Prisma 8 pack, to add the pack to `extensions` in `prisma.config.ts`; any other unknown name keeps the binder's `Cannot find type` message
+- Describe unresolved type names for the binder: `describeUnresolvedSqlType` (exported from `./diagnostics`), which the SQL family contributes as its `pslDiagnostics.describeUnresolvedType`, gives the rewrite of a call to a removed field preset (see Removed field presets), names a field typed `Unsupported("x")` as no Prisma 8 type and says to write the column's type with a type constructor, or as ``Raw(sql`x`)`` when no type constructor names it, or, if `x` comes from a database extension that has a Prisma 8 pack, to add the pack to `extensions` in `prisma.config.ts`; any other unknown name keeps the binder's `Cannot find type` message
 - Return `notOk` with structured diagnostics for unsupported constructs
 - Keep interpretation deterministic for equivalent AST inputs
 
@@ -83,11 +83,10 @@ Supported timestamp authoring surface:
 - The Prisma-flavored `@updatedAt` attribute is not supported; references produce `PSL_UNSUPPORTED_FIELD_ATTRIBUTE` with the hint `Use @onCreate(now()) @onUpdate(now()), or type the field temporal.UpdatedAt.` The hint is left out when the field already writes `@onUpdate`.
 - `@createdAt` is not supported as a PSL alias.
 
-Field-preset calls in type position:
+Removed field presets:
 
-- A field may use a registered field-preset call as its type (`createdAt temporal.createdAt()`). A preset fixes the field's codec, and whatever else it declares: an id, a database default, or generators.
-- `?`, `@default(...)`, `@onCreate(...)` and `@onUpdate(...)` combine with any preset unless they contradict what it fixes. `?` is refused only on a preset that fixes the id (`PSL_PRESET_NOT_OPTIONAL`). `@default(...)` is refused when the preset sets its own database default, and `@onCreate(...)` or `@onUpdate(...)` when the preset already generates a value for that phase (`PSL_PRESET_AND_DEFAULT_CONFLICT`). `@id` is refused unless the preset contributes id semantics (`PSL_PRESET_AND_ID_CONFLICT`), and list use is refused (`PSL_PRESET_NOT_LIST`).
-- Examples that read: `updatedAt temporal.timestampString(3, onCreate: now, onUpdate: now) @default(now())` has the database default `now()` and the preset's generators; `editedAt temporal.timestampString(3, onCreate: now, onUpdate: now)?` is nullable with the same generators; `token uuidString()?` is a nullable `char(36)`; ``meta json() @default(json`{}`)`` is a `jsonb` column with that default.
+- A call to a field preset Prisma 8 removed, such as `createdAt temporal.createdAt()` or `id id.uuidv4String()`, is refused with `PSL_UNRESOLVED_REFERENCE`, and the message gives the exact rewrite: `id.uuidv4String() was a field preset, and Prisma 8 removed field presets. Write sql.Char(36) @id @onCreate(uuid()).` The table of removed presets is `src/removed-field-presets.ts`; a row applies only on a target whose rewrite type stores the preset's codec.
+
 Generated values:
 
 - `@default(...)` sets a database default only: a literal, a tagged literal, `now()` or `autoincrement()`. A function the client generates in `@default`, such as `@default(uuid())`, is refused with `PSL_GENERATOR_IN_DEFAULT`, whose message names the `@onCreate` form.
@@ -122,7 +121,7 @@ Integer representation authoring surface:
 - `BigInt` keeps the lossless `bigint` codec (`pg/int8@1` / `sqlite/bigint@1`): values read and write as JS `bigint`, and 64-bit integers travel through database-produced JSON as decimal text.
 - Bare `BigIntNumber` (PostgreSQL and SQLite) opts an `int8`/INTEGER column into JS `number` reads and writes. Both directions throw structured errors outside ±(2^53 − 1) or on non-integral values: `RUNTIME.ENCODE_FAILED` on write, `RUNTIME.DECODE_FAILED` on read.
 - Bare `UnboundedInt` (PostgreSQL only) reads and writes an unconstrained `numeric` as a JS `bigint`, exact at any magnitude; decode rejects non-integral values. SQLite declares no equivalent because it has no lossless unbounded integer storage.
-- These are ordinary target-scoped types rather than field presets, so ordinary scalar modifiers apply subject to the target's capabilities.
+- These are ordinary target-scoped types, so ordinary scalar modifiers apply subject to the target's capabilities.
 - Selection guidance, canonical JSON forms, the safe-range soundness argument, and aggregate behavior: [Integer representation types](../../../../docs/reference/integer-representation-types.md).
 
 `@@index` parameter surface:

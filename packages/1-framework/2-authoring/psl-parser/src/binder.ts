@@ -35,7 +35,6 @@ import {
   type ContributedTypeNamespace,
   type ContributedTypeSymbol,
   contributedTypeScope,
-  mergeContributedTypes,
 } from './contributed-type-scope';
 import { diagnosticSource } from './diagnostic';
 import {
@@ -332,7 +331,7 @@ export function createBinder(input: CreateBinderInput): BinderResult {
   return bind({
     sources,
     symbolTable,
-    contributedTypes: mergeContributedTypes(contributions.field, contributions.type),
+    contributedTypes: contributions.type,
     attributeSpecs: assembleAttributeSpecs(contributions),
     pslBlockDescriptors: contributions.pslBlockDescriptors,
     defaultFunctionRegistry: context.controlMutationDefaults.defaultFunctionRegistry,

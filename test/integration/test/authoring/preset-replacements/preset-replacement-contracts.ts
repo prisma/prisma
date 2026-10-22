@@ -2,6 +2,7 @@ import mongoAdapter from '@internal/adapter-mongo/control';
 import postgresAdapter from '@internal/adapter-postgres/control';
 import sqliteAdapter from '@internal/adapter-sqlite/control';
 import { enrichContract } from '@internal/cli/control-api';
+import type { ContractSourceDiagnostics } from '@internal/config/config-types';
 import type { SerializeContract } from '@internal/contract/hashing';
 import type { Contract } from '@internal/contract/types';
 import { mongoFamilyDescriptor } from '@internal/family-mongo/control';
@@ -52,15 +53,10 @@ const mongoStack = createControlStack({
   adapter: mongoAdapter,
 });
 
-function succeeded<T>(
-  result:
-    | { readonly ok: true; readonly value: T }
-    | { readonly ok: false; readonly failure: unknown },
-): T {
-  if (!result.ok)
-    throw new Error(`the schema did not interpret: ${JSON.stringify(result.failure)}`);
-  return result.value;
-}
+/** What interpreting a PSL schema gives: the contract, or the diagnostics that refused it. */
+export type Interpreted =
+  | { readonly ok: true; readonly value: Contract }
+  | { readonly ok: false; readonly failure: ContractSourceDiagnostics };
 
 function pslField<Helpers, Field>(row: PresetReplacementRow<Helpers, Field>, form: Form): string {
   const type = row.psl[form];
@@ -87,64 +83,58 @@ export function mongoSchema(rows: readonly MongoRow[], form: Form): string {
   return rows.map((row) => mongoModel(row, form)).join('\n');
 }
 
-export function interpretPostgres(schema: string): Contract {
+export function interpretPostgres(schema: string): Interpreted {
   const bound = bindPslSchema(schema, {
     sourceId: 'preset-replacements.postgres.prisma',
     context: contractSourceContextFromControlStack(postgresStack),
   });
-  return succeeded(
-    withSeedDiagnostics(
-      interpretPslDocumentToSqlContract({
-        documents: bound.documents,
-        sources: bound.sources,
-        symbolTable: bound.symbolTable,
-        binder: bound.binder,
-        ...sqlContextInput(bound.context),
-        target: postgresPack,
-        createNamespace: postgresCreateNamespace,
-      }),
-      bound.seedDiagnostics,
-    ),
+  return withSeedDiagnostics(
+    interpretPslDocumentToSqlContract({
+      documents: bound.documents,
+      sources: bound.sources,
+      symbolTable: bound.symbolTable,
+      binder: bound.binder,
+      ...sqlContextInput(bound.context),
+      target: postgresPack,
+      createNamespace: postgresCreateNamespace,
+    }),
+    bound.seedDiagnostics,
   );
 }
 
-export function interpretSqlite(schema: string): Contract {
+export function interpretSqlite(schema: string): Interpreted {
   const bound = bindPslSchema(schema, {
     sourceId: 'preset-replacements.sqlite.prisma',
     context: contractSourceContextFromControlStack(sqliteStack),
   });
-  return succeeded(
-    withSeedDiagnostics(
-      interpretPslDocumentToSqlContract({
-        documents: bound.documents,
-        sources: bound.sources,
-        symbolTable: bound.symbolTable,
-        binder: bound.binder,
-        ...sqlContextInput(bound.context),
-        target: sqlitePack,
-        createNamespace: sqliteCreateNamespace,
-      }),
-      bound.seedDiagnostics,
-    ),
+  return withSeedDiagnostics(
+    interpretPslDocumentToSqlContract({
+      documents: bound.documents,
+      sources: bound.sources,
+      symbolTable: bound.symbolTable,
+      binder: bound.binder,
+      ...sqlContextInput(bound.context),
+      target: sqlitePack,
+      createNamespace: sqliteCreateNamespace,
+    }),
+    bound.seedDiagnostics,
   );
 }
 
-export function interpretMongo(schema: string): Contract {
+export function interpretMongo(schema: string): Interpreted {
   const bound = bindPslSchema(schema, {
     sourceId: 'preset-replacements.mongo.prisma',
     context: contractSourceContextFromControlStack(mongoStack),
   });
-  return succeeded(
-    withSeedDiagnostics(
-      interpretPslDocumentToMongoContract({
-        documents: bound.documents,
-        sources: bound.sources,
-        symbolTable: bound.symbolTable,
-        binder: bound.binder,
-        ...mongoContextInput(bound.context),
-      }),
-      bound.seedDiagnostics,
-    ),
+  return withSeedDiagnostics(
+    interpretPslDocumentToMongoContract({
+      documents: bound.documents,
+      sources: bound.sources,
+      symbolTable: bound.symbolTable,
+      binder: bound.binder,
+      ...mongoContextInput(bound.context),
+    }),
+    bound.seedDiagnostics,
   );
 }
 

@@ -73,7 +73,7 @@ function succeeded<T>(
 }
 
 describe('the temporal type aliases with real packs', () => {
-  it('store on Postgres exactly what the matching presets store', () => {
+  it('store on Postgres exactly what the matching generator attributes store', () => {
     const throughAliases = succeeded(
       interpretPostgres(`model Event {
   id              Int                       @id
@@ -86,23 +86,23 @@ describe('the temporal type aliases with real packs', () => {
 }
 `),
     );
-    const throughPresets = succeeded(
+    const throughAttributes = succeeded(
       interpretPostgres(`model Event {
-  id              Int                          @id
-  createdAt       temporal.createdAt()
-  updatedAt       temporal.updatedAt()
-  createdAtString temporal.createdAtString()
-  updatedAtString temporal.updatedAtString()
-  createdAtJsDate temporal.createdAtJsDate()
-  updatedAtJsDate temporal.updatedAtJsDate()
+  id              Int               @id
+  createdAt       Timestamptz       @onCreate(now())
+  updatedAt       Timestamptz       @onCreate(now()) @onUpdate(now())
+  createdAtString TimestamptzString @onCreate(now())
+  updatedAtString TimestamptzString @onCreate(now()) @onUpdate(now())
+  createdAtJsDate TimestamptzJsDate @onCreate(now())
+  updatedAtJsDate TimestamptzJsDate @onCreate(now()) @onUpdate(now())
 }
 `),
     );
-    expect(throughAliases).toEqual(throughPresets);
+    expect(throughAliases).toEqual(throughAttributes);
     expect(throughAliases.execution?.mutations.defaults).toHaveLength(6);
   });
 
-  it('store on SQLite exactly what the matching presets store', () => {
+  it('store on SQLite exactly what the matching generator attributes store', () => {
     const throughAliases = succeeded(
       interpretSqlite(`model Event {
   id        Int                @id
@@ -111,15 +111,15 @@ describe('the temporal type aliases with real packs', () => {
 }
 `),
     );
-    const throughPresets = succeeded(
+    const throughAttributes = succeeded(
       interpretSqlite(`model Event {
-  id        Int                  @id
-  createdAt temporal.createdAt()
-  updatedAt temporal.updatedAt()
+  id        Int      @id
+  createdAt DateTime @onCreate(now())
+  updatedAt DateTime @onCreate(now()) @onUpdate(now())
 }
 `),
     );
-    expect(throughAliases).toEqual(throughPresets);
+    expect(throughAliases).toEqual(throughAttributes);
     expect(throughAliases.execution?.mutations.defaults).toHaveLength(2);
   });
 

@@ -739,11 +739,6 @@ export const temporalCodecPresetMirrors = {
  * Mirrors of `temporalAuthoringPresets(...)` — the `createdAt`/`updatedAt`
  * convenience pair — per target codec. Anchored by the same family-sql test as
  * {@link temporalCodecPresetMirrors}.
- *
- * The slice's headline guarantee (`temporal.updatedAt()` is byte-identical to
- * `temporal.timestamptz(onCreate: now, onUpdate: now)`) is asserted through
- * these, so an unanchored mirror here would let the parity tests prove a
- * fiction of `updatedAt` identical to the real `timestamptz`.
  */
 export const temporalConvenienceMirrors = {
   postgres: {

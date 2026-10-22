@@ -1,7 +1,4 @@
-import type {
-  AuthoringFieldPresetDescriptor,
-  AuthoringTypeConstructorDescriptor,
-} from '@internal/framework-components/authoring';
+import type { AuthoringTypeConstructorDescriptor } from '@internal/framework-components/authoring';
 import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import { describe, expect, it } from 'vitest';
 import { EMPTY_DATA_TYPES } from '../src/attribute-spec/spec-context';
@@ -16,17 +13,6 @@ import { PslSources } from '../src/source-file';
 import { buildSymbolTable, type FieldSymbol, type NamedTypeSymbol } from '../src/symbol-table';
 import { PathExprAst } from '../src/syntax/ast/expressions';
 import type { SyntaxNode } from '../src/syntax/red';
-
-const createdAt: AuthoringFieldPresetDescriptor = {
-  kind: 'fieldPreset',
-  output: { codecId: 'fixture/timestamp@1' },
-};
-
-const uuid: AuthoringFieldPresetDescriptor = {
-  kind: 'fieldPreset',
-  args: [{ kind: 'number', name: 'version' }],
-  output: { codecId: 'fixture/uuid@1', id: true },
-};
 
 const text: AuthoringTypeConstructorDescriptor = {
   kind: 'typeConstructor',
@@ -55,7 +41,7 @@ function context(): BinderContext {
   return {
     authoringContributions: {
       type: { String: text, db: { VarChar: varchar, tagged, secondTagged } },
-      field: { temporal: { createdAt }, db: { uuid } },
+      field: {},
       entityTypes: {},
       attributeSpecs: { model: {}, field: {} },
       modelAttributes: {},
@@ -100,25 +86,6 @@ const entities =
   'tag TopTag {}\nmodel TopModel {\n  id String\n}\nnamespace auth {\n  tag AuthTag {}\n}\n';
 
 describe('createBinder — contributed types', () => {
-  it('binds a field-preset name to the preset descriptor', () => {
-    const { resolve, diagnostics } = bindProject(
-      'model Post {\n  created temporal.createdAt()\n  bare temporal.createdAt\n}',
-    );
-
-    expect(diagnostics).toEqual([]);
-    for (const field of ['created', 'bare']) {
-      expect(resolve(field)).toEqual({
-        kind: 'contributedType',
-        symbol: {
-          kind: 'contributedType',
-          name: 'createdAt',
-          path: ['temporal', 'createdAt'],
-          descriptor: createdAt,
-        },
-      });
-    }
-  });
-
   it('binds a type-constructor name to the type-constructor descriptor', () => {
     const { resolve } = bindProject('model Post {\n  title String\n  slug db.VarChar(10)\n}');
 
@@ -134,22 +101,6 @@ describe('createBinder — contributed types', () => {
         path: ['db', 'VarChar'],
         descriptor: varchar,
       },
-    });
-  });
-
-  it('binds presets and type constructors that share a namespace', () => {
-    const { resolve, diagnostics } = bindProject(
-      'model Post {\n  id db.uuid(7)\n  slug db.VarChar(10)\n}',
-    );
-
-    expect(diagnostics).toEqual([]);
-    expect(resolve('id')).toEqual({
-      kind: 'contributedType',
-      symbol: { kind: 'contributedType', name: 'uuid', path: ['db', 'uuid'], descriptor: uuid },
-    });
-    expect(resolve('slug')).toMatchObject({
-      kind: 'contributedType',
-      symbol: { path: ['db', 'VarChar'], descriptor: varchar },
     });
   });
 

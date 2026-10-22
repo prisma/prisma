@@ -2,7 +2,6 @@ import type { Contract } from '@internal/contract/types';
 import { enumType, member } from '@internal/contract-authoring';
 import {
   type AuthoringContributions,
-  temporalAuthoringPresets,
   temporalTypeAliases,
 } from '@internal/framework-components/authoring';
 import {
@@ -35,7 +34,6 @@ const mongoDate = { codecId: 'mongo/date@1' } as const;
 
 const authoringContributions: AuthoringContributions = {
   type: { temporal: temporalTypeAliases(mongoDate, 'a JavaScript Date') },
-  field: { temporal: temporalAuthoringPresets(mongoDate) },
   entityTypes: {
     enum: {
       kind: 'entity',
@@ -335,7 +333,7 @@ model Click {
 }`),
     ).toEqual([
       {
-        code: 'PSL_PRESET_ON_VARIANT_FIELD',
+        code: 'PSL_GENERATOR_ON_VARIANT_FIELD',
         message:
           'Generated value on variant "Click" field "seenAt": execution defaults apply to every document in collection "Event", so declare them on the base model.',
       },
@@ -471,18 +469,18 @@ model Post {
 });
 
 describe('Mongo PSL contributed type aliases', () => {
-  it('store what the matching presets store', () => {
+  it('store what the matching generator attributes store', () => {
     const aliased = contractOf(`model Post {
   id        ObjectId           @id @map("_id")
   createdAt temporal.CreatedAt
   updatedAt temporal.UpdatedAt @map("updated_at")
 }`);
-    const preset = contractOf(`model Post {
-  id        ObjectId             @id @map("_id")
-  createdAt temporal.createdAt()
-  updatedAt temporal.updatedAt() @map("updated_at")
+    const attributes = contractOf(`model Post {
+  id        ObjectId @id @map("_id")
+  createdAt Date     @onCreate(now())
+  updatedAt Date     @onCreate(now()) @onUpdate(now()) @map("updated_at")
 }`);
-    expect(aliased).toEqual(preset);
+    expect(aliased).toEqual(attributes);
   });
 
   it('resolve once for every field typed by them', () => {

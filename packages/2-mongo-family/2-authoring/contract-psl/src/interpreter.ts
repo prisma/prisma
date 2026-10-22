@@ -21,7 +21,6 @@ import type {
   AuthoringContributions,
   AuthoringEntityContext,
   AuthoringTypeConstructorDescriptor,
-  AuthoringTypeNamespace,
   DataTypeSupport,
   EnumBlockSite,
   ParsedPslExtensionBlock,
@@ -31,7 +30,6 @@ import {
   enumMemberProblemDiagnostic,
   instantiateAuthoringEntityType,
   isAuthoringEntityTypeDescriptor,
-  isAuthoringTypeConstructorDescriptor,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors, TypeLookups } from '@internal/framework-components/codec';
 import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
@@ -85,7 +83,6 @@ import {
   fkRelationPairKey,
   type InvalidFkPairing,
   isBareTypeConstructor,
-  reportPresetNotCalled,
   reportTypeConstructorNotCalled,
   unsupportedBlockDiagnostic,
 } from '@internal/psl-parser/interpret';
@@ -102,11 +99,6 @@ import { assertDefined, invariant } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok, type Result } from '@internal/utils/result';
-import {
-  type FieldPresetContext,
-  type PresetWithoutEffect,
-  resolveFieldPreset,
-} from './field-presets';
 import {
   interpretFieldAttribute,
   interpretModelAttribute,
@@ -180,51 +172,10 @@ interface ScalarNames {
   ) => void;
 }
 
-/**
- * Reports `PSL_PRESET_WITHOUT_EFFECT` for a preset call that fills nothing, such as `temporal.timestamp()` with no phase: it is stored exactly like the scalar type with the same codec, which the warning names.
- */
-function presetWithoutEffectWarner(input: {
-  readonly types: AuthoringTypeNamespace | undefined;
-  readonly scalarTypeCodecIds: ReadonlyMap<string, string>;
+/** What resolving a field's type reports to. */
+interface FieldResolutionContext {
   readonly sources: PslSources;
-  readonly reportWarning: ((diagnostic: ContractSourceDiagnostic) => void) | undefined;
-}): (preset: PresetWithoutEffect) => void {
-  const { reportWarning } = input;
-  if (reportWarning === undefined) return () => {};
-  return ({ field, entityLabel, helperPath, descriptor, codecId }) => {
-    const typeName = [...input.scalarTypeCodecIds].find(([name, id]) => {
-      const type = input.types?.[name];
-      const deprecated =
-        type !== undefined &&
-        isAuthoringTypeConstructorDescriptor(type) &&
-        type.deprecated !== undefined;
-      return id === codecId && !deprecated;
-    })?.[0];
-    if (typeName === undefined) return;
-    const phases = (descriptor.args ?? []).flatMap((arg) =>
-      arg.kind === 'option' && arg.name !== undefined
-        ? [{ name: arg.name, value: arg.values[0] }]
-        : [],
-    );
-    const without =
-      phases.length === 0 ? '' : ` without ${phases.map(({ name }) => name).join(' or ')}`;
-    const pass =
-      phases.length === 0
-        ? ''
-        : `, or pass ${phases.map(({ name, value }) => `${name}: ${value}`).join(' or ')}`;
-    const call = field.typeConstructor?.span;
-    const [warning] = mapPslDiagnostics(
-      [
-        {
-          code: 'PSL_PRESET_WITHOUT_EFFECT',
-          message: `${entityLabel} uses ${helperPath}()${without}, so nothing fills it and it is stored exactly like ${typeName}. Write ${typeName}${pass}.`,
-          ...diagnosticSource(input.sources, field.node.syntax).at(call ?? field.span),
-        },
-      ],
-      input.sources,
-    );
-    if (warning !== undefined) reportWarning({ ...warning, severity: 'warning' });
-  };
+  readonly diagnostics: PslDiagnosticCollector;
 }
 
 /**
@@ -1098,19 +1049,18 @@ function fieldTypeResolution(field: FieldSymbol, binder: Binder): Resolution | u
   return node === undefined ? undefined : binder.symbolForNode(node);
 }
 
-interface PresetExecutionDefault {
+interface FieldExecutionDefault {
   readonly modelName: string;
   readonly field: FieldSymbol;
   readonly storedField: string;
   readonly phases: ExecutionMutationDefaultPhases;
-  readonly fromPreset: boolean;
 }
 
 /**
- * Keys each preset's execution defaults by collection and stored field. Rejects presets on variant fields, since a default keyed by collection applies to every document in it, and merges identical defaults that two models declare for the same collection field.
+ * Keys each field's execution defaults by collection and stored field. Rejects them on variant fields, since a default keyed by collection applies to every document in it, and merges identical defaults that two models declare for the same collection field.
  */
-function resolvePresetExecutionDefaults(input: {
-  readonly defaults: readonly PresetExecutionDefault[];
+function resolveCollectionExecutionDefaults(input: {
+  readonly defaults: readonly FieldExecutionDefault[];
   readonly models: Readonly<Record<string, MongoModelEntry>>;
   readonly sources: PslSources;
   readonly diagnostics: PslDiagnosticCollector;
@@ -1118,42 +1068,39 @@ function resolvePresetExecutionDefaults(input: {
 }): ExecutionMutationDefault[] {
   const byRef = new Map<
     string,
-    { readonly owner: PresetExecutionDefault; readonly phasesKey: string }
+    { readonly owner: FieldExecutionDefault; readonly phasesKey: string }
   >();
   const resolved: ExecutionMutationDefault[] = [];
-  for (const preset of input.defaults) {
-    const model = input.models[preset.modelName];
+  for (const generated of input.defaults) {
+    const model = input.models[generated.modelName];
     if (model === undefined) continue;
     const collection = model.storage.collection;
-    const call = preset.field.typeConstructor;
-    const presetPath = call?.path.join('.') ?? preset.field.typeName;
-    const at = diagnosticSource(input.sources, preset.field.node.syntax).at(
-      call?.span ?? preset.field.span,
+    const at = diagnosticSource(input.sources, generated.field.node.syntax).at(
+      generated.field.span,
     );
-    const source = preset.fromPreset ? `Preset "${presetPath}"` : 'Generated value';
     if (model.base !== undefined) {
       input.diagnostics.push({
-        code: 'PSL_PRESET_ON_VARIANT_FIELD',
-        message: `${source} on variant "${preset.modelName}" field "${preset.field.name}": execution defaults apply to every document in collection "${collection}", so declare them on the base model.`,
+        code: 'PSL_GENERATOR_ON_VARIANT_FIELD',
+        message: `Generated value on variant "${generated.modelName}" field "${generated.field.name}": execution defaults apply to every document in collection "${collection}", so declare them on the base model.`,
         ...at,
       });
       continue;
     }
-    const refKey = JSON.stringify([collection, preset.storedField]);
-    const phasesKey = canonicalJson(preset.phases);
+    const refKey = JSON.stringify([collection, generated.storedField]);
+    const phasesKey = canonicalJson(generated.phases);
     const existing = byRef.get(refKey);
     if (existing === undefined) {
-      byRef.set(refKey, { owner: preset, phasesKey });
+      byRef.set(refKey, { owner: generated, phasesKey });
       resolved.push({
-        ref: { namespace: input.namespaceId, entry: collection, field: preset.storedField },
-        ...preset.phases,
+        ref: { namespace: input.namespaceId, entry: collection, field: generated.storedField },
+        ...generated.phases,
       });
       continue;
     }
     if (existing.phasesKey !== phasesKey) {
       input.diagnostics.push({
-        code: 'PSL_PRESET_CONFLICT',
-        message: `${source} on "${preset.modelName}.${preset.field.name}" sets different execution defaults than "${existing.owner.modelName}.${existing.owner.field.name}" for field "${preset.storedField}" of collection "${collection}". Generate the same values on both models.`,
+        code: 'PSL_GENERATOR_CONFLICT',
+        message: `Generated value on "${generated.modelName}.${generated.field.name}" sets different execution defaults than "${existing.owner.modelName}.${existing.owner.field.name}" for field "${generated.storedField}" of collection "${collection}". Generate the same values on both models.`,
         ...at,
       });
     }
@@ -1211,15 +1158,6 @@ function lowerGeneratorAttributes(input: {
       });
       return 'invalid';
     }
-    if (input.resolved.executionDefaults?.[phase] !== undefined) {
-      const phaseText = phase === 'onCreate' ? 'on create' : 'on update';
-      diagnostics.push({
-        code: 'PSL_PRESET_AND_DEFAULT_CONFLICT',
-        message: `${fieldLabel} uses a field-preset call that already generates a value ${phaseText}, so @${phase}(...) cannot set one too. Remove @${phase}(...) or use a preset without an ${phase} generator.`,
-        ...at,
-      });
-      return 'invalid';
-    }
     const generator = lowerGeneratorAttribute({
       phase,
       attribute,
@@ -1239,8 +1177,6 @@ function lowerGeneratorAttributes(input: {
 
 interface ResolvedNonRelationField {
   readonly field: ContractField;
-  /** What the field's preset generates. */
-  readonly executionDefaults?: ExecutionMutationDefaultPhases;
   /** The type alias the field is typed by. */
   readonly typeAlias?: ResolvedTypeAlias;
 }
@@ -1309,7 +1245,7 @@ function resolveNonRelationField(
   owner: { readonly name: string; readonly kind: 'model' | 'compositeType' },
   resolution: Resolution | undefined,
   codecIdByEnumName: ReadonlyMap<string, string>,
-  presetContext: FieldPresetContext,
+  context: FieldResolutionContext,
   scalarNames: ScalarNames,
   typeAliases: ResolvedTypeAliases,
 ): ResolvedNonRelationField | undefined {
@@ -1345,10 +1281,10 @@ function resolveNonRelationField(
 
   if (resolution?.kind === 'namedType') {
     if (field.typeConstructor !== undefined) {
-      presetContext.diagnostics.push({
+      context.diagnostics.push({
         code: 'PSL_UNSUPPORTED_FIELD_TYPE',
         message: `Field "${ownerName}.${field.name}" calls "${field.typeConstructor.path.join('.')}", which is a type alias, not a type constructor. Remove the arguments.`,
-        ...diagnosticSource(presetContext.sources, field.node.syntax).at(field.span),
+        ...diagnosticSource(context.sources, field.node.syntax).at(field.span),
       });
       return undefined;
     }
@@ -1361,10 +1297,10 @@ function resolveNonRelationField(
     resolution?.kind === 'block' ||
     resolution?.kind === 'crossSpace'
   ) {
-    presetContext.diagnostics.push({
+    context.diagnostics.push({
       code: 'PSL_UNSUPPORTED_FIELD_TYPE',
       message: `Field "${ownerName}.${field.name}" type "${field.typeName}" is not supported in Mongo PSL interpreter`,
-      ...diagnosticSource(presetContext.sources, field.node.syntax).at(field.span),
+      ...diagnosticSource(context.sources, field.node.syntax).at(field.span),
     });
     return undefined;
   }
@@ -1374,10 +1310,10 @@ function resolveNonRelationField(
   const { descriptor, path } = resolution.symbol;
   const call = field.typeConstructor;
   const entityLabel = `Field "${ownerName}.${field.name}"`;
-  const source = diagnosticSource(presetContext.sources, field.node.syntax);
+  const source = diagnosticSource(context.sources, field.node.syntax);
   if (descriptor.kind === 'typeAlias') {
     if (call !== undefined) {
-      presetContext.diagnostics.push({
+      context.diagnostics.push({
         code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
         message: `${path.join('.')} is a type alias and takes no arguments.`,
         ...source.at(call.span),
@@ -1388,31 +1324,6 @@ function resolveNonRelationField(
     invariant(typeAlias !== undefined, 'A contributed type alias always resolves');
     return fieldOfTypeAlias(field, typeAlias);
   }
-  if (descriptor.kind === 'fieldPreset') {
-    if (call === undefined) {
-      reportPresetNotCalled({
-        entityLabel,
-        presetPath: path.join('.'),
-        source,
-        span: field.span,
-        diagnostics: presetContext.diagnostics,
-      });
-      return undefined;
-    }
-    const preset = resolveFieldPreset({
-      field,
-      call,
-      descriptor,
-      ownerName,
-      ownerKind: owner.kind,
-      context: presetContext,
-    });
-    if (preset.kind === 'invalid') return undefined;
-    return {
-      field: preset.field,
-      ...ifDefined('executionDefaults', preset.executionDefaults),
-    };
-  }
   if (call === undefined && !isBareTypeConstructor(descriptor)) {
     reportTypeConstructorNotCalled({
       entityLabel,
@@ -1420,7 +1331,7 @@ function resolveNonRelationField(
       descriptor,
       source,
       span: field.span,
-      diagnostics: presetContext.diagnostics,
+      diagnostics: context.diagnostics,
     });
     return undefined;
   }
@@ -1582,20 +1493,8 @@ export function interpretPslDocumentToMongoContract(
 ): Result<Contract, ContractSourceDiagnostics> {
   const { symbolTable, sources, scalarTypeCodecIds, codecLookup } = input;
   const diagnostics = createPslDiagnosticCollector(sources);
-  const presetContext: FieldPresetContext = {
-    authoringContributions: input.authoringContributions,
-    sources,
-    diagnostics,
-    typeLookups: { codecLookup, dataTypeLookup: input.dataTypes.lookup },
-    dataTypes: input.dataTypes,
-    warnPresetWithoutEffect: presetWithoutEffectWarner({
-      types: input.authoringContributions?.type,
-      scalarTypeCodecIds,
-      sources,
-      reportWarning: input.reportWarning,
-    }),
-  };
-  const presetExecutionDefaults: PresetExecutionDefault[] = [];
+  const fieldResolution: FieldResolutionContext = { sources, diagnostics };
+  const fieldExecutionDefaults: FieldExecutionDefault[] = [];
   const scalarNames: ScalarNames = {
     warnDeprecated: deprecatedScalarWarner({
       sources,
@@ -1800,7 +1699,7 @@ export function interpretPslDocumentToMongoContract(
         { name: pslModel.name, kind: 'model' },
         resolution,
         codecIdByEnumName,
-        presetContext,
+        fieldResolution,
         scalarNames,
         typeAliases,
       );
@@ -1857,15 +1756,14 @@ export function interpretPslDocumentToMongoContract(
         diagnostics,
       });
       if (generated === 'invalid') continue;
-      const inherited = resolved.executionDefaults ?? resolved.typeAlias?.executionDefaults;
+      const inherited = resolved.typeAlias?.executionDefaults;
       const phases = inherited === undefined ? generated : { ...inherited, ...generated };
       if (phases !== undefined) {
-        presetExecutionDefaults.push({
+        fieldExecutionDefaults.push({
           modelName: pslModel.name,
           field,
           storedField: mappedName,
           phases,
-          fromPreset: resolved.executionDefaults !== undefined,
         });
       }
     }
@@ -1954,7 +1852,7 @@ export function interpretPslDocumentToMongoContract(
         { name: compositeType.name, kind: 'compositeType' },
         fieldTypeResolution(field, binder),
         codecIdByEnumName,
-        presetContext,
+        fieldResolution,
         scalarNames,
         typeAliases,
       );
@@ -2007,8 +1905,8 @@ export function interpretPslDocumentToMongoContract(
     physicalNames,
     indexSources,
   });
-  const executionDefaults = resolvePresetExecutionDefaults({
-    defaults: presetExecutionDefaults,
+  const executionDefaults = resolveCollectionExecutionDefaults({
+    defaults: fieldExecutionDefaults,
     models: polyResult.models,
     sources,
     diagnostics,

@@ -10,7 +10,7 @@
 //     updatedAt DateTime @updatedAt
 //   }
 //
-// Prisma 8: @updatedAt maps to temporal.updatedAt().
+// Prisma 8: @updatedAt maps to temporal.UpdatedAt.
 
 model User {
   id        String   @id @onCreate(cuid(2))

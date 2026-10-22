@@ -8,6 +8,7 @@ import {
   emitPostgres,
   emitSqlite,
   type Form,
+  type Interpreted,
   interpretMongo,
   interpretPostgres,
   interpretSqlite,
@@ -29,7 +30,7 @@ const updateExpected = process.env['UPDATE_PRESET_REPLACEMENTS_EXPECTED'] === '1
 interface TargetCase<Row> {
   readonly target: 'postgres' | 'sqlite' | 'mongo';
   readonly rows: readonly Row[];
-  readonly psl: (rows: readonly Row[], form: Form) => Contract;
+  readonly psl: (rows: readonly Row[], form: Form) => Interpreted;
   readonly ts: (rows: readonly Row[], form: Form) => Contract;
   readonly emit: (contract: Contract) => Promise<string>;
 }
@@ -40,7 +41,39 @@ async function emitted<Row>(
   rows: readonly Row[],
   form: Form,
 ): Promise<unknown> {
-  return JSON.parse(await targetCase.emit(targetCase[surface](rows, form)));
+  return JSON.parse(await targetCase.emit(contractOf(targetCase, surface, rows, form)));
+}
+
+function contractOf<Row>(
+  targetCase: TargetCase<Row>,
+  surface: 'psl' | 'ts',
+  rows: readonly Row[],
+  form: Form,
+): Contract {
+  if (surface === 'ts') return targetCase.ts(rows, form);
+  const interpreted = targetCase.psl(rows, form);
+  if (!interpreted.ok) {
+    throw new Error(`the schema did not interpret: ${JSON.stringify(interpreted.failure)}`);
+  }
+  return interpreted.value;
+}
+
+const REFUSAL = /^(.+) was a field preset, and Prisma 8 removed field presets\. Write (.+)\.$/;
+
+/** The refusal of the row's PSL preset: the call as the message names it and the rewrite it says to write. */
+function refusalOf<Row>(targetCase: TargetCase<Row>, row: Row) {
+  const interpreted = targetCase.psl([row], 'preset');
+  const diagnostics = interpreted.ok
+    ? []
+    : interpreted.failure.diagnostics.map(({ code, message }) => ({ code, message }));
+  const [refusal] = diagnostics;
+  const match = refusal === undefined ? null : REFUSAL.exec(refusal.message);
+  return {
+    diagnostics: diagnostics.length,
+    code: refusal?.code,
+    call: match?.[1],
+    rewrite: match?.[2],
+  };
 }
 
 function describeTarget<Row extends PresetReplacementRow<never, unknown>>(
@@ -49,10 +82,19 @@ function describeTarget<Row extends PresetReplacementRow<never, unknown>>(
   describe(`on ${targetCase.target}`, () => {
     describe.each(targetCase.rows.map((row) => [row.model, row] as const))('%s', (_, row) => {
       it.runIf(row.psl.preset !== undefined)(
-        `PSL ${row.psl.replacement} stores what ${row.psl.preset} stores`,
+        `PSL refuses ${row.psl.preset}, and the rewrite it names stores what ${row.psl.replacement} stores`,
         async () => {
-          expect(await emitted(targetCase, 'psl', [row], 'replacement')).toEqual(
-            await emitted(targetCase, 'psl', [row], 'preset'),
+          const preset = row.psl.preset ?? '';
+          const { call, rewrite, ...refusal } = refusalOf(targetCase, row);
+          expect({ ...refusal, namesTheCall: call !== undefined && preset.includes(call) }).toEqual(
+            { diagnostics: 1, code: 'PSL_UNRESOLVED_REFERENCE', namesTheCall: true },
+          );
+          const rewritten = {
+            ...row,
+            psl: { replacement: preset.replace(call ?? '', rewrite ?? '') },
+          };
+          expect(await emitted(targetCase, 'psl', [rewritten], 'replacement')).toEqual(
+            await emitted(targetCase, 'psl', [row], 'replacement'),
           );
         },
       );
@@ -78,7 +120,9 @@ function describeTarget<Row extends PresetReplacementRow<never, unknown>>(
           'expected',
           `${targetCase.target}.contract.json`,
         );
-        const fromPsl = await targetCase.emit(targetCase.psl(targetCase.rows, 'replacement'));
+        const fromPsl = await targetCase.emit(
+          contractOf(targetCase, 'psl', targetCase.rows, 'replacement'),
+        );
         if (updateExpected) writeFileSync(expectedPath, `${fromPsl}\n`, 'utf-8');
         const expected = JSON.parse(readFileSync(expectedPath, 'utf-8'));
         expect({

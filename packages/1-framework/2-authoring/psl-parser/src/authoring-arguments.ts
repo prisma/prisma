@@ -414,7 +414,7 @@ function readPslHelperArgument(
 }
 
 /**
- * The arguments of a type constructor or field preset call, positional and named, each read as its descriptor says. `undefined`, with a diagnostic pushed, when one cannot be read or does not match a descriptor.
+ * The arguments of a type constructor call, positional and named, each read as its descriptor says. `undefined`, with a diagnostic pushed, when one cannot be read or does not match a descriptor.
  */
 export function mapPslHelperArgs(input: MapPslHelperArgsInput): readonly unknown[] | undefined {
   const mappedArgs: unknown[] = input.descriptors.map(() => undefined);

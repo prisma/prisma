@@ -13,12 +13,9 @@ import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { fixtureInterpreterTypes, fixtureTypeLookups } from './fixture-codec-descriptors';
-import { fixtureDataTypeEntries, fixtureDataTypes } from './fixture-data-types';
 import {
   createBuiltinLikeControlMutationDefaults,
   interpretSqlContract,
-  temporalCodecPresetMirrors,
-  temporalConvenienceMirrors,
   testEnumEntityContributions,
   testEnumPslBlockDescriptor,
 } from './fixtures';
@@ -114,97 +111,6 @@ const textColumn = {
   codecId: 'sql/text@1',
 } as const satisfies ColumnTypeDescriptor;
 
-const bareSqlFamilyPack = {
-  kind: 'family',
-  id: 'sql',
-  familyId: 'sql',
-  version: '0.0.1',
-} as const satisfies FamilyPackRef<'sql'>;
-
-const sqliteTimestampTargetPack = {
-  kind: 'target',
-  id: 'sqlite',
-  familyId: 'sql',
-  targetId: 'sqlite',
-  version: '0.0.1',
-  defaultNamespaceId: '__unbound__',
-  authoring: {
-    field: {
-      int: {
-        kind: 'fieldPreset',
-        output: {
-          codecId: 'sqlite/integer@1',
-        },
-      },
-      text: {
-        kind: 'fieldPreset',
-        output: {
-          codecId: 'sqlite/text@1',
-        },
-      },
-      temporal: temporalConvenienceMirrors.sqlite,
-    },
-  },
-} as const satisfies TargetPackRef<'sql', 'sqlite'>;
-
-const postgresTimestampTargetPack = {
-  kind: 'target',
-  id: 'postgres',
-  familyId: 'sql',
-  targetId: 'postgres',
-  version: '0.0.1',
-  defaultNamespaceId: 'public',
-  dataTypes: fixtureDataTypes,
-  authoring: {
-    dataTypes: fixtureDataTypeEntries,
-    field: {
-      int: {
-        kind: 'fieldPreset',
-        output: {
-          codecId: 'pg/int4@1',
-        },
-      },
-      text: {
-        kind: 'fieldPreset',
-        output: {
-          codecId: 'pg/text@1',
-        },
-      },
-      temporal: {
-        ...temporalConvenienceMirrors.postgres,
-        // From `temporalCodecPresetMirrors` in fixtures.ts, which family-sql's
-        // temporal-codec-presets.test.ts asserts deep-equals the real factory
-        // output — so a factory change cannot leave this parity test passing
-        // against a preset that no longer ships.
-        timestamptz: temporalCodecPresetMirrors.pgTimestamptz,
-      },
-    },
-  },
-} as const satisfies TargetPackRef<'sql', 'postgres'>;
-
-const postgresTimestampScalarTypeDescriptors = new Map([
-  ['Int', { codecId: 'pg/int4@1' }],
-  ['String', { codecId: 'pg/text@1' }],
-  ['DateTime', { codecId: 'pg/timestamptz-temporal@1' }],
-  ['Json', { codecId: 'pg/json@1' }],
-  ['Jsonb', { codecId: 'pg/jsonb@1' }],
-] as const);
-
-const postgresTimestampAuthoringContributions = {
-  field: postgresTimestampTargetPack.authoring.field,
-} as const satisfies AuthoringContributions;
-
-const sqliteTimestampScalarTypeDescriptors = new Map([
-  ['Int', { codecId: 'sqlite/integer@1' }],
-  ['String', { codecId: 'sqlite/text@1' }],
-  ['DateTime', { codecId: 'sqlite/datetime@1' }],
-  ['Json', { codecId: 'sqlite/json@1' }],
-] as const);
-
-const sqliteTimestampAuthoringContributions = {
-  field: sqliteTimestampTargetPack.authoring.field,
-} as const satisfies AuthoringContributions;
-
 const representativePslSchema = `types {
   Embedding1536 = pgvector.Vector(1536)
 }
@@ -268,109 +174,12 @@ defineContract(
   },
 )`;
 
-function buildSqliteTimestampTsContract() {
-  return defineContract(
-    {
-      ...fixtureTypeLookups,
-      family: bareSqlFamilyPack,
-      target: sqliteTimestampTargetPack,
-      createNamespace: createTestSqlNamespace,
-    },
-    ({ field, model }) => ({
-      models: {
-        User: model('User', {
-          fields: {
-            id: field.int().id(),
-            email: field.text(),
-            createdAt: field.temporal.createdAt(),
-            updatedAt: field.temporal.updatedAt(),
-          },
-        }).sql({ table: 'user' }),
-      },
-    }),
-  );
-}
-
-function buildPostgresTimestampTsContract() {
-  return defineContract(
-    {
-      ...fixtureTypeLookups,
-      family: bareSqlFamilyPack,
-      target: postgresTimestampTargetPack,
-      createNamespace: createTestSqlNamespace,
-    },
-    ({ field, model }) => ({
-      models: {
-        User: model('User', {
-          fields: {
-            id: field.int().id(),
-            email: field.text(),
-            createdAt: field.temporal.createdAt(),
-            updatedAt: field.temporal.updatedAt(),
-          },
-        }).sql({ table: 'user' }),
-      },
-    }),
-  );
-}
-
 describe('TS and PSL authoring parity', () => {
   it('keeps the contract DSL within the terseness threshold for the same contract', () => {
     const pslLines = countSemanticLines(representativePslSchema);
     const tsLines = countSemanticLines(representativeTsAuthoring);
 
     expect(tsLines).toBeLessThanOrEqual(Math.ceil(pslLines * 1.6));
-  });
-
-  // The shared timestamp parity schema both SQL targets exercise. Lives at module scope so the per-target tests below read as data + a single call into `expectTimestampParity`.
-  const timestampParityPslSchema = `model User {
-  id Int @id
-  email String
-  createdAt temporal.createdAt()
-  updatedAt temporal.updatedAt()
-  @@map("user")
-}`;
-
-  function expectTimestampParity(target: {
-    readonly buildTsContract: () => unknown;
-    readonly targetPack: TargetPackRef<'sql', string>;
-    readonly scalarColumnDescriptors: ReadonlyMap<string, ColumnTypeDescriptor>;
-    readonly authoringContributions: AuthoringContributions;
-  }): void {
-    const tsContract = target.buildTsContract();
-
-    const interpreted = interpretSqlContract(timestampParityPslSchema, {
-      target: target.targetPack,
-      scalarColumnDescriptors: target.scalarColumnDescriptors,
-      composedExtensionContracts: new Map(),
-      controlMutationDefaults: createBuiltinLikeControlMutationDefaults(),
-      authoringContributions: target.authoringContributions,
-      createNamespace: createTestSqlNamespace,
-      ...fixtureInterpreterTypes,
-      capabilities: {},
-    });
-
-    expect(interpreted.ok).toBe(true);
-    if (!interpreted.ok) return;
-    expect(interpreted.value).toEqual(tsContract);
-  }
-
-  it('lowers SQLite timestamp helpers to the same contract as PSL timestamp attributes', () => {
-    expectTimestampParity({
-      buildTsContract: buildSqliteTimestampTsContract,
-      targetPack: sqliteTimestampTargetPack,
-      scalarColumnDescriptors: sqliteTimestampScalarTypeDescriptors,
-      authoringContributions: sqliteTimestampAuthoringContributions,
-    });
-  });
-
-  it('lowers Postgres timestamp helpers to the same contract as PSL timestamp attributes', () => {
-    expectTimestampParity({
-      buildTsContract: buildPostgresTimestampTsContract,
-      targetPack: postgresTimestampTargetPack,
-      scalarColumnDescriptors: postgresTimestampScalarTypeDescriptors,
-      authoringContributions: postgresTimestampAuthoringContributions,
-    });
   });
 
   it('PSL and TS lower the same cross-namespace FK shape to identical contract IR', () => {
@@ -759,91 +568,5 @@ model Post {
       },
     ]);
     expect(tsIndexes).toEqual(pslIndexes);
-  });
-
-  // `temporal.updatedAt()` is a convenience spelling of
-  // `temporal.timestamptz(onCreate: now, onUpdate: now)`, so all three
-  // spellings must lower to byte-identical contracts. The two are separately
-  // authored descriptors sharing no code, so only these assertions hold them
-  // equal.
-  describe('temporal.updatedAt() three-way byte-identity', () => {
-    const interpretTemporalPsl = (field: string) => {
-      const result = interpretSqlContract(
-        `model User {
-  id Int @id
-  stamped ${field}
-  @@map("user")
-}`,
-        {
-          target: postgresTimestampTargetPack,
-          scalarColumnDescriptors: postgresTimestampScalarTypeDescriptors,
-          composedExtensionContracts: new Map(),
-          controlMutationDefaults: createBuiltinLikeControlMutationDefaults(),
-          authoringContributions: postgresTimestampAuthoringContributions,
-          createNamespace: createTestSqlNamespace,
-          ...fixtureInterpreterTypes,
-          capabilities: {},
-        },
-      );
-      expect(result.ok).toBe(true);
-      if (!result.ok) throw new Error('interpretation failed');
-      return result.value;
-    };
-
-    const buildTsFullForm = () =>
-      defineContract(
-        {
-          ...fixtureTypeLookups,
-          family: bareSqlFamilyPack,
-          target: postgresTimestampTargetPack,
-          createNamespace: createTestSqlNamespace,
-        },
-        ({ field, model }) => ({
-          models: {
-            User: model('User', {
-              fields: {
-                id: field.int().id(),
-                stamped: field.temporal.timestamptz(undefined, 'now', 'now'),
-              },
-            }).sql({ table: 'user' }),
-          },
-        }),
-      );
-
-    const buildTsConvenienceForm = () =>
-      defineContract(
-        {
-          ...fixtureTypeLookups,
-          family: bareSqlFamilyPack,
-          target: postgresTimestampTargetPack,
-          createNamespace: createTestSqlNamespace,
-        },
-        ({ field, model }) => ({
-          models: {
-            User: model('User', {
-              fields: {
-                id: field.int().id(),
-                stamped: field.temporal.updatedAt(),
-              },
-            }).sql({ table: 'user' }),
-          },
-        }),
-      );
-
-    it('PSL full form === PSL convenience form', () => {
-      expect(interpretTemporalPsl('temporal.timestamptz(onCreate: now, onUpdate: now)')).toEqual(
-        interpretTemporalPsl('temporal.updatedAt()'),
-      );
-    });
-
-    it('TS full form === TS convenience form', () => {
-      expect(buildTsFullForm()).toEqual(buildTsConvenienceForm());
-    });
-
-    it('PSL full form === TS full form', () => {
-      expect(interpretTemporalPsl('temporal.timestamptz(onCreate: now, onUpdate: now)')).toEqual(
-        buildTsFullForm(),
-      );
-    });
   });
 });

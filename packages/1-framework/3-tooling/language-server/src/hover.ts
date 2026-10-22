@@ -142,9 +142,7 @@ function renderContributedTypeContent(
   dataTypes: DataTypeSupport,
 ): string {
   const fence = ['```prisma', renderContributedTypeLabel(symbol, dataTypes), '```'].join('\n');
-  const documentation =
-    symbol.descriptor.kind === 'fieldPreset' ? undefined : symbol.descriptor.documentation;
-  return withDocumentation(fence, documentation);
+  return withDocumentation(fence, symbol.descriptor.documentation);
 }
 
 function renderParameterContent(symbol: ParameterSymbol): string {
