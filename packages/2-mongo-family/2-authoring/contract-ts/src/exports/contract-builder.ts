@@ -6,6 +6,7 @@ export type {
   FieldKey,
   IndexShapeRule,
   RefusalKey,
+  RestatedFieldDifference,
 } from '../build-refusals';
 export type {
   ContractAuthoringHelpers,

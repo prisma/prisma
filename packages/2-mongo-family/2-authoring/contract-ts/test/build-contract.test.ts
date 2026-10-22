@@ -9,6 +9,7 @@ import { mongoDataType } from '@internal/mongo-contract/data-type';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { buildMongoContractFromDefinition } from '../src/build-contract';
+import type { RestatedFieldDifference } from '../src/build-refusals';
 import { defineContract, field, index, model } from '../src/contract-builder';
 import type { ContractDefinition, FieldNode, ModelNode } from '../src/contract-definition';
 import { enumType, member } from '../src/enum-type';
@@ -201,6 +202,41 @@ describe('buildMongoContractFromDefinition', () => {
   it('builds a variant that restates a base field under the same name', () => {
     expect(
       refusalsOf({ models: [task, { ...bug, fields: [...bug.fields, scalar('type')] }] }),
+    ).toEqual([]);
+  });
+
+  it.each<[string, Partial<FieldNode>, readonly RestatedFieldDifference[]]>([
+    ['stored name', { storedName: 'title' }, ['storedName']],
+    ['type', { storedName: 't', type: objectIdType }, ['type']],
+    ['nullability', { storedName: 't', nullable: true }, ['nullable']],
+    ['list shape', { storedName: 't', many: { elementNullable: false } }, ['many']],
+    ['stored name and type', { type: objectIdType }, ['storedName', 'type']],
+  ])(
+    'refuses a variant that restates a base field with a different %s',
+    (_label, overrides, differences) => {
+      const built = build({
+        models: [task, { ...bug, fields: [...bug.fields, scalar('title', overrides)] }],
+      });
+      expect(built.ok ? [] : built.failure.refusals).toEqual([
+        {
+          kind: 'restatedBaseFieldDiffers',
+          key: modelField('Bug', 'title'),
+          baseModel: 'Task',
+          differences,
+        },
+      ]);
+    },
+  );
+
+  it('builds a variant that restates a base field exactly', () => {
+    const tags = () => scalar('tags', { many: { elementNullable: false } });
+    expect(
+      refusalsOf({
+        models: [
+          { ...task, fields: [...task.fields, tags()] },
+          { ...bug, fields: [...bug.fields, scalar('title', { storedName: 't' }), tags()] },
+        ],
+      }),
     ).toEqual([]);
   });
 

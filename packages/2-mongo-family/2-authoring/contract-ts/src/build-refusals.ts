@@ -35,6 +35,9 @@ export type DiscriminatorKey = Extract<RefusalKey, { readonly kind: 'discriminat
 export type BaseKey = Extract<RefusalKey, { readonly kind: 'base' }>;
 export type CollectionSettingsKey = Extract<RefusalKey, { readonly kind: 'collectionSettings' }>;
 
+/** What a variant's restatement of a base field changes, which the collection's validator, written from the base, would refuse. */
+export type RestatedFieldDifference = 'storedName' | 'type' | 'nullable' | 'many';
+
 export type CollectionSetting = 'indexes' | 'collectionOptions' | 'controlPolicy';
 
 export type IndexShapeRule =
@@ -63,6 +66,12 @@ export type BuildRefusal =
       readonly storedName: string;
       readonly baseModel: string;
       readonly baseField: string;
+    }
+  | {
+      readonly kind: 'restatedBaseFieldDiffers';
+      readonly key: FieldKey;
+      readonly baseModel: string;
+      readonly differences: readonly RestatedFieldDifference[];
     }
   | { readonly kind: 'valueObjectFieldStoredName'; readonly key: FieldKey }
   | {

@@ -2,7 +2,12 @@ import { enumMemberError } from '@internal/contract-authoring';
 import type { AuthoringWarning } from '@internal/framework-components/authoring';
 import type { MongoContractRefusal } from '@internal/mongo-contract';
 import { type StructuredError, structuredError } from '@internal/utils/structured-error';
-import type { BuildRefusal, BuildWarning, FieldKey } from './build-refusals';
+import type {
+  BuildRefusal,
+  BuildWarning,
+  FieldKey,
+  RestatedFieldDifference,
+} from './build-refusals';
 import { contractError } from './contract-errors';
 
 const LIST_THE_CODEC_PACK =
@@ -198,6 +203,20 @@ export function refusalError(refusal: BuildRefusal): StructuredError {
             name: refusal.storedName,
             first: refusal.firstField,
             second: refusal.key.field,
+          },
+        },
+      );
+    case 'restatedBaseFieldDiffers':
+      return contractError(
+        'CONTRACT.ARGUMENT_INVALID',
+        `Variant model "${refusal.key.owner.name}" restates field "${refusal.key.field}" of its base "${refusal.baseModel}" with a different ${refusal.differences.map(differenceWording).join(' and ')}. A variant's documents are checked against the base's field, so restate it exactly or remove it from the variant.`,
+        {
+          meta: {
+            modelName: refusal.key.owner.name,
+            fieldName: refusal.key.field,
+            baseModel: refusal.baseModel,
+            differences: refusal.differences,
+            reason: 'restated-base-field-differs',
           },
         },
       );
@@ -574,4 +593,17 @@ export function authoringWarningOf(warning: BuildWarning): AuthoringWarning {
     item,
     summary: 'fields use a preset that generates no value',
   };
+}
+
+function differenceWording(difference: RestatedFieldDifference): string {
+  switch (difference) {
+    case 'storedName':
+      return 'stored name';
+    case 'type':
+      return 'type';
+    case 'nullable':
+      return 'nullability';
+    case 'many':
+      return 'list shape';
+  }
 }

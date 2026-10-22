@@ -13,6 +13,7 @@ import type {
   BuildWarning,
   FieldKey,
   IndexNode,
+  RestatedFieldDifference,
 } from '@internal/mongo-contract-ts/contract-builder';
 import type { DiagnosticSource, FieldSymbol, PslDiagnostic, PslSpan } from '@internal/psl-parser';
 import { InternalError } from '@internal/utils/internal-error';
@@ -239,6 +240,12 @@ export function refusalDiagnostic(
         `Fields "${model}.${refusal.firstField}" and "${model}.${refusal.key.field}" are both stored as "${refusal.storedName}". Give each field its own stored name with @map.`,
       );
     }
+    case 'restatedBaseFieldDiffers':
+      return atField(
+        fieldSiteOf(sites, refusal.key),
+        'PSL_VARIANT_FIELD_DIFFERS_FROM_BASE',
+        `Field "${refusal.key.owner.name}.${refusal.key.field}" restates field "${refusal.key.field}" of base model "${refusal.baseModel}" with a different ${refusal.differences.map(differenceWording).join(' and ')}. A variant's documents are checked against the base's field, so declare it exactly as the base does, or remove it from the variant.`,
+      );
     case 'storedNameSharedWithBase':
       return atField(
         fieldSiteOf(sites, refusal.key),
@@ -522,4 +529,17 @@ export function warningDiagnostic(
     'PSL_PRESET_WITHOUT_EFFECT',
     `Field "${warning.key.owner.name}.${warning.key.field}" uses ${preset.helperPath}()${without}, so nothing fills it and it is stored exactly like ${typeName}. Write ${typeName}${pass}.`,
   );
+}
+
+function differenceWording(difference: RestatedFieldDifference): string {
+  switch (difference) {
+    case 'storedName':
+      return '@map';
+    case 'type':
+      return 'type';
+    case 'nullable':
+      return 'optionality';
+    case 'many':
+      return 'list shape';
+  }
 }
