@@ -1,10 +1,13 @@
+import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { resolveAuthoringTypeChoice } from '../src/shared/authoring-type-choice';
 import {
+  type AuthoringTypeConstructorDescriptor,
   type AuthoringTypeNamespace,
   collectScalarTypeConstructors,
   instantiateAuthoringTypeCall,
   typeConstructorLookup,
+  validateAuthoringTypeChoiceParams,
 } from '../src/shared/framework-authoring';
 
 const precision = {
@@ -125,6 +128,54 @@ describe('a type choice in the type namespace', () => {
     expect(collectScalarTypeConstructors(namespace).get('Moment')).toEqual({
       codecId: 'test/wide-date@1',
       typeParams: { precision: 3 },
+    });
+  });
+});
+
+describe('validateAuthoringTypeChoiceParams', () => {
+  const paramsSchema = type({ 'precision?': 'number <= 6' });
+  const check = (
+    chosen: AuthoringTypeConstructorDescriptor,
+    typeParams: Record<string, unknown>,
+  ) => {
+    try {
+      validateAuthoringTypeChoiceParams(
+        'Moment',
+        namespace.Moment,
+        chosen,
+        typeParams,
+        paramsSchema,
+      );
+    } catch (error) {
+      const { message, details } = error as { message: string; details: unknown };
+      return { message, details };
+    }
+    return undefined;
+  };
+
+  it('passes parameters the codec accepts', () => {
+    expect(check(namespace.WideDate, { precision: 6 })).toBeUndefined();
+  });
+
+  it('names the argument of the choice a refused parameter came from', () => {
+    expect(check(namespace.WideDate, { precision: 7 })).toEqual({
+      message: expect.stringMatching(
+        /^Argument "precision" of Moment is invalid: precision must be/,
+      ),
+      details: { helperPath: 'Moment', argumentIndex: 2 },
+    });
+  });
+
+  it('names the type parameters when a refused parameter came from no argument', () => {
+    const fixed: AuthoringTypeConstructorDescriptor = {
+      kind: 'typeConstructor',
+      output: { codecId: 'test/fixed@1', typeParams: { precision: 9 } },
+    };
+    expect(check(fixed, { precision: 9 })).toEqual({
+      message: expect.stringMatching(
+        /^The type parameters of Moment are invalid: precision must be/,
+      ),
+      details: { helperPath: 'Moment' },
     });
   });
 });
