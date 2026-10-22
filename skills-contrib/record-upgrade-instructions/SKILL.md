@@ -109,7 +109,7 @@ Use a disposable checkout for the restoration steps so unrelated working changes
 
 ### Extension entry (against `packages/3-extensions/`)
 
-The target facades in `packages/3-targets/*/9-facade/` are extension code too. When the PR changes one, add its folder to every path in the commands below.
+The target facades, every folder matching `packages/3-targets/*/9-facade/`, are extension code too; the check covers a new database's facade without any change to the script. When the PR changes one, add its folder to every path in the commands below.
 
 1. Check out `<head>`, which has the framework change applied.
 2. Revert `packages/3-extensions/` to its pre-PR state (`git restore --source=<base> -- packages/3-extensions/`).

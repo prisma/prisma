@@ -58,14 +58,15 @@ const COVERED_DIRECTORIES = [
   { audience: 'app', directories: ['examples/'] },
   {
     audience: 'extension',
-    directories: [
-      'packages/3-extensions/',
-      'packages/3-targets/postgres/9-facade/',
-      'packages/3-targets/sqlite/9-facade/',
-      'packages/3-targets/mongo/9-facade/',
-    ],
+    directories: ['packages/3-extensions/', 'packages/3-targets/*/9-facade/'],
   },
 ];
+function directoryPattern(directory) {
+  return new RegExp(`^${directory.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replaceAll('*', '[^/]+')}`);
+}
+function isUnderDirectory(path, directory) {
+  return directoryPattern(directory).test(path);
+}
 function gitWith(options, repoRoot, ...args) {
   return execFileSync('git', args, {
     cwd: repoRoot,
@@ -108,10 +109,10 @@ function tree(repoRoot, ref) {
  * The listing grows with the change, so it is read without the default 1 MiB limit on output.
  */
 function changedPaths(repoRoot, prev, head) {
-  const directories = [
+  const pathspecs = [
     ...COVERED_DIRECTORIES.flatMap(({ directories }) => directories),
     PUBLISHED_ROOT,
-  ];
+  ].map((directory) => `:(glob)${directory}**`);
   return gitWith(
     { maxBuffer: Number.POSITIVE_INFINITY },
     repoRoot,
@@ -122,7 +123,7 @@ function changedPaths(repoRoot, prev, head) {
     prev,
     head,
     '--',
-    ...directories,
+    ...pathspecs,
   )
     .split('\0')
     .filter(Boolean);
@@ -323,7 +324,7 @@ export function runCheck({ repoRoot, head = 'HEAD', prev, mode = 'pr' }) {
     for (const { audience, directories } of COVERED_DIRECTORIES) {
       const relevant = changed.filter(
         (path) =>
-          directories.some((directory) => path.startsWith(directory)) &&
+          directories.some((directory) => isUnderDirectory(path, directory)) &&
           !isTranslationIrrelevant(repoRoot, prev, head, path),
       );
       if (
