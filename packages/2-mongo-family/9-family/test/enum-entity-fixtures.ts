@@ -191,6 +191,11 @@ export function makeContext(diagnostics: unknown[]): AuthoringEntityContext {
     target: 'mongo',
     codecLookup: testCodecLookup,
     dataTypeLookup: testDataTypes,
+    dataTypes: {
+      entries: {},
+      lookup: testDataTypes,
+      dataTypeOfCodec: (codecId) => testCodecLookup.descriptorFor(codecId)?.dataType,
+    },
     sourceId: 'schema.prisma',
     diagnostics: sink,
     enumInferenceCodecs: { text: TEXT_CODEC_ID, int: INT_CODEC_ID },

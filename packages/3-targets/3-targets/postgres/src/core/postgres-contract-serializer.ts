@@ -23,6 +23,7 @@ import type { Type } from 'arktype';
 import { postgresAuthoringEntityTypes } from './authoring';
 import { PG_INT_CODEC_ID, PG_TEXT_CODEC_ID } from './codec-ids';
 import { createPostgresBuiltinCodecLookup } from './codec-registry';
+import { postgresDataTypeEntries } from './data-type-entries';
 import { createPostgresBuiltinDataTypeLookup } from './data-types';
 import {
   nativeEnumEntityKind,
@@ -34,11 +35,19 @@ import { assertFullTextIndexes } from './full-text-index-definition';
 import { postgresCodecTraitsOf } from './postgres-codec-traits';
 import { PostgresSchema } from './postgres-schema';
 
+const POSTGRES_CODEC_LOOKUP = createPostgresBuiltinCodecLookup();
+const POSTGRES_DATA_TYPE_LOOKUP = createPostgresBuiltinDataTypeLookup();
+
 const POSTGRES_AUTHORING_CTX: AuthoringEntityContext = {
   family: 'sql',
   target: 'postgres',
-  codecLookup: createPostgresBuiltinCodecLookup(),
-  dataTypeLookup: createPostgresBuiltinDataTypeLookup(),
+  codecLookup: POSTGRES_CODEC_LOOKUP,
+  dataTypeLookup: POSTGRES_DATA_TYPE_LOOKUP,
+  dataTypes: {
+    entries: postgresDataTypeEntries(),
+    lookup: POSTGRES_DATA_TYPE_LOOKUP,
+    dataTypeOfCodec: (codecId) => POSTGRES_CODEC_LOOKUP.descriptorFor(codecId)?.dataType,
+  },
   enumInferenceCodecs: { text: PG_TEXT_CODEC_ID, int: PG_INT_CODEC_ID },
 };
 

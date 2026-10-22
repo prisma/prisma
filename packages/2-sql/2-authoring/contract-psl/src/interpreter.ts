@@ -115,11 +115,7 @@ import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { contractError } from './contract-errors';
-import {
-  type DefaultColumn,
-  lowerDataTypeDefault,
-  readWrittenValueForCodec,
-} from './data-type-default';
+import { type DefaultColumn, lowerDataTypeDefault } from './data-type-default';
 import { defaultTableName } from './default-table-name';
 import {
   getAttribute,
@@ -1046,6 +1042,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
         target: input.targetId,
         codecLookup: input.codecLookup,
         dataTypeLookup: input.dataTypes.lookup,
+        dataTypes: input.dataTypes,
         modelName: model.name,
         storageName: tableName,
         fieldStorageName: (fieldName) => {
@@ -2275,6 +2272,7 @@ export function interpretPslDocumentToSqlContract(
       target: input.target.targetId,
       codecLookup: input.codecLookup,
       dataTypeLookup: input.dataTypes.lookup,
+      dataTypes: input.dataTypes,
       sourceId: source.sources.sourceFileFor(source.node).filename,
       diagnostics: {
         push: (d) => {
@@ -2283,16 +2281,6 @@ export function interpretPslDocumentToSqlContract(
           );
         },
       },
-      readWrittenValueForCodec: ({ written, codecId, subject }) =>
-        input.codecLookup.descriptorFor(codecId) === undefined
-          ? undefined
-          : readWrittenValueForCodec({
-              written,
-              codecId,
-              codecLookup: input.codecLookup,
-              dataTypes: input.dataTypes,
-              subject,
-            }),
       ...ifDefined('enumInferenceCodecs', input.enumInferenceCodecs),
     },
     diagnostics,
@@ -2328,6 +2316,7 @@ export function interpretPslDocumentToSqlContract(
     ...ifDefined('enumInferenceCodecs', input.enumInferenceCodecs),
     codecLookup: input.codecLookup,
     dataTypeLookup: input.dataTypes.lookup,
+    dataTypes: input.dataTypes,
     sourceId: source.sources.sourceFileFor(source.node).filename,
     diagnostics: {
       push: (d) => {

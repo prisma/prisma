@@ -2,7 +2,10 @@ import type { JsonValue } from '@internal/contract/types';
 import type {
   AuthoringDiagnosticSink,
   AuthoringEntityContext,
+  DataTypeAuthoringEntry,
+  DataTypeSupport,
   ParsedPslExtensionBlock,
+  WrittenValue,
 } from '@internal/framework-components/authoring';
 import type {
   AnyCodecDescriptor,
@@ -42,6 +45,7 @@ export function enumBlock(input: {
     keyword: 'enum',
     name: input.name,
     values: input.values,
+    writtenValues: writtenValuesOf(input.values),
     parameterSpans: Object.fromEntries(Object.keys(input.values).map((key) => [key, SPAN])),
     attributes:
       input.typeCodecId !== undefined
@@ -55,6 +59,19 @@ export function enumBlock(input: {
         : {},
     span: SPAN,
   };
+}
+
+/** Each member's value as PSL writes it, as the block interpreter records it. */
+function writtenValuesOf(
+  values: Record<string, string | number | boolean | undefined>,
+): Record<string, WrittenValue> {
+  const written: Record<string, WrittenValue> = {};
+  for (const [name, value] of Object.entries(values)) {
+    if (typeof value === 'string') written[name] = { kind: 'string', text: value };
+    if (typeof value === 'number') written[name] = { kind: 'number', text: String(value) };
+    if (typeof value === 'boolean') written[name] = { kind: 'boolean', value };
+  }
+  return written;
 }
 
 export const TEXT_CODEC_ID = 'pg/text@1';
@@ -168,18 +185,51 @@ export const testCodecLookup: CodecLookupWithDescriptors = {
       } as unknown as AnyCodecDescriptor;
     }
     const dataType = dataTypeOfCodec[id];
-    return dataType === undefined
+    const codec = testCodecLookup.get(id);
+    return dataType === undefined || codec === undefined
       ? undefined
       : ({
           codecId: id,
           dataType: dataType.id,
           traits: ['equality'],
-        } as unknown as AnyCodecDescriptor);
+          paramsSchema: undefined,
+          isParameterized: false,
+          factory: () => () => codec,
+        } satisfies AnyCodecDescriptor);
   },
   renderOutputTypeFor: () => undefined,
 };
 
 export const testDataTypes = createDataTypeLookup([textType, intType, jsonType, vectorType]);
+
+const testEntries: Readonly<Record<string, DataTypeAuthoringEntry>> = {
+  [textType.id]: {
+    written: { kind: 'plain', syntax: 'string', parse: (text) => text },
+    print: (value) => String(value),
+    documentation: 'Text.',
+  },
+  [intType.id]: {
+    written: {
+      kind: 'plain',
+      syntax: 'number',
+      types: [intType.id],
+      classify: (text) => ({ type: intType.id, value: Number(text) }),
+    },
+    print: (value) => String(value),
+    documentation: 'A number.',
+  },
+  [jsonType.id]: {
+    written: { kind: 'tag', tag: 'json', parse: (text) => JSON.parse(text) },
+    print: (value) => JSON.stringify(value),
+    documentation: 'A JSON document.',
+  },
+};
+
+export const testDataTypeSupport: DataTypeSupport = {
+  entries: testEntries,
+  lookup: testDataTypes,
+  dataTypeOfCodec: (codecId) => dataTypeOfCodec[codecId]?.id,
+};
 
 export function makeContext(diagnostics: unknown[]): AuthoringEntityContext {
   const sink: AuthoringDiagnosticSink = {
@@ -190,6 +240,7 @@ export function makeContext(diagnostics: unknown[]): AuthoringEntityContext {
     target: 'postgres',
     codecLookup: testCodecLookup,
     dataTypeLookup: testDataTypes,
+    dataTypes: testDataTypeSupport,
     sourceId: 'schema.prisma',
     diagnostics: sink,
     enumInferenceCodecs: { text: TEXT_CODEC_ID, int: INT_CODEC_ID },

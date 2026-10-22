@@ -4,13 +4,13 @@ import {
   type AuthoringEntityTypeNamespace,
   type AuthoringPslBlockDescriptorNamespace,
   type ParsedPslExtensionBlock,
-  readEnumBlockMembers,
   resolveEnumCodecId,
 } from '@internal/framework-components/authoring';
 import { enumRefusalOf } from '@internal/framework-components/codec';
 import { type EnumTypeHandle, enumType } from '@internal/mongo-contract-ts/contract-builder';
 import type { InferBlock, PslBlockSpecDescriptor } from '@internal/psl-parser';
 import { blockAttribute, jsonValue, mapBlock, str } from '@internal/psl-parser';
+import { readJsonEnumMembers } from './json-enum-members';
 
 export function mongoFamilyEnumSpec() {
   return mapBlock({
@@ -73,7 +73,7 @@ export const mongoFamilyEnumEntityDescriptor = {
         return undefined;
       }
 
-      const members = readEnumBlockMembers(block, codecId, codec, ctx);
+      const members = readJsonEnumMembers(block, codecId, codec, ctx);
       if (members === undefined) return undefined;
 
       return enumType(block.name, { codecId }, ...members);

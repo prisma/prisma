@@ -26,6 +26,7 @@ import {
   instantiateAuthoringEntityType,
   isAuthoringEntityTypeDescriptor,
   type ParsedPslExtensionBlock,
+  type WrittenValue,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
@@ -512,6 +513,7 @@ function buildEnum(
     diagnostics.push(unknownAttribute(`Enum "${block.name}"`, attribute, '@@', sourceId));
   }
   const values: Record<string, string> = Object.create(null);
+  const writtenValues: Record<string, WrittenValue> = Object.create(null);
   const parameterSpans: Record<string, PslSpan> = Object.create(null);
   for (const entry of block.entries) {
     const name = entry.key()?.name();
@@ -530,6 +532,7 @@ function buildEnum(
       }
     }
     values[name] = value;
+    writtenValues[name] = { kind: 'string', text: value };
     parameterSpans[name] = nodePslSpan(entry.syntax, sources);
   }
   const descriptor = input.authoringContributions.entityTypes['enum'];
@@ -547,6 +550,7 @@ function buildEnum(
     target: input.binding.target.targetId,
     codecLookup: input.codecLookup,
     dataTypeLookup: input.dataTypes.lookup,
+    dataTypes: input.dataTypes,
     sourceId,
     enumInferenceCodecs: {
       text: input.binding.scalarCodecIds.String,
@@ -571,6 +575,7 @@ function buildEnum(
         keyword: 'enum',
         name: block.name,
         values,
+        writtenValues,
         parameterSpans,
         attributes: {},
         span: block.span,

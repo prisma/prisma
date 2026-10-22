@@ -24,6 +24,7 @@ const ctx: AuthoringEntityContext = {
   target: 'postgres',
   codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
   dataTypeLookup: createDataTypeLookup([]),
+  dataTypes: { entries: {}, lookup: createDataTypeLookup([]), dataTypeOfCodec: () => undefined },
 };
 
 const badgeDescriptor: AuthoringEntityTypeDescriptor = {

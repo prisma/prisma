@@ -36,6 +36,7 @@ import {
 } from '@internal/contract-authoring';
 import type {
   AuthoringArgumentDescriptor,
+  AuthoringEntityContext,
   AuthoringFieldNamespace,
   AuthoringFieldPresetDescriptor,
 } from '@internal/framework-components/authoring';
@@ -1196,6 +1197,27 @@ function composeMongoFieldHelpers(
   return { ...field, ...presetHelpers };
 }
 
+/** The context an entity helper's factory runs in. The builder reads no written values, so its data types carry no authoring entries. */
+function entityContextOf(
+  familyId: string,
+  targetId: string,
+  components: Parameters<typeof extractCodecLookup>[0],
+): AuthoringEntityContext {
+  const codecLookup = extractCodecLookup(components);
+  const lookup = assembleDataTypes(components).lookup;
+  return {
+    family: familyId,
+    target: targetId,
+    codecLookup,
+    dataTypeLookup: lookup,
+    dataTypes: {
+      entries: {},
+      lookup,
+      dataTypeOfCodec: (codecId) => codecLookup.descriptorFor(codecId)?.dataType,
+    },
+  };
+}
+
 function composeMongoAuthoringHelpers<
   Family extends FamilyPackRef<string>,
   Target extends TargetPackRef<string, string>,
@@ -1229,12 +1251,7 @@ function composeMongoAuthoringHelpers<
     'entity and field preset helpers are built by a runtime walk of the pack namespaces, which returns Record<string, unknown>; their static shape comes from the pack type parameters'
   >({
     ...createEntityHelpersFromNamespace(entityNamespace, {
-      ctx: {
-        family: family.familyId,
-        target: target.targetId,
-        codecLookup: extractCodecLookup(components),
-        dataTypeLookup: assembleDataTypes(components).lookup,
-      },
+      ctx: entityContextOf(family.familyId, target.targetId, components),
     }),
     field: composeMongoFieldHelpers(fieldNamespace),
     gen: createGeneratorHelpers(components),

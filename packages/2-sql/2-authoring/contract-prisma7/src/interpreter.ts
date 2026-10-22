@@ -7,6 +7,7 @@ import type {
   AuthoringEntityContext,
   AuthoringEntityTypeDescriptor,
   DataTypeSupport,
+  WrittenValue,
 } from '@internal/framework-components/authoring';
 import {
   getAuthoringTypeConstructor,
@@ -953,6 +954,7 @@ function lowerNativeEnums(
       target: input.binding.target.targetId,
       codecLookup: input.codecLookup,
       dataTypeLookup: input.dataTypes.lookup,
+      dataTypes: input.dataTypes,
       sourceId: declaration.sourceId,
       diagnostics: {
         push: (diagnostic) => {
@@ -965,9 +967,11 @@ function lowerNativeEnums(
       },
     };
     const values: Record<string, string> = Object.create(null);
+    const writtenValues: Record<string, WrittenValue> = Object.create(null);
     const parameterSpans: Record<string, PslSpan> = Object.create(null);
     for (const member of declaration.members) {
       values[member.name] = member.value;
+      writtenValues[member.name] = { kind: 'string', text: member.value };
       parameterSpans[member.name] = member.span;
     }
     const block: ParsedPslExtensionBlock<Record<string, string>> & {
@@ -977,6 +981,7 @@ function lowerNativeEnums(
       keyword: entityKind,
       name: declaration.name,
       values,
+      writtenValues,
       parameterSpans,
       attributes: { map: { args: { name: declaration.typeName }, span: declaration.span } },
       span: declaration.span,

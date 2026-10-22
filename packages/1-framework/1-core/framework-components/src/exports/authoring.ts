@@ -158,5 +158,6 @@ export {
   knownTags,
   readWrittenValue,
   readWrittenValueAs,
+  readWrittenValueInto,
   tagForm,
 } from '../shared/written-value';
