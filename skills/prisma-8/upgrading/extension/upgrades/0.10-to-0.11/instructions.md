@@ -156,9 +156,9 @@ If your extension exposes a facade in the same shape (e.g. you publish your own 
 
 Reference implementations in this repo:
 
-- `packages/3-targets/postgres/9-facade/src/runtime/postgres.ts` (full pattern; `{ url }` vs `{ pool }` ownership)
-- `packages/3-targets/sqlite/9-facade/src/runtime/sqlite.ts` (only-`{ path }` shape; the facade always owns)
-- `packages/3-targets/mongo/9-facade/src/runtime/mongo.ts` (`{ url }` vs `{ mongoClient }`)
+- `packages/3-extensions/postgres/src/runtime/postgres.ts` (full pattern; `{ url }` vs `{ pool }` ownership)
+- `packages/3-extensions/sqlite/src/runtime/sqlite.ts` (only-`{ path }` shape; the facade always owns)
+- `packages/3-extensions/mongo/src/runtime/mongo.ts` (`{ url }` vs `{ mongoClient }`)
 
 The `[Symbol.asyncDispose]` alias is one line — delegate to `close()` — and enables the TS 5.2+ `await using db = yourFacade(...)` syntax. There is no good reason not to add both methods together.
 

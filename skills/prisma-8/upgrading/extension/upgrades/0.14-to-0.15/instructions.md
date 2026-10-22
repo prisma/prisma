@@ -519,7 +519,7 @@ SQL assertions updated for parameterised queries). No extension-author API
 changed. Incidental substrate diff only.
 
 TML-2884 (Mongo enum end-to-end vertical): adds the Mongo domain-enum authoring
-surface. The `packages/3-targets/mongo/9-facade/` touches are:
+surface. The `packages/3-extensions/mongo/` touches are:
 - New `mongo/src/contract/enum-type.ts` and exports in `mongo/src/exports/contract-builder.ts`
   (`enumType`, `member`, `EnumTypeHandle`, `EnumMember`) — all net-new exports; nothing
   existing was changed or removed.
