@@ -117,7 +117,7 @@ describe('a supabase client given a URL', () => {
       throw new Error('driver creation failed');
     });
 
-    expect(() => anon.query(plan)).toThrow('driver creation failed');
+    await expect(anon.query(plan).toArray()).rejects.toThrow('driver creation failed');
     expect(created.pools).toBe(0);
 
     await anon.query(plan).toArray();
@@ -139,7 +139,7 @@ describe('a supabase client given a URL', () => {
 
     await expect(anon.query(plan).toArray()).rejects.toThrow();
 
-    expect(() => anon.query(plan)).toThrow('connect failed');
+    await expect(anon.query(plan).toArray()).rejects.toThrow('connect failed');
     expect(created.poolEnds).toBe(1);
   });
 
@@ -153,9 +153,10 @@ describe('a supabase client given a URL', () => {
     await db.close();
 
     expect(created.poolEnds).toBe(0);
-    expect(() => anon.query(plan)).toThrow(
-      expect.objectContaining({ code: 'DRIVER.NOT_CONNECTED' }),
-    );
+    await expect(anon.query(plan).toArray()).rejects.toMatchObject({
+      code: 'DRIVER.NOT_CONNECTED',
+      message: 'Runtime is closed',
+    });
   });
 
   it('makes every concurrent close() wait for the pool to end', async () => {
@@ -186,10 +187,14 @@ describe('a supabase client given a URL', () => {
 
     await db.close();
 
+    const anon = db.asAnon();
+    const plan = anon.sql.public.profile.select('id').build();
+    const closedError = { code: 'DRIVER.NOT_CONNECTED', message: 'Runtime is closed' };
+
     expect(created.pools).toBe(0);
-    expect(() => db.asAnon().query(db.asAnon().sql.public.profile.select('id').build())).toThrow(
-      expect.objectContaining({ code: 'DRIVER.NOT_CONNECTED' }),
-    );
+    await expect(anon.query(plan).toArray()).rejects.toMatchObject(closedError);
+    await expect(anon.execute(plan)).rejects.toMatchObject(closedError);
+    await expect(anon.orm.public.Profile.all()).rejects.toMatchObject(closedError);
     expect(created.pools).toBe(0);
   });
 
