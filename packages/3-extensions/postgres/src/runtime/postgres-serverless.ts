@@ -120,7 +120,6 @@ export default function postgresServerless<
     stack,
     driver: postgresDriver,
   });
-  const rawCodecInferer = stack.adapter.rawCodecInferer;
   const { sql, raw, enums, nativeEnums, toSql } = buildPostgresStaticContext<TContract>(
     contract,
     context,
@@ -131,7 +130,8 @@ export default function postgresServerless<
     buildPostgresRuntimeBoundMembers<TContract, TCollections>({
       context,
       collections: options.collections,
-      rawCodecInferer,
+      sql,
+      raw,
       enums,
       nativeEnums,
       toSql,

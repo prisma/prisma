@@ -104,6 +104,8 @@ describe('enums and nativeEnums on a role-bound client', () => {
     const inTransaction = await user.transaction(async (tx) => ({
       enums: tx.enums,
       nativeEnums: tx.nativeEnums,
+      sql: tx.sql,
+      raw: tx.raw,
     }));
     await db.close();
 
@@ -111,6 +113,8 @@ describe('enums and nativeEnums on a role-bound client', () => {
     for (const client of [user, admin, inTransaction]) {
       expect(client.enums).toBe(anon.enums);
       expect(client.nativeEnums).toBe(anon.nativeEnums);
+      expect(client.sql).toBe(anon.sql);
+      expect(client.raw).toBe(anon.raw);
     }
   });
 });

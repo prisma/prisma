@@ -350,7 +350,6 @@ export default async function supabase<
   const context = createExecutionContext({ contract, stack });
 
   checkCollectionClasses(contract, options.collections);
-  const rawCodecInferer = stack.adapter.rawCodecInferer;
 
   const {
     sql: appSql,
@@ -481,14 +480,13 @@ export default async function supabase<
                 {
                   context,
                   collections: options.collections,
-                  rawCodecInferer,
+                  sql: appSql,
+                  raw,
                   toSql,
                   prepareRuntime: runtime,
                 },
                 txCtx,
               ),
-              sql: appSql,
-              raw,
               enums,
               nativeEnums,
             }),
