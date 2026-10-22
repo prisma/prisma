@@ -52,6 +52,7 @@ describe('@internal/driver-postgres control', () => {
       database: 'test',
       user: '',
       password: '',
+      port: '',
       options: '-c DateStyle=ISO',
     };
     expect(configs).toEqual([{ ...connection, connectionTimeoutMillis: 3000 }, connection]);
