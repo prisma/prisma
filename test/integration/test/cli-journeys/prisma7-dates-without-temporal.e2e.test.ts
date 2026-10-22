@@ -104,6 +104,8 @@ try {
 }
 `;
 
+const TOKYO_UTC_OFFSET_MILLIS = 9 * 60 * 60 * 1000;
+
 const DATE_COLUMN_CODECS = {
   createdAt: 'pg/timestamp-string@1',
   updatedAt: 'pg/timestamp-string@1',
@@ -152,14 +154,21 @@ function expectNow(timestampText: string, before: number, after: number): void {
   expect(millis, timestampText).toBeLessThanOrEqual(after + 1_000);
 }
 
-async function runApp(ctx: JourneyContext, connectionString: string, writes: unknown) {
+async function runApp(
+  ctx: JourneyContext,
+  connectionString: string,
+  writes: unknown,
+  expectedSessionUtcOffsetSeconds = 0,
+) {
   const sessionUtcOffset = await withClient(connectionString, async (client) => {
     const { rows } = await client.query<{ seconds: number }>(
       'SELECT EXTRACT(TIMEZONE FROM CURRENT_TIMESTAMP)::int AS seconds',
     );
     return rows[0]?.seconds;
   });
-  expect(sessionUtcOffset, 'createdAt is CURRENT_TIMESTAMP in the session time zone').toBe(0);
+  expect(sessionUtcOffset, 'createdAt is CURRENT_TIMESTAMP in the session time zone').toBe(
+    expectedSessionUtcOffsetSeconds,
+  );
   const script = join(ctx.testDir, 'app.mjs');
   writeFileSync(script, APP_SCRIPT, 'utf-8');
   const before = Date.now();
@@ -293,6 +302,54 @@ withTempDir(({ createTempDir }) => {
             utcMillis(result.created.updatedAt),
           );
           expect(result.readAfterUpdate).toEqual(result.updated);
+        },
+        timeouts.spinUpPpgDev * 2,
+      );
+    });
+
+    describe('through prisma7Schema(...), on a session in Asia/Tokyo', () => {
+      const db = useDevDatabase({
+        onReady: (cs) => withClient(cs, (client) => client.query(PRISMA7_SQL)),
+      });
+
+      it(
+        'stores the current UTC time on a create, and a raw INSERT still gets the database default',
+        async () => {
+          const ctx = setupPrisma7Project(createTempDir, db.connectionString);
+          const emit = await runContractEmit(ctx);
+          expect(emit.exitCode, `contract emit\n${output(emit)}`).toBe(0);
+          const sign = await runDbSign(ctx);
+          expect(sign.exitCode, `db sign\n${output(sign)}`).toBe(0);
+          // The dev database serves every connection from one session, so the application's
+          // connection starts in this time zone too.
+          await withClient(db.connectionString, (client) =>
+            client.query("SET TIME ZONE 'Asia/Tokyo'"),
+          );
+
+          const { result, before, after } = await runApp(
+            ctx,
+            db.connectionString,
+            { create: { title: 'a', ...WRITTEN }, update: { title: 'b' } },
+            9 * 60 * 60,
+          );
+          expectNow(result.created.createdAt, before, after);
+          expect(result.readAfterCreate).toEqual(result.created);
+
+          const rawBefore = Date.now();
+          const raw = await withClient(db.connectionString, (client) =>
+            client.query<{ createdAt: string }>(
+              `INSERT INTO "Event" ("title", "updatedAt", "happensAt", "day", "opensAt")
+               VALUES ('raw', now(), now(), current_date, current_time)
+               RETURNING "createdAt"::text AS "createdAt"`,
+            ),
+          );
+          const rawAfter = Date.now();
+          const rawCreatedAt = raw.rows[0]?.createdAt ?? '';
+          expectNow(
+            rawCreatedAt,
+            rawBefore + TOKYO_UTC_OFFSET_MILLIS,
+            rawAfter + TOKYO_UTC_OFFSET_MILLIS,
+          );
         },
         timeouts.spinUpPpgDev * 2,
       );
