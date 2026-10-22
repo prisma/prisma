@@ -9,11 +9,14 @@ import {
   formatted,
   HASHES,
   initialHashes,
+  makeWorkDir,
   postColumns,
   readTree,
   removeWorkDirs,
   runScript,
+  type Tree,
   withoutMigration,
+  writeTree,
 } from './test-helpers';
 
 afterAll(removeWorkDirs);
@@ -112,6 +115,24 @@ describe('expand-type-aliases', () => {
       stdout: summary(7, 2),
       stderr: '',
       tree: fixtureTree('after'),
+    });
+  });
+
+  it('reads past quotes and braces inside comments in contract.d.ts', () => {
+    const comment = "// The column's type comes from the alias\n/* a stray { brace */\n";
+    const withComments = (tree: Tree): Tree =>
+      Object.fromEntries(
+        Object.entries(tree).map(([path, text]) => [
+          path,
+          path.endsWith('contract.d.ts') ? comment + text : text,
+        ]),
+      );
+    const root = makeWorkDir();
+    writeTree(root, withComments(fixtureTree('before')));
+    const run = runScript(root);
+    expect({ status: run.status, tree: formatted(readTree(run.root)) }).toEqual({
+      status: 0,
+      tree: withComments(fixtureTree('after')),
     });
   });
 

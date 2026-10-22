@@ -544,6 +544,16 @@ function scanBlocks(text: string): Block[] {
       else if (char === quote) quote = undefined;
       continue;
     }
+    if (char === '/' && text[index + 1] === '/') {
+      const end = text.indexOf('\n', index);
+      index = end === -1 ? text.length : end;
+      continue;
+    }
+    if (char === '/' && text[index + 1] === '*') {
+      const end = text.indexOf('*/', index + 2);
+      index = end === -1 ? text.length : end + 1;
+      continue;
+    }
     if (char === "'" || char === '"' || char === '`') {
       quote = char;
       continue;
