@@ -150,12 +150,12 @@ function renderContributedTypeContent(
     symbol.descriptor.kind === 'fieldPreset' ? undefined : symbol.descriptor.documentation;
   const content = withDocumentation(fence, documentation);
   return symbol.descriptor.kind === 'typeChoice'
-    ? `${content}\n\n${renderTypeChoiceTable(symbol.descriptor)}`
+    ? `${content}\n\n${renderTypeChoices(symbol.descriptor)}`
     : content;
 }
 
 /** Each combination of a type choice's options, as written, and the explicit type it becomes. */
-function renderTypeChoiceTable(descriptor: AuthoringTypeChoiceDescriptor): string {
+function renderTypeChoices(descriptor: AuthoringTypeChoiceDescriptor): string {
   const options = descriptor.args.filter(isAuthoringTypeChoiceOption);
   const cell = (value: string | undefined, option: AuthoringTypeChoiceOption) =>
     value === option.default ? `${value} (default)` : (value ?? '');
