@@ -677,6 +677,10 @@ export function createSqlFamilyInstance<TTargetId extends string>(
     codecTypeImports,
     extensionIds,
 
+    get markerLocation(): string {
+      return getControlAdapter().markerLocation;
+    },
+
     deserializeContract(contractJson: unknown): Contract {
       return loadContract(contractJson);
     },

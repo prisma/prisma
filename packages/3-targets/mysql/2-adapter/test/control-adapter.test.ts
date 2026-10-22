@@ -57,6 +57,10 @@ describe('MysqlControlAdapter', () => {
     });
   });
 
+  it('names its marker table', () => {
+    expect(createAdapter().markerLocation).toBe('_prisma_marker');
+  });
+
   it('reads no marker from a database without the marker table', async () => {
     const adapter = createAdapter();
     const driver = catalogDriver([], []);

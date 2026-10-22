@@ -30,6 +30,9 @@ export interface ControlFamilyInstance<TFamilyId extends string, TSchemaIR>
   /** The name the database knows the object an operation acts on by. */
   storageNameOf(operation: MigrationPlanOperation): string;
 
+  /** Where the database keeps the contract markers, as messages name it to the user, such as `prisma_contract.marker`. The control adapter names it. */
+  readonly markerLocation: string;
+
   verify(options: {
     readonly driver: ControlDriverInstance<TFamilyId, string>;
     readonly contract: unknown;

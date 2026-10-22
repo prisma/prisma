@@ -803,8 +803,6 @@ export interface TargetMigrationsCapability<
     unknown
   >,
 > {
-  /** Where the database keeps the contract markers, as messages name it to the user, such as `prisma_contract.marker`. */
-  readonly markerLocation: string;
   createPlanner(
     adapter: ControlAdapterInstance<TFamilyId, TTargetId>,
   ): MigrationPlanner<TFamilyId, TTargetId>;

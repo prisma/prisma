@@ -66,7 +66,6 @@ function makeStubMigrations(
   planner: MigrationPlanner<'sql', 'postgres'>,
 ): TargetMigrationsCapability<'sql', 'postgres', ControlFamilyInstance<'sql', unknown>> {
   return {
-    markerLocation: 'prisma_contract.marker',
     createPlanner: () => planner,
     createRunner: () => {
       throw new Error('runner not used by planner');

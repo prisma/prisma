@@ -1,12 +1,12 @@
 ---
 changes:
-  - id: target-migrations-marker-location
+  - id: control-adapter-marker-location
     summary: |
-      `TargetMigrationsCapability` (from `@prisma/orm-framework/components/control`) has a new required field, `markerLocation`: the name of the table or collection that holds the contract markers, which messages show the user. A target's `migrations` object must set it.
+      `SqlControlAdapter` (from `@prisma/orm-family-sql/family/control-adapter`) and `MongoControlAdapter` (from `@prisma/orm-family-mongo/family/control-adapter`) have a new required field, `markerLocation`: the name of the table or collection that holds the contract markers, which messages show the user. `ControlFamilyInstance` (from `@prisma/orm-framework/components/control`) has it too; the SQL and Mongo families read it from the control adapter.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
-        - '(?<![\s\S])(?![\s\S]*markerLocation)[\s\S]*\bmigrations\s*:\s*\{[\s\S]*\bcreateRunner\b'
+        - '(?<![\s\S])(?![\s\S]*markerLocation)[\s\S]*\bimplements\s+(?:SqlControlAdapter|MongoControlAdapter)\b'
   - id: verify-contract-spaces-marker-location
     summary: |
       `verifyContractSpaces` (from the `spaces` subpath of the migration tools) takes a required `markerLocation`, the name of the target's marker table or collection, which the remediation of an orphan marker names.
@@ -16,27 +16,27 @@ changes:
         - '(?<![\w$])verifyContractSpaces\s*\('
 ---
 
-# A target names where it keeps its markers
+# A control adapter names where it keeps its markers
 
-Add `markerLocation` to the `migrations` object of your target descriptor, so messages about the contract markers name the right table:
+Add `markerLocation` to your control adapter, so messages about the contract markers name the right table:
 
 ```ts
 // Before
-migrations: {
-  createPlanner(adapter) { … },
-  createRunner(family) { … },
-  contractToSchema(contract, frameworkComponents) { … },
-},
+export class MyControlAdapter implements SqlControlAdapter<'my-target'> {
+  readonly familyId = 'sql' as const;
+  readonly targetId = 'my-target' as const;
+  …
+}
 
 // After
-migrations: {
-  markerLocation: 'my_schema.marker',
-  createPlanner(adapter) { … },
-  createRunner(family) { … },
-  contractToSchema(contract, frameworkComponents) { … },
-},
+export class MyControlAdapter implements SqlControlAdapter<'my-target'> {
+  readonly familyId = 'sql' as const;
+  readonly targetId = 'my-target' as const;
+  readonly markerLocation = 'my_schema.marker';
+  …
+}
 ```
 
-A test double that builds a `TargetMigrationsCapability` sets it too.
+A test double that builds a control adapter or a `ControlFamilyInstance` sets it too.
 
 A call to `verifyContractSpaces` passes the marker location of the target it verifies, such as `markerLocation: 'prisma_contract.marker'` for Postgres or `'_prisma_marker'` for SQLite.

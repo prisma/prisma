@@ -255,7 +255,11 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
   // run would do. Apply mode tells the user to clean up the orphan
   // before silently advancing the app's marker.
   if (mode === 'apply') {
-    const orphanMarkerError = detectOrphanMarkers(aggregate, markerRows, migrations.markerLocation);
+    const orphanMarkerError = detectOrphanMarkers(
+      aggregate,
+      markerRows,
+      familyInstance.markerLocation,
+    );
     if (orphanMarkerError !== null) {
       throw orphanMarkerError;
     }

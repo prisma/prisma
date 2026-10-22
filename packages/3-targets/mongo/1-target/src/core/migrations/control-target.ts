@@ -43,7 +43,6 @@ export const mongoTargetDescriptor: MongoControlTargetDescriptor<MongoTargetCont
   contractSerializer: new MongoTargetContractSerializer(),
   schemaVerifier: new MongoTargetSchemaVerifier(),
   migrations: {
-    markerLocation: '_prisma_migrations',
     createPlanner(_adapter: MongoControlAdapter<'mongo'>) {
       return new MongoMigrationPlanner();
     },

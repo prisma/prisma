@@ -31,6 +31,7 @@ function createMarkerStore(
   const adapter = {
     familyId: 'sql',
     targetId: 'postgres',
+    markerLocation: 'stub_marker',
     bootstrapSignMarkerQueries: () => (options.bootstrapSql === undefined ? [] : [{}]),
     async lowerToExecuteRequest() {
       return { sql: options.bootstrapSql, params: [] };
@@ -120,6 +121,12 @@ const driver = {} as SqlControlDriverInstance<string>;
 const appContract = buildContract();
 const extContract = buildContract({ storageHash: EXT_HASH, profileHash: 'ext-profile' });
 const appHashes = { storageHash: FIXTURE_HASH, profileHash: 'fixture-profile-v1' };
+
+describe('sql family markerLocation', () => {
+  it('names the marker location its control adapter names', () => {
+    expect(createMarkerStore({}).instance.markerLocation).toBe('stub_marker');
+  });
+});
 
 describe('sql family signSpaces', () => {
   it('writes the marker of every space in one transaction', async () => {

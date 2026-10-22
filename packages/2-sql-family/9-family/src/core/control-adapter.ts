@@ -48,6 +48,9 @@ export interface ExecuteRequestLowerer extends Lowerer {
 export interface SqlControlAdapter<TTarget extends string = string>
   extends ControlAdapterInstance<'sql', TTarget>,
     ExecuteRequestLowerer {
+  /** Where the database keeps the contract markers, as messages name it to the user, such as `prisma_contract.marker`. */
+  readonly markerLocation: string;
+
   /**
    * Reads the contract marker for `space` from the database, returning
    * `null` if no marker row exists for that space (or if the marker

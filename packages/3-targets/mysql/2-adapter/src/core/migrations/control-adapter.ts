@@ -51,6 +51,7 @@ type Driver = SqlControlDriverInstance<'mysql'>;
 export class MysqlControlAdapter implements SqlControlAdapter<'mysql'> {
   readonly familyId = 'sql' as const;
   readonly targetId = 'mysql' as const;
+  readonly markerLocation = MARKER_TABLE_NAME;
   readonly #lockHolders = new WeakSet<Driver>();
 
   /** `declaredDataTypes` are the stack's data types, which introspection resolves each column's reported type over. */

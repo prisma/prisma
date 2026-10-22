@@ -8,7 +8,6 @@ import type {
 } from '@internal/framework-components/control';
 import { SqlStorage } from '@internal/sql-contract/types';
 import { relationalNodeEntityKind, relationalNodeGranularity } from '@internal/sql-schema-ir/types';
-import { MARKER_TABLE_NAME } from '../control-tables';
 import { sqliteTargetDescriptorMeta } from '../descriptor-meta';
 import { sqliteError } from '../errors';
 import { SqliteContractSerializer } from '../sqlite-contract-serializer';
@@ -33,7 +32,6 @@ const sqliteControlTargetDescriptor: SqlControlTargetDescriptor<'sqlite', Sqlite
     classifySubjectGranularity: relationalNodeGranularity,
     classifyEntityKind: relationalNodeEntityKind,
     migrations: {
-      markerLocation: MARKER_TABLE_NAME,
       createPlanner(adapter: SqlControlAdapter<'sqlite'>): MigrationPlanner<'sql', 'sqlite'> {
         return createSqliteMigrationPlanner(adapter);
       },

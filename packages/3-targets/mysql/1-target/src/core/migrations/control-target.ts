@@ -9,7 +9,6 @@ import type {
 import { SqlStorage } from '@internal/sql-contract/types';
 import { relationalNodeEntityKind, relationalNodeGranularity } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
-import { MARKER_TABLE_NAME } from '../control-tables';
 import { mysqlTargetDescriptorMeta } from '../descriptor-meta';
 import { mysqlError } from '../errors';
 import { MysqlContractSerializer } from '../mysql-contract-serializer';
@@ -31,7 +30,6 @@ const mysqlControlTargetDescriptor: SqlControlTargetDescriptor<'mysql', MysqlPla
   classifySubjectGranularity: relationalNodeGranularity,
   classifyEntityKind: relationalNodeEntityKind,
   migrations: {
-    markerLocation: MARKER_TABLE_NAME,
     createPlanner(adapter: SqlControlAdapter<'mysql'>): MigrationPlanner<'sql', 'mysql'> {
       return createMysqlMigrationPlanner(adapter);
     },
