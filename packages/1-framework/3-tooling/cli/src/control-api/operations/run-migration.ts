@@ -4,15 +4,14 @@
  */
 
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
-import {
-  type ControlDriverInstance,
-  type ControlFamilyInstance,
-  type FailedTypeChange,
-  type MigrationOperationPolicy,
-  type MigrationRunnerFailure,
-  type MigrationSubject,
-  migrationRunnerFailure,
-  type TargetMigrationsCapability,
+import type {
+  ControlDriverInstance,
+  ControlFamilyInstance,
+  FailedTypeChange,
+  MigrationOperationPolicy,
+  MigrationRunnerFailure,
+  MigrationSubject,
+  TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 import type {
   AggregateMigrationEdgeRef,
@@ -184,23 +183,6 @@ export interface RunMigrationValue {
 
 export type RunMigrationResult = Result<RunMigrationValue, MigrationRunnerFailure>;
 
-const CHANGES_STAY = 'Changes made before the failure stay in the database.';
-
-/**
- * The runner's failure as the CLI reports it. When the failed apply changed the database, a line
- * under the runner's own message says that those changes stay.
- */
-export function reportedRunnerFailure(failure: MigrationRunnerFailure): MigrationRunnerFailure {
-  if (failure.meta.databaseUnchanged !== false) return failure;
-  const reported = migrationRunnerFailure(failure.code, `${failure.message}\n${CHANGES_STAY}`, {
-    ...ifDefined('why', failure.why),
-    meta: failure.meta,
-    ...ifDefined('cause', failure.cause),
-  });
-  if (failure.stack !== undefined) reported.stack = failure.stack;
-  return reported;
-}
-
 /**
  * Runner-driving tail shared by every run caller — `db init`,
  * `db update`, and `migrate`. Consumes already-resolved per-space
@@ -210,8 +192,8 @@ export function reportedRunnerFailure(failure: MigrationRunnerFailure): Migratio
  * The runner writes each space's marker as the last step of applying that
  * space, so this primitive does not advance markers separately — by the time
  * `execute` returns ok, every space's marker has been advanced to its plan's
- * destination. A failure says whether the database changed, which
- * {@link reportedRunnerFailure} reports.
+ * destination. A failure is returned as the runner reported it; its `why`
+ * says whether the database changed.
  *
  * Span emission (`spanStart 'apply'` / `spanEnd 'apply'`) is owned here
  * so callers don't have to duplicate it; the `action` field on each
@@ -263,7 +245,7 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
 
   if (!runnerResult.ok) {
     onProgress?.({ action, kind: 'spanEnd', spanId: RUN_SPAN_ID, outcome: 'error' });
-    return notOk(reportedRunnerFailure(runnerResult.failure));
+    return notOk(runnerResult.failure);
   }
   onProgress?.({ action, kind: 'spanEnd', spanId: RUN_SPAN_ID, outcome: 'ok' });
 
