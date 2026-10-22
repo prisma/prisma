@@ -184,6 +184,27 @@ describe('MysqlControlAdapter', () => {
     });
   });
 
+  it('keeps the failure of the work it guards when releasing the marker lock fails too', async () => {
+    const adapter = createAdapter();
+    const driver = recordingDriver((sql) => {
+      if (sql.startsWith('SELECT RELEASE_LOCK')) throw new Error('Connection lost');
+      return sql.startsWith('SELECT GET_LOCK') ? [{ acquired: '1' }] : [];
+    });
+    const fails = async () => {
+      throw new Error('boom');
+    };
+    await expect(adapter.holdMarkerLock(driver, fails)).rejects.toThrow('boom');
+    await expect(
+      adapter.withTransaction(driver, async () => {
+        await adapter.lockMarker(driver);
+        await fails();
+      }),
+    ).rejects.toThrow('boom');
+    await expect(adapter.holdMarkerLock(driver, async () => 'done')).rejects.toThrow(
+      'Connection lost',
+    );
+  });
+
   it('refuses to go on when another process holds the marker lock', async () => {
     const adapter = createAdapter();
     const driver = recordingDriver((sql) =>

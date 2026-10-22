@@ -198,6 +198,24 @@ describe('the MySQL migration runner, refusing an apply', () => {
     expect((await failureOf(result))?.code).toBe(code);
   });
 
+  it.each([
+    ['a schema that does not verify', { verifies: false }, {}],
+    [
+      'a marker another process advanced',
+      { marker: {}, casWins: false },
+      { origin: { storageHash: ORIGIN } },
+    ],
+  ] as const)(
+    'says the database changed when it refuses %s after an operation ran',
+    async (_name, scenario, plan) => {
+      const result = await run(scenario, {
+        ...plan,
+        executionChecks: { idempotencyChecks: false },
+      }).execute();
+      expect(result.ok ? undefined : result.failure.meta.databaseUnchanged).toBe(false);
+    },
+  );
+
   it('refuses a space that is not the plan’s', async () => {
     await expect(run({}).mismatched()).rejects.toMatchObject({
       code: 'MIGRATION.CONTRACT_SPACE_VIOLATION',

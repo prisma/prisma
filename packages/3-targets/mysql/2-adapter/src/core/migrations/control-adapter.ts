@@ -24,6 +24,8 @@ import {
   LEDGER_TABLE_NAME,
   MARKER_TABLE_NAME,
   releaseMarkerLock,
+  releaseMarkerLockAfterFailure,
+  releasingMarkerLock,
 } from '@internal/target-mysql/control-tables';
 import type { MysqlCreateTable, MysqlDdlNode } from '@internal/target-mysql/ddl';
 import { mysqlQueryNotYetSupported } from '@internal/target-mysql/errors';
@@ -179,19 +181,19 @@ export class MysqlControlAdapter implements SqlControlAdapter<'mysql'> {
   /** Takes `GET_LOCK` before `work` runs and releases it when `work` ends, so `db sign` creates the marker table, whose DDL would end a transaction, under the lock. */
   async holdMarkerLock<T>(driver: Driver, work: () => Promise<T>): Promise<T> {
     await acquireMarkerLock(driver);
-    try {
-      return await work();
-    } finally {
-      await releaseMarkerLock(driver);
-    }
+    return releasingMarkerLock(driver, work);
   }
 
   async withTransaction<T>(driver: Driver, fn: () => Promise<T>): Promise<T> {
+    let result: T;
     try {
-      return await this.#inTransaction(driver, fn);
-    } finally {
-      if (this.#lockHolders.delete(driver)) await releaseMarkerLock(driver);
+      result = await this.#inTransaction(driver, fn);
+    } catch (error) {
+      if (this.#lockHolders.delete(driver)) await releaseMarkerLockAfterFailure(driver);
+      throw error;
     }
+    if (this.#lockHolders.delete(driver)) await releaseMarkerLock(driver);
+    return result;
   }
 
   async #inTransaction<T>(driver: Driver, fn: () => Promise<T>): Promise<T> {

@@ -7,7 +7,12 @@ import { createMysqlMigrationRunner } from '../../src/core/migrations/runner';
 
 const HASH = 'sha256:destination';
 
-function recorder(options: { readonly failExecute?: boolean } = {}) {
+interface RecorderOptions {
+  readonly failExecute?: string;
+  readonly throwOn?: (event: string) => Error | undefined;
+}
+
+function recorder(options: RecorderOptions = {}) {
   const events: string[] = [];
   const postchecksSeen = new Map<string, number>();
   const driver = {
@@ -20,13 +25,15 @@ function recorder(options: { readonly failExecute?: boolean } = {}) {
           ? 'RELEASE_LOCK'
           : sql;
       events.push(name);
+      const thrown = options.throwOn?.(name);
+      if (thrown !== undefined) throw thrown;
       if (name === 'GET_LOCK') return { rows: [{ acquired: '1' }] };
       if (sql.startsWith('POST')) {
         const seen = (postchecksSeen.get(sql) ?? 0) + 1;
         postchecksSeen.set(sql, seen);
         return { rows: [{ result: seen === 1 ? '0' : '1' }] };
       }
-      if (sql.startsWith('EXEC') && options.failExecute) throw new Error('DDL failed');
+      if (sql === `EXEC ${options.failExecute}`) throw new Error('DDL failed');
       return { rows: [{ result: '1' }] };
     },
     async close() {},
@@ -39,6 +46,8 @@ function recorder(options: { readonly failExecute?: boolean } = {}) {
     },
     async introspect() {
       events.push('introspect');
+      const thrown = options.throwOn?.('introspect');
+      if (thrown !== undefined) throw thrown;
       return {};
     },
     verifySchema() {
@@ -50,6 +59,8 @@ function recorder(options: { readonly failExecute?: boolean } = {}) {
     },
     async writeLedgerEntry({ space }: { space: string }) {
       events.push(`writeLedgerEntry ${space}`);
+      const thrown = options.throwOn?.(`writeLedgerEntry ${space}`);
+      if (thrown !== undefined) throw thrown;
     },
   } as unknown as SqlControlFamilyInstance;
   return { events, driver, family };
@@ -134,27 +145,111 @@ describe('the MySQL migration runner', () => {
     });
   });
 
-  it('stops at a failed space, names it, says the spaces before it stay applied, and releases the lock', async () => {
-    const recorded = recorder({ failExecute: true });
-    const result = await run(recorded, ['ext']);
+  it('stops at a failed space, names it, says the space before it changed the database, and releases the lock', async () => {
+    const recorded = recorder({ failExecute: 'app' });
+    const result = await run(recorded, ['ext', 'app']);
     expect({
-      failure: result.ok
-        ? undefined
-        : {
-            code: result.failure.code,
-            failingSpace: result.failure.meta.failingSpace,
-            databaseUnchanged: result.failure.meta.databaseUnchanged,
-          },
+      failure: failureFacts(result),
       last: recorded.events.slice(-2),
-      marked: recorded.events.some((event) => event.startsWith('initMarker')),
+      marked: recorded.events.filter((event) => event.startsWith('initMarker')),
     }).toEqual({
       failure: {
         code: 'MIGRATION.EXECUTION_FAILED',
-        failingSpace: 'ext',
-        databaseUnchanged: true,
+        failingSpace: 'app',
+        databaseUnchanged: false,
       },
-      last: ['EXEC ext', 'RELEASE_LOCK'],
-      marked: false,
+      last: ['EXEC app', 'RELEASE_LOCK'],
+      marked: ['initMarker ext'],
+    });
+  });
+
+  it('says a failure in the first space before it ran anything changed nothing', async () => {
+    const recorded = recorder({ failExecute: 'ext' });
+    expect(failureFacts(await run(recorded, ['ext']))).toEqual({
+      code: 'MIGRATION.EXECUTION_FAILED',
+      failingSpace: 'ext',
+      databaseUnchanged: true,
+    });
+  });
+});
+
+function failureFacts(result: Awaited<ReturnType<typeof run>>) {
+  return result.ok
+    ? undefined
+    : {
+        code: result.failure.code,
+        failingSpace: result.failure.meta.failingSpace,
+        databaseUnchanged: result.failure.meta.databaseUnchanged,
+      };
+}
+
+const connectionLost = () =>
+  Object.assign(new Error('Connection lost'), { code: 'DRIVER.NOT_CONNECTED' });
+
+describe('the MySQL migration runner, when something throws', () => {
+  it('keeps the failure of the apply when releasing the lock fails too', async () => {
+    const recorded = recorder({
+      failExecute: 'ext',
+      throwOn: (event) => (event === 'RELEASE_LOCK' ? connectionLost() : undefined),
+    });
+    expect(failureFacts(await run(recorded, ['ext']))).toEqual({
+      code: 'MIGRATION.EXECUTION_FAILED',
+      failingSpace: 'ext',
+      databaseUnchanged: true,
+    });
+  });
+
+  it('reports a failed release when the apply succeeded', async () => {
+    const recorded = recorder({
+      throwOn: (event) => (event === 'RELEASE_LOCK' ? connectionLost() : undefined),
+    });
+    await expect(run(recorded, ['ext'])).rejects.toThrow('Connection lost');
+  });
+
+  it.each([
+    ['a check query of the second space', 'POST app', ['ext', 'app'], 1],
+    ['introspection after the second space ran', 'introspect', ['ext', 'app'], 2],
+    ['the ledger insert of the second space', 'writeLedgerEntry app', ['ext', 'app'], 1],
+    ['the commit of a space that ran', 'COMMIT', ['app'], 1],
+  ] as const)(
+    'turns an error thrown by %s into a failure of that space, and releases the lock',
+    async (_name, thrower, spaces, throwAt) => {
+      let seen = 0;
+      const recorded = recorder({
+        throwOn: (event) => {
+          if (event !== thrower) return undefined;
+          seen += 1;
+          return seen === throwAt ? connectionLost() : undefined;
+        },
+      });
+      const result = await run(recorded, spaces);
+      expect({
+        failure: failureFacts(result),
+        errorCode: result.ok ? undefined : result.failure.meta['errorCode'],
+        released: recorded.events.at(-1),
+      }).toEqual({
+        failure: {
+          code: 'MIGRATION.EXECUTION_FAILED',
+          failingSpace: 'app',
+          databaseUnchanged: false,
+        },
+        errorCode: 'DRIVER.NOT_CONNECTED',
+        released: 'RELEASE_LOCK',
+      });
+    },
+  );
+
+  it('keeps the code of a migration error thrown during a space', async () => {
+    const recorded = recorder({
+      throwOn: (event) =>
+        event === 'introspect'
+          ? Object.assign(new Error('Lock lost'), { code: 'MIGRATION.MARKER_LOCK_TIMEOUT' })
+          : undefined,
+    });
+    expect(failureFacts(await run(recorded, ['app']))).toEqual({
+      code: 'MIGRATION.MARKER_LOCK_TIMEOUT',
+      failingSpace: 'app',
+      databaseUnchanged: false,
     });
   });
 });

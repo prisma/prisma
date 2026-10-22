@@ -15,7 +15,9 @@ import {
 import {
   failedPostcheckWhy,
   failedPrecheckWhy,
+  type MigrationRunnerFailure,
   type MigrationRunnerResult,
+  migrationRunnerFailure,
   schemaCheckWhy,
   withDatabaseUnchanged,
   withFailingSpace,
@@ -25,8 +27,9 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, okVoid, type Result } from '@internal/utils/result';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { mysqlError } from '../errors';
-import { acquireMarkerLock, releaseMarkerLock } from '../marker-lock';
+import { acquireMarkerLock, releasingMarkerLock } from '../marker-lock';
 import type { Op } from './operations';
 import type { MysqlPlanTargetDetails } from './planner-target-details';
 
@@ -38,13 +41,34 @@ interface AppliedOperations {
   readonly result: Checked;
   readonly executed: readonly Op[];
   readonly executedCount: number;
-  readonly changedDatabase: boolean;
 }
 
-/** A space's apply, and whether it changed the database before it ended. */
-interface SpaceOutcome {
-  readonly result: SqlMigrationRunnerResult;
-  readonly changedDatabase: boolean;
+/** Whether a space's apply has changed the database so far; it stays set however the apply ends, a thrown error included. */
+interface SpaceProgress {
+  changedDatabase: boolean;
+}
+
+function isMigrationCode(code: string): code is MigrationRunnerFailure['code'] {
+  return code.startsWith('MIGRATION.');
+}
+
+/** An error thrown while a space applied, as a runner failure. A migration error keeps its code; any other is reported as `MIGRATION.EXECUTION_FAILED`, with its own code in `errorCode`. */
+function failureFromThrown(error: unknown): MigrationRunnerFailure {
+  if (!isStructuredError(error)) {
+    return migrationRunnerFailure(
+      'MIGRATION.EXECUTION_FAILED',
+      error instanceof Error ? error.message : String(error),
+      { cause: error },
+    );
+  }
+  const meta = error.meta ?? {};
+  return isMigrationCode(error.code)
+    ? migrationRunnerFailure(error.code, error.message, { why: error.why, meta, cause: error })
+    : migrationRunnerFailure('MIGRATION.EXECUTION_FAILED', error.message, {
+        why: error.why,
+        meta: { ...meta, errorCode: error.code },
+        cause: error,
+      });
 }
 
 function stepHolds(rows: readonly Record<string, unknown>[]): boolean {
@@ -83,38 +107,47 @@ class MysqlMigrationRunner implements SqlMigrationRunner<MysqlPlanTargetDetails>
     const { driver, perSpaceOptions } = options;
     if (perSpaceOptions.length === 0) return ok({ perSpaceResults: [] });
     await acquireMarkerLock(driver);
-    try {
-      const perSpaceResults: { space: string; value: SqlMigrationRunnerSuccessValue }[] = [];
-      let changedBefore = false;
-      for (const spaceOptions of perSpaceOptions) {
-        const space = spaceOptions.space ?? spaceOptions.plan.spaceId;
-        const { result, changedDatabase } = await this.#applySpace({
-          ...spaceOptions,
-          driver,
-          space,
-        });
-        if (!result.ok) {
-          return notOk(
-            withFailingSpace(
-              withDatabaseUnchanged(result.failure, !changedBefore && !changedDatabase),
-              space,
-            ),
-          );
-        }
-        changedBefore ||= changedDatabase;
-        perSpaceResults.push({ space, value: result.value });
-      }
-      return ok({ perSpaceResults });
-    } finally {
-      await releaseMarkerLock(driver);
-    }
+    return releasingMarkerLock(
+      driver,
+      () => this.#applySpaces(driver, perSpaceOptions),
+      (result) => result.ok,
+    );
   }
 
   async executeOnConnection(options: Options): Promise<SqlMigrationRunnerResult> {
-    return (await this.#applySpace(options)).result;
+    return this.#applySpace(options, { changedDatabase: false });
   }
 
-  async #applySpace(options: Options): Promise<SpaceOutcome> {
+  async #applySpaces(
+    driver: Driver,
+    perSpaceOptions: ReadonlyArray<Options>,
+  ): Promise<MigrationRunnerResult> {
+    const perSpaceResults: { space: string; value: SqlMigrationRunnerSuccessValue }[] = [];
+    let changedBefore = false;
+    for (const spaceOptions of perSpaceOptions) {
+      const space = spaceOptions.space ?? spaceOptions.plan.spaceId;
+      const progress: SpaceProgress = { changedDatabase: false };
+      let result: Result<SqlMigrationRunnerSuccessValue, MigrationRunnerFailure>;
+      try {
+        result = await this.#applySpace({ ...spaceOptions, driver, space }, progress);
+      } catch (error) {
+        result = notOk(failureFromThrown(error));
+      }
+      if (!result.ok) {
+        return notOk(
+          withFailingSpace(
+            withDatabaseUnchanged(result.failure, !changedBefore && !progress.changedDatabase),
+            space,
+          ),
+        );
+      }
+      changedBefore ||= progress.changedDatabase;
+      perSpaceResults.push({ space, value: result.value });
+    }
+    return ok({ perSpaceResults });
+  }
+
+  async #applySpace(options: Options, progress: SpaceProgress): Promise<SqlMigrationRunnerResult> {
     const { driver } = options;
     if (options.space !== undefined && options.space !== options.plan.spaceId) {
       throw mysqlError(
@@ -124,10 +157,6 @@ class MysqlMigrationRunner implements SqlMigrationRunner<MysqlPlanTargetDetails>
       );
     }
     const space = options.plan.spaceId;
-    const unchanged = (result: SqlMigrationRunnerResult): SpaceOutcome => ({
-      result,
-      changedDatabase: false,
-    });
     const operations = blindCast<
       readonly Op[],
       'the MySQL planner and migration class produce MySQL operations; MigrationPlan.operations uses the wider framework type to admit promises'
@@ -137,14 +166,14 @@ class MysqlMigrationRunner implements SqlMigrationRunner<MysqlPlanTargetDetails>
       options.plan.destination,
       options.destinationContract,
     );
-    if (!destinationCheck.ok) return unchanged(destinationCheck);
+    if (!destinationCheck.ok) return destinationCheck;
     const policyCheck = this.#checkPolicy(options.policy, operations);
-    if (!policyCheck.ok) return unchanged(policyCheck);
+    if (!policyCheck.ok) return policyCheck;
 
     await this.#ensureControlTables(driver, options);
     const existingMarker = await this.family.readMarker({ driver, space });
     const originCheck = this.#checkOrigin(existingMarker, options.plan.origin ?? null);
-    if (!originCheck.ok) return unchanged(originCheck);
+    if (!originCheck.ok) return originCheck;
 
     const isSelfEdge = options.plan.origin?.storageHash === options.plan.destination.storageHash;
     const atDestination =
@@ -155,10 +184,9 @@ class MysqlMigrationRunner implements SqlMigrationRunner<MysqlPlanTargetDetails>
     const skipOperations = atDestination && options.plan.origin != null && !isSelfEdge;
 
     const applied: AppliedOperations = skipOperations
-      ? { result: okVoid(), executed: [], executedCount: 0, changedDatabase: false }
-      : await this.#applyOperations(driver, options, operations);
-    const { changedDatabase } = applied;
-    if (!applied.result.ok) return { result: applied.result, changedDatabase };
+      ? { result: okVoid(), executed: [], executedCount: 0 }
+      : await this.#applyOperations(driver, options, operations, progress);
+    if (!applied.result.ok) return applied.result;
 
     const schema = await this.family.introspect({ driver, contract: options.destinationContract });
     const verified = this.family.verifySchema({
@@ -168,13 +196,10 @@ class MysqlMigrationRunner implements SqlMigrationRunner<MysqlPlanTargetDetails>
       frameworkComponents: options.frameworkComponents,
     });
     if (!verified.ok) {
-      return {
-        result: runnerFailure('MIGRATION.SCHEMA_VERIFY_FAILED', verified.summary, {
-          why: schemaCheckWhy(verified.schema.issues),
-          meta: { schemaIssues: verified.schema.issues },
-        }),
-        changedDatabase,
-      };
+      return runnerFailure('MIGRATION.SCHEMA_VERIFY_FAILED', verified.summary, {
+        why: schemaCheckWhy(verified.schema.issues),
+        meta: { schemaIssues: verified.schema.issues },
+      });
     }
 
     const existingInvariants = new Set(existingMarker?.invariants ?? []);
@@ -188,16 +213,14 @@ class MysqlMigrationRunner implements SqlMigrationRunner<MysqlPlanTargetDetails>
         options,
         existingMarker,
         applied.executed,
+        progress,
       );
-      if (!written.ok) return { result: written, changedDatabase };
+      if (!written.ok) return written;
     }
-    return {
-      result: runnerSuccess({
-        operationsPlanned: operations.length,
-        operationsExecuted: applied.executedCount,
-      }),
-      changedDatabase: changedDatabase || !isSelfEdgeNoOp,
-    };
+    return runnerSuccess({
+      operationsPlanned: operations.length,
+      operationsExecuted: applied.executedCount,
+    });
   }
 
   async #ensureControlTables(driver: Driver, options: Options): Promise<void> {
@@ -213,6 +236,7 @@ class MysqlMigrationRunner implements SqlMigrationRunner<MysqlPlanTargetDetails>
     driver: Driver,
     options: Options,
     operations: readonly Op[],
+    progress: SpaceProgress,
   ): Promise<AppliedOperations> {
     const checks = options.executionChecks;
     const runPrechecks = checks?.prechecks !== false;
@@ -220,13 +244,7 @@ class MysqlMigrationRunner implements SqlMigrationRunner<MysqlPlanTargetDetails>
     const runIdempotency = checks?.idempotencyChecks !== false;
     const executed: Op[] = [];
     let executedCount = 0;
-    let changedDatabase = false;
-    const stop = (result: Checked): AppliedOperations => ({
-      result,
-      executed,
-      executedCount,
-      changedDatabase,
-    });
+    const stop = (result: Checked): AppliedOperations => ({ result, executed, executedCount });
     for (const operation of operations) {
       options.callbacks?.onOperationStart?.(operation);
       try {
@@ -238,9 +256,8 @@ class MysqlMigrationRunner implements SqlMigrationRunner<MysqlPlanTargetDetails>
           const precheck = await this.#runChecks(driver, operation, 'precheck');
           if (!precheck.ok) return stop(precheck);
         }
-        const execution = await this.#runSteps(driver, operation);
-        changedDatabase ||= execution.ran;
-        if (!execution.result.ok) return stop(execution.result);
+        const execution = await this.#runSteps(driver, operation, progress);
+        if (!execution.ok) return stop(execution);
         executedCount += 1;
         if (runPostchecks) {
           const postcheck = await this.#runChecks(driver, operation, 'postcheck');
@@ -291,32 +308,25 @@ class MysqlMigrationRunner implements SqlMigrationRunner<MysqlPlanTargetDetails>
     return okVoid();
   }
 
-  /** Runs an operation's steps. `ran` says whether any step reached the database, which a DDL statement changes for good. */
-  async #runSteps(
-    driver: Driver,
-    operation: Op,
-  ): Promise<{ readonly result: Checked; readonly ran: boolean }> {
-    let ran = false;
+  /** Runs an operation's steps, and records in `progress` each one that reached the database, which a DDL statement changes for good. */
+  async #runSteps(driver: Driver, operation: Op, progress: SpaceProgress): Promise<Checked> {
     for (const step of operation.execute) {
       try {
         await driver.query(step.sql, step.params ?? []);
-        ran = true;
+        progress.changedDatabase = true;
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        return {
-          ran,
-          result: runnerFailure(
-            'MIGRATION.EXECUTION_FAILED',
-            `Operation ${operation.id} failed during execution: ${step.description}`,
-            {
-              why: message,
-              meta: { operationId: operation.id, stepDescription: step.description, sql: step.sql },
-            },
-          ),
-        };
+        return runnerFailure(
+          'MIGRATION.EXECUTION_FAILED',
+          `Operation ${operation.id} failed during execution: ${step.description}`,
+          {
+            why: message,
+            meta: { operationId: operation.id, stepDescription: step.description, sql: step.sql },
+          },
+        );
       }
     }
-    return { result: okVoid(), ran };
+    return okVoid();
   }
 
   async #writeMarkerAndLedger(
@@ -324,6 +334,7 @@ class MysqlMigrationRunner implements SqlMigrationRunner<MysqlPlanTargetDetails>
     options: Options,
     existingMarker: ContractMarkerRecord | null,
     executed: readonly Op[],
+    progress: SpaceProgress,
   ): Promise<Checked> {
     const { plan } = options;
     const destination = {
@@ -364,9 +375,10 @@ class MysqlMigrationRunner implements SqlMigrationRunner<MysqlPlanTargetDetails>
       }
       await this.#writeLedger(driver, options, executed);
     } catch (error) {
-      await driver.query('ROLLBACK');
+      await driver.query('ROLLBACK').catch(() => undefined);
       throw error;
     }
+    progress.changedDatabase = true;
     await driver.query('COMMIT');
     return okVoid();
   }
