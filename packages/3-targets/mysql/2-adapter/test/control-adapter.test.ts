@@ -129,12 +129,21 @@ describe('MysqlControlAdapter', () => {
         operations: [],
       }),
       adapter.lockMarker(driver),
-      adapter.lowerToExecuteRequest({} as never),
     ];
     for (const refusal of refusals) {
       await expect(refusal).rejects.toMatchObject({ code: 'MIGRATION.TARGET_UNSUPPORTED' });
     }
-    expect(() => adapter.lower({} as never, { contract: undefined })).toThrow(/Lowering queries/);
+    const queryLoweringRefusal = {
+      code: 'RUNTIME.AST_UNSUPPORTED',
+      message: 'Lowering queries is not yet supported on MySQL.',
+      meta: { target: 'mysql', feature: 'Lowering queries' },
+    };
+    await expect(adapter.lowerToExecuteRequest({} as never)).rejects.toMatchObject(
+      queryLoweringRefusal,
+    );
+    expect(() => adapter.lower({} as never, { contract: undefined })).toThrow(
+      expect.objectContaining(queryLoweringRefusal),
+    );
     expect(() => adapter.lower(new OtherDdl(), { contract: undefined })).toThrow(
       /cannot lower DDL/,
     );

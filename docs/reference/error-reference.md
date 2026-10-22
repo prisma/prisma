@@ -1184,7 +1184,7 @@ A lowered SQL AST is structurally invalid: a subquery projecting other than one 
 
 ### RUNTIME.AST_UNSUPPORTED
 
-The authored SQL AST uses a feature this target cannot render, e.g. DEFAULT as a value in INSERT … VALUES, WITH ORDINALITY on function sources, or returned-column aliases on function sources, all on SQLite; a row-locking clause (`FOR UPDATE` and the like) on SQLite, which has no row locks and refuses the clause rather than drop it; or a row-locking clause whose strength or option (`of`, `nowait`, `skipLocked`) needs a capability the Postgres adapter did not report. Raised by the target adapters' renderers. Payload: `node` (INSERT DEFAULT site); `target`, `feature` (function-source sites, and locking-clause sites with `feature: 'locking-clause'`); on Postgres locking-clause sites also `capability`, the missing flag.
+The authored SQL AST uses a feature this target cannot render, e.g. DEFAULT as a value in INSERT … VALUES, WITH ORDINALITY on function sources, or returned-column aliases on function sources, all on SQLite; a row-locking clause (`FOR UPDATE` and the like) on SQLite, which has no row locks and refuses the clause rather than drop it; or a row-locking clause whose strength or option (`of`, `nowait`, `skipLocked`) needs a capability the Postgres adapter did not report. The MySQL target raises it for every query AST, and when a codec is asked to project a column as JSON for an `include`, because it does not render queries yet; the payload is `target: 'mysql'` and `feature`. Raised by the target adapters' renderers. Payload: `node` (INSERT DEFAULT site); `target`, `feature` (function-source sites, and locking-clause sites with `feature: 'locking-clause'`); on Postgres locking-clause sites also `capability`, the missing flag.
 
 ### RUNTIME.BINDING_INVALID
 
@@ -1856,7 +1856,7 @@ A filesystem-path target given to a migration command does not resolve to an app
 
 ### MIGRATION.TARGET_UNSUPPORTED
 
-The configured target does not provide migration support (no planner/runner via `target.migrations`), so migration commands like `db init` cannot run against it. Select a target that provides migrations.
+The configured target does not provide the migration support a command needs. Either it provides none (no planner/runner via `target.migrations`), so migration commands like `db init` cannot run against it, or it provides part of it and not the operation that was asked for. The MySQL target, for example, turns a contract into a schema and introspects a database, but refuses planning, running, writing the marker or the ledger, and locking the marker; the payload is `target` and `feature`, the operation it refused. Select a target that provides the operation.
 
 ### MIGRATION.TEMPORARY_VALUE_INVALID
 

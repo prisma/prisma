@@ -17,7 +17,7 @@ import { blindCast } from '@internal/utils/casts';
 import { InternalError } from '@internal/utils/internal-error';
 import { structuredError } from '@internal/utils/structured-error';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
-import { mysqlNotYetSupported } from './errors';
+import { mysqlQueryNotYetSupported } from './errors';
 
 const MYSQL_CODEC_DESCRIPTOR_KIND = 'mysql-codec' as const;
 
@@ -36,7 +36,7 @@ export abstract class MysqlCodecDescriptor<P = void>
   readonly descriptorKind = MYSQL_CODEC_DESCRIPTOR_KIND;
 
   projectJson(_expression: ProjectionExpr, _ref: CodecRef): ProjectionExpr {
-    throw mysqlNotYetSupported('Reading related rows as JSON');
+    throw mysqlQueryNotYetSupported('Reading related rows as JSON');
   }
 }
 

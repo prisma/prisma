@@ -21,7 +21,7 @@ import {
 } from '@internal/target-mysql/contract-free';
 import { LEDGER_TABLE_NAME, MARKER_TABLE_NAME } from '@internal/target-mysql/control-tables';
 import { MysqlCreateTable } from '@internal/target-mysql/ddl';
-import { mysqlNotYetSupported } from '@internal/target-mysql/errors';
+import { mysqlNotYetSupported, mysqlQueryNotYetSupported } from '@internal/target-mysql/errors';
 import { structuredError } from '@internal/utils/structured-error';
 import { renderMysqlColumnDefault, renderMysqlCreateTable } from './ddl-renderer';
 import { buildMysqlSchemaIR } from './introspection';
@@ -67,11 +67,11 @@ export class MysqlControlAdapter implements SqlControlAdapter<'mysql'> {
         { meta: { surface: 'control-adapter' } },
       );
     }
-    throw mysqlNotYetSupported('Lowering queries');
+    throw mysqlQueryNotYetSupported('Lowering queries');
   }
 
   async lowerToExecuteRequest(ast: AnyQueryAst | DdlNode): Promise<SqlExecuteRequest> {
-    if (!isDdlNode(ast)) throw mysqlNotYetSupported('Lowering queries');
+    if (!isDdlNode(ast)) throw mysqlQueryNotYetSupported('Lowering queries');
     if (!(ast instanceof MysqlCreateTable)) throw unsupportedDdl(ast);
     return renderMysqlCreateTable(ast, this.codecRegistry);
   }
