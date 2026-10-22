@@ -36,7 +36,7 @@ import {
   resolveAppTargetPath,
 } from '../../utils/migration-path-target';
 import { snapshotVerifierFor } from '../../utils/snapshot-content-verification';
-import { dataLine, showLines } from '../data-lines';
+import { dataLine, fieldLines } from '../data-lines';
 import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
 import { appMigrationsDirFor, contractPathFor, displayPath, migrationsDirFor } from './paths';
@@ -110,7 +110,7 @@ function showPresentations(inputs: {
   const migration = inputs.document.migration;
   return {
     stdout: () => [
-      ...showLines([
+      ...fieldLines([
         ['name', migration.name],
         ['space', migration.space],
         ['from', migration.fromContract],

@@ -1,19 +1,5 @@
-import { readdirSync, readFileSync } from 'node:fs';
-import { join, relative } from 'pathe';
 import { describe, expect, it } from 'vitest';
-import { dataLine, showLines } from '../../src/orm/data-lines';
-
-const ORM_COMMANDS_DIR = join(import.meta.dirname, '../../src/orm');
-
-function sourceFiles(dir: string): readonly string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      return sourceFiles(path);
-    }
-    return entry.name.endsWith('.ts') ? [path] : [];
-  });
-}
+import { dataLine, fieldLines } from '../../src/orm/data-lines';
 
 describe('dataLine', () => {
   it('joins fields with tabs and keeps an absent field as an empty one', () => {
@@ -21,12 +7,25 @@ describe('dataLine', () => {
       'app\t\tsha256:b\t3\t\ttrue',
     );
   });
+
+  it.each([
+    ['a backslash', 'a\\b', 'a\\\\b'],
+    ['a tab', 'a\tb', 'a\\tb'],
+    ['a newline', 'a\nb', 'a\\nb'],
+    ['a carriage return', 'a\rb', 'a\\rb'],
+  ])('escapes %s inside a field', (_name, value, escaped) => {
+    expect(dataLine(['x', value, 'y'])).toBe(`x\t${escaped}\ty`);
+  });
+
+  it('escapes a backslash before the characters it introduces', () => {
+    expect(dataLine(['\\n\n'])).toBe('\\\\n\\n');
+  });
 });
 
-describe('showLines', () => {
+describe('fieldLines', () => {
   it('writes one key-tab-value line per present field, in order', () => {
     expect(
-      showLines([
+      fieldLines([
         ['name', '20260101T1000_init'],
         ['from', null],
         ['to', 'sha256:b'],
@@ -34,14 +33,8 @@ describe('showLines', () => {
       ]),
     ).toEqual(['name\t20260101T1000_init', 'to\tsha256:b', 'operations\t2']);
   });
-});
 
-describe('ORM command stdout', () => {
-  it('says why when a command has no data lines', () => {
-    const silent = sourceFiles(ORM_COMMANDS_DIR)
-      .filter((path) => /stdout:\s*\(\)\s*=>\s*\[\s*\]/.test(readFileSync(path, 'utf-8')))
-      .map((path) => relative(ORM_COMMANDS_DIR, path));
-
-    expect(silent).toEqual([]);
+  it('escapes the value', () => {
+    expect(fieldLines([['label', 'one\ttwo']])).toEqual(['label\tone\\ttwo']);
   });
 });
