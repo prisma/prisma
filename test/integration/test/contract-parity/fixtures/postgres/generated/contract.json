@@ -2005,7 +2005,9 @@
                   "codecId": "pg/timestamp-string@1",
                   "dataType": "pg/timestamp",
                   "nullable": false,
-                  "typeRef": "TimestampString3"
+                  "typeParams": {
+                    "precision": 3
+                  }
                 },
                 "timestamptz": {
                   "codecId": "pg/timestamptz-temporal@1",
@@ -2027,7 +2029,9 @@
                   "codecId": "pg/timestamptz-string@1",
                   "dataType": "pg/timestamptz",
                   "nullable": true,
-                  "typeRef": "TimestamptzString3"
+                  "typeParams": {
+                    "precision": 3
+                  }
                 },
                 "ulid": {
                   "codecId": "sql/char@1",
@@ -2120,25 +2124,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "67dcecb0dbd20137538fa4534d1016b3107d87bba11434f79aed258feea22cd5",
-    "types": {
-      "TimestampString3": {
-        "codecId": "pg/timestamp-string@1",
-        "dataType": "pg/timestamp",
-        "kind": "codec-instance",
-        "typeParams": {
-          "precision": 3
-        }
-      },
-      "TimestamptzString3": {
-        "codecId": "pg/timestamptz-string@1",
-        "dataType": "pg/timestamptz",
-        "kind": "codec-instance",
-        "typeParams": {
-          "precision": 3
-        }
-      }
-    }
+    "storageHash": "4e5aa929c76c9181dd640f59692e6743a0626b5ab9023a02e5960ec96509c225"
   },
   "execution": {
     "executionHash": "4c8b52aa880ed951466684d8a101a1fc3992151da635fe969fe2926dbd8964eb",

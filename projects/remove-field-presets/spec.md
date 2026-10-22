@@ -115,7 +115,7 @@ const Post = model('Post', {
 
 ### Contributed aliases
 
-- R23. A pack's `type` namespace can contribute a type alias descriptor: a type constructor with fixed arguments, an optional database default, and a generator function for each phase. It takes no parameters. PSL and TypeScript expand it like a user alias.
+- R23. A pack's `type` namespace can contribute a type alias descriptor: a type constructor with fixed arguments and a generator function for each phase (amended 2026-10-21: no database default; one can be added when a pack needs it). It takes no parameters. PSL and TypeScript expand it like a user alias.
 - R24. Postgres contributes `temporal.CreatedAt` and `temporal.UpdatedAt` on `Timestamptz`, plus `String` and `JsDate` variants. SQLite and Mongo contribute `temporal.CreatedAt` and `temporal.UpdatedAt` on their `DateTime`.
 
 ### Preset removal

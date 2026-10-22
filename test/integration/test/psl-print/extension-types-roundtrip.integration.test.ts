@@ -29,7 +29,9 @@ model Document {
     );
     const { text, sourceSettings } = printContract(authored, stack);
 
+    expect(text).not.toContain('types {');
     expect(text).toContain('embedding pgvector.Vector(3)');
+    expect(text).toContain('named     pgvector.Vector(3)');
     const printed = await readPsl(text, { stack, sourceSettings });
     expect(serializedWithoutCapabilities(printed)).toEqual(serializedWithoutCapabilities(authored));
     expect(printed.storage.storageHash).toBe(authored.storage.storageHash);
@@ -52,8 +54,9 @@ model Place {
     );
     const { text, sourceSettings } = printContract(authored, postgisStack);
 
-    expect(text).toContain('Shape = postgis.Geometry()');
+    expect(text).not.toContain('types {');
     expect(text).toContain('area  postgis.Geometry()');
+    expect(text).toContain('named postgis.Geometry()');
     const printed = await readPsl(text, { stack: postgisStack, sourceSettings });
     expect(serializedWithoutCapabilities(printed)).toEqual(serializedWithoutCapabilities(authored));
   });

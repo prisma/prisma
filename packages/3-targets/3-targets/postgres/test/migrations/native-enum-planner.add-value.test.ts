@@ -122,7 +122,6 @@ function planResultFor(contract: Contract<SqlStorage>, actual: PostgresDatabaseS
     schemaName: 'sales',
     codecHooks: new Map(),
     types: postgresTypeLookups,
-    storageTypes: contract.storage.types ?? {},
     strategies: [],
   });
 }

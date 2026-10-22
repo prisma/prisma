@@ -293,35 +293,6 @@ namespace docs {
     ]);
   });
 
-  it('does not set a typeRef on an entity-ref-resolved column', () => {
-    const result = interpretWith(`
-namespace docs {
-  native_enum AalLevel {
-    aal1
-  }
-
-  model AuthSession {
-    id Int @id
-    aal pg.enum(AalLevel)
-  }
-}
-`);
-
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    const namespaces = (
-      result.value.storage as unknown as {
-        namespaces: Record<
-          string,
-          { entries: { table: Record<string, { columns: Record<string, unknown> }> } }
-        >;
-      }
-    ).namespaces;
-    const column = namespaces['docs']?.entries.table['AuthSession']?.columns['aal'];
-    expect(column).toMatchObject({ codecId: 'test/native-enum@1' });
-    expect((column as { typeRef?: unknown } | undefined)?.typeRef).toBeUndefined();
-  });
-
   it('leaves valueSet unset for an entity-ref resolution whose entity derives no value-set', () => {
     const result = interpretWith(`
 namespace docs {

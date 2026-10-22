@@ -401,22 +401,23 @@ export function lowerDataTypeDefault(input: {
   readonly column: DefaultColumn;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypes: DataTypeSupport;
-  readonly fieldPath: string;
+  /** How a refusal names what the default is written on, as in `Field "Post.slug"`. */
+  readonly subject: string;
   /** For a written list that leaves out the source list's `null` elements: the source index of each written element. */
   readonly sourceElementIndexes: readonly number[] | undefined;
 }): DefaultDiagnosticResult {
-  const read = readDataTypeDefault(input);
+  const read = readDataTypeDefault({ ...input, fieldPath: input.subject });
   if (read.ok) return read;
   const refusal = atSourceElement(read.refusal, input.sourceElementIndexes);
   return {
     ok: false,
     ...refusalMessage(
       refusal,
-      `Field "${input.fieldPath}"`,
+      input.subject,
       input.dataTypes,
       guidanceFor(read, input.written, input.dataTypes),
     ),
-    span: refusalSpan(refusal, input.spans, input.fieldPath),
+    span: refusalSpan(refusal, input.spans, input.subject),
   };
 }
 
@@ -519,26 +520,26 @@ function refusalMessage(
   }
 }
 
-function refusalSpan(refusal: DefaultRefusal, spans: DefaultSpans, fieldPath: string): PslSpan {
+function refusalSpan(refusal: DefaultRefusal, spans: DefaultSpans, subject: string): PslSpan {
   switch (refusal.kind) {
     case 'not-a-list':
     case 'refused-by-column':
       return spans.attribute;
     default:
-      return writtenValueSpan(spans, refusal.elementIndex, fieldPath);
+      return writtenValueSpan(spans, refusal.elementIndex, subject);
   }
 }
 
 function writtenValueSpan(
   spans: DefaultSpans,
   elementIndex: number | undefined,
-  fieldPath: string,
+  subject: string,
 ): PslSpan {
   if (elementIndex === undefined) return spans.value;
   const span = spans.elements[elementIndex];
   if (span === undefined) {
     throw new InternalError(
-      `Field "${fieldPath}": a refused @default list element ${elementIndex + 1} has no written span.`,
+      `${subject}: a refused @default list element ${elementIndex + 1} has no written span.`,
     );
   }
   return span;

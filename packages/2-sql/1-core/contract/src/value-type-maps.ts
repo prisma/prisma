@@ -6,20 +6,14 @@ import type {
 
 type Lookup<T, Key> = Key extends keyof T ? T[Key] : never;
 
-type TypeParamsOf<T> = T extends { readonly typeParams: infer TypeParams } ? TypeParams : undefined;
-
-type ColumnTypeParams<Column, StorageTypes> = Column extends {
-  readonly typeParams: infer TypeParams;
-}
+type ColumnTypeParams<Column> = Column extends { readonly typeParams: infer TypeParams }
   ? TypeParams
-  : Column extends { readonly typeRef: infer TypeRef }
-    ? TypeParamsOf<Lookup<StorageTypes, TypeRef>>
-    : undefined;
+  : undefined;
 
 type TablesOf<Namespace> = Lookup<Lookup<Namespace, 'entries'>, 'table'>;
 
 /**
- * `StorageColumnTypes` (`Side` `'output'`) or `StorageColumnInputTypes` (`'input'`) of a contract whose storage is `Storage`, by the rules of `FieldTypesFromDomain` (`@internal/contract/types`), with `Overrides` keyed by namespace, table and column. A column typed by a named storage type takes that type's parameters.
+ * `StorageColumnTypes` (`Side` `'output'`) or `StorageColumnInputTypes` (`'input'`) of a contract whose storage is `Storage`, by the rules of `FieldTypesFromDomain` (`@internal/contract/types`), with `Overrides` keyed by namespace, table and column.
  */
 export type ColumnTypesFromStorage<
   Storage,
@@ -37,7 +31,7 @@ export type ColumnTypesFromStorage<
         ? StoredValueType<
             Column,
             Lookup<Column, 'codecId'>,
-            ColumnTypeParams<Column, NonNullable<Lookup<Storage, 'types'>>>,
+            ColumnTypeParams<Column>,
             Lookup<Lookup<Lookup<Overrides, Ns>, T>, C>,
             CodecTypes,
             ParameterizedOutputs,

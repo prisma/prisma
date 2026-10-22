@@ -43,22 +43,6 @@ describe('buildColumnTypeSql', () => {
       'BLOB',
     );
   });
-
-  it('resolves typeRef against storageTypes', () => {
-    const column = makeColumn({
-      codecId: 'unused/codec@1',
-      typeRef: 'my_type',
-    });
-    const sql = buildColumnTypeSql(column, sqliteTestTypes, {
-      my_type: {
-        kind: 'codec-instance',
-        codecId: 'sqlite/text@1',
-        dataType: 'sqlite/text',
-        typeParams: {},
-      },
-    });
-    expect(sql).toBe('TEXT');
-  });
 });
 
 describe('buildCreateIndexSql', () => {

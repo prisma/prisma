@@ -8,7 +8,6 @@ import { createTestSqlNamespace } from '../../../1-core/contract/test/test-suppo
 import { fixtureInterpreterTypes } from './fixture-codec-descriptors';
 import {
   createBuiltinLikeControlMutationDefaults,
-  documentScopedTypes,
   interpretSqlContract,
   postgresScalarAuthoringTypes,
   postgresTarget,
@@ -112,7 +111,7 @@ describe('bare-name sugar (T ≡ T())', () => {
     });
   });
 
-  it('emits identical named-type storage for a bare base and its zero-arg call', () => {
+  it('expands a named type with a bare base as one with its zero-arg call', () => {
     const result = interpretSqlContract(
       `types {
   Slug = Defaulted
@@ -130,12 +129,14 @@ model Doc {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    const types = documentScopedTypes(result.value);
-    expect(types?.['Slug']).toEqual(types?.['SlugCalled']);
-    expect(types?.['Slug']).toEqual({
-      kind: 'codec-instance',
+    const columns = unboundTables(sqlStorageFromSuccessfulSqlInterpretation(result.value))['Doc']
+      ?.columns;
+    expect(columns?.['slug']).toEqual(columns?.['slugCalled']);
+    expect(columns?.['slug']).toEqual({
       codecId: 'sql/varchar@1',
       dataType: 'pg/varchar',
+      nullable: false,
+      many: false,
       typeParams: { length: 191 },
     });
   });

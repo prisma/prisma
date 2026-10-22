@@ -8,10 +8,6 @@ import { SqlNode } from './sql-node';
  * the on-disk storage JSON envelope exactly so the family-base
  * serializer's hydration walker can hand an arktype-validated literal
  * straight to `new`.
- *
- * `typeParams` and `typeRef` remain mutually exclusive (one or the
- * other, not both); the constructor preserves whichever caller-side
- * choice the input encodes.
  */
 export type StorageColumnMultiplicity = false | { readonly elementNullable: boolean };
 
@@ -21,7 +17,6 @@ export type StorageColumnInput = {
   readonly codecId: string;
   readonly nullable: boolean;
   readonly typeParams?: Record<string, unknown>;
-  readonly typeRef?: string;
   readonly default?: ColumnDefault;
   readonly control?: ControlPolicy;
   readonly valueSet?: ValueSetRef;
@@ -47,7 +42,6 @@ export class StorageColumn extends SqlNode {
   readonly nullable: boolean;
   readonly many: StorageColumnMultiplicity;
   declare readonly typeParams?: Record<string, unknown>;
-  declare readonly typeRef?: string;
   declare readonly default?: ColumnDefault;
   declare readonly control?: ControlPolicy;
   declare readonly valueSet?: ValueSetRef;
@@ -66,7 +60,6 @@ export class StorageColumn extends SqlNode {
     this.nullable = input.nullable;
     this.many = input.many ?? false;
     if (input.typeParams !== undefined) this.typeParams = input.typeParams;
-    if (input.typeRef !== undefined) this.typeRef = input.typeRef;
     if (input.default !== undefined) this.default = input.default;
     if (input.control !== undefined) this.control = input.control;
     if (input.valueSet !== undefined) this.valueSet = input.valueSet;

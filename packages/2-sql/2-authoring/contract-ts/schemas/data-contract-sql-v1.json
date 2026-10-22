@@ -592,9 +592,6 @@
                                 "type": "object",
                                 "additionalProperties": {}
                               },
-                              "typeRef": {
-                                "type": "string"
-                              },
                               "valueSet": {
                                 "type": "object",
                                 "properties": {

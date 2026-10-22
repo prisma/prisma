@@ -165,7 +165,7 @@ describe('unknown attribute names diagnose against the registered namespace', ()
     ]);
   });
 
-  it('points @updatedAt at @onCreate(now()) @onUpdate(now())', () => {
+  it('points @updatedAt at @onCreate(now()) @onUpdate(now()) and temporal.UpdatedAt', () => {
     expect(
       diagnosticsOf(`
         model Item {
@@ -177,7 +177,7 @@ describe('unknown attribute names diagnose against the registered namespace', ()
       expect.objectContaining({
         code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
         message:
-          'Field "Item.updatedAt" uses unsupported attribute "@updatedAt". Use @onCreate(now()) @onUpdate(now()) instead.',
+          'Field "Item.updatedAt" uses unsupported attribute "@updatedAt". Use @onCreate(now()) @onUpdate(now()), or type the field temporal.UpdatedAt.',
       }),
     ]);
   });

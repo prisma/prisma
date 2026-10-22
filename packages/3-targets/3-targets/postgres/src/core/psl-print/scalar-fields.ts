@@ -4,7 +4,7 @@ import type { InferredTypeConstructors } from '@internal/family-sql/psl-build';
 import type { PslField, PslFieldAttribute } from '@internal/framework-components/psl-ast';
 import { escapePslString } from '@internal/sql-contract/data-type-support';
 import {
-  resolvedTypeParams,
+  nonEmptyTypeParams,
   type SqlStorage,
   type StorageColumn,
 } from '@internal/sql-contract/types';
@@ -25,7 +25,6 @@ import type { NativeEnumEmission } from './enum-blocks';
 import { buildGeneratorAttributes } from './generated-values';
 import {
   refuseColumnControl,
-  refuseColumnDifferingFromNamedType,
   refuseFieldColumnMismatch,
   refuseStorageOfUndeclaredField,
   refuseUnwritableFieldShape,
@@ -57,7 +56,6 @@ function scalarFieldAttributes(input: {
   readonly domainEnum: ContractEnum | undefined;
   readonly generatorAttributes: readonly PslFieldAttribute[];
   readonly context: SqlPslBuildContext;
-  readonly namedTypes: NonNullable<SqlStorage['types']>;
 }): readonly PslFieldAttribute[] {
   const attributes: PslFieldAttribute[] = [];
   if (input.isSingleColumnId) {
@@ -80,7 +78,6 @@ function scalarFieldAttributes(input: {
     tableName: input.tableName,
     columnName: input.columnName,
     context: input.context,
-    namedTypes: input.namedTypes,
   });
   if (columnDefault !== undefined) {
     attributes.push(columnDefault);
@@ -105,7 +102,6 @@ export function buildScalarFields(input: {
   readonly context: SqlPslBuildContext;
   readonly executionDefaults: ReadonlyMap<string, ExecutionMutationDefault>;
   readonly defaultDomainEnumNames: ReadonlySet<string>;
-  readonly namedTypes: NonNullable<SqlStorage['types']>;
 }): readonly PslField[] {
   const { entry, variant, enums, domainEnums, inferredConstructors, context, executionDefaults } =
     input;
@@ -130,30 +126,19 @@ export function buildScalarFields(input: {
       modelName: entry.name,
       singleTableVariant: variant?.singleTable === true,
       domainEnumNames: input.defaultDomainEnumNames,
-      namedTypes: input.namedTypes,
     });
-    if (column.typeRef !== undefined) {
-      refuseColumnDifferingFromNamedType({
-        column,
-        typeRef: column.typeRef,
-        namedType: input.namedTypes[column.typeRef],
-        coordinate,
-      });
-    }
     const columnType: PslColumnType =
-      column.typeRef !== undefined
-        ? { kind: 'namedType', typeName: column.typeRef }
-        : field.type.kind === 'valueObject'
-          ? { kind: 'valueObject', typeName: field.type.name }
-          : buildColumnType({
-              column,
-              inferredConstructors,
-              authoringTypes: context.authoringContributions.type,
-              dataTypes: context.dataTypes,
-              enumBlockNames: enums.blockNamesByTypeName,
-              coordinate,
-              namespaceId: entry.namespaceId,
-            });
+      field.type.kind === 'valueObject'
+        ? { kind: 'valueObject', typeName: field.type.name }
+        : buildColumnType({
+            column,
+            inferredConstructors,
+            authoringTypes: context.authoringContributions.type,
+            dataTypes: context.dataTypes,
+            enumBlockNames: enums.blockNamesByTypeName,
+            coordinate,
+            namespaceId: entry.namespaceId,
+          });
     const { typeName, typeConstructor } = columnType;
 
     const execution = executionDefaults.get(
@@ -166,7 +151,7 @@ export function buildScalarFields(input: {
             executionDefault: execution,
             codecId: column.codecId,
             list: !!field.many,
-            typeParams: resolvedTypeParams(column, input.namedTypes),
+            typeParams: nonEmptyTypeParams(column.typeParams),
             coordinate,
             context,
           });
@@ -195,7 +180,6 @@ export function buildScalarFields(input: {
             : domainEnums[column.valueSet.entityName],
         generatorAttributes,
         context,
-        namedTypes: input.namedTypes,
       }),
       span: SYNTHETIC_SPAN,
     });

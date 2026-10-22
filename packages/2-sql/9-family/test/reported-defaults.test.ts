@@ -113,7 +113,6 @@ describe('readColumnDefault', () => {
 describe('contractColumns', () => {
   const contract = (typeParams: Record<string, unknown>) => ({
     storage: {
-      types: { Short: { kind: 'codec-instance', codecId: 'demo/count@1', typeParams } },
       namespaces: {
         public: {
           entries: {
@@ -122,7 +121,7 @@ describe('contractColumns', () => {
                 columns: {
                   n: {
                     codecId: 'demo/count@1',
-                    typeRef: 'Short',
+                    typeParams,
                     default: { kind: 'function', expression: "'7'" },
                   },
                   tags: { codecId: 'demo/count@1', many: { elementNullable: true } },
@@ -135,15 +134,15 @@ describe('contractColumns', () => {
     },
   });
 
-  it('gives a column its codec, with the parameters of its named type, and its expression default', () => {
+  it('gives a column its codec, with its parameters, and its expression default', () => {
     const codecs = contractColumns(contract({ max: 9 }));
     expect({
-      named: codecs.columnOf(['public'], 'item', 'n'),
+      withParams: codecs.columnOf(['public'], 'item', 'n'),
       list: codecs.columnOf(undefined, 'item', 'tags'),
       otherNamespace: codecs.columnOf(['auth'], 'item', 'n'),
       missing: codecs.columnOf(['public'], 'item', 'absent'),
     }).toEqual({
-      named: {
+      withParams: {
         codecRef: { codecId: 'demo/count@1', typeParams: { max: 9 } },
         defaultExpression: "'7'",
       },
@@ -153,17 +152,16 @@ describe('contractColumns', () => {
     });
   });
 
-  it('reads a table of several spaces with the named types of its own space', () => {
+  it('reads a table of several spaces from the contract of its own space', () => {
     const app = contract({ max: 9 });
     const extension = {
       storage: {
-        types: {
-          Short: { kind: 'codec-instance', codecId: 'demo/count@1', typeParams: { max: 3 } },
-        },
         namespaces: {
           ext: {
             entries: {
-              table: { counter: { columns: { n: { codecId: 'demo/count@1', typeRef: 'Short' } } } },
+              table: {
+                counter: { columns: { n: { codecId: 'demo/count@1', typeParams: { max: 3 } } } },
+              },
             },
           },
         },

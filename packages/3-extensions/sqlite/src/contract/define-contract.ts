@@ -26,7 +26,7 @@ import sqlitePack from '@internal/target-sqlite/pack';
 type SqlFamily = typeof sqlFamilyPack;
 type SqlitePack = typeof sqlitePack;
 
-type TypesConstraint = Record<string, AuthoredStorageTypeInstance>;
+type DatabaseTypesConstraint = Record<string, AuthoredStorageTypeInstance>;
 type ModelsConstraint = Record<string, ModelLike>;
 type EnumsConstraint = Record<string, EnumTypeHandle>;
 type ForeignKeyDefaultsConstraint = ContractInput['foreignKeyDefaults'];
@@ -37,7 +37,7 @@ type SqliteAdapter = typeof sqliteAdapterContractContributions;
 const adapter: SqliteAdapter = sqliteAdapterContractContributions;
 
 type SqliteResult<
-  Types extends TypesConstraint,
+  DatabaseTypes extends DatabaseTypesConstraint,
   Models extends ModelsConstraint,
   Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined,
   Enums extends EnumsConstraint,
@@ -47,7 +47,7 @@ type SqliteResult<
     SqlFamily,
     SqlitePack,
     {
-      readonly types?: Types;
+      readonly databaseTypes?: DatabaseTypes;
       readonly models?: Models;
       readonly extensions?: Extensions;
       readonly enums?: Enums;
@@ -69,7 +69,7 @@ type SqliteBaseScaffold<
   | 'target'
   | 'adapter'
   | 'foreignKeyDefaults'
-  | 'types'
+  | 'databaseTypes'
   | 'models'
   | 'enums'
   | 'namespaces'
@@ -88,13 +88,13 @@ type SqliteBaseScaffold<
 };
 
 type SqliteDefinition<
-  Types extends TypesConstraint,
+  DatabaseTypes extends DatabaseTypesConstraint,
   Models extends ModelsConstraint,
   Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined,
   Enums extends EnumsConstraint,
   ForeignKeyDefaults extends ForeignKeyDefaultsConstraint,
 > = SqliteBaseScaffold<Extensions, ForeignKeyDefaults> & {
-  readonly types?: Types;
+  readonly databaseTypes?: DatabaseTypes;
   readonly models?: Models;
   readonly enums?: Enums;
 };
@@ -110,17 +110,17 @@ type SqliteScaffold<
 const target: TargetPackRef<'sql', 'sqlite'> = sqlitePack;
 
 export function defineContract<
-  const Types extends TypesConstraint = Record<never, never>,
+  const DatabaseTypes extends DatabaseTypesConstraint = Record<never, never>,
   const Models extends ModelsConstraint = Record<never, never>,
   const Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined = undefined,
   const Enums extends EnumsConstraint = Record<never, never>,
   const ForeignKeyDefaults extends ForeignKeyDefaultsConstraint = undefined,
 >(
-  definition: SqliteDefinition<Types, Models, Extensions, Enums, ForeignKeyDefaults>,
-): SqliteResult<Types, Models, Extensions, Enums, ForeignKeyDefaults>;
+  definition: SqliteDefinition<DatabaseTypes, Models, Extensions, Enums, ForeignKeyDefaults>,
+): SqliteResult<DatabaseTypes, Models, Extensions, Enums, ForeignKeyDefaults>;
 
 export function defineContract<
-  const Types extends TypesConstraint = Record<never, never>,
+  const DatabaseTypes extends DatabaseTypesConstraint = Record<never, never>,
   const Models extends ModelsConstraint = Record<never, never>,
   const Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined = undefined,
   const ScaffoldEnums extends EnumsConstraint = Record<never, never>,
@@ -129,12 +129,12 @@ export function defineContract<
 >(
   scaffold: SqliteScaffold<Extensions, ScaffoldEnums, ForeignKeyDefaults>,
   factory: (helpers: ComposedAuthoringHelpers<SqlFamily, SqlitePack, Extensions>) => {
-    readonly types?: Types;
+    readonly databaseTypes?: DatabaseTypes;
     readonly models?: Models;
     readonly enums?: FactoryEnums;
   },
 ): SqliteResult<
-  Types,
+  DatabaseTypes,
   Models,
   Extensions,
   MergeEnums<ScaffoldEnums, FactoryEnums>,
@@ -145,19 +145,19 @@ export function defineContract<
 // carrying zero casts at this layer.
 export function defineContract(
   definition: SqliteDefinition<
-    TypesConstraint,
+    DatabaseTypesConstraint,
     ModelsConstraint,
     undefined,
     EnumsConstraint,
     ForeignKeyDefaultsConstraint
   >,
   factory?: (helpers: ComposedAuthoringHelpers<SqlFamily, SqlitePack, undefined>) => {
-    readonly types?: TypesConstraint;
+    readonly databaseTypes?: DatabaseTypesConstraint;
     readonly models?: ModelsConstraint;
     readonly enums?: EnumsConstraint;
   },
 ): SqliteResult<
-  TypesConstraint,
+  DatabaseTypesConstraint,
   ModelsConstraint,
   undefined,
   EnumsConstraint,

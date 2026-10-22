@@ -22,13 +22,12 @@ export interface CodecDescriptorRegistry {
    *
    * Resolution rules over `storage.namespaces[namespaceId].tables[table].columns[column]`:
    *
-   * - `typeRef` column → emit `{codecId, typeParams}` from `storage.types[typeRef]` (multiple columns sharing the typeRef produce the same ref → same memoised codec).
-   * - inline `typeParams` column → emit `{codecId, typeParams}` from the column itself.
+   * - `typeParams` column → emit `{codecId, typeParams}` from the column itself.
    * - non-parameterized column → emit `{codecId}` with `typeParams` undefined (keys as `${codecId}:undefined` → one shared codec).
    *
    * The `namespaceId` coordinate leads and is always supplied — the table is resolved strictly within that namespace, so two same-bare-named tables in different namespaces resolve to their own per-namespace columns/codecs without colliding.
    *
-   * Returns `undefined` when the registry was built without contract storage (package-scoped registries used purely as descriptor lookups), when the table or column is unknown in the namespace, or when the column declares a `typeRef` that the storage doesn't define.
+   * Returns `undefined` when the registry was built without contract storage (package-scoped registries used purely as descriptor lookups), or when the table or column is unknown in the namespace.
    */
   codecRefForColumn(namespaceId: string, table: string, column: string): CodecRef | undefined;
   /**
@@ -65,11 +64,6 @@ export interface SqlAggregateDescriptorRegistry {
 }
 
 /**
- * Registry of initialized type helpers from storage.types. Each key is a type name from storage.types, and the value is the resolved codec materialized once for that named instance via `descriptor.factory(typeParams)(ctx)` (or the raw `StorageTypeInstance` metadata for codec ids whose descriptor isn't registered).
- */
-export type TypeHelperRegistry = Record<string, unknown>;
-
-/**
  * Minimal context interface for SQL query lanes.
  *
  * Lanes only need contract, operations, and codecs to build typed ASTs and attach operation builders. This interface explicitly excludes runtime concerns like adapters, connection management, and transaction state.
@@ -90,10 +84,6 @@ export interface ExecutionContext<TContract extends Contract<SqlStorage> = Contr
    */
   readonly aggregateDescriptors: SqlAggregateDescriptorRegistry;
   readonly queryOperations: SqlOperationRegistry;
-  /**
-   * Type helper registry for parameterized types. Schema builders expose these helpers via schema.types.
-   */
-  readonly types: TypeHelperRegistry;
   /**
    * The adapter's codec inferer, which `fns.raw` uses for a bare value interpolated into a template. An execution context built from an execution stack carries it.
    */

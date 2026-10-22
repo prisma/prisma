@@ -419,8 +419,8 @@ model Item {
       ]);
     });
 
-    it('produces PSL_UNSUPPORTED_FIELD_TYPE for a field typed with a resolved types{} binding', () => {
-      const result = interpret(`
+    it('expands a field typed with a types{} alias into the alias base', () => {
+      const ir = interpretOk(`
         types {
           Money = String
         }
@@ -431,14 +431,11 @@ model Item {
         }
       `);
 
-      expect(result.ok).toBe(false);
-      if (result.ok) return;
-      expect(result.failure.diagnostics).toEqual([
-        expect.objectContaining({
-          code: 'PSL_UNSUPPORTED_FIELD_TYPE',
-          message: 'Field "Item.price" type "Money" is not supported in Mongo PSL interpreter',
-        }),
-      ]);
+      expect(model(ir, 'Item').fields['price']).toEqual({
+        type: { kind: 'scalar', codecId: 'mongo/string@1' },
+        nullable: false,
+        many: false,
+      });
     });
   });
 

@@ -17,6 +17,7 @@ import type {
 import {
   temporalAuthoringPresets,
   temporalCodecPreset,
+  temporalTypeAliases,
 } from '@internal/framework-components/authoring';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { ContributedPslDiagnosticCode } from '@internal/framework-components/psl-ast';
@@ -166,7 +167,31 @@ export const postgresAuthoringTypes = {
       },
     },
   },
+  temporal: postgresTemporalTypeAliases(),
 } as const satisfies AuthoringTypeNamespace;
+
+/* @__NO_SIDE_EFFECTS__ */
+function postgresTemporalTypeAliases() {
+  const temporal = temporalTypeAliases(
+    { codecId: PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID },
+    'a Temporal.Instant',
+  );
+  const string = temporalTypeAliases(
+    { codecId: PG_TIMESTAMPTZ_STRING_CODEC_ID },
+    'a string, the timestamp as Postgres writes it, such as 2024-01-02 03:04:05+00',
+  );
+  const jsDate = temporalTypeAliases(
+    { codecId: PG_TIMESTAMPTZ_DATE_CODEC_ID },
+    'a JavaScript Date',
+  );
+  return {
+    ...temporal,
+    CreatedAtString: string.CreatedAt,
+    UpdatedAtString: string.UpdatedAt,
+    CreatedAtJsDate: jsDate.CreatedAt,
+    UpdatedAtJsDate: jsDate.UpdatedAt,
+  } as const;
+}
 
 const policyTargetParam = {
   type: entityRef({ kind: 'model' }),

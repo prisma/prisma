@@ -324,7 +324,6 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
 
     const codecHooks = extractCodecControlHooks(options.frameworkComponents);
     const types = sqlTypeLookupsOf(options.frameworkComponents);
-    const storageTypes = options.contract.storage.types ?? {};
     // The strategy layer reads the live schema by bare table name for existence
     // checks (shared-temp-default safety, FK/unique probes), so it takes one
     // per-schema namespace node — never the whole tree root, and never a flat
@@ -387,7 +386,6 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       schemaName,
       codecHooks,
       types,
-      storageTypes,
       ...ifDefined('schema', relationalSchema),
       policy: options.policy,
       frameworkComponents: options.frameworkComponents,

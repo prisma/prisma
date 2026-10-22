@@ -4,7 +4,7 @@
 
 import type { ColumnDefault, JsonValue } from '@internal/contract/types';
 import type { Codec, CodecRef, DataTypeValue } from '@internal/framework-components/codec';
-import { resolvedTypeParams } from '@internal/sql-contract/types';
+import { nonEmptyTypeParams } from '@internal/sql-contract/types';
 import type { SqlDefaultValue } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -120,7 +120,7 @@ function child(value: unknown, key: string): Loose | undefined {
 }
 
 /**
- * The columns `contract` declares. `contract` is a contract, or the namespaces of several contract spaces merged with each space's contract under `contracts`, as multi-space introspection receives them; a table's named types are then those of the space that declares it.
+ * The columns `contract` declares. `contract` is a contract, or the namespaces of several contract spaces merged with each space's contract under `contracts`, as multi-space introspection receives them.
  */
 export function contractColumns(contract: unknown): ContractColumns {
   const contracts =
@@ -139,7 +139,7 @@ export function contractColumns(contract: unknown): ContractColumns {
           const columnDefault = child(found, 'default');
           const expression = columnDefault?.['expression'];
           return {
-            codecRef: columnCodecRef(codecId, found, child(storage, 'types')),
+            codecRef: columnCodecRef(codecId, found),
             defaultExpression:
               columnDefault?.['kind'] === 'function' && typeof expression === 'string'
                 ? expression
@@ -152,16 +152,8 @@ export function contractColumns(contract: unknown): ContractColumns {
   };
 }
 
-function columnCodecRef(codecId: string, column: Loose, namedTypes: Loose | undefined): CodecRef {
-  const typeRef = column['typeRef'];
-  const typeParams = column['typeParams'];
-  const params = resolvedTypeParams(
-    {
-      typeParams: isLoose(typeParams) ? typeParams : undefined,
-      typeRef: typeof typeRef === 'string' ? typeRef : undefined,
-    },
-    namedTypesOf(namedTypes),
-  );
+function columnCodecRef(codecId: string, column: Loose): CodecRef {
+  const params = nonEmptyTypeParams(child(column, 'typeParams'));
   const many = column['many'];
   return {
     codecId,
@@ -173,15 +165,4 @@ function columnCodecRef(codecId: string, column: Loose, namedTypes: Loose | unde
     ),
     ...ifDefined('many', many !== undefined && many !== false ? true : undefined),
   };
-}
-
-function namedTypesOf(
-  namedTypes: Loose | undefined,
-): Readonly<Record<string, { readonly typeParams?: Record<string, unknown> }>> {
-  const result: Record<string, { readonly typeParams?: Record<string, unknown> }> = {};
-  for (const [name, entry] of Object.entries(namedTypes ?? {})) {
-    const typeParams = child(entry, 'typeParams');
-    result[name] = typeParams === undefined ? {} : { typeParams };
-  }
-  return result;
 }

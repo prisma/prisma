@@ -23,7 +23,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'8a61748a8475b31d2bf4f2dc9ff6060d8f4920dc60720ef04d629a799eb51327'>;
+  StorageHashBase<'8b6862e1d11ebebcd95ea7fa1f6426bc4e959aa2c1ab14b18ba451535c9d019e'>;
 export type ExecutionHash =
   ExecutionHashBase<'1d956b68d7bc7f9dffef3e648e3ba465e3f17a0c8bde1877dbd3f9b742ebfe64'>;
 export type ProfileHash =
@@ -309,21 +309,21 @@ type ContractBase = Omit<
                   readonly dataType: 'pg/numeric';
                   readonly codecId: 'pg/numeric@1';
                   readonly nullable: true;
-                  readonly typeRef: 'Decimal10_0';
+                  readonly typeParams: { readonly precision: 10; readonly scale: 0 };
                   readonly many: false;
                 };
                 readonly d20_10: {
                   readonly dataType: 'pg/numeric';
                   readonly codecId: 'pg/numeric@1';
                   readonly nullable: true;
-                  readonly typeRef: 'Decimal20_10';
+                  readonly typeParams: { readonly precision: 20; readonly scale: 10 };
                   readonly many: false;
                 };
                 readonly d38_30: {
                   readonly dataType: 'pg/numeric';
                   readonly codecId: 'pg/numeric@1';
                   readonly nullable: true;
-                  readonly typeRef: 'Decimal38_30';
+                  readonly typeParams: { readonly precision: 38; readonly scale: 30 };
                   readonly many: false;
                 };
                 readonly id: {
@@ -340,26 +340,6 @@ type ContractBase = Omit<
             };
           };
         };
-      };
-    };
-    readonly types: {
-      readonly Decimal10_0: {
-        readonly kind: 'codec-instance';
-        readonly codecId: 'pg/numeric@1';
-        readonly dataType: 'pg/numeric';
-        readonly typeParams: { readonly precision: 10; readonly scale: 0 };
-      };
-      readonly Decimal20_10: {
-        readonly kind: 'codec-instance';
-        readonly codecId: 'pg/numeric@1';
-        readonly dataType: 'pg/numeric';
-        readonly typeParams: { readonly precision: 20; readonly scale: 10 };
-      };
-      readonly Decimal38_30: {
-        readonly kind: 'codec-instance';
-        readonly codecId: 'pg/numeric@1';
-        readonly dataType: 'pg/numeric';
-        readonly typeParams: { readonly precision: 38; readonly scale: 30 };
       };
     };
     readonly storageHash: StorageHash;

@@ -276,7 +276,6 @@ function sameStorageColumn(
   if (a === b) return true;
   if (!sameSqlColumnType(a, b, dataTypes)) return false;
   if (a.nullable !== b.nullable) return false;
-  if (a.typeRef !== b.typeRef) return false;
   if (
     canonicalizeJson(codecOwnParams(a, dataTypes)) !==
     canonicalizeJson(codecOwnParams(b, dataTypes))

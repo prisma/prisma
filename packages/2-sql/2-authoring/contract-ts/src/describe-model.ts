@@ -4,7 +4,6 @@ import type {
   ExecutionMutationDefault,
 } from '@internal/contract/types';
 import type { ForeignKeyAuthoringInput } from '@internal/sql-contract/foreign-key-materialization';
-import type { AuthoredStorageTypeInstance } from '@internal/sql-contract/types';
 import { ifDefined } from '@internal/utils/defined';
 import {
   type FieldNode,
@@ -22,7 +21,6 @@ import type { ColumnDescription, ModelStorage } from './storage-description';
 import { type ColumnTypeQualifier, resolveColumnDescriptor } from './target-authoring-hooks';
 
 export interface ModelDescriptionContext extends ForeignKeyResolutionContext {
-  readonly storageTypes: Record<string, AuthoredStorageTypeInstance>;
   readonly qualifyColumnType: ColumnTypeQualifier | undefined;
 }
 
@@ -70,7 +68,6 @@ export function describeModel(
             ),
           },
       context.defaultNamespaceId,
-      context.storageTypes,
     );
     if (executionDefault) {
       executionDefaults.push({

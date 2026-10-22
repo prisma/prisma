@@ -75,8 +75,7 @@ export interface SqlCodecCallContext extends CodecCallContext {
 /**
  * SQL-family per-instance context. Extends the framework {@link CodecInstanceContext} (`name` only) with `usedAt`, the set of `(table, column)` pairs the resolved codec serves.
  *
- * - For `typeRef` columns sharing one named `storage.types` instance, the array lists every referencing column — a column-scoped stateful codec (e.g. encryption) can derive aggregated per-instance state across all the columns sharing the named instance.
- * - For inline-`typeParams` columns, the array has exactly one entry — the column that owns the inline params.
+ * - For columns with `typeParams`, the array has exactly one entry — the column that owns the params.
  * - For shared non-parameterized codecs, the array carries one representative entry (the column that triggered materialization); the codec is shared across every column with that codec id, so the `usedAt` is informational only.
  *
  * SQL extensions consuming `usedAt` (e.g. column-scoped state derivation) type their factory parameter as `SqlCodecInstanceContext`. Extensions that don't read `usedAt` type their factory parameter as the family-agnostic {@link CodecInstanceContext} — a `SqlCodecInstanceContext` is structurally assignable to the base.

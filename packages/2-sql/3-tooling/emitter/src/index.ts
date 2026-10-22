@@ -22,7 +22,7 @@ import type {
 } from '@internal/framework-components/emission';
 import { entityAt, type Namespace, UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
-  resolvedTypeParams,
+  nonEmptyTypeParams,
   type SqlModelStorage,
   type SqlStorage,
   type StorageColumn,
@@ -318,7 +318,7 @@ function columnTypeOverride(
   }
   return renderCodecTypeOverride(
     column.codecId,
-    resolvedTypeParams(column, storage.types),
+    nonEmptyTypeParams(column.typeParams),
     codecLookup,
   );
 }
@@ -411,13 +411,12 @@ function generateTableLiteralType(table: StorageTable): string {
       col.typeParams && Object.keys(col.typeParams).length > 0
         ? `; readonly typeParams: ${serializeTypeParamsLiteral(col.typeParams)}`
         : '';
-    const typeRefSpec = col.typeRef ? `; readonly typeRef: ${serializeValue(col.typeRef)}` : '';
     const manySpec =
       col.many === false
         ? '; readonly many: false'
         : `; readonly many: { readonly elementNullable: ${col.many.elementNullable} }`;
     columns.push(
-      `readonly ${serializeObjectKey(colName)}: { readonly dataType: ${dataType}; readonly codecId: ${codecId}; readonly nullable: ${nullable}${defaultSpec}${typeParamsSpec}${typeRefSpec}${manySpec} }`,
+      `readonly ${serializeObjectKey(colName)}: { readonly dataType: ${dataType}; readonly codecId: ${codecId}; readonly nullable: ${nullable}${defaultSpec}${typeParamsSpec}${manySpec} }`,
     );
   }
 
