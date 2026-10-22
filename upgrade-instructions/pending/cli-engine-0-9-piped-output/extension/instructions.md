@@ -2,11 +2,11 @@
 changes:
   - id: engine-pin-moves-to-0-9-0
     summary: |
-      The toolchain now peers `@prisma/cli-engine@0.9.0` (up from 0.7.0). An extension package that pins `@prisma/cli-engine` for its tests or tooling must move the pin to `0.9.0`.
+      The toolchain now peers `@prisma/cli-engine@0.9.0` (up from 0.7.0). An extension package that depends on `@prisma/cli-engine` for its tests or tooling must move to `0.9.0`.
     detection:
       glob: "**/package.json"
-      contains:
-        - '"@prisma/cli-engine": "0.7.0"'
+      matches:
+        - '"@prisma/cli-engine":\s*"[~^]?0\.[0-8]\.'
   - id: piped-output-needs-json
     summary: |
       A piped Prisma ORM command no longer prints JSON. A test that runs the CLI with a non-terminal stdout and parses JSON frames from it must pass `--json`.
@@ -14,7 +14,7 @@ changes:
 
 ## `engine-pin-moves-to-0-9-0`
 
-For every `package.json` matched by `detection`, change the `@prisma/cli-engine` version from `0.7.0` to `0.9.0` and reinstall.
+For every `package.json` matched by `detection`, change the `@prisma/cli-engine` version (`0.7.0`, `^0.7.0` or any other 0.x below 0.9) to `0.9.0` and reinstall.
 
 ## `piped-output-needs-json`
 
