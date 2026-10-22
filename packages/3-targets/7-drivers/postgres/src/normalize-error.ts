@@ -1,4 +1,6 @@
 import { SqlConnectionError, SqlQueryError } from '@internal/sql-errors';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 
 /**
  * Postgres error shape from the pg library.
@@ -28,61 +30,28 @@ interface PostgresError extends Error {
   readonly routine?: string;
 }
 
-/**
- * Checks if an error is a connection-related error.
- */
-function isConnectionError(error: Error): boolean {
-  const code = (error as { code?: string }).code;
-  if (code) {
-    // Node.js error codes for connection issues
-    if (
-      code === 'ECONNRESET' ||
-      code === 'ETIMEDOUT' ||
-      code === 'ECONNREFUSED' ||
-      code === 'ENOTFOUND' ||
-      code === 'EHOSTUNREACH'
-    ) {
-      return true;
-    }
-  }
+const NODE_CONNECTION_CODES: ReadonlyMap<string, boolean> = new Map([
+  ['ECONNRESET', true],
+  ['ETIMEDOUT', true],
+  ['EPIPE', true],
+  ['EAI_AGAIN', true],
+  ['ECONNREFUSED', false],
+  ['ENOTFOUND', false],
+  ['EHOSTUNREACH', false],
+]);
 
-  // Check error message for connection-related strings
-  const message = error.message.toLowerCase();
-  if (
-    message.includes('connection terminated') ||
-    message.includes('connection closed') ||
-    message.includes('connection refused') ||
-    message.includes('connection timeout') ||
-    message.includes('connection reset')
-  ) {
-    return true;
-  }
+const TRANSIENT_CONNECTION_SQLSTATES: ReadonlySet<string> = new Set([
+  '08000',
+  '08001',
+  '08003',
+  '08006',
+  '57P01',
+  '57P02',
+  '57P03',
+]);
 
-  return false;
-}
-
-/**
- * Checks if a connection error is transient (might succeed on retry).
- */
-function isTransientConnectionError(error: Error): boolean {
-  const code = (error as { code?: string }).code;
-  if (code) {
-    // Timeouts and connection resets are often transient
-    if (code === 'ETIMEDOUT' || code === 'ECONNRESET') {
-      return true;
-    }
-    // Connection refused is usually not transient (server is down)
-    if (code === 'ECONNREFUSED') {
-      return false;
-    }
-  }
-
-  const message = error.message.toLowerCase();
-  if (message.includes('timeout') || message.includes('connection reset')) {
-    return true;
-  }
-
-  return false;
+function isConnectionSqlState(sqlState: string): boolean {
+  return sqlState.startsWith('08') || TRANSIENT_CONNECTION_SQLSTATES.has(sqlState);
 }
 
 /**
@@ -154,66 +123,66 @@ function isPostgresSqlState(code: string | undefined): boolean {
 }
 
 /**
- * Normalizes a Postgres error into a SQL-shared error type.
+ * Normalizes a Postgres error into a SQL-shared error type, from its code alone.
  *
- * - Postgres SQLSTATE errors (5-char codes like '23505') → SqlQueryError
- * - Connection errors (ECONNRESET, ETIMEDOUT, etc.) → SqlConnectionError
- * - Unknown errors → returns the original error as-is
+ * - Connection SQLSTATEs (class `08`, `57P01`–`57P03`) and Node socket codes → SqlConnectionError
+ * - Other SQLSTATEs → SqlQueryError
+ * - Errors already normalized, and errors without a recognized code → returned as-is
  *
- * The original error is preserved via Error.cause to maintain stack traces.
- *
- * @param error - The error to normalize (typically from pg library)
- * @returns SqlQueryError for query-related failures
- * @returns SqlConnectionError for connection-related failures
- * @returns The original error if it cannot be normalized
+ * pg raises some connection failures ("Connection terminated", "timeout expired") as plain
+ * errors with no code; {@link normalizePgConnectionError} classifies those where the caller
+ * knows the connection failed.
  */
 export function normalizePgError(error: unknown): SqlQueryError | SqlConnectionError | Error {
   if (!(error instanceof Error)) {
-    // Wrap non-Error values in an Error object
     return new Error(String(error));
   }
-
-  const pgError = error as PostgresError;
-
-  // Check for Postgres SQLSTATE (query errors)
-  if (isPostgresSqlState(pgError.code)) {
-    // isPostgresSqlState ensures code is defined and is a valid SQLSTATE
-    // biome-ignore lint/style/noNonNullAssertion: isPostgresSqlState guarantees code is defined
-    const sqlState = pgError.code!;
-    const options: {
-      cause: Error;
-      sqlState: string;
-      constraint?: string;
-      table?: string;
-      column?: string;
-      detail?: string;
-    } = {
-      cause: error,
-      sqlState,
-    };
-    if (pgError.constraint !== undefined) {
-      options.constraint = pgError.constraint;
-    }
-    if (pgError.table !== undefined) {
-      options.table = pgError.table;
-    }
-    if (pgError.column !== undefined) {
-      options.column = pgError.column;
-    }
-    if (pgError.detail !== undefined) {
-      options.detail = pgError.detail;
-    }
-    return new SqlQueryError(error.message, options);
+  if (SqlQueryError.is(error) || SqlConnectionError.is(error)) {
+    return error;
   }
 
-  // Check for connection errors
-  if (isConnectionError(error)) {
-    return new SqlConnectionError(error.message, {
+  const pgError = blindCast<PostgresError, 'pg errors carry optional typed fields at runtime'>(
+    error,
+  );
+  const code = pgError.code;
+  if (code === undefined) {
+    return error;
+  }
+
+  const transient = NODE_CONNECTION_CODES.get(code);
+  if (transient !== undefined) {
+    return new SqlConnectionError(error.message, { cause: error, transient });
+  }
+
+  if (isPostgresSqlState(code)) {
+    if (isConnectionSqlState(code)) {
+      return new SqlConnectionError(error.message, {
+        cause: error,
+        transient: TRANSIENT_CONNECTION_SQLSTATES.has(code),
+      });
+    }
+    return new SqlQueryError(error.message, {
       cause: error,
-      transient: isTransientConnectionError(error),
+      sqlState: code,
+      ...ifDefined('constraint', pgError.constraint),
+      ...ifDefined('table', pgError.table),
+      ...ifDefined('column', pgError.column),
+      ...ifDefined('detail', pgError.detail),
     });
   }
 
-  // Unknown error - return as-is to preserve original error and stack trace
   return error;
+}
+
+/**
+ * Normalizes an error the caller knows is a connection failure: it came from a `connect()`
+ * call, or arrived after the client emitted `error` or `end`. Errors with a SQLSTATE keep
+ * their code-based classification; everything else becomes a SqlConnectionError.
+ */
+export function normalizePgConnectionError(error: unknown): SqlQueryError | SqlConnectionError {
+  const normalized = normalizePgError(error);
+  if (SqlQueryError.is(normalized) || SqlConnectionError.is(normalized)) {
+    return normalized;
+  }
+  return new SqlConnectionError(normalized.message, { cause: normalized });
 }

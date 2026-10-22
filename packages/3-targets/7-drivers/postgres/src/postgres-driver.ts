@@ -23,9 +23,15 @@ import type {
 import { Pool } from 'pg';
 import Cursor from 'pg-cursor';
 import { callbackToPromise } from './callback-to-promise';
+import { classifyClientError, hasLostConnection, watchClientLoss } from './client-loss';
 import { type DriverRuntimeError, driverError } from './driver-error';
 import { NamedCursor } from './named-cursor';
-import { isAlreadyConnectedError, isPostgresError, normalizePgError } from './normalize-error';
+import {
+  isAlreadyConnectedError,
+  isPostgresError,
+  normalizePgConnectionError,
+  normalizePgError,
+} from './normalize-error';
 import { serverTextTypes } from './server-text-types';
 
 export type QueryResult<T extends QueryResultRow = QueryResultRow> = PgQueryResult<T>;
@@ -277,6 +283,8 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
       } finally {
         releaseLock();
       }
+    } catch (error) {
+      throw classifyClientError(client, error);
     } finally {
       await this.releaseClient(client);
     }
@@ -315,8 +323,12 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
           return;
         } catch (cursorError) {
           // Non-pg cursor-specific errors fall through to the buffered path;
-          // real pg errors propagate.
-          if (!(cursorError instanceof Error) || isPostgresError(cursorError)) {
+          // real pg errors and errors from a lost connection propagate.
+          if (
+            hasLostConnection(client) ||
+            !(cursorError instanceof Error) ||
+            isPostgresError(cursorError)
+          ) {
             throw cursorError;
           }
         } finally {
@@ -325,6 +337,8 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
       }
 
       rows = await this.executeBuffered(client, request.sql, request.params, name);
+    } catch (error) {
+      throw classifyClientError(client, error);
     } finally {
       await this.releaseClient(client);
     }
@@ -343,7 +357,7 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
       try {
         const result = await client
           .query(text, request.params === undefined ? undefined : [...request.params])
-          .catch(rethrowNormalizedError);
+          .catch((error: unknown) => rethrowNormalizedError(classifyClientError(client, error)));
         return {
           rows: blindCast<ReadonlyArray<Record<string, unknown>>, 'pg does not type query rows'>(
             result.rows,
@@ -524,7 +538,11 @@ class PostgresConnectionImpl extends PostgresQueryable implements SqlConnection 
   async beginTransaction(): Promise<SqlTransaction> {
     const releaseLock = await acquireClientQueryLock(this.#connection);
     try {
-      await this.#connection.query('BEGIN').catch(rethrowNormalizedError);
+      await this.#connection
+        .query('BEGIN')
+        .catch((error: unknown) =>
+          rethrowNormalizedError(classifyClientError(this.#connection, error)),
+        );
     } finally {
       releaseLock();
     }
@@ -608,7 +626,11 @@ class PostgresTransactionImpl extends PostgresQueryable implements SqlTransactio
   async commit(): Promise<void> {
     const releaseLock = await acquireClientQueryLock(this.#connection);
     try {
-      await this.#connection.query('COMMIT').catch(rethrowNormalizedError);
+      await this.#connection
+        .query('COMMIT')
+        .catch((error: unknown) =>
+          rethrowNormalizedError(classifyClientError(this.#connection, error)),
+        );
     } finally {
       releaseLock();
       this.#settle();
@@ -618,7 +640,11 @@ class PostgresTransactionImpl extends PostgresQueryable implements SqlTransactio
   async rollback(): Promise<void> {
     const releaseLock = await acquireClientQueryLock(this.#connection);
     try {
-      await this.#connection.query('ROLLBACK').catch(rethrowNormalizedError);
+      await this.#connection
+        .query('ROLLBACK')
+        .catch((error: unknown) =>
+          rethrowNormalizedError(classifyClientError(this.#connection, error)),
+        );
     } finally {
       releaseLock();
       this.#settle();
@@ -664,7 +690,13 @@ class PostgresPoolDriverImpl
     // out, so a connection error during a held connection, transaction, or
     // cursor emits on the client itself; without a listener that kills the
     // process.
-    return suppressIdleConnectionErrors(await this.pool.connect());
+    let client: PoolClient;
+    try {
+      client = await this.pool.connect();
+    } catch (error) {
+      throw normalizePgConnectionError(error);
+    }
+    return watchClientLoss(suppressIdleConnectionErrors(client));
   }
 
   async releaseClient(client: PoolClient): Promise<void> {
@@ -688,7 +720,7 @@ class PostgresDirectDriverImpl
 
   constructor(options: PostgresDriverOptions & { connect: { client: Client } }) {
     super(buildConnectionOptions(options));
-    this.directClient = options.connect.client;
+    this.directClient = watchClientLoss(options.connect.client);
     // A pg.Client cannot be reused after its connection dies, so mark the
     // driver closed and let acquireClient reject with a clear error instead
     // of handing out the dead client.
@@ -787,7 +819,7 @@ class PostgresDirectDriverImpl
         await this.directClient.connect();
       } catch (error: unknown) {
         if (!isAlreadyConnectedError(error)) {
-          throw error;
+          throw normalizePgConnectionError(error);
         }
       } finally {
         this.#connectPromise = undefined;

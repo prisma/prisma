@@ -1,7 +1,12 @@
 import { access } from 'node:fs/promises';
 import { SqlConnectionError, SqlQueryError } from '@internal/sql-errors';
 import { describe, expect, it } from 'vitest';
-import { isAlreadyConnectedError, isPostgresError, normalizePgError } from '../src/normalize-error';
+import {
+  isAlreadyConnectedError,
+  isPostgresError,
+  normalizePgConnectionError,
+  normalizePgError,
+} from '../src/normalize-error';
 
 describe('normalizePgError', () => {
   describe('Postgres SQLSTATE errors', () => {
@@ -83,33 +88,83 @@ describe('normalizePgError', () => {
       }
     });
 
-    it('normalizes connection error from message', () => {
+    it.each([
+      ['EPIPE', true],
+      ['EAI_AGAIN', true],
+      ['ENOTFOUND', false],
+      ['EHOSTUNREACH', false],
+    ])('normalizes Node code %s to SqlConnectionError with transient %s', (code, transient) => {
+      const nodeError = Object.assign(new Error('socket failure'), { code });
+
+      expect(normalizePgError(nodeError)).toMatchObject({
+        kind: 'sql_connection',
+        transient,
+        cause: nodeError,
+      });
+    });
+
+    it.each([
+      ['08006', true],
+      ['08001', true],
+      ['57P01', true],
+      ['57P02', true],
+      ['57P03', true],
+      ['08004', false],
+      ['08P01', false],
+    ])('normalizes SQLSTATE %s to SqlConnectionError with transient %s', (code, transient) => {
+      const pgError = Object.assign(new Error('server connection failure'), { code });
+
+      expect(normalizePgError(pgError)).toMatchObject({
+        kind: 'sql_connection',
+        transient,
+        cause: pgError,
+      });
+    });
+
+    it('returns a code-less connection message as-is', () => {
       const pgError = new Error('Connection terminated unexpectedly');
 
-      const error = normalizePgError(pgError);
-      expect(SqlConnectionError.is(error)).toBe(true);
-      if (SqlConnectionError.is(error)) {
-        expect(error.cause).toBe(pgError);
-      }
+      expect(normalizePgError(pgError)).toBe(pgError);
     });
 
-    it('classifies connection timeout messages as transient', () => {
-      const pgError = new Error('Connection timeout while opening socket');
-      (pgError as { code?: string }).code = 'CUSTOM_TRANSPORT_CODE';
+    it('returns already-normalized errors as-is', () => {
+      const connectionError = new SqlConnectionError('lost', { transient: true });
+      const queryError = new SqlQueryError('bad', { sqlState: '42601' });
 
-      const error = normalizePgError(pgError);
-      expect(SqlConnectionError.is(error)).toBe(true);
-      if (SqlConnectionError.is(error)) {
-        expect(error.transient).toBe(true);
-        expect(error.cause).toBe(pgError);
-      }
+      expect(normalizePgError(connectionError)).toBe(connectionError);
+      expect(normalizePgError(queryError)).toBe(queryError);
+    });
+  });
+
+  describe('normalizePgConnectionError', () => {
+    it('classifies a code-less error as SqlConnectionError with unknown transience', () => {
+      const pgError = new Error('timeout expired');
+
+      const error = normalizePgConnectionError(pgError);
+
+      expect(error).toMatchObject({ kind: 'sql_connection', transient: undefined, cause: pgError });
+      expect(error.message).toBe('timeout expired');
     });
 
-    it('normalizes connection closed error from message', () => {
-      const pgError = new Error('Connection closed');
+    it('keeps a query SQLSTATE as SqlQueryError', () => {
+      const pgError = Object.assign(new Error('password authentication failed'), {
+        code: '28P01',
+      });
 
-      const error = normalizePgError(pgError);
-      expect(SqlConnectionError.is(error)).toBe(true);
+      expect(normalizePgConnectionError(pgError)).toMatchObject({
+        kind: 'sql_query',
+        sqlState: '28P01',
+      });
+    });
+
+    it('keeps Node code transience', () => {
+      const nodeError = Object.assign(new Error('refused'), { code: 'ECONNREFUSED' });
+
+      expect(normalizePgConnectionError(nodeError)).toMatchObject({
+        kind: 'sql_connection',
+        transient: false,
+        cause: nodeError,
+      });
     });
   });
 
@@ -124,7 +179,7 @@ describe('normalizePgError', () => {
       expect(error2.message).toBe('123');
     });
 
-    it('returns errors without recognized codes or messages as-is', () => {
+    it('returns errors without recognized codes as-is', () => {
       const unknownError = new Error('Some unknown error');
       (unknownError as { code?: string }).code = 'UNKNOWN_CODE';
 
