@@ -194,6 +194,90 @@ describe('buildMysqlSchemaIR', () => {
     });
   });
 
+  it('reports a unique index as a unique constraint, as MySQL lists every unique index as one', async () => {
+    const schema = await buildMysqlSchemaIR(
+      {
+        tables: ['T'],
+        columns: [column('T', 'handle', 1, 'varchar(191)')],
+        indexes: index('T', 'T_handle_idx', ['handle'], true),
+        constraints: [
+          { table_name: 'T', constraint_name: 'T_handle_idx', constraint_type: 'UNIQUE' },
+        ],
+        foreignKeys: [],
+      },
+      mysqlDataTypes,
+      readLiteral,
+    );
+    expect({ uniques: schema.tables['T']?.uniques, indexes: schema.tables['T']?.indexes }).toEqual({
+      uniques: [expect.objectContaining({ columns: ['handle'], name: 'T_handle_idx' })],
+      indexes: [],
+    });
+  });
+
+  it('reports a unique index the contract declares as a unique index', async () => {
+    const schema = await buildMysqlSchemaIR(
+      {
+        tables: ['T'],
+        columns: [
+          column('T', 'handle', 1, 'varchar(191)'),
+          column('T', 'email', 2, 'varchar(191)'),
+        ],
+        indexes: [
+          ...index('T', 'T_handle_idx', ['handle'], true),
+          ...index('T', 'T_email_key', ['email'], true),
+        ],
+        constraints: [
+          { table_name: 'T', constraint_name: 'T_handle_idx', constraint_type: 'UNIQUE' },
+          { table_name: 'T', constraint_name: 'T_email_key', constraint_type: 'UNIQUE' },
+        ],
+        foreignKeys: [],
+      },
+      mysqlDataTypes,
+      readLiteral,
+      (table, name) => table === 'T' && name === 'T_handle_idx',
+    );
+    expect({ uniques: schema.tables['T']?.uniques, indexes: schema.tables['T']?.indexes }).toEqual({
+      uniques: [expect.objectContaining({ columns: ['email'], name: 'T_email_key' })],
+      indexes: [
+        expect.objectContaining({
+          columns: ['handle'],
+          name: 'T_handle_idx',
+          unique: true,
+        }),
+      ],
+    });
+  });
+
+  it('reports a unique expression index as an index with its expression', async () => {
+    const schema = await buildMysqlSchemaIR(
+      {
+        tables: ['T'],
+        columns: [column('T', 'name', 1, 'varchar(191)')],
+        indexes: [
+          {
+            table_name: 'T',
+            index_name: 'by_lower',
+            non_unique: '0',
+            seq_in_index: '1',
+            column_name: null,
+            expression: 'lower(`name`)',
+          },
+        ],
+        constraints: [{ table_name: 'T', constraint_name: 'by_lower', constraint_type: 'UNIQUE' }],
+        foreignKeys: [],
+      },
+      mysqlDataTypes,
+      readLiteral,
+    );
+    expect({
+      uniques: schema.tables['T']?.uniques,
+      indexes: schema.tables['T']?.indexes.map(({ expression, unique }) => ({
+        expression,
+        unique,
+      })),
+    }).toEqual({ uniques: [], indexes: [{ expression: 'lower(`name`)', unique: true }] });
+  });
+
   it('reports an expression index by its expression', async () => {
     const schema = await buildMysqlSchemaIR(
       {

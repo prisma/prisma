@@ -64,6 +64,9 @@ export interface MysqlCatalogRows {
   readonly foreignKeys: readonly MysqlForeignKeyRow[];
 }
 
+/** Whether the contract declares, on `tableName`, a unique index named `indexName`. */
+export type DeclaresUniqueIndex = (tableName: string, indexName: string) => boolean;
+
 /** What a column's reported literal default reads as, through the codec of the column the contract declares. */
 export type ReadLiteralDefault = (
   tableName: string,
@@ -235,19 +238,28 @@ async function tableOf(
   },
   dataTypes: readonly DataType[],
   readLiteralDefault: ReadLiteralDefault,
+  declaresUniqueIndex: DeclaresUniqueIndex,
 ): Promise<SqlTableIR> {
   const columns: Record<string, SqlColumnIRInput> = {};
   for (const row of [...rows.columns].sort(byPosition((column) => column.ordinal_position))) {
     columns[row.column_name] = await columnOf(row, dataTypes, readLiteralDefault);
   }
 
-  const uniqueConstraintNames = new Set(
-    rows.constraints
-      .filter((constraint) => constraint.constraint_type === 'UNIQUE')
-      .map((constraint) => constraint.constraint_name),
-  );
   const foreignKeys = foreignKeysOf(tableName, rows.foreignKeys);
   const indexes = indexesOf(rows.indexes);
+  const expressionIndexNames = new Set(
+    indexes.filter((index) => index.expression !== undefined).map((index) => index.name),
+  );
+  const uniqueConstraintNames = new Set(
+    rows.constraints
+      .filter(
+        (constraint) =>
+          constraint.constraint_type === 'UNIQUE' &&
+          !expressionIndexNames.has(constraint.constraint_name) &&
+          !declaresUniqueIndex(tableName, constraint.constraint_name),
+      )
+      .map((constraint) => constraint.constraint_name),
+  );
 
   const primary = indexes.find((index) => index.name === PRIMARY_INDEX);
   const primaryKey: PrimaryKeyInput | undefined =
@@ -296,11 +308,14 @@ async function tableOf(
   });
 }
 
-/** The schema IR of the database the rows describe: one flat tree of its tables. */
+/**
+ * The schema IR of the database the rows describe: one flat tree of its tables. MySQL lists every unique index as a UNIQUE constraint, so one is reported as a unique constraint unless the contract declares a unique index of that name on the table, or it indexes an expression.
+ */
 export async function buildMysqlSchemaIR(
   rows: MysqlCatalogRows,
   dataTypes: readonly DataType[],
   readLiteralDefault: ReadLiteralDefault,
+  declaresUniqueIndex: DeclaresUniqueIndex = () => false,
 ): Promise<SqlSchemaIR> {
   const columnsByTable = groupBy(rows.columns, (row) => row.table_name);
   const indexesByTable = groupBy(rows.indexes, (row) => row.table_name);
@@ -318,6 +333,7 @@ export async function buildMysqlSchemaIR(
       },
       dataTypes,
       readLiteralDefault,
+      declaresUniqueIndex,
     );
   }
   return new SqlSchemaIR({ tables });

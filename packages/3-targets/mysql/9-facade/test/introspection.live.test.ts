@@ -7,6 +7,7 @@ import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import mysql from '@internal/target-mysql/control';
 import { withMysqlDatabase } from '@repo/test-utils/mysql-database';
 import { describe, expect, it } from 'vitest';
+import { defineContract } from '../src/exports/contract-builder';
 import {
   exampleContractSchema,
   exampleTablesDdl,
@@ -21,6 +22,22 @@ async function introspect(driver: MysqlControlDriver, contract?: unknown): Promi
     createControlStack({ family: sql, target: mysql, adapter: mysqlAdapter, driver: mysqlDriver }),
   );
   return (await adapter.introspect(driver, contract)) as SqlSchemaIR;
+}
+
+function contractWithBothKindsOfUniqueness() {
+  return defineContract({}, ({ field, model, type }) => ({
+    models: {
+      Account: model('Account', {
+        fields: {
+          id: field.column(type.Int()).id(),
+          email: field.column(type.String()).unique(),
+          handle: field.column(type.String()),
+        },
+      }).sql(({ cols, constraints }) => ({
+        indexes: [constraints.index([cols.handle], { unique: true })],
+      })),
+    },
+  }));
 }
 
 async function withExampleTables<T>(
@@ -110,6 +127,29 @@ describe('introspecting a MySQL database made by hand', () => {
             },
           }),
         );
+      }),
+    );
+  });
+
+  it('verifies a unique constraint and a unique index the contract declares without drift', async (test) => {
+    const contract = contractWithBothKindsOfUniqueness();
+    const account = contract.storage.namespaces['__unbound__']?.entries.table?.['Account'];
+    const uniqueIndexName = account?.indexes[0]?.name ?? '';
+    const accountDdl = `CREATE TABLE \`Account\` (
+      \`id\` int NOT NULL,
+      \`email\` varchar(191) NOT NULL,
+      \`handle\` varchar(191) NOT NULL,
+      PRIMARY KEY (\`id\`),
+      UNIQUE KEY \`Account_email_key\` (\`email\`),
+      UNIQUE KEY \`${uniqueIndexName}\` (\`handle\`)
+    )`;
+    await withMysqlDatabase(test, ({ url }) =>
+      withExampleTables(url, [accountDdl], async (driver) => {
+        const actual = await introspect(driver, contract);
+        expect({
+          uniqueIndexName,
+          issues: mysql.diffSchema({ contract, schema: actual, frameworkComponents }).issues,
+        }).toEqual({ uniqueIndexName: expect.stringMatching(/^Account_handle_/), issues: [] });
       }),
     );
   });
