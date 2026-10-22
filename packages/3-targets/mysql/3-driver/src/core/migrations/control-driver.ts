@@ -12,6 +12,18 @@ import { mysqlDriverDescriptorMeta } from '../descriptor-meta';
 import { normalizeMysqlError } from '../normalize-error';
 import { serverText } from '../server-text';
 
+function isFatal(error: unknown): error is Error {
+  return error instanceof Error && 'fatal' in error && error.fatal === true;
+}
+
+function connectionLost(cause: Error) {
+  return errorRuntime('DRIVER.NOT_CONNECTED', 'MySQL connection lost or closed', {
+    why: cause.message,
+    fix: 'Create a new driver to connect again.',
+    cause,
+  });
+}
+
 /**
  * A MySQL connection for the control plane. It runs each statement through mysql2's text protocol, `query()`, which escapes parameters on the client; `multipleStatements` stays off whatever the URL says, so a parameter can never end the statement it is in.
  */
@@ -19,12 +31,19 @@ export class MysqlControlDriver implements SqlControlDriverInstance<'mysql'> {
   readonly familyId = 'sql' as const;
   readonly targetId = 'mysql' as const;
 
-  constructor(private readonly connection: Connection) {}
+  #lost: Error | undefined;
+
+  constructor(private readonly connection: Connection) {
+    connection.on('error', (error: Error) => {
+      this.#lost = error;
+    });
+  }
 
   async query<Row = Record<string, unknown>>(
     sql: string,
     params?: readonly unknown[],
   ): Promise<{ readonly rows: Row[] }> {
+    if (this.#lost !== undefined) throw connectionLost(this.#lost);
     try {
       const [result] = await this.connection.query({
         sql,
@@ -39,6 +58,10 @@ export class MysqlControlDriver implements SqlControlDriverInstance<'mysql'> {
           : [],
       };
     } catch (error) {
+      if (isFatal(error)) {
+        this.#lost = error;
+        throw connectionLost(error);
+      }
       throw normalizeMysqlError(error);
     }
   }
