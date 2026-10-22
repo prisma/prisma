@@ -25,8 +25,27 @@ describe('the advice for a check that fails before an operation runs', () => {
 
     expect({ why: error.why, fix: error.fix }).toEqual({
       why: 'Before operation index.Item.Item_state_idx runs, it checks: ensure index "Item_state_idx" does not exist. That check failed on this database.',
-      fix: 'The database has no migration marker, so `{bin} db migrate` applies every migration from the first, and the database may already be ahead of this one. If its schema already matches the contract, adopt it with `{bin} db sign` instead.',
+      fix: 'The database has no migration marker, so `{bin} db migrate` applies every migration from the first, and the database may already be ahead of this one. If its schema already matches the contract, adopt it instead.',
     });
+  });
+
+  it('on db migrate without a marker, offers db sign as a command that is the whole way out, named once', () => {
+    const error = migrateError(
+      {
+        ...runnerFailed,
+        failedPrecheck: failedPrecheck('ensure index "Item_state_idx" does not exist', false),
+      },
+      PROJECT,
+    );
+
+    expect(error.nextActions).toEqual([
+      {
+        kind: 'run-command',
+        label:
+          'The database has no migration marker, so `{bin} db migrate` applies every migration from the first, and the database may already be ahead of this one. If its schema already matches the contract, adopt it instead',
+        command: '{bin} db sign',
+      },
+    ]);
   });
 
   it('on db migrate with a marker, says the database drifted from its migration history and points to db verify', () => {
@@ -71,7 +90,7 @@ describe('the advice for a check that fails before an operation runs', () => {
     );
 
     expect(error.fix).toBe(
-      'The database already holds part of the schema `{bin} db init` would create. If its schema already matches the contract, adopt it with `{bin} db sign` instead.',
+      'The database already holds part of the schema `{bin} db init` would create. If its schema already matches the contract, adopt it instead.',
     );
   });
 

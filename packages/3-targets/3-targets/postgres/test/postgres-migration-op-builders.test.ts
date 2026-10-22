@@ -5,6 +5,7 @@ import type {
   SqlControlAdapter,
 } from '@internal/family-sql/control-adapter';
 import type { ControlStack } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { SqlExpression } from '@internal/sql-contract/sql-expression';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { DdlColumn, DdlTableConstraint } from '@internal/sql-relational-core/ast';
@@ -19,6 +20,11 @@ import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import { alterColumnTypeAction, alterTable } from '../src/contract-free/ddl';
 import { postgresDataTypes } from '../src/core/data-types';
+import {
+  DropSchemaCall,
+  RenameSchemaCall,
+  SetTableSchemaCall,
+} from '../src/core/migrations/op-factory-call';
 import type { AlterColumnTypeClass } from '../src/core/migrations/operations/columns';
 import type { DataTransformOptions } from '../src/core/migrations/operations/data-transform';
 import type { CreateIndexExtras } from '../src/core/migrations/operations/indexes';
@@ -153,6 +159,22 @@ class ExposedMigration extends PostgresMigration<Contract, Contract> {
 
   callDropTable(options: { readonly schema: string; readonly table: string }): Promise<Op> {
     return this.dropTable(options);
+  }
+
+  callSetTableSchema(options: {
+    readonly schema?: string;
+    readonly table: string;
+    readonly to: string;
+  }): Promise<Op> {
+    return this.setTableSchema(options);
+  }
+
+  callRenameSchema(options: { readonly schema: string; readonly to: string }): Promise<Op> {
+    return this.renameSchema(options);
+  }
+
+  callDropSchema(options: { readonly schema: string }): Promise<Op> {
+    return this.dropSchema(options);
   }
 
   callDropColumn(options: {
@@ -300,6 +322,12 @@ const cases: ReadonlyArray<{
       m.callCreateTable({ schema: 'public', table: 'widget', columns: [col('id', 'integer')] }),
   },
   { name: 'createSchema', run: (m) => m.callCreateSchema({ schema: 'reporting' }) },
+  {
+    name: 'setTableSchema',
+    run: (m) => m.callSetTableSchema({ schema: 'billing', table: 'invoice', to: 'finance' }),
+  },
+  { name: 'renameSchema', run: (m) => m.callRenameSchema({ schema: 'billing', to: 'finance' }) },
+  { name: 'dropSchema', run: (m) => m.callDropSchema({ schema: 'billing' }) },
   {
     name: 'createNativeEnumType',
     run: (m) =>
@@ -456,9 +484,9 @@ describe('PostgresMigration op-builder methods without a ControlStack', () => {
 // (B) With a ControlStack: the op-builder lowers to a real op shape.
 // ============================================================================
 
-function fakeControlStack(): ControlStack<'sql', 'postgres'> {
+function countingLowerer(): ExecuteRequestLowerer {
   let counter = 0;
-  const lowerer: ExecuteRequestLowerer = {
+  return {
     lower: () => ({ sql: 'UNUSED', params: [] }),
     renderColumnDefault: async () => '',
     lowerToExecuteRequest: async () => {
@@ -466,7 +494,10 @@ function fakeControlStack(): ControlStack<'sql', 'postgres'> {
       return { sql: `LOWERED ${counter}`, params: [`p${counter}`] };
     },
   };
-  const adapter = lowerer as unknown as SqlControlAdapter<'postgres'>;
+}
+
+function fakeControlStack(): ControlStack<'sql', 'postgres'> {
+  const adapter = countingLowerer() as unknown as SqlControlAdapter<'postgres'>;
   return {
     target: { id: 'postgres' },
     adapter: { id: 'postgres-test', create: () => adapter, dataTypes: postgresDataTypes },
@@ -547,6 +578,27 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
     expect(op.operationClass).toBe('additive');
     expect(op.execute[0]?.description).toBe('Create schema "reporting"');
     expect(typeof op.execute[0]?.sql).toBe('string');
+  });
+
+  it('setTableSchema, renameSchema and dropSchema give the operations their calls give', async () => {
+    const fresh = () => new ExposedMigration(fakeControlStack());
+
+    expect(
+      await fresh().callSetTableSchema({ schema: 'billing', table: 'invoice', to: 'finance' }),
+    ).toEqual(
+      await new SetTableSchemaCall('billing', 'invoice', 'finance').toOp(countingLowerer()),
+    );
+    expect(await fresh().callSetTableSchema({ table: 'invoice', to: 'billing' })).toEqual(
+      await new SetTableSchemaCall(UNBOUND_NAMESPACE_ID, 'invoice', 'billing').toOp(
+        countingLowerer(),
+      ),
+    );
+    expect(await fresh().callRenameSchema({ schema: 'billing', to: 'finance' })).toEqual(
+      await new RenameSchemaCall('billing', 'finance').toOp(countingLowerer()),
+    );
+    expect(await fresh().callDropSchema({ schema: 'billing' })).toEqual(
+      await new DropSchemaCall('billing').toOp(countingLowerer()),
+    );
   });
 
   it('dropTable lowers to a destructive drop-table operation', async () => {

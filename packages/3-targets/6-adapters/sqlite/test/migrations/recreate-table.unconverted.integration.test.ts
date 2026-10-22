@@ -175,7 +175,7 @@ describe('a SQLite type change the rebuild copies', { timeout: timeouts.database
       code: 'MIGRATION.POSTCHECK_FAILED',
       message:
         'Operation recreateTable.User failed during postcheck: verify every value of "age" on "User" is stored as INTEGER',
-      why: `The value 'abc' of column "age" on "User" is still stored as text, which INTEGER cannot hold.`,
+      why: `The value 'abc' of column "age" on "User" is still stored as text, which INTEGER cannot hold. The failed apply changed nothing.`,
       meta: {
         failedTypeChange: {
           field: {
@@ -203,7 +203,7 @@ describe('a SQLite type change the rebuild copies', { timeout: timeouts.database
   it('cuts a long value short where it names it', async () => {
     const result = await retype('text', 'integer', [`'${'x'.repeat(60)}'`]);
     expect(result.ok ? undefined : result.failure.why).toBe(
-      `The value '${'x'.repeat(39)}… of column "age" on "User" is still stored as text, which INTEGER cannot hold.`,
+      `The value '${'x'.repeat(39)}… of column "age" on "User" is still stored as text, which INTEGER cannot hold. The failed apply changed nothing.`,
     );
   });
 

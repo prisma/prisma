@@ -67,7 +67,12 @@ describe('CreateTableCall', () => {
     expect(op.precheck).toHaveLength(1);
     expect(op.execute).toHaveLength(1);
     expect(op.postcheck).toEqual([
-      { description: 'verify table "user" exists', sql: 'LOWERED CHECK 3', params: ['p3'] },
+      {
+        description: 'verify table "user" exists',
+        expectation: { expects: 'present', object: 'table "user"' },
+        sql: 'LOWERED CHECK 3',
+        params: ['p3'],
+      },
       {
         description: 'verify table "user" has exactly its columns',
         sql: `SELECT (SELECT COUNT(*) FROM pragma_table_info('user')) = 2 AND (SELECT COUNT(*) FROM pragma_table_info('user') WHERE (name, LOWER(type), "notnull", pk) IN (VALUES ('id', 'integer', 1, 1), ('email', 'text', 1, 0))) = 2`,
@@ -178,10 +183,20 @@ describe('AddColumnCall', () => {
       columnExistsAst('user', 'bio').columnPresent(),
     ]);
     expect(op.precheck).toEqual([
-      { description: 'ensure column "bio" is missing', sql: 'LOWERED CHECK 1', params: ['p1'] },
+      {
+        description: 'ensure column "bio" is missing',
+        expectation: { expects: 'absent', object: 'column "bio" on "user"' },
+        sql: 'LOWERED CHECK 1',
+        params: ['p1'],
+      },
     ]);
     expect(op.postcheck).toEqual([
-      { description: 'verify column "bio" exists', sql: 'LOWERED CHECK 2', params: ['p2'] },
+      {
+        description: 'verify column "bio" exists',
+        expectation: { expects: 'present', object: 'column "bio" on "user"' },
+        sql: 'LOWERED CHECK 2',
+        params: ['p2'],
+      },
       {
         description: 'verify column "bio" on "user" has type TEXT and is optional',
         sql: `SELECT COUNT(*) > 0 FROM pragma_table_info('user') WHERE name = 'bio' AND LOWER(type) = 'text' AND "notnull" = 0`,
@@ -334,6 +349,7 @@ describe('DropColumnCall', () => {
     expect(op.precheck).toEqual([
       {
         description: 'ensure column "old" exists on "user"',
+        expectation: { expects: 'present', object: 'column "old" on "user"' },
         sql: 'LOWERED CHECK 1',
         params: ['p1'],
       },
@@ -341,6 +357,7 @@ describe('DropColumnCall', () => {
     expect(op.postcheck).toEqual([
       {
         description: 'verify column "old" is gone from "user"',
+        expectation: { expects: 'absent', object: 'column "old" on "user"' },
         sql: 'LOWERED CHECK 2',
         params: ['p2'],
       },

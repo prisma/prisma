@@ -53,9 +53,18 @@ describe('RenameTableCall (sqlite)', () => {
       operationClass: 'widening',
       target: { id: 'sqlite', details: { schema: 'main', objectType: 'table', name: 'account' } },
       precheck: [
-        { description: 'ensure table "profile" exists', sql: 'LOWERED 1', params: ['p1'] },
+        {
+          description: 'ensure table "profile" exists',
+          expectation: { expects: 'present', object: 'table "profile"' },
+          sql: 'LOWERED 1',
+          params: ['p1'],
+        },
         {
           description: 'ensure no table or index is named "account" in any case',
+          expectation: {
+            expects: 'absent',
+            object: 'a table or index named "account" in any case',
+          },
           sql: 'LOWERED 2',
           params: ['p2'],
         },
@@ -67,9 +76,15 @@ describe('RenameTableCall (sqlite)', () => {
         },
       ],
       postcheck: [
-        { description: 'verify table "account" exists', sql: 'LOWERED 3', params: ['p3'] },
+        {
+          description: 'verify table "account" exists',
+          expectation: { expects: 'present', object: 'table "account"' },
+          sql: 'LOWERED 3',
+          params: ['p3'],
+        },
         {
           description: 'verify table "profile" no longer exists',
+          expectation: { expects: 'absent', object: 'table "profile"' },
           sql: 'LOWERED 4',
           params: ['p4'],
         },
@@ -107,15 +122,22 @@ describe('RenameTableCall (sqlite)', () => {
       tableExistsAst('userProfile').tableAbsent(),
     ]);
     expect(op.precheck).toEqual([
-      { description: 'ensure table "userProfile" exists', sql: 'LOWERED 1', params: ['p1'] },
+      {
+        description: 'ensure table "userProfile" exists',
+        expectation: { expects: 'present', object: 'table "userProfile"' },
+        sql: 'LOWERED 1',
+        params: ['p1'],
+      },
       {
         description: 'ensure table "UserProfile" does not exist',
+        expectation: { expects: 'absent', object: 'table "UserProfile"' },
         sql: 'LOWERED 2',
         params: ['p2'],
       },
       {
         description:
           'ensure table "_prisma_rename_UserProfile" does not exist (a rename that only changes case passes through this temporary name, because SQLite compares table names without case)',
+        expectation: { expects: 'absent', object: 'table "_prisma_rename_UserProfile"' },
         sql: 'LOWERED 3',
         params: ['p3'],
       },

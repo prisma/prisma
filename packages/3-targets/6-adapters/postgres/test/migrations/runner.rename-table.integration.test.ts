@@ -79,11 +79,13 @@ describe('PostgresMigrationRunner - renameTable', { concurrent: false }, () => {
       message:
         'Operation renameTable.userProfile failed during precheck: ensure table "UserProfile" does not exist',
       meta: {
+        databaseUnchanged: true,
         failingSpace: 'app',
         failedCheck: {
           operationId: 'renameTable.userProfile',
           phase: 'precheck',
           description: 'ensure table "UserProfile" does not exist',
+          expectation: { expects: 'absent', object: 'table "UserProfile"' },
         },
       },
     });

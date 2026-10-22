@@ -40,7 +40,6 @@ export {
   errorMarkerMissing,
   errorMarkerRequired,
   errorRuntime,
-  errorSchemaVerificationFailed,
   errorTargetMismatch,
 } from '@internal/errors/execution';
 export {
@@ -88,7 +87,7 @@ export class ActionableCliError extends CliStructuredError {
     code: `${string}.${string}`,
     summary: string,
     options: {
-      readonly why: string;
+      readonly why?: string;
       readonly fix: string;
       readonly nextActions: readonly NextAction[];
       readonly meta?: Record<string, unknown>;
@@ -686,6 +685,57 @@ export function errorStatementNeedsMigrationFile(
 }
 
 /**
+ * Consent flags the command took from the CLI engine and that answered no question: the engine's
+ * own `CLI.CONSENT_UNUSED`, in its words, for values the engine no longer holds.
+ */
+/** A consent flag nothing used, and the flag that had already answered its question, if one did. */
+export interface UnusedConsent extends WrittenStatement {
+  readonly alreadyAnsweredBy:
+    | { readonly kind: 'subject'; readonly subject: string; readonly flag: WrittenStatement }
+    | { readonly kind: 'namespace'; readonly namespace: string }
+    | undefined;
+}
+
+function unusedConsentSentence({
+  verb,
+  text,
+  alreadyAnsweredBy: answeredBy,
+}: UnusedConsent): string {
+  if (answeredBy === undefined) {
+    return `--${verb} ${text} was given but nothing in this run asked about ${text}.`;
+  }
+  if (answeredBy.kind === 'namespace') {
+    return `--${verb} ${text} was given, but every question about namespace "${answeredBy.namespace}" was already answered by another flag.`;
+  }
+  return `--${verb} ${text} was given, but the question about ${answeredBy.subject} was already answered by --${answeredBy.flag.verb} ${answeredBy.flag.text}.`;
+}
+
+export function errorConsentUnused(
+  unused: readonly UnusedConsent[],
+  asked: readonly string[],
+): CliStructuredError {
+  const actions = [
+    ...(unused.some(({ alreadyAnsweredBy }) => alreadyAnsweredBy === undefined)
+      ? ['Remove the flag, or spell the subject the way the command names it.']
+      : []),
+    ...(unused.some(({ alreadyAnsweredBy }) => alreadyAnsweredBy !== undefined)
+      ? ['Give one flag per question.']
+      : []),
+  ];
+  return new CliStructuredError('CLI.CONSENT_UNUSED', unused.map(unusedConsentSentence).join(' '), {
+    ...ifDefined(
+      'why',
+      asked.length === 0 ? undefined : `The run asked about ${asked.join(', ')}.`,
+    ),
+    nextActions: actions.map((label) => ({ kind: 'user-choice', label })),
+    meta: {
+      unused: unused.map(({ verb, text }) => ({ verb, values: [text] })),
+      ...(asked.length === 0 ? {} : { asked }),
+    },
+  });
+}
+
+/**
  * `delete` or `allow` statements given to a programmatic call match no question the plan asks,
  * so they consent to nothing.
  */
@@ -706,7 +756,7 @@ export function errorStatementAnswersNoQuestion(
     'MIGRATION.STATEMENT_ANSWERS_NO_QUESTION',
     `${listed} no question of the plan`,
     {
-      why: 'A delete or allow statement consents to an operation the plan asks about, and these name no subject the plan would lose data from or widen access to.',
+      why: 'A delete or allow statement consents to an operation the plan asks about, and these name no subject the plan would lose data from or change access to.',
       fix,
       nextActions: [chooseAction(fix)],
       meta: {

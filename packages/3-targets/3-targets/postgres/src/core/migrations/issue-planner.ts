@@ -49,6 +49,7 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import type { Result } from '@internal/utils/result';
 import { notOk, ok } from '@internal/utils/result';
+import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import type { PostgresNamespaceSchemaNode } from '../schema-ir/postgres-namespace-schema-node';
 import type { PostgresNativeEnumSchemaNode } from '../schema-ir/postgres-native-enum-schema-node';
@@ -133,6 +134,7 @@ type CallCategory =
   | 'drop'
   | 'dropType'
   | 'table'
+  | 'dropSchema'
   | 'rlsEnable'
   | 'rlsPolicy'
   | 'column'
@@ -176,7 +178,11 @@ function classifyCall(call: PostgresOpFactoryCall): CallCategory {
       return 'unique'; // after uniques, before indexes
     case 'createTable':
     case 'renameTable':
+    case 'setTableSchema':
+    case 'renameSchema':
       return 'table';
+    case 'dropSchema':
+      return 'dropSchema';
     case 'enableRowLevelSecurity':
     case 'disableRowLevelSecurity':
       return 'rlsEnable';
@@ -384,11 +390,16 @@ export function issueColumnName(issue: SchemaDiffIssue): string | undefined {
  * at runtime (`boundSchema`). Recovers the logical namespace id via the
  * contract and substitutes the unbound sentinel back in when it resolves
  * there; every other namespace's `ddlSchemaName` already agrees between the
- * two resolution paths, so it passes through unchanged.
+ * two resolution paths, so it passes through unchanged. A schema the contract
+ * does not declare, such as one the origin contract had, stays qualified.
  */
 export function emissionSchemaName(ctx: StrategyContext, ddlSchemaName: string): string {
   const namespaceId = resolveNamespaceIdForDdlSchema(ctx.toContract, ddlSchemaName);
-  return namespaceId === UNBOUND_NAMESPACE_ID ? UNBOUND_NAMESPACE_ID : ddlSchemaName;
+  return namespaceId === UNBOUND_NAMESPACE_ID &&
+    ddlSchemaName === DEFAULT_NAMESPACE_ID &&
+    Object.hasOwn(ctx.toContract.storage.namespaces, UNBOUND_NAMESPACE_ID)
+    ? UNBOUND_NAMESPACE_ID
+    : ddlSchemaName;
 }
 
 // ----------------------------------------------------------------------------
@@ -411,9 +422,41 @@ export function coalesceSubtreeIssues<TNode extends DiffableNode = DiffableNode>
     .filter((issue) => issueOutcome(issue) !== 'not-equal')
     .map((issue) => issue.path);
   if (collapsingPaths.length === 0) return issues;
-  return issues.filter(
-    (issue) => !collapsingPaths.some((ancestor) => isStrictDescendantPath(issue.path, ancestor)),
-  );
+  const isCollapsed = (issue: SchemaDiffIssue<TNode>) =>
+    collapsingPaths.some((ancestor) => isStrictDescendantPath(issue.path, ancestor));
+  const collapsed = issues.filter(isCollapsed);
+  const kept = issues.filter((issue) => !isCollapsed(issue));
+  const inherited = new Map(kept.map((issue) => [issue, subtreeDependencies(issue, collapsed)]));
+  const dependsOnTarget = (from: SchemaDiffIssue<TNode>, to: SchemaDiffIssue<TNode>) =>
+    (inherited.get(from) ?? []).some((path) => samePath(path, to.path));
+  return kept.map((issue) => {
+    const extra = (inherited.get(issue) ?? []).filter(
+      (path) => !kept.some((other) => samePath(other.path, path) && dependsOnTarget(other, issue)),
+    );
+    return extra.length === 0
+      ? issue
+      : { ...issue, dependsOn: [...(issue.dependsOn ?? []), ...extra] };
+  });
+}
+
+/**
+ * The dependencies a dropped issue's collapsed subtree has outside the subtree, such as the tables
+ * its foreign keys name, so a whole-table drop runs before the drop of a table it references. Two
+ * dropped tables that reference each other keep neither edge.
+ */
+function subtreeDependencies<TNode extends DiffableNode>(
+  issue: SchemaDiffIssue<TNode>,
+  collapsed: readonly SchemaDiffIssue<TNode>[],
+): readonly (readonly string[])[] {
+  if (issueOutcome(issue) !== 'not-expected') return [];
+  return collapsed
+    .filter((descendant) => isStrictDescendantPath(descendant.path, issue.path))
+    .flatMap((descendant) => descendant.dependsOn ?? [])
+    .filter((path) => !isStrictDescendantPath(path, issue.path) && !samePath(path, issue.path));
+}
+
+function samePath(left: readonly string[], right: readonly string[]): boolean {
+  return left.length === right.length && left.every((segment, index) => segment === right[index]);
 }
 
 function isStrictDescendantPath(path: readonly string[], ancestor: readonly string[]): boolean {
@@ -1130,6 +1173,8 @@ export function planIssues(
     // no live column still uses it.
     ...byCategory('dropType'),
     ...byCategory('table'),
+    // DROP SCHEMA after the tables it held are dropped or moved out.
+    ...byCategory('dropSchema'),
     ...byCategory('column'),
     ...gatedRecipe,
     ...byCategory('alter'),

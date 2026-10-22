@@ -22,13 +22,16 @@ import {
   unconvertedFieldOf,
 } from '@internal/family-sql/control';
 import type {
+  BlockingObject,
   FailedTypeChange,
   MigrationRunnerResult,
 } from '@internal/framework-components/control';
 import {
   APP_SPACE_ID,
+  failedPostcheckWhy,
   failedPrecheckWhy,
   schemaCheckWhy,
+  withDatabaseUnchanged,
   withFailingSpace,
 } from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
@@ -41,9 +44,20 @@ import type { Result } from '@internal/utils/result';
 import { notOk, ok, okVoid } from '@internal/utils/result';
 import { postgresError } from '../errors';
 import { quoteIdentifier } from '../sql-utils';
+import {
+  DEPENDENT_OBJECTS_STILL_EXIST,
+  dependentsOf,
+  dependentsSummary,
+} from './dependent-objects';
 import { MARKER_LOCK_KEY, MARKER_LOCK_SQL } from './marker-lock';
 import { qualifyTableName } from './planner-sql-checks';
 import type { PostgresPlanTargetDetails } from './planner-target-details';
+import {
+  SCHEMA_OBJECTS_SQL,
+  schemaBlockingObjects,
+  schemaContentsOf,
+  schemaObjectsSummary,
+} from './schema-contents';
 
 interface ApplyPlanSuccessValue {
   readonly operationsExecuted: number;
@@ -248,27 +262,35 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
     await this.beginTransaction(driver);
     let committed = false;
     try {
-      const perSpaceResults: Array<{
-        space: string;
-        value: SqlMigrationRunnerSuccessValue;
-      }> = [];
-      for (const spaceOptions of perSpaceOptions) {
-        const space = spaceOptions.space ?? spaceOptions.plan.spaceId;
-        const result = await this.executeOnConnection({ ...spaceOptions, driver, space });
-        if (!result.ok) {
-          return notOk(withFailingSpace(result.failure, space));
-        }
-        perSpaceResults.push({ space, value: result.value });
-      }
-
+      const result = await this.executeSpaces(driver, perSpaceOptions);
+      if (!result.ok) return notOk(withDatabaseUnchanged(result.failure, true));
       await this.commitTransaction(driver);
       committed = true;
-      return ok({ perSpaceResults });
+      return result;
     } finally {
       if (!committed) {
         await this.rollbackTransaction(driver);
       }
     }
+  }
+
+  private async executeSpaces(
+    driver: SqlControlDriverInstance<string>,
+    perSpaceOptions: ReadonlyArray<SqlMigrationRunnerExecuteOptions<PostgresPlanTargetDetails>>,
+  ): Promise<MigrationRunnerResult> {
+    const perSpaceResults: Array<{
+      space: string;
+      value: SqlMigrationRunnerSuccessValue;
+    }> = [];
+    for (const spaceOptions of perSpaceOptions) {
+      const space = spaceOptions.space ?? spaceOptions.plan.spaceId;
+      const result = await this.executeOnConnection({ ...spaceOptions, driver, space });
+      if (!result.ok) {
+        return notOk(withFailingSpace(result.failure, space));
+      }
+      perSpaceResults.push({ space, value: result.value });
+    }
+    return ok({ perSpaceResults });
   }
 
   private async applyPlan(
@@ -377,12 +399,32 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
         const code =
           phase === 'precheck' ? 'MIGRATION.PRECHECK_FAILED' : 'MIGRATION.POSTCHECK_FAILED';
         const failed = `Operation ${operation.id} failed during ${phase}: ${step.description}`;
+        const blockedSchema = schemaContentsOf(step);
+        const objects =
+          blockedSchema === undefined
+            ? undefined
+            : await driver.query<BlockingObject>(SCHEMA_OBJECTS_SQL, [blockedSchema]);
+        if (blockedSchema !== undefined && objects !== undefined && objects.rows.length > 0) {
+          const blockingObjects = schemaBlockingObjects(blockedSchema, objects.rows);
+          return runnerFailure(code, schemaObjectsSummary(blockedSchema, blockingObjects), {
+            why: failed,
+            meta: {
+              failedCheck: { operationId: operation.id, phase, description: step.description },
+              blockingObjects,
+            },
+          });
+        }
         const required = requiredColumnOf(step);
         const rowsWithoutValue =
           required === undefined
             ? undefined
             : await this.rowsWithoutValue(driver, operation, required, plan);
-        const failedCheck = { operationId: operation.id, phase, description: step.description };
+        const failedCheck = {
+          operationId: operation.id,
+          phase,
+          description: step.description,
+          ...ifDefined('expectation', step.expectation),
+        };
         return runnerFailure(code, rowsWithoutValue?.summary ?? failed, {
           ...ifDefined(
             'why',
@@ -390,7 +432,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
               ? failed
               : phase === 'precheck'
                 ? failedPrecheckWhy(failedCheck)
-                : undefined,
+                : failedPostcheckWhy(failedCheck),
           ),
           meta: {
             failedCheck,
@@ -439,13 +481,19 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
         await driver.query(step.sql, step.params ?? []);
       } catch (error: unknown) {
         if (SqlQueryError.is(error)) {
+          const dependents =
+            error.sqlState === DEPENDENT_OBJECTS_STILL_EXIST ? dependentsOf(error.detail) : [];
+          const details = operation.target.details;
           return runnerFailure(
             'MIGRATION.EXECUTION_FAILED',
-            `Operation ${operation.id} failed during execution: ${step.description}`,
+            dependents.length > 0 && details !== undefined
+              ? dependentsSummary(details, operation.label, dependents)
+              : `Operation ${operation.id} failed during execution: ${step.description}`,
             {
               why: error.message,
               meta: {
                 ...ifDefined('failedTypeChange', failedTypeChangeOf(step, error.sqlState, plan)),
+                ...ifDefined('blockingObjects', dependents.length > 0 ? dependents : undefined),
                 operationId: operation.id,
                 stepDescription: step.description,
                 sql: step.sql,
