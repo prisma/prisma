@@ -61,14 +61,10 @@ test('optional descriptors get optional tuple slots', () => {
 
   type Params = TupleFromArgumentDescriptors<typeof args>;
 
-  expectTypeOf<Params>().toEqualTypeOf<readonly [number?, 'now'?, 'now'?]>();
+  expectTypeOf<Params>().toEqualTypeOf<
+    readonly [(number | undefined)?, ('now' | undefined)?, ('now' | undefined)?]
+  >();
 
-  // Assignability is proved through a generic call site (matching real helper
-  // usage) rather than a directly-typed variable: `exactOptionalPropertyTypes`
-  // rejects an explicit `undefined` assigned to an optional tuple slot, but a
-  // generic rest-parameter call inferring `Params` from the arguments is
-  // unaffected — precisely the `field.temporal.timestamptz(undefined, undefined, 'now')`
-  // shape callers use to skip a middle optional argument.
   function acceptsParams<const P extends Params>(...args: P): P {
     return args;
   }
@@ -76,7 +72,9 @@ test('optional descriptors get optional tuple slots', () => {
   acceptsParams();
   acceptsParams(3);
   acceptsParams(3, 'now', 'now');
-  acceptsParams(undefined, undefined, 'now');
+  expectTypeOf(acceptsParams(undefined, undefined, 'now')).toEqualTypeOf<
+    readonly [undefined, undefined, 'now']
+  >();
 });
 
 test('required descriptors keep required tuple slots', () => {

@@ -2852,6 +2852,9 @@ importers:
       '@internal/adapter-postgres':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../3-targets/6-adapters/postgres
+      '@internal/family-sql':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../9-family
       '@internal/ids':
         specifier: workspace:8.0.0-rc.19
         version: link:../../../1-framework/2-authoring/ids

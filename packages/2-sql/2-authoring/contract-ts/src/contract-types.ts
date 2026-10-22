@@ -412,8 +412,15 @@ type FieldDefaultPresenceOf<FieldState> = Present<
 type FieldHasColumnDefault<FieldState> =
   FieldDefaultPresenceOf<FieldState> extends { readonly column: true } ? true : false;
 
-type FieldHasExecutionDefault<FieldState> =
-  FieldDefaultPresenceOf<FieldState> extends { readonly execution: true } ? true : false;
+type FieldGeneratesIn<FieldState, Phase extends 'onCreate' | 'onUpdate'> =
+  FieldDefaultPresenceOf<FieldState> extends { readonly [K in Phase]: true } ? true : false;
+
+type GeneratedPhaseKeys<FieldState> = (FieldGeneratesIn<FieldState, 'onCreate'> extends true
+  ? { readonly onCreate: ExecutionMutationDefaultValue }
+  : unknown) &
+  (FieldGeneratesIn<FieldState, 'onUpdate'> extends true
+    ? { readonly onUpdate: ExecutionMutationDefaultValue }
+    : unknown);
 
 type FieldColumnOverrideOf<FieldState> = Present<
   FieldState extends { readonly columnName?: infer ColumnName } ? ColumnName : never
@@ -754,17 +761,17 @@ type BuiltSameSpaceRelation<
 
 type ExecutionDefaultEntries<Definition> = {
   [ModelName in ModelNames<Definition>]: {
-    [FieldName in ModelFieldNames<Definition, ModelName>]: FieldHasExecutionDefault<
-      ModelFieldState<Definition, ModelName, FieldName>
-    > extends true
-      ? ContractExecutionSection['mutations']['defaults'][number] & {
-          readonly onCreate: ExecutionMutationDefaultValue;
-          readonly ref: {
-            readonly namespace: ModelNamespace<Definition, ModelName>;
-            readonly entry: ModelTableName<Definition, ModelName>;
-            readonly field: ModelColumnName<Definition, ModelName, FieldName>;
-          };
-        }
+    [FieldName in ModelFieldNames<Definition, ModelName>]: true extends
+      | FieldGeneratesIn<ModelFieldState<Definition, ModelName, FieldName>, 'onCreate'>
+      | FieldGeneratesIn<ModelFieldState<Definition, ModelName, FieldName>, 'onUpdate'>
+      ? ContractExecutionSection['mutations']['defaults'][number] &
+          GeneratedPhaseKeys<ModelFieldState<Definition, ModelName, FieldName>> & {
+            readonly ref: {
+              readonly namespace: ModelNamespace<Definition, ModelName>;
+              readonly entry: ModelTableName<Definition, ModelName>;
+              readonly field: ModelColumnName<Definition, ModelName, FieldName>;
+            };
+          }
       : never;
   }[ModelFieldNames<Definition, ModelName>];
 }[ModelNames<Definition>];

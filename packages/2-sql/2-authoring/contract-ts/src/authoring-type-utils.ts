@@ -76,16 +76,13 @@ type PresetPhasePresent<Template, Args extends readonly unknown[]> = Template ex
     ? false
     : true;
 
-// Whether the build gives the field an execution default: a phase chosen by an omitted argument is left out.
-type PresetHasExecutionDefault<
+// Whether the build gives the field an execution default in a phase: a phase chosen by an omitted argument is left out.
+type PresetGeneratesIn<
   Descriptor extends AuthoringFieldPresetDescriptor,
   Args extends readonly unknown[],
+  Phase extends 'onCreate' | 'onUpdate',
 > = Descriptor['output'] extends { readonly executionDefaults: infer Defaults }
-  ? true extends
-      | PresetPhasePresent<PresetPhaseTemplate<Defaults, 'onCreate'>, Args>
-      | PresetPhasePresent<PresetPhaseTemplate<Defaults, 'onUpdate'>, Args>
-    ? true
-    : false
+  ? PresetPhasePresent<PresetPhaseTemplate<Defaults, Phase>, Args>
   : false;
 
 export type FieldBuilderFromPresetDescriptor<
@@ -113,7 +110,8 @@ export type FieldBuilderFromPresetDescriptor<
     false,
     {
       readonly column: Descriptor['output'] extends { readonly default: object } ? true : false;
-      readonly execution: PresetHasExecutionDefault<Descriptor, Args>;
+      readonly onCreate: PresetGeneratesIn<Descriptor, Args, 'onCreate'>;
+      readonly onUpdate: PresetGeneratesIn<Descriptor, Args, 'onUpdate'>;
     }
   >
 >;

@@ -1,5 +1,6 @@
 import { int4Column, textColumn } from '@internal/adapter-postgres/column-types';
 import type { Contract } from '@internal/contract/types';
+import sqlFamilyPack from '@internal/family-sql/pack';
 import { assembleDataTypes } from '@internal/framework-components/codec';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import {
@@ -13,7 +14,6 @@ import { assemblePostgresCodecRegistryWithBuiltins } from '@internal/target-post
 import postgresPack from '@internal/target-postgres/pack';
 import { postgresCreateNamespace } from '@internal/target-postgres/types';
 import { describe, expectTypeOf, test } from 'vitest';
-import { familyPack } from '../../../../2-authoring/contract-ts/test/helpers/generator-function-packs';
 import type { Db } from '../../src/exports/types';
 
 const dataTypeLookup = assembleDataTypes([postgresPack]).lookup;
@@ -22,9 +22,9 @@ const lookups = {
   dataTypeLookup,
 };
 
-const { gen } = createComposedAuthoringHelpers({
+const { gen, field: packField } = createComposedAuthoringHelpers({
   ...lookups,
-  family: familyPack,
+  family: sqlFamilyPack,
   target: postgresPack,
 });
 
@@ -55,19 +55,36 @@ const ShadowThing = model('ShadowThing', {
   },
 }).sql({ table: 'thing' });
 
+const Stamp = model('Stamp', {
+  fields: {
+    id: field.column(int4Column).id(),
+    updatedOnly: packField.temporal.timestamptz(undefined, undefined, 'now'),
+    createdSkippingPrecision: packField.temporal.timestamptz(undefined, 'now'),
+    createdAndUpdated: packField.temporal.timestamptz(undefined, 'now', 'now'),
+    createdWithPrecision: packField.temporal.timestamptz(3, 'now'),
+  },
+}).sql({ table: 'stamp' });
+
 const contract = defineContract({
   ...lookups,
-  family: familyPack,
+  family: sqlFamilyPack,
   target: postgresPack,
   createNamespace: postgresCreateNamespace,
   namespaces: ['shadow'],
-  models: { Account, PublicThing, ShadowThing },
+  models: { Account, PublicThing, ShadowThing, Stamp },
 });
 
 declare const db: Db<typeof contract>;
 declare const widened: Db<Contract<SqlStorage>>;
 
 type AccountRow = Parameters<typeof db.public.account.insert>[0][number];
+type StampRow = Parameters<typeof db.public.stamp.insert>[0][number];
+
+type RequiredKeys<T> = {
+  [K in keyof T]-?: Record<never, never> extends Pick<T, K> ? never : K;
+}[keyof T];
+
+declare const instant: StampRow['updatedOnly'];
 
 describe('insert row of a contract-bound table', () => {
   test('requires each column that is not nullable and has no create default, by name', () => {
@@ -109,6 +126,21 @@ describe('insert row of a contract-bound table', () => {
       readonly id: number;
       readonly code?: string;
     }>();
+  });
+});
+
+describe('insert row with temporal presets', () => {
+  test('requires a preset column that generates only on update, and no other preset column', () => {
+    expectTypeOf<RequiredKeys<StampRow>>().toEqualTypeOf<'id' | 'updatedOnly'>();
+  });
+
+  test('rejects a row that leaves out the preset column that generates only on update', () => {
+    // @ts-expect-error updatedOnly has no create default
+    db.public.stamp.insert([{ id: 1 }]);
+  });
+
+  test('accepts a row that leaves out every preset column that generates on create', () => {
+    db.public.stamp.insert([{ id: 1, updatedOnly: instant }]);
   });
 });
 
