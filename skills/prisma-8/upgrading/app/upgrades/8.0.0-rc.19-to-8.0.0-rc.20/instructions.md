@@ -15,7 +15,7 @@ changes:
       No action is needed. A `types {}` alias in PSL may now carry `@default`, `@onCreate` and `@onUpdate`, and the targets contribute `temporal.CreatedAt` and `temporal.UpdatedAt`. Aliases are still valid PSL, so a `contract.prisma` that uses them does not change.
   - id: ts-types-key-removed
     summary: |
-      The TypeScript contract builder no longer takes a `types` key, and `field.namedType(...)` accepts only an enum. Replace `types: { X: type.Y(...) }` and each `field.namedType(types.X)` with a constant `const X = field.column(type.Y(...))` used as the field, and remove `types` from the object the contract returns. Write a `types` entry of the form `{ kind: 'codec-instance', ... }` that a field uses as a constant too, and delete one that no field uses. Re-emit the contract. The detection matches TypeScript files that call `field.namedType` with an alias or a string, or that return a `types` key from `defineContract`.
+      The TypeScript contract builder no longer takes a `types` key, and `field.namedType(...)` accepts only an enum. Replace `types: { X: type.Y(...) }` and each `field.namedType(types.X)` with a constant `const X = field.column(type.Y(...))` used as the field, and remove `types` from the object the contract returns. A `types` entry written `{ kind: 'codec-instance', codecId, typeParams }` becomes such a constant too if a field uses it; delete it if no field uses it. No `types` key stays in the contract. Re-emit the contract. The detection matches TypeScript files that call `field.namedType` with an alias or a string, or that return a `types` key from `defineContract`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
