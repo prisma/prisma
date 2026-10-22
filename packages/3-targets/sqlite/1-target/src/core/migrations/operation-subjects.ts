@@ -8,6 +8,7 @@ import {
 } from '@internal/family-sql/control';
 import type { MigrationDataLossKind, OpFactoryCall } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { ifDefined } from '@internal/utils/defined';
 import {
   DropColumnCall,
   DropTableCall,
@@ -15,6 +16,7 @@ import {
   RecreateTableCall,
   RemoveStoredValueCall,
 } from './op-factory-call';
+import type { StoredValueSubject } from './stored-value-calls';
 
 type LostStorage = CallSubjects['dataLoss'][number];
 
@@ -76,6 +78,7 @@ function temporaryValuesOf(call: RecreateTableCall): CallSubjects['temporaryValu
 export function sqliteCallSubjects(
   calls: readonly OpFactoryCall[],
   fieldEvents: ReadonlyMap<OpFactoryCall, FieldEventCall>,
+  storedValues: ReadonlyMap<OpFactoryCall, StoredValueSubject> = new Map(),
 ): readonly CallSubjects[] {
   const lostColumns = new Set<string>();
   const unknownNames = unknownCallNames(
@@ -119,10 +122,17 @@ export function sqliteCallSubjects(
       };
     }
     if (call instanceof RemoveStoredValueCall) {
+      const subject = storedValues.get(call);
       return {
         operationCount,
         label,
-        dataLoss: [lost(columnTarget(call.tableName, call.columnName))],
+        dataLoss: [
+          {
+            ...lost(columnTarget(call.tableName, call.columnName)),
+            ...ifDefined('enumValue', subject?.enumValue),
+            ...ifDefined('keepDataAdvice', subject?.keepDataAdvice),
+          },
+        ],
         accessChanges: [],
         temporaryValues: [],
       };
