@@ -296,6 +296,7 @@ const CheckJson = type({
   source: 'Record<string, unknown>',
   filter: 'Record<string, unknown>',
   expect: '"exists" | "notExists"',
+  'object?': 'string > 0',
 });
 
 const StepJson = type({
@@ -740,6 +741,7 @@ function deserializeCheck(json: unknown): MongoMigrationCheck {
     source: deserializeInspectionCommand(data.source),
     filter: deserializeFilterExpr(data.filter),
     expect: data.expect,
+    ...ifDefined('object', data.object),
   };
 }
 

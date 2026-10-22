@@ -1,4 +1,5 @@
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { expectAbsent, expectPresent } from '@internal/framework-components/control';
 import { extensionExistsAst } from '../../../contract-free/checks';
 import { DEFAULT_NAMESPACE_ID } from '../../namespace-ids';
 import { quoteIdentifier } from '../../sql-utils';
@@ -59,7 +60,12 @@ export async function installExtension(
       details: { schema: DEFAULT_NAMESPACE_ID, objectType: 'dependency', name: extensionName },
     },
     precheck: [
-      step(`verify extension "${extensionName}" is not already enabled`, absent.sql, absent.params),
+      step(
+        `verify extension "${extensionName}" is not already enabled`,
+        absent.sql,
+        absent.params,
+        expectAbsent(`extension "${extensionName}"`),
+      ),
     ],
     execute: [
       step(
@@ -68,7 +74,12 @@ export async function installExtension(
       ),
     ],
     postcheck: [
-      step(`confirm extension "${extensionName}" is enabled`, present.sql, present.params),
+      step(
+        `confirm extension "${extensionName}" is enabled`,
+        present.sql,
+        present.params,
+        expectPresent(`extension "${extensionName}"`),
+      ),
     ],
   };
 }

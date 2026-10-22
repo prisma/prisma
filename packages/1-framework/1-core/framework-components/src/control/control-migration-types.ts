@@ -362,12 +362,24 @@ export interface MigrationRunnerSuccessValue {
   }>;
 }
 
+/**
+ * What a check states of the database: that the object is `absent` or `present`. `object` is
+ * display text, the object as a reader names it (`index "Item_state_idx"`); no code reads it to
+ * decide anything.
+ */
+export interface CheckExpectation {
+  readonly expects: 'absent' | 'present';
+  readonly object: string;
+}
+
 /** A check of an operation that did not hold: before the operation ran (`precheck`), or after it (`postcheck`). */
 export interface FailedCheck {
   readonly operationId: string;
   readonly phase: 'precheck' | 'postcheck';
   /** The check, as the operation describes it. */
   readonly description: string;
+  /** What the check states of the database, when it states an object's absence or presence. */
+  readonly expectation?: CheckExpectation;
 }
 
 /** A failed migration run: a structured error whose `message` is the summary. */
@@ -383,6 +395,12 @@ export interface MigrationRunnerFailureMeta {
    * {@link MigrationRunner.execute} processes multiple spaces.
    */
   readonly failingSpace?: string;
+  /**
+   * Whether the database is as it was before the failed apply: `true` when the runner rolled the
+   * apply back or failed before it changed anything, `false` when what it changed stays. Absent when
+   * the runner does not say.
+   */
+  readonly databaseUnchanged?: boolean;
   /** The check that did not hold, when a precheck or postcheck failed. */
   readonly failedCheck?: FailedCheck;
   /** The type change that failed, when the failed step converts a column's values. */
@@ -424,6 +442,31 @@ export function withFailingSpace<TCode extends MigrationRunnerFailure['code']>(
   const attributed = migrationRunnerFailure(failure.code, failure.message, {
     why: failure.why,
     meta: { ...failure.meta, failingSpace },
+    ...ifDefined('cause', failure.cause),
+  });
+  if (failure.stack !== undefined) attributed.stack = failure.stack;
+  return attributed;
+}
+
+function asSentence(text: string): string {
+  const trimmed = text.trimEnd();
+  return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+}
+
+/**
+ * The same failure, saying whether the database is as it was before the failed apply, in its meta
+ * and at the end of its why.
+ */
+export function withDatabaseUnchanged<TCode extends MigrationRunnerFailure['code']>(
+  failure: MigrationRunnerFailure & { readonly code: TCode },
+  databaseUnchanged: boolean,
+): MigrationRunnerFailure & { readonly code: TCode } {
+  const outcome = databaseUnchanged
+    ? 'The failed apply changed nothing.'
+    : 'The operations that ran before the failure stay applied.';
+  const attributed = migrationRunnerFailure(failure.code, failure.message, {
+    why: failure.why === undefined ? outcome : `${asSentence(failure.why)} ${outcome}`,
+    meta: { ...failure.meta, databaseUnchanged },
     ...ifDefined('cause', failure.cause),
   });
   if (failure.stack !== undefined) attributed.stack = failure.stack;

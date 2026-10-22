@@ -18,7 +18,8 @@
             "authorId": 1
           }
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "an index on { authorId: 1 } in \"posts\""
       }
     ],
     "execute": [
@@ -119,7 +120,8 @@
             "authorId": 1
           }
         },
-        "expect": "notExists"
+        "expect": "notExists",
+        "object": "an index on { createdAt: -1, authorId: 1 } in \"posts\""
       }
     ],
     "execute": [

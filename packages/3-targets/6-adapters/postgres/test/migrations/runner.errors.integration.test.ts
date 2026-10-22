@@ -81,8 +81,13 @@ describe('PostgresMigrationRunner - Error Scenarios', { concurrent: false }, () 
       expect(failure.code).toBe('MIGRATION.SCHEMA_VERIFY_FAILED');
       expect({
         metaKeys: Object.keys(failure.meta).sort(),
+        databaseUnchanged: failure.meta.databaseUnchanged,
         found: (failure.meta.schemaIssues?.length ?? 0) > 0,
-      }).toEqual({ metaKeys: ['failingSpace', 'schemaIssues'], found: true });
+      }).toEqual({
+        metaKeys: ['databaseUnchanged', 'failingSpace', 'schemaIssues'],
+        databaseUnchanged: true,
+        found: true,
+      });
 
       await expectNoMarkerOrLedgerWrites(driver!);
     });

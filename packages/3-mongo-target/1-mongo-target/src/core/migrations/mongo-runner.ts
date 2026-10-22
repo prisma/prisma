@@ -8,7 +8,10 @@ import { verifyMongoSchema } from '@internal/family-mongo/schema-verify';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import {
   APP_SPACE_ID,
+  expectAbsent,
+  expectPresent,
   type FailedCheck,
+  failedPostcheckWhy,
   failedPrecheckWhy,
   type MigrationOperationPolicy,
   type MigrationPlan,
@@ -21,6 +24,7 @@ import {
   type OperationContext,
   schemaCheckWhy,
   type VerifyDatabaseSchemaResult,
+  withDatabaseUnchanged,
 } from '@internal/framework-components/control';
 import type { AggregateMigrationEdgeRef } from '@internal/migration-tools/aggregate';
 import type { MongoContract } from '@internal/mongo-contract';
@@ -40,6 +44,7 @@ import {
   RawUpdateManyCommand,
 } from '@internal/mongo-query-ast/execution';
 import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { type MongoMigrationRunnerErrorCode, mongoTargetError } from '../mongo-target-errors';
@@ -47,6 +52,42 @@ import { FilterEvaluator } from './filter-evaluator';
 import { deserializeMongoOps } from './mongo-ops-serializer';
 
 const READ_ONLY_CHECK_COMMAND_KINDS: ReadonlySet<string> = new Set(['aggregate', 'rawAggregate']);
+
+const CHANGED_DOCUMENT_COUNTS = [
+  'insertedCount',
+  'modifiedCount',
+  'upsertedCount',
+  'deletedCount',
+] as const;
+
+/** Whether a write command's result row says it changed no document: every count it carries is zero. */
+function reportsNoChangedDocuments(row: unknown): boolean {
+  if (typeof row !== 'object' || row === null) return false;
+  const counts = CHANGED_DOCUMENT_COUNTS.map((field) => Reflect.get(row, field)).filter(
+    (count) => count !== undefined,
+  );
+  return counts.length > 0 && counts.every((count) => count === 0);
+}
+
+function failedCheckOf(
+  operationId: string,
+  phase: FailedCheck['phase'],
+  check: MongoMigrationCheck,
+): FailedCheck {
+  return {
+    operationId,
+    phase,
+    description: check.description,
+    ...ifDefined(
+      'expectation',
+      check.object === undefined
+        ? undefined
+        : check.expect === 'exists'
+          ? expectPresent(check.object)
+          : expectAbsent(check.object),
+    ),
+  };
+}
 
 export interface MongoMigrationRunnerExecuteOptions {
   readonly plan: MigrationPlan;
@@ -73,6 +114,8 @@ export interface MongoMigrationRunnerExecuteOptions {
   readonly scopeVerifyResult?: (result: VerifyDatabaseSchemaResult) => VerifyDatabaseSchemaResult;
   /** Per-edge breakdown from graph-walk planning; drives per-edge ledger writes. */
   readonly migrationEdges: readonly AggregateMigrationEdgeRef[];
+  /** Whether an earlier space of the same apply already changed the database. */
+  readonly databaseChangedBefore?: boolean;
 }
 
 /** A failure of the Mongo runner: one of the codes it returns. */
@@ -80,8 +123,13 @@ export interface MongoMigrationRunnerFailure extends MigrationRunnerFailure {
   readonly code: MongoMigrationRunnerErrorCode;
 }
 
+/** A space's apply: what the framework reports, and whether it changed the database, its marker and ledger included. */
+export interface MongoSpaceSuccessValue extends MigrationRunnerPerSpaceSuccessValue {
+  readonly changedDatabase: boolean;
+}
+
 export type MongoMigrationRunnerResult = Result<
-  MigrationRunnerPerSpaceSuccessValue,
+  MongoSpaceSuccessValue,
   MongoMigrationRunnerFailure
 >;
 
@@ -117,7 +165,7 @@ function renameOverwriteRefusal(op: MongoDmlOperation): MongoMigrationRunnerResu
     'MIGRATION.PRECHECK_FAILED',
     `Operation ${op.id} stopped: some documents in collection ${rewrite.collection} already hold ${to} as well as ${rewrite.field}`,
     {
-      why: `Renaming ${rewrite.field} to ${to} would overwrite their ${to}. Find them with ${find} in mongosh, and move or remove one of the two values in each. Nothing was renamed. The operations before this one in the plan already ran, such as dropping an index on ${rewrite.field}; once the documents are fixed, run the command again and the plan finishes from here.`,
+      why: `Renaming ${rewrite.field} to ${to} would overwrite their ${to}. Find them with ${find} in mongosh, and move or remove one of the two values in each. Nothing was renamed. Once the documents are fixed, run the command again; operations that already ran are skipped.`,
       meta: { operationId: op.id, name: op.name },
     },
   );
@@ -182,6 +230,25 @@ export class MongoMigrationRunner {
   constructor(private readonly deps: MongoRunnerDependencies) {}
 
   async execute(options: MongoMigrationRunnerExecuteOptions): Promise<MongoMigrationRunnerResult> {
+    let changedDatabase = false;
+    const result = await this.apply(options, () => {
+      changedDatabase = true;
+    });
+    return result.ok
+      ? ok({ ...result.value, changedDatabase })
+      : notOk(
+          withDatabaseUnchanged(
+            result.failure,
+            options.databaseChangedBefore !== true && !changedDatabase,
+          ),
+        );
+  }
+
+  /** Applies the plan, calling `wrote` after each command that changes the database. */
+  private async apply(
+    options: MongoMigrationRunnerExecuteOptions,
+    wrote: () => void,
+  ): Promise<Result<MigrationRunnerPerSpaceSuccessValue, MongoMigrationRunnerFailure>> {
     const { inspectionExecutor, adapter, driver, executeDdl, markerOps } = this.deps;
     const operations = deserializeMongoOps(
       blindCast<
@@ -223,6 +290,7 @@ export class MongoMigrationRunner {
             runIdempotency,
             runPrechecks,
             runPostchecks,
+            wrote,
           );
           if (result.failure) return result.failure;
           if (result.executed) {
@@ -241,22 +309,18 @@ export class MongoMigrationRunner {
         }
 
         if (runPrechecks) {
-          const failed = await this.firstFailingCheck(
+          const failing = await this.firstFailingCheck(
             operation.precheck,
             inspectionExecutor,
             filterEvaluator,
           );
-          if (failed !== undefined) {
-            const failedCheck: FailedCheck = {
-              operationId: operation.id,
-              phase: 'precheck',
-              description: failed.description,
-            };
+          if (failing !== undefined) {
+            const failedCheck = failedCheckOf(operation.id, 'precheck', failing);
             return (
-              renameTargetExistsRefusal(operation, failed) ??
+              renameTargetExistsRefusal(operation, failing) ??
               runnerFailure(
                 'MIGRATION.PRECHECK_FAILED',
-                `Operation ${operation.id} failed during precheck: ${failed.description}`,
+                `Operation ${operation.id} failed during precheck: ${failing.description}`,
                 { why: failedPrecheckWhy(failedCheck), meta: { failedCheck } },
               )
             );
@@ -265,19 +329,24 @@ export class MongoMigrationRunner {
 
         for (const step of operation.execute) {
           await executeDdl(step.command);
+          wrote();
         }
 
         if (runPostchecks) {
-          const postcheckResult = await this.evaluateChecks(
+          const failing = await this.firstFailingCheck(
             operation.postcheck,
             inspectionExecutor,
             filterEvaluator,
           );
-          if (!postcheckResult) {
+          if (failing !== undefined) {
+            const failedCheck = failedCheckOf(operation.id, 'postcheck', failing);
             return runnerFailure(
               'MIGRATION.POSTCHECK_FAILED',
-              `Operation ${operation.id} failed during postcheck`,
-              { meta: { operationId: operation.id } },
+              `Operation ${operation.id} failed during postcheck: ${failing.description}`,
+              {
+                why: failedPostcheckWhy(failedCheck),
+                meta: { operationId: operation.id, failedCheck },
+              },
             );
           }
         }
@@ -369,6 +438,7 @@ export class MongoMigrationRunner {
           invariants: incomingInvariants,
         });
       }
+      wrote();
 
       await this.recordLedgerEntries(markerOps, space, options);
     }
@@ -412,6 +482,7 @@ export class MongoMigrationRunner {
     runIdempotency: boolean,
     runPrechecks: boolean,
     runPostchecks: boolean,
+    wrote: () => void,
   ): Promise<{ executed: boolean; failure?: MongoMigrationRunnerResult }> {
     if (runPostchecks && runIdempotency && op.postcheck.length > 0) {
       const allSatisfied = await this.evaluateDmlChecks(
@@ -444,9 +515,13 @@ export class MongoMigrationRunner {
     for (const plan of op.run) {
       const wireCommand = await adapter.lower(plan, {});
       try {
-        for await (const _ of driver.execute(wireCommand)) {
-          /* consume */
+        let reportedNoChange = false;
+        let reportedChange = false;
+        for await (const row of driver.execute<unknown>(wireCommand)) {
+          if (reportsNoChangedDocuments(row)) reportedNoChange = true;
+          else reportedChange = true;
         }
+        if (reportedChange || !reportedNoChange) wrote();
       } catch (error) {
         const refusal = bypassValidationRefusal(op, plan, error);
         if (refusal === undefined) throw error;

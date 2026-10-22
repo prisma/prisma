@@ -82,13 +82,23 @@ describe('DropTableCall', () => {
       details: { schema: 'public', objectType: 'table', name: 'user' },
     });
     expect(op.precheck).toEqual([
-      { description: 'ensure table "user" exists', sql: 'LOWERED 1', params: ['p1'] },
+      {
+        description: 'ensure table "user" exists',
+        expectation: { expects: 'present', object: 'table "user"' },
+        sql: 'LOWERED 1',
+        params: ['p1'],
+      },
     ]);
     expect(op.execute).toEqual([
       { description: 'drop table "user"', sql: 'DROP TABLE "public"."user"' },
     ]);
     expect(op.postcheck).toEqual([
-      { description: 'verify table "user" does not exist', sql: 'LOWERED 2', params: ['p2'] },
+      {
+        description: 'verify table "user" does not exist',
+        expectation: { expects: 'absent', object: 'table "user"' },
+        sql: 'LOWERED 2',
+        params: ['p2'],
+      },
     ]);
     expect(call.label).toBe('Drop table "user"');
   });
@@ -127,11 +137,21 @@ describe('AddColumnCall', () => {
       details: { schema: 'public', objectType: 'column', name: 'bio', table: 'user' },
     });
     expect(op.precheck).toEqual([
-      { description: 'ensure column "bio" is missing', sql: 'LOWERED 2', params: ['p2'] },
+      {
+        description: 'ensure column "bio" is missing',
+        expectation: { expects: 'absent', object: 'column "bio" on "user"' },
+        sql: 'LOWERED 2',
+        params: ['p2'],
+      },
     ]);
     expect(op.execute).toEqual([{ description: 'add column "bio"', sql: 'LOWERED 1' }]);
     expect(op.postcheck).toEqual([
-      { description: 'verify column "bio" exists', sql: 'LOWERED 3', params: ['p3'] },
+      {
+        description: 'verify column "bio" exists',
+        expectation: { expects: 'present', object: 'column "bio" on "user"' },
+        sql: 'LOWERED 3',
+        params: ['p3'],
+      },
       { description: 'verify column "bio" has type "text"', sql: 'LOWERED 4', params: ['p4'] },
     ]);
     expect(call.label).toBe('Add column "bio" to "user"');
@@ -240,7 +260,12 @@ describe('AlterColumnTypeCall', () => {
       },
     ]);
     expect(op.precheck).toEqual([
-      { description: 'ensure column "age" exists', sql: 'LOWERED 1', params: ['p1'] },
+      {
+        description: 'ensure column "age" exists',
+        expectation: { expects: 'present', object: 'column "age" on "user"' },
+        sql: 'LOWERED 1',
+        params: ['p1'],
+      },
     ]);
     expect(op.postcheck).toEqual([
       {
@@ -463,7 +488,12 @@ describe('SetNotNullCall', () => {
       },
     ]);
     expect(op.precheck).toEqual([
-      { description: 'ensure column "email" exists', sql: 'LOWERED 1', params: ['p1'] },
+      {
+        description: 'ensure column "email" exists',
+        expectation: { expects: 'present', object: 'column "email" on "user"' },
+        sql: 'LOWERED 1',
+        params: ['p1'],
+      },
       {
         description: 'ensure no NULL values in "email"',
         sql: 'LOWERED 3',
@@ -513,7 +543,12 @@ describe('DropNotNullCall', () => {
       },
     ]);
     expect(op.precheck).toEqual([
-      { description: 'ensure column "email" exists', sql: 'LOWERED 1', params: ['p1'] },
+      {
+        description: 'ensure column "email" exists',
+        expectation: { expects: 'present', object: 'column "email" on "user"' },
+        sql: 'LOWERED 1',
+        params: ['p1'],
+      },
     ]);
     expect(op.postcheck).toEqual([
       { description: 'verify column "email" is nullable', sql: 'LOWERED 3', params: ['p3'] },
@@ -578,7 +613,12 @@ describe('SetDefaultCall', () => {
         },
       ],
       precheck: [
-        { description: 'ensure column "status" exists', sql: 'LOWERED 1', params: ['p1'] },
+        {
+          description: 'ensure column "status" exists',
+          expectation: { expects: 'present', object: 'column "status" on "user"' },
+          sql: 'LOWERED 1',
+          params: ['p1'],
+        },
       ],
       postcheck: [],
       label: 'Set default on "user"."status"',
@@ -596,7 +636,12 @@ describe('SetDefaultCall', () => {
     }).toEqual({
       operationClass: 'widening',
       precheck: [
-        { description: 'ensure column "status" exists', sql: 'LOWERED 1', params: ['p1'] },
+        {
+          description: 'ensure column "status" exists',
+          expectation: { expects: 'present', object: 'column "status" on "user"' },
+          sql: 'LOWERED 1',
+          params: ['p1'],
+        },
       ],
       postcheck: [],
     });
@@ -641,7 +686,12 @@ describe('DropDefaultCall', () => {
     expect(received).toHaveLength(4);
     expect(op.execute).toEqual([{ description: 'drop default on "status"', sql: 'LOWERED 3' }]);
     expect(op.precheck).toEqual([
-      { description: 'ensure column "status" exists', sql: 'LOWERED 1', params: ['p1'] },
+      {
+        description: 'ensure column "status" exists',
+        expectation: { expects: 'present', object: 'column "status" on "user"' },
+        sql: 'LOWERED 1',
+        params: ['p1'],
+      },
     ]);
     expect(op.postcheck).toEqual([
       { description: 'verify column "status" has no default', sql: 'LOWERED 4', params: ['p4'] },
@@ -687,9 +737,15 @@ describe('AddNativeEnumValueCall', () => {
       },
     ]);
     expect(op.precheck).toEqual([
-      { description: 'ensure enum type "status" exists', sql: 'LOWERED 1', params: ['p1'] },
+      {
+        description: 'ensure enum type "status" exists',
+        expectation: { expects: 'present', object: 'enum type "status"' },
+        sql: 'LOWERED 1',
+        params: ['p1'],
+      },
       {
         description: 'ensure value "archived" is absent from enum type "status"',
+        expectation: { expects: 'absent', object: 'value "archived" in enum type "status"' },
         sql: 'LOWERED 2',
         params: ['p2'],
       },
@@ -697,6 +753,7 @@ describe('AddNativeEnumValueCall', () => {
     expect(op.postcheck).toEqual([
       {
         description: 'verify value "archived" exists on enum type "status"',
+        expectation: { expects: 'present', object: 'value "archived" in enum type "status"' },
         sql: 'LOWERED 3',
         params: ['p3'],
       },
@@ -842,6 +899,7 @@ describe('CreateIndexCall', () => {
     expect(op.precheck).toEqual([
       {
         description: 'ensure index "idx_user_email" does not exist',
+        expectation: { expects: 'absent', object: 'index "idx_user_email"' },
         sql: 'LOWERED 2',
         params: ['p2'],
       },
@@ -958,11 +1016,13 @@ describe('RenameIndexCall', () => {
     expect(op.precheck).toEqual([
       {
         description: 'ensure index "old_email_idx" exists',
+        expectation: { expects: 'present', object: 'index "old_email_idx"' },
         sql: 'LOWERED 1',
         params: ['p1'],
       },
       {
         description: 'ensure index "user_email_idx_46df9cad" does not exist',
+        expectation: { expects: 'absent', object: 'index "user_email_idx_46df9cad"' },
         sql: 'LOWERED 2',
         params: ['p2'],
       },
@@ -970,11 +1030,13 @@ describe('RenameIndexCall', () => {
     expect(op.postcheck).toEqual([
       {
         description: 'verify index "user_email_idx_46df9cad" exists',
+        expectation: { expects: 'present', object: 'index "user_email_idx_46df9cad"' },
         sql: 'LOWERED 3',
         params: ['p3'],
       },
       {
         description: 'verify index "old_email_idx" no longer exists',
+        expectation: { expects: 'absent', object: 'index "old_email_idx"' },
         sql: 'LOWERED 4',
         params: ['p4'],
       },
@@ -1024,11 +1086,17 @@ describe('DropIndexCall', () => {
       { description: 'drop index "idx_user_email"', sql: 'LOWERED 1', params: ['p1'] },
     ]);
     expect(op.precheck).toEqual([
-      { description: 'ensure index "idx_user_email" exists', sql: 'LOWERED 2', params: ['p2'] },
+      {
+        description: 'ensure index "idx_user_email" exists',
+        expectation: { expects: 'present', object: 'index "idx_user_email"' },
+        sql: 'LOWERED 2',
+        params: ['p2'],
+      },
     ]);
     expect(op.postcheck).toEqual([
       {
         description: 'verify index "idx_user_email" does not exist',
+        expectation: { expects: 'absent', object: 'index "idx_user_email"' },
         sql: 'LOWERED 3',
         params: ['p3'],
       },
