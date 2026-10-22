@@ -8,6 +8,7 @@ import type {
   ContractModel,
   ControlPolicy,
   CrossReference,
+  JsonValue,
 } from '@internal/contract/types';
 import { crossRef } from '@internal/contract/types';
 import { resolveToOneRelationNullable } from '@internal/contract-authoring';
@@ -23,14 +24,19 @@ import type {
   AuthoringPslBlockDescriptorNamespace,
   AuthoringWarning,
   DataTypeSupport,
+  DiscriminatorField,
+  DiscriminatorRefusal,
   ParsedPslExtensionBlock,
 } from '@internal/framework-components/authoring';
 import {
+  discriminatorRefusals,
+  encodeEnumMembers,
   instantiateAuthoringEntityType,
   isAuthoringEntityTypeDescriptor,
   isAuthoringModelAttributeDescriptor,
+  readWrittenValueInto,
 } from '@internal/framework-components/authoring';
-import type { CodecLookupWithDescriptors, DataTypeId } from '@internal/framework-components/codec';
+import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type {
   CapabilityMatrix,
   ExtensionPackRef,
@@ -115,7 +121,6 @@ import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { contractError } from './contract-errors';
-import { type DefaultColumn, lowerDataTypeDefault } from './data-type-default';
 import { defaultTableName } from './default-table-name';
 import {
   getAttribute,
@@ -1567,7 +1572,6 @@ type DiscriminatorDeclaration = {
   readonly model: ModelSymbol;
   readonly source: DiagnosticSource;
   readonly fieldName: string;
-  readonly column: DefaultColumn;
   readonly span: ContractSourceDiagnosticSpan;
 };
 
@@ -1591,23 +1595,18 @@ type PendingBaseDeclaration = Omit<BaseDeclaration, 'value'> & {
   readonly written: ParsedWrittenScalar;
 };
 
-/** The column a field is stored in, when it is a single-valued scalar column. */
-type DiscriminatorColumnOf = (model: ModelSymbol, fieldName: string) => DefaultColumn | undefined;
+/** A discriminator field as the discriminator rule reads it, with the name of the enum that types it. */
+type DiscriminatorFieldOf = (
+  model: ModelSymbol,
+  fieldName: string,
+) => { readonly field: DiscriminatorField; readonly enumName: string | undefined } | undefined;
 
-/** Whether the column's data type is one of the stack's text data types. */
-function isTextColumn(
-  column: DefaultColumn,
-  codecLookup: CodecLookupWithDescriptors,
-  textDataTypes: readonly DataTypeId[],
-): boolean {
-  if (textDataTypes.length === 0) {
-    throw new InternalError(
-      'The stack names no text data types, so no column can be a discriminator; the target names its text types in its authoring contributions.',
-    );
-  }
-  const dataType = codecLookup.descriptorFor(column.codecId)?.dataType;
-  return dataType !== undefined && textDataTypes.includes(dataType);
-}
+type PendingDiscriminator = {
+  readonly declaration: DiscriminatorDeclaration;
+  readonly field:
+    | { readonly field: DiscriminatorField; readonly enumName: string | undefined }
+    | undefined;
+};
 
 function collectPolymorphismDeclarations(
   identities: ReadonlyMap<ModelSymbol, ModelIdentity>,
@@ -1615,16 +1614,15 @@ function collectPolymorphismDeclarations(
   sources: PslSources,
   binder: Binder,
   specContextFor: (model: ModelSymbol) => AttributeSpecContext,
-  discriminatorColumnOf: DiscriminatorColumnOf,
+  discriminatorFieldOf: DiscriminatorFieldOf,
   codecLookup: CodecLookupWithDescriptors,
   dataTypes: DataTypeSupport,
-  textDataTypes: readonly DataTypeId[],
   diagnostics: PslDiagnosticCollector,
 ): {
   discriminatorDeclarations: Map<string, DiscriminatorDeclaration>;
   baseDeclarations: Map<string, BaseDeclaration>;
 } {
-  const discriminatorDeclarations = new Map<string, DiscriminatorDeclaration>();
+  const pendingDiscriminators = new Map<string, PendingDiscriminator>();
   const pendingBaseDeclarations = new Map<string, PendingBaseDeclaration>();
 
   for (const { model, namespaceId, key } of identities.values()) {
@@ -1641,24 +1639,15 @@ function collectPolymorphismDeclarations(
         diagnostics,
       });
       if (parsed !== undefined) {
-        const span = nodePslSpan(discriminatorNode.syntax, sources);
-        const discField = model.fields[parsed.field];
-        const column = discriminatorColumnOf(model, parsed.field);
-        if (column === undefined || !isTextColumn(column, codecLookup, textDataTypes)) {
-          diagnostics.push({
-            code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-            message: `Discriminator field "${parsed.field}" on model "${model.name}" must be text, such as String, but is "${discField?.typeName ?? parsed.field}"`,
-            ...source.at(span),
-          });
-        } else {
-          discriminatorDeclarations.set(key, {
+        pendingDiscriminators.set(key, {
+          declaration: {
             model,
             fieldName: parsed.field,
-            column,
-            span,
+            span: nodePslSpan(discriminatorNode.syntax, sources),
             source,
-          });
-        }
+          },
+          field: discriminatorFieldOf(model, parsed.field),
+        });
       }
     }
 
@@ -1691,67 +1680,146 @@ function collectPolymorphismDeclarations(
     }
   }
 
-  const baseDeclarations = new Map<string, BaseDeclaration>();
-  for (const [key, { written, ...declaration }] of pendingBaseDeclarations) {
-    const discriminator = discriminatorDeclarations.get(declaration.base.key);
-    baseDeclarations.set(key, {
-      ...declaration,
-      value:
-        discriminator === undefined
-          ? undefined
-          : storedDiscriminatorValue(written, declaration, discriminator, {
-              codecLookup,
-              dataTypes,
-              diagnostics,
-            }),
+  const discriminatorDeclarations = new Map<string, DiscriminatorDeclaration>();
+  const values = new Map<string, string>();
+  for (const [baseKey, { declaration, field }] of pendingDiscriminators) {
+    const bases = [...pendingBaseDeclarations].filter(([, base]) => base.base.key === baseKey);
+    const accepted = acceptedDiscriminator(declaration, field, bases, {
+      codecLookup,
+      dataTypes,
+      diagnostics,
     });
+    if (accepted === undefined) continue;
+    discriminatorDeclarations.set(baseKey, declaration);
+    for (const [variantKey, value] of accepted) values.set(variantKey, value);
+  }
+
+  const baseDeclarations = new Map<string, BaseDeclaration>();
+  for (const [key, { model, namespaceId, source, base, span }] of pendingBaseDeclarations) {
+    baseDeclarations.set(key, { model, namespaceId, source, base, span, value: values.get(key) });
   }
 
   return { discriminatorDeclarations, baseDeclarations };
 }
 
 /**
- * A `@@base` value read like a default of the discriminator column: written, cast into the column's data type and checked by its codec. A refusal is reported at the value.
+ * The stored discriminator value of each variant, by the variant's key, when the discriminator rule accepts the field; `undefined` when it refuses the field. Each `@@base` value is read into the discriminator field's codec by the cast rule. A refusal is reported at the attribute or the value it is about.
  */
-function storedDiscriminatorValue(
-  written: ParsedWrittenScalar,
-  declaration: Omit<BaseDeclaration, 'value'>,
-  discriminator: DiscriminatorDeclaration,
+function acceptedDiscriminator(
+  declaration: DiscriminatorDeclaration,
+  discriminatorField: PendingDiscriminator['field'],
+  bases: readonly (readonly [string, PendingBaseDeclaration])[],
   input: {
     readonly codecLookup: CodecLookupWithDescriptors;
     readonly dataTypes: DataTypeSupport;
     readonly diagnostics: PslDiagnosticCollector;
   },
-): string | undefined {
-  if (written.written === undefined) {
-    throw new InternalError(
-      'A @@base value is a quoted string, a number or a boolean, never a tagged literal.',
-    );
-  }
-  const lowered = lowerDataTypeDefault({
-    written: written.written,
-    spans: { attribute: written.span, value: written.span, elements: [] },
-    isList: false,
-    column: discriminator.column,
-    codecLookup: input.codecLookup,
-    dataTypes: input.dataTypes,
-    subject: `Field "${discriminator.model.name}.${discriminator.fieldName}"`,
-    sourceElementIndexes: undefined,
-  });
-  if (!lowered.ok) {
+): ReadonlyMap<string, string> | undefined {
+  const { model, fieldName } = declaration;
+  const at = declaration.source.at(declaration.span);
+  const discField = model.fields[fieldName];
+  if (discriminatorField === undefined) {
     input.diagnostics.push({
-      code: lowered.code,
-      message: lowered.message,
-      ...declaration.source.at(lowered.span),
+      code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+      message: `Discriminator field "${fieldName}" on model "${model.name}" must be text, such as String, but is "${discField?.typeName ?? fieldName}"`,
+      ...at,
     });
     return undefined;
   }
-  if (typeof lowered.value !== 'string') {
-    throw new InternalError(
-      `Discriminator column codec "${discriminator.column.codecId}" stores a text value as ${typeof lowered.value}.`,
-    );
+  const { field, enumName } = discriminatorField;
+  const reads = bases.map(([key, base]) => {
+    if (base.written.written === undefined) {
+      throw new InternalError(
+        'A @@base value is a quoted string, a number or a boolean, never a tagged literal.',
+      );
+    }
+    return {
+      key,
+      base,
+      reading: readWrittenValueInto({
+        support: input.dataTypes,
+        codecLookup: input.codecLookup,
+        ref: field.ref,
+        written: base.written.written,
+        subject: `Field "${model.name}.${fieldName}"`,
+      }),
+    };
+  });
+  const refusals = discriminatorRefusals({
+    field,
+    baseValues: reads.flatMap(({ key, reading }) =>
+      reading.ok ? [{ key, stored: reading.value }] : [],
+    ),
+    codecLookup: input.codecLookup,
+    textDataTypes: input.dataTypes.textDataTypes ?? [],
+  });
+  const fieldRefusals = refusals.filter((refusal) => refusal.kind !== 'not-a-member');
+  if (fieldRefusals.length > 0) {
+    for (const refusal of fieldRefusals) {
+      input.diagnostics.push({
+        code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+        message: discriminatorFieldRefusalMessage(
+          refusal,
+          model.name,
+          fieldName,
+          discField?.typeName,
+        ),
+        ...at,
+      });
+    }
+    return undefined;
   }
-  return lowered.value;
+
+  const notMembers = new Set<string>();
+  for (const refusal of refusals) {
+    if (refusal.kind !== 'not-a-member') continue;
+    notMembers.add(refusal.key);
+    const base = reads.find(({ key }) => key === refusal.key)?.base;
+    invariant(base !== undefined, 'A refused @@base value belongs to a collected variant');
+    input.diagnostics.push({
+      code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+      message: `Model "${base.model.name}" declares @@base value ${JSON.stringify(refusal.stored)}, which is not a member of enum "${enumName}", the type of discriminator field "${model.name}.${fieldName}". Write one of: ${refusal.members.map((member) => JSON.stringify(member)).join(', ')}`,
+      ...base.source.at(base.written.span),
+    });
+  }
+
+  const values = new Map<string, string>();
+  for (const { key, base, reading } of reads) {
+    if (!reading.ok) {
+      input.diagnostics.push({
+        code: reading.failure.code,
+        message: reading.failure.message,
+        ...base.source.at(base.written.span),
+      });
+      continue;
+    }
+    if (notMembers.has(key)) continue;
+    if (typeof reading.value !== 'string') {
+      throw new InternalError(
+        `Discriminator column codec "${field.ref.codecId}" stores a text value as ${typeof reading.value}.`,
+      );
+    }
+    values.set(key, reading.value);
+  }
+  return values;
+}
+
+/** A refusal of the discriminator field itself, worded at the `@@discriminator` attribute. */
+function discriminatorFieldRefusalMessage(
+  refusal: Exclude<DiscriminatorRefusal<string>, { readonly kind: 'not-a-member' }>,
+  modelName: string,
+  fieldName: string,
+  typeName: string | undefined,
+): string {
+  const subject = `Discriminator field "${fieldName}" on model "${modelName}"`;
+  switch (refusal.kind) {
+    case 'optional':
+      return `${subject} must be required, but it is optional. Remove the "?"`;
+    case 'list':
+      return `${subject} must hold one value, but it is a list. Remove the "[]"`;
+    case 'not-text':
+      return `${subject} must be text, such as String, but is "${typeName ?? fieldName}"`;
+  }
 }
 
 function modelLabel(namespaceId: string, modelName: string, qualified: boolean): string {
@@ -2555,12 +2623,29 @@ export function interpretPslDocumentToSqlContract(
       { model, namespaceId, key: modelCoordinateKey(namespaceId, model.name) },
     ]),
   );
-  const discriminatorColumnOf: DiscriminatorColumnOf = (model, fieldName) => {
+  const discriminatorFieldOf: DiscriminatorFieldOf = (model, fieldName) => {
     const field = modelNodes.get(model)?.fields.find((node) => node.fieldName === fieldName);
-    if (field === undefined || !('columnName' in field) || field.many === true) return undefined;
+    if (field === undefined || !('columnName' in field)) return undefined;
+    const handle = 'enumTypeHandle' in field ? field.enumTypeHandle : undefined;
+    const encoded = handle === undefined ? undefined : encodeEnumMembers(handle, input.codecLookup);
     return {
-      codecId: field.descriptor.codecId,
-      typeParams: field.descriptor.typeParams,
+      field: {
+        ref: {
+          codecId: field.descriptor.codecId,
+          ...ifDefined(
+            'typeParams',
+            field.descriptor.typeParams === undefined
+              ? undefined
+              : blindCast<JsonValue, 'type parameters are read from PSL and checked by the codec'>(
+                  field.descriptor.typeParams,
+                ),
+          ),
+        },
+        nullable: field.nullable,
+        many: field.many === true,
+        enumMembers: encoded?.ok ? encoded.value.map(({ value }) => value) : undefined,
+      },
+      enumName: handle?.enumName,
     };
   };
   const { discriminatorDeclarations, baseDeclarations } = collectPolymorphismDeclarations(
@@ -2569,10 +2654,9 @@ export function interpretPslDocumentToSqlContract(
     input.sources,
     binder,
     specContextFor,
-    discriminatorColumnOf,
+    discriminatorFieldOf,
     input.codecLookup,
     dataTypes,
-    dataTypes.textDataTypes ?? [],
     diagnostics,
   );
 

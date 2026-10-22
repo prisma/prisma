@@ -2,7 +2,10 @@ import { MongoControlAdapterImpl } from '@internal/adapter-mongo/control';
 import type { JsonValue } from '@internal/contract/types';
 import mongoControlDriver from '@internal/driver-mongo/control';
 import { contractToMongoSchemaIR } from '@internal/family-mongo/control';
-import type { AuthoringTypeConstructorDescriptor } from '@internal/framework-components/authoring';
+import {
+  type AuthoringTypeConstructorDescriptor,
+  assembleDataTypeSupport,
+} from '@internal/framework-components/authoring';
 import {
   type Codec,
   type CodecLookupWithDescriptors,
@@ -26,6 +29,7 @@ import { mongoDescriptorById } from '@internal/target-mongo/codecs';
 import {
   MongoMigrationPlanner,
   MongoMigrationRunner,
+  mongoTargetDescriptor,
   serializeMongoOps,
 } from '@internal/target-mongo/control';
 import { mongoDataTypes } from '@internal/target-mongo/data-types';
@@ -36,6 +40,11 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildFabricatedMigrationEdges } from './fabricated-migration-edges';
 
 const mongoDataTypeLookup = createDataTypeLookup(mongoDataTypes);
+
+const { support: mongoDataTypeSupport } = assembleDataTypeSupport(
+  [mongoTargetDescriptor],
+  (codecId) => mongoDescriptorById(codecId)?.dataType,
+);
 
 function identityCodec(id: string): Codec | undefined {
   const descriptor = mongoDescriptorById(id);
@@ -101,13 +110,13 @@ function pslToContract(schema: string): MongoContract {
         pslBlockDescriptors: {},
         modelAttributes: {},
         attributeSpecs: mongoAttributeSpecs,
-        dataTypes: {},
+        dataTypes: mongoDataTypeSupport.entries,
       },
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedMongoAttribute },
       codecLookup: mongoCodecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
       generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
-      dataTypes: { entries: {}, lookup: mongoDataTypeLookup, dataTypeOfCodec: () => undefined },
+      dataTypes: mongoDataTypeSupport,
       resolvedInputs: [],
       capabilities: {},
     },
