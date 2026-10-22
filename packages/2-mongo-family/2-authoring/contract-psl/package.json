@@ -1,7 +1,7 @@
 {
   "name": "@internal/mongo-contract-psl",
   "private": true,
-  "version": "8.0.0-rc.19",
+  "version": "8.0.0-rc.20",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -15,21 +15,21 @@
     "clean": "rm -rf dist coverage"
   },
   "dependencies": {
-    "@internal/config": "workspace:8.0.0-rc.19",
-    "@internal/contract": "workspace:8.0.0-rc.19",
-    "@internal/contract-authoring": "workspace:8.0.0-rc.19",
-    "@internal/framework-components": "workspace:8.0.0-rc.19",
-    "@internal/mongo-contract": "workspace:8.0.0-rc.19",
-    "@internal/mongo-contract-ts": "workspace:8.0.0-rc.19",
-    "@internal/mongo-value": "workspace:8.0.0-rc.19",
-    "@internal/psl-parser": "workspace:8.0.0-rc.19",
-    "@internal/utils": "workspace:8.0.0-rc.19",
+    "@internal/config": "workspace:8.0.0-rc.20",
+    "@internal/contract": "workspace:8.0.0-rc.20",
+    "@internal/contract-authoring": "workspace:8.0.0-rc.20",
+    "@internal/framework-components": "workspace:8.0.0-rc.20",
+    "@internal/mongo-contract": "workspace:8.0.0-rc.20",
+    "@internal/mongo-contract-ts": "workspace:8.0.0-rc.20",
+    "@internal/mongo-value": "workspace:8.0.0-rc.20",
+    "@internal/psl-parser": "workspace:8.0.0-rc.20",
+    "@internal/utils": "workspace:8.0.0-rc.20",
     "mongodb": "catalog:",
     "pathe": "^2.0.3"
   },
   "devDependencies": {
-    "@repo/tsconfig": "workspace:8.0.0-rc.19",
-    "@repo/tsdown": "workspace:8.0.0-rc.19",
+    "@repo/tsconfig": "workspace:8.0.0-rc.20",
+    "@repo/tsdown": "workspace:8.0.0-rc.20",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

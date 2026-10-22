@@ -1268,7 +1268,7 @@ namespace auth {}`,
       ).toEqual([
         [
           'PSL_UNSUPPORTED_NAMESPACE_BLOCK',
-          'SQLite does not support `namespace __unbound__ { … }` blocks (SQLite has no schema concept; declare models at the document top level instead).',
+          'SQLite does not support `namespace __unbound__ { … }` blocks (declare models at the document top level instead).',
         ],
       ]);
     });

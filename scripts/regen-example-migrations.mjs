@@ -388,7 +388,16 @@ function emitMigrationContract(exampleDir, migrationDir, realConfigAbsPath, cont
   try {
     emitOutput = execFileSync(
       prismaBin,
-      ['contract', 'emit', '--config', tmpConfigPath, '--output-path', tmpEmitDir, '--quiet'],
+      [
+        'contract',
+        'emit',
+        '--config',
+        tmpConfigPath,
+        '--output-path',
+        tmpEmitDir,
+        '--quiet',
+        '--json',
+      ],
       { cwd: exampleDir, encoding: 'utf8', env: childEnv },
     );
   } finally {
@@ -399,7 +408,7 @@ function emitMigrationContract(exampleDir, migrationDir, realConfigAbsPath, cont
     }
   }
 
-  // The engine bin emits NDJSON events; the last line is the result envelope.
+  // With --json the engine bin emits NDJSON events; the last line is the result envelope.
   let parsed;
   try {
     const lines = emitOutput.trim().split('\n');

@@ -54,7 +54,7 @@ test('pack field presets appear on field with the codec their preset names', () 
     >();
     expectTypeOf(field.temporal.timestamp()).toEqualTypeOf<DateField<Record<never, never>>>();
     expectTypeOf(field.temporal.timestamp(undefined, 'now')).toEqualTypeOf<
-      DateField<{ readonly onCreate?: TimestampNow; readonly onUpdate?: TimestampNow }>
+      DateField<{ readonly onUpdate: TimestampNow }>
     >();
     expectTypeOf(field.temporal.timestamp('now', 'now')).toEqualTypeOf<
       DateField<{ readonly onCreate: TimestampNow; readonly onUpdate: TimestampNow }>
@@ -144,8 +144,7 @@ test('the built contract types its execution defaults with the collection and fi
           readonly entry: 'posts';
           readonly field: 'touchedAt';
         };
-        readonly onCreate?: TimestampNow;
-        readonly onUpdate?: TimestampNow;
+        readonly onUpdate: TimestampNow;
       }
   >();
 });

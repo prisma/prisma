@@ -11,6 +11,7 @@ const sqliteTargetDescriptorMetaBase = {
   ...sqliteTargetDescriptorMetaRuntime,
   defaultNamespaceId: UNBOUND_NAMESPACE_ID,
   supportsNamespaces: false,
+  displayName: 'SQLite',
   authoring: {
     type: { ...sqliteScalarTypeConstructors, ...sqliteAuthoringTypes },
     field: sqliteAuthoringFieldPresets,
