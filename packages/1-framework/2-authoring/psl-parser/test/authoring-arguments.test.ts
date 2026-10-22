@@ -124,6 +124,16 @@ describe('mapPslHelperArgs argument kinds', () => {
     expect(diagnostics[0]?.message).toMatch(/cannot parse argument #1/);
   });
 
+  it('names the values a named option takes when a number is written in its place', () => {
+    const { diagnostics } = callMap(
+      [positional('3')],
+      [{ kind: 'option', name: 'value', values: ['string', 'temporal'] }],
+    );
+    expect(diagnostics[0]?.message).toMatch(
+      /argument #1 is 3, but argument "value" takes one of: string, temporal\.$/,
+    );
+  });
+
   it('rejects an object for an option-kind argument', () => {
     const { result, diagnostics } = callMap(
       [positional('{a: 1}')],

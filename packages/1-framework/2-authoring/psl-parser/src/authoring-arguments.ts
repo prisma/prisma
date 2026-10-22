@@ -376,7 +376,10 @@ function readPslHelperArgument(
       span: argument.span,
       entityLabel: input.entityLabel,
       helperLabel: input.helperLabel,
-      message: `cannot parse ${argumentLabel} for descriptor kind "${descriptor.kind}".`,
+      message:
+        descriptor.kind === 'option' && descriptor.name !== undefined
+          ? `cannot parse ${argumentLabel}: ${argumentLabel} is ${argument.value.trim()}, but argument "${descriptor.name}" takes one of: ${descriptor.values.join(', ')}.`
+          : `cannot parse ${argumentLabel} for descriptor kind "${descriptor.kind}".`,
     });
     return INVALID_AUTHORING_ARGUMENT;
   };
