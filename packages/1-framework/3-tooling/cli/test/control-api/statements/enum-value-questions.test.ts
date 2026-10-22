@@ -66,6 +66,7 @@ describe('a question about an enum value', () => {
       forms: { rename: 'Status.ARCHIVED:Status.<new name>' },
     });
     expect(question?.validate('delete', 'Status.ARCHIVED')).toBeUndefined();
+    expect(question?.validate('rename', 'Status.ARCHIVED:Status.RETIRED')).toBeUndefined();
   });
 
   it('is described as an enum value when answered', () => {
