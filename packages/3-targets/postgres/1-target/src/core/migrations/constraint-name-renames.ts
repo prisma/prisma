@@ -9,7 +9,7 @@ import {
 import { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import type { PostgresTableSchemaNode } from '../schema-ir/postgres-table-schema-node';
 import { resolveNamespaceIdForDdlSchema } from './control-policy';
-import { RenameConstraintCall } from './op-factory-call';
+import { type PostgresOpFactoryCall, RenameConstraintCall } from './op-factory-call';
 import { postgresContractToSchema } from './postgres-contract-to-schema';
 
 export interface ConstraintNameRenameInput {
@@ -21,6 +21,8 @@ export interface ConstraintNameRenameInput {
   /** The table as the start tree describes it, from a contract or from the database. */
   readonly previous: PostgresTableSchemaNode;
   readonly next: PostgresTableSchemaNode;
+  /** The start names of this table's constraints that the plan drops; a dropped constraint is never renamed. */
+  readonly droppedConstraintNames: ReadonlySet<string>;
 }
 
 /** The constraint of `nextNodes` the diff pairs with `node` and finds unchanged. */
@@ -37,14 +39,14 @@ function unchangedIn<TNode extends DiffableNode>(
 export function constraintNameRenames(
   input: ConstraintNameRenameInput,
 ): readonly RenameConstraintCall[] {
-  const { schemaName, from, to, previous, next } = input;
+  const { schemaName, from, to, previous, next, droppedConstraintNames } = input;
   const rename = (
     kind: 'primaryKey' | 'unique' | 'foreignKey',
     oldName: string,
     unchanged: { readonly name?: string } | undefined,
     derivedName: string,
   ): readonly RenameConstraintCall[] => {
-    if (unchanged === undefined) return [];
+    if (unchanged === undefined || droppedConstraintNames.has(oldName)) return [];
     const newName = unchanged.name ?? derivedName;
     return oldName === newName
       ? []
@@ -80,13 +82,14 @@ export function constraintNameRenames(
 }
 
 /**
- * The constraint renames of a plan: {@link constraintNameRenames} for every table the start tree and the end contract both have, with the start tree as the plan's rename statements left it. The start tree comes from the start contract for `migration plan` and from the database for `db update`, so a database Prisma 8 created under derived names is renamed too once the contract states other names.
+ * The constraint renames of a plan: {@link constraintNameRenames} for every table the start tree and the end contract both have, with the start tree as the plan's rename statements left it. The start tree comes from the start contract for `migration plan` and from the database for `db update`, so a database Prisma 8 created under derived names is renamed too once the contract states other names. A constraint one of `plannedCalls` drops is skipped: the plan adds it back under its end name, or not at all.
  */
 export function plannedConstraintNameRenames(
   options: Pick<
     SqlMigrationPlannerPlanOptions,
     'contract' | 'schema' | 'policy' | 'frameworkComponents'
   >,
+  plannedCalls: readonly PostgresOpFactoryCall[],
 ): readonly RenameConstraintCall[] {
   if (!options.policy.allowedOperationClasses.includes('widening')) return [];
   PostgresDatabaseSchemaNode.assert(options.schema);
@@ -106,9 +109,25 @@ export function plannedConstraintNameRenames(
         : namespace.schemaName;
     return Object.entries(namespace.tables).flatMap(([tableName, next]) => {
       const previous = startTables[tableName];
+      const droppedConstraintNames = new Set(
+        plannedCalls.flatMap((call) =>
+          call.factoryName === 'dropConstraint' &&
+          call.schemaName === schemaName &&
+          call.tableName === tableName
+            ? [call.constraintName]
+            : [],
+        ),
+      );
       return previous === undefined
         ? []
-        : constraintNameRenames({ schemaName, from: tableName, to: tableName, previous, next });
+        : constraintNameRenames({
+            schemaName,
+            from: tableName,
+            to: tableName,
+            previous,
+            next,
+            droppedConstraintNames,
+          });
     });
   });
 }
