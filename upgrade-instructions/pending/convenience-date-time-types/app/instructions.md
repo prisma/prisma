@@ -48,7 +48,7 @@ model Event {
 }
 ```
 
-The detection cannot tell which target a schema is for, so it also matches SQLite's `DateTime` and MongoDB's `Date`. A match in a project whose `prisma.config.ts` uses the SQLite or MongoDB target needs no change: on those targets the names keep their meaning.
+The detection cannot tell which target a schema is for, so it also matches SQLite's and MySQL's `DateTime` and MongoDB's `Date`. A match in a project whose `prisma.config.ts` uses the SQLite, MySQL or MongoDB target needs no change: on those targets the names keep their meaning.
 
 A type alias written with one of the names, such as `types { Stamp = DateTime @onCreate(now()) }`, is renamed the same way. Rename only field types and alias types in Prisma 8 schemas whose config uses the PostgreSQL target, including the `contract.prisma` copies in migration folders; leave a model or field named `Date`, comments, and Prisma 7 schemas as they are. Re-emit the contract with `prisma contract emit`: it is byte for byte the same as before.
 
@@ -56,7 +56,7 @@ To move a field to the new defaults instead, keep the name and update the applic
 
 ## `ts-date-time-helpers-are-convenience-types`
 
-Rename only in contracts on PostgreSQL; `type.DateTime(...)` in a SQLite contract keeps its meaning.
+Rename only in contracts on PostgreSQL; `type.DateTime(...)` in a SQLite or MySQL contract keeps its meaning.
 
 ```ts
 field.column(type.TimestamptzTemporal()); // was type.DateTime()

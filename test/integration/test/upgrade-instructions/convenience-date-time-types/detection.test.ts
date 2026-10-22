@@ -35,6 +35,7 @@ describe('the convenience date and time type detection', () => {
       comment: psl('// a DateTime field\nmodel A {\n  id Int @id\n}'),
       modelName: psl('model Date {\n  id Int @id\n}'),
       sqliteDateTime: psl('model A {\n  at DateTime @default(datetime`2024-01-01T00:00:00Z`)\n}'),
+      mysqlDateTime: psl('model A {\n  id Int @id\n  at DateTime @onCreate(now())\n}'),
       mongoDate: psl('model A {\n  id ObjectId @id @map("_id")\n  at Date\n}'),
       prisma7: psl(
         'datasource db {\n  provider = "postgresql"\n}\nmodel A {\n  at DateTime @db.Timestamptz(3)\n}',
@@ -50,6 +51,7 @@ describe('the convenience date and time type detection', () => {
       comment: false,
       modelName: false,
       sqliteDateTime: true,
+      mysqlDateTime: true,
       mongoDate: true,
       prisma7: false,
     });

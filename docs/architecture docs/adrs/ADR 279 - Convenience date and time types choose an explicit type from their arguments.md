@@ -160,7 +160,7 @@ The `String` and `JsDate` variants are not needed. A contributed alias takes no 
 
 ## Not decided here
 
-- SQLite and MongoDB. Each declares its own convenience types over its own explicit types, under item 11, and each already uses one of the names: SQLite's explicit `DateTime` is its `sqlite/datetime@1` type, and MongoDB's explicit `Date` is `mongo/date@1`, a moment in time, with `DateTime` as a deprecated alias of it.
+- SQLite, MySQL and MongoDB. Each declares its own convenience types over its own explicit types, under item 11, and each already uses one of the names: SQLite's explicit `DateTime` is its `sqlite/datetime@1` type, MySQL's explicit `DateTime` is a `datetime(3)` column read as a JavaScript `Date`, and MongoDB's explicit `Date` is `mongo/date@1`, a moment in time, with `DateTime` as a deprecated alias of it.
 - Whether other scalar types get convenience types, for example an `Int` whose arguments choose between the explicit `Int2`, `Int4` and `Int8`.
 
 ## Alternatives considered
