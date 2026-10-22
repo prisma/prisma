@@ -49,7 +49,6 @@ export function createTestContext<TContract extends Contract<SqlStorage>>(
       values: function* () {},
     },
     queryOperations: createSqlOperationRegistry(),
-    types: {},
     applyMutationDefaults: () => [],
   };
 }

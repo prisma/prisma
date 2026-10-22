@@ -1,4 +1,3 @@
-import { postgresPslTypeConstructors } from '@internal/target-postgres/control';
 import { describe, expect, it } from 'vitest';
 import { postgresAdapterDescriptorMeta } from '../src/core/descriptor-meta';
 import postgresAdapterDescriptor from '../src/exports/control';
@@ -41,8 +40,8 @@ describe('postgres adapter query operations', () => {
 });
 
 describe('the adapter authoring contribution', () => {
-  it('contributes the PSL-only type constructors the target defines', () => {
-    expect(postgresAdapterDescriptor.authoring?.type).toBe(postgresPslTypeConstructors);
+  it('contributes no type constructors, which the target contributes', () => {
+    expect(postgresAdapterDescriptor.authoring).not.toHaveProperty('type');
   });
 
   it('contributes no data type entries, which the target contributes', () => {

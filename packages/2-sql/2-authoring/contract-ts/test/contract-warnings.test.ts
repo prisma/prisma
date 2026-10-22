@@ -1,21 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import { field, model, rel } from '../src/contract-builder';
-import {
-  emitTypedCrossModelFallbackWarnings,
-  emitTypedNamedTypeFallbackWarnings,
-} from '../src/contract-warnings';
+import { emitTypedCrossModelFallbackWarnings } from '../src/contract-warnings';
 import { columnDescriptor } from './helpers/column-descriptor';
 
 const int4Column = columnDescriptor('pg/int4@1');
 
-const embedding1536 = {
-  kind: 'codec-instance',
-  codecId: 'pg/vector@1',
-  typeParams: { length: 1536 },
-} as const;
-
-type RuntimeWarningModels = Parameters<typeof emitTypedNamedTypeFallbackWarnings>[0];
 type RuntimeWarningCollection = Parameters<typeof emitTypedCrossModelFallbackWarnings>[0];
+type RuntimeWarningModels = RuntimeWarningCollection['models'];
 
 function widenRuntimeModels<T extends Record<string, object>>(models: T): RuntimeWarningModels {
   // Warning helpers consume the erased runtime builder shape; tests keep narrower
@@ -78,19 +69,9 @@ describe('contract fallback warnings', () => {
       },
     });
 
-    const VectorRecord = model('VectorRecord', {
-      fields: {
-        embedding: field.namedType(embedding1536),
-      },
-    });
-
     const warnings = captureWarnings(() => {
-      emitTypedNamedTypeFallbackWarnings(widenRuntimeModels({ VectorRecord }), {
-        Embedding1536: embedding1536,
-      });
       emitTypedCrossModelFallbackWarnings(
         buildRuntimeWarningCollection({
-          storageTypes: { Embedding1536: embedding1536 },
           models: { User, Profile },
           modelSpecs: new Map([
             [
@@ -170,7 +151,6 @@ describe('contract fallback warnings', () => {
     const warnings = captureWarnings(() =>
       emitTypedCrossModelFallbackWarnings(
         buildRuntimeWarningCollection({
-          storageTypes: {},
           models: { User, Profile, Post, Tag, PostTag, Membership },
           modelSpecs: new Map([
             [
@@ -272,7 +252,6 @@ describe('contract fallback warnings', () => {
     const warnings = captureWarnings(() =>
       emitTypedCrossModelFallbackWarnings(
         buildRuntimeWarningCollection({
-          storageTypes: {},
           models: { User, Comment },
           modelSpecs: new Map([
             [
@@ -327,7 +306,6 @@ describe('contract fallback warnings', () => {
     const warnings = captureWarnings(() =>
       emitTypedCrossModelFallbackWarnings(
         buildRuntimeWarningCollection({
-          storageTypes: {},
           models: { Post, Tag, PostTag },
           modelSpecs: new Map([
             [
@@ -378,7 +356,6 @@ describe('contract fallback warnings', () => {
     const warnings = captureWarnings(() =>
       emitTypedCrossModelFallbackWarnings(
         buildRuntimeWarningCollection({
-          storageTypes: {},
           models: { Post, Tag, PostTag },
           modelSpecs: new Map([
             [
@@ -412,29 +389,43 @@ describe('contract fallback warnings', () => {
     );
   });
 
-  it('batches named-type fallback warnings above the threshold', () => {
-    const VectorRecord = model('VectorRecord', {
-      fields: {
-        first: field.namedType('Embedding1536'),
-        second: field.namedType('Embedding1536'),
-        third: field.namedType('Embedding1536'),
-        fourth: field.namedType('Embedding1536'),
-        fifth: field.namedType('Embedding1536'),
-        sixth: field.namedType('Embedding1536'),
-      },
-    });
+  it('batches fallback warnings above the threshold', () => {
+    const User = model('User', { fields: { id: field.column(int4Column).id() } });
+    const columns = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth'];
 
     const warnings = captureWarnings(() =>
-      emitTypedNamedTypeFallbackWarnings(widenRuntimeModels({ VectorRecord }), {
-        Embedding1536: embedding1536,
-      }),
+      emitTypedCrossModelFallbackWarnings(
+        buildRuntimeWarningCollection({
+          models: { User },
+          modelSpecs: new Map([
+            [
+              'Audit',
+              {
+                modelName: 'Audit',
+                tableName: 'audit',
+                relations: {},
+                sqlSpec: {
+                  foreignKeys: columns.map((column) => ({
+                    kind: 'fk' as const,
+                    fields: [column],
+                    targetModel: 'User',
+                    targetFields: ['id'],
+                    targetSource: 'string' as const,
+                  })),
+                },
+              },
+            ],
+          ]),
+        }),
+      ),
     );
 
     expect(warnings).toHaveLength(1);
     expect(warnings[0]?.message).toContain(
       '6 contract references use string fallbacks where typed alternatives are available.',
     );
-    expect(warnings[0]?.message).toContain('VectorRecord.first');
-    expect(warnings[0]?.message).toContain('VectorRecord.sixth');
+    expect(warnings[0]?.message).toContain(
+      'Use named model tokens for autocomplete and type safety.',
+    );
   });
 });

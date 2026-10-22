@@ -2,7 +2,7 @@ import sqliteDriverDescriptor from '@internal/driver-sqlite/control';
 import sqlFamilyDescriptor from '@internal/family-sql/control';
 import { createControlStack } from '@internal/framework-components/control';
 import { SQL_CHAR_CODEC_ID, SQL_VARCHAR_CODEC_ID } from '@internal/sql-relational-core/ast';
-import sqliteTargetDescriptor, { sqlitePslTypeConstructors } from '@internal/target-sqlite/control';
+import sqliteTargetDescriptor from '@internal/target-sqlite/control';
 import { describe, expect, it } from 'vitest';
 import { sqliteAdapterDescriptorMeta } from '../src/core/descriptor-meta';
 import sqliteAdapterDescriptor from '../src/exports/control';
@@ -22,8 +22,8 @@ describe('the SQLite adapter descriptor metadata', () => {
     expect(sqliteAdapterDescriptorMeta).not.toHaveProperty('dataTypes');
   });
 
-  it('contributes the base scalar type constructors the target defines', () => {
-    expect(sqliteAdapterDescriptor.authoring?.type).toBe(sqlitePslTypeConstructors);
+  it('contributes no type constructors, which the target contributes', () => {
+    expect(sqliteAdapterDescriptor.authoring).not.toHaveProperty('type');
   });
 
   it('contributes no data type entries, because the target contributes them', () => {

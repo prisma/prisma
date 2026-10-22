@@ -227,7 +227,7 @@ model Post {
     expect(pslDomainNs?.models?.['Post']?.fields?.['priority']).toEqual(
       tsDomainNs?.models?.['Post']?.fields?.['priority'],
     );
-    // Strict equality on the storage column catches extra properties (e.g. a stray typeRef).
+    // Strict equality on the storage column catches extra properties.
     expect(
       pslNs !== undefined ? pslNs.entries.table?.['Post']?.columns?.['priority'] : undefined,
     ).toEqual(tsNs !== undefined ? tsNs.entries.table?.['Post']?.columns?.['priority'] : undefined);

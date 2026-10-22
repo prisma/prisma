@@ -19,7 +19,7 @@ import type {
 } from '@prisma/orm-sqlite/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'e429c73ec99d27b790baaacc9d16734cea79a2a64169dde8b8a1dd7fcccbac57'>;
+  StorageHashBase<'5da56ffe117eb468ffdea757f746a1688071e3c6c258db37e0e71ca253424eeb'>;
 export type ExecutionHash =
   ExecutionHashBase<'a6bd95c41e717d2a7dd3d556af8befa35950b61ccf39569e36ab3a357b40457e'>;
 export type ProfileHash =
@@ -262,7 +262,6 @@ type ContractBase = Omit<
                   readonly dataType: 'sqlite/integer';
                   readonly codecId: 'sqlite/bigintnumber@1';
                   readonly nullable: true;
-                  readonly typeRef: 'BigIntNumber';
                   readonly many: false;
                 };
               };
@@ -414,14 +413,6 @@ type ContractBase = Omit<
             };
           };
         };
-      };
-    };
-    readonly types: {
-      readonly BigIntNumber: {
-        readonly kind: 'codec-instance';
-        readonly codecId: 'sqlite/bigintnumber@1';
-        readonly dataType: 'sqlite/integer';
-        readonly typeParams: Record<string, never>;
       };
     };
     readonly storageHash: StorageHash;

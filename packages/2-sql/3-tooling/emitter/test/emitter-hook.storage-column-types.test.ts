@@ -561,7 +561,7 @@ describe('StorageColumnTypes', () => {
     expect(dts).not.toContain('["members"][number]');
   });
 
-  it("gives a typeRef column the type its codec renders for the named type's parameters", () => {
+  it("gives a column the type its codec renders for the column's type parameters", () => {
     const contract = createContract({
       domain: {
         namespaces: {
@@ -598,7 +598,7 @@ describe('StorageColumnTypes', () => {
                       dataType: 'pgvector/vector',
                       codecId: 'pg/vector@1',
                       nullable: true,
-                      typeRef: 'Embedding1536',
+                      typeParams: { length: 1536 },
                     },
                   },
                   uniques: [],
@@ -607,13 +607,6 @@ describe('StorageColumnTypes', () => {
                 },
               },
             },
-          },
-        },
-        types: {
-          Embedding1536: {
-            codecId: 'pg/vector@1',
-            dataType: 'pgvector/vector',
-            typeParams: { length: 1536 },
           },
         },
       },
@@ -675,7 +668,7 @@ describe('StorageColumnTypes', () => {
                       dataType: 'pgvector/vector',
                       codecId: 'pg/vector@1',
                       nullable: false,
-                      typeRef: 'Embedding1536',
+                      typeParams: { length: 1536 },
                     },
                     title: { dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
                   },
@@ -685,13 +678,6 @@ describe('StorageColumnTypes', () => {
                 },
               },
             },
-          },
-        },
-        types: {
-          Embedding1536: {
-            codecId: 'pg/vector@1',
-            dataType: 'pgvector/vector',
-            typeParams: { length: 1536 },
           },
         },
       },

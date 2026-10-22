@@ -42,15 +42,9 @@ const StorageColumnSchema = type({
   nullable: 'boolean',
   'many?': type('false').or({ '+': 'reject', elementNullable: 'boolean' }),
   'typeParams?': 'Record<string, unknown>',
-  'typeRef?': 'string',
   'default?': ColumnDefaultSchema,
   'control?': ControlPolicySchema,
   'valueSet?': StorageValueSetRefSchema,
-}).narrow((col, ctx) => {
-  if (col.typeParams !== undefined && col.typeRef !== undefined) {
-    return ctx.mustBe('a column with either typeParams or typeRef, not both');
-  }
-  return true;
 });
 
 /**

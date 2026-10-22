@@ -95,22 +95,6 @@ const rows: readonly Row[] = [
     fieldName: 'level',
   },
   {
-    kind: 'named storage type',
-    definition: definitionOf(
-      [
-        user(
-          field('email', 'pg/text@1', { descriptor: { codecId: 'pg/text@1', typeRef: 'Email' } }),
-        ),
-      ],
-      {
-        storageTypes: {
-          Email: { kind: 'codec-instance', codecId: 'pg/text@1', typeParams: { length: 320 } },
-        },
-      },
-    ),
-    fieldName: 'email',
-  },
-  {
     kind: 'value-object column',
     definition: definitionOf(
       [

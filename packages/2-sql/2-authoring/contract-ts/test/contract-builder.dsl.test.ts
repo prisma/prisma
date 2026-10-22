@@ -112,7 +112,7 @@ describe('contract DSL authoring surface', () => {
           })
           .id({ name: 'app_user_pkey' }),
         email: field.column(textColumn).unique({ name: 'app_user_email_key' }),
-        role: field.namedType(types.Role),
+        role: field.column(types.Role),
         createdAt: field.column(timestamptzTemporalColumn).column('created_at').default(now()),
       },
     }).sql({
@@ -146,7 +146,6 @@ describe('contract DSL authoring surface', () => {
     const contract = defineTestContract({
       storageHash: 'contract-dsl',
       foreignKeyDefaults: { constraint: true, index: false },
-      types,
       models: {
         User,
         Post,
@@ -161,7 +160,7 @@ describe('contract DSL authoring surface', () => {
         readonly foreignKeys?: unknown;
         readonly columns: Record<
           string,
-          { readonly default?: unknown; readonly typeRef?: unknown }
+          { readonly default?: unknown; readonly typeParams?: unknown }
         >;
       }
     >;
@@ -189,7 +188,7 @@ describe('contract DSL authoring surface', () => {
       kind: 'function',
       expression: 'now()',
     });
-    expect(appUserColumns?.['role']?.typeRef).toBe('Role');
+    expect(appUserColumns?.['role']?.typeParams).toEqual({ values: ['USER', 'ADMIN'] });
     expect(storageTables['blog_post']?.foreignKeys).toEqual([
       {
         source: { namespaceId: 'public', tableName: 'blog_post', columns: ['user_id'] },

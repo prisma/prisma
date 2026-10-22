@@ -172,9 +172,6 @@ describe('PSL pg.enum(Ref) field resolution', () => {
         entityName: 'AalLevel',
       },
     });
-    // No typeRef and no CHECK-strategy leftovers — a pg.enum column is a
-    // plain value-set column, not a named-type-refined one.
-    expect(aalColumn?.typeRef).toBeUndefined();
   });
 
   it('does not write a CHECK constraint for a pg.enum column', () => {

@@ -5,7 +5,7 @@
  * Each call class carries fully-resolved literal arguments. `CreateTableCall`
  * holds structured `DdlColumn[]` + `DdlTableConstraint[]` and lowers via the
  * adapter's DDL path; other call classes carry flat SQL fragments. Codec /
- * `typeRef` / default expansion happens upstream in the issue-planner /
+ * default expansion happens upstream in the issue-planner /
  * strategies, mirroring the Postgres `ColumnSpec` pattern.
  */
 

@@ -13,9 +13,9 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, relative } from 'pathe';
 
 const SCRIPT_PATHS = {
-  app: 'upgrade-instructions/pending/remove-nocheck/app/scripts/remove-nocheck/remove-nocheck.ts',
+  app: 'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/scripts/remove-nocheck/remove-nocheck.ts',
   extension:
-    'upgrade-instructions/pending/remove-nocheck/extension/scripts/remove-nocheck/remove-nocheck.ts',
+    'skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/scripts/remove-nocheck/remove-nocheck.ts',
 } as const;
 
 const here = dirname(fileURLToPath(import.meta.url));

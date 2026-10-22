@@ -110,7 +110,6 @@ const defaultCtx = {
   schemaName: SCHEMA_NAME,
   codecHooks: new Map(),
   types: postgresTypeLookups,
-  storageTypes: {},
 };
 
 describe('check planning is diff-driven', () => {

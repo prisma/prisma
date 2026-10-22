@@ -27,14 +27,11 @@ const handWritten = { codecId: 'app/custom@1' } as const;
 
 test('.default() takes the input type of the field codec', () => {
   defineContract({ enums: { Level, BigLevel } }, ({ field, model }) => {
-    const types = {
-      Counter: {
-        kind: 'codec-instance',
-        codecId: 'pg/int8@1',
-        dataType: 'pg/int8',
-        typeParams: {},
-      },
-    } as const;
+    const Counter = field.column({
+      kind: 'codec-instance',
+      codecId: 'pg/int8@1',
+      typeParams: {},
+    } as const);
     return {
       models: {
         Accepted: model('Accepted', {
@@ -62,7 +59,7 @@ test('.default() takes the input type of the field codec', () => {
             varchar: field.column(varcharColumn(3)).default('abc'),
             time: field.column(timeTemporalColumn()).default(Temporal.PlainTime.from('12:00')),
             column: field.column(int8Column).default(1n),
-            namedType: field.namedType(types.Counter).default(1n),
+            aliasConstant: Counter.default(1n),
             handWritten: field.column(handWritten).default('anything JSON'),
           },
         }),
@@ -96,11 +93,10 @@ test('.default() takes the input type of the field codec', () => {
             // @ts-expect-error pg/text@1 takes a string, not a number
             column: field.column(textColumn).default(1),
             // @ts-expect-error pg/int8@1 takes a bigint, not a string
-            namedType: field.namedType(types.Counter).default('1'),
+            aliasConstant: Counter.default('1'),
           },
         }),
       },
-      types,
     };
   });
 });
@@ -109,7 +105,6 @@ test('the directly imported field checks values against the column type, like th
   importedField.column(int8Column).default(1n);
   // @ts-expect-error pg/int8@1 takes a bigint, not bytes
   importedField.column(int8Column).default(new Uint8Array([120]));
-  importedField.namedType('Counter').default(1n);
 });
 
 test('a builder held as the bare ScalarFieldBuilder type accepts any value', () => {

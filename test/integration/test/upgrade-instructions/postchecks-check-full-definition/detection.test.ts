@@ -5,13 +5,14 @@ import { describe, expect, it } from 'vitest';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '../../../../..');
+const GUIDE_PATH =
+  'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md';
 
-function detectionOf(fragment: string): readonly RegExp[] {
-  const guide = readFileSync(
-    join(repoRoot, 'upgrade-instructions/pending', fragment, 'app/instructions.md'),
-    'utf-8',
-  );
-  return [...guide.matchAll(/^ {8}- '(.*)'$/gm)].map(
+function detectionOf(id: string): readonly RegExp[] {
+  const guide = readFileSync(join(repoRoot, GUIDE_PATH), 'utf-8');
+  const entry = guide.split(/\n {2}- id: /).find((block) => block.startsWith(`${id}\n`));
+  if (entry === undefined) throw new Error(`The guide has no change ${id}`);
+  return [...entry.matchAll(/^ {8}- '(.*)'$/gm)].map(
     ([, pattern]) => new RegExp((pattern ?? '').replaceAll("''", "'")),
   );
 }

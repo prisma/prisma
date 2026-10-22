@@ -9,7 +9,7 @@ import {
 const stack = composePostgresStack([]);
 
 describe('a printed contract with raw columns', () => {
-  it('writes each raw field as Raw(sql`...`) and reads back as the same contract', async () => {
+  it('writes each raw field, including one typed by an alias, as Raw(sql`...`) and reads back as the same contract', async () => {
     const authored = await readPsl(
       `// use prisma-8
 types {
@@ -30,7 +30,8 @@ model Category {
     );
     const { text, sourceSettings } = printContract(authored, stack);
 
-    expect(text).toContain('Search = Raw(sql`tsvector`)');
+    expect(text).not.toContain('types {');
+    expect(text).toContain('named  Raw(sql`tsvector`)');
     expect(text).toContain('Raw(sql`character varying(10)`)');
     expect(text).toContain('Raw(sql`cidr`)?');
     expect(text).toContain('Raw(sql`"MyType"`)');

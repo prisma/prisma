@@ -51,21 +51,6 @@ describe('names PSL writes as identifiers', () => {
     ).toThrow(refusal({ kind: 'enum member', name: '__proto__' }));
   });
 
-  it('refuses a named type name that is not an identifier', () => {
-    expect(
-      printingWidget({
-        storageTypes: {
-          'short text': {
-            kind: 'codec-instance',
-            codecId: 'pg/text@1',
-            dataType: 'pg/text',
-            typeParams: {},
-          },
-        },
-      }),
-    ).toThrow(refusal({ kind: 'named type', name: 'short text' }));
-  });
-
   it('refuses an index option key that is not an identifier', () => {
     expect(
       printingWidget({

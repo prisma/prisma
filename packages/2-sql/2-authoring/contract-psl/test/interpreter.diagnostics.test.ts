@@ -168,7 +168,7 @@ ${['First', 'Second', 'Third']
       expect.arrayContaining([
         expect.objectContaining({
           code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-          message: 'Named type "Broken" must declare a base type or constructor',
+          message: 'Type alias "Broken" must declare a base type or constructor',
         }),
       ]),
     );
@@ -190,7 +190,7 @@ ${['First', 'Second', 'Third']
     expect(result.failure.diagnostics).toEqual([
       expect.objectContaining({
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_CONSTRUCTOR',
-        message: 'Named type "Weird" references unsupported constructor "pgvector.vector"',
+        message: 'Type alias "Weird" references unsupported constructor "pgvector.vector"',
       }),
     ]);
   });
@@ -439,19 +439,19 @@ model InvalidNativeTypes {
         expect.objectContaining({
           code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
           message: expect.stringContaining(
-            'Named type "BadChar" constructor "Char" Authoring helper argument at Char[0] is invalid: length must be at least 1 (was 0)',
+            'Type alias "BadChar" constructor "Char" Authoring helper argument at Char[0] is invalid: length must be at least 1 (was 0)',
           ),
         }),
         expect.objectContaining({
           code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
           message: expect.stringContaining(
-            'Named type "BadReal" constructor "Real" accepts at most 0 argument(s), received 1.',
+            'Type alias "BadReal" constructor "Real" accepts at most 0 argument(s), received 1.',
           ),
         }),
         expect.objectContaining({
           code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
           message: expect.stringContaining(
-            'Named type "BadTimestamp" constructor "Timestamp" Authoring helper argument at Timestamp[0] is invalid: precision must be non-negative (was -1)',
+            'Type alias "BadTimestamp" constructor "Timestamp" Authoring helper argument at Timestamp[0] is invalid: precision must be non-negative (was -1)',
           ),
         }),
       ]),

@@ -9,7 +9,7 @@
  * remaining issues flow through `mapNodeIssueToCall` for the default case.
  *
  * Every branch reads the diff node the issue carries (`issue.expected` /
- * `issue.actual`) — never the contract, never `storageTypes`, never codec
+ * `issue.actual`) — never the contract, never codec
  * hooks. Column DDL resolves from the column node's `codecRef`
  * (`column-ddl-rendering.ts`), never a recomputation against the contract.
  */

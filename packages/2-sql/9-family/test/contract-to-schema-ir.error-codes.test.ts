@@ -49,29 +49,6 @@ const intColumn: StorageColumn = {
 };
 
 describe('contract-to-schema-ir structured error codes', () => {
-  it('raises CONTRACT.TYPE_UNKNOWN for a column typeRef missing from storage.types', () => {
-    const storage = new SqlStorage({
-      storageHash: 'test' as StorageHashBase<string>,
-      namespaces: {
-        [UNBOUND_NAMESPACE_ID]: createTestSqlNamespace({
-          id: UNBOUND_NAMESPACE_ID,
-          entries: {
-            table: { widget: table({ size: { ...intColumn, typeRef: 'missing_type' } }) },
-          },
-        }),
-      },
-    });
-
-    const error = captureError(() =>
-      contractToSchemaIR(wrap(storage), { annotationNamespace: 'pg', ...types }),
-    );
-    expect(isStructuredError(error)).toBe(true);
-    expect(error).toMatchObject({
-      code: 'CONTRACT.TYPE_UNKNOWN',
-      meta: { typeRef: 'missing_type' },
-    });
-  });
-
   it('names the table and column whose codec is not registered', () => {
     const storage = new SqlStorage({
       storageHash: 'test' as StorageHashBase<string>,

@@ -260,9 +260,9 @@ export const postgresNativeAuthoringTypes = {
 } as const satisfies AuthoringTypeNamespace;
 
 /**
- * The constructors only PSL offers, defined here next to the codecs they name. The adapter contributes them: the TypeScript contract builder builds its `type.*` helpers from the target, so a target contribution would add `type.String()` and the like there. The constructors that should also be `type.*` helpers are the target's own, in `postgresAuthoringTypes`.
+ * The base scalars and native types as type constructors. The target contributes them, so PSL and the TypeScript builder's `type.*` see the same names.
  */
-export const postgresPslTypeConstructors = {
+export const postgresScalarAndNativeTypeConstructors = {
   ...postgresScalarAuthoringTypes,
   ...postgresNativeAuthoringTypes,
 } as const satisfies AuthoringTypeNamespace;

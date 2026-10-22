@@ -76,6 +76,79 @@ const emptySchema = new PostgresDatabaseSchemaNode({
 });
 
 describe('PostgresMigrationPlanner - storage types', () => {
+  it('runs the type hooks for the vector type pgvector registers', async () => {
+    const planner = createPostgresMigrationPlanner(testAdapter);
+    const seen: string[] = [];
+    const hooks: CodecControlHooks = {
+      planTypeOperations: (options) => {
+        seen.push(`${options.typeName} ${options.typeInstance.codecId}`);
+        return {
+          operations: [
+            {
+              id: `type.${options.typeName}`,
+              label: `Create type ${options.typeName}`,
+              operationClass: 'additive',
+              target: { id: 'postgres' },
+              precheck: [],
+              execute: [{ description: 'create extension', sql: 'CREATE EXTENSION vector' }],
+              postcheck: [],
+            },
+          ],
+        };
+      },
+    };
+    const vectorHookComponent = {
+      kind: 'extension',
+      id: 'vector-hooks',
+      familyId: 'sql',
+      targetId: 'postgres',
+      version: '0.0.0-test',
+      types: { codecTypes: { controlPlaneHooks: { 'pg/vector@1': hooks } } },
+    } as TargetBoundComponentDescriptor<'sql', 'postgres'>;
+
+    const contract: Contract<SqlStorage> = {
+      target: 'postgres',
+      targetFamily: 'sql',
+      profileHash: profileHash('test'),
+      storage: new SqlStorage({
+        storageHash: coreHash('test'),
+        types: {
+          vector: {
+            kind: 'codec-instance',
+            codecId: 'pg/vector@1',
+            dataType: 'pgvector/vector',
+            typeParams: {},
+          },
+        },
+        namespaces: { [UNBOUND_NAMESPACE_ID]: PostgresUnboundSchema.instance },
+      }),
+      roots: {},
+      domain: applicationDomainOf({ models: {} }),
+      capabilities: {},
+      extensions: {},
+      meta: {},
+    };
+
+    const result = planner.plan({
+      contract,
+      schema: emptySchema,
+      policy: INIT_ADDITIVE_POLICY,
+      fromContract: null,
+      origin: null,
+      statements: [],
+      frameworkComponents: [...postgresComponents, vectorHookComponent],
+      spaceId: APP_SPACE_ID,
+      snapshotsImportPath: '../../snapshots',
+    });
+
+    expectNarrowedType(result.kind === 'success');
+    const ops = await Promise.all(result.plan.operations);
+    expect({ seen, ops: ops.map((op) => op.id) }).toEqual({
+      seen: ['vector pg/vector@1'],
+      ops: ['type.vector'],
+    });
+  });
+
   it('plans type operations before table operations', async () => {
     const planner = createPostgresMigrationPlanner(testAdapter);
     const hooks: CodecControlHooks = {
@@ -122,7 +195,7 @@ describe('PostgresMigrationPlanner - storage types', () => {
                       dataType: 'app/test-type',
                       codecId: 'app/test-type@1',
                       nullable: false,
-                      typeRef: 'Role',
+                      typeParams: { typeName: 'role', values: ['USER'] },
                     },
                   },
                   primaryKey: { columns: ['id'] },
@@ -274,7 +347,7 @@ describe('PostgresMigrationPlanner - storage types', () => {
                       dataType: 'app/test-type',
                       codecId: 'app/test-type@1',
                       nullable: false,
-                      typeRef: 'UserKind',
+                      typeParams: { typeName: 'UserKind', values: ['ADMIN', 'USER'] },
                     },
                   },
                   primaryKey: { columns: ['id'] },
@@ -319,7 +392,7 @@ describe('PostgresMigrationPlanner - storage types', () => {
     expect(createTableSql).toContain('"UserKind"');
   });
 
-  it('expands parameterized storage type refs when creating tables', async () => {
+  it('writes a vector column with its own type params when creating tables', async () => {
     const planner = createPostgresMigrationPlanner(testAdapter);
     const contract: Contract<SqlStorage> = {
       target: 'postgres',
@@ -347,7 +420,7 @@ describe('PostgresMigrationPlanner - storage types', () => {
                       dataType: 'pgvector/vector',
                       codecId: 'pg/vector@1',
                       nullable: false,
-                      typeRef: 'Embedding1536',
+                      typeParams: { length: 1536 },
                     },
                   },
                   primaryKey: { columns: ['id'] },
@@ -392,7 +465,7 @@ describe('PostgresMigrationPlanner - storage types', () => {
     expect(createTableSql).not.toContain('"embedding" "vector(1536)"');
   });
 
-  it('fails when a storage type ref names a codec no component registers', () => {
+  it('fails when a column names a codec no component registers', () => {
     const planner = createPostgresMigrationPlanner(testAdapter);
     const contract: Contract<SqlStorage> = {
       target: 'postgres',
@@ -420,7 +493,7 @@ describe('PostgresMigrationPlanner - storage types', () => {
                       dataType: 'pgvector/vector',
                       codecId: 'pg/vector@1',
                       nullable: false,
-                      typeRef: 'Embedding1536',
+                      typeParams: { length: 1536 },
                     },
                   },
                   primaryKey: { columns: ['id'] },

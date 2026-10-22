@@ -10,6 +10,28 @@ PSL-to-Mongo contract interpreter for Prisma 8. Transforms Prisma Schema Languag
 - **Contract provider**: `mongoContract()` (exported from `./provider`) integrates with the CLI's `prisma contract emit` command, reading a `.prisma` schema file and producing a `ContractConfig`
 - **Diagnostics**: Emits structured diagnostics for unsupported field types (`PSL_UNSUPPORTED_FIELD_TYPE`), fields a collection validator cannot describe (`PSL_UNSUPPORTED_FIELD_TYPE`, `PSL_MONGO_ID_INVALID` for a field stored as `_id` that can hold BSON type array, regex, undefined or null, such as a list, an optional field, a `Json` field or a `Bson` field, and `PSL_MONGO_ID_ATTRIBUTE_INVALID` for `@id` on a field not stored as `_id` or on more than one field; the validator requires `_id` with the declared field's BSON type, and a model may leave `@id` and `_id` out, when its validator requires an objectId `_id`), orphaned backrelations (`PSL_ORPHANED_BACKRELATION`), ambiguous backrelations (`PSL_AMBIGUOUS_BACKRELATION`), and attribute names outside the registered namespace (`PSL_UNSUPPORTED_MODEL_ATTRIBUTE`, `PSL_UNSUPPORTED_FIELD_ATTRIBUTE`)
 
+## Type aliases
+
+```prisma
+types {
+  Stamp = Date @onCreate(now()) @onUpdate(now())
+}
+
+model Post {
+  id        ObjectId           @id @map("_id")
+  editedAt  Stamp
+  createdAt temporal.CreatedAt
+  updatedAt temporal.UpdatedAt
+}
+```
+
+- A `types {}` alias is expanded into each field typed by it: the field stores the alias's codec and type params, and the collection validator follows from that codec. The contract does not store the alias.
+- An alias's base is a type constructor or an enum. It may not name another alias or a contributed alias (`PSL_UNSUPPORTED_NAMED_TYPE_BASE`).
+- An alias may carry `@onCreate` and `@onUpdate`. `@default` is refused at the alias, because MongoDB has no database defaults, and so are `@id` and `@unique` (`PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE`). A refused attribute is dropped and the alias is kept.
+- A field that writes an attribute its alias already sets is `PSL_DUPLICATE_ATTRIBUTE`. An optional or list field typed by an alias that generates a value is refused, as `@onCreate` on such a field is. Generated values are keyed by the field's stored name, so a `@map`-ped field works.
+- The Mongo target contributes `temporal.CreatedAt` (`now()` on create) and `temporal.UpdatedAt` (`now()` on create and on update), on `Date` (`mongo/date@1`). They take no arguments and store what `temporal.createdAt()` and `temporal.updatedAt()` store.
+- The `@updatedAt` attribute is refused with the hint `Use @onCreate(now()) @onUpdate(now()), or type the field temporal.UpdatedAt.`
+
 ## Index sort directions
 
 Use `sort(field, Asc)` or `sort(field, Desc)` in `@@index`, `@@unique`, and `@@textIndex` field lists, for example `@@index([status, sort(createdAt, Desc)])`. Field references use model names; `@map` is applied to the resulting index keys. Plain fields retain the index's default key type, and explicit sort calls produce ascending or descending keys. Wildcard syntax remains `wildcard()` or `wildcard(field)` where supported. The earlier `field(sort: Desc)` syntax and additional sort options such as null ordering are not supported.

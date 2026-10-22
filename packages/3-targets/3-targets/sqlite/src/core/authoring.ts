@@ -6,6 +6,7 @@ import type {
 import {
   temporalAuthoringPresets,
   temporalCodecPreset,
+  temporalTypeAliases,
 } from '@internal/framework-components/authoring';
 export const sqliteAuthoringTypes = {
   .../* @__PURE__ */ sqlTargetTypeConstructors({ sizeType: 'sqlite/real' }),
@@ -17,6 +18,10 @@ export const sqliteAuthoringTypes = {
       codecId: 'sqlite/bigintnumber@1',
     },
   },
+  temporal: /* @__PURE__ */ temporalTypeAliases(
+    { codecId: 'sqlite/datetime@1' },
+    'a JavaScript Date',
+  ),
 } as const satisfies AuthoringTypeNamespace;
 
 export const sqliteAuthoringFieldPresets = {

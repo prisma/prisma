@@ -59,6 +59,7 @@ import {
   mergeColumnAndAttachedEntities,
   mergeNamespaceValueSets,
 } from './pack-entities';
+import { refuseTypesKey } from './refuse-types-key';
 import { tableKey } from './storage-description';
 import {
   resolveCheckExpressionRenderer,
@@ -156,6 +157,7 @@ export function buildSqlContractFromDefinition(
   codecLookup: CodecLookupWithDescriptors,
   dataTypeLookup: DataTypeLookup,
 ): Contract<SqlStorage> {
+  refuseTypesKey(definition, 'buildSqlContractFromDefinition');
   const lookups: TypeLookups<CodecLookupWithDescriptors> = { codecLookup, dataTypeLookup };
   const target = definition.target.targetId;
   const defaultNamespaceId = definition.target.defaultNamespaceId;
@@ -164,7 +166,7 @@ export function buildSqlContractFromDefinition(
     Object.values(definition.extensions ?? {}),
   );
   const qualifyColumnType = resolveColumnTypeQualifier(definition.target);
-  const storageTypes = definition.storageTypes ?? {};
+  const databaseTypes = definition.databaseTypes ?? {};
   const targetFamily = 'sql';
 
   // Build per-namespace registries for `enumType()` handles.
@@ -212,7 +214,6 @@ export function buildSqlContractFromDefinition(
     ...modelLookupsOf(definition),
     declaredTables: declaredTableKeys(definition),
     foreignKeyDefaults: definition.foreignKeyDefaults,
-    storageTypes,
     qualifyColumnType,
   };
   const components = definition.models.map((model) =>
@@ -228,7 +229,6 @@ export function buildSqlContractFromDefinition(
   const collectedColumnEntities: CollectedColumnEntities = {};
   const tableLoweringContext: TableLoweringContext = {
     lookups,
-    storageTypes,
     defaultNamespaceId,
     qualifyColumnType,
     renderCheckExpressions: resolveCheckExpressionRenderer(definition.target),
@@ -264,7 +264,7 @@ export function buildSqlContractFromDefinition(
   // (which always carries the discriminator). Each entry stores the data type
   // its codec represents.
   const documentTypes: Record<string, StorageTypeInstance> = Object.fromEntries(
-    Object.entries(storageTypes).map(([name, entry]) => [
+    Object.entries(databaseTypes).map(([name, entry]) => [
       name,
       toStorageTypeInstance({
         codecId: entry.codecId,
@@ -369,10 +369,7 @@ export function buildSqlContractFromDefinition(
             vo.name,
             {
               fields: Object.fromEntries(
-                vo.fields.map((f) => [
-                  f.fieldName,
-                  buildDomainField(f, defaultNamespaceId, storageTypes),
-                ]),
+                vo.fields.map((f) => [f.fieldName, buildDomainField(f, defaultNamespaceId)]),
               ),
             },
           ]),
