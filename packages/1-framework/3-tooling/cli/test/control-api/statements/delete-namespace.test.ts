@@ -368,9 +368,14 @@ describe('a --delete of a subject beside a --delete of its namespace', () => {
     { verb: 'delete' as const, text: 'billing.Invoice' },
   ];
 
-  it('is refused the same way by a dry run and by an apply', async () => {
+  it('when the subject flag answered every question of the namespace, is refused the same way by a dry run and by an apply', async () => {
+    const onlyInvoice: PlannedQuestions = {
+      dataLoss: [dropModel('Invoice', 0)],
+      accessChanges: [],
+      namespaces: { removed: ['billing'], added: [] },
+    };
     const dryRun = refuseUnusedConsents({
-      plan,
+      plan: onlyInvoice,
       statements: flags,
       contracts: { origin, destination, statements: [] },
     });
@@ -385,7 +390,7 @@ describe('a --delete of a subject beside a --delete of its namespace', () => {
     };
     const prompt = { statements: vi.fn(async () => []) } as unknown as PromptSurface;
     const apply = askPlanQuestions({
-      plan,
+      plan: onlyInvoice,
       askAccess: false,
       canConvert: false,
       statements: [],
@@ -395,13 +400,13 @@ describe('a --delete of a subject beside a --delete of its namespace', () => {
       originKnown: true,
       destination,
       answer: promptPlanQuestions(prompt, statements),
-      replan: async () => ok(plan),
+      replan: async () => ok(onlyInvoice),
     });
 
     const refusal = {
       code: 'CLI.CONSENT_UNUSED',
       message:
-        '--delete billing.Invoice was given, but the question about billing.Invoice was already answered by --delete billing.',
+        '--delete billing was given, but every question about namespace "billing" was already answered by another flag.',
     };
     expect(!dryRun.ok && dryRun.failure).toMatchObject(refusal);
     await expect(apply).rejects.toMatchObject(refusal);

@@ -88,17 +88,17 @@ describe('a plan question asked through the engine', () => {
     });
   });
 
-  it('says a --delete of a subject was already answered by the namespace --delete given before it', async () => {
-    const { statements, prompt } = surfaces(['billing', 'billing.Invoice']);
+  it('answers a subject --delete and the namespace --delete beside it the same way in either order', async () => {
+    for (const order of [
+      ['billing', 'billing.Invoice'],
+      ['billing.Invoice', 'billing'],
+    ]) {
+      const { statements, prompt } = surfaces(order);
 
-    await expect(promptPlanQuestions(prompt, statements)([invoice, receipt])).rejects.toMatchObject(
-      {
-        code: 'CLI.CONSENT_UNUSED',
-        message:
-          '--delete billing.Invoice was given, but the question about billing.Invoice was already answered by --delete billing.',
-        nextActions: [{ kind: 'user-choice', label: 'Give one flag per question.' }],
-      },
-    );
+      const answers = await promptPlanQuestions(prompt, statements)([invoice, receipt]);
+
+      expect(answers.map((answer) => answer?.text)).toEqual(['billing.Invoice', 'billing.Receipt']);
+    }
   });
 
   it('says a namespace --delete answered nothing new when other flags answered every question of it', async () => {

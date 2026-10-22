@@ -29,7 +29,7 @@ import {
   preflightRefAdvancement,
 } from '../../control-api/operations/ref-advancement';
 import { retryCommandFor } from '../../control-api/operations/ref-resolution';
-import { consentAnswers, matchDeletes } from '../../control-api/statements/plan-questions';
+import { matchConsents } from '../../control-api/statements/plan-questions';
 import { shellQuoted, statementFlag } from '../../control-api/statements/statement-flag';
 import { isStatementVerb, type StatementText } from '../../control-api/statements/statement-text';
 import type {
@@ -114,29 +114,14 @@ function answeredByFlags(
   verb: 'delete' | 'allow',
   given: readonly StatementText[],
 ): readonly (ConsentStatement | undefined)[] {
-  const flags = given.filter((statement) => statement.verb === verb).map(({ text }) => text);
-  if (verb === 'delete') {
-    const matched = matchDeletes(
-      entries.map(({ text, removedNamespace }) => ({ text, removedNamespace })),
-      flags,
-    );
-    return entries.map((entry) => {
-      const text = [...matched.answered].find(
-        ([index]) => entries[index]?.text === entry.text,
-      )?.[1];
-      return text === undefined ? undefined : { verb, text };
-    });
-  }
-  const taken = new Set<number>();
-  return entries.map((entry) => {
-    const position = flags.findIndex(
-      (flag, index) =>
-        !taken.has(index) &&
-        consentAnswers(verb, flag, { text: entry.text, removedNamespace: entry.removedNamespace }),
-    );
-    if (position === -1) return undefined;
-    taken.add(position);
-    return { verb, text: flags[position] ?? '' };
+  const matched = matchConsents(
+    verb,
+    entries.map(({ text, removedNamespace }) => ({ text, removedNamespace })),
+    given.filter((statement) => statement.verb === verb).map(({ text }) => text),
+  );
+  return entries.map((_, index) => {
+    const text = matched.answered.get(index);
+    return text === undefined ? undefined : { verb, text };
   });
 }
 

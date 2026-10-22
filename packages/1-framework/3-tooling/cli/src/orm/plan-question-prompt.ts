@@ -1,7 +1,7 @@
 import type { PromptSurface, StatementSurface } from '@prisma/cli-engine';
 import {
   type AnswerPlanQuestions,
-  matchDeletes,
+  matchConsents,
   type PlanAnswer,
   type PlanQuestion,
 } from '../control-api/statements/plan-questions';
@@ -24,7 +24,8 @@ function namespaceDeletes(
   const deletable = questions
     .map((question, index) => ({ question, index }))
     .filter(({ question }) => question.verbs.includes('delete'));
-  const matched = matchDeletes(
+  const matched = matchConsents(
+    'delete',
     deletable.map(({ question }) => ({
       text: question.subject,
       removedNamespace: question.removedNamespace,

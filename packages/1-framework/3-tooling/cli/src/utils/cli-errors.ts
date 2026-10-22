@@ -691,13 +691,17 @@ export function errorStatementNeedsMigrationFile(
  */
 /** A consent flag nothing used, and the flag that had already answered its question, if one did. */
 export interface UnusedConsent extends WrittenStatement {
-  readonly answeredBy:
+  readonly alreadyAnsweredBy:
     | { readonly kind: 'subject'; readonly subject: string; readonly flag: WrittenStatement }
     | { readonly kind: 'namespace'; readonly namespace: string }
     | undefined;
 }
 
-function unusedConsentSentence({ verb, text, answeredBy }: UnusedConsent): string {
+function unusedConsentSentence({
+  verb,
+  text,
+  alreadyAnsweredBy: answeredBy,
+}: UnusedConsent): string {
   if (answeredBy === undefined) {
     return `--${verb} ${text} was given but nothing in this run asked about ${text}.`;
   }
@@ -712,10 +716,10 @@ export function errorConsentUnused(
   asked: readonly string[],
 ): CliStructuredError {
   const actions = [
-    ...(unused.some(({ answeredBy }) => answeredBy === undefined)
+    ...(unused.some(({ alreadyAnsweredBy }) => alreadyAnsweredBy === undefined)
       ? ['Remove the flag, or spell the subject the way the command names it.']
       : []),
-    ...(unused.some(({ answeredBy }) => answeredBy !== undefined)
+    ...(unused.some(({ alreadyAnsweredBy }) => alreadyAnsweredBy !== undefined)
       ? ['Give one flag per question.']
       : []),
   ];
