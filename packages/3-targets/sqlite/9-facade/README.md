@@ -65,6 +65,8 @@ export default defineContract({}, ({ field, model, gen, type }) => ({
 }));
 ```
 
+The entry also exports `field`, `type` and `gen`, the same helpers the callback receives, for code outside a contract, such as the fields of a query fragment: `field.column(type.sql.Char(36)).id().onCreate(gen.uuid())`.
+
 ### `@internal/sqlite/control`
 
 Control-plane client factory. Collapses the family + target + adapter + driver wiring into a single call.
