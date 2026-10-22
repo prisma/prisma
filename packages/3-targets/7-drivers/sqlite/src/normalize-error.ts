@@ -24,7 +24,8 @@ const SQLITE_CANTOPEN = 14;
 // Base code 26 = SQLITE_NOTADB
 const SQLITE_NOTADB = 26;
 
-// node:sqlite raises this code for any call on a database that is not open.
+// node:sqlite's code for using a database or statement in the wrong state. In this driver that
+// means the database is closed.
 const DATABASE_NOT_OPEN_CODE = 'ERR_INVALID_STATE';
 
 function isConstraintError(errcode: number): boolean {
@@ -36,7 +37,7 @@ function isBusyOrLocked(errcode: number): boolean {
   return base === SQLITE_BUSY || base === SQLITE_LOCKED;
 }
 
-export function isOpenFailure(errcode: number): boolean {
+function isOpenFailure(errcode: number): boolean {
   const base = errcode & 0xff;
   return base === SQLITE_CANTOPEN || base === SQLITE_NOTADB;
 }
