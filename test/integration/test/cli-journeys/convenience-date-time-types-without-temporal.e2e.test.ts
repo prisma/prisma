@@ -140,17 +140,15 @@ withTempDir(({ createTempDir }) => {
           id: { kind: 'number', value: 1 },
           paidAt: { kind: 'Date', value: '2024-02-29T10:00:00.123Z' },
           legacyAt: { kind: 'Date', value: '2024-02-29T10:00:00.500Z' },
-          textAt: { kind: 'string', value: read.textAt.value },
+          textAt: { kind: 'string', value: '2024-02-29 10:00:00.123456+00' },
           shipBy: { kind: 'string', value: '2024-02-29' },
           opensAt: { kind: 'string', value: '09:30:00' },
-          localAt: { kind: 'string', value: read.localAt.value },
+          localAt: { kind: 'string', value: '09:30:00+02' },
           period: { kind: 'string', value: 'P1M' },
           parts: { kind: 'object', value: { months: '1', days: '2', micros: '3' } },
           settledAt: { kind: 'null', value: null },
           updatedAt: { kind: 'Date', value: read.updatedAt.value },
         });
-        expect(read.textAt.value).toMatch(/^2024-02-29[ T]10:00:00\.123456/);
-        expect(read.localAt.value).toMatch(/^09:30:00\+02/);
         const updatedAt = new Date(read.updatedAt.value).getTime();
         expect(updatedAt).toBeGreaterThanOrEqual(before - 1_000);
         expect(updatedAt).toBeLessThanOrEqual(after + 1_000);
