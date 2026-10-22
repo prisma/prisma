@@ -9,6 +9,7 @@ import type {
   FamilyPackRef,
   TargetPackRef,
 } from '@internal/framework-components/components';
+import { UNBOUND_PSL_NAMESPACE_NAME } from '@internal/framework-components/psl-ast';
 import type { PackEntityHandle } from '@internal/sql-contract/entity-handle-lowering-hook';
 import type {
   AuthoredStorageTypeInstance,
@@ -173,10 +174,10 @@ function namespacesUnsupportedReasonOf(target: TargetPackRef<'sql', string>): st
  *    every SQL target. The double-underscore decoration marks them as
  *    framework-reserved coordinates; user code must not declare them
  *    explicitly.
- * 2. **The target's `unboundNamespaceName`** — the name PSL writes for
- *    the late-binding opt-in (`namespace unbound { … }` on Postgres), so
- *    the TS surface rejects it from `defineContract({ namespaces })`
- *    lists. A target whose `supportsNamespaces` is false rejects every
+ * 2. **The PSL keyword `unbound`** — the name PSL writes for the
+ *    late-binding opt-in (`namespace unbound { … }`), so the TS surface
+ *    rejects it from `defineContract({ namespaces })` lists on every
+ *    target that accepts namespaces. A target whose `supportsNamespaces` is false rejects every
  *    non-empty namespaces list outright; callers should declare
  *    `namespaces: []` or omit the field.
  */
@@ -221,7 +222,7 @@ function validateNamespaceDeclarations(
         { meta: { namespace, reason: 'reserved-ir-sentinel' } },
       );
     }
-    if (namespace === target.unboundNamespaceName) {
+    if (namespace === UNBOUND_PSL_NAMESPACE_NAME) {
       throw contractError(
         'CONTRACT.NAMESPACE_INVALID',
         `defineContract: namespace name "${namespace}" is reserved by ${targetNameOf(target)} for the late-binding opt-in (use \`namespace ${namespace} { … }\` in PSL instead of declaring it as a regular schema).`,
@@ -247,8 +248,8 @@ function validateNamespaceDeclarations(
  *
  * - `__unbound__` / `__unspecified__` — reserved IR sentinels on
  *   every SQL target.
- * - The target's `unboundNamespaceName` — reserved for the PSL
- *   late-binding opt-in, which the TS builder has no surface for.
+ * - The PSL keyword `unbound` — reserved for the PSL late-binding
+ *   opt-in, which the TS builder has no surface for.
  *
  * Additionally enforces that each per-model `namespace` references an
  * entry in the contract's declared `namespaces` list.
@@ -285,7 +286,7 @@ function validatePerModelNamespaces(
       );
     }
 
-    if (perModelNamespace === target.unboundNamespaceName) {
+    if (perModelNamespace === UNBOUND_PSL_NAMESPACE_NAME) {
       throw contractError(
         'CONTRACT.NAMESPACE_INVALID',
         `defineContract: model "${modelKey}" sets \`namespace: "${perModelNamespace}"\` but that name is reserved by ${targetNameOf(target)} for the late-binding opt-in (use \`namespace ${perModelNamespace} { … }\` in PSL instead — there is no equivalent surface in the TS builder today).`,

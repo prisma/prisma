@@ -24,7 +24,6 @@ const postgresTargetDescriptorMetaBase = {
   defaultNamespaceId: DEFAULT_NAMESPACE_ID,
   supportsNamespaces: true,
   displayName: 'Postgres',
-  unboundNamespaceName: 'unbound',
   indexTypes: postgresIndexTypes,
   authoring: {
     type: { ...postgresScalarAndNativeTypeConstructors, ...postgresAuthoringTypes },

@@ -21,7 +21,6 @@ const postgresTargetPack: TargetPackRef<'sql', 'postgres'> = {
   version: '0.0.1',
   defaultNamespaceId: 'public',
   displayName: 'Postgres',
-  unboundNamespaceName: 'unbound',
 };
 
 const sqliteTargetPack: TargetPackRef<'sql', 'sqlite'> = {

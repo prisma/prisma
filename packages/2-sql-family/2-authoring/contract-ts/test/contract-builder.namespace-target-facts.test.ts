@@ -24,15 +24,15 @@ const targetWithoutNamespaces: TargetPackRef<'sql', 'mysql'> = {
   namespacesUnsupportedReason: 'namespaces are not mapped to MySQL databases yet',
 };
 
-const targetWithLateBinding: TargetPackRef<'sql', 'cockroach'> = {
+const targetWithNamespaces: TargetPackRef<'sql', 'cockroach'> = {
   kind: 'target',
   id: 'cockroach',
   familyId: 'sql',
   targetId: 'cockroach',
   version: '0.0.1',
   defaultNamespaceId: 'public',
+  supportsNamespaces: true,
   displayName: 'CockroachDB',
-  unboundNamespaceName: 'late',
 };
 
 const userModelArgs = {
@@ -77,25 +77,20 @@ describe('defineContract namespace rules read from the target descriptor', () =>
     );
   });
 
-  it('reserves the unbound namespace name the target declares', () => {
-    expect(build(targetWithLateBinding, { namespaces: ['late'] })).toThrow(
+  it('reserves the PSL keyword `unbound` on every target that reports namespaces', () => {
+    expect(build(targetWithNamespaces, { namespaces: ['unbound'] })).toThrow(
       expect.objectContaining({
         code: 'CONTRACT.NAMESPACE_INVALID',
-        meta: { namespace: 'late', reason: 'reserved-by-cockroach' },
+        meta: { namespace: 'unbound', reason: 'reserved-by-cockroach' },
       }),
     );
     expect(
-      build(targetWithLateBinding, {
+      build(targetWithNamespaces, {
         namespaces: ['public'],
-        models: { User: model('User', { namespace: 'late', ...userModelArgs }) },
+        models: { User: model('User', { namespace: 'unbound', ...userModelArgs }) },
       }),
     ).toThrow(
-      /namespace: "late"` but that name is reserved by CockroachDB.*namespace late \{ … \}/,
+      /namespace: "unbound"` but that name is reserved by CockroachDB.*namespace unbound \{ … \}/,
     );
-  });
-
-  it('accepts `unbound` as an ordinary namespace on a target that reserves no name', () => {
-    const { unboundNamespaceName: _reserved, ...target } = targetWithLateBinding;
-    expect(build(target, { namespaces: ['unbound'] })).not.toThrow();
   });
 });
