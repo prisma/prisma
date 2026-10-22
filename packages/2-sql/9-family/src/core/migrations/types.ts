@@ -1,6 +1,7 @@
 import type { Contract } from '@internal/contract/types';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
+  CheckExpectation,
   ContractSpace,
   ControlAdapterDescriptor,
   ControlExtensionDescriptor,
@@ -181,6 +182,8 @@ export interface SqlMigrationPlanOperationStep {
    */
   readonly params?: readonly unknown[];
   readonly meta?: AnyRecord;
+  /** What the step, used as a check, states of the database, when it states an object's absence or presence. */
+  readonly expectation?: CheckExpectation;
 }
 
 /**

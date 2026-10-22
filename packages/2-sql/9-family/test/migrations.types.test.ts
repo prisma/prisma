@@ -1,4 +1,4 @@
-import { APP_SPACE_ID } from '@internal/framework-components/control';
+import { APP_SPACE_ID, expectAbsent } from '@internal/framework-components/control';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import {
@@ -59,6 +59,39 @@ describe('createMigrationPlan', () => {
     const firstOperation = plan.operations[0]! as SqlMigrationPlanOperation<TestTargetDetails>;
     expect(Object.isFrozen(firstOperation)).toBe(true);
     expect(Object.isFrozen(firstOperation.precheck)).toBe(true);
+  });
+
+  it("keeps a check's expectation", () => {
+    const plan = createMigrationPlan<TestTargetDetails>({
+      targetId: 'postgres',
+      spaceId: APP_SPACE_ID,
+      origin: null,
+      destination: { storageHash: 'core', profileHash: 'profile' },
+      operations: [
+        {
+          id: 'operation.table.user',
+          label: 'Create table "user"',
+          operationClass: 'additive',
+          target: { id: 'postgres', details: { schema: 'public' } },
+          precheck: [
+            {
+              description: 'ensure table "user" does not exist',
+              sql: 'select 1',
+              expectation: expectAbsent('table "user"'),
+            },
+          ],
+          execute: [],
+          postcheck: [],
+        },
+      ],
+      providedInvariants: [],
+    });
+
+    const operation = plan.operations[0] as SqlMigrationPlanOperation<TestTargetDetails>;
+    expect(operation.precheck[0]?.expectation).toEqual({
+      expects: 'absent',
+      object: 'table "user"',
+    });
   });
 
   it('freezes and clones target.details to prevent mutation', () => {

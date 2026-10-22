@@ -447,7 +447,7 @@ Modes:
 pnpm prisma db verify --db $DATABASE_URL
 ```
 
-`db verify` exits `0` when everything matches, `4` when it ran and found something, and `2` only when it could not run. Findings ride the completed envelope as `error` diagnostics: `CONTRACT.MARKER_MISMATCH`, `CONTRACT.MARKER_MISSING`, `CONTRACT.TARGET_MISMATCH`, `CONTRACT.SCHEMA_VERIFICATION_FAILED` (with `meta.issues` naming the drifted paths).
+`db verify` exits `0` when everything matches, `4` when it ran and found something, and `2` only when it could not run. Findings ride the completed envelope as `error` diagnostics: `CONTRACT.MARKER_MISMATCH`, `CONTRACT.MARKER_MISSING`, `CONTRACT.TARGET_MISMATCH`, `CONTRACT.SCHEMA_VERIFICATION_FAILED` (with `meta.schemaIssues` listing the schema diff issues).
 
 ## Workflow — Re-sign the marker
 

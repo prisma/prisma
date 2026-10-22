@@ -1,4 +1,5 @@
 import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import type { CheckExpectation } from '@internal/framework-components/control';
 import type { ReferentialAction } from '@internal/sql-contract/types';
 import { ifDefined } from '@internal/utils/defined';
 import type { OperationClass, PostgresPlanTargetDetails } from '../planner-target-details';
@@ -22,8 +23,18 @@ export interface ForeignKeySpec {
   readonly onUpdate?: ReferentialAction;
 }
 
-export function step(description: string, sql: string, params?: readonly unknown[]) {
-  return { description, sql, ...ifDefined('params', params) };
+export function step(
+  description: string,
+  sql: string,
+  params?: readonly unknown[],
+  expectation?: CheckExpectation,
+) {
+  return {
+    description,
+    sql,
+    ...ifDefined('params', params),
+    ...ifDefined('expectation', expectation),
+  };
 }
 
 export function targetDetails(

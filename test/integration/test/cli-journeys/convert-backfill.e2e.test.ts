@@ -153,7 +153,10 @@ withTempDir(({ createTempDir }) => {
         expect(emitted.exitCode, `self-emit: ${emitted.stderr}`).toBe(0);
         const wrong = await runMigrate(ctx, ['--json']);
         expect(wrong.exitCode, 'the conversion fails on a value').not.toBe(0);
-        const wrongAdvice = JSON.stringify(engineError(wrong)?.nextActions);
+        const wrongAdvice = JSON.stringify([
+          engineError(wrong)?.why,
+          engineError(wrong)?.nextActions,
+        ]);
         expect(wrongAdvice).toContain(
           'The conversion of field \\"User.age\\" failed on a value its new type cannot hold.',
         );
@@ -322,7 +325,7 @@ withTempDir(({ createTempDir }) => {
           '1 row of "user" holds NULL in "nick", so it cannot become required.',
         );
         expect(JSON.stringify(engineError(failed)?.nextActions)).toContain(
-          'Set a value in those rows and re-run',
+          'Set a value in that row and re-run',
         );
 
         await sql(db.connectionString, `UPDATE "user" SET nick = 'anon' WHERE nick IS NULL`);
@@ -365,7 +368,7 @@ withTempDir(({ createTempDir }) => {
           .map((action) => action.label)
           .join('\n');
         const followed =
-          /keep the field optional: .*?delete `([^`]+)`.*?plan it again with `\S+ migration plan ([^`]+)`/.exec(
+          /keep the field optional: .*?delete `([^`]+)`.*?plan it again with `\S+ migration plan ([^`]+)`/i.exec(
             advice,
           );
         expect(followed, advice).not.toBeNull();

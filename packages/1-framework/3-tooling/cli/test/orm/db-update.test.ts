@@ -916,7 +916,7 @@ describe('db update', () => {
         nextActions: [
           {
             label:
-              'Drop or change view billing.v_paid in the database yourself, then re-run `prisma-test db update --delete billing`.',
+              'Drop or change view billing.v_paid in the database yourself, then re-run `prisma-test db update --delete billing`',
           },
         ],
       },
@@ -1038,9 +1038,9 @@ describe('db update', () => {
         why: 'The schema check after apply found: missing: public/event/id.',
         nextActions: [
           {
-            kind: 'user-choice',
+            kind: 'edit-file',
             label:
-              'Change the contract source to resolve the issues listed, re-run `prisma-test contract emit`, then re-run `prisma-test db update`.',
+              'Change the contract source to resolve the issues listed, re-run `prisma-test contract emit`, then re-run `prisma-test db update`',
           },
         ],
         meta: { schemaIssues: [{ path: ['public', 'event', 'id'] }], failingSpace: 'app' },

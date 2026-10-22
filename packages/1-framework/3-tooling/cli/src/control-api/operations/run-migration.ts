@@ -87,9 +87,10 @@ function failureReports(
     ),
     ...ifDefined(
       'rowsWithoutValue',
-      rowsWithoutValue?.map(({ field, reason }) => ({
+      rowsWithoutValue?.map(({ field, reason, rows }) => ({
         field: field === undefined ? undefined : fieldText(field),
         reason,
+        rows,
       })),
     ),
     ...ifDefined(

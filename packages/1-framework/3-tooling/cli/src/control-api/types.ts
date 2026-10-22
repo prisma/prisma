@@ -539,6 +539,8 @@ export interface RowsWithoutValueReport {
    * rows. `backfillMissedRows`: the migration's backfill step for the field left rows without a value.
    */
   readonly reason: 'nullValues' | 'newField' | 'backfillMissedRows';
+  /** How many rows have no value. */
+  readonly rows: number;
 }
 
 /** The result of `db update`: a failure is the structured error the command reports. */

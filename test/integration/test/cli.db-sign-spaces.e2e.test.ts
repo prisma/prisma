@@ -229,7 +229,9 @@ withTempDir(({ createTempDir }) => {
               severity: 'error',
               meta: expect.objectContaining({
                 space: TEST_SPACE_ID,
-                issues: expect.arrayContaining([expect.stringContaining('test_box')]),
+                schemaIssues: expect.arrayContaining([
+                  expect.objectContaining({ path: expect.arrayContaining(['test_box']) }),
+                ]),
               }),
             }),
           ]);

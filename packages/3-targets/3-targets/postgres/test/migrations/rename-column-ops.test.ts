@@ -64,12 +64,32 @@ describe('renameColumn (postgres)', () => {
       checks('fullName').columnAbsent(),
     ]);
     expect(op.precheck).toEqual([
-      { description: 'ensure column "name" exists', sql: 'LOWERED 1', params: ['p1'] },
-      { description: 'ensure column "fullName" does not exist', sql: 'LOWERED 4', params: ['p4'] },
+      {
+        description: 'ensure column "name" exists',
+        expectation: { expects: 'present', object: 'column "name" on "User"' },
+        sql: 'LOWERED 1',
+        params: ['p1'],
+      },
+      {
+        description: 'ensure column "fullName" does not exist',
+        expectation: { expects: 'absent', object: 'column "fullName" on "User"' },
+        sql: 'LOWERED 4',
+        params: ['p4'],
+      },
     ]);
     expect(op.postcheck).toEqual([
-      { description: 'verify column "fullName" exists', sql: 'LOWERED 3', params: ['p3'] },
-      { description: 'verify column "name" no longer exists', sql: 'LOWERED 2', params: ['p2'] },
+      {
+        description: 'verify column "fullName" exists',
+        expectation: { expects: 'present', object: 'column "fullName" on "User"' },
+        sql: 'LOWERED 3',
+        params: ['p3'],
+      },
+      {
+        description: 'verify column "name" no longer exists',
+        expectation: { expects: 'absent', object: 'column "name" on "User"' },
+        sql: 'LOWERED 2',
+        params: ['p2'],
+      },
     ]);
   });
 });
