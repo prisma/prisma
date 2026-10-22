@@ -1,4 +1,5 @@
 import { refuseJsonValue } from '@internal/framework-components/codec';
+import type { Temporal } from 'temporal-spec';
 import {
   PG_DATE_TEMPORAL_CODEC_ID,
   PG_TIME_TEMPORAL_CODEC_ID,

@@ -3557,6 +3557,9 @@ importers:
       temporal-polyfill:
         specifier: ^1.0.4
         version: 1.0.4
+      temporal-spec:
+        specifier: 1.0.1
+        version: 1.0.1
       tsdown:
         specifier: 'catalog:'
         version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
@@ -4127,6 +4130,9 @@ importers:
       postgres-array:
         specifier: 2.0.0
         version: 2.0.0
+      temporal-spec:
+        specifier: 1.0.1
+        version: 1.0.1
     devDependencies:
       '@electric-sql/pglite':
         specifier: 0.5.4
@@ -5282,6 +5288,9 @@ importers:
       temporal-polyfill:
         specifier: ^1.0.4
         version: 1.0.4
+      temporal-spec:
+        specifier: 1.0.1
+        version: 1.0.1
     devDependencies:
       '@internal/adapter-postgres':
         specifier: workspace:8.0.0-rc.19
