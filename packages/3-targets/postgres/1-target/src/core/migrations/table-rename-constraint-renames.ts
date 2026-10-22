@@ -1,11 +1,11 @@
 import { isArrayEqual } from '@internal/utils/array-equal';
 import { assertDefined } from '@internal/utils/assertions';
-import type { PostgresTableSchemaNode } from '../schema-ir/postgres-table-schema-node';
 import {
   defaultForeignKeyName,
   defaultPrimaryKeyName,
   defaultUniqueName,
-} from './default-constraint-names';
+} from '../default-constraint-names';
+import type { PostgresTableSchemaNode } from '../schema-ir/postgres-table-schema-node';
 import { RenameConstraintCall } from './op-factory-call';
 
 export interface TableRenameConstraintInput {

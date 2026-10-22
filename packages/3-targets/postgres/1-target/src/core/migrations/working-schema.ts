@@ -9,16 +9,16 @@ import {
   SqlUniqueIR,
 } from '@internal/sql-schema-ir/types';
 import { ifDefined } from '@internal/utils/defined';
+import {
+  defaultForeignKeyName,
+  defaultPrimaryKeyName,
+  defaultUniqueName,
+} from '../default-constraint-names';
 import { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../schema-ir/postgres-namespace-schema-node';
 import { PostgresPolicySchemaNode } from '../schema-ir/postgres-policy-schema-node';
 import { PostgresTableSchemaNode } from '../schema-ir/postgres-table-schema-node';
 import { PostgresSchemaNodeKind } from '../schema-ir/schema-node-kinds';
-import {
-  defaultForeignKeyName,
-  defaultPrimaryKeyName,
-  defaultUniqueName,
-} from './default-constraint-names';
 import {
   CreateSchemaCall,
   RenameColumnCall,

@@ -1,14 +1,14 @@
 import type { SqlMigrationPlannerPlanOptions } from '@internal/family-sql/control';
 import type { DiffableNode } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
-import type { PostgresTableSchemaNode } from '../schema-ir/postgres-table-schema-node';
-import { resolveNamespaceIdForDdlSchema } from './control-policy';
 import {
   defaultForeignKeyName,
   defaultPrimaryKeyName,
   defaultUniqueName,
-} from './default-constraint-names';
+} from '../default-constraint-names';
+import { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
+import type { PostgresTableSchemaNode } from '../schema-ir/postgres-table-schema-node';
+import { resolveNamespaceIdForDdlSchema } from './control-policy';
 import { RenameConstraintCall } from './op-factory-call';
 import { postgresContractToSchema } from './postgres-contract-to-schema';
 

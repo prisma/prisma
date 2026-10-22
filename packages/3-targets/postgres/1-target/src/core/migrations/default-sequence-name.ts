@@ -1,4 +1,4 @@
-import { postgresObjectName } from './postgres-object-name';
+import { postgresObjectName } from '../postgres-object-name';
 
 /**
  * The name Postgres gives the sequence of a `SERIAL` column: `{table}_{column}_seq`, cut to fit 63 bytes as Postgres cuts it.

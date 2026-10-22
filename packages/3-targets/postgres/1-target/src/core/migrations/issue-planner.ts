@@ -48,6 +48,11 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import type { Result } from '@internal/utils/result';
 import { notOk, ok } from '@internal/utils/result';
+import {
+  defaultForeignKeyName,
+  defaultPrimaryKeyName,
+  defaultUniqueName,
+} from '../default-constraint-names';
 import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import type { PostgresNamespaceSchemaNode } from '../schema-ir/postgres-namespace-schema-node';
 import type { PostgresNativeEnumSchemaNode } from '../schema-ir/postgres-native-enum-schema-node';
@@ -60,11 +65,6 @@ import {
   renderColumnDdl,
 } from './column-ddl-rendering';
 import { resolveNamespaceIdForDdlSchema } from './control-policy';
-import {
-  defaultForeignKeyName,
-  defaultPrimaryKeyName,
-  defaultUniqueName,
-} from './default-constraint-names';
 import {
   AddCheckConstraintCall,
   AddColumnCall,

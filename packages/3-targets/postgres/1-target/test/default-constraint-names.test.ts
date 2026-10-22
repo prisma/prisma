@@ -3,7 +3,7 @@ import {
   defaultForeignKeyName,
   defaultPrimaryKeyName,
   defaultUniqueName,
-} from '../../src/core/migrations/default-constraint-names';
+} from '../src/core/default-constraint-names';
 
 describe('defaultPrimaryKeyName', () => {
   it('appends _pkey to the table name', () => {

@@ -9,11 +9,8 @@ import {
   pgTimestamptz,
   pgTimetz,
 } from './data-types';
+import { defaultForeignKeyName, defaultPrimaryKeyName } from './default-constraint-names';
 import { postgresTargetDescriptorMeta } from './descriptor-meta';
-import {
-  defaultForeignKeyName,
-  defaultPrimaryKeyName,
-} from './migrations/default-constraint-names';
 import { postgresCreateNamespace } from './postgres-schema';
 import { prisma7TemporalStored, prisma7TemporalTagBody } from './prisma7-temporal-defaults';
 import { prisma7PostgresTypeMap } from './prisma7-type-map';
