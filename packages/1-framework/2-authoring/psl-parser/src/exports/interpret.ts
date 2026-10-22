@@ -1,5 +1,4 @@
 export { mapPslHelperArgs } from '../authoring-arguments';
-export { argumentsByParameter, printTypeConstructorCall } from '../call-arguments';
 export { enumMemberAttributeDiagnostics } from '../enum-member-attributes';
 export type { PslInterpretCapable, PslInterpretInput } from '../interpret';
 export { hasPslInterpreter, withSeedDiagnostics } from '../interpret';
@@ -9,5 +8,11 @@ export {
   fkRelationPairKey,
   requiredOneToOneBackrelationDiagnostic,
 } from '../relation-backrelations';
+export type { RemovedFieldPreset, RemovedFieldPresets } from '../removed-field-presets';
+export {
+  describeRemovedFieldPreset,
+  removedPresetWithPhases,
+  removedPresetWrittenAs,
+} from '../removed-field-presets';
 export { isBareTypeConstructor, reportTypeConstructorNotCalled } from '../type-constructor-calls';
 export { claimedBlockKeywords, unsupportedBlockDiagnostic } from '../unclaimed-blocks';

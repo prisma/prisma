@@ -170,6 +170,7 @@ describe('a removed field preset in a SQL schema', () => {
         'Write DateString @onCreate(now()) @onUpdate(now()).',
       ],
       ['temporal.time(3, onUpdate: now)', 'Write Time(3) @onUpdate(now()).'],
+      ['temporal.time(3, onUpdate: now, now)', 'Write Time(3) @onCreate(now()) @onUpdate(now()).'],
       ['temporal.timeString(3, onCreate: now)', 'Write TimeString(3) @onCreate(now()).'],
       [
         'temporal.timetz(6, onCreate: now, onUpdate: now)',
@@ -185,7 +186,7 @@ describe('a removed field preset in a SQL schema', () => {
       ['temporal.timestamp(3, precision: 4)', 'Timestamp(...)'],
       ['temporal.timestamp(frequency: now)', 'Timestamp(...)'],
       ['temporal.timestamp(-1)', 'Timestamp(...)'],
-      ['temporal.time(3, onUpdate: now, now)', 'Time(...)'],
+      ['temporal.time(onCreate: now, 3, now)', 'Time(...)'],
       ['temporal.date(3)', 'Date'],
     ])(
       'names the rewrite without the arguments of %s, which the preset did not take',

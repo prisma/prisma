@@ -85,7 +85,7 @@ Supported timestamp authoring surface:
 
 Removed field presets:
 
-- A call to a field preset Prisma 8 removed, such as `createdAt temporal.createdAt()` or `id id.uuidv4String()`, is refused with `PSL_UNRESOLVED_REFERENCE`, and the message gives the exact rewrite: `id.uuidv4String() was a field preset, and Prisma 8 removed field presets. Write sql.Char(36) @id @onCreate(uuid()).` The table of removed presets is `src/removed-field-presets.ts`; a row applies only on a target whose rewrite type stores the preset's codec.
+- A call to a field preset Prisma 8 removed, such as `createdAt temporal.createdAt()` or `id id.uuidv4String()`, is refused with `PSL_UNRESOLVED_REFERENCE`, and the message gives the exact rewrite: `id.uuidv4String() was a field preset, and Prisma 8 removed field presets. Write sql.Char(36) @id @onCreate(uuid()).` The table of removed presets is `src/removed-field-presets.ts`; a row applies only on a target whose rewrite type stores the preset's codec. The lookup and the message are `describeRemovedFieldPreset` in `@internal/psl-parser/interpret`, which the MongoDB family's table uses too.
 
 Generated values:
 
