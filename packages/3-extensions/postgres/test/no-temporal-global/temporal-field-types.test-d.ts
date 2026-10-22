@@ -9,10 +9,11 @@ const contract = defineContract({}, ({ type, field, model }) => ({
     Event: model('Event', {
       fields: {
         id: field.id.uuidv4String(),
-        at: field.column(type.Timestamptz(3)),
-        local: field.column(type.Timestamp()),
-        day: field.column(type.Date()),
-        opens: field.column(type.Time(0)),
+        at: field.column(type.TimestamptzTemporal(3)),
+        local: field.column(type.TimestampTemporal()),
+        day: field.column(type.DateTemporal()),
+        opens: field.column(type.TimeTemporal(0)),
+        legacyDay: field.column(type.Date()),
       },
     }),
   },
@@ -26,6 +27,7 @@ test('a Temporal field is typed precisely in a project without the global Tempor
   expectTypeOf<EventRow['local']>().toEqualTypeOf<Temporal.PlainDateTime>();
   expectTypeOf<EventRow['day']>().toEqualTypeOf<Temporal.PlainDate>();
   expectTypeOf<EventRow['opens']>().toEqualTypeOf<Temporal.PlainTime>();
+  expectTypeOf<EventRow['legacyDay']>().toEqualTypeOf<Temporal.PlainDate>();
 });
 
 test('every Temporal codec names its type through an import', () => {

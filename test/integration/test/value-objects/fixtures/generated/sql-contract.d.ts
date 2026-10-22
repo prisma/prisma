@@ -6,7 +6,6 @@ import type {
   Bit,
   Char,
   CodecTypes as PgTypes,
-  Interval,
   JsonValue,
   Numeric,
   Time,

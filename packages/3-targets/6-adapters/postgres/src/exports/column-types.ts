@@ -266,18 +266,18 @@ export const byteaColumn = {
   codecId: PG_BYTEA_CODEC_ID,
 } as const satisfies ColumnTypeDescriptor;
 
-export function intervalColumn(): ColumnTypeDescriptor<typeof PG_INTERVAL_CODEC_ID>;
-export function intervalColumn<const Precision extends number>(
+export function intervalPartsColumn(): ColumnTypeDescriptor<typeof PG_INTERVAL_CODEC_ID>;
+export function intervalPartsColumn<const Precision extends number>(
   precision: Precision,
 ): ColumnTypeDescriptor<typeof PG_INTERVAL_CODEC_ID> & {
   readonly typeParams: { readonly precision: Precision };
 };
-export function intervalColumn(precision?: number): ColumnTypeDescriptor<
+export function intervalPartsColumn(precision?: number): ColumnTypeDescriptor<
   typeof PG_INTERVAL_CODEC_ID
 > & {
   readonly typeParams?: { readonly precision: number };
 };
-export function intervalColumn(precision?: number): ColumnTypeDescriptor<
+export function intervalPartsColumn(precision?: number): ColumnTypeDescriptor<
   typeof PG_INTERVAL_CODEC_ID
 > & {
   readonly typeParams?: { readonly precision: number };

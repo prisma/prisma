@@ -148,7 +148,7 @@ const INFERRED = [
   'TimestamptzString',
   'Bit',
   'VarBit',
-  'Interval',
+  'IntervalParts',
   'pg.enum',
 ];
 
@@ -241,15 +241,17 @@ describe('postgresNativeAuthoringTypes', () => {
       VarChar: { codecId: 'sql/varchar@1' },
       Char: { codecId: 'sql/char@1' },
       Numeric: { codecId: 'pg/numeric@1' },
-      Timestamp: { codecId: 'pg/timestamp-temporal@1' },
-      Timestamptz: { codecId: 'pg/timestamptz-temporal@1' },
+      TimestampTemporal: { codecId: 'pg/timestamp-temporal@1' },
+      TimestamptzTemporal: { codecId: 'pg/timestamptz-temporal@1' },
       Time: { codecId: 'pg/time-temporal@1' },
+      TimeTemporal: { codecId: 'pg/time-temporal@1' },
       Timetz: { codecId: 'pg/timetz@1' },
       Uuid: { codecId: 'pg/uuid@1' },
       Inet: { codecId: 'pg/inet@1' },
       SmallInt: { codecId: 'pg/int2@1' },
       Real: { codecId: 'pg/float4@1' },
       Date: { codecId: 'pg/date-temporal@1' },
+      DateTemporal: { codecId: 'pg/date-temporal@1' },
       DateString: { codecId: 'pg/date-string@1' },
       TimestampString: { codecId: 'pg/timestamp-string@1' },
       TimestamptzString: { codecId: 'pg/timestamptz-string@1' },
@@ -257,7 +259,7 @@ describe('postgresNativeAuthoringTypes', () => {
       TimeString: { codecId: 'pg/time-string@1' },
       Bit: { codecId: 'pg/bit@1' },
       VarBit: { codecId: 'pg/varbit@1' },
-      Interval: { codecId: 'pg/interval@1' },
+      IntervalParts: { codecId: 'pg/interval@1' },
     });
   });
 
@@ -291,8 +293,8 @@ describe('postgresNativeAuthoringTypes', () => {
     ['Bit', [8], { codecId: 'pg/bit@1', typeParams: { length: 8 } }],
     ['VarBit', [], { codecId: 'pg/varbit@1' }],
     ['VarBit', [16], { codecId: 'pg/varbit@1', typeParams: { length: 16 } }],
-    ['Interval', [], { codecId: 'pg/interval@1' }],
-    ['Interval', [3], { codecId: 'pg/interval@1', typeParams: { precision: 3 } }],
+    ['IntervalParts', [], { codecId: 'pg/interval@1' }],
+    ['IntervalParts', [3], { codecId: 'pg/interval@1', typeParams: { precision: 3 } }],
   ] as const)('maps %s(%s) onto the parameter of the same name', (name, args, expected) => {
     expect(instantiateAuthoringTypeConstructor(postgresNativeAuthoringTypes[name], args)).toEqual(
       expected,
@@ -320,15 +322,15 @@ describe('postgresNativeAuthoringTypes', () => {
       ['Numeric', [0]],
       ['Numeric', [1001]],
       ['Numeric', [10, 1001]],
-      ['Timestamp', [-1]],
-      ['Timestamp', [7]],
-      ['Timestamptz', [7]],
+      ['TimestampTemporal', [-1]],
+      ['TimestampTemporal', [7]],
+      ['TimestamptzTemporal', [7]],
       ['Time', [7]],
       ['Timetz', [7]],
       ['TimestamptzJsDate', [7]],
       ['Bit', [0]],
       ['VarBit', [0]],
-      ['Interval', [7]],
+      ['IntervalParts', [7]],
     ] as const)('refuses %s(%s)', (name, args) => {
       expect(() => check(name, args)).toThrow(
         expect.objectContaining({ code: 'CONTRACT.ARGUMENT_INVALID' }),
@@ -341,8 +343,8 @@ describe('postgresNativeAuthoringTypes', () => {
       ['Char', [10485760]],
       ['Numeric', [1000, 1000]],
       ['Numeric', [1, 0]],
-      ['Timestamp', [0]],
-      ['Timestamp', [6]],
+      ['TimestampTemporal', [0]],
+      ['TimestampTemporal', [6]],
       ['Timetz', [6]],
     ] as const)('accepts %s(%s)', (name, args) => {
       expect(() => check(name, args)).not.toThrow();
@@ -355,6 +357,22 @@ describe('postgresNativeAuthoringTypes', () => {
         ),
       );
       expect(bounded.map(([name]) => name)).toEqual([]);
+    });
+  });
+
+  it('has no type named Timestamptz, Timestamp or Interval', () => {
+    for (const removed of ['Timestamptz', 'Timestamp', 'Interval']) {
+      expect(everyPostgresConstructor).not.toHaveProperty(removed);
+    }
+  });
+
+  it.each([
+    ['DateTemporal', 'Date'],
+    ['TimeTemporal', 'Time'],
+  ] as const)('%s is the same type as %s', (name, sameAs) => {
+    expect(postgresNativeAuthoringTypes[name]).toEqual({
+      ...postgresNativeAuthoringTypes[sameAs],
+      documentation: expect.stringMatching(/\S/),
     });
   });
 
@@ -372,7 +390,7 @@ describe('postgresNativeAuthoringTypes', () => {
       },
     });
     expect(postgresScalarAuthoringTypes.DateTime.output.codecId).toBe('pg/timestamptz-temporal@1');
-    expect(postgresNativeAuthoringTypes.Timestamptz.output.codecId).toBe(
+    expect(postgresNativeAuthoringTypes.TimestamptzTemporal.output.codecId).toBe(
       'pg/timestamptz-temporal@1',
     );
   });
@@ -380,9 +398,10 @@ describe('postgresNativeAuthoringTypes', () => {
 
 describe('precision is a value of pg/int4, bounded by the data type', () => {
   it.each([
-    'Timestamp',
-    'Timestamptz',
+    'TimestampTemporal',
+    'TimestamptzTemporal',
     'Time',
+    'TimeTemporal',
     'Timetz',
     'TimestampString',
     'TimestamptzString',

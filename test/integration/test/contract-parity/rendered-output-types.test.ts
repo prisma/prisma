@@ -32,7 +32,6 @@ const declaredByTypeFunction = [
   'pg/bit@1',
   'pg/varbit@1',
   'pg/timetz@1',
-  'pg/interval@1',
   'pg/time-string@1',
   'pg/timestamp-string@1',
   'pg/timestamptz-string@1',
@@ -57,6 +56,8 @@ const stacks: Readonly<Record<'Postgres and its extensions' | 'SQLite', StackCla
       'pg/enum@1':
         'Its type parameter names the native enum type; the column reads as the members of its value set.',
       'pg/geometry@1': 'Geometry<Srid> is the same type for every SRID.',
+      'pg/interval@1':
+        'An interval reads as its months, days and microseconds whatever its precision.',
       'pg/time-temporal@1': temporalPrecision,
       'pg/timestamp-temporal@1': temporalPrecision,
       'pg/timestamptz-temporal@1': temporalPrecision,

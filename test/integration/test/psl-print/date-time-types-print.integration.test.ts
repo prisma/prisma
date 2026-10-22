@@ -6,10 +6,10 @@ const SCHEMA = `// use prisma-8
 model Event {
   id        Int                   @id
   instant   DateTime
-  zoned     Timestamptz
-  zoned3    Timestamptz(3)
-  local     Timestamp
-  local3    Timestamp(3)
+  zoned     TimestamptzTemporal
+  zoned3    TimestamptzTemporal(3)
+  local     TimestampTemporal
+  local3    TimestampTemporal(3)
   day       Date
   clock     Time
   clock3    Time(3)
@@ -40,9 +40,9 @@ describe('contract print spells each date and time column', () => {
       id: 'Int',
       instant: 'DateTime',
       zoned: 'DateTime',
-      zoned3: 'Timestamptz(3)',
-      local: 'Timestamp',
-      local3: 'Timestamp(3)',
+      zoned3: 'TimestamptzTemporal(3)',
+      local: 'TimestampTemporal',
+      local3: 'TimestampTemporal(3)',
       day: 'Date',
       clock: 'Time',
       clock3: 'Time(3)',

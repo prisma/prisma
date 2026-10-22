@@ -53,9 +53,6 @@ export type TimestamptzString<P extends number | undefined = undefined> = Brande
 export type TimeString<P extends number | undefined = undefined> = BrandedString<{
   __timeStringPrecision: P;
 }>;
-export type Interval<P extends number | undefined = undefined> = BrandedString<{
-  __intervalPrecision: P;
-}>;
 
 type LengthParam<TypeParams> = TypeParams extends { readonly length: infer N extends number }
   ? N
@@ -84,7 +81,6 @@ type OutputTypeMap<TypeParams> = {
   readonly 'pg/bit@1': LengthOutput<TypeParams, Bit<LengthParam<TypeParams>>>;
   readonly 'pg/varbit@1': LengthOutput<TypeParams, VarBit<LengthParam<TypeParams>>>;
   readonly 'pg/timetz@1': Timetz<PrecisionParam<TypeParams>>;
-  readonly 'pg/interval@1': Interval<PrecisionParam<TypeParams>>;
   readonly 'pg/time-string@1': TimeString<PrecisionParam<TypeParams>>;
   readonly 'pg/timestamp-string@1': TimestampString<PrecisionParam<TypeParams>>;
   readonly 'pg/timestamptz-string@1': TimestamptzString<PrecisionParam<TypeParams>>;

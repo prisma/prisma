@@ -297,7 +297,7 @@ const NAMED_TYPE_ALIASES: Readonly<Record<string, string>> = {
   Inet: 'IpAddress',
   Json: 'Payload',
   SmallInt: 'EmailChangeConfirmStatus',
-  Timestamp: 'CreatedAt',
+  TimestampTemporal: 'CreatedAt',
   Uuid: 'Id',
   'VarChar(40)': 'Hash',
   'VarChar(64)': 'IpAddress2',

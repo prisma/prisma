@@ -110,7 +110,7 @@ export const postgresNativeAuthoringTypes = {
       },
     },
   },
-  Timestamp: {
+  TimestampTemporal: {
     kind: 'typeConstructor',
     documentation: 'A date and time without a time zone, represented as Temporal.PlainDateTime.',
     args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
@@ -119,7 +119,7 @@ export const postgresNativeAuthoringTypes = {
       typeParams: { precision: { kind: 'arg', index: 0 } },
     },
   },
-  Timestamptz: {
+  TimestamptzTemporal: {
     kind: 'typeConstructor',
     documentation:
       'An instant represented as Temporal.Instant, with optional fractional-second precision.',
@@ -130,6 +130,15 @@ export const postgresNativeAuthoringTypes = {
     },
   },
   Time: {
+    kind: 'typeConstructor',
+    documentation: 'A time of day without a time zone, represented as Temporal.PlainTime.',
+    args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
+    output: {
+      codecId: 'pg/time-temporal@1',
+      typeParams: { precision: { kind: 'arg', index: 0 } },
+    },
+  },
+  TimeTemporal: {
     kind: 'typeConstructor',
     documentation: 'A time of day without a time zone, represented as Temporal.PlainTime.',
     args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
@@ -173,6 +182,11 @@ export const postgresNativeAuthoringTypes = {
     output: { codecId: 'pg/float4@1' },
   },
   Date: {
+    kind: 'typeConstructor',
+    documentation: 'A calendar date represented as Temporal.PlainDate.',
+    output: { codecId: 'pg/date-temporal@1' },
+  },
+  DateTemporal: {
     kind: 'typeConstructor',
     documentation: 'A calendar date represented as Temporal.PlainDate.',
     output: { codecId: 'pg/date-temporal@1' },
@@ -246,11 +260,11 @@ export const postgresNativeAuthoringTypes = {
       typeParams: { length: { kind: 'arg', index: 0 } },
     },
   },
-  Interval: {
+  IntervalParts: {
     kind: 'typeConstructor',
     inferred: true,
     documentation:
-      'A span of time stored as PostgreSQL interval, with optional fractional-second precision.',
+      'A span of time stored as PostgreSQL interval and represented as { months, days, micros }, with optional fractional-second precision.',
     args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
     output: {
       codecId: 'pg/interval@1',

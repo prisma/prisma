@@ -607,6 +607,9 @@ importers:
       temporal-polyfill:
         specifier: ^1.0.4
         version: 1.0.4
+      temporal-spec:
+        specifier: 1.0.1
+        version: 1.0.1
       tsx:
         specifier: 'catalog:'
         version: 4.23.12
@@ -5761,6 +5764,9 @@ importers:
       temporal-polyfill:
         specifier: ^1.0.4
         version: 1.0.4
+      temporal-spec:
+        specifier: 1.0.1
+        version: 1.0.1
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
