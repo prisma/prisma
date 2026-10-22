@@ -799,6 +799,32 @@ export function getAuthoringTypeConstructor(
     : undefined;
 }
 
+/** The type choice at `path` in the contributions' type namespace, with a lookup of the type constructors beside it that its rows name, or `undefined` when none is there. */
+export function getAuthoringTypeChoice(
+  contributions: { readonly type?: AuthoringTypeNamespace } | undefined,
+  path: readonly string[],
+):
+  | {
+      readonly descriptor: AuthoringTypeChoiceDescriptor;
+      readonly constructorNamed: (name: string) => AuthoringTypeConstructorDescriptor | undefined;
+    }
+  | undefined {
+  let level: AuthoringTypeNamespace | undefined = contributions?.type;
+  for (const segment of path.slice(0, -1)) {
+    const member: AuthoringTypeNamespaceMember | undefined =
+      level !== undefined && Object.hasOwn(level, segment) ? level[segment] : undefined;
+    level = member !== undefined && !('kind' in member) ? member : undefined;
+  }
+  const name = path.at(-1);
+  const member =
+    level === undefined || name === undefined || !Object.hasOwn(level, name)
+      ? undefined
+      : level[name];
+  return member !== undefined && level !== undefined && isAuthoringTypeChoiceDescriptor(member)
+    ? { descriptor: member, constructorNamed: typeConstructorLookup(level) }
+    : undefined;
+}
+
 export function isAuthoringFieldPresetDescriptor(
   value: AuthoringFieldPresetDescriptor | AuthoringFieldNamespace,
 ): value is AuthoringFieldPresetDescriptor {

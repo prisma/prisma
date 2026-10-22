@@ -100,6 +100,7 @@ export {
   classifyEnumMemberType,
   collectScalarTypeConstructors,
   flushAuthoringWarnings,
+  getAuthoringTypeChoice,
   getAuthoringTypeConstructor,
   instantiateAuthoringEntityType,
   instantiateAuthoringFieldPreset,

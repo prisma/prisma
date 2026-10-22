@@ -9,9 +9,11 @@ import type {
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
 import {
+  getAuthoringTypeChoice,
   getAuthoringTypeConstructor,
   instantiateAuthoringEntityType,
   instantiateAuthoringTypeConstructorFromValues,
+  resolveAuthoringTypeChoice,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import {
@@ -1293,10 +1295,23 @@ function readField(args: ReadFieldArgs): void {
   }
 
   const constructorPath = fieldType.kind === 'written' ? fieldType.call.path : fieldType.path;
-  const typeConstructor = getAuthoringTypeConstructor(
-    input.authoringContributions,
-    constructorPath,
-  );
+  const typeChoice =
+    fieldType.kind === 'values'
+      ? getAuthoringTypeChoice(input.authoringContributions, constructorPath)
+      : undefined;
+  const chosen =
+    typeChoice === undefined || fieldType.kind !== 'values'
+      ? undefined
+      : resolveAuthoringTypeChoice({
+          helperPath: constructorPath.join('.'),
+          descriptor: typeChoice.descriptor,
+          args: fieldType.values,
+          constructorNamed: typeChoice.constructorNamed,
+        });
+  const typeConstructor =
+    chosen?.descriptor ??
+    getAuthoringTypeConstructor(input.authoringContributions, constructorPath);
+  const typeValues = chosen?.args ?? (fieldType.kind === 'values' ? fieldType.values : []);
   if (typeConstructor === undefined) {
     diagnostics.push(
       prisma7Diagnostic(
@@ -1326,7 +1341,7 @@ function readField(args: ReadFieldArgs): void {
   } else {
     const instantiated = instantiateAuthoringTypeConstructorFromValues(
       typeConstructor,
-      fieldType.values,
+      typeValues,
       input.codecLookup.descriptorFor(typeConstructor.output.codecId)?.paramsSchema,
     );
     if (!instantiated.ok && unsupportedArgument !== undefined) {
