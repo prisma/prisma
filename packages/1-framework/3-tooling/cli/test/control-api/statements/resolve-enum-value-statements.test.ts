@@ -142,4 +142,31 @@ describe('resolveStatements, enum value renames', () => {
       'Name it with its namespace: app.Status.ARCHIVED for the field, billing.Status.ARCHIVED for the enum value.',
     );
   });
+
+  it('renames a value of an enum whose namespace the same run renames, however the sides are written', () => {
+    const billing = contractOf({
+      app: { models: { Task: {} } },
+      billing: { enums: { Status: ['OPEN', 'ARCHIVED'] } },
+    });
+    const finance = contractOf({
+      app: { models: { Task: {} } },
+      finance: { enums: { Status: ['OPEN', 'RETIRED'] } },
+    });
+    const expected = {
+      kind: 'rename',
+      entity: 'enumValue',
+      from: { namespaceId: asNamespaceId('billing'), enum: 'Status', member: 'ARCHIVED' },
+      to: { namespaceId: asNamespaceId('finance'), enum: 'Status', member: 'RETIRED' },
+    };
+
+    for (const text of [
+      'Status.ARCHIVED:Status.RETIRED',
+      'billing.Status.ARCHIVED:finance.Status.RETIRED',
+      'finance.Status.ARCHIVED:finance.Status.RETIRED',
+    ]) {
+      expect(expectValue(resolve(['billing:finance', text], billing, finance))[1]).toEqual(
+        expected,
+      );
+    }
+  });
 });

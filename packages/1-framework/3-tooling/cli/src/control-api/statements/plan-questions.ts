@@ -1,6 +1,7 @@
 import type { ContractWithDomain } from '@internal/contract/types';
 import type { CliStructuredError } from '@internal/errors/control';
 import {
+  type EnumValueCoordinate,
   enumValueStatementText,
   type FieldCoordinate,
   fieldStatementText,
@@ -176,6 +177,27 @@ function destinationField(
   return { ...(renamedModel(coordinate, contracts) ?? coordinate), field: coordinate.field };
 }
 
+/** An enum value under the namespace a namespace rename of `contracts` gives its enum, when the destination has the enum there. */
+function renamedEnumValue(
+  value: EnumValueCoordinate,
+  contracts: StatementContracts,
+): EnumValueCoordinate | undefined {
+  for (const statement of resolvedRenames(contracts)) {
+    if (
+      statement.kind === 'rename' &&
+      statement.entity === 'namespace' &&
+      statement.from === value.namespaceId
+    ) {
+      const renamed = { ...value, namespaceId: statement.to };
+      return contracts.destination?.domain.namespaces[statement.to]?.enum?.[value.enum] ===
+        undefined
+        ? undefined
+        : renamed;
+    }
+  }
+  return undefined;
+}
+
 /**
  * The subject as a statement names it: `Model` or `Model.field`, with the namespace when its
  * contract has several, or the storage name when no model stores what the operation is about. A
@@ -198,8 +220,12 @@ export function subjectText(subject: MigrationSubject, contracts: StatementContr
           : modelStatementText(contracts.destination, renamed);
       return `${model}.${subject.field}`;
     }
-    case 'enumValue':
-      return enumValueStatementText(contracts.origin, subject);
+    case 'enumValue': {
+      const renamed = renamedEnumValue(subject, contracts);
+      return renamed === undefined || contracts.destination === undefined
+        ? enumValueStatementText(contracts.origin, subject)
+        : enumValueStatementText(contracts.destination, renamed);
+    }
     case 'storage':
       return subject.name;
   }
@@ -243,7 +269,7 @@ function lossText(
         ? `would change the type of field "${text}" and can change or lose its values`
         : `would lose the values of field "${text}"`;
     case 'enumValue':
-      return `would lose enum value "${text}" from the rows that hold it`;
+      return `would lose enum value "${text}" from the data that holds it`;
     case 'storage':
       return originKnown
         ? `would lose the data in "${text}", which no model of the origin contract stores`
@@ -311,8 +337,9 @@ function inDestination(
 ): boolean {
   if (subject.kind === 'storage') return false;
   if (subject.kind === 'enumValue') {
+    const value = renamedEnumValue(subject, contracts) ?? subject;
     const destinationEnum =
-      contracts.destination.domain.namespaces[subject.namespaceId]?.enum?.[subject.enum];
+      contracts.destination.domain.namespaces[value.namespaceId]?.enum?.[value.enum];
     return destinationEnum?.members.some(({ name }) => name === subject.member) === true;
   }
   const model = renamedModel(subject, contracts) ?? subject;

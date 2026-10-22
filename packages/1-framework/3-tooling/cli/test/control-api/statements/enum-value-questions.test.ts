@@ -61,7 +61,7 @@ describe('a question about an enum value', () => {
     expect(question).toMatchObject({
       subject: 'Status.ARCHIVED',
       question:
-        'Change values in "Task"."status" would lose enum value "Status.ARCHIVED" from the rows that hold it.',
+        'Change values in "Task"."status" would lose enum value "Status.ARCHIVED" from the data that holds it.',
       verbs: ['rename', 'delete'],
       forms: { rename: 'Status.ARCHIVED:Status.<new name>' },
     });
@@ -73,5 +73,46 @@ describe('a question about an enum value', () => {
     expect(consentDescription('delete', archived, 'Status.ARCHIVED', 'drop')).toBe(
       'delete enum value "Status.ARCHIVED"',
     );
+  });
+
+  it('names a value of an enum in a renamed namespace through the new namespace, with a rename that resolves', async () => {
+    const billing = contractOf({
+      app: { models: { Task: {} } },
+      billing: { enums: { Status: ['OPEN', 'ARCHIVED'] } },
+    });
+    const finance = contractOf({
+      app: { models: { Task: {} } },
+      finance: { enums: { Status: ['OPEN', 'RETIRED'] } },
+    });
+    const subject = { ...archived, namespaceId: asNamespaceId('billing') };
+    const asked: PlanQuestion[] = [];
+
+    await askPlanQuestions({
+      plan: {
+        dataLoss: [{ operationIndex: 0, label: 'Change values', loss: 'drop', subject }],
+        accessChanges: [],
+      },
+      askAccess: false,
+      canConvert: false,
+      statements: [{ verb: 'rename', text: 'billing:finance' }],
+      preAnswers: [],
+      consentAll: { delete: false, allow: false },
+      origin: billing,
+      originKnown: true,
+      destination: finance,
+      answer: async (batch) => {
+        asked.push(...batch);
+        return batch.map(({ subject: text }) => ({ verb: 'delete', text }));
+      },
+      replan: async () => ok({ dataLoss: [], accessChanges: [] }),
+    });
+
+    expect(asked[0]).toMatchObject({
+      subject: 'finance.Status.ARCHIVED',
+      forms: { rename: 'finance.Status.ARCHIVED:finance.Status.<new name>' },
+    });
+    expect(
+      asked[0]?.validate('rename', 'finance.Status.ARCHIVED:finance.Status.RETIRED'),
+    ).toBeUndefined();
   });
 });

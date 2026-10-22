@@ -349,7 +349,11 @@ function readEnumValue(
   member: string,
 ): Result<EnumValueReading, Refusal> {
   const contract = side === 'old' ? state.origin : state.destination;
-  const lookup = lookupEnum(contract, namespaceId, name);
+  const renamedFrom =
+    side === 'old' && namespaceId !== undefined
+      ? state.originOfRenamedNamespace.get(namespaceId)
+      : undefined;
+  const lookup = lookupEnum(contract, renamedFrom ?? namespaceId, name);
   if (lookup.kind !== 'found') return notOk(lookup);
   if (!lookup.members.includes(member)) {
     return notOk(
@@ -798,8 +802,10 @@ function resolveEnumValueRename(
 ): Result<ResolvedMigrationStatement, CliStructuredError> {
   const oldEnum = enumText(state.origin, from.coordinate.namespaceId, from.coordinate.enum);
   const newEnum = enumText(state.destination, to.coordinate.namespaceId, to.coordinate.enum);
+  const toNamespaceInOrigin =
+    state.originOfRenamedNamespace.get(to.coordinate.namespaceId) ?? to.coordinate.namespaceId;
   if (
-    from.coordinate.namespaceId !== to.coordinate.namespaceId ||
+    from.coordinate.namespaceId !== toNamespaceInOrigin ||
     from.coordinate.enum !== to.coordinate.enum
   ) {
     return notOk(
