@@ -818,7 +818,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     };
   }
 
-  // A handle never ended, or a transaction never committed or rolled back, keeps close() waiting with no other trace, so close() says so once. Open transactions count only once close() refuses, because until then they do not hold it.
+  // A handle never ended, or a transaction left open, keeps close() waiting with no other trace, so close() says so once. openTransactions counts the transactions open at that moment, which close() waits for until they commit or roll back; they count only once close() refuses, because until then they do not hold it.
   private warnWhenWaitingOnlyForUnendedWork(warned: { done: boolean }): void {
     const openTransactions = this.#refusing ? this.#openTransactionWork.count : 0;
     if (warned.done || (this.#openActivityHandles === 0 && openTransactions === 0)) return;
