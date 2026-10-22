@@ -14,7 +14,7 @@ function diagnosticsOf(field: string, scalars: ReadonlyMap<string, string>) {
   const result = interpretMongoContract(
     `model Post {\n  id    ObjectId @id @map("_id")\n  value ${field}\n}\n`,
     {
-      scalarTypeCodecIds: scalars,
+      scalarTypes: scalars,
       defaultFunctionRegistry: new Map(),
       codecLookup: mongoCodecLookup,
       dataTypes: { entries: {}, lookup: mongoDataTypeLookup, dataTypeOfCodec: () => undefined },

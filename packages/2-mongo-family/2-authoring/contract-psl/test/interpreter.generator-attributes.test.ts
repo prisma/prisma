@@ -25,7 +25,7 @@ const generatorFunctions = assembleGeneratorFunctions([
 
 function interpret(schema: string) {
   return interpretMongoContract(schema, {
-    scalarTypeCodecIds: new Map([
+    scalarTypes: new Map([
       ['ObjectId', 'mongo/objectId@1'],
       ['String', 'mongo/string@1'],
       ['DateTime', 'mongo/date@1'],

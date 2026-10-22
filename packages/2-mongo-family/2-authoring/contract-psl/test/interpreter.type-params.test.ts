@@ -28,7 +28,7 @@ const dataTypeLookup = createDataTypeLookup([vector]);
 
 function interpretSchema(schema: string, authoringContributions: AuthoringContributions) {
   return interpretMongoContract(schema, {
-    scalarTypeCodecIds: new Map([['ObjectId', 'mongo/objectId@1']]),
+    scalarTypes: new Map([['ObjectId', 'mongo/objectId@1']]),
     defaultFunctionRegistry: new Map(),
     codecLookup,
     dataTypes: {
@@ -76,5 +76,33 @@ model Doc {
       values: vector3,
       aliased: vector3,
     });
+  });
+
+  it('refuses a type constructor with a required argument written without a call', () => {
+    const result = interpretSchema(
+      `model Doc {
+  id     ObjectId @id @map("_id")
+  values Sized
+}
+`,
+      {
+        type: {
+          Sized: {
+            kind: 'typeConstructor',
+            args: [{ kind: 'value', dataType: 'mongo/int32', name: 'length' }],
+            output: { codecId: 'test/vector@1', typeParams: { length: { kind: 'arg', index: 0 } } },
+          },
+        },
+      },
+    );
+    expect(
+      result.ok ? [] : result.failure.diagnostics.map(({ code, message }) => ({ code, message })),
+    ).toEqual([
+      {
+        code: 'PSL_TYPE_CONSTRUCTOR_NOT_CALLED',
+        message:
+          'Field "Doc.values" uses type constructor "Sized" without arguments. Write Sized(length).',
+      },
+    ]);
   });
 });

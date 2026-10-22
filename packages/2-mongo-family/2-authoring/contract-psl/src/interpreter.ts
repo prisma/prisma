@@ -133,7 +133,6 @@ export interface InterpretPslDocumentToMongoContractInput {
   readonly symbolTable: SymbolTable;
   readonly sources: PslSources;
   readonly binder: Binder;
-  readonly scalarTypeCodecIds: ReadonlyMap<string, string>;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
   /** The stack's generator functions, which `@onCreate(fn())` and `@onUpdate(fn())` resolve through. */
   readonly generatorFunctions: GeneratorFunctionRegistry;

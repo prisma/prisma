@@ -1,7 +1,5 @@
 import { readFile } from 'node:fs/promises';
 import type { ContractConfig, ContractSourceDiagnostic } from '@internal/config/config-types';
-import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
-import { collectScalarTypeConstructors } from '@internal/framework-components/authoring';
 import {
   buildSymbolTable,
   createBinder,
@@ -23,12 +21,6 @@ export interface MongoContractOptions {
   readonly enumInferenceCodecs?: { readonly text: string; readonly int: string };
 }
 
-function collectScalarTypeCodecIds(namespace: AuthoringTypeNamespace): ReadonlyMap<string, string> {
-  return new Map(
-    [...collectScalarTypeConstructors(namespace)].map(([name, output]) => [name, output.codecId]),
-  );
-}
-
 export function mongoContract(schemaPath: string, options?: MongoContractOptions): ContractConfig {
   const source: PslInterpretCapable = {
     format: 'psl',
@@ -40,7 +32,6 @@ export function mongoContract(schemaPath: string, options?: MongoContractOptions
         sources: input.sources,
         binder: input.binder,
         seedDiagnostics: [],
-        scalarTypeCodecIds: collectScalarTypeCodecIds(context.authoringContributions.type),
         defaultFunctionRegistry: context.controlMutationDefaults.defaultFunctionRegistry,
         generatorFunctions: context.generatorFunctions,
         dataTypes: context.dataTypes,

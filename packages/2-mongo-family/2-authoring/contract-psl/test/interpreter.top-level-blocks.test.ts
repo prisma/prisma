@@ -6,7 +6,7 @@ import { mongoDataTypeSupport } from './mongo-type-lookups';
 
 function diagnosticsOf(schema: string): readonly ContractSourceDiagnostic[] {
   const result = interpretMongoContract(schema, {
-    scalarTypeCodecIds: new Map([['ObjectId', 'mongo/objectId@1']]),
+    scalarTypes: new Map([['ObjectId', 'mongo/objectId@1']]),
     codecLookup: mongoCodecLookup,
     dataTypes: mongoDataTypeSupport,
     defaultFunctionRegistry: new Map(),
