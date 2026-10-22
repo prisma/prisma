@@ -1,62 +1,32 @@
-import { ifDefined } from '@internal/utils/defined';
-import { assertNever } from '@internal/utils/internal-error';
-import type { DbUpdateFailure } from '../control-api/types';
+import type { MigrationRunnerFailure } from '@internal/framework-components/control';
+import type { RunnerFailureFacts } from '../control-api/types';
 import type { CliStructuredError } from './cli-errors';
-import { errorMigrationPlanningFailed, errorRunnerFailed } from './cli-errors';
-import { failedPrecheckWhy } from './failed-precheck-advice';
 import { type CliInvocation, cliCommand } from './printed-command';
 import { dbUpdateFailedTypeChangeFix, dbUpdateRowsWithoutValueFix } from './runner-failure-advice';
-import { schemaCheckWhy } from './schema-issues';
+import { runnerFailureError } from './runner-failure-error';
+import { schemaCheckIssues } from './schema-check-issues';
 
 /**
- * A `db update` failure as the CLI's structured error.
- *
- * The `assertNever` is deliberate: a control-API failure code this does not
- * handle must stop the command rather than degrade into a generic message.
+ * A failed `db update` apply as the CLI reports it. `databaseStorageHash` is the contract the
+ * database is at when a migration of the graph ends at it: the origin a `migration plan` for this
+ * database starts from.
  */
-export function mapDbUpdateFailure(
-  failure: DbUpdateFailure,
-  invocation: CliInvocation,
+export function dbUpdateRunnerFailureError(
+  failure: MigrationRunnerFailure,
+  facts: RunnerFailureFacts,
+  context: {
+    readonly databaseStorageHash: string | undefined;
+    readonly invocation: CliInvocation;
+  },
 ): CliStructuredError {
-  if (failure.code === 'PLANNING_FAILED') {
-    return errorMigrationPlanningFailed({ conflicts: failure.conflicts ?? [] });
-  }
-
-  if (failure.code === 'RUNNER_FAILED') {
-    const fix =
-      failure.failedTypeChange !== undefined
-        ? dbUpdateFailedTypeChangeFix(
-            failure.failedTypeChange,
-            failure.databaseStorageHash,
-            invocation,
-          )
-        : failure.rowsWithoutValue !== undefined
-          ? dbUpdateRowsWithoutValueFix(
-              failure.rowsWithoutValue,
-              failure.databaseStorageHash,
-              invocation,
-            )
-          : failure.schemaIssues !== undefined
-            ? `Change the contract source to resolve the issues listed, re-run \`${cliCommand(invocation, 'contract emit')}\`, then re-run \`${cliCommand(invocation, 'db update')}\`.`
-            : `Inspect the reported conflict, reconcile schema drift if needed, then re-run \`${cliCommand(invocation, 'db update')}\``;
-    return errorRunnerFailed(failure.summary, {
-      why:
-        schemaCheckWhy(failure.schemaIssues) ??
-        failure.why ??
-        (failure.failedPrecheck === undefined
-          ? 'Migration runner failed'
-          : failedPrecheckWhy(failure.failedPrecheck)),
-      fix,
-      meta: {
-        ...failure.meta,
-        ...(failure.warnings && failure.warnings.length > 0
-          ? { plannerWarnings: failure.warnings }
-          : {}),
-      },
-      ...ifDefined('cause', failure.cause),
-    });
-  }
-
-  const exhaustive: never = failure.code;
-  return assertNever(exhaustive, `Unhandled DbUpdateFailure code: ${String(exhaustive)}`);
+  const { databaseStorageHash, invocation } = context;
+  const fix =
+    facts.failedTypeChange !== undefined
+      ? dbUpdateFailedTypeChangeFix(facts.failedTypeChange, databaseStorageHash, invocation)
+      : facts.rowsWithoutValue !== undefined
+        ? dbUpdateRowsWithoutValueFix(facts.rowsWithoutValue, databaseStorageHash, invocation)
+        : schemaCheckIssues(failure) !== undefined
+          ? `Change the contract source to resolve the issues listed, re-run \`${cliCommand(invocation, 'contract emit')}\`, then re-run \`${cliCommand(invocation, 'db update')}\`.`
+          : `Inspect the reported conflict, reconcile schema drift if needed, then re-run \`${cliCommand(invocation, 'db update')}\``;
+  return runnerFailureError(failure, { fix });
 }

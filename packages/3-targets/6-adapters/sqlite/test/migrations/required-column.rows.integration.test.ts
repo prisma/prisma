@@ -19,6 +19,7 @@ import {
   sqliteTargetDescriptor,
   synthEdges,
   type TestDatabase,
+  withRewordedQueryErrors,
 } from './fixtures/runner-fixtures';
 
 const DB_UPDATE: MigrationOperationPolicy = {
@@ -126,8 +127,11 @@ describe('a SQLite column that becomes required while rows have no value', {
     return result.plan;
   }
 
-  function execute(planned: ReturnType<typeof plan>, contract: Contract<SqlStorage>) {
-    const { driver } = testDb;
+  function execute(
+    planned: ReturnType<typeof plan>,
+    contract: Contract<SqlStorage>,
+    driver: TestDatabase['driver'] = testDb.driver,
+  ) {
     return sqliteTargetDescriptor.createRunner(familyInstance).execute({
       driver,
       perSpaceOptions: [
@@ -159,15 +163,17 @@ describe('a SQLite column that becomes required while rows have no value', {
     const result = await execute(plan(optionalNote, requiredNote), requiredNote);
     expect(result.ok ? undefined : result.failure).toMatchObject({
       code: 'MIGRATION.EXECUTION_FAILED',
-      summary: '3 rows of "Item" hold NULL in "note", so it cannot become required.',
-      rowsWithoutValue: [
-        {
-          field: { kind: 'field', namespaceId: item, model: 'Item', field: 'note' },
-          reason: 'nullValues',
-          rows: 3,
-          operationIndex: 0,
-        },
-      ],
+      message: '3 rows of "Item" hold NULL in "note", so it cannot become required.',
+      meta: {
+        rowsWithoutValue: [
+          {
+            field: { kind: 'field', namespaceId: item, model: 'Item', field: 'note' },
+            reason: 'nullValues',
+            rows: 3,
+            operationIndex: 0,
+          },
+        ],
+      },
     });
     expect((await testDb.driver.query('SELECT COUNT(*) AS n FROM "Item"')).rows).toEqual([
       { n: 4 },
@@ -177,19 +183,33 @@ describe('a SQLite column that becomes required while rows have no value', {
     expect((await execute(plan(optionalNote, requiredNote), requiredNote)).ok).toBe(true);
   });
 
+  it("counts the rows from the driver's NOT NULL violation code, whatever the error's message", async () => {
+    await seeded([null, 'a']);
+    const result = await execute(
+      plan(optionalNote, requiredNote),
+      requiredNote,
+      withRewordedQueryErrors(testDb.driver),
+    );
+    expect(result.ok ? undefined : result.failure).toMatchObject({
+      message: '1 row of "Item" holds NULL in "note", so it cannot become required.',
+    });
+  });
+
   it('counts the rows a new required column has no value for', async () => {
     await seeded(['a', 'b']);
     const result = await execute(plan(optionalNote, withCode), withCode);
     expect(result.ok ? undefined : result.failure).toMatchObject({
-      summary:
+      message:
         '"Item" has 2 rows, so the new required column "code" cannot be added: it can be added to an empty table only.',
-      rowsWithoutValue: [
-        {
-          field: { model: 'Item', field: 'code' },
-          reason: 'newField',
-          rows: 2,
-        },
-      ],
+      meta: {
+        rowsWithoutValue: [
+          {
+            field: { model: 'Item', field: 'code' },
+            reason: 'newField',
+            rows: 2,
+          },
+        ],
+      },
     });
   });
 
@@ -205,10 +225,12 @@ describe('a SQLite column that becomes required while rows have no value', {
     await testDb.driver.query(`INSERT INTO "Item" (id, "nick name") VALUES (1, NULL), (2, 'b')`);
     const result = await execute(plan(optional, required), required);
     expect(result.ok ? undefined : result.failure).toMatchObject({
-      summary: '1 row of "Item" holds NULL in "nick name", so it cannot become required.',
-      rowsWithoutValue: [
-        { field: { model: 'Item', field: 'nick' }, reason: 'nullValues', rows: 1 },
-      ],
+      message: '1 row of "Item" holds NULL in "nick name", so it cannot become required.',
+      meta: {
+        rowsWithoutValue: [
+          { field: { model: 'Item', field: 'nick' }, reason: 'nullValues', rows: 1 },
+        ],
+      },
     });
   });
 
@@ -223,7 +245,7 @@ describe('a SQLite column that becomes required while rows have no value', {
     expect(
       result.ok
         ? undefined
-        : result.failure.rowsWithoutValue?.map(({ field, reason, rows }) => [
+        : result.failure.meta.rowsWithoutValue?.map(({ field, reason, rows }) => [
             field?.kind === 'field' ? field.field : undefined,
             reason,
             rows,

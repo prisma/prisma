@@ -11,7 +11,7 @@ import { isExpression } from '@internal/sql-relational-core/expression';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
-import type { StructuredError } from '@internal/utils/structured-error';
+import { isStructuredError, type StructuredError } from '@internal/utils/structured-error';
 import { cachedFor } from './contract-cache';
 import { ormError } from './orm-errors';
 import {
@@ -472,6 +472,10 @@ export function resolveVariantFieldColumns(
   );
 }
 
+function isTableAmbiguousError(error: unknown): boolean {
+  return isStructuredError(error) && error.code === 'CONTRACT.TABLE_AMBIGUOUS';
+}
+
 /** Every column of a table, in table order. */
 export function getAllTableColumns(
   contract: Contract<SqlStorage>,
@@ -483,7 +487,7 @@ export function getAllTableColumns(
   } catch (error) {
     // Surface the ambiguous-bare-name fail-fast rather than masking it as an
     // unknown table.
-    if (error instanceof Error && error.message.includes('ambiguous')) {
+    if (isTableAmbiguousError(error)) {
       throw error;
     }
     throw ormError('ORM.TABLE_UNKNOWN', `Unknown table "${tableName}" in SQL ORM query planner`, {
@@ -861,7 +865,7 @@ export function resolveRowIdentityColumns(
     // mask it as "table has no identity columns" (which surfaces as a
     // misleading "no primary key" error). A genuinely unknown table stays
     // lenient and resolves to no identity columns.
-    if (error instanceof Error && error.message.includes('ambiguous')) {
+    if (isTableAmbiguousError(error)) {
       throw error;
     }
     return [];

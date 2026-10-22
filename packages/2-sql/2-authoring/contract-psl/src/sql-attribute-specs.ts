@@ -2,7 +2,11 @@ import type {
   AuthoringModelAttributeDescriptor,
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
-import type { ControlMutationDefaultRegistry } from '@internal/framework-components/control';
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
+import type {
+  ControlMutationDefaultEntry,
+  ControlMutationDefaultRegistry,
+} from '@internal/framework-components/control';
 import type { ContributedPslDiagnosticCode } from '@internal/framework-components/psl-ast';
 import type {
   ArgType,
@@ -25,10 +29,12 @@ import type {
   PslSpan,
   RejectingArgType,
   SymbolTable,
+  TypeAttributeSpecContext,
   TypedFuncCall,
 } from '@internal/psl-parser';
 import {
   bool,
+  contributedTypeCodecId,
   contributedTypeOf,
   dataTypeValue,
   diagnosticSource,
@@ -36,6 +42,7 @@ import {
   fieldAttribute,
   fieldRef,
   funcCall,
+  generatorAttributeSpec,
   identifier,
   interpretAttribute,
   leafDiagnostic,
@@ -43,6 +50,7 @@ import {
   mapArg,
   modelAttribute,
   nodePslSpan,
+  nodeSourceText,
   numLiteral,
   oneOf,
   optional,
@@ -51,6 +59,9 @@ import {
   referencedFieldRef,
   str,
   taggedLiteral,
+  typeAttribute,
+  typeAttributeSpecContextOfField,
+  typeAttributeSubjectLabel,
   typeReferenceNode,
   writtenList,
   writtenScalar,
@@ -174,6 +185,27 @@ export function interpretFieldAttribute<Out>(input: {
   return result.value;
 }
 
+/** Interprets an attribute that reads only its type, such as `@default` on a field or a type alias, draining parse failures into `diagnostics`. */
+export function interpretTypeAttribute<Out>(input: {
+  readonly symbols: SymbolTable;
+  readonly node: FieldAttributeAst;
+  readonly spec: AttributeSpec<Out, AttributeCtx>;
+  readonly sources: PslSources;
+  readonly binder: Binder;
+  readonly diagnostics: PslDiagnosticCollector;
+}): Out | undefined {
+  const result = interpretAttribute(input.node, input.spec, {
+    sources: input.sources,
+    symbols: input.symbols,
+    binder: input.binder,
+  });
+  if (!result.ok) {
+    input.diagnostics.push(...result.failure);
+    return undefined;
+  }
+  return result.value;
+}
+
 function validateMappedName(
   value: { readonly name: string },
   ctx: AttributeCtx,
@@ -244,19 +276,32 @@ type DefaultArgValue =
   | EnumMemberDefault
   | EnumMemberListDefault;
 
-function defaultFunctionArm(
+/** A default function's signature, or a function that builds it from the stack's data types when its arguments are values of a data type. */
+export type DefaultFunctionSignature = FuncCallSig | ((dataTypes: DataTypeSupport) => FuncCallSig);
+
+/**
+ * A call to the registered default function `name`, with its signature built from the stack's data types when it needs them. Its binding diagnostics name it as a default function.
+ */
+export function defaultFunctionCall(
   name: string,
-  signature: FuncCallSig,
-): ArgType<DefaultFunctionCall, AttributeCtx> {
-  return mapArg(funcCall(name, signature), (call) => ({ kind: 'default-function', call }));
+  entry: ControlMutationDefaultEntry,
+  dataTypes: DataTypeSupport,
+): ArgType<TypedFuncCall, AttributeCtx> {
+  const signature = blindCast<
+    DefaultFunctionSignature,
+    'The registry stores each signature opaquely as `unknown` because FuncCallSig lives in the authoring layer that core cannot name; the SQL family owns these entries and guarantees every one declares a DefaultFunctionSignature.'
+  >(entry.signature);
+  return funcCall(name, typeof signature === 'function' ? signature(dataTypes) : signature, {
+    label: `Default function "${name}"`,
+  });
 }
 
 /** The data type of the column a field declares, when its type, or the named type it is declared with, is a constructor or preset the stack knows. */
-function receivingDataType(ctx: FieldAttributeSpecContext): string | undefined {
+function receivingDataType(ctx: TypeAttributeSpecContext): string | undefined {
   const typeConstructor = ctx.typeConstructor;
   return typeConstructor === undefined
     ? undefined
-    : ctx.dataTypes.dataTypeOfCodec(typeConstructor.descriptor.output.codecId);
+    : ctx.dataTypes.dataTypeOfCodec(contributedTypeCodecId(typeConstructor.descriptor));
 }
 
 /** Whether a value of `type` can be written for a column of `receiving`: it is that type, or the column's type casts from it. An unknown column takes every type. */
@@ -316,12 +361,9 @@ function scalarDefaultArms(
     );
   const listArm = () => writtenList(literal());
   const funcArms = [...defaultFunctionRegistry.entries()].map(([name, entry]) =>
-    defaultFunctionArm(
-      name,
-      blindCast<
-        FuncCallSig,
-        'The registry stores each signature opaquely as `unknown` because FuncCallSig lives in the authoring layer that core cannot name; the SQL family owns these entries and guarantees every one declares a FuncCallSig.'
-      >(entry.signature),
+    mapArg(
+      defaultFunctionCall(name, entry, dataTypes),
+      (call): DefaultFunctionCall => ({ kind: 'default-function', call }),
     ),
   );
   return isList
@@ -347,21 +389,37 @@ function defaultValueArm(
     ...ArgType<DefaultArgValue, AttributeCtx>[],
   ],
   registry: ControlMutationDefaultRegistry,
+  generatorFunctions: GeneratorFunctionRegistry,
+  subject: string,
 ) {
   const value = arms.length === 1 && arms[0].kind === 'list' ? arms[0] : oneOf(...arms);
   return {
     ...value,
-    parse: (arg: Parameters<typeof value.parse>[0], ctx: AttributeCtx) =>
-      FunctionCallAst.cast(arg.syntax)?.path().join('.') === 'dbgenerated'
-        ? notOk<readonly PslDiagnostic[]>([
-            leafDiagnostic(
-              ctx,
-              arg,
-              removedDbgeneratedMessage(registry),
-              'PSL_UNKNOWN_DEFAULT_FUNCTION',
-            ),
-          ])
-        : value.parse(arg, ctx),
+    parse: (arg: Parameters<typeof value.parse>[0], ctx: AttributeCtx) => {
+      const callee = FunctionCallAst.cast(arg.syntax)?.path().join('.');
+      if (callee === 'dbgenerated') {
+        return notOk<readonly PslDiagnostic[]>([
+          leafDiagnostic(
+            ctx,
+            arg,
+            removedDbgeneratedMessage(registry),
+            'PSL_UNKNOWN_DEFAULT_FUNCTION',
+          ),
+        ]);
+      }
+      if (callee !== undefined && !registry.has(callee) && generatorFunctions.has(callee)) {
+        const call = nodeSourceText(arg, ctx);
+        return notOk<readonly PslDiagnostic[]>([
+          leafDiagnostic(
+            ctx,
+            arg,
+            `${subject}: ${call} is a value the client generates, and @default sets a database default only. Write @onCreate(${call}) instead.`,
+            'PSL_GENERATOR_IN_DEFAULT',
+          ),
+        ]);
+      }
+      return value.parse(arg, ctx);
+    },
   };
 }
 
@@ -374,7 +432,7 @@ function noEnumMember(): RejectingArgType<never, AttributeCtx> {
   };
 }
 
-function enumMemberNames(ctx: FieldAttributeSpecContext): readonly string[] | undefined {
+function enumMemberNames(ctx: TypeAttributeSpecContext): readonly string[] | undefined {
   const resolution = ctx.typeResolution;
   if (resolution?.kind !== 'block' || resolution.symbol.keyword !== 'enum') return undefined;
   const block = resolution.symbol;
@@ -412,23 +470,29 @@ function enumDefaultArms(
   return [member(first), ...rest.map(member)];
 }
 
-function defaultFieldSpec(ctx: FieldAttributeSpecContext) {
+/** The spec of `@default` on a field or a type alias, offering the values its type takes. */
+export function typeDefaultSpec(ctx: TypeAttributeSpecContext) {
   const members = enumMemberNames(ctx);
   const valueArms =
     members === undefined
       ? scalarDefaultArms(
-          ctx.field.list,
+          ctx.list,
           receivingDataType(ctx),
           ctx.dataTypes,
           ctx.defaultFunctionRegistry,
         )
-      : enumDefaultArms(members, ctx.field.typeName, ctx.field.list);
-  return fieldAttribute('default', {
+      : enumDefaultArms(members, ctx.typeName, ctx.list);
+  return typeAttribute('default', {
     documentation: 'Supplies a default value when this field is omitted from a mutation.',
     positional: [
       {
         key: 'value',
-        type: defaultValueArm(valueArms, ctx.defaultFunctionRegistry),
+        type: defaultValueArm(
+          valueArms,
+          ctx.defaultFunctionRegistry,
+          ctx.generatorFunctions,
+          typeAttributeSubjectLabel(ctx.subject),
+        ),
         documentation:
           'A literal, enum member, or registered default function compatible with this field.',
       },
@@ -676,8 +740,9 @@ function baseModelSpec() {
       },
       {
         key: 'value',
-        type: str(),
-        documentation: 'The discriminator value identifying this variant.',
+        type: writtenScalar(str()),
+        documentation:
+          "The discriminator value identifying this variant, a value of the discriminator column's type.",
       },
     ],
   });
@@ -783,12 +848,14 @@ export function modelSpecContext(input: {
   readonly symbols: SymbolTable;
   readonly model: ModelSymbol;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
 }): AttributeSpecContext {
   return {
     symbols: input.symbols,
     model: input.model,
     defaultFunctionRegistry: input.defaultFunctionRegistry,
+    generatorFunctions: input.generatorFunctions,
     dataTypes: input.dataTypes,
   };
 }
@@ -799,6 +866,7 @@ export function fieldSpecContext(input: {
   readonly field: FieldSymbol;
   readonly binder: Binder;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
 }): FieldAttributeSpecContext {
   const node = typeReferenceNode(input.field);
@@ -810,6 +878,7 @@ export function fieldSpecContext(input: {
     typeResolution,
     typeConstructor: contributedTypeOf(typeResolution, input.binder),
     defaultFunctionRegistry: input.defaultFunctionRegistry,
+    generatorFunctions: input.generatorFunctions,
     dataTypes: input.dataTypes,
   };
 }
@@ -831,6 +900,9 @@ export const sqlAttributeSpecs = {
     id: (_ctx: FieldAttributeSpecContext) => idFieldSpec,
     unique: (_ctx: FieldAttributeSpecContext) => uniqueFieldSpec,
     relation: (_ctx: FieldAttributeSpecContext) => relationFieldSpec,
-    default: defaultFieldSpec,
+    default: (ctx: FieldAttributeSpecContext) =>
+      typeDefaultSpec(typeAttributeSpecContextOfField(ctx)),
+    onCreate: generatorAttributeSpec('onCreate'),
+    onUpdate: generatorAttributeSpec('onUpdate'),
   },
 } as const satisfies AttributeSpecNamespace;

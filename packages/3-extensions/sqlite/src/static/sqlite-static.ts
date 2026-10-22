@@ -5,9 +5,17 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { createRawLane, sql } from '@internal/sql-builder/runtime';
 import type { Db, RawLane } from '@internal/sql-builder/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
-import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
-import type { ExecutionContext, SqlRuntimeExtensionDescriptor } from '@internal/sql-runtime';
-import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
+import type {
+  ExecutionContext,
+  SqlExecutionStackWithDriver,
+  SqlRuntimeExtensionDescriptor,
+  ToSqlMember,
+} from '@internal/sql-runtime';
+import {
+  createExecutionContext,
+  createSqlExecutionStack,
+  createToSql,
+} from '@internal/sql-runtime';
 import sqliteTarget from '@internal/target-sqlite/runtime';
 import { assertDefined } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
@@ -19,7 +27,7 @@ type UnboundSql<TContract extends Contract<SqlStorage>> =
 type UnboundEnums<TContract extends Contract<SqlStorage>> =
   NamespacedEnums<TContract>[typeof UNBOUND_NAMESPACE_ID];
 
-export interface SqliteStaticContext<TContract extends Contract<SqlStorage>> {
+export interface SqliteStaticContext<TContract extends Contract<SqlStorage>> extends ToSqlMember {
   readonly context: ExecutionContext<TContract>;
   readonly contract: TContract;
   readonly enums: UnboundEnums<TContract>;
@@ -30,8 +38,9 @@ export interface SqliteStaticContext<TContract extends Contract<SqlStorage>> {
 export function buildSqliteStaticContext<TContract extends Contract<SqlStorage>>(
   contract: TContract,
   context: ExecutionContext<TContract>,
-  rawCodecInferer: RawCodecInferer,
+  stack: SqlExecutionStackWithDriver<SqliteTargetId>,
 ): SqliteStaticContext<TContract> {
+  const { rawCodecInferer } = stack.adapter;
   const sqlNamespace = sql<TContract>({ context, rawCodecInferer })[UNBOUND_NAMESPACE_ID];
   assertDefined(sqlNamespace, 'the unbound namespace always exists on a sqlite builder output');
   const sqlDb = blindCast<
@@ -45,12 +54,12 @@ export function buildSqliteStaticContext<TContract extends Contract<SqlStorage>>
     ),
   )[UNBOUND_NAMESPACE_ID];
   assertDefined(enums, 'the unbound namespace always exists on a sqlite builder output');
-  return { context, contract, enums, sql: sqlDb, raw };
+  return { context, contract, enums, sql: sqlDb, raw, toSql: createToSql(stack, contract) };
 }
 
 /**
- * The query surfaces of a SQLite client without a driver: `sql`, `raw` and `enums`. Use it where
- * loading `node:sqlite` is not wanted.
+ * The query surfaces of a SQLite client without a driver: `sql`, `raw`, `enums` and `toSql`. Use
+ * it where loading `node:sqlite` is not wanted.
  *
  * @example
  * ```ts
@@ -68,5 +77,5 @@ export default function sqliteStatic<TContract extends Contract<SqlStorage>>(opt
     extensions: options.extensions ?? [],
   });
   const context = createExecutionContext({ contract, stack });
-  return buildSqliteStaticContext(contract, context, stack.adapter.rawCodecInferer);
+  return buildSqliteStaticContext(contract, context, stack);
 }

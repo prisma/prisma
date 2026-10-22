@@ -20,6 +20,7 @@ import { testSqlTypeLookups } from '../../../1-core/contract/test/test-type-look
 import type { InterpretPslDocumentToSqlContractInput } from '../src/interpreter';
 import { fixtureTypeLookups } from './fixture-codec-descriptors';
 import { fixtureDataTypeSupport } from './fixture-data-types';
+import { fixtureGeneratorFunctions } from './fixture-generator-functions';
 import {
   createBuiltinLikeControlMutationDefaults,
   interpretSqlContract,
@@ -102,6 +103,7 @@ function interpret(schema: string, overrides?: Partial<InterpretPslDocumentToSql
     scalarColumnDescriptors: postgresScalarTypeDescriptors,
     composedExtensionContracts: new Map(),
     controlMutationDefaults: builtinControlMutationDefaults,
+    generatorFunctions: fixtureGeneratorFunctions,
     authoringContributions: contributions,
     dataTypes: {
       entries:
@@ -225,7 +227,7 @@ model Post {
     expect(pslDomainNs?.models?.['Post']?.fields?.['priority']).toEqual(
       tsDomainNs?.models?.['Post']?.fields?.['priority'],
     );
-    // Strict equality on the storage column catches extra properties (e.g. a stray typeRef).
+    // Strict equality on the storage column catches extra properties.
     expect(
       pslNs !== undefined ? pslNs.entries.table?.['Post']?.columns?.['priority'] : undefined,
     ).toEqual(tsNs !== undefined ? tsNs.entries.table?.['Post']?.columns?.['priority'] : undefined);
@@ -373,7 +375,7 @@ model Post {
     );
   });
 
-  it('a non-JSON member value is rejected by the shared grammar, not by lowering', () => {
+  it('a member value that is not a literal is rejected by the shared grammar, not by lowering', () => {
     const result = interpret(`
 enum Priority {
   @@type("pg/text@1")
@@ -388,8 +390,7 @@ model Post {
     expect(result.failure.diagnostics).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          message:
-            'Expected one of: string | number | boolean | null | JSON value[] | { [key]: JSON value }',
+          message: 'Expected one of: string | number | boolean | tag`...`',
         }),
       ]),
     );
@@ -398,7 +399,7 @@ model Post {
     );
   });
 
-  it('codec-rejected member value emits diagnostic', () => {
+  it("a member value its codec's data type has no cast from emits a diagnostic", () => {
     const result = interpret(`
 enum Priority {
   @@type("pg/text@1")
@@ -411,7 +412,7 @@ model Post {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([expect.objectContaining({ code: 'PSL_EXTENSION_INVALID_VALUE' })]),
+      expect.arrayContaining([expect.objectContaining({ code: 'PSL_VALUE_TYPE_INCOMPATIBLE' })]),
     );
   });
 
@@ -1070,7 +1071,7 @@ model Post {
     );
   });
 
-  it('function default @default(uuid()) on an enum field is rejected as invalid attribute syntax', () => {
+  it('rejects @onCreate(uuid()) on an enum field, whose type no generator function applies to', () => {
     const result = interpret(`
 enum Priority {
   @@type("pg/text@1")
@@ -1080,14 +1081,18 @@ enum Priority {
 
 model Post {
   id       Int      @id
-  priority Priority @default(uuid())
+  priority Priority @onCreate(uuid())
 }
 `);
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([expect.objectContaining({ code: 'PSL_INVALID_ATTRIBUTE_SYNTAX' })]),
-    );
+    expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+      {
+        code: 'PSL_GENERATOR_NOT_APPLICABLE',
+        message:
+          'Field "Post.priority": uuid() does not apply to the field\'s type. No generator function applies to it.',
+      },
+    ]);
   });
 
   it('lowers nullable enum-list defaults through member values and preserves value-set semantics', () => {

@@ -1,7 +1,7 @@
 import { UNBOUND_DOMAIN_NAMESPACE_ID } from '@internal/contract/types';
 import { issueOutcome } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { MongoSchemaIR } from '@internal/mongo-schema-ir';
+import { MongoSchemaCollection, MongoSchemaIndex, MongoSchemaIR } from '@internal/mongo-schema-ir';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { MongoTargetSchemaVerifier } from '../src/core/migrations/mongo-target-schema-verifier';
@@ -38,7 +38,7 @@ function deserializedContract() {
             },
           },
           relations: {},
-          storage: { collection: 'items' },
+          storage: { fields: { _id: { field: '_id' } }, collection: 'items' },
         },
       },
       namespaceId: UNBOUND_DOMAIN_NAMESPACE_ID,
@@ -87,5 +87,38 @@ describe('MongoTargetSchemaVerifier', () => {
     expect(
       result.issues.some((i) => issueOutcome(i) === 'not-found' && i.path[0] === 'items'),
     ).toBe(true);
+  });
+
+  it('grades a managed collection under an external default as external, as the planner does', () => {
+    const json = {
+      targetFamily: 'mongo' as const,
+      target: 'mongo',
+      profileHash: 'test',
+      defaultControlPolicy: 'external' as const,
+      roots: {},
+      storage: {
+        storageHash: 'test',
+        namespaces: {
+          [UNBOUND_NAMESPACE_ID]: {
+            id: UNBOUND_NAMESPACE_ID,
+            kind: 'mongo-database',
+            entries: { collection: { items: { control: 'managed' } } },
+          },
+        },
+      },
+      domain: applicationDomainOf({ models: {}, namespaceId: UNBOUND_DOMAIN_NAMESPACE_ID }),
+    };
+    const contract = new MongoTargetContractSerializer().deserializeContract(json);
+    const schema = new MongoSchemaIR([
+      new MongoSchemaCollection({
+        name: 'items',
+        indexes: [new MongoSchemaIndex({ keys: [{ field: 'extra', direction: 1 }] })],
+      }),
+    ]);
+
+    expect(new MongoTargetSchemaVerifier().verifySchema({ contract, schema })).toEqual({
+      ok: true,
+      issues: [],
+    });
   });
 });

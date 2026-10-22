@@ -1,3 +1,4 @@
+import type { DataTypeSupport } from '@internal/framework-components/authoring';
 import type { DataType } from '@internal/framework-components/codec';
 import { resolveReportedSqlType } from '@internal/sql-contract/data-type';
 import type { ReportedSqlType, SqlColumnIR } from '@internal/sql-schema-ir/types';
@@ -6,13 +7,14 @@ import { sqlFamilyError } from '../errors';
 import {
   fewestArgumentsCall,
   type InferredTypeConstructors,
-  pslTypeArgumentText,
+  writtenTypeArguments,
 } from './inferred-type-constructors';
 
-/** A call to a type constructor as PSL writes it: the constructor's path and its arguments' text. */
+/** A call to a type constructor as PSL writes it: the constructor's path, its arguments' text, and the value each argument gives the constructor. */
 export interface PslTypeCall {
   readonly path: readonly string[];
   readonly args: readonly string[];
+  readonly values: readonly unknown[];
 }
 
 /** The PSL type `contract infer` writes for a column that is not an enum, by table and column name. */
@@ -38,14 +40,14 @@ function reportedTypeOf(column: SqlColumnIR, tableName: string): ReportedSqlType
 function writtenCall(
   constructors: InferredTypeConstructors,
   dataTypes: readonly DataType[],
+  support: DataTypeSupport,
   reported: ReportedSqlType,
 ): PslTypeCall | undefined {
   const resolved = resolveReportedSqlType(reported, dataTypes);
   const marked = resolved && constructors.get(resolved.dataType.id);
   const call = resolved && marked && fewestArgumentsCall(marked, resolved.typeParams);
-  if (call === undefined) return undefined;
-  const args = call.args.map(pslTypeArgumentText);
-  return args.every((arg) => arg !== undefined) ? { path: call.path, args } : undefined;
+  const args = call && marked && writtenTypeArguments(marked.descriptor, call.args, support);
+  return call && args && { path: call.path, args, values: call.args };
 }
 
 /**
@@ -57,6 +59,8 @@ function writtenCall(
 export function inferColumnTypes(input: {
   readonly tables: readonly IntrospectedTable[];
   readonly constructors: InferredTypeConstructors;
+  /** The stack's data types, whose literals write each argument. */
+  readonly dataTypes: DataTypeSupport;
   readonly isEnumColumn: (column: SqlColumnIR) => boolean;
 }): ColumnTypeOf {
   const dataTypes = [...input.constructors.values()].map((marked) => marked.dataType);
@@ -66,7 +70,7 @@ export function inferColumnTypes(input: {
     for (const column of columns) {
       if (input.isEnumColumn(column)) continue;
       const reported = reportedTypeOf(column, tableName);
-      const call = writtenCall(input.constructors, dataTypes, reported);
+      const call = writtenCall(input.constructors, dataTypes, input.dataTypes, reported);
       if (call === undefined) {
         unclaimed.push(
           `${schemaName}.${tableName}.${column.name}: ${reported.text}${column.many === true ? '[]' : ''}`,
@@ -86,7 +90,7 @@ export function inferColumnTypes(input: {
       ].join('\n'),
       {
         why: 'Prisma 8 reads a column type only through a data type that the target or an extension pack declares.',
-        fix: "No configured pack has a type for these columns. If a type comes from a database extension that has a Prisma 8 pack, add the pack to extensions in prisma.config.ts. Otherwise change the column's type or remove the column from the database.",
+        fix: `No configured pack has a type for these columns. If a type comes from a database extension that has a Prisma 8 pack, add the pack to extensions in prisma.config.ts. Otherwise, to keep such a column, write the schema by hand and declare its field as Raw(sql\`<type>\`) with the type as listed, or change the column's type or remove the column from the database.`,
         meta: { columns },
       },
     );

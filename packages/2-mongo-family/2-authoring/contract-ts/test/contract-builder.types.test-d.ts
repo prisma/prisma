@@ -511,6 +511,28 @@ test('VO input: nested VO recursion resolves inner shape (not unknown)', () => {
   expectTypeOf<VOInput['nested']['inner']>().not.toBeUnknown();
 });
 
+test('a model storage type names the stored name of each field', () => {
+  const Account = model('Account', {
+    collection: 'accounts',
+    fields: {
+      id: field.objectId().mongo({ field: '_id' }),
+      handle: field.string().optional().mongo({ field: 'user_handle' }),
+      email: field.string(),
+    },
+  });
+  const contract = defineContract({
+    family: mongoFamilyPack,
+    target: mongoTargetPack,
+    models: { Account },
+  });
+  expectTypeOf<MongoModelsMap<typeof contract>['Account']['storage']['fields']>().toEqualTypeOf<{
+    readonly id: { readonly field: '_id' };
+    readonly handle: { readonly field: 'user_handle' };
+    readonly email: { readonly field: 'email' };
+  }>();
+  expectTypeOf<InferModelRow<typeof contract, 'Account'>>().toHaveProperty('id');
+});
+
 // --- Parameterized output types from the target pack ---
 
 type TestVector<N extends number> = readonly number[] & { readonly __length?: N };

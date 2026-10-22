@@ -25,3 +25,5 @@ pnpm dlx prisma@7.10.0 migrate diff --from-empty --to-schema schema.prisma --scr
 ```
 
 Copy the resulting `migration.sql` into the case folder unchanged.
+
+`unsupported-type-ignored` has an `Unsupported` field marked `@ignore`, which `prisma@7.10.0 validate` refuses although the attribute changes no DDL. Its `migration.sql` is generated from the same schema without `@ignore`.

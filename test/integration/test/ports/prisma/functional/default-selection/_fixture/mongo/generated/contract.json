@@ -34,13 +34,6 @@
         "models": {
           "Model": {
             "fields": {
-              "_id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "mongo/objectId@1",
-                  "kind": "scalar"
-                }
-              },
               "composite": {
                 "nullable": false,
                 "type": {
@@ -77,6 +70,13 @@
                   "plane": "domain"
                 }
               },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
+                  "kind": "scalar"
+                }
+              },
               "list": {
                 "many": {
                   "elementNullable": false
@@ -111,7 +111,7 @@
                     "otherId"
                   ],
                   "targetFields": [
-                    "_id"
+                    "id"
                   ]
                 },
                 "to": {
@@ -121,12 +121,35 @@
               }
             },
             "storage": {
-              "collection": "Model"
+              "collection": "Model",
+              "fields": {
+                "composite": {
+                  "field": "composite"
+                },
+                "enum": {
+                  "field": "enum"
+                },
+                "enumList": {
+                  "field": "enumList"
+                },
+                "id": {
+                  "field": "_id"
+                },
+                "list": {
+                  "field": "list"
+                },
+                "otherId": {
+                  "field": "otherId"
+                },
+                "value": {
+                  "field": "value"
+                }
+              }
             }
           },
           "Other": {
             "fields": {
-              "_id": {
+              "id": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -140,7 +163,7 @@
                 "nullable": true,
                 "on": {
                   "localFields": [
-                    "_id"
+                    "id"
                   ],
                   "targetFields": [
                     "otherId"
@@ -153,7 +176,12 @@
               }
             },
             "storage": {
-              "collection": "Other"
+              "collection": "Other",
+              "fields": {
+                "id": {
+                  "field": "_id"
+                }
+              }
             }
           }
         },

@@ -1,7 +1,10 @@
-import type {
-  AuthoringArgumentDescriptor,
-  AuthoringPslBlockDescriptorNamespace,
+import {
+  type AuthoringArgumentDescriptor,
+  type AuthoringPslBlockDescriptorNamespace,
+  type DataTypeSupport,
+  describeAdmittedForms,
 } from '@internal/framework-components/authoring';
+import { dataTypeId } from '@internal/framework-components/codec';
 import type {
   AttributeSymbol,
   Binder,
@@ -36,6 +39,8 @@ import {
 export interface ProvidePslHoverInput extends PslCursorInput {
   readonly binder: Binder;
   readonly pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace;
+  /** The stack's data types, which say how a type constructor's value arguments are written. */
+  readonly dataTypes: DataTypeSupport;
 }
 
 type HoverEntitySymbol =
@@ -59,7 +64,7 @@ export function providePslHover(input: ProvidePslHoverInput): Hover | null {
   const offset = input.sourceFile.offsetAt(input.position);
   const token = identTokenAt(input.document.syntax, offset);
   if (token === undefined) return null;
-  const value = hoverValueAt(input.binder, token, input.pslBlockDescriptors);
+  const value = hoverValueAt(input, token);
   if (value === undefined) return null;
   return {
     contents: { kind: MarkupKind.Markdown, value },
@@ -70,14 +75,10 @@ export function providePslHover(input: ProvidePslHoverInput): Hover | null {
   };
 }
 
-function hoverValueAt(
-  binder: Binder,
-  token: SyntaxToken,
-  pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace,
-): string | undefined {
-  const result = resolveHoverResult(binder, token);
-  if (result !== undefined) return renderHoverResult(result);
-  return blockKeywordDocumentationAt(token, pslBlockDescriptors);
+function hoverValueAt(input: ProvidePslHoverInput, token: SyntaxToken): string | undefined {
+  const result = resolveHoverResult(input.binder, token);
+  if (result !== undefined) return renderHoverResult(result, input.dataTypes);
+  return blockKeywordDocumentationAt(token, input.pslBlockDescriptors);
 }
 
 function resolveHoverResult(binder: Binder, token: SyntaxToken): HoverResult | undefined {
@@ -107,11 +108,13 @@ function resolveHoverResult(binder: Binder, token: SyntaxToken): HoverResult | u
   }
 }
 
-function renderHoverResult(result: HoverResult): string {
+function renderHoverResult(result: HoverResult, dataTypes: DataTypeSupport): string {
   if (result.kind === 'entity') return renderEntityContent(result.symbol);
   if (result.kind === 'namespace') return renderNamespaceContent(result.symbol);
   if (result.kind === 'attribute') return renderAttributeContent(result.symbol);
-  if (result.kind === 'contributedType') return renderContributedTypeContent(result.symbol);
+  if (result.kind === 'contributedType') {
+    return renderContributedTypeContent(result.symbol, dataTypes);
+  }
   if (result.kind === 'parameter') return renderParameterContent(result.symbol);
   if (result.kind === 'function') return renderFunctionContent(result.symbol);
   return renderConstantContent(result.symbol);
@@ -134,10 +137,13 @@ function renderAttributeContent(symbol: AttributeSymbol): string {
   return withDocumentation(fence, symbol.spec.documentation);
 }
 
-function renderContributedTypeContent(symbol: ContributedTypeSymbol): string {
-  const fence = ['```prisma', renderContributedTypeLabel(symbol), '```'].join('\n');
+function renderContributedTypeContent(
+  symbol: ContributedTypeSymbol,
+  dataTypes: DataTypeSupport,
+): string {
+  const fence = ['```prisma', renderContributedTypeLabel(symbol, dataTypes), '```'].join('\n');
   const documentation =
-    symbol.descriptor.kind === 'typeConstructor' ? symbol.descriptor.documentation : undefined;
+    symbol.descriptor.kind === 'fieldPreset' ? undefined : symbol.descriptor.documentation;
   return withDocumentation(fence, documentation);
 }
 
@@ -164,22 +170,24 @@ function withDocumentation(fence: string, documentation: string | undefined): st
     : `${fence}\n\n${documentation}`;
 }
 
-function renderContributedTypeLabel(symbol: ContributedTypeSymbol): string {
+function renderContributedTypeLabel(
+  symbol: ContributedTypeSymbol,
+  dataTypes: DataTypeSupport,
+): string {
   const path = symbol.path.join('.');
-  const args = symbol.descriptor.args ?? [];
+  const { descriptor } = symbol;
+  const args = descriptor.kind === 'typeAlias' ? [] : (descriptor.args ?? []);
   if (args.length === 0) return path;
   const labels = args.map((arg, index) => {
     const key = arg.name ?? `arg${index + 1}`;
-    return `${key}${arg.optional === true ? '?' : ''}: ${argumentTypeLabel(arg)}`;
+    return `${key}${arg.optional === true ? '?' : ''}: ${argumentTypeLabel(arg, dataTypes)}`;
   });
   return `${path}(${labels.join(', ')})`;
 }
 
-function argumentTypeLabel(arg: AuthoringArgumentDescriptor): string {
-  if (arg.kind === 'string') return 'string';
-  if (arg.kind === 'boolean') return 'boolean';
+function argumentTypeLabel(arg: AuthoringArgumentDescriptor, dataTypes: DataTypeSupport): string {
+  if (arg.kind === 'value') return describeAdmittedForms(dataTypes, dataTypeId(arg.dataType));
   if (arg.kind === 'number') return 'number';
-  if (arg.kind === 'stringArray') return 'string[]';
   if (arg.kind === 'object') return 'object';
   return arg.values.map((value) => `'${value}'`).join(' | ');
 }

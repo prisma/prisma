@@ -7,14 +7,15 @@ import { dirname, join, relative } from 'pathe';
 import { afterAll, describe, expect, it } from 'vitest';
 
 const SCRIPT_PATHS = {
-  app: 'upgrade-instructions/pending/client-takes-contract-value/app/scripts/contract-from-json.ts',
+  app: 'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/scripts/client-takes-contract-value/contract-from-json.ts',
   extension:
-    'upgrade-instructions/pending/client-takes-contract-value/extension/scripts/contract-from-json.ts',
+    'skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/scripts/client-takes-contract-value/contract-from-json.ts',
 } as const;
 
 const GUIDE_PATHS = {
-  app: 'upgrade-instructions/pending/client-takes-contract-value/app/instructions.md',
-  extension: 'upgrade-instructions/pending/client-takes-contract-value/extension/instructions.md',
+  app: 'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md',
+  extension:
+    'skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md',
 } as const;
 
 type Audience = keyof typeof SCRIPT_PATHS;
@@ -93,6 +94,7 @@ describe.each(['app', 'extension'] as const)('the %s script', (audience) => {
       stdout:
         moved(['src/comment.ts', 'src/default-as.ts']) +
         notExported('src/default-export.ts') +
+        notExported('src/default-reexport.ts') +
         moved(['src/nested-object.ts', 'src/value-with-comma.ts']),
       stderr: '',
       tree: fixtureTree('shapes', 'after'),
@@ -157,7 +159,10 @@ function scriptDetection(audience: Audience): RegExp {
 
 function detection(audience: Audience): RegExp {
   const guide = readFileSync(join(repoRoot, GUIDE_PATHS[audience]), 'utf8');
-  const pattern = /^ {8}- '(.*)'$/m.exec(guide)?.[1];
+  const entry = guide
+    .split(/\n {2}- id: /)
+    .find((block) => block.startsWith('client-takes-contract-value\n'));
+  const pattern = /^ {8}- '(.*)'$/m.exec(entry ?? '')?.[1];
   if (pattern === undefined) throw new Error(`${GUIDE_PATHS[audience]} has no detection pattern`);
   return new RegExp(pattern.replaceAll("''", "'"));
 }

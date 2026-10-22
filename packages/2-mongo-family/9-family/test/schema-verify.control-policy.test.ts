@@ -89,6 +89,23 @@ describe('verifyMongoSchema control policy', () => {
     ).toBe(true);
   });
 
+  it('grades a managed collection under an external default as external, as the planner does', () => {
+    const contract = buildContract({ items: { control: 'managed' } }, 'external');
+    const result = verifyMongoSchema({
+      contract,
+      schema: new MongoSchemaIR([
+        new MongoSchemaCollection({
+          name: 'items',
+          indexes: [idx([{ field: 'extra', direction: 1 }])],
+        }),
+      ]),
+      strict: true,
+      frameworkComponents: [],
+    });
+    expect(result.ok).toBe(true);
+    expect(result.schema.issues).toEqual([]);
+  });
+
   it('fails a missing declared collection under external (existence required)', () => {
     const contract = buildContract({ items: { control: 'external' } });
     const result = verifyMongoSchema({

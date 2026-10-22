@@ -115,6 +115,36 @@ describe('contractModelToMongoResultShape', () => {
     expect(shape.fields['customer']).toEqual(included);
   });
 
+  it('keys each field by its stored name, and a selection names stored names', () => {
+    const model = {
+      fields: {
+        id: { type: { kind: 'scalar', codecId: 'mongo/objectId@1' }, nullable: false },
+        title: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: true },
+      },
+      relations: {},
+      storage: {
+        collection: 'posts',
+        fields: { id: { field: '_id' }, title: { field: 'post_title' } },
+      },
+    } as const;
+    expect([
+      contractModelToMongoResultShape(model),
+      contractModelToMongoResultShape(model, { selection: ['post_title'] }),
+    ]).toEqual([
+      {
+        kind: 'document',
+        fields: {
+          _id: { kind: 'leaf', codecId: 'mongo/objectId@1', nullable: false },
+          post_title: { kind: 'leaf', codecId: 'mongo/string@1', nullable: true },
+        },
+      },
+      {
+        kind: 'document',
+        fields: { post_title: { kind: 'leaf', codecId: 'mongo/string@1', nullable: true } },
+      },
+    ]);
+  });
+
   it('restricts fields with selection', () => {
     const model = testContract.domain.namespaces.__unbound__!.models['Order'];
     const shape = contractModelToMongoResultShape(model, { selection: ['status', 'amount'] });

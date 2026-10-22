@@ -10,6 +10,7 @@ import type { JsonValue } from '@internal/contract/types';
 import {
   type Cast,
   type DataType,
+  type DataTypeId,
   type DataTypeReader,
   type DataTypeSpelling,
   INT64_RANGE,
@@ -20,7 +21,7 @@ import {
   refuseJsonValue,
 } from '@internal/framework-components/codec';
 import { canonicalizeJson } from '@internal/framework-components/utils';
-import { sqlDataType } from '@internal/sql-contract/data-type';
+import { sqlDataType, sqlRawDataType } from '@internal/sql-contract/data-type';
 import { dateTimeStoredText } from '@internal/sql-contract/data-type-support';
 import { structuredError } from '@internal/utils/structured-error';
 import { type as arktype } from 'arktype';
@@ -98,8 +99,13 @@ export function sqliteBlobFromHexText(text: string): string {
   return text.toUpperCase();
 }
 
-/** The length of `character` and `character varying`, which SQLite accepts and does not enforce. */
-export const sqliteCharacterLengthParams = arktype({ 'length?': 'number.integer >= 1' });
+/** The largest string length SQLite allows at compile time: `SQLITE_MAX_LENGTH`'s hard limit. */
+const SQLITE_MAX_LENGTH = 2147483647;
+
+/** The length of `character` and `character varying`, which SQLite accepts and does not enforce, up to SQLite's largest string length, so a double holds every accepted length exactly. */
+export const sqliteCharacterLengthParams = arktype({
+  'length?': `number.integer >= 1 & number.integer <= ${SQLITE_MAX_LENGTH}`,
+});
 
 /** A character type is written without its length, so its normal form has none. */
 const withoutLength = <Params extends { readonly length?: number }>({
@@ -207,4 +213,12 @@ export const sqliteDataTypes: readonly DataType[] = [
   sqliteCharacterVarying,
   sqliteDatetime,
   sqliteJson,
+  sqlRawDataType,
+];
+
+/** SQLite's text data types: `text`, `character(n)` and `character varying(n)`. */
+export const sqliteTextDataTypes: readonly DataTypeId[] = [
+  sqliteText.id,
+  sqliteCharacter.id,
+  sqliteCharacterVarying.id,
 ];

@@ -29,7 +29,7 @@ describe('assembleAuthoringContributions', () => {
         type: {
           enum: {
             kind: 'typeConstructor',
-            args: [{ kind: 'string' }, { kind: 'stringArray' }],
+            args: [{ kind: 'option', values: ['a'] }, { kind: 'number' }],
             output: {
               codecId: 'app/test-type@1',
               typeParams: {
@@ -84,7 +84,7 @@ describe('assembleAuthoringContributions', () => {
         type: {
           enum: {
             kind: 'typeConstructor',
-            args: [{ kind: 'string' }, { kind: 'stringArray' }],
+            args: [{ kind: 'option', values: ['a'] }, { kind: 'number' }],
             output: {
               codecId: 'app/test-type@1',
             },
@@ -97,7 +97,7 @@ describe('assembleAuthoringContributions', () => {
         type: {
           enum: {
             kind: 'typeConstructor',
-            args: [{ kind: 'string' }, { kind: 'stringArray' }],
+            args: [{ kind: 'option', values: ['a'] }, { kind: 'number' }],
             output: {
               codecId: 'conflict/enum@1',
             },

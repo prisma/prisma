@@ -89,6 +89,11 @@
         }
       }
     },
+    // An upgrade script keeps the import order of each migration.ts it rewrites.
+    {
+      "includes": ["**/upgrade-instructions/*/fixtures/**/migration.ts"],
+      "assist": { "enabled": false }
+    },
     {
       "includes": ["**/*.config.ts"],
       "linter": {

@@ -7,16 +7,16 @@ import {
 import { unboundTables } from './unbound-tables';
 
 describe('interpretPslDocumentToSqlContract default function lowering', () => {
-  it('lowers supported default functions into execution and storage contract shapes', () => {
+  it('lowers generator attributes and database default functions into execution and storage contract shapes', () => {
     const result = interpretPostgresSchema(
       `model Defaults {
   id Int @id
-  idCuid2 String @default(cuid(2))
-  idUuidV4 String @default(uuid())
-  idUuidV7 String @default(uuid(7))
-  idUlid String @default(ulid())
-  idNanoidDefault String @default(nanoid())
-  idNanoidSized String @default(nanoid(16))
+  idCuid2 String @onCreate(cuid(2))
+  idUuidV4 String @onCreate(uuid())
+  idUuidV7 String @onCreate(uuid(7))
+  idUlid String @onCreate(ulid())
+  idNanoidDefault String @onCreate(nanoid())
+  idNanoidSized String @onCreate(nanoid(16))
   dbExpr String @default(sql\`gen_random_uuid()\`)
   createdAt DateTime @default(now())
 }`,
@@ -97,15 +97,15 @@ describe('interpretPslDocumentToSqlContract default function lowering', () => {
     });
   });
 
-  it('accepts uuid() and uuid(7) defaults on bare Uuid columns, preserving native uuid storage type', () => {
+  it('accepts @onCreate(uuid()) and @onCreate(uuid(7)) on Uuid columns, preserving native uuid storage type', () => {
     const result = interpretPostgresSchema(
       `types {
   UuidNativeId = Uuid
 }
 
 model UuidNative {
-  idV4 UuidNativeId @id @default(uuid())
-  idV7 UuidNativeId @default(uuid(7))
+  idV4 UuidNativeId @id @onCreate(uuid())
+  idV7 UuidNativeId @onCreate(uuid(7))
 }`,
       {
         controlMutationDefaults: builtinControlMutationDefaults,
@@ -140,14 +140,14 @@ model UuidNative {
     });
   });
 
-  it('accepts uuid() default on a named Uuid type field (e.g. id Uuid @id @default(uuid())), preserving native uuid storage type', () => {
+  it('accepts uuid() default on a named Uuid type field (e.g. id Uuid @id @onCreate(uuid())), preserving native uuid storage type', () => {
     const result = interpretPostgresSchema(
       `types {
   Uuid = Uuid
 }
 
 model Profile {
-  id Uuid @id @default(uuid())
+  id Uuid @id @onCreate(uuid())
   name String
 }`,
       {
@@ -176,14 +176,14 @@ model Profile {
     });
   });
 
-  it('rejects non-uuid generators on bare Uuid columns with PSL_INVALID_DEFAULT_APPLICABILITY', () => {
+  it('rejects non-uuid generators on Uuid columns with PSL_GENERATOR_NOT_APPLICABLE', () => {
     const result = interpretPostgresSchema(
       `types {
   UuidNativeId = Uuid
 }
 
 model UuidNativeBad {
-  id UuidNativeId @id @default(nanoid())
+  id UuidNativeId @id @onCreate(nanoid())
 }`,
       {
         controlMutationDefaults: builtinControlMutationDefaults,
@@ -192,24 +192,22 @@ model UuidNativeBad {
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
-          sourceId: 'schema.prisma',
-          message: expect.stringContaining('nanoid'),
-        }),
-      ]),
-    );
+    expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+      {
+        code: 'PSL_GENERATOR_NOT_APPLICABLE',
+        message:
+          'Field "UuidNativeBad.id": nanoid() does not apply to codec "pg/uuid@1". Functions that apply: uuid().',
+      },
+    ]);
   });
 
-  it('reports invalid default function arguments with the diagnostics of the function', () => {
+  it('reports invalid generator function arguments with the diagnostics of the function', () => {
     const result = interpretPostgresSchema(
       `model InvalidDefaults {
   id Int @id
-  cuidValue String @default(cuid())
-  badUuid String @default(uuid(5))
-  badNanoid String @default(nanoid(1))
+  cuidValue String @onCreate(cuid())
+  badUuid String @onCreate(uuid(5))
+  badNanoid String @onCreate(nanoid(1))
 }`,
       {
         controlMutationDefaults: builtinControlMutationDefaults,
@@ -222,29 +220,29 @@ model UuidNativeBad {
     expect(result.failure.diagnostics).toEqual([
       {
         code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
-        message: 'Attribute "cuid" is missing required argument "version"',
+        message: 'Generator function "cuid" is missing required argument "version"',
         sourceId: 'schema.prisma',
         span: {
-          start: { line: 3, column: 29, offset: 65 },
-          end: { line: 3, column: 35, offset: 71 },
+          start: { line: 3, column: 30, offset: 66 },
+          end: { line: 3, column: 36, offset: 72 },
         },
       },
       {
-        code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
-        message: 'Expected one of: 4 | 7',
+        code: 'PSL_INVALID_GENERATOR_ARGUMENT',
+        message: 'uuid: version must be 4 or 7, got 5',
         sourceId: 'schema.prisma',
         span: {
-          start: { line: 4, column: 32, offset: 104 },
-          end: { line: 4, column: 33, offset: 105 },
+          start: { line: 4, column: 33, offset: 106 },
+          end: { line: 4, column: 34, offset: 107 },
         },
       },
       {
-        code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
-        message: 'Expected an integer between 2 and 255',
+        code: 'PSL_INVALID_GENERATOR_ARGUMENT',
+        message: 'nanoid: size must be between 2 and 255, got 1',
         sourceId: 'schema.prisma',
         span: {
-          start: { line: 5, column: 36, offset: 143 },
-          end: { line: 5, column: 37, offset: 144 },
+          start: { line: 5, column: 37, offset: 146 },
+          end: { line: 5, column: 38, offset: 147 },
         },
       },
     ]);
@@ -266,7 +264,7 @@ model UuidNativeBad {
     if (result.ok) return;
 
     const message =
-      'Default function "dbgenerated" was removed. Write the SQL as a tagged literal: @default(sql`<expression>`). Supported functions: autoincrement(), cuid(2), nanoid(), nanoid(<2-255>), now(), ulid(), uuid(), uuid(4), uuid(7).';
+      'Default function "dbgenerated" was removed. Write the SQL as a tagged literal: @default(sql`<expression>`). Supported functions: autoincrement(), now().';
     expect(
       result.failure.diagnostics.map(({ code, message, span }) => ({
         code,
@@ -279,11 +277,11 @@ model UuidNativeBad {
     ]);
   });
 
-  it('keeps an execution default on an optional field', () => {
+  it('keeps a generator on an optional field', () => {
     const result = interpretPostgresSchema(
       `model OptionalDefaults {
   id Int @id
-  token String? @default(nanoid())
+  token String? @onCreate(nanoid())
 }`,
       {
         controlMutationDefaults: builtinControlMutationDefaults,
@@ -339,5 +337,30 @@ model UuidNativeBad {
         },
       },
     });
+  });
+
+  it.each([
+    ['uuid()', 'id'],
+    ['uuid(7)', 'id'],
+    ['cuid(2)', 'id'],
+    ['ulid()', 'id'],
+    ['nanoid()', 'id'],
+    ['nanoid(16)', 'id'],
+  ])('refuses @default(%s), naming the @onCreate form', (call) => {
+    const result = interpretPostgresSchema(
+      `model Event {
+  id String @id @default(${call})
+}`,
+      { controlMutationDefaults: builtinControlMutationDefaults },
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+      {
+        code: 'PSL_GENERATOR_IN_DEFAULT',
+        message: `Field "Event.id": ${call} is a value the client generates, and @default sets a database default only. Write @onCreate(${call}) instead.`,
+      },
+    ]);
   });
 });

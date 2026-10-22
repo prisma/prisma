@@ -186,7 +186,6 @@ describe('the convert and backfill strategies compare by data type', () => {
     schemaName: 'public',
     codecHooks: new Map(),
     types: postgresTypeLookups,
-    storageTypes: {},
     schema: undefined as never,
     ...planTrees(),
     allIssues: [],

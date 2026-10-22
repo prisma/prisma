@@ -1,4 +1,11 @@
-import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
+import type {
+  AuthoringPslBlockDescriptorNamespace,
+  DataTypeSupport,
+} from '@internal/framework-components/authoring';
+import {
+  EMPTY_GENERATOR_FUNCTIONS,
+  type GeneratorFunctionRegistry,
+} from '@internal/framework-components/components';
 import {
   type AssembledAuthoringContributions,
   assembleAuthoringContributions,
@@ -7,6 +14,7 @@ import {
 import {
   type Binder,
   buildSymbolTable,
+  EMPTY_DATA_TYPES,
   entityRef,
   fieldAttribute,
   fieldRef,
@@ -263,7 +271,9 @@ export interface FixtureCursorInput extends FixtureStack {
   readonly binder: Binder;
   readonly symbolTable: SymbolTable;
   readonly controlMutationDefaults: ControlMutationDefaults;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly formatOptions: ResolvedFormatOptions;
+  readonly dataTypes: DataTypeSupport;
 }
 
 export function cursorInput(
@@ -290,6 +300,8 @@ export function cursorInput(
     symbolTable,
     ...stack,
     controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+    generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     formatOptions: resolveFormatOptions(undefined),
+    dataTypes: EMPTY_DATA_TYPES,
   };
 }

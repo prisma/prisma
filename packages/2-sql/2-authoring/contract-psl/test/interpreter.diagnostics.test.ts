@@ -168,7 +168,7 @@ ${['First', 'Second', 'Third']
       expect.arrayContaining([
         expect.objectContaining({
           code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
-          message: 'Named type "Broken" must declare a base type or constructor',
+          message: 'Type alias "Broken" must declare a base type or constructor',
         }),
       ]),
     );
@@ -190,7 +190,7 @@ ${['First', 'Second', 'Third']
     expect(result.failure.diagnostics).toEqual([
       expect.objectContaining({
         code: 'PSL_UNSUPPORTED_NAMED_TYPE_CONSTRUCTOR',
-        message: 'Named type "Weird" references unsupported constructor "pgvector.vector"',
+        message: 'Type alias "Weird" references unsupported constructor "pgvector.vector"',
       }),
     ]);
   });
@@ -439,19 +439,19 @@ model InvalidNativeTypes {
         expect.objectContaining({
           code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
           message: expect.stringContaining(
-            'Named type "BadChar" constructor "Char" Authoring helper argument at Char[0] is invalid: length must be at least 1 (was 0)',
+            'Type alias "BadChar" constructor "Char" Authoring helper argument at Char[0] is invalid: length must be at least 1 (was 0)',
           ),
         }),
         expect.objectContaining({
           code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
           message: expect.stringContaining(
-            'Named type "BadReal" constructor "Real" accepts at most 0 argument(s), received 1.',
+            'Type alias "BadReal" constructor "Real" accepts at most 0 argument(s), received 1.',
           ),
         }),
         expect.objectContaining({
           code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
           message: expect.stringContaining(
-            'Named type "BadTimestamp" constructor "Timestamp" Authoring helper argument at Timestamp[0] is invalid: precision must be non-negative (was -1)',
+            'Type alias "BadTimestamp" constructor "Timestamp" Authoring helper argument at Timestamp[0] is invalid: precision must be non-negative (was -1)',
           ),
         }),
       ]),
@@ -498,6 +498,72 @@ model InvalidNativeTypes {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.failure.diagnostics[0]?.span?.start.offset).toBe(schema.indexOf('10485761'));
+  });
+
+  it.each([
+    ['VarChar(3000000000)', '3000000000', 'Expected a number that pg/int4 can hold; got pg/int8'],
+    ['Timestamp(2.5)', '2.5', 'Expected a number that pg/int4 can hold; got pg/numeric'],
+    ['VarChar(255.0)', '255.0', 'Expected a number that pg/int4 can hold; got pg/numeric'],
+    ['VarChar("255")', '"255"', 'Expected a number; write 255'],
+    ['VarChar(length: true)', 'true', 'Expected a number'],
+  ])(
+    'refuses %s as a value its argument’s data type does not take, at the argument',
+    (call, argument, message) => {
+      const schema = `model T {\n  id Int @id\n  value ${call}\n}\n`;
+      const result = interpretSqlContract(schema, {
+        ...baseInput,
+        controlMutationDefaults: builtinControlMutationDefaults,
+      });
+      expect(result.ok ? [] : result.failure.diagnostics).toEqual([
+        {
+          code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+          message,
+          sourceId: 'schema.prisma',
+          span: {
+            start: expect.objectContaining({ offset: schema.indexOf(argument) }),
+            end: expect.objectContaining({ offset: schema.indexOf(argument) + argument.length }),
+          },
+        },
+      ]);
+    },
+  );
+
+  it.each(['VarChar(length: )', 'VarChar(length:)'])(
+    'refuses %s, a named argument with no value, at the argument',
+    (call) => {
+      const schema = `model T {\n  id Int @id\n  value ${call}\n}\n`;
+      const result = interpretSqlContract(schema, {
+        ...baseInput,
+        controlMutationDefaults: builtinControlMutationDefaults,
+      });
+      const argument = call.slice('VarChar('.length, -1);
+      expect(result.ok ? [] : result.failure.diagnostics).toEqual([
+        expect.objectContaining({
+          code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+          message: 'Field "T.value" constructor "VarChar" named argument "length" has no value.',
+          span: expect.objectContaining({
+            start: expect.objectContaining({ offset: schema.indexOf(argument) }),
+          }),
+        }),
+      ]);
+    },
+  );
+
+  it('reports Timestamp(7) through the data type’s bounds, at the argument', () => {
+    const schema = 'model T {\n  id Int @id\n  value Timestamp(7)\n}\n';
+    const result = interpretSqlContract(schema, {
+      ...baseInput,
+      controlMutationDefaults: builtinControlMutationDefaults,
+    });
+    expect(result.ok ? [] : result.failure.diagnostics).toEqual([
+      expect.objectContaining({
+        code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+        message: expect.stringContaining('precision must be at most 6 (was 7)'),
+        span: expect.objectContaining({
+          start: expect.objectContaining({ offset: schema.indexOf('7)') }),
+        }),
+      }),
+    ]);
   });
 
   it('returns diagnostics when relation fields and references lengths differ', () => {

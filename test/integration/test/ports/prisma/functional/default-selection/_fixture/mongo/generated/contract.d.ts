@@ -74,10 +74,10 @@ export type FieldInputTypes = FieldTypesFromDomain<
 
 export namespace Models {
   export type unbound_Model = {
-    _id: FieldOutputTypes['__unbound__']['Model']['_id'];
     composite: FieldOutputTypes['__unbound__']['Model']['composite'];
     enum: FieldOutputTypes['__unbound__']['Model']['enum'];
     enumList: FieldOutputTypes['__unbound__']['Model']['enumList'];
+    id: FieldOutputTypes['__unbound__']['Model']['id'];
     list: FieldOutputTypes['__unbound__']['Model']['list'];
     otherId: FieldOutputTypes['__unbound__']['Model']['otherId'];
     value: FieldOutputTypes['__unbound__']['Model']['value'];
@@ -85,7 +85,7 @@ export namespace Models {
     readonly [RelationKeys]?: 'relation';
   };
   export type unbound_Other = {
-    _id: FieldOutputTypes['__unbound__']['Other']['_id'];
+    id: FieldOutputTypes['__unbound__']['Other']['id'];
     model: unbound_Model | null;
     readonly [RelationKeys]?: 'model';
   };
@@ -196,10 +196,6 @@ type ContractBase = Omit<
         readonly models: {
           readonly Model: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly composite: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'Composite' };
@@ -212,6 +208,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
                 readonly many: { readonly elementNullable: false };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly list: {
                 readonly nullable: false;
@@ -237,15 +237,26 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['otherId'];
-                  readonly targetFields: readonly ['_id'];
+                  readonly targetFields: readonly ['id'];
                 };
               };
             };
-            readonly storage: { readonly collection: 'Model' };
+            readonly storage: {
+              readonly collection: 'Model';
+              readonly fields: {
+                readonly composite: { readonly field: 'composite' };
+                readonly enum: { readonly field: 'enum' };
+                readonly enumList: { readonly field: 'enumList' };
+                readonly id: { readonly field: '_id' };
+                readonly list: { readonly field: 'list' };
+                readonly otherId: { readonly field: 'otherId' };
+                readonly value: { readonly field: 'value' };
+              };
+            };
           };
           readonly Other: {
             readonly fields: {
-              readonly _id: {
+              readonly id: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
@@ -259,12 +270,15 @@ type ContractBase = Omit<
                 readonly cardinality: '1:1';
                 readonly nullable: true;
                 readonly on: {
-                  readonly localFields: readonly ['_id'];
+                  readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['otherId'];
                 };
               };
             };
-            readonly storage: { readonly collection: 'Other' };
+            readonly storage: {
+              readonly collection: 'Other';
+              readonly fields: { readonly id: { readonly field: '_id' } };
+            };
           };
         };
         readonly valueObjects: {

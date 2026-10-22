@@ -23,7 +23,7 @@ const writtenAndCatalog = (text: string): readonly SqlTypeText[] => [
   { text, written: true, catalog: true },
 ];
 
-/** The six SQLite data types written and printed by one text each (ADR 254). */
+/** The six SQLite data types written and printed by one text each (ADR 254), and sql/raw, which declares none. */
 const EXPECTED: Readonly<Record<string, readonly SqlTypeText[]>> = {
   'sqlite/text': writtenAndCatalog('text'),
   'sqlite/integer': writtenAndCatalog('integer'),
@@ -31,6 +31,7 @@ const EXPECTED: Readonly<Record<string, readonly SqlTypeText[]>> = {
   'sqlite/blob': writtenAndCatalog('blob'),
   'sqlite/character': writtenAndCatalog('character'),
   'sqlite/character-varying': writtenAndCatalog('character varying'),
+  'sql/raw': [],
 };
 
 /** The two types stored as `sqlite/text`, which declare no texts of their own. */
@@ -60,19 +61,21 @@ describe('the SQLite data type declarations', () => {
   );
 
   it.each(withTexts.map((type) => [type.id] as const))(
-    '%s is declared with its one written and catalog text',
+    '%s is declared with the texts it is written and printed by, and claims no kind',
     (id) => {
       expect(EXPECTED).toHaveProperty([id]);
       const { sql } = sqlTypeOf(id);
       expect(sql.texts).toEqual(EXPECTED[id]);
       expect(sql.claimsKind).toBeUndefined();
-      expect(sql.render).toBeUndefined();
+      expect(sql.render === undefined).toBe(sql.texts.length > 0);
       expect(sql.fromReported).toBeUndefined();
     },
   );
 
   it.each(
-    Object.entries(EXPECTED).map(([id, [text]]) => [id, text?.text.toUpperCase() ?? ''] as const),
+    Object.entries(EXPECTED).flatMap(([id, [text]]) =>
+      text === undefined ? [] : [[id, text.text.toUpperCase()] as const],
+    ),
   )('%s claims the reported type %s', (id, text) => {
     const reported = { text, kind: undefined, schema: undefined, name: undefined };
     expect(resolveReportedSqlType(reported, registered)).toEqual({ dataType: id, typeParams: {} });

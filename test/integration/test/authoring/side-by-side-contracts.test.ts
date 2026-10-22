@@ -50,6 +50,7 @@ const sqlSourceContext: ContractSourceContext = {
   codecLookup: sqlStack.codecLookup,
   dataTypes: sqlStack.dataTypes,
   controlMutationDefaults: sqlStack.controlMutationDefaults,
+  generatorFunctions: sqlStack.generatorFunctions,
   resolvedInputs: [],
   capabilities: sqlStack.capabilities,
 };
@@ -62,6 +63,7 @@ const mongoSourceContext: ContractSourceContext = {
   codecLookup: mongoStack.codecLookup,
   dataTypes: mongoStack.dataTypes,
   controlMutationDefaults: mongoStack.controlMutationDefaults,
+  generatorFunctions: mongoStack.generatorFunctions,
   resolvedInputs: [],
   capabilities: mongoStack.capabilities,
 };
@@ -272,27 +274,7 @@ describe('side-by-side contract examples', () => {
         enrichContract(providerResult.value, frameworkComponents),
       );
 
-      const stripValidatorFields = (contract: typeof normalizedTs) => {
-        const storage = contract.storage as unknown as Record<string, unknown>;
-        const namespaces = storage['namespaces'] as Record<string, Record<string, unknown>>;
-        const strippedNamespaces: Record<string, unknown> = {};
-        for (const [nsId, ns] of Object.entries(namespaces)) {
-          const entries = ns['entries'] as { collection: Record<string, Record<string, unknown>> };
-          const collections = entries.collection;
-          const strippedCollections: Record<string, unknown> = {};
-          for (const [name, coll] of Object.entries(collections)) {
-            const { validator: _, ...rest } = coll;
-            strippedCollections[name] = rest;
-          }
-          strippedNamespaces[nsId] = {
-            ...ns,
-            entries: { ...(ns['entries'] as object), collection: strippedCollections },
-          };
-        }
-        const { storageHash: _sh, ...restStorage } = storage;
-        return { ...contract, storage: { ...restStorage, namespaces: strippedNamespaces } };
-      };
-      expect(stripValidatorFields(normalizedTs)).toEqual(stripValidatorFields(normalizedPsl));
+      expect(normalizedTs).toEqual(normalizedPsl);
 
       const mongoSerializeContract: SerializeContract = (contract) =>
         mongoTargetDescriptor.contractSerializer.serializeContract(contract as MongoTargetContract);
@@ -305,36 +287,14 @@ describe('side-by-side contract examples', () => {
         ...mongoContractCanonicalizationHooks,
       });
 
-      const stripForComparison = (json: string) => {
-        const parsed = JSON.parse(json) as Record<string, unknown>;
-        const storage = parsed['storage'] as Record<string, unknown>;
-        const namespaces = storage['namespaces'] as Record<string, Record<string, unknown>>;
-        const strippedNamespaces: Record<string, unknown> = {};
-        for (const [nsId, ns] of Object.entries(namespaces)) {
-          const entries = ns['entries'] as { collection: Record<string, Record<string, unknown>> };
-          const collections = entries.collection;
-          const strippedCollections: Record<string, unknown> = {};
-          for (const [name, coll] of Object.entries(collections)) {
-            const { validator: _, ...rest } = coll;
-            strippedCollections[name] = rest;
-          }
-          strippedNamespaces[nsId] = {
-            ...ns,
-            entries: { ...(ns['entries'] as object), collection: strippedCollections },
-          };
-        }
-        const { storageHash: _sh, ...restStorage } = storage;
-        return { ...parsed, storage: { ...restStorage, namespaces: strippedNamespaces } };
-      };
-      expect(stripForComparison(emittedTs.contractJson)).toEqual(
-        stripForComparison(emittedPsl.contractJson),
-      );
+      expect(JSON.parse(emittedTs.contractJson)).toEqual(JSON.parse(emittedPsl.contractJson));
 
       const emittedContractJson = parseContractJson(emittedPsl.contractJson);
       const validatedContract = validateEmittedMongoContract(emittedContractJson);
 
       expect(validatedContract.contract.roots).toEqual({
         posts: { namespace: '__unbound__', model: 'Post' },
+        tasks: { namespace: '__unbound__', model: 'Task' },
         users: { namespace: '__unbound__', model: 'User' },
       });
       expect(
@@ -345,8 +305,21 @@ describe('side-by-side contract examples', () => {
         cardinality: '1:N',
         to: { namespace: '__unbound__', model: 'Post' },
         on: {
-          localFields: ['_id'],
+          localFields: ['id'],
           targetFields: ['authorId'],
+        },
+      });
+      expect(
+        validatedContract.contract.domain.namespaces['__unbound__']!.models['User']?.storage,
+      ).toEqual({
+        collection: 'users',
+        fields: {
+          id: { field: '_id' },
+          name: { field: 'name' },
+          email: { field: 'email' },
+          bio: { field: 'bio' },
+          role: { field: 'role' },
+          address: { field: 'address' },
         },
       });
       expect(
@@ -358,7 +331,7 @@ describe('side-by-side contract examples', () => {
         to: { namespace: '__unbound__', model: 'User' },
         on: {
           localFields: ['authorId'],
-          targetFields: ['_id'],
+          targetFields: ['id'],
         },
       });
 
@@ -387,6 +360,7 @@ describe('side-by-side contract examples', () => {
     });
     expect(mongoContractJson['roots']).toEqual({
       posts: { namespace: '__unbound__', model: 'Post' },
+      tasks: { namespace: '__unbound__', model: 'Task' },
       users: { namespace: '__unbound__', model: 'User' },
     });
 

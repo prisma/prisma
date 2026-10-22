@@ -53,7 +53,7 @@ types {
 }
 
 model Cafe {
-  id       Char(36)    @id @default(uuid())
+  id       Char(36)    @id @onCreate(uuid())
   name     String
   location WgsGeometry
   @@map("cafe")
@@ -95,7 +95,7 @@ import { db } from './prisma/db';
 const ferryBuilding = point(-122.3937, 37.7955, 4326);
 
 // Five nearest cafes, with their distance in metres.
-const closest = await db.runtime().execute(
+const closest = await db.query(
   db.sql.cafe
     .select('id', 'name')
     .select('meters', (f, fns) => fns.distanceSphere(f.location, ferryBuilding))
@@ -109,7 +109,7 @@ const closest = await db.runtime().execute(
 
 ### PSL
 
-`postgis.Geometry(srid)` declares an SRID-constrained `geometry` column. Aliasing it via a `types {}` block keeps the SRID in one place when you have several geometry fields.
+`postgis.Geometry(srid)` declares an SRID-constrained `geometry` column. Aliasing it via a `types {}` block keeps the SRID in one place when you have several geometry fields. The alias is expanded into each column, so every column stores its own `srid` and the contract does not store the alias.
 
 ```prisma
 types {
@@ -117,7 +117,7 @@ types {
 }
 
 model Route {
-  id   Char(36)    @id @default(uuid())
+  id   Char(36)    @id @onCreate(uuid())
   name String
   path WgsGeometry        // LineStrings, polygons, points — all valid runtime values
   @@map("route")

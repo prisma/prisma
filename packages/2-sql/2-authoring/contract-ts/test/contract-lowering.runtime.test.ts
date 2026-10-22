@@ -38,66 +38,19 @@ const { model } = createComposedAuthoringHelpers({
 function buildDefinition(
   definition: Omit<
     Parameters<typeof buildContractDefinition>[0],
-    'target' | 'family' | 'createNamespace'
+    'target' | 'family' | 'createNamespace' | 'codecLookup' | 'dataTypeLookup'
   >,
 ) {
   return buildContractDefinition({
     family: bareFamilyPack,
     target: postgresTargetPack,
     createNamespace: createTestSqlNamespace,
+    ...testTypeLookups,
     ...definition,
   });
 }
 
 describe('contract definition lowering runtime checks', () => {
-  it('rejects missing and unknown named storage type references', () => {
-    const localVector = {
-      kind: 'codec-instance',
-      codecId: 'pg/vector@1',
-      typeParams: { length: 1536 },
-    } as const;
-
-    const Embedded = model('Embedded', {
-      fields: {
-        id: field.column(int4Column).id(),
-        vector: field.namedType(localVector),
-      },
-    });
-
-    const External = model('External', {
-      fields: {
-        id: field.column(int4Column).id(),
-        vector: field.namedType('Embedding1536'),
-      },
-    });
-
-    expect(() =>
-      buildDefinition({
-        models: {
-          Embedded,
-        },
-      }),
-    ).toThrow(
-      'Field "Embedded.vector" references a storage type instance that is not present in definition.types',
-    );
-
-    expect(() =>
-      buildDefinition({
-        models: {
-          External,
-        },
-      }),
-    ).toThrow('Field "External.vector" references unknown storage type "Embedding1536"');
-
-    expect(() =>
-      buildDefinition({
-        models: {
-          External,
-        },
-      }),
-    ).toThrow(expect.objectContaining({ code: 'CONTRACT.TYPE_UNKNOWN' }));
-  });
-
   it('rejects scalar fields that never resolve to a storage descriptor', () => {
     const Broken = new ContractModelBuilder({
       modelName: 'Broken',

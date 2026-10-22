@@ -225,6 +225,7 @@ export async function inferPostgresPslContract(
       codecLookup: context.codecLookup,
       dataTypeLookup: context.dataTypes.lookup,
     }),
+    dataTypes: context.dataTypes,
     isEnumColumn,
   });
   const options: PostgresPslInferOptions = {

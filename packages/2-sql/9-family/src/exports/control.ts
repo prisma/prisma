@@ -20,6 +20,8 @@ export type {
   SqlDescribedContractSpace,
   SqlPslBuildContext,
 } from '../core/control-target-descriptor';
+export type { SqlDefaultFunctionName } from '../core/default-functions';
+export { sqlDefaultFunctions } from '../core/default-functions';
 export type {
   ContractToSchemaIROptions,
   DefaultResolver,
@@ -33,7 +35,6 @@ export {
 } from '../core/migrations/contract-to-schema-ir';
 export type { ControlPolicySubject, SuppressionRecord } from '../core/migrations/control-policy';
 export {
-  controlPolicyForCall,
   partitionCallsByControlPolicy,
   partitionIssuesByControlPolicy,
 } from '../core/migrations/control-policy';
@@ -182,9 +183,5 @@ export {
   readColumnDefault,
   readReportedDefault,
 } from '../core/reported-defaults';
-export {
-  temporalCodecPresetWithPrecision,
-  temporalStringAuthoringPresets,
-} from '../core/timestamp-now-generator';
 
 export default new SqlFamilyDescriptor();

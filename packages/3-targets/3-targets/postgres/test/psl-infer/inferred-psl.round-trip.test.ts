@@ -1,3 +1,4 @@
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 /**
  * What `contract infer` prints, `contract emit` reads back to the value the database reported.
  *
@@ -31,11 +32,11 @@ import { postgresDataTypeEntries } from '../../src/core/data-type-entries';
 import { postgresDataTypes } from '../../src/core/data-types';
 import { type PostgresSchema, postgresCreateNamespace } from '../../src/core/postgres-schema';
 import { postgresCodecRegistry } from '../../src/core/registry';
-import { postgresPslTypeConstructors } from '../../src/core/type-constructors';
+import { postgresScalarAndNativeTypeConstructors } from '../../src/core/type-constructors';
 import { printPslFromFlat } from './fixtures';
 
 /** The type constructors the printed schema names, as the target contributes them. */
-const authoringTypes = postgresPslTypeConstructors;
+const authoringTypes = postgresScalarAndNativeTypeConstructors;
 
 const assembled = assembleAuthoringContributions([
   {
@@ -115,6 +116,7 @@ async function roundTrippedDefaults(columns: readonly SqlColumnIRInput[]) {
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
       codecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: {
         entries: assembled.dataTypes,
         lookup: createDataTypeLookup(postgresDataTypes),

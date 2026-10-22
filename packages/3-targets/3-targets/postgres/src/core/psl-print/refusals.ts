@@ -1,3 +1,4 @@
+import type { AuthoringTypeConstructorCall } from '@internal/framework-components/authoring';
 /**
  * Every part of a contract `contract print` cannot write as Prisma 8 PSL that reads back the same,
  * one function per case in the `CONTRACT.PRINT_UNSUPPORTED` list of
@@ -14,10 +15,7 @@ import type {
   ScalarFieldType,
   ValueObjectFieldType,
 } from '@internal/contract/types';
-import type {
-  FieldPresetReadBackDifference,
-  FieldPresetUnwritableReason,
-} from '@internal/family-sql/psl-build';
+import type { GeneratorPhase } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { UNBOUND_PSL_NAMESPACE_NAME } from '@internal/framework-components/psl-ast';
 import { canonicalizeJson } from '@internal/framework-components/utils';
@@ -26,7 +24,7 @@ import { sqlTextsReadBack } from '@internal/sql-contract/sql-expression';
 import {
   type ForeignKey,
   type Index,
-  resolvedTypeParams,
+  nonEmptyTypeParams,
   type SqlStorage,
   StorageColumn,
 } from '@internal/sql-contract/types';
@@ -74,15 +72,18 @@ export function refuseColumnWithoutPslType(column: StorageColumn, coordinate: st
 }
 
 /**
- * Refuses a string type argument the PSL source would read back differently: it reads a string
- * argument between its quotes as written, with no escapes.
+ * Refuses a type constructor call whose arguments no PSL literal writes: an argument that is not a value of a data type, or a value no literal of its data type reads back as.
  */
-export function refuseUnwritableTypeArgument(value: string, coordinate: string): never {
+export function refuseUnwritableTypeArgument(
+  call: AuthoringTypeConstructorCall,
+  coordinate: string,
+): never {
+  const written = `${call.path.join('.')}(${call.args.map((arg) => JSON.stringify(arg)).join(', ')})`;
   throw unsupported(
-    `column ${coordinate} takes the type argument ${JSON.stringify(value)}, which a PSL type argument cannot carry.`,
-    'The PSL source reads a string type argument as written between its quotes, with no escapes, so a quote, backslash or line break in it would read back differently.',
+    `column ${coordinate} is written ${written}, and an argument has no PSL literal that reads back as it.`,
+    'Each argument of a type constructor is written as a literal of its data type, and contract print writes it only when the literal reads back as the same value.',
     KEEP_SOURCE,
-    { coordinate, argument: value },
+    { coordinate, path: call.path.join('.'), arguments: call.args },
   );
 }
 
@@ -96,6 +97,19 @@ export function refuseDefaultOutsideEnum(input: {
     'A default on a domain enum column is written as the member name, and no member carries this value.',
     'Give the column a default that is one of the enum members, or drop it.',
     { coordinate: input.coordinate, pslTypeName: input.pslTypeName },
+  );
+}
+
+export function refuseUnwritableEnumMember(input: {
+  readonly enumName: string;
+  readonly member: string;
+  readonly value: unknown;
+}): never {
+  throw unsupported(
+    `enum "${input.enumName}" member "${input.member}" stores ${JSON.stringify(input.value)}, which no Prisma 8 PSL literal of the enum's data type writes.`,
+    'Writing the value in any other form would parse, but the PSL source would read it back as a different value.',
+    'Type the enum with a codec whose values PSL writes, such as pg/text@1, before printing.',
+    { enumName: input.enumName, member: input.member },
   );
 }
 
@@ -114,29 +128,10 @@ export function refuseUnwritableLiteralDefault(input: {
 
 // Generated values
 
-interface GeneratorPhases {
-  readonly coordinate: string;
-  readonly onCreate: string | undefined;
-  readonly onUpdate: string | undefined;
-}
-
-function describePhases(phases: GeneratorPhases): string {
-  return [
-    phases.onCreate === undefined ? undefined : `"${phases.onCreate}" on create`,
-    phases.onUpdate === undefined ? undefined : `"${phases.onUpdate}" on update`,
-  ]
-    .filter((phase) => phase !== undefined)
-    .join(' and ');
-}
-
-export function refuseGeneratorsNoPresetWritesTogether(phases: GeneratorPhases): never {
-  throw unsupported(
-    `column ${phases.coordinate} generates ${describePhases(phases)}, which cannot be written in Prisma 8 PSL.`,
-    "The field preset in the configured stack that writes one of these generators for the column codec does not also write the other phase, so that phase would be dropped from the written file, and no default function in the configured stack writes the column's generators instead.",
-    KEEP_SOURCE,
-    { coordinate: phases.coordinate, onCreate: phases.onCreate, onUpdate: phases.onUpdate },
-  );
-}
+const PHASE_TEXT: Readonly<Record<GeneratorPhase, string>> = {
+  onCreate: 'on create',
+  onUpdate: 'on update',
+};
 
 function describeGenerator(generator: ExecutionMutationDefaultValue | undefined): string {
   if (generator === undefined) return 'no generator';
@@ -146,110 +141,70 @@ function describeGenerator(generator: ExecutionMutationDefaultValue | undefined)
     : `"${generator.id}" with params ${canonicalizeJson(params)}`;
 }
 
-function describeDifference(difference: FieldPresetReadBackDifference): string {
-  switch (difference.part) {
-    case 'codecId':
-      return `codec "${difference.printed}" instead of "${difference.column}"`;
-    case 'typeParams':
-      return `type params ${canonicalizeJson(difference.printed ?? {})} instead of ${canonicalizeJson(difference.column ?? {})}`;
-    case 'onCreate':
-    case 'onUpdate':
-      return `${difference.part === 'onCreate' ? 'on create' : 'on update'} ${describeGenerator(difference.printed)} instead of ${describeGenerator(difference.column)}`;
-  }
-}
-
-const COLUMN_TYPE_KINDS = {
-  namedType: 'a named type',
-  valueObject: 'a value object',
-  enum: 'an enum',
-} as const;
-
-function describeUnwritableReason(
-  reason: Exclude<FieldPresetUnwritableReason, { readonly kind: 'phasesNotWrittenTogether' }>,
-): string {
-  switch (reason.kind) {
-    case 'columnType':
-      return `its type ${reason.typeName} is ${COLUMN_TYPE_KINDS[reason.columnType]}, which the preset call would replace`;
-    case 'list':
-      return 'the column is a list, and a preset call cannot be a list element';
-    case 'unwritableArgument':
-      return `its type param "${reason.argument}" is ${JSON.stringify(reason.value)}, which a PSL argument cannot carry`;
-    case 'argumentsRejected':
-      return `the preset does not accept the call, since ${reason.message}`;
-  }
-}
-
-export function refuseUnwritablePresetCall(input: {
+export function refuseGeneratorOnList(input: {
   readonly coordinate: string;
-  readonly preset: string;
-  readonly reason: Exclude<
-    FieldPresetUnwritableReason,
-    { readonly kind: 'phasesNotWrittenTogether' }
-  >;
+  readonly phase: GeneratorPhase;
+  readonly generatorId: string;
 }): never {
   throw unsupported(
-    `column ${input.coordinate} cannot be written with field preset ${input.preset}: ${describeUnwritableReason(input.reason)}.`,
-    "The printer writes a column's generators as the call of the field preset that writes the column's codec with them, or a create-only generator as the call of its default function. The preset call cannot be written for this column, and no default function in the configured stack writes its generators.",
+    `column ${input.coordinate} is a list and generates "${input.generatorId}" ${PHASE_TEXT[input.phase]}, which cannot be written in Prisma 8 PSL.`,
+    'Prisma 8 PSL refuses `@onCreate(…)` and `@onUpdate(…)` on a list field, since a list has no generated value per element.',
     KEEP_SOURCE,
-    { coordinate: input.coordinate, preset: input.preset, reason: input.reason },
+    { coordinate: input.coordinate, phase: input.phase, generatorId: input.generatorId },
   );
 }
 
-export function refusePresetCallReadingBackDifferently(input: {
+export function refuseGeneratorWithoutPslFunction(input: {
   readonly coordinate: string;
-  readonly preset: string;
-  readonly differences: readonly FieldPresetReadBackDifference[];
+  readonly phase: GeneratorPhase;
+  readonly generatorId: string;
+  readonly codecId: string;
+  readonly registeredBy: { readonly componentId: string | undefined } | undefined;
 }): never {
-  throw unsupported(
-    `column ${input.coordinate} is written with field preset ${input.preset}, and that call reads back as a different column: ${input.differences.map(describeDifference).join('; ')}.`,
-    "The printer writes a column's generators as the call of the field preset that writes the column's codec with them, and that call must read back with the column's codec, type params and generators. No default function in the configured stack writes its generators instead.",
-    KEEP_SOURCE,
-    { coordinate: input.coordinate, preset: input.preset, differences: input.differences },
-  );
-}
-
-export function refuseGeneratorOnUpdate(phases: GeneratorPhases): never {
-  throw unsupported(
-    `column ${phases.coordinate} generates a value on update ("${phases.onUpdate}"), which cannot be written in Prisma 8 PSL.`,
-    '`@default(…)` writes a generator for create only; a generator on update is written only through a field preset, and the configured stack has no field preset for the column codec that contract print can write with this generator.',
-    KEEP_SOURCE,
-    { coordinate: phases.coordinate, onCreate: phases.onCreate, onUpdate: phases.onUpdate },
-  );
-}
-
-export function refuseGeneratorWithoutPslFunction(
-  input: GeneratorPhases & {
-    readonly registeredBy: { readonly componentId: string | undefined } | undefined;
-  },
-): never {
-  const { coordinate, onCreate, onUpdate, registeredBy } = input;
-  const meta = { coordinate, onCreate, onUpdate };
+  const { coordinate, phase, generatorId, codecId, registeredBy } = input;
+  const meta = { coordinate, phase, generatorId, codecId };
   if (registeredBy === undefined) {
     throw unsupported(
-      `column ${coordinate} is generated by "${onCreate}", which no component in the configured stack registers.`,
-      'The printer writes each generator as the PSL call of the default function in the configured stack that produces it, and no component in the stack registers this generator.',
-      'Add the extension that registers the generator and its default function to the config, or keep authoring this contract in its current source.',
+      `column ${coordinate} is generated by "${generatorId}" ${PHASE_TEXT[phase]}, which no component in the configured stack registers.`,
+      `The printer writes each generator as \`@${phase}(fn(…))\` with the generator function the configured stack binds to the column's codec, and no component in the stack registers this generator.`,
+      'Add the extension that registers the generator and its generator function to the config, or keep authoring this contract in its current source.',
       meta,
     );
   }
   const { componentId } = registeredBy;
+  const registrant = componentId === undefined ? 'a configured component' : `"${componentId}"`;
   throw unsupported(
-    `column ${coordinate} is generated by "${onCreate}", which ${componentId === undefined ? 'a configured component' : `"${componentId}"`} registers, but no default function in the configured stack declares how contract print writes it, and the stack has no field preset for the column codec that contract print can write with it.`,
-    "The printer writes a generator as the call of the field preset that writes the column's codec with it, or else as the PSL call of the default function that declares `printArguments` for it. The configured stack has neither for this generator.",
-    `If ${componentId === undefined ? `the component that registers "${onCreate}"` : `"${componentId}"`} has a default function that produces ${componentId === undefined ? 'it' : `"${onCreate}"`}, its author must add \`printArguments\` for "${onCreate}" to it, as the upgrade instructions "contract-print-generated-values" for extension authors describe. Otherwise "${onCreate}" is written only through a field preset of the column codec, and the configured stack has none that contract print can write. Until then, keep authoring this contract in its current source.`,
+    `column ${coordinate} is generated by "${generatorId}" ${PHASE_TEXT[phase]}, which ${registrant} registers, but no generator function in the configured stack writes it for codec "${codecId}".`,
+    `The printer writes each generator as \`@${phase}(fn(…))\` with the generator function the configured stack binds to the column's codec, and no function bound to "${codecId}" produces this generator.`,
+    `If ${componentId === undefined ? `the component that registers "${generatorId}"` : `"${componentId}"`} declares a generator function that produces it, its author must bind that function to codec "${codecId}", as the upgrade instructions "default-generators-to-on-create" for extension authors describe. Until then, keep authoring this contract in its current source.`,
     { ...meta, ...ifDefined('componentId', componentId) },
   );
 }
 
-export function refuseGeneratorWithDatabaseDefault(input: {
+export function refuseGeneratorReadingBackDifferently(input: {
   readonly coordinate: string;
-  readonly onCreate: string | undefined;
+  readonly phase: GeneratorPhase;
+  readonly call: string;
+  readonly stored: ExecutionMutationDefaultValue;
+  readonly readBack: ExecutionMutationDefaultValue | undefined;
+  readonly refusedBecause: string | undefined;
 }): never {
+  const readBack =
+    input.refusedBecause === undefined
+      ? `reads back as ${describeGenerator(input.readBack)}`
+      : `is refused: ${input.refusedBecause}`;
   throw unsupported(
-    `column ${input.coordinate} has both a generated value ("${input.onCreate}") and a database default, which cannot be written in Prisma 8 PSL.`,
-    '`@default(…)` writes either the generator or the database default, so the other would be lost.',
-    'Drop one of the two, or keep authoring this contract in its current source.',
-    { coordinate: input.coordinate, onCreate: input.onCreate },
+    `column ${input.coordinate} generates ${describeGenerator(input.stored)} ${PHASE_TEXT[input.phase]}, but @${input.phase}(${input.call}) ${readBack.endsWith('.') ? readBack.slice(0, -1) : readBack}.`,
+    "The printer writes each generator as the call of the generator function the configured stack binds to the column's codec, and that call must resolve back to the stored generator and params on the column.",
+    KEEP_SOURCE,
+    {
+      coordinate: input.coordinate,
+      phase: input.phase,
+      call: input.call,
+      stored: input.stored,
+      readBack: input.readBack,
+      refusedBecause: input.refusedBecause,
+    },
   );
 }
 
@@ -281,8 +236,6 @@ export function refuseFieldColumnMismatch(input: {
   readonly modelName: string;
   readonly singleTableVariant: boolean;
   readonly domainEnumNames: ReadonlySet<string>;
-  /** The contract's named types, whose parameters a column typed by one takes. */
-  readonly namedTypes: NonNullable<SqlStorage['types']>;
 }): void {
   const { field, column, coordinate } = input;
   const fix =
@@ -316,10 +269,7 @@ export function refuseFieldColumnMismatch(input: {
   if (
     field.type.kind === 'scalar' &&
     (field.type.codecId !== column.codecId ||
-      !sameJson(
-        resolvedTypeParams(field.type, undefined),
-        resolvedTypeParams(column, input.namedTypes),
-      ))
+      !sameJson(nonEmptyTypeParams(field.type.typeParams), nonEmptyTypeParams(column.typeParams)))
   ) {
     throw unsupported(
       `field ${coordinate} has a different codec or type parameters from its column, which cannot be written in Prisma 8 PSL.`,
@@ -431,29 +381,6 @@ export function refuseStorageOfUndeclaredField(input: {
   );
 }
 
-/**
- * Refuses a column typed by a named type when the contract declares no such type, or when the
- * column's data type or codec is not the named type's. PSL writes the column as the name of the
- * type, and the PSL source copies both from the named type.
- */
-export function refuseColumnDifferingFromNamedType(input: {
-  readonly column: StorageColumn;
-  readonly typeRef: string;
-  readonly namedType: { readonly dataType: string; readonly codecId: string } | undefined;
-  readonly coordinate: string;
-}): void {
-  const { column, typeRef, namedType, coordinate } = input;
-  if (namedType?.dataType === column.dataType && namedType.codecId === column.codecId) return;
-  throw unsupported(
-    namedType === undefined
-      ? `column ${coordinate} is typed by the named type "${typeRef}", which the contract does not declare, so it cannot be written in Prisma 8 PSL.`
-      : `column ${coordinate} is typed by the named type "${typeRef}" but has a different data type or codec from it, which cannot be written in Prisma 8 PSL.`,
-    'PSL writes such a column as the name of its named type, and the PSL source gives the column the data type and codec of that named type.',
-    'Make the column and its named type agree, or keep authoring this contract in its current source.',
-    { coordinate, typeRef },
-  );
-}
-
 export function refuseColumnControl(column: StorageColumn, coordinate: string): void {
   if (column.control === undefined) return;
   throw unsupported(
@@ -534,7 +461,6 @@ export function refuseUnderivedVariantLink(entry: ModelWithTable, variant: Varia
             codecId: base.codecId,
             nullable: false,
             ...ifDefined('typeParams', base.typeParams),
-            ...ifDefined('typeRef', base.typeRef),
           });
     return sameJson(entry.table.columns[column], expected);
   });
@@ -951,6 +877,18 @@ export function refuseNamespaceNamedUnbound(namespaceId: string): void {
 }
 
 /** Refuses top-level `meta` entries: the PSL source reads back an empty `meta`. */
+/** Refuses a contract that registers database types in `storage.types`: only an extension's contract space does, and PSL has no syntax to declare one. */
+export function refuseRegisteredDatabaseTypes(contract: Contract<SqlStorage>): void {
+  const types = Object.keys(contract.storage.types ?? {}).sort();
+  if (types.length === 0) return;
+  throw unsupported(
+    `This contract registers the database types ${types.join(', ')}, which PSL cannot declare. It is an extension's contract space, written in TypeScript.`,
+    'Printing it would drop the registered types and change its storage hash.',
+    'Keep authoring this contract space in TypeScript.',
+    { types },
+  );
+}
+
 export function refuseContractMeta(contract: Contract<SqlStorage>): void {
   const keys = Object.keys(contract.meta);
   if (keys.length === 0) return;
@@ -1123,7 +1061,7 @@ export function refuseUnwritableMappedName(kind: 'table' | 'column', name: strin
 
 /**
  * Refuses a name the printer writes where PSL reads an identifier: a namespace, model, field, value
- * object, enum, enum member, native enum, named type, policy, role or index option key.
+ * object, enum, enum member, native enum, policy, role or index option key.
  */
 export function refuseUnwritableName(kind: string, name: string): void {
   refuseNameThePslSourceLoses(kind, name);

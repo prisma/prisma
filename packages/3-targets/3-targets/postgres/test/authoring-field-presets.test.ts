@@ -1,9 +1,8 @@
 import {
   temporalCodecPresetWithPrecision,
   temporalStringAuthoringPresets,
-} from '@internal/family-sql/control';
+} from '@internal/family-sql/pack';
 import {
-  assembleFieldPresetsByCodecAndGenerator,
   collectScalarTypeConstructors,
   instantiateAuthoringFieldPreset,
   temporalAuthoringPresets,
@@ -115,21 +114,26 @@ describe('postgres temporal per-codec presets', () => {
         codecId: 'pg/timestamptz-date@1',
       }).updatedAt,
       timestamptzJsDate: temporalCodecPresetWithPrecision({
+        sizeType: 'pg/int4',
         codecId: 'pg/timestamptz-date@1',
       }),
       timestamp: temporalCodecPresetWithPrecision({
+        sizeType: 'pg/int4',
         codecId: 'pg/timestamp-temporal@1',
         generatorId: 'plainDateTimeNow',
       }),
       timestamptz: temporalCodecPresetWithPrecision({
+        sizeType: 'pg/int4',
         codecId: 'pg/timestamptz-temporal@1',
         generatorId: 'instantNow',
       }),
       timestampString: temporalCodecPresetWithPrecision({
+        sizeType: 'pg/int4',
         codecId: 'pg/timestamp-string@1',
         generatorId: 'timestampStringNow',
       }),
       timestamptzString: temporalCodecPresetWithPrecision({
+        sizeType: 'pg/int4',
         codecId: 'pg/timestamptz-string@1',
         generatorId: 'timestamptzStringNow',
       }),
@@ -139,16 +143,19 @@ describe('postgres temporal per-codec presets', () => {
         generatorId: 'dateStringNow',
       }),
       time: temporalCodecPresetWithPrecision({
+        sizeType: 'pg/int4',
         codecId: 'pg/time-temporal@1',
         generatorId: 'plainTimeNow',
         nowTakesPrecision: true,
       }),
       timeString: temporalCodecPresetWithPrecision({
+        sizeType: 'pg/int4',
         codecId: 'pg/time-string@1',
         generatorId: 'timeStringNow',
         nowTakesPrecision: true,
       }),
       timetz: temporalCodecPresetWithPrecision({
+        sizeType: 'pg/int4',
         codecId: 'pg/timetz@1',
         generatorId: 'timetzNow',
         nowTakesPrecision: true,
@@ -257,27 +264,5 @@ describe('postgres temporal per-codec presets', () => {
       onCreate: { kind: 'generator', id: generatorId },
     });
     expect(output).not.toHaveProperty('default');
-  });
-});
-
-describe('postgres field preset print forms', () => {
-  it('gives every temporal preset whose arguments select its generators a print form', () => {
-    const presets = assembleFieldPresetsByCodecAndGenerator(postgresAuthoringFieldPresets);
-    expect(
-      [...presets.values()].flatMap((byGenerator) =>
-        [...byGenerator.values()].map((preset) => preset.path.join('.')),
-      ),
-    ).toEqual([
-      'temporal.timestamptzJsDate',
-      'temporal.timestamp',
-      'temporal.timestamptz',
-      'temporal.timestampString',
-      'temporal.timestamptzString',
-      'temporal.date',
-      'temporal.dateString',
-      'temporal.time',
-      'temporal.timeString',
-      'temporal.timetz',
-    ]);
   });
 });

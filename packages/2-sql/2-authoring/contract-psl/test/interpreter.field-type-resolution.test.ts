@@ -96,7 +96,7 @@ describe('SQL field types from the binder resolution', () => {
     expect(table?.primaryKey).toEqual({ columns: ['id'] });
   });
 
-  it('refuses a call to a named type', () => {
+  it('refuses a call to a type alias', () => {
     expect(
       diagnosticsOf(`types {
   Slug = String
@@ -111,7 +111,7 @@ model Doc {
       {
         code: 'PSL_UNSUPPORTED_FIELD_TYPE',
         message:
-          'Field "Doc.slug" calls "Slug", which is a named type, not a type constructor. Remove the arguments.',
+          'Field "Doc.slug" calls "Slug", which is a type alias, not a type constructor. Remove the arguments.',
       },
     ]);
   });
@@ -151,7 +151,7 @@ model Doc {
       {
         code: 'PSL_UNRESOLVED_REFERENCE',
         message:
-          '"auth" is a namespace; a type reference must name a model, composite type, enum, or named type',
+          '"auth" is a namespace; a type reference must name a model, composite type, enum, or type alias',
       },
     ]);
   });
@@ -187,7 +187,7 @@ model Doc {
       {
         code: 'PSL_UNRESOLVED_REFERENCE',
         message:
-          'Unsupported("hstore") is not a Prisma 8 type. Write the column\'s type with a type constructor. If "hstore" comes from a database extension that has a Prisma 8 pack, add the pack to extensions in prisma.config.ts.',
+          'Unsupported("hstore") is not a Prisma 8 type. Write the column\'s type with a type constructor, or as Raw(sql`hstore`) when no type constructor names it. If "hstore" comes from a database extension that has a Prisma 8 pack, add the pack to extensions in prisma.config.ts.',
         start: typeStart,
       },
     ]);

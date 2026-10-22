@@ -53,15 +53,15 @@ describe('the classifier this target contributes', () => {
     ['trailing zeros, which a double does not keep', '-007.50', 'sqlite/real', -7.5],
     ['leading zeros', '007', 'sqlite/integer', '7'],
     ['a negative zero', '-0', 'sqlite/integer', '0'],
+    ['Infinity, which a real holds', 'Infinity', 'sqlite/real', 'Infinity'],
+    ['minus Infinity, which a real holds', '-Infinity', 'sqlite/real', '-Infinity'],
+    ['NaN, which the real type and its codecs then refuse', 'NaN', 'sqlite/real', 'NaN'],
   ])('classifies %s', (_name, text, type, value) => {
     expect(classify(text)).toEqual({ type, value });
   });
 
   it.each([
     ['a whole number past 64 bits', '9223372036854775808'],
-    ['NaN', 'NaN'],
-    ['Infinity', 'Infinity'],
-    ['minus Infinity', '-Infinity'],
     ['an exponent, which no schema language writes', '1e3'],
   ])('holds no type for %s', (_name, text) => {
     expect(classify(text)).toBeUndefined();

@@ -65,7 +65,7 @@ function makeValidContractJson() {
             },
           },
           relations: {},
-          storage: { collection: 'items' },
+          storage: { fields: { _id: { field: '_id' } }, collection: 'items' },
         },
       },
       namespaceId: UNBOUND_DOMAIN_NAMESPACE_ID,
@@ -157,7 +157,11 @@ describe('MongoTargetContractSerializer', () => {
                       },
                     ],
                     validator: {
-                      jsonSchema: { type: 'object' },
+                      jsonSchema: {
+                        bsonType: 'object',
+                        required: ['_id'],
+                        properties: { _id: { bsonType: 'objectId' } },
+                      },
                       validationLevel: 'strict' as const,
                       validationAction: 'error' as const,
                     },
@@ -182,7 +186,7 @@ describe('MongoTargetContractSerializer', () => {
                 },
               },
               relations: {},
-              storage: { collection: 'items' },
+              storage: { fields: { _id: { field: '_id' } }, collection: 'items' },
             },
           },
           namespaceId: UNBOUND_DOMAIN_NAMESPACE_ID,
@@ -240,7 +244,7 @@ describe('MongoTargetContractSerializer', () => {
                 },
               },
               relations: {},
-              storage: { collection: 'items' },
+              storage: { fields: { _id: { field: '_id' } }, collection: 'items' },
             },
             Event: {
               fields: {
@@ -251,7 +255,7 @@ describe('MongoTargetContractSerializer', () => {
                 },
               },
               relations: {},
-              storage: { collection: 'events' },
+              storage: { fields: { _id: { field: '_id' } }, collection: 'events' },
             },
           },
           namespaceId: UNBOUND_DOMAIN_NAMESPACE_ID,

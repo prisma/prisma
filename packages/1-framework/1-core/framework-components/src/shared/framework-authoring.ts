@@ -12,13 +12,20 @@ import { invariant } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type { Type } from 'arktype';
 import type { CodecLookupWithDescriptors } from './codec-types';
 import type { DataTypeId, DataTypeLookup } from './data-type';
+import type {
+  GeneratorFunctionCall,
+  GeneratorFunctionField,
+  GeneratorFunctionRegistry,
+} from './generator-functions';
 import type { AuthoringOption } from './option-descriptor';
 import type { ParsedPslExtensionBlock, PslSpan } from './psl-extension-block';
 import { runtimeError } from './runtime-error';
+import type { WrittenScalar } from './written-value';
 
 export type EnumInferredMemberType = 'text' | 'int';
 
@@ -65,23 +72,32 @@ interface AuthoringArgumentDescriptorCommon {
   readonly optional?: boolean;
 }
 
+interface ValueArgumentKind {
+  readonly kind: 'value';
+  readonly dataType: string;
+}
+
 export type AuthoringArgumentDescriptor = AuthoringArgumentDescriptorCommon &
   (
-    | { readonly kind: 'string' }
-    | { readonly kind: 'boolean' }
+    | ValueArgumentKind
     | {
         readonly kind: 'number';
         readonly integer?: boolean;
         readonly minimum?: number;
         readonly maximum?: number;
       }
-    | { readonly kind: 'stringArray' }
     | {
         readonly kind: 'object';
         readonly properties: Record<string, AuthoringArgumentDescriptor>;
       }
     | AuthoringOption
   );
+
+/** An argument that is a value of the data type `dataType`, read and cast as attribute arguments are. ADR 254. */
+export type AuthoringValueArgument = Extract<
+  AuthoringArgumentDescriptor,
+  { readonly kind: 'value' }
+>;
 
 /**
  * What a type constructor or field preset produces: a codec and its parameters. The database type
@@ -161,9 +177,30 @@ export interface AuthoringFieldPresetDescriptor {
   readonly output: AuthoringFieldPresetOutput;
 }
 
+/**
+ * A type alias a pack contributes: a type with fixed params, and the generators every field typed by it takes. It takes no arguments, and is written bare, such as `temporal.CreatedAt`.
+ */
+export interface AuthoringTypeAliasDescriptor {
+  readonly kind: 'typeAlias';
+  readonly documentation?: string;
+  readonly output: {
+    /** Assembly refuses params the codec's parameter schema refuses. */
+    readonly type: AuthoringStorageTypeTemplate;
+    /** Resolved by the field's codec, as `@onCreate(fn())` is. Assembly refuses a call that does not resolve. */
+    readonly onCreate?: GeneratorFunctionCall;
+    readonly onUpdate?: GeneratorFunctionCall;
+  };
+}
+
 export type AuthoringTypeNamespace = {
-  readonly [name: string]: AuthoringTypeConstructorDescriptor | AuthoringTypeNamespace;
+  readonly [name: string]:
+    | AuthoringTypeConstructorDescriptor
+    | AuthoringTypeAliasDescriptor
+    | AuthoringTypeNamespace;
 };
+
+/** The descriptor kinds a `type` namespace holds as leaves. */
+export const AUTHORING_TYPE_DESCRIPTOR_KINDS = ['typeConstructor', 'typeAlias'] as const;
 
 export type AuthoringFieldNamespace = {
   readonly [name: string]: AuthoringFieldPresetDescriptor | AuthoringFieldNamespace;
@@ -259,10 +296,10 @@ export function flushAuthoringWarnings(warnings: readonly AuthoringWarning[]): v
   }
 }
 
-/** A written value read for a codec: its stored form, or why it is refused. */
+/** A written value read for a codec: its stored form, or why it is refused, as a diagnostic's code and message. */
 export type WrittenValueReading =
   | { readonly ok: true; readonly value: JsonValue }
-  | { readonly ok: false; readonly message: string };
+  | { readonly ok: false; readonly code: string; readonly message: string };
 
 export interface AuthoringEntityContext {
   readonly family: string;
@@ -278,10 +315,10 @@ export interface AuthoringEntityContext {
   /** Push channel for non-fatal authoring-time warnings emitted by the factory. */
   readonly warnings?: AuthoringWarningSink;
   /**
-   * Reads a number literal written in the contract source, such as an enum member's value, from its source text the way a column default is read: the literal gives a value of a data type, the codec's data type takes it directly or through a cast, and the codec checks it. Returns the value's stored form, or why it is refused, worded for `subject`. Without it, or when it returns `undefined` for a codec the stack registers no descriptor for, the codec's data type and then the codec read the number.
+   * Reads a value written in the contract source outside a default, such as an enum member's value, the way a column default is read: the value's syntax gives it a data type, the codec's data type takes it directly or through a cast, and the codec checks it. Returns the value's stored form, or why it is refused, worded for `subject`. Without it, or when it returns `undefined` for a codec the stack registers no descriptor for, the codec's data type and then the codec read the value as JSON.
    */
-  readonly readWrittenNumber?: (input: {
-    readonly text: string;
+  readonly readWrittenValueForCodec?: (input: {
+    readonly written: WrittenScalar;
     readonly codecId: string;
     readonly subject: string;
   }) => WrittenValueReading | undefined;
@@ -634,6 +671,10 @@ export interface AuthoringContributions {
    * names.
    */
   readonly valueObjectStorageType?: string;
+  /**
+   * The data types whose values are text, such as a target's variable-length, fixed-length and bounded text types. A family uses the list where only text is meaningful, such as a polymorphic model's discriminator column. Assembly takes every component's list.
+   */
+  readonly textDataTypes?: readonly DataTypeId[];
 }
 
 export function isAuthoringArgRef(value: unknown): value is AuthoringArgRef {
@@ -686,9 +727,22 @@ function readTemplateArgumentValue(
 }
 
 export function isAuthoringTypeConstructorDescriptor(
-  value: AuthoringTypeConstructorDescriptor | AuthoringTypeNamespace,
+  value: AuthoringTypeConstructorDescriptor | AuthoringTypeAliasDescriptor | AuthoringTypeNamespace,
 ): value is AuthoringTypeConstructorDescriptor {
   return 'kind' in value && value.kind === 'typeConstructor';
+}
+
+export function isAuthoringTypeAliasDescriptor(
+  value: AuthoringTypeConstructorDescriptor | AuthoringTypeAliasDescriptor | AuthoringTypeNamespace,
+): value is AuthoringTypeAliasDescriptor {
+  return 'kind' in value && value.kind === 'typeAlias';
+}
+
+/** Whether `value` is a leaf of a `type` namespace: a type constructor or a type alias. */
+export function isAuthoringTypeDescriptor(
+  value: AuthoringTypeConstructorDescriptor | AuthoringTypeAliasDescriptor | AuthoringTypeNamespace,
+): value is AuthoringTypeConstructorDescriptor | AuthoringTypeAliasDescriptor {
+  return isAuthoringTypeConstructorDescriptor(value) || isAuthoringTypeAliasDescriptor(value);
 }
 
 /** The type constructor at `path` in the contributions' type namespace, or `undefined` when none is there. */
@@ -696,8 +750,11 @@ export function getAuthoringTypeConstructor(
   contributions: { readonly type?: AuthoringTypeNamespace } | undefined,
   path: readonly string[],
 ): AuthoringTypeConstructorDescriptor | undefined {
-  let current: AuthoringTypeConstructorDescriptor | AuthoringTypeNamespace | undefined =
-    contributions?.type;
+  let current:
+    | AuthoringTypeConstructorDescriptor
+    | AuthoringTypeAliasDescriptor
+    | AuthoringTypeNamespace
+    | undefined = contributions?.type;
   for (const segment of path) {
     if (typeof current !== 'object' || current === null || 'kind' in current) {
       return undefined;
@@ -752,15 +809,29 @@ function isCopyableNamespaceObject(value: unknown): value is Record<string, unkn
  * whose descriptor-shaped-but-incomplete nodes must be rejected rather than
  * silently treated as sub-namespaces — so the well-formedness check lives here.
  */
-function isWellFormedDescriptor(value: unknown, descriptorKind: string): boolean {
-  if (typeof value !== 'object' || value === null) return false;
-  if (!('kind' in value) || value.kind !== descriptorKind) return false;
-  switch (descriptorKind) {
+/** The `kind` of the leaves of one namespace, or several kinds when the namespace holds more than one, as `type` does. */
+export type AuthoringDescriptorKinds = string | readonly string[];
+
+function isWellFormedDescriptor(
+  value: unknown,
+  descriptorKinds: AuthoringDescriptorKinds,
+): boolean {
+  if (typeof value !== 'object' || value === null || !('kind' in value)) return false;
+  const kind = value.kind;
+  const kinds = typeof descriptorKinds === 'string' ? [descriptorKinds] : descriptorKinds;
+  if (typeof kind !== 'string' || !kinds.includes(kind)) return false;
+  switch (kind) {
     case 'typeConstructor':
     case 'fieldPreset': {
       if (!('output' in value)) return false;
       const output = value.output;
       return typeof output === 'object' && output !== null;
+    }
+    case 'typeAlias': {
+      if (!('output' in value)) return false;
+      const output = value.output;
+      if (typeof output !== 'object' || output === null || !('type' in output)) return false;
+      return typeof output.type === 'object' && output.type !== null;
     }
     case 'entity': {
       if (!('discriminator' in value) || typeof value.discriminator !== 'string') return false;
@@ -817,7 +888,7 @@ function isWellFormedDescriptor(value: unknown, descriptorKind: string): boolean
 
 function deepCopyNamespace(
   source: Record<string, unknown>,
-  descriptorKind: string,
+  descriptorKind: AuthoringDescriptorKinds,
 ): Record<string, unknown> {
   const copy: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(source)) {
@@ -831,8 +902,8 @@ function deepCopyNamespace(
 
 /**
  * Merges `source` into `target` recursively at the descriptor-namespace
- * level. `descriptorKind` is the `kind` value ('typeConstructor',
- * 'fieldPreset', 'entity', or 'pslBlock') that identifies a descriptor
+ * level. `descriptorKind` is the `kind` value, or values, ('typeConstructor'
+ * and 'typeAlias', 'fieldPreset', 'entity', or 'pslBlock') that identifies a descriptor
  * (terminal merge point; same-path registrations across components are
  * reported as duplicates) as opposed to a sub-namespace (recursion target).
  *
@@ -852,7 +923,7 @@ export function mergeAuthoringNamespaces(
   target: Record<string, unknown>,
   source: Record<string, unknown>,
   path: readonly string[],
-  descriptorKind: string,
+  descriptorKind: AuthoringDescriptorKinds,
   label: string,
 ): void {
   const assertSafePath = (currentPath: readonly string[]) => {
@@ -968,7 +1039,7 @@ export function mergeAuthoringAttributeSpecs(
  */
 export function collectContributedDescriptorPaths(
   namespace: Record<string, unknown>,
-  descriptorKind: string,
+  descriptorKind: AuthoringDescriptorKinds,
   path: readonly string[] = [],
 ): string[] {
   const paths: string[] = [];
@@ -1058,6 +1129,17 @@ export function assertResolvableTypeConstructorTemplates(
 ): void {
   for (const [name, value] of Object.entries(namespace)) {
     const currentPath = [...path, name];
+    if (isAuthoringTypeAliasDescriptor(value)) {
+      for (const [key, template] of Object.entries(value.output.type.typeParams ?? {})) {
+        visitTemplateArgRefs(template, () => {
+          throw runtimeError(
+            'CONTRACT.PACK_CONTRIBUTION_INVALID',
+            `Invalid authoring type alias "${currentPath.join('.')}" contributed by descriptor "${contributedBy}". output.type.typeParams.${key} references an argument, but a type alias takes none. Write the value itself.`,
+          );
+        });
+      }
+      continue;
+    }
     if (!isAuthoringTypeConstructorDescriptor(value)) {
       assertResolvableTypeConstructorTemplates(value, contributedBy, currentPath);
       continue;
@@ -1363,9 +1445,7 @@ export function assertNoCrossRegistryCollisions(
   pslBlockNamespace: AuthoringPslBlockDescriptorNamespace = {},
   modelAttributeNamespace: AuthoringModelAttributeDescriptorNamespace = {},
 ): void {
-  const typePaths = new Set(
-    collectDescriptorPaths(typeNamespace, isAuthoringTypeConstructorDescriptor),
-  );
+  const typePaths = new Set(collectDescriptorPaths(typeNamespace, isAuthoringTypeDescriptor));
   const fieldPaths = new Set(
     collectDescriptorPaths(fieldNamespace, isAuthoringFieldPresetDescriptor),
   );
@@ -1383,7 +1463,7 @@ export function assertNoCrossRegistryCollisions(
     if (typePaths.has(fieldPath)) {
       throw runtimeError(
         'CONTRACT.PACK_CONTRIBUTION_INVALID',
-        `Ambiguous authoring registry path "${fieldPath}". The same path is registered as both a type constructor and a field preset; PSL resolution would be ambiguous. ${ambiguityHint}`,
+        `Ambiguous authoring registry path "${fieldPath}". The same path is registered as both a type constructor or type alias and a field preset; PSL resolution would be ambiguous. ${ambiguityHint}`,
       );
     }
   }
@@ -1391,7 +1471,7 @@ export function assertNoCrossRegistryCollisions(
     if (typePaths.has(entityPath) || fieldPaths.has(entityPath)) {
       throw runtimeError(
         'CONTRACT.PACK_CONTRIBUTION_INVALID',
-        `Ambiguous authoring registry path "${entityPath}". The same path is registered as an entity contribution AND as a type constructor or field preset; PSL resolution would be ambiguous. ${ambiguityHint}`,
+        `Ambiguous authoring registry path "${entityPath}". The same path is registered as an entity contribution AND as a type constructor, type alias or field preset; PSL resolution would be ambiguous. ${ambiguityHint}`,
       );
     }
   }
@@ -1518,9 +1598,11 @@ function assertSelectTemplatesMatchOptionArgs(
   }
   for (const [helperPath, descriptor] of collectDescriptorNodes(
     typeNamespace,
-    isAuthoringTypeConstructorDescriptor,
+    isAuthoringTypeDescriptor,
   )) {
-    validateSelectRefsAgainstArgs('type', helperPath, descriptor.args, descriptor.output);
+    if (isAuthoringTypeConstructorDescriptor(descriptor)) {
+      validateSelectRefsAgainstArgs('type', helperPath, descriptor.args, descriptor.output);
+    }
   }
   for (const [helperPath, descriptor] of collectDescriptorNodes(
     entityTypeNamespace,
@@ -1592,29 +1674,7 @@ function validateAuthoringArgument(
     throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} is missing`);
   }
 
-  if (descriptor.kind === 'string') {
-    if (typeof value !== 'string') {
-      throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} must be a string`);
-    }
-    return;
-  }
-
-  if (descriptor.kind === 'boolean') {
-    if (typeof value !== 'boolean') {
-      throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} must be a boolean`);
-    }
-    return;
-  }
-
-  if (descriptor.kind === 'stringArray') {
-    if (!Array.isArray(value)) {
-      throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} must be an array of strings`);
-    }
-    for (const entry of value) {
-      if (typeof entry !== 'string') {
-        throw runtimeError('CONTRACT.ARGUMENT_INVALID', `${path} must be an array of strings`);
-      }
-    }
+  if (descriptor.kind === 'value') {
     return;
   }
 
@@ -1732,6 +1792,33 @@ function issueKey(issue: StandardSchemaV1.Issue): string | undefined {
   return typeof key === 'string' ? key : undefined;
 }
 
+/** Why a constructor's or preset's type parameters fail its codec's parameter schema, and the argument the failing parameter came from. */
+export interface AuthoringTypeParamsIssue {
+  readonly message: string;
+  readonly argumentIndex: number | undefined;
+}
+
+function authoringTypeParamsIssue(
+  template: AuthoringStorageTypeTemplate,
+  typeParams: Record<string, unknown> | undefined,
+  paramsSchema: StandardSchemaV1<unknown> | undefined,
+): AuthoringTypeParamsIssue | undefined {
+  if (template.typeParams === undefined || paramsSchema === undefined) return undefined;
+  const result = paramsSchema['~standard'].validate(typeParams ?? {});
+  if (result instanceof Promise) {
+    throw new InternalError(
+      `The parameter schema of codec "${template.codecId}" is asynchronous; authoring requires a synchronous schema.`,
+    );
+  }
+  const [issue] = result.issues ?? [];
+  if (issue === undefined) return undefined;
+  const key = issueKey(issue);
+  return {
+    message: issue.message,
+    argumentIndex: key === undefined ? undefined : argumentIndexOf(template.typeParams[key]),
+  };
+}
+
 /**
  * Checks the type parameters a constructor or preset produced against its codec's parameter schema, which is where the bounds of a data type's parameters are written. A failure names the argument the failing parameter came from.
  */
@@ -1741,17 +1828,9 @@ export function validateAuthoringTypeParams(
   typeParams: Record<string, unknown> | undefined,
   paramsSchema: StandardSchemaV1<unknown> | undefined,
 ): void {
-  if (template.typeParams === undefined || paramsSchema === undefined) return;
-  const result = paramsSchema['~standard'].validate(typeParams ?? {});
-  if (result instanceof Promise) {
-    throw new InternalError(
-      `The parameter schema of codec "${template.codecId}" is asynchronous; authoring requires a synchronous schema.`,
-    );
-  }
-  const [issue] = result.issues ?? [];
+  const issue = authoringTypeParamsIssue(template, typeParams, paramsSchema);
   if (issue === undefined) return;
-  const key = issueKey(issue);
-  const argumentIndex = key === undefined ? undefined : argumentIndexOf(template.typeParams[key]);
+  const { argumentIndex } = issue;
   throw runtimeError(
     'CONTRACT.ARGUMENT_INVALID',
     argumentIndex === undefined
@@ -1869,6 +1948,115 @@ export function instantiateAuthoringTypeConstructor(
   args: readonly unknown[],
 ): ScalarTypeConstructorOutput {
   return resolveAuthoringStorageTypeTemplate(descriptor.output, args);
+}
+
+/** What a field typed by a contributed type alias takes: the type, and the alias's generator calls. */
+export interface AuthoringTypeAliasOutput {
+  readonly type: ScalarTypeConstructorOutput;
+  readonly onCreate?: GeneratorFunctionCall;
+  readonly onUpdate?: GeneratorFunctionCall;
+}
+
+export function instantiateAuthoringTypeAlias(
+  descriptor: AuthoringTypeAliasDescriptor,
+): AuthoringTypeAliasOutput {
+  const { output } = descriptor;
+  return {
+    type: resolveAuthoringStorageTypeTemplate(output.type, []),
+    ...ifDefined('onCreate', output.onCreate),
+    ...ifDefined('onUpdate', output.onUpdate),
+  };
+}
+
+const GENERATOR_PHASE_TEXT = { onCreate: 'on create', onUpdate: 'on update' } as const;
+
+/**
+ * The generators the calls of the type alias at `path` resolve to for its column, or `undefined` when it calls none. A call that does not resolve is the pack's mistake, so it throws `CONTRACT.PACK_CONTRIBUTION_INVALID`. `length` is the column's length, in its data type's normal form, when the caller's family knows it.
+ */
+export function resolveTypeAliasGenerators(input: {
+  readonly path: string;
+  readonly descriptor: AuthoringTypeAliasDescriptor;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
+  readonly length: number | undefined;
+}): ExecutionMutationDefaultPhases | undefined {
+  const { type, ...calls } = instantiateAuthoringTypeAlias(input.descriptor);
+  const phases: {
+    onCreate?: ExecutionMutationDefaultValue;
+    onUpdate?: ExecutionMutationDefaultValue;
+  } = {};
+  for (const phase of ['onCreate', 'onUpdate'] as const) {
+    const call = calls[phase];
+    if (call === undefined) continue;
+    const resolution = input.generatorFunctions.resolve(call, {
+      codecId: type.codecId,
+      typeParams: type.typeParams,
+      length: input.length,
+    });
+    if (resolution.ok) {
+      phases[phase] = resolution.generator;
+      continue;
+    }
+    const written = `Type alias "${input.path}" calls ${call.name}() ${GENERATOR_PHASE_TEXT[phase]}`;
+    throw runtimeError(
+      'CONTRACT.PACK_CONTRIBUTION_INVALID',
+      resolution.reason === 'refused'
+        ? `${written}, which its codec "${type.codecId}" refuses: ${resolution.message}`
+        : resolution.reason === 'not-bound'
+          ? `${written}, which does not apply to its codec "${type.codecId}".`
+          : `${written}, but no component declares the generator function "${call.name}".`,
+    );
+  }
+  return phases.onCreate === undefined && phases.onUpdate === undefined ? undefined : phases;
+}
+
+/** What assembly checks a contributed type alias against: the stack's generator functions, each codec's parameter schema, and the length the family gives a field of a type. */
+export interface TypeAliasAssemblyLookups {
+  readonly generatorFunctions: GeneratorFunctionRegistry;
+  readonly paramsSchemaOf: (codecId: string) => StandardSchemaV1<unknown> | undefined;
+  readonly fieldLength: (field: Omit<GeneratorFunctionField, 'length'>) => number | undefined;
+}
+
+/**
+ * Refuses a type alias of `namespace` whose fixed type params its codec's parameter schema refuses, or whose generator call does not resolve for its codec and length. The control stack and the TypeScript builders call it on their assembled namespace, so PSL and TypeScript refuse the same packs, before any schema is read.
+ */
+export function assertTypeAliasesValid(
+  namespace: AuthoringTypeNamespace,
+  lookups: TypeAliasAssemblyLookups,
+): void {
+  for (const [path, descriptor] of collectDescriptorNodes(namespace, isAuthoringTypeDescriptor)) {
+    if (!isAuthoringTypeAliasDescriptor(descriptor)) continue;
+    const { type } = instantiateAuthoringTypeAlias(descriptor);
+    const issue = authoringTypeParamsIssue(
+      descriptor.output.type,
+      type.typeParams,
+      lookups.paramsSchemaOf(type.codecId),
+    );
+    if (issue !== undefined) {
+      throw runtimeError(
+        'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        `Type alias "${path}" fixes type parameters its codec "${type.codecId}" refuses: ${issue.message}`,
+      );
+    }
+    resolveTypeAliasGenerators({
+      path,
+      descriptor,
+      generatorFunctions: lookups.generatorFunctions,
+      length: lookups.fieldLength({ codecId: type.codecId, typeParams: type.typeParams }),
+    });
+  }
+}
+
+/**
+ * The column a type constructor makes from the stored values of its arguments, as a reader that holds values rather than written arguments has them, or why its codec's parameter schema refuses the parameters they give. The schema check is {@link validateAuthoringTypeParams}'s.
+ */
+export function instantiateAuthoringTypeConstructorFromValues(
+  descriptor: AuthoringTypeConstructorDescriptor,
+  values: readonly unknown[],
+  paramsSchema: StandardSchemaV1<unknown> | undefined,
+): Result<ScalarTypeConstructorOutput, AuthoringTypeParamsIssue> {
+  const output = instantiateAuthoringTypeConstructor(descriptor, values);
+  const issue = authoringTypeParamsIssue(descriptor.output, output.typeParams, paramsSchema);
+  return issue === undefined ? ok(output) : notOk(issue);
 }
 
 export function instantiateAuthoringEntityType<TOutput = unknown>(

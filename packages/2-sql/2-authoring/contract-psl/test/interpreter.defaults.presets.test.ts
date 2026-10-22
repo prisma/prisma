@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { fixtureInterpreterTypes } from './fixture-codec-descriptors';
+import { fixtureGeneratorFunctions } from './fixture-generator-functions';
 import { interpretSqlContract, sqliteScalarColumnDescriptors, sqliteTarget } from './fixtures';
 import { sqlStorageFromSuccessfulSqlInterpretation } from './interpret-sql-contract-storage';
 import {
@@ -119,45 +120,42 @@ describe('interpretPslDocumentToSqlContract field-preset default lowering', () =
     expect(result.ok).toBe(false);
     if (result.ok) return;
 
-    expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
-          sourceId: 'schema.prisma',
-          message: expect.stringContaining('temporal.updatedAt()'),
-        }),
-      ]),
-    );
+    expect(
+      result.failure.diagnostics.map(({ code, message, sourceId }) => ({
+        code,
+        message,
+        sourceId,
+      })),
+    ).toEqual([
+      {
+        code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
+        sourceId: 'schema.prisma',
+        message:
+          'Field "Stale.updatedAt" uses unsupported attribute "@updatedAt". Use @onCreate(now()) @onUpdate(now()), or type the field temporal.UpdatedAt.',
+      },
+    ]);
   });
 
-  it('suppresses the @updatedAt migration hint when the field already declares a temporal preset', () => {
-    // `temporal.updatedAt() @updatedAt` is a half-migrated field. The
-    // attribute is unsupported (not registered in `sqlAttributeSpecs.field`),
-    // so the diagnostic still fires — but we don't tell users to do what
-    // they already did. The migration hint is suppressed; only the bare
-    // unsupported-attribute message is emitted.
-
+  it('suppresses the @updatedAt migration hint when the field already declares @onUpdate', () => {
     const result = interpretPostgresSchema(
       `model Migrated {
   id Int @id
-  updatedAt temporal.updatedAt() @updatedAt
+  updatedAt DateTime @onUpdate(now()) @updatedAt
 }`,
       {
         controlMutationDefaults: builtinControlMutationDefaults,
-        authoringContributions: postgresTemporalContributions,
+        generatorFunctions: fixtureGeneratorFunctions,
       },
     );
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
-
-    const updatedAtDiagnostic = result.failure.diagnostics.find(
-      (diagnostic) =>
-        diagnostic.code === 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE' &&
-        diagnostic.message.includes('@updatedAt'),
-    );
-    expect(updatedAtDiagnostic).toBeDefined();
-    expect(updatedAtDiagnostic?.message).not.toContain('temporal.updatedAt()');
+    expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+      {
+        code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
+        message: 'Field "Migrated.updatedAt" uses unsupported attribute "@updatedAt"',
+      },
+    ]);
   });
 
   it('resolves a synthetic field preset through the field-preset dispatch path (genericness)', () => {

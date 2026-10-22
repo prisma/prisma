@@ -7,7 +7,11 @@ import type {
   DataTypeAuthoringEntry,
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
-import { createDataTypeLookup } from '@internal/framework-components/codec';
+import { createDataTypeLookup, dataType } from '@internal/framework-components/codec';
+import {
+  EMPTY_GENERATOR_FUNCTIONS,
+  type GeneratorFunctionRegistry,
+} from '@internal/framework-components/components';
 
 import {
   assembleAuthoringContributions,
@@ -19,8 +23,10 @@ import {
   type BlockSpecContext,
   blockAttribute,
   buildSymbolTable,
+  EMPTY_DATA_TYPES,
   entityRef,
   type FieldAttributeSpecContext,
+  type FuncCallSig,
   fieldAttribute,
   identifier,
   int,
@@ -43,6 +49,7 @@ import {
 } from 'vscode-languageserver';
 import { classifyPslCompletionContext } from '../src/completion-context';
 import { providePslCompletionItems } from '../src/completion-provider';
+import { renderSignatureLabel, resolveSignatureParameters } from '../src/signature-help';
 import { testBinder } from './helpers/binder';
 
 const scalarTypes = ['String', 'Int', 'Boolean', 'DateTime'] as const;
@@ -283,6 +290,7 @@ function completeWithSource(input: {
   readonly clientSupportsTriggerSuggestCommand?: boolean;
   readonly clientSupportsTriggerParameterHintsCommand?: boolean;
   readonly scalarTypes?: readonly string[];
+  readonly generatorFunctions?: GeneratorFunctionRegistry;
 }) {
   const cursorOffset = input.markedSource.indexOf('|');
   expect(cursorOffset).toBeGreaterThanOrEqual(0);
@@ -324,6 +332,7 @@ function completeWithSource(input: {
           ? {}
           : { controlMutationDefaults: input.controlMutationDefaults }),
         ...(input.dataTypes === undefined ? {} : { dataTypes: input.dataTypes }),
+        generatorFunctions: input.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS,
       },
       clientSupportsSnippets: input.clientSupportsSnippets === true,
       clientSupportsTriggerSuggestCommand: input.clientSupportsTriggerSuggestCommand === true,
@@ -366,6 +375,30 @@ async function actualMongoStack(): Promise<CompletionTestStack> {
     pslBlockDescriptors: blocks.mongoFamilyPslBlockDescriptors,
   };
 }
+
+const fixtureInt = dataType('fixture/int', { read: (json) => json });
+const fixtureExpression = dataType('fixture/expression', { read: (json) => json });
+const constructorArgumentDataTypes: DataTypeSupport = {
+  entries: {
+    [fixtureInt.id]: {
+      written: {
+        kind: 'plain',
+        syntax: 'number',
+        types: [fixtureInt.id],
+        classify: (text) => ({ type: fixtureInt.id, value: Number(text) }),
+      },
+      print: String,
+      documentation: 'A whole number.',
+    },
+    [fixtureExpression.id]: {
+      written: { kind: 'tag', tag: 'sql', parse: (text) => text },
+      print: String,
+      documentation: 'A SQL expression.',
+    },
+  },
+  lookup: createDataTypeLookup([fixtureInt, fixtureExpression]),
+  dataTypeOfCodec: () => undefined,
+};
 
 async function sqlExpressionDataTypes(): Promise<Readonly<Record<string, DataTypeAuthoringEntry>>> {
   const family = await importFromPackageRoot<ActualSqlExpressionModule>(
@@ -551,15 +584,15 @@ namespace other { model Hidden { id Int } }`,
         Required: {
           kind: 'typeConstructor',
           args: [
-            { name: 'size', kind: 'number' },
-            { name: 'label', kind: 'string' },
-            { name: 'scale', kind: 'number', optional: true },
+            { name: 'size', kind: 'value', dataType: 'fixture/int' },
+            { name: 'label', kind: 'value', dataType: 'fixture/expression' },
+            { name: 'scale', kind: 'value', dataType: 'fixture/int', optional: true },
           ],
           output: { codecId: 'fixture/value' },
         },
         Optional: {
           kind: 'typeConstructor',
-          args: [{ name: 'size', kind: 'number', optional: true }],
+          args: [{ name: 'size', kind: 'value', dataType: 'fixture/int', optional: true }],
           output: { codecId: 'fixture/value' },
         },
         Entity: {
@@ -577,12 +610,13 @@ namespace other { model Hidden { id Int } }`,
           authoringContributions: assembleAuthoringContributions([
             { id: 'constructors', authoring: { type: { ...types, custom: types } } },
           ]),
+          dataTypes: constructorArgumentDataTypes,
         });
         for (const [label, snippet] of [
           ['Scalar', 'Scalar'],
           ['Deprecated', 'Deprecated'],
           ['Empty', 'Empty()'],
-          ['Required', 'Required($' + '{1:size}, "$' + '{2:label}")'],
+          ['Required', 'Required($' + '{1:size}, sql`$' + '{2:label}`)'],
           ['Optional', 'Optional($' + '{1:})'],
           ['Entity', 'Entity($' + '{1:choice})'],
         ] as const) {
@@ -607,6 +641,60 @@ namespace other { model Hidden { id Int } }`,
       }
     },
   );
+
+  it('renders a contributed type alias as a type with its documentation', () => {
+    const now = { name: 'now', args: {} } as const;
+    const { items } = completeWithSource({
+      markedSource: 'model Owner { value temporal.| }',
+      pslBlockDescriptors: {},
+      scalarTypes: [],
+      clientSupportsSnippets: true,
+      authoringContributions: assembleAuthoringContributions([
+        {
+          id: 'aliases',
+          authoring: {
+            type: {
+              temporal: {
+                CreatedAt: {
+                  kind: 'typeAlias',
+                  documentation: 'Set to now when a row is created.',
+                  output: { type: { codecId: 'fixture/value' }, onCreate: now },
+                },
+                UpdatedAt: {
+                  kind: 'typeAlias',
+                  output: { type: { codecId: 'fixture/value' }, onCreate: now, onUpdate: now },
+                },
+              },
+            },
+          },
+        },
+      ]),
+    });
+    expect(
+      items.map((item) => ({
+        label: item.label,
+        kind: item.kind,
+        detail: item.detail,
+        newText: item.textEdit?.newText,
+        format: item.insertTextFormat,
+      })),
+    ).toEqual([
+      {
+        label: 'CreatedAt',
+        kind: CompletionItemKind.Class,
+        detail: 'Set to now when a row is created.',
+        newText: 'CreatedAt',
+        format: undefined,
+      },
+      {
+        label: 'UpdatedAt',
+        kind: CompletionItemKind.Class,
+        detail: 'Type alias',
+        newText: 'UpdatedAt',
+        format: undefined,
+      },
+    ]);
+  });
 
   it('does not complete a global namespace when its qualifier is shadowed locally', () => {
     const { items } = complete(`namespace remote { model Item { id Int } }
@@ -639,7 +727,7 @@ namespace app {
       'Declares a mixin for model blocks.',
       'Defines a reusable composite type.',
       'Declares a mixin for type blocks.',
-      'Defines reusable named types.',
+      'Defines reusable type aliases.',
       'Groups declarations belonging to the same database schema or database.',
       'Generic block keyword',
       'Declares a mixin for audit blocks.',
@@ -982,6 +1070,7 @@ namespace app {
         }),
         authoringContributions: observedAuthoringContributions,
         controlMutationDefaults,
+        generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       },
       clientSupportsSnippets: true,
     });
@@ -1123,7 +1212,7 @@ namespace app {
       completeWithActualStack(['model Post {', '  id Int @|', '}'].join('\n'), stack).items.map(
         (item) => item.label,
       ),
-    ).toEqual(['default', 'id', 'map', 'relation', 'unique']);
+    ).toEqual(['default', 'id', 'map', 'onCreate', 'onUpdate', 'relation', 'unique']);
     expect(
       completeWithActualStack(
         ['model Post {', '  id Int', '  @@|', '}'].join('\n'),
@@ -1248,6 +1337,8 @@ namespace app {
       'default',
       'id',
       'map',
+      'onCreate',
+      'onUpdate',
       'relation',
       'unique',
     ]);
@@ -1263,7 +1354,7 @@ namespace app {
       completeWithActualStack(['model Post {', '  id String @|', '}'].join('\n'), stack).items.map(
         (item) => item.label,
       ),
-    ).toEqual(['id', 'map', 'relation', 'unique']);
+    ).toEqual(['id', 'map', 'onCreate', 'onUpdate', 'relation', 'unique']);
     expect(
       completeWithActualStack(
         ['model Post {', '  id String', '  @@|', '}'].join('\n'),
@@ -1757,29 +1848,35 @@ namespace app {
       'null',
       'autoincrement',
       'now',
-      'uuid',
-      'cuid',
-      'ulid',
-      'nanoid',
     ]);
-    expect(
-      completeWithActualStack(source('uuid(|)'), stack, options).items.map((item) => item.label),
-    ).toEqual(['4', '7']);
-    expect(
-      completeWithActualStack(source('cuid(|)'), stack, options).items.map((item) => item.label),
-    ).toEqual(['2']);
-    expect(completeWithActualStack(source('nanoid(|)'), stack, options).items).toEqual([]);
     const snippetItems = completeWithActualStack(source('|'), stack, {
       ...options,
       clientSupportsSnippets: true,
     }).items;
-    expect(completionItemByLabel(snippetItems, 'uuid').textEdit?.newText).toBe(
-      `uuid(${emptySnippetPlaceholder1})`,
-    );
-    expect(completionItemByLabel(snippetItems, 'cuid').textEdit?.newText).toBe(
-      'cuid($' + '{1:version})',
-    );
+    expect(completionItemByLabel(snippetItems, 'now').textEdit?.newText).toBe('now()');
   }, 5_000);
+
+  it('labels each generator function argument by the values the function takes', async () => {
+    const postgres = await importFromPackageRoot<{
+      readonly postgresGeneratorFunctions: readonly {
+        readonly name: string;
+        readonly signature?: unknown;
+      }[];
+    }>('../../../3-targets/3-targets/postgres/src/core/generator-functions.ts');
+    const labelOf = (name: string) => {
+      const declared = postgres.postgresGeneratorFunctions.find(
+        (contribution) => contribution.name === name && contribution.signature !== undefined,
+      )!.signature as (dataTypes: unknown) => FuncCallSig;
+      const signature = declared(EMPTY_DATA_TYPES);
+      return renderSignatureLabel(name, signature, resolveSignatureParameters(signature, undefined))
+        .label;
+    };
+    expect(['uuid', 'cuid', 'nanoid'].map(labelOf)).toEqual([
+      'uuid((4 | 7)?)',
+      'cuid(2)',
+      'nanoid(integer from 2 to 255?)',
+    ]);
+  });
 
   it('offers each registered tag inside @default( with its own documentation', async () => {
     const stack = await actualSqlStack();

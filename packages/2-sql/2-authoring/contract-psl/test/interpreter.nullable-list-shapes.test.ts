@@ -31,8 +31,14 @@ describe('interpretPslDocumentToSqlContract value objects and list fields', () =
       | 'capabilities'
       | 'dataTypes'
       | 'codecLookup'
+      | 'generatorFunctions'
     > &
-      Partial<Pick<InterpretPslDocumentToSqlContractInput, 'composedExtensionContracts'>>,
+      Partial<
+        Pick<
+          InterpretPslDocumentToSqlContractInput,
+          'composedExtensionContracts' | 'generatorFunctions'
+        >
+      >,
   ) =>
     interpretSqlContract(schema, {
       target: postgresTarget,

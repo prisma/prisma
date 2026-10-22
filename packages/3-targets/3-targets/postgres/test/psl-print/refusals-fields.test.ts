@@ -1,4 +1,3 @@
-import type { AuthoringFieldPresetDescriptor } from '@internal/framework-components/authoring';
 import { sqlDataType } from '@internal/sql-contract/data-type';
 import { blindCast } from '@internal/utils/casts';
 import { type as arktype } from 'arktype';
@@ -121,75 +120,6 @@ describe('columns and fields', () => {
     ).toEqual(['priorities Priority[]']);
   });
 
-  it('refuses a field typed by a domain enum whose generators a field preset writes, since the preset call would replace the enum', () => {
-    const tagged: AuthoringFieldPresetDescriptor = {
-      kind: 'fieldPreset',
-      args: [{ name: 'onCreate', kind: 'option', values: ['first'], optional: true }],
-      output: {
-        codecId: 'pg/text@1',
-        executionDefaults: {
-          onCreate: {
-            kind: 'select',
-            index: 0,
-            cases: { first: { kind: 'generator', id: 'firstMember' } },
-          },
-        },
-      },
-    };
-    expect(
-      printingWidget(
-        {
-          domain: {
-            enum: { Priority: { codecId: 'pg/text@1', members: [{ name: 'Low', value: 'low' }] } },
-          },
-          entries: { valueSet: { Priority: { kind: 'valueSet', values: ['low'] } } },
-          columns: {
-            priority: {
-              ...TEXT_COLUMN,
-              valueSet: {
-                plane: 'storage',
-                namespaceId: 'public',
-                entityKind: 'valueSet',
-                entityName: 'Priority',
-              },
-            },
-          },
-          fields: {
-            priority: {
-              ...TEXT_FIELD,
-              valueSet: {
-                plane: 'domain',
-                namespaceId: 'public',
-                entityKind: 'enum',
-                entityName: 'Priority',
-              },
-            },
-          },
-          table: { control: 'external' },
-          contract: {
-            execution: {
-              mutations: {
-                defaults: [
-                  {
-                    ref: { namespace: 'public', entry: 'Widget', field: 'priority' },
-                    onCreate: { kind: 'generator', id: 'firstMember' },
-                  },
-                ],
-              },
-            },
-          },
-        },
-        testBuildContext({ fieldPresets: { pick: { tagged } } }),
-      ),
-    ).toThrow(
-      expect.objectContaining({
-        code: 'CONTRACT.PRINT_UNSUPPORTED',
-        message:
-          'contract print: column "public"."Widget"."priority" cannot be written with field preset pick.tagged: its type Priority is an enum, which the preset call would replace.',
-      }),
-    );
-  });
-
   it('refuses a model field whose type is a union of types', () => {
     expect(
       printingWidget({
@@ -246,7 +176,7 @@ describe('columns and fields', () => {
         geo: {
           Shape: {
             kind: 'typeConstructor',
-            args: [{ kind: 'string', name: 'shape' }],
+            args: [{ kind: 'value', dataType: 'sql/expression', name: 'shape' }],
             output: {
               codecId: 'pg/geometry@1',
               typeParams: { shape: { kind: 'arg', index: 0 } },
@@ -313,99 +243,17 @@ describe('columns and fields', () => {
       );
     });
 
-    it('writes a string type argument between quotes', () => {
-      expect(withShape({ shape: 'Point' })).not.toThrow();
+    it('writes a type argument as a literal of its data type, double quotes included', () => {
+      expect(withShape({ shape: 'Point "A"' })).not.toThrow();
     });
 
-    it('refuses a preset call whose type param a PSL argument cannot carry', () => {
-      const shape = 'Point "A"';
-      const stamped: AuthoringFieldPresetDescriptor = {
-        kind: 'fieldPreset',
-        args: [
-          { name: 'shape', kind: 'string', optional: true },
-          { name: 'onCreate', kind: 'option', values: ['now'], optional: true },
-        ],
-        output: {
-          codecId: 'pg/geometry@1',
-          typeParams: { shape: { kind: 'arg', index: 0 } },
-          executionDefaults: {
-            onCreate: {
-              kind: 'select',
-              index: 1,
-              cases: { now: { kind: 'generator', id: 'geoNow' } },
-            },
-          },
-        },
-      };
-      const fixedShape = testBuildContext({
-        types: {
-          geo: {
-            PointA: {
-              kind: 'typeConstructor',
-              output: { codecId: 'pg/geometry@1', typeParams: { shape } },
-            },
-          },
-        },
-        fieldPresets: { geo: { stamped } },
-        dataTypes: [
-          sqlDataType('postgis/geometry', {
-            read: (json) => json,
-            params: arktype({ 'shape?': 'string' }),
-            texts: [{ text: 'geometry', written: true, catalog: true }],
-          }),
-        ],
-      });
-      expect(
-        printingWidget(
-          {
-            columns: {
-              area: {
-                many: false,
-                dataType: 'postgis/geometry',
-                codecId: 'pg/geometry@1',
-                nullable: false,
-                typeParams: { shape },
-              },
-            },
-            fields: {
-              area: {
-                many: false,
-                nullable: false,
-                type: { kind: 'scalar', codecId: 'pg/geometry@1', typeParams: { shape } },
-              },
-            },
-            contract: {
-              execution: {
-                mutations: {
-                  defaults: [
-                    {
-                      ref: { namespace: 'public', entry: 'Widget', field: 'area' },
-                      onCreate: { kind: 'generator', id: 'geoNow' },
-                    },
-                  ],
-                },
-              },
-            },
-          },
-          fixedShape,
-        ),
-      ).toThrow(
-        expect.objectContaining({
-          code: 'CONTRACT.PRINT_UNSUPPORTED',
-          message:
-            'contract print: column "public"."Widget"."area" cannot be written with field preset geo.stamped: its type param "shape" is "Point \\"A\\"", which a PSL argument cannot carry.',
-          meta: {
-            coordinate: '"public"."Widget"."area"',
-            preset: 'geo.stamped',
-            reason: { kind: 'unwritableArgument', argument: 'shape', value: shape },
-          },
+    it('refuses a type argument no literal of its data type reads back as', () => {
+      expect(withShape({ shape: 'Point\u0000' })).toThrow(
+        refusal({
+          coordinate: '"public"."Widget"."area"',
+          path: 'geo.Shape',
+          arguments: ['Point\u0000'],
         }),
-      );
-    });
-
-    it('refuses a string type argument the PSL source would read back differently', () => {
-      expect(withShape({ shape: 'Point "A"' })).toThrow(
-        refusal({ coordinate: '"public"."Widget"."area"', argument: 'Point "A"' }),
       );
     });
 
@@ -480,25 +328,15 @@ describe('defaults and generated values', () => {
     });
   }
 
-  it('refuses a generator on update that no field preset writes', () => {
-    expect(withGenerator({ onUpdate: { kind: 'generator', id: 'uuidv4' } })).toThrow(
-      refusal({ coordinate: '"public"."Widget"."value"', onCreate: undefined, onUpdate: 'uuidv4' }),
-    );
-  });
-
-  it('refuses a generator with no PSL default function', () => {
+  it('refuses a generator no component registers', () => {
     expect(withGenerator({ onCreate: { kind: 'generator', id: 'slugid' } })).toThrow(
-      refusal({ coordinate: '"public"."Widget"."value"', onCreate: 'slugid', onUpdate: undefined }),
+      refusal({
+        coordinate: '"public"."Widget"."value"',
+        phase: 'onCreate',
+        generatorId: 'slugid',
+        codecId: 'pg/text@1',
+      }),
     );
-  });
-
-  it('refuses a column with both an id generator and a database default', () => {
-    expect(
-      withGenerator(
-        { onCreate: { kind: 'generator', id: 'uuidv4' } },
-        { ...TEXT_COLUMN, default: { kind: 'function', expression: 'gen_random_uuid()' } },
-      ),
-    ).toThrow(refusal({ coordinate: '"public"."Widget"."value"', onCreate: 'uuidv4' }));
   });
 
   it('never sees a generated value for a column no field is stored in: the contract is refused when it is read', () => {

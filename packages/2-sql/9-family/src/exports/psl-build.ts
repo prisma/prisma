@@ -14,21 +14,22 @@ export type {
   DefaultMappingOptions,
   DefaultMappingResult,
 } from '../core/psl-build/default-mapping';
-export { mapDefault } from '../core/psl-build/default-mapping';
+export {
+  mapDefault,
+  writeDataTypeValue,
+  writeDefaultLiteral,
+} from '../core/psl-build/default-mapping';
 export type {
-  FieldPresetArgument,
-  FieldPresetCallChoice,
-  FieldPresetReadBackDifference,
-  FieldPresetUnwritableReason,
-  PslColumnTypeKind,
-  PslColumnTypeRef,
-} from '../core/psl-build/generated-values';
-export { defaultFunctionCallFor, fieldPresetCallFor } from '../core/psl-build/generated-values';
+  GeneratorCallRefusal,
+  GeneratorCallsResult,
+  PhaseCallText,
+} from '../core/psl-build/generator-calls';
+export { generatorCallsFor } from '../core/psl-build/generator-calls';
 export {
   fewestArgumentsCall,
   type InferredTypeConstructor,
   type InferredTypeConstructors,
   inferredTypeConstructors,
-  pslTypeArgumentText,
+  writtenTypeArguments,
 } from '../core/psl-build/inferred-type-constructors';
 export { toEnumMemberName } from '../core/psl-build/psl-names';

@@ -175,6 +175,7 @@ export function prisma7Contract(
             seedDiagnostics,
             binding: options.binding,
             controlMutationDefaults: context.controlMutationDefaults,
+            generatorFunctions: context.generatorFunctions,
             authoringContributions: context.authoringContributions,
             codecLookup: context.codecLookup,
             dataTypes: context.dataTypes,

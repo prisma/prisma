@@ -382,6 +382,8 @@ class ControlClientImpl implements ControlClient {
 
     return executeDbInit({
       driver,
+      invocation: options.invocation,
+      ...ifDefined('onPlannerWarnings', options.onPlannerWarnings),
       adapter,
       familyInstance,
       contract,
@@ -423,6 +425,8 @@ class ControlClientImpl implements ControlClient {
 
     return executeDbUpdate({
       driver,
+      invocation: options.invocation,
+      ...ifDefined('onPlannerWarnings', options.onPlannerWarnings),
       adapter,
       familyInstance,
       contract,
@@ -525,6 +529,7 @@ class ControlClientImpl implements ControlClient {
 
     return executeMigrate({
       driver,
+      invocation: options.invocation,
       familyInstance,
       contract,
       migrations: this.options.target.migrations,
@@ -643,11 +648,12 @@ class ControlClientImpl implements ControlClient {
     });
     if (!loaded.ok) {
       const { error, sourceDiagnostics } = loaded.failure;
+      const thrownBySource = error.code !== 'CONTRACT.SOURCE_LOAD_FAILED';
       return notOk({
         code: 'CONTRACT_SOURCE_INVALID',
         summary: sourceDiagnostics?.summary ?? error.message,
         why: error.why,
-        meta: sourceDiagnostics?.meta,
+        meta: thrownBySource ? { code: error.code, ...error.meta } : sourceDiagnostics?.meta,
         ...ifDefined('diagnostics', sourceDiagnostics),
       });
     }

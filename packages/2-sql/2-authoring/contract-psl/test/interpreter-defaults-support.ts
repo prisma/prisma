@@ -1,7 +1,8 @@
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import type { InterpretPslDocumentToSqlContractInput } from '../src/interpreter';
 import { fixtureTypeLookups } from './fixture-codec-descriptors';
-import { fixtureDataTypeSupport } from './fixture-data-types';
+import { fixtureDataTypeSupport, fixtureTextDataTypes } from './fixture-data-types';
+import { fixtureGeneratorFunctions } from './fixture-generator-functions';
 import {
   createBuiltinLikeControlMutationDefaults,
   interpretSqlContract,
@@ -27,11 +28,16 @@ export const interpretPostgresSchema = (
     | 'capabilities'
     | 'dataTypes'
     | 'codecLookup'
+    | 'generatorFunctions'
   > &
     Partial<
       Pick<
         InterpretPslDocumentToSqlContractInput,
-        'composedExtensionContracts' | 'scalarColumnDescriptors' | 'dataTypes' | 'codecLookup'
+        | 'composedExtensionContracts'
+        | 'scalarColumnDescriptors'
+        | 'dataTypes'
+        | 'codecLookup'
+        | 'generatorFunctions'
       >
     >,
 ) => {
@@ -43,6 +49,7 @@ export const interpretPostgresSchema = (
     composedExtensionContracts: new Map(),
     createNamespace: createTestSqlNamespace,
     capabilities: { sql: { scalarList: true } },
+    generatorFunctions: fixtureGeneratorFunctions,
     ...interpreterInput,
     // Literal defaults resolve through the column's codec descriptor, as they do in a real stack.
     codecLookup: interpreterInput.codecLookup ?? fixtureTypeLookups.codecLookup,
@@ -52,6 +59,7 @@ export const interpretPostgresSchema = (
         ...interpreterInput.authoringContributions?.dataTypes,
       },
       lookup: fixtureTypeLookups.dataTypeLookup,
+      textDataTypes: fixtureTextDataTypes,
       dataTypeOfCodec: (codecId) => fixtureTypeLookups.codecLookup.descriptorFor(codecId)?.dataType,
     },
   });

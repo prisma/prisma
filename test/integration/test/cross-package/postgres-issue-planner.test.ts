@@ -112,7 +112,6 @@ function planAgainst(
     schemaName: 'public',
     codecHooks: new Map(),
     types: sqlTypeLookupsOf(frameworkComponents),
-    storageTypes: contract.storage.types ?? {},
     frameworkComponents,
     ...(options.strategies !== undefined ? { strategies: options.strategies } : {}),
     ...(options.statementColumns !== undefined

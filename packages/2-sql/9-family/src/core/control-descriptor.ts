@@ -1,6 +1,7 @@
 import type { DataType } from '@internal/framework-components/codec';
 import type { ControlFamilyDescriptor, ControlStack } from '@internal/framework-components/control';
 import type { EmissionSpi } from '@internal/framework-components/emission';
+import { sqlCodecColumnLength } from '@internal/sql-contract/data-type';
 import { sqlExpressionRegistration } from '@internal/sql-contract/sql-expression';
 import { sqlEmission } from '@internal/sql-contract-emitter';
 import {
@@ -12,6 +13,7 @@ import { sqlFamilyEntityTypes, sqlFamilyPslBlockDescriptors } from './authoring-
 import { sqlFamilyAuthoringFieldPresets } from './authoring-field-presets';
 import { sqlFamilyAuthoringTypes } from './authoring-type-constructors';
 import { createSqlFamilyInstance, type SqlControlFamilyInstance } from './control-instance';
+import { sqlFamilyGeneratorDescriptors, sqlFamilyGeneratorFunctions } from './generator-functions';
 
 const sqlFamilyDescribeUnsupportedAttribute: unknown = describeUnsupportedSqlAttribute;
 const sqlFamilyDescribeUnresolvedType: unknown = describeUnresolvedSqlType;
@@ -33,6 +35,15 @@ export class SqlFamilyDescriptor
     attributeSpecs: sqlAttributeSpecs,
     dataTypes: sqlExpressionRegistration.authoring.dataTypes,
   } as const;
+  readonly generatorFunctions = sqlFamilyGeneratorFunctions;
+  readonly controlMutationDefaults = {
+    defaultFunctionRegistry: new Map(),
+    generatorDescriptors: sqlFamilyGeneratorDescriptors,
+  };
+  readonly fieldLength: NonNullable<ControlFamilyDescriptor<'sql'>['fieldLength']> = (
+    { codecId, typeParams },
+    dataTypes,
+  ) => sqlCodecColumnLength(dataTypes, codecId, typeParams);
   readonly pslDiagnostics = {
     describeUnsupportedAttribute: sqlFamilyDescribeUnsupportedAttribute,
     describeUnresolvedType: sqlFamilyDescribeUnresolvedType,

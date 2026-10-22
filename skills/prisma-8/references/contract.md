@@ -23,6 +23,7 @@ Both files are **emitted artefacts**. Edit the source; never the JSON or `.d.ts`
 - User wants to add a namespace block (Postgres schema) or a cross-contract foreign key.
 - User wants to set `@@control` on a model or configure `defaultControlPolicy`.
 - User wants to use a custom type from an extension (`pgvector.Vector(length: 1536)`, `postgis.Geometry(...)`).
+- User needs a column of a database type no Prisma column type covers (`tsvector`, `ltree`, `circle`, a domain): a raw column, ``Raw(sql`...`)``.
 - User wants to install or configure an extension via `extensions: [...]` in `prisma.config.ts`, including `@internal/extension-supabase`.
 - User is migrating between authoring sources (PSL ↔ TypeScript builder).
 - User received `CONFIG.CONTRACT_MISSING`, `CONTRACT.VALIDATION_FAILED`, or `CONFIG.MISSING_EXTENSION_PACKS` from `contract emit`.
@@ -155,6 +156,12 @@ model User {
 }
 ```
 
+An alias is expanded into each field that uses it: the column stores the alias's codec and type params, and the contract stores no alias. An alias may carry `@default`, `@onCreate` and `@onUpdate`, which every field typed by it takes: `UpdatedAt = TimestampString(3) @onCreate(now()) @onUpdate(now())`. It may not carry `@id` or `@unique`; write those on the field. A field may add attributes its alias does not set (`updatedAt UpdatedAt @default(now())`), but repeating one the alias sets is `PSL_DUPLICATE_ATTRIBUTE`. An alias may not name another alias. The targets contribute `temporal.CreatedAt` (generated on create) and `temporal.UpdatedAt` (on create and on update), written bare: `createdAt temporal.CreatedAt`. On Postgres they are `Timestamptz` columns, with `temporal.CreatedAtString` / `UpdatedAtString` and `CreatedAtJsDate` / `UpdatedAtJsDate` variants; on SQLite `DateTime`; on Mongo `Date`. They take no arguments; for a precision, write the type and attributes, as in `Timestamptz(3) @onCreate(now())`.
+
+Values the client generates are written `@onCreate(fn())` and `@onUpdate(fn())`: `id String @id @onCreate(uuid(7))`, `slug String @onCreate(nanoid(12))`, `updatedAt DateTime @onCreate(now()) @onUpdate(now())`. `@default(...)` is a database default only (`now()`, `autoincrement()`, a literal, or `` sql`...` ``); `@default(uuid())` is refused with `PSL_GENERATOR_IN_DEFAULT`. In the TS builder, write `.onCreate(gen.uuid(7))` and `.onUpdate(gen.now())`. Column defaults and generators can sit on one field: `@default(now()) @onCreate(now())`.
+
+In the TS builder, an alias is a constant passed as the field, because field builders are immutable: `const Slug = field.column(type.VarChar(64))`, `const UpdatedAt = field.column(type.TimestampString(3)).onCreate(gen.now()).onUpdate(gen.now())`, then `slug: Slug, updatedAt: UpdatedAt.default(now())`. `type.*` has a helper for every PSL type constructor, and the contributed aliases are `type.temporal.CreatedAt()` and `type.temporal.UpdatedAt()`, used as `field.column(type.temporal.UpdatedAt())`. A definition has no `types` key (`CONTRACT.TYPES_KEY_REMOVED`), and `field.namedType(...)` takes only an enum handle.
+
 Note: scalar lists (e.g. `String[]`) are gated on the target's `sql.scalarList` capability — PostgreSQL declares it, so `tags String[]` lowers to an array column (with a generated no-NULL-elements check; write `tags String?[]` for a list whose elements may be null, which gets no such check); SQLite does not, and rejects the field with `PSL_SCALAR_LIST_UNSUPPORTED_TARGET`. Implicit Prisma-ORM many-to-many (list navigation on both sides without a join model) is rejected by the SQL interpreter — declare the join model explicitly and the ORM traverses it for you (`references/queries.md`). Composite/embeddable types (`type Address { ... }` with `address Address` on a model) are supported: the interpreter lowers them to `valueObjects` in the domain and stores them as `jsonb` columns. See *Workflow — Value objects* below.
 
 ## Workflow — Edit a model / field / relation (TS builder)
@@ -191,7 +198,7 @@ For Mongo, swap every `@internal/postgres/*` import for `@internal/mongo/*`. The
 
 Mongo scalar types, as PSL name / TS builder / application type: `String` / `field.string()` / `string`; `Int32` / `field.int32()` / `number`; `Int64` / `field.int64()` / `bigint`; `Double` / `field.double()` / `number`; `Decimal128` / `field.decimal128()` / decimal text as a `string`; `Bool` / `field.bool()` / `boolean`; `Date` / `field.date()` / `Date`; `ObjectId` / `field.objectId()` / `string`; `Binary` / `field.binary()` / `Uint8Array`; `Json` / `field.json()` / `JsonValue`; `Bson` / `field.bson()` / `BsonValue`. `Json` holds a JSON value only, validated as the JSON-representable BSON types; `Bson` holds any BSON value, unconstrained by the validator. The full table, with codec ids and storage types, is [Scalar types](https://github.com/prisma/orm/blob/main/docs/reference/scalar-types.md).
 
-Mongo timestamps the ORM fills: in PSL, type the field `temporal.createdAt()` (set on create), `temporal.updatedAt()` (set on create and on every update with a non-empty payload), or `temporal.timestamp(onCreate: now, onUpdate: now)` with either option; in TS, use `field.temporal.createdAt()` and the rest inside the callback overload. They store a BSON date read back as `Date`, one value per ORM operation, and an explicit value in the write wins. The fields are optional on create. A preset field cannot be optional (`?`), a list, `@id`, or a field of a composite type.
+Mongo timestamps the ORM fills: in PSL, write `createdAt Date @onCreate(now())` (set on create) or `updatedAt Date @onCreate(now()) @onUpdate(now())` (set on create and on every update with a non-empty payload), or type the field `temporal.CreatedAt` or `temporal.UpdatedAt`, or with the presets `temporal.createdAt()`, `temporal.updatedAt()` or `temporal.timestamp(onCreate: now, onUpdate: now)`; in TS, use `field.date().onCreate(gen.now()).onUpdate(gen.now())`, or `field.temporal.createdAt()` and the rest inside the callback overload. They store a BSON date read back as `Date`, one value per ORM operation, and an explicit value in the write wins. The fields are optional on create. A preset field cannot be optional (`?`), a list, `@id`, or a field of a composite type.
 
 ## Workflow — Add an extension-typed scalar (pgvector)
 
@@ -229,6 +236,28 @@ Emit. The named-type lowering puts `vector(1536)` on the column and the type map
 If you reference `pgvector.*` without registering the descriptor in the config, emit fails with `CONFIG.MISSING_EXTENSION_PACKS` and `meta.missingExtensionPacks: ['pgvector']`. The envelope's `fix` text says *"Add the missing extension descriptors to `extensions` in prisma.config.ts"* — that field name matches `ormConfig`.
 
 For canonical worked examples covering single and multi-extension setups, read `examples/prisma-8-demo/prisma.config.ts`, `examples/multi-extension-monorepo/app/prisma.config.ts` and `examples/prisma-8-postgis-demo/prisma.config.ts`.
+
+## Workflow — Raw columns (a type no column type covers)
+
+The concept: ``Raw(sql`<type>`)`` declares a column whose type Prisma does not model, such as `tsvector`, `ltree`, `circle` or a domain of the user's own. Migrations write the text as given, and `db verify` compares it with the type the database reports, exactly. Values are typed `unknown`, read the same flat and through includes, and write back as read. On Postgres the ORM reads each value as the text the database prints for it. On SQLite a value keeps the shape of its storage class: a number, a string, a `Uint8Array` for a BLOB, or null. The ORM offers no filters or ordering on raw values. Raw columns exist on Postgres and SQLite.
+
+```prisma
+model Category {
+  id     Int                @id
+  search Raw(sql`tsvector`)
+  area   Raw(sql`circle`)   @default(sql`'<(0,0),1>'::circle`)
+  net    Raw(sql`cidr`)?
+  tags   Raw(sql`"MyTag"[]`)
+}
+```
+
+In the TypeScript builder, use ``field.column(type.Raw(sql`tsvector`))`` in the callback overload, or ``field.column(rawColumn(sql`tsvector`))`` with `rawColumn` from the adapter's column types and `sql` from the contract builder. A quoted string, `Raw("tsvector")`, is refused with ``Expected sql`...`; write sql`tsvector` ``.
+
+- Write the type as the database catalog prints it: `integer`, not `int4`; `character varying(10)`, not `varchar(10)`. Another form reports a type mismatch in `db verify`, and the finding names the text to write.
+- A raw column's default is a `sql` expression. A literal default is refused at emit (`` Expected sql`...` ``).
+- The text is one type name: words and double-quoted names separated by single spaces, the first optionally after one schema name and a dot, each optionally followed by parentheses of letters, digits, underscores, commas, spaces and a minus sign before a digit, and at most one trailing `[]`. `geometry(Point,4326)`, `double precision` and `app.email` (a domain whose schema is not on the `search_path`) are fine; quotes of other kinds, `$` and operators are refused.
+- A type whose name needs double quotes is written with them inside the literal: ``Raw(sql`"MyType"`)``.
+- Changing the text changes the column's type: `migration plan` writes `ALTER COLUMN ... TYPE`. If the database has no cast between the two types, name the field with `--convert` and write the conversion. The generated call is `alterColumnType({ ..., type: "text", raw: true })`; keep `raw: true` when editing it, since a raw type is checked as written.
 
 ## Workflow — Polymorphism (`@@discriminator` / `@@base`)
 
@@ -281,7 +310,7 @@ type Address {
 }
 
 model User {
-  id      String   @id @default(uuid())
+  id      String   @id @onCreate(uuid())
   email   String
   address Address?
 }
@@ -303,7 +332,7 @@ enum user_type {
 }
 
 model User {
-  id   String    @id @default(uuid())
+  id   String    @id @onCreate(uuid())
   kind user_type
 }
 ```
@@ -312,7 +341,7 @@ model User {
 
 **Codecs an enum cannot use.** An enum compares values with its members, so a codec whose values cannot be compared for equality, or whose values read back never equal a member as the contract stores it, is refused, in TypeScript with `CONTRACT.ENUM_INVALID` and in PSL with `PSL_EXTENSION_INVALID_VALUE` at the `@@type`. The message says why and what to use instead. On Postgres: `pg/timestamp-string@1` and `pg/timestamptz-string@1` (use `pg/timestamp-temporal@1` or `pg/timestamptz-temporal@1`), `pg/json@1` (use `pg/jsonb@1`), and `pg/bytea@1` and `pg/tsquery@1`, for which no enum is possible (use a text enum).
 
-**Mongo enums.** A Mongo PSL contract's collection validator lists each enum's members in their stored JSON forms, so a PSL enum needs a codec whose BSON type JSON holds: string, int, double, bool, object or array, with finite numbers for doubles. An enum over `mongo/int64@1`, `mongo/date@1` or `mongo/objectId@1` is refused with `PSL_EXTENSION_INVALID_VALUE`. A TypeScript Mongo contract has no collection validator and accepts these enums.
+**Mongo enums.** A Mongo contract's collection validator lists each enum's members in their stored JSON forms, so an enum needs a codec whose BSON type JSON holds: string, int, double, bool, object or array, with finite numbers for doubles. PSL and TypeScript contracts derive the same validator. An enum over `mongo/int64@1`, `mongo/date@1` or `mongo/objectId@1` is refused: with `PSL_EXTENSION_INVALID_VALUE` in PSL, and with `CONTRACT.ENUM_INVALID` by `defineContract`.
 
 **Generated checks cannot be waived.** On a managed table every enum column gets a membership check, and every list column with non-null elements gets a no-NULL-elements check. A list whose elements may be null is written `String?[]` (TS: `.many({ elementsNullable: true })`) and gets no element check. `contract infer` writes `String?[]` for a list column whose database has no element check, and a Prisma 7 schema's lists are read as `String?[]`.
 
@@ -348,7 +377,7 @@ The concept: wrap models in a `namespace <name> { ... }` block to place them in 
 ```prisma
 namespace public {
   model Profile {
-    id       String @id @default(uuid())
+    id       String @id @onCreate(uuid())
     username String
     userId   String @unique
     @@map("profile")
@@ -365,7 +394,7 @@ The concept: a mixin is a named set of members for one kind of block. Declare it
 ```prisma
 model mixin Timestamps {
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  updatedAt DateTime @onCreate(now()) @onUpdate(now())
   @@index([createdAt])
 }
 
@@ -409,7 +438,7 @@ types {
 
 namespace public {
   model Profile {
-    id       String     @id @default(uuid())
+    id       String     @id @onCreate(uuid())
     username String
     userId   AuthUserId @unique
     user     supabase:auth.AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -481,6 +510,7 @@ Infer captures indexes at full fidelity — expression, partial (`where:`), uniq
 5. **Confusing the config `extensions` with the TS builder's `extensions`.** Same packs, two surfaces, one field name but two shapes: `ormConfig({ extensions: [pgvector] })` (array of *control* descriptors from `@internal/extension-<name>/control`) versus `defineContract({ extensions: { pgvector } })` (record of *pack* descriptors from `@internal/extension-<name>/pack`).
 6. **Writing a flat `prisma.config.ts`.** `export default defineConfig({ contract, extensions })` from the target config alone is the pre-rc.4 shape and fails with `CONFIG.VERSION_MARKER_MISSING`. Wrap it: `definePrismaConfig({ orm: ormConfig({...}) })`.
 7. **Renaming a model or field and expecting the planner to detect it.** The contract does not record renames, so the planner sees a destructive drop+add. State the rename on the command line with `--rename old:new` on `migration plan` or `db update` (see `references/migrations.md`); the planner then renames instead of dropping. Do not invent a rename attribute in the contract source.
+8. **Quoting a type-constructor argument.** A type constructor's argument is a value, read as an attribute argument is. Write a length, precision or scale as a plain whole number: `VarChar(255)`, `Numeric(10, 2)`. `VarChar("255")` is refused with `Expected a number; write 255`, and on Postgres `VarChar(255.0)` is refused too, because a number with a fraction is not a 32-bit integer.
 
 ## What Prisma 8 doesn't do yet
 

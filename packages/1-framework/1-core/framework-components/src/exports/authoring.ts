@@ -7,6 +7,14 @@ export {
   authoringTypeConstructors,
   findAuthoringTypeConstructorCall,
 } from '../shared/authoring-type-constructor-call';
+export type {
+  AssembledDataTypeSupport,
+  DataTypeComponent,
+} from '../shared/data-type-support';
+export {
+  assembleAuthoringDataTypes,
+  assembleDataTypeSupport,
+} from '../shared/data-type-support';
 export {
   type EnumBlockDiagnostic,
   type EnumBlockMember,
@@ -26,14 +34,6 @@ export {
   type StoredEnumMember,
 } from '../shared/enum-stored-members';
 export {
-  assembleFieldPresetsByCodecAndGenerator,
-  type FieldPresetPhasePrintForm,
-  type FieldPresetPrintForm,
-  type FieldPresetsByCodecAndGenerator,
-  fieldPresetPrintForm,
-  type PrintableFieldPreset,
-} from '../shared/field-preset-print-form';
-export {
   fieldPresetSpellings,
   getAuthoringFieldPreset,
 } from '../shared/field-preset-resolution';
@@ -43,6 +43,7 @@ export type {
   AuthoringAttributeSpecContributions,
   AuthoringColumnDefaultTemplate,
   AuthoringContributions,
+  AuthoringDescriptorKinds,
   AuthoringDiagnosticSink,
   AuthoringEntityContext,
   AuthoringEntityTypeDescriptor,
@@ -63,9 +64,13 @@ export type {
   AuthoringSelectRef,
   AuthoringStorageTypeTemplate,
   AuthoringTemplateValue,
+  AuthoringTypeAliasDescriptor,
+  AuthoringTypeAliasOutput,
   AuthoringTypeConstructorDescriptor,
   AuthoringTypeConstructorEntityRef,
   AuthoringTypeNamespace,
+  AuthoringTypeParamsIssue,
+  AuthoringValueArgument,
   AuthoringWarning,
   AuthoringWarningSink,
   DataTypeAuthoringEntry,
@@ -73,25 +78,32 @@ export type {
   ScalarTypeConstructorOutput,
 } from '../shared/framework-authoring';
 export {
+  AUTHORING_TYPE_DESCRIPTOR_KINDS,
   assertNoCrossRegistryCollisions,
   assertResolvableTypeConstructorTemplates,
+  assertTypeAliasesValid,
   classifyEnumMemberType,
   collectScalarTypeConstructors,
   flushAuthoringWarnings,
   getAuthoringTypeConstructor,
   instantiateAuthoringEntityType,
   instantiateAuthoringFieldPreset,
+  instantiateAuthoringTypeAlias,
   instantiateAuthoringTypeConstructor,
+  instantiateAuthoringTypeConstructorFromValues,
   isAuthoringArgRef,
   isAuthoringEntityTypeDescriptor,
   isAuthoringFieldPresetDescriptor,
   isAuthoringModelAttributeDescriptor,
   isAuthoringPslBlockDescriptor,
   isAuthoringSelectRef,
+  isAuthoringTypeAliasDescriptor,
   isAuthoringTypeConstructorDescriptor,
+  isAuthoringTypeDescriptor,
   mergeAuthoringNamespaces,
   resolveAuthoringTemplateValue,
   resolveEnumCodecId,
+  resolveTypeAliasGenerators,
   validateAuthoringHelperArguments,
   validateAuthoringTypeParams,
 } from '../shared/framework-authoring';
@@ -120,6 +132,7 @@ export {
   temporalCodecPreset,
   temporalPhaseTemplate,
   temporalPhaseTemplateWithParams,
+  temporalTypeAliases,
 } from '../shared/temporal-presets';
 export type {
   CastRefusal,
@@ -144,5 +157,6 @@ export {
   exactRewrite,
   knownTags,
   readWrittenValue,
+  readWrittenValueAs,
   tagForm,
 } from '../shared/written-value';

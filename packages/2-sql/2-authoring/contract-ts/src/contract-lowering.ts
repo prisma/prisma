@@ -1,10 +1,23 @@
-import { resolveToOneRelationNullable } from '@internal/contract-authoring';
+import type {
+  ExecutionMutationDefaultPhases,
+  ExecutionMutationDefaultValue,
+} from '@internal/contract/types';
+import {
+  composePackAuthoringNamespace,
+  resolveToOneRelationNullable,
+} from '@internal/contract-authoring';
 import {
   type AuthoringEntityTypeNamespace,
+  assertTypeAliasesValid,
   isAuthoringEntityTypeDescriptor,
 } from '@internal/framework-components/authoring';
 import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
 import type { ExtensionPackRef } from '@internal/framework-components/components';
+import {
+  assembleGeneratorFunctions,
+  type GeneratorFunctionRegistry,
+} from '@internal/framework-components/components';
+import { sqlColumnLength } from '@internal/sql-contract/data-type';
 import {
   providesEntityHandleLowering,
   type ResolvedEntityHandleRef,
@@ -55,11 +68,9 @@ import {
   type UniqueConstraint,
 } from './contract-dsl';
 import { contractError } from './contract-errors';
-import {
-  emitTypedCrossModelFallbackWarnings,
-  emitTypedNamedTypeFallbackWarnings,
-} from './contract-warnings';
+import { emitTypedCrossModelFallbackWarnings } from './contract-warnings';
 import { isEnumTypeHandle } from './enum-type';
+import { refuseTypesKey } from './refuse-types-key';
 import { toOneNullabilityContradictionMessage } from './to-one-nullability-message';
 
 type RuntimeModel = ContractModelBuilder<
@@ -83,60 +94,28 @@ type RuntimeModelSpec = {
 };
 
 type RuntimeCollection = {
-  readonly storageTypes: Record<string, AuthoredStorageTypeInstance>;
+  readonly databaseTypes: Record<string, AuthoredStorageTypeInstance>;
   readonly models: Record<string, RuntimeModel>;
   readonly modelSpecs: ReadonlyMap<string, RuntimeModelSpec>;
 };
 
-function buildStorageTypeReverseLookup(
-  storageTypes: Record<string, AuthoredStorageTypeInstance>,
-): ReadonlyMap<AuthoredStorageTypeInstance, string> {
-  const lookup = new Map<AuthoredStorageTypeInstance, string>();
-  for (const [key, instance] of Object.entries(storageTypes)) {
-    lookup.set(instance, key);
-  }
-  return lookup;
+/** A column stores no `typeParams` when it has none, as PSL writes it (ADR 246). */
+function withoutEmptyTypeParams(descriptor: ColumnTypeDescriptor): ColumnTypeDescriptor {
+  const { typeParams, ...rest } = descriptor;
+  return typeParams === undefined || Object.keys(typeParams).length > 0 ? descriptor : rest;
 }
 
 function resolveFieldDescriptor(
   modelName: string,
   fieldName: string,
   fieldState: FieldStateOf<ScalarFieldBuilder>,
-  storageTypes: Record<string, AuthoredStorageTypeInstance>,
-  storageTypeReverseLookup: ReadonlyMap<AuthoredStorageTypeInstance, string>,
 ): ColumnTypeDescriptor {
   if ('descriptor' in fieldState && fieldState.descriptor) {
-    return fieldState.descriptor;
+    return withoutEmptyTypeParams(fieldState.descriptor);
   }
 
-  if ('typeRef' in fieldState && fieldState.typeRef) {
-    if (isEnumTypeHandle(fieldState.typeRef)) {
-      return { codecId: fieldState.typeRef.codecId };
-    }
-
-    const typeRef =
-      typeof fieldState.typeRef === 'string'
-        ? fieldState.typeRef
-        : storageTypeReverseLookup.get(fieldState.typeRef as AuthoredStorageTypeInstance);
-
-    if (!typeRef) {
-      throw contractError(
-        'CONTRACT.TYPE_UNKNOWN',
-        `Field "${modelName}.${fieldName}" references a storage type instance that is not present in definition.types`,
-        { meta: { modelName, fieldName, reason: 'instance-not-in-definition-types' } },
-      );
-    }
-
-    const referencedType = storageTypes[typeRef];
-    if (!referencedType) {
-      throw contractError(
-        'CONTRACT.TYPE_UNKNOWN',
-        `Field "${modelName}.${fieldName}" references unknown storage type "${typeRef}"`,
-        { meta: { modelName, fieldName, typeRef } },
-      );
-    }
-
-    return { codecId: referencedType.codecId, typeRef };
+  if ('enumHandle' in fieldState && isEnumTypeHandle(fieldState.enumHandle)) {
+    return { codecId: fieldState.enumHandle.codecId };
   }
 
   throw contractError(
@@ -900,11 +879,80 @@ function coveredFieldNames(index: IndexConstraint): readonly string[] {
   return expression.fields.map((ref) => ref.fieldName);
 }
 
+/**
+ * The generators a field's `.onCreate(...)` and `.onUpdate(...)` calls resolve to for its column, merged over the phases a field preset or `field.generated(...)` sets.
+ */
+function resolveGeneratorCalls(input: {
+  readonly modelName: string;
+  readonly fieldName: string;
+  readonly fieldState: FieldStateOf<ScalarFieldBuilder>;
+  readonly descriptor: ColumnTypeDescriptor;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
+  readonly columnLength: ColumnLength;
+}): ExecutionMutationDefaultPhases | undefined {
+  const { modelName, fieldName, fieldState, descriptor, generatorFunctions } = input;
+  const calls = fieldState.generatorCalls;
+  if (calls === undefined) return fieldState.executionDefaults;
+  const typeParams = descriptor.typeParams;
+  const column = {
+    codecId: descriptor.codecId,
+    typeParams,
+    length: input.columnLength(descriptor.codecId, typeParams),
+  };
+  const phases: {
+    onCreate?: ExecutionMutationDefaultValue;
+    onUpdate?: ExecutionMutationDefaultValue;
+  } = {
+    ...fieldState.executionDefaults,
+  };
+  for (const phase of ['onCreate', 'onUpdate'] as const) {
+    const call = calls[phase];
+    if (call === undefined) continue;
+    if (fieldState.many !== false) {
+      throw contractError(
+        'CONTRACT.DEFAULT_INVALID',
+        `Field "${modelName}.${fieldName}" is a list and cannot use .${phase}(${call.name}()). Lists have no per-element generated values; remove .${phase}(...).`,
+        {
+          meta: {
+            modelName,
+            fieldName,
+            codecId: column.codecId,
+            function: call.name,
+            reason: 'generator-on-list',
+          },
+        },
+      );
+    }
+    const resolution = generatorFunctions.resolve(call, column);
+    if (resolution.ok) {
+      phases[phase] = resolution.generator;
+      continue;
+    }
+    const meta = { modelName, fieldName, codecId: column.codecId, function: call.name };
+    if (resolution.reason === 'unknown-function') {
+      throw contractError(
+        'CONTRACT.DEFAULT_INVALID',
+        `Field "${modelName}.${fieldName}": no pack in the contract declares the generator function "${call.name}".`,
+        { meta: { ...meta, reason: 'generator-unknown' } },
+      );
+    }
+    const applying = generatorFunctions.functionsFor(column.codecId).map(({ name }) => `${name}()`);
+    throw contractError(
+      'CONTRACT.DEFAULT_INVALID',
+      resolution.reason === 'refused'
+        ? `Field "${modelName}.${fieldName}": ${resolution.message}`
+        : `Field "${modelName}.${fieldName}": ${call.name}() does not apply to codec "${column.codecId}". ${applying.length === 0 ? 'No generator function applies to this codec.' : `Functions that apply: ${applying.join(', ')}.`}`,
+      { meta: { ...meta, reason: 'generator-not-applicable' } },
+    );
+  }
+  return phases;
+}
+
 function resolveModelNode(
   spec: RuntimeModelSpec,
   allSpecs: ReadonlyMap<string, RuntimeModelSpec>,
-  storageTypes: Record<string, AuthoredStorageTypeInstance>,
-  storageTypeReverseLookup: ReadonlyMap<AuthoredStorageTypeInstance, string>,
+  generatorFunctions: GeneratorFunctionRegistry,
+  columnLength: ColumnLength,
   extensions?: Record<string, ExtensionPackRef<'sql', string>>,
 ): ModelNode {
   const fields: FieldNode[] = [];
@@ -913,13 +961,7 @@ function resolveModelNode(
 
   for (const [fieldName, fieldBuilder] of Object.entries(spec.fieldBuilders)) {
     const fieldState = fieldBuilder.build();
-    const descriptor = resolveFieldDescriptor(
-      spec.modelName,
-      fieldName,
-      fieldState,
-      storageTypes,
-      storageTypeReverseLookup,
-    );
+    const descriptor = resolveFieldDescriptor(spec.modelName, fieldName, fieldState);
     const columnName = spec.fieldToColumn[fieldName];
     if (!columnName) {
       throw new InternalError(`Column name resolution failed for "${spec.modelName}.${fieldName}"`);
@@ -927,9 +969,17 @@ function resolveModelNode(
     fieldCodecIds[fieldName] = descriptor.codecId;
 
     const enumHandle =
-      'typeRef' in fieldState && isEnumTypeHandle(fieldState.typeRef)
-        ? fieldState.typeRef
+      'enumHandle' in fieldState && isEnumTypeHandle(fieldState.enumHandle)
+        ? fieldState.enumHandle
         : undefined;
+    const executionDefaults = resolveGeneratorCalls({
+      modelName: spec.modelName,
+      fieldName,
+      fieldState,
+      descriptor,
+      generatorFunctions,
+      columnLength,
+    });
 
     fields.push({
       fieldName,
@@ -939,7 +989,7 @@ function resolveModelNode(
       many: fieldState.many !== false,
       ...(fieldState.many !== false ? { elementNullable: fieldState.many.elementNullable } : {}),
       ...(fieldState.default ? { default: fieldState.default } : {}),
-      ...(fieldState.executionDefaults ? { executionDefaults: fieldState.executionDefaults } : {}),
+      ...ifDefined('executionDefaults', executionDefaults),
       ...(enumHandle !== undefined ? { enumTypeHandle: enumHandle } : {}),
     });
   }
@@ -1032,18 +1082,31 @@ function resolveModelNode(
  * `ContractInput`'s `Extensions` parameter defaults to `undefined`, but lowering
  * reads the extension-pack record at runtime, so the input is widened here.
  */
-type LoweringInput = Omit<ContractInput, 'extensions' | 'codecLookup' | 'dataTypeLookup'> & {
+type LoweringInput = Omit<ContractInput, 'extensions'> & {
   readonly extensions?: Record<string, ExtensionPackRef<'sql', string>> | undefined;
 };
 
-function collectRuntimeModelSpecs(definition: LoweringInput): RuntimeCollection {
-  const storageTypes = { ...(definition.types ?? {}) } as Record<
-    string,
-    AuthoredStorageTypeInstance
-  >;
-  const models = { ...(definition.models ?? {}) } as Record<string, RuntimeModel>;
+type ColumnLength = (
+  codecId: string,
+  typeParams: Readonly<Record<string, unknown>> | undefined,
+) => number | undefined;
 
-  emitTypedNamedTypeFallbackWarnings(models, storageTypes);
+function columnLengthOf(definition: LoweringInput): ColumnLength {
+  const { codecLookup, dataTypeLookup } = definition;
+  return (codecId, typeParams) => {
+    const dataTypeId = codecLookup.descriptorFor(codecId)?.dataType;
+    return sqlColumnLength(
+      dataTypeId === undefined ? undefined : dataTypeLookup.get(dataTypeId),
+      typeParams,
+    );
+  };
+}
+
+function collectRuntimeModelSpecs(definition: LoweringInput): RuntimeCollection {
+  const databaseTypes: Record<string, AuthoredStorageTypeInstance> = {
+    ...definition.databaseTypes,
+  };
+  const models = { ...(definition.models ?? {}) } as Record<string, RuntimeModel>;
 
   const modelSpecs = new Map<string, RuntimeModelSpec>();
   const tableOwners = new Map<string, string>();
@@ -1110,7 +1173,7 @@ function collectRuntimeModelSpecs(definition: LoweringInput): RuntimeCollection 
   }
 
   return {
-    storageTypes,
+    databaseTypes,
     models,
     modelSpecs,
   };
@@ -1118,19 +1181,14 @@ function collectRuntimeModelSpecs(definition: LoweringInput): RuntimeCollection 
 
 function lowerModels(
   collection: RuntimeCollection,
+  generatorFunctions: GeneratorFunctionRegistry,
+  columnLength: ColumnLength,
   extensions?: Record<string, ExtensionPackRef<'sql', string>>,
 ): readonly ModelNode[] {
   emitTypedCrossModelFallbackWarnings(collection);
 
-  const storageTypeReverseLookup = buildStorageTypeReverseLookup(collection.storageTypes);
   return Array.from(collection.modelSpecs.values()).map((spec) =>
-    resolveModelNode(
-      spec,
-      collection.modelSpecs,
-      collection.storageTypes,
-      storageTypeReverseLookup,
-      extensions,
-    ),
+    resolveModelNode(spec, collection.modelSpecs, generatorFunctions, columnLength, extensions),
   );
 }
 
@@ -1281,8 +1339,21 @@ function lowerPackEntityHandles(
 }
 
 export function buildContractDefinition(definition: LoweringInput): ContractDefinition {
+  refuseTypesKey(definition, 'buildContractDefinition');
   const collection = collectRuntimeModelSpecs(definition);
-  const models = lowerModels(collection, definition.extensions);
+  const packs = [
+    definition.family,
+    definition.target,
+    ...Object.values<ExtensionPackRef<'sql', string>>(definition.extensions ?? {}),
+  ];
+  const generatorFunctions = assembleGeneratorFunctions(packs);
+  const columnLength = columnLengthOf(definition);
+  assertTypeAliasesValid(composePackAuthoringNamespace(packs, 'type'), {
+    generatorFunctions,
+    paramsSchemaOf: (codecId) => definition.codecLookup.descriptorFor(codecId)?.paramsSchema,
+    fieldLength: ({ codecId, typeParams }) => columnLength(codecId, typeParams),
+  });
+  const models = lowerModels(collection, generatorFunctions, columnLength, definition.extensions);
   const attachedEntities = lowerPackEntityHandles(definition, collection.modelSpecs);
 
   return {
@@ -1292,8 +1363,8 @@ export function buildContractDefinition(definition: LoweringInput): ContractDefi
     ...ifDefined('capabilities', definition.adapter?.capabilities),
     ...(definition.storageHash ? { storageHash: definition.storageHash } : {}),
     ...(definition.foreignKeyDefaults ? { foreignKeyDefaults: definition.foreignKeyDefaults } : {}),
-    ...(Object.keys(collection.storageTypes).length > 0
-      ? { storageTypes: collection.storageTypes }
+    ...(Object.keys(collection.databaseTypes).length > 0
+      ? { databaseTypes: collection.databaseTypes }
       : {}),
     ...(definition.namespaces ? { namespaces: definition.namespaces } : {}),
     warnings: undefined,

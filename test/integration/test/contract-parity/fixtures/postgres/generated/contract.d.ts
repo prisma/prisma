@@ -24,7 +24,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'7b726ff2c750b13ac5dd2966b8a7c42317a368c40faae5b2231611ac56a0dc59'>;
+  StorageHashBase<'4e5aa929c76c9181dd640f59692e6743a0626b5ab9023a02e5960ec96509c225'>;
 export type ExecutionHash =
   ExecutionHashBase<'4c8b52aa880ed951466684d8a101a1fc3992151da635fe969fe2926dbd8964eb'>;
 export type ProfileHash =
@@ -382,6 +382,7 @@ export namespace Models {
     ksuid: FieldOutputTypes['public']['User']['ksuid'];
     nanoid: FieldOutputTypes['public']['User']['nanoid'];
     plan: FieldOutputTypes['public']['User']['plan'];
+    ratio: FieldOutputTypes['public']['User']['ratio'];
     seenAt: FieldOutputTypes['public']['User']['seenAt'];
     shortNanoid: FieldOutputTypes['public']['User']['shortNanoid'];
     timestamp: FieldOutputTypes['public']['User']['timestamp'];
@@ -1018,6 +1019,12 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly many: false;
                 };
+                readonly ratio: {
+                  readonly dataType: 'pg/numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
                 readonly seenAt: {
                   readonly dataType: 'pg/timestamptz';
                   readonly codecId: 'pg/timestamptz-date@1';
@@ -1050,7 +1057,7 @@ type ContractBase = Omit<
                   readonly dataType: 'pg/timestamp';
                   readonly codecId: 'pg/timestamp-string@1';
                   readonly nullable: false;
-                  readonly typeRef: 'TimestampString3';
+                  readonly typeParams: { readonly precision: 3 };
                   readonly many: false;
                 };
                 readonly timestamptz: {
@@ -1071,7 +1078,7 @@ type ContractBase = Omit<
                   readonly dataType: 'pg/timestamptz';
                   readonly codecId: 'pg/timestamptz-string@1';
                   readonly nullable: true;
-                  readonly typeRef: 'TimestamptzString3';
+                  readonly typeParams: { readonly precision: 3 };
                   readonly many: false;
                 };
                 readonly ulid: {
@@ -1128,22 +1135,12 @@ type ContractBase = Omit<
               readonly kind: 'valueSet';
               readonly values: readonly ['free', 'paid'];
             };
+            readonly Ratio: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['0.5', '1.50'];
+            };
           };
         };
-      };
-    };
-    readonly types: {
-      readonly TimestampString3: {
-        readonly kind: 'codec-instance';
-        readonly codecId: 'pg/timestamp-string@1';
-        readonly dataType: 'pg/timestamp';
-        readonly typeParams: { readonly precision: 3 };
-      };
-      readonly TimestamptzString3: {
-        readonly kind: 'codec-instance';
-        readonly codecId: 'pg/timestamptz-string@1';
-        readonly dataType: 'pg/timestamptz';
-        readonly typeParams: { readonly precision: 3 };
       };
     };
     readonly storageHash: StorageHash;
@@ -1790,6 +1787,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly ratio: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
               readonly seenAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -1934,6 +1935,7 @@ type ContractBase = Omit<
                 readonly ksuid: { readonly column: 'ksuid' };
                 readonly nanoid: { readonly column: 'nanoid' };
                 readonly plan: { readonly column: 'plan' };
+                readonly ratio: { readonly column: 'ratio' };
                 readonly seenAt: { readonly column: 'seenAt' };
                 readonly shortNanoid: { readonly column: 'shortNanoid' };
                 readonly timestamp: { readonly column: 'timestamp' };
@@ -1981,11 +1983,22 @@ type ContractBase = Omit<
               { readonly name: 'Paid'; readonly value: 'paid' },
             ];
           };
+          readonly Ratio: {
+            readonly codecId: 'pg/numeric@1';
+            readonly members: readonly [
+              { readonly name: 'Half'; readonly value: '0.5' },
+              { readonly name: 'Whole'; readonly value: '1.50' },
+            ];
+          };
         };
         readonly enumMemberTypes?: {
           readonly Plan: readonly [
             { readonly name: 'Free'; readonly value: 'free' },
             { readonly name: 'Paid'; readonly value: 'paid' },
+          ];
+          readonly Ratio: readonly [
+            { readonly name: 'Half'; readonly value: CodecTypes['pg/numeric@1']['output'] },
+            { readonly name: 'Whole'; readonly value: CodecTypes['pg/numeric@1']['output'] },
           ];
         };
       };

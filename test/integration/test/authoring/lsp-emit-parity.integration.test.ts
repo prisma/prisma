@@ -203,6 +203,16 @@ model Widget {
         diagnosticCodes: ['PSL_UNRESOLVED_REFERENCE'],
       },
       {
+        name: 'a type-constructor argument with no value',
+        text: `// use prisma-8
+model Widget {
+  id Int @id @default(autoincrement())
+  label VarChar(length: )
+}`,
+        exitCode: 2,
+        diagnosticCodes: ['PSL_INVALID_ATTRIBUTE_ARGUMENT'],
+      },
+      {
         name: 'unbound models next to a named namespace',
         text: `// use prisma-8
 namespace unbound {
@@ -347,6 +357,7 @@ namespace billing {
         codecLookup: stack.codecLookup,
         dataTypes: stack.dataTypes,
         controlMutationDefaults: stack.controlMutationDefaults,
+        generatorFunctions: stack.generatorFunctions,
         resolvedInputs: await expandContractInputs(contract.source.inputs),
         capabilities: stack.capabilities,
         reportWarning: (diagnostic) => warnings.push({ ...diagnostic, severity: 'warning' }),

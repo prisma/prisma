@@ -70,10 +70,10 @@ describe('Mongo PSL temporal presets', () => {
     if (!result.ok) throw new Error(JSON.stringify(result.failure));
     const fields = result.value.domain.namespaces[UNBOUND_NAMESPACE_ID]?.models['Post']?.fields;
     const date = { nullable: false, type: { kind: 'scalar', codecId: 'mongo/date@1' } };
-    expect(fields).toMatchObject({ updated_at: date, createdAt: date, touchedAt: date });
+    expect(fields).toMatchObject({ updatedAt: date, createdAt: date, touchedAt: date });
   });
 
-  it('emits sorted execution defaults keyed by collection and stored field name', () => {
+  it('emits sorted execution defaults keyed by collection and stored name', () => {
     const result = interpret(schema);
     if (!result.ok) throw new Error(JSON.stringify(result.failure));
     const mutations = {
@@ -128,7 +128,7 @@ describe('Mongo PSL temporal presets', () => {
     );
     if (!result.ok) throw new Error(JSON.stringify(result.failure));
     expect(result.value.domain.namespaces[UNBOUND_NAMESPACE_ID]?.models['Post']?.fields).toEqual({
-      _id: { type: { kind: 'scalar', codecId: 'mongo/objectId@1' }, nullable: false, many: false },
+      id: { type: { kind: 'scalar', codecId: 'mongo/objectId@1' }, nullable: false, many: false },
       touchedAt: {
         type: { kind: 'scalar', codecId: 'mongo/date@1' },
         nullable: false,
@@ -167,7 +167,7 @@ describe('Mongo PSL temporal preset misuse', () => {
       {
         code: 'PSL_UNRESOLVED_REFERENCE',
         message:
-          '"timestamp" is a namespace; a type reference must name a model, composite type, enum, or named type',
+          '"timestamp" is a namespace; a type reference must name a model, composite type, enum, or type alias',
         sourceId: 'schema.prisma',
       },
     ]);

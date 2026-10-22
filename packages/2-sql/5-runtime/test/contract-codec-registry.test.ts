@@ -109,7 +109,6 @@ function createTestContract(
         codecId: string;
         nullable: boolean;
         typeParams?: Record<string, unknown>;
-        typeRef?: string;
       }
     >
   >,
@@ -173,35 +172,25 @@ describe('ContractCodecRegistry', () => {
     expect((resolved as Codec & { meta: { length: number } }).meta.length).toBe(768);
   });
 
-  it('forColumn returns the same per-instance codec for typeRef columns sharing a named storage type', () => {
-    const contract = createTestContract(
-      {
-        Doc: {
-          embedding: {
-            dataType: 'pgvector/vector',
-            codecId: 'pg/vector@1',
-            nullable: false,
-            typeRef: 'Vector1536',
-          },
-        },
-        Page: {
-          embedding: {
-            dataType: 'pgvector/vector',
-            codecId: 'pg/vector@1',
-            nullable: false,
-            typeRef: 'Vector1536',
-          },
-        },
-      },
-      {
-        Vector1536: {
-          kind: 'codec-instance',
-          codecId: 'pg/vector@1',
+  it('forColumn returns the same per-instance codec for columns with equal type params', () => {
+    const contract = createTestContract({
+      Doc: {
+        embedding: {
           dataType: 'pgvector/vector',
+          codecId: 'pg/vector@1',
+          nullable: false,
           typeParams: { length: 1536 },
         },
       },
-    );
+      Page: {
+        embedding: {
+          dataType: 'pgvector/vector',
+          codecId: 'pg/vector@1',
+          nullable: false,
+          typeParams: { length: 1536 },
+        },
+      },
+    });
 
     const context = createTestContext(contract, createStubAdapter(), {
       extensions: [createVectorExtensionDescriptor()],
@@ -212,7 +201,6 @@ describe('ContractCodecRegistry', () => {
 
     expect(docCodec).toBeDefined();
     expect(pageCodec).toBeDefined();
-    // Both columns share the named instance — same codec object.
     expect(docCodec).toBe(pageCodec);
     expect((docCodec as Codec & { meta: { length: number } }).meta.length).toBe(1536);
   });

@@ -1,3 +1,4 @@
+import type { Contract } from '@internal/contract/types';
 import { structBlock } from '@internal/psl-parser';
 import type { SqlNamespaceBase, SqlNamespaceInput } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
@@ -11,6 +12,12 @@ import {
   postgresScalarTypeDescriptors,
   postgresTarget,
 } from './fixtures';
+import { sqlStorageFromSuccessfulSqlInterpretation } from './interpret-sql-contract-storage';
+import { unboundTables } from './unbound-tables';
+
+function columnsOf(contract: Contract, table: string) {
+  return unboundTables(sqlStorageFromSuccessfulSqlInterpretation(contract))[table]?.columns;
+}
 
 const baseInput = {
   ...fixtureInterpreterTypes,
@@ -132,49 +139,6 @@ model Document {
     });
   });
 
-  it('parses stringArray arguments whose elements contain commas', () => {
-    const result = interpretSqlContract(
-      `types {
-  Tag = sql.Enum('Tag', ["hello, world", "a,b,c", 'plain'])
-}
-
-model Post {
-  id Int @id
-  tag Tag
-}
-`,
-      {
-        ...baseInput,
-        authoringContributions: {
-          type: {
-            sql: {
-              Enum: {
-                kind: 'typeConstructor',
-                args: [{ kind: 'string' }, { kind: 'stringArray' }],
-                output: {
-                  codecId: 'custom/enum@1',
-                  typeParams: {
-                    name: { kind: 'arg', index: 0 },
-                    values: { kind: 'arg', index: 1 },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    );
-
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    expect(documentScopedTypes(result.value)).toMatchObject({
-      Tag: {
-        codecId: 'custom/enum@1',
-        typeParams: { name: 'Tag', values: ['hello, world', 'a,b,c', 'plain'] },
-      },
-    });
-  });
-
   it('instantiates family-owned and extension-owned constructor expressions from shared authoring contributions', () => {
     const result = interpretSqlContract(
       `types {
@@ -226,15 +190,10 @@ model Document {
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(documentScopedTypes(result.value)).toMatchObject({
-      ShortName: {
-        codecId: 'custom/varchar@1',
-        typeParams: { length: 35 },
-      },
-      Embedding1536: {
-        codecId: 'custom/vector@1',
-        typeParams: { length: 1536 },
-      },
+    expect(documentScopedTypes(result.value)).toBeUndefined();
+    expect(columnsOf(result.value, 'Document')).toMatchObject({
+      shortName: { codecId: 'custom/varchar@1', typeParams: { length: 35 } },
+      embedding: { codecId: 'custom/vector@1', typeParams: { length: 1536 } },
     });
   });
 
@@ -334,7 +293,7 @@ model Document {
                     kind: 'object',
                     properties: {
                       length: { kind: 'number', integer: true, minimum: 1 },
-                      label: { kind: 'string', optional: true },
+                      label: { kind: 'option', values: ['short'], optional: true },
                     },
                   },
                 ],
@@ -354,14 +313,9 @@ model Document {
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(documentScopedTypes(result.value)).toMatchObject({
-      ShortName: {
-        codecId: 'custom/varchar@1',
-        typeParams: {
-          length: 35,
-          label: 'short',
-        },
-      },
+    expect(columnsOf(result.value, 'Document')?.['shortName']).toMatchObject({
+      codecId: 'custom/varchar@1',
+      typeParams: { length: 35, label: 'short' },
     });
   });
 
@@ -376,7 +330,7 @@ model Document {
                 kind: 'object' as const,
                 properties: {
                   length: { kind: 'number' as const, integer: true, minimum: 1 },
-                  label: { kind: 'string' as const, optional: true },
+                  label: { kind: 'option' as const, values: ['short'], optional: true },
                 },
               },
             ],
@@ -410,8 +364,8 @@ model Doc {
 `);
       expect(result.ok).toBe(true);
       if (!result.ok) return;
-      expect(documentScopedTypes(result.value)).toMatchObject({
-        Short: { typeParams: { length: 35, label: 'short' } },
+      expect(columnsOf(result.value, 'Doc')?.['s']).toMatchObject({
+        typeParams: { length: 35, label: 'short' },
       });
     });
 

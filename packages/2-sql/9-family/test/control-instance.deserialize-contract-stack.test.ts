@@ -5,7 +5,7 @@ import {
   createDataTypeLookup,
 } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { sqlDataType } from '@internal/sql-contract/data-type';
+import { sqlDataType, sqlRawDataType } from '@internal/sql-contract/data-type';
 import { col, model, table } from '@internal/sql-contract/factories';
 import type {
   SqlControlDriverInstance,
@@ -53,6 +53,7 @@ const codecDataTypes: Readonly<Record<string, AnyCodecDescriptor['dataType']>> =
   't/jsonb@1': jsonb.id,
   't/text@1': text.id,
   't/numeric@1': numeric.id,
+  'sql/raw@1': sqlRawDataType.id,
 };
 
 const codecLookup: CodecLookupWithDescriptors = {
@@ -91,7 +92,7 @@ function familyInstance(valueObjectStorageType: string | undefined) {
     codecLookup,
     dataTypes: {
       entries: {},
-      lookup: createDataTypeLookup([int4, jsonb, text, numeric]),
+      lookup: createDataTypeLookup([int4, jsonb, text, numeric, sqlRawDataType]),
       dataTypeOfCodec: (codecId: string) => codecDataTypes[codecId],
     },
     declaredDataTypes: [],
@@ -254,6 +255,22 @@ describe('deserializeContract checks each column against the stack', () => {
             ],
           },
         }),
+      );
+    });
+
+    it('is refused on a raw column, whose data type has no literal values, saying to write sql', () => {
+      const raw = contractWith({
+        user: table({
+          id: col('t/int4', 't/int4@1'),
+          area: {
+            ...col('sql/raw', 'sql/raw@1'),
+            typeParams: { sql: 'circle' },
+            default: { kind: 'literal', value: '<(0,0),1>' },
+          } as never,
+        }),
+      });
+      expect(() => familyInstance('Jsonb').deserializeContract(raw)).toThrow(
+        'Table "user", column "area": the default "<(0,0),1>" is not a value of sql/raw: A raw column has no literal values, so its default cannot be a literal. Write the default as a SQL expression: sql`...`.',
       );
     });
 

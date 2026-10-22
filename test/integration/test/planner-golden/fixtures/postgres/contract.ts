@@ -78,41 +78,17 @@ const sqlText = { codecId: 'sql/text@1' } as const;
 const int8Number = { codecId: 'pg/int8number@1' } as const;
 const unboundedInt = { codecId: 'pg/unboundedint@1' } as const;
 
-const shortText = {
-  kind: 'codec-instance',
-  codecId: 'sql/varchar@1',
-  typeParams: { length: 255 },
-} as const;
-const code = {
-  kind: 'codec-instance',
-  codecId: 'sql/char@1',
-  typeParams: {},
-} as const;
-const id = {
-  kind: 'codec-instance',
-  codecId: 'pg/uuid@1',
-  typeParams: {},
-} as const;
-const money = {
-  kind: 'codec-instance',
+const ShortText = field.column({ codecId: 'sql/varchar@1', typeParams: { length: 255 } } as const);
+const Code = field.column({ codecId: 'sql/char@1' } as const);
+const Id = field.column({ codecId: 'pg/uuid@1' } as const);
+const Money = field.column({
   codecId: 'pg/numeric@1',
   typeParams: { precision: 10, scale: 2 },
-} as const;
-const embedding = {
-  kind: 'codec-instance',
-  codecId: 'pg/vector@1',
-  typeParams: { length: 3 },
-} as const;
+} as const);
+const Embedding = field.column({ codecId: 'pg/vector@1', typeParams: { length: 3 } } as const);
 
 export const contract = defineContract({
   extensions: { pgvector, postgis },
-  types: {
-    ShortText: shortText,
-    Code: code,
-    Id: id,
-    Money: money,
-    Embedding: embedding,
-  },
   models: {
     Scalar: model('Scalar', {
       fields: {
@@ -205,11 +181,11 @@ export const contract = defineContract({
     }).sql({ table: 'list' }),
     Alias: model('Alias', {
       fields: {
-        id: field.namedType(id).id(),
-        shortText: field.namedType(shortText),
-        code: field.namedType(code),
-        money: field.namedType(money),
-        embedding: field.namedType(embedding),
+        id: Id.id(),
+        shortText: ShortText,
+        code: Code,
+        money: Money,
+        embedding: Embedding,
       },
     }).sql({ table: 'alias' }),
   },

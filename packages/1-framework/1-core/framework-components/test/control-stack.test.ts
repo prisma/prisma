@@ -599,6 +599,28 @@ describe('assembleAuthoringContributions', () => {
     ).toThrow(/Ambiguous authoring registry path "custom.Json"/);
   });
 
+  it('rejects field preset and type alias path collisions, naming the type alias', () => {
+    expect(() =>
+      assembleAuthoringContributions([
+        createDescriptor({
+          authoring: {
+            field: { custom: { Stamp: { kind: 'fieldPreset', output: { codecId: 'a@1' } } } },
+          },
+        }),
+        createDescriptor({
+          id: 'other',
+          authoring: {
+            type: {
+              custom: { Stamp: { kind: 'typeAlias', output: { type: { codecId: 'b@1' } } } },
+            },
+          },
+        }),
+      ]),
+    ).toThrow(
+      'Ambiguous authoring registry path "custom.Stamp". The same path is registered as both a type constructor or type alias and a field preset;',
+    );
+  });
+
   it('merges entityTypes namespaces from multiple descriptors', () => {
     const result = assembleAuthoringContributions([
       createDescriptor({
@@ -1334,7 +1356,7 @@ describe('assembleControlMutationDefaults', () => {
         id: 'desc-b',
         controlMutationDefaults: {
           defaultFunctionRegistry: new Map([['uuid', { lower: stubLower }]]),
-          generatorDescriptors: [{ id: 'uuidv4', applicableCodecIds: ['pg/text@1'] }],
+          generatorDescriptors: [{ id: 'uuidv4' }],
         },
       }),
     ]);
@@ -1365,25 +1387,31 @@ describe('assembleControlMutationDefaults', () => {
     ).toThrow(/Duplicate mutation default function "now".*"desc-b".*"desc-a"/);
   });
 
-  it('throws on duplicate generator id', () => {
+  it('refuses a generator id two components register', () => {
     expect(() =>
       assembleControlMutationDefaults([
         createDescriptor({
           id: 'desc-a',
           controlMutationDefaults: {
             defaultFunctionRegistry: new Map(),
-            generatorDescriptors: [{ id: 'uuidv4', applicableCodecIds: ['a@1'] }],
+            generatorDescriptors: [{ id: 'uuidv4' }],
           },
         }),
         createDescriptor({
           id: 'desc-b',
           controlMutationDefaults: {
             defaultFunctionRegistry: new Map(),
-            generatorDescriptors: [{ id: 'uuidv4', applicableCodecIds: ['b@1'] }],
+            generatorDescriptors: [{ id: 'uuidv4' }],
           },
         }),
       ]),
-    ).toThrow(/Duplicate mutation default generator id "uuidv4".*"desc-b".*"desc-a"/);
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        message:
+          'Generator "uuidv4" is registered by both "desc-a" and "desc-b". Register each generator once, in the component that defines it.',
+      }),
+    );
   });
 });
 
@@ -1522,7 +1550,7 @@ describe('createControlStack', () => {
               sql: {
                 String: {
                   kind: 'typeConstructor',
-                  args: [{ kind: 'number', name: 'length' }],
+                  args: [{ kind: 'value', dataType: stubDataType.id, name: 'length' }],
                   output: { codecId: 'sql/varchar@1' },
                 },
               },
@@ -1533,6 +1561,15 @@ describe('createControlStack', () => {
           kind: 'target',
           id: 'tgt',
           dataTypes: [stubDataType],
+          authoring: {
+            dataTypes: {
+              [stubDataType.id]: {
+                written: { kind: 'tag', tag: 'stub', parse: (text: string) => text },
+                print: String,
+                documentation: 'A stub value.',
+              },
+            },
+          },
           types: {
             codecTypes: {
               codecDescriptors: ['sql/varchar@1', 'pg/text@1', 'pg/int4@1'].map(registeredCodec),

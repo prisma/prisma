@@ -1,3 +1,4 @@
+import { sqlTargetTypeConstructors } from '@internal/family-sql/pack';
 import type {
   AuthoringFieldNamespace,
   AuthoringTypeNamespace,
@@ -5,8 +6,10 @@ import type {
 import {
   temporalAuthoringPresets,
   temporalCodecPreset,
+  temporalTypeAliases,
 } from '@internal/framework-components/authoring';
 export const sqliteAuthoringTypes = {
+  .../* @__PURE__ */ sqlTargetTypeConstructors({ sizeType: 'sqlite/real' }),
   BigIntNumber: {
     kind: 'typeConstructor',
     documentation:
@@ -15,6 +18,10 @@ export const sqliteAuthoringTypes = {
       codecId: 'sqlite/bigintnumber@1',
     },
   },
+  temporal: /* @__PURE__ */ temporalTypeAliases(
+    { codecId: 'sqlite/datetime@1' },
+    'a JavaScript Date',
+  ),
 } as const satisfies AuthoringTypeNamespace;
 
 export const sqliteAuthoringFieldPresets = {

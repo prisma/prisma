@@ -19,6 +19,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { emit } from '../../utils/emit';
 import { createIntegrationTestDir } from '../utils/cli-test-helpers';
 
+const TEST_INVOCATION = { cwd: process.cwd(), configPath: undefined, dbGiven: false };
+
 /**
  * Materialise pgvector's pinned contract-space artifacts under
  * `<projectRoot>/migrations/pgvector/...` so the per-space db init
@@ -102,6 +104,7 @@ model Document {
           codecLookup: stack.codecLookup,
           dataTypes: stack.dataTypes,
           controlMutationDefaults: stack.controlMutationDefaults,
+          generatorFunctions: stack.generatorFunctions,
           resolvedInputs: [schemaPath],
           capabilities: stack.capabilities,
         });
@@ -149,6 +152,7 @@ model Document {
           try {
             await client.connect(connectionString);
             const apply = await client.dbInit({
+              invocation: TEST_INVOCATION,
               contract: emittedContract,
               mode: 'apply',
               migrationsDir,

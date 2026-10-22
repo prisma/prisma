@@ -59,6 +59,7 @@ import {
   mergeColumnAndAttachedEntities,
   mergeNamespaceValueSets,
 } from './pack-entities';
+import { refuseTypesKey } from './refuse-types-key';
 import { tableKey } from './storage-description';
 import {
   resolveCheckExpressionRenderer,
@@ -156,6 +157,7 @@ export function buildSqlContractFromDefinition(
   codecLookup: CodecLookupWithDescriptors,
   dataTypeLookup: DataTypeLookup,
 ): Contract<SqlStorage> {
+  refuseTypesKey(definition, 'buildSqlContractFromDefinition');
   const lookups: TypeLookups<CodecLookupWithDescriptors> = { codecLookup, dataTypeLookup };
   const target = definition.target.targetId;
   const defaultNamespaceId = definition.target.defaultNamespaceId;
@@ -164,75 +166,8 @@ export function buildSqlContractFromDefinition(
     Object.values(definition.extensions ?? {}),
   );
   const qualifyColumnType = resolveColumnTypeQualifier(definition.target);
-  const storageTypes = definition.storageTypes ?? {};
+  const databaseTypes = definition.databaseTypes ?? {};
   const targetFamily = 'sql';
-
-  const modelDescriptionContext = {
-    ...modelLookupsOf(definition),
-    declaredTables: declaredTableKeys(definition),
-    foreignKeyDefaults: definition.foreignKeyDefaults,
-    storageTypes,
-    qualifyColumnType,
-  };
-  const components = definition.models.map((model) =>
-    describeModel(model, modelDescriptionContext),
-  );
-  const tableNodes = (definition.tables ?? []).map((table) =>
-    describeTableNode(table, modelDescriptionContext),
-  );
-
-  // Warnings collect across the whole build (seeded with the definition
-  // producer's) and flush once, threshold-batched by code.
-  const authoringWarnings: AuthoringWarning[] = [...(definition.warnings ?? [])];
-  const collectedColumnEntities: CollectedColumnEntities = {};
-  const tableLoweringContext: TableLoweringContext = {
-    lookups,
-    storageTypes,
-    defaultNamespaceId,
-    qualifyColumnType,
-    renderCheckExpressions: resolveCheckExpressionRenderer(definition.target),
-    collectedColumnEntities,
-    defaultControlPolicy: definition.defaultControlPolicy,
-    indexTypeRegistry,
-    warnings: authoringWarnings,
-  };
-  const tablesByNamespace: Record<string, Record<string, StorageTableInput>> = {};
-  const modelStorages = components.map((c) => c.storage);
-  const tables = mergeTables(modelStorages, tableNodes);
-  authoringWarnings.push(...requiredUnmappedColumnWarnings(modelStorages, tables));
-  for (const table of tables) {
-    const namespaceTables = tablesByNamespace[table.namespaceId] ?? {};
-    namespaceTables[table.tableName] = lowerTable(table, tableLoweringContext);
-    tablesByNamespace[table.namespaceId] = namespaceTables;
-  }
-
-  const executionDefaults: ExecutionMutationDefault[] = components.flatMap(
-    (c) => c.domain.executionDefaults,
-  );
-  const modelsByNamespace: Record<string, Record<string, ContractModel>> = {};
-  for (const { domain } of components) {
-    const namespaceModels = modelsByNamespace[domain.namespaceId] ?? {};
-    namespaceModels[domain.modelName] = domain.model;
-    modelsByNamespace[domain.namespaceId] = namespaceModels;
-  }
-  const roots = buildRoots(components);
-
-  // Normalise raw codec-triple inputs to the `kind: 'codec-instance'`
-  // discriminator shape before hashing so the storageHash matches the
-  // persisted JSON envelope produced from the SqlStorage class instance
-  // (which always carries the discriminator). Each entry stores the data type
-  // its codec represents.
-  const documentTypes: Record<string, StorageTypeInstance> = Object.fromEntries(
-    Object.entries(storageTypes).map(([name, entry]) => [
-      name,
-      toStorageTypeInstance({
-        codecId: entry.codecId,
-        dataType: sqlDataTypeOfCodec(entry.codecId, lookups).id,
-        typeParams: entry.typeParams,
-      }),
-    ]),
-  );
-  const namespaceCoordinateIds = collectStorageNamespaceCoordinateIds(definition);
 
   // Build per-namespace registries for `enumType()` handles.
   // All authored enums target the contract's default namespace.
@@ -274,6 +209,71 @@ export function buildSqlContractFromDefinition(
       values: storedMembers.map((member) => member.value),
     };
   }
+
+  const modelDescriptionContext = {
+    ...modelLookupsOf(definition),
+    declaredTables: declaredTableKeys(definition),
+    foreignKeyDefaults: definition.foreignKeyDefaults,
+    qualifyColumnType,
+  };
+  const components = definition.models.map((model) =>
+    describeModel(model, modelDescriptionContext),
+  );
+  const tableNodes = (definition.tables ?? []).map((table) =>
+    describeTableNode(table, modelDescriptionContext),
+  );
+
+  // Warnings collect across the whole build (seeded with the definition
+  // producer's) and flush once, threshold-batched by code.
+  const authoringWarnings: AuthoringWarning[] = [...(definition.warnings ?? [])];
+  const collectedColumnEntities: CollectedColumnEntities = {};
+  const tableLoweringContext: TableLoweringContext = {
+    lookups,
+    defaultNamespaceId,
+    qualifyColumnType,
+    renderCheckExpressions: resolveCheckExpressionRenderer(definition.target),
+    collectedColumnEntities,
+    defaultControlPolicy: definition.defaultControlPolicy,
+    indexTypeRegistry,
+    warnings: authoringWarnings,
+  };
+  const tablesByNamespace: Record<string, Record<string, StorageTableInput>> = {};
+  const modelStorages = components.map((c) => c.storage);
+  const tables = mergeTables(modelStorages, tableNodes);
+  authoringWarnings.push(...requiredUnmappedColumnWarnings(modelStorages, tables));
+  for (const table of tables) {
+    const namespaceTables = tablesByNamespace[table.namespaceId] ?? {};
+    namespaceTables[table.tableName] = lowerTable(table, tableLoweringContext);
+    tablesByNamespace[table.namespaceId] = namespaceTables;
+  }
+
+  const executionDefaults: ExecutionMutationDefault[] = components.flatMap(
+    (c) => c.domain.executionDefaults,
+  );
+  const modelsByNamespace: Record<string, Record<string, ContractModel>> = {};
+  for (const { domain } of components) {
+    const namespaceModels = modelsByNamespace[domain.namespaceId] ?? {};
+    namespaceModels[domain.modelName] = domain.model;
+    modelsByNamespace[domain.namespaceId] = namespaceModels;
+  }
+  const roots = buildRoots(components);
+
+  // Normalise raw codec-triple inputs to the `kind: 'codec-instance'`
+  // discriminator shape before hashing so the storageHash matches the
+  // persisted JSON envelope produced from the SqlStorage class instance
+  // (which always carries the discriminator). Each entry stores the data type
+  // its codec represents.
+  const documentTypes: Record<string, StorageTypeInstance> = Object.fromEntries(
+    Object.entries(databaseTypes).map(([name, entry]) => [
+      name,
+      toStorageTypeInstance({
+        codecId: entry.codecId,
+        dataType: sqlDataTypeOfCodec(entry.codecId, lookups).id,
+        typeParams: entry.typeParams,
+      }),
+    ]),
+  );
+  const namespaceCoordinateIds = collectStorageNamespaceCoordinateIds(definition);
 
   const { createNamespace } = definition;
   const entityTypesByDiscriminator = collectEntityTypeDescriptorsByDiscriminator(definition);
@@ -369,10 +369,7 @@ export function buildSqlContractFromDefinition(
             vo.name,
             {
               fields: Object.fromEntries(
-                vo.fields.map((f) => [
-                  f.fieldName,
-                  buildDomainField(f, defaultNamespaceId, storageTypes),
-                ]),
+                vo.fields.map((f) => [f.fieldName, buildDomainField(f, defaultNamespaceId)]),
               ),
             },
           ]),

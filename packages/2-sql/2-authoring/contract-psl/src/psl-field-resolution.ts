@@ -1,17 +1,14 @@
-import type {
-  ColumnDefaultLiteralInputValue,
-  ExecutionMutationDefaultPhases,
-} from '@internal/contract/types';
+import type { ExecutionMutationDefaultPhases } from '@internal/contract/types';
 import type {
   AuthoringContributions,
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
-import type { CapabilityMatrix } from '@internal/framework-components/components';
 import type {
-  ControlMutationDefaultRegistry,
-  MutationDefaultGeneratorDescriptor,
-} from '@internal/framework-components/control';
+  CapabilityMatrix,
+  GeneratorFunctionRegistry,
+} from '@internal/framework-components/components';
+import type { ControlMutationDefaultRegistry } from '@internal/framework-components/control';
 import type {
   Binder,
   BlockSymbol,
@@ -19,24 +16,21 @@ import type {
   FieldAttributeSpecContext,
   FieldSymbol,
   ModelSymbol,
-  NamedTypeSymbol,
   ResolvedAttribute,
   SymbolTable,
 } from '@internal/psl-parser';
 import {
   diagnosticSource,
   type PslDiagnosticCollector,
+  refuseRepeatedTypeAliasAttributes,
   typeReferenceNode,
 } from '@internal/psl-parser';
 import type { PslSources } from '@internal/psl-parser/syntax';
-import { type AuthoredStorageTypeInstance, resolvedTypeParams } from '@internal/sql-contract/types';
 import {
   type AuthoredColumnDefault,
   type EnumTypeHandle,
   storedAsListColumn,
 } from '@internal/sql-contract-ts/contract-builder';
-import { invariant } from '@internal/utils/assertions';
-import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import {
@@ -46,10 +40,13 @@ import {
 } from './psl-attribute-parsing';
 import type { ColumnDescriptor, FieldPresetContributions } from './psl-column-resolution';
 import {
+  fieldAttributeOwner,
   lowerDefaultForField,
-  rejectStrictListNullDefault,
+  lowerEnumDefault,
+  lowerGeneratorAttributesForField,
   resolveFieldTypeDescriptor,
 } from './psl-column-resolution';
+import type { ResolvedTypeAliases } from './psl-named-type-resolution';
 import {
   fieldSpecContext,
   interpretFieldAttribute,
@@ -59,86 +56,7 @@ import type { ValueObjectTypes } from './value-object-default';
 
 type LoweredFieldDefault = {
   readonly defaultValue?: AuthoredColumnDefault;
-  readonly executionDefaults?: ExecutionMutationDefaultPhases;
 };
-
-function lowerEnumDefaultForField(input: {
-  readonly modelName: string;
-  readonly fieldName: string;
-  readonly field: FieldSymbol;
-  readonly model: ModelSymbol;
-  readonly symbolTable: SymbolTable;
-  readonly sources: PslSources;
-  readonly binder: Binder;
-  readonly enumHandle: EnumTypeHandle;
-  readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
-  readonly dataTypes: DataTypeSupport;
-  readonly diagnostics: PslDiagnosticCollector;
-}): LoweredFieldDefault {
-  const { field, model, enumHandle, diagnostics } = input;
-  const node = getAttribute(field.attributes, 'default')?.node;
-  if (node === undefined) return {};
-  if (enumHandle.enumMembers.length === 0) return {};
-  const spec = sqlAttributeSpecs.field.default(
-    fieldSpecContext({
-      symbols: input.symbolTable,
-      model,
-      field,
-      binder: input.binder,
-      defaultFunctionRegistry: input.defaultFunctionRegistry,
-      dataTypes: input.dataTypes,
-    }),
-  );
-  const interpreted = interpretFieldAttribute({
-    node,
-    spec,
-    symbols: input.symbolTable,
-    model,
-    field,
-    sources: input.sources,
-    binder: input.binder,
-    diagnostics,
-  });
-  if (interpreted === undefined) return {};
-  const member = interpreted.value;
-  if (member.kind === 'member-list') {
-    if (
-      rejectStrictListNullDefault({
-        ...input,
-        elements: member.elements,
-        source: diagnosticSource(input.sources, node.syntax),
-      })
-    )
-      return {};
-    const values = member.elements.map((entry) =>
-      entry.kind === 'null'
-        ? null
-        : enumHandle.enumMembers.find((candidate) => candidate.name === entry.name)?.value,
-    );
-    return {
-      defaultValue: {
-        kind: 'literal',
-        value: blindCast<
-          ColumnDefaultLiteralInputValue,
-          'enum member values are codec-validated JsonValue-compatible scalars'
-        >(values),
-      },
-    };
-  }
-  invariant(member.kind === 'member', 'the enum @default grammar admits only member identifiers');
-  const match = enumHandle.enumMembers.find((m) => m.name === member.name);
-  if (!match) return {};
-
-  return {
-    defaultValue: {
-      kind: 'literal',
-      value: blindCast<
-        ColumnDefaultLiteralInputValue,
-        'enum member values are codec-validated JsonValue-compatible scalars'
-      >(match.value),
-    },
-  };
-}
 
 export type ResolvedField = {
   readonly field: FieldSymbol;
@@ -179,16 +97,14 @@ export interface CollectResolvedFieldsInput {
   readonly physicalNames: ReadonlyMap<ModelSymbol | FieldSymbol, string>;
   readonly symbolTable: SymbolTable;
   readonly enumTypeDescriptors: ReadonlyMap<BlockSymbol, ColumnDescriptor>;
-  readonly namedTypeDescriptors: ReadonlyMap<NamedTypeSymbol, ColumnDescriptor>;
-  /** The storage types the named types declare, by name, whose parameters a column declared with one takes. */
-  readonly namedTypes: Readonly<Record<string, AuthoredStorageTypeInstance>>;
+  readonly typeAliases: ResolvedTypeAliases;
   /** The value objects the composite types declare, by name. */
   readonly valueObjectTypes: ValueObjectTypes;
   readonly authoringContributions: AuthoringContributions | undefined;
   readonly targetId: string;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
-  readonly generatorDescriptorById: ReadonlyMap<string, MutationDefaultGeneratorDescriptor>;
   readonly diagnostics: PslDiagnosticCollector;
   readonly sources: PslSources;
   readonly binder: Binder;
@@ -223,12 +139,14 @@ interface RemovedAttributeRule {
   readonly suppressWhen: (field: FieldSymbol) => boolean;
 }
 
+const GENERATOR_ATTRIBUTE_NAMES = ['onCreate', 'onUpdate'] as const;
+
 const REMOVED_ATTRIBUTE_RULES: ReadonlyMap<string, RemovedAttributeRule> = new Map([
   [
     'updatedAt',
     {
-      hint: 'Use `temporal.updatedAt()` as a field-preset call instead.',
-      suppressWhen: (field) => field.typeConstructor?.path[0] === 'temporal',
+      hint: 'Use @onCreate(now()) @onUpdate(now()), or type the field temporal.UpdatedAt.',
+      suppressWhen: (field) => field.attributes.some((attribute) => attribute.name === 'onUpdate'),
     },
   ],
 ]);
@@ -336,14 +254,14 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     model,
     symbolTable,
     enumTypeDescriptors,
-    namedTypeDescriptors,
+    typeAliases,
     valueObjectTypes,
     authoringContributions,
     binder,
     targetId,
     defaultFunctionRegistry,
+    generatorFunctions,
     dataTypes,
-    generatorDescriptorById,
     diagnostics,
     sources,
     scalarColumnDescriptors,
@@ -400,7 +318,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       field,
       resolution: fieldTypeResolution,
       enumTypeDescriptors,
-      namedTypeDescriptors,
+      typeAliases,
       diagnostics,
       sources,
       entityLabel: `Field "${model.name}.${field.name}"`,
@@ -408,6 +326,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       ...ifDefined('namespaceExtensionEntities', namespaceExtensionEntities),
       binder,
       codecLookup,
+      dataTypes,
     };
 
     if (isValueObjectField) {
@@ -470,6 +389,17 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       continue;
     }
 
+    const typeAlias = typeAliases.ofResolution(fieldTypeResolution);
+    if (typeAlias !== undefined) {
+      refuseRepeatedTypeAliasAttributes({
+        field,
+        fieldPath: `${model.name}.${field.name}`,
+        alias: typeAlias.alias,
+        sources,
+        diagnostics,
+      });
+    }
+
     const defaultAttribute = getAttribute(field.attributes, 'default');
     if (presetContributions?.default && defaultAttribute) {
       diagnostics.push({
@@ -482,45 +412,58 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     const enumHandle =
       fieldTypeResolution?.kind === 'block'
         ? enumHandles.get(fieldTypeResolution.symbol)
-        : undefined;
-    const loweredDefault: LoweredFieldDefault = defaultAttribute
+        : typeAlias?.enumHandle;
+    const fieldLowering = {
+      modelName: model.name,
+      fieldName: field.name,
+      field,
+      model,
+      symbolTable,
+      sources: input.sources,
+      binder: input.binder,
+      defaultFunctionRegistry,
+      generatorFunctions,
+      dataTypes,
+      diagnostics,
+    };
+    const ownDefault: LoweredFieldDefault = defaultAttribute
       ? enumHandle
-        ? lowerEnumDefaultForField({
-            modelName: model.name,
-            fieldName: field.name,
-            field,
-            model,
-            symbolTable,
-            sources: input.sources,
-            binder: input.binder,
+        ? lowerEnumDefault({
+            ...fieldLowering,
+            owner: fieldAttributeOwner(fieldLowering),
             enumHandle,
-            defaultFunctionRegistry,
-            dataTypes,
-            diagnostics,
           })
         : lowerDefaultForField({
-            modelName: model.name,
-            fieldName: field.name,
-            field,
-            model,
-            symbolTable,
-            sources: input.sources,
-            binder: input.binder,
+            ...fieldLowering,
             columnDescriptor: descriptor,
-            columnTypeParams: resolvedTypeParams(descriptor, input.namedTypes),
+            columnTypeParams: descriptor.typeParams,
             isListColumn,
             valueObjectDefault:
               valueObjectName === undefined
                 ? undefined
                 : { valueObjectName, types: valueObjectTypes },
-            generatorDescriptorById,
-            defaultFunctionRegistry,
-            dataTypes,
             codecLookup,
-            diagnostics,
           })
       : {};
-    const loweredOnCreate = loweredDefault.executionDefaults?.onCreate;
+    if (isListField && typeAlias?.defaultValue !== undefined) {
+      diagnostics.push({
+        code: 'PSL_DEFAULT_LIST_EXPECTED',
+        message: `Field "${model.name}.${field.name}" is a list, but its type alias "${typeAlias.name}" sets @default for a single value. Remove "[]" or the @default of the alias.`,
+        ...source.at(field.span),
+      });
+      continue;
+    }
+    const loweredDefault: LoweredFieldDefault = {
+      ...ifDefined('defaultValue', typeAlias?.defaultValue ?? ownDefault.defaultValue),
+    };
+    const generatedValues = mergeExecutionDefaults(
+      lowerGeneratorAttributesForField({
+        ...fieldLowering,
+        columnDescriptor: descriptor,
+        columnTypeParams: descriptor.typeParams,
+      }),
+      typeAlias?.executionDefaults,
+    );
     if (
       isListField &&
       loweredDefault.defaultValue?.kind === 'function' &&
@@ -533,22 +476,35 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       });
       continue;
     }
-    if (isListField && loweredOnCreate) {
-      const defaultExpression =
-        defaultAttribute?.args.find((arg) => arg.kind === 'positional')?.value.trim() ??
-        'this function';
+    const ownGeneratorAttribute = GENERATOR_ATTRIBUTE_NAMES.map((name) =>
+      getAttribute(field.attributes, name),
+    ).find((attribute) => attribute !== undefined);
+    if (isListField && generatedValues !== undefined) {
+      const fieldLabel = `Field "${model.name}.${field.name}"`;
+      const perElement = 'Lists have no per-element generated values;';
+      const call =
+        ownGeneratorAttribute?.args.find((arg) => arg.kind === 'positional')?.value.trim() ?? '';
       diagnostics.push({
         code: 'PSL_LIST_EXECUTION_DEFAULT_UNSUPPORTED',
-        message: `Field "${model.name}.${field.name}" is a list and cannot use an execution default ("${defaultExpression}"). Lists have no per-element execution-default semantics; use a literal list @default or remove the default.`,
-        ...source.at(defaultAttribute?.span ?? field.span),
+        message:
+          ownGeneratorAttribute === undefined
+            ? `${fieldLabel} is a list, and its type alias "${typeAlias?.name}" generates a value. ${perElement} remove "[]" or type the field without the alias.`
+            : `${fieldLabel} is a list and cannot use @${ownGeneratorAttribute.name}(${call}). ${perElement} remove @${ownGeneratorAttribute.name}(...).`,
+        ...source.at(ownGeneratorAttribute?.span ?? field.span),
       });
       continue;
     }
-    if (presetContributions?.executionDefaults?.onCreate && loweredOnCreate) {
+    const presetPhaseConflict = GENERATOR_ATTRIBUTE_NAMES.find(
+      (phase) =>
+        presetContributions?.executionDefaults?.[phase] !== undefined &&
+        generatedValues?.[phase] !== undefined,
+    );
+    if (presetPhaseConflict !== undefined) {
+      const phaseText = presetPhaseConflict === 'onCreate' ? 'on create' : 'on update';
       diagnostics.push({
         code: 'PSL_PRESET_AND_DEFAULT_CONFLICT',
-        message: `Field "${model.name}.${field.name}" uses a field-preset call that already generates a value on create, so @default(...) cannot generate one too. Remove @default(...), write a database default in @default(...), or use a preset without an onCreate generator.`,
-        ...source.at(defaultAttribute?.span ?? field.span),
+        message: `Field "${model.name}.${field.name}" uses a field-preset call that already generates a value ${phaseText}, so @${presetPhaseConflict}(...) cannot set one too. Remove @${presetPhaseConflict}(...) or use a preset without an ${presetPhaseConflict} generator.`,
+        ...source.at(getAttribute(field.attributes, presetPhaseConflict)?.span ?? field.span),
       });
       continue;
     }
@@ -559,6 +515,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       field,
       binder,
       defaultFunctionRegistry,
+      generatorFunctions,
       dataTypes,
     });
     const { idAttribute, uniqueAttribute, idName, uniqueName } = extractFieldConstraintNames({
@@ -598,7 +555,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     }
 
     const fieldExecutionDefaults = mergeExecutionDefaults(
-      loweredDefault.executionDefaults,
+      generatedValues,
       presetContributions?.executionDefaults,
     );
     const fieldDefaultValue = presetContributions?.default ?? loweredDefault.defaultValue;
@@ -624,11 +581,11 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
 }
 
 function mergeExecutionDefaults(
-  fromDefaultAttribute: ExecutionMutationDefaultPhases | undefined,
+  fromAttributes: ExecutionMutationDefaultPhases | undefined,
   fromPreset: ExecutionMutationDefaultPhases | undefined,
 ): ExecutionMutationDefaultPhases | undefined {
-  if (fromDefaultAttribute === undefined || fromPreset === undefined) {
-    return fromPreset ?? fromDefaultAttribute;
+  if (fromAttributes === undefined || fromPreset === undefined) {
+    return fromPreset ?? fromAttributes;
   }
-  return { ...fromDefaultAttribute, ...fromPreset };
+  return { ...fromAttributes, ...fromPreset };
 }

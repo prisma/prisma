@@ -2,14 +2,22 @@ import sqliteAdapter from '@internal/adapter-sqlite/runtime';
 import type { Contract } from '@internal/contract/types';
 import type { SqliteBinding } from '@internal/driver-sqlite/runtime';
 import sqliteDriver from '@internal/driver-sqlite/runtime';
-import { instantiateExecutionStack } from '@internal/framework-components/execution';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { sql as sqlBuilder } from '@internal/sql-builder/runtime';
+import { createRawLane, sql as sqlBuilder } from '@internal/sql-builder/runtime';
 import type { Db, RawLane } from '@internal/sql-builder/types';
 import type { ExtractCodecTypes, SqlStorage } from '@internal/sql-contract/types';
-import { orm as ormBuilder, type PreparedFrom, prepareQuery } from '@internal/sql-orm-client';
-import type { CodecTypesBase } from '@internal/sql-relational-core/expression';
+import {
+  type CollectionClasses,
+  type NoCollectionClasses,
+  type OrmClientRootMembers,
+  orm as ormBuilder,
+  type PreparedFrom,
+  type PrepareMember,
+  prepareQuery,
+} from '@internal/sql-orm-client';
+import type { CodecTypesBase, RawCodecInferer } from '@internal/sql-relational-core/expression';
 import type { Preparable, SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import type { RuntimeScope } from '@internal/sql-relational-core/types';
 import type {
   BindSiteParams,
   Declaration,
@@ -17,9 +25,11 @@ import type {
   Log,
   ParamsFromDeclaration,
   Runtime,
+  RuntimeMode,
   SqlExecutionStackWithDriver,
   SqlMiddleware,
   SqlRuntimeExtensionDescriptor,
+  ToSqlMember,
   TransactionContext,
   VerifyMarkerOption,
 } from '@internal/sql-runtime';
@@ -29,10 +39,11 @@ import {
   createSqlExecutionStack,
   delegatingActivitySource,
   withTransaction,
+  withTransactionMembers,
 } from '@internal/sql-runtime';
 import sqliteTarget from '@internal/target-sqlite/runtime';
 import { assertDefined } from '@internal/utils/assertions';
-import { blindCast, castAs } from '@internal/utils/casts';
+import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { sqliteError } from '../errors';
@@ -42,52 +53,132 @@ import { resolveOptionalSqliteBinding, resolveSqliteBinding } from './binding';
 import { SqliteRuntimeImpl } from './sqlite-runtime';
 
 export type SqliteTargetId = 'sqlite';
-type OrmClient<TContract extends Contract<SqlStorage>> = ReturnType<typeof ormBuilder<TContract>>;
+type OrmClient<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses,
+> = ReturnType<typeof ormBuilder<TContract, TCollections>>;
 
 type UnboundSql<TContract extends Contract<SqlStorage>> =
   Db<TContract>[typeof UNBOUND_NAMESPACE_ID];
-type UnboundOrm<TContract extends Contract<SqlStorage>> =
-  OrmClient<TContract>[typeof UNBOUND_NAMESPACE_ID];
+type UnboundOrm<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses,
+> = OrmClient<TContract, TCollections>[typeof UNBOUND_NAMESPACE_ID];
 
-function unboundOrm<TContract extends Contract<SqlStorage>>(
-  orm: OrmClient<TContract>,
-): UnboundOrm<TContract> {
-  const value = orm[UNBOUND_NAMESPACE_ID];
-  assertDefined(value, 'the unbound namespace always exists on a sqlite builder output');
+/** The models of SQLite's single namespace, and `fragment` unless a model is named `fragment`. */
+export type SqliteOrm<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
+> = 'fragment' extends keyof UnboundOrm<TContract, TCollections>
+  ? UnboundOrm<TContract, TCollections>
+  : UnboundOrm<TContract, TCollections> & OrmClientRootMembers<TContract>;
+
+function sqliteOrm<TContract extends Contract<SqlStorage>, TCollections extends CollectionClasses>(
+  orm: OrmClient<TContract, TCollections>,
+): SqliteOrm<TContract, TCollections> {
+  const namespace = orm[UNBOUND_NAMESPACE_ID];
+  assertDefined(namespace, 'the unbound namespace always exists on a sqlite builder output');
+  const withFragment: object =
+    Reflect.get(namespace, 'fragment') === undefined
+      ? Object.create(namespace, { fragment: { value: Reflect.get(orm, 'fragment') } })
+      : namespace;
   return blindCast<
-    UnboundOrm<TContract>,
+    SqliteOrm<TContract, TCollections>,
     'OrmClient<TContract> indexed by a literal key widens NsId to string; Collection is invariant in NsId via row/mutation-input types, so the indexed-access type cannot be proven to match the literal-keyed OrmNamespace without this cast'
-  >(value);
+  >(withFragment);
 }
 
-export interface SqliteTransactionContext<TContract extends Contract<SqlStorage>>
-  extends TransactionContext {
+/** The query members of a SQLite client, which its transactions offer with the same types. */
+export interface SqliteQueryMembers<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
+> extends PrepareMember<TContract>,
+    RuntimeScope,
+    ToSqlMember {
   readonly sql: UnboundSql<TContract>;
-  readonly orm: UnboundOrm<TContract>;
-  readonly enums: SqliteStaticContext<TContract>['enums'];
-}
-
-export interface SqliteClient<TContract extends Contract<SqlStorage>> {
-  readonly sql: UnboundSql<TContract>;
-  readonly orm: UnboundOrm<TContract>;
-  readonly enums: SqliteStaticContext<TContract>['enums'];
+  readonly orm: SqliteOrm<TContract, TCollections>;
   readonly raw: RawLane<TContract>;
-  readonly context: ExecutionContext<TContract>;
-  readonly contract: TContract;
+}
+
+export interface SqliteTransactionContext<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
+> extends TransactionContext,
+    SqliteQueryMembers<TContract, TCollections> {
+  readonly enums: SqliteStaticContext<TContract>['enums'];
+}
+
+export interface SqliteStaticMembers<TContract extends Contract<SqlStorage>>
+  extends SqliteStaticContext<TContract> {
   readonly stack: SqlExecutionStackWithDriver<SqliteTargetId>;
+}
+
+export interface SqliteClient<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
+> extends SqliteQueryMembers<TContract, TCollections>,
+    SqliteStaticMembers<TContract> {
   connect(bindingInput?: { readonly path: string }): Promise<Runtime>;
   runtime(): Runtime;
-  prepare<
-    D extends Declaration<CT>,
-    Q extends SqlQueryPlan | Preparable<unknown, unknown>,
-    CT extends CodecTypesBase = ExtractCodecTypes<TContract>,
-  >(
-    declaration: D,
-    callback: (params: BindSiteParams<D>) => Q,
-  ): Promise<PreparedFrom<ParamsFromDeclaration<D, CT>, Q>>;
-  transaction<R>(fn: (tx: SqliteTransactionContext<TContract>) => PromiseLike<R>): Promise<R>;
+  transaction<R>(
+    fn: (tx: SqliteTransactionContext<TContract, TCollections>) => PromiseLike<R>,
+  ): Promise<R>;
   close(): Promise<void>;
   [Symbol.asyncDispose](): Promise<void>;
+}
+
+interface SqliteTransactionMembersOptions<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses,
+> {
+  readonly context: ExecutionContext<TContract>;
+  readonly collections: TCollections | undefined;
+  readonly rawCodecInferer: RawCodecInferer;
+  readonly enums: SqliteStaticContext<TContract>['enums'];
+  readonly toSql: ToSqlMember['toSql'];
+  readonly prepareRuntime: () => Runtime;
+}
+
+/**
+ * Builds the members of a SQLite transaction over `txCtx`, so every statement they run goes through the transaction. Preparing sends nothing to the database, so `prepare` uses `prepareRuntime`; the prepared statement runs on the queryable it is given.
+ */
+function buildSqliteTransactionMembers<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses,
+>(
+  options: SqliteTransactionMembersOptions<TContract, TCollections>,
+  txCtx: TransactionContext,
+): Omit<SqliteTransactionContext<TContract, TCollections>, keyof TransactionContext> {
+  const { context, collections, rawCodecInferer, enums, toSql, prepareRuntime } = options;
+  const sqlNamespace = sqlBuilder<TContract>({ context, rawCodecInferer })[UNBOUND_NAMESPACE_ID];
+  assertDefined(sqlNamespace, 'the unbound namespace always exists on a sqlite builder output');
+  return {
+    sql: blindCast<
+      UnboundSql<TContract>,
+      'Db<TContract> indexed by a literal key widens NsId to string; TableProxy is invariant in NsId via insert()/update() parameter positions, so the indexed-access type cannot be proven to match the literal-keyed Namespace without this cast'
+    >(sqlNamespace),
+    orm: sqliteOrm(
+      ormBuilder<TContract, TCollections>({
+        runtime: {
+          query(plan) {
+            return txCtx.query(plan);
+          },
+          execute(plan) {
+            return txCtx.execute(plan);
+          },
+          [activitySource]: delegatingActivitySource(() => txCtx),
+        },
+        context,
+        ...ifDefined('collections', collections),
+      }),
+    ),
+    raw: createRawLane<TContract>({ context, rawCodecInferer }),
+    enums,
+    toSql,
+    prepare(declaration, callback) {
+      return prepareQuery(prepareRuntime(), declaration, callback);
+    },
+  };
 }
 
 export interface SqliteOptionsBase {
@@ -95,10 +186,15 @@ export interface SqliteOptionsBase {
   readonly middleware?: readonly SqlMiddleware[];
   readonly verifyMarker?: VerifyMarkerOption;
   readonly log?: Log;
+  readonly mode?: RuntimeMode;
 }
 
-export type SqliteOptions<TContract extends Contract<SqlStorage>> = SqliteOptionsBase & {
+export type SqliteOptions<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
+> = SqliteOptionsBase & {
   readonly contract: TContract;
+  readonly collections?: TCollections;
   readonly path?: string;
 };
 
@@ -119,9 +215,10 @@ export type SqliteOptions<TContract extends Contract<SqlStorage>> = SqliteOption
  * export const db = sqlite({ contract, path: './dev.db' });
  * ```
  */
-export default function sqlite<TContract extends Contract<SqlStorage>>(
-  options: SqliteOptions<TContract>,
-): SqliteClient<TContract> {
+export default function sqlite<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
+>(options: SqliteOptions<TContract, TCollections>): SqliteClient<TContract, TCollections> {
   const contract = validateSqliteContract(options.contract);
   let binding = resolveOptionalSqliteBinding(options);
 
@@ -141,11 +238,8 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
     sql,
     raw: rawSqlTag,
     enums,
-  }: SqliteStaticContext<TContract> = buildSqliteStaticContext<TContract>(
-    contract,
-    context,
-    stack.adapter.rawCodecInferer,
-  );
+    toSql,
+  }: SqliteStaticContext<TContract> = buildSqliteStaticContext<TContract>(contract, context, stack);
 
   let runtimeInstance: Runtime | undefined;
   let runtimeDriver: { connect(binding: unknown): Promise<void> } | undefined;
@@ -188,7 +282,7 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
       return runtimeInstance;
     }
 
-    const stackInstance = instantiateExecutionStack(stack);
+    const adapter = stack.adapter.create(stack);
     const driverDescriptor = stack.driver;
     if (!driverDescriptor) {
       throw new InternalError('Driver descriptor missing from execution stack');
@@ -203,20 +297,22 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
 
     runtimeInstance = new SqliteRuntimeImpl({
       context,
-      adapter: stackInstance.adapter,
+      adapter,
       driver,
       ...ifDefined('verifyMarker', options.verifyMarker),
       ...ifDefined('middleware', options.middleware),
       ...ifDefined('log', options.log),
+      ...ifDefined('mode', options.mode),
       closeRefusal: 'at-once',
     });
 
     return runtimeInstance;
   };
 
-  const orm: UnboundOrm<TContract> = unboundOrm(
-    ormBuilder({
+  const orm: SqliteOrm<TContract, TCollections> = sqliteOrm(
+    ormBuilder<TContract, TCollections>({
       context,
+      ...ifDefined('collections', options.collections),
       runtime: {
         query(plan) {
           return getRuntime().query(plan);
@@ -248,9 +344,16 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
     orm,
     enums,
     raw: rawSqlTag,
+    toSql,
     context,
     contract,
     stack,
+    query(plan, execOptions) {
+      return getRuntime().query(plan, execOptions);
+    },
+    execute(plan, execOptions) {
+      return getRuntime().execute(plan, execOptions);
+    },
     async connect(bindingInput) {
       if (closed) {
         throw sqliteError('DRIVER.NOT_CONNECTED', 'SQLite client is closed', {
@@ -291,7 +394,9 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
     },
     prepare,
 
-    transaction<R>(fn: (tx: SqliteTransactionContext<TContract>) => PromiseLike<R>): Promise<R> {
+    transaction<R>(
+      fn: (tx: SqliteTransactionContext<TContract, TCollections>) => PromiseLike<R>,
+    ): Promise<R> {
       let runtime: ReturnType<typeof getRuntime>;
       try {
         runtime = getRuntime();
@@ -299,41 +404,19 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
         return Promise.reject(err);
       }
       return withTransaction(runtime, (txCtx) => {
-        const rawCodecInferer = stack.adapter.rawCodecInferer;
-        const txSqlNamespace = sqlBuilder<TContract>({ context, rawCodecInferer })[
-          UNBOUND_NAMESPACE_ID
-        ];
-        assertDefined(
-          txSqlNamespace,
-          'the unbound namespace always exists on a sqlite builder output',
-        );
-        const txSql: UnboundSql<TContract> = blindCast<
-          UnboundSql<TContract>,
-          'Db<TContract> indexed by a literal key widens NsId to string; TableProxy is invariant in NsId via insert()/update() parameter positions, so the indexed-access type cannot be proven to match the literal-keyed Namespace without this cast'
-        >(txSqlNamespace);
-
-        const txOrm: UnboundOrm<TContract> = unboundOrm(
-          ormBuilder({
-            runtime: {
-              query(plan) {
-                return txCtx.query(plan);
-              },
-              execute(plan) {
-                return txCtx.execute(plan);
-              },
-              [activitySource]: delegatingActivitySource(() => txCtx),
+        const tx: SqliteTransactionContext<TContract, TCollections> = withTransactionMembers(
+          txCtx,
+          buildSqliteTransactionMembers<TContract, TCollections>(
+            {
+              context,
+              collections: options.collections,
+              rawCodecInferer: stack.adapter.rawCodecInferer,
+              enums,
+              toSql,
+              prepareRuntime: getRuntime,
             },
-            context,
-          }),
-        );
-
-        // Use `txCtx` as the prototype instead of spreading it so that live
-        // accessors (notably the `invalidated` getter, which reads a closure
-        // variable in `withTransaction`) remain wired to the original object.
-        // Spreading would evaluate the getter once and freeze its value.
-        const tx: SqliteTransactionContext<TContract> = Object.assign(
-          castAs<TransactionContext>(Object.create(txCtx)),
-          { sql: txSql, orm: txOrm, enums },
+            txCtx,
+          ),
         );
 
         return fn(tx);

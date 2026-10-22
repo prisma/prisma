@@ -1,6 +1,7 @@
+import { randomUUID } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { CliStructuredError } from '@internal/errors/control';
-import { renameLegacyDirective } from '@internal/psl-parser';
+import { EMPTY_DATA_TYPES, renameLegacyDirective } from '@internal/psl-parser';
 import { format, resolveFormatOptions } from '@internal/psl-parser/format';
 import {
   type CompletionItem,
@@ -8,7 +9,6 @@ import {
   type Diagnostic,
   DiagnosticSeverity,
   DidChangeWatchedFilesNotification,
-  type Disposable,
   DocumentDiagnosticReportKind,
   type FoldingRange,
   type FullDocumentDiagnosticReport,
@@ -19,10 +19,12 @@ import {
   type Position,
   type PublishDiagnosticsParams,
   type Range,
+  RegistrationRequest,
   type RelatedFullDocumentDiagnosticReport,
   ResponseError,
   type SemanticTokens,
   type SignatureHelp,
+  UnregistrationRequest,
   type WorkspaceEdit,
 } from 'vscode-languageserver';
 import { classifyPslCompletionContext } from './completion-context';
@@ -76,9 +78,7 @@ export class Project {
   #state: LoadState = { status: 'failed' };
   #membershipSequence = 0;
   #watcherGeneration = 0;
-  #watcher:
-    | { readonly disposable: Disposable; readonly schemaInputConfig: SchemaInputConfig }
-    | undefined;
+  #watcher: { readonly id: string; readonly schemaInputConfig: SchemaInputConfig } | undefined;
   #reportedMembers: ReadonlySet<string> = new Set();
 
   constructor(configPath: string, options: ProjectOptions) {
@@ -198,6 +198,7 @@ export class Project {
         position,
         binder: data.artifacts.binder(),
         pslBlockDescriptors: data.controlStack.pslBlockDescriptors,
+        dataTypes: data.controlStack.dataTypes ?? EMPTY_DATA_TYPES,
       });
     } catch {
       return null;
@@ -474,9 +475,15 @@ export class Project {
   #clearWatcher(): number {
     const generation = ++this.#watcherGeneration;
     this.#options.documents.setWatchCoverage(this.configPath, []);
-    this.#watcher?.disposable.dispose();
+    if (this.#watcher !== undefined) this.#unregisterWatcher(this.#watcher.id);
     this.#watcher = undefined;
     return generation;
+  }
+
+  #unregisterWatcher(id: string): void {
+    void this.#options.connection.sendRequest(UnregistrationRequest.type, {
+      unregisterations: [{ id, method: DidChangeWatchedFilesNotification.type.method }],
+    });
   }
 
   async #registerWatcher(project: ResolvedProject): Promise<void> {
@@ -484,28 +491,31 @@ export class Project {
     if (!this.#options.watchedFilesRegistration) return;
     const patterns = project.schemaInputConfig.contract?.source.inputs ?? [];
     if (patterns.length === 0) return;
-    try {
-      const disposable = await this.#options.connection.client.register(
-        DidChangeWatchedFilesNotification.type,
+    const id = randomUUID();
+    const reply: unknown = await this.#options.connection.sendRequest(RegistrationRequest.type, {
+      registrations: [
         {
-          watchers: patterns.map((pattern) => ({ globPattern: toWatcherGlobPattern(pattern) })),
+          id,
+          method: DidChangeWatchedFilesNotification.type.method,
+          registerOptions: {
+            watchers: patterns.map((pattern) => ({ globPattern: toWatcherGlobPattern(pattern) })),
+          },
         },
-      );
-      if (disposable === undefined) return;
-      if (this.#watcherGeneration === generation) {
-        this.#watcher = { disposable, schemaInputConfig: project.schemaInputConfig };
-        const current = this.#current();
-        if (
-          current?.schemaInputConfig === project.schemaInputConfig &&
-          isWatcherCacheEligible(project.schemaInputConfig)
-        ) {
-          this.#options.documents.setWatchCoverage(this.configPath, current.inputs.uris());
-        }
-      } else {
-        disposable.dispose();
-      }
-    } catch {
+      ],
+    });
+    // The guarded connection settles a failed request as undefined; a client's success reply is null.
+    if (reply === undefined) return;
+    if (this.#watcherGeneration !== generation) {
+      this.#unregisterWatcher(id);
       return;
+    }
+    this.#watcher = { id, schemaInputConfig: project.schemaInputConfig };
+    const current = this.#current();
+    if (
+      current?.schemaInputConfig === project.schemaInputConfig &&
+      isWatcherCacheEligible(project.schemaInputConfig)
+    ) {
+      this.#options.documents.setWatchCoverage(this.configPath, current.inputs.uris());
     }
   }
 

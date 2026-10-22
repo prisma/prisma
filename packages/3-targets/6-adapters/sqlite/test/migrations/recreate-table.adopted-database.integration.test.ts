@@ -92,7 +92,7 @@ describe('a SQLite rebuild on a database already further along', {
     }).toMatchObject({
       failure: {
         code: 'MIGRATION.PRECHECK_FAILED',
-        summary: expect.stringContaining('"Post"'),
+        message: expect.stringContaining('"Post"'),
       },
       views: [{ id: 1, views: 5 }],
     });

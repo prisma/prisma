@@ -3,6 +3,7 @@ import type {
   Contract,
   ContractExecutionSection,
   ContractRelation,
+  EnumMemberValueType,
   FieldTypesFromDomain,
   JsonValue,
   NamespaceId,
@@ -34,7 +35,7 @@ import type { EnumTypeHandle } from './enum-type';
 export type PublicCodecTypes<CodecTypes extends Record<string, { readonly output: unknown }>> = {
   readonly [CodecId in keyof CodecTypes]: Pick<
     CodecTypes[CodecId],
-    Extract<keyof CodecTypes[CodecId], 'input' | 'output' | 'traits'>
+    Extract<keyof CodecTypes[CodecId], 'input' | 'output' | 'traits' | 'keepsWrittenForm'>
   >;
 };
 
@@ -263,10 +264,10 @@ type DefinitionNamespaces<Definition> = Definition extends {
   : never;
 
 type DefinitionTypes<Definition> = Definition extends {
-  readonly types?: unknown;
+  readonly databaseTypes?: unknown;
 }
-  ? Present<Definition['types']> extends Record<string, StorageType>
-    ? Present<Definition['types']>
+  ? Present<Definition['databaseTypes']> extends Record<string, StorageType>
+    ? Present<Definition['databaseTypes']>
     : Record<never, never>
   : Record<never, never>;
 
@@ -387,8 +388,8 @@ type FieldDescriptorOf<FieldState> = Present<
   FieldState extends { readonly descriptor?: infer Descriptor } ? Descriptor : never
 >;
 
-type FieldTypeRefOf<FieldState> = Present<
-  FieldState extends { readonly typeRef?: infer TypeRef } ? TypeRef : never
+type FieldEnumHandleOf<FieldState> = Present<
+  FieldState extends { readonly enumHandle?: infer EnumHandle } ? EnumHandle : never
 >;
 
 type FieldNullableOf<FieldState> = FieldState extends {
@@ -439,51 +440,18 @@ type ColumnSpecCodecId<Descriptor> = Descriptor extends {
 type DescriptorTypeParams<Descriptor> = Descriptor extends {
   readonly typeParams: infer TypeParams extends Record<string, unknown>;
 }
-  ? TypeParams
+  ? [keyof TypeParams] extends [never]
+    ? undefined
+    : TypeParams
   : undefined;
 
-type DescriptorTypeRef<Descriptor> = Descriptor extends {
-  readonly typeRef: infer TypeRef extends string;
-}
-  ? TypeRef
-  : undefined;
-
-type LookupNamedStorageTypeKeyByValue<Definition, TypeRef extends StorageType> = {
-  [TypeName in keyof DefinitionTypes<Definition> & string]: [TypeRef] extends [
-    DefinitionTypes<Definition>[TypeName],
-  ]
-    ? [DefinitionTypes<Definition>[TypeName]] extends [TypeRef]
-      ? TypeName
-      : never
-    : never;
-}[keyof DefinitionTypes<Definition> & string];
-
-type ResolveNamedStorageTypeKey<Definition, TypeRef> = TypeRef extends string
-  ? TypeRef
-  : TypeRef extends StorageType
-    ? [LookupNamedStorageTypeKeyByValue<Definition, TypeRef>] extends [never]
-      ? string
-      : LookupNamedStorageTypeKeyByValue<Definition, TypeRef>
-    : never;
-
-type ResolveNamedStorageType<Definition, TypeRef> =
-  ResolveNamedStorageTypeKey<Definition, TypeRef> extends infer TypeName extends string
-    ? TypeName extends keyof DefinitionTypes<Definition>
-      ? DefinitionTypes<Definition>[TypeName]
-      : AuthoredStorageTypeInstance
-    : AuthoredStorageTypeInstance;
-
-// An enum-typed field carries its `EnumTypeHandle` (an object with a `codecId`
-// but no `kind`) as the field's `typeRef`. It is neither a string nor a
-// registered `StorageType`, so the named-type lookup cannot reach it;
-// `EnumFieldHandle` short-circuits the resolvers to read the codec straight
-// off the handle, with no column type-ref (the enum name is carried
-// elsewhere). The `[...] extends [never]` guard excludes plain column fields,
-// whose `typeRef` is `never`.
-type EnumFieldHandle<FieldState> = [FieldTypeRefOf<FieldState>] extends [never]
+// The resolvers read an enum-typed field's codec straight off its handle. The
+// `[...] extends [never]` guard excludes plain column fields, whose handle is
+// `never`.
+type EnumFieldHandle<FieldState> = [FieldEnumHandleOf<FieldState>] extends [never]
   ? never
-  : FieldTypeRefOf<FieldState> extends EnumTypeHandle
-    ? FieldTypeRefOf<FieldState>
+  : FieldEnumHandleOf<FieldState> extends EnumTypeHandle
+    ? FieldEnumHandleOf<FieldState>
     : never;
 
 type EnumHandleDescriptor<Handle> = Handle extends {
@@ -492,25 +460,11 @@ type EnumHandleDescriptor<Handle> = Handle extends {
   ? { readonly codecId: CodecId }
   : never;
 
-type ResolveFieldDescriptor<Definition, FieldState> = [EnumFieldHandle<FieldState>] extends [never]
-  ? [FieldDescriptorOf<FieldState>] extends [never]
-    ? ResolveNamedStorageType<Definition, FieldTypeRefOf<FieldState>>
-    : FieldDescriptorOf<FieldState>
+type ResolveFieldDescriptor<FieldState> = [EnumFieldHandle<FieldState>] extends [never]
+  ? FieldDescriptorOf<FieldState>
   : EnumHandleDescriptor<EnumFieldHandle<FieldState>>;
 
-type ResolveFieldColumnTypeRef<Definition, FieldState> = [EnumFieldHandle<FieldState>] extends [
-  never,
-]
-  ? [FieldTypeRefOf<FieldState>] extends [never]
-    ? DescriptorTypeRef<FieldDescriptorOf<FieldState>>
-    : ResolveNamedStorageTypeKey<Definition, FieldTypeRefOf<FieldState>>
-  : undefined;
-
-type ResolveFieldColumnTypeParams<Definition, FieldState> = [
-  ResolveFieldColumnTypeRef<Definition, FieldState>,
-] extends [string]
-  ? undefined
-  : DescriptorTypeParams<FieldDescriptorOf<FieldState>>;
+type ResolveFieldColumnTypeParams<FieldState> = DescriptorTypeParams<FieldDescriptorOf<FieldState>>;
 
 type ModelTableName<Definition, ModelName extends ModelNames<Definition>> = [
   Present<
@@ -604,7 +558,6 @@ type ModelIdName<Definition, ModelName extends ModelNames<Definition>> = [
 type StorageColumn<
   CodecId extends string,
   Nullable extends boolean,
-  TypeRef extends string | undefined = undefined,
   TypeParams extends Record<string, unknown> | undefined = undefined,
   Many extends false | { readonly elementNullable: boolean } = false,
   HasDefault extends boolean = false,
@@ -613,7 +566,6 @@ type StorageColumn<
   readonly codecId: CodecId;
   readonly nullable: Nullable;
 } & (HasDefault extends true ? { readonly default: ColumnDefault } : Record<never, never>) &
-  (TypeRef extends string ? { readonly typeRef: TypeRef } : Record<never, never>) &
   (TypeParams extends Record<string, unknown>
     ? { readonly typeParams: TypeParams }
     : Record<never, never>) & {
@@ -628,11 +580,10 @@ type ModelStorageColumn<
   FieldName extends ModelFieldNames<Definition, ModelName>
     ? StorageColumn<
         DescriptorCodecId<
-          ResolveFieldDescriptor<Definition, ModelFieldState<Definition, ModelName, FieldName>>
+          ResolveFieldDescriptor<ModelFieldState<Definition, ModelName, FieldName>>
         >,
         FieldNullableOf<ModelFieldState<Definition, ModelName, FieldName>>,
-        ResolveFieldColumnTypeRef<Definition, ModelFieldState<Definition, ModelName, FieldName>>,
-        ResolveFieldColumnTypeParams<Definition, ModelFieldState<Definition, ModelName, FieldName>>,
+        ResolveFieldColumnTypeParams<ModelFieldState<Definition, ModelName, FieldName>>,
         FieldManyOf<ModelFieldState<Definition, ModelName, FieldName>>,
         FieldHasColumnDefault<ModelFieldState<Definition, ModelName, FieldName>>
       >
@@ -853,7 +804,7 @@ type BuiltModels<Definition> = {
           readonly kind: 'scalar';
           readonly codecId: ModelStorageColumn<Definition, ModelName, FieldName>['codecId'];
         } & DomainFieldTypeParams<
-          FieldColumnTypeParams<Definition, ModelFieldState<Definition, ModelName, FieldName>>
+          FieldColumnTypeParams<ModelFieldState<Definition, ModelName, FieldName>>
         >;
       } & DomainFieldMany<FieldManyOf<ModelFieldState<Definition, ModelName, FieldName>>>;
     };
@@ -1384,8 +1335,21 @@ type EnumHandleEntries<Enums> = {
 };
 
 // The `enumMemberTypes` for enums authored with `enumType`: each member with the value the application reads, as an emitted `contract.d.ts` types it. `db.enums` reads its accessors from it.
-type EnumHandleMemberTypes<Enums> = {
-  readonly [K in keyof Enums as HandleName<Enums[K]>]: EnumHandleMembers<Enums[K], false>;
+type EnumHandleMemberTypes<Enums, CodecTypes> = {
+  readonly [K in keyof Enums as HandleName<Enums[K]>]: Enums[K] extends EnumTypeHandle<
+    string,
+    infer Values,
+    infer Names,
+    Record<string, unknown>,
+    infer CodecId
+  >
+    ? {
+        readonly [I in keyof Values]: {
+          readonly name: I extends keyof Names ? Names[I] : never;
+          readonly value: EnumMemberValueType<CodecTypes, CodecId, Values[I]>;
+        };
+      }
+    : never;
 };
 
 // The storage `valueSet` entries for enums authored with `enumType`: each enum's member values as they are stored.
@@ -1417,7 +1381,10 @@ type BuiltDomainNamespace<Definition, Ns extends string> = {
 } & (HoldsDefinitionEnums<Definition, Ns> extends true
   ? {
       readonly enum: EnumHandleEntries<DefinitionEnums<Definition>>;
-      readonly enumMemberTypes?: EnumHandleMemberTypes<DefinitionEnums<Definition>>;
+      readonly enumMemberTypes?: EnumHandleMemberTypes<
+        DefinitionEnums<Definition>,
+        CodecTypesFromDefinition<Definition>
+      >;
     }
   : Record<never, never>);
 
@@ -1498,9 +1465,9 @@ type BuiltStorage<Definition> = {
 };
 
 // The enum value union for an enum-typed field, or `never` for a non-enum
-// field. The field's `typeRef` carries the authored `EnumTypeHandle`, whose
+// field. The field carries the authored `EnumTypeHandle`, whose
 // `Values` tuple preserves the literal member values (text or numeric).
-type EnumValueUnion<FieldState> = [FieldTypeRefOf<FieldState>] extends [
+type EnumValueUnion<FieldState> = [FieldEnumHandleOf<FieldState>] extends [
   EnumTypeHandle<string, infer Values>,
 ]
   ? readonly unknown[] extends Values
@@ -1533,15 +1500,7 @@ type DescriptorValueSetUnion<FieldState> = [FieldDescriptorOf<FieldState>] exten
     ? never
     : DescriptorEntityMembers<FieldDescriptorOf<FieldState>>[number];
 
-type FieldColumnTypeParams<Definition, FieldState> =
-  ResolveFieldColumnTypeRef<Definition, FieldState> extends infer TypeRef extends
-    keyof DefinitionTypes<Definition>
-    ? DefinitionTypes<Definition>[TypeRef] extends {
-        readonly typeParams: infer TypeParams extends Record<string, unknown>;
-      }
-      ? TypeParams
-      : undefined
-    : DescriptorTypeParams<FieldDescriptorOf<FieldState>>;
+type FieldColumnTypeParams<FieldState> = DescriptorTypeParams<FieldDescriptorOf<FieldState>>;
 
 type ParameterizedOutputTypesFromDefinition<Definition> = {
   [K in keyof AllPacks<Definition>]: ExtractParameterizedOutputTypesFromPack<

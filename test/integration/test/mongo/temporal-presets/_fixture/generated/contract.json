@@ -37,18 +37,16 @@
             },
             "relations": {},
             "storage": {
-              "collection": "events"
+              "collection": "events",
+              "fields": {
+                "url": {
+                  "field": "url"
+                }
+              }
             }
           },
           "Counter": {
             "fields": {
-              "_id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "mongo/objectId@1",
-                  "kind": "scalar"
-                }
-              },
               "factor": {
                 "nullable": false,
                 "type": {
@@ -60,6 +58,13 @@
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/int32@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
                   "kind": "scalar"
                 }
               },
@@ -107,7 +112,33 @@
             },
             "relations": {},
             "storage": {
-              "collection": "counters"
+              "collection": "counters",
+              "fields": {
+                "factor": {
+                  "field": "factor"
+                },
+                "hits": {
+                  "field": "hits"
+                },
+                "id": {
+                  "field": "_id"
+                },
+                "key": {
+                  "field": "key"
+                },
+                "label": {
+                  "field": "label"
+                },
+                "scores": {
+                  "field": "scores"
+                },
+                "tags": {
+                  "field": "tags"
+                },
+                "updatedAt": {
+                  "field": "updatedAt"
+                }
+              }
             }
           },
           "Event": {
@@ -115,17 +146,17 @@
               "field": "kind"
             },
             "fields": {
-              "_id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "mongo/objectId@1",
-                  "kind": "scalar"
-                }
-              },
               "createdAt": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/date@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
                   "kind": "scalar"
                 }
               },
@@ -139,7 +170,18 @@
             },
             "relations": {},
             "storage": {
-              "collection": "events"
+              "collection": "events",
+              "fields": {
+                "createdAt": {
+                  "field": "createdAt"
+                },
+                "id": {
+                  "field": "_id"
+                },
+                "kind": {
+                  "field": "kind"
+                }
+              }
             },
             "variants": {
               "click": {
@@ -154,17 +196,17 @@
           },
           "Post": {
             "fields": {
-              "_id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "mongo/objectId@1",
-                  "kind": "scalar"
-                }
-              },
               "createdAt": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/date@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
                   "kind": "scalar"
                 }
               },
@@ -182,7 +224,7 @@
                   "kind": "scalar"
                 }
               },
-              "updated_at": {
+              "updatedAt": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/date@1",
@@ -192,7 +234,24 @@
             },
             "relations": {},
             "storage": {
-              "collection": "posts"
+              "collection": "posts",
+              "fields": {
+                "createdAt": {
+                  "field": "createdAt"
+                },
+                "id": {
+                  "field": "_id"
+                },
+                "title": {
+                  "field": "title"
+                },
+                "touchedAt": {
+                  "field": "touchedAt"
+                },
+                "updatedAt": {
+                  "field": "updated_at"
+                }
+              }
             }
           },
           "View": {
@@ -211,7 +270,12 @@
             },
             "relations": {},
             "storage": {
-              "collection": "events"
+              "collection": "events",
+              "fields": {
+                "path": {
+                  "field": "path"
+                }
+              }
             }
           }
         }

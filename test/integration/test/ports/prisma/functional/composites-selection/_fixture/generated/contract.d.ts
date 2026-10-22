@@ -69,7 +69,7 @@ export type FieldInputTypes = FieldTypesFromDomain<
 
 export namespace Models {
   export type unbound_User = {
-    _id: FieldOutputTypes['__unbound__']['User']['_id'];
+    id: FieldOutputTypes['__unbound__']['User']['id'];
     profile: FieldOutputTypes['__unbound__']['User']['profile'];
     readonly [RelationKeys]?: never;
   };
@@ -166,7 +166,7 @@ type ContractBase = Omit<
         readonly models: {
           readonly User: {
             readonly fields: {
-              readonly _id: {
+              readonly id: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
@@ -176,7 +176,13 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'user' };
+            readonly storage: {
+              readonly collection: 'user';
+              readonly fields: {
+                readonly id: { readonly field: '_id' };
+                readonly profile: { readonly field: 'profile' };
+              };
+            };
           };
         };
         readonly valueObjects: {

@@ -1,7 +1,7 @@
 import {
   type Contract,
   type ControlPolicy,
-  effectiveControlPolicy,
+  governingControlPolicy,
 } from '@internal/contract/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { ifDefined } from '@internal/utils/defined';
@@ -61,23 +61,6 @@ export interface SuppressionRecord {
 }
 
 /**
- * The control policy that governs a single call. The `external` default is an
- * un-overridable namespace floor: when the contract default is `external`, no
- * per-object `managed` override can escalate DDL above the floor, so the
- * policy is forced to `external` regardless of the node's own declaration.
- * Every other default defers to the node's effective control policy.
- */
-export function controlPolicyForCall(
-  subject: ControlPolicySubject | undefined,
-  defaultControlPolicy: ControlPolicy | undefined,
-): ControlPolicy {
-  if (defaultControlPolicy === 'external') {
-    return 'external';
-  }
-  return effectiveControlPolicy(subject?.explicitNodeControlPolicy, defaultControlPolicy);
-}
-
-/**
  * Whether a call is allowed to emit under a given control policy.
  *
  * - `managed` — full lifecycle, every op allowed.
@@ -130,7 +113,7 @@ export function partitionCallsByControlPolicy<TCall>(options: {
 
   for (const call of options.calls) {
     const subject = options.resolveControlPolicySubject(call);
-    const policy = controlPolicyForCall(subject, defaultControlPolicy);
+    const policy = governingControlPolicy(subject, defaultControlPolicy);
     if (callAllowedUnderControlPolicy(policy, subject)) {
       kept.push(call);
     } else {
@@ -216,7 +199,7 @@ export function partitionIssuesByControlPolicy<TIssue>(options: {
 
   for (const issue of options.issues) {
     const subject = options.resolveControlPolicySubject(issue);
-    const policy = controlPolicyForCall(subject, defaultControlPolicy);
+    const policy = governingControlPolicy(subject, defaultControlPolicy);
     const creationFactoryName = options.resolveCreationFactoryName(issue);
 
     if (policy === 'managed') {

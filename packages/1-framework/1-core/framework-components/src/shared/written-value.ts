@@ -32,6 +32,8 @@ export interface DataTypeSupport {
   readonly entries: Readonly<Record<string, DataTypeAuthoringEntry>>;
   readonly lookup: DataTypeLookup;
   readonly dataTypeOfCodec: (codecId: string) => DataTypeId | undefined;
+  /** Every component's {@link AuthoringContributions.textDataTypes}, each once: the data types whose values are text. None when the stack names none. */
+  readonly textDataTypes?: readonly DataTypeId[];
 }
 
 export type ReadRefusal =
@@ -130,23 +132,43 @@ function isSameForm(a: WrittenForm, b: WrittenForm): boolean {
   return a.kind === 'tag' && b.kind === 'tag' ? a.tag === b.tag : a.kind === b.kind;
 }
 
+/** Text a contract source reads as a number literal. */
+const NUMBER_TEXT = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$|^[+-]?(?:NaN|Infinity)$/;
+
 /**
- * The literal to write in place of a quoted string that `receivingType` refuses under `receivingParams`: the string as a literal of the first tag the type admits. `undefined` when the value is not a quoted string, the type admits no tag, the literal would not read back as the same text, or the type would refuse the literal too.
+ * The literal to write in place of a quoted string that `receivingType` refuses under `receivingParams`: the string as a literal of the first tag the type admits, or else the string's text unquoted, as a number or a boolean. `undefined` when the value is not a quoted string, no such literal reads back as the same text, or the type would refuse each of them too.
  */
 export function exactRewrite(
   support: DataTypeSupport,
   receiving: { readonly receivingType: DataTypeId; readonly receivingParams: DataTypeParams },
   written: WrittenScalar,
 ): string | undefined {
-  const { receivingType, receivingParams } = receiving;
-  const [tag] = admittedTags(support, receivingType);
-  if (written.kind !== 'string' || tag === undefined) return undefined;
-  if (!printedTaggedLiteralReadsBack(written.text)) return undefined;
-  const read = readWrittenValue(support, { kind: 'tag', tag, text: written.text });
-  if (!read.ok || !castTypedValue(support, receivingType, receivingParams, read.value).ok) {
-    return undefined;
+  if (written.kind !== 'string') return undefined;
+  const admits = (candidate: WrittenScalar): boolean => {
+    const read = readWrittenValue(support, candidate);
+    return (
+      read.ok &&
+      castTypedValue(support, receiving.receivingType, receiving.receivingParams, read.value).ok
+    );
+  };
+  const [tag] = admittedTags(support, receiving.receivingType);
+  if (
+    tag !== undefined &&
+    printedTaggedLiteralReadsBack(written.text) &&
+    admits({ kind: 'tag', tag, text: written.text })
+  ) {
+    return printTaggedLiteral(tag, written.text);
   }
-  return printTaggedLiteral(tag, written.text);
+  if (NUMBER_TEXT.test(written.text) && admits({ kind: 'number', text: written.text })) {
+    return written.text;
+  }
+  if (
+    (written.text === 'true' || written.text === 'false') &&
+    admits({ kind: 'boolean', value: written.text === 'true' })
+  ) {
+    return written.text;
+  }
+  return undefined;
 }
 
 interface FoundEntry {
@@ -281,6 +303,25 @@ export function castTypedValue(
     return notOk({ kind: 'unreadable', message: messageOf(error) });
   }
   return valueOfType(support, receivingType, () => json, receivingParams, refusedByType);
+}
+
+/**
+ * Reads `written` as a value of `receivingType`: through the authoring entry for its syntax, then into `receivingType` directly or through a cast it declares. A refusal is worded for a diagnostic at the written value. The read every value of a fixed receiving type takes: an attribute argument, a type-constructor argument, and its TypeScript counterpart. ADR 254.
+ */
+export function readWrittenValueAs(
+  support: DataTypeSupport,
+  receivingType: DataTypeId,
+  written: WrittenScalar,
+): Result<DataTypeValue, RefusalDescription> {
+  const forms = admittedForms(support, [receivingType]);
+  const read = readWrittenValue(support, written);
+  if (!read.ok) {
+    return notOk(describeRefusal(read.failure, support, { forms, rewrite: undefined }));
+  }
+  const cast = castTypedValue(support, receivingType, {}, read.value);
+  if (cast.ok) return cast;
+  const rewrite = exactRewrite(support, { receivingType, receivingParams: {} }, written);
+  return notOk(describeRefusal(cast.failure, support, { forms, rewrite }));
 }
 
 /** The type itself, then each type it casts from, in key order. */

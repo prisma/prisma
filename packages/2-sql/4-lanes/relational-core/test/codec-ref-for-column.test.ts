@@ -2,7 +2,6 @@ import {
   SqlStorage,
   type SqlStorage as SqlStorageType,
   StorageTable,
-  toStorageTypeInstance,
 } from '@internal/sql-contract/types';
 import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
@@ -137,80 +136,38 @@ describe('codecRefForStorageColumn', () => {
     expect(codecRefForStorageColumn(storage, 'public', 'absent', 'email_addr')).toBeUndefined();
   });
 
-  describe('typeRef columns', () => {
-    type StorageTypes = NonNullable<ConstructorParameters<typeof SqlStorage>[0]['types']>;
-
-    function storageWithTypeRef(types: StorageTypes | undefined, typeRef = 'money'): SqlStorage {
-      return new SqlStorage({
-        storageHash: STORAGE_HASH,
-        namespaces: {
-          public: createTestSqlNamespace({
-            id: 'public',
-            entries: {
-              table: {
-                invoice: new StorageTable({
-                  columns: {
-                    amount: {
-                      codecId: 'pg/numeric@1',
-                      dataType: 'pg/numeric',
-                      nullable: false,
-                      typeRef,
-                    },
+  it('keeps a list column with type params a list', () => {
+    const storage = new SqlStorage({
+      storageHash: STORAGE_HASH,
+      namespaces: {
+        public: createTestSqlNamespace({
+          id: 'public',
+          entries: {
+            table: {
+              invoice: new StorageTable({
+                columns: {
+                  amounts: {
+                    codecId: 'pg/numeric@1',
+                    dataType: 'pg/numeric',
+                    nullable: false,
+                    typeParams: { precision: 19 },
+                    many: { elementNullable: false },
                   },
-                  uniques: [],
-                  indexes: [],
-                  foreignKeys: [],
-                }),
-              },
+                },
+                uniques: [],
+                indexes: [],
+                foreignKeys: [],
+              }),
             },
-          }),
-        },
-        ...(types !== undefined ? { types } : {}),
-      });
-    }
-
-    it('takes the codec and type params from the referenced storage type', () => {
-      const storage = storageWithTypeRef({
-        money: toStorageTypeInstance({
-          codecId: 'pg/numeric@1',
-          dataType: 'pg/numeric',
-          typeParams: { precision: 19 },
+          },
         }),
-      });
-
-      expect(codecRefForStorageColumn(storage, 'public', 'invoice', 'amount')).toEqual({
-        codecId: 'pg/numeric@1',
-        typeParams: { precision: 19 },
-      });
+      },
     });
 
-    it('omits type params when the referenced type declares none', () => {
-      const storage = storageWithTypeRef({
-        money: toStorageTypeInstance({ codecId: 'pg/numeric@1', dataType: 'pg/numeric' }),
-      });
-
-      expect(codecRefForStorageColumn(storage, 'public', 'invoice', 'amount')).toEqual({
-        codecId: 'pg/numeric@1',
-      });
-    });
-
-    it('returns undefined when the storage carries no matching type', () => {
-      expect({
-        noTypesBlock: codecRefForStorageColumn(
-          storageWithTypeRef(undefined),
-          'public',
-          'invoice',
-          'amount',
-        ),
-        danglingRef: codecRefForStorageColumn(
-          storageWithTypeRef({
-            other: toStorageTypeInstance({ codecId: 'pg/numeric@1', dataType: 'pg/numeric' }),
-          }),
-          'public',
-          'invoice',
-          'amount',
-        ),
-      }).toEqual({ noTypesBlock: undefined, danglingRef: undefined });
+    expect(codecRefForStorageColumn(storage, 'public', 'invoice', 'amounts')).toEqual({
+      codecId: 'pg/numeric@1',
+      typeParams: { precision: 19 },
+      many: true,
     });
   });
 });

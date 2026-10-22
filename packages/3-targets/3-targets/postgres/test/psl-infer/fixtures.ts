@@ -1,10 +1,12 @@
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
+import sqlFamilyPack from '@internal/family-sql/pack';
 import {
   type ColumnTypeOf,
   inferColumnTypes,
   inferredTypeConstructors,
 } from '@internal/family-sql/psl-build';
 import { createDataTypeLookup } from '@internal/framework-components/codec';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
 import { printPsl } from '@internal/psl-printer';
 import { renderSqlCatalogText, resolveWrittenSqlTypes } from '@internal/sql-contract/data-type';
@@ -28,7 +30,7 @@ import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-da
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresNativeEnumSchemaNode } from '../../src/core/schema-ir/postgres-native-enum-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
-import { postgresPslTypeConstructors } from '../../src/core/type-constructors';
+import { postgresScalarAndNativeTypeConstructors } from '../../src/core/type-constructors';
 
 /** The native enums a fixture declares, by the type name a column is written with: bare or schema-qualified. */
 export type FixtureEnums = ReadonlyMap<string, { readonly schema: string; readonly name: string }>;
@@ -156,6 +158,7 @@ export function inferredColumnTypesOf(
       codecLookup: inferBuildContext.codecLookup,
       dataTypeLookup: inferBuildContext.dataTypes.lookup,
     }),
+    dataTypes: inferBuildContext.dataTypes,
     isEnumColumn: (column) => column.reportedType?.kind === 'enum',
   });
 }
@@ -212,20 +215,20 @@ export function treeFromFlat(schemaIR: SqlSchemaIR): PostgresDatabaseSchemaNode 
 }
 
 /**
- * The stack `contract emit` reads an inferred schema with: the type constructors the adapter
- * contributes, the target's own, and the target's codecs and data types.
+ * The stack `contract emit` reads an inferred schema with: the type constructors the family and the
+ * adapter contribute, the target's own, and the target's codecs and data types.
  */
 export const inferBuildContext: SqlPslBuildContext = {
   authoringContributions: {
     type: {
+      ...sqlFamilyPack.authoring.type,
       ...postgresAuthoringTypes,
-      ...postgresPslTypeConstructors,
+      ...postgresScalarAndNativeTypeConstructors,
     },
     field: postgresAuthoringFieldPresets,
   },
-  defaultFunctionPrintersByGenerator: new Map(),
+  generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
   componentIdsByGenerator: new Map(),
-  fieldPresetsByCodecAndGenerator: new Map(),
   codecLookup: createPostgresBuiltinCodecLookup(),
   dataTypes: {
     entries: postgresDataTypeEntries(),

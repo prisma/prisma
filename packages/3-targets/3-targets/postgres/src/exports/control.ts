@@ -87,7 +87,7 @@ export { postgresNowGeneratorControlDescriptors } from '../core/date-time-now-ge
 export { decodePostgresListText, parsePostgresListText } from '../core/list-decoder';
 export {
   postgresNativeAuthoringTypes,
-  postgresPslTypeConstructors,
+  postgresScalarAndNativeTypeConstructors,
   postgresScalarAuthoringTypes,
 } from '../core/type-constructors';
 

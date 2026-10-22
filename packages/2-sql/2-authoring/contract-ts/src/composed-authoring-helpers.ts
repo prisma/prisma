@@ -1,34 +1,44 @@
 import {
+  type CanonicalArguments,
   type CodecTypeMap,
   composePackAuthoringNamespace,
   createEntityHelpersFromNamespace,
   createFieldHelpersFromNamespace,
+  type DataTypeArgumentTypes,
   type EntityHelpersFromNamespace,
   type ExtractAuthoringNamespaceFromPack,
+  type ExtractDataTypeArgumentTypesFromPack,
   type MergeExtensionAuthoringNamespaces,
   type ResolveTemplateValue,
   type TupleFromArgumentDescriptors,
+  type UnionToIntersection,
 } from '@internal/contract-authoring';
 import type {
   AuthoringArgumentDescriptor,
   AuthoringEntityTypeNamespace,
   AuthoringFieldNamespace,
+  AuthoringTypeAliasDescriptor,
   AuthoringTypeConstructorDescriptor,
   AuthoringTypeNamespace,
+  DataTypeComponent,
 } from '@internal/framework-components/authoring';
-import { assertNoCrossRegistryCollisions } from '@internal/framework-components/authoring';
-import type {
-  CodecLookupWithDescriptors,
-  DataTypeLookup,
-  TypeLookups,
-} from '@internal/framework-components/codec';
-import type {
-  ExtensionPackRef,
-  FamilyPackRef,
-  TargetPackRef,
+import {
+  assembleDataTypeSupport,
+  assertNoCrossRegistryCollisions,
+} from '@internal/framework-components/authoring';
+import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import {
+  createGeneratorHelpers,
+  type ExtensionPackRef,
+  type ExtensionPackValues,
+  type FamilyPackRef,
+  type GeneratorFunctionCall,
+  type GeneratorHelpersOf,
+  type TargetPackRef,
 } from '@internal/framework-components/components';
 import { blindCast } from '@internal/utils/casts';
 import {
+  type AuthoringHelperLookups,
   createFieldPresetHelper,
   createTypeHelpersFromNamespace,
 } from './authoring-helper-runtime';
@@ -92,26 +102,69 @@ type StorageTypeFromDescriptor<
     }
   : { readonly typeParams: Record<never, never> });
 
-type TypeHelperFunction<Descriptor extends AuthoringTypeConstructorDescriptor> =
-  Descriptor extends { readonly args: infer Args extends readonly AuthoringArgumentDescriptor[] }
-    ? <const Params extends TupleFromArgumentDescriptors<Args>>(
-        ...args: Params
-      ) => StorageTypeFromDescriptor<Descriptor, Params>
-    : () => StorageTypeFromDescriptor<Descriptor, readonly []>;
+type TypeHelperFunction<
+  Descriptor extends AuthoringTypeConstructorDescriptor,
+  ValueTypes extends DataTypeArgumentTypes,
+> = Descriptor extends {
+  readonly args: infer Args extends readonly AuthoringArgumentDescriptor[];
+}
+  ? <const Params extends TupleFromArgumentDescriptors<Args, ValueTypes>>(
+      ...args: Params
+    ) => StorageTypeFromDescriptor<Descriptor, CanonicalArguments<Args, Params, ValueTypes>>
+  : () => StorageTypeFromDescriptor<Descriptor, readonly []>;
 
-type TypeHelpersFromNamespace<Namespace> = {
+type AliasGeneratorCalls<Output> = (Output extends { readonly onCreate: GeneratorFunctionCall }
+  ? { readonly onCreate: GeneratorFunctionCall }
+  : unknown) &
+  (Output extends { readonly onUpdate: GeneratorFunctionCall }
+    ? { readonly onUpdate: GeneratorFunctionCall }
+    : unknown);
+
+type TypeAliasHelperFunction<Descriptor extends AuthoringTypeAliasDescriptor> = () => {
+  readonly kind: 'codec-instance';
+  readonly codecId: Descriptor['output']['type']['codecId'];
+  readonly typeParams: Descriptor['output']['type'] extends {
+    readonly typeParams: infer TypeParams extends Record<string, unknown>;
+  }
+    ? TypeParams
+    : Record<never, never>;
+} & (Descriptor['output'] extends
+  | { readonly onCreate: GeneratorFunctionCall }
+  | { readonly onUpdate: GeneratorFunctionCall }
+  ? { readonly generatorCalls: AliasGeneratorCalls<Descriptor['output']> }
+  : unknown);
+
+type TypeHelpersFromNamespace<Namespace, ValueTypes extends DataTypeArgumentTypes> = {
   readonly [K in keyof Namespace]: Namespace[K] extends AuthoringTypeConstructorDescriptor
-    ? TypeHelperFunction<Namespace[K]>
-    : Namespace[K] extends Record<string, unknown>
-      ? TypeHelpersFromNamespace<Namespace[K]>
-      : never;
+    ? TypeHelperFunction<Namespace[K], ValueTypes>
+    : Namespace[K] extends AuthoringTypeAliasDescriptor
+      ? TypeAliasHelperFunction<Namespace[K]>
+      : Namespace[K] extends Record<string, unknown>
+        ? TypeHelpersFromNamespace<Namespace[K], ValueTypes>
+        : never;
 };
+
+type MergeExtensionDataTypeArgumentTypes<Extensions> =
+  Extensions extends Record<string, unknown>
+    ? keyof Extensions extends never
+      ? Record<never, never>
+      : UnionToIntersection<
+          {
+            [K in keyof Extensions]: ExtractDataTypeArgumentTypesFromPack<Extensions[K]>;
+          }[keyof Extensions]
+        >
+    : Record<never, never>;
+
+type DataTypeArgumentTypesOfPacks<Family, Target, Extensions> =
+  ExtractDataTypeArgumentTypesFromPack<Family> &
+    ExtractDataTypeArgumentTypesFromPack<Target> &
+    MergeExtensionDataTypeArgumentTypes<Extensions>;
 
 type CoreFieldHelpers = Pick<typeof field, 'column' | 'generated' | 'namedType'>;
 
 type FieldHelpersForCodecs<CodecTypes extends CodecTypeMap> = Pick<typeof field, 'generated'> & {
   readonly column: ColumnFieldHelper<CodecTypes>;
-  readonly namedType: NamedTypeFieldHelper<CodecTypes>;
+  readonly namedType: NamedTypeFieldHelper;
 };
 
 type CodecTypesOfPacks<Family, Target, Extensions> = ExtractCodecTypesFromPack<Family> &
@@ -184,23 +237,22 @@ export type ComposedAuthoringHelpers<
       ExtractFieldNamespaceFromPack<Family> &
         ExtractFieldNamespaceFromPack<Target> &
         MergeExtensionFieldNamespaces<Extensions>,
-      CodecTypesOfPacks<Family, Target, Extensions>
+      CodecTypesOfPacks<Family, Target, Extensions>,
+      DataTypeArgumentTypesOfPacks<Family, Target, Extensions>
     >;
   readonly model: PackAwareModel<MergeAllPackIndexTypes<Family, Target, Extensions>>;
   readonly rel: typeof rel;
   readonly type: TypeHelpersFromNamespace<
     ExtractTypeNamespaceFromPack<Family> &
       ExtractTypeNamespaceFromPack<Target> &
-      MergeExtensionTypeNamespaces<Extensions>
+      MergeExtensionTypeNamespaces<Extensions>,
+    DataTypeArgumentTypesOfPacks<Family, Target, Extensions>
   >;
+  readonly gen: GeneratorHelpersOf<Family | Target | ExtensionPackValues<Extensions>>;
 };
 
-type AuthoringComponent = {
-  readonly authoring?: {
-    readonly type?: unknown;
-    readonly field?: unknown;
-    readonly entityTypes?: unknown;
-  };
+type AuthoringComponent = DataTypeComponent & {
+  readonly authoring?: { readonly entityTypes?: unknown };
 };
 
 function composeTypeNamespace(components: readonly AuthoringComponent[]): AuthoringTypeNamespace {
@@ -219,14 +271,14 @@ function composeEntityNamespace(
 
 /**
  * Reserved top-level keys on the composed helpers surface — the
- * built-in `model` / `rel` helpers, the `field` / `type` namespace
+ * built-in `model` / `rel` helpers, the `field` / `type` / `gen` namespace
  * objects. Pack-contributed entity types are flattened to the same
  * top-level shape (e.g. `helpers.enum({...})`), so a pack cannot
  * contribute an entity type whose name collides with one of these
  * reserved keys without silently overwriting at runtime. Detect the
  * collision at compose time and fail loudly with a guidance message.
  */
-const RESERVED_HELPER_KEYS: readonly string[] = ['field', 'model', 'rel', 'type'];
+const RESERVED_HELPER_KEYS: readonly string[] = ['field', 'model', 'rel', 'type', 'gen'];
 
 function assertNoBuiltInEntityCollisions(namespace: AuthoringEntityTypeNamespace): void {
   const collisions = Object.keys(namespace).filter((name) => RESERVED_HELPER_KEYS.includes(name));
@@ -241,7 +293,7 @@ function assertNoBuiltInEntityCollisions(namespace: AuthoringEntityTypeNamespace
 
 function createComposedFieldHelpers(
   fieldNamespace: AuthoringFieldNamespace,
-  lookups: TypeLookups<CodecLookupWithDescriptors, DataTypeLookup>,
+  lookups: AuthoringHelperLookups,
 ): CoreFieldHelpers & Record<string, unknown> {
   const helperNamespace = createFieldHelpersFromNamespace(
     fieldNamespace,
@@ -250,6 +302,7 @@ function createComposedFieldHelpers(
         helperPath,
         descriptor,
         codecLookup: lookups.codecLookup,
+        dataTypes: lookups.dataTypes,
         build: ({ args, namedConstraintOptions }) =>
           buildFieldPreset(descriptor, args, namedConstraintOptions),
       }),
@@ -281,13 +334,12 @@ export function createComposedAuthoringHelpers<
   Family extends FamilyPackRef<string>,
   Target extends TargetPackRef<'sql', string>,
   Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined,
->(
-  options: {
-    readonly family: Family;
-    readonly target: Target;
-    readonly extensions?: Extensions;
-  } & TypeLookups<CodecLookupWithDescriptors, DataTypeLookup>,
-): ComposedAuthoringHelpers<Family, Target, Extensions> {
+>(options: {
+  readonly family: Family;
+  readonly target: Target;
+  readonly extensions?: Extensions;
+  readonly codecLookup: CodecLookupWithDescriptors;
+}): ComposedAuthoringHelpers<Family, Target, Extensions> {
   const extensionValues: readonly ExtensionPackRef<'sql', string>[] = Object.values(
     (options.extensions ?? {}) as Record<string, ExtensionPackRef<'sql', string>>,
   );
@@ -304,6 +356,14 @@ export function createComposedAuthoringHelpers<
   // `createControlStack`, the TS DSL composes here. Both seams need the guard.
   assertNoCrossRegistryCollisions(typeNamespace, fieldNamespace, entityNamespace);
   assertNoBuiltInEntityCollisions(entityNamespace);
+  const { support } = assembleDataTypeSupport(
+    components,
+    (codecId) => options.codecLookup.descriptorFor(codecId)?.dataType,
+  );
+  const helperLookups: AuthoringHelperLookups = {
+    codecLookup: options.codecLookup,
+    dataTypes: support,
+  };
 
   return blindCast<
     ComposedAuthoringHelpers<Family, Target, Extensions>,
@@ -314,12 +374,13 @@ export function createComposedAuthoringHelpers<
         family: options.family.familyId,
         target: options.target.targetId,
         codecLookup: options.codecLookup,
-        dataTypeLookup: options.dataTypeLookup,
+        dataTypeLookup: support.lookup,
       },
     }),
-    field: createComposedFieldHelpers(fieldNamespace, options),
+    field: createComposedFieldHelpers(fieldNamespace, helperLookups),
     model,
     rel,
-    type: createTypeHelpersFromNamespace(typeNamespace, options),
+    type: createTypeHelpersFromNamespace(typeNamespace, helperLookups),
+    gen: createGeneratorHelpers([options.family, options.target, ...extensionValues]),
   });
 }

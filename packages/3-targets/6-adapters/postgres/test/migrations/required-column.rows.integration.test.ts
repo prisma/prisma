@@ -174,15 +174,17 @@ describe('a Postgres column that becomes required while rows have no value', {
     const result = await planFrom(requiredNote);
     expect(result.ok ? undefined : result.failure).toMatchObject({
       code: 'MIGRATION.PRECHECK_FAILED',
-      summary: '3 rows of "Item" hold NULL in "note", so it cannot become required.',
-      rowsWithoutValue: [
-        {
-          field: { kind: 'field', namespaceId: item, model: 'Item', field: 'note' },
-          reason: 'nullValues',
-          rows: 3,
-          operationIndex: 0,
-        },
-      ],
+      message: '3 rows of "Item" hold NULL in "note", so it cannot become required.',
+      meta: {
+        rowsWithoutValue: [
+          {
+            field: { kind: 'field', namespaceId: item, model: 'Item', field: 'note' },
+            reason: 'nullValues',
+            rows: 3,
+            operationIndex: 0,
+          },
+        ],
+      },
     });
 
     await driver!.query(`UPDATE "Item" SET note = 'x' WHERE note IS NULL`);
@@ -195,15 +197,17 @@ describe('a Postgres column that becomes required while rows have no value', {
     await seeded(['a', 'b']);
     const result = await planFrom(withCode);
     expect(result.ok ? undefined : result.failure).toMatchObject({
-      summary:
+      message:
         '"Item" has 2 rows, so the new required column "code" cannot be added: it can be added to an empty table only.',
-      rowsWithoutValue: [
-        {
-          field: { model: 'Item', field: 'code' },
-          reason: 'newField',
-          rows: 2,
-        },
-      ],
+      meta: {
+        rowsWithoutValue: [
+          {
+            field: { model: 'Item', field: 'code' },
+            reason: 'newField',
+            rows: 2,
+          },
+        ],
+      },
     });
   });
 
@@ -220,7 +224,7 @@ describe('a Postgres column that becomes required while rows have no value', {
     expect(
       result.ok
         ? undefined
-        : result.failure.rowsWithoutValue?.map(({ field, reason, rows }) => [
+        : result.failure.meta.rowsWithoutValue?.map(({ field, reason, rows }) => [
             field?.kind === 'field' ? field.field : undefined,
             reason,
             rows,

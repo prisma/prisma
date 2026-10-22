@@ -25,7 +25,12 @@ import type {
   FailedTypeChange,
   MigrationRunnerResult,
 } from '@internal/framework-components/control';
-import { APP_SPACE_ID } from '@internal/framework-components/control';
+import {
+  APP_SPACE_ID,
+  failedPrecheckWhy,
+  schemaCheckWhy,
+  withFailingSpace,
+} from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
 import { SqlQueryError } from '@internal/sql-errors';
 import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
@@ -198,11 +203,8 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
       });
       if (!schemaVerifyResult.ok) {
         return runnerFailure('MIGRATION.SCHEMA_VERIFY_FAILED', schemaVerifyResult.summary, {
-          why: 'The resulting database schema does not satisfy the destination contract.',
-          meta: {
-            issues: schemaVerifyResult.schema.issues,
-          },
-          schemaIssues: schemaVerifyResult.schema.issues,
+          why: schemaCheckWhy(schemaVerifyResult.schema.issues),
+          meta: { schemaIssues: schemaVerifyResult.schema.issues },
         });
       }
     }
@@ -254,7 +256,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
         const space = spaceOptions.space ?? spaceOptions.plan.spaceId;
         const result = await this.executeOnConnection({ ...spaceOptions, driver, space });
         if (!result.ok) {
-          return notOk({ ...result.failure, failingSpace: space });
+          return notOk(withFailingSpace(result.failure, space));
         }
         perSpaceResults.push({ space, value: result.value });
       }
@@ -380,15 +382,20 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
           required === undefined
             ? undefined
             : await this.rowsWithoutValue(driver, operation, required, plan);
+        const failedCheck = { operationId: operation.id, phase, description: step.description };
         return runnerFailure(code, rowsWithoutValue?.summary ?? failed, {
-          ...ifDefined('why', rowsWithoutValue === undefined ? undefined : failed),
+          ...ifDefined(
+            'why',
+            rowsWithoutValue !== undefined
+              ? failed
+              : phase === 'precheck'
+                ? failedPrecheckWhy(failedCheck)
+                : undefined,
+          ),
           meta: {
-            operationId: operation.id,
-            phase,
-            stepDescription: step.description,
+            failedCheck,
+            ...ifDefined('rowsWithoutValue', rowsWithoutValue?.reports),
           },
-          failedCheck: { operationId: operation.id, phase, description: step.description },
-          rowsWithoutValue: rowsWithoutValue?.reports,
         });
       }
     }
@@ -437,8 +444,8 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
             `Operation ${operation.id} failed during execution: ${step.description}`,
             {
               why: error.message,
-              failedTypeChange: failedTypeChangeOf(step, error.sqlState, plan),
               meta: {
+                ...ifDefined('failedTypeChange', failedTypeChangeOf(step, error.sqlState, plan)),
                 operationId: operation.id,
                 stepDescription: step.description,
                 sql: step.sql,

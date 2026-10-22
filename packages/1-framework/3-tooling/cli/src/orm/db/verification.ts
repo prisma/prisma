@@ -1,11 +1,13 @@
 import { readFile } from 'node:fs/promises';
 import type { PrismaNextConfig } from '@internal/config/config-types';
 import type { Contract } from '@internal/contract/types';
-import type {
-  SchemaDiffIssue,
-  VerifyDatabaseSchemaResult,
+import {
+  createControlStack,
+  issueLabel,
+  type SchemaDiffIssue,
+  schemaIssuesWhy,
+  type VerifyDatabaseSchemaResult,
 } from '@internal/framework-components/control';
-import { createControlStack } from '@internal/framework-components/control';
 import { castAs } from '@internal/utils/casts';
 import { isStructuredErrorCode } from '@internal/utils/structured-error';
 import type { Block, TreeNode } from '@prisma/cli-engine';
@@ -21,7 +23,6 @@ import {
 } from '../../utils/cli-errors';
 import { contractValidationMeta } from '../../utils/contract-validation-meta';
 import { chooseAction, runCommandAction } from '../../utils/next-actions';
-import { issueLabel, schemaIssuesWhy } from '../../utils/schema-issues';
 import { contractPathFor, displayPath } from '../migration/paths';
 import { normalizeError } from '../normalize-error';
 

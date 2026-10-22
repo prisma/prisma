@@ -277,8 +277,12 @@ export const fixtureDataTypeEntries: Readonly<Record<string, DataTypeAuthoringEn
   },
 };
 
+/** The fixture stack's text data types, as the Postgres target names them. */
+export const fixtureTextDataTypes = [pgText.id, pgChar.id, pgVarchar.id];
+
 export const fixtureDataTypeSupport: DataTypeSupport = {
   entries: fixtureDataTypeEntries,
   lookup: createDataTypeLookup(fixtureDataTypes),
   dataTypeOfCodec: () => undefined,
+  textDataTypes: fixtureTextDataTypes,
 };

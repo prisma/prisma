@@ -94,7 +94,6 @@ export function planFor(contract: Contract<SqlStorage>, actual: PostgresDatabase
     schemaName: 'public',
     codecHooks: new Map(),
     types: postgresTypeLookups,
-    storageTypes: contract.storage.types ?? {},
     ...planTrees(actual, expected),
     frameworkComponents: postgresTypeComponents,
     // The default per-issue mapper is what this suite pins — the real

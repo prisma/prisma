@@ -28,7 +28,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'1d7498824aaec4864eebeecab12912101510d4f14ce6fa794c49cbc779a1227f'>;
+  StorageHashBase<'8973aa4e3654dc5083f7ff15a7c187e3e590f977b4171bb816cd6566fa4db93b'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -403,7 +403,7 @@ type ContractBase = Omit<
                   readonly dataType: 'pgvector/vector';
                   readonly codecId: 'pg/vector@1';
                   readonly nullable: true;
-                  readonly typeRef: 'Embedding3';
+                  readonly typeParams: { readonly length: 3 };
                   readonly many: false;
                 };
                 readonly id: {
@@ -452,14 +452,6 @@ type ContractBase = Omit<
             };
           };
         };
-      };
-    };
-    readonly types: {
-      readonly Embedding3: {
-        readonly kind: 'codec-instance';
-        readonly codecId: 'pg/vector@1';
-        readonly dataType: 'pgvector/vector';
-        readonly typeParams: { readonly length: 3 };
       };
     };
     readonly storageHash: StorageHash;

@@ -21,7 +21,6 @@ import {
 import type { ForeignKey, SqlModelStorage, SqlStorage } from '@internal/sql-contract/types';
 import { invariant } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
-import { ifDefined } from '@internal/utils/defined';
 import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { PostgresNativeEnum } from '../postgres-native-enum';
 import { SYNTHETIC_SPAN } from '../psl-build/psl-literals';
@@ -34,7 +33,7 @@ import {
   type VariantInfo,
   variantInfo,
 } from './contract-model-index';
-import { buildCompositeTypes, buildTypesBlock } from './domain-types';
+import { buildCompositeTypes } from './domain-types';
 import {
   buildDomainEnumBlocks,
   buildNativeEnumBlocksForNamespace,
@@ -48,6 +47,7 @@ import {
   refuseEnumsOutsideDefaultNamespace,
   refuseModelOwner,
   refuseNamespaceNamedUnbound,
+  refuseRegisteredDatabaseTypes,
   refuseRlsWithoutModel,
   refuseUnderivedChecks,
   refuseUnderivedRoots,
@@ -149,7 +149,6 @@ function buildModel(
       context: all.context,
       executionDefaults: all.executionDefaults,
       defaultDomainEnumNames: new Set(Object.keys(all.defaultDomainEnums)),
-      namedTypes: all.contract.storage.types ?? {},
     }),
     ...buildRelationFields({
       entry,
@@ -283,8 +282,7 @@ function refuseUnwritableTableNames(contract: Contract<SqlStorage>): void {
 
 /**
  * Builds the Prisma 8 PSL document a Postgres contract was, or would have been, authored as: every
- * model with its columns, keys, indexes and relations, every value object, every named type and
- * every native enum, in the namespace block that carries it.
+ * model with its columns, keys, indexes and relations, every value object and every native enum, in the namespace block that carries it.
  *
  * Read back by the PSL contract source with the same stack, the document yields the contract it was
  * built from. Anything the language cannot carry is refused by name. `contract` must be one the
@@ -326,7 +324,7 @@ export function buildPostgresPslContract(
 
   const namespaces: PslNamespace[] = [];
   refuseEnumsOutsideDefaultNamespace(contract);
-  const topLevelEnums = buildDomainEnumBlocks(defaultDomainEnums);
+  const topLevelEnums = buildDomainEnumBlocks(defaultDomainEnums, context);
   if (topLevelEnums.length > 0) {
     namespaces.push(
       makePslNamespace({
@@ -349,13 +347,12 @@ export function buildPostgresPslContract(
   refuseUnwrittenNamespaces({ contract, models, writtenStorageNamespaces });
   refuseContractMeta(contract);
   refuseUnderivedRoots(contract, models, all.variants);
+  refuseRegisteredDatabaseTypes(contract);
 
-  const types = buildTypesBlock(contract, all.inferredConstructors, context);
   return {
     kind: 'document',
     sourceId: '<contract>',
     namespaces,
-    ...ifDefined('types', types),
     span: SYNTHETIC_SPAN,
   };
 }

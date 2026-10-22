@@ -92,6 +92,14 @@ export const microsFromFraction = (fraction: string, negative: boolean): bigint 
   return roundsUp ? kept + 1n : kept;
 };
 
+const MICROS_PER_DAY = 86_400n * MICROS_PER_SECOND;
+
+/** The key two stored intervals share exactly when PostgreSQL holds them equal: their total length in microseconds, a month counting as 30 days and a day as 24 hours. */
+export function intervalEqualityKey(json: JsonValue): string {
+  const { months, days, micros } = intervalFieldsOf(String(json));
+  return ((BigInt(months) * 30n + BigInt(days)) * MICROS_PER_DAY + micros).toString();
+}
+
 export const intervalFieldsOf = (text: string): PgInterval => {
   const match = ISO_DURATION.exec(text);
   if (match === null) {

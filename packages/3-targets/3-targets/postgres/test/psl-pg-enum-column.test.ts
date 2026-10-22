@@ -1,3 +1,4 @@
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 /**
  * Tests for PSL `pg.enum(Ref)` field resolution:
  *
@@ -108,6 +109,7 @@ function interpret(source: string, capabilities: Record<string, Record<string, b
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
       codecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: {
         entries: assembled.dataTypes,
         lookup: postgresDataTypeLookup,
@@ -170,9 +172,6 @@ describe('PSL pg.enum(Ref) field resolution', () => {
         entityName: 'AalLevel',
       },
     });
-    // No typeRef and no CHECK-strategy leftovers — a pg.enum column is a
-    // plain value-set column, not a named-type-refined one.
-    expect(aalColumn?.typeRef).toBeUndefined();
   });
 
   it('does not write a CHECK constraint for a pg.enum column', () => {

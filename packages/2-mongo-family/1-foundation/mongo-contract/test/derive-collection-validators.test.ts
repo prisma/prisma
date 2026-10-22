@@ -92,12 +92,6 @@ describe('deriveCollectionValidators', () => {
     });
   });
 
-  it('refuses a root whose model is missing', () => {
-    expect(() => derive({ roots: { users: crossRef('User') }, models: {} })).toThrow(
-      'Root model "User" of collection "users" is missing',
-    );
-  });
-
   it('refuses a variant whose model is missing', () => {
     expect(() =>
       derive({
@@ -336,6 +330,218 @@ describe('deriveCollectionValidators', () => {
         },
         additionalProperties: false,
       },
+    });
+  });
+});
+
+describe('deriveCollectionValidators for a collection that stores several root models', () => {
+  const userSchema = {
+    bsonType: 'object',
+    required: ['_id', 'email'],
+    properties: { _id: { bsonType: 'objectId' }, email: { bsonType: 'string' } },
+    additionalProperties: false,
+  };
+
+  it('accepts a document of any root model, one anyOf branch per model in name order', () => {
+    const validators = derive({
+      roots: { users: crossRef('User') },
+      models: {
+        User: model(
+          { _id: objectId(), email: scalarField('mongo/string@1') },
+          { storage: { collection: 'users' } },
+        ),
+        Admin: model(
+          { _id: objectId(), level: scalarField('mongo/int32@1') },
+          { storage: { collection: 'users' } },
+        ),
+      },
+    });
+
+    expect(jsonSchemas(validators)).toEqual({
+      users: {
+        bsonType: 'object',
+        anyOf: [
+          {
+            bsonType: 'object',
+            required: ['_id', 'level'],
+            properties: { _id: { bsonType: 'objectId' }, level: { bsonType: 'int' } },
+            additionalProperties: false,
+          },
+          userSchema,
+        ],
+      },
+    });
+  });
+
+  it('gives a root model with variants its own oneOf inside its branch', () => {
+    const validators = derive({
+      roots: { users: crossRef('User') },
+      models: {
+        User: model(
+          { _id: objectId(), email: scalarField('mongo/string@1') },
+          { storage: { collection: 'users' } },
+        ),
+        Task: model(
+          { _id: objectId(), type: scalarField('mongo/string@1') },
+          {
+            storage: { collection: 'users' },
+            discriminator: { field: 'type' },
+            variants: { bug: crossRef('Bug') },
+          },
+        ),
+        Bug: model(
+          { severity: scalarField('mongo/int32@1') },
+          { storage: { collection: 'users' }, base: crossRef('Task') },
+        ),
+        Note: model({ text: scalarField('mongo/string@1') }, { owner: 'User' }),
+      },
+    });
+
+    expect(jsonSchemas(validators)).toEqual({
+      users: {
+        bsonType: 'object',
+        anyOf: [
+          {
+            bsonType: 'object',
+            required: ['_id', 'type'],
+            properties: { _id: { bsonType: 'objectId' }, type: { bsonType: 'string' } },
+            oneOf: [
+              {
+                properties: {
+                  _id: { bsonType: 'objectId' },
+                  type: { enum: ['bug'] },
+                  severity: { bsonType: 'int' },
+                },
+                required: ['severity', 'type'],
+                additionalProperties: false,
+              },
+            ],
+          },
+          userSchema,
+        ],
+      },
+    });
+  });
+});
+
+describe('deriveCollectionValidators and the document id', () => {
+  it('requires an objectId _id in a root model that declares none', () => {
+    const validators = derive({
+      roots: { notes: crossRef('Note') },
+      models: { Note: model({ text: scalarField('mongo/string@1') }) },
+    });
+
+    expect(jsonSchemas(validators)).toEqual({
+      notes: {
+        bsonType: 'object',
+        required: ['_id', 'text'],
+        properties: { _id: { bsonType: 'objectId' }, text: { bsonType: 'string' } },
+        additionalProperties: false,
+      },
+    });
+  });
+
+  it('requires an objectId _id in every branch of a shared collection and at the top of a model with variants', () => {
+    const validators = derive({
+      roots: { items: crossRef('Note') },
+      models: {
+        Note: model({ text: scalarField('mongo/string@1') }, { storage: { collection: 'items' } }),
+        Task: model(
+          { type: scalarField('mongo/string@1') },
+          {
+            storage: { collection: 'items' },
+            discriminator: { field: 'type' },
+            variants: { bug: crossRef('Bug') },
+          },
+        ),
+        Bug: model(
+          { severity: scalarField('mongo/int32@1') },
+          { storage: { collection: 'items' }, base: crossRef('Task') },
+        ),
+      },
+    });
+
+    expect(jsonSchemas(validators)).toEqual({
+      items: {
+        bsonType: 'object',
+        anyOf: [
+          {
+            bsonType: 'object',
+            required: ['_id', 'text'],
+            properties: { _id: { bsonType: 'objectId' }, text: { bsonType: 'string' } },
+            additionalProperties: false,
+          },
+          {
+            bsonType: 'object',
+            required: ['_id', 'type'],
+            properties: { _id: { bsonType: 'objectId' }, type: { bsonType: 'string' } },
+            oneOf: [
+              {
+                properties: {
+                  _id: { bsonType: 'objectId' },
+                  type: { enum: ['bug'] },
+                  severity: { bsonType: 'int' },
+                },
+                required: ['severity', 'type'],
+                additionalProperties: false,
+              },
+            ],
+          },
+        ],
+      },
+    });
+  });
+
+  describe('under a control policy', () => {
+    const roots = {
+      managed: crossRef('Managed'),
+      tolerated: crossRef('Tolerated'),
+      external: crossRef('External'),
+      observed: crossRef('Observed'),
+    };
+    const models = {
+      Managed: model({ _id: objectId() }),
+      Tolerated: model({ _id: objectId() }),
+      External: model({ _id: objectId() }),
+      Observed: model({ _id: objectId() }),
+    };
+
+    it('derives a validator only for a managed collection', () => {
+      const validators = derive({
+        roots,
+        models,
+        controlPolicies: {
+          collections: {
+            managed: 'managed',
+            tolerated: 'tolerated',
+            external: 'external',
+            observed: 'observed',
+          },
+          defaultControlPolicy: undefined,
+        },
+      });
+
+      expect(Object.keys(validators)).toEqual(['managed']);
+    });
+
+    it('takes the contract default for a collection without its own policy', () => {
+      const validators = derive({
+        roots,
+        models,
+        controlPolicies: { collections: { managed: 'managed' }, defaultControlPolicy: 'observed' },
+      });
+
+      expect(Object.keys(validators)).toEqual(['managed']);
+    });
+
+    it('derives none under an external default, even for a collection declared managed', () => {
+      const validators = derive({
+        roots,
+        models,
+        controlPolicies: { collections: { managed: 'managed' }, defaultControlPolicy: 'external' },
+      });
+
+      expect(validators).toEqual({});
     });
   });
 });

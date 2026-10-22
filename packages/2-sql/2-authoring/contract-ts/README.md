@@ -57,13 +57,31 @@ flowchart LR
 
 ### Direct Structural DSL
 
-Direct imports expose the base structural helpers. Use this surface when you want to author with explicit column descriptors, explicit generators, or named storage types.
+Direct imports expose the base structural helpers. Use this surface when you want to author with explicit column descriptors or explicit generators.
 
 Built-in ID helpers from `@internal/ids` already return the generated-field spec accepted by `field.generated(...)`, so `field.generated(uuidv4())` is a valid structural DSL call.
 
 Storage defaults are values passed to `.default(...)`: a literal, `now()`, `autoincrement()`, or raw SQL written with the `sql` template tag, such as `` .default(sql`gen_random_uuid()`) `` or `` .default(sql`(now() + interval '7 days')`) ``.
 
-A literal passed to `.default(value)` is a value of the input type of the field's codec, and TypeScript checks it: inside the `defineContract` factory, `field.text().default(1)` is a type error. A list field takes an array of that type, and an enum field takes one of its member values. `now()`, `autoincrement()` and the `sql` tag are accepted on every field except an enum field, whose `.default()` takes only member values. Three cases are not typed from a codec and accept any value, which the codec checks when the contract is built: a codec id that no pack declares, `field.namedType('Name')` given a type name as a string, and the directly imported `field` helper, which knows no packs. `.default({ kind: 'literal', value })` is not type-checked against the codec; the codec still checks the value when the contract is built. The codec's `toDataTypeValue` turns the value into a value of the column's data type, which constructs the form `contract.json` stores, and a value the codec refuses at build time fails with `CONTRACT.DEFAULT_INVALID`, naming the model and field. The Postgres and SQLite `defineContract` facades look up the target's built-in codecs and the codecs of `extensions` for this; pass `codecLookup` to use your own. When the lookup has no codec for a column's codec id, a literal default on that column fails with `CONTRACT.DEFAULT_INVALID`: list the pack that owns the codec in `extensions`. The lookups are required: a column's database type name is written from the data type its codec represents, so the facades also pass a `dataTypeLookup` built from the target and the listed extensions, and a column whose codec no listed pack provides fails with `CONTRACT.CODEC_DESCRIPTOR_MISSING`. A list field's default is an array, so call `.many()` before `.default()`. On Postgres, `field.dateTime()` takes a `Temporal.Instant`, `field.temporal.timestamptzJsDate()` takes a `Date`, and `field.temporal.timestamptzString()` takes an ISO 8601 string. On Node 24 a contract file that creates a `Temporal` value must load a `Temporal` implementation itself, for example `import 'temporal-polyfill/full/global'`; the CLI and the Vite plugin set no global `Temporal`. Encoding a `Temporal` default needs no other implementation than the one that made the value. The type check on a `Temporal` field needs the `Temporal` type declarations in the project, for example from `temporal-polyfill/global`; without them the parameter is unchecked.
+Values the client generates are set with `.onCreate(call)` and `.onUpdate(call)`, with a call from `gen`, such as `gen.now()`, `gen.uuid(7)` or `gen.nanoid(16)`. `gen` is built from the composed packs like the `type` helpers: it holds one call for each generator function the family, target and extension packs declare, typed by the function's signature, so each stack's `gen` holds exactly that stack's functions. The `defineContract` callback receives it, and each facade also exports a `gen` with its family and target functions. The call resolves by the field's codec and type params through the same generator functions when the contract is built, as `@onCreate(fn())` and `@onUpdate(fn())` resolve in PSL:
+
+```ts
+defineContract({ extensions: { slugid } }, ({ field, gen, model }) => ({
+  models: {
+    Post: model('Post', {
+      fields: {
+        id: field.column(textColumn).id().onCreate(gen.uuid(7)),
+        slug: field.column(textColumn).onCreate(gen.slugid()),
+        updatedAt: field.column(timestamptzColumn).default(now()).onCreate(gen.now()).onUpdate(gen.now()),
+      },
+    }),
+  },
+}));
+```
+
+`.onCreate(...)` makes the field optional in the create input; `.onUpdate(...)` alone does not. A generator on a list field, as in `.many().onCreate(gen.uuid())`, fails the build with `CONTRACT.DEFAULT_INVALID` (`reason: 'generator-on-list'`). A function that does not fill the codec fails the build with `CONTRACT.DEFAULT_INVALID` (`reason: 'generator-not-applicable'`), and setting a phase twice, or a phase a preset or `field.generated(...)` already sets, throws `CONTRACT.DEFAULT_INVALID` (`reason: 'generator-phase-set-twice'`).
+
+A literal passed to `.default(value)` is a value of the input type of the field's codec, and TypeScript checks it: inside the `defineContract` factory, `field.text().default(1)` is a type error. A list field takes an array of that type, and an enum field takes one of its member values. `now()`, `autoincrement()` and the `sql` tag are accepted on every field except an enum field, whose `.default()` takes only member values. Two cases are not typed from a codec and accept any value, which the codec checks when the contract is built: a codec id that no pack declares, and the directly imported `field` helper, which knows no packs. `.default({ kind: 'literal', value })` is not type-checked against the codec; the codec still checks the value when the contract is built. The codec's `toDataTypeValue` turns the value into a value of the column's data type, which constructs the form `contract.json` stores, and a value the codec refuses at build time fails with `CONTRACT.DEFAULT_INVALID`, naming the model and field. The Postgres and SQLite `defineContract` facades look up the target's built-in codecs and the codecs of `extensions` for this; pass `codecLookup` to use your own. When the lookup has no codec for a column's codec id, a literal default on that column fails with `CONTRACT.DEFAULT_INVALID`: list the pack that owns the codec in `extensions`. The lookups are required: a column's database type name is written from the data type its codec represents, so the facades also pass a `dataTypeLookup` built from the target and the listed extensions, and a column whose codec no listed pack provides fails with `CONTRACT.CODEC_DESCRIPTOR_MISSING`. A list field's default is an array, so call `.many()` before `.default()`. On Postgres, `field.dateTime()` takes a `Temporal.Instant`, `field.temporal.timestamptzJsDate()` takes a `Date`, and `field.temporal.timestamptzString()` takes an ISO 8601 string. On Node 24 a contract file that creates a `Temporal` value must load a `Temporal` implementation itself, for example `import 'temporal-polyfill/full/global'`; the CLI and the Vite plugin set no global `Temporal`. Encoding a `Temporal` default needs no other implementation than the one that made the value. The type check on a `Temporal` field needs the `Temporal` type declarations in the project, for example from `temporal-polyfill/global`; without them the parameter is unchecked.
 
 ```typescript
 import { textColumn, timestamptzColumn } from '@internal/adapter-postgres/column-types';
@@ -126,7 +144,17 @@ Anything else inside `${…}` is a type error, and `CONTRACT.SQL_EXPRESSION_INTE
 
 ### Callback Helper Vocabulary
 
-Pack-provided helper presets are available through the callback overload. This is the surface that exposes `field.id.*`, `field.text()`, `field.temporal.createdAt()`, `field.temporal.updatedAt()`, `type.sql.String(...)`, and extension helpers such as `type.pgvector.Vector(...)`.
+Pack-provided helper presets are available through the callback overload. This is the surface that exposes `field.id.*`, `field.text()`, `field.temporal.createdAt()`, `field.temporal.updatedAt()`, the `type.*` helpers, and extension helpers such as `type.pgvector.Vector(...)`.
+
+`type.*` has a helper for every PSL type constructor of the stack, such as `type.VarChar(64)`, `type.TimestampString(3)` and `type.String()`, plus the type aliases the packs contribute, such as `type.temporal.CreatedAt()` and `type.temporal.UpdatedAt()`. Pass the result to `field.column(...)`. A type alias is a constant: field builders are immutable, so one constant serves every field and model that uses it, and each column stores the alias's codec and params inline. A constant may carry a default and generators, and a field may add what the constant does not set:
+
+```typescript
+const UpdatedAt = field.column(type.TimestampString(3)).onCreate(gen.now()).onUpdate(gen.now());
+
+updatedAt: UpdatedAt.default(now()),
+```
+
+Setting a phase the constant already sets, as in `UpdatedAt.onUpdate(gen.now())`, throws `CONTRACT.DEFAULT_INVALID` with reason `generator-phase-set-twice`, and `.default()` on a builder that already has a default throws it with reason `default-set-twice`. A definition has no `types` key: it is refused with `CONTRACT.TYPES_KEY_REMOVED`. A contract space that registers a database type of its own, as pgvector registers `vector`, writes it under `databaseTypes`; no column refers to such an entry.
 
 ```typescript
 import pgvector from '@internal/extension-pgvector/pack';
@@ -144,19 +172,17 @@ export const contract = defineContract(
     extensions: { pgvector },
   },
   ({ type, field, model, rel }) => {
-    const types = {
-      ShortName: type.sql.String(35),
-      Embedding1536: type.pgvector.Vector(1536),
-    } as const;
+    const ShortName = field.column(type.VarChar(35));
+    const Embedding1536 = field.column(type.pgvector.Vector(1536));
 
     const User = model('User', {
       fields: {
         id: field.id.uuidv7String().sql({ id: { name: 'user_pkey' } }),
-        shortName: field.namedType(types.ShortName),
+        shortName: ShortName,
         role: field.namedType(Role),
-        embedding: field.namedType(types.Embedding1536).optional(),
-        createdAt: field.temporal.createdAt(),
-        updatedAt: field.temporal.updatedAt(),
+        embedding: Embedding1536.optional(),
+        createdAt: field.column(type.temporal.CreatedAt()),
+        updatedAt: field.column(type.temporal.UpdatedAt()),
       },
     });
 
@@ -170,7 +196,6 @@ export const contract = defineContract(
 
     return {
       enums: { role: Role },
-      types,
       models: {
         User: User.relations({
           posts: rel.hasMany(Post, { by: 'authorId' }),
@@ -190,7 +215,7 @@ export const contract = defineContract(
 
 ### Integer Representation Types
 
-PostgreSQL and SQLite contribute `type.BigIntNumber()`, while PostgreSQL also contributes `type.UnboundedInt()`. Build each composed type once, return those same instances in the contract's `types` map, and pass them to `field.namedType(...)`. This keeps the named storage type registration and every field reference aligned.
+PostgreSQL and SQLite contribute `type.BigIntNumber()`, while PostgreSQL also contributes `type.UnboundedInt()`. Pass the result to `field.column(...)`, or keep it in a constant when several fields share it.
 
 ```typescript
 import sqlFamily from '@internal/family-sql/pack';
@@ -201,18 +226,14 @@ import postgresPack from '@internal/target-postgres/pack';
 export const contract = defineContract(
   { family: sqlFamily, target: postgresPack },
   ({ field, model, type }) => {
-    const types = {
-      BigIntNumber: type.BigIntNumber(),
-      UnboundedInt: type.UnboundedInt(),
-    } as const;
+    const BigIntNumber = field.column(type.BigIntNumber());
 
     return {
-      types,
       models: {
         Meter: model('Meter', {
           fields: {
-            peak: field.namedType(types.BigIntNumber),
-            lifetime: field.namedType(types.UnboundedInt),
+            peak: BigIntNumber,
+            lifetime: field.column(type.UnboundedInt()),
             directPeak: field.column(pgInt8NumberColumn()),
             directLifetime: field.column(pgUnboundedIntColumn()),
           },
@@ -223,7 +244,7 @@ export const contract = defineContract(
 );
 ```
 
-The direct form does not register a named type: use `field.column(pgInt8NumberColumn())` or `field.column(pgUnboundedIntColumn())` on PostgreSQL, and `field.column(sqliteBigintNumberColumn())` imported from `@internal/target-sqlite/codecs` on SQLite. The named and direct forms select the same codecs and application types; choose named types when several fields should share a contract-level name, and direct helpers for an explicit per-column declaration.
+The direct form imports the column helper: `field.column(pgInt8NumberColumn())` or `field.column(pgUnboundedIntColumn())` on PostgreSQL, and `field.column(sqliteBigintNumberColumn())` imported from `@internal/target-sqlite/codecs` on SQLite. Both forms select the same codecs and application types and store the same column.
 
 ### Constraint Placement
 
@@ -268,12 +289,12 @@ constraints.index({ expression: sql`eql_v3.eq_term(email)`, name: 'users_email_e
 
 ### Helper Notes
 
-- Structural helpers: `field.column(...)`, `field.generated(...)`, `field.namedType(...)`, plus `model(...)` and `rel.*`
+- Structural helpers: `field.column(...)`, `field.generated(...)`, `field.namedType(...)` (an enum handle only), plus `model(...)` and `rel.*`
 - Callback helper presets: `field.id.uuidv4String()`, `field.id.uuidv7String()`, `field.id.nanoid({ size })`, `field.uuidString()`, `field.text()`, `field.temporal.createdAt()`, `field.temporal.updatedAt()`, and `type.*` (Postgres also adds `field.uuidNative()`, `field.id.uuidv4Native()`, `field.id.uuidv7Native()` — these emit `pg/uuid@1`)
-- Integer representation types: register composed `type.BigIntNumber()` / `type.UnboundedInt()` instances in the returned `types` map and reference those same instances with `field.namedType(...)`, or use the direct per-codec column helpers with `field.column(...)`. `BigIntNumber` emits `pg/int8number@1` on PostgreSQL or `sqlite/bigintnumber@1` on SQLite and throws outside ±(2^53 − 1); PostgreSQL-only `UnboundedInt` emits `pg/unboundedint@1` and reads and writes exact `bigint` values. Bare `field.bigint()` keeps the lossless `pg/int8@1`. See [Integer Representation Types](#integer-representation-types) for the TypeScript forms and [Integer representation types](../../../../docs/reference/integer-representation-types.md) for the canonical selection, runtime, JSON, and aggregate behavior reference.
+- Integer representation types: `field.column(type.BigIntNumber())` / `field.column(type.UnboundedInt())`, or the direct per-codec column helpers with `field.column(...)`. `BigIntNumber` emits `pg/int8number@1` on PostgreSQL or `sqlite/bigintnumber@1` on SQLite and throws outside ±(2^53 − 1); PostgreSQL-only `UnboundedInt` emits `pg/unboundedint@1` and reads and writes exact `bigint` values. Bare `field.bigint()` keeps the lossless `pg/int8@1`. See [Integer Representation Types](#integer-representation-types) for the TypeScript forms and [Integer representation types](../../../../docs/reference/integer-representation-types.md) for the canonical selection, runtime, JSON, and aggregate behavior reference.
 - Timestamp helpers mirror PSL presets: `field.temporal.createdAt()` generates a client-side timestamp on create, while `field.temporal.updatedAt()` uses the same execution generator on create and non-empty update mutations. Neither creates a database default; matching representations share one generated value per operation.
 - Keep field-local and FK-local storage overrides next to the authoring site with `field.sql(...)` and `rel.belongsTo(...).sql({ fk })`
-- Prefer typed local refs such as `field.namedType(types.Role)`, `User.refs.id`, and `User.ref('id')` when those tokens are available
+- Prefer typed local refs such as `field.namedType(Role)`, `User.refs.id`, and `User.ref('id')` when those tokens are available
 - See [API.md](./API.md) for generated-field spec semantics, validation rules, and typed-reference warning behavior
 
 ### Foreign Key Defaults

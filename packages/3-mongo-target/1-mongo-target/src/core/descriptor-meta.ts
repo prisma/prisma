@@ -1,18 +1,35 @@
-import type { TargetPackRef } from '@internal/framework-components/components';
-import { timestampNowControlDescriptor } from '@internal/framework-components/control';
+import { TIMESTAMP_NOW_GENERATOR_ID } from '@internal/framework-components/authoring';
+import {
+  singleGeneratorBinding,
+  type TargetPackRef,
+} from '@internal/framework-components/components';
 import type { CodecTypes, ParameterizedOutputTypesForTypeParams } from '../exports/codec-types';
-import { mongoAuthoringFieldPresets } from './authoring';
+import { mongoAuthoringFieldPresets, mongoAuthoringTypes } from './authoring';
+import { MONGO_DATE_CODEC_ID } from './codec-ids';
 import { mongoTargetDescriptorMetaRuntime } from './descriptor-meta-runtime';
 
 const mongoTargetDescriptorMetaBase = {
   ...mongoTargetDescriptorMetaRuntime,
   authoring: {
+    type: mongoAuthoringTypes,
     field: mongoAuthoringFieldPresets,
   },
   controlMutationDefaults: {
     defaultFunctionRegistry: new Map(),
-    generatorDescriptors: [timestampNowControlDescriptor()],
+    generatorDescriptors: [{ id: TIMESTAMP_NOW_GENERATOR_ID }],
   },
+  generatorFunctions: [
+    {
+      name: 'now',
+      signature: { documentation: 'Writes the current time.' },
+      bindings: [
+        singleGeneratorBinding({
+          codecIds: [MONGO_DATE_CODEC_ID],
+          generatorId: TIMESTAMP_NOW_GENERATOR_ID,
+        }),
+      ],
+    },
+  ],
 } as const satisfies TargetPackRef<'mongo', 'mongo'>;
 
 export const mongoTargetDescriptorMeta: typeof mongoTargetDescriptorMetaBase & {

@@ -2,7 +2,7 @@ import type {
   ContractSourceDiagnostic,
   ContractSourceDiagnostics,
 } from '@internal/config/config-types';
-import type { Contract } from '@internal/contract/types';
+import type { Contract, ExecutionMutationDefaultValue } from '@internal/contract/types';
 import type {
   AuthoringEntityContext,
   AuthoringEntityTypeDescriptor,
@@ -11,25 +11,36 @@ import type {
 import {
   getAuthoringTypeConstructor,
   instantiateAuthoringEntityType,
+  instantiateAuthoringTypeConstructorFromValues,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
-import type {
-  AssembledAuthoringContributions,
-  ControlMutationDefaults,
+import {
+  EMPTY_GENERATOR_FUNCTIONS,
+  type GeneratorFunctionRegistry,
+} from '@internal/framework-components/components';
+import {
+  type AssembledAuthoringContributions,
+  assembleAuthoringContributions,
+  type ControlMutationDefaults,
 } from '@internal/framework-components/control';
 import type {
+  AttributeCtx,
   BlockSymbol,
   FieldSymbol,
   ModelSymbol,
   ParsedPslExtensionBlock,
   PslSpan,
   ResolvedAttribute,
+  ResolvedAttributeArg,
   ResolvedTypeConstructorCall,
 } from '@internal/psl-parser';
 import {
+  type BinderContext,
   buildSymbolTable,
+  createBinder,
   createPslDiagnosticCollector,
   diagnosticSource,
+  EMPTY_DATA_TYPES,
   keywordPslSpan,
   nodePslSpan,
   readResolvedAttribute,
@@ -42,17 +53,19 @@ import type {
   SourceFile,
 } from '@internal/psl-parser/syntax';
 import { dottedPathsIn, printSyntax, StringLiteralExprAst } from '@internal/psl-parser/syntax';
-import { sqlDataTypeOfCodec } from '@internal/sql-contract/data-type';
+import { sqlCodecColumnLength, sqlDataTypeOfCodec } from '@internal/sql-contract/data-type';
 import {
   declaredBackingObjectName,
   declaredIndexesServeForeignKey,
 } from '@internal/sql-contract/foreign-key-materialization';
 import { type AuthoredIndexInput, lowerAuthoredIndex } from '@internal/sql-contract/index-naming';
+import { storedSqlText } from '@internal/sql-contract/sql-expression';
 import type { SqlNamespaceBase, SqlNamespaceInput } from '@internal/sql-contract/types';
 import { deriveValueSetFromEntity } from '@internal/sql-contract/value-set-derivation-hook';
 import {
   buildEntityTypesByDiscriminator,
   instantiateFieldTypeConstructor,
+  type ResolveFieldTypeResult,
 } from '@internal/sql-contract-psl/resolution';
 import {
   buildSqlContractFromDefinition,
@@ -73,7 +86,12 @@ import {
   statedConstraintName,
 } from './constraint-names';
 import { lowerPrisma7Default } from './defaults';
-import { ignoredFieldInPrimaryKey, prisma7Diagnostic } from './diagnostics';
+import {
+  prisma7Diagnostic,
+  type UnmappedReason,
+  unmappedFieldDiagnostics,
+  unmappedFieldInPrimaryKey,
+} from './diagnostics';
 import { type IndexAttribute, indexNode, parseIndexAttribute } from './indexes';
 import { prisma7NativeTypeMapping, prisma7ScalarMapping } from './native-types';
 import {
@@ -83,6 +101,26 @@ import {
   type RelationModel,
 } from './relations';
 import type { Prisma7TargetBinding } from './target-binding';
+
+/** The generator `now()` resolves to for a column, which `@updatedAt` writes on create and on update; `undefined` when no generator function binds `now` to its codec. */
+function nowGeneratorFor(
+  generatorFunctions: GeneratorFunctionRegistry,
+  dataTypes: DataTypeSupport,
+  column: {
+    readonly codecId: string;
+    readonly typeParams?: Readonly<Record<string, unknown>> | undefined;
+  },
+): ExecutionMutationDefaultValue | undefined {
+  const resolution = generatorFunctions.resolve(
+    { name: 'now', args: {} },
+    {
+      codecId: column.codecId,
+      typeParams: column.typeParams,
+      length: sqlCodecColumnLength(dataTypes, column.codecId, column.typeParams),
+    },
+  );
+  return resolution.ok ? resolution.generator : undefined;
+}
 
 export interface Prisma7Document {
   readonly document: DocumentAst;
@@ -96,6 +134,7 @@ export interface InterpretPrisma7DocumentsInput {
   readonly seedDiagnostics: readonly ContractSourceDiagnostic[];
   readonly binding: Prisma7TargetBinding;
   readonly controlMutationDefaults: ControlMutationDefaults;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly authoringContributions: AssembledAuthoringContributions;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypes: DataTypeSupport;
@@ -136,15 +175,27 @@ interface ModelDeclaration {
   readonly id: IndexAttribute | undefined;
   readonly uniqueIndexes: readonly IndexAttribute[];
   readonly indexes: readonly IndexAttribute[];
+  /** The context a default function's arguments are parsed in, built for the model's document when first asked for. */
+  readonly argumentContext: () => AttributeCtx;
 }
+
+/**
+ * The binder context of a Prisma 7 document's argument context. A default function's arguments are literals, so the binder needs no Prisma 8 attribute specs, functions or data types.
+ */
+const ARGUMENT_BINDER_CONTEXT: BinderContext = {
+  authoringContributions: assembleAuthoringContributions([]),
+  controlMutationDefaults: { defaultFunctionRegistry: new Map() },
+  generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
+  dataTypes: EMPTY_DATA_TYPES,
+};
 
 interface ModelBuild {
   readonly declaration: ModelDeclaration;
   readonly columns: Map<string, FieldNode>;
-  /** The columns the table keeps and no field of the model maps: those of `@ignore` fields, or every column of an `@@ignore` model. */
-  readonly ignoredColumns: Map<string, ColumnNode>;
-  /** Fields marked `@ignore`, and relation fields to an `@@ignore` model. */
-  readonly ignoredFields: Set<string>;
+  /** The columns the table keeps and no field of the model maps: those of `@ignore` and `Unsupported(...)` fields, or every column of an `@@ignore` model. */
+  readonly unmappedColumns: Map<string, ColumnNode>;
+  /** The fields a primary key or a relation join may not use, because the model has no Prisma 8 field for them, and why: `@ignore` fields, relation fields to an `@@ignore` model, and `Unsupported(...)` fields. An `Unsupported` field of an `@@ignore` model is left out, because that model keeps its primary key. */
+  readonly unmappedFields: Map<string, UnmappedReason>;
   readonly ignoredRelationFields: RelationField[];
   readonly rejectedFields: Set<string>;
   idFields: readonly string[];
@@ -340,10 +391,27 @@ export function interpretPrisma7Documents(
       'PSL_INVALID_EXTENSION_BLOCK_MEMBER',
       symbolTable.defaultNamespace.blocks,
     );
+    let argumentContext: AttributeCtx | undefined;
+    const argumentContextOf = (): AttributeCtx => {
+      argumentContext ??= {
+        sources,
+        symbols: symbolTable,
+        binder: createBinder({ sources, symbolTable, context: ARGUMENT_BINDER_CONTEXT }).binder,
+      };
+      return argumentContext;
+    };
     for (const symbol of Object.values(symbolTable.defaultNamespace.models)) {
       if (!claimName('model', symbol.name, sourceId, symbol.span)) continue;
       models.push(
-        readModelDeclaration(symbol, sourceId, sources, defaultNamespaceId, binding, diagnostics),
+        readModelDeclaration(
+          symbol,
+          sourceId,
+          sources,
+          defaultNamespaceId,
+          binding,
+          diagnostics,
+          argumentContextOf,
+        ),
       );
     }
   }
@@ -373,8 +441,8 @@ export function interpretPrisma7Documents(
     const build: ModelBuild = {
       declaration,
       columns: new Map(),
-      ignoredColumns: new Map(),
-      ignoredFields: new Set(),
+      unmappedColumns: new Map(),
+      unmappedFields: new Map(),
       ignoredRelationFields: [],
       rejectedFields: new Set(),
       idFields: declaration.id?.fields ?? [],
@@ -398,7 +466,7 @@ export function interpretPrisma7Documents(
       if (
         diagnostics.length > reported &&
         !build.columns.has(field.name) &&
-        !build.ignoredColumns.has(field.name)
+        !build.unmappedColumns.has(field.name)
       ) {
         build.rejectedFields.add(field.name);
       }
@@ -419,8 +487,8 @@ export function interpretPrisma7Documents(
       sourceId: build.declaration.sourceId,
       sources: build.declaration.sources,
       columns: build.columns,
-      ignoredColumns: build.ignoredColumns,
-      ignoredFields: build.ignoredFields,
+      unmappedColumns: build.unmappedColumns,
+      unmappedFields: build.unmappedFields,
       ignoredRelationFields: build.ignoredRelationFields,
       rejectedFields: build.rejectedFields,
       idFields: build.idFields,
@@ -437,19 +505,22 @@ export function interpretPrisma7Documents(
   for (const [modelName, build] of builds) {
     const model = relationModels.get(modelName);
     if (model === undefined) continue;
-    const ignoredAmong = (fieldNames: readonly string[] | undefined): readonly string[] =>
-      fieldNames?.filter((name) => build.ignoredFields.has(name)) ?? [];
     const idAttribute = build.declaration.id;
-    const ignoredIdFields = ignoredAmong(idAttribute?.fields);
-    if (idAttribute !== undefined && ignoredIdFields.length > 0) {
+    if (idAttribute?.fields !== undefined) {
       diagnostics.push(
-        ignoredFieldInPrimaryKey({
-          modelName,
-          fieldNames: ignoredIdFields,
-          usedBy: `@@id on model "${modelName}"`,
-          sourceId: model.sourceId,
-          span: idAttribute.span,
-        }),
+        ...unmappedFieldDiagnostics(
+          idAttribute.fields,
+          build.unmappedFields,
+          (fieldNames, reason) =>
+            unmappedFieldInPrimaryKey({
+              modelName,
+              fieldNames,
+              reason,
+              usedBy: `@@id on model "${modelName}"`,
+              sourceId: model.sourceId,
+              span: idAttribute.span,
+            }),
+        ),
       );
     }
     const id = keyColumns(model, model.idFields);
@@ -487,9 +558,9 @@ export function interpretPrisma7Documents(
       ...(indexes.length > 0 ? { indexes } : {}),
       ...(foreignKeys !== undefined ? { foreignKeys } : {}),
     });
-    const ignoredColumns = [...build.ignoredColumns.values()];
+    const unmappedColumns = [...build.unmappedColumns.values()];
     if (model.ignored) {
-      tables.push({ ...tableProperties, namespaceId: model.namespaceId, columns: ignoredColumns });
+      tables.push({ ...tableProperties, namespaceId: model.namespaceId, columns: unmappedColumns });
       continue;
     }
     modelNodes.push({
@@ -499,11 +570,11 @@ export function interpretPrisma7Documents(
       fields: [...build.columns.values()],
       ...(relations !== undefined ? { relations } : {}),
     });
-    if (ignoredColumns.length > 0) {
+    if (unmappedColumns.length > 0) {
       tables.push({
         namespaceId: model.namespaceId,
         tableName: model.tableName,
-        columns: ignoredColumns,
+        columns: unmappedColumns,
       });
     }
   }
@@ -667,7 +738,7 @@ function keyColumns(
 ): readonly string[] | undefined {
   const columns: string[] = [];
   for (const fieldName of fieldNames) {
-    const column = model.columns.get(fieldName) ?? model.ignoredColumns.get(fieldName);
+    const column = model.columns.get(fieldName) ?? model.unmappedColumns.get(fieldName);
     if (column === undefined) return undefined;
     columns.push(column.columnName);
   }
@@ -681,6 +752,7 @@ function readModelDeclaration(
   defaultNamespaceId: string,
   binding: Pick<Prisma7TargetBinding, 'indexTypes' | 'identifierMaxBytes'>,
   diagnostics: ContractSourceDiagnostic[],
+  argumentContext: () => AttributeCtx,
 ): ModelDeclaration {
   const { indexTypes } = binding;
   let ignored = false;
@@ -765,6 +837,7 @@ function readModelDeclaration(
     id,
     uniqueIndexes,
     indexes,
+    argumentContext,
   };
 }
 
@@ -927,6 +1000,39 @@ function lowerNativeEnums(
   return result;
 }
 
+/** The SQL family's type constructor for a column of a type no data type claims (ADR 273). */
+const RAW_TYPE_CONSTRUCTOR: readonly string[] = ['Raw'];
+
+/** Prisma 7's `Unsupported("...")`, which this source reads as ``Raw(sql`...`)``. */
+function isUnsupportedType(call: ResolvedTypeConstructorCall | undefined): boolean {
+  return call?.path.length === 1 && call.path[0] === 'Unsupported';
+}
+
+/** The one double-quoted string `Unsupported(...)` takes, as written and with its escapes undone. */
+function unsupportedTypeArgument(
+  call: ResolvedTypeConstructorCall,
+): { readonly written: ResolvedAttributeArg; readonly text: string } | undefined {
+  const [written, ...rest] = call.args;
+  if (written === undefined || rest.length > 0 || written.kind !== 'positional') return undefined;
+  const literal =
+    written.expression === undefined
+      ? undefined
+      : StringLiteralExprAst.cast(written.expression.syntax);
+  const text = literal?.quote() === '"' ? literal.value() : undefined;
+  return text === undefined ? undefined : { written, text };
+}
+
+/**
+ * How the reader gives a field its Prisma 8 type: a call it reads as a schema's call is read, from the arguments as written, or a constructor and the values of its arguments, which the reader already holds.
+ */
+type Prisma7FieldType =
+  | { readonly kind: 'written'; readonly call: ResolvedTypeConstructorCall }
+  | {
+      readonly kind: 'values';
+      readonly path: readonly string[];
+      readonly values: readonly unknown[];
+    };
+
 function nativeTypeMessage(label: string, nativeType: string): string {
   return `${label}: native type "@db.${nativeType}" has no Prisma 8 codec yet, and Prisma 8 cannot read this schema until it supports the column type. @ignore on the field or @@ignore on the model does not help: Prisma 8 keeps the columns of ignored fields and models in the contract. Changing the field's type to one Prisma 8 supports changes the column type on Prisma 7's next migration.`;
 }
@@ -954,8 +1060,11 @@ function readField(args: ReadFieldArgs): void {
   const fieldIgnored =
     field.attributes.some((attribute) => attribute.name === 'ignore') ||
     (isRelationField && args.ignoredModels.has(field.typeName));
-  if (fieldIgnored) build.ignoredFields.add(field.name);
-  const ignored = fieldIgnored || model.ignored;
+  const unsupported = isUnsupportedType(field.typeConstructor);
+  const unmappedReason: UnmappedReason | undefined =
+    unsupported && !model.ignored ? 'unsupported' : fieldIgnored ? 'ignored' : undefined;
+  if (unmappedReason !== undefined) build.unmappedFields.set(field.name, unmappedReason);
+  const ignored = fieldIgnored || model.ignored || unsupported;
 
   let columnName = field.name;
   let nativeType: { readonly name: string; readonly attribute: ResolvedAttribute } | undefined;
@@ -990,11 +1099,12 @@ function readField(args: ReadFieldArgs): void {
         build.idFields = [field.name];
         build.idMap = parsed.map;
       }
-      if (fieldIgnored) {
+      if (unmappedReason !== undefined) {
         diagnostics.push(
-          ignoredFieldInPrimaryKey({
+          unmappedFieldInPrimaryKey({
             modelName: model.symbol.name,
             fieldNames: [field.name],
+            reason: unmappedReason,
             usedBy: 'its @id',
             sourceId,
             span: attribute.span,
@@ -1030,11 +1140,37 @@ function readField(args: ReadFieldArgs): void {
   }
 
   if (field.malformedType) return;
-  if (field.typeConstructor !== undefined) {
+  if (field.typeConstructor !== undefined && !unsupported) {
     diagnostics.push(
       prisma7Diagnostic(
         'PSL.PRISMA7_UNSUPPORTED_TYPE',
-        `${label} has type "${field.typeConstructor.path.join('.')}(...)", which has no Prisma 8 codec yet, and Prisma 8 cannot read this schema until it supports the column type. @@ignore on model "${model.symbol.name}" does not help: Prisma 8 keeps the columns of ignored models in the contract. Removing the field drops its column on Prisma 7's next migration.`,
+        `${label} has type "${field.typeConstructor.path.join('.')}(...)", which is not a Prisma 7 type. Prisma 7 refuses this schema too.`,
+        sourceId,
+        field.typeConstructor.span,
+      ),
+    );
+    return;
+  }
+  if (unsupported && nativeType !== undefined) {
+    diagnostics.push(
+      prisma7Diagnostic(
+        'PSL.PRISMA7_UNKNOWN_ATTRIBUTE',
+        `${label} has type Unsupported(...), which takes no native type, but has attribute "@db.${nativeType.name}". Prisma 7 refuses this schema too: "Attribute not known". Remove "@db.${nativeType.name}".`,
+        sourceId,
+        nativeType.attribute.span,
+      ),
+    );
+    return;
+  }
+  const unsupportedArgument =
+    field.typeConstructor === undefined
+      ? undefined
+      : unsupportedTypeArgument(field.typeConstructor);
+  if (field.typeConstructor !== undefined && unsupportedArgument === undefined) {
+    diagnostics.push(
+      prisma7Diagnostic(
+        'PSL.PRISMA7_UNSUPPORTED_TYPE',
+        `${label}: Unsupported(...) takes one string, the column's type as the database prints it, such as Unsupported("tsvector").`,
         sourceId,
         field.typeConstructor.span,
       ),
@@ -1078,9 +1214,23 @@ function readField(args: ReadFieldArgs): void {
     return;
   }
 
-  const enumDeclaration = args.enums.get(field.typeName);
-  let call: ResolvedTypeConstructorCall;
-  if (enumDeclaration !== undefined) {
+  const enumDeclaration = unsupported ? undefined : args.enums.get(field.typeName);
+  let fieldType: Prisma7FieldType;
+  if (unsupportedArgument !== undefined) {
+    const sqlText = storedSqlText(unsupportedArgument.text);
+    if (sqlText === undefined) {
+      diagnostics.push(
+        prisma7Diagnostic(
+          'PSL.PRISMA7_UNSUPPORTED_TYPE',
+          `${label}: Unsupported(${unsupportedArgument.written.value}) is not one type name: a sql literal cannot hold it, because it has a NUL character or is too large.`,
+          sourceId,
+          unsupportedArgument.written.span,
+        ),
+      );
+      return;
+    }
+    fieldType = { kind: 'values', path: RAW_TYPE_CONSTRUCTOR, values: [sqlText] };
+  } else if (enumDeclaration !== undefined) {
     if (enumDeclaration.namespaceId !== model.namespaceId) {
       diagnostics.push(
         prisma7Diagnostic(
@@ -1092,10 +1242,13 @@ function readField(args: ReadFieldArgs): void {
       );
       return;
     }
-    call = {
-      path: binding.nativeEnum.typeConstructor,
-      args: [{ kind: 'positional', value: enumDeclaration.name, span: field.span }],
-      span: field.span,
+    fieldType = {
+      kind: 'written',
+      call: {
+        path: binding.nativeEnum.typeConstructor,
+        args: [{ kind: 'positional', value: enumDeclaration.name, span: field.span }],
+        span: field.span,
+      },
     };
   } else {
     const scalar = prisma7ScalarMapping(binding.typeMap, field.typeName);
@@ -1110,36 +1263,40 @@ function readField(args: ReadFieldArgs): void {
       );
       return;
     }
-    let mapping = scalar;
-    let span = field.span;
-    if (nativeType !== undefined) {
-      const native = prisma7NativeTypeMapping(
-        binding.typeMap,
-        nativeType.name,
-        nativeType.attribute.args.map((arg) => arg.value),
+    const native =
+      nativeType === undefined
+        ? undefined
+        : prisma7NativeTypeMapping(binding.typeMap, nativeType.name);
+    if (nativeType !== undefined && native === undefined) {
+      diagnostics.push(
+        prisma7Diagnostic(
+          'PSL.PRISMA7_NATIVE_TYPE_UNSUPPORTED',
+          nativeTypeMessage(label, nativeType.name),
+          sourceId,
+          nativeType.attribute.span,
+        ),
       );
-      if (native === undefined) {
-        diagnostics.push(
-          prisma7Diagnostic(
-            'PSL.PRISMA7_NATIVE_TYPE_UNSUPPORTED',
-            nativeTypeMessage(label, nativeType.name),
-            sourceId,
-            nativeType.attribute.span,
-          ),
-        );
-        return;
-      }
-      mapping = native;
-      span = nativeType.attribute.span;
+      return;
     }
-    call = {
-      path: [mapping.constructorName],
-      args: mapping.args.map((value) => ({ kind: 'positional', value, span })),
-      span,
-    };
+    const mapping = native ?? scalar;
+    fieldType =
+      nativeType === undefined || nativeType.attribute.args.length === 0
+        ? { kind: 'values', path: [mapping.constructorName], values: mapping.args }
+        : {
+            kind: 'written',
+            call: {
+              path: [mapping.constructorName],
+              args: nativeType.attribute.args,
+              span: nativeType.attribute.span,
+            },
+          };
   }
 
-  const typeConstructor = getAuthoringTypeConstructor(input.authoringContributions, call.path);
+  const constructorPath = fieldType.kind === 'written' ? fieldType.call.path : fieldType.path;
+  const typeConstructor = getAuthoringTypeConstructor(
+    input.authoringContributions,
+    constructorPath,
+  );
   if (typeConstructor === undefined) {
     diagnostics.push(
       prisma7Diagnostic(
@@ -1151,18 +1308,45 @@ function readField(args: ReadFieldArgs): void {
     );
     return;
   }
-  const typeDiagnostics = createPslDiagnosticCollector(model.sources);
-  const resolved = instantiateFieldTypeConstructor({
-    call,
-    descriptor: typeConstructor,
-    diagnostics: typeDiagnostics,
-    source: diagnosticSource(model.sources, field.node.syntax),
-    entityLabel: label,
-    namespaceId: model.namespaceId,
-    namespaceExtensionEntities: args.namespaceEntities,
-    codecLookup: input.codecLookup,
-  });
-  diagnostics.push(...typeDiagnostics.toExternal());
+  let resolved: ResolveFieldTypeResult;
+  if (fieldType.kind === 'written') {
+    const typeDiagnostics = createPslDiagnosticCollector(model.sources);
+    resolved = instantiateFieldTypeConstructor({
+      call: fieldType.call,
+      descriptor: typeConstructor,
+      diagnostics: typeDiagnostics,
+      source: diagnosticSource(model.sources, field.node.syntax),
+      entityLabel: label,
+      namespaceId: model.namespaceId,
+      namespaceExtensionEntities: args.namespaceEntities,
+      codecLookup: input.codecLookup,
+      dataTypes: input.dataTypes,
+    });
+    diagnostics.push(...typeDiagnostics.toExternal());
+  } else {
+    const instantiated = instantiateAuthoringTypeConstructorFromValues(
+      typeConstructor,
+      fieldType.values,
+      input.codecLookup.descriptorFor(typeConstructor.output.codecId)?.paramsSchema,
+    );
+    if (!instantiated.ok && unsupportedArgument !== undefined) {
+      diagnostics.push(
+        prisma7Diagnostic(
+          'PSL.PRISMA7_UNSUPPORTED_TYPE',
+          `${label}: Unsupported(${unsupportedArgument.written.value}) is not one type name: ${instantiated.failure.message}`,
+          sourceId,
+          unsupportedArgument.written.span,
+        ),
+      );
+      return;
+    }
+    if (!instantiated.ok) {
+      throw new InternalError(
+        `The Prisma 7 target binding maps ${label} to constructor "${fieldType.path.join('.')}" with arguments its codec refuses: ${instantiated.failure.message}`,
+      );
+    }
+    resolved = { ok: true, descriptor: instantiated.value };
+  }
   if (!resolved.ok) {
     return;
   }
@@ -1170,7 +1354,7 @@ function readField(args: ReadFieldArgs): void {
   const updatedAtGenerator =
     updatedAt === undefined || ignored
       ? undefined
-      : binding.updatedAtGenerator(resolved.descriptor);
+      : nowGeneratorFor(input.generatorFunctions, input.dataTypes, resolved.descriptor);
   if (updatedAt !== undefined && !ignored && updatedAtGenerator === undefined) {
     if (nativeType === undefined) {
       throw new InternalError(
@@ -1194,6 +1378,7 @@ function readField(args: ReadFieldArgs): void {
           attribute: defaultAttribute,
           field,
           modelName: model.symbol.name,
+          onlyDbgenerated: unsupported,
           codecId: resolved.descriptor.codecId,
           typeParams: resolved.descriptor.typeParams,
           codecLookup: input.codecLookup,
@@ -1208,6 +1393,8 @@ function readField(args: ReadFieldArgs): void {
               ? undefined
               : new Map(enumDeclaration.members.map((member) => [member.name, member.value])),
           controlMutationDefaults: input.controlMutationDefaults,
+          argumentContext: model.argumentContext,
+          generatorFunctions: input.generatorFunctions,
           sourceId,
           diagnostics,
         });
@@ -1221,7 +1408,7 @@ function readField(args: ReadFieldArgs): void {
     ...ifDefined('default', lowered?.storage),
   };
   if (ignored) {
-    build.ignoredColumns.set(field.name, column);
+    build.unmappedColumns.set(field.name, column);
     return;
   }
   const executionDefaults =

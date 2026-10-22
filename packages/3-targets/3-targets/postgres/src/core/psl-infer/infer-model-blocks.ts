@@ -252,7 +252,7 @@ function buildScalarField(
   const pslType =
     enumPslName === undefined
       ? columnTypes(table.name, column.name)
-      : { path: [enumPslName], args: [] };
+      : { path: [enumPslName], args: [], values: [] };
   const typeName = pslType.path.join('.');
   const typeConstructor: PslTypeConstructorCall | undefined =
     enumPslName !== undefined

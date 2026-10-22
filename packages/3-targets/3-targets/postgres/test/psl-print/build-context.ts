@@ -1,21 +1,25 @@
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
-import {
-  type AuthoringFieldNamespace,
-  type AuthoringTypeNamespace,
-  assembleFieldPresetsByCodecAndGenerator,
+import sqlFamilyPack from '@internal/family-sql/pack';
+import type {
+  AuthoringFieldNamespace,
+  AuthoringTypeNamespace,
 } from '@internal/framework-components/authoring';
 import {
   type CodecDescriptorTemplate,
   createDataTypeLookup,
   type DataType,
 } from '@internal/framework-components/codec';
-import type { DefaultFunctionPrinter } from '@internal/framework-components/control';
+import {
+  assembleGeneratorFunctions,
+  type GeneratorFunctionContribution,
+} from '@internal/framework-components/components';
 import { postgresAuthoringFieldPresets, postgresAuthoringTypes } from '../../src/core/authoring';
 import { type AnyPostgresCodecDescriptor, postgresCodec } from '../../src/core/codec-descriptor';
 import { postgresDataTypeEntries } from '../../src/core/data-type-entries';
 import { pgText, postgresDataTypes } from '../../src/core/data-types';
+import { postgresTargetDescriptorMeta } from '../../src/core/descriptor-meta';
 import { postgresCodecDescriptorRegistry } from '../../src/core/registry';
-import { postgresPslTypeConstructors } from '../../src/core/type-constructors';
+import { postgresScalarAndNativeTypeConstructors } from '../../src/core/type-constructors';
 
 const citextTemplate: CodecDescriptorTemplate = {
   codecId: 'ext/citext@1',
@@ -36,29 +40,9 @@ export const extensionCodec: AnyPostgresCodecDescriptor = postgresCodec(citextTe
   },
 });
 
-/** The PSL calls of the default functions the Postgres adapter registers, as the printer reads them. */
-const adapterDefaultFunctionPrinters: ReadonlyMap<string, DefaultFunctionPrinter> = new Map<
-  string,
-  DefaultFunctionPrinter
->([
-  ['uuidv4', { functionName: 'uuid', printArguments: () => '' }],
-  ['uuidv7', { functionName: 'uuid', printArguments: () => '7' }],
-  ['cuid2', { functionName: 'cuid', printArguments: () => '2' }],
-  ['ulid', { functionName: 'ulid', printArguments: () => '' }],
-  [
-    'nanoid',
-    {
-      functionName: 'nanoid',
-      printArguments: (params) =>
-        typeof params?.['size'] === 'number' ? String(params['size']) : '',
-    },
-  ],
-]);
-
 /**
- * A stand-in for the stack the SQL family hands the printer: the target's own type constructors,
- * field presets, codecs and data types, the type constructors and default functions the adapter
- * contributes, and what `extra` adds. `extra.temporalPresets` joins the target's `temporal.*`
+ * A stand-in for the stack the SQL family hands the printer: the family's and the target's own type constructors and data types,
+ * field presets, codecs, data types and generator functions, the family's generator functions, and what `extra` adds. `extra.temporalPresets` joins the target's `temporal.*`
  * presets; `extra.fieldPresets` adds top-level field namespaces.
  */
 export function testBuildContext(
@@ -66,13 +50,15 @@ export function testBuildContext(
     readonly types?: AuthoringTypeNamespace;
     readonly temporalPresets?: AuthoringFieldNamespace;
     readonly fieldPresets?: AuthoringFieldNamespace;
-    readonly defaultFunctionPrinters?: ReadonlyMap<string, DefaultFunctionPrinter>;
+    readonly generatorFunctions?: readonly GeneratorFunctionContribution[];
     readonly componentIdsByGenerator?: ReadonlyMap<string, string | undefined>;
     readonly codecs?: readonly AnyPostgresCodecDescriptor[];
     readonly dataTypes?: readonly DataType[];
   } = {},
 ): SqlPslBuildContext {
   const extraCodecs = new Map((extra.codecs ?? []).map((codec) => [codec.codecId, codec]));
+  const descriptorFor = (codecId: string) =>
+    extraCodecs.get(codecId) ?? postgresCodecDescriptorRegistry.descriptorFor(codecId);
   const field: AuthoringFieldNamespace = {
     ...postgresAuthoringFieldPresets,
     temporal: { ...postgresAuthoringFieldPresets.temporal, ...extra.temporalPresets },
@@ -81,28 +67,40 @@ export function testBuildContext(
   return {
     authoringContributions: {
       type: {
+        ...sqlFamilyPack.authoring.type,
         ...postgresAuthoringTypes,
-        ...postgresPslTypeConstructors,
+        ...postgresScalarAndNativeTypeConstructors,
         ...extra.types,
       },
       field,
     },
-    fieldPresetsByCodecAndGenerator: assembleFieldPresetsByCodecAndGenerator(field),
-    defaultFunctionPrintersByGenerator: new Map([
-      ...adapterDefaultFunctionPrinters,
-      ...(extra.defaultFunctionPrinters ?? []),
+    generatorFunctions: assembleGeneratorFunctions([
+      sqlFamilyPack,
+      postgresTargetDescriptorMeta,
+      {
+        id: 'extension',
+        generatorFunctions: extra.generatorFunctions ?? [],
+        controlMutationDefaults: {
+          generatorDescriptors: (extra.generatorFunctions ?? [])
+            .flatMap(({ bindings }) => bindings.flatMap(({ generatorIds }) => generatorIds))
+            .map((id) => ({ id })),
+        },
+      },
     ]),
     componentIdsByGenerator: extra.componentIdsByGenerator ?? new Map(),
     codecLookup: {
       get: () => undefined,
       renderOutputTypeFor: () => undefined,
-      descriptorFor: (codecId) =>
-        extraCodecs.get(codecId) ?? postgresCodecDescriptorRegistry.descriptorFor(codecId),
+      descriptorFor,
     },
     dataTypes: {
-      entries: postgresDataTypeEntries(),
-      lookup: createDataTypeLookup([...postgresDataTypes, ...(extra.dataTypes ?? [])]),
-      dataTypeOfCodec: () => undefined,
+      entries: { ...sqlFamilyPack.authoring.dataTypes, ...postgresDataTypeEntries() },
+      lookup: createDataTypeLookup([
+        ...sqlFamilyPack.dataTypes,
+        ...postgresDataTypes,
+        ...(extra.dataTypes ?? []),
+      ]),
+      dataTypeOfCodec: (codecId) => descriptorFor(codecId)?.dataType,
     },
   };
 }

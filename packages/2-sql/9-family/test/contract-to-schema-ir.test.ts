@@ -11,7 +11,7 @@ import type {
 } from '@internal/framework-components/codec';
 import { createDataTypeLookup, emptyCodecLookup } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { sqlDataType } from '@internal/sql-contract/data-type';
+import { sqlDataType, sqlRawDataType } from '@internal/sql-contract/data-type';
 import {
   CheckConstraint,
   Index,
@@ -97,6 +97,14 @@ const enumType = sqlDataType('test/enum', {
   render: ({ typeName }) => `"${typeName}"`,
 });
 
+/** A data type unrelated to sql/raw whose name is its catalog text too. */
+const verbatimType = sqlDataType<{ name: string }>('test/verbatim', {
+  read: (json) => json,
+  params: type({ name: 'string' }),
+  nameIsCatalogText: true,
+  render: ({ name }) => name,
+});
+
 const dataTypeOfCodec: Readonly<Record<string, DataType>> = {
   'pg/text@1': textType,
   'sql/char@1': characterType,
@@ -107,6 +115,8 @@ const dataTypeOfCodec: Readonly<Record<string, DataType>> = {
   'pg/char@1': fixedCharacterType,
   'pg/enum@1': enumType,
   'test/code@1': codeType,
+  'sql/raw@1': sqlRawDataType,
+  'test/verbatim@1': verbatimType,
 };
 
 /** The codec of `pg/timestamptz@1`, the one a test reads a `Date` default with; it holds years from 2000. */
@@ -148,6 +158,8 @@ const testDataTypes = createDataTypeLookup([
   fixedCharacterType,
   codeType,
   enumType,
+  sqlRawDataType,
+  verbatimType,
 ]);
 
 function wrap(storage: SqlStorage): Contract<SqlStorage> {
@@ -306,7 +318,7 @@ describe('contractToSchemaIR', () => {
     );
   });
 
-  it('drops codecId and typeRef from columns, and every type parameter its data type does not declare', () => {
+  it('drops codecId from columns, and every type parameter its data type does not declare', () => {
     const storage = new SqlStorage({
       storageHash: 'test' as StorageHashBase<string>,
       namespaces: {
@@ -320,29 +332,16 @@ describe('contractToSchemaIR', () => {
                     codecId: 'pgvector/vector@1',
                     typeParams: { dimensions: 1536 },
                   }),
-                  b: col({
-                    codecId: 'pgvector/vector@1',
-                    typeRef: 'MyVector',
-                  }),
                 },
               }),
             },
           },
         }),
       },
-      types: {
-        MyVector: {
-          kind: 'codec-instance',
-          codecId: 'pgvector/vector@1',
-          dataType: 'pgvector/vector',
-          typeParams: { dimensions: 1536 },
-        },
-      },
     });
 
     const result = contractToSchemaIR(wrap(storage));
     const columnA = result.tables['T']!.columns['a']!;
-    const columnB = result.tables['T']!.columns['b']!;
 
     expect(columnA).toEqual(
       new SqlColumnIR({
@@ -353,17 +352,6 @@ describe('contractToSchemaIR', () => {
     );
     expect('codecId' in columnA).toBe(false);
     expect(columnA.storedTypeParams).toEqual({});
-    expect('typeRef' in columnA).toBe(false);
-    expect(columnB).toEqual(
-      new SqlColumnIR({
-        name: 'b',
-        typeText: 'vector',
-        nullable: false,
-      }),
-    );
-    expect('codecId' in columnB).toBe(false);
-    expect(columnB.storedTypeParams).toEqual({});
-    expect('typeRef' in columnB).toBe(false);
   });
 
   it('writes each column type from its codec data type and parameters', () => {
@@ -465,6 +453,42 @@ describe('contractToSchemaIR', () => {
     });
   });
 
+  it('writes a raw column as its sql text, compared with the type the database reports', () => {
+    const storage = unboundStorage('test' as StorageHashBase<string>, {
+      T: table({
+        columns: {
+          size: col({ codecId: 'sql/raw@1', typeParams: { sql: 'integer' } }),
+          tags: col({
+            codecId: 'sql/raw@1',
+            typeParams: { sql: 'tsvector' },
+            many: { elementNullable: false },
+          }),
+          name: col({ codecId: 'pg/text@1' }),
+          other: col({ codecId: 'test/verbatim@1', typeParams: { name: 'MyType' } }),
+        },
+      }),
+    });
+
+    const columns = contractToSchemaIR(wrap(storage)).tables['T']!.columns;
+    expect(
+      Object.fromEntries(
+        Object.entries(columns).map(([name, column]) => [
+          name,
+          {
+            typeText: column.typeText,
+            storedType: column.storedType?.id,
+            catalogText: column.catalogText,
+          },
+        ]),
+      ),
+    ).toEqual({
+      size: { typeText: 'integer', storedType: 'sql/raw', catalogText: 'integer' },
+      tags: { typeText: 'tsvector', storedType: 'sql/raw', catalogText: 'tsvector' },
+      name: { typeText: 'text', storedType: 'test/text', catalogText: undefined },
+      other: { typeText: 'MyType', storedType: 'test/verbatim', catalogText: 'MyType' },
+    });
+  });
+
   it('refuses a column whose codec the stack does not register', () => {
     const storage = unboundStorage('test' as StorageHashBase<string>, {
       T: table({ columns: { id: col({ codecId: 'test/unknown@1', dataType: 'test/unknown' }) } }),
@@ -475,7 +499,7 @@ describe('contractToSchemaIR', () => {
     );
   });
 
-  it('resolves typeRef against storage.types before writing the type', () => {
+  it("writes the type from the column's own parameters, not those of a registered database type", () => {
     const storage = new SqlStorage({
       storageHash: 'test' as StorageHashBase<string>,
       namespaces: {
@@ -489,7 +513,7 @@ describe('contractToSchemaIR', () => {
                     dataType: 'pgvector/vector',
                     codecId: 'pg/vector@1',
                     nullable: true,
-                    typeRef: 'Embedding1536',
+                    typeParams: { length: 768 },
                   }),
                 },
               }),
@@ -509,7 +533,7 @@ describe('contractToSchemaIR', () => {
 
     const result = contractToSchemaIR(wrap(storage));
 
-    expect(result.tables['Post']!.columns['embedding']!.typeText).toBe('vector(1536)');
+    expect(result.tables['Post']!.columns['embedding']!.typeText).toBe('vector(768)');
   });
 
   it('omits default field when column has no default', () => {
@@ -888,7 +912,7 @@ describe('contractToSchemaIR', () => {
                   embedding: col({
                     dataType: 'pgvector/vector',
                     codecId: 'pg/vector@1',
-                    typeRef: 'Embedding',
+                    typeParams: { length: 1536 },
                   }),
                 },
               }),

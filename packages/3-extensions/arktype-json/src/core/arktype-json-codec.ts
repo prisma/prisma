@@ -27,7 +27,7 @@ import {
   definePostgresCodecs,
   PostgresCodecDescriptor,
 } from '@internal/target-postgres/codec-descriptor';
-import { pgJsonb } from '@internal/target-postgres/data-types';
+import { pgJsonb, pgJsonbEnumRefusal } from '@internal/target-postgres/data-types';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { ArkErrors, ark, type Type, type } from 'arktype';
 
@@ -186,6 +186,7 @@ export class ArktypeJsonDescriptor extends PostgresCodecDescriptor<ArktypeJsonTy
   override readonly dataType = pgJsonb.id;
   override readonly codecId = ARKTYPE_JSON_CODEC_ID;
   override readonly traits = ['equality'] as const;
+  override readonly enumRefusal = pgJsonbEnumRefusal;
   override readonly paramsSchema: StandardSchemaV1<ArktypeJsonTypeParams> = arktypeJsonParamsSchema;
   override renderOutputType(params: ArktypeJsonTypeParams): string {
     return renderArktypeJsonOutputType(params);

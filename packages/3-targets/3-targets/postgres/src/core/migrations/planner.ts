@@ -1,4 +1,4 @@
-import type { Contract } from '@internal/contract/types';
+import { type Contract, governingControlPolicy } from '@internal/contract/types';
 import type {
   MigrationOperationPolicy,
   PlannedStatements,
@@ -10,7 +10,6 @@ import type {
 import {
   appliedStatementsInOrder,
   backfillOfDefaultedField,
-  controlPolicyForCall,
   detectTableNameCaseChanges,
   extractCodecControlHooks,
   fieldStatementColumns,
@@ -325,7 +324,6 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
 
     const codecHooks = extractCodecControlHooks(options.frameworkComponents);
     const types = sqlTypeLookupsOf(options.frameworkComponents);
-    const storageTypes = options.contract.storage.types ?? {};
     // Strategies get two views of the start state. `schema` is one namespace node, for probes by bare table name in the planned namespace (shared-temp-default safety, FK/unique probes); a flat merge of every namespace would collide same-named tables. `startTree` and `endTree` are the whole trees, for decisions that cross tables and namespaces, such as the foreign keys that depend on a primary key.
     const relationalSchema = relationalNamespaceNode(schema, schemaName);
 
@@ -384,7 +382,6 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       schemaName,
       codecHooks,
       types,
-      storageTypes,
       ...ifDefined('schema', relationalSchema),
       startTree: schema,
       endTree: expectedSchema,
@@ -975,7 +972,7 @@ function gradePolicyReplacement(
   allowedOperationClasses: readonly MigrationOperationClass[],
 ): PolicyReplacementDisposition {
   const subject = resolvePostgresCallControlPolicySubject(replacement.drop, contract);
-  const controlPolicy = controlPolicyForCall(subject, contract.defaultControlPolicy);
+  const controlPolicy = governingControlPolicy(subject, contract.defaultControlPolicy);
   if (controlPolicy !== 'managed') {
     return {
       disposition: 'suppress',

@@ -1,3 +1,4 @@
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 /**
  * Tests for PSL `policy_select` authoring:
  *
@@ -63,6 +64,7 @@ function blockResolutionBinder(
         pslBlockDescriptors: assembled.pslBlockDescriptors,
       },
       controlMutationDefaults: { defaultFunctionRegistry: new Map() },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: postgresDataTypeSupport,
     },
   }).binder;
@@ -184,6 +186,7 @@ namespace public {
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
       codecLookup: postgresCodecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: postgresDataTypeSupport,
       resolvedInputs: [],
       capabilities: { sql: { scalarList: true } },

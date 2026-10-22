@@ -75,18 +75,17 @@ describe('authoring template resolution', () => {
       validateAuthoringHelperArguments(
         'field.test',
         [
-          { kind: 'string' },
-          { kind: 'stringArray' },
+          { kind: 'value', dataType: 'demo/text' },
           {
             kind: 'object',
             properties: {
-              label: { kind: 'string' },
+              label: { kind: 'option', values: ['embedding'] },
               length: { kind: 'number', integer: true, minimum: 1, maximum: 3 },
             },
           },
           { kind: 'number', optional: true, minimum: 0 },
         ],
-        ['vector', ['a', 'b'], { label: 'embedding', length: 2 }, 0],
+        ['vector', { label: 'embedding', length: 2 }, 0],
       ),
     ).not.toThrow();
   });
@@ -95,7 +94,10 @@ describe('authoring template resolution', () => {
     expect(() =>
       validateAuthoringHelperArguments(
         'field.test',
-        [{ kind: 'string' }, { kind: 'number', optional: true }],
+        [
+          { kind: 'value', dataType: 'demo/text' },
+          { kind: 'number', optional: true },
+        ],
         ['name'],
       ),
     ).not.toThrow();
@@ -105,7 +107,7 @@ describe('authoring template resolution', () => {
     expect(() =>
       validateAuthoringHelperArguments(
         'field.test',
-        [{ kind: 'object', properties: { label: { kind: 'string' } } }],
+        [{ kind: 'object', properties: { label: { kind: 'number' } } }],
         [{}],
       ),
     ).toThrow('Authoring helper argument at field.test[0].label is missing');
@@ -113,23 +115,9 @@ describe('authoring template resolution', () => {
 
   it('rejects malformed helper argument values', () => {
     expect(() =>
-      validateAuthoringHelperArguments('field.test', [{ kind: 'string' }], [123]),
-    ).toThrow(/must be a string/);
-
-    expect(() =>
-      validateAuthoringHelperArguments('field.test', [{ kind: 'stringArray' }], [['ok', 1]]),
-    ).toThrow(/must be an array of strings/);
-
-    const sparseArray = new Array(2);
-    sparseArray[1] = 'id';
-    expect(() =>
-      validateAuthoringHelperArguments('field.test', [{ kind: 'stringArray' }], [sparseArray]),
-    ).toThrow(/must be an array of strings/);
-
-    expect(() =>
       validateAuthoringHelperArguments(
         'field.test',
-        [{ kind: 'object', properties: { label: { kind: 'string' } } }],
+        [{ kind: 'object', properties: { label: { kind: 'number' } } }],
         ['not-an-object'],
       ),
     ).toThrow(/must be an object/);
@@ -137,8 +125,8 @@ describe('authoring template resolution', () => {
     expect(() =>
       validateAuthoringHelperArguments(
         'field.test',
-        [{ kind: 'object', properties: { label: { kind: 'string' } } }],
-        [{ label: 'ok', extra: true }],
+        [{ kind: 'object', properties: { label: { kind: 'number' } } }],
+        [{ label: 1, extra: true }],
       ),
     ).toThrow(/contains unknown property "extra"/);
 
@@ -159,17 +147,34 @@ describe('authoring template resolution', () => {
     ).toThrow(/must be <= 2, received 3/);
   });
 
+  it('checks only that a value argument is present: its value is already a value of its data type', () => {
+    const descriptors = [{ kind: 'value', dataType: 'demo/int4', name: 'length' }] as const;
+    expect(() =>
+      validateAuthoringHelperArguments('type.Sized', descriptors, ['not a number']),
+    ).not.toThrow();
+    expect(() => validateAuthoringHelperArguments('type.Sized', descriptors, [undefined])).toThrow(
+      'Argument "length" of type.Sized is missing',
+    );
+  });
+
   it('rejects invalid helper argument counts', () => {
     expect(() =>
       validateAuthoringHelperArguments(
         'field.test',
-        [{ kind: 'string' }, { kind: 'number', optional: true }],
+        [
+          { kind: 'value', dataType: 'demo/text' },
+          { kind: 'number', optional: true },
+        ],
         [],
       ),
     ).toThrow(/expects 1-2 argument\(s\), received 0/);
 
     expect(() =>
-      validateAuthoringHelperArguments('field.test', [{ kind: 'string' }], ['a', 'b']),
+      validateAuthoringHelperArguments(
+        'field.test',
+        [{ kind: 'value', dataType: 'demo/text' }],
+        ['a', 'b'],
+      ),
     ).toThrow(/expects 1 argument\(s\), received 2/);
   });
 
@@ -177,7 +182,10 @@ describe('authoring template resolution', () => {
     expect(() =>
       validateAuthoringHelperArguments(
         'field.test',
-        [{ kind: 'number', optional: true }, { kind: 'string' }],
+        [
+          { kind: 'number', optional: true },
+          { kind: 'value', dataType: 'demo/text' },
+        ],
         [],
       ),
     ).toThrow(/expects 2 argument\(s\), received 0/);
@@ -185,7 +193,10 @@ describe('authoring template resolution', () => {
     expect(() =>
       validateAuthoringHelperArguments(
         'field.test',
-        [{ kind: 'number', optional: true }, { kind: 'string' }],
+        [
+          { kind: 'number', optional: true },
+          { kind: 'value', dataType: 'demo/text' },
+        ],
         [42],
       ),
     ).toThrow(/expects 2 argument\(s\), received 1/);
@@ -193,7 +204,10 @@ describe('authoring template resolution', () => {
     expect(() =>
       validateAuthoringHelperArguments(
         'field.test',
-        [{ kind: 'number', optional: true }, { kind: 'string' }],
+        [
+          { kind: 'number', optional: true },
+          { kind: 'value', dataType: 'demo/text' },
+        ],
         [42, 'hello'],
       ),
     ).not.toThrow();
@@ -612,14 +626,14 @@ describe('authoring template resolution', () => {
     it('rejects a select whose argument is not an option', () => {
       expect(
         check(
-          presetWith([{ name: 'onCreate', kind: 'string', optional: true }], {
+          presetWith([{ name: 'onCreate', kind: 'number', optional: true }], {
             kind: 'select',
             index: 0,
             cases: { now: { kind: 'generator', id: 'g' } },
           }),
         ),
       ).toThrow(
-        /Authoring field helper "stamped" select template references argument #1, which is kind "string"; select requires an option argument/,
+        /Authoring field helper "stamped" select template references argument #1, which is kind "number"; select requires an option argument/,
       );
     });
 
@@ -894,7 +908,7 @@ describe('collectScalarTypeConstructors', () => {
     const namespace = {
       Ref: {
         kind: 'typeConstructor',
-        args: [{ kind: 'string', name: 'entity', optional: true }],
+        args: [{ kind: 'value', dataType: 'pg/text', name: 'entity', optional: true }],
         entityRefArg: { index: 0, entityKind: 'native_enum' },
         output: { codecId: 'pg/enum@1' },
       },

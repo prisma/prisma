@@ -1,12 +1,15 @@
 import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
 import { PG_TIMESTAMPTZ_DATE_CODEC_ID } from './codec-ids';
 
+/** The data type of every size argument on Postgres, such as a length or a precision: a typmod is an `int4`. */
+export const PG_SIZE_TYPE = 'pg/int4' as const;
+
 /**
  * The base PSL scalars as zero-arg type constructors in the unified authoring
  * channel. Each names a codec; the column's database type is its data type's.
  *
  * The type position is the only storage decider: a mutation-default generator
- * (`@default(uuid())`) never re-picks a column's storage.
+ * (`@onCreate(uuid())`) never re-picks a column's storage.
  */
 export const postgresScalarAuthoringTypes = {
   String: {
@@ -75,7 +78,7 @@ export const postgresNativeAuthoringTypes = {
     kind: 'typeConstructor',
     inferred: true,
     documentation: 'Variable-length text with an optional maximum character length.',
-    args: [{ kind: 'number', name: 'length', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'length', optional: true }],
     output: {
       codecId: 'sql/varchar@1',
       typeParams: { length: { kind: 'arg', index: 0 } },
@@ -85,7 +88,7 @@ export const postgresNativeAuthoringTypes = {
     kind: 'typeConstructor',
     inferred: true,
     documentation: 'Fixed-length, blank-padded text with an optional character length.',
-    args: [{ kind: 'number', name: 'length', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'length', optional: true }],
     output: {
       codecId: 'sql/char@1',
       typeParams: { length: { kind: 'arg', index: 0 } },
@@ -96,8 +99,8 @@ export const postgresNativeAuthoringTypes = {
     inferred: true,
     documentation: 'An exact decimal value with optional precision and scale.',
     args: [
-      { kind: 'number', name: 'precision', integer: true, optional: true },
-      { kind: 'number', name: 'scale', integer: true, optional: true },
+      { kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true },
+      { kind: 'value', dataType: PG_SIZE_TYPE, name: 'scale', optional: true },
     ],
     output: {
       codecId: 'pg/numeric@1',
@@ -110,7 +113,7 @@ export const postgresNativeAuthoringTypes = {
   Timestamp: {
     kind: 'typeConstructor',
     documentation: 'A date and time without a time zone, represented as Temporal.PlainDateTime.',
-    args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
     output: {
       codecId: 'pg/timestamp-temporal@1',
       typeParams: { precision: { kind: 'arg', index: 0 } },
@@ -120,7 +123,7 @@ export const postgresNativeAuthoringTypes = {
     kind: 'typeConstructor',
     documentation:
       'An instant represented as Temporal.Instant, with optional fractional-second precision.',
-    args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
     output: {
       codecId: 'pg/timestamptz-temporal@1',
       typeParams: { precision: { kind: 'arg', index: 0 } },
@@ -129,7 +132,7 @@ export const postgresNativeAuthoringTypes = {
   Time: {
     kind: 'typeConstructor',
     documentation: 'A time of day without a time zone, represented as Temporal.PlainTime.',
-    args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
     output: {
       codecId: 'pg/time-temporal@1',
       typeParams: { precision: { kind: 'arg', index: 0 } },
@@ -139,7 +142,7 @@ export const postgresNativeAuthoringTypes = {
     kind: 'typeConstructor',
     inferred: true,
     documentation: 'A time of day with a UTC offset stored as PostgreSQL timetz.',
-    args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
     output: {
       codecId: 'pg/timetz@1',
       typeParams: { precision: { kind: 'arg', index: 0 } },
@@ -187,7 +190,7 @@ export const postgresNativeAuthoringTypes = {
     kind: 'typeConstructor',
     inferred: true,
     documentation: 'A timestamp without a time zone represented as PostgreSQL text.',
-    args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
     output: {
       codecId: 'pg/timestamp-string@1',
       typeParams: { precision: { kind: 'arg', index: 0 } },
@@ -197,7 +200,7 @@ export const postgresNativeAuthoringTypes = {
     kind: 'typeConstructor',
     documentation:
       'An instant stored as PostgreSQL timestamptz and represented as a JavaScript Date.',
-    args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
     output: {
       codecId: PG_TIMESTAMPTZ_DATE_CODEC_ID,
       typeParams: { precision: { kind: 'arg', index: 0 } },
@@ -207,7 +210,7 @@ export const postgresNativeAuthoringTypes = {
     kind: 'typeConstructor',
     inferred: true,
     documentation: 'A timestamp with time zone represented as PostgreSQL text.',
-    args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
     output: {
       codecId: 'pg/timestamptz-string@1',
       typeParams: { precision: { kind: 'arg', index: 0 } },
@@ -217,7 +220,7 @@ export const postgresNativeAuthoringTypes = {
     kind: 'typeConstructor',
     inferred: true,
     documentation: 'A time of day without a time zone represented as PostgreSQL text.',
-    args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
     output: {
       codecId: 'pg/time-string@1',
       typeParams: { precision: { kind: 'arg', index: 0 } },
@@ -227,7 +230,7 @@ export const postgresNativeAuthoringTypes = {
     kind: 'typeConstructor',
     inferred: true,
     documentation: 'A fixed-length bit string with an optional length in bits.',
-    args: [{ kind: 'number', name: 'length', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'length', optional: true }],
     output: {
       codecId: 'pg/bit@1',
       typeParams: { length: { kind: 'arg', index: 0 } },
@@ -237,7 +240,7 @@ export const postgresNativeAuthoringTypes = {
     kind: 'typeConstructor',
     inferred: true,
     documentation: 'A variable-length bit string with an optional maximum length in bits.',
-    args: [{ kind: 'number', name: 'length', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'length', optional: true }],
     output: {
       codecId: 'pg/varbit@1',
       typeParams: { length: { kind: 'arg', index: 0 } },
@@ -248,7 +251,7 @@ export const postgresNativeAuthoringTypes = {
     inferred: true,
     documentation:
       'A span of time stored as PostgreSQL interval, with optional fractional-second precision.',
-    args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
+    args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
     output: {
       codecId: 'pg/interval@1',
       typeParams: { precision: { kind: 'arg', index: 0 } },
@@ -257,9 +260,9 @@ export const postgresNativeAuthoringTypes = {
 } as const satisfies AuthoringTypeNamespace;
 
 /**
- * The constructors only PSL offers, defined here next to the codecs they name. The adapter contributes them: the TypeScript contract builder builds its `type.*` helpers from the target, so a target contribution would add `type.String()` and the like there. The constructors that should also be `type.*` helpers are the target's own, in `postgresAuthoringTypes`.
+ * The base scalars and native types as type constructors. The target contributes them, so PSL and the TypeScript builder's `type.*` see the same names.
  */
-export const postgresPslTypeConstructors = {
+export const postgresScalarAndNativeTypeConstructors = {
   ...postgresScalarAuthoringTypes,
   ...postgresNativeAuthoringTypes,
 } as const satisfies AuthoringTypeNamespace;

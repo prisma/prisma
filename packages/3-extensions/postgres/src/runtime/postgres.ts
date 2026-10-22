@@ -1,8 +1,8 @@
 import postgresAdapter from '@internal/adapter-postgres/runtime';
 import type { Contract } from '@internal/contract/types';
 import postgresDriver, { suppressIdleConnectionErrors } from '@internal/driver-postgres/runtime';
-import { instantiateExecutionStack } from '@internal/framework-components/execution';
 import type { SqlStorage } from '@internal/sql-contract/types';
+import type { CollectionClasses, NoCollectionClasses } from '@internal/sql-orm-client';
 import type { Runtime } from '@internal/sql-runtime';
 import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
 import postgresTarget from '@internal/target-postgres/runtime';
@@ -20,6 +20,7 @@ import {
 import {
   buildPostgresRuntimeBoundMembers,
   type PostgresLifecycleMembers,
+  type PostgresQueryMembers,
   type PostgresRuntimeBoundMembers,
   type PostgresStaticMembers,
 } from './postgres-members';
@@ -33,9 +34,12 @@ import {
 import { PostgresRuntimeImpl } from './postgres-runtime';
 import type { PostgresTargetId } from './postgres-target-id';
 
-export interface PostgresClient<TContract extends Contract<SqlStorage>>
-  extends PostgresStaticMembers<TContract>,
-    PostgresRuntimeBoundMembers<TContract>,
+export interface PostgresClient<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
+> extends PostgresQueryMembers<TContract, TCollections>,
+    PostgresStaticMembers<TContract>,
+    PostgresRuntimeBoundMembers<TContract, TCollections>,
     PostgresLifecycleMembers {
   connect(bindingInput?: PostgresBindingInput): Promise<Runtime>;
 }
@@ -53,15 +57,19 @@ export interface PostgresBindingOptions {
   readonly pg?: Pool | Client;
 }
 
-export type PostgresOptions<TContract extends Contract<SqlStorage>> = PostgresBindingOptions &
+export type PostgresOptions<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
+> = PostgresBindingOptions &
   PostgresOptionsBase & {
     readonly contract: TContract;
+    readonly collections?: TCollections;
   };
 
-function toRuntimeBinding<TContract extends Contract<SqlStorage>>(
-  binding: PostgresBinding,
-  options: PostgresOptions<TContract>,
-) {
+function toRuntimeBinding<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses,
+>(binding: PostgresBinding, options: PostgresOptions<TContract, TCollections>) {
   if (binding.kind !== 'url') {
     return binding;
   }
@@ -96,9 +104,10 @@ function toRuntimeBinding<TContract extends Contract<SqlStorage>>(
  * export const db = postgres({ contract, url: process.env['DATABASE_URL']! });
  * ```
  */
-export default function postgres<TContract extends Contract<SqlStorage>>(
-  options: PostgresOptions<TContract>,
-): PostgresClient<TContract> {
+export default function postgres<
+  TContract extends Contract<SqlStorage>,
+  TCollections extends CollectionClasses = NoCollectionClasses,
+>(options: PostgresOptions<TContract, TCollections>): PostgresClient<TContract, TCollections> {
   const cursor = validateCursorOptions(options.cursor, 'postgres');
   const contract = validatePostgresContract(options.contract);
   let binding = resolveOptionalPostgresBinding(options);
@@ -120,7 +129,8 @@ export default function postgres<TContract extends Contract<SqlStorage>>(
     raw: rawSqlTag,
     enums,
     nativeEnums,
-  } = buildPostgresStaticContext<TContract>(contract, context, stack.adapter.rawCodecInferer);
+    toSql,
+  } = buildPostgresStaticContext<TContract>(contract, context, stack);
 
   let runtimeInstance: Runtime | undefined;
   let runtimeDriver: { connect(binding: unknown): Promise<void> } | undefined;
@@ -173,7 +183,7 @@ export default function postgres<TContract extends Contract<SqlStorage>>(
       return runtimeInstance;
     }
 
-    const stackInstance = instantiateExecutionStack(stack);
+    const adapter = stack.adapter.create(stack);
     const driverDescriptor = stack.driver;
     if (!driverDescriptor) {
       throw new InternalError('Driver descriptor missing from execution stack');
@@ -186,7 +196,7 @@ export default function postgres<TContract extends Contract<SqlStorage>>(
     // A client is shared by many callers, so its runtime stops admitting work when close() is called.
     const runtime = new PostgresRuntimeImpl({
       context,
-      adapter: stackInstance.adapter,
+      adapter,
       driver,
       ...toRuntimeOptions(options),
       closeRefusal: 'at-once',
@@ -209,11 +219,13 @@ export default function postgres<TContract extends Contract<SqlStorage>>(
     }
   };
 
-  const runtimeBoundMembers = buildPostgresRuntimeBoundMembers<TContract>({
+  const runtimeBoundMembers = buildPostgresRuntimeBoundMembers<TContract, TCollections>({
     context,
+    collections: options.collections,
     rawCodecInferer: stack.adapter.rawCodecInferer,
     enums,
     nativeEnums,
+    toSql,
     getRuntime,
     getRuntimeForWork: getRuntime,
   });
@@ -224,6 +236,7 @@ export default function postgres<TContract extends Contract<SqlStorage>>(
     enums,
     nativeEnums,
     raw: rawSqlTag,
+    toSql,
     context,
     contract,
     stack,

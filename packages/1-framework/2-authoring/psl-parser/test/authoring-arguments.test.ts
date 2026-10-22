@@ -2,7 +2,8 @@ import type { ContractSourceDiagnostic } from '@internal/config/config-types';
 import type { AuthoringArgumentDescriptor } from '@internal/framework-components/authoring';
 import type { PslSpan } from '@internal/framework-components/psl-ast';
 import { describe, expect, it } from 'vitest';
-import { mapPslHelperArgs, parsePslPositionalArgs } from '../src/authoring-arguments';
+import { EMPTY_DATA_TYPES } from '../src/attribute-spec/spec-context';
+import { mapPslHelperArgs } from '../src/authoring-arguments';
 import { createPslDiagnosticCollector, diagnosticSource } from '../src/diagnostic';
 import { parse } from '../src/parse';
 import type { ResolvedAttributeArg } from '../src/resolve';
@@ -34,28 +35,12 @@ function callMap(
     diagnostics,
     source: diagnosticSource(sources, document.syntax),
     entityLabel: 'Field "Model.field"',
+    dataTypes: EMPTY_DATA_TYPES,
   });
   return { result, diagnostics: diagnostics.toExternal() };
 }
 
 describe('mapPslHelperArgs argument kinds', () => {
-  it('unquotes a string-kind argument', () => {
-    const { result, diagnostics } = callMap([positional('"hello"')], [{ kind: 'string' }]);
-    expect(result).toEqual(['hello']);
-    expect(diagnostics).toHaveLength(0);
-  });
-
-  it('parses a boolean-kind argument', () => {
-    expect(callMap([positional('true')], [{ kind: 'boolean' }]).result).toEqual([true]);
-    expect(callMap([positional('false')], [{ kind: 'boolean' }]).result).toEqual([false]);
-  });
-
-  it('rejects a boolean-kind argument that is neither true nor false', () => {
-    const { result, diagnostics } = callMap([positional('maybe')], [{ kind: 'boolean' }]);
-    expect(result).toBeUndefined();
-    expect(diagnostics[0]?.message).toMatch(/cannot parse argument #1/);
-  });
-
   it('parses a number-kind argument', () => {
     expect(callMap([positional('42')], [{ kind: 'number' }]).result).toEqual([42]);
     expect(callMap([positional('-3.5')], [{ kind: 'number' }]).result).toEqual([-3.5]);
@@ -65,27 +50,6 @@ describe('mapPslHelperArgs argument kinds', () => {
     const { result, diagnostics } = callMap([positional('not-a-number')], [{ kind: 'number' }]);
     expect(result).toBeUndefined();
     expect(diagnostics[0]?.code).toBe('PSL_INVALID_ATTRIBUTE_ARGUMENT');
-  });
-
-  it('parses a stringArray-kind argument', () => {
-    const { result, diagnostics } = callMap(
-      [positional('["a", "b", "c"]')],
-      [{ kind: 'stringArray' }],
-    );
-    expect(result).toEqual([['a', 'b', 'c']]);
-    expect(diagnostics).toHaveLength(0);
-  });
-
-  it('rejects a stringArray-kind argument that is not an array literal', () => {
-    const { result, diagnostics } = callMap([positional('{a: 1}')], [{ kind: 'stringArray' }]);
-    expect(result).toBeUndefined();
-    expect(diagnostics).toHaveLength(1);
-  });
-
-  it('rejects a stringArray-kind argument containing a non-string element', () => {
-    const { result, diagnostics } = callMap([positional('[1, 2]')], [{ kind: 'stringArray' }]);
-    expect(result).toBeUndefined();
-    expect(diagnostics).toHaveLength(1);
   });
 
   it('parses an object-kind argument as strict JSON', () => {
@@ -276,24 +240,24 @@ describe('mapPslHelperArgs JS-like object/array literal parsing', () => {
 describe('mapPslHelperArgs positional/named dispatch', () => {
   const descriptors: readonly AuthoringArgumentDescriptor[] = [
     { kind: 'number', name: 'x' },
-    { kind: 'string', name: 'y' },
+    { kind: 'option', name: 'y', values: ['two'] },
   ];
 
   it('maps positional arguments in order', () => {
-    const { result, diagnostics } = callMap([positional('1'), positional('"two"')], descriptors);
+    const { result, diagnostics } = callMap([positional('1'), positional('two')], descriptors);
     expect(result).toEqual([1, 'two']);
     expect(diagnostics).toHaveLength(0);
   });
 
   it('maps named arguments by descriptor name, in any order', () => {
-    const { result, diagnostics } = callMap([named('y', '"two"'), named('x', '1')], descriptors);
+    const { result, diagnostics } = callMap([named('y', 'two'), named('x', '1')], descriptors);
     expect(result).toEqual([1, 'two']);
     expect(diagnostics).toHaveLength(0);
   });
 
   it('rejects more positional arguments than the helper declares', () => {
     const { result, diagnostics } = callMap(
-      [positional('1'), positional('"two"'), positional('"extra"')],
+      [positional('1'), positional('two'), positional('extra')],
       descriptors,
     );
     expect(result).toBeUndefined();
@@ -327,35 +291,10 @@ describe('mapPslHelperArgs positional/named dispatch', () => {
   it('rejects a positional argument at an index the descriptor array does not define', () => {
     const sparseDescriptors = [
       undefined,
-      { kind: 'string', name: 'y' },
+      { kind: 'option', name: 'y', values: ['y'] },
     ] as unknown as readonly AuthoringArgumentDescriptor[];
-    const { result, diagnostics } = callMap(
-      [positional('"x"'), positional('"y"')],
-      sparseDescriptors,
-    );
+    const { result, diagnostics } = callMap([positional('1'), positional('y')], sparseDescriptors);
     expect(result).toBeUndefined();
     expect(diagnostics[0]?.message).toMatch(/does not define positional argument #1/);
-  });
-});
-
-describe('parsePslPositionalArgs', () => {
-  const descriptors = [
-    { kind: 'number', name: 'precision', integer: true },
-    { kind: 'number', name: 'scale', integer: true, optional: true },
-  ] as const;
-
-  it('reads each positional argument as its descriptor says, as the PSL reader does', () => {
-    expect(parsePslPositionalArgs(descriptors, ['5', '-2'])).toEqual([5, -2]);
-  });
-
-  it('reads fewer arguments than descriptors', () => {
-    expect(parsePslPositionalArgs(descriptors, ['10'])).toEqual([10]);
-  });
-
-  it('answers undefined for more arguments than descriptors or one that does not parse', () => {
-    expect([
-      parsePslPositionalArgs(descriptors, ['1', '2', '3']),
-      parsePslPositionalArgs(descriptors, ['ten']),
-    ]).toEqual([undefined, undefined]);
   });
 });

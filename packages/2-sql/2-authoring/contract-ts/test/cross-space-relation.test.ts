@@ -226,6 +226,7 @@ describe('cross-space belongsTo relation with no statically readable target tabl
       family: bareFamilyPack,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
+      ...testTypeLookups,
       extensions: { supabase: supabasePack },
       models: { LineNote },
     });

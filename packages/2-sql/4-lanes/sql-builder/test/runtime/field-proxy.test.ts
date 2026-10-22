@@ -68,7 +68,7 @@ describe('createFieldProxy', () => {
           codecId: 'pgvector/vector@1',
           dataType: 'pgvector/vector',
           nullable: false,
-          typeRef: 'Embedding1536',
+          typeParams: { length: 1536 },
         },
       },
       primaryKey: { columns: ['embedding'] },
@@ -85,14 +85,6 @@ describe('createFieldProxy', () => {
             table: { Post: table },
           },
         }),
-      },
-      types: {
-        Embedding1536: {
-          kind: 'codec-instance',
-          codecId: 'pgvector/vector@1',
-          dataType: 'pgvector/vector',
-          typeParams: { length: 1536 },
-        },
       },
     });
     const scope = tableToScope('post_alias', table, {

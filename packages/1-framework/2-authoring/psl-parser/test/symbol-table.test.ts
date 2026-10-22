@@ -591,7 +591,7 @@ describe('buildSymbolTable() — resolved field shape', () => {
     const result = build(
       [
         'model M {',
-        '  id String @default(uuid(7))',
+        '  id String @onCreate(uuid(7))',
         '  @@index([firstName, lastName])',
         '  @@index([title], options: { tokenizer: "ngram" })',
         '}',
@@ -599,7 +599,7 @@ describe('buildSymbolTable() — resolved field shape', () => {
     );
     const model = result.symbolTable.defaultNamespace.models['M'];
 
-    const fnArg = model?.fields['id']?.attributes.find((a) => a.name === 'default')?.args[0];
+    const fnArg = model?.fields['id']?.attributes.find((a) => a.name === 'onCreate')?.args[0];
     expect(fnArg?.value).toBe('uuid(7)');
 
     const arrayArg = model?.attributes[0]?.args[0];

@@ -1,4 +1,3 @@
-import type { AuthoredStorageTypeInstance } from '@internal/sql-contract/types';
 import {
   type ContractModelBuilder,
   type ModelAttributesSpec,
@@ -25,7 +24,6 @@ type RuntimeModelSpec = {
 };
 
 type RuntimeCollection = {
-  readonly storageTypes: Record<string, AuthoredStorageTypeInstance>;
   readonly models: Record<string, RuntimeModel>;
   readonly modelSpecs: ReadonlyMap<string, RuntimeModelSpec>;
 };
@@ -118,7 +116,7 @@ function flushWarnings(warnings: readonly string[]): void {
 
   process.emitWarning(
     `${warnings.length} contract references use string fallbacks where typed alternatives are available. ` +
-      'Use named model tokens and typed storage type refs for autocomplete and type safety.\n' +
+      'Use named model tokens for autocomplete and type safety.\n' +
       warnings.map((w) => `  - ${w}`).join('\n'),
     { code: 'PN_CONTRACT_TYPED_FALLBACK_AVAILABLE' },
   );
@@ -129,36 +127,6 @@ function formatFallbackWarning(location: string, current: string, suggested: str
     `Contract ${location} uses ${current}. ` +
     `Use ${suggested} when the named model token is available in the same contract to keep typed relation targets and model refs.`
   );
-}
-
-export function emitTypedNamedTypeFallbackWarnings(
-  models: Record<string, RuntimeModel>,
-  storageTypes: Record<string, AuthoredStorageTypeInstance>,
-): void {
-  const warnings: string[] = [];
-  const warnedFields = new Set<string>();
-
-  for (const [modelName, modelDefinition] of Object.entries(models)) {
-    for (const [fieldName, fieldBuilder] of Object.entries(modelDefinition.stageOne.fields)) {
-      const fieldState = fieldBuilder.build();
-      if (typeof fieldState.typeRef !== 'string' || !(fieldState.typeRef in storageTypes)) {
-        continue;
-      }
-
-      const warningKey = `${modelName}.${fieldName}`;
-      if (warnedFields.has(warningKey)) {
-        continue;
-      }
-      warnedFields.add(warningKey);
-
-      warnings.push(
-        `Contract field "${modelName}.${fieldName}" uses field.namedType('${fieldState.typeRef}'). ` +
-          `Use field.namedType(types.${fieldState.typeRef}) when the storage type is declared in the same contract to keep autocomplete and typed local refs.`,
-      );
-    }
-  }
-
-  flushWarnings(warnings);
 }
 
 export function emitTypedCrossModelFallbackWarnings(collection: RuntimeCollection): void {

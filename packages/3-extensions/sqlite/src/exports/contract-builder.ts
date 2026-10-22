@@ -25,3 +25,4 @@ export {
 } from '@internal/sql-contract-ts/contract-builder';
 export { defineContract } from '../contract/define-contract';
 export { enumType } from '../contract/enum-type';
+export { gen } from '../contract/gen';

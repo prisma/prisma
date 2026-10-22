@@ -1,4 +1,7 @@
-import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
+import type {
+  AuthoringTypeNamespace,
+  DataTypeSupport,
+} from '@internal/framework-components/authoring';
 import type { AnyCodecDescriptor } from '@internal/framework-components/codec';
 import { createDataTypeLookup } from '@internal/framework-components/codec';
 import { sqlDataType } from '@internal/sql-contract/data-type';
@@ -10,7 +13,7 @@ import { type IntrospectedTable, inferColumnTypes } from '../../src/core/psl-bui
 import {
   fewestArgumentsCall,
   inferredTypeConstructors,
-  pslTypeArgumentText,
+  writtenTypeArguments,
 } from '../../src/core/psl-build/inferred-type-constructors';
 
 const numeric = sqlDataType('t/numeric', {
@@ -33,6 +36,11 @@ const text = sqlDataType('t/text', {
   texts: [{ text: 'text', written: true, catalog: true }],
 });
 
+const int = sqlDataType('t/int', {
+  read: (json) => json,
+  texts: [{ text: 'int', written: true, catalog: true }],
+});
+
 const labelled = sqlDataType('t/labelled', {
   read: (json) => json,
   params: type({ label: 'string' }),
@@ -47,8 +55,8 @@ const authoringTypes = {
     kind: 'typeConstructor',
     inferred: true,
     args: [
-      { kind: 'number', name: 'precision', integer: true, optional: true },
-      { kind: 'number', name: 'scale', integer: true, optional: true },
+      { kind: 'value', dataType: 't/int', name: 'precision', optional: true },
+      { kind: 'value', dataType: 't/int', name: 'scale', optional: true },
     ],
     output: {
       codecId: 't/numeric@1',
@@ -62,7 +70,7 @@ const authoringTypes = {
     Labelled: {
       kind: 'typeConstructor',
       inferred: true,
-      args: [{ kind: 'string', name: 'label' }],
+      args: [{ kind: 'value', dataType: 't/text', name: 'label' }],
       output: { codecId: 't/labelled@1', typeParams: { label: { kind: 'arg', index: 0 } } },
     },
   },
@@ -84,6 +92,29 @@ const constructors = inferredTypeConstructors({
   },
   dataTypeLookup: createDataTypeLookup([numeric, text, labelled]),
 });
+
+const dataTypes: DataTypeSupport = {
+  entries: {
+    [int.id]: {
+      written: {
+        kind: 'plain',
+        syntax: 'number',
+        types: [int.id],
+        classify: (written) =>
+          /^\d+$/.test(written) ? { type: int.id, value: Number(written) } : undefined,
+      },
+      print: String,
+      documentation: 'A whole number.',
+    },
+    [text.id]: {
+      written: { kind: 'plain', syntax: 'string', parse: (written) => written },
+      print: String,
+      documentation: 'Text.',
+    },
+  },
+  lookup: createDataTypeLookup([int, numeric, text, labelled]),
+  dataTypeOfCodec: () => undefined,
+};
 
 describe('inferredTypeConstructors', () => {
   it('finds the marked constructor of each data type, by its path', () => {
@@ -131,28 +162,27 @@ const catalog = (text: string): ReportedSqlType => ({
   name: undefined,
 });
 
-describe('pslTypeArgumentText', () => {
-  it('writes a number, a boolean and a string PSL reads back', () => {
+describe('writtenTypeArguments', () => {
+  const numericConstructor = authoringTypes.Numeric;
+
+  it('writes each value argument as a literal of its data type', () => {
     expect([
-      pslTypeArgumentText(3),
-      pslTypeArgumentText(true),
-      pslTypeArgumentText('Point'),
-    ]).toEqual(['3', 'true', '"Point"']);
+      writtenTypeArguments(numericConstructor, [10, 2], dataTypes),
+      writtenTypeArguments(authoringTypes.ext.Labelled, ['say "hi"'], dataTypes),
+    ]).toEqual([['10', '2'], ['"say \\"hi\\""']]);
   });
 
-  it('writes nothing for a value PSL cannot read back as one argument', () => {
+  it('writes nothing for a value no literal of its data type reads back as', () => {
     expect([
-      pslTypeArgumentText(['a', 'b']),
-      pslTypeArgumentText({ srid: 4326 }),
-      pslTypeArgumentText(null),
-      pslTypeArgumentText('say "hi"'),
-    ]).toEqual([undefined, undefined, undefined, undefined]);
+      writtenTypeArguments(numericConstructor, [-1], dataTypes),
+      writtenTypeArguments(numericConstructor, [{ precision: 1 }], dataTypes),
+    ]).toEqual([undefined, undefined]);
   });
 });
 
 describe('inferColumnTypes', () => {
   const infer = (tables: readonly IntrospectedTable[]) =>
-    inferColumnTypes({ tables, constructors, isEnumColumn: () => false });
+    inferColumnTypes({ tables, constructors, dataTypes, isEnumColumn: () => false });
 
   it("writes each column as its data type's marked constructor, quoting a string argument", () => {
     const typeOf = infer([
@@ -171,8 +201,8 @@ describe('inferColumnTypes', () => {
       },
     ]);
     expect({ amount: typeOf('thing', 'amount'), label: typeOf('thing', 'label') }).toEqual({
-      amount: { path: ['Numeric'], args: ['10'] },
-      label: { path: ['ext', 'Labelled'], args: ['"gold"'] },
+      amount: { path: ['Numeric'], args: ['10'], values: [10] },
+      label: { path: ['ext', 'Labelled'], args: ['"gold"'], values: ['gold'] },
     });
   });
 
@@ -189,7 +219,7 @@ describe('inferColumnTypes', () => {
     ).toThrow(
       expect.objectContaining({
         code: 'CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED',
-        fix: "No configured pack has a type for these columns. If a type comes from a database extension that has a Prisma 8 pack, add the pack to extensions in prisma.config.ts. Otherwise change the column's type or remove the column from the database.",
+        fix: `No configured pack has a type for these columns. If a type comes from a database extension that has a Prisma 8 pack, add the pack to extensions in prisma.config.ts. Otherwise, to keep such a column, write the schema by hand and declare its field as Raw(sql\`<type>\`) with the type as listed, or change the column's type or remove the column from the database.`,
         meta: { columns: ['public.alpha.meta: hstore', 'public.zeta.tags: tsquery[]'] },
       }),
     );

@@ -13,7 +13,7 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { isSqlDataType, validateSqlTypeParams } from '@internal/sql-contract/data-type';
 import {
   isStorageTypeInstance,
-  resolvedTypeParams,
+  nonEmptyTypeParams,
   type SqlModelStorage,
   type SqlStorage,
   type StorageTable,
@@ -129,7 +129,7 @@ function refusedDefaults(storage: SqlStorage, dataTypes: DataTypeLookup): readon
       if (columnDefault?.kind !== 'literal') return [];
       const type = dataTypes.get(column.dataType);
       if (type === undefined) return [];
-      const params = dataTypeParams(type, resolvedTypeParams(column, storage.types));
+      const params = dataTypeParams(type, nonEmptyTypeParams(column.typeParams));
       if (refusesParams(type, params)) return [];
       const place = { namespaceId, table: tableName, column: columnName, dataType: type.id };
       const isList = column.many !== undefined && column.many !== false;

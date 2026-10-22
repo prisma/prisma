@@ -1,23 +1,18 @@
 import type { SqlControlAdapterDescriptor } from '@internal/family-sql/control';
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import { assembleSqliteCodecRegistry } from '@internal/target-sqlite/codecs';
-import { sqlitePslTypeConstructors } from '@internal/target-sqlite/control';
 import { SqliteControlAdapter } from '../core/control-adapter';
-import {
-  createSqliteDefaultFunctionRegistry,
-  createSqliteMutationDefaultGeneratorDescriptors,
-} from '../core/control-mutation-defaults';
+import { createSqliteDefaultFunctionRegistry } from '../core/control-mutation-defaults';
 import { sqliteAdapterDescriptorMeta } from '../core/descriptor-meta';
 
 const sqliteAdapterDescriptor: SqlControlAdapterDescriptor<'sqlite'> = {
   ...sqliteAdapterDescriptorMeta,
   authoring: {
-    type: sqlitePslTypeConstructors,
     valueObjectStorageType: 'Json',
   },
   controlMutationDefaults: {
     defaultFunctionRegistry: createSqliteDefaultFunctionRegistry(),
-    generatorDescriptors: createSqliteMutationDefaultGeneratorDescriptors(),
+    generatorDescriptors: [],
   },
   create(stack): SqlControlAdapter<'sqlite'> {
     const codecRegistry = assembleSqliteCodecRegistry(stack.target, stack.extensions);

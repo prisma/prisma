@@ -77,8 +77,10 @@ await db.orm.public.User.first({ id: 1 }, (meta) => meta.annotate(cacheAnnotatio
 
 ## Basic Usage
 
+An application reaches the ORM through its client, `postgres()`, `postgresServerless()`'s connections, `sqlite()` or `supabase()`'s role-bound clients:
+
 ```ts
-const db = orm({ contract, runtime });
+const db = postgres({ contract, url }).orm.public;
 
 const posts = await db.Post
   .where((post) => post.userId.eq(userId))
@@ -138,19 +140,25 @@ The registry is global to a program: if anything in the program imports a packag
 
 ## Custom collections
 
-An application extends `Collection` with its own query methods and registers the class with `orm({ collections })`:
+An application extends `Collection` with its own query methods and passes the class to its database client with the `collections` option:
 
 ```ts
+import { Collection } from '@prisma/orm-postgres/orm-client';
+import postgres from '@prisma/orm-postgres/runtime';
+
 class PostCollection extends Collection<Contract, 'Post'> {
   withTitle(term: string) { return this.where((p) => p.title.ilike(`%${term}%`)); }
   newestFirst()           { return this.orderBy((p) => p.createdAt.desc()); }
 }
 
-const db = orm({ runtime, context, collections: { Post: PostCollection } }).public;
+const client = postgres({ contract, url, collections: { Post: PostCollection } });
+const db = client.orm.public;
 
 db.Post.where({ userId }).withTitle('orm').newestFirst().limit(10).all();
 db.Post.include('user').withTitle('orm');
 ```
+
+Every SQL client takes the option: `postgres()`, `postgresServerless()` (every connection), `sqlite()` and `supabase()` (every role-bound client). The classes reach every ORM the client offers, including `tx.orm` inside `client.transaction(...)`, where `tx` offers the client's query members (`sql`, `orm`, `raw`, `prepare`, `query`, `execute`) with the same types, and the client's type carries them as its second type parameter, such as `PostgresClient<Contract, { Post: typeof PostCollection }>`. The clients are built on `orm({ runtime, context, collections })`, which takes the same classes; an application has no reason to call it.
 
 `where`, `orderBy`, `limit`, `offset`, `distinct`, `distinctOn`, `cursor` and `include` return the collection they were called on, so the class's methods stay available. What a chain has established is added to the type as a fact: `where` gives `Filtered<Self>`, `orderBy` gives `Ordered<Self>`, and `include` gives `Including<Self, ...>`, whose rows also have the included relation. Write a filtered collection's type as `Filtered<C>`; it is `C & HasWhere`, and `HasWhere` is the name error messages print. `select` changes the row and `variant` changes the collection's type argument, so both return the base `Collection` type and the class's methods are gone after them.
 
@@ -168,7 +176,7 @@ The type state holds the flags `hasWhere` and `hasOrderBy`. A flag that has not 
 
 A piece of a query shared between places is a function. A **row fragment** is a function of the model accessor, and `where` and `orderBy` take it. A **query fragment**, or **fragment** for short, is a function from a collection to a collection, and `with` runs it. A **scope** is a fragment that only imposes conditions on the query, such as `notDeleted` below, and is also run with `with`. When the condition is a function of one row and needs no declared fields, pass a row fragment to `where`. When the same condition should apply to every model that has some fields, write a scope: it declares the fields, checks them at run time, and returns the receiver with the `Filtered` fact. `with` also runs what `where` cannot express, such as a shared `select` and `include`, an order, a limit or offset, or a variant. Three helpers make the fragments TypeScript cannot type on its own. See [ADR 259](../../../docs/architecture%20docs/adrs/ADR%20259%20-%20Query%20fragments%20are%20functions.md).
 
-**A fragment for any model with given fields.** The client's `fragment` method, `fragment(fields, body)` on the client `orm()` returns (`db.orm.fragment` on the Postgres client), declares the fields the fragment needs and returns a fragment for every model that has them:
+**A fragment for any model with given fields.** The client's `fragment` method, `fragment(fields, body)` on the client `orm()` returns (`db.orm.fragment` and `tx.orm.fragment` on the Postgres and SQLite clients; SQLite offers it beside the models, unless a model is named `fragment`), declares the fields the fragment needs and returns a fragment for every model that has them:
 
 ```ts
 import { field } from '@prisma/orm-postgres/contract-builder';
@@ -319,7 +327,7 @@ for await (const row of rows) {
 }
 ```
 
-`query(target, params, options?)` requires an explicit compatible runtime, connection or transaction, independent of the authoring collection. It returns the terminal result directly: a thenable `AsyncIterableResult<Row>` for `all`, `Promise<Row | null>` for `first`, or `Promise<Row>` for `firstOrThrow`, which rejects with `RUNTIME.NO_ROWS` when no row matches. Each call creates independent consumption state. Include paths retain their existing buffering; database value decoding and execution lifecycle remain SQL runtime responsibilities.
+`query(target, params, options?)` requires an explicit compatible runtime, connection or transaction, independent of the authoring collection. A prepared statement runs on what it is given: `ps.query(tx, params)` inside `db.transaction(async (tx) => ...)` runs inside the transaction. It returns the terminal result directly: a thenable `AsyncIterableResult<Row>` for `all`, `Promise<Row | null>` for `first`, or `Promise<Row>` for `firstOrThrow`, which rejects with `RUNTIME.NO_ROWS` when no row matches. Each call creates independent consumption state. Include paths retain their existing buffering; database value decoding and execution lifecycle remain SQL runtime responsibilities.
 
 The [Postgres](../postgres/README.md#prepared-sql-and-orm-rows) and [SQLite](../sqlite/README.md#prepared-sql-and-orm-rows) facades compose this surface through `db.prepare({}, () => db.orm.public.Post.select('title').prepared.all())` (SQLite uses `db.orm.Post`). SQL callbacks capture `db.sql` and receive only params. Non-nullable scalar placeholders work in shorthand filters, callback comparisons, relation/include predicates, `prepared.first` filters and fixed lists such as `user.id.in([params.first, 42, params.second])`. Repeated placeholders retain their bind identity; each target keeps its stable slot layout across invocations. Comparisons retain codec identity, existing literal types and field trait requirements.
 

@@ -27,6 +27,7 @@ async function loadSqlite(pslSchema: string, schemaPath = newSchemaPath()) {
     codecLookup: sqliteStack.codecLookup,
     dataTypes: sqliteStack.dataTypes,
     controlMutationDefaults: sqliteStack.controlMutationDefaults,
+    generatorFunctions: sqliteStack.generatorFunctions,
     resolvedInputs: [schemaPath],
     capabilities: sqliteStack.capabilities,
   });

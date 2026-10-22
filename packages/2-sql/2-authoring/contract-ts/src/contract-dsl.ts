@@ -21,6 +21,8 @@ import type {
 import type {
   ExtensionPackRef,
   FamilyPackRef,
+  GeneratorFunctionCall,
+  GeneratorPhase,
   TargetPackRef,
 } from '@internal/framework-components/components';
 import { readSqlExpression, type SqlExpression } from '@internal/sql-contract/sql-expression';
@@ -36,7 +38,6 @@ import type { NamedConstraintSpec } from './authoring-type-utils';
 import type { AuthoredColumnDefault, CapabilityContributor } from './contract-definition';
 import { contractError } from './contract-errors';
 import type { EnumTypeHandle } from './enum-type';
-import { isEnumTypeHandle } from './enum-type';
 
 export type NamingStrategy = 'identity' | 'snake_case';
 
@@ -45,15 +46,13 @@ export type NamingConfig = {
   readonly columns?: NamingStrategy;
 };
 
-type NamedStorageTypeRef = string | AuthoredStorageTypeInstance | EnumTypeHandle;
-
 type NamedConstraintNameSpec<Name extends string = string> = {
   readonly name: Name;
 };
 
 export type ScalarFieldState<
   Descriptor extends ColumnTypeDescriptor = ColumnTypeDescriptor,
-  TypeRef extends NamedStorageTypeRef | undefined = undefined,
+  EnumHandle extends EnumTypeHandle | undefined = undefined,
   Nullable extends boolean = boolean,
   ColumnName extends string | undefined = string | undefined,
   IdSpec extends NamedConstraintSpec | undefined = undefined,
@@ -65,11 +64,12 @@ export type ScalarFieldState<
   /** Exists only in types: whether the column has a database default and whether the client generates a value on create. */
   readonly __defaultPresence?: Defaults;
   readonly descriptor?: Descriptor | undefined;
-  readonly typeRef?: TypeRef | undefined;
+  readonly enumHandle?: EnumHandle | undefined;
   readonly nullable: Nullable;
   readonly columnName?: ColumnName | undefined;
   readonly default?: AuthoredColumnDefault | undefined;
   readonly executionDefaults?: ExecutionMutationDefaultPhases | undefined;
+  readonly generatorCalls?: FieldGeneratorCalls | undefined;
   readonly many: Many;
 } & (IdSpec extends NamedConstraintSpec ? { readonly id: IdSpec } : { readonly id?: undefined }) &
   (UniqueSpec extends NamedConstraintSpec
@@ -79,10 +79,16 @@ export type ScalarFieldState<
 /** Whether a field's column has a database default, and whether the client generates its value on create. */
 export type FieldDefaultPresence = { readonly column: boolean; readonly execution: boolean };
 
-type WithColumnDefault<State extends AnyScalarFieldState> =
+/** The generator function calls a field's `.onCreate(...)` and `.onUpdate(...)` give, resolved by the field's codec when the contract is built. */
+export type FieldGeneratorCalls = {
+  readonly onCreate?: GeneratorFunctionCall;
+  readonly onUpdate?: GeneratorFunctionCall;
+};
+
+type WithExecutionDefault<State extends AnyScalarFieldState> =
   State extends ScalarFieldState<
     infer Descriptor,
-    infer TypeRef,
+    infer EnumHandle,
     infer Nullable,
     infer ColumnName,
     infer IdSpec,
@@ -92,7 +98,62 @@ type WithColumnDefault<State extends AnyScalarFieldState> =
   >
     ? ScalarFieldState<
         Descriptor,
-        TypeRef,
+        EnumHandle,
+        Nullable,
+        ColumnName,
+        IdSpec,
+        UniqueSpec,
+        Many,
+        { readonly column: Defaults['column']; readonly execution: true }
+      >
+    : State;
+
+function withGeneratorCall<State extends AnyScalarFieldState>(
+  state: State,
+  phase: GeneratorPhase,
+  call: GeneratorFunctionCall,
+): State {
+  if (
+    state.generatorCalls?.[phase] !== undefined ||
+    state.executionDefaults?.[phase] !== undefined
+  ) {
+    throw contractError(
+      'CONTRACT.DEFAULT_INVALID',
+      `.${phase}() is called on a field that already generates a value ${phase === 'onCreate' ? 'on create' : 'on update'}. Set each phase once, and do not combine .${phase}() with a field preset, type alias or alias constant that sets it.`,
+      { meta: { reason: 'generator-phase-set-twice', phase } },
+    );
+  }
+  return { ...state, generatorCalls: { ...state.generatorCalls, [phase]: call } };
+}
+
+function withColumnDefault<State extends AnyScalarFieldState>(
+  state: State,
+  columnDefault: AuthoredColumnDefault,
+): State {
+  if (state.default !== undefined) {
+    throw contractError(
+      'CONTRACT.DEFAULT_INVALID',
+      '.default() is called on a field that already has a default. Set the default once, and do not combine .default() with a field preset or alias constant that sets one.',
+      { meta: { reason: 'default-set-twice' } },
+    );
+  }
+  return { ...state, default: columnDefault };
+}
+
+type WithColumnDefault<State extends AnyScalarFieldState> =
+  State extends ScalarFieldState<
+    infer Descriptor,
+    infer EnumHandle,
+    infer Nullable,
+    infer ColumnName,
+    infer IdSpec,
+    infer UniqueSpec,
+    infer Many,
+    infer Defaults
+  >
+    ? ScalarFieldState<
+        Descriptor,
+        EnumHandle,
         Nullable,
         ColumnName,
         IdSpec,
@@ -105,11 +166,12 @@ type WithColumnDefault<State extends AnyScalarFieldState> =
 type AnyScalarFieldState = {
   readonly kind: 'scalar';
   readonly descriptor?: ColumnTypeDescriptor | undefined;
-  readonly typeRef?: NamedStorageTypeRef | undefined;
+  readonly enumHandle?: EnumTypeHandle | undefined;
   readonly nullable: boolean;
   readonly columnName?: string | undefined;
   readonly default?: AuthoredColumnDefault | undefined;
   readonly executionDefaults?: ExecutionMutationDefaultPhases | undefined;
+  readonly generatorCalls?: FieldGeneratorCalls | undefined;
   readonly many: false | { readonly elementNullable: boolean };
   readonly id?: NamedConstraintSpec | undefined;
   readonly unique?: NamedConstraintSpec | undefined;
@@ -118,7 +180,7 @@ type AnyScalarFieldState = {
 type HasNamedConstraintId<State extends AnyScalarFieldState> =
   State extends ScalarFieldState<
     ColumnTypeDescriptor,
-    NamedStorageTypeRef | undefined,
+    EnumTypeHandle | undefined,
     boolean,
     string | undefined,
     infer IdSpec,
@@ -133,7 +195,7 @@ type HasNamedConstraintId<State extends AnyScalarFieldState> =
 type HasNamedConstraintUnique<State extends AnyScalarFieldState> =
   State extends ScalarFieldState<
     ColumnTypeDescriptor,
-    NamedStorageTypeRef | undefined,
+    EnumTypeHandle | undefined,
     boolean,
     string | undefined,
     NamedConstraintSpec | undefined,
@@ -160,7 +222,7 @@ type ApplyFieldSqlSpec<
 > =
   State extends ScalarFieldState<
     infer Descriptor,
-    infer TypeRef,
+    infer EnumHandle,
     infer Nullable,
     infer ColumnName,
     infer IdSpec,
@@ -170,7 +232,7 @@ type ApplyFieldSqlSpec<
   >
     ? ScalarFieldState<
         Descriptor,
-        TypeRef,
+        EnumHandle,
         Nullable,
         Spec extends { readonly column: infer NextColumn extends string } ? NextColumn : ColumnName,
         Spec extends { readonly id: { readonly name: infer IdName extends string } }
@@ -222,10 +284,10 @@ type DefaultLiteralOf<State> =
       ? readonly (DefaultInputOf<State> | NullElementOf<State>)[]
       : DefaultInputOf<State>;
 
-type EnumHandleOf<State> = State extends { readonly typeRef?: infer TypeRef }
-  ? string extends TypeRef
+type EnumHandleOf<State> = State extends { readonly enumHandle?: infer EnumHandle }
+  ? string extends EnumHandle
     ? never
-    : Extract<TypeRef, EnumTypeHandle>
+    : Extract<EnumHandle, EnumTypeHandle>
   : never;
 
 type DefaultArgumentOf<State> =
@@ -268,7 +330,7 @@ function sqlExpressionDefault(value: SqlExpression): AuthoredColumnDefault {
 type ApplyMany<State extends AnyScalarFieldState, ElementsNullable extends boolean> =
   State extends ScalarFieldState<
     infer Descriptor,
-    infer TypeRef,
+    infer EnumHandle,
     infer Nullable,
     infer ColumnName,
     infer IdSpec,
@@ -278,7 +340,7 @@ type ApplyMany<State extends AnyScalarFieldState, ElementsNullable extends boole
   >
     ? ScalarFieldState<
         Descriptor,
-        TypeRef,
+        EnumHandle,
         Nullable,
         ColumnName,
         IdSpec,
@@ -312,7 +374,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
   optional(): ScalarFieldBuilder<
     State extends ScalarFieldState<
       infer Descriptor,
-      infer TypeRef,
+      infer EnumHandle,
       boolean,
       infer ColumnName,
       infer IdSpec,
@@ -320,14 +382,23 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
       infer Many,
       infer Defaults
     >
-      ? ScalarFieldState<Descriptor, TypeRef, true, ColumnName, IdSpec, UniqueSpec, Many, Defaults>
+      ? ScalarFieldState<
+          Descriptor,
+          EnumHandle,
+          true,
+          ColumnName,
+          IdSpec,
+          UniqueSpec,
+          Many,
+          Defaults
+        >
       : AnyScalarFieldState
   > {
     return new ScalarFieldBuilder(
       blindCast<
         State extends ScalarFieldState<
           infer Descriptor,
-          infer TypeRef,
+          infer EnumHandle,
           boolean,
           infer ColumnName,
           infer IdSpec,
@@ -337,7 +408,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
         >
           ? ScalarFieldState<
               Descriptor,
-              TypeRef,
+              EnumHandle,
               true,
               ColumnName,
               IdSpec,
@@ -359,7 +430,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
   ): ScalarFieldBuilder<
     State extends ScalarFieldState<
       infer Descriptor,
-      infer TypeRef,
+      infer EnumHandle,
       infer Nullable,
       string | undefined,
       infer IdSpec,
@@ -369,7 +440,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
     >
       ? ScalarFieldState<
           Descriptor,
-          TypeRef,
+          EnumHandle,
           Nullable,
           ColumnName,
           IdSpec,
@@ -383,7 +454,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
       blindCast<
         State extends ScalarFieldState<
           infer Descriptor,
-          infer TypeRef,
+          infer EnumHandle,
           infer Nullable,
           string | undefined,
           infer IdSpec,
@@ -393,7 +464,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
         >
           ? ScalarFieldState<
               Descriptor,
-              TypeRef,
+              EnumHandle,
               Nullable,
               ColumnName,
               IdSpec,
@@ -433,12 +504,20 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
     return blindCast<
       ScalarFieldBuilder<WithColumnDefault<State>>,
       'object spread does not narrow the generic State conditional; runtime shape is correct'
-    >(
-      new ScalarFieldBuilder({
-        ...this.state,
-        default: toColumnDefault(value),
-      }),
-    );
+    >(new ScalarFieldBuilder(withColumnDefault(this.state, toColumnDefault(value))));
+  }
+
+  /** Generates the field's value in the client when a row is created without one, with a call from `gen`, such as `gen.uuid()`. */
+  onCreate(call: GeneratorFunctionCall): ScalarFieldBuilder<WithExecutionDefault<State>> {
+    return blindCast<
+      ScalarFieldBuilder<WithExecutionDefault<State>>,
+      'the state gains a generator call; the presence it changes exists only in types'
+    >(new ScalarFieldBuilder(withGeneratorCall(this.state, 'onCreate', call)));
+  }
+
+  /** Generates the field's value in the client every time a row is updated, with a call from `gen`, such as `gen.now()`. */
+  onUpdate(call: GeneratorFunctionCall): ScalarFieldBuilder<State> {
+    return new ScalarFieldBuilder(withGeneratorCall(this.state, 'onUpdate', call));
   }
 
   /**
@@ -448,12 +527,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
     return blindCast<
       ScalarFieldBuilder<WithColumnDefault<State>>,
       'object spread does not narrow the generic State conditional; runtime shape is correct'
-    >(
-      new ScalarFieldBuilder({
-        ...this.state,
-        default: { kind: 'function', expression },
-      }),
-    );
+    >(new ScalarFieldBuilder(withColumnDefault(this.state, { kind: 'function', expression })));
   }
 
   id<const Name extends string | undefined = undefined>(
@@ -461,7 +535,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
   ): ScalarFieldBuilder<
     State extends ScalarFieldState<
       infer Descriptor,
-      infer TypeRef,
+      infer EnumHandle,
       infer Nullable,
       infer ColumnName,
       NamedConstraintSpec | undefined,
@@ -471,7 +545,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
     >
       ? ScalarFieldState<
           Descriptor,
-          TypeRef,
+          EnumHandle,
           Nullable,
           ColumnName,
           NamedConstraintSpec<Name>,
@@ -485,7 +559,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
       blindCast<
         State extends ScalarFieldState<
           infer Descriptor,
-          infer TypeRef,
+          infer EnumHandle,
           infer Nullable,
           infer ColumnName,
           NamedConstraintSpec | undefined,
@@ -495,7 +569,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
         >
           ? ScalarFieldState<
               Descriptor,
-              TypeRef,
+              EnumHandle,
               Nullable,
               ColumnName,
               NamedConstraintSpec<Name>,
@@ -517,7 +591,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
   ): ScalarFieldBuilder<
     State extends ScalarFieldState<
       infer Descriptor,
-      infer TypeRef,
+      infer EnumHandle,
       infer Nullable,
       infer ColumnName,
       infer IdSpec,
@@ -527,7 +601,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
     >
       ? ScalarFieldState<
           Descriptor,
-          TypeRef,
+          EnumHandle,
           Nullable,
           ColumnName,
           IdSpec,
@@ -541,7 +615,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
       blindCast<
         State extends ScalarFieldState<
           infer Descriptor,
-          infer TypeRef,
+          infer EnumHandle,
           infer Nullable,
           infer ColumnName,
           infer IdSpec,
@@ -551,7 +625,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
         >
           ? ScalarFieldState<
               Descriptor,
-              TypeRef,
+              EnumHandle,
               Nullable,
               ColumnName,
               IdSpec,
@@ -631,7 +705,7 @@ export class EnumScalarFieldBuilder<
       'object spread does not narrow the generic State conditional; runtime shape is correct'
     >(
       new EnumScalarFieldBuilder(
-        { ...this.build(), default: { kind: 'literal', value } },
+        withColumnDefault(this.build(), { kind: 'literal', value }),
         this.#handle,
       ),
     );
@@ -648,6 +722,21 @@ export class EnumScalarFieldBuilder<
 
 type CodecTypesOfNoPacks = Record<never, never>;
 
+/** What a contributed type alias's `type.*` helper returns: its column type, and the generator calls every field typed by it takes. */
+export type TypeAliasColumnType = AuthoredStorageTypeInstance & {
+  readonly generatorCalls?: FieldGeneratorCalls;
+};
+
+/** The defaults a field built from `Descriptor` starts with: the generators of a contributed type alias, or none. */
+type ColumnDefaultPresence<Descriptor> = {
+  readonly column: boolean;
+  readonly execution: Descriptor extends {
+    readonly generatorCalls: { readonly onCreate: GeneratorFunctionCall };
+  }
+    ? true
+    : boolean;
+};
+
 export type ColumnFieldHelper<CodecTypes extends CodecTypeMap = CodecTypesOfNoPacks> = <
   const Descriptor extends ColumnTypeDescriptor,
 >(
@@ -657,34 +746,40 @@ export type ColumnFieldHelper<CodecTypes extends CodecTypeMap = CodecTypesOfNoPa
     WithCodecInput<Descriptor, CodecInput<CodecTypes, Descriptor>>,
     undefined,
     false,
-    undefined
+    undefined,
+    undefined,
+    undefined,
+    false,
+    ColumnDefaultPresence<Descriptor>
   >
 >;
 
-export type NamedTypeFieldHelper<CodecTypes extends CodecTypeMap = CodecTypesOfNoPacks> = {
-  <TypeRef extends string>(
-    typeRef: TypeRef,
-  ): ScalarFieldBuilder<ScalarFieldState<ColumnTypeDescriptor, TypeRef, false, undefined>>;
-  <TypeRef extends AuthoredStorageTypeInstance>(
-    typeRef: TypeRef,
-  ): ScalarFieldBuilder<
-    ScalarFieldState<
-      WithCodecInput<ColumnTypeDescriptor<TypeRef['codecId']>, CodecInput<CodecTypes, TypeRef>>,
-      TypeRef,
-      false,
-      undefined
-    >
-  >;
-  <Handle extends EnumTypeHandle>(typeRef: Handle): EnumScalarFieldBuilder<Handle>;
-};
+export type NamedTypeFieldHelper = <Handle extends EnumTypeHandle>(
+  handle: Handle,
+) => EnumScalarFieldBuilder<Handle>;
 
-const columnField: ColumnFieldHelper = (descriptor) =>
-  new ScalarFieldBuilder({
+function isTypeAliasColumnType(
+  descriptor: ColumnTypeDescriptor,
+): descriptor is ColumnTypeDescriptor & TypeAliasColumnType {
+  return 'generatorCalls' in descriptor;
+}
+
+const columnField: ColumnFieldHelper = (descriptor) => {
+  if (!isTypeAliasColumnType(descriptor)) {
+    return new ScalarFieldBuilder({ kind: 'scalar', descriptor, nullable: false, many: false });
+  }
+  const { generatorCalls, ...columnType } = descriptor;
+  return new ScalarFieldBuilder({
     kind: 'scalar',
-    descriptor,
+    descriptor: blindCast<
+      typeof descriptor,
+      'the column keeps the codec and params of the alias; its generator calls move to the field'
+    >(columnType),
     nullable: false,
     many: false,
+    ...ifDefined('generatorCalls', generatorCalls),
   });
+};
 
 type WithGeneratedTypeParams<Descriptor, TypeParams> =
   TypeParams extends Record<string, unknown>
@@ -723,33 +818,19 @@ function generatedField<
   });
 }
 
-function untypedNamedTypeField(typeRef: NamedStorageTypeRef): ScalarFieldBuilder {
-  if (isEnumTypeHandle(typeRef)) {
-    return new EnumScalarFieldBuilder(
-      blindCast<
-        ScalarFieldState<ColumnTypeDescriptor, typeof typeRef, false, undefined>,
-        'literal object lacks explicit many; cast to the full ScalarFieldState so optional() conditional resolves Many = false'
-      >({
-        kind: 'scalar',
-        typeRef,
-        nullable: false,
-        many: false,
-      }),
-      typeRef,
-    );
-  }
-  return new ScalarFieldBuilder({
-    kind: 'scalar',
-    typeRef,
-    nullable: false,
-    many: false,
-  });
-}
-
-const namedTypeField = blindCast<
-  NamedTypeFieldHelper,
-  'the overloads narrow the returned state by the kind of type reference; the implementation returns the builder for that kind'
->(untypedNamedTypeField);
+const namedTypeField: NamedTypeFieldHelper = (handle) =>
+  new EnumScalarFieldBuilder(
+    blindCast<
+      ScalarFieldState<ColumnTypeDescriptor, typeof handle, false, undefined>,
+      'literal object lacks explicit many; cast to the full ScalarFieldState so optional() conditional resolves Many = false'
+    >({
+      kind: 'scalar',
+      enumHandle: handle,
+      nullable: false,
+      many: false,
+    }),
+    handle,
+  );
 
 export function buildFieldPreset(
   descriptor: AuthoringFieldPresetDescriptor,
@@ -2167,7 +2248,7 @@ function normalizeRelationModelSource(
 export type ContractInput<
   Family extends FamilyPackRef<string> = FamilyPackRef<string>,
   Target extends TargetPackRef<'sql', string> = TargetPackRef<'sql', string>,
-  Types extends Record<string, AuthoredStorageTypeInstance> = Record<never, never>,
+  DatabaseTypes extends Record<string, AuthoredStorageTypeInstance> = Record<never, never>,
   Models extends Record<
     string,
     ContractModelBuilder<
@@ -2228,7 +2309,8 @@ export type ContractInput<
    * late-bound slot stays available regardless of authoring choices).
    */
   readonly createNamespace: (input: SqlNamespaceInput) => SqlNamespaceBase;
-  readonly types?: Types;
+  /** The database types this contract space registers in `storage.types`, such as an extension's base type. No column references them. */
+  readonly databaseTypes?: DatabaseTypes;
   readonly models?: Models;
   /** The codecs of the packs the contract is authored with; a column's database type is its codec's data type's. */
   readonly codecLookup: CodecLookupWithDescriptors;

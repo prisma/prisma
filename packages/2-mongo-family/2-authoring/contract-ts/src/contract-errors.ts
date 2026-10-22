@@ -5,6 +5,7 @@ export type ContractCode = `CONTRACT.${ContractSubcode}`;
 
 type ContractSubcode =
   | 'ARGUMENT_INVALID'
+  | 'CODEC_DESCRIPTOR_MISSING'
   | 'COLLECTION_INVALID'
   | 'DEFAULT_INVALID'
   | 'ENUM_INVALID'

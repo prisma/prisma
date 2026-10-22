@@ -3,6 +3,7 @@ import sqliteAdapter from '@internal/adapter-sqlite/control';
 import type { JsonValue } from '@internal/contract/types';
 import sql from '@internal/family-sql/control';
 import { dataTypeId } from '@internal/framework-components/codec';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import {
   assembleAuthoringContributions,
   createControlStack,
@@ -35,6 +36,7 @@ function parseArgument(source: string) {
     context: {
       authoringContributions: assembleAuthoringContributions([]),
       controlMutationDefaults: { defaultFunctionRegistry: new Map() },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: EMPTY_DATA_TYPES,
     },
   }).binder;
@@ -102,7 +104,7 @@ describe.each([
 
   it('refuses a quoted string for the integer type', () => {
     expect(read(integer, '"8"')).toEqual(
-      refusal('"8"', 'PSL_VALUE_TYPE_INCOMPATIBLE', 'Expected a number'),
+      refusal('"8"', 'PSL_VALUE_TYPE_INCOMPATIBLE', 'Expected a number; write 8'),
     );
   });
 
@@ -145,7 +147,7 @@ describe('a refusal written as a default and as a dataTypeValue argument on the 
   const stack = createControlStack({ family: sql, target: postgres, adapter: postgresAdapter });
 
   it.each([
-    ['a quoted string on an integer type', 'Int', 'pg/int4', '"8"', 'Expected a number'],
+    ['a quoted string on an integer type', 'Int', 'pg/int4', '"8"', 'Expected a number; write 8'],
     [
       'a number with a fraction on an integer type',
       'Int',

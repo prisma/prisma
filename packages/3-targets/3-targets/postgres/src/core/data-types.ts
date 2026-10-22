@@ -14,10 +14,12 @@ import {
   assembleDataTypes,
   type Cast,
   type DataType,
+  type DataTypeId,
   type DataTypeLookup,
   type DataTypeParams,
   type DataTypeReader,
   type DataTypeSpelling,
+  decimalTextEqualityKey,
   INT32_RANGE,
   INT64_RANGE,
   isNonFiniteText,
@@ -29,7 +31,12 @@ import {
   readJsonString,
   refuseJsonValue,
 } from '@internal/framework-components/codec';
-import { numeralText, type SqlTypeText, sqlDataType } from '@internal/sql-contract/data-type';
+import {
+  numeralText,
+  type SqlTypeText,
+  sqlDataType,
+  sqlRawDataType,
+} from '@internal/sql-contract/data-type';
 import {
   type DateTimeStoredTextOptions,
   dateTimeStoredText,
@@ -43,6 +50,7 @@ import {
   FLOAT4_MAX,
   fitsCharacterLength,
   fitsFloat4,
+  intervalEqualityKey,
   pgIntervalStoredText,
   readPgByteaJson,
   spellPgByteaJson,
@@ -449,6 +457,7 @@ export const pgNumeric = sqlDataType('pg/numeric', {
   ],
   read: readNumeric,
   spell: spellNumeric,
+  equalityKey: decimalTextEqualityKey,
   normalize: (params) =>
     params.precision !== undefined && params.scale === undefined ? { ...params, scale: 0 } : params,
   casts: {
@@ -495,6 +504,10 @@ export const pgFloat8 = sqlDataType('pg/float8', {
 });
 
 export const pgJsonb = namedOnly('pg/jsonb', 'jsonb', anyJson, { [pgJson.id]: unchanged });
+
+/** Why no enum can use a codec of `pg/jsonb`, which every such codec gives as its `enumRefusal`. */
+export const pgJsonbEnumRefusal =
+  'A CHECK lists a string member as SQL text, which PostgreSQL reads as the JSON text of a document rather than as a string, and a number member as a number, which PostgreSQL cannot compare with jsonb, so no CHECK can compare a value with the members. No enum can use a jsonb codec; use a text enum instead.';
 
 const fromText: Readonly<Record<string, Cast>> = { [pgText.id]: unchanged };
 
@@ -647,6 +660,7 @@ export const pgInterval = sqlDataType('pg/interval', {
     INTERVAL_SECONDS_FRACTION,
   ),
   spell: spellStoredDateTime(pgIntervalStoredText),
+  equalityKey: intervalEqualityKey,
   params: pgPrecisionParams,
   texts: [writtenAndCatalog('interval'), writtenAndCatalog('interval({precision})')],
 });
@@ -768,9 +782,13 @@ export const postgresDataTypes: readonly DataType[] = [
   pgTime,
   pgTimestamp,
   pgTimestamptz,
+  sqlRawDataType,
 ];
 
 /** A lookup of the data types this target registers. */
 export function createPostgresBuiltinDataTypeLookup(): DataTypeLookup {
   return assembleDataTypes([{ id: 'postgres', dataTypes: postgresDataTypes }]).lookup;
 }
+
+/** Postgres's text data types: `text`, `character(n)` and `character varying(n)`. */
+export const postgresTextDataTypes: readonly DataTypeId[] = [pgText.id, pgChar.id, pgVarchar.id];

@@ -124,10 +124,10 @@ describe('finalization beneath client activities', () => {
 
       await statement(middleware, 's1', transaction);
       await transaction.end({ by: 'commit', outcome: 'failed' });
-      const afterTransaction = [...events];
+      const eventsAfterTransaction = [...events];
       await call.end({ outcome: 'succeeded' });
 
-      expect(afterTransaction).toEqual(['s1:unknown', 'transaction:unknown']);
+      expect(eventsAfterTransaction).toEqual(['s1:unknown', 'transaction:unknown']);
       expect(events.at(-1)).toBe('test-call:unknown');
     });
 

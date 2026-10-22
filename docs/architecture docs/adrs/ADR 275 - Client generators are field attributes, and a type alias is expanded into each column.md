@@ -1,10 +1,11 @@
 # ADR 275 — Client generators are field attributes, and a type alias is expanded into each column
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-10-16
 **Builds on:** [ADR 158 — Execution mutation defaults](ADR%20158%20-%20Execution%20mutation%20defaults.md), [ADR 241 — Scalar types use the authoring type-constructor channel](ADR%20241%20-%20Scalar%20types%20use%20the%20authoring%20type-constructor%20channel.md), [ADR 269 — PSL mixins](ADR%20269%20-%20PSL%20mixins.md)
 **Supersedes:** the field-preset half of [ADR 170 — Pack-provided type constructors and field presets](ADR%20170%20-%20Pack-provided%20type%20constructors%20and%20field%20presets.md); [ADR 246 — Option arguments and select templates for authoring helpers](ADR%20246%20-%20Option%20arguments%20and%20select%20templates%20for%20authoring%20helpers.md), except its two omission rules
 **Amends:** [ADR 104](ADR%20104%20-%20PSL%20extension%20namespacing%20%26%20syntax.md), [ADR 158](ADR%20158%20-%20Execution%20mutation%20defaults.md), [ADR 169 — Declared applicability for mutation default generators](ADR%20169%20-%20Declared%20applicability%20for%20mutation%20default%20generators.md), [ADR 208 — Higher-order codecs for parameterized types](ADR%20208%20-%20Higher-order%20codecs%20for%20parameterized%20types.md), [ADR 212 — AST-bound codec resolution](ADR%20212%20-%20AST-bound%20codec%20resolution.md), [ADR 231](ADR%20231%20-%20Declarative%20attribute%20specifications.md), [ADR 241](ADR%20241%20-%20Scalar%20types%20use%20the%20authoring%20type-constructor%20channel.md), [ADR 249](ADR%20249%20-%20Central%20attribute-spec%20registry.md), [ADR 254](ADR%20254%20-%20Data%20types%20and%20casts.md)
+**Amended 2026-10-21:** the TypeScript `types` key is renamed `databaseTypes` and registers database types only; a contributed alias is used as `field.column(type.temporal.UpdatedAt())`; a contributed alias carries no database default; Mongo's contributed aliases are on `Date`; the Mongo TypeScript builder gets no contributed aliases yet. Each change is marked "Amended 2026-10-21" below.
 
 ---
 
@@ -80,7 +81,8 @@ SQLite maps `sqlite/datetime@1` to `timestampNow`. Mongo maps `mongo/date@1` to 
 
 `uuid`, `cuid`, `ulid`, `nanoid` and `ksuid` (new; a `ksuid` generator exists but no function names it) map every text-like codec of the target to their generators. The lists must be complete. Today the applicability lists name only `pg/text@1`, `sql/char@1` and `pg/uuid@1`, so `uuid()` on a SQLite `String` (`sqlite/text@1`) or a Postgres `VarChar` (`sql/varchar@1`) is refused; that is a defect this registry fixes.
 
-An entry also says which of the column's type parameters become generator params. The time generators take `precision`, so they write a value the column stores without rounding. `nanoid` takes its `size` from the column's `length` when the call gives none; `nanoid(16)` on a `Char(21)` column is refused, because a fixed-length column would pad the identifier.
+An entry also says which of the column's type parameters become generator params. The time generators take `precision`, so they write a value the column stores without rounding. `nanoid` takes its `size` from the call, or 21. It never reads the column's `length`, which would turn `VarChar(255)` into 255-character identifiers. Every identifier generator states how many characters it writes, and a column whose length, in its type's normal form, is shorter is refused, because the identifier does not fit: `uuid() writes 36 characters, which does not fit a column of 5 characters.` A bare `Char` counts as one character. SQLite columns are never refused for length, because SQLite stores the longer value. The arguments of `uuid`, `cuid` and `nanoid` are values of the target's integer type, read by the cast rule of [ADR 254](ADR%20254%20-%20Data%20types%20and%20casts.md) and then checked by the function (`PSL_INVALID_GENERATOR_ARGUMENT`); each target declares those three signatures with its integer type. (Amended by TML-3389.)
+
 
 Compatibility is checked by codec, not by data type. Two codecs of one data type expect different in-memory values, so a data-type check would accept a generator whose output the codec cannot encode.
 
@@ -120,9 +122,9 @@ What this changes elsewhere:
 
 ### What targets and extensions contribute
 
-A pack's `type` namespace gains a type alias descriptor (new). Its output names a type constructor with fixed arguments, an optional database default, and a generator function for each phase. The PSL interpreter and the TypeScript builder expand it exactly like a user alias.
+A pack's `type` namespace gains a type alias descriptor (new). Its output names a type constructor with fixed arguments and a generator function for each phase. The PSL interpreter and the TypeScript builder expand it exactly like a user alias. (Amended 2026-10-21: a contributed alias carries a type and generators only, and no database default. No contributed alias needs one, and a default would be a SQL concept on a framework descriptor that Mongo could not use. A database default can be added to the descriptor later, when a pack needs one, with its own check at assembly. Assembly checks the alias's fixed type parameters against its codec's parameter schema, and resolves its generator calls for the field length those parameters give, so a broken pack is refused with `CONTRACT.PACK_CONTRIBUTION_INVALID` before any schema is read.)
 
-The Postgres target contributes `temporal.CreatedAt` and `temporal.UpdatedAt` on `Timestamptz`, with `String` and `JsDate` variants on the string and `Date` codecs (all new names). SQLite contributes `temporal.CreatedAt` and `temporal.UpdatedAt` on `DateTime`; Mongo the same on its `DateTime`. Contributed aliases take no parameters, so a column with a precision is written with the attributes:
+The Postgres target contributes `temporal.CreatedAt` and `temporal.UpdatedAt` on `Timestamptz`, with `String` and `JsDate` variants on the string and `Date` codecs (all new names). SQLite contributes `temporal.CreatedAt` and `temporal.UpdatedAt` on `DateTime`; Mongo the same on its `DateTime`. (Amended 2026-10-21: Mongo's aliases are on `Date`, because Mongo's `DateTime` constructor is deprecated. Both name the codec `mongo/date@1`, so the stored column is the same. The Postgres variants are named `temporal.CreatedAtString`, `temporal.UpdatedAtString`, `temporal.CreatedAtJsDate` and `temporal.UpdatedAtJsDate`.) Contributed aliases take no parameters, so a column with a precision is written with the attributes:
 
 ```prisma
 model Event {
@@ -137,7 +139,7 @@ The identifier presets have no alias form, because an alias may not carry `@id`.
 
 ### The TypeScript builder
 
-The builder mirrors PSL. The field builder gets `.onCreate(...)` and `.onUpdate(...)` (new), immutable like `.default()`. They take a generator function call from a `gen` namespace (new): `gen.now()`, `gen.uuid(7)`, `gen.nanoid()`, and so on. Lowering resolves the call by the column's codec through the same registry PSL uses. `.default()` keeps taking a literal or the database functions `now()` and `autoincrement()`.
+The builder mirrors PSL. The field builder gets `.onCreate(...)` and `.onUpdate(...)` (new), immutable like `.default()`. They take a generator function call from a `gen` namespace (new): `gen.now()`, `gen.uuid(7)`, `gen.nanoid()`, and so on. `gen` is built from the composed packs, as the `type` helpers are, so a stack's `gen` holds exactly the functions its packs declare, an extension's included. Lowering resolves the call by the column's codec through the same registry PSL uses. `.default()` keeps taking a literal or the database functions `now()` and `autoincrement()`.
 
 A TypeScript alias is a constant, because field builders are immutable:
 
@@ -154,19 +156,23 @@ const Post = model('Post', {
 
 `type.*` gets a helper for every PSL type constructor of the stack (most are new, such as `type.TimestampString(3)`), and `field.column` accepts the result. Contributed aliases appear as `type.temporal.UpdatedAt()` (new). `field.generated(...)`, the codec-instance use of `field.namedType(...)`, the `types` key for codec instances and every preset helper are removed.
 
+(Amended 2026-10-21.) The `types` key cannot simply go. pgvector and PostGIS register their database types, `vector` and `geometry`, through it, because PSL has no syntax for an extension to register a database type. The key is renamed `databaseTypes`, and it means only "register a database type in this contract space". No column can reference an entry, because `field.namedType(...)` keeps only its enum-handle form. A definition that still has a `types` key is refused with `CONTRACT.TYPES_KEY_REMOVED`, whose message says to write an alias as a constant and a registered type under `databaseTypes`. Keeping the old name would silently turn every existing user alias into a registered database type. pgvector's and PostGIS's contracts and hashes do not change.
+
+A contributed alias is used through `field.column`, like every other `type.*` helper: `field.column(type.temporal.UpdatedAt())`. Every `type.*` helper returns a column type, and a field needs the builder for `.optional()`, `.id()`, `.default()` and the rest. `.default()` on a builder that already has a default is refused with `CONTRACT.DEFAULT_INVALID` (reason `default-set-twice`), as a repeated attribute is in PSL. The table's second row is amended accordingly.
+
 | Today | After |
 | --- | --- |
 | `field.temporal.timestamp(3, 'now', 'now')` | `field.column(type.Timestamp(3)).onCreate(gen.now()).onUpdate(gen.now())` |
-| `field.temporal.updatedAt()` | `type.temporal.UpdatedAt()` |
+| `field.temporal.updatedAt()` | `field.column(type.temporal.UpdatedAt())` (amended 2026-10-21) |
 | `field.id.uuidv4String()` | `field.column(charColumn(36)).id().onCreate(gen.uuid())` |
 
 ### Mongo
 
-Mongo has no `@default` attribute and no `types {}` block today, its default function registry is empty, and its only generators come from the `temporal.*` presets. After this decision Mongo PSL accepts `@onCreate` and `@onUpdate` with `now()` for `mongo/date@1`, accepts `types {}` aliases (expanded, so Mongo storage gains nothing), and gets the contributed `temporal.CreatedAt` and `temporal.UpdatedAt`. The Mongo TypeScript builder gets `.onCreate` and `.onUpdate`. The Prisma 6 reader resolves `@updatedAt` and `@default(now())` through the generator registry instead of a fixed generator id.
+Mongo has no `@default` attribute and no `types {}` block today, its default function registry is empty, and its only generators come from the `temporal.*` presets. After this decision Mongo PSL accepts `@onCreate` and `@onUpdate` with `now()` for `mongo/date@1`, accepts `types {}` aliases (expanded, so Mongo storage gains nothing), and gets the contributed `temporal.CreatedAt` and `temporal.UpdatedAt`. The Mongo TypeScript builder gets `.onCreate` and `.onUpdate`. (Amended 2026-10-21: the Mongo TypeScript builder has no `type.*` helpers and no `field.column`, so it gets no contributed aliases for now. Its form of `field.temporal.updatedAt()` is `field.date().onCreate(gen.now()).onUpdate(gen.now())`. A type-constructor surface for the Mongo builder is its own design.) The Prisma 6 reader resolves `@updatedAt` and `@default(now())` through the generator registry instead of a fixed generator id.
 
 ### The Prisma 7 reader
 
-The Prisma 7 reader builds the contract directly and writes no aliases. It reads `@updatedAt` as `now` resolved for both phases, and reads Prisma 7's client functions in `@default` (`uuid()`, `cuid()`, `nanoid()`, `ulid()`) as `@onCreate`, both through the generator function registry. `@default(now())` stays a database default. The Postgres binding's own `updatedAtGenerator` goes. The contracts it builds do not change.
+The Prisma 7 reader builds the contract directly and writes no aliases. It reads `@updatedAt` as `now` resolved for both phases, and reads Prisma 7's client functions in `@default` (`uuid()`, `cuid()`, `nanoid()`, `ulid()`) as `@onCreate`, both through the generator function registry. `@default(now())` stays a database default. The Postgres binding's own `updatedAtGenerator` goes. The contracts it builds from schemas Prisma 7 accepts do not change; since TML-3389 it refuses a client function whose arguments are out of range, fractional or named, and a column too short for what the generator writes.
 
 ### `contract print`
 
@@ -179,6 +185,7 @@ The Prisma 7 reader builds the contract directly and writes no aliases. It reads
 - **Breaking for schemas.** Every preset call and every `@default(<client function>())` must be rewritten. `@updatedAt` keeps being refused in Prisma 8 PSL, with a hint that names `@onCreate(now()) @onUpdate(now())` and `temporal.UpdatedAt`.
 - **Hashes.** Rewriting a preset or `@default(uuid())` as attributes changes no hash when the column and generators are the same. A contract with a `types {}` block or TypeScript `types` gets a new storage hash, because its columns lose `typeRef` and gain inline params. Supabase's space contract gets a new hash. pgvector's and PostGIS's do not.
 - **Upgrade.** The upgrade instructions ship a script that rewrites stored contracts and migration snapshots into the expanded form and refreshes their hashes, as the removal of `@noCheck` did. Users then re-emit and run `db sign` against every database. `migration plan` alone cannot record the new hash, because the change has no operations. The instructions also give the PSL and TypeScript rewrites for presets.
+- **Breaking for extension authors.** A default function can no longer lower to a client generator: `ControlMutationDefaultEntry.lower` returns a database default only. An extension that generated a value through a default function, such as `slugid()`, contributes a generator function with a binding for each codec it fills instead. `printArguments` and `applicableCodecIds` are removed; a binding declares the codecs it fills and how `contract print` writes each generator.
 - **Diagnostics.** The `PSL_PRESET_*` diagnostics and the refusal of preset-only generators in `@default` are removed. `@default(uuid())` gets a refusal that names `@onCreate(uuid())`.
 - **Less code.** The `fieldPreset` descriptor kind, `instantiateAuthoringFieldPreset`, the `option` argument kind, the `select` template node, the temporal preset builders and the preset print search are removed. The language server loses its field-preset completion branch.
 

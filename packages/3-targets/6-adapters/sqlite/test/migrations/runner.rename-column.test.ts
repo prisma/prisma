@@ -60,9 +60,15 @@ describe('SqliteMigrationRunner - renameColumn', { timeout: timeouts.databaseOpe
     expect(result.ok).toBe(false);
     expect(result.assertNotOk()).toMatchObject({
       code: 'MIGRATION.PRECHECK_FAILED',
-      summary:
+      message:
         'Operation renameColumn.profile.name failed during precheck: ensure column "fullName" does not exist on "profile"',
-      meta: { operationId: 'renameColumn.profile.name' },
+      meta: {
+        failedCheck: {
+          operationId: 'renameColumn.profile.name',
+          phase: 'precheck',
+          description: 'ensure column "fullName" does not exist on "profile"',
+        },
+      },
     });
     const rows = await driver.query('SELECT name, fullName FROM "profile"');
     expect(rows.rows).toEqual([{ name: 'a', fullName: 'b' }]);
@@ -77,7 +83,7 @@ describe('SqliteMigrationRunner - renameColumn', { timeout: timeouts.databaseOpe
 
     expect(result.assertNotOk()).toMatchObject({
       code: 'MIGRATION.PRECHECK_FAILED',
-      meta: { operationId: 'renameColumn.profile.other' },
+      meta: { failedCheck: expect.objectContaining({ operationId: 'renameColumn.profile.other' }) },
     });
   });
 });

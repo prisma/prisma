@@ -5,16 +5,46 @@ import { describe, expect, it } from 'vitest';
 import { sqliteAuthoringTypes } from '../src/core/authoring';
 import { createSqliteBuiltinCodecLookup } from '../src/core/codec-registry';
 import { sqliteDataTypes } from '../src/core/data-types';
-import { sqlitePslTypeConstructors } from '../src/core/type-constructors';
+import { sqliteScalarTypeConstructors } from '../src/core/type-constructors';
 import sqliteTargetPack from '../src/exports/pack';
 
 describe('the type constructors the SQLite target contributes', () => {
-  it('are only the target’s own; the adapter contributes the base scalars', () => {
-    expect(sqliteTargetPack.authoring.type).toBe(sqliteAuthoringTypes);
-    expect(Object.keys(sqliteAuthoringTypes)).toEqual(['BigIntNumber']);
+  it('are the base scalars and the target’s own, so PSL and type.* see the same names', () => {
+    expect(sqliteTargetPack.authoring.type).toEqual({
+      ...sqliteScalarTypeConstructors,
+      ...sqliteAuthoringTypes,
+    });
+    expect(Object.keys(sqliteAuthoringTypes)).toEqual(['sql', 'BigIntNumber', 'temporal']);
   });
 
-  const allConstructors = { ...sqliteAuthoringTypes, ...sqlitePslTypeConstructors };
+  it('contributes the family’s sql.String, whose length is a value of sqlite/real', () => {
+    expect(sqliteAuthoringTypes.sql.String.args).toEqual([
+      { kind: 'value', dataType: 'sqlite/real', name: 'length' },
+    ]);
+  });
+
+  it('contribute the temporal type aliases on DateTime', () => {
+    const now = { name: 'now', args: {} };
+    const { CreatedAt, UpdatedAt } = sqliteAuthoringTypes.temporal;
+    expect([CreatedAt.output, UpdatedAt.output]).toEqual([
+      { type: { codecId: 'sqlite/datetime@1' }, onCreate: now },
+      { type: { codecId: 'sqlite/datetime@1' }, onCreate: now, onUpdate: now },
+    ]);
+  });
+
+  it('document what each temporal type alias sets and the value it gives', () => {
+    const { CreatedAt, UpdatedAt } = sqliteAuthoringTypes.temporal;
+    expect([CreatedAt.documentation, UpdatedAt.documentation]).toEqual([
+      'A timestamp the client sets to now when a row is created. Its value is a JavaScript Date.',
+      'A timestamp the client sets to now when a row is created and every time it is updated. Its value is a JavaScript Date.',
+    ]);
+  });
+
+  const allConstructors = {
+    ...sqliteAuthoringTypes.sql,
+    BigIntNumber: sqliteAuthoringTypes.BigIntNumber,
+    ...sqliteScalarTypeConstructors,
+  };
 
   const scalarNames = [
     ['String', 'sqlite/text@1', 'text'],
@@ -28,7 +58,7 @@ describe('the type constructors the SQLite target contributes', () => {
   ] as const;
 
   it('pins every base scalar to its codec', () => {
-    expect(Object.fromEntries(collectScalarTypeConstructors(sqlitePslTypeConstructors))).toEqual(
+    expect(Object.fromEntries(collectScalarTypeConstructors(sqliteScalarTypeConstructors))).toEqual(
       Object.fromEntries(scalarNames.map(([name, codecId]) => [name, { codecId }])),
     );
   });
@@ -51,7 +81,10 @@ describe('the type constructors the SQLite target contributes', () => {
     );
   });
 
-  it.each(Object.entries(allConstructors))('documents %s', (_name, descriptor) => {
-    expect(descriptor).toHaveProperty('documentation', expect.stringMatching(/\S.+/));
-  });
+  it.each([...Object.entries(allConstructors), ...Object.entries(sqliteAuthoringTypes.temporal)])(
+    'documents %s',
+    (_name, descriptor) => {
+      expect(descriptor).toHaveProperty('documentation', expect.stringMatching(/\S.+/));
+    },
+  );
 });

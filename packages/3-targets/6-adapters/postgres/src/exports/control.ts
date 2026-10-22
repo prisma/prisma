@@ -1,24 +1,19 @@
 import type { SqlControlAdapterDescriptor } from '@internal/family-sql/control';
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import { assemblePostgresCodecRegistry } from '@internal/target-postgres/codecs';
-import { postgresPslTypeConstructors } from '@internal/target-postgres/control';
 import { escapeLiteral, qualifyName, quoteIdentifier } from '@internal/target-postgres/sql-utils';
 import { PostgresControlAdapter } from '../core/control-adapter';
-import {
-  createPostgresDefaultFunctionRegistry,
-  createPostgresMutationDefaultGeneratorDescriptors,
-} from '../core/control-mutation-defaults';
+import { createPostgresDefaultFunctionRegistry } from '../core/control-mutation-defaults';
 import { postgresAdapterDescriptorMeta } from '../core/descriptor-meta';
 
 const postgresAdapterDescriptor: SqlControlAdapterDescriptor<'postgres'> = {
   ...postgresAdapterDescriptorMeta,
   authoring: {
-    type: postgresPslTypeConstructors,
     valueObjectStorageType: 'Jsonb',
   },
   controlMutationDefaults: {
     defaultFunctionRegistry: createPostgresDefaultFunctionRegistry(),
-    generatorDescriptors: createPostgresMutationDefaultGeneratorDescriptors(),
+    generatorDescriptors: [],
   },
   create(stack): SqlControlAdapter<'postgres'> {
     const components = [

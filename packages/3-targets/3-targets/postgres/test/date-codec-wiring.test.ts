@@ -1,4 +1,4 @@
-import { temporalCodecPresetWithPrecision } from '@internal/family-sql/control';
+import { temporalCodecPresetWithPrecision } from '@internal/family-sql/pack';
 import { temporalAuthoringPresets } from '@internal/framework-components/authoring';
 import { describe, expect, it } from 'vitest';
 import { postgresAggregateDescriptors } from '../src/core/aggregates';
@@ -45,7 +45,7 @@ describe('Postgres Date codec wiring', () => {
     const input = { codecId };
     const convenience = temporalAuthoringPresets(input);
     expect(postgresAuthoringFieldPresets.temporal).toMatchObject({
-      timestamptzJsDate: temporalCodecPresetWithPrecision(input),
+      timestamptzJsDate: temporalCodecPresetWithPrecision({ ...input, sizeType: 'pg/int4' }),
       createdAtJsDate: convenience.createdAt,
       updatedAtJsDate: convenience.updatedAt,
     });

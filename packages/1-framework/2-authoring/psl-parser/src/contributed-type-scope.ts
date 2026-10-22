@@ -1,10 +1,12 @@
 import type {
   AuthoringFieldPresetDescriptor,
+  AuthoringTypeAliasDescriptor,
   AuthoringTypeConstructorDescriptor,
 } from '@internal/framework-components/authoring';
 
 export type ContributedTypeDescriptor =
   | AuthoringTypeConstructorDescriptor
+  | AuthoringTypeAliasDescriptor
   | AuthoringFieldPresetDescriptor;
 
 export type ContributedTypeNamespace = {
@@ -35,7 +37,17 @@ export interface ContributedTypeScope {
 export function isContributedTypeDescriptor(
   value: ContributedTypeDescriptor | ContributedTypeNamespace,
 ): value is ContributedTypeDescriptor {
-  return 'kind' in value && (value.kind === 'typeConstructor' || value.kind === 'fieldPreset');
+  return (
+    'kind' in value &&
+    (value.kind === 'typeConstructor' || value.kind === 'typeAlias' || value.kind === 'fieldPreset')
+  );
+}
+
+/** The codec a column typed by `descriptor` is stored with. */
+export function contributedTypeCodecId(descriptor: ContributedTypeDescriptor): string {
+  return descriptor.kind === 'typeAlias'
+    ? descriptor.output.type.codecId
+    : descriptor.output.codecId;
 }
 
 export function mergeContributedTypes(

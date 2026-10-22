@@ -1,3 +1,4 @@
+import type { DataTypeSupport } from '@internal/framework-components/authoring';
 import {
   type Binder,
   type EntitySelector,
@@ -36,6 +37,7 @@ export interface MixinSelection {
 export function scopeCompletionItems(
   entries: Iterable<readonly [string, ScopeResolution]>,
   binder: Binder,
+  dataTypes: DataTypeSupport,
   range: Range,
   capabilities: ScopeCompletionCapabilities,
   selection?: EntitySelection | MixinSelection,
@@ -83,6 +85,11 @@ export function scopeCompletionItems(
         break;
       case 'contributedType': {
         const descriptor = resolution.symbol.descriptor;
+        if (descriptor.kind === 'typeAlias') {
+          item.kind = CompletionItemKind.Class;
+          item.detail = descriptor.documentation || 'Type alias';
+          break;
+        }
         const callable =
           descriptor.kind === 'fieldPreset' ||
           descriptor.args !== undefined ||
@@ -92,7 +99,7 @@ export function scopeCompletionItems(
           item.textEdit = {
             range,
             newText: capabilities.clientSupportsSnippets
-              ? typeConstructorSnippet(name, descriptor)
+              ? typeConstructorSnippet(name, descriptor, dataTypes)
               : `${name}()`,
           };
           if (capabilities.clientSupportsSnippets) item.insertTextFormat = InsertTextFormat.Snippet;

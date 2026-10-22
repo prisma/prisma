@@ -1,6 +1,8 @@
 import type {
   ColumnDefault,
+  ColumnDefaultLiteralInputValue,
   ExecutionMutationDefaultPhases,
+  ExecutionMutationDefaultValue,
   ValueSetRef,
 } from '@internal/contract/types';
 import type {
@@ -15,6 +17,7 @@ import type {
 } from '@internal/framework-components/authoring';
 import {
   type DataTypeSupport,
+  instantiateAuthoringTypeAlias,
   instantiateAuthoringTypeConstructor,
   isAuthoringEntityTypeDescriptor,
   readWrittenValue,
@@ -27,11 +30,11 @@ import type {
   AnyCodecDescriptor,
   CodecLookupWithDescriptors,
 } from '@internal/framework-components/codec';
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
 import {
   type ControlMutationDefaultRegistry,
   type DefaultFunctionLoweringContext,
   describeTaggedLiteralFailure,
-  type MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/control';
 import type { ContributedPslDiagnosticCode } from '@internal/framework-components/psl-ast';
 import type {
@@ -43,14 +46,19 @@ import type {
   ParsedWrittenScalar,
   PslSpan,
   Resolution,
+  ResolvedAttribute,
   ResolvedTypeConstructorCall,
   SymbolTable,
+  TypeAttributeSpecContext,
 } from '@internal/psl-parser';
 import {
   type DiagnosticSource,
   diagnosticSource,
   nodePslSpan,
   type PslDiagnosticCollector,
+  typeAttributeSpecContextOfField,
+  typeAttributeSubjectLabel,
+  typeGeneratorAttributeSpec,
 } from '@internal/psl-parser';
 import {
   instantiatePslFieldPreset,
@@ -59,14 +67,20 @@ import {
   reportPresetNotCalled,
   reportTypeConstructorNotCalled,
 } from '@internal/psl-parser/interpret';
-import type { PslSources } from '@internal/psl-parser/syntax';
+import type { FieldAttributeAst, PslSources } from '@internal/psl-parser/syntax';
+import { sqlCodecColumnLength } from '@internal/sql-contract/data-type';
 import {
   SQL_EXPRESSION_DATA_TYPE_ID,
   SQL_EXPRESSION_TAG,
   sqlTextFromStored,
 } from '@internal/sql-contract/sql-expression';
 import { checkSqlDefaultText, reservedSqlDefaultText } from '@internal/sql-contract/validators';
-import type { AuthoredColumnDefault } from '@internal/sql-contract-ts/contract-builder';
+import type {
+  AuthoredColumnDefault,
+  EnumTypeHandle,
+} from '@internal/sql-contract-ts/contract-builder';
+import { invariant } from '@internal/utils/assertions';
+import { blindCast } from '@internal/utils/casts';
 import { InternalError, isInternalError } from '@internal/utils/internal-error';
 import { contractError } from './contract-errors';
 import { type DefaultSpans, lowerDataTypeDefault } from './data-type-default';
@@ -75,9 +89,9 @@ import { lowerDefaultFunctionWithRegistry } from './default-function-registry';
 import { getAttribute } from './psl-attribute-parsing';
 import {
   fieldSpecContext,
-  interpretFieldAttribute,
+  interpretTypeAttribute,
   type ParsedNullLiteral,
-  sqlAttributeSpecs,
+  typeDefaultSpec,
 } from './sql-attribute-specs';
 import {
   type ValueObjectTypes,
@@ -87,7 +101,6 @@ import {
 
 export type ColumnDescriptor = {
   readonly codecId: string;
-  readonly typeRef?: string;
   readonly typeParams?: Record<string, unknown> | undefined;
   /**
    * Storage-plane value-set ref, set only by an entity-ref type constructor
@@ -99,13 +112,6 @@ export type ColumnDescriptor = {
    */
   readonly valueSet?: ValueSetRef;
 };
-
-export function toNamedTypeFieldDescriptor(
-  typeRef: string,
-  descriptor: Pick<ColumnDescriptor, 'codecId'>,
-): ColumnDescriptor {
-  return { codecId: descriptor.codecId, typeRef };
-}
 
 function argumentSpan(
   call: ResolvedTypeConstructorCall,
@@ -197,6 +203,7 @@ export function instantiatePslTypeConstructor(input: {
   readonly diagnostics: PslDiagnosticCollector;
   readonly source: DiagnosticSource;
   readonly entityLabel: string;
+  readonly dataTypes: DataTypeSupport;
 }): ScalarTypeConstructorOutput | undefined {
   const helperPath = input.call.path.join('.');
   const args = mapPslHelperArgs({
@@ -207,6 +214,7 @@ export function instantiatePslTypeConstructor(input: {
     diagnostics: input.diagnostics,
     source: input.source,
     entityLabel: input.entityLabel,
+    dataTypes: input.dataTypes,
   });
   if (!args) {
     return undefined;
@@ -406,6 +414,8 @@ interface FieldTypeConstructorContext {
   readonly diagnostics: PslDiagnosticCollector;
   readonly source: DiagnosticSource;
   readonly entityLabel: string;
+  /** The stack's data types, which a type constructor's value arguments are read as. */
+  readonly dataTypes: DataTypeSupport;
   /**
    * The field's namespace id — required to build a `valueSet` ref (`{
    * namespaceId, entityName, … }`) when an entity-ref type constructor
@@ -460,6 +470,7 @@ export function instantiateFieldTypeConstructor(
     diagnostics: input.diagnostics,
     source: input.source,
     entityLabel: input.entityLabel,
+    dataTypes: input.dataTypes,
   });
   return instantiated === undefined ? NOT_RESOLVED : { ok: true, descriptor: instantiated };
 }
@@ -471,6 +482,7 @@ function instantiateFieldPreset(input: {
   readonly diagnostics: PslDiagnosticCollector;
   readonly source: DiagnosticSource;
   readonly entityLabel: string;
+  readonly dataTypes: DataTypeSupport;
 }): ResolveFieldTypeResult {
   const instantiated = instantiatePslFieldPreset(input);
   if (!instantiated) {
@@ -502,22 +514,12 @@ function instantiateFieldPreset(input: {
   return { ok: true, descriptor: instantiated.descriptor, presetContributions };
 }
 
-export function bareTypeConstructorOf(
-  resolution: Resolution | undefined,
-): AuthoringTypeConstructorDescriptor | undefined {
-  if (resolution?.kind !== 'contributedType') return undefined;
-  const { descriptor } = resolution.symbol;
-  return descriptor.kind === 'typeConstructor' && isBareTypeConstructor(descriptor)
-    ? descriptor
-    : undefined;
-}
-
 function resolvedKindLabel(resolution: Resolution): string {
   switch (resolution.kind) {
     case 'compositeType':
       return 'composite type';
     case 'namedType':
-      return 'named type';
+      return 'type alias';
     case 'block':
       return resolution.symbol.keyword;
     case 'crossSpace':
@@ -532,7 +534,9 @@ export function resolveFieldTypeDescriptor(
     readonly field: FieldSymbol;
     readonly resolution: Resolution | undefined;
     readonly enumTypeDescriptors: ReadonlyMap<BlockSymbol, ColumnDescriptor>;
-    readonly namedTypeDescriptors: ReadonlyMap<NamedTypeSymbol, ColumnDescriptor>;
+    readonly typeAliases: {
+      get(symbol: NamedTypeSymbol): { readonly descriptor: ColumnDescriptor } | undefined;
+    };
     readonly sources: PslSources;
   },
 ): ResolveFieldTypeResult {
@@ -556,6 +560,17 @@ export function resolveFieldTypeDescriptor(
     case 'contributedType': {
       const { descriptor, path } = resolution.symbol;
       const written = path.join('.');
+      if (descriptor.kind === 'typeAlias') {
+        if (call !== undefined) {
+          diagnostics.push({
+            code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+            message: `${written} is a type alias and takes no arguments.`,
+            ...source.at(call.span),
+          });
+          return NOT_RESOLVED;
+        }
+        return { ok: true, descriptor: instantiateAuthoringTypeAlias(descriptor).type };
+      }
       if (descriptor.kind === 'fieldPreset') {
         if (call === undefined) {
           reportPresetNotCalled({
@@ -574,6 +589,7 @@ export function resolveFieldTypeDescriptor(
           diagnostics,
           source,
           entityLabel,
+          dataTypes: input.dataTypes,
         });
       }
       if (call !== undefined) {
@@ -610,8 +626,8 @@ export function resolveFieldTypeDescriptor(
 
   switch (resolution.kind) {
     case 'namedType': {
-      const descriptor = input.namedTypeDescriptors.get(resolution.symbol);
-      return descriptor === undefined ? NOT_RESOLVED : { ok: true, descriptor };
+      const alias = input.typeAliases.get(resolution.symbol);
+      return alias === undefined ? NOT_RESOLVED : { ok: true, descriptor: alias.descriptor };
     }
     case 'block': {
       if (resolution.symbol.keyword !== 'enum') {
@@ -646,18 +662,17 @@ const TAGGED_LITERAL_CANONICALIZATION_CODES = {
  * at the first `null`. Returns whether it refused.
  */
 export function rejectStrictListNullDefault(input: {
-  readonly field: FieldSymbol;
-  readonly modelName: string;
+  readonly owner: TypeAttributeOwner;
   readonly elements: readonly { readonly kind: string }[];
   readonly source: DiagnosticSource;
   readonly diagnostics: PslDiagnosticCollector;
 }): boolean {
-  if (input.field.elementOptional) return false;
+  if (input.owner.elementOptional) return false;
   const nullElement = input.elements.find(isParsedNullLiteral);
   if (nullElement === undefined) return false;
   input.diagnostics.push({
     code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
-    message: `Field "${input.modelName}.${input.field.name}" has strict list elements and cannot use null in a literal list default. Make the element type nullable or remove null from the default.`,
+    message: `${typeAttributeSubjectLabel(input.owner.specContext.subject)} has strict list elements and cannot use null in a literal list default. Make the element type nullable or remove null from the default.`,
     ...input.source.at(nullElement.span),
   });
   return true;
@@ -665,6 +680,47 @@ export function rejectStrictListNullDefault(input: {
 
 function isParsedNullLiteral(element: { readonly kind: string }): element is ParsedNullLiteral {
   return element.kind === 'null';
+}
+
+/** Where `@default`, `@onCreate` and `@onUpdate` are written: a field, or a type alias whose fields take them. */
+export interface TypeAttributeOwner {
+  readonly attributes: readonly ResolvedAttribute<FieldAttributeAst>[];
+  readonly optional: boolean;
+  readonly list: boolean;
+  readonly elementOptional: boolean;
+  readonly specContext: TypeAttributeSpecContext;
+  /** The names a default function is lowered for: the model and field, or `types` and the alias. */
+  readonly loweringNames: { readonly modelName: string; readonly fieldName: string };
+}
+
+export function fieldAttributeOwner(input: {
+  readonly field: FieldSymbol;
+  readonly model: ModelSymbol;
+  readonly symbolTable: SymbolTable;
+  readonly binder: Binder;
+  readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
+  readonly dataTypes: DataTypeSupport;
+}): TypeAttributeOwner {
+  const { field, model } = input;
+  return {
+    attributes: field.attributes,
+    optional: field.optional,
+    list: field.list,
+    elementOptional: field.elementOptional,
+    specContext: typeAttributeSpecContextOfField(
+      fieldSpecContext({
+        symbols: input.symbolTable,
+        model,
+        field,
+        binder: input.binder,
+        defaultFunctionRegistry: input.defaultFunctionRegistry,
+        generatorFunctions: input.generatorFunctions,
+        dataTypes: input.dataTypes,
+      }),
+    ),
+    loweringNames: { modelName: model.name, fieldName: field.name },
+  };
 }
 
 export function lowerDefaultForField(input: {
@@ -676,7 +732,6 @@ export function lowerDefaultForField(input: {
   readonly sources: PslSources;
   readonly binder: Binder;
   readonly columnDescriptor: ColumnDescriptor;
-  /** The column's parameters: its own, or those of the named type it is declared with. */
   readonly columnTypeParams: Record<string, unknown> | undefined;
   /** Whether the field is stored in a list column. A list of value objects is not: its one column holds the whole list as one JSON array. */
   readonly isListColumn: boolean;
@@ -684,34 +739,42 @@ export function lowerDefaultForField(input: {
   readonly valueObjectDefault:
     | { readonly valueObjectName: string; readonly types: ValueObjectTypes }
     | undefined;
-  readonly generatorDescriptorById: ReadonlyMap<string, MutationDefaultGeneratorDescriptor>;
+  readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
+  readonly dataTypes: DataTypeSupport;
+  readonly codecLookup: CodecLookupWithDescriptors;
+  readonly diagnostics: PslDiagnosticCollector;
+}): { readonly defaultValue?: AuthoredColumnDefault } {
+  return lowerTypeDefault({ ...input, owner: fieldAttributeOwner(input) });
+}
+
+/** The default a field's or type alias's `@default(...)` lowers to for its column. */
+export function lowerTypeDefault(input: {
+  readonly owner: TypeAttributeOwner;
+  readonly symbolTable: SymbolTable;
+  readonly sources: PslSources;
+  readonly binder: Binder;
+  readonly columnDescriptor: ColumnDescriptor;
+  readonly columnTypeParams: Record<string, unknown> | undefined;
+  /** Whether the column holds a list. A list of value objects is not: its one column holds the whole list as one JSON array. */
+  readonly isListColumn: boolean;
+  /** For a field typed by a value object, the value objects a literal default is checked against. */
+  readonly valueObjectDefault:
+    | { readonly valueObjectName: string; readonly types: ValueObjectTypes }
+    | undefined;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
   readonly dataTypes: DataTypeSupport;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly diagnostics: PslDiagnosticCollector;
-}): {
-  readonly defaultValue?: AuthoredColumnDefault;
-  readonly executionDefaults?: ExecutionMutationDefaultPhases;
-} {
-  const node = getAttribute(input.field.attributes, 'default')?.node;
+}): { readonly defaultValue?: AuthoredColumnDefault } {
+  const node = getAttribute(input.owner.attributes, 'default')?.node;
   if (node === undefined) return {};
   const source = diagnosticSource(input.sources, node.syntax);
-  const spec = sqlAttributeSpecs.field.default(
-    fieldSpecContext({
-      symbols: input.symbolTable,
-      model: input.model,
-      field: input.field,
-      binder: input.binder,
-      defaultFunctionRegistry: input.defaultFunctionRegistry,
-      dataTypes: input.dataTypes,
-    }),
-  );
-  const interpreted = interpretFieldAttribute({
+  const subject = typeAttributeSubjectLabel(input.owner.specContext.subject);
+  const interpreted = interpretTypeAttribute({
     symbols: input.symbolTable,
     node,
-    spec,
-    model: input.model,
-    field: input.field,
+    spec: typeDefaultSpec(input.owner.specContext),
     sources: input.sources,
     binder: input.binder,
     diagnostics: input.diagnostics,
@@ -720,10 +783,10 @@ export function lowerDefaultForField(input: {
   const value = interpreted.value;
   const attributeSpan = nodePslSpan(node.syntax, input.sources);
   if (value.kind === 'null') {
-    if (!input.field.optional) {
+    if (!input.owner.optional) {
       input.diagnostics.push({
         code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
-        message: `Field "${input.modelName}.${input.fieldName}" is non-nullable and cannot use null as its literal default. Make the field nullable or use a non-null default.`,
+        message: `${subject} is non-nullable and cannot use null as its literal default. Make the field nullable or use a non-null default.`,
         ...source.at(),
       });
       return {};
@@ -739,7 +802,7 @@ export function lowerDefaultForField(input: {
   // fills it element by element, as it fills a list column, and any other literal is read as the
   // whole value.
   const readsListElements = (written: WrittenValue) =>
-    input.isListColumn || (input.field.list && written.kind === 'list');
+    input.isListColumn || (input.owner.list && written.kind === 'list');
   const readAsLiteral = (
     written: WrittenValue,
     spans: DefaultSpans,
@@ -753,7 +816,7 @@ export function lowerDefaultForField(input: {
       column: { codecId: input.columnDescriptor.codecId, typeParams: input.columnTypeParams },
       codecLookup: input.codecLookup,
       dataTypes: input.dataTypes,
-      fieldPath: `${input.modelName}.${input.fieldName}`,
+      subject,
     });
     if (!lowered.ok) {
       input.diagnostics.push({
@@ -783,11 +846,11 @@ export function lowerDefaultForField(input: {
         codecLookup: input.codecLookup,
       });
       const mismatches = valueObjectDefaultMismatches({
-        fieldPath: `${input.modelName}.${input.fieldName}`,
+        fieldPath: input.owner.specContext.subject.name,
         value: document,
-        list: input.field.list,
-        nullable: input.field.optional,
-        elementNullable: input.field.elementOptional,
+        list: input.owner.list,
+        nullable: input.owner.optional,
+        elementNullable: input.owner.elementOptional,
         ...input.valueObjectDefault,
         lookups: { codecLookup: input.codecLookup, dataTypeLookup: input.dataTypes.lookup },
       });
@@ -887,8 +950,7 @@ export function lowerDefaultForField(input: {
   const { call } = value;
   const context: DefaultFunctionLoweringContext = {
     sourceId: input.sources.sourceFileFor(node.syntax).filename,
-    modelName: input.modelName,
-    fieldName: input.fieldName,
+    ...input.owner.loweringNames,
     columnCodecId: input.columnDescriptor.codecId,
   };
   const lowered = lowerDefaultFunctionWithRegistry({
@@ -904,38 +966,159 @@ export function lowerDefaultForField(input: {
     return {};
   }
 
-  if (lowered.value.kind === 'storage') {
-    return { defaultValue: lowered.value.defaultValue };
-  }
+  return { defaultValue: lowered.value.defaultValue };
+}
 
-  const generatorDescriptor = input.generatorDescriptorById.get(lowered.value.generated.id);
-  if (!generatorDescriptor) {
-    input.diagnostics.push({
-      code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
-      message: `Default generator "${lowered.value.generated.id}" is not available in the composed mutation default registry.`,
-      ...source.at(call.span),
+const GENERATOR_PHASES = ['onCreate', 'onUpdate'] as const;
+
+/** The generators a field's `@onCreate(fn())` and `@onUpdate(fn())` resolve to for its column, or `undefined` for a field with neither. */
+export function lowerGeneratorAttributesForField(input: {
+  readonly modelName: string;
+  readonly fieldName: string;
+  readonly field: FieldSymbol;
+  readonly model: ModelSymbol;
+  readonly symbolTable: SymbolTable;
+  readonly sources: PslSources;
+  readonly binder: Binder;
+  readonly columnDescriptor: ColumnDescriptor;
+  readonly columnTypeParams: Record<string, unknown> | undefined;
+  readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
+  readonly dataTypes: DataTypeSupport;
+  readonly diagnostics: PslDiagnosticCollector;
+}): ExecutionMutationDefaultPhases | undefined {
+  return lowerTypeGenerators({ ...input, owner: fieldAttributeOwner(input) });
+}
+
+/** The generators the `@onCreate(fn())` and `@onUpdate(fn())` of a field or type alias resolve to for its column, or `undefined` when it has neither. */
+export function lowerTypeGenerators(input: {
+  readonly owner: TypeAttributeOwner;
+  readonly symbolTable: SymbolTable;
+  readonly sources: PslSources;
+  readonly binder: Binder;
+  readonly columnDescriptor: ColumnDescriptor;
+  readonly columnTypeParams: Record<string, unknown> | undefined;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
+  readonly dataTypes: DataTypeSupport;
+  readonly diagnostics: PslDiagnosticCollector;
+}): ExecutionMutationDefaultPhases | undefined {
+  const { subject } = input.owner.specContext;
+  const label = typeAttributeSubjectLabel(subject);
+  const phases: {
+    onCreate?: ExecutionMutationDefaultValue;
+    onUpdate?: ExecutionMutationDefaultValue;
+  } = {};
+  for (const phase of GENERATOR_PHASES) {
+    const [attribute, duplicate] = input.owner.attributes.filter(({ name }) => name === phase);
+    if (attribute === undefined) continue;
+    if (duplicate !== undefined) {
+      input.diagnostics.push({
+        code: 'PSL_DUPLICATE_ATTRIBUTE',
+        message: `\`@${phase}\` declared more than once on ${subject.kind} "${subject.name}".`,
+        ...diagnosticSource(input.sources, duplicate.node.syntax).at(duplicate.span),
+      });
+      continue;
+    }
+    const node = attribute.node;
+    const interpreted = interpretTypeAttribute({
+      symbols: input.symbolTable,
+      node,
+      spec: typeGeneratorAttributeSpec(phase, input.owner.specContext),
+      sources: input.sources,
+      binder: input.binder,
+      diagnostics: input.diagnostics,
     });
-    return {};
-  }
-
-  // Preset-only generators (e.g. `timestampNow`) co-register their codec through the preset descriptor, so they don't carry an `applicableCodecIds` list. Such a generator surfacing on the `@default(...)` lowering path is itself the bug — emit a diagnostic pointing the user at the correct authoring surface.
-  if (generatorDescriptor.applicableCodecIds === undefined) {
+    if (interpreted === undefined) continue;
+    const call = interpreted.value;
+    const resolution = input.generatorFunctions.resolve(
+      { name: call.fn, args: call.args },
+      {
+        codecId: input.columnDescriptor.codecId,
+        typeParams: input.columnTypeParams,
+        length: sqlCodecColumnLength(
+          input.dataTypes,
+          input.columnDescriptor.codecId,
+          input.columnTypeParams,
+        ),
+      },
+    );
+    if (resolution.ok) {
+      phases[phase] = resolution.generator;
+      continue;
+    }
     input.diagnostics.push({
-      code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
-      message: `Default generator "${generatorDescriptor.id}" is not applicable to "@default(...)" lowering. Use the corresponding field preset (e.g. \`temporal.${generatorDescriptor.id === 'timestampNow' ? 'updatedAt' : generatorDescriptor.id}()\`) instead.`,
-      ...source.at(call.span),
+      code: 'PSL_GENERATOR_NOT_APPLICABLE',
+      message:
+        resolution.reason === 'refused'
+          ? `${label}: ${resolution.message}`
+          : `${label}: ${call.fn}() does not apply to codec "${input.columnDescriptor.codecId}".`,
+      ...diagnosticSource(input.sources, node.syntax).at(call.span),
     });
-    return {};
   }
+  return phases.onCreate === undefined && phases.onUpdate === undefined ? undefined : phases;
+}
 
-  if (!generatorDescriptor.applicableCodecIds.includes(input.columnDescriptor.codecId)) {
-    input.diagnostics.push({
-      code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
-      message: `Default generator "${generatorDescriptor.id}" is not applicable to "${input.modelName}.${input.fieldName}" with codecId "${input.columnDescriptor.codecId}".`,
-      ...source.at(call.span),
-    });
-    return {};
+type LoweredEnumDefault = { readonly defaultValue?: AuthoredColumnDefault };
+
+/** The default a field's or type alias's `@default(...)` names among the members of its enum. */
+export function lowerEnumDefault(input: {
+  readonly owner: TypeAttributeOwner;
+  readonly symbolTable: SymbolTable;
+  readonly sources: PslSources;
+  readonly binder: Binder;
+  readonly enumHandle: EnumTypeHandle;
+  readonly diagnostics: PslDiagnosticCollector;
+}): LoweredEnumDefault {
+  const { owner, enumHandle, diagnostics } = input;
+  const node = getAttribute(owner.attributes, 'default')?.node;
+  if (node === undefined) return {};
+  if (enumHandle.enumMembers.length === 0) return {};
+  const interpreted = interpretTypeAttribute({
+    node,
+    spec: typeDefaultSpec(owner.specContext),
+    symbols: input.symbolTable,
+    sources: input.sources,
+    binder: input.binder,
+    diagnostics,
+  });
+  if (interpreted === undefined) return {};
+  const member = interpreted.value;
+  if (member.kind === 'member-list') {
+    if (
+      rejectStrictListNullDefault({
+        owner,
+        elements: member.elements,
+        source: diagnosticSource(input.sources, node.syntax),
+        diagnostics,
+      })
+    )
+      return {};
+    const values = member.elements.map((entry) =>
+      entry.kind === 'null'
+        ? null
+        : enumHandle.enumMembers.find((candidate) => candidate.name === entry.name)?.value,
+    );
+    return {
+      defaultValue: {
+        kind: 'literal',
+        value: blindCast<
+          ColumnDefaultLiteralInputValue,
+          'enum member values are codec-validated JsonValue-compatible scalars'
+        >(values),
+      },
+    };
   }
+  invariant(member.kind === 'member', 'the enum @default grammar admits only member identifiers');
+  const match = enumHandle.enumMembers.find((m) => m.name === member.name);
+  if (!match) return {};
 
-  return { executionDefaults: { onCreate: lowered.value.generated } };
+  return {
+    defaultValue: {
+      kind: 'literal',
+      value: blindCast<
+        ColumnDefaultLiteralInputValue,
+        'enum member values are codec-validated JsonValue-compatible scalars'
+      >(match.value),
+    },
+  };
 }

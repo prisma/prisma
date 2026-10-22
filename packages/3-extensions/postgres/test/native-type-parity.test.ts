@@ -37,18 +37,10 @@ function emit(schema: string) {
   );
 }
 
-interface StorageTypeShape {
-  readonly kind: string;
-  readonly codecId: string;
-  readonly dataType: string;
-  readonly typeParams: Record<string, unknown>;
-}
-
 interface ColumnShape {
   readonly codecId: string;
   readonly dataType: string;
   readonly typeParams?: Record<string, unknown>;
-  readonly typeRef?: string;
   readonly many?: false | { readonly elementNullable: boolean };
 }
 
@@ -56,7 +48,7 @@ function storageOf(value: unknown) {
   return (
     value as {
       readonly storage: {
-        readonly types?: Record<string, StorageTypeShape>;
+        readonly types?: Record<string, unknown>;
         readonly namespaces: Record<
           string,
           {
@@ -78,6 +70,7 @@ function schemaFor(bare: string, alias: string): string {
 
 model sample {
   id Int @id
+  viaAlias Alias
   viaNamed Named
   direct ${bare}
 }
@@ -352,30 +345,18 @@ describe('native types as bare scalar types — parity with the live bare-type p
     if (!result.ok) return;
 
     const storage = storageOf(result.value);
-    const aliasType = storage.types?.['Alias'];
-    const namedType = storage.types?.['Named'];
-
-    expect(aliasType).toEqual({ kind: 'codec-instance', ...expected });
-    expect(namedType).toEqual(aliasType);
-
     const columns = storage.namespaces['public']?.entries.table['sample']?.columns;
-    const direct = columns?.['direct'];
-    expect(direct).toBeDefined();
-    if (!direct || !aliasType) return;
+    const shape = (column: ColumnShape | undefined) => ({
+      dataType: column?.dataType,
+      codecId: column?.codecId,
+      typeParams: column?.typeParams ?? {},
+    });
     expect({
-      dataType: direct.dataType,
-      codecId: direct.codecId,
-      typeParams: direct.typeParams ?? {},
-    }).toEqual({
-      dataType: aliasType.dataType,
-      codecId: aliasType.codecId,
-      typeParams: aliasType.typeParams,
-    });
-
-    expect(columns?.['viaNamed']).toMatchObject({
-      codecId: expected.codecId,
-      typeRef: 'Named',
-    });
+      types: storage.types,
+      viaAlias: shape(columns?.['viaAlias']),
+      viaNamed: shape(columns?.['viaNamed']),
+      direct: shape(columns?.['direct']),
+    }).toEqual({ types: undefined, viaAlias: expected, viaNamed: expected, direct: expected });
   });
 
   it('lowers the Date updatedAt shorthand identically to explicit Date clock phases', () => {
@@ -432,7 +413,7 @@ describe('native types as bare scalar types — parity with the live bare-type p
       {
         code: 'PSL_UNRESOLVED_REFERENCE',
         message:
-          'Unsupported("hstore") is not a Prisma 8 type. Write the column\'s type with a type constructor. If "hstore" comes from a database extension that has a Prisma 8 pack, add the pack to extensions in prisma.config.ts.',
+          'Unsupported("hstore") is not a Prisma 8 type. Write the column\'s type with a type constructor, or as Raw(sql`hstore`) when no type constructor names it. If "hstore" comes from a database extension that has a Prisma 8 pack, add the pack to extensions in prisma.config.ts.',
       },
     ]);
   });
@@ -517,7 +498,7 @@ model sample {
     );
   });
 
-  it('rejects a non-integer precision via the declarative integer constraint', () => {
+  it('rejects a non-integer precision, which pg/int4 cannot hold', () => {
     const result = emit(`model sample {
   id Int @id
   at Timestamp(1.5)
@@ -525,14 +506,12 @@ model sample {
 `);
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-          message: expect.stringContaining('must be an integer'),
-        }),
-      ]),
-    );
+    expect(result.failure.diagnostics).toEqual([
+      expect.objectContaining({
+        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+        message: 'Expected a number that pg/int4 can hold; got pg/numeric',
+      }),
+    ]);
   });
 
   it('rejects arguments on a no-arg native type', () => {

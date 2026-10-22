@@ -1,4 +1,4 @@
-import type { Contract, JsonValue } from '@internal/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   AnyCodecDescriptor,
   CodecDescriptor,
@@ -32,18 +32,7 @@ import {
   runtimeError,
 } from '@internal/framework-components/runtime';
 import { canonicalizeJson } from '@internal/framework-components/utils';
-import type { SqlStorage, StorageTypeInstance } from '@internal/sql-contract/types';
-import { blindCast } from '@internal/utils/casts';
-
-function documentScopedCodecTypes(
-  contract: Contract<SqlStorage>,
-): Record<string, StorageTypeInstance> | undefined {
-  return blindCast<
-    Record<string, StorageTypeInstance> | undefined,
-    'SqlStorage.types is typed for generic access; runtime shape is guaranteed by contract schema validation'
-  >(contract.storage.types);
-}
-
+import type { SqlStorage } from '@internal/sql-contract/types';
 import { createSqlOperationRegistry, type SqlOperationDescriptors } from '@internal/sql-operations';
 import { buildSqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/aggregate-descriptor-registry';
 import type {
@@ -51,7 +40,6 @@ import type {
   AnyQueryAst,
   ContractCodecRegistry,
   LoweredStatement,
-  SqlCodecInstanceContext,
   SqlDriver,
 } from '@internal/sql-relational-core/ast';
 import { buildCodecDescriptorRegistry } from '@internal/sql-relational-core/codec-descriptor-registry';
@@ -60,14 +48,14 @@ import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
 import type {
   CodecDescriptorRegistry,
   ExecutionContext,
-  TypeHelperRegistry,
 } from '@internal/sql-relational-core/query-lane-context';
+import { blindCast } from '@internal/utils/casts';
 import { createAstCodecResolver } from './codecs/ast-codec-resolver';
 
 /**
  * Runtime parameterized codec descriptor.
  *
- * The unified `CodecDescriptor<P>` shape applied to parameterized codecs — `paramsSchema: StandardSchemaV1<P>` for JSON-boundary validation, `factory: (P) => (CodecInstanceContext) => Codec` for the curried higher-order codec. The factory is called once per `storage.types` instance (or once per inline-`typeParams` column); per-instance state lives in the closure.
+ * The unified `CodecDescriptor<P>` shape applied to parameterized codecs — `paramsSchema: StandardSchemaV1<P>` for JSON-boundary validation, `factory: (P) => (CodecInstanceContext) => Codec` for the curried higher-order codec. The factory is called once per distinct `(codecId, typeParams)` of the contract columns; per-instance state lives in the closure.
  *
  * Codec-registry-unification spec § Decision.
  */
@@ -173,7 +161,7 @@ export function createSqlExecutionStack<TTargetId extends string>(options: {
   });
 }
 
-export type { ExecutionContext, TypeHelperRegistry };
+export type { ExecutionContext };
 
 export function assertExecutionStackContractRequirements(
   contract: Contract<SqlStorage>,
@@ -228,7 +216,7 @@ export function assertExecutionStackContractRequirements(
 function validateTypeParams(
   typeParams: Record<string, unknown>,
   descriptor: RuntimeParameterizedCodecDescriptor,
-  context: { typeName?: string; tableName?: string; columnName?: string },
+  context: { tableName: string; columnName: string },
 ): Record<string, unknown> {
   const result = descriptor.paramsSchema['~standard'].validate(typeParams);
   if (result instanceof Promise) {
@@ -240,12 +228,9 @@ function validateTypeParams(
   }
   if (result.issues) {
     const messages = result.issues.map((issue) => issue.message).join('; ');
-    const locationInfo = context.typeName
-      ? `type '${context.typeName}'`
-      : `column '${context.tableName}.${context.columnName}'`;
     throw runtimeError(
       'RUNTIME.TYPE_PARAMS_INVALID',
-      `Invalid typeParams for ${locationInfo} (codecId: ${descriptor.codecId}): ${messages}`,
+      `Invalid typeParams for column '${context.tableName}.${context.columnName}' (codecId: ${descriptor.codecId}): ${messages}`,
       { ...context, codecId: descriptor.codecId, typeParams },
     );
   }
@@ -302,65 +287,6 @@ function collectAggregateDescriptorContributions(
   contributors: ReadonlyArray<ComponentMetadata>,
 ): ReadonlyArray<unknown> {
   return contributors.flatMap((contributor) => contributor.types?.aggregateDescriptors ?? []);
-}
-
-function collectTypeRefSites(
-  storage: SqlStorage,
-): Map<string, Array<{ readonly table: string; readonly column: string }>> {
-  const sites = new Map<string, Array<{ readonly table: string; readonly column: string }>>();
-  for (const ns of Object.values(storage.namespaces)) {
-    for (const [tableName, table] of Object.entries(ns.entries.table ?? {})) {
-      for (const [columnName, column] of Object.entries(table.columns)) {
-        if (typeof column.typeRef !== 'string') continue;
-        const list = sites.get(column.typeRef);
-        const entry = { table: tableName, column: columnName };
-        if (list) {
-          list.push(entry);
-        } else {
-          sites.set(column.typeRef, [entry]);
-        }
-      }
-    }
-  }
-  return sites;
-}
-
-function initializeTypeHelpers(
-  storage: SqlStorage,
-  documentTypes: Record<string, StorageTypeInstance> | undefined,
-  codecDescriptors: Map<string, RuntimeParameterizedCodecDescriptor>,
-): TypeHelperRegistry {
-  const helpers: TypeHelperRegistry = {};
-
-  if (!documentTypes) {
-    return helpers;
-  }
-
-  const typeRefSites = collectTypeRefSites(storage);
-
-  for (const [typeName, typeInstance] of Object.entries(documentTypes)) {
-    const codecId = typeInstance.codecId;
-    const typeParams = typeInstance.typeParams;
-    const descriptor = codecDescriptors.get(codecId);
-
-    if (!descriptor) {
-      // No parameterized descriptor for this codec id — store the raw type instance for callers that need typeParams metadata.
-      helpers[typeName] = typeInstance;
-      continue;
-    }
-
-    // `typeParams` may be absent on the canonical empty form. Forward `{}`
-    // to the descriptor's paramsSchema so it can probe its own optionality.
-    const validatedParams = validateTypeParams(typeParams ?? {}, descriptor, {
-      typeName,
-    });
-
-    const usedAt = typeRefSites.get(typeName) ?? [];
-    const ctx: SqlCodecInstanceContext = { name: typeName, usedAt };
-    helpers[typeName] = descriptor.factory(validatedParams)(ctx);
-  }
-
-  return helpers;
 }
 
 function validateColumnTypeParams(
@@ -433,7 +359,7 @@ function assertColumnCodecIntegrity(
           if (rejects) {
             throw runtimeError(
               'RUNTIME.CODEC_PARAMETERIZATION_MISMATCH',
-              `Column '${tableName}.${columnName}' uses parameterized codec '${ref.codecId}' but no typeParams are supplied. Provide typeParams on the column, or use a typeRef pointing at a storage.types entry that carries them.`,
+              `Column '${tableName}.${columnName}' uses parameterized codec '${ref.codecId}' but no typeParams are supplied. Provide typeParams on the column.`,
               {
                 table: tableName,
                 column: columnName,
@@ -480,12 +406,11 @@ function assertColumnCodecIntegrity(
 /**
  * Build a {@link ContractCodecRegistry} that resolves codecs exclusively through the `forCodecRef` content-keyed cache.
  *
- * One pre-population pass walks `storage.types` and `storage.tables[].columns[]` to seed the resolver's per-ref instance context with the *aggregated* `usedAt` set for each canonical `(codecId, typeParams)` key. The same codec materialised through `forColumn` or `forCodecRef` is therefore one instance with one `SqlCodecInstanceContext` — stateful codecs reading `usedAt` see the full column set regardless of which surface the caller used.
+ * One pre-population pass walks `storage.tables[].columns[]` to seed the resolver's per-ref instance context with the *aggregated* `usedAt` set for each canonical `(codecId, typeParams)` key. The same codec materialised through `forColumn` or `forCodecRef` is therefore one instance with one `SqlCodecInstanceContext` — stateful codecs reading `usedAt` see the full column set regardless of which surface the caller used.
  *
  * Per-key instance-name policy:
  *
- * - typeRef-shared columns use the `storage.types[name]` name.
- * - inline-`typeParams` columns use `<col:Table.column>` (the first column observed at that key; additional columns sharing the key extend `usedAt`).
+ * - columns with `typeParams` use `<col:Table.column>` (the first column observed at that key; additional columns sharing the key extend `usedAt`).
  * - non-parameterized codec ids use `<codec:codecId>`, aggregating every column on that codec id into one `usedAt` set.
  * - ad-hoc refs the contract walk did not pre-populate (e.g. AST-supplied refs from deserialised migration ops) fall back to the canonical cache key `${codecId}:${canonicalizeJson(typeParams)}` — the only structurally honest identity for an ad-hoc ref, distinct per `(codecId, typeParams)`.
  *
@@ -502,36 +427,9 @@ function buildContractCodecRegistry(
   const usedAtByKey = new Map<string, Array<{ readonly table: string; readonly column: string }>>();
   const nameByKey = new Map<string, string>();
 
-  const typeRefSites = collectTypeRefSites(contract.storage);
-  for (const [typeName, typeInstance] of Object.entries(documentScopedCodecTypes(contract) ?? {})) {
-    const instanceTypeParams = typeInstance.typeParams;
-    const hasParamKeys =
-      instanceTypeParams !== undefined && Object.keys(instanceTypeParams).length > 0;
-    const ref: CodecRef = hasParamKeys
-      ? {
-          codecId: typeInstance.codecId,
-          typeParams: blindCast<
-            JsonValue,
-            'storage.types typeParams come from contract JSON, validated by the contract schema'
-          >(instanceTypeParams),
-        }
-      : { codecId: typeInstance.codecId };
-    const key = refKeyOf(ref);
-    const sites = typeRefSites.get(typeName) ?? [];
-    const existing = usedAtByKey.get(key);
-    // Two `storage.types` aliases that canonicalize to the same (codecId, typeParams) share a single codec instance via the resolver. Append sites instead of replacing so a stateful codec reading the aggregated site list sees every column behind every alias rather than just the last one.
-    if (existing) {
-      existing.push(...sites);
-    } else {
-      usedAtByKey.set(key, [...sites]);
-      nameByKey.set(key, typeName);
-    }
-  }
-
   for (const [namespaceId, ns] of Object.entries(contract.storage.namespaces)) {
     for (const [tableName, table] of Object.entries(ns.entries.table ?? {})) {
-      for (const [columnName, column] of Object.entries(table.columns)) {
-        if (column.typeRef !== undefined) continue;
+      for (const columnName of Object.keys(table.columns)) {
         const ref = codecDescriptors.codecRefForColumn(namespaceId, tableName, columnName);
         if (!ref) continue;
         const key = refKeyOf(ref);
@@ -648,12 +546,6 @@ export function createExecutionContext<
     validateColumnTypeParams(contract.storage, parameterizedCodecDescriptors);
   }
 
-  const types = initializeTypeHelpers(
-    contract.storage,
-    documentScopedCodecTypes(contract),
-    parameterizedCodecDescriptors,
-  );
-
   const contractCodecs = buildContractCodecRegistry(contract, codecDescriptors);
 
   return {
@@ -662,7 +554,6 @@ export function createExecutionContext<
     codecDescriptors,
     aggregateDescriptors,
     queryOperations: queryOperationRegistry,
-    types,
     rawCodecInferer: stack.adapter.rawCodecInferer,
     collectionMethods: contributors.flatMap(
       (contributor) => contributor.collectionMethods?.() ?? [],

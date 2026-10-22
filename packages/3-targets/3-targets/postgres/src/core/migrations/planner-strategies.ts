@@ -148,7 +148,6 @@ export interface StrategyContext {
   readonly codecHooks: ReadonlyMap<string, CodecControlHooks>;
   /** The composed stack's codecs and data types, which write each column's type. */
   readonly types: TypeLookups;
-  readonly storageTypes: Readonly<Record<string, StorageTypeInstance>>;
   /** One namespace of the start state, for probes by bare table name in the planned namespace. */
   readonly schema: SqlSchemaIR;
   /** The whole start tree of the plan, every namespace. */
@@ -340,6 +339,7 @@ export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
           kind: 'placeholder',
           slot: `${converted.text}:convert`,
         },
+        ...(expected.catalogText !== undefined ? { raw: true as const } : {}),
         dataTypes: ctx.dataTypes,
         ownsAutoincrementSequence: hasAutoincrementDefault(actual),
       }),

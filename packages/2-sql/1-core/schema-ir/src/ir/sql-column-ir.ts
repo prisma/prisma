@@ -63,8 +63,7 @@ export interface SqlColumnIRInput {
    * end)` op-path called. Carried the same way the query AST carries
    * `CodecRef` (TML-2456) and the migration DDL renderer (TML-2918).
    * Stamped on the EXPECTED (contract-derived) column at derivation,
-   * post-`typeRef` resolution (the referenced storage type's own
-   * codec/params, not the column's `typeRef` pointer). Absent on
+   * from the column's own codec and params. Absent on
    * introspected/hand-built nodes — the actual side never renders DDL —
    * and never compared by `isEqualTo`.
    */
@@ -93,6 +92,10 @@ export interface SqlColumnIRInput {
   readonly sqlExpressionLiteralFor?: SqlExpressionLiteralFor;
   /** The element type as the database reports it. Set by introspection; absent on contract-derived nodes. */
   readonly reportedType?: ReportedSqlType;
+  /**
+   * The element type exactly as the database catalog prints it, on a contract-derived column whose data type's name is its catalog text (ADR 273). Such a column's type is compared by this text, not by {@link storedType}: see {@link sqlColumnTypesEqual}.
+   */
+  readonly catalogText?: string;
 }
 
 /**
@@ -137,6 +140,8 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   declare readonly sqlExpressionLiteralFor?: SqlExpressionLiteralFor;
   /** See {@link SqlColumnIRInput.reportedType}. Non-enumerable, same reason as {@link codecRef}. */
   declare readonly reportedType?: ReportedSqlType;
+  /** See {@link SqlColumnIRInput.catalogText}. Non-enumerable, same reason as {@link codecRef}. */
+  declare readonly catalogText?: string;
 
   constructor(input: SqlColumnIRInput) {
     super();
@@ -156,6 +161,7 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
     defineNonEnumerable(this, 'defaultExpressionValue', input.defaultExpressionValue);
     defineNonEnumerable(this, 'sqlExpressionLiteralFor', input.sqlExpressionLiteralFor);
     defineNonEnumerable(this, 'reportedType', input.reportedType);
+    defineNonEnumerable(this, 'catalogText', input.catalogText);
     freezeNode(this);
   }
 
@@ -232,6 +238,12 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
       'every diff-tree node the differ pairs is a SqlSchemaIRNode'
     >(actual);
     assertNode(node, 'SqlColumnIR', SqlColumnIR.is);
+    const texts = catalogTexts(this, node);
+    if (texts !== undefined && texts.expected !== texts.actual) {
+      return differs(
+        `The column type is "${texts.expected}", but the database reports "${texts.actual}". A type named by its catalog text is compared with the text the database reports, exactly.`,
+      );
+    }
     if (node.storedType === undefined && node.reportedType !== undefined) {
       return differs(
         node.typeText === ''
@@ -254,12 +266,19 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
 }
 
 /** The parts of a column that make its type. */
-export type SqlColumnType = Pick<SqlColumnIR, 'storedType' | 'storedTypeParams' | 'many'>;
+export type SqlColumnType = Pick<
+  SqlColumnIR,
+  'storedType' | 'storedTypeParams' | 'many' | 'catalogText' | 'reportedType'
+>;
 
 /**
  * Whether two columns have the same type: both have a stored type, the two are one data type, their parameters are equal as canonical JSON, and both or neither are lists. A column no data type claims has no stored type and never has the same type as another. ADR 254.
+ *
+ * When either column carries a {@link SqlColumnIR.catalogText}, the two compare by text instead, exactly, with `[]` for a list: that text against the other column's catalog text or reported text. ADR 273.
  */
 export function sqlColumnTypesEqual(a: SqlColumnType, b: SqlColumnType): boolean {
+  const texts = catalogTexts(a, b);
+  if (texts !== undefined) return texts.expected === texts.actual;
   return (
     a.storedType !== undefined &&
     b.storedType !== undefined &&
@@ -267,6 +286,21 @@ export function sqlColumnTypesEqual(a: SqlColumnType, b: SqlColumnType): boolean
     canonicalizeJson(a.storedTypeParams ?? {}) === canonicalizeJson(b.storedTypeParams ?? {}) &&
     Boolean(a.many) === Boolean(b.many)
   );
+}
+
+/** The text a column's type compares by, with `[]` for a list, when it has one: its catalog text, or the text the database reports. */
+function comparedText(column: SqlColumnType): string | undefined {
+  const text = column.catalogText ?? column.reportedType?.text;
+  return text === undefined ? undefined : `${text}${column.many === true ? '[]' : ''}`;
+}
+
+/** The two texts a pair of columns compares by, when either carries a catalog text. A side with no text to compare gives the empty text, which no catalog text equals. */
+function catalogTexts(
+  expected: SqlColumnType,
+  actual: SqlColumnType,
+): { readonly expected: string; readonly actual: string } | undefined {
+  if (expected.catalogText === undefined && actual.catalogText === undefined) return undefined;
+  return { expected: comparedText(expected) ?? '', actual: comparedText(actual) ?? '' };
 }
 
 /** The column's type as the contract writes it, or as introspection gives it, with `[]` for a list, in double quotes unless the text has double quotes of its own, as `"char"` does. */
