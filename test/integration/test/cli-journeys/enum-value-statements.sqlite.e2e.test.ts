@@ -10,7 +10,7 @@
  * Every journey ends with `db verify --schema-only` clean and a further plan empty, and the `migration.ts` written is run again and reproduces its `ops.json` and `migration.json` byte for byte.
  */
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
@@ -31,6 +31,7 @@ import {
   sqlitePslConfigFixture,
   timeouts,
 } from '../utils/journey-test-helpers';
+import { followEdits } from '../utils/stored-value-edits';
 
 function contractWith(members: string): string {
   return `// use prisma-8
@@ -51,6 +52,33 @@ model Task {
 const FROM_PSL = contractWith('  ARCHIVED = "archived"\n');
 const RENAMED_PSL = contractWith('  RETIRED = "retired"\n');
 const REMOVED_PSL = contractWith('');
+function twoTablesWith(archived: string): string {
+  return `// use prisma-8
+
+enum Status {
+  @@type("sqlite/text@1")
+  ACTIVE = "active"
+  ARCHIVED = "${archived}"
+}
+
+model Task {
+  id     Int     @id
+  status Status?
+  @@map("task")
+}
+
+model Note {
+  id    Int     @id
+  state Status?
+  @@map("note")
+}
+`;
+}
+
+function nextActionLabels(result: Parameters<typeof engineError>[0]): readonly string[] {
+  return (engineError(result)?.nextActions ?? []).map(({ label }) => label);
+}
+
 const required = (psl: string) => psl.replace('status Status?', 'status Status ');
 
 type SqliteJourney = JourneyContext & { readonly dbPath: string };
@@ -251,10 +279,10 @@ withTempDir(({ createTempDir }) => {
           actions: (engineError(failed)?.nextActions ?? []).map(({ label }) => label),
         }).toEqual({
           summary:
-            '1 row of "task" holds "archived" in column "status", which takes no NULL, so enum value "Status.ARCHIVED" cannot be removed.',
+            '1 row of "task" holds "archived" in column "status", which takes no NULL, so the value cannot be removed.',
           actions: [
-            'To keep those rows under a new enum value, add a member to enum "Status" in the contract source, run `prisma-test contract emit`, then run `prisma-test db update --rename \'Status.ARCHIVED:Status.<new member>\'`',
-            'To keep those rows with another stored value, set the rows that hold "archived" to a stored value the enum keeps in the database yourself, then re-run `prisma-test db update --delete Status.ARCHIVED`. db update cannot keep the data by hand in a migration.ts',
+            'To keep that data under a new enum value, add a member to enum "Status" in the contract source, run `prisma-test contract emit`, then run `prisma-test db update --rename \'Status.ARCHIVED:Status.<new member>\'`',
+            'To keep that data under another stored value, change the stored value "archived" to one the enum keeps in the database yourself, then re-run `prisma-test db update --delete Status.ARCHIVED`. db update cannot keep that data in a migration.ts',
           ],
         });
         expect(tasks(held.dbPath), 'S3.09: nothing changed').toEqual([
@@ -274,6 +302,146 @@ withTempDir(({ createTempDir }) => {
           { id: 2, status: 'active' },
         ]);
         await expectVerified(held, 'S3.12');
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('S4 (SQLite): keep the data of a member that keeps its name with a new stored value, as the question advises', () => {
+    it(
+      'rewrites the value in both tables the enum types when the advice is followed as printed',
+      async () => {
+        const ctx = setupSqliteJourney(createTempDir, twoTablesWith('archived'));
+        await emit(ctx, twoTablesWith('archived'), 'S4.01');
+        const initial = await planMigrationAndSelfEmit(ctx, ['--name', 'initial']);
+        expect(initial.exitCode, `S4.02: plan initial: ${initial.stderr}`).toBe(0);
+        expect((await runMigrate(ctx)).exitCode, 'S4.02: migrate initial').toBe(0);
+        const origin = latestMigrationDirName(ctx);
+        withDatabase(ctx.dbPath, (db) => {
+          db.exec(
+            `INSERT INTO "task" (id, status) VALUES (1, 'archived'), (2, 'active');
+             INSERT INTO "note" (id, state) VALUES (1, 'archived')`,
+          );
+        });
+        await emit(ctx, twoTablesWith('old'), 'S4.03');
+
+        const asked = await runMigrationPlan(ctx, ['--from', origin, '--json']);
+        const question = String(engineError(asked)?.why);
+        expect(
+          question.match(/replace this\.removeStoredValue/g),
+          'S4.04: one edit per column',
+        ).toHaveLength(2);
+        const plan = await runMigrationPlan(ctx, [
+          '--name',
+          'keep',
+          '--from',
+          origin,
+          '--delete',
+          'Status.ARCHIVED',
+        ]);
+        expect(plan.exitCode, `S4.05: plan: ${plan.stderr}`).toBe(0);
+        const dirName = latestMigrationDirName(ctx);
+        const file = join(ctx.testDir, 'migrations', 'app', dirName, 'migration.ts');
+        writeFileSync(file, followEdits(readFileSync(file, 'utf-8'), question));
+        const reEmit = await selfEmitMigration(ctx, ['--dir', `migrations/app/${dirName}`]);
+        expect(reEmit.exitCode, `S4.06: node migration.ts: ${reEmit.stderr}`).toBe(0);
+        expect((await runMigrate(ctx)).exitCode, 'S4.07: migrate').toBe(0);
+
+        expect(tasks(ctx.dbPath)).toEqual([
+          { id: 1, status: 'old' },
+          { id: 2, status: 'active' },
+        ]);
+        expect(
+          withDatabase(ctx.dbPath, (db) =>
+            db
+              .prepare('SELECT id, state FROM "note" ORDER BY id')
+              .all()
+              .map((row) => ({ ...row })),
+          ),
+        ).toEqual([{ id: 1, state: 'old' }]);
+        await expectVerified(ctx, 'S4.08');
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  /** A migrated project whose next migration removes `ARCHIVED` while a row of the required column holds it. */
+  async function failedMigration(label: string) {
+    const ctx = setupSqliteJourney(createTempDir, required(FROM_PSL));
+    await emit(ctx, required(FROM_PSL), `${label}.01`);
+    const initial = await planMigrationAndSelfEmit(ctx, ['--name', 'initial']);
+    expect(initial.exitCode, `${label}.02: plan initial: ${initial.stderr}`).toBe(0);
+    expect((await runMigrate(ctx)).exitCode, `${label}.02: migrate initial`).toBe(0);
+    const origin = latestMigrationDirName(ctx);
+    withDatabase(ctx.dbPath, (db) => {
+      db.exec(`INSERT INTO "task" (id, status) VALUES (1, 'archived'), (2, 'active')`);
+    });
+    await emit(ctx, required(REMOVED_PSL), `${label}.03`);
+    const plan = await runMigrationPlan(ctx, [
+      '--name',
+      'retire',
+      '--from',
+      origin,
+      '--delete',
+      'Status.ARCHIVED',
+      '--json',
+    ]);
+    expect(plan.exitCode, `${label}.04: plan: ${plan.stderr}`).toBe(0);
+    const failed = await runMigrate(ctx, ['--json']);
+    expect(engineError(failed)?.code, `${label}.05`).toBe('MIGRATION.PRECHECK_FAILED');
+    return { ctx, failed, dirName: latestMigrationDirName(ctx) };
+  }
+
+  describe('S5 (SQLite): keep the data of a required column by hand in migration.ts, as db migrate advises', () => {
+    it(
+      'makes the printed edit, runs the file, and migrates',
+      async () => {
+        const { ctx, failed, dirName } = await failedMigration('S5');
+        const byHand = nextActionLabels(failed)[1] ?? '';
+        expect(byHand).toContain(`in \`migrations/app/${dirName}/migration.ts\``);
+        const file = join(ctx.testDir, 'migrations', 'app', dirName, 'migration.ts');
+        writeFileSync(
+          file,
+          followEdits(readFileSync(file, 'utf-8'), byHand.replace('"<stored value>"', '"active"')),
+        );
+        const reEmit = await selfEmitMigration(ctx, ['--dir', `migrations/app/${dirName}`]);
+        expect(reEmit.exitCode, `S5.06: node migration.ts: ${reEmit.stderr}`).toBe(0);
+        expect((await runMigrate(ctx)).exitCode, 'S5.07: migrate').toBe(0);
+        expect(tasks(ctx.dbPath)).toEqual([
+          { id: 1, status: 'active' },
+          { id: 2, status: 'active' },
+        ]);
+        await expectVerified(ctx, 'S5.08');
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('S6 (SQLite): keep the data of a required column under a new member, as db migrate advises', () => {
+    it(
+      'deletes the written migration, plans it again with the printed command and a rename, and migrates',
+      async () => {
+        const { ctx, failed, dirName } = await failedMigration('S6');
+        const rename = nextActionLabels(failed)[0] ?? '';
+        expect(rename).toContain(`delete \`migrations/app/${dirName}\``);
+        const printed =
+          /`prisma-test migration plan (--from \S+ --name \S+) --rename/.exec(rename)?.[1] ?? '';
+        expect(printed, 'S6.05: the printed plan').not.toBe('');
+
+        await emit(ctx, required(RENAMED_PSL), 'S6.06');
+        rmSync(join(ctx.testDir, 'migrations', 'app', dirName), { recursive: true });
+        const plan = await planMigrationAndSelfEmit(ctx, [
+          ...printed.split(' '),
+          '--rename',
+          'Status.ARCHIVED:Status.RETIRED',
+        ]);
+        expect(plan.exitCode, `S6.07: plan again: ${plan.stderr}`).toBe(0);
+        expect((await runMigrate(ctx)).exitCode, 'S6.08: migrate').toBe(0);
+        expect(tasks(ctx.dbPath)).toEqual([
+          { id: 1, status: 'retired' },
+          { id: 2, status: 'active' },
+        ]);
+        await expectVerified(ctx, 'S6.09');
       },
       timeouts.spinUpPpgDev,
     );

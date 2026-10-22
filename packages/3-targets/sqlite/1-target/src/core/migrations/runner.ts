@@ -29,6 +29,7 @@ import type {
 } from '@internal/framework-components/control';
 import {
   APP_SPACE_ID,
+  enumValueCoordinateFromJson,
   failedPostcheckWhy,
   failedPrecheckWhy,
   schemaCheckWhy,
@@ -48,6 +49,7 @@ import { quoteIdentifier } from '../sql-utils';
 import { verifySqliteDatabaseSchema } from './diff-database-schema';
 import { affinityStorageClasses, conversionCopyOf, rebuiltTableName } from './operations/tables';
 import type { SqlitePlanTargetDetails } from './planner-target-details';
+import { keepRowsEdit } from './stored-value-calls';
 
 const NOT_NULL_VIOLATION_SQLSTATE = '23502';
 
@@ -430,7 +432,10 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
     return okVoid();
   }
 
-  /** Counts the rows that hold the stored value a removal check guards, as `rowsHoldingValueMeta` marks the check. */
+  /**
+   * Counts the rows that hold the stored value a removal check guards, as `rowsHoldingValueMeta`
+   * marks the check. A count that fails leaves the failure without it.
+   */
   private async rowsHoldingValue(
     driver: SqlMigrationRunnerExecuteOptions<SqlitePlanTargetDetails>['driver'],
     step: SqlMigrationPlanOperationStep,
@@ -439,15 +444,28 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
   ): Promise<{ readonly summary: string; readonly report: RowsHoldingValue } | undefined> {
     const mark = rowsHoldingValueOf(step);
     const details = operation.target.details;
+    const stored = step.params?.[0];
     if (mark === undefined || details?.table === undefined) return undefined;
-    const counted = await driver.query<{ rows: number }>(
-      `SELECT COUNT(*) AS rows FROM ${quoteIdentifier(details.table)} WHERE ${quoteIdentifier(details.name)} = ?`,
-      [step.params?.[0]],
-    );
-    const rows = Number(counted.rows[0]?.rows ?? 0);
+    if (typeof stored !== 'string' && typeof stored !== 'number') return undefined;
+    let rows: number;
+    try {
+      const counted = await driver.query<{ rows: number }>(
+        `SELECT COUNT(*) AS rows FROM ${quoteIdentifier(details.table)} WHERE ${quoteIdentifier(details.name)} = ?`,
+        [stored],
+      );
+      rows = Number(counted.rows[0]?.rows ?? 0);
+    } catch {
+      return undefined;
+    }
     return {
-      summary: rowsHoldingValueSummary(mark, details.table, details.name, rows),
-      report: { ...mark, rows, operationIndex },
+      summary: rowsHoldingValueSummary(details.table, details.name, stored, rows),
+      report: {
+        enumValue: enumValueCoordinateFromJson(mark.enumValue),
+        value: stored,
+        rows,
+        operationIndex,
+        keepDataEdit: keepRowsEdit(details.table, details.name, mark),
+      },
     };
   }
 

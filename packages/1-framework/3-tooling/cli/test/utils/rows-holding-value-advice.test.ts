@@ -23,7 +23,18 @@ const failure = migrationRunnerFailure(
   },
 );
 
-const rowsHoldingValue = { enumValue: 'Status.ARCHIVED', value: 'archived', rows: 2 } as const;
+const keepDataEdit = {
+  remove: 'this.removeStoredValue({ table: "task", column: "status", value: "archived" })',
+  replaceWith:
+    'this.replaceStoredValue({ table: "task", column: "status", from: "archived", to: "<stored value>" })',
+};
+const rowsHoldingValue = {
+  enumValue: 'Status.ARCHIVED',
+  enumName: 'Status',
+  value: 'archived',
+  rows: 2,
+  keepDataEdit,
+} as const;
 
 function labels(error: { readonly nextActions?: readonly { readonly label: string }[] }) {
   return (error.nextActions ?? []).map(({ label }) => label);
@@ -46,8 +57,8 @@ describe('the advice when a removed enum value is still held by rows of a requir
     );
 
     expect(labels(error)).toEqual([
-      'To keep those rows under a new enum value, add a member to enum "Status" in the contract source, run `{bin} contract emit`, then run `{bin} db update --rename \'Status.ARCHIVED:Status.<new member>\'`',
-      'To keep those rows by hand, plan the change with `{bin} migration plan --from sha256:0123 --delete Status.ARCHIVED`, replace this.removeStoredValue({ ..., value: "archived", ..., enumValue: "Status.ARCHIVED" }) with this.replaceStoredValue({ ..., from: "archived", to: "<stored value>", ... }) in the migration.ts it writes, where "<stored value>" is a stored value the enum keeps, run that migration.ts with the `node` command `migration plan` prints, and apply it with `{bin} db migrate`. db update cannot keep the data by hand',
+      'To keep that data under a new enum value, add a member to enum "Status" in the contract source, run `{bin} contract emit`, then run `{bin} db update --rename \'Status.ARCHIVED:Status.<new member>\'`',
+      'To keep that data by hand, plan the change with `{bin} migration plan --from sha256:0123 --delete Status.ARCHIVED`, replace this.removeStoredValue({ table: "task", column: "status", value: "archived" }) with this.replaceStoredValue({ table: "task", column: "status", from: "archived", to: "<stored value>" }) in the migration.ts it writes, where "<stored value>" is a stored value the enum keeps, run that migration.ts with the `node` command `migration plan` prints, and apply it with `{bin} db migrate`. db update cannot keep that data by hand',
     ]);
   });
 
@@ -59,7 +70,7 @@ describe('the advice when a removed enum value is still held by rows of a requir
     );
 
     expect(labels(error)[1]).toBe(
-      'To keep those rows with another stored value, set the rows that hold "archived" to a stored value the enum keeps in the database yourself, then re-run `{bin} db update --delete Status.ARCHIVED`. db update cannot keep the data by hand in a migration.ts',
+      'To keep that data under another stored value, change the stored value "archived" to one the enum keeps in the database yourself, then re-run `{bin} db update --delete Status.ARCHIVED`. db update cannot keep that data in a migration.ts',
     );
   });
 
@@ -80,9 +91,22 @@ describe('the advice when a removed enum value is still held by rows of a requir
     );
 
     expect(labels(error)).toEqual([
-      'To keep those rows under a new enum value, add a member to enum "Status" in the contract source, run `{bin} contract emit`, delete `migrations/app/20260101T0000_retire` (copy any code you wrote in its migration.ts first), plan it again with `{bin} migration plan --from sha256:0123 --name retire --rename \'Status.ARCHIVED:Status.<new member>\'`, adding any other statements you planned it with except any `--delete Status.ARCHIVED`, fill in the migration.ts it writes, run that migration.ts with the `node` command `migration plan` prints, and run `{bin} db migrate`',
-      'To keep those rows by hand, replace this.removeStoredValue({ ..., value: "archived", ..., enumValue: "Status.ARCHIVED" }) with this.replaceStoredValue({ ..., from: "archived", to: "<stored value>", ... }) in `migrations/app/20260101T0000_retire/migration.ts`, where "<stored value>" is a stored value the enum keeps, run `node migrations/app/20260101T0000_retire/migration.ts`, and re-run `{bin} db migrate`',
+      'To keep that data under a new enum value, add a member to enum "Status" in the contract source, run `{bin} contract emit`, delete `migrations/app/20260101T0000_retire` (copy any code you wrote in its migration.ts first), plan it again with `{bin} migration plan --from sha256:0123 --name retire --rename \'Status.ARCHIVED:Status.<new member>\'`, adding any other statements you planned it with except any `--delete Status.ARCHIVED`, fill in the migration.ts it writes, run that migration.ts with the `node` command `migration plan` prints, and run `{bin} db migrate`',
+      'To keep that data by hand, replace this.removeStoredValue({ table: "task", column: "status", value: "archived" }) with this.replaceStoredValue({ table: "task", column: "status", from: "archived", to: "<stored value>" }) in `migrations/app/20260101T0000_retire/migration.ts`, where "<stored value>" is a stored value the enum keeps, run `node migrations/app/20260101T0000_retire/migration.ts`, and re-run `{bin} db migrate`',
     ]);
     expect(JSON.stringify(error.nextActions)).not.toContain('drifted');
+  });
+
+  it('leaves out the action by hand when the target gives no edit', () => {
+    const { keepDataEdit: _edit, ...withoutEdit } = rowsHoldingValue;
+    const error = migrateRunnerFailureError(
+      failure,
+      { rowsHoldingValue: withoutEdit },
+      { directory: '/work/app/migrations/app/20260101T0000_retire', from: FROM },
+      PROJECT,
+    );
+
+    expect(labels(error)).toHaveLength(1);
+    expect(JSON.stringify(error.nextActions)).not.toMatch(/rows|removeStoredValue/);
   });
 });

@@ -228,7 +228,6 @@ export class SqliteMigrationPlanner
     if (!rewrites.ok) return plannerFailure([rewrites.failure]);
     const storedValueCalls = sqliteStoredValueCalls(
       rewrites.value,
-      options.fromContract,
       sqlTypeLookupsOf(options.frameworkComponents).codecLookup,
     );
     const disallowedStoredValueCalls = [...storedValueCalls.keys()].filter(
@@ -284,9 +283,9 @@ export class SqliteMigrationPlanner
     // as structural ops, no `RawSqlCall` wrap.
     const calls = [
       ...statements.value.calls,
-      ...storedValueCalls.keys(),
       ...replacedIndexes.calls,
       ...result.value.calls,
+      ...storedValueCalls.keys(),
       ...fieldEventOps,
     ];
 
@@ -312,18 +311,13 @@ export class SqliteMigrationPlanner
       ),
       appliedStatements: withEnumValueOperations(
         appliedStatementsInOrder(options.statements, statements.value.appliedStatements),
-        (statement) =>
-          storedValueOperationIndexes(
-            statements.value.calls.reduce((count, call) => count + 1 + call.companions.length, 0),
-            storedValueCalls,
-            statement,
-          ),
+        (statement) => storedValueOperationIndexes(calls, storedValueCalls, statement),
       ),
       ...subjectsOfCalls(
         sqliteCallSubjects(
           calls,
           new Map(fieldEventCalls.map((fieldEvent) => [fieldEvent.call, fieldEvent])),
-          storedValueSubjects(storedValueCalls, options.fromContract),
+          storedValueSubjects(storedValueCalls),
         ),
         {
           fromContract: options.fromContract,

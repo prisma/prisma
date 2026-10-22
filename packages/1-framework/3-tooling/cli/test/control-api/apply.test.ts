@@ -283,7 +283,7 @@ describe('runnerFailureFacts, rows that hold a removed stored value', () => {
         'app',
         {
           ...makePerSpacePlan(),
-          destinationContract: { domain: { namespaces: {} } },
+          destinationContract: { domain: { namespaces: { app: { models: {} } } } },
           migrationEdges,
         } as unknown as PerSpacePlan,
       ],
@@ -292,10 +292,11 @@ describe('runnerFailureFacts, rows that hold a removed stored value', () => {
       meta: {
         failingSpace: 'app',
         rowsHoldingValue: {
-          enumValue: 'Status.ARCHIVED',
+          enumValue: { namespaceId: asNamespaceId('app'), enum: 'Status', member: 'ARCHIVED' },
           value: 'archived',
           rows: 2,
           operationIndex: 2,
+          keepDataEdit: { remove: 'this.remove()', replaceWith: 'this.replace()' },
         },
       },
     });
@@ -306,7 +307,13 @@ describe('runnerFailureFacts, rows that hold a removed stored value', () => {
       rowsHoldingValue: facts.rowsHoldingValue,
       failedMigration: facts.failedMigration,
     }).toEqual({
-      rowsHoldingValue: { enumValue: 'Status.ARCHIVED', value: 'archived', rows: 2 },
+      rowsHoldingValue: {
+        enumValue: 'Status.ARCHIVED',
+        enumName: 'Status',
+        value: 'archived',
+        rows: 2,
+        keepDataEdit: { remove: 'this.remove()', replaceWith: 'this.replace()' },
+      },
       failedMigration: { spaceId: 'app', edge: migrationEdges[1] },
     });
   });

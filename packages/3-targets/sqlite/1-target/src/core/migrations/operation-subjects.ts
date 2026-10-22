@@ -130,7 +130,7 @@ export function sqliteCallSubjects(
           {
             ...lost(columnTarget(call.tableName, call.columnName)),
             ...ifDefined('enumValue', subject?.enumValue),
-            ...ifDefined('keepDataAdvice', subject?.keepDataAdvice),
+            ...ifDefined('keepDataEdit', subject?.keepDataEdit),
           },
         ],
         accessChanges: [],

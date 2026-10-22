@@ -5,6 +5,7 @@ import {
   enumValueStatementText,
   type FieldCoordinate,
   fieldStatementText,
+  type KeepDataEdit,
   type MigrationDataLossKind,
   type MigrationPlanNamespaces,
   type MigrationSubject,
@@ -13,6 +14,7 @@ import {
   modelStatementText,
   type ResolvedMigrationStatement,
 } from '@internal/framework-components/control';
+import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import {
@@ -84,6 +86,8 @@ export interface PlannedDataLoss extends PlannedSubject {
   readonly loss: MigrationDataLossKind | undefined;
   /** How to keep the data instead, in the target's words; the question ends with it. */
   readonly keepDataAdvice?: string;
+  /** The edit to a planned migration.ts that keeps the data, which the command words. */
+  readonly keepDataEdit?: KeepDataEdit;
 }
 
 /** An operation of a plan that changes who can read or write its subject's data. */
@@ -362,7 +366,12 @@ type DataLossContracts = StatementContracts & {
   readonly originKnown: boolean;
   /** Whether the command writes a migration whose conversion the user fills in. */
   readonly canConvert: boolean;
+  /** The command's words for the edits that keep a subject's data; none when it gives none. */
+  readonly keepDataEditAdvice?: KeepDataEditAdvice;
 };
+
+/** How a command says to make `edits` to keep the data of the subject `subject`. */
+export type KeepDataEditAdvice = (subject: string, edits: readonly KeepDataEdit[]) => string;
 
 /**
  * The model of a field subject, under the name a rename of the plan gives it, when the destination
@@ -394,6 +403,7 @@ function missingFieldModel(
 export function dataLossQuestion(
   loss: PlannedDataLoss,
   contracts: DataLossContracts,
+  edits: readonly KeepDataEdit[] = [],
 ): PlanQuestion {
   const subject = subjectText(loss.subject, contracts);
   const deleteNames = namesSubject('delete', subject);
@@ -402,6 +412,9 @@ export function dataLossQuestion(
     `${loss.label} ${lossText(loss.subject, subject, contracts.originKnown, loss.loss)}.`,
     ...(missingModel === undefined ? [] : [modelRenameAdvice(missingModel, contracts)]),
     ...(loss.keepDataAdvice === undefined ? [] : [loss.keepDataAdvice]),
+    ...(edits.length === 0 || contracts.keepDataEditAdvice === undefined
+      ? []
+      : [contracts.keepDataEditAdvice(subject, edits)]),
   ].join(' ');
   if (loss.loss === 'typeChange' && loss.subject.kind === 'field') {
     if (!contracts.canConvert) {
@@ -651,6 +664,8 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
   readonly destination: ContractWithDomain;
   readonly answer: AnswerPlanQuestions;
   readonly replan: (statements: readonly StatementText[]) => Promise<Result<TPlan, TFailure>>;
+  /** The command's words for the edits that keep a subject's data. */
+  readonly keepDataEditAdvice?: KeepDataEditAdvice;
 }): Promise<
   Result<
     {
@@ -672,6 +687,7 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
       destination: input.destination,
       canConvert: input.canConvert,
       statements,
+      ...ifDefined('keepDataEditAdvice', input.keepDataEditAdvice),
     };
     const pending = <TEntry extends PlannedSubject>(
       verb: ConsentVerb,
@@ -727,7 +743,16 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
           losses.map((loss) => ({
             loss,
             question: acceptingNamespaceAnswers(
-              dataLossQuestion(loss, contracts),
+              dataLossQuestion(
+                loss,
+                contracts,
+                plan.dataLoss.flatMap((entry) =>
+                  entry.keepDataEdit !== undefined &&
+                  questionKey('delete', entry) === questionKey('delete', loss)
+                    ? [entry.keepDataEdit]
+                    : [],
+                ),
+              ),
               removedNamespaceOf(loss.subject, plan.namespaces),
               contracts,
             ),

@@ -25,7 +25,10 @@ import {
   sqlOfSlot,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer, Lowerer } from '@internal/family-sql/control-adapter';
-import type { OpFactoryCall as FrameworkOpFactoryCall } from '@internal/framework-components/control';
+import type {
+  EnumValueCoordinateJson,
+  OpFactoryCall as FrameworkOpFactoryCall,
+} from '@internal/framework-components/control';
 import { expectAbsent, expectPresent } from '@internal/framework-components/control';
 import type {
   AnyDdlColumnDefault,
@@ -1196,8 +1199,8 @@ export class RemoveStoredValueCall extends SqliteOpFactoryCallNode {
   readonly value: string | number;
   /** The column's codec, which writes `value` as the database stores it. */
   readonly codec: StoredValueCodec | undefined;
-  /** The enum value whose stored value is removed, as a statement names it, such as `Status.ARCHIVED`. */
-  readonly enumValue: string | undefined;
+  /** The enum value whose stored value is removed, which the check that fails while rows of a required column hold it names. */
+  readonly enumValue: EnumValueCoordinateJson | undefined;
   readonly label: string;
 
   constructor(
@@ -1205,7 +1208,7 @@ export class RemoveStoredValueCall extends SqliteOpFactoryCallNode {
     columnName: string,
     value: string | number,
     codec?: StoredValueCodec,
-    enumValue?: string,
+    enumValue?: EnumValueCoordinateJson,
   ) {
     super();
     this.codec = codec;
@@ -1222,7 +1225,13 @@ export class RemoveStoredValueCall extends SqliteOpFactoryCallNode {
       this.tableName,
       this.columnName,
       await encodeStoredValue(this.value, this.codec),
-      this.enumValue === undefined ? undefined : { enumValue: this.enumValue, value: this.value },
+      this.enumValue === undefined
+        ? undefined
+        : {
+            enumValue: this.enumValue,
+            value: this.value,
+            ...(this.codec === undefined ? {} : { codecRef: this.codec.codecRef }),
+          },
     );
   }
 

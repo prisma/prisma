@@ -346,6 +346,27 @@ describe('planEnumValueRewrites', () => {
     ]);
   });
 
+  it('refuses a rename into a stored value another member of the origin enum holds, which would merge their data', () => {
+    expect(
+      refusal(
+        planEnumValueRewrites({
+          statements: [rename('ARCHIVED', 'CLOSED')],
+          fromContract: contractWith({
+            members: { ARCHIVED: 'archived', DONE: 'done' },
+            columns: [taskColumn],
+          }),
+          contract: contractWith({ members: { CLOSED: 'done' }, columns: [taskColumn] }),
+          tables: tablesOf(['app.task.status']),
+        }),
+      ),
+    ).toMatchObject({
+      kind: 'statementRefused',
+      summary:
+        'Cannot rename enum value "Status.ARCHIVED" to "Status.CLOSED": the origin enum already stores "done", as enum value "Status.DONE"',
+      why: 'A rename changes "archived" to "done" in every row that holds it, which merges its data with the data of "Status.DONE". Leave out this statement. To merge them on purpose, plan the change with migration plan and write this.replaceStoredValue(...) in the migration.ts it writes.',
+    });
+  });
+
   it('refuses a rename whose old stored value the destination enum still has', () => {
     expect(
       refusal(

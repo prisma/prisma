@@ -32,6 +32,7 @@ import {
   timeouts,
   useDevDatabase,
 } from '../utils/journey-test-helpers';
+import { followEdits } from '../utils/stored-value-edits';
 
 function contractWith(members: string): string {
   return `// use prisma-8
@@ -54,6 +55,30 @@ const FROM_PSL = contractWith('  ARCHIVED = "archived"\n');
 const RENAMED_PSL = contractWith('  RETIRED = "retired"\n');
 const REMOVED_PSL = contractWith('');
 const MEMBER_RENAMED_PSL = contractWith('  RETIRED = "archived"\n');
+
+function twoTablesWith(archived: string): string {
+  return `// use prisma-8
+
+enum Status {
+  @@type("pg/text@1")
+  ACTIVE = "active"
+  ARCHIVED = "${archived}"
+}
+
+model Task {
+  id     Int      @id
+  status Status?
+  tags   Status[]
+  @@map("task")
+}
+
+model Note {
+  id    Int     @id
+  state Status?
+  @@map("note")
+}
+`;
+}
 
 function requiredContractWith(members: string): string {
   return contractWith(members).replace('status Status?', 'status Status ');
@@ -167,7 +192,7 @@ function expectRowsHoldingFailure(result: Parameters<typeof engineError>[0], lab
   ).toEqual({
     code: 'MIGRATION.PRECHECK_FAILED',
     summary:
-      '1 row of "task" holds "archived" in column "status", which takes no NULL, so enum value "Status.ARCHIVED" cannot be removed.',
+      '1 row of "task" holds "archived" in column "status", which takes no NULL, so the value cannot be removed.',
     why: 'Operation removeStoredValue.task.status.archived failed during precheck: ensure column "status" of "task" takes NULL, or no row holds "archived" in it. The failed apply changed nothing.',
     description: 'ensure column "status" of "task" takes NULL, or no row holds "archived" in it',
   });
@@ -373,8 +398,8 @@ withTempDir(({ createTempDir }) => {
         expect(deleted.exitCode, 'E5.05: the removal fails at apply').not.toBe(0);
         expectRowsHoldingFailure(deleted, 'E5.05');
         expect(nextActionLabels(deleted), 'E5.05: one action per way out').toEqual([
-          'To keep those rows under a new enum value, add a member to enum "Status" in the contract source, run `prisma-test contract emit`, then run `prisma-test db update --rename \'Status.ARCHIVED:Status.<new member>\'`',
-          'To keep those rows with another stored value, set the rows that hold "archived" to a stored value the enum keeps in the database yourself, then re-run `prisma-test db update --delete Status.ARCHIVED`. db update cannot keep the data by hand in a migration.ts',
+          'To keep that data under a new enum value, add a member to enum "Status" in the contract source, run `prisma-test contract emit`, then run `prisma-test db update --rename \'Status.ARCHIVED:Status.<new member>\'`',
+          'To keep that data under another stored value, change the stored value "archived" to one the enum keeps in the database yourself, then re-run `prisma-test db update --delete Status.ARCHIVED`. db update cannot keep that data in a migration.ts',
         ]);
         expect(await tasks(db.connectionString), 'E5.05: nothing changed').toEqual([
           { id: 1, status: 'archived', tags: [] },
@@ -492,20 +517,13 @@ withTempDir(({ createTempDir }) => {
         const dirName = latestMigrationDirName(ctx);
         const byHand = nextActionLabels(failed)[1] ?? '';
         expect(byHand).toBe(
-          `To keep those rows by hand, replace this.removeStoredValue({ ..., value: "archived", ..., enumValue: "Status.ARCHIVED" }) with this.replaceStoredValue({ ..., from: "archived", to: "<stored value>", ... }) in \`migrations/app/${dirName}/migration.ts\`, where "<stored value>" is a stored value the enum keeps, run \`node migrations/app/${dirName}/migration.ts\`, and re-run \`prisma-test db migrate\``,
+          `To keep that data by hand, replace this.removeStoredValue({ schema: "public", table: "task", column: "status", value: "archived", codecRef: { codecId: "pg/text@1" }, enumValue: { namespaceId: "public", enum: "Status", member: "ARCHIVED" } }) with this.replaceStoredValue({ schema: "public", table: "task", column: "status", from: "archived", to: "<stored value>", codecRef: { codecId: "pg/text@1" } }) in \`migrations/app/${dirName}/migration.ts\`, where "<stored value>" is a stored value the enum keeps, run \`node migrations/app/${dirName}/migration.ts\`, and re-run \`prisma-test db migrate\``,
         );
 
         const file = join(ctx.testDir, 'migrations', 'app', dirName, 'migration.ts');
-        const source = readFileSync(file, 'utf-8');
-        const removal =
-          /this\.removeStoredValue\(\{([\s\S]*?)value: 'archived',([\s\S]*?)enumValue: 'Status\.ARCHIVED',?\s*\}\)/;
-        expect(source, 'E7.06: the written removal').toMatch(removal);
         writeFileSync(
           file,
-          source.replace(
-            removal,
-            "this.replaceStoredValue({$1from: 'archived',\n        to: 'active',$2})",
-          ),
+          followEdits(readFileSync(file, 'utf-8'), byHand.replace('"<stored value>"', '"active"')),
         );
         const reEmit = await selfEmitMigration(ctx, ['--dir', `migrations/app/${dirName}`]);
         expect(reEmit.exitCode, `E7.07: node migration.ts: ${reEmit.stderr}`).toBe(0);
@@ -532,7 +550,7 @@ withTempDir(({ createTempDir }) => {
         const dirName = latestMigrationDirName(ctx);
         const rename = nextActionLabels(failed)[0] ?? '';
         expect(rename).toBe(
-          `To keep those rows under a new enum value, add a member to enum "Status" in the contract source, run \`prisma-test contract emit\`, delete \`migrations/app/${dirName}\` (copy any code you wrote in its migration.ts first), plan it again with \`prisma-test migration plan --from ${originHash(ctx, origin)} --name retire --rename 'Status.ARCHIVED:Status.<new member>'\`, adding any other statements you planned it with except any \`--delete Status.ARCHIVED\`, fill in the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`prisma-test db migrate\``,
+          `To keep that data under a new enum value, add a member to enum "Status" in the contract source, run \`prisma-test contract emit\`, delete \`migrations/app/${dirName}\` (copy any code you wrote in its migration.ts first), plan it again with \`prisma-test migration plan --from ${originHash(ctx, origin)} --name retire --rename 'Status.ARCHIVED:Status.<new member>'\`, adding any other statements you planned it with except any \`--delete Status.ARCHIVED\`, fill in the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`prisma-test db migrate\``,
         );
         const printedFrom = /--from (\S+)/.exec(rename)?.[1] ?? '';
 
@@ -555,6 +573,70 @@ withTempDir(({ createTempDir }) => {
           { id: 2, status: 'active', tags: [] },
         ]);
         await expectSettled(ctx, 'migrate', latestMigrationDirName(ctx), 'E8.09');
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('E9: keep the data of a member that keeps its name with a new stored value, as the question advises', () => {
+    const db = useDevDatabase();
+
+    it(
+      'rewrites the value in every column the enum types, two tables and a list, when the advice is followed as printed',
+      async () => {
+        const ctx = setupJourney({
+          connectionString: db.connectionString,
+          createTempDir,
+          contractMode: 'psl',
+        });
+        await emit(ctx, twoTablesWith('archived'), 'E9.01');
+        const initial = await planMigrationAndSelfEmit(ctx, ['--name', 'initial']);
+        expect(initial.exitCode, `E9.02: plan initial: ${initial.stderr}`).toBe(0);
+        expect((await runMigrate(ctx)).exitCode, 'E9.02: migrate initial').toBe(0);
+        const origin = latestMigrationDirName(ctx);
+        await sql(
+          db.connectionString,
+          `INSERT INTO "task" (id, status, tags) VALUES (1, 'archived', '{archived,active}'), (2, 'active', '{}');
+           INSERT INTO "note" (id, state) VALUES (1, 'archived')`,
+        );
+        await emit(ctx, twoTablesWith('old'), 'E9.03');
+
+        const asked = await runMigrationPlan(ctx, ['--from', origin, '--json']);
+        expect(engineError(asked)?.code, 'E9.04: nobody to answer').toBe('CLI.CONSENT_REQUIRED');
+        const question = String(engineError(asked)?.why);
+        expect(question, 'E9.04: the advice covers every column').toContain(
+          'To keep that data, answer with --delete Status.ARCHIVED, then in the migration.ts this command writes replace',
+        );
+        expect(
+          question.match(/replace this\.removeStoredValue/g),
+          'E9.04: one edit per column',
+        ).toHaveLength(3);
+
+        const plan = await runMigrationPlan(ctx, [
+          '--name',
+          'keep',
+          '--from',
+          origin,
+          '--delete',
+          'Status.ARCHIVED',
+        ]);
+        expect(plan.exitCode, `E9.05: plan: ${plan.stderr}`).toBe(0);
+        const dirName = latestMigrationDirName(ctx);
+        const file = join(ctx.testDir, 'migrations', 'app', dirName, 'migration.ts');
+        writeFileSync(file, followEdits(readFileSync(file, 'utf-8'), question));
+        const reEmit = await selfEmitMigration(ctx, ['--dir', `migrations/app/${dirName}`]);
+        expect(reEmit.exitCode, `E9.06: node migration.ts: ${reEmit.stderr}`).toBe(0);
+        const migrate = await runMigrate(ctx);
+        expect(migrate.exitCode, `E9.07: migrate: ${migrate.stderr}`).toBe(0);
+
+        expect(await tasks(db.connectionString)).toEqual([
+          { id: 1, status: 'old', tags: ['old', 'active'] },
+          { id: 2, status: 'active', tags: [] },
+        ]);
+        expect(
+          (await sql(db.connectionString, 'SELECT id, state FROM "note" ORDER BY id')).rows,
+        ).toEqual([{ id: 1, state: 'old' }]);
+        await expectSettled(ctx, 'migrate', dirName, 'E9.08');
       },
       timeouts.spinUpPpgDev,
     );

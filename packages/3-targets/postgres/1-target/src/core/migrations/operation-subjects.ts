@@ -167,7 +167,7 @@ export function postgresCallSubjects(
               {
                 ...lossTarget,
                 loss,
-                ...ifDefined('keepDataAdvice', locator.storedValues?.get(call)?.keepDataAdvice),
+                ...ifDefined('keepDataEdit', locator.storedValues?.get(call)?.keepDataEdit),
               },
             ]
           : unknownName !== undefined

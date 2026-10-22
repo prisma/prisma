@@ -107,9 +107,13 @@ describe('a question about an enum value', () => {
     expect(asked.map(({ subject }) => subject)).toEqual(['Status.ARCHIVED']);
   });
 
-  it('offers only delete, with the planner advice, for a value whose member keeps its name', async () => {
+  it('offers only delete for a value whose member keeps its name, with one advice that covers every column', async () => {
     const changed = contractOf({
       app: { models: { Task: { fields: ['status'] } }, enums: { Status: ['OPEN', 'ARCHIVED'] } },
+    });
+    const edit = (column: string) => ({
+      remove: `this.removeStoredValue({ column: "${column}" })`,
+      replaceWith: `this.replaceStoredValue({ column: "${column}" })`,
     });
     const asked: PlanQuestion[] = [];
     await askPlanQuestions({
@@ -117,10 +121,17 @@ describe('a question about an enum value', () => {
         dataLoss: [
           {
             operationIndex: 0,
-            label: 'Remove value "archived" from column "status" of "task"',
+            label: 'Remove value "archived"',
             loss: 'drop',
             subject: archived,
-            keepDataAdvice: 'Write the update by hand.',
+            keepDataEdit: edit('status'),
+          },
+          {
+            operationIndex: 1,
+            label: 'Remove value "archived"',
+            loss: 'drop',
+            subject: archived,
+            keepDataEdit: edit('tags'),
           },
         ],
         accessChanges: [],
@@ -133,6 +144,8 @@ describe('a question about an enum value', () => {
       origin,
       originKnown: true,
       destination: changed,
+      keepDataEditAdvice: (subject, edits) =>
+        `Keep ${subject}: ${edits.map(({ remove, replaceWith }) => `${remove} -> ${replaceWith}`).join('; ')}.`,
       answer: async (batch) => {
         asked.push(...batch);
         return batch.map(({ subject }) => ({ verb: 'delete', text: subject }));
@@ -144,7 +157,7 @@ describe('a question about an enum value', () => {
       {
         verbs: ['delete'],
         question:
-          'Remove value "archived" from column "status" of "task" would lose enum value "Status.ARCHIVED" from the data that holds it. Write the update by hand.',
+          'Remove value "archived" would lose enum value "Status.ARCHIVED" from the data that holds it. Keep Status.ARCHIVED: this.removeStoredValue({ column: "status" }) -> this.replaceStoredValue({ column: "status" }); this.removeStoredValue({ column: "tags" }) -> this.replaceStoredValue({ column: "tags" }).',
       },
     ]);
   });

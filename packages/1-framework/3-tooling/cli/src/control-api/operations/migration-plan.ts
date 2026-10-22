@@ -49,6 +49,7 @@ import {
 import { contractValidationMeta } from '../../utils/contract-validation-meta';
 import { toExtensionInputs } from '../../utils/extension-pack-inputs';
 import { assertFrameworkComponentsCompatible } from '../../utils/framework-components';
+import { migrationPlanKeepDataEditAdvice } from '../../utils/keep-data-edit-advice';
 import { type CliInvocation, selfEmitCommand } from '../../utils/printed-command';
 import { createProjectSpecifierResolver } from '../../utils/project-import-root';
 import { snapshotVerifierFor } from '../../utils/snapshot-content-verification';
@@ -244,12 +245,13 @@ async function runPlannerLeg(
     migrationTsContent: plannerResult.plan.renderTypeScript(resolveImportSpecifier),
     hasPlaceholders,
     dataLoss: plannerResult.dataLoss.map(
-      ({ operationIndex, subject, loss, label, keepDataAdvice }) => ({
+      ({ operationIndex, subject, loss, label, keepDataAdvice, keepDataEdit }) => ({
         operationIndex: position(operationIndex),
         subject,
         loss,
         label,
         ...ifDefined('keepDataAdvice', keepDataAdvice),
+        ...ifDefined('keepDataEdit', keepDataEdit),
       }),
     ),
     appliedStatements: reportAppliedStatements(
@@ -330,6 +332,7 @@ async function answerPlannedDataLoss(input: {
   readonly originKnown: boolean;
   readonly destination: ContractWithDomain;
   readonly answer: AnswerPlanQuestions;
+  readonly invocation: CliInvocation;
   readonly planDelta: (
     statements: readonly StatementText[],
   ) => Promise<Result<PlannerSuccess, CliStructuredError>>;
@@ -359,6 +362,7 @@ async function answerPlannedDataLoss(input: {
     originKnown: input.originKnown,
     destination: input.destination,
     answer: input.answer,
+    keepDataEditAdvice: migrationPlanKeepDataEditAdvice(input.invocation),
     replan: async (statements) => {
       const replanned = await input.planDelta(statements);
       return replanned.ok ? ok(legs(replanned.value)) : replanned;
@@ -788,6 +792,7 @@ async function executeMigrationPlanCommandInner(
         originKnown: true,
         destination: toContract,
         answer: options.answerQuestions,
+        invocation: invocationOf(options),
         planDelta: async (planned) => {
           const resolved = resolveStatements({
             statements: planned,

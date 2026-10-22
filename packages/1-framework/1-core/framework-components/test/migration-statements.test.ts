@@ -2,6 +2,8 @@ import { asNamespaceId, type ContractWithDomain } from '@internal/contract/types
 import { describe, expect, it } from 'vitest';
 import {
   describeMigrationStatement,
+  enumValueCoordinateFromJson,
+  enumValueCoordinateJson,
   enumValueStatementText,
   fieldStatementText,
   isRenameStatement,
@@ -377,5 +379,21 @@ describe('an enum value subject', () => {
     expect(enumValueStatementText(contractWith({ app: [], billing: [] }), subject)).toBe(
       'app.Status.ARCHIVED',
     );
+  });
+});
+
+describe('enum value coordinates in JSON', () => {
+  it('leave out the unbound namespace, and read it back', () => {
+    const unbound = {
+      namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID),
+      enum: 'Status',
+      member: 'A',
+    };
+    const named = { namespaceId: asNamespaceId('app'), enum: 'Status', member: 'A' };
+
+    expect(enumValueCoordinateJson(unbound)).toEqual({ enum: 'Status', member: 'A' });
+    expect(enumValueCoordinateJson(named)).toEqual(named);
+    expect(enumValueCoordinateFromJson(enumValueCoordinateJson(unbound))).toEqual(unbound);
+    expect(enumValueCoordinateFromJson(named)).toEqual(named);
   });
 });

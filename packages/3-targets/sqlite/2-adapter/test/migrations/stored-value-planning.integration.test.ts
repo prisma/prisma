@@ -236,10 +236,11 @@ describe('SQLite planner, stored enum values', { timeout: timeouts.databaseOpera
       (error: Error) => error.message,
     );
     expect(failed).toContain(
-      '[MIGRATION.PRECHECK_FAILED] 1 row of "User" holds "guest" in column "role", which takes no NULL, so enum value "Role.GUEST" cannot be removed.',
+      '[MIGRATION.PRECHECK_FAILED] 1 row of "User" holds "guest" in column "role", which takes no NULL, so the value cannot be removed.',
     );
     expect(failed).toContain('"rowsHoldingValue": {');
-    expect(failed).toContain('"enumValue": "Role.GUEST"');
+    expect(failed).toContain('"member": "GUEST"');
+    expect(failed).toContain('"keepDataEdit": {');
     expect(failed).toContain('"rows": 1');
     expect(await roles()).toEqual([
       { id: '1', role: 'guest' },
@@ -267,6 +268,20 @@ describe('SQLite planner, stored enum values', { timeout: timeouts.databaseOpera
     expect((await testDb.driver.query('SELECT id, rank FROM "User" ORDER BY id')).rows).toEqual([
       { id: '1', rank: null },
       { id: '2', rank: 3 },
+    ]);
+  });
+
+  it('removes a stored value from a column the same change makes optional', async () => {
+    const from = roleContract({ USER: 'user', GUEST: 'guest' }, { required: true });
+    const to = roleContract({ USER: 'user' });
+    await apply(await plan(null, from), from);
+    await testDb.driver.query(`INSERT INTO "User" (id, role) VALUES ('1', 'guest'), ('2', 'user')`);
+
+    await apply(await plan(from, to), to);
+
+    expect(await roles()).toEqual([
+      { id: '1', role: null },
+      { id: '2', role: 'user' },
     ]);
   });
 });

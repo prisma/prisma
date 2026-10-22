@@ -311,9 +311,12 @@ describe('Postgres planner, stored enum values', { concurrent: false }, () => {
 
     const result = await plan(from, to);
 
-    expect(result.kind === 'success' && result.dataLoss[0]?.keepDataAdvice).toBe(
-      'Enum value "Role.GUEST" keeps its name with a new stored value, which a statement cannot say. To keep the data, plan the change with prisma migration plan --delete Role.GUEST, replace this.removeStoredValue({ schema: "public", table: "User", column: "role", value: "guest", codecRef: { codecId: "pg/text@1" }, enumValue: "Role.GUEST" }) with this.replaceStoredValue({ schema: "public", table: "User", column: "role", from: "guest", to: "visitor", codecRef: { codecId: "pg/text@1" } }) in the migration.ts it writes, run node on that migration.ts so it writes ops.json, and apply it with prisma db migrate. db update cannot keep the data.',
-    );
+    expect(result.kind === 'success' && result.dataLoss[0]?.keepDataEdit).toEqual({
+      remove:
+        'this.removeStoredValue({ schema: "public", table: "User", column: "role", value: "guest", codecRef: { codecId: "pg/text@1" }, enumValue: { namespaceId: "public", enum: "Role", member: "GUEST" } })',
+      replaceWith:
+        'this.replaceStoredValue({ schema: "public", table: "User", column: "role", from: "guest", to: "visitor", codecRef: { codecId: "pg/text@1" } })',
+    });
   });
 
   it('removes a stored value from a required column when no row holds it, and fails at apply, naming how to keep them, when rows do', {
@@ -334,10 +337,11 @@ describe('Postgres planner, stored enum values', { concurrent: false }, () => {
       (error: Error) => error.message,
     );
     expect(failed).toContain(
-      '[MIGRATION.PRECHECK_FAILED] 1 row of "User" holds "guest" in column "role", which takes no NULL, so enum value "Role.GUEST" cannot be removed.',
+      '[MIGRATION.PRECHECK_FAILED] 1 row of "User" holds "guest" in column "role", which takes no NULL, so the value cannot be removed.',
     );
     expect(failed).toContain('"rowsHoldingValue": {');
-    expect(failed).toContain('"enumValue": "Role.GUEST"');
+    expect(failed).toContain('"member": "GUEST"');
+    expect(failed).toContain('"keepDataEdit": {');
     expect(failed).toContain('"rows": 1');
     expect(await roles()).toEqual([
       { id: '1', role: 'guest' },
@@ -402,6 +406,22 @@ describe('Postgres planner, stored enum values', { concurrent: false }, () => {
       { id: '1', rank: null },
       { id: '2', rank: 2 },
       { id: '3', rank: 30 },
+    ]);
+  });
+
+  it('removes a stored value from a column the same change makes optional', {
+    timeout: testTimeout,
+  }, async () => {
+    const from = roleContract({ USER: 'user', GUEST: 'guest' }, { required: true });
+    const to = roleContract({ USER: 'user' });
+    await apply(await plan(null, from), from);
+    await driver.query(`insert into "User" (id, role) values ('1', 'guest'), ('2', 'user')`);
+
+    await apply(await plan(from, to), to);
+
+    expect(await roles()).toEqual([
+      { id: '1', role: null },
+      { id: '2', role: 'user' },
     ]);
   });
 });

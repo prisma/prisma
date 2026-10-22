@@ -1,13 +1,12 @@
-import type { Contract } from '@internal/contract/types';
-import { keptNameAdvice, type StoredValueRewrite } from '@internal/family-sql/control';
+import type { RowsHoldingValueMark, StoredValueRewrite } from '@internal/family-sql/control';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import {
   type EnumValueCoordinate,
-  enumValueStatementText,
+  enumValueCoordinateJson,
+  type KeepDataEdit,
   type OpFactoryCall,
   type ResolvedEnumValueRenameStatement,
 } from '@internal/framework-components/control';
-import type { SqlStorage } from '@internal/sql-contract/types';
 import { ifDefined } from '@internal/utils/defined';
 import { RemoveStoredValueCall, ReplaceStoredValueCall } from './op-factory-call';
 
@@ -16,13 +15,12 @@ type StoredValueCall = ReplaceStoredValueCall | RemoveStoredValueCall;
 /** What a planned stored value call is about, for its data-loss question. */
 export interface StoredValueSubject {
   readonly enumValue: EnumValueCoordinate;
-  readonly keepDataAdvice?: string;
+  readonly keepDataEdit?: KeepDataEdit;
 }
 
 /** The calls that carry out a plan's stored value rewrites, each with the rewrite it carries out. */
 export function sqliteStoredValueCalls(
   rewrites: readonly StoredValueRewrite[],
-  fromContract: Contract<SqlStorage> | null,
   codecs: Pick<CodecLookupWithDescriptors, 'descriptorFor'>,
 ): ReadonlyMap<StoredValueCall, StoredValueRewrite> {
   return new Map(
@@ -35,9 +33,7 @@ export function sqliteStoredValueCalls(
               rewrite.column,
               rewrite.from,
               codec,
-              fromContract === null
-                ? undefined
-                : enumValueStatementText(fromContract, rewrite.enumValue),
+              enumValueCoordinateJson(rewrite.enumValue),
             )
           : new ReplaceStoredValueCall(
               rewrite.table,
@@ -52,44 +48,81 @@ export function sqliteStoredValueCalls(
   );
 }
 
+/** The edit that keeps the data a removal loses: the removal, replaced by a replacement with `to`. */
+function keepDataEdit(call: RemoveStoredValueCall, to: string | number): KeepDataEdit {
+  return {
+    remove: call.renderTypeScript(),
+    replaceWith: new ReplaceStoredValueCall(
+      call.tableName,
+      call.columnName,
+      call.value,
+      to,
+      call.codec,
+    ).renderTypeScript(),
+  };
+}
+
 /**
- * The enum value each removal is about, with how to keep its data when the member keeps its name
- * and only its stored value changes: the replacement, written by hand.
+ * The enum value each removal is about, with the edit that keeps its data when the member keeps
+ * its name and only its stored value changes.
  */
 export function storedValueSubjects(
   calls: ReadonlyMap<StoredValueCall, StoredValueRewrite>,
-  fromContract: Contract<SqlStorage> | null,
 ): ReadonlyMap<OpFactoryCall, StoredValueSubject> {
   const subjects = new Map<OpFactoryCall, StoredValueSubject>();
   for (const [call, rewrite] of calls) {
     if (!(call instanceof RemoveStoredValueCall)) continue;
-    const advice =
-      rewrite.keptName === undefined || fromContract === null
-        ? undefined
-        : keptNameAdvice(
-            fromContract,
-            rewrite,
-            call.renderTypeScript(),
-            new ReplaceStoredValueCall(
-              call.tableName,
-              call.columnName,
-              rewrite.from,
-              rewrite.keptName,
-              call.codec,
-            ).renderTypeScript(),
-          );
-    subjects.set(call, { enumValue: rewrite.enumValue, ...ifDefined('keepDataAdvice', advice) });
+    subjects.set(call, {
+      enumValue: rewrite.enumValue,
+      ...ifDefined(
+        'keepDataEdit',
+        rewrite.keptName === undefined ? undefined : keepDataEdit(call, rewrite.keptName),
+      ),
+    });
   }
   return subjects;
 }
 
-/** The positions of the stored value calls that carry out `statement`, among calls that each lower to one operation. */
+const RENDER_ONLY_CODECS: Pick<CodecLookupWithDescriptors, 'descriptorFor'> = {
+  descriptorFor: () => undefined,
+};
+
+/**
+ * The edit that keeps the data a failed removal check found, from the check's mark and its
+ * operation's column: the removal as `migration.ts` writes it, replaced by a replacement whose new
+ * value is the placeholder `"<stored value>"`.
+ */
+export function keepRowsEdit(
+  table: string,
+  column: string,
+  mark: RowsHoldingValueMark,
+): KeepDataEdit {
+  const codec =
+    mark.codecRef === undefined
+      ? undefined
+      : { codecRef: mark.codecRef, codecs: RENDER_ONLY_CODECS };
+  return keepDataEdit(
+    new RemoveStoredValueCall(table, column, mark.value, codec, mark.enumValue),
+    '<stored value>',
+  );
+}
+
+/** The positions, among the plan's operations, of the operations that carry out `statement`. */
 export function storedValueOperationIndexes(
-  firstIndex: number,
+  planCalls: readonly OpFactoryCall[],
   calls: ReadonlyMap<StoredValueCall, StoredValueRewrite>,
   statement: ResolvedEnumValueRenameStatement,
 ): readonly number[] {
-  return [...calls.values()].flatMap((rewrite, offset) =>
-    rewrite.statement === statement ? [firstIndex + offset] : [],
-  );
+  const indexes: number[] = [];
+  let position = 0;
+  for (const call of planCalls) {
+    const rewrite =
+      call instanceof ReplaceStoredValueCall || call instanceof RemoveStoredValueCall
+        ? calls.get(call)
+        : undefined;
+    if (rewrite?.statement === statement) indexes.push(position);
+    position +=
+      'companions' in call && Array.isArray(call.companions) ? 1 + call.companions.length : 1;
+  }
+  return indexes;
 }

@@ -147,6 +147,23 @@ function stillStoredRefusal(
   };
 }
 
+function mergingRefusal(
+  statement: ResolvedEnumValueRenameStatement,
+  fromContract: Contract<SqlStorage>,
+  contract: Contract<SqlStorage>,
+  from: JsonValue,
+  to: JsonValue,
+  holder: string,
+): SqlPlannerConflict {
+  const holderText = enumValueStatementText(fromContract, { ...statement.from, member: holder });
+  return {
+    kind: 'statementRefused',
+    summary: `Cannot rename enum value "${enumValueStatementText(fromContract, statement.from)}" to "${enumValueStatementText(contract, statement.to)}": the origin enum already stores ${valueText(to)}, as enum value "${holderText}"`,
+    why: `A rename changes ${valueText(from)} to ${valueText(to)} in every row that holds it, which merges its data with the data of "${holderText}". Leave out this statement. To merge them on purpose, plan the change with migration plan and write this.replaceStoredValue(...) in the migration.ts it writes.`,
+    refusedStatement: statement,
+  };
+}
+
 /**
  * The rewrites of stored enum values a plan makes. Enums are compared by the stored value of each
  * member: a stored value of the origin enum that the destination enum lacks is removed from every
@@ -200,6 +217,21 @@ export function planEnumValueRewrites(input: {
               stillStoredRefusal(statement, fromContract, contract, member.value, holder.name),
             );
           }
+          const merged = originEnum.members.find(
+            ({ name, value }) => name !== member.name && sameValue(value, target.value),
+          );
+          if (merged !== undefined) {
+            return notOk(
+              mergingRefusal(
+                statement,
+                fromContract,
+                contract,
+                member.value,
+                target.value,
+                merged.name,
+              ),
+            );
+          }
           if (!isStoredEnumValue(member.value))
             return notOk(unsupportedValue(fromContract, enumValue, member.value));
           if (!isStoredEnumValue(target.value))
@@ -238,21 +270,6 @@ export function planEnumValueRewrites(input: {
     }
   }
   return ok(rewrites);
-}
-
-/**
- * How to keep the data a removal loses when the member keeps its name and only its stored value
- * changes: no statement can say that, so the user plans the change with `migration plan` and
- * replaces `removeCall` with `replaceCall`, the target's calls, in the migration.ts it writes.
- */
-export function keptNameAdvice(
-  contract: Contract<SqlStorage>,
-  rewrite: StoredValueRewrite,
-  removeCall: string,
-  replaceCall: string,
-): string {
-  const text = enumValueStatementText(contract, rewrite.enumValue);
-  return `Enum value "${text}" keeps its name with a new stored value, which a statement cannot say. To keep the data, plan the change with prisma migration plan --delete ${text}, replace ${removeCall} with ${replaceCall} in the migration.ts it writes, run node on that migration.ts so it writes ops.json, and apply it with prisma db migrate. db update cannot keep the data.`;
 }
 
 /**

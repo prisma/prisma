@@ -15,8 +15,8 @@ If you renamed the member, give the rename, and the rows that held the old store
 prisma db update --rename Status.ARCHIVED:Status.RETIRED
 ```
 
-Otherwise the value is removed. A script that runs without a terminal fails with `CLI.CONSENT_REQUIRED`, naming the value. To let it go, add `--delete Status.ARCHIVED`: optional columns that hold it are set to NULL, and lists lose it. A required column cannot take NULL, so while rows of a required column hold the value, the apply fails with `MIGRATION.PRECHECK_FAILED`, changes nothing, counts the rows, and says how to keep them: rename the value to a new member, or set those rows to another value first.
+Otherwise the value is removed. A script that runs without a terminal fails with `CLI.CONSENT_REQUIRED`, naming the value. To let it go, add `--delete Status.ARCHIVED`: optional columns that hold it are set to NULL, and lists lose it. A required column cannot take NULL, so while rows of a required column hold the value, the apply fails with `MIGRATION.PRECHECK_FAILED`, changes nothing, counts the rows, and says how to keep them: rename the value to a new member, or keep that data by hand.
 
-A member renamed with its stored value kept, for example with `RETIRED = "archived"`, changes nothing in the rows, and is not asked about. A member that keeps its name but stores a new value is asked about with `--delete` only; to keep the rows, plan the change with `prisma migration plan --delete Status.ARCHIVED` and replace the `this.removeStoredValue(...)` call in the `migration.ts` it writes with the `this.replaceStoredValue(...)` call the question gives.
+A member renamed with its stored value kept, for example with `RETIRED = "archived"`, changes nothing in the rows, and is not asked about. A member that keeps its name but stores a new value is asked about with `--delete` only; to keep the rows, the question names, for every column the enum types, the `this.removeStoredValue(...)` call to replace with a `this.replaceStoredValue(...)` call in the `migration.ts` that `migration plan` writes.
 
 Native Postgres enums (`pg.enum(...)`) are unchanged.

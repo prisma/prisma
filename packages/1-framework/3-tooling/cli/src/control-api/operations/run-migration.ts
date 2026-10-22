@@ -13,6 +13,7 @@ import type {
   MigrationSubject,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
+import { enumValueStatementText, modelStatementText } from '@internal/framework-components/control';
 import type {
   AggregateMigrationEdgeRef,
   ContractSpaceAggregate,
@@ -104,9 +105,17 @@ function failureReports(
       rowsHoldingValue === undefined
         ? undefined
         : {
-            enumValue: rowsHoldingValue.enumValue,
+            enumValue: enumValueStatementText(
+              resolution.entry.destinationContract,
+              rowsHoldingValue.enumValue,
+            ),
+            enumName: modelStatementText(resolution.entry.destinationContract, {
+              namespaceId: rowsHoldingValue.enumValue.namespaceId,
+              model: rowsHoldingValue.enumValue.enum,
+            }),
             value: rowsHoldingValue.value,
             rows: rowsHoldingValue.rows,
+            ...ifDefined('keepDataEdit', rowsHoldingValue.keepDataEdit),
           },
     ),
     ...ifDefined(

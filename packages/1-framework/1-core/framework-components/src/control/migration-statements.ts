@@ -1,4 +1,4 @@
-import type { ContractWithDomain, NamespaceId } from '@internal/contract/types';
+import { asNamespaceId, type ContractWithDomain, type NamespaceId } from '@internal/contract/types';
 import { UNBOUND_NAMESPACE_ID } from '../ir/namespace';
 
 /** A model: its namespace and its name as the contract source writes it, never a table name. */
@@ -142,6 +142,14 @@ export interface MigrationDataLoss extends MigrationOperationSubject {
   readonly label: string;
   /** How to keep the data instead, in the target's words, when no statement can say so. */
   readonly keepDataAdvice?: string;
+  /** The edit to a planned `migration.ts` that keeps the data instead, when no statement can say so. */
+  readonly keepDataEdit?: KeepDataEdit;
+}
+
+/** An edit to a `migration.ts`: the call `remove`, as the target writes it, replaced by `replaceWith`. */
+export interface KeepDataEdit {
+  readonly remove: string;
+  readonly replaceWith: string;
 }
 
 /**
@@ -281,6 +289,20 @@ export type MigrationSubjectJson =
   | ({ readonly kind: 'field' } & FieldCoordinateJson)
   | ({ readonly kind: 'enumValue' } & EnumValueCoordinateJson)
   | { readonly kind: 'storage'; readonly name: string };
+
+/** An enum value coordinate read from its JSON form, in which the unbound namespace is left out. */
+export function enumValueCoordinateFromJson(json: EnumValueCoordinateJson): EnumValueCoordinate {
+  return {
+    namespaceId: json.namespaceId ?? asNamespaceId(UNBOUND_NAMESPACE_ID),
+    enum: json.enum,
+    member: json.member,
+  };
+}
+
+/** An enum value coordinate in its JSON form, which leaves out the unbound namespace. */
+export function enumValueCoordinateJson(value: EnumValueCoordinate): EnumValueCoordinateJson {
+  return coordinateJson(value);
+}
 
 function coordinateJson<T extends { readonly namespaceId: NamespaceId }>(
   coordinate: T,

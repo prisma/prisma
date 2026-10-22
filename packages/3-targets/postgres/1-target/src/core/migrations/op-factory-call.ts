@@ -37,6 +37,7 @@ import {
 import type { ExecuteRequestLowerer, Lowerer } from '@internal/family-sql/control-adapter';
 import type { DataType } from '@internal/framework-components/codec';
 import type {
+  EnumValueCoordinateJson,
   OpFactoryCall as FrameworkOpFactoryCall,
   MigrationOperationClass,
 } from '@internal/framework-components/control';
@@ -2342,8 +2343,8 @@ export class RemoveStoredValueCall extends PostgresOpFactoryCallNode {
   readonly many: boolean;
   /** The column's codec, which writes `value` as the database stores it. */
   readonly codec: StoredValueCodec | undefined;
-  /** The enum value whose stored value is removed, as a statement names it, such as `Status.ARCHIVED`. */
-  readonly enumValue: string | undefined;
+  /** The enum value whose stored value is removed, which the check that fails while rows of a required column hold it names. */
+  readonly enumValue: EnumValueCoordinateJson | undefined;
   readonly label: string;
 
   constructor(
@@ -2353,7 +2354,7 @@ export class RemoveStoredValueCall extends PostgresOpFactoryCallNode {
     value: string | number,
     many: boolean,
     codec?: StoredValueCodec,
-    enumValue?: string,
+    enumValue?: EnumValueCoordinateJson,
   ) {
     super();
     this.codec = codec;
@@ -2379,7 +2380,13 @@ export class RemoveStoredValueCall extends PostgresOpFactoryCallNode {
       this.columnName,
       await encodeStoredValue(this.value, this.codec),
       this.many,
-      this.enumValue === undefined ? undefined : { enumValue: this.enumValue, value: this.value },
+      this.enumValue === undefined
+        ? undefined
+        : {
+            enumValue: this.enumValue,
+            value: this.value,
+            ...(this.codec === undefined ? {} : { codecRef: this.codec.codecRef }),
+          },
     );
   }
 

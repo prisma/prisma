@@ -377,7 +377,6 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     }
     const storedValueCalls = postgresStoredValueCalls(
       rewrites.value,
-      options.fromContract,
       options.contract,
       types.codecLookup,
     );
@@ -581,7 +580,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
         postgresCallSubjects(calls, {
           contract: options.fromContract ?? options.contract,
           fieldEvents: new Map(fieldEventCalls.map((fieldEvent) => [fieldEvent.call, fieldEvent])),
-          storedValues: storedValueSubjects(storedValueCalls, options.fromContract),
+          storedValues: storedValueSubjects(storedValueCalls),
         }),
         {
           fromContract: options.fromContract,

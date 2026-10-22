@@ -48,8 +48,7 @@ describe('SQLite stored value operations', { timeout: timeouts.databaseOperation
     return true;
   }
 
-  async function runnerResult(op: Op) {
-    const { driver } = testDb;
+  async function runnerResult(op: Op, driver: TestDatabase['driver'] = testDb.driver) {
     const plan = createMigrationPlan<SqlitePlanTargetDetails>({
       targetId: 'sqlite',
       spaceId: LEDGER_TEST_SPACE_ID,
@@ -170,5 +169,35 @@ describe('SQLite stored value operations', { timeout: timeouts.databaseOperation
     expect(
       await operationsExecuted(await new RemoveStoredValueCall('code', 'code', 'x').toOp()),
     ).toBe(0);
+  });
+
+  it('still reports the failed check, without a count, when the count fails', async () => {
+    await testDb.driver.query('CREATE TABLE "code" (id INTEGER PRIMARY KEY, code TEXT NOT NULL)');
+    await testDb.driver.query(`INSERT INTO "code" (id, code) VALUES (1, 'x')`);
+    const op = await new RemoveStoredValueCall('code', 'code', 'x', undefined, {
+      enum: 'Code',
+      member: 'X',
+    }).toOp();
+    const { driver } = testDb;
+    const failingCount: TestDatabase['driver'] = {
+      ...driver,
+      query: (sql, params) =>
+        sql.startsWith('SELECT COUNT(*) AS rows')
+          ? Promise.reject(new Error('database is locked'))
+          : driver.query(sql, params),
+    };
+
+    const failure = (await runnerResult(op, failingCount)).assertNotOk();
+
+    expect({
+      code: failure.code,
+      message: failure.message,
+      counted: failure.meta.rowsHoldingValue,
+    }).toEqual({
+      code: 'MIGRATION.PRECHECK_FAILED',
+      message:
+        'Operation removeStoredValue.code.code.x failed during precheck: ensure column "code" of "code" takes NULL, or no row holds "x" in it',
+      counted: undefined,
+    });
   });
 });

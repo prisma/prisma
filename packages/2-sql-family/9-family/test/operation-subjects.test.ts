@@ -97,7 +97,7 @@ describe('subjectsOfCalls', () => {
                 ...column('user', 'full_name'),
                 enumValue,
                 loss: 'drop',
-                keepDataAdvice: 'Write the update by hand.',
+                keepDataEdit: { remove: 'this.remove()', replaceWith: 'this.replace()' },
               },
             ],
           },
@@ -110,7 +110,7 @@ describe('subjectsOfCalls', () => {
         subject: { kind: 'enumValue', ...enumValue },
         loss: 'drop',
         label: 'Remove value',
-        keepDataAdvice: 'Write the update by hand.',
+        keepDataEdit: { remove: 'this.remove()', replaceWith: 'this.replace()' },
       },
     ]);
   });

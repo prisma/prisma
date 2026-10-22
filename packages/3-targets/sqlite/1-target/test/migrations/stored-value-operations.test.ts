@@ -171,15 +171,21 @@ describe('a planned removal', () => {
       'state',
       'archived',
       { codecRef: { codecId: 'sqlite/text@1' }, codecs: createSqliteBuiltinCodecLookup() },
-      'Status.ARCHIVED',
+      { enum: 'Status', member: 'ARCHIVED' },
     );
 
     expect(call.renderTypeScript()).toBe(
-      'this.removeStoredValue({ table: "task", column: "state", value: "archived", codecRef: { codecId: "sqlite/text@1" }, enumValue: "Status.ARCHIVED" })',
+      'this.removeStoredValue({ table: "task", column: "state", value: "archived", codecRef: { codecId: "sqlite/text@1" }, enumValue: { enum: "Status", member: "ARCHIVED" } })',
     );
     expect((await call.toOp()).precheck[0]).toMatchObject({
       description: 'ensure column "state" of "task" takes NULL, or no row holds "archived" in it',
-      meta: { rowsHoldingValue: { enumValue: 'Status.ARCHIVED', value: 'archived' } },
+      meta: {
+        rowsHoldingValue: {
+          enumValue: { enum: 'Status', member: 'ARCHIVED' },
+          value: 'archived',
+          codecRef: { codecId: 'sqlite/text@1' },
+        },
+      },
     });
   });
 });

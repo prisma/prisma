@@ -1,13 +1,14 @@
 import type { Contract } from '@internal/contract/types';
-import {
-  keptNameAdvice,
-  type StoredValueCodec,
-  type StoredValueRewrite,
+import type {
+  RowsHoldingValueMark,
+  StoredValueCodec,
+  StoredValueRewrite,
 } from '@internal/family-sql/control';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import {
   type EnumValueCoordinate,
-  enumValueStatementText,
+  enumValueCoordinateJson,
+  type KeepDataEdit,
   type OpFactoryCall,
   type ResolvedEnumValueRenameStatement,
 } from '@internal/framework-components/control';
@@ -19,23 +20,23 @@ import {
   ReplaceStoredValueCall,
 } from './op-factory-call';
 import type { CallMigrationStrategy } from './planner-strategies';
+import type { PostgresPlanTargetDetails } from './planner-target-details';
 import { emissionSchemaForNamespace } from './resolve-ddl-schema';
 
 /** What a planned stored value call is about, for its data-loss question. */
 export interface StoredValueSubject {
   readonly enumValue: EnumValueCoordinate;
-  readonly keepDataAdvice?: string;
+  readonly keepDataEdit?: KeepDataEdit;
 }
 
 /** The calls that carry out a plan's stored value rewrites, each with the rewrite it carries out. */
 export function postgresStoredValueCalls(
   rewrites: readonly StoredValueRewrite[],
-  fromContract: Contract<SqlStorage> | null,
   contract: Contract<SqlStorage>,
   codecs: Pick<CodecLookupWithDescriptors, 'descriptorFor'>,
 ): ReadonlyMap<PostgresOpFactoryCall, StoredValueRewrite> {
   return new Map(
-    rewrites.map((rewrite) => {
+    rewrites.map((rewrite): readonly [PostgresOpFactoryCall, StoredValueRewrite] => {
       const schemaName = emissionSchemaForNamespace(contract, rewrite.namespaceId);
       const codec: StoredValueCodec = { codecRef: rewrite.codecRef, codecs };
       const call =
@@ -47,9 +48,7 @@ export function postgresStoredValueCalls(
               rewrite.from,
               rewrite.many,
               codec,
-              fromContract === null
-                ? undefined
-                : enumValueStatementText(fromContract, rewrite.enumValue),
+              enumValueCoordinateJson(rewrite.enumValue),
             )
           : new ReplaceStoredValueCall(
               schemaName,
@@ -60,7 +59,7 @@ export function postgresStoredValueCalls(
               rewrite.many,
               codec,
             );
-      return [call, rewrite] as const;
+      return [call, rewrite];
     }),
   );
 }
@@ -72,40 +71,72 @@ export function storedValueCallsStrategy(
   return (issues) => (calls.length === 0 ? { kind: 'no_match' } : { kind: 'match', issues, calls });
 }
 
+/** The edit that keeps the data a removal loses: the removal, replaced by a replacement with `to`. */
+function keepDataEdit(call: RemoveStoredValueCall, to: string | number): KeepDataEdit {
+  return {
+    remove: call.renderTypeScript(),
+    replaceWith: new ReplaceStoredValueCall(
+      call.schemaName,
+      call.tableName,
+      call.columnName,
+      call.value,
+      to,
+      call.many,
+      call.codec,
+    ).renderTypeScript(),
+  };
+}
+
 /**
- * The enum value each removal is about, with how to keep its data when the member keeps its name
- * and only its stored value changes: the replacement, written by hand.
+ * The enum value each removal is about, with the edit that keeps its data when the member keeps
+ * its name and only its stored value changes.
  */
 export function storedValueSubjects(
   calls: ReadonlyMap<PostgresOpFactoryCall, StoredValueRewrite>,
-  fromContract: Contract<SqlStorage> | null,
 ): ReadonlyMap<OpFactoryCall, StoredValueSubject> {
   const subjects = new Map<OpFactoryCall, StoredValueSubject>();
   for (const [call, rewrite] of calls) {
     if (!(call instanceof RemoveStoredValueCall)) continue;
-    const advice =
-      rewrite.keptName === undefined || fromContract === null
-        ? undefined
-        : keptNameAdvice(
-            fromContract,
-            rewrite,
-            call.renderTypeScript(),
-            new ReplaceStoredValueCall(
-              call.schemaName,
-              call.tableName,
-              call.columnName,
-              rewrite.from,
-              rewrite.keptName,
-              call.many,
-              call.codec,
-            ).renderTypeScript(),
-          );
     subjects.set(call, {
       enumValue: rewrite.enumValue,
-      ...ifDefined('keepDataAdvice', advice),
+      ...ifDefined(
+        'keepDataEdit',
+        rewrite.keptName === undefined ? undefined : keepDataEdit(call, rewrite.keptName),
+      ),
     });
   }
   return subjects;
+}
+
+const RENDER_ONLY_CODECS: Pick<CodecLookupWithDescriptors, 'descriptorFor'> = {
+  descriptorFor: () => undefined,
+};
+
+/**
+ * The edit that keeps the data a failed removal check found, from the check's mark and its
+ * operation's column: the removal as `migration.ts` writes it, replaced by a replacement whose new
+ * value is the placeholder `"<stored value>"`.
+ */
+export function keepRowsEdit(
+  details: PostgresPlanTargetDetails & { readonly table: string },
+  mark: RowsHoldingValueMark,
+): KeepDataEdit {
+  const codec =
+    mark.codecRef === undefined
+      ? undefined
+      : { codecRef: mark.codecRef, codecs: RENDER_ONLY_CODECS };
+  return keepDataEdit(
+    new RemoveStoredValueCall(
+      details.schema,
+      details.table,
+      details.name,
+      mark.value,
+      false,
+      codec,
+      mark.enumValue,
+    ),
+    '<stored value>',
+  );
 }
 
 /** The positions, among the plan's operations, of the operations that carry out `statement`. */

@@ -144,6 +144,7 @@ export type {
   EnumValueCoordinateJson,
   FieldCoordinate,
   FieldCoordinateJson,
+  KeepDataEdit,
   MigrationAccessChange,
   MigrationDataLoss,
   MigrationDataLossKind,
@@ -167,6 +168,8 @@ export type {
 } from '../control/migration-statements';
 export {
   describeMigrationStatement,
+  enumValueCoordinateFromJson,
+  enumValueCoordinateJson,
   enumValueStatementText,
   fieldStatementText,
   isRenameStatement,

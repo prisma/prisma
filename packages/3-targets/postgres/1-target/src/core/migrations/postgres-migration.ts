@@ -15,7 +15,7 @@ import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import { Migration as SqlMigration } from '@internal/family-sql/migration';
 import type { CodecRef } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
-import type { ControlStack } from '@internal/framework-components/control';
+import type { ControlStack, EnumValueCoordinateJson } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { MigrationContractViews } from '@internal/migration-tools/migration';
 import type { SqlStorage } from '@internal/sql-contract/types';
@@ -328,8 +328,8 @@ export abstract class PostgresMigration<
     readonly many?: boolean;
     /** The column's codec, as for `replaceStoredValue`. */
     readonly codecRef?: CodecRef;
-    /** The enum value the stored value belongs to, as a statement names it: the check that fails when rows of a required column hold the value then says how to keep them. */
-    readonly enumValue?: string;
+    /** The enum value the stored value belongs to: the check that fails while rows of a required column hold the value then names it. */
+    readonly enumValue?: EnumValueCoordinateJson;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     return new RemoveStoredValueCall(
       options.schema ?? UNBOUND_NAMESPACE_ID,

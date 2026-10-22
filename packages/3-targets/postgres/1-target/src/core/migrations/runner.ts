@@ -31,6 +31,7 @@ import type {
 } from '@internal/framework-components/control';
 import {
   APP_SPACE_ID,
+  enumValueCoordinateFromJson,
   failedPostcheckWhy,
   failedPrecheckWhy,
   schemaCheckWhy,
@@ -61,6 +62,7 @@ import {
   schemaContentsOf,
   schemaObjectsSummary,
 } from './schema-contents';
+import { keepRowsEdit } from './stored-value-calls';
 
 interface ApplyPlanSuccessValue {
   readonly operationsExecuted: number;
@@ -457,7 +459,10 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
     return okVoid();
   }
 
-  /** Counts the rows that hold the stored value a removal check guards, as `rowsHoldingValueMeta` marks the check. */
+  /**
+   * Counts the rows that hold the stored value a removal check guards, as `rowsHoldingValueMeta`
+   * marks the check. A count that fails leaves the failure without it.
+   */
   private async rowsHoldingValue(
     driver: SqlMigrationRunnerExecuteOptions<PostgresPlanTargetDetails>['driver'],
     step: SqlMigrationPlanOperationStep,
@@ -466,15 +471,29 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
   ): Promise<{ readonly summary: string; readonly report: RowsHoldingValue } | undefined> {
     const mark = rowsHoldingValueOf(step);
     const details = operation.target.details;
+    const stored = step.params?.[0];
     if (mark === undefined || details?.table === undefined) return undefined;
-    const counted = await driver.query<{ rows: number }>(
-      `SELECT COUNT(*)::int AS rows FROM ${qualifyTableName(details.schema, details.table)} WHERE ${quoteIdentifier(details.name)} = $1`,
-      [step.params?.[0]],
-    );
-    const rows = counted.rows[0]?.rows ?? 0;
+    if (typeof stored !== 'string' && typeof stored !== 'number') return undefined;
+    const { table } = details;
+    let rows: number;
+    try {
+      const counted = await driver.query<{ rows: number }>(
+        `SELECT COUNT(*)::int AS rows FROM ${qualifyTableName(details.schema, table)} WHERE ${quoteIdentifier(details.name)} = $1`,
+        [stored],
+      );
+      rows = counted.rows[0]?.rows ?? 0;
+    } catch {
+      return undefined;
+    }
     return {
-      summary: rowsHoldingValueSummary(mark, details.table, details.name, rows),
-      report: { ...mark, rows, operationIndex },
+      summary: rowsHoldingValueSummary(table, details.name, stored, rows),
+      report: {
+        enumValue: enumValueCoordinateFromJson(mark.enumValue),
+        value: stored,
+        rows,
+        operationIndex,
+        keepDataEdit: keepRowsEdit({ ...details, table }, mark),
+      },
     };
   }
 

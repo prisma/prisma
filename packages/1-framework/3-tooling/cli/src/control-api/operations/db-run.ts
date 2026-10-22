@@ -52,6 +52,7 @@ import {
   errorExtensionPathUnreachable,
   type UnplannableExtensionSpace,
 } from '../../utils/extension-path-failure';
+import { dbUpdateKeepDataEditAdvice } from '../../utils/keep-data-edit-advice';
 import type { CliInvocation } from '../../utils/printed-command';
 import {
   type AnswerPlanQuestions,
@@ -355,6 +356,10 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       originKnown: fromContract !== null,
       destination: contract,
       answer: options.answerQuestions,
+      keepDataEditAdvice: dbUpdateKeepDataEditAdvice(
+        options.invocation,
+        recordedDatabaseContract(aggregate, markerRows),
+      ),
       replan: (planned) => plan(resolveRenames(planned)),
     });
     if (!answered.ok) {

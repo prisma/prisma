@@ -1,3 +1,4 @@
+import { asNamespaceId } from '@internal/contract/types';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import {
@@ -122,12 +123,14 @@ describe('removeStoredValue', () => {
 
   it('marks the check with the enum value it removes, when it is given, and keeps the check short', () => {
     const [check] = removeStoredValue('app', 'task', 'state', 'ARCHIVED', false, {
-      enumValue: 'Status.ARCHIVED',
+      enumValue: { enum: 'Status', member: 'ARCHIVED' },
       value: 'ARCHIVED',
     }).precheck;
     expect({ description: check?.description, meta: check?.meta }).toEqual({
       description: 'ensure column "state" of "task" takes NULL, or no row holds "ARCHIVED" in it',
-      meta: { rowsHoldingValue: { enumValue: 'Status.ARCHIVED', value: 'ARCHIVED' } },
+      meta: {
+        rowsHoldingValue: { enumValue: { enum: 'Status', member: 'ARCHIVED' }, value: 'ARCHIVED' },
+      },
     });
   });
 
@@ -179,14 +182,18 @@ describe('stored value calls', () => {
       'archived',
       false,
       { codecRef: { codecId: 'pg/text@1' }, codecs: postgresTypeLookups.codecLookup },
-      'Status.ARCHIVED',
+      { namespaceId: asNamespaceId('app'), enum: 'Status', member: 'ARCHIVED' },
     );
 
     expect(call.renderTypeScript()).toBe(
-      'this.removeStoredValue({ schema: "app", table: "task", column: "state", value: "archived", codecRef: { codecId: "pg/text@1" }, enumValue: "Status.ARCHIVED" })',
+      'this.removeStoredValue({ schema: "app", table: "task", column: "state", value: "archived", codecRef: { codecId: "pg/text@1" }, enumValue: { namespaceId: "app", enum: "Status", member: "ARCHIVED" } })',
     );
     expect((await call.toOp()).precheck[0]?.meta).toEqual({
-      rowsHoldingValue: { enumValue: 'Status.ARCHIVED', value: 'archived' },
+      rowsHoldingValue: {
+        enumValue: { namespaceId: 'app', enum: 'Status', member: 'ARCHIVED' },
+        value: 'archived',
+        codecRef: { codecId: 'pg/text@1' },
+      },
     });
   });
 

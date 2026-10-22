@@ -1,6 +1,7 @@
 import { asNamespaceId, type ContractWithDomain } from '@internal/contract/types';
 import type {
   EnumValueCoordinate,
+  KeepDataEdit,
   MigrationAccessChange,
   MigrationDataLoss,
   MigrationDataLossKind,
@@ -78,7 +79,7 @@ export interface CallSubjects {
   /** What the call's operation loses, one entry per model, field or storage name, how, and how to keep it. */
   readonly dataLoss: readonly (SubjectStorage & {
     readonly loss: MigrationDataLossKind;
-    readonly keepDataAdvice?: string;
+    readonly keepDataEdit?: KeepDataEdit;
   })[];
   /** What the call's operation changes access to, and whether it widens it. */
   readonly accessChanges: readonly (SubjectStorage & { readonly widens: boolean })[];
@@ -205,10 +206,8 @@ export function subjectsOfCalls(
         subject,
         loss: target.loss,
         label: call.label,
-        ...ifDefined(
-          'keepDataAdvice',
-          target.keepDataAdvice ?? keepTableAdvice(target, subject, context),
-        ),
+        ...ifDefined('keepDataAdvice', keepTableAdvice(target, subject, context)),
+        ...ifDefined('keepDataEdit', target.keepDataEdit),
       });
     }
     for (const target of call.accessChanges) {
