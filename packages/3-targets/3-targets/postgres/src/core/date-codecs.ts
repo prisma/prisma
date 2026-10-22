@@ -15,6 +15,7 @@ import { PostgresCodecDescriptor } from './codec-descriptor';
 import type { PrecisionParams } from './codec-helpers';
 import { PG_TIMESTAMPTZ_DATE_CODEC_ID, PG_TIMESTAMPTZ_STRING_CODEC_ID } from './codec-ids';
 import { pgPrecisionParams, pgTimestamptz, pgTimestamptzStoredText } from './data-types';
+import { requireIsoDateStyle } from './date-time-wire-text';
 import {
   EARLIEST_POSTGRES_TIMESTAMP_MILLISECONDS,
   utcTimestamptzText,
@@ -40,7 +41,10 @@ function validateDate(value: Date): Date {
 }
 
 function decodeDate(wire: unknown): Date {
-  const instant = typeof wire === 'string' ? storedInstant(wire) : undefined;
+  const instant =
+    typeof wire === 'string'
+      ? storedInstant(requireIsoDateStyle(PG_TIMESTAMPTZ_DATE_CODEC_ID, wire))
+      : undefined;
   const date = instant === undefined ? undefined : new Date(instant);
   if (date === undefined || !isRepresentable(date)) throw invalidDate();
   return date;

@@ -189,15 +189,19 @@ describe('the date and time codecs that carry text', { concurrent: false }, () =
   );
 
   it(
-    'refuse a date or timestamp the session prints under another DateStyle, naming the setting',
+    'refuse, with every codec, a date or timestamp the session prints under another DateStyle, naming the setting',
     async () => {
       const refusals = [];
       await driver!.query("SET DateStyle = 'German, DMY'");
       try {
         for (const [codecId, type] of [
           ['pg/date-string@1', 'date'],
+          ['pg/date-temporal@1', 'date'],
           ['pg/timestamp-string@1', 'timestamp'],
+          ['pg/timestamp-temporal@1', 'timestamp'],
           ['pg/timestamptz-string@1', 'timestamptz'],
+          ['pg/timestamptz-temporal@1', 'timestamptz'],
+          ['pg/timestamptz-date@1', 'timestamptz'],
         ] as const) {
           const result = await driver!.query<{ text: string }>(
             `select '2024-01-02 03:04:05'::${type}::text as text`,
@@ -214,11 +218,7 @@ describe('the date and time codecs that carry text', { concurrent: false }, () =
       } finally {
         await driver!.query('RESET DateStyle');
       }
-      expect(refusals).toEqual([
-        'RUNTIME.DATE_STYLE_NOT_ISO',
-        'RUNTIME.DATE_STYLE_NOT_ISO',
-        'RUNTIME.DATE_STYLE_NOT_ISO',
-      ]);
+      expect(refusals).toEqual(Array(7).fill('RUNTIME.DATE_STYLE_NOT_ISO'));
     },
     timeouts.databaseOperation,
   );

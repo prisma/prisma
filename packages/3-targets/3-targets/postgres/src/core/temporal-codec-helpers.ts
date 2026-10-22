@@ -5,6 +5,7 @@ import {
   PG_TIMESTAMP_TEMPORAL_CODEC_ID,
   PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
 } from './codec-ids';
+import { requireIsoDateStyle } from './date-time-wire-text';
 import {
   errorTemporalNonIsoCalendar,
   errorTemporalUnrepresentable,
@@ -116,21 +117,31 @@ const TIME_TEMPORAL: TemporalCodecIdentity = {
 };
 
 export const pgDateTemporalDecode = (wire: string): Temporal.PlainDate =>
-  decodeTemporalText(DATE_TEMPORAL, wire, (temporal, text) => temporal.PlainDate.from(text));
+  decodeTemporalText(
+    DATE_TEMPORAL,
+    requireIsoDateStyle(DATE_TEMPORAL.codecId, wire),
+    (temporal, text) => temporal.PlainDate.from(text),
+  );
 
 export const pgDateTemporalEncode = (value: Temporal.PlainDate): string =>
   encodeTemporalValue(DATE_TEMPORAL, value);
 
 export const pgTimestampTemporalDecode = (wire: string): Temporal.PlainDateTime =>
-  decodeTemporalText(TIMESTAMP_TEMPORAL, wire, (temporal, text) =>
-    temporal.PlainDateTime.from(text),
+  decodeTemporalText(
+    TIMESTAMP_TEMPORAL,
+    requireIsoDateStyle(TIMESTAMP_TEMPORAL.codecId, wire),
+    (temporal, text) => temporal.PlainDateTime.from(text),
   );
 
 export const pgTimestampTemporalEncode = (value: Temporal.PlainDateTime): string =>
   encodeTemporalValue(TIMESTAMP_TEMPORAL, value);
 
 export const pgTimestamptzTemporalDecode = (wire: string): Temporal.Instant =>
-  decodeTemporalText(TIMESTAMPTZ_TEMPORAL, wire, (temporal, text) => temporal.Instant.from(text));
+  decodeTemporalText(
+    TIMESTAMPTZ_TEMPORAL,
+    requireIsoDateStyle(TIMESTAMPTZ_TEMPORAL.codecId, wire),
+    (temporal, text) => temporal.Instant.from(text),
+  );
 
 export const pgTimestamptzTemporalEncode = (value: Temporal.Instant): string =>
   encodeTemporalValue(TIMESTAMPTZ_TEMPORAL, value);
