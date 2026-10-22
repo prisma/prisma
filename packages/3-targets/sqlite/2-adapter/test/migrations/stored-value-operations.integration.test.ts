@@ -155,11 +155,20 @@ describe('SQLite stored value operations', { timeout: timeouts.databaseOperation
     expect(result.assertNotOk()).toMatchObject({
       code: 'MIGRATION.PRECHECK_FAILED',
       message:
-        'Operation removeStoredValue.code.code.x failed during precheck: ensure column "code" of "code" accepts NULL, which removing a value from it writes',
+        'Operation removeStoredValue.code.code.x failed during precheck: ensure column "code" of "code" takes NULL, or no row holds "x" in it',
     });
     expect((await testDb.driver.query('SELECT id, code FROM "code" ORDER BY id')).rows).toEqual([
       { id: 1, code: 'x' },
       { id: 2, code: 'y' },
     ]);
+  });
+
+  it('removes nothing, and runs nothing, from a required column no row of which holds the value', async () => {
+    await testDb.driver.query('CREATE TABLE "code" (id INTEGER PRIMARY KEY, code TEXT NOT NULL)');
+    await testDb.driver.query(`INSERT INTO "code" (id, code) VALUES (1, 'y')`);
+
+    expect(
+      await operationsExecuted(await new RemoveStoredValueCall('code', 'code', 'x').toOp()),
+    ).toBe(0);
   });
 });

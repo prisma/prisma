@@ -1,7 +1,5 @@
-import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
-import { columnNullabilityAst } from '../../src/contract-free/checks';
 import {
   RemoveStoredValueCall,
   ReplaceStoredValueCall,
@@ -11,22 +9,6 @@ import {
   replaceStoredValue,
 } from '../../src/core/migrations/operations/stored-values';
 import { postgresTypeLookups } from '../postgres-type-lookups';
-
-function recordingLowerer(): { lowerer: ExecuteRequestLowerer; received: unknown[] } {
-  const received: unknown[] = [];
-  const lowerer: ExecuteRequestLowerer = {
-    lower: () => Object.freeze({ sql: 'UNUSED', params: Object.freeze([]) }),
-    renderColumnDefault: async () => '',
-    lowerToExecuteRequest: async (ast) => {
-      received.push(ast);
-      return Object.freeze({
-        sql: `LOWERED ${received.length}`,
-        params: Object.freeze([`p${received.length}`]),
-      });
-    },
-  };
-  return { lowerer, received };
-}
 
 const target = {
   id: 'postgres',
@@ -96,15 +78,12 @@ describe('replaceStoredValue', () => {
   });
 });
 
-describe('removeStoredValue', () => {
-  it('sets the value to NULL in a scalar column, after checking that the column accepts NULL', async () => {
-    const { lowerer, received } = recordingLowerer();
-    const op = await removeStoredValue('app', 'task', 'state', 'ARCHIVED', false, lowerer);
+const ACCEPTS_NULL_OR_NOT_HELD =
+  'SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = \'app\' AND table_name = $2 AND column_name = $3 AND is_nullable = \'YES\') OR NOT EXISTS (SELECT 1 FROM "app"."task" WHERE "state" = $1) AS result';
 
-    expect(received).toEqual([
-      columnNullabilityAst({ schema: 'app', table: 'task', column: 'state', nullable: true }),
-    ]);
-    expect(op).toEqual({
+describe('removeStoredValue', () => {
+  it('sets the value to NULL in a scalar column, after checking that the column takes NULL or no row holds the value', () => {
+    expect(removeStoredValue('app', 'task', 'state', 'ARCHIVED', false, undefined)).toEqual({
       id: 'removeStoredValue.task.state.ARCHIVED',
       label: 'Remove value "ARCHIVED" from column "state" of "task"',
       operationClass: 'destructive',
@@ -112,9 +91,9 @@ describe('removeStoredValue', () => {
       precheck: [
         {
           description:
-            'ensure column "state" of "task" accepts NULL, which removing a value from it writes',
-          sql: 'LOWERED 1',
-          params: ['p1'],
+            'ensure column "state" of "task" takes NULL, or no row holds "ARCHIVED" in it',
+          sql: ACCEPTS_NULL_OR_NOT_HELD,
+          params: ['ARCHIVED', 'task', 'state'],
         },
       ],
       execute: [
@@ -134,15 +113,24 @@ describe('removeStoredValue', () => {
     });
   });
 
-  it('takes the value out of every list of a list column, which never writes NULL', async () => {
-    const op = await removeStoredValue(
-      'app',
-      'task',
-      'labels',
-      'x',
-      true,
-      recordingLowerer().lowerer,
+  it('checks the current schema for a table of the unbound namespace', () => {
+    expect(
+      removeStoredValue(UNBOUND_NAMESPACE_ID, 'task', 'state', 'a', false, undefined).precheck[0]
+        ?.sql,
+    ).toContain('table_schema = current_schema()');
+  });
+
+  it('ends the check with how to keep the rows, when it is given', () => {
+    expect(
+      removeStoredValue('app', 'task', 'state', 'ARCHIVED', false, 'to keep them, rename')
+        .precheck[0]?.description,
+    ).toBe(
+      'ensure column "state" of "task" takes NULL, or no row holds "ARCHIVED" in it: to keep them, rename',
     );
+  });
+
+  it('takes the value out of every list of a list column, which never writes NULL', () => {
+    const op = removeStoredValue('app', 'task', 'labels', 'x', true, undefined);
 
     expect(op.precheck).toEqual([]);
     expect(op.execute).toEqual([
@@ -176,15 +164,28 @@ describe('stored value calls', () => {
     expect(await replace.toOp()).toEqual(
       replaceStoredValue('app', 'task', 'state', 'ARCHIVED', 'RETIRED', false),
     );
-    expect(await remove.toOp(recordingLowerer().lowerer)).toEqual(
-      await removeStoredValue('app', 'task', 'labels', 'x', true, recordingLowerer().lowerer),
+    expect(await remove.toOp()).toEqual(
+      removeStoredValue('app', 'task', 'labels', 'x', true, undefined),
     );
   });
 
-  it('refuse to remove a value without a lowerer', async () => {
-    await expect(remove.toOp()).rejects.toMatchObject({
-      code: 'MIGRATION.POSTGRES_CONTROL_STACK_MISSING',
-    });
+  it('name the enum value of a removal, and say in its check how to keep the rows that hold it', async () => {
+    const call = new RemoveStoredValueCall(
+      'app',
+      'task',
+      'state',
+      'archived',
+      false,
+      { codecRef: { codecId: 'pg/text@1' }, codecs: postgresTypeLookups.codecLookup },
+      'Status.ARCHIVED',
+    );
+
+    expect(call.renderTypeScript()).toBe(
+      'this.removeStoredValue({ schema: "app", table: "task", column: "state", value: "archived", codecRef: { codecId: "pg/text@1" }, enumValue: "Status.ARCHIVED" })',
+    );
+    expect((await call.toOp()).precheck[0]?.description).toBe(
+      'ensure column "state" of "task" takes NULL, or no row holds "archived" in it: to keep those rows, answer with --rename Status.ARCHIVED:Status.<new name>, or plan the change with prisma migration plan and replace this.removeStoredValue({ schema: "app", table: "task", column: "state", value: "archived", codecRef: { codecId: "pg/text@1" }, enumValue: "Status.ARCHIVED" }) with this.replaceStoredValue({ schema: "app", table: "task", column: "state", from: "archived", to: <stored value>, codecRef: { codecId: "pg/text@1" } }) in the migration.ts it writes, where <stored value> is a value the column keeps',
+    );
   });
 
   it('write a value through the column codec they carry, and render the codec', async () => {
@@ -199,9 +200,7 @@ describe('stored value calls', () => {
       new ReplaceStoredValueCall('app', 'task', 'rank', '07', '8', false, codec).toOp(),
     ).rejects.toThrow('pg/int8 JSON value must be "7"');
     const remove = new RemoveStoredValueCall('app', 'task', 'rank', '07', false, codec);
-    await expect(remove.toOp(recordingLowerer().lowerer)).rejects.toThrow(
-      'pg/int8 JSON value must be "7"',
-    );
+    await expect(remove.toOp()).rejects.toThrow('pg/int8 JSON value must be "7"');
   });
 
   it('refuse a value that is neither a string nor a number, which would match no row', () => {

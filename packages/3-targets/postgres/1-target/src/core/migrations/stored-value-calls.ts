@@ -5,10 +5,11 @@ import {
   type StoredValueRewrite,
 } from '@internal/family-sql/control';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
-import type {
-  EnumValueCoordinate,
-  OpFactoryCall,
-  ResolvedEnumValueRenameStatement,
+import {
+  type EnumValueCoordinate,
+  enumValueStatementText,
+  type OpFactoryCall,
+  type ResolvedEnumValueRenameStatement,
 } from '@internal/framework-components/control';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { ifDefined } from '@internal/utils/defined';
@@ -29,6 +30,7 @@ export interface StoredValueSubject {
 /** The calls that carry out a plan's stored value rewrites, each with the rewrite it carries out. */
 export function postgresStoredValueCalls(
   rewrites: readonly StoredValueRewrite[],
+  fromContract: Contract<SqlStorage> | null,
   contract: Contract<SqlStorage>,
   codecs: Pick<CodecLookupWithDescriptors, 'descriptorFor'>,
 ): ReadonlyMap<PostgresOpFactoryCall, StoredValueRewrite> {
@@ -45,6 +47,9 @@ export function postgresStoredValueCalls(
               rewrite.from,
               rewrite.many,
               codec,
+              fromContract === null
+                ? undefined
+                : enumValueStatementText(fromContract, rewrite.enumValue),
             )
           : new ReplaceStoredValueCall(
               schemaName,
@@ -84,6 +89,7 @@ export function storedValueSubjects(
         : keptNameAdvice(
             fromContract,
             rewrite,
+            call.renderTypeScript(),
             new ReplaceStoredValueCall(
               call.schemaName,
               call.tableName,

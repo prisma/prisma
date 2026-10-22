@@ -1,7 +1,7 @@
 import { quoteIdentifier } from '../../sql-utils';
 import { buildTargetDetails } from '../planner-target-details';
 import { type Op, step } from './shared';
-import { columnAcceptsNullCheck } from './structure-checks';
+import { columnTakesNullOrValueAbsentCheck } from './structure-checks';
 
 /** A stored value as operation ids, labels and step descriptions write it. */
 export function storedValueText(value: string | number): string {
@@ -48,18 +48,21 @@ export function removeStoredValue(
   tableName: string,
   columnName: string,
   value: string | number,
+  keepRowsAdvice: string | undefined,
 ): Op {
   const column = quoteIdentifier(columnName);
+  const takesNull = `ensure column "${columnName}" of "${tableName}" takes NULL, or no row holds ${storedValueText(value)} in it`;
   return {
     id: `removeStoredValue.${tableName}.${columnName}.${idText(value)}`,
     label: `Remove value ${storedValueText(value)} from column "${columnName}" of "${tableName}"`,
     operationClass: 'destructive',
     target: { id: 'sqlite', details: buildTargetDetails('column', columnName, tableName) },
     precheck: [
-      columnAcceptsNullCheck(
+      columnTakesNullOrValueAbsentCheck(
         tableName,
         columnName,
-        `ensure column "${columnName}" of "${tableName}" accepts NULL, which removing a value from it writes`,
+        value,
+        keepRowsAdvice === undefined ? takesNull : `${takesNull}: ${keepRowsAdvice}`,
       ),
     ],
     execute: [

@@ -47,6 +47,7 @@ export {
   encodeStoredValue,
   keptNameAdvice,
   planEnumValueRewrites,
+  rowsHoldingValueAdvice,
   withEnumValueOperations,
 } from '../core/migrations/enum-value-planning';
 export type {

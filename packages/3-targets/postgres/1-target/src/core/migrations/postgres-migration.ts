@@ -294,7 +294,7 @@ export abstract class PostgresMigration<
   }
 
   /**
-   * Emit an `UPDATE` operation that changes the stored value `from` to `to` in `column`, in every row that holds it. With `many`, the column is a list column and the value changes inside every list that holds it. Values are stored values, as the column's codec writes them, and are passed as parameters. Leave out `schema` for a table of the unbound namespace.
+   * Emit an `UPDATE` operation that changes the stored value `from` to `to` in `column`, in every row that holds it. With `many`, the column is a list column and the value changes inside every list that holds it. Values are stored values, as the column's codec writes them, and are passed as parameters. Without `codecRef`, pass each value in the form the column stores it, or no row matches. Leave out `schema` for a table of the unbound namespace.
    */
   protected replaceStoredValue(options: {
     readonly schema?: string;
@@ -318,7 +318,7 @@ export abstract class PostgresMigration<
   }
 
   /**
-   * Emit an `UPDATE` operation that removes the stored value `value` from `column`: it sets the column to NULL in every row that holds it, or, with `many`, takes the value out of every list that holds it. The operation is destructive.
+   * Emit an `UPDATE` operation that removes the stored value `value` from `column`: it sets the column to NULL in every row that holds it, or, with `many`, takes the value out of every list that holds it. On a scalar column that takes no NULL, its check fails while any row holds the value. The operation is destructive.
    */
   protected removeStoredValue(options: {
     readonly schema?: string;
@@ -328,6 +328,8 @@ export abstract class PostgresMigration<
     readonly many?: boolean;
     /** The column's codec, as for `replaceStoredValue`. */
     readonly codecRef?: CodecRef;
+    /** The enum value the stored value belongs to, as a statement names it: the check that fails when rows of a required column hold the value then says how to keep them. */
+    readonly enumValue?: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     return new RemoveStoredValueCall(
       options.schema ?? UNBOUND_NAMESPACE_ID,
@@ -336,7 +338,8 @@ export abstract class PostgresMigration<
       options.value,
       options.many === true,
       this.storedValueCodec('removeStoredValue', options.codecRef),
-    ).toOp(this.controlAdapterFor('removeStoredValue'));
+      options.enumValue,
+    ).toOp();
   }
 
   /**

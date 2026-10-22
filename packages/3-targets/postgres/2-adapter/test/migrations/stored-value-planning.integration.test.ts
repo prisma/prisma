@@ -312,26 +312,34 @@ describe('Postgres planner, stored enum values', { concurrent: false }, () => {
     const result = await plan(from, to);
 
     expect(result.kind === 'success' && result.dataLoss[0]?.keepDataAdvice).toBe(
-      'Enum value "Role.GUEST" keeps its name with a new stored value, which a statement cannot say. To keep the data, write the update by hand: with migration plan, add this.replaceStoredValue({ schema: "public", table: "User", column: "role", from: "guest", to: "visitor", codecRef: { codecId: "pg/text@1" } }) to the operations of its migration.ts.',
+      'Enum value "Role.GUEST" keeps its name with a new stored value, which a statement cannot say. To keep the data, plan the change with prisma migration plan --delete Role.GUEST, replace this.removeStoredValue({ schema: "public", table: "User", column: "role", value: "guest", codecRef: { codecId: "pg/text@1" }, enumValue: "Role.GUEST" }) with this.replaceStoredValue({ schema: "public", table: "User", column: "role", from: "guest", to: "visitor", codecRef: { codecId: "pg/text@1" } }) in the migration.ts it writes, run node on that migration.ts so it writes ops.json, and apply it with prisma db migrate. db update cannot keep the data.',
     );
   });
 
-  it('refuses to remove a stored value from a required column', {
+  it('removes a stored value from a required column when no row holds it, and fails at apply, naming how to keep them, when rows do', {
     timeout: testTimeout,
   }, async () => {
     const from = roleContract({ USER: 'user', GUEST: 'guest' }, { required: true });
     const to = roleContract({ USER: 'user' }, { required: true });
     await apply(await plan(null, from), from);
+    await driver.query(`insert into "User" (id, role) values ('1', 'guest'), ('2', 'user')`);
 
     const result = await plan(from, to);
-
-    expect(result.kind === 'failure' && result.conflicts).toEqual([
-      expect.objectContaining({
-        kind: 'nullabilityConflict',
-        summary:
-          'Cannot remove enum value "Role.GUEST" from column "User"."role": the column is required',
-      }),
+    if (result.kind !== 'success') throw new Error(JSON.stringify(result.conflicts));
+    expect(result.dataLoss.map(({ subject }) => subject)).toEqual([
+      { kind: 'enumValue', namespaceId: asNamespaceId('public'), enum: 'Role', member: 'GUEST' },
     ]);
+    await expect(apply(result, to)).rejects.toThrow(
+      'Operation removeStoredValue.User.role.guest failed during precheck: ensure column "role" of "User" takes NULL, or no row holds "guest" in it: to keep those rows, answer with --rename Role.GUEST:Role.<new name>, or plan the change with prisma migration plan and replace this.removeStoredValue({ schema: "public", table: "User", column: "role", value: "guest", codecRef: { codecId: "pg/text@1" }, enumValue: "Role.GUEST" }) with this.replaceStoredValue({ schema: "public", table: "User", column: "role", from: "guest", to: <stored value>, codecRef: { codecId: "pg/text@1" } }) in the migration.ts it writes, where <stored value> is a value the column keeps',
+    );
+    expect(await roles()).toEqual([
+      { id: '1', role: 'guest' },
+      { id: '2', role: 'user' },
+    ]);
+
+    await driver.query(`delete from "User" where role = 'guest'`);
+    await apply(await plan(from, to), to);
+    expect(await operationKinds(await plan(to, to))).toEqual([]);
   });
 
   it('removes a stored value from every table the enum types, list columns too, and asks one question', {

@@ -13,7 +13,6 @@ import type { PostgresPlanTargetDetails } from '@internal/target-postgres/planne
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   contract,
-  controlAdapter,
   createDriver,
   createMigrationPlan,
   createTestDatabase,
@@ -132,9 +131,7 @@ describe('Postgres stored value operations', { concurrent: false }, () => {
     await driver.query('insert into app.task (id, rank) values (1, 1), (2, 2), (3, 3)');
 
     await runTwice(await new ReplaceStoredValueCall('app', 'task', 'rank', 1, 10, false).toOp());
-    await runTwice(
-      await new RemoveStoredValueCall('app', 'task', 'rank', 3, false).toOp(controlAdapter),
-    );
+    await runTwice(await new RemoveStoredValueCall('app', 'task', 'rank', 3, false).toOp());
 
     expect(await rows('rank')).toEqual([
       { id: 1, rank: 10 },
@@ -147,9 +144,7 @@ describe('Postgres stored value operations', { concurrent: false }, () => {
     await driver.query(`insert into app.task (id, state) values (1, 'ARCHIVED'), (2, 'ACTIVE')`);
 
     await runTwice(
-      await new RemoveStoredValueCall('app', 'task', 'state', 'ARCHIVED', false).toOp(
-        controlAdapter,
-      ),
+      await new RemoveStoredValueCall('app', 'task', 'state', 'ARCHIVED', false).toOp(),
     );
 
     expect(await rows('state')).toEqual([
@@ -182,9 +177,7 @@ describe('Postgres stored value operations', { concurrent: false }, () => {
     await runTwice(
       await new ReplaceStoredValueCall('app', 'task', 'labels', 'a', 'z', true).toOp(),
     );
-    await runTwice(
-      await new RemoveStoredValueCall('app', 'task', 'labels', 'b', true).toOp(controlAdapter),
-    );
+    await runTwice(await new RemoveStoredValueCall('app', 'task', 'labels', 'b', true).toOp());
     await runTwice(await new ReplaceStoredValueCall('app', 'task', 'ranks', 2, 20, true).toOp());
 
     expect(await rows('labels, ranks')).toEqual([
@@ -223,18 +216,29 @@ describe('Postgres stored value operations', { concurrent: false }, () => {
   }, async () => {
     await driver.query('create table app.code (id int primary key, code text not null)');
     await driver.query(`insert into app.code (id, code) values (1, 'x'), (2, 'y')`);
-    const op = await new RemoveStoredValueCall('app', 'code', 'code', 'x', false).toOp(
-      controlAdapter,
-    );
+    const op = await new RemoveStoredValueCall('app', 'code', 'code', 'x', false).toOp();
 
     expect((await runnerResult(op)).assertNotOk()).toMatchObject({
       code: 'MIGRATION.PRECHECK_FAILED',
       message:
-        'Operation removeStoredValue.code.code.x failed during precheck: ensure column "code" of "code" accepts NULL, which removing a value from it writes',
+        'Operation removeStoredValue.code.code.x failed during precheck: ensure column "code" of "code" takes NULL, or no row holds "x" in it',
     });
     expect((await driver.query('select id, code from app.code order by id')).rows).toEqual([
       { id: 1, code: 'x' },
       { id: 2, code: 'y' },
     ]);
+  });
+
+  it('removes nothing, and runs nothing, from a required column no row of which holds the value', {
+    timeout: testTimeout,
+  }, async () => {
+    await driver.query('create table app.code (id int primary key, code text not null)');
+    await driver.query(`insert into app.code (id, code) values (1, 'y')`);
+
+    expect(
+      await operationsExecuted(
+        await new RemoveStoredValueCall('app', 'code', 'code', 'x', false).toOp(),
+      ),
+    ).toBe(0);
   });
 });

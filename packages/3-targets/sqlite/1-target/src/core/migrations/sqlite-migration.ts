@@ -285,7 +285,7 @@ export abstract class SqliteMigration<
   }
 
   /**
-   * Emit an `UPDATE` operation that changes the stored value `from` to `to` in `column`, in every row that holds it. Values are stored values, as the column's codec writes them, and are passed as parameters.
+   * Emit an `UPDATE` operation that changes the stored value `from` to `to` in `column`, in every row that holds it. Values are stored values, as the column's codec writes them, and are passed as parameters. Without `codecRef`, pass each value in the form the column stores it, or no row matches.
    */
   protected replaceStoredValue(options: {
     readonly table: string;
@@ -302,7 +302,7 @@ export abstract class SqliteMigration<
   }
 
   /**
-   * Emit an `UPDATE` operation that sets `column` to NULL in every row that holds the stored value `value`. The operation is destructive.
+   * Emit an `UPDATE` operation that sets `column` to NULL in every row that holds the stored value `value`. On a column that takes no NULL, its check fails while any row holds the value. The operation is destructive.
    */
   protected removeStoredValue(options: {
     readonly table: string;
@@ -310,12 +310,15 @@ export abstract class SqliteMigration<
     readonly value: string | number;
     /** The column's codec, as for `replaceStoredValue`. */
     readonly codecRef?: CodecRef;
+    /** The enum value the stored value belongs to, as a statement names it: the check that fails when rows of a required column hold the value then says how to keep them. */
+    readonly enumValue?: string;
   }): Promise<Op> {
     return new RemoveStoredValueCall(
       options.table,
       options.column,
       options.value,
       this.storedValueCodec('removeStoredValue', options.codecRef),
+      options.enumValue,
     ).toOp();
   }
 

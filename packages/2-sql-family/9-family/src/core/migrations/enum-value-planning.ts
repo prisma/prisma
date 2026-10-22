@@ -52,7 +52,6 @@ interface EnumColumn {
   readonly column: string;
   readonly codecRef: StoredValueRewrite['codecRef'];
   readonly many: boolean;
-  readonly required: boolean;
 }
 
 function sameValue(left: JsonValue, right: JsonValue): boolean {
@@ -104,7 +103,6 @@ function columnsTypedBy(
           column,
           codecRef: buildColumnCodecRef(stored, undefined),
           many: stored.many !== false && stored.many !== undefined,
-          required: !stored.nullable,
         });
       }
     }
@@ -130,29 +128,6 @@ function unsupportedValue(
     kind: 'unsupportedOperation',
     summary: `Cannot rewrite enum value "${text}": its stored value ${valueText(stored)} is not a string or a number`,
     why: `The plan rewrites the rows that hold a removed or renamed enum value, and it compares only string and number values. Rewrite the rows that hold enum value "${text}" yourself, then plan again.`,
-  };
-}
-
-function requiredColumnRefusal(
-  contract: Contract<SqlStorage>,
-  value: EnumValueCoordinate,
-  column: Omit<EnumColumn, 'required'>,
-  keptName: boolean,
-): SqlPlannerConflict {
-  const text = enumValueStatementText(contract, value);
-  const instead = keptName
-    ? `Enum value "${text}" keeps its name with a new stored value, which a statement cannot say: with migration plan, write the update by hand in migration.ts.`
-    : `Rename the value instead with --rename ${text}:${text.slice(0, text.lastIndexOf('.'))}.<new name>, or, with migration plan, write the update by hand in migration.ts.`;
-  return {
-    kind: 'nullabilityConflict',
-    summary: `Cannot remove enum value "${text}" from column "${column.table}"."${column.column}": the column is required`,
-    why: `Removing an enum value sets it to NULL in each row that holds it, and column "${column.column}" of table "${column.table}" takes no NULL. ${instead}`,
-    location: {
-      namespaceId: column.namespaceId,
-      entityKind: 'table',
-      entityName: column.table,
-      column: column.column,
-    },
   };
 }
 
@@ -229,7 +204,7 @@ export function planEnumValueRewrites(input: {
             return notOk(unsupportedValue(fromContract, enumValue, member.value));
           if (!isStoredEnumValue(target.value))
             return notOk(unsupportedValue(fromContract, enumValue, target.value));
-          for (const { required: _required, ...column } of columns) {
+          for (const column of columns) {
             rewrites.push({
               enumValue,
               ...column,
@@ -249,12 +224,7 @@ export function planEnumValueRewrites(input: {
         )?.value;
         const keptName =
           renamedValue !== undefined && isStoredEnumValue(renamedValue) ? renamedValue : undefined;
-        for (const { required, ...column } of columns) {
-          if (required && !column.many) {
-            return notOk(
-              requiredColumnRefusal(fromContract, enumValue, column, renamedValue !== undefined),
-            );
-          }
+        for (const column of columns) {
           rewrites.push({
             enumValue,
             ...column,
@@ -272,15 +242,29 @@ export function planEnumValueRewrites(input: {
 
 /**
  * How to keep the data a removal loses when the member keeps its name and only its stored value
- * changes: no statement can say that, so the user writes `replaceCall`, the target's call that
- * replaces the old stored value with the new one, by hand.
+ * changes: no statement can say that, so the user plans the change with `migration plan` and
+ * replaces `removeCall` with `replaceCall`, the target's calls, in the migration.ts it writes.
  */
 export function keptNameAdvice(
   contract: Contract<SqlStorage>,
   rewrite: StoredValueRewrite,
+  removeCall: string,
   replaceCall: string,
 ): string {
-  return `Enum value "${enumValueStatementText(contract, rewrite.enumValue)}" keeps its name with a new stored value, which a statement cannot say. To keep the data, write the update by hand: with migration plan, add ${replaceCall} to the operations of its migration.ts.`;
+  const text = enumValueStatementText(contract, rewrite.enumValue);
+  return `Enum value "${text}" keeps its name with a new stored value, which a statement cannot say. To keep the data, plan the change with prisma migration plan --delete ${text}, replace ${removeCall} with ${replaceCall} in the migration.ts it writes, run node on that migration.ts so it writes ops.json, and apply it with prisma db migrate. db update cannot keep the data.`;
+}
+
+/**
+ * How to keep the rows that hold a stored value of `enumValue` when its removal finds them in a
+ * column that takes no NULL: rename the enum value, or replace the value in the migration.ts.
+ */
+export function rowsHoldingValueAdvice(
+  enumValue: string,
+  removeCall: string,
+  replaceCall: string,
+): string {
+  return `to keep those rows, answer with --rename ${enumValue}:${enumValue.slice(0, enumValue.lastIndexOf('.'))}.<new name>, or plan the change with prisma migration plan and replace ${removeCall} with ${replaceCall} in the migration.ts it writes, where <stored value> is a value the column keeps`;
 }
 
 /**

@@ -325,9 +325,9 @@ describe('planEnumValueRewrites', () => {
     ).toEqual([]);
   });
 
-  it('refuses to remove a stored value from a required scalar column, pointing to a rename', () => {
+  it('removes a stored value from a required scalar column too: the operation checks the rows when it runs', () => {
     expect(
-      refusal(
+      rewrites(
         planEnumValueRewrites({
           statements: [],
           fromContract: contractWith({
@@ -341,34 +341,9 @@ describe('planEnumValueRewrites', () => {
           tables: tablesOf(['app.task.status']),
         }),
       ),
-    ).toEqual({
-      kind: 'nullabilityConflict',
-      summary:
-        'Cannot remove enum value "Status.ARCHIVED" from column "task"."status": the column is required',
-      why: 'Removing an enum value sets it to NULL in each row that holds it, and column "status" of table "task" takes no NULL. Rename the value instead with --rename Status.ARCHIVED:Status.<new name>, or, with migration plan, write the update by hand in migration.ts.',
-      location: { namespaceId: 'app', entityKind: 'table', entityName: 'task', column: 'status' },
-    });
-  });
-
-  it('refuses to remove a changed stored value from a required column, pointing to the update by hand', () => {
-    expect(
-      refusal(
-        planEnumValueRewrites({
-          statements: [],
-          fromContract: contractWith({
-            members: { ARCHIVED: 1 },
-            columns: [{ ...taskColumn, nullable: false }],
-          }),
-          contract: contractWith({
-            members: { ARCHIVED: 2 },
-            columns: [{ ...taskColumn, nullable: false }],
-          }),
-          tables: tablesOf(['app.task.status']),
-        }),
-      ).why,
-    ).toBe(
-      'Removing an enum value sets it to NULL in each row that holds it, and column "status" of table "task" takes no NULL. Enum value "Status.ARCHIVED" keeps its name with a new stored value, which a statement cannot say: with migration plan, write the update by hand in migration.ts.',
-    );
+    ).toMatchObject([
+      { enumValue: ARCHIVED, table: 'task', column: 'status', from: 'archived', to: undefined },
+    ]);
   });
 
   it('refuses a rename whose old stored value the destination enum still has', () => {

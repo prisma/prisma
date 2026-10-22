@@ -228,6 +228,7 @@ export class SqliteMigrationPlanner
     if (!rewrites.ok) return plannerFailure([rewrites.failure]);
     const storedValueCalls = sqliteStoredValueCalls(
       rewrites.value,
+      options.fromContract,
       sqlTypeLookupsOf(options.frameworkComponents).codecLookup,
     );
     const disallowedStoredValueCalls = [...storedValueCalls.keys()].filter(

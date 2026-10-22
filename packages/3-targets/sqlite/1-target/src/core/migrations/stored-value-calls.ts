@@ -1,10 +1,11 @@
 import type { Contract } from '@internal/contract/types';
 import { keptNameAdvice, type StoredValueRewrite } from '@internal/family-sql/control';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
-import type {
-  EnumValueCoordinate,
-  OpFactoryCall,
-  ResolvedEnumValueRenameStatement,
+import {
+  type EnumValueCoordinate,
+  enumValueStatementText,
+  type OpFactoryCall,
+  type ResolvedEnumValueRenameStatement,
 } from '@internal/framework-components/control';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { ifDefined } from '@internal/utils/defined';
@@ -21,6 +22,7 @@ export interface StoredValueSubject {
 /** The calls that carry out a plan's stored value rewrites, each with the rewrite it carries out. */
 export function sqliteStoredValueCalls(
   rewrites: readonly StoredValueRewrite[],
+  fromContract: Contract<SqlStorage> | null,
   codecs: Pick<CodecLookupWithDescriptors, 'descriptorFor'>,
 ): ReadonlyMap<StoredValueCall, StoredValueRewrite> {
   return new Map(
@@ -28,7 +30,15 @@ export function sqliteStoredValueCalls(
       const codec = { codecRef: rewrite.codecRef, codecs };
       return [
         rewrite.to === undefined
-          ? new RemoveStoredValueCall(rewrite.table, rewrite.column, rewrite.from, codec)
+          ? new RemoveStoredValueCall(
+              rewrite.table,
+              rewrite.column,
+              rewrite.from,
+              codec,
+              fromContract === null
+                ? undefined
+                : enumValueStatementText(fromContract, rewrite.enumValue),
+            )
           : new ReplaceStoredValueCall(
               rewrite.table,
               rewrite.column,
@@ -59,6 +69,7 @@ export function storedValueSubjects(
         : keptNameAdvice(
             fromContract,
             rewrite,
+            call.renderTypeScript(),
             new ReplaceStoredValueCall(
               call.tableName,
               call.columnName,

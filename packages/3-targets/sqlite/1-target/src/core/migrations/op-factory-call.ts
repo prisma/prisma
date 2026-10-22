@@ -17,6 +17,7 @@ import {
   encodeStoredValue,
   isUnfilledSlot,
   type MigrationOperationClass,
+  rowsHoldingValueAdvice,
   type SqlMigrationPlanOperation,
   type SqlSlot,
   type SqlTextSources,
@@ -1095,6 +1096,23 @@ export class DropIndexCall extends SqliteOpFactoryCallNode {
 // Stored values
 // ============================================================================
 
+function replaceStoredValueSource(
+  tableName: string,
+  columnName: string,
+  from: string,
+  to: string,
+  codec: StoredValueCodec | undefined,
+): string {
+  const opts = [
+    `table: ${jsonToTsSource(tableName)}`,
+    `column: ${jsonToTsSource(columnName)}`,
+    `from: ${from}`,
+    `to: ${to}`,
+    ...codecRefSource(codec),
+  ];
+  return `this.replaceStoredValue({ ${opts.join(', ')} })`;
+}
+
 function codecRefSource(codec: StoredValueCodec | undefined): readonly string[] {
   return codec === undefined ? [] : [`codecRef: ${jsonToTsSource(codec.codecRef)}`];
 }
@@ -1156,14 +1174,13 @@ export class ReplaceStoredValueCall extends SqliteOpFactoryCallNode {
   }
 
   renderTypeScript(): string {
-    const opts = [
-      `table: ${jsonToTsSource(this.tableName)}`,
-      `column: ${jsonToTsSource(this.columnName)}`,
-      `from: ${jsonToTsSource(this.from)}`,
-      `to: ${jsonToTsSource(this.to)}`,
-      ...codecRefSource(this.codec),
-    ];
-    return `this.replaceStoredValue({ ${opts.join(', ')} })`;
+    return replaceStoredValueSource(
+      this.tableName,
+      this.columnName,
+      jsonToTsSource(this.from),
+      jsonToTsSource(this.to),
+      this.codec,
+    );
   }
 
   override importRequirements(): readonly ImportRequirement[] {
@@ -1180,6 +1197,8 @@ export class RemoveStoredValueCall extends SqliteOpFactoryCallNode {
   readonly value: string | number;
   /** The column's codec, which writes `value` as the database stores it. */
   readonly codec: StoredValueCodec | undefined;
+  /** The enum value whose stored value is removed, as a statement names it, such as `Status.ARCHIVED`. */
+  readonly enumValue: string | undefined;
   readonly label: string;
 
   constructor(
@@ -1187,9 +1206,11 @@ export class RemoveStoredValueCall extends SqliteOpFactoryCallNode {
     columnName: string,
     value: string | number,
     codec?: StoredValueCodec,
+    enumValue?: string,
   ) {
     super();
     this.codec = codec;
+    this.enumValue = enumValue;
     this.tableName = tableName;
     this.columnName = columnName;
     this.value = requireStoredValue(value, this.factoryName, tableName, columnName, 'value');
@@ -1202,6 +1223,19 @@ export class RemoveStoredValueCall extends SqliteOpFactoryCallNode {
       this.tableName,
       this.columnName,
       await encodeStoredValue(this.value, this.codec),
+      this.enumValue === undefined
+        ? undefined
+        : rowsHoldingValueAdvice(
+            this.enumValue,
+            this.renderTypeScript(),
+            replaceStoredValueSource(
+              this.tableName,
+              this.columnName,
+              jsonToTsSource(this.value),
+              '<stored value>',
+              this.codec,
+            ),
+          ),
     );
   }
 
@@ -1211,6 +1245,7 @@ export class RemoveStoredValueCall extends SqliteOpFactoryCallNode {
       `column: ${jsonToTsSource(this.columnName)}`,
       `value: ${jsonToTsSource(this.value)}`,
       ...codecRefSource(this.codec),
+      ...(this.enumValue === undefined ? [] : [`enumValue: ${jsonToTsSource(this.enumValue)}`]),
     ];
     return `this.removeStoredValue({ ${opts.join(', ')} })`;
   }

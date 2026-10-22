@@ -27,6 +27,7 @@ import {
   createSqlTextSources,
   encodeStoredValue,
   isUnfilledSlot,
+  rowsHoldingValueAdvice,
   type SqlMigrationPlanOperation,
   type SqlSlot,
   type SqlTextSources,
@@ -2231,6 +2232,23 @@ export class AddNativeEnumValueCall extends PostgresOpFactoryCallNode {
 // Stored values
 // ============================================================================
 
+function replaceStoredValueSource(
+  location: readonly string[],
+  from: string,
+  to: string,
+  many: boolean,
+  codec: StoredValueCodec | undefined,
+): string {
+  const opts = [
+    ...location,
+    `from: ${from}`,
+    `to: ${to}`,
+    ...(many ? ['many: true'] : []),
+    ...codecRefSource(codec),
+  ];
+  return `this.replaceStoredValue({ ${opts.join(', ')} })`;
+}
+
 function codecRefSource(codec: StoredValueCodec | undefined): readonly string[] {
   return codec === undefined ? [] : [`codecRef: ${jsonToTsSource(codec.codecRef)}`];
 }
@@ -2300,14 +2318,13 @@ export class ReplaceStoredValueCall extends PostgresOpFactoryCallNode {
   }
 
   renderTypeScript(): string {
-    const opts = [
-      ...columnCallLocation(this.schemaName, this.tableName, this.columnName),
-      `from: ${jsonToTsSource(this.from)}`,
-      `to: ${jsonToTsSource(this.to)}`,
-      ...(this.many ? ['many: true'] : []),
-      ...codecRefSource(this.codec),
-    ];
-    return `this.replaceStoredValue({ ${opts.join(', ')} })`;
+    return replaceStoredValueSource(
+      columnCallLocation(this.schemaName, this.tableName, this.columnName),
+      jsonToTsSource(this.from),
+      jsonToTsSource(this.to),
+      this.many,
+      this.codec,
+    );
   }
 
   override importRequirements(): readonly ImportRequirement[] {
@@ -2326,6 +2343,8 @@ export class RemoveStoredValueCall extends PostgresOpFactoryCallNode {
   readonly many: boolean;
   /** The column's codec, which writes `value` as the database stores it. */
   readonly codec: StoredValueCodec | undefined;
+  /** The enum value whose stored value is removed, as a statement names it, such as `Status.ARCHIVED`. */
+  readonly enumValue: string | undefined;
   readonly label: string;
 
   constructor(
@@ -2335,9 +2354,11 @@ export class RemoveStoredValueCall extends PostgresOpFactoryCallNode {
     value: string | number,
     many: boolean,
     codec?: StoredValueCodec,
+    enumValue?: string,
   ) {
     super();
     this.codec = codec;
+    this.enumValue = enumValue;
     this.schemaName = schemaName;
     this.tableName = tableName;
     this.columnName = columnName;
@@ -2352,18 +2373,26 @@ export class RemoveStoredValueCall extends PostgresOpFactoryCallNode {
     this.freeze();
   }
 
-  async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
+  async toOp(): Promise<Op> {
     return removeStoredValue(
       this.schemaName,
       this.tableName,
       this.columnName,
       await encodeStoredValue(this.value, this.codec),
       this.many,
-      requireLowerer(
-        lowerer,
-        'RemoveStoredValueCall',
-        `column "${this.columnName}" on table "${this.tableName}"`,
-      ),
+      this.enumValue === undefined
+        ? undefined
+        : rowsHoldingValueAdvice(
+            this.enumValue,
+            this.renderTypeScript(),
+            replaceStoredValueSource(
+              columnCallLocation(this.schemaName, this.tableName, this.columnName),
+              jsonToTsSource(this.value),
+              '<stored value>',
+              this.many,
+              this.codec,
+            ),
+          ),
     );
   }
 
@@ -2373,6 +2402,7 @@ export class RemoveStoredValueCall extends PostgresOpFactoryCallNode {
       `value: ${jsonToTsSource(this.value)}`,
       ...(this.many ? ['many: true'] : []),
       ...codecRefSource(this.codec),
+      ...(this.enumValue === undefined ? [] : [`enumValue: ${jsonToTsSource(this.enumValue)}`]),
     ];
     return `this.removeStoredValue({ ${opts.join(', ')} })`;
   }

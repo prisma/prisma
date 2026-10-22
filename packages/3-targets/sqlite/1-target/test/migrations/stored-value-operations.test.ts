@@ -57,17 +57,17 @@ describe('replaceStoredValue', () => {
 });
 
 describe('removeStoredValue', () => {
-  it('sets the value to NULL in the rows that hold it, after checking that the column accepts NULL', () => {
-    expect(removeStoredValue('task', 'state', 3)).toEqual({
+  it('sets the value to NULL in the rows that hold it, after checking that the column takes NULL or no row holds the value', () => {
+    expect(removeStoredValue('task', 'state', 3, undefined)).toEqual({
       id: 'removeStoredValue.task.state.3',
       label: 'Remove value 3 from column "state" of "task"',
       operationClass: 'destructive',
       target,
       precheck: [
         {
-          description:
-            'ensure column "state" of "task" accepts NULL, which removing a value from it writes',
-          sql: `SELECT COUNT(*) > 0 FROM pragma_table_info('task') WHERE name = 'state' AND "notnull" = 0`,
+          description: 'ensure column "state" of "task" takes NULL, or no row holds 3 in it',
+          sql: `SELECT (SELECT COUNT(*) > 0 FROM pragma_table_info('task') WHERE name = 'state' AND "notnull" = 0) OR NOT EXISTS (SELECT 1 FROM "task" WHERE "state" = ?1) AS result`,
+          params: [3],
         },
       ],
       execute: [
@@ -109,7 +109,7 @@ describe('stored value calls', () => {
     expect(await replace.toOp()).toEqual(
       replaceStoredValue('task', 'state', 'ARCHIVED', 'RETIRED'),
     );
-    expect(await remove.toOp()).toEqual(removeStoredValue('task', 'state', 3));
+    expect(await remove.toOp()).toEqual(removeStoredValue('task', 'state', 3, undefined));
   });
 
   it('render the facade call, with no import', () => {
@@ -161,6 +161,25 @@ describe('stored value codecs', () => {
       'this.replaceStoredValue({ table: "task", column: "rank", from: "7", to: "8", codecRef: { codecId: "sqlite/bigint@1" } })',
     );
     await expect(new RemoveStoredValueCall('task', 'rank', 'x', codec).toOp()).rejects.toThrow();
+  });
+});
+
+describe('a planned removal', () => {
+  it('names its enum value, and says in its check how to keep the rows that hold it', async () => {
+    const call = new RemoveStoredValueCall(
+      'task',
+      'state',
+      'archived',
+      { codecRef: { codecId: 'sqlite/text@1' }, codecs: createSqliteBuiltinCodecLookup() },
+      'Status.ARCHIVED',
+    );
+
+    expect(call.renderTypeScript()).toBe(
+      'this.removeStoredValue({ table: "task", column: "state", value: "archived", codecRef: { codecId: "sqlite/text@1" }, enumValue: "Status.ARCHIVED" })',
+    );
+    expect((await call.toOp()).precheck[0]?.description).toBe(
+      'ensure column "state" of "task" takes NULL, or no row holds "archived" in it: to keep those rows, answer with --rename Status.ARCHIVED:Status.<new name>, or plan the change with prisma migration plan and replace this.removeStoredValue({ table: "task", column: "state", value: "archived", codecRef: { codecId: "sqlite/text@1" }, enumValue: "Status.ARCHIVED" }) with this.replaceStoredValue({ table: "task", column: "state", from: "archived", to: <stored value>, codecRef: { codecId: "sqlite/text@1" } }) in the migration.ts it writes, where <stored value> is a value the column keeps',
+    );
   });
 });
 

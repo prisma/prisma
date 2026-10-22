@@ -377,6 +377,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     }
     const storedValueCalls = postgresStoredValueCalls(
       rewrites.value,
+      options.fromContract,
       options.contract,
       types.codecLookup,
     );

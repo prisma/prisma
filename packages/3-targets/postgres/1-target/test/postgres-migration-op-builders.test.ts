@@ -352,10 +352,6 @@ const cases: ReadonlyArray<{
   { name: 'renameSchema', run: (m) => m.callRenameSchema({ schema: 'billing', to: 'finance' }) },
   { name: 'dropSchema', run: (m) => m.callDropSchema({ schema: 'billing' }) },
   {
-    name: 'removeStoredValue',
-    run: (m) => m.callRemoveStoredValue({ table: 'task', column: 'state', value: 'a' }),
-  },
-  {
     name: 'createNativeEnumType',
     run: (m) =>
       m.callCreateNativeEnumType({ schema: 'public', typeName: 'color', members: ['red'] }),
@@ -641,17 +637,15 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
     ).toEqual(await new ReplaceStoredValueCall('app', 'task', 'labels', 'a', 'b', true).toOp());
   });
 
-  it('removeStoredValue gives the operation its call gives', async () => {
+  it('removeStoredValue gives the operation its call gives, with no control stack', async () => {
     expect(
-      await new ExposedMigration(fakeControlStack()).callRemoveStoredValue({
+      await new ExposedMigration().callRemoveStoredValue({
         table: 'task',
         column: 'rank',
         value: 3,
       }),
     ).toEqual(
-      await new RemoveStoredValueCall(UNBOUND_NAMESPACE_ID, 'task', 'rank', 3, false).toOp(
-        countingLowerer(),
-      ),
+      await new RemoveStoredValueCall(UNBOUND_NAMESPACE_ID, 'task', 'rank', 3, false).toOp(),
     );
   });
 

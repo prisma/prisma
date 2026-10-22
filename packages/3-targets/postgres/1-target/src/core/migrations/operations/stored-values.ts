@@ -1,5 +1,4 @@
-import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
-import { columnNullabilityAst } from '../../../contract-free/checks';
+import { postgresCreateNamespace } from '../../postgres-schema';
 import { quoteIdentifier } from '../../sql-utils';
 import { qualifyTableName } from '../planner-sql-checks';
 import { type Op, step, targetDetails } from './shared';
@@ -61,47 +60,43 @@ export function replaceStoredValue(
   };
 }
 
-export async function removeStoredValue(
+export function removeStoredValue(
   schemaName: string,
   tableName: string,
   columnName: string,
   value: string | number,
   many: boolean,
-  lowerer: ExecuteRequestLowerer,
-): Promise<Op> {
+  keepRowsAdvice: string | undefined,
+): Op {
   const column = quoteIdentifier(columnName);
+  const qualified = qualifyTableName(schemaName, tableName);
   const removed = many ? `array_remove(${column}, $1)` : 'NULL';
-  const acceptsNull = many
-    ? []
-    : [
-        await lowerer.lowerToExecuteRequest(
-          columnNullabilityAst({
-            schema: schemaName,
-            table: tableName,
-            column: columnName,
-            nullable: true,
-          }),
-        ),
-      ];
+  const takesNull = `ensure column "${columnName}" of "${tableName}" takes NULL, or no row holds ${storedValueText(value)} in it`;
   return {
     id: `removeStoredValue.${tableName}.${columnName}.${idText(value)}`,
     label: `Remove value ${storedValueText(value)} from column "${columnName}" of "${tableName}"`,
     operationClass: 'destructive',
     target: targetDetails('column', columnName, schemaName, tableName),
-    precheck: acceptsNull.map((check) =>
-      step(
-        `ensure column "${columnName}" of "${tableName}" accepts NULL, which removing a value from it writes`,
-        check.sql,
-        check.params,
-      ),
-    ),
+    precheck: many
+      ? []
+      : [
+          step(
+            keepRowsAdvice === undefined ? takesNull : `${takesNull}: ${keepRowsAdvice}`,
+            `SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = ${schemaSqlExpression(schemaName)} AND table_name = $2 AND column_name = $3 AND is_nullable = 'YES') OR NOT EXISTS (SELECT 1 FROM ${qualified} WHERE ${column} = $1) AS result`,
+            [value, tableName, columnName],
+          ),
+        ],
     execute: [
       step(
         `remove value ${storedValueText(value)} from column "${columnName}"`,
-        `UPDATE ${qualifyTableName(schemaName, tableName)} SET ${column} = ${removed} WHERE ${holdingValue(column, many)}`,
+        `UPDATE ${qualified} SET ${column} = ${removed} WHERE ${holdingValue(column, many)}`,
         [value],
       ),
     ],
     postcheck: [valueAbsentCheck(schemaName, tableName, columnName, value, many)],
   };
+}
+
+function schemaSqlExpression(schemaName: string): string {
+  return postgresCreateNamespace({ id: schemaName, entries: { table: {} } }).schemaSqlExpression();
 }
