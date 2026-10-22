@@ -56,7 +56,7 @@ function emitPresentations(inputs: {
       { kind: 'summary', status: 'ok', text: 'Emitted contract.json and contract.d.ts' },
       hashRows(document),
     ],
-    stdout: () => [document.files.json, document.files.dts],
+    stdout: () => [relative(cwd, document.files.json), relative(cwd, document.files.dts)],
     json: () => document,
   };
 }

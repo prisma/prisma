@@ -81,7 +81,7 @@ withTempDir(({ createTempDir }) => {
     );
 
     it(
-      'Y.04: a piped stdout receives the emitted file paths, not JSON',
+      'Y.04: a piped stdout receives the emitted file paths relative to the working directory, not JSON',
       async () => {
         const ctx = setupJourney({ createTempDir });
 
@@ -89,8 +89,8 @@ withTempDir(({ createTempDir }) => {
         expect(result.exitCode, 'Y.04: emit succeeds').toBe(0);
 
         expect(result.stdout.trimEnd().split('\n')).toEqual([
-          expect.stringMatching(/contract\.json$/),
-          expect.stringMatching(/contract\.d\.ts$/),
+          expect.stringMatching(/^[^/].*contract\.json$/),
+          expect.stringMatching(/^[^/].*contract\.d\.ts$/),
         ]);
       },
       timeouts.typeScriptCompilation,

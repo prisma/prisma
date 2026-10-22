@@ -68,7 +68,7 @@ describe('react-router-demo offline emit (e2e)', () => {
     });
 
     expect(stderr).toContain('Emitted contract.json and contract.d.ts');
-    expect(stdout).toBe(`${contractJsonPath}\n${contractDtsPath}\n`);
+    expect(stdout).toBe('src/prisma/contract.json\nsrc/prisma/contract.d.ts\n');
 
     expect(existsSync(contractJsonPath)).toBe(true);
     expect(existsSync(contractDtsPath)).toBe(true);
