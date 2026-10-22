@@ -34,7 +34,6 @@ describe('buildContractDefinition', () => {
     });
 
     expect(definition).toEqual({
-      family: mongoFamilyPack,
       target: mongoTargetPack,
       models: [
         {

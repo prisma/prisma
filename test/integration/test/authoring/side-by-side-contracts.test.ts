@@ -8,7 +8,6 @@ import type { SerializeContract } from '@internal/contract/hashing';
 import type { Contract } from '@internal/contract/types';
 import { mongoFamilyDescriptor } from '@internal/family-mongo/control';
 import { MongoContractSerializer } from '@internal/family-mongo/ir';
-import mongoFamilyPack from '@internal/family-mongo/pack';
 import sql from '@internal/family-sql/control';
 import { createControlStack } from '@internal/framework-components/control';
 import type { MongoContract } from '@internal/mongo-contract';
@@ -257,7 +256,6 @@ describe('side-by-side contract examples', () => {
 
       const fixture = await loadFixture(fixtureCase);
       const provider = mongoContract(fixtureCase.contractPslPath, {
-        family: mongoFamilyPack,
         target: mongoTargetPack,
       });
       const providerResult = await provider.source.load({

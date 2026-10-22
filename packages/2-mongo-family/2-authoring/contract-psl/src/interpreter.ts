@@ -29,7 +29,6 @@ import {
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type {
   ExtensionPackRef,
-  FamilyPackRef,
   GeneratorFunctionRegistry,
   TargetPackRef,
 } from '@internal/framework-components/components';
@@ -49,7 +48,6 @@ import {
   type RelationNode,
   type ValueObjectNode,
 } from '@internal/mongo-contract-ts/contract-builder';
-import type { CollationOptions } from '@internal/mongo-value/mongodb-types';
 import type {
   AttributeSpecContext,
   Binder,
@@ -137,8 +135,7 @@ export interface InterpretPslDocumentToMongoContractInput {
   readonly symbolTable: SymbolTable;
   readonly sources: PslSources;
   readonly binder: Binder;
-  /** The family, target and extension packs of the stack, which the contract records. */
-  readonly family: FamilyPackRef<string>;
+  /** The target and extension packs of the stack, which the contract records. */
   readonly target: TargetPackRef<string, string>;
   readonly extensionPacks?: Readonly<Record<string, ExtensionPackRef<string, string>>>;
   readonly scalarTypeCodecIds: ReadonlyMap<string, string>;
@@ -422,33 +419,20 @@ interface SpecCollationArgs {
   readonly collationNormalization?: boolean;
 }
 
-function buildCollationFromSpec(args: SpecCollationArgs): CollationOptions | null | undefined {
-  const locale = args.collationLocale;
-  if (locale === undefined) {
-    const hasAnyCollationArg =
-      args.collationStrength !== undefined ||
-      args.collationCaseLevel !== undefined ||
-      args.collationCaseFirst !== undefined ||
-      args.collationNumericOrdering !== undefined ||
-      args.collationAlternate !== undefined ||
-      args.collationMaxVariable !== undefined ||
-      args.collationBackwards !== undefined ||
-      args.collationNormalization !== undefined;
-    return hasAnyCollationArg ? null : undefined;
-  }
-
-  const collation: CollationOptions = { locale };
-  if (args.collationStrength !== undefined) collation.strength = args.collationStrength;
-  if (args.collationCaseLevel !== undefined) collation.caseLevel = args.collationCaseLevel;
-  if (args.collationCaseFirst !== undefined) collation.caseFirst = args.collationCaseFirst;
-  if (args.collationNumericOrdering !== undefined)
-    collation.numericOrdering = args.collationNumericOrdering;
-  if (args.collationAlternate !== undefined) collation.alternate = args.collationAlternate;
-  if (args.collationMaxVariable !== undefined) collation.maxVariable = args.collationMaxVariable;
-  if (args.collationBackwards !== undefined) collation.backwards = args.collationBackwards;
-  if (args.collationNormalization !== undefined)
-    collation.normalization = args.collationNormalization;
-  return collation;
+/** The collation the index arguments name, or undefined when they name none. A collation without `collationLocale` is passed on for the builder to refuse. */
+function buildCollationFromSpec(args: SpecCollationArgs): Record<string, unknown> | undefined {
+  const collation: Record<string, unknown> = {
+    ...ifDefined('locale', args.collationLocale),
+    ...ifDefined('strength', args.collationStrength),
+    ...ifDefined('caseLevel', args.collationCaseLevel),
+    ...ifDefined('caseFirst', args.collationCaseFirst),
+    ...ifDefined('numericOrdering', args.collationNumericOrdering),
+    ...ifDefined('alternate', args.collationAlternate),
+    ...ifDefined('maxVariable', args.collationMaxVariable),
+    ...ifDefined('backwards', args.collationBackwards),
+    ...ifDefined('normalization', args.collationNormalization),
+  };
+  return Object.keys(collation).length === 0 ? undefined : collation;
 }
 
 type NormalIndexArgs = InferAttr<ReturnType<typeof mongoAttributeSpecs.model.index>>;
@@ -506,16 +490,7 @@ function buildProjection(
     return null;
   }
   const fields = include ?? exclude;
-  if (fields === undefined) return undefined;
-  if (!hasWildcard) {
-    ctx.diagnostics.push({
-      code: 'PSL_INVALID_INDEX',
-      message: 'include/exclude options are only valid when the index contains a wildcard() field',
-      ...ctx.source.at(ctx.span),
-    });
-    return null;
-  }
-  if (fields.length === 0) return undefined;
+  if (fields === undefined || (fields.length === 0 && hasWildcard)) return undefined;
   const value = include === undefined ? 0 : 1;
   const projection: Record<string, 0 | 1> = {};
   for (const field of fields) projection[field] = value;
@@ -547,14 +522,6 @@ function buildNormalIndex(
   );
   if (wildcardProjection === null) return undefined;
   const collation = buildCollationFromSpec(parsed);
-  if (collation === null) {
-    ctx.diagnostics.push({
-      code: 'PSL_INVALID_INDEX',
-      message: 'collationLocale is required when using collation options',
-      ...ctx.source.at(ctx.span),
-    });
-    return undefined;
-  }
   return {
     fields: resolved.fields,
     options: indexOptions({
@@ -584,14 +551,6 @@ function buildTextIndex(parsed: TextIndexArgs, ctx: IndexBuildContext): IndexNod
     return undefined;
   }
   const collation = buildCollationFromSpec(parsed);
-  if (collation === null) {
-    ctx.diagnostics.push({
-      code: 'PSL_INVALID_INDEX',
-      message: 'collationLocale is required when using collation options',
-      ...ctx.source.at(ctx.span),
-    });
-    return undefined;
-  }
   return {
     fields: resolved.fields,
     options: indexOptions({
@@ -1481,7 +1440,6 @@ export function interpretPslDocumentToMongoContract(
     relations: relationsByModel.get(node.modelName) ?? [],
   }));
   const definition: ContractDefinition = {
-    family: input.family,
     target: input.target,
     ...ifDefined('extensions', input.extensionPacks),
     // Variants come last, so each collection lists a variant's indexes after its base's, as earlier releases did.
@@ -1501,19 +1459,16 @@ export function interpretPslDocumentToMongoContract(
     scalarTypeOfCodec: scalarTypeOfCodecIn(input.authoringContributions?.type, scalarTypeCodecIds),
   };
   const built = buildMongoContractFromDefinition(definition, codecLookup, input.dataTypes);
-  if (built.ok) {
-    for (const warning of built.value.warnings) {
-      const diagnostic = warningDiagnostic(warning, sites);
-      const [external] = diagnostic === undefined ? [] : mapPslDiagnostics([diagnostic], sources);
-      if (external !== undefined) input.reportWarning?.({ ...external, severity: 'warning' });
-    }
-  } else {
-    for (const refusal of built.failure) {
-      if (alreadyReported(refusal, droppedFields, polymorphism.reported)) continue;
-      const diagnostic = refusalDiagnostic(refusal, sites);
-      if ('range' in diagnostic) diagnostics.push(diagnostic);
-      else diagnostics.pushExternal(diagnostic);
-    }
+  for (const warning of built.ok ? built.value.warnings : built.failure.warnings) {
+    const diagnostic = warningDiagnostic(warning, sites);
+    const [external] = diagnostic === undefined ? [] : mapPslDiagnostics([diagnostic], sources);
+    if (external !== undefined) input.reportWarning?.({ ...external, severity: 'warning' });
+  }
+  for (const refusal of built.ok ? [] : built.failure.refusals) {
+    if (alreadyReported(refusal, droppedFields, polymorphism.reported)) continue;
+    const diagnostic = refusalDiagnostic(refusal, sites);
+    if ('range' in diagnostic) diagnostics.push(diagnostic);
+    else diagnostics.pushExternal(diagnostic);
   }
 
   if (!built.ok || diagnostics.length > 0 || (input.seedDiagnostics?.length ?? 0) > 0) {

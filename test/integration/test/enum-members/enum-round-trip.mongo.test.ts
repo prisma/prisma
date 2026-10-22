@@ -6,7 +6,6 @@ import type { Contract, JsonValue } from '@internal/contract/types';
 import mongoDriverControl from '@internal/driver-mongo/control';
 import { mongoFamilyDescriptor } from '@internal/family-mongo/control';
 import { MongoContractSerializer } from '@internal/family-mongo/ir';
-import mongoFamilyPack from '@internal/family-mongo/pack';
 import {
   type DataTypeAuthoringEntry,
   printTaggedLiteral,
@@ -140,7 +139,6 @@ async function readPsl(
     const path = join(directory, 'contract.prisma');
     writeFileSync(path, `// use prisma-8\n\n${text}`);
     const result = await mongoContract(path, {
-      family: mongoFamilyPack,
       target: mongoTargetPack,
     }).source.load({
       ...sourceContext,

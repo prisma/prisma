@@ -177,7 +177,6 @@ export function buildContractDefinition(input: DslContractInput): ContractDefini
     if (!buildersByName.has(builder.__name)) buildersByName.set(builder.__name, builder);
   }
   return {
-    family: input.family,
     target: input.target,
     ...ifDefined('extensions', input.extensions),
     ...ifDefined('defaultControlPolicy', input.defaultControlPolicy),

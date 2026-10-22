@@ -96,7 +96,6 @@ const sqlContractPslProvider = workspaceModule(
 const mongoContractPslProvider = workspaceModule(
   'packages/2-mongo-family/2-authoring/contract-psl/src/exports/provider.ts',
 );
-const familyMongoPack = workspaceModule('packages/2-mongo-family/9-family/src/exports/pack.ts');
 const targetMongoPack = workspaceModule('packages/3-targets/mongo/1-target/src/exports/pack.ts');
 const targetPostgresPack = workspaceModule(
   'packages/3-targets/postgres/1-target/src/exports/pack.ts',
@@ -289,7 +288,7 @@ function rewriteContractSnapshotSpecifiers(source, snapshotsImportPath, toHash, 
 /**
  * Build the TypeScript source for the temporary regen config.
  *
- * For mongo chains the override uses `mongoContract(schemaPath, { family, target })`.
+ * For mongo chains the override uses `mongoContract(schemaPath, { target })`.
  * For sql chains it uses `prismaContract(schemaPath, { target, createNamespace })`
  * — the same options the postgres `defineConfig` helper passes — so the emitted
  * contract is identical in shape to what the real config would produce.
@@ -328,13 +327,12 @@ function buildTempConfigSource(schemaSrc, realConfigAbsPath, contractFamily) {
     `import { definePrismaConfig } from '@prisma/cli-engine';\n` +
     `import { defineConfig } from '${frameworkConfigTypes}';\n` +
     `import { mongoContract } from '${mongoContractPslProvider}';\n` +
-    `import mongoFamilyPack from '${familyMongoPack}';\n` +
     `import mongoTargetPack from '${targetMongoPack}';\n` +
     `import realConfig from '${realConfigAbsPath}';\n\n` +
     'export default definePrismaConfig({\n' +
     '  orm: defineConfig({\n' +
     '    ...realConfig.orm,\n' +
-    `    contract: mongoContract('${schemaSrc}', { family: mongoFamilyPack, target: mongoTargetPack }),\n` +
+    `    contract: mongoContract('${schemaSrc}', { target: mongoTargetPack }),\n` +
     '  }),\n' +
     '});\n'
   );

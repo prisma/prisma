@@ -1,4 +1,4 @@
-export type { MongoBuiltContract } from '../build-contract';
+export type { MongoBuildFailure, MongoBuiltContract } from '../build-contract';
 export { buildMongoContractFromDefinition } from '../build-contract';
 export type {
   FieldKey,

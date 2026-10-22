@@ -1736,18 +1736,16 @@ function buildContractFromDsl<const Input extends DslContractInput>(
   const definition = buildContractDefinition(input);
   const { codecLookup, dataTypes } =
     lookups ??
-    stackLookupsOf([
-      definition.family,
-      definition.target,
-      ...Object.values(definition.extensions ?? {}),
-    ]);
+    stackLookupsOf([input.family, input.target, ...Object.values(input.extensions ?? {})]);
   const built = buildMongoContractFromDefinition(definition, codecLookup, dataTypes);
+  flushAuthoringWarnings(
+    (built.ok ? built.value.warnings : built.failure.warnings).map(authoringWarningOf),
+  );
   if (!built.ok) {
-    const [first] = built.failure;
+    const [first] = built.failure.refusals;
     assertDefined(first, 'a refused build has at least one refusal');
     throw refusalError(first);
   }
-  flushAuthoringWarnings(built.value.warnings.map(authoringWarningOf));
   return blindCast<
     MongoContractResult<Input>,
     "the built contract's type erases the input's literal type parameters; MongoContractResult<Input> re-applies them so callers see the precise model/value-object/roots/namespace shapes"

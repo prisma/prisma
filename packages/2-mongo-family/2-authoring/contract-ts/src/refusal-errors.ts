@@ -125,6 +125,8 @@ const INDEX_SHAPE_MESSAGES = {
     'combines a wildcard key with a hashed, 2d or 2dsphere key, which MongoDB does not allow.',
   'hashed-several-fields': 'is hashed on several fields; a hashed index has exactly one field.',
   'ttl-with-wildcard': 'sets expireAfterSeconds on a wildcard index, which MongoDB does not allow.',
+  'projection-without-wildcard':
+    'sets wildcardProjection but has no wildcard key; a wildcard projection needs a wildcard index.',
   'collation-without-locale': 'sets a collation without a locale; a collation needs a locale.',
   'second-text-index':
     'is a second text index in its collection; MongoDB allows one text index per collection.',

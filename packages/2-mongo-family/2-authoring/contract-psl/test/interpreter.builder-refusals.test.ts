@@ -1,4 +1,8 @@
 import type { ContractSourceDiagnostic } from '@internal/config/config-types';
+import {
+  temporalAuthoringPresets,
+  temporalCodecPreset,
+} from '@internal/framework-components/authoring';
 import { mongoCodecLookup } from '@internal/mongo-contract/test';
 import { describe, expect, it } from 'vitest';
 import { interpretMongoContract } from './interpreter-test-helpers';
@@ -80,6 +84,57 @@ model Admin {
       message:
         'Collection "users" already has this index, declared on model "User". Remove one of them from model "Admin" or "User".',
       at: 11,
+    });
+  });
+
+  it('refuses an index its model declares twice', () => {
+    const schema = `model User {
+  id    ObjectId @id @map("_id")
+  email String   @unique
+  @@unique([email])
+}
+`;
+    expect(diagnosticsOf(schema).map(({ code, message }) => ({ code, message }))).toEqual([
+      {
+        code: 'PSL_INVALID_INDEX',
+        message: 'Model "User" declares this index twice. Remove one of them.',
+      },
+    ]);
+  });
+
+  it('reports the warnings of a schema it refuses', () => {
+    const mongoDate = { codecId: 'mongo/date@1' } as const;
+    const warnings: ContractSourceDiagnostic[] = [];
+    const result = interpretMongoContract(
+      `model Post {
+  id    ObjectId             @id @map("_id")
+  at    temporal.timestamp()
+  a     String
+  b     String               @map("a")
+}
+`,
+      {
+        ...lookups,
+        scalarTypeCodecIds: new Map([...lookups.scalarTypeCodecIds, ['Date', 'mongo/date@1']]),
+        authoringContributions: {
+          field: {
+            temporal: {
+              ...temporalAuthoringPresets(mongoDate),
+              timestamp: temporalCodecPreset(mongoDate),
+            },
+          },
+        },
+        reportWarning: (diagnostic) => warnings.push(diagnostic),
+      },
+    );
+    if (result.ok) throw new Error('Expected interpretation to fail');
+
+    expect({
+      errors: result.failure.diagnostics.map(({ code }) => code),
+      warnings: warnings.map(({ code }) => code),
+    }).toEqual({
+      errors: ['PSL_DUPLICATE_STORED_NAME'],
+      warnings: ['PSL_PRESET_WITHOUT_EFFECT'],
     });
   });
 

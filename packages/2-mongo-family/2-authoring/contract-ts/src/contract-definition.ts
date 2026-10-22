@@ -7,7 +7,6 @@ import type {
 import type { AuthoringWarning, WrittenValue } from '@internal/framework-components/authoring';
 import type {
   ExtensionPackRef,
-  FamilyPackRef,
   GeneratorFunctionCall,
   TargetPackRef,
 } from '@internal/framework-components/components';
@@ -112,7 +111,6 @@ export interface ValueObjectNode {
 
 /** A MongoDB contract as plain data, with every name resolved, which `buildMongoContractFromDefinition` builds into a contract. */
 export interface ContractDefinition {
-  readonly family: FamilyPackRef<string>;
   readonly target: TargetPackRef<string, string>;
   readonly extensions?: Readonly<Record<string, ExtensionPackRef<string, string>>>;
   readonly defaultControlPolicy?: ControlPolicy;

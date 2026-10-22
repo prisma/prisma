@@ -37,7 +37,6 @@ type InterpretOptionsWithDefaultLookups = Omit<
   | 'codecLookup'
   | 'dataTypes'
   | 'generatorFunctions'
-  | 'family'
   | 'target'
 > & {
   readonly codecLookup?: CodecLookupWithDescriptors;

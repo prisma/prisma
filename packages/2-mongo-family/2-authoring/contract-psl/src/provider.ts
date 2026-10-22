@@ -2,11 +2,7 @@ import { readFile } from 'node:fs/promises';
 import type { ContractConfig, ContractSourceDiagnostic } from '@internal/config/config-types';
 import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
 import { collectScalarTypeConstructors } from '@internal/framework-components/authoring';
-import type {
-  ExtensionPackRef,
-  FamilyPackRef,
-  TargetPackRef,
-} from '@internal/framework-components/components';
+import type { ExtensionPackRef, TargetPackRef } from '@internal/framework-components/components';
 import {
   buildSymbolTable,
   createBinder,
@@ -23,8 +19,7 @@ import { notOk } from '@internal/utils/result';
 import { interpretPslDocumentToMongoContract } from './interpreter';
 
 export interface MongoContractOptions {
-  /** The family, target and extension packs of the stack, which the contract records. */
-  readonly family: FamilyPackRef<string>;
+  /** The target and extension packs of the stack, which the contract records. */
   readonly target: TargetPackRef<string, string>;
   readonly extensionPacks?: Readonly<Record<string, ExtensionPackRef<string, string>>>;
   readonly output?: string;
@@ -48,7 +43,6 @@ export function mongoContract(schemaPath: string, options: MongoContractOptions)
         symbolTable: input.symbolTable,
         sources: input.sources,
         binder: input.binder,
-        family: options.family,
         target: options.target,
         ...ifDefined('extensionPacks', options.extensionPacks),
         seedDiagnostics: [],

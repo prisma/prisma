@@ -114,6 +114,9 @@ function indexShapeProblem(index: IndexNode): IndexShapeRule | undefined {
   }
   if (directions.includes('hashed') && keys.length > 1) return 'hashed-several-fields';
   if (hasWildcard && options.expireAfterSeconds !== undefined) return 'ttl-with-wildcard';
+  if (!hasWildcard && options.wildcardProjection !== undefined) {
+    return 'projection-without-wildcard';
+  }
   if (options.collation !== undefined && !options.collation.locale)
     return 'collation-without-locale';
   return undefined;

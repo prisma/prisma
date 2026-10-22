@@ -42,6 +42,7 @@ export type IndexShapeRule =
   | 'wildcard-with-type'
   | 'hashed-several-fields'
   | 'ttl-with-wildcard'
+  | 'projection-without-wildcard'
   | 'collation-without-locale'
   | 'second-text-index';
 

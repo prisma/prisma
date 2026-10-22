@@ -37,6 +37,12 @@ export interface MongoBuiltContract {
   readonly warnings: readonly MongoBuildWarning[];
 }
 
+/** Why the builder refused a definition, with the warnings to report about it all the same. */
+export interface MongoBuildFailure {
+  readonly refusals: readonly MongoBuildRefusal[];
+  readonly warnings: readonly MongoBuildWarning[];
+}
+
 /**
  * Builds a MongoDB contract from its plain-data definition, with the stack's codecs and data types. Every MongoDB family rule is checked here, and each refusal comes back as data keyed by the part of the definition it is about, for the source to report in its own terms.
  */
@@ -44,7 +50,7 @@ export function buildMongoContractFromDefinition(
   definition: ContractDefinition,
   codecLookup: CodecLookupWithDescriptors,
   dataTypes: DataTypeSupport,
-): Result<MongoBuiltContract, readonly MongoBuildRefusal[]> {
+): Result<MongoBuiltContract, MongoBuildFailure> {
   const refusals: MongoBuildRefusal[] = [];
   const warnings: MongoBuildWarning[] = (definition.warnings ?? []).map((warning) => ({
     kind: 'source',
@@ -52,11 +58,7 @@ export function buildMongoContractFromDefinition(
   }));
   const namespaceId = definition.target.defaultNamespaceId;
   const lookups: TypeLookups = { codecLookup, dataTypeLookup: dataTypes.lookup };
-  const components = [
-    definition.family,
-    definition.target,
-    ...Object.values(definition.extensions ?? {}),
-  ];
+  const components = [definition.target, ...Object.values(definition.extensions ?? {})];
   const generatorFunctions = assembleGeneratorFunctions(components);
   assertTypeAliasesValid(composePackAuthoringNamespace(components, 'type'), {
     generatorFunctions,
@@ -91,7 +93,7 @@ export function buildMongoContractFromDefinition(
     namespaceId,
     refusals,
   });
-  if (refusals.length > 0) return notOk(refusals);
+  if (refusals.length > 0) return notOk({ refusals, warnings });
 
   const controlPolicies = {
     collections: Object.fromEntries(
@@ -109,13 +111,14 @@ export function buildMongoContractFromDefinition(
       })
     : [];
   if (validatorRefusals.length > 0) {
-    return notOk(
-      validatorRefusals.map((refusal) => ({
-        kind: 'validator',
+    return notOk({
+      refusals: validatorRefusals.map((refusal) => ({
+        kind: 'validator' as const,
         key: validatorRefusalKey(refusal),
         refusal,
       })),
-    );
+      warnings,
+    });
   }
 
   const storageValueSets = mongoValueSetsOf(builtEnums);
@@ -142,14 +145,14 @@ export function buildMongoContractFromDefinition(
   const capabilities: Record<string, Record<string, boolean>> = {};
   const execution = buildExecutionSection({
     target: definition.target.targetId,
-    targetFamily: definition.family.familyId,
+    targetFamily: definition.target.familyId,
     defaults: executionDefaults,
   });
 
   return ok({
     contract: {
       target: definition.target.targetId,
-      targetFamily: definition.family.familyId,
+      targetFamily: definition.target.familyId,
       ...ifDefined('defaultControlPolicy', definition.defaultControlPolicy),
       roots: buildRoots(definition, models, namespaceId),
       domain: {
@@ -168,7 +171,7 @@ export function buildMongoContractFromDefinition(
       extensions: definition.extensions ?? {},
       profileHash: computeProfileHash({
         target: definition.target.targetId,
-        targetFamily: definition.family.familyId,
+        targetFamily: definition.target.familyId,
         capabilities,
       }),
       meta: {},

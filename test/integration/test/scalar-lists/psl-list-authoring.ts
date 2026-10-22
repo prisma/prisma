@@ -6,7 +6,6 @@ import type { ContractSourceContext } from '@internal/cli/config-types';
 import { enrichContract } from '@internal/cli/control-api';
 import type { Contract, JsonValue } from '@internal/contract/types';
 import { mongoFamilyDescriptor } from '@internal/family-mongo/control';
-import mongoFamilyPack from '@internal/family-mongo/pack';
 import sql from '@internal/family-sql/control';
 import { createControlStack } from '@internal/framework-components/control';
 import type { MongoContract } from '@internal/mongo-contract';
@@ -129,7 +128,7 @@ export interface MongoAuthoringResult {
  */
 export async function authorMongoContractFromPsl(schema: string): Promise<MongoAuthoringResult> {
   const schemaPath = writeSchemaToTempFile(schema);
-  const provider = mongoContract(schemaPath, { family: mongoFamilyPack, target: mongoTargetPack });
+  const provider = mongoContract(schemaPath, { target: mongoTargetPack });
 
   const providerResult = await provider.source.load({
     ...mongoSourceContext,

@@ -5,7 +5,6 @@ import { enrichContract } from '@internal/cli/control-api';
 import type { SerializeContract } from '@internal/contract/hashing';
 import type { Contract as FrameworkContract } from '@internal/contract/types';
 import { mongoFamilyDescriptor } from '@internal/family-mongo/control';
-import mongoFamilyPack from '@internal/family-mongo/pack';
 import { createControlStack } from '@internal/framework-components/control';
 import { mongoContractCanonicalizationHooks } from '@internal/mongo-contract/canonicalization-hooks';
 import { mongoContract } from '@internal/mongo-contract-psl/provider';
@@ -84,7 +83,6 @@ describe('Mongo temporal presets from PSL and TS', () => {
     async () => {
       const pslPath = join(fixtureDir, 'contract.prisma');
       const pslResult = await mongoContract(pslPath, {
-        family: mongoFamilyPack,
         target: mongoTargetPack,
       }).source.load({
         ...sourceContext,
@@ -110,7 +108,6 @@ describe('Mongo temporal presets from PSL and TS', () => {
     async () => {
       const pslPath = join(attributesFixtureDir, 'contract.prisma');
       const pslResult = await mongoContract(pslPath, {
-        family: mongoFamilyPack,
         target: mongoTargetPack,
       }).source.load({
         ...sourceContext,

@@ -425,7 +425,6 @@ export function interpretPrisma6Documents(
 
   const built = buildMongoContractFromDefinition(
     {
-      family: binding.family,
       target: binding.target,
       models: modelNodes,
       valueObjects,
@@ -438,7 +437,7 @@ export function interpretPrisma6Documents(
   );
   if (!built.ok) {
     const fallbackSourceId = input.documents[0]?.sourceId ?? 'schema.prisma';
-    for (const refusal of built.failure) {
+    for (const refusal of built.failure.refusals) {
       diagnostics.push(refusalDiagnostic(refusal, sites, fallbackSourceId));
     }
   }

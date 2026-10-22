@@ -6,7 +6,6 @@ import {
 } from '@internal/config/config-types';
 import mongoDriver from '@internal/driver-mongo/control';
 import { mongoFamilyDescriptor } from '@internal/family-mongo/control';
-import mongoFamilyPack from '@internal/family-mongo/pack';
 import type { ControlExtensionDescriptor } from '@internal/framework-components/control';
 import { mongoContract } from '@internal/mongo-contract-psl/provider';
 import { typescriptContractFromPath } from '@internal/mongo-contract-ts/config-types';
@@ -37,7 +36,6 @@ function contractConfigFromPath(
   return extname(contractPath) === '.ts'
     ? typescriptContractFromPath(contractPath, output)
     : mongoContract(contractPath, {
-        family: mongoFamilyPack,
         target: mongoTargetPack,
         extensionPacks: Object.fromEntries(
           extensions.map((extension) => [extension.id, extension]),

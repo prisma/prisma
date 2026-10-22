@@ -58,7 +58,6 @@ const bug: ModelNode = {
 
 function definitionOf(overrides: Partial<ContractDefinition>): ContractDefinition {
   return {
-    family: mongoFamilyPack,
     target: mongoTargetPack,
     models: [task, bug],
     collectionValidators: true,
@@ -79,7 +78,7 @@ function contractOf(overrides: Partial<ContractDefinition>): MongoContract {
 
 function refusalsOf(overrides: Partial<ContractDefinition>) {
   const built = build(overrides);
-  return built.ok ? [] : built.failure.map(({ kind, key }) => ({ kind, key }));
+  return built.ok ? [] : built.failure.refusals.map(({ kind, key }) => ({ kind, key }));
 }
 
 function hasValidator(contract: MongoContract, collection: string): boolean {
@@ -589,7 +588,7 @@ describe('buildMongoContractFromDefinition refusals with their whole data', () =
       stackCodecs,
       stackDataTypes,
     );
-    return built.ok ? [] : built.failure;
+    return built.ok ? [] : built.failure.refusals;
   };
 
   it("refuses type parameters the field's data type does not accept", () => {

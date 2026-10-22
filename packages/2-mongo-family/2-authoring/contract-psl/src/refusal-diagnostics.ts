@@ -161,6 +161,8 @@ const INDEX_SHAPE_MESSAGES = {
   'unique-wildcard': () => 'Unique indexes cannot use wildcard() fields',
   'hashed-several-fields': () => 'Hashed indexes must have exactly one field',
   'ttl-with-wildcard': () => 'expireAfterSeconds cannot be combined with wildcard() fields',
+  'projection-without-wildcard': () =>
+    'include/exclude options are only valid when the index contains a wildcard() field',
   'collation-without-locale': () => 'collationLocale is required when using collation options',
   'second-text-index': (model: string) =>
     `Only one @@textIndex is allowed per collection (model "${model}")`,
@@ -312,7 +314,9 @@ export function refusalDiagnostic(
           return at(
             site,
             'PSL_INVALID_INDEX',
-            `Collection "${refusal.collection}" already has this index, declared on model "${refusal.firstModel}". Remove one of them from model "${model}" or "${refusal.firstModel}".`,
+            refusal.firstModel === model
+              ? `Model "${model}" declares this index twice. Remove one of them.`
+              : `Collection "${refusal.collection}" already has this index, declared on model "${refusal.firstModel}". Remove one of them from model "${model}" or "${refusal.firstModel}".`,
           );
       }
       break;
