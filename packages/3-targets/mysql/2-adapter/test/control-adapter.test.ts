@@ -1,11 +1,22 @@
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
-import { DdlNode } from '@internal/sql-relational-core/ast';
+import { DdlColumn, DdlNode } from '@internal/sql-relational-core/ast';
+import { createTable } from '@internal/target-mysql/contract-free';
+import type { MysqlDdlVisitor } from '@internal/target-mysql/ddl';
 import { describe, expect, it } from 'vitest';
 import { mysqlAdapterCapabilities } from '../src/core/capabilities';
 import { createAdapter, recordingDriver } from './helpers';
 
 class OtherDdl extends DdlNode {
   readonly kind = 'other' as const;
+}
+
+class CreateTableFromAnotherCopy extends DdlNode {
+  readonly kind = 'copied-create-table' as const;
+  accept<R>(visitor: MysqlDdlVisitor<R>): R {
+    return visitor.createTable(
+      createTable({ table: 'Copied', columns: [new DdlColumn({ name: 'id', type: 'int' })] }),
+    );
+  }
 }
 
 const markerRow = {
@@ -210,7 +221,13 @@ describe('MysqlControlAdapter', () => {
     expect(() => adapter.lower(new OtherDdl(), { contract: undefined })).toThrow(
       /cannot lower DDL/,
     );
-    await expect(adapter.lowerToExecuteRequest(new OtherDdl())).rejects.toThrow(/"other"/);
+  });
+
+  it('lowers a DDL node through the visitor it accepts, so a node from another copy of the module lowers too', async () => {
+    const adapter = createAdapter();
+    expect((await adapter.lowerToExecuteRequest(new CreateTableFromAnotherCopy())).sql).toBe(
+      'CREATE TABLE `Copied` (\n  `id` int\n)',
+    );
   });
 
   it('bootstraps the marker table for db sign', () => {

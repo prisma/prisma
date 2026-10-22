@@ -25,9 +25,8 @@ import {
   MARKER_TABLE_NAME,
   releaseMarkerLock,
 } from '@internal/target-mysql/control-tables';
-import type { MysqlCreateTable } from '@internal/target-mysql/ddl';
+import type { MysqlCreateTable, MysqlDdlNode } from '@internal/target-mysql/ddl';
 import { mysqlQueryNotYetSupported } from '@internal/target-mysql/errors';
-import { blindCast } from '@internal/utils/casts';
 import { structuredError } from '@internal/utils/structured-error';
 import { renderMysqlColumnDefault, renderMysqlCreateTable } from './ddl-renderer';
 import { declaredIndexes } from './declared-indexes';
@@ -46,14 +45,6 @@ import {
 
 type Driver = SqlControlDriverInstance<'mysql'>;
 
-function unsupportedDdl(ast: DdlNode): Error {
-  return structuredError(
-    'RUNTIME.DDL_UNSUPPORTED',
-    `The MySQL control adapter cannot lower the DDL node "${ast.kind}".`,
-    { meta: { surface: 'control-adapter', kind: ast.kind } },
-  );
-}
-
 /**
  * The MySQL control adapter. It introspects the connection's database from `information_schema`, creates, reads and writes the marker and ledger tables, takes the marker lock, and runs work in a transaction. Query lowering refuses with `RUNTIME.AST_UNSUPPORTED`.
  */
@@ -68,11 +59,11 @@ export class MysqlControlAdapter implements SqlControlAdapter<'mysql'> {
     private readonly declaredDataTypes: readonly DataType[],
   ) {}
 
-  bootstrapControlTableQueries(): readonly DdlNode[] {
+  bootstrapControlTableQueries(): readonly MysqlDdlNode[] {
     return buildControlTableBootstrapQueries();
   }
 
-  bootstrapSignMarkerQueries(): readonly DdlNode[] {
+  bootstrapSignMarkerQueries(): readonly MysqlDdlNode[] {
     return buildSignMarkerBootstrapQueries();
   }
 
@@ -87,16 +78,11 @@ export class MysqlControlAdapter implements SqlControlAdapter<'mysql'> {
     throw mysqlQueryNotYetSupported('Lowering queries');
   }
 
-  async lowerToExecuteRequest(ast: AnyQueryAst | DdlNode): Promise<SqlExecuteRequest> {
+  async lowerToExecuteRequest(ast: AnyQueryAst | MysqlDdlNode): Promise<SqlExecuteRequest> {
     if (!isDdlNode(ast)) throw mysqlQueryNotYetSupported('Lowering queries');
-    if (ast.kind !== 'create-table') throw unsupportedDdl(ast);
-    return renderMysqlCreateTable(
-      blindCast<
-        MysqlCreateTable,
-        'the MySQL target builds every create-table DDL node; the migration CLI can load it from another copy of the module, so instanceof cannot tell'
-      >(ast),
-      this.codecRegistry,
-    );
+    return ast.accept({
+      createTable: (node: MysqlCreateTable) => renderMysqlCreateTable(node, this.codecRegistry),
+    });
   }
 
   async renderColumnDefault(column: DdlColumn, table: string): Promise<string> {
