@@ -24,7 +24,7 @@ import {
   MARKER_TABLE_NAME,
   withMarkerLock,
 } from '@internal/target-mysql/control-tables';
-import type { MysqlCreateTable, MysqlDdlNode } from '@internal/target-mysql/ddl';
+import type { MysqlCreateTable, MysqlDdlNode, MysqlDdlVisitor } from '@internal/target-mysql/ddl';
 import { mysqlQueryNotYetSupported } from '@internal/target-mysql/errors';
 import { structuredError } from '@internal/utils/structured-error';
 import { renderMysqlColumnDefault, renderMysqlCreateTable } from './ddl-renderer';
@@ -43,6 +43,15 @@ import {
 } from './marker-ledger';
 
 type Driver = SqlControlDriverInstance<'mysql'>;
+
+/** A DDL node MySQL does not build, such as one another target's visitor accepts. */
+function unsupportedDdl(ast: DdlNode): Error {
+  return structuredError(
+    'RUNTIME.DDL_UNSUPPORTED',
+    `The MySQL control adapter cannot lower the DDL node "${ast.kind}".`,
+    { meta: { surface: 'control-adapter', kind: ast.kind } },
+  );
+}
 
 /**
  * The MySQL control adapter. It introspects the connection's database from `information_schema`, creates, reads and writes the marker and ledger tables, takes the marker lock, and runs work in a transaction. Query lowering refuses with `RUNTIME.AST_UNSUPPORTED`.
@@ -79,9 +88,16 @@ export class MysqlControlAdapter implements SqlControlAdapter<'mysql'> {
 
   async lowerToExecuteRequest(ast: AnyQueryAst | MysqlDdlNode): Promise<SqlExecuteRequest> {
     if (!isDdlNode(ast)) throw mysqlQueryNotYetSupported('Lowering queries');
-    return ast.accept({
+    if (typeof ast.accept !== 'function') throw unsupportedDdl(ast);
+    const visitor: MysqlDdlVisitor<Promise<SqlExecuteRequest>> = {
       createTable: (node: MysqlCreateTable) => renderMysqlCreateTable(node, this.codecRegistry),
-    });
+    };
+    return ast.accept(
+      new Proxy(visitor, {
+        get: (target, method) =>
+          Reflect.get(target, method) ?? (() => Promise.reject(unsupportedDdl(ast))),
+      }),
+    );
   }
 
   async renderColumnDefault(column: DdlColumn, table: string): Promise<string> {

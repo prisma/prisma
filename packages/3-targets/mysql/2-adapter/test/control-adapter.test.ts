@@ -221,6 +221,25 @@ describe('MysqlControlAdapter', () => {
     );
   });
 
+  it('refuses a DDL node MySQL does not build with a structured error', async () => {
+    class ForeignDdl extends DdlNode {
+      readonly kind = 'drop-type' as const;
+      accept<R>(visitor: { dropType(node: ForeignDdl): R }): R {
+        return visitor.dropType(this);
+      }
+    }
+    const adapter: SqlControlAdapter<'mysql'> = createAdapter();
+    const refusal = { code: 'RUNTIME.DDL_UNSUPPORTED', meta: { surface: 'control-adapter' } };
+    await expect(adapter.lowerToExecuteRequest(new OtherDdl())).rejects.toMatchObject({
+      ...refusal,
+      message: 'The MySQL control adapter cannot lower the DDL node "other".',
+    });
+    await expect(adapter.lowerToExecuteRequest(new ForeignDdl())).rejects.toMatchObject({
+      ...refusal,
+      message: 'The MySQL control adapter cannot lower the DDL node "drop-type".',
+    });
+  });
+
   it('lowers a DDL node through the visitor it accepts, so a node from another copy of the module lowers too', async () => {
     const adapter = createAdapter();
     expect((await adapter.lowerToExecuteRequest(new CreateTableFromAnotherCopy())).sql).toBe(
