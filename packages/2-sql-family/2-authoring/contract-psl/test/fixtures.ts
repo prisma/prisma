@@ -211,7 +211,6 @@ export const sqliteTarget: TargetPackRef<'sql', 'sqlite'> = {
   defaultNamespaceId: '__unbound__',
   supportsNamespaces: false,
   displayName: 'SQLite',
-  namespacesUnsupportedReason: 'SQLite has no schema concept',
 };
 
 export const pgvectorExtensionPack: ExtensionPackRef<'sql', 'postgres'> = {

@@ -12,7 +12,6 @@ const mysqlTargetDescriptorMetaBase = {
   defaultNamespaceId: UNBOUND_NAMESPACE_ID,
   supportsNamespaces: false,
   displayName: 'MySQL',
-  namespacesUnsupportedReason: 'the MySQL target maps no namespace to a MySQL database yet',
   authoring: {
     type: { ...mysqlScalarTypeConstructors, ...mysqlAuthoringTypes },
     field: {},

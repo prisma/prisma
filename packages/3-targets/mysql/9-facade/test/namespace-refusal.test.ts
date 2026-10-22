@@ -61,7 +61,7 @@ describe('namespace blocks on the MySQL target', () => {
       {
         code: 'PSL_UNSUPPORTED_NAMESPACE_BLOCK',
         message:
-          'MySQL does not support `namespace auth { … }` blocks (the MySQL target maps no namespace to a MySQL database yet; declare models at the document top level instead).',
+          'MySQL does not support `namespace auth { … }` blocks (declare models at the document top level instead).',
       },
     ]);
   });
@@ -71,7 +71,7 @@ describe('namespace blocks on the MySQL target', () => {
       expect.objectContaining({
         code: 'CONTRACT.NAMESPACE_UNSUPPORTED',
         message:
-          'defineContract: MySQL contracts cannot declare namespaces (the MySQL target maps no namespace to a MySQL database yet; emitted DDL is always unqualified). Received namespaces: ["auth"].',
+          'defineContract: MySQL contracts cannot declare namespaces. Received namespaces: ["auth"].',
       }),
     );
   });

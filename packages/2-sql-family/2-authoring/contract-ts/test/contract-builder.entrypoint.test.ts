@@ -153,7 +153,6 @@ describe('defineContract namespace declaration runtime guards', () => {
     defaultNamespaceId: '__unbound__',
     supportsNamespaces: false,
     displayName: 'SQLite',
-    namespacesUnsupportedReason: 'SQLite has no schema concept',
   } as const satisfies TargetPackRef<'sql', 'sqlite'>;
 
   it('accepts an empty namespaces list and treats it as no-op', () => {
@@ -291,7 +290,7 @@ describe('defineContract namespace declaration runtime guards', () => {
     ).toThrow(/whitespace|empty/i);
   });
 
-  it('on SQLite, rejects any non-empty namespaces list (SQLite has no schema concept)', () => {
+  it('on SQLite, rejects any non-empty namespaces list', () => {
     expect(() =>
       defineContract({
         ...testTypeLookups,
@@ -301,7 +300,9 @@ describe('defineContract namespace declaration runtime guards', () => {
         createNamespace: createTestSqlNamespace,
         models: {},
       }),
-    ).toThrow(/SQLite/);
+    ).toThrow(
+      'defineContract: SQLite contracts cannot declare namespaces. Received namespaces: ["auth"].',
+    );
   });
 
   it('on SQLite, accepts an empty namespaces list (the no-op default)', () => {

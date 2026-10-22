@@ -19,7 +19,6 @@ const targetWithoutNamespaces: TargetPackRef<'sql', 'mysql'> = {
   defaultNamespaceId: '__unbound__',
   supportsNamespaces: false,
   displayName: 'MySQL',
-  namespacesUnsupportedReason: 'namespaces are not mapped to MySQL databases yet',
 };
 
 function diagnosticsFor(schema: string, target: TargetPackRef<'sql', string>) {
@@ -36,7 +35,7 @@ function diagnosticsFor(schema: string, target: TargetPackRef<'sql', string>) {
 }
 
 describe('namespace blocks on a target whose descriptor reports no namespaces', () => {
-  it('refuses each block with the name and reason the target supplies', () => {
+  it('refuses each block with the name the target supplies', () => {
     expect(
       diagnosticsFor(
         'namespace auth {\n  model User {\n    id Int @id\n  }\n}\n',
@@ -45,7 +44,7 @@ describe('namespace blocks on a target whose descriptor reports no namespaces', 
     ).toEqual([
       [
         'PSL_UNSUPPORTED_NAMESPACE_BLOCK',
-        'MySQL does not support `namespace auth { … }` blocks (namespaces are not mapped to MySQL databases yet; declare models at the document top level instead).',
+        'MySQL does not support `namespace auth { … }` blocks (declare models at the document top level instead).',
       ],
     ]);
   });
@@ -59,21 +58,17 @@ describe('namespace blocks on a target whose descriptor reports no namespaces', 
     ).toEqual([
       [
         'PSL_UNSUPPORTED_NAMESPACE_BLOCK',
-        'MySQL does not support `namespace unbound { … }` blocks (namespaces are not mapped to MySQL databases yet; declare models at the document top level instead).',
+        'MySQL does not support `namespace unbound { … }` blocks (declare models at the document top level instead).',
       ],
     ]);
   });
 
-  it('names the target by its id when the descriptor gives no display name or reason', () => {
-    const {
-      displayName: _displayName,
-      namespacesUnsupportedReason: _reason,
-      ...bare
-    } = targetWithoutNamespaces;
+  it('names the target by its id when the descriptor gives no display name', () => {
+    const { displayName: _displayName, ...bare } = targetWithoutNamespaces;
     expect(diagnosticsFor('namespace auth {}\n', bare)).toEqual([
       [
         'PSL_UNSUPPORTED_NAMESPACE_BLOCK',
-        'mysql does not support `namespace auth { … }` blocks (mysql has no namespaces; declare models at the document top level instead).',
+        'mysql does not support `namespace auth { … }` blocks (declare models at the document top level instead).',
       ],
     ]);
   });

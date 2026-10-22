@@ -250,12 +250,11 @@ function validateNamespaceBlocksForSqlTarget(input: {
 }): void {
   if (input.target.supportsNamespaces === false) {
     const targetName = input.target.displayName ?? input.target.targetId;
-    const reason = input.target.namespacesUnsupportedReason ?? `${targetName} has no namespaces`;
     for (const namespace of input.namespaces) {
       for (const { node, span } of namespace.declarations) {
         input.diagnostics.push({
           code: 'PSL_UNSUPPORTED_NAMESPACE_BLOCK',
-          message: `${targetName} does not support \`namespace ${node.name()?.name() ?? namespace.name} { … }\` blocks (${reason}; declare models at the document top level instead).`,
+          message: `${targetName} does not support \`namespace ${node.name()?.name() ?? namespace.name} { … }\` blocks (declare models at the document top level instead).`,
           ...diagnosticSource(input.sources, node.syntax).at(span),
         });
       }

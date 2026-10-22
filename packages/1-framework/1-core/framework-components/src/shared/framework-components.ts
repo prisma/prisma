@@ -248,8 +248,6 @@ export type TargetPackRef<
   readonly supportsNamespaces?: boolean;
   /** The target's name as messages show it, such as `Postgres`. Absent means the target id. */
   readonly displayName?: string;
-  /** Why a contract for this target cannot declare namespaces, when `supportsNamespaces` is false, such as `SQLite has no schema concept`. */
-  readonly namespacesUnsupportedReason?: string;
 };
 
 export type AdapterPackRef<

@@ -21,7 +21,6 @@ const targetWithoutNamespaces: TargetPackRef<'sql', 'mysql'> = {
   defaultNamespaceId: '__unbound__',
   supportsNamespaces: false,
   displayName: 'MySQL',
-  namespacesUnsupportedReason: 'namespaces are not mapped to MySQL databases yet',
 };
 
 const targetWithNamespaces: TargetPackRef<'sql', 'cockroach'> = {
@@ -58,7 +57,7 @@ describe('defineContract namespace rules read from the target descriptor', () =>
       expect.objectContaining({
         code: 'CONTRACT.NAMESPACE_UNSUPPORTED',
         message:
-          'defineContract: MySQL contracts cannot declare namespaces (namespaces are not mapped to MySQL databases yet; emitted DDL is always unqualified). Received namespaces: ["auth"].',
+          'defineContract: MySQL contracts cannot declare namespaces. Received namespaces: ["auth"].',
       }),
     );
   });
@@ -72,7 +71,7 @@ describe('defineContract namespace rules read from the target descriptor', () =>
       expect.objectContaining({
         code: 'CONTRACT.NAMESPACE_UNSUPPORTED',
         message:
-          'defineContract: model "User" sets `namespace: "auth"` but the target is MySQL (namespaces are not mapped to MySQL databases yet; remove the per-model `namespace` field).',
+          'defineContract: model "User" sets `namespace: "auth"` but the target is MySQL, which does not support namespaces (remove the per-model `namespace` field).',
       }),
     );
   });

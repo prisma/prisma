@@ -162,10 +162,6 @@ function targetNameOf(target: TargetPackRef<'sql', string>): string {
   return target.displayName ?? target.targetId;
 }
 
-function namespacesUnsupportedReasonOf(target: TargetPackRef<'sql', string>): string {
-  return target.namespacesUnsupportedReason ?? `${targetNameOf(target)} has no namespaces`;
-}
-
 /**
  * Per-target reserved namespace names enforced by `defineContract` for
  * SQL family contracts. Two categories:
@@ -192,7 +188,7 @@ function validateNamespaceDeclarations(
   if (target.supportsNamespaces === false && namespaces.length > 0) {
     throw contractError(
       'CONTRACT.NAMESPACE_UNSUPPORTED',
-      `defineContract: ${targetNameOf(target)} contracts cannot declare namespaces (${namespacesUnsupportedReasonOf(target)}; emitted DDL is always unqualified). Received namespaces: [${namespaces
+      `defineContract: ${targetNameOf(target)} contracts cannot declare namespaces. Received namespaces: [${namespaces
         .map((name) => `"${name}"`)
         .join(', ')}].`,
       { meta: { namespaces, targetId: target.targetId } },
@@ -273,7 +269,7 @@ function validatePerModelNamespaces(
     if (target.supportsNamespaces === false) {
       throw contractError(
         'CONTRACT.NAMESPACE_UNSUPPORTED',
-        `defineContract: model "${modelKey}" sets \`namespace: "${perModelNamespace}"\` but the target is ${targetNameOf(target)} (${namespacesUnsupportedReasonOf(target)}; remove the per-model \`namespace\` field).`,
+        `defineContract: model "${modelKey}" sets \`namespace: "${perModelNamespace}"\` but the target is ${targetNameOf(target)}, which does not support namespaces (remove the per-model \`namespace\` field).`,
         { meta: { modelKey, namespace: perModelNamespace, targetId: target.targetId } },
       );
     }
