@@ -201,6 +201,20 @@ export function refusalError(refusal: MongoBuildRefusal): StructuredError {
           },
         },
       );
+    case 'storedNameSharedWithBase':
+      return contractError(
+        'CONTRACT.NAME_DUPLICATE',
+        `Variant model "${refusal.key.owner.name}" field "${refusal.key.field}" is stored as "${refusal.storedName}", which its base "${refusal.baseModel}" stores field "${refusal.baseField}" under. A variant's documents hold its base's fields too, so give the field another stored name.`,
+        {
+          meta: {
+            kind: 'field',
+            name: refusal.storedName,
+            first: `${refusal.baseModel}.${refusal.baseField}`,
+            second: `${refusal.key.owner.name}.${refusal.key.field}`,
+            reason: 'stored-name-shared-with-base',
+          },
+        },
+      );
     case 'valueObjectFieldStoredName':
       return contractError(
         'CONTRACT.ARGUMENT_INVALID',

@@ -57,6 +57,13 @@ export type MongoBuildRefusal =
       readonly storedName: string;
       readonly firstField: string;
     }
+  | {
+      readonly kind: 'storedNameSharedWithBase';
+      readonly key: FieldKey;
+      readonly storedName: string;
+      readonly baseModel: string;
+      readonly baseField: string;
+    }
   | { readonly kind: 'valueObjectFieldStoredName'; readonly key: FieldKey }
   | {
       readonly kind: 'relationLocalFieldUnknown';

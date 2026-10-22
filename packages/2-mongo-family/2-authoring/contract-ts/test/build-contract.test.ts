@@ -195,6 +195,12 @@ describe('buildMongoContractFromDefinition', () => {
     });
   });
 
+  it('builds a variant that restates a base field under the same name', () => {
+    expect(
+      refusalsOf({ models: [task, { ...bug, fields: [...bug.fields, scalar('type')] }] }),
+    ).toEqual([]);
+  });
+
   it('stores a variant that names no collection in its base collection', () => {
     const { collection: _, ...bugWithoutCollection } = bug;
     const contract = contractOf({ models: [task, bugWithoutCollection] });
@@ -236,6 +242,11 @@ describe('buildMongoContractFromDefinition refusals', () => {
       'two fields stored under one name',
       { models: [user([scalar('a'), scalar('b', { storedName: 'a' })])] },
       [{ kind: 'storedNameDuplicate', key: modelField('User', 'b') }],
+    ],
+    [
+      'a variant field stored under a name its base uses',
+      { models: [task, { ...bug, fields: [scalar('sev', { storedName: 'type' })], indexes: [] }] },
+      [{ kind: 'storedNameSharedWithBase', key: modelField('Bug', 'sev') }],
     ],
     [
       'a stored name on a value object field',

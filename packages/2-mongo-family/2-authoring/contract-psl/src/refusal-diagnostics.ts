@@ -239,6 +239,12 @@ export function refusalDiagnostic(
         `Fields "${model}.${refusal.firstField}" and "${model}.${refusal.key.field}" are both stored as "${refusal.storedName}". Give each field its own stored name with @map.`,
       );
     }
+    case 'storedNameSharedWithBase':
+      return atField(
+        fieldSiteOf(sites, refusal.key),
+        'PSL_DUPLICATE_STORED_NAME',
+        `Fields "${refusal.baseModel}.${refusal.baseField}" and "${refusal.key.owner.name}.${refusal.key.field}" are both stored as "${refusal.storedName}", and a variant's documents hold its base's fields too. Give each field its own stored name with @map.`,
+      );
     case 'valueObjectFieldStoredName': {
       const field = fieldSiteOf(sites, refusal.key);
       const site = field.map ?? { source: field.source, span: field.symbol.span };

@@ -170,6 +170,33 @@ export function buildValueObjects(
 }
 
 /**
+ * Refuses a variant field stored under a name another field of its base is stored under. A variant's documents hold its base's fields too, so the two would overwrite each other, the discriminator included. A variant that restates a base field under the same name restates that field.
+ */
+function checkStoredNamesAgainstBase(
+  variant: ModelNode,
+  models: readonly ModelNode[],
+  refusals: MongoBuildRefusal[],
+): void {
+  if (variant.base === undefined) return;
+  const baseName = variant.base.model;
+  const base = models.find((model) => model.modelName === baseName);
+  if (base === undefined) return;
+  const baseFieldsByStoredName = new Map(base.fields.map((field) => [storedNameOf(field), field]));
+  for (const field of variant.fields) {
+    const storedName = storedNameOf(field);
+    const baseField = baseFieldsByStoredName.get(storedName);
+    if (baseField === undefined || baseField.fieldName === field.fieldName) continue;
+    refusals.push({
+      kind: 'storedNameSharedWithBase',
+      key: modelFieldKey(variant.modelName, field.fieldName),
+      storedName,
+      baseModel: baseName,
+      baseField: baseField.fieldName,
+    });
+  }
+}
+
+/**
  * Each model of the contract. `variantValues` holds each accepted variant's discriminator value as its base's field stores it; a base lists those variants.
  */
 export function buildModels(input: {
@@ -188,6 +215,7 @@ export function buildModels(input: {
       continue;
     }
 
+    checkStoredNamesAgainstBase(model, models, refusals);
     const storage = {
       ...(model.collection ? { collection: model.collection } : {}),
       fields: buildStorageFields(modelName, model.fields, refusals),
