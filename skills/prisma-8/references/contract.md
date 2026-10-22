@@ -515,9 +515,9 @@ Infer captures indexes at full fidelity — expression, partial (`where:`), uniq
 ## What Prisma 8 doesn't do yet
 
 - **In-contract rename hint.** No `@@rename(old: ..., new: ...)` or similar; renames are stated with `--rename` on the command line, as in *Common Pitfalls* #7.
-- **Model validations.** No declarative `@validates(...)` surface. Validate in application code (arktype). To request declarative validations in the contract, file via `references/feedback.md`.
-- **Lifecycle callbacks** (`beforeSave`, `afterCreate`, etc.). Not supported. Use middleware (`references/runtime.md`) or app code. To request lifecycle callbacks, file via `references/feedback.md`.
-- **Soft delete / `paranoid: true`.** No built-in soft-delete column. Add a nullable `deletedAt DateTime?` and filter explicitly in queries (or in middleware). To request built-in soft delete, file via `references/feedback.md`.
+- **Model validations.** No declarative `@validates(...)` surface. Validate in application code (arktype). The maintainers decided it stays out of the core; an extension may provide it (prisma/orm ADR 293).
+- **Lifecycle callbacks** (`beforeSave`, `afterCreate`, etc.). Not supported. Use middleware (`references/runtime.md`) or app code. The maintainers decided it stays out of the core; an extension may provide it (prisma/orm ADR 293).
+- **Soft delete / `paranoid: true`.** No built-in soft-delete column. Add a nullable `deletedAt DateTime?` and filter explicitly in queries (or in middleware). The maintainers decided it stays out of the core; an extension may provide it (prisma/orm ADR 293).
 - **Scopes / default filters.** No ActiveRecord-style scopes. Compose query helpers yourself. To request scopes, file via `references/feedback.md`.
 - **Implicit Prisma-ORM many-to-many.** List navigation on both sides without an explicit join model is rejected. Author the join model explicitly. To request implicit M2M, file via `references/feedback.md`.
 

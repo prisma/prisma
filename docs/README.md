@@ -12,6 +12,12 @@ This directory contains the primary documentation for the repository.
 
 - [Serverless Deployment Guide](./Serverless%20Deployment%20Guide.md) — deploying to per-request runtimes (Cloudflare Workers + Hyperdrive worked example, with pointers for AWS Lambda, Vercel, Deno, Bun)
 
+## Direction
+
+- [Project intent](./design/00-purpose/project-intent.md) — who Prisma 8 is for, what it optimises for, and what not to assume
+- [Vision](./design/00-purpose/vision.md) — values, durable themes, and how to judge a request
+- [Steering list](./architecture%20docs/ADR-INDEX.md#steering-list) — requests already answered, with what to use instead
+
 ## Architecture deep dives
 
 - [ADRs](./architecture%20docs/adrs/) — decisions (append-only)
