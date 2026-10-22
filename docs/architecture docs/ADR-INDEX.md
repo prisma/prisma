@@ -11,7 +11,7 @@ Open these before you propose a new feature or surface, or judge a feature reque
 - [ADR 293 — Validations, lifecycle callbacks, soft delete and default scopes are not in the core](adrs/ADR%20293%20-%20Validations,%20lifecycle%20callbacks,%20soft%20delete%20and%20default%20scopes%20are%20not%20in%20the%20core.md)
 - [ADR 296 — Prisma 8 has no `relationLoadStrategy`](adrs/ADR%20296%20-%20Prisma%208%20has%20no%20relationLoadStrategy.md)
 
-To add to this list, write an ADR when the maintainers have said no to something that will be proposed again. Its title states the no; its decision names the existing feature to use instead; its consequences say what would reopen it. Half a page is enough. To change a decision, write a new ADR and mark the old one superseded rather than rewriting it. An agent drafting one sets its status to `Proposed`, and the pull request that adds it is the draft.
+To add to this list, write an ADR when the maintainers have said no to something that will be proposed again. Its title states the no; its decision names the existing feature to use instead; its consequences say what would reopen it. Half a page is enough. To change a decision, write a new ADR and mark the old one superseded rather than rewriting it. An agent drafting one sets its status to `Proposed`; a maintainer accepts it by changing the status to `Accepted`.
 
 ## Core Architecture
 
