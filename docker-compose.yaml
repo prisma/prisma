@@ -20,16 +20,3 @@ services:
       retries: 20
     tmpfs:
       - /var/lib/mysql
-  mariadb:
-    image: mariadb:10.11
-    ports:
-      - "3308:3306"
-    environment:
-      MARIADB_ROOT_PASSWORD: root
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-    tmpfs:
-      - /var/lib/mysql
