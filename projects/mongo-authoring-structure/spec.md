@@ -156,6 +156,7 @@ The reasoning and the alternatives rejected are in [`design-notes.md`](./design-
 
 Two changes affect a contract that is loaded or built rather than written in PSL:
 - a `contract.json` that stores a Decimal128 value with leading zeros is refused when it is loaded, and is fixed by emitting it again;
+- a `contract.json` or TypeScript Decimal128 value that Decimal128 cannot hold exactly, such as `1.` followed by 36 zeros, is refused: main accepted it, and MongoDB would have stored it rounded;
 - a TypeScript contract with such a member, such as `'007.5'`, gets the new spelling and so a new hash.
 
 **Slice 2.** No change by design. The behaviour differences may change the contracts of schemas that hit them. Those are listed and regenerated in the slice's PR.
