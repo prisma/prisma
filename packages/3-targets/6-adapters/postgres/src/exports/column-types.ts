@@ -18,12 +18,15 @@ import {
   PG_INT4_CODEC_ID,
   PG_INT8_CODEC_ID,
   PG_INTERVAL_CODEC_ID,
+  PG_INTERVAL_STRING_CODEC_ID,
   PG_JSON_CODEC_ID,
   PG_JSONB_CODEC_ID,
   PG_NUMERIC_CODEC_ID,
   PG_TEXT_CODEC_ID,
   PG_TIME_STRING_CODEC_ID,
   PG_TIME_TEMPORAL_CODEC_ID,
+  PG_TIMESTAMP_DATE_CODEC_ID,
+  PG_TIMESTAMP_INSTANT_CODEC_ID,
   PG_TIMESTAMP_STRING_CODEC_ID,
   PG_TIMESTAMP_TEMPORAL_CODEC_ID,
   PG_TIMESTAMPTZ_DATE_CODEC_ID,
@@ -145,6 +148,14 @@ export const timestampTemporalColumn = {
 
 export const timestampStringColumn = {
   codecId: PG_TIMESTAMP_STRING_CODEC_ID,
+} as const satisfies ColumnTypeDescriptor;
+
+export const timestampJsDateColumn = {
+  codecId: PG_TIMESTAMP_DATE_CODEC_ID,
+} as const satisfies ColumnTypeDescriptor;
+
+export const timestampInstantColumn = {
+  codecId: PG_TIMESTAMP_INSTANT_CODEC_ID,
 } as const satisfies ColumnTypeDescriptor;
 
 export const timestamptzTemporalColumn = {
@@ -284,6 +295,28 @@ export function intervalPartsColumn(precision?: number): ColumnTypeDescriptor<
 } {
   return {
     codecId: PG_INTERVAL_CODEC_ID,
+    ...(precision === undefined ? {} : { typeParams: { precision } }),
+  } as const;
+}
+
+export function intervalStringColumn(): ColumnTypeDescriptor<typeof PG_INTERVAL_STRING_CODEC_ID>;
+export function intervalStringColumn<const Precision extends number>(
+  precision: Precision,
+): ColumnTypeDescriptor<typeof PG_INTERVAL_STRING_CODEC_ID> & {
+  readonly typeParams: { readonly precision: Precision };
+};
+export function intervalStringColumn(precision?: number): ColumnTypeDescriptor<
+  typeof PG_INTERVAL_STRING_CODEC_ID
+> & {
+  readonly typeParams?: { readonly precision: number };
+};
+export function intervalStringColumn(precision?: number): ColumnTypeDescriptor<
+  typeof PG_INTERVAL_STRING_CODEC_ID
+> & {
+  readonly typeParams?: { readonly precision: number };
+} {
+  return {
+    codecId: PG_INTERVAL_STRING_CODEC_ID,
     ...(precision === undefined ? {} : { typeParams: { precision } }),
   } as const;
 }
