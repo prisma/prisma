@@ -138,7 +138,7 @@ pgTimestampTemporalColumn satisfies ColumnHelperFor<PgTimestampTemporalDescripto
 pgTimestampTemporalColumn satisfies ColumnHelperForStrict<PgTimestampTemporalDescriptor>;
 
 /**
- * A `timestamp` column read and written as a `Temporal.Instant`, treating the stored date and time as UTC. A write sends the instant's UTC date and time with no offset.
+ * A `timestamp` column read and written as a `Temporal.Instant`, treating the stored date and time as UTC. A write sends the instant's UTC date and time with no offset. PostgreSQL fills a database default `now()` in the session's time zone, so under a `TimeZone` other than UTC that value reads back shifted; `@onCreate(now())` writes UTC from the client.
  */
 export class PgTimestampInstantCodec extends CodecImpl<
   typeof PG_TIMESTAMP_INSTANT_CODEC_ID,

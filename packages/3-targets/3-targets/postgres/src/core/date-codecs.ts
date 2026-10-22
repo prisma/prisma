@@ -151,7 +151,7 @@ pgTimestamptzDateColumn satisfies ColumnHelperFor<PgTimestamptzDateDescriptor>;
 pgTimestamptzDateColumn satisfies ColumnHelperForStrict<PgTimestamptzDateDescriptor>;
 
 /**
- * A `timestamp` column read and written as a JavaScript `Date`, treating the stored date and time as UTC. A read appends `Z` to the stored value; a write sends the `Date`'s UTC date and time with no offset, so neither depends on the server's or the process's time zone.
+ * A `timestamp` column read and written as a JavaScript `Date`, treating the stored date and time as UTC. A read appends `Z` to the stored value; a write sends the `Date`'s UTC date and time with no offset, so a written value reads back unchanged whatever the server's, the session's or the process's time zone. PostgreSQL fills a database default `now()` in the session's time zone, so under a `TimeZone` other than UTC that value reads back shifted; `@onCreate(now())` writes UTC from the client.
  */
 export class PgTimestampDateCodec extends CodecImpl<
   typeof PG_TIMESTAMP_DATE_CODEC_ID,
