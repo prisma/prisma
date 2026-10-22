@@ -378,6 +378,7 @@ describe('a primary key change the plan cannot make', () => {
     const after = contractOf({ public: { user: movedUser } });
     const postOwnedElsewhere: SchemaOwnership = {
       declaresEntity: (coordinate) => coordinate.entityName === 'post',
+      namespaceDeclaringSpaces: () => [],
     };
 
     expect(plan(before, after, postOwnedElsewhere)).toEqual({
@@ -431,14 +432,27 @@ describe('a primary key change the plan cannot make', () => {
     });
   });
 
-  it('refuses when the referencing table is in a schema the end contract does not declare', () => {
-    const before = contractOf({
+  it('refuses when the referencing table is in a live schema neither contract declares', () => {
+    const live = contractOf({
       public: { user: user({ primaryKey: ['id'] }) },
       audit: { entry },
     });
+    const before = contractOf({ public: { user: user({ primaryKey: ['id'] }) } });
     const after = contractOf({ public: { user: movedUser } });
 
-    expect(plan(before, after)).toEqual({
+    expect(
+      createPostgresMigrationPlanner(stubLowerer).plan({
+        contract: after,
+        schema: postgresContractToSchema(live, postgresTypeComponents),
+        policy: { allowedOperationClasses: [...ALL_CLASSES] },
+        fromContract: before,
+        origin: null,
+        statements: [],
+        frameworkComponents: postgresTypeComponents,
+        spaceId: APP_SPACE_ID,
+        snapshotsImportPath: '../../snapshots',
+      }),
+    ).toEqual({
       kind: 'failure',
       conflicts: [
         {
@@ -450,6 +464,25 @@ describe('a primary key change the plan cannot make', () => {
         },
       ],
     });
+  });
+
+  it('drops the referencing foreign key before the key change when the end contract removes its schema', async () => {
+    const before = contractOf({
+      public: { user: user({ primaryKey: ['id'] }) },
+      audit: { entry },
+    });
+    const after = contractOf({ public: { user: movedUser } });
+
+    expect(await plannedOperations(before, after)).toEqual([
+      'Drop constraint "user_managerId_fkey" on "user"',
+      'Drop constraint "entry_userId_fkey" on "entry"',
+      'Drop constraint "user_pkey" on "user"',
+      'Drop table "entry"',
+      'Drop schema "audit"',
+      'Add primary key on "user"',
+      'Add unique constraint on "user" (id)',
+      'Add foreign key "user_managerId_fkey" on "user"',
+    ]);
   });
 
   it('gives the plain db update advice when the contract does not declare the foreign key', () => {
