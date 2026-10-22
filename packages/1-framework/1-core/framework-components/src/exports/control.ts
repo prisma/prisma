@@ -139,6 +139,8 @@ export {
 } from '../control/control-stack';
 export type {
   AppliedMigrationStatement,
+  EnumValueCoordinate,
+  EnumValueCoordinateJson,
   FieldCoordinate,
   FieldCoordinateJson,
   MigrationAccessChange,
@@ -153,6 +155,7 @@ export type {
   MigrationTemporaryValue,
   ModelCoordinate,
   ModelCoordinateJson,
+  ResolvedEnumValueRenameStatement,
   ResolvedFieldBackfillStatement,
   ResolvedFieldConvertStatement,
   ResolvedFieldRenameStatement,
@@ -163,6 +166,7 @@ export type {
 } from '../control/migration-statements';
 export {
   describeMigrationStatement,
+  enumValueStatementText,
   fieldStatementText,
   isRenameStatement,
   migrationStatementJson,
