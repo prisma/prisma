@@ -17,3 +17,5 @@ Work found while shaping that this project does not do. Each item is filed in Li
 - **PSL features Mongo's builder already supports:** `@@owner` and embedded models (TML-2250), `@@control`, collection options.
 - **TML-3659.** Rename `authoring.dataTypes`. Order relative to slice 1 does not matter for correctness; whichever lands second renames Mongo's entries too.
 - **`escapePslString` has two homes.** After slice 1's move, `@internal/sql-contract/data-type-support` holds only `escapePslString`, and an unexported copy lives in `packages/1-framework/2-authoring/psl-printer/src/serialize-print-document.ts`. Give it one home both families can import, and rename or remove the SQL entry point. No ticket yet.
+- **SQL's default reader reads values into a codec with its own code.** After slice 1 it is the last place besides the framework's codec reader that does. Ticket at close-out (same item as "SQL's default reader built on the framework function" above).
+- **Discriminator variants are keyed by the value as written; membership uses the data type's equality.** Only matters once a text data type declares its own `equalityKey`; none does. No ticket yet.

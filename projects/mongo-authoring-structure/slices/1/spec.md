@@ -46,7 +46,7 @@ enum Ratio {
   Wording follows `describeRefusal`, including the "write …" rewrite. The function never names a default, a column or a field; the caller supplies the subject ("enum "Ratio" member "Half"").
 - **Callers.** `readEnumBlockMembers` calls it for every member. Both families' PSL call it for `@@base` values, with the discriminator field's `CodecRef`.
 
-`AuthoringEntityContext` gains `dataTypes: DataTypeSupport`, filled by both PSL interpreters and both legacy readers. The `readWrittenValueForCodec` hook and the JSON fallback in `readEnumBlockMembers` are deleted. A block member with no `writtenValues` entry is read from its name as text, as a bare member is.
+`AuthoringEntityContext` gains `dataTypes: DataTypeSupport`, filled by both PSL interpreters and both legacy readers. The `readWrittenValueForCodec` hook and the JSON fallback in `readEnumBlockMembers` are deleted. A bare member is read from its name as text. A member that has a value but no `writtenValues` entry is a bug in whoever built the block, and throws an `InternalError`.
 
 SQL's `@@base` reading stops going through `lowerDataTypeDefault`, so SQL `@@base` refusals take the new codes. SQL defaults are not touched.
 
