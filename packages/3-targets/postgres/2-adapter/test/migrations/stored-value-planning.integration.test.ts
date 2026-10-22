@@ -319,6 +319,44 @@ describe('Postgres planner, stored enum values', { concurrent: false }, () => {
     });
   });
 
+  it('advises a swap through a temporary value when two members swap stored values', {
+    timeout: testTimeout,
+  }, async () => {
+    const from = roleContract({ USER: 'user', GUEST: 'guest' });
+    const to = roleContract({ USER: 'guest', GUEST: 'user' });
+    await start(from);
+
+    const result = await plan(from, to);
+
+    expect(
+      result.kind === 'success' &&
+        result.dataLoss.map(({ keepDataEdit }) => keepDataEdit?.replaceWith),
+    ).toEqual([
+      'this.replaceStoredValue({ schema: "public", table: "User", column: "role", from: "user", to: "prisma_swap", codecRef: { codecId: "pg/text@1" } })',
+      'this.replaceStoredValue({ schema: "public", table: "User", column: "role", from: "guest", to: "user", codecRef: { codecId: "pg/text@1" } }), this.replaceStoredValue({ schema: "public", table: "User", column: "role", from: "prisma_swap", to: "guest", codecRef: { codecId: "pg/text@1" } })',
+    ]);
+  });
+
+  it('shifts stored values along when renames move each into the one the next leaves', {
+    timeout: testTimeout,
+  }, async () => {
+    const from = roleContract({ USER: 'user', GUEST: 'guest' });
+    const to = roleContract({ MEMBER: 'guest', VISITOR: 'visitor' });
+    await start(from);
+
+    const result = await plan(from, to, [
+      renameRole('USER', 'MEMBER'),
+      renameRole('GUEST', 'VISITOR'),
+    ]);
+    await apply(result, to);
+
+    expect(await roles()).toEqual([
+      { id: '1', role: 'visitor' },
+      { id: '2', role: 'guest' },
+      { id: '3', role: null },
+    ]);
+  });
+
   it('removes a stored value from a required column when no row holds it, and fails at apply, naming how to keep them, when rows do', {
     timeout: testTimeout,
   }, async () => {

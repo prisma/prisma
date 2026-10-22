@@ -219,17 +219,16 @@ export class SqliteMigrationPlanner
       return plannerFailure([defaultedBackfill]);
     }
     const codecHooks = extractCodecControlHooks(options.frameworkComponents);
+    const { codecLookup } = sqlTypeLookupsOf(options.frameworkComponents);
     const rewrites = planEnumValueRewrites({
       statements: options.statements,
       fromContract: options.fromContract,
       contract: options.contract,
       tables: sqliteSchemaTables(statements.value.schema),
+      codecs: codecLookup,
     });
     if (!rewrites.ok) return plannerFailure([rewrites.failure]);
-    const storedValueCalls = sqliteStoredValueCalls(
-      rewrites.value,
-      sqlTypeLookupsOf(options.frameworkComponents).codecLookup,
-    );
+    const storedValueCalls = sqliteStoredValueCalls(rewrites.value, codecLookup);
     const disallowedStoredValueCalls = [...storedValueCalls.keys()].filter(
       (call) => !options.policy.allowedOperationClasses.includes(call.operationClass),
     );

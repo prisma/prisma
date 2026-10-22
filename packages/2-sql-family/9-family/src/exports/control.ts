@@ -41,6 +41,7 @@ export {
 export type {
   StoredEnumValue,
   StoredValueCodec,
+  StoredValueReplacement,
   StoredValueRewrite,
 } from '../core/migrations/enum-value-planning';
 export {

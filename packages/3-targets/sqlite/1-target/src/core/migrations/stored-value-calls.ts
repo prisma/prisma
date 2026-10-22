@@ -1,4 +1,8 @@
-import type { RowsHoldingValueMark, StoredValueRewrite } from '@internal/family-sql/control';
+import type {
+  RowsHoldingValueMark,
+  StoredValueReplacement,
+  StoredValueRewrite,
+} from '@internal/family-sql/control';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import {
   type EnumValueCoordinate,
@@ -48,17 +52,24 @@ export function sqliteStoredValueCalls(
   );
 }
 
-/** The edit that keeps the data a removal loses: the removal, replaced by a replacement with `to`. */
-function keepDataEdit(call: RemoveStoredValueCall, to: string | number): KeepDataEdit {
+/** The edit that keeps the data a removal loses: the removal, replaced by the replacements, in order. */
+function keepDataEdit(
+  call: RemoveStoredValueCall,
+  replacements: readonly StoredValueReplacement[],
+): KeepDataEdit {
   return {
     remove: call.renderTypeScript(),
-    replaceWith: new ReplaceStoredValueCall(
-      call.tableName,
-      call.columnName,
-      call.value,
-      to,
-      call.codec,
-    ).renderTypeScript(),
+    replaceWith: replacements
+      .map(({ from, to }) =>
+        new ReplaceStoredValueCall(
+          call.tableName,
+          call.columnName,
+          from,
+          to,
+          call.codec,
+        ).renderTypeScript(),
+      )
+      .join(', '),
   };
 }
 
@@ -76,7 +87,7 @@ export function storedValueSubjects(
       enumValue: rewrite.enumValue,
       ...ifDefined(
         'keepDataEdit',
-        rewrite.keptName === undefined ? undefined : keepDataEdit(call, rewrite.keptName),
+        rewrite.keepData === undefined ? undefined : keepDataEdit(call, rewrite.keepData),
       ),
     });
   }
@@ -101,10 +112,9 @@ export function keepRowsEdit(
     mark.codecRef === undefined
       ? undefined
       : { codecRef: mark.codecRef, codecs: RENDER_ONLY_CODECS };
-  return keepDataEdit(
-    new RemoveStoredValueCall(table, column, mark.value, codec, mark.enumValue),
-    '<stored value>',
-  );
+  return keepDataEdit(new RemoveStoredValueCall(table, column, mark.value, codec, mark.enumValue), [
+    { from: mark.value, to: '<stored value>' },
+  ]);
 }
 
 /** The positions, among the plan's operations, of the operations that carry out `statement`. */

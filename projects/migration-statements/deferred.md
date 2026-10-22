@@ -211,11 +211,11 @@ Reproduction: emit a PSL contract with a `namespace public` block and a `namespa
 
 `MigrationRunnerFailureMeta.rowsHoldingValue` is one fact for the failing column, while `rowsWithoutValue` lists the failing field first and then every other field of the same migration that lacks values. An enum can type required columns in several tables, so a user who changes the data in one table re-runs and fails on the next. To resolve it, make it a list with a field per entry, counted for each marked removal of the same migration, as `rowsWithoutValueFailure` does.
 
-## `StoredValueRewrite` field names read as something else
+## `StoredValueRewrite.namespaceId` reads as the enum's namespace
 
 **Found:** slice 3b PR 2 system-design review (2026-10-22), S07.
 
-In `enum-value-planning.ts`, `keptName` holds the new stored value of a member that kept its name, and `namespaceId` is the table's namespace while `enumValue.namespaceId` is the enum's. Rename them, for example to `newStoredValueUnderSameName` and `tableNamespaceId`.
+In `enum-value-planning.ts`, `namespaceId` is the table's namespace while `enumValue.namespaceId` is the enum's. Rename it, for example to `tableNamespaceId`. The other field the review named, `keptName`, became `keepData` in the manual QA fixes.
 
 ## Older debt the enum value work follows
 

@@ -2,6 +2,7 @@ import type { Contract } from '@internal/contract/types';
 import type {
   RowsHoldingValueMark,
   StoredValueCodec,
+  StoredValueReplacement,
   StoredValueRewrite,
 } from '@internal/family-sql/control';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
@@ -71,19 +72,26 @@ export function storedValueCallsStrategy(
   return (issues) => (calls.length === 0 ? { kind: 'no_match' } : { kind: 'match', issues, calls });
 }
 
-/** The edit that keeps the data a removal loses: the removal, replaced by a replacement with `to`. */
-function keepDataEdit(call: RemoveStoredValueCall, to: string | number): KeepDataEdit {
+/** The edit that keeps the data a removal loses: the removal, replaced by the replacements, in order. */
+function keepDataEdit(
+  call: RemoveStoredValueCall,
+  replacements: readonly StoredValueReplacement[],
+): KeepDataEdit {
   return {
     remove: call.renderTypeScript(),
-    replaceWith: new ReplaceStoredValueCall(
-      call.schemaName,
-      call.tableName,
-      call.columnName,
-      call.value,
-      to,
-      call.many,
-      call.codec,
-    ).renderTypeScript(),
+    replaceWith: replacements
+      .map(({ from, to }) =>
+        new ReplaceStoredValueCall(
+          call.schemaName,
+          call.tableName,
+          call.columnName,
+          from,
+          to,
+          call.many,
+          call.codec,
+        ).renderTypeScript(),
+      )
+      .join(', '),
   };
 }
 
@@ -101,7 +109,7 @@ export function storedValueSubjects(
       enumValue: rewrite.enumValue,
       ...ifDefined(
         'keepDataEdit',
-        rewrite.keptName === undefined ? undefined : keepDataEdit(call, rewrite.keptName),
+        rewrite.keepData === undefined ? undefined : keepDataEdit(call, rewrite.keepData),
       ),
     });
   }
@@ -135,7 +143,7 @@ export function keepRowsEdit(
       codec,
       mark.enumValue,
     ),
-    '<stored value>',
+    [{ from: mark.value, to: '<stored value>' }],
   );
 }
 

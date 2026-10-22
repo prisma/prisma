@@ -35,7 +35,7 @@ function oneLineCalls(source: string, name: string): string {
 export function followEdits(source: string, advice: string): string {
   const edits = [
     ...advice.matchAll(
-      /replace (this\.removeStoredValue\(\{.*?\}\)) with (this\.replaceStoredValue\(\{.*?\}\))/g,
+      /replace (this\.removeStoredValue\(\{.*?\}\)) with (this\.replaceStoredValue\(\{.*?\}\)(?:, this\.replaceStoredValue\(\{.*?\}\))*)/g,
     ),
   ];
   expect(edits.length, 'the advice prints an edit').toBeGreaterThan(0);

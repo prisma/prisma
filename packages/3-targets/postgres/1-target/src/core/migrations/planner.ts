@@ -371,6 +371,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       fromContract: options.fromContract,
       contract: options.contract,
       tables: postgresSchemaTables(schema, options.contract),
+      codecs: types.codecLookup,
     });
     if (!rewrites.ok) {
       return plannerFailure([rewrites.failure]);

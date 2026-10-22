@@ -38,6 +38,7 @@ function contractWith(options: {
   readonly members: Readonly<Record<string, JsonValue>>;
   readonly columns: readonly EnumColumn[];
   readonly namespace?: string;
+  readonly codecId?: string;
 }): Contract<SqlStorage> {
   const namespaceId = options.namespace ?? 'app';
   const valueSet = {
@@ -89,7 +90,7 @@ function contractWith(options: {
         [namespaceId]: {
           enum: {
             Status: {
-              codecId: 'test/text@1',
+              codecId: options.codecId ?? 'test/text@1',
               members: Object.entries(options.members).map(([name, value]) => ({ name, value })),
             },
           },
@@ -146,6 +147,23 @@ function rename(from: string, to: string, namespace = 'app'): ResolvedEnumValueR
   };
 }
 
+const noCodecs = { descriptorFor: () => undefined };
+const BIGINT_CODEC_ID = 'test/bigint@1';
+const bigintCodecs = {
+  descriptorFor: (id: string) => {
+    const descriptor = testCodecLookup.descriptorFor(TEXT_CODEC_ID);
+    if (descriptor === undefined || id !== BIGINT_CODEC_ID) return undefined;
+    return {
+      ...descriptor,
+      codecId: id,
+      factory: () => () => ({
+        ...textCodec,
+        fromDataTypeValue: (value: { readonly value: JsonValue }) => BigInt(String(value.value)),
+      }),
+    };
+  },
+};
+
 const ARCHIVED = { namespaceId: asNamespaceId('app'), enum: 'Status', member: 'ARCHIVED' };
 const codecRef = { codecId: 'test/text@1' };
 const taskColumn = { model: 'Task', table: 'task' };
@@ -176,6 +194,7 @@ describe('planEnumValueRewrites', () => {
           }),
           contract: contractWith({ members: { ACTIVE: 'active' }, columns }),
           tables: tablesOf(['app.task.status', 'app.note.tags']),
+          codecs: noCodecs,
         }),
       ),
     ).toEqual([
@@ -189,7 +208,7 @@ describe('planEnumValueRewrites', () => {
         from: 'archived',
         to: undefined,
         statement: undefined,
-        keptName: undefined,
+        keepData: undefined,
       },
       {
         enumValue: ARCHIVED,
@@ -201,7 +220,7 @@ describe('planEnumValueRewrites', () => {
         from: 'archived',
         to: undefined,
         statement: undefined,
-        keptName: undefined,
+        keepData: undefined,
       },
     ]);
   });
@@ -212,7 +231,9 @@ describe('planEnumValueRewrites', () => {
     const tables = tablesOf(['app.task.status']);
 
     expect(
-      rewrites(planEnumValueRewrites({ statements: [], fromContract, contract, tables })),
+      rewrites(
+        planEnumValueRewrites({ statements: [], fromContract, contract, tables, codecs: noCodecs }),
+      ),
     ).toEqual([]);
     expect(
       rewrites(
@@ -221,6 +242,7 @@ describe('planEnumValueRewrites', () => {
           fromContract,
           contract,
           tables,
+          codecs: noCodecs,
         }),
       ),
     ).toEqual([]);
@@ -235,6 +257,7 @@ describe('planEnumValueRewrites', () => {
           fromContract: contractWith({ members: { ARCHIVED: 'archived' }, columns: [taskColumn] }),
           contract: contractWith({ members: { RETIRED: 'retired' }, columns: [taskColumn] }),
           tables: tablesOf(['app.task.status']),
+          codecs: noCodecs,
         }),
       ),
     ).toEqual([
@@ -248,7 +271,7 @@ describe('planEnumValueRewrites', () => {
         from: 'archived',
         to: 'retired',
         statement,
-        keptName: undefined,
+        keepData: undefined,
       },
     ]);
   });
@@ -261,9 +284,157 @@ describe('planEnumValueRewrites', () => {
           fromContract: contractWith({ members: { ARCHIVED: 1 }, columns: [taskColumn] }),
           contract: contractWith({ members: { ARCHIVED: 2 }, columns: [taskColumn] }),
           tables: tablesOf(['app.task.status']),
+          codecs: noCodecs,
         }),
       ),
-    ).toMatchObject([{ enumValue: ARCHIVED, from: 1, to: undefined, keptName: 2 }]);
+    ).toMatchObject([
+      { enumValue: ARCHIVED, from: 1, to: undefined, keepData: [{ from: 1, to: 2 }] },
+    ]);
+  });
+
+  it('asks about members that swap stored values, and keeps their data through a temporary value', () => {
+    const planned = rewrites(
+      planEnumValueRewrites({
+        statements: [],
+        fromContract: contractWith({
+          members: { ACTIVE: 'active', OLD: 'old' },
+          columns: [taskColumn],
+        }),
+        contract: contractWith({
+          members: { ACTIVE: 'old', OLD: 'active' },
+          columns: [taskColumn],
+        }),
+        tables: tablesOf(['app.task.status']),
+        codecs: noCodecs,
+      }),
+    );
+    expect(
+      planned.map(({ enumValue, from, to, keepData }) => ({
+        member: enumValue.member,
+        from,
+        to,
+        keepData,
+      })),
+    ).toEqual([
+      {
+        member: 'ACTIVE',
+        from: 'active',
+        to: undefined,
+        keepData: [{ from: 'active', to: 'prisma_swap' }],
+      },
+      {
+        member: 'OLD',
+        from: 'old',
+        to: undefined,
+        keepData: [
+          { from: 'old', to: 'active' },
+          { from: 'prisma_swap', to: 'old' },
+        ],
+      },
+    ]);
+  });
+
+  it('swaps integer stored values through the next integer no member stores', () => {
+    const planned = rewrites(
+      planEnumValueRewrites({
+        statements: [],
+        fromContract: contractWith({ members: { LOW: 1, HIGH: 2, TOP: 7 }, columns: [taskColumn] }),
+        contract: contractWith({ members: { LOW: 2, HIGH: 1, TOP: 7 }, columns: [taskColumn] }),
+        tables: tablesOf(['app.task.status']),
+        codecs: noCodecs,
+      }),
+    );
+    expect(planned.map(({ keepData }) => keepData)).toEqual([
+      [{ from: 1, to: 8 }],
+      [
+        { from: 2, to: 1 },
+        { from: 8, to: 2 },
+      ],
+    ]);
+  });
+
+  it('orders the changes of a chain so none overwrites a value another still has to read', () => {
+    const planned = rewrites(
+      planEnumValueRewrites({
+        statements: [],
+        fromContract: contractWith({ members: { A: 'a', B: 'b' }, columns: [taskColumn] }),
+        contract: contractWith({ members: { A: 'b', B: 'c' }, columns: [taskColumn] }),
+        tables: tablesOf(['app.task.status']),
+        codecs: noCodecs,
+      }),
+    );
+    expect(planned.map(({ from, keepData }) => ({ from, keepData }))).toEqual([
+      { from: 'b', keepData: [{ from: 'b', to: 'c' }] },
+      { from: 'a', keepData: [{ from: 'a', to: 'b' }] },
+    ]);
+  });
+
+  it('accepts renames that shift stored values along, and rewrites the last value first', () => {
+    const higher = rename('Higher', 'A');
+    const max = rename('Max', 'B');
+    const planned = rewrites(
+      planEnumValueRewrites({
+        statements: [higher, max],
+        fromContract: contractWith({
+          members: { Low: 0, Higher: 3, Max: 4 },
+          columns: [taskColumn],
+        }),
+        contract: contractWith({ members: { Low: 0, A: 4, B: 5 }, columns: [taskColumn] }),
+        tables: tablesOf(['app.task.status']),
+        codecs: noCodecs,
+      }),
+    );
+    expect(planned.map(({ from, to, statement }) => ({ from, to, statement }))).toEqual([
+      { from: 4, to: 5, statement: max },
+      { from: 3, to: 4, statement: higher },
+    ]);
+  });
+
+  it('refuses renames that move stored values in a cycle, and says how to write them by hand', () => {
+    expect(
+      refusal(
+        planEnumValueRewrites({
+          statements: [rename('ACTIVE', 'X'), rename('OLD', 'Y')],
+          fromContract: contractWith({
+            members: { ACTIVE: 'active', OLD: 'old' },
+            columns: [taskColumn],
+          }),
+          contract: contractWith({ members: { X: 'old', Y: 'active' }, columns: [taskColumn] }),
+          tables: tablesOf(['app.task.status']),
+          codecs: noCodecs,
+        }),
+      ),
+    ).toMatchObject({
+      kind: 'statementRefused',
+      summary:
+        'Cannot rename enum value "Status.ACTIVE" to "Status.X": the renames move stored values in a cycle, "active" to "old" and "old" to "active", and a rewrite of one would overwrite the other before it is read',
+      why: 'Leave out the renames in the cycle, and write the rewrites by hand: plan the change with migration plan, and in the migration.ts it writes rewrite the first value to a value no member stores, then each other value, then that value to its new value, with this.replaceStoredValue({ table, column, from, to }) for each.',
+    });
+  });
+
+  it('writes integer stored values without quotes in a refusal', () => {
+    expect(
+      refusal(
+        planEnumValueRewrites({
+          statements: [rename('ARCHIVED', 'CLOSED')],
+          fromContract: contractWith({
+            members: { ARCHIVED: '3', DONE: '4' },
+            columns: [taskColumn],
+            codecId: BIGINT_CODEC_ID,
+          }),
+          contract: contractWith({
+            members: { CLOSED: '4' },
+            columns: [taskColumn],
+            codecId: BIGINT_CODEC_ID,
+          }),
+          tables: tablesOf(['app.task.status']),
+          codecs: bigintCodecs,
+        }),
+      ),
+    ).toMatchObject({
+      summary:
+        'Cannot rename enum value "Status.ARCHIVED" to "Status.CLOSED": the origin enum already stores 4, as enum value "Status.DONE"',
+    });
   });
 
   it('leaves out a column the working schema does not have yet, and a table the destination drops', () => {
@@ -280,6 +451,7 @@ describe('planEnumValueRewrites', () => {
             columns: [taskColumn, { model: 'Note', table: 'note' }],
           }),
           tables: tablesOf(['app.task.status', 'app.old.status']),
+          codecs: noCodecs,
         }),
       ),
     ).toMatchObject([{ table: 'task' }]);
@@ -307,6 +479,7 @@ describe('planEnumValueRewrites', () => {
             namespace: 'crm',
           }),
           tables: tablesOf(['crm.task.status']),
+          codecs: noCodecs,
         }),
       ),
     ).toMatchObject([{ enumValue: ARCHIVED, namespaceId: 'crm', table: 'task' }]);
@@ -320,6 +493,7 @@ describe('planEnumValueRewrites', () => {
           fromContract: null,
           contract: contractWith({ members: { ACTIVE: 'active' }, columns: [taskColumn] }),
           tables: tablesOf(['app.task.status']),
+          codecs: noCodecs,
         }),
       ),
     ).toEqual([]);
@@ -339,6 +513,7 @@ describe('planEnumValueRewrites', () => {
             columns: [{ ...taskColumn, nullable: false }],
           }),
           tables: tablesOf(['app.task.status']),
+          codecs: noCodecs,
         }),
       ),
     ).toMatchObject([
@@ -357,6 +532,7 @@ describe('planEnumValueRewrites', () => {
           }),
           contract: contractWith({ members: { CLOSED: 'done' }, columns: [taskColumn] }),
           tables: tablesOf(['app.task.status']),
+          codecs: noCodecs,
         }),
       ),
     ).toMatchObject({
@@ -378,6 +554,7 @@ describe('planEnumValueRewrites', () => {
             columns: [taskColumn],
           }),
           tables: tablesOf(['app.task.status']),
+          codecs: noCodecs,
         }),
       ),
     ).toMatchObject({
