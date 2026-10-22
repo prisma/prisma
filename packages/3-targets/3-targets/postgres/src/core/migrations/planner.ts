@@ -31,6 +31,7 @@ import type {
   MigrationAccessChange,
   MigrationDataLoss,
   MigrationOperationClass,
+  MigrationPlanNamespaces,
   MigrationPlanner,
   MigrationPlanWithAuthoringSurface,
   MigrationScaffoldContext,
@@ -153,6 +154,7 @@ export type PostgresPlanResult =
       readonly dataLoss: readonly MigrationDataLoss[];
       readonly accessChanges: readonly MigrationAccessChange[];
       readonly temporaryValues: readonly MigrationTemporaryValue[];
+      readonly namespaces: MigrationPlanNamespaces;
     }
   | SqlPlannerFailureResult;
 
@@ -540,6 +542,10 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
           byHand: postgresTableRenameByHand(options.contract),
         },
       ),
+      namespaces: {
+        removed: removedSchemas.map((schemaName) => namespaceIdOfSchema(options, schemaName)),
+        added: addedNamespaceIds(options),
+      },
       ...(warnings.length > 0 ? { warnings: Object.freeze(warnings) } : {}),
     });
   }
@@ -878,6 +884,27 @@ function originSchemaNames(fromContract: Contract<SqlStorage> | null): readonly 
         Object.keys(namespace.entries.table ?? {}).length > 0,
     )
     .map(([namespaceId]) => resolveDdlSchemaForNamespaceStorage(fromContract.storage, namespaceId));
+}
+
+/**
+ * The namespaces the destination declares and the origin does not, other than `public` and those a
+ * statement renames a namespace to: the new names a rename of a removed namespace may give it.
+ */
+function addedNamespaceIds(options: SqlMigrationPlannerPlanOptions): readonly string[] {
+  const { fromContract } = options;
+  if (fromContract === null) return [];
+  const renamedTo = new Set<string>(
+    options.statements.flatMap((statement) =>
+      statement.kind === 'rename' && statement.entity === 'namespace' ? [statement.to] : [],
+    ),
+  );
+  return Object.keys(options.contract.storage.namespaces).filter(
+    (namespaceId) =>
+      namespaceId !== UNBOUND_NAMESPACE_ID &&
+      namespaceId !== DEFAULT_NAMESPACE_ID &&
+      !renamedTo.has(namespaceId) &&
+      !Object.hasOwn(fromContract.storage.namespaces, namespaceId),
+  );
 }
 
 /** Every DDL schema the contract declares, with or without tables. */

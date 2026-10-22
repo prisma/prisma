@@ -8,6 +8,7 @@ import type { Contract, ContractWithDomain } from '@internal/contract/types';
 import {
   createControlStack,
   hasOperationPreview,
+  type MigrationPlanNamespaces,
   type MigrationPlanOperation,
   migrationSubjectKey,
   type OperationPreview,
@@ -118,6 +119,8 @@ type PlannerSuccess = {
   /** The operations that would lose data, positioned in the plan's operations. */
   readonly dataLoss: readonly PlannedDataLoss[];
   readonly temporaryValues: readonly TemporaryValueReport[];
+  /** The namespaces the plan removes and adds, when the planner reports them. */
+  readonly namespaces?: MigrationPlanNamespaces;
 };
 
 function placeholderSummary(
@@ -262,6 +265,7 @@ async function runPlannerLeg(
       0,
     ),
     temporaryValues: reportTemporaryValues(plannerResult.temporaryValues, contract),
+    ...ifDefined('namespaces', plannerResult.namespaces),
   });
 }
 
@@ -325,7 +329,6 @@ async function answerPlannedDataLoss(input: {
   readonly origin: ContractWithDomain;
   readonly originKnown: boolean;
   readonly destination: ContractWithDomain;
-  readonly defaultNamespaceId: string;
   readonly answer: AnswerPlanQuestions;
   readonly planDelta: (
     statements: readonly StatementText[],
@@ -343,6 +346,7 @@ async function answerPlannedDataLoss(input: {
     delta,
     dataLoss: [...(input.baseline?.dataLoss ?? []), ...(delta?.dataLoss ?? [])],
     accessChanges: [],
+    ...ifDefined('namespaces', delta?.namespaces),
   });
   const answered = await askPlanQuestions({
     plan: legs(input.delta),
@@ -354,7 +358,6 @@ async function answerPlannedDataLoss(input: {
     origin: input.origin,
     originKnown: input.originKnown,
     destination: input.destination,
-    defaultNamespaceId: input.defaultNamespaceId,
     answer: input.answer,
     replan: async (statements) => {
       const replanned = await input.planDelta(statements);
@@ -784,7 +787,6 @@ async function executeMigrationPlanCommandInner(
         origin: fromContract ?? EMPTY_ORIGIN,
         originKnown: true,
         destination: toContract,
-        defaultNamespaceId: config.target.defaultNamespaceId,
         answer: options.answerQuestions,
         planDelta: async (planned) => {
           const resolved = resolveStatements({

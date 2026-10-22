@@ -4,13 +4,13 @@ import {
   type FieldCoordinate,
   fieldStatementText,
   type MigrationDataLossKind,
+  type MigrationPlanNamespaces,
   type MigrationSubject,
   type ModelCoordinate,
   migrationSubjectKey,
   modelStatementText,
   type ResolvedMigrationStatement,
 } from '@internal/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import {
@@ -85,6 +85,8 @@ export interface PlannedAccessChange extends PlannedSubject {
 export interface PlannedQuestions {
   readonly dataLoss: readonly PlannedDataLoss[];
   readonly accessChanges: readonly PlannedAccessChange[];
+  /** The namespaces the planner removes and adds; absent when it reports none. */
+  readonly namespaces?: MigrationPlanNamespaces;
 }
 
 /** The contracts a statement names things in, and the statements the plan carries out so far. */
@@ -94,8 +96,6 @@ export interface StatementContracts {
   readonly destination?: ContractWithDomain;
   /** The rename, convert and backfill statements the plan carries out, in the order given. */
   readonly statements: readonly StatementText[];
-  /** The target's default namespace, which is never removed and never a rename's new name. */
-  readonly defaultNamespaceId?: string;
 }
 
 /** The plan's renames, resolved; empty when there are none or they do not resolve. */
@@ -428,34 +428,18 @@ export interface ConsentedSubject {
 
 const keyOf = (planned: PlannedSubject) => migrationSubjectKey(planned.subject);
 
-function namespacesRenamedByPlan(contracts: StatementContracts): ReadonlySet<string> {
-  return new Set(
-    resolvedRenames(contracts).flatMap((statement) =>
-      statement.kind === 'rename' && statement.entity === 'namespace' ? [statement.from] : [],
-    ),
-  );
-}
-
 /**
- * The namespace of the model or field a subject names, when the destination contract no longer has
- * it and no statement of the plan renames it: a `delete` of that namespace answers the question
- * too. The target's default namespace is never removed.
+ * The namespace of the model or field a subject names, when the planner removes that namespace: a
+ * `delete` of the namespace answers the question too.
  */
 export function removedNamespaceOf(
   subject: MigrationSubject,
-  contracts: StatementContracts,
+  namespaces: MigrationPlanNamespaces | undefined,
 ): string | undefined {
-  if (subject.kind === 'storage' || subject.namespaceId === UNBOUND_NAMESPACE_ID) return undefined;
-  const { destination } = contracts;
-  if (
-    destination === undefined ||
-    subject.namespaceId === contracts.defaultNamespaceId ||
-    Object.hasOwn(destination.domain.namespaces, subject.namespaceId) ||
-    namespacesRenamedByPlan(contracts).has(subject.namespaceId)
-  ) {
-    return undefined;
-  }
-  return subject.namespaceId;
+  if (subject.kind === 'storage') return undefined;
+  return namespaces?.removed.includes(subject.namespaceId) === true
+    ? subject.namespaceId
+    : undefined;
 }
 
 /** A question as a consent statement can answer it: by its subject, or by a namespace the destination removed. */
@@ -543,17 +527,6 @@ function checkAnswers(
   });
 }
 
-/** The namespaces the destination adds, which a rename of a removed namespace may name. */
-export function addedNamespaces(contracts: StatementContracts): readonly string[] {
-  if (contracts.destination === undefined) return [];
-  return Object.keys(contracts.destination.domain.namespaces).filter(
-    (namespace) =>
-      namespace !== UNBOUND_NAMESPACE_ID &&
-      namespace !== contracts.defaultNamespaceId &&
-      !Object.hasOwn(contracts.origin.domain.namespaces, namespace),
-  );
-}
-
 function namespaceRenameAdvice(removed: string, added: readonly string[]): string | undefined {
   const [only] = added;
   if (only === undefined) return undefined;
@@ -570,7 +543,7 @@ function namespaceRenameAdvice(removed: string, added: readonly string[]): strin
  */
 function withNamespaceDeleteOnFirstQuestion(
   questions: readonly PlanQuestion[],
-  contracts: StatementContracts,
+  added: readonly string[],
 ): readonly PlanQuestion[] {
   const told = new Set<string>();
   return questions.map((question) => {
@@ -580,7 +553,7 @@ function withNamespaceDeleteOnFirstQuestion(
     const lines = [
       question.question,
       `--delete ${removedNamespace} answers this question and every other about a model or field of namespace "${removedNamespace}", which the destination contract no longer has.`,
-      namespaceRenameAdvice(removedNamespace, addedNamespaces(contracts)),
+      namespaceRenameAdvice(removedNamespace, added),
     ];
     return { ...question, question: lines.filter((line) => line !== undefined).join('\n') };
   });
@@ -650,8 +623,6 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
   readonly origin: ContractWithDomain;
   readonly originKnown: boolean;
   readonly destination: ContractWithDomain;
-  /** The target's default namespace, which is never removed and never a rename's new name. */
-  readonly defaultNamespaceId: string;
   readonly answer: AnswerPlanQuestions;
   readonly replan: (statements: readonly StatementText[]) => Promise<Result<TPlan, TFailure>>;
 }): Promise<
@@ -673,7 +644,6 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
       origin: input.origin,
       originKnown: input.originKnown,
       destination: input.destination,
-      defaultNamespaceId: input.defaultNamespaceId,
       canConvert: input.canConvert,
       statements,
     };
@@ -703,7 +673,7 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
         const text = subjectText(entry.subject, contracts);
         const given = givenFor(
           verb,
-          { text, removedNamespace: removedNamespaceOf(entry.subject, contracts) },
+          { text, removedNamespace: removedNamespaceOf(entry.subject, plan.namespaces) },
           input.preAnswers,
           usedPreAnswers,
         );
@@ -721,13 +691,13 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
             loss,
             question: acceptingNamespaceAnswers(
               dataLossQuestion(loss, contracts),
-              removedNamespaceOf(loss.subject, contracts),
+              removedNamespaceOf(loss.subject, plan.namespaces),
               contracts,
             ),
           })),
           !input.originKnown,
         ),
-        contracts,
+        plan.namespaces?.added ?? [],
       ),
       ...accessChanges.map((change) => accessChangeQuestion(change, contracts)),
     ];
@@ -837,7 +807,7 @@ export function refuseUnusedConsents(input: {
         const text = subjectText(entry.subject, input.contracts);
         return [
           text,
-          { text, removedNamespace: removedNamespaceOf(entry.subject, input.contracts) },
+          { text, removedNamespace: removedNamespaceOf(entry.subject, input.plan.namespaces) },
         ];
       }),
     ).values(),

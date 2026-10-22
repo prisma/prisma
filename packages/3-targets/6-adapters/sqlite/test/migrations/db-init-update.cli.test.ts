@@ -292,7 +292,6 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
       frameworkComponents: [...frameworkComponents],
       migrationsDir,
       targetId: 'sqlite',
-      defaultNamespaceId: '__unbound__',
       extensions: [
         buildExtensionPack({
           contractJson: extContractV1,
@@ -343,7 +342,6 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
       frameworkComponents: [...frameworkComponents],
       migrationsDir: baseline.migrationsDir,
       targetId: 'sqlite',
-      defaultNamespaceId: '__unbound__',
       extensions: [
         buildExtensionPack({
           contractJson: extContractV1,
@@ -393,7 +391,6 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
       frameworkComponents: [...frameworkComponents],
       migrationsDir: baseline.migrationsDir,
       targetId: 'sqlite',
-      defaultNamespaceId: '__unbound__',
       extensions: [
         buildExtensionPack({
           contractJson: extContractV2,
@@ -505,7 +502,6 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
       id: 'test-codec-hook',
       familyId: 'sql',
       targetId: 'sqlite',
-      defaultNamespaceId: '__unbound__',
       version: '0.0.0-test',
       types: {
         codecTypes: {
@@ -526,7 +522,6 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
       frameworkComponents: [...frameworkComponents, codecHookComponent],
       migrationsDir,
       targetId: 'sqlite',
-      defaultNamespaceId: '__unbound__',
       extensions: [
         buildExtensionPack({
           contractJson: extContractV1,
@@ -570,7 +565,6 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
       frameworkComponents: [...frameworkComponents],
       migrationsDir,
       targetId: 'sqlite',
-      defaultNamespaceId: '__unbound__',
       extensions: [],
     });
 
@@ -616,7 +610,6 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
       frameworkComponents: [...frameworkComponents],
       migrationsDir,
       targetId: 'sqlite',
-      defaultNamespaceId: '__unbound__',
       extensions: [],
     });
 
@@ -649,7 +642,6 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
       frameworkComponents: [...frameworkComponents],
       migrationsDir: baseline.migrationsDir,
       targetId: 'sqlite',
-      defaultNamespaceId: '__unbound__',
       extensions: [
         buildExtensionPack({
           contractJson: extContractV1,
@@ -702,7 +694,6 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
       frameworkComponents: [...frameworkComponents],
       migrationsDir: baseline.migrationsDir,
       targetId: 'sqlite',
-      defaultNamespaceId: '__unbound__',
       extensions: [
         buildExtensionPack({
           contractJson: extContractV2,

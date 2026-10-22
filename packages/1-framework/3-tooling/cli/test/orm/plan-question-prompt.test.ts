@@ -230,8 +230,17 @@ describe('a namespace rename typed at the prompt, then planned again', () => {
       take: vi.fn(() => []) as StatementSurface['take'],
       values: () => [],
     };
-    const first: PlannedQuestions = { dataLoss: [dropReceipt, retypeNote], accessChanges: [] };
-    const second: PlannedQuestions = { dataLoss: [retypeNote], accessChanges: [] };
+    const namespaces = { removed: ['billing'], added: ['finance'] };
+    const first: PlannedQuestions = {
+      dataLoss: [dropReceipt, retypeNote],
+      accessChanges: [],
+      namespaces,
+    };
+    const second: PlannedQuestions = {
+      dataLoss: [retypeNote],
+      accessChanges: [],
+      namespaces: { removed: [], added: [] },
+    };
 
     const outcome = await askPlanQuestions({
       plan: first,
@@ -243,7 +252,6 @@ describe('a namespace rename typed at the prompt, then planned again', () => {
       origin,
       originKnown: true,
       destination,
-      defaultNamespaceId: 'public',
       answer: promptPlanQuestions(prompt, statements),
       replan: async (planned) => ok(planned.length === 0 ? first : second),
     });
@@ -275,6 +283,7 @@ describe('a namespace rename typed at the prompt, then planned again', () => {
     const first: PlannedQuestions = {
       dataLoss: [drop('Invoice', 0), drop('Receipt', 1)],
       accessChanges: [],
+      namespaces: { removed: ['billing'], added: ['finance'] },
     };
     const asked: string[] = [];
     const prompt = {
@@ -302,7 +311,6 @@ describe('a namespace rename typed at the prompt, then planned again', () => {
       origin: renamedOrigin,
       originKnown: true,
       destination: renamedDestination,
-      defaultNamespaceId: 'public',
       answer: promptPlanQuestions(prompt, statements),
       replan: async (planned) =>
         ok(

@@ -287,7 +287,6 @@ describe('db init / db update aggregate pipeline (CLI) - postgres', { concurrent
         frameworkComponents: [...frameworkComponents],
         migrationsDir,
         targetId: 'postgres',
-        defaultNamespaceId: 'public',
         extensions: [
           buildExtensionPack({
             contractJson: extContractV1,
@@ -343,7 +342,6 @@ describe('db init / db update aggregate pipeline (CLI) - postgres', { concurrent
         frameworkComponents: [...frameworkComponents],
         migrationsDir: baseline.migrationsDir,
         targetId: 'postgres',
-        defaultNamespaceId: 'public',
         extensions: [
           buildExtensionPack({
             contractJson: extContractV1,
@@ -392,7 +390,6 @@ describe('db init / db update aggregate pipeline (CLI) - postgres', { concurrent
         frameworkComponents: [...frameworkComponents],
         migrationsDir: baseline.migrationsDir,
         targetId: 'postgres',
-        defaultNamespaceId: 'public',
         extensions: [
           buildExtensionPack({
             contractJson: extContractV2,
@@ -444,7 +441,6 @@ describe('db init / db update aggregate pipeline (CLI) - postgres', { concurrent
         frameworkComponents: [...frameworkComponents],
         migrationsDir: baseline.migrationsDir,
         targetId: 'postgres',
-        defaultNamespaceId: 'public',
         extensions: [
           buildExtensionPack({
             contractJson: extContractV1,
@@ -497,7 +493,6 @@ describe('db init / db update aggregate pipeline (CLI) - postgres', { concurrent
         frameworkComponents: [...frameworkComponents],
         migrationsDir: baseline.migrationsDir,
         targetId: 'postgres',
-        defaultNamespaceId: 'public',
         extensions: [
           buildExtensionPack({
             contractJson: extContractV2,

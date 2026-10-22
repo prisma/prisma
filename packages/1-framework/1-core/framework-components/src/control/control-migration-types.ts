@@ -24,6 +24,7 @@ import type {
 import type { OperationContext } from './control-operation-results';
 import type {
   AppliedMigrationStatement,
+  MigrationPlanNamespaces,
   MigrationPlanSubjects,
   MigrationSubject,
   ResolvedMigrationStatement,
@@ -323,6 +324,8 @@ export interface MigrationPlannerSuccessResult extends MigrationPlanSubjects {
   readonly warnings?: readonly MigrationPlannerConflict[];
   /** The statements the plan applied, one per statement it was given, in order. */
   readonly appliedStatements: readonly AppliedMigrationStatement[];
+  /** The namespaces the plan removes and adds; absent from a planner without namespaces. */
+  readonly namespaces?: MigrationPlanNamespaces;
 }
 
 /**

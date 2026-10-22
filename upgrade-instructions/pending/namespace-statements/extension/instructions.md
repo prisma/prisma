@@ -7,13 +7,6 @@ changes:
       glob: "**/*.{ts,mts,cts}"
       matches:
         - '(?<![\w$])(?:StatementPlanningTarget|SchemaTables)(?![\w$])'
-  - id: db-operations-default-namespace
-    summary: |
-      `executeDbUpdate` and `executeDbInit` from `@prisma/orm-toolchain/cli/control-api` take a required `defaultNamespaceId`: the target's default namespace, which is never removed and never the new name of a renamed namespace. A direct caller passes the target descriptor's `defaultNamespaceId`.
-    detection:
-      glob: "**/*.{ts,mts,cts}"
-      matches:
-        - '(?<![\w$])(?:executeDbUpdate|executeDbInit)(?![\w$])'
   - id: schema-ownership-namespace-spaces
     summary: |
       `SchemaOwnership` from `@prisma/orm-framework/components/control` gains `namespaceDeclaringSpaces(namespaceId)`: the ids of the contract spaces that declare the namespace. A test double of it adds the method.
@@ -41,16 +34,6 @@ hasNamespace: (namespaceId) => namespaceId === UNBOUND_NAMESPACE_ID,
 ```
 
 A target with one namespace, as SQLite has, leaves out `namespaces` on its `StatementPlanningTarget`; the planner then refuses a namespace rename or a model move with a `statementRefused` conflict. A target with several namespaces adds `namespaces: { createNamespaceCalls, moveTableCall, namespaceRenameRefusal, renameNamespaceCall }`, returning the calls that create a namespace, move a table and rename a namespace, which it applies to its working schema. `namespaceRenameRefusal` returns `{ reason, fix }` for a namespace it cannot rename for a reason of its own, such as Postgres's `public`; the planner itself refuses a namespace another contract space declares.
-
-## `db-operations-default-namespace`
-
-A direct caller of `executeDbUpdate` or `executeDbInit` passes `defaultNamespaceId` beside `targetId`, with the value of the target descriptor it plans for:
-
-```ts
-await executeDbUpdate({ ...options, targetId: target.targetId, defaultNamespaceId: target.defaultNamespaceId });
-```
-
-The control client's `dbUpdate` and `dbInit` fill it in themselves.
 
 ## `schema-ownership-namespace-spaces`
 

@@ -6,6 +6,7 @@ import type {
   ControlFamilyInstance,
   MigrationOperationPolicy,
   MigrationPlan,
+  MigrationPlanNamespaces,
   MigrationPlannerConflict,
   MigrationPlanOperation,
   MigrationPlanSubjects,
@@ -166,6 +167,8 @@ export interface PerSpacePlan extends MigrationPlanSubjects {
   readonly warnings?: readonly MigrationPlannerConflict[];
   /** The statements the plan applied; empty for a space planned without statements. */
   readonly appliedStatements: readonly AppliedMigrationStatement[];
+  /** The namespaces a `plan-from-diff` plan removes and adds, when its planner reports them. */
+  readonly namespaces?: MigrationPlanNamespaces;
   /**
    * Per-edge breakdown of the chain. `resolve-recorded-path` plans carry
    * one entry per authored edge; `plan-from-diff` and `declared-state`

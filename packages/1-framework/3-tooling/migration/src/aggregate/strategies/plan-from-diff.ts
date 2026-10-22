@@ -144,6 +144,7 @@ export async function planFromDiff<TFamilyId extends string, TTargetId extends s
       dataLoss: plannerResult.dataLoss,
       accessChanges: plannerResult.accessChanges,
       temporaryValues: plannerResult.temporaryValues,
+      ...(plannerResult.namespaces === undefined ? {} : { namespaces: plannerResult.namespaces }),
       ...(plannerResult.warnings && plannerResult.warnings.length > 0
         ? { warnings: plannerResult.warnings }
         : {}),

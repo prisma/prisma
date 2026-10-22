@@ -53,8 +53,6 @@ export interface ExecuteDbInitOptions<TFamilyId extends string, TTargetId extend
    * target-consistency checks across descriptors and the app contract.
    */
   readonly targetId: TTargetId;
-  /** The target's default namespace, which is never removed and never a rename's new name. */
-  readonly defaultNamespaceId: string;
   /**
    * Declared extension descriptors. Defaults to an empty list, which
    * routes through the same loader → planner → runner pipeline with no
@@ -89,7 +87,6 @@ export async function executeDbInit<TFamilyId extends string, TTargetId extends 
     frameworkComponents: options.frameworkComponents,
     migrationsDir: options.migrationsDir,
     targetId: options.targetId,
-    defaultNamespaceId: options.defaultNamespaceId,
     extensions: options.extensions ?? [],
     policy: { allowedOperationClasses: ['additive'] },
     invocation: options.invocation,

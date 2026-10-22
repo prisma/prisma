@@ -26,6 +26,7 @@ const dropModel = (model: string, operationIndex: number) => ({
 const plan: PlannedQuestions = {
   dataLoss: [dropModel('Invoice', 0), dropModel('Receipt', 1)],
   accessChanges: [],
+  namespaces: { removed: ['billing'], added: [] },
 };
 
 function ask(preAnswers: readonly { verb: 'delete'; text: string }[]) {
@@ -42,7 +43,6 @@ function ask(preAnswers: readonly { verb: 'delete'; text: string }[]) {
       origin,
       originKnown: true,
       destination,
-      defaultNamespaceId: 'public',
       answer: async (questions) => {
         asked.push(...questions.map(({ subject }) => subject));
         return questions.map(({ subject }) => ({ verb: 'delete', text: subject }));
@@ -94,7 +94,6 @@ describe('--delete with a namespace of the origin contract', () => {
       origin,
       originKnown: true,
       destination,
-      defaultNamespaceId: 'public',
       answer: async (batch) => {
         questions.push(...batch.map(({ question }) => question));
         return batch.map(({ subject }) => ({ verb: 'delete', text: subject }));
@@ -108,10 +107,14 @@ describe('--delete with a namespace of the origin contract', () => {
     ]);
   });
 
-  async function firstQuestion(to: ReturnType<typeof contractOf>): Promise<string | undefined> {
+  async function firstQuestion(
+    to: ReturnType<typeof contractOf>,
+    added: readonly string[],
+  ): Promise<string | undefined> {
     const questions: string[] = [];
+    const withAdded = { ...plan, namespaces: { removed: ['billing'], added } };
     await askPlanQuestions({
-      plan,
+      plan: withAdded,
       askAccess: false,
       canConvert: false,
       statements: [],
@@ -120,12 +123,11 @@ describe('--delete with a namespace of the origin contract', () => {
       origin,
       originKnown: true,
       destination: to,
-      defaultNamespaceId: 'public',
       answer: async (batch) => {
         questions.push(...batch.map(({ question }) => question));
         return batch.map(({ subject }) => ({ verb: 'delete', text: subject }));
       },
-      replan: async () => ok(plan),
+      replan: async () => ok(withAdded),
     });
     return questions[0];
   }
@@ -136,7 +138,7 @@ describe('--delete with a namespace of the origin contract', () => {
       finance: { models: { Invoice: {}, Receipt: {} } },
     });
 
-    expect(await firstQuestion(renamed)).toBe(
+    expect(await firstQuestion(renamed, ['finance'])).toBe(
       'Drop table "invoice" would lose the data of model "billing.Invoice".\n--delete billing answers this question and every other about a model or field of namespace "billing", which the destination contract no longer has.\nIf namespace "billing" was renamed, --rename billing:finance renames it instead.',
     );
   });
@@ -148,7 +150,7 @@ describe('--delete with a namespace of the origin contract', () => {
       ledger: { models: { Receipt: {} } },
     });
 
-    expect(await firstQuestion(renamed)).toBe(
+    expect(await firstQuestion(renamed, ['finance', 'ledger'])).toBe(
       'Drop table "invoice" would lose the data of model "billing.Invoice".\n--delete billing answers this question and every other about a model or field of namespace "billing", which the destination contract no longer has.\nIf namespace "billing" was renamed, --rename billing:<new namespace> renames it instead, where <new namespace> is finance or ledger.',
     );
   });
@@ -185,7 +187,6 @@ describe('--delete with a namespace of the origin contract', () => {
       }),
       originKnown: true,
       destination: kept,
-      defaultNamespaceId: 'public',
       answer: async (questions) => {
         asked.push(...questions.map(({ subject }) => subject));
         return questions.map(({ subject }) => ({ verb: 'delete', text: subject }));
@@ -197,89 +198,6 @@ describe('--delete with a namespace of the origin contract', () => {
     expect(!outcome.ok && outcome.failure).toMatchObject({
       code: 'MIGRATION.STATEMENT_ANSWERS_NO_QUESTION',
     });
-  });
-});
-
-describe('namespace hints that would not work', () => {
-  const dropOf = (namespace: string, model: string) => ({
-    operationIndex: 0,
-    label: `Drop table "${model}"`,
-    loss: 'drop' as const,
-    subject: { kind: 'model' as const, namespaceId: asNamespaceId(namespace), model },
-  });
-
-  async function questionsFor(input: {
-    readonly from: ReturnType<typeof contractOf>;
-    readonly to: ReturnType<typeof contractOf>;
-    readonly drop: ReturnType<typeof dropOf>;
-    readonly statements?: readonly { verb: 'rename'; text: string }[];
-    readonly preAnswers?: readonly { verb: 'delete'; text: string }[];
-  }) {
-    const lossPlan: PlannedQuestions = { dataLoss: [input.drop], accessChanges: [] };
-    const questions: string[] = [];
-    const outcome = await askPlanQuestions({
-      plan: lossPlan,
-      askAccess: false,
-      canConvert: false,
-      statements: input.statements ?? [],
-      preAnswers: input.preAnswers ?? [],
-      consentAll: { delete: false, allow: false },
-      origin: input.from,
-      originKnown: true,
-      destination: input.to,
-      defaultNamespaceId: 'public',
-      answer: async (batch) => {
-        questions.push(...batch.map(({ question }) => question));
-        return batch.map(({ subject }) => ({ verb: 'delete', text: subject }));
-      },
-      replan: async () => ok(lossPlan),
-    });
-    return { questions, outcome };
-  }
-
-  it('says nothing of a namespace the run renames', async () => {
-    const { questions } = await questionsFor({
-      from: contractOf({ app: { models: { User: {} } }, finance: { models: { Bill: {} } } }),
-      to: contractOf({ app: { models: { User: {} } }, billing: { models: { Invoice: {} } } }),
-      drop: dropOf('finance', 'Bill'),
-      statements: [{ verb: 'rename', text: 'finance:billing' }],
-    });
-
-    expect(questions).toEqual(['Drop table "Bill" would lose the data of model "finance.Bill".']);
-  });
-
-  it('never offers --delete of the default namespace, and --delete of it answers nothing', async () => {
-    const from = contractOf({
-      public: { models: { User: {} } },
-      billing: { models: { Invoice: {} } },
-    });
-    const to = contractOf({ app: { models: { User: {} } }, billing: { models: { Invoice: {} } } });
-
-    const asked = await questionsFor({ from, to, drop: dropOf('public', 'User') });
-    expect(asked.questions.join('\n')).not.toContain('--delete public');
-    expect(asked.questions.join('\n')).not.toContain('--rename public:');
-
-    const deleted = await questionsFor({
-      from,
-      to,
-      drop: dropOf('public', 'User'),
-      preAnswers: [{ verb: 'delete', text: 'public' }],
-    });
-    expect(!deleted.outcome.ok && deleted.outcome.failure).toMatchObject({
-      code: 'MIGRATION.STATEMENT_ANSWERS_NO_QUESTION',
-    });
-  });
-
-  it('never offers a rename to the default namespace', async () => {
-    const { questions } = await questionsFor({
-      from: contractOf({ billing: { models: { Invoice: {} } } }),
-      to: contractOf({ public: { models: { Invoice: {} } } }),
-      drop: dropOf('billing', 'Invoice'),
-    });
-
-    expect(questions).toEqual([
-      'Drop table "Invoice" would lose the data of model "Invoice".\n--delete billing answers this question and every other about a model or field of namespace "billing", which the destination contract no longer has.',
-    ]);
   });
 });
 
@@ -300,7 +218,6 @@ describe('a namespace answer typed at the prompt', () => {
       origin,
       originKnown: true,
       destination,
-      defaultNamespaceId: 'public',
       answer: async (batch) => {
         for (const question of batch)
           expect(question.validate('delete', 'billing')).toBeUndefined();
@@ -326,7 +243,6 @@ describe('a namespace answer typed at the prompt', () => {
       origin,
       originKnown: true,
       destination: finance,
-      defaultNamespaceId: 'public',
       answer: async (batch) => {
         for (const question of batch) {
           expect(question.validate('rename', 'billing:finance')).toBeUndefined();
@@ -353,7 +269,11 @@ describe('a namespace rename answered at one question', () => {
   it('plans the rename, then asks again about a model of the namespace that changed its name', async () => {
     const replanned: string[][] = [];
     const rounds: string[][] = [];
-    const left: PlannedQuestions = { dataLoss: [dropModel('Invoice', 0)], accessChanges: [] };
+    const left: PlannedQuestions = {
+      dataLoss: [dropModel('Invoice', 0)],
+      accessChanges: [],
+      namespaces: { removed: ['billing'], added: ['finance'] },
+    };
     const outcome = await askPlanQuestions({
       plan,
       askAccess: false,
@@ -364,7 +284,6 @@ describe('a namespace rename answered at one question', () => {
       origin,
       originKnown: true,
       destination: renamedWithBill,
-      defaultNamespaceId: 'public',
       answer: async (batch) => {
         rounds.push(batch.map(({ subject }) => subject));
         return batch.map(({ subject }) =>
@@ -424,7 +343,6 @@ describe('a field of a model in a namespace the run renames', () => {
       origin: from,
       originKnown: true,
       destination: to,
-      defaultNamespaceId: 'public',
       answer: async (batch) => {
         asked.push(
           ...batch.map((question) => ({
@@ -454,7 +372,7 @@ describe('a --delete of a subject beside a --delete of its namespace', () => {
     const dryRun = refuseUnusedConsents({
       plan,
       statements: flags,
-      contracts: { origin, destination, statements: [], defaultNamespaceId: 'public' },
+      contracts: { origin, destination, statements: [] },
     });
     let remaining = flags.map(({ verb, text }) => ({ verb, text, values: [text] }));
     const statements: StatementSurface = {
@@ -476,7 +394,6 @@ describe('a --delete of a subject beside a --delete of its namespace', () => {
       origin,
       originKnown: true,
       destination,
-      defaultNamespaceId: 'public',
       answer: promptPlanQuestions(prompt, statements),
       replan: async () => ok(plan),
     });
@@ -488,5 +405,38 @@ describe('a --delete of a subject beside a --delete of its namespace', () => {
     };
     expect(!dryRun.ok && dryRun.failure).toMatchObject(refusal);
     await expect(apply).rejects.toMatchObject(refusal);
+  });
+});
+
+describe('the namespaces the planner reports', () => {
+  it('decide which namespace a question belongs to, not the contracts', async () => {
+    const notRemoved: PlannedQuestions = {
+      dataLoss: [dropModel('Invoice', 0), dropModel('Receipt', 1)],
+      accessChanges: [],
+      namespaces: { removed: [], added: [] },
+    };
+    const questions: string[] = [];
+
+    const outcome = await askPlanQuestions({
+      plan: notRemoved,
+      askAccess: false,
+      canConvert: false,
+      statements: [],
+      preAnswers: [{ verb: 'delete', text: 'billing' }],
+      consentAll: { delete: false, allow: false },
+      origin,
+      originKnown: true,
+      destination,
+      answer: async (batch) => {
+        questions.push(...batch.map(({ question }) => question));
+        return batch.map(({ subject }) => ({ verb: 'delete', text: subject }));
+      },
+      replan: async () => ok(notRemoved),
+    });
+
+    expect(questions.join('\n')).not.toContain('--delete billing answers');
+    expect(!outcome.ok && outcome.failure).toMatchObject({
+      code: 'MIGRATION.STATEMENT_ANSWERS_NO_QUESTION',
+    });
   });
 });

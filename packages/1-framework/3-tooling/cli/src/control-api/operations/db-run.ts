@@ -55,7 +55,6 @@ import {
 import type { CliInvocation } from '../../utils/printed-command';
 import {
   type AnswerPlanQuestions,
-  addedNamespaces,
   askPlanQuestions,
   type ConsentedSubject,
   type PlannedQuestions,
@@ -131,8 +130,6 @@ export interface ExecuteRunSharedOptions<TFamilyId extends string, TTargetId ext
   readonly migrationsDir: string;
   readonly extensions: ReadonlyArray<ControlExtensionDescriptor<TFamilyId, TTargetId>>;
   readonly targetId: TTargetId;
-  /** The target's default namespace, which is never removed and never a rename's new name. */
-  readonly defaultNamespaceId: string;
   readonly policy: MigrationOperationPolicy;
   /** The command line the advice of a failure repeats. */
   readonly invocation: CliInvocation;
@@ -196,7 +193,6 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     migrationsDir,
     extensions,
     targetId,
-    defaultNamespaceId,
     policy,
     action,
     onProgress,
@@ -329,6 +325,11 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       subjects,
       dataLoss: labelled(subjects.dataLoss).map((entry) => ({ ...entry, loss: entry.loss })),
       accessChanges: labelled(subjects.accessChanges),
+      ...ifDefined(
+        'namespaces',
+        orderedResolutions.find(({ spaceId }) => spaceId === aggregate.app.spaceId)?.entry
+          .namespaces,
+      ),
     });
   };
 
@@ -353,7 +354,6 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       origin: fromContract ?? EMPTY_ORIGIN,
       originKnown: fromContract !== null,
       destination: contract,
-      defaultNamespaceId,
       answer: options.answerQuestions,
       replan: (planned) => plan(resolveRenames(planned)),
     });
@@ -375,7 +375,6 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
         origin: fromContract ?? EMPTY_ORIGIN,
         destination: contract,
         statements: plannedTexts,
-        defaultNamespaceId,
       },
     });
     if (!refused.ok) {
@@ -423,17 +422,9 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     origin: fromContract ?? EMPTY_ORIGIN,
     destination: contract,
     statements: plannedTexts,
-    defaultNamespaceId,
   };
-  const namespaceAnswersOf = (subject: MigrationOperationSubject['subject']) => {
-    const removedNamespace = removedNamespaceOf(subject, contractsAsked);
-    if (removedNamespace === undefined) return {};
-    const targets = addedNamespaces(contractsAsked);
-    return {
-      removedNamespace,
-      ...(targets.length === 0 ? {} : { addedNamespaces: targets }),
-    };
-  };
+  const namespaceAnswersOf = (subject: MigrationOperationSubject['subject']) =>
+    ifDefined('removedNamespace', removedNamespaceOf(subject, run.namespaces));
   const asked = <TEntry extends MigrationOperationSubject>(entries: readonly TEntry[]) =>
     entries.map((entry) => ({
       ...entry,

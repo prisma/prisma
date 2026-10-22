@@ -135,7 +135,6 @@ describe('executeDbUpdate', () => {
   it('succeeds on a fresh database without marker', async () => {
     const result = await executeDbUpdate({
       invocation: TEST_INVOCATION,
-      defaultNamespaceId: 'public',
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance(),
@@ -158,7 +157,6 @@ describe('executeDbUpdate', () => {
   it('returns MIGRATION.PLANNING_FAILED when planner reports conflicts', async () => {
     const result = await executeDbUpdate({
       invocation: TEST_INVOCATION,
-      defaultNamespaceId: 'public',
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance({
@@ -221,7 +219,6 @@ describe('executeDbUpdate', () => {
 
     const result = await executeDbUpdate({
       invocation: TEST_INVOCATION,
-      defaultNamespaceId: 'public',
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance({
@@ -265,7 +262,6 @@ describe('executeDbUpdate', () => {
     );
     const result = await executeDbUpdate({
       invocation: TEST_INVOCATION,
-      defaultNamespaceId: 'public',
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance({
@@ -310,7 +306,6 @@ describe('executeDbUpdate', () => {
     const onPlannerWarnings = vi.fn();
     const result = await executeDbUpdate({
       invocation: TEST_INVOCATION,
-      defaultNamespaceId: 'public',
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance({
@@ -356,7 +351,6 @@ describe('executeDbUpdate', () => {
     const onPlannerWarnings = vi.fn();
     const result = await executeDbUpdate({
       invocation: TEST_INVOCATION,
-      defaultNamespaceId: 'public',
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance({
@@ -403,7 +397,6 @@ describe('executeDbUpdate', () => {
     };
     const result = await executeDbUpdate({
       invocation: TEST_INVOCATION,
-      defaultNamespaceId: 'public',
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance({
@@ -441,7 +434,6 @@ describe('executeDbUpdate', () => {
   it('returns success with execution stats and marker in apply mode', async () => {
     const result = await executeDbUpdate({
       invocation: TEST_INVOCATION,
-      defaultNamespaceId: 'public',
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance({
@@ -488,7 +480,6 @@ describe('executeDbUpdate', () => {
   it('returns success with 0 operations when database already matches contract', async () => {
     const result = await executeDbUpdate({
       invocation: TEST_INVOCATION,
-      defaultNamespaceId: 'public',
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance({
@@ -569,7 +560,6 @@ describe('executeDbUpdate', () => {
 
     const result = await executeDbUpdate({
       invocation: TEST_INVOCATION,
-      defaultNamespaceId: 'public',
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance({
@@ -611,7 +601,6 @@ describe('executeDbUpdate', () => {
       appliedStatements: [],
       plan: {
         targetId: 'postgres',
-        defaultNamespaceId: 'public',
         destination: { storageHash: 'dest' },
         operations: [],
       },
@@ -648,7 +637,6 @@ describe('executeDbUpdate', () => {
       migrationsDir: FAKE_MIGRATIONS_DIR,
       answerQuestions: noQuestions,
       targetId: 'postgres',
-      defaultNamespaceId: 'public',
     });
 
     expect(planFn).toHaveBeenCalledWith(
@@ -721,7 +709,6 @@ describe('executeDbUpdate', () => {
         frameworkComponents: [],
         migrationsDir: FAKE_MIGRATIONS_DIR,
         targetId: 'postgres' as const,
-        defaultNamespaceId: 'public',
         answerQuestions: noQuestions,
         invocation: TEST_INVOCATION,
         ...overrides,
@@ -969,7 +956,6 @@ describe('executeDbUpdate', () => {
           appliedStatements: [],
           plan: {
             targetId: 'postgres',
-            defaultNamespaceId: 'public',
             destination: { storageHash: 'dest' },
             operations: [
               {
@@ -992,7 +978,6 @@ describe('executeDbUpdate', () => {
 
     const result = await executeDbUpdate({
       invocation: TEST_INVOCATION,
-      defaultNamespaceId: 'public',
       driver: createMockDriver(),
       adapter: STUB_ADAPTER,
       familyInstance: createMockFamilyInstance(),
@@ -1037,7 +1022,6 @@ describe('executeDbUpdate', () => {
         migrationsDir: FAKE_MIGRATIONS_DIR,
         answerQuestions: noQuestions,
         targetId: 'postgres',
-        defaultNamespaceId: 'public',
         onProgress: (event) => events.push(event),
       });
 
@@ -1067,7 +1051,6 @@ describe('executeDbUpdate', () => {
         migrationsDir: FAKE_MIGRATIONS_DIR,
         answerQuestions: noQuestions,
         targetId: 'postgres',
-        defaultNamespaceId: 'public',
         onProgress: (event) => events.push(event),
       });
 
@@ -1103,7 +1086,6 @@ describe('executeDbUpdate', () => {
         migrationsDir: FAKE_MIGRATIONS_DIR,
         answerQuestions: noQuestions,
         targetId: 'postgres',
-        defaultNamespaceId: 'public',
         onProgress: (event) => events.push(event),
       });
 
@@ -1134,7 +1116,6 @@ describe('executeDbUpdate', () => {
         migrationsDir: FAKE_MIGRATIONS_DIR,
         answerQuestions: noQuestions,
         targetId: 'postgres',
-        defaultNamespaceId: 'public',
         onProgress: (event) => events.push(event),
       });
 

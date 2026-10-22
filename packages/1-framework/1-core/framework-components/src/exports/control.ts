@@ -142,6 +142,7 @@ export type {
   MigrationDataLoss,
   MigrationDataLossKind,
   MigrationOperationSubject,
+  MigrationPlanNamespaces,
   MigrationPlanSubjects,
   MigrationStatementJson,
   MigrationSubject,

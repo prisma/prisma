@@ -43,7 +43,6 @@ describe('executeDbInit', () => {
       appliedStatements: [],
       plan: {
         targetId: 'postgres',
-        defaultNamespaceId: 'public',
         destination: { storageHash: 'dest' },
         operations: [],
       },
@@ -77,7 +76,6 @@ describe('executeDbInit', () => {
       frameworkComponents: [],
       migrationsDir: '/tmp/__test-db-init-migrations',
       targetId: 'postgres',
-      defaultNamespaceId: 'public',
     });
 
     expect(planFn).toHaveBeenCalledWith(
@@ -131,7 +129,6 @@ describe('executeDbInit', () => {
       frameworkComponents: [],
       migrationsDir: '/tmp/__test-db-init-migrations',
       targetId: 'postgres',
-      defaultNamespaceId: 'public',
     });
 
     const failure = result.assertNotOk();

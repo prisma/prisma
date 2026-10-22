@@ -158,7 +158,6 @@ async function dbInitPlan(space: AuditSpace, markerHash: string | undefined) {
     frameworkComponents: [],
     migrationsDir: await migrationsDirWith(space),
     targetId: 'postgres',
-    defaultNamespaceId: 'public',
     extensions: [auditExtension(space)],
   });
 }

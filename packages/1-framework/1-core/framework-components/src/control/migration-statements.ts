@@ -152,6 +152,17 @@ export interface MigrationPlanSubjects<
 }
 
 /**
+ * The namespaces a plan changes, by namespace id: `removed` are those of the origin contract whose
+ * tables the plan drops with them because the destination no longer declares them, and `added`
+ * are those the destination declares and the origin does not. A planner without namespaces reports
+ * neither.
+ */
+export interface MigrationPlanNamespaces {
+  readonly removed: readonly string[];
+  readonly added: readonly string[];
+}
+
+/**
  * A statement as a plan applied it: `operationIndexes` are the positions, in the plan's
  * `operations`, of the operations the statement accounts for, in plan order, and empty when the
  * storage did not change. Statements refer to operations by position because operation ids are

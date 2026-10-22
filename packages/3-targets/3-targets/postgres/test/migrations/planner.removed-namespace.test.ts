@@ -355,3 +355,45 @@ describe('Postgres planner, a namespace the destination removes', () => {
     });
   });
 });
+
+describe('Postgres planner, the namespaces a plan removes and adds', () => {
+  const namespacesOf = (result: ReturnType<typeof plan>) =>
+    result.kind === 'success' ? result.namespaces : undefined;
+  const withFinance = contractOf({ public: ['user'], finance: ['invoice', 'receipt'] }, 'finance');
+
+  it('reports the removed namespace and the one the destination adds', () => {
+    expect(namespacesOf(plan(withBilling, withFinance))).toEqual({
+      removed: ['billing'],
+      added: ['finance'],
+    });
+  });
+
+  it('reports neither for a namespace a statement renames', () => {
+    expect(
+      namespacesOf(
+        plan(withBilling, withFinance, {
+          statements: [
+            {
+              kind: 'rename',
+              entity: 'namespace',
+              from: asNamespaceId('billing'),
+              to: asNamespaceId('finance'),
+            },
+          ],
+        }),
+      ),
+    ).toEqual({ removed: [], added: [] });
+  });
+
+  it('never reports public as removed or added, nor anything without an origin contract', () => {
+    const inPublic = contractOf({ public: ['user'], billing: ['invoice'] }, 'in-public');
+    const onlyBilling = contractOf({ billing: ['invoice'] }, 'only-billing');
+
+    expect(namespacesOf(plan(inPublic, onlyBilling))).toEqual({ removed: [], added: [] });
+    expect(namespacesOf(plan(onlyBilling, inPublic))).toEqual({ removed: [], added: [] });
+    expect(namespacesOf(plan(withBilling, withFinance, { fromContract: null }))).toEqual({
+      removed: [],
+      added: [],
+    });
+  });
+});
