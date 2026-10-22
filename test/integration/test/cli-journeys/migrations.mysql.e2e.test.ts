@@ -9,9 +9,9 @@ import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { withTempDir, writeProjectManifest } from '../utils/cli-test-helpers';
 import {
-  engineError,
   getLatestMigrationDir,
   type JourneyContext,
+  mysqlPslConfigFixture,
   planMigrationAndSelfEmit,
   runContractEmit,
   runDbSign,
@@ -48,24 +48,8 @@ const WITH_NICKNAME = BASE.replace('  role  Role\n', '  role  Role\n  nickname S
 function setup(createTempDir: () => string, url: string): JourneyContext {
   const testDir = createTempDir();
   const configPath = join(testDir, 'prisma.config.ts');
-  writeFileSync(
-    configPath,
-    [
-      "import { defineConfig as ormConfig } from '@internal/mysql/config';",
-      "import { definePrismaConfig } from '@prisma/cli-engine';",
-      '',
-      'export default definePrismaConfig({',
-      '  orm: ormConfig({',
-      "    contract: './contract.prisma',",
-      "    output: '.',",
-      `    db: { connection: ${JSON.stringify(url)} },`,
-      "    migrations: { dir: 'migrations' },",
-      '  }),',
-      '});',
-      '',
-    ].join('\n'),
-    'utf-8',
-  );
+  const config = readFileSync(mysqlPslConfigFixture, 'utf-8').replace('{{DB_URL}}', () => url);
+  writeFileSync(configPath, config, 'utf-8');
   writeFileSync(join(testDir, 'contract.prisma'), BASE, 'utf-8');
   writeProjectManifest(testDir);
   return { testDir, configPath, outputDir: testDir };
