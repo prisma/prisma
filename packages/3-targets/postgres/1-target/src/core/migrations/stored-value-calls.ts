@@ -109,7 +109,12 @@ export function storedValueSubjects(
       enumValue: rewrite.enumValue,
       ...ifDefined(
         'keepDataEdit',
-        rewrite.keepData === undefined ? undefined : keepDataEdit(call, rewrite.keepData),
+        rewrite.keepData === undefined
+          ? undefined
+          : {
+              ...keepDataEdit(call, rewrite.keepData),
+              ...(rewrite.swapsValues ? { swapsValues: true } : {}),
+            },
       ),
     });
   }

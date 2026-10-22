@@ -47,6 +47,8 @@ export interface StoredValueRewrite {
    * order they run; none when keeping it would merge it with another member's data.
    */
   readonly keepData: readonly StoredValueReplacement[] | undefined;
+  /** Whether the value moves in a cycle with other values of the enum, so keeping its data swaps values. */
+  readonly swapsValues: boolean;
 }
 
 /** One replacement of a stored value by another. */
@@ -215,8 +217,9 @@ function cycleRefusal(
   return {
     kind: 'statementRefused',
     summary: `Cannot rename enum value "${enumValueStatementText(enums.fromContract, statement.from)}" to "${enumValueStatementText(enums.contract, statement.to)}": the renames move stored values in a cycle, ${listed}, and a rewrite of one would overwrite the other before it is read`,
-    why: 'Leave out the renames in the cycle, and write the rewrites by hand: plan the change with migration plan, and in the migration.ts it writes rewrite the first value to a value no member stores, then each other value, then that value to its new value, with this.replaceStoredValue({ table, column, from, to }) for each.',
+    why: 'Leave out the renames in the cycle, and write the rewrites by hand in the migration.ts a plan without them writes: rewrite the first value to a value no member stores, then each other value, then that value to its new value, with this.replaceStoredValue({ table, column, from, to }) for each.',
     refusedStatement: statement,
+    leaveOut: cycle.flatMap((change) => (change.statement === undefined ? [] : [change.statement])),
   };
 }
 
@@ -397,6 +400,7 @@ export function planEnumValueRewrites(input: {
               to: change.statement === undefined ? undefined : change.to,
               statement: change.statement,
               keepData,
+              swapsValues: group.cycle,
             });
           }
         }

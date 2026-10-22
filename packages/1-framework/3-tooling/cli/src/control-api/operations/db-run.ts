@@ -44,7 +44,7 @@ import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { join } from 'pathe';
-import { CliStructuredError, errorMigrationPlanningFailed } from '../../utils/cli-errors';
+import { CliStructuredError } from '../../utils/cli-errors';
 import { dbInitPlanningFailedError, dbInitRunnerFailureError } from '../../utils/db-init-failure';
 import { dbUpdateRunnerFailureError } from '../../utils/db-update-failure';
 import {
@@ -53,6 +53,7 @@ import {
   type UnplannableExtensionSpace,
 } from '../../utils/extension-path-failure';
 import { dbUpdateKeepDataEditAdvice } from '../../utils/keep-data-edit-advice';
+import { planningRefusedError } from '../../utils/planning-refused-error';
 import type { CliInvocation } from '../../utils/printed-command';
 import {
   type AnswerPlanQuestions,
@@ -306,6 +307,8 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
           aggregate,
           markerRows,
           invocation: options.invocation,
+          statements: statementTexts,
+          resolved,
         }),
       });
     }
@@ -695,12 +698,19 @@ function mapPlannerError(
     readonly aggregate: ContractSpaceAggregate;
     readonly markerRows: ReadonlyMap<string, { readonly storageHash: string }>;
     readonly invocation: CliInvocation;
+    readonly statements: readonly StatementText[];
+    readonly resolved: readonly ResolvedMigrationStatement[];
   },
 ): CliStructuredError {
   if (error.kind === 'planFromDiffFailed') {
     return context.action === 'dbInit'
       ? dbInitPlanningFailedError(error.conflicts)
-      : errorMigrationPlanningFailed({ conflicts: error.conflicts });
+      : planningRefusedError(error.conflicts, {
+          invocation: context.invocation,
+          from: recordedDatabaseContract(context.aggregate, context.markerRows),
+          statements: context.statements,
+          resolved: context.resolved,
+        });
   }
   if (error.kind === 'policyConflict') {
     throw new InternalError(

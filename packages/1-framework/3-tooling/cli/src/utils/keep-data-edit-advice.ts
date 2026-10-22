@@ -4,7 +4,7 @@ import { statementFlag } from '../control-api/statements/statement-flag';
 import { type CliInvocation, cliCommand, printedPlanCommand } from './printed-command';
 import { runWrittenFile } from './runner-failure-advice';
 
-function swaps(edits: readonly KeepDataEdit[]): string {
+function editsText(edits: readonly KeepDataEdit[]): string {
   return edits
     .map(({ remove, replaceWith }) => `replace ${remove} with ${replaceWith}`)
     .join(', and ');
@@ -19,7 +19,7 @@ export function migrationPlanKeepDataEditAdvice(invocation: CliInvocation): Keep
   return (subject, edits) => ({
     lead: undefined,
     ways: [
-      `To keep that data, answer with ${statementFlag({ verb: 'delete', text: subject })}, then in the migration.ts this command writes ${swaps(edits)}, ${runWrittenFile(invocation)}.`,
+      `To keep that data, answer with ${statementFlag({ verb: 'delete', text: subject })}, then in the migration.ts this command writes ${editsText(edits)}, ${runWrittenFile(invocation)}.`,
     ],
   });
 }
@@ -53,21 +53,30 @@ export function dbUpdateKeepDataEditAdvice(
   invocation: CliInvocation,
   databaseStorageHash: string | undefined,
 ): KeepDataEditAdvice {
-  return (subject, edits): KeepDataAdvice => {
+  return (subject, edits, others): KeepDataAdvice => {
     const deleteFlag = statementFlag({ verb: 'delete', text: subject });
-    const lead = `db update cannot keep that data in one run, and ${deleteFlag} removes it.`;
+    const swaps = edits.some(({ swapsValues }) => swapsValues === true);
+    const lead = swaps
+      ? `db update cannot keep that data, because members of the enum swap stored values, and ${deleteFlag} removes it.`
+      : `db update cannot keep that data in one run, and ${deleteFlag} removes it.`;
     if (databaseStorageHash === undefined) {
-      return { lead, ways: [twoRuns(invocation, subject)] };
+      return swaps
+        ? {
+            lead: `${lead} Only a migration can keep it, and no migration ends at the contract the database is at.`,
+            ways: [],
+          }
+        : { lead, ways: [twoRuns(invocation, subject)] };
     }
+    const deletes = [subject, ...others].map((text) => statementFlag({ verb: 'delete', text }));
     const plan = printedPlanCommand(invocation, databaseStorageHash, [
-      ...otherStatements(invocation, subject),
-      deleteFlag,
+      ...otherStatements(invocation, subject).filter((flag) => !deletes.includes(flag)),
+      ...deletes,
     ]);
     return {
       lead,
       ways: [
-        `To keep it, plan the change with ${quoted(plan)}, in the migration.ts it writes ${swaps(edits)}, ${runWrittenFile(invocation)}.`,
-        twoRuns(invocation, subject),
+        `To keep it, plan the change with ${quoted(plan)}, in the migration.ts it writes ${editsText(edits)}, ${runWrittenFile(invocation)}.`,
+        ...(swaps ? [] : [twoRuns(invocation, subject)]),
       ],
     };
   };

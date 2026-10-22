@@ -9,6 +9,7 @@ import {
   createControlStack,
   hasOperationPreview,
   type MigrationPlanNamespaces,
+  type MigrationPlannerConflict,
   type MigrationPlanOperation,
   migrationSubjectKey,
   type OperationPreview,
@@ -50,6 +51,7 @@ import { contractValidationMeta } from '../../utils/contract-validation-meta';
 import { toExtensionInputs } from '../../utils/extension-pack-inputs';
 import { assertFrameworkComponentsCompatible } from '../../utils/framework-components';
 import { migrationPlanKeepDataEditAdvice } from '../../utils/keep-data-edit-advice';
+import { planningRefusedError } from '../../utils/planning-refused-error';
 import { type CliInvocation, selfEmitCommand } from '../../utils/printed-command';
 import { createProjectSpecifierResolver } from '../../utils/project-import-root';
 import { snapshotVerifierFor } from '../../utils/snapshot-content-verification';
@@ -179,6 +181,8 @@ async function runPlannerLeg(
   ownership: SchemaOwnership,
   snapshotsImportPath: string,
   resolveImportSpecifier: ImportSpecifierResolver,
+  refused: (conflicts: readonly MigrationPlannerConflict[]) => CliStructuredError = (conflicts) =>
+    errorMigrationPlanningFailed({ conflicts: castAs<readonly CliErrorConflict[]>(conflicts) }),
 ): Promise<Result<PlannerSuccess, PlannerLegFailure>> {
   const fromContract = origin.kind === 'contract' ? origin.contract : null;
   const fromSchema = migrations.contractToSchema(fromContract, frameworkComponents);
@@ -202,9 +206,7 @@ async function runPlannerLeg(
   if (plannerResult.kind === 'failure') {
     return notOk({
       reason: 'refused',
-      error: errorMigrationPlanningFailed({
-        conflicts: castAs<readonly CliErrorConflict[]>(plannerResult.conflicts),
-      }),
+      error: refused(plannerResult.conflicts),
     });
   }
 
@@ -664,6 +666,15 @@ async function executeMigrationPlanCommandInner(
     }
     statements = resolved.value;
   }
+  const refusedWith =
+    (resolved: readonly ResolvedMigrationStatement[]) =>
+    (conflicts: readonly MigrationPlannerConflict[]) =>
+      planningRefusedError(conflicts, {
+        invocation: invocationOf(options),
+        from: fromHash ?? undefined,
+        statements: statementTexts,
+        resolved,
+      });
 
   // Before the seed phase, which is the first thing here that writes: an
   // unreadable or contradictory project manifest fails the command outright
@@ -845,6 +856,7 @@ async function executeMigrationPlanCommandInner(
           aggregate,
           snapshotsImportPathFrom(deltaPackageDir, migrationsDir),
           resolveImportSpecifier,
+          refusedWith(resolved),
         );
       const plannedDelta =
         fromHash === toStorageHash ? undefined : await planBaselineDelta(statements);
@@ -1037,6 +1049,7 @@ async function executeMigrationPlanCommandInner(
         aggregate,
         snapshotsImportPathFrom(packageDir, migrationsDir),
         resolveImportSpecifier,
+        refusedWith(resolved),
       );
     const plannedDelta = await planDelta(statements);
     if (!plannedDelta.ok) {

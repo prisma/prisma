@@ -409,6 +409,8 @@ type DataLossContracts = StatementContracts & {
   readonly canConvert: boolean;
   /** The command's words for the edits that keep a subject's data; none when it gives none. */
   readonly keepDataEditAdvice?: KeepDataEditAdvice;
+  /** The subjects of the round's questions that carry edits that keep their data. */
+  readonly keptSubjects?: readonly string[];
 };
 
 /** What a command says of keeping a subject's data: why its answer loses it, if anything, and each way to keep it. */
@@ -417,10 +419,14 @@ export interface KeepDataAdvice {
   readonly ways: readonly string[];
 }
 
-/** How a command says to make `edits` to keep the data of the subject `subject`. */
+/**
+ * How a command says to make `edits` to keep the data of the subject `subject`. `others` are the
+ * other subjects asked about with edits of their own, whose data a plan keeps together with it.
+ */
 export type KeepDataEditAdvice = (
   subject: string,
   edits: readonly KeepDataEdit[],
+  others: readonly string[],
 ) => KeepDataAdvice;
 
 /**
@@ -462,7 +468,11 @@ export function dataLossQuestion(
   const keepData =
     edits.length === 0 || contracts.keepDataEditAdvice === undefined
       ? undefined
-      : contracts.keepDataEditAdvice(subject, edits);
+      : contracts.keepDataEditAdvice(
+          subject,
+          edits,
+          (contracts.keptSubjects ?? []).filter((other) => other !== subject),
+        );
   const question = [
     `${labelsText(labels)} ${lossText(loss.subject, subject, contracts.originKnown, loss.loss)}.`,
     ...(missingModel === undefined ? [] : [modelRenameAdvice(missingModel, contracts)]),
@@ -794,6 +804,12 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
     const losses = pending('delete', plan.dataLoss);
     const sameSubject = (loss: PlannedDataLoss) =>
       plan.dataLoss.filter((entry) => questionKey('delete', entry) === questionKey('delete', loss));
+    const roundContracts = {
+      ...contracts,
+      keptSubjects: losses
+        .filter((loss) => sameSubject(loss).some(({ keepDataEdit }) => keepDataEdit !== undefined))
+        .map((loss) => subjectText(loss.subject, contracts)),
+    };
     const accessChanges = input.askAccess ? pending('allow', plan.accessChanges) : [];
     if (losses.length + accessChanges.length === 0 && round > 0) break;
     const questions = [
@@ -804,7 +820,7 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
             question: acceptingNamespaceAnswers(
               dataLossQuestion(
                 loss,
-                contracts,
+                roundContracts,
                 sameSubject(loss).flatMap((entry) =>
                   entry.keepDataEdit === undefined ? [] : [entry.keepDataEdit],
                 ),

@@ -150,6 +150,8 @@ export interface MigrationDataLoss extends MigrationOperationSubject {
 export interface KeepDataEdit {
   readonly remove: string;
   readonly replaceWith: string;
+  /** Whether the edit moves stored values between members that trade them, through a temporary value. */
+  readonly swapsValues?: boolean;
 }
 
 /**

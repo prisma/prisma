@@ -7,6 +7,8 @@
  *
  * S7 changes the stored value of `ARCHIVED` under `db update` with no migrations, and follows the two-run way the refusal leads with. S8 shifts integer stored values along with two renames in one `db update`.
  *
+ * S9 and S10 swap the stored values of `ACTIVE` and `ARCHIVED` under `db update`, with and without migrations. S11 refuses renames that move stored values in a cycle.
+ *
  * S3 has a required `status`: with no row holding the value, `--delete` removes it; while rows hold it, `--delete` fails at apply with `MIGRATION.PRECHECK_FAILED` saying how to keep them and changes nothing, and `--rename` applies.
  *
  * Every journey ends with `db verify --schema-only` clean and a further plan empty, and the `migration.ts` written is run again and reproduces its `ops.json` and `migration.json` byte for byte.
@@ -540,6 +542,122 @@ model Job {
           { id: 3, prio: 5 },
         ]);
         await expectVerified(ctx, 'S8.05');
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  const SWAPPED_PSL = FROM_PSL.replace('ACTIVE = "active"', 'ACTIVE = "archived"').replace(
+    'ARCHIVED = "archived"',
+    'ARCHIVED = "active"',
+  );
+
+  async function migratedStart(label: string): Promise<SqliteJourney> {
+    const ctx = setupSqliteJourney(createTempDir);
+    await emit(ctx, FROM_PSL, `${label}.01`);
+    const initial = await planMigrationAndSelfEmit(ctx, ['--name', 'initial']);
+    expect(initial.exitCode, `${label}.02: plan initial: ${initial.stderr}`).toBe(0);
+    expect((await runMigrate(ctx)).exitCode, `${label}.02: migrate initial`).toBe(0);
+    seedRows(ctx.dbPath);
+    return ctx;
+  }
+
+  describe('S9 (SQLite): keep the data of two members that swap stored values, through the plan db update prints', () => {
+    it(
+      'offers only the migration plan way, and following it swaps the rows',
+      async () => {
+        const ctx = await migratedStart('S9');
+        await emit(ctx, SWAPPED_PSL, 'S9.03');
+
+        const refused = await runDbUpdate(ctx, ['--no-interactive', '--json']);
+        expect(engineError(refused)?.code, 'S9.04').toBe('CLI.CONSENT_REQUIRED');
+        const actions = nextActionLabels(refused);
+        expect(
+          actions.filter((label) => label.startsWith('To keep')).length,
+          'S9.04: one way per value, and no two-run way',
+        ).toBe(2);
+        expect(actions.join('\n')).not.toContain('To keep it with db update');
+        const printed = /`prisma-test migration plan (.+?)`/.exec(actions[0] ?? '')?.[1] ?? '';
+        expect(printed, 'S9.04: the printed plan deletes both values').toMatch(
+          /^--from \S+ --delete Status\.(ACTIVE|ARCHIVED) --delete Status\.(ACTIVE|ARCHIVED)$/,
+        );
+
+        const plan = await runMigrationPlan(ctx, ['--name', 'swap', ...printed.split(' ')]);
+        expect(plan.exitCode, `S9.05: plan: ${plan.stderr}`).toBe(0);
+        const dirName = latestMigrationDirName(ctx);
+        const file = join(ctx.testDir, 'migrations', 'app', dirName, 'migration.ts');
+        writeFileSync(file, followEdits(readFileSync(file, 'utf-8'), actions.join('\n')));
+        const reEmit = await selfEmitMigration(ctx, ['--dir', `migrations/app/${dirName}`]);
+        expect(reEmit.exitCode, `S9.06: node migration.ts: ${reEmit.stderr}`).toBe(0);
+        expect((await runMigrate(ctx)).exitCode, 'S9.07: migrate').toBe(0);
+
+        expect(tasks(ctx.dbPath)).toEqual([
+          { id: 1, status: 'active' },
+          { id: 2, status: 'archived' },
+          { id: 3, status: null },
+        ]);
+        await expectVerified(ctx, 'S9.08');
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('S10 (SQLite): two members that swap stored values under db update with no migrations', () => {
+    it(
+      'says plainly that db update cannot keep that data, and offers only the delete',
+      async () => {
+        const ctx = setupSqliteJourney(createTempDir);
+        await emit(ctx, FROM_PSL, 'S10.01');
+        expect((await runDbUpdate(ctx, ['--json'])).exitCode, 'S10.02: create').toBe(0);
+        seedRows(ctx.dbPath);
+        await emit(ctx, SWAPPED_PSL, 'S10.03');
+
+        const refused = await runDbUpdate(ctx, ['--no-interactive', '--json']);
+        expect(engineError(refused)?.code, 'S10.04').toBe('CLI.CONSENT_REQUIRED');
+        expect(engineError(refused)?.why).toContain(
+          'db update cannot keep that data, because members of the enum swap stored values, and --delete Status.ACTIVE removes it. Only a migration can keep it, and no migration ends at the contract the database is at.',
+        );
+        expect(nextActionLabels(refused)).toEqual([
+          'Run the command again with --delete Status.ACTIVE',
+          'Run the command again with --delete Status.ARCHIVED',
+        ]);
+        expect(tasks(ctx.dbPath), 'S10.04: nothing changed').toEqual([
+          { id: 1, status: 'archived' },
+          { id: 2, status: 'active' },
+          { id: 3, status: null },
+        ]);
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('S11 (SQLite): renames that move stored values in a cycle', () => {
+    it(
+      'are refused, and the refusal prints the plan to write the rewrites by hand in',
+      async () => {
+        const ctx = await migratedStart('S11');
+        await emit(
+          ctx,
+          contractWith('  ARCHIVED = "archived"\n')
+            .replace('ACTIVE = "active"', 'X = "archived"')
+            .replace('ARCHIVED = "archived"', 'Y = "active"'),
+          'S11.03',
+        );
+
+        const refused = await runDbUpdate(ctx, [
+          '--rename',
+          'Status.ACTIVE:Status.X',
+          '--rename',
+          'Status.ARCHIVED:Status.Y',
+          '--no-interactive',
+          '--json',
+        ]);
+        expect(engineError(refused)?.code, 'S11.04').toBe('MIGRATION.PLANNING_FAILED');
+        expect(nextActionLabels(refused)).toEqual([
+          expect.stringMatching(
+            /^To write the rewrites by hand, plan the change without --rename Status\.ACTIVE:Status\.X and --rename Status\.ARCHIVED:Status\.Y with `prisma-test migration plan --from \S+`, add the rewrites the message describes to the migration\.ts it writes, run `node <migration directory>\/migration\.ts` for the directory it writes, and apply it with `prisma-test db migrate`$/,
+          ),
+        ]);
       },
       timeouts.spinUpPpgDev,
     );

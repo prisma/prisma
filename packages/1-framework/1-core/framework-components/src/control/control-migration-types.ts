@@ -312,6 +312,11 @@ export interface MigrationPlannerConflict {
    * on this field, not on the conflict's kind, which each family names.
    */
   readonly refusedStatement?: ResolvedMigrationStatement;
+  /**
+   * Set when the change can be written by hand instead: the statements to leave out of a plan, whose
+   * `migration.ts` the user then adds the operations the conflict's `why` names to.
+   */
+  readonly leaveOut?: readonly ResolvedMigrationStatement[];
 }
 
 /**

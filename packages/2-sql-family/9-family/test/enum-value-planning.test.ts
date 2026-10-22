@@ -209,6 +209,7 @@ describe('planEnumValueRewrites', () => {
         to: undefined,
         statement: undefined,
         keepData: undefined,
+        swapsValues: false,
       },
       {
         enumValue: ARCHIVED,
@@ -221,6 +222,7 @@ describe('planEnumValueRewrites', () => {
         to: undefined,
         statement: undefined,
         keepData: undefined,
+        swapsValues: false,
       },
     ]);
   });
@@ -272,6 +274,7 @@ describe('planEnumValueRewrites', () => {
         to: 'retired',
         statement,
         keepData: undefined,
+        swapsValues: false,
       },
     ]);
   });
@@ -309,11 +312,12 @@ describe('planEnumValueRewrites', () => {
       }),
     );
     expect(
-      planned.map(({ enumValue, from, to, keepData }) => ({
+      planned.map(({ enumValue, from, to, keepData, swapsValues }) => ({
         member: enumValue.member,
         from,
         to,
         keepData,
+        swapsValues,
       })),
     ).toEqual([
       {
@@ -321,6 +325,7 @@ describe('planEnumValueRewrites', () => {
         from: 'active',
         to: undefined,
         keepData: [{ from: 'active', to: 'prisma_swap' }],
+        swapsValues: true,
       },
       {
         member: 'OLD',
@@ -330,6 +335,7 @@ describe('planEnumValueRewrites', () => {
           { from: 'old', to: 'active' },
           { from: 'prisma_swap', to: 'old' },
         ],
+        swapsValues: true,
       },
     ]);
   });
@@ -363,9 +369,11 @@ describe('planEnumValueRewrites', () => {
         codecs: noCodecs,
       }),
     );
-    expect(planned.map(({ from, keepData }) => ({ from, keepData }))).toEqual([
-      { from: 'b', keepData: [{ from: 'b', to: 'c' }] },
-      { from: 'a', keepData: [{ from: 'a', to: 'b' }] },
+    expect(
+      planned.map(({ from, keepData, swapsValues }) => ({ from, keepData, swapsValues })),
+    ).toEqual([
+      { from: 'b', keepData: [{ from: 'b', to: 'c' }], swapsValues: false },
+      { from: 'a', keepData: [{ from: 'a', to: 'b' }], swapsValues: false },
     ]);
   });
 
@@ -408,7 +416,8 @@ describe('planEnumValueRewrites', () => {
       kind: 'statementRefused',
       summary:
         'Cannot rename enum value "Status.ACTIVE" to "Status.X": the renames move stored values in a cycle, "active" to "old" and "old" to "active", and a rewrite of one would overwrite the other before it is read',
-      why: 'Leave out the renames in the cycle, and write the rewrites by hand: plan the change with migration plan, and in the migration.ts it writes rewrite the first value to a value no member stores, then each other value, then that value to its new value, with this.replaceStoredValue({ table, column, from, to }) for each.',
+      why: 'Leave out the renames in the cycle, and write the rewrites by hand in the migration.ts a plan without them writes: rewrite the first value to a value no member stores, then each other value, then that value to its new value, with this.replaceStoredValue({ table, column, from, to }) for each.',
+      leaveOut: [rename('ACTIVE', 'X'), rename('OLD', 'Y')],
     });
   });
 
