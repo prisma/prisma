@@ -13,6 +13,7 @@ const CONNECTION_FIELDS = [
   'binary',
   'options',
   'ssl',
+  'sslnegotiation',
   'client_encoding',
   'replication',
   'isDomainSocket',
