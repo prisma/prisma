@@ -4,6 +4,7 @@ import type {
   ExtractQueryOperationTypes,
   ExtractStorageColumnInputTypes,
   ExtractStorageColumnTypes,
+  IsOptionalCreateColumn,
   StorageColumnMapAt,
   StorageTable,
 } from '@internal/sql-contract/types';
@@ -20,7 +21,13 @@ import type {
 } from '../scope';
 import type { NamespaceTable, TableNamesInNamespace, TableProxyContract } from './db';
 import type { IndexReferences } from './index-reference';
-import type { DeleteQuery, InsertQuery, InsertValues, UpdateQuery } from './mutation-query';
+import type {
+  ColumnValues,
+  DeleteQuery,
+  InsertQuery,
+  UpdateQuery,
+  UpdateValues,
+} from './mutation-query';
 import type { ContractColumnRef } from './raw-query';
 import type { WithJoin, WithSelect } from './shared';
 
@@ -36,6 +43,38 @@ type ResolvedColumnTypes<
   readonly [K in ColumnKeys]: ColMap extends Record<K, unknown> ? ColMap[K] : never;
 };
 
+type IsOptionalInsertColumn<
+  C extends TableProxyContract,
+  NsId extends string,
+  Table extends StorageTable,
+  TableName extends string,
+  K,
+> = IsOptionalCreateColumn<
+  C,
+  K extends keyof Table['columns'] ? Table['columns'][K] : never,
+  NsId,
+  TableName,
+  K & string
+>;
+
+type InsertRow<
+  C extends TableProxyContract,
+  NsId extends string,
+  Table extends StorageTable,
+  TableName extends string,
+  Values,
+> = {
+  [K in keyof Values as IsOptionalInsertColumn<C, NsId, Table, TableName, K> extends true
+    ? never
+    : K]: Values[K];
+} & {
+  [K in keyof Values as IsOptionalInsertColumn<C, NsId, Table, TableName, K> extends true
+    ? K
+    : never]?: Values[K];
+} extends infer Row
+  ? { [K in keyof Row]: Row[K] }
+  : never;
+
 type ResolvedInsertValues<
   C extends TableProxyContract,
   NsId extends string,
@@ -45,9 +84,9 @@ type ResolvedInsertValues<
 > =
   StorageColumnMapAt<ExtractStorageColumnInputTypes<C>, NsId, TableName> extends infer ColMap
     ? [ColMap] extends [never]
-      ? InsertValues<Table, CT>
-      : { [K in keyof ColMap]?: ColMap[K] }
-    : InsertValues<Table, CT>;
+      ? InsertRow<C, NsId, Table, TableName, ColumnValues<Table, CT>>
+      : InsertRow<C, NsId, Table, TableName, ColMap>
+    : never;
 
 type ResolvedUpdateValues<
   C extends TableProxyContract,
@@ -55,7 +94,12 @@ type ResolvedUpdateValues<
   Table extends StorageTable,
   TableName extends string,
   CT extends Record<string, { readonly input: unknown }>,
-> = ResolvedInsertValues<C, NsId, Table, TableName, CT>;
+> =
+  StorageColumnMapAt<ExtractStorageColumnInputTypes<C>, NsId, TableName> extends infer ColMap
+    ? [ColMap] extends [never]
+      ? UpdateValues<Table, CT>
+      : { [K in keyof ColMap]?: ColMap[K] }
+    : UpdateValues<Table, CT>;
 
 type ResolvedUpdateExpressions<Table extends StorageTable> = {
   [K in keyof Table['columns']]?: Expression<{
