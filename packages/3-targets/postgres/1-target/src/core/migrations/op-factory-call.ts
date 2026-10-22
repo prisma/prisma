@@ -20,7 +20,6 @@
  * `PostgresOpFactoryCall` union.
  */
 
-import type { JsonValue } from '@internal/contract/types';
 import { unfilledPlaceholderOperation } from '@internal/errors/migration';
 import {
   checkSqlDefaultText,
@@ -123,7 +122,7 @@ import {
 import { dropSchema, renameSchema, setTableSchema } from './operations/schemas';
 import type { ForeignKeySpec } from './operations/shared';
 import { step, targetDetails } from './operations/shared';
-import { removeValue, replaceValue, storedValueText } from './operations/stored-values';
+import { removeStoredValue, replaceStoredValue, storedValueText } from './operations/stored-values';
 import { dropTable, renameTable } from './operations/tables';
 import { buildAddNotNullColumnWithTemporaryDefaultOperation } from './planner-recipes';
 import {
@@ -2230,23 +2229,32 @@ export class AddNativeEnumValueCall extends PostgresOpFactoryCallNode {
 // Stored values
 // ============================================================================
 
-function storedValueLocation(schemaName: string, tableName: string, columnName: string): string[] {
-  const opts: string[] = [];
-  if (schemaName !== UNBOUND_NAMESPACE_ID) opts.push(`schema: ${jsonToTsSource(schemaName)}`);
-  opts.push(`table: ${jsonToTsSource(tableName)}`);
-  opts.push(`column: ${jsonToTsSource(columnName)}`);
-  return opts;
+function requireStoredValue(
+  value: string | number,
+  factory: string,
+  location: readonly string[],
+  argument: string,
+): string | number {
+  if (typeof value === 'string' || (typeof value === 'number' && Number.isFinite(value))) {
+    return value;
+  }
+  const got: unknown = value;
+  throw postgresError(
+    'CONTRACT.ARGUMENT_INVALID',
+    `${factory}({ ${location.join(', ')} }): ${argument} must be a string or a number; got ${typeof got === 'number' || got === undefined ? String(got) : JSON.stringify(got)}`,
+    { meta: { what: `${factory} ${argument}` } },
+  );
 }
 
 /** Changes one stored value of a column to another, in every row, or in every list of a list column. */
-export class ReplaceValueCall extends PostgresOpFactoryCallNode {
-  readonly factoryName = 'replaceValue' as const;
+export class ReplaceStoredValueCall extends PostgresOpFactoryCallNode {
+  readonly factoryName = 'replaceStoredValue' as const;
   readonly operationClass = 'widening' as const;
   readonly schemaName: string;
   readonly tableName: string;
   readonly columnName: string;
-  readonly from: JsonValue;
-  readonly to: JsonValue;
+  readonly from: string | number;
+  readonly to: string | number;
   readonly many: boolean;
   readonly label: string;
 
@@ -2254,23 +2262,24 @@ export class ReplaceValueCall extends PostgresOpFactoryCallNode {
     schemaName: string,
     tableName: string,
     columnName: string,
-    from: JsonValue,
-    to: JsonValue,
+    from: string | number,
+    to: string | number,
     many: boolean,
   ) {
     super();
+    const location = columnCallLocation(schemaName, tableName, columnName);
     this.schemaName = schemaName;
     this.tableName = tableName;
     this.columnName = columnName;
-    this.from = from;
-    this.to = to;
+    this.from = requireStoredValue(from, this.factoryName, location, 'from');
+    this.to = requireStoredValue(to, this.factoryName, location, 'to');
     this.many = many;
     this.label = `Replace value ${storedValueText(from)} with ${storedValueText(to)} in column "${columnName}" of "${tableName}"`;
     this.freeze();
   }
 
   async toOp(): Promise<Op> {
-    return replaceValue(
+    return replaceStoredValue(
       this.schemaName,
       this.tableName,
       this.columnName,
@@ -2282,12 +2291,12 @@ export class ReplaceValueCall extends PostgresOpFactoryCallNode {
 
   renderTypeScript(): string {
     const opts = [
-      ...storedValueLocation(this.schemaName, this.tableName, this.columnName),
+      ...columnCallLocation(this.schemaName, this.tableName, this.columnName),
       `from: ${jsonToTsSource(this.from)}`,
       `to: ${jsonToTsSource(this.to)}`,
       ...(this.many ? ['many: true'] : []),
     ];
-    return `this.replaceValue({ ${opts.join(', ')} })`;
+    return `this.replaceStoredValue({ ${opts.join(', ')} })`;
   }
 
   override importRequirements(): readonly ImportRequirement[] {
@@ -2296,13 +2305,13 @@ export class ReplaceValueCall extends PostgresOpFactoryCallNode {
 }
 
 /** Removes one stored value of a column: sets it to NULL, or takes it out of every list of a list column. */
-export class RemoveValueCall extends PostgresOpFactoryCallNode {
-  readonly factoryName = 'removeValue' as const;
+export class RemoveStoredValueCall extends PostgresOpFactoryCallNode {
+  readonly factoryName = 'removeStoredValue' as const;
   readonly operationClass = 'destructive' as const;
   readonly schemaName: string;
   readonly tableName: string;
   readonly columnName: string;
-  readonly value: JsonValue;
+  readonly value: string | number;
   readonly many: boolean;
   readonly label: string;
 
@@ -2310,30 +2319,46 @@ export class RemoveValueCall extends PostgresOpFactoryCallNode {
     schemaName: string,
     tableName: string,
     columnName: string,
-    value: JsonValue,
+    value: string | number,
     many: boolean,
   ) {
     super();
     this.schemaName = schemaName;
     this.tableName = tableName;
     this.columnName = columnName;
-    this.value = value;
+    this.value = requireStoredValue(
+      value,
+      this.factoryName,
+      columnCallLocation(schemaName, tableName, columnName),
+      'value',
+    );
     this.many = many;
     this.label = `Remove value ${storedValueText(value)} from column "${columnName}" of "${tableName}"`;
     this.freeze();
   }
 
-  async toOp(): Promise<Op> {
-    return removeValue(this.schemaName, this.tableName, this.columnName, this.value, this.many);
+  async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
+    return removeStoredValue(
+      this.schemaName,
+      this.tableName,
+      this.columnName,
+      this.value,
+      this.many,
+      requireLowerer(
+        lowerer,
+        'RemoveStoredValueCall',
+        `column "${this.columnName}" on table "${this.tableName}"`,
+      ),
+    );
   }
 
   renderTypeScript(): string {
     const opts = [
-      ...storedValueLocation(this.schemaName, this.tableName, this.columnName),
+      ...columnCallLocation(this.schemaName, this.tableName, this.columnName),
       `value: ${jsonToTsSource(this.value)}`,
       ...(this.many ? ['many: true'] : []),
     ];
-    return `this.removeValue({ ${opts.join(', ')} })`;
+    return `this.removeStoredValue({ ${opts.join(', ')} })`;
   }
 
   override importRequirements(): readonly ImportRequirement[] {
@@ -2658,8 +2683,8 @@ export type PostgresOpFactoryCall =
   | CreateNativeEnumTypeCall
   | DropNativeEnumTypeCall
   | AddNativeEnumValueCall
-  | ReplaceValueCall
-  | RemoveValueCall
+  | ReplaceStoredValueCall
+  | RemoveStoredValueCall
   | CreatePostgresRlsPolicyCall
   | DropPostgresRlsPolicyCall
   | EnableRowLevelSecurityCall

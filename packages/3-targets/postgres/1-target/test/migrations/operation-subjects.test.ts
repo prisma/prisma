@@ -10,9 +10,9 @@ import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import {
   DropSchemaCall,
-  RemoveValueCall,
+  RemoveStoredValueCall,
   RenameSchemaCall,
-  ReplaceValueCall,
+  ReplaceStoredValueCall,
   SetTableSchemaCall,
 } from '../../src/core/migrations/op-factory-call';
 import { postgresCallSubjects } from '../../src/core/migrations/operation-subjects';
@@ -178,8 +178,8 @@ describe('stored value operations', () => {
     expect(
       subjectsOf(
         [
-          new ReplaceValueCall('public', 'User', 'bio', 'a', 'b', false),
-          new RemoveValueCall('public', 'User', 'email', 'x', false),
+          new ReplaceStoredValueCall('public', 'User', 'bio', 'a', 'b', false),
+          new RemoveStoredValueCall('public', 'User', 'email', 'x', false),
         ],
         [],
       ),

@@ -13,7 +13,7 @@ import {
   DropTableCall,
   RawSqlCall,
   RecreateTableCall,
-  RemoveValueCall,
+  RemoveStoredValueCall,
 } from './op-factory-call';
 
 type LostStorage = CallSubjects['dataLoss'][number];
@@ -86,7 +86,7 @@ export function sqliteCallSubjects(
         !(call instanceof DropColumnCall) &&
         !(call instanceof DropTableCall) &&
         !(call instanceof RawSqlCall) &&
-        !(call instanceof RemoveValueCall) &&
+        !(call instanceof RemoveStoredValueCall) &&
         !fieldEvents.has(call),
     ),
   );
@@ -118,7 +118,7 @@ export function sqliteCallSubjects(
         temporaryValues: [],
       };
     }
-    if (call instanceof RemoveValueCall) {
+    if (call instanceof RemoveStoredValueCall) {
       return {
         operationCount,
         label,

@@ -1,10 +1,13 @@
 /**
- * `replaceValue` and `removeValue` against a real database: each rewrites the rows that hold the
+ * `replaceStoredValue` and `removeStoredValue` against a real database: each rewrites the rows that hold the
  * value and leaves the others, its postcheck holds afterwards, and the runner skips it on a
  * second run.
  */
 import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
-import { RemoveValueCall, ReplaceValueCall } from '@internal/target-sqlite/op-factory-call';
+import {
+  RemoveStoredValueCall,
+  ReplaceStoredValueCall,
+} from '@internal/target-sqlite/op-factory-call';
 import type { SqlitePlanTargetDetails } from '@internal/target-sqlite/planner-target-details';
 import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -45,7 +48,7 @@ describe('SQLite stored value operations', { timeout: timeouts.databaseOperation
     return true;
   }
 
-  async function operationsExecuted(op: Op): Promise<number> {
+  async function runnerResult(op: Op) {
     const { driver } = testDb;
     const plan = createMigrationPlan<SqlitePlanTargetDetails>({
       targetId: 'sqlite',
@@ -55,7 +58,7 @@ describe('SQLite stored value operations', { timeout: timeouts.databaseOperation
       operations: [op],
       providedInvariants: [],
     });
-    const result = await sqliteTargetDescriptor.createRunner(familyInstance).execute({
+    return sqliteTargetDescriptor.createRunner(familyInstance).execute({
       driver,
       perSpaceOptions: [
         {
@@ -69,6 +72,10 @@ describe('SQLite stored value operations', { timeout: timeouts.databaseOperation
         },
       ],
     });
+  }
+
+  async function operationsExecuted(op: Op): Promise<number> {
+    const result = await runnerResult(op);
     if (!result.ok) throw new Error(`${result.failure.code}: ${result.failure.message}`);
     return result.value.perSpaceResults.reduce(
       (sum, { value }) => sum + value.operationsExecuted,
@@ -92,7 +99,7 @@ describe('SQLite stored value operations', { timeout: timeouts.databaseOperation
       `INSERT INTO "task" (id, state) VALUES (1, 'ARCHIVED'), (2, 'ACTIVE'), (3, NULL), (4, 'ARCHIVED')`,
     );
 
-    await runTwice(await new ReplaceValueCall('task', 'state', 'ARCHIVED', 'RETIRED').toOp());
+    await runTwice(await new ReplaceStoredValueCall('task', 'state', 'ARCHIVED', 'RETIRED').toOp());
 
     expect(await rows('state')).toEqual([
       { id: 1, state: 'RETIRED' },
@@ -105,8 +112,8 @@ describe('SQLite stored value operations', { timeout: timeouts.databaseOperation
   it('replaces and removes a numeric value', async () => {
     await testDb.driver.query('INSERT INTO "task" (id, rank) VALUES (1, 1), (2, 2), (3, 3)');
 
-    await runTwice(await new ReplaceValueCall('task', 'rank', 1, 10).toOp());
-    await runTwice(await new RemoveValueCall('task', 'rank', 3).toOp());
+    await runTwice(await new ReplaceStoredValueCall('task', 'rank', 1, 10).toOp());
+    await runTwice(await new RemoveStoredValueCall('task', 'rank', 3).toOp());
 
     expect(await rows('rank')).toEqual([
       { id: 1, rank: 10 },
@@ -120,7 +127,7 @@ describe('SQLite stored value operations', { timeout: timeouts.databaseOperation
       `INSERT INTO "task" (id, state) VALUES (1, 'ARCHIVED'), (2, 'ACTIVE')`,
     );
 
-    await runTwice(await new RemoveValueCall('task', 'state', 'ARCHIVED').toOp());
+    await runTwice(await new RemoveStoredValueCall('task', 'state', 'ARCHIVED').toOp());
 
     expect(await rows('state')).toEqual([
       { id: 1, state: null },
@@ -131,11 +138,28 @@ describe('SQLite stored value operations', { timeout: timeouts.databaseOperation
   it('replaces a value with a quote in it', async () => {
     await testDb.driver.query(`INSERT INTO "task" (id, state) VALUES (1, 'it''s'), (2, 'its')`);
 
-    await runTwice(await new ReplaceValueCall('task', 'state', "it's", 'it"s').toOp());
+    await runTwice(await new ReplaceStoredValueCall('task', 'state', "it's", 'it"s').toOp());
 
     expect(await rows('state')).toEqual([
       { id: 1, state: 'it"s' },
       { id: 2, state: 'its' },
+    ]);
+  });
+
+  it('fails its precheck, and changes nothing, when a value would be removed from a required column', async () => {
+    await testDb.driver.query('CREATE TABLE "code" (id INTEGER PRIMARY KEY, code TEXT NOT NULL)');
+    await testDb.driver.query(`INSERT INTO "code" (id, code) VALUES (1, 'x'), (2, 'y')`);
+
+    const result = await runnerResult(await new RemoveStoredValueCall('code', 'code', 'x').toOp());
+
+    expect(result.assertNotOk()).toMatchObject({
+      code: 'MIGRATION.PRECHECK_FAILED',
+      message:
+        'Operation removeStoredValue.code.code.x failed during precheck: ensure column "code" of "code" accepts NULL, which removing a value from it writes',
+    });
+    expect((await testDb.driver.query('SELECT id, code FROM "code" ORDER BY id')).rows).toEqual([
+      { id: 1, code: 'x' },
+      { id: 2, code: 'y' },
     ]);
   });
 });

@@ -1,17 +1,41 @@
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
-import { RemoveValueCall, ReplaceValueCall } from '../../src/core/migrations/op-factory-call';
-import { removeValue, replaceValue } from '../../src/core/migrations/operations/stored-values';
+import { columnNullabilityAst } from '../../src/contract-free/checks';
+import {
+  RemoveStoredValueCall,
+  ReplaceStoredValueCall,
+} from '../../src/core/migrations/op-factory-call';
+import {
+  removeStoredValue,
+  replaceStoredValue,
+} from '../../src/core/migrations/operations/stored-values';
+
+function recordingLowerer(): { lowerer: ExecuteRequestLowerer; received: unknown[] } {
+  const received: unknown[] = [];
+  const lowerer: ExecuteRequestLowerer = {
+    lower: () => Object.freeze({ sql: 'UNUSED', params: Object.freeze([]) }),
+    renderColumnDefault: async () => '',
+    lowerToExecuteRequest: async (ast) => {
+      received.push(ast);
+      return Object.freeze({
+        sql: `LOWERED ${received.length}`,
+        params: Object.freeze([`p${received.length}`]),
+      });
+    },
+  };
+  return { lowerer, received };
+}
 
 const target = {
   id: 'postgres',
   details: { schema: 'app', objectType: 'column', name: 'state', table: 'task' },
 };
 
-describe('replaceValue', () => {
+describe('replaceStoredValue', () => {
   it('changes the value in a scalar column, and checks afterwards that no row holds the old one', () => {
-    expect(replaceValue('app', 'task', 'state', 'ARCHIVED', 'RETIRED', false)).toEqual({
-      id: 'replaceValue.task.state.ARCHIVED',
+    expect(replaceStoredValue('app', 'task', 'state', 'ARCHIVED', 'RETIRED', false)).toEqual({
+      id: 'replaceStoredValue.task.state.ARCHIVED',
       label: 'Replace value "ARCHIVED" with "RETIRED" in column "state" of "task"',
       operationClass: 'widening',
       target,
@@ -34,10 +58,10 @@ describe('replaceValue', () => {
   });
 
   it('changes the value inside every list of a list column', () => {
-    const op = replaceValue('app', 'task', 'labels', 1, 2, true);
+    const op = replaceStoredValue('app', 'task', 'labels', 1, 2, true);
 
     expect(op).toMatchObject({
-      id: 'replaceValue.task.labels.1',
+      id: 'replaceStoredValue.task.labels.1',
       label: 'Replace value 1 with 2 in column "labels" of "task"',
       execute: [
         {
@@ -56,13 +80,13 @@ describe('replaceValue', () => {
   });
 
   it('leaves a table of the unbound namespace unqualified', () => {
-    const op = replaceValue(UNBOUND_NAMESPACE_ID, 'task', 'state', 'a', 'b', false);
+    const op = replaceStoredValue(UNBOUND_NAMESPACE_ID, 'task', 'state', 'a', 'b', false);
 
     expect(op.execute[0]?.sql).toBe('UPDATE "task" SET "state" = $2 WHERE "state" = $1');
   });
 
   it('passes a value with a quote in it as a parameter, never in the SQL text', () => {
-    const op = replaceValue('app', 'task', 'state', "it's", 'it"s', false);
+    const op = replaceStoredValue('app', 'task', 'state', "it's", 'it"s', false);
 
     expect([...op.execute, ...op.postcheck].map((step) => step.sql).join('\n')).not.toMatch(
       /it's|it"s/,
@@ -71,14 +95,27 @@ describe('replaceValue', () => {
   });
 });
 
-describe('removeValue', () => {
-  it('sets the value to NULL in a scalar column', () => {
-    expect(removeValue('app', 'task', 'state', 'ARCHIVED', false)).toEqual({
-      id: 'removeValue.task.state.ARCHIVED',
+describe('removeStoredValue', () => {
+  it('sets the value to NULL in a scalar column, after checking that the column accepts NULL', async () => {
+    const { lowerer, received } = recordingLowerer();
+    const op = await removeStoredValue('app', 'task', 'state', 'ARCHIVED', false, lowerer);
+
+    expect(received).toEqual([
+      columnNullabilityAst({ schema: 'app', table: 'task', column: 'state', nullable: true }),
+    ]);
+    expect(op).toEqual({
+      id: 'removeStoredValue.task.state.ARCHIVED',
       label: 'Remove value "ARCHIVED" from column "state" of "task"',
       operationClass: 'destructive',
       target,
-      precheck: [],
+      precheck: [
+        {
+          description:
+            'ensure column "state" of "task" accepts NULL, which removing a value from it writes',
+          sql: 'LOWERED 1',
+          params: ['p1'],
+        },
+      ],
       execute: [
         {
           description: 'remove value "ARCHIVED" from column "state"',
@@ -96,8 +133,18 @@ describe('removeValue', () => {
     });
   });
 
-  it('takes the value out of every list of a list column', () => {
-    expect(removeValue('app', 'task', 'labels', 'x', true).execute).toEqual([
+  it('takes the value out of every list of a list column, which never writes NULL', async () => {
+    const op = await removeStoredValue(
+      'app',
+      'task',
+      'labels',
+      'x',
+      true,
+      recordingLowerer().lowerer,
+    );
+
+    expect(op.precheck).toEqual([]);
+    expect(op.execute).toEqual([
       {
         description: 'remove value "x" from column "labels"',
         sql: 'UPDATE "app"."task" SET "labels" = array_remove("labels", $1) WHERE $1 = ANY("labels")',
@@ -108,17 +155,17 @@ describe('removeValue', () => {
 });
 
 describe('stored value calls', () => {
-  const replace = new ReplaceValueCall('app', 'task', 'state', 'ARCHIVED', 'RETIRED', false);
-  const remove = new RemoveValueCall('app', 'task', 'labels', 'x', true);
+  const replace = new ReplaceStoredValueCall('app', 'task', 'state', 'ARCHIVED', 'RETIRED', false);
+  const remove = new RemoveStoredValueCall('app', 'task', 'labels', 'x', true);
 
   it('are named after their facade methods and classed by their effect', () => {
     expect(replace).toMatchObject({
-      factoryName: 'replaceValue',
+      factoryName: 'replaceStoredValue',
       operationClass: 'widening',
       label: 'Replace value "ARCHIVED" with "RETIRED" in column "state" of "task"',
     });
     expect(remove).toMatchObject({
-      factoryName: 'removeValue',
+      factoryName: 'removeStoredValue',
       operationClass: 'destructive',
       label: 'Remove value "x" from column "labels" of "task"',
     });
@@ -126,21 +173,52 @@ describe('stored value calls', () => {
 
   it('lower to the operations their factories build', async () => {
     expect(await replace.toOp()).toEqual(
-      replaceValue('app', 'task', 'state', 'ARCHIVED', 'RETIRED', false),
+      replaceStoredValue('app', 'task', 'state', 'ARCHIVED', 'RETIRED', false),
     );
-    expect(await remove.toOp()).toEqual(removeValue('app', 'task', 'labels', 'x', true));
+    expect(await remove.toOp(recordingLowerer().lowerer)).toEqual(
+      await removeStoredValue('app', 'task', 'labels', 'x', true, recordingLowerer().lowerer),
+    );
+  });
+
+  it('refuse to remove a value without a lowerer', async () => {
+    await expect(remove.toOp()).rejects.toMatchObject({
+      code: 'MIGRATION.POSTGRES_CONTROL_STACK_MISSING',
+    });
+  });
+
+  it('refuse a value that is neither a string nor a number, which would match no row', () => {
+    const missing = null as unknown as string;
+    expect(() => new ReplaceStoredValueCall('app', 'task', 'state', missing, 'b', false)).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.ARGUMENT_INVALID',
+        message:
+          'replaceStoredValue({ schema: "app", table: "task", column: "state" }): from must be a string or a number; got null',
+        meta: { what: 'replaceStoredValue from' },
+      }),
+    );
+    expect(() => new ReplaceStoredValueCall('app', 'task', 'state', 'a', missing, false)).toThrow(
+      expect.objectContaining({ code: 'CONTRACT.ARGUMENT_INVALID' }),
+    );
+    expect(
+      () => new RemoveStoredValueCall(UNBOUND_NAMESPACE_ID, 'task', 'rank', Number.NaN, false),
+    ).toThrow(
+      expect.objectContaining({
+        message:
+          'removeStoredValue({ table: "task", column: "rank" }): value must be a string or a number; got NaN',
+      }),
+    );
   });
 
   it('render the facade call, leaving out an unbound schema and a scalar column', () => {
     expect(replace.renderTypeScript()).toBe(
-      'this.replaceValue({ schema: "app", table: "task", column: "state", from: "ARCHIVED", to: "RETIRED" })',
+      'this.replaceStoredValue({ schema: "app", table: "task", column: "state", from: "ARCHIVED", to: "RETIRED" })',
     );
     expect(remove.renderTypeScript()).toBe(
-      'this.removeValue({ schema: "app", table: "task", column: "labels", value: "x", many: true })',
+      'this.removeStoredValue({ schema: "app", table: "task", column: "labels", value: "x", many: true })',
     );
     expect(
-      new RemoveValueCall(UNBOUND_NAMESPACE_ID, 'task', 'rank', 3, false).renderTypeScript(),
-    ).toBe('this.removeValue({ table: "task", column: "rank", value: 3 })');
+      new RemoveStoredValueCall(UNBOUND_NAMESPACE_ID, 'task', 'rank', 3, false).renderTypeScript(),
+    ).toBe('this.removeStoredValue({ table: "task", column: "rank", value: 3 })');
   });
 
   it('need no import, since each renders as a method of the migration', () => {

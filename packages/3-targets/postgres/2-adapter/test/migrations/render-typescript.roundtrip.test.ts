@@ -35,11 +35,11 @@ import {
   DropTableCall,
   EnableRowLevelSecurityCall,
   RawSqlCall,
-  RemoveValueCall,
+  RemoveStoredValueCall,
   RenameIndexCall,
   RenamePostgresRlsPolicyCall,
   RenameSchemaCall,
-  ReplaceValueCall,
+  ReplaceStoredValueCall,
   SetDefaultCall,
   SetTableSchemaCall,
 } from '@internal/target-postgres/op-factory-call';
@@ -209,9 +209,9 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       new DropPostgresRlsPolicyCall('public', 'user', 'p_e5f6a7b8'),
       new DisableRowLevelSecurityCall('public', 'user'),
       new DropTableCall('public', 'stale'),
-      new ReplaceValueCall('public', 'user', 'nickname', "it's", 'it"s', false),
-      new ReplaceValueCall(UNBOUND_NAMESPACE_ID, 'audit', 'tags', 'a', 'b', true),
-      new RemoveValueCall('public', 'user', 'code', 3, false),
+      new ReplaceStoredValueCall('public', 'user', 'nickname', "it's", 'it"s', false),
+      new ReplaceStoredValueCall(UNBOUND_NAMESPACE_ID, 'audit', 'tags', 'a', 'b', true),
+      new RemoveStoredValueCall('public', 'user', 'code', 3, false),
       new SetTableSchemaCall('public', 'user', 'app'),
       new SetTableSchemaCall(UNBOUND_NAMESPACE_ID, 'audit', 'app'),
       new RenameSchemaCall('app', 'application'),
@@ -235,7 +235,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
     expect(tsSource).toContain(`sql\`"email" !~ '\\\\d' AND "email" <> '\\\`\\\${x}'\``);
     expect(tsSource).toContain('default: fn(sql`\'{"a": 1}\'::jsonb`)');
     expect(tsSource).toContain(
-      'this.replaceValue({ table: "audit", column: "tags", from: "a", to: "b", many: true })',
+      'this.replaceStoredValue({ table: "audit", column: "tags", from: "a", to: "b", many: true })',
     );
     await writeFile(join(tmpDir, 'migration.ts'), tsSource);
 

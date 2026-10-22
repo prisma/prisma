@@ -22,7 +22,7 @@ import {
   DropPostgresRlsPolicyCall,
   DropTableCall,
   RawSqlCall,
-  RemoveValueCall,
+  RemoveStoredValueCall,
 } from './op-factory-call';
 
 interface Locator {
@@ -79,7 +79,7 @@ function knownTarget(locator: Locator, call: OpFactoryCall): SubjectStorage | un
   if (
     call instanceof DropColumnCall ||
     call instanceof AlterColumnTypeCall ||
-    call instanceof RemoveValueCall
+    call instanceof RemoveStoredValueCall
   ) {
     return target(locator, call.schemaName, call.tableName, call.columnName);
   }

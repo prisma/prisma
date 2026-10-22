@@ -1,4 +1,4 @@
-import type { Contract as FrameworkContract, JsonValue } from '@internal/contract/types';
+import type { Contract as FrameworkContract } from '@internal/contract/types';
 import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
 import type {
   ExecuteRequestLowerer,
@@ -22,9 +22,9 @@ import { alterColumnTypeAction, alterTable } from '../src/contract-free/ddl';
 import { postgresDataTypes } from '../src/core/data-types';
 import {
   DropSchemaCall,
-  RemoveValueCall,
+  RemoveStoredValueCall,
   RenameSchemaCall,
-  ReplaceValueCall,
+  ReplaceStoredValueCall,
   SetTableSchemaCall,
 } from '../src/core/migrations/op-factory-call';
 import type { AlterColumnTypeClass } from '../src/core/migrations/operations/columns';
@@ -179,25 +179,25 @@ class ExposedMigration extends PostgresMigration<Contract, Contract> {
     return this.dropSchema(options);
   }
 
-  callReplaceValue(options: {
+  callReplaceStoredValue(options: {
     readonly schema?: string;
     readonly table: string;
     readonly column: string;
-    readonly from: JsonValue;
-    readonly to: JsonValue;
+    readonly from: string | number;
+    readonly to: string | number;
     readonly many?: boolean;
   }): Promise<Op> {
-    return this.replaceValue(options);
+    return this.replaceStoredValue(options);
   }
 
-  callRemoveValue(options: {
+  callRemoveStoredValue(options: {
     readonly schema?: string;
     readonly table: string;
     readonly column: string;
-    readonly value: JsonValue;
+    readonly value: string | number;
     readonly many?: boolean;
   }): Promise<Op> {
-    return this.removeValue(options);
+    return this.removeStoredValue(options);
   }
 
   callDropColumn(options: {
@@ -351,6 +351,10 @@ const cases: ReadonlyArray<{
   },
   { name: 'renameSchema', run: (m) => m.callRenameSchema({ schema: 'billing', to: 'finance' }) },
   { name: 'dropSchema', run: (m) => m.callDropSchema({ schema: 'billing' }) },
+  {
+    name: 'removeStoredValue',
+    run: (m) => m.callRemoveStoredValue({ table: 'task', column: 'state', value: 'a' }),
+  },
   {
     name: 'createNativeEnumType',
     run: (m) =>
@@ -624,11 +628,9 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
     );
   });
 
-  it('replaceValue and removeValue give the operations their calls give, with no control stack', async () => {
-    const fresh = () => new ExposedMigration();
-
+  it('replaceStoredValue gives the operation its call gives, with no control stack', async () => {
     expect(
-      await fresh().callReplaceValue({
+      await new ExposedMigration().callReplaceStoredValue({
         schema: 'app',
         table: 'task',
         column: 'labels',
@@ -636,9 +638,20 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
         to: 'b',
         many: true,
       }),
-    ).toEqual(await new ReplaceValueCall('app', 'task', 'labels', 'a', 'b', true).toOp());
-    expect(await fresh().callRemoveValue({ table: 'task', column: 'rank', value: 3 })).toEqual(
-      await new RemoveValueCall(UNBOUND_NAMESPACE_ID, 'task', 'rank', 3, false).toOp(),
+    ).toEqual(await new ReplaceStoredValueCall('app', 'task', 'labels', 'a', 'b', true).toOp());
+  });
+
+  it('removeStoredValue gives the operation its call gives', async () => {
+    expect(
+      await new ExposedMigration(fakeControlStack()).callRemoveStoredValue({
+        table: 'task',
+        column: 'rank',
+        value: 3,
+      }),
+    ).toEqual(
+      await new RemoveStoredValueCall(UNBOUND_NAMESPACE_ID, 'task', 'rank', 3, false).toOp(
+        countingLowerer(),
+      ),
     );
   });
 

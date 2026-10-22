@@ -1,15 +1,16 @@
-import type { JsonValue } from '@internal/contract/types';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { columnNullabilityAst } from '../../../contract-free/checks';
 import { quoteIdentifier } from '../../sql-utils';
 import { qualifyTableName } from '../planner-sql-checks';
 import { type Op, step, targetDetails } from './shared';
 
 /** A stored value as operation ids, labels and step descriptions write it. */
-export function storedValueText(value: JsonValue): string {
+export function storedValueText(value: string | number): string {
   return JSON.stringify(value);
 }
 
-function idText(value: JsonValue): string {
-  return typeof value === 'string' ? value : JSON.stringify(value);
+function idText(value: string | number): string {
+  return String(value);
 }
 
 function holdingValue(column: string, many: boolean): string {
@@ -20,7 +21,7 @@ function valueAbsentCheck(
   schemaName: string,
   tableName: string,
   columnName: string,
-  value: JsonValue,
+  value: string | number,
   many: boolean,
 ) {
   const column = quoteIdentifier(columnName);
@@ -33,18 +34,18 @@ function valueAbsentCheck(
   );
 }
 
-export function replaceValue(
+export function replaceStoredValue(
   schemaName: string,
   tableName: string,
   columnName: string,
-  from: JsonValue,
-  to: JsonValue,
+  from: string | number,
+  to: string | number,
   many: boolean,
 ): Op {
   const column = quoteIdentifier(columnName);
   const replaced = many ? `array_replace(${column}, $1, $2)` : '$2';
   return {
-    id: `replaceValue.${tableName}.${columnName}.${idText(from)}`,
+    id: `replaceStoredValue.${tableName}.${columnName}.${idText(from)}`,
     label: `Replace value ${storedValueText(from)} with ${storedValueText(to)} in column "${columnName}" of "${tableName}"`,
     operationClass: 'widening',
     target: targetDetails('column', columnName, schemaName, tableName),
@@ -60,21 +61,40 @@ export function replaceValue(
   };
 }
 
-export function removeValue(
+export async function removeStoredValue(
   schemaName: string,
   tableName: string,
   columnName: string,
-  value: JsonValue,
+  value: string | number,
   many: boolean,
-): Op {
+  lowerer: ExecuteRequestLowerer,
+): Promise<Op> {
   const column = quoteIdentifier(columnName);
   const removed = many ? `array_remove(${column}, $1)` : 'NULL';
+  const acceptsNull = many
+    ? []
+    : [
+        await lowerer.lowerToExecuteRequest(
+          columnNullabilityAst({
+            schema: schemaName,
+            table: tableName,
+            column: columnName,
+            nullable: true,
+          }),
+        ),
+      ];
   return {
-    id: `removeValue.${tableName}.${columnName}.${idText(value)}`,
+    id: `removeStoredValue.${tableName}.${columnName}.${idText(value)}`,
     label: `Remove value ${storedValueText(value)} from column "${columnName}" of "${tableName}"`,
     operationClass: 'destructive',
     target: targetDetails('column', columnName, schemaName, tableName),
-    precheck: [],
+    precheck: acceptsNull.map((check) =>
+      step(
+        `ensure column "${columnName}" of "${tableName}" accepts NULL, which removing a value from it writes`,
+        check.sql,
+        check.params,
+      ),
+    ),
     execute: [
       step(
         `remove value ${storedValueText(value)} from column "${columnName}"`,

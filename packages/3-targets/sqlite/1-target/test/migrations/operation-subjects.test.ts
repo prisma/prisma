@@ -9,7 +9,10 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { RemoveValueCall, ReplaceValueCall } from '../../src/core/migrations/op-factory-call';
+import {
+  RemoveStoredValueCall,
+  ReplaceStoredValueCall,
+} from '../../src/core/migrations/op-factory-call';
 import { sqliteCallSubjects } from '../../src/core/migrations/operation-subjects';
 import { sqliteTableRenameByHand } from '../../src/core/migrations/table-rename-calls';
 import { sqliteCreateNamespace } from '../../src/core/sqlite-unbound-database';
@@ -156,7 +159,10 @@ describe('stored value operations', () => {
   it('name the column a removed value is lost from, and lose nothing when a value is replaced', () => {
     expect(
       subjectsOf(
-        [new ReplaceValueCall('User', 'bio', 'a', 'b'), new RemoveValueCall('User', 'email', 'x')],
+        [
+          new ReplaceStoredValueCall('User', 'bio', 'a', 'b'),
+          new RemoveStoredValueCall('User', 'email', 'x'),
+        ],
         [],
       ),
     ).toEqual([

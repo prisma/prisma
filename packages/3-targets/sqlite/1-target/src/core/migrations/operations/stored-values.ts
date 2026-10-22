@@ -1,18 +1,18 @@
-import type { JsonValue } from '@internal/contract/types';
 import { quoteIdentifier } from '../../sql-utils';
 import { buildTargetDetails } from '../planner-target-details';
 import { type Op, step } from './shared';
+import { columnAcceptsNullCheck } from './structure-checks';
 
 /** A stored value as operation ids, labels and step descriptions write it. */
-export function storedValueText(value: JsonValue): string {
+export function storedValueText(value: string | number): string {
   return JSON.stringify(value);
 }
 
-function idText(value: JsonValue): string {
-  return typeof value === 'string' ? value : JSON.stringify(value);
+function idText(value: string | number): string {
+  return String(value);
 }
 
-function valueAbsentCheck(tableName: string, columnName: string, value: JsonValue) {
+function valueAbsentCheck(tableName: string, columnName: string, value: string | number) {
   return step(
     `verify no row of "${tableName}" holds value ${storedValueText(value)} in column "${columnName}"`,
     `SELECT NOT EXISTS (SELECT 1 FROM ${quoteIdentifier(tableName)} WHERE ${quoteIdentifier(columnName)} = ?1) AS result`,
@@ -20,15 +20,15 @@ function valueAbsentCheck(tableName: string, columnName: string, value: JsonValu
   );
 }
 
-export function replaceValue(
+export function replaceStoredValue(
   tableName: string,
   columnName: string,
-  from: JsonValue,
-  to: JsonValue,
+  from: string | number,
+  to: string | number,
 ): Op {
   const column = quoteIdentifier(columnName);
   return {
-    id: `replaceValue.${tableName}.${columnName}.${idText(from)}`,
+    id: `replaceStoredValue.${tableName}.${columnName}.${idText(from)}`,
     label: `Replace value ${storedValueText(from)} with ${storedValueText(to)} in column "${columnName}" of "${tableName}"`,
     operationClass: 'widening',
     target: { id: 'sqlite', details: buildTargetDetails('column', columnName, tableName) },
@@ -44,14 +44,24 @@ export function replaceValue(
   };
 }
 
-export function removeValue(tableName: string, columnName: string, value: JsonValue): Op {
+export function removeStoredValue(
+  tableName: string,
+  columnName: string,
+  value: string | number,
+): Op {
   const column = quoteIdentifier(columnName);
   return {
-    id: `removeValue.${tableName}.${columnName}.${idText(value)}`,
+    id: `removeStoredValue.${tableName}.${columnName}.${idText(value)}`,
     label: `Remove value ${storedValueText(value)} from column "${columnName}" of "${tableName}"`,
     operationClass: 'destructive',
     target: { id: 'sqlite', details: buildTargetDetails('column', columnName, tableName) },
-    precheck: [],
+    precheck: [
+      columnAcceptsNullCheck(
+        tableName,
+        columnName,
+        `ensure column "${columnName}" of "${tableName}" accepts NULL, which removing a value from it writes`,
+      ),
+    ],
     execute: [
       step(
         `remove value ${storedValueText(value)} from column "${columnName}"`,

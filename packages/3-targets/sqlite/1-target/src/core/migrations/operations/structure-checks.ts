@@ -46,6 +46,18 @@ export function columnShapeCheck(
   };
 }
 
+/** Checks that the column accepts NULL. */
+export function columnAcceptsNullCheck(
+  tableName: string,
+  columnName: string,
+  description: string,
+): SqlMigrationPlanOperationStep {
+  return {
+    description,
+    sql: `SELECT COUNT(*) > 0 FROM pragma_table_info(${text(tableName)}) WHERE name = ${text(columnName)} AND "notnull" = 0`,
+  };
+}
+
 /** Checks that the index is on the table, covers exactly these columns in this order, and is unique or not. */
 export function indexDefinitionCheck(
   tableName: string,
