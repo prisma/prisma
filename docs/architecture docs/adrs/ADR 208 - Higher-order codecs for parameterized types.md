@@ -129,7 +129,7 @@ export interface CodecInstanceContext {
   readonly name: string;
 }
 
-// packages/2-sql/4-lanes/relational-core/src/ast/codec-types.ts
+// packages/2-sql-family/4-lanes/relational-core/src/ast/codec-types.ts
 export interface SqlCodecInstanceContext extends CodecInstanceContext {
   readonly usedAt: ReadonlyArray<{ readonly table: string; readonly column: string }>;
 }

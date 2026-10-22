@@ -333,7 +333,7 @@ const resolveToSchemaWithMapAttributes: ResolveInputs = async () => {
 async function recursiveCompletionResolution(): Promise<ConfigResolution> {
   const sql = (await import(
     new URL(
-      '../../../../2-sql/2-authoring/contract-psl/src/sql-attribute-specs.ts',
+      '../../../../2-sql-family/2-authoring/contract-psl/src/sql-attribute-specs.ts',
       import.meta.url,
     ).href
   )) as { sqlAttributeSpecs: AttributeSpecNamespace };
