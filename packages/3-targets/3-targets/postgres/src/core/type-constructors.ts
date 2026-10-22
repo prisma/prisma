@@ -134,7 +134,7 @@ export const postgresNativeAuthoringTypes = {
       typeParams: { precision: { kind: 'arg', index: 0 } },
     },
   },
-  Time: {
+  TimeTemporal: {
     kind: 'typeConstructor',
     documentation: 'A time of day without a time zone, represented as Temporal.PlainTime.',
     args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
@@ -143,7 +143,7 @@ export const postgresNativeAuthoringTypes = {
       typeParams: { precision: { kind: 'arg', index: 0 } },
     },
   },
-  TimeTemporal: {
+  Time: {
     kind: 'typeConstructor',
     documentation: 'A time of day without a time zone, represented as Temporal.PlainTime.',
     args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
@@ -186,12 +186,12 @@ export const postgresNativeAuthoringTypes = {
     documentation: 'A single-precision floating-point number.',
     output: { codecId: 'pg/float4@1' },
   },
-  Date: {
+  DateTemporal: {
     kind: 'typeConstructor',
     documentation: 'A calendar date represented as Temporal.PlainDate.',
     output: { codecId: 'pg/date-temporal@1' },
   },
-  DateTemporal: {
+  Date: {
     kind: 'typeConstructor',
     documentation: 'A calendar date represented as Temporal.PlainDate.',
     output: { codecId: 'pg/date-temporal@1' },
@@ -312,6 +312,6 @@ export const postgresNativeAuthoringTypes = {
  * The base scalars and native types as type constructors. The target contributes them, so PSL and the TypeScript builder's `type.*` see the same names.
  */
 export const postgresScalarAndNativeTypeConstructors = {
-  ...postgresScalarAuthoringTypes,
   ...postgresNativeAuthoringTypes,
+  ...postgresScalarAuthoringTypes,
 } as const satisfies AuthoringTypeNamespace;

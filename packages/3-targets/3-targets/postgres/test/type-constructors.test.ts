@@ -1,6 +1,7 @@
 import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
 import {
   collectScalarTypeConstructors,
+  findAuthoringTypeConstructorCall,
   instantiateAuthoringTypeConstructor,
   validateAuthoringTypeParams,
 } from '@internal/framework-components/authoring';
@@ -16,6 +17,22 @@ import {
   postgresScalarAuthoringTypes,
 } from '../src/core/type-constructors';
 import postgresTargetPack from '../src/exports/pack';
+
+describe('the constructor contract print writes for a Temporal column', () => {
+  it.each([
+    [{ codecId: 'pg/timestamptz-temporal@1' }, ['TimestamptzTemporal'], []],
+    [{ codecId: 'pg/date-temporal@1' }, ['DateTemporal'], []],
+    [{ codecId: 'pg/time-temporal@1', typeParams: { precision: 0 } }, ['TimeTemporal'], [0]],
+  ])(
+    'is the explicit type for %o, not a name the convenience types will take',
+    (output, path, args) => {
+      expect(findAuthoringTypeConstructorCall(postgresTargetPack.authoring.type, output)).toEqual({
+        path,
+        args,
+      });
+    },
+  );
+});
 
 describe('the type constructors the target contributes', () => {
   it('are the scalar, native and target-only ones, so PSL and type.* see the same names', () => {
