@@ -51,6 +51,30 @@ describe.each(['app', 'extension'] as const)('the %s guide', (audience) => {
     });
   });
 
+  describe('supabase-role-types-gain-members', () => {
+    const id = 'supabase-role-types-gain-members';
+
+    it.each([
+      ['RoleBoundDb', 'const user: RoleBoundDb<Contract> = fakeUser();'],
+      ['ServiceRoleDb', 'let admin: ServiceRoleDb<Contract>;'],
+      ['SupabaseTransactionContext', '(tx: SupabaseTransactionContext<Contract>) => tx.orm'],
+      [
+        'SupabaseRuntime',
+        "import type { SupabaseRuntime } from '@prisma/orm-extension-supabase/runtime';",
+      ],
+    ])('finds %s', (_name, content) => {
+      expect(detects(audience, id, content)).toBe(true);
+    });
+
+    it.each([
+      ['SupabaseRuntimeImpl', 'new SupabaseRuntimeImpl(options)'],
+      ['a longer name', 'type MyRoleBoundDbFactory = () => void;'],
+      ['SupabaseDb', 'const db: SupabaseDb<Contract> = await supabase(options);'],
+    ])('skips %s', (_name, content) => {
+      expect(detects(audience, id, content)).toBe(false);
+    });
+  });
+
   describe('supabase-pg-takes-a-pool', () => {
     const id = 'supabase-pg-takes-a-pool';
 
