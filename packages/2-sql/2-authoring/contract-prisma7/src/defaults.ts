@@ -67,6 +67,9 @@ export interface LowerPrisma7DefaultInput {
   readonly diagnostics: ContractSourceDiagnostic[];
 }
 
+/** The Prisma 7 default functions the client filled on create, though Prisma 7 also wrote them as the column's database default. */
+const PRISMA7_CLIENT_AND_DATABASE_FUNCTIONS: ReadonlySet<string> = new Set(['now']);
+
 /** The default functions of Prisma 7's schema language. */
 const PRISMA7_DEFAULT_FUNCTIONS: ReadonlySet<string> = new Set([
   'autoincrement',
@@ -371,29 +374,8 @@ function lowerFunction(
             label,
           );
     if (args === undefined) return undefined;
-    const resolution = input.generatorFunctions.resolve(
-      { name: fn, args },
-      {
-        codecId: input.codecId,
-        typeParams: input.typeParams,
-        length: sqlCodecColumnLength(input.dataTypes, input.codecId, input.typeParams),
-      },
-    );
-    if (resolution.ok) return { storage: undefined, onCreate: resolution.generator };
-    if (resolution.reason === 'refused') {
-      const written =
-        input.attribute.args.find((arg) => arg.kind === 'positional')?.value.trim() ?? `${fn}()`;
-      input.diagnostics.push(
-        prisma7Diagnostic(
-          'PSL.PRISMA7_GENERATOR_REFUSED',
-          `${label}: @default(${written}) cannot fill its column: ${resolution.message}`,
-          input.sourceId,
-          span,
-        ),
-      );
-      return undefined;
-    }
-    return unknown(`function "${fn}()" cannot fill a column of codec "${input.codecId}".`, span);
+    const onCreate = resolveGenerator(fn, args, input, label, unknown);
+    return onCreate === undefined ? undefined : { storage: undefined, onCreate };
   }
   const args = boundArguments(
     defaultFunctionCall(fn, entry, input.dataTypes),
@@ -422,7 +404,44 @@ function lowerFunction(
     );
     return undefined;
   }
-  return { storage: lowered.value.defaultValue, onCreate: undefined };
+  const storage = lowered.value.defaultValue;
+  if (!PRISMA7_CLIENT_AND_DATABASE_FUNCTIONS.has(fn)) return { storage, onCreate: undefined };
+  const onCreate = resolveGenerator(fn, {}, input, label, unknown);
+  return onCreate === undefined ? undefined : { storage, onCreate };
+}
+
+/** The generator a client function resolves to for the field's column, or `undefined` after reporting why it cannot fill it. */
+function resolveGenerator(
+  fn: string,
+  args: Readonly<Record<string, unknown>>,
+  input: LowerPrisma7DefaultInput,
+  label: string,
+  unknown: (reason: string, span: PslSpan) => undefined,
+): ExecutionMutationDefaultValue | undefined {
+  const span = input.attribute.span;
+  const resolution = input.generatorFunctions.resolve(
+    { name: fn, args },
+    {
+      codecId: input.codecId,
+      typeParams: input.typeParams,
+      length: sqlCodecColumnLength(input.dataTypes, input.codecId, input.typeParams),
+    },
+  );
+  if (resolution.ok) return resolution.generator;
+  if (resolution.reason === 'refused') {
+    const written =
+      input.attribute.args.find((arg) => arg.kind === 'positional')?.value.trim() ?? `${fn}()`;
+    input.diagnostics.push(
+      prisma7Diagnostic(
+        'PSL.PRISMA7_GENERATOR_REFUSED',
+        `${label}: @default(${written}) cannot fill its column: ${resolution.message}`,
+        input.sourceId,
+        span,
+      ),
+    );
+    return undefined;
+  }
+  return unknown(`function "${fn}()" cannot fill a column of codec "${input.codecId}".`, span);
 }
 
 /**
