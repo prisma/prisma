@@ -12,8 +12,18 @@ import type {
 import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
-import { planEnumValueRewrites } from '../src/core/migrations/enum-value-planning';
+import {
+  encodeStoredValue,
+  planEnumValueRewrites,
+  withEnumValueOperations,
+} from '../src/core/migrations/enum-value-planning';
 import type { SchemaTables } from '../src/core/migrations/schema-tables';
+import {
+  FOLDING_CODEC_ID,
+  TEXT_CODEC_ID,
+  testCodecLookup,
+  textCodec,
+} from './enum-entity-fixtures';
 
 interface EnumColumn {
   readonly model: string;
@@ -380,5 +390,80 @@ describe('planEnumValueRewrites', () => {
         'Cannot rename enum value "Status.ARCHIVED" to "Status.RETIRED": the destination enum still stores "archived", as enum value "Status.HIDDEN"',
       why: 'A rename changes the stored value in every row that holds it, so the rows that hold "archived" for "Status.HIDDEN" would change too. Leave out this statement.',
     });
+  });
+});
+
+function lookupWithWire(wire: unknown) {
+  return {
+    descriptorFor: (id: string) => {
+      const descriptor = testCodecLookup.descriptorFor(TEXT_CODEC_ID);
+      if (descriptor === undefined) return undefined;
+      return {
+        ...descriptor,
+        codecId: id,
+        factory: () => () => ({ ...textCodec, toWire: async () => wire }),
+      };
+    },
+  };
+}
+
+describe('encodeStoredValue', () => {
+  it('writes a value through the column codec, as the database stores it', async () => {
+    expect(
+      await encodeStoredValue('ARCHIVED', {
+        codecRef: { codecId: FOLDING_CODEC_ID },
+        codecs: testCodecLookup,
+      }),
+    ).toBe('archived');
+  });
+
+  it('uses the value as written with no codec, or one the stack does not have', async () => {
+    expect(await encodeStoredValue(1, undefined)).toBe(1);
+    expect(
+      await encodeStoredValue('x', {
+        codecRef: { codecId: 'test/none@1' },
+        codecs: testCodecLookup,
+      }),
+    ).toBe('x');
+  });
+
+  it('writes a wire bigint as its digits, and refuses any other wire value', async () => {
+    expect(
+      await encodeStoredValue('7', {
+        codecRef: { codecId: 'test/big@1' },
+        codecs: lookupWithWire(7n),
+      }),
+    ).toBe('7');
+    await expect(
+      encodeStoredValue('x', { codecRef: { codecId: 'test/blob@1' }, codecs: lookupWithWire({}) }),
+    ).rejects.toMatchObject({
+      code: 'CONTRACT.ARGUMENT_INVALID',
+      message:
+        'Codec test/blob@1 writes the stored value "x" as neither a string nor a number, which a migration cannot compare',
+    });
+  });
+});
+
+describe('withEnumValueOperations', () => {
+  it('gives each enum value rename the operations its rewrites lowered to, and keeps the others', () => {
+    const statement = rename('ARCHIVED', 'RETIRED');
+    const other = {
+      kind: 'rename' as const,
+      entity: 'namespace' as const,
+      from: asNamespaceId('app'),
+      to: asNamespaceId('crm'),
+    };
+    expect(
+      withEnumValueOperations(
+        [
+          { statement: other, operationIndexes: [0] },
+          { statement, operationIndexes: [] },
+        ],
+        () => [3, 4],
+      ),
+    ).toEqual([
+      { statement: other, operationIndexes: [0] },
+      { statement, operationIndexes: [3, 4] },
+    ]);
   });
 });

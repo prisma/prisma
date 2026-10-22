@@ -324,7 +324,7 @@ export async function encodeStoredValue(
   if (typeof wire === 'bigint') return wire.toString();
   throw structuredError(
     'CONTRACT.ARGUMENT_INVALID',
-    `Codec ${codec.codecRef.codecId} writes the stored value ${JSON.stringify(value)} as a ${typeof wire}, which a migration does not compare`,
+    `Codec ${codec.codecRef.codecId} writes the stored value ${JSON.stringify(value)} as neither a string nor a number, which a migration cannot compare`,
     { meta: { what: 'stored value', codecId: codec.codecRef.codecId } },
   );
 }
