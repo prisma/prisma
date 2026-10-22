@@ -85,9 +85,11 @@ export function scopeCompletionItems(
         break;
       case 'contributedType': {
         const descriptor = resolution.symbol.descriptor;
-        if (descriptor.kind === 'typeAlias') {
+        if (descriptor.kind === 'typeAlias' || descriptor.kind === 'typeChoice') {
           item.kind = CompletionItemKind.Class;
-          item.detail = descriptor.documentation || 'Type alias';
+          item.detail =
+            descriptor.documentation ||
+            (descriptor.kind === 'typeAlias' ? 'Type alias' : 'Configured scalar type');
           break;
         }
         const callable =

@@ -1,5 +1,6 @@
 import {
   type AuthoringTypeAliasDescriptor,
+  type AuthoringTypeChoiceDescriptor,
   type AuthoringTypeConstructorDescriptor,
   type AuthoringTypeNamespace,
   type DataTypeSupport,
@@ -10,6 +11,7 @@ import type { GeneratorFunctionRegistry } from '@internal/framework-components/c
 import type { ControlMutationDefaultRegistry } from '@internal/framework-components/control';
 import type { TypeAttributeSpecContext } from './attribute-spec/spec-context';
 import { type Binder, contributedTypeOf, type Resolution, typeReferenceNode } from './binder';
+import type { ContributedTypeSymbol } from './contributed-type-scope';
 import { diagnosticSource, type PslDiagnosticCollector } from './diagnostic';
 import type { PslSources } from './source-file';
 import type {
@@ -38,6 +40,13 @@ export type TypeAliasBase =
       readonly kind: 'typeConstructor';
       readonly descriptor: AuthoringTypeConstructorDescriptor;
       /** `undefined` when the constructor is written bare. */
+      readonly call: ResolvedTypeConstructorCall | undefined;
+    }
+  | {
+      readonly kind: 'typeChoice';
+      readonly descriptor: AuthoringTypeChoiceDescriptor;
+      readonly symbol: ContributedTypeSymbol;
+      /** `undefined` when the type choice is written bare. */
       readonly call: ResolvedTypeConstructorCall | undefined;
     }
   | { readonly kind: 'block'; readonly symbol: BlockSymbol };
@@ -185,6 +194,14 @@ function baseOf(
   }
   if (resolution?.kind !== 'contributedType') return undefined;
   const { descriptor } = resolution.symbol;
+  if (descriptor.kind === 'typeChoice') {
+    return {
+      kind: 'typeChoice',
+      descriptor,
+      symbol: resolution.symbol,
+      call: declaration.typeConstructor,
+    };
+  }
   if (descriptor.kind !== 'typeConstructor') return undefined;
   if (declaration.isConstructor) {
     return { kind: 'typeConstructor', descriptor, call: declaration.typeConstructor };
@@ -343,7 +360,11 @@ export function typeAliasSpecContext(
     list: false,
     typeName: alias.baseName,
     typeResolution: alias.baseResolution,
-    typeConstructor: contributedTypeOf(alias.baseResolution, input.binder),
+    typeConstructor: contributedTypeOf(
+      alias.baseResolution,
+      input.binder,
+      alias.symbol.typeConstructor,
+    ),
   };
 }
 

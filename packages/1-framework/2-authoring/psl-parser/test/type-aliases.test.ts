@@ -365,7 +365,7 @@ model Post {
       codecId:
         context?.typeConstructor === undefined
           ? undefined
-          : contributedTypeCodecId(context.typeConstructor.descriptor),
+          : contributedTypeCodecId(context.typeConstructor),
     }).toEqual({
       alias: 'Slug',
       untyped: undefined,

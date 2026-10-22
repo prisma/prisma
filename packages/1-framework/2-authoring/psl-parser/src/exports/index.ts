@@ -176,8 +176,9 @@ export type {
   ContributedTypeNamespace,
   ContributedTypeScope,
   ContributedTypeSymbol,
+  ContributedTypeUse,
 } from '../contributed-type-scope';
-export { contributedTypeCodecId } from '../contributed-type-scope';
+export { chosenTypeConstructor, contributedTypeCodecId } from '../contributed-type-scope';
 export type { DiagnosticSource, PslDiagnostic, PslDiagnosticCollector } from '../diagnostic';
 export {
   createPslDiagnosticCollector,

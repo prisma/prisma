@@ -35,6 +35,7 @@ import type {
 import { formatDbAttributeMigrationMessage } from './psl-attribute-parsing';
 import {
   type ColumnDescriptor,
+  instantiatePslTypeChoice,
   instantiatePslTypeConstructor,
   lowerEnumDefault,
   lowerTypeDefault,
@@ -91,6 +92,19 @@ function aliasDescriptor(
 ): ColumnDescriptor | undefined {
   const { base, symbol } = alias;
   const source = diagnosticSource(input.sources, symbol.node.syntax);
+  if (base.kind === 'typeChoice') {
+    return instantiatePslTypeChoice({
+      symbol: base.symbol,
+      descriptor: base.descriptor,
+      call: base.call,
+      span: symbol.span,
+      codecLookup: input.codecLookup,
+      diagnostics: input.diagnostics,
+      source,
+      entityLabel: `Type alias "${symbol.name}"`,
+      dataTypes: input.dataTypes,
+    });
+  }
   if (base.kind === 'typeConstructor') {
     if (base.call === undefined) return instantiateAuthoringTypeConstructor(base.descriptor, []);
     return instantiatePslTypeConstructor({

@@ -1,5 +1,6 @@
 import type {
   AuthoringFieldPresetDescriptor,
+  AuthoringTypeChoiceDescriptor,
   AuthoringTypeConstructorDescriptor,
 } from '@internal/framework-components/authoring';
 import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
@@ -11,6 +12,7 @@ import {
   createBinder,
   typeReferenceNode,
 } from '../src/binder';
+import { contributedTypeCodecId } from '../src/contributed-type-scope';
 import { parse } from '../src/parse';
 import { PslSources } from '../src/source-file';
 import { buildSymbolTable, type FieldSymbol, type NamedTypeSymbol } from '../src/symbol-table';
@@ -51,10 +53,45 @@ const secondTagged: AuthoringTypeConstructorDescriptor = {
   output: { codecId: 'fixture/tagged@1' },
 };
 
+const wideDate: AuthoringTypeConstructorDescriptor = {
+  kind: 'typeConstructor',
+  output: { codecId: 'fixture/wide-date@1' },
+};
+
+const wideText: AuthoringTypeConstructorDescriptor = {
+  kind: 'typeConstructor',
+  output: { codecId: 'fixture/wide-text@1' },
+};
+
+const narrowDate: AuthoringTypeConstructorDescriptor = {
+  kind: 'typeConstructor',
+  output: { codecId: 'fixture/narrow-date@1' },
+};
+
+const moment: AuthoringTypeChoiceDescriptor = {
+  kind: 'typeChoice',
+  args: [
+    { kind: 'option', name: 'value', values: ['date', 'text'], default: 'date', optional: true },
+    { kind: 'option', name: 'column', values: ['wide', 'narrow'], default: 'wide', optional: true },
+  ],
+  choices: [
+    { when: { value: 'date', column: 'wide' }, type: 'WideDate' },
+    { when: { value: 'text', column: 'wide' }, type: 'WideText' },
+    { when: { value: 'date', column: 'narrow' }, type: 'NarrowDate' },
+  ],
+};
+
 function context(): BinderContext {
   return {
     authoringContributions: {
-      type: { String: text, db: { VarChar: varchar, tagged, secondTagged } },
+      type: {
+        String: text,
+        Moment: moment,
+        WideDate: wideDate,
+        WideText: wideText,
+        NarrowDate: narrowDate,
+        db: { VarChar: varchar, tagged, secondTagged },
+      },
       field: { temporal: { createdAt }, db: { uuid } },
       entityTypes: {},
       attributeSpecs: { model: {}, field: {} },
@@ -157,11 +194,9 @@ describe('createBinder — contributed types', () => {
     it('returns the contributed type a field resolves to', () => {
       const { resolve, binder } = bindProject('model Post {\n  title String\n}');
 
-      expect(contributedTypeOf(resolve('title'), binder)).toEqual({
-        kind: 'contributedType',
-        name: 'String',
-        path: ['String'],
-        descriptor: text,
+      expect(contributedTypeOf(resolve('title'), binder, undefined)).toEqual({
+        symbol: { kind: 'contributedType', name: 'String', path: ['String'], descriptor: text },
+        call: undefined,
       });
     });
 
@@ -171,11 +206,9 @@ describe('createBinder — contributed types', () => {
       );
 
       expect(resolve('slug')?.kind).toBe('namedType');
-      expect(contributedTypeOf(resolve('slug'), binder)).toEqual({
-        kind: 'contributedType',
-        name: 'VarChar',
-        path: ['db', 'VarChar'],
-        descriptor: varchar,
+      expect(contributedTypeOf(resolve('slug'), binder, undefined)).toMatchObject({
+        symbol: { kind: 'contributedType', name: 'VarChar', path: ['db', 'VarChar'] },
+        call: { path: ['db', 'VarChar'] },
       });
     });
 
@@ -184,9 +217,51 @@ describe('createBinder — contributed types', () => {
         'model Author {\n  id String\n}\nmodel Post {\n  author Author\n  missing Nope\n}',
       );
 
-      expect(contributedTypeOf(resolve('author'), binder)).toBeUndefined();
-      expect(contributedTypeOf(resolve('missing'), binder)).toBeUndefined();
-      expect(contributedTypeOf(undefined, binder)).toBeUndefined();
+      expect(contributedTypeOf(resolve('author'), binder, undefined)).toBeUndefined();
+      expect(contributedTypeOf(resolve('missing'), binder, undefined)).toBeUndefined();
+      expect(contributedTypeOf(undefined, binder, undefined)).toBeUndefined();
+    });
+  });
+
+  describe('contributedTypeCodecId of a type choice', () => {
+    const { resolve, binder, symbolTable } = bindProject(
+      [
+        'types {',
+        '  Stamp = Moment(value: text)',
+        '}',
+        'model Post {',
+        '  bare Moment',
+        '  named Moment(column: narrow)',
+        '  positional Moment(text)',
+        '  aliased Stamp',
+        '  refused Moment(value: text, column: narrow)',
+        '}',
+      ].join('\n'),
+    );
+    const codecOf = (fieldName: string) => {
+      const field = symbolTable.defaultNamespace.models['Post']?.fields[fieldName];
+      const use = contributedTypeOf(resolve(fieldName), binder, field?.typeConstructor);
+      return use === undefined ? 'no contributed type' : contributedTypeCodecId(use);
+    };
+
+    it('is the codec of the constructor the call chooses, bare, named or positional', () => {
+      expect({
+        bare: codecOf('bare'),
+        named: codecOf('named'),
+        positional: codecOf('positional'),
+      }).toEqual({
+        bare: 'fixture/wide-date@1',
+        named: 'fixture/narrow-date@1',
+        positional: 'fixture/wide-text@1',
+      });
+    });
+
+    it('follows a type alias to the call it is written as', () => {
+      expect(codecOf('aliased')).toBe('fixture/wide-text@1');
+    });
+
+    it('is unknown for a combination the choice refuses', () => {
+      expect(codecOf('refused')).toBeUndefined();
     });
   });
 });

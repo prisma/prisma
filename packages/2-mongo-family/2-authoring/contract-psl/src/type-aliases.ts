@@ -5,6 +5,7 @@ import type {
   ValueSetRef,
 } from '@internal/contract/types';
 import {
+  type AuthoringTypeChoiceDescriptor,
   type AuthoringTypeConstructorDescriptor,
   type AuthoringTypeNamespace,
   type DataTypeSupport,
@@ -17,6 +18,8 @@ import type { ControlMutationDefaultRegistry } from '@internal/framework-compone
 import {
   type Binder,
   type ContributedTypeAlias,
+  type ContributedTypeUse,
+  chosenTypeConstructor,
   contributedTypeAliasOf,
   diagnosticSource,
   interpretAttribute,
@@ -35,9 +38,19 @@ import {
 } from '@internal/psl-parser';
 import type { FieldAttributeAst, PslSources } from '@internal/psl-parser/syntax';
 import { ifDefined } from '@internal/utils/defined';
+import { ok, type Result } from '@internal/utils/result';
 import { unloweredAttributeHint } from './mongo-attribute-specs';
 
 type ScalarFieldType = Extract<ContractField['type'], { readonly kind: 'scalar' }>;
+
+/** The field type a use of a type choice gives: the type of the constructor its call chooses, or why it chooses none. */
+export function scalarTypeOfChoice(
+  use: ContributedTypeUse,
+  descriptor: AuthoringTypeChoiceDescriptor,
+): Result<ScalarFieldType, string> {
+  const chosen = chosenTypeConstructor(use, descriptor);
+  return chosen.ok ? ok(scalarTypeOfConstructor(chosen.value, use.call)) : chosen;
+}
 
 /** The field type a type constructor gives, keeping a bare constructor's fixed type params. */
 export function scalarTypeOfConstructor(
@@ -144,6 +157,16 @@ function aliasType(
   const { base, symbol } = alias;
   if (base.kind === 'typeConstructor') {
     return { type: scalarTypeOfConstructor(base.descriptor, base.call), valueSet: undefined };
+  }
+  if (base.kind === 'typeChoice') {
+    const type = scalarTypeOfChoice(base, base.descriptor);
+    if (type.ok) return { type: type.value, valueSet: undefined };
+    input.diagnostics.push({
+      code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+      message: `Type alias "${symbol.name}" type "${base.symbol.path.join('.')}": ${type.failure}`,
+      ...diagnosticSource(input.sources, symbol.node.syntax).at(base.call?.span ?? symbol.span),
+    });
+    return undefined;
   }
   if (base.symbol.keyword !== 'enum') {
     input.diagnostics.push({

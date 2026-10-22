@@ -123,6 +123,7 @@ import {
   type ResolvedTypeAlias,
   type ResolvedTypeAliases,
   resolveMongoTypeAliases,
+  scalarTypeOfChoice,
   scalarTypeOfConstructor,
 } from './type-aliases';
 
@@ -296,7 +297,11 @@ function resolvePhysicalNames(input: {
             ...specContext,
             field,
             typeResolution: fieldTypeResolution(field, binder),
-            typeConstructor: contributedTypeOf(fieldTypeResolution(field, binder), binder),
+            typeConstructor: contributedTypeOf(
+              fieldTypeResolution(field, binder),
+              binder,
+              field.typeConstructor,
+            ),
           }),
           model,
           field,
@@ -349,11 +354,15 @@ function isStringTyped(
   stringCodecId: string | undefined,
   binder: Binder,
 ): boolean {
-  const scalar = contributedTypeOf(fieldTypeResolution(field, binder), binder);
+  const scalar = contributedTypeOf(
+    fieldTypeResolution(field, binder),
+    binder,
+    field.typeConstructor,
+  );
   return (
     stringCodecId !== undefined &&
-    scalar?.descriptor.kind === 'typeConstructor' &&
-    scalar.descriptor.output.codecId === stringCodecId
+    scalar?.symbol.descriptor.kind === 'typeConstructor' &&
+    scalar.symbol.descriptor.output.codecId === stringCodecId
   );
 }
 
@@ -1004,7 +1013,11 @@ function collectIndexes(
         ...specContext,
         field,
         typeResolution: fieldTypeResolution(field, binder),
-        typeConstructor: contributedTypeOf(fieldTypeResolution(field, binder), binder),
+        typeConstructor: contributedTypeOf(
+          fieldTypeResolution(field, binder),
+          binder,
+          field.typeConstructor,
+        ),
       }),
       model: pslModel,
       field,
@@ -1413,6 +1426,24 @@ function resolveNonRelationField(
       ...ifDefined('executionDefaults', preset.executionDefaults),
     };
   }
+  if (descriptor.kind === 'typeChoice') {
+    const type = scalarTypeOfChoice({ symbol: resolution.symbol, call }, descriptor);
+    if (!type.ok) {
+      presetContext.diagnostics.push({
+        code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+        message: `${entityLabel} type "${path.join('.')}": ${type.failure}`,
+        ...source.at(call?.span ?? field.span),
+      });
+      return undefined;
+    }
+    return {
+      field: {
+        type: type.value,
+        nullable: field.optional,
+        many: field.list ? { elementNullable: field.elementOptional } : false,
+      },
+    };
+  }
   if (call === undefined && !isBareTypeConstructor(descriptor)) {
     reportTypeConstructorNotCalled({
       entityLabel,
@@ -1734,7 +1765,11 @@ export function interpretPslDocumentToMongoContract(
                 ...specContext,
                 field,
                 typeResolution: fieldTypeResolution(field, binder),
-                typeConstructor: contributedTypeOf(fieldTypeResolution(field, binder), binder),
+                typeConstructor: contributedTypeOf(
+                  fieldTypeResolution(field, binder),
+                  binder,
+                  field.typeConstructor,
+                ),
               }),
               model: pslModel,
               field,
@@ -1849,7 +1884,7 @@ export function interpretPslDocumentToMongoContract(
           ...specContext,
           field,
           typeResolution: resolution,
-          typeConstructor: contributedTypeOf(resolution, binder),
+          typeConstructor: contributedTypeOf(resolution, binder, field.typeConstructor),
         },
         generatorFunctions,
         sources,
@@ -1881,7 +1916,11 @@ export function interpretPslDocumentToMongoContract(
           ...specContext,
           field,
           typeResolution: fieldTypeResolution(field, binder),
-          typeConstructor: contributedTypeOf(fieldTypeResolution(field, binder), binder),
+          typeConstructor: contributedTypeOf(
+            fieldTypeResolution(field, binder),
+            binder,
+            field.typeConstructor,
+          ),
         }),
         model: pslModel,
         field,

@@ -69,9 +69,7 @@ export function generatorFunctionCall(
  */
 function generatorCallArm(ctx: TypeAttributeSpecContext) {
   const codecId =
-    ctx.typeConstructor === undefined
-      ? undefined
-      : contributedTypeCodecId(ctx.typeConstructor.descriptor);
+    ctx.typeConstructor === undefined ? undefined : contributedTypeCodecId(ctx.typeConstructor);
   const functions = codecId === undefined ? [] : ctx.generatorFunctions.functionsFor(codecId);
   const subject = typeAttributeSubjectLabel(ctx.subject);
   const target = codecId === undefined ? "the field's type" : `codec "${codecId}"`;
