@@ -1,6 +1,6 @@
 # ADR 279 — Convenience date and time types choose an explicit type from their arguments
 
-**Status:** Accepted
+**Status:** Accepted. Implemented: the type choice, the four PostgreSQL convenience types, and every reader of a field's codec. Not yet implemented: items 8 and 10, what the Prisma 7 reader, `contract infer`, `contract print` and `prisma orm init` write, and the `temporal.*` aliases built on `DateTime` ("Created-at and updated-at"); until then those write and use the explicit types.
 **Builds on:** [ADR 241 — Scalar types use the authoring type-constructor channel](ADR%20241%20-%20Scalar%20types%20use%20the%20authoring%20type-constructor%20channel.md)
 **Amends:** [ADR 254 — Data types and casts](ADR%20254%20-%20Data%20types%20and%20casts.md), [ADR 257 — Scalar types are named after the target on every surface](ADR%20257%20-%20Scalar%20types%20are%20named%20after%20the%20target%20on%20every%20surface.md), [ADR 275 — Client generators are field attributes, and a type alias is expanded into each column](ADR%20275%20-%20Client%20generators%20are%20field%20attributes%2C%20and%20a%20type%20alias%20is%20expanded%20into%20each%20column.md)
 
@@ -82,7 +82,7 @@ An explicit type is a type constructor: it names one codec, and maps its argumen
 ```ts
 TimestamptzTemporal: {
   kind: 'typeConstructor',
-  args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
+  args: [{ kind: 'value', dataType: 'pg/int4', name: 'precision', optional: true }],
   output: {
     codecId: 'pg/timestamptz-temporal@1',
     typeParams: { precision: { kind: 'arg', index: 0 } },
@@ -139,7 +139,7 @@ The PSL interpreter resolves a convenience type to its explicit type's codec and
 
 ### Created-at and updated-at
 
-ADR 275 has the PostgreSQL target ship ready-made type aliases under `temporal`, such as `temporal.UpdatedAt`, built on `Timestamptz`, with `String` and `JsDate` variants for the other kinds of value. With this decision they are built on `DateTime` instead, for example `temporal.UpdatedAt = DateTime @onCreate(now()) @onUpdate(now())`, and use its defaults. `now()` picks its generator from the field's final codec, so it writes a `Date`, a `Temporal.Instant` or a string to match.
+ADR 275 has the PostgreSQL target ship ready-made type aliases under `temporal`, such as `temporal.UpdatedAt`, built on `TimestamptzTemporal` (formerly `Timestamptz`), with `String` and `JsDate` variants for the other kinds of value. With this decision they are built on `DateTime` instead, for example `temporal.UpdatedAt = DateTime @onCreate(now()) @onUpdate(now())`, and use its defaults. `now()` picks its generator from the field's final codec, so it writes a `Date`, a `Temporal.Instant` or a string to match.
 
 The `String` and `JsDate` variants are not needed. A contributed alias takes no arguments (ADR 275), so a user who wants another kind of value writes the attributes on the convenience type, `DateTime(value: string) @onCreate(now()) @onUpdate(now())`, or defines their own alias with that line.
 
