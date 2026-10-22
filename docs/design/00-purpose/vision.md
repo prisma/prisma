@@ -1,6 +1,6 @@
 # Vision
 
-This page says where Prisma 8 is going, in two layers: **values**, which do not change, and **durable themes**, the parts of the product the maintainers invest in across many releases. [Project intent](./project-intent.md) says who Prisma 8 is for and what not to assume. The [steering list](../../architecture%20docs/ADR-INDEX.md#steering-list) lists requests the maintainers have already answered, with what to use instead.
+This page says where Prisma 8 is going, in two parts. **Values** do not change. **Durable themes** are the parts of the product the maintainers invest in across many releases. [Project intent](./project-intent.md) says who Prisma 8 is for and what not to assume.
 
 ## How to use this page
 
@@ -10,24 +10,24 @@ A verdict on a request cites the value, durable theme or ADR it rests on. Only a
 
 ## Values
 
-- **"we will not build in the core features which can be built in extension/user space."** (Will Madden, 2026-10-22.) The manifesto says "every part of Prisma ORM 8 is itself an extension".
-- **"Prisma ORM is an open framework and an open ecosystem."** ([manifesto, principle 1](https://www.prisma.io/blog/prisma-orm-manifesto-2026#1-prisma-orm-is-an-open-framework-and-an-open-ecosystem))
-- **"Database tools must be safe to delegate."** ([manifesto, principle 2](https://www.prisma.io/blog/prisma-orm-manifesto-2026#2-database-tools-must-be-safe-to-delegate))
-- **"Developer experience must be exceptional."** ([manifesto, principle 3](https://www.prisma.io/blog/prisma-orm-manifesto-2026#3-developer-experience-must-be-exceptional))
-- **"Prisma ORM must fit the modern JavaScript landscape."** ([manifesto, principle 4](https://www.prisma.io/blog/prisma-orm-manifesto-2026#4-prisma-orm-must-fit-the-modern-javascript-landscape))
-- **"We are stewards, not gatekeepers."** ([manifesto, principle 5](https://www.prisma.io/blog/prisma-orm-manifesto-2026#5-we-are-stewards-not-gatekeepers))
+- "we will not build in the core features which can be built in extension/user space." (Will Madden, 2026-10-22)
+- "The framework fundamentally knows nothing about any database, query language, or schema format" ([Prisma ORM Manifesto, principle 1](https://www.prisma.io/blog/prisma-orm-manifesto-2026#1-prisma-orm-is-an-open-framework-and-an-open-ecosystem))
+- "It shows what it will do before it does it, checks its own work afterwards, and asks before it destroys anything." ([principle 2](https://www.prisma.io/blog/prisma-orm-manifesto-2026#2-database-tools-must-be-safe-to-delegate))
+- "High-level abstractions must have escape hatches." ([principle 3](https://www.prisma.io/blog/prisma-orm-manifesto-2026#3-developer-experience-must-be-exceptional))
+- "Code must be explicit and unambiguous, never magical." ([principle 3](https://www.prisma.io/blog/prisma-orm-manifesto-2026#3-developer-experience-must-be-exceptional))
+- "Prisma ORM must run wherever your JavaScript runs, and work with the frameworks and build tools you already use, today and as they change." ([principle 4](https://www.prisma.io/blog/prisma-orm-manifesto-2026#4-prisma-orm-must-fit-the-modern-javascript-landscape))
+- "Prisma’s hosted products are built on the same foundation as every other extension, with the same access and no more" ([principle 5](https://www.prisma.io/blog/prisma-orm-manifesto-2026#5-we-are-stewards-not-gatekeepers))
 
-How the system is built is in the ten [guiding principles](../../Architecture%20Overview.md#guiding-principles) of the Architecture Overview.
+How the system is built is in the [guiding principles](../../Architecture%20Overview.md#guiding-principles) of the Architecture Overview.
 
 ## Durable themes
 
-- **Databases, in order.** PostgreSQL reaches general availability, then MongoDB, SQLite and MySQL do, then we see. Everything else is expected to be built in user or extension space. Will Madden, 2026-10-22: "postgres GA. mongo GA / SQLite GA / mysql GA. then we see. everything else we expect to be built in user/extension space". PostgreSQL, MySQL, SQLite, MongoDB and MariaDB are Prisma's first-class databases, "prioritized for bug fixes, performance improvements, and feature development" ([prisma/orm#25843](https://github.com/prisma/orm/issues/25843)). MongoDB has first-class support in Prisma 8 ([README](../../../README.md#supported-databases)), and its implementation is in Early Access (Will Madden, 2026-10-22).
-- **The data contract and its authoring.** One canonical `contract.json` defines what exists and what is allowed, written in PSL or with TypeScript builders ([Architecture Overview](../../Architecture%20Overview.md#contract-first), scoreboard: [PSL](../../../scorecard/03-psl-schema-language.md), [contract emission and authoring](../../../scorecard/04-contract-emission-and-authoring.md)).
-- **Queries: the query builder, the ORM client and raw SQL.** The ORM is an optional layer over the SQL query builder, and raw SQL is a lane of its own ([ADR 015](../../architecture%20docs/adrs/ADR%20015%20-%20ORM%20as%20Optional%20Extension.md), [ADR 247](../../architecture%20docs/adrs/ADR%20247%20-%20Whole-query%20raw%20SQL%20is%20the%20fragment%20mechanism%20at%20statement%20position.md), scoreboard sections 05 to 14).
-- **Migrations that are safe to delegate.** Every migration is a contract-to-contract edge with checks before and after, and destructive actions need approval ([Architecture Overview](../../Architecture%20Overview.md#control-plane--self-verifying-change), [manifesto, principle 2](https://www.prisma.io/blog/prisma-orm-manifesto-2026#2-database-tools-must-be-safe-to-delegate), scoreboard: [migrations](../../../scorecard/15-migrations.md), [introspection](../../../scorecard/16-introspection.md)).
-- **Extensions and the extension ecosystem.** "Everything around it, including Postgres support itself, is built on the same public SPI that's available to any author." ([README, For extension authors](../../../README.md#for-extension-authors), scoreboard: [extensions](../../../scorecard/18-extensions.md))
-- **Agents as first-class users.** "Prisma 8 is an ORM designed for software agents." ([Architecture Overview](../../Architecture%20Overview.md#agent-first-orm)) The packages ship skills that agents load ([skills/README.md](../../../skills/README.md)).
-- **The runtime and middleware.** Behaviour around queries, such as logging, caching and tracing, is written as middleware that observes every activity ([ADR 271](../../architecture%20docs/adrs/ADR%20271%20-%20The%20runtime%20middleware%20observes%20a%20tree%20of%20activities,%20each%20started,%20ended%20and%20finalized.md), scoreboard: [observability and lifecycle](../../../scorecard/19-observability-and-lifecycle.md)).
-- **The CLI, the editor and tools.** The `prisma` CLI and the VS Code extension ([scoreboard: CLI commands](../../../scorecard/17-cli-commands.md), [GA plan, editor and tools](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/plan.md#stream-3-editor-and-tools)).
-- **The upgrade path from Prisma 7.** Prisma 7 applications move to Prisma 8 incrementally; Prisma 8 reads a Prisma 7 schema as a contract source ([ADR 252](../../architecture%20docs/adrs/ADR%20252%20-%20An%20earlier%20Prisma%20version's%20schema%20is%20a%20contract%20source.md)). Prisma 7 is maintained for 18 months after Prisma 8 GA (Will Madden, 2026-10-22; [README](../../../README.md)).
-- **The modern JavaScript landscape.** "Prisma ORM 8 is written entirely in TypeScript and ships as ES modules" ([manifesto, principle 4](https://www.prisma.io/blog/prisma-orm-manifesto-2026#4-prisma-orm-must-fit-the-modern-javascript-landscape)), on current runtimes ([ADR 222](../../architecture%20docs/adrs/ADR%20222%20-%20Version%20support%20policy.md), [Supported Versions](../../Supported%20Versions.md)).
+- **Databases, in order.** Will Madden, 2026-10-22: "postgres GA. mongo GA / SQLite GA / mysql GA. then we see. everything else we expect to be built in user/extension space"
+- **The data contract.** One contract, written in PSL or TypeScript, says what exists and what is allowed, and every other part works from it.
+- **Querying.** The query builder, the ORM client on top of it, and raw SQL, all checked against the same contract.
+- **Migrations.** Each change is planned from one contract to the next, checked before and after it runs, and needs approval when it destroys data.
+- **Extensions.** The public interface that lets anyone add a database, a tool or a library outside the core.
+- **Agents.** Agents are first-class users: the packages ship skills for them, and the tools give output they can act on.
+- **The runtime and middleware.** Behaviour around queries, such as logging, caching and tracing, is written as middleware.
+- **The CLI, the editor and tools.** The `prisma` CLI and the VS Code extension.
+- **The upgrade path from Prisma 7.** An application moves from Prisma 7 to Prisma 8 one step at a time.
