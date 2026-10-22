@@ -22,13 +22,15 @@ export default defineConfig({
 
 ```typescript
 // prisma/contract.ts
-import { defineContract, field, model } from '@internal/sqlite/contract-builder';
+import { defineContract } from '@internal/sqlite/contract-builder';
 
-export default defineContract({
+export default defineContract({}, ({ field, gen, model, type }) => ({
   models: {
-    User: model('User', { fields: { id: field.id.uuidv4String() } }),
+    User: model('User', {
+      fields: { id: field.column(type.sql.Char(36)).id().onCreate(gen.uuid()) },
+    }),
   },
-});
+}));
 ```
 
 ## Exports
@@ -52,13 +54,15 @@ export default defineConfig({
 TypeScript contract authoring DSL (`defineContract`, `field`, `model`, `rel`, …). The `defineContract` facade pre-binds `family` and `target` — callers do not pass those fields.
 
 ```typescript
-import { defineContract, field, model } from '@internal/sqlite/contract-builder';
+import { defineContract } from '@internal/sqlite/contract-builder';
 
-export default defineContract({
+export default defineContract({}, ({ field, gen, model, type }) => ({
   models: {
-    User: model('User', { fields: { id: field.id.uuidv4String() } }),
+    User: model('User', {
+      fields: { id: field.column(type.sql.Char(36)).id().onCreate(gen.uuid()) },
+    }),
   },
-});
+}));
 ```
 
 ### `@internal/sqlite/control`

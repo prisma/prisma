@@ -81,7 +81,7 @@ defineContract({ extensions: { slugid } }, ({ field, gen, model }) => ({
 
 `.onCreate(...)` makes the field optional in the create input; `.onUpdate(...)` alone does not. A generator on a list field, as in `.many().onCreate(gen.uuid())`, fails the build with `CONTRACT.DEFAULT_INVALID` (`reason: 'generator-on-list'`). A function that does not fill the codec fails the build with `CONTRACT.DEFAULT_INVALID` (`reason: 'generator-not-applicable'`), and setting a phase twice, or a phase a preset or `field.generated(...)` already sets, throws `CONTRACT.DEFAULT_INVALID` (`reason: 'generator-phase-set-twice'`).
 
-A literal passed to `.default(value)` is a value of the input type of the field's codec, and TypeScript checks it: inside the `defineContract` factory, `field.text().default(1)` is a type error. A list field takes an array of that type, and an enum field takes one of its member values. `now()`, `autoincrement()` and the `sql` tag are accepted on every field except an enum field, whose `.default()` takes only member values. Two cases are not typed from a codec and accept any value, which the codec checks when the contract is built: a codec id that no pack declares, and the directly imported `field` helper, which knows no packs. `.default({ kind: 'literal', value })` is not type-checked against the codec; the codec still checks the value when the contract is built. The codec's `toDataTypeValue` turns the value into a value of the column's data type, which constructs the form `contract.json` stores, and a value the codec refuses at build time fails with `CONTRACT.DEFAULT_INVALID`, naming the model and field. The Postgres and SQLite `defineContract` facades look up the target's built-in codecs and the codecs of `extensions` for this; pass `codecLookup` to use your own. When the lookup has no codec for a column's codec id, a literal default on that column fails with `CONTRACT.DEFAULT_INVALID`: list the pack that owns the codec in `extensions`. The lookups are required: a column's database type name is written from the data type its codec represents, so the facades also pass a `dataTypeLookup` built from the target and the listed extensions, and a column whose codec no listed pack provides fails with `CONTRACT.CODEC_DESCRIPTOR_MISSING`. A list field's default is an array, so call `.many()` before `.default()`. On Postgres, `field.dateTime()` takes a `Temporal.Instant`, `field.temporal.timestamptzJsDate()` takes a `Date`, and `field.temporal.timestamptzString()` takes an ISO 8601 string. On Node 24 a contract file that creates a `Temporal` value must load a `Temporal` implementation itself, for example `import 'temporal-polyfill/full/global'`; the CLI and the Vite plugin set no global `Temporal`. Encoding a `Temporal` default needs no other implementation than the one that made the value. The type check on a `Temporal` field needs the `Temporal` type declarations in the project, for example from `temporal-polyfill/global`; without them the parameter is unchecked.
+A literal passed to `.default(value)` is a value of the input type of the field's codec, and TypeScript checks it: inside the `defineContract` factory, `field.column(type.String()).default(1)` is a type error. A list field takes an array of that type, and an enum field takes one of its member values. `now()`, `autoincrement()` and the `sql` tag are accepted on every field except an enum field, whose `.default()` takes only member values. Two cases are not typed from a codec and accept any value, which the codec checks when the contract is built: a codec id that no pack declares, and the directly imported `field` helper, which knows no packs. `.default({ kind: 'literal', value })` is not type-checked against the codec; the codec still checks the value when the contract is built. The codec's `toDataTypeValue` turns the value into a value of the column's data type, which constructs the form `contract.json` stores, and a value the codec refuses at build time fails with `CONTRACT.DEFAULT_INVALID`, naming the model and field. The Postgres and SQLite `defineContract` facades look up the target's built-in codecs and the codecs of `extensions` for this; pass `codecLookup` to use your own. When the lookup has no codec for a column's codec id, a literal default on that column fails with `CONTRACT.DEFAULT_INVALID`: list the pack that owns the codec in `extensions`. The lookups are required: a column's database type name is written from the data type its codec represents, so the facades also pass a `dataTypeLookup` built from the target and the listed extensions, and a column whose codec no listed pack provides fails with `CONTRACT.CODEC_DESCRIPTOR_MISSING`. A list field's default is an array, so call `.many()` before `.default()`. On Postgres, `field.column(type.DateTime())` takes a `Temporal.Instant`, `field.column(type.TimestamptzJsDate())` takes a `Date`, and `field.column(type.TimestamptzString())` takes an ISO 8601 string. On Node 24 a contract file that creates a `Temporal` value must load a `Temporal` implementation itself, for example `import 'temporal-polyfill/full/global'`; the CLI and the Vite plugin set no global `Temporal`. Encoding a `Temporal` default needs no other implementation than the one that made the value. The type check on a `Temporal` field needs the `Temporal` type declarations in the project, for example from `temporal-polyfill/global`; without them the parameter is unchecked.
 
 ```typescript
 import { textColumn, timestamptzColumn } from '@internal/adapter-postgres/column-types';
@@ -171,13 +171,13 @@ export const contract = defineContract(
     target: postgresPack,
     extensions: { pgvector },
   },
-  ({ type, field, model, rel }) => {
+  ({ type, field, model, rel, gen }) => {
     const ShortName = field.column(type.VarChar(35));
     const Embedding1536 = field.column(type.pgvector.Vector(1536));
 
     const User = model('User', {
       fields: {
-        id: field.id.uuidv7String().sql({ id: { name: 'user_pkey' } }),
+        id: field.column(type.Char(36)).id().onCreate(gen.uuid(7)).sql({ id: { name: 'user_pkey' } }),
         shortName: ShortName,
         role: field.namedType(Role),
         embedding: Embedding1536.optional(),
@@ -188,9 +188,9 @@ export const contract = defineContract(
 
     const Post = model('Post', {
       fields: {
-        id: field.id.uuidv7String(),
-        authorId: field.uuidString(),
-        title: field.text(),
+        id: field.column(type.Char(36)).id().onCreate(gen.uuid(7)),
+        authorId: field.column(type.Char(36)),
+        title: field.column(type.String()),
       },
     });
 

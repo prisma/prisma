@@ -40,7 +40,7 @@ db.<collection>.find({
 
 The first clause checks the field's own value, and the second checks each element of the field when the value is an array. The last three clauses, for a `long` outside the safe-integer range and for `NaN` or an infinite `double`, match at both of those levels. The query misses exactly the values nested deeper: inside an object, inside an array of objects, or inside an array of arrays. Reading every document through the ORM finds those too, because the read fails with the path of the first such value. Change a field whose documents hold such values to `Bson`.
 
-A `temporal.*` preset field added to a collection that already has documents needs a backfill; see [Execution defaults](../architecture%20docs/subsystems/10.%20MongoDB%20Family.md#execution-defaults).
+A field the ORM fills, such as `temporal.CreatedAt` or `Date @onCreate(now())`, added to a collection that already has documents needs a backfill; see [Execution defaults](../architecture%20docs/subsystems/10.%20MongoDB%20Family.md#execution-defaults).
 
 A contract written in Prisma 8 PSL and one built with the TypeScript builder get the same collection validator, derived from the contract. A contract read from a Prisma 6 schema (`prisma6Schema`) gets no validator, so there the codecs' checks on read and write are the only ones.
 
@@ -68,19 +68,19 @@ These are the current names. The Postgres and SQLite rename project will change 
 
 | PSL name | TS helper | Codec id | Storage type | Application type |
 | --- | --- | --- | --- | --- |
-| `String` | `field.text()` | `pg/text@1` | `text` | `string` |
+| `String` | `field.column(type.String())` | `pg/text@1` | `text` | `string` |
 | `VarChar(n?)` | — | `sql/varchar@1` | `character varying` | `string` |
 | `Char(n?)` | — | `sql/char@1` | `character` | `string` |
-| `Boolean` | `field.boolean()` | `pg/bool@1` | `bool` | `boolean` |
+| `Boolean` | `field.column(type.Boolean())` | `pg/bool@1` | `bool` | `boolean` |
 | `SmallInt` | — | `pg/int2@1` | `int2` | `number` |
-| `Int` | `field.int()` | `pg/int4@1` | `int4` | `number` |
-| `BigInt` | `field.bigint()` | `pg/int8@1` | `int8` | `bigint` |
+| `Int` | `field.column(type.Int())` | `pg/int4@1` | `int4` | `number` |
+| `BigInt` | `field.column(type.BigInt())` | `pg/int8@1` | `int8` | `bigint` |
 | `BigIntNumber` | — | `pg/int8number@1` | `int8` | `number` (safe-integer range) |
 | `UnboundedInt` | — | `pg/unboundedint@1` | `numeric` | `bigint` |
 | `Real` | — | `pg/float4@1` | `float4` | `number` |
-| `Float` | `field.float()` | `pg/float8@1` | `float8` | `number` |
-| `Decimal`, `Numeric(p?, s?)` | `field.decimal()` | `pg/numeric@1` | `numeric` | `string` (decimal text) |
-| `DateTime`, `Timestamptz(p?)` | `field.dateTime()` | `pg/timestamptz-temporal@1` | `timestamptz` | `Temporal.Instant` |
+| `Float` | `field.column(type.Float())` | `pg/float8@1` | `float8` | `number` |
+| `Decimal`, `Numeric(p?, s?)` | `field.column(type.Decimal())` | `pg/numeric@1` | `numeric` | `string` (decimal text) |
+| `DateTime`, `Timestamptz(p?)` | `field.column(type.DateTime())` | `pg/timestamptz-temporal@1` | `timestamptz` | `Temporal.Instant` |
 | `TimestamptzJsDate(p?)` | — | `pg/timestamptz-date@1` | `timestamptz` | `Date` |
 | `TimestamptzString(p?)` | — | `pg/timestamptz-string@1` | `timestamptz` | `string` |
 | `Timestamp(p?)` | — | `pg/timestamp-temporal@1` | `timestamp` | `Temporal.PlainDateTime` |
@@ -90,19 +90,19 @@ These are the current names. The Postgres and SQLite rename project will change 
 | `Time(p?)` | — | `pg/time-temporal@1` | `time` | `Temporal.PlainTime` |
 | `TimeString(p?)` | — | `pg/time-string@1` | `time` | `string` |
 | `Timetz(p?)` | — | `pg/timetz@1` | `timetz` | `string` |
-| `Uuid` | `field.uuidNative()` | `pg/uuid@1` | `uuid` | `string` |
+| `Uuid` | `field.column(type.Uuid())` | `pg/uuid@1` | `uuid` | `string` |
 | `Inet` | — | `pg/inet@1` | `inet` | `string` |
 | `Interval(p?)` | — | `pg/interval@1` | `interval` | `{ months: number; days: number; micros: bigint }` |
 | `Bit(n?)` | — | `pg/bit@1` | `bit` | `string` (the bits as `0` and `1`) |
 | `VarBit(n?)` | — | `pg/varbit@1` | `bit varying` | `string` (the bits as `0` and `1`) |
 | `Json` | — | `pg/json@1` | `json` | `JsonValue` |
-| `Jsonb` | `field.json()` | `pg/jsonb@1` | `jsonb` | `JsonValue` |
-| `Bytes` | `field.bytes()` | `pg/bytea@1` | `bytea` | `Uint8Array` |
+| `Jsonb` | `field.column(type.Jsonb())` | `pg/jsonb@1` | `jsonb` | `JsonValue` |
+| `Bytes` | `field.column(type.Bytes())` | `pg/bytea@1` | `bytea` | `Uint8Array` |
 | `pg.enum(Name)` | — | `pg/enum@1` | the native enum type | `string` |
 
 A literal default of a date, time, interval or bytes type is written with the tag of its type, as in `@default(timestamptz`2024-01-01T00:00:00Z`)` or `@default(bytea`\x0102`)`; a quoted string is refused with a message that shows the tag. It is stored in the one form its data type stores, whichever codec the column uses and however the default was written, and a default with more fraction digits or more scale than its column holds is refused rather than rounded; [ADR 254](../architecture%20docs/adrs/ADR%20254%20-%20Data%20types%20and%20casts.md#date-and-time-types) states each form.
 
-The tools that write a schema for you use the text date and time types. In a PSL schema, `prisma orm init` writes `createdAt TimestamptzString @default(now())` and `updatedAt temporal.updatedAtString()`. In a TypeScript contract, it writes `field.temporal.createdAtString()` and `field.temporal.updatedAtString()`. All of these are `TimestamptzString` columns. `prisma contract infer` and `prisma7Schema(...)` write `TimestampString(p)`, `TimestamptzString(p)`, `DateString` and `TimeString(p)`. Four types read and write `Temporal` values: `Timestamptz` (also written `DateTime`), `Timestamp`, `Date` and `Time`. An application that uses them needs a global `Temporal`: on a runtime without one, such as Node.js 24, install it, for example with `import 'temporal-polyfill/full/global'`.
+The tools that write a schema for you use the text date and time types. In a PSL schema, `prisma orm init` writes `createdAt TimestamptzString @default(now())` and `updatedAt temporal.UpdatedAtString`. In a TypeScript contract, it writes `field.column(type.temporal.CreatedAtString())` and `field.column(type.temporal.UpdatedAtString())`. All of these are `TimestamptzString` columns. `prisma contract infer` and `prisma7Schema(...)` write `TimestampString(p)`, `TimestamptzString(p)`, `DateString` and `TimeString(p)`. Four types read and write `Temporal` values: `Timestamptz` (also written `DateTime`), `Timestamp`, `Date` and `Time`. An application that uses them needs a global `Temporal`: on a runtime without one, such as Node.js 24, install it, for example with `import 'temporal-polyfill/full/global'`.
 
 ## SQLite
 

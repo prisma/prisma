@@ -15,7 +15,7 @@ This keeps core/CLI source-agnostic while giving PSL-first SQL users a one-line 
 
 - Interpret a PSL `SymbolTable` into SQL `Contract`
 - Interpret generic PSL attributes into SQL contract semantics (`@id`, `@unique`, `@default`, `@relation`, `@map`, `@@map`, `@@control`)
-- Interpret SQL timestamp semantics: `DateTime @default(now())` as a storage default, and `temporal.createdAt()` / `temporal.updatedAt()` as client-side execution mutation defaults
+- Interpret SQL timestamp semantics: `DateTime @default(now())` as a storage default, and `temporal.CreatedAt` / `temporal.UpdatedAt` as client-side execution mutation defaults
 - Lower shared constructor expressions in both `types {}` blocks and inline field positions (for example `ShortName = sql.String(length: 35)` and `embedding pgvector.Vector(length: 1536)?`)
 - Lower supported default functions through composed registry inputs
 - Resolve Postgres native storage types from bare names and constructor calls in type position (`Char`, `VarChar`, `Numeric`, `Uuid`, `Inet`, `SmallInt`, `Real`, `Timestamp`, `Timestamptz`, `Date`, `Time`, `Timetz`, `Interval`, `Bit`, `VarBit`, `Json`, `Jsonb`, `BigIntNumber`, `UnboundedInt`)
@@ -72,14 +72,14 @@ Supported `@default(...)` surface in v1 when composed contributors provide handl
 
 Polymorphism:
 
-- `@@discriminator(field)` takes a field stored in one of the stack's text data types (`textDataTypes` in the authoring contributions): on Postgres `String`, `Char(n)` and `VarChar(n)`; on SQLite `String`, `sql.String(n)` (character varying) and a fixed-length preset such as `uuidString()` (character), since SQLite has no `Char` or `VarChar` type constructor. Any other field is `PSL_INVALID_ATTRIBUTE_ARGUMENT`, `must be text, such as String`.
+- `@@discriminator(field)` takes a field stored in one of the stack's text data types (`textDataTypes` in the authoring contributions): on Postgres `String`, `Char(n)` and `VarChar(n)`; on SQLite `String`, `sql.String(n)` (character varying) and `sql.Char(n)` (character). Any other field is `PSL_INVALID_ATTRIBUTE_ARGUMENT`, `must be text, such as String`.
 - `@@base(Model, "value")` takes a quoted string, read like a default of the discriminator column: cast into its data type and checked by its codec, so a Postgres `VarChar(5)` discriminator refuses `"circle"` with `PSL_INVALID_DEFAULT_LITERAL`; SQLite does not limit a `sql.String(n)` value's length. The variant is keyed by the value as the column stores it, and two variants with the same stored value are `PSL_DUPLICATE_DISCRIMINATOR_VALUE`.
 
 Supported timestamp authoring surface:
 
 - `createdAt DateTime @default(now())` lowers to the target storage default and does not create an execution mutation default.
-- `createdAt temporal.createdAt()` generates a client-side timestamp on create, without a database default.
-- `updatedAt temporal.updatedAt()` uses the same execution generator on create and on non-empty update mutations. Matching representations share one generated value per operation; updates leave `createdAt` unchanged. These semantics are application-side, not database triggers.
+- `createdAt temporal.CreatedAt` generates a client-side timestamp on create, without a database default.
+- `updatedAt temporal.UpdatedAt` uses the same execution generator on create and on non-empty update mutations. Matching representations share one generated value per operation; updates leave `createdAt` unchanged. These semantics are application-side, not database triggers.
 - The Prisma-flavored `@updatedAt` attribute is not supported; references produce `PSL_UNSUPPORTED_FIELD_ATTRIBUTE` with the hint `Use @onCreate(now()) @onUpdate(now()), or type the field temporal.UpdatedAt.` The hint is left out when the field already writes `@onUpdate`.
 - `@createdAt` is not supported as a PSL alias.
 

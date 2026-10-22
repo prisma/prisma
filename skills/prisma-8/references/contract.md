@@ -166,7 +166,7 @@ Note: scalar lists (e.g. `String[]`) are gated on the target's `sql.scalarList` 
 
 ## Workflow — Edit a model / field / relation (TS builder)
 
-The concept: same model, different authoring surface. The façade re-exports `defineContract`, `field`, `model`, `rel`, plus the `family`/`target` packs as default exports of `@internal/postgres/family` and `@internal/postgres/target`. Use the callback overload (`defineContract({...}, ({ field, model, rel, type }) => ({...}))`) to get the higher-level helpers (`field.text()`, `field.id.uuidv7String()`, `field.temporal.createdAt()`, `type.sql.String(35)`).
+The concept: same model, different authoring surface. The façade re-exports `defineContract`, `field`, `model`, `rel`, plus the `family`/`target` packs as default exports of `@internal/postgres/family` and `@internal/postgres/target`. Use the callback overload (`defineContract({...}, ({ field, model, rel, type, gen }) => ({...}))`) to get the type constructors, type aliases and generator calls (`field.column(type.String())`, `field.column(type.Char(36)).id().onCreate(gen.uuid(7))`, `field.column(type.temporal.CreatedAt())`, `type.sql.String(35)`).
 
 ```typescript
 import sqlFamily from '@internal/postgres/family';
@@ -178,13 +178,13 @@ export const contract = defineContract(
     family: sqlFamily,
     target: postgresPack,
   },
-  ({ field, model }) => ({
+  ({ field, model, gen, type }) => ({
     models: {
       User: model('User', {
         fields: {
-          id: field.id.uuidv7String(),
-          email: field.text().unique(),
-          createdAt: field.temporal.createdAt(),
+          id: field.column(type.Char(36)).id().onCreate(gen.uuid(7)),
+          email: field.column(type.String()).unique(),
+          createdAt: field.column(type.temporal.CreatedAt()),
         },
       }).sql({ table: 'app_user' }),
     },
@@ -192,13 +192,13 @@ export const contract = defineContract(
 );
 ```
 
-Then `pnpm prisma contract emit`. On Postgres, the `field` that `@prisma/orm-postgres/contract-builder` exports has the same `field.<scalar>()` helpers as the callback's, without the helpers an extension adds (such as pgvector's); for those, use the callback's `field`. On other targets the `field.<scalar>()` helpers are only available inside the callback overload; outside the callback only `field.column(...)`, `field.generated(...)`, `field.namedType(...)` exist.
+Then `pnpm prisma contract emit`. On Postgres, `@prisma/orm-postgres/contract-builder` exports `field`, `type` and `gen`, the same helpers the callback receives, without the ones an extension adds (such as pgvector's `type.pgvector.Vector`); for those, use the callback's helpers. On other targets `type` and `gen` are only available inside the callback overload.
 
 For Mongo, swap every `@internal/postgres/*` import for `@internal/mongo/*`. The Mongo builder also exposes `index` and `valueObject`.
 
 Mongo scalar types, as PSL name / TS builder / application type: `String` / `field.string()` / `string`; `Int32` / `field.int32()` / `number`; `Int64` / `field.int64()` / `bigint`; `Double` / `field.double()` / `number`; `Decimal128` / `field.decimal128()` / decimal text as a `string`; `Bool` / `field.bool()` / `boolean`; `Date` / `field.date()` / `Date`; `ObjectId` / `field.objectId()` / `string`; `Binary` / `field.binary()` / `Uint8Array`; `Json` / `field.json()` / `JsonValue`; `Bson` / `field.bson()` / `BsonValue`. `Json` holds a JSON value only, validated as the JSON-representable BSON types; `Bson` holds any BSON value, unconstrained by the validator. The full table, with codec ids and storage types, is [Scalar types](https://github.com/prisma/orm/blob/main/docs/reference/scalar-types.md).
 
-Mongo timestamps the ORM fills: in PSL, write `createdAt Date @onCreate(now())` (set on create) or `updatedAt Date @onCreate(now()) @onUpdate(now())` (set on create and on every update with a non-empty payload), or type the field `temporal.CreatedAt` or `temporal.UpdatedAt`, or with the presets `temporal.createdAt()`, `temporal.updatedAt()` or `temporal.timestamp(onCreate: now, onUpdate: now)`; in TS, use `field.date().onCreate(gen.now()).onUpdate(gen.now())`, or `field.temporal.createdAt()` and the rest inside the callback overload. They store a BSON date read back as `Date`, one value per ORM operation, and an explicit value in the write wins. The fields are optional on create. A preset field cannot be optional (`?`), a list, `@id`, or a field of a composite type.
+Mongo timestamps the ORM fills: in PSL, write `createdAt Date @onCreate(now())` (set on create) or `updatedAt Date @onCreate(now()) @onUpdate(now())` (set on create and on every update with a non-empty payload), or type the field `temporal.CreatedAt` or `temporal.UpdatedAt`; in TS, use `field.date().onCreate(gen.now())` or `field.date().onCreate(gen.now()).onUpdate(gen.now())`. They store a BSON date read back as `Date`, one value per ORM operation, and an explicit value in the write wins. The fields are optional on create. A field with a generated value cannot be optional (`?`), a list, `@id`, or a field of a composite type.
 
 ## Workflow — Add an extension-typed scalar (pgvector)
 
@@ -505,7 +505,7 @@ Infer captures indexes at full fidelity — expression, partial (`where:`), uniq
 
 1. **Forgetting to re-emit after an edit.** `contract.json` and `contract.d.ts` go stale; downstream typecheck and `migration plan` see the old shape. Re-emit, or install the Vite plugin (`references/build.md`).
 2. **Editing the emitted artefacts.** `contract.json` and `contract.d.ts` are emitted; edits there round-trip away on the next emit. Edit the source.
-3. **Wrong factory/import path for the TS builder.** `defineContract`, `field`, `model`, `rel` come from `@internal/postgres/contract-builder` (or `@internal/mongo/contract-builder`). On Postgres the imported `field` has the target's presets (`field.text()`, `field.temporal.timestamptz()`, `field.uuidString()`, …) but not an extension's; elsewhere, outside the callback overload, the available field constructors are `field.column(...)`, `field.generated(...)`, `field.namedType(...)`.
+3. **Wrong factory/import path for the TS builder.** `defineContract`, `field`, `model`, `rel` come from `@internal/postgres/contract-builder` (or `@internal/mongo/contract-builder`). On Postgres the facade also exports `type` and `gen` (`field.column(type.Timestamptz())`, `.onCreate(gen.uuid())`) without an extension's helpers; elsewhere, outside the callback overload, the available field constructors are `field.column(...)` and `field.namedType(...)`.
 4. **Reaching into internal packages from user code.** User-authored files (`prisma.config.ts`, `contract.ts`, `db.ts`, control clients) import only from `@internal/<target>/<subpath>` and `@internal/extension-<name>/<subpath>`. Imports from `@internal/cli/*`, `@internal/family-*`, `@internal/target-*`, `@internal/adapter-*`, `@internal/driver-*`, or `@internal/sql-contract-*` are framework-internal — the façade composes them for you. If a façade subpath you need is missing for your target, see *What Prisma 8 doesn't do yet* and route to `references/feedback.md`. The canonical worked examples are `examples/multi-extension-monorepo/app/prisma.config.ts` and `examples/prisma-8-postgis-demo/prisma.config.ts`.
 5. **Confusing the config `extensions` with the TS builder's `extensions`.** Same packs, two surfaces, one field name but two shapes: `ormConfig({ extensions: [pgvector] })` (array of *control* descriptors from `@internal/extension-<name>/control`) versus `defineContract({ extensions: { pgvector } })` (record of *pack* descriptors from `@internal/extension-<name>/pack`).
 6. **Writing a flat `prisma.config.ts`.** `export default defineConfig({ contract, extensions })` from the target config alone is the pre-rc.4 shape and fails with `CONFIG.VERSION_MARKER_MISSING`. Wrap it: `definePrismaConfig({ orm: ormConfig({...}) })`.

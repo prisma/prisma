@@ -15,21 +15,21 @@ export const contract = defineContract(
     target: postgresPack,
     naming: { tables: 'snake_case', columns: 'snake_case' },
   },
-  ({ field, model, rel }) => {
+  ({ field, model, rel, gen, type }) => {
     const User = model('User', {
       fields: {
-        id: field.id.uuidv7String(),            // ← pack-provided preset: UUID v7 primary key (char(36))
-        email: field.text().unique(),          // ← inline unique constraint
+        id: field.column(type.Char(36)).id().onCreate(gen.uuid(7)), // ← UUID v7 primary key (char(36))
+        email: field.column(type.String()).unique(),                 // ← inline unique constraint
         createdAt: field.createdAt(),          // ← pack-provided preset: timestamp with default
       },
     });
 
     const Post = model('Post', {
       fields: {
-        id: field.id.uuidv7String(),
-        authorId: field.uuidString(),
-        title: field.text(),
-        body: field.text().optional(),
+        id: field.column(type.Char(36)).id().onCreate(gen.uuid(7)),
+        authorId: field.column(type.Char(36)),
+        title: field.column(type.String()),
+        body: field.column(type.String()).optional(),
       },
     });
 
@@ -57,8 +57,8 @@ export const contract = defineContract(
 
 Three things to notice:
 
-1. **No table or column layer.** Inside the callback helper namespace, the author writes `field.text()`, not `t.column('email', textColumn)`. Column names come from the field keys via a naming strategy. The author only touches storage names when overriding.
-2. **Semantic intent, then SQL.** Identity (`field.id.uuidv7String()`), uniqueness (`.unique()`), and relations (`rel.belongsTo(User, ...)`) are expressed in the model definition. The `.sql()` block is reserved for table mapping, indexes, and constraint names.
+1. **No table or column layer.** Inside the callback helper namespace, the author writes `field.column(type.String())`, not `t.column('email', textColumn)`. Column names come from the field keys via a naming strategy. The author only touches storage names when overriding.
+2. **Semantic intent, then SQL.** Identity (`.id()`), uniqueness (`.unique()`), and relations (`rel.belongsTo(User, ...)`) are expressed in the model definition. The `.sql()` block is reserved for table mapping, indexes, and constraint names.
 3. **Typed references.** `User` is a model token, not a string. `User.ref('id')` is a typed field reference. The lowering pipeline validates these at build time.
 
 ## Design principles
@@ -119,7 +119,7 @@ defineContract({
 With `snake_case`, a model named `User` maps to table `user`, a field `createdAt` maps to column `created_at`. The `applyNaming()` function handles camelCase boundaries, all-uppercase sequences, and digit boundaries.
 
 Overrides take precedence at any level:
-- Per-field: `field.text().column('email_address')`
+- Per-field: `field.column(type.String()).column('email_address')`
 - Per-model: `.sql({ table: 'app_user' })`
 
 ### Constraint placement
@@ -127,8 +127,8 @@ Overrides take precedence at any level:
 Single-field constraints are most readable where the field is defined — the reader doesn't need to look anywhere else to understand the field's role:
 
 ```ts
-id: field.id.uuidv7String(),   // primary key
-email: field.text().unique(),  // unique constraint
+id: field.column(type.Char(36)).id().onCreate(gen.uuid(7)),   // primary key
+email: field.column(type.String()).unique(),  // unique constraint
 ```
 
 Compound constraints reference multiple fields, which means they can't be expressed inline on any single field. They belong in `.sql()`, where `cols` provides typed references to all scalar fields:
