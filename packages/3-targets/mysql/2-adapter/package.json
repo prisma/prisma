@@ -1,7 +1,7 @@
 {
   "name": "@internal/adapter-mysql",
   "private": true,
-  "version": "8.0.0-rc.19",
+  "version": "8.0.0-rc.20",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -15,22 +15,22 @@
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
   "dependencies": {
-    "@internal/contract": "workspace:8.0.0-rc.19",
-    "@internal/errors": "workspace:8.0.0-rc.19",
-    "@internal/family-sql": "workspace:8.0.0-rc.19",
-    "@internal/framework-components": "workspace:8.0.0-rc.19",
-    "@internal/migration-tools": "workspace:8.0.0-rc.19",
-    "@internal/sql-contract": "workspace:8.0.0-rc.19",
-    "@internal/sql-relational-core": "workspace:8.0.0-rc.19",
-    "@internal/sql-schema-ir": "workspace:8.0.0-rc.19",
-    "@internal/target-mysql": "workspace:8.0.0-rc.19",
-    "@internal/utils": "workspace:8.0.0-rc.19"
+    "@internal/contract": "workspace:8.0.0-rc.20",
+    "@internal/errors": "workspace:8.0.0-rc.20",
+    "@internal/family-sql": "workspace:8.0.0-rc.20",
+    "@internal/framework-components": "workspace:8.0.0-rc.20",
+    "@internal/migration-tools": "workspace:8.0.0-rc.20",
+    "@internal/sql-contract": "workspace:8.0.0-rc.20",
+    "@internal/sql-relational-core": "workspace:8.0.0-rc.20",
+    "@internal/sql-schema-ir": "workspace:8.0.0-rc.20",
+    "@internal/target-mysql": "workspace:8.0.0-rc.20",
+    "@internal/utils": "workspace:8.0.0-rc.20"
   },
   "devDependencies": {
-    "@internal/driver-mysql": "workspace:8.0.0-rc.19",
-    "@repo/test-utils": "workspace:8.0.0-rc.19",
-    "@repo/tsconfig": "workspace:8.0.0-rc.19",
-    "@repo/tsdown": "workspace:8.0.0-rc.19",
+    "@internal/driver-mysql": "workspace:8.0.0-rc.20",
+    "@repo/test-utils": "workspace:8.0.0-rc.20",
+    "@repo/tsconfig": "workspace:8.0.0-rc.20",
+    "@repo/tsdown": "workspace:8.0.0-rc.20",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

@@ -6,16 +6,14 @@ import { describe, expect, it } from 'vitest';
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '../../../../..');
 
-function patternsOf(audience: 'app' | 'extension', id: string): readonly RegExp[] {
-  const guide = readFileSync(
-    join(
-      repoRoot,
-      'upgrade-instructions/pending/mongo-values-and-discriminators',
-      audience,
-      'instructions.md',
-    ),
-    'utf-8',
-  );
+const GUIDE_PATHS = {
+  app: 'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.19-to-8.0.0-rc.20/instructions.md',
+  extension:
+    'skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.19-to-8.0.0-rc.20/instructions.md',
+} as const;
+
+function patternsOf(audience: keyof typeof GUIDE_PATHS, id: string): readonly RegExp[] {
+  const guide = readFileSync(join(repoRoot, GUIDE_PATHS[audience]), 'utf-8');
   const block = guide.split(/\n {2}- id: /).find((entry) => entry.startsWith(`${id}\n`));
   if (block === undefined) throw new Error(`no change ${id}`);
   return [...block.matchAll(/^ {8}- '(.*)'$/gm)].map(
