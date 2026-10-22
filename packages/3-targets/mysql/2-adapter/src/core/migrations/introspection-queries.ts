@@ -34,6 +34,7 @@ const CONSTRAINTS = `SELECT TABLE_NAME AS table_name, CONSTRAINT_NAME AS constra
 
 const FOREIGN_KEYS = `SELECT k.TABLE_NAME AS table_name, k.CONSTRAINT_NAME AS constraint_name,
     k.COLUMN_NAME AS column_name, k.ORDINAL_POSITION AS ordinal_position,
+    NULLIF(k.REFERENCED_TABLE_SCHEMA, k.TABLE_SCHEMA) AS referenced_table_schema,
     k.REFERENCED_TABLE_NAME AS referenced_table_name,
     k.REFERENCED_COLUMN_NAME AS referenced_column_name,
     r.UPDATE_RULE AS update_rule, r.DELETE_RULE AS delete_rule

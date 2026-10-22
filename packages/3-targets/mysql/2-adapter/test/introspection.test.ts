@@ -73,6 +73,7 @@ const rows: MysqlCatalogRows = {
       constraint_name: 'Post_editorId_fkey',
       column_name: 'editorId',
       ordinal_position: '1',
+      referenced_table_schema: null,
       referenced_table_name: 'User',
       referenced_column_name: 'id',
       update_rule: 'CASCADE',
@@ -83,6 +84,7 @@ const rows: MysqlCatalogRows = {
       constraint_name: 'Post_authorId_fkey',
       column_name: 'authorId',
       ordinal_position: '1',
+      referenced_table_schema: null,
       referenced_table_name: 'User',
       referenced_column_name: 'id',
       update_rule: 'NO ACTION',
@@ -300,6 +302,24 @@ describe('buildMysqlSchemaIR', () => {
       readLiteral,
     );
     expect(schema.tables['T']?.indexes.map((entry) => entry.expression)).toEqual(['lower(`name`)']);
+  });
+
+  it('names the database of a table a foreign key references in another database', async () => {
+    const [foreignKey] = rows.foreignKeys;
+    const schema = await buildMysqlSchemaIR(
+      {
+        ...rows,
+        foreignKeys: foreignKey ? [{ ...foreignKey, referenced_table_schema: 'accounts' }] : [],
+      },
+      mysqlDataTypes,
+      readLiteral,
+    );
+    expect(
+      schema.tables['Post']?.foreignKeys.map(({ referencedSchema, referencedTable }) => ({
+        referencedSchema,
+        referencedTable,
+      })),
+    ).toEqual([{ referencedSchema: 'accounts', referencedTable: 'User' }]);
   });
 
   it('refuses a referential action it does not know', async () => {

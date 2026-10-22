@@ -71,6 +71,32 @@ describe('MysqlControlAdapter against a MySQL server', () => {
     });
   });
 
+  it('names the database a foreign key into another database references', async (test) => {
+    await withMysqlDatabase(test, async ({ url, name }) => {
+      const adapter = createAdapter();
+      const driver = await mysqlDriver.create(url);
+      const other = `${name}_other`;
+      try {
+        await driver.query(`CREATE DATABASE \`${other}\``);
+        await driver.query(`CREATE TABLE \`${other}\`.\`User\` (id INT PRIMARY KEY)`);
+        await driver.query(
+          `CREATE TABLE Post (id INT PRIMARY KEY, authorId INT NOT NULL, CONSTRAINT Post_authorId_fkey FOREIGN KEY (authorId) REFERENCES \`${other}\`.\`User\` (id))`,
+        );
+        const post = (await adapter.introspect(driver)).tables['Post'];
+        expect(
+          post?.foreignKeys.map(({ referencedSchema, referencedTable }) => ({
+            referencedSchema,
+            referencedTable,
+          })),
+        ).toEqual([{ referencedSchema: other, referencedTable: 'User' }]);
+      } finally {
+        await driver.query('DROP TABLE IF EXISTS Post');
+        await driver.query(`DROP DATABASE IF EXISTS \`${other}\``);
+        await driver.close();
+      }
+    });
+  });
+
   it('commits and rolls back on one connection', async (test) => {
     await withMysqlDatabase(test, async ({ url }) => {
       const adapter = createAdapter();

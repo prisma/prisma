@@ -49,6 +49,8 @@ export interface MysqlForeignKeyRow {
   readonly constraint_name: string;
   readonly column_name: string;
   readonly ordinal_position: string;
+  /** The referenced table's database, or `null` when it is the connection's own. */
+  readonly referenced_table_schema: string | null;
   readonly referenced_table_name: string;
   readonly referenced_column_name: string;
   readonly update_rule: string;
@@ -195,10 +197,12 @@ function foreignKeysOf(
       const [first] = ordered;
       const columns = ordered.map((part) => part.column_name);
       const referencedTable = first?.referenced_table_name ?? '';
+      const referencedSchema = first?.referenced_table_schema ?? undefined;
       return {
         columns,
         referencedTable,
         referencedColumns: ordered.map((part) => part.referenced_column_name),
+        ...ifDefined('referencedSchema', referencedSchema),
         name,
         ...ifDefined(
           'onDelete',
@@ -208,7 +212,10 @@ function foreignKeysOf(
           'onUpdate',
           first === undefined ? undefined : referentialAction(first.update_rule),
         ),
-        dependsOn: [tableDependsOn(referencedTable), ...columnDependsOn(tableName, columns)],
+        dependsOn: [
+          ...(referencedSchema === undefined ? [tableDependsOn(referencedTable)] : []),
+          ...columnDependsOn(tableName, columns),
+        ],
       };
     });
 }
