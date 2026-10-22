@@ -1,7 +1,7 @@
 /**
  * A model statement that moves a model to another namespace (Postgres).
  *
- * `--rename Invoice:billing.Invoice` tells `migration plan` and `db update` that the model `Invoice` moved from namespace `public` to namespace `billing`. The planner creates schema `billing`, then moves the table there with `ALTER TABLE … SET SCHEMA`, instead of dropping the table and creating it again. The foreign key from `Payment` keeps pointing at the moved table, so nothing is planned for it.
+ * `--rename public.Invoice:billing.Invoice` tells `migration plan` and `db update` that the model `Invoice` moved from namespace `public` to namespace `billing`. The planner creates schema `billing`, then moves the table there with `ALTER TABLE … SET SCHEMA`, instead of dropping the table and creating it again. The foreign key from `Payment` keeps pointing at the moved table, so nothing is planned for it.
  *
  * Journey M1 plans the move with `migration plan`, re-runs the written `migration.ts`, which reproduces `ops.json` and `migration.json` byte for byte, applies it with `migrate`, and plans nothing more. Journey M2 applies the move with `db update`, which asks no data-loss question.
  */
@@ -29,7 +29,7 @@ import {
   useDevDatabase,
 } from '../utils/journey-test-helpers';
 
-const MOVE = ['--rename', 'Invoice:billing.Invoice'] as const;
+const MOVE = ['--rename', 'public.Invoice:billing.Invoice'] as const;
 
 interface PlannedOperation {
   readonly id: string;

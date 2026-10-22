@@ -21,7 +21,7 @@ Otherwise the namespace is removed. A script that runs without a terminal fails 
 prisma db update --delete billing
 ```
 
-To keep a model's data, move it to a namespace the contract keeps in the same run, for example `--rename billing.Invoice:Invoice`, or put the namespace back in the contract.
+To keep a model's data, move it to a namespace the contract keeps in the same run, for example `--rename billing.Invoice:public.Invoice`, or put the namespace back in the contract.
 
 A table in that schema that no contract declared, such as one created by hand, is asked about too, by its storage name: `--delete billing.audit_log`. `--delete billing` does not answer it. Another object no contract declared, such as a view or a function, makes the run fail and changes nothing: a view on one of the tables stops that table's drop, and any other object stops the schema drop. The failure names each object; drop or move it yourself, then run the command again.
 

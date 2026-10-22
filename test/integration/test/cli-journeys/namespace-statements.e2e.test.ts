@@ -52,7 +52,7 @@ interface AppliedStatementReport {
 }
 
 const RENAME = ['--rename', 'billing:finance', '--rename', 'billing.Invoice:finance.Bill'] as const;
-const KEEP = ['--delete', 'billing', '--rename', 'billing.Invoice:Invoice'] as const;
+const KEEP = ['--delete', 'billing', '--rename', 'billing.Invoice:public.Invoice'] as const;
 const MOVE_USER = ['--rename', 'User:app.User'] as const;
 
 async function createAppUserRole(connectionString: string): Promise<void> {

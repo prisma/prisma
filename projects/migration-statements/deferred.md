@@ -124,6 +124,8 @@ A SQLite table rebuild renders as a 40-line `recreateTable` call full of interna
 
 `db migrate`, `db update` and `migration plan` print every command through `cliCommand` in `packages/1-framework/3-tooling/cli/src/utils/printed-command.ts`. About 100 other `{bin} …` literals do not: `migration status`, `db init` failures (`db-init-failure.ts`), `db sign` beyond its re-run command, `contract emit`, `prepare.ts`, `cli-errors.ts` (for example `MIGRATION.PLAN_ORIGIN_UNKNOWN`), and `reemitHint` in the migration package. Followed from another directory, they load a different config or none.
 
+The re-run advice has a second gap of the same kind, found in the slice 3b PR 1 second system-design review (2026-10-22), S05. `CliInvocation.rerunArgs` holds one command's arguments (`db update`'s `--to`, `--advance-ref` and statements, and `db migrate`'s `--to` and `--advance-ref`) on the invocation that every printed command uses, and only the advice after a blocked drop reads it (`blockingObjectsFix` through `db-update-failure.ts` and `migrateFix`). The other re-run advice of the same failures still prints the command without them. Name it as the command that ran, for example `CliInvocation.command: { name, args }`, with a `rerunCommand(invocation)` helper that every "re-run the same command" advice uses.
+
 ## The shared-collection reach check reads the discriminator value back out of a filter
 
 **Found:** slice 4p review, PR 2 rounds 4 and 5 (2026-10-19).
@@ -147,6 +149,13 @@ Slice 3b plans each row rewrite as one plain operation: an `UPDATE` for an enum 
 **Found:** slice 3b PR 1 system-design review (2026-10-21), S04.
 
 When a removed namespace has questions, the `CLI.CONSENT_REQUIRED` refusal's `nextActions` list one `--delete` per model; `--delete billing` appears only in the question text. And because the CLI engine answers a question only with a flag equal to its subject, `db update` and `migration plan` take the `--delete` values from the engine themselves and raise `CLI.CONSENT_UNUSED` through their own `errorConsentUnused` in `packages/1-framework/3-tooling/cli/src/utils/cli-errors.ts`, a copy of the engine's error. Resolve it in the CLI engine (prisma/prisma-cli): let a question name extra flag values that answer it, such as its namespace, so the engine matches `--delete billing`, lists it in `nextActions`, and raises its own error for an unused flag. Then delete the copy and the command-side matching.
+
+Everything the prompt adapter (`packages/1-framework/3-tooling/cli/src/orm/plan-question-prompt.ts`) does to work around the engine goes with it (slice 3b PR 1 second system-design review, 2026-10-22, S06):
+
+- `namespaceDeletes`, which takes the `--delete` values from the engine when one names a removed namespace and matches them itself through `matchConsents`, raising `errorConsentUnused`.
+- The one-question-at-a-time mode (`askOneAtATime`), used when a question is about a removed namespace, so a typed `delete billing` answers the rest of the namespace and a typed `rename billing:finance` leaves them open for the next round.
+- `isConsentRequired`, which catches the engine's `CLI.CONSENT_REQUIRED` for one question and asks the engine again with every open question, so its refusal names them all.
+- The `undefined` answer that `AnswerPlanQuestions` may return beside a `rename` or `convert` answer, and the `InternalError` in `checkAnswers` that guards it.
 
 ## `SchemaTables` is asked about namespace ids of the origin contract
 

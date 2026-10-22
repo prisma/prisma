@@ -7,7 +7,7 @@
 A Postgres schema moves `Invoice` into a `billing` namespace, renames the enum value `Status.ARCHIVED` to `Status.RETIRED`, and renames `Address.street` to `Address.line1` inside a value object.
 
 ```text
-$ prisma migration plan --name tidy --rename Invoice:billing.Invoice --rename Status.ARCHIVED:Status.RETIRED --rename Address.street:Address.line1
+$ prisma migration plan --name tidy --rename public.Invoice:billing.Invoice --rename Status.ARCHIVED:Status.RETIRED --rename Address.street:Address.line1
 ✔ Planned 4 operation(s)
   Move table "public"."Invoice" to schema "billing"                       widening
   Update "Order"."status" from 'ARCHIVED' to 'RETIRED'                    widening
@@ -21,7 +21,7 @@ Without the statements, both commands refuse and print them, as they do today fo
 
 | Change in the schema | Today | After this slice |
 | --- | --- | --- |
-| Model moved to another namespace | Refused, even with `--rename` | `--rename Invoice:billing.Invoice` moves the table (`SET SCHEMA`), creating the schema first when the database lacks it |
+| Model moved to another namespace | Refused, even with `--rename` | `--rename public.Invoice:billing.Invoice` moves the table (`SET SCHEMA`), creating the schema first when the database lacks it |
 | Namespace renamed | Old schema and its tables kept silently; new ones created empty | Asked. `--rename billing:finance` renames the schema, before any other statement. `public` and a schema another contract space declares are refused |
 | Namespace removed | Its tables kept silently | Asked, one question per model, and the first question says `--delete billing` answers them all. `--delete billing` drops its tables and the schema. A table no contract declares is its own question, by its storage name |
 | Enum value renamed (stored value changes) | Postgres: the new CHECK fails at apply on rows with the old value. SQLite: planning fails with "no operations" | Asked. `--rename Status.A:Status.B` updates the rows |
@@ -58,7 +58,7 @@ Each side of a statement is still one to three names separated by dots. New thin
 | Statement | Reads as |
 | --- | --- |
 | `--rename billing:finance` | A namespace. One name is now read as a namespace or a model |
-| `--rename Invoice:billing.Invoice` | A model whose namespace changes (a move) |
+| `--rename public.Invoice:billing.Invoice` | A model whose namespace changes (a move) |
 | `--rename Status.A:Status.B` | An enum value |
 | `--rename Address.street:Address.line1` | A field of a value object |
 | `--convert Bug` | A variant. `--convert` now accepts a model name, for a variant only |
@@ -74,7 +74,7 @@ Each side of a statement is still one to three names separated by dots. New thin
 **Namespaces (Postgres)**
 - Model move: `ALTER TABLE … SET SCHEMA`. Constraints and indexes keep their names. A foreign key from another table follows the table.
 - Namespace rename: `ALTER SCHEMA … RENAME TO`. Refused for `public`, for a rename to `public`, and for a schema another contract space also declares; the SQL family planner refuses the last, and a target without namespaces, such as SQLite, gets every namespace statement refused. A new name the database already has as a schema is refused with advice to drop or rename that schema by hand if it is empty, or to move each model. Namespace renames are planned before every other statement.
-- Namespace delete: drops each table, a table before the tables its foreign keys reference and with its policies, then `DROP SCHEMA`. `--delete billing` answers each of the namespace's questions: the control API matches it to each subject, and the command takes the `--delete` values from the CLI engine when one names a namespace, since the engine matches a flag only to its own subject. `--delete` with a namespace the destination still has answers nothing, and so does `--delete public`: the default namespace is never removed, and no hint offers a rename to or from it. When the destination adds a namespace, the first question also offers `--rename billing:<new namespace>`; a namespace the run already renames gets no namespace hints. `--delete billing` beside `--rename billing:finance` is refused, since a namespace cannot be both renamed and deleted. At the prompt, `delete billing` typed for one of the namespace's questions answers all of them, as the flag does; `rename billing:finance` typed there is planned like the flag, and the questions the rename leaves, such as a model that also changed its name, are asked next. After a namespace rename, questions name the namespace's models and fields by the new namespace, and a field question offers the field rename there. A dry run lists the namespace answers once per removed namespace. A view on one of the namespace's tables stops that table's drop, and the failure names the view; a dry run cannot see it, because the planner reads tables only. A table no contract declares is asked about by its storage name; another undeclared object blocks the schema drop at its precheck, and the failure names each blocking object and says to drop or move it.
+- Namespace delete: drops each table, a table before the tables its foreign keys reference and with its policies, then `DROP SCHEMA`. `--delete billing` answers each of the namespace's questions: the control API matches it to each subject, and the command takes the `--delete` values from the CLI engine when one names a namespace, since the engine matches a flag only to its own subject. `--delete` with a namespace the destination still has answers nothing, and so does `--delete public`: the default namespace is never removed, and no hint offers a rename to or from it. When the destination adds a namespace, the first question also offers `--rename billing:<new namespace>`; a namespace the run already renames gets no namespace hints. `--delete billing` beside `--rename billing:finance` is refused, since a namespace cannot be both renamed and deleted. At the prompt, `delete billing` typed for one of the namespace's questions answers all of them, as the flag does; `rename billing:finance` typed there is planned like the flag, and the questions the rename leaves, such as a model that also changed its name, are asked next. After a namespace rename, questions name the namespace's models and fields by the new namespace, and a field question offers the field rename there. A dry run lists the namespace answers once per removed namespace, and its JSON lists `removedNamespaces` and `addedNamespaces` at the top level. The planner reports which namespaces it removes and adds, and the CLI reads that. `--delete` flags match the same way whatever their order: a subject's own flag first, then its namespace's. A view on one of the namespace's tables stops that table's drop, and the failure names the view; a dry run cannot see it, because the planner reads tables only. A table no contract declares is asked about by its storage name; another undeclared object blocks the schema drop at its precheck, and the failure names each blocking object and says to drop or move it.
 
 **Enum values (Postgres and SQLite)**
 - The storage effect is worked out from stored values, not member names.
@@ -124,7 +124,7 @@ PR 3 is separate because it changes the contract shape and every contract with v
 | An enum member keeps its name but its stored value changes | No statement can say this. Asked with `--delete` only; the advice says to write the update by hand, as for `@@map` today |
 | A removed variant with no columns of its own | Now asked as a model, so its rows are not left behind silently |
 | Renaming `public` | Refused. `public` is target-owned (ADR 223) and Postgres puts it on every search path. On PGlite a non-superuser database owner can run `ALTER SCHEMA public RENAME`, and a plain role cannot, but the refusal does not depend on that. The message says to move the models with `--rename Model:new.Model` instead |
-| `--delete billing` and `--rename billing.Invoice:Invoice` in one run | The rename runs first, so that model is kept, and the delete covers the rest |
+| `--delete billing` and `--rename billing.Invoice:public.Invoice` in one run | The rename runs first, so that model is kept, and the delete covers the rest |
 | A removed namespace that holds a table no contract declares | That table is its own question, `--delete billing.audit_log`; `--delete billing` does not answer it |
 | A one-name statement that is both a namespace and a model | Refused, unless another statement of the run renames the model; the message says to name the model with its namespace, or give both statements |
 
