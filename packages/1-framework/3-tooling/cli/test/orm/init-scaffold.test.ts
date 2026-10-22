@@ -210,6 +210,29 @@ describe('init scaffold', () => {
     );
   });
 
+  describe('an absolute schema path', () => {
+    it(
+      'writes the schema at that path and lists it relative to the working directory',
+      async () => {
+        const schemaPath = join(projectDir, 'db/contract.prisma');
+
+        const run = await harness().run(scaffoldArgv(...SKIP_ALL, '--schema-path', schemaPath), {
+          cwd: projectDir,
+        });
+
+        expect(run.exitCode).toBe(0);
+        expect(existsSync(schemaPath)).toBe(true);
+        expect(run.presented?.data).toMatchObject({
+          filesWritten: expect.arrayContaining(['db/contract.prisma']),
+        });
+        expect(run.presented?.data).not.toMatchObject({
+          filesWritten: expect.arrayContaining([schemaPath]),
+        });
+      },
+      timeouts.coldTransformImport,
+    );
+  });
+
   describe('the skill-sync wiring it does not write', () => {
     it(
       'adds no postinstall script and no skill gitignore entries',
