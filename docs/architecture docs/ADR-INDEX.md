@@ -6,19 +6,19 @@ This document provides a comprehensive index of all Architectural Decision Recor
 
 - Write an ADR after the maintainers have decided not to build something that the next agent or contributor would otherwise propose again. The test: would this change what the next coding agent proposes? Do not write one on every pull request, or for a choice the code already encodes.
 - When an ADR already records the decision, add that ADR to the steering list instead of writing a second one.
-- The title states the no. The decision names the existing feature to use instead, or says that none exists. The consequences say what would reopen it, or that no revisit-if condition is recorded. Half a page is enough. Take the next unused number on `main`.
+- The title states the no. The decision names the existing feature to use instead, or says that none exists. The consequences say what would reopen it, or that no revisit-if condition is recorded. Half a page is enough. Take the number after the highest on `main`.
 - Whoever declines a request for a reason no ADR records drafts the ADR from the maintainer's words, with status `Proposed`, and adds its entry below and its row under [Product scope](#product-scope) in the same pull request. A maintainer's approval of that pull request is consensus under the [governance](../oss/governance.md#decision-making), so the drafter sets the status to `Accepted` once it is approved.
 - To change a decision, write a new ADR and mark the old one superseded; never edit the old one. Take the old one off the steering list; its row stays under Product scope.
 
 ## Steering list
 
-Open this list before you propose a new feature or surface, or judge a feature request or a pull request. Each entry is a request the maintainers have answered with a no, and what to use instead. How to judge a request is on the [vision](../design/00-purpose/vision.md#how-to-use-this-page) page.
+Open this list before you propose a new feature or surface, or judge a feature request or a pull request. Each entry is a request the maintainers have answered with a no, and what to use instead. Every ADR on this list is accepted, including older ones written before ADRs carried a Status line. Two entries cite the GA plan, which records those nos. How to judge a request is on the [vision](../design/00-purpose/vision.md#how-to-use-this-page) page.
 
-- [ADR 003](adrs/ADR%20003%20-%20One%20Query%20One%20Statement.md): no automatic batching and no data loader; load related rows with `.include(...)`, which the database joins (ADR 296), or run several queries in `db.transaction(...)`.
+- No automatic batching of lookups ([GA plan, principle 1](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/decisions.md#L65), [Never](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/plan.md#L152); [ADR 003](adrs/ADR%20003%20-%20One%20Query%20One%20Statement.md) rejects auto-batching and data loaders as an alternative): load related rows with `.include(...)`, which the database joins ([ADR 296](adrs/ADR%20296%20-%20Prisma%208%20has%20no%20relationLoadStrategy.md)).
 - [ADR 007](adrs/ADR%20007%20-%20Types%20Only%20Emission.md): no generated client code; import the emitted contract and pass it to the client.
 - [ADR 222](adrs/ADR%20222%20-%20Version%20support%20policy.md): no CommonJS; Prisma 8 ships ES modules only.
-- [ADR 239](adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md): no numeric `P2002`-style error codes; branch on the dotted `code` of the error envelope.
-- [ADR 247](adrs/ADR%20247%20-%20Whole-query%20raw%20SQL%20is%20the%20fragment%20mechanism%20at%20statement%20position.md): no `$queryRaw` method and no `Prisma.sql` helpers; write raw SQL with `db.raw.sql`, or `fns.raw` inside a builder query.
+- No `P2002`-style error codes ([GA plan, decided](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/decisions.md#L139), [Never](https://github.com/prisma/orm/blob/196fa9e57c53befd65b8f75724aaa660ec480de3/planning/plan.md#L152)): branch on the dotted `code` of the error envelope ([ADR 239](adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md)).
+- [ADR 247](adrs/ADR%20247%20-%20Whole-query%20raw%20SQL%20is%20the%20fragment%20mechanism%20at%20statement%20position.md): no separate `$queryRaw`-style client method, an alternative the ADR rejects; write raw SQL with `db.raw.sql`, or `fns.raw` inside a builder query.
 - [ADR 286](adrs/ADR%20286%20-%20Prisma%208%20does%20not%20fully%20manage%20native%20Postgres%20enums.md): Prisma 8 does not fully manage native Postgres enums; declare an `enum` in the contract, stored with a `CHECK` constraint.
 - [ADR 287](adrs/ADR%20287%20-%20Prisma%208%20has%20no%20db%20push%20to%20production.md): no `db push` to production; run `migration plan`, review the migration, then `db migrate`.
 - [ADR 289](adrs/ADR%20289%20-%20Prisma%208%20has%20no%20%24extends%20client%20extensions.md): no `$extends`; use middleware, extension packages, contributed collection methods and collection classes.
@@ -28,7 +28,7 @@ Open this list before you propose a new feature or surface, or judge a feature r
 - [ADR 296](adrs/ADR%20296%20-%20Prisma%208%20has%20no%20relationLoadStrategy.md): no `relationLoadStrategy`; include the relation, and the database joins it.
 - [ADR 298](adrs/ADR%20298%20-%20Prisma%208%20has%20no%20fluent%20relation%20API.md): no fluent relation API; load related rows with `.include(...)`.
 - [ADR 299](adrs/ADR%20299%20-%20Prisma%208%20has%20no%20Prisma.skip.md): no `Prisma.skip`; no document names what to use instead.
-- [ADR 300](adrs/ADR%20300%20-%20Prisma%208%20has%20no%20omit%20under%20that%20name.md): no `omit` under that name; name the fields you want with `select(...)`, until the replacement is designed.
+- [ADR 300](adrs/ADR%20300%20-%20Prisma%208%20has%20no%20omit%20under%20that%20name.md): no `omit` under that name; name the fields you want with `select(...)` until the replacement, already designed, ships.
 - [ADR 301](adrs/ADR%20301%20-%20Prisma%208%20has%20no%20relationMode%20prisma.md): no `relationMode = "prisma"`; use foreign keys in the database.
 - [ADR 302](adrs/ADR%20302%20-%20Prisma%208%20does%20not%20split%20large%20IN%20lists.md): Prisma 8 does not split large `IN` lists; load related rows with `.include(...)`, which the database joins.
 - [ADR 303](adrs/ADR%20303%20-%20Prisma%208%20has%20no%20read%20replicas%20in%20the%20core.md): no read replicas in the core; create a separate `db` client for each data store.
@@ -229,7 +229,7 @@ Open this list before you propose a new feature or surface, or judge a feature r
 
 ## Product scope
 
-Requests answered with a no, with what to use instead. Every row is on the [steering list](#steering-list).
+Requests answered with a no, with what to use instead. Every Accepted row is on the [steering list](#steering-list).
 
 | ADR | Title | Description | Link |
 | ----- | ------- | ------------- | ------ |
@@ -242,7 +242,7 @@ Requests answered with a no, with what to use instead. Every row is on the [stee
 | 296 | Prisma 8 has no `relationLoadStrategy` | Include the relation and the database joins it; there is nothing to choose | [ADR 296 - Prisma 8 has no relationLoadStrategy.md](adrs/ADR%20296%20-%20Prisma%208%20has%20no%20relationLoadStrategy.md) |
 | 298 | Prisma 8 has no fluent relation API | Load related rows with `.include(...)` | [ADR 298 - Prisma 8 has no fluent relation API.md](adrs/ADR%20298%20-%20Prisma%208%20has%20no%20fluent%20relation%20API.md) |
 | 299 | Prisma 8 has no `Prisma.skip` | No document names what to use instead | [ADR 299 - Prisma 8 has no Prisma.skip.md](adrs/ADR%20299%20-%20Prisma%208%20has%20no%20Prisma.skip.md) |
-| 300 | Prisma 8 has no `omit` under that name | Name the fields with `select(...)` until the replacement is designed | [ADR 300 - Prisma 8 has no omit under that name.md](adrs/ADR%20300%20-%20Prisma%208%20has%20no%20omit%20under%20that%20name.md) |
+| 300 | Prisma 8 has no `omit` under that name | Name the fields with `select(...)` until the designed replacement ships | [ADR 300 - Prisma 8 has no omit under that name.md](adrs/ADR%20300%20-%20Prisma%208%20has%20no%20omit%20under%20that%20name.md) |
 | 301 | Prisma 8 has no `relationMode = "prisma"` | Use foreign keys in the database | [ADR 301 - Prisma 8 has no relationMode prisma.md](adrs/ADR%20301%20-%20Prisma%208%20has%20no%20relationMode%20prisma.md) |
 | 302 | Prisma 8 does not split large `IN` lists | `.include(...)` lets the database join, so Prisma 8 creates no large `IN` lists | [ADR 302 - Prisma 8 does not split large IN lists.md](adrs/ADR%20302%20-%20Prisma%208%20does%20not%20split%20large%20IN%20lists.md) |
 | 303 | Prisma 8 has no read replicas in the core | A separate `db` client for each data store | [ADR 303 - Prisma 8 has no read replicas in the core.md](adrs/ADR%20303%20-%20Prisma%208%20has%20no%20read%20replicas%20in%20the%20core.md) |
