@@ -17,13 +17,15 @@ Work in flight, such as project folders, plans, spikes and open pull requests, i
 
 ## How to use this page
 
-When you judge a request, give one of three verdicts and cite the line you relied on:
+Use it before you judge a feature request or a pull request, and before you propose a new feature, surface or solution. Read the [project intent](./project-intent.md) and the [decision records](../90-decisions/README.md) as well. The most important rule: the core does not take a feature that can be built as an extension or in user space.
+
+Give one of three verdicts and cite the line or record you relied on:
 
 - **Fits.** A confirmed line on this page or in the project intent names the capability or the need it serves, and no decision record or confirmed "does not do" line rules it out.
 - **Does not fit.** A decision record with status `not-yet` or `never` covers it, or a confirmed line under "What it deliberately does not do" in the [project intent](./project-intent.md#what-it-deliberately-does-not-do) excludes it. Nothing else gives this verdict.
 - **Unclear.** Anything else, including a request that only seems to conflict with a principle. Say so, and leave the decision to a maintainer.
 
-A `Draft — unconfirmed` line and a `proposed` record never ground a verdict either way. The [PR triage guide](../../oss/pr-triage.md#step-5--direction-fit) applies the same rules to pull requests.
+A `Draft — unconfirmed` line and a `proposed` record never ground a verdict either way. Work in flight is not direction either. The [PR triage guide](../../oss/pr-triage.md#step-5--direction-fit) applies the same rules to pull requests. The `product-direction` skill in [prisma/ignite](https://github.com/prisma/ignite) describes how to keep this record and run this check.
 
 ## Principles
 
