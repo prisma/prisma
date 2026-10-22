@@ -695,7 +695,9 @@ describe('ControlClient progress emission', () => {
   });
 
   describe('dbUpdate()', () => {
-    function createMockComponentsWithMigrations() {
+    function createMockComponentsWithMigrations(
+      subjects: { readonly dataLoss?: unknown[]; readonly accessChanges?: unknown[] } = {},
+    ) {
       const { mockDriver, mockAdapter, mockDriverDescriptor } = createMockComponents();
 
       // Override family instance to return a marker (db update works with or without one)
@@ -717,8 +719,8 @@ describe('ControlClient progress emission', () => {
           plan: () => ({
             kind: 'success',
             appliedStatements: [],
-            dataLoss: [],
-            accessWidening: [],
+            dataLoss: subjects.dataLoss ?? [],
+            accessChanges: subjects.accessChanges ?? [],
             temporaryValues: [],
             plan: {
               targetId: 'postgres',
@@ -815,6 +817,68 @@ describe('ControlClient progress emission', () => {
       for (const event of events) {
         expect(event.action).toBe('dbUpdate');
       }
+    });
+
+    describe('consent options', () => {
+      const USER = { kind: 'storage', name: 'user' } as const;
+
+      async function questionsAsked(
+        subjects: Parameters<typeof createMockComponentsWithMigrations>[0],
+        consent: { readonly acceptDataLoss?: boolean; readonly acceptAccessChanges?: boolean },
+      ) {
+        const {
+          mockFamilyWithMarker,
+          mockTargetWithMigrations,
+          mockAdapter,
+          mockDriverDescriptor,
+        } = createMockComponentsWithMigrations(subjects);
+        const client = createControlClient({
+          family: mockFamilyWithMarker,
+          target: mockTargetWithMigrations,
+          adapter: mockAdapter,
+          driver: mockDriverDescriptor,
+        });
+        const asked: string[][] = [];
+        const result = await client.dbUpdate({
+          contract: {
+            target: 'postgres',
+            storage: { storageHash: 'fixture', tables: {}, namespaces: {} },
+          },
+          mode: 'apply',
+          connection: 'postgres://test',
+          migrationsDir: '/tmp/__test-client-migrations',
+          invocation: TEST_INVOCATION,
+          ...consent,
+          answerQuestions: async (questions) => {
+            asked.push(questions.map(({ question }) => question));
+            return questions.map(({ verbs, subject }) => ({
+              verb: verbs[0] ?? 'delete',
+              text: subject,
+            }));
+          },
+        });
+        await client.close();
+        expect(result.ok).toBe(true);
+        return asked;
+      }
+
+      it('forwards acceptDataLoss, so a data-loss question is not asked', async () => {
+        const asked = await questionsAsked(
+          { dataLoss: [{ operationIndex: 0, subject: USER, loss: 'drop', label: 'Test op' }] },
+          { acceptDataLoss: true },
+        );
+
+        expect(asked).toEqual([[]]);
+      });
+
+      it('forwards acceptAccessChanges, so an access question is not asked', async () => {
+        const asked = await questionsAsked(
+          { accessChanges: [{ operationIndex: 0, subject: USER, widens: true }] },
+          { acceptAccessChanges: true },
+        );
+
+        expect(asked).toEqual([[]]);
+      });
     });
 
     it('does not fail when marker is missing', async () => {

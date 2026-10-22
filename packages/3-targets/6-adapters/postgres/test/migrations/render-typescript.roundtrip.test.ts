@@ -15,6 +15,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { APP_SPACE_ID, storageHashHex } from '@internal/framework-components/control';
 import { keepInternalSpecifiers } from '@internal/framework-components/emission';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { formatMigrationTs } from '@internal/migration-tools/migration-ts';
 import { checkExpression, col, fn, primaryKey } from '@internal/sql-relational-core/contract-free';
 import { postgresDataTypes } from '@internal/target-postgres/data-types';
@@ -30,12 +31,15 @@ import {
   CreateTableCall,
   DisableRowLevelSecurityCall,
   DropPostgresRlsPolicyCall,
+  DropSchemaCall,
   DropTableCall,
   EnableRowLevelSecurityCall,
   RawSqlCall,
   RenameIndexCall,
   RenamePostgresRlsPolicyCall,
+  RenameSchemaCall,
   SetDefaultCall,
+  SetTableSchemaCall,
 } from '@internal/target-postgres/op-factory-call';
 import { TypeScriptRenderablePostgresMigration } from '@internal/target-postgres/planner-produced-postgres-migration';
 import { renderOps } from '@internal/target-postgres/render-ops';
@@ -200,6 +204,10 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       new DropPostgresRlsPolicyCall('public', 'user', 'p_e5f6a7b8'),
       new DisableRowLevelSecurityCall('public', 'user'),
       new DropTableCall('public', 'stale'),
+      new SetTableSchemaCall('public', 'user', 'app'),
+      new SetTableSchemaCall(UNBOUND_NAMESPACE_ID, 'audit', 'app'),
+      new RenameSchemaCall('app', 'application'),
+      new DropSchemaCall('legacy'),
     ];
     const migration = new TypeScriptRenderablePostgresMigration(
       calls,

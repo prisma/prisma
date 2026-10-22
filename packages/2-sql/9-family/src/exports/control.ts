@@ -112,12 +112,18 @@ export type {
   FieldStorageEffect,
   ModelStorageEffect,
   ModelTable,
+  NamespaceRename,
+  NamespaceStatementTarget,
   NoTable,
   PlannedStatements,
   SingleOperationCall,
   StatementColumn,
+  StatementOwnership,
   StatementPlanningTarget,
+  TableMove,
   TableRenameByHand,
+  TargetRefusal,
+  WorkingSchemaOrigins,
 } from '../core/migrations/statement-planning';
 export {
   appliedStatementsInOrder,
@@ -125,6 +131,8 @@ export {
   fieldRenameStorageEffect,
   fieldStatementColumns,
   modelRenameStorageEffect,
+  NO_RENAMED_ORIGINS,
+  otherSpaceDeclaring,
   planStatements,
 } from '../core/migrations/statement-planning';
 export type { TableNameCaseGuardTable } from '../core/migrations/table-name-case-guard';

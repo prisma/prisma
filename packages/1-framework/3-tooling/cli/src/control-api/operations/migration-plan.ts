@@ -8,6 +8,7 @@ import type { Contract, ContractWithDomain } from '@internal/contract/types';
 import {
   createControlStack,
   hasOperationPreview,
+  type MigrationPlanNamespaces,
   type MigrationPlanOperation,
   migrationSubjectKey,
   type OperationPreview,
@@ -118,6 +119,8 @@ type PlannerSuccess = {
   /** The operations that would lose data, positioned in the plan's operations. */
   readonly dataLoss: readonly PlannedDataLoss[];
   readonly temporaryValues: readonly TemporaryValueReport[];
+  /** The namespaces the plan removes and adds, when the planner reports them. */
+  readonly namespaces?: MigrationPlanNamespaces;
 };
 
 function placeholderSummary(
@@ -262,6 +265,7 @@ async function runPlannerLeg(
       0,
     ),
     temporaryValues: reportTemporaryValues(plannerResult.temporaryValues, contract),
+    ...ifDefined('namespaces', plannerResult.namespaces),
   });
 }
 
@@ -341,7 +345,8 @@ async function answerPlannedDataLoss(input: {
   const legs = (delta: PlannerSuccess | undefined) => ({
     delta,
     dataLoss: [...(input.baseline?.dataLoss ?? []), ...(delta?.dataLoss ?? [])],
-    accessWidening: [],
+    accessChanges: [],
+    ...ifDefined('namespaces', delta?.namespaces),
   });
   const answered = await askPlanQuestions({
     plan: legs(input.delta),

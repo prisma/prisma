@@ -139,7 +139,7 @@ async function planned(
     })),
     losses: result.dataLoss.map(({ subject, loss }) => [subject, loss]),
     appliedStatements: result.appliedStatements,
-    accessWidening: result.accessWidening,
+    accessChanges: result.accessChanges,
     classes: Object.fromEntries(operations.map((op) => [op.label, op.operationClass])),
   };
 }
@@ -152,8 +152,8 @@ describe('SQLite planner, data loss', () => {
     });
     const to = contract('to', { User: { id: 'integer', email: 'text' } });
 
-    const { dataLoss, accessWidening } = await planned(from, to);
-    expect({ dataLoss, accessWidening }).toEqual({
+    const { dataLoss, accessChanges } = await planned(from, to);
+    expect({ dataLoss, accessChanges }).toEqual({
       dataLoss: [
         {
           operation: 'Drop column nickname on User',
@@ -164,7 +164,7 @@ describe('SQLite planner, data loss', () => {
           subject: { kind: 'model', namespaceId: unbound, model: 'Legacy' },
         },
       ],
-      accessWidening: [],
+      accessChanges: [],
     });
   });
 

@@ -4,6 +4,7 @@ import type { CliStructuredError } from './cli-errors';
 import { chooseAction, editFileAction } from './next-actions';
 import { type CliInvocation, cliCommand } from './printed-command';
 import {
+  blockingObjectsAdvice,
   dbUpdateFailedTypeChangeAdvice,
   dbUpdateRowsWithoutValueAdvice,
 } from './runner-failure-advice';
@@ -25,21 +26,27 @@ export function dbUpdateRunnerFailureError(
 ): CliStructuredError {
   const { databaseStorageHash, invocation } = context;
   const update = cliCommand(invocation, 'db update');
+  const { blockingObjects } = failure.meta;
   const advice =
-    facts.failedTypeChange !== undefined
-      ? dbUpdateFailedTypeChangeAdvice(facts.failedTypeChange, databaseStorageHash, invocation)
-      : facts.rowsWithoutValue !== undefined
-        ? dbUpdateRowsWithoutValueAdvice(facts.rowsWithoutValue, databaseStorageHash, invocation)
-        : schemaCheckIssues(failure) !== undefined
-          ? [
-              editFileAction(
-                `Change the contract source to resolve the issues listed, re-run \`${cliCommand(invocation, 'contract emit')}\`, then re-run \`${update}\``,
-              ),
-            ]
-          : [
-              chooseAction(
-                `Inspect the reported conflict, reconcile schema drift if needed, then re-run \`${update}\``,
-              ),
-            ];
+    blockingObjects !== undefined
+      ? blockingObjectsAdvice(
+          blockingObjects,
+          cliCommand(invocation, 'db update', invocation.rerunArgs ?? []),
+        )
+      : facts.failedTypeChange !== undefined
+        ? dbUpdateFailedTypeChangeAdvice(facts.failedTypeChange, databaseStorageHash, invocation)
+        : facts.rowsWithoutValue !== undefined
+          ? dbUpdateRowsWithoutValueAdvice(facts.rowsWithoutValue, databaseStorageHash, invocation)
+          : schemaCheckIssues(failure) !== undefined
+            ? [
+                editFileAction(
+                  `Change the contract source to resolve the issues listed, re-run \`${cliCommand(invocation, 'contract emit')}\`, then re-run \`${update}\``,
+                ),
+              ]
+            : [
+                chooseAction(
+                  `Inspect the reported conflict, reconcile schema drift if needed, then re-run \`${update}\``,
+                ),
+              ];
   return runnerFailureError(failure, advice);
 }

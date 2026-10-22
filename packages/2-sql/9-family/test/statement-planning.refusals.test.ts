@@ -50,16 +50,6 @@ describe('statement refusals say what to do next', () => {
       why: 'A model rename renames the model\'s table, and model "app.Profile" has none in its contract. Leave out this statement.',
     },
     {
-      case: 'a model moved to another namespace',
-      input: {
-        statements: [renameModel('User', 'User', 'auth', 'billing')],
-        fromContract: contractOf({ User: { table: 'User', namespace: 'auth' } }),
-        contract: contractOf({ User: { table: 'User', namespace: 'billing' } }),
-        target: fakeTarget(['auth.User']),
-      },
-      why: 'The model\'s table would move from namespace "auth" to namespace "billing". Leave out this statement and move the table yourself in a hand-written migration, or keep the model in namespace "auth".',
-    },
-    {
       case: 'a table the schema being planned from does not have',
       input: {
         statements: [renameModel('Profile', 'User')],

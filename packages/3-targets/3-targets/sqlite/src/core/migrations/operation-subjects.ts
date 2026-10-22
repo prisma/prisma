@@ -97,7 +97,7 @@ export function sqliteCallSubjects(
         operationCount,
         label,
         dataLoss,
-        accessWidening: [],
+        accessChanges: [],
         temporaryValues: temporaryValuesOf(call),
       };
     }
@@ -107,7 +107,7 @@ export function sqliteCallSubjects(
         operationCount,
         label,
         dataLoss: alreadyLost ? [] : [lost(columnTarget(call.tableName, call.columnName))],
-        accessWidening: [],
+        accessChanges: [],
         temporaryValues: [],
       };
     }
@@ -116,12 +116,12 @@ export function sqliteCallSubjects(
         operationCount,
         label,
         dataLoss: [lost(tableTarget(call.tableName))],
-        accessWidening: [],
+        accessChanges: [],
         temporaryValues: [],
       };
     }
     if (call.operationClass !== 'destructive') {
-      return { operationCount, label, dataLoss: [], accessWidening: [], temporaryValues: [] };
+      return { operationCount, label, dataLoss: [], accessChanges: [], temporaryValues: [] };
     }
     const fieldEvent = fieldEvents.get(call);
     const lossTarget: SubjectStorage =
@@ -134,7 +134,7 @@ export function sqliteCallSubjects(
       operationCount,
       label,
       dataLoss: [lost(lossTarget)],
-      accessWidening: [],
+      accessChanges: [],
       temporaryValues: [],
     };
   });

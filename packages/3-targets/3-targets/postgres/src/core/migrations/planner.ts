@@ -13,6 +13,8 @@ import {
   detectTableNameCaseChanges,
   extractCodecControlHooks,
   fieldStatementColumns,
+  type NamespaceRename,
+  otherSpaceDeclaring,
   partitionCallsByControlPolicy,
   partitionIssuesByControlPolicy,
   planFieldEventCalls,
@@ -20,6 +22,7 @@ import {
   planStatements,
   sqlTypeLookupsOf,
   subjectsOfCalls,
+  type TargetRefusal,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
@@ -28,6 +31,7 @@ import type {
   MigrationAccessChange,
   MigrationDataLoss,
   MigrationOperationClass,
+  MigrationPlanNamespaces,
   MigrationPlanner,
   MigrationPlanWithAuthoringSurface,
   MigrationScaffoldContext,
@@ -44,6 +48,7 @@ import { namingOf, parseWireName } from '@internal/sql-schema-ir/naming';
 import type { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import { ok, type Result } from '@internal/utils/result';
 import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { PostgresRlsPolicy } from '../postgres-rls-policy';
@@ -51,7 +56,7 @@ import { postgresNodeStorageCoordinate } from '../schema-ir/node-storage-coordin
 import { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import { PostgresPolicySchemaNode } from '../schema-ir/postgres-policy-schema-node';
 import { PostgresTableSchemaNode } from '../schema-ir/postgres-table-schema-node';
-import type { SqlSchemaDiffNode } from '../schema-ir/schema-node-kinds';
+import { PostgresSchemaNodeKind, type SqlSchemaDiffNode } from '../schema-ir/schema-node-kinds';
 import { plannedConstraintNameRenames } from './constraint-name-renames';
 import {
   renderPostgresSuppression,
@@ -73,19 +78,26 @@ import type { PostgresOpFactoryCall } from './op-factory-call';
 import {
   AlterColumnTypeCall,
   CreatePostgresRlsPolicyCall,
+  CreateSchemaCall,
   DropColumnCall,
   DropNativeEnumTypeCall,
   DropPostgresRlsPolicyCall,
+  DropSchemaCall,
   DropTableCall,
   RawSqlCall,
   type RenameColumnCall,
   RenamePostgresRlsPolicyCall,
+  RenameSchemaCall,
   type RenameTableCall,
+  SetTableSchemaCall,
 } from './op-factory-call';
 import { postgresCallSubjects } from './operation-subjects';
 import { TypeScriptRenderablePostgresMigration } from './planner-produced-postgres-migration';
-import { postgresPlannerStrategies } from './planner-strategies';
-import { resolveDdlSchemaForNamespaceStorage } from './resolve-ddl-schema';
+import { type CallMigrationStrategy, postgresPlannerStrategies } from './planner-strategies';
+import {
+  emissionSchemaForNamespace,
+  resolveDdlSchemaForNamespaceStorage,
+} from './resolve-ddl-schema';
 import { postgresSchemaTables } from './schema-tables';
 import {
   postgresColumnRenameCall,
@@ -140,8 +152,9 @@ export type PostgresPlanResult =
       readonly warnings?: readonly SqlPlannerConflict[];
       readonly appliedStatements: readonly AppliedMigrationStatement[];
       readonly dataLoss: readonly MigrationDataLoss[];
-      readonly accessWidening: readonly MigrationAccessChange[];
+      readonly accessChanges: readonly MigrationAccessChange[];
       readonly temporaryValues: readonly MigrationTemporaryValue[];
+      readonly namespaces: MigrationPlanNamespaces;
     }
   | SqlPlannerFailureResult;
 
@@ -255,12 +268,23 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       return plannerFailure([statements.failure]);
     }
     const { schema } = statements.value;
+    const removedSchemas = removedNamespaceSchemas(options, schema);
     const { issues: rawIssues, expected: expectedSchema } = buildPostgresPlanDiff({
       contract: options.contract,
       actualSchema: schema,
       frameworkComponents: options.frameworkComponents,
+      originSchemas: originSchemaNames(options.fromContract),
     });
-    const policyDiffIssues = rawIssues.filter((issue) => isPolicyDiffIssue(issue));
+    const droppedTables = rawIssues.filter(
+      (issue) =>
+        issueOutcome(issue) === 'not-expected' &&
+        issueNode(issue)?.nodeKind === PostgresSchemaNodeKind.table,
+    );
+    const policyDiffIssues = rawIssues.filter(
+      (issue) =>
+        isPolicyDiffIssue(issue) &&
+        !droppedTables.some((table) => isWithin(issue.path, table.path)),
+    );
     // Role diff issues resolve to the `external` control policy (see
     // `resolvePostgresNodeIssueControlPolicySubject`'s role branch), so the
     // control-policy partition below suppresses them to zero ops on its own,
@@ -289,8 +313,14 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     const strict =
       options.policy.allowedOperationClasses.includes('widening') ||
       options.policy.allowedOperationClasses.includes('destructive');
-    const coalesced = coalesceSubtreeIssues(relationalDiffIssues);
-    const owned = retainUnownedExtras(coalesced, options.ownership, options.contract);
+    const coalesced = coalesceSubtreeIssues(
+      relationalDiffIssues.filter(
+        (issue) => !isOriginNamespaceIssue(issue, originSchemaNames(options.fromContract)),
+      ),
+    );
+    const owned = retainUnownedExtras(coalesced, options.ownership, (ddlSchemaName) =>
+      namespaceIdOfSchema(options, ddlSchemaName),
+    );
     const gated = strict ? owned : owned.filter((issue) => issueOutcome(issue) !== 'not-expected');
 
     // Namespace presence (`CREATE SCHEMA`) is a planner-only op-generation
@@ -390,7 +420,12 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       policy: options.policy,
       frameworkComponents: options.frameworkComponents,
       statementColumns: fieldStatementColumns(options.statements, options.contract),
-      strategies: postgresPlannerStrategies,
+      strategies: [
+        ...postgresPlannerStrategies,
+        dropRemovedSchemasStrategy(
+          removedSchemas.filter((schemaName) => !keptSchema(options, schemaName)),
+        ),
+      ],
     });
 
     // Relational conflicts and policy-drift conflicts compose into ONE
@@ -501,10 +536,14 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
         {
           fromContract: options.fromContract,
           contract: options.contract,
-          statements: options.statements,
+          origins: statements.value.origins,
           byHand: postgresTableRenameByHand(options.contract),
         },
       ),
+      namespaces: {
+        removed: removedSchemas.map((schemaName) => namespaceIdOfSchema(options, schemaName)),
+        added: addedNamespaceIds(options),
+      },
       ...(warnings.length > 0 ? { warnings: Object.freeze(warnings) } : {}),
     });
   }
@@ -743,19 +782,54 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     options: SqlMigrationPlannerPlanOptions,
     schema: PostgresDatabaseSchemaNode,
   ): Result<
-    PlannedStatements<RenameTableCall | RenameColumnCall> & {
+    PlannedStatements<StatementCall> & {
       readonly schema: PostgresDatabaseSchemaNode;
     },
     SqlPlannerConflict
   > {
     const working = createWorkingSchema(schema);
-    const planned = planStatements<RenameTableCall | RenameColumnCall>({
+    const ddlSchemaOf = (namespaceId: string) =>
+      resolveDdlSchemaForNamespaceStorage(options.contract.storage, namespaceId);
+    const planned = planStatements<StatementCall>({
       statements: options.statements.filter(isRenameStatement),
       fromContract: options.fromContract,
       contract: options.contract,
       policy: options.policy,
+      ownership: { oracle: options.ownership, spaceId: options.spaceId },
       target: {
         tables: () => postgresSchemaTables(working.current, options.contract),
+        namespaces: {
+          createNamespaceCalls: (namespaceId) => {
+            const schemaName = ddlSchemaOf(namespaceId);
+            return working.current.existingSchemas.includes(schemaName)
+              ? []
+              : [new CreateSchemaCall(schemaName)];
+          },
+          moveTableCall: (move) => {
+            if (options.fromContract === null) {
+              throw new InternalError('A table move is planned only from an origin contract');
+            }
+            const sourceContract =
+              options.contract.storage.namespaces[move.from] === undefined
+                ? options.fromContract
+                : options.contract;
+            return new SetTableSchemaCall(
+              emissionSchemaForNamespace(sourceContract, move.from),
+              move.table,
+              ddlSchemaOf(move.to),
+            );
+          },
+          namespaceRenameRefusal: postgresNamespaceRenameRefusal,
+          renameNamespaceCall: (rename) => {
+            if (options.fromContract === null) {
+              throw new InternalError('A namespace rename is planned only from an origin contract');
+            }
+            return new RenameSchemaCall(
+              resolveDdlSchemaForNamespaceStorage(options.fromContract.storage, rename.from),
+              ddlSchemaOf(rename.to),
+            );
+          },
+        },
         renameTableCall: (rename) =>
           postgresTableRenameCall({
             previous: working.current,
@@ -790,6 +864,137 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     }
     return null;
   }
+}
+
+/** Whether `path` lies under `ancestor`: a dropped table's policies go with it. */
+function isWithin(path: readonly string[], ancestor: readonly string[]): boolean {
+  return (
+    path.length > ancestor.length && ancestor.every((segment, index) => path[index] === segment)
+  );
+}
+
+/**
+ * The DDL schemas in which the origin contract declares tables; none without an origin contract.
+ * A namespace with no tables, such as the `public` the target always adds, owns nothing.
+ */
+function originSchemaNames(fromContract: Contract<SqlStorage> | null): readonly string[] {
+  if (fromContract === null) return [];
+  return Object.entries(fromContract.storage.namespaces)
+    .filter(
+      ([namespaceId, namespace]) =>
+        namespaceId !== UNBOUND_NAMESPACE_ID &&
+        Object.keys(namespace.entries.table ?? {}).length > 0,
+    )
+    .map(([namespaceId]) => resolveDdlSchemaForNamespaceStorage(fromContract.storage, namespaceId));
+}
+
+/**
+ * The namespaces the destination declares and the origin does not, other than `public` and those a
+ * statement renames a namespace to: the new names a rename of a removed namespace may give it.
+ */
+function addedNamespaceIds(options: SqlMigrationPlannerPlanOptions): readonly string[] {
+  const { fromContract } = options;
+  if (fromContract === null) return [];
+  const renamedTo = new Set<string>(
+    options.statements.flatMap((statement) =>
+      statement.kind === 'rename' && statement.entity === 'namespace' ? [statement.to] : [],
+    ),
+  );
+  return Object.keys(options.contract.storage.namespaces).filter(
+    (namespaceId) =>
+      namespaceId !== UNBOUND_NAMESPACE_ID &&
+      namespaceId !== DEFAULT_NAMESPACE_ID &&
+      !renamedTo.has(namespaceId) &&
+      !Object.hasOwn(fromContract.storage.namespaces, namespaceId),
+  );
+}
+
+/** Every DDL schema the contract declares, with or without tables. */
+function declaredSchemaNames(contract: Contract<SqlStorage>): ReadonlySet<string> {
+  return new Set(
+    Object.keys(contract.storage.namespaces)
+      .filter((namespaceId) => namespaceId !== UNBOUND_NAMESPACE_ID)
+      .map((namespaceId) => resolveDdlSchemaForNamespaceStorage(contract.storage, namespaceId)),
+  );
+}
+
+/**
+ * The live schemas the origin contract declares and the destination does not: each is dropped,
+ * its tables first, each table a data-loss question.
+ */
+function removedNamespaceSchemas(
+  options: SqlMigrationPlannerPlanOptions,
+  schema: PostgresDatabaseSchemaNode,
+): readonly string[] {
+  const destination = declaredSchemaNames(options.contract);
+  return originSchemaNames(options.fromContract).filter(
+    (schemaName) =>
+      schemaName !== DEFAULT_NAMESPACE_ID &&
+      !destination.has(schemaName) &&
+      schema.namespaces[schemaName] !== undefined,
+  );
+}
+
+/**
+ * The issue a schema of the origin contract raises for itself when the destination declares no
+ * tables there, which would cover the issues of its tables: they are kept instead, so each table is
+ * dropped and asked about on its own, and a removed schema is dropped after them.
+ */
+function isOriginNamespaceIssue(
+  issue: SchemaDiffIssue<SqlSchemaDiffNode>,
+  originSchemas: readonly string[],
+): boolean {
+  const node = issueNode(issue);
+  return (
+    node !== undefined &&
+    node.nodeKind === PostgresSchemaNodeKind.namespace &&
+    originSchemas.includes(issue.path[1] ?? '')
+  );
+}
+
+/** A removed schema that stays because another contract space declares it. */
+function keptSchema(options: SqlMigrationPlannerPlanOptions, schemaName: string): boolean {
+  if (options.fromContract === null) return true;
+  const namespaceId = resolveNamespaceIdForDdlSchema(options.fromContract, schemaName);
+  return (
+    otherSpaceDeclaring({ oracle: options.ownership, spaceId: options.spaceId }, namespaceId) !==
+    undefined
+  );
+}
+
+function dropRemovedSchemasStrategy(schemaNames: readonly string[]): CallMigrationStrategy {
+  return (issues) =>
+    schemaNames.length === 0
+      ? { kind: 'no_match' }
+      : { kind: 'match', issues, calls: schemaNames.map((name) => new DropSchemaCall(name)) };
+}
+
+type StatementCall =
+  | RenameTableCall
+  | RenameColumnCall
+  | CreateSchemaCall
+  | SetTableSchemaCall
+  | RenameSchemaCall;
+
+/**
+ * Why a namespace cannot be renamed: `public` is the default schema Prisma owns and Postgres puts
+ * on every search path, and a schema another contract space declares would be renamed for it too.
+ */
+function postgresNamespaceRenameRefusal(rename: NamespaceRename): TargetRefusal | undefined {
+  const reason = `"${DEFAULT_NAMESPACE_ID}" is the default schema of every Postgres database`;
+  if (rename.from === DEFAULT_NAMESPACE_ID) {
+    return {
+      reason,
+      fix: `Prisma owns schema "${rename.from}", and Postgres puts it on every search path, so a migration does not rename it. Move each model to the new namespace with --rename <Model>:${rename.to}.<Model> instead.`,
+    };
+  }
+  if (rename.to === DEFAULT_NAMESPACE_ID) {
+    return {
+      reason,
+      fix: `Every Postgres database already has schema "${rename.to}", so no schema can be renamed to it. Move each model with --rename ${rename.from}.<Model>:<Model> instead.`,
+    };
+  }
+  return undefined;
 }
 
 /**
@@ -858,10 +1063,29 @@ function policyCanBlock(call: PostgresOpFactoryCall): boolean {
  * coordinate (a namespace, or a deeper column/constraint drift on an owned
  * table) is this space's own and is always kept. No oracle ⇒ keep everything.
  */
+/**
+ * The namespace a live schema stands for: the destination's, or, for a schema only the origin
+ * declares, such as one the destination removed, the origin's.
+ */
+function namespaceIdOfSchema(
+  options: SqlMigrationPlannerPlanOptions,
+  ddlSchemaName: string,
+): string {
+  const namespaceId = resolveNamespaceIdForDdlSchema(options.contract, ddlSchemaName);
+  if (
+    namespaceId !== UNBOUND_NAMESPACE_ID ||
+    ddlSchemaName === DEFAULT_NAMESPACE_ID ||
+    options.fromContract === null
+  ) {
+    return namespaceId;
+  }
+  return resolveNamespaceIdForDdlSchema(options.fromContract, ddlSchemaName);
+}
+
 function retainUnownedExtras(
   issues: readonly SchemaDiffIssue<SqlSchemaDiffNode>[],
   ownership: SchemaOwnership | undefined,
-  contract: Contract<SqlStorage>,
+  namespaceIdOf: (ddlSchemaName: string) => string,
 ): readonly SchemaDiffIssue<SqlSchemaDiffNode>[] {
   if (ownership === undefined) return issues;
   return issues.filter((issue) => {
@@ -872,8 +1096,7 @@ function retainUnownedExtras(
     if (coordinate === undefined) return true;
     const ddlSchemaName = issueSchemaName(issue);
     if (ddlSchemaName === undefined) return true;
-    const namespaceId = resolveNamespaceIdForDdlSchema(contract, ddlSchemaName);
-    return !ownership.declaresEntity({ namespaceId, ...coordinate });
+    return !ownership.declaresEntity({ namespaceId: namespaceIdOf(ddlSchemaName), ...coordinate });
   });
 }
 

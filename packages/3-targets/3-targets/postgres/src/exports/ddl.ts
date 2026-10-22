@@ -10,7 +10,9 @@ export {
   DropDefaultAction,
   PostgresAlterIndexRename,
   PostgresAlterPolicyRename,
+  PostgresAlterSchemaRename,
   PostgresAlterTable,
+  PostgresAlterTableSetSchema,
   PostgresCreateIndex,
   PostgresCreatePolicy,
   PostgresCreateSchema,
@@ -21,6 +23,7 @@ export {
   PostgresDisableRowLevelSecurity,
   PostgresDropIndex,
   PostgresDropPolicy,
+  PostgresDropSchema,
   PostgresDropType,
   type RlsPolicyOperation,
 } from '../core/ddl/nodes';
