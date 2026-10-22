@@ -383,6 +383,53 @@ describe('migrating a MySQL database', () => {
     );
   });
 
+  it('refuses the second of two runners started at once with a marker origin mismatch, changing nothing', async (test) => {
+    await withMysqlDatabase(test, ({ url }) =>
+      withDriver(url, async (driver, family) => {
+        const base = loadExampleContract();
+        const applied = await apply(family, driver, [
+          ['app', await planAgainst(driver, family, 'app', base), base],
+        ]);
+        if (!applied.ok) throw applied.failure;
+        const withNickname = contractWithNickname();
+        const planned = mysql.migrations.createPlanner(createAdapter()).plan({
+          contract: withNickname,
+          schema: await family.introspect({ driver }),
+          policy: EVERY_CLASS,
+          fromContract: base,
+          origin: { storageHash: base.storage.storageHash },
+          statements: [],
+          frameworkComponents,
+          spaceId: 'app',
+          snapshotsImportPath: '../../snapshots',
+        });
+        if (planned.kind !== 'success') throw new Error(JSON.stringify(planned.conflicts));
+        const runOnItsOwnConnection = () =>
+          withDriver(url, (own, ownFamily) =>
+            apply(ownFamily, own, [['app', planned.plan, withNickname]]),
+          );
+
+        const outcomes = await Promise.all([runOnItsOwnConnection(), runOnItsOwnConnection()]);
+
+        expect({
+          outcomes: outcomes
+            .map((outcome) =>
+              outcome.ok
+                ? 'applied'
+                : `${outcome.failure.code} databaseUnchanged=${outcome.failure.meta.databaseUnchanged}`,
+            )
+            .sort(),
+          markers: await markerHashes(family, driver),
+          lockFree: await lockIsFree(url),
+        }).toEqual({
+          outcomes: ['MIGRATION.MARKER_ORIGIN_MISMATCH databaseUnchanged=true', 'applied'],
+          markers: { app: withNickname.storage.storageHash },
+          lockFree: true,
+        });
+      }),
+    );
+  });
+
   it('says the apply changed nothing when the first space fails before it runs anything', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver, family) => {
