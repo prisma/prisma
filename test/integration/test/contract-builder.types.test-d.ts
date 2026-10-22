@@ -369,17 +369,6 @@ test('explicit generated id helpers stay typed', () => {
         | undefined
       >();
 
-      if (typecheckOnly) {
-        // @ts-expect-error uuidv7String helper accepts only an optional trailing PK-name object
-        field.id.uuidv7String({ size: 16 });
-
-        // @ts-expect-error nanoid size must be a number
-        field.id.nanoid({ size: '16' });
-
-        // @ts-expect-error scalar nanoid size must be a number
-        field.nanoid({ size: '16' });
-      }
-
       return { models: {} };
     },
   );

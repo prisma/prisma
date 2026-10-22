@@ -9,16 +9,16 @@ type SoleNamespaceModels<
 // @ts-expect-error — capabilities are contributed by components, not authoring input
 defineContract({ capabilities: { postgres: { lateral: true } } });
 
-test('limits Date authoring to the temporal presets', () => {
-  defineContract({}, ({ field: f }) => {
-    expectTypeOf(f).not.toBeAny();
-    expectTypeOf(f).not.toHaveProperty('dateTimeDate');
-    expectTypeOf(f.temporal).not.toHaveProperty('timestamptzDate');
-    expectTypeOf(f.temporal).not.toHaveProperty('createdAtDate');
-    expectTypeOf(f.temporal).not.toHaveProperty('updatedAtDate');
-    expectTypeOf(f.temporal).toHaveProperty('timestamptzJsDate');
-    expectTypeOf(f.temporal).toHaveProperty('createdAtJsDate');
-    expectTypeOf(f.temporal).toHaveProperty('updatedAtJsDate');
+test('limits Date authoring to the JsDate types', () => {
+  defineContract({}, ({ type: t }) => {
+    expectTypeOf(t).not.toBeAny();
+    expectTypeOf(t).not.toHaveProperty('DateTimeDate');
+    expectTypeOf(t).not.toHaveProperty('TimestamptzDate');
+    expectTypeOf(t.temporal).not.toHaveProperty('CreatedAtDate');
+    expectTypeOf(t.temporal).not.toHaveProperty('UpdatedAtDate');
+    expectTypeOf(t).toHaveProperty('TimestamptzJsDate');
+    expectTypeOf(t.temporal).toHaveProperty('CreatedAtJsDate');
+    expectTypeOf(t.temporal).toHaveProperty('UpdatedAtJsDate');
     return {};
   });
 });

@@ -138,12 +138,12 @@ export function interpretMongo(schema: string): Interpreted {
   );
 }
 
-/** The TypeScript contract with one model per row, each field written in `form`. */
-export function postgresTs(rows: readonly SqlRow<PostgresHelpers>[], form: Form): Contract {
+/** The TypeScript contract with one model per row, each field written as its replacement. */
+export function postgresTs(rows: readonly SqlRow<PostgresHelpers>[]): Contract {
   return definePostgresContract({}, (helpers) => ({
     models: Object.fromEntries(
       rows.map((row) => {
-        const value = row.ts[form](helpers);
+        const value = row.ts(helpers);
         const fields =
           row.id === true
             ? { id: value }
@@ -154,11 +154,11 @@ export function postgresTs(rows: readonly SqlRow<PostgresHelpers>[], form: Form)
   }));
 }
 
-export function sqliteTs(rows: readonly SqlRow<SqliteHelpers>[], form: Form): Contract {
+export function sqliteTs(rows: readonly SqlRow<SqliteHelpers>[]): Contract {
   return defineSqliteContract({}, (helpers) => ({
     models: Object.fromEntries(
       rows.map((row) => {
-        const value = row.ts[form](helpers);
+        const value = row.ts(helpers);
         const fields =
           row.id === true
             ? { id: value }
@@ -169,7 +169,7 @@ export function sqliteTs(rows: readonly SqlRow<SqliteHelpers>[], form: Form): Co
   }));
 }
 
-export function mongoTs(rows: readonly MongoRow[], form: Form): Contract {
+export function mongoTs(rows: readonly MongoRow[]): Contract {
   return defineMongoContract({}, (helpers: MongoHelpers) => ({
     models: Object.fromEntries(
       rows.map((row) => [
@@ -178,7 +178,7 @@ export function mongoTs(rows: readonly MongoRow[], form: Form): Contract {
           collection: row.model,
           fields: {
             id: helpers.field.objectId().mongo({ field: '_id' }),
-            value: row.ts[form](helpers),
+            value: row.ts(helpers),
           },
         }),
       ]),

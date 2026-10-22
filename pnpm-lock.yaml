@@ -1246,9 +1246,6 @@ importers:
       '@internal/contract':
         specifier: workspace:8.0.0-rc.19
         version: link:../../0-foundation/contract
-      '@internal/framework-components':
-        specifier: workspace:8.0.0-rc.19
-        version: link:../../1-core/framework-components
       '@internal/utils':
         specifier: workspace:8.0.0-rc.19
         version: link:../../0-foundation/utils

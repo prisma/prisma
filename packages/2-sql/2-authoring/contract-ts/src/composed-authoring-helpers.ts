@@ -3,7 +3,6 @@ import {
   type CodecTypeMap,
   composePackAuthoringNamespace,
   createEntityHelpersFromNamespace,
-  createFieldHelpersFromNamespace,
   type DataTypeArgumentTypes,
   type EntityHelpersFromNamespace,
   type ExtractAuthoringNamespaceFromPack,
@@ -16,7 +15,6 @@ import {
 import type {
   AuthoringArgumentDescriptor,
   AuthoringEntityTypeNamespace,
-  AuthoringFieldNamespace,
   AuthoringTypeAliasDescriptor,
   AuthoringTypeConstructorDescriptor,
   AuthoringTypeNamespace,
@@ -39,10 +37,8 @@ import {
 import { blindCast } from '@internal/utils/casts';
 import {
   type AuthoringHelperLookups,
-  createFieldPresetHelper,
   createTypeHelpersFromNamespace,
 } from './authoring-helper-runtime';
-import type { FieldHelpersFromNamespace } from './authoring-type-utils';
 import type {
   AnyRelationBuilder,
   ColumnFieldHelper,
@@ -51,7 +47,7 @@ import type {
   NamedTypeFieldHelper,
   ScalarFieldBuilder,
 } from './contract-dsl';
-import { buildFieldPreset, field, model, rel } from './contract-dsl';
+import { field, model, rel } from './contract-dsl';
 import { contractError } from './contract-errors';
 import type {
   ExtractCodecTypesFromPack,
@@ -64,11 +60,6 @@ type ExtractTypeNamespaceFromPack<Pack> = ExtractAuthoringNamespaceFromPack<
   'type',
   Record<never, never>
 >;
-type ExtractFieldNamespaceFromPack<Pack> = ExtractAuthoringNamespaceFromPack<
-  Pack,
-  'field',
-  Record<never, never>
->;
 type ExtractEntitiesNamespaceFromPack<Pack> = ExtractAuthoringNamespaceFromPack<
   Pack,
   'entityTypes',
@@ -78,10 +69,6 @@ type ExtractEntitiesNamespaceFromPack<Pack> = ExtractAuthoringNamespaceFromPack<
 type MergeExtensionTypeNamespaces<Extensions> = MergeExtensionAuthoringNamespaces<
   Extensions,
   'type'
->;
-type MergeExtensionFieldNamespaces<Extensions> = MergeExtensionAuthoringNamespaces<
-  Extensions,
-  'field'
 >;
 type MergeExtensionEntityNamespaces<Extensions> = MergeExtensionAuthoringNamespaces<
   Extensions,
@@ -160,9 +147,7 @@ type DataTypeArgumentTypesOfPacks<Family, Target, Extensions> =
     ExtractDataTypeArgumentTypesFromPack<Target> &
     MergeExtensionDataTypeArgumentTypes<Extensions>;
 
-type CoreFieldHelpers = Pick<typeof field, 'column' | 'generated' | 'namedType'>;
-
-type FieldHelpersForCodecs<CodecTypes extends CodecTypeMap> = Pick<typeof field, 'generated'> & {
+type FieldHelpersForCodecs<CodecTypes extends CodecTypeMap> = {
   readonly column: ColumnFieldHelper<CodecTypes>;
   readonly namedType: NamedTypeFieldHelper;
 };
@@ -232,14 +217,7 @@ export type ComposedAuthoringHelpers<
     ExtractEntitiesNamespaceFromPack<Target> &
     MergeExtensionEntityNamespaces<Extensions>
 > & {
-  readonly field: FieldHelpersForCodecs<CodecTypesOfPacks<Family, Target, Extensions>> &
-    FieldHelpersFromNamespace<
-      ExtractFieldNamespaceFromPack<Family> &
-        ExtractFieldNamespaceFromPack<Target> &
-        MergeExtensionFieldNamespaces<Extensions>,
-      CodecTypesOfPacks<Family, Target, Extensions>,
-      DataTypeArgumentTypesOfPacks<Family, Target, Extensions>
-    >;
+  readonly field: FieldHelpersForCodecs<CodecTypesOfPacks<Family, Target, Extensions>>;
   readonly model: PackAwareModel<MergeAllPackIndexTypes<Family, Target, Extensions>>;
   readonly rel: typeof rel;
   readonly type: TypeHelpersFromNamespace<
@@ -257,10 +235,6 @@ type AuthoringComponent = DataTypeComponent & {
 
 function composeTypeNamespace(components: readonly AuthoringComponent[]): AuthoringTypeNamespace {
   return composePackAuthoringNamespace(components, 'type');
-}
-
-function composeFieldNamespace(components: readonly AuthoringComponent[]): AuthoringFieldNamespace {
-  return composePackAuthoringNamespace(components, 'field');
 }
 
 function composeEntityNamespace(
@@ -291,45 +265,6 @@ function assertNoBuiltInEntityCollisions(namespace: AuthoringEntityTypeNamespace
   }
 }
 
-function createComposedFieldHelpers(
-  fieldNamespace: AuthoringFieldNamespace,
-  lookups: AuthoringHelperLookups,
-): CoreFieldHelpers & Record<string, unknown> {
-  const helperNamespace = createFieldHelpersFromNamespace(
-    fieldNamespace,
-    ({ helperPath, descriptor }) =>
-      createFieldPresetHelper({
-        helperPath,
-        descriptor,
-        codecLookup: lookups.codecLookup,
-        dataTypes: lookups.dataTypes,
-        build: ({ args, namedConstraintOptions }) =>
-          buildFieldPreset(descriptor, args, namedConstraintOptions),
-      }),
-  );
-  const coreFieldHelpers = {
-    column: field.column,
-    generated: field.generated,
-    namedType: field.namedType,
-  } satisfies CoreFieldHelpers;
-
-  const coreHelperNames = new Set(Object.keys(coreFieldHelpers));
-  for (const helperName of Object.keys(helperNamespace)) {
-    if (coreHelperNames.has(helperName)) {
-      throw contractError(
-        'CONTRACT.PACK_CONTRIBUTION_INVALID',
-        `Duplicate authoring field helper "${helperName}". Core field helpers reserve that name.`,
-        { meta: { helperName } },
-      );
-    }
-  }
-
-  return {
-    ...coreFieldHelpers,
-    ...helperNamespace,
-  };
-}
-
 export function createComposedAuthoringHelpers<
   Family extends FamilyPackRef<string>,
   Target extends TargetPackRef<'sql', string>,
@@ -350,11 +285,10 @@ export function createComposedAuthoringHelpers<
   ];
 
   const typeNamespace = composeTypeNamespace(components);
-  const fieldNamespace = composeFieldNamespace(components);
   const entityNamespace = composeEntityNamespace(components);
   // Mirrors the call in `assembleAuthoringContributions`: PSL composes via
   // `createControlStack`, the TS DSL composes here. Both seams need the guard.
-  assertNoCrossRegistryCollisions(typeNamespace, fieldNamespace, entityNamespace);
+  assertNoCrossRegistryCollisions(typeNamespace, {}, entityNamespace);
   assertNoBuiltInEntityCollisions(entityNamespace);
   const { support } = assembleDataTypeSupport(
     components,
@@ -377,7 +311,7 @@ export function createComposedAuthoringHelpers<
         dataTypeLookup: support.lookup,
       },
     }),
-    field: createComposedFieldHelpers(fieldNamespace, helperLookups),
+    field,
     model,
     rel,
     type: createTypeHelpersFromNamespace(typeNamespace, helperLookups),

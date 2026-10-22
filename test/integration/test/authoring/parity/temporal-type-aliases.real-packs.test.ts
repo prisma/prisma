@@ -123,7 +123,7 @@ describe('the temporal type aliases with real packs', () => {
     expect(throughAliases.execution?.mutations.defaults).toHaveLength(2);
   });
 
-  it('give the TypeScript builder on Postgres what the presets give it', () => {
+  it('give the TypeScript builder on Postgres what they give PSL', () => {
     const throughAliases = defineContract({}, ({ type, field, model }) => ({
       models: {
         Event: model('Event', {
@@ -139,22 +139,6 @@ describe('the temporal type aliases with real packs', () => {
         }).sql({ table: 'Event' }),
       },
     }));
-    const throughPresets = defineContract({}, ({ type, field, model }) => ({
-      models: {
-        Event: model('Event', {
-          fields: {
-            id: field.column(type.Int()).id(),
-            createdAt: field.temporal.createdAt(),
-            updatedAt: field.temporal.updatedAt(),
-            createdAtString: field.temporal.createdAtString(),
-            updatedAtString: field.temporal.updatedAtString(),
-            createdAtJsDate: field.temporal.createdAtJsDate(),
-            updatedAtJsDate: field.temporal.updatedAtJsDate(),
-          },
-        }).sql({ table: 'Event' }),
-      },
-    }));
-    expect(throughAliases).toEqual(throughPresets);
     expect(throughAliases).toEqual(
       succeeded(
         interpretPostgres(`model Event {
@@ -171,7 +155,7 @@ describe('the temporal type aliases with real packs', () => {
     );
   });
 
-  it('give the TypeScript builder on SQLite what the presets give it', () => {
+  it('give the TypeScript builder on SQLite what they give PSL', () => {
     const throughAliases = defineSqliteContract({}, ({ type, field, model }) => ({
       models: {
         Event: model('Event', {
@@ -183,17 +167,15 @@ describe('the temporal type aliases with real packs', () => {
         }).sql({ table: 'Event' }),
       },
     }));
-    const throughPresets = defineSqliteContract({}, ({ type, field, model }) => ({
-      models: {
-        Event: model('Event', {
-          fields: {
-            id: field.column(type.Int()).id(),
-            createdAt: field.temporal.createdAt(),
-            updatedAt: field.temporal.updatedAt(),
-          },
-        }).sql({ table: 'Event' }),
-      },
-    }));
-    expect(throughAliases).toEqual(throughPresets);
+    expect(throughAliases).toEqual(
+      succeeded(
+        interpretSqlite(`model Event {
+  id        Int                @id
+  createdAt temporal.CreatedAt
+  updatedAt temporal.UpdatedAt
+}
+`),
+      ),
+    );
   });
 });

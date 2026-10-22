@@ -31,7 +31,7 @@ interface TargetCase<Row> {
   readonly target: 'postgres' | 'sqlite' | 'mongo';
   readonly rows: readonly Row[];
   readonly psl: (rows: readonly Row[], form: Form) => Interpreted;
-  readonly ts: (rows: readonly Row[], form: Form) => Contract;
+  readonly ts: (rows: readonly Row[]) => Contract;
   readonly emit: (contract: Contract) => Promise<string>;
 }
 
@@ -50,7 +50,7 @@ function contractOf<Row>(
   rows: readonly Row[],
   form: Form,
 ): Contract {
-  if (surface === 'ts') return targetCase.ts(rows, form);
+  if (surface === 'ts') return targetCase.ts(rows);
   const interpreted = targetCase.psl(rows, form);
   if (!interpreted.ok) {
     throw new Error(`the schema did not interpret: ${JSON.stringify(interpreted.failure)}`);
@@ -98,12 +98,6 @@ function describeTarget<Row extends PresetReplacementRow<never, unknown>>(
           );
         },
       );
-
-      it('the TypeScript replacement stores what the TypeScript preset stores', async () => {
-        expect(await emitted(targetCase, 'ts', [row], 'replacement')).toEqual(
-          await emitted(targetCase, 'ts', [row], 'preset'),
-        );
-      });
 
       it('the TypeScript replacement stores what the PSL replacement stores', async () => {
         expect(await emitted(targetCase, 'ts', [row], 'replacement')).toEqual(
