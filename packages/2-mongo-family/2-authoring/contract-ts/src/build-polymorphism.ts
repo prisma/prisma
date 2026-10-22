@@ -25,7 +25,7 @@ export function inheritVariantCollections(
     if (model.collection !== baseCollection) {
       refusals.push({
         kind: 'variantCollectionDiffers',
-        key: { kind: 'collection', model: model.modelName },
+        key: { kind: 'collectionSettings', model: model.modelName },
         collection: model.collection,
         baseModel: model.base.model,
         baseCollection,
@@ -41,7 +41,7 @@ function checkVariantShape(
   refusals: MongoBuildRefusal[],
 ): void {
   if (model.base === undefined) return;
-  const key = { kind: 'base', model: model.modelName } as const;
+  const key = { kind: 'base', variant: model.modelName } as const;
   const baseModel = model.base.model;
   if (model.discriminator !== undefined) {
     refusals.push({
@@ -140,7 +140,7 @@ function decideDiscriminator(input: {
   for (const refusal of decision.variantRefusals) {
     refusals.push({
       kind: 'discriminatorValue',
-      key: { kind: 'base', model: refusal.key },
+      key: { kind: 'base', variant: refusal.key },
       baseModel: base.modelName,
       fieldName,
       enumName: field.enumName,
@@ -153,7 +153,7 @@ function decideDiscriminator(input: {
     if (firstVariant !== undefined) {
       refusals.push({
         kind: 'discriminatorValueDuplicate',
-        key: { kind: 'base', model: variant },
+        key: { kind: 'base', variant },
         baseModel: base.modelName,
         value,
         firstVariant,

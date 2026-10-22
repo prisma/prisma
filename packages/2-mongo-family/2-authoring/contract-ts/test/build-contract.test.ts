@@ -302,7 +302,7 @@ describe('buildMongoContractFromDefinition refusals', () => {
       [
         {
           kind: 'collectionSettingWithoutCollection',
-          key: { kind: 'collection', model: 'Part' },
+          key: { kind: 'collectionSettings', model: 'Part' },
         },
       ],
     ],
@@ -314,12 +314,12 @@ describe('buildMongoContractFromDefinition refusals', () => {
           { modelName: 'Admin', collection: 'users', fields: [], controlPolicy: 'managed' },
         ],
       },
-      [{ kind: 'collectionSettingTwice', key: { kind: 'collection', model: 'Admin' } }],
+      [{ kind: 'collectionSettingTwice', key: { kind: 'collectionSettings', model: 'Admin' } }],
     ],
     [
       'a variant in another collection',
       { models: [task, { ...bug, collection: 'bugs' }] },
-      [{ kind: 'variantCollectionDiffers', key: { kind: 'collection', model: 'Bug' } }],
+      [{ kind: 'variantCollectionDiffers', key: { kind: 'collectionSettings', model: 'Bug' } }],
     ],
     [
       'an index on an unknown field',
@@ -484,7 +484,7 @@ describe('buildMongoContractFromDefinition refusals', () => {
           { ...bug, modelName: 'OtherBug', indexes: [] },
         ],
       },
-      [{ kind: 'discriminatorValueDuplicate', key: { kind: 'base', model: 'OtherBug' } }],
+      [{ kind: 'discriminatorValueDuplicate', key: { kind: 'base', variant: 'OtherBug' } }],
     ],
     [
       'a discriminator on an unknown field',
@@ -509,7 +509,7 @@ describe('buildMongoContractFromDefinition refusals', () => {
           { ...bug, base: { model: 'Task', value: { kind: 'boolean', value: true } } },
         ],
       },
-      [{ kind: 'discriminatorValue', key: { kind: 'base', model: 'Bug' } }],
+      [{ kind: 'discriminatorValue', key: { kind: 'base', variant: 'Bug' } }],
     ],
     [
       'a model with both a discriminator and a base',
@@ -529,17 +529,17 @@ describe('buildMongoContractFromDefinition refusals', () => {
     [
       'a base that has no discriminator',
       { models: [{ ...withoutDiscriminator(task) }, bug] },
-      [{ kind: 'baseWithoutDiscriminator', key: { kind: 'base', model: 'Bug' } }],
+      [{ kind: 'baseWithoutDiscriminator', key: { kind: 'base', variant: 'Bug' } }],
     ],
     [
       'a base the definition does not declare',
       { models: [bug] },
-      [{ kind: 'baseUnknown', key: { kind: 'base', model: 'Bug' } }],
+      [{ kind: 'baseUnknown', key: { kind: 'base', variant: 'Bug' } }],
     ],
     [
       'a variant without a discriminator value',
       { models: [task, { ...bug, base: { model: 'Task', value: undefined } }] },
-      [{ kind: 'variantWithoutValue', key: { kind: 'base', model: 'Bug' } }],
+      [{ kind: 'variantWithoutValue', key: { kind: 'base', variant: 'Bug' } }],
     ],
     [
       'a document id the validator cannot describe',

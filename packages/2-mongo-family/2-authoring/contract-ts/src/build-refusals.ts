@@ -21,9 +21,9 @@ export type RefusalKey =
   /** The base model's discriminator. */
   | { readonly kind: 'discriminator'; readonly model: string }
   /** The variant's base and its discriminator value. */
-  | { readonly kind: 'base'; readonly model: string }
+  | { readonly kind: 'base'; readonly variant: string }
   /** The collection settings of the model that declares them. */
-  | { readonly kind: 'collection'; readonly model: string };
+  | { readonly kind: 'collectionSettings'; readonly model: string };
 
 export type ModelKey = Extract<RefusalKey, { readonly kind: 'model' }>;
 export type ValueObjectKey = Extract<RefusalKey, { readonly kind: 'valueObject' }>;
@@ -33,7 +33,7 @@ export type IndexKey = Extract<RefusalKey, { readonly kind: 'index' }>;
 export type RelationKey = Extract<RefusalKey, { readonly kind: 'relation' }>;
 export type DiscriminatorKey = Extract<RefusalKey, { readonly kind: 'discriminator' }>;
 export type BaseKey = Extract<RefusalKey, { readonly kind: 'base' }>;
-export type CollectionKey = Extract<RefusalKey, { readonly kind: 'collection' }>;
+export type CollectionSettingsKey = Extract<RefusalKey, { readonly kind: 'collectionSettings' }>;
 
 export type CollectionSetting = 'indexes' | 'collectionOptions' | 'controlPolicy';
 
@@ -78,18 +78,18 @@ export type MongoBuildRefusal =
     }
   | {
       readonly kind: 'collectionSettingWithoutCollection';
-      readonly key: CollectionKey;
+      readonly key: CollectionSettingsKey;
       readonly setting: CollectionSetting;
     }
   | {
       readonly kind: 'collectionSettingTwice';
-      readonly key: CollectionKey;
+      readonly key: CollectionSettingsKey;
       readonly setting: Exclude<CollectionSetting, 'indexes'>;
       readonly collection: string;
     }
   | {
       readonly kind: 'variantCollectionDiffers';
-      readonly key: CollectionKey;
+      readonly key: CollectionSettingsKey;
       readonly collection: string;
       readonly baseModel: string;
       readonly baseCollection: string;

@@ -45,7 +45,11 @@ MongoDB's definition carries polymorphism; SQL's does not yet, so SQL PSL still 
 
 ### The builder
 
-The builder takes the definition, the codec lookup and the stack's data types. It returns either the contract with its warnings, or every refusal it found with its warnings. A refusal's key is one of: a model, a value object, a field (owner and name), an enum or enum member, an index (model and position in its list), a relation, a discriminator, a base or a collection.
+The builder takes the definition, the codec lookup and the stack's data types. It returns either the contract with its warnings, or every refusal it found with its warnings. A refusal's key is one of: a model, a value object, a field (owner and name), an enum or enum member, an index (model and position in its list), a relation, a discriminator, a variant's base, or a model's collection settings.
+
+Most refusals carry names and values, and each source words them. Some carry a sentence the builder wrote (`reason`, `message`, `signature`), which the sources pass through as written; where a source needs its own wording, the refusal carries a closed set of reasons instead, as the index shape rules do.
+
+The builder checks the assembled contract last. Those refusals (kind `validator`) come back only when nothing else was refused, so a user sees them in a second round, after fixing the others.
 
 ### The sources
 

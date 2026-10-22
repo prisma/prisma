@@ -389,12 +389,12 @@ export function refusalDiagnostic(
       );
     }
     case 'discriminatorValueDuplicate': {
-      const base = modelSitesOf(sites, refusal.key.model).base;
+      const base = modelSitesOf(sites, refusal.key.variant).base;
       if (base === undefined) throw new InternalError('A variant has a @@base site.');
       return at(
         base,
         'PSL_DUPLICATE_DISCRIMINATOR_VALUE',
-        `Discriminator value "${refusal.value}" is used by both "${refusal.firstVariant}" and "${refusal.key.model}" on base model "${refusal.baseModel}"`,
+        `Discriminator value "${refusal.value}" is used by both "${refusal.firstVariant}" and "${refusal.key.variant}" on base model "${refusal.baseModel}"`,
       );
     }
     case 'discriminatorFieldUnknown':
@@ -439,7 +439,7 @@ export function refusalDiagnostic(
       break;
     }
     case 'discriminatorValue': {
-      const base = modelSitesOf(sites, refusal.key.model).base;
+      const base = modelSitesOf(sites, refusal.key.variant).base;
       if (base === undefined) throw new InternalError('A variant has a @@base site.');
       const valueSite = { source: base.source, span: base.valueSpan };
       if (refusal.refusal.kind === 'unreadable') {
@@ -458,12 +458,12 @@ export function refusalDiagnostic(
       );
     }
     case 'baseWithoutDiscriminator': {
-      const base = modelSitesOf(sites, refusal.key.model).base;
+      const base = modelSitesOf(sites, refusal.key.variant).base;
       if (base === undefined) throw new InternalError('A variant has a @@base site.');
       return at(
         base,
         'PSL_ORPHANED_BASE',
-        `Model "${refusal.key.model}" declares @@base(${refusal.baseModel}, ...) but "${refusal.baseModel}" has no @@discriminator`,
+        `Model "${refusal.key.variant}" declares @@base(${refusal.baseModel}, ...) but "${refusal.baseModel}" has no @@discriminator`,
       );
     }
     case 'validator':

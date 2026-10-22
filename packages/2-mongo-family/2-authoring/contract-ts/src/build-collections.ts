@@ -141,7 +141,7 @@ function resolveVariantScope(
 }
 
 function checkNoCollectionSettings(model: ModelNode, refusals: MongoBuildRefusal[]): void {
-  const key = { kind: 'collection', model: model.modelName } as const;
+  const key = { kind: 'collectionSettings', model: model.modelName } as const;
   if (model.indexes && model.indexes.length > 0) {
     refusals.push({ kind: 'collectionSettingWithoutCollection', key, setting: 'indexes' });
   }
@@ -175,7 +175,7 @@ export function buildCollections(input: {
       checkNoCollectionSettings(model, refusals);
       continue;
     }
-    const collectionKey = { kind: 'collection', model: modelName } as const;
+    const collectionKey = { kind: 'collectionSettings', model: modelName } as const;
     const existingCollection: MongoCollectionInput = intermediate[collection] ?? {};
     const existingIndexes = existingCollection.indexes ?? [];
 

@@ -455,12 +455,12 @@ export function refusalError(refusal: MongoBuildRefusal): StructuredError {
     case 'discriminatorValueDuplicate':
       return contractError(
         'CONTRACT.ARGUMENT_INVALID',
-        `Discriminator value "${refusal.value}" is used by both "${refusal.firstVariant}" and "${refusal.key.model}" on base model "${refusal.baseModel}".`,
+        `Discriminator value "${refusal.value}" is used by both "${refusal.firstVariant}" and "${refusal.key.variant}" on base model "${refusal.baseModel}".`,
         {
           meta: {
             modelName: refusal.baseModel,
             value: refusal.value,
-            variants: [refusal.firstVariant, refusal.key.model],
+            variants: [refusal.firstVariant, refusal.key.variant],
             reason: 'duplicate-discriminator-value',
           },
         },
@@ -480,7 +480,7 @@ export function refusalError(refusal: MongoBuildRefusal): StructuredError {
     case 'discriminatorField':
       return discriminatorFieldError(refusal);
     case 'discriminatorValue': {
-      const variant = refusal.key.model;
+      const variant = refusal.key.variant;
       const meta = {
         modelName: variant,
         baseModel: refusal.baseModel,
@@ -526,10 +526,10 @@ export function refusalError(refusal: MongoBuildRefusal): StructuredError {
     case 'baseWithoutDiscriminator':
       return contractError(
         'CONTRACT.ARGUMENT_INVALID',
-        `Model "${refusal.key.model}" names "${refusal.baseModel}" as its base, but "${refusal.baseModel}" has no discriminator.`,
+        `Model "${refusal.key.variant}" names "${refusal.baseModel}" as its base, but "${refusal.baseModel}" has no discriminator.`,
         {
           meta: {
-            modelName: refusal.key.model,
+            modelName: refusal.key.variant,
             baseModel: refusal.baseModel,
             reason: 'base-without-discriminator',
           },
@@ -538,10 +538,10 @@ export function refusalError(refusal: MongoBuildRefusal): StructuredError {
     case 'baseUnknown':
       return contractError(
         'CONTRACT.ARGUMENT_INVALID',
-        `Model "${refusal.key.model}" names "${refusal.baseModel}" as its base, but the contract has no model "${refusal.baseModel}".`,
+        `Model "${refusal.key.variant}" names "${refusal.baseModel}" as its base, but the contract has no model "${refusal.baseModel}".`,
         {
           meta: {
-            modelName: refusal.key.model,
+            modelName: refusal.key.variant,
             baseModel: refusal.baseModel,
             reason: 'base-unknown',
           },
@@ -550,10 +550,10 @@ export function refusalError(refusal: MongoBuildRefusal): StructuredError {
     case 'variantWithoutValue':
       return contractError(
         'CONTRACT.ARGUMENT_INVALID',
-        `Model "${refusal.key.model}" names "${refusal.baseModel}" as its base, but "${refusal.baseModel}" lists no discriminator value for it.`,
+        `Model "${refusal.key.variant}" names "${refusal.baseModel}" as its base, but "${refusal.baseModel}" lists no discriminator value for it.`,
         {
           meta: {
-            modelName: refusal.key.model,
+            modelName: refusal.key.variant,
             baseModel: refusal.baseModel,
             reason: 'variant-without-value',
           },
