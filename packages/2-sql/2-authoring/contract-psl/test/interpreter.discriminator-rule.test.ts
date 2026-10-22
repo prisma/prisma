@@ -58,6 +58,8 @@ model Bug {
 `;
 }
 
+const kindEnum = 'enum Kind {\n  Bug = "bug"\n  Feature = "feature"\n}\n';
+
 describe('the discriminator rule in SQL PSL', () => {
   it('refuses an optional discriminator field', () => {
     expect(diagnosticsOf(hierarchy('String?'))).toEqual([
@@ -89,8 +91,6 @@ describe('the discriminator rule in SQL PSL', () => {
     ]);
   });
 
-  const kindEnum = 'enum Kind {\n  Bug = "bug"\n  Feature = "feature"\n}\n';
-
   it('accepts an enum-typed discriminator whose @@base values are members', () => {
     const result = interpret(hierarchy('Kind', '"bug"', kindEnum));
     expect(result.ok && modelsOf(result.value)['Task']?.variants).toEqual({
@@ -111,5 +111,53 @@ describe('the discriminator rule in SQL PSL', () => {
   it('accepts a String discriminator', () => {
     const result = interpret(hierarchy('String'));
     expect(result.ok && modelsOf(result.value)['Task']?.discriminator).toEqual({ field: 'kind' });
+  });
+});
+
+/** Each diagnostic's code and where its span starts and ends, as offsets into the schema text. */
+function positionsOf(schema: string) {
+  const result = interpret(schema);
+  return result.ok
+    ? []
+    : result.failure.diagnostics.map(({ code, span }) => ({
+        code,
+        start: span?.start.offset,
+        end: span?.end.offset,
+      }));
+}
+
+describe('where SQL PSL reports a discriminator refusal', () => {
+  it('reports an optional discriminator field at its @@discriminator attribute', () => {
+    const schema = hierarchy('String?');
+    const start = schema.indexOf('@@discriminator(kind)');
+    expect(positionsOf(schema)).toEqual([
+      {
+        code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+        start,
+        end: start + '@@discriminator(kind)'.length,
+      },
+    ]);
+  });
+
+  it('reports a @@base value that is not a member at the value', () => {
+    const schema = hierarchy('Kind', '"story"', kindEnum);
+    const start = schema.indexOf('"story"');
+    expect(positionsOf(schema)).toEqual([
+      { code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT', start, end: start + '"story"'.length },
+    ]);
+  });
+});
+
+describe('a @@discriminator or @@base that does not parse', () => {
+  it('gets no orphaned-base diagnostic for a discriminator naming no field', () => {
+    expect(
+      diagnosticsOf(hierarchy('String').replace('@@discriminator(kind)', '@@discriminator(nope)')),
+    ).toEqual([expect.objectContaining({ code: 'PSL_UNRESOLVED_REFERENCE' })]);
+  });
+
+  it('gets no orphaned-discriminator diagnostic for a @@base whose value is not a string', () => {
+    expect(diagnosticsOf(hierarchy('String', '1'))).toEqual([
+      expect.objectContaining({ code: 'PSL_INVALID_ATTRIBUTE_SYNTAX' }),
+    ]);
   });
 });

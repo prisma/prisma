@@ -33,4 +33,4 @@ const context: AuthoringEntityContext = {
 };
 ```
 
-A discriminator is decided by `discriminatorRefusals` and its refusals worded by `describeDiscriminatorRefusal`, both in the same entry point; a target names its text data types in `authoring.textDataTypes`.
+A discriminator is decided by `discriminatorRefusals`, applied to a discriminator and its variants' values by `applyDiscriminatorRule`, and its refusals worded for PSL by `describeDiscriminatorRefusal`, all in the same entry point; a target names its text data types in `authoring.textDataTypes`.

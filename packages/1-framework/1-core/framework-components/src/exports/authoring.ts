@@ -15,8 +15,15 @@ export {
   assembleAuthoringDataTypes,
   assembleDataTypeSupport,
 } from '../shared/data-type-support';
-export type { DiscriminatorField, DiscriminatorRefusal } from '../shared/discriminator-rule';
+export type {
+  DiscriminatorDecision,
+  DiscriminatorField,
+  DiscriminatorFieldRefusal,
+  DiscriminatorRefusal,
+  DiscriminatorVariantRefusal,
+} from '../shared/discriminator-rule';
 export {
+  applyDiscriminatorRule,
   describeDiscriminatorRefusal,
   discriminatorRefusals,
 } from '../shared/discriminator-rule';

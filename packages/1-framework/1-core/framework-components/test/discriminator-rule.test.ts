@@ -71,6 +71,12 @@ describe('discriminatorRefusals', () => {
     ]);
   });
 
+  it('refuses a field with no codec, such as a relation, as not text', () => {
+    expect(refusals({ ...textField, ref: undefined })).toEqual([
+      { kind: 'not-text', dataType: undefined, textDataTypes: [text, folded] },
+    ]);
+  });
+
   it('refuses a field whose codec names no data type as not text', () => {
     expect(refusals({ ...textField, ref: { codecId: 't/unknown@1' } })).toEqual([
       { kind: 'not-text', dataType: undefined, textDataTypes: [text, folded] },
