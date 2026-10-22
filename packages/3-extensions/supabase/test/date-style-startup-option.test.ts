@@ -23,7 +23,7 @@ describe('a connection the Supabase client opens from a URL', () => {
   });
 
   it(
-    'sets DateStyle=ISO as a startup option, which the RESET ALL that ends a role scope keeps',
+    'sends DateStyle=ISO in the startup message of a connection it opens',
     async () => {
       const db = await supabase({
         contract,
