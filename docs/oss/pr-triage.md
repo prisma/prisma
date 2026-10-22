@@ -87,13 +87,13 @@ CodeRabbit reviews PRs based on `main` and `v7`, but not `7.9.x`. On a `7.9.x` P
 
 This applies to features and refactors on `main`. Fixes rarely need it.
 
-Our plans are documented in the repository: the [project intent](../design/00-purpose/project-intent.md), the [vision](../design/00-purpose/vision.md), the [ADRs](../architecture%20docs/ADR-INDEX.md) with their [steering list](../architecture%20docs/ADR-INDEX.md#steering-list), and the [feature scoreboard](../../scorecard.md). The specs and plans under [`projects/`](../../projects/) describe work in flight, not a roadmap. Check them before answering, and cite what you found.
+Before answering, check the [project intent](../design/00-purpose/project-intent.md), the [vision](../design/00-purpose/vision.md) and the [steering list](../architecture%20docs/ADR-INDEX.md#steering-list), and cite what you found. The [feature scoreboard](../../scorecard.md) says what Prisma 8 does today; a feature missing from it has not been declined. The specs and plans under [`projects/`](../../projects/) describe work in progress, not a roadmap.
 
-Give the PR one of the four verdicts in the [`product-direction` skill](../../skills-contrib/product-direction/SKILL.md), as [How to use this page](../design/00-purpose/vision.md#how-to-use-this-page) on the vision page says: `aligned`, `rejected`, `unclear` or `not_applicable`, with one sentence and the anchor you relied on. The verdict is evidence, not the decision. Only an `Accepted` ADR that covers the change, or a [maintainer](./governance.md#maintainer-team)'s own earlier words on an issue or a pull request, grounds a decline. The full reading rules are in the skill.
+Give the PR one of the four verdicts in the [`product-direction` skill](../../skills-contrib/product-direction/SKILL.md): `aligned`, `rejected`, `unclear` or `not_applicable`, with one sentence and the record it rests on. The verdict informs the decision; it does not make it. Only an `Accepted` ADR that covers the change, or a [maintainer](./governance.md#maintainer-team)'s own earlier words on an issue or a pull request, grounds a decline.
 
 Questions that resolve most cases:
 
-- **Does it complete a symmetry that already exists?** An addition that fills an obvious gap in a surface we already ship — a bulk form of an operation whose siblings already have one — is a much easier yes than a new concept. It is not an invention; it is a missing cell in a table we already drew.
+- **Does it complete a symmetry that already exists?** An addition that fills an obvious gap in a surface we already ship — a bulk form of an operation whose siblings already have one — is a much easier yes than a new concept.
 - **Does it contradict a decision we recorded?** An accepted ADR that ruled the other way is a firm no, and it is the explanation to give.
 - **Does it commit us to maintenance we have not agreed to?** New platform support, a new adapter, or a new dependency carries a cost past the merge.
 - **Did they open an issue first?** [`CONTRIBUTING.md`](../../CONTRIBUTING.md) asks for an issue before substantive work. When they skipped it, the work already exists — judge the change on its merits and note the process point without punishing them for it. Repeated large unsolicited PRs are worth a direct conversation about sequencing.
