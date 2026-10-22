@@ -28,7 +28,7 @@ import postgresPack from '@internal/target-postgres/pack';
 import { postgresCreateNamespace } from '@internal/target-postgres/types';
 import { type as arktype } from 'arktype';
 import { expectTypeOf, test } from 'vitest';
-import { TestSqlContractSerializer as SqlContractSerializer } from '../../../packages/2-sql/9-family/test/test-sql-contract-serializer';
+import { TestSqlContractSerializer as SqlContractSerializer } from '../../../packages/2-sql-family/9-family/test/test-sql-contract-serializer';
 import type { Contract } from './fixtures/contract.d';
 import contractJson from './fixtures/contract.json' with { type: 'json' };
 import { postgresTypeLookups } from './postgres-type-lookups';

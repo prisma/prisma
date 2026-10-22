@@ -86,21 +86,21 @@ const biome = join(repoRoot, 'node_modules', '.bin', 'biome');
  * regeneration script happens to want. Naming the files directly keeps this
  * script's needs out of the examples' dependencies. Same reasoning, and the
  * same shape, as the fixture config in
- * `packages/3-targets/6-adapters/postgres/test/migrations/render-typescript.roundtrip.test.ts`.
+ * `packages/3-targets/postgres/2-adapter/test/migrations/render-typescript.roundtrip.test.ts`.
  */
 const workspaceModule = (relativePath) => pathToFileURL(resolve(repoRoot, relativePath)).href;
 
 const sqlContractPslProvider = workspaceModule(
-  'packages/2-sql/2-authoring/contract-psl/src/exports/provider.ts',
+  'packages/2-sql-family/2-authoring/contract-psl/src/exports/provider.ts',
 );
 const mongoContractPslProvider = workspaceModule(
   'packages/2-mongo-family/2-authoring/contract-psl/src/exports/provider.ts',
 );
 const targetPostgresPack = workspaceModule(
-  'packages/3-targets/3-targets/postgres/src/exports/pack.ts',
+  'packages/3-targets/postgres/1-target/src/exports/pack.ts',
 );
 const targetPostgresTypes = workspaceModule(
-  'packages/3-targets/3-targets/postgres/src/exports/types.ts',
+  'packages/3-targets/postgres/1-target/src/exports/types.ts',
 );
 const frameworkConfigTypes = workspaceModule(
   'packages/1-framework/1-core/config/src/exports/config-types.ts',

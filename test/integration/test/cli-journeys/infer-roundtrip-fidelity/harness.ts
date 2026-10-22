@@ -80,7 +80,7 @@ export function fixIndexTypes(psl: string): string {
 }
 
 /**
- * `contract infer` reads one schema and leaves out `sessions.owner_ref -> secure.owners` as a dangling foreign key (`resolveForeignKeys` in packages/3-targets/3-targets/postgres/src/core/psl-infer/infer-foreign-keys.ts), so strict verify reports the live constraint as extra.
+ * `contract infer` reads one schema and leaves out `sessions.owner_ref -> secure.owners` as a dangling foreign key (`resolveForeignKeys` in packages/3-targets/postgres/1-target/src/core/psl-infer/infer-foreign-keys.ts), so strict verify reports the live constraint as extra.
  */
 export const SESSIONS_CROSS_SCHEMA_FOREIGN_KEY: ExpectedVerifyIssue = {
   path: ['database', 'public', 'sessions', 'foreign-key:owner_ref->secure.owners(id)'],

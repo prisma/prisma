@@ -114,6 +114,10 @@ See `architecture.config.json` for the complete mapping and `pnpm lint:deps` to 
 - Shape and deliver a project (spec → plan → implement): run `drive-start-workflow`; methodology in [`prisma/ignite docs/drive/`](https://github.com/prisma/ignite/tree/main/docs/drive); project artifacts live under `projects/` (see [`projects/README.md`](projects/README.md))
 - Cut the next npm minor release: `.agents/skills/publish-npm-version/SKILL.md` (policy in [`docs/oss/versioning.md`](docs/oss/versioning.md))
 
+## Check requests and proposals against the vision
+
+Before you judge a feature request or pull request, or propose a feature or solution, read the [project intent](docs/design/00-purpose/project-intent.md), the [vision](docs/design/00-purpose/vision.md#how-to-use-this-page) and the [steering list](docs/architecture%20docs/ADR-INDEX.md#steering-list).
+
 ## Subsystem Deep Dives
 
 See [`docs/architecture docs/subsystems/`](docs/architecture%20docs/subsystems/) — Data Contract, Contract Emitter & Types, Query Lanes, Runtime & Middleware Framework, Adapters & Targets, Error Handling, Migration System.
