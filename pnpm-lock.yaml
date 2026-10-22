@@ -4063,6 +4063,12 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
     devDependencies:
+      '@internal/contract':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../1-framework/0-foundation/contract
+      '@internal/sql-schema-ir':
+        specifier: workspace:8.0.0-rc.19
+        version: link:../../../2-sql-family/1-core/schema-ir
       '@prisma/cli-engine':
         specifier: 0.7.0
         version: 0.7.0(@prisma/management-api-sdk@1.76.0)(magicast@0.5.4)
