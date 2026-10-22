@@ -25,6 +25,8 @@ import type {
 } from '@internal/sql-runtime';
 import {
   activitySource,
+  deferPromise,
+  deferRows,
   delegatingActivitySource,
   withTransaction,
   withTransactionMembers,
@@ -164,13 +166,13 @@ export function buildPostgresRuntimeBoundMembers<
   const orm: OrmClient<TContract, TCollections> = ormBuilder<TContract, TCollections>({
     runtime: {
       query(plan) {
-        return getRuntimeForWork().query(plan);
+        return deferRows(() => getRuntimeForWork().query(plan));
       },
       execute(plan) {
-        return getRuntimeForWork().execute(plan);
+        return deferPromise(() => getRuntimeForWork().execute(plan));
       },
       connection() {
-        return getRuntimeForWork().connection();
+        return deferPromise(() => getRuntimeForWork().connection());
       },
       [activitySource]: delegatingActivitySource(() => getRuntimeForWork()),
     },
@@ -186,18 +188,18 @@ export function buildPostgresRuntimeBoundMembers<
     declaration: D,
     callback: (params: BindSiteParams<D>) => Q,
   ): Promise<PreparedFrom<ParamsFromDeclaration<D, CT>, Q>> {
-    return prepareQuery<D, Q, CT>(getRuntimeForWork(), declaration, callback);
+    return deferPromise(() => prepareQuery<D, Q, CT>(getRuntimeForWork(), declaration, callback));
   }
 
   return {
     orm,
 
     query(plan, execOptions) {
-      return getRuntimeForWork().query(plan, execOptions);
+      return deferRows(() => getRuntimeForWork().query(plan, execOptions));
     },
 
     execute(plan, execOptions) {
-      return getRuntimeForWork().execute(plan, execOptions);
+      return deferPromise(() => getRuntimeForWork().execute(plan, execOptions));
     },
 
     runtime() {
@@ -209,21 +211,23 @@ export function buildPostgresRuntimeBoundMembers<
     transaction<R>(
       fn: (tx: PostgresTransactionContext<TContract, TCollections>) => PromiseLike<R>,
     ): Promise<R> {
-      return withTransaction(getRuntimeForWork(), (txCtx) => {
-        const tx: PostgresTransactionContext<TContract, TCollections> = withTransactionMembers(
-          txCtx,
-          {
-            ...buildPostgresQueryMembers(
-              { context, collections, sql, raw, toSql, prepareRuntime: getRuntimeForWork },
-              txCtx,
-            ),
-            enums,
-            nativeEnums,
-          },
-        );
+      return deferPromise(() =>
+        withTransaction(getRuntimeForWork(), (txCtx) => {
+          const tx: PostgresTransactionContext<TContract, TCollections> = withTransactionMembers(
+            txCtx,
+            {
+              ...buildPostgresQueryMembers(
+                { context, collections, sql, raw, toSql, prepareRuntime: getRuntimeForWork },
+                txCtx,
+              ),
+              enums,
+              nativeEnums,
+            },
+          );
 
-        return fn(tx);
-      });
+          return fn(tx);
+        }),
+      );
     },
   };
 }

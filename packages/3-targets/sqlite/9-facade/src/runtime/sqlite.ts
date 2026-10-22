@@ -37,6 +37,8 @@ import {
   activitySource,
   createExecutionContext,
   createSqlExecutionStack,
+  deferPromise,
+  deferRows,
   delegatingActivitySource,
   withTransaction,
   withTransactionMembers,
@@ -315,13 +317,13 @@ export default function sqlite<
       ...ifDefined('collections', options.collections),
       runtime: {
         query(plan) {
-          return getRuntime().query(plan);
+          return deferRows(() => getRuntime().query(plan));
         },
         execute(plan) {
-          return getRuntime().execute(plan);
+          return deferPromise(() => getRuntime().execute(plan));
         },
         connection() {
-          return getRuntime().connection();
+          return deferPromise(() => getRuntime().connection());
         },
         [activitySource]: delegatingActivitySource(() => getRuntime()),
       },
@@ -336,7 +338,7 @@ export default function sqlite<
     declaration: D,
     callback: (params: BindSiteParams<D>) => Q,
   ): Promise<PreparedFrom<ParamsFromDeclaration<D, CT>, Q>> {
-    return prepareQuery<D, Q, CT>(getRuntime(), declaration, callback);
+    return deferPromise(() => prepareQuery<D, Q, CT>(getRuntime(), declaration, callback));
   }
 
   return {
@@ -349,10 +351,10 @@ export default function sqlite<
     contract,
     stack,
     query(plan, execOptions) {
-      return getRuntime().query(plan, execOptions);
+      return deferRows(() => getRuntime().query(plan, execOptions));
     },
     execute(plan, execOptions) {
-      return getRuntime().execute(plan, execOptions);
+      return deferPromise(() => getRuntime().execute(plan, execOptions));
     },
     async connect(bindingInput) {
       if (closed) {
@@ -397,30 +399,26 @@ export default function sqlite<
     transaction<R>(
       fn: (tx: SqliteTransactionContext<TContract, TCollections>) => PromiseLike<R>,
     ): Promise<R> {
-      let runtime: ReturnType<typeof getRuntime>;
-      try {
-        runtime = getRuntime();
-      } catch (err) {
-        return Promise.reject(err);
-      }
-      return withTransaction(runtime, (txCtx) => {
-        const tx: SqliteTransactionContext<TContract, TCollections> = withTransactionMembers(
-          txCtx,
-          buildSqliteTransactionMembers<TContract, TCollections>(
-            {
-              context,
-              collections: options.collections,
-              rawCodecInferer: stack.adapter.rawCodecInferer,
-              enums,
-              toSql,
-              prepareRuntime: getRuntime,
-            },
+      return deferPromise(() =>
+        withTransaction(getRuntime(), (txCtx) => {
+          const tx: SqliteTransactionContext<TContract, TCollections> = withTransactionMembers(
             txCtx,
-          ),
-        );
+            buildSqliteTransactionMembers<TContract, TCollections>(
+              {
+                context,
+                collections: options.collections,
+                rawCodecInferer: stack.adapter.rawCodecInferer,
+                enums,
+                toSql,
+                prepareRuntime: getRuntime,
+              },
+              txCtx,
+            ),
+          );
 
-        return fn(tx);
-      });
+          return fn(tx);
+        }),
+      );
     },
 
     close(): Promise<void> {

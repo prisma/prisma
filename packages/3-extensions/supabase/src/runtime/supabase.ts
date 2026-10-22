@@ -40,6 +40,7 @@ import {
   activitySource,
   createExecutionContext,
   createSqlExecutionStack,
+  deferPromise,
   withTransaction,
   withTransactionMembers,
 } from '@internal/sql-runtime';
@@ -464,7 +465,7 @@ export default async function supabase<
       enums,
       nativeEnums,
       prepare(declaration, callback) {
-        return prepareQuery(runtime(), declaration, callback);
+        return deferPromise(() => prepareQuery(runtime(), declaration, callback));
       },
       query: role.query,
       execute: role.execute,
