@@ -986,7 +986,7 @@ A type alias in a `types {}` block has no base, or its base is not a type constr
 
 ### PSL_INVALID_ATTRIBUTE_ARGUMENT
 
-An argument of an attribute or a type constructor is invalid. One case is a contributed type alias written with arguments, as in `temporal.CreatedAt(3)`: `temporal.CreatedAt is a type alias and takes no arguments.` Write it bare, `temporal.CreatedAt`, or write the type with the attributes, as in `Timestamptz(3) @onCreate(now())`. Reported at the call, in SQL and Mongo schemas. In a Mongo schema, a `types {}` alias written with arguments is `PSL_UNSUPPORTED_FIELD_TYPE`: `Field "<Model>.<field>" calls "<Alias>", which is a type alias, not a type constructor. Remove the arguments.`
+An argument of an attribute or a type constructor is invalid. One case is a contributed type alias written with arguments, as in `temporal.CreatedAt(3)`: `temporal.CreatedAt is a type alias and takes no arguments.` Write it bare, `temporal.CreatedAt`, or write the type with the attributes, as in `TimestamptzTemporal(3) @onCreate(now())`. Reported at the call, in SQL and Mongo schemas. In a Mongo schema, a `types {}` alias written with arguments is `PSL_UNSUPPORTED_FIELD_TYPE`: `Field "<Model>.<field>" calls "<Alias>", which is a type alias, not a type constructor. Remove the arguments.`
 
 ### PSL_UNSUPPORTED_FIELD_ATTRIBUTE
 
