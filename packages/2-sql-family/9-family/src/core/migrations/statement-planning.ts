@@ -7,6 +7,7 @@ import {
 import {
   type AppliedMigrationStatement,
   describeMigrationStatement,
+  enumValueStatementText,
   type FieldCoordinate,
   fieldStatementText,
   type MigrationOperationClass,
@@ -463,6 +464,15 @@ class StatementPlanner<TCall extends CallWithCompanions> {
         return this.#planModel(statement);
       case 'field':
         return this.#planField(statement);
+      case 'enumValue':
+        return notOk(
+          statementRefused(
+            statement,
+            `Cannot rename enum value "${enumValueStatementText(this.#fromContract, statement.from)}" to "${enumValueStatementText(this.#contract, statement.to)}": enum value statements are not planned yet`,
+            'This version does not plan enum value statements yet. Leave out this statement.',
+            undefined,
+          ),
+        );
     }
   }
 
