@@ -429,6 +429,10 @@ A Mongo field references an enum that is not declared in `defineContract({ enums
 
 The TS contract module's export is not a plain JSON-serializable contract object: a non-object export, circular references, getters, or function-valued properties. Raised by the CLI while loading a TypeScript contract source. Payload: `path`, `reason`, `key`.
 
+### CONTRACT.FIELD_HELPER_UNKNOWN
+
+A TypeScript contract read a property of the SQL or MongoDB `field` helpers that the builder does not have, such as `field.text` or `field.id.uuidv4String`. TypeScript reports the missing property; this error reaches a JavaScript caller, or a contract that `prisma contract emit` loads before it is type-checked. For a field preset Prisma 8 removed, the message gives its rewrite: `field.id.uuidv4String was a field preset, and Prisma 8 removed field presets. Write field.column(type.sql.Char(36)).id().onCreate(gen.uuid()). The upgrade guide "Field presets are removed" lists every rewrite.` For any other name it names the forms that replace presets: on SQL, `field.column(type.X(...))` with `.id()`, `.onCreate(gen.fn())` and `.onUpdate(gen.fn())`, or a type alias such as `field.column(type.temporal.CreatedAt())`; on MongoDB, a codec helper such as `field.date()`. Raised when the property is read. Payload: `helper`, the property path read, such as `field.id.uuidv4String`.
+
 ### CONTRACT.FIELD_UNKNOWN
 
 An index or column mapping references a field the model does not declare (unknown field in the contract definition, or a Mongo model index over an undeclared field). Raised while lowering/building the contract. Payload: `modelName`, `fieldName`, `indexSignature`.

@@ -33,6 +33,7 @@ export {
   isEnumTypeHandle,
   member,
 } from './enum-type';
+export { answerMissingPropertyReads } from './missing-property-reads';
 export {
   assertSafeAuthoringHelperKey,
   composePackAuthoringNamespace,

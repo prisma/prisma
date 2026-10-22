@@ -81,6 +81,7 @@ import { ifDefined } from '@internal/utils/defined';
 import { assertCollectionValidatorSources } from './collection-validator-checks';
 import { contractError } from './contract-errors';
 import type { EnumTypeHandle } from './enum-type';
+import { refusingRemovedFieldPresets } from './removed-field-presets';
 
 // `canonicalStringify` rejects non-plain objects so a `Map` or class
 // instance cannot silently collapse to `{}`. The storage-shape values
@@ -1336,7 +1337,7 @@ function vectorField(options?: { readonly typeParams: Record<string, unknown> })
   return createScalarFieldBuilder('mongo/vector@1', options);
 }
 
-export const field = {
+export const field = refusingRemovedFieldPresets({
   scalar: createScalarFieldBuilder,
   objectId() {
     return createScalarFieldBuilder('mongo/objectId@1');
@@ -1407,7 +1408,7 @@ export const field = {
       handle,
     );
   },
-} as const;
+} as const);
 
 export function index<const Fields extends MongoIndexFields>(
   fields: Fields,
