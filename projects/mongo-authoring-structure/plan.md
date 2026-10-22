@@ -64,7 +64,7 @@ TML-3653 is SQL-only and outside this project. It goes as its own small PR, inde
 - **The builder in two steps,** as SQL's is: builder objects to definition, then definition to contract. The builder takes the codec and data-type lookups as arguments, and runs `assembleDataTypeSupport`, as SQL `defineContract` does.
 - **Rules checked once, in the builder.** Every rule returns refusals as data, as `mongoContractRefusalsOf` does. TypeScript throws the first; PSL reports each one at its span.
   - `assertMongoFieldTypeParams` becomes a per-field check (the example in TML-3616).
-  - The discriminator checks (text data type, required) move into the builder, so Mongo `defineContract` gets them too.
+  - The discriminator checks (text data type, required) move into the builder, so Mongo `defineContract` gets them too. The builder words its refusals in TypeScript terms: `describeDiscriminatorRefusal` is PSL wording and does not fit `defineContract`.
 - **Mongo PSL produces the definition,** and its own assembly is deleted. It instantiates type constructors through the shared path SQL PSL uses, so a pack's constructor arguments are read. A test-only pack proves it; no Mongo constructor gains arguments.
 - **The Prisma 6 reader** builds through the definition too, in the same PR.
 - **TML-3583.** The preset rules (an optional preset, a preset beside a default) follow SQL's.
