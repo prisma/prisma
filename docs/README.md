@@ -18,7 +18,7 @@ This directory contains the primary documentation for the repository.
 - [Vision](./design/00-purpose/vision.md) — values, durable themes, current priorities, and how to judge a request
 - [Roadmap](./design/00-purpose/roadmap.md) — the work planned in each area
 - [Feature areas](./design/00-purpose/feature-areas.md) — the areas of the code, with their sub-areas
-- [Decision records](./design/90-decisions/README.md) — requests already answered, with what to use instead
+- [Steering list](./architecture%20docs/ADR-INDEX.md#steering-list) — requests already answered, with what to use instead
 
 ## Architecture deep dives
 

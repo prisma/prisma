@@ -87,12 +87,14 @@ CodeRabbit reviews PRs based on `main` and `v7`, but not `7.9.x`. On a `7.9.x` P
 
 This applies to features and refactors on `main`. Fixes rarely need it.
 
-Our plans are documented in the repository — the [project intent](../design/00-purpose/project-intent.md), the [vision](../design/00-purpose/vision.md), the [decision records](../design/90-decisions/README.md), [`docs/architecture docs/adrs/`](../architecture%20docs/adrs/), and the [feature scoreboard](../../scorecard.md). The specs and plans under [`projects/`](../../projects/) describe work in flight, not a roadmap. Check them before answering, and cite what you found. "Not planned" is not by itself a reason to decline; the plans record what we committed to, not the full set of things we would accept. Lines marked `Draft — unconfirmed` and records with status `proposed` are not yet decisions; do not decline on them.
+Our plans are documented in the repository: the [project intent](../design/00-purpose/project-intent.md), the [vision](../design/00-purpose/vision.md), the [roadmap](../design/00-purpose/roadmap.md), the [ADRs](../architecture%20docs/ADR-INDEX.md) with their [steering list](../architecture%20docs/ADR-INDEX.md#steering-list), and the [feature scoreboard](../../scorecard.md). The specs and plans under [`projects/`](../../projects/) describe work in flight, not a roadmap. Check them before answering, and cite what you found.
+
+Give the PR one of the four verdicts in [How to use this page](../design/00-purpose/vision.md#how-to-use-this-page) on the vision page: `aligned`, `rejected`, `unclear` or `not_applicable`, with one sentence and the anchor you relied on. The verdict is evidence, not the decision. "Not planned" is not by itself a reason to decline; the plans record what we committed to, not the full set of things we would accept. Declining as out of scope needs an accepted ADR that covers the change, or an established maintainer position. An ADR with status `Proposed` is not a decision; do not decline on it.
 
 Questions that resolve most cases:
 
 - **Does it complete a symmetry that already exists?** An addition that fills an obvious gap in a surface we already ship — a bulk form of an operation whose siblings already have one — is a much easier yes than a new concept. It is not an invention; it is a missing cell in a table we already drew.
-- **Does it contradict a decision we recorded?** An ADR that ruled the other way, or a decision record with status `not-yet` or `never`, is a firm no, and it is the explanation to give.
+- **Does it contradict a decision we recorded?** An accepted ADR that ruled the other way is a firm no, and it is the explanation to give.
 - **Does it commit us to maintenance we have not agreed to?** New platform support, a new adapter, or a new dependency carries a cost past the merge.
 - **Did they open an issue first?** [`CONTRIBUTING.md`](../../CONTRIBUTING.md) asks for an issue before substantive work. When they skipped it, the work already exists — judge the change on its merits and note the process point without punishing them for it. Repeated large unsolicited PRs are worth a direct conversation about sequencing.
 

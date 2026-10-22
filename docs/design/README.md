@@ -9,7 +9,6 @@ This directory is **partially populated**. The slots currently in use:
 - [`00-purpose/`](00-purpose/) — who Prisma 8 is for and where it is going: the [project intent](00-purpose/project-intent.md), the [vision](00-purpose/vision.md), the [roadmap](00-purpose/roadmap.md) and the [feature areas](00-purpose/feature-areas.md).
 - [`04-inspirations/migrations/`](04-inspirations/migrations/) — vendor research and established-system conventions that informed the migration domain model (Atlas, Active Record, and a six-system synthesis).
 - [`10-domains/migration/`](10-domains/migration/) — the conceptual domain reference for the migration system: ubiquitous language, entities, operations, mental model (Git as the anchor), and CLI mapping.
-- [`90-decisions/`](90-decisions/) — requests the maintainers have already answered, each with what to use instead and what would reopen it.
 
 The framework's other slots (`01-principles/`, `03-domain-model/`, `05-infrastructure/`, `06-operations/`, `99-process/`) are not yet created. They will be added when there is durable content to put in them; empty scaffolds imply false completeness. Wholesale framework adoption is a separate, future decision.
 

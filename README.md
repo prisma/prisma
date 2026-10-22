@@ -103,7 +103,7 @@ MySQL follows after SQLite. See the [feature scoreboard](./scorecard.md) for wha
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, commands, DCO signoff, and PR expectations. For substantive changes, please open an issue first so we can give direction-fit feedback before you invest implementation time. The [vision](./docs/design/00-purpose/vision.md) says where Prisma 8 is going, and the [decision records](./docs/design/90-decisions/README.md) list requests we have already answered, with what to use instead.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, commands, DCO signoff, and PR expectations. For substantive changes, please open an issue first so we can give direction-fit feedback before you invest implementation time. The [vision](./docs/design/00-purpose/vision.md) says where Prisma 8 is going, and the [steering list](./docs/architecture%20docs/ADR-INDEX.md#steering-list) names requests we have already answered, with what to use instead.
 
 Security issues: follow the Private Vulnerability Reporting flow in [SECURITY.md](./SECURITY.md). Please do not file them as public issues.
 
