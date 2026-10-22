@@ -27,7 +27,7 @@ The fixtures in `test/fixtures/` hold one case per rule row and per error code.
 
 ## Using the source in a Prisma 6 project
 
-Users reach this source through `prisma6Schema` in `@prisma/orm-mongo/config`; its [README](../../../3-extensions/mongo/README.md#prisma6schemapath-adopt-a-prisma-6-mongodb-schema-during-the-transition) has the full setup. In short:
+Users reach this source through `prisma6Schema` in `@prisma/orm-mongo/config`; its [README](../../../3-targets/mongo/9-facade/README.md#prisma6schemapath-adopt-a-prisma-6-mongodb-schema-during-the-transition) has the full setup. In short:
 
 - **Two CLIs, one package name.** Both are published as `prisma`. Prisma 8 keeps the name (`prisma.config.ts` imports `prisma/config`), and Prisma 6 is installed under an npm alias (`"prisma6": "npm:prisma@6.19.3"`) and run through a `prisma6` script (`node node_modules/prisma6/build/index.js --config prisma6.config.ts`), because the alias installs no binary of its own and the Prisma 6 CLI would otherwise read Prisma 8's `prisma.config.ts`. Both config files import `dotenv/config`, since neither CLI loads `.env` when it has a config file. `prisma orm init` prints these steps when it finds a Prisma 6 MongoDB schema.
 - **Prisma 6 owns the database.** After each schema change: Prisma 6's `db push`, then `prisma contract emit` and `prisma db sign`. When `db verify` or `db sign` finds the database behind the contract, apply the change with Prisma 6's `db push` rather than the `prisma db update` the CLI suggests, then sign again.

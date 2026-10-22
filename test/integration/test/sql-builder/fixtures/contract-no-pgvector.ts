@@ -1,4 +1,4 @@
-// Emitted into `packages/2-sql/4-lanes/sql-builder/test/fixtures/generated/`.
+// Emitted into `packages/2-sql-family/4-lanes/sql-builder/test/fixtures/generated/`.
 // Identical to `contract.ts` except that it composes no pgvector: sql-builder
 // cannot depend on that package (it would close a build cycle through
 // `@internal/postgres`), and an emitted contract importing types the consuming
