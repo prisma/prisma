@@ -7911,6 +7911,12 @@ packages:
   '@prisma/adapter-pg@7.10.0':
     resolution: {integrity: sha512-N7nwSor0HO1Kz6xBv0TPAjAPysKK0fac6p4fVN3ensLOuzc/83Fgmln5k92eK/cvzqdkSR/2kkAqlbcdwVrwpw==}
 
+  '@prisma/cli-engine@0.7.0':
+    resolution: {integrity: sha512-CL21NYQQEAR9IEApPfUzMhv/VtbsJs4efRSxlvzHoFT69vynr0Wuu5KNNbZgIlONOEfULqP0djFCD4VaA/HVPg==}
+    engines: {node: '>=22.12.0'}
+    peerDependencies:
+      '@prisma/management-api-sdk': ^1.55.0
+
   '@prisma/cli-engine@0.9.0':
     resolution: {integrity: sha512-M53Xx/KiPQ02iT8FXT2c9X+3fVgMVfWK/emf/tq+jRNFi7b0Ffwaeo1yz8XS4UKOza5DaKRwMs+K8U44z9corg==}
     engines: {node: '>=22.12.0'}
@@ -13679,6 +13685,19 @@ snapshots:
       postgres-array: 3.0.4
     transitivePeerDependencies:
       - pg-native
+
+  '@prisma/cli-engine@0.7.0(@prisma/management-api-sdk@1.76.0)(magicast@0.5.4)':
+    dependencies:
+      '@clack/prompts': 1.5.0
+      '@prisma/management-api-sdk': 1.76.0
+      '@stricli/core': 1.3.0
+      arktype: 2.2.7
+      c12: 3.3.4(magicast@0.5.4)
+      colorette: 2.0.20
+      package-manager-detector: 1.8.0
+      string-width: 8.2.2
+    transitivePeerDependencies:
+      - magicast
 
   '@prisma/cli-engine@0.9.0(@prisma/management-api-sdk@1.76.0)(magicast@0.5.4)':
     dependencies:
