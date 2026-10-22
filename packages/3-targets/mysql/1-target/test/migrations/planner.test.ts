@@ -279,6 +279,49 @@ describe('MysqlMigrationPlanner', () => {
     });
   });
 
+  it('refuses a name longer than 64 characters before anything applies', () => {
+    const long = (prefix: string) => `${prefix}_${'x'.repeat(64 - prefix.length)}`;
+    const to = contractOf('long', {
+      [long('T')]: { columns: { id: int }, primaryKey: { columns: ['id'] } },
+      User: {
+        ...user,
+        columns: { ...user.columns, [long('c')]: { ...int, nullable: true } },
+        indexes: [{ columns: ['email'], name: long('i') }],
+      },
+    });
+    expect(summaries(plan(contractOf('from', { User: user }), to))).toEqual([
+      `The name ${long('T')} is longer than the 64 characters MySQL allows (${long('T')})`,
+      `The name ${long('c')} is longer than the 64 characters MySQL allows (User.${long('c')})`,
+      `The name ${long('i')} is longer than the 64 characters MySQL allows (User)`,
+    ]);
+  });
+
+  it('refuses an autoincrement column that is not the first column of a key', () => {
+    const seq = { ...int, default: { kind: 'function', expression: 'autoincrement()' } };
+    const refused = contractOf('refused', {
+      Counter: { columns: { id: int, seq }, primaryKey: { columns: ['id'] } },
+      Pair: { columns: { a: int, seq }, primaryKey: { columns: ['a', 'seq'] } },
+    });
+    const keyed = contractOf('keyed', {
+      Counter: { columns: { seq, id: int }, primaryKey: { columns: ['seq', 'id'] } },
+      Tagged: {
+        columns: { id: int, seq },
+        primaryKey: { columns: ['id'] },
+        uniques: [{ columns: ['seq'], name: 'Tagged_seq_key' }],
+      },
+    });
+    expect({
+      refused: summaries(plan(null, refused)),
+      keyed: summaries(plan(null, keyed)),
+    }).toEqual({
+      refused: [
+        'An autoincrement column that is not the first column of the primary key or a unique constraint is not supported on MySQL (Counter.seq)',
+        'An autoincrement column that is not the first column of the primary key or a unique constraint is not supported on MySQL (Pair.seq)',
+      ],
+      keyed: 'planned',
+    });
+  });
+
   it('refuses to plan without the additive class', () => {
     expect(
       summaries(

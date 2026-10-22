@@ -5,6 +5,7 @@ import type {
 } from '@internal/family-sql/control';
 import type { SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome, orderIssuesByDependencies } from '@internal/framework-components/control';
+import type { DdlColumn } from '@internal/sql-relational-core/ast';
 import {
   RelationalSchemaNodeKind,
   type SqlColumnIR,
@@ -337,6 +338,100 @@ export function conflictForDisallowedCall(
   };
 }
 
+const MAX_IDENTIFIER_CHARACTERS = 64;
+
+/** The names a call gives new objects, each with where the conflict that refuses it points. */
+function namesGiven(
+  call: MysqlOpFactoryCall,
+): readonly { readonly name: string; readonly at: SqlPlannerConflictLocation }[] {
+  if (call instanceof CreateTableCall) {
+    return [
+      { name: call.tableName, at: location(call.tableName) },
+      ...call.columns.map((column) => ({
+        name: column.name,
+        at: location(call.tableName, column.name),
+      })),
+      ...call.constraints.flatMap((constraint) =>
+        constraint.name === undefined
+          ? []
+          : [
+              {
+                name: constraint.name,
+                at: { ...location(call.tableName), constraint: constraint.name },
+              },
+            ],
+      ),
+    ];
+  }
+  if (call instanceof AddColumnCall) {
+    return [{ name: call.column.name, at: location(call.tableName, call.column.name) }];
+  }
+  if (call instanceof CreateIndexCall) {
+    return [{ name: call.indexName, at: { ...location(call.tableName), index: call.indexName } }];
+  }
+  if (call instanceof AddUniqueCall) {
+    return [
+      {
+        name: call.constraintName,
+        at: { ...location(call.tableName), constraint: call.constraintName },
+      },
+    ];
+  }
+  if (call instanceof AddForeignKeyCall) {
+    return [
+      {
+        name: call.foreignKey.name,
+        at: { ...location(call.tableName), constraint: call.foreignKey.name },
+      },
+    ];
+  }
+  return [];
+}
+
+function placeText(at: SqlPlannerConflictLocation): string {
+  return at.column === undefined ? `${at.entityName}` : `${at.entityName}.${at.column}`;
+}
+
+/** MySQL refuses a name longer than 64 characters only when the statement runs, after the statements before it committed, so the planner refuses it first. */
+function longNameConflicts(call: MysqlOpFactoryCall): readonly SqlPlannerConflict[] {
+  return namesGiven(call)
+    .filter(({ name }) => Array.from(name).length > MAX_IDENTIFIER_CHARACTERS)
+    .map(({ name, at }) => ({
+      kind: 'unsupportedOperation',
+      summary: `The name ${name} is longer than the ${MAX_IDENTIFIER_CHARACTERS} characters MySQL allows (${placeText(at)})`,
+      why: `MySQL refuses a table, column, index or constraint name longer than ${MAX_IDENTIFIER_CHARACTERS} characters. Give it a shorter name in the contract.`,
+      location: at,
+    }));
+}
+
+function isAutoincrement(column: DdlColumn): boolean {
+  return (
+    column.default?.kind === 'function' && column.default.expression.text === 'autoincrement()'
+  );
+}
+
+/** MySQL refuses a table whose `AUTO_INCREMENT` column does not lead a key, so the planner refuses it first. */
+function autoincrementKeyConflicts(call: MysqlOpFactoryCall): readonly SqlPlannerConflict[] {
+  if (!(call instanceof CreateTableCall)) return [];
+  const keyLeaders = new Set(
+    call.constraints.flatMap((constraint) =>
+      constraint.kind === 'primary-key' || constraint.kind === 'unique'
+        ? constraint.columns.slice(0, 1)
+        : [],
+    ),
+  );
+  return call.columns
+    .filter(
+      (column) => isAutoincrement(column) && !column.primaryKey && !keyLeaders.has(column.name),
+    )
+    .map((column) => ({
+      kind: 'unsupportedOperation',
+      summary: `An autoincrement column that is not the first column of the primary key or a unique constraint is not supported on MySQL (${call.tableName}.${column.name})`,
+      why: 'MySQL requires an AUTO_INCREMENT column to be the first column of a key, and refuses the table otherwise.',
+      location: location(call.tableName, column.name),
+    }));
+}
+
 type ColumnList = readonly string[];
 
 /** Whether an index on `indexColumns` can serve a foreign key on `keyColumns`: InnoDB needs the key's columns first, in order. */
@@ -459,6 +554,7 @@ export function planIssues(input: {
       continue;
     }
     for (const call of mapped.value) {
+      conflicts.push(...longNameConflicts(call), ...autoincrementKeyConflicts(call));
       if (allowed.includes(call.operationClass)) calls.push(call);
       else conflicts.push(conflictForDisallowedCall(call, allowed));
     }
