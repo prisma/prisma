@@ -95,7 +95,7 @@ function skipRecord(operation: Op): Op {
 }
 
 /**
- * The MySQL migration runner. MySQL commits every DDL statement as it runs, so no transaction can undo an apply: the runner applies one space at a time, checks each operation before and after it runs, verifies the space's schema, and only then writes the space's marker and ledger entries, in one transaction. A failure leaves the spaces before it applied, and running the apply again skips what already holds. The whole apply holds the marker lock, which MySQL keeps for the session, so it is released on the same connection when the apply ends.
+ * The MySQL migration runner. MySQL commits every DDL statement as it runs, so no transaction can undo an apply: the runner applies one space at a time, checks each operation before and after it runs, verifies the space's schema with the caller's strictness (every space, not only the app space), and only then writes the space's marker and ledger entries, in one transaction. A failure leaves the spaces before it applied, and running the apply again skips what already holds. The whole apply holds the marker lock, which MySQL keeps for the session, so it is released on the same connection when the apply ends.
  */
 class MysqlMigrationRunner implements SqlMigrationRunner<MysqlPlanTargetDetails> {
   constructor(private readonly family: SqlControlFamilyInstance) {}
