@@ -304,7 +304,7 @@ export function swapPslContract(ctx: JourneyContext, variant: PslContractVariant
 
 /** Options for controlling the test environment when running a CLI command. */
 export interface RunCommandOptions {
-  /** Simulate piped stdout (isTTY=false) to test auto-JSON forwarding. Default: true (interactive). */
+  /** Simulate piped stdout (isTTY=false), which receives the command's data lines. Default: true (interactive). */
   readonly isTTY?: boolean;
 }
 

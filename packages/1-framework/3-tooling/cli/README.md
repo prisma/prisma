@@ -62,6 +62,29 @@ If you hit a wiring validation error: add the required descriptors to `config.ex
 
 Each engine command declares a `brief` (one-liner used in command trees and headers) and a `description` (multiline text shown in help output). Both live on the command definitions under `src/orm/`; the engine renders them.
 
+## Piped Output
+
+The output format depends only on flags. Without `--json`, a command writes its human output to stderr and its data lines to stdout, so a pipe or `$(…)` receives only the data lines. Each command defines them in its presentation's `stdout`:
+
+| Command | Data lines |
+|---|---|
+| `migration list` | `space`, `name`, `from`, `to`, `operations` per migration |
+| `migration status` | `space`, `name`, `from`, `to`, `status` per migration |
+| `migration log` | `applied at`, `space`, `name`, `from`, `to`, `operations` per applied migration |
+| `migration graph` | `space`, `name`, `from`, `to` per migration; with `--dot`, the DOT text |
+| `migration show` | `key<TAB>value` lines, then `operation<TAB>id<TAB>class<TAB>label` per operation |
+| `migration check` | `space`, `code`, `where` per failure |
+| `migration new`, `migration plan` | the directories written |
+| `migration ref list` | `name`, `hash`, `invariants` (comma-separated) per ref |
+| `migration ref set` | the contract hash the ref now points at |
+| `db migrate` | `space`, `name`, `from`, `to`, `operations` per applied migration; with `--show`, `space`, `name`, `from`, `to` per migration that will run |
+| `contract emit` | the paths of `contract.json` and `contract.d.ts` |
+| `contract print` | the PSL, when not written with `--output` |
+| `contract infer` | the path of the PSL file written |
+| `contract format` | the paths of the files formatted |
+
+Fields are tab-separated, and an absent value is an empty field. The other commands (`orm init`, `db init`, `db update`, `db verify`, `db sign`, `db schema`, `migration ref delete`) print no data lines and declare why with `noDataLines(reason)`; their exit code is the result and `--json` carries the document. `test/orm/data-lines.test.ts` fails when a command returns an empty `stdout` without `noDataLines`.
+
 ## Commands
 
 ### `prisma orm init`

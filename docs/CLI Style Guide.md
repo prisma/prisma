@@ -38,7 +38,7 @@ The CLI follows the Unix convention of separating human-readable decoration from
 
 1. **All `TerminalUI` methods except `output()` write to stderr** via Clack's `{ output: process.stderr }` option — but only in interactive mode.
 2. **`ui.output(data)` always writes to stdout** — call it only when there is data to emit (e.g., `--json` responses). Commands gate `ui.output()` behind `if (flags.json)`.
-3. **When stdout is piped, ALL decoration is suppressed** — `isInteractive` (`process.stdout.isTTY`) gates every decoration method. Only `ui.output()` writes in piped mode. This keeps `prisma db verify | jq` completely silent.
+3. **When stdout is piped, ALL decoration is suppressed** — `isInteractive` (`process.stdout.isTTY`) gates every decoration method. Only `ui.output()` writes in piped mode. This keeps `prisma db verify --json | jq` free of anything but the JSON.
 4. **Action commands** (sign, init) produce no stdout data — they are purely decorative.
 5. **Data commands** (verify, emit, introspect, status) call both decoration (stderr) and `ui.output()` (stdout). In interactive mode, decoration is visible on stderr; `ui.output()` writes to stdout only when the command has data to emit (gated by `--json`).
 6. **Never write data to stderr** — decoration methods are for human context only.
@@ -231,7 +231,7 @@ Concrete examples (from the migration CLI verb refactor, TML-2546). Each entry b
 
 ## JSON Semantics
 - `--json` outputs a single JSON object for the command result to stdout regardless of TTY mode.
-- When piped (`!isTTY`), no decoration is visible — only JSON data on stdout.
+- When piped (`!isTTY`), no decoration is visible. stdout carries only the command's data lines: tab-separated fields for a list, `key<TAB>value` lines for a show, or a bare value. JSON needs `--json`; a pipe never switches to it.
 - **Each command's `--json` success shape MUST be defined as a schema** (arktype or equivalent) co-located with the command (e.g. `src/commands/<command>/output.ts`) and exported on the package's public surface, so downstream consumers can validate the output. The error envelope schema is shared (see [Errors](#errors)). Hand-writing JSON without a co-located schema is not allowed.
 - Success and error documents on the same command SHOULD share a discriminator field (typically `ok: boolean`) so consumers can branch without inspecting the structure.
 
