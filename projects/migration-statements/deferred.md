@@ -224,3 +224,9 @@ In `enum-value-planning.ts`, `namespaceId` is the table's namespace while `enumV
 - `keepTableAdvice` (`packages/2-sql-family/9-family/src/core/migrations/operation-subjects.ts`) builds a `keepDataAdvice` string with `prisma migration plan` and `prisma db migrate` written in, so it ignores how the CLI was invoked. Enum values now pass a typed `keepDataEdit` that the CLI words; the table advice could move to the same shape.
 - `RowsWithoutValue` and `RowsHoldingValue` are framework types named after rows, with a `rows` count, and the older `rowsWithoutValue` advice in `packages/1-framework/3-tooling/cli/src/utils/runner-failure-advice.ts` says "rows". Rename both to family-neutral names in one pass, for example `MissingValues` and `HeldValues` with `count`.
 - `ENTITY_WORDS` (`packages/1-framework/3-tooling/cli/src/control-api/statements/statement-text.ts`) is keyed by a hand-written union; key it by `MigrationSubject['kind']` so a new subject kind must add its word. Its doc says it covers what a statement can name, but it has no `namespace`.
+
+## A swap of stored values on Postgres fails when the enum's check does not change
+
+**Found:** fixing PR 2's manual QA (enum values), 2026-10-23.
+
+When two members swap their stored values, the printed keep-data edit renames through a temporary value (the next integer, or `prisma_swap`). On Postgres that works only when the plan drops the old enum check first, which it does when the check's value list changes. If members are reordered so the list of stored values stays identical, the check is kept, the temporary value violates it, and the apply fails without changing anything. A single `UPDATE … SET c = CASE c WHEN 'a' THEN 'b' WHEN 'b' THEN 'a' END` needs no temporary value and would avoid this; it needs a rewrite operation that takes several value pairs at once.
