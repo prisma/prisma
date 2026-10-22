@@ -156,16 +156,17 @@ describe('written Mongo values', () => {
     ]);
   });
 
-  it('refuses a Decimal128 that a Decimal128 would round, which is a double', () => {
-    expect(
-      readInto('mongo/decimal128@1', number('0.1000000000000000000000000000000000000001')),
-    ).toEqual(
-      notOk({
-        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
-        message: 'value: Expected a number that mongo/decimal128 can hold; got mongo/double',
-      }),
-    );
-  });
+  it.each(['0.1000000000000000000000000000000000000001', `1.${'0'.repeat(36)}`])(
+    'refuses %s on a Decimal128: a Decimal128 would round it, so it is a double',
+    (text) => {
+      expect(readInto('mongo/decimal128@1', number(text))).toEqual(
+        notOk({
+          code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+          message: 'value: Expected a number that mongo/decimal128 can hold; got mongo/double',
+        }),
+      );
+    },
+  );
 
   it('reads an ObjectId from a quoted string, in lower case', () => {
     expect(readInto('mongo/objectId@1', string('507F1F77BCF86CD799439011'))).toEqual(

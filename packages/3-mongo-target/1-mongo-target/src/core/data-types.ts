@@ -20,6 +20,7 @@ import { structuredError } from '@internal/utils/structured-error';
 import { type as arktype } from 'arktype';
 import { readBsonJson } from './bson-codec-helpers';
 import {
+  isObjectIdText,
   readBinaryJson,
   readDateJson,
   readDecimal128Json,
@@ -35,12 +36,10 @@ import {
 /** The vector's dimension: the TypeScript type `Vector<n>` and the type's reader read it. */
 export const mongoVectorParams = arktype({ 'length?': 'number.integer >= 1' });
 
-const OBJECT_ID_TEXT = /^[0-9a-fA-F]{24}$/;
-
 /** Text as the ObjectId it names; {@link spellObjectIdJson} gives it the lower case the type stores. */
 const asObjectId: Cast = (value) => {
   if (typeof value !== 'string') return refuseWrongShape(value, 'text');
-  if (OBJECT_ID_TEXT.test(value)) return value;
+  if (isObjectIdText(value)) return value;
   throw structuredError(
     'CONTRACT.CAST_REFUSED',
     `"${value}" is not an ObjectId: write 24 hexadecimal digits.`,

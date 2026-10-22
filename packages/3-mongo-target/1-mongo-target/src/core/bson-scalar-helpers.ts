@@ -168,6 +168,11 @@ export function objectIdToJson(codecId: string, value: string): string {
   return value;
 }
 
+/** Whether `text` is an ObjectId's 24 hexadecimal digits, in either case. */
+export function isObjectIdText(text: string): boolean {
+  return OBJECT_ID_TEXT.test(text);
+}
+
 /** Reads ObjectId hex in either case; {@link spellObjectIdJson} writes the lower case the type stores. */
 export function readObjectIdJson(owner: string, json: JsonValue): string {
   return readJsonMatching(owner, json, OBJECT_ID_TEXT, '24 hexadecimal digits');

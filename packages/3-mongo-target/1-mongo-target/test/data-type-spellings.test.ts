@@ -59,6 +59,7 @@ describe('a mongo/decimal128 value is spelled as MongoDB writes it', () => {
   it.each([
     '0.1000000000000000000000000000000000000001',
     '123456789012345678901234567890123456789',
+    `1.${'0'.repeat(36)}`,
   ])('refuses %s, which a Decimal128 would round', (text) => {
     expect(() => mongoDecimal128.valueFrom(text, {})).toThrow(
       expect.objectContaining({
@@ -66,6 +67,12 @@ describe('a mongo/decimal128 value is spelled as MongoDB writes it', () => {
         message:
           'mongo/decimal128 JSON value must be decimal text without an exponent that a Decimal128 holds exactly, or NaN, Infinity or -Infinity',
       }),
+    );
+  });
+
+  it('refuses a stored value a Decimal128 would round, as contract.json loads it', () => {
+    expect(() => mongoDecimal128.fromContract(`1.${'0'.repeat(36)}`, {})).toThrow(
+      expect.objectContaining({ code: 'RUNTIME.DECODE_FAILED' }),
     );
   });
 });
