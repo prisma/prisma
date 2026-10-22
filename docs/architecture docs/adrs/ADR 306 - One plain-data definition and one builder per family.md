@@ -41,7 +41,7 @@ A definition is plain data with every name resolved. MongoDB's `ContractDefiniti
 - polymorphism: the base's discriminator field and listed variants, and each variant's base and its value as the source wrote it;
 - value objects, enums, optional explicit roots, whether collections get validators, and the warnings the source collected.
 
-MongoDB's definition carries polymorphism; SQL's does not yet, so SQL PSL still adds discriminators and variants to the built contract.
+MongoDB's definition carries polymorphism; SQL's does not yet, so SQL PSL still adds discriminators and variants to the built contract. SQL's builder also still throws its first refusal instead of returning refusals as data.
 
 ### The builder
 
