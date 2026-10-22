@@ -9,11 +9,14 @@ import {
   type ValueSetRef,
 } from '@internal/contract/types';
 import { resolveToOneRelationNullable } from '@internal/contract-authoring';
-import type { WrittenValue } from '@internal/framework-components/authoring';
-import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { type MongoModelStorage, unsupportedStoredNameReason } from '@internal/mongo-contract';
 import { ifDefined } from '@internal/utils/defined';
-import { InternalError } from '@internal/utils/internal-error';
+import {
+  type MongoBuildRefusal,
+  modelFieldKey,
+  type RelationKey,
+  valueObjectFieldKey,
+} from './build-refusals';
 import type {
   ContractDefinition,
   FieldNode,
@@ -22,7 +25,6 @@ import type {
   RelationNode,
   ValueObjectNode,
 } from './contract-definition';
-import { contractError } from './contract-errors';
 
 export function storedNameOf(field: FieldNode): string {
   return field.storedName ?? field.fieldName;
@@ -34,24 +36,11 @@ export function storedFieldNameIn(fields: readonly FieldNode[], fieldName: strin
   return field === undefined ? fieldName : storedNameOf(field);
 }
 
-/** The discriminator value a variant's documents store. */
-export function storedDiscriminatorValue(written: WrittenValue): string {
-  if (written.kind !== 'string') {
-    throw new InternalError(`A discriminator value written as ${written.kind} is not read yet.`);
-  }
-  return written.text;
-}
-
-function buildContractField(field: FieldNode): ContractField {
+function buildContractField(field: FieldNode, namespaceId: string): ContractField {
   const valueSet: ValueSetRef | undefined =
     field.enumName === undefined
       ? undefined
-      : {
-          plane: 'domain',
-          entityKind: 'enum',
-          namespaceId: UNBOUND_NAMESPACE_ID,
-          entityName: field.enumName,
-        };
+      : { plane: 'domain', entityKind: 'enum', namespaceId, entityName: field.enumName };
 
   return {
     type: field.type,
@@ -61,34 +50,34 @@ function buildContractField(field: FieldNode): ContractField {
   };
 }
 
-function buildFields(fields: readonly FieldNode[]): Record<string, ContractField> {
-  return Object.fromEntries(fields.map((field) => [field.fieldName, buildContractField(field)]));
+function buildFields(
+  fields: readonly FieldNode[],
+  namespaceId: string,
+): Record<string, ContractField> {
+  return Object.fromEntries(
+    fields.map((field) => [field.fieldName, buildContractField(field, namespaceId)]),
+  );
 }
 
 function buildStorageFields(
   modelName: string,
   fields: readonly FieldNode[],
+  refusals: MongoBuildRefusal[],
 ): Record<string, { readonly field: string }> {
   const storageFields: Record<string, { readonly field: string }> = {};
   const fieldsByStoredName = new Map<string, string>();
   for (const field of fields) {
     const { fieldName } = field;
+    const key = modelFieldKey(modelName, fieldName);
     const storedName = storedNameOf(field);
     const unsupported = unsupportedStoredNameReason(storedName);
     if (unsupported !== undefined) {
-      throw contractError(
-        'CONTRACT.ARGUMENT_INVALID',
-        `Model "${modelName}" field "${fieldName}" ${unsupported}. Give it another stored name.`,
-        { meta: { modelName, fieldName, reason: 'stored-name-unsupported' } },
-      );
+      refusals.push({ kind: 'storedNameUnsupported', key, reason: unsupported });
     }
-    const existingField = fieldsByStoredName.get(storedName);
-    if (existingField !== undefined) {
-      throw contractError(
-        'CONTRACT.NAME_DUPLICATE',
-        `Model "${modelName}" stores both "${existingField}" and "${fieldName}" as "${storedName}".`,
-        { meta: { kind: 'field', name: storedName, first: existingField, second: fieldName } },
-      );
+    const firstField = fieldsByStoredName.get(storedName);
+    if (firstField !== undefined) {
+      refusals.push({ kind: 'storedNameDuplicate', key, storedName, firstField });
+      continue;
     }
     fieldsByStoredName.set(storedName, fieldName);
     storageFields[fieldName] = { field: storedName };
@@ -97,210 +86,160 @@ function buildStorageFields(
 }
 
 function toOneRelationNullable(
-  modelName: string,
+  key: RelationKey,
   relation: ReferenceRelationNode,
-  on: ReferenceRelationNode['on'],
   fields: readonly FieldNode[],
+  refusals: MongoBuildRefusal[],
 ): boolean {
-  const { relationName } = relation;
-  const location = `Relation "${modelName}.${relationName}"`;
   const ownsForeignKey = relation.cardinality !== '1:1';
-  const localFields = ownsForeignKey
-    ? on.localFields.map((fieldName) => {
-        const localField = fields.find((field) => field.fieldName === fieldName);
-        if (localField === undefined) {
-          throw contractError(
-            'CONTRACT.RELATION_INVALID',
-            `${location} joins on local field "${fieldName}", which model "${modelName}" does not declare`,
-            { meta: { modelName, relationName, fieldName, reason: 'local-field-unknown' } },
-          );
-        }
-        return localField;
-      })
-    : [];
+  const localFields: FieldNode[] = [];
+  if (ownsForeignKey) {
+    for (const fieldName of relation.on.localFields) {
+      const localField = fields.find((field) => field.fieldName === fieldName);
+      if (localField === undefined) {
+        refusals.push({ kind: 'relationLocalFieldUnknown', key, fieldName });
+        return relation.nullable ?? false;
+      }
+      localFields.push(localField);
+    }
+  }
   const { nullable, contradiction } = resolveToOneRelationNullable({
     declaredNullable: relation.nullable,
     localFieldNullability: localFields.map((localField) => localField.nullable === true),
     ownsReference: ownsForeignKey,
   });
   if (contradiction !== undefined) {
-    throw contractError(
-      'CONTRACT.RELATION_INVALID',
-      !ownsForeignKey
-        ? `${location} is required but does not own the foreign key, so nothing in storage guarantees the related document exists`
-        : contradiction === 'declared-optional'
-          ? `${location} is optional but every local field it joins on is required`
-          : `${location} is required but a local field it joins on is nullable`,
-      { meta: { modelName, relationName, reason: 'to-one-nullability-mismatch' } },
-    );
+    refusals.push({ kind: 'relationNullability', key, ownsForeignKey, contradiction });
   }
   return nullable;
 }
 
 function buildRelation(
-  modelName: string,
+  model: ModelNode,
   relation: RelationNode,
-  fields: readonly FieldNode[],
+  namespaceId: string,
+  refusals: MongoBuildRefusal[],
 ): ContractEmbedRelation | ContractReferenceRelation {
-  const to = crossRef(relation.toModel, UNBOUND_NAMESPACE_ID);
-  const on = relation.on;
-  if (on === undefined) {
+  const to = crossRef(relation.toModel, namespaceId);
+  if (relation.on === undefined) {
     return { to, cardinality: relation.cardinality };
   }
   if (relation.cardinality === '1:N') {
-    return { to, cardinality: '1:N', on };
+    return { to, cardinality: '1:N', on: relation.on };
   }
+  const key = {
+    kind: 'relation',
+    model: model.modelName,
+    relation: relation.relationName,
+  } as const;
   return {
     to,
     cardinality: relation.cardinality,
-    nullable: toOneRelationNullable(modelName, relation, on, fields),
-    on,
+    nullable: toOneRelationNullable(key, relation, model.fields, refusals),
+    on: relation.on,
   };
-}
-
-function buildRelations(
-  model: ModelNode,
-): Record<string, ContractEmbedRelation | ContractReferenceRelation> {
-  return Object.fromEntries(
-    (model.relations ?? []).map((relation) => [
-      relation.relationName,
-      buildRelation(model.modelName, relation, model.fields),
-    ]),
-  );
 }
 
 export function buildValueObjects(
   valueObjects: readonly ValueObjectNode[] | undefined,
+  namespaceId: string,
+  refusals: MongoBuildRefusal[],
 ): Record<string, ContractValueObject> {
   const builtValueObjects: Record<string, ContractValueObject> = {};
 
   for (const valueObject of valueObjects ?? []) {
     if (valueObject.name in builtValueObjects) {
-      throw contractError(
-        'CONTRACT.NAME_DUPLICATE',
-        `Duplicate value object name "${valueObject.name}" in defineContract().`,
-        { meta: { kind: 'valueObject', name: valueObject.name } },
-      );
+      refusals.push({
+        kind: 'duplicateValueObject',
+        key: { kind: 'valueObject', valueObject: valueObject.name },
+      });
+      continue;
     }
-
     for (const field of valueObject.fields) {
       if (field.storedName !== undefined) {
-        throw contractError(
-          'CONTRACT.ARGUMENT_INVALID',
-          `Value object "${valueObject.name}" field "${field.fieldName}" sets .mongo({ field }), but a field of a value object is stored under its own name.`,
-          {
-            meta: {
-              valueObjectName: valueObject.name,
-              fieldName: field.fieldName,
-              reason: 'value-object-field-stored-name',
-            },
-          },
-        );
+        refusals.push({
+          kind: 'valueObjectFieldStoredName',
+          key: valueObjectFieldKey(valueObject.name, field.fieldName),
+        });
       }
     }
-    builtValueObjects[valueObject.name] = { fields: buildFields(valueObject.fields) };
+    builtValueObjects[valueObject.name] = { fields: buildFields(valueObject.fields, namespaceId) };
   }
 
   return builtValueObjects;
 }
 
-/** Each variant of `base` with the value that selects it, in the order of the models. */
-function variantsOf(
-  base: ModelNode,
-  models: readonly ModelNode[],
-): readonly { readonly variantName: string; readonly value: string }[] {
-  return models.flatMap((model) =>
-    model.base?.model === base.modelName && model.base.value !== undefined
-      ? [{ variantName: model.modelName, value: storedDiscriminatorValue(model.base.value) }]
-      : [],
-  );
-}
-
-function assertUniqueDiscriminatorValues(
-  base: ModelNode,
-  variants: readonly { readonly variantName: string; readonly value: string }[],
-): void {
-  const variantNamesByValue = new Map<string, string>();
-  for (const { variantName, value } of variants) {
-    const existingVariant = variantNamesByValue.get(value);
-    if (existingVariant !== undefined) {
-      throw contractError(
-        'CONTRACT.ARGUMENT_INVALID',
-        `Discriminator value "${value}" is used by both "${existingVariant}" and "${variantName}" on base model "${base.modelName}".`,
-        {
-          meta: {
-            modelName: base.modelName,
-            value,
-            variants: [existingVariant, variantName],
-            reason: 'duplicate-discriminator-value',
-          },
-        },
-      );
-    }
-    variantNamesByValue.set(value, variantName);
-  }
-}
-
-export function buildModels(
-  models: readonly ModelNode[],
-): Record<string, ContractModel<MongoModelStorage>> {
+/**
+ * Each model of the contract. `variantValues` holds each accepted variant's discriminator value as its base's field stores it; a base lists those variants.
+ */
+export function buildModels(input: {
+  readonly models: readonly ModelNode[];
+  readonly variantValues: ReadonlyMap<string, string>;
+  readonly namespaceId: string;
+  readonly refusals: MongoBuildRefusal[];
+}): Record<string, ContractModel<MongoModelStorage>> {
+  const { models, variantValues, namespaceId, refusals } = input;
   const builtModels: Record<string, ContractModel<MongoModelStorage>> = {};
 
   for (const model of models) {
     const { modelName } = model;
     if (modelName in builtModels) {
-      throw contractError(
-        'CONTRACT.NAME_DUPLICATE',
-        `Duplicate model name "${modelName}" in defineContract().`,
-        { meta: { kind: 'model', name: modelName } },
-      );
+      refusals.push({ kind: 'duplicateModel', key: { kind: 'model', model: modelName } });
+      continue;
     }
-
-    const variants = model.discriminator === undefined ? undefined : variantsOf(model, models);
-    if (variants !== undefined) assertUniqueDiscriminatorValues(model, variants);
 
     const storage = {
       ...(model.collection ? { collection: model.collection } : {}),
-      fields: buildStorageFields(modelName, model.fields),
-      ...ifDefined('relations', model.storageRelations),
+      fields: buildStorageFields(modelName, model.fields, refusals),
+      ...(model.storageRelations ? { relations: model.storageRelations } : {}),
     };
 
+    const variants =
+      model.discriminator === undefined
+        ? undefined
+        : models.flatMap((variant) => {
+            const value = variantValues.get(variant.modelName);
+            return variant.base?.model === modelName && value !== undefined
+              ? [[value, crossRef(variant.modelName, namespaceId)] as const]
+              : [];
+          });
+
     builtModels[modelName] = {
-      fields: buildFields(model.fields),
-      relations: buildRelations(model),
+      fields: buildFields(model.fields, namespaceId),
+      relations: Object.fromEntries(
+        (model.relations ?? []).map((relation) => [
+          relation.relationName,
+          buildRelation(model, relation, namespaceId, refusals),
+        ]),
+      ),
       storage,
       ...(model.owner ? { owner: model.owner } : {}),
-      ...(model.base ? { base: crossRef(model.base.model, UNBOUND_NAMESPACE_ID) } : {}),
-      ...ifDefined('discriminator', model.discriminator),
-      ...(variants === undefined
-        ? {}
-        : {
-            variants: Object.fromEntries(
-              variants.map(({ variantName, value }) => [
-                value,
-                crossRef(variantName, UNBOUND_NAMESPACE_ID),
-              ]),
-            ),
-          }),
+      ...(model.base ? { base: crossRef(model.base.model, namespaceId) } : {}),
+      ...(model.discriminator ? { discriminator: { field: model.discriminator.field } } : {}),
+      ...(variants === undefined ? {} : { variants: Object.fromEntries(variants) }),
     };
   }
 
   return builtModels;
 }
 
-export function buildRoots(definition: ContractDefinition): Record<string, CrossReference> {
+export function buildRoots(
+  definition: ContractDefinition,
+  models: readonly ModelNode[],
+  namespaceId: string,
+): Record<string, CrossReference> {
   if (definition.roots !== undefined) {
     return Object.fromEntries(
       Object.entries(definition.roots).map(([rootName, modelName]) => [
         rootName,
-        crossRef(modelName, UNBOUND_NAMESPACE_ID),
+        crossRef(modelName, namespaceId),
       ]),
     );
   }
   const roots: Record<string, CrossReference> = {};
-  for (const model of definition.models) {
+  for (const model of models) {
     if (!model.collection || model.owner || model.base) continue;
-    roots[model.collection] = crossRef(model.modelName, UNBOUND_NAMESPACE_ID);
+    roots[model.collection] = crossRef(model.modelName, namespaceId);
   }
   return roots;
 }

@@ -31,6 +31,7 @@ import {
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
 import type { AssembledAuthoringContributions } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   buildMongoStorage,
   type MongoCollectionInput,
@@ -1500,6 +1501,7 @@ function assembleContract(input: {
     collections[name] = collection.indexes.length > 0 ? { indexes: collection.indexes } : {};
   }
   const storage: Contract['storage'] = buildMongoStorage({
+    namespaceId: UNBOUND_NAMESPACE_ID,
     collections,
     valueSets: mongoValueSetsOf(builtEnums),
   });

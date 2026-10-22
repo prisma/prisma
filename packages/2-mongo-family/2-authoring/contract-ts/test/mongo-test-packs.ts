@@ -9,6 +9,8 @@ import { dataTypeId } from '@internal/framework-components/codec';
 import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
 import { mongoTestCodecDescriptors, mongoTestDataTypes } from '@internal/mongo-contract/test';
 
+const mongoString = dataTypeId('mongo/string');
+
 export const mongoFamilyPack = {
   kind: 'family',
   id: 'mongo',
@@ -25,6 +27,16 @@ export const mongoTargetPack = {
   defaultNamespaceId: '__unbound__',
   dataTypes: mongoTestDataTypes,
   types: { codecTypes: { codecDescriptors: mongoTestCodecDescriptors } },
+  authoring: {
+    dataTypes: {
+      [mongoString]: {
+        written: { kind: 'plain', syntax: 'string', parse: (text) => text },
+        print: (value) => String(value),
+        documentation: 'Text.',
+      },
+    },
+    textDataTypes: [mongoString],
+  },
 } as const satisfies TargetPackRef<'mongo', 'mongo'>;
 
 /** A descriptor of an identity codec `codecId` over `dataType`. */

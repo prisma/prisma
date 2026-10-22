@@ -12,6 +12,7 @@ import type {
   MongoCollectionOptionsAuthoringInput,
   MongoIndexAuthoringInput,
 } from '@internal/mongo-contract';
+import type { PresetContributionNode } from './contract-definition';
 import type { EnumTypeHandle } from './enum-type';
 
 export type VariantSpec = {
@@ -41,6 +42,8 @@ export interface FieldBuilder<
   readonly __storedName: StoredName;
   /** The generator function calls `.onCreate(...)` and `.onUpdate(...)` give, resolved by the field's codec when the contract is built. */
   readonly __generatorCalls?: FieldGeneratorCalls;
+  /** What the field preset that made the field contributed. */
+  readonly __presetContribution?: PresetContributionNode;
   /** Generates the field's value in the client when a document is created without one, with a call from `gen`, such as `gen.now()`. */
   onCreate(
     call: GeneratorFunctionCall,

@@ -44,6 +44,7 @@ import type {
 } from '@internal/framework-components/codec';
 import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
 import type { ControlMutationDefaultRegistry } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   applyPolymorphicScopeToMongoIndex,
   buildMongoStorage,
@@ -2217,6 +2218,7 @@ export function interpretPslDocumentToMongoContract(
     >(raw);
   }
   const storage: Contract['storage'] = buildMongoStorage({
+    namespaceId: UNBOUND_NAMESPACE_ID,
     collections: collectionInputs,
     valueSets: storageValueSets,
   });

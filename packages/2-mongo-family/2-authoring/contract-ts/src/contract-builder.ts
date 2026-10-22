@@ -32,6 +32,7 @@ import {
   assembleDataTypeSupport,
   assertNoCrossRegistryCollisions,
   type DataTypeSupport,
+  flushAuthoringWarnings,
   instantiateAuthoringFieldPreset,
   validateAuthoringHelperArguments,
 } from '@internal/framework-components/authoring';
@@ -59,9 +60,11 @@ import type {
   MongoTypeMaps,
 } from '@internal/mongo-contract';
 import type { BsonInputValue, BsonValue } from '@internal/mongo-value';
+import { assertDefined } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { buildMongoContractFromDefinition } from './build-contract';
+import type { PresetContributionNode } from './contract-definition';
 import {
   type AnyFieldBuilder,
   type AnyFieldReference,
@@ -86,6 +89,7 @@ import {
 import { contractError } from './contract-errors';
 import { buildContractDefinition, type DslContractInput } from './contract-lowering';
 import type { EnumTypeHandle } from './enum-type';
+import { authoringWarningOf, refusalError } from './refusal-errors';
 
 type StringListInput = string | readonly string[];
 type Present<T> = Exclude<T, undefined>;
@@ -908,6 +912,9 @@ function buildFieldPreset(
     },
     undefined,
     preset.executionDefaults,
+    undefined,
+    undefined,
+    { preset: helperPath, executionDefaults: preset.executionDefaults },
   );
 }
 
@@ -1062,6 +1069,7 @@ function createFieldBuilder<
   executionDefaults?: ExecutionDefaults,
   storedName?: StoredName,
   generatorCalls?: FieldGeneratorCalls,
+  presetContribution?: PresetContributionNode,
 ): FieldBuilder<Type, Nullable, Many, Handle, ExecutionDefaults, StoredName> {
   function many(): FieldBuilder<
     Type,
@@ -1102,6 +1110,7 @@ function createFieldBuilder<
       executionDefaults,
       storedName,
       generatorCalls,
+      presetContribution,
     );
   }
 
@@ -1125,6 +1134,7 @@ function createFieldBuilder<
       >(executionDefaults),
       storedName,
       { ...generatorCalls, [phase]: call },
+      presetContribution,
     );
   }
 
@@ -1132,6 +1142,7 @@ function createFieldBuilder<
     __kind: 'field',
     ...ifDefined('__executionDefaults', executionDefaults),
     ...ifDefined('__generatorCalls', generatorCalls),
+    ...ifDefined('__presetContribution', presetContribution),
     onCreate: (call) => withGeneratorCall('onCreate', call),
     onUpdate: (call) => withGeneratorCall('onUpdate', call),
     __type: spec.type,
@@ -1159,6 +1170,7 @@ function createFieldBuilder<
         executionDefaults,
         storedName,
         generatorCalls,
+        presetContribution,
       ),
     ),
     many: blindCast<
@@ -1172,6 +1184,7 @@ function createFieldBuilder<
         executionDefaults,
         field,
         generatorCalls,
+        presetContribution,
       ),
   };
 }
@@ -1732,10 +1745,17 @@ function buildContractFromDsl<const Input extends DslContractInput>(
       definition.target,
       ...Object.values(definition.extensions ?? {}),
     ]);
+  const built = buildMongoContractFromDefinition(definition, codecLookup, dataTypes);
+  if (!built.ok) {
+    const [first] = built.failure;
+    assertDefined(first, 'a refused build has at least one refusal');
+    throw refusalError(first);
+  }
+  flushAuthoringWarnings(built.value.warnings.map(authoringWarningOf));
   return blindCast<
     MongoContractResult<Input>,
     "the built contract's type erases the input's literal type parameters; MongoContractResult<Input> re-applies them so callers see the precise model/value-object/roots/namespace shapes"
-  >(buildMongoContractFromDefinition(definition, codecLookup, dataTypes));
+  >(built.value.contract);
 }
 
 // Input for buildBoundContract that omits family/target (injected by the builder).

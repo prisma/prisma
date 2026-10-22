@@ -67,7 +67,7 @@ describe('buildContractDefinition', () => {
             },
           ],
           relations: [],
-          discriminator: { field: 'type' },
+          discriminator: { field: 'type', listedVariants: ['Bug'] },
         },
         {
           modelName: 'Bug',

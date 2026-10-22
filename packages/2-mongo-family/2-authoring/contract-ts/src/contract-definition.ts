@@ -23,6 +23,13 @@ export interface GeneratorCallsNode {
   readonly onUpdate?: GeneratorFunctionCall;
 }
 
+/** What a field preset contributed to a field. */
+export interface PresetContributionNode {
+  /** The preset's helper path, as in `temporal.createdAt`. */
+  readonly preset: string;
+  readonly executionDefaults: ExecutionMutationDefaultPhases | undefined;
+}
+
 export interface FieldNode {
   readonly fieldName: string;
   /** The name documents store the field under, when the source gives one other than the field's own. */
@@ -35,6 +42,8 @@ export interface FieldNode {
   /** Defaults the field generates, already resolved from presets and type aliases. */
   readonly executionDefaults?: ExecutionMutationDefaultPhases;
   readonly generatorCalls?: GeneratorCallsNode;
+  /** Present when a field preset made the field. */
+  readonly presetContribution?: PresetContributionNode;
 }
 
 /** An index as the source wrote it, keyed by field names. */
@@ -71,6 +80,13 @@ export interface VariantBaseNode {
   readonly value: WrittenValue | undefined;
 }
 
+/** The field that tells the variants of a base apart. */
+export interface DiscriminatorNode {
+  readonly field: string;
+  /** The variant models the source lists on the base, when it lists them there; each must name this model as its base. */
+  readonly listedVariants?: readonly string[];
+}
+
 export interface ModelNode {
   readonly modelName: string;
   /** The collection the model is stored in; absent for a model stored only inside another. */
@@ -83,8 +99,7 @@ export interface ModelNode {
   readonly indexes?: readonly IndexNode[];
   readonly fields: readonly FieldNode[];
   readonly relations?: readonly RelationNode[];
-  /** The field that tells the variants of this base apart. */
-  readonly discriminator?: { readonly field: string };
+  readonly discriminator?: DiscriminatorNode;
   readonly base?: VariantBaseNode;
 }
 

@@ -4,22 +4,17 @@ import type {
   ExecutionMutationDefaultValue,
 } from '@internal/contract/types';
 import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
-import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { canonicalStringify } from '@internal/utils/canonical-stringify';
 import { storedNameOf } from './build-models';
+import {
+  type FieldKey,
+  type MongoBuildRefusal,
+  modelFieldKey,
+  valueObjectFieldKey,
+} from './build-refusals';
 import type { FieldNode, ModelNode, ValueObjectNode } from './contract-definition';
-import { contractError } from './contract-errors';
 
-function executionDefaultError(
-  modelName: string,
-  fieldName: string,
-  reason: string,
-  message: string,
-): Error {
-  return contractError('CONTRACT.DEFAULT_INVALID', `Field "${modelName}.${fieldName}" ${message}`, {
-    meta: { modelName, fieldName, reason },
-  });
-}
+const PHASES = ['onCreate', 'onUpdate'] as const;
 
 function hasExecutionDefaults(field: FieldNode): boolean {
   const phases = field.executionDefaults;
@@ -33,14 +28,14 @@ function hasExecutionDefaults(field: FieldNode): boolean {
 }
 
 /**
- * The phases a field generates: its resolved execution defaults, with the generators its calls resolve to for its codec.
+ * The phases a field generates: its resolved execution defaults, with the generators its calls resolve to for its codec. Undefined when a call is refused.
  */
 function executionDefaultsOf(
   field: FieldNode,
-  modelName: string,
+  key: FieldKey,
   generatorFunctions: GeneratorFunctionRegistry,
+  refusals: MongoBuildRefusal[],
 ): ExecutionMutationDefaultPhases | undefined {
-  const { fieldName } = field;
   const calls = field.generatorCalls;
   if (calls === undefined) return field.executionDefaults;
   const type = field.type;
@@ -48,12 +43,16 @@ function executionDefaultsOf(
   const phases: {
     onCreate?: ExecutionMutationDefaultValue;
     onUpdate?: ExecutionMutationDefaultValue;
-  } = {
-    ...field.executionDefaults,
-  };
-  for (const phase of ['onCreate', 'onUpdate'] as const) {
+  } = { ...field.executionDefaults };
+  let refused = false;
+  for (const phase of PHASES) {
     const call = calls[phase];
     if (call === undefined) continue;
+    if (field.executionDefaults?.[phase] !== undefined) {
+      refusals.push({ kind: 'generatorPhaseSetTwice', key, phase });
+      refused = true;
+      continue;
+    }
     const resolution =
       type.kind === 'scalar'
         ? generatorFunctions.resolve(call, {
@@ -66,46 +65,46 @@ function executionDefaultsOf(
       phases[phase] = resolution.generator;
       continue;
     }
-    const meta = { modelName, fieldName, codecId, function: call.name };
-    if (resolution?.reason === 'unknown-function') {
-      throw contractError(
-        'CONTRACT.DEFAULT_INVALID',
-        `Field "${modelName}.${fieldName}": no pack in the contract declares the generator function "${call.name}".`,
-        { meta: { ...meta, reason: 'generator-unknown' } },
-      );
-    }
-    throw contractError(
-      'CONTRACT.DEFAULT_INVALID',
-      resolution?.reason === 'refused'
-        ? `Field "${modelName}.${fieldName}": ${resolution.message}`
-        : `Field "${modelName}.${fieldName}": ${call.name}() does not apply to ${codecId === undefined ? "the field's type" : `codec "${codecId}"`}.`,
-      { meta: { ...meta, reason: 'generator-not-applicable' } },
+    refused = true;
+    refusals.push(
+      resolution?.reason === 'unknown-function'
+        ? { kind: 'generatorUnknown', key, phase, functionName: call.name, codecId }
+        : {
+            kind: 'generatorNotApplicable',
+            key,
+            phase,
+            functionName: call.name,
+            codecId,
+            message: resolution?.reason === 'refused' ? resolution.message : undefined,
+          },
     );
   }
-  return phases;
+  return refused ? undefined : phases;
 }
 
-export function assertNoValueObjectExecutionDefaults(
+export function checkValueObjectExecutionDefaults(
   valueObjects: readonly ValueObjectNode[] | undefined,
+  refusals: MongoBuildRefusal[],
 ): void {
   for (const valueObject of valueObjects ?? []) {
     for (const field of valueObject.fields) {
       if (hasExecutionDefaults(field)) {
-        throw executionDefaultError(
-          valueObject.name,
-          field.fieldName,
-          'executionDefaults-on-value-object',
-          'has executionDefaults, but it belongs to a value object. Generated values are only supported on model fields.',
-        );
+        refusals.push({
+          kind: 'generatedOnValueObject',
+          key: valueObjectFieldKey(valueObject.name, field.fieldName),
+        });
       }
     }
   }
 }
 
-export function buildExecutionDefaults(
-  models: readonly ModelNode[],
-  generatorFunctions: GeneratorFunctionRegistry,
-): ExecutionMutationDefault[] {
+export function buildExecutionDefaults(input: {
+  readonly models: readonly ModelNode[];
+  readonly generatorFunctions: GeneratorFunctionRegistry;
+  readonly namespaceId: string;
+  readonly refusals: MongoBuildRefusal[];
+}): ExecutionMutationDefault[] {
+  const { models, generatorFunctions, namespaceId, refusals } = input;
   const collectionByModelName = new Map(models.map((model) => [model.modelName, model.collection]));
   const byRef = new Map<
     string,
@@ -117,41 +116,30 @@ export function buildExecutionDefaults(
     for (const field of model.fields) {
       if (!hasExecutionDefaults(field)) continue;
       const { fieldName } = field;
-      const phases = executionDefaultsOf(field, modelName, generatorFunctions);
+      const key = modelFieldKey(modelName, fieldName);
+      const phases = executionDefaultsOf(field, key, generatorFunctions, refusals);
       if (phases === undefined) continue;
       if (field.nullable) {
-        throw executionDefaultError(
-          modelName,
-          fieldName,
-          'nullable-with-executionDefaults',
-          'generates a value on write, so it cannot be optional; remove .optional().',
-        );
+        refusals.push({ kind: 'generatedOptional', key });
+        continue;
       }
       if (field.many) {
-        throw executionDefaultError(
-          modelName,
-          fieldName,
-          'many-with-executionDefaults',
-          'generates a value on write, so it cannot be a list; remove .many().',
-        );
+        refusals.push({ kind: 'generatedList', key });
+        continue;
       }
       if (model.base !== undefined) {
-        const collection = model.collection ?? collectionByModelName.get(model.base.model);
-        throw executionDefaultError(
-          modelName,
-          fieldName,
-          'executionDefaults-on-variant',
-          `has executionDefaults, but "${modelName}" is a variant of "${model.base.model}". Execution defaults apply to every document in collection "${collection}", so declare them on the base model.`,
-        );
+        refusals.push({
+          kind: 'generatedOnVariant',
+          key,
+          baseModel: model.base.model,
+          collection: model.collection ?? collectionByModelName.get(model.base.model),
+        });
+        continue;
       }
       const entry = model.collection;
       if (entry === undefined) {
-        throw executionDefaultError(
-          modelName,
-          fieldName,
-          'executionDefaults-without-collection',
-          'has executionDefaults, but its model has no collection. Generated values are only supported on fields of a model stored in a collection.',
-        );
+        refusals.push({ kind: 'generatedWithoutCollection', key });
+        continue;
       }
       const storedName = storedNameOf(field);
       const refKey = JSON.stringify([entry, storedName]);
@@ -159,20 +147,18 @@ export function buildExecutionDefaults(
       const existing = byRef.get(refKey);
       if (existing !== undefined) {
         if (existing.phasesKey !== phasesKey) {
-          throw executionDefaultError(
-            modelName,
-            fieldName,
-            'executionDefaults-conflict',
-            `has different executionDefaults than "${existing.modelName}.${existing.fieldName}", which is stored in the same collection "${entry}". Use the same executionDefaults on both models.`,
-          );
+          refusals.push({
+            kind: 'generatedConflict',
+            key,
+            otherModel: existing.modelName,
+            otherField: existing.fieldName,
+            collection: entry,
+          });
         }
         continue;
       }
       byRef.set(refKey, { modelName, fieldName, phasesKey });
-      defaults.push({
-        ref: { namespace: UNBOUND_NAMESPACE_ID, entry, field: storedName },
-        ...phases,
-      });
+      defaults.push({ ref: { namespace: namespaceId, entry, field: storedName }, ...phases });
     }
   }
   return defaults;

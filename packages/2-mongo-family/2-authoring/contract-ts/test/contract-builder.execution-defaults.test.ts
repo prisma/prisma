@@ -21,6 +21,7 @@ const mongoDate = { codecId: 'mongo/date@1' } as const;
 const mongoTargetPack = {
   ...mongoTestTargetPack,
   authoring: {
+    ...mongoTestTargetPack.authoring,
     field: {
       temporal: {
         ...temporalAuthoringPresets(mongoDate),

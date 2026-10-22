@@ -114,6 +114,7 @@ function fieldNodes(fields: Record<string, AnyFieldBuilder>): FieldNode[] {
     ...ifDefined('enumName', builder.__enumHandle?.enumName),
     ...ifDefined('executionDefaults', builder.__executionDefaults),
     ...ifDefined('generatorCalls', builder.__generatorCalls),
+    ...ifDefined('presetContribution', builder.__presetContribution),
   }));
 }
 
@@ -143,7 +144,14 @@ function modelNode(
     ...ifDefined('indexes', builder.__indexes),
     fields: fieldNodes(builder.__fields),
     relations: relationNodes(builder),
-    ...ifDefined('discriminator', builder.__discriminator),
+    ...(builder.__discriminator === undefined
+      ? {}
+      : {
+          discriminator: {
+            field: builder.__discriminator.field,
+            listedVariants: Object.keys(builder.__variants ?? {}),
+          },
+        }),
     ...(base === undefined
       ? {}
       : {

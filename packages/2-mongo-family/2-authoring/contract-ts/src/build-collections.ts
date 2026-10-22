@@ -10,9 +10,9 @@ import {
 import { canonicalStringify } from '@internal/utils/canonical-stringify';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
-import { storedDiscriminatorValue, storedFieldNameIn } from './build-models';
+import { storedFieldNameIn } from './build-models';
+import type { IndexKey, IndexShapeRule, MongoBuildRefusal } from './build-refusals';
 import type { FieldNode, IndexNode, ModelNode } from './contract-definition';
-import { contractError } from './contract-errors';
 
 /**
  * A key-sorted signature of a storage index, used only to find duplicate indexes. `canonicalStringify` refuses class instances such as `MongoIndex`, so this reads their enumerable properties instead.
@@ -91,162 +91,150 @@ function findMissingIndexField(index: IndexNode, fields: readonly FieldNode[]): 
   return undefined;
 }
 
+function isWildcardKey(key: string): boolean {
+  return key === '$**' || key.endsWith('.$**');
+}
+
+function isTextIndex(index: IndexNode): boolean {
+  return Object.values(index.fields).includes('text');
+}
+
+/** The first shape rule an index breaks, of those MongoDB enforces when it creates the index. */
+function indexShapeProblem(index: IndexNode): IndexShapeRule | undefined {
+  const keys = Object.entries(index.fields);
+  const hasWildcard = keys.some(([key]) => isWildcardKey(key));
+  const directions = keys.map(([, direction]) => direction);
+  const options = index.options ?? {};
+  if (hasWildcard && options.unique) return 'unique-wildcard';
+  if (
+    hasWildcard &&
+    directions.some((direction) => ['hashed', '2d', '2dsphere'].includes(String(direction)))
+  ) {
+    return 'wildcard-with-type';
+  }
+  if (directions.includes('hashed') && keys.length > 1) return 'hashed-several-fields';
+  if (hasWildcard && options.expireAfterSeconds !== undefined) return 'ttl-with-wildcard';
+  if (options.collation !== undefined && !options.collation.locale)
+    return 'collation-without-locale';
+  return undefined;
+}
+
 function resolveVariantScope(
   model: ModelNode,
   modelsByName: ReadonlyMap<string, ModelNode>,
+  variantValues: ReadonlyMap<string, string>,
 ): { discriminatorField: string; discriminatorValue: string } | undefined {
   if (!model.base) return undefined;
   const base = modelsByName.get(model.base.model);
-  if (!base) return undefined;
-  const discriminatorField = base.discriminator?.field;
-  const written = model.base.value;
-  if (!discriminatorField || written === undefined) return undefined;
+  const discriminatorField = base?.discriminator?.field;
+  const discriminatorValue = variantValues.get(model.modelName);
+  if (base === undefined || !discriminatorField || discriminatorValue === undefined) {
+    return undefined;
+  }
   return {
     discriminatorField: storedFieldNameIn(base.fields, discriminatorField),
-    discriminatorValue: storedDiscriminatorValue(written),
+    discriminatorValue,
   };
 }
 
-function scopeVariantIndex(
-  storageIndex: MongoIndex,
-  scope: { discriminatorField: string; discriminatorValue: string },
-  variantName: string,
-  writtenIndex: IndexNode | undefined,
-): MongoIndex {
-  const result = applyPolymorphicScopeToMongoIndex(storageIndex, scope);
-  if (result.kind === 'conflict') {
-    const indexLabel = writtenIndex ? canonicalStringify(writtenIndex) : '<unknown>';
-    throw contractError(
-      'CONTRACT.INDEX_INVALID',
-      `Variant model "${variantName}" index ${indexLabel} conflicts with discriminator scope: ${result.reason}`,
-      { meta: { variantName, indexLabel, reason: result.reason } },
-    );
-  }
-  return result.index;
-}
-
-function assertNoCollectionSettings(model: ModelNode): void {
-  const { modelName } = model;
+function checkNoCollectionSettings(model: ModelNode, refusals: MongoBuildRefusal[]): void {
+  const key = { kind: 'collection', model: model.modelName } as const;
   if (model.indexes && model.indexes.length > 0) {
-    throw contractError(
-      'CONTRACT.COLLECTION_INVALID',
-      `Model "${modelName}" defines indexes but has no collection to attach them to.`,
-      { meta: { modelName, reason: 'indexes-without-collection' } },
-    );
+    refusals.push({ kind: 'collectionSettingWithoutCollection', key, setting: 'indexes' });
   }
-
   if (model.collectionOptions) {
-    throw contractError(
-      'CONTRACT.COLLECTION_INVALID',
-      `Model "${modelName}" defines collectionOptions but has no collection to attach them to.`,
-      { meta: { modelName, reason: 'collectionOptions-without-collection' } },
-    );
+    refusals.push({
+      kind: 'collectionSettingWithoutCollection',
+      key,
+      setting: 'collectionOptions',
+    });
   }
-
   if (model.controlPolicy) {
-    throw contractError(
-      'CONTRACT.COLLECTION_INVALID',
-      `Model "${modelName}" defines controlPolicy but has no collection to attach it to.`,
-      { meta: { modelName, reason: 'controlPolicy-without-collection' } },
-    );
+    refusals.push({ kind: 'collectionSettingWithoutCollection', key, setting: 'controlPolicy' });
   }
 }
 
 /** Each collection the models are stored in, with its indexes, options and control policy. Validators are added later. */
-export function buildCollections(
-  models: readonly ModelNode[],
-): Record<string, MongoCollectionInput> {
+export function buildCollections(input: {
+  readonly models: readonly ModelNode[];
+  readonly variantValues: ReadonlyMap<string, string>;
+  readonly refusals: MongoBuildRefusal[];
+}): Record<string, MongoCollectionInput> {
+  const { models, variantValues, refusals } = input;
   const intermediate: Record<string, MongoCollectionInput> = {};
   const declaredIndexOwners = new Map<string, string>();
+  const textIndexCollections = new Set<string>();
   const modelsByName = new Map(models.map((model) => [model.modelName, model]));
 
   for (const model of models) {
     const { modelName, collection } = model;
     if (!collection) {
-      assertNoCollectionSettings(model);
+      checkNoCollectionSettings(model, refusals);
       continue;
     }
-
+    const collectionKey = { kind: 'collection', model: modelName } as const;
     const existingCollection: MongoCollectionInput = intermediate[collection] ?? {};
     const existingIndexes = existingCollection.indexes ?? [];
 
     if (existingCollection.options && model.collectionOptions) {
-      throw contractError(
-        'CONTRACT.COLLECTION_INVALID',
-        `Collection "${collection}" has collectionOptions declared by multiple models. Author collectionOptions on a single model per collection.`,
-        {
-          meta: {
-            modelName,
-            collection,
-            reason: 'collectionOptions-declared-by-multiple-models',
-          },
-        },
-      );
+      refusals.push({
+        kind: 'collectionSettingTwice',
+        key: collectionKey,
+        setting: 'collectionOptions',
+        collection,
+      });
     }
-
     if (existingCollection.control !== undefined && model.controlPolicy) {
-      throw contractError(
-        'CONTRACT.COLLECTION_INVALID',
-        `Collection "${collection}" has controlPolicy declared by multiple models. Author controlPolicy on a single model per collection.`,
-        {
-          meta: {
-            modelName,
-            collection,
-            reason: 'controlPolicy-declared-by-multiple-models',
-          },
-        },
-      );
+      refusals.push({
+        kind: 'collectionSettingTwice',
+        key: collectionKey,
+        setting: 'controlPolicy',
+        collection,
+      });
     }
 
-    const writtenIndexes = model.indexes ?? [];
-    for (const writtenIndex of writtenIndexes) {
-      const missingField = findMissingIndexField(writtenIndex, model.fields);
+    const polymorphicScope = resolveVariantScope(model, modelsByName, variantValues);
+    const storageIndexes: MongoIndex[] = [];
+    (model.indexes ?? []).forEach((written, position) => {
+      const key: IndexKey = { kind: 'index', model: modelName, position };
+      const signature = canonicalStringify(written);
+      const missingField = findMissingIndexField(written, model.fields);
       if (missingField !== undefined) {
-        const indexSignature = canonicalStringify(writtenIndex);
-        throw contractError(
-          'CONTRACT.FIELD_UNKNOWN',
-          `Model "${modelName}" index ${indexSignature} references unknown field "${missingField}".`,
-          { meta: { modelName, fieldName: missingField, indexSignature } },
-        );
+        refusals.push({ kind: 'indexFieldUnknown', key, fieldName: missingField, signature });
+        return;
       }
-    }
-
-    const polymorphicScope = resolveVariantScope(model, modelsByName);
-    const rawStorageIndexes = writtenIndexes.map((written) =>
-      toStorageIndex(written, model.fields),
-    );
-    const storageIndexes = polymorphicScope
-      ? rawStorageIndexes.map((index, i) =>
-          scopeVariantIndex(index, polymorphicScope, modelName, writtenIndexes[i]),
-        )
-      : rawStorageIndexes;
-
-    // Duplicates are found after variant scoping: sibling variants may index the same field, and their scoped indexes differ by partialFilterExpression.
-    for (let i = 0; i < storageIndexes.length; i++) {
-      const storageIndex = storageIndexes[i];
-      if (storageIndex === undefined) continue;
-      const indexSignature = stableStringify(storageIndex);
-      const collectionIndexKey = `${collection}:${indexSignature}`;
-      const firstOwner = declaredIndexOwners.get(collectionIndexKey);
-      if (firstOwner) {
-        const writtenIndex = writtenIndexes[i];
-        const reportedSignature = writtenIndex ? canonicalStringify(writtenIndex) : indexSignature;
-        throw contractError(
-          'CONTRACT.NAME_DUPLICATE',
-          `Collection "${collection}" defines duplicate index ${reportedSignature}. First declared on model "${firstOwner}" and duplicated on model "${modelName}".`,
-          {
-            meta: {
-              kind: 'index',
-              name: reportedSignature,
-              collection,
-              first: firstOwner,
-              second: modelName,
-            },
-          },
-        );
+      const shapeProblem = indexShapeProblem(written);
+      if (shapeProblem !== undefined) {
+        refusals.push({ kind: 'indexShape', key, rule: shapeProblem, signature });
+        return;
+      }
+      if (isTextIndex(written)) {
+        if (textIndexCollections.has(collection)) {
+          refusals.push({ kind: 'indexShape', key, rule: 'second-text-index', signature });
+          return;
+        }
+        textIndexCollections.add(collection);
+      }
+      const storageIndex = toStorageIndex(written, model.fields);
+      const scoped =
+        polymorphicScope === undefined
+          ? { kind: 'ok' as const, index: storageIndex }
+          : applyPolymorphicScopeToMongoIndex(storageIndex, polymorphicScope);
+      if (scoped.kind === 'conflict') {
+        refusals.push({ kind: 'indexScopeConflict', key, reason: scoped.reason, signature });
+        return;
+      }
+      // Duplicates are found after variant scoping: sibling variants may index the same field, and their scoped indexes differ by partialFilterExpression.
+      const collectionIndexKey = `${collection}:${stableStringify(scoped.index)}`;
+      const firstModel = declaredIndexOwners.get(collectionIndexKey);
+      if (firstModel !== undefined) {
+        refusals.push({ kind: 'indexDuplicate', key, collection, firstModel, signature });
+        return;
       }
       declaredIndexOwners.set(collectionIndexKey, modelName);
-    }
+      storageIndexes.push(scoped.index);
+    });
+
     const storageOptions = model.collectionOptions
       ? toStorageCollectionOptions(model.collectionOptions)
       : undefined;
