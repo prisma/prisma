@@ -189,12 +189,12 @@ export interface SqlMigrationPlanOperationStep {
 /**
  * Minimal shape every SQL-family target must conform to for its per-operation
  * `target.details` payload. Each SQL operation addresses a named database
- * object in some schema; targets (Postgres, MySQL, SQLite, …) extend this
- * shape with their own fields (e.g. Postgres adds `objectType` and optional
- * `table`).
+ * object, in the schema `schema` names on a target whose database holds schemas;
+ * targets extend this shape with their own fields (e.g. Postgres adds
+ * `objectType` and optional `table`).
  */
 export interface SqlPlanTargetDetails {
-  readonly schema: string;
+  readonly schema?: string;
   readonly name: string;
 }
 
@@ -442,17 +442,17 @@ export type SqlMigrationRunnerResult = Result<
 
 export interface SqlMigrationRunner<TTargetDetails> {
   /**
-   * Apply one or more per-space migration plans, opening and managing the
-   * outer transaction (and any target-specific connection-level setup, e.g.
-   * SQLite's `PRAGMA foreign_keys` toggle). An apply that targets one space
-   * passes a one-element `perSpaceOptions` list.
+   * Apply one or more per-space migration plans, in the order the caller gives (typically the
+   * aggregate planner's `applyOrder`: extensions alphabetical, then app). An apply that targets one
+   * space passes a one-element `perSpaceOptions` list.
    *
-   * The caller orders the input list (typically via the aggregate planner's
-   * `applyOrder`: extensions alphabetical, then app). A failure on any space
-   * rolls back every space's writes.
+   * What a failure leaves behind is the target's `applyAtomicity`. An `'all-spaces'` target opens one
+   * transaction around every space (with any connection-level setup it needs, such as SQLite's
+   * `PRAGMA foreign_keys` toggle) and a failure rolls back every space's writes. A `'per-space'`
+   * target applies, verifies and writes the marker of each space in turn, so a failure leaves the
+   * spaces before it applied.
    *
-   * Each entry must reference the same `driver` as the top-level `driver`
-   * (the connection the outer transaction is open on).
+   * Each entry must reference the same `driver` as the top-level `driver`.
    */
   execute(options: {
     readonly driver: SqlControlDriverInstance<string>;
@@ -460,14 +460,12 @@ export interface SqlMigrationRunner<TTargetDetails> {
   }): Promise<MigrationRunnerResult>;
 
   /**
-   * Apply a single migration plan against an already-open connection
-   * **without** opening a transaction. The caller is responsible for
-   * wrapping the call (and any siblings) in `BEGIN` / `COMMIT` /
-   * `ROLLBACK`. Used by {@link SqlMigrationRunner.execute} to fan out
-   * across contract spaces inside one outer transaction.
+   * Apply a single migration plan against an already-open connection **without** opening a
+   * transaction. {@link SqlMigrationRunner.execute} calls it for each space; an `'all-spaces'` target
+   * calls it inside the transaction it opened.
    *
-   * Idempotent control-table setup (`prisma_contract.*`) and marker
-   * writes use `options.space` to address the per-space marker row.
+   * Idempotent control-table setup and marker writes use `options.space` to address the per-space
+   * marker row.
    */
   executeOnConnection(
     options: SqlMigrationRunnerExecuteOptions<TTargetDetails>,

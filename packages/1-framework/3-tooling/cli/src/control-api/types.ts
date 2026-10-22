@@ -943,9 +943,9 @@ export interface ControlClient {
   readLedger(space?: string): Promise<readonly LedgerEntryRecord[]>;
 
   /**
-   * Advances the database along the migration graph to the target contract.
-   * Each migration runs in its own transaction with full execution checks.
-   * Resume-safe: re-running after failure picks up from the last run migration.
+   * Advances the database along the migration graph to the target contract, with full execution checks.
+   * The target's `applyAtomicity` says whether a failure rolls back every space or leaves the spaces before it applied.
+   * Resume-safe: re-running after failure picks up from the marker of each space.
    *
    * @param options.contract - The target contract to migrate to
    * @param options.migrationsDir - Root migrations directory (`migrations/` under the project)

@@ -123,8 +123,8 @@ export interface ExecuteMigrateOptions<TFamilyId extends string, TTargetId exten
  *    fails loudly — "never planned" is a user-error condition for
  *    replay.
  * 4. Hand off to {@link runMigration} (the runner-driving tail
- *    shared with `db init` / `db update`). Marker advancement is
- *    inside the per-space transaction.
+ *    shared with `db init` / `db update`). The runner advances each
+ *    space's marker as the last step of applying it.
  *
  * Encodes the replay-only contract: the app contract space must have an
  * authored migration graph on disk before this operation can advance it.

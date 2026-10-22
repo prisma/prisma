@@ -43,6 +43,8 @@ export const mongoTargetDescriptor: MongoControlTargetDescriptor<MongoTargetCont
   contractSerializer: new MongoTargetContractSerializer(),
   schemaVerifier: new MongoTargetSchemaVerifier(),
   migrations: {
+    applyAtomicity: 'per-space',
+    markerLocation: '_prisma_migrations',
     createPlanner(_adapter: MongoControlAdapter<'mongo'>) {
       return new MongoMigrationPlanner();
     },

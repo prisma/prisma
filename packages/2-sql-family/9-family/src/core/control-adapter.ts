@@ -164,7 +164,7 @@ export interface SqlControlAdapter<TTarget extends string = string>
   withTransaction<T>(driver: SqlControlDriverInstance<TTarget>, fn: () => Promise<T>): Promise<T>;
 
   /**
-   * Inside a transaction `withTransaction` opened, takes the one lock the migration runner holds while it reads and writes markers, and holds it until the transaction ends. The lock covers the marker table, so it is the same for every space. A target whose `withTransaction` already takes a lock that excludes the runner does nothing here.
+   * Inside a transaction `withTransaction` opened, takes the one lock the migration runner holds while it reads and writes markers. The lock covers the marker table, so it is the same for every space. The adapter decides how long the lock lives and releases it no later than when that transaction ends, whether it commits or rolls back. A target whose `withTransaction` already takes a lock that excludes the runner does nothing here.
    */
   lockMarker(driver: SqlControlDriverInstance<TTarget>): Promise<void>;
 
@@ -199,7 +199,9 @@ export interface SqlControlAdapter<TTarget extends string = string>
 
   /**
    * Ordered DDL queries that bootstrap the marker table (and Postgres schema) for
-   * `sign` — excludes the ledger table.
+   * `sign` — excludes the ledger table. Each must be idempotent: `signSpaces` runs them before the
+   * transaction that locks and writes markers, because a target whose DDL commits implicitly would
+   * otherwise end that transaction.
    */
   bootstrapSignMarkerQueries(): readonly DdlNode[];
 }

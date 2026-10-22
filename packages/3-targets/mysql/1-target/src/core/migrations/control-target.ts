@@ -3,6 +3,7 @@ import { type SqlControlTargetDescriptor, sqlTypeLookupsOf } from '@internal/fam
 import type { ControlTargetInstance } from '@internal/framework-components/control';
 import { SqlStorage } from '@internal/sql-contract/types';
 import { relationalNodeEntityKind, relationalNodeGranularity } from '@internal/sql-schema-ir/types';
+import { MARKER_TABLE_NAME } from '../control-tables';
 import { mysqlTargetDescriptorMeta } from '../descriptor-meta';
 import { mysqlError, mysqlNotYetSupported } from '../errors';
 import { MysqlContractSerializer } from '../mysql-contract-serializer';
@@ -22,6 +23,8 @@ const mysqlControlTargetDescriptor: SqlControlTargetDescriptor<'mysql', MysqlPla
   classifySubjectGranularity: relationalNodeGranularity,
   classifyEntityKind: relationalNodeEntityKind,
   migrations: {
+    applyAtomicity: 'per-space',
+    markerLocation: MARKER_TABLE_NAME,
     createPlanner() {
       throw mysqlNotYetSupported('Planning migrations');
     },

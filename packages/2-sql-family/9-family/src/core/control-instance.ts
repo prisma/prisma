@@ -644,14 +644,14 @@ export function createSqlFamilyInstance<TTargetId extends string>(
       return [];
     }
     const controlAdapter = getControlAdapter();
+    for (const query of controlAdapter.bootstrapSignMarkerQueries()) {
+      const lowered = await controlAdapter.lowerToExecuteRequest(query, {
+        contract: first.contract,
+      });
+      await driver.query(lowered.sql, lowered.params);
+    }
     return controlAdapter.withTransaction(driver, async () => {
       await controlAdapter.lockMarker(driver);
-      for (const query of controlAdapter.bootstrapSignMarkerQueries()) {
-        const lowered = await controlAdapter.lowerToExecuteRequest(query, {
-          contract: first.contract,
-        });
-        await driver.query(lowered.sql, lowered.params);
-      }
       const signatures: SpaceSignature[] = [];
       for (const space of spaces) {
         signatures.push(await signSpaceMarker(controlAdapter, driver, space));

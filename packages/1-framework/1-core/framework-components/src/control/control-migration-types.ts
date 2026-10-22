@@ -394,8 +394,7 @@ export interface MigrationRunnerFailure extends StructuredError {
 /** The facts of a failed migration run. Each fact appears once. */
 export interface MigrationRunnerFailureMeta {
   /**
-   * Identifier of the space whose plan caused the rollback when
-   * {@link MigrationRunner.execute} processes multiple spaces.
+   * The space whose plan failed when {@link MigrationRunner.execute} processes multiple spaces.
    */
   readonly failingSpace?: string;
   /**
@@ -773,9 +772,8 @@ export interface MigrationRunner<
    * at the load boundary. Runners do not re-verify plans and assume the
    * `(metadata, ops)` pairs on disk have not been tampered with since emit.
    *
-   * Atomicity semantics differ by family: SQL targets open one outer
-   * transaction across every space; Mongo iterates per-space without an
-   * outer transaction and relies on per-space verify-gated marker atomicity.
+   * Whether a failure rolls back the spaces applied before it is the target's
+   * {@link TargetMigrationsCapability.applyAtomicity}.
    */
   execute(options: {
     readonly driver: ControlDriverInstance<TFamilyId, TTargetId>;
@@ -786,6 +784,9 @@ export interface MigrationRunner<
 // ============================================================================
 // Target Migrations Capability
 // ============================================================================
+
+/** Whether a failed apply rolls back every space or only stops at the failing one; see {@link TargetMigrationsCapability.applyAtomicity}. */
+export type MigrationApplyAtomicity = 'all-spaces' | 'per-space';
 
 /**
  * Optional capability interface for targets that support migrations.
@@ -803,6 +804,14 @@ export interface TargetMigrationsCapability<
     unknown
   >,
 > {
+  /**
+   * What a failed apply leaves behind. `'all-spaces'`: the failure rolls back every space the apply
+   * changed. `'per-space'`: each space is applied and its marker written on its own, so the spaces
+   * applied before the failing one stay applied, and running the apply again finishes the rest.
+   */
+  readonly applyAtomicity: MigrationApplyAtomicity;
+  /** Where the database keeps the contract markers, as messages name it to the user, such as `prisma_contract.marker`. */
+  readonly markerLocation: string;
   createPlanner(
     adapter: ControlAdapterInstance<TFamilyId, TTargetId>,
   ): MigrationPlanner<TFamilyId, TTargetId>;

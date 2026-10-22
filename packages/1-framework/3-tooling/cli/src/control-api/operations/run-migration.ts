@@ -4,14 +4,16 @@
  */
 
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
-import type {
-  ControlDriverInstance,
-  ControlFamilyInstance,
-  FailedTypeChange,
-  MigrationOperationPolicy,
-  MigrationRunnerFailure,
-  MigrationSubject,
-  TargetMigrationsCapability,
+import {
+  type ControlDriverInstance,
+  type ControlFamilyInstance,
+  type FailedTypeChange,
+  type MigrationApplyAtomicity,
+  type MigrationOperationPolicy,
+  type MigrationRunnerFailure,
+  type MigrationSubject,
+  migrationRunnerFailure,
+  type TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 import type {
   AggregateMigrationEdgeRef,
@@ -183,17 +185,49 @@ export interface RunMigrationValue {
 
 export type RunMigrationResult = Result<RunMigrationValue, MigrationRunnerFailure>;
 
+const RERUN_COMMAND: Record<RunAction, string> = {
+  dbInit: 'db init',
+  dbUpdate: 'db update',
+  migrate: 'db migrate',
+};
+
+/**
+ * The runner's failure as the CLI reports it. When the target applies each space on its own and the
+ * failed apply changed the database, the headline names the space it stopped at and says that the
+ * spaces before it stay applied; the runner's own message moves into the why.
+ */
+export function reportedRunnerFailure(
+  failure: MigrationRunnerFailure,
+  applyAtomicity: MigrationApplyAtomicity,
+  action: RunAction,
+): MigrationRunnerFailure {
+  const { failingSpace, databaseUnchanged } = failure.meta;
+  if (applyAtomicity !== 'per-space' || failingSpace === undefined || databaseUnchanged !== false) {
+    return failure;
+  }
+  const runnerMessage = failure.message.replace(/[.!?]?$/, '.');
+  return migrationRunnerFailure(
+    failure.code,
+    `Migration failed in space "${failingSpace}". Spaces applied before it stay applied; run ${RERUN_COMMAND[action]} again to finish.`,
+    {
+      why: failure.why === undefined ? runnerMessage : `${runnerMessage} ${failure.why}`,
+      meta: failure.meta,
+      cause: failure,
+    },
+  );
+}
+
 /**
  * Runner-driving tail shared by every run caller — `db init`,
  * `db update`, and `migrate`. Consumes already-resolved per-space
  * plans (the planner-vs-replay distinction is owned by the caller) and
  * dispatches them to the runner in canonical order.
  *
- * Marker advancement is part of the runner's per-space transaction
- * (the SQL family runner writes the marker as the last step of each
- * space's transaction), so this primitive does not advance markers
- * separately — by the time `execute` returns ok, every
- * space's marker has been advanced to its plan's destination.
+ * The runner writes each space's marker as the last step of applying that
+ * space, so this primitive does not advance markers separately — by the time
+ * `execute` returns ok, every space's marker has been advanced to its plan's
+ * destination. What a failure leaves behind is the target's
+ * `applyAtomicity`, which {@link reportedRunnerFailure} reports.
  *
  * Span emission (`spanStart 'apply'` / `spanEnd 'apply'`) is owned here
  * so callers don't have to duplicate it; the `action` field on each
@@ -245,7 +279,7 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
 
   if (!runnerResult.ok) {
     onProgress?.({ action, kind: 'spanEnd', spanId: RUN_SPAN_ID, outcome: 'error' });
-    return notOk(runnerResult.failure);
+    return notOk(reportedRunnerFailure(runnerResult.failure, migrations.applyAtomicity, action));
   }
   onProgress?.({ action, kind: 'spanEnd', spanId: RUN_SPAN_ID, outcome: 'ok' });
 
@@ -276,7 +310,7 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
  *
  * `includeMarkers` is `true` for apply-mode (each space's marker is
  * the `destination.storageHash` of its plan, which the runner
- * advances as the last step of each space's transaction) and `false`
+ * advances as the last step of applying each space) and `false`
  * for plan-mode (no marker has been written yet).
  *
  * Exported alongside {@link runMigration} so plan-mode callers can

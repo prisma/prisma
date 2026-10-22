@@ -20,14 +20,17 @@ const EXT_HASH = 'e'.repeat(64);
  */
 function createMarkerStore(
   initial: Record<string, StoredMarker>,
-  options: { readonly casLosesOn?: string } = {},
+  options: { readonly casLosesOn?: string; readonly bootstrapSql?: string } = {},
 ) {
   let markers = new Map(Object.entries(initial));
   const events: string[] = [];
   const adapter = {
     familyId: 'sql',
     targetId: 'postgres',
-    bootstrapSignMarkerQueries: () => [],
+    bootstrapSignMarkerQueries: () => (options.bootstrapSql === undefined ? [] : [{}]),
+    async lowerToExecuteRequest() {
+      return { sql: options.bootstrapSql, params: [] };
+    },
     async withTransaction<T>(_driver: unknown, fn: () => Promise<T>): Promise<T> {
       const snapshot = new Map(markers);
       events.push('BEGIN');
@@ -87,6 +90,12 @@ function createMarkerStore(
       }),
     ),
     events,
+    driver: {
+      async query(sql: string) {
+        events.push(sql);
+        return { rows: [] };
+      },
+    } as unknown as SqlControlDriverInstance<string>,
     markers: () => Object.fromEntries(markers),
   };
 }
@@ -263,6 +272,23 @@ describe('sql family signSpaces', () => {
     expect(store.markers()).toEqual({
       [APP_SPACE_ID]: { storageHash: 'written-by-migrate', profileHash: 'migrate-profile' },
     });
+  });
+
+  it('creates the marker table before the transaction that locks and writes markers', async () => {
+    const store = createMarkerStore({}, { bootstrapSql: 'CREATE TABLE IF NOT EXISTS marker' });
+
+    await store.instance.signSpaces({
+      driver: store.driver,
+      spaces: [{ space: APP_SPACE_ID, contract: appContract, expected: null }],
+    });
+
+    expect(store.events).toEqual([
+      'CREATE TABLE IF NOT EXISTS marker',
+      'BEGIN',
+      'lock',
+      'insert app',
+      'COMMIT',
+    ]);
   });
 
   it('opens no transaction when there is no space to sign', async () => {

@@ -76,6 +76,8 @@ describe('planFromDiff', () => {
       'postgres',
       ControlFamilyInstance<'sql', unknown>
     > = {
+      applyAtomicity: 'all-spaces',
+      markerLocation: 'prisma_contract.marker',
       createPlanner: () => stubPlanner,
       createRunner: () => {
         throw new Error('runner not used');
@@ -177,6 +179,8 @@ describe('planFromDiff', () => {
       schemaIntrospection: { tables: {} },
       adapter: STUB_ADAPTER,
       migrations: {
+        applyAtomicity: 'all-spaces',
+        markerLocation: 'prisma_contract.marker',
         createPlanner: () => stubPlanner,
         createRunner: () => {
           throw new Error('runner not used');
@@ -208,6 +212,8 @@ describe('planFromDiff', () => {
       'postgres',
       ControlFamilyInstance<'sql', unknown>
     > = {
+      applyAtomicity: 'all-spaces',
+      markerLocation: 'prisma_contract.marker',
       createPlanner: () => stubPlanner,
       createRunner: () => {
         throw new Error('runner not used');
@@ -257,6 +263,8 @@ describe('planFromDiff', () => {
       schemaIntrospection: { tables: {} },
       adapter: STUB_ADAPTER,
       migrations: {
+        applyAtomicity: 'all-spaces',
+        markerLocation: 'prisma_contract.marker',
         createPlanner: () => stubPlanner,
         createRunner: () => {
           throw new Error('runner not used');

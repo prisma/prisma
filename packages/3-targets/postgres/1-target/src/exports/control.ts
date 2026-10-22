@@ -45,6 +45,8 @@ function createPostgresTargetDescriptor(): SqlControlTargetDescriptor<
     classifySubjectGranularity: postgresDiffSubjectGranularity,
     classifyEntityKind: postgresDiffSubjectEntityKind,
     migrations: {
+      applyAtomicity: 'all-spaces',
+      markerLocation: 'prisma_contract.marker',
       createPlanner(adapter: SqlControlAdapter<'postgres'>) {
         return createPostgresMigrationPlanner(adapter);
       },

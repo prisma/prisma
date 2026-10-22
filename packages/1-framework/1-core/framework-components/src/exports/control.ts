@@ -49,6 +49,7 @@ export type {
   FailedCheck,
   FailedConversion,
   FailedTypeChange,
+  MigrationApplyAtomicity,
   MigrationMetadata,
   MigrationOperationClass,
   MigrationOperationPolicy,
