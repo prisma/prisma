@@ -22,10 +22,11 @@ function patternsOf(audience: string, id: string): readonly RegExp[] {
   );
 }
 
+const example = (path: string) => readFileSync(join(repoRoot, 'examples', path), 'utf-8');
 const postgresContract = (body: string) =>
-  `import { defineContract, field } from '@prisma/orm-postgres/contract-builder';\n${body}\n`;
+  `${example('bundle-size/src/postgres/contract.ts')}\n${body}\n`;
 const mongoContract = (body: string) =>
-  `import { defineContract, field } from '@prisma/orm-mongo/contract-builder';\n${body}\n`;
+  `${example('bundle-size/src/mongo/contract.ts')}\n${body}\n`;
 
 describe.each([
   ['app', 'ts-field-presets-removed'],
