@@ -40,4 +40,18 @@ describe('the Prisma 6 reader on the contract builder', () => {
       },
     ]);
   });
+
+  it('reports a relation on a refused field once, at the field', async () => {
+    const result = await loadPrisma6Schema(
+      join(casesDir, 'relation-on-rejected-field', 'schema.prisma'),
+    );
+    if (result.ok) throw new Error('Expected the schema to be refused');
+
+    expect(
+      result.failure.diagnostics.map(({ code, span }) => ({ code, line: span?.start.line })),
+    ).toEqual([
+      { code: 'PSL.PRISMA6_MONGO_UPDATED_AT_TYPE_UNSUPPORTED', line: 7 },
+      { code: 'PSL.PRISMA6_MONGO_UPDATED_AT_TYPE_UNSUPPORTED', line: 14 },
+    ]);
+  });
 });

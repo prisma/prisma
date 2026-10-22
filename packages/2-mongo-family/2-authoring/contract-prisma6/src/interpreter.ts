@@ -1427,6 +1427,13 @@ function readRelationFields(
       reject();
       continue;
     }
+    if (
+      localNames.some((name) => build.rejectedFields.has(name)) ||
+      targetNames.some((name) => target.rejectedFields.has(name))
+    ) {
+      reject();
+      continue;
+    }
     const localFields = localNames.map((name) => build.storedNames.get(name));
     const targetFields = targetNames.map((name) => target.storedNames.get(name));
     if (
