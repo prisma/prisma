@@ -78,6 +78,15 @@ The `returning` capability splits by statement (insert, update, delete), because
 
 **Open in the build.** The marker lock: MySQL's `GET_LOCK` holds per session, not per transaction, so `lockMarker` needs a release.
 
+## 6. Decided while shaping slice 2 (2026-10-22)
+
+These were decided by the orchestrator from the slice 2 research, under Will's instruction to settle representation details without escalating.
+
+- **A PSL enum on MySQL is a native `enum('A','B')` column type.** The database enforces membership, which is Will's rule of 2026-09-29 ("Prisma 8 adds the membership constraint to the database"). It is what MySQL users and Prisma 7 already have, introspection reads it from `COLUMN_TYPE`, and member drift shows up as column type drift. It reuses the column's value-set slot and the target's column-type hook, so no shared concept is added. Rejected: `varchar` with a derived CHECK (works, but no MySQL user would recognise it, and Prisma 7 schemas could not be adopted without a change); `varchar` with no enforcement, as SQLite does (loses the invariant that ADR 244 protects); a named enum entity (MySQL has no `CREATE TYPE`).
+- **`String` maps to `varchar(191)`.** MySQL needs a key length to index a `TEXT` column, so a `@unique String` on `text` fails. 191 characters is what Prisma 7 uses, so adopted databases keep their columns.
+- **No namespaces on MySQL in this project.** The target reports `supportsNamespaces: false` and the unbound default namespace, as SQLite does. Mapping namespaces to MySQL databases is later work.
+- **Slice 2 splits in two.** The research sized it at 10–13k lines. 2a: target, codecs, driver, facade, emit, introspection, CI. 2b: planner, runner, verify, sign, atomicity.
+
 ## Settled by testing in the proof of concept
 
 These are SQL-shape details the slices decide against a live server, and record here.

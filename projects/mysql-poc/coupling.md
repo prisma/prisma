@@ -30,3 +30,5 @@ Each place where shared code assumes Postgres or SQLite in a way MySQL or MariaD
 | 20 | `sql-contract-prisma7/src/target-binding.ts` `nativeEnum` | A native enum is a named entity (Postgres `CREATE TYPE`) | MySQL `ENUM` is a column type | No: Prisma 7 reader is out of scope | Open |
 | 21 | CLI `init` (`commands/init/templates/`, `orm/init-inputs.ts`, `orm/init.ts`) | Only Postgres and Mongo exist | A target list from the targets | No | Open |
 | 22 | CLI `db-run.ts`, `migration-tools/src/verify-contract-spaces.ts` messages | The marker table has Postgres's or SQLite's name | Names from the target | No | Open |
+| 23 | `sql-contract-emitter/src/index.ts` `namespaceSerializedKind` | Every namespace of kind schema is emitted as `"postgres-schema"` or `"postgres-unbound-schema"` | The target supplies the literal | Unknown: changes emitted types | Open |
+| 24 | `sql-contract/src/index-naming.ts` | Authored SQL text is compared against Postgres's reprinted form | Compare against the target's reprint | No | Open |
