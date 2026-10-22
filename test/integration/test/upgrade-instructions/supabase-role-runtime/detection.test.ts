@@ -58,10 +58,7 @@ describe.each(['app', 'extension'] as const)('the %s guide', (audience) => {
       ['RoleBoundDb', 'const user: RoleBoundDb<Contract> = fakeUser();'],
       ['ServiceRoleDb', 'let admin: ServiceRoleDb<Contract>;'],
       ['SupabaseTransactionContext', '(tx: SupabaseTransactionContext<Contract>) => tx.orm'],
-      [
-        'SupabaseRuntime',
-        "import type { SupabaseRuntime } from '@prisma/orm-extension-supabase/runtime';",
-      ],
+      ['SupabaseRuntime', 'function fakeRuntime(): SupabaseRuntime {'],
     ])('finds %s', (_name, content) => {
       expect(detects(audience, id, content)).toBe(true);
     });
