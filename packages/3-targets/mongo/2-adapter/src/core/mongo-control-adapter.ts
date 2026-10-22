@@ -4,7 +4,7 @@ import type {
   MongoControlAdapter,
   MongoRunnerDependencies,
 } from '@internal/family-mongo/control-adapter';
-import type { ControlDriverInstance } from '@internal/framework-components/control';
+import { APP_SPACE_ID, type ControlDriverInstance } from '@internal/framework-components/control';
 import { ledgerOriginFromStored } from '@internal/migration-tools/ledger-origin';
 import type { MongoAdapter, MongoDriver } from '@internal/mongo-lowering';
 import type { AnyMongoDdlCommand } from '@internal/mongo-query-ast/control';
@@ -128,7 +128,7 @@ export class MongoControlAdapterImpl implements MongoControlAdapter<'mongo'> {
   async readAllMarkers(
     driver: ControlDriverInstance<'mongo', 'mongo'>,
   ): Promise<ReadonlyMap<string, ContractMarkerRecord>> {
-    const markerContext = { space: 'app', markerLocation: MONGO_MARKER_COLLECTION };
+    const markerContext = { space: APP_SPACE_ID, markerLocation: MONGO_MARKER_COLLECTION };
     const docs = await withMarkerReadErrorHandling(
       () =>
         this.#execute(
