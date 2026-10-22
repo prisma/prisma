@@ -33,15 +33,13 @@ describe('a read of a field helper the MongoDB builder does not have', () => {
     });
   });
 
-  it.each(['text', 'temporal.now'])(
-    'refuses field.%s, naming the forms that replace presets',
-    (path) => {
-      expect(refusalOf(path)).toMatchObject({
-        code: 'CONTRACT.FIELD_HELPER_UNKNOWN',
-        message: `field.${path} does not exist. Prisma 8 removed field presets: declare a field with a codec helper such as field.date() or field.scalar(codecId), and add .onCreate(gen.fn()) and .onUpdate(gen.fn()) for what a preset set. ${GUIDE}`,
-      });
-    },
-  );
+  it('reads every name that was never a preset as on the helpers', () => {
+    expect(
+      ['length', 'name', 'default', 'text', 'temporal.now', 'temporal.length'].map((path) =>
+        readPath(field, path),
+      ),
+    ).toEqual([undefined, undefined, undefined, undefined, undefined, undefined]);
+  });
 
   it('refuses the read in a defineContract callback', () => {
     expect(() =>

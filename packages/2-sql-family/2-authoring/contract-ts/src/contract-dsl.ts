@@ -31,7 +31,6 @@ import type { NamedConstraintSpec } from './authoring-type-utils';
 import type { AuthoredColumnDefault, CapabilityContributor } from './contract-definition';
 import { contractError } from './contract-errors';
 import type { EnumTypeHandle } from './enum-type';
-import { refusingRemovedFieldPresets } from './removed-field-presets';
 
 export type NamingStrategy = 'identity' | 'snake_case';
 
@@ -2565,10 +2564,10 @@ export const rel = {
   manyToMany,
 };
 
-export const field = refusingRemovedFieldPresets({
+export const field = {
   column: columnField,
   namedType: namedTypeField,
-});
+};
 
 export function isContractInput(value: unknown): value is ContractInput {
   if (typeof value !== 'object' || value === null || !('target' in value) || !('family' in value)) {

@@ -54,6 +54,7 @@ import type {
   MergeExtensionCodecTypesSafe,
   MergeExtensionIndexTypes,
 } from './contract-types';
+import { refusingRemovedFieldPresets } from './removed-field-presets';
 
 type ExtractTypeNamespaceFromPack<Pack> = ExtractAuthoringNamespaceFromPack<
   Pack,
@@ -311,7 +312,7 @@ export function createComposedAuthoringHelpers<
         dataTypes: support,
       },
     }),
-    field,
+    field: refusingRemovedFieldPresets(field, typeNamespace),
     model,
     rel,
     type: createTypeHelpersFromNamespace(typeNamespace, helperLookups),

@@ -1,78 +1,137 @@
 import { answerMissingPropertyReads } from '@internal/contract-authoring';
+import {
+  type AuthoringTypeNamespace,
+  isAuthoringTypeAliasDescriptor,
+  isAuthoringTypeDescriptor,
+} from '@internal/framework-components/authoring';
 import { contractError } from './contract-errors';
 
 const GUIDE = 'The upgrade guide "Field presets are removed" lists every rewrite.';
 
+const CHARACTER_CODEC_ID = 'sql/char@1';
+
+/** A removed field preset: its rewrite, named only where the type the rewrite writes resolves, and to `codecId` when one is given, so a row does not fire on a target the preset never existed on. */
+interface RemovedFieldPreset {
+  readonly type: readonly string[];
+  readonly codecId: string | undefined;
+  readonly rewrite: string;
+}
+
+/** A preset whose rewrite is `rewrite`; its type is the first `type.X(` that `rewrite` writes. */
+function writtenAs(rewrite: string, codecId?: string): RemovedFieldPreset {
+  const type = /type\.([\w.]+)\(/.exec(rewrite)?.[1] ?? '';
+  return { type: type.split('.'), codecId, rewrite };
+}
+
 const char = (length: number | 'n') => `field.column(type.sql.Char(${length}))`;
 const id = (column: string, generator: string) => `${column}.id().onCreate(gen.${generator})`;
-const withPhases = (type: string, precision: boolean) =>
-  `field.column(type.${type}(${precision ? 'p' : ''})), with .onCreate(gen.now()) and .onUpdate(gen.now()) for the phases the preset set${precision ? ', and without p when it set no precision' : ''}`;
+const withPhases = (type: string, codecId: string, precision: boolean) =>
+  writtenAs(
+    `field.column(type.${type}(${precision ? 'p' : ''})), with .onCreate(gen.now()) and .onUpdate(gen.now()) for the phases the preset set${precision ? ', and without p when it set no precision' : ''}`,
+    codecId,
+  );
 
-const REWRITES: Readonly<Record<string, string>> = {
-  uuidString: char(36),
-  ulid: char(26),
-  nanoid: `${char(21)}, or ${char('n')} for nanoid({ size: n })`,
-  cuid2: char(24),
-  ksuid: char(27),
-  text: 'field.column(type.String())',
-  int: 'field.column(type.Int())',
-  bigint: 'field.column(type.BigInt())',
-  float: 'field.column(type.Float())',
-  decimal: 'field.column(type.Decimal())',
-  boolean: 'field.column(type.Boolean())',
-  json: 'field.column(type.Jsonb())',
-  bytes: 'field.column(type.Bytes())',
-  dateTime: 'field.column(type.DateTime())',
-  uuidNative: 'field.column(type.Uuid())',
-  generated: `field.column(type.sql.Char(n)).onCreate(gen.fn()), such as ${char(36)}.onCreate(gen.uuid()) for field.generated(uuidv4())`,
-  'id.uuidv4String': id(char(36), 'uuid()'),
-  'id.uuidv7String': id(char(36), 'uuid(7)'),
-  'id.ulid': id(char(26), 'ulid()'),
-  'id.nanoid': `${id(char(21), 'nanoid()')}, or ${id(char('n'), 'nanoid(n)')} for id.nanoid({ size: n })`,
-  'id.cuid2': id(char(24), 'cuid(2)'),
-  'id.ksuid': id(char(27), 'ksuid()'),
-  'id.uuidv4Native': id('field.column(type.Uuid())', 'uuid()'),
-  'id.uuidv7Native': id('field.column(type.Uuid())', 'uuid(7)'),
-  'temporal.createdAt': 'field.column(type.temporal.CreatedAt())',
-  'temporal.updatedAt': 'field.column(type.temporal.UpdatedAt())',
-  'temporal.createdAtString': 'field.column(type.temporal.CreatedAtString())',
-  'temporal.updatedAtString': 'field.column(type.temporal.UpdatedAtString())',
-  'temporal.createdAtJsDate': 'field.column(type.temporal.CreatedAtJsDate())',
-  'temporal.updatedAtJsDate': 'field.column(type.temporal.UpdatedAtJsDate())',
-  'temporal.timestamp': withPhases('Timestamp', true),
-  'temporal.timestamptz': withPhases('Timestamptz', true),
-  'temporal.timestampString': withPhases('TimestampString', true),
-  'temporal.timestamptzString': withPhases('TimestamptzString', true),
-  'temporal.timestamptzJsDate': withPhases('TimestamptzJsDate', true),
-  'temporal.date': withPhases('Date', false),
-  'temporal.dateString': withPhases('DateString', false),
-  'temporal.time': withPhases('Time', true),
-  'temporal.timeString': withPhases('TimeString', true),
-  'temporal.timetz': withPhases('Timetz', true),
-  'temporal.datetime': withPhases('DateTime', false),
+const PRESETS: Readonly<Record<string, RemovedFieldPreset>> = {
+  uuidString: writtenAs(char(36), CHARACTER_CODEC_ID),
+  ulid: writtenAs(char(26), CHARACTER_CODEC_ID),
+  nanoid: writtenAs(`${char(21)}, or ${char('n')} for nanoid({ size: n })`, CHARACTER_CODEC_ID),
+  cuid2: writtenAs(char(24), CHARACTER_CODEC_ID),
+  ksuid: writtenAs(char(27), CHARACTER_CODEC_ID),
+  text: writtenAs('field.column(type.String())', 'pg/text@1'),
+  int: writtenAs('field.column(type.Int())', 'pg/int4@1'),
+  bigint: writtenAs('field.column(type.BigInt())', 'pg/int8@1'),
+  float: writtenAs('field.column(type.Float())', 'pg/float8@1'),
+  decimal: writtenAs('field.column(type.Decimal())', 'pg/numeric@1'),
+  boolean: writtenAs('field.column(type.Boolean())', 'pg/bool@1'),
+  json: writtenAs('field.column(type.Jsonb())', 'pg/jsonb@1'),
+  bytes: writtenAs('field.column(type.Bytes())', 'pg/bytea@1'),
+  dateTime: writtenAs('field.column(type.DateTime())', 'pg/timestamptz-temporal@1'),
+  uuidNative: writtenAs('field.column(type.Uuid())', 'pg/uuid@1'),
+  generated: writtenAs(
+    `${char('n')}.onCreate(gen.fn()), such as ${char(36)}.onCreate(gen.uuid()) for field.generated(uuidv4())`,
+    CHARACTER_CODEC_ID,
+  ),
+  'id.uuidv4String': writtenAs(id(char(36), 'uuid()'), CHARACTER_CODEC_ID),
+  'id.uuidv7String': writtenAs(id(char(36), 'uuid(7)'), CHARACTER_CODEC_ID),
+  'id.ulid': writtenAs(id(char(26), 'ulid()'), CHARACTER_CODEC_ID),
+  'id.nanoid': writtenAs(
+    `${id(char(21), 'nanoid()')}, or ${id(char('n'), 'nanoid(n)')} for id.nanoid({ size: n })`,
+    CHARACTER_CODEC_ID,
+  ),
+  'id.cuid2': writtenAs(id(char(24), 'cuid(2)'), CHARACTER_CODEC_ID),
+  'id.ksuid': writtenAs(id(char(27), 'ksuid()'), CHARACTER_CODEC_ID),
+  'id.uuidv4Native': writtenAs(id('field.column(type.Uuid())', 'uuid()'), 'pg/uuid@1'),
+  'id.uuidv7Native': writtenAs(id('field.column(type.Uuid())', 'uuid(7)'), 'pg/uuid@1'),
+  'temporal.createdAt': writtenAs('field.column(type.temporal.CreatedAt())'),
+  'temporal.updatedAt': writtenAs('field.column(type.temporal.UpdatedAt())'),
+  'temporal.createdAtString': writtenAs('field.column(type.temporal.CreatedAtString())'),
+  'temporal.updatedAtString': writtenAs('field.column(type.temporal.UpdatedAtString())'),
+  'temporal.createdAtJsDate': writtenAs('field.column(type.temporal.CreatedAtJsDate())'),
+  'temporal.updatedAtJsDate': writtenAs('field.column(type.temporal.UpdatedAtJsDate())'),
+  'temporal.timestamp': withPhases('Timestamp', 'pg/timestamp-temporal@1', true),
+  'temporal.timestamptz': withPhases('Timestamptz', 'pg/timestamptz-temporal@1', true),
+  'temporal.timestampString': withPhases('TimestampString', 'pg/timestamp-string@1', true),
+  'temporal.timestamptzString': withPhases('TimestamptzString', 'pg/timestamptz-string@1', true),
+  'temporal.timestamptzJsDate': withPhases('TimestamptzJsDate', 'pg/timestamptz-date@1', true),
+  'temporal.date': withPhases('Date', 'pg/date-temporal@1', false),
+  'temporal.dateString': withPhases('DateString', 'pg/date-string@1', false),
+  'temporal.time': withPhases('Time', 'pg/time-temporal@1', true),
+  'temporal.timeString': withPhases('TimeString', 'pg/time-string@1', true),
+  'temporal.timetz': withPhases('Timetz', 'pg/timetz@1', true),
+  'temporal.datetime': withPhases('DateTime', 'sqlite/datetime@1', false),
 };
 
-const NAMESPACES = new Set(['id', 'temporal']);
+function codecIdAt(types: AuthoringTypeNamespace, path: readonly string[]): string | undefined {
+  const [name, ...rest] = path;
+  if (name === undefined || !Object.hasOwn(types, name)) return undefined;
+  const value = types[name];
+  if (value === undefined) return undefined;
+  if (!isAuthoringTypeDescriptor(value)) return codecIdAt(value, rest);
+  if (rest.length > 0) return undefined;
+  return isAuthoringTypeAliasDescriptor(value) ? value.output.type.codecId : value.output.codecId;
+}
 
-function refuse(path: string): never {
+function appliesTo(preset: RemovedFieldPreset, types: AuthoringTypeNamespace): boolean {
+  const codecId = codecIdAt(types, preset.type);
+  return codecId !== undefined && (preset.codecId === undefined || codecId === preset.codecId);
+}
+
+function refuse(path: string, types: AuthoringTypeNamespace): never {
   const helper = `field.${path}`;
-  const rewrite = Object.hasOwn(REWRITES, path) ? REWRITES[path] : undefined;
+  const preset = Object.hasOwn(PRESETS, path) ? PRESETS[path] : undefined;
   throw contractError(
     'CONTRACT.FIELD_HELPER_UNKNOWN',
-    rewrite === undefined
-      ? `${helper} does not exist. Prisma 8 removed field presets: declare a column as field.column(type.X(...)), add .id(), .onCreate(gen.fn()) and .onUpdate(gen.fn()) for what a preset set, or use a type alias such as field.column(type.temporal.CreatedAt()). ${GUIDE}`
-      : `${helper} was a field preset, and Prisma 8 removed field presets. Write ${rewrite}. ${GUIDE}`,
+    preset !== undefined && appliesTo(preset, types)
+      ? `${helper} was a field preset, and Prisma 8 removed field presets. Write ${preset.rewrite}. ${GUIDE}`
+      : `${helper} does not exist. Prisma 8 removed field presets: declare a column as field.column(type.X(...)), add .id(), .onCreate(gen.fn()) and .onUpdate(gen.fn()) for what a preset set, or use a type alias such as field.column(type.temporal.CreatedAt()). ${GUIDE}`,
     { meta: { helper } },
   );
 }
 
+function membersOf(namespace: string): ReadonlySet<string> {
+  return new Set(
+    Object.keys(PRESETS)
+      .filter((path) => path.startsWith(`${namespace}.`))
+      .map((path) => path.slice(namespace.length + 1)),
+  );
+}
+
+const NAMES: ReadonlySet<string> = new Set(
+  Object.keys(PRESETS).map((path) => path.split('.')[0] ?? path),
+);
+
 /**
- * The SQL `field` helpers, where a read of a helper they do not have throws `CONTRACT.FIELD_HELPER_UNKNOWN`. A JavaScript caller, or a contract emitted before it is type-checked, that still calls a removed field preset learns its rewrite; `field.id` and `field.temporal`, which held presets, give the rewrite of the preset read from them.
+ * The SQL `field` helpers, where a read of a removed field preset throws `CONTRACT.FIELD_HELPER_UNKNOWN`, so a JavaScript caller, or a contract emitted before it is type-checked, learns what to write instead. The rewrite is named where `types`, the stack's `type` namespace, has the type it writes and that type stores the preset's codec; elsewhere the message names the forms that replace presets. `field.id` and `field.temporal`, which held presets, answer the same way for the presets read from them. Every other read behaves as on `helpers`.
  */
-export function refusingRemovedFieldPresets<Helpers extends object>(helpers: Helpers): Helpers {
-  return answerMissingPropertyReads(helpers, (name) =>
-    NAMESPACES.has(name)
-      ? answerMissingPropertyReads({}, (member) => refuse(`${name}.${member}`))
-      : refuse(name),
+export function refusingRemovedFieldPresets<Helpers extends object>(
+  helpers: Helpers,
+  types: AuthoringTypeNamespace,
+): Helpers {
+  return answerMissingPropertyReads(helpers, NAMES, (name) =>
+    Object.hasOwn(PRESETS, name)
+      ? refuse(name, types)
+      : answerMissingPropertyReads({}, membersOf(name), (member) =>
+          refuse(`${name}.${member}`, types),
+        ),
   );
 }
