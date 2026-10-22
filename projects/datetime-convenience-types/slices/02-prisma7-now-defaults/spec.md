@@ -24,11 +24,11 @@ Prisma 7 filled `@default(now())` on the client and also wrote the database defa
 
 - The Prisma 7 reader (`packages/2-sql/2-authoring/contract-prisma7`) lowers `@default(now())` on a date or time field to both the database default and an `onCreate` generator, through the generator function registry, exactly as Prisma 8 PSL's `@default(now()) @onCreate(now())` lowers. It resolves the generator by the field's codec, so it is correct for whatever codec the reader picks today and after slice 5 changes it.
 - `@default(now())` together with `@updatedAt` keeps the database default and both generators.
-- The storage hash does not change (the column and its default are the same); the execution hash does, because the contract gains a generator. Adopted projects re-emit and run `db sign`; the upgrade instruction says so.
+- The storage hash does not change (the column and its default are the same); the execution hash does, because the contract gains a generator. Adopted projects re-emit and commit the contract; there is no migration and no `db sign`, because the database marker records only the storage and profile hashes.
 
 ## Scope
 
-**In:** the Prisma 7 reader's default lowering, its tests, the Prisma 7 adoption journey test and `examples/prisma7-adoption` if its contract changes, the `contract-prisma7` README, an `app` upgrade instruction.
+**In:** the Prisma 7 reader's default lowering, its tests, the Prisma 7 adoption journey test and `examples/prisma7-adoption` if its contract changes, the `contract-prisma7` README, an `app` upgrade instruction, and an empty `extension` declaration for the Postgres README edit.
 
 **Out:** any change to which codec the reader picks (slice 5); `contract infer`, which reads a database and cannot know the default came from Prisma 7.
 
