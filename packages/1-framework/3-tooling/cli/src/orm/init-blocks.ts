@@ -1,5 +1,4 @@
 import type { Block, Presentations, TreeNode } from '@prisma/cli-engine';
-import { noDataLines } from '@prisma/cli-engine';
 import type { NextAction } from '@prisma/cli-engine/protocol';
 import {
   DB_SIGN_STEP,
@@ -107,10 +106,6 @@ export function buildInitNextActions(inputs: {
 const DONE_TEXT = 'Done. Open prisma-8.md to get started.';
 const INCOMPLETE_TEXT = 'Scaffold written. Finish the steps above to complete setup.';
 
-/**
- * `init` writes files rather than data another program reads, so it supplies
- * no `stdout` payload: human mode writes nothing to stdout.
- */
 export function initPresentations(inputs: {
   readonly document: InitOutput;
   readonly complete: boolean;
@@ -118,7 +113,7 @@ export function initPresentations(inputs: {
 }): Presentations {
   const { document } = inputs;
   return {
-    stdout: noDataLines('Scaffolding a project has no data; --json lists the files it wrote.'),
+    stdout: () => document.filesWritten,
     human: (): readonly Block[] => [
       {
         kind: 'fields',

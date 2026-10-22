@@ -328,8 +328,24 @@ describe('init prompts', () => {
         });
         expect(blocks.some((block) => block.kind === 'tree')).toBe(true);
         expect(blocks.at(-1)).toMatchObject({ kind: 'summary', status: 'ok' });
-        expect(run.presented?.presentation.stdout).toEqual([]);
         expect(run.presented?.presentation.next.length).toBeGreaterThan(0);
+      },
+      timeouts.coldTransformImport,
+    );
+
+    it(
+      'prints each file it wrote, relative to the working directory, as a data line',
+      async () => {
+        const run = await harness().run(
+          ['orm', 'init', '--target', 'postgres', '--authoring', 'psl', ...NO_PACKAGE_WORK],
+          { cwd: projectDir },
+        );
+        const lines = run.stdout.trimEnd().split('\n');
+
+        expect(lines).toEqual(
+          expect.arrayContaining(['prisma.config.ts', 'src/prisma/contract.prisma']),
+        );
+        expect(run.presented?.data).toMatchObject({ filesWritten: lines });
       },
       timeouts.coldTransformImport,
     );
