@@ -3,11 +3,11 @@
 model Clock {
   id                 Int                  @id
   label              String
-  date               Date                 @onCreate(now()) @onUpdate(now())
+  date               DateTemporal                 @onCreate(now()) @onUpdate(now())
   dateString         DateString           @onCreate(now()) @onUpdate(now())
-  time0              Time(0)              @onCreate(now()) @onUpdate(now())
-  time3              Time(3)              @onCreate(now()) @onUpdate(now())
-  time6              Time(6)              @onCreate(now()) @onUpdate(now())
+  time0              TimeTemporal(0)              @onCreate(now()) @onUpdate(now())
+  time3              TimeTemporal(3)              @onCreate(now()) @onUpdate(now())
+  time6              TimeTemporal(6)              @onCreate(now()) @onUpdate(now())
   timeString0        TimeString(0)        @onCreate(now()) @onUpdate(now())
   timeString3        TimeString(3)        @onCreate(now()) @onUpdate(now())
   timeString6        TimeString(6)        @onCreate(now()) @onUpdate(now())

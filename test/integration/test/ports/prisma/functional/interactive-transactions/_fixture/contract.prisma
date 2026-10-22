@@ -32,7 +32,7 @@ model User {
 
 model Post {
   id        String   @id
-  createdAt DateTime @default(now())
+  createdAt TimestamptzTemporal @default(now())
   updatedAt temporal.updatedAt()
   published Boolean
   title     String
