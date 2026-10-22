@@ -128,7 +128,12 @@ describe('sqlFamilyEnumEntityDescriptor: explicit @@type bypasses inference, nev
       makeContext(diagnostics),
     );
 
-    expect(diagnostics).toEqual([expect.objectContaining({ code: 'PSL_EXTENSION_INVALID_VALUE' })]);
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+        message: 'enum "Priority" member "low": Expected a quoted string',
+      }),
+    ]);
     expect(handle).toBeUndefined();
   });
 

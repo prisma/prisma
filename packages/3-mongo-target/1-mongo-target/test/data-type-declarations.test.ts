@@ -58,16 +58,44 @@ describe('the Mongo data type declarations', () => {
   });
 
   it.each(registered.map((type) => [type.id, type] as const))(
-    '%s declares its BSON types and no casts',
+    '%s declares its BSON types',
     (id, type) => {
       expect(EXPECTED_BSON_TYPES).toHaveProperty([id]);
       expect(isMongoDataType(type) ? type.mongo.bsonTypes : undefined).toEqual(
         EXPECTED_BSON_TYPES[id],
       );
-      expect(Object.keys(type.casts)).toEqual([]);
-      expect(type.listCast).toBeUndefined();
     },
   );
+
+  it('declares these casts, each by the type that receives the value', () => {
+    expect(
+      Object.fromEntries(
+        registered.map((type) => [
+          type.id,
+          { casts: Object.keys(type.casts), listCast: type.listCast?.of },
+        ]),
+      ),
+    ).toEqual({
+      'mongo/objectid': { casts: ['mongo/string'], listCast: undefined },
+      'mongo/string': { casts: [], listCast: undefined },
+      'mongo/double': {
+        casts: ['mongo/int32', 'mongo/int64', 'mongo/decimal128'],
+        listCast: undefined,
+      },
+      'mongo/int32': { casts: [], listCast: undefined },
+      'mongo/bool': { casts: [], listCast: undefined },
+      'mongo/date': { casts: [], listCast: undefined },
+      'mongo/vector': {
+        casts: [],
+        listCast: ['mongo/int32', 'mongo/int64', 'mongo/decimal128', 'mongo/double'],
+      },
+      'mongo/int64': { casts: ['mongo/int32'], listCast: undefined },
+      'mongo/decimal128': { casts: ['mongo/int32', 'mongo/int64'], listCast: undefined },
+      'mongo/binary': { casts: [], listCast: undefined },
+      'mongo/json': { casts: [], listCast: undefined },
+      'mongo/bson': { casts: [], listCast: undefined },
+    });
+  });
 
   it('declares only BSON types a collection validator can name', () => {
     const unnamed = registered.flatMap((type) =>

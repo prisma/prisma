@@ -20,3 +20,14 @@ describe('mongo/vector reads an array of as many numbers as its length', () => {
     expect(mongoVector.fromContract([1, 2, 3, 4], {}).value).toEqual([1, 2, 3, 4]);
   });
 });
+
+describe('mongo/vector reads finite numbers only', () => {
+  it.each([Number.NaN, Number.POSITIVE_INFINITY])('refuses %s as an element', (element) => {
+    expect(() => mongoVector.valueFrom([1, element], {})).toThrow(
+      expect.objectContaining({
+        code: 'RUNTIME.DECODE_FAILED',
+        message: 'mongo/vector JSON value must be an array of finite numbers',
+      }),
+    );
+  });
+});

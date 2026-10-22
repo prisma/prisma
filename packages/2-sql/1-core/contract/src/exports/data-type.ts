@@ -1,4 +1,3 @@
-export { numeralText } from '../numeral-text';
 export type {
   ResolvedSqlType,
   SqlColumnTypeFields,

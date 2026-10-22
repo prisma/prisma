@@ -9,13 +9,13 @@
 
 import type { JsonValue } from '@internal/contract/types';
 import type { DataTypeAuthoringEntry } from '@internal/framework-components/authoring';
-import { canonicalizeJson } from '@internal/framework-components/utils';
-import { numeralText } from '@internal/sql-contract/data-type';
 import {
   createNumberClassifier,
+  numeralText,
   parseJsonText,
   signedRange,
-} from '@internal/sql-contract/data-type-support';
+} from '@internal/framework-components/codec';
+import { canonicalizeJson } from '@internal/framework-components/utils';
 import {
   sqliteBlob,
   sqliteBlobFromHexText,

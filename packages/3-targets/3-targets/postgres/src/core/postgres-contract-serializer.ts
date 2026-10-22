@@ -23,7 +23,7 @@ import type { Type } from 'arktype';
 import { postgresAuthoringEntityTypes } from './authoring';
 import { PG_INT_CODEC_ID, PG_TEXT_CODEC_ID } from './codec-ids';
 import { createPostgresBuiltinCodecLookup } from './codec-registry';
-import { createPostgresBuiltinDataTypeLookup } from './data-types';
+import { createPostgresBuiltinDataTypeLookup, postgresTextDataTypes } from './data-types';
 import {
   nativeEnumEntityKind,
   policyEntityKind,
@@ -34,11 +34,19 @@ import { assertFullTextIndexes } from './full-text-index-definition';
 import { postgresCodecTraitsOf } from './postgres-codec-traits';
 import { PostgresSchema } from './postgres-schema';
 
+const POSTGRES_CODEC_LOOKUP = createPostgresBuiltinCodecLookup();
+
+/** The context entity hydration runs in. Hydration reads stored contract JSON and never a written value, so its data types carry no authoring entries, which keeps the PSL readers out of the runtime. */
 const POSTGRES_AUTHORING_CTX: AuthoringEntityContext = {
   family: 'sql',
   target: 'postgres',
-  codecLookup: createPostgresBuiltinCodecLookup(),
-  dataTypeLookup: createPostgresBuiltinDataTypeLookup(),
+  codecLookup: POSTGRES_CODEC_LOOKUP,
+  dataTypes: {
+    entries: {},
+    lookup: createPostgresBuiltinDataTypeLookup(),
+    dataTypeOfCodec: (codecId) => POSTGRES_CODEC_LOOKUP.descriptorFor(codecId)?.dataType,
+    textDataTypes: postgresTextDataTypes,
+  },
   enumInferenceCodecs: { text: PG_TEXT_CODEC_ID, int: PG_INT_CODEC_ID },
 };
 

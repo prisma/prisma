@@ -421,36 +421,6 @@ export function lowerDataTypeDefault(input: {
   };
 }
 
-/**
- * Reads one value written in a contract source outside a default, such as an enum member's value, for a codec, as {@link lowerDataTypeDefault} reads a default: the value's syntax gives it a data type, the codec's data type takes it directly or through a cast, and the codec checks it. A refusal is worded for `subject`, and the caller reports it at its own span.
- */
-export function readWrittenValueForCodec(input: {
-  readonly written: WrittenScalar;
-  readonly codecId: string;
-  readonly codecLookup: CodecLookupWithDescriptors;
-  readonly dataTypes: DataTypeSupport;
-  readonly subject: string;
-}): ReadValueResult {
-  const read = readDataTypeDefault({
-    written: input.written,
-    isList: false,
-    column: { codecId: input.codecId },
-    codecLookup: input.codecLookup,
-    dataTypes: input.dataTypes,
-    fieldPath: input.subject,
-  });
-  if (read.ok) return read;
-  return {
-    ok: false,
-    ...refusalMessage(
-      read.refusal,
-      input.subject,
-      input.dataTypes,
-      guidanceFor(read, input.written, input.dataTypes),
-    ),
-  };
-}
-
 /** What a refusal of `written` tells the author to write instead. */
 function guidanceFor(
   failure: DefaultFailure,

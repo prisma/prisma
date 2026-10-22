@@ -11,13 +11,13 @@
 
 import type { JsonValue } from '@internal/contract/types';
 import type { DataTypeAuthoringEntry } from '@internal/framework-components/authoring';
-import { numeralText } from '@internal/sql-contract/data-type';
 import {
   createNumberClassifier,
+  numeralText,
   parseJsonText,
   printJsonText,
   signedRange,
-} from '@internal/sql-contract/data-type-support';
+} from '@internal/framework-components/codec';
 import { structuredError } from '@internal/utils/structured-error';
 import { pgByteaFromHexText, pgByteaHexText, pgIntervalStoredText } from './data-type-values';
 import {

@@ -1,5 +1,5 @@
 /**
- * The reader the SQL targets build the stored form of each date and time type with; ADR 254
+ * The reader targets build the stored form of each date and time type with; ADR 254
  * states the forms and the text it reads.
  */
 
@@ -391,4 +391,20 @@ export function dateTimeStoredText(
     }
   }
   return printed(value, options.shape);
+}
+
+const ISO_DATE_STRING_FRACTION = /^(.*:\d{2})(?:\.(\d{1,3}))?Z$/;
+
+/**
+ * The instant in UTC with exactly three fraction digits, the text `Date.prototype.toISOString()` writes, from ISO 8601 text with a UTC offset. The range and the millisecond precision are those of a JavaScript `Date`. Throws `CONTRACT.CAST_REFUSED`, naming `ownerId`, for text that names no instant a `Date` holds.
+ */
+export function isoDateStringText(text: string, ownerId: string): string {
+  const stored = dateTimeStoredText(text, {
+    shape: 'instant',
+    ownerId,
+    maxFractionDigits: 3,
+    range: { earliest: '-271821-04-20T00:00:00Z', latest: '+275760-09-13T00:00:00Z' },
+  });
+  const match = ISO_DATE_STRING_FRACTION.exec(stored);
+  return match === null ? stored : `${match[1]}.${(match[2] ?? '').padEnd(3, '0')}Z`;
 }

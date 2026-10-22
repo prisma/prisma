@@ -62,6 +62,7 @@ const dataTypeByCodecId: Readonly<Record<string, DataTypeId>> = {
   'pg/int4@1': pgInt4.id,
   'pg/int@1': pgInt4.id,
   'pg/int8@1': pgInt8.id,
+  'test/positive-int4@1': pgInt4.id,
   'pg/numeric@1': pgNumeric.id,
   'pg/float4@1': pgFloat4.id,
   'pg/float8@1': pgFloat8.id,
@@ -134,6 +135,14 @@ const fixtureCodecs: Readonly<
     'pg/int2@1': wholeNumber,
     'pg/int4@1': wholeNumber,
     'pg/int@1': wholeNumber,
+    'test/positive-int4@1': {
+      traits: ['equality', 'order', 'numeric'] as const,
+      fromStored: (json: JsonValue) => {
+        const value = asWholeNumber(json);
+        if (value <= 0) throw new Error('value must be positive');
+        return value;
+      },
+    },
     'pg/int8@1': {
       traits: ['equality', 'order', 'numeric'] as const,
       toStored: (value: unknown) => String(value),

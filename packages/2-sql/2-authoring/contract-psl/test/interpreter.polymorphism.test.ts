@@ -1029,7 +1029,7 @@ model Bug {
         ),
       ).toThrow(
         new InternalError(
-          'The stack names no text data types, so no column can be a discriminator; the target names its text types in its authoring contributions.',
+          'The stack names no text data types, so no field can be a discriminator; the target names its text types in its authoring contributions.',
         ),
       );
     });
