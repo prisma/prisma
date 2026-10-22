@@ -141,8 +141,6 @@ export function defineContract<
   ForeignKeyDefaults
 >;
 
-// Implementation — delegates to buildBoundContract which pre-binds family/target,
-// carrying zero casts at this layer.
 export function defineContract(
   definition: MysqlDefinition<
     DatabaseTypesConstraint,

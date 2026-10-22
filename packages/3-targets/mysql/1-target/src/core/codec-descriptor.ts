@@ -27,7 +27,7 @@ export interface AnyMysqlCodecDescriptor extends AnyCodecDescriptor {
 }
 
 /**
- * A codec descriptor the MySQL target registers. Rows MySQL returns as JSON, which includes read, are not built yet, so every descriptor refuses to project one.
+ * A codec descriptor the MySQL target registers. Reading related rows as JSON, which `include` needs, is not built yet, so every descriptor refuses to project a column into JSON.
  */
 export abstract class MysqlCodecDescriptor<P = void>
   extends CodecDescriptorImpl<P>
