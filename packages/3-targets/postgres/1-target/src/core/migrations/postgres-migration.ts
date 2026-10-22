@@ -1,4 +1,4 @@
-import type { Contract } from '@internal/contract/types';
+import type { Contract, JsonValue } from '@internal/contract/types';
 import { errorMigrationOperationOptionRemoved } from '@internal/errors/migration';
 import {
   type ColumnRenameRequest,
@@ -55,10 +55,12 @@ import {
   DropSchemaCall,
   DropTableCall,
   EnableRowLevelSecurityCall,
+  RemoveValueCall,
   RenameConstraintCall,
   RenameIndexCall,
   RenamePostgresRlsPolicyCall,
   RenameSchemaCall,
+  ReplaceValueCall,
   SetDefaultCall,
   SetNotNullCall,
   SetTableSchemaCall,
@@ -276,6 +278,46 @@ export abstract class PostgresMigration<
     readonly schema: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     return new DropSchemaCall(options.schema).toOp(this.controlAdapterFor('dropSchema'));
+  }
+
+  /**
+   * Emit an `UPDATE` operation that changes the stored value `from` to `to` in `column`, in every row that holds it. With `many`, the column is a list column and the value changes inside every list that holds it. Values are stored values, as the column's codec writes them, and are passed as parameters. Leave out `schema` for a table of the unbound namespace.
+   */
+  protected replaceValue(options: {
+    readonly schema?: string;
+    readonly table: string;
+    readonly column: string;
+    readonly from: JsonValue;
+    readonly to: JsonValue;
+    readonly many?: boolean;
+  }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    return new ReplaceValueCall(
+      options.schema ?? UNBOUND_NAMESPACE_ID,
+      options.table,
+      options.column,
+      options.from,
+      options.to,
+      options.many === true,
+    ).toOp();
+  }
+
+  /**
+   * Emit an `UPDATE` operation that removes the stored value `value` from `column`: it sets the column to NULL in every row that holds it, or, with `many`, takes the value out of every list that holds it. The operation is destructive.
+   */
+  protected removeValue(options: {
+    readonly schema?: string;
+    readonly table: string;
+    readonly column: string;
+    readonly value: JsonValue;
+    readonly many?: boolean;
+  }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    return new RemoveValueCall(
+      options.schema ?? UNBOUND_NAMESPACE_ID,
+      options.table,
+      options.column,
+      options.value,
+      options.many === true,
+    ).toOp();
   }
 
   /**

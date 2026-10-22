@@ -1,4 +1,4 @@
-import type { Contract as FrameworkContract } from '@internal/contract/types';
+import type { Contract as FrameworkContract, JsonValue } from '@internal/contract/types';
 import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
 import type {
   ExecuteRequestLowerer,
@@ -22,7 +22,9 @@ import { alterColumnTypeAction, alterTable } from '../src/contract-free/ddl';
 import { postgresDataTypes } from '../src/core/data-types';
 import {
   DropSchemaCall,
+  RemoveValueCall,
   RenameSchemaCall,
+  ReplaceValueCall,
   SetTableSchemaCall,
 } from '../src/core/migrations/op-factory-call';
 import type { AlterColumnTypeClass } from '../src/core/migrations/operations/columns';
@@ -175,6 +177,27 @@ class ExposedMigration extends PostgresMigration<Contract, Contract> {
 
   callDropSchema(options: { readonly schema: string }): Promise<Op> {
     return this.dropSchema(options);
+  }
+
+  callReplaceValue(options: {
+    readonly schema?: string;
+    readonly table: string;
+    readonly column: string;
+    readonly from: JsonValue;
+    readonly to: JsonValue;
+    readonly many?: boolean;
+  }): Promise<Op> {
+    return this.replaceValue(options);
+  }
+
+  callRemoveValue(options: {
+    readonly schema?: string;
+    readonly table: string;
+    readonly column: string;
+    readonly value: JsonValue;
+    readonly many?: boolean;
+  }): Promise<Op> {
+    return this.removeValue(options);
   }
 
   callDropColumn(options: {
@@ -598,6 +621,24 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
     );
     expect(await fresh().callDropSchema({ schema: 'billing' })).toEqual(
       await new DropSchemaCall('billing').toOp(countingLowerer()),
+    );
+  });
+
+  it('replaceValue and removeValue give the operations their calls give, with no control stack', async () => {
+    const fresh = () => new ExposedMigration();
+
+    expect(
+      await fresh().callReplaceValue({
+        schema: 'app',
+        table: 'task',
+        column: 'labels',
+        from: 'a',
+        to: 'b',
+        many: true,
+      }),
+    ).toEqual(await new ReplaceValueCall('app', 'task', 'labels', 'a', 'b', true).toOp());
+    expect(await fresh().callRemoveValue({ table: 'task', column: 'rank', value: 3 })).toEqual(
+      await new RemoveValueCall(UNBOUND_NAMESPACE_ID, 'task', 'rank', 3, false).toOp(),
     );
   });
 
