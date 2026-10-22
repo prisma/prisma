@@ -71,17 +71,7 @@ TML-3653 is SQL-only and outside this project. It goes as its own small PR, inde
 - **Parity suite.** A Mongo suite comparing TypeScript and PSL, like `test/integration/test/authoring/parity/`. The slice spec lists its cases, one or more for every rule the builder checks.
 - **Docs.** ADR 181 is widened to every family, or a short ADR is added. The authoring sections of the MongoDB Family subsystem doc are rewritten.
 
-**Behaviour differences to settle in the slice spec.** Today the two Mongo paths disagree in seven places, and each needs one answer. My recommendation for each is below; the slice spec records the final answer and the fixtures it changes.
-
-| Difference | Recommendation |
-| --- | --- |
-| Duplicate index after variant scoping: TypeScript throws, PSL drops it silently | Refuse in both |
-| `extensions`: TypeScript records the packs, PSL writes `{}` | Record the packs in both |
-| Roots: TypeScript accepts explicit roots, PSL derives them | Explicit roots are an optional definition field; PSL leaves it empty |
-| A variant's collection: PSL inherits the base's and refuses another; TypeScript restates it and checks nothing | Inherit, and refuse another, in both |
-| An index on a field the variant inherits: TypeScript refuses it | Allow it in both |
-| Enum key check and `ENUM_UNKNOWN`: TypeScript only | One check, in the builder |
-| Namespace id: TypeScript hard-codes `__unbound__`, PSL reads the default namespace | Use the target's default namespace in both |
+**Behaviour differences.** Decided in [`slices/2/spec.md`](./slices/2/spec.md), with the research behind each. None changes a committed contract.
 
 ## Close-out (required)
 
