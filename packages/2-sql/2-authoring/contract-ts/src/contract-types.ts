@@ -4,6 +4,7 @@ import type {
   ContractExecutionSection,
   ContractRelation,
   EnumMemberValueType,
+  ExecutionMutationDefaultValue,
   FieldTypesFromDomain,
   JsonValue,
   NamespaceId,
@@ -757,6 +758,7 @@ type ExecutionDefaultEntries<Definition> = {
       ModelFieldState<Definition, ModelName, FieldName>
     > extends true
       ? ContractExecutionSection['mutations']['defaults'][number] & {
+          readonly onCreate: ExecutionMutationDefaultValue;
           readonly ref: {
             readonly namespace: ModelNamespace<Definition, ModelName>;
             readonly entry: ModelTableName<Definition, ModelName>;
