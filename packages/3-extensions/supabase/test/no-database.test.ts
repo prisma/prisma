@@ -153,9 +153,10 @@ describe('a supabase client given a URL', () => {
     await db.close();
 
     expect(created.poolEnds).toBe(0);
-    expect(() => anon.query(plan)).toThrow(
-      expect.objectContaining({ code: 'DRIVER.NOT_CONNECTED' }),
-    );
+    await expect(anon.query(plan).toArray()).rejects.toMatchObject({
+      code: 'DRIVER.NOT_CONNECTED',
+      message: 'Runtime is closed',
+    });
   });
 
   it('makes every concurrent close() wait for the pool to end', async () => {
