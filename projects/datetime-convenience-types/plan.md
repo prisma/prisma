@@ -1,0 +1,52 @@
+# Plan — Convenience date and time types
+
+**Spec:** [`spec.md`](./spec.md) · **Linear:** [Convenience date and time types](https://linear.app/prisma-company/project/convenience-date-and-time-types-6a969ca1c76e)
+
+## Summary
+
+Five slices. Slices 1, 2 and 3 are independent and can run in parallel. Slice 4 builds on slice 3, and slice 5 on slice 4.
+
+Five is one over the usual ceiling. Slices 1 and 2 are fixes the report found that any naming would need; they share the project because they serve the same purpose (date and time values that are predictable), not because the other slices depend on them. Folding either into another slice would make that slice two unrelated reviews.
+
+## Slices
+
+| # | Slice | Linear | Builds on | Hands to |
+| --- | --- | --- | --- | --- |
+| 1 | String date and time types read ISO 8601 that does not depend on the server | [TML-3418](https://linear.app/prisma-company/issue/TML-3418) | — | String codecs whose value is the ADR 254 stored form, for `Date`, `Time` and `Duration` to default to |
+| 2 | A missing Temporal is reported when the client is created, and Temporal fields are never typed `any` | [TML-3710](https://linear.app/prisma-company/issue/TML-3710) | — | Temporal opt-ins that fail early and type precisely |
+| 3 | Explicit types carry a `Temporal` suffix; `timestamp` and `interval` get the missing codecs | [TML-3711](https://linear.app/prisma-company/issue/TML-3711) | — | A complete explicit layer: every cell of the spec's decision 3 table has an explicit type, and `TimestamptzTemporal`, `TimestampTemporal`, `DateTemporal`, `TimeTemporal`, `IntervalParts`, `IntervalString` exist |
+| 4 | PSL convenience types `DateTime`, `Date`, `Time` and `Duration` | [TML-3712](https://linear.app/prisma-company/issue/TML-3712) | 3 | Type constructors that choose their codec; the four convenience types; the TypeScript resolver evaluating the choice |
+| 5 | `contract infer`, `contract print`, the Prisma 7 reader and `orm init` write the convenience types | [TML-3713](https://linear.app/prisma-company/issue/TML-3713) | 4 | Adopted and new projects read `Date` timestamps with no polyfill |
+
+### Slice 1 — ISO strings
+
+`pg/timestamptz-string@1`, `pg/timestamp-string@1`, `pg/date-string@1`, `pg/time-string@1` and `pg/timetz@1` return the ISO 8601 form ADR 254 stores, on any server `TimeZone` and `DateStyle`, BC years and years past 9999 included; `infinity` stays `infinity`. Covers the related case in the ticket: a database `now()` default on a `timestamp` column and the client's `now()` generator store the same clock. Amends ADR 254's "Date and time types" paragraph on text codecs.
+
+### Slice 2 — Temporal at startup
+
+Creating a client whose contract uses a Temporal codec, in a process without a global `Temporal`, fails with one error that names the fix. The generated `contract.d.ts` and the TypeScript builder's inferred types reference the Temporal types so that a missing declaration is a type error, not `any`.
+
+### Slice 3 — The explicit layer
+
+Renames with deprecated aliases where the name is not reused: `Timestamptz` → `TimestamptzTemporal`, `Timestamp` → `TimestampTemporal`, `Interval` → `IntervalParts`. New explicit names `DateTemporal` and `TimeTemporal` beside today's `Date` and `Time`, which keep their meaning until slice 4. New codecs and explicit types: a `timestamp` column read as a `Date`, and as a `Temporal.Instant` (both UTC), and `IntervalString`. Each new codec passes the codec conformance kit and the three codec probes (dod.md).
+
+### Slice 4 — The convenience types
+
+A type constructor's `codecId` may be a `select` over `option` arguments; every reader of a constructor's output resolves it. The four types with the spec's choices and defaults; an unlisted combination is an error at the argument. `DateTime`, `Date` and `Time` take over their names (breaking, with upgrade instructions). The TypeScript builder's type-level resolver evaluates the choice. Hover text and completion list each type's choices. ADR 279 moves to Accepted, with notes in ADR 246, 254, 257 and 275.
+
+### Slice 5 — The tools write convenience types
+
+`contract infer` and `contract print` write convenience types, with arguments only where they differ from the defaults, and the explicit type only where no convenience type fits. The Prisma 7 reader maps `DateTime` to `DateTime(column: timestamp)` and `@db.*` date and time columns to the matching convenience form. `prisma orm init` writes `DateTime`. Upgrade instructions: re-emit and `db sign` for adopted projects.
+
+## Dependencies
+
+- **Field-preset removal project, slice 2.** Delivers the `type.*` helpers that expose slice 4's types in TypeScript, and the contributed aliases built on `DateTime`. Not blocking; coordinate so its `temporal.CreatedAt` and `temporal.UpdatedAt` land on `DateTime` once slice 4 merges.
+- **PostgreSQL and SQLite rename project** (not started). Must not remove `DateTime` and must take slice 3's names. Its spec gets a note in this project's shaping PR.
+- **Release.** Users get the convenience types with the first `@prisma/orm-postgres` release after slice 4 merges.
+
+## Close-out (required)
+
+- [ ] Verify the project DoD in [`spec.md`](./spec.md).
+- [ ] ADR 279 accepted; `docs/reference/scalar-types.md` describes both layers.
+- [ ] Strip repo-wide references to `projects/datetime-convenience-types/**`.
+- [ ] Delete `projects/datetime-convenience-types/`.
