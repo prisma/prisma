@@ -217,6 +217,16 @@ describe('the string date and time codecs', () => {
     });
   }
 
+  it('writes a date it reads with a seven-digit year, which is beyond the stored range, back as PostgreSQL reads it', async () => {
+    const codec = pgDateStringDescriptor.factory()(instanceCtx);
+    const read = await codec.fromWire('5874897-12-31', callCtx);
+
+    expect({ read, written: await codec.toWire(read, callCtx) }).toEqual({
+      read: '+5874897-12-31',
+      written: '5874897-12-31',
+    });
+  });
+
   it('reads and writes with no global Temporal available', async () => {
     const had = Object.hasOwn(globalThis, 'Temporal');
     const original = Reflect.get(globalThis, 'Temporal');

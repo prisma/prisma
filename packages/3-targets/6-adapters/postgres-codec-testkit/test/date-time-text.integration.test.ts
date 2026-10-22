@@ -168,6 +168,27 @@ describe('the date and time codecs that carry text', { concurrent: false }, () =
   );
 
   it(
+    'write each value they read back in a form PostgreSQL reads as the same value',
+    async () => {
+      const changed: unknown[] = [];
+      for (const entry of TYPES) {
+        const codec = codecFor(entry.codecId);
+        for (const [, stored] of entry.values) {
+          const wire = await codec.toWire(stored, {});
+          const result = await driver!.query<{ text: string }>(
+            `select $1::${entry.type}::text as text`,
+            [wire],
+          );
+          const read = await codec.fromWire(result.rows[0]!.text, {});
+          if (read !== stored) changed.push({ type: entry.type, stored, wire, read });
+        }
+      }
+      expect(changed).toEqual([]);
+    },
+    timeouts.databaseOperation,
+  );
+
+  it(
     'refuse a date or timestamp the session prints under another DateStyle, naming the setting',
     async () => {
       const refusals = [];
