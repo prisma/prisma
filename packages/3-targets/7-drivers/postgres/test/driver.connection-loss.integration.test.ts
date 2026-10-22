@@ -113,7 +113,12 @@ describe('a connection lost under real pg', () => {
 
     proxy.cutOnNextQuery();
 
-    await expect(queryRows(driver, 'select 1')).rejects.toBeInstanceOf(SqlConnectionError);
+    const error = await queryRows(driver, 'select 1').then(
+      () => undefined,
+      (reason: unknown) => reason,
+    );
+    expect(error).toBeInstanceOf(SqlConnectionError);
+    expect((error as { cause?: object }).cause).not.toHaveProperty('code');
   });
 
   it('classifies a pool client query cut mid-flight as a connection error', async () => {
@@ -126,7 +131,12 @@ describe('a connection lost under real pg', () => {
 
     proxy.cutOnNextQuery();
 
-    await expect(queryRows(driver, 'select 1')).rejects.toBeInstanceOf(SqlConnectionError);
+    const error = await queryRows(driver, 'select 1').then(
+      () => undefined,
+      (reason: unknown) => reason,
+    );
+    expect(error).toBeInstanceOf(SqlConnectionError);
+    expect((error as { cause?: object }).cause).not.toHaveProperty('code');
     await driver.close();
   });
 });

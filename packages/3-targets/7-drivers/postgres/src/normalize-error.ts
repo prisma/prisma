@@ -48,19 +48,22 @@ const TRANSIENT_CLASS_08_SQLSTATES: ReadonlySet<string> = new Set([
   '08006',
 ]);
 
-/** SQLSTATEs outside class 08 that mean the server ended the session; a fresh connection can succeed. */
-const SESSION_ENDED_SQLSTATES: ReadonlySet<string> = new Set([
-  '57P01',
-  '57P02',
-  '57P03',
-  '57P05',
-  '25P03',
+/**
+ * SQLSTATEs outside class 08 that mean the server ended the session, and whether a retry on a
+ * fresh connection is safe. It is not after 25P03, which ends a session inside an open transaction.
+ */
+const SESSION_ENDED_SQLSTATES: ReadonlyMap<string, boolean> = new Map([
+  ['57P01', true],
+  ['57P02', true],
+  ['57P03', true],
+  ['57P05', true],
+  ['25P03', false],
 ]);
 
 /** Whether a retry can succeed, for a SQLSTATE that means the connection failed; undefined for any other. */
 function connectionSqlStateTransience(sqlState: string): boolean | undefined {
   if (sqlState.startsWith('08')) return TRANSIENT_CLASS_08_SQLSTATES.has(sqlState);
-  return SESSION_ENDED_SQLSTATES.has(sqlState) ? true : undefined;
+  return SESSION_ENDED_SQLSTATES.get(sqlState);
 }
 
 /**
