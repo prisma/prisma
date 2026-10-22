@@ -10,20 +10,20 @@ changes:
         - '(?:^|\n)[ \t]*\w+[ \t]+(?:text|int|bigint|float|decimal|boolean|json|bytes|dateTime|uuidString|uuidNative|ulid|nanoid|cuid2|ksuid)[ \t]*\('
   - id: ts-field-presets-removed
     summary: |
-      The TypeScript contract builders have no field presets. `field.text()`, `field.uuidString()`, `field.json()` (on Postgres) and the other scalar presets, every `field.id.*` and every `field.temporal.*` no longer exist, and TypeScript reports a missing property. Rewrite each call as `field.column(type.X(...))` with `.id()`, `.onCreate(gen.fn())` and `.onUpdate(gen.fn())`, as the tables in this guide say, including the fields of query fragments. The contract does not change. MongoDB's `field.date()`, `field.string()`, `field.json()` and the other codec helpers are not presets and stay. The detection matches TypeScript files that call a preset.
+      The TypeScript contract builders have no field presets. `field.text()`, `field.uuidString()`, `field.json()` (on Postgres) and the other scalar presets, every `field.id.*` and every `field.temporal.*` no longer exist, and TypeScript reports a missing property. Rewrite each call as `field.column(type.X(...))` with `.id()`, `.onCreate(gen.fn())` and `.onUpdate(gen.fn())`, as the tables in this guide say, including the fields of query fragments. The contract does not change. MongoDB's `field.date()`, `field.string()`, `field.json()` and the other codec helpers are not presets and stay. The detection matches TypeScript files that call a preset; it matches a `field.json()` call only in a file that names `@prisma/orm-postgres`, so a Postgres file that imports its builder through a local module is not matched.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - '(?<![\w$])field\.(?:id|temporal)\.'
-        - '(?<![\w$])field\.(?:text|int|bigint|float|decimal|boolean|bytes|dateTime|uuidString|uuidNative|ulid|nanoid|cuid2|ksuid)\('
-        - '(?<![\s\S])(?![\s\S]*mongo)[\s\S]*(?<![\w$])field\.json\('
+        - '(?<![\w$.])field\.(?:id|temporal)\.'
+        - '(?<![\w$.])field\.(?:text|int|bigint|float|decimal|boolean|bytes|dateTime|uuidString|uuidNative|ulid|nanoid|cuid2|ksuid)\('
+        - '(?<![\s\S])(?=[\s\S]*@prisma/orm-postgres)[\s\S]*(?<![\w$.])field\.json\('
   - id: ts-field-generated-removed
     summary: |
       `field.generated(...)` and the spec helpers `uuidv4()`, `uuidv7()`, `ulid()`, `nanoid()`, `cuid2()` and `ksuid()` from `@prisma/orm-framework/ids` are removed. Write `field.column(type.Char(n)).onCreate(gen.fn())` instead, as the table in this guide says, and remove the import. The contract does not change. The detection matches TypeScript files that call `field.generated` or import one of those helpers.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - '(?<![\w$])field\.generated\('
+        - '(?<![\w$.])field\.generated\('
         - 'import\s*(?:type\s*)?\{[^}]*(?<![\w$])(?:uuidv4|uuidv7|ulid|nanoid|cuid2|ksuid)(?![\w$])[^}]*\}\s*from\s*[\x27"]@prisma/orm-framework/ids[\x27"]'
   - id: postgres-contract-builder-exports-type
     summary: |

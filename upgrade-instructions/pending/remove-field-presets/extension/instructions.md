@@ -40,8 +40,8 @@ changes:
     detection:
       glob: "**/*.{ts,mts,cts,tsx,md}"
       matches:
-        - '(?<![\w$])field\.(?:id|temporal)\.'
-        - '(?<![\w$])field\.(?:text|int|bigint|float|decimal|boolean|bytes|dateTime|uuidString|uuidNative|ulid|nanoid|cuid2|ksuid|generated)\('
+        - '(?<![\w$.])field\.(?:id|temporal)\.'
+        - '(?<![\w$.])field\.(?:text|int|bigint|float|decimal|boolean|bytes|dateTime|uuidString|uuidNative|ulid|nanoid|cuid2|ksuid|generated)\('
 ---
 
 # Field presets are removed
