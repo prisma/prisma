@@ -1,4 +1,5 @@
 import {
+  type MigrationRunnerFailure,
   type MigrationRunnerFailureMeta,
   migrationRunnerFailure,
 } from '@internal/framework-components/control';
@@ -13,7 +14,7 @@ const failed = (meta: MigrationRunnerFailureMeta) =>
     { why: 'Table already exists.', meta },
   );
 
-const reportedFields = (failure: ReturnType<typeof failed>) => ({
+const reportedFields = (failure: MigrationRunnerFailure) => ({
   code: failure.code,
   message: failure.message,
   why: failure.why,
