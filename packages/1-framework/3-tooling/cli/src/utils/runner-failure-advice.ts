@@ -133,7 +133,7 @@ function swapCalls(report: RowsHoldingValueReport): string {
   return `replace this.removeStoredValue({ ..., value: ${value}, ..., enumValue: ${JSON.stringify(report.enumValue)} }) with this.replaceStoredValue({ ..., from: ${value}, to: "<stored value>", ... })`;
 }
 
-const KEPT_VALUE = 'where "<stored value>" is a stored value the column keeps';
+const KEPT_VALUE = 'where "<stored value>" is a stored value the enum keeps';
 
 /** The way out when rows of a required column hold a stored value `db update` removes. */
 export function dbUpdateRowsHoldingValueAdvice(
@@ -149,7 +149,7 @@ export function dbUpdateRowsHoldingValueAdvice(
     return [
       rename,
       chooseAction(
-        `To keep those rows with another stored value, set the rows that hold ${JSON.stringify(report.value)} to a stored value the column keeps in the database yourself, then re-run ${quoted(cliCommand(invocation, 'db update', [deleteFlag]))}. db update cannot keep the data by hand in a migration.ts`,
+        `To keep those rows with another stored value, set the rows that hold ${JSON.stringify(report.value)} to a stored value the enum keeps in the database yourself, then re-run ${quoted(cliCommand(invocation, 'db update', [deleteFlag]))}. db update cannot keep the data by hand in a migration.ts`,
       ),
     ];
   }

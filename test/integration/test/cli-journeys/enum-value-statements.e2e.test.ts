@@ -374,7 +374,7 @@ withTempDir(({ createTempDir }) => {
         expectRowsHoldingFailure(deleted, 'E5.05');
         expect(nextActionLabels(deleted), 'E5.05: one action per way out').toEqual([
           'To keep those rows under a new enum value, add a member to enum "Status" in the contract source, run `prisma-test contract emit`, then run `prisma-test db update --rename \'Status.ARCHIVED:Status.<new member>\'`',
-          'To keep those rows with another stored value, set the rows that hold "archived" to a stored value the column keeps in the database yourself, then re-run `prisma-test db update --delete Status.ARCHIVED`. db update cannot keep the data by hand in a migration.ts',
+          'To keep those rows with another stored value, set the rows that hold "archived" to a stored value the enum keeps in the database yourself, then re-run `prisma-test db update --delete Status.ARCHIVED`. db update cannot keep the data by hand in a migration.ts',
         ]);
         expect(await tasks(db.connectionString), 'E5.05: nothing changed').toEqual([
           { id: 1, status: 'archived', tags: [] },
@@ -492,7 +492,7 @@ withTempDir(({ createTempDir }) => {
         const dirName = latestMigrationDirName(ctx);
         const byHand = nextActionLabels(failed)[1] ?? '';
         expect(byHand).toBe(
-          `To keep those rows by hand, replace this.removeStoredValue({ ..., value: "archived", ..., enumValue: "Status.ARCHIVED" }) with this.replaceStoredValue({ ..., from: "archived", to: "<stored value>", ... }) in \`migrations/app/${dirName}/migration.ts\`, where "<stored value>" is a stored value the column keeps, run \`node migrations/app/${dirName}/migration.ts\`, and re-run \`prisma-test db migrate\``,
+          `To keep those rows by hand, replace this.removeStoredValue({ ..., value: "archived", ..., enumValue: "Status.ARCHIVED" }) with this.replaceStoredValue({ ..., from: "archived", to: "<stored value>", ... }) in \`migrations/app/${dirName}/migration.ts\`, where "<stored value>" is a stored value the enum keeps, run \`node migrations/app/${dirName}/migration.ts\`, and re-run \`prisma-test db migrate\``,
         );
 
         const file = join(ctx.testDir, 'migrations', 'app', dirName, 'migration.ts');
