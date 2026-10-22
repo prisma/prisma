@@ -25,7 +25,6 @@ export type {
 export {
   applyDiscriminatorRule,
   describeDiscriminatorRefusal,
-  discriminatorRefusals,
 } from '../shared/discriminator-rule';
 export {
   type EnumBlockDiagnostic,
