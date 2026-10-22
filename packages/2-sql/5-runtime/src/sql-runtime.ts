@@ -1408,6 +1408,8 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     parent: ActivityParent | undefined,
   ): Promise<RuntimeTransaction> {
     owner[transactionStart].refusedBeforeBegin = false;
+    const endTransactionWork = this.#openTransactionWork.begin();
+    this.#transactionWorkOn.set(connection, endTransactionWork);
     let activity: TransactionActivityRun<SqlMiddlewareContext>;
     try {
       activity = await startTransactionActivity<SqlMiddlewareContext>({
@@ -1417,11 +1419,10 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
         holdFinishedChildren: this.#holdFinishedChildren,
       });
     } catch (error) {
+      endTransactionWork();
       owner[transactionStart].refusedBeforeBegin = true;
       throw error;
     }
-    const endTransactionWork = this.#openTransactionWork.begin();
-    this.#transactionWorkOn.set(connection, endTransactionWork);
     let driverTx: SqlTransaction;
     try {
       driverTx = await connection.beginTransaction();

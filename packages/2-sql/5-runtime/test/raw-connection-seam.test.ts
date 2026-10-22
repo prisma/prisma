@@ -519,6 +519,59 @@ describe('a transaction that never settles', () => {
 });
 
 describe('a runtime that does not own its driver', () => {
+  it('waits for a transaction whose start hooks are still running when close() is called', async () => {
+    let startHooks: () => void = () => undefined;
+    const hooksDone = new Promise<void>((resolve) => {
+      startHooks = resolve;
+    });
+    const slowStart: SqlMiddleware = {
+      name: 'slow-start',
+      familyId: 'sql',
+      async activityStarted(activity) {
+        if (activity.kind === 'transaction') await hooksDone;
+      },
+    };
+    const { runtime, connection } = createTestSetup({
+      middleware: [slowStart],
+      closeRefusal: 'at-once',
+      ownsDriver: false,
+    });
+    connection.beginTransaction.mockResolvedValue({
+      query: connection.query,
+      execute: connection.execute,
+      commit: vi.fn().mockResolvedValue(undefined),
+      rollback: vi.fn().mockResolvedValue(undefined),
+    });
+    const beginning = runtime.beginOn(await runtime.acquireRawConn());
+
+    const closing = runtime.close();
+    const whileStarting = await settlesWithin(closing);
+    startHooks();
+    const transaction = await beginning;
+    const whileOpen = await settlesWithin(closing);
+    await transaction.commit();
+    await closing;
+
+    expect({ whileStarting, whileOpen }).toEqual({
+      whileStarting: 'pending',
+      whileOpen: 'pending',
+    });
+  });
+
+  it('lets close() finish when a transaction start hook fails', async () => {
+    const failingStart: SqlMiddleware = {
+      name: 'failing-start',
+      familyId: 'sql',
+      async activityStarted(activity) {
+        if (activity.kind === 'transaction') throw new Error('start refused');
+      },
+    };
+    const { runtime } = createTestSetup({ middleware: [failingStart], ownsDriver: false });
+    await expect(runtime.beginOn(await runtime.acquireRawConn())).rejects.toThrow('start refused');
+
+    await expect(settlesWithin(runtime.close())).resolves.toBe('settled');
+  });
+
   it('closes while an ordinary connection or a raw one is held idle, and refuses new connections', async () => {
     const { runtime, driver } = createTestSetup({ ownsDriver: false });
     await runtime.connection();
