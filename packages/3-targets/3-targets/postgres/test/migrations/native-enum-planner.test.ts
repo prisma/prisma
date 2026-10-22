@@ -40,6 +40,7 @@ import {
   postgresTypeComponents,
   postgresTypeLookups,
 } from '../postgres-type-lookups';
+import { planTrees } from './node-issue-planner-fixtures';
 
 const MEMBERS = ['draft', 'review', 'done'] as const;
 
@@ -193,13 +194,14 @@ function liveTree(options: {
 }
 
 function planResultFor(contract: Contract<SqlStorage>, actual: PostgresDatabaseSchemaNode) {
-  const { issues } = buildPostgresPlanDiff({
+  const { issues, expected } = buildPostgresPlanDiff({
     contract,
     actualSchema: actual,
     frameworkComponents: postgresTypeComponents,
   });
   return planIssues({
     issues: coalesceSubtreeIssues(issues),
+    ...planTrees(actual, expected),
     toContract: contract,
     fromContract: null,
     schemaName: 'sales',
@@ -235,6 +237,7 @@ function twoSpaceOwnership(...storages: readonly SqlStorage[]): SchemaOwnership 
   }
   return {
     declaresEntity: (coordinate) => ownedCoordinates.has(coordinateKey(coordinate)),
+    namespaceDeclaringSpaces: () => [],
   };
 }
 
@@ -446,7 +449,10 @@ describe('op building (typed DDL node)', () => {
 describe('planner ownership + policy for enum extras', () => {
   const ownsOnly = (...coordinates: readonly SchemaEntityCoordinate[]): SchemaOwnership => {
     const owned = new Set(coordinates.map(coordinateKey));
-    return { declaresEntity: (coordinate) => owned.has(coordinateKey(coordinate)) };
+    return {
+      declaresEntity: (coordinate) => owned.has(coordinateKey(coordinate)),
+      namespaceDeclaringSpaces: () => [],
+    };
   };
 
   function planLive(

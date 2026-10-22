@@ -24,6 +24,7 @@ import type {
 import type { OperationContext } from './control-operation-results';
 import type {
   AppliedMigrationStatement,
+  MigrationPlanNamespaces,
   MigrationPlanSubjects,
   MigrationSubject,
   ResolvedMigrationStatement,
@@ -83,8 +84,8 @@ export interface MigrationMetadata {
  *   every value fails instead, so a tightened constraint is widening: `SET NOT NULL` fails on a
  *   NULL, and a MongoDB validator applies to later writes only. So are a rename, a relaxed
  *   constraint, a type change that keeps every value, and a drop of an object that holds no data,
- *   such as an index, a constraint, a default or a row-level-security policy. Dropping a policy or
- *   disabling row-level security widens who can read and write rows.
+ *   such as an index, a constraint or a default. An operation that changes who can read or write
+ *   data is asked about by `db update`.
  * - 'destructive': can lose rows or values: dropping a table, a column or a collection, or a type
  *   change that can change values.
  * - 'data': reads and writes rows, such as a backfill or a type conversion, as its author wrote.
@@ -323,6 +324,8 @@ export interface MigrationPlannerSuccessResult extends MigrationPlanSubjects {
   readonly warnings?: readonly MigrationPlannerConflict[];
   /** The statements the plan applied, one per statement it was given, in order. */
   readonly appliedStatements: readonly AppliedMigrationStatement[];
+  /** The namespaces the plan removes and adds; absent from a planner without namespaces. */
+  readonly namespaces?: MigrationPlanNamespaces;
 }
 
 /**
@@ -410,6 +413,8 @@ export interface MigrationRunnerFailureMeta {
    * step fail: first the field of the failed step, then the others of the same migration.
    */
   readonly rowsWithoutValue?: readonly RowsWithoutValue[];
+  /** The objects in the database that kept the failed operation from running, such as a view on a table to drop. */
+  readonly blockingObjects?: readonly BlockingObject[];
   /** The differences the schema check after apply found, when that check failed. */
   readonly schemaIssues?: readonly SchemaDiffIssue[];
   /** Further facts for the code, such as `sqlState` or the marker hashes. */
@@ -446,6 +451,13 @@ export function withFailingSpace<TCode extends MigrationRunnerFailure['code']>(
   });
   if (failure.stack !== undefined) attributed.stack = failure.stack;
   return attributed;
+}
+
+/** An object in the database, named as the database names it, that keeps an operation from running. */
+export interface BlockingObject {
+  /** What the object is, in the database's words, such as `view` or `sequence`. */
+  readonly kind: string;
+  readonly name: string;
 }
 
 function asSentence(text: string): string {
@@ -600,6 +612,8 @@ export interface SchemaOwnership {
    * entity at this coordinate.
    */
   declaresEntity(coordinate: SchemaEntityCoordinate): boolean;
+  /** The ids of the contract spaces whose contracts declare the storage namespace, the planned one included. */
+  namespaceDeclaringSpaces(namespaceId: string): readonly string[];
 }
 
 /**

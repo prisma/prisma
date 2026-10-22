@@ -514,7 +514,7 @@ function buildAtHeadResolution(args: {
     strategy: 'declared-state',
     appliedStatements: [],
     dataLoss: [],
-    accessWidening: [],
+    accessChanges: [],
     temporaryValues: [],
     migrationEdges: [
       buildFabricatedMigrationEdge({
