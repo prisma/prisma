@@ -21,10 +21,10 @@ import {
   instantiateAuthoringTypeAlias,
   instantiateAuthoringTypeConstructor,
   isAuthoringEntityTypeDescriptor,
-  isAuthoringTypeChoiceOption,
   readWrittenValue,
   resolveAuthoringTypeChoice,
   validateAuthoringHelperArguments,
+  validateAuthoringTypeChoiceParams,
   validateAuthoringTypeParams,
   type WrittenScalar,
   type WrittenValue,
@@ -142,8 +142,6 @@ export function checkPslTypeParams(input: {
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly diagnostics: PslDiagnosticCollector;
   readonly source: DiagnosticSource;
-  /** The index in `args` of the argument at `index` of the constructor whose parameters are checked, when the call is written with other arguments than the constructor's. */
-  readonly callArgumentIndex?: (index: number) => number | undefined;
 }): boolean {
   const helperPath = input.call.path.join('.');
   try {
@@ -159,24 +157,10 @@ export function checkPslTypeParams(input: {
     input.diagnostics.push({
       code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
       message: `${input.subject} ${message}`,
-      ...input.source.at(
-        argumentSpan(
-          input.call,
-          input.args,
-          callIndex(argumentIndexOf(error), input.callArgumentIndex),
-        ),
-      ),
+      ...input.source.at(argumentSpan(input.call, input.args, argumentIndexOf(error))),
     });
     return false;
   }
-}
-
-function callIndex(
-  index: number | undefined,
-  callArgumentIndex: ((index: number) => number | undefined) | undefined,
-): number | undefined {
-  if (index === undefined || callArgumentIndex === undefined) return index;
-  return callArgumentIndex(index);
 }
 
 function argumentIndexOf(error: unknown): number | undefined {
@@ -316,26 +300,24 @@ export function instantiatePslTypeChoice(input: {
   }
 
   const output = instantiateAuthoringTypeConstructor(chosen.descriptor, chosen.args);
-  const passedOn = (chosen.descriptor.args ?? []).map((parameter) =>
-    descriptor.args.findIndex(
-      (argument) => !isAuthoringTypeChoiceOption(argument) && argument.name === parameter.name,
-    ),
-  );
-  const passed = checkPslTypeParams({
-    call,
-    subject,
-    args: descriptor.args,
-    template: chosen.descriptor.output,
-    typeParams: output.typeParams,
-    codecLookup: input.codecLookup,
-    diagnostics: input.diagnostics,
-    source: input.source,
-    callArgumentIndex: (index) => {
-      const choiceIndex = passedOn[index];
-      return choiceIndex === undefined || choiceIndex < 0 ? undefined : choiceIndex;
-    },
-  });
-  return passed ? output : undefined;
+  try {
+    validateAuthoringTypeChoiceParams(
+      helperPath,
+      descriptor,
+      chosen.descriptor,
+      output.typeParams,
+      input.codecLookup.descriptorFor(output.codecId)?.paramsSchema,
+    );
+  } catch (error) {
+    if (isInternalError(error)) throw error;
+    input.diagnostics.push({
+      code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+      message: `${subject}: ${error instanceof Error ? error.message : String(error)}`,
+      ...input.source.at(argumentSpan(call, descriptor.args, argumentIndexOf(error))),
+    });
+    return undefined;
+  }
+  return output;
 }
 
 /**

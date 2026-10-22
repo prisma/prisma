@@ -18,6 +18,7 @@ import {
   resolveAuthoringTypeChoice,
   typeConstructorLookup,
   validateAuthoringHelperArguments,
+  validateAuthoringTypeChoiceParams,
   validateAuthoringTypeParams,
 } from '@internal/framework-components/authoring';
 import {
@@ -153,9 +154,10 @@ export function createTypeHelpersFromNamespace(
           constructorNamed,
         });
         const output = instantiateAuthoringTypeConstructor(chosen.descriptor, chosen.args);
-        validateAuthoringTypeParams(
+        validateAuthoringTypeChoiceParams(
           helperPath,
-          chosen.descriptor.output,
+          value,
+          chosen.descriptor,
           output.typeParams,
           lookups.codecLookup.descriptorFor(output.codecId)?.paramsSchema,
         );

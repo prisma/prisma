@@ -192,9 +192,16 @@ describe('a type choice in a field type', () => {
     ]);
   });
 
-  it('refuses a precision the chosen type’s codec refuses, at the precision argument', () => {
-    expect(diagnostics(model('at Moment(precision: 7)'))).toMatchObject([
-      { code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT' },
+  it('refuses a precision the chosen type’s codec refuses, naming the argument of the choice', () => {
+    const line = 'at Moment(value: temporal, column: local, precision: 7)';
+    const start = '  '.length + line.indexOf('precision');
+    expect(diagnostics(model(line))).toEqual([
+      {
+        code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+        message:
+          'Field "T.at" type "Moment": Argument "precision" of Moment is invalid: precision must be at most 6 (was 7)',
+        columns: [start + 1, start + 1 + 'precision: 7'.length],
+      },
     ]);
   });
 });

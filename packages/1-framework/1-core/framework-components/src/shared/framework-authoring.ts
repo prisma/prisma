@@ -1898,6 +1898,31 @@ export function validateAuthoringTypeParams(
   );
 }
 
+/**
+ * {@link validateAuthoringTypeParams} for a call of the type choice `choice` that chose `chosen`: a failure names the choice's own argument the failing parameter came from, by its name and its index in the choice's arguments.
+ */
+export function validateAuthoringTypeChoiceParams(
+  helperPath: string,
+  choice: AuthoringTypeChoiceDescriptor,
+  chosen: AuthoringTypeConstructorDescriptor,
+  typeParams: Record<string, unknown> | undefined,
+  paramsSchema: StandardSchemaV1<unknown> | undefined,
+): void {
+  const issue = authoringTypeParamsIssue(chosen.output, typeParams, paramsSchema);
+  if (issue === undefined) return;
+  const name =
+    issue.argumentIndex === undefined ? undefined : chosen.args?.[issue.argumentIndex]?.name;
+  const argumentIndex =
+    name === undefined ? -1 : choice.args.findIndex((argument) => argument.name === name);
+  throw runtimeError(
+    'CONTRACT.ARGUMENT_INVALID',
+    argumentIndex < 0
+      ? `The type parameters of ${helperPath} are invalid: ${issue.message}`
+      : `Argument "${name}" of ${helperPath} is invalid: ${issue.message}`,
+    { helperPath, ...(argumentIndex < 0 ? {} : { argumentIndex }) },
+  );
+}
+
 function resolveAuthoringStorageTypeTemplate(
   template: AuthoringStorageTypeTemplate,
   args: readonly unknown[],

@@ -135,6 +135,7 @@ export {
   resolveTypeAliasGenerators,
   typeConstructorLookup,
   validateAuthoringHelperArguments,
+  validateAuthoringTypeChoiceParams,
   validateAuthoringTypeParams,
 } from '../shared/framework-authoring';
 export type { AuthoringOption } from '../shared/option-descriptor';
