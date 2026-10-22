@@ -18,3 +18,15 @@ The Mongo and MySQL runners each carry their own copy of the loop that applies a
 
 1. Move the loop into one shared helper both runners use.
 2. Run every check that needs no database change, for every space, before the first change, so a failure that can be predicted is reported while the database is still untouched.
+
+## The internal runner step is on a public interface
+
+From the system-design review of slice 2b (2026-10-22).
+
+`SqlMigrationRunner.executeOnConnection` applies a space without opening a transaction, for the runner's own use. Only runners call it, each on itself. On MySQL "without a transaction" means nothing, and the MySQL version takes no marker lock, so an outside caller would apply a space with no lock held. Fix: make it internal to each runner, or have it take the lock.
+
+## One error code per target for the same failure
+
+From the system-design review of slice 2b (2026-10-22).
+
+`MIGRATION.MYSQL_CONTROL_STACK_MISSING` sits beside `MIGRATION.POSTGRES_CONTROL_STACK_MISSING`: the same failure under two codes, and each new target adds another. Fix: one target-neutral code. Renaming the Postgres code changes what users can match on, so it needs an upgrade note.
