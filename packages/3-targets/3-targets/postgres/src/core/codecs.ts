@@ -135,13 +135,15 @@ import {
   pgVarbit,
   pgVarchar,
 } from './data-types';
-import { pgTimestamptzDateDescriptor } from './date-codecs';
+import { pgTimestampDateDescriptor, pgTimestamptzDateDescriptor } from './date-codecs';
 import { postgresError } from './errors';
+import { pgIntervalStringDescriptor } from './interval-string-codec';
 import { parsePostgresListText } from './list-decoder';
 import { DEFAULT_NAMESPACE_ID } from './namespace-ids';
 import { PostgresNativeEnum } from './postgres-native-enum';
 import {
   pgDateTemporalDescriptor,
+  pgTimestampInstantDescriptor,
   pgTimestampTemporalDescriptor,
   pgTimestamptzTemporalDescriptor,
   pgTimeTemporalDescriptor,
@@ -1539,6 +1541,8 @@ export const codecDescriptors = definePostgresCodecs([
   pgTimestampStringDescriptor,
   pgTimestamptzStringDescriptor,
   pgTimestamptzDateDescriptor,
+  pgTimestampDateDescriptor,
+  pgTimestampInstantDescriptor,
   pgTimeStringDescriptor,
   pgTimetzDescriptor,
   pgBoolDescriptor,
@@ -1548,6 +1552,7 @@ export const codecDescriptors = definePostgresCodecs([
   pgUuidDescriptor,
   pgInetDescriptor,
   pgIntervalDescriptor,
+  pgIntervalStringDescriptor,
   pgJsonDescriptor,
   pgJsonbDescriptor,
   pgTextArrayDescriptor,

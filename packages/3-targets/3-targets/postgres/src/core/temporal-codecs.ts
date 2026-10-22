@@ -16,6 +16,7 @@ import {
   PG_DATE_STRING_CODEC_ID,
   PG_DATE_TEMPORAL_CODEC_ID,
   PG_TIME_TEMPORAL_CODEC_ID,
+  PG_TIMESTAMP_INSTANT_CODEC_ID,
   PG_TIMESTAMP_STRING_CODEC_ID,
   PG_TIMESTAMP_TEMPORAL_CODEC_ID,
   PG_TIMESTAMPTZ_STRING_CODEC_ID,
@@ -25,6 +26,8 @@ import { pgDate, pgPrecisionParams, pgTime, pgTimestamp, pgTimestamptz } from '.
 import {
   pgDateTemporalDecode,
   pgDateTemporalEncode,
+  pgTimestampInstantDecode,
+  pgTimestampInstantEncode,
   pgTimestampTemporalDecode,
   pgTimestampTemporalEncode,
   pgTimestamptzTemporalDecode,
@@ -133,6 +136,62 @@ export const pgTimestampTemporalColumn = (params: PrecisionParams = {}) =>
 
 pgTimestampTemporalColumn satisfies ColumnHelperFor<PgTimestampTemporalDescriptor>;
 pgTimestampTemporalColumn satisfies ColumnHelperForStrict<PgTimestampTemporalDescriptor>;
+
+/**
+ * A `timestamp` column read and written as a `Temporal.Instant`, treating the stored date and time as UTC. A write sends the instant's UTC date and time with no offset.
+ */
+export class PgTimestampInstantCodec extends CodecImpl<
+  typeof PG_TIMESTAMP_INSTANT_CODEC_ID,
+  readonly ['equality', 'order'],
+  string,
+  Temporal.Instant
+> {
+  async toWire(value: Temporal.Instant, _ctx: CodecCallContext): Promise<string> {
+    return pgTimestampInstantEncode(value);
+  }
+  async fromWire(wire: string, _ctx: CodecCallContext): Promise<Temporal.Instant> {
+    return pgTimestampInstantDecode(wire);
+  }
+  fromDataTypeValue(value: DataTypeValue<string>): Temporal.Instant {
+    refuseInfinity(
+      this.id,
+      'an instant a Temporal.Instant holds',
+      PG_TIMESTAMP_STRING_CODEC_ID,
+      value.value,
+    );
+    return pgTimestampInstantDecode(value.value);
+  }
+  toDataTypeValue(input: Temporal.Instant): DataTypeValue {
+    return this.dataTypeValueOf(pgTimestampInstantEncode(input));
+  }
+}
+
+export class PgTimestampInstantDescriptor extends PostgresCodecDescriptor<PrecisionParams> {
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return CastExpr.as(expression, 'text');
+  }
+  override readonly dataType = pgTimestamp.id;
+  override readonly codecId = PG_TIMESTAMP_INSTANT_CODEC_ID;
+  override readonly traits = ['equality', 'order'] as const;
+  override readonly paramsSchema = pgPrecisionParams satisfies StandardSchemaV1<PrecisionParams>;
+  override factory(
+    params: PrecisionParams,
+  ): (ctx: CodecInstanceContext) => PgTimestampInstantCodec {
+    return () => new PgTimestampInstantCodec(this, pgTimestamp, params ?? {});
+  }
+}
+
+export const pgTimestampInstantDescriptor = new PgTimestampInstantDescriptor();
+
+export const pgTimestampInstantColumn = (params: PrecisionParams = {}) =>
+  column(
+    pgTimestampInstantDescriptor.factory(params),
+    pgTimestampInstantDescriptor.codecId,
+    params,
+  );
+
+pgTimestampInstantColumn satisfies ColumnHelperFor<PgTimestampInstantDescriptor>;
+pgTimestampInstantColumn satisfies ColumnHelperForStrict<PgTimestampInstantDescriptor>;
 
 export class PgTimestamptzTemporalCodec extends CodecImpl<
   typeof PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,

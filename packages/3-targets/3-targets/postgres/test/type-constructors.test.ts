@@ -260,6 +260,9 @@ describe('postgresNativeAuthoringTypes', () => {
       Bit: { codecId: 'pg/bit@1' },
       VarBit: { codecId: 'pg/varbit@1' },
       IntervalParts: { codecId: 'pg/interval@1' },
+      IntervalString: { codecId: 'pg/interval-string@1' },
+      TimestampJsDate: { codecId: 'pg/timestamp-date@1' },
+      TimestampInstant: { codecId: 'pg/timestamp-instant@1' },
     });
   });
 
@@ -295,6 +298,9 @@ describe('postgresNativeAuthoringTypes', () => {
     ['VarBit', [16], { codecId: 'pg/varbit@1', typeParams: { length: 16 } }],
     ['IntervalParts', [], { codecId: 'pg/interval@1' }],
     ['IntervalParts', [3], { codecId: 'pg/interval@1', typeParams: { precision: 3 } }],
+    ['IntervalString', [3], { codecId: 'pg/interval-string@1', typeParams: { precision: 3 } }],
+    ['TimestampJsDate', [3], { codecId: 'pg/timestamp-date@1', typeParams: { precision: 3 } }],
+    ['TimestampInstant', [6], { codecId: 'pg/timestamp-instant@1', typeParams: { precision: 6 } }],
   ] as const)('maps %s(%s) onto the parameter of the same name', (name, args, expected) => {
     expect(instantiateAuthoringTypeConstructor(postgresNativeAuthoringTypes[name], args)).toEqual(
       expected,
@@ -331,6 +337,9 @@ describe('postgresNativeAuthoringTypes', () => {
       ['Bit', [0]],
       ['VarBit', [0]],
       ['IntervalParts', [7]],
+      ['IntervalString', [7]],
+      ['TimestampInstant', [7]],
+      ['TimestampJsDate', [7]],
     ] as const)('refuses %s(%s)', (name, args) => {
       expect(() => check(name, args)).toThrow(
         expect.objectContaining({ code: 'CONTRACT.ARGUMENT_INVALID' }),
@@ -346,6 +355,10 @@ describe('postgresNativeAuthoringTypes', () => {
       ['TimestampTemporal', [0]],
       ['TimestampTemporal', [6]],
       ['Timetz', [6]],
+      ['TimestampJsDate', [0]],
+      ['TimestampJsDate', [6]],
+      ['TimestampInstant', [6]],
+      ['IntervalString', [6]],
     ] as const)('accepts %s(%s)', (name, args) => {
       expect(() => check(name, args)).not.toThrow();
     });
