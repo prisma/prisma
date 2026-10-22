@@ -27,10 +27,10 @@ import {
   readJsonFloat,
   readJsonIntegerText,
   renderTsLiteral,
+  storedNumeralText,
 } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { sqlRawDataType } from '@internal/sql-contract/data-type';
-import { storedNumeralText } from '@internal/sql-contract/data-type-support';
 import {
   CaseExpr,
   CastExpr,

@@ -168,3 +168,25 @@ model Post {
     });
   });
 });
+
+describe('enum members written as lists', () => {
+  it('refuses a list member when the codec data type has no list cast', () => {
+    expect(storedValues('pg/text@1', ['A = ["a", "b"]']).diagnostics).toEqual([
+      {
+        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+        message: 'enum "Key" member "A": Expected a quoted string; got a list',
+      },
+    ]);
+  });
+});
+
+describe('enum members the codec refuses', () => {
+  it('reports a member the codec refuses as PSL_VALUE_REFUSED, with the codec message', () => {
+    expect(storedValues('test/positive-int4@1', ['Up = 1', 'Down = -1']).diagnostics).toEqual([
+      {
+        code: 'PSL_VALUE_REFUSED',
+        message: 'enum "Key" member "Down": value must be positive',
+      },
+    ]);
+  });
+});

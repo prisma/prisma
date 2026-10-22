@@ -63,7 +63,7 @@ export const sqlFamilyEnumEntityDescriptor = {
         });
         return undefined;
       }
-      const dataType = ctx.dataTypeLookup.get(descriptor.dataType);
+      const dataType = ctx.dataTypes.lookup.get(descriptor.dataType);
       if (dataType === undefined) {
         diagnostics?.push({
           code: 'PSL_EXTENSION_INVALID_VALUE',

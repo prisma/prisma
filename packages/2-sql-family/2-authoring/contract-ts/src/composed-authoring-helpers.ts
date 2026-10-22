@@ -374,7 +374,7 @@ export function createComposedAuthoringHelpers<
         family: options.family.familyId,
         target: options.target.targetId,
         codecLookup: options.codecLookup,
-        dataTypeLookup: support.lookup,
+        dataTypes: support,
       },
     }),
     field: createComposedFieldHelpers(fieldNamespace, helperLookups),

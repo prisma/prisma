@@ -168,6 +168,11 @@ export function objectIdToJson(codecId: string, value: string): string {
   return value;
 }
 
+/** Whether `text` is an ObjectId's 24 hexadecimal digits, in either case. */
+export function isObjectIdText(text: string): boolean {
+  return OBJECT_ID_TEXT.test(text);
+}
+
 /** Reads ObjectId hex in either case; {@link spellObjectIdJson} writes the lower case the type stores. */
 export function readObjectIdJson(owner: string, json: JsonValue): string {
   return readJsonMatching(owner, json, OBJECT_ID_TEXT, '24 hexadecimal digits');
@@ -221,6 +226,9 @@ export function readVectorJson(owner: string, json: JsonValue, length?: number):
   const numbers: number[] = [];
   for (const element of json) {
     if (typeof element !== 'number') return refuseJsonValue(owner, expected, element);
+    if (!Number.isFinite(element)) {
+      return refuseJsonValue(owner, 'an array of finite numbers', json);
+    }
     numbers.push(element);
   }
   return numbers;
@@ -395,19 +403,41 @@ export function decimal128ToJson(codecId: string, value: string): string {
   return requireStoredDecimalText(codecId, value);
 }
 
+/** Decimal text without its leading zeros, as MongoDB writes it; the sign of zero and trailing zeros stay. */
+function decimalTextWithoutLeadingZeros(text: string): string {
+  return text.replace(/^(-?)0+(?=\d)/, '$1');
+}
+
+function withoutSignOfZero(text: string): string {
+  return /^-[0.]+$/.test(text) ? text.slice(1) : text;
+}
+
+/** Whether a Decimal128 holds the decimal text exactly: the text it writes back is the same number, digit for digit. */
+export function decimal128HoldsExactly(text: string): boolean {
+  let written: string;
+  try {
+    written = Decimal128.fromString(text).toString();
+  } catch {
+    return false;
+  }
+  return (
+    decimalTextWithoutExponent(written) === withoutSignOfZero(decimalTextWithoutLeadingZeros(text))
+  );
+}
+
 /**
- * The stored form is what the codec writes, so it follows the encode rule: decimal text without an exponent, or `NaN`, `Infinity` or `-Infinity`, that a Decimal128 holds exactly.
+ * The stored form is what the codec writes, so it follows the encode rule: decimal text without an exponent, or `NaN`, `Infinity` or `-Infinity`, that a Decimal128 holds exactly. A value a Decimal128 would round is refused.
  */
 export function readDecimal128Json(owner: string, json: JsonValue): string {
   const expected =
     'decimal text without an exponent that a Decimal128 holds exactly, or NaN, Infinity or -Infinity';
   const text = readJsonMatching(owner, json, STORED_DECIMAL_TEXT, expected);
-  try {
-    Decimal128.fromString(text);
-  } catch {
-    return refuseJsonValue(owner, expected, json);
-  }
-  return text;
+  return decimal128HoldsExactly(text) ? text : refuseJsonValue(owner, expected, json);
+}
+
+/** The decimal text without leading zeros, as MongoDB writes it, keeping negative zero. */
+export function spellDecimal128Json(json: JsonValue): JsonValue {
+  return typeof json === 'string' ? decimalTextWithoutLeadingZeros(json) : json;
 }
 
 export function binaryEncode(codecId: string, value: Uint8Array): Binary {
@@ -428,6 +458,11 @@ export function binaryDecode(codecId: string, wire: Binary | Uint8Array): Uint8A
 
 export function binaryToBase64(value: Uint8Array): string {
   return Buffer.from(value).toString('base64');
+}
+
+/** Whether `text` is base64, with or without padding bits set. */
+export function isBase64Text(text: string): boolean {
+  return BASE64_TEXT.test(text);
 }
 
 /** Reads base64 with or without padding bits set; {@link spellBase64Json} writes the base64 the type stores. */

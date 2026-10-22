@@ -390,7 +390,7 @@ model Post {
     expect(result.failure.diagnostics).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          message: 'Expected one of: string | number | boolean | tag`...`',
+          message: 'Expected one of: string | number | boolean | tag`...` | [...]',
         }),
       ]),
     );

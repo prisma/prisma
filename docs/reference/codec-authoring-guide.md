@@ -15,6 +15,7 @@ The framework imports live at `@internal/framework-components/codec`:
 - `CodecImpl<Id, TTraits, TWire, TInput>` — abstract codec base class.
 - `CodecDescriptorImpl<P>` — abstract descriptor base class; `CodecDescriptorTemplateImpl<P>` is the same shape for a codec whose data type the adapting target names.
 - `dataType(id, spec)` — declares a data type with the `read` function for its values and its casts; `DataType`, `DataTypeId`, `DataTypeReader`, `Cast`. A SQL data type is declared with `sqlDataType(id, spec)` from `@internal/sql-contract/data-type` instead, which adds how the type is written — see [Declaring a data type](#declaring-a-data-type).
+- Helpers for declaring data types and their PSL entries (ADR 254): the casts `castUnchanged`, `asNumeralText` and `asFloat`, and `refuseWrongShape` for a cast's own refusals; `createNumberClassifier` and `signedRange` for the plain-number entry; `parseJsonText` and `printJsonText`; `numeralText` and `storedNumeralText`; `dateTimeStoredText` and `isoDateStringText`, which build the stored form of date and time types.
 - `DataTypeValue` — a value of a data type, `{ type, params, value }`, whose `value` is the JSON `contract.json` stores.
 - `ColumnHelperFor<D>` / `ColumnHelperForStrict<D>` — `satisfies` shapes for per-codec helpers.
 - `column(codecFactory, codecId, typeParams)` — column-spec packager. The contract takes the column's data type from the codec.
@@ -640,7 +641,7 @@ export const pgEnum = sqlDataType('pg/enum', {
 
 ```ts
 const asNumeralText: Cast = (value) =>
-  typeof value === 'number' ? numeralText(value) : wrongShape(value, 'a number');
+  typeof value === 'number' ? numeralText(value) : refuseWrongShape(value, 'a number');
 ```
 
 There is no list data type. A written list on a list column is checked element by element against the column's own type. A type whose single value holds several elements takes a written list through `listCast` instead: `of` is the element types it takes, and `cast` receives their stored forms in written order.

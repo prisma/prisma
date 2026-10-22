@@ -81,8 +81,8 @@ describe('a Mongo enum over an unknown codec', () => {
 
 describe('a Mongo enum whose members the collection validator cannot list', () => {
   it.each([
-    ['mongo/int64@1', 'long', '"1"'],
-    ['mongo/date@1', 'date', '"2024-01-01T00:00:00.000Z"'],
+    ['mongo/int64@1', 'long', '1'],
+    ['mongo/date@1', 'date', 'date`2024-01-01T00:00:00Z`'],
     ['mongo/objectId@1', 'objectId', '"65a1b2c3d4e5f6a7b8c9d0e1"'],
   ])(
     'refuses @@type("%s"), whose BSON type is %s, at the @@type argument',
@@ -108,7 +108,7 @@ describe('a Mongo enum whose members the collection validator cannot list', () =
 
   it('refuses a double member stored as text, at the member', () => {
     const schema =
-      'enum Ratio {\n  @@type("mongo/double@1")\n  Half = 1.5\n  Unknown = "NaN"\n}\nmodel Reading {\n  id    ObjectId @id @map("_id")\n  ratio Ratio\n}\n';
+      'enum Ratio {\n  @@type("mongo/double@1")\n  Half = 1.5\n  Unknown = NaN\n}\nmodel Reading {\n  id    ObjectId @id @map("_id")\n  ratio Ratio\n}\n';
     const result = interpret(schema);
 
     expect(result.ok).toBe(false);

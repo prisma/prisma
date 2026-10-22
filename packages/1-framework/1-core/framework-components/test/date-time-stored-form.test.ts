@@ -1,6 +1,10 @@
 import { InternalError } from '@internal/utils/internal-error';
 import { describe, expect, it } from 'vitest';
-import { type DateTimeStoredTextOptions, dateTimeStoredText } from '../src/date-time-stored-form';
+import {
+  type DateTimeStoredTextOptions,
+  dateTimeStoredText,
+  isoDateStringText,
+} from '../src/shared/date-time-stored-form';
 
 const date: DateTimeStoredTextOptions = { shape: 'date', ownerId: 'demo/date' };
 const time: DateTimeStoredTextOptions = { shape: 'time', ownerId: 'demo/time' };
@@ -269,5 +273,64 @@ describe('dateTimeStoredText', () => {
         range: { earliest: 'midnight', latest: '23:59:59' },
       }),
     ).toThrow(InternalError);
+  });
+});
+
+describe('isoDateStringText', () => {
+  const accepted: ReadonlyArray<readonly [string, string]> = [
+    ['2024-01-01T00:00:00Z', '2024-01-01T00:00:00.000Z'],
+    ['2024-01-01T00:00:00.000Z', '2024-01-01T00:00:00.000Z'],
+    ['2024-01-01T01:00:00+01:00', '2024-01-01T00:00:00.000Z'],
+    ['2024-01-01 00:00:00+00', '2024-01-01T00:00:00.000Z'],
+    ['2024-01-01T00:00:00.120Z', '2024-01-01T00:00:00.120Z'],
+    ['2024-01-01T00:00:00.5Z', '2024-01-01T00:00:00.500Z'],
+    ['2024-01-01T00:00:00.123Z', '2024-01-01T00:00:00.123Z'],
+    ['-000043-03-15T00:00:00.000Z', '-000043-03-15T00:00:00.000Z'],
+    ['+012026-01-02T03:04:05Z', '+012026-01-02T03:04:05.000Z'],
+    ['+275760-09-13T00:00:00Z', '+275760-09-13T00:00:00.000Z'],
+    ['-271821-04-20T00:00:00Z', '-271821-04-20T00:00:00.000Z'],
+  ];
+
+  it.each(accepted)('is written for %s as %s', (written, stored) => {
+    expect(isoDateStringText(written, 'demo/instant')).toBe(stored);
+  });
+
+  it.each(accepted)('is what toISOString() writes for %s', (written) => {
+    expect(isoDateStringText(written, 'demo/instant')).toBe(new Date(written).toISOString());
+  });
+
+  it.each([
+    [
+      '2024-01-01 00:00:00',
+      'demo/instant needs a UTC offset, but "2024-01-01 00:00:00" has none. Add Z for UTC or an offset such as +02:00, as in "2024-01-01T12:34:56Z".',
+    ],
+    [
+      'infinity',
+      'demo/instant cannot read "infinity". Write a date and time with a UTC offset, as in "2024-01-01T12:34:56Z".',
+    ],
+    [
+      '2024-02-30T00:00:00Z',
+      '"2024-02-30T00:00:00Z" is not a date that exists. Write a real date, as in "2024-01-01T12:34:56Z".',
+    ],
+    [
+      '2024-01-01T00:00:00.1234Z',
+      '"2024-01-01T00:00:00.1234Z" has 4 digits after the decimal point, but demo/instant holds milliseconds, so at most 3. Round it, as in "2024-01-01T12:34:56.123Z".',
+    ],
+    [
+      '0044-03-15 00:00:00+00 BC',
+      'demo/instant cannot read "0044-03-15 00:00:00+00 BC". Write a date and time with a UTC offset, as in "2024-01-01T12:34:56Z".',
+    ],
+    [
+      '+275760-09-13T00:00:00.001Z',
+      'demo/instant holds instants from -271821-04-20T00:00:00Z to +275760-09-13T00:00:00Z, and "+275760-09-13T00:00:00.001Z" is outside them.',
+    ],
+    [
+      '-271821-04-19T23:59:59Z',
+      'demo/instant holds instants from -271821-04-20T00:00:00Z to +275760-09-13T00:00:00Z, and "-271821-04-19T23:59:59Z" is outside them.',
+    ],
+  ])('refuses %s', (written, message) => {
+    expect(() => isoDateStringText(written, 'demo/instant')).toThrow(
+      expect.objectContaining({ code: 'CONTRACT.CAST_REFUSED', message }),
+    );
   });
 });

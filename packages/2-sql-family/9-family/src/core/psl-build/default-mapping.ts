@@ -31,8 +31,7 @@ import type {
   DataTypeParams,
   DataTypeValue,
 } from '@internal/framework-components/codec';
-import { dataTypeId, dataTypeParams } from '@internal/framework-components/codec';
-import { numeralText } from '@internal/sql-contract/data-type';
+import { dataTypeId, dataTypeParams, numeralText } from '@internal/framework-components/codec';
 import { escapePslString } from '@internal/sql-contract/data-type-support';
 import { SQL_EXPRESSION_TAG } from '@internal/sql-contract/sql-expression';
 import { isInternalError } from '@internal/utils/internal-error';

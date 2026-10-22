@@ -10,10 +10,11 @@ import {
   singleGeneratorBinding,
 } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { mongoCodecLookup, mongoDataTypeLookup } from '@internal/mongo-contract/test';
+import { mongoCodecLookup } from '@internal/mongo-contract/test';
 import { jsonValue, mapBlock } from '@internal/psl-parser';
 import { describe, expect, it } from 'vitest';
 import { interpretMongoContract } from './interpreter-test-helpers';
+import { mongoDataTypeSupport } from './mongo-type-lookups';
 
 const generatorFunctions = assembleGeneratorFunctions([
   {
@@ -70,7 +71,7 @@ function interpret(schema: string) {
     defaultFunctionRegistry: new Map(),
     generatorFunctions,
     codecLookup: mongoCodecLookup,
-    dataTypes: { entries: {}, lookup: mongoDataTypeLookup, dataTypeOfCodec: () => undefined },
+    dataTypes: mongoDataTypeSupport,
     authoringContributions,
   });
 }

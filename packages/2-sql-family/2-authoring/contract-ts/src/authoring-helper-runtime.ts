@@ -21,8 +21,8 @@ import {
   type CodecLookupWithDescriptors,
   type DataTypeId,
   dataTypeId,
+  numeralText,
 } from '@internal/framework-components/codec';
-import { numeralText } from '@internal/sql-contract/data-type';
 import { readSqlExpression, SQL_EXPRESSION_TAG } from '@internal/sql-contract/sql-expression';
 import {
   type AuthoredStorageTypeInstance,
