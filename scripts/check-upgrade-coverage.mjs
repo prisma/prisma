@@ -55,8 +55,16 @@ function publishedGuide(audience, transition) {
   return `${PUBLISHED_ROOT}${audience}/upgrades/${transition}/instructions.md`;
 }
 const COVERED_DIRECTORIES = [
-  { audience: 'app', directory: 'examples/' },
-  { audience: 'extension', directory: 'packages/3-extensions/' },
+  { audience: 'app', directories: ['examples/'] },
+  {
+    audience: 'extension',
+    directories: [
+      'packages/3-extensions/',
+      'packages/3-targets/postgres/9-facade/',
+      'packages/3-targets/sqlite/9-facade/',
+      'packages/3-targets/mongo/9-facade/',
+    ],
+  },
 ];
 function gitWith(options, repoRoot, ...args) {
   return execFileSync('git', args, {
@@ -100,7 +108,10 @@ function tree(repoRoot, ref) {
  * The listing grows with the change, so it is read without the default 1 MiB limit on output.
  */
 function changedPaths(repoRoot, prev, head) {
-  const directories = [...COVERED_DIRECTORIES.map(({ directory }) => directory), PUBLISHED_ROOT];
+  const directories = [
+    ...COVERED_DIRECTORIES.flatMap(({ directories }) => directories),
+    PUBLISHED_ROOT,
+  ];
   return gitWith(
     { maxBuffer: Number.POSITIVE_INFINITY },
     repoRoot,
@@ -309,10 +320,11 @@ export function runCheck({ repoRoot, head = 'HEAD', prev, mode = 'pr' }) {
     for (const { audience } of COVERED_DIRECTORIES)
       validate.add(publishedGuide(audience, transition));
   } else if (mode === 'pr') {
-    for (const { audience, directory } of COVERED_DIRECTORIES) {
+    for (const { audience, directories } of COVERED_DIRECTORIES) {
       const relevant = changed.filter(
         (path) =>
-          path.startsWith(directory) && !isTranslationIrrelevant(repoRoot, prev, head, path),
+          directories.some((directory) => path.startsWith(directory)) &&
+          !isTranslationIrrelevant(repoRoot, prev, head, path),
       );
       if (
         relevant.length &&
@@ -323,7 +335,7 @@ export function runCheck({ repoRoot, head = 'HEAD', prev, mode = 'pr' }) {
         violations.push({
           rule: 'per-pr-declaration',
           path: `${PENDING}<name>/${audience}/instructions.md`,
-          reason: `diff in ${directory} requires a new declaration relative to --prev; inherited or modified files do not count`,
+          reason: `diff in ${directories.join(', ')} requires a new declaration relative to --prev; inherited or modified files do not count`,
           sampleDiffPaths: relevant.slice(0, 5),
         });
       }
