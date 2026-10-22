@@ -2,7 +2,7 @@ import { checkExpression, col } from '@internal/sql-relational-core/contract-fre
 import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { sqliteBigintDescriptor } from '../src/core/codecs';
-import sqliteControlTargetDescriptor from '../src/core/control-target';
+import sqliteControlTargetDescriptor from '../src/core/migrations/control-target';
 import { CreateTableCall, DropTableCall } from '../src/core/migrations/op-factory-call';
 import { renderOps } from '../src/core/migrations/render-ops';
 import { createSqliteMigrationRunner } from '../src/core/migrations/runner';

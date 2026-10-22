@@ -1,4 +1,4 @@
-export { default } from '../core/control-target';
+export { default } from '../core/migrations/control-target';
 export type { SqlitePlanTargetDetails } from '../core/migrations/planner-target-details';
 export {
   SqliteUnboundDatabase,
