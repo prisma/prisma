@@ -226,7 +226,7 @@ function validateNamespaceDeclarations(
       throw contractError(
         'CONTRACT.NAMESPACE_INVALID',
         `defineContract: namespace name "${namespace}" is reserved by ${targetNameOf(target)} for the late-binding opt-in (use \`namespace ${namespace} { … }\` in PSL instead of declaring it as a regular schema).`,
-        { meta: { namespace, reason: `reserved-by-${target.targetId}` } },
+        { meta: { namespace, reason: 'reserved-psl-keyword', targetId: target.targetId } },
       );
     }
     if (seen.has(namespace)) {
@@ -294,7 +294,8 @@ function validatePerModelNamespaces(
           meta: {
             modelKey,
             namespace: perModelNamespace,
-            reason: `reserved-by-${target.targetId}`,
+            reason: 'reserved-psl-keyword',
+            targetId: target.targetId,
           },
         },
       );

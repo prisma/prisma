@@ -81,7 +81,7 @@ describe('defineContract namespace rules read from the target descriptor', () =>
     expect(build(targetWithNamespaces, { namespaces: ['unbound'] })).toThrow(
       expect.objectContaining({
         code: 'CONTRACT.NAMESPACE_INVALID',
-        meta: { namespace: 'unbound', reason: 'reserved-by-cockroach' },
+        meta: { namespace: 'unbound', reason: 'reserved-psl-keyword', targetId: 'cockroach' },
       }),
     );
     expect(
@@ -90,7 +90,17 @@ describe('defineContract namespace rules read from the target descriptor', () =>
         models: { User: model('User', { namespace: 'unbound', ...userModelArgs }) },
       }),
     ).toThrow(
-      /namespace: "unbound"` but that name is reserved by CockroachDB.*namespace unbound \{ … \}/,
+      expect.objectContaining({
+        message: expect.stringMatching(
+          /namespace: "unbound"` but that name is reserved by CockroachDB.*namespace unbound \{ … \}/,
+        ),
+        meta: {
+          modelKey: 'User',
+          namespace: 'unbound',
+          reason: 'reserved-psl-keyword',
+          targetId: 'cockroach',
+        },
+      }),
     );
   });
 });
