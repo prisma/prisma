@@ -3529,6 +3529,9 @@ importers:
       pg:
         specifier: 'catalog:'
         version: 8.22.0
+      temporal-spec:
+        specifier: 1.0.1
+        version: 1.0.1
       tinyglobby:
         specifier: 'catalog:'
         version: 0.2.17
@@ -3560,9 +3563,6 @@ importers:
       temporal-polyfill:
         specifier: ^1.0.4
         version: 1.0.4
-      temporal-spec:
-        specifier: 1.0.1
-        version: 1.0.1
       tsdown:
         specifier: 'catalog:'
         version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
@@ -5153,6 +5153,9 @@ importers:
       temporal-polyfill:
         specifier: ^1.0.4
         version: 1.0.4
+      temporal-spec:
+        specifier: 1.0.1
+        version: 1.0.1
       tinyglobby:
         specifier: 'catalog:'
         version: 0.2.17

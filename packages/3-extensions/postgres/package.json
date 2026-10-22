@@ -40,6 +40,7 @@
     "arktype": "catalog:",
     "pathe": "^2.0.3",
     "pg": "catalog:",
+    "temporal-spec": "1.0.1",
     "tinyglobby": "catalog:"
   },
   "devDependencies": {
@@ -52,7 +53,6 @@
     "@repo/tsconfig": "workspace:8.0.0-rc.19",
     "@repo/tsdown": "workspace:8.0.0-rc.19",
     "temporal-polyfill": "^1.0.4",
-    "temporal-spec": "1.0.1",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
