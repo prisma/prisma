@@ -129,7 +129,9 @@ The reasoning and the alternatives rejected are in [`design-notes.md`](./design-
 
 ## Open questions
 
-1. **How CI gets a MySQL server.** The integration suite needs no external database today (PGlite and mongodb-memory-server). The e2e jobs already use a Postgres service container. MySQL has no in-process equivalent of PGlite. Proposed: a `mysql:8.4` and a `mariadb:10.11` service container in the jobs that run MySQL tests, and a matching service in `docker-compose.yaml` for local runs. This changes CI, so it needs Will's approval.
+None.
+
+**Settled 2026-10-22: how CI gets a MySQL server.** MySQL has no in-process equivalent of PGlite. CI gets a `mysql:8.4` and a `mariadb:10.11` service container in the jobs that run MySQL tests, as the e2e jobs already run Postgres, and `docker-compose.yaml` gets matching services for local runs (Will approved the CI change).
 
 ## References
 

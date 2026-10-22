@@ -35,7 +35,7 @@
 - Target, adapter, driver and facade in `packages/3-targets/mysql/`.
 - The spec's contract emits, plans, migrates, verifies and signs against MySQL 8.4.
 - Migration atomicity becomes a target fact; MySQL resumes per space.
-- A MySQL server in CI, pending Will's approval (spec, open question 1).
+- MySQL 8.4 and MariaDB 10.11 service containers in CI and `docker-compose.yaml` (approved by Will, 2026-10-22).
 
 **Hands to 3:** a MySQL database the tests can create and migrate, and the MySQL runtime adapter to add lowering to.
 
