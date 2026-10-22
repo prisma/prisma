@@ -24,10 +24,10 @@ How the system is built is in the [guiding principles](../../Architecture%20Over
 
 - **Databases, in order.** Will Madden, 2026-10-22: "postgres GA. mongo GA / SQLite GA / mysql GA. then we see. everything else we expect to be built in user/extension space"
 - **The data contract.** One contract, written in PSL or TypeScript, says what exists and what is allowed, and every other part works from it.
-- **Querying.** The query builder, the ORM client on top of it, and raw SQL, all checked against the same contract.
+- **Querying.** The query builder, the ORM client on top of it, and raw SQL all work from the same contract.
 - **Migrations.** Each change is planned from one contract to the next, checked before and after it runs, and needs approval when it destroys data.
-- **Extensions.** The public interface that lets anyone add a database, a tool or a library outside the core.
+- **Extensions.** Anyone can add a database, a tool or a library through the same public interface the core team uses.
 - **Agents.** Agents are first-class users: the packages ship skills for them, and the tools give output they can act on.
 - **The runtime and middleware.** Behaviour around queries, such as logging, caching and tracing, is written as middleware.
-- **The CLI, the editor and tools.** The `prisma` CLI and the VS Code extension.
+- **The CLI, the editor and tools.** The maintainers build and maintain the `prisma` CLI and the VS Code extension.
 - **The upgrade path from Prisma 7.** An application moves from Prisma 7 to Prisma 8 one step at a time.

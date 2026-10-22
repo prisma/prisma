@@ -22,7 +22,7 @@ When other docs or code conflict with this page, treat this page as the project'
 Optimise for:
 
 - **Deterministic behaviour.** Declarative artifacts define every execution path, and checks run before data is touched.
-- **Explicit behaviour.** No hidden extra round-trips, fallbacks or guesses. One query lane call compiles to one statement ([ADR 003](../../architecture%20docs/adrs/ADR%20003%20-%20One%20Query%20One%20Statement.md)).
+- **Explicit behaviour.** No hidden extra round-trips, fallbacks or guesses. One query builder call compiles to one SQL statement ([ADR 003](../../architecture%20docs/adrs/ADR%20003%20-%20One%20Query%20One%20Statement.md)).
 - **Feedback before execution.** Lints, budgets and offline checks say what is wrong and how to fix it before anything runs.
 
 It does not need to optimise for:
