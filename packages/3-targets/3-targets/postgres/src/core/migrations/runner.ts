@@ -260,18 +260,32 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
     }
 
     await this.beginTransaction(driver);
-    let committed = false;
+    let result: MigrationRunnerResult;
     try {
-      const result = await this.executeSpaces(driver, perSpaceOptions);
-      if (!result.ok) return notOk(withDatabaseUnchanged(result.failure, true));
-      await this.commitTransaction(driver);
-      committed = true;
-      return result;
-    } finally {
-      if (!committed) {
-        await this.rollbackTransaction(driver);
-      }
+      result = await this.executeSpaces(driver, perSpaceOptions);
+    } catch (error) {
+      await this.rollbackAfterFailure(driver);
+      throw error;
     }
+    if (!result.ok) {
+      await this.rollbackAfterFailure(driver);
+      return notOk(withDatabaseUnchanged(result.failure, true));
+    }
+    try {
+      await this.commitTransaction(driver);
+    } catch (error) {
+      await this.rollbackAfterFailure(driver);
+      throw error;
+    }
+    return result;
+  }
+
+  // Runs only after a failure, which is what the caller reports: a ROLLBACK that also fails, for
+  // example on a lost connection, must not replace it.
+  private async rollbackAfterFailure(
+    driver: SqlMigrationRunnerExecuteOptions<PostgresPlanTargetDetails>['driver'],
+  ): Promise<void> {
+    await this.rollbackTransaction(driver).catch(() => undefined);
   }
 
   private async executeSpaces(
