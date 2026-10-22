@@ -11,7 +11,7 @@ import { redactDatabaseUrl } from '@internal/utils/redact-db-url';
 import { suppressIdleConnectionErrors } from '@internal/utils/suppress-idle-connection-errors';
 import { Client } from 'pg';
 import { postgresDriverDescriptorMeta } from '../core/descriptor-meta';
-import { normalizeClientError, normalizePgConnectionError } from '../normalize-error';
+import { normalizePgClientError, normalizePgConnectFailure } from '../normalize-error';
 import { watchClientLoss } from '../pg-client-state';
 import { controlTextTypes } from '../server-text-types';
 
@@ -39,7 +39,7 @@ export class PostgresControlDriver implements SqlControlDriverInstance<'postgres
         rows: blindCast<Row[], 'pg query rows are shaped by the query result type'>(result.rows),
       };
     } catch (error) {
-      throw normalizeClientError(this.client, error);
+      throw normalizePgClientError(this.client, error);
     }
   }
 
@@ -78,7 +78,7 @@ const postgresDriverDescriptor: ControlDriverDescriptor<'sql', 'postgres', Postg
         await client.connect();
         return new PostgresControlDriver(client);
       } catch (error) {
-        const normalized = normalizePgConnectionError(error);
+        const normalized = normalizePgConnectFailure(error);
         const redacted = redactDatabaseUrl(url);
         try {
           await client.end();

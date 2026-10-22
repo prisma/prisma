@@ -194,7 +194,7 @@ interface SupabaseRuntimes<TContract extends Contract<SqlStorage>> {
 type PoolBinding = {
   readonly kind: 'pgPool';
   readonly pool: Pool;
-  readonly ownsConnection: boolean;
+  readonly ownedByDriver: boolean;
 };
 
 function closedClientError() {
@@ -274,7 +274,7 @@ function toPoolBinding<TContract extends Contract<SqlStorage>>(
   options: SupabaseOptions<TContract>,
 ): PoolBinding | undefined {
   if (options.pg !== undefined && isPgPool(options.pg)) {
-    return { kind: 'pgPool', pool: options.pg, ownsConnection: false };
+    return { kind: 'pgPool', pool: options.pg, ownedByDriver: false };
   }
   if (typeof options.url === 'string') {
     return {
@@ -286,7 +286,7 @@ function toPoolBinding<TContract extends Contract<SqlStorage>>(
           idleTimeoutMillis: options.poolOptions?.idleTimeoutMillis ?? 30_000,
         }),
       ),
-      ownsConnection: true,
+      ownedByDriver: true,
     };
   }
   return undefined;
@@ -371,7 +371,7 @@ export default async function supabase<
     if (connectError !== undefined) {
       throw connectError.error;
     }
-    if (closed && runtimes?.poolBinding?.ownsConnection !== true) {
+    if (closed) {
       throw closedClientError();
     }
     if (runtimes !== undefined) {
@@ -407,7 +407,7 @@ export default async function supabase<
     if (poolBinding) {
       driver.connect(poolBinding).catch(async (err: unknown) => {
         connectError = { error: err };
-        if (poolBinding.ownsConnection) await poolBinding.pool.end().catch(() => undefined);
+        if (poolBinding.ownedByDriver) await poolBinding.pool.end().catch(() => undefined);
       });
     }
 
@@ -567,14 +567,15 @@ export default async function supabase<
 
   let closePromise: Promise<void> | undefined;
 
-  async function closeOwnedRuntime(): Promise<void> {
-    if (runtimes?.poolBinding?.ownsConnection !== true) return;
-    await runtimes.runtime.close();
+  // The runtime closes its driver, which ends only a pool it owns; a pool the caller passed in
+  // stays open.
+  async function closeRuntime(): Promise<void> {
+    await runtimes?.runtime.close();
   }
 
   function closeDb(): Promise<void> {
     closed = true;
-    closePromise ??= closeOwnedRuntime();
+    closePromise ??= closeRuntime();
     return closePromise;
   }
 

@@ -62,7 +62,7 @@ describe('@internal/driver-postgres temporal text transport', () => {
     const database = await createDevDatabase();
     const client = new pg.Client({ connectionString: database.connectionString });
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client, ownsConnection: true },
+      { kind: 'pgClient', client, ownedByDriver: true },
       cursor,
     );
     cleanups.push(async () => {

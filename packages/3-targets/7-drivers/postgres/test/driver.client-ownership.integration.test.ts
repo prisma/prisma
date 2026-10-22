@@ -4,7 +4,8 @@ import { SqlConnectionError } from '@internal/sql-errors';
 import { timeouts } from '@repo/test-utils';
 import { Client, Pool } from 'pg';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { hasStartedConnecting } from '../src/pg-client-state';
+import { normalizePgClientError } from '../src/normalize-error';
+import { hasLostConnection, hasStartedConnecting } from '../src/pg-client-state';
 import { createBoundDriverFromBinding } from '../src/postgres-driver';
 import { queryRows } from './sql-queryable-test-utils';
 
@@ -40,8 +41,24 @@ describe('pg client connection state', () => {
     expect(hasStartedConnecting(client)).toBe(true);
     await connecting;
     expect(client).toHaveProperty('_connected', true);
+    expect(client).toHaveProperty('_ending', false);
+    expect(client).toHaveProperty('_queryable', true);
     expect(hasStartedConnecting(client)).toBe(true);
+    expect(hasLostConnection(client)).toBe(false);
+
     await client.end();
+    expect(client).toHaveProperty('_ending', true);
+    expect(hasLostConnection(client)).toBe(true);
+  });
+
+  it('classifies a code-less error from a client the caller ended as a connection error', async () => {
+    const client = newClient();
+    await client.connect();
+    await client.end();
+
+    expect(
+      normalizePgClientError(client, new Error('Client was closed and is not queryable')),
+    ).toBeInstanceOf(SqlConnectionError);
   });
 });
 
@@ -52,7 +69,7 @@ describe('postgres driver client ownership', () => {
     const connect = vi.spyOn(client, 'connect');
     const end = vi.spyOn(client, 'end');
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client, ownsConnection: false },
+      { kind: 'pgClient', client, ownedByDriver: false },
       { disabled: true },
     );
 
@@ -70,7 +87,7 @@ describe('postgres driver client ownership', () => {
     const client = newClient();
     const end = vi.spyOn(client, 'end');
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client, ownsConnection: false },
+      { kind: 'pgClient', client, ownedByDriver: false },
       { disabled: true },
     );
 
@@ -87,7 +104,7 @@ describe('postgres driver client ownership', () => {
     const client = newClient();
     const end = vi.spyOn(client, 'end');
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client, ownsConnection: true },
+      { kind: 'pgClient', client, ownedByDriver: true },
       { disabled: true },
     );
 
@@ -100,11 +117,11 @@ describe('postgres driver client ownership', () => {
   it.each([
     [false, 0],
     [true, 1],
-  ])('ends a pool on close only when it owns it (owns: %s)', async (ownsConnection, ends) => {
+  ])('ends a pool on close only when it owns it (owns: %s)', async (ownedByDriver, ends) => {
     const pool = new Pool({ host: '127.0.0.1', port, database: 'postgres', user: 'postgres' });
     const end = vi.spyOn(pool, 'end');
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgPool', pool, ownsConnection },
+      { kind: 'pgPool', pool, ownedByDriver },
       { disabled: true },
     );
 
@@ -112,7 +129,7 @@ describe('postgres driver client ownership', () => {
     await driver.close();
 
     expect(end).toHaveBeenCalledTimes(ends);
-    if (!ownsConnection) await pool.end();
+    if (!ownedByDriver) await pool.end();
   });
 
   it('uses an owned client that is already connected without connecting it again', async () => {
@@ -120,7 +137,7 @@ describe('postgres driver client ownership', () => {
     await client.connect();
     const connect = vi.spyOn(client, 'connect');
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client, ownsConnection: true },
+      { kind: 'pgClient', client, ownedByDriver: true },
       { disabled: true },
     );
 
@@ -134,7 +151,7 @@ describe('postgres driver client ownership', () => {
     const client = newClient();
     const connecting = client.connect();
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client, ownsConnection: false },
+      { kind: 'pgClient', client, ownedByDriver: false },
       { disabled: true },
     );
 
@@ -148,7 +165,7 @@ describe('postgres driver client ownership', () => {
     const client = newClient();
     const connect = vi.spyOn(client, 'connect');
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client, ownsConnection: false },
+      { kind: 'pgClient', client, ownedByDriver: false },
       { disabled: true },
     );
 
@@ -166,7 +183,7 @@ describe('postgres driver client ownership', () => {
   it('reports a failed connect again on the next use instead of hanging', async () => {
     const client = new Client({ host: '127.0.0.1', port: 1, connectionTimeoutMillis: 1000 });
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client, ownsConnection: false },
+      { kind: 'pgClient', client, ownedByDriver: false },
       { disabled: true },
     );
 
@@ -183,5 +200,61 @@ describe('postgres driver client ownership', () => {
     expect(second).toMatchObject({ status: 'rejected', reason: { kind: 'sql_connection' } });
     expect(third).toBeInstanceOf(SqlConnectionError);
     expect(third).toBe(first.status === 'rejected' ? first.reason : undefined);
+  });
+
+  it('refuses a supplied client the caller already ended', async () => {
+    const client = newClient();
+    await client.connect();
+    await client.end();
+
+    expect(() =>
+      createBoundDriverFromBinding(
+        { kind: 'pgClient', client, ownedByDriver: false },
+        { disabled: true },
+      ),
+    ).toThrow(expect.objectContaining({ code: 'DRIVER.NOT_CONNECTED' }));
+  });
+
+  it('refuses a later use after the caller ends a supplied client', async () => {
+    const client = newClient();
+    await client.connect();
+    const driver = createBoundDriverFromBinding(
+      { kind: 'pgClient', client, ownedByDriver: false },
+      { disabled: true },
+    );
+    await queryRows(driver, 'select 1');
+
+    await client.end();
+
+    expect(driver.state).toBe('closed');
+    await expect(queryRows(driver, 'select 1')).rejects.toMatchObject({
+      code: 'DRIVER.NOT_CONNECTED',
+    });
+  });
+
+  it('rolls back its transaction on a supplied client it gives up on, and refuses to bind it again', async () => {
+    const client = newClient();
+    await client.connect();
+    await client.query('create table item (id int)');
+    const driver = createBoundDriverFromBinding(
+      { kind: 'pgClient', client, ownedByDriver: false },
+      { disabled: true },
+    );
+    const connection = await driver.acquireConnection();
+    const transaction = await connection.beginTransaction();
+    await transaction.execute({ sql: 'insert into item values (1)' });
+
+    await connection.destroy(new Error('rollback failed'));
+
+    expect(await client.query('select count(*)::int as n from item')).toMatchObject({
+      rows: [{ n: 0 }],
+    });
+    expect(() =>
+      createBoundDriverFromBinding(
+        { kind: 'pgClient', client, ownedByDriver: false },
+        { disabled: true },
+      ),
+    ).toThrow(expect.objectContaining({ code: 'DRIVER.NOT_CONNECTED' }));
+    await client.end();
   });
 });

@@ -149,7 +149,7 @@ describe('value objects e2e: SQL → real Postgres → typed round-trip', () => 
 
           const driver = stackInstance.driver;
           if (!driver) throw new Error('Driver missing');
-          await driver.connect({ kind: 'pgClient', client, ownsConnection: false });
+          await driver.connect({ kind: 'pgClient', client, ownedByDriver: false });
 
           const runtime = new PostgresRuntimeImpl({
             closeRefusal: undefined,

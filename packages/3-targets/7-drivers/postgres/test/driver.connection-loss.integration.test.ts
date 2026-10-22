@@ -4,6 +4,7 @@ import { SqlConnectionError } from '@internal/sql-errors';
 import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { Client, Pool } from 'pg';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import postgresControlDriverDescriptor from '../src/exports/control';
 import { createBoundDriverFromBinding } from '../src/postgres-driver';
 import { queryRows } from './sql-queryable-test-utils';
 
@@ -87,7 +88,7 @@ describe('a connection lost under real pg', () => {
     const client = new Client({ connectionString });
     client.on('error', () => undefined);
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client, ownsConnection: true },
+      { kind: 'pgClient', client, ownedByDriver: true },
       { disabled: true },
     );
     await queryRows(driver, 'select 1');
@@ -106,7 +107,7 @@ describe('a connection lost under real pg', () => {
     const client = new Client({ connectionString });
     client.on('error', () => undefined);
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client, ownsConnection: true },
+      { kind: 'pgClient', client, ownedByDriver: true },
       { disabled: true },
     );
     await queryRows(driver, 'select 1');
@@ -124,7 +125,7 @@ describe('a connection lost under real pg', () => {
   it('classifies a pool client query cut mid-flight as a connection error', async () => {
     const pool = new Pool({ connectionString, max: 1 });
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgPool', pool, ownsConnection: true },
+      { kind: 'pgPool', pool, ownedByDriver: true },
       { disabled: true },
     );
     await queryRows(driver, 'select 1');
@@ -132,6 +133,21 @@ describe('a connection lost under real pg', () => {
     proxy.cutOnNextQuery();
 
     const error = await queryRows(driver, 'select 1').then(
+      () => undefined,
+      (reason: unknown) => reason,
+    );
+    expect(error).toBeInstanceOf(SqlConnectionError);
+    expect((error as { cause?: object }).cause).not.toHaveProperty('code');
+    await driver.close();
+  });
+
+  it('classifies a control driver query cut mid-flight as a connection error', async () => {
+    const driver = await postgresControlDriverDescriptor.create(connectionString);
+    await driver.query('select 1');
+
+    proxy.cutOnNextQuery();
+
+    const error = await driver.query('select 1').then(
       () => undefined,
       (reason: unknown) => reason,
     );

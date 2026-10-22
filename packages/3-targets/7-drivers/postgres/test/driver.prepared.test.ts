@@ -87,7 +87,7 @@ describe('postgres prepared statements', () => {
         handler: () => ({ rows: [{ id: 1 }] }),
       });
       const driver = makeDriver(
-        { kind: 'pgClient', client: client as unknown as Client, ownsConnection: true },
+        { kind: 'pgClient', client: client as unknown as Client, ownedByDriver: true },
         false,
       );
       cleanups.push(() => driver.close());
@@ -112,7 +112,7 @@ describe('postgres prepared statements', () => {
         },
       });
       const driver = makeDriver(
-        { kind: 'pgClient', client: client as unknown as Client, ownsConnection: true },
+        { kind: 'pgClient', client: client as unknown as Client, ownedByDriver: true },
         false,
       );
       cleanups.push(() => driver.close());
@@ -132,7 +132,7 @@ describe('postgres prepared statements', () => {
     const driver = makeDriver({
       kind: 'pgClient',
       client: client as unknown as Client,
-      ownsConnection: true,
+      ownedByDriver: true,
     });
     cleanups.push(() => driver.close());
 
@@ -169,7 +169,7 @@ describe('postgres prepared statements', () => {
       },
     });
     const driver = makeDriver(
-      { kind: 'pgClient', client: client as unknown as Client, ownsConnection: true },
+      { kind: 'pgClient', client: client as unknown as Client, ownedByDriver: true },
       undefined,
       false,
     );
@@ -195,7 +195,7 @@ describe('postgres prepared statements', () => {
     const driver = makeDriver({
       kind: 'pgClient',
       client: client as unknown as Client,
-      ownsConnection: true,
+      ownedByDriver: true,
     });
     cleanups.push(() => driver.close());
 
@@ -221,7 +221,7 @@ describe('postgres prepared statements', () => {
     const driver = makeDriver({
       kind: 'pgClient',
       client: client as unknown as Client,
-      ownsConnection: true,
+      ownedByDriver: true,
     });
     cleanups.push(() => driver.close());
 
@@ -242,7 +242,7 @@ describe('postgres prepared statements', () => {
     const driver = makeDriver({
       kind: 'pgClient',
       client: client as unknown as Client,
-      ownsConnection: true,
+      ownedByDriver: true,
     });
     cleanups.push(() => driver.close());
 
@@ -260,7 +260,7 @@ describe('postgres prepared statements', () => {
     const directBinding: PostgresBinding = {
       kind: 'pgClient',
       client: client as unknown as Client,
-      ownsConnection: true,
+      ownedByDriver: true,
     };
     const directDriver = makeDriver(directBinding);
     cleanups.push(() => directDriver.close());
@@ -273,7 +273,7 @@ describe('postgres prepared statements', () => {
     const poolBinding: PostgresBinding = {
       kind: 'pgPool',
       pool: pool as unknown as Pool,
-      ownsConnection: true,
+      ownedByDriver: true,
     };
     const poolDriver = makeDriver(poolBinding);
     cleanups.push(() => poolDriver.close());
@@ -295,7 +295,7 @@ describe('postgres prepared statements', () => {
       const driver = makeDriver({
         kind: 'pgClient',
         client: client as unknown as Client,
-        ownsConnection: true,
+        ownedByDriver: true,
       });
       cleanups.push(() => driver.close());
 
@@ -338,7 +338,7 @@ describe('postgres prepared statements', () => {
       const driver = makeDriver({
         kind: 'pgClient',
         client: client as unknown as Client,
-        ownsConnection: true,
+        ownedByDriver: true,
       });
       cleanups.push(() => driver.close());
 

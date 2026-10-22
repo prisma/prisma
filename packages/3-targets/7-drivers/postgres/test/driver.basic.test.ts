@@ -19,7 +19,7 @@ describe('@internal/driver-postgres', () => {
       await database.close();
     };
 
-    await driver.connect({ kind: 'pgPool', pool: pool as unknown as Pool, ownsConnection: true });
+    await driver.connect({ kind: 'pgPool', pool: pool as unknown as Pool, ownedByDriver: true });
     return driver;
   }
 
@@ -40,7 +40,7 @@ describe('@internal/driver-postgres', () => {
       };
     }
 
-    await driver.connect({ kind: 'pgPool', pool: pool as unknown as Pool, ownsConnection: true });
+    await driver.connect({ kind: 'pgPool', pool: pool as unknown as Pool, ownedByDriver: true });
     return driver;
   }
 
@@ -174,7 +174,7 @@ describe('@internal/driver-postgres', () => {
         await database.close();
       };
 
-      await driver.connect({ kind: 'pgPool', pool: pool as unknown as Pool, ownsConnection: true });
+      await driver.connect({ kind: 'pgPool', pool: pool as unknown as Pool, ownedByDriver: true });
       await executeSql(driver, 'create table cursor_items(id serial primary key, name text)');
       await executeSql(driver, 'insert into cursor_items(name) values ($1), ($2), ($3)', [
         'a',
@@ -211,7 +211,7 @@ describe('@internal/driver-postgres', () => {
         await database.close();
       };
 
-      await driver.connect({ kind: 'pgPool', pool: pool as unknown as Pool, ownsConnection: true });
+      await driver.connect({ kind: 'pgPool', pool: pool as unknown as Pool, ownedByDriver: true });
       await executeSql(driver, 'create table explain_items(id serial primary key, name text)');
       await executeSql(driver, 'insert into explain_items(name) values ($1)', ['test']);
 
@@ -268,7 +268,7 @@ describe('@internal/driver-postgres', () => {
           await database.close();
         };
 
-        await driver.connect({ kind: 'pgClient', client, ownsConnection: true });
+        await driver.connect({ kind: 'pgClient', client, ownedByDriver: true });
         await executeSql(driver, 'create table items(id serial primary key, name text)');
 
         const connection = await driver.acquireConnection();
@@ -307,7 +307,7 @@ describe('@internal/driver-postgres', () => {
         await driver.connect({
           kind: 'pgClient',
           client: client as unknown as Client,
-          ownsConnection: true,
+          ownedByDriver: true,
         });
         await executeSql(driver, 'create table items(id serial primary key, name text)');
 
@@ -374,7 +374,7 @@ describe('@internal/driver-postgres', () => {
         await driver.connect({
           kind: 'pgPool',
           pool: pool as unknown as Pool,
-          ownsConnection: true,
+          ownedByDriver: true,
         });
         await executeSql(driver, 'create table tx_items(id serial primary key, name text)');
 
@@ -421,7 +421,7 @@ describe('@internal/driver-postgres', () => {
         await driver.connect({
           kind: 'pgPool',
           pool: pool as unknown as Pool,
-          ownsConnection: true,
+          ownedByDriver: true,
         });
         await executeSql(
           driver,
@@ -472,7 +472,7 @@ describe('@internal/driver-postgres', () => {
         await driver.connect({
           kind: 'pgPool',
           pool: pool as unknown as Pool,
-          ownsConnection: true,
+          ownedByDriver: true,
         });
         await executeSql(driver, 'create table tx_stream_items(id serial primary key, name text)');
         await executeSql(driver, 'insert into tx_stream_items(name) values ($1), ($2)', [
@@ -519,7 +519,7 @@ describe('@internal/driver-postgres', () => {
         await driver.connect({
           kind: 'pgPool',
           pool: pool as unknown as Pool,
-          ownsConnection: true,
+          ownedByDriver: true,
         });
         await executeSql(driver, 'create table tx_explain_items(id serial primary key, name text)');
 
@@ -557,7 +557,7 @@ describe('@internal/driver-postgres', () => {
         await driver.connect({
           kind: 'pgPool',
           pool: pool as unknown as Pool,
-          ownsConnection: true,
+          ownedByDriver: true,
         });
         await executeSql(driver, 'create table tx_multi_items(id serial primary key, name text)');
 

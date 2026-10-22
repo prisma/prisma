@@ -83,7 +83,7 @@ async function createHarness(options?: { readonly cursorBatchSize?: number }): P
   driver = postgresRuntimeDriverDescriptor.create({
     cursor: { batchSize: options?.cursorBatchSize ?? 10 },
   });
-  await driver.connect({ kind: 'pgClient', client, ownsConnection: false });
+  await driver.connect({ kind: 'pgClient', client, ownedByDriver: false });
 
   return {
     client,

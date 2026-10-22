@@ -1,4 +1,4 @@
-interface ClientEventSource {
+export interface ClientEventSource {
   on(event: 'error' | 'end', listener: () => void): unknown;
 }
 
@@ -19,18 +19,34 @@ export function watchClientLoss<T extends ClientEventSource>(client: T): T {
   return client;
 }
 
-/** Whether a watched client has emitted `error` or `end`. */
+/**
+ * Whether a client can no longer run queries: it emitted `error` or `end` while watched, a driver
+ * gave up on it, or pg's own state says it was ended or broke before the driver saw it.
+ */
 export function hasLostConnection(client: ClientEventSource): boolean {
-  return lostClients.has(client);
+  return lostClients.has(client) || hasEndedOrBroken(client);
 }
 
-/**
- * Whether a pg `Client` has connected or begun connecting. pg exposes no public flag for this,
- * so it reads pg's own `_connected` and `_connecting` fields.
- */
+/** Records that a driver gave up on a client it does not own, so no driver uses it again. */
+export function markClientAbandoned(client: ClientEventSource): void {
+  lostClients.add(client);
+}
+
+// pg exposes no public flags for a client's connection state, so the two functions below read
+// pg's own `_connected`, `_connecting`, `_ending` and `_queryable` fields.
+
+/** Whether a pg `Client` has connected or begun connecting. */
 export function hasStartedConnecting(client: object): boolean {
   return (
     ('_connected' in client && client._connected === true) ||
     ('_connecting' in client && client._connecting === true)
+  );
+}
+
+/** Whether a pg client was ended (`end()` was called) or broke (`error` made it unqueryable). */
+function hasEndedOrBroken(client: object): boolean {
+  return (
+    ('_ending' in client && client._ending === true) ||
+    ('_queryable' in client && client._queryable === false)
   );
 }

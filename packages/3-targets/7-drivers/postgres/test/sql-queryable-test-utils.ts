@@ -47,12 +47,12 @@ export async function openDevDriver(
       ? {
           kind: 'pgClient',
           client: new pg.Client({ connectionString: database.connectionString }),
-          ownsConnection: true,
+          ownedByDriver: true,
         }
       : {
           kind: 'pgPool',
           pool: new pg.Pool({ connectionString: database.connectionString }),
-          ownsConnection: true,
+          ownedByDriver: true,
         },
     { disabled: mode === 'buffered' },
   );

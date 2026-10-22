@@ -41,7 +41,7 @@ describe('postgres driver connection errors', () => {
     it('classifies a code-less error from pool.connect() as a connection error', async () => {
       const cause = new Error('timeout exceeded when trying to connect');
       const driver = createBoundDriverFromBinding(
-        { kind: 'pgPool', pool: fakePool(async () => Promise.reject(cause)), ownsConnection: true },
+        { kind: 'pgPool', pool: fakePool(async () => Promise.reject(cause)), ownedByDriver: true },
         { disabled: true },
       );
       cleanups.push(() => driver.close());
@@ -59,7 +59,7 @@ describe('postgres driver connection errors', () => {
         throw codeLessError();
       });
       const driver = createBoundDriverFromBinding(
-        { kind: 'pgPool', pool: fakePool(async () => client), ownsConnection: true },
+        { kind: 'pgPool', pool: fakePool(async () => client), ownedByDriver: true },
         { disabled: true },
       );
       cleanups.push(() => driver.close());
@@ -73,7 +73,7 @@ describe('postgres driver connection errors', () => {
         throw codeLessError();
       });
       const driver = createBoundDriverFromBinding(
-        { kind: 'pgPool', pool: fakePool(async () => client), ownsConnection: true },
+        { kind: 'pgPool', pool: fakePool(async () => client), ownedByDriver: true },
         { batchSize: 1 },
       );
       cleanups.push(() => driver.close());
@@ -87,7 +87,7 @@ describe('postgres driver connection errors', () => {
         throw cause;
       });
       const driver = createBoundDriverFromBinding(
-        { kind: 'pgPool', pool: fakePool(async () => client), ownsConnection: true },
+        { kind: 'pgPool', pool: fakePool(async () => client), ownedByDriver: true },
         { disabled: true },
       );
       cleanups.push(() => driver.close());
@@ -101,7 +101,7 @@ describe('postgres driver connection errors', () => {
         throw codeLessError();
       });
       const driver = createBoundDriverFromBinding(
-        { kind: 'pgPool', pool: fakePool(async () => client), ownsConnection: true },
+        { kind: 'pgPool', pool: fakePool(async () => client), ownedByDriver: true },
         { disabled: true },
       );
       cleanups.push(() => driver.close());
@@ -116,7 +116,7 @@ describe('postgres driver connection errors', () => {
       const client = fakeClient(async () => ({ rows: [] }));
       client.connect.mockRejectedValue(new Error('connect failed'));
       const driver = createBoundDriverFromBinding(
-        { kind: 'pgClient', client: client as unknown as Client, ownsConnection: true },
+        { kind: 'pgClient', client: client as unknown as Client, ownedByDriver: true },
         { disabled: true },
       );
       cleanups.push(() => driver.close());
@@ -131,7 +131,7 @@ describe('postgres driver connection errors', () => {
         throw codeLessError();
       });
       const driver = createBoundDriverFromBinding(
-        { kind: 'pgClient', client: client as unknown as Client, ownsConnection: true },
+        { kind: 'pgClient', client: client as unknown as Client, ownedByDriver: true },
         { disabled: true },
       );
       cleanups.push(() => driver.close());
@@ -157,7 +157,7 @@ describe('postgres driver connection errors', () => {
         const port = typeof address === 'object' && address !== null ? address.port : 0;
         const client = new Client({ host: '127.0.0.1', port, connectionTimeoutMillis: 50 });
         const driver = createBoundDriverFromBinding(
-          { kind: 'pgClient', client, ownsConnection: true },
+          { kind: 'pgClient', client, ownedByDriver: true },
           { disabled: true },
         );
 

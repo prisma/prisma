@@ -29,7 +29,7 @@ async function createHarness(cursorDisabled = true) {
     await server.stop();
     await db.close();
   };
-  await driver.connect({ kind: 'pgPool', pool, ownsConnection: true });
+  await driver.connect({ kind: 'pgPool', pool, ownedByDriver: true });
   const release = vi.fn();
   pool.on('release', release);
   return { driver, pool, release };

@@ -70,7 +70,7 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
         await driver.connect({
           kind: 'pgPool',
           pool: new MemPool() as unknown as Pool,
-          ownsConnection: true,
+          ownedByDriver: true,
         });
         await driver.close();
         return driver;
@@ -112,7 +112,7 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
           await end();
         };
         const driver = createDriver();
-        await driver.connect({ kind: 'pgPool', pool, ownsConnection: true });
+        await driver.connect({ kind: 'pgPool', pool, ownedByDriver: true });
 
         const closing = driver.close();
 
@@ -143,7 +143,7 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
         await driver.connect({
           kind: 'pgPool',
           pool: poolA as unknown as Pool,
-          ownsConnection: true,
+          ownedByDriver: true,
         });
         expect(driver.state).toBe('connected');
 
@@ -153,7 +153,7 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
         await driver.connect({
           kind: 'pgPool',
           pool: poolB as unknown as Pool,
-          ownsConnection: true,
+          ownedByDriver: true,
         });
         expect(driver.state).toBe('connected');
       },
@@ -172,7 +172,7 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
           await driver.connect({
             kind: 'pgPool',
             pool: memPool as unknown as Pool,
-            ownsConnection: true,
+            ownedByDriver: true,
           });
 
           await executeSql(driver, 'create table items(id serial primary key, name text)');
@@ -199,7 +199,7 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
           const binding = {
             kind: 'pgPool' as const,
             pool: memPool as unknown as Pool,
-            ownsConnection: true,
+            ownedByDriver: true,
           };
 
           await driver.connect(binding);
@@ -231,7 +231,7 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
           await driver.connect({
             kind: 'pgPool',
             pool: memPool as unknown as Pool,
-            ownsConnection: true,
+            ownedByDriver: true,
           });
 
           cleanup = undefined;
@@ -255,7 +255,7 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
           await driver.connect({
             kind: 'pgClient',
             client: memClient as unknown as Client,
-            ownsConnection: true,
+            ownedByDriver: true,
           });
 
           await executeSql(driver, 'create table items(id serial primary key, name text)');
@@ -282,7 +282,7 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
           await driver.connect({
             kind: 'pgClient',
             client: memClient as unknown as Client,
-            ownsConnection: true,
+            ownedByDriver: true,
           });
 
           cleanup = undefined;
@@ -303,7 +303,7 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
           await driver.connect({
             kind: 'pgClient',
             client: memClient as unknown as Client,
-            ownsConnection: true,
+            ownedByDriver: true,
           });
           expect(driver.state).toBe('connected');
 

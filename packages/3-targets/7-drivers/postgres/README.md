@@ -112,10 +112,10 @@ await driver.connect({ kind: 'url', url: process.env.DATABASE_URL });
 Binding variants:
 
 - `{ kind: 'url', url }`: Driver creates a Pool from the connection string and ends it on `close()`
-- `{ kind: 'pgPool', pool, ownsConnection }`: Use an existing pg Pool
-- `{ kind: 'pgClient', client, ownsConnection }`: Use an existing pg Client (direct connection)
+- `{ kind: 'pgPool', pool, ownedByDriver }`: Use an existing pg Pool
+- `{ kind: 'pgClient', client, ownedByDriver }`: Use an existing pg Client (direct connection)
 
-`ownsConnection` says whether the driver ends the pool or client on `close()`. With `false` (a pool or client the caller supplied) the driver never ends it. A client that has not started connecting is connected on first use, whoever owns it; pg has no public flag for this, so the driver reads pg's `_connected` and `_connecting` fields. A client whose connect failed or whose connection dropped cannot be reused: the driver rejects every later use.
+`ownedByDriver` says whether the driver ends the pool or client on `close()`. With `false` (a pool or client the caller supplied) the driver never ends it. A client that has not started connecting is connected on first use, whoever owns it; pg has no public flag for this, so the driver reads pg's `_connected` and `_connecting` fields. A client whose connect failed or whose connection dropped cannot be reused: the driver rejects every later use.
 
 When a connection of a direct driver is destroyed (for example after a failed rollback), a supplied client is left as it is, possibly mid-statement or inside a transaction. End it yourself.
 

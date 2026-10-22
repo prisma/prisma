@@ -1,7 +1,7 @@
 import { SqlConnectionError, SqlQueryError } from '@internal/sql-errors';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
-import { hasLostConnection } from './pg-client-state';
+import { type ClientEventSource, hasLostConnection } from './pg-client-state';
 
 /**
  * Postgres error shape from the pg library.
@@ -50,12 +50,14 @@ const TRANSIENT_CLASS_08_SQLSTATES: ReadonlySet<string> = new Set([
 
 /**
  * SQLSTATEs outside class 08 that mean the server ended the session, and whether a retry on a
- * fresh connection is safe. It is not after 25P03, which ends a session inside an open transaction.
+ * fresh connection can succeed. It cannot after 57P04, whose database is gone, nor after 25P03,
+ * which ends a session inside an open transaction.
  */
 const SESSION_ENDED_SQLSTATES: ReadonlyMap<string, boolean> = new Map([
   ['57P01', true],
   ['57P02', true],
   ['57P03', true],
+  ['57P04', false],
   ['57P05', true],
   ['25P03', false],
 ]);
@@ -130,10 +132,10 @@ function isPostgresSqlState(code: string | undefined): boolean {
  * - Errors already normalized, and errors without a recognized code → returned as-is
  *
  * pg raises some connection failures ("Connection terminated", "timeout expired") as plain
- * errors with no code; {@link normalizePgConnectionError} classifies those where the caller
+ * errors with no code; {@link normalizePgConnectFailure} classifies those where the caller
  * knows the connection failed.
  */
-export function normalizePgError(error: unknown): SqlQueryError | SqlConnectionError | Error {
+export function normalizePgErrorByCode(error: unknown): SqlQueryError | SqlConnectionError | Error {
   if (!(error instanceof Error)) {
     return new Error(String(error));
   }
@@ -160,6 +162,7 @@ export function normalizePgError(error: unknown): SqlQueryError | SqlConnectionE
       return new SqlConnectionError(error.message, {
         cause: error,
         transient: connectionTransience,
+        sqlState: code,
       });
     }
     return new SqlQueryError(error.message, {
@@ -180,8 +183,8 @@ export function normalizePgError(error: unknown): SqlQueryError | SqlConnectionE
  * call, or arrived after the client emitted `error` or `end`. Errors with a SQLSTATE keep
  * their code-based classification; everything else becomes a SqlConnectionError.
  */
-export function normalizePgConnectionError(error: unknown): SqlQueryError | SqlConnectionError {
-  const normalized = normalizePgError(error);
+export function normalizePgConnectFailure(error: unknown): SqlQueryError | SqlConnectionError {
+  const normalized = normalizePgErrorByCode(error);
   if (SqlQueryError.is(normalized) || SqlConnectionError.is(normalized)) {
     return normalized;
   }
@@ -193,9 +196,11 @@ export function normalizePgConnectionError(error: unknown): SqlQueryError | SqlC
  * ("Connection terminated", "not queryable") with no code, so once the client has emitted
  * `error` or `end` its errors are connection errors.
  */
-export function normalizeClientError(
-  client: Parameters<typeof hasLostConnection>[0],
+export function normalizePgClientError(
+  client: ClientEventSource,
   error: unknown,
 ): SqlQueryError | SqlConnectionError | Error {
-  return hasLostConnection(client) ? normalizePgConnectionError(error) : normalizePgError(error);
+  return hasLostConnection(client)
+    ? normalizePgConnectFailure(error)
+    : normalizePgErrorByCode(error);
 }

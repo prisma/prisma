@@ -3,11 +3,11 @@ import { SqlConnectionError, SqlQueryError } from '@internal/sql-errors';
 import { describe, expect, it } from 'vitest';
 import {
   isPostgresError,
-  normalizePgConnectionError,
-  normalizePgError,
+  normalizePgConnectFailure,
+  normalizePgErrorByCode,
 } from '../src/normalize-error';
 
-describe('normalizePgError', () => {
+describe('normalizePgErrorByCode', () => {
   describe('Postgres SQLSTATE errors', () => {
     it('normalizes unique violation error to SqlQueryError', () => {
       const pgError = new Error(
@@ -19,7 +19,7 @@ describe('normalizePgError', () => {
       (pgError as { column?: string }).column = 'email';
       (pgError as { detail?: string }).detail = 'Key (email)=(test@example.com) already exists.';
 
-      const error = normalizePgError(pgError);
+      const error = normalizePgErrorByCode(pgError);
       expect(SqlQueryError.is(error)).toBe(true);
       if (SqlQueryError.is(error)) {
         expect(error.message).toBe(pgError.message);
@@ -37,7 +37,7 @@ describe('normalizePgError', () => {
       (pgError as { code?: string }).code = '23503';
       (pgError as { table?: string }).table = 'post';
 
-      const error = normalizePgError(pgError);
+      const error = normalizePgErrorByCode(pgError);
       expect(SqlQueryError.is(error)).toBe(true);
       if (SqlQueryError.is(error)) {
         expect(error.sqlState).toBe('23503');
@@ -54,7 +54,7 @@ describe('normalizePgError', () => {
       const pgError = new Error('Connection terminated unexpectedly');
       (pgError as { code?: string }).code = 'ECONNRESET';
 
-      const error = normalizePgError(pgError);
+      const error = normalizePgErrorByCode(pgError);
       expect(SqlConnectionError.is(error)).toBe(true);
       if (SqlConnectionError.is(error)) {
         expect(error.message).toBe(pgError.message);
@@ -67,7 +67,7 @@ describe('normalizePgError', () => {
       const pgError = new Error('Connection timeout');
       (pgError as { code?: string }).code = 'ETIMEDOUT';
 
-      const error = normalizePgError(pgError);
+      const error = normalizePgErrorByCode(pgError);
       expect(SqlConnectionError.is(error)).toBe(true);
       if (SqlConnectionError.is(error)) {
         expect(error.transient).toBe(true);
@@ -79,7 +79,7 @@ describe('normalizePgError', () => {
       const pgError = new Error('Connection refused');
       (pgError as { code?: string }).code = 'ECONNREFUSED';
 
-      const error = normalizePgError(pgError);
+      const error = normalizePgErrorByCode(pgError);
       expect(SqlConnectionError.is(error)).toBe(true);
       if (SqlConnectionError.is(error)) {
         expect(error.transient).toBe(false);
@@ -95,7 +95,7 @@ describe('normalizePgError', () => {
     ])('normalizes Node code %s to SqlConnectionError with transient %s', (code, transient) => {
       const nodeError = Object.assign(new Error('socket failure'), { code });
 
-      expect(normalizePgError(nodeError)).toMatchObject({
+      expect(normalizePgErrorByCode(nodeError)).toMatchObject({
         kind: 'sql_connection',
         transient,
         cause: nodeError,
@@ -108,6 +108,7 @@ describe('normalizePgError', () => {
       ['57P01', true],
       ['57P02', true],
       ['57P03', true],
+      ['57P04', false],
       ['57P05', true],
       ['25P03', false],
       ['08004', false],
@@ -115,9 +116,10 @@ describe('normalizePgError', () => {
     ])('normalizes SQLSTATE %s to SqlConnectionError with transient %s', (code, transient) => {
       const pgError = Object.assign(new Error('server connection failure'), { code });
 
-      expect(normalizePgError(pgError)).toMatchObject({
+      expect(normalizePgErrorByCode(pgError)).toMatchObject({
         kind: 'sql_connection',
         transient,
+        sqlState: code,
         cause: pgError,
       });
     });
@@ -125,23 +127,23 @@ describe('normalizePgError', () => {
     it('returns a code-less connection message as-is', () => {
       const pgError = new Error('Connection terminated unexpectedly');
 
-      expect(normalizePgError(pgError)).toBe(pgError);
+      expect(normalizePgErrorByCode(pgError)).toBe(pgError);
     });
 
     it('returns already-normalized errors as-is', () => {
       const connectionError = new SqlConnectionError('lost', { transient: true });
       const queryError = new SqlQueryError('bad', { sqlState: '42601' });
 
-      expect(normalizePgError(connectionError)).toBe(connectionError);
-      expect(normalizePgError(queryError)).toBe(queryError);
+      expect(normalizePgErrorByCode(connectionError)).toBe(connectionError);
+      expect(normalizePgErrorByCode(queryError)).toBe(queryError);
     });
   });
 
-  describe('normalizePgConnectionError', () => {
+  describe('normalizePgConnectFailure', () => {
     it('classifies a code-less error as SqlConnectionError with unknown transience', () => {
       const pgError = new Error('timeout expired');
 
-      const error = normalizePgConnectionError(pgError);
+      const error = normalizePgConnectFailure(pgError);
 
       expect(error).toMatchObject({ kind: 'sql_connection', transient: undefined, cause: pgError });
       expect(error.message).toBe('timeout expired');
@@ -152,7 +154,7 @@ describe('normalizePgError', () => {
         code: '28P01',
       });
 
-      expect(normalizePgConnectionError(pgError)).toMatchObject({
+      expect(normalizePgConnectFailure(pgError)).toMatchObject({
         kind: 'sql_query',
         sqlState: '28P01',
       });
@@ -161,7 +163,7 @@ describe('normalizePgError', () => {
     it('keeps Node code transience', () => {
       const nodeError = Object.assign(new Error('refused'), { code: 'ECONNREFUSED' });
 
-      expect(normalizePgConnectionError(nodeError)).toMatchObject({
+      expect(normalizePgConnectFailure(nodeError)).toMatchObject({
         kind: 'sql_connection',
         transient: false,
         cause: nodeError,
@@ -171,11 +173,11 @@ describe('normalizePgError', () => {
 
   describe('Unknown errors', () => {
     it('returns Error for non-Error values', () => {
-      const error1 = normalizePgError('string error');
+      const error1 = normalizePgErrorByCode('string error');
       expect(error1).toBeInstanceOf(Error);
       expect(error1.message).toBe('string error');
 
-      const error2 = normalizePgError(123);
+      const error2 = normalizePgErrorByCode(123);
       expect(error2).toBeInstanceOf(Error);
       expect(error2.message).toBe('123');
     });
@@ -184,7 +186,7 @@ describe('normalizePgError', () => {
       const unknownError = new Error('Some unknown error');
       (unknownError as { code?: string }).code = 'UNKNOWN_CODE';
 
-      const error = normalizePgError(unknownError);
+      const error = normalizePgErrorByCode(unknownError);
       expect(error).toBe(unknownError);
     });
   });

@@ -160,7 +160,7 @@ describe('temporal string codecs round-trip PostgreSQL text', () => {
     const stackInstance = instantiateExecutionStack(stack);
 
     const driver = postgresRuntimeDriverDescriptor.create();
-    await driver.connect({ kind: 'pgClient', client, ownsConnection: true });
+    await driver.connect({ kind: 'pgClient', client, ownedByDriver: true });
     session = driver;
     runtime = createTestRuntime({ stackInstance, context, driver, verifyMarker: false });
 

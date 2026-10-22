@@ -76,12 +76,12 @@ function toRuntimeBinding<
   TCollections extends CollectionClasses,
 >(binding: PostgresBinding, options: PostgresOptions<TContract, TCollections>): ConnectedBinding {
   if (binding.kind !== 'url') {
-    return { ...binding, ownsConnection: false };
+    return { ...binding, ownedByDriver: false };
   }
 
   return {
     kind: 'pgPool',
-    ownsConnection: true,
+    ownedByDriver: true,
     pool: suppressIdleConnectionErrors(
       new Pool({
         connectionString: binding.url,
@@ -144,10 +144,6 @@ export default function postgres<
   let connectPromise: Promise<void> | undefined;
   let backgroundConnectError: unknown;
   let closePromise: Promise<void> | undefined;
-  // The binding the driver holds once connected. When the driver owns its pool, close() closes the
-  // runtime, which ends that pool; a pool or client the caller passed in stays open, and so does the
-  // runtime.
-  let connectedBinding: ConnectedBinding | undefined;
 
   const connectDriver = async (resolvedBinding: PostgresBinding): Promise<void> => {
     if (driverConnected) return;
@@ -158,12 +154,11 @@ export default function postgres<
       .connect(runtimeBinding)
       .then(() => {
         driverConnected = true;
-        connectedBinding = runtimeBinding;
       })
       .catch(async (err) => {
         backgroundConnectError = err;
         connectPromise = undefined;
-        if (runtimeBinding.kind === 'pgPool' && runtimeBinding.ownsConnection) {
+        if (runtimeBinding.kind === 'pgPool' && runtimeBinding.ownedByDriver) {
           await runtimeBinding.pool.end().catch(() => undefined);
         }
         throw err;
@@ -215,13 +210,13 @@ export default function postgres<
   };
 
   // Once connected, the runtime's close starts in the same call as close(), so the runtime's idle wait is measured from the caller's close().
-  const closeOwnedRuntime = async (): Promise<void> => {
+  // The runtime closes its driver, which ends only a pool it owns; a pool or client the caller
+  // passed in stays open.
+  const closeRuntime = async (): Promise<void> => {
     if (!driverConnected) {
       await connectPromise?.catch(() => undefined);
     }
-    if (connectedBinding?.ownsConnection === true) {
-      await runtimeInstance?.close();
-    }
+    await runtimeInstance?.close();
   };
 
   const runtimeBoundMembers = buildPostgresRuntimeBoundMembers<TContract, TCollections>({
@@ -284,7 +279,7 @@ export default function postgres<
     },
 
     close(): Promise<void> {
-      closePromise ??= closeOwnedRuntime();
+      closePromise ??= closeRuntime();
       return closePromise;
     },
 

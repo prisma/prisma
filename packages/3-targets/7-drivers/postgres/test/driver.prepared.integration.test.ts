@@ -49,7 +49,7 @@ describe('@internal/driver-postgres prepared statements', () => {
       const Pg = await import('pg');
       const client = new Pg.Client({ connectionString: database.connectionString });
       const driver = createBoundDriverFromBinding(
-        { kind: 'pgClient', client, ownsConnection: true },
+        { kind: 'pgClient', client, ownedByDriver: true },
         undefined,
       );
       cleanups.push(async () => {
@@ -115,7 +115,7 @@ describe('@internal/driver-postgres prepared statements', () => {
 
       const clientA = new Pg.Client({ connectionString: databaseA.connectionString });
       const driverA = createBoundDriverFromBinding(
-        { kind: 'pgClient', client: clientA, ownsConnection: true },
+        { kind: 'pgClient', client: clientA, ownedByDriver: true },
         undefined,
       );
       cleanups.push(async () => {
@@ -130,7 +130,7 @@ describe('@internal/driver-postgres prepared statements', () => {
 
       const clientB = new Pg.Client({ connectionString: databaseB.connectionString });
       const driverB = createBoundDriverFromBinding(
-        { kind: 'pgClient', client: clientB, ownsConnection: true },
+        { kind: 'pgClient', client: clientB, ownedByDriver: true },
         undefined,
       );
       cleanups.push(async () => {
@@ -152,7 +152,7 @@ describe('@internal/driver-postgres prepared statements', () => {
       const Pg = await import('pg');
       const client = new Pg.Client({ connectionString: database.connectionString });
       const driver = createBoundDriverFromBinding(
-        { kind: 'pgClient', client, ownsConnection: true },
+        { kind: 'pgClient', client, ownedByDriver: true },
         undefined,
       );
       cleanups.push(async () => {
@@ -194,7 +194,7 @@ describe('@internal/driver-postgres prepared statements', () => {
       const Pg = await import('pg');
       const client = new Pg.Client({ connectionString: database.connectionString });
       const driver = createBoundDriverFromBinding(
-        { kind: 'pgClient', client, ownsConnection: true },
+        { kind: 'pgClient', client, ownedByDriver: true },
         undefined,
       );
       cleanups.push(async () => {
@@ -233,7 +233,7 @@ describe('@internal/driver-postgres prepared statements', () => {
       const Pg = await import('pg');
       const client = new Pg.Client({ connectionString: database.connectionString });
       const driver = createBoundDriverFromBinding(
-        { kind: 'pgClient', client, ownsConnection: true },
+        { kind: 'pgClient', client, ownedByDriver: true },
         undefined,
       );
       cleanups.push(async () => {
@@ -283,7 +283,7 @@ describe('@internal/driver-postgres prepared statements', () => {
       const Pg = await import('pg');
       const client = new Pg.Client({ connectionString: database.connectionString });
       const driver = createBoundDriverFromBinding(
-        { kind: 'pgClient', client, ownsConnection: true },
+        { kind: 'pgClient', client, ownedByDriver: true },
         { disabled: true },
       );
       cleanups.push(async () => {
@@ -317,7 +317,7 @@ describe('@internal/driver-postgres prepared statements', () => {
       const Pg = await import('pg');
       const client = new Pg.Client({ connectionString: database.connectionString });
       const driver = createBoundDriverFromBinding(
-        { kind: 'pgClient', client, ownsConnection: true },
+        { kind: 'pgClient', client, ownedByDriver: true },
         undefined,
         {
           preparedStatements: false,
