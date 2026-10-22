@@ -63,6 +63,18 @@ describe('the "now" generator for each codec', () => {
     },
   );
 
+  it.each([
+    'pg/date-string@1',
+    'pg/time-string@1',
+    'pg/timetz@1',
+    'pg/timestamp-string@1',
+    'pg/timestamptz-string@1',
+  ])('generates a value already in the stored form of %s', (codecId) => {
+    const generatorId = postgresNowGeneratorIdFor(codecId) ?? '';
+    const value = generate[generatorId]?.();
+    expect(toContractJson(codecFor(codecId), value)).toBe(value);
+  });
+
   it('gives every date and time codec a generator', () => {
     expect(
       DATE_AND_TIME_CODEC_IDS.filter((codecId) => postgresNowGeneratorIdFor(codecId) === undefined),
@@ -114,7 +126,7 @@ describe('the text "now" generators', () => {
     vi.useRealTimers();
   });
 
-  it('write the text PostgreSQL prints in a UTC session', () => {
+  it('write the stored form of the current UTC time, which reads back as written', () => {
     vi.useFakeTimers({ now: new Date('2024-01-02T03:04:05.678Z') });
     expect([
       timestampStringNow(),
@@ -123,18 +135,18 @@ describe('the text "now" generators', () => {
       timeStringNow(),
       timetzNow(),
     ]).toEqual([
-      '2024-01-02 03:04:05.678',
-      '2024-01-02 03:04:05.678+00',
+      '2024-01-02T03:04:05.678',
+      '2024-01-02T03:04:05.678Z',
       '2024-01-02',
       '03:04:05.678',
-      '03:04:05.678+00',
+      '03:04:05.678Z',
     ]);
   });
 
   it.each([
-    ['2024-01-02T03:04:05.670Z', '2024-01-02 03:04:05.67'],
-    ['2024-01-02T03:04:05.600Z', '2024-01-02 03:04:05.6'],
-    ['2024-01-02T03:04:00.000Z', '2024-01-02 03:04:00'],
+    ['2024-01-02T03:04:05.670Z', '2024-01-02T03:04:05.67'],
+    ['2024-01-02T03:04:05.600Z', '2024-01-02T03:04:05.6'],
+    ['2024-01-02T03:04:00.000Z', '2024-01-02T03:04:00'],
   ])('remove the trailing zeros of the fraction of %s', (now, text) => {
     vi.useFakeTimers({ now: new Date(now) });
     expect(timestampStringNow()).toBe(text);
@@ -158,7 +170,7 @@ describe('the time "now" generators', () => {
     const params = precision === undefined ? undefined : { precision };
     expect([timeStringNow(params), timetzNow(params), plainTimeNow(params).toString()]).toEqual([
       time,
-      `${time}+00`,
+      `${time}Z`,
       time,
     ]);
   });

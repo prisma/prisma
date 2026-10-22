@@ -22,6 +22,7 @@ export type PostgresTargetErrorCode =
   | 'MIGRATION.SQL_EXPRESSION_INVALID'
   | 'MIGRATION.TARGET_MISMATCH'
   | 'RUNTIME.ARGUMENT_INVALID'
+  | 'RUNTIME.DATE_STYLE_NOT_ISO'
   | 'RUNTIME.DECODE_FAILED'
   | 'RUNTIME.ENCODE_FAILED'
   | 'RUNTIME.TEMPORAL_UNAVAILABLE'
@@ -132,14 +133,27 @@ export function errorTemporalWrongType(
   );
 }
 
+/** A date or time codec read text PostgreSQL printed under a DateStyle other than ISO, which no codec reads. */
+export function errorDateStyleNotIso(codecId: string, received: string): StructuredError {
+  return postgresError(
+    'RUNTIME.DATE_STYLE_NOT_ISO',
+    `Codec '${codecId}' read ${JSON.stringify(received)}, which PostgreSQL prints only when the connection's DateStyle is not ISO. Prisma reads dates and times only in DateStyle ISO.`,
+    {
+      why: 'PostgreSQL prints a date or timestamp in the DateStyle of the connection. Prisma sets DateStyle=ISO on every connection it opens, so this connection was supplied by the application, or a statement changed its DateStyle.',
+      fix: "Set DateStyle=ISO on the connection: give the pg.Pool or pg.Client you pass to Prisma the option options: '-c DateStyle=ISO', or run ALTER ROLE <role> SET DateStyle = 'ISO'.",
+      meta: { codecId, received: received.slice(0, 100) },
+    },
+  );
+}
+
 /** A string timestamp codec received something other than text, such as a `Date` from a contract emitted before its generator wrote text. */
 export function errorTimestampTextWrongType(codecId: string, received: string): StructuredError {
   return postgresError(
     'RUNTIME.ENCODE_FAILED',
-    `Codec '${codecId}' writes PostgreSQL's text for the value, but received ${received}.`,
+    `Codec '${codecId}' writes ISO 8601 text, but received ${received}.`,
     {
       why: "The codec sends its value to PostgreSQL unchanged. A Date would be sent in the process's local time zone, and a timestamp column without a time zone would store the wrong wall-clock time.",
-      fix: 'Pass the timestamp as text, such as "2024-01-02 03:04:05.678". If the value came from a generated default, emit the contract again: a contract emitted by an earlier version pairs this column with timestampNow, which generates a Date.',
+      fix: 'Pass the timestamp as ISO 8601 text, such as "2024-01-02T03:04:05.678". If the value came from a generated default, emit the contract again: a contract emitted by an earlier version pairs this column with timestampNow, which generates a Date.',
       meta: { codecId, received },
     },
   );
