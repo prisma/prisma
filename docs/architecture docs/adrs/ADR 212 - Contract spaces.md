@@ -205,7 +205,7 @@ Three properties hold:
 
 1. **The marker is the truth-of-record** for the live database's per-space applied state.
 2. **The set of marker rows must equal the set of loaded spaces** (`'app'` plus every entry in `extensions`). Mismatches surface as verifier errors with clear remediation.
-3. **Marker writes are atomic with the migrations that produced them.** Multi-space `db apply` opens one outer transaction; either every marker advances or none does.
+3. **A marker never records migrations that did not apply.** On a target whose failed apply rolls back every space, a multi-space apply runs in one outer transaction, so either every marker advances or none does. On a target that applies one space at a time, a space's marker advances only after its operations ran and its schema verified.
 
 ### Per-space planner, runner, verifier
 
@@ -219,11 +219,12 @@ The producer-side helpers (`planAllSpaces`, `concatenateSpaceApplyInputs`, `veri
 
 ### Apply-time atomicity and ordering
 
-Every multi-space apply runs inside a **single outer transaction**. The SQL family's `SqlMigrationRunner` was restructured to support this:
+What a failed multi-space apply leaves behind is a fact each target states, in `applyAtomicity` on its migrations capability. The runner's `execute({ driver, perSpaceOptions })` takes every space's plan in one call either way.
 
-- `execute(options)` — single-space entry point. Opens its own transaction (today's behaviour preserved).
-- `executeOnConnection(options)` — runner body without `BEGIN`/`COMMIT`. Caller owns the transaction lifecycle.
-- `executeAcrossSpaces({ driver, perSpaceOptions })` — multi-space entry point. Opens **one** outer transaction and calls `executeOnConnection` per space inside it. Failure on any space rolls back every space's writes.
+- **`'all-spaces'`** (Postgres, SQLite). `execute` opens **one** outer transaction and calls `executeOnConnection`, the runner body without `BEGIN`/`COMMIT`, for each space inside it. A failure on any space rolls back every space's writes.
+- **`'per-space'`** (MySQL, whose DDL commits as it runs, and MongoDB, whose DDL bypasses transactions). The runner applies one space at a time, verifies its schema, and only then writes its marker. A failure leaves the spaces before it applied; running the apply again skips them and finishes the rest.
+
+Either way the failure names the space that failed (`failingSpace`) and says whether the database is as it was (`databaseUnchanged`), and the CLI reports both.
 
 **Cross-space ordering**: extension spaces alphabetical-by-spaceId first, app-space last. The convention is sufficient for v1 (a formal cross-space dependency graph is deferred), and matches the implicit dependency direction — application schema may reference extension-provided types (`Encrypted<String>` → `eql_v2_encrypted`), so extension types must exist before the app's `CREATE TABLE` runs.
 
@@ -244,7 +245,7 @@ Both flows reduce to the same per-space recipe (per [ADR 208 — Invariant-aware
    - extension-space: read the pinned `migrations/<space-id>/refs/head.json`.
 2. Compute `effectiveRequired = ref.invariants − marker.invariants`.
 3. Run `findPathWithDecision(currentMarker, ref.hash, effectiveRequired)`.
-4. Concatenate all per-space results in the cross-space ordering convention; apply in a single transaction.
+4. Concatenate all per-space results in the cross-space ordering convention and apply them in that order.
 
 For app-space, the existing greenfield synthesis is preserved: when no app-space migrations are on disk, the framework synthesises a `∅ → head` edge from the contract IR. For extension-space, synthesis from the contract alone is impossible (the IR vocabulary doesn't admit functions / operators / etc., which are the body of opaque DDL ops), so the runner walks the explicit migration graph emitted under `migrations/<space-id>/`.
 
@@ -353,20 +354,20 @@ The asymmetry between `migrate` (authoring) and the apply/verify path is what ma
 - **Extensions are uniformly observable and verifiable.** Strict-mode `dbInit` no longer rejects extension-installed schema objects — they are declared in the extension's contract and aggregated into the verifier's expected schema.
 - **One mental model for schema ownership.** The planner, runner, and verifier no longer need a separate "extension" code path; the same primitives serve app-space, extension-space, and (in future) monorepo composition.
 - **WYSIWYG-runnable repos.** Every artefact required to apply, hash, verify, or audit the database's expected schema is on disk in the user's repo. CI / production paths never load extension descriptors.
-- **Multi-space transactional apply.** `executeAcrossSpaces` is reusable for any future "compose multiple migration sources into one apply" use case (not just extensions).
+- **Multi-space apply.** The runner's `execute` takes every space's plan in one call, which serves any future "compose multiple migration sources into one apply" use case (not just extensions).
 - **Richer drift detection.** Bumping an extension's package version produces a clear PR diff (updated pinned `contract.json` / `contract.d.ts` / `refs/head.json`, plus any new migration directories). The legacy `databaseDependencies.init` mechanism produced no diff at all.
 
 ### Trade-offs
 
 - **Extension authors must ship a contract + migration graph**, not just an init-SQL string. The contract-space package layout convention reuses the same CLI pipeline app authors use, so the authoring story is symmetrical: write a TS or PSL schema, run `prisma-next contract emit` + `prisma-next migration plan`, and the descriptor module JSON-imports the resulting artefacts. The framework helpers `emitContractSpaceArtifacts` / `materialiseExtensionMigrationPackageIfMissing` cover the consuming application's repo half; cipherstash, pgvector, and paradedb all ship this convention.
 - **`migrate` becomes the canonical way to materialise extension bumps.** Bumping an extension in `node_modules` without running `migrate` produces stale pinned artefacts; the drift-detection helper surfaces a non-fatal warning at the next `migrate` invocation.
-- **One outer transaction across spaces** is a stronger correctness guarantee than the per-extension `databaseDependencies.init` path provided. The framework inherits the constraint that all SQL across all spaces in a single emit must be transactionally compatible (which is already true of the existing single-space path).
+- **One outer transaction across spaces**, on a target that states `'all-spaces'`, is a stronger correctness guarantee than the per-extension `databaseDependencies.init` path provided. Such a target inherits the constraint that all SQL across all spaces in a single emit must be transactionally compatible (which is already true of the existing single-space path). A `'per-space'` target gives a resumable apply instead.
 
 ### Non-goals (deferred)
 
 - **Extension removal semantics.** Removing an extension from `extensions` while user schema still depends on extension-installed types (e.g. `Encrypted<String>` columns referencing `eql_v2_encrypted`). Until addressed, removal is unsupported and the verifier reports orphan marker rows as errors.
 - **Codec-id-changed lifecycle event.** When a user upgrades an extension in a way that changes a codec ID (`cipherstash:string@1` → `@2`), the codec needs a way to emit a "rotate" migration op. Cleanly extends the existing event vocabulary; deferred until needed.
-- **Cross-space dependencies as a first-class concept.** Convention-based ordering (extensions first, app-space second) is sufficient for v1 given the single-transaction property.
+- **Cross-space dependencies as a first-class concept.** Convention-based ordering (extensions first, app-space second) is sufficient for v1 given the fixed apply order.
 - **Cross-space codec hooks.** Codec-emitted ops are app-space-bound by API shape — the hook signature has no parameter for cross-space context. See [ADR 213](./ADR%20213%20-%20Codec%20lifecycle%20hooks.md).
 - **`migrations/refs/head.json` ergonomics.** Today the extension author hand-pins `migrations/refs/head.json` after running `migration plan` (copy `to` from the latest migration's metadata; copy `providedInvariants` from the same). Adding a `prisma-next refs update` (or equivalent) command that emits/refreshes head pins from the latest migration is a small follow-up.
 
