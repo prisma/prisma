@@ -118,11 +118,13 @@ See `architecture.config.json` for the complete mapping and `pnpm lint:deps` to 
 
 Before you judge a feature request or a pull request, and before you propose a new feature, surface or solution, check it against:
 
-- [Project intent](docs/design/00-purpose/project-intent.md): who Prisma 8 is for and what it optimises for.
-- [Direction](docs/design/00-purpose/direction.md): the principles, the long-lived themes, and the current focus.
+- [Project intent](docs/design/00-purpose/project-intent.md): who Prisma 8 is for, what it optimises for, and what it deliberately does not do.
+- [Direction](docs/design/00-purpose/direction.md): the principles, the long-lived themes, and the dated current focus.
 - [Decision records](docs/design/90-decisions/README.md): requests already answered, with what to use instead.
 
-Give a verdict of **fits**, **does not fit** or **unclear**, and cite the page, record or ADR you relied on. A poor fit is evidence for a maintainer, not a reason to close on its own. The `product-direction` skill in [prisma/ignite](https://github.com/prisma/ignite) describes how to do this check. The folders under `projects/` are work in flight, not a roadmap.
+The most important rule: the core does not take a feature that can be built as an extension or in user space.
+
+Give a verdict of **fits**, **does not fit** or **unclear**, and cite the line or record you relied on. Only a decision record with status `not-yet` or `never`, or a confirmed line under "What it deliberately does not do" in the project intent, gives **does not fit**. Lines marked `Draft — unconfirmed` and records with status `proposed` are not decisions. Work in flight, such as the folders under `projects/`, plans, spikes and open pull requests, is not direction. The `product-direction` skill in [prisma/ignite](https://github.com/prisma/ignite) describes how to do this check; in this repository its record lives in `docs/design/00-purpose/` and `docs/design/90-decisions/`.
 
 ## Subsystem Deep Dives
 
