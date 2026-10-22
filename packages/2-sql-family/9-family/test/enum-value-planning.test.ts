@@ -359,6 +359,25 @@ describe('planEnumValueRewrites', () => {
     ]);
   });
 
+  it('swaps non-integer stored values through a whole number no member stores', () => {
+    const planned = rewrites(
+      planEnumValueRewrites({
+        statements: [],
+        fromContract: contractWith({ members: { LOW: 1.5, HIGH: 2.5 }, columns: [taskColumn] }),
+        contract: contractWith({ members: { LOW: 2.5, HIGH: 1.5 }, columns: [taskColumn] }),
+        tables: tablesOf(['app.task.status']),
+        codecs: noCodecs,
+      }),
+    );
+    expect(planned.map(({ keepData }) => keepData)).toEqual([
+      [{ from: 1.5, to: 3 }],
+      [
+        { from: 2.5, to: 1.5 },
+        { from: 3, to: 2.5 },
+      ],
+    ]);
+  });
+
   it('orders the changes of a chain so none overwrites a value another still has to read', () => {
     const planned = rewrites(
       planEnumValueRewrites({

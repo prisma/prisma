@@ -286,14 +286,15 @@ function orderChanges(
   return groups;
 }
 
-/** A value no member of either enum stores, of the kind of `value`: the next integer, or a marked string. */
+/** A value no member of either enum stores, of the kind of `value`: the next whole number, or a marked string. */
 function temporaryValue(value: StoredEnumValue, taken: readonly JsonValue[]): StoredEnumValue {
-  const integers = taken.flatMap((stored) => {
+  const numbers = taken.flatMap((stored) => {
     const number = typeof stored === 'string' ? Number(stored) : stored;
-    return typeof number === 'number' && Number.isInteger(number) ? [number] : [];
+    return typeof number === 'number' && Number.isFinite(number) ? [number] : [];
   });
-  if (typeof value === 'number') return Math.max(...integers) + 1;
-  if (/^-?\d+$/.test(value)) return String(Math.max(...integers) + 1);
+  const nextWholeNumber = numbers.length === 0 ? 0 : Math.floor(Math.max(...numbers)) + 1;
+  if (typeof value === 'number') return nextWholeNumber;
+  if (/^-?\d+$/.test(value)) return String(nextWholeNumber);
   let candidate = 'prisma_swap';
   while (taken.some((stored) => sameValue(stored, candidate))) candidate = `${candidate}_`;
   return candidate;
