@@ -7,6 +7,12 @@
       "plane": "shared"
     },
     {
+      "glob": "packages/0-shared/publish-surface/**",
+      "domain": "framework",
+      "layer": "foundation",
+      "plane": "shared"
+    },
+    {
       "glob": "packages/1-framework/1-core/config/**",
       "domain": "framework",
       "layer": "core",
@@ -85,6 +91,42 @@
       "plane": "runtime"
     },
     {
+      "glob": "packages/1-framework/1-core/framework-components/src/exports/ir.ts",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/1-framework/1-core/framework-components/src/exports/utils.ts",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/1-framework/1-core/framework-components/src/ir/**",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/1-framework/1-core/framework-components/src/utils/**",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/1-framework/1-core/framework-components/src/annotations.ts",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/1-framework/1-core/framework-components/src/meta-builder.ts",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "runtime"
+    },
+    {
       "glob": "packages/1-framework/1-core/framework-components/test/**",
       "domain": "framework",
       "layer": "core",
@@ -97,13 +139,13 @@
       "plane": "shared"
     },
     {
-      "glob": "packages/1-framework/2-authoring/**",
+      "glob": "packages/1-framework/1-core/ts-render/**",
       "domain": "framework",
-      "layer": "authoring",
-      "plane": "migration"
+      "layer": "core",
+      "plane": "shared"
     },
     {
-      "glob": "packages/1-framework/2-authoring/ids/**",
+      "glob": "packages/1-framework/2-authoring/**",
       "domain": "framework",
       "layer": "authoring",
       "plane": "migration"
@@ -163,12 +205,6 @@
       "plane": "shared"
     },
     {
-      "glob": "packages/2-sql-family/1-core/errors/**",
-      "domain": "sql",
-      "layer": "core",
-      "plane": "shared"
-    },
-    {
       "glob": "packages/2-sql-family/2-authoring/**",
       "domain": "sql",
       "layer": "authoring",
@@ -200,6 +236,48 @@
     },
     {
       "glob": "packages/2-sql-family/9-family/src/exports/pack.ts",
+      "domain": "sql",
+      "layer": "family",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/2-sql-family/9-family/src/exports/control-adapter.ts",
+      "domain": "sql",
+      "layer": "family",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/2-sql-family/9-family/src/exports/migration.ts",
+      "domain": "sql",
+      "layer": "family",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/2-sql-family/9-family/src/exports/diff.ts",
+      "domain": "sql",
+      "layer": "family",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/2-sql-family/9-family/src/exports/ir.ts",
+      "domain": "sql",
+      "layer": "family",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/2-sql-family/9-family/src/exports/psl-build.ts",
+      "domain": "sql",
+      "layer": "family",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/2-sql-family/9-family/src/exports/psl-infer.ts",
+      "domain": "sql",
+      "layer": "family",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/2-sql-family/9-family/src/exports/verify.ts",
       "domain": "sql",
       "layer": "family",
       "plane": "shared"
@@ -1345,6 +1423,18 @@
       "plane": "shared"
     },
     {
+      "glob": "packages/3-extensions/paradedb/src/exports/runtime.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-extensions/paradedb/src/exports/operation-types.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
       "glob": "packages/3-extensions/pgvector/src/core/**",
       "domain": "extensions",
       "layer": "adapters",
@@ -1376,6 +1466,132 @@
     },
     {
       "glob": "packages/3-extensions/pgvector/src/exports/operation-types.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/pgvector/src/contract.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/pgvector/src/exports/column-types.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/pgvector/src/exports/pack.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/postgis/src/core/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/postgis/src/types/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/postgis/src/contract.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/postgis/src/exports/control.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-extensions/postgis/src/exports/runtime.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-extensions/postgis/src/exports/codec-types.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/postgis/src/exports/column-types.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/postgis/src/exports/geojson.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/postgis/src/exports/operation-types.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/postgis/src/exports/pack.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/arktype-json/src/core/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/arktype-json/src/types/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/arktype-json/src/exports/control.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-extensions/arktype-json/src/exports/runtime.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-extensions/arktype-json/src/exports/codec-types.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/arktype-json/src/exports/codecs.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/arktype-json/src/exports/column-types.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/arktype-json/src/exports/pack.ts",
       "domain": "extensions",
       "layer": "adapters",
       "plane": "shared"
@@ -1472,6 +1688,42 @@
     },
     {
       "glob": "packages/2-mongo-family/9-family/src/core/**",
+      "domain": "mongo",
+      "layer": "family",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/2-mongo-family/9-family/src/exports/control-adapter.ts",
+      "domain": "mongo",
+      "layer": "family",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/2-mongo-family/9-family/src/exports/migration.ts",
+      "domain": "mongo",
+      "layer": "family",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/2-mongo-family/9-family/src/exports/runtime.ts",
+      "domain": "mongo",
+      "layer": "family",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/2-mongo-family/9-family/src/exports/pack.ts",
+      "domain": "mongo",
+      "layer": "family",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/2-mongo-family/9-family/src/exports/ir.ts",
+      "domain": "mongo",
+      "layer": "family",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/2-mongo-family/9-family/src/exports/schema-verify.ts",
       "domain": "mongo",
       "layer": "family",
       "plane": "shared"
