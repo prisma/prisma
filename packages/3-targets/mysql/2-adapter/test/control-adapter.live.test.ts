@@ -93,9 +93,15 @@ describe('MysqlControlAdapter against a MySQL server', {
           })),
         ).toEqual([{ referencedSchema: other, referencedTable: 'User' }]);
       } finally {
-        await driver.query('DROP TABLE IF EXISTS Post');
-        await driver.query(`DROP DATABASE IF EXISTS \`${other}\``);
-        await driver.close();
+        try {
+          await driver.query('DROP TABLE IF EXISTS Post');
+        } finally {
+          try {
+            await driver.query(`DROP DATABASE IF EXISTS \`${other}\``);
+          } finally {
+            await driver.close();
+          }
+        }
       }
     });
   });
