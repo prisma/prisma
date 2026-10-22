@@ -6,28 +6,7 @@ This page says where Prisma 8 is going, in two layers: **values**, which do not 
 
 Use it before you judge a feature request or a pull request, and before you propose a new feature, surface or solution. Read the [project intent](./project-intent.md) and the [steering list](../../architecture%20docs/ADR-INDEX.md#steering-list) first. If an ADR on the list covers the request, cite it.
 
-Give the request one of four verdicts, with one sentence that says why and the anchor you relied on: the value, the durable theme or the ADR.
-
-- **`aligned`**: the work advances a stated value or durable theme.
-- **`rejected`**: it conflicts with a value or an accepted ADR, or it belongs elsewhere, such as in an extension, in user code or in another repository.
-- **`unclear`**: this page does not clearly speak to it.
-- **`not_applicable`**: a bug fix, or any item where a judgment about direction does not mean anything. This is the right answer for most bugs.
-
-Be conservative. Prefer `unclear` or `not_applicable` over a confident `aligned` or `rejected` unless this page or an ADR speaks directly to the item.
-
-The verdict is evidence for a decision, not the decision. A value or a theme alone never grounds a decline. Declining a request needs an `Accepted` ADR that covers it, or a maintainer's own earlier words on an issue or a pull request ([PR triage](../../oss/pr-triage.md#step-5--direction-fit)). An ADR with status `Proposed` never grounds a verdict.
-
-- **Already exists.** When a feature Prisma 8 ships already covers the request, the answer is "use X", naming the feature. For example, query logging is a middleware ([ADR 271](../../architecture%20docs/adrs/ADR%20271%20-%20The%20runtime%20middleware%20observes%20a%20tree%20of%20activities,%20each%20started,%20ended%20and%20finalized.md)).
-- **No record covers it.** Search earlier issues and maintainer comments for a maintainer's position before you give a verdict.
-- **Precedent.** An earlier request closed as not planned is precedent only when its reasoning covers the full scope of the new request. If it covers part, it decides nothing.
-- **A maintainer accepted it.** Never decline a change that a maintainer in the thread proposed or accepted, unless a later maintainer comment declines it. Give `unclear` and flag the conflict.
-- **Two maintainers disagree.** Two maintainers who contradict each other in different threads are not an established position. Give `unclear` and flag the conflict.
-- **Protected items.** An agent never proposes declining an item filed by a maintainer, an item with a milestone, or a security issue.
-- **Nothing to use instead.** When the thing to use instead does not exist yet, say so.
-- **Declining.** End the comment with three things: a workaround the person can use today, what the maintainers would accept instead, and an invitation to reopen when that changes.
-- **A new no.** When you decline on a maintainer's words that no ADR records, record it as the [ADR index](../../architecture%20docs/ADR-INDEX.md#when-to-add-a-record) says.
-
-The [PR triage guide](../../oss/pr-triage.md#step-5--direction-fit) applies the same rules to pull requests.
+A verdict on a request cites the value, durable theme or ADR it rests on. Only an `Accepted` ADR that covers the request, or a [maintainer](../../oss/governance.md#maintainer-team)'s own earlier words on an issue or a pull request, grounds a decline. The full reading rules, with the four verdicts and the protections against a wrong decline, are in the [`product-direction` skill](../../../skills-contrib/product-direction/SKILL.md). The [PR triage guide](../../oss/pr-triage.md#step-5--direction-fit) applies them to pull requests.
 
 ## Values
 
