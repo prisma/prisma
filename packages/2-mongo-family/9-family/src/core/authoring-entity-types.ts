@@ -4,19 +4,20 @@ import {
   type AuthoringEntityTypeNamespace,
   type AuthoringPslBlockDescriptorNamespace,
   type ParsedPslExtensionBlock,
+  readEnumBlockMembers,
   resolveEnumCodecId,
 } from '@internal/framework-components/authoring';
 import { enumRefusalOf } from '@internal/framework-components/codec';
 import { type EnumTypeHandle, enumType } from '@internal/mongo-contract-ts/contract-builder';
 import type { InferBlock, PslBlockSpecDescriptor } from '@internal/psl-parser';
-import { blockAttribute, jsonValue, mapBlock, str } from '@internal/psl-parser';
-import { readJsonEnumMembers } from './json-enum-members';
+import { blockAttribute, enumMemberValue, mapBlock, str } from '@internal/psl-parser';
 
 export function mongoFamilyEnumSpec() {
   return mapBlock({
     value: {
-      type: jsonValue(),
-      documentation: 'The stored member value; a bare member stores its own name.',
+      type: enumMemberValue(),
+      documentation:
+        "The member's value, written as a value of the enum's data type; a bare member stores its own name.",
     },
     allowBare: true,
   });
@@ -73,7 +74,7 @@ export const mongoFamilyEnumEntityDescriptor = {
         return undefined;
       }
 
-      const members = readJsonEnumMembers(block, codecId, codec, ctx);
+      const members = readEnumBlockMembers(block, codecId, codec, ctx);
       if (members === undefined) return undefined;
 
       return enumType(block.name, { codecId }, ...members);

@@ -2,7 +2,10 @@ import type { JsonValue } from '@internal/contract/types';
 import type {
   AuthoringDiagnosticSink,
   AuthoringEntityContext,
+  DataTypeAuthoringEntry,
+  DataTypeSupport,
   ParsedPslExtensionBlock,
+  WrittenValue,
 } from '@internal/framework-components/authoring';
 import {
   type AnyCodecDescriptor,
@@ -34,16 +37,20 @@ export const TYPE_ATTRIBUTE_SPAN = {
   end: { offset: 42, line: 2, column: 22 },
 };
 
+/** The block the enum factory takes. A fixture member may be a JSON document, which PSL writes as a `json` tagged literal, recorded in `writtenValues`. */
+type EnumBlock = Parameters<typeof mongoFamilyEnumEntityDescriptor.output.factory>[0];
+
 export function enumBlock(input: {
   readonly name: string;
   readonly values: Record<string, JsonValue | undefined>;
   readonly typeCodecId?: string;
-}): ParsedPslExtensionBlock<Record<string, JsonValue | undefined>> {
-  return {
+}): EnumBlock {
+  const block: ParsedPslExtensionBlock<Record<string, JsonValue | undefined>> = {
     kind: 'enum',
     keyword: 'enum',
     name: input.name,
     values: input.values,
+    writtenValues: writtenValuesOf(input.values),
     parameterSpans: Object.fromEntries(Object.keys(input.values).map((key) => [key, SPAN])),
     attributes:
       input.typeCodecId !== undefined
@@ -57,6 +64,23 @@ export function enumBlock(input: {
         : {},
     span: SPAN,
   };
+  return block as unknown as EnumBlock;
+}
+
+/** Each member's value as PSL writes it: a document as a `json` tagged literal. */
+function writtenValuesOf(
+  values: Record<string, JsonValue | undefined>,
+): Record<string, WrittenValue> {
+  const written: Record<string, WrittenValue> = {};
+  for (const [name, value] of Object.entries(values)) {
+    if (typeof value === 'string') written[name] = { kind: 'string', text: value };
+    else if (typeof value === 'number') written[name] = { kind: 'number', text: String(value) };
+    else if (typeof value === 'boolean') written[name] = { kind: 'boolean', value };
+    else if (value !== undefined) {
+      written[name] = { kind: 'tag', tag: 'json', text: JSON.stringify(value) };
+    }
+  }
+  return written;
 }
 
 export const TEXT_CODEC_ID = 'mongo/string@1';
@@ -80,6 +104,12 @@ const jsonType = mongoDataType('test/json', { read: (json) => json, bsonTypes: [
 const foldingTextType = mongoDataType('test/folding-text', {
   read: (json) => readJsonString('test/folding-text', json),
   bsonTypes: ['string'],
+  casts: { [textType.id]: (value) => value },
+});
+const arrayType = mongoDataType('test/array', {
+  read: (json) => json,
+  bsonTypes: ['array'],
+  casts: { [jsonType.id]: (value) => value },
 });
 
 function fakeCodec(
@@ -156,9 +186,38 @@ export const testDataTypes = createDataTypeLookup([
   }),
   mongoDataType('test/mongo-bson', { read: (json) => json, bsonTypes: [] }),
   jsonType,
-  mongoDataType('test/array', { read: (json) => json, bsonTypes: ['array'] }),
+  arrayType,
   foldingTextType,
 ]);
+
+const testEntries: Readonly<Record<string, DataTypeAuthoringEntry>> = {
+  [textType.id]: {
+    written: { kind: 'plain', syntax: 'string', parse: (text) => text },
+    print: (value) => String(value),
+    documentation: 'Text.',
+  },
+  [intType.id]: {
+    written: {
+      kind: 'plain',
+      syntax: 'number',
+      types: [intType.id],
+      classify: (text) => ({ type: intType.id, value: Number(text) }),
+    },
+    print: (value) => String(value),
+    documentation: 'A number.',
+  },
+  [jsonType.id]: {
+    written: { kind: 'tag', tag: 'json', parse: (text) => JSON.parse(text) },
+    print: (value) => JSON.stringify(value),
+    documentation: 'A JSON document.',
+  },
+};
+
+export const testDataTypeSupport: DataTypeSupport = {
+  entries: testEntries,
+  lookup: testDataTypes,
+  dataTypeOfCodec: (codecId) => testCodecLookup.descriptorFor(codecId)?.dataType,
+};
 
 export const testCodecLookup: CodecLookupWithDescriptors = {
   get(id: string): Codec | undefined {
@@ -177,7 +236,18 @@ export const testCodecLookup: CodecLookupWithDescriptors = {
     if (dataTypeId === undefined) return undefined;
     const traits =
       id === UNEQUAL_CODEC_ID || id === UNEQUAL_MANY_BSON_TYPES_CODEC_ID ? [] : ['equality'];
-    return { codecId: id, dataType: dataTypeId, traits } as unknown as AnyCodecDescriptor;
+    const codec = testCodecLookup.get(id);
+    return {
+      codecId: id,
+      dataType: dataTypeId,
+      traits,
+      paramsSchema: undefined,
+      isParameterized: false,
+      factory: () => () => {
+        if (codec === undefined) throw new InternalError(`the fixture has no codec ${id}`);
+        return codec;
+      },
+    } as unknown as AnyCodecDescriptor;
   },
   renderOutputTypeFor: () => undefined,
 };
@@ -191,11 +261,7 @@ export function makeContext(diagnostics: unknown[]): AuthoringEntityContext {
     target: 'mongo',
     codecLookup: testCodecLookup,
     dataTypeLookup: testDataTypes,
-    dataTypes: {
-      entries: {},
-      lookup: testDataTypes,
-      dataTypeOfCodec: (codecId) => testCodecLookup.descriptorFor(codecId)?.dataType,
-    },
+    dataTypes: testDataTypeSupport,
     sourceId: 'schema.prisma',
     diagnostics: sink,
     enumInferenceCodecs: { text: TEXT_CODEC_ID, int: INT_CODEC_ID },
