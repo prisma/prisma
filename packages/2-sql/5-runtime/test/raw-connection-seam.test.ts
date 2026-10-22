@@ -27,7 +27,7 @@ import type {
   SqlRuntimeTargetDescriptor,
 } from '../src/sql-context';
 import { createExecutionContext, createSqlExecutionStack } from '../src/sql-context';
-import type { RuntimeOptions } from '../src/sql-runtime';
+import type { CloseRefusal, RuntimeOptions } from '../src/sql-runtime';
 import { SqlRuntimeBase } from '../src/sql-runtime';
 import { defineTestCodec } from './test-codec';
 import { descriptorsFromCodecs, stubAst } from './utils';
@@ -158,6 +158,10 @@ class TestRuntime extends SqlRuntimeBase {
     return this.acquireRawConnection();
   }
 
+  executeOnRuntime(plan: SqlExecutionPlan): Promise<unknown> {
+    return this.execute(plan);
+  }
+
   runQueryAgainstQueryable<Row>(
     plan: Parameters<SqlRuntimeBase['queryAgainstQueryable']>[0],
     queryable: Parameters<SqlRuntimeBase['queryAgainstQueryable']>[1],
@@ -167,9 +171,16 @@ class TestRuntime extends SqlRuntimeBase {
   }
 }
 
+const closedError = { code: 'DRIVER.NOT_CONNECTED', message: 'Runtime is closed' };
+
+function afterIdleTurns(): Promise<void> {
+  return new Promise((settle) => setTimeout(settle, 5));
+}
+
 function createTestSetup(options?: {
   middleware?: readonly SqlMiddleware[];
   readMarker?: (queryable: SqlQueryable) => Promise<MarkerReadResult>;
+  closeRefusal?: CloseRefusal;
 }) {
   const base = createStubAdapter();
   const adapter =
@@ -207,7 +218,7 @@ function createTestSetup(options?: {
     driver: driver as unknown as SqlDriver,
     verifyMarker: options?.readMarker === undefined ? false : 'onFirstUse',
     middleware: options?.middleware ?? [],
-    closeRefusal: undefined,
+    closeRefusal: options?.closeRefusal,
   };
 
   const runtime = new TestRuntime(runtimeOptions);
@@ -234,10 +245,68 @@ function rawPlan<Row = Record<string, unknown>>(
 }
 
 describe('acquireRawConnection', () => {
-  it('returns the driver connection (identity)', async () => {
+  it('releases and destroys the driver connection', async () => {
     const { runtime, connection } = createTestSetup();
+    const released = await runtime.acquireRawConn();
+    await released.release();
+    const destroyed = await runtime.acquireRawConn();
+    const reason = new Error('broken');
+    await destroyed.destroy(reason);
+
+    expect({
+      release: connection.release.mock.calls,
+      destroy: connection.destroy.mock.calls,
+    }).toEqual({ release: [[]], destroy: [[reason]] });
+  });
+
+  it('is refused once close() has started', async () => {
+    const { runtime, acquireConnectionSpy } = createTestSetup();
+    await runtime.close();
+
+    await expect(runtime.acquireRawConn()).rejects.toMatchObject(closedError);
+    expect(acquireConnectionSpy).not.toHaveBeenCalled();
+  });
+
+  it('keeps close() waiting until the connection is released', async () => {
+    const { runtime, driver } = createTestSetup();
     const raw = await runtime.acquireRawConn();
-    expect(raw).toBe(connection);
+
+    const closing = runtime.close();
+    await afterIdleTurns();
+    const driverClosedWhileHeld = vi.mocked(driver.close).mock.calls.length;
+    await raw.release();
+    await closing;
+
+    expect({
+      driverClosedWhileHeld,
+      driverClosed: vi.mocked(driver.close).mock.calls.length,
+    }).toEqual({ driverClosedWhileHeld: 0, driverClosed: 1 });
+  });
+
+  it('keeps close() waiting until the connection is destroyed', async () => {
+    const { runtime, driver } = createTestSetup();
+    const raw = await runtime.acquireRawConn();
+
+    const closing = runtime.close();
+    await afterIdleTurns();
+    const driverClosedWhileHeld = vi.mocked(driver.close).mock.calls.length;
+    await raw.destroy(new Error('broken'));
+    await closing;
+
+    expect({
+      driverClosedWhileHeld,
+      driverClosed: vi.mocked(driver.close).mock.calls.length,
+    }).toEqual({ driverClosedWhileHeld: 0, driverClosed: 1 });
+  });
+
+  it('lets close() finish when acquiring the connection fails', async () => {
+    const { runtime, driver, acquireConnectionSpy } = createTestSetup();
+    acquireConnectionSpy.mockRejectedValueOnce(new Error('pool exhausted'));
+
+    await expect(runtime.acquireRawConn()).rejects.toThrow('pool exhausted');
+    await runtime.close();
+
+    expect(driver.close).toHaveBeenCalledOnce();
   });
 
   it('SQL issued via the raw connection bypasses middleware', async () => {
@@ -259,6 +328,54 @@ describe('acquireRawConnection', () => {
 
     expect(connection.queryCalls).toEqual([{ sql: 'SET LOCAL role = $1', params: ['viewer'] }]);
     expect(observedSqls).toHaveLength(0);
+  });
+});
+
+describe('drain()', () => {
+  it('refuses new runtime-scope work and leaves the driver open', async () => {
+    const { runtime, driver } = createTestSetup();
+
+    await runtime.drain();
+
+    await expect(runtime.executeOnRuntime(rawPlan())).rejects.toMatchObject(closedError);
+    await expect(runtime.acquireRawConn()).rejects.toMatchObject(closedError);
+    expect(driver.close).not.toHaveBeenCalled();
+  });
+
+  it('waits for a held connection to be released', async () => {
+    const { runtime } = createTestSetup();
+    const raw = await runtime.acquireRawConn();
+    let drained = false;
+
+    const draining = runtime.drain().then(() => {
+      drained = true;
+    });
+    await afterIdleTurns();
+    const drainedWhileHeld = drained;
+    await raw.release();
+    await draining;
+
+    expect({ drainedWhileHeld, drained }).toEqual({ drainedWhileHeld: false, drained: true });
+  });
+
+  it('returns the same promise on every call, and close() afterwards closes the driver once', async () => {
+    const { runtime, driver } = createTestSetup();
+
+    const first = runtime.drain();
+    expect(runtime.drain()).toBe(first);
+    await first;
+    await runtime.close();
+    await runtime.close();
+
+    expect(driver.close).toHaveBeenCalledOnce();
+  });
+
+  it('refuses at once when the runtime refuses at once', async () => {
+    const { runtime } = createTestSetup({ closeRefusal: 'at-once' });
+
+    void runtime.drain();
+
+    await expect(runtime.acquireRawConn()).rejects.toMatchObject(closedError);
   });
 });
 

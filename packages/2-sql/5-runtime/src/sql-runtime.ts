@@ -274,6 +274,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   // Memoises the first verifyMarker() call so concurrent first queries share one read and one log line, and is cleared when that read fails so the next query retries it. `null` until the first query; pre-resolved when `verifyMarkerOption === false`.
   private verifyMarkerPromise: Promise<void> | null;
   private closePromise: Promise<void> | null;
+  private drainPromise: Promise<void> | null;
   private readonly closeRefusal: CloseRefusal;
   readonly #inFlight = new InFlightOperations();
   #openActivityHandles = 0;
@@ -331,6 +332,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     this.codecRegistryValidated = false;
     this.verifyMarkerPromise = this.verifyMarkerOption === false ? Promise.resolve() : null;
     this.closePromise = null;
+    this.drainPromise = null;
     this._telemetry = null;
   }
 
@@ -740,13 +742,40 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   }
 
   /**
-   * Returns the raw driver connection. The connection is a `SqlQueryable` — SQL
-   * issued on it runs below the middleware/codec/telemetry pipeline. It carries
-   * its own lifecycle (`release`/`destroy`/`beginTransaction`); the caller owns
-   * disposal.
+   * Returns a raw driver connection. SQL issued on it runs below the middleware/codec/telemetry pipeline. It carries its own lifecycle (`release`/`destroy`/`beginTransaction`); the caller owns disposal. Acquiring it is runtime-scope work: once `close()` has started it is refused, unless `activityParent` is an activity admitted before, and `close()` waits until the connection is released or destroyed.
    */
-  protected acquireRawConnection(): Promise<SqlConnection> {
-    return this.driver.acquireConnection();
+  protected async acquireRawConnection(
+    options?: Pick<ActivityExecuteOptions, 'activityParent'>,
+  ): Promise<SqlConnection> {
+    const endHold = this.beginOperation(this.driver, options);
+    let connection: SqlConnection;
+    try {
+      connection = await this.driver.acquireConnection();
+    } catch (error) {
+      endHold();
+      throw error;
+    }
+    const held: SqlConnection = {
+      query: (request) => connection.query(request),
+      execute: (request) => connection.execute(request),
+      beginTransaction: () => connection.beginTransaction(),
+      ...ifDefined('explain', connection.explain?.bind(connection)),
+      async release() {
+        try {
+          await connection.release();
+        } finally {
+          endHold();
+        }
+      },
+      async destroy(reason) {
+        try {
+          await connection.destroy(reason);
+        } finally {
+          endHold();
+        }
+      },
+    };
+    return held;
   }
 
   private async setupDriverExecution(
@@ -1525,9 +1554,22 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     return this.closePromise;
   }
 
-  // With 'when-idle', refusal begins once the runtime has been idle for one turn of the event loop (a setTimeout(0)): no database work in flight, and none started since the timer was set. A chain of dependent queries that keeps the runtime busy from the close onward, such as an ORM write and its reload, is admitted to its end. With 'at-once', close() has already started refusing.
-  // With 'at-once' nothing is awaited before the refusal flag is set, so it is set inside the call of close().
+  /**
+   * Refuses new runtime-scope work as `close()` does, and resolves when the work in flight has finished, but leaves the driver open. An owner of several runtimes that share one driver drains them all, then closes the driver once. Every call returns the same promise.
+   */
+  drain(): Promise<void> {
+    this.drainPromise ??= this.refuseAfterWork();
+    return this.drainPromise;
+  }
+
   private async closeDriverAfterWork(): Promise<void> {
+    await this.drain();
+    await this.driver.close();
+  }
+
+  // With 'when-idle', refusal begins once the runtime has been idle for one turn of the event loop (a setTimeout(0)): no database work in flight, and none started since the timer was set. A chain of dependent queries that keeps the runtime busy from the close onward, such as an ORM write and its reload, is admitted to its end. With 'at-once', drain() has already started refusing.
+  // With 'at-once' nothing is awaited before the refusal flag is set, so it is set inside the call of drain() or close().
+  private async refuseAfterWork(): Promise<void> {
     const warned = { done: false };
     if (this.closeRefusal === 'when-idle') {
       await this.waitForIdleTurn(warned);
@@ -1535,7 +1577,6 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     this.#refusing = true;
     this.warnWhenWaitingOnlyForActivities(warned);
     await this.#inFlight.drained();
-    await this.driver.close();
   }
 
   private async waitForIdleTurn(warned: { done: boolean }): Promise<void> {
