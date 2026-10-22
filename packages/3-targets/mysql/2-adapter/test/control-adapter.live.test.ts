@@ -33,7 +33,7 @@ describe('MysqlControlAdapter against a MySQL server', () => {
         expect(await adapter.readLedger(driver)).toMatchObject([
           { space: 'app', migrationName: 'init', to: 'sha256:core', operationCount: 1 },
         ]);
-        expect(await adapter.introspect(driver)).toMatchObject({ tables: {} });
+        expect(Object.keys((await adapter.introspect(driver)).tables)).toEqual([]);
       } finally {
         await driver.close();
       }
