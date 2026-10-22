@@ -33,6 +33,7 @@ import {
   type FieldStatementColumns,
   type MigrationOperationPolicy,
   type SqlMigrationPlanOperation,
+  type SqlPlannerConflict,
   type StatementColumn,
 } from '@internal/family-sql/control';
 import type { DataType, TypeLookups } from '@internal/framework-components/codec';
@@ -45,11 +46,13 @@ import * as contractFree from '@internal/sql-relational-core/contract-free';
 import {
   RelationalSchemaNodeKind,
   type SqlColumnIR,
+  type SqlForeignKeyIR,
   type SqlSchemaIR,
   sqlColumnTypesEqual,
 } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { isPostgresSchema } from '../postgres-schema';
+import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import { hasAutoincrementDefault } from './autoincrement-widths';
 import {
   renderColumnAlterType,
@@ -70,6 +73,7 @@ import {
   SetNotNullCall,
 } from './op-factory-call';
 import { buildTargetDetails, type PostgresPlanTargetDetails } from './planner-target-details';
+import { primaryKeyChangeStrategy } from './primary-key-change';
 import { isSafeTypeWidening } from './safe-widenings';
 
 /**
@@ -125,6 +129,9 @@ function namespaceIdForDdlSchema(ctx: StrategyContext, ddlSchemaName: string): s
 // Strategy types
 // ============================================================================
 
+/** `allowed`, or why the plan may not drop a foreign key: the control policy keeps it away from the table, or another contract space owns the table. */
+export type ForeignKeyDropAuthority = 'allowed' | 'controlPolicy' | 'otherSpace';
+
 /**
  * Context passed to each migration strategy.
  *
@@ -141,7 +148,20 @@ export interface StrategyContext {
   readonly codecHooks: ReadonlyMap<string, CodecControlHooks>;
   /** The composed stack's codecs and data types, which write each column's type. */
   readonly types: TypeLookups;
+  /** One namespace of the start state, for probes by bare table name in the planned namespace. */
   readonly schema: SqlSchemaIR;
+  /** The whole start tree of the plan, every namespace. */
+  readonly startTree: PostgresDatabaseSchemaNode;
+  /** The whole end tree of the plan, every namespace. */
+  readonly endTree: PostgresDatabaseSchemaNode;
+  /** Every issue of the plan, including those earlier strategies consumed. */
+  readonly allIssues: readonly SchemaDiffIssue[];
+  /** Whether the plan may drop a foreign key of the start tree, by the control policy and contract-space ownership rules that filtered the plan's issues. */
+  readonly foreignKeyDropAuthority: (
+    ddlSchemaName: string,
+    tableName: string,
+    foreignKey: SqlForeignKeyIR,
+  ) => ForeignKeyDropAuthority;
   readonly policy: MigrationOperationPolicy;
   readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
   /** The columns of the fields `--convert` and `--backfill` statements name. */
@@ -177,6 +197,8 @@ export type CallMigrationStrategy = (
        * into their DDL sequencing bucket.
        */
       recipe?: boolean;
+      /** Changes the strategy recognises but refuses to plan; the plan fails with them. */
+      conflicts?: readonly SqlPlannerConflict[];
     }
   | { kind: 'no_match' };
 
@@ -546,4 +568,5 @@ export const postgresPlannerStrategies: readonly CallMigrationStrategy[] = [
   nullableTighteningCallStrategy,
   storageTypePlanCallStrategy,
   notNullAddColumnCallStrategy,
+  primaryKeyChangeStrategy,
 ];

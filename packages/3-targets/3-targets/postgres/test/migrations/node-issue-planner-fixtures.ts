@@ -53,6 +53,14 @@ export function emptyRoot(): PostgresDatabaseSchemaNode {
   });
 }
 
+/** The whole start and end trees `planIssues` takes, with a plan that may drop every foreign key. */
+export function planTrees(
+  startTree: PostgresDatabaseSchemaNode = emptyRoot(),
+  endTree: PostgresDatabaseSchemaNode = emptyRoot(),
+) {
+  return { startTree, endTree, foreignKeyDropAuthority: () => 'allowed' as const };
+}
+
 export function rootOf(
   tables: Record<string, PostgresTableSchemaNode>,
 ): PostgresDatabaseSchemaNode {
@@ -70,7 +78,7 @@ export function rootOf(
 }
 
 export function planFor(contract: Contract<SqlStorage>, actual: PostgresDatabaseSchemaNode) {
-  const { issues } = buildPostgresPlanDiff({
+  const { issues, expected } = buildPostgresPlanDiff({
     contract,
     actualSchema: actual,
     frameworkComponents: postgresTypeComponents,
@@ -86,6 +94,7 @@ export function planFor(contract: Contract<SqlStorage>, actual: PostgresDatabase
     schemaName: 'public',
     codecHooks: new Map(),
     types: postgresTypeLookups,
+    ...planTrees(actual, expected),
     frameworkComponents: postgresTypeComponents,
     // The default per-issue mapper is what this suite pins — the real
     // strategy list is covered elsewhere (see module docstring).

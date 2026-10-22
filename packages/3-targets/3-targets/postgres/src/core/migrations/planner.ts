@@ -93,7 +93,11 @@ import {
 } from './op-factory-call';
 import { postgresCallSubjects } from './operation-subjects';
 import { TypeScriptRenderablePostgresMigration } from './planner-produced-postgres-migration';
-import { type CallMigrationStrategy, postgresPlannerStrategies } from './planner-strategies';
+import {
+  type CallMigrationStrategy,
+  postgresPlannerStrategies,
+  tableAt,
+} from './planner-strategies';
 import {
   emissionSchemaForNamespace,
   resolveDdlSchemaForNamespaceStorage,
@@ -354,11 +358,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
 
     const codecHooks = extractCodecControlHooks(options.frameworkComponents);
     const types = sqlTypeLookupsOf(options.frameworkComponents);
-    // The strategy layer reads the live schema by bare table name for existence
-    // checks (shared-temp-default safety, FK/unique probes), so it takes one
-    // per-schema namespace node — never the whole tree root, and never a flat
-    // merge of every namespace (which would collide same-named tables across
-    // schemas). Probing more than one namespace at once is future work.
+    // Strategies get two views of the start state. `schema` is one namespace node, for probes by bare table name in the planned namespace (shared-temp-default safety, FK/unique probes); a flat merge of every namespace would collide same-named tables. `startTree` and `endTree` are the whole trees, for decisions that cross tables and namespaces, such as the foreign keys that depend on a primary key.
     const relationalSchema = relationalNamespaceNode(schema, schemaName);
 
     // Input-side control-policy partition. `external` / `observed` subjects
@@ -417,6 +417,31 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       codecHooks,
       types,
       ...ifDefined('schema', relationalSchema),
+      startTree: schema,
+      endTree: expectedSchema,
+      foreignKeyDropAuthority: (ddlSchemaName, tableName, foreignKey) => {
+        const namespaceId = resolveNamespaceIdForDdlSchema(options.contract, ddlSchemaName);
+        const ownedElsewhere =
+          tableAt(options.contract.storage, namespaceId, tableName) === undefined &&
+          options.ownership?.declaresEntity({
+            namespaceId,
+            entityKind: 'table',
+            entityName: tableName,
+          });
+        if (ownedElsewhere === true) return 'otherSpace';
+        const dropIssue: SchemaDiffIssue<SqlSchemaDiffNode> = {
+          path: ['database', ddlSchemaName, tableName, foreignKey.id],
+          actual: foreignKey,
+        };
+        const { plannable } = partitionIssuesByControlPolicy({
+          issues: [dropIssue],
+          contract: options.contract,
+          resolveControlPolicySubject: (issue) =>
+            resolvePostgresNodeIssueControlPolicySubject(issue, options.contract),
+          resolveCreationFactoryName: resolvePostgresNodeIssueCreationFactoryName,
+        });
+        return plannable.length === 1 ? 'allowed' : 'controlPolicy';
+      },
       policy: options.policy,
       frameworkComponents: options.frameworkComponents,
       statementColumns: fieldStatementColumns(options.statements, options.contract),
@@ -439,7 +464,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       [
         ...indexRenames.calls,
         ...checkRenames.calls,
-        ...plannedConstraintNameRenames({ ...options, schema }),
+        ...plannedConstraintNameRenames({ ...options, schema }, result.value.calls),
       ],
       options.contract,
     );
