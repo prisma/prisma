@@ -41,18 +41,26 @@ const NODE_CONNECTION_CODES: ReadonlyMap<string, boolean> = new Map([
   ['EHOSTUNREACH', false],
 ]);
 
-const TRANSIENT_CONNECTION_SQLSTATES: ReadonlySet<string> = new Set([
+const TRANSIENT_CLASS_08_SQLSTATES: ReadonlySet<string> = new Set([
   '08000',
   '08001',
   '08003',
   '08006',
+]);
+
+/** SQLSTATEs outside class 08 that mean the server ended the session; a fresh connection can succeed. */
+const SESSION_ENDED_SQLSTATES: ReadonlySet<string> = new Set([
   '57P01',
   '57P02',
   '57P03',
+  '57P05',
+  '25P03',
 ]);
 
-function isConnectionSqlState(sqlState: string): boolean {
-  return sqlState.startsWith('08') || TRANSIENT_CONNECTION_SQLSTATES.has(sqlState);
+/** Whether a retry can succeed, for a SQLSTATE that means the connection failed; undefined for any other. */
+function connectionSqlStateTransience(sqlState: string): boolean | undefined {
+  if (sqlState.startsWith('08')) return TRANSIENT_CLASS_08_SQLSTATES.has(sqlState);
+  return SESSION_ENDED_SQLSTATES.has(sqlState) ? true : undefined;
 }
 
 /**
@@ -114,7 +122,7 @@ function isPostgresSqlState(code: string | undefined): boolean {
 /**
  * Normalizes a Postgres error into a SQL-shared error type, from its code alone.
  *
- * - Connection SQLSTATEs (class `08`, `57P01`–`57P03`) and Node socket codes → SqlConnectionError
+ * - Connection SQLSTATEs (class `08`, and those that end the session) and Node socket codes → SqlConnectionError
  * - Other SQLSTATEs → SqlQueryError
  * - Errors already normalized, and errors without a recognized code → returned as-is
  *
@@ -144,10 +152,11 @@ export function normalizePgError(error: unknown): SqlQueryError | SqlConnectionE
   }
 
   if (isPostgresSqlState(code)) {
-    if (isConnectionSqlState(code)) {
+    const connectionTransience = connectionSqlStateTransience(code);
+    if (connectionTransience !== undefined) {
       return new SqlConnectionError(error.message, {
         cause: error,
-        transient: TRANSIENT_CONNECTION_SQLSTATES.has(code),
+        transient: connectionTransience,
       });
     }
     return new SqlQueryError(error.message, {

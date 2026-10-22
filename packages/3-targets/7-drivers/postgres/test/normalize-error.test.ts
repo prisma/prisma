@@ -108,6 +108,8 @@ describe('normalizePgError', () => {
       ['57P01', true],
       ['57P02', true],
       ['57P03', true],
+      ['57P05', true],
+      ['25P03', true],
       ['08004', false],
       ['08P01', false],
     ])('normalizes SQLSTATE %s to SqlConnectionError with transient %s', (code, transient) => {
