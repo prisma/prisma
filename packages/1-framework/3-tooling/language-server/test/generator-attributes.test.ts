@@ -46,20 +46,20 @@ const types: AuthoringTypeNamespace = {
 async function actualPostgresStack(): Promise<Stack> {
   const [attributes, blocks, family, postgres] = await Promise.all([
     importFromPackageRoot<{ sqlAttributeSpecs: AuthoringAttributeSpecContributions }>(
-      '../../../2-sql/2-authoring/contract-psl/src/sql-attribute-specs.ts',
+      '../../../2-sql-family/2-authoring/contract-psl/src/sql-attribute-specs.ts',
     ),
     importFromPackageRoot<{
       sqlFamilyPslBlockDescriptors: AuthoringPslBlockDescriptorNamespace;
       sqlFamilyEntityTypes: AuthoringEntityTypeNamespace;
-    }>('../../../2-sql/9-family/src/core/authoring-entity-types.ts'),
+    }>('../../../2-sql-family/9-family/src/core/authoring-entity-types.ts'),
     importFromPackageRoot<{
       sqlFamilyGeneratorFunctions: readonly GeneratorFunctionContribution[];
       sqlFamilyGeneratorDescriptors: readonly MutationDefaultGeneratorDescriptor[];
-    }>('../../../2-sql/9-family/src/core/generator-functions.ts'),
+    }>('../../../2-sql-family/9-family/src/core/generator-functions.ts'),
     importFromPackageRoot<{
       postgresGeneratorFunctions: readonly GeneratorFunctionContribution[];
       postgresGeneratorDescriptors: readonly MutationDefaultGeneratorDescriptor[];
-    }>('../../../3-targets/3-targets/postgres/src/core/generator-functions.ts'),
+    }>('../../../3-targets/postgres/1-target/src/core/generator-functions.ts'),
   ]);
   return {
     authoringContributions: assembleAuthoringContributions([

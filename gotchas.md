@@ -139,8 +139,8 @@ The same command with `--from 20260707T1005_init` (a migration directory name) s
 2. Before the fix: remove the polyfill import from `src/db.ts` and run `pnpm start`.
 
 **References.**
-- Fix: [`packages/3-targets/3-targets/postgres/src/core/prisma7-type-map.ts`](packages/3-targets/3-targets/postgres/src/core/prisma7-type-map.ts)
-- Codec: [`packages/3-targets/3-targets/postgres/src/core/temporal-codec-helpers.ts`](packages/3-targets/3-targets/postgres/src/core/temporal-codec-helpers.ts)
+- Fix: [`packages/3-targets/postgres/1-target/src/core/prisma7-type-map.ts`](packages/3-targets/postgres/1-target/src/core/prisma7-type-map.ts)
+- Codec: [`packages/3-targets/postgres/1-target/src/core/temporal-codec-helpers.ts`](packages/3-targets/postgres/1-target/src/core/temporal-codec-helpers.ts)
 
 ---
 

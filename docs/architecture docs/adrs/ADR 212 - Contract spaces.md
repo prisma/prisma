@@ -74,7 +74,7 @@ export interface ContractSpace<TContract extends Contract = Contract> {
   readonly headRef: ContractSpaceHeadRef;
 }
 
-// packages/2-sql/9-family/src/core/migrations/types.ts
+// packages/2-sql-family/9-family/src/core/migrations/types.ts
 export interface SqlControlExtensionDescriptor<TTargetId extends string>
   extends ControlExtensionDescriptor<'sql', TTargetId> {
   readonly contractSpace?: ContractSpace<Contract<SqlStorage>>;

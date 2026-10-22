@@ -14,7 +14,7 @@ The Mongo runtime package implements the Mongo family runtime by extending the a
 
 ## Usage
 
-The runtime takes a **`MongoExecutionContext`** built from a **`MongoExecutionStack`** (target + adapter + optional driver + extension packs). The context aggregates codec contributions from each stack component into a single registry — users do not construct or thread a `MongoCodecRegistry` themselves. This mirrors the SQL pattern (see `packages/2-sql/5-runtime/src/sql-context.ts`).
+The runtime takes a **`MongoExecutionContext`** built from a **`MongoExecutionStack`** (target + adapter + optional driver + extension packs). The context aggregates codec contributions from each stack component into a single registry — users do not construct or thread a `MongoCodecRegistry` themselves. This mirrors the SQL pattern (see `packages/2-sql-family/5-runtime/src/sql-context.ts`).
 
 Typed reads that attach a **`resultShape`** on the query plan are decoded after the driver yields each row: scalars and scalar arrays run through their `codecId` entries; `kind: 'unknown'` subtrees are passed through unchanged; plans without `resultShape` (for example raw commands) leave rows as the driver returned them.
 

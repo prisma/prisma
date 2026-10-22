@@ -31,8 +31,8 @@ import {
 } from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { introspectedColumn as introspectedColumnOver } from '../../../../packages/2-sql/1-core/contract/test/introspected-column';
-import { createTestPostgresControlAdapter } from '../../../../packages/3-targets/6-adapters/postgres/test/helpers/test-control-adapter';
+import { introspectedColumn as introspectedColumnOver } from '../../../../packages/2-sql-family/1-core/contract/test/introspected-column';
+import { createTestPostgresControlAdapter } from '../../../../packages/3-targets/postgres/2-adapter/test/helpers/test-control-adapter';
 
 const introspectedColumn = (
   column: SqlColumnIRInput,

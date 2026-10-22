@@ -15,6 +15,17 @@ export {
   assembleAuthoringDataTypes,
   assembleDataTypeSupport,
 } from '../shared/data-type-support';
+export type {
+  DiscriminatorDecision,
+  DiscriminatorField,
+  DiscriminatorFieldRefusal,
+  DiscriminatorRefusal,
+  DiscriminatorVariantRefusal,
+} from '../shared/discriminator-rule';
+export {
+  applyDiscriminatorRule,
+  describeDiscriminatorRefusal,
+} from '../shared/discriminator-rule';
 export {
   type EnumBlockDiagnostic,
   type EnumBlockMember,
@@ -138,5 +149,6 @@ export {
   knownTags,
   readWrittenValue,
   readWrittenValueAs,
+  readWrittenValueIntoCodec,
   tagForm,
 } from '../shared/written-value';

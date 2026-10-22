@@ -19,7 +19,7 @@ import {
   MongoStorage,
   MongoValidator,
 } from '@internal/mongo-contract';
-import { mongoCodecLookup, mongoDataTypeLookup } from '@internal/mongo-contract/test';
+import { mongoCodecLookup } from '@internal/mongo-contract/test';
 import {
   buildSymbolTable,
   createBinder,
@@ -44,6 +44,7 @@ import {
   expectUnresolvedReference,
   interpretMongoContract,
 } from './interpreter-test-helpers';
+import { mongoDataTypeSupport } from './mongo-type-lookups';
 
 function buildSymbolTableInput(
   schema: string,
@@ -112,7 +113,7 @@ function interpret(
       scalarTypeCodecIds: mongoScalarTypeDescriptors,
       defaultFunctionRegistry: new Map(),
       codecLookup: mongoCodecLookup,
-      dataTypes: { entries: {}, lookup: mongoDataTypeLookup, dataTypeOfCodec: () => undefined },
+      dataTypes: mongoDataTypeSupport,
       ...overrides,
     },
     'test.prisma',
@@ -243,7 +244,7 @@ model Item {
       codecLookup: mongoCodecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
       generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
-      dataTypes: { entries: {}, lookup: mongoDataTypeLookup, dataTypeOfCodec: () => undefined },
+      dataTypes: mongoDataTypeSupport,
       resolvedInputs: [],
       capabilities: {},
     };

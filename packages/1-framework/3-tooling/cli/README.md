@@ -1300,7 +1300,7 @@ See `.cursor/rules/config-validation-and-normalization.mdc` for detailed pattern
 
 ### Pack Assembly
 - **Family instances** now handle pack assembly internally. The CLI creates a family instance via `config.family.create()` and reads assembly data (operation registry, type imports, extension IDs) from the instance.
-- **Removed**: `pack-assembly.ts` has been removed. Pack assembly is now handled by family instances. For SQL family, tests can import pack-based helpers directly from `packages/2-sql/3-tooling/family/src/core/assembly.ts` using relative paths.
+- **Removed**: `pack-assembly.ts` has been removed. Pack assembly is now handled by family instances. For SQL family, tests can import pack-based helpers directly from `packages/2-sql-family/3-tooling/family/src/core/assembly.ts` using relative paths.
 - Assembly logic is family-specific and owned by each family's instance implementation (e.g., `createSqlFamilyInstance` in `@internal/family-sql`).
 
 ### Output Formatting (`utils/formatters/`)

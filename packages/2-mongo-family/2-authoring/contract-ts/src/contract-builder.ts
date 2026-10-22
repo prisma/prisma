@@ -32,6 +32,7 @@ import {
   resolveToOneRelationNullable,
 } from '@internal/contract-authoring';
 import {
+  type AuthoringEntityContext,
   assertNoCrossRegistryCollisions,
   assertTypeAliasesValid,
 } from '@internal/framework-components/authoring';
@@ -1042,6 +1043,26 @@ const MONGO_RESERVED_HELPER_KEYS: readonly string[] = [
   'valueObject',
 ];
 
+/** The context an entity helper's factory runs in. The builder reads no written values, so its data types carry no authoring entries. */
+function entityContextOf(
+  familyId: string,
+  targetId: string,
+  components: Parameters<typeof extractCodecLookup>[0],
+): AuthoringEntityContext {
+  const codecLookup = extractCodecLookup(components);
+  const lookup = assembleDataTypes(components).lookup;
+  return {
+    family: familyId,
+    target: targetId,
+    codecLookup,
+    dataTypes: {
+      entries: {},
+      lookup,
+      dataTypeOfCodec: (codecId) => codecLookup.descriptorFor(codecId)?.dataType,
+    },
+  };
+}
+
 function composeMongoAuthoringHelpers<
   Family extends FamilyPackRef<string>,
   Target extends TargetPackRef<string, string>,
@@ -1074,12 +1095,7 @@ function composeMongoAuthoringHelpers<
     'entity helpers are built by a runtime walk of the pack namespaces, which returns Record<string, unknown>; their static shape comes from the pack type parameters'
   >({
     ...createEntityHelpersFromNamespace(entityNamespace, {
-      ctx: {
-        family: family.familyId,
-        target: target.targetId,
-        codecLookup: extractCodecLookup(components),
-        dataTypeLookup: assembleDataTypes(components).lookup,
-      },
+      ctx: entityContextOf(family.familyId, target.targetId, components),
     }),
     field,
     gen: createGeneratorHelpers(components),

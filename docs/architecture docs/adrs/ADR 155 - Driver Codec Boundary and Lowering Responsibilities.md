@@ -74,7 +74,7 @@ This is a problem because “vector values are formatted as pgvector text string
 Timestamp codecs accept `string | Date`:
 
 ```ts
-// packages/3-targets/6-adapters/postgres/src/core/codecs.ts
+// packages/3-targets/postgres/2-adapter/src/core/codecs.ts
 decode: (wire: string | Date): string => {
   if (typeof wire === 'string') return wire;
   if (wire instanceof Date) return wire.toISOString();
@@ -101,21 +101,21 @@ Many Postgres JS libraries return `int8` as **strings** by default to avoid prec
 When this ADR was written, the driver yielded rows directly from `pg` without normalization:
 
 ```ts
-// packages/3-targets/7-drivers/postgres/src/postgres-driver.ts
+// packages/3-targets/postgres/3-driver/src/postgres-driver.ts
 const result = await client.query(sql, params as unknown[] | undefined);
 for (const row of result.rows as Record<string, unknown>[]) yield row;
 ```
 
 With no normalization at the driver boundary, codecs inevitably become coupled to the underlying library’s choices. Three readers did become coupled, and `pg` hid the coupling: the runtime marker check read `canonical_version` as a number, computed `select` projections with no codec returned whatever `pg` parsed, and the interval codec read only the ISO 8601 text it writes itself, never the text Postgres prints.
 
-**Resolved.** The runtime driver now passes `serverTextTypes` to `pg` on every `query` path, so every row value arrives as the server's text output and `pg` parses nothing ([`server-text-types.ts`](../../../packages/3-targets/7-drivers/postgres/src/server-text-types.ts), [driver README](../../../packages/3-targets/7-drivers/postgres/README.md#row-parser-policy)). The three readers were fixed to read text. The control-plane driver still lets `pg` parse scalar values; it reads catalog rows without codecs and is the remaining exception to this ADR.
+**Resolved.** The runtime driver now passes `serverTextTypes` to `pg` on every `query` path, so every row value arrives as the server's text output and `pg` parses nothing ([`server-text-types.ts`](../../../packages/3-targets/postgres/3-driver/src/server-text-types.ts), [driver README](../../../packages/3-targets/postgres/3-driver/README.md#row-parser-policy)). The three readers were fixed to read text. The control-plane driver still lets `pg` parse scalar values; it reads catalog rows without codecs and is the remaining exception to this ADR.
 
 ### Lowering already emits casts for determinism (`::vector`)
 
 The Postgres adapter already emits `::vector` for `pg/vector@1` params:
 
 ```ts
-// packages/3-targets/6-adapters/postgres/src/core/adapter.ts
+// packages/3-targets/postgres/2-adapter/src/core/adapter.ts
 if (columnMeta?.codecId === VECTOR_CODEC_ID) return `$${ref.index}::vector`;
 ```
 
@@ -230,7 +230,7 @@ This is a behavioral contract, not just a TS type alias. We enforce it via:
   - bound params accept `string | Uint8Array | null` and execute correctly
 - **Optional dev-mode validation:** fail fast if a driver returns a row value outside the canonical set (e.g. a `Date`).
 
-For the Postgres driver, [`driver.server-text.integration.test.ts`](../../../packages/3-targets/7-drivers/postgres/test/driver.server-text.integration.test.ts) is that conformance test. It reads `bool`, `int2`, `int4`, `float8` (including `NaN` and both infinities), `bytea`, `oid`, `interval`, `json` and `jsonb` through the buffered, cursor and named-cursor paths and asserts that every value is the server's text, and that the global `pg` type parsers are unchanged.
+For the Postgres driver, [`driver.server-text.integration.test.ts`](../../../packages/3-targets/postgres/3-driver/test/driver.server-text.integration.test.ts) is that conformance test. It reads `bool`, `int2`, `int4`, `float8` (including `NaN` and both infinities), `bytea`, `oid`, `interval`, `json` and `jsonb` through the buffered, cursor and named-cursor paths and asserts that every value is the server's text, and that the global `pg` type parsers are unchanged.
 
 ## FAQ (questions a reader is likely to ask)
 

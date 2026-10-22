@@ -348,10 +348,10 @@ function completeWithSource(input: {
 async function actualSqlStack(): Promise<CompletionTestStack> {
   const [attributes, blocks] = await Promise.all([
     importFromPackageRoot<ActualSqlAttributeModule>(
-      '../../../2-sql/2-authoring/contract-psl/src/sql-attribute-specs.ts',
+      '../../../2-sql-family/2-authoring/contract-psl/src/sql-attribute-specs.ts',
     ),
     importFromPackageRoot<ActualSqlBlockModule>(
-      '../../../2-sql/9-family/src/core/authoring-entity-types.ts',
+      '../../../2-sql-family/9-family/src/core/authoring-entity-types.ts',
     ),
   ]);
   return {
@@ -403,7 +403,7 @@ const constructorArgumentDataTypes: DataTypeSupport = {
 
 async function sqlExpressionDataTypes(): Promise<Readonly<Record<string, DataTypeAuthoringEntry>>> {
   const family = await importFromPackageRoot<ActualSqlExpressionModule>(
-    '../../../2-sql/1-core/contract/src/exports/sql-expression.ts',
+    '../../../2-sql-family/1-core/contract/src/exports/sql-expression.ts',
   );
   return family.sqlExpressionRegistration.authoring.dataTypes;
 }
@@ -1746,7 +1746,7 @@ namespace app {
     async () => {
       const { postgresTargetDescriptorMeta } = await importFromPackageRoot<{
         readonly postgresTargetDescriptorMeta: { readonly authoring: AuthoringContributions };
-      }>('../../../3-targets/3-targets/postgres/src/core/descriptor-meta.ts');
+      }>('../../../3-targets/postgres/1-target/src/core/descriptor-meta.ts');
       const authoringContributions = assembleAuthoringContributions([
         { id: 'postgres', authoring: postgresTargetDescriptorMeta.authoring },
       ]);
@@ -1775,7 +1775,7 @@ namespace app {
     async () => {
       const { mongoScalarAuthoringTypes } = await importFromPackageRoot<{
         readonly mongoScalarAuthoringTypes: AuthoringTypeNamespace;
-      }>('../../../3-mongo-target/2-mongo-adapter/src/exports/control.ts');
+      }>('../../../3-targets/mongo/2-adapter/src/exports/control.ts');
       const { items } = completeWithSource({
         markedSource: 'model Post { value | }',
         pslBlockDescriptors: {},
@@ -1834,7 +1834,7 @@ namespace app {
   it('uses actual adapter default-function signatures through the SQL factory', async () => {
     const stack = await actualSqlStack();
     const defaults = await importFromPackageRoot<ActualPostgresDefaultsModule>(
-      '../../../3-targets/6-adapters/postgres/src/core/control-mutation-defaults.ts',
+      '../../../3-targets/postgres/2-adapter/src/core/migrations/control-mutation-defaults.ts',
     );
     const options = {
       controlMutationDefaults: {
@@ -1864,7 +1864,7 @@ namespace app {
         readonly name: string;
         readonly signature?: unknown;
       }[];
-    }>('../../../3-targets/3-targets/postgres/src/core/generator-functions.ts');
+    }>('../../../3-targets/postgres/1-target/src/core/generator-functions.ts');
     const labelOf = (name: string) => {
       const declared = postgres.postgresGeneratorFunctions.find(
         (contribution) => contribution.name === name && contribution.signature !== undefined,
@@ -1884,13 +1884,13 @@ namespace app {
     const stack = await actualSqlStack();
     const [postgres, sqlite, family] = await Promise.all([
       importFromPackageRoot<ActualPostgresDataTypesModule>(
-        '../../../3-targets/3-targets/postgres/src/exports/data-types.ts',
+        '../../../3-targets/postgres/1-target/src/exports/data-types.ts',
       ),
       importFromPackageRoot<ActualSqliteDataTypesModule>(
-        '../../../3-targets/3-targets/sqlite/src/exports/data-types.ts',
+        '../../../3-targets/sqlite/1-target/src/exports/data-types.ts',
       ),
       importFromPackageRoot<ActualSqlExpressionModule>(
-        '../../../2-sql/1-core/contract/src/exports/sql-expression.ts',
+        '../../../2-sql-family/1-core/contract/src/exports/sql-expression.ts',
       ),
     ]);
     const withFamilyEntry = (

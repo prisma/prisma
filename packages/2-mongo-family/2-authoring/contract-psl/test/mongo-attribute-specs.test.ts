@@ -8,6 +8,7 @@ import type {
   FieldAttributeSpecContext,
   ModelSymbol,
   Param,
+  ParsedWrittenScalar,
   ResolvedEntityReference,
   SymbolTable,
 } from '@internal/psl-parser';
@@ -146,12 +147,12 @@ model Base { id String }`,
       diagnostics,
     });
     expectTypeOf(value).toEqualTypeOf<
-      { base: ResolvedEntityReference<ModelSymbol>; value: string } | undefined
+      { base: ResolvedEntityReference<ModelSymbol>; value: ParsedWrittenScalar } | undefined
     >();
     expect(diagnostics.toExternal()).toEqual([]);
     expect(value?.base.declaration).toBe(symbolTable.defaultNamespace.models['Base']);
     expect(value?.base.namespace).toBe(symbolTable.defaultNamespace);
-    expect(value?.value).toBe('v');
+    expect(value?.value.written).toEqual({ kind: 'string', text: 'v' });
   });
   it('registers every Mongo built-in at its level', () => {
     expect({
