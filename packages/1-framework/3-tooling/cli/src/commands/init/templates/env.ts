@@ -23,6 +23,10 @@ export const TARGET_LABEL: Record<TargetId, string> = {
   mongo: 'MongoDB',
 };
 
+export interface EnvTemplateOptions {
+  readonly createDbHint?: boolean;
+}
+
 /**
  * Renders the placeholder body shared by `.env` and `.env.example`:
  * the target-specific connection-string requirement comments and the
@@ -30,7 +34,7 @@ export const TARGET_LABEL: Record<TargetId, string> = {
  * authoring styles — the env file is orthogonal to PSL vs TS schema
  * authoring.
  */
-function envPlaceholderBody(target: TargetId): string {
+function envPlaceholderBody(target: TargetId, { createDbHint = true }: EnvTemplateOptions): string {
   const label = TARGET_LABEL[target];
   const minVersion = MIN_SERVER_VERSION[target];
   const lines: string[] = [];
@@ -38,6 +42,11 @@ function envPlaceholderBody(target: TargetId): string {
   lines.push(`# Requires ${label} >= ${minVersion}.`);
   lines.push('');
   if (target === 'postgres') {
+    if (createDbHint) {
+      lines.push(
+        '# No database yet? npx create-db@latest creates a temporary Prisma Postgres database (deleted after 24 hours unless claimed).',
+      );
+    }
     lines.push('DATABASE_URL="postgresql://user:password@localhost:5432/mydb"');
   } else {
     lines.push(
@@ -65,12 +74,12 @@ function envPlaceholderBody(target: TargetId): string {
  * - Carries a `# Requires <db> >= <version>` comment so a fresh user
  *   knows the minimum supported server before they first try to connect.
  */
-export function envExampleContent(target: TargetId): string {
+export function envExampleContent(target: TargetId, options: EnvTemplateOptions = {}): string {
   const lines: string[] = [];
   lines.push(
     '# Copy this file to `.env` and replace the placeholder with your real connection string.',
   );
-  lines.push(envPlaceholderBody(target));
+  lines.push(envPlaceholderBody(target, options));
   return lines.join('\n');
 }
 
@@ -81,6 +90,6 @@ export function envExampleContent(target: TargetId): string {
  * the destination of that copy, so the line would lie. Writing this
  * file is gitignored (`.env` lands in `.gitignore` during init).
  */
-export function envFileContent(target: TargetId): string {
-  return envPlaceholderBody(target);
+export function envFileContent(target: TargetId, options: EnvTemplateOptions = {}): string {
+  return envPlaceholderBody(target, options);
 }

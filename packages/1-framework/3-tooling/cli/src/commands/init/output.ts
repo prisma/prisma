@@ -112,6 +112,7 @@ export function buildNextSteps(options: {
     pushPrisma7Steps(push, { ...options, prisma7: options.prisma7 });
     return steps;
   }
+  const offersHostedSetup = options.target === 'postgres';
   if (options.packagesInstalled === 'failed') {
     push(
       'Install the project dependencies with your package manager — the install this run attempted failed, so nothing else here will work yet.',
@@ -120,7 +121,7 @@ export function buildNextSteps(options: {
   if (options.packagesInstalled === 'skipped') {
     push('Install the project dependencies with your package manager (this run skipped them).');
   }
-  push('Set DATABASE_URL in your environment (export it or add it to .env).');
+  push(offersHostedSetup ? DATABASE_URL_STEP_WITH_CREATE_DB : DATABASE_URL_STEP);
   if (!options.contractEmitted) {
     push(`Emit the contract: \`${options.emitCommand}\``);
     push(`Edit your schema at ${options.schemaPath}, then re-run the emit command.`);
@@ -128,11 +129,25 @@ export function buildNextSteps(options: {
     push(`Edit your schema at ${options.schemaPath}, then re-run \`${options.emitCommand}\`.`);
   }
   push('Open prisma-8.md for a quick reference on how to write your first typed query.');
+  if (offersHostedSetup) {
+    push(DEPLOY_STEP);
+  }
   push(
     'Working with a coding agent? Run `prisma init` in this project to set up the Prisma agent skills.',
   );
   return steps;
 }
+
+export const DATABASE_URL_STEP =
+  'Set DATABASE_URL in your environment (export it or add it to .env).';
+export const CREATE_DB_COMMAND = 'npx create-db@latest';
+export const COMPUTE_GETTING_STARTED_URL = 'https://www.prisma.io/docs/compute/getting-started';
+export const DATABASE_URL_STEP_WITH_CREATE_DB =
+  DATABASE_URL_STEP +
+  ' No database yet? `npx create-db@latest` creates a temporary Prisma Postgres database and prints its URL; it is deleted after 24 hours unless you claim it.';
+export const DEPLOY_STEP =
+  'To host the app: `prisma deploy module.ts` deploys a Prisma Composer (Early Access) app to Prisma Compute after `prisma auth login` and a build. The first deploy also needs a region (`PRISMA_REGION` or the deploy config): ' +
+  COMPUTE_GETTING_STARTED_URL;
 
 /** The install that precedes the Prisma 7 check failed, so nothing was written. */
 export const NEXT_STEPS_BEFORE_SCAFFOLD: readonly string[] = [

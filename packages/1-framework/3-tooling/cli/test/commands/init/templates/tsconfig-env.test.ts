@@ -148,6 +148,32 @@ describe('parseTsConfigText', () => {
 // ---------------------------------------------------------------------------
 
 describe('envExampleContent', () => {
+  it.each([
+    { file: '.env.example', render: envExampleContent },
+    { file: '.env', render: envFileContent },
+  ])('offers a temporary database above the Postgres URL in $file', ({ file, render }) => {
+    const content = render('postgres');
+    const hint =
+      '# No database yet? npx create-db@latest creates a temporary Prisma Postgres database (deleted after 24 hours unless claimed).';
+
+    expect(content).toContain(`${hint}\nDATABASE_URL=`);
+    const original = [
+      ...(file === '.env.example'
+        ? [
+            '# Copy this file to `.env` and replace the placeholder with your real connection string.',
+          ]
+        : []),
+      '# Connection string for PostgreSQL.',
+      '# Requires PostgreSQL >= 15.',
+      '',
+      'DATABASE_URL="postgresql://user:password@localhost:5432/mydb"',
+      '',
+    ].join('\n');
+    expect(render('postgres', { createDbHint: false })).toBe(original);
+    expect(render('mongo')).not.toContain('create-db');
+    expect(render('mongo', { createDbHint: false })).toBe(render('mongo'));
+  });
+
   it('writes a postgresql:// placeholder for the postgres target', () => {
     const md = envExampleContent('postgres');
     expect(md).toContain('DATABASE_URL=');

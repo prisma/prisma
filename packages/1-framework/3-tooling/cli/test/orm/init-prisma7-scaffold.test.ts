@@ -140,6 +140,19 @@ const FIXTURE_SCRIPTS_AFTER = {
 
 describe('the Prisma 7 scaffold', () => {
   describe('files written', { timeout: timeouts.coldTransformImport }, () => {
+    it('keeps create-db out of both environment files for the existing database', () => {
+      copyFixture();
+      rmSync(join(projectDir, '.env'), { force: true });
+
+      scaffold({ writeEnv: true });
+
+      for (const file of ['.env', '.env.example']) {
+        const content = readProjectFile(file);
+        expect(content).toContain('DATABASE_URL=');
+        expect(content).not.toContain('create-db');
+      }
+    });
+
     it('points the config at the schema through prisma7Schema and writes db.ts under src/prisma', () => {
       copyFixture();
 

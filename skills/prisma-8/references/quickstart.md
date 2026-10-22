@@ -141,7 +141,7 @@ Then **say the contract path back to the user, with its role attached**. Somethi
 The motivation is *"so your app can actually run against your database"*, not *"so the prerequisite checklist passes"*. The mechanics depend on what's already in place from Step 1:
 
 - **Everything already wired.** Go straight to writing and reading a row (see *Your first arc — connect, write, read* above). Adapt the snippet to whatever model the contract declares.
-- **`DATABASE_URL` not set.** Have the user set it in `.env` (not in `prisma.config.ts` — see Pitfall 5). Then `pnpm prisma db init` to apply the current contract to that database and write the marker row. Now the app can connect.
+- **`DATABASE_URL` not set.** Have the user set it in `.env` (not in `prisma.config.ts`; see Pitfall 5). For Postgres, `npx create-db@latest` creates a temporary Prisma Postgres database and prints its connection string; it is deleted after 24 hours unless you claim it, and claiming it (free) needs a Prisma account. Then `pnpm prisma db init` to apply the current contract to that database and write the marker row. Now the app can connect.
 - **Database is connectable but not yet aware of the contract** (marker row missing; `db verify` reports drift). Run `pnpm prisma db init`. (`db update` is the alternative for quick dev cycles — it's looser, doesn't write a migration history, and is what users reach for when they want to iterate on the schema fast. Mention it if the user asks how to make schema changes flow to the DB; don't pre-explain it.)
 - **Contract is empty** (bootstrap left the source blank). Add **one** model with **two** fields (e.g. `User { id, email }`), `pnpm prisma contract emit`, then `pnpm prisma db init`. Minimal — get the round-trip working, *then* extend.
 
@@ -210,7 +210,7 @@ The flags `init` accepts (run `prisma orm init --help` for the source of truth):
 
 After init succeeds, the path converges on *Your first arc — connect, write, read* above. `init` has already seeded a starter contract with `User` and `Post` models (with a relation between them) and run `contract emit` once; the only remaining prerequisites are setting `DATABASE_URL` and initialising the database. Two commands:
 
-1. Set `DATABASE_URL` in `.env` (copy from `.env.example`).
+1. Set `DATABASE_URL` in `.env` (copy from `.env.example`). For Postgres, `npx create-db@latest` creates a temporary Prisma Postgres database and prints its connection string; it is deleted after 24 hours unless you claim it, and claiming it (free) needs a Prisma account.
 2. Initialise the database: `pnpm prisma db init`. Creates tables, indexes, constraints, and writes the marker row — using the starter contract `init` generated.
 
 Then run the snippet from *Your first arc* above against the `User` model. When the user is ready to extend the contract — add more models, change fields, add relations — chain to `references/contract.md`. For more queries, chain to `references/queries.md`.

@@ -1,6 +1,8 @@
 import type { Block, Presentations, TreeNode } from '@prisma/cli-engine';
 import type { NextAction } from '@prisma/cli-engine/protocol';
 import {
+  COMPUTE_GETTING_STARTED_URL,
+  CREATE_DB_COMMAND,
   DB_SIGN_STEP,
   type InitOutput,
   PRISMA7_LOOP_STEP,
@@ -62,13 +64,23 @@ function scaffoldTree(document: InitOutput): Block {
  * same advice in the shape an agent can act on.
  */
 export function buildInitNextActions(inputs: {
+  readonly target: InitOutput['target'];
   readonly contractEmitted: boolean;
   readonly schemaPath: string;
   readonly prisma7: { readonly clientMoved: boolean } | null;
 }): readonly NextAction[] {
+  const offersHostedSetup = inputs.target === 'postgres' && inputs.prisma7 === null;
   const actions: NextAction[] = [
     chooseAction('Set DATABASE_URL in your environment (export it or add it to .env)'),
   ];
+  if (offersHostedSetup) {
+    actions.push(
+      runCommandAction(
+        'No database yet? Create a temporary Prisma Postgres database (deleted after 24 hours unless you claim it)',
+        CREATE_DB_COMMAND,
+      ),
+    );
+  }
   if (!inputs.contractEmitted) {
     actions.push(runCommandAction('Emit the contract', EMIT_COMMAND));
   }
@@ -97,6 +109,14 @@ export function buildInitNextActions(inputs: {
   actions.push(
     chooseAction('Open prisma-8.md for a quick reference on writing your first typed query'),
   );
+  if (offersHostedSetup) {
+    actions.push(
+      chooseAction(
+        'To host the app, deploy a Prisma Composer (Early Access) app to Prisma Compute with `prisma deploy module.ts` after `prisma auth login` and a build; the first deploy also needs a region (`PRISMA_REGION` or the deploy config): ' +
+          COMPUTE_GETTING_STARTED_URL,
+      ),
+    );
+  }
   actions.push(
     runCommandAction('Set up the Prisma agent skills for your coding agent', 'prisma init'),
   );

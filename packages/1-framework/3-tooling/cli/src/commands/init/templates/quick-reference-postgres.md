@@ -59,6 +59,8 @@ Notice the `DATABASE_URL` above? It's defined in your [`.env`](./.env) file:
 DATABASE_URL="postgresql://user:password@localhost:5432/mydb"
 ```
 
+Any PostgreSQL 15+ server works, local or hosted. No database yet? [`npx create-db@latest`](https://www.prisma.io/docs/postgres/npx-create-db) creates a temporary Prisma Postgres database and prints its connection string. It is deleted after 24 hours unless you claim it, and claiming it (free) needs a Prisma account. To host the app, `{{pkgRun}} deploy module.ts` deploys a Prisma Composer (Early Access) app to Prisma Compute after `{{pkgRun}} auth login` and a build; the first deploy also needs a region (`PRISMA_REGION` or the deploy config): see [Getting started](https://www.prisma.io/docs/compute/getting-started).
+
 You can customize how your environment variables are loaded by changing or removing the `import 'dotenv/config'` line.
 
 ## Quick reference

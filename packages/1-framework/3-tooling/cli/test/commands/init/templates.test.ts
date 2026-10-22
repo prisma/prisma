@@ -203,6 +203,21 @@ describe('templates', () => {
   });
 
   describe('quickReferenceMd', () => {
+    it.each(['pnpm prisma', 'npx prisma', 'yarn prisma', 'bunx prisma'])(
+      'names a temporary database and deployment with %s',
+      (pkgRun) => {
+        const md = quickReferenceMd('postgres', 'psl', 'src/prisma/contract.prisma', pkgRun);
+
+        expect(md).toContain('npx create-db@latest');
+        expect(md).toContain('deleted after 24 hours unless you claim it');
+        expect(md).toContain('claiming it (free) needs a Prisma account');
+        expect(md).toContain(`${pkgRun} deploy module.ts`);
+        expect(md).toContain(`${pkgRun} auth login`);
+        expect(md).toContain('a build; the first deploy also needs a region');
+        expect(md).toContain('PRISMA_REGION');
+      },
+    );
+
     it('contains file locations for postgres', () => {
       const md = quickReferenceMd('postgres', 'psl', 'src/prisma/contract.prisma', 'pnpm prisma');
 

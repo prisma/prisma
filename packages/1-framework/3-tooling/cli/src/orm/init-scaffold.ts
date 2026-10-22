@@ -274,7 +274,8 @@ function planScaffold(ctx: {
             ),
           },
         ];
-  files.push({ path: ENV_EXAMPLE_FILE, content: envExampleContent(inputs.target) });
+  const envOptions = { createDbHint: source.kind !== 'prisma7-schema' };
+  files.push({ path: ENV_EXAMPLE_FILE, content: envExampleContent(inputs.target, envOptions) });
 
   if (existsSync(join(cwd, ENV_EXAMPLE_FILE))) {
     warnings.push(
@@ -291,7 +292,7 @@ function planScaffold(ctx: {
         '.env already exists; leaving it untouched. Compare with .env.example for any new keys.',
       );
     } else {
-      files.push({ path: '.env', content: envFileContent(inputs.target) });
+      files.push({ path: '.env', content: envFileContent(inputs.target, envOptions) });
     }
   }
 
