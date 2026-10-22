@@ -124,6 +124,19 @@ describe('MysqlControlDriver against a MySQL server', () => {
     });
   });
 
+  it('runs its session in UTC', async (test) => {
+    await withMysqlDatabase(test, async ({ url }) => {
+      const driver = await mysqlDriver.create(url);
+      try {
+        expect(await driver.query('SELECT @@SESSION.time_zone AS tz')).toEqual({
+          rows: [{ tz: '+00:00' }],
+        });
+      } finally {
+        await driver.close();
+      }
+    });
+  });
+
   it('reports a failed statement as a SqlQueryError with its SQLSTATE', async (test) => {
     await withMysqlDatabase(test, async ({ url }) => {
       const driver = await mysqlDriver.create(url);

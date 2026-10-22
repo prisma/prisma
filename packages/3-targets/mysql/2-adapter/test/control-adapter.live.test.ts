@@ -40,6 +40,37 @@ describe('MysqlControlAdapter against a MySQL server', () => {
     });
   });
 
+  it('stamps control-table rows with the current time in UTC', async (test) => {
+    await withMysqlDatabase(test, async ({ url }) => {
+      const adapter = createAdapter();
+      const driver = await mysqlDriver.create(url);
+      try {
+        for (const node of adapter.bootstrapControlTableQueries()) {
+          await driver.query((await adapter.lowerToExecuteRequest(node)).sql);
+        }
+        const before = Date.now() - 1000;
+        await driver.query('INSERT INTO `_prisma_marker` (core_hash, profile_hash) VALUES (?, ?)', [
+          'sha256:core',
+          'sha256:profile',
+        ]);
+        await driver.query(
+          'INSERT INTO `_prisma_ledger` (space, migration_name, migration_hash, destination_core_hash, operations) VALUES (?, ?, ?, ?, ?)',
+          ['app', 'init', 'sha256:m', 'sha256:core', '[]'],
+        );
+        const after = Date.now() + 1000;
+        const updatedAt = (await adapter.readMarker(driver, 'app'))?.updatedAt.getTime() ?? 0;
+        const appliedAt = (await adapter.readLedger(driver))[0]?.appliedAt.getTime() ?? 0;
+        const within = (time: number) => time >= before && time <= after;
+        expect({ marker: within(updatedAt), ledger: within(appliedAt) }).toEqual({
+          marker: true,
+          ledger: true,
+        });
+      } finally {
+        await driver.close();
+      }
+    });
+  });
+
   it('commits and rolls back on one connection', async (test) => {
     await withMysqlDatabase(test, async ({ url }) => {
       const adapter = createAdapter();
