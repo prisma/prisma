@@ -1,3 +1,4 @@
+import { SqlQueryError } from '@internal/sql-errors';
 import type {
   PreparedStatementHandle,
   SqlConnection,
@@ -23,11 +24,15 @@ import type {
 import { Pool } from 'pg';
 import Cursor from 'pg-cursor';
 import { callbackToPromise } from './callback-to-promise';
-import { classifyClientError, hasLostConnection, watchClientLoss } from './client-loss';
 import { type DriverRuntimeError, driverError } from './driver-error';
 import { NamedCursor } from './named-cursor';
-import { isPostgresError, normalizePgConnectionError, normalizePgError } from './normalize-error';
-import { hasStartedConnecting } from './pg-client-state';
+import {
+  isPostgresError,
+  normalizeClientError,
+  normalizePgConnectionError,
+  normalizePgError,
+} from './normalize-error';
+import { hasLostConnection, hasStartedConnecting, watchClientLoss } from './pg-client-state';
 import { serverTextTypes } from './server-text-types';
 
 export type QueryResult<T extends QueryResultRow = QueryResultRow> = PgQueryResult<T>;
@@ -121,10 +126,10 @@ function buildConnectionOptions(options: PostgresDriverOptions): ConnectionOptio
 }
 
 function isStalePreparedStatementError(error: unknown): boolean {
-  if (!(error instanceof Error) || !('code' in error) || typeof error.code !== 'string') {
+  if (!SqlQueryError.is(error)) {
     return false;
   }
-  const code = error.code;
+  const code = error.sqlState;
   // 26000 — invalid_sql_statement_name (server lost the named statement,
   //         e.g. after DEALLOCATE ALL).
   // 0A000 — cached plan invalidated by DDL (row shape changed).
@@ -292,7 +297,7 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
         releaseLock();
       }
     } catch (error) {
-      throw classifyClientError(client, error);
+      throw normalizeClientError(client, error);
     } finally {
       await this.releaseClient(client);
     }
@@ -346,7 +351,7 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
 
       rows = await this.executeBuffered(client, request.sql, request.params, name);
     } catch (error) {
-      throw classifyClientError(client, error);
+      throw normalizeClientError(client, error);
     } finally {
       await this.releaseClient(client);
     }
@@ -365,7 +370,7 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
       try {
         const result = await client
           .query(text, request.params === undefined ? undefined : [...request.params])
-          .catch((error: unknown) => rethrowNormalizedError(classifyClientError(client, error)));
+          .catch(rethrowClientError(client));
         return {
           rows: blindCast<ReadonlyArray<Record<string, unknown>>, 'pg does not type query rows'>(
             result.rows,
@@ -546,11 +551,7 @@ class PostgresConnectionImpl extends PostgresQueryable implements SqlConnection 
   async beginTransaction(): Promise<SqlTransaction> {
     const releaseLock = await acquireClientQueryLock(this.#connection);
     try {
-      await this.#connection
-        .query('BEGIN')
-        .catch((error: unknown) =>
-          rethrowNormalizedError(classifyClientError(this.#connection, error)),
-        );
+      await this.#connection.query('BEGIN').catch(rethrowClientError(this.#connection));
     } finally {
       releaseLock();
     }
@@ -634,11 +635,7 @@ class PostgresTransactionImpl extends PostgresQueryable implements SqlTransactio
   async commit(): Promise<void> {
     const releaseLock = await acquireClientQueryLock(this.#connection);
     try {
-      await this.#connection
-        .query('COMMIT')
-        .catch((error: unknown) =>
-          rethrowNormalizedError(classifyClientError(this.#connection, error)),
-        );
+      await this.#connection.query('COMMIT').catch(rethrowClientError(this.#connection));
     } finally {
       releaseLock();
       this.#settle();
@@ -648,11 +645,7 @@ class PostgresTransactionImpl extends PostgresQueryable implements SqlTransactio
   async rollback(): Promise<void> {
     const releaseLock = await acquireClientQueryLock(this.#connection);
     try {
-      await this.#connection
-        .query('ROLLBACK')
-        .catch((error: unknown) =>
-          rethrowNormalizedError(classifyClientError(this.#connection, error)),
-        );
+      await this.#connection.query('ROLLBACK').catch(rethrowClientError(this.#connection));
     } finally {
       releaseLock();
       this.#settle();
@@ -665,7 +658,7 @@ class PostgresPoolDriverImpl
   implements SqlDriver<PostgresBinding>
 {
   private readonly pool: PoolType;
-  readonly #ownsPool: boolean;
+  readonly #ownsConnection: boolean;
   #closed = false;
 
   constructor(
@@ -675,7 +668,7 @@ class PostgresPoolDriverImpl
   ) {
     super(buildConnectionOptions(options));
     this.pool = options.connect.pool;
-    this.#ownsPool = options.connect.ownsConnection;
+    this.#ownsConnection = options.connect.ownsConnection;
   }
 
   get state(): SqlDriverState {
@@ -696,7 +689,7 @@ class PostgresPoolDriverImpl
       return;
     }
     this.#closed = true;
-    if (this.#ownsPool) {
+    if (this.#ownsConnection) {
       await this.pool.end();
     }
   }
@@ -725,11 +718,12 @@ class PostgresDirectDriverImpl
   implements SqlDriver<PostgresBinding>
 {
   private readonly directClient: Client;
-  readonly #ownsClient: boolean;
+  readonly #ownsConnection: boolean;
   readonly #connectionMutex = new AsyncMutex();
   #closed = false;
   #connected = false;
   #connectPromise: Promise<void> | undefined;
+  #connectFailure: Error | undefined;
   // Shared with every connection this driver hands out: one socket means a
   // driver-level query must know when a connection's transaction is open, or
   // the cursor portal-protection wrap would COMMIT the caller's transaction.
@@ -742,14 +736,7 @@ class PostgresDirectDriverImpl
   ) {
     super(buildConnectionOptions(options));
     this.directClient = watchClientLoss(options.connect.client);
-    this.#ownsClient = options.connect.ownsConnection;
-    // A pg.Client cannot be reused after its connection dies, so mark the
-    // driver closed and let acquireClient reject with a clear error instead
-    // of handing out the dead client.
-    this.directClient.on('error', () => {
-      this.#closed = true;
-      this.#connected = false;
-    });
+    this.#ownsConnection = options.connect.ownsConnection;
   }
 
   protected override inExplicitTransaction(): boolean {
@@ -757,7 +744,7 @@ class PostgresDirectDriverImpl
   }
 
   get state(): SqlDriverState {
-    return this.#closed ? 'closed' : 'connected';
+    return this.#closed || hasLostConnection(this.directClient) ? 'closed' : 'connected';
   }
 
   // Bound drivers are created via createBoundDriverFromBinding with client already
@@ -814,7 +801,7 @@ class PostgresDirectDriverImpl
       ? await acquireClientQueryLock(this.directClient)
       : () => {};
     try {
-      if (this.#ownsClient) {
+      if (this.#ownsConnection) {
         await this.directClient.end();
       }
     } finally {
@@ -823,8 +810,13 @@ class PostgresDirectDriverImpl
     this.#connected = false;
   }
 
+  // A pg.Client cannot be reused after its connection dies or a connect fails, so the driver
+  // rejects instead of handing out the dead client.
   async acquireClient(): Promise<Client> {
-    if (this.#closed) {
+    if (this.#connectFailure !== undefined) {
+      throw this.#connectFailure;
+    }
+    if (this.#closed || hasLostConnection(this.directClient)) {
       throw driverError(
         'DRIVER.NOT_CONNECTED',
         'Postgres connection lost or closed. Create a new client to reconnect.',
@@ -833,28 +825,26 @@ class PostgresDirectDriverImpl
     if (this.#connected) {
       return this.directClient;
     }
-    if (!this.#ownsClient && hasStartedConnecting(this.directClient)) {
-      this.#connected = true;
-      return this.directClient;
-    }
-    if (this.#connectPromise !== undefined) {
-      await this.#connectPromise;
-      return this.directClient;
-    }
-
-    this.#connectPromise = (async () => {
-      try {
-        await this.directClient.connect();
-      } catch (error: unknown) {
-        throw normalizePgConnectionError(error);
-      } finally {
-        this.#connectPromise = undefined;
+    if (this.#connectPromise === undefined) {
+      if (hasStartedConnecting(this.directClient)) {
+        this.#connected = true;
+        return this.directClient;
       }
-      this.#connected = true;
-    })();
+      this.#connectPromise = this.#connectClient();
+    }
     await this.#connectPromise;
-
     return this.directClient;
+  }
+
+  async #connectClient(): Promise<void> {
+    try {
+      await this.directClient.connect();
+    } catch (error: unknown) {
+      this.#connectFailure = normalizePgConnectionError(error);
+      this.#connectPromise = undefined;
+      throw this.#connectFailure;
+    }
+    this.#connected = true;
   }
 
   async releaseClient(_client: Client): Promise<void> {}
@@ -912,8 +902,10 @@ function closeCursor(cursor: Cursor<unknown>): Promise<void> {
   return callbackToPromise((cb) => cursor.close(cb));
 }
 
-function rethrowNormalizedError(error: unknown): never {
-  throw normalizePgError(error);
+function rethrowClientError(client: PoolClient | Client): (error: unknown) => never {
+  return (error) => {
+    throw normalizeClientError(client, error);
+  };
 }
 
 // ADR 210 § Stale-handle retry: a re-prepare that fails again surfaces a

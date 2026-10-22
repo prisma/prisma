@@ -1,6 +1,7 @@
 import { SqlConnectionError, SqlQueryError } from '@internal/sql-errors';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
+import { hasLostConnection } from './pg-client-state';
 
 /**
  * Postgres error shape from the pg library.
@@ -173,4 +174,16 @@ export function normalizePgConnectionError(error: unknown): SqlQueryError | SqlC
     return normalized;
   }
   return new SqlConnectionError(normalized.message, { cause: normalized });
+}
+
+/**
+ * Normalizes an error from a query on `client`. pg raises the failures of a dead connection
+ * ("Connection terminated", "not queryable") with no code, so once the client has emitted
+ * `error` or `end` its errors are connection errors.
+ */
+export function normalizeClientError(
+  client: Parameters<typeof hasLostConnection>[0],
+  error: unknown,
+): SqlQueryError | SqlConnectionError | Error {
+  return hasLostConnection(client) ? normalizePgConnectionError(error) : normalizePgError(error);
 }

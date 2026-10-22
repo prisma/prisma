@@ -344,7 +344,7 @@ describe('@internal/driver-postgres', () => {
 
       await expect(driver.acquireConnection()).rejects.toThrow('connect failed');
       await expect(driver.acquireConnection()).rejects.toThrow('connect failed');
-      expect(mockClient.connect).toHaveBeenCalledTimes(2);
+      expect(mockClient.connect).toHaveBeenCalledTimes(1);
     },
     timeouts.spinUpPpgDev,
   );
