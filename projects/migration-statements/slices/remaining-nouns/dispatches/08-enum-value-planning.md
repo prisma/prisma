@@ -1,6 +1,6 @@
 # Dispatch 8 — the SQL planners see and plan enum value changes
 
-**Slice:** [`../spec.md`](../spec.md) § "What changes for users" (enum value rows), § "What each statement does", Enum values; decision 2 · **Plan:** [`../plan.md`](../plan.md) § PR 2 · **Branch:** `tml-3537-enum-values` · **Builds on:** dispatch 6 (statements and subjects), dispatch 7 (`replaceValue`, `removeValue`)
+**Slice:** [`../spec.md`](../spec.md) § "What changes for users" (enum value rows), § "What each statement does", Enum values; decision 2 · **Plan:** [`../plan.md`](../plan.md) § PR 2 · **Branch:** `tml-3537-enum-values` · **Builds on:** dispatch 6 (statements and subjects), dispatch 7 (`replaceStoredValue`, `removeStoredValue`)
 
 ## Outcome
 
@@ -13,10 +13,11 @@ On Postgres and SQLite, when a stored value of a declared enum disappears betwee
 - **Without an origin contract** (`db update` with no snapshot), no enum is known to have changed; nothing is asked, as today. On Postgres the new check then fails at apply if a row holds the old value; that is today's behaviour and stays.
 - **One question per enum value**, not per column. The subject is the enum value (`Status.ARCHIVED`). The question names the value; the plan's operations for all its columns account for it.
 - **`--rename`** plans one `replaceValue` per column. **`--delete`** plans one `removeValue` per column. A required scalar column holding the value makes `--delete` refused with `statementRefused` naming the column and pointing to `--rename` or a hand-written migration; check the database cannot be asked in advance, so this is a planning-time refusal based on the column being required, not on its rows.
-- **A member that keeps its name but changes its stored value** cannot be stated (spec edge case). Ask about it with `--delete` only, and the question says to write the update by hand in `migration.ts` with `this.replaceValue(...)`.
+- **A member that keeps its name but changes its stored value** cannot be stated (spec edge case). Ask about it with `--delete` only, and the question says to write the update by hand in `migration.ts` with `this.replaceStoredValue(...)`.
 - **Order on Postgres.** The value rewrite runs after the old check is dropped and before the new check is added, in the same plan. Find how `issue-planner.ts` buckets `dropCheckConstraint` and `addCheckConstraint` and place the rewrite between them; pin the order in a test. On SQLite there is no check; order the rewrite before anything that would reject the old value.
 - **Native Postgres enums** keep their existing refusal; nothing here touches them.
-- **Classes.** `replaceValue` is `widening`, `removeValue` `destructive` (dispatch 7), so `db update` runs both.
+- **Classes.** `replaceStoredValue` is `widening`, `removeStoredValue` `destructive` (dispatch 7), so `db update` runs both.
+- **Encode each value through the column's codec** before building the call, as literal defaults are (`control-adapter.ts`, `fromDataTypeValue` then `toWire`). The calls take the value as the database stores it. A value in the wrong form matches no row, the postcheck then holds, and the runner silently skips the rewrite; the dispatch 7 review proved this on SQLite with the number `1` against a TEXT column holding `'1'`. Test that case through the planner.
 
 ## Do
 
