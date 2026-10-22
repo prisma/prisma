@@ -32,6 +32,17 @@ export function sqlTargetTypeConstructors<const SizeType extends string>(input: 
           },
         },
       },
+      Char: {
+        kind: 'typeConstructor',
+        documentation: 'Fixed-length text with a required character length.',
+        args: [{ kind: 'value', dataType: input.sizeType, name: 'length' }],
+        output: {
+          codecId: 'sql/char@1',
+          typeParams: {
+            length: { kind: 'arg', index: 0 },
+          },
+        },
+      },
     },
   } as const satisfies AuthoringTypeNamespace;
 }

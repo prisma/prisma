@@ -28,16 +28,19 @@ async function sqlTargetComponents(entryPoint: 'pack' | 'control') {
 }
 
 describe.each(['pack', 'control'] as const)('every SQL target %s', (entryPoint) => {
-  it('contributes sql.String, built by sqlTargetTypeConstructors', async () => {
-    const targets = await sqlTargetComponents(entryPoint);
-    expect(targets.map(({ name }) => name).sort()).toEqual([
-      '@internal/target-postgres',
-      '@internal/target-sqlite',
-    ]);
-    for (const { component } of targets) {
-      const string = component.authoring?.type?.sql?.['String'];
-      const built = sqlTargetTypeConstructors({ sizeType: 'unused' }).sql.String;
-      expect(string).toMatchObject({ kind: built.kind, output: built.output });
-    }
-  });
+  it.each(['String', 'Char'] as const)(
+    'contributes sql.%s, built by sqlTargetTypeConstructors',
+    async (name) => {
+      const targets = await sqlTargetComponents(entryPoint);
+      expect(targets.map(({ name }) => name).sort()).toEqual([
+        '@internal/target-postgres',
+        '@internal/target-sqlite',
+      ]);
+      for (const { component } of targets) {
+        const contributed = component.authoring?.type?.sql?.[name];
+        const built = sqlTargetTypeConstructors({ sizeType: 'unused' }).sql[name];
+        expect(contributed).toMatchObject({ kind: built.kind, output: built.output });
+      }
+    },
+  );
 });
