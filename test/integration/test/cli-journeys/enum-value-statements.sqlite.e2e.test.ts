@@ -246,9 +246,17 @@ withTempDir(({ createTempDir }) => {
           '--json',
         ]);
         expect(engineError(failed)?.code, 'S3.09').toBe('MIGRATION.PRECHECK_FAILED');
-        expect(engineError(failed)?.summary).toContain(
-          `ensure column "status" of "task" takes NULL, or no row holds "archived" in it: to keep those rows, answer with --rename 'Status.ARCHIVED:Status.<new name>'`,
-        );
+        expect({
+          summary: engineError(failed)?.summary,
+          actions: (engineError(failed)?.nextActions ?? []).map(({ label }) => label),
+        }).toEqual({
+          summary:
+            '1 row of "task" holds "archived" in column "status", which takes no NULL, so enum value "Status.ARCHIVED" cannot be removed.',
+          actions: [
+            'To keep those rows under a new enum value, add a member to enum "Status" in the contract source, run `prisma-test contract emit`, then run `prisma-test db update --rename \'Status.ARCHIVED:Status.<new member>\'`',
+            'To keep those rows with another stored value, set the rows that hold "archived" to a stored value the column keeps in the database yourself, then re-run `prisma-test db update --delete Status.ARCHIVED`. db update cannot keep the data by hand in a migration.ts',
+          ],
+        });
         expect(tasks(held.dbPath), 'S3.09: nothing changed').toEqual([
           { id: 1, status: 'archived' },
           { id: 2, status: 'active' },

@@ -256,18 +256,6 @@ export function keptNameAdvice(
 }
 
 /**
- * How to keep the rows that hold a stored value of `enumValue` when its removal finds them in a
- * column that takes no NULL: rename the enum value, or replace the value in the migration.ts.
- */
-export function rowsHoldingValueAdvice(
-  enumValue: string,
-  removeCall: string,
-  replaceCall: string,
-): string {
-  return `to keep those rows, answer with --rename '${enumValue}:${enumValue.slice(0, enumValue.lastIndexOf('.'))}.<new name>', or plan the change with prisma migration plan and replace ${removeCall} with ${replaceCall} in the migration.ts it writes, where <stored value> is a value the column keeps, run node on that migration.ts so it writes ops.json, and apply it with prisma db migrate`;
-}
-
-/**
  * The applied statements with each enum value rename given the operations its rewrites lowered
  * to, at their positions in the plan: the rewrites are ordered with the diff, not with the renames.
  */

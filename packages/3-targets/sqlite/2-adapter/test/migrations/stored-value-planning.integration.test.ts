@@ -231,9 +231,16 @@ describe('SQLite planner, stored enum values', { timeout: timeouts.databaseOpera
         member: 'GUEST',
       },
     ]);
-    await expect(apply(result, to)).rejects.toThrow(
-      `failed during precheck: ensure column "role" of "User" takes NULL, or no row holds "guest" in it: to keep those rows, answer with --rename 'Role.GUEST:Role.<new name>'`,
+    const failed = await apply(result, to).then(
+      () => '',
+      (error: Error) => error.message,
     );
+    expect(failed).toContain(
+      '[MIGRATION.PRECHECK_FAILED] 1 row of "User" holds "guest" in column "role", which takes no NULL, so enum value "Role.GUEST" cannot be removed.',
+    );
+    expect(failed).toContain('"rowsHoldingValue": {');
+    expect(failed).toContain('"enumValue": "Role.GUEST"');
+    expect(failed).toContain('"rows": 1');
     expect(await roles()).toEqual([
       { id: '1', role: 'guest' },
       { id: '2', role: 'user' },

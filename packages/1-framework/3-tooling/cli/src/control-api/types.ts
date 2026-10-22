@@ -526,8 +526,20 @@ export interface RunnerFailureFacts {
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
   /** The check that failed before its operation ran. */
   readonly failedPrecheck?: FailedPrecheckReport;
+  /** The rows that still hold a stored enum value whose removal the column cannot take. */
+  readonly rowsHoldingValue?: RowsHoldingValueReport;
   /** The written migration of the failed operation, when the runner named the operation, or the last one applied when the schema check after apply failed. */
   readonly failedMigration?: { readonly spaceId: string; readonly edge: AggregateMigrationEdgeRef };
+}
+
+/** The rows that still hold the stored value of an enum value the plan removes from a column that takes no NULL. */
+export interface RowsHoldingValueReport {
+  /** The enum value, as a statement names it, such as `Status.ARCHIVED`. */
+  readonly enumValue: string;
+  /** The stored value, as the contract stores it. */
+  readonly value: string | number;
+  /** How many rows hold it. */
+  readonly rows: number;
 }
 
 /** A field that was to become required while rows had no value for it, as the advice names it. */

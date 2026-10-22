@@ -65,13 +65,19 @@ function failedTypeChangeReport(change: FailedTypeChange, field: string): Failed
 function failureReports(
   failure: MigrationRunnerFailure,
   resolutions: readonly OrderedResolution[],
-): Pick<RunnerFailureFacts, 'failedTypeChange' | 'rowsWithoutValue' | 'failedMigration'> {
+): Pick<
+  RunnerFailureFacts,
+  'failedTypeChange' | 'rowsWithoutValue' | 'rowsHoldingValue' | 'failedMigration'
+> {
   const resolution = resolutions.find(({ spaceId }) => spaceId === failure.meta.failingSpace);
   if (resolution === undefined) return {};
   const fieldText = (field: MigrationSubject) =>
     subjectText(field, { origin: resolution.entry.destinationContract, statements: [] });
-  const { failedTypeChange, rowsWithoutValue } = failure.meta;
-  const operationIndex = failedTypeChange?.operationIndex ?? rowsWithoutValue?.[0]?.operationIndex;
+  const { failedTypeChange, rowsWithoutValue, rowsHoldingValue } = failure.meta;
+  const operationIndex =
+    failedTypeChange?.operationIndex ??
+    rowsWithoutValue?.[0]?.operationIndex ??
+    rowsHoldingValue?.operationIndex;
   const edge =
     operationIndex !== undefined
       ? edgeOfOperation(resolution.entry.migrationEdges, operationIndex)
@@ -92,6 +98,16 @@ function failureReports(
         reason,
         rows,
       })),
+    ),
+    ...ifDefined(
+      'rowsHoldingValue',
+      rowsHoldingValue === undefined
+        ? undefined
+        : {
+            enumValue: rowsHoldingValue.enumValue,
+            value: rowsHoldingValue.value,
+            rows: rowsHoldingValue.rows,
+          },
     ),
     ...ifDefined(
       'failedMigration',

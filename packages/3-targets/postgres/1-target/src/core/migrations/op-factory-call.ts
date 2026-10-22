@@ -27,7 +27,6 @@ import {
   createSqlTextSources,
   encodeStoredValue,
   isUnfilledSlot,
-  rowsHoldingValueAdvice,
   type SqlMigrationPlanOperation,
   type SqlSlot,
   type SqlTextSources,
@@ -2380,19 +2379,7 @@ export class RemoveStoredValueCall extends PostgresOpFactoryCallNode {
       this.columnName,
       await encodeStoredValue(this.value, this.codec),
       this.many,
-      this.enumValue === undefined
-        ? undefined
-        : rowsHoldingValueAdvice(
-            this.enumValue,
-            this.renderTypeScript(),
-            replaceStoredValueSource(
-              columnCallLocation(this.schemaName, this.tableName, this.columnName),
-              jsonToTsSource(this.value),
-              '<stored value>',
-              this.many,
-              this.codec,
-            ),
-          ),
+      this.enumValue === undefined ? undefined : { enumValue: this.enumValue, value: this.value },
     );
   }
 

@@ -16,6 +16,8 @@ import {
   type RequiredColumn,
   requiredColumnOf,
   requiredColumnsOfMigration,
+  rowsHoldingValueOf,
+  rowsHoldingValueSummary,
   rowsWithoutValueFailure,
   runnerFailure,
   runnerSuccess,
@@ -25,6 +27,7 @@ import type {
   BlockingObject,
   FailedTypeChange,
   MigrationRunnerResult,
+  RowsHoldingValue,
 } from '@internal/framework-components/control';
 import {
   APP_SPACE_ID,
@@ -425,6 +428,16 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
           description: step.description,
           ...ifDefined('expectation', step.expectation),
         };
+        const holding =
+          phase === 'precheck'
+            ? await this.rowsHoldingValue(driver, step, operation, plan.operationIndex)
+            : undefined;
+        if (holding !== undefined) {
+          return runnerFailure(code, holding.summary, {
+            why: failed,
+            meta: { failedCheck, rowsHoldingValue: holding.report },
+          });
+        }
         return runnerFailure(code, rowsWithoutValue?.summary ?? failed, {
           ...ifDefined(
             'why',
@@ -442,6 +455,27 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
       }
     }
     return okVoid();
+  }
+
+  /** Counts the rows that hold the stored value a removal check guards, as `rowsHoldingValueMeta` marks the check. */
+  private async rowsHoldingValue(
+    driver: SqlMigrationRunnerExecuteOptions<PostgresPlanTargetDetails>['driver'],
+    step: SqlMigrationPlanOperationStep,
+    operation: SqlMigrationPlanOperation<PostgresPlanTargetDetails>,
+    operationIndex: number,
+  ): Promise<{ readonly summary: string; readonly report: RowsHoldingValue } | undefined> {
+    const mark = rowsHoldingValueOf(step);
+    const details = operation.target.details;
+    if (mark === undefined || details?.table === undefined) return undefined;
+    const counted = await driver.query<{ rows: number }>(
+      `SELECT COUNT(*)::int AS rows FROM ${qualifyTableName(details.schema, details.table)} WHERE ${quoteIdentifier(details.name)} = $1`,
+      [step.params?.[0]],
+    );
+    const rows = counted.rows[0]?.rows ?? 0;
+    return {
+      summary: rowsHoldingValueSummary(mark, details.table, details.name, rows),
+      report: { ...mark, rows, operationIndex },
+    };
   }
 
   /**

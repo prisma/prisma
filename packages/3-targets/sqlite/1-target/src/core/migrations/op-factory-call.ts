@@ -17,7 +17,6 @@ import {
   encodeStoredValue,
   isUnfilledSlot,
   type MigrationOperationClass,
-  rowsHoldingValueAdvice,
   type SqlMigrationPlanOperation,
   type SqlSlot,
   type SqlTextSources,
@@ -1223,19 +1222,7 @@ export class RemoveStoredValueCall extends SqliteOpFactoryCallNode {
       this.tableName,
       this.columnName,
       await encodeStoredValue(this.value, this.codec),
-      this.enumValue === undefined
-        ? undefined
-        : rowsHoldingValueAdvice(
-            this.enumValue,
-            this.renderTypeScript(),
-            replaceStoredValueSource(
-              this.tableName,
-              this.columnName,
-              jsonToTsSource(this.value),
-              '<stored value>',
-              this.codec,
-            ),
-          ),
+      this.enumValue === undefined ? undefined : { enumValue: this.enumValue, value: this.value },
     );
   }
 

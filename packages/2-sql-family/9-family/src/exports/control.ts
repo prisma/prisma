@@ -47,7 +47,6 @@ export {
   encodeStoredValue,
   keptNameAdvice,
   planEnumValueRewrites,
-  rowsHoldingValueAdvice,
   withEnumValueOperations,
 } from '../core/migrations/enum-value-planning';
 export type {
@@ -102,6 +101,12 @@ export {
   resolveTableRenameAgainst,
   unmatchedTableRename,
 } from '../core/migrations/resolve-table-rename';
+export type { RowsHoldingValueMark } from '../core/migrations/rows-holding-value';
+export {
+  rowsHoldingValueMeta,
+  rowsHoldingValueOf,
+  rowsHoldingValueSummary,
+} from '../core/migrations/rows-holding-value';
 export type {
   SqlSchemaDiffFn,
   SqlSchemaDiffInput,

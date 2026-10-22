@@ -1,3 +1,4 @@
+import { type RowsHoldingValueMark, rowsHoldingValueMeta } from '@internal/family-sql/control';
 import { postgresCreateNamespace } from '../../postgres-schema';
 import { quoteIdentifier } from '../../sql-utils';
 import { qualifyTableName } from '../planner-sql-checks';
@@ -66,7 +67,7 @@ export function removeStoredValue(
   columnName: string,
   value: string | number,
   many: boolean,
-  keepRowsAdvice: string | undefined,
+  mark: RowsHoldingValueMark | undefined,
 ): Op {
   const column = quoteIdentifier(columnName);
   const qualified = qualifyTableName(schemaName, tableName);
@@ -80,11 +81,14 @@ export function removeStoredValue(
     precheck: many
       ? []
       : [
-          step(
-            keepRowsAdvice === undefined ? takesNull : `${takesNull}: ${keepRowsAdvice}`,
-            `SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = ${schemaSqlExpression(schemaName)} AND table_name = $2 AND column_name = $3 AND is_nullable = 'YES') OR NOT EXISTS (SELECT 1 FROM ${qualified} WHERE ${column} = $1) AS result`,
-            [value, tableName, columnName],
-          ),
+          {
+            ...step(
+              takesNull,
+              `SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = ${schemaSqlExpression(schemaName)} AND table_name = $2 AND column_name = $3 AND is_nullable = 'YES') OR NOT EXISTS (SELECT 1 FROM ${qualified} WHERE ${column} = $1) AS result`,
+              [value, tableName, columnName],
+            ),
+            ...(mark === undefined ? {} : { meta: rowsHoldingValueMeta(mark) }),
+          },
         ],
     execute: [
       step(

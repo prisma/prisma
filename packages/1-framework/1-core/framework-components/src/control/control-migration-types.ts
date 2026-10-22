@@ -413,6 +413,8 @@ export interface MigrationRunnerFailureMeta {
    * step fail: first the field of the failed step, then the others of the same migration.
    */
   readonly rowsWithoutValue?: readonly RowsWithoutValue[];
+  /** The rows that still hold a stored enum value whose removal their storage cannot take, when that made a check fail. */
+  readonly rowsHoldingValue?: RowsHoldingValue;
   /** The objects in the database that kept the failed operation from running, such as a view on a table to drop. */
   readonly blockingObjects?: readonly BlockingObject[];
   /** The differences the schema check after apply found, when that check failed. */
@@ -483,6 +485,18 @@ export function withDatabaseUnchanged<TCode extends MigrationRunnerFailure['code
   });
   if (failure.stack !== undefined) attributed.stack = failure.stack;
   return attributed;
+}
+
+/** The rows that still hold the stored value of an enum value a plan removes from storage that cannot do without it. */
+export interface RowsHoldingValue {
+  /** The enum value, as a statement names it, such as `Status.ARCHIVED`. */
+  readonly enumValue: string;
+  /** The stored value, as the contract stores it. */
+  readonly value: string | number;
+  /** How many rows hold it. */
+  readonly rows: number;
+  /** The position of the operation in the operations of the failing space's plan. */
+  readonly operationIndex: number;
 }
 
 /** A field that is to become required while existing rows have no value for it. */

@@ -1,3 +1,4 @@
+import { type RowsHoldingValueMark, rowsHoldingValueMeta } from '@internal/family-sql/control';
 import { quoteIdentifier } from '../../sql-utils';
 import { buildTargetDetails } from '../planner-target-details';
 import { type Op, step } from './shared';
@@ -48,7 +49,7 @@ export function removeStoredValue(
   tableName: string,
   columnName: string,
   value: string | number,
-  keepRowsAdvice: string | undefined,
+  mark: RowsHoldingValueMark | undefined,
 ): Op {
   const column = quoteIdentifier(columnName);
   const takesNull = `ensure column "${columnName}" of "${tableName}" takes NULL, or no row holds ${storedValueText(value)} in it`;
@@ -58,12 +59,10 @@ export function removeStoredValue(
     operationClass: 'destructive',
     target: { id: 'sqlite', details: buildTargetDetails('column', columnName, tableName) },
     precheck: [
-      columnTakesNullOrValueAbsentCheck(
-        tableName,
-        columnName,
-        value,
-        keepRowsAdvice === undefined ? takesNull : `${takesNull}: ${keepRowsAdvice}`,
-      ),
+      {
+        ...columnTakesNullOrValueAbsentCheck(tableName, columnName, value, takesNull),
+        ...(mark === undefined ? {} : { meta: rowsHoldingValueMeta(mark) }),
+      },
     ],
     execute: [
       step(

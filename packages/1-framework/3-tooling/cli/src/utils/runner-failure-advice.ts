@@ -8,6 +8,7 @@ import { basename, join } from 'pathe';
 import { statementFlag } from '../control-api/statements/statement-flag';
 import type {
   FailedTypeChangeReport,
+  RowsHoldingValueReport,
   RowsWithoutValueReport,
   RunnerFailureFacts,
 } from '../control-api/types';
@@ -111,6 +112,75 @@ export function dbUpdateRowsWithoutValueAdvice(
     ];
   }
   return [...planned, editFileAction('Make the field optional in the contract source')];
+}
+
+function enumOf(enumValue: string): string {
+  return enumValue.slice(0, enumValue.lastIndexOf('.'));
+}
+
+function renameToNewMember(report: RowsHoldingValueReport): string {
+  return statementFlag({
+    verb: 'rename',
+    text: `${report.enumValue}:${enumOf(report.enumValue)}.<new member>`,
+  });
+}
+
+const NEW_MEMBER = 'To keep those rows under a new enum value, add a member to enum';
+
+/** The calls to swap in a migration.ts to keep the rows that hold `report`'s stored value. */
+function swapCalls(report: RowsHoldingValueReport): string {
+  const value = JSON.stringify(report.value);
+  return `replace this.removeStoredValue({ ..., value: ${value}, ..., enumValue: ${JSON.stringify(report.enumValue)} }) with this.replaceStoredValue({ ..., from: ${value}, to: "<stored value>", ... })`;
+}
+
+const KEPT_VALUE = 'where "<stored value>" is a stored value the column keeps';
+
+/** The way out when rows of a required column hold a stored value `db update` removes. */
+export function dbUpdateRowsHoldingValueAdvice(
+  report: RowsHoldingValueReport,
+  databaseStorageHash: string | undefined,
+  invocation: CliInvocation,
+): RunnerAdvice {
+  const deleteFlag = statementFlag({ verb: 'delete', text: report.enumValue });
+  const rename = chooseAction(
+    `${NEW_MEMBER} "${enumOf(report.enumValue)}" in the contract source, run ${quoted(cliCommand(invocation, 'contract emit'))}, then run ${quoted(cliCommand(invocation, 'db update', [renameToNewMember(report)]))}`,
+  );
+  if (databaseStorageHash === undefined) {
+    return [
+      rename,
+      chooseAction(
+        `To keep those rows with another stored value, set the rows that hold ${JSON.stringify(report.value)} to a stored value the column keeps in the database yourself, then re-run ${quoted(cliCommand(invocation, 'db update', [deleteFlag]))}. db update cannot keep the data by hand in a migration.ts`,
+      ),
+    ];
+  }
+  const plan = printedPlanCommand(invocation, databaseStorageHash, [deleteFlag]);
+  return [
+    rename,
+    chooseAction(
+      `To keep those rows by hand, plan the change with ${quoted(plan)}, ${swapCalls(report)} in the migration.ts it writes, ${KEPT_VALUE}, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}. db update cannot keep the data by hand`,
+    ),
+  ];
+}
+
+function migrateRowsHoldingValueAdvice(
+  report: RowsHoldingValueReport,
+  failedMigration: FailedMigrationText | undefined,
+  invocation: CliInvocation,
+): RunnerAdvice {
+  const { file, run } = failedMigrationFile(failedMigration);
+  const byHand = editFileAction(
+    `To keep those rows by hand, ${swapCalls(report)} in ${file}, ${KEPT_VALUE}, ${run}, and re-run ${dbMigrateCommand(invocation)}`,
+  );
+  if (failedMigration === undefined) return [byHand];
+  return [
+    replan(
+      `${NEW_MEMBER} "${enumOf(report.enumValue)}" in the contract source, run ${quoted(cliCommand(invocation, 'contract emit'))}, delete`,
+      [renameToNewMember(report)],
+      failedMigration,
+      `\`${statementFlag({ verb: 'delete', text: report.enumValue })}\``,
+    ),
+    byHand,
+  ];
 }
 
 /**
@@ -381,6 +451,9 @@ export function migrateAdvice(
   }
   if (facts.rowsWithoutValue !== undefined) {
     return migrateRowsWithoutValueAdvice(facts.rowsWithoutValue, failedMigration, invocation);
+  }
+  if (facts.rowsHoldingValue !== undefined) {
+    return migrateRowsHoldingValueAdvice(facts.rowsHoldingValue, failedMigration, invocation);
   }
   if (schemaCheckIssues(failure) !== undefined) {
     return migrateSchemaCheckAdvice(failedMigration, invocation);
