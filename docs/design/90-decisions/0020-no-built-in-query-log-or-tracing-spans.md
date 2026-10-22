@@ -1,16 +1,16 @@
-# 0013 — No `$on` events, built-in query log or tracing spans
+# 0020 — No built-in query log or tracing spans
 
-> **Draft — for maintainer acceptance.**
+> Draft — unconfirmed. No maintainer has accepted this record yet, so it does not count as a decision.
 
-**Status:** `not-yet`
+**Status:** `proposed`. Intended status: `not-yet`.
 
 ## The request
 
-Subscribe with `$on('query')`, `$on('info')` or `$on('error')`, turn on a built-in query log, or get OpenTelemetry spans out of the box.
+Turn on a built-in query log, or get OpenTelemetry spans out of the box, without writing middleware.
 
 ## The decision
 
-Not in 8.0. The runtime exposes one middleware interface that observes every activity, and logging and tracing are written on it.
+Not in 8.0. The runtime exposes one middleware interface that observes every activity, and logging and tracing are written on it. Record [0013](./0013-no-on-events.md) covers `$on` events, which a maintainer has ruled out; this record covers the built-in log and spans, which no maintainer has answered yet.
 
 ## What to use instead
 

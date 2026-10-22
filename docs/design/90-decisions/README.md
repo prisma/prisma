@@ -33,14 +33,16 @@ A maintainer accepts a proposed record by setting its status to the intended sta
 | [0008](./0008-native-postgres-enums-are-not-fully-managed.md) | Prisma 8 does not fully manage native Postgres enums | `proposed` (intended `never`) |
 | [0009](./0009-no-db-push-to-production.md) | No `db push` to production | `proposed` (intended `never`) |
 | [0010](./0010-no-implicit-many-to-many.md) | No implicit many-to-many relations | `proposed` (intended `not-yet`) |
-| [0011](./0011-no-prisma-7-extends.md) | No Prisma 7 `$extends` client extensions | `proposed` (intended `not-yet`) |
+| [0011](./0011-no-prisma-7-extends.md) | No Prisma 7 `$extends` client extensions | `never` |
 | [0012](./0012-no-numeric-p-codes.md) | No numeric `P` error codes | `proposed` (intended `never`) |
-| [0013](./0013-no-on-events-or-built-in-query-log.md) | No `$on` events, built-in query log or tracing spans | `proposed` (intended `not-yet`) |
+| [0013](./0013-no-on-events.md) | No `$on` events | `never` |
 | [0014](./0014-no-studio.md) | No Prisma Studio | `proposed` (intended `not-yet`) |
 | [0015](./0015-no-db-seed.md) | No `db seed` command | `proposed` (intended `not-yet`) |
-| [0016](./0016-no-model-validations-callbacks-soft-delete-scopes.md) | No model validations, lifecycle callbacks, soft delete or scopes | `proposed` (intended `not-yet`) |
+| [0016](./0016-no-model-validations-callbacks-soft-delete-scopes.md) | No validations, lifecycle callbacks, soft delete or default scopes in the core | `never` |
 | [0017](./0017-no-commonjs.md) | No CommonJS | `proposed` (intended `never`) |
 | [0018](./0018-no-features-on-prisma-7.md) | No new features on Prisma 7 | `proposed` (intended `never`) |
+| [0019](./0019-no-relation-load-strategy.md) | No `relationLoadStrategy` | `never` |
+| [0020](./0020-no-built-in-query-log-or-tracing-spans.md) | No built-in query log or tracing spans | `proposed` (intended `not-yet`) |
 
 ## Adding a record
 

@@ -1,27 +1,34 @@
-# 0016 — No model validations, lifecycle callbacks, soft delete or scopes
+# 0016 — No validations, lifecycle callbacks, soft delete or default scopes in the core
 
-> **Draft — for maintainer acceptance.**
-
-**Status:** `not-yet`
+**Status:** `never`
+**Decided by:** Will Madden, 2026-10-22
 
 ## The request
 
-Declare validations on a model, run `beforeSave` or `afterCreate` callbacks, mark a model as soft-deleted (`paranoid: true`), or define default scopes, as ActiveRecord-style ORMs do.
+Features that ActiveRecord-style ORMs, such as Rails' Active Record or Sequelize, build into their models:
+
+- **Validations:** rules declared on a model, such as `validates :email, presence: true`, checked before a write.
+- **Lifecycle callbacks:** hooks a model declares that run around its writes, such as `beforeSave` or `afterCreate`.
+- **Soft delete:** marking a model as soft-deleted (Sequelize's `paranoid: true`), so a delete sets a timestamp and reads hide those rows.
+- **Default scopes:** a filter declared on a model that the ORM applies to every query on it, such as Rails' `default_scope`.
 
 ## The decision
 
-Not in 8.0. The contract describes data; it carries no executable logic.
+Never in the core. Each of these can be built in an extension or in user space, and the core does not build a feature that can ([project intent](../00-purpose/project-intent.md#what-it-deliberately-does-not-do)). Will Madden on validations: "achievable in user space". On soft delete: "achievable in extension/user space". Lifecycle callbacks and default scopes are ruled out by the same rule.
+
+An extension may offer any of them.
 
 ## What to use instead
 
-Validations: validate in application code with arktype. Callbacks: middleware or application code. Soft delete: a nullable `deletedAt` column, filtered explicitly in queries, in middleware, or with a query fragment that hides deleted rows (ADR 259). Scopes: your own query helper functions.
-
-## Revisit if
-
-Not recorded. The skill reference sends users who need this to file an issue through its feedback flow, so those issues are the evidence a maintainer weighs when scheduling it.
+- Validations: validate in application code, for example with arktype.
+- Lifecycle callbacks: middleware on the runtime's lifecycle events (ADR 271), or application code.
+- Soft delete: a nullable `deletedAt` column and a scope that hides deleted rows, applied with `with` (ADR 259 shows this as `notDeleted`).
+- Default scopes: Prisma 8 already has named scopes. A scope is a query fragment that imposes conditions on a query (ADR 259), and an application can add its own query methods with a collection class (ADR 265). They apply where the code calls them, not silently on every query.
 
 ## Sources
 
+- [project intent, what it deliberately does not do](../00-purpose/project-intent.md#what-it-deliberately-does-not-do)
 - [`prisma-8` skill, contract.md](../../../skills/prisma-8/references/contract.md)
 - [ADR 259](../../architecture%20docs/adrs/ADR%20259%20-%20Query%20fragments%20are%20functions.md)
-- [Architecture Overview, Contract-first](../../Architecture%20Overview.md#contract-first)
+- [ADR 265](../../architecture%20docs/adrs/ADR%20265%20-%20A%20collection%20keeps%20its%20class%20through%20the%20chain.md)
+- [ADR 271](../../architecture%20docs/adrs/ADR%20271%20-%20The%20runtime%20middleware%20observes%20a%20tree%20of%20activities,%20each%20started,%20ended%20and%20finalized.md)
