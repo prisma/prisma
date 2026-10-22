@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dataLine, fieldLines } from '../../src/orm/data-lines';
+import { dataLine, fieldLines, valueLines } from '../../src/orm/data-lines';
 
 describe('dataLine', () => {
   it('joins fields with tabs and keeps an absent field as an empty one', () => {
@@ -36,5 +36,15 @@ describe('fieldLines', () => {
 
   it('escapes the value', () => {
     expect(fieldLines([['label', 'one\ttwo']])).toEqual(['label\tone\\ttwo']);
+  });
+});
+
+describe('valueLines', () => {
+  it('writes one escaped line per value, so a path holding a newline stays one line', () => {
+    expect(valueLines(['prisma/contract.json', 'odd\nname/contract.d.ts', 'C:\\dir'])).toEqual([
+      'prisma/contract.json',
+      'odd\\nname/contract.d.ts',
+      'C:\\\\dir',
+    ]);
   });
 });

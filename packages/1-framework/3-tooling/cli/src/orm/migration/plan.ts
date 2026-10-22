@@ -25,6 +25,7 @@ import {
   cliInvocation,
   selfEmitCommand,
 } from '../../utils/printed-command';
+import { valueLines } from '../data-lines';
 import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
 import { promptPlanQuestions } from '../plan-question-prompt';
@@ -259,7 +260,7 @@ function planPresentations(inputs: {
   readonly invocation: CliInvocation;
 }): Presentations {
   return {
-    stdout: () => writtenDirs(inputs.document, inputs.migrationsRelative),
+    stdout: () => valueLines(writtenDirs(inputs.document, inputs.migrationsRelative)),
     human: (): readonly Block[] => [
       {
         kind: 'fields',

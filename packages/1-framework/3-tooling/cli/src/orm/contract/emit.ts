@@ -6,6 +6,7 @@ import { ok } from '@prisma/cli-engine/protocol';
 import { dirname, relative, resolve } from 'pathe';
 import { executeContractEmit as executeContractEmitOperation } from '../../control-api/operations/contract-emit';
 import { sourceWarningDiagnostic } from '../../control-api/operations/load-contract-source';
+import { valueLines } from '../data-lines';
 import { defineOrmCommand } from '../define-command';
 import { controlProgressReporter } from '../progress';
 
@@ -56,7 +57,8 @@ function emitPresentations(inputs: {
       { kind: 'summary', status: 'ok', text: 'Emitted contract.json and contract.d.ts' },
       hashRows(document),
     ],
-    stdout: () => [relative(cwd, document.files.json), relative(cwd, document.files.dts)],
+    stdout: () =>
+      valueLines([relative(cwd, document.files.json), relative(cwd, document.files.dts)]),
     json: () => document,
   };
 }

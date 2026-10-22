@@ -74,6 +74,8 @@ Data lines are a stable interface, like `--json`:
 - Paths are relative to the working directory.
 - New fields are only appended at the end of a line. Changing, removing or reordering a field is a breaking change.
 
+Two commands print a document instead of data lines: `contract print` prints the PSL and `migration graph --dot` prints the DOT text, each as-is, without escaping.
+
 | Command | Data lines |
 |---|---|
 | `migration list` | `space`, `name`, `from`, `to`, `operations` per migration |

@@ -29,3 +29,8 @@ export function fieldLines(rows: readonly (readonly [string, DataField])[]): rea
     .filter(([, value]) => value !== null && value !== undefined)
     .map(([key, value]) => dataLine([key, value]));
 }
+
+/** One data line per value, each escaped as a single-field line. */
+export function valueLines(values: readonly DataField[]): readonly string[] {
+  return values.map((value) => dataLine([value]));
+}
