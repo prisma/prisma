@@ -3,6 +3,7 @@ import { blindCast } from '@internal/utils/casts';
 import { InternalError, isInternalError } from '@internal/utils/internal-error';
 import type { AggregateDescriptor } from '../shared/aggregate-descriptor';
 import { aggregateDescriptorKey, isAggregateDescriptor } from '../shared/aggregate-descriptor';
+import { assertTypeChoicesValid } from '../shared/authoring-type-choice';
 import type { CapabilityMatrix } from '../shared/capabilities';
 import { mergeCapabilityMatrices } from '../shared/capabilities';
 import type { Codec } from '../shared/codec';
@@ -353,6 +354,10 @@ export function assembleAuthoringContributions(
     pslBlockDescriptorNamespace,
     modelAttributeNamespace,
   );
+  for (const descriptor of descriptors) {
+    if (descriptor.authoring?.type === undefined) continue;
+    assertTypeChoicesValid(descriptor.authoring.type, descriptor.id ?? '<unknown>', typeNamespace);
+  }
 
   if (
     valueObjectStorageDeclaration !== undefined &&

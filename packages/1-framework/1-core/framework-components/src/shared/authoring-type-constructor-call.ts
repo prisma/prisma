@@ -4,8 +4,8 @@ import {
   type AuthoringTypeNamespace,
   instantiateAuthoringTypeConstructor,
   isAuthoringArgRef,
-  isAuthoringTypeAliasDescriptor,
   isAuthoringTypeConstructorDescriptor,
+  isAuthoringTypeDescriptor,
 } from './framework-authoring';
 
 /** What a type constructor call produces for a column. */
@@ -28,7 +28,7 @@ export function* authoringTypeConstructors(
   for (const [name, value] of Object.entries(namespace)) {
     if (isAuthoringTypeConstructorDescriptor(value)) {
       yield { path: [...path, name], descriptor: value };
-    } else if (!isAuthoringTypeAliasDescriptor(value)) {
+    } else if (!isAuthoringTypeDescriptor(value)) {
       yield* authoringTypeConstructors(value, [...path, name]);
     }
   }

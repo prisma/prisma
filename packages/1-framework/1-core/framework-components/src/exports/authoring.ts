@@ -1,4 +1,18 @@
 export type {
+  AuthoringTypeChoiceArgument,
+  AuthoringTypeChoiceDescriptor,
+  AuthoringTypeChoiceOption,
+  AuthoringTypeChoicePassedArgument,
+  AuthoringTypeChoiceRow,
+  ResolvedAuthoringTypeChoice,
+} from '../shared/authoring-type-choice';
+export {
+  assertTypeChoicesValid,
+  isAuthoringTypeChoiceOption,
+  resolveAuthoringTypeChoice,
+  typeChoiceCombinationText,
+} from '../shared/authoring-type-choice';
+export type {
   AuthoringTypeConstructorCall,
   AuthoringTypeConstructorOutput,
 } from '../shared/authoring-type-constructor-call';
@@ -69,6 +83,7 @@ export type {
   AuthoringTypeConstructorDescriptor,
   AuthoringTypeConstructorEntityRef,
   AuthoringTypeNamespace,
+  AuthoringTypeNamespaceMember,
   AuthoringTypeParamsIssue,
   AuthoringValueArgument,
   AuthoringWarning,
@@ -89,6 +104,7 @@ export {
   instantiateAuthoringEntityType,
   instantiateAuthoringFieldPreset,
   instantiateAuthoringTypeAlias,
+  instantiateAuthoringTypeCall,
   instantiateAuthoringTypeConstructor,
   instantiateAuthoringTypeConstructorFromValues,
   isAuthoringArgRef,
@@ -98,12 +114,14 @@ export {
   isAuthoringPslBlockDescriptor,
   isAuthoringSelectRef,
   isAuthoringTypeAliasDescriptor,
+  isAuthoringTypeChoiceDescriptor,
   isAuthoringTypeConstructorDescriptor,
   isAuthoringTypeDescriptor,
   mergeAuthoringNamespaces,
   resolveAuthoringTemplateValue,
   resolveEnumCodecId,
   resolveTypeAliasGenerators,
+  typeConstructorLookup,
   validateAuthoringHelperArguments,
   validateAuthoringTypeParams,
 } from '../shared/framework-authoring';

@@ -15,6 +15,10 @@ import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type { Type } from 'arktype';
+import {
+  type AuthoringTypeChoiceDescriptor,
+  resolveAuthoringTypeChoice,
+} from './authoring-type-choice';
 import type { CodecLookupWithDescriptors } from './codec-types';
 import type { DataTypeId, DataTypeLookup } from './data-type';
 import type {
@@ -193,14 +197,22 @@ export interface AuthoringTypeAliasDescriptor {
 }
 
 export type AuthoringTypeNamespace = {
-  readonly [name: string]:
-    | AuthoringTypeConstructorDescriptor
-    | AuthoringTypeAliasDescriptor
-    | AuthoringTypeNamespace;
+  readonly [name: string]: AuthoringTypeNamespaceMember;
 };
 
+/** A leaf of a `type` namespace, or a sub-namespace. */
+export type AuthoringTypeNamespaceMember =
+  | AuthoringTypeConstructorDescriptor
+  | AuthoringTypeAliasDescriptor
+  | AuthoringTypeChoiceDescriptor
+  | AuthoringTypeNamespace;
+
 /** The descriptor kinds a `type` namespace holds as leaves. */
-export const AUTHORING_TYPE_DESCRIPTOR_KINDS = ['typeConstructor', 'typeAlias'] as const;
+export const AUTHORING_TYPE_DESCRIPTOR_KINDS = [
+  'typeConstructor',
+  'typeAlias',
+  'typeChoice',
+] as const;
 
 export type AuthoringFieldNamespace = {
   readonly [name: string]: AuthoringFieldPresetDescriptor | AuthoringFieldNamespace;
@@ -727,22 +739,47 @@ function readTemplateArgumentValue(
 }
 
 export function isAuthoringTypeConstructorDescriptor(
-  value: AuthoringTypeConstructorDescriptor | AuthoringTypeAliasDescriptor | AuthoringTypeNamespace,
+  value: AuthoringTypeNamespaceMember,
 ): value is AuthoringTypeConstructorDescriptor {
   return 'kind' in value && value.kind === 'typeConstructor';
 }
 
 export function isAuthoringTypeAliasDescriptor(
-  value: AuthoringTypeConstructorDescriptor | AuthoringTypeAliasDescriptor | AuthoringTypeNamespace,
+  value: AuthoringTypeNamespaceMember,
 ): value is AuthoringTypeAliasDescriptor {
   return 'kind' in value && value.kind === 'typeAlias';
 }
 
-/** Whether `value` is a leaf of a `type` namespace: a type constructor or a type alias. */
+export function isAuthoringTypeChoiceDescriptor(
+  value: AuthoringTypeNamespaceMember,
+): value is AuthoringTypeChoiceDescriptor {
+  return 'kind' in value && value.kind === 'typeChoice';
+}
+
+/** Whether `value` is a leaf of a `type` namespace: a type constructor, a type alias or a type choice. */
 export function isAuthoringTypeDescriptor(
-  value: AuthoringTypeConstructorDescriptor | AuthoringTypeAliasDescriptor | AuthoringTypeNamespace,
-): value is AuthoringTypeConstructorDescriptor | AuthoringTypeAliasDescriptor {
-  return isAuthoringTypeConstructorDescriptor(value) || isAuthoringTypeAliasDescriptor(value);
+  value: AuthoringTypeNamespaceMember,
+): value is
+  | AuthoringTypeConstructorDescriptor
+  | AuthoringTypeAliasDescriptor
+  | AuthoringTypeChoiceDescriptor {
+  return (
+    isAuthoringTypeConstructorDescriptor(value) ||
+    isAuthoringTypeAliasDescriptor(value) ||
+    isAuthoringTypeChoiceDescriptor(value)
+  );
+}
+
+/** Looks a type constructor up by name in one level of a type namespace, as a type choice's rows name them. */
+export function typeConstructorLookup(
+  namespace: AuthoringTypeNamespace,
+): (name: string) => AuthoringTypeConstructorDescriptor | undefined {
+  return (name) => {
+    const member = Object.hasOwn(namespace, name) ? namespace[name] : undefined;
+    return member !== undefined && isAuthoringTypeConstructorDescriptor(member)
+      ? member
+      : undefined;
+  };
 }
 
 /** The type constructor at `path` in the contributions' type namespace, or `undefined` when none is there. */
@@ -750,11 +787,7 @@ export function getAuthoringTypeConstructor(
   contributions: { readonly type?: AuthoringTypeNamespace } | undefined,
   path: readonly string[],
 ): AuthoringTypeConstructorDescriptor | undefined {
-  let current:
-    | AuthoringTypeConstructorDescriptor
-    | AuthoringTypeAliasDescriptor
-    | AuthoringTypeNamespace
-    | undefined = contributions?.type;
+  let current: AuthoringTypeNamespaceMember | undefined = contributions?.type;
   for (const segment of path) {
     if (typeof current !== 'object' || current === null || 'kind' in current) {
       return undefined;
@@ -827,6 +860,13 @@ function isWellFormedDescriptor(
       const output = value.output;
       return typeof output === 'object' && output !== null;
     }
+    case 'typeChoice':
+      return (
+        'args' in value &&
+        Array.isArray(value.args) &&
+        'choices' in value &&
+        Array.isArray(value.choices)
+      );
     case 'typeAlias': {
       if (!('output' in value)) return false;
       const output = value.output;
@@ -1081,6 +1121,10 @@ export function collectScalarTypeConstructors(
 ): ReadonlyMap<string, ScalarTypeConstructorOutput> {
   const result = new Map<string, ScalarTypeConstructorOutput>();
   for (const [name, value] of Object.entries(namespace)) {
+    if (isAuthoringTypeChoiceDescriptor(value)) {
+      result.set(name, instantiateAuthoringTypeCall(namespace, name, []));
+      continue;
+    }
     if (!isAuthoringTypeConstructorDescriptor(value)) continue;
     if (value.entityRefArg !== undefined) continue;
     if (value.args?.some((arg) => arg.optional !== true)) continue;
@@ -1140,6 +1184,7 @@ export function assertResolvableTypeConstructorTemplates(
       }
       continue;
     }
+    if (isAuthoringTypeChoiceDescriptor(value)) continue;
     if (!isAuthoringTypeConstructorDescriptor(value)) {
       assertResolvableTypeConstructorTemplates(value, contributedBy, currentPath);
       continue;
@@ -1948,6 +1993,32 @@ export function instantiateAuthoringTypeConstructor(
   args: readonly unknown[],
 ): ScalarTypeConstructorOutput {
   return resolveAuthoringStorageTypeTemplate(descriptor.output, args);
+}
+
+/**
+ * The column a call of the type constructor or type choice `name`, in one level of a type namespace, makes from its arguments. A type choice's arguments choose a constructor of the same level, which is instantiated with the arguments it passes on.
+ */
+export function instantiateAuthoringTypeCall(
+  namespace: AuthoringTypeNamespace,
+  name: string,
+  args: readonly unknown[],
+): ScalarTypeConstructorOutput {
+  const member = Object.hasOwn(namespace, name) ? namespace[name] : undefined;
+  if (member !== undefined && isAuthoringTypeConstructorDescriptor(member)) {
+    return instantiateAuthoringTypeConstructor(member, args);
+  }
+  if (member === undefined || !isAuthoringTypeChoiceDescriptor(member)) {
+    throw new InternalError(
+      `"${name}" is not a type constructor or type choice of this namespace.`,
+    );
+  }
+  const chosen = resolveAuthoringTypeChoice({
+    helperPath: name,
+    descriptor: member,
+    args,
+    constructorNamed: typeConstructorLookup(namespace),
+  });
+  return instantiateAuthoringTypeConstructor(chosen.descriptor, chosen.args);
 }
 
 /** What a field typed by a contributed type alias takes: the type, and the alias's generator calls. */
