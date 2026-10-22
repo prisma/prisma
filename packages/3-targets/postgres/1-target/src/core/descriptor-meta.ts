@@ -22,6 +22,7 @@ const postgresTargetDescriptorMetaBase = {
   ...postgresTargetDescriptorMetaRuntime,
   defaultNamespaceId: DEFAULT_NAMESPACE_ID,
   supportsNamespaces: true,
+  displayName: 'Postgres',
   indexTypes: postgresIndexTypes,
   authoring: {
     type: { ...postgresScalarAndNativeTypeConstructors, ...postgresAuthoringTypes },

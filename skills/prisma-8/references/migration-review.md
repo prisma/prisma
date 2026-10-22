@@ -48,13 +48,13 @@ The graph is a static, committed artifact. Several branch tips may coexist, roll
 
 `migration status` queries the graph for the path from origin to destination and reports per-edge status:
 
-- **applied** — on the path from `EMPTY_CONTRACT_HASH` to the marker (history).
-- **pending** — on the path from the marker to the destination (what would run).
-- **unreachable** — on the path from `EMPTY_CONTRACT_HASH` to the destination, but the marker is on a different branch and won't reach it without first re-routing.
+- **applied** — the database's ledger records the migration as applied. Only a run connected to a database reports this.
+- **pending** — on the path from the origin to the destination and not yet applied (what would run).
+- **`null`** — neither: the migration is off the path to the destination, or the run is offline and cannot see what the database applied. In data lines this is an empty field.
 
 ### Diagnostic codes
 
-`migration status` answers with a document (`--json`): `spaces[]`, each with `currentContract` (the marker hash, or `null` when the database has no marker for that space), `targetContract`, and `migrations[]` carrying the `applied` / `pending` / `unreachable` status above; a `summary` line; and `diagnostics[]`. The ordinary states — up to date, N pending, no marker yet, marker on another branch, no path to the target — are read from `spaces[]` and the summary, not from diagnostic codes. The three diagnostics it can attach are all `warn`, and each carries a `message` and `hints` — the same hints the CLI prints under the summary line:
+`migration status` answers with a document (`--json`): `spaces[]`, each with `currentContract` (the marker hash, or `null` when the database has no marker for that space), `targetContract`, and `migrations[]` carrying the `applied` / `pending` / `null` status above; a `summary` line; and `diagnostics[]`. The ordinary states — up to date, N pending, no marker yet, marker on another branch, no path to the target — are read from `spaces[]` and the summary, not from diagnostic codes. The three diagnostics it can attach are all `warn`, and each carries a `message` and `hints` — the same hints the CLI prints under the summary line:
 
 | Code | Meaning in the navigation model | Next move |
 |---|---|---|
@@ -98,7 +98,7 @@ The command:
 
 1. Reads the staging DB's marker (the origin).
 2. Resolves `staging` to a contract hash (the destination).
-3. Renders the path between them as an ordered list of migrations, with per-edge `applied` / `pending` / `unreachable` status, and an explicit summary line of the form *"N migration(s) behind ref 'staging'"*.
+3. Renders the path between them as an ordered list of migrations, with per-edge `applied` / `pending` / `null` status, and an explicit summary line of the form *"N migration(s) behind ref 'staging'"*.
 4. Prints a header that names the config, migrations directory, the active ref, and the database connection (masked) — so the framing is visible in the output.
 
 If you omit `--db`, the command runs offline: it lists the migrations on disk but cannot tell you what's applied, because it has no origin. That's fine for *"what's on this branch?"*; it's not fine for *"what's about to run on staging?"* — for that you need staging's live marker.

@@ -208,6 +208,8 @@ export const sqliteTarget: TargetPackRef<'sql', 'sqlite'> = {
   version: '0.0.1',
   capabilities: {},
   defaultNamespaceId: '__unbound__',
+  supportsNamespaces: false,
+  displayName: 'SQLite',
 };
 
 export const pgvectorExtensionPack: ExtensionPackRef<'sql', 'postgres'> = {

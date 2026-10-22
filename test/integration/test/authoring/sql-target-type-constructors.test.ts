@@ -40,6 +40,7 @@ describe.each(['pack', 'control'] as const)('every SQL target %s', (entryPoint) 
     async (name) => {
       const targets = await sqlTargetComponents(entryPoint);
       expect(targets.map(({ name }) => name).sort()).toEqual([
+        '@internal/target-mysql',
         '@internal/target-postgres',
         '@internal/target-sqlite',
       ]);

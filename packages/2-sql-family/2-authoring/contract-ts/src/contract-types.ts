@@ -4,13 +4,18 @@ import type {
   ContractExecutionSection,
   ContractRelation,
   EnumMemberValueType,
+  ExecutionMutationDefaultValue,
   FieldTypesFromDomain,
   JsonValue,
   NamespaceId,
   StorageHashBase,
 } from '@internal/contract/types';
 import type { ExtractParameterizedOutputTypesFromPack } from '@internal/contract-authoring';
-import type { ExtensionPackRef, TargetPackRef } from '@internal/framework-components/components';
+import type {
+  ExtensionPackRef,
+  GeneratorPhase,
+  TargetPackRef,
+} from '@internal/framework-components/components';
 import type { StorageType } from '@internal/framework-components/ir';
 import type { IndexTypeRegistration } from '@internal/sql-contract/index-types';
 import type {
@@ -411,8 +416,15 @@ type FieldDefaultPresenceOf<FieldState> = Present<
 type FieldHasColumnDefault<FieldState> =
   FieldDefaultPresenceOf<FieldState> extends { readonly column: true } ? true : false;
 
-type FieldHasExecutionDefault<FieldState> =
-  FieldDefaultPresenceOf<FieldState> extends { readonly execution: true } ? true : false;
+type FieldGeneratesIn<FieldState, Phase extends GeneratorPhase> =
+  FieldDefaultPresenceOf<FieldState> extends { readonly [K in Phase]: true } ? true : false;
+
+type GeneratedPhaseKeys<FieldState> = (FieldGeneratesIn<FieldState, 'onCreate'> extends true
+  ? { readonly onCreate: ExecutionMutationDefaultValue }
+  : unknown) &
+  (FieldGeneratesIn<FieldState, 'onUpdate'> extends true
+    ? { readonly onUpdate: ExecutionMutationDefaultValue }
+    : unknown);
 
 type FieldColumnOverrideOf<FieldState> = Present<
   FieldState extends { readonly columnName?: infer ColumnName } ? ColumnName : never
@@ -753,16 +765,17 @@ type BuiltSameSpaceRelation<
 
 type ExecutionDefaultEntries<Definition> = {
   [ModelName in ModelNames<Definition>]: {
-    [FieldName in ModelFieldNames<Definition, ModelName>]: FieldHasExecutionDefault<
-      ModelFieldState<Definition, ModelName, FieldName>
-    > extends true
-      ? ContractExecutionSection['mutations']['defaults'][number] & {
-          readonly ref: {
-            readonly namespace: ModelNamespace<Definition, ModelName>;
-            readonly entry: ModelTableName<Definition, ModelName>;
-            readonly field: ModelColumnName<Definition, ModelName, FieldName>;
-          };
-        }
+    [FieldName in ModelFieldNames<Definition, ModelName>]: true extends
+      | FieldGeneratesIn<ModelFieldState<Definition, ModelName, FieldName>, 'onCreate'>
+      | FieldGeneratesIn<ModelFieldState<Definition, ModelName, FieldName>, 'onUpdate'>
+      ? ContractExecutionSection['mutations']['defaults'][number] &
+          GeneratedPhaseKeys<ModelFieldState<Definition, ModelName, FieldName>> & {
+            readonly ref: {
+              readonly namespace: ModelNamespace<Definition, ModelName>;
+              readonly entry: ModelTableName<Definition, ModelName>;
+              readonly field: ModelColumnName<Definition, ModelName, FieldName>;
+            };
+          }
       : never;
   }[ModelFieldNames<Definition, ModelName>];
 }[ModelNames<Definition>];

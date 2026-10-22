@@ -25,6 +25,7 @@ import {
   cliInvocation,
   selfEmitCommand,
 } from '../../utils/printed-command';
+import { valueLines } from '../data-lines';
 import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
 import { promptPlanQuestions } from '../plan-question-prompt';
@@ -208,6 +209,17 @@ function planBlocks(result: MigrationPlanResult, migrationsRelative: string): re
   ];
 }
 
+function writtenDirs(result: MigrationPlanResult, migrationsRelative: string): readonly string[] {
+  const dirs = [
+    ...(result.baselineDir === undefined ? [] : [result.baselineDir]),
+    ...(result.dir === undefined ? [] : [result.dir]),
+    ...result.emittedExtensionDirs.map((entry) =>
+      join(migrationsRelative, entry.spaceId, entry.dirName),
+    ),
+  ];
+  return [...new Set(dirs)];
+}
+
 function planNextActions(
   result: MigrationPlanResult,
   migrationsRelative: string,
@@ -227,13 +239,7 @@ function planNextActions(
       ),
     ];
   }
-  const written = [
-    ...(result.baselineDir === undefined ? [] : [result.baselineDir]),
-    ...(result.dir === undefined ? [] : [result.dir]),
-    ...result.emittedExtensionDirs.map((entry) =>
-      join(migrationsRelative, entry.spaceId, entry.dirName),
-    ),
-  ];
+  const written = writtenDirs(result, migrationsRelative);
   if (written.length === 0) {
     return [];
   }
@@ -254,7 +260,7 @@ function planPresentations(inputs: {
   readonly invocation: CliInvocation;
 }): Presentations {
   return {
-    stdout: () => [],
+    stdout: () => valueLines(writtenDirs(inputs.document, inputs.migrationsRelative)),
     human: (): readonly Block[] => [
       {
         kind: 'fields',

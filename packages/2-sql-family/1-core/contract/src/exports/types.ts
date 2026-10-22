@@ -6,6 +6,8 @@ export type {
 } from '@internal/framework-components/runtime';
 export { RelationKeys } from '@internal/framework-components/runtime';
 export type {
+  HasExecutionCreateDefault,
+  IsOptionalCreateColumn,
   StorageColumnMapAt,
   StorageColumnTypeAcrossNamespaces,
 } from '../column-type-resolution';

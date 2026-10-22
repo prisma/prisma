@@ -4,8 +4,9 @@ import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 
 const GUIDE_PATHS = {
-  app: 'upgrade-instructions/pending/supabase-role-runtime/app/instructions.md',
-  extension: 'upgrade-instructions/pending/supabase-role-runtime/extension/instructions.md',
+  app: 'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.19-to-8.0.0-rc.20/instructions.md',
+  extension:
+    'skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.19-to-8.0.0-rc.20/instructions.md',
 } as const;
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../../../../..');

@@ -54,7 +54,7 @@ export type ScalarFieldState<
   Defaults extends FieldDefaultPresence = FieldDefaultPresence,
 > = {
   readonly kind: 'scalar';
-  /** Exists only in types: whether the column has a database default and whether the client generates a value on create. */
+  /** Exists only in types: whether the column has a database default, and in which phases the client generates its value. */
   readonly __defaultPresence?: Defaults;
   readonly descriptor?: Descriptor | undefined;
   readonly enumHandle?: EnumHandle | undefined;
@@ -68,8 +68,12 @@ export type ScalarFieldState<
     ? { readonly unique: UniqueSpec }
     : { readonly unique?: undefined });
 
-/** Whether a field's column has a database default, and whether the client generates its value on create. */
-export type FieldDefaultPresence = { readonly column: boolean; readonly execution: boolean };
+/** Whether a field's column has a database default, and whether the client generates its value on create and on update. */
+export type FieldDefaultPresence = {
+  readonly column: boolean;
+  readonly onCreate: boolean;
+  readonly onUpdate: boolean;
+};
 
 /** The generator function calls a field's `.onCreate(...)` and `.onUpdate(...)` give, resolved by the field's codec when the contract is built. */
 export type FieldGeneratorCalls = {
@@ -77,7 +81,7 @@ export type FieldGeneratorCalls = {
   readonly onUpdate?: GeneratorFunctionCall;
 };
 
-type WithExecutionDefault<State extends AnyScalarFieldState> =
+type WithGeneratedPhase<State extends AnyScalarFieldState, Phase extends GeneratorPhase> =
   State extends ScalarFieldState<
     infer Descriptor,
     infer EnumHandle,
@@ -96,7 +100,11 @@ type WithExecutionDefault<State extends AnyScalarFieldState> =
         IdSpec,
         UniqueSpec,
         Many,
-        { readonly column: Defaults['column']; readonly execution: true }
+        {
+          readonly column: Defaults['column'];
+          readonly onCreate: Phase extends 'onCreate' ? true : Defaults['onCreate'];
+          readonly onUpdate: Phase extends 'onUpdate' ? true : Defaults['onUpdate'];
+        }
       >
     : State;
 
@@ -148,7 +156,11 @@ type WithColumnDefault<State extends AnyScalarFieldState> =
         IdSpec,
         UniqueSpec,
         Many,
-        { readonly column: true; readonly execution: Defaults['execution'] }
+        {
+          readonly column: true;
+          readonly onCreate: Defaults['onCreate'];
+          readonly onUpdate: Defaults['onUpdate'];
+        }
       >
     : State;
 
@@ -490,16 +502,19 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
   }
 
   /** Generates the field's value in the client when a row is created without one, with a call from `gen`, such as `gen.uuid()`. */
-  onCreate(call: GeneratorFunctionCall): ScalarFieldBuilder<WithExecutionDefault<State>> {
+  onCreate(call: GeneratorFunctionCall): ScalarFieldBuilder<WithGeneratedPhase<State, 'onCreate'>> {
     return blindCast<
-      ScalarFieldBuilder<WithExecutionDefault<State>>,
+      ScalarFieldBuilder<WithGeneratedPhase<State, 'onCreate'>>,
       'the state gains a generator call; the presence it changes exists only in types'
     >(new ScalarFieldBuilder(withGeneratorCall(this.state, 'onCreate', call)));
   }
 
   /** Generates the field's value in the client every time a row is updated, with a call from `gen`, such as `gen.now()`. */
-  onUpdate(call: GeneratorFunctionCall): ScalarFieldBuilder<State> {
-    return new ScalarFieldBuilder(withGeneratorCall(this.state, 'onUpdate', call));
+  onUpdate(call: GeneratorFunctionCall): ScalarFieldBuilder<WithGeneratedPhase<State, 'onUpdate'>> {
+    return blindCast<
+      ScalarFieldBuilder<WithGeneratedPhase<State, 'onUpdate'>>,
+      'the state gains a generator call; the presence it changes exists only in types'
+    >(new ScalarFieldBuilder(withGeneratorCall(this.state, 'onUpdate', call)));
   }
 
   /**
@@ -712,12 +727,15 @@ export type TypeAliasColumnType = AuthoredStorageTypeInstance & {
 /** The defaults a field built from `Descriptor` starts with: the generators of a contributed type alias, or none. */
 type ColumnDefaultPresence<Descriptor> = {
   readonly column: boolean;
-  readonly execution: Descriptor extends {
-    readonly generatorCalls: { readonly onCreate: GeneratorFunctionCall };
-  }
-    ? true
-    : boolean;
+  readonly onCreate: AliasGeneratesIn<Descriptor, 'onCreate'>;
+  readonly onUpdate: AliasGeneratesIn<Descriptor, 'onUpdate'>;
 };
+
+type AliasGeneratesIn<Descriptor, Phase extends GeneratorPhase> = Descriptor extends {
+  readonly generatorCalls: { readonly [K in Phase]: GeneratorFunctionCall };
+}
+  ? true
+  : boolean;
 
 export type ColumnFieldHelper<CodecTypes extends CodecTypeMap = CodecTypesOfNoPacks> = <
   const Descriptor extends ColumnTypeDescriptor,
