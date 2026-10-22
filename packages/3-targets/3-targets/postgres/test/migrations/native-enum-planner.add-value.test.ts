@@ -31,6 +31,7 @@ import {
   postgresTypeComponents,
   postgresTypeLookups,
 } from '../postgres-type-lookups';
+import { planTrees } from './node-issue-planner-fixtures';
 
 const EXPECTED_MEMBERS = ['draft', 'review', 'done'] as const;
 
@@ -110,13 +111,14 @@ function liveTree(actualMembers: readonly string[]): PostgresDatabaseSchemaNode 
 }
 
 function planResultFor(contract: Contract<SqlStorage>, actual: PostgresDatabaseSchemaNode) {
-  const { issues } = buildPostgresPlanDiff({
+  const { issues, expected } = buildPostgresPlanDiff({
     contract,
     actualSchema: actual,
     frameworkComponents: postgresTypeComponents,
   });
   return planIssues({
     issues: coalesceSubtreeIssues(issues),
+    ...planTrees(actual, expected),
     toContract: contract,
     fromContract: null,
     schemaName: 'sales',

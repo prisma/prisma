@@ -182,7 +182,7 @@ async function planned(
     labels,
     dataLoss: labelled(result.dataLoss),
     losses: result.dataLoss.map(({ loss }) => loss),
-    accessWidening: labelled(result.accessWidening),
+    accessChanges: labelled(result.accessChanges),
   };
 }
 
@@ -275,17 +275,17 @@ describe('Postgres planner, data loss', () => {
     ]);
   });
 
-  it('lists a policy drop and disabling row-level security as widening access to the model', async () => {
+  it('lists a policy drop and disabling row-level security as access changes to the model', async () => {
     const from = contract('from', {
       User: { columns: { id: 'int4' }, policy: 'true' },
     });
     const to = contract('to', { User: { columns: { id: 'int4' } } });
-    const { dataLoss, accessWidening } = await planned(from, to);
+    const { dataLoss, accessChanges } = await planned(from, to);
 
     const user = { kind: 'model', namespaceId: unbound, model: 'User' };
-    expect({ dataLoss, accessWidening }).toEqual({
+    expect({ dataLoss, accessChanges }).toEqual({
       dataLoss: [],
-      accessWidening: [
+      accessChanges: [
         { operation: 'Disable row-level security on "User"', subject: user },
         { operation: 'Drop RLS policy "User readers" on "User"', subject: user },
       ],
@@ -300,11 +300,11 @@ describe('Postgres planner, data loss', () => {
       User: { columns: { id: 'int4' }, policy: 'false', policyHash: 'bbbbbbbb' },
     });
 
-    const { labels, accessWidening } = await planned(from, to);
+    const { labels, accessChanges } = await planned(from, to);
     expect(labels).toEqual(
       expect.arrayContaining([expect.stringContaining('User_readers_aaaaaaaa')]),
     );
-    expect(accessWidening).toEqual([]);
+    expect(accessChanges).toEqual([]);
   });
 
   it('lists the drop of a generated-name policy the plan does not replace', async () => {
@@ -313,8 +313,8 @@ describe('Postgres planner, data loss', () => {
     });
     const to = contract('to', { User: { columns: { id: 'int4' } } });
 
-    const { accessWidening } = await planned(from, to);
-    expect(accessWidening.map(({ operation }) => operation)).toEqual(
+    const { accessChanges } = await planned(from, to);
+    expect(accessChanges.map(({ operation }) => operation)).toEqual(
       expect.arrayContaining([expect.stringContaining('User_readers_aaaaaaaa')]),
     );
   });
@@ -323,8 +323,8 @@ describe('Postgres planner, data loss', () => {
     const from = contract('from', { User: { columns: { id: 'int4' }, policy: 'true' } });
     const to = contract('to', { User: { columns: { id: 'int4' }, policy: 'false' } });
 
-    const { dataLoss, accessWidening } = await planned(from, to);
-    expect({ dataLoss, accessWidening }).toEqual({ dataLoss: [], accessWidening: [] });
+    const { dataLoss, accessChanges } = await planned(from, to);
+    expect({ dataLoss, accessChanges }).toEqual({ dataLoss: [], accessChanges: [] });
   });
 
   it('names the origin model and fields of a table a statement renamed earlier in the plan', async () => {

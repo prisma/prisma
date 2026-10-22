@@ -29,8 +29,19 @@ export interface ResolvedFieldRenameStatement {
   readonly to: FieldCoordinate;
 }
 
+/** A namespace renamed: `from` is a namespace of the origin contract and `to` one of the destination. */
+export interface ResolvedNamespaceRenameStatement {
+  readonly kind: 'rename';
+  readonly entity: 'namespace';
+  readonly from: NamespaceId;
+  readonly to: NamespaceId;
+}
+
 /** A rename: `from` is a coordinate of the origin contract and `to` one of the destination contract. */
-export type ResolvedRenameStatement = ResolvedModelRenameStatement | ResolvedFieldRenameStatement;
+export type ResolvedRenameStatement =
+  | ResolvedNamespaceRenameStatement
+  | ResolvedModelRenameStatement
+  | ResolvedFieldRenameStatement;
 
 /** A field whose values the migration converts to its new type with code the user writes. */
 export interface ResolvedFieldConvertStatement {
@@ -92,12 +103,9 @@ export interface MigrationOperationSubject {
   readonly subject: MigrationSubject;
 }
 
-/** An operation that changes who can read or write the rows of its subject. */
+/** An operation that changes who can read or write its subject's data. */
 export interface MigrationAccessChange extends MigrationOperationSubject {
-  /**
-   * True when it lets more people read or write, such as disabling row-level security; false when
-   * the change can go either way, such as dropping a policy.
-   */
+  /** True when it lets more people read or write; false when the change can go either way. */
   readonly widens: boolean;
 }
 
@@ -138,9 +146,20 @@ export interface MigrationPlanSubjects<
   /** Each operation that loses data, in plan order, with what it loses. */
   readonly dataLoss: readonly TLoss[];
   /** Each operation that changes who can read or write data, in plan order, with what it is about. */
-  readonly accessWidening: readonly TAccess[];
+  readonly accessChanges: readonly TAccess[];
   /** Each new required field whose existing rows the plan gives a temporary value, in plan order. */
   readonly temporaryValues: readonly TTemporary[];
+}
+
+/**
+ * The namespaces a plan changes, by namespace id: `removed` are those of the origin contract whose
+ * tables the plan drops with them because the destination no longer declares them, and `added`
+ * are those the destination declares and the origin does not. A planner without namespaces reports
+ * neither.
+ */
+export interface MigrationPlanNamespaces {
+  readonly removed: readonly string[];
+  readonly added: readonly string[];
 }
 
 /**
@@ -194,6 +213,12 @@ export interface FieldCoordinateJson extends ModelCoordinateJson {
 export type MigrationStatementJson =
   | {
       readonly kind: 'rename';
+      readonly entity: 'namespace';
+      readonly from: { readonly namespaceId: NamespaceId };
+      readonly to: { readonly namespaceId: NamespaceId };
+    }
+  | {
+      readonly kind: 'rename';
       readonly entity: 'model';
       readonly from: ModelCoordinateJson;
       readonly to: ModelCoordinateJson;
@@ -228,14 +253,26 @@ function coordinateJson<T extends ModelCoordinate>(
 export function migrationStatementJson(
   statement: ResolvedMigrationStatement,
 ): MigrationStatementJson {
-  switch (statement.kind) {
-    case 'rename':
-      return statement.entity === 'model'
-        ? { ...statement, from: coordinateJson(statement.from), to: coordinateJson(statement.to) }
-        : { ...statement, from: coordinateJson(statement.from), to: coordinateJson(statement.to) };
-    case 'convert':
-    case 'backfill':
-      return { ...statement, field: coordinateJson(statement.field) };
+  if (statement.kind !== 'rename') return { ...statement, field: coordinateJson(statement.field) };
+  switch (statement.entity) {
+    case 'namespace':
+      return {
+        ...statement,
+        from: { namespaceId: statement.from },
+        to: { namespaceId: statement.to },
+      };
+    case 'model':
+      return {
+        ...statement,
+        from: coordinateJson(statement.from),
+        to: coordinateJson(statement.to),
+      };
+    case 'field':
+      return {
+        ...statement,
+        from: coordinateJson(statement.from),
+        to: coordinateJson(statement.to),
+      };
   }
 }
 
@@ -261,9 +298,16 @@ export function migrationSubjectJson(subject: MigrationSubject): MigrationSubjec
   }
 }
 
+function qualifiedModelText(coordinate: ModelCoordinate): string {
+  return coordinate.namespaceId === UNBOUND_NAMESPACE_ID
+    ? coordinate.model
+    : `${coordinate.namespaceId}.${coordinate.model}`;
+}
+
 /**
  * The text that reports a statement, in domain names: a model or field is named with its
- * namespace only when its contract has more than one. A renamed field is named through its model as
+ * namespace only when its contract has more than one, and a model moved to another namespace always
+ * is. A renamed field is named through its model as
  * the destination contract names it, as the statement itself is written.
  */
 export function describeMigrationStatement(
@@ -274,8 +318,18 @@ export function describeMigrationStatement(
   if (statement.kind !== 'rename') {
     return `${statement.kind} field "${modelStatementText(contract, statement.field)}.${statement.field.field}"`;
   }
+  if (statement.entity === 'namespace') {
+    return `rename namespace "${statement.from}" to "${statement.to}"`;
+  }
   if (statement.entity === 'model') {
-    return `rename model "${modelStatementText(fromContract, statement.from)}" to "${modelStatementText(contract, statement.to)}"`;
+    const { from, to } = statement;
+    if (from.namespaceId === to.namespaceId) {
+      return `rename model "${modelStatementText(fromContract, from)}" to "${modelStatementText(contract, to)}"`;
+    }
+    if (from.model === to.model) {
+      return `move model "${qualifiedModelText(from)}" to namespace "${to.namespaceId}"`;
+    }
+    return `rename model "${qualifiedModelText(from)}" to "${qualifiedModelText(to)}"`;
   }
   const model = modelStatementText(contract, statement.to);
   return `rename field "${model}.${statement.from.field}" to "${model}.${statement.to.field}"`;

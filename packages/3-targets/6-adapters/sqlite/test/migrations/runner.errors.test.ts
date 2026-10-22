@@ -59,8 +59,13 @@ describe('SqliteMigrationRunner - Error Scenarios', { timeout: timeouts.database
     expect(failure.code).toBe('MIGRATION.SCHEMA_VERIFY_FAILED');
     expect({
       metaKeys: Object.keys(failure.meta).sort(),
+      databaseUnchanged: failure.meta.databaseUnchanged,
       found: (failure.meta.schemaIssues?.length ?? 0) > 0,
-    }).toEqual({ metaKeys: ['failingSpace', 'schemaIssues'], found: true });
+    }).toEqual({
+      metaKeys: ['databaseUnchanged', 'failingSpace', 'schemaIssues'],
+      databaseUnchanged: true,
+      found: true,
+    });
 
     await expectNoMarkerOrLedgerWrites(driver);
   });
@@ -90,6 +95,9 @@ describe('SqliteMigrationRunner - Error Scenarios', { timeout: timeouts.database
     const failure = result.assertNotOk();
     expect(failure.code).toBe('MIGRATION.PRECHECK_FAILED');
     expect(failure.message).toMatch(/precheck/i);
+    expect(failure.why).toBe(
+      'Before operation table.user runs, it checks: always false. That check failed on this database. The failed apply changed nothing.',
+    );
 
     await expectNoMarkerOrLedgerWrites(driver);
   });
@@ -184,7 +192,13 @@ describe('SqliteMigrationRunner - Error Scenarios', { timeout: timeouts.database
               sql: 'CREATE TABLE "test_table" (id INTEGER PRIMARY KEY)',
             },
           ],
-          postcheck: [{ description: 'always returns false', sql: 'SELECT 0' }],
+          postcheck: [
+            {
+              description: 'verify table "test_table" exists',
+              sql: 'SELECT 0',
+              expectation: { expects: 'present', object: 'table "test_table"' },
+            },
+          ],
         },
       ],
       providedInvariants: [],
@@ -209,6 +223,9 @@ describe('SqliteMigrationRunner - Error Scenarios', { timeout: timeouts.database
     const failure = result.assertNotOk();
     expect(failure.code).toBe('MIGRATION.POSTCHECK_FAILED');
     expect(failure.message).toMatch(/table\.test_table/i);
+    expect(failure.why).toBe(
+      'After operation table.test_table ran, it checks: verify table "test_table" exists. That check failed: the database has no table "test_table". The failed apply changed nothing.',
+    );
 
     // Table should be rolled back
     const tableRow = await driver.query<{ cnt: number }>(

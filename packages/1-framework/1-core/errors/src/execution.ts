@@ -1,7 +1,3 @@
-import type {
-  SchemaDiffIssue,
-  VerifyDatabaseSchemaResult,
-} from '@internal/framework-components/control';
 import { ifDefined } from '@internal/utils/defined';
 import {
   type Diagnostic,
@@ -189,29 +185,6 @@ export function errorMarkerRequired(options?: {
     nextActions: options?.nextActions ?? [
       { kind: 'run-command', label: 'Sign the database', command: '{bin} db init' },
     ],
-  });
-}
-
-/**
- * Schema verification found mismatches between the database and the contract.
- * The full verification result is preserved in `meta.verificationResult`.
- */
-export function errorSchemaVerificationFailed(options: {
-  readonly summary: string;
-  readonly verificationResult: VerifyDatabaseSchemaResult;
-  readonly issues?: readonly SchemaDiffIssue[];
-}): CliStructuredError {
-  return new CliStructuredError('CONTRACT.SCHEMA_VERIFICATION_FAILED', options.summary, {
-    why: 'Database schema does not satisfy the contract',
-    fix: 'Run `{bin} db update` to reconcile, or adjust your contract to match the database',
-    nextActions: [
-      { kind: 'run-command', label: 'Reconcile the database', command: '{bin} db update' },
-      { kind: 'edit-file', label: 'Adjust your contract to match the database' },
-    ],
-    meta: {
-      verificationResult: options.verificationResult,
-      ...ifDefined('issues', options.issues),
-    },
   });
 }
 

@@ -68,17 +68,29 @@ describe('renameTable (postgres)', () => {
       tableExistsAst('public', 'userProfile').tableAbsent(),
     ]);
     expect(op.precheck).toEqual([
-      { description: 'ensure table "userProfile" exists', sql: 'LOWERED 1', params: ['p1'] },
+      {
+        description: 'ensure table "userProfile" exists',
+        expectation: { expects: 'present', object: 'table "userProfile"' },
+        sql: 'LOWERED 1',
+        params: ['p1'],
+      },
       {
         description: 'ensure table "UserProfile" does not exist',
+        expectation: { expects: 'absent', object: 'table "UserProfile"' },
         sql: 'LOWERED 2',
         params: ['p2'],
       },
     ]);
     expect(op.postcheck).toEqual([
-      { description: 'verify table "UserProfile" exists', sql: 'LOWERED 3', params: ['p3'] },
+      {
+        description: 'verify table "UserProfile" exists',
+        expectation: { expects: 'present', object: 'table "UserProfile"' },
+        sql: 'LOWERED 3',
+        params: ['p3'],
+      },
       {
         description: 'verify table "userProfile" no longer exists',
+        expectation: { expects: 'absent', object: 'table "userProfile"' },
         sql: 'LOWERED 4',
         params: ['p4'],
       },

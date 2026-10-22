@@ -91,6 +91,40 @@ describe('describeMigrationStatement', () => {
     ).toBe('rename model "app.Profile" to "app.User"');
   });
 
+  it('names a model moved to another namespace as moved, with both namespaces', () => {
+    const move: ResolvedMigrationStatement = {
+      kind: 'rename',
+      entity: 'model',
+      from: { namespaceId: asNamespaceId('billing'), model: 'Invoice' },
+      to: { namespaceId: asNamespaceId('public'), model: 'Invoice' },
+    };
+
+    expect(
+      describeMigrationStatement(
+        move,
+        contractWith({ billing: ['Invoice'] }),
+        contractWith({ public: ['Invoice'] }),
+      ),
+    ).toBe('move model "billing.Invoice" to namespace "public"');
+  });
+
+  it('names both namespaces when a model is moved and renamed', () => {
+    const moveAndRename: ResolvedMigrationStatement = {
+      kind: 'rename',
+      entity: 'model',
+      from: { namespaceId: asNamespaceId('billing'), model: 'Invoice' },
+      to: { namespaceId: asNamespaceId('finance'), model: 'Bill' },
+    };
+
+    expect(
+      describeMigrationStatement(
+        moveAndRename,
+        contractWith({ billing: ['Invoice'] }),
+        contractWith({ finance: ['Bill'] }),
+      ),
+    ).toBe('rename model "billing.Invoice" to "finance.Bill"');
+  });
+
   it('names the old field through the model as the destination names it', () => {
     expect(
       describeMigrationStatement(
@@ -160,6 +194,22 @@ describe('modelDisplayName', () => {
 });
 
 describe('migrationStatementJson', () => {
+  it('writes a namespace rename with coordinates, as it writes a model rename', () => {
+    expect(
+      migrationStatementJson({
+        kind: 'rename',
+        entity: 'namespace',
+        from: asNamespaceId('billing'),
+        to: asNamespaceId('finance'),
+      }),
+    ).toEqual({
+      kind: 'rename',
+      entity: 'namespace',
+      from: { namespaceId: 'billing' },
+      to: { namespaceId: 'finance' },
+    });
+  });
+
   it('leaves namespaceId out for the unbound namespace and keeps it otherwise', () => {
     const unbound = asNamespaceId(UNBOUND_NAMESPACE_ID);
     expect([
@@ -240,5 +290,25 @@ describe('migrationSubjectKey', () => {
       migrationSubjectKey({ kind: 'storage', name: 'User' }),
     ]);
     expect(keys.size).toBe(3);
+  });
+});
+
+describe('a namespace rename', () => {
+  const statement: ResolvedMigrationStatement = {
+    kind: 'rename',
+    entity: 'namespace',
+    from: asNamespaceId('billing'),
+    to: asNamespaceId('finance'),
+  };
+
+  it('is described by its namespace names', () => {
+    const contract = contractWith({ billing: ['Invoice'], app: ['User'] });
+    expect(describeMigrationStatement(statement, contract, contract)).toBe(
+      'rename namespace "billing" to "finance"',
+    );
+  });
+
+  it('is a rename statement', () => {
+    expect(isRenameStatement(statement)).toBe(true);
   });
 });

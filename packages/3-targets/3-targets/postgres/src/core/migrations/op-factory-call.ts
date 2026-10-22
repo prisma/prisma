@@ -38,6 +38,7 @@ import type {
   OpFactoryCall as FrameworkOpFactoryCall,
   MigrationOperationClass,
 } from '@internal/framework-components/control';
+import { expectAbsent, expectPresent } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { AnyDdlColumnDefault, DdlTableConstraint } from '@internal/sql-relational-core/ast';
 import {
@@ -118,6 +119,7 @@ import {
   enableRowLevelSecurity,
   renameRlsPolicy,
 } from './operations/rls';
+import { dropSchema, renameSchema, setTableSchema } from './operations/schemas';
 import type { ForeignKeySpec } from './operations/shared';
 import { step, targetDetails } from './operations/shared';
 import { dropTable, renameTable } from './operations/tables';
@@ -336,7 +338,14 @@ export class CreateTableCall extends PostgresOpFactoryCallNode {
       summary: `Creates table "${tableName}"`,
       operationClass: 'additive',
       target: targetDetails('table', tableName, schemaName),
-      precheck: [step(`ensure table "${tableName}" does not exist`, absent.sql, absent.params)],
+      precheck: [
+        step(
+          `ensure table "${tableName}" does not exist`,
+          absent.sql,
+          absent.params,
+          expectAbsent(`table "${tableName}"`),
+        ),
+      ],
       execute: [
         {
           description: `create table "${tableName}"`,
@@ -344,7 +353,14 @@ export class CreateTableCall extends PostgresOpFactoryCallNode {
           params: statement.params ?? [],
         },
       ],
-      postcheck: [step(`verify table "${tableName}" exists`, isTable.sql, isTable.params)],
+      postcheck: [
+        step(
+          `verify table "${tableName}" exists`,
+          isTable.sql,
+          isTable.params,
+          expectPresent(`table "${tableName}"`),
+        ),
+      ],
     };
   }
 
@@ -560,10 +576,22 @@ export class AddColumnCall extends PostgresOpFactoryCallNode {
       label: `Add column "${columnName}" to "${tableName}"`,
       operationClass: 'additive',
       target: targetDetails('column', columnName, schemaName, tableName),
-      precheck: [step(`ensure column "${columnName}" is missing`, absent.sql, absent.params)],
+      precheck: [
+        step(
+          `ensure column "${columnName}" is missing`,
+          absent.sql,
+          absent.params,
+          expectAbsent(`column "${columnName}" on "${tableName}"`),
+        ),
+      ],
       execute: [step(`add column "${columnName}"`, statement.sql)],
       postcheck: [
-        step(`verify column "${columnName}" exists`, present.sql, present.params),
+        step(
+          `verify column "${columnName}" exists`,
+          present.sql,
+          present.params,
+          expectPresent(`column "${columnName}" on "${tableName}"`),
+        ),
         hasType,
         ...notNullable.map((check) =>
           step(`verify column "${columnName}" is NOT NULL`, check.sql, check.params),
@@ -1840,6 +1868,7 @@ export class CreateSchemaCall extends PostgresOpFactoryCallNode {
   readonly operationClass = 'additive' as const;
   readonly schemaName: string;
   readonly label: string;
+  readonly companions: readonly [] = [];
 
   constructor(schemaName: string) {
     super();
@@ -1878,6 +1907,125 @@ export class CreateSchemaCall extends PostgresOpFactoryCallNode {
 
   renderTypeScript(): string {
     return `this.createSchema({ schema: ${jsonToTsSource(this.schemaName)} })`;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [];
+  }
+}
+
+function requireLowerer(
+  lowerer: ExecuteRequestLowerer | undefined,
+  factory: string,
+  subject: string,
+): ExecuteRequestLowerer {
+  if (lowerer === undefined) {
+    throw postgresError(
+      'MIGRATION.POSTGRES_CONTROL_STACK_MISSING',
+      `${factory}.toOp: a lowerer is required on the Postgres planner path (${subject}). Pass the control adapter to createPostgresMigrationPlanner.`,
+      { meta: { factory } },
+    );
+  }
+  return lowerer;
+}
+
+export class SetTableSchemaCall extends PostgresOpFactoryCallNode {
+  readonly factoryName = 'setTableSchema' as const;
+  readonly operationClass = 'widening' as const;
+  readonly schemaName: string;
+  readonly tableName: string;
+  readonly toSchemaName: string;
+  readonly label: string;
+  readonly companions: readonly [] = [];
+
+  constructor(schemaName: string, tableName: string, toSchemaName: string) {
+    super();
+    this.schemaName = schemaName;
+    this.tableName = tableName;
+    this.toSchemaName = toSchemaName;
+    this.label = `Move table "${tableName}" to schema "${toSchemaName}"`;
+    this.freeze();
+  }
+
+  async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
+    return setTableSchema(
+      this.schemaName,
+      this.tableName,
+      this.toSchemaName,
+      requireLowerer(lowerer, 'SetTableSchemaCall', `table "${this.tableName}"`),
+    );
+  }
+
+  renderTypeScript(): string {
+    const opts: string[] = [];
+    if (this.schemaName !== UNBOUND_NAMESPACE_ID) {
+      opts.push(`schema: ${jsonToTsSource(this.schemaName)}`);
+    }
+    opts.push(`table: ${jsonToTsSource(this.tableName)}`);
+    opts.push(`to: ${jsonToTsSource(this.toSchemaName)}`);
+    return `this.setTableSchema({ ${opts.join(', ')} })`;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [];
+  }
+}
+
+export class RenameSchemaCall extends PostgresOpFactoryCallNode {
+  readonly factoryName = 'renameSchema' as const;
+  readonly operationClass = 'widening' as const;
+  readonly schemaName: string;
+  readonly toSchemaName: string;
+  readonly label: string;
+  readonly companions: readonly [] = [];
+
+  constructor(schemaName: string, toSchemaName: string) {
+    super();
+    this.schemaName = schemaName;
+    this.toSchemaName = toSchemaName;
+    this.label = `Rename schema "${schemaName}" to "${toSchemaName}"`;
+    this.freeze();
+  }
+
+  async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
+    return renameSchema(
+      this.schemaName,
+      this.toSchemaName,
+      requireLowerer(lowerer, 'RenameSchemaCall', `schema "${this.schemaName}"`),
+    );
+  }
+
+  renderTypeScript(): string {
+    return `this.renameSchema({ schema: ${jsonToTsSource(this.schemaName)}, to: ${jsonToTsSource(this.toSchemaName)} })`;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [];
+  }
+}
+
+export class DropSchemaCall extends PostgresOpFactoryCallNode {
+  readonly factoryName = 'dropSchema' as const;
+  readonly operationClass = 'widening' as const;
+  readonly schemaName: string;
+  readonly label: string;
+
+  constructor(schemaName: string) {
+    super();
+    this.schemaName = schemaName;
+    this.label = `Drop schema "${schemaName}"`;
+    this.freeze();
+  }
+
+  async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
+    return dropSchema(
+      this.schemaName,
+      requireLowerer(lowerer, 'DropSchemaCall', `schema "${this.schemaName}"`),
+    );
+  }
+
+  renderTypeScript(): string {
+    return `this.dropSchema({ schema: ${jsonToTsSource(this.schemaName)} })`;
   }
 
   override importRequirements(): readonly ImportRequirement[] {
@@ -2032,11 +2180,17 @@ export class AddNativeEnumValueCall extends PostgresOpFactoryCallNode {
       operationClass: 'additive',
       target: targetDetails('type', typeName, schemaName),
       precheck: [
-        step(`ensure enum type "${typeName}" exists`, typePresent.sql, typePresent.params),
+        step(
+          `ensure enum type "${typeName}" exists`,
+          typePresent.sql,
+          typePresent.params,
+          expectPresent(`enum type "${typeName}"`),
+        ),
         step(
           `ensure value "${value}" is absent from enum type "${typeName}"`,
           valueAbsent.sql,
           valueAbsent.params,
+          expectAbsent(`value "${value}" in enum type "${typeName}"`),
         ),
       ],
       execute: [
@@ -2050,6 +2204,7 @@ export class AddNativeEnumValueCall extends PostgresOpFactoryCallNode {
           `verify value "${value}" exists on enum type "${typeName}"`,
           valuePresent.sql,
           valuePresent.params,
+          expectPresent(`value "${value}" in enum type "${typeName}"`),
         ),
       ],
     };
@@ -2380,6 +2535,9 @@ export type PostgresOpFactoryCall =
   | RawSqlCall
   | CreateExtensionCall
   | CreateSchemaCall
+  | SetTableSchemaCall
+  | RenameSchemaCall
+  | DropSchemaCall
   | CreateNativeEnumTypeCall
   | DropNativeEnumTypeCall
   | AddNativeEnumValueCall

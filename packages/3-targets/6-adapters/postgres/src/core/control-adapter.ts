@@ -83,7 +83,9 @@ import type {
   DropDefaultAction,
   PostgresAlterIndexRename,
   PostgresAlterPolicyRename,
+  PostgresAlterSchemaRename,
   PostgresAlterTable,
+  PostgresAlterTableSetSchema,
   PostgresCreateIndex,
   PostgresCreatePolicy,
   PostgresCreateSchema,
@@ -93,6 +95,7 @@ import type {
   PostgresDisableRowLevelSecurity,
   PostgresDropIndex,
   PostgresDropPolicy,
+  PostgresDropSchema,
   PostgresDropType,
   RlsPolicyOperation,
 } from '@internal/target-postgres/ddl';
@@ -2177,6 +2180,24 @@ function pgRenderDisableRowLevelSecurity(node: PostgresDisableRowLevelSecurity):
   };
 }
 
+function pgRenderAlterTableSetSchema(node: PostgresAlterTableSetSchema): SqlExecuteRequest {
+  return {
+    sql: `ALTER TABLE ${pgQualify(node.schema, node.table)} SET SCHEMA ${quoteIdentifier(node.to)}`,
+    params: [],
+  };
+}
+
+function pgRenderAlterSchemaRename(node: PostgresAlterSchemaRename): SqlExecuteRequest {
+  return {
+    sql: `ALTER SCHEMA ${quoteIdentifier(node.schema)} RENAME TO ${quoteIdentifier(node.to)}`,
+    params: [],
+  };
+}
+
+function pgRenderDropSchema(node: PostgresDropSchema): SqlExecuteRequest {
+  return { sql: `DROP SCHEMA ${quoteIdentifier(node.schema)}`, params: [] };
+}
+
 async function pgRenderDdlExecuteRequest(
   ast: PostgresDdlNode,
   codecLookup: CodecLookupWithDescriptors,
@@ -2197,6 +2218,11 @@ async function pgRenderDdlExecuteRequest(
       Promise.resolve(pgRenderAlterIndexRename(node)),
     disableRowLevelSecurity: (node: PostgresDisableRowLevelSecurity) =>
       Promise.resolve(pgRenderDisableRowLevelSecurity(node)),
+    alterTableSetSchema: (node: PostgresAlterTableSetSchema) =>
+      Promise.resolve(pgRenderAlterTableSetSchema(node)),
+    alterSchemaRename: (node: PostgresAlterSchemaRename) =>
+      Promise.resolve(pgRenderAlterSchemaRename(node)),
+    dropSchema: (node: PostgresDropSchema) => Promise.resolve(pgRenderDropSchema(node)),
   };
   return ast.accept(visitor);
 }

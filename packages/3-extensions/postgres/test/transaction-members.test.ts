@@ -105,13 +105,19 @@ describe('a postgres transaction', () => {
     expect(recorded.statements).toEqual(onOneConnection(everyStatementInTheTransaction));
   });
 
-  it("offers the client's toSql", async () => {
+  it("offers the client's toSql, sql and raw", async () => {
     const db = postgres({ contract, url, verifyMarker: false });
 
-    const toSql = await db.transaction(async (tx) => tx.toSql);
+    const members = await db.transaction(async (tx) => ({
+      toSql: tx.toSql,
+      sql: tx.sql,
+      raw: tx.raw,
+    }));
     await db.close();
 
-    expect(toSql).toBe(db.toSql);
+    expect(members.toSql).toBe(db.toSql);
+    expect(members.sql).toBe(db.sql);
+    expect(members.raw).toBe(db.raw);
   });
 
   it('runs a statement prepared on the client inside the transaction it is given', async () => {

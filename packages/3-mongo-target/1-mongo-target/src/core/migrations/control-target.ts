@@ -104,6 +104,7 @@ export const mongoTargetDescriptor: MongoControlTargetDescriptor<MongoTargetCont
             space: string;
             value: MigrationRunnerPerSpaceSuccessValue;
           }> = [];
+          let changedDatabase = false;
           for (let i = 0; i < perSpaceOptions.length; i++) {
             const spaceOptions = perSpaceOptions[i];
             if (!spaceOptions) continue;
@@ -115,11 +116,17 @@ export const mongoTargetDescriptor: MongoControlTargetDescriptor<MongoTargetCont
               result: VerifyDatabaseSchemaResult,
             ): VerifyDatabaseSchemaResult => scopeVerifyResultToSpace(result, ownedByOtherSpaces);
             const { space, ...runnerOptions } = spaceOptions;
-            const result = await runMongo(driver, { ...runnerOptions, scopeVerifyResult });
+            const result = await runMongo(driver, {
+              ...runnerOptions,
+              scopeVerifyResult,
+              databaseChangedBefore: changedDatabase,
+            });
             if (!result.ok) {
               return notOk(withFailingSpace(result.failure, space));
             }
-            perSpaceResults.push({ space, value: result.value });
+            const { changedDatabase: spaceChanged, ...value } = result.value;
+            changedDatabase ||= spaceChanged;
+            perSpaceResults.push({ space, value });
           }
           return ok({ perSpaceResults });
         },

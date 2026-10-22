@@ -98,7 +98,10 @@ function buildLiveSchema(): SqlSchemaIR {
 // implicitly qualified with `UNBOUND_NAMESPACE_ID`.
 const ownsOnly = (...coordinates: readonly SchemaEntityCoordinate[]): SchemaOwnership => {
   const owned = new Set(coordinates.map(coordinateKey));
-  return { declaresEntity: (coordinate) => owned.has(coordinateKey(coordinate)) };
+  return {
+    declaresEntity: (coordinate) => owned.has(coordinateKey(coordinate)),
+    namespaceDeclaringSpaces: () => [],
+  };
 };
 
 /** A table coordinate in SQLite's sole (unbound) namespace — the common case. */

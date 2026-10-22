@@ -275,15 +275,17 @@ describe('MongoMigrationRunner', () => {
     ).toEqual({
       code: 'MIGRATION.PRECHECK_FAILED',
       meta: {
+        databaseUnchanged: true,
         failedCheck: {
           operationId: expect.any(String),
           phase: 'precheck',
           description: 'index does not already exist on users',
+          expectation: { expects: 'absent', object: 'an index on { email: 1 } in "users"' },
         },
       },
     });
     expect(result.ok ? undefined : result.failure.why).toMatch(
-      /^Before operation .* runs, it checks: index does not already exist on users\. That check failed/,
+      /^Before operation .* runs, it checks: index does not already exist on users\. That check failed: the database already has an index on \{ email: 1 \} in "users"\. The failed apply changed nothing\.$/,
     );
   });
 

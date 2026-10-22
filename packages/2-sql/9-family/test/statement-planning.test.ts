@@ -162,27 +162,6 @@ describe('planStatements', () => {
     });
   });
 
-  it('rejects moving a model to another namespace, naming both coordinates', () => {
-    const statement = renameModel('User', 'User', 'auth', 'billing');
-    const conflict = rejection(
-      planStatements({
-        policy: ALL_CLASSES,
-        statements: [statement],
-        fromContract: contractOf({ User: { table: 'User', namespace: 'auth' } }),
-        contract: contractOf({ User: { table: 'User', namespace: 'billing' } }),
-        target: fakeTarget(['auth.User']),
-      }),
-    );
-    expect(conflict).toMatchObject({
-      kind: 'statementRefused',
-      refusedStatement: statement,
-      location: { namespaceId: 'auth', entityKind: 'table', entityName: 'User' },
-    });
-    expect(conflict.summary).toContain('not supported in this release');
-    expect(conflict.summary).toContain('"auth.User"');
-    expect(conflict.summary).toContain('"billing.User"');
-  });
-
   it.each(['external', 'observed', 'tolerated'] as const)(
     'rejects renaming a table whose control policy is %s',
     (control) => {

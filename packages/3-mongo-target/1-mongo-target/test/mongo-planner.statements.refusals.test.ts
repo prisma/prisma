@@ -1,3 +1,4 @@
+import { asNamespaceId } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import {
   contract,
@@ -12,6 +13,33 @@ import {
 } from './mongo-statement-fixtures';
 
 describe('MongoMigrationPlanner, statements it refuses', () => {
+  it('refuses renaming a namespace', () => {
+    expect(
+      refusal(
+        plan({
+          from: profiles,
+          to: profiles,
+          schema: profilesSchema,
+          statements: [
+            {
+              kind: 'rename',
+              entity: 'namespace',
+              from: asNamespaceId('billing'),
+              to: asNamespaceId('finance'),
+            },
+          ],
+        }),
+      ),
+    ).toEqual([
+      {
+        kind: 'statementRefused',
+        summary:
+          'Cannot rename namespace "billing" to "finance": MongoDB does not rename namespaces in this release',
+        why: 'Leave out this statement.',
+      },
+    ]);
+  });
+
   it('refuses renaming _id', () => {
     const to = contract(
       'to',

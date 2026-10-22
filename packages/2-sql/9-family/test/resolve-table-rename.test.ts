@@ -71,6 +71,7 @@ describe('resolveTableRenameAgainst', () => {
     sameName: (left: string, right: string) => boolean = (left, right) => left === right,
   ): SchemaTables => ({
     hasTable: (namespaceId, tableName) => namespaces[namespaceId]?.includes(tableName) === true,
+    hasNamespace: (namespaceId) => Object.hasOwn(namespaces, namespaceId),
     hasColumn: () => false,
     tablesNamed: (namespaceId, tableName) =>
       (namespaces[namespaceId] ?? []).filter((existing) => sameName(existing, tableName)),
