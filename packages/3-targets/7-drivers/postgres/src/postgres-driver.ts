@@ -836,10 +836,19 @@ class PostgresDirectDriverImpl
   // The caller owns this client, so the driver does not end it. It rolls back a transaction it may
   // have left open, without waiting, and records the client as one no driver may use again.
   #giveUpSuppliedClient(): void {
-    if (this.#txState.unfinishedOnServer) {
-      void this.directClient.query('ROLLBACK').catch(() => undefined);
-    }
     markClientAbandoned(this.directClient);
+    if (this.#txState.unfinishedOnServer) {
+      void this.#rollbackUnderQueryLock().catch(() => undefined);
+    }
+  }
+
+  async #rollbackUnderQueryLock(): Promise<void> {
+    const releaseLock = await acquireClientQueryLock(this.directClient);
+    try {
+      await this.directClient.query('ROLLBACK');
+    } finally {
+      releaseLock();
+    }
   }
 
   // A pg.Client cannot be reused after its connection dies or a connect fails, so the driver

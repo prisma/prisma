@@ -257,4 +257,32 @@ describe('postgres driver client ownership', () => {
     ).toThrow(expect.objectContaining({ code: 'DRIVER.NOT_CONNECTED' }));
     await client.end();
   });
+
+  it('refuses to bind a supplied client again even when its ROLLBACK throws', async () => {
+    const client = newClient();
+    await client.connect();
+    const driver = createBoundDriverFromBinding(
+      { kind: 'pgClient', client, ownedByDriver: false },
+      { disabled: true },
+    );
+    const connection = await driver.acquireConnection();
+    await connection.beginTransaction();
+    const query = client.query.bind(client);
+    vi.spyOn(client, 'query').mockImplementation(((config: unknown) => {
+      if (config === 'ROLLBACK') throw new Error('rollback refused');
+      return query(config as string);
+    }) as typeof client.query);
+
+    await expect(connection.destroy(new Error('rollback failed'))).resolves.toBeUndefined();
+
+    expect(() =>
+      createBoundDriverFromBinding(
+        { kind: 'pgClient', client, ownedByDriver: false },
+        { disabled: true },
+      ),
+    ).toThrow(expect.objectContaining({ code: 'DRIVER.NOT_CONNECTED' }));
+    vi.restoreAllMocks();
+    await client.query('ROLLBACK');
+    await client.end();
+  });
 });
