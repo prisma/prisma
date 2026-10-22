@@ -54,29 +54,6 @@ async function emitNormalized(contract: FrameworkContract): Promise<Record<strin
   return JSON.parse(emitted.contractJson) as Record<string, unknown>;
 }
 
-/**
- * PSL and TS authoring hash different storage projections and derive validators differently (a gap
- * that predates execution defaults), so the comparison leaves out `storage.storageHash` and each
- * collection's `validator`. Everything else, `execution` and its hash included, must match.
- */
-function withoutKnownStorageGap(contractJson: Record<string, unknown>): Record<string, unknown> {
-  const storage = contractJson['storage'] as Record<string, unknown>;
-  const namespaces = storage['namespaces'] as Record<string, Record<string, unknown>>;
-  const strippedNamespaces = Object.fromEntries(
-    Object.entries(namespaces).map(([id, namespace]) => {
-      const entries = namespace['entries'] as {
-        collection: Record<string, Record<string, unknown>>;
-      };
-      const collection = Object.fromEntries(
-        Object.entries(entries.collection).map(([name, { validator: _, ...rest }]) => [name, rest]),
-      );
-      return [id, { ...namespace, entries: { ...entries, collection } }];
-    }),
-  );
-  const { storageHash: _, ...restStorage } = storage;
-  return { ...contractJson, storage: { ...restStorage, namespaces: strippedNamespaces } };
-}
-
 describe('Mongo temporal presets from PSL and TS', () => {
   it(
     'emit the same contract, execution section and hash included',
@@ -98,7 +75,7 @@ describe('Mongo temporal presets from PSL and TS', () => {
 
       expect(fromPsl['execution']).toEqual(emittedContractJson.execution);
       expect(fromTs['execution']).toEqual(fromPsl['execution']);
-      expect(withoutKnownStorageGap(fromTs)).toEqual(withoutKnownStorageGap(fromPsl));
+      expect(fromTs).toEqual(fromPsl);
     },
     timeouts.typeScriptCompilation,
   );
@@ -123,7 +100,7 @@ describe('Mongo temporal presets from PSL and TS', () => {
 
       expect(fromPsl['execution']).toEqual(emittedContractJson.execution);
       expect(fromTs['execution']).toEqual(fromPsl['execution']);
-      expect(withoutKnownStorageGap(fromTs)).toEqual(withoutKnownStorageGap(fromPsl));
+      expect(fromTs).toEqual(fromPsl);
     },
     timeouts.typeScriptCompilation,
   );
