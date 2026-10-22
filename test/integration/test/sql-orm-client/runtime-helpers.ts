@@ -157,7 +157,7 @@ export async function createPgIntegrationRuntime(
       if (!driver) {
         throw new Error('Driver descriptor missing from execution stack');
       }
-      await driver.connect({ kind: 'pgClient', client });
+      await driver.connect({ kind: 'pgClient', client, ownsConnection: false });
 
       const realRuntime = new PostgresRuntimeImpl({
         closeRefusal: undefined,

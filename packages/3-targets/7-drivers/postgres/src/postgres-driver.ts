@@ -26,12 +26,8 @@ import { callbackToPromise } from './callback-to-promise';
 import { classifyClientError, hasLostConnection, watchClientLoss } from './client-loss';
 import { type DriverRuntimeError, driverError } from './driver-error';
 import { NamedCursor } from './named-cursor';
-import {
-  isAlreadyConnectedError,
-  isPostgresError,
-  normalizePgConnectionError,
-  normalizePgError,
-} from './normalize-error';
+import { isPostgresError, normalizePgConnectionError, normalizePgError } from './normalize-error';
+import { hasStartedConnecting } from './pg-client-state';
 import { serverTextTypes } from './server-text-types';
 
 export type QueryResult<T extends QueryResultRow = QueryResultRow> = PgQueryResult<T>;
@@ -50,8 +46,18 @@ export type QueryResult<T extends QueryResultRow = QueryResultRow> = PgQueryResu
  */
 export type PostgresBinding =
   | { readonly kind: 'url'; readonly url: string }
-  | { readonly kind: 'pgPool'; readonly pool: PoolType }
-  | { readonly kind: 'pgClient'; readonly client: Client };
+  | {
+      readonly kind: 'pgPool';
+      readonly pool: PoolType;
+      /** Whether the driver ends the pool on close. False for a pool the caller supplied. */
+      readonly ownsConnection: boolean;
+    }
+  | {
+      readonly kind: 'pgClient';
+      readonly client: Client;
+      /** Whether the driver ends the client on close. False for a client the caller supplied. */
+      readonly ownsConnection: boolean;
+    };
 
 export interface PostgresCursorOptions {
   readonly batchSize?: number;
@@ -59,7 +65,9 @@ export interface PostgresCursorOptions {
 }
 
 interface PostgresDriverOptions {
-  readonly connect: { client: Client } | { pool: PoolType };
+  readonly connect:
+    | { readonly client: Client; readonly ownsConnection: boolean }
+    | { readonly pool: PoolType; readonly ownsConnection: boolean };
   readonly cursor?: PostgresCursorOptions | undefined;
   /**
    * Use server-side prepared statements for `query()` requests with a
@@ -657,11 +665,17 @@ class PostgresPoolDriverImpl
   implements SqlDriver<PostgresBinding>
 {
   private readonly pool: PoolType;
+  readonly #ownsPool: boolean;
   #closed = false;
 
-  constructor(options: PostgresDriverOptions & { connect: { pool: PoolType } }) {
+  constructor(
+    options: PostgresDriverOptions & {
+      connect: { readonly pool: PoolType; readonly ownsConnection: boolean };
+    },
+  ) {
     super(buildConnectionOptions(options));
     this.pool = options.connect.pool;
+    this.#ownsPool = options.connect.ownsConnection;
   }
 
   get state(): SqlDriverState {
@@ -682,7 +696,9 @@ class PostgresPoolDriverImpl
       return;
     }
     this.#closed = true;
-    await this.pool.end();
+    if (this.#ownsPool) {
+      await this.pool.end();
+    }
   }
 
   async acquireClient(): Promise<PoolClient> {
@@ -709,6 +725,7 @@ class PostgresDirectDriverImpl
   implements SqlDriver<PostgresBinding>
 {
   private readonly directClient: Client;
+  readonly #ownsClient: boolean;
   readonly #connectionMutex = new AsyncMutex();
   #closed = false;
   #connected = false;
@@ -718,9 +735,14 @@ class PostgresDirectDriverImpl
   // the cursor portal-protection wrap would COMMIT the caller's transaction.
   readonly #txState: SharedTransactionState = { open: false };
 
-  constructor(options: PostgresDriverOptions & { connect: { client: Client } }) {
+  constructor(
+    options: PostgresDriverOptions & {
+      connect: { readonly client: Client; readonly ownsConnection: boolean };
+    },
+  ) {
     super(buildConnectionOptions(options));
     this.directClient = watchClientLoss(options.connect.client);
+    this.#ownsClient = options.connect.ownsConnection;
     // A pg.Client cannot be reused after its connection dies, so mark the
     // driver closed and let acquireClient reject with a clear error instead
     // of handing out the dead client.
@@ -792,7 +814,9 @@ class PostgresDirectDriverImpl
       ? await acquireClientQueryLock(this.directClient)
       : () => {};
     try {
-      await this.directClient.end();
+      if (this.#ownsClient) {
+        await this.directClient.end();
+      }
     } finally {
       releaseQueryLock();
     }
@@ -809,6 +833,10 @@ class PostgresDirectDriverImpl
     if (this.#connected) {
       return this.directClient;
     }
+    if (!this.#ownsClient && hasStartedConnecting(this.directClient)) {
+      this.#connected = true;
+      return this.directClient;
+    }
     if (this.#connectPromise !== undefined) {
       await this.#connectPromise;
       return this.directClient;
@@ -818,9 +846,7 @@ class PostgresDirectDriverImpl
       try {
         await this.directClient.connect();
       } catch (error: unknown) {
-        if (!isAlreadyConnectedError(error)) {
-          throw normalizePgConnectionError(error);
-        }
+        throw normalizePgConnectionError(error);
       } finally {
         this.#connectPromise = undefined;
       }
@@ -850,20 +876,26 @@ export function createBoundDriverFromBinding(
         }),
       );
       return new PostgresPoolDriverImpl({
-        connect: { pool },
+        connect: { pool, ownsConnection: true },
         cursor: cursorOpts,
         preparedStatements,
       });
     }
     case 'pgPool':
       return new PostgresPoolDriverImpl({
-        connect: { pool: suppressIdleConnectionErrors(binding.pool) },
+        connect: {
+          pool: suppressIdleConnectionErrors(binding.pool),
+          ownsConnection: binding.ownsConnection,
+        },
         cursor: cursorOpts,
         preparedStatements,
       });
     case 'pgClient':
       return new PostgresDirectDriverImpl({
-        connect: { client: suppressIdleConnectionErrors(binding.client) },
+        connect: {
+          client: suppressIdleConnectionErrors(binding.client),
+          ownsConnection: binding.ownsConnection,
+        },
         cursor: cursorOpts,
         preparedStatements,
       });

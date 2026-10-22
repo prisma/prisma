@@ -98,18 +98,6 @@ export function isPostgresError(error: unknown): error is PostgresError {
 }
 
 /**
- * Checks if an error is an "already connected" error from pg.Client.connect().
- * When calling connect() on an already-connected client, pg throws an error that can be safely ignored.
- */
-export function isAlreadyConnectedError(error: unknown): error is Error {
-  if (!(error instanceof Error)) {
-    return false;
-  }
-  const message = error.message.toLowerCase();
-  return message.includes('already') && message.includes('connected');
-}
-
-/**
  * Checks if an error code is a Postgres SQLSTATE (5-character alphanumeric code).
  * SQLSTATE codes are standardized SQL error codes (e.g., '23505' for unique violation).
  */

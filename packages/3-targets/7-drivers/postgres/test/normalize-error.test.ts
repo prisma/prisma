@@ -2,7 +2,6 @@ import { access } from 'node:fs/promises';
 import { SqlConnectionError, SqlQueryError } from '@internal/sql-errors';
 import { describe, expect, it } from 'vitest';
 import {
-  isAlreadyConnectedError,
   isPostgresError,
   normalizePgConnectionError,
   normalizePgError,
@@ -186,12 +185,6 @@ describe('normalizePgError', () => {
       const error = normalizePgError(unknownError);
       expect(error).toBe(unknownError);
     });
-  });
-});
-
-describe('isAlreadyConnectedError', () => {
-  it('returns false for non-Error values', () => {
-    expect(isAlreadyConnectedError('already connected')).toBe(false);
   });
 });
 

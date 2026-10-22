@@ -1,6 +1,9 @@
 import postgresAdapter from '@internal/adapter-postgres/runtime';
 import type { Contract } from '@internal/contract/types';
-import postgresDriver, { suppressIdleConnectionErrors } from '@internal/driver-postgres/runtime';
+import postgresDriver, {
+  type PostgresBinding as DriverPostgresBinding,
+  suppressIdleConnectionErrors,
+} from '@internal/driver-postgres/runtime';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { CollectionClasses, NoCollectionClasses } from '@internal/sql-orm-client';
 import type { Runtime } from '@internal/sql-runtime';
@@ -69,13 +72,17 @@ export type PostgresOptions<
 function toRuntimeBinding<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses,
->(binding: PostgresBinding, options: PostgresOptions<TContract, TCollections>) {
+>(
+  binding: PostgresBinding,
+  options: PostgresOptions<TContract, TCollections>,
+): DriverPostgresBinding {
   if (binding.kind !== 'url') {
-    return binding;
+    return { ...binding, ownsConnection: false };
   }
 
   return {
     kind: 'pgPool',
+    ownsConnection: true,
     pool: suppressIdleConnectionErrors(
       new Pool({
         connectionString: binding.url,
@@ -148,7 +155,7 @@ export default function postgres<
     if (connectPromise) return connectPromise;
     const runtimeBinding = toRuntimeBinding(resolvedBinding, options);
     const ownedPool =
-      resolvedBinding.kind === 'url' && runtimeBinding.kind === 'pgPool'
+      runtimeBinding.kind === 'pgPool' && runtimeBinding.ownsConnection
         ? runtimeBinding.pool
         : undefined;
     connectPromise = runtimeDriver

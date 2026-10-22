@@ -264,14 +264,15 @@ function algKeyMismatchReason(jwt: string, kind: KeyMaterial['kind']): string | 
   return undefined;
 }
 
-function toPool<TContract extends Contract<SqlStorage>>(
+function toPoolBinding<TContract extends Contract<SqlStorage>>(
   options: SupabaseOptions<TContract>,
-): { pool: Pool; owned: boolean } | undefined {
+): { readonly kind: 'pgPool'; readonly pool: Pool; readonly ownsConnection: boolean } | undefined {
   if (options.pg !== undefined && isPgPool(options.pg)) {
-    return { pool: options.pg, owned: false };
+    return { kind: 'pgPool', pool: options.pg, ownsConnection: false };
   }
   if (typeof options.url === 'string') {
     return {
+      kind: 'pgPool',
       pool: suppressIdleConnectionErrors(
         new Pool({
           connectionString: options.url,
@@ -279,7 +280,7 @@ function toPool<TContract extends Contract<SqlStorage>>(
           idleTimeoutMillis: options.poolOptions?.idleTimeoutMillis ?? 30_000,
         }),
       ),
-      owned: true,
+      ownsConnection: true,
     };
   }
   return undefined;
@@ -396,10 +397,10 @@ export default async function supabase<
       verifyMarker: false,
     });
 
-    const poolEntry = toPool(options);
-    const ownedPool = poolEntry?.owned ? poolEntry.pool : undefined;
-    if (poolEntry) {
-      driver.connect({ kind: 'pgPool', pool: poolEntry.pool }).catch(async (err: unknown) => {
+    const poolBinding = toPoolBinding(options);
+    const ownedPool = poolBinding?.ownsConnection ? poolBinding.pool : undefined;
+    if (poolBinding) {
+      driver.connect(poolBinding).catch(async (err: unknown) => {
         connectError = { error: err };
         await ownedPool?.end().catch(() => undefined);
       });

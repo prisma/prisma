@@ -99,7 +99,7 @@ async function createSharedSessionHarness(options?: {
   const driver = postgresRuntimeDriverDescriptor.create({
     cursor: { batchSize: options?.cursorBatchSize ?? 10 },
   });
-  await driver.connect({ kind: 'pgClient', client });
+  await driver.connect({ kind: 'pgClient', client, ownsConnection: false });
 
   const created: SharedSessionHarness = {
     db,

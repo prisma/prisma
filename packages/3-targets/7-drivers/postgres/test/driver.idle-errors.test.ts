@@ -60,7 +60,7 @@ describe('idle connection errors', () => {
   it('a caller-supplied pgPool binding survives an emitted idle-connection error', async () => {
     const pool = new Pool({ connectionString: 'postgres://localhost:5432/db' });
     const driver = postgresRuntimeDriverDescriptor.create();
-    await driver.connect({ kind: 'pgPool', pool });
+    await driver.connect({ kind: 'pgPool', pool, ownsConnection: true });
 
     expect(() => pool.emit('error', new Error('idle client lost connection'))).not.toThrow();
 
@@ -70,7 +70,7 @@ describe('idle connection errors', () => {
   it('a caller-supplied pgClient binding survives an emitted connection error', async () => {
     const client = makeFakeDirectClient();
     const driver = postgresRuntimeDriverDescriptor.create();
-    await driver.connect({ kind: 'pgClient', client });
+    await driver.connect({ kind: 'pgClient', client, ownsConnection: true });
 
     expect(() =>
       client.emit('error', new Error('connection terminated unexpectedly')),
@@ -100,7 +100,7 @@ describe('idle connection errors', () => {
   it('after a direct client connection error, acquiring a connection rejects with a clear error', async () => {
     const client = makeFakeDirectClient();
     const driver = postgresRuntimeDriverDescriptor.create();
-    await driver.connect({ kind: 'pgClient', client });
+    await driver.connect({ kind: 'pgClient', client, ownsConnection: true });
 
     const connection = await driver.acquireConnection();
     client.emit('error', new Error('connection terminated unexpectedly'));

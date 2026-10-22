@@ -86,7 +86,10 @@ describe('postgres prepared statements', () => {
       const { client, calls } = makeMockClient({
         handler: () => ({ rows: [{ id: 1 }] }),
       });
-      const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client }, false);
+      const driver = makeDriver(
+        { kind: 'pgClient', client: client as unknown as Client, ownsConnection: true },
+        false,
+      );
       cleanups.push(() => driver.close());
 
       const { slot, snapshot } = makeSlot();
@@ -108,7 +111,10 @@ describe('postgres prepared statements', () => {
           return makePgError('26000', 'unexpected on anonymous query');
         },
       });
-      const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client }, false);
+      const driver = makeDriver(
+        { kind: 'pgClient', client: client as unknown as Client, ownsConnection: true },
+        false,
+      );
       cleanups.push(() => driver.close());
 
       const { slot } = makeSlot();
@@ -123,7 +129,11 @@ describe('postgres prepared statements', () => {
     const { client, calls } = makeMockClient({
       handler: () => ({ rows: [], rowCount: 3 }),
     });
-    const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client });
+    const driver = makeDriver({
+      kind: 'pgClient',
+      client: client as unknown as Client,
+      ownsConnection: true,
+    });
     cleanups.push(() => driver.close());
 
     await expect(driver.execute({ sql: 'update t set x = $1', params: [42] })).resolves.toEqual({
@@ -159,7 +169,7 @@ describe('postgres prepared statements', () => {
       },
     });
     const driver = makeDriver(
-      { kind: 'pgClient', client: client as unknown as Client },
+      { kind: 'pgClient', client: client as unknown as Client, ownsConnection: true },
       undefined,
       false,
     );
@@ -182,7 +192,11 @@ describe('postgres prepared statements', () => {
 
   it('returns no rows when a prepared query has an empty result', async () => {
     const { client, calls } = makeMockClient();
-    const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client });
+    const driver = makeDriver({
+      kind: 'pgClient',
+      client: client as unknown as Client,
+      ownsConnection: true,
+    });
     cleanups.push(() => driver.close());
 
     const { slot, snapshot } = makeSlot();
@@ -204,7 +218,11 @@ describe('postgres prepared statements', () => {
     const { client, calls } = makeMockClient({
       handler: () => ({ rows: [], rowCount: 1 }),
     });
-    const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client });
+    const driver = makeDriver({
+      kind: 'pgClient',
+      client: client as unknown as Client,
+      ownsConnection: true,
+    });
     cleanups.push(() => driver.close());
 
     const { slot, snapshot } = makeSlot();
@@ -221,7 +239,11 @@ describe('postgres prepared statements', () => {
   it('does not retry non-stale prepared failures', async () => {
     const failure = new Error('ordinary prepared failure');
     const { client, calls } = makeMockClient({ handler: () => failure });
-    const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client });
+    const driver = makeDriver({
+      kind: 'pgClient',
+      client: client as unknown as Client,
+      ownsConnection: true,
+    });
     cleanups.push(() => driver.close());
 
     const { slot, snapshot } = makeSlot();
@@ -238,6 +260,7 @@ describe('postgres prepared statements', () => {
     const directBinding: PostgresBinding = {
       kind: 'pgClient',
       client: client as unknown as Client,
+      ownsConnection: true,
     };
     const directDriver = makeDriver(directBinding);
     cleanups.push(() => directDriver.close());
@@ -250,6 +273,7 @@ describe('postgres prepared statements', () => {
     const poolBinding: PostgresBinding = {
       kind: 'pgPool',
       pool: pool as unknown as Pool,
+      ownsConnection: true,
     };
     const poolDriver = makeDriver(poolBinding);
     cleanups.push(() => poolDriver.close());
@@ -268,7 +292,11 @@ describe('postgres prepared statements', () => {
         handler: (_call, callIndex) =>
           callIndex === 0 ? makePgError('26000', 'statement gone') : retryError,
       });
-      const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client });
+      const driver = makeDriver({
+        kind: 'pgClient',
+        client: client as unknown as Client,
+        ownsConnection: true,
+      });
       cleanups.push(() => driver.close());
 
       const { slot, snapshot } = makeSlot();
@@ -307,7 +335,11 @@ describe('postgres prepared statements', () => {
         handler: (_call, callIndex) =>
           callIndex === 0 ? makePgError('26000', 'statement gone') : retryError,
       });
-      const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client });
+      const driver = makeDriver({
+        kind: 'pgClient',
+        client: client as unknown as Client,
+        ownsConnection: true,
+      });
       cleanups.push(() => driver.close());
 
       const { slot, snapshot } = makeSlot();

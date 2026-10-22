@@ -111,9 +111,11 @@ await driver.connect({ kind: 'url', url: process.env.DATABASE_URL });
 
 Binding variants:
 
-- `{ kind: 'url', url }`: Driver creates a Pool from the connection string
-- `{ kind: 'pgPool', pool }`: Use an existing pg Pool
-- `{ kind: 'pgClient', client }`: Use an existing pg Client (direct connection)
+- `{ kind: 'url', url }`: Driver creates a Pool from the connection string and ends it on `close()`
+- `{ kind: 'pgPool', pool, ownsConnection }`: Use an existing pg Pool
+- `{ kind: 'pgClient', client, ownsConnection }`: Use an existing pg Client (direct connection)
+
+`ownsConnection` says whether the driver ends the pool or client on `close()`. With `false` (a pool or client the caller supplied) the driver never ends it. A supplied client that has not started connecting is connected on first use; pg has no public flag for this, so the driver reads pg's `_connected` and `_connecting` fields.
 
 With `cursor: { disabled: true }` (or buffered cursor fallback), driver-level pool queries return their connection after fetching, before yielding buffered rows for decoding or consumption. Cursor streams retain the connection until completion or iterator cleanup. Queries on caller-owned connections and transactions never release the caller's lease.
 

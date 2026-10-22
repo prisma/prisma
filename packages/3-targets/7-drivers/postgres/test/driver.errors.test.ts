@@ -26,7 +26,7 @@ describe('@internal/driver-postgres', () => {
       cleanups.push(async () => {
         await driver.close();
       });
-      await driver.connect({ kind: 'pgPool', pool: pool as unknown as Pool });
+      await driver.connect({ kind: 'pgPool', pool: pool as unknown as Pool, ownsConnection: true });
       await expect(queryRows(driver, 'select * from nonexistent_table')).rejects.toThrow();
     },
     timeouts.spinUpPpgDev,
@@ -48,7 +48,7 @@ describe('@internal/driver-postgres', () => {
       })),
     };
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client: mockClient as unknown as Client },
+      { kind: 'pgClient', client: mockClient as unknown as Client, ownsConnection: true },
       { batchSize: 1 },
     );
     cleanups.push(async () => {
@@ -89,7 +89,7 @@ describe('@internal/driver-postgres', () => {
       }),
     };
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client: mockClient as unknown as Client },
+      { kind: 'pgClient', client: mockClient as unknown as Client, ownsConnection: true },
       { batchSize: 1 },
     );
     cleanups.push(async () => {
@@ -121,7 +121,7 @@ describe('@internal/driver-postgres', () => {
       })),
     };
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client: mockClient as unknown as Client },
+      { kind: 'pgClient', client: mockClient as unknown as Client, ownsConnection: true },
       { batchSize: 1 },
     );
     cleanups.push(async () => {
@@ -149,7 +149,7 @@ describe('@internal/driver-postgres', () => {
       end: vi.fn(async () => {}),
     };
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client: mockClient as unknown as Client },
+      { kind: 'pgClient', client: mockClient as unknown as Client, ownsConnection: true },
       { disabled: true },
     );
     cleanups.push(async () => {
@@ -165,7 +165,10 @@ describe('@internal/driver-postgres', () => {
       connect: vi.fn(async () => ({ release: vi.fn(), on: () => undefined })),
       on: () => undefined,
     } as unknown as Pool;
-    const driver = createBoundDriverFromBinding({ kind: 'pgPool', pool }, undefined);
+    const driver = createBoundDriverFromBinding(
+      { kind: 'pgPool', pool, ownsConnection: true },
+      undefined,
+    );
 
     await driver.close();
     await driver.close();
@@ -179,7 +182,10 @@ describe('@internal/driver-postgres', () => {
       connect: vi.fn(async () => ({ release: vi.fn(), on: () => undefined })),
       on: () => undefined,
     } as unknown as Pool;
-    const driver = createBoundDriverFromBinding({ kind: 'pgPool', pool }, undefined);
+    const driver = createBoundDriverFromBinding(
+      { kind: 'pgPool', pool, ownsConnection: true },
+      undefined,
+    );
     cleanups.push(async () => {
       await driver.close();
     });
@@ -193,37 +199,14 @@ describe('@internal/driver-postgres', () => {
       connect: vi.fn(async () => ({ release: vi.fn(), on: () => undefined })),
       on: () => undefined,
     } as unknown as Pool;
-    const driver = createBoundDriverFromBinding({ kind: 'pgPool', pool }, undefined);
+    const driver = createBoundDriverFromBinding(
+      { kind: 'pgPool', pool, ownsConnection: true },
+      undefined,
+    );
 
     await driver.close();
 
     expect(driver.state).toBe('closed');
-  });
-
-  it('ignores already-connected errors while acquiring direct client', async () => {
-    const alreadyConnectedError = new Error('Client has already been connected');
-    const mockClient = {
-      _connection: undefined,
-      _ending: false,
-      on: () => undefined,
-      connect: vi.fn(async () => {
-        throw alreadyConnectedError;
-      }),
-      query: vi.fn(async () => ({ rows: [] })),
-      end: vi.fn(async () => {}),
-    };
-    const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client: mockClient as unknown as Client },
-      { disabled: true },
-    );
-    cleanups.push(async () => {
-      await driver.close();
-    });
-
-    const result = await queryRows(driver, 'select 1');
-
-    expect(result).toEqual([]);
-    expect(mockClient.connect).toHaveBeenCalledTimes(1);
   });
 
   it('reuses in-flight connect promise for concurrent queries', async () => {
@@ -242,7 +225,7 @@ describe('@internal/driver-postgres', () => {
       end: vi.fn(async () => {}),
     };
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client: mockClient as unknown as Client },
+      { kind: 'pgClient', client: mockClient as unknown as Client, ownsConnection: true },
       { disabled: true },
     );
     cleanups.push(async () => {
@@ -268,7 +251,7 @@ describe('@internal/driver-postgres', () => {
       end: vi.fn(async () => {}),
     };
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client: mockClient as unknown as Client },
+      { kind: 'pgClient', client: mockClient as unknown as Client, ownsConnection: true },
       undefined,
     );
     cleanups.push(async () => {
@@ -288,7 +271,7 @@ describe('@internal/driver-postgres', () => {
       end: vi.fn(async () => {}),
     };
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client: mockClient as unknown as Client },
+      { kind: 'pgClient', client: mockClient as unknown as Client, ownsConnection: true },
       undefined,
     );
 
@@ -307,7 +290,7 @@ describe('@internal/driver-postgres', () => {
       end: vi.fn(async () => {}),
     };
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client: mockClient as unknown as Client },
+      { kind: 'pgClient', client: mockClient as unknown as Client, ownsConnection: true },
       undefined,
     );
 
@@ -327,7 +310,7 @@ describe('@internal/driver-postgres', () => {
       end: vi.fn(async () => {}),
     };
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client: mockClient as unknown as Client },
+      { kind: 'pgClient', client: mockClient as unknown as Client, ownsConnection: true },
       undefined,
     );
     cleanups.push(async () => {
@@ -352,7 +335,7 @@ describe('@internal/driver-postgres', () => {
         end: vi.fn(async () => {}),
       };
       const driver = createBoundDriverFromBinding(
-        { kind: 'pgClient', client: mockClient as unknown as Client },
+        { kind: 'pgClient', client: mockClient as unknown as Client, ownsConnection: true },
         undefined,
       );
       cleanups.push(async () => {
@@ -378,7 +361,10 @@ describe('@internal/driver-postgres', () => {
       connect: vi.fn(async () => poolClient),
       on: () => undefined,
     } as unknown as Pool;
-    const driver = createBoundDriverFromBinding({ kind: 'pgPool', pool }, undefined);
+    const driver = createBoundDriverFromBinding(
+      { kind: 'pgPool', pool, ownsConnection: true },
+      undefined,
+    );
     cleanups.push(async () => {
       await driver.close();
     });
@@ -404,7 +390,10 @@ describe('@internal/driver-postgres', () => {
       connect: vi.fn(async () => poolClient),
       on: () => undefined,
     } as unknown as Pool;
-    const driver = createBoundDriverFromBinding({ kind: 'pgPool', pool }, undefined);
+    const driver = createBoundDriverFromBinding(
+      { kind: 'pgPool', pool, ownsConnection: true },
+      undefined,
+    );
     cleanups.push(async () => {
       await driver.close();
     });
@@ -429,7 +418,7 @@ describe('@internal/driver-postgres', () => {
         end: vi.fn(async () => {}),
       };
       const driver = createBoundDriverFromBinding(
-        { kind: 'pgClient', client: mockClient as unknown as Client },
+        { kind: 'pgClient', client: mockClient as unknown as Client, ownsConnection: true },
         undefined,
       );
       cleanups.push(async () => {
@@ -460,7 +449,10 @@ describe('@internal/driver-postgres', () => {
       connect: vi.fn(async () => poolClient),
       on: () => undefined,
     } as unknown as Pool;
-    const driver = createBoundDriverFromBinding({ kind: 'pgPool', pool }, undefined);
+    const driver = createBoundDriverFromBinding(
+      { kind: 'pgPool', pool, ownsConnection: true },
+      undefined,
+    );
     cleanups.push(async () => {
       await driver.close();
     });
@@ -487,7 +479,7 @@ describe('@internal/driver-postgres', () => {
         }),
       };
       const driver = createBoundDriverFromBinding(
-        { kind: 'pgClient', client: mockClient as unknown as Client },
+        { kind: 'pgClient', client: mockClient as unknown as Client, ownsConnection: true },
         undefined,
       );
 
@@ -521,7 +513,7 @@ describe('@internal/driver-postgres', () => {
         }),
       };
       const driver = createBoundDriverFromBinding(
-        { kind: 'pgClient', client: mockClient as unknown as Client },
+        { kind: 'pgClient', client: mockClient as unknown as Client, ownsConnection: true },
         undefined,
       );
 
