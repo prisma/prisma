@@ -167,4 +167,20 @@ model Doc {
       },
     ]);
   });
+
+  it('refuses a namespaced call in @default as attribute syntax', () => {
+    expect(
+      diagnosticsOf(`model Doc {
+  id Int @id
+  stamp DateTime @default(db.now())
+}
+`),
+    ).toEqual([
+      {
+        code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
+        message:
+          'Expected one of: string | number | boolean | null | autoincrement() | now() | sql`...` | json`...` | list of (string | number | boolean | null | json`...`)',
+      },
+    ]);
+  });
 });
