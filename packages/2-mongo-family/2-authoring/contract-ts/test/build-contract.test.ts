@@ -179,7 +179,7 @@ describe('buildMongoContractFromDefinition', () => {
     ]);
   });
 
-  it('refuses nothing a validator could not describe when collections get no validators', () => {
+  it('refuses a document id MongoDB cannot store whether or not collections get validators', () => {
     const documentIdModel: ModelNode = {
       modelName: 'Doc',
       collection: 'docs',
@@ -191,7 +191,7 @@ describe('buildMongoContractFromDefinition', () => {
       withoutValidators: refusalsOf({ models: [documentIdModel], collectionValidators: false }),
     }).toEqual({
       withValidators: [{ kind: 'validator', key: modelField('Doc', '_id') }],
-      withoutValidators: [],
+      withoutValidators: [{ kind: 'validator', key: modelField('Doc', '_id') }],
     });
   });
 

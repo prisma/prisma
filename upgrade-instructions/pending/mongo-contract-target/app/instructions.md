@@ -6,8 +6,8 @@ changes:
     detection:
       glob: "**/*.{ts,mts,cts,js,mjs}"
       matches:
-        - '(?<![\w$.])mongoContract\(\s*([\x27"`])[^\x27"`]*\1\s*,?\s*\)'
-        - '(?<![\w$.])mongoContract\(\s*[^,()]+,\s*\{(?![^{}]*\btarget\b)[^{}]*\}\s*\)'
+        - '(?<![\w$.])mongoContract\(\s*[^,()]*(?:\([^()]*\)[^,()]*)*,?\s*\)'
+        - '(?<![\w$.])mongoContract\(\s*[^,()]*(?:\([^()]*\)[^,()]*)*,\s*\{(?![^{}]*\btarget\b)[^{}]*\}\s*\)'
 ---
 
 # `mongoContract` takes the target pack

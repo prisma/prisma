@@ -31,11 +31,15 @@ describe.each(['app', 'extension'])('the %s mongo-contract-target detection', (a
       matches("const contract = mongoContract('./prisma/schema.prisma');"),
       matches('mongoContract("./schema.prisma",)'),
       matches("mongoContract(schemaPath, { output: 'out/contract.json' })"),
+      matches('mongoContract(schemaPath)'),
+      matches("mongoContract(join(dir, 'schema.prisma'))"),
+      matches("mongoContract(join(dir, 'schema.prisma'), { output: 'out' })"),
       matches("mongoContract('./schema.prisma', { target: mongoTargetPack })"),
+      matches("mongoContract(join(dir, 'schema.prisma'), { target: mongoTargetPack })"),
       matches(
         "mongoContract(schemaPath, {\n  output: 'out/contract.json',\n  target: mongoTargetPack,\n})",
       ),
-    ]).toEqual([true, true, true, false, false]);
+    ]).toEqual([true, true, true, true, true, true, false, false, false]);
   });
 
   it('does not match a call of another function that ends in mongoContract', () => {

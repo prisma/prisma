@@ -10,6 +10,7 @@ import {
   buildMongoStorage,
   deriveCollectionValidators,
   type MongoContract,
+  type MongoContractRefusal,
   mongoContractRefusalsOf,
   mongoValueSetsOf,
 } from '@internal/mongo-contract';
@@ -30,6 +31,15 @@ import {
   validatorRefusalKey,
 } from './build-refusals';
 import type { ContractDefinition } from './contract-definition';
+
+/** Whether a refusal is about listing an enum in a collection validator, which matters only when collections get validators. */
+function isAboutEnumListing(refusal: MongoContractRefusal): boolean {
+  return (
+    refusal.kind === 'enumBsonType' ||
+    refusal.kind === 'enumNotListable' ||
+    refusal.kind === 'enumMemberNotListable'
+  );
+}
 
 /** A contract the builder built, with the warnings to report about it. */
 export interface MongoBuiltContract {
@@ -101,15 +111,13 @@ export function buildMongoContractFromDefinition(
     ),
     defaultControlPolicy: definition.defaultControlPolicy,
   };
-  const validatorRefusals = definition.collectionValidators
-    ? mongoContractRefusalsOf({
-        models: builtModels,
-        valueObjects: builtValueObjects,
-        enums: builtEnums,
-        lookups,
-        controlPolicies,
-      })
-    : [];
+  const validatorRefusals = mongoContractRefusalsOf({
+    models: builtModels,
+    valueObjects: builtValueObjects,
+    enums: builtEnums,
+    lookups,
+    controlPolicies,
+  }).filter((refusal) => definition.collectionValidators || !isAboutEnumListing(refusal));
   if (validatorRefusals.length > 0) {
     return notOk({
       refusals: validatorRefusals.map((refusal) => ({
