@@ -111,3 +111,46 @@ test('a convenience type helper refuses a combination with no explicit type', ()
     },
   }));
 });
+
+test('each convenience type call has the type of the explicit type helper it chooses', () => {
+  defineContract({}, ({ type }) => {
+    expectTypeOf(type.DateTime()).toEqualTypeOf(type.TimestamptzJsDate(3));
+    expectTypeOf(type.DateTime(undefined, undefined, 6)).toEqualTypeOf(type.TimestamptzJsDate(6));
+    expectTypeOf(type.DateTime('jsDate', 'timestamptz')).toEqualTypeOf(type.TimestamptzJsDate(3));
+    expectTypeOf(type.DateTime('temporal')).toEqualTypeOf(type.TimestamptzTemporal());
+    expectTypeOf(type.DateTime('temporal', undefined, 3)).toEqualTypeOf(
+      type.TimestamptzTemporal(3),
+    );
+    expectTypeOf(type.DateTime('string')).toEqualTypeOf(type.TimestamptzString());
+    expectTypeOf(type.DateTime('string', 'timestamptz', 6)).toEqualTypeOf(
+      type.TimestamptzString(6),
+    );
+    expectTypeOf(type.DateTime(undefined, 'timestamp')).toEqualTypeOf(type.TimestampJsDate(3));
+    expectTypeOf(type.DateTime('jsDate', 'timestamp', 0)).toEqualTypeOf(type.TimestampJsDate(0));
+    expectTypeOf(type.DateTime('temporal', 'timestamp')).toEqualTypeOf(type.TimestampInstant());
+    expectTypeOf(type.DateTime('temporal', 'timestamp', 6)).toEqualTypeOf(type.TimestampInstant(6));
+    expectTypeOf(type.DateTime('string', 'timestamp')).toEqualTypeOf(type.TimestampString());
+    expectTypeOf(type.DateTime('string', 'timestamp', 3)).toEqualTypeOf(type.TimestampString(3));
+    expectTypeOf(type.Date()).toEqualTypeOf(type.DateString());
+    expectTypeOf(type.Date('string', 'date')).toEqualTypeOf(type.DateString());
+    expectTypeOf(type.Date('temporal')).toEqualTypeOf(type.DateTemporal());
+    expectTypeOf(type.Time()).toEqualTypeOf(type.TimeString());
+    expectTypeOf(type.Time(undefined, undefined, 0)).toEqualTypeOf(type.TimeString(0));
+    expectTypeOf(type.Time('temporal')).toEqualTypeOf(type.TimeTemporal());
+    expectTypeOf(type.Time('temporal', 'time', 3)).toEqualTypeOf(type.TimeTemporal(3));
+    expectTypeOf(type.Time('string', 'timetz')).toEqualTypeOf(type.Timetz());
+    expectTypeOf(type.Time(undefined, 'timetz', 2)).toEqualTypeOf(type.Timetz(2));
+    expectTypeOf(type.Duration()).toEqualTypeOf(type.IntervalString());
+    expectTypeOf(type.Duration(undefined, undefined, 3)).toEqualTypeOf(type.IntervalString(3));
+    expectTypeOf(type.Duration('parts')).toEqualTypeOf(type.IntervalParts());
+    expectTypeOf(type.Duration('parts', 'interval', 6)).toEqualTypeOf(type.IntervalParts(6));
+    const widened: number = 4;
+    expectTypeOf(type.DateTime('string', undefined, widened)).toEqualTypeOf(
+      type.TimestamptzString(widened),
+    );
+    expectTypeOf(type.DateTime(undefined, undefined, widened)).not.toEqualTypeOf(
+      type.TimestamptzString(widened),
+    );
+    return { models: {} };
+  });
+});
