@@ -31,7 +31,7 @@ const withPhases = (type: string, codecId: string, precision: boolean) =>
     codecId,
   );
 
-const PRESETS: Readonly<Record<string, RemovedFieldPreset>> = {
+export const PRESETS: Readonly<Record<string, RemovedFieldPreset>> = {
   uuidString: writtenAs(char(36), CHARACTER_CODEC_ID),
   ulid: writtenAs(char(26), CHARACTER_CODEC_ID),
   nanoid: writtenAs(`${char(21)}, or ${char('n')} for nanoid({ size: n })`, CHARACTER_CODEC_ID),

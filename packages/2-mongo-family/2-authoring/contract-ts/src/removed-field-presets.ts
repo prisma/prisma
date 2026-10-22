@@ -3,7 +3,7 @@ import { contractError } from './contract-errors';
 
 const GUIDE = 'The upgrade guide "Field presets are removed" lists every rewrite.';
 
-const TEMPORAL_REWRITES: Readonly<Record<string, string>> = {
+export const TEMPORAL_REWRITES: Readonly<Record<string, string>> = {
   createdAt: 'field.date().onCreate(gen.now())',
   updatedAt: 'field.date().onCreate(gen.now()).onUpdate(gen.now())',
   timestamp:

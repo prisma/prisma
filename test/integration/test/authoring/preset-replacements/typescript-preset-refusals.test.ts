@@ -1,5 +1,7 @@
 import type { Contract } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
+import { TEMPORAL_REWRITES } from '../../../../../packages/2-mongo-family/2-authoring/contract-ts/src/removed-field-presets';
+import { PRESETS } from '../../../../../packages/2-sql-family/2-authoring/contract-ts/src/removed-field-presets';
 import {
   emitMongo,
   emitPostgres,
@@ -152,6 +154,8 @@ const SQL_PRESETS = [
   ...new Set([...POSTGRES_CASES, ...SQLITE_CASES].map(([helper]) => helper)),
 ].sort();
 
+const MONGO_PRESETS = [...new Set(MONGO_CASES.map(([helper]) => helper))].sort();
+
 interface TargetCase<Helpers, Field> {
   readonly target: string;
   readonly rows: readonly PresetReplacementRow<Helpers, Field>[];
@@ -227,6 +231,20 @@ function describeTarget<Helpers extends { readonly field: object }, Field>(
   });
 }
 
+describe('the removed TypeScript field preset tables', () => {
+  it('have a case for every SQL preset', () => {
+    expect(Object.keys(PRESETS).sort()).toEqual(SQL_PRESETS);
+  });
+
+  it('have a case for every MongoDB preset', () => {
+    expect(
+      Object.keys(TEMPORAL_REWRITES)
+        .map((preset) => `temporal.${preset}`)
+        .sort(),
+    ).toEqual(MONGO_PRESETS);
+  });
+});
+
 describe('the rewrite a removed TypeScript field preset names', () => {
   describeTarget({
     target: 'postgres',
@@ -248,7 +266,7 @@ describe('the rewrite a removed TypeScript field preset names', () => {
     target: 'mongo',
     rows: mongoRows,
     cases: MONGO_CASES,
-    presets: [...new Set(MONGO_CASES.map(([helper]) => helper))],
+    presets: MONGO_PRESETS,
     ts: mongoTs,
     emit: emitMongo,
   });
