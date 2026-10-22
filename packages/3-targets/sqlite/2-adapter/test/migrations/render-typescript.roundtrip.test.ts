@@ -26,6 +26,8 @@ import {
   DropTableCall,
   RawSqlCall,
   RecreateTableCall,
+  RemoveValueCall,
+  ReplaceValueCall,
 } from '@internal/target-sqlite/op-factory-call';
 import { TypeScriptRenderableSqliteMigration } from '@internal/target-sqlite/planner-produced-sqlite-migration';
 import { renderOps } from '@internal/target-sqlite/render-ops';
@@ -180,6 +182,8 @@ describe('TypeScriptRenderableSqliteMigration round-trip', () => {
       }),
       new CreateIndexCall('user', 'user_email_idx', ['email']),
       new DropTableCall('stale'),
+      new ReplaceValueCall('user', 'email', "it's", 'it"s'),
+      new RemoveValueCall('user', 'rank', 3),
     ];
     const migration = new TypeScriptRenderableSqliteMigration(
       calls,

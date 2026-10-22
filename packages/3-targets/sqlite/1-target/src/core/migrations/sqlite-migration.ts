@@ -1,4 +1,4 @@
-import type { ColumnDefault, Contract } from '@internal/contract/types';
+import type { ColumnDefault, Contract, JsonValue } from '@internal/contract/types';
 import {
   type ColumnRenameRequest,
   type MigrationOperationClass,
@@ -33,8 +33,10 @@ import {
   DropIndexCall,
   DropTableCall,
   RecreateTableCall,
+  RemoveValueCall,
   type RenameColumnCall,
   type RenameTableCall,
+  ReplaceValueCall,
 } from './op-factory-call';
 import type { SqliteColumnSpec, SqliteIndexSpec, SqliteTableSpec } from './operations/shared';
 import type { RecreatePostcheck } from './operations/tables';
@@ -268,6 +270,29 @@ export abstract class SqliteMigration<
     return new DropColumnCall(options.table, options.column).toOp(
       this.controlAdapterFor('dropColumn'),
     );
+  }
+
+  /**
+   * Emit an `UPDATE` operation that changes the stored value `from` to `to` in `column`, in every row that holds it. Values are stored values, as the column's codec writes them, and are passed as parameters.
+   */
+  protected replaceValue(options: {
+    readonly table: string;
+    readonly column: string;
+    readonly from: JsonValue;
+    readonly to: JsonValue;
+  }): Promise<Op> {
+    return new ReplaceValueCall(options.table, options.column, options.from, options.to).toOp();
+  }
+
+  /**
+   * Emit an `UPDATE` operation that sets `column` to NULL in every row that holds the stored value `value`. The operation is destructive.
+   */
+  protected removeValue(options: {
+    readonly table: string;
+    readonly column: string;
+    readonly value: JsonValue;
+  }): Promise<Op> {
+    return new RemoveValueCall(options.table, options.column, options.value).toOp();
   }
 
   protected createIndex(options: {

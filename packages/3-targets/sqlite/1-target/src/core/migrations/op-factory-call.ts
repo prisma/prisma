@@ -9,7 +9,7 @@
  * strategies, mirroring the Postgres `ColumnSpec` pattern.
  */
 
-import type { ColumnDefault } from '@internal/contract/types';
+import type { ColumnDefault, JsonValue } from '@internal/contract/types';
 import { unfilledPlaceholderOperation } from '@internal/errors/migration';
 import {
   checkSqlExpressionText,
@@ -51,6 +51,7 @@ import { quoteIdentifier, SQLITE_QUOTING } from '../sql-utils';
 import { addColumn, dropColumnExecuteSql, renameColumn } from './operations/columns';
 import type { SqliteColumnSpec, SqliteIndexSpec, SqliteTableSpec } from './operations/shared';
 import { INLINE_AUTOINCREMENT_PRIMARY_KEY, step } from './operations/shared';
+import { removeValue, replaceValue, storedValueText } from './operations/stored-values';
 import {
   type ColumnShape,
   indexDefinitionCheck,
@@ -1089,6 +1090,74 @@ export class DropIndexCall extends SqliteOpFactoryCallNode {
 }
 
 // ============================================================================
+// Stored values
+// ============================================================================
+
+/** Changes one stored value of a column to another, in every row that holds it. */
+export class ReplaceValueCall extends SqliteOpFactoryCallNode {
+  readonly factoryName = 'replaceValue' as const;
+  readonly operationClass = 'widening' as const;
+  readonly tableName: string;
+  readonly columnName: string;
+  readonly from: JsonValue;
+  readonly to: JsonValue;
+  readonly label: string;
+
+  constructor(tableName: string, columnName: string, from: JsonValue, to: JsonValue) {
+    super();
+    this.tableName = tableName;
+    this.columnName = columnName;
+    this.from = from;
+    this.to = to;
+    this.label = `Replace value ${storedValueText(from)} with ${storedValueText(to)} in column "${columnName}" of "${tableName}"`;
+    this.freeze();
+  }
+
+  async toOp(): Promise<Op> {
+    return replaceValue(this.tableName, this.columnName, this.from, this.to);
+  }
+
+  renderTypeScript(): string {
+    return `this.replaceValue({ table: ${jsonToTsSource(this.tableName)}, column: ${jsonToTsSource(this.columnName)}, from: ${jsonToTsSource(this.from)}, to: ${jsonToTsSource(this.to)} })`;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [];
+  }
+}
+
+/** Removes one stored value of a column by setting it to NULL in every row that holds it. */
+export class RemoveValueCall extends SqliteOpFactoryCallNode {
+  readonly factoryName = 'removeValue' as const;
+  readonly operationClass = 'destructive' as const;
+  readonly tableName: string;
+  readonly columnName: string;
+  readonly value: JsonValue;
+  readonly label: string;
+
+  constructor(tableName: string, columnName: string, value: JsonValue) {
+    super();
+    this.tableName = tableName;
+    this.columnName = columnName;
+    this.value = value;
+    this.label = `Remove value ${storedValueText(value)} from column "${columnName}" of "${tableName}"`;
+    this.freeze();
+  }
+
+  async toOp(): Promise<Op> {
+    return removeValue(this.tableName, this.columnName, this.value);
+  }
+
+  renderTypeScript(): string {
+    return `this.removeValue({ table: ${jsonToTsSource(this.tableName)}, column: ${jsonToTsSource(this.columnName)}, value: ${jsonToTsSource(this.value)} })`;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [];
+  }
+}
+
+// ============================================================================
 // Data transform
 // ============================================================================
 
@@ -1199,6 +1268,8 @@ export type SqliteOpFactoryCall =
   | DropColumnCall
   | CreateIndexCall
   | DropIndexCall
+  | ReplaceValueCall
+  | RemoveValueCall
   | DataTransformCall
   | RawSqlCall;
 

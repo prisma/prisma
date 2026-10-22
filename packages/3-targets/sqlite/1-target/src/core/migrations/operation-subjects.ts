@@ -8,7 +8,13 @@ import {
 } from '@internal/family-sql/control';
 import type { MigrationDataLossKind, OpFactoryCall } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { DropColumnCall, DropTableCall, RawSqlCall, RecreateTableCall } from './op-factory-call';
+import {
+  DropColumnCall,
+  DropTableCall,
+  RawSqlCall,
+  RecreateTableCall,
+  RemoveValueCall,
+} from './op-factory-call';
 
 type LostStorage = CallSubjects['dataLoss'][number];
 
@@ -80,6 +86,7 @@ export function sqliteCallSubjects(
         !(call instanceof DropColumnCall) &&
         !(call instanceof DropTableCall) &&
         !(call instanceof RawSqlCall) &&
+        !(call instanceof RemoveValueCall) &&
         !fieldEvents.has(call),
     ),
   );
@@ -107,6 +114,15 @@ export function sqliteCallSubjects(
         operationCount,
         label,
         dataLoss: alreadyLost ? [] : [lost(columnTarget(call.tableName, call.columnName))],
+        accessChanges: [],
+        temporaryValues: [],
+      };
+    }
+    if (call instanceof RemoveValueCall) {
+      return {
+        operationCount,
+        label,
+        dataLoss: [lost(columnTarget(call.tableName, call.columnName))],
         accessChanges: [],
         temporaryValues: [],
       };
