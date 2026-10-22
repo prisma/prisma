@@ -1,9 +1,9 @@
 import type { TypeLookups } from '@internal/framework-components/codec';
 import { codecTypeParamsProblem } from '@internal/mongo-contract/data-type';
 import {
+  type BuildRefusal,
+  type BuildWarning,
   type FieldKey,
-  type MongoBuildRefusal,
-  type MongoBuildWarning,
   modelFieldKey,
   valueObjectFieldKey,
 } from './build-refusals';
@@ -29,8 +29,8 @@ function checkField(
   input: {
     readonly declaredEnums: ReadonlySet<string>;
     readonly lookups: TypeLookups;
-    readonly refusals: MongoBuildRefusal[];
-    readonly warnings: MongoBuildWarning[];
+    readonly refusals: BuildRefusal[];
+    readonly warnings: BuildWarning[];
   },
 ): void {
   const { type } = field;
@@ -59,8 +59,8 @@ export function checkFields(input: {
   readonly valueObjects: readonly ValueObjectNode[] | undefined;
   readonly declaredEnums: ReadonlySet<string>;
   readonly lookups: TypeLookups;
-  readonly refusals: MongoBuildRefusal[];
-  readonly warnings: MongoBuildWarning[];
+  readonly refusals: BuildRefusal[];
+  readonly warnings: BuildWarning[];
 }): void {
   for (const model of input.models) {
     for (const field of model.fields) {

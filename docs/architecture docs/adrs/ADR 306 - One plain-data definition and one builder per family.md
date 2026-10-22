@@ -55,7 +55,7 @@ The builder checks the assembled contract last. Those refusals (kind `validator`
 
 - **TypeScript.** `defineContract` lowers its builder objects to the definition, calls the builder, and throws the first refusal as a `CONTRACT.*` error. It still checks its own input, such as the packs it is given.
 - **PSL.** The interpreter reads the schema into the definition. It keeps the rules about how a schema is written, such as attribute arguments, `@id` placement, back-relation pairing and unresolved references. It reports each refusal as a diagnostic at the place its key names, with PSL's codes and wording.
-- **Prisma 6.** The reader builds with `collectionValidators: false`, because a Prisma 6 database has none. It reports each refusal in its own diagnostics.
+- **Prisma 6.** The reader builds with `writesCollectionValidators: false`, because a Prisma 6 database has none. It reports each refusal in its own diagnostics.
 
 ## Consequences
 

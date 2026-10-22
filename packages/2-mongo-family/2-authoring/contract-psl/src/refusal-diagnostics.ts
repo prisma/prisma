@@ -9,10 +9,10 @@ import {
 } from '@internal/framework-components/authoring';
 import type { MongoContractRefusal } from '@internal/mongo-contract';
 import type {
+  BuildRefusal,
+  BuildWarning,
   FieldKey,
   IndexNode,
-  MongoBuildRefusal,
-  MongoBuildWarning,
 } from '@internal/mongo-contract-ts/contract-builder';
 import type { DiagnosticSource, FieldSymbol, PslDiagnostic, PslSpan } from '@internal/psl-parser';
 import { InternalError } from '@internal/utils/internal-error';
@@ -219,7 +219,7 @@ function validatorDiagnostic(
  * The diagnostic for one refusal of the builder, at the place in the schema it is about, worded as PSL words it. A source position comes from the refusal's key.
  */
 export function refusalDiagnostic(
-  refusal: MongoBuildRefusal,
+  refusal: BuildRefusal,
   sites: SchemaSites,
 ): PslDiagnostic | ContractSourceDiagnostic {
   switch (refusal.kind) {
@@ -498,7 +498,7 @@ function discriminatorTypeName(sites: SchemaSites, model: string, fieldName: str
 
 /** A builder warning as a PSL warning at the field it is about, or undefined when PSL has no wording for it. */
 export function warningDiagnostic(
-  warning: MongoBuildWarning,
+  warning: BuildWarning,
   sites: SchemaSites,
 ): PslDiagnostic | undefined {
   if (warning.kind === 'source') return undefined;

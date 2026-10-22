@@ -7,8 +7,8 @@ import type { GeneratorFunctionRegistry } from '@internal/framework-components/c
 import { canonicalStringify } from '@internal/utils/canonical-stringify';
 import { storedNameOf } from './build-models';
 import {
+  type BuildRefusal,
   type FieldKey,
-  type MongoBuildRefusal,
   modelFieldKey,
   valueObjectFieldKey,
 } from './build-refusals';
@@ -37,7 +37,7 @@ function executionDefaultsOf(
   field: FieldNode,
   key: FieldKey,
   generatorFunctions: GeneratorFunctionRegistry,
-  refusals: MongoBuildRefusal[],
+  refusals: BuildRefusal[],
 ): ExecutionMutationDefaultPhases | undefined {
   const typeGiven = field.executionDefaults;
   let refused = false;
@@ -95,7 +95,7 @@ function executionDefaultsOf(
 
 export function checkValueObjectExecutionDefaults(
   valueObjects: readonly ValueObjectNode[] | undefined,
-  refusals: MongoBuildRefusal[],
+  refusals: BuildRefusal[],
 ): void {
   for (const valueObject of valueObjects ?? []) {
     for (const field of valueObject.fields) {
@@ -113,7 +113,7 @@ export function buildExecutionDefaults(input: {
   readonly models: readonly ModelNode[];
   readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly namespaceId: string;
-  readonly refusals: MongoBuildRefusal[];
+  readonly refusals: BuildRefusal[];
 }): ExecutionMutationDefault[] {
   const { models, generatorFunctions, namespaceId, refusals } = input;
   const collectionByModelName = new Map(models.map((model) => [model.modelName, model.collection]));

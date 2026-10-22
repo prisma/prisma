@@ -21,11 +21,7 @@ import {
 import { checkFields } from './build-fields';
 import { buildModels, buildRoots, buildValueObjects } from './build-models';
 import { decidePolymorphism, inheritVariantCollections } from './build-polymorphism';
-import {
-  type MongoBuildRefusal,
-  type MongoBuildWarning,
-  validatorRefusalKey,
-} from './build-refusals';
+import { type BuildRefusal, type BuildWarning, validatorRefusalKey } from './build-refusals';
 import type { ContractDefinition } from './contract-definition';
 
 /** Whether a refusal is about listing an enum in a collection validator, which matters only when collections get validators. */
@@ -38,15 +34,15 @@ function isAboutEnumListing(refusal: MongoContractRefusal): boolean {
 }
 
 /** A contract the builder built, with the warnings to report about it. */
-export interface MongoBuiltContract {
+export interface BuiltContract {
   readonly contract: MongoContract;
-  readonly warnings: readonly MongoBuildWarning[];
+  readonly warnings: readonly BuildWarning[];
 }
 
 /** Why the builder refused a definition, with the warnings to report about it all the same. */
-export interface MongoBuildFailure {
-  readonly refusals: readonly MongoBuildRefusal[];
-  readonly warnings: readonly MongoBuildWarning[];
+export interface BuildFailure {
+  readonly refusals: readonly BuildRefusal[];
+  readonly warnings: readonly BuildWarning[];
 }
 
 /**
@@ -56,9 +52,9 @@ export function buildMongoContractFromDefinition(
   definition: ContractDefinition,
   codecLookup: CodecLookupWithDescriptors,
   dataTypes: DataTypeSupport,
-): Result<MongoBuiltContract, MongoBuildFailure> {
-  const refusals: MongoBuildRefusal[] = [];
-  const warnings: MongoBuildWarning[] = (definition.warnings ?? []).map((warning) => ({
+): Result<BuiltContract, BuildFailure> {
+  const refusals: BuildRefusal[] = [];
+  const warnings: BuildWarning[] = (definition.warnings ?? []).map((warning) => ({
     kind: 'source',
     warning,
   }));
@@ -108,7 +104,7 @@ export function buildMongoContractFromDefinition(
     enums: builtEnums,
     lookups,
     controlPolicies,
-  }).filter((refusal) => definition.collectionValidators || !isAboutEnumListing(refusal));
+  }).filter((refusal) => definition.writesCollectionValidators || !isAboutEnumListing(refusal));
   if (validatorRefusals.length > 0) {
     return notOk({
       refusals: validatorRefusals.map((refusal) => ({
@@ -121,7 +117,7 @@ export function buildMongoContractFromDefinition(
   }
 
   const storageValueSets = mongoValueSetsOf(builtEnums);
-  const validators = definition.collectionValidators
+  const validators = definition.writesCollectionValidators
     ? deriveCollectionValidators({
         models: builtModels,
         lookups,

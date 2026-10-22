@@ -79,7 +79,7 @@ describe('buildContractDefinition', () => {
       valueObjects: [],
       enums: { Role },
       roots: { allTasks: 'Task' },
-      collectionValidators: true,
+      writesCollectionValidators: true,
       warnings: undefined,
     });
   });

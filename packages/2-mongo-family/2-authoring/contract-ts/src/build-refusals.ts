@@ -47,7 +47,7 @@ export type IndexShapeRule =
   | 'second-text-index';
 
 /** Why the builder refuses part of a definition, keyed by the part. Each source words the refusal itself. */
-export type MongoBuildRefusal =
+export type BuildRefusal =
   | { readonly kind: 'duplicateModel'; readonly key: ModelKey }
   | { readonly kind: 'duplicateValueObject'; readonly key: ValueObjectKey }
   | { readonly kind: 'storedNameUnsupported'; readonly key: FieldKey; readonly reason: string }
@@ -213,7 +213,7 @@ export type MongoBuildRefusal =
     };
 
 /** Something the builder accepts but the author probably did not mean, or a warning the source collected. */
-export type MongoBuildWarning =
+export type BuildWarning =
   | {
       readonly kind: 'presetWithoutEffect';
       readonly key: FieldKey;

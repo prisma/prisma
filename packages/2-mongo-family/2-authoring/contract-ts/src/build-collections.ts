@@ -11,7 +11,7 @@ import { canonicalStringify } from '@internal/utils/canonical-stringify';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { storedFieldNameIn } from './build-models';
-import type { IndexKey, IndexShapeRule, MongoBuildRefusal } from './build-refusals';
+import type { BuildRefusal, IndexKey, IndexShapeRule } from './build-refusals';
 import type { FieldNode, IndexNode, ModelNode } from './contract-definition';
 
 /**
@@ -140,7 +140,7 @@ function resolveVariantScope(
   };
 }
 
-function checkNoCollectionSettings(model: ModelNode, refusals: MongoBuildRefusal[]): void {
+function checkNoCollectionSettings(model: ModelNode, refusals: BuildRefusal[]): void {
   const key = { kind: 'collectionSettings', model: model.modelName } as const;
   if (model.indexes && model.indexes.length > 0) {
     refusals.push({ kind: 'collectionSettingWithoutCollection', key, setting: 'indexes' });
@@ -161,7 +161,7 @@ function checkNoCollectionSettings(model: ModelNode, refusals: MongoBuildRefusal
 export function buildCollections(input: {
   readonly models: readonly ModelNode[];
   readonly variantValues: ReadonlyMap<string, string>;
-  readonly refusals: MongoBuildRefusal[];
+  readonly refusals: BuildRefusal[];
 }): Record<string, MongoCollectionInput> {
   const { models, variantValues, refusals } = input;
   const intermediate: Record<string, MongoCollectionInput> = {};

@@ -1,10 +1,10 @@
-export type { MongoBuildFailure, MongoBuiltContract } from '../build-contract';
+export type { BuildFailure, BuiltContract } from '../build-contract';
 export { buildMongoContractFromDefinition } from '../build-contract';
 export type {
+  BuildRefusal,
+  BuildWarning,
   FieldKey,
   IndexShapeRule,
-  MongoBuildRefusal,
-  MongoBuildWarning,
   RefusalKey,
 } from '../build-refusals';
 export type {

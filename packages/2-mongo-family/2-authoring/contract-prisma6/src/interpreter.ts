@@ -429,7 +429,7 @@ export function interpretPrisma6Documents(
       models: modelNodes,
       valueObjects,
       enums: Object.fromEntries(enums),
-      collectionValidators: false,
+      writesCollectionValidators: false,
       warnings: undefined,
     },
     input.codecLookup,

@@ -37,7 +37,7 @@ export interface DslContractInput {
 function validateTargetPackRef(
   family: FamilyPackRef<string>,
   target: TargetPackRef<string, string>,
-): void {
+): asserts target is TargetPackRef<'mongo', string> {
   if (family.familyId !== 'mongo') {
     throw contractError(
       'CONTRACT.PACK_FAMILY_MISMATCH',
@@ -169,15 +169,16 @@ function valueObjectNode(builder: AnyValueObjectBuilder): ValueObjectNode {
 
 /** Turns `defineContract`'s builder objects into the plain-data definition the contract is built from. */
 export function buildContractDefinition(input: DslContractInput): ContractDefinition {
-  validateTargetPackRef(input.family, input.target);
-  validateExtensionPackRefs(input.target, input.extensions);
+  const { target } = input;
+  validateTargetPackRef(input.family, target);
+  validateExtensionPackRefs(target, input.extensions);
   const builders = Object.values(input.models ?? {});
   const buildersByName = new Map<string, AnyModelBuilder>();
   for (const builder of builders) {
     if (!buildersByName.has(builder.__name)) buildersByName.set(builder.__name, builder);
   }
   return {
-    target: input.target,
+    target,
     ...ifDefined('extensions', input.extensions),
     ...ifDefined('defaultControlPolicy', input.defaultControlPolicy),
     models: builders.map((builder) => modelNode(builder, buildersByName)),
@@ -194,7 +195,7 @@ export function buildContractDefinition(input: DslContractInput): ContractDefini
             ]),
           ),
     ),
-    collectionValidators: true,
+    writesCollectionValidators: true,
     warnings: undefined,
   };
 }

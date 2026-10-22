@@ -60,7 +60,7 @@ function definitionOf(overrides: Partial<ContractDefinition>): ContractDefinitio
   return {
     target: mongoTargetPack,
     models: [task, bug],
-    collectionValidators: true,
+    writesCollectionValidators: true,
     warnings: undefined,
     ...overrides,
   };
@@ -128,7 +128,7 @@ describe('buildMongoContractFromDefinition', () => {
   it('gives collections no validator when the definition says so', () => {
     expect({
       with: hasValidator(contractOf({}), 'tasks'),
-      without: hasValidator(contractOf({ collectionValidators: false }), 'tasks'),
+      without: hasValidator(contractOf({ writesCollectionValidators: false }), 'tasks'),
     }).toEqual({ with: true, without: false });
   });
 
@@ -188,7 +188,10 @@ describe('buildMongoContractFromDefinition', () => {
 
     expect({
       withValidators: refusalsOf({ models: [documentIdModel] }),
-      withoutValidators: refusalsOf({ models: [documentIdModel], collectionValidators: false }),
+      withoutValidators: refusalsOf({
+        models: [documentIdModel],
+        writesCollectionValidators: false,
+      }),
     }).toEqual({
       withValidators: [{ kind: 'validator', key: modelField('Doc', '_id') }],
       withoutValidators: [{ kind: 'validator', key: modelField('Doc', '_id') }],

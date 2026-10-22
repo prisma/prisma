@@ -2,7 +2,7 @@ import { enumMemberError } from '@internal/contract-authoring';
 import type { AuthoringWarning } from '@internal/framework-components/authoring';
 import type { MongoContractRefusal } from '@internal/mongo-contract';
 import { type StructuredError, structuredError } from '@internal/utils/structured-error';
-import type { FieldKey, MongoBuildRefusal, MongoBuildWarning } from './build-refusals';
+import type { BuildRefusal, BuildWarning, FieldKey } from './build-refusals';
 import { contractError } from './contract-errors';
 
 const LIST_THE_CODEC_PACK =
@@ -133,7 +133,7 @@ const INDEX_SHAPE_MESSAGES = {
 } as const;
 
 function discriminatorFieldError(
-  refusal: Extract<MongoBuildRefusal, { kind: 'discriminatorField' }>,
+  refusal: Extract<BuildRefusal, { kind: 'discriminatorField' }>,
 ): StructuredError {
   const field = `Discriminator field "${refusal.key.model}.${refusal.fieldName}"`;
   const meta = { modelName: refusal.key.model, fieldName: refusal.fieldName };
@@ -162,7 +162,7 @@ function discriminatorFieldError(
 }
 
 /** The error `defineContract` throws for a refusal of the builder. */
-export function refusalError(refusal: MongoBuildRefusal): StructuredError {
+export function refusalError(refusal: BuildRefusal): StructuredError {
   switch (refusal.kind) {
     case 'duplicateModel':
       return contractError(
@@ -565,7 +565,7 @@ export function refusalError(refusal: MongoBuildRefusal): StructuredError {
 }
 
 /** A builder warning as `defineContract` reports it. */
-export function authoringWarningOf(warning: MongoBuildWarning): AuthoringWarning {
+export function authoringWarningOf(warning: BuildWarning): AuthoringWarning {
   if (warning.kind === 'source') return warning.warning;
   const item = `field "${warning.key.owner.name}.${warning.key.field}"`;
   return {

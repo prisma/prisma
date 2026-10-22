@@ -39,12 +39,12 @@ import {
   type MongoIndexOptionsInput,
 } from '@internal/mongo-contract';
 import {
+  type BuildRefusal,
   buildMongoContractFromDefinition,
   type ContractDefinition,
   type FieldNode,
   type IndexNode,
   type ModelNode,
-  type MongoBuildRefusal,
   type RelationNode,
   type ValueObjectNode,
 } from '@internal/mongo-contract-ts/contract-builder';
@@ -136,7 +136,7 @@ export interface InterpretPslDocumentToMongoContractInput {
   readonly sources: PslSources;
   readonly binder: Binder;
   /** The target and extension packs of the stack, which the contract records. */
-  readonly target: TargetPackRef<string, string>;
+  readonly target: TargetPackRef<'mongo', string>;
   readonly extensionPacks?: Readonly<Record<string, ExtensionPackRef<string, string>>>;
   readonly scalarTypeCodecIds: ReadonlyMap<string, string>;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
@@ -995,7 +995,7 @@ function processEnumDeclarations(input: {
 
 /** Whether PSL already reported the cause of a refusal, so the builder's refusal would repeat it. */
 function alreadyReported(
-  refusal: MongoBuildRefusal,
+  refusal: BuildRefusal,
   dropped: ReadonlySet<string>,
   reported: ReportedPolymorphism,
 ): boolean {
@@ -1449,7 +1449,7 @@ export function interpretPslDocumentToMongoContract(
     ],
     valueObjects,
     enums: enumHandles,
-    collectionValidators: true,
+    writesCollectionValidators: true,
     warnings: undefined,
   };
   const sites: SchemaSites = {

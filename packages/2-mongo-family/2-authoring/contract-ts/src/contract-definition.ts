@@ -12,7 +12,8 @@ import type {
 } from '@internal/framework-components/components';
 import type {
   MongoCollectionOptionsAuthoringInput,
-  MongoIndexAuthoringInput,
+  MongoIndexFieldValue,
+  MongoIndexOptionsInput,
 } from '@internal/mongo-contract';
 import type { EnumTypeHandle } from './enum-type';
 
@@ -47,8 +48,12 @@ export interface FieldNode {
   readonly presetContribution?: PresetContributionNode;
 }
 
-/** An index as the source wrote it, keyed by field names. */
-export type IndexNode = MongoIndexAuthoringInput;
+/** An index as the source wrote it. */
+export interface IndexNode {
+  /** Field name to its direction or index kind, in key order. */
+  readonly fields: Readonly<Record<string, MongoIndexFieldValue>>;
+  readonly options?: MongoIndexOptionsInput;
+}
 
 interface RelationNodeBase {
   readonly relationName: string;
@@ -111,7 +116,7 @@ export interface ValueObjectNode {
 
 /** A MongoDB contract as plain data, with every name resolved, which `buildMongoContractFromDefinition` builds into a contract. */
 export interface ContractDefinition {
-  readonly target: TargetPackRef<string, string>;
+  readonly target: TargetPackRef<'mongo', string>;
   readonly extensions?: Readonly<Record<string, ExtensionPackRef<string, string>>>;
   readonly defaultControlPolicy?: ControlPolicy;
   readonly models: readonly ModelNode[];
@@ -120,7 +125,7 @@ export interface ContractDefinition {
   /** Root name to model name. Derived from the models when absent. */
   readonly roots?: Readonly<Record<string, string>>;
   /** Whether each collection gets a validator derived from its models. Without validators, an enum a validator could not list is not refused. */
-  readonly collectionValidators: boolean;
+  readonly writesCollectionValidators: boolean;
   /** Warnings the source collected before the build, reported with the build's own. */
   readonly warnings: readonly AuthoringWarning[] | undefined;
 }

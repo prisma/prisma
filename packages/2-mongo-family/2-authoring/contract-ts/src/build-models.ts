@@ -12,7 +12,7 @@ import { resolveToOneRelationNullable } from '@internal/contract-authoring';
 import { type MongoModelStorage, unsupportedStoredNameReason } from '@internal/mongo-contract';
 import { ifDefined } from '@internal/utils/defined';
 import {
-  type MongoBuildRefusal,
+  type BuildRefusal,
   modelFieldKey,
   type RelationKey,
   valueObjectFieldKey,
@@ -62,7 +62,7 @@ function buildFields(
 function buildStorageFields(
   modelName: string,
   fields: readonly FieldNode[],
-  refusals: MongoBuildRefusal[],
+  refusals: BuildRefusal[],
 ): Record<string, { readonly field: string }> {
   const storageFields: Record<string, { readonly field: string }> = {};
   const fieldsByStoredName = new Map<string, string>();
@@ -89,7 +89,7 @@ function toOneRelationNullable(
   key: RelationKey,
   relation: ReferenceRelationNode,
   fields: readonly FieldNode[],
-  refusals: MongoBuildRefusal[],
+  refusals: BuildRefusal[],
 ): boolean {
   const ownsForeignKey = relation.cardinality !== '1:1';
   const localFields: FieldNode[] = [];
@@ -118,7 +118,7 @@ function buildRelation(
   model: ModelNode,
   relation: RelationNode,
   namespaceId: string,
-  refusals: MongoBuildRefusal[],
+  refusals: BuildRefusal[],
 ): ContractEmbedRelation | ContractReferenceRelation {
   const to = crossRef(relation.toModel, namespaceId);
   if (relation.on === undefined) {
@@ -143,7 +143,7 @@ function buildRelation(
 export function buildValueObjects(
   valueObjects: readonly ValueObjectNode[] | undefined,
   namespaceId: string,
-  refusals: MongoBuildRefusal[],
+  refusals: BuildRefusal[],
 ): Record<string, ContractValueObject> {
   const builtValueObjects: Record<string, ContractValueObject> = {};
 
@@ -175,7 +175,7 @@ export function buildValueObjects(
 function checkStoredNamesAgainstBase(
   variant: ModelNode,
   models: readonly ModelNode[],
-  refusals: MongoBuildRefusal[],
+  refusals: BuildRefusal[],
 ): void {
   if (variant.base === undefined) return;
   const baseName = variant.base.model;
@@ -203,7 +203,7 @@ export function buildModels(input: {
   readonly models: readonly ModelNode[];
   readonly variantValues: ReadonlyMap<string, string>;
   readonly namespaceId: string;
-  readonly refusals: MongoBuildRefusal[];
+  readonly refusals: BuildRefusal[];
 }): Record<string, ContractModel<MongoModelStorage>> {
   const { models, variantValues, namespaceId, refusals } = input;
   const builtModels: Record<string, ContractModel<MongoModelStorage>> = {};

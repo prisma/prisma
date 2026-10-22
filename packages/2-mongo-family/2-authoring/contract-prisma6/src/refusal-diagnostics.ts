@@ -3,7 +3,7 @@ import {
   type EnumBlockSite,
   enumMemberProblemDiagnostic,
 } from '@internal/framework-components/authoring';
-import type { FieldKey, MongoBuildRefusal } from '@internal/mongo-contract-ts/contract-builder';
+import type { BuildRefusal, FieldKey } from '@internal/mongo-contract-ts/contract-builder';
 import type { PslSpan } from '@internal/psl-parser';
 import { prisma6Diagnostic } from './diagnostics';
 
@@ -32,7 +32,7 @@ function fieldSiteOf(sites: Prisma6Sites, key: FieldKey): FieldSite | undefined 
   return sites.fields.get(fieldSiteKey(key.owner.name, key.field));
 }
 
-function unexplained(refusal: MongoBuildRefusal, sourceId: string): ContractSourceDiagnostic {
+function unexplained(refusal: BuildRefusal, sourceId: string): ContractSourceDiagnostic {
   return prisma6Diagnostic(
     'PSL.PRISMA6_MONGO_CONTRACT_INVALID',
     `This schema gives a contract that Prisma 8 rejects (${refusal.kind}), and the Prisma 6 MongoDB contract source has no specific diagnostic for the cause. This is a bug in Prisma ORM; please report it with this schema.`,
@@ -45,7 +45,7 @@ function unexplained(refusal: MongoBuildRefusal, sourceId: string): ContractSour
  * The reader's diagnostic for one refusal of the builder, at the place in the schema it is about. A refusal the reader cannot place is reported as a bug in the reader, as a contract Prisma 8 rejects.
  */
 export function refusalDiagnostic(
-  refusal: MongoBuildRefusal,
+  refusal: BuildRefusal,
   sites: Prisma6Sites,
   fallbackSourceId: string,
 ): ContractSourceDiagnostic {

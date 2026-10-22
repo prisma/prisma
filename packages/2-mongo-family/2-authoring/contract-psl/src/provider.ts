@@ -21,7 +21,7 @@ import { interpretPslDocumentToMongoContract } from './interpreter';
 
 export interface MongoContractOptions {
   /** The target and extension packs of the stack, which the contract records. */
-  readonly target: TargetPackRef<string, string>;
+  readonly target: TargetPackRef<'mongo', string>;
   readonly extensionPacks?: Readonly<Record<string, ExtensionPackRef<string, string>>>;
   readonly output?: string;
   /** The target's default codec ids for an `enum` block that omits `@@type`. */

@@ -6,7 +6,7 @@ import {
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import { blindCast } from '@internal/utils/casts';
-import type { MongoBuildRefusal } from './build-refusals';
+import type { BuildRefusal } from './build-refusals';
 import type { ModelNode } from './contract-definition';
 
 /**
@@ -14,7 +14,7 @@ import type { ModelNode } from './contract-definition';
  */
 export function inheritVariantCollections(
   models: readonly ModelNode[],
-  refusals: MongoBuildRefusal[],
+  refusals: BuildRefusal[],
 ): readonly ModelNode[] {
   const modelsByName = new Map(models.map((model) => [model.modelName, model]));
   return models.map((model) => {
@@ -38,7 +38,7 @@ export function inheritVariantCollections(
 function checkVariantShape(
   model: ModelNode,
   modelsByName: ReadonlyMap<string, ModelNode>,
-  refusals: MongoBuildRefusal[],
+  refusals: BuildRefusal[],
 ): void {
   if (model.base === undefined) return;
   const key = { kind: 'base', variant: model.modelName } as const;
@@ -81,7 +81,7 @@ function decideDiscriminator(input: {
   readonly enums: Readonly<Record<string, ContractEnum>>;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypes: DataTypeSupport;
-  readonly refusals: MongoBuildRefusal[];
+  readonly refusals: BuildRefusal[];
 }): ReadonlyMap<string, string> {
   const { base, models, refusals } = input;
   const discriminator = base.discriminator;
@@ -173,7 +173,7 @@ export function decidePolymorphism(input: {
   readonly enums: Readonly<Record<string, ContractEnum>>;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypes: DataTypeSupport;
-  readonly refusals: MongoBuildRefusal[];
+  readonly refusals: BuildRefusal[];
 }): ReadonlyMap<string, string> {
   const { models, refusals } = input;
   const modelsByName = new Map(models.map((model) => [model.modelName, model]));
