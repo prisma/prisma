@@ -6,7 +6,8 @@
   "psl": [
     {
       "code": "PSL_INVALID_INDEX",
-      "message": "Collection \"people\" already has this index, declared on model \"User\". Remove one of them from model \"Admin\" or \"User\"."
+      "message": "Collection \"people\" already has this index, declared on model \"User\". Remove one of them from model \"Admin\" or \"User\".",
+      "spanText": "@@index([email])"
     }
   ]
 }

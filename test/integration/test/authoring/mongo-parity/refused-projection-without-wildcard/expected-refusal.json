@@ -6,7 +6,8 @@
   "psl": [
     {
       "code": "PSL_INVALID_INDEX",
-      "message": "include/exclude options are only valid when the index contains a wildcard() field"
+      "message": "include/exclude options are only valid when the index contains a wildcard() field",
+      "spanText": "@@index([a], include: [\"b\"])"
     }
   ]
 }

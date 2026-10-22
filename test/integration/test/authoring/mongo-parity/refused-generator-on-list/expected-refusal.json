@@ -6,7 +6,8 @@
   "psl": [
     {
       "code": "PSL_LIST_EXECUTION_DEFAULT_UNSUPPORTED",
-      "message": "Field \"Doc.stamps\" is a list and cannot use @onCreate(now()). Lists have no per-element generated values; remove @onCreate(...)."
+      "message": "Field \"Doc.stamps\" is a list and cannot use @onCreate(now()). Lists have no per-element generated values; remove @onCreate(...).",
+      "spanText": "@onCreate(now())"
     }
   ]
 }

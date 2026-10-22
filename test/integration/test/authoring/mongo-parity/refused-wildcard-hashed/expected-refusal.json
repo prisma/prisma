@@ -6,7 +6,8 @@
   "psl": [
     {
       "code": "PSL_INVALID_INDEX",
-      "message": "wildcard() fields cannot be combined with type: hashed"
+      "message": "wildcard() fields cannot be combined with type: hashed",
+      "spanText": "@@index([wildcard()], type: \"hashed\")"
     }
   ]
 }

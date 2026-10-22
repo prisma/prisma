@@ -6,7 +6,8 @@
   "psl": [
     {
       "code": "PSL_INVALID_INDEX",
-      "message": "expireAfterSeconds cannot be combined with wildcard() fields"
+      "message": "expireAfterSeconds cannot be combined with wildcard() fields",
+      "spanText": "@@index([wildcard()], expireAfterSeconds: 60)"
     }
   ]
 }

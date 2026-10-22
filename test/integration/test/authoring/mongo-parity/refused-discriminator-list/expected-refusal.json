@@ -6,7 +6,8 @@
   "psl": [
     {
       "code": "PSL_INVALID_ATTRIBUTE_ARGUMENT",
-      "message": "Discriminator field \"type\" on model \"Task\" must hold one value, but it is a list. Remove the \"[]\""
+      "message": "Discriminator field \"type\" on model \"Task\" must hold one value, but it is a list. Remove the \"[]\"",
+      "spanText": "@@discriminator(type)"
     }
   ]
 }

@@ -46,10 +46,14 @@ const sourceContext: ContractSourceContext = {
 const serializeContract: SerializeContract = (contract) =>
   mongoTargetDescriptor.contractSerializer.serializeContract(contract as MongoTargetContract);
 
-/** The refusal each source reports for a case both must refuse, in its own wording. */
+/** The refusal each source reports for a case both must refuse, in its own wording, with the schema text each PSL diagnostic points at. */
 interface ExpectedRefusal {
   readonly ts: { readonly code: string; readonly message: string };
-  readonly psl: readonly { readonly code: string; readonly message: string }[];
+  readonly psl: readonly {
+    readonly code: string;
+    readonly message: string;
+    readonly spanText: string | null;
+  }[];
 }
 
 interface ParityCase {
@@ -103,6 +107,7 @@ describe('Mongo contracts written in TypeScript and in PSL', () => {
             pathToFileURL(parityCase.contractTsPath).href
           )) as { readonly buildContract: () => Contract };
           const psl = await loadPsl(parityCase);
+          const pslText = readFileSync(parityCase.contractPslPath, 'utf-8');
 
           const actual = {
             ts: (() => {
@@ -116,7 +121,12 @@ describe('Mongo contracts written in TypeScript and in PSL', () => {
             })(),
             psl: psl.ok
               ? undefined
-              : psl.failure.diagnostics.map(({ code, message }) => ({ code, message })),
+              : psl.failure.diagnostics.map(({ code, message, span }) => ({
+                  code,
+                  message,
+                  spanText:
+                    span === undefined ? null : pslText.slice(span.start.offset, span.end.offset),
+                })),
           };
           if (writeExpected) {
             writeFileSync(

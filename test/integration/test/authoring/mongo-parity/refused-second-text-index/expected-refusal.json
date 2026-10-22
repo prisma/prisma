@@ -6,7 +6,8 @@
   "psl": [
     {
       "code": "PSL_INVALID_INDEX",
-      "message": "Only one @@textIndex is allowed per collection (model \"Doc\")"
+      "message": "Only one @@textIndex is allowed per collection (model \"Doc\")",
+      "spanText": "@@textIndex([b])"
     }
   ]
 }

@@ -6,7 +6,8 @@
   "psl": [
     {
       "code": "PSL_INVALID_INDEX",
-      "message": "Hashed indexes must have exactly one field"
+      "message": "Hashed indexes must have exactly one field",
+      "spanText": "@@index([a, b], type: \"hashed\")"
     }
   ]
 }

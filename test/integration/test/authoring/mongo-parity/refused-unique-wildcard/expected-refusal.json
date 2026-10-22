@@ -6,7 +6,8 @@
   "psl": [
     {
       "code": "PSL_INVALID_INDEX",
-      "message": "Unique indexes cannot use wildcard() fields"
+      "message": "Unique indexes cannot use wildcard() fields",
+      "spanText": "@@unique([wildcard()])"
     }
   ]
 }

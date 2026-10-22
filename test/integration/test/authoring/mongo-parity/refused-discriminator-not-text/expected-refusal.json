@@ -6,7 +6,8 @@
   "psl": [
     {
       "code": "PSL_INVALID_ATTRIBUTE_ARGUMENT",
-      "message": "Discriminator field \"type\" on model \"Task\" must be text, such as String, but is \"Int32\""
+      "message": "Discriminator field \"type\" on model \"Task\" must be text, such as String, but is \"Int32\"",
+      "spanText": "@@discriminator(type)"
     }
   ]
 }

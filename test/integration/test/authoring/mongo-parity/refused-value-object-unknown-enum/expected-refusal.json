@@ -6,7 +6,8 @@
   "psl": [
     {
       "code": "PSL_UNRESOLVED_REFERENCE",
-      "message": "Cannot find type \"Level\""
+      "message": "Cannot find type \"Level\"",
+      "spanText": "Level"
     }
   ]
 }

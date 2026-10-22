@@ -6,7 +6,8 @@
   "psl": [
     {
       "code": "PSL_INVALID_ATTRIBUTE_ARGUMENT",
-      "message": "Model \"Bug\" declares @@base value \"other\", which is not a member of enum \"Kind\", the type of discriminator field \"Task.type\". Write one of: \"bug\""
+      "message": "Model \"Bug\" declares @@base value \"other\", which is not a member of enum \"Kind\", the type of discriminator field \"Task.type\". Write one of: \"bug\"",
+      "spanText": "\"other\""
     }
   ]
 }

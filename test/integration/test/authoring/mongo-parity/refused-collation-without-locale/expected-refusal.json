@@ -6,7 +6,8 @@
   "psl": [
     {
       "code": "PSL_INVALID_INDEX",
-      "message": "collationLocale is required when using collation options"
+      "message": "collationLocale is required when using collation options",
+      "spanText": "@@index([a], collationStrength: 2)"
     }
   ]
 }

@@ -6,7 +6,8 @@
   "psl": [
     {
       "code": "PSL_MONGO_VARIANT_SEPARATE_COLLECTION",
-      "message": "Mongo variant \"Bug\" cannot use a different collection than its base \"Task\". Mongo only supports single-collection polymorphism."
+      "message": "Mongo variant \"Bug\" cannot use a different collection than its base \"Task\". Mongo only supports single-collection polymorphism.",
+      "spanText": "@@base(Task, \"bug\")"
     }
   ]
 }
