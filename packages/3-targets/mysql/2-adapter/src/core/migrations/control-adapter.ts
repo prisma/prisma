@@ -40,7 +40,7 @@ function unsupportedDdl(ast: DdlNode): Error {
 }
 
 /**
- * The MySQL control adapter. It introspects the connection's database from `information_schema`, reads the marker and ledger tables, creates them, and runs work in a transaction. Writing markers and the ledger, the marker lock, and query lowering refuse with `MIGRATION.TARGET_UNSUPPORTED` until the migration slice builds them.
+ * The MySQL control adapter. It introspects the connection's database from `information_schema`, reads the marker and ledger tables, creates them, and runs work in a transaction. Writing markers and the ledger and the marker lock refuse with `MIGRATION.TARGET_UNSUPPORTED` until the migration slice builds them; query lowering refuses with `RUNTIME.AST_UNSUPPORTED`.
  */
 export class MysqlControlAdapter implements SqlControlAdapter<'mysql'> {
   readonly familyId = 'sql' as const;
