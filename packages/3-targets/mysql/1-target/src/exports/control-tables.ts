@@ -7,6 +7,5 @@ export {
   acquireMarkerLock,
   MARKER_LOCK_TIMEOUT_SECONDS,
   releaseMarkerLock,
-  releaseMarkerLockAfterFailure,
-  releasingMarkerLock,
+  withMarkerLock,
 } from '../core/marker-lock';

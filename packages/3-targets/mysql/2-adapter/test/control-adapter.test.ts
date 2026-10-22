@@ -127,32 +127,11 @@ describe('MysqlControlAdapter', () => {
     ]);
   });
 
-  it('takes the marker lock in a transaction and releases it when the transaction ends', async () => {
+  it('takes no lock inside a transaction, because holdMarkerLock takes it around the transaction', async () => {
     const adapter = createAdapter();
-    const driver = recordingDriver((sql) =>
-      sql.startsWith('SELECT GET_LOCK') ? [{ acquired: '1' }] : [],
-    );
+    const driver = recordingDriver();
     await adapter.withTransaction(driver, () => adapter.lockMarker(driver));
-    await expect(
-      adapter.withTransaction(driver, async () => {
-        await adapter.lockMarker(driver);
-        throw new Error('boom');
-      }),
-    ).rejects.toThrow('boom');
-    await adapter.withTransaction(driver, async () => 'no lock');
-
-    expect(driver.statements.map((sql) => sql.split('(')[0])).toEqual([
-      'START TRANSACTION',
-      'SELECT GET_LOCK',
-      'COMMIT',
-      'SELECT RELEASE_LOCK',
-      'START TRANSACTION',
-      'SELECT GET_LOCK',
-      'ROLLBACK',
-      'SELECT RELEASE_LOCK',
-      'START TRANSACTION',
-      'COMMIT',
-    ]);
+    expect(driver.statements).toEqual(['START TRANSACTION', 'COMMIT']);
   });
 
   it('holds the marker lock outside a transaction while the work it guards runs, and releases it when that work ends', async () => {
@@ -194,12 +173,6 @@ describe('MysqlControlAdapter', () => {
       throw new Error('boom');
     };
     await expect(adapter.holdMarkerLock(driver, fails)).rejects.toThrow('boom');
-    await expect(
-      adapter.withTransaction(driver, async () => {
-        await adapter.lockMarker(driver);
-        await fails();
-      }),
-    ).rejects.toThrow('boom');
     await expect(adapter.holdMarkerLock(driver, async () => 'done')).rejects.toThrow(
       'Connection lost',
     );
@@ -210,7 +183,7 @@ describe('MysqlControlAdapter', () => {
     const driver = recordingDriver((sql) =>
       sql.startsWith('SELECT GET_LOCK') ? [{ acquired: '0' }] : [],
     );
-    await expect(adapter.lockMarker(driver)).rejects.toMatchObject({
+    await expect(adapter.holdMarkerLock(driver, async () => 'never')).rejects.toMatchObject({
       code: 'MIGRATION.MARKER_LOCK_TIMEOUT',
     });
   });

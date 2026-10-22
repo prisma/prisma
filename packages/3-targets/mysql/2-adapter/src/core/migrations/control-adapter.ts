@@ -20,12 +20,9 @@ import {
   buildSignMarkerBootstrapQueries,
 } from '@internal/target-mysql/contract-free';
 import {
-  acquireMarkerLock,
   LEDGER_TABLE_NAME,
   MARKER_TABLE_NAME,
-  releaseMarkerLock,
-  releaseMarkerLockAfterFailure,
-  releasingMarkerLock,
+  withMarkerLock,
 } from '@internal/target-mysql/control-tables';
 import type { MysqlCreateTable, MysqlDdlNode } from '@internal/target-mysql/ddl';
 import { mysqlQueryNotYetSupported } from '@internal/target-mysql/errors';
@@ -54,7 +51,6 @@ export class MysqlControlAdapter implements SqlControlAdapter<'mysql'> {
   readonly familyId = 'sql' as const;
   readonly targetId = 'mysql' as const;
   readonly markerLocation = MARKER_TABLE_NAME;
-  readonly #lockHolders = new WeakSet<Driver>();
 
   /** `declaredDataTypes` are the stack's data types, which introspection resolves each column's reported type over. */
   constructor(
@@ -172,28 +168,16 @@ export class MysqlControlAdapter implements SqlControlAdapter<'mysql'> {
     await insertLedgerRow(driver, space, entry);
   }
 
-  /** Takes `GET_LOCK`, which MySQL holds for the session; the `withTransaction` it runs in releases it when the transaction ends. */
-  async lockMarker(driver: Driver): Promise<void> {
-    await acquireMarkerLock(driver);
-    this.#lockHolders.add(driver);
-  }
+  /** Takes no lock: MySQL's `GET_LOCK` lives for the session, not the transaction, so {@link holdMarkerLock} takes it around the transaction instead. */
+  async lockMarker(_driver: Driver): Promise<void> {}
 
   /** Takes `GET_LOCK` before `work` runs and releases it when `work` ends, so `db sign` creates the marker table, whose DDL would end a transaction, under the lock. */
   async holdMarkerLock<T>(driver: Driver, work: () => Promise<T>): Promise<T> {
-    await acquireMarkerLock(driver);
-    return releasingMarkerLock(driver, work);
+    return withMarkerLock(driver, work);
   }
 
   async withTransaction<T>(driver: Driver, fn: () => Promise<T>): Promise<T> {
-    let result: T;
-    try {
-      result = await this.#inTransaction(driver, fn);
-    } catch (error) {
-      if (this.#lockHolders.delete(driver)) await releaseMarkerLockAfterFailure(driver);
-      throw error;
-    }
-    if (this.#lockHolders.delete(driver)) await releaseMarkerLock(driver);
-    return result;
+    return this.#inTransaction(driver, fn);
   }
 
   async #inTransaction<T>(driver: Driver, fn: () => Promise<T>): Promise<T> {

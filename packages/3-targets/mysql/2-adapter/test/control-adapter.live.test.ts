@@ -207,18 +207,18 @@ describe('MysqlControlAdapter against a MySQL server', {
       const adapter = createAdapter();
       const driver = await mysqlDriver.create(url);
       try {
-        const heldDuringCommit = await adapter.withTransaction(driver, async () => {
-          await adapter.lockMarker(driver);
-          return !(await lockIsFree(url));
-        });
+        const heldDuringCommit = await adapter.holdMarkerLock(driver, () =>
+          adapter.withTransaction(driver, async () => !(await lockIsFree(url))),
+        );
         const freeAfterCommit = await lockIsFree(url);
         let heldDuringRollback = false;
         await expect(
-          adapter.withTransaction(driver, async () => {
-            await adapter.lockMarker(driver);
-            heldDuringRollback = !(await lockIsFree(url));
-            throw new Error('undo');
-          }),
+          adapter.holdMarkerLock(driver, () =>
+            adapter.withTransaction(driver, async () => {
+              heldDuringRollback = !(await lockIsFree(url));
+              throw new Error('undo');
+            }),
+          ),
         ).rejects.toThrow('undo');
         expect({
           heldDuringCommit,

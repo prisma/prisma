@@ -29,7 +29,7 @@ import { InternalError, isInternalError } from '@internal/utils/internal-error';
 import { notOk, ok, okVoid, type Result } from '@internal/utils/result';
 import { isStructuredError, type StructuredError } from '@internal/utils/structured-error';
 import { mysqlError } from '../errors';
-import { acquireMarkerLock, releasingMarkerLock } from '../marker-lock';
+import { withMarkerLock } from '../marker-lock';
 import type { Op } from './operations';
 import type { MysqlPlanTargetDetails } from './planner-target-details';
 
@@ -103,8 +103,7 @@ class MysqlMigrationRunner implements SqlMigrationRunner<MysqlPlanTargetDetails>
   }): Promise<MigrationRunnerResult> {
     const { driver, perSpaceOptions } = options;
     if (perSpaceOptions.length === 0) return ok({ perSpaceResults: [] });
-    await acquireMarkerLock(driver);
-    return releasingMarkerLock(
+    return withMarkerLock(
       driver,
       () => this.#applySpaces(driver, perSpaceOptions),
       (result) => result.ok,

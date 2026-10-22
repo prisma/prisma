@@ -43,20 +43,21 @@ export async function releaseMarkerLock(driver: SqlControlDriverInstance<string>
 /**
  * Releases the marker lock after work that failed, keeping that failure: a release that fails too is dropped. MySQL frees a session's locks when the session ends, which is the usual reason a release fails.
  */
-export async function releaseMarkerLockAfterFailure(
+async function releaseMarkerLockAfterFailure(
   driver: SqlControlDriverInstance<string>,
 ): Promise<void> {
   await releaseMarkerLock(driver).catch(() => undefined);
 }
 
 /**
- * Runs `work`, which holds the marker lock, and then releases the lock on the same connection. A failed release is reported only when `work` succeeded; when `work` throws, or `succeeded` says its result is a failure, that outcome is what comes back.
+ * The one way MySQL holds the marker lock: takes it on the connection `driver` holds, runs `work`, and releases it on the same connection when `work` ends. A failed release is reported only when `work` succeeded; when `work` throws, or `succeeded` says its result is a failure, that outcome is what comes back.
  */
-export async function releasingMarkerLock<T>(
+export async function withMarkerLock<T>(
   driver: SqlControlDriverInstance<string>,
   work: () => Promise<T>,
   succeeded: (result: T) => boolean = () => true,
 ): Promise<T> {
+  await acquireMarkerLock(driver);
   let result: T;
   try {
     result = await work();
