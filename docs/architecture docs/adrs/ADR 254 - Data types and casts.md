@@ -1,6 +1,6 @@
 # ADR 254 — Data types and casts
 
-Status: **Accepted.** Implemented for the Postgres and SQLite targets and their extensions; the Mongo parts listed under "Not decided here" remain open. Amended 2026-10-20: a type-constructor argument that is a value names a data type and is admitted by the cast rule (see "Columns and type constructors").
+Status: **Accepted.** Implemented for the Postgres and SQLite targets and their extensions; the Mongo parts listed under "Not decided here" remain open. Amended 2026-10-20: a type-constructor argument that is a value names a data type and is admitted by the cast rule (see "Columns and type constructors"). Amended by [ADR 279](ADR%20279%20-%20Convenience%20date%20and%20time%20types%20choose%20an%20explicit%20type%20from%20their%20arguments.md) on 2026-10-22: a type constructor still names one codec, and a second kind of type declaration, a type choice, resolves to a type constructor from its arguments, so a column always stores the codec and parameters of a type constructor.
 
 ## At a glance
 

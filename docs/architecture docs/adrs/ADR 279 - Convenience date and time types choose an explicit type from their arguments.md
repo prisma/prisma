@@ -1,6 +1,6 @@
 # ADR 279 — Convenience date and time types choose an explicit type from their arguments
 
-**Status:** Proposed
+**Status:** Accepted
 **Builds on:** [ADR 241 — Scalar types use the authoring type-constructor channel](ADR%20241%20-%20Scalar%20types%20use%20the%20authoring%20type-constructor%20channel.md)
 **Amends:** [ADR 254 — Data types and casts](ADR%20254%20-%20Data%20types%20and%20casts.md), [ADR 257 — Scalar types are named after the target on every surface](ADR%20257%20-%20Scalar%20types%20are%20named%20after%20the%20target%20on%20every%20surface.md), [ADR 275 — Client generators are field attributes, and a type alias is expanded into each column](ADR%20275%20-%20Client%20generators%20are%20field%20attributes%2C%20and%20a%20type%20alias%20is%20expanded%20into%20each%20column.md)
 
@@ -90,7 +90,25 @@ TimestamptzTemporal: {
 },
 ```
 
-A convenience type is a different kind of declaration in the same namespace, a type choice. It names no codec. It declares its option arguments and a table whose rows each name an explicit type constructor:
+A convenience type is a different kind of declaration in the same namespace, a type choice. It names no codec. It declares its option arguments, each with its values and a default, the value arguments it passes on by name, and a table whose rows each name an explicit type constructor of the same namespace:
+
+```ts
+DateTime: {
+  kind: 'typeChoice',
+  args: [
+    { kind: 'option', name: 'value', values: ['jsDate', 'temporal', 'string'], default: 'jsDate', optional: true },
+    { kind: 'option', name: 'column', values: ['timestamptz', 'timestamp'], default: 'timestamptz', optional: true },
+    { kind: 'value', name: 'precision', dataType: 'pg/int4', optional: true },
+  ],
+  choices: [
+    { when: { value: 'jsDate', column: 'timestamptz' }, type: 'TimestamptzJsDate', defaults: { precision: 3 } },
+    { when: { value: 'temporal', column: 'timestamptz' }, type: 'TimestamptzTemporal' },
+    // …one row for each combination below
+  ],
+},
+```
+
+As a table:
 
 | `value` | `column` | Explicit type | Parameter defaults |
 | --- | --- | --- | --- |
@@ -101,11 +119,11 @@ A convenience type is a different kind of declaration in the same namespace, a t
 | `temporal` | `timestamp` | `TimestampInstant` | |
 | `string` | `timestamp` | `TimestampString` | |
 
-That is `DateTime`'s table; the other three are declared the same way. Resolving a call looks up the row for its option values, then instantiates the named explicit constructor with the passed-on arguments, so the result is exactly what writing the explicit type gives. A combination with no row, such as `Date(value: jsDate)`, is refused at the argument that makes it invalid, and the message lists the values that argument accepts with the others as written. Assembly refuses a table that names a constructor no component registers.
+That is `DateTime`'s table; the other three are declared the same way. Resolving a call fills each option left out with its default, looks up the row for the option values, then instantiates the named explicit constructor with the passed-on arguments, a row default standing in for one left out, so the result is exactly what writing the explicit type gives. A combination with no row, such as `Time(value: temporal, column: timetz)`, is refused at the argument that makes it invalid, and the message lists the values that argument accepts with the others as written; a value an option does not list, such as `Date(value: jsDate)`, is refused the same way. A passed-on argument the chosen constructor does not take is refused at that argument. Arguments are written by name or in declaration order, so `Time(3)` reads `3` as the `value` option and is refused. Every argument is optional, so a type choice is also written bare, as its default row. Assembly refuses a table that names a constructor no component registers beside it, a combination or default an option does not list, defaults with no row, a row default for an argument the choice does not pass on, and a passed-on argument whose data type differs from the chosen constructor's.
 
 The field-preset option arguments and select templates (ADR 246) are not used: a select resolves a template value and has no defaults and no refusal, while a type choice resolves to a named constructor, which is what "becomes one explicit type" means.
 
-Every place that reads a field's codec reads the codec its call resolves to, including through a `types {}` alias: the PSL column resolution, the `@default` value check and the `@onCreate`/`@onUpdate` generator lookup, the Prisma 7 reader and the TypeScript builder, whose `type.*` helpers (ADR 275) include the type choices and resolve their application type at compile time from literal arguments.
+Every place that reads a field's codec reads the codec its call resolves to, including through a `types {}` alias: the PSL column resolution, the `@default` value check and the `@onCreate`/`@onUpdate` generator lookup, the Prisma 7 reader and the TypeScript builder, whose `type.*` helpers (ADR 275) include the type choices and resolve their application type at compile time from literal arguments. The `type.*` helper of a type choice takes the same arguments in the same order, and its type is one overload per row, so a call is typed as the explicit type it chooses and a combination with no row does not compile. The editor's hover shows each argument's values as PSL writes them and the explicit type each combination becomes.
 
 ### What the contract and the tools see
 
@@ -138,7 +156,7 @@ The `String` and `JsDate` variants are not needed. A contributed alias takes no 
 - ADR 257 says the second codec of a stored type adds a suffix. Where a stored type has several codecs, every one now has a suffix, and the unsuffixed name of the concept belongs to a convenience type.
 - ADR 275's `String` and `JsDate` variants of the contributed `temporal.*` aliases are not built.
 - The planned rename of the PostgreSQL and SQLite types, which applies ADR 257 to those targets (for example `Int` to `Int4`), keeps `DateTime` as the convenience type instead of removing it, and adds the renames in item 6.
-- The editor's completion offers each convenience type's `value` and `column` choices, and its hover text gives the explicit type each choice becomes.
+- The editor's hover text gives each convenience type's `value` and `column` choices and the explicit type each combination becomes, and completion inserts the bare name, which writes the defaults.
 
 ## Not decided here
 
