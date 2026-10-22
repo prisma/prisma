@@ -16,6 +16,7 @@ import {
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { structuredError } from '@internal/utils/structured-error';
+import { buildColumnCodecRef } from './contract-to-schema-ir';
 import type { SchemaTables } from './schema-tables';
 import { isSqlModelStorage, tableControlPolicy } from './statement-planning';
 import type { SqlPlannerConflict } from './types';
@@ -34,7 +35,7 @@ export interface StoredValueRewrite {
   readonly table: string;
   readonly column: string;
   /** The column's codec, which writes `from` and `to` as the database stores them. */
-  readonly codecRef: { readonly codecId: string; readonly typeParams?: Record<string, unknown> };
+  readonly codecRef: CodecRef;
   /** Whether the column holds a list of the enum's values. */
   readonly many: boolean;
   readonly from: StoredEnumValue;
@@ -101,10 +102,7 @@ function columnsTypedBy(
         found.set(JSON.stringify([storage.namespaceId, storage.table, column]), {
           ...location,
           column,
-          codecRef: {
-            codecId: stored.codecId,
-            ...(stored.typeParams === undefined ? {} : { typeParams: stored.typeParams }),
-          },
+          codecRef: buildColumnCodecRef(stored, undefined),
           many: stored.many !== false && stored.many !== undefined,
           required: !stored.nullable,
         });
