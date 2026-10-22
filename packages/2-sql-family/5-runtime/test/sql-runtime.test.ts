@@ -924,7 +924,7 @@ describe('withTransaction', () => {
     expect(driver.__spies.connectionExecute).not.toHaveBeenCalled();
   });
 
-  it('throws on query creation after commit', async () => {
+  it('rejects a query after commit', async () => {
     const { runtime } = createRuntimeForTransaction();
     let savedTx: TransactionContext | undefined;
 
@@ -932,7 +932,7 @@ describe('withTransaction', () => {
       savedTx = tx;
     });
 
-    expect(() => savedTx!.query(createRawExecutionPlan())).toThrow(
+    await expect(savedTx!.query(createRawExecutionPlan()).toArray()).rejects.toThrow(
       'Cannot use a transaction operation after the transaction has ended',
     );
   });

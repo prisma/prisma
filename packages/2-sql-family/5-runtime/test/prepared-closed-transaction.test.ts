@@ -128,25 +128,25 @@ async function endedTransaction(
 describe.each(['commit', 'rollback'] as const)(
   'prepared statements against a transaction ended by %s',
   (ending) => {
-    it('refuses to query and leaves the driver alone', async () => {
+    it('rejects a query and leaves the driver alone', async () => {
       const { runtime, driverCalls } = setup();
       const prepared = await runtime.prepare({}, () => rowsPlan());
       const tx = await endedTransaction(runtime, ending);
 
-      expect(() => prepared.query(tx, {})).toThrow(
-        expect.objectContaining({ code: 'RUNTIME.TRANSACTION_CLOSED' }),
-      );
+      await expect(prepared.query(tx, {}).toArray()).rejects.toMatchObject({
+        code: 'RUNTIME.TRANSACTION_CLOSED',
+      });
       expect(driverCalls).toEqual([]);
     });
 
-    it('refuses to execute and leaves the driver alone', async () => {
+    it('rejects an execute and leaves the driver alone', async () => {
       const { runtime, driverCalls } = setup();
       const prepared = await runtime.prepare({}, () => affectedCountPlan());
       const tx = await endedTransaction(runtime, ending);
 
-      expect(() => prepared.execute(tx, {})).toThrow(
-        expect.objectContaining({ code: 'RUNTIME.TRANSACTION_CLOSED' }),
-      );
+      await expect(prepared.execute(tx, {})).rejects.toMatchObject({
+        code: 'RUNTIME.TRANSACTION_CLOSED',
+      });
       expect(driverCalls).toEqual([]);
     });
   },
