@@ -188,8 +188,14 @@ const contractSerializer = new PostgresContractSerializer();
 interface SupabaseRuntimes<TContract extends Contract<SqlStorage>> {
   readonly runtime: SupabaseRuntime & SupabaseRuntimeImpl<TContract>;
   readonly extRuntime: SupabaseRuntime & SupabaseRuntimeImpl<SupabaseExtensionContract>;
-  readonly ownedPool: Pool | undefined;
+  readonly poolBinding: PoolBinding | undefined;
 }
+
+type PoolBinding = {
+  readonly kind: 'pgPool';
+  readonly pool: Pool;
+  readonly ownsConnection: boolean;
+};
 
 function closedClientError() {
   return structuredError('DRIVER.NOT_CONNECTED', 'Supabase client is closed', {
@@ -266,7 +272,7 @@ function algKeyMismatchReason(jwt: string, kind: KeyMaterial['kind']): string | 
 
 function toPoolBinding<TContract extends Contract<SqlStorage>>(
   options: SupabaseOptions<TContract>,
-): { readonly kind: 'pgPool'; readonly pool: Pool; readonly ownsConnection: boolean } | undefined {
+): PoolBinding | undefined {
   if (options.pg !== undefined && isPgPool(options.pg)) {
     return { kind: 'pgPool', pool: options.pg, ownsConnection: false };
   }
@@ -365,7 +371,7 @@ export default async function supabase<
     if (connectError !== undefined) {
       throw connectError.error;
     }
-    if (closed && runtimes?.ownedPool === undefined) {
+    if (closed && runtimes?.poolBinding?.ownsConnection !== true) {
       throw closedClientError();
     }
     if (runtimes !== undefined) {
@@ -398,15 +404,14 @@ export default async function supabase<
     });
 
     const poolBinding = toPoolBinding(options);
-    const ownedPool = poolBinding?.ownsConnection ? poolBinding.pool : undefined;
     if (poolBinding) {
       driver.connect(poolBinding).catch(async (err: unknown) => {
         connectError = { error: err };
-        await ownedPool?.end().catch(() => undefined);
+        if (poolBinding.ownsConnection) await poolBinding.pool.end().catch(() => undefined);
       });
     }
 
-    runtimes = { runtime, extRuntime, ownedPool };
+    runtimes = { runtime, extRuntime, poolBinding };
     return runtimes;
   }
 
@@ -563,7 +568,7 @@ export default async function supabase<
   let closePromise: Promise<void> | undefined;
 
   async function closeOwnedRuntime(): Promise<void> {
-    if (runtimes?.ownedPool === undefined) return;
+    if (runtimes?.poolBinding?.ownsConnection !== true) return;
     await runtimes.runtime.close();
   }
 

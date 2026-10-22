@@ -69,13 +69,12 @@ export type PostgresOptions<
     readonly collections?: TCollections;
   };
 
+type ConnectedBinding = Exclude<DriverPostgresBinding, { readonly kind: 'url' }>;
+
 function toRuntimeBinding<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses,
->(
-  binding: PostgresBinding,
-  options: PostgresOptions<TContract, TCollections>,
-): DriverPostgresBinding {
+>(binding: PostgresBinding, options: PostgresOptions<TContract, TCollections>): ConnectedBinding {
   if (binding.kind !== 'url') {
     return { ...binding, ownsConnection: false };
   }
@@ -145,29 +144,28 @@ export default function postgres<
   let connectPromise: Promise<void> | undefined;
   let backgroundConnectError: unknown;
   let closePromise: Promise<void> | undefined;
-  // True once the driver holds a pool this client created. close() then closes the runtime, which
-  // ends that pool; a pool or client the caller passed in stays open, and so does the runtime.
-  let ownsPool = false;
+  // The binding the driver holds once connected. When the driver owns its pool, close() closes the
+  // runtime, which ends that pool; a pool or client the caller passed in stays open, and so does the
+  // runtime.
+  let connectedBinding: ConnectedBinding | undefined;
 
   const connectDriver = async (resolvedBinding: PostgresBinding): Promise<void> => {
     if (driverConnected) return;
     if (!runtimeDriver) throw new InternalError('Postgres runtime driver missing');
     if (connectPromise) return connectPromise;
     const runtimeBinding = toRuntimeBinding(resolvedBinding, options);
-    const ownedPool =
-      runtimeBinding.kind === 'pgPool' && runtimeBinding.ownsConnection
-        ? runtimeBinding.pool
-        : undefined;
     connectPromise = runtimeDriver
       .connect(runtimeBinding)
       .then(() => {
         driverConnected = true;
-        ownsPool = ownedPool !== undefined;
+        connectedBinding = runtimeBinding;
       })
       .catch(async (err) => {
         backgroundConnectError = err;
         connectPromise = undefined;
-        await ownedPool?.end().catch(() => undefined);
+        if (runtimeBinding.kind === 'pgPool' && runtimeBinding.ownsConnection) {
+          await runtimeBinding.pool.end().catch(() => undefined);
+        }
         throw err;
       });
     return connectPromise;
@@ -221,7 +219,7 @@ export default function postgres<
     if (!driverConnected) {
       await connectPromise?.catch(() => undefined);
     }
-    if (ownsPool) {
+    if (connectedBinding?.ownsConnection === true) {
       await runtimeInstance?.close();
     }
   };

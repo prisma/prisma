@@ -226,8 +226,8 @@ export default function postgresServerless<
         const driverConnection = await driver.acquireConnection();
         await driverConnection.release();
       } catch (err) {
-        // A pg.Client whose connect failed has no socket. Its end() is not awaited, because
-        // under pg-cloudflare that promise never settles.
+        // The driver owns this client, but its close() awaits end(), which never settles under
+        // pg-cloudflare for a client whose connect failed. So end() is called here, not awaited.
         void pgClient.end().catch(() => undefined);
         throw connectionFailedError(url, err);
       }
