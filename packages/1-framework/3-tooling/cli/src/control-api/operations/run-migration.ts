@@ -11,9 +11,14 @@ import type {
   MigrationOperationPolicy,
   MigrationRunnerFailure,
   MigrationSubject,
+  RowsHoldingValue,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
-import { enumValueStatementText, modelStatementText } from '@internal/framework-components/control';
+import {
+  enumValueCoordinateFromJson,
+  enumValueStatementText,
+  modelStatementText,
+} from '@internal/framework-components/control';
 import type {
   AggregateMigrationEdgeRef,
   ContractSpaceAggregate,
@@ -29,6 +34,7 @@ import type {
   FailedTypeChangeReport,
   OnControlProgress,
   PerSpaceExecutionEntry,
+  RowsHoldingValueReport,
   RunnerFailureFacts,
 } from '../types';
 
@@ -60,6 +66,23 @@ function failedTypeChangeReport(change: FailedTypeChange, field: string): Failed
   return change.by === 'cast'
     ? { field, by: 'cast', reason: change.reason }
     : { field, by: 'conversion', reason: change.reason };
+}
+
+function rowsHoldingValueReport(
+  fact: RowsHoldingValue,
+  contract: OrderedResolution['entry']['destinationContract'],
+): RowsHoldingValueReport {
+  const enumValue = enumValueCoordinateFromJson(fact.enumValue);
+  return {
+    enumValue: enumValueStatementText(contract, enumValue),
+    enumName: modelStatementText(contract, {
+      namespaceId: enumValue.namespaceId,
+      model: enumValue.enum,
+    }),
+    value: fact.value,
+    rows: fact.rows,
+    ...ifDefined('keepDataEdit', fact.keepDataEdit),
+  };
 }
 
 /** What the runner said blocked the failed operation, named as the advice names it. */
@@ -104,19 +127,7 @@ function failureReports(
       'rowsHoldingValue',
       rowsHoldingValue === undefined
         ? undefined
-        : {
-            enumValue: enumValueStatementText(
-              resolution.entry.destinationContract,
-              rowsHoldingValue.enumValue,
-            ),
-            enumName: modelStatementText(resolution.entry.destinationContract, {
-              namespaceId: rowsHoldingValue.enumValue.namespaceId,
-              model: rowsHoldingValue.enumValue.enum,
-            }),
-            value: rowsHoldingValue.value,
-            rows: rowsHoldingValue.rows,
-            ...ifDefined('keepDataEdit', rowsHoldingValue.keepDataEdit),
-          },
+        : rowsHoldingValueReport(rowsHoldingValue, resolution.entry.destinationContract),
     ),
     ...ifDefined(
       'failedMigration',

@@ -31,7 +31,6 @@ import type {
 } from '@internal/framework-components/control';
 import {
   APP_SPACE_ID,
-  enumValueCoordinateFromJson,
   failedPostcheckWhy,
   failedPrecheckWhy,
   schemaCheckWhy,
@@ -488,7 +487,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
     return {
       summary: rowsHoldingValueSummary(table, details.name, stored, rows),
       report: {
-        enumValue: enumValueCoordinateFromJson(mark.enumValue),
+        enumValue: mark.enumValue,
         value: stored,
         rows,
         operationIndex,

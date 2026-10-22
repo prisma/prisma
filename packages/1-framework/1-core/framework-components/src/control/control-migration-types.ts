@@ -24,7 +24,7 @@ import type {
 import type { OperationContext } from './control-operation-results';
 import type {
   AppliedMigrationStatement,
-  EnumValueCoordinate,
+  EnumValueCoordinateJson,
   KeepDataEdit,
   MigrationPlanNamespaces,
   MigrationPlanSubjects,
@@ -491,7 +491,8 @@ export function withDatabaseUnchanged<TCode extends MigrationRunnerFailure['code
 
 /** The data that still holds the stored value of an enum value a plan removes from storage that cannot do without it. */
 export interface RowsHoldingValue {
-  readonly enumValue: EnumValueCoordinate;
+  /** The enum value, in the JSON form statements report, which leaves out the unbound namespace. */
+  readonly enumValue: EnumValueCoordinateJson;
   /** The stored value, as the database stores it. */
   readonly value: string | number;
   /** How many rows hold it. */

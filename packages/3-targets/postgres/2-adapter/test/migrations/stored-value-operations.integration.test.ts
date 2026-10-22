@@ -63,7 +63,7 @@ describe('Postgres stored value operations', { concurrent: false }, () => {
     return true;
   }
 
-  async function runnerResult(op: Op) {
+  async function runnerResult(op: Op, runWith: PostgresControlDriver = driver) {
     const plan = createMigrationPlan<PostgresPlanTargetDetails>({
       targetId: 'postgres',
       spaceId: LEDGER_TEST_SPACE_ID,
@@ -73,13 +73,13 @@ describe('Postgres stored value operations', { concurrent: false }, () => {
       providedInvariants: [],
     });
     return postgresTargetDescriptor.createRunner(familyInstance).execute({
-      driver,
+      driver: runWith,
       perSpaceOptions: [
         {
           space: LEDGER_TEST_SPACE_ID,
           plan,
           migrationEdges: synthEdges(plan),
-          driver,
+          driver: runWith,
           destinationContract: contract,
           policy: { allowedOperationClasses: ['additive', 'widening', 'destructive'] },
           frameworkComponents,
@@ -240,5 +240,56 @@ describe('Postgres stored value operations', { concurrent: false }, () => {
         await new RemoveStoredValueCall('app', 'code', 'code', 'x', false).toOp(),
       ),
     ).toBe(0);
+  });
+
+  it('counts the rows that hold the value, and still reports the failed check, without a count, when the count fails', {
+    timeout: testTimeout,
+  }, async () => {
+    await driver.query('create table app.code (id int primary key, code text not null)');
+    await driver.query(`insert into app.code (id, code) values (1, 'x')`);
+    const op = await new RemoveStoredValueCall('app', 'code', 'code', 'x', false, undefined, {
+      namespaceId: 'app',
+      enum: 'Code',
+      member: 'X',
+    }).toOp();
+    const failingCount = new Proxy(driver, {
+      get(target, property) {
+        if (property === 'query') {
+          return (sql: string, params?: readonly unknown[]) =>
+            sql.startsWith('SELECT COUNT(*)::int AS rows')
+              ? Promise.reject(new Error('canceling statement due to statement timeout'))
+              : target.query(sql, params);
+        }
+        const value: unknown = Reflect.get(target, property);
+        return typeof value === 'function' ? value.bind(target) : value;
+      },
+    });
+
+    const counted = (await runnerResult(op)).assertNotOk();
+    const uncounted = (await runnerResult(op, failingCount)).assertNotOk();
+
+    expect({
+      counted: { message: counted.message, rows: counted.meta.rowsHoldingValue?.rows },
+      uncounted: {
+        code: uncounted.code,
+        message: uncounted.message,
+        rowsHoldingValue: uncounted.meta.rowsHoldingValue,
+      },
+    }).toEqual({
+      counted: {
+        message:
+          '1 row of "code" holds "x" in column "code", which takes no NULL, so the value cannot be removed.',
+        rows: 1,
+      },
+      uncounted: {
+        code: 'MIGRATION.PRECHECK_FAILED',
+        message:
+          'Operation removeStoredValue.code.code.x failed during precheck: ensure column "code" of "code" takes NULL, or no row holds "x" in it',
+        rowsHoldingValue: undefined,
+      },
+    });
+    expect((await driver.query('select id, code from app.code order by id')).rows).toEqual([
+      { id: 1, code: 'x' },
+    ]);
   });
 });

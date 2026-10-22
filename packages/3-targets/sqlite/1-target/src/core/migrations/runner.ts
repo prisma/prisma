@@ -29,7 +29,6 @@ import type {
 } from '@internal/framework-components/control';
 import {
   APP_SPACE_ID,
-  enumValueCoordinateFromJson,
   failedPostcheckWhy,
   failedPrecheckWhy,
   schemaCheckWhy,
@@ -460,7 +459,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
     return {
       summary: rowsHoldingValueSummary(details.table, details.name, stored, rows),
       report: {
-        enumValue: enumValueCoordinateFromJson(mark.enumValue),
+        enumValue: mark.enumValue,
         value: stored,
         rows,
         operationIndex,
