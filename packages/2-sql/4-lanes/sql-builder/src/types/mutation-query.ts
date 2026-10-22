@@ -23,11 +23,7 @@ export type ColumnValues<
 export type UpdateValues<
   Table extends StorageTable,
   CT extends Record<string, { readonly input: unknown }>,
-> = {
-  [K in keyof Table['columns']]?: Table['columns'][K]['codecId'] extends keyof CT
-    ? CT[Table['columns'][K]['codecId']]['input']
-    : unknown;
-};
+> = Partial<ColumnValues<Table, CT>>;
 
 export interface InsertQuery<
   QC extends QueryContext,

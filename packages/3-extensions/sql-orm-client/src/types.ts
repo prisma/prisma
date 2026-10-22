@@ -1625,7 +1625,7 @@ export type NumericFieldNames<
     : never;
 }[keyof DefaultModelRow<TContract, ModelName, NsId> & string];
 
-type ExecutionCreateDefaultOf<
+type FieldHasExecutionCreateDefault<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   FieldName extends string,
@@ -1652,8 +1652,8 @@ type IsOptionalCreateField<
           ModelTableName<TContract, ModelName, NsId>,
           FieldColumnName<TContract, ModelName, FieldName, NsId>
         >
-      : ExecutionCreateDefaultOf<TContract, ModelName, FieldName, NsId>
-    : ExecutionCreateDefaultOf<TContract, ModelName, FieldName, NsId>;
+      : FieldHasExecutionCreateDefault<TContract, ModelName, FieldName, NsId>
+    : FieldHasExecutionCreateDefault<TContract, ModelName, FieldName, NsId>;
 
 type CreateFieldNames<
   TContract extends Contract<SqlStorage>,

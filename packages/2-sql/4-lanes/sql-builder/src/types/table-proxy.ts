@@ -43,7 +43,7 @@ type ResolvedColumnTypes<
   readonly [K in ColumnKeys]: ColMap extends Record<K, unknown> ? ColMap[K] : never;
 };
 
-type OptionalOnCreate<
+type IsOptionalInsertColumn<
   C extends TableProxyContract,
   NsId extends string,
   Table extends StorageTable,
@@ -57,18 +57,18 @@ type OptionalOnCreate<
   K & string
 >;
 
-type CreateRow<
+type InsertRow<
   C extends TableProxyContract,
   NsId extends string,
   Table extends StorageTable,
   TableName extends string,
   Values,
 > = {
-  [K in keyof Values as OptionalOnCreate<C, NsId, Table, TableName, K> extends true
+  [K in keyof Values as IsOptionalInsertColumn<C, NsId, Table, TableName, K> extends true
     ? never
     : K]: Values[K];
 } & {
-  [K in keyof Values as OptionalOnCreate<C, NsId, Table, TableName, K> extends true
+  [K in keyof Values as IsOptionalInsertColumn<C, NsId, Table, TableName, K> extends true
     ? K
     : never]?: Values[K];
 } extends infer Row
@@ -84,8 +84,8 @@ type ResolvedInsertValues<
 > =
   StorageColumnMapAt<ExtractStorageColumnInputTypes<C>, NsId, TableName> extends infer ColMap
     ? [ColMap] extends [never]
-      ? CreateRow<C, NsId, Table, TableName, ColumnValues<Table, CT>>
-      : CreateRow<C, NsId, Table, TableName, ColMap>
+      ? InsertRow<C, NsId, Table, TableName, ColumnValues<Table, CT>>
+      : InsertRow<C, NsId, Table, TableName, ColMap>
     : never;
 
 type ResolvedUpdateValues<
