@@ -6,7 +6,7 @@ changes:
     detection:
       glob: "**/package.json"
       matches:
-        - '"@prisma/cli-engine":\s*"[~^]?0\.[0-8]\.'
+        - '"@prisma/cli-engine":\s*"[^"]*(?<![\d.])0\.[0-8](?!\d)'
   - id: piped-output-needs-json
     summary: |
       A piped Prisma ORM command no longer prints JSON. A test that runs the CLI with a non-terminal stdout and parses JSON frames from it must pass `--json`.

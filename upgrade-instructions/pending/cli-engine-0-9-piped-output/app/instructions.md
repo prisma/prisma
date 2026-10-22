@@ -6,7 +6,7 @@ changes:
     detection:
       glob: "**/package.json"
       matches:
-        - '"@prisma/cli-engine":\s*"[~^]?0\.[0-8]\.'
+        - '"@prisma/cli-engine":\s*"[^"]*(?<![\d.])0\.[0-8](?!\d)'
   - id: piped-output-needs-json
     summary: |
       A piped Prisma ORM command no longer prints JSON. Without `--json`, stdout receives the command's plain data lines, such as one tab-separated line per migration. A script that reads JSON from `prisma contract …`, `prisma db …`, `prisma migration …` or `prisma orm init` must pass `--json`.

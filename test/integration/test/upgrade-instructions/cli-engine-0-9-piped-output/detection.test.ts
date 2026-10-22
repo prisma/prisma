@@ -38,22 +38,19 @@ describe.each(['app', 'extension'])('the %s cli-engine 0.9.0 detection', (audien
     patternsOf(audience, 'engine-pin-moves-to-0-9-0').some((pattern) => pattern.test(content));
 
   it('matches an engine pin or range below 0.9', () => {
-    expect(['0.7.0', '^0.7.0', '~0.7.0', '0.2.3', '^0.8.1'].map(manifest).map(matches)).toEqual([
-      true,
-      true,
-      true,
-      true,
-      true,
-    ]);
+    expect(
+      ['0.7.0', '^0.7.0', '~0.7.0', '0.2.3', '^0.8.1', '0.8', '>=0.7.0 <0.9.0']
+        .map(manifest)
+        .map(matches),
+    ).toEqual([true, true, true, true, true, true, true]);
   });
 
   it('does not match 0.9.0 or later', () => {
-    expect(['0.9.0', '^0.9.0', '0.10.0', '1.0.0'].map(manifest).map(matches)).toEqual([
-      false,
-      false,
-      false,
-      false,
-    ]);
+    expect(
+      ['0.9.0', '^0.9.0', '0.10.0', '1.0.0', '>=0.9.0 <1.0.0', '10.8.0', '1.0.8']
+        .map(manifest)
+        .map(matches),
+    ).toEqual([false, false, false, false, false, false, false]);
   });
 
   it('does not match a manifest without the engine', () => {
