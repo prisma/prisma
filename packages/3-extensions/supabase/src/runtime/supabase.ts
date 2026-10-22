@@ -40,7 +40,7 @@ import {
   activitySource,
   createExecutionContext,
   createSqlExecutionStack,
-  runtimeFrom,
+  delegatingRuntime,
   withTransaction,
   withTransactionMembers,
 } from '@internal/sql-runtime';
@@ -427,7 +427,7 @@ export default async function supabase<
 
   const runtime = (): SupabaseRuntimes<TContract>['runtime'] => getRuntimes().runtime;
   const extRuntime = (): SupabaseRuntimes<TContract>['extRuntime'] => getRuntimes().extRuntime;
-  const appRuntime = runtimeFrom(runtime);
+  const workRuntime = delegatingRuntime(runtime);
 
   async function verifyJwt(jwt: string): Promise<JWTVerifyResult> {
     const mismatch = algKeyMismatchReason(jwt, keyMaterial.kind);
@@ -466,7 +466,7 @@ export default async function supabase<
       enums,
       nativeEnums,
       prepare(declaration, callback) {
-        return prepareQuery(appRuntime, declaration, callback);
+        return prepareQuery(workRuntime, declaration, callback);
       },
       query: role.query,
       execute: role.execute,
@@ -485,7 +485,7 @@ export default async function supabase<
                   sql: appSql,
                   raw,
                   toSql,
-                  prepareRuntime: appRuntime,
+                  prepareRuntime: workRuntime,
                 },
                 txCtx,
               ),

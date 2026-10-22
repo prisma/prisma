@@ -38,7 +38,7 @@ import {
   createExecutionContext,
   createSqlExecutionStack,
   delegatingActivitySource,
-  runtimeFrom,
+  delegatingRuntime,
   withTransaction,
   withTransactionMembers,
 } from '@internal/sql-runtime';
@@ -310,13 +310,13 @@ export default function sqlite<
     return runtimeInstance;
   };
 
-  const work = runtimeFrom(getRuntime);
+  const workRuntime = delegatingRuntime(getRuntime);
 
   const orm: SqliteOrm<TContract, TCollections> = sqliteOrm(
     ormBuilder<TContract, TCollections>({
       context,
       ...ifDefined('collections', options.collections),
-      runtime: work,
+      runtime: workRuntime,
     }),
   );
 
@@ -328,7 +328,7 @@ export default function sqlite<
     declaration: D,
     callback: (params: BindSiteParams<D>) => Q,
   ): Promise<PreparedFrom<ParamsFromDeclaration<D, CT>, Q>> {
-    return prepareQuery<D, Q, CT>(work, declaration, callback);
+    return prepareQuery<D, Q, CT>(workRuntime, declaration, callback);
   }
 
   return {
@@ -341,10 +341,10 @@ export default function sqlite<
     contract,
     stack,
     query(plan, execOptions) {
-      return work.query(plan, execOptions);
+      return workRuntime.query(plan, execOptions);
     },
     execute(plan, execOptions) {
-      return work.execute(plan, execOptions);
+      return workRuntime.execute(plan, execOptions);
     },
     async connect(bindingInput) {
       if (closed) {
@@ -389,7 +389,7 @@ export default function sqlite<
     transaction<R>(
       fn: (tx: SqliteTransactionContext<TContract, TCollections>) => PromiseLike<R>,
     ): Promise<R> {
-      return withTransaction(work, (txCtx) => {
+      return withTransaction(workRuntime, (txCtx) => {
         const tx: SqliteTransactionContext<TContract, TCollections> = withTransactionMembers(
           txCtx,
           buildSqliteTransactionMembers<TContract, TCollections>(
@@ -399,7 +399,7 @@ export default function sqlite<
               rawCodecInferer: stack.adapter.rawCodecInferer,
               enums,
               toSql,
-              prepareRuntime: work,
+              prepareRuntime: workRuntime,
             },
             txCtx,
           ),

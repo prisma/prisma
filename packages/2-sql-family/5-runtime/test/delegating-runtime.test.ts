@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { lazyActivitySource } from '../src/activity-handle';
-import { runtimeFrom } from '../src/runtime-from';
+import { delegatingRuntime } from '../src/delegating-runtime';
 import { affectedCountPlan, rowsPlan, setup } from './closed-runtime-stub';
 
 const failure = new Error('client is closed');
@@ -8,11 +8,11 @@ const fail = (): never => {
   throw failure;
 };
 
-describe('runtimeFrom', () => {
+describe('delegatingRuntime', () => {
   it('looks up the runtime when a member is called, not when its result is read', async () => {
     const { runtime } = setup();
     const getRuntime = vi.fn(() => runtime);
-    const work = runtimeFrom(getRuntime);
+    const work = delegatingRuntime(getRuntime);
 
     const rows = work.query(rowsPlan());
     const lookupsAtCall = getRuntime.mock.calls.length;
@@ -25,10 +25,10 @@ describe('runtimeFrom', () => {
   });
 
   it.each([
-    ['query', () => runtimeFrom(fail).query(rowsPlan()).toArray()],
-    ['execute', () => runtimeFrom(fail).execute(affectedCountPlan())],
-    ['connection', () => runtimeFrom(fail).connection()],
-    ['prepare', () => runtimeFrom(fail).prepare({}, () => rowsPlan())],
+    ['query', () => delegatingRuntime(fail).query(rowsPlan()).toArray()],
+    ['execute', () => delegatingRuntime(fail).execute(affectedCountPlan())],
+    ['connection', () => delegatingRuntime(fail).connection()],
+    ['prepare', () => delegatingRuntime(fail).prepare({}, () => rowsPlan())],
   ])(
     '%s rejects with the lookup failure instead of throwing at the call',
     async (_member, call) => {
