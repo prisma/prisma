@@ -779,14 +779,28 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       }
     };
     const held: SqlConnection = {
-      query: (request) => connection.query(request),
-      execute: (request) => connection.execute(request),
+      query: (request) => this.trackRows(connection.query(request)),
+      execute: (request) => this.#inFlight.track(() => connection.execute(request)),
       beginTransaction: () => connection.beginTransaction(),
       ...ifDefined('explain', connection.explain?.bind(connection)),
       release: () => dispose(() => connection.release()),
       destroy: (reason) => dispose(() => connection.destroy(reason)),
     };
     return held;
+  }
+
+  // A stream sent directly on a raw connection is work in flight from its first read until the driver answers it, as a statement the runtime streams is; one never read is not.
+  private async *trackRows<Row>(rows: AsyncIterable<Row>): AsyncGenerator<Row, void, unknown> {
+    const iterator = rows[Symbol.asyncIterator]();
+    try {
+      let next = await this.#inFlight.track(() => iterator.next());
+      while (!next.done) {
+        yield next.value;
+        next = await iterator.next();
+      }
+    } finally {
+      await iterator.return?.();
+    }
   }
 
   private async setupDriverExecution(

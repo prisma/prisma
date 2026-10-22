@@ -376,6 +376,91 @@ describe('acquireRawConnection', () => {
   });
 });
 
+describe('a statement sent directly on a raw connection', () => {
+  function gate() {
+    let open: () => void = () => undefined;
+    const opened = new Promise<void>((resolve) => {
+      open = resolve;
+    });
+    return { opened, open };
+  }
+
+  it('keeps close() waiting while an execute is pending', async () => {
+    const { runtime, driver, connection } = createTestSetup();
+    const statement = gate();
+    connection.execute.mockImplementationOnce(async () => {
+      await statement.opened;
+      return { affectedRows: 0 };
+    });
+    const raw = await runtime.acquireRawConn();
+    const pending = raw.execute({ sql: 'SELECT 1' });
+
+    const closing = runtime.close();
+    await afterIdleTurns();
+    const closedWhilePending = vi.mocked(driver.close).mock.calls.length;
+    statement.open();
+    await pending;
+    await closing;
+
+    expect({ closedWhilePending, closed: vi.mocked(driver.close).mock.calls.length }).toEqual({
+      closedWhilePending: 0,
+      closed: 1,
+    });
+  });
+
+  it('keeps close() waiting while a query stream waits for its first row', async () => {
+    const { runtime, driver, connection } = createTestSetup();
+    const firstRow = gate();
+    connection.query.mockImplementationOnce(async function* () {
+      await firstRow.opened;
+      yield { id: 1 };
+    });
+    const raw = await runtime.acquireRawConn();
+    const rows = raw.query({ sql: 'SELECT id' })[Symbol.asyncIterator]();
+    const reading = rows.next();
+
+    const closing = runtime.close();
+    await afterIdleTurns();
+    const closedWhileReading = vi.mocked(driver.close).mock.calls.length;
+    firstRow.open();
+    await reading;
+    await closing;
+
+    expect({ closedWhileReading, closed: vi.mocked(driver.close).mock.calls.length }).toEqual({
+      closedWhileReading: 0,
+      closed: 1,
+    });
+  });
+
+  it('does not keep close() waiting for a query stream read in part and dropped', async () => {
+    const { runtime, driver } = createTestSetup();
+    const raw = await runtime.acquireRawConn();
+    await raw.query({ sql: 'SELECT id' })[Symbol.asyncIterator]().next();
+
+    await expect(settlesWithin(runtime.close())).resolves.toBe('settled');
+    expect(driver.close).toHaveBeenCalledOnce();
+  });
+
+  it('does not keep close() waiting for a query stream never read', async () => {
+    const { runtime, driver } = createTestSetup();
+    const raw = await runtime.acquireRawConn();
+    raw.query({ sql: 'SELECT id' });
+
+    await expect(settlesWithin(runtime.close())).resolves.toBe('settled');
+    expect(driver.close).toHaveBeenCalledOnce();
+  });
+
+  it('lets close() finish after a statement fails', async () => {
+    const { runtime, driver, connection } = createTestSetup();
+    connection.execute.mockRejectedValueOnce(new Error('statement failed'));
+    const raw = await runtime.acquireRawConn();
+    await expect(raw.execute({ sql: 'SELECT 1' })).rejects.toThrow('statement failed');
+
+    await expect(settlesWithin(runtime.close())).resolves.toBe('settled');
+    expect(driver.close).toHaveBeenCalledOnce();
+  });
+});
+
 describe('a transaction that never settles', () => {
   function stubTransaction(connection: ReturnType<typeof createTestSetup>['connection']) {
     const transaction = {
