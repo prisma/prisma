@@ -1,4 +1,5 @@
 import {
+  type ArgTypeFromDescriptor,
   type CanonicalArguments,
   type CodecTypeMap,
   composePackAuthoringNamespace,
@@ -18,6 +19,9 @@ import type {
   AuthoringEntityTypeNamespace,
   AuthoringFieldNamespace,
   AuthoringTypeAliasDescriptor,
+  AuthoringTypeChoiceArgument,
+  AuthoringTypeChoiceDescriptor,
+  AuthoringTypeChoiceRow,
   AuthoringTypeConstructorDescriptor,
   AuthoringTypeNamespace,
   DataTypeComponent,
@@ -25,6 +29,7 @@ import type {
 import {
   assembleDataTypeSupport,
   assertNoCrossRegistryCollisions,
+  assertTypeChoicesValid,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import {
@@ -113,6 +118,166 @@ type TypeHelperFunction<
     ) => StorageTypeFromDescriptor<Descriptor, CanonicalArguments<Args, Params, ValueTypes>>
   : () => StorageTypeFromDescriptor<Descriptor, readonly []>;
 
+/** The value a call writes for each argument of a type choice, by the argument's name; `undefined` for one it leaves out. */
+type WrittenChoiceArguments<
+  Args extends readonly AuthoringTypeChoiceArgument[],
+  Params extends readonly unknown[],
+> = Args extends readonly [
+  infer Head extends AuthoringTypeChoiceArgument,
+  ...infer Tail extends readonly AuthoringTypeChoiceArgument[],
+]
+  ? {
+      readonly [Name in Head['name']]: Params extends readonly [infer Written, ...unknown[]]
+        ? Written
+        : undefined;
+    } & WrittenChoiceArguments<
+      Tail,
+      Params extends readonly [unknown, ...infer Rest] ? Rest : readonly []
+    >
+  : Record<never, never>;
+
+type RowDefault<Row extends AuthoringTypeChoiceRow, Name extends string> = Row extends {
+  readonly defaults: infer Defaults;
+}
+  ? Name extends keyof Defaults
+    ? Defaults[Name]
+    : undefined
+  : undefined;
+
+/** The arguments a type choice passes on to the constructor its row chooses, by that constructor's argument positions: the written value, or the row's default. */
+type PassedOnArguments<
+  Parameters extends readonly AuthoringArgumentDescriptor[],
+  Written extends Record<string, unknown>,
+  Row extends AuthoringTypeChoiceRow,
+> = {
+  readonly [Index in keyof Parameters]: Parameters[Index] extends {
+    readonly name: infer Name extends string;
+  }
+    ? Name extends keyof Written
+      ? Written[Name] extends undefined
+        ? RowDefault<Row, Name>
+        : Written[Name]
+      : RowDefault<Row, Name>
+    : undefined;
+};
+
+type ChosenStorageType<
+  Chosen,
+  Written extends Record<string, unknown>,
+  Row extends AuthoringTypeChoiceRow,
+  ValueTypes extends DataTypeArgumentTypes,
+> = Chosen extends AuthoringTypeConstructorDescriptor
+  ? Chosen extends {
+      readonly args: infer Parameters extends readonly AuthoringArgumentDescriptor[];
+    }
+    ? StorageTypeFromDescriptor<
+        Chosen,
+        CanonicalArguments<Parameters, PassedOnArguments<Parameters, Written, Row>, ValueTypes>
+      >
+    : StorageTypeFromDescriptor<Chosen, readonly []>
+  : never;
+
+type ParameterNames<Chosen> = Chosen extends {
+  readonly args: readonly (infer Parameter)[];
+}
+  ? Parameter extends { readonly name: infer Name extends string }
+    ? Name
+    : never
+  : never;
+
+type RowArgument<
+  Head extends AuthoringTypeChoiceArgument,
+  Row extends AuthoringTypeChoiceRow,
+  Chosen,
+  ValueTypes extends DataTypeArgumentTypes,
+> = Head extends { readonly kind: 'option'; readonly default: infer Default }
+  ? Head['name'] extends keyof Row['when']
+    ? Row['when'][Head['name']] | (Row['when'][Head['name']] extends Default ? undefined : never)
+    : never
+  : Head['name'] extends ParameterNames<Chosen>
+    ? ArgTypeFromDescriptor<Head, ValueTypes> | undefined
+    : undefined;
+
+/** Whether a call must write `Head` to choose `Row`: an option whose value in the row is not its default. */
+type RowRequires<
+  Head extends AuthoringTypeChoiceArgument,
+  Row extends AuthoringTypeChoiceRow,
+> = Head extends { readonly kind: 'option'; readonly default: infer Default }
+  ? Head['name'] extends keyof Row['when']
+    ? Row['when'][Head['name']] extends Default
+      ? false
+      : true
+    : false
+  : false;
+
+type RowArguments<
+  Args extends readonly AuthoringTypeChoiceArgument[],
+  Row extends AuthoringTypeChoiceRow,
+  Chosen,
+  ValueTypes extends DataTypeArgumentTypes,
+> = {
+  readonly [Index in keyof Args]: RowArgument<Args[Index], Row, Chosen, ValueTypes>;
+};
+
+type RowRequirements<
+  Args extends readonly AuthoringTypeChoiceArgument[],
+  Row extends AuthoringTypeChoiceRow,
+> = { readonly [Index in keyof Args]: RowRequires<Args[Index], Row> };
+
+/** The arguments as a tuple whose trailing elements, after the last one a call must write, are optional. */
+type TrailingOptional<
+  Elements extends readonly unknown[],
+  Requirements extends readonly boolean[],
+> = Requirements extends readonly [...infer RestRequirements extends readonly boolean[], infer Last]
+  ? Last extends true
+    ? Elements
+    : Elements extends readonly [...infer RestElements, infer LastElement]
+      ? readonly [...TrailingOptional<RestElements, RestRequirements>, LastElement?]
+      : readonly []
+  : readonly [];
+
+/** What a call choosing `Row` may write for each argument: the row's value for an option, left out only when that is the option's default, and a value for an argument the chosen constructor takes. */
+type RowParameters<
+  Args extends readonly AuthoringTypeChoiceArgument[],
+  Row extends AuthoringTypeChoiceRow,
+  Chosen,
+  ValueTypes extends DataTypeArgumentTypes,
+> = TrailingOptional<RowArguments<Args, Row, Chosen, ValueTypes>, RowRequirements<Args, Row>>;
+
+type RowHelperFunction<
+  Args extends readonly AuthoringTypeChoiceArgument[],
+  Row extends AuthoringTypeChoiceRow,
+  Chosen,
+  ValueTypes extends DataTypeArgumentTypes,
+> = <const Params extends RowParameters<Args, Row, Chosen, ValueTypes>>(
+  ...args: Params
+) => ChosenStorageType<Chosen, WrittenChoiceArguments<Args, Params>, Row, ValueTypes>;
+
+type RowOverloads<
+  Args extends readonly AuthoringTypeChoiceArgument[],
+  Rows extends readonly AuthoringTypeChoiceRow[],
+  Namespace,
+  ValueTypes extends DataTypeArgumentTypes,
+> = Rows extends readonly [
+  infer Row extends AuthoringTypeChoiceRow,
+  ...infer Rest extends readonly AuthoringTypeChoiceRow[],
+]
+  ? RowHelperFunction<
+      Args,
+      Row,
+      Row['type'] extends keyof Namespace ? Namespace[Row['type']] : never,
+      ValueTypes
+    > &
+      RowOverloads<Args, Rest, Namespace, ValueTypes>
+  : unknown;
+
+/** A type choice's helper: one overload per row, so a call is typed by the row its option values choose, and a combination with no row does not compile. */
+type TypeChoiceHelperFunction<
+  Descriptor extends AuthoringTypeChoiceDescriptor,
+  Namespace,
+  ValueTypes extends DataTypeArgumentTypes,
+> = RowOverloads<Descriptor['args'], Descriptor['choices'], Namespace, ValueTypes>;
+
 type AliasGeneratorCalls<Output> = (Output extends { readonly onCreate: GeneratorFunctionCall }
   ? { readonly onCreate: GeneratorFunctionCall }
   : unknown) &
@@ -139,9 +304,11 @@ type TypeHelpersFromNamespace<Namespace, ValueTypes extends DataTypeArgumentType
     ? TypeHelperFunction<Namespace[K], ValueTypes>
     : Namespace[K] extends AuthoringTypeAliasDescriptor
       ? TypeAliasHelperFunction<Namespace[K]>
-      : Namespace[K] extends Record<string, unknown>
-        ? TypeHelpersFromNamespace<Namespace[K], ValueTypes>
-        : never;
+      : Namespace[K] extends AuthoringTypeChoiceDescriptor
+        ? TypeChoiceHelperFunction<Namespace[K], Namespace, ValueTypes>
+        : Namespace[K] extends Record<string, unknown>
+          ? TypeHelpersFromNamespace<Namespace[K], ValueTypes>
+          : never;
 };
 
 type MergeExtensionDataTypeArgumentTypes<Extensions> =
@@ -356,6 +523,13 @@ export function createComposedAuthoringHelpers<
   // `createControlStack`, the TS DSL composes here. Both seams need the guard.
   assertNoCrossRegistryCollisions(typeNamespace, fieldNamespace, entityNamespace);
   assertNoBuiltInEntityCollisions(entityNamespace);
+  for (const component of components) {
+    assertTypeChoicesValid(
+      component.authoring?.type ?? {},
+      component.id ?? '<unknown>',
+      typeNamespace,
+    );
+  }
   const { support } = assembleDataTypeSupport(
     components,
     (codecId) => options.codecLookup.descriptorFor(codecId)?.dataType,

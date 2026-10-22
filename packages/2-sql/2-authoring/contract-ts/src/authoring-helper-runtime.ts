@@ -12,8 +12,11 @@ import {
   instantiateAuthoringTypeAlias,
   instantiateAuthoringTypeConstructor,
   isAuthoringTypeAliasDescriptor,
+  isAuthoringTypeChoiceDescriptor,
   isAuthoringTypeConstructorDescriptor,
   readWrittenValueAs,
+  resolveAuthoringTypeChoice,
+  typeConstructorLookup,
   validateAuthoringHelperArguments,
   validateAuthoringTypeParams,
 } from '@internal/framework-components/authoring';
@@ -126,6 +129,33 @@ export function createTypeHelpersFromNamespace(
         validateAuthoringTypeParams(
           helperPath,
           value.output,
+          output.typeParams,
+          lookups.codecLookup.descriptorFor(output.codecId)?.paramsSchema,
+        );
+        return {
+          kind: CODEC_INSTANCE_KIND,
+          codecId: output.codecId,
+          typeParams: output.typeParams ?? {},
+        };
+      };
+      continue;
+    }
+
+    if (isAuthoringTypeChoiceDescriptor(value)) {
+      const helperPath = currentPath.join('.');
+      const constructorNamed = typeConstructorLookup(namespace);
+      helpers[key] = (...written: readonly unknown[]): AuthoredStorageTypeInstance => {
+        validateAuthoringHelperArguments(helperPath, value.args, written);
+        const chosen = resolveAuthoringTypeChoice({
+          helperPath,
+          descriptor: value,
+          args: readValueArguments(helperPath, value.args, written, lookups.dataTypes),
+          constructorNamed,
+        });
+        const output = instantiateAuthoringTypeConstructor(chosen.descriptor, chosen.args);
+        validateAuthoringTypeParams(
+          helperPath,
+          chosen.descriptor.output,
           output.typeParams,
           lookups.codecLookup.descriptorFor(output.codecId)?.paramsSchema,
         );
