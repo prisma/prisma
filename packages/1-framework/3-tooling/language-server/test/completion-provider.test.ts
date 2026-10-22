@@ -696,6 +696,59 @@ namespace other { model Hidden { id Int } }`,
     ]);
   });
 
+  it('completes a type choice as its bare name, which writes its default choice', () => {
+    const { items } = completeWithSource({
+      markedSource: 'model Owner { value | }',
+      pslBlockDescriptors: {},
+      scalarTypes: [],
+      clientSupportsSnippets: true,
+      authoringContributions: assembleAuthoringContributions([
+        {
+          id: 'choices',
+          authoring: {
+            type: {
+              Moment: {
+                kind: 'typeChoice',
+                documentation: 'A moment in time.',
+                args: [
+                  {
+                    kind: 'option',
+                    name: 'value',
+                    values: ['date', 'text'],
+                    default: 'date',
+                    optional: true,
+                  },
+                ],
+                choices: [
+                  { when: { value: 'date' }, type: 'Stamp' },
+                  { when: { value: 'text' }, type: 'Stamp' },
+                ],
+              },
+              Stamp: { kind: 'typeConstructor', output: { codecId: 'fixture/value' } },
+            },
+          },
+        },
+      ]),
+    });
+    expect(
+      items
+        .filter((item) => item.label === 'Moment')
+        .map((item) => ({
+          kind: item.kind,
+          detail: item.detail,
+          newText: item.textEdit?.newText,
+          format: item.insertTextFormat,
+        })),
+    ).toEqual([
+      {
+        kind: CompletionItemKind.Class,
+        detail: 'A moment in time.',
+        newText: 'Moment',
+        format: undefined,
+      },
+    ]);
+  });
+
   it('does not complete a global namespace when its qualifier is shadowed locally', () => {
     const { items } = complete(`namespace remote { model Item { id Int } }
 namespace app {

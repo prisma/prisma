@@ -151,6 +151,41 @@ const authoringContributions = assembleAuthoringContributions([
             documentation: '',
             output: { codecId: 'fixture/flag' },
           },
+          Moment: {
+            kind: 'typeChoice',
+            documentation: 'A moment in time.',
+            args: [
+              {
+                kind: 'option',
+                name: 'value',
+                values: ['date', 'text'],
+                default: 'date',
+                optional: true,
+              },
+              {
+                kind: 'option',
+                name: 'column',
+                values: ['wide', 'narrow'],
+                default: 'wide',
+                optional: true,
+              },
+              { kind: 'value', name: 'precision', dataType: 'fixture/int', optional: true },
+            ],
+            choices: [
+              {
+                when: { value: 'date', column: 'wide' },
+                type: 'Stamp',
+                defaults: { precision: 3 },
+              },
+              { when: { value: 'text', column: 'wide' }, type: 'Text' },
+              { when: { value: 'date', column: 'narrow' }, type: 'Flag' },
+            ],
+          },
+          Stamp: {
+            kind: 'typeConstructor',
+            args: [{ name: 'precision', kind: 'value', dataType: 'fixture/int', optional: true }],
+            output: { codecId: 'fixture/stamp' },
+          },
           CreatedAt: {
             kind: 'typeAlias',
             documentation: 'Set to now when a row is created.',
@@ -563,6 +598,26 @@ describe('providePslHover', () => {
         value: "```prisma\npg.Mode(mode: 'cascade' | 'restrict')\n```\n\nA deletion mode.",
       },
       range: { start: { line: 1, character: 14 }, end: { line: 1, character: 18 } },
+    });
+  });
+
+  it('shows a type choice with its choices as written and the explicit type each becomes', () => {
+    const result = hover('model Product {\n  at pg.Mo|ment(value: text)\n}');
+    expect(result?.contents).toEqual({
+      kind: 'markdown',
+      value: [
+        '```prisma',
+        'pg.Moment(value?: date | text, column?: wide | narrow, precision?: a number)',
+        '```',
+        '',
+        'A moment in time.',
+        '',
+        '| value | column | Becomes |',
+        '| --- | --- | --- |',
+        '| date (default) | wide (default) | `Stamp(precision: 3)` |',
+        '| text | wide (default) | `Text` |',
+        '| date (default) | narrow | `Flag` |',
+      ].join('\n'),
     });
   });
 
