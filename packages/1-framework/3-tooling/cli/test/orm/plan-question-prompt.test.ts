@@ -14,7 +14,17 @@ function question(subject: string, namespace?: string): PlanQuestion {
   return {
     question: `Drop ${subject}?`,
     subject,
-    ...(namespace === undefined ? {} : { removedNamespace: namespace }),
+    ...(namespace === undefined
+      ? {}
+      : {
+          removedNamespace: namespace,
+          namespaceAnswer: (verb: string, text: string) =>
+            verb === 'delete' && text === namespace
+              ? ('delete' as const)
+              : verb === 'rename' && text.startsWith(`${namespace}:`)
+                ? ('rename' as const)
+                : undefined,
+        }),
     verbs: ['delete'],
     forms: {},
     validate: () => undefined,
@@ -184,6 +194,34 @@ describe('a namespace answer typed at the prompt', () => {
       ['billing.Invoice'],
       ['billing.Invoice', 'app.User', 'billing.Receipt'],
     ]);
+  });
+});
+
+describe("whether a typed answer is the namespace's own", () => {
+  it('is what the question says, not what the text looks like', async () => {
+    const notTheNamespace = (subject: string): PlanQuestion => ({
+      ...question(subject, 'billing'),
+      verbs: ['rename', 'delete'],
+      namespaceAnswer: () => undefined,
+    });
+    const asked: string[][] = [];
+    const statements: StatementSurface = {
+      take: vi.fn(() => []) as StatementSurface['take'],
+      values: () => [],
+    };
+    const prompt = {
+      statements: vi.fn(async (questions: readonly { readonly subject: string }[]) => {
+        asked.push(questions.map(({ subject }) => subject));
+        return questions.map(() => ({ verb: 'rename', text: 'billing:finance', values: [] }));
+      }),
+    } as unknown as PromptSurface;
+
+    await promptPlanQuestions(
+      prompt,
+      statements,
+    )([notTheNamespace('billing.Invoice'), notTheNamespace('billing.Receipt')]);
+
+    expect(asked).toEqual([['billing.Invoice'], ['billing.Receipt'], []]);
   });
 });
 

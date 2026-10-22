@@ -40,7 +40,15 @@ export interface PlanQuestion {
   readonly verbs: readonly PlanQuestionVerb[];
   readonly forms: { readonly rename?: string; readonly convert?: string };
   readonly validate: (verb: PlanQuestionVerb, text: string) => string | undefined;
+  /**
+   * Whether an answer is the removed namespace's own, a `delete` or a `rename` of the namespace,
+   * which answers its other questions too; `undefined` for any other answer.
+   */
+  readonly namespaceAnswer?: (verb: PlanQuestionVerb, text: string) => NamespaceAnswer | undefined;
 }
+
+/** How an answer answers a removed namespace as a whole. */
+export type NamespaceAnswer = 'delete' | 'rename';
 
 export interface PlanAnswer {
   readonly verb: PlanQuestionVerb;
@@ -539,22 +547,23 @@ function acceptingNamespaceAnswers(
   contracts: StatementContracts & { readonly destination: ContractWithDomain },
 ): PlanQuestion {
   if (removedNamespace === undefined) return question;
-  const answersNamespace = (verb: PlanQuestionVerb, text: string): boolean => {
-    if (verb === 'delete') return text === removedNamespace;
-    if (verb !== 'rename') return false;
+  const namespaceAnswer = (verb: PlanQuestionVerb, text: string): NamespaceAnswer | undefined => {
+    if (verb === 'delete') return text === removedNamespace ? 'delete' : undefined;
+    if (verb !== 'rename') return undefined;
     const resolved = resolvesWith({ verb, text }, contracts);
-    return (
-      resolved.ok &&
+    return resolved.ok &&
       resolved.value?.kind === 'rename' &&
       resolved.value.entity === 'namespace' &&
       resolved.value.from === removedNamespace
-    );
+      ? 'rename'
+      : undefined;
   };
   return {
     ...question,
     removedNamespace,
+    namespaceAnswer,
     validate: (verb, text) =>
-      answersNamespace(verb, text) ? undefined : question.validate(verb, text),
+      namespaceAnswer(verb, text) !== undefined ? undefined : question.validate(verb, text),
   };
 }
 
@@ -697,9 +706,7 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
         typed.push({
           statement: { verb: answer.verb, text: answer.text },
           loss: entry,
-          ofNamespace:
-            question.removedNamespace !== undefined &&
-            answer.text.startsWith(`${question.removedNamespace}:`),
+          ofNamespace: question.namespaceAnswer?.(answer.verb, answer.text) === 'rename',
         });
       } else consent(answer.verb, entry, question.subject);
     });

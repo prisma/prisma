@@ -58,12 +58,6 @@ function engineQuestion(question: PlanQuestion) {
 }
 
 /** Whether an answer is the namespace's own: a `delete` of it, or a `rename` of it. */
-function answersNamespace(answer: PlanAnswer, namespace: string): boolean {
-  return answer.verb === 'delete'
-    ? answer.text === namespace
-    : answer.verb === 'rename' && answer.text.startsWith(`${namespace}:`);
-}
-
 function isConsentRequired(error: unknown): boolean {
   return (
     typeof error === 'object' &&
@@ -110,9 +104,12 @@ async function askOneAtATime(
     if (typed === undefined) continue;
     const answer: PlanAnswer = { verb: typed.verb, text: typed.text };
     answered.set(index, answer);
-    if (removedNamespace !== undefined && answersNamespace(answer, removedNamespace)) {
-      if (answer.verb === 'delete') namespaceDeleted.set(removedNamespace, answer);
-      else namespaceRenamed.add(removedNamespace);
+    const ofNamespace = question.namespaceAnswer?.(answer.verb, answer.text);
+    if (removedNamespace !== undefined && ofNamespace === 'delete') {
+      namespaceDeleted.set(removedNamespace, answer);
+    }
+    if (removedNamespace !== undefined && ofNamespace === 'rename') {
+      namespaceRenamed.add(removedNamespace);
     }
   }
   await prompt.statements([], { last: true });
