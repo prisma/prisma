@@ -130,7 +130,7 @@ describe('mapPslHelperArgs argument kinds', () => {
       [{ kind: 'option', name: 'value', values: ['string', 'temporal'] }],
     );
     expect(diagnostics[0]?.message).toMatch(
-      /argument #1 is 3, but argument "value" takes one of: string, temporal\.$/,
+      /argument #1 is 3, but argument "value" takes one of these names, written without quotes: string, temporal\.$/,
     );
   });
 
