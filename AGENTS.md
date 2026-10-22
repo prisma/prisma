@@ -114,6 +114,16 @@ See `architecture.config.json` for the complete mapping and `pnpm lint:deps` to 
 - Shape and deliver a project (spec → plan → implement): run `drive-start-workflow`; methodology in [`prisma/ignite docs/drive/`](https://github.com/prisma/ignite/tree/main/docs/drive); project artifacts live under `projects/` (see [`projects/README.md`](projects/README.md))
 - Cut the next npm minor release: `.agents/skills/publish-npm-version/SKILL.md` (policy in [`docs/oss/versioning.md`](docs/oss/versioning.md))
 
+## Check requests and proposals against the direction
+
+Before you judge a feature request or a pull request, and before you propose a new feature, surface or solution, check it against:
+
+- [Project intent](docs/design/00-purpose/project-intent.md): who Prisma 8 is for and what it optimises for.
+- [Direction](docs/design/00-purpose/direction.md): the principles, the long-lived themes, and the current focus.
+- [Decision records](docs/design/90-decisions/README.md): requests already answered, with what to use instead.
+
+Give a verdict of **fits**, **does not fit** or **unclear**, and cite the page, record or ADR you relied on. A poor fit is evidence for a maintainer, not a reason to close on its own. The `product-direction` skill in [prisma/ignite](https://github.com/prisma/ignite) describes how to do this check. The folders under `projects/` are work in flight, not a roadmap.
+
 ## Subsystem Deep Dives
 
 See [`docs/architecture docs/subsystems/`](docs/architecture%20docs/subsystems/) — Data Contract, Contract Emitter & Types, Query Lanes, Runtime & Middleware Framework, Adapters & Targets, Error Handling, Migration System.
