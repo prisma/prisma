@@ -3,11 +3,9 @@ import type { AnyArgType, ArgType, AttributeCtx } from './types';
 /** How a union's alternatives are joined in its label. */
 export const UNION_LABEL_SEPARATOR = ' | ';
 
-function readsAsUnion(type: AnyArgType | ArgType<unknown, never>): boolean {
-  if (type.kind === 'dataTypeValue') return type.labelListsAlternatives;
-  if (type.kind !== 'oneOf' || !type.labelListsAlternatives) return false;
-  const [only, ...rest] = type.alternatives;
-  return rest.length > 0 || readsAsUnion(only);
+/** Whether a type's label reads as a union of several labels. */
+export function labelIsUnion(type: AnyArgType | ArgType<unknown, never>): boolean {
+  return (type.kind === 'oneOf' || type.kind === 'dataTypeValue') && type.labelIsUnion;
 }
 
 /**
@@ -17,5 +15,5 @@ function readsAsUnion(type: AnyArgType | ArgType<unknown, never>): boolean {
 export function groupedTypeLabel<Ctx extends AttributeCtx>(
   type: ArgType<unknown, Ctx> | ArgType<unknown, never>,
 ): string {
-  return readsAsUnion(type) ? `(${type.label})` : type.label;
+  return labelIsUnion(type) ? `(${type.label})` : type.label;
 }

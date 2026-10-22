@@ -308,7 +308,7 @@ function nanoidSignature(integer: DataTypeId, dataTypes: DataTypeSupport) {
 
 /** The completion suggestions of an argument that takes one of `values`, which its label lists. */
 function listed(values: readonly number[]): DataTypeValueOptions {
-  return { suggestions: values.map(String), labelListsSuggestions: true };
+  return { suggestions: values.map(String), labelIsUnion: true };
 }
 
 /**

@@ -15,7 +15,7 @@ export function jsonValue(): JsonValueArgType<AttributeCtx> {
   const self: JsonValueArgType<AttributeCtx> = {
     kind: 'oneOf',
     label: 'JSON value',
-    labelListsAlternatives: false,
+    labelIsUnion: false,
     get alternatives() {
       return composed.alternatives;
     },

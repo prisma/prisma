@@ -2,7 +2,7 @@ import { blindCast } from '@internal/utils/casts';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, or, type Result } from '@internal/utils/result';
 import type { PslDiagnostic } from '../../diagnostic';
-import { UNION_LABEL_SEPARATOR } from '../type-label';
+import { labelIsUnion, UNION_LABEL_SEPARATOR } from '../type-label';
 import type {
   AnyArgType,
   ArgType,
@@ -33,7 +33,7 @@ export function oneOf<Alts extends readonly [AnyArgType, ...AnyArgType[]]>(
   return {
     kind: 'oneOf',
     label,
-    labelListsAlternatives: true,
+    labelIsUnion: alts.length > 1 || labelIsUnion(alts[0]),
     alternatives: alts,
     parse: (arg, ctx): Result<OutOf<Alts[number]>, readonly PslDiagnostic[]> => {
       type Alternative = ArgType<OutOf<Alts[number]>, ParseContext>;

@@ -21,12 +21,12 @@ export type DataTypeValueOptions =
       readonly suggestions?: readonly string[];
       /** The label shown for the argument in place of the forms its type admits. */
       readonly label?: string;
-      readonly labelListsSuggestions?: never;
+      readonly labelIsUnion?: never;
     }
   | {
       readonly suggestions: readonly string[];
-      /** The label lists the suggestions as a union's alternatives, as the versions a function takes do. */
-      readonly labelListsSuggestions: true;
+      /** The label is the suggestions joined as a union, as the versions a function takes are. */
+      readonly labelIsUnion: true;
       readonly label?: never;
     };
 
@@ -39,16 +39,16 @@ export function dataTypeValue(
   const tags = admittedTags(support, dataType);
   const [firstTag] = tags;
   const suggestions = options.suggestions ?? [];
-  const labelListsSuggestions = options.labelListsSuggestions === true;
+  const labelIsUnion = options.labelIsUnion === true;
   return {
     kind: 'dataTypeValue',
-    label: labelListsSuggestions
+    label: labelIsUnion
       ? suggestions.join(UNION_LABEL_SEPARATOR)
       : (options.label ??
         (firstTag === undefined
           ? describeAdmittedForms(support, dataType)
           : tagForm(firstTag).phrase)),
-    labelListsAlternatives: labelListsSuggestions && suggestions.length > 1,
+    labelIsUnion: labelIsUnion && suggestions.length > 1,
     dataType,
     tags,
     documentation: support.entries[dataType]?.documentation ?? '',

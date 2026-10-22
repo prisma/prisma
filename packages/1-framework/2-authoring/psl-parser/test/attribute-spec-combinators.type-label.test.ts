@@ -36,7 +36,7 @@ describe('groupedTypeLabel', () => {
   it('wraps a data type value whose label lists several suggestions', () => {
     const type = dataTypeValue(int4.id, support, {
       suggestions: ['4', '7'],
-      labelListsSuggestions: true,
+      labelIsUnion: true,
     });
 
     expect(groupedTypeLabel(type)).toBe('(4 | 7)');
@@ -45,7 +45,7 @@ describe('groupedTypeLabel', () => {
   it('leaves a data type value that lists one suggestion alone', () => {
     const type = dataTypeValue(int4.id, support, {
       suggestions: ['2'],
-      labelListsSuggestions: true,
+      labelIsUnion: true,
     });
 
     expect(groupedTypeLabel(type)).toBe('2');

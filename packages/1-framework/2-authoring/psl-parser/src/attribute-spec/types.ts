@@ -149,7 +149,7 @@ export interface JsonArgType<Ctx extends AttributeCtx = AttributeCtx>
 export interface JsonValueArgType<Ctx extends AttributeCtx = AttributeCtx>
   extends ArgTypeOutput<JsonValue, Ctx> {
   readonly kind: 'oneOf';
-  readonly labelListsAlternatives: false;
+  readonly labelIsUnion: false;
   readonly alternatives: readonly [
     UnrestrictedStrArgType<Ctx>,
     UnrestrictedNumArgType<Ctx>,
@@ -210,8 +210,8 @@ export interface OneOfArgType<
 
 interface OneOfMetadata {
   readonly kind: 'oneOf';
-  /** Whether the label lists the alternatives joined by ` | `, rather than naming the type itself as `JSON value` does. */
-  readonly labelListsAlternatives: boolean;
+  /** Whether the label reads as a union: several labels joined by ` | `. False for a union that names itself, as `JSON value` does. */
+  readonly labelIsUnion: boolean;
   readonly alternatives: readonly [AnyArgType, ...AnyArgType[]];
 }
 
@@ -277,8 +277,8 @@ export interface DataTypeValueArgType<Ctx extends AttributeCtx = AttributeCtx>
   readonly documentation: string;
   /** Written values offered for completion besides the tags, such as the versions a function takes. */
   readonly suggestions: readonly string[];
-  /** Whether the label lists several suggestions joined by ` | `, as a union's label does. */
-  readonly labelListsAlternatives: boolean;
+  /** Whether the label reads as a union: several suggestions joined by ` | `. */
+  readonly labelIsUnion: boolean;
 }
 
 type ArgTypeMetadata<Type> = Type extends object
