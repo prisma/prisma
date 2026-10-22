@@ -52,12 +52,6 @@ export const postgresScalarAuthoringTypes = {
     documentation: 'An exact decimal value stored as PostgreSQL numeric.',
     output: { codecId: 'pg/numeric@1' },
   },
-  DateTime: {
-    kind: 'typeConstructor',
-    documentation:
-      'An instant stored as PostgreSQL timestamptz and represented as Temporal.Instant.',
-    output: { codecId: 'pg/timestamptz-temporal@1' },
-  },
   Json: {
     kind: 'typeConstructor',
     inferred: true,
@@ -143,15 +137,6 @@ export const postgresNativeAuthoringTypes = {
       typeParams: { precision: { kind: 'arg', index: 0 } },
     },
   },
-  Time: {
-    kind: 'typeConstructor',
-    documentation: 'A time of day without a time zone, represented as Temporal.PlainTime.',
-    args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
-    output: {
-      codecId: 'pg/time-temporal@1',
-      typeParams: { precision: { kind: 'arg', index: 0 } },
-    },
-  },
   Timetz: {
     kind: 'typeConstructor',
     inferred: true,
@@ -187,11 +172,6 @@ export const postgresNativeAuthoringTypes = {
     output: { codecId: 'pg/float4@1' },
   },
   DateTemporal: {
-    kind: 'typeConstructor',
-    documentation: 'A calendar date represented as Temporal.PlainDate.',
-    output: { codecId: 'pg/date-temporal@1' },
-  },
-  Date: {
     kind: 'typeConstructor',
     documentation: 'A calendar date represented as Temporal.PlainDate.',
     output: { codecId: 'pg/date-temporal@1' },
@@ -308,10 +288,128 @@ export const postgresNativeAuthoringTypes = {
   },
 } as const satisfies AuthoringTypeNamespace;
 
+const precision = {
+  kind: 'value',
+  dataType: PG_SIZE_TYPE,
+  name: 'precision',
+  optional: true,
+} as const;
+
+/**
+ * The convenience date and time types. Each is a type choice: its `value` and `column` arguments choose the explicit type it becomes, and `precision` is passed on to that type. ADR 279.
+ */
+export const postgresConvenienceDateTimeTypes = {
+  DateTime: {
+    kind: 'typeChoice',
+    documentation:
+      'A moment in time. `value` is what the application reads: jsDate (a JavaScript Date), temporal (Temporal.Instant) or string. `column` is timestamptz or timestamp, a timestamp read and written as UTC.',
+    args: [
+      {
+        kind: 'option',
+        name: 'value',
+        values: ['jsDate', 'temporal', 'string'],
+        default: 'jsDate',
+        optional: true,
+      },
+      {
+        kind: 'option',
+        name: 'column',
+        values: ['timestamptz', 'timestamp'],
+        default: 'timestamptz',
+        optional: true,
+      },
+      precision,
+    ],
+    choices: [
+      {
+        when: { value: 'jsDate', column: 'timestamptz' },
+        type: 'TimestamptzJsDate',
+        defaults: { precision: 3 },
+      },
+      { when: { value: 'temporal', column: 'timestamptz' }, type: 'TimestamptzTemporal' },
+      { when: { value: 'string', column: 'timestamptz' }, type: 'TimestamptzString' },
+      {
+        when: { value: 'jsDate', column: 'timestamp' },
+        type: 'TimestampJsDate',
+        defaults: { precision: 3 },
+      },
+      { when: { value: 'temporal', column: 'timestamp' }, type: 'TimestampInstant' },
+      { when: { value: 'string', column: 'timestamp' }, type: 'TimestampString' },
+    ],
+  },
+  Date: {
+    kind: 'typeChoice',
+    documentation:
+      'A calendar date. `value` is what the application reads: string, such as "2024-02-29", or temporal (Temporal.PlainDate).',
+    args: [
+      {
+        kind: 'option',
+        name: 'value',
+        values: ['string', 'temporal'],
+        default: 'string',
+        optional: true,
+      },
+      { kind: 'option', name: 'column', values: ['date'], default: 'date', optional: true },
+    ],
+    choices: [
+      { when: { value: 'string', column: 'date' }, type: 'DateString' },
+      { when: { value: 'temporal', column: 'date' }, type: 'DateTemporal' },
+    ],
+  },
+  Time: {
+    kind: 'typeChoice',
+    documentation:
+      'A time of day. `value` is what the application reads: string, such as "09:30:00", or temporal (Temporal.PlainTime). `column` is time, or timetz with value string.',
+    args: [
+      {
+        kind: 'option',
+        name: 'value',
+        values: ['string', 'temporal'],
+        default: 'string',
+        optional: true,
+      },
+      {
+        kind: 'option',
+        name: 'column',
+        values: ['time', 'timetz'],
+        default: 'time',
+        optional: true,
+      },
+      precision,
+    ],
+    choices: [
+      { when: { value: 'string', column: 'time' }, type: 'TimeString' },
+      { when: { value: 'temporal', column: 'time' }, type: 'TimeTemporal' },
+      { when: { value: 'string', column: 'timetz' }, type: 'Timetz' },
+    ],
+  },
+  Duration: {
+    kind: 'typeChoice',
+    documentation:
+      'A length of time. `value` is what the application reads: string, an ISO 8601 duration such as "P1M", or parts, the object { months, days, micros }.',
+    args: [
+      {
+        kind: 'option',
+        name: 'value',
+        values: ['string', 'parts'],
+        default: 'string',
+        optional: true,
+      },
+      { kind: 'option', name: 'column', values: ['interval'], default: 'interval', optional: true },
+      precision,
+    ],
+    choices: [
+      { when: { value: 'string', column: 'interval' }, type: 'IntervalString' },
+      { when: { value: 'parts', column: 'interval' }, type: 'IntervalParts' },
+    ],
+  },
+} as const satisfies AuthoringTypeNamespace;
+
 /**
  * The base scalars and native types as type constructors. The target contributes them, so PSL and the TypeScript builder's `type.*` see the same names.
  */
 export const postgresScalarAndNativeTypeConstructors = {
   ...postgresNativeAuthoringTypes,
   ...postgresScalarAuthoringTypes,
+  ...postgresConvenienceDateTimeTypes,
 } as const satisfies AuthoringTypeNamespace;

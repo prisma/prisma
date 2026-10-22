@@ -20,11 +20,12 @@ const constructorNames = [
 ];
 
 function codecIdOf(name: string): string | undefined {
-  return Object.hasOwn(postgresScalarAndNativeTypeConstructors, name)
+  const descriptor = Object.hasOwn(postgresScalarAndNativeTypeConstructors, name)
     ? postgresScalarAndNativeTypeConstructors[
         name as keyof typeof postgresScalarAndNativeTypeConstructors
-      ].output.codecId
+      ]
     : undefined;
+  return descriptor?.kind === 'typeConstructor' ? descriptor.output.codecId : undefined;
 }
 
 describe('the types contract infer and prisma7Schema write', () => {
@@ -46,8 +47,11 @@ describe('the constructors marked inferred', () => {
   it('name no codec that needs Temporal', () => {
     expect(
       Object.entries(postgresScalarAndNativeTypeConstructors)
-        .filter(([, descriptor]) => 'inferred' in descriptor)
-        .map(([name, descriptor]) => ({ name, codecId: descriptor.output.codecId }))
+        .flatMap(([name, descriptor]) =>
+          descriptor.kind === 'typeConstructor' && 'inferred' in descriptor
+            ? [{ name, codecId: descriptor.output.codecId }]
+            : [],
+        )
         .filter(({ codecId }) => TEMPORAL_CODEC_IDS.includes(codecId)),
     ).toEqual([]);
   });
