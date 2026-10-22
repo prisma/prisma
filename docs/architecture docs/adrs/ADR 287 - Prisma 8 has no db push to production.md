@@ -1,6 +1,6 @@
 # ADR 287 — Prisma 8 has no `db push` to production
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-10-22
 
 ---

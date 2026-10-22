@@ -1,6 +1,6 @@
 # ADR 288 — Prisma 8 has no implicit many-to-many relations
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-10-22
 
 ---
@@ -11,8 +11,8 @@ A many-to-many relation needs an explicit join model; list navigation on both si
 
 ## Context
 
-Prisma 7 lets a schema declare a list relation on both sides and creates the hidden `_AToB` join table. The [scoreboard](../../../scorecard/08-relations.md) lists implicit many-to-many as not in 8.0, and the `prisma-8` skill's [contract](../../../skills/prisma-8/references/contract.md) and [queries](../../../skills/prisma-8/references/queries.md) references send users who need it to file an issue.
+Prisma 7 lets a schema declare a list relation on both sides and creates the hidden `_AToB` join table. The [scoreboard](../../../scorecard/08-relations.md) marks implicit many-to-many ❌, which its [legend](../../../scorecard.md) defines as "Not in 8.0 — deliberately absent from Prisma 8", and the `prisma-8` skill's [contract](../../../skills/prisma-8/references/contract.md) and [queries](../../../skills/prisma-8/references/queries.md) references send users who need it to file an issue.
 
 ## Consequences
 
-No revisit-if condition is recorded. The issues filed through the skill's feedback flow are the evidence a maintainer weighs when scheduling it.
+No revisit-if condition is recorded.

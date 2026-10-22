@@ -1,6 +1,6 @@
 # ADR 286 — Prisma 8 does not fully manage native Postgres enums
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-10-22
 
 ---
