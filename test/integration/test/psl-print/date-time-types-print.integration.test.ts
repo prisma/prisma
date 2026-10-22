@@ -10,6 +10,12 @@ model Event {
   zoned3    TimestamptzTemporal(3)
   local     TimestampTemporal
   local3    TimestampTemporal(3)
+  utcDate   TimestampJsDate(3)
+  utcAt     TimestampInstant(6)
+  dayT      DateTemporal
+  clockT    TimeTemporal(0)
+  period    IntervalParts
+  span      IntervalString(3)
   day       Date
   clock     Time
   clock3    Time(3)
@@ -43,6 +49,12 @@ describe('contract print spells each date and time column', () => {
       zoned3: 'TimestamptzTemporal(3)',
       local: 'TimestampTemporal',
       local3: 'TimestampTemporal(3)',
+      utcDate: 'TimestampJsDate(3)',
+      utcAt: 'TimestampInstant(6)',
+      dayT: 'Date',
+      clockT: 'Time(0)',
+      period: 'IntervalParts',
+      span: 'IntervalString(3)',
       day: 'Date',
       clock: 'Time',
       clock3: 'Time(3)',

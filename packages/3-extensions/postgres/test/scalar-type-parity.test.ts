@@ -93,6 +93,9 @@ describe('postgres scalar types derived from the unified namespace', () => {
       Bit: { codecId: 'pg/bit@1' },
       VarBit: { codecId: 'pg/varbit@1' },
       IntervalParts: { codecId: 'pg/interval@1' },
+      IntervalString: { codecId: 'pg/interval-string@1' },
+      TimestampJsDate: { codecId: 'pg/timestamp-date@1' },
+      TimestampInstant: { codecId: 'pg/timestamp-instant@1' },
     });
   });
 
@@ -113,6 +116,7 @@ describe('postgres scalar types derived from the unified namespace', () => {
       'Inet',
       'Int',
       'IntervalParts',
+      'IntervalString',
       'Json',
       'Jsonb',
       'Numeric',
@@ -122,6 +126,8 @@ describe('postgres scalar types derived from the unified namespace', () => {
       'Time',
       'TimeString',
       'TimeTemporal',
+      'TimestampInstant',
+      'TimestampJsDate',
       'TimestampString',
       'TimestampTemporal',
       'TimestamptzJsDate',

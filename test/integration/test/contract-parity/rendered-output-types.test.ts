@@ -58,7 +58,11 @@ const stacks: Readonly<Record<'Postgres and its extensions' | 'SQLite', StackCla
       'pg/geometry@1': 'Geometry<Srid> is the same type for every SRID.',
       'pg/interval@1':
         'An interval reads as its months, days and microseconds whatever its precision.',
+      'pg/interval-string@1':
+        'An interval read as a string is an ISO 8601 duration whatever its precision.',
       'pg/time-temporal@1': temporalPrecision,
+      'pg/timestamp-date@1': 'A timestamp read as a Date is a Date whatever its precision.',
+      'pg/timestamp-instant@1': temporalPrecision,
       'pg/timestamp-temporal@1': temporalPrecision,
       'pg/timestamptz-temporal@1': temporalPrecision,
       'pg/unboundedint@1': 'A numeric(P, 0) column reads as a bigint whatever its precision.',
