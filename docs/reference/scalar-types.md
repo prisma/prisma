@@ -82,14 +82,14 @@ These are the current names. The Postgres and SQLite rename project will change 
 | `Decimal`, `Numeric(p?, s?)` | `field.decimal()` | `pg/numeric@1` | `numeric` | `string` (decimal text) |
 | `DateTime`, `Timestamptz(p?)` | `field.dateTime()` | `pg/timestamptz-temporal@1` | `timestamptz` | `Temporal.Instant` |
 | `TimestamptzJsDate(p?)` | — | `pg/timestamptz-date@1` | `timestamptz` | `Date` |
-| `TimestamptzString(p?)` | — | `pg/timestamptz-string@1` | `timestamptz` | `string` |
+| `TimestamptzString(p?)` | — | `pg/timestamptz-string@1` | `timestamptz` | `string` (ISO 8601) |
 | `Timestamp(p?)` | — | `pg/timestamp-temporal@1` | `timestamp` | `Temporal.PlainDateTime` |
-| `TimestampString(p?)` | — | `pg/timestamp-string@1` | `timestamp` | `string` |
+| `TimestampString(p?)` | — | `pg/timestamp-string@1` | `timestamp` | `string` (ISO 8601) |
 | `Date` | — | `pg/date-temporal@1` | `date` | `Temporal.PlainDate` |
-| `DateString` | — | `pg/date-string@1` | `date` | `string` |
+| `DateString` | — | `pg/date-string@1` | `date` | `string` (ISO 8601) |
 | `Time(p?)` | — | `pg/time-temporal@1` | `time` | `Temporal.PlainTime` |
-| `TimeString(p?)` | — | `pg/time-string@1` | `time` | `string` |
-| `Timetz(p?)` | — | `pg/timetz@1` | `timetz` | `string` |
+| `TimeString(p?)` | — | `pg/time-string@1` | `time` | `string` (ISO 8601) |
+| `Timetz(p?)` | — | `pg/timetz@1` | `timetz` | `string` (ISO 8601) |
 | `Uuid` | `field.uuidNative()` | `pg/uuid@1` | `uuid` | `string` |
 | `Inet` | — | `pg/inet@1` | `inet` | `string` |
 | `Interval(p?)` | — | `pg/interval@1` | `interval` | `{ months: number; days: number; micros: bigint }` |
@@ -103,6 +103,10 @@ These are the current names. The Postgres and SQLite rename project will change 
 A literal default of a date, time, interval or bytes type is written with the tag of its type, as in `@default(timestamptz`2024-01-01T00:00:00Z`)` or `@default(bytea`\x0102`)`; a quoted string is refused with a message that shows the tag. It is stored in the one form its data type stores, whichever codec the column uses and however the default was written, and a default with more fraction digits or more scale than its column holds is refused rather than rounded; [ADR 254](../architecture%20docs/adrs/ADR%20254%20-%20Data%20types%20and%20casts.md#date-and-time-types) states each form.
 
 The tools that write a schema for you use the text date and time types. In a PSL schema, `prisma orm init` writes `createdAt TimestamptzString @default(now())` and `updatedAt temporal.updatedAtString()`. In a TypeScript contract, it writes `field.temporal.createdAtString()` and `field.temporal.updatedAtString()`. All of these are `TimestamptzString` columns. `prisma contract infer` and `prisma7Schema(...)` write `TimestampString(p)`, `TimestamptzString(p)`, `DateString` and `TimeString(p)`. Four types read and write `Temporal` values: `Timestamptz` (also written `DateTime`), `Timestamp`, `Date` and `Time`. An application that uses them needs a global `Temporal`: on a runtime without one, such as Node.js 24, install it, for example with `import 'temporal-polyfill/full/global'`.
+
+A text date or time type reads and writes ISO 8601, the form its data type stores: `TimestamptzString` reads `2024-01-01T00:00:00Z`, the instant in UTC, whatever the session's time zone; `TimestampString` reads `2024-01-01T12:34:56.5`; `DateString` reads `2024-01-01`; `TimeString` reads `12:34:56`; and `Timetz` reads `12:34:56+02:00`, or `12:34:56Z` for a zero offset. A year before 1 or after 9999 is a sign and six digits, as in `-000043-03-15` for 44 BC. `infinity` and `-infinity` read as those words. A value PostgreSQL holds beyond the range of the `Temporal` and `Date` types reads in the same shape: the time `24:00:00`, and a date with a seven-digit year, such as `+5874897-12-31`. A value written in another form PostgreSQL reads, such as `2024-01-01 01:00:00+01`, is stored as written and reads back in ISO 8601; a literal default or enum member must be written in the stored form.
+
+PostgreSQL prints a date or timestamp in the connection's `DateStyle`. Prisma sets `DateStyle=ISO` as a startup option on every connection it opens from a URL, after any `options` the URL gives. A `pg.Pool` or `pg.Client` you pass to Prisma keeps its own settings: if its `DateStyle` is not ISO, reading a date or timestamp fails with `RUNTIME.DATE_STYLE_NOT_ISO`. Give such a pool `options: '-c DateStyle=ISO'`. A connection pooler that refuses startup options needs `DateStyle=ISO` set for the role or the database instead.
 
 ## SQLite
 
