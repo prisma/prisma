@@ -1,3 +1,4 @@
+import { asNamespaceId } from '@internal/contract/types';
 /**
  * `replaceStoredValue` and `removeStoredValue` against a real database: each rewrites the rows that hold the
  * value and leaves the others, its postcheck holds afterwards, and the runner skips it on a
@@ -248,7 +249,7 @@ describe('Postgres stored value operations', { concurrent: false }, () => {
     await driver.query('create table app.code (id int primary key, code text not null)');
     await driver.query(`insert into app.code (id, code) values (1, 'x')`);
     const op = await new RemoveStoredValueCall('app', 'code', 'code', 'x', false, undefined, {
-      namespaceId: 'app',
+      namespaceId: asNamespaceId('app'),
       enum: 'Code',
       member: 'X',
     }).toOp();
