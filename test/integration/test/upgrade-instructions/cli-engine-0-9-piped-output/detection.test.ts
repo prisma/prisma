@@ -6,16 +6,14 @@ import { describe, expect, it } from 'vitest';
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '../../../../..');
 
-function changeBlock(audience: string, id: string): string {
-  const guide = readFileSync(
-    join(
-      repoRoot,
-      'upgrade-instructions/pending/cli-engine-0-9-piped-output',
-      audience,
-      'instructions.md',
-    ),
-    'utf-8',
-  );
+const GUIDE_PATHS = {
+  app: 'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.19-to-8.0.0-rc.20/instructions.md',
+  extension:
+    'skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.19-to-8.0.0-rc.20/instructions.md',
+} as const;
+
+function changeBlock(audience: keyof typeof GUIDE_PATHS, id: string): string {
+  const guide = readFileSync(join(repoRoot, GUIDE_PATHS[audience]), 'utf-8');
   const frontmatter = guide.split('\n---\n')[0] ?? '';
   const block = frontmatter.split(/\n {2}- id: /).find((entry) => entry.startsWith(`${id}\n`));
   if (block === undefined) {
@@ -24,7 +22,7 @@ function changeBlock(audience: string, id: string): string {
   return block;
 }
 
-function patternsOf(audience: string, id: string): readonly RegExp[] {
+function patternsOf(audience: keyof typeof GUIDE_PATHS, id: string): readonly RegExp[] {
   return [...changeBlock(audience, id).matchAll(/^ {8}- '(.*)'$/gm)].map(
     ([, pattern]) => new RegExp((pattern ?? '').replaceAll("''", "'")),
   );
@@ -33,7 +31,7 @@ function patternsOf(audience: string, id: string): readonly RegExp[] {
 const manifest = (engine: string) =>
   JSON.stringify({ devDependencies: { '@prisma/cli-engine': engine } }, null, 2);
 
-describe.each(['app', 'extension'])('the %s cli-engine 0.9.0 detection', (audience) => {
+describe.each(['app', 'extension'] as const)('the %s cli-engine 0.9.0 detection', (audience) => {
   const matches = (content: string) =>
     patternsOf(audience, 'engine-pin-moves-to-0-9-0').some((pattern) => pattern.test(content));
 
