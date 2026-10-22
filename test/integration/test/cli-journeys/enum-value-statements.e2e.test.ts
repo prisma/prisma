@@ -5,6 +5,8 @@
  *
  * E4 and E5 have a required `status`. In E4 no row holds the value, and `--delete` removes it. In E5 rows hold it: the question offers the rename first, `--delete` fails at apply with `MIGRATION.PRECHECK_FAILED` saying how to keep the rows and changes nothing, and `--rename` applies.
  *
+ * E10 swaps the stored values of `ACTIVE` and `ARCHIVED`: both are asked about, and the printed edits swap the data through a temporary value.
+ *
  * E1 renames the value with `--rename Status.ARCHIVED:Status.RETIRED` through `migration plan` and `migrate`: the rows and lists that held `archived` hold `retired`. E2 deletes the value through `db update`: refused until `--delete Status.ARCHIVED` answers, then the rows hold NULL and the lists lose it. E3 renames only the member, keeping its stored value, through `db update`: nothing is planned and the statement is reported as applied.
  *
  * Every journey ends with `db verify --schema-only` clean and a further plan empty, and the `migration.ts` written is run again and reproduces its `ops.json` and `migration.json` byte for byte.
@@ -399,7 +401,7 @@ withTempDir(({ createTempDir }) => {
         expectRowsHoldingFailure(deleted, 'E5.05');
         expect(nextActionLabels(deleted), 'E5.05: one action per way out').toEqual([
           'To keep that data under a new enum value, add a member to enum "Status" in the contract source, run `prisma-test contract emit`, then run `prisma-test db update --rename \'Status.ARCHIVED:Status.<new member>\'`',
-          'To keep that data under another stored value, change the stored value "archived" to one the enum keeps in the database yourself, then re-run `prisma-test db update --delete Status.ARCHIVED`. db update cannot keep that data in a migration.ts',
+          'To keep that data under another stored value, change the stored value "archived" to one the enum keeps in the database yourself, then re-run `prisma-test db update --delete Status.ARCHIVED`',
         ]);
         expect(await tasks(db.connectionString), 'E5.05: nothing changed').toEqual([
           { id: 1, status: 'archived', tags: [] },
@@ -550,7 +552,7 @@ withTempDir(({ createTempDir }) => {
         const dirName = latestMigrationDirName(ctx);
         const rename = nextActionLabels(failed)[0] ?? '';
         expect(rename).toBe(
-          `To keep that data under a new enum value, add a member to enum "Status" in the contract source, run \`prisma-test contract emit\`, delete \`migrations/app/${dirName}\` (copy any code you wrote in its migration.ts first), plan it again with \`prisma-test migration plan --from ${originHash(ctx, origin)} --name retire --rename 'Status.ARCHIVED:Status.<new member>'\`, adding any other statements you planned it with except any \`--delete Status.ARCHIVED\`, fill in the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`prisma-test db migrate\``,
+          `To keep that data under a new enum value, add a member to enum "Status" in the contract source, run \`prisma-test contract emit\`, delete \`migrations/app/${dirName}\` (copy any code you wrote in its migration.ts first), plan it again with \`prisma-test migration plan --from ${originHash(ctx, origin)} --name retire --rename 'Status.ARCHIVED:Status.<new member>'\`, adding any other statements you planned it with except any \`--delete Status.ARCHIVED\`, put any code you copied into the migration.ts it writes, run \`node <migration directory>/migration.ts\` for the directory it writes, and apply it with \`prisma-test db migrate\``,
         );
         const printedFrom = /--from (\S+)/.exec(rename)?.[1] ?? '';
 
@@ -603,9 +605,15 @@ withTempDir(({ createTempDir }) => {
 
         const asked = await runMigrationPlan(ctx, ['--from', origin, '--json']);
         expect(engineError(asked)?.code, 'E9.04: nobody to answer').toBe('CLI.CONSENT_REQUIRED');
-        const question = String(engineError(asked)?.why);
-        expect(question, 'E9.04: the advice covers every column').toContain(
+        expect(String(engineError(asked)?.why), 'E9.04: the question names every column').toBe(
+          'Remove value "archived" from column "state" of "note", remove value "archived" from column "status" of "task" and remove value "archived" from column "tags" of "task" would lose enum value "Status.ARCHIVED" from the data that holds it.',
+        );
+        const question = nextActionLabels(asked)[0] ?? '';
+        expect(question, 'E9.04: the way that keeps the data comes first').toContain(
           'To keep that data, answer with --delete Status.ARCHIVED, then in the migration.ts this command writes replace',
+        );
+        expect(question, 'E9.04: names the command that runs the file').toContain(
+          'run `node <migration directory>/migration.ts` for the directory it writes',
         );
         expect(
           question.match(/replace this\.removeStoredValue/g),
@@ -637,6 +645,72 @@ withTempDir(({ createTempDir }) => {
           (await sql(db.connectionString, 'SELECT id, state FROM "note" ORDER BY id')).rows,
         ).toEqual([{ id: 1, state: 'old' }]);
         await expectSettled(ctx, 'migrate', dirName, 'E9.08');
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('E10: keep the data of two members that swap stored values, as the question advises', () => {
+    const db = useDevDatabase();
+
+    it(
+      'asks about both members and swaps the values in every column through a temporary value',
+      async () => {
+        const ctx = setupJourney({
+          connectionString: db.connectionString,
+          createTempDir,
+          contractMode: 'psl',
+        });
+        await emit(ctx, twoTablesWith('archived'), 'E10.01');
+        const initial = await planMigrationAndSelfEmit(ctx, ['--name', 'initial']);
+        expect(initial.exitCode, `E10.02: plan initial: ${initial.stderr}`).toBe(0);
+        expect((await runMigrate(ctx)).exitCode, 'E10.02: migrate initial').toBe(0);
+        const origin = latestMigrationDirName(ctx);
+        await sql(
+          db.connectionString,
+          `INSERT INTO "task" (id, status, tags) VALUES (1, 'archived', '{archived,active}'), (2, 'active', '{}');
+           INSERT INTO "note" (id, state) VALUES (1, 'active')`,
+        );
+        await emit(
+          ctx,
+          twoTablesWith('active').replace('ACTIVE = "active"', 'ACTIVE = "archived"'),
+          'E10.03',
+        );
+
+        const asked = await runMigrationPlan(ctx, ['--from', origin, '--json']);
+        expect(engineError(asked)?.code, 'E10.04: nobody to answer').toBe('CLI.CONSENT_REQUIRED');
+        const why = String(engineError(asked)?.why);
+        expect(why, 'E10.04: asks about both members').toContain('"Status.ACTIVE"');
+        expect(why, 'E10.04: asks about both members').toContain('"Status.ARCHIVED"');
+        const question = nextActionLabels(asked).join('\n');
+
+        const plan = await runMigrationPlan(ctx, [
+          '--name',
+          'swap',
+          '--from',
+          origin,
+          '--delete',
+          'Status.ACTIVE',
+          '--delete',
+          'Status.ARCHIVED',
+        ]);
+        expect(plan.exitCode, `E10.05: plan: ${plan.stderr}`).toBe(0);
+        const dirName = latestMigrationDirName(ctx);
+        const file = join(ctx.testDir, 'migrations', 'app', dirName, 'migration.ts');
+        writeFileSync(file, followEdits(readFileSync(file, 'utf-8'), question));
+        const reEmit = await selfEmitMigration(ctx, ['--dir', `migrations/app/${dirName}`]);
+        expect(reEmit.exitCode, `E10.06: node migration.ts: ${reEmit.stderr}`).toBe(0);
+        const migrate = await runMigrate(ctx);
+        expect(migrate.exitCode, `E10.07: migrate: ${migrate.stderr}`).toBe(0);
+
+        expect(await tasks(db.connectionString)).toEqual([
+          { id: 1, status: 'active', tags: ['active', 'archived'] },
+          { id: 2, status: 'archived', tags: [] },
+        ]);
+        expect(
+          (await sql(db.connectionString, 'SELECT id, state FROM "note" ORDER BY id')).rows,
+        ).toEqual([{ id: 1, state: 'archived' }]);
+        await expectSettled(ctx, 'migrate', dirName, 'E10.08');
       },
       timeouts.spinUpPpgDev,
     );

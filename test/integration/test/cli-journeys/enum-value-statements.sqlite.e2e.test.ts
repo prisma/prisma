@@ -5,6 +5,8 @@
  *
  * S1 renames the value to `RETIRED`, which stores `retired`, with `--rename Status.ARCHIVED:Status.RETIRED` through `migration plan` and `migrate`. S2 deletes the value through `db update`: refused until `--delete Status.ARCHIVED` answers, then the rows that held it hold NULL.
  *
+ * S7 changes the stored value of `ARCHIVED` under `db update` with no migrations, and follows the two-run way the refusal leads with. S8 shifts integer stored values along with two renames in one `db update`.
+ *
  * S3 has a required `status`: with no row holding the value, `--delete` removes it; while rows hold it, `--delete` fails at apply with `MIGRATION.PRECHECK_FAILED` saying how to keep them and changes nothing, and `--rename` applies.
  *
  * Every journey ends with `db verify --schema-only` clean and a further plan empty, and the `migration.ts` written is run again and reproduces its `ops.json` and `migration.json` byte for byte.
@@ -282,7 +284,7 @@ withTempDir(({ createTempDir }) => {
             '1 row of "task" holds "archived" in column "status", which takes no NULL, so the value cannot be removed.',
           actions: [
             'To keep that data under a new enum value, add a member to enum "Status" in the contract source, run `prisma-test contract emit`, then run `prisma-test db update --rename \'Status.ARCHIVED:Status.<new member>\'`',
-            'To keep that data under another stored value, change the stored value "archived" to one the enum keeps in the database yourself, then re-run `prisma-test db update --delete Status.ARCHIVED`. db update cannot keep that data in a migration.ts',
+            'To keep that data under another stored value, change the stored value "archived" to one the enum keeps in the database yourself, then re-run `prisma-test db update --delete Status.ARCHIVED`',
           ],
         });
         expect(tasks(held.dbPath), 'S3.09: nothing changed').toEqual([
@@ -326,7 +328,7 @@ withTempDir(({ createTempDir }) => {
         await emit(ctx, twoTablesWith('old'), 'S4.03');
 
         const asked = await runMigrationPlan(ctx, ['--from', origin, '--json']);
-        const question = String(engineError(asked)?.why);
+        const question = nextActionLabels(asked)[0] ?? '';
         expect(
           question.match(/replace this\.removeStoredValue/g),
           'S4.04: one edit per column',
@@ -442,6 +444,102 @@ withTempDir(({ createTempDir }) => {
           { id: 2, status: 'active' },
         ]);
         await expectVerified(ctx, 'S6.09');
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('S7 (SQLite): keep the data of a member that keeps its name with a new stored value, through db update alone', () => {
+    it(
+      'leads the refusal with the two-run way, and following it keeps the rows',
+      async () => {
+        const ctx = setupSqliteJourney(createTempDir);
+        await emit(ctx, FROM_PSL, 'S7.01');
+        expect((await runDbUpdate(ctx, ['--json'])).exitCode, 'S7.02: create').toBe(0);
+        seedRows(ctx.dbPath);
+        await emit(ctx, contractWith('  ARCHIVED = "old"\n'), 'S7.03');
+
+        const refused = await runDbUpdate(ctx, ['--no-interactive', '--json']);
+        expect(engineError(refused)?.code, 'S7.04').toBe('CLI.CONSENT_REQUIRED');
+        expect(nextActionLabels(refused), 'S7.04: the way that keeps the data first').toEqual([
+          "To keep it with db update, rename member ARCHIVED of enum Status in the contract source to a name the enum does not have, keep its new stored value, run `prisma-test contract emit`, and run `prisma-test db update --rename 'Status.ARCHIVED:Status.<new member>'`. Then rename the member back to ARCHIVED, run `prisma-test contract emit`, and run `prisma-test db update` again.",
+          'Run the command again with --delete Status.ARCHIVED',
+        ]);
+        expect(engineError(refused)?.why, 'S7.04: says plainly what --delete does').toContain(
+          'db update cannot keep that data in one run, and --delete Status.ARCHIVED removes it.',
+        );
+
+        await emit(ctx, contractWith('  ARCHIVED_NEW = "old"\n'), 'S7.05');
+        const first = await runDbUpdate(ctx, [
+          '--rename',
+          'Status.ARCHIVED:Status.ARCHIVED_NEW',
+          '--no-interactive',
+          '--json',
+        ]);
+        expect(first.exitCode, `S7.05: ${JSON.stringify(engineError(first))}`).toBe(0);
+        await emit(ctx, contractWith('  ARCHIVED = "old"\n'), 'S7.06');
+        const second = await runDbUpdate(ctx, ['--no-interactive', '--json']);
+        expect(second.exitCode, `S7.06: ${JSON.stringify(engineError(second))}`).toBe(0);
+
+        expect(tasks(ctx.dbPath)).toEqual([
+          { id: 1, status: 'old' },
+          { id: 2, status: 'active' },
+          { id: 3, status: null },
+        ]);
+        await expectVerified(ctx, 'S7.07');
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('S8 (SQLite): renames that shift integer stored values along', () => {
+    const prio = (members: string) => `// use prisma-8
+
+enum Prio {
+  @@type("sqlite/integer@1")
+${members}}
+
+model Job {
+  id   Int   @id
+  prio Prio?
+  @@map("job")
+}
+`;
+
+    it(
+      'rewrite the last value first, so no row ends up merged',
+      async () => {
+        const ctx = setupSqliteJourney(createTempDir, prio('  Low = 0\n  Higher = 3\n  Max = 4\n'));
+        await emit(ctx, prio('  Low = 0\n  Higher = 3\n  Max = 4\n'), 'S8.01');
+        expect((await runDbUpdate(ctx, ['--json'])).exitCode, 'S8.02: create').toBe(0);
+        withDatabase(ctx.dbPath, (db) => {
+          db.exec('INSERT INTO "job" (id, prio) VALUES (1, 0), (2, 3), (3, 4)');
+        });
+        await emit(ctx, prio('  Low = 0\n  A = 4\n  B = 5\n'), 'S8.03');
+
+        const update = await runDbUpdate(ctx, [
+          '--rename',
+          'Prio.Higher:Prio.A',
+          '--rename',
+          'Prio.Max:Prio.B',
+          '--no-interactive',
+          '--json',
+        ]);
+        expect(update.exitCode, `S8.04: ${JSON.stringify(engineError(update))}`).toBe(0);
+
+        expect(
+          withDatabase(ctx.dbPath, (db) =>
+            db
+              .prepare('SELECT id, prio FROM "job" ORDER BY id')
+              .all()
+              .map((row) => ({ ...row })),
+          ),
+        ).toEqual([
+          { id: 1, prio: 0 },
+          { id: 2, prio: 4 },
+          { id: 3, prio: 5 },
+        ]);
+        await expectVerified(ctx, 'S8.05');
       },
       timeouts.spinUpPpgDev,
     );

@@ -1,8 +1,8 @@
 import type { KeepDataEdit } from '@internal/framework-components/control';
-import type { KeepDataEditAdvice } from '../control-api/statements/plan-questions';
+import type { KeepDataAdvice, KeepDataEditAdvice } from '../control-api/statements/plan-questions';
 import { statementFlag } from '../control-api/statements/statement-flag';
 import { type CliInvocation, cliCommand, printedPlanCommand } from './printed-command';
-import { RUN_PLANNED_FILE } from './runner-failure-advice';
+import { runWrittenFile } from './runner-failure-advice';
 
 function swaps(edits: readonly KeepDataEdit[]): string {
   return edits
@@ -10,31 +10,65 @@ function swaps(edits: readonly KeepDataEdit[]): string {
     .join(', and ');
 }
 
-function dbMigrate(invocation: CliInvocation): string {
-  return `\`${cliCommand(invocation, 'db migrate')}\``;
+function quoted(command: string): string {
+  return `\`${command}\``;
 }
 
 /** How `migration plan` says to keep the data of a subject: answer with a delete, then make the edits in the file it writes. */
 export function migrationPlanKeepDataEditAdvice(invocation: CliInvocation): KeepDataEditAdvice {
-  return (subject, edits) =>
-    `To keep that data, answer with ${statementFlag({ verb: 'delete', text: subject })}, then in the migration.ts this command writes ${swaps(edits)}, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrate(invocation)}.`;
+  return (subject, edits) => ({
+    lead: undefined,
+    ways: [
+      `To keep that data, answer with ${statementFlag({ verb: 'delete', text: subject })}, then in the migration.ts this command writes ${swaps(edits)}, ${runWrittenFile(invocation)}.`,
+    ],
+  });
+}
+
+/** The run's statements, without the delete that answers `subject`. */
+function otherStatements(invocation: CliInvocation, subject: string): readonly string[] {
+  const answer = statementFlag({ verb: 'delete', text: subject });
+  return (invocation.statementArgs ?? []).filter((flag) => flag !== answer);
+}
+
+/** Two runs of `db update`: one renames the member to a new member with the new stored value, and the next renames it back. */
+function twoRuns(invocation: CliInvocation, subject: string): string {
+  const dot = subject.lastIndexOf('.');
+  const enumName = subject.slice(0, dot);
+  const member = subject.slice(dot + 1);
+  const emit = quoted(cliCommand(invocation, 'contract emit'));
+  const rename = statementFlag({ verb: 'rename', text: `${subject}:${enumName}.<new member>` });
+  const first = cliCommand(invocation, 'db update', [
+    ...otherStatements(invocation, subject),
+    rename,
+  ]);
+  return `To keep it with db update, rename member ${member} of enum ${enumName} in the contract source to a name the enum does not have, keep its new stored value, run ${emit}, and run ${quoted(first)}. Then rename the member back to ${member}, run ${emit}, and run ${quoted(cliCommand(invocation, 'db update'))} again.`;
 }
 
 /**
- * How `db update` says to keep the data of a subject: it cannot itself, so it plans the change
- * with `migration plan` from the contract the database is at, when a migration ends there.
+ * How `db update` says to keep the data of a subject: it cannot in one run. It plans the change
+ * with `migration plan` from the contract the database is at, when a migration ends there, or
+ * renames the member to a new member and back in two runs.
  */
 export function dbUpdateKeepDataEditAdvice(
   invocation: CliInvocation,
   databaseStorageHash: string | undefined,
 ): KeepDataEditAdvice {
-  return (subject, edits) => {
+  return (subject, edits): KeepDataAdvice => {
+    const deleteFlag = statementFlag({ verb: 'delete', text: subject });
+    const lead = `db update cannot keep that data in one run, and ${deleteFlag} removes it.`;
     if (databaseStorageHash === undefined) {
-      return `db update cannot keep that data, and no migration ends at the contract the database is at, so \`${cliCommand(invocation, 'migration plan')}\` cannot plan the change from it.`;
+      return { lead, ways: [twoRuns(invocation, subject)] };
     }
     const plan = printedPlanCommand(invocation, databaseStorageHash, [
-      statementFlag({ verb: 'delete', text: subject }),
+      ...otherStatements(invocation, subject),
+      deleteFlag,
     ]);
-    return `db update cannot keep that data. To keep it, plan the change with \`${plan}\`, in the migration.ts it writes ${swaps(edits)}, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrate(invocation)}.`;
+    return {
+      lead,
+      ways: [
+        `To keep it, plan the change with ${quoted(plan)}, in the migration.ts it writes ${swaps(edits)}, ${runWrittenFile(invocation)}.`,
+        twoRuns(invocation, subject),
+      ],
+    };
   };
 }

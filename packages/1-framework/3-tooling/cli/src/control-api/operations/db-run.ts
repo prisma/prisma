@@ -58,6 +58,7 @@ import {
   type AnswerPlanQuestions,
   askPlanQuestions,
   type ConsentedSubject,
+  givenConsents,
   type PlannedQuestions,
   refuseUnusedConsents,
   removedNamespaceOf,
@@ -385,6 +386,16 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     if (!refused.ok) {
       throw refused.failure;
     }
+    consented = givenConsents({
+      plan: run,
+      statements: statementTexts,
+      consentAll: { delete: options.acceptDataLoss, allow: options.acceptAccessChanges },
+      contracts: {
+        origin: fromContract ?? EMPTY_ORIGIN,
+        destination: contract,
+        statements: plannedTexts,
+      },
+    });
   }
   const { planned, orderedResolutions } = run;
   const plannerWarnings = aggregatePlannerWarnings(orderedResolutions);

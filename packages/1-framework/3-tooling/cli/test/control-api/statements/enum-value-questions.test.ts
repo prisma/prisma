@@ -55,7 +55,7 @@ async function questionsOf(statements: readonly { verb: 'rename'; text: string }
 }
 
 describe('a question about an enum value', () => {
-  it('names the value through its enum, and offers to rename or delete it', async () => {
+  it('names the value through its enum, and offers to rename it to the one new member, or delete it', async () => {
     const [question] = await questionsOf();
 
     expect(question).toMatchObject({
@@ -63,13 +63,13 @@ describe('a question about an enum value', () => {
       question:
         'Change values in "Task"."status" would lose enum value "Status.ARCHIVED" from the data that holds it.',
       verbs: ['rename', 'delete'],
-      forms: { rename: 'Status.ARCHIVED:Status.<new name>' },
+      forms: { rename: 'Status.ARCHIVED:Status.RETIRED' },
     });
     expect(question?.validate('delete', 'Status.ARCHIVED')).toBeUndefined();
     expect(question?.validate('rename', 'Status.ARCHIVED:Status.RETIRED')).toBeUndefined();
   });
 
-  it('asks once about a value that several columns lose', async () => {
+  it('asks once about a value that several columns lose, and names every column', async () => {
     const asked: PlanQuestion[] = [];
     await askPlanQuestions({
       plan: {
@@ -104,7 +104,13 @@ describe('a question about an enum value', () => {
       replan: async () => ok({ dataLoss: [], accessChanges: [] }),
     });
 
-    expect(asked.map(({ subject }) => subject)).toEqual(['Status.ARCHIVED']);
+    expect(asked.map(({ subject, question }) => ({ subject, question }))).toEqual([
+      {
+        subject: 'Status.ARCHIVED',
+        question:
+          'Remove value "archived" from column "status" of "task" and remove value "archived" from column "tags" of "note" would lose enum value "Status.ARCHIVED" from the data that holds it.',
+      },
+    ]);
   });
 
   it('offers only delete for a value whose member keeps its name, with one advice that covers every column', async () => {
@@ -144,8 +150,12 @@ describe('a question about an enum value', () => {
       origin,
       originKnown: true,
       destination: changed,
-      keepDataEditAdvice: (subject, edits) =>
-        `Keep ${subject}: ${edits.map(({ remove, replaceWith }) => `${remove} -> ${replaceWith}`).join('; ')}.`,
+      keepDataEditAdvice: (subject, edits) => ({
+        lead: 'Delete loses it.',
+        ways: [
+          `Keep ${subject}: ${edits.map(({ remove, replaceWith }) => `${remove} -> ${replaceWith}`).join('; ')}.`,
+        ],
+      }),
       answer: async (batch) => {
         asked.push(...batch);
         return batch.map(({ subject }) => ({ verb: 'delete', text: subject }));
@@ -157,7 +167,10 @@ describe('a question about an enum value', () => {
       {
         verbs: ['delete'],
         question:
-          'Remove value "archived" would lose enum value "Status.ARCHIVED" from the data that holds it. Keep Status.ARCHIVED: this.removeStoredValue({ column: "status" }) -> this.replaceStoredValue({ column: "status" }); this.removeStoredValue({ column: "tags" }) -> this.replaceStoredValue({ column: "tags" }).',
+          'Remove value "archived" would lose enum value "Status.ARCHIVED" from the data that holds it. Delete loses it. Keep Status.ARCHIVED: this.removeStoredValue({ column: "status" }) -> this.replaceStoredValue({ column: "status" }); this.removeStoredValue({ column: "tags" }) -> this.replaceStoredValue({ column: "tags" }).',
+        keepDataWays: [
+          'Keep Status.ARCHIVED: this.removeStoredValue({ column: "status" }) -> this.replaceStoredValue({ column: "status" }); this.removeStoredValue({ column: "tags" }) -> this.replaceStoredValue({ column: "tags" }).',
+        ],
       },
     ]);
   });
@@ -202,7 +215,7 @@ describe('a question about an enum value', () => {
 
     expect(asked[0]).toMatchObject({
       subject: 'finance.Status.ARCHIVED',
-      forms: { rename: 'finance.Status.ARCHIVED:finance.Status.<new name>' },
+      forms: { rename: 'finance.Status.ARCHIVED:finance.Status.RETIRED' },
     });
     expect(
       asked[0]?.validate('rename', 'finance.Status.ARCHIVED:finance.Status.RETIRED'),

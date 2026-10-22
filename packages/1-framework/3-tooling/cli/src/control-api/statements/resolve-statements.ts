@@ -331,13 +331,15 @@ function lookupEnum(
       fix: `Name the enum with its namespace, for example ${candidates[0]}.`,
     };
   }
+  const enums = Object.entries(namespaces).flatMap(([id, namespace]) =>
+    namespaceId === undefined || id === namespaceId ? Object.keys(enumsOf(namespace)) : [],
+  );
+  const within = namespaceId === undefined ? '' : ` in namespace "${namespaceId}"`;
+  const there = namespaceId === undefined ? '' : ' there';
+  const known = enums.length === 0 ? '' : ` (enums${there}: ${listed([...new Set(enums)])})`;
   return {
     kind: 'missing',
-    ...missing(
-      namespaceId === undefined
-        ? `the ${contract.name} contract has no enum "${name}"`
-        : `the ${contract.name} contract has no enum "${name}" in namespace "${namespaceId}"`,
-    ),
+    ...missing(`the ${contract.name} contract has no enum "${name}"${within}${known}`),
   };
 }
 
@@ -581,9 +583,11 @@ function readSide(
     return withEnumValueReading(`${first}.${second}`, asModel.ok ? asModel : asField, asEnumValue);
   }
   if (asEnumValue.ok) return asEnumValue;
-  const hasNamespaces = Object.keys(contract.contract.domain.namespaces).some(
-    (id) => id !== UNBOUND_NAMESPACE_ID,
-  );
+  const names = containerNames(contract);
+  if (names.enums.has(first) && !names.namespaces.has(first) && !names.models.has(first)) {
+    return asEnumValue;
+  }
+  const hasNamespaces = names.namespaces.size > 0;
   const hasEnums = declaresEnums(contract);
   if (!hasNamespaces && !hasEnums) return asField;
   const readings = [
@@ -591,12 +595,31 @@ function readSide(
     `as Model.field (${asField.failure.reason})`,
     ...(hasEnums ? [`as Enum.value (${asEnumValue.failure.reason})`] : []),
   ];
+  const sameButCase = [...names.namespaces, ...names.models, ...names.enums].find(
+    (name) => name !== first && name.toLowerCase() === first.toLowerCase(),
+  );
   return notOk({
-    ...missing(
-      `"${first}.${second}" resolves neither ${readings.slice(0, -1).join(', ')}${readings.length > 2 ? ',' : ''} nor ${readings.at(-1)}`,
-    ),
+    reason: `"${first}.${second}" resolves neither ${readings.slice(0, -1).join(', ')}${readings.length > 2 ? ',' : ''} nor ${readings.at(-1)}`,
+    fix:
+      sameButCase === undefined
+        ? CHECK_NAMES_FIX
+        : `Names match exactly, including case: write ${sameButCase}, not ${first}.`,
     ...ifDefined('modelWithoutCounterpart', asField.failure.modelWithoutCounterpart),
   });
+}
+
+/** The names a side's first segment can be: a namespace, a model, or an enum of the contract. */
+function containerNames(contract: NamedContract): {
+  readonly namespaces: ReadonlySet<string>;
+  readonly models: ReadonlySet<string>;
+  readonly enums: ReadonlySet<string>;
+} {
+  const namespaces = Object.entries(contract.contract.domain.namespaces);
+  return {
+    namespaces: new Set(namespaces.flatMap(([id]) => (id === UNBOUND_NAMESPACE_ID ? [] : [id]))),
+    models: new Set(namespaces.flatMap(([, namespace]) => Object.keys(namespace.models))),
+    enums: new Set(namespaces.flatMap(([, namespace]) => Object.keys(enumsOf(namespace)))),
+  };
 }
 
 function resolveModelRename(
@@ -914,10 +937,14 @@ function swapRefusal(
     entity === 'model'
       ? '<temporary name>'
       : `${statement.to.slice(0, -1).join('.')}.<temporary name>`;
+  const keptNames =
+    entity === 'enumValue'
+      ? ' If the members keep their names and only their stored values trade places, leave out the statement: the plan asks about each value and names the edits that keep its data.'
+      : '';
   return errorStatementInvalid(
     statement,
     `"${first}" and "${second}" swap names: each is both an old name and a new name, and statements cannot swap names in one plan.`,
-    `Make the swap in three plans. First change the contract so that "${first}" has a temporary name, and plan it with --${verb} ${oldName}:${temporary}. Then give "${second}" the name "${first}", and plan it with --${verb} ${newName}:${oldName}. Then give the temporary name the name "${second}", and plan it with --${verb} ${temporary}:${newName}.`,
+    `Make the swap in three plans. First change the contract so that "${first}" has a temporary name, and plan it with --${verb} ${oldName}:${temporary}. Then give "${second}" the name "${first}", and plan it with --${verb} ${newName}:${oldName}. Then give the temporary name the name "${second}", and plan it with --${verb} ${temporary}:${newName}.${keptNames}`,
   );
 }
 
@@ -1145,6 +1172,16 @@ function resolveStatement(
   const from = readSide(state, 'old', statement.from);
   if (!from.ok) return notOk(oldSideRefusal(state, statement, later, from.failure));
   const to = readSide(state, 'new', statement.to);
+  if (!to.ok && from.value.entity === 'enumValue' && statement.to.length === 1) {
+    const enumPart = statement.from.slice(0, -1).join('.');
+    return notOk(
+      errorStatementUnresolved(
+        statement,
+        sentence(to.failure.reason),
+        `Write the new name with its enum: --${statement.verb} ${statement.from.join('.')}:${enumPart}.${statement.to[0]}.`,
+      ),
+    );
+  }
   if (!to.ok) return notOk(unresolved(statement, to.failure));
   if (from.value.entity === 'model' && to.value.entity === 'model') {
     return resolveModelRename(state, statement, from.value.coordinate, to.value.coordinate);
@@ -1312,6 +1349,24 @@ function deleteOfRenamed(
     );
   }
   return undefined;
+}
+
+/**
+ * A delete that names what a rename among `statements` renames, which contradict each other: the
+ * commands check it before they plan, since they hand the deletes to their questions, not here.
+ */
+export function renamedAndDeleted(
+  statements: readonly StatementText[],
+): CliStructuredError | undefined {
+  const renames = statements.flatMap((entry) => {
+    if (entry.verb !== 'rename') return [];
+    const parsed = parseRenameStatement({ ...entry, verb: entry.verb });
+    return parsed.ok ? [parsed.value] : [];
+  });
+  return deleteOfRenamed(
+    statements.filter(({ verb }) => verb === 'delete'),
+    renames,
+  );
 }
 
 /**

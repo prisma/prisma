@@ -319,6 +319,51 @@ describe('db update --rename', () => {
     });
   });
 
+  it('lists one line per answer on a dry run, naming every operation it answers', async () => {
+    const archived = { kind: 'enumValue', namespaceId: 'app', enum: 'Status', member: 'ARCHIVED' };
+    const operations = [
+      {
+        id: 'op-1',
+        label: 'Remove value "archived" from column "status" of "task"',
+        operationClass: 'destructive',
+      },
+      {
+        id: 'op-2',
+        label: 'Remove value "archived" from column "tags" of "task"',
+        operationClass: 'destructive',
+      },
+    ];
+    mocks.dbUpdate.mockResolvedValue(
+      ok({
+        ...planSuccess(),
+        plan: { operations },
+        dataLoss: [
+          { operationIndex: 0, subject: archived, text: 'Status.ARCHIVED', loss: 'drop' },
+          { operationIndex: 1, subject: archived, text: 'Status.ARCHIVED', loss: 'drop' },
+        ],
+      }),
+    );
+    const human = await harness().run(['db', 'update', '--dry-run'], {
+      cwd: projectDir,
+      isTty: { stdout: true },
+    });
+
+    expect(human.presented?.presentation.human).toContainEqual({
+      kind: 'tree',
+      roots: [
+        {
+          label: 'An apply asks about',
+          children: [
+            {
+              label:
+                'Remove value "archived" from column "status" of "task" and remove value "archived" from column "tags" of "task": --delete Status.ARCHIVED',
+            },
+          ],
+        },
+      ],
+    });
+  });
+
   it('lists the access an apply would widen on a dry run, marked answered by an --allow', async () => {
     const user = { kind: 'model', namespaceId: 'app', model: 'User' } as const;
     mocks.dbUpdate.mockResolvedValue(
@@ -1049,7 +1094,13 @@ describe('db update', () => {
     expect(stdoutErrorMeta(run.stdout)).toEqual(JSON.parse(JSON.stringify(runnerFailure.meta)));
     expect(mocks.dbUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
-        invocation: { cwd: projectDir, configPath: undefined, dbGiven: false, rerunArgs: [] },
+        invocation: {
+          cwd: projectDir,
+          configPath: undefined,
+          dbGiven: false,
+          rerunArgs: [],
+          statementArgs: [],
+        },
       }),
     );
   });

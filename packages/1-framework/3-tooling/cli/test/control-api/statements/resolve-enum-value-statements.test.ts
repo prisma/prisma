@@ -1,6 +1,9 @@
 import { asNamespaceId } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
-import { resolveStatements } from '../../../src/control-api/statements/resolve-statements';
+import {
+  renamedAndDeleted,
+  resolveStatements,
+} from '../../../src/control-api/statements/resolve-statements';
 import { renameStatements } from '../../../src/control-api/statements/statement-text';
 import { contractOf, expectFailure, expectValue } from './statement-fixtures';
 
@@ -122,7 +125,7 @@ describe('resolveStatements, enum value renames', () => {
   it('names the values the enum has when the old one is missing', () => {
     expect(
       expectFailure(resolve(['Status.GONE:Status.RETIRED'], origin, destination), UNRESOLVED).why,
-    ).toContain('the origin enum "Status" has no value "GONE" (values: ARCHIVED, OPEN)');
+    ).toBe('The origin enum "Status" has no value "GONE" (values: ARCHIVED, OPEN).');
   });
 
   it('refuses a name that reads both as a field and as an enum value, naming both', () => {
@@ -218,6 +221,60 @@ describe('resolveStatements, enum value renames', () => {
       ).fix,
     ).toBe(
       'Give each model, field or enum value at most one statement, and each new name to one model, field or enum value only.',
+    );
+  });
+});
+
+describe('resolveStatements, enum value statements typed wrong', () => {
+  it('lists the enums when the enum is missing, and names one that differs only in case', () => {
+    const unknown = expectFailure(
+      resolve(['Prio.OLD:Prio.RETIRED'], origin, destination),
+      UNRESOLVED,
+    );
+    const wrongCase = expectFailure(
+      resolve(['status.ARCHIVED:status.RETIRED'], origin, destination),
+      UNRESOLVED,
+    );
+
+    expect({ unknown: unknown.why, wrongCase: wrongCase.fix }).toEqual({
+      unknown:
+        '"Prio.OLD" resolves neither as namespace.Model (the origin contract has no namespace "Prio" (namespaces: app)), as Model.field (the destination contract has no model "Prio" (models: app.Task)), nor as Enum.value (the origin contract has no enum "Prio" (enums: Priority, Status)).',
+      wrongCase: 'Names match exactly, including case: write Status, not status.',
+    });
+  });
+
+  it('reads a side whose first name is an enum only as a value of that enum', () => {
+    expect(
+      expectFailure(resolve(['Status.NOPE:Status.RETIRED'], origin, destination), UNRESOLVED).why,
+    ).toBe('The origin enum "Status" has no value "NOPE" (values: ARCHIVED, OPEN).');
+  });
+
+  it('says to write the new name with its enum when only the old side names an enum value', () => {
+    expect(
+      expectFailure(resolve(['Status.ARCHIVED:RETIRED'], origin, destination), UNRESOLVED).fix,
+    ).toBe('Write the new name with its enum: --rename Status.ARCHIVED:Status.RETIRED.');
+  });
+
+  it('refuses a delete of the value a rename of the same run renames', () => {
+    expect(
+      renamedAndDeleted([
+        { verb: 'rename', text: 'Status.ARCHIVED:Status.RETIRED' },
+        { verb: 'delete', text: 'Status.ARCHIVED' },
+      ]),
+    ).toMatchObject({
+      code: 'MIGRATION.STATEMENT_INVALID',
+      fix: 'Leave out --delete Status.ARCHIVED to keep the data under its new name, or leave out --rename Status.ARCHIVED:Status.RETIRED to delete it.',
+    });
+  });
+
+  it('says, for enum values that swap names, that a swap of stored values under kept names needs no statement', () => {
+    const swapped = contractOf({
+      app: { models: { Task: { fields: ['status'] } }, enums: { Status: ['OPEN', 'ARCHIVED'] } },
+    });
+    expect(
+      expectFailure(resolve(['Status.OPEN:Status.ARCHIVED'], swapped, swapped), INVALID).fix,
+    ).toContain(
+      'If the members keep their names and only their stored values trade places, leave out the statement: the plan asks about each value and names the edits that keep its data.',
     );
   });
 });

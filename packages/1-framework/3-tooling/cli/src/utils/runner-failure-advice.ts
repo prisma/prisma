@@ -21,6 +21,7 @@ import {
   printedPath,
   printedPlanCommand,
   selfEmitCommand,
+  writtenMigrationRunCommand,
 } from './printed-command';
 import type { RunnerAdvice } from './runner-advice';
 import { schemaCheckIssues } from './schema-check-issues';
@@ -55,6 +56,11 @@ function quoted(command: string): string {
 /** A `db migrate` command as advice prints it. */
 function dbMigrateCommand(invocation: CliInvocation): string {
   return quoted(cliCommand(invocation, 'db migrate'));
+}
+
+/** The steps after filling the migration.ts a `migration plan` wrote with no placeholders: run it, which writes its operations, and apply it. */
+export function runWrittenFile(invocation: CliInvocation): string {
+  return `run ${quoted(writtenMigrationRunCommand(invocation))} for the directory it writes, and apply it with ${dbMigrateCommand(invocation)}`;
 }
 
 /** The step between filling a planned migration.ts and applying it, which writes its operations. */
@@ -134,31 +140,38 @@ function swapCalls(edit: KeepDataEdit): string {
 
 const KEPT_VALUE = 'where "<stored value>" is a stored value the enum keeps';
 
+/** The run's statements, without the delete of `enumValue` that failed. */
+function otherStatements(invocation: CliInvocation, enumValue: string): readonly string[] {
+  const failed = statementFlag({ verb: 'delete', text: enumValue });
+  return (invocation.statementArgs ?? []).filter((flag) => flag !== failed);
+}
+
 /** The way out when a required column's data holds a stored value `db update` removes. */
 export function dbUpdateRowsHoldingValueAdvice(
   report: RowsHoldingValueReport,
   databaseStorageHash: string | undefined,
   invocation: CliInvocation,
 ): RunnerAdvice {
+  const others = otherStatements(invocation, report.enumValue);
   const deleteFlag = statementFlag({ verb: 'delete', text: report.enumValue });
   const rename = chooseAction(
-    `${newMember(report, invocation)}, then run ${quoted(cliCommand(invocation, 'db update', [renameToNewMember(report)]))}`,
+    `${newMember(report, invocation)}, then run ${quoted(cliCommand(invocation, 'db update', [...others, renameToNewMember(report)]))}`,
   );
   if (databaseStorageHash === undefined) {
     return [
       rename,
       chooseAction(
-        `To keep that data under another stored value, change the stored value ${JSON.stringify(report.value)} to one the enum keeps in the database yourself, then re-run ${quoted(cliCommand(invocation, 'db update', [deleteFlag]))}. db update cannot keep that data in a migration.ts`,
+        `To keep that data under another stored value, change the stored value ${JSON.stringify(report.value)} to one the enum keeps in the database yourself, then re-run ${quoted(cliCommand(invocation, 'db update', [...others, deleteFlag]))}`,
       ),
     ];
   }
   const { keepDataEdit } = report;
   if (keepDataEdit === undefined) return [rename];
-  const plan = printedPlanCommand(invocation, databaseStorageHash, [deleteFlag]);
+  const plan = printedPlanCommand(invocation, databaseStorageHash, [...others, deleteFlag]);
   return [
     rename,
     chooseAction(
-      `To keep that data by hand, plan the change with ${quoted(plan)}, ${swapCalls(keepDataEdit)} in the migration.ts it writes, ${KEPT_VALUE}, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}. db update cannot keep that data by hand`,
+      `To keep that data by hand, plan the change with ${quoted(plan)}, ${swapCalls(keepDataEdit)} in the migration.ts it writes, ${KEPT_VALUE}, ${runWrittenFile(invocation)}`,
     ),
   ];
 }
@@ -185,6 +198,7 @@ function migrateRowsHoldingValueAdvice(
       [renameToNewMember(report)],
       failedMigration,
       `\`${statementFlag({ verb: 'delete', text: report.enumValue })}\``,
+      `put any code you copied into the migration.ts it writes, ${runWrittenFile(invocation)}`,
     ),
     ...byHand,
   ];
@@ -245,6 +259,7 @@ function replan(
   flags: readonly string[],
   failed: FailedMigrationText,
   except: string | undefined = undefined,
+  afterPlan = `fill in the migration.ts it writes, ${RUN_PLANNED_FILE}, and run ${dbMigrateCommand(failed.invocation)}`,
 ): NextAction {
   const others =
     except === undefined ? OTHER_STATEMENTS : `${OTHER_STATEMENTS} except any ${except}`;
@@ -254,7 +269,7 @@ function replan(
     ...flags,
   ]);
   return chooseAction(
-    `${opening} \`${failed.directory}\` (copy any code you wrote in its migration.ts first), plan it again with ${quoted(plan)}, ${others}, fill in the migration.ts it writes, ${RUN_PLANNED_FILE}, and run ${dbMigrateCommand(failed.invocation)}`,
+    `${opening} \`${failed.directory}\` (copy any code you wrote in its migration.ts first), plan it again with ${quoted(plan)}, ${others}, ${afterPlan}`,
   );
 }
 
