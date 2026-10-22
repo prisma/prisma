@@ -3,6 +3,8 @@
  *
  * `Task` has an optional `status` and a list `tags`, both typed by `Status`, whose `ARCHIVED` member stores `archived`. The destination contract drops `ARCHIVED`, or renames it to `RETIRED`, which stores `retired`.
  *
+ * E4 and E5 have a required `status`. In E4 no row holds the value, and `--delete` removes it. In E5 rows hold it: the question offers the rename first, `--delete` fails at apply with `MIGRATION.PRECHECK_FAILED` saying how to keep the rows and changes nothing, and `--rename` applies.
+ *
  * E1 renames the value with `--rename Status.ARCHIVED:Status.RETIRED` through `migration plan` and `migrate`: the rows and lists that held `archived` hold `retired`. E2 deletes the value through `db update`: refused until `--delete Status.ARCHIVED` answers, then the rows hold NULL and the lists lose it. E3 renames only the member, keeping its stored value, through `db update`: nothing is planned and the statement is reported as applied.
  *
  * Every journey ends with `db verify --schema-only` clean and a further plan empty, and the `migration.ts` written is run again and reproduces its `ops.json` and `migration.json` byte for byte.
@@ -52,6 +54,14 @@ const FROM_PSL = contractWith('  ARCHIVED = "archived"\n');
 const RENAMED_PSL = contractWith('  RETIRED = "retired"\n');
 const REMOVED_PSL = contractWith('');
 const MEMBER_RENAMED_PSL = contractWith('  RETIRED = "archived"\n');
+
+function requiredContractWith(members: string): string {
+  return contractWith(members).replace('status Status?', 'status Status ');
+}
+
+const REQUIRED_FROM_PSL = requiredContractWith('  ARCHIVED = "archived"\n');
+const REQUIRED_REMOVED_PSL = requiredContractWith('');
+const REQUIRED_RENAMED_PSL = requiredContractWith('  RETIRED = "retired"\n');
 
 interface PlannedOperation {
   readonly label: string;
@@ -128,6 +138,22 @@ function packageFiles(ctx: JourneyContext, dirName: string) {
     migration: readFileSync(join(dir, 'migration.json'), 'utf-8'),
     source: readFileSync(join(dir, 'migration.ts'), 'utf-8'),
   };
+}
+
+async function requiredStart(
+  db: { readonly connectionString: string },
+  createTempDir: () => string,
+  label: string,
+): Promise<JourneyContext> {
+  const ctx = setupJourney({
+    connectionString: db.connectionString,
+    createTempDir,
+    contractMode: 'psl',
+  });
+  await emit(ctx, REQUIRED_FROM_PSL, `${label}.01`);
+  const create = await runDbUpdate(ctx, ['--json']);
+  expect(create.exitCode, `${label}.02: db update creates the table: ${create.stderr}`).toBe(0);
+  return ctx;
 }
 
 withTempDir(({ createTempDir }) => {
@@ -249,6 +275,92 @@ withTempDir(({ createTempDir }) => {
           { id: 2, status: 'active', tags: ['active'] },
           { id: 3, status: null, tags: [] },
         ]);
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('E4: delete an enum value a required column types, when no row holds it', () => {
+    const db = useDevDatabase();
+
+    it(
+      'removes the value when no row holds it',
+      async () => {
+        const ctx = await requiredStart(db, createTempDir, 'E4');
+        await sql(
+          db.connectionString,
+          `INSERT INTO "task" (id, status, tags) VALUES (1, 'active', '{}')`,
+        );
+        await emit(ctx, REQUIRED_REMOVED_PSL, 'E4.03');
+
+        const update = await runDbUpdate(ctx, [
+          '--delete',
+          'Status.ARCHIVED',
+          '--no-interactive',
+          '--json',
+        ]);
+        expect(update.exitCode, `E4.04: db update: ${JSON.stringify(engineError(update))}`).toBe(0);
+        await expectSettled(ctx, 'db update', undefined, 'E4.05');
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('E5: delete an enum value a required column types, while rows hold it', () => {
+    const db = useDevDatabase();
+
+    it(
+      'asks with rename first, fails at apply on --delete, and applies a rename',
+      async () => {
+        const ctx = await requiredStart(db, createTempDir, 'E5');
+        await sql(
+          db.connectionString,
+          `INSERT INTO "task" (id, status, tags) VALUES (1, 'archived', '{}'), (2, 'active', '{}')`,
+        );
+        await emit(ctx, REQUIRED_REMOVED_PSL, 'E5.03');
+
+        const asked = await runDbUpdate(ctx, ['--no-interactive', '--json']);
+        expect(engineError(asked)?.code, 'E5.04: nobody to answer').toBe('CLI.CONSENT_REQUIRED');
+        const actions = JSON.stringify(engineError(asked)?.nextActions ?? []);
+        expect(actions, 'E5.04: the rename is offered').toContain(
+          "--rename 'Status.ARCHIVED:Status.<new name>'",
+        );
+        expect(
+          actions.indexOf('--rename Status.ARCHIVED'),
+          'E5.04: the rename comes before the delete',
+        ).toBeLessThan(actions.indexOf('--delete Status.ARCHIVED'));
+
+        const deleted = await runDbUpdate(ctx, [
+          '--delete',
+          'Status.ARCHIVED',
+          '--no-interactive',
+          '--json',
+        ]);
+        expect(deleted.exitCode, 'E5.05: the removal fails at apply').not.toBe(0);
+        expect(engineError(deleted)?.code).toBe('MIGRATION.PRECHECK_FAILED');
+        expect(engineError(deleted)?.summary).toContain(
+          `ensure column "status" of "task" takes NULL, or no row holds "archived" in it: to keep those rows, answer with --rename 'Status.ARCHIVED:Status.<new name>'`,
+        );
+        expect(await tasks(db.connectionString), 'E5.05: nothing changed').toEqual([
+          { id: 1, status: 'archived', tags: [] },
+          { id: 2, status: 'active', tags: [] },
+        ]);
+
+        await emit(ctx, REQUIRED_RENAMED_PSL, 'E5.06');
+        const renamed = await runDbUpdate(ctx, [
+          '--rename',
+          'Status.ARCHIVED:Status.RETIRED',
+          '--no-interactive',
+          '--json',
+        ]);
+        expect(renamed.exitCode, `E5.07: db update: ${JSON.stringify(engineError(renamed))}`).toBe(
+          0,
+        );
+        expect(await tasks(db.connectionString)).toEqual([
+          { id: 1, status: 'retired', tags: [] },
+          { id: 2, status: 'active', tags: [] },
+        ]);
+        await expectSettled(ctx, 'db update', undefined, 'E5.08');
       },
       timeouts.spinUpPpgDev,
     );

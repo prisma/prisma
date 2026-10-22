@@ -264,7 +264,7 @@ export function rowsHoldingValueAdvice(
   removeCall: string,
   replaceCall: string,
 ): string {
-  return `to keep those rows, answer with --rename ${enumValue}:${enumValue.slice(0, enumValue.lastIndexOf('.'))}.<new name>, or plan the change with prisma migration plan and replace ${removeCall} with ${replaceCall} in the migration.ts it writes, where <stored value> is a value the column keeps`;
+  return `to keep those rows, answer with --rename '${enumValue}:${enumValue.slice(0, enumValue.lastIndexOf('.'))}.<new name>', or plan the change with prisma migration plan and replace ${removeCall} with ${replaceCall} in the migration.ts it writes, where <stored value> is a value the column keeps, run node on that migration.ts so it writes ops.json, and apply it with prisma db migrate`;
 }
 
 /**

@@ -232,7 +232,7 @@ describe('SQLite planner, stored enum values', { timeout: timeouts.databaseOpera
       },
     ]);
     await expect(apply(result, to)).rejects.toThrow(
-      'failed during precheck: ensure column "role" of "User" takes NULL, or no row holds "guest" in it: to keep those rows, answer with --rename Role.GUEST:Role.<new name>',
+      `failed during precheck: ensure column "role" of "User" takes NULL, or no row holds "guest" in it: to keep those rows, answer with --rename 'Role.GUEST:Role.<new name>'`,
     );
     expect(await roles()).toEqual([
       { id: '1', role: 'guest' },

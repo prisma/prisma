@@ -184,7 +184,7 @@ describe('stored value calls', () => {
       'this.removeStoredValue({ schema: "app", table: "task", column: "state", value: "archived", codecRef: { codecId: "pg/text@1" }, enumValue: "Status.ARCHIVED" })',
     );
     expect((await call.toOp()).precheck[0]?.description).toBe(
-      'ensure column "state" of "task" takes NULL, or no row holds "archived" in it: to keep those rows, answer with --rename Status.ARCHIVED:Status.<new name>, or plan the change with prisma migration plan and replace this.removeStoredValue({ schema: "app", table: "task", column: "state", value: "archived", codecRef: { codecId: "pg/text@1" }, enumValue: "Status.ARCHIVED" }) with this.replaceStoredValue({ schema: "app", table: "task", column: "state", from: "archived", to: <stored value>, codecRef: { codecId: "pg/text@1" } }) in the migration.ts it writes, where <stored value> is a value the column keeps',
+      `ensure column "state" of "task" takes NULL, or no row holds "archived" in it: to keep those rows, answer with --rename 'Status.ARCHIVED:Status.<new name>', or plan the change with prisma migration plan and replace this.removeStoredValue({ schema: "app", table: "task", column: "state", value: "archived", codecRef: { codecId: "pg/text@1" }, enumValue: "Status.ARCHIVED" }) with this.replaceStoredValue({ schema: "app", table: "task", column: "state", from: "archived", to: <stored value>, codecRef: { codecId: "pg/text@1" } }) in the migration.ts it writes, where <stored value> is a value the column keeps, run node on that migration.ts so it writes ops.json, and apply it with prisma db migrate`,
     );
   });
 

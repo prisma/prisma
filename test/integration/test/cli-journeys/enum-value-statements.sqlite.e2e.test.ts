@@ -5,6 +5,8 @@
  *
  * S1 renames the value to `RETIRED`, which stores `retired`, with `--rename Status.ARCHIVED:Status.RETIRED` through `migration plan` and `migrate`. S2 deletes the value through `db update`: refused until `--delete Status.ARCHIVED` answers, then the rows that held it hold NULL.
  *
+ * S3 has a required `status`: with no row holding the value, `--delete` removes it; while rows hold it, `--delete` fails at apply with `MIGRATION.PRECHECK_FAILED` saying how to keep them and changes nothing, and `--rename` applies.
+ *
  * Every journey ends with `db verify --schema-only` clean and a further plan empty, and the `migration.ts` written is run again and reproduces its `ops.json` and `migration.json` byte for byte.
  */
 
@@ -49,16 +51,17 @@ model Task {
 const FROM_PSL = contractWith('  ARCHIVED = "archived"\n');
 const RENAMED_PSL = contractWith('  RETIRED = "retired"\n');
 const REMOVED_PSL = contractWith('');
+const required = (psl: string) => psl.replace('status Status?', 'status Status ');
 
 type SqliteJourney = JourneyContext & { readonly dbPath: string };
 
-function setupSqliteJourney(createTempDir: () => string): SqliteJourney {
+function setupSqliteJourney(createTempDir: () => string, psl = FROM_PSL): SqliteJourney {
   const testDir = createTempDir();
   const dbPath = join(testDir, 'journey.db');
   const configPath = join(testDir, 'prisma.config.ts');
   const config = readFileSync(sqlitePslConfigFixture, 'utf-8').replace('{{DB_PATH}}', () => dbPath);
   writeFileSync(configPath, config, 'utf-8');
-  writeFileSync(join(testDir, 'contract.prisma'), FROM_PSL, 'utf-8');
+  writeFileSync(join(testDir, 'contract.prisma'), psl, 'utf-8');
   writeProjectManifest(testDir);
   return { testDir, configPath, outputDir: testDir, dbPath };
 }
@@ -207,6 +210,62 @@ withTempDir(({ createTempDir }) => {
           parseJsonOutput<{ plan: { operations: readonly unknown[] } }>(dryRun).plan.operations,
           'S2.07: nothing left to plan',
         ).toEqual([]);
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('S3 (SQLite): delete an enum value a required column types', () => {
+    it(
+      'removes it when no row holds it; while rows do, fails at apply and changes nothing, and a rename applies',
+      async () => {
+        const empty = setupSqliteJourney(createTempDir, required(FROM_PSL));
+        await emit(empty, required(FROM_PSL), 'S3.01');
+        expect((await runDbUpdate(empty, ['--json'])).exitCode, 'S3.02: create').toBe(0);
+        await emit(empty, required(REMOVED_PSL), 'S3.03');
+        const removed = await runDbUpdate(empty, [
+          '--delete',
+          'Status.ARCHIVED',
+          '--no-interactive',
+          '--json',
+        ]);
+        expect(removed.exitCode, `S3.04: ${JSON.stringify(engineError(removed))}`).toBe(0);
+        await expectVerified(empty, 'S3.05');
+
+        const held = setupSqliteJourney(createTempDir, required(FROM_PSL));
+        await emit(held, required(FROM_PSL), 'S3.06');
+        expect((await runDbUpdate(held, ['--json'])).exitCode, 'S3.07: create').toBe(0);
+        withDatabase(held.dbPath, (db) => {
+          db.exec(`INSERT INTO "task" (id, status) VALUES (1, 'archived'), (2, 'active')`);
+        });
+        await emit(held, required(REMOVED_PSL), 'S3.08');
+        const failed = await runDbUpdate(held, [
+          '--delete',
+          'Status.ARCHIVED',
+          '--no-interactive',
+          '--json',
+        ]);
+        expect(engineError(failed)?.code, 'S3.09').toBe('MIGRATION.PRECHECK_FAILED');
+        expect(engineError(failed)?.summary).toContain(
+          `ensure column "status" of "task" takes NULL, or no row holds "archived" in it: to keep those rows, answer with --rename 'Status.ARCHIVED:Status.<new name>'`,
+        );
+        expect(tasks(held.dbPath), 'S3.09: nothing changed').toEqual([
+          { id: 1, status: 'archived' },
+          { id: 2, status: 'active' },
+        ]);
+        await emit(held, required(RENAMED_PSL), 'S3.10');
+        const renamed = await runDbUpdate(held, [
+          '--rename',
+          'Status.ARCHIVED:Status.RETIRED',
+          '--no-interactive',
+          '--json',
+        ]);
+        expect(renamed.exitCode, `S3.11: ${JSON.stringify(engineError(renamed))}`).toBe(0);
+        expect(tasks(held.dbPath)).toEqual([
+          { id: 1, status: 'retired' },
+          { id: 2, status: 'active' },
+        ]);
+        await expectVerified(held, 'S3.12');
       },
       timeouts.spinUpPpgDev,
     );

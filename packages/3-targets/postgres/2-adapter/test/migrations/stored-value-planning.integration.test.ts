@@ -330,7 +330,7 @@ describe('Postgres planner, stored enum values', { concurrent: false }, () => {
       { kind: 'enumValue', namespaceId: asNamespaceId('public'), enum: 'Role', member: 'GUEST' },
     ]);
     await expect(apply(result, to)).rejects.toThrow(
-      'Operation removeStoredValue.User.role.guest failed during precheck: ensure column "role" of "User" takes NULL, or no row holds "guest" in it: to keep those rows, answer with --rename Role.GUEST:Role.<new name>, or plan the change with prisma migration plan and replace this.removeStoredValue({ schema: "public", table: "User", column: "role", value: "guest", codecRef: { codecId: "pg/text@1" }, enumValue: "Role.GUEST" }) with this.replaceStoredValue({ schema: "public", table: "User", column: "role", from: "guest", to: <stored value>, codecRef: { codecId: "pg/text@1" } }) in the migration.ts it writes, where <stored value> is a value the column keeps',
+      `Operation removeStoredValue.User.role.guest failed during precheck: ensure column "role" of "User" takes NULL, or no row holds "guest" in it: to keep those rows, answer with --rename 'Role.GUEST:Role.<new name>', or plan the change with prisma migration plan and replace this.removeStoredValue({ schema: "public", table: "User", column: "role", value: "guest", codecRef: { codecId: "pg/text@1" }, enumValue: "Role.GUEST" }) with this.replaceStoredValue({ schema: "public", table: "User", column: "role", from: "guest", to: <stored value>, codecRef: { codecId: "pg/text@1" } }) in the migration.ts it writes, where <stored value> is a value the column keeps, run node on that migration.ts so it writes ops.json, and apply it with prisma db migrate`,
     );
     expect(await roles()).toEqual([
       { id: '1', role: 'guest' },
