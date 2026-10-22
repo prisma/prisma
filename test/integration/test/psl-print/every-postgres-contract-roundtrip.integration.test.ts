@@ -153,96 +153,96 @@ const expectedRefusals: ReadonlyMap<string, ExpectedRefusal> = new Map<string, E
   ],
   // Prisma 7 `@ignore`, `@@ignore` and `Unsupported(...)` keep storage that no field or model maps, which Prisma 8 PSL cannot write until TML-3469.
   [
-    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/ignore/expected-contract.json',
+    'packages/2-sql-family/2-authoring/contract-prisma7/test/fixtures/ignore/expected-contract.json',
     {
       reason: 'is not stored by any field',
       meta: { namespaceId: 'public', table: 'User', column: 'legacy' },
     },
   ],
   [
-    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/ignored-field-defaults/expected-contract.json',
+    'packages/2-sql-family/2-authoring/contract-prisma7/test/fixtures/ignored-field-defaults/expected-contract.json',
     {
       reason: 'is not stored by any field',
       meta: { namespaceId: 'public', table: 'Account', column: 'status' },
     },
   ],
   [
-    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/ignored-field-in-index/expected-contract.json',
+    'packages/2-sql-family/2-authoring/contract-prisma7/test/fixtures/ignored-field-in-index/expected-contract.json',
     {
       reason: 'is not stored by any field',
       meta: { namespaceId: 'public', table: 'Indexed', column: 'b' },
     },
   ],
   [
-    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/ignored-model-many-to-many/expected-contract.json',
+    'packages/2-sql-family/2-authoring/contract-prisma7/test/fixtures/ignored-model-many-to-many/expected-contract.json',
     { reason: 'has no model stored in it', meta: { namespaceId: 'public', table: 'tags' } },
   ],
   [
-    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/ignored-models/expected-contract.json',
+    'packages/2-sql-family/2-authoring/contract-prisma7/test/fixtures/ignored-models/expected-contract.json',
     {
       reason: 'that no relation of model "User" travels',
       meta: { namespaceId: 'public', table: 'User', columns: ['archiveId'] },
     },
   ],
   [
-    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/ignored-relation-back-relations/expected-contract.json',
+    'packages/2-sql-family/2-authoring/contract-prisma7/test/fixtures/ignored-relation-back-relations/expected-contract.json',
     {
       reason: 'that no relation of model "User" travels',
       meta: { namespaceId: 'public', table: 'User', columns: ['managerId'] },
     },
   ],
   [
-    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/ignored-relation-field/expected-contract.json',
+    'packages/2-sql-family/2-authoring/contract-prisma7/test/fixtures/ignored-relation-field/expected-contract.json',
     {
       reason: 'that no relation of model "Post" travels',
       meta: { namespaceId: 'public', table: 'Post', columns: ['authorId'] },
     },
   ],
   [
-    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/junction-name-in-other-schema/expected-contract.json',
+    'packages/2-sql-family/2-authoring/contract-prisma7/test/fixtures/junction-name-in-other-schema/expected-contract.json',
     {
       reason: 'is declared in more than one namespace',
       meta: { modelName: 'PostToTag', namespaces: ['one', 'two'] },
     },
   ],
   [
-    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/relation-name-in-two-schemas/expected-contract.json',
+    'packages/2-sql-family/2-authoring/contract-prisma7/test/fixtures/relation-name-in-two-schemas/expected-contract.json',
     {
       reason: 'is declared in more than one namespace',
       meta: { modelName: 'X', namespaces: ['one', 'two'] },
     },
   ],
   [
-    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/relations-ignored/expected-contract.json',
+    'packages/2-sql-family/2-authoring/contract-prisma7/test/fixtures/relations-ignored/expected-contract.json',
     {
       reason: 'that no relation of model "Post" travels',
       meta: { namespaceId: 'public', table: 'Post', columns: ['legacyOwnerId'] },
     },
   ],
   [
-    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/unsupported-type/expected-contract.json',
+    'packages/2-sql-family/2-authoring/contract-prisma7/test/fixtures/unsupported-type/expected-contract.json',
     {
       reason: 'that no relation of model "Host" travels',
       meta: { namespaceId: 'public', table: 'Host', columns: ['net'] },
     },
   ],
   [
-    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/unsupported-type-ignored/expected-contract.json',
+    'packages/2-sql-family/2-authoring/contract-prisma7/test/fixtures/unsupported-type-ignored/expected-contract.json',
     {
       reason: 'is not stored by any field',
       meta: { namespaceId: 'public', table: 'Post', column: 'search' },
     },
   ],
   [
-    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/unsupported-type-model-ignored/expected-contract.json',
+    'packages/2-sql-family/2-authoring/contract-prisma7/test/fixtures/unsupported-type-model-ignored/expected-contract.json',
     { reason: 'has no model stored in it', meta: { namespaceId: 'public', table: 'Post' } },
   ],
   [
-    'packages/2-sql/4-lanes/sql-builder/test/fixtures/generated/contract.json',
+    'packages/2-sql-family/4-lanes/sql-builder/test/fixtures/generated/contract.json',
     { reason: 'has no foreign key in storage', meta: { model: 'Post', field: 'author' } },
   ],
   [
-    'packages/3-extensions/postgres/test/fixtures/generated/contract.json',
+    'packages/3-targets/postgres/9-facade/test/fixtures/generated/contract.json',
     { reason: 'has no foreign key in storage', meta: { model: 'Post', field: 'author' } },
   ],
   [
@@ -275,14 +275,14 @@ const expectedRefusals: ReadonlyMap<string, ExpectedRefusal> = new Map<string, E
     },
   ],
   [
-    'packages/3-targets/3-targets/postgres/test/fixtures/namespaced-contract.json',
+    'packages/3-targets/postgres/1-target/test/fixtures/namespaced-contract.json',
     {
       reason: 'is declared in more than one namespace',
       meta: { modelName: 'User', namespaces: ['auth', 'public'] },
     },
   ],
   [
-    'packages/3-targets/3-targets/postgres/test/fixtures/snapshot-read-shapes/codec-instance.json',
+    'packages/3-targets/postgres/1-target/test/fixtures/snapshot-read-shapes/codec-instance.json',
     {
       reason: 'has no model stored in it',
       meta: { namespaceId: '__unbound__', table: 'embeddings' },

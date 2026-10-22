@@ -378,7 +378,15 @@ describe('migrate', () => {
     ]);
   });
 
-  it('writes nothing to stdout in human mode', async () => {
+  it('prints one data line per applied migration: space, name, from, to and operations run', async () => {
+    const cwd = await buildProject();
+
+    const run = await harness(ormConfig(cwd)).run(['db', 'migrate'], { cwd });
+
+    expect(run.stdout).toBe(`app\t20260101_100000_111111\t\t${C1}\t1\n`);
+  });
+
+  it('writes no data lines when stdout and stderr share one terminal', async () => {
     const cwd = await buildProject();
 
     const run = await harness(ormConfig(cwd)).run(['db', 'migrate'], {

@@ -10,7 +10,7 @@ import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-r
 import postgresTarget from '@internal/target-postgres/runtime';
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, expectTypeOf, it } from 'vitest';
-import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../packages/2-sql/9-family/test/test-sql-contract-serializer';
+import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../packages/2-sql-family/9-family/test/test-sql-contract-serializer';
 import { describeWithMongoDB } from '../mongo/setup';
 import { setupTestDatabase } from '../utils';
 import type { Contract as MongoVOContract } from './fixtures/generated/mongo-contract.d';
