@@ -1,6 +1,7 @@
 import type { ContractWithDomain } from '@internal/contract/types';
 import type { CliStructuredError } from '@internal/errors/control';
 import {
+  enumValueStatementText,
   type FieldCoordinate,
   fieldStatementText,
   type MigrationDataLossKind,
@@ -197,10 +198,19 @@ export function subjectText(subject: MigrationSubject, contracts: StatementContr
           : modelStatementText(contracts.destination, renamed);
       return `${model}.${subject.field}`;
     }
+    case 'enumValue':
+      return enumValueStatementText(contracts.origin, subject);
     case 'storage':
       return subject.name;
   }
 }
+
+const SUBJECT_KIND_WORDS: Readonly<Record<MigrationSubject['kind'], string>> = {
+  model: 'model',
+  field: 'field',
+  enumValue: 'enum value',
+  storage: 'storage',
+};
 
 /**
  * The statement's description, written as its question names the subject: `delete field
@@ -213,9 +223,10 @@ export function consentDescription(
   text: string,
   loss: MigrationDataLossKind | undefined,
 ): string {
+  const kind = SUBJECT_KIND_WORDS[subject.kind];
   return verb === 'delete' && loss === 'typeChange'
-    ? `accept lossy type change of ${subject.kind} "${text}"`
-    : `${verb} ${subject.kind} "${text}"`;
+    ? `accept lossy type change of ${kind} "${text}"`
+    : `${verb} ${kind} "${text}"`;
 }
 
 function lossText(
@@ -231,6 +242,8 @@ function lossText(
       return loss === 'typeChange'
         ? `would change the type of field "${text}" and can change or lose its values`
         : `would lose the values of field "${text}"`;
+    case 'enumValue':
+      return `would lose enum value "${text}" from the rows that hold it`;
     case 'storage':
       return originKnown
         ? `would lose the data in "${text}", which no model of the origin contract stores`
@@ -252,6 +265,15 @@ export const ORIGIN_SNAPSHOT_RECOVERY = [
 function sameCoordinate(statement: ResolvedMigrationStatement, subject: MigrationSubject): boolean {
   if (statement.kind !== 'rename' || statement.entity === 'namespace' || subject.kind === 'storage')
     return false;
+  if (statement.entity === 'enumValue' || subject.kind === 'enumValue') {
+    return (
+      statement.entity === 'enumValue' &&
+      subject.kind === 'enumValue' &&
+      statement.from.namespaceId === subject.namespaceId &&
+      statement.from.enum === subject.enum &&
+      statement.from.member === subject.member
+    );
+  }
   const { from } = statement;
   if (from.namespaceId !== subject.namespaceId || from.model !== subject.model) return false;
   return subject.kind === 'field'
@@ -271,7 +293,7 @@ function modelRenameAdvice(model: ModelCoordinate, contracts: StatementContracts
 
 /** A rename as a statement is written: a field's new name keeps the model, `User.nickname:User.<new name>`. */
 function renameForm(subject: MigrationSubject, text: string): string {
-  return subject.kind === 'field'
+  return subject.kind === 'field' || subject.kind === 'enumValue'
     ? `${text}:${text.slice(0, text.lastIndexOf('.'))}.<new name>`
     : `${text}:<new name>`;
 }
@@ -288,6 +310,11 @@ function inDestination(
   contracts: StatementContracts & { readonly destination: ContractWithDomain },
 ): boolean {
   if (subject.kind === 'storage') return false;
+  if (subject.kind === 'enumValue') {
+    const destinationEnum =
+      contracts.destination.domain.namespaces[subject.namespaceId]?.enum?.[subject.enum];
+    return destinationEnum?.members.some(({ name }) => name === subject.member) === true;
+  }
   const model = renamedModel(subject, contracts) ?? subject;
   const destinationModel =
     contracts.destination.domain.namespaces[model.namespaceId]?.models[model.model];
