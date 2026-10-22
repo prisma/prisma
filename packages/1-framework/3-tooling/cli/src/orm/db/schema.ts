@@ -122,7 +122,7 @@ function schemaPresentations(inputs: {
   const { document, schemaView, database } = inputs;
   return {
     stdout: noDataLines(
-      'The schema is a tree whose shape depends on the database family; --json carries it.',
+      'Data lines are not defined: the schema is a tree whose shape depends on the database family. --json carries it.',
     ),
     next: () => [],
     human: (): readonly Block[] => [

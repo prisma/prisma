@@ -231,7 +231,7 @@ function verifyPresentations(inputs: {
   const unclaimed = document.unclaimed ?? [];
   return {
     stdout: noDataLines(
-      'Verification has no data: the exit code is its result, and --json carries the findings.',
+      'The exit code is the result of a verification; --json carries the findings.',
     ),
     next: () => [],
     human: (): readonly Block[] => [
@@ -298,7 +298,7 @@ function schemaPresentations(inputs: {
 }): Presentations {
   return {
     stdout: noDataLines(
-      'Verification has no data: the exit code is its result, and --json carries the findings.',
+      'The exit code is the result of a verification; --json carries the findings.',
     ),
     next: () => [],
     human: (): readonly Block[] => [

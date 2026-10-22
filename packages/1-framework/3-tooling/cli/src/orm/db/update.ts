@@ -77,7 +77,9 @@ function updatePresentations(inputs: {
 }): Presentations {
   const { document, database, dryRun } = inputs;
   return {
-    stdout: noDataLines('Updating a database has no data; --json carries the plan and what ran.'),
+    stdout: noDataLines(
+      'Data lines are not defined: this command applies a plan, not migrations, so the db migrate fields do not fit. --json carries the plan and what ran.',
+    ),
     human: (): readonly Block[] => [
       {
         kind: 'fields',

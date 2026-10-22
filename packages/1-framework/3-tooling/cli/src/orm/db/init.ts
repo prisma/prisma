@@ -40,7 +40,7 @@ function initPresentations(inputs: {
   const { document, database, dryRun } = inputs;
   return {
     stdout: noDataLines(
-      'Initializing a database has no data; --json carries the plan and what ran.',
+      'Data lines are not defined: this command applies a plan, not migrations, so the db migrate fields do not fit. --json carries the plan and what ran.',
     ),
     human: (): readonly Block[] => [
       {

@@ -8,7 +8,7 @@ import { spaceMigrationDirectory, spaceRefsDirectory } from '@internal/migration
 import { ifDefined } from '@internal/utils/defined';
 import { notOk as notOkResult, ok as okResult, type Result } from '@internal/utils/result';
 import type { Block, Presentations, Span, Text, TreeNode } from '@prisma/cli-engine';
-import { flag, noDataLines, positional } from '@prisma/cli-engine';
+import { flag, positional } from '@prisma/cli-engine';
 import type { Diagnostic } from '@prisma/cli-engine/protocol';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import { createControlClient } from '../../control-api/client';
@@ -32,6 +32,7 @@ import { closeQuietly, maskConnectionUrl } from '../../utils/command-helpers';
 import { RECORDED_CONTRACT_REF_FORMS } from '../../utils/contract-ref-forms';
 import { contractValidationMeta } from '../../utils/contract-validation-meta';
 import { type CliInvocation, cliCommand, cliInvocation } from '../../utils/printed-command';
+import { dataLine } from '../data-lines';
 import { defineOrmCommand } from '../define-command';
 import { dbFlag } from '../flags';
 import { appRefsDirFor, baseDirFor, migrationsDirFor } from '../migration/paths';
@@ -270,7 +271,10 @@ function signPresentations(inputs: {
 }): Presentations {
   const { document } = inputs;
   return {
-    stdout: noDataLines('Signing a database has no data; the exit code says whether it worked.'),
+    stdout: () =>
+      document.spaces.map((space) =>
+        dataLine([space.space, space.status, space.contract.storageHash]),
+      ),
     next: () => [],
     human: (): readonly Block[] => [
       inputs.header,
