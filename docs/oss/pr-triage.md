@@ -48,13 +48,13 @@ Read the **base branch**, not the title and not the paths.
 | Base branch | Line | What we accept |
 | --- | --- | --- |
 | `main` | Prisma 8 (8.x) | Bug fixes and directionally aligned features |
-| `v7`, `7.9.x` | Prisma 7 | Bug fixes only |
+| `v7`, `7.9.x` | Prisma 7 | Bug fixes and security updates only, for eighteen months after `8.0.0` final |
 
 A PR whose title says Prisma 8 but which targets `v7` is targeting Prisma 7. If the base branch looks wrong for the change, that is the first thing to ask about — a rebase onto the right base is cheaper than a review against the wrong one.
 
 ## Step 2 — Is it in scope for that line?
 
-**Prisma 7 (`v7`, `7.9.x`): bug fixes only.** Features do not land on the 7.x line; direct the contributor to `main` or explain that the API is closed. Be specific about which it is — "we're not taking features on 7.x, but this would be welcome against `main`" is a useful reply, and "no thanks" is not.
+**Prisma 7 (`v7`, `7.9.x`): bug fixes and security updates only.** Features do not land on the 7.x line; direct the contributor to `main` or explain that the API is closed. Be specific about which it is — "we're not taking features on 7.x, but this would be welcome against `main`" is a useful reply, and "no thanks" is not.
 
 **Prisma 8 (`main`): fixes are in scope by default, features need a direction call.** See step 5.
 
