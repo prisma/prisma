@@ -15,9 +15,7 @@ This directory contains the primary documentation for the repository.
 ## Direction
 
 - [Project intent](./design/00-purpose/project-intent.md) — who Prisma 8 is for, what it optimises for, and what not to assume
-- [Vision](./design/00-purpose/vision.md) — values, durable themes, current priorities, and how to judge a request
-- [Roadmap](./design/00-purpose/roadmap.md) — the work planned in each area
-- [Feature areas](./design/00-purpose/feature-areas.md) — the areas of the code, with their sub-areas
+- [Vision](./design/00-purpose/vision.md) — values, durable themes, and how to judge a request
 - [Steering list](./architecture%20docs/ADR-INDEX.md#steering-list) — requests already answered, with what to use instead
 
 ## Architecture deep dives

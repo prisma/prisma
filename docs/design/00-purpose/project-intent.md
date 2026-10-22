@@ -36,7 +36,6 @@ It does not need to optimise for:
 - **Do not assume the core should take a feature that an extension or user code can provide.** Will Madden, 2026-10-22: "we will not build in the core features which can be built in extension/user space."
 - **Do not assume a Prisma 7 feature exists in Prisma 8.** Check the [feature scoreboard](../../../scorecard.md) and the *What Prisma 8 doesn't do yet* sections of the [`prisma-8` skill references](../../../skills/prisma-8/references/).
 - **Do not assume a missing feature is unwanted.** A `❌` on the scoreboard means "not in 8.0". The PR triage guide says "'Not planned' is not by itself a reason to decline" ([PR triage](../../oss/pr-triage.md#step-5--direction-fit)). An accepted ADR is what rules a feature out.
-- **Do not assume an item on the [roadmap](./roadmap.md) will ship.** Topics may be added or dropped as the work goes on.
 - **Do not assume the folders under `projects/` are a roadmap.** They hold work in flight, or records of finished work that were not cleaned up ([PR triage](../../oss/pr-triage.md#step-5--direction-fit)).
 - **Do not assume the ORM client is the only way to query.** The ORM is an optional layer over the SQL query builder, and there is a raw SQL lane ([ADR 015](../../architecture%20docs/adrs/ADR%20015%20-%20ORM%20as%20Optional%20Extension.md), [ADR 247](../../architecture%20docs/adrs/ADR%20247%20-%20Whole-query%20raw%20SQL%20is%20the%20fragment%20mechanism%20at%20statement%20position.md)). A request is often answered by a surface that already exists.
 
