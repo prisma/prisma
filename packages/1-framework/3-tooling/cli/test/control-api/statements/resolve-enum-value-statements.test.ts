@@ -169,4 +169,55 @@ describe('resolveStatements, enum value renames', () => {
       );
     }
   });
+
+  it('names the namespace of a namespace.Model reading, and never offers the ambiguous text as the way out', () => {
+    const both = (member: string) =>
+      contractOf({
+        Status: { models: { [member]: {} } },
+        public: { enums: { Status: [member] } },
+      });
+    const failure = expectFailure(
+      resolve(['Status.ARCHIVED:Status.RETIRED'], both('ARCHIVED'), both('RETIRED')),
+      UNRESOLVED,
+    );
+    expect({ why: failure.why, fix: failure.fix }).toEqual({
+      why: '"Status.ARCHIVED" resolves both as namespace "Status" model "ARCHIVED" and as enum "Status" value "ARCHIVED".',
+      fix: 'Write public.Status.ARCHIVED for the enum value. The model cannot be named apart from it: rename namespace "Status" or enum "Status" so that only one reading resolves.',
+    });
+  });
+
+  it('lists the enum reading beside the field reading when a three-name statement resolves neither', () => {
+    const publicOnly = (member: string) =>
+      contractOf({
+        public: { enums: { Status: [member] } },
+        billing: { models: { Invoice: {} } },
+      });
+    expect(
+      expectFailure(
+        resolve(
+          ['billing.Status.ARCHIVED:billing.Status.RETIRED'],
+          publicOnly('ARCHIVED'),
+          publicOnly('RETIRED'),
+        ),
+        UNRESOLVED,
+      ).why,
+    ).toContain(
+      'nor as namespace.Enum.value (the origin contract has no enum "Status" in namespace "billing")',
+    );
+  });
+
+  it('says "enum value" when a value is renamed twice', () => {
+    expect(
+      expectFailure(
+        resolve(
+          ['Status.ARCHIVED:Status.RETIRED', 'Status.ARCHIVED:Status.RETIRED'],
+          origin,
+          destination,
+        ),
+        INVALID,
+      ).fix,
+    ).toBe(
+      'Give each model, field or enum value at most one statement, and each new name to one model, field or enum value only.',
+    );
+  });
 });

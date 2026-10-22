@@ -35,7 +35,7 @@ import {
   type StatementSide,
 } from './parse-rename';
 import { statementFlag } from './statement-flag';
-import type { StatementText } from './statement-text';
+import { ENTITY_WORDS, type StatementText } from './statement-text';
 
 /**
  * The origin contract statements resolve against, or where the command looked
@@ -142,7 +142,7 @@ const STORED_NAME_ONLY =
   'If only the stored name changed (@map or @@map), a statement cannot state that in this release, and a plan without it drops and creates what the model or field is stored in, with its data. With migration plan, edit the planned migration.ts to rename the stored name instead of dropping and creating it. With db update, rename it in the database yourself first, then run db update, which then finds nothing that loses data.';
 const VALUE_OBJECT_FIX = 'Leave value objects and their fields out of the statements.';
 const REPEATED_NAME_FIX =
-  'Give each model or field at most one statement, and each new name to one model or field only.';
+  'Give each model, field or enum value at most one statement, and each new name to one model, field or enum value only.';
 
 function qualifiedModel(coordinate: ModelCoordinate): string {
   return modelDisplayName(coordinate);
@@ -378,7 +378,7 @@ function declaresEnums(contract: NamedContract): boolean {
 function readingText(reading: SideReading): string {
   switch (reading.entity) {
     case 'model':
-      return `model "${reading.coordinate.model}"`;
+      return `namespace "${reading.coordinate.namespaceId}" model "${reading.coordinate.model}"`;
     case 'field':
       return `model "${reading.coordinate.model}" field "${reading.coordinate.field}"`;
     case 'enumValue':
@@ -397,11 +397,17 @@ function qualifiedReading(reading: SideReading): string {
   }
 }
 
-const READING_NOUNS: Readonly<Record<SideReading['entity'], string>> = {
-  model: 'model',
-  field: 'field',
-  enumValue: 'enum value',
-};
+/** What a reading sits in, which a rename can give another name so that the reading stops colliding. */
+function readingContainer(reading: SideReading): string {
+  switch (reading.entity) {
+    case 'model':
+      return `namespace "${reading.coordinate.namespaceId}"`;
+    case 'field':
+      return `model "${reading.coordinate.model}"`;
+    case 'enumValue':
+      return `enum "${reading.coordinate.enum}"`;
+  }
+}
 
 /**
  * An enum value reading beside the model and field readings of the same name: the one that
@@ -414,9 +420,18 @@ function withEnumValueReading(
 ): Result<SideReading, Refusal> {
   if (!enumValue.ok) return other;
   if (!other.ok) return enumValue;
+  const readings = [other.value, enumValue.value];
+  const nameable = readings.filter((reading) => qualifiedReading(reading) !== text);
+  const unnameable = readings.find((reading) => qualifiedReading(reading) === text);
+  const written = nameable.map(
+    (reading) => `${qualifiedReading(reading)} for the ${ENTITY_WORDS[reading.entity]}`,
+  );
   return notOk({
     reason: `"${text}" resolves both as ${readingText(other.value)} and as ${readingText(enumValue.value)}`,
-    fix: `Name it with its namespace: ${qualifiedReading(other.value)} for the ${READING_NOUNS[other.value.entity]}, ${qualifiedReading(enumValue.value)} for the ${READING_NOUNS.enumValue}.`,
+    fix:
+      unnameable === undefined
+        ? `Name it with its namespace: ${written.join(', ')}.`
+        : `Write ${written.join(', ')}. The ${ENTITY_WORDS[unnameable.entity]} cannot be named apart from it: rename ${readings.map(readingContainer).join(' or ')} so that only one reading resolves.`,
   });
 }
 
@@ -541,11 +556,16 @@ function readSide(
       });
     }
     const asField = qualified.ok || !dotted.ok ? qualified : dotted;
-    return withEnumValueReading(
-      segments.join('.'),
-      asField,
-      readEnumValue(state, side, first, second, third),
-    );
+    const asEnumValue = readEnumValue(state, side, first, second, third);
+    if (asField.ok || asEnumValue.ok || !declaresEnums(contract)) {
+      return withEnumValueReading(segments.join('.'), asField, asEnumValue);
+    }
+    return notOk({
+      ...missing(
+        `"${segments.join('.')}" resolves neither as namespace.Model.field (${asField.failure.reason}) nor as namespace.Enum.value (${asEnumValue.failure.reason})`,
+      ),
+      ...ifDefined('modelWithoutCounterpart', asField.failure.modelWithoutCounterpart),
+    });
   }
   const [first, second] = segments;
   const asModel = readModel(state, side, first, second);
@@ -851,7 +871,7 @@ function resolveEnumValueRename(
   const oldInDestination = to.members.includes(oldMember);
   if (newInOrigin && oldInDestination) {
     return notOk(
-      swapRefusal(statement, 'field', `${newEnum}.${oldMember}`, `${newEnum}.${newMember}`),
+      swapRefusal(statement, 'enumValue', `${newEnum}.${oldMember}`, `${newEnum}.${newMember}`),
     );
   }
   if (newInOrigin) {
@@ -883,7 +903,7 @@ function resolveEnumValueRename(
  */
 function swapRefusal(
   statement: ParsedRename,
-  entity: 'model' | 'field',
+  entity: 'model' | 'field' | 'enumValue',
   first: string,
   second: string,
 ): CliStructuredError {
@@ -891,9 +911,9 @@ function swapRefusal(
   const oldName = statement.from.join('.');
   const newName = statement.to.join('.');
   const temporary =
-    entity === 'field'
-      ? `${statement.to.slice(0, -1).join('.')}.<temporary name>`
-      : '<temporary name>';
+    entity === 'model'
+      ? '<temporary name>'
+      : `${statement.to.slice(0, -1).join('.')}.<temporary name>`;
   return errorStatementInvalid(
     statement,
     `"${first}" and "${second}" swap names: each is both an old name and a new name, and statements cannot swap names in one plan.`,

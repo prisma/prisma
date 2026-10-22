@@ -25,7 +25,7 @@ import {
 import type { ConsentVerb } from './parse-consent';
 import { resolveStatements } from './resolve-statements';
 import { statementFlag } from './statement-flag';
-import type { StatementText } from './statement-text';
+import { ENTITY_WORDS, type StatementText } from './statement-text';
 
 /** A verb a plan question accepts. */
 export type PlanQuestionVerb = 'rename' | 'convert' | ConsentVerb;
@@ -231,13 +231,6 @@ export function subjectText(subject: MigrationSubject, contracts: StatementContr
   }
 }
 
-const SUBJECT_KIND_WORDS: Readonly<Record<MigrationSubject['kind'], string>> = {
-  model: 'model',
-  field: 'field',
-  enumValue: 'enum value',
-  storage: 'storage',
-};
-
 /**
  * The statement's description, written as its question names the subject: `delete field
  * "User.nickname"`, or `accept lossy type change of field "User.age"` for a delete that answers a
@@ -249,7 +242,7 @@ export function consentDescription(
   text: string,
   loss: MigrationDataLossKind | undefined,
 ): string {
-  const kind = SUBJECT_KIND_WORDS[subject.kind];
+  const kind = ENTITY_WORDS[subject.kind];
   return verb === 'delete' && loss === 'typeChange'
     ? `accept lossy type change of ${kind} "${text}"`
     : `${verb} ${kind} "${text}"`;
