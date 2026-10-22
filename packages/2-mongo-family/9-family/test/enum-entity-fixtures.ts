@@ -4,7 +4,7 @@ import type {
   AuthoringEntityContext,
   DataTypeAuthoringEntry,
   DataTypeSupport,
-  ParsedPslExtensionBlock,
+  WrittenScalar,
   WrittenValue,
 } from '@internal/framework-components/authoring';
 import {
@@ -37,20 +37,46 @@ export const TYPE_ATTRIBUTE_SPAN = {
   end: { offset: 42, line: 2, column: 22 },
 };
 
-/** The block the enum factory takes. A fixture member may be a JSON document, which PSL writes as a `json` tagged literal, recorded in `writtenValues`. */
 type EnumBlock = Parameters<typeof mongoFamilyEnumEntityDescriptor.output.factory>[0];
+type MemberValue = EnumBlock['values'][string];
+
+/** A fixture member as PSL writes it: a scalar as itself, and a JSON document, `null` included, as a `json` tagged literal. */
+function writtenScalarOf(value: JsonValue): WrittenScalar {
+  if (typeof value === 'string') return { kind: 'string', text: value };
+  if (typeof value === 'number') return { kind: 'number', text: String(value) };
+  if (typeof value === 'boolean') return { kind: 'boolean', value };
+  return { kind: 'tag', tag: 'json', text: JSON.stringify(value) };
+}
+
+/** What the enum block grammar yields for a written member: a string, number or boolean as itself, a tagged literal as its written value. */
+function memberValueOf(written: WrittenScalar): MemberValue {
+  if (written.kind === 'tag') return written;
+  if (written.kind === 'boolean') return written.value;
+  return written.kind === 'number' ? Number(written.text) : written.text;
+}
 
 export function enumBlock(input: {
   readonly name: string;
   readonly values: Record<string, JsonValue | undefined>;
   readonly typeCodecId?: string;
 }): EnumBlock {
-  const block: ParsedPslExtensionBlock<Record<string, JsonValue | undefined>> = {
+  const values: Record<string, MemberValue> = {};
+  const writtenValues: Record<string, WrittenValue> = {};
+  for (const [name, value] of Object.entries(input.values)) {
+    if (value === undefined) {
+      values[name] = undefined;
+      continue;
+    }
+    const written = writtenScalarOf(value);
+    values[name] = memberValueOf(written);
+    writtenValues[name] = written;
+  }
+  return {
     kind: 'enum',
     keyword: 'enum',
     name: input.name,
-    values: input.values,
-    writtenValues: writtenValuesOf(input.values),
+    values,
+    writtenValues,
     parameterSpans: Object.fromEntries(Object.keys(input.values).map((key) => [key, SPAN])),
     attributes:
       input.typeCodecId !== undefined
@@ -64,23 +90,6 @@ export function enumBlock(input: {
         : {},
     span: SPAN,
   };
-  return block as unknown as EnumBlock;
-}
-
-/** Each member's value as PSL writes it: a document as a `json` tagged literal. */
-function writtenValuesOf(
-  values: Record<string, JsonValue | undefined>,
-): Record<string, WrittenValue> {
-  const written: Record<string, WrittenValue> = {};
-  for (const [name, value] of Object.entries(values)) {
-    if (typeof value === 'string') written[name] = { kind: 'string', text: value };
-    else if (typeof value === 'number') written[name] = { kind: 'number', text: String(value) };
-    else if (typeof value === 'boolean') written[name] = { kind: 'boolean', value };
-    else if (value !== undefined) {
-      written[name] = { kind: 'tag', tag: 'json', text: JSON.stringify(value) };
-    }
-  }
-  return written;
 }
 
 export const TEXT_CODEC_ID = 'mongo/string@1';

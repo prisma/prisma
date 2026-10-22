@@ -92,6 +92,26 @@ describe('written Mongo values', () => {
     );
   });
 
+  it('offers the number to write only when it stores the value the quoted text says', () => {
+    expect([
+      readInto('mongo/decimal128@1', string('0.50')),
+      readInto('mongo/decimal128@1', string('-0')),
+      readInto('mongo/double@1', string('9007199254740993')),
+      readInto('mongo/double@1', string('NaN')),
+    ]).toEqual([
+      notOk({
+        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+        message: 'value: Expected a number; write 0.50',
+      }),
+      notOk({ code: 'PSL_VALUE_TYPE_INCOMPATIBLE', message: 'value: Expected a number' }),
+      notOk({ code: 'PSL_VALUE_TYPE_INCOMPATIBLE', message: 'value: Expected a number' }),
+      notOk({
+        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+        message: 'value: Expected a number; write NaN',
+      }),
+    ]);
+  });
+
   it('keeps every digit of an Int64 past 2^53, and takes an int32', () => {
     expect([
       readInto('mongo/int64@1', number('9007199254740993')),

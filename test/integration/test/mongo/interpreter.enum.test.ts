@@ -469,11 +469,11 @@ enum Priority {
     ).toEqual([[{ name: 'Up', value: [0, 1, -0.5] }]]);
   });
 
-  it('refuses a quoted Decimal128 member, so "-0" is no longer negative zero', () => {
+  it('refuses a quoted Decimal128 "-0" without offering -0, which stores zero without its sign', () => {
     expect(enumMembers('enum Signed {\n  @@type("mongo/decimal128@1")\n  Zero = "-0"\n}')).toEqual([
       {
         code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
-        message: 'enum "Signed" member "Zero": Expected a number; write -0',
+        message: 'enum "Signed" member "Zero": Expected a number',
       },
     ]);
   });

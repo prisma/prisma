@@ -17,6 +17,7 @@ import {
   dataTypeParams,
 } from './data-type';
 import type { DataTypeAuthoringEntry } from './framework-authoring';
+import { numeralText } from './numeral-text';
 import { codecForRef } from './resolve-codec';
 import { printedTaggedLiteralReadsBack, printTaggedLiteral } from './tagged-literal';
 
@@ -142,8 +143,31 @@ function isSameForm(a: WrittenForm, b: WrittenForm): boolean {
 /** Text a contract source reads as a number literal. */
 const NUMBER_TEXT = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$|^[+-]?(?:NaN|Infinity)$/;
 
+const DECIMAL_TEXT = /^([+-]?)0*(\d*?)(?:\.(\d*?))?0*$/;
+
+/** A decimal numeral in one form: no plus sign, no leading or trailing zeros, the sign of zero kept. Other text is itself. */
+function canonicalNumber(text: string): string {
+  const match = text.includes('.') ? DECIMAL_TEXT.exec(text) : /^([+-]?)0*(\d*)$/.exec(text);
+  if (match === null) return text;
+  const [, sign = '', whole = '', fraction = ''] = match;
+  return `${sign === '-' ? '-' : ''}${whole === '' ? '0' : whole}${fraction === '' ? '' : `.${fraction}`}`;
+}
+
+/** Whether a stored value is the number `text` writes, digit for digit and with its sign, so writing the text unquoted stores what it says. */
+function sameNumber(text: string, stored: JsonValue): boolean {
+  const storedText =
+    typeof stored === 'number'
+      ? Object.is(stored, -0)
+        ? '-0'
+        : numeralText(stored)
+      : typeof stored === 'string'
+        ? stored
+        : undefined;
+  return storedText !== undefined && canonicalNumber(storedText) === canonicalNumber(text);
+}
+
 /**
- * The literal to write in place of a quoted string that `receivingType` refuses under `receivingParams`: the string as a literal of the first tag the type admits, or else the string's text unquoted, as a number or a boolean. `undefined` when the value is not a quoted string, no such literal reads back as the same text, or the type would refuse each of them too.
+ * The literal to write in place of a quoted string that `receivingType` refuses under `receivingParams`: the string as a literal of the first tag the type admits, or else the string's text unquoted, as a number or a boolean. `undefined` when the value is not a quoted string, no such literal reads back as the same text, the type would refuse each of them too, or the number the text writes would be stored as another number, as `-0` is stored without its sign or `9007199254740993` as the nearest double.
  */
 export function exactRewrite(
   support: DataTypeSupport,
@@ -151,13 +175,18 @@ export function exactRewrite(
   written: WrittenScalar,
 ): string | undefined {
   if (written.kind !== 'string') return undefined;
-  const admits = (candidate: WrittenScalar): boolean => {
+  const castOf = (candidate: WrittenScalar): DataTypeValue | undefined => {
     const read = readWrittenValue(support, candidate);
-    return (
-      read.ok &&
-      castTypedValue(support, receiving.receivingType, receiving.receivingParams, read.value).ok
+    if (!read.ok) return undefined;
+    const cast = castTypedValue(
+      support,
+      receiving.receivingType,
+      receiving.receivingParams,
+      read.value,
     );
+    return cast.ok ? cast.value : undefined;
   };
+  const admits = (candidate: WrittenScalar): boolean => castOf(candidate) !== undefined;
   const [tag] = admittedTags(support, receiving.receivingType);
   if (
     tag !== undefined &&
@@ -166,8 +195,9 @@ export function exactRewrite(
   ) {
     return printTaggedLiteral(tag, written.text);
   }
-  if (NUMBER_TEXT.test(written.text) && admits({ kind: 'number', text: written.text })) {
-    return written.text;
+  if (NUMBER_TEXT.test(written.text)) {
+    const stored = castOf({ kind: 'number', text: written.text });
+    if (stored !== undefined && sameNumber(written.text, stored.value)) return written.text;
   }
   if (
     (written.text === 'true' || written.text === 'false') &&
