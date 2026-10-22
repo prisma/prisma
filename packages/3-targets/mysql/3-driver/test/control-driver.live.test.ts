@@ -1,6 +1,27 @@
 import { withMysqlDatabase } from '@repo/test-utils/mysql-database';
+import { createConnection } from 'mysql2/promise';
 import { describe, expect, it } from 'vitest';
+import type { MysqlControlDriver } from '../src/core/migrations/control-driver';
 import mysqlDriver from '../src/core/migrations/control-driver';
+
+async function connectWhileServerDefaultIncludes(
+  url: string,
+  sqlMode: string,
+): Promise<MysqlControlDriver> {
+  const admin = await createConnection(url);
+  try {
+    const [rows] = await admin.query('SELECT @@GLOBAL.sql_mode AS mode');
+    const [{ mode }] = rows as [{ mode: string }];
+    await admin.query(`SET GLOBAL sql_mode = '${[mode, sqlMode].filter(Boolean).join(',')}'`);
+    try {
+      return await mysqlDriver.create(url);
+    } finally {
+      await admin.query(`SET GLOBAL sql_mode = '${mode}'`);
+    }
+  } finally {
+    await admin.end();
+  }
+}
 
 describe('MysqlControlDriver against a MySQL server', () => {
   it('hands every column over as the text MySQL sends', async (test) => {
@@ -74,6 +95,28 @@ describe('MysqlControlDriver against a MySQL server', () => {
       try {
         expect(await driver.query('SELECT ? AS v', [{ id: 1 }])).toEqual({
           rows: [{ v: '[object Object]' }],
+        });
+      } finally {
+        await driver.close();
+      }
+    });
+  });
+
+  it('escapes parameters correctly when the server default sets NO_BACKSLASH_ESCAPES', async (test) => {
+    await withMysqlDatabase(test, async ({ url }) => {
+      const driver = await connectWhileServerDefaultIncludes(url, 'NO_BACKSLASH_ESCAPES');
+      try {
+        const value = "it\\'s ' OR 1=1 -- ";
+        const { rows } = await driver.query<{ v: string; mode: string }>(
+          'SELECT ? AS v, @@SESSION.sql_mode AS mode',
+          [value],
+        );
+        expect({
+          v: rows[0]?.v,
+          flagged: rows[0]?.mode.split(',').includes('NO_BACKSLASH_ESCAPES'),
+        }).toEqual({
+          v: value,
+          flagged: false,
         });
       } finally {
         await driver.close();

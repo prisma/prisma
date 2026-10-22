@@ -54,14 +54,27 @@ export class MysqlControlDriver implements SqlControlDriverInstance<'mysql'> {
   }
 }
 
+/** The statements every new connection runs before any other. mysql2 escapes a quote in a parameter with a backslash, which MySQL reads as text under NO_BACKSLASH_ESCAPES, so the session clears that mode. */
+const SESSION_SETUP = [
+  "SET SESSION sql_mode = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', @@SESSION.sql_mode, ','), ',NO_BACKSLASH_ESCAPES,', ','))",
+] as const;
+
+async function connect(url: string, options?: ControlDriverConnectOptions): Promise<Connection> {
+  const connection = await createConnection(mysqlConnectionOptions(url, options?.connectTimeoutMs));
+  try {
+    for (const statement of SESSION_SETUP) await connection.query(statement);
+    return connection;
+  } catch (error) {
+    await connection.end().catch(() => {});
+    throw error;
+  }
+}
+
 const mysqlDriverDescriptor: ControlDriverDescriptor<'sql', 'mysql', MysqlControlDriver> = {
   ...mysqlDriverDescriptorMeta,
   async create(url: string, options?: ControlDriverConnectOptions): Promise<MysqlControlDriver> {
     try {
-      const connection = await createConnection(
-        mysqlConnectionOptions(url, options?.connectTimeoutMs),
-      );
-      return new MysqlControlDriver(connection);
+      return new MysqlControlDriver(await connect(url, options));
     } catch (error) {
       const normalized = normalizeMysqlError(error);
       throw errorRuntime('DRIVER.CONNECTION_FAILED', 'Database connection failed', {
