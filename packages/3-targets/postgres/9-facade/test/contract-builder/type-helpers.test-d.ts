@@ -35,7 +35,7 @@ test('the contract takes databaseTypes, not types', () => {
 /** Whether the contract types say the client generates the field's value on create, which makes the create input optional. */
 type GeneratesOnCreate<Builder> = Builder extends { readonly __state: infer State }
   ? State extends { readonly __defaultPresence?: infer Presence }
-    ? NonNullable<Presence> extends { readonly execution: true }
+    ? NonNullable<Presence> extends { readonly onCreate: true }
       ? true
       : false
     : false

@@ -10,6 +10,7 @@ import type {
   AuthoringFieldPresetDescriptor,
 } from '@internal/framework-components/authoring';
 import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
+import type { GeneratorPhase } from '@internal/framework-components/components';
 import type { ScalarFieldBuilder, ScalarFieldState, WithCodecInput } from './contract-dsl';
 
 export type UnionToIntersection<U> = (U extends unknown ? (value: U) => void : never) extends (
@@ -58,7 +59,7 @@ type PresetTypeParams<
     : Record<never, never>
   : Record<never, never>;
 
-type PresetPhaseTemplate<Defaults, Phase extends 'onCreate' | 'onUpdate'> = Defaults extends {
+type PresetPhaseTemplate<Defaults, Phase extends GeneratorPhase> = Defaults extends {
   readonly [K in Phase]: infer Template;
 }
   ? Template
@@ -76,16 +77,13 @@ type PresetPhasePresent<Template, Args extends readonly unknown[]> = Template ex
     ? false
     : true;
 
-// Whether the build gives the field an execution default: a phase chosen by an omitted argument is left out.
-type PresetHasExecutionDefault<
+// Whether the build gives the field an execution default in a phase: a phase chosen by an omitted argument is left out.
+type PresetGeneratesIn<
   Descriptor extends AuthoringFieldPresetDescriptor,
   Args extends readonly unknown[],
+  Phase extends GeneratorPhase,
 > = Descriptor['output'] extends { readonly executionDefaults: infer Defaults }
-  ? true extends
-      | PresetPhasePresent<PresetPhaseTemplate<Defaults, 'onCreate'>, Args>
-      | PresetPhasePresent<PresetPhaseTemplate<Defaults, 'onUpdate'>, Args>
-    ? true
-    : false
+  ? PresetPhasePresent<PresetPhaseTemplate<Defaults, Phase>, Args>
   : false;
 
 export type FieldBuilderFromPresetDescriptor<
@@ -113,7 +111,8 @@ export type FieldBuilderFromPresetDescriptor<
     false,
     {
       readonly column: Descriptor['output'] extends { readonly default: object } ? true : false;
-      readonly execution: PresetHasExecutionDefault<Descriptor, Args>;
+      readonly onCreate: PresetGeneratesIn<Descriptor, Args, 'onCreate'>;
+      readonly onUpdate: PresetGeneratesIn<Descriptor, Args, 'onUpdate'>;
     }
   >
 >;

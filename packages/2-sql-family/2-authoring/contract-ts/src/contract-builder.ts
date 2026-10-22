@@ -9,6 +9,7 @@ import type {
   FamilyPackRef,
   TargetPackRef,
 } from '@internal/framework-components/components';
+import { UNBOUND_PSL_NAMESPACE_NAME } from '@internal/framework-components/psl-ast';
 import type { PackEntityHandle } from '@internal/sql-contract/entity-handle-lowering-hook';
 import type {
   AuthoredStorageTypeInstance,
@@ -157,6 +158,10 @@ function validateTargetPackRef(
   }
 }
 
+function targetNameOf(target: TargetPackRef<'sql', string>): string {
+  return target.displayName ?? target.targetId;
+}
+
 /**
  * Per-target reserved namespace names enforced by `defineContract` for
  * SQL family contracts. Two categories:
@@ -165,12 +170,12 @@ function validateTargetPackRef(
  *    every SQL target. The double-underscore decoration marks them as
  *    framework-reserved coordinates; user code must not declare them
  *    explicitly.
- * 2. **Target-specific PSL keywords** — Postgres reserves the bare
- *    `unbound` identifier for the late-binding opt-in
- *    (`namespace unbound { … }`) so the TS surface must reject it from
- *    `defineContract({ namespaces })` lists. SQLite has no schema
- *    concept and rejects every non-empty namespaces list outright;
- *    callers should declare `namespaces: []` or omit the field.
+ * 2. **The PSL keyword `unbound`** — the name PSL writes for the
+ *    late-binding opt-in (`namespace unbound { … }`), so the TS surface
+ *    rejects it from `defineContract({ namespaces })` lists on every
+ *    target that accepts namespaces. A target whose `supportsNamespaces` is false rejects every
+ *    non-empty namespaces list outright; callers should declare
+ *    `namespaces: []` or omit the field.
  */
 function validateNamespaceDeclarations(
   target: TargetPackRef<'sql', string>,
@@ -180,10 +185,10 @@ function validateNamespaceDeclarations(
     return;
   }
 
-  if (target.targetId === 'sqlite' && namespaces.length > 0) {
+  if (target.supportsNamespaces === false && namespaces.length > 0) {
     throw contractError(
       'CONTRACT.NAMESPACE_UNSUPPORTED',
-      `defineContract: SQLite contracts cannot declare namespaces (SQLite has no schema concept; emitted DDL is always unqualified). Received namespaces: [${namespaces
+      `defineContract: ${targetNameOf(target)} contracts cannot declare namespaces. Received namespaces: [${namespaces
         .map((name) => `"${name}"`)
         .join(', ')}].`,
       { meta: { namespaces, targetId: target.targetId } },
@@ -213,11 +218,11 @@ function validateNamespaceDeclarations(
         { meta: { namespace, reason: 'reserved-ir-sentinel' } },
       );
     }
-    if (target.targetId === 'postgres' && namespace === 'unbound') {
+    if (namespace === UNBOUND_PSL_NAMESPACE_NAME) {
       throw contractError(
         'CONTRACT.NAMESPACE_INVALID',
-        `defineContract: namespace name "unbound" is reserved by Postgres for the late-binding opt-in (use \`namespace unbound { … }\` in PSL instead of declaring it as a regular schema).`,
-        { meta: { namespace, reason: 'reserved-by-postgres' } },
+        `defineContract: namespace name "${namespace}" is reserved by ${targetNameOf(target)} for the late-binding opt-in (use \`namespace ${namespace} { … }\` in PSL instead of declaring it as a regular schema).`,
+        { meta: { namespace, reason: 'reserved-psl-keyword', targetId: target.targetId } },
       );
     }
     if (seen.has(namespace)) {
@@ -239,18 +244,14 @@ function validateNamespaceDeclarations(
  *
  * - `__unbound__` / `__unspecified__` — reserved IR sentinels on
  *   every SQL target.
- * - `unbound` on Postgres — reserved for the PSL
- *   `namespace unbound { … }` opt-in.
+ * - The PSL keyword `unbound` — reserved for the PSL late-binding
+ *   opt-in, which the TS builder has no surface for.
  *
- * Additionally enforces that each per-model `namespace` either
- * references an entry in the contract's declared `namespaces` list or
- * names the Postgres late-binding keyword (`unbound`) — the latter is
- * not a "declared namespace" but is a legal opt-in only via PSL today,
- * so the TS surface also rejects it on the per-model side and points
- * authors at the PSL `namespace unbound { … }` block.
+ * Additionally enforces that each per-model `namespace` references an
+ * entry in the contract's declared `namespaces` list.
  *
- * The SQLite per-model `namespace` field is rejected outright (SQLite
- * has no schema concept).
+ * A target whose `supportsNamespaces` is false rejects the per-model
+ * `namespace` field outright.
  */
 function validatePerModelNamespaces(
   target: TargetPackRef<'sql', string>,
@@ -265,10 +266,10 @@ function validatePerModelNamespaces(
       continue;
     }
 
-    if (target.targetId === 'sqlite') {
+    if (target.supportsNamespaces === false) {
       throw contractError(
         'CONTRACT.NAMESPACE_UNSUPPORTED',
-        `defineContract: model "${modelKey}" sets \`namespace: "${perModelNamespace}"\` but the target is SQLite (SQLite has no schema concept; remove the per-model \`namespace\` field).`,
+        `defineContract: model "${modelKey}" sets \`namespace: "${perModelNamespace}"\` but the target is ${targetNameOf(target)}, which does not support namespaces (remove the per-model \`namespace\` field).`,
         { meta: { modelKey, namespace: perModelNamespace, targetId: target.targetId } },
       );
     }
@@ -281,11 +282,18 @@ function validatePerModelNamespaces(
       );
     }
 
-    if (target.targetId === 'postgres' && perModelNamespace === 'unbound') {
+    if (perModelNamespace === UNBOUND_PSL_NAMESPACE_NAME) {
       throw contractError(
         'CONTRACT.NAMESPACE_INVALID',
-        `defineContract: model "${modelKey}" sets \`namespace: "unbound"\` but that name is reserved by Postgres for the late-binding opt-in (use \`namespace unbound { … }\` in PSL instead — there is no equivalent surface in the TS builder today).`,
-        { meta: { modelKey, namespace: perModelNamespace, reason: 'reserved-by-postgres' } },
+        `defineContract: model "${modelKey}" sets \`namespace: "${perModelNamespace}"\` but that name is reserved by ${targetNameOf(target)} for the late-binding opt-in (use \`namespace ${perModelNamespace} { … }\` in PSL instead — there is no equivalent surface in the TS builder today).`,
+        {
+          meta: {
+            modelKey,
+            namespace: perModelNamespace,
+            reason: 'reserved-psl-keyword',
+            targetId: target.targetId,
+          },
+        },
       );
     }
 

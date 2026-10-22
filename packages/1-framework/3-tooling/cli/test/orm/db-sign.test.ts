@@ -124,8 +124,26 @@ describe('db sign', () => {
           text: 'Left ref "db" untouched (--no-advance-ref)',
         },
       ]);
-      expect(run.presented?.presentation.stdout).toEqual([]);
-      expect(run.stdout).toBe('');
+    });
+
+    it('prints one data line per space: space, status and the contract storage hash', async () => {
+      const dir = await projectDir();
+      mocks.dbSign.mockResolvedValue(
+        ok({
+          spaces: [
+            signedSpace('app', HASH_A),
+            {
+              space: 'pgvector',
+              status: 'unchanged',
+              contract: { storageHash: HASH_EXT, profileHash: PROFILE_HASH },
+            },
+          ],
+        }),
+      );
+
+      const run = await harness(ormConfig()).run(['db', 'sign', '--no-advance-ref'], { cwd: dir });
+
+      expect(run.stdout).toBe(`app\tupdated\t${HASH_A}\npgvector\tunchanged\t${HASH_EXT}\n`);
     });
 
     it('says when a space had no marker before', async () => {
@@ -184,6 +202,15 @@ describe('db sign', () => {
         spaces: [failedSpace('app', HASH_A), signedSpace('pgvector', HASH_EXT)],
         advancedRefs: [{ space: 'pgvector', name: 'db', hash: HASH_EXT }],
       });
+    });
+
+    it('prints a failed space with status failed', async () => {
+      const dir = await projectDir();
+      appFailsExtensionSigns();
+
+      const run = await harness(ormConfig()).run(['db', 'sign'], { cwd: dir });
+
+      expect(run.stdout).toBe(`app\tfailed\t${HASH_A}\npgvector\tupdated\t${HASH_EXT}\n`);
     });
 
     it('says nothing was signed when no space verified', async () => {
