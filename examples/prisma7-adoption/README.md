@@ -112,7 +112,7 @@ A Prisma 7 schema that uses `@ignore`, `@@ignore` or `Unsupported("...")` fields
 - Where Prisma 7 named a primary key or foreign key differently from Prisma 8, the contract states Prisma 7's name: a `map` on `@id`, `@@id` or `@relation`, a junction's primary key such as `_PostToTag_AB_pkey`, and a foreign key name Prisma 7 cut to 63 bytes. `db verify` does not compare these names, but migrations drop and rename constraints by them.
 - Prisma 8 reads a `DateTime` column as the text PostgreSQL prints, such as `2026-09-14 10:00:00.123` (UTC, as Prisma 7 wrote it), not as a JavaScript `Date`. `@db.Timestamptz`, `@db.Date` and `@db.Time` columns read as text too, so the application needs no `Temporal`.
 - `pnpm sign` creates `migrations/` (a snapshot of the signed contract and the `db` ref). It is Prisma 8's record of what was signed and is committed here; in phase 4 the first `migration plan` builds the baseline from it.
-- The Prisma 8 CLI prints JSON when stdout is not a terminal (a pipe, a file, or an agent) and prose in a terminal.
+- The Prisma 8 CLI prints JSON only with `--json`. Without it, a pipe, a file or an agent receives the command's tab-separated data lines on stdout, and the human output goes to stderr.
 
 ## Files
 

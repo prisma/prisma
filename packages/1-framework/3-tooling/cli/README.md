@@ -64,26 +64,44 @@ Each engine command declares a `brief` (one-liner used in command trees and head
 
 ## Piped Output
 
-The output format depends only on flags. Without `--json`, a command writes its human output to stderr and its data lines to stdout, so a pipe or `$(…)` receives only the data lines. Each command defines them in its presentation's `stdout`:
+The output format depends only on flags. Without `--json`, a command writes its human output to stderr and its data lines to stdout, so a pipe or `$(…)` receives only the data lines. Each command defines them in its presentation's `stdout`.
+
+Data lines are a stable interface, like `--json`:
+
+- Fields are tab-separated and come in the order in the table below.
+- A field whose JSON value is null or absent is an empty field.
+- A backslash, tab, newline or carriage return inside a value is written as `\\`, `\t`, `\n` or `\r`.
+- Paths are relative to the working directory.
+- New fields are only appended at the end of a line. Changing, removing or reordering a field is a breaking change.
 
 | Command | Data lines |
 |---|---|
 | `migration list` | `space`, `name`, `from`, `to`, `operations` per migration |
-| `migration status` | `space`, `name`, `from`, `to`, `status` per migration |
+| `migration status` | `space`, `name`, `from`, `to`, `operations`, `status` per migration; `status` is `applied`, `pending`, or empty when the JSON status is null |
 | `migration log` | `applied at`, `space`, `name`, `from`, `to`, `operations` per applied migration |
 | `migration graph` | `space`, `name`, `from`, `to` per migration; with `--dot`, the DOT text |
 | `migration show` | `key<TAB>value` lines, then `operation<TAB>id<TAB>class<TAB>label` per operation |
-| `migration check` | `space`, `code`, `where` per failure |
-| `migration new`, `migration plan` | the directories written |
+| `migration check` | `space`, `code`, `where` (the path the failure is about) per failure |
+| `migration new`, `migration plan` | the directories written, each once, the baseline first |
 | `migration ref list` | `name`, `hash`, `invariants` (comma-separated) per ref |
 | `migration ref set` | the contract hash the ref now points at |
-| `db migrate` | `space`, `name`, `from`, `to`, `operations` per applied migration; with `--show`, `space`, `name`, `from`, `to` per migration that will run |
+| `db migrate` | `space`, `name`, `from`, `to`, `operations` per applied migration |
+| `db migrate --show` | `space`, `name`, `from`, `to` per migration that will run; there is no operation count before the run |
+| `db sign` | `space`, `status`, `storage hash` per space; `status` is the JSON status (`created`, `updated`, `unchanged`, `conflict` or `failed`) |
+| `orm init` | the paths of the files written |
 | `contract emit` | the paths of `contract.json` and `contract.d.ts` |
 | `contract print` | the PSL, when not written with `--output` |
 | `contract infer` | the path of the PSL file written |
 | `contract format` | the paths of the files formatted |
 
-Fields are tab-separated, and an absent value is an empty field. The other commands (`orm init`, `db init`, `db update`, `db verify`, `db sign`, `db schema`, `migration ref delete`) print no data lines and declare why with `noDataLines(reason)`; their exit code is the result and `--json` carries the document. `test/orm/data-lines.test.ts` fails when a command returns an empty `stdout` without `noDataLines`.
+The other commands print no data lines and declare why with `noDataLines(reason)`; their exit code is the result and `--json` carries the document:
+
+- `db init` and `db update` apply a plan, not migrations, so the `db migrate` fields do not fit them.
+- `db schema` prints a tree whose shape depends on the database family.
+- `db verify`'s result is its exit code.
+- `migration ref delete`'s result is its exit code.
+
+`test/orm/command-stdout.test.ts` fails when a command returns an empty `stdout` without `noDataLines`.
 
 ## Commands
 
