@@ -149,7 +149,7 @@ describe('assembled attribute specs are consumable from a resolved project', () 
   it('provides signature help from the SQL @@base spec factory', async () => {
     expectBaseSpecSignatureHelp(
       await importAttributeSpecs(
-        '../../../../2-sql/2-authoring/contract-psl/src/sql-attribute-specs.ts',
+        '../../../../2-sql-family/2-authoring/contract-psl/src/sql-attribute-specs.ts',
         'sqlAttributeSpecs',
       ),
     );

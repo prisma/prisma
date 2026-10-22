@@ -36,6 +36,7 @@ import {
 } from '@internal/contract-authoring';
 import type {
   AuthoringArgumentDescriptor,
+  AuthoringEntityContext,
   AuthoringFieldNamespace,
   AuthoringFieldPresetDescriptor,
 } from '@internal/framework-components/authoring';
@@ -1054,7 +1055,7 @@ export type FieldBuilderFromPresetDescriptor<
 >;
 
 /**
- * A phase template is either a generator value or a `select` over one option argument, which yields no phase when the argument is absent or names no case. Inference can widen an argument to "the option or undefined" (`timestamp(undefined, 'now')` infers `['now'?, 'now'?]`), so the result can be "the phase or undefined"; such a phase becomes an optional key.
+ * A phase template is either a generator value or a `select` over one option argument, which yields no phase when the argument is absent or names no case. An argument typed "the option or undefined", such as a variable of type `'now' | undefined`, gives "the phase or undefined"; such a phase becomes an optional key.
  */
 type ResolvePhaseTemplate<Template, Args extends readonly unknown[]> = Template extends {
   readonly kind: 'select';
@@ -1196,6 +1197,26 @@ function composeMongoFieldHelpers(
   return { ...field, ...presetHelpers };
 }
 
+/** The context an entity helper's factory runs in. The builder reads no written values, so its data types carry no authoring entries. */
+function entityContextOf(
+  familyId: string,
+  targetId: string,
+  components: Parameters<typeof extractCodecLookup>[0],
+): AuthoringEntityContext {
+  const codecLookup = extractCodecLookup(components);
+  const lookup = assembleDataTypes(components).lookup;
+  return {
+    family: familyId,
+    target: targetId,
+    codecLookup,
+    dataTypes: {
+      entries: {},
+      lookup,
+      dataTypeOfCodec: (codecId) => codecLookup.descriptorFor(codecId)?.dataType,
+    },
+  };
+}
+
 function composeMongoAuthoringHelpers<
   Family extends FamilyPackRef<string>,
   Target extends TargetPackRef<string, string>,
@@ -1229,12 +1250,7 @@ function composeMongoAuthoringHelpers<
     'entity and field preset helpers are built by a runtime walk of the pack namespaces, which returns Record<string, unknown>; their static shape comes from the pack type parameters'
   >({
     ...createEntityHelpersFromNamespace(entityNamespace, {
-      ctx: {
-        family: family.familyId,
-        target: target.targetId,
-        codecLookup: extractCodecLookup(components),
-        dataTypeLookup: assembleDataTypes(components).lookup,
-      },
+      ctx: entityContextOf(family.familyId, target.targetId, components),
     }),
     field: composeMongoFieldHelpers(fieldNamespace),
     gen: createGeneratorHelpers(components),

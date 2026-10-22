@@ -23,7 +23,7 @@ import {
   ledgerOperationCounts,
   MULTI_EDGE_OPERATION_COUNTS,
 } from '../../../../packages/1-framework/3-tooling/migration/test/fixtures/ledger-operation-count-parity';
-import { createTestPostgresControlAdapter } from '../../../../packages/3-targets/6-adapters/postgres/test/helpers/test-control-adapter';
+import { createTestPostgresControlAdapter } from '../../../../packages/3-targets/postgres/2-adapter/test/helpers/test-control-adapter';
 import {
   createDriver,
   createLedgerTestPlan,
@@ -35,8 +35,8 @@ import {
   frameworkComponents as pgFrameworkComponents,
   postgresTargetDescriptor,
   resetDatabase,
-} from '../../../../packages/3-targets/6-adapters/postgres/test/migrations/fixtures/runner-fixtures';
-import { createTestSqliteControlAdapter } from '../../../../packages/3-targets/6-adapters/sqlite/test/helpers/test-control-adapter';
+} from '../../../../packages/3-targets/postgres/2-adapter/test/migrations/fixtures/runner-fixtures';
+import { createTestSqliteControlAdapter } from '../../../../packages/3-targets/sqlite/2-adapter/test/helpers/test-control-adapter';
 import {
   createLedgerTestPlan as createSqliteLedgerPlan,
   createTestDatabase as createSqliteTestDatabase,
@@ -44,7 +44,7 @@ import {
   familyInstance as sqliteFamily,
   frameworkComponents as sqliteFrameworkComponents,
   sqliteTargetDescriptor,
-} from '../../../../packages/3-targets/6-adapters/sqlite/test/migrations/fixtures/runner-fixtures';
+} from '../../../../packages/3-targets/sqlite/2-adapter/test/migrations/fixtures/runner-fixtures';
 
 const controlAdapter = new MongoControlAdapterImpl();
 

@@ -196,7 +196,7 @@ gh api repos/prisma/orm/collaborators/<login>/permission --jq '.permission'
 
 ### 8. Direction fit
 
-Only for features and refactors on `main`. Search the repository's own plans before answering, and cite what you find:
+Only for features and refactors on `main`. Follow [How to use this page](../../docs/design/00-purpose/vision.md#how-to-use-this-page) on the vision page and open the [steering list](../../docs/architecture%20docs/ADR-INDEX.md#steering-list). Search the repository's own plans before answering, and cite what you find:
 
 ```bash
 grep -rn -i "<feature>" scorecard/ "docs/architecture docs/adrs/" projects/

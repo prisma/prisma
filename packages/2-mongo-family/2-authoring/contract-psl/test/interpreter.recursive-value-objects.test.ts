@@ -1,7 +1,8 @@
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { mongoCodecLookup, mongoDataTypeLookup } from '@internal/mongo-contract/test';
+import { mongoCodecLookup } from '@internal/mongo-contract/test';
 import { describe, expect, it } from 'vitest';
 import { interpretMongoContract } from './interpreter-test-helpers';
+import { mongoDataTypeSupport } from './mongo-type-lookups';
 
 const SCHEMA = `type NavItem {
   label    String
@@ -24,7 +25,7 @@ function interpretMenu() {
     ]),
     defaultFunctionRegistry: new Map(),
     codecLookup: mongoCodecLookup,
-    dataTypes: { entries: {}, lookup: mongoDataTypeLookup, dataTypeOfCodec: () => undefined },
+    dataTypes: mongoDataTypeSupport,
   });
   if (!result.ok) throw new Error(JSON.stringify(result.failure));
   return result.value;

@@ -29,7 +29,7 @@ import { postgresCreateNamespace } from '@internal/target-postgres/types';
 import { type as arktype } from 'arktype';
 import type { Temporal as TemporalTypes } from 'temporal-spec';
 import { expectTypeOf, test } from 'vitest';
-import { TestSqlContractSerializer as SqlContractSerializer } from '../../../packages/2-sql/9-family/test/test-sql-contract-serializer';
+import { TestSqlContractSerializer as SqlContractSerializer } from '../../../packages/2-sql-family/9-family/test/test-sql-contract-serializer';
 import type { Contract } from './fixtures/contract.d';
 import contractJson from './fixtures/contract.json' with { type: 'json' };
 import { postgresTypeLookups } from './postgres-type-lookups';
@@ -602,21 +602,23 @@ test('read: non-enum fields keep their codec output, unchanged from main', () =>
   expectTypeOf<Row['createdAt']>().toEqualTypeOf<TemporalTypes.Instant>();
 });
 
+declare const createdAt: Temporal.Instant;
+
 test('write: enum insert accepts the value union and rejects out-of-union literals', () => {
-  enumDb.public.account.insert([{ id: 1, email: 'a@b.c', role: 'user', priority: 1 }]);
+  enumDb.public.account.insert([{ id: 1, email: 'a@b.c', createdAt, role: 'user', priority: 1 }]);
   enumDb.public.account.insert([
-    { id: 2, email: 'a@b.c', role: 'admin', status: 'active', priority: 10 },
+    { id: 2, email: 'a@b.c', createdAt, role: 'admin', status: 'active', priority: 10 },
   ]);
   enumDb.public.account.insert([
-    { id: 3, email: 'a@b.c', role: 'user', status: null, priority: 10 },
+    { id: 3, email: 'a@b.c', createdAt, role: 'user', status: null, priority: 10 },
   ]);
 
   enumDb.public.account.insert([
     // @ts-expect-error 'nope' is not a Role member value.
-    { id: 4, email: 'a@b.c', role: 'nope', priority: 1 },
+    { id: 4, email: 'a@b.c', createdAt, role: 'nope', priority: 1 },
   ]);
   enumDb.public.account.insert([
     // @ts-expect-error 99 is not a PriorityInt member value.
-    { id: 5, email: 'a@b.c', role: 'user', priority: 99 },
+    { id: 5, email: 'a@b.c', createdAt, role: 'user', priority: 99 },
   ]);
 });

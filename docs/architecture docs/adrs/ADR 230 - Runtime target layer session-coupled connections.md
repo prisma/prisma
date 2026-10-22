@@ -85,5 +85,5 @@ The payoff of binding on the session rather than the call: a security review of 
 - [`no-target-branches.mdc`](../../../.agents/rules/no-target-branches.mdc) — why target-specific behaviour lives in a target class, not a branch
 - [Interface + factory pattern](../patterns/interface-plus-factory.md)
 - [Runtime & Middleware Framework](../subsystems/4. Runtime & Middleware Framework.md) — subsystem reference
-- Driver contract: `packages/2-sql/4-lanes/relational-core/src/ast/driver-types.ts` (`SqlConnection`, `SqlQueryable`)
+- Driver contract: `packages/2-sql-family/4-lanes/relational-core/src/ast/driver-types.ts` (`SqlConnection`, `SqlQueryable`)
 - ORM connection scoping: `packages/3-extensions/sql-orm-client/src/collection-runtime.ts` (`acquireRuntimeScope`)

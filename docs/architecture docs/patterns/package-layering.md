@@ -38,13 +38,12 @@ packages/
 │   ├── 1-core/         # Lowest layer; foundational types
 │   ├── 3-tooling/      # Emitters, CLIs
 │   └── 5-runtime/      # Runtime orchestration
-├── 2-sql/              # SQL family domain
+├── 2-sql-family/       # SQL family domain
 │   ├── 1-relational-core/, 3-tooling/, 4-lanes/, 5-runtime/, 9-family/, …
 ├── 2-mongo-family/     # Document family domain
 │   └── 1-core/, 3-tooling/, 4-query/, 6-transport/, 9-family/, …
-├── 3-targets/          # Per-target packages (Postgres, SQLite, …)
-│   ├── 3-targets/postgres/, 6-adapters/postgres/, 7-drivers/postgres/, …
-├── 3-mongo-target/     # Mongo target
+├── 3-targets/          # One folder per database (postgres, sqlite, mongo)
+│   └── postgres/1-target/, postgres/2-adapter/, postgres/3-driver/, postgres/4-codec-testkit/, postgres/9-facade/, …
 └── 3-extensions/       # Extension packs (pgvector, sql-orm-client, …)
 ```
 

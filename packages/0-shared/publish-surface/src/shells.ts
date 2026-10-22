@@ -398,29 +398,33 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       kind: 'platform',
       packages: [
         {
-          dir: 'packages/2-sql/1-core/contract',
+          dir: 'packages/2-sql-family/1-core/contract',
           name: '@internal/sql-contract',
           entry: 'contract',
         },
-        { dir: 'packages/2-sql/1-core/errors', name: '@internal/sql-errors', entry: 'errors' },
         {
-          dir: 'packages/2-sql/1-core/operations',
+          dir: 'packages/2-sql-family/1-core/errors',
+          name: '@internal/sql-errors',
+          entry: 'errors',
+        },
+        {
+          dir: 'packages/2-sql-family/1-core/operations',
           name: '@internal/sql-operations',
           entry: 'operations',
         },
         {
-          dir: 'packages/2-sql/1-core/schema-ir',
+          dir: 'packages/2-sql-family/1-core/schema-ir',
           name: '@internal/sql-schema-ir',
           entry: 'schema-ir',
         },
         {
-          dir: 'packages/2-sql/2-authoring/contract-prisma7',
+          dir: 'packages/2-sql-family/2-authoring/contract-prisma7',
           name: '@internal/sql-contract-prisma7',
           entry: 'contract-prisma7',
           subpaths: ['provider'],
         },
         {
-          dir: 'packages/2-sql/2-authoring/contract-psl',
+          dir: 'packages/2-sql-family/2-authoring/contract-psl',
           name: '@internal/sql-contract-psl',
           entry: 'contract-psl',
           subpaths: [
@@ -433,27 +437,27 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
           ],
         },
         {
-          dir: 'packages/2-sql/2-authoring/contract-ts',
+          dir: 'packages/2-sql-family/2-authoring/contract-ts',
           name: '@internal/sql-contract-ts',
           entry: 'contract-ts',
         },
         {
-          dir: 'packages/2-sql/3-tooling/emitter',
+          dir: 'packages/2-sql-family/3-tooling/emitter',
           name: '@internal/sql-contract-emitter',
           entry: 'contract-emitter',
         },
         {
-          dir: 'packages/2-sql/4-lanes/relational-core',
+          dir: 'packages/2-sql-family/4-lanes/relational-core',
           name: '@internal/sql-relational-core',
           entry: 'relational-core',
         },
         {
-          dir: 'packages/2-sql/4-lanes/sql-builder',
+          dir: 'packages/2-sql-family/4-lanes/sql-builder',
           name: '@internal/sql-builder',
           entry: 'builder',
         },
-        { dir: 'packages/2-sql/5-runtime', name: '@internal/sql-runtime', entry: 'runtime' },
-        { dir: 'packages/2-sql/9-family', name: '@internal/family-sql', entry: 'family' },
+        { dir: 'packages/2-sql-family/5-runtime', name: '@internal/sql-runtime', entry: 'runtime' },
+        { dir: 'packages/2-sql-family/9-family', name: '@internal/family-sql', entry: 'family' },
         // Platform code despite its `3-extensions/` directory: both SQL
         // facades depend on it, and one module may live in only one
         // published package, so it cannot be duplicated into each facade.
@@ -557,17 +561,17 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       kind: 'platform',
       packages: [
         {
-          dir: 'packages/3-targets/3-targets/postgres',
+          dir: 'packages/3-targets/postgres/1-target',
           name: '@internal/target-postgres',
           entry: 'target',
         },
         {
-          dir: 'packages/3-targets/6-adapters/postgres',
+          dir: 'packages/3-targets/postgres/2-adapter',
           name: '@internal/adapter-postgres',
           entry: 'adapter',
         },
         {
-          dir: 'packages/3-targets/7-drivers/postgres',
+          dir: 'packages/3-targets/postgres/3-driver',
           name: '@internal/driver-postgres',
           entry: 'driver',
         },
@@ -581,17 +585,17 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       kind: 'platform',
       packages: [
         {
-          dir: 'packages/3-targets/3-targets/sqlite',
+          dir: 'packages/3-targets/sqlite/1-target',
           name: '@internal/target-sqlite',
           entry: 'target',
         },
         {
-          dir: 'packages/3-targets/6-adapters/sqlite',
+          dir: 'packages/3-targets/sqlite/2-adapter',
           name: '@internal/adapter-sqlite',
           entry: 'adapter',
         },
         {
-          dir: 'packages/3-targets/7-drivers/sqlite',
+          dir: 'packages/3-targets/sqlite/3-driver',
           name: '@internal/driver-sqlite',
           entry: 'driver',
         },
@@ -605,17 +609,17 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       kind: 'platform',
       packages: [
         {
-          dir: 'packages/3-mongo-target/1-mongo-target',
+          dir: 'packages/3-targets/mongo/1-target',
           name: '@internal/target-mongo',
           entry: 'target',
         },
         {
-          dir: 'packages/3-mongo-target/2-mongo-adapter',
+          dir: 'packages/3-targets/mongo/2-adapter',
           name: '@internal/adapter-mongo',
           entry: 'adapter',
         },
         {
-          dir: 'packages/3-mongo-target/3-mongo-driver',
+          dir: 'packages/3-targets/mongo/3-driver',
           name: '@internal/driver-mongo',
           entry: 'driver',
         },
@@ -627,7 +631,9 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
     {
       dir: 'packages/9-public/@prisma/orm-postgres',
       kind: 'facade',
-      packages: [{ dir: 'packages/3-extensions/postgres', name: '@internal/postgres', entry: '' }],
+      packages: [
+        { dir: 'packages/3-targets/postgres/9-facade', name: '@internal/postgres', entry: '' },
+      ],
       reexports: facadeReexports({
         family: '@internal/sql-contract',
         familyPack: '@internal/family-sql',
@@ -685,7 +691,9 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
     {
       dir: 'packages/9-public/@prisma/orm-sqlite',
       kind: 'facade',
-      packages: [{ dir: 'packages/3-extensions/sqlite', name: '@internal/sqlite', entry: '' }],
+      packages: [
+        { dir: 'packages/3-targets/sqlite/9-facade', name: '@internal/sqlite', entry: '' },
+      ],
       reexports: facadeReexports({
         family: '@internal/sql-contract',
         familyPack: '@internal/family-sql',
@@ -702,7 +710,7 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
     {
       dir: 'packages/9-public/@prisma/orm-mongo',
       kind: 'facade',
-      packages: [{ dir: 'packages/3-extensions/mongo', name: '@internal/mongo', entry: '' }],
+      packages: [{ dir: 'packages/3-targets/mongo/9-facade', name: '@internal/mongo', entry: '' }],
       reexports: facadeReexports({
         family: '@internal/mongo-contract',
         familyPack: '@internal/family-mongo',
