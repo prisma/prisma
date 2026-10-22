@@ -6,8 +6,6 @@ import {
 import type { CodecTypes, ParameterizedOutputTypesForTypeParams } from '../exports/codec-types';
 import { mongoAuthoringFieldPresets, mongoAuthoringTypes } from './authoring';
 import { MONGO_DATE_CODEC_ID } from './codec-ids';
-import { mongoDataTypeEntries } from './data-type-entries';
-import { mongoTextDataTypes } from './data-types';
 import { mongoTargetDescriptorMetaRuntime } from './descriptor-meta-runtime';
 
 const mongoTargetDescriptorMetaBase = {
@@ -15,8 +13,6 @@ const mongoTargetDescriptorMetaBase = {
   authoring: {
     type: mongoAuthoringTypes,
     field: mongoAuthoringFieldPresets,
-    dataTypes: mongoDataTypeEntries(),
-    textDataTypes: mongoTextDataTypes,
   },
   controlMutationDefaults: {
     defaultFunctionRegistry: new Map(),

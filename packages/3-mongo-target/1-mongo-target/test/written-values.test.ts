@@ -7,7 +7,7 @@ import { notOk, ok } from '@internal/utils/result';
 import { describe, expect, it } from 'vitest';
 import { mongoCodecDescriptors } from '../src/core/codecs';
 import { mongoDataTypes, mongoObjectId, mongoString } from '../src/core/data-types';
-import { mongoTargetDescriptorMeta } from '../src/core/descriptor-meta';
+import { mongoTargetDescriptor } from '../src/core/migrations/control-target';
 
 const codecLookup = {
   descriptorFor: (codecId: string) =>
@@ -15,7 +15,7 @@ const codecLookup = {
 };
 
 const { support } = assembleDataTypeSupport(
-  [mongoTargetDescriptorMeta],
+  [mongoTargetDescriptor],
   (codecId) => codecLookup.descriptorFor(codecId)?.dataType,
 );
 
