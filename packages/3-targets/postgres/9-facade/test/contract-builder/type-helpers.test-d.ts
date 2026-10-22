@@ -53,3 +53,16 @@ test('a field typed by temporal.CreatedAt is optional on create', () => {
     return { models: {} };
   });
 });
+
+test('a type helper requires its required arguments and not its optional ones', () => {
+  defineContract({}, ({ type }) => {
+    // @ts-expect-error sql.Char takes a required length
+    type.sql.Char();
+    // @ts-expect-error sql.String takes a required length
+    type.sql.String();
+    expectTypeOf(type.sql.Char(36).typeParams).toEqualTypeOf<{ readonly length: 36 }>();
+    expectTypeOf(type.Char().codecId).toEqualTypeOf<'sql/char@1'>();
+    expectTypeOf(type.Timestamp().codecId).toEqualTypeOf<'pg/timestamp-temporal@1'>();
+    return { models: {} };
+  });
+});
