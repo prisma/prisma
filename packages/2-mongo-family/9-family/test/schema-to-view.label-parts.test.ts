@@ -68,11 +68,12 @@ describe('mongoSchemaToView label parts', () => {
     expect(validator?.children?.map((field) => field.labelParts)).toEqual([
       [
         { text: 'email', role: 'name' },
-        { text: ': string' },
+        { text: ': ' },
+        { text: 'string' },
         { text: ' ' },
         { text: '(required)', role: 'detail' },
       ],
-      [{ text: 'name', role: 'name' }, { text: ': string' }],
+      [{ text: 'name', role: 'name' }, { text: ': ' }, { text: 'string' }],
     ]);
   });
 

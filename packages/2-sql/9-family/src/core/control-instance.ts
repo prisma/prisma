@@ -1029,7 +1029,9 @@ export function createSqlFamilyInstance<TTargetId extends string>(
                 id: `column-${displayName}-${columnName}`,
                 labelParts: [
                   { text: columnName, role: 'name' },
-                  { text: `: ${typeDisplay} ` },
+                  { text: ': ' },
+                  { text: typeDisplay },
+                  { text: ' ' },
                   { text: `(${nullability})`, role: 'detail' },
                 ],
                 meta: {

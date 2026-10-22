@@ -264,6 +264,52 @@ describe('db schema', () => {
     });
   });
 
+  it('mutes a group node without parts and colours a collection named by its parts', async () => {
+    mocks.toSchemaView.mockReturnValue({
+      root: {
+        kind: 'root',
+        id: 'schema',
+        label: 'database',
+        children: [
+          { kind: 'collection', id: 'columns-user', label: 'columns' },
+          {
+            kind: 'collection',
+            id: 'collection-users',
+            label: 'collection users',
+            labelParts: [
+              { text: 'collection', role: 'keyword' },
+              { text: ' ' },
+              { text: 'users', role: 'name' },
+            ],
+          },
+        ],
+      },
+    });
+    const run = await harness(ormConfig()).run(['db', 'schema'], {
+      cwd: '/tmp',
+      isTty: { stdout: true },
+    });
+
+    expect(run.presented?.presentation.human?.[1]).toEqual({
+      kind: 'tree',
+      roots: [
+        {
+          label: [{ text: 'database', tone: 'emphasis' }],
+          children: [
+            { label: [{ text: 'columns', tone: 'muted' }] },
+            {
+              label: [
+                { text: 'collection', tone: 'muted' },
+                { text: ' ' },
+                { text: 'users', tone: 'identifier' },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
   it('lets the engine draw the connectors under the root', async () => {
     const run = await harness(ormConfig()).run(['db', 'schema'], {
       cwd: '/tmp',

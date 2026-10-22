@@ -149,7 +149,9 @@ describe('SqlFamilyInstance.toSchemaView', () => {
     ]);
     expect(columns?.children?.[0]?.labelParts).toEqual([
       { text: 'id', role: 'name' },
-      { text: ': int4 ' },
+      { text: ': ' },
+      { text: 'int4' },
+      { text: ' ' },
       { text: '(not nullable)', role: 'detail' },
     ]);
     expect(primaryKey?.labelParts).toEqual([

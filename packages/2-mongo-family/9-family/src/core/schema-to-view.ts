@@ -83,7 +83,8 @@ function collectionToSchemaNode(name: string, collection: MongoSchemaCollection)
           id: `field-${name}-${propName}`,
           labelParts: [
             { text: propName, role: 'name' },
-            { text: `: ${bsonType}` },
+            { text: ': ' },
+            { text: bsonType },
             ...(required ? [{ text: ' ' }, { text: '(required)', role: 'detail' as const }] : []),
           ],
         }),

@@ -22,8 +22,8 @@ export interface SchemaTreeVisitor<R> {
 }
 
 /**
- * What a piece of a node's label is: a fixed word of the family's vocabulary (`table`,
- * `unique index`), the name of the thing the node shows, or a qualifier about it.
+ * What a piece of a node's label is: a fixed word of the family's vocabulary (such as `table` or
+ * `collection`), the text that identifies the node (a name or a key list), or a qualifier about it.
  */
 export type SchemaLabelPartRole = 'keyword' | 'name' | 'detail';
 
