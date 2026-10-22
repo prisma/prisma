@@ -112,6 +112,12 @@ model Order {
     await expect(readPsl(model(`at ${written}`))).rejects.toThrow(message);
   });
 
+  it('refuses a precision written in the place of the value option, saying to write it by name', async () => {
+    await expect(readPsl(model('at Time(3)'))).rejects.toThrow(
+      'Field \\"Order.at\\" type \\"Time\\" argument #1 is 3, but argument \\"value\\" takes one of these names, written without quotes: string, temporal. Write precision by name, as in precision: 3.',
+    );
+  });
+
   it('refuses a precision the type it becomes does not take', async () => {
     await expect(readPsl(model('at Date(precision: 3)'))).rejects.toThrow(
       'received unknown named argument \\"precision\\"',

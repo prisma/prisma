@@ -124,13 +124,27 @@ describe('mapPslHelperArgs argument kinds', () => {
     expect(diagnostics[0]?.message).toMatch(/cannot parse argument #1/);
   });
 
-  it('names the values a named option takes when a number is written in its place', () => {
+  it('names the values a named option takes when a name is quoted in its place', () => {
     const { diagnostics } = callMap(
-      [positional('3')],
+      [positional('"string"')],
       [{ kind: 'option', name: 'value', values: ['string', 'temporal'] }],
     );
     expect(diagnostics[0]?.message).toMatch(
-      /argument #1 is 3, but argument "value" takes one of these names, written without quotes: string, temporal\.$/,
+      / argument #1 is "string", but argument "value" takes one of these names, written without quotes: string, temporal\.$/,
+    );
+    expect(diagnostics[0]?.message).not.toMatch(/cannot parse/);
+  });
+
+  it('says to write a number by name when it is written where an option is expected', () => {
+    const { diagnostics } = callMap(
+      [positional('3')],
+      [
+        { kind: 'option', name: 'value', values: ['string', 'temporal'] },
+        { kind: 'value', name: 'precision', dataType: 'test/int' },
+      ],
+    );
+    expect(diagnostics[0]?.message).toMatch(
+      / argument #1 is 3, but argument "value" takes one of these names, written without quotes: string, temporal\. Write precision by name, as in precision: 3\.$/,
     );
   });
 

@@ -1,5 +1,6 @@
 import type {
   AuthoringArgumentDescriptor,
+  AuthoringOption,
   AuthoringValueArgument,
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
@@ -332,6 +333,23 @@ function parsePslAuthoringArgumentText(
   }
 }
 
+/** Why a written value is not one of the names an option takes, and, for a number, which value argument it was probably meant for. */
+function misplacedOptionMessage(
+  descriptors: readonly AuthoringArgumentDescriptor[],
+  option: AuthoringOption,
+  optionName: string,
+  written: string,
+  argumentLabel: string,
+): string {
+  const refused = `${argumentLabel} is ${written}, but argument "${optionName}" takes one of these names, written without quotes: ${option.values.join(', ')}.`;
+  const valueArgument = descriptors.find(
+    (descriptor) => descriptor.kind === 'value' && descriptor.name !== undefined,
+  );
+  return /^[+-]?\d/.test(written) && valueArgument?.name !== undefined
+    ? `${refused} Write ${valueArgument.name} by name, as in ${valueArgument.name}: ${written}.`
+    : refused;
+}
+
 function pushInvalidPslHelperArgument(input: {
   readonly diagnostics: PslDiagnosticCollector;
   readonly source: DiagnosticSource;
@@ -378,7 +396,13 @@ function readPslHelperArgument(
       helperLabel: input.helperLabel,
       message:
         descriptor.kind === 'option' && descriptor.name !== undefined
-          ? `cannot parse ${argumentLabel}: ${argumentLabel} is ${argument.value.trim()}, but argument "${descriptor.name}" takes one of these names, written without quotes: ${descriptor.values.join(', ')}.`
+          ? misplacedOptionMessage(
+              input.descriptors,
+              descriptor,
+              descriptor.name,
+              argument.value.trim(),
+              argumentLabel,
+            )
           : `cannot parse ${argumentLabel} for descriptor kind "${descriptor.kind}".`,
     });
     return INVALID_AUTHORING_ARGUMENT;
