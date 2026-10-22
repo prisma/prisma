@@ -56,8 +56,13 @@ Record of the design discussion between the operator and the orchestrator on 202
 
 ## Open questions
 
-- Codec ids and explicit names of the two new `timestamp` codecs (slice 3).
-- Whether slice 1 sets session settings, normalises in the codecs, or both.
+None. Settled on 2026-10-22:
+
+- The string codecs keep their ids when they switch to ISO; it is a bug fix, and Prisma 8 keeps no backward compatibility before RC.
+- Prisma requires `DateStyle=ISO` on its connections ("we get to dictate our connection requirements"); the codecs convert any time zone offset themselves.
+- Renamed explicit types get no deprecated aliases before RC.
+- No startup check for a missing Temporal: Temporal is an opt-in, and the first-use error names the fix. Fields are typed from `temporal-spec`, a types-only package, never from the polyfill, which is too large to include.
+- `prisma7Schema` must map Prisma 7's `@default(now())` to `@default(now()) @onCreate(now())`; omitting the client-side default was a bug.
 
 ## References
 

@@ -4,31 +4,31 @@
 
 ## Summary
 
-Five slices. Slices 1, 2 and 3 are independent and can run in parallel. Slice 4 builds on slice 3, and slice 5 on slice 4.
+Five slices. Slices 1, 2 and 3 are independent and can run in parallel. Slice 4 builds on slice 3, and slice 5 on slices 2 and 4.
 
-Five is one over the usual ceiling. Slices 1 and 2 are fixes the report found that any naming would need; they share the project because they serve the same purpose (date and time values that are predictable), not because the other slices depend on them. Folding either into another slice would make that slice two unrelated reviews.
+Five is one over the usual ceiling. Slices 1 and 2 are bug fixes the research found that any naming would need; they share the project because they serve the same purpose (date and time values that are predictable), not because the other slices depend on them. A startup check for a missing Temporal was planned as slice 2 and dropped (2026-10-22): Temporal values are now an explicit opt-in, and its type half moved into slice 3.
 
 ## Slices
 
 | # | Slice | Linear | Builds on | Hands to |
 | --- | --- | --- | --- | --- |
 | 1 | String date and time types read ISO 8601 that does not depend on the server | [TML-3418](https://linear.app/prisma-company/issue/TML-3418) | — | String codecs whose value is the ADR 254 stored form, for `Date`, `Time` and `Duration` to default to |
-| 2 | A missing Temporal is reported when the client is created, and Temporal fields are never typed `any` | [TML-3710](https://linear.app/prisma-company/issue/TML-3710) | — | Temporal opt-ins that fail early and type precisely |
+| 2 | `prisma7Schema` maps `@default(now())` to `@default(now()) @onCreate(now())` | [TML-3719](https://linear.app/prisma-company/issue/TML-3719) | — | Adopted Prisma 7 schemas write the client's UTC time on create, as Prisma 7 did |
 | 3 | Explicit types carry a `Temporal` suffix; `timestamp` and `interval` get the missing codecs | [TML-3711](https://linear.app/prisma-company/issue/TML-3711) | — | A complete explicit layer: every cell of the spec's decision 3 table has an explicit type, and `TimestamptzTemporal`, `TimestampTemporal`, `DateTemporal`, `TimeTemporal`, `IntervalParts`, `IntervalString` exist |
 | 4 | PSL convenience types `DateTime`, `Date`, `Time` and `Duration` | [TML-3712](https://linear.app/prisma-company/issue/TML-3712) | 3 | Type constructors that choose their codec; the four convenience types; the TypeScript resolver evaluating the choice |
-| 5 | `contract infer`, `contract print`, the Prisma 7 reader and `orm init` write the convenience types | [TML-3713](https://linear.app/prisma-company/issue/TML-3713) | 4 | Adopted and new projects read `Date` timestamps with no polyfill |
+| 5 | `contract infer`, `contract print`, the Prisma 7 reader and `orm init` write the convenience types | [TML-3713](https://linear.app/prisma-company/issue/TML-3713) | 2, 4 | Adopted and new projects read `Date` timestamps with no polyfill |
 
 ### Slice 1 — ISO strings
 
 `pg/timestamptz-string@1`, `pg/timestamp-string@1`, `pg/date-string@1`, `pg/time-string@1` and `pg/timetz@1` return the ISO 8601 form ADR 254 stores, on any server `TimeZone` and `DateStyle`, BC years and years past 9999 included; `infinity` stays `infinity`. Covers the related case in the ticket: a database `now()` default on a `timestamp` column and the client's `now()` generator store the same clock. Amends ADR 254's "Date and time types" paragraph on text codecs.
 
-### Slice 2 — Temporal at startup
+### Slice 2 — Prisma 7 `now()` defaults
 
-Creating a client whose contract uses a Temporal codec, in a process without a global `Temporal`, fails with one error that names the fix. The generated `contract.d.ts` and the TypeScript builder's inferred types reference the Temporal types so that a missing declaration is a type error, not `any`.
+`prisma7Schema` reads Prisma 7's `@default(now())` as the database default `now()` plus the client generator `@onCreate(now())` resolved from the column's codec. Today it writes the database default only, so on a server whose `TimeZone` is not UTC a create through Prisma 8 stores local time where Prisma 7 stored UTC. A bug fix independent of the naming work.
 
 ### Slice 3 — The explicit layer
 
-Renames with deprecated aliases where the name is not reused: `Timestamptz` → `TimestamptzTemporal`, `Timestamp` → `TimestampTemporal`, `Interval` → `IntervalParts`. New explicit names `DateTemporal` and `TimeTemporal` beside today's `Date` and `Time`, which keep their meaning until slice 4. New codecs and explicit types: a `timestamp` column read as a `Date`, and as a `Temporal.Instant` (both UTC), and `IntervalString`. Each new codec passes the codec conformance kit and the three codec probes (dod.md).
+Renames outright, with no deprecated aliases before RC: `Timestamptz` → `TimestamptzTemporal`, `Timestamp` → `TimestampTemporal`, `Interval` → `IntervalParts`. New explicit names `DateTemporal` and `TimeTemporal` beside today's `Date` and `Time`, which keep their meaning until slice 4. New codecs and explicit types: `TimestampJsDate` (`pg/timestamp-date@1`, a `timestamp` read as a `Date`, UTC), `TimestampInstant` (`pg/timestamp-instant@1`, a `timestamp` read as a `Temporal.Instant`, UTC) and `IntervalString` (`pg/interval-string@1`). The Temporal codecs and generators take their types from `temporal-spec`, so a Temporal field is never typed `any`; no polyfill code is added. Each new codec passes the codec conformance kit and the three codec probes (dod.md).
 
 ### Slice 4 — The convenience types
 

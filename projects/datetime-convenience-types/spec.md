@@ -45,9 +45,9 @@ The reasoning and the alternatives rejected are in [`design-notes.md`](./design-
 5. **Plain strings, no brand and no Prisma value class.** A brand or class adds friction on every write and does not survive JSON. The codec validates the format on write.
 6. **Every explicit type of a column with several codecs carries a suffix.** `Timestamptz`, `Timestamp`, `Date` and `Time` become `TimestamptzTemporal`, `TimestampTemporal`, `DateTemporal` and `TimeTemporal`. `Interval` becomes `IntervalParts`, next to the new `IntervalString`.
 7. **Four codecs are added:** a `timestamp` column read as a `Date` and as a `Temporal.Instant`, both treating the stored value as UTC; and an `interval` column read as an ISO 8601 duration string. (The `parts` codec already exists.)
-8. **String values are ISO 8601, the same on every server.** Every string codec returns the form ADR 254 stores, not PostgreSQL's display text.
-9. **A missing Temporal is reported when the client is created,** and Temporal fields are never typed `any`.
-10. **`contract infer` and `contract print` write convenience types**, with arguments only where they differ from the defaults; a column no convenience type covers (`Temporal.PlainDateTime`) is written as its explicit type. **The Prisma 7 reader** maps Prisma 7's `DateTime` to `DateTime(column: timestamp)`, so an upgraded app reads `Date` values again.
+8. **String values are ISO 8601, the same on every server.** Every string codec returns the form ADR 254 stores, not PostgreSQL's display text. The codec ids do not change: this is a bug fix, and nothing keeps the old format before RC. Prisma requires `DateStyle=ISO` on its connections; it sets it on the connections it opens, and a connection the user supplies with another `DateStyle` is refused with an error naming the setting. Time zones need no setting, because the codecs convert any offset to UTC.
+9. **Temporal fields are never typed `any`.** The Temporal codecs and generators take their types from `temporal-spec`, a types-only package, instead of an undeclared global. No polyfill code is added anywhere. A missing global `Temporal` at runtime is still reported on first use, as today; a startup check was considered and dropped, because Temporal values are now an explicit opt-in.
+10. **`contract infer` and `contract print` write convenience types**, with arguments only where they differ from the defaults; a column no convenience type covers (`Temporal.PlainDateTime`) is written as its explicit type. **The Prisma 7 reader** maps Prisma 7's `DateTime` to `TimestampJsDate(3)`, printed `DateTime(column: timestamp)`, so an upgraded app reads `Date` values again, and maps Prisma 7's `@default(now())` to `@default(now()) @onCreate(now())`, as Prisma 7 behaved ([TML-3719](https://linear.app/prisma-company/issue/TML-3719)).
 11. **PostgreSQL only.** A convenience name means the same thing on every target; SQLite and MongoDB follow in [TML-3714](https://linear.app/prisma-company/issue/TML-3714).
 12. **TypeScript:** this project ships the PSL types and makes the TypeScript builder's compile-time resolver evaluate a codec chosen by arguments. The `type.DateTime(...)` helper itself arrives with the `type.*` helpers of the field-preset removal project.
 
@@ -64,7 +64,7 @@ The reasoning and the alternatives rejected are in [`design-notes.md`](./design-
 ## Place in the larger world
 
 - **ADR 254, data types and casts.** Codecs, data types and stored forms are unchanged. A type constructor gains the ability to choose its codec, which amends the definition there. The text codecs today keep PostgreSQL's year text (` BC`); decision 8 changes that to the ISO form, which amends the "Date and time types" section.
-- **ADR 257, scalar names.** The explicit layer follows it. The `Temporal` suffix applies the suffix rule to every codec of a multi-codec column, and `Date`, `Time` and `DateTime` are reused at once, which its one-release deprecation rule cannot cover.
+- **ADR 257, scalar names.** The explicit layer follows it. The `Temporal` suffix applies the suffix rule to every codec of a multi-codec column. Its one-release deprecation rule is not applied before RC: renamed names become errors at once.
 - **ADR 246 and ADR 275.** The `option` argument kind and the `select` template, which ADR 275 removes with the presets, are kept for type constructors.
 - **The PostgreSQL and SQLite rename project** (`projects/target-named-scalars-sql/`, not started) must keep `DateTime` and take this project's renames instead of its own `DateTime` and `Timestamptz` rows.
 - **The field-preset removal project** (`projects/remove-field-presets/`, slice 1 merged): its `type.*` helpers carry the convenience types into TypeScript, and its contributed aliases are built on `DateTime`; its `String` and `JsDate` alias variants are not needed.
@@ -76,7 +76,7 @@ The reasoning and the alternatives rejected are in [`design-notes.md`](./design-
 2. **Every argument combination is either a listed choice or an error at the argument** that names the accepted choices. No combination silently picks a codec.
 3. **Every default works on Node 24 with no polyfill.** A test runs each convenience type's default in a process with no global `Temporal`.
 4. **A string value round-trips.** A string written through a string codec reads back as the same string, on a server whose `TimeZone` is not UTC and whose `DateStyle` is not ISO.
-5. **Renamed explicit names follow ADR 257's rename path** where the old name is not reused (`Timestamptz`, `Timestamp`, `Interval`: deprecated aliases, `PSL_DEPRECATED_SCALAR_NAME`). Where it is reused (`DateTime`, `Date`, `Time`), the change is breaking and the upgrade instructions say so.
+5. **Renamed explicit names are renamed outright.** Before RC there are no deprecated aliases: `Timestamptz`, `Timestamp` and `Interval` become errors, and the upgrade instructions give the rewrite. `DateTime`, `Date` and `Time` change meaning when the convenience types take them.
 6. **Every user-visible change ships upgrade instructions** in the same PR (`skills-contrib/record-upgrade-instructions`).
 7. **Docs move with the code.** `docs/reference/scalar-types.md`, the error reference, the editor hover text and the codec authoring guide are updated in the slice that changes what they describe.
 
@@ -87,7 +87,7 @@ The reasoning and the alternatives rejected are in [`design-notes.md`](./design-
 
 ## Contract-impact
 
-No new contract entities or kinds. New codec ids: `pg/timestamp-date@1`, `pg/timestamp-instant@1` (names settled in slice 3) and `pg/interval-string@1`. Contracts that use the existing codecs do not change. Contracts emitted by `contract infer` and `prisma7Schema` after slice 5 use different codecs for date and time columns.
+No new contract entities or kinds. New codec ids: `pg/timestamp-date@1`, `pg/timestamp-instant@1` and `pg/interval-string@1`. Contracts that use the existing codecs do not change. Contracts emitted by `contract infer` and `prisma7Schema` after slice 5 use different codecs for date and time columns.
 
 ## Adapter-impact
 
@@ -102,15 +102,14 @@ ADR 279 (draft in this project's shaping PR, status Proposed until slice 4 merge
 Inherits the team floor in [`drive/calibration/dod.md`](../../drive/calibration/dod.md). In addition:
 
 - [ ] Every row of the decision 3 table works end to end: a PSL schema emits, `migration plan` produces the expected column DDL, and a query on PostgreSQL reads and writes the expected value type, with and without a global `Temporal` as each row requires.
-- [ ] A new project from `prisma orm init`, and a Prisma 7 project adopted with `prisma7Schema(...)`, run their first query on Node with no polyfill and read `Date` values for their timestamps.
+- [ ] A new project from `prisma orm init`, and a Prisma 7 project adopted with `prisma7Schema(...)`, run their first query on Node with no polyfill and read `Date` values for their timestamps; a create through Prisma 8 on an adopted project, on a server whose `TimeZone` is not UTC, stores UTC.
 - [ ] The report's use-case table (see References) re-run against the shipped surface, with each row's Prisma 8 cell updated.
 - [ ] ADR 279 accepted; ADR 246, 254, 257 and 275 carry notes; `docs/reference/scalar-types.md` describes both layers.
 - [ ] TML-3714 and TML-3715 remain open with their context.
 
 ## Open questions
 
-- The codec ids and explicit names of the two new `timestamp` codecs (slice 3).
-- Whether the runtime sets `TimeZone` and `DateStyle` on its connections, or the string codecs normalise what they read, or both (slice 1).
+- None open. The new codecs are `pg/timestamp-date@1` (`TimestampJsDate`), `pg/timestamp-instant@1` (`TimestampInstant`) and `pg/interval-string@1` (`IntervalString`).
 
 ## References
 
