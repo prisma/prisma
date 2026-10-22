@@ -130,6 +130,76 @@ describe('MysqlMigrationPlanner', () => {
     });
   });
 
+  it("drops the index InnoDB made for a dropped foreign key when the key's columns stay", async () => {
+    const from = contractOf('from', {
+      User: user,
+      Post: {
+        columns: { id: int, authorId: int },
+        primaryKey: { columns: ['id'] },
+        foreignKeys: [fk('Post_authorId_fkey')],
+      },
+    });
+    const to = contractOf('to', {
+      User: user,
+      Post: { columns: { id: int, authorId: int }, primaryKey: { columns: ['id'] } },
+    });
+    expect(await sqlOf(plan(from, to))).toEqual([
+      {
+        id: 'dropForeignKey.Post.Post_authorId_fkey',
+        sql: ['ALTER TABLE `Post` DROP FOREIGN KEY `Post_authorId_fkey`'],
+      },
+      {
+        id: 'dropIndex.Post.Post_authorId_fkey',
+        sql: ['DROP INDEX `Post_authorId_fkey` ON `Post`'],
+      },
+    ]);
+  });
+
+  it('refuses to drop the index a kept foreign key uses, and drops it when another index takes over', async () => {
+    const post = (indexes: readonly unknown[]) => ({
+      columns: { id: int, authorId: int },
+      primaryKey: { columns: ['id'] },
+      indexes,
+      foreignKeys: [fk('Post_authorId_fkey')],
+    });
+    const from = contractOf('from', {
+      User: user,
+      Post: post([{ columns: ['authorId'], name: 'Post_authorId_idx' }]),
+    });
+    const withoutIndex = contractOf('bare', { User: user, Post: post([]) });
+    const withOtherIndex = contractOf('other', {
+      User: user,
+      Post: post([{ columns: ['authorId', 'id'], name: 'Post_authorId_id_idx' }]),
+    });
+    const refused = plan(from, withoutIndex);
+    expect({
+      refused:
+        refused.kind === 'failure'
+          ? refused.conflicts.map(({ kind, summary, location }) => ({ kind, summary, location }))
+          : 'planned',
+      replaced: await sqlOf(plan(from, withOtherIndex)),
+    }).toEqual({
+      refused: [
+        {
+          kind: 'indexIncompatible',
+          summary:
+            'Dropping index Post_authorId_idx, which foreign key Post_authorId_fkey uses, is not yet supported on MySQL (Post)',
+          location: { entityKind: 'table', entityName: 'Post', index: 'Post_authorId_idx' },
+        },
+      ],
+      replaced: [
+        {
+          id: 'index.Post.Post_authorId_id_idx',
+          sql: ['CREATE INDEX `Post_authorId_id_idx` ON `Post` (`authorId`, `id`)'],
+        },
+        {
+          id: 'dropIndex.Post.Post_authorId_idx',
+          sql: ['DROP INDEX `Post_authorId_idx` ON `Post`'],
+        },
+      ],
+    });
+  });
+
   it('drops a table no space owns, and leaves one another space owns or the runner owns', async () => {
     const from = contractOf('from', { User: user, Legacy: user, Shared: user });
     const to = contractOf('to', { User: user });

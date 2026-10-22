@@ -337,6 +337,111 @@ export function conflictForDisallowedCall(
   };
 }
 
+type ColumnList = readonly string[];
+
+/** Whether an index on `indexColumns` can serve a foreign key on `keyColumns`: InnoDB needs the key's columns first, in order. */
+function servesKey(indexColumns: ColumnList, keyColumns: ColumnList): boolean {
+  return (
+    keyColumns.length <= indexColumns.length &&
+    keyColumns.every((column, position) => indexColumns[position] === column)
+  );
+}
+
+function indexColumnLists(table: SqlTableIR, leaving: string | undefined): readonly ColumnList[] {
+  return [
+    ...(table.primaryKey === undefined ? [] : [table.primaryKey.columns]),
+    ...table.uniques.flatMap((unique) =>
+      uniqueName(table.name, unique) === leaving ? [] : [unique.columns],
+    ),
+    ...table.indexes.flatMap((index) =>
+      index.name === leaving || index.columns === undefined ? [] : [index.columns],
+    ),
+  ];
+}
+
+function isKeyServed(table: SqlTableIR, keyColumns: ColumnList, leaving?: string): boolean {
+  return indexColumnLists(table, leaving).some((columns) => servesKey(columns, keyColumns));
+}
+
+interface DroppedIndex {
+  readonly call: MysqlOpFactoryCall & { readonly tableName: string };
+  readonly indexName: string;
+  readonly columns: ColumnList;
+}
+
+/**
+ * When a foreign key is dropped and no other index served it, InnoDB made an index of its own, with the key's name, and keeps it after the key is gone. Introspection leaves that index out while the key exists, so it is dropped with the key unless the destination keeps an index of that name.
+ */
+function innoDbIndexDrops(
+  calls: readonly MysqlOpFactoryCall[],
+  expected: SqlSchemaIR,
+  actual: SqlSchemaIR,
+): readonly DroppedIndex[] {
+  return calls.flatMap((call) => {
+    if (!(call instanceof DropForeignKeyCall)) return [];
+    const before = actual.tables[call.tableName];
+    const after = expected.tables[call.tableName];
+    const key = before?.foreignKeys.find(
+      (fk) => foreignKeySpecOf(fk, call.tableName).name === call.constraintName,
+    );
+    if (before === undefined || after === undefined || key === undefined) return [];
+    if (isKeyServed(before, key.columns)) return [];
+    if (after.indexes.some((index) => index.name === call.constraintName)) return [];
+    return [
+      {
+        call: new DropIndexCall(call.tableName, call.constraintName),
+        indexName: call.constraintName,
+        columns: key.columns,
+      },
+    ];
+  });
+}
+
+function droppedIndexes(
+  calls: readonly MysqlOpFactoryCall[],
+  actual: SqlSchemaIR,
+): readonly DroppedIndex[] {
+  return calls.flatMap((call): readonly DroppedIndex[] => {
+    const table = 'tableName' in call ? actual.tables[call.tableName] : undefined;
+    if (table === undefined) return [];
+    if (call instanceof DropIndexCall) {
+      const index = table.indexes.find(({ name }) => name === call.indexName);
+      return index?.columns === undefined
+        ? []
+        : [{ call, indexName: call.indexName, columns: index.columns }];
+    }
+    if (call instanceof DropUniqueCall) {
+      const unique = table.uniques.find(
+        (candidate) => uniqueName(table.name, candidate) === call.constraintName,
+      );
+      return unique === undefined
+        ? []
+        : [{ call, indexName: call.constraintName, columns: unique.columns }];
+    }
+    return [];
+  });
+}
+
+/** A dropped index that a foreign key of the destination uses, when no index the destination keeps can take over: MySQL refuses that drop. */
+function conflictForIndexAKeyUses(
+  dropped: DroppedIndex,
+  expected: SqlSchemaIR,
+): SqlPlannerConflict | undefined {
+  const tableName = dropped.call.tableName;
+  const table = expected.tables[tableName];
+  const key = table?.foreignKeys.find(
+    (fk) =>
+      servesKey(dropped.columns, fk.columns) && !isKeyServed(table, fk.columns, dropped.indexName),
+  );
+  if (key === undefined) return undefined;
+  return {
+    kind: 'indexIncompatible',
+    summary: `Dropping index ${dropped.indexName}, which foreign key ${foreignKeySpecOf(key, tableName).name} uses, is not yet supported on MySQL (${tableName})`,
+    why: "MySQL refuses to drop an index a foreign key uses. Keep an index whose first columns are the foreign key's columns, or use `migration new` to drop the foreign key, drop the index and add the foreign key again.",
+    location: { entityKind: 'table', entityName: tableName, index: dropped.indexName },
+  };
+}
+
 /** The calls that turn `actual` into `expected` for `issues`, in the order they run, or the conflicts that stop the plan. */
 export function planIssues(input: {
   readonly issues: readonly SchemaDiffIssue[];
@@ -357,6 +462,15 @@ export function planIssues(input: {
       if (allowed.includes(call.operationClass)) calls.push(call);
       else conflicts.push(conflictForDisallowedCall(call, allowed));
     }
+  }
+  const innoDbIndexes = innoDbIndexDrops(calls, input.expected, input.actual);
+  for (const dropped of [...droppedIndexes(calls, input.actual), ...innoDbIndexes]) {
+    const conflict = conflictForIndexAKeyUses(dropped, input.expected);
+    if (conflict !== undefined) conflicts.push(conflict);
+  }
+  for (const { call } of innoDbIndexes) {
+    if (allowed.includes(call.operationClass)) calls.push(call);
+    else conflicts.push(conflictForDisallowedCall(call, allowed));
   }
   if (conflicts.length > 0) return notOk(conflicts);
   return ok(

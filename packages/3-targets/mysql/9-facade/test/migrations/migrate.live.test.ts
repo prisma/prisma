@@ -14,7 +14,11 @@ import { withMysqlDatabase } from '@repo/test-utils/mysql-database';
 import { describe, expect, it } from 'vitest';
 import { defineContract } from '../../src/exports/contract-builder';
 import { exampleTablesDdl, frameworkComponents, loadExampleContract } from '../example-contract';
-import { contractWithNickname } from './contracts';
+import {
+  contractWithNickname,
+  contractWithoutForeignKey,
+  contractWithUnindexedForeignKey,
+} from './contracts';
 import { controlStack, createAdapter, EVERY_CLASS, operationSql } from './planner-harness';
 
 /** A plan for `contract` whose one operation fails when it runs, before it changes anything. */
@@ -63,13 +67,13 @@ async function withDriver<T>(
   }
 }
 
-async function planAgainst(
+async function planResult(
   driver: MysqlControlDriver,
   family: SqlControlFamilyInstance,
   space: string,
   contract: Contract<SqlStorage>,
 ) {
-  const result = mysql.migrations.createPlanner(createAdapter()).plan({
+  return mysql.migrations.createPlanner(createAdapter()).plan({
     contract,
     schema: await family.introspect({ driver }),
     policy: EVERY_CLASS,
@@ -80,8 +84,25 @@ async function planAgainst(
     spaceId: space,
     snapshotsImportPath: '../../snapshots',
   });
+}
+
+async function planAgainst(
+  driver: MysqlControlDriver,
+  family: SqlControlFamilyInstance,
+  space: string,
+  contract: Contract<SqlStorage>,
+) {
+  const result = await planResult(driver, family, space, contract);
   if (result.kind !== 'success') throw new Error(JSON.stringify(result.conflicts));
   return result.plan;
+}
+
+async function indexNames(driver: MysqlControlDriver, table: string): Promise<readonly string[]> {
+  const { rows } = await driver.query<{ INDEX_NAME: string }>(
+    'SELECT DISTINCT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? ORDER BY INDEX_NAME',
+    [table],
+  );
+  return rows.map((row) => row.INDEX_NAME);
 }
 
 function spaceOptions(
@@ -239,6 +260,69 @@ describe('migrating a MySQL database', () => {
             },
           ],
           columns: ['email', 'id', 'role'],
+        });
+      }),
+    );
+  });
+
+  it('drops the index InnoDB made for a foreign key when the key goes and its column stays', async (test) => {
+    await withMysqlDatabase(test, ({ url }) =>
+      withDriver(url, async (driver, family) => {
+        const planned: { id: string; sql: string[] }[][] = [];
+        for (const contract of [contractWithUnindexedForeignKey(), contractWithoutForeignKey()]) {
+          const plan = await planAgainst(driver, family, 'app', contract);
+          planned.push(await operationSql(plan));
+          const applied = await apply(family, driver, [['app', plan, contract]]);
+          if (!applied.ok) throw applied.failure;
+        }
+        const withoutForeignKey = contractWithoutForeignKey();
+        const verified = family.verifySchema({
+          contract: withoutForeignKey,
+          schema: await family.introspect({ driver, contract: withoutForeignKey }),
+          strict: true,
+          frameworkComponents,
+        });
+        expect({
+          dropped: planned[1],
+          verified: verified.ok,
+          postIndexes: await indexNames(driver, 'Post'),
+        }).toEqual({
+          dropped: [
+            {
+              id: 'dropForeignKey.Post.Post_authorId_fkey',
+              sql: ['ALTER TABLE `Post` DROP FOREIGN KEY `Post_authorId_fkey`'],
+            },
+            {
+              id: 'dropIndex.Post.Post_authorId_fkey',
+              sql: ['DROP INDEX `Post_authorId_fkey` ON `Post`'],
+            },
+          ],
+          verified: true,
+          postIndexes: ['PRIMARY'],
+        });
+      }),
+    );
+  });
+
+  it('refuses to drop the index a kept foreign key uses, before it changes anything', async (test) => {
+    await withMysqlDatabase(test, ({ url }) =>
+      withDriver(url, async (driver, family) => {
+        const contract = loadExampleContract();
+        const applied = await apply(family, driver, [
+          ['app', await planAgainst(driver, family, 'app', contract), contract],
+        ]);
+        if (!applied.ok) throw applied.failure;
+        const before = await indexNames(driver, 'Post');
+        const refused = await planResult(driver, family, 'app', contractWithUnindexedForeignKey());
+        expect({
+          conflicts:
+            refused.kind === 'failure' ? refused.conflicts.map(({ summary }) => summary) : [],
+          unchanged: (await indexNames(driver, 'Post')).join() === before.join(),
+        }).toEqual({
+          conflicts: [
+            `Dropping index ${before.find((name) => name.startsWith('Post_authorId_idx'))}, which foreign key Post_authorId_fkey uses, is not yet supported on MySQL (Post)`,
+          ],
+          unchanged: true,
         });
       }),
     );
