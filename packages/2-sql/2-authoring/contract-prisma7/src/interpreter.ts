@@ -953,7 +953,6 @@ function lowerNativeEnums(
       family: input.binding.target.familyId,
       target: input.binding.target.targetId,
       codecLookup: input.codecLookup,
-      dataTypeLookup: input.dataTypes.lookup,
       dataTypes: input.dataTypes,
       sourceId: declaration.sourceId,
       diagnostics: {

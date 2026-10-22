@@ -239,7 +239,6 @@ export function makeContext(diagnostics: unknown[]): AuthoringEntityContext {
     family: 'sql',
     target: 'postgres',
     codecLookup: testCodecLookup,
-    dataTypeLookup: testDataTypes,
     dataTypes: testDataTypeSupport,
     sourceId: 'schema.prisma',
     diagnostics: sink,

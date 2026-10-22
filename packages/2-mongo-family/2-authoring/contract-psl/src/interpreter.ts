@@ -1812,7 +1812,6 @@ export function interpretPslDocumentToMongoContract(
       target: 'mongo',
       ...ifDefined('enumInferenceCodecs', input.enumInferenceCodecs),
       codecLookup,
-      dataTypeLookup: input.dataTypes.lookup,
       dataTypes: input.dataTypes,
       diagnostics: {
         push: (d) => {

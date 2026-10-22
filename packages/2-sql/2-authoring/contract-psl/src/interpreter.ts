@@ -1046,7 +1046,6 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
         family: input.familyId,
         target: input.targetId,
         codecLookup: input.codecLookup,
-        dataTypeLookup: input.dataTypes.lookup,
         dataTypes: input.dataTypes,
         modelName: model.name,
         storageName: tableName,
@@ -2327,7 +2326,6 @@ export function interpretPslDocumentToSqlContract(
       family: input.target.familyId,
       target: input.target.targetId,
       codecLookup: input.codecLookup,
-      dataTypeLookup: input.dataTypes.lookup,
       dataTypes: input.dataTypes,
       sourceId: source.sources.sourceFileFor(source.node).filename,
       diagnostics: {
@@ -2371,7 +2369,6 @@ export function interpretPslDocumentToSqlContract(
     target: input.target.targetId,
     ...ifDefined('enumInferenceCodecs', input.enumInferenceCodecs),
     codecLookup: input.codecLookup,
-    dataTypeLookup: input.dataTypes.lookup,
     dataTypes: input.dataTypes,
     sourceId: source.sources.sourceFileFor(source.node).filename,
     diagnostics: {

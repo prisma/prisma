@@ -23,7 +23,6 @@ const ctx: AuthoringEntityContext = {
   family: 'sql',
   target: 'postgres',
   codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
-  dataTypeLookup: createDataTypeLookup([]),
   dataTypes: { entries: {}, lookup: createDataTypeLookup([]), dataTypeOfCodec: () => undefined },
 };
 

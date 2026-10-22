@@ -16,7 +16,7 @@ import { notOk, ok, type Result } from '@internal/utils/result';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type { Type } from 'arktype';
 import type { CodecLookupWithDescriptors } from './codec-types';
-import type { DataTypeId, DataTypeLookup } from './data-type';
+import type { DataTypeId } from './data-type';
 import type {
   GeneratorFunctionCall,
   GeneratorFunctionField,
@@ -301,9 +301,7 @@ export interface AuthoringEntityContext {
   readonly target: string;
   /** Codec registry available to factories that need to validate or decode values. */
   readonly codecLookup: CodecLookupWithDescriptors;
-  /** The stack's data types, for factories that read the data type a codec represents. */
-  readonly dataTypeLookup: DataTypeLookup;
-  /** The stack's data types with their authoring entries, which a factory reads a written value with. */
+  /** The stack's data types with their authoring entries: a factory reads the data type a codec represents from `lookup`, and a written value through the entries. */
   readonly dataTypes: DataTypeSupport;
   /** Source file identifier threaded into diagnostics emitted by the factory. */
   readonly sourceId?: string;

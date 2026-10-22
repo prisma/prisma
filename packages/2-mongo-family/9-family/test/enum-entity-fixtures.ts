@@ -269,7 +269,6 @@ export function makeContext(diagnostics: unknown[]): AuthoringEntityContext {
     family: 'mongo',
     target: 'mongo',
     codecLookup: testCodecLookup,
-    dataTypeLookup: testDataTypes,
     dataTypes: testDataTypeSupport,
     sourceId: 'schema.prisma',
     diagnostics: sink,

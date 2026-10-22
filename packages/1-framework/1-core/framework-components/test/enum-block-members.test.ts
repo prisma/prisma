@@ -123,7 +123,6 @@ function contextFor(codec: Codec, diagnostics: unknown[] = []): AuthoringEntityC
       ...emptyCodecLookup,
       descriptorFor: (id) => (id === codec.id ? descriptorOf(codec) : undefined),
     },
-    dataTypeLookup: dataTypes.lookup,
     dataTypes,
     sourceId: 'schema.prisma',
     diagnostics: { push: (d) => diagnostics.push(d) },

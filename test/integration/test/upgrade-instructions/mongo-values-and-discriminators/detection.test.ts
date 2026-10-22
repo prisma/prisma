@@ -187,6 +187,7 @@ describe('entity-context-data-types detection', () => {
     ],
     ['the removed type', 'const refused: WrittenValueReading = { ok: false, code, message };'],
     ['a context built by hand', 'const ctx: AuthoringEntityContext = {\n  family: "sql",'],
+    ['a read of the removed lookup', 'const type = ctx.dataTypeLookup.get(id);'],
   ])('finds %s', (_name, source) => {
     expect(detects(source)).toBe(true);
   });
@@ -197,6 +198,7 @@ describe('entity-context-data-types detection', () => {
       'const read = readWrittenValueIntoCodec({ support, codecLookup, ref, written });',
     ],
     ['a context passed through', 'function factory(ctx: AuthoringEntityContext) {}'],
+    ['the lookup on the data types', 'const type = ctx.dataTypes.lookup.get(id);'],
   ])('skips %s', (_name, source) => {
     expect(detects(source)).toBe(false);
   });

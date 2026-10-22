@@ -1209,7 +1209,6 @@ function entityContextOf(
     family: familyId,
     target: targetId,
     codecLookup,
-    dataTypeLookup: lookup,
     dataTypes: {
       entries: {},
       lookup,
