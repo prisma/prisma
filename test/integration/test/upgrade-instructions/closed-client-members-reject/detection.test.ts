@@ -10,6 +10,8 @@ const GUIDE_PATHS = {
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../../../../..');
 const id = 'client-members-reject-instead-of-throwing';
+const ormPackage = ['@prisma', 'orm-postgres'].join('/');
+const importsOrm = `import { postgres } from '${ormPackage}/runtime';\n`;
 
 function detects(audience: keyof typeof GUIDE_PATHS, content: string): boolean {
   const guide = readFileSync(join(repoRoot, GUIDE_PATHS[audience]), 'utf-8');
@@ -28,6 +30,7 @@ describe.each(['app', 'extension'] as const)('the %s detection', (audience) => {
       'an unawaited transaction',
       'try {\n  db.transaction(work);\n} catch (error) {\n  log(error);\n}',
     ],
+    ['a one-line try block', 'try { db.transaction(work); } catch (e) {}'],
     [
       'a result kept in a variable',
       'try {\n  const rows = db.query(plan);\n  use(rows);\n} catch {}',
@@ -38,11 +41,17 @@ describe.each(['app', 'extension'] as const)('the %s detection', (audience) => {
       'try {\n  setUp();\n  prepared.execute(tx, params);\n} finally {\n  done();\n}',
     ],
     [
-      'a nested block before the call',
-      'try {\n  if (ready) { log(1); }\n  db.execute(plan);\n} catch {}',
+      'a call nested two blocks deep',
+      'try {\n  if (a) {\n    if (b) {\n      db.execute(plan);\n    }\n  }\n} catch {}',
     ],
+    [
+      'an ORM terminal after a chain',
+      'try {\n  const user = db.orm.public.User.where({ id }).first();\n} catch {}',
+    ],
+    ['a returned ORM read', 'try {\n  return db.orm.public.User.all();\n} catch {}'],
+    ['an ORM create', "try {\n  db.orm.public.User.create({ name: 'Ada' });\n} catch {}"],
   ])('finds %s', (_name, content) => {
-    expect(detects(audience, content)).toBe(true);
+    expect(detects(audience, importsOrm + content)).toBe(true);
   });
 
   it.each([
@@ -51,9 +60,16 @@ describe.each(['app', 'extension'] as const)('the %s detection', (audience) => {
       'an awaited result in a variable',
       'try {\n  const stats = await db.execute(plan);\n} catch {}',
     ],
+    ['an awaited ORM read', 'try {\n  await db.orm.public.User.first();\n} catch {}'],
+    ['an awaited one-line try block', 'try { await db.transaction(work); } catch {}'],
     ['a call outside try', 'db.transaction(work).catch(handle);'],
+    ['a call after the try block', 'try {\n  await setUp();\n} catch {}\ndb.query(plan);'],
     ['another method', 'try {\n  cache.get(key);\n} catch {}'],
   ])('skips %s', (_name, content) => {
-    expect(detects(audience, content)).toBe(false);
+    expect(detects(audience, importsOrm + content)).toBe(false);
+  });
+
+  it('skips a file that imports no @prisma/orm package', () => {
+    expect(detects(audience, 'try {\n  db.transaction(work);\n} catch {}')).toBe(false);
   });
 });
