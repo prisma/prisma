@@ -10,7 +10,7 @@ This page lists the projects in priority order, by stream. Work the streams in p
 
 **Progress column:** one symbol, then done/total where the row has countable units. ✅ done · 🟡 code done, waiting on review or docs · 🔄 in progress · ⏳ not started · ❓ needs a decision from Will. The units are the slices, pull requests, tickets or items the Status column names; a row with no units yet has no count.
 
-States were last checked against GitHub and Linear on 2026-10-21.
+States were last checked against GitHub and Linear on 2026-10-22.
 
 ## How far from GA
 
@@ -18,17 +18,17 @@ Counts the projects marked Must in each stream. A project counts as done only wh
 
 | Stream | Done | Bar | In progress | Not started |
 | --- | --- | --- | --- | --- |
-| Foundations and breaking changes | 5 of 8 (63%) | `██████░░░░` | 2 | 1 |
+| Foundations and breaking changes | 5 of 8 (63%) | `██████░░░░` | 3 | 0 |
 | Upgrade path from Prisma 7 | 2 of 7 (29%) | `███░░░░░░░` | 2 | 3 |
 | Editor and tools | 3 of 6 (50%) | `█████░░░░░` | 1 | 2 |
 | Query features | 8 of 11 (73%) | `███████░░░` | 1 | 2 |
 | Docs and the new user's first hour | 1 of 5 (20%) | `██░░░░░░░░` | 3 | 1 |
 | Work found along the way | 0 of 1 (0%) | `░░░░░░░░░░` | 0 | 1 |
-| **All streams** | **19 of 38 (50%)** | `█████░░░░░` | **9** | **10** |
+| **All streams** | **19 of 38 (50%)** | `█████░░░░░` | **10** | **9** |
 
 ## Stream 1: Foundations and breaking changes
 
-**GA readiness:** 5 of 8 Must projects done (63%). 2 in progress, 1 not started.
+**GA readiness:** 5 of 8 Must projects done (63%). 3 in progress, 0 not started.
 
 GA is the last chance to make breaking changes, so this stream decides the date.
 
@@ -36,11 +36,11 @@ GA is the last chance to make breaking changes, so this stream decides the date.
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | ✅ 6/6 | Finish ADR 254: data types own column types | Must | Will | Done 2026-10-20. The cast rule (TML-3389) merged last. Bugs found along the way stay in the project's backlog |  |
 | 2 | ✅ 2/2 | One CLI and one config file | Must | Will | Done 2026-10-08 |  |
-| 3 | ⏳ | Early MySQL attempt, to find shared code that assumes PostgreSQL | Must | Will | Not started, no ticket |  |
+| 3 | 🔄 | Early MySQL attempt, to find shared code that assumes PostgreSQL | Must | Will | Shaped 2026-10-22: every database's packages move into one folder, then a narrow MySQL and MariaDB target. The folder move is in review | Review the folder move (TML-3693) |
 | 4 | ✅ 6/6 | SQL expression literals | Must | Will | Done 2026-10-12 |  |
 | 5 | 🔄 4/5 | PSL mixins, then remove field presets; generated values become `@onCreate` and `@onUpdate`, and type aliases become an authoring shorthand | Must | Serhii (mixins), Will (TML-3607) | Mixins done 2026-10-14. ADR 275 merged 2026-10-19. TML-3607 has 3 slices: slice 1, `@onCreate` and `@onUpdate`, merged 2026-10-20. Slice 2, type aliases carry `@onCreate` and `@onUpdate` and expand into each column, merged 2026-10-22 | Build slice 3: remove field presets |
 | 6 | ✅ 1/1 | Remove `@noCheck` and `.noCheck()` | Must | Will | Done 2026-10-16 |  |
-| 7 | 🔄 5/7 | Migration statements: the planner refuses data loss, the user states renames, deletes, conversions and backfills | Must | Will | 5 of 7 slices merged. The TypeScript MongoDB validator slice merged 2026-10-20, with a MongoDB field keeping its own name in code. Left: renames and deletes of enum values, namespaces, value object fields and variants on Postgres and SQLite (TML-3537), and convert and backfill on MongoDB (TML-3538), both in backlog. The first TML-3537 PR, renames and deletes of Postgres namespaces, is approved and not merged. Value objects and variants come in a later PR, under ADR 278 | Merge the namespaces PR, then the rest of TML-3537 |
+| 7 | 🔄 5/7 | Migration statements: the planner refuses data loss, the user states renames, deletes, conversions and backfills | Must | Will | 5 of 7 slices merged. The TypeScript MongoDB validator slice merged 2026-10-20, with a MongoDB field keeping its own name in code. Left: the rest of TML-3537 (enum values, value object fields and variants on Postgres and SQLite), and convert and backfill on MongoDB (TML-3538, backlog). TML-3537's first PR, renames, moves and deletes of Postgres namespaces, merged 2026-10-22. Value objects and variants are built on ADR 278 | The rest of TML-3537 |
 | 8 | ✅ 4/4 | Client surfaces: a client takes a typed contract value, custom collections on every client and transaction | Must | Will | Slice 1 merged 2026-10-19; it is breaking: `postgres<Contract>({ contractJson })` became `postgres({ contract: contractFromJson<Contract>(json) })`. Slice 2, custom collections on every SQL client, merged 2026-10-20. Slice 3, a transaction offers the client's query members, merged 2026-10-20. Slice 4, a client loads without a database and renders plans as SQL, merged 2026-10-21. Done 2026-10-21 (Will). The close-out merged 2026-10-21 |  |
 
 ## Stream 2: Upgrade path from Prisma 7
@@ -52,11 +52,11 @@ Test: an existing Prisma 7 database can be signed by Prisma 8.
 | # | Progress | Project | GA | Owner | Status | Next |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | 🔄 9/11 | Close every urgent and high upgrade issue | Must | Will | 9 closed, 2 open. The generated-values PR merged 2026-10-19 and closed 3 | The `contract print` issues TML-3323 (ADR first) and TML-3326 |
-| 2 | 🔄 3/7 | Prisma 8 owns migrations in a Prisma 7 project that still reads `schema.prisma` | Must | Will | Proven. Follow-ups: 1 PR merged, 1 gap cancelled, 4 gaps open. The PR for 3 of them is in review | Review the PR for referential action changes (TML-3457, high), primary key changes (TML-3458), and Prisma 7 commands answered with their replacements (TML-3461) |
+| 2 | 🔄 6/7 | Prisma 8 owns migrations in a Prisma 7 project that still reads `schema.prisma` | Must | Will | Proven. Referential action changes, primary key changes, and Prisma 7's migrate commands naming their Prisma 8 replacement merged 2026-10-22. One gap is left: the datasource's extensions list (TML-3460, backlog) | Build TML-3460 |
 | 3 | ✅ 7/7 | Storage a model does not map: a table may hold columns its model does not map, and a table may have no model | Must | Will | Done 2026-10-13: 4 slices, ADR 267, the fix for a model with no fields, and the close-out merged |  |
 | 4 | ⏳ | Upgrade guide rewrite | Must | Will | Ticket in backlog. One known error in the guide |  |
 | 5 | ⏳ 0/5 | Codecs for `citext`, `bit`, `varbit`, `xml`, `oid` | Must | Will | Backlog |  |
-| 6 | ✅ 3/3 | Columns whose type has no codec | Must | Will | Done 2026-10-21 (Will). ADR 273: such a column is a raw column, `Raw("...")` in a Prisma 8 schema, and a Prisma 7 `Unsupported(...)` field is read as one. The close-out is in progress |  |
+| 6 | ✅ 3/3 | Columns whose type has no codec | Must | Will | Done 2026-10-21 (Will). ADR 273: such a column is a raw column, `Raw("...")` in a Prisma 8 schema, and a Prisma 7 `Unsupported(...)` field is read as one. The close-out merged 2026-10-21 |  |
 | 7 | ⏳ | Adopt a Prisma 7 database without changing it: the enum membership check | Must | Will | Not designed |  |
 | 8 | ⏳ | Medium and low upgrade issues | Later | Will | Backlog | |
 | 9 | ⏳ | `money` codec | Later | Will | Backlog | |
