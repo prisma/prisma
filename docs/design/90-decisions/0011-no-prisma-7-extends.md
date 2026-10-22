@@ -15,6 +15,10 @@ Never. Prisma 8 has no `$extends`. Its behaviour is extended through packages an
 
 Middleware on the runtime's lifecycle events for logging, caching, tracing or rewriting queries (ADR 271). Extension packages for new types, functions and operators. A package can add methods to every collection of a model (ADR 272), and an application can add its own query methods with a collection class (ADR 265).
 
+## Revisit if
+
+Not recorded.
+
 ## Sources
 
 - [project intent, what it deliberately does not do](../00-purpose/project-intent.md#what-it-deliberately-does-not-do)

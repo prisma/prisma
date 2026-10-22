@@ -1,6 +1,6 @@
 # Decision records
 
-This folder lists requests the maintainers have already answered, usually with a no. Each record names the request, the decision, what to use instead, and what would reopen it. Read the list before you propose a feature or a solution, and before you judge a feature request or a pull request. If a record covers it, cite the record.
+This folder lists requests the maintainers have already answered, usually with a no, and drafts of answers that wait for a maintainer to accept them (status `proposed`). Each record names the request, the decision, what to use instead, and what would reopen it. Read the list before you propose a feature or a solution, and before you judge a feature request or a pull request. If a record covers it, cite the record.
 
 These records are about product scope: what Prisma 8 does and does not offer users. How the system is built is recorded in the [ADRs](../../architecture%20docs/adrs/). Most records here point to the ADR, scoreboard row or reference page they come from; the record is the short answer, and the source has the reasoning.
 
@@ -15,7 +15,7 @@ Every record has one of these statuses:
 - **`superseded by NNNN`**: replaced. Judge by record NNNN instead.
 - **`proposed`**: drafted from the sources it cites, and not yet accepted by a maintainer. It does not count as a decision. Its "intended status" says what it would become.
 
-Each record also says what reopens it. Many records answer "the source records no condition"; a maintainer can add one.
+Each record also says what reopens it, under "Revisit if". Many records answer that no condition is recorded; a maintainer can add one.
 
 A maintainer accepts a proposed record by setting its status to the intended status and deleting its `Draft — unconfirmed` line, and rejects it by deleting the record.
 
@@ -46,7 +46,7 @@ A maintainer accepts a proposed record by setting its status to the intended sta
 
 ## Adding a record
 
-Write a record when the maintainers have said no to something that users or agents will keep asking for. Do not write one for every pull request, and do not write one for a decision nobody has made: a record cites the ADR, scoreboard row, reference page or maintainer comment it comes from.
+Write a record when the maintainers have said no to something that users or agents will keep asking for. Do not write one for every pull request, and do not write one for a decision nobody has made: every record, a proposed one included, cites the ADR, scoreboard row, reference page or maintainer comment it comes from.
 
 - Number records in order: `NNNN-short-name.md`.
 - Use the sections the existing records use: the request, the decision, what to use instead, revisit if, and sources. Half a page is enough.

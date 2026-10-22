@@ -15,6 +15,10 @@ Never. Will Madden: "middleware already covers this." The runtime exposes one mi
 
 A small middleware on the lifecycle events. It sees each activity start, and end with its outcome: succeeded, failed or stopped (ADR 271).
 
+## Revisit if
+
+Not recorded.
+
 ## Sources
 
 - [project intent, what it deliberately does not do](../00-purpose/project-intent.md#what-it-deliberately-does-not-do)

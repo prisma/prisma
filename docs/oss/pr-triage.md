@@ -92,7 +92,7 @@ Our plans are documented in the repository — the [project intent](../design/00
 Questions that resolve most cases:
 
 - **Does it complete a symmetry that already exists?** An addition that fills an obvious gap in a surface we already ship — a bulk form of an operation whose siblings already have one — is a much easier yes than a new concept. It is not an invention; it is a missing cell in a table we already drew.
-- **Does it contradict a decision we recorded?** An ADR that ruled the other way is a firm no, and the ADR is the explanation to give.
+- **Does it contradict a decision we recorded?** An ADR that ruled the other way, or a decision record with status `not-yet` or `never`, is a firm no, and it is the explanation to give.
 - **Does it commit us to maintenance we have not agreed to?** New platform support, a new adapter, or a new dependency carries a cost past the merge.
 - **Did they open an issue first?** [`CONTRIBUTING.md`](../../CONTRIBUTING.md) asks for an issue before substantive work. When they skipped it, the work already exists — judge the change on its merits and note the process point without punishing them for it. Repeated large unsolicited PRs are worth a direct conversation about sequencing.
 

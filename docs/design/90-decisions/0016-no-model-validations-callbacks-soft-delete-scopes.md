@@ -25,6 +25,10 @@ An extension may offer any of them.
 - Soft delete: a nullable `deletedAt` column and a scope that hides deleted rows, applied with `with` (ADR 259 shows this as `notDeleted`).
 - Default scopes: Prisma 8 already has named scopes. A scope is a query fragment that imposes conditions on a query (ADR 259), and an application can add its own query methods with a collection class (ADR 265). They apply where the code calls them, not silently on every query.
 
+## Revisit if
+
+Not recorded.
+
 ## Sources
 
 - [project intent, what it deliberately does not do](../00-purpose/project-intent.md#what-it-deliberately-does-not-do)

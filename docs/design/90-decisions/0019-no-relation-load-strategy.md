@@ -17,6 +17,10 @@ Prisma 8 does not need the switch. A query plan lowers to one SQL statement, and
 
 Nothing is needed: include the relation, and the database joins it. To see what a call ran, observe its activities with middleware (ADR 271).
 
+## Revisit if
+
+Not recorded.
+
 ## Sources
 
 - [ADR 003](../../architecture%20docs/adrs/ADR%20003%20-%20One%20Query%20One%20Statement.md)
