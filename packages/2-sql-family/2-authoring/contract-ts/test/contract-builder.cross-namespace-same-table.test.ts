@@ -23,6 +23,8 @@ const sqliteTargetPack: TargetPackRef<'sql', 'sqlite'> = {
   targetId: 'sqlite',
   version: '0.0.1',
   defaultNamespaceId: '__unbound__',
+  supportsNamespaces: false,
+  displayName: 'SQLite',
 };
 
 const idDescriptor = { codecId: 'pg/int4@1' } as const;

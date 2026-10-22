@@ -29,6 +29,7 @@ const postgresTargetPack = {
   targetId: 'postgres',
   version: '0.0.1',
   defaultNamespaceId: 'public',
+  displayName: 'Postgres',
 } as const satisfies TargetPackRef<'sql', 'postgres'>;
 
 const pgvectorExtensionPack = {
@@ -150,6 +151,8 @@ describe('defineContract namespace declaration runtime guards', () => {
     targetId: 'sqlite',
     version: '0.0.1',
     defaultNamespaceId: '__unbound__',
+    supportsNamespaces: false,
+    displayName: 'SQLite',
   } as const satisfies TargetPackRef<'sql', 'sqlite'>;
 
   it('accepts an empty namespaces list and treats it as no-op', () => {
@@ -287,7 +290,7 @@ describe('defineContract namespace declaration runtime guards', () => {
     ).toThrow(/whitespace|empty/i);
   });
 
-  it('on SQLite, rejects any non-empty namespaces list (SQLite has no schema concept)', () => {
+  it('on SQLite, rejects any non-empty namespaces list', () => {
     expect(() =>
       defineContract({
         ...testTypeLookups,
@@ -297,7 +300,9 @@ describe('defineContract namespace declaration runtime guards', () => {
         createNamespace: createTestSqlNamespace,
         models: {},
       }),
-    ).toThrow(/SQLite/);
+    ).toThrow(
+      'defineContract: SQLite contracts cannot declare namespaces. Received namespaces: ["auth"].',
+    );
   });
 
   it('on SQLite, accepts an empty namespaces list (the no-op default)', () => {

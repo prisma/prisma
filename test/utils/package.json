@@ -24,7 +24,8 @@
     "@repo/tsdown": "workspace:8.0.0-rc.20",
     "tsdown": "catalog:",
     "typescript": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "mysql2": "3.15.3"
   },
   "exports": {
     ".": {
@@ -62,6 +63,10 @@
     "./typed-expectations": {
       "types": "./dist/exports/typed-expectations.d.mts",
       "import": "./dist/exports/typed-expectations.mjs"
+    },
+    "./mysql-database": {
+      "types": "./dist/exports/mysql-database.d.mts",
+      "import": "./dist/exports/mysql-database.mjs"
     }
   }
 }
