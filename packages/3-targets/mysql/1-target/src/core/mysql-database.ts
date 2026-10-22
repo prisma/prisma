@@ -95,30 +95,59 @@ function enumMembersOf(
   return values;
 }
 
-/** A column that needs its members written into its parameters: a MySQL enum column whose parameters list none yet. */
-function lacksEnumMembers(column: unknown): column is Loose {
-  if (!isLoose(column) || column['codecId'] !== MYSQL_ENUM_CODEC_ID) return false;
-  const typeParams = column['typeParams'];
-  return !isLoose(typeParams) || typeParams['values'] === undefined;
+function isEnumColumn(column: unknown): column is Loose {
+  return isLoose(column) && column['codecId'] === MYSQL_ENUM_CODEC_ID;
+}
+
+function sameMembers(left: readonly unknown[], right: readonly string[]): boolean {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
+}
+
+function enumColumnWithMembers(
+  namespace: SqlNamespaceInput,
+  tableName: string,
+  columnName: string,
+  column: Loose,
+): Loose {
+  const typeParams = isLoose(column['typeParams']) ? column['typeParams'] : {};
+  const values = enumMembersOf(namespace, tableName, columnName, column);
+  const listed = typeParams['values'];
+  if (listed !== undefined && !(Array.isArray(listed) && sameMembers(listed, values))) {
+    throw mysqlError(
+      'CONTRACT.TYPE_PARAMS_INVALID',
+      `Column "${tableName}"."${columnName}" lists enum members that differ from the members of the enum that types it.`,
+      {
+        why: 'A MySQL enum column takes its members from its enum, in the order the enum declares them, so the database and the contract enforce the same members.',
+        fix: 'Remove the column’s own members, or make them equal the enum’s members in the same order.',
+        meta: {
+          table: tableName,
+          column: columnName,
+          columnValues: listed,
+          valueSetValues: values,
+        },
+      },
+    );
+  }
+  return { ...column, typeParams: { ...typeParams, values } };
 }
 
 function withEnumMembers(namespace: SqlNamespaceInput, tableName: string, table: unknown): unknown {
   if (!isLoose(table)) return table;
   const columns = table['columns'];
-  if (!isLoose(columns) || !Object.values(columns).some(lacksEnumMembers)) return table;
+  if (!isLoose(columns) || !Object.values(columns).some(isEnumColumn)) return table;
   const filled = Object.fromEntries(
-    Object.entries(columns).map(([columnName, column]) => {
-      if (!lacksEnumMembers(column)) return [columnName, column];
-      const typeParams = isLoose(column['typeParams']) ? column['typeParams'] : {};
-      const values = enumMembersOf(namespace, tableName, columnName, column);
-      return [columnName, { ...column, typeParams: { ...typeParams, values } }];
-    }),
+    Object.entries(columns).map(([columnName, column]) => [
+      columnName,
+      isEnumColumn(column)
+        ? enumColumnWithMembers(namespace, tableName, columnName, column)
+        : column,
+    ]),
   );
   return { ...table, columns: filled };
 }
 
 /**
- * Writes each MySQL enum column's members, from the value set the column names, into its type parameters, in the order the enum declares them. The column's type is then `enum('A','B')`, so the database enforces the members and `db verify` sees a change to them as a change of the column's type.
+ * Writes each MySQL enum column's members, from the value set the column names, into its type parameters, in the order the enum declares them, and refuses a column whose own members differ from them. The column's type is then `enum('A','B')`, so the database enforces the members and `db verify` sees a change to them as a change of the column's type.
  */
 function fillEnumMembers(input: SqlNamespaceInput): SqlNamespaceInput {
   const tables = input.entries['table'];

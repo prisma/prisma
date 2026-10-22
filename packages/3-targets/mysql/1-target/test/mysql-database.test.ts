@@ -44,12 +44,46 @@ describe('mysqlCreateNamespace', () => {
     });
   });
 
-  it('leaves members a column already lists, so hydrating an emitted contract changes nothing', () => {
+  it('accepts members a column already lists when they equal its value set’s', () => {
     const database = mysqlCreateNamespace({
       id: UNBOUND_NAMESPACE_ID,
-      entries: { table: { User: userTable(roleColumn({ values: ['ADMIN'] })) }, valueSet },
+      entries: {
+        table: { User: userTable(roleColumn({ values: ['USER', 'ADMIN'] })) },
+        valueSet,
+      },
     });
-    expect(columnsOf(database).role.typeParams).toEqual({ values: ['ADMIN'] });
+    expect(columnsOf(database).role.typeParams).toEqual({ values: ['USER', 'ADMIN'] });
+  });
+
+  it('refuses members a column lists that differ from its value set’s', () => {
+    expect(() =>
+      mysqlCreateNamespace({
+        id: UNBOUND_NAMESPACE_ID,
+        entries: { table: { User: userTable(roleColumn({ values: ['ADMIN'] })) }, valueSet },
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.TYPE_PARAMS_INVALID',
+        meta: {
+          table: 'User',
+          column: 'role',
+          columnValues: ['ADMIN'],
+          valueSetValues: ['USER', 'ADMIN'],
+        },
+      }),
+    );
+  });
+
+  it('refuses members a column lists in a different order from its value set', () => {
+    expect(() =>
+      mysqlCreateNamespace({
+        id: UNBOUND_NAMESPACE_ID,
+        entries: {
+          table: { User: userTable(roleColumn({ values: ['ADMIN', 'USER'] })) },
+          valueSet,
+        },
+      }),
+    ).toThrow(expect.objectContaining({ code: 'CONTRACT.TYPE_PARAMS_INVALID' }));
   });
 
   it('refuses an enum column with no enum to take members from', () => {
