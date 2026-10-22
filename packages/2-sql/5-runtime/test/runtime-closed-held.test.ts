@@ -34,8 +34,8 @@ describe('a connection held when close() is called', () => {
     ]);
     await expect(held.execute(affectedCountPlan())).resolves.toEqual({ affectedRows: 1 });
     expect(readMarker).toHaveBeenCalledTimes(1);
-    expect(readMarker).toHaveBeenCalledWith(connection);
-    expect(readMarker).not.toHaveBeenCalledWith(driver);
+    expect(readMarker.mock.calls[0]?.[0]).not.toBe(driver);
+    expect(connection.query).toHaveBeenCalled();
     expect(closed).toBe(false);
 
     await held.release();
@@ -101,7 +101,7 @@ describe('a transaction and a reload on the runtime that follow each other from 
 });
 
 describe('a runtime-scope query inside a transaction callback after the runtime was idle for a turn of the event loop', () => {
-  it('is refused at once, the transaction rolls back, and the close settles', async () => {
+  it('is refused at once, and the driver closes after the transaction rolls back', async () => {
     const { runtime, calls, driver } = setup();
     let closing: Promise<void> | undefined;
 
@@ -114,7 +114,7 @@ describe('a runtime-scope query inside a transaction callback after the runtime 
     await expect(pending).rejects.toMatchObject(closedError);
     await closing;
     expect(driver.execute).not.toHaveBeenCalled();
-    expect(calls).toEqual(['acquire', 'close', 'rollback', 'release', 'closed']);
+    expect(calls).toEqual(['acquire', 'rollback', 'release', 'close', 'closed']);
   });
 });
 
