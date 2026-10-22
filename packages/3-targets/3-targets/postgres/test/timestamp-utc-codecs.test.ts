@@ -137,6 +137,15 @@ describe('pg/timestamp-instant@1', () => {
     },
   );
 
+  it('refuses the stored value +275760-09-13T00:00:01, past the last Temporal.Instant, naming TimestampString', () => {
+    expect(() => fromContractJson(codec, '+275760-09-13T00:00:01')).toThrow(
+      expect.objectContaining({
+        code: 'RUNTIME.DECODE_FAILED',
+        message: expect.stringContaining('TimestampString'),
+      }),
+    );
+  });
+
   it.each([
     [Temporal.PlainDateTime.from('2026-01-02T03:04:05'), 'a Temporal.PlainDateTime'],
     [new Date('2026-01-02T03:04:05Z'), 'a Date'],
