@@ -10,10 +10,10 @@
 
 import type { JsonValue } from '@internal/contract/types';
 import {
+  numeralText,
   readJsonIntegerText,
   SAFE_INTEGER_BIGINT_RANGE,
 } from '@internal/framework-components/codec';
-import { numeralText } from '@internal/sql-contract/data-type';
 import {
   BYTEA_TEXT,
   formatIsoDuration,

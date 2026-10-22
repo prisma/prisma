@@ -11,6 +11,8 @@
 
 import type { JsonValue } from '@internal/contract/types';
 import {
+  asFloat,
+  asNumeralText,
   assembleDataTypes,
   type Cast,
   type DataType,
@@ -19,10 +21,11 @@ import {
   type DataTypeParams,
   type DataTypeReader,
   type DataTypeSpelling,
+  type DateTimeStoredTextOptions,
+  dateTimeStoredText,
   decimalTextEqualityKey,
   INT32_RANGE,
   INT64_RANGE,
-  isNonFiniteText,
   readJsonBoolean,
   readJsonFloat,
   readJsonInteger,
@@ -30,18 +33,11 @@ import {
   readJsonMatching,
   readJsonString,
   refuseJsonValue,
-} from '@internal/framework-components/codec';
-import {
-  numeralText,
-  type SqlTypeText,
-  sqlDataType,
-  sqlRawDataType,
-} from '@internal/sql-contract/data-type';
-import {
-  type DateTimeStoredTextOptions,
-  dateTimeStoredText,
+  refuseWrongShape,
   storedNumeralText,
-} from '@internal/sql-contract/data-type-support';
+  unchanged,
+} from '@internal/framework-components/codec';
+import { type SqlTypeText, sqlDataType, sqlRawDataType } from '@internal/sql-contract/data-type';
 import type { ReportedSqlType } from '@internal/sql-schema-ir/types';
 import { isStructuredError, structuredError } from '@internal/utils/structured-error';
 import { counted, withoutTrailing } from '@internal/utils/text';
@@ -59,46 +55,6 @@ import {
 import { isoYearText } from './postgres-year-text';
 import { quoteIdentifier } from './sql-utils';
 import { storedInet } from './stored-inet';
-
-/** A cast between two types that store the same shape: the value is already the form this type stores. */
-const unchanged: Cast = (value) => value;
-
-function wrongShape(value: JsonValue, expected: string): never {
-  throw structuredError(
-    'CONTRACT.CAST_REFUSED',
-    `Expected ${expected}, got ${JSON.stringify(value)}.`,
-    {
-      why: 'A cast reads the stored form of the type it takes values of.',
-      fix: 'Hand the cast a value in the shape its source type stores.',
-    },
-  );
-}
-
-/** A whole number as the digit text `int8` and `numeric` store. */
-const asNumeralText: Cast = (value) =>
-  typeof value === 'number' ? numeralText(value) : wrongShape(value, 'a number');
-
-/**
- * A number as the floating-point types store it: a JSON number, or one of the three words, which
- * those types keep as text. A magnitude past what a double holds is refused rather than rounded to
- * a word: the database refuses it too, and storing `Infinity` would make a written number
- * indistinguishable from a written `Infinity`.
- */
-const asFloat: Cast = (value) => {
-  if (typeof value === 'number') return value;
-  if (typeof value !== 'string') return wrongShape(value, 'a number or numeral text');
-  if (isNonFiniteText(value)) return value;
-  const converted = Number(value);
-  if (Number.isFinite(converted)) return converted;
-  throw structuredError(
-    'CONTRACT.CAST_REFUSED',
-    `${value} is out of range: no double holds a number that large.`,
-    {
-      why: 'The floating-point types store a double, which holds magnitudes up to about 1.8e308.',
-      fix: 'Use a number a double holds, or a numeric column.',
-    },
-  );
-};
 
 const written = (text: string): SqlTypeText => ({ text, written: true });
 const catalog = (text: string): SqlTypeText => ({ text, catalog: true });
@@ -539,7 +495,7 @@ export const pgVarchar = sqlDataType('pg/varchar', {
 
 /** Text in any form PostgreSQL reads as a UUID, written the way PostgreSQL writes it, so the contract holds the value the database reports. */
 const asUuid: Cast = (value) => {
-  if (typeof value !== 'string') return wrongShape(value, 'text');
+  if (typeof value !== 'string') return refuseWrongShape(value, 'text');
   const uuid = storedUuid(value);
   if (uuid !== undefined) return uuid;
   throw structuredError(
@@ -633,7 +589,7 @@ export const pgTimestamptzStoredText = postgresDateTime(
 const castFromText =
   (read: (text: string) => string): Cast =>
   (value) =>
-    typeof value === 'string' ? read(value) : wrongShape(value, 'text');
+    typeof value === 'string' ? read(value) : refuseWrongShape(value, 'text');
 
 export const pgTimetz = sqlDataType('pg/timetz', {
   read: readStoredDateTime(

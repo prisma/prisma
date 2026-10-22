@@ -14,34 +14,23 @@ import {
   type DataTypeReader,
   type DataTypeSpelling,
   INT64_RANGE,
+  isoDateStringText,
   readJsonFloat,
   readJsonIntegerText,
   readJsonMatching,
   readJsonString,
   refuseJsonValue,
+  refuseWrongShape,
+  unchanged,
 } from '@internal/framework-components/codec';
 import { canonicalizeJson } from '@internal/framework-components/utils';
 import { sqlDataType, sqlRawDataType } from '@internal/sql-contract/data-type';
-import { dateTimeStoredText } from '@internal/sql-contract/data-type-support';
 import { structuredError } from '@internal/utils/structured-error';
 import { type as arktype } from 'arktype';
 
-const unchanged: Cast = (value) => value;
-
-function wrongShape(value: JsonValue, expected: string): never {
-  throw structuredError(
-    'CONTRACT.CAST_REFUSED',
-    `Expected ${expected}, got ${JSON.stringify(value)}.`,
-    {
-      why: 'A cast reads the stored form of the type it takes values of.',
-      fix: 'Hand the cast a value in the shape its source type stores.',
-    },
-  );
-}
-
 /** Digit text as `real` stores it: the nearest double, as SQLite converts an integer to a real. */
 const asReal: Cast = (value) =>
-  typeof value === 'string' ? Number(value) : wrongShape(value, 'digit text');
+  typeof value === 'string' ? Number(value) : refuseWrongShape(value, 'digit text');
 
 /** A type written and reported by `name` and nothing else. */
 const storedAs = (
@@ -129,21 +118,11 @@ export const sqliteCharacterVarying = sqlDataType('sqlite/character-varying', {
   casts: { [sqliteText.id]: unchanged },
 });
 
-const DATETIME_FRACTION = /^(.*:\d{2})(?:\.(\d{1,3}))?Z$/;
-
 /**
- * The value of `sqlite/datetime` (ADR 254): the instant in UTC with exactly three fraction digits, the text `toISOString()` writes for every row, from ISO 8601 text with a UTC offset. The range and the millisecond precision are those of a JavaScript `Date`, the codec's value. Throws `CONTRACT.CAST_REFUSED` for text that names no instant the type holds.
+ * The value of `sqlite/datetime` (ADR 254): the text `toISOString()` writes for every row. The range and the millisecond precision are those of a JavaScript `Date`, the codec's value.
  */
-export function sqliteDatetimeText(text: string): string {
-  const stored = dateTimeStoredText(text, {
-    shape: 'instant',
-    ownerId: 'sqlite/datetime',
-    maxFractionDigits: 3,
-    range: { earliest: '-271821-04-20T00:00:00Z', latest: '+275760-09-13T00:00:00Z' },
-  });
-  const match = DATETIME_FRACTION.exec(stored);
-  return match === null ? stored : `${match[1]}.${(match[2] ?? '').padEnd(3, '0')}Z`;
-}
+export const sqliteDatetimeText = (text: string): string =>
+  isoDateStringText(text, 'sqlite/datetime');
 
 /** What `sqliteDatetimeText` writes for `text`, or `undefined` when it names no instant the type holds. */
 function storedDatetime(text: string): string | undefined {

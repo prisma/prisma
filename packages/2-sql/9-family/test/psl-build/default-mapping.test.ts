@@ -3,16 +3,14 @@ import type { DataTypeAuthoringEntry } from '@internal/framework-components/auth
 import type { Cast, DataType } from '@internal/framework-components/codec';
 import {
   createDataTypeLookup,
+  createNumberClassifier,
   dataType,
   isNonFiniteText,
-} from '@internal/framework-components/codec';
-import { numeralText } from '@internal/sql-contract/data-type';
-import {
-  createNumberClassifier,
+  numeralText,
   parseJsonText,
   printJsonText,
   signedRange,
-} from '@internal/sql-contract/data-type-support';
+} from '@internal/framework-components/codec';
 import { sqlExpressionRegistration } from '@internal/sql-contract/sql-expression';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import {

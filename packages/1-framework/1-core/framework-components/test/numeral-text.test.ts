@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { numeralText } from '../src/numeral-text';
+import { numeralText } from '../src/shared/numeral-text';
 
 describe('numeralText', () => {
   it.each([

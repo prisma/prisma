@@ -174,7 +174,7 @@ const c = contract({
 - `./factories`: Factory functions for constructing contract IR
 - `./pack-types`: Shared extension/pack typing helpers
 - `./data-type`: SQL data type declarations (`sqlDataType`) and the functions that write a type name, print its catalog text, and recognise a reported type from those declarations (`renderSqlTypeName`, `renderSqlCatalogText`, `sqlBaseName`, `dataTypeParams`, `resolveReportedSqlType`), and `sqlRawDataType`, the data type of a raw column, whose name is its `sql` parameter as given (ADR 273)
-- `./data-type-support`: the helpers SQL targets share to implement their data types and PSL entries (ADR 254): the number classifier, the JSON body reader and printer, `escapePslString`, the 64-bit integer canonical form, and `dateTimeStoredText`, the reader the date and time types build their canonical form with
+- `./data-type-support`: `escapePslString`, which writes a string as a contract source writes it. The number classifier, the JSON text reader and printer, and the date and time readers that targets build their data types with live in `@internal/framework-components/codec` (ADR 254)
 
 ## Architecture
 
