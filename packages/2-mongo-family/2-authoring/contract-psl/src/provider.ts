@@ -2,6 +2,11 @@ import { readFile } from 'node:fs/promises';
 import type { ContractConfig, ContractSourceDiagnostic } from '@internal/config/config-types';
 import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
 import { collectScalarTypeConstructors } from '@internal/framework-components/authoring';
+import type {
+  ExtensionPackRef,
+  FamilyPackRef,
+  TargetPackRef,
+} from '@internal/framework-components/components';
 import {
   buildSymbolTable,
   createBinder,
@@ -18,6 +23,10 @@ import { notOk } from '@internal/utils/result';
 import { interpretPslDocumentToMongoContract } from './interpreter';
 
 export interface MongoContractOptions {
+  /** The family, target and extension packs of the stack, which the contract records. */
+  readonly family: FamilyPackRef<string>;
+  readonly target: TargetPackRef<string, string>;
+  readonly extensionPacks?: Readonly<Record<string, ExtensionPackRef<string, string>>>;
   readonly output?: string;
   /** The target's default codec ids for an `enum` block that omits `@@type`. */
   readonly enumInferenceCodecs?: { readonly text: string; readonly int: string };
@@ -29,7 +38,7 @@ function collectScalarTypeCodecIds(namespace: AuthoringTypeNamespace): ReadonlyM
   );
 }
 
-export function mongoContract(schemaPath: string, options?: MongoContractOptions): ContractConfig {
+export function mongoContract(schemaPath: string, options: MongoContractOptions): ContractConfig {
   const source: PslInterpretCapable = {
     format: 'psl',
     inputs: [schemaPath],
@@ -39,6 +48,9 @@ export function mongoContract(schemaPath: string, options?: MongoContractOptions
         symbolTable: input.symbolTable,
         sources: input.sources,
         binder: input.binder,
+        family: options.family,
+        target: options.target,
+        ...ifDefined('extensionPacks', options.extensionPacks),
         seedDiagnostics: [],
         scalarTypeCodecIds: collectScalarTypeCodecIds(context.authoringContributions.type),
         defaultFunctionRegistry: context.controlMutationDefaults.defaultFunctionRegistry,
@@ -46,7 +58,7 @@ export function mongoContract(schemaPath: string, options?: MongoContractOptions
         dataTypes: context.dataTypes,
         codecLookup: context.codecLookup,
         authoringContributions: context.authoringContributions,
-        ...ifDefined('enumInferenceCodecs', options?.enumInferenceCodecs),
+        ...ifDefined('enumInferenceCodecs', options.enumInferenceCodecs),
         ...ifDefined('reportWarning', context.reportWarning),
       });
     },
@@ -142,6 +154,6 @@ export function mongoContract(schemaPath: string, options?: MongoContractOptions
 
   return {
     source,
-    ...ifDefined('output', options?.output),
+    ...ifDefined('output', options.output),
   };
 }

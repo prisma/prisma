@@ -2,8 +2,10 @@ import mongoAdapter from '@internal/adapter-mongo/control';
 import { defineConfig as coreDefineConfig } from '@internal/config/config-types';
 import mongoDriver from '@internal/driver-mongo/control';
 import { mongoFamilyDescriptor } from '@internal/family-mongo/control';
+import mongoFamilyPack from '@internal/family-mongo/pack';
 import { mongoContract } from '@internal/mongo-contract-psl/provider';
 import { mongoTargetDescriptor } from '@internal/target-mongo/control';
+import mongoTargetPack from '@internal/target-mongo/pack';
 import { describe, expect, it } from 'vitest';
 import { defineConfig } from '../../src/config/define-config';
 
@@ -19,6 +21,8 @@ describe('defineConfig facade', () => {
       adapter: mongoAdapter,
       driver: mongoDriver,
       contract: mongoContract(contractPath, {
+        family: mongoFamilyPack,
+        target: mongoTargetPack,
         output: './prisma/contract.json',
       }),
     });

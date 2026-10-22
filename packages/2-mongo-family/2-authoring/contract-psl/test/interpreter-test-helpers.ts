@@ -37,6 +37,8 @@ type InterpretOptionsWithDefaultLookups = Omit<
   | 'codecLookup'
   | 'dataTypes'
   | 'generatorFunctions'
+  | 'family'
+  | 'target'
 > & {
   readonly codecLookup?: CodecLookupWithDescriptors;
   readonly dataTypes?: DataTypeSupport;
@@ -98,6 +100,7 @@ export function interpretMongoContract(
       binder: bound.binder,
       ...mongoContextInput(bound.context),
       ...(options.enumInferenceCodecs ? { enumInferenceCodecs: options.enumInferenceCodecs } : {}),
+      ...(options.extensionPacks ? { extensionPacks: options.extensionPacks } : {}),
     }),
     bound.seedDiagnostics,
   );

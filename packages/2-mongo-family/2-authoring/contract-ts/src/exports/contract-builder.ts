@@ -1,3 +1,12 @@
+export type { MongoBuiltContract } from '../build-contract';
+export { buildMongoContractFromDefinition } from '../build-contract';
+export type {
+  FieldKey,
+  IndexShapeRule,
+  MongoBuildRefusal,
+  MongoBuildWarning,
+  RefusalKey,
+} from '../build-refusals';
 export type {
   ContractAuthoringHelpers,
   ContractFactory,
@@ -15,6 +24,19 @@ export {
   rel,
   valueObject,
 } from '../contract-builder';
+export type {
+  ContractDefinition,
+  DiscriminatorNode,
+  EmbedRelationNode,
+  FieldNode,
+  IndexNode,
+  ModelNode,
+  PresetContributionNode,
+  ReferenceRelationNode,
+  RelationNode,
+  ValueObjectNode,
+  VariantBaseNode,
+} from '../contract-definition';
 export type {
   FieldBuilder,
   FieldReference,

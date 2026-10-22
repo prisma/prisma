@@ -19,9 +19,12 @@ const PHASES = ['onCreate', 'onUpdate'] as const;
 function hasExecutionDefaults(field: FieldNode): boolean {
   const phases = field.executionDefaults;
   const calls = field.generatorCalls;
+  const values = field.generatedValues;
   return (
     phases?.onCreate !== undefined ||
     phases?.onUpdate !== undefined ||
+    values?.onCreate !== undefined ||
+    values?.onUpdate !== undefined ||
     calls?.onCreate !== undefined ||
     calls?.onUpdate !== undefined
   );
@@ -36,19 +39,27 @@ function executionDefaultsOf(
   generatorFunctions: GeneratorFunctionRegistry,
   refusals: MongoBuildRefusal[],
 ): ExecutionMutationDefaultPhases | undefined {
+  const typeGiven = field.executionDefaults;
+  let refused = false;
+  for (const phase of PHASES) {
+    if (typeGiven?.[phase] !== undefined && field.generatedValues?.[phase] !== undefined) {
+      refusals.push({ kind: 'generatorPhaseSetTwice', key, phase });
+      refused = true;
+    }
+  }
+  const written = { ...typeGiven, ...field.generatedValues };
   const calls = field.generatorCalls;
-  if (calls === undefined) return field.executionDefaults;
+  if (calls === undefined) return refused ? undefined : written;
   const type = field.type;
   const codecId = type.kind === 'scalar' ? type.codecId : undefined;
   const phases: {
     onCreate?: ExecutionMutationDefaultValue;
     onUpdate?: ExecutionMutationDefaultValue;
-  } = { ...field.executionDefaults };
-  let refused = false;
+  } = written;
   for (const phase of PHASES) {
     const call = calls[phase];
     if (call === undefined) continue;
-    if (field.executionDefaults?.[phase] !== undefined) {
+    if (written[phase] !== undefined) {
       refusals.push({ kind: 'generatorPhaseSetTwice', key, phase });
       refused = true;
       continue;

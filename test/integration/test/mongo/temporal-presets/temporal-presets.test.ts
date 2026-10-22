@@ -5,10 +5,12 @@ import { enrichContract } from '@internal/cli/control-api';
 import type { SerializeContract } from '@internal/contract/hashing';
 import type { Contract as FrameworkContract } from '@internal/contract/types';
 import { mongoFamilyDescriptor } from '@internal/family-mongo/control';
+import mongoFamilyPack from '@internal/family-mongo/pack';
 import { createControlStack } from '@internal/framework-components/control';
 import { mongoContractCanonicalizationHooks } from '@internal/mongo-contract/canonicalization-hooks';
 import { mongoContract } from '@internal/mongo-contract-psl/provider';
 import { type MongoTargetContract, mongoTargetDescriptor } from '@internal/target-mongo/control';
+import mongoTargetPack from '@internal/target-mongo/pack';
 import { timeouts } from '@repo/test-utils';
 import { dirname, join } from 'pathe';
 import { describe, expect, expectTypeOf, it } from 'vitest';
@@ -81,7 +83,10 @@ describe('Mongo temporal presets from PSL and TS', () => {
     'emit the same contract, execution section and hash included',
     async () => {
       const pslPath = join(fixtureDir, 'contract.prisma');
-      const pslResult = await mongoContract(pslPath).source.load({
+      const pslResult = await mongoContract(pslPath, {
+        family: mongoFamilyPack,
+        target: mongoTargetPack,
+      }).source.load({
         ...sourceContext,
         resolvedInputs: [pslPath],
       });
@@ -104,7 +109,10 @@ describe('Mongo temporal presets from PSL and TS', () => {
     'emit the same contract from the gen calls of the facade as from @onCreate(now()) and @onUpdate(now())',
     async () => {
       const pslPath = join(attributesFixtureDir, 'contract.prisma');
-      const pslResult = await mongoContract(pslPath).source.load({
+      const pslResult = await mongoContract(pslPath, {
+        family: mongoFamilyPack,
+        target: mongoTargetPack,
+      }).source.load({
         ...sourceContext,
         resolvedInputs: [pslPath],
       });

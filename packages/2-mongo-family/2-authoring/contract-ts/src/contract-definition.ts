@@ -42,6 +42,8 @@ export interface FieldNode {
   /** Defaults the field generates, already resolved from presets and type aliases. */
   readonly executionDefaults?: ExecutionMutationDefaultPhases;
   readonly generatorCalls?: GeneratorCallsNode;
+  /** Generators the field's own attributes set, which the source has already resolved for the field's codec. */
+  readonly generatedValues?: ExecutionMutationDefaultPhases;
   /** Present when a field preset made the field. */
   readonly presetContribution?: PresetContributionNode;
 }

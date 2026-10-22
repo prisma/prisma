@@ -6,6 +6,7 @@ import type { ContractSourceContext } from '@internal/cli/config-types';
 import { enrichContract } from '@internal/cli/control-api';
 import type { Contract, JsonValue } from '@internal/contract/types';
 import { mongoFamilyDescriptor } from '@internal/family-mongo/control';
+import mongoFamilyPack from '@internal/family-mongo/pack';
 import sql from '@internal/family-sql/control';
 import { createControlStack } from '@internal/framework-components/control';
 import type { MongoContract } from '@internal/mongo-contract';
@@ -13,6 +14,7 @@ import { mongoContract } from '@internal/mongo-contract-psl/provider';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { prismaContract } from '@internal/sql-contract-psl/provider';
 import { mongoTargetDescriptor } from '@internal/target-mongo/control';
+import mongoTargetPack from '@internal/target-mongo/pack';
 import postgres from '@internal/target-postgres/control';
 import postgresPackRef from '@internal/target-postgres/pack';
 import { postgresCreateNamespace } from '@internal/target-postgres/types';
@@ -127,7 +129,7 @@ export interface MongoAuthoringResult {
  */
 export async function authorMongoContractFromPsl(schema: string): Promise<MongoAuthoringResult> {
   const schemaPath = writeSchemaToTempFile(schema);
-  const provider = mongoContract(schemaPath);
+  const provider = mongoContract(schemaPath, { family: mongoFamilyPack, target: mongoTargetPack });
 
   const providerResult = await provider.source.load({
     ...mongoSourceContext,

@@ -1,8 +1,10 @@
 import mongoAdapter from '@internal/adapter-mongo/control';
 import { defineConfig as ormConfig } from '@internal/cli/config-types';
 import { mongoFamilyDescriptor } from '@internal/family-mongo/control';
+import mongoFamilyPack from '@internal/family-mongo/pack';
 import { mongoContract } from '@internal/mongo-contract-psl/provider';
 import { mongoTargetDescriptor } from '@internal/target-mongo/control';
+import mongoTargetPack from '@internal/target-mongo/pack';
 import { definePrismaConfig } from '@prisma/cli-engine';
 
 export default definePrismaConfig({
@@ -11,6 +13,8 @@ export default definePrismaConfig({
     target: mongoTargetDescriptor,
     adapter: mongoAdapter,
     contract: mongoContract('./contract.prisma', {
+      family: mongoFamilyPack,
+      target: mongoTargetPack,
       output: 'output/contract.json',
     }),
   }),

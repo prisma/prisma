@@ -12,7 +12,10 @@ import type { FieldNode, ModelNode, ValueObjectNode } from './contract-definitio
 function generatesNothing(field: FieldNode): boolean {
   const contributed = field.presetContribution?.executionDefaults;
   const calls = field.generatorCalls;
+  const values = field.generatedValues;
   return (
+    values?.onCreate === undefined &&
+    values?.onUpdate === undefined &&
     contributed?.onCreate === undefined &&
     contributed?.onUpdate === undefined &&
     calls?.onCreate === undefined &&

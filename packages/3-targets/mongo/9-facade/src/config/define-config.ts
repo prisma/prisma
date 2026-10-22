@@ -6,11 +6,13 @@ import {
 } from '@internal/config/config-types';
 import mongoDriver from '@internal/driver-mongo/control';
 import { mongoFamilyDescriptor } from '@internal/family-mongo/control';
+import mongoFamilyPack from '@internal/family-mongo/pack';
 import type { ControlExtensionDescriptor } from '@internal/framework-components/control';
 import { mongoContract } from '@internal/mongo-contract-psl/provider';
 import { typescriptContractFromPath } from '@internal/mongo-contract-ts/config-types';
 import { MONGO_INT32_CODEC_ID, MONGO_STRING_CODEC_ID } from '@internal/target-mongo/codec-ids';
 import { mongoTargetDescriptor } from '@internal/target-mongo/control';
+import mongoTargetPack from '@internal/target-mongo/pack';
 import { ifDefined } from '@internal/utils/defined';
 import { extname, join } from 'pathe';
 
@@ -27,22 +29,35 @@ export interface MongoConfigOptions {
   };
 }
 
-function contractConfigFromPath(contractPath: string, output: string): ContractConfig {
+function contractConfigFromPath(
+  contractPath: string,
+  output: string,
+  extensions: readonly ControlExtensionDescriptor<'mongo', 'mongo'>[],
+): ContractConfig {
   return extname(contractPath) === '.ts'
     ? typescriptContractFromPath(contractPath, output)
     : mongoContract(contractPath, {
+        family: mongoFamilyPack,
+        target: mongoTargetPack,
+        extensionPacks: Object.fromEntries(
+          extensions.map((extension) => [extension.id, extension]),
+        ),
         output,
         enumInferenceCodecs: { text: MONGO_STRING_CODEC_ID, int: MONGO_INT32_CODEC_ID },
       });
 }
 
-function resolveContractConfig(options: MongoConfigOptions): ContractConfig {
+function resolveContractConfig(
+  options: MongoConfigOptions,
+  extensions: readonly ControlExtensionDescriptor<'mongo', 'mongo'>[],
+): ContractConfig {
   const explicitOutput =
     options.output !== undefined ? join(options.output, 'contract.json') : undefined;
   if (typeof options.contract === 'string') {
     return contractConfigFromPath(
       options.contract,
       explicitOutput ?? defaultContractOutputPath(options.contract),
+      extensions,
     );
   }
   const firstInput = options.contract.source.inputs?.[0];
@@ -55,7 +70,7 @@ function resolveContractConfig(options: MongoConfigOptions): ContractConfig {
 
 export function defineConfig(options: MongoConfigOptions): PrismaNextConfig<'mongo', 'mongo'> {
   const extensions = options.extensions ?? [];
-  const contractConfig = resolveContractConfig(options);
+  const contractConfig = resolveContractConfig(options, extensions);
 
   return coreDefineConfig({
     family: mongoFamilyDescriptor,

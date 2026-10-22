@@ -170,6 +170,16 @@ describe('buildMongoContractFromDefinition', () => {
     ]);
   });
 
+  it('keys the generators a source already resolved by collection and stored field', () => {
+    const contract = contractOf({
+      models: [user([scalar('at', { storedName: 'a', generatedValues: { onUpdate: now } })])],
+    });
+
+    expect(contract.execution?.mutations.defaults).toEqual([
+      { ref: { namespace: UNBOUND_NAMESPACE_ID, entry: 'users', field: 'a' }, onUpdate: now },
+    ]);
+  });
+
   it('stores a variant that names no collection in its base collection', () => {
     const { collection: _, ...bugWithoutCollection } = bug;
     const contract = contractOf({ models: [task, bugWithoutCollection] });
@@ -361,6 +371,20 @@ describe('buildMongoContractFromDefinition refusals', () => {
       [{ kind: 'generatorPhaseSetTwice', key: modelField('User', 'at') }],
     ],
     [
+      'a phase set by both the field type and a resolved generator',
+      {
+        models: [
+          user([
+            scalar('at', {
+              executionDefaults: { onCreate: now },
+              generatedValues: { onCreate: now },
+            }),
+          ]),
+        ],
+      },
+      [{ kind: 'generatorPhaseSetTwice', key: modelField('User', 'at') }],
+    ],
+    [
       'a generated list field',
       {
         models: [
@@ -464,10 +488,7 @@ describe('buildMongoContractFromDefinition refusals', () => {
     [
       'a model with both a discriminator and a base',
       { models: [task, { ...bug, discriminator: { field: 'severity' } }] },
-      [
-        { kind: 'discriminatorAndBase', key: { kind: 'discriminator', model: 'Bug' } },
-        { kind: 'discriminatorWithoutVariants', key: { kind: 'discriminator', model: 'Bug' } },
-      ],
+      [{ kind: 'discriminatorAndBase', key: { kind: 'discriminator', model: 'Bug' } }],
     ],
     [
       'a listed variant that no model declares',

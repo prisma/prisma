@@ -85,7 +85,7 @@ function decideDiscriminator(input: {
 }): ReadonlyMap<string, string> {
   const { base, models, refusals } = input;
   const discriminator = base.discriminator;
-  if (discriminator === undefined) return new Map();
+  if (discriminator === undefined || base.base !== undefined) return new Map();
   const key = { kind: 'discriminator', model: base.modelName } as const;
   const variantNames = new Set(
     models.filter((model) => model.base?.model === base.modelName).map((model) => model.modelName),
@@ -130,7 +130,7 @@ function decideDiscriminator(input: {
       enumMembers,
     },
     variants: writtenVariantsOf(base, models),
-    subject: `The discriminator value of a variant of "${base.modelName}"`,
+    subject: `Field "${base.modelName}.${fieldName}"`,
     codecLookup: input.codecLookup,
     dataTypes: input.dataTypes,
   });
