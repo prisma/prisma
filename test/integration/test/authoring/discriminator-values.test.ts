@@ -105,7 +105,7 @@ describe.each([
     async () => {
       expect(await refusals(lengthLimited ?? '', ['"circle"'])).toEqual([
         {
-          code: 'PSL_INVALID_DEFAULT_LITERAL',
+          code: 'PSL_VALUE_REFUSED',
           message:
             'Field "Shape.kind": pg/varchar JSON value must be a string of at most 5 characters',
           line: 13,

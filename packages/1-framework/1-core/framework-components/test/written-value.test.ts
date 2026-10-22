@@ -511,7 +511,11 @@ describe('exactRewrite', () => {
   });
 
   it('offers the text unquoted for a receiving type that takes it as a number', () => {
-    expect(exactRewrite(support, at(big), { kind: 'string', text: '8' })).toBe('8');
+    expect(exactRewrite(support, at(small), { kind: 'string', text: '8' })).toBe('8');
+  });
+
+  it('offers nothing when the number the text writes would be stored as another value', () => {
+    expect(exactRewrite(support, at(big), { kind: 'string', text: '8' })).toBeUndefined();
   });
 
   it('offers nothing for quoted text that is not a number the receiving type takes', () => {

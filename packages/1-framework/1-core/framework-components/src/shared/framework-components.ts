@@ -246,6 +246,8 @@ export type TargetPackRef<
   /** The namespace a bare (un-namespaced) entity name resolves to for this target (e.g. Postgres `'public'`). */
   readonly defaultNamespaceId: string;
   readonly supportsNamespaces?: boolean;
+  /** The target's name as messages show it, such as `Postgres`. Absent means the target id. */
+  readonly displayName?: string;
 };
 
 export type AdapterPackRef<

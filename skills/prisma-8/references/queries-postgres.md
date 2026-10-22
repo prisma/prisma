@@ -562,7 +562,7 @@ The `.where(...)` callback receives `(fields, fns)` — `fields` is the field pr
 ```typescript
 // Insert and return selected columns. `insert()` takes an array of rows.
 const plan = db.sql.public.user
-  .insert([{ email }])
+  .insert([{ email, displayName, kind }])
   .returning('id', 'email')
   .build();
 const [row] = await db.query(plan);
@@ -582,6 +582,8 @@ const deletePlan = db.sql.public.user
   .build();
 const { affectedRows } = await db.execute(deletePlan);
 ```
+
+Each row must include every column that is not nullable and has no default; leaving one out is a type error that names the column. A value typed `T | undefined` for such a column is also an error, so narrow it first.
 
 `.returning(...)` requires the target adapter to advertise the `returning` capability. The Postgres adapter advertises it by default.
 
@@ -689,7 +691,7 @@ Cross-namespace relations (e.g. `public.Profile` → `auth.User`) follow the sam
 
 - Example queries under [`examples/prisma-8-demo/src/orm-client/`](examples/prisma-8-demo/src/orm-client/) and [`examples/prisma-8-demo/src/queries/`](examples/prisma-8-demo/src/queries/) — canonical ORM and SQL-builder shapes.
 - ORM client source under `packages/3-extensions/sql-orm-client/src/`.
-- SQL builder source under `packages/2-sql/4-lanes/sql-builder/src/`.
+- SQL builder source under `packages/2-sql-family/4-lanes/sql-builder/src/`.
 
 ## Checklist
 

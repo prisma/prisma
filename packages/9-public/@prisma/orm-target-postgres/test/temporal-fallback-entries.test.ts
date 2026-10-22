@@ -19,7 +19,7 @@ import { describe, expect, it } from 'vitest';
 
 const REPO_ROOT = resolve(import.meta.dirname, '../../../../..');
 const PUBLIC_PACKAGES_DIR = join(REPO_ROOT, 'packages/9-public');
-const INTERNAL_TARGET_DIR = join(REPO_ROOT, 'packages/3-targets/3-targets/postgres');
+const INTERNAL_TARGET_DIR = join(REPO_ROOT, 'packages/3-targets/postgres/1-target');
 const POLYFILL = 'temporal-polyfill';
 const IMPORT_SPECIFIER = /(?:\bfrom|\bimport)\s*\(?\s*["']([^"']+)["']/g;
 const FALLBACK_STATE_DEFINITION = 'function setFallbackTemporal(';

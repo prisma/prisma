@@ -1,6 +1,6 @@
 # Prisma 7 reference fixture
 
-`schema.prisma` exercises every construct the Prisma 7 contract source handles or rejects (see `packages/2-sql/2-authoring/contract-prisma7/README.md`). `migration.sql` is what Prisma 7.10.0 generates for it against an empty Postgres database. Both files are the ground truth for the Prisma 7 interpreter; rules are written against this SQL, not from memory.
+`schema.prisma` exercises every construct the Prisma 7 contract source handles or rejects (see `packages/2-sql-family/2-authoring/contract-prisma7/README.md`). `migration.sql` is what Prisma 7.10.0 generates for it against an empty Postgres database. Both files are the ground truth for the Prisma 7 interpreter; rules are written against this SQL, not from memory.
 
 ## How `migration.sql` was produced
 

@@ -8,7 +8,7 @@ import { readMigrationsDir } from '@internal/migration-tools/io';
 import { ifDefined } from '@internal/utils/defined';
 import { isStructuredError } from '@internal/utils/structured-error';
 import type { Block, Presentations } from '@prisma/cli-engine';
-import { flag } from '@prisma/cli-engine';
+import { flag, noDataLines } from '@prisma/cli-engine';
 import {
   CliStructuredError as EngineStructuredError,
   notOk,
@@ -77,7 +77,9 @@ function updatePresentations(inputs: {
 }): Presentations {
   const { document, database, dryRun } = inputs;
   return {
-    stdout: () => [],
+    stdout: noDataLines(
+      'Data lines are not defined: this command applies a plan, not migrations, so the db migrate fields do not fit. --json carries the plan and what ran.',
+    ),
     human: (): readonly Block[] => [
       {
         kind: 'fields',

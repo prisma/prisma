@@ -20,7 +20,7 @@ import {
   resolveAuthoringTypeChoice,
 } from './authoring-type-choice';
 import type { CodecLookupWithDescriptors } from './codec-types';
-import type { DataTypeId, DataTypeLookup } from './data-type';
+import type { DataTypeId } from './data-type';
 import type {
   GeneratorFunctionCall,
   GeneratorFunctionField,
@@ -29,7 +29,7 @@ import type {
 import type { AuthoringOption } from './option-descriptor';
 import type { ParsedPslExtensionBlock, PslSpan } from './psl-extension-block';
 import { runtimeError } from './runtime-error';
-import type { WrittenScalar } from './written-value';
+import type { DataTypeSupport } from './written-value';
 
 export type EnumInferredMemberType = 'text' | 'int';
 
@@ -308,32 +308,19 @@ export function flushAuthoringWarnings(warnings: readonly AuthoringWarning[]): v
   }
 }
 
-/** A written value read for a codec: its stored form, or why it is refused, as a diagnostic's code and message. */
-export type WrittenValueReading =
-  | { readonly ok: true; readonly value: JsonValue }
-  | { readonly ok: false; readonly code: string; readonly message: string };
-
 export interface AuthoringEntityContext {
   readonly family: string;
   readonly target: string;
   /** Codec registry available to factories that need to validate or decode values. */
   readonly codecLookup: CodecLookupWithDescriptors;
-  /** The stack's data types, for factories that read the data type a codec represents. */
-  readonly dataTypeLookup: DataTypeLookup;
+  /** The stack's data types with their authoring entries: a factory reads the data type a codec represents from `lookup`, and a written value through the entries. */
+  readonly dataTypes: DataTypeSupport;
   /** Source file identifier threaded into diagnostics emitted by the factory. */
   readonly sourceId?: string;
   /** Push channel for authoring-time diagnostics emitted by the factory. */
   readonly diagnostics?: AuthoringDiagnosticSink;
   /** Push channel for non-fatal authoring-time warnings emitted by the factory. */
   readonly warnings?: AuthoringWarningSink;
-  /**
-   * Reads a value written in the contract source outside a default, such as an enum member's value, the way a column default is read: the value's syntax gives it a data type, the codec's data type takes it directly or through a cast, and the codec checks it. Returns the value's stored form, or why it is refused, worded for `subject`. Without it, or when it returns `undefined` for a codec the stack registers no descriptor for, the codec's data type and then the codec read the value as JSON.
-   */
-  readonly readWrittenValueForCodec?: (input: {
-    readonly written: WrittenScalar;
-    readonly codecId: string;
-    readonly subject: string;
-  }) => WrittenValueReading | undefined;
   /**
    * The target's default codec ids for an `enum` block that omits `@@type`.
    * `text` is used when every member is a bare name or a string value;

@@ -35,7 +35,7 @@ changes:
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - '(?<![\s\S])(?![\s\S]*from\s*[\x27"]temporal-spec[\x27"])[\s\S]*toEqualTypeOf<\s*Temporal\.'
+        - '(?<![\s\S])(?![\s\S]*import\s+(?:type\s+)?\{[^}]*(?<![\w$])Temporal(?![\w$])(?!\s+as(?![\w$]))[^}]*\}\s*from\s*[\x27"]temporal-spec[\x27"])[\s\S]*toEqualTypeOf<\s*Temporal\.'
   - id: contract-types-list-new-aggregates
     summary: |
       Optional. An emitted `contract.d.ts` lists the aggregates of every codec in the stack, so `prisma contract emit` now adds rows for the three new codecs to it, and the contract itself does not change. Re-emit when you next change the contract; until then the existing `contract.d.ts` keeps working. A migration snapshot's `contract.d.ts` does not need the new rows; it needs only the import change `branded-time-types-removed` describes.
@@ -51,7 +51,7 @@ On PostgreSQL, a column type that several codecs read now names the kind of valu
 | `Timestamp(p?)` | `TimestampTemporal(p?)` | `Temporal.PlainDateTime` |
 | `Interval(p?)` | `IntervalParts(p?)` | `{ months, days, micros }` |
 
-`DateTime`, `Date` and `Time` keep their meaning in this release; `DateTemporal` and `TimeTemporal` are new names for `Date` and `Time`.
+This change leaves `DateTime`, `Date` and `Time` as they are, and adds `DateTemporal` and `TimeTemporal` as the explicit names of what `Date` and `Time` read today. A separate change, the convenience date and time types, gives `DateTime`, `Date` and `Time` new meanings and has its own instructions. To keep what a field reads today, write the explicit name: `TimestamptzTemporal` for `DateTime`, `DateTemporal` for `Date` and `TimeTemporal` for `Time`.
 
 Three explicit types are new, and need no change to existing schemas: `TimestampJsDate(p?)`, a `timestamp` column read as a JavaScript `Date`; `TimestampInstant(p?)`, a `timestamp` column read as a `Temporal.Instant`; and `IntervalString(p?)`, an `interval` column read as an ISO 8601 duration such as `P1Y2M`. Both timestamp types read and write the stored date and time as UTC.
 

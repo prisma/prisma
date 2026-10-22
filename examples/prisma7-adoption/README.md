@@ -55,7 +55,7 @@ In your own project the first import is `import { definePrismaConfig } from 'pri
 Two rules to know before you start:
 
 - A database last migrated on Prisma 5 or earlier must migrate on Prisma 7 first. Since Prisma 6.0.0 the implicit many-to-many junction tables (`_PostToTag` here) carry a primary key on `(A, B)` instead of a unique index, and the source describes that shape; on an older database `db sign` reports the difference.
-- Every construct the source cannot express is a hard error with the file, line, and what to change, never a silent change. Prisma 7 still owns the database, so any such edit is a Prisma 7 schema change that its next migration applies. The list, with what each edit does to the database, is in the `prisma7Schema` section of the [`@prisma/orm-postgres` README](../../packages/3-extensions/postgres/README.md). In this schema nothing needs editing.
+- Every construct the source cannot express is a hard error with the file, line, and what to change, never a silent change. Prisma 7 still owns the database, so any such edit is a Prisma 7 schema change that its next migration applies. The list, with what each edit does to the database, is in the `prisma7Schema` section of the [`@prisma/orm-postgres` README](../../packages/3-targets/postgres/9-facade/README.md). In this schema nothing needs editing.
 
 ### 3. Move routes one at a time
 
@@ -112,7 +112,7 @@ A Prisma 7 schema that uses `@ignore`, `@@ignore` or `Unsupported("...")` fields
 - Where Prisma 7 named a primary key or foreign key differently from Prisma 8, the contract states Prisma 7's name: a `map` on `@id`, `@@id` or `@relation`, a junction's primary key such as `_PostToTag_AB_pkey`, and a foreign key name Prisma 7 cut to 63 bytes. `db verify` does not compare these names, but migrations drop and rename constraints by them.
 - Prisma 8 reads a `DateTime` column as the text PostgreSQL prints, such as `2026-09-14 10:00:00.123` (UTC, as Prisma 7 wrote it), not as a JavaScript `Date`. `@db.Timestamptz`, `@db.Date` and `@db.Time` columns read as text too, so the application needs no `Temporal`.
 - `pnpm sign` creates `migrations/` (a snapshot of the signed contract and the `db` ref). It is Prisma 8's record of what was signed and is committed here; in phase 4 the first `migration plan` builds the baseline from it.
-- The Prisma 8 CLI prints JSON when stdout is not a terminal (a pipe, a file, or an agent) and prose in a terminal.
+- The Prisma 8 CLI prints JSON only with `--json`. Without it, a pipe, a file or an agent receives the command's tab-separated data lines on stdout, and the human output goes to stderr.
 
 ## Files
 

@@ -6,11 +6,14 @@ import { describe, expect, it } from 'vitest';
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '../../../../..');
 
-function patternsOf(audience: string, id: string): readonly RegExp[] {
-  const guide = readFileSync(
-    join(repoRoot, 'upgrade-instructions/pending/check-expectations', audience, 'instructions.md'),
-    'utf-8',
-  );
+const GUIDE_PATHS = {
+  app: 'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.19-to-8.0.0-rc.20/instructions.md',
+  extension:
+    'skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.19-to-8.0.0-rc.20/instructions.md',
+} as const;
+
+function patternsOf(audience: keyof typeof GUIDE_PATHS, id: string): readonly RegExp[] {
+  const guide = readFileSync(join(repoRoot, GUIDE_PATHS[audience]), 'utf-8');
   const block = guide.split(/\n {2}- id: /).find((entry) => entry.startsWith(`${id}\n`)) ?? '';
   return [...block.matchAll(/^ {8}- '(.*)'$/gm)].map(
     ([, pattern]) => new RegExp((pattern ?? '').replaceAll("''", "'")),
@@ -35,7 +38,7 @@ const dataOnlyOps = example(
 );
 const rawSqlMigration = example('prisma-8-demo/migrations/app/20260422T0720_initial/migration.ts');
 
-describe.each(['app', 'extension'])('the %s check-expectation detection', (audience) => {
+describe.each(['app', 'extension'] as const)('the %s check-expectation detection', (audience) => {
   const matches = (id: string, content: string) =>
     patternsOf(audience, id).some((pattern) => pattern.test(content));
 

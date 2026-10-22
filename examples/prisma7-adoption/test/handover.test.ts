@@ -107,7 +107,7 @@ describe('Prisma 8 taking over migrations from the Prisma 7 schema', () => {
           const v7 = (...args: string[]) =>
             run(dir, connectionString, 'prisma7', [...args, '--config', 'prisma7.config.ts']);
           const v8 = async (...args: string[]) =>
-            resultEnvelope(await run(dir, connectionString, 'prisma', args)).result;
+            resultEnvelope(await run(dir, connectionString, 'prisma', [...args, '--json'])).result;
           const tsx = (script: string) => run(dir, connectionString, 'tsx', [script]);
           const typecheck = (tsconfig: string) =>
             run(dir, connectionString, 'tsc', ['--noEmit', '-p', `test/handover/${tsconfig}`]);
@@ -234,6 +234,7 @@ describe('Prisma 8 taking over migrations from the Prisma 7 schema', () => {
             'plan',
             '--name',
             'drop-bio',
+            '--json',
           ]);
           expect(refused.status, refused.output).toBe(2);
           expect(resultEnvelope(refused.output)).toMatchObject({
@@ -357,7 +358,7 @@ describe('Prisma 8 taking over migrations from the Prisma 7 schema', () => {
 
           await withDevDatabase(async ({ connectionString: freshUrl }) => {
             const replayed = resultEnvelope(
-              await run(dir, freshUrl, 'prisma', ['db', 'migrate']),
+              await run(dir, freshUrl, 'prisma', ['db', 'migrate', '--json']),
             ).result;
             expect(replayed).toMatchObject({
               ok: true,

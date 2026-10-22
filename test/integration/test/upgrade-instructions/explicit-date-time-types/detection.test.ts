@@ -112,7 +112,7 @@ describe.each(['app', 'extension'])('the %s temporal-spec detection', (audience)
       pattern.test(content),
     );
 
-  it('matches a type test that compares with a global Temporal type, until it imports temporal-spec', () => {
+  it('matches a type test that compares with a global Temporal type, until it imports Temporal itself from temporal-spec', () => {
     expect({
       global: matches(
         "import { expectTypeOf } from 'vitest';\n\nexpectTypeOf<Row['at']>().toEqualTypeOf<Temporal.Instant>();",
@@ -125,12 +125,24 @@ describe.each(['app', 'extension'])('the %s temporal-spec detection', (audience)
         "expectTypeOf<Row['at']>().toEqualTypeOf<Temporal.Instant>();\nimport type { Temporal } from 'temporal-spec';",
       ),
       noComparison: matches('const at: Temporal.Instant = Temporal.Now.instant();'),
+      inlineTypeImport: matches(
+        "import { type Temporal } from 'temporal-spec';\n\nexpectTypeOf<Row['at']>().toEqualTypeOf<Temporal.Instant>();",
+      ),
+      aliasedImport: matches(
+        "import type { Temporal as TemporalTypes } from 'temporal-spec';\n\nexpectTypeOf<Row['at']>().toEqualTypeOf<Temporal.Instant>();",
+      ),
+      aliasedImportCompared: matches(
+        "import type { Temporal as TemporalTypes } from 'temporal-spec';\n\nexpectTypeOf<Row['at']>().toEqualTypeOf<TemporalTypes.Instant>();",
+      ),
     }).toEqual({
       global: true,
       valueForm: true,
       importsTemporalSpec: false,
       importsAfterUse: false,
       noComparison: false,
+      inlineTypeImport: false,
+      aliasedImport: true,
+      aliasedImportCompared: false,
     });
   });
 });
