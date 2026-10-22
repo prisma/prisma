@@ -19,4 +19,4 @@ Use it before you judge a feature request or a pull request, and before you prop
 
 ## Durable themes
 
-- **[A theme.]** [What it covers, with a link to the source.]
+- **[A theme, in a few words.]** [Where the maintainers invest, and in which direction, in one sentence.]

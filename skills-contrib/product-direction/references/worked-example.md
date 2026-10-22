@@ -46,12 +46,12 @@ bestSolution: Already exists: write a middleware that reads `plan.sql` in `befor
 
 Request: [prisma/orm#5063](https://github.com/prisma/orm/issues/5063), "Truncate table with Prisma Client like `prisma.account.truncate()`".
 
-No record covers it. In the thread, janpio wrote for the team in 2023 that the request was not a high priority, suggested a Client Extension that runs raw SQL, and welcomed pull requests ([comment](https://github.com/prisma/orm/issues/5063#issuecomment-1762149775)). That was about Prisma 7's client. It does not decline the request, and it does not decide whether Prisma 8's core should have it. A shipped feature covers part of it: the ORM's `deleteAll()` deletes every matching row, but it compiles only on a filtered collection, and it runs `DELETE`, not `TRUNCATE`. Raw SQL can send `TRUNCATE` through the raw lane, `db.raw.sql`. The value "We will not build in the core features which can be built in extension/user space" leans towards no, but a value is never grounds for a decline, even where it quotes a maintainer.
+No record covers it. In the thread, janpio wrote for the team in 2023 that the request was not a high priority, suggested a Client Extension that runs raw SQL, and welcomed pull requests ([comment](https://github.com/prisma/orm/issues/5063#issuecomment-1762149775)). That was about Prisma 7's client. It does not decline the request, and it does not decide whether Prisma 8's core should have it. A shipped feature covers part of it: the ORM's `deleteAll()` deletes every matching row, but it compiles only on a filtered collection, and it runs `DELETE`, not `TRUNCATE`. Raw SQL can send `TRUNCATE` through the raw lane, `db.raw.sql`. The value "we will not build in the core features which can be built in extension/user space" leans towards no, but a value is never grounds for a decline, even where it quotes a maintainer.
 
 ```text
 visionFit: unclear
 visionFitReason: No record or maintainer comment says whether truncating a table belongs in the core client or in user or extension space.
-visionFitEvidence: no record; janpio's 2023 comment suggests an extension but decides nothing for Prisma 8; the nearest anchor is the value "We will not build in the core features which can be built in extension/user space."
+visionFitEvidence: no record; janpio's 2023 comment suggests an extension but decides nothing for Prisma 8; the nearest anchor is the value "we will not build in the core features which can be built in extension/user space."
 bestSolution: A maintainer answers one question: is `truncate` part of the core client, or built in user or extension space? Record the answer as a new no if it is the second.
 ```
 

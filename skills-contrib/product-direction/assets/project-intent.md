@@ -1,16 +1,16 @@
 # Project intent
 
-[One paragraph: what the project is, and the idea at its centre. Link the source of each claim, such as the README or an architecture document.]
+[One paragraph: what the project is, and the idea at its centre. State only what holds across releases.]
 
 Read this file before making product-level decisions. When other docs or code conflict with it, treat this file as the project's intent. The [vision](./vision.md) says where the project is going. The [steering list](./decisions/index.md#steering-list) lists requests the maintainers have already answered, with what to use instead.
 
 ## What this project is
 
-- **[What it is.]** [One or two sentences, with a link to the source.]
+- **[What it is.]** [One or two sentences.]
 
 ## Who it is for
 
-- **[A group of users.]** [Why the project serves them, with a link to the source.]
+- **[A group of users.]** [Why the project serves them, in words that stay true across releases.]
 
 Optimise for:
 
@@ -18,7 +18,7 @@ Optimise for:
 
 It does not need to optimise for:
 
-- **[Something the project does not optimise for.]** [Why, with a link to the source.]
+- **[A trade-off the sources state.]** [Why, with a link to the source.]
 
 ## What not to assume
 
