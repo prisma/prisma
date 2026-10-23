@@ -390,6 +390,15 @@ describe('MySQL placeholder check', () => {
     );
   });
 
+  it('refuses raw SQL text that puts a digit right after an interpolated value, which would read as a larger placeholder', () => {
+    expect(() => sqlOf(RawQueryAst.affectedCount(['SELECT ', ParamRef.of('a'), '0 AS x']))).toThrow(
+      expect.objectContaining({
+        code: 'RUNTIME.PARAM_PLACEHOLDER_MISMATCH',
+        message: expect.stringContaining('digit right after an interpolated value'),
+      }),
+    );
+  });
+
   it('ignores a ? inside quoted text, a backtick identifier or a comment', () => {
     expect(
       lower(

@@ -269,7 +269,28 @@ function renderExpr(expr: AnyExpression, ctx: RenderContext): string {
   }
 }
 
+/** Refuses raw SQL text that puts a digit right after an interpolated value: the value's `?N` and the digit would read as one larger placeholder, `?1` and `0` as `?10`. */
+function assertNoDigitAfterParam(parts: RawExpr['parts'] | RawQueryAst['parts']): void {
+  parts.forEach((part, index) => {
+    const next = parts[index + 1];
+    const isParam =
+      typeof part !== 'string' && (part.kind === 'param-ref' || part.kind === 'prepared-param-ref');
+    if (isParam && typeof next === 'string' && /^\d/.test(next)) {
+      throw structuredError(
+        'RUNTIME.PARAM_PLACEHOLDER_MISMATCH',
+        "Raw SQL puts a digit right after an interpolated value, which MySQL lowering would read as part of the value's placeholder",
+        {
+          why: 'Each value is written as a numbered placeholder, ?N, so a digit that follows it in the SQL text makes a different placeholder: ?1 followed by 0 reads as ?10.',
+          fix: 'Put a space or an operator between the interpolated value and the digit.',
+          meta: { reason: 'digit-after-value', part: index + 1 },
+        },
+      );
+    }
+  });
+}
+
 function renderParts(parts: RawExpr['parts'] | RawQueryAst['parts'], ctx: RenderContext): string {
+  assertNoDigitAfterParam(parts);
   return parts.map((part) => (typeof part === 'string' ? part : renderExpr(part, ctx))).join('');
 }
 
