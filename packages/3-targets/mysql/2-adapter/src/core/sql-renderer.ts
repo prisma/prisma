@@ -24,6 +24,8 @@ import type {
   NullCheckExpr,
   OperationExpr,
   OrderByItem,
+  ParamRef,
+  PreparedParamRef,
   ProjectionExpr,
   ProjectionItem,
   RawExpr,
@@ -45,6 +47,8 @@ export type MysqlContract = Contract<SqlStorage>;
 interface RenderContext {
   readonly contract: MysqlContract | undefined;
   readonly codecs: MysqlCodecDescriptorRegistry;
+  /** The params, appended as each `?` is written, so their order is the order the placeholders appear in. */
+  readonly params: LoweredParam[];
 }
 
 /** MySQL's documented way to write an `OFFSET` with no `LIMIT`: the largest row count it takes. */
@@ -68,15 +72,9 @@ export function renderMysqlSql(
   contract: MysqlContract | undefined,
   codecs: MysqlCodecDescriptorRegistry,
 ): LoweredStatement {
-  const ctx: RenderContext = { contract, codecs };
-  const params: LoweredParam[] = ast
-    .collectParamRefs()
-    .map((ref) =>
-      ref.kind === 'prepared-param-ref'
-        ? { kind: 'bind', name: ref.name }
-        : { kind: 'literal', value: ref.value },
-    );
-  return Object.freeze({ sql: renderStatement(ast, ctx), params });
+  const ctx: RenderContext = { contract, codecs, params: [] };
+  const sql = renderStatement(ast, ctx);
+  return Object.freeze({ sql, params: ctx.params });
 }
 
 function renderStatement(ast: AnyQueryAst, ctx: RenderContext): string {
@@ -113,10 +111,6 @@ function renderSelect(ast: SelectAst, ctx: RenderContext): string {
   if (ast.distinctOn !== undefined && ast.distinctOn.length > 0) {
     throw unsupported('distinct-on', 'MySQL has no DISTINCT ON');
   }
-  const limitClause =
-    ast.limit === undefined && ast.offset !== undefined
-      ? `LIMIT ${NO_LIMIT}`
-      : renderLimitOffset('LIMIT', ast.limit, ctx);
   return [
     `SELECT ${ast.distinct ? 'DISTINCT ' : ''}${renderProjection(ast.projection, ctx)}`,
     ast.from === undefined ? '' : `FROM ${renderSource(ast.from, ctx)}`,
@@ -125,7 +119,9 @@ function renderSelect(ast: SelectAst, ctx: RenderContext): string {
     ast.groupBy?.length ? `GROUP BY ${ast.groupBy.map((e) => renderExpr(e, ctx)).join(', ')}` : '',
     ast.having ? `HAVING ${renderExpr(ast.having, ctx)}` : '',
     ast.orderBy?.length ? `ORDER BY ${renderOrderByItems(ast.orderBy, ctx)}` : '',
-    limitClause,
+    ast.limit === undefined && ast.offset !== undefined
+      ? `LIMIT ${NO_LIMIT}`
+      : renderLimitOffset('LIMIT', ast.limit, ctx),
     renderLimitOffset('OFFSET', ast.offset, ctx),
   ]
     .filter((part) => part.length > 0)
@@ -228,7 +224,7 @@ function renderExpr(expr: AnyExpression, ctx: RenderContext): string {
       return `NOT (${renderExpr(expr.expr, ctx)})`;
     case 'param-ref':
     case 'prepared-param-ref':
-      return renderParam(expr.codec, ctx);
+      return renderParam(expr, ctx);
     case 'literal':
       return renderLiteral(expr);
     case 'list':
@@ -265,13 +261,13 @@ function renderLiteral(expr: LiteralExpr): string {
   return json === undefined ? 'NULL' : `'${escapeLiteral(json)}'`;
 }
 
+/** Renders each `{{self}}` and `{{argN}}` where the template writes it, so a repeated or reordered operand binds its params where its placeholders are. */
 function renderOperation(expr: OperationExpr, ctx: RenderContext): string {
-  const args = expr.args.map((arg) => renderExpr(arg, ctx));
-  let result = expr.lowering.template.replace(/\{\{self\}\}/g, renderExpr(expr.self, ctx));
-  for (let i = 0; i < args.length; i++) {
-    result = result.replace(new RegExp(`\\{\\{arg${i}\\}\\}`, 'g'), args[i] ?? '');
-  }
-  return result;
+  return expr.lowering.template.replace(/\{\{(self|arg(\d+))\}\}/g, (_match, _name, index) => {
+    if (index === undefined) return renderExpr(expr.self, ctx);
+    const arg = expr.args[Number(index)];
+    return arg === undefined ? '' : renderExpr(arg, ctx);
+  });
 }
 
 function renderSubquery(expr: SubqueryExpr, ctx: RenderContext): string {
@@ -333,6 +329,7 @@ function renderAggregate(expr: AggregateExpr, ctx: RenderContext): string {
 }
 
 function renderWindowFunc(expr: WindowFuncExpr, ctx: RenderContext): string {
+  const args = expr.args.map((arg) => renderExpr(arg, ctx)).join(', ');
   const over = [
     expr.partitionBy?.length
       ? `PARTITION BY ${expr.partitionBy.map((e) => renderExpr(e, ctx)).join(', ')}`
@@ -341,7 +338,6 @@ function renderWindowFunc(expr: WindowFuncExpr, ctx: RenderContext): string {
   ]
     .filter((part) => part.length > 0)
     .join(' ');
-  const args = expr.args.map((arg) => renderExpr(arg, ctx)).join(', ');
   return `${expr.fn.toUpperCase()}(${args}) OVER (${over})`;
 }
 
@@ -375,7 +371,13 @@ function descriptorOf(codec: CodecRef, ctx: RenderContext, use: string) {
   return descriptor;
 }
 
-function renderParam(codec: CodecRef | undefined, ctx: RenderContext): string {
+function renderParam(ref: ParamRef | PreparedParamRef, ctx: RenderContext): string {
+  ctx.params.push(
+    ref.kind === 'prepared-param-ref'
+      ? { kind: 'bind', name: ref.name }
+      : { kind: 'literal', value: ref.value },
+  );
+  const codec = ref.codec;
   const castType =
     codec === undefined ? undefined : descriptorOf(codec, ctx, 'a parameter').parameterCastType;
   return castType === undefined ? '?' : `CAST(? AS ${castType})`;
@@ -435,16 +437,11 @@ const NULLS_KEY_DIRECTION: Readonly<Record<NonNullable<OrderByItem['nulls']>, st
 };
 
 function renderOrderByItem(item: OrderByItem, ctx: RenderContext): string {
-  const rendered = renderExpr(item.expr, ctx);
-  const ordered = `${rendered} ${ORDER_DIRECTION[item.dir]}`;
-  if (item.nulls === undefined) return ordered;
-  if (item.expr.collectParamRefs().length > 0) {
-    throw unsupported(
-      'nulls-placement-with-parameters',
-      'MySQL places NULLs with a second sort key that repeats the expression, so the expression cannot carry parameters',
-    );
-  }
-  return `${grouped(item.expr, ctx)} IS NULL ${NULLS_KEY_DIRECTION[item.nulls]}, ${ordered}`;
+  const nullsKey =
+    item.nulls === undefined
+      ? ''
+      : `${grouped(item.expr, ctx)} IS NULL ${NULLS_KEY_DIRECTION[item.nulls]}, `;
+  return `${nullsKey}${renderExpr(item.expr, ctx)} ${ORDER_DIRECTION[item.dir]}`;
 }
 
 function renderOrderByItems(items: ReadonlyArray<OrderByItem>, ctx: RenderContext): string {

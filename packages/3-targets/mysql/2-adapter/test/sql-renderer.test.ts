@@ -151,6 +151,64 @@ describe('MySQL lowering of a select', () => {
     );
   });
 
+  describe('binds each param to the placeholder written for it', () => {
+    const lit = (value: unknown) => ({ kind: 'literal', value });
+
+    it('when a join condition and a WHERE both carry one', () => {
+      const ast = selectId
+        .withJoins([
+          JoinAst.inner(
+            TableSource.named('post'),
+            AndExpr.of([
+              BinaryExpr.eq(ColumnRef.of('post', 'authorId'), id),
+              BinaryExpr.eq(ColumnRef.of('post', 'title'), ParamRef.of('on')),
+            ]),
+          ),
+        ])
+        .withWhere(BinaryExpr.eq(email, ParamRef.of('where')));
+      expect(lower(ast)).toEqual({
+        sql: 'SELECT `user`.`id` AS `id` FROM `user` INNER JOIN `post` ON (`post`.`authorId` = `user`.`id` AND `post`.`title` = ?) WHERE `user`.`email` = ?',
+        params: [lit('on'), lit('where')],
+      });
+    });
+
+    it('when GROUP BY and HAVING both carry one', () => {
+      const ast = fromUser
+        .withProjection([ProjectionItem.of('n', AggregateExpr.count())])
+        .withGroupBy([BinaryExpr.eq(email, ParamRef.of('group'))])
+        .withHaving(BinaryExpr.gt(AggregateExpr.count(), ParamRef.of('having')));
+      expect(lower(ast)).toEqual({
+        sql: 'SELECT COUNT(*) AS `n` FROM `user` GROUP BY `user`.`email` = ? HAVING COUNT(*) > ?',
+        params: [lit('group'), lit('having')],
+      });
+    });
+
+    it('when the projection and a derived FROM both carry one', () => {
+      const derived = selectId.withWhere(BinaryExpr.eq(email, ParamRef.of('from')));
+      const ast = SelectAst.from(DerivedTableSource.as('u', derived)).withProjection([
+        ProjectionItem.of('p', ParamRef.of('projection')),
+      ]);
+      expect(lower(ast)).toEqual({
+        sql: 'SELECT ? AS `p` FROM (SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`email` = ?) AS `u`',
+        params: [lit('projection'), lit('from')],
+      });
+    });
+
+    it('when an operation template writes its argument before itself', () => {
+      const op = new OperationExpr({
+        method: 'locate',
+        self: BinaryExpr.eq(email, ParamRef.of('self')),
+        args: [ParamRef.of('arg')],
+        returns: { codecId: 'mysql/int@1', nullable: false },
+        lowering: { targetFamily: 'sql', template: 'LOCATE({{arg0}}, {{self}})' },
+      });
+      expect(lower(SelectAst.noFrom().withProjection([ProjectionItem.of('v', op)]))).toEqual({
+        sql: 'SELECT LOCATE(?, `user`.`email` = ?) AS `v`',
+        params: [lit('arg'), lit('self')],
+      });
+    });
+  });
+
   it('writes an OFFSET with no LIMIT with the largest row count MySQL takes', () => {
     expect(sqlOf(selectId.withOffset(5))).toBe(
       'SELECT `user`.`id` AS `id` FROM `user` LIMIT 18446744073709551615 OFFSET 5',
@@ -400,11 +458,17 @@ describe('MySQL lowering of NULLS FIRST and NULLS LAST', () => {
     );
   });
 
-  it('refuses a NULLS placement on an expression with params, which the sort key would repeat', () => {
+  it('binds the params of an expression the sort key repeats, once for each placeholder', () => {
     const ast = selectId.withOrderBy([
       OrderByItem.asc(BinaryExpr.eq(id, ParamRef.of(1)), { nulls: 'last' }),
     ]);
-    expect(() => sqlOf(ast)).toThrow(expect.objectContaining({ code: 'RUNTIME.AST_UNSUPPORTED' }));
+    expect(lower(ast)).toEqual({
+      sql: 'SELECT `user`.`id` AS `id` FROM `user` ORDER BY `user`.`id` = ? IS NULL ASC, `user`.`id` = ? ASC',
+      params: [
+        { kind: 'literal', value: 1 },
+        { kind: 'literal', value: 1 },
+      ],
+    });
   });
 });
 

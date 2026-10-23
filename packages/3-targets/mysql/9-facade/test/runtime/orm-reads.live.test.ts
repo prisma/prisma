@@ -116,6 +116,21 @@ describe('MySQL reads through the ORM and the SQL builder', {
     });
   });
 
+  it('binds a join condition param and a WHERE param to their own placeholders', async (test) => {
+    await withSeededDatabase(test, exampleDatabase, async (url) => {
+      await using db = mysql({ contract, url, verifyMarker: false });
+      const rows = await db.query(
+        db.sql.User.innerJoin(db.sql.Post, (f, fns) =>
+          fns.and(fns.eq(f.User.id, f.Post.authorId), fns.eq(f.User.role, 'ADMIN')),
+        )
+          .select('email', 'title')
+          .where((f, fns) => fns.eq(f.Post.title, 'Beta'))
+          .build(),
+      );
+      expect(rows).toEqual([{ email: 'b@example.com', title: 'Beta' }]);
+    });
+  });
+
   it('checks the marker the control tables hold, and warns when it is missing or differs', async (test) => {
     await withSeededDatabase(test, exampleDatabase, async (url, driver) => {
       const warnings = async () => {
