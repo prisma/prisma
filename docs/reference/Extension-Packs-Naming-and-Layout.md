@@ -3,7 +3,7 @@
 Purpose: define a consistent convention for naming, placing, and describing extension packs across domains.
 
 ## NPM Package Name
-- Use `@internal/extension-<name>` for all extension packs
+- Use `@internal/extension-<name>` as the private workspace name of each extension pack in this repo; Prisma publishes it as `@prisma/orm-extension-<name>`
   - Examples: `@internal/extension-pgvector`, `@internal/extension-postgis`, `@internal/extension-views`
 - Include domain only when necessary to avoid ambiguity (rare): `@internal/extension-sql-views`
 - Packages published by someone other than Prisma follow [ADR 308](../architecture%20docs/adrs/ADR%20308%20-%20Community%20packages%20are%20named%20prisma-orm-name.md)
