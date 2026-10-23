@@ -341,6 +341,10 @@ export const pgPrecisionParams = arktype({
 const withDefaultPrecision = <Params extends { readonly precision?: number }>(params: Params) =>
   params.precision === undefined ? { ...params, precision: 6 } : params;
 
+/** PostgreSQL's catalog prints a precision only where one was declared. */
+const precisionAsWritten = <Params extends { readonly precision?: number }>(params: Params) =>
+  params;
+
 export const pgEnumParams = arktype({ typeName: 'string > 0' });
 
 /** A type with no parameters that is written and reported by its own name. */
@@ -605,6 +609,7 @@ export const pgTimetz = sqlDataType('pg/timetz', {
   spell: spellStoredDateTime(pgTimetzStoredText),
   params: pgPrecisionParams,
   normalize: withDefaultPrecision,
+  catalogParams: precisionAsWritten,
   texts: [
     written('timetz'),
     written('timetz({precision})'),
@@ -624,6 +629,7 @@ export const pgInterval = sqlDataType('pg/interval', {
   equalityKey: intervalEqualityKey,
   params: pgPrecisionParams,
   normalize: withDefaultPrecision,
+  catalogParams: precisionAsWritten,
   texts: [writtenAndCatalog('interval'), writtenAndCatalog('interval({precision})')],
 });
 
@@ -675,6 +681,7 @@ export const pgTime = sqlDataType('pg/time', {
   spell: spellStoredDateTime(pgTimeStoredText),
   params: pgPrecisionParams,
   normalize: withDefaultPrecision,
+  catalogParams: precisionAsWritten,
   texts: [
     written('time'),
     written('time({precision})'),
@@ -693,6 +700,7 @@ export const pgTimestamp = sqlDataType('pg/timestamp', {
   spell: spellStoredDateTime(pgTimestampStoredText),
   params: pgPrecisionParams,
   normalize: withDefaultPrecision,
+  catalogParams: precisionAsWritten,
   texts: [
     written('timestamp'),
     written('timestamp({precision})'),
@@ -711,6 +719,7 @@ export const pgTimestamptz = sqlDataType('pg/timestamptz', {
   spell: spellStoredDateTime(pgTimestamptzStoredText),
   params: pgPrecisionParams,
   normalize: withDefaultPrecision,
+  catalogParams: precisionAsWritten,
   texts: [
     written('timestamptz'),
     written('timestamptz({precision})'),

@@ -53,6 +53,8 @@ export interface SqlDataTypeSpec<Params extends SqlTypeParams = SqlTypeParams>
   /** The id of the type a column of this type is stored as, with the same parameters. A type stored as another declares no texts. */
   readonly storedAs?: DataTypeId;
   readonly normalize?: (params: Params) => Params;
+  /** The parameters the database catalog prints for parameters as written, when they are not their normal form: PostgreSQL prints no precision for a bare `timestamptz`, though its normal form has precision 6. */
+  readonly catalogParams?: (params: Params) => Params;
   /** The type's name from its parameters, for a type that claims a kind or whose name is its catalog text. */
   readonly render?: (params: Params) => string;
   readonly fromReported?: (reported: ReportedSqlType) => Params;
@@ -70,6 +72,8 @@ export interface SqlDataTypeFacts<Params extends SqlTypeParams = SqlTypeParams> 
   readonly storedAs: DataTypeId | undefined;
   /** The normal form of `params`; parameters the type's schema refuses are returned as written. */
   readonly normalize: (params: Params) => Params;
+  /** The parameters the catalog prints for `params` as written: the declared {@link SqlDataTypeSpec.catalogParams}, or else the normal form. */
+  readonly catalogParams: (params: Params) => Params;
   readonly render: ((params: Params) => string) | undefined;
   readonly fromReported: ((reported: ReportedSqlType) => Params) | undefined;
   readonly nameIsCatalogText: boolean;
@@ -274,6 +278,12 @@ export function sqlDataType<Params extends SqlTypeParams = SqlTypeParams>(
   checkMarks(declared.id, texts);
   checkKindClaim(declared.id, spec);
   checkStoredAs(declared.id, spec);
+  const declaredCatalogParams = spec.catalogParams;
+  const catalogParams =
+    declaredCatalogParams === undefined
+      ? normalize
+      : (params: Params): Params =>
+          isParamsOf(spec.params, params) ? declaredCatalogParams(params) : params;
   const type: SqlDataType<Params> = {
     ...declared,
     ...ifDefined('params', spec.params),
@@ -282,6 +292,7 @@ export function sqlDataType<Params extends SqlTypeParams = SqlTypeParams>(
       claimsKind: spec.claimsKind,
       storedAs: spec.storedAs,
       normalize,
+      catalogParams,
       render: spec.render,
       fromReported: spec.fromReported,
       nameIsCatalogText: spec.nameIsCatalogText === true,
@@ -561,9 +572,7 @@ export function renderSqlTypeName<Params extends SqlTypeParams>(
   return substitute(type, pickText(type, 'written', keys), params);
 }
 
-/**
- * The text the database catalog prints for `type` with `params` as written: the catalog text that takes exactly those parameters, so a bare `timestamptz` prints `timestamp with time zone` though its normal form has a precision, or else the one that takes their normal form, as `numeric(10)` prints `numeric(10,0)`.
- */
+/** The text the database catalog prints for `type` with `params` as written, from the parameters its catalog prints for them ({@link SqlDataTypeFacts.catalogParams}). */
 export function renderSqlCatalogText<Params extends SqlTypeParams>(
   type: SqlDataType<Params>,
   params: SqlTypeParams,
@@ -575,13 +584,8 @@ export function renderSqlCatalogText<Params extends SqlTypeParams>(
     );
   }
   if (type.sql.render !== undefined) return type.sql.render(validated);
-  const writtenKeys = [...presentKeys(validated)].sort().join(',');
-  const asWritten = type.sql.texts.find(
-    (text) => text.catalog === true && placeholderSetOf(text.text) === writtenKeys,
-  );
-  if (asWritten !== undefined) return substitute(type, asWritten, validated);
-  const normalized = type.sql.normalize(validated);
-  return substitute(type, pickText(type, 'catalog', presentKeys(normalized)), normalized);
+  const printed = type.sql.catalogParams(validated);
+  return substitute(type, pickText(type, 'catalog', presentKeys(printed)), printed);
 }
 
 function prepareReportedText(text: string): string {

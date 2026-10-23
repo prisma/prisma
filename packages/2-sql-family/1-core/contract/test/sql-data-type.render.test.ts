@@ -11,6 +11,7 @@ import {
 import {
   char,
   character,
+  datetime,
   enumType,
   geometry,
   int4,
@@ -150,7 +151,15 @@ describe('renderSqlCatalogText', () => {
     expect(renderSqlCatalogText(timestamp, {})).toBe('timestamp without time zone');
   });
 
-  it('prints the text for the parameters as written when the catalog has one for them', () => {
+  it('prints the normal form of the parameters for a type that declares no catalog parameters', () => {
+    expect([
+      renderSqlCatalogText(datetime, { precision: 0 }),
+      renderSqlCatalogText(datetime, {}),
+      renderSqlCatalogText(datetime, { precision: 3 }),
+    ]).toEqual(['datetime', 'datetime', 'datetime(3)']);
+  });
+
+  it('prints the parameters a type declares its catalog prints for those written', () => {
     expect([
       renderSqlCatalogText(timestamptz, {}),
       renderSqlCatalogText(timestamptz, { precision: 6 }),
