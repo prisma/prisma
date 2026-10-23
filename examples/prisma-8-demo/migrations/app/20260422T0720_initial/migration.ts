@@ -10,8 +10,8 @@ import {
   rawSql,
   unique,
 } from '@prisma/orm-postgres/target/migration';
-import type { Contract as End } from '../../snapshots/58888a20cba5529ede90056ecd1318183f0e5cf280c88cd58aeadd94bbf52c1b/contract';
-import endContract from '../../snapshots/58888a20cba5529ede90056ecd1318183f0e5cf280c88cd58aeadd94bbf52c1b/contract.json' with {
+import type { Contract as End } from '../../snapshots/11d8695d1b8ea9c748834093ac4111ce68145827709363b7c748c2892be84146/contract';
+import endContract from '../../snapshots/11d8695d1b8ea9c748834093ac4111ce68145827709363b7c748c2892be84146/contract.json' with {
   type: 'json',
 };
 
@@ -86,6 +86,10 @@ export default class M extends Migration<never, End> {
         ],
         constraints: [
           primaryKey(['id']),
+          checkExpression(
+            'user_address_value_object_69432dc1',
+            '"address" IS NULL OR jsonb_path_match("address", \'strict $.type() == "null" || ($.type() == "object" && exists($.keyvalue() ? (@.key == "city" && (@.value.type() == "string"))) && exists($.keyvalue() ? (@.key == "country" && (@.value.type() == "string"))) && exists($.keyvalue() ? (@.key == "street" && (@.value.type() == "string"))) && !exists($.keyvalue() ? (@.key == "zip" && !(@.value.type() == "null" || (@.value.type() == "string")))) && !exists($.keyvalue() ? (@.key != "city" && @.key != "country" && @.key != "street" && @.key != "zip")))\') IS TRUE',
+          ),
           checkExpression('user_kind_check_836d43ef', "\"kind\" IN ('admin', 'user')"),
         ],
       }),
@@ -117,7 +121,10 @@ export default class M extends Migration<never, End> {
           col('type', 'text', { notNull: true }),
           col('userId', 'uuid', { notNull: true }),
         ],
-        constraints: [primaryKey(['id'])],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression('task_type_check_cda3f5e7', "\"type\" IN ('bug', 'feature')"),
+        ],
       }),
       this.createTable({
         schema: 'public',
