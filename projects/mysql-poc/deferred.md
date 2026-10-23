@@ -30,3 +30,9 @@ From the system-design review of slice 2b (2026-10-22).
 From the system-design review of slice 2b (2026-10-22).
 
 `MIGRATION.MYSQL_CONTROL_STACK_MISSING` sits beside `MIGRATION.POSTGRES_CONTROL_STACK_MISSING`: the same failure under two codes, and each new target adds another. Fix: one target-neutral code. Renaming the Postgres code changes what users can match on, so it needs an upgrade note.
+
+## A planned migration does not type-check in a facade-only application
+
+From slice 2c (2026-10-23).
+
+Including `migrations/**` in the MySQL example's `tsconfig.json` fails with TS2742 on `get operations()`: the inferred type names a bundled chunk inside `@prisma/orm-target-mysql`, which an application that depends only on `@prisma/orm-mysql` cannot name. The Postgres and SQLite demos also leave `migrations/` out of type checking, so it may affect every target; not yet checked there. Fix: give the operations an explicit type the facade exports, and type-check `migrations/` in every example.
