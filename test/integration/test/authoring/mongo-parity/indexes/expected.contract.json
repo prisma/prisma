@@ -1,0 +1,298 @@
+{
+  "schemaVersion": "1",
+  "targetFamily": "mongo",
+  "target": "mongo",
+  "profileHash": "251b3ce23f6c9f561892e7c1af9d2cc941a13d64ba1aa7226b90036b09568cc3",
+  "roots": {
+    "users": {
+      "model": "User",
+      "namespace": "__unbound__"
+    }
+  },
+  "domain": {
+    "namespaces": {
+      "__unbound__": {
+        "models": {
+          "User": {
+            "fields": {
+              "body": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              },
+              "email": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              },
+              "expiresAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/date@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
+                  "kind": "scalar"
+                }
+              },
+              "metadata": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/json@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              },
+              "tenantId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              },
+              "title": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "collection": "users",
+              "fields": {
+                "body": {
+                  "field": "body"
+                },
+                "email": {
+                  "field": "email"
+                },
+                "expiresAt": {
+                  "field": "expiresAt"
+                },
+                "id": {
+                  "field": "_id"
+                },
+                "metadata": {
+                  "field": "metadata"
+                },
+                "name": {
+                  "field": "name"
+                },
+                "status": {
+                  "field": "status"
+                },
+                "tenantId": {
+                  "field": "tenantId"
+                },
+                "title": {
+                  "field": "title"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "storage": {
+    "namespaces": {
+      "__unbound__": {
+        "entries": {
+          "collection": {
+            "users": {
+              "indexes": [
+                {
+                  "keys": [
+                    {
+                      "direction": 1,
+                      "field": "email"
+                    }
+                  ],
+                  "kind": "mongo-index",
+                  "unique": true
+                },
+                {
+                  "keys": [
+                    {
+                      "direction": 1,
+                      "field": "tenantId"
+                    },
+                    {
+                      "direction": 1,
+                      "field": "email"
+                    }
+                  ],
+                  "kind": "mongo-index",
+                  "unique": true
+                },
+                {
+                  "keys": [
+                    {
+                      "direction": -1,
+                      "field": "name"
+                    }
+                  ],
+                  "kind": "mongo-index"
+                },
+                {
+                  "keys": [
+                    {
+                      "direction": 1,
+                      "field": "metadata.$**"
+                    }
+                  ],
+                  "kind": "mongo-index"
+                },
+                {
+                  "expireAfterSeconds": 3600,
+                  "keys": [
+                    {
+                      "direction": 1,
+                      "field": "expiresAt"
+                    }
+                  ],
+                  "kind": "mongo-index"
+                },
+                {
+                  "collation": {
+                    "locale": "fr",
+                    "strength": 2
+                  },
+                  "keys": [
+                    {
+                      "direction": 1,
+                      "field": "status"
+                    }
+                  ],
+                  "kind": "mongo-index"
+                },
+                {
+                  "keys": [
+                    {
+                      "direction": 1,
+                      "field": "name"
+                    }
+                  ],
+                  "kind": "mongo-index",
+                  "partialFilterExpression": {
+                    "status": "active"
+                  }
+                },
+                {
+                  "keys": [
+                    {
+                      "direction": "text",
+                      "field": "title"
+                    },
+                    {
+                      "direction": "text",
+                      "field": "body"
+                    }
+                  ],
+                  "kind": "mongo-index",
+                  "weights": {
+                    "body": 1,
+                    "title": 10
+                  }
+                }
+              ],
+              "kind": "mongo-collection",
+              "validator": {
+                "jsonSchema": {
+                  "additionalProperties": false,
+                  "bsonType": "object",
+                  "properties": {
+                    "_id": {
+                      "bsonType": "objectId"
+                    },
+                    "body": {
+                      "bsonType": "string"
+                    },
+                    "email": {
+                      "bsonType": "string"
+                    },
+                    "expiresAt": {
+                      "bsonType": "date"
+                    },
+                    "metadata": {
+                      "bsonType": [
+                        "object",
+                        "array",
+                        "string",
+                        "double",
+                        "int",
+                        "long",
+                        "bool",
+                        "null"
+                      ]
+                    },
+                    "name": {
+                      "bsonType": "string"
+                    },
+                    "status": {
+                      "bsonType": "string"
+                    },
+                    "tenantId": {
+                      "bsonType": "string"
+                    },
+                    "title": {
+                      "bsonType": "string"
+                    }
+                  },
+                  "required": [
+                    "_id",
+                    "body",
+                    "email",
+                    "expiresAt",
+                    "metadata",
+                    "name",
+                    "status",
+                    "tenantId",
+                    "title"
+                  ]
+                },
+                "kind": "mongo-validator",
+                "validationAction": "error",
+                "validationLevel": "strict"
+              }
+            }
+          }
+        },
+        "id": "__unbound__",
+        "kind": "mongo-database"
+      }
+    },
+    "storageHash": "8447894a94f011257c8550411eeb53a63235ccf273bce5a7cc4af91231673c94"
+  },
+  "capabilities": {},
+  "extensions": {},
+  "meta": {},
+  "_generated": {
+    "warning": "⚠️  GENERATED FILE - DO NOT EDIT",
+    "message": "This file is automatically generated by \"prisma contract emit\".",
+    "regenerate": "To regenerate, run: prisma contract emit"
+  }
+}

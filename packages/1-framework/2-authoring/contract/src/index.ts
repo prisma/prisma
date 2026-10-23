@@ -20,7 +20,7 @@ export type {
 } from './composed-helpers-scaffolding';
 export { createEntityHelpersFromNamespace } from './composed-helpers-scaffolding';
 export type { ForeignKeyDefaultsState, IndexDef } from './descriptors';
-export { encodeEnumTypeMembers } from './enum-members';
+export { encodeEnumTypeMembers, enumMemberError } from './enum-members';
 export type {
   BoundEnumType,
   CodecInput,

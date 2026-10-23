@@ -1,6 +1,6 @@
-import type { ContractEmbedRelation, ContractField } from '@internal/contract/types';
+import type { ContractEmbedRelation, ContractField, ContractModel } from '@internal/contract/types';
 import { type CrossReference, crossRef } from '@internal/contract/types';
-import type { MongoModelDefinition, MongoModelStorage } from '../src/contract-types';
+import type { MongoModelStorage } from '../src/contract-types';
 import {
   type CollectionValidatorsInput,
   deriveCollectionValidators,
@@ -17,7 +17,10 @@ export function model(
     storage,
     ...extra
   }: Partial<
-    Pick<MongoModelDefinition, 'relations' | 'discriminator' | 'variants' | 'base' | 'owner'>
+    Pick<
+      ContractModel<MongoModelStorage>,
+      'relations' | 'discriminator' | 'variants' | 'base' | 'owner'
+    >
   > & {
     readonly storage?: Partial<MongoModelStorage>;
   } = {},

@@ -1287,7 +1287,7 @@ How it composes:
 - Long-lived hosts (Vite dev server, watch CLIs) must call `disposeEmitQueue`
   on shutdown to drop the per-output queue state, otherwise the module-global
   queue map leaks one entry per unique output path.
-- `loadContractSource(config, { signal, onWarning })` runs only the resolve-source step: it builds the control stack, runs `contract.source.load`, and returns the contract or the source's `{ summary, diagnostics }` without writing anything. `onWarning` receives each warning the source reports. `prisma orm init` uses it to check a Prisma 7 schema before it changes the project. `executeContractEmit`, `contract print` and `ControlClient.emit` load the source through the same step, so each reports a bad source with the same error.
+- `loadContractSource(config, { signal })` runs only the resolve-source step: it builds the control stack, runs `contract.source.load`, and returns `{ contract, warnings }` or the source's `{ summary, diagnostics, warnings }` without writing anything. `warnings` holds each warning the source reported, on either side. `prisma orm init` uses it to check a Prisma 7 schema before it changes the project. `executeContractEmit`, `contract print` and `ControlClient.emit` load the source through the same step, so each reports a bad source with the same error. The step returns the source's warnings on both sides of its result; each caller reports them itself, and on a failure the CLI lists them as `warn` findings after the error's own.
 
 The `validateContractDeps` warning is returned in `ContractEmitResult.validationWarning`
 rather than written to stderr by the operation — callers (CLI, Vite plugin) decide

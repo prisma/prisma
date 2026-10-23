@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import type * as configLoader from '@internal/config-loader';
 import type { Contract } from '@internal/contract/types';
 import type { EmitResult } from '@internal/emitter';
+import { CliStructuredError } from '@internal/errors/control';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { executeContractEmit } from '../../src/control-api/operations/contract-emit';
 import type { ContractEmitOptions } from '../../src/control-api/types';
@@ -378,6 +379,76 @@ describe('executeContractEmit', () => {
       expect(withWarning.result.sourceWarnings).toEqual([warning]);
       expect(withoutWarning.result).not.toHaveProperty('sourceWarnings');
     });
+
+    it.each([
+      {
+        label: 'returns diagnostics',
+        failWith: () => ({
+          ok: false,
+          failure: {
+            summary: 'Source interpretation failed',
+            diagnostics: [
+              {
+                code: 'PSL_PARSE_ERROR',
+                message: 'Unexpected token',
+                sourceId: 'prisma/schema.prisma',
+              },
+            ],
+          },
+        }),
+        code: 'CONTRACT.SOURCE_LOAD_FAILED',
+        firstFinding: { severity: 'error', code: 'CONTRACT.SOURCE_DIAGNOSTIC' },
+      },
+      {
+        label: 'throws a structured error',
+        failWith: () => {
+          throw new CliStructuredError('CONTRACT.DEFAULT_INVALID', 'Default refused', {
+            diagnostics: [
+              {
+                code: 'CONTRACT.DEFAULT_INVALID',
+                severity: 'error',
+                summary: 'Default refused',
+                nextActions: [],
+              },
+            ],
+          });
+        },
+        code: 'CONTRACT.DEFAULT_INVALID',
+        firstFinding: { severity: 'error', code: 'CONTRACT.DEFAULT_INVALID' },
+      },
+    ])(
+      'keeps the warning when the source then $label',
+      async ({ failWith, code, firstFinding }) => {
+        const source = {
+          load: async (context: { reportWarning?: (d: unknown) => void }) => {
+            context.reportWarning?.(warning);
+            return failWith();
+          },
+        };
+        const error = await executeContractEmitWithMock(
+          emitOptions(mockConfigWithContract({ source, output: './src/prisma/contract.json' })),
+        ).then(
+          () => expect.unreachable('contract emit succeeded'),
+          (thrown: unknown) => thrown,
+        );
+
+        expect(error).toMatchObject({
+          code,
+          diagnostics: [
+            expect.objectContaining(firstFinding),
+            {
+              code: 'CONTRACT.SOURCE_DIAGNOSTIC',
+              severity: 'warn',
+              summary:
+                'prisma/schema.prisma PSL_DEPRECATED_SCALAR_NAME: Scalar type "Int" is deprecated and will be removed; use "Int32".',
+              nextActions: [],
+              where: { path: 'prisma/schema.prisma' },
+              meta: { code: 'PSL_DEPRECATED_SCALAR_NAME' },
+            },
+          ],
+        });
+      },
+    );
   });
 
   it('passes deserializeContract output to emit, not the pre-hydration envelope', async () => {

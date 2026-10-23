@@ -1871,6 +1871,9 @@ importers:
       '@internal/mongo-contract-psl':
         specifier: workspace:8.0.0-rc.20
         version: link:../contract-psl
+      '@internal/mongo-contract-ts':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../contract-ts
       '@internal/psl-parser':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../1-framework/2-authoring/psl-parser
@@ -1932,6 +1935,9 @@ importers:
       '@internal/mongo-contract':
         specifier: workspace:8.0.0-rc.20
         version: link:../../1-foundation/mongo-contract
+      '@internal/mongo-contract-ts':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../contract-ts
       '@internal/mongo-value':
         specifier: workspace:8.0.0-rc.20
         version: link:../../1-foundation/mongo-value
@@ -1948,9 +1954,6 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
     devDependencies:
-      '@internal/mongo-contract-ts':
-        specifier: workspace:8.0.0-rc.20
-        version: link:../contract-ts
       '@repo/tsconfig':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../0-config/tsconfig
