@@ -107,8 +107,10 @@ describe('sqlite transaction()', () => {
         };
       });
 
-      expect(() => escaped.tx.query(plan)).toThrow(/transaction has ended/);
-      expect(() => prepared.query(escaped.tx, {})).toThrow(/transaction has ended/);
+      await expect(escaped.tx.query(plan).toArray()).rejects.toThrow(/transaction has ended/);
+      await expect(prepared.query(escaped.tx, {}).toArray()).rejects.toThrow(
+        /transaction has ended/,
+      );
       await expect(escaped.rows.toArray()).rejects.toMatchObject({
         code: 'RUNTIME.TRANSACTION_CLOSED',
       });

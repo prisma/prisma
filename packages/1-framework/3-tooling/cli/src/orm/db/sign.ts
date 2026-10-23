@@ -392,8 +392,8 @@ export function createDbSignCommand(
       description:
         'Verifies that your database schema satisfies the emitted contract and the\n' +
         'contract of every extension that ships one, and writes or updates the\n' +
-        'signature of each that does, in one transaction. A signature records that\n' +
-        'this database instance is aligned with a specific contract version.\n' +
+        'signature of each that does. A signature records that this database\n' +
+        'instance is aligned with a specific contract version.\n' +
         'Idempotent. After signing, the db ref of each signed space is advanced to\n' +
         'its contract; pass --no-advance-ref to sign without touching any ref,\n' +
         'which is what a CI or deployment pipeline usually wants.\n' +

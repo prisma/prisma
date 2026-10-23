@@ -401,14 +401,14 @@ export interface MigrationRunnerFailure extends StructuredError {
 /** The facts of a failed migration run. Each fact appears once. */
 export interface MigrationRunnerFailureMeta {
   /**
-   * Identifier of the space whose plan caused the rollback when
-   * {@link MigrationRunner.execute} processes multiple spaces.
+   * The space whose plan failed when {@link MigrationRunner.execute} processes multiple spaces.
    */
   readonly failingSpace?: string;
   /**
    * Whether the database is as it was before the failed apply: `true` when the runner rolled the
    * apply back or failed before it changed anything, `false` when what it changed stays. Absent when
-   * the runner does not say.
+   * the runner does not say. Creating the runner's own control tables (the marker and the ledger)
+   * does not count as a change: it is `true` when only those were created.
    */
   readonly databaseUnchanged?: boolean;
   /** The check that did not hold, when a precheck or postcheck failed. */
@@ -796,9 +796,10 @@ export interface MigrationRunner<
    * at the load boundary. Runners do not re-verify plans and assume the
    * `(metadata, ops)` pairs on disk have not been tampered with since emit.
    *
-   * Atomicity semantics differ by family: SQL targets open one outer
-   * transaction across every space; Mongo iterates per-space without an
-   * outer transaction and relies on per-space verify-gated marker atomicity.
+   * A failure states what it left in {@link MigrationRunnerFailureMeta.failingSpace} and
+   * {@link MigrationRunnerFailureMeta.databaseUnchanged}. On a target whose DDL is transactional the
+   * runner rolls the whole apply back and reports `databaseUnchanged: true`; otherwise it reports
+   * whether the database changed, and the operations that already ran stay applied.
    */
   execute(options: {
     readonly driver: ControlDriverInstance<TFamilyId, TTargetId>;

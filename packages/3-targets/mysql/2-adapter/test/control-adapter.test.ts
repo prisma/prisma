@@ -1,11 +1,22 @@
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
-import { DdlNode } from '@internal/sql-relational-core/ast';
+import { DdlColumn, DdlNode } from '@internal/sql-relational-core/ast';
+import { createTable } from '@internal/target-mysql/contract-free';
+import type { MysqlDdlVisitor } from '@internal/target-mysql/ddl';
 import { describe, expect, it } from 'vitest';
 import { mysqlAdapterCapabilities } from '../src/core/capabilities';
 import { createAdapter, recordingDriver } from './helpers';
 
 class OtherDdl extends DdlNode {
   readonly kind = 'other' as const;
+}
+
+class CreateTableFromAnotherCopy extends DdlNode {
+  readonly kind = 'copied-create-table' as const;
+  accept<R>(visitor: MysqlDdlVisitor<R>): R {
+    return visitor.createTable(
+      createTable({ table: 'Copied', columns: [new DdlColumn({ name: 'id', type: 'int' })] }),
+    );
+  }
 }
 
 const markerRow = {
@@ -44,6 +55,10 @@ describe('MysqlControlAdapter', () => {
     expect(mysqlAdapterCapabilities).toEqual({
       sql: { orderBy: true, limit: true, foreignKeys: true, enums: true },
     });
+  });
+
+  it('names its marker table', () => {
+    expect(createAdapter().markerLocation).toBe('_prisma_marker');
   });
 
   it('reads no marker from a database without the marker table', async () => {
@@ -112,27 +127,84 @@ describe('MysqlControlAdapter', () => {
     ]);
   });
 
-  it('refuses what the migration slice builds', async () => {
-    const adapter: SqlControlAdapter<'mysql'> = createAdapter();
+  it('takes no lock inside a transaction, because holdMarkerLock takes it around the transaction', async () => {
+    const adapter = createAdapter();
     const driver = recordingDriver();
-    const destination = { storageHash: 'a', profileHash: 'b' };
-    const refusals = [
-      adapter.insertMarker(driver, 'app', destination),
-      adapter.initMarker(driver, 'app', destination),
-      adapter.updateMarker(driver, 'app', 'x', destination),
-      adapter.writeLedgerEntry(driver, 'app', {
-        edgeId: 'e',
-        from: 'a',
-        to: 'b',
-        migrationName: 'm',
-        migrationHash: 'h',
-        operations: [],
+    await adapter.withTransaction(driver, () => adapter.lockMarker(driver));
+    expect(driver.statements).toEqual(['START TRANSACTION', 'COMMIT']);
+  });
+
+  it('holds the marker lock outside a transaction while the work it guards runs, and releases it when that work ends', async () => {
+    const adapter = createAdapter();
+    const driver = recordingDriver((sql) =>
+      sql.startsWith('SELECT GET_LOCK') ? [{ acquired: '1' }] : [],
+    );
+    const held = await adapter.holdMarkerLock(driver, async () => {
+      await driver.query('CREATE TABLE IF NOT EXISTS marker');
+      return adapter.withTransaction(driver, async () => 'signed');
+    });
+    await expect(
+      adapter.holdMarkerLock(driver, async () => {
+        throw new Error('boom');
       }),
-      adapter.lockMarker(driver),
-    ];
-    for (const refusal of refusals) {
-      await expect(refusal).rejects.toMatchObject({ code: 'MIGRATION.TARGET_UNSUPPORTED' });
-    }
+    ).rejects.toThrow('boom');
+
+    expect({ held, statements: driver.statements.map((sql) => sql.split('(')[0]) }).toEqual({
+      held: 'signed',
+      statements: [
+        'SELECT GET_LOCK',
+        'CREATE TABLE IF NOT EXISTS marker',
+        'START TRANSACTION',
+        'COMMIT',
+        'SELECT RELEASE_LOCK',
+        'SELECT GET_LOCK',
+        'SELECT RELEASE_LOCK',
+      ],
+    });
+  });
+
+  it('keeps the failure of the work it guards when releasing the marker lock fails too', async () => {
+    const adapter = createAdapter();
+    const driver = recordingDriver((sql) => {
+      if (sql.startsWith('SELECT RELEASE_LOCK')) throw new Error('Connection lost');
+      return sql.startsWith('SELECT GET_LOCK') ? [{ acquired: '1' }] : [];
+    });
+    const fails = async () => {
+      throw new Error('boom');
+    };
+    await expect(adapter.holdMarkerLock(driver, fails)).rejects.toThrow('boom');
+    await expect(adapter.holdMarkerLock(driver, async () => 'done')).rejects.toThrow(
+      'Connection lost',
+    );
+  });
+
+  it('refuses to go on when another process holds the marker lock', async () => {
+    const adapter = createAdapter();
+    const driver = recordingDriver((sql) =>
+      sql.startsWith('SELECT GET_LOCK') ? [{ acquired: '0' }] : [],
+    );
+    await expect(adapter.holdMarkerLock(driver, async () => 'never')).rejects.toMatchObject({
+      code: 'MIGRATION.MARKER_LOCK_TIMEOUT',
+    });
+  });
+
+  it('advances the marker only when the locked row still holds the expected hash', async () => {
+    const adapter = createAdapter();
+    const stored = { core_hash: 'sha256:old', invariants: '["b"]' };
+    const driver = recordingDriver((sql) => (sql.includes('FOR UPDATE') ? [stored] : []));
+    const destination = { storageHash: 'sha256:new', profileHash: 'p', invariants: ['a'] };
+
+    expect(await adapter.updateMarker(driver, 'app', 'sha256:other', destination)).toBe(false);
+    expect(await adapter.updateMarker(driver, 'app', 'sha256:old', destination)).toBe(true);
+    expect(driver.statements).toEqual([
+      'SELECT core_hash, invariants FROM `_prisma_marker` WHERE space = ? FOR UPDATE',
+      'SELECT core_hash, invariants FROM `_prisma_marker` WHERE space = ? FOR UPDATE',
+      'UPDATE `_prisma_marker` SET core_hash = ?, profile_hash = ?, updated_at = CURRENT_TIMESTAMP(3), invariants = ? WHERE space = ? AND core_hash = ?',
+    ]);
+  });
+
+  it('refuses query lowering', async () => {
+    const adapter: SqlControlAdapter<'mysql'> = createAdapter();
     const queryLoweringRefusal = {
       code: 'RUNTIME.AST_UNSUPPORTED',
       message: 'Lowering queries is not yet supported on MySQL.',
@@ -147,7 +219,32 @@ describe('MysqlControlAdapter', () => {
     expect(() => adapter.lower(new OtherDdl(), { contract: undefined })).toThrow(
       /cannot lower DDL/,
     );
-    await expect(adapter.lowerToExecuteRequest(new OtherDdl())).rejects.toThrow(/"other"/);
+  });
+
+  it('refuses a DDL node MySQL does not build with a structured error', async () => {
+    class ForeignDdl extends DdlNode {
+      readonly kind = 'drop-type' as const;
+      accept<R>(visitor: { dropType(node: ForeignDdl): R }): R {
+        return visitor.dropType(this);
+      }
+    }
+    const adapter: SqlControlAdapter<'mysql'> = createAdapter();
+    const refusal = { code: 'RUNTIME.DDL_UNSUPPORTED', meta: { surface: 'control-adapter' } };
+    await expect(adapter.lowerToExecuteRequest(new OtherDdl())).rejects.toMatchObject({
+      ...refusal,
+      message: 'The MySQL control adapter cannot lower the DDL node "other".',
+    });
+    await expect(adapter.lowerToExecuteRequest(new ForeignDdl())).rejects.toMatchObject({
+      ...refusal,
+      message: 'The MySQL control adapter cannot lower the DDL node "drop-type".',
+    });
+  });
+
+  it('lowers a DDL node through the visitor it accepts, so a node from another copy of the module lowers too', async () => {
+    const adapter = createAdapter();
+    expect((await adapter.lowerToExecuteRequest(new CreateTableFromAnotherCopy())).sql).toBe(
+      'CREATE TABLE `Copied` (\n  `id` int\n)',
+    );
   });
 
   it('bootstraps the marker table for db sign', () => {

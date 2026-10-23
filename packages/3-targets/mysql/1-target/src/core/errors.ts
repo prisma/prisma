@@ -3,11 +3,14 @@ import { structuredError } from '@internal/utils/structured-error';
 
 export type MysqlTargetErrorCode =
   | 'CONTRACT.ARGUMENT_INVALID'
+  | 'CONTRACT.CONSTRAINT_INVALID'
   | 'CONTRACT.IDENTIFIER_INVALID'
   | 'CONTRACT.NAMESPACE_INVALID'
   | 'CONTRACT.TARGET_MISMATCH'
   | 'CONTRACT.TYPE_PARAMS_INVALID'
-  | 'MIGRATION.TARGET_UNSUPPORTED'
+  | 'MIGRATION.CONTRACT_SPACE_VIOLATION'
+  | 'MIGRATION.MARKER_LOCK_TIMEOUT'
+  | 'MIGRATION.MYSQL_CONTROL_STACK_MISSING'
   | 'RUNTIME.AST_UNSUPPORTED'
   | 'RUNTIME.DECODE_FAILED'
   | 'RUNTIME.ENCODE_FAILED';
@@ -18,15 +21,6 @@ export function mysqlError(
   options?: StructuredErrorOptions,
 ): StructuredError {
   return structuredError(code, message, options);
-}
-
-/** The refusal of a migration feature a later slice of the MySQL target adds: `what` names it, as in `Planning migrations`. */
-export function mysqlNotYetSupported(what: string): StructuredError {
-  return mysqlError('MIGRATION.TARGET_UNSUPPORTED', `${what} is not yet supported on MySQL.`, {
-    why: 'The MySQL target emits contracts, introspects databases and reads the marker and ledger; this part of it is not built yet.',
-    fix: 'Use a Postgres or SQLite target for this operation until the MySQL target supports it.',
-    meta: { target: 'mysql', feature: what },
-  });
 }
 
 /** The refusal of a query a later slice of the MySQL target can render: `what` names the feature, as in `Lowering queries`. */

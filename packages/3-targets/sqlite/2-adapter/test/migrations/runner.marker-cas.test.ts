@@ -61,7 +61,7 @@ describe('SqliteMigrationRunner marker compare-and-swap', {
           operationClass: 'additive',
           target: {
             id: 'sqlite',
-            details: { schema: 'main', objectType: 'table', name: '_prisma_marker' },
+            details: { objectType: 'table', name: '_prisma_marker' },
           },
           precheck: [],
           execute: [

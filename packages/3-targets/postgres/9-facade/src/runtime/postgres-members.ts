@@ -26,6 +26,7 @@ import type {
 import {
   activitySource,
   delegatingActivitySource,
+  delegatingRuntime,
   withTransaction,
   withTransactionMembers,
 } from '@internal/sql-runtime';
@@ -69,7 +70,7 @@ export interface PostgresQueryMembersOptions<
   readonly sql: Db<TContract>;
   readonly raw: RawLane<TContract>;
   readonly toSql: ToSqlMember['toSql'];
-  readonly prepareRuntime: () => Runtime;
+  readonly prepareRuntime: Pick<Runtime, 'prepare'>;
 }
 
 /**
@@ -101,7 +102,7 @@ export function buildPostgresQueryMembers<
       ...ifDefined('collections', collections),
     }),
     prepare(declaration, callback) {
-      return prepareQuery(prepareRuntime(), declaration, callback);
+      return prepareQuery(prepareRuntime, declaration, callback);
     },
   };
 }
@@ -161,19 +162,10 @@ export function buildPostgresRuntimeBoundMembers<
     getRuntimeForWork,
   } = options;
 
+  const workRuntime = delegatingRuntime(getRuntimeForWork);
+
   const orm: OrmClient<TContract, TCollections> = ormBuilder<TContract, TCollections>({
-    runtime: {
-      query(plan) {
-        return getRuntimeForWork().query(plan);
-      },
-      execute(plan) {
-        return getRuntimeForWork().execute(plan);
-      },
-      connection() {
-        return getRuntimeForWork().connection();
-      },
-      [activitySource]: delegatingActivitySource(() => getRuntimeForWork()),
-    },
+    runtime: workRuntime,
     context,
     ...ifDefined('collections', collections),
   });
@@ -186,19 +178,15 @@ export function buildPostgresRuntimeBoundMembers<
     declaration: D,
     callback: (params: BindSiteParams<D>) => Q,
   ): Promise<PreparedFrom<ParamsFromDeclaration<D, CT>, Q>> {
-    return prepareQuery<D, Q, CT>(getRuntimeForWork(), declaration, callback);
+    return prepareQuery<D, Q, CT>(workRuntime, declaration, callback);
   }
 
   return {
     orm,
 
-    query(plan, execOptions) {
-      return getRuntimeForWork().query(plan, execOptions);
-    },
+    query: workRuntime.query,
 
-    execute(plan, execOptions) {
-      return getRuntimeForWork().execute(plan, execOptions);
-    },
+    execute: workRuntime.execute,
 
     runtime() {
       return getRuntime();
@@ -209,12 +197,12 @@ export function buildPostgresRuntimeBoundMembers<
     transaction<R>(
       fn: (tx: PostgresTransactionContext<TContract, TCollections>) => PromiseLike<R>,
     ): Promise<R> {
-      return withTransaction(getRuntimeForWork(), (txCtx) => {
+      return withTransaction(workRuntime, (txCtx) => {
         const tx: PostgresTransactionContext<TContract, TCollections> = withTransactionMembers(
           txCtx,
           {
             ...buildPostgresQueryMembers(
-              { context, collections, sql, raw, toSql, prepareRuntime: getRuntimeForWork },
+              { context, collections, sql, raw, toSql, prepareRuntime: workRuntime },
               txCtx,
             ),
             enums,
