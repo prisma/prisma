@@ -24,6 +24,12 @@ describe('the extension detection for a required stack driver', () => {
     ['a missing-driver check', 'if (!stack.driver) throw new Error();'],
     ['a stack with a longer name', 'const driver = clientStack.driver.create();'],
     ['a stack on this', 'if (!this.stack.driver) throw new Error();'],
+    [
+      'driver destructured from the stack factory',
+      'const { driver } = createSqlExecutionStack({ target, adapter });',
+    ],
+    ['driver destructured from a stack', 'const { driver, adapter } = stack;'],
+    ['driver renamed while destructured', 'const { adapter, driver: d } = clientStack;'],
   ])('finds %s', (_name, content) => {
     expect(detects(content)).toBe(true);
   });
@@ -34,6 +40,8 @@ describe('the extension detection for a required stack driver', () => {
     ['another member', 'const d = runtimeStack.driverName;'],
     ['the driver on this', 'this.driver.close();'],
     ['the driver option', 'const d = options.driver;'],
+    ['driver destructured from options', 'const { driver } = options;'],
+    ['another member destructured from a stack', 'const { adapter } = stack;'],
   ])('skips %s', (_name, content) => {
     expect(detects(content)).toBe(false);
   });
