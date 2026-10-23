@@ -64,7 +64,7 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
         }).toEqual({ rows: [{ q: 'why?', v: value }], stats: { affectedRows: 0 } });
         await expect(
           collect(driver.query({ sql: "SELECT '?' AS q", params: [value] })),
-        ).rejects.toMatchObject({ code: 'RUNTIME.AST_INVALID' });
+        ).rejects.toMatchObject({ code: 'RUNTIME.PARAM_PLACEHOLDER_MISMATCH' });
       }),
     );
   });

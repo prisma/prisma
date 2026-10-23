@@ -128,7 +128,7 @@ describe('MysqlControlDriver against a MySQL server', {
           rows: [{ q: 'why?', v: value }],
         });
         await expect(driver.query("SELECT '?' AS q", [value])).rejects.toMatchObject({
-          code: 'RUNTIME.AST_INVALID',
+          code: 'RUNTIME.PARAM_PLACEHOLDER_MISMATCH',
         });
       } finally {
         await driver.close();

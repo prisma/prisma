@@ -34,13 +34,32 @@ describe('formatMysqlQuery', () => {
   it('refuses a statement whose placeholders and values differ in number', () => {
     expect(() => formatMysqlQuery("SELECT '?' WHERE a = ?", [1, 2])).toThrow(
       expect.objectContaining({
-        code: 'RUNTIME.AST_INVALID',
-        meta: expect.objectContaining({ placeholders: 1, values: 2 }),
+        code: 'RUNTIME.PARAM_PLACEHOLDER_MISMATCH',
+        meta: { placeholders: ['?'], params: 2 },
       }),
     );
     expect(() => formatMysqlQuery('SELECT ?, ?', [1])).toThrow(
-      expect.objectContaining({ code: 'RUNTIME.AST_INVALID' }),
+      expect.objectContaining({ code: 'RUNTIME.PARAM_PLACEHOLDER_MISMATCH' }),
     );
+  });
+
+  it('fills a numbered placeholder with the value it names, as often as it is written', () => {
+    expect(formatMysqlQuery("SELECT ?2, '?1', ?1, ?2", ['a', 'b'])).toBe(
+      "SELECT 'b', '?1', 'a', 'b'",
+    );
+  });
+
+  it('refuses a bare placeholder beside numbered ones, a number no value has, and a value no placeholder takes', () => {
+    for (const [sql, values] of [
+      ['SELECT ?1, ?', [1, 2]],
+      ['SELECT ?3', [1, 2, 3, 4]],
+      ['SELECT ?0', [1]],
+      ['SELECT ?1', [1, 2]],
+    ] as const) {
+      expect(() => formatMysqlQuery(sql, values)).toThrow(
+        expect.objectContaining({ code: 'RUNTIME.PARAM_PLACEHOLDER_MISMATCH' }),
+      );
+    }
   });
 
   it('refuses a value the text protocol has no literal for', () => {

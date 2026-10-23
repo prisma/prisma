@@ -36,11 +36,11 @@ describe('a MySQL client with no database', () => {
       driverCreated: driverCreate.mock.calls.length,
     }).toEqual({
       builder: {
-        sql: 'SELECT `id` AS `id`, `email` AS `email` FROM `User` WHERE `role` = ? LIMIT 10',
+        sql: 'SELECT `id` AS `id`, `email` AS `email` FROM `User` WHERE `role` = ?1 LIMIT 10',
         params: ['ADMIN'],
       },
       orm: {
-        sql: "SELECT /*+ SET_VAR(group_concat_max_len = 4294967295) */ `User`.`id` AS `id`, (SELECT CASE WHEN COUNT(*) = 0 THEN JSON_ARRAY() ELSE CAST(COALESCE(CONCAT('[', GROUP_CONCAT(JSON_OBJECT('title', `posts__rows`.`title`) ORDER BY `posts__rows`.`posts__order_0` DESC SEPARATOR ','), ']'), CONCAT('array larger than max_allowed_packet: ', COUNT(*), ' rows')) AS JSON) END AS `posts` FROM (SELECT `Post`.`title` AS `title`, `Post`.`title` AS `posts__order_0` FROM `Post` WHERE `Post`.`authorId` = `User`.`id` ORDER BY `Post`.`title` DESC) AS `posts__rows`) AS `posts` FROM `User` WHERE `User`.`role` = ?",
+        sql: "SELECT /*+ SET_VAR(group_concat_max_len = 4294967295) */ `User`.`id` AS `id`, (SELECT CASE WHEN COUNT(*) = 0 THEN JSON_ARRAY() ELSE CAST(COALESCE(CONCAT('[', GROUP_CONCAT(JSON_OBJECT('title', `posts__rows`.`title`) ORDER BY `posts__rows`.`posts__order_0` DESC SEPARATOR ','), ']'), CONCAT('array larger than max_allowed_packet: ', COUNT(*), ' rows')) AS JSON) END AS `posts` FROM (SELECT `Post`.`title` AS `title`, `Post`.`title` AS `posts__order_0` FROM `Post` WHERE `Post`.`authorId` = `User`.`id` ORDER BY `Post`.`title` DESC) AS `posts__rows`) AS `posts` FROM `User` WHERE `User`.`role` = ?1",
         params: ['ADMIN'],
       },
       driverCreated: 0,

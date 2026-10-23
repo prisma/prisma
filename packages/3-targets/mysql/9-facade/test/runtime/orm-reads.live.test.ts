@@ -131,6 +131,34 @@ describe('MySQL reads through the ORM and the SQL builder', {
     });
   });
 
+  it('binds a derived join source param and a WHERE param to their own placeholders', async (test) => {
+    await withSeededDatabase(test, exampleDatabase, async (url) => {
+      await using db = mysql({ contract, url, verifyMarker: false });
+      const titled = db.sql.Post.select('authorId', 'title')
+        .where((f, fns) => fns.eq(f.title, 'Delta'))
+        .as('titled');
+      const rows = await db.query(
+        db.sql.User.innerJoin(titled, (f, fns) => fns.eq(f.User.id, f.titled.authorId))
+          .select('email', 'title')
+          .where((f, fns) => fns.eq(f.User.role, 'ADMIN'))
+          .build(),
+      );
+      expect(rows).toEqual([{ email: 'a@example.com', title: 'Delta' }]);
+    });
+  });
+
+  it('binds the WHERE param of a distinct query and of its include to their own placeholders', async (test) => {
+    await withSeededDatabase(test, exampleDatabase, async (url) => {
+      await using db = mysql({ contract, url, verifyMarker: false });
+      const rows = await db.orm.User.where({ email: 'b@example.com' })
+        .distinct('role')
+        .select('role')
+        .include('posts', (posts) => posts.where({ title: 'Beta' }).select('title'))
+        .all();
+      expect(rows).toEqual([{ role: 'ADMIN', posts: [{ title: 'Beta' }] }]);
+    });
+  });
+
   it('checks the marker the control tables hold, and warns when it is missing or differs', async (test) => {
     await withSeededDatabase(test, exampleDatabase, async (url, driver) => {
       const warnings = async () => {

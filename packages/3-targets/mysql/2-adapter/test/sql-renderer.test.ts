@@ -57,9 +57,9 @@ const projectionOf = (expr: Parameters<typeof ProjectionItem.of>[1]) =>
   sqlOf(SelectAst.noFrom().withProjection([ProjectionItem.of('v', expr)]));
 
 describe('MySQL lowering of a select', () => {
-  it('quotes identifiers with backticks and binds params as ?', () => {
+  it('quotes identifiers with backticks and writes params as numbered placeholders', () => {
     expect(lower(selectId.withWhere(BinaryExpr.eq(email, ParamRef.of('a@b.c'))))).toEqual({
-      sql: 'SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`email` = ?',
+      sql: 'SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`email` = ?1',
       params: [{ kind: 'literal', value: 'a@b.c' }],
     });
   });
@@ -104,10 +104,10 @@ describe('MySQL lowering of a select', () => {
         ),
       ),
     ]).toEqual([
-      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` = CAST(? AS SIGNED)',
-      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` IN (CAST(? AS SIGNED))',
-      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` = CAST(? AS SIGNED)',
-      'SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`id` = ?',
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` = CAST(?1 AS SIGNED)',
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` IN (CAST(?1 AS SIGNED))',
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` = CAST(?1 AS SIGNED)',
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`id` = ?1',
     ]);
   });
 
@@ -124,7 +124,7 @@ describe('MySQL lowering of a select', () => {
       BinaryExpr.eq(id, ParamRef.of(1n, { codec: { codecId: 'ext/counter@1' } })),
     );
     expect(renderMysqlSql(ast, undefined, withCounterCodec).sql).toBe(
-      'SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`id` = CAST(? AS SIGNED)',
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`id` = CAST(?1 AS SIGNED)',
     );
   });
 
@@ -136,13 +136,13 @@ describe('MySQL lowering of a select', () => {
     ).toThrow(expect.objectContaining({ code: 'RUNTIME.PARAM_REF_MISSING_CODEC' }));
   });
 
-  it('keeps params in the order their placeholders appear', () => {
+  it('numbers params in the order the runtime encodes them', () => {
     const ast = fromUser
       .withProjection([ProjectionItem.of('p', ParamRef.of('first'))])
       .withWhere(BinaryExpr.eq(email, ParamRef.of('second')))
       .withLimit(ParamRef.of(3));
     expect(lower(ast)).toEqual({
-      sql: 'SELECT ? AS `p` FROM `user` WHERE `user`.`email` = ? LIMIT ?',
+      sql: 'SELECT ?1 AS `p` FROM `user` WHERE `user`.`email` = ?2 LIMIT ?3',
       params: [
         { kind: 'literal', value: 'first' },
         { kind: 'literal', value: 'second' },
@@ -169,7 +169,7 @@ describe('MySQL lowering of a select', () => {
     );
   });
 
-  describe('binds each param to the placeholder written for it', () => {
+  describe('binds each param to its own numbered placeholder', () => {
     const lit = (value: unknown) => ({ kind: 'literal', value });
 
     it('when a join condition and a WHERE both carry one', () => {
@@ -185,8 +185,8 @@ describe('MySQL lowering of a select', () => {
         ])
         .withWhere(BinaryExpr.eq(email, ParamRef.of('where')));
       expect(lower(ast)).toEqual({
-        sql: 'SELECT `user`.`id` AS `id` FROM `user` INNER JOIN `post` ON (`post`.`authorId` = `user`.`id` AND `post`.`title` = ?) WHERE `user`.`email` = ?',
-        params: [lit('on'), lit('where')],
+        sql: 'SELECT `user`.`id` AS `id` FROM `user` INNER JOIN `post` ON (`post`.`authorId` = `user`.`id` AND `post`.`title` = ?2) WHERE `user`.`email` = ?1',
+        params: [lit('where'), lit('on')],
       });
     });
 
@@ -196,8 +196,8 @@ describe('MySQL lowering of a select', () => {
         .withGroupBy([BinaryExpr.eq(email, ParamRef.of('group'))])
         .withHaving(BinaryExpr.gt(AggregateExpr.count(), ParamRef.of('having')));
       expect(lower(ast)).toEqual({
-        sql: 'SELECT COUNT(*) AS `n` FROM `user` GROUP BY `user`.`email` = ? HAVING COUNT(*) > ?',
-        params: [lit('group'), lit('having')],
+        sql: 'SELECT COUNT(*) AS `n` FROM `user` GROUP BY `user`.`email` = ?2 HAVING COUNT(*) > ?1',
+        params: [lit('having'), lit('group')],
       });
     });
 
@@ -207,8 +207,8 @@ describe('MySQL lowering of a select', () => {
         ProjectionItem.of('p', ParamRef.of('projection')),
       ]);
       expect(lower(ast)).toEqual({
-        sql: 'SELECT ? AS `p` FROM (SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`email` = ?) AS `u`',
-        params: [lit('projection'), lit('from')],
+        sql: 'SELECT ?2 AS `p` FROM (SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`email` = ?1) AS `u`',
+        params: [lit('from'), lit('projection')],
       });
     });
 
@@ -221,8 +221,8 @@ describe('MySQL lowering of a select', () => {
         lowering: { targetFamily: 'sql', template: 'LOCATE({{arg0}}, {{self}})' },
       });
       expect(lower(SelectAst.noFrom().withProjection([ProjectionItem.of('v', op)]))).toEqual({
-        sql: 'SELECT LOCATE(?, `user`.`email` = ?) AS `v`',
-        params: [lit('arg'), lit('self')],
+        sql: 'SELECT LOCATE(?2, `user`.`email` = ?1) AS `v`',
+        params: [lit('self'), lit('arg')],
       });
     });
   });
@@ -267,15 +267,15 @@ describe('MySQL lowering of a select', () => {
 
 describe('MySQL lowering of expressions', () => {
   it.each([
-    ['eq', '`user`.`id` = ?'],
-    ['neq', '`user`.`id` <> ?'],
-    ['gt', '`user`.`id` > ?'],
-    ['lt', '`user`.`id` < ?'],
-    ['gte', '`user`.`id` >= ?'],
-    ['lte', '`user`.`id` <= ?'],
-    ['like', '`user`.`id` LIKE ?'],
-    ['isNotDistinctFrom', '`user`.`id` <=> ?'],
-    ['isDistinctFrom', 'NOT (`user`.`id` <=> ?)'],
+    ['eq', '`user`.`id` = ?1'],
+    ['neq', '`user`.`id` <> ?1'],
+    ['gt', '`user`.`id` > ?1'],
+    ['lt', '`user`.`id` < ?1'],
+    ['gte', '`user`.`id` >= ?1'],
+    ['lte', '`user`.`id` <= ?1'],
+    ['like', '`user`.`id` LIKE ?1'],
+    ['isNotDistinctFrom', '`user`.`id` <=> ?1'],
+    ['isDistinctFrom', 'NOT (`user`.`id` <=> ?1)'],
   ] as const)('renders the %s operator', (op, where) => {
     expect(whereOf(new BinaryExpr(op, id, ParamRef.of(1)))).toBe(
       `SELECT \`user\`.\`id\` AS \`id\` FROM \`user\` WHERE ${where}`,
@@ -289,7 +289,7 @@ describe('MySQL lowering of expressions', () => {
       whereOf(BinaryExpr.in(id, ListExpression.of([]))),
       whereOf(BinaryExpr.notIn(id, ListExpression.of([]))),
     ]).toEqual([
-      'SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`id` IN (?, ?)',
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`id` IN (?1, ?2)',
       'SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`id` NOT IN (3)',
       'SELECT `user`.`id` AS `id` FROM `user` WHERE FALSE',
       'SELECT `user`.`id` AS `id` FROM `user` WHERE TRUE',
@@ -383,8 +383,8 @@ describe('MySQL lowering of expressions', () => {
       whereOf(BinaryExpr.eq(lowerEmail, LiteralExpr.of('a'))),
       whereOf(NullCheckExpr.isNull(lowerEmail)),
     ]).toEqual([
-      "SELECT `user`.`id` AS `id` FROM `user` WHERE (CONCAT(LOWER(`user`.`email`), ?)) = 'a'",
-      'SELECT `user`.`id` AS `id` FROM `user` WHERE (CONCAT(LOWER(`user`.`email`), ?)) IS NULL',
+      "SELECT `user`.`id` AS `id` FROM `user` WHERE (CONCAT(LOWER(`user`.`email`), ?1)) = 'a'",
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE (CONCAT(LOWER(`user`.`email`), ?1)) IS NULL',
     ]);
   });
 
@@ -396,7 +396,29 @@ describe('MySQL lowering of expressions', () => {
     expect([
       whereOf(raw),
       sqlOf(RawQueryAst.affectedCount(['SELECT ', ParamRef.of(1), ' + 1'])),
-    ]).toEqual(['SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`id` > ?', 'SELECT ? + 1']);
+    ]).toEqual(['SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`id` > ?1', 'SELECT ?1 + 1']);
+  });
+});
+
+describe('MySQL placeholder check', () => {
+  it('refuses raw SQL text that writes its own ?, which no param would bind to', () => {
+    expect(() => sqlOf(RawQueryAst.affectedCount(['SELECT ? + ', ParamRef.of(1)]))).toThrow(
+      expect.objectContaining({
+        code: 'RUNTIME.PARAM_PLACEHOLDER_MISMATCH',
+        meta: { placeholders: ['?', '?1'], params: 1 },
+      }),
+    );
+  });
+
+  it('ignores a ? inside quoted text, a backtick identifier or a comment', () => {
+    expect(
+      lower(
+        RawQueryAst.affectedCount([
+          'SELECT \'why?\', "b?", `c?` /* d? */ # e?\n-- f?\n, ',
+          ParamRef.of(1),
+        ]),
+      ).sql,
+    ).toBe('SELECT \'why?\', "b?", `c?` /* d? */ # e?\n-- f?\n, ?1');
   });
 });
 
@@ -477,16 +499,13 @@ describe('MySQL lowering of NULLS FIRST and NULLS LAST', () => {
     );
   });
 
-  it('binds the params of an expression the sort key repeats, once for each placeholder', () => {
+  it('binds a param the sort key writes twice once', () => {
     const ast = selectId.withOrderBy([
       OrderByItem.asc(BinaryExpr.eq(id, ParamRef.of(1)), { nulls: 'last' }),
     ]);
     expect(lower(ast)).toEqual({
-      sql: 'SELECT `user`.`id` AS `id` FROM `user` ORDER BY `user`.`id` = ? IS NULL ASC, `user`.`id` = ? ASC',
-      params: [
-        { kind: 'literal', value: 1 },
-        { kind: 'literal', value: 1 },
-      ],
+      sql: 'SELECT `user`.`id` AS `id` FROM `user` ORDER BY `user`.`id` = ?1 IS NULL ASC, `user`.`id` = ?1 ASC',
+      params: [{ kind: 'literal', value: 1 }],
     });
   });
 });

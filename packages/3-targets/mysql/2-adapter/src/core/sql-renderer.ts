@@ -6,6 +6,7 @@ import type {
   AnyExpression,
   AnyFromSource,
   AnyJsonValueProjection,
+  AnyParamRef,
   AnyQueryAst,
   BinaryExpr,
   CaseExpr,
@@ -24,8 +25,6 @@ import type {
   NullCheckExpr,
   OperationExpr,
   OrderByItem,
-  ParamRef,
-  PreparedParamRef,
   ProjectionExpr,
   ProjectionItem,
   RawExpr,
@@ -35,6 +34,7 @@ import type {
   TableSource,
   WindowFuncExpr,
 } from '@internal/sql-relational-core/ast';
+import { collectOrderedParamRefs } from '@internal/sql-relational-core/ast';
 import type { MysqlCodecDescriptorRegistry } from '@internal/target-mysql/codec-descriptor';
 import { encodeMysqlDatetime } from '@internal/target-mysql/codecs';
 import { mysqlBigint } from '@internal/target-mysql/data-types';
@@ -42,14 +42,15 @@ import { mysqlError, mysqlQueryNotYetSupported } from '@internal/target-mysql/er
 import { escapeLiteral, quoteIdentifier } from '@internal/target-mysql/sql-utils';
 import { assertNever, InternalError } from '@internal/utils/internal-error';
 import { structuredError } from '@internal/utils/structured-error';
+import { assertPlaceholdersMatchParams } from './placeholders';
 
 export type MysqlContract = Contract<SqlStorage>;
 
 interface RenderContext {
   readonly contract: MysqlContract | undefined;
   readonly codecs: MysqlCodecDescriptorRegistry;
-  /** The params, appended as each `?` is written, so their order is the order the placeholders appear in. */
-  readonly params: LoweredParam[];
+  /** Each param's placeholder number: its position in `collectOrderedParamRefs`, the order the runtime encodes params in. */
+  readonly placeholderNumbers: ReadonlyMap<AnyParamRef, number>;
   /** Set when the statement builds an array with `GROUP_CONCAT`, whose length limit the statement then raises itself. */
   readonly uses: { groupConcat: boolean };
 }
@@ -73,20 +74,28 @@ function unsupported(feature: string, message: string): Error {
 }
 
 /**
- * Lowers a query AST to MySQL SQL with `?` placeholders, the params in the order the placeholders appear. The runtime adapter and the control adapter share it, so both write the same SQL for the same AST.
+ * Lowers a query AST to MySQL SQL. Each param is written as `?N`, N being its position in `collectOrderedParamRefs`, the order the runtime encodes and middleware edits params in; a param written twice is bound once. The driver fills the placeholders.
  */
 export function renderMysqlSql(
   ast: AnyQueryAst,
   contract: MysqlContract | undefined,
   codecs: MysqlCodecDescriptorRegistry,
 ): LoweredStatement {
-  const ctx: RenderContext = { contract, codecs, params: [], uses: { groupConcat: false } };
+  const placeholderNumbers = new Map<AnyParamRef, number>();
+  const params: LoweredParam[] = collectOrderedParamRefs(ast).map((ref, index) => {
+    placeholderNumbers.set(ref, index + 1);
+    return ref.kind === 'prepared-param-ref'
+      ? { kind: 'bind', name: ref.name }
+      : { kind: 'literal', value: ref.value };
+  });
+  const ctx: RenderContext = { contract, codecs, placeholderNumbers, uses: { groupConcat: false } };
   const rendered = renderStatement(ast, ctx);
   const sql =
     ast.kind === 'select' && ctx.uses.groupConcat
       ? rendered.replace(/^SELECT /, `SELECT ${GROUP_CONCAT_HINT} `)
       : rendered;
-  return Object.freeze({ sql, params: ctx.params });
+  assertPlaceholdersMatchParams(sql, params.length);
+  return Object.freeze({ sql, params });
 }
 
 function renderStatement(ast: AnyQueryAst, ctx: RenderContext): string {
@@ -273,7 +282,7 @@ function renderLiteral(expr: LiteralExpr): string {
   return json === undefined ? 'NULL' : `CAST('${escapeLiteral(json)}' AS JSON)`;
 }
 
-/** Renders each `{{self}}` and `{{argN}}` where the template writes it, so a repeated or reordered operand binds its params where its placeholders are. */
+/** Renders each `{{self}}` and `{{argN}}` where the template writes it. */
 function renderOperation(expr: OperationExpr, ctx: RenderContext): string {
   return expr.lowering.template.replace(/\{\{(self|arg(\d+))\}\}/g, (_match, _name, index) => {
     if (index === undefined) return renderExpr(expr.self, ctx);
@@ -414,17 +423,16 @@ function descriptorOf(codec: CodecRef, ctx: RenderContext, use: string) {
  */
 const PARAMETER_CASTS: ReadonlyMap<string, string> = new Map([[mysqlBigint.id, 'SIGNED']]);
 
-function renderParam(ref: ParamRef | PreparedParamRef, ctx: RenderContext): string {
-  ctx.params.push(
-    ref.kind === 'prepared-param-ref'
-      ? { kind: 'bind', name: ref.name }
-      : { kind: 'literal', value: ref.value },
-  );
+function renderParam(ref: AnyParamRef, ctx: RenderContext): string {
+  const number = ctx.placeholderNumbers.get(ref);
+  if (number === undefined) {
+    throw new InternalError('A param was written that the AST does not collect');
+  }
   const castType =
     ref.codec === undefined
       ? undefined
       : PARAMETER_CASTS.get(descriptorOf(ref.codec, ctx, 'a parameter').dataType);
-  return castType === undefined ? '?' : `CAST(? AS ${castType})`;
+  return castType === undefined ? `?${number}` : `CAST(?${number} AS ${castType})`;
 }
 
 function projectThroughCodec(
