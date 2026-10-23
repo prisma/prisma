@@ -46,7 +46,7 @@ import { assertDefined } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
-import { mysqlError } from '../errors';
+import { mysqlClientError } from '../errors';
 import { validateMysqlContract } from '../static/contract-from-json';
 import { buildMysqlStaticContext, type MysqlStaticContext } from '../static/mysql-static';
 import { resolveMysqlBinding, resolveOptionalMysqlBinding } from './binding';
@@ -269,7 +269,7 @@ export default function mysql<
 
   const getRuntime = (): Runtime => {
     if (closed) {
-      throw mysqlError('DRIVER.NOT_CONNECTED', 'MySQL client is closed', {
+      throw mysqlClientError('DRIVER.NOT_CONNECTED', 'MySQL client is closed', {
         meta: { extension: 'mysql' },
       });
     }
@@ -356,13 +356,13 @@ export default function mysql<
     },
     async connect(bindingInput) {
       if (closed) {
-        throw mysqlError('DRIVER.NOT_CONNECTED', 'MySQL client is closed', {
+        throw mysqlClientError('DRIVER.NOT_CONNECTED', 'MySQL client is closed', {
           meta: { extension: 'mysql' },
         });
       }
 
       if (driverConnected || connectPromise) {
-        throw mysqlError('DRIVER.ALREADY_CONNECTED', 'MySQL client already connected', {
+        throw mysqlClientError('DRIVER.ALREADY_CONNECTED', 'MySQL client already connected', {
           meta: { extension: 'mysql' },
         });
       }
@@ -374,7 +374,7 @@ export default function mysql<
       }
 
       if (binding === undefined) {
-        throw mysqlError(
+        throw mysqlClientError(
           'RUNTIME.BINDING_MISSING',
           'MySQL binding not configured. Pass url to mysql(...) or call db.connect({ url }).',
           { meta: { extension: 'mysql' } },

@@ -1,13 +1,13 @@
 import type { StructuredError, StructuredErrorOptions } from '@internal/utils/structured-error';
 import { structuredError } from '@internal/utils/structured-error';
 
-export type MysqlErrorCode =
+export type MysqlClientErrorCode =
   | 'RUNTIME.BINDING_MISSING'
   | 'DRIVER.NOT_CONNECTED'
   | 'DRIVER.ALREADY_CONNECTED';
 
-export function mysqlError(
-  code: MysqlErrorCode,
+export function mysqlClientError(
+  code: MysqlClientErrorCode,
   message: string,
   options?: StructuredErrorOptions,
 ): StructuredError {
