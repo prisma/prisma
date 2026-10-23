@@ -276,7 +276,7 @@ const SQL_QUERY_REEXPORTS: readonly ShellReexportMapping[] = [
  */
 const MONGO_QUERY_REEXPORTS: readonly ShellReexportMapping[] = [
   { package: '@internal/mongo-orm', entry: 'orm' },
-  { package: '@internal/mongo-query-builder', entry: 'query-builder' },
+  { package: '@internal/mongo-query-builder', entry: 'query-builder', root: false },
   { package: '@internal/mongo-query-ast', entry: 'query-ast' },
   { package: '@internal/mongo-value', entry: 'value' },
 ];
