@@ -27,7 +27,7 @@ changes:
         - 'import\s*(?:type\s*)?\{[^}]*(?<![\w$])(?:uuidv4|uuidv7|ulid|nanoid|cuid2|ksuid)(?![\w$])[^}]*\}\s*from\s*[\x27"]@prisma/orm-framework/ids[\x27"]'
   - id: postgres-contract-builder-exports-type
     summary: |
-      No action is needed. `@prisma/orm-postgres/contract-builder` now exports `type` beside `field` and `gen`, the same type constructors and aliases the `defineContract` callback receives, so a query fragment declares a field as `field.column(type.Timestamptz())`.
+      No action is needed. `@prisma/orm-postgres/contract-builder` now exports `type` beside `field` and `gen`, the same type constructors and aliases the `defineContract` callback receives, so a query fragment declares a field as `field.column(type.TimestamptzTemporal())`.
   - id: sqlite-sql-char
     summary: |
       No action is needed. Every SQL target now has the type constructor `sql.Char(n)` in PSL and `type.sql.Char(n)` in TypeScript, which stores a fixed-length text column of `n` characters. On SQLite it is the only way to write a fixed-length text column, such as the column of a nanoid of another size.
@@ -168,8 +168,8 @@ A TypeScript `id` preset's trailing `{ name }`, as in `field.id.uuidv4String({ n
 | `temporal.updatedAt()` | the same, on create and update | `temporal.UpdatedAt` | `field.column(type.temporal.UpdatedAt())` |
 | `temporal.createdAtString()`, `temporal.updatedAtString()` | `pg/timestamptz-string@1` | `temporal.CreatedAtString`, `temporal.UpdatedAtString` | `field.column(type.temporal.CreatedAtString())`, `field.column(type.temporal.UpdatedAtString())` |
 | `temporal.createdAtJsDate()`, `temporal.updatedAtJsDate()` | `pg/timestamptz-date@1` | `temporal.CreatedAtJsDate`, `temporal.UpdatedAtJsDate` | `field.column(type.temporal.CreatedAtJsDate())`, `field.column(type.temporal.UpdatedAtJsDate())` |
-| `temporal.timestamp(p, onCreate: now, onUpdate: now)` | `pg/timestamp-temporal@1`, `{ precision: p }` | `Timestamp(p) @onCreate(now()) @onUpdate(now())` | `field.column(type.Timestamp(p)).onCreate(gen.now()).onUpdate(gen.now())` |
-| `temporal.timestamptz(...)` | `pg/timestamptz-temporal@1` | `Timestamptz(p)` and the attributes | `field.column(type.Timestamptz(p))` and the calls |
+| `temporal.timestamp(p, onCreate: now, onUpdate: now)` | `pg/timestamp-temporal@1`, `{ precision: p }` | `TimestampTemporal(p) @onCreate(now()) @onUpdate(now())` | `field.column(type.TimestampTemporal(p)).onCreate(gen.now()).onUpdate(gen.now())` |
+| `temporal.timestamptz(...)` | `pg/timestamptz-temporal@1` | `TimestamptzTemporal(p)` and the attributes | `field.column(type.TimestamptzTemporal(p))` and the calls |
 | `temporal.timestampString(...)` | `pg/timestamp-string@1` | `TimestampString(p)` and the attributes | `field.column(type.TimestampString(p))` and the calls |
 | `temporal.timestamptzString(...)` | `pg/timestamptz-string@1` | `TimestamptzString(p)` and the attributes | `field.column(type.TimestamptzString(p))` and the calls |
 | `temporal.timestamptzJsDate(...)` | `pg/timestamptz-date@1` | `TimestamptzJsDate(p)` and the attributes | `field.column(type.TimestamptzJsDate(p))` and the calls |
@@ -179,11 +179,11 @@ A TypeScript `id` preset's trailing `{ name }`, as in `field.id.uuidv4String({ n
 | `temporal.timeString(p, ...)` | `pg/time-string@1` | `TimeString(p)` and the attributes | `field.column(type.TimeString(p))` and the calls |
 | `temporal.timetz(p, ...)` | `pg/timetz@1` | `Timetz(p)` and the attributes | `field.column(type.Timetz(p))` and the calls |
 
-The `temporal.<type>(...)` presets take an optional precision `p` (the first argument, or `precision: p`) and the phases `onCreate: now` and `onUpdate: now`. Write the precision as the constructor's argument, and leave it out when the preset left it out: `temporal.timestamptz()` is `Timestamptz`. Write each phase the preset set as its attribute, `@onCreate(now())` or `@onUpdate(now())`, and leave out a phase it did not set: `temporal.time(3, onUpdate: now)` is `Time(3) @onUpdate(now())`. A preset with no phase is the bare constructor.
+The `temporal.<type>(...)` presets take an optional precision `p` (the first argument, or `precision: p`) and the phases `onCreate: now` and `onUpdate: now`. Write the precision as the constructor's argument, and leave it out when the preset left it out: `temporal.timestamptz()` is `TimestamptzTemporal`. Write each phase the preset set as its attribute, `@onCreate(now())` or `@onUpdate(now())`, and leave out a phase it did not set: `temporal.time(3, onUpdate: now)` is `Time(3) @onUpdate(now())`. A preset with no phase is the bare constructor.
 
-In TypeScript the precision and the phases are positional, and a phase is `'now'` or `undefined`: `field.temporal.timestamp(3, 'now', 'now')` is `field.column(type.Timestamp(3)).onCreate(gen.now()).onUpdate(gen.now())`, `field.temporal.time(3, undefined, 'now')` is `field.column(type.Time(3)).onUpdate(gen.now())`, and `field.temporal.date('now')` is `field.column(type.Date()).onCreate(gen.now())`.
+In TypeScript the precision and the phases are positional, and a phase is `'now'` or `undefined`: `field.temporal.timestamp(3, 'now', 'now')` is `field.column(type.TimestampTemporal(3)).onCreate(gen.now()).onUpdate(gen.now())`, `field.temporal.time(3, undefined, 'now')` is `field.column(type.Time(3)).onUpdate(gen.now())`, and `field.temporal.date('now')` is `field.column(type.Date()).onCreate(gen.now())`.
 
-Attributes and calls written after the preset stay after the replacement: `temporal.updatedAt() @map("updated_at")` is `temporal.UpdatedAt @map("updated_at")`, `field.temporal.createdAt().optional()` is `field.column(type.temporal.CreatedAt()).optional()`, and `temporal.timestamptz(onUpdate: now) @onCreate(now())` is `Timestamptz @onCreate(now()) @onUpdate(now())`.
+Attributes and calls written after the preset stay after the replacement: `temporal.updatedAt() @map("updated_at")` is `temporal.UpdatedAt @map("updated_at")`, `field.temporal.createdAt().optional()` is `field.column(type.temporal.CreatedAt()).optional()`, and `temporal.timestamptz(onUpdate: now) @onCreate(now())` is `TimestamptzTemporal @onCreate(now()) @onUpdate(now())`.
 
 ### SQLite presets
 
@@ -257,7 +257,7 @@ export const createdSince = (since: Temporal.Instant) =>
 import { field, type } from '@prisma/orm-postgres/contract-builder';
 
 export const createdSince = (since: Temporal.Instant) =>
-  db.orm.fragment({ createdAt: field.column(type.Timestamptz()) }, (rows) =>
+  db.orm.fragment({ createdAt: field.column(type.TimestamptzTemporal()) }, (rows) =>
     rows.where((row) => row.createdAt.gte(since)),
   );
 ```

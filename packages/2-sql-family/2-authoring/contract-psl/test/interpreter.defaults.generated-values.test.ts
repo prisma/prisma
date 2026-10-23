@@ -34,7 +34,7 @@ describe('generated values with a database default or on an optional field', () 
       `model Post {
   id        Int @id
   updatedAt TimestampString(3) @default(now()) @onCreate(now()) @onUpdate(now())
-  touchedAt Timestamptz @default(now()) @onUpdate(now())
+  touchedAt TimestamptzTemporal @default(now()) @onUpdate(now())
   token     String? @onCreate(uuid())
   editedAt  TimestampString(3)? @onCreate(now()) @onUpdate(now())
   day       DateString? @onCreate(now()) @onUpdate(now())
@@ -107,7 +107,11 @@ describe('generated values with a database default or on an optional field', () 
     });
 
     const ref = (field: string) => ({ namespace: 'public', entry: 'Post', field });
-    const timestampStringNow = { kind: 'generator', id: 'timestampStringNow' };
+    const timestampStringNow = {
+      kind: 'generator',
+      id: 'timestampStringNow',
+      params: { precision: 3 },
+    };
     expect(result.value.execution?.mutations.defaults).toEqual([
       {
         ref: ref('day'),

@@ -166,12 +166,18 @@ describe('a removed field preset in a SQL schema', () => {
       ['temporal.updatedAtJsDate()', 'Write temporal.UpdatedAtJsDate.'],
       [
         'temporal.timestamp(3, onCreate: now, onUpdate: now)',
-        'Write Timestamp(3) @onCreate(now()) @onUpdate(now()).',
+        'Write TimestampTemporal(3) @onCreate(now()) @onUpdate(now()).',
       ],
-      ['temporal.timestamp(precision: 6, onCreate: now)', 'Write Timestamp(6) @onCreate(now()).'],
-      ['temporal.timestamp(3, now, now)', 'Write Timestamp(3) @onCreate(now()) @onUpdate(now()).'],
-      ['temporal.timestamptz()', 'Write Timestamptz.'],
-      ['temporal.timestamptz(onUpdate: now)', 'Write Timestamptz @onUpdate(now()).'],
+      [
+        'temporal.timestamp(precision: 6, onCreate: now)',
+        'Write TimestampTemporal(6) @onCreate(now()).',
+      ],
+      [
+        'temporal.timestamp(3, now, now)',
+        'Write TimestampTemporal(3) @onCreate(now()) @onUpdate(now()).',
+      ],
+      ['temporal.timestamptz()', 'Write TimestamptzTemporal.'],
+      ['temporal.timestamptz(onUpdate: now)', 'Write TimestamptzTemporal @onUpdate(now()).'],
       ['temporal.timestampString(6, onUpdate: now)', 'Write TimestampString(6) @onUpdate(now()).'],
       [
         'temporal.timestamptzString(3, onCreate: now, onUpdate: now)',
@@ -198,11 +204,11 @@ describe('a removed field preset in a SQL schema', () => {
     });
 
     it.each([
-      ['temporal.timestamp(onCreate: later)', 'Timestamp(...)'],
-      ['temporal.timestamp(onCreate: "now")', 'Timestamp(...)'],
-      ['temporal.timestamp(3, precision: 4)', 'Timestamp(...)'],
-      ['temporal.timestamp(frequency: now)', 'Timestamp(...)'],
-      ['temporal.timestamp(-1)', 'Timestamp(...)'],
+      ['temporal.timestamp(onCreate: later)', 'TimestampTemporal(...)'],
+      ['temporal.timestamp(onCreate: "now")', 'TimestampTemporal(...)'],
+      ['temporal.timestamp(3, precision: 4)', 'TimestampTemporal(...)'],
+      ['temporal.timestamp(frequency: now)', 'TimestampTemporal(...)'],
+      ['temporal.timestamp(-1)', 'TimestampTemporal(...)'],
       ['temporal.time(onCreate: now, 3, now)', 'Time(...)'],
       ['temporal.date(3)', 'Date'],
     ])(

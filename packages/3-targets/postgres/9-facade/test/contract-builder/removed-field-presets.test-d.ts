@@ -1,5 +1,6 @@
 import type { JsonValue } from '@internal/contract/types';
 import type { CreateInput, ScalarUpdateInput } from '@internal/sql-orm-client';
+import type { Temporal } from 'temporal-spec';
 import { expectTypeOf, test } from 'vitest';
 import { defineContract, field as importedField } from '../../src/exports/contract-builder';
 

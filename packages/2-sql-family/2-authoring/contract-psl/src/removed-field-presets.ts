@@ -91,8 +91,16 @@ export const removedSqlFieldPresets: RemovedFieldPresets = {
   'temporal.updatedAtString': removedPresetWrittenAs('temporal.UpdatedAtString'),
   'temporal.createdAtJsDate': removedPresetWrittenAs('temporal.CreatedAtJsDate'),
   'temporal.updatedAtJsDate': removedPresetWrittenAs('temporal.UpdatedAtJsDate'),
-  'temporal.timestamp': removedPresetWithPhases('Timestamp', 'pg/timestamp-temporal@1', true),
-  'temporal.timestamptz': removedPresetWithPhases('Timestamptz', 'pg/timestamptz-temporal@1', true),
+  'temporal.timestamp': removedPresetWithPhases(
+    'TimestampTemporal',
+    'pg/timestamp-temporal@1',
+    true,
+  ),
+  'temporal.timestamptz': removedPresetWithPhases(
+    'TimestamptzTemporal',
+    'pg/timestamptz-temporal@1',
+    true,
+  ),
   'temporal.timestampString': removedPresetWithPhases(
     'TimestampString',
     'pg/timestamp-string@1',

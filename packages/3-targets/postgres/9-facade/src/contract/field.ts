@@ -22,7 +22,7 @@ type PostgresHelpers = ComposedAuthoringHelpers<
 >;
 
 /**
- * The field builders of the `defineContract` callback for Postgres, without extensions: `field.column(type.Timestamptz())`. Use it outside a contract, for example to declare the fields of a query fragment.
+ * The field builders of the `defineContract` callback for Postgres, without extensions: `field.column(type.TimestamptzTemporal())`. Use it outside a contract, for example to declare the fields of a query fragment.
  */
 export const field: PostgresHelpers['field'] = helpers.field;
 
@@ -32,6 +32,6 @@ export const field: PostgresHelpers['field'] = helpers.field;
 export const gen: PostgresHelpers['gen'] = helpers.gen;
 
 /**
- * The type constructors and type aliases of the `defineContract` callback for Postgres, without extensions, for `field.column(...)`: `type.Timestamptz()`, `type.Ulid()`, `type.temporal.CreatedAt()`.
+ * The type constructors and type aliases of the `defineContract` callback for Postgres, without extensions, for `field.column(...)`: `type.TimestamptzTemporal()`, `type.Ulid()`, `type.temporal.CreatedAt()`.
  */
 export const type: PostgresHelpers['type'] = helpers.type;

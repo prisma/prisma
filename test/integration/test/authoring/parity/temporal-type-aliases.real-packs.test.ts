@@ -89,8 +89,8 @@ describe('the temporal type aliases with real packs', () => {
     const throughAttributes = succeeded(
       interpretPostgres(`model Event {
   id              Int               @id
-  createdAt       Timestamptz       @onCreate(now())
-  updatedAt       Timestamptz       @onCreate(now()) @onUpdate(now())
+  createdAt       TimestamptzTemporal       @onCreate(now())
+  updatedAt       TimestamptzTemporal       @onCreate(now()) @onUpdate(now())
   createdAtString TimestamptzString @onCreate(now())
   updatedAtString TimestamptzString @onCreate(now()) @onUpdate(now())
   createdAtJsDate TimestamptzJsDate @onCreate(now())

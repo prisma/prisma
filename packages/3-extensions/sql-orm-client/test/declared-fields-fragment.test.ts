@@ -365,7 +365,7 @@ describe('client.fragment', () => {
           message:
             'Cannot define the fragment: the declaration of field title is not a field builder or { codecId, nullable }',
           why: `Each field of a fragment is declared with a field builder or with an object that has a string codecId, a boolean nullable and, for a list, many: { elementNullable } with a boolean elementNullable; received ${received} for title.`,
-          fix: 'Declare each field with a field builder, such as field.column(type.Timestamptz()).optional(), or with { codecId, nullable }. Declare a list with .many() or many: { elementNullable: false }, or, when its elements may be null, with .many({ elementsNullable: true }) or many: { elementNullable: true }.',
+          fix: 'Declare each field with a field builder, such as field.column(type.TimestamptzTemporal()).optional(), or with { codecId, nullable }. Declare a list with .many() or many: { elementNullable: false }, or, when its elements may be null, with .many({ elementsNullable: true }) or many: { elementNullable: true }.',
         }),
       );
     });
@@ -384,7 +384,7 @@ describe('client.fragment', () => {
           message:
             'Cannot define the fragment: the field builder for labels builds a many that is not false or { elementNullable }',
           why: `A field builder's build() returns many as false or undefined for one value, or as { elementNullable } with a boolean elementNullable for a list; received ${received} for labels.`,
-          fix: 'Declare each field with a field builder, such as field.column(type.Timestamptz()).optional(), or with { codecId, nullable }. Declare a list with .many() or many: { elementNullable: false }, or, when its elements may be null, with .many({ elementsNullable: true }) or many: { elementNullable: true }.',
+          fix: 'Declare each field with a field builder, such as field.column(type.TimestamptzTemporal()).optional(), or with { codecId, nullable }. Declare a list with .many() or many: { elementNullable: false }, or, when its elements may be null, with .many({ elementsNullable: true }) or many: { elementNullable: true }.',
           meta: { field: 'labels' },
         }),
       );

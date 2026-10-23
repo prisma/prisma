@@ -56,8 +56,8 @@ const User = model('User', {
     ksuid: field.column(type.Char(27)),
     createdAt: field.column(type.temporal.CreatedAt()),
     updatedAt: field.column(type.temporal.UpdatedAt()),
-    timestamp: field.column(type.Timestamp(3)),
-    timestamptz: field.column(type.Timestamptz(6)).onCreate(gen.now()),
+    timestamp: field.column(type.TimestampTemporal(3)),
+    timestamptz: field.column(type.TimestamptzTemporal(6)).onCreate(gen.now()),
     timestampString: field.column(type.TimestampString(3)),
     timestamptzString: field
       .column(type.TimestamptzString(3))

@@ -422,7 +422,7 @@ A piece of a query used in several places is a function. Do not build a filter o
 import { field, type } from '@prisma/orm-postgres/contract-builder';
 
 const createdSince = (since: Temporal.Instant) =>
-  db.orm.fragment({ createdAt: field.column(type.Timestamptz()) }, (rows) =>
+  db.orm.fragment({ createdAt: field.column(type.TimestamptzTemporal()) }, (rows) =>
     rows.where((r) => r.createdAt.gte(since)),
   );
 

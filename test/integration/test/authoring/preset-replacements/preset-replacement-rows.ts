@@ -326,36 +326,36 @@ export const postgresRows: readonly SqlRow<PostgresHelpers>[] = [
     model: 'TimestampBothPhases',
     psl: {
       preset: 'temporal.timestamp(3, onCreate: now, onUpdate: now)',
-      replacement: 'Timestamp(3) @onCreate(now()) @onUpdate(now())',
+      replacement: 'TimestampTemporal(3) @onCreate(now()) @onUpdate(now())',
     },
     ts: ({ field, type, gen }) =>
-      field.column(type.Timestamp(3)).onCreate(gen.now()).onUpdate(gen.now()),
+      field.column(type.TimestampTemporal(3)).onCreate(gen.now()).onUpdate(gen.now()),
   },
   {
     model: 'TimestampNamedPrecision',
     psl: {
       preset: 'temporal.timestamp(precision: 6, onCreate: now)',
-      replacement: 'Timestamp(6) @onCreate(now())',
+      replacement: 'TimestampTemporal(6) @onCreate(now())',
     },
-    ts: ({ field, type, gen }) => field.column(type.Timestamp(6)).onCreate(gen.now()),
+    ts: ({ field, type, gen }) => field.column(type.TimestampTemporal(6)).onCreate(gen.now()),
   },
   {
     model: 'TimestampBare',
-    psl: { preset: 'temporal.timestamp()', replacement: 'Timestamp' },
-    ts: ({ field, type }) => field.column(type.Timestamp()),
+    psl: { preset: 'temporal.timestamp()', replacement: 'TimestampTemporal' },
+    ts: ({ field, type }) => field.column(type.TimestampTemporal()),
   },
   {
     model: 'TimestamptzOnCreate',
     psl: {
       preset: 'temporal.timestamptz(onCreate: now)',
-      replacement: 'Timestamptz @onCreate(now())',
+      replacement: 'TimestamptzTemporal @onCreate(now())',
     },
-    ts: ({ field, type, gen }) => field.column(type.Timestamptz()).onCreate(gen.now()),
+    ts: ({ field, type, gen }) => field.column(type.TimestamptzTemporal()).onCreate(gen.now()),
   },
   {
     model: 'TimestamptzBare',
-    psl: { preset: 'temporal.timestamptz()', replacement: 'Timestamptz' },
-    ts: ({ field, type }) => field.column(type.Timestamptz()),
+    psl: { preset: 'temporal.timestamptz()', replacement: 'TimestamptzTemporal' },
+    ts: ({ field, type }) => field.column(type.TimestamptzTemporal()),
   },
   {
     model: 'TimestampStringOnUpdate',
@@ -440,19 +440,19 @@ export const postgresRows: readonly SqlRow<PostgresHelpers>[] = [
     model: 'UpdateOnlyWithOnCreate',
     psl: {
       preset: 'temporal.timestamptz(onUpdate: now) @onCreate(now())',
-      replacement: 'Timestamptz @onCreate(now()) @onUpdate(now())',
+      replacement: 'TimestamptzTemporal @onCreate(now()) @onUpdate(now())',
     },
     ts: ({ field, type, gen }) =>
-      field.column(type.Timestamptz()).onCreate(gen.now()).onUpdate(gen.now()),
+      field.column(type.TimestamptzTemporal()).onCreate(gen.now()).onUpdate(gen.now()),
   },
   {
     model: 'UpdateOnlyWithDefault',
     psl: {
       preset: 'temporal.timestamptz(onUpdate: now) @default(now())',
-      replacement: 'Timestamptz @onUpdate(now()) @default(now())',
+      replacement: 'TimestamptzTemporal @onUpdate(now()) @default(now())',
     },
     ts: ({ field, type, gen }) =>
-      field.column(type.Timestamptz()).onUpdate(gen.now()).default(now()),
+      field.column(type.TimestamptzTemporal()).onUpdate(gen.now()).default(now()),
   },
   {
     model: 'IdUuidv4StringNamed',

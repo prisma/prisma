@@ -267,7 +267,7 @@ function multiplicity(many: unknown): FieldMultiplicity {
 }
 
 const FIELD_DECLARATION_FIX =
-  'Declare each field with a field builder, such as field.column(type.Timestamptz()).optional(), or with { codecId, nullable }. Declare a list with .many() or many: { elementNullable: false }, or, when its elements may be null, with .many({ elementsNullable: true }) or many: { elementNullable: true }.';
+  'Declare each field with a field builder, such as field.column(type.TimestamptzTemporal()).optional(), or with { codecId, nullable }. Declare a list with .many() or many: { elementNullable: false }, or, when its elements may be null, with .many({ elementsNullable: true }) or many: { elementNullable: true }.';
 
 function declaredFieldSpec(name: string, declaration: unknown): FieldSpec {
   if (typeof declaration === 'object' && declaration !== null && isFieldBuilder(declaration)) {

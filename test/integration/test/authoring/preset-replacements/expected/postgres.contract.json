@@ -3237,7 +3237,7 @@
     "storageHash": "d44d725316bd8067730874483a24dfcaeef20dc26199e383a7b408b314483b10"
   },
   "execution": {
-    "executionHash": "7e34a597e8e959eb298b2579d5595cbb1b1b5a6be32eff21fafd083e40cd646a",
+    "executionHash": "ceb90e72bf9e61b35dd8432c4b5d055abb98d2f8718136762e9a3e1c488a8e79",
     "mutations": {
       "defaults": [
         {
@@ -3597,7 +3597,10 @@
         {
           "onUpdate": {
             "id": "timestampStringNow",
-            "kind": "generator"
+            "kind": "generator",
+            "params": {
+              "precision": 6
+            }
           },
           "ref": {
             "entry": "TimestampStringOnUpdate",
@@ -3630,11 +3633,17 @@
         {
           "onCreate": {
             "id": "timestamptzStringNow",
-            "kind": "generator"
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
           },
           "onUpdate": {
             "id": "timestamptzStringNow",
-            "kind": "generator"
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
           },
           "ref": {
             "entry": "TimestamptzStringBothPhases",

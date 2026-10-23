@@ -47,36 +47,38 @@ stamped ${field}
   const plainDateTimeNow = { kind: 'generator', id: 'plainDateTimeNow' };
   const instantNow = { kind: 'generator', id: 'instantNow' };
 
-  it('Timestamp(3) with both phases stores precision 3 and both generators', () => {
-    expect(columnAndDefaults(model('Timestamp(3) @onCreate(now()) @onUpdate(now())'))).toEqual({
+  it('TimestampTemporal(3) with both phases stores precision 3 and both generators', () => {
+    expect(
+      columnAndDefaults(model('TimestampTemporal(3) @onCreate(now()) @onUpdate(now())')),
+    ).toEqual({
       column: { ...timestamp, typeParams: { precision: 3 } },
       defaults: [{ ref: stampedRef, onCreate: plainDateTimeNow, onUpdate: plainDateTimeNow }],
     });
   });
 
-  it('Timestamp(3) with no generator attribute stores no execution entry', () => {
-    expect(columnAndDefaults(model('Timestamp(3)'))).toEqual({
+  it('TimestampTemporal(3) with no generator attribute stores no execution entry', () => {
+    expect(columnAndDefaults(model('TimestampTemporal(3)'))).toEqual({
       column: { ...timestamp, typeParams: { precision: 3 } },
       defaults: undefined,
     });
   });
 
-  it('Timestamp with no arguments stores no typeParams', () => {
-    const { column } = columnAndDefaults(model('Timestamp'));
+  it('TimestampTemporal with no arguments stores no typeParams', () => {
+    const { column } = columnAndDefaults(model('TimestampTemporal'));
     expect(column).toEqual(timestamp);
     expect(column).not.toHaveProperty('typeParams');
   });
 
-  it('Timestamptz with only @onUpdate stores the onUpdate generator only', () => {
-    expect(columnAndDefaults(model('Timestamptz @onUpdate(now())'))).toEqual({
+  it('TimestamptzTemporal with only @onUpdate stores the onUpdate generator only', () => {
+    expect(columnAndDefaults(model('TimestamptzTemporal @onUpdate(now())'))).toEqual({
       column: timestamptz,
       defaults: [{ ref: stampedRef, onUpdate: instantNow }],
     });
   });
 
   it('reads the precision named as well as positional', () => {
-    expect(columnAndDefaults(model('Timestamp(precision: 3) @onCreate(now())'))).toEqual(
-      columnAndDefaults(model('Timestamp(3) @onCreate(now())')),
+    expect(columnAndDefaults(model('TimestampTemporal(precision: 3) @onCreate(now())'))).toEqual(
+      columnAndDefaults(model('TimestampTemporal(3) @onCreate(now())')),
     );
   });
 });

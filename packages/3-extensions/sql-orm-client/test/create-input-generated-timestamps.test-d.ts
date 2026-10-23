@@ -8,10 +8,13 @@ const contract = defineContract({}, ({ field, model, type, gen }) => ({
     Stamp: model('Stamp', {
       fields: {
         id: field.column(int4Column).id(),
-        updatedOnly: field.column(type.Timestamptz()).onUpdate(gen.now()),
-        createdOnly: field.column(type.Timestamptz()).onCreate(gen.now()),
-        createdAndUpdated: field.column(type.Timestamptz()).onCreate(gen.now()).onUpdate(gen.now()),
-        createdWithPrecision: field.column(type.Timestamptz(3)).onCreate(gen.now()),
+        updatedOnly: field.column(type.TimestamptzTemporal()).onUpdate(gen.now()),
+        createdOnly: field.column(type.TimestamptzTemporal()).onCreate(gen.now()),
+        createdAndUpdated: field
+          .column(type.TimestamptzTemporal())
+          .onCreate(gen.now())
+          .onUpdate(gen.now()),
+        createdWithPrecision: field.column(type.TimestamptzTemporal(3)).onCreate(gen.now()),
       },
     }).sql({ table: 'stamp' }),
   },

@@ -62,7 +62,7 @@ test('a type helper requires its required arguments and not its optional ones', 
     type.sql.String();
     expectTypeOf(type.sql.Char(36).typeParams).toEqualTypeOf<{ readonly length: 36 }>();
     expectTypeOf(type.Char().codecId).toEqualTypeOf<'sql/char@1'>();
-    expectTypeOf(type.Timestamp().codecId).toEqualTypeOf<'pg/timestamp-temporal@1'>();
+    expectTypeOf(type.TimestampTemporal().codecId).toEqualTypeOf<'pg/timestamp-temporal@1'>();
     return { models: {} };
   });
 });

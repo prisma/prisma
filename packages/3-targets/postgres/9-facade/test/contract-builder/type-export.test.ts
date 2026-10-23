@@ -3,13 +3,13 @@ import { defineContract, field, gen, type } from '../../src/exports/contract-bui
 
 describe('the type exported by contract-builder', () => {
   it('declares a fragment field with the column a Timestamptz contract field stores', () => {
-    const fragmentField = field.column(type.Timestamptz()).optional().build();
+    const fragmentField = field.column(type.TimestamptzTemporal()).optional().build();
     const contract = defineContract({}, ({ field: callbackField, model, type: callbackType }) => ({
       models: {
         Post: model('Post', {
           fields: {
             id: callbackField.column(callbackType.Int()).id(),
-            createdAt: callbackField.column(callbackType.Timestamptz()).optional(),
+            createdAt: callbackField.column(callbackType.TimestamptzTemporal()).optional(),
           },
         }),
       },

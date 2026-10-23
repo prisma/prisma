@@ -85,7 +85,7 @@ describe('every generated value the stack reads prints as PSL that reads back', 
       now: nowGeneratedTypes(stack),
     }).toMatchObject({
       aliases: expect.arrayContaining(['temporal.CreatedAt', 'temporal.UpdatedAtJsDate']),
-      now: expect.arrayContaining(['Timestamptz @onCreate(now()) @onUpdate(now())']),
+      now: expect.arrayContaining(['TimestamptzTemporal @onCreate(now()) @onUpdate(now())']),
     });
   });
 
