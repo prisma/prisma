@@ -365,6 +365,11 @@ async function answerPlannedDataLoss(input: {
   return ok({ delta, deletes });
 }
 
+/** A storage entity a plan with no operations names: its coordinate, without the internal unbound namespace id. */
+type ChangedStorageEntity = Omit<EntityCoordinate, 'namespaceId'> & {
+  readonly namespaceId?: string;
+};
+
 export interface MigrationPlanResult {
   readonly ok: boolean;
   readonly noOp: boolean;
@@ -438,9 +443,10 @@ export interface MigrationPlanResult {
   readonly temporaryValues: readonly TemporaryValueReport[];
   /**
    * The storage entities that differ between the origin and the destination, when the storage
-   * changed but the written migration has no operations.
+   * changed but the written migration has no operations. A coordinate in the unbound namespace has
+   * no `namespaceId`, since that id is internal.
    */
-  readonly changedStorageEntities?: readonly EntityCoordinate[];
+  readonly changedStorageEntities?: readonly ChangedStorageEntity[];
   readonly timings: {
     readonly total: number;
   };
@@ -1120,7 +1126,9 @@ function withNoOperationsReport(
       ? 'No storage entity changed; the change is elsewhere in the storage.'
       : `What changed: ${changed.map(storageEntityText).join(', ')}.`;
   return {
-    changedStorageEntities: changed,
+    changedStorageEntities: changed.map(({ namespaceId, ...rest }) =>
+      namespaceId === UNBOUND_NAMESPACE_ID ? rest : { namespaceId, ...rest },
+    ),
     summary: `${summary}. The storage the contract describes changed, but the database needs no operation for it, so the migration has none. ${what}`,
   };
 }

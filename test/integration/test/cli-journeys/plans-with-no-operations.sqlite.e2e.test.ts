@@ -95,10 +95,18 @@ withTempDir(({ createTempDir }) => {
 
         const plan = await runMigrationPlan(ctx, ['--from', origin, '--name', 'guest', '--json']);
         expect(plan.exitCode, `N1.05: plan: ${plan.stderr}`).toBe(0);
-        expect(parseJsonOutput<NoOperationsPlan>(plan), 'N1.05: no operations').toMatchObject({
+        const planned = parseJsonOutput<NoOperationsPlan>(plan);
+        expect(
+          {
+            operations: planned.operations,
+            changedStorageEntities: planned.changedStorageEntities,
+            summary: planned.summary,
+          },
+          'N1.05: no operations',
+        ).toEqual({
           operations: [],
           changedStorageEntities: [
-            expect.objectContaining({ entityKind: 'valueSet', entityName: 'Role' }),
+            { plane: 'storage', entityKind: 'valueSet', entityName: 'Role' },
           ],
           summary: expect.stringContaining('What changed: valueSet "Role".'),
         });
