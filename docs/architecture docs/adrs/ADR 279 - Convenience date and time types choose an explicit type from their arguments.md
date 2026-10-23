@@ -19,30 +19,30 @@ model Order {
 }
 ```
 
-`DateTime`, `Date`, `Time` and `Duration` are **convenience types**. Each is named for what a field means in the application, and each becomes exactly one **explicit type**, the database-named type that fixes the column type and the value the application reads. Written bare, a convenience type takes defaults that work on any JavaScript runtime with no setup. Its optional arguments choose any other explicit type. The contract records only the explicit type: `settledAt` is stored exactly as `settledAt TimestamptzTemporal` would be.
+`DateTime`, `Date`, `Time` and `Duration` are **convenience types**. Each is named for what a field means in the application, and each becomes exactly one **explicit type**. An explicit type, such as `TimestamptzJsDate`, is named after the database and sets both the column type and the JavaScript value the application reads. Written bare, a convenience type takes defaults that work on any JavaScript runtime with no setup. Its optional arguments choose any other explicit type. The contract records only the explicit type: `settledAt` is stored exactly as `settledAt TimestamptzTemporal` would be.
 
 ## Decision
 
-1. **Date and time types have two layers.** The explicit types are named after the database, as ADR 257 requires. Each one uses a single codec, so it fixes both the column type and the value the application reads. The convenience types are named after the application concept, and each one becomes exactly one explicit type.
-2. **A convenience type is a type choice.** It is a declaration with:
+1. **Date and time types have two layers.** The explicit types are named after the database, as ADR 257 requires. Each one uses a single codec, the code that converts between one column type and one kind of JavaScript value, so it fixes both. The convenience types are named after the application concept, and each one becomes exactly one explicit type.
+2. **A convenience type is declared as a type choice:** a declaration that picks an explicit type from its arguments. It has:
    - option arguments, each with a fixed set of values and a default;
-   - arguments it passes on to the chosen type, such as `precision`;
+   - arguments it hands through to the chosen explicit type, such as `precision`;
    - a table from each allowed combination of option values to the name of an explicit type.
 
    A combination the table does not list is refused.
-3. **The contract stores only the explicit type.** A schema written with convenience types and the same schema written with the explicit types they become give the same contract and the same hashes.
+3. **The contract stores only the explicit type.** A schema written with convenience types and the same schema written with the explicit types they become give the same contract.
 4. **The defaults need no setup.** On PostgreSQL:
    - `DateTime` defaults to a `timestamptz(3)` column read as a JavaScript `Date`.
    - `Date`, `Time` and `Duration` default to ISO 8601 strings.
 
    No default needs a global `Temporal`.
-5. **The tools write the convenience types.** `contract infer`, `contract print`, the Prisma 7 schema reader and `prisma orm init` write each date or time column as the convenience call that becomes its explicit type. They write only the arguments that differ from the defaults. An explicit type is written only for a column that no convenience call reaches.
+5. **Tools that generate a schema write convenience types.** `contract infer`, `contract print`, the Prisma 7 schema reader and `prisma orm init` write each date or time column as the convenience call that becomes its explicit type, with only the arguments that differ from the defaults. They write the explicit type only when no convenience call becomes it.
 
 ## Why
 
-In Prisma 7, every date or time field is `DateTime`, and the application always reads a JavaScript `Date`. A `@db.*` attribute changes the column type and nothing else. That is easy to learn. But a `Date` is a moment in time, so it is the wrong value for a calendar date or a time of day. A birthday created at local midnight on a machine east of UTC is stored as the day before.
+In Prisma 7, every date or time field is `DateTime`, and the application always reads a JavaScript `Date`. A `@db.*` attribute changes the column type and nothing else. That is easy to learn. But a `Date` is a moment in time, so it is the wrong value for a calendar date or a time of day. A birthday created at local midnight on a machine east of UTC is stored as the day before, because that midnight is still the previous day in UTC.
 
-Prisma 8's explicit types make each choice visible instead. A `date` column can be read as a `Temporal.PlainDate` (`DateTemporal`) or as a string (`DateString`), and each is correct for what it is. The cost is that every name fixes two things at once: the column type and the kind of value. So a column type with three kinds of value has three names, and across PostgreSQL's date and time column types there are more than a dozen. Nothing says which one to start with. To choose, a user must already know the difference between `timestamp` and `timestamptz`, what each Temporal type means, and what each kind of value costs. A user writing a model thinks "this field is when the order was paid", not "this is a `timestamptz` column read as a `Temporal.Instant`".
+Prisma 8 replaces the single type with explicit types, each naming both the column type and the value read. A `date` column can be read as a `Temporal.PlainDate` (`DateTemporal`) or as a string (`DateString`), and each is correct for what it is. The cost is that every name fixes two things at once: the column type and the kind of value. So a column type with three kinds of value has three names, and across PostgreSQL's date and time column types there are more than a dozen. Nothing says which one to start with. To choose, a user must already know the difference between `timestamp` and `timestamptz`, what each Temporal type means, and what each kind of value costs. A user writing a model thinks "this field is when the order was paid", not "this is a `timestamptz` column read as a `Temporal.Instant`".
 
 Prisma 8's approach is to give users explicit, predictable controls first, then make common cases easy by building convenience APIs on top. The client facades are an example. `postgres({ contract, url })` builds the runtime, adapter and driver that a user could otherwise create and connect by hand. The convenience types do the same for dates and times. There is one name per concept, with a default that works, and every explicit choice stays available as an argument or as the explicit type itself.
 
@@ -50,7 +50,7 @@ Prisma 8's approach is to give users explicit, predictable controls first, then 
 
 ### The explicit layer
 
-An explicit type is a type constructor. It names one codec and maps its arguments onto that codec's parameters:
+An explicit type is a type constructor. It names one codec and fills that codec's parameters (`typeParams`) from its arguments; here the first argument becomes `precision`:
 
 ```ts
 TimestamptzTemporal: {
@@ -63,7 +63,7 @@ TimestamptzTemporal: {
 },
 ```
 
-When a column type has more than one codec, every explicit type for it carries a suffix naming its kind of value. No name looks like the neutral default:
+When a column type has more than one codec, every explicit type for it carries a suffix naming its kind of value. So no explicit type takes a bare name like `Timestamptz`; the bare concept names belong to the convenience types. `timetz` has one codec, so its explicit type has no suffix.
 
 | Column | `Date` | `Temporal` | String | Other |
 | --- | --- | --- | --- | --- |
@@ -74,11 +74,13 @@ When a column type has more than one codec, every explicit type for it carries a
 | `timetz` | | | `Timetz` | |
 | `interval` | | | `IntervalString` (an ISO 8601 duration) | `IntervalParts` (`{ months, days, micros }`) |
 
-`TimestampJsDate` and `TimestampInstant` read and write a `timestamp` column as UTC. This lets a `timestamp` column, the column Prisma 7's `DateTime` creates, hold the same moment-in-time value as a `timestamptz` column. `TimestampInstant` names its Temporal type instead of taking the `Temporal` suffix, because the `timestamp` column has two Temporal codecs.
+`TimestampJsDate` and `TimestampInstant` read and write a `timestamp` column as UTC, so a `timestamp` column can hold the same moment in time as a `timestamptz` column. That matters because `timestamp` is the column Prisma 7's `DateTime` creates.
+
+`TimestampInstant` names its Temporal type instead of taking the `Temporal` suffix, because the `timestamp` column has two Temporal codecs.
 
 ### A type choice names its explicit types
 
-A convenience type is a second kind of declaration in the same namespace, a type choice. It names no codec. It declares its arguments and a table whose rows each name an explicit type:
+A convenience type is a second kind of declaration, a type choice, in the same set of type names as the explicit types. It names no codec. It declares its arguments and a table whose rows each name an explicit type:
 
 ```ts
 DateTime: {
@@ -99,7 +101,16 @@ DateTime: {
 },
 ```
 
-The value names repeat the explicit types' suffixes, so `DateTime(value: jsDate)` and `TimestamptzJsDate` read as the same thing. The PostgreSQL target declares four type choices:
+The value names repeat the explicit types' suffixes, so `DateTime(value: jsDate)` and `TimestamptzJsDate` read as the same thing. The one exception is `DateTime(value: temporal, column: timestamp)`, which becomes `TimestampInstant`; "Combinations left out" says why.
+
+Resolving a call takes three steps:
+1. Fill in the default for every option the call leaves out.
+2. Look up the table row for the resulting combination of values.
+3. Instantiate the explicit type that row names, handing through the other arguments. If the row gives a default for an argument the call leaves out, such as `precision: 3` for `TimestamptzJsDate`, that default applies.
+
+The result is exactly what writing that explicit type would give. Every argument is optional, so a bare `DateTime` is its default row. Arguments are written by name or in declaration order. Because `value` comes first, `Time(3)` reads `3` as the `value` option, and the refusal says to write `Time(precision: 3)`.
+
+The PostgreSQL target declares four type choices:
 
 | Convenience type | `value` | `column` | Default |
 | --- | --- | --- | --- |
@@ -108,34 +119,31 @@ The value names repeat the explicit types' suffixes, so `DateTime(value: jsDate)
 | `Time` | `string`, `temporal` | `time`, `timetz` (with `string` only) | `string`, `time` |
 | `Duration` | `string`, `parts` | `interval` | `string` |
 
-Resolving a call takes four steps:
-1. Fill in the default for every option the call leaves out.
-2. Look up the table row for the resulting combination of values.
-3. Instantiate the explicit type that row names, passing on the other arguments. A row default stands in for an argument the call leaves out.
-4. The result is exactly what writing that explicit type would give.
-
-Every argument is optional, so a bare `DateTime` is its default row. Arguments are written by name or in declaration order. Because `value` comes first, `Time(3)` reads `3` as the `value` option, and the refusal says to write `Time(precision: 3)`.
-
 A call is refused at the argument that makes it invalid, and the message lists what that argument accepts. That covers:
 - a value an option does not list, such as `Date(value: jsDate)`;
 - a combination with no row, such as `Time(value: temporal, column: timetz)`;
-- a passed-on argument the chosen type does not take, such as `Date(precision: 3)`.
+- an argument the chosen explicit type does not take, such as `Date(precision: 3)`.
 
-Assembly refuses a type choice that:
-- names a constructor not registered beside it;
+When a target's type declarations are loaded, a type choice is refused if it:
+- names an explicit type the same target does not declare;
 - has two rows for one combination;
 - lists a value or default its option does not declare;
 - gives a row default for an argument the chosen constructor does not take;
-- passes on an argument whose data type differs from the chosen constructor's.
+- hands through an argument whose data type differs from the chosen constructor's.
 
-### Every reader uses the type the call chooses
+### Combinations left out
 
-Every place that needs a field's codec resolves the field's call first, including through a `types {}` alias, so it sees the explicit type's codec:
+- **A JavaScript `Date` for a calendar date or a time of day.** A calendar date stored through a moment in time depends on the time zone of the machine that made it.
+- **`Temporal.PlainTime` on a `timetz` column.** It would drop the stored UTC offset.
+- **`Temporal.PlainDateTime`.** This is a date and a time with no time zone, which is rarely what an application means ("9am wherever the user is"). It stays available as the explicit type `TimestampTemporal`. `DateTime(value: temporal, column: timestamp)` reads a `Temporal.Instant` instead.
+
+### The whole toolchain sees the chosen explicit type
+
+Every place that needs a field's codec resolves the field's call first, including a call inside a named alias declared in a `types {}` block, so it sees the explicit type's codec:
 - the PSL interpreter, which builds the column;
 - the `@default` value check;
 - the `@onCreate`/`@onUpdate` generator lookup;
-- the Prisma 7 reader;
-- the MongoDB reader;
+- the Prisma 7 schema reader;
 - the language server.
 
 `DateTime @onCreate(now())` therefore gets the generator for `TimestamptzJsDate`, and `DateTime(value: temporal) @onCreate(now())` gets the one for `TimestamptzTemporal`.
@@ -146,20 +154,20 @@ In a TypeScript contract, `type.DateTime(...)`, `type.Date(...)`, `type.Time(...
 
 The defaults are chosen so that the value is right for the concept and needs nothing installed:
 - **`DateTime` reads a JavaScript `Date`.** That is the right value for a moment in time, it works everywhere, and it is what Prisma 7 gave. A `Date` holds milliseconds, so the default precision is 3. A user who needs microseconds writes `DateTime(value: temporal)` or `DateTime(value: string)`.
-- **`Date`, `Time` and `Duration` read plain ISO 8601 strings.** JavaScript has no built-in calendar date, time of day or duration. A `Date` would bring back the wrong-day bug, and a class or branded string owned by Prisma would add friction without catching anything the codec doesn't.
+- **`Date`, `Time` and `Duration` read plain ISO 8601 strings.** JavaScript has no built-in calendar date, time of day or duration. A `Date` would bring back the wrong-day bug. A Prisma-owned class or branded string is rejected under Alternatives.
 
-A string is the ISO 8601 form its data type stores (ADR 254, "Date and time types"). It reads the same on every server, and a value written in that form reads back unchanged:
-- The `timestamptz` codec converts any session time zone offset to UTC.
+A string is the ISO 8601 text of the stored value (ADR 254, "Date and time types"). It reads the same on every server, and a value written in that form reads back unchanged:
+- The `timestamptz` string codec converts any session time zone offset to UTC.
 - The `timetz` codec keeps the offset stored with the value.
-- `IntervalString` reads every `IntervalStyle` PostgreSQL prints.
+- The `interval` string codec reads every `IntervalStyle` PostgreSQL prints.
 
-Reading dates and times as ISO text needs `DateStyle=ISO`. The PostgreSQL target declares that requirement, and the PostgreSQL driver ensures every connection it hands to the runtime meets it. How the driver does that is its own concern. A codec that still reads text in another style refuses it, with an error that names the setting.
+Reading dates and times as ISO text needs `DateStyle=ISO`. The PostgreSQL target declares that requirement, and the PostgreSQL driver ensures every connection it hands to the runtime meets it. This record does not decide how the driver does it. If a codec receives text in another style, it fails with an error that names `DateStyle`.
 
 The Temporal codecs take their TypeScript types from `temporal-spec`, a package of declarations with no runtime code. A Temporal field is then typed precisely in a project that has no global `Temporal` declarations. No polyfill reaches an application that does not choose a Temporal value.
 
 ### What the tools write
 
-`contract infer` reads a database, and `contract print` reads a contract. Neither has a record of which layer the user wrote. Both take the well-trodden path wherever it reaches the column: they write the convenience type's default, with only the arguments that differ from its defaults. The table shows what they write; the last row is the explicit fallback.
+`contract infer` reads a database, and `contract print` reads a contract. Neither has a record of which layer the user wrote. Both write the convenience type whenever one becomes the column's explicit type, with only the arguments that differ from its defaults. For each column, they pick the explicit type the convenience default gives, so the schema they write is the one a user would write. The table shows what they write; the last row is the explicit fallback.
 
 | Column | Written as | Explicit type it becomes |
 | --- | --- | --- |
@@ -172,44 +180,40 @@ The Temporal codecs take their TypeScript types from `temporal-spec`, a package 
 | `interval` | `Duration` | `IntervalString` |
 | a `timestamp` read as `Temporal.PlainDateTime` | `TimestampTemporal` | `TimestampTemporal` |
 
-**A missing precision.** PostgreSQL stores microseconds whether a precision of 6 is declared or omitted. So the date and time data types treat an omitted precision as 6 when comparing columns (their normal form, ADR 254). A column with no declared precision is written as `DateTime(precision: 6)`, and `db verify` and the migration planner see no difference.
+**A missing precision.** PostgreSQL stores microseconds whether a precision of 6 is declared or omitted. So when Prisma compares a column with the contract, an omitted precision on a date or time column counts as 6 (ADR 254 calls this the data type's normal form). A column with no declared precision is written as `DateTime(precision: 6)`, and `db verify` and the migration planner see no difference.
 
-**Type marks and arguments.** Each data type marks one explicit type `inferred`: the type its convenience default becomes. To write the convenience call, the tools find the row that names that explicit type, build its arguments from the row, and drop those equal to the defaults. They then check that the call resolves back to the same codec and parameters. Arguments are always written by name.
+A `Date` holds milliseconds, so a column with more digits loses them when read through `DateTime`. The infer documentation says to write `DateTime(value: temporal)` or `DateTime(value: string)` to keep them.
 
-**The Prisma 7 schema reader** follows the same marks:
+**The Prisma 7 schema reader** (`prisma7Schema`, which turns a Prisma 7 `schema.prisma` into a Prisma 8 contract) picks the same explicit types for the same columns:
 
-| Prisma 7 field | Explicit type |
-| --- | --- |
-| `DateTime` | `TimestampJsDate(3)` (a `timestamp(3)` column, read as a `Date`, as Prisma 7 read it) |
-| `@db.Timestamptz(p)` | `TimestamptzJsDate(p)` |
-| `@db.Date` | `DateString` |
-| `@db.Time(p)` | `TimeString(p)` |
-| `@db.Timetz(p)` | `Timetz(p)` |
+| Prisma 7 field | Explicit type | Printed as |
+| --- | --- | --- |
+| `DateTime` | `TimestampJsDate(3)`: a `timestamp(3)` column read as a `Date`, as Prisma 7 read it | `DateTime(column: timestamp)` |
+| `@db.Timestamptz(p)` | `TimestamptzJsDate(p)` | `DateTime(precision: p)` |
+| `@db.Date` | `DateString` | `Date` |
+| `@db.Time(p)` | `TimeString(p)` | `Time(precision: p)` |
+| `@db.Timetz(p)` | `Timetz(p)` | `Time(column: timetz, precision: p)` |
 
-**`prisma orm init`** writes `DateTime` for the timestamps of a new project.
+**`prisma orm init`** writes the new project's starter model with `createdAt DateTime @default(now()) @onCreate(now())` and `updatedAt temporal.UpdatedAt`.
 
-### Combinations left out
-
-- **A JavaScript `Date` for a calendar date or a time of day.** A calendar date stored through a moment in time depends on the time zone of the machine that made it.
-- **`Temporal.PlainTime` on a `timetz` column.** It would drop the stored UTC offset.
-- **`Temporal.PlainDateTime`.** This is a date and a time with no time zone, which is rarely what an application means ("9am wherever the user is"). It stays available as the explicit type `TimestampTemporal`. `DateTime(value: temporal, column: timestamp)` reads a `Temporal.Instant` instead.
+**How the tools find the call.** For each column type, one explicit type is flagged `inferred`: the one the convenience default gives. `contract infer` and the Prisma 7 schema reader pick that type. To write the convenience call for an explicit type, the tools find the type-choice row that names it, build the call's arguments from the row, and drop those equal to the defaults. They then check that the call resolves back to the same codec and parameters, and otherwise write the explicit type. Arguments are always written by name.
 
 ### Created-at and updated-at
 
-The PostgreSQL target ships two ready-made type aliases (ADR 275):
+The PostgreSQL target ships two ready-made type aliases (ADR 275), in a namespace named `temporal` that groups its time aliases; the name does not mean they read Temporal values:
 - `temporal.CreatedAt` is `DateTime @onCreate(now())`.
 - `temporal.UpdatedAt` is `DateTime @onCreate(now()) @onUpdate(now())`.
 
-Both are the default `TimestamptzJsDate(3)`. A contributed alias takes no arguments, so a user who wants another kind of value writes the attributes on the convenience call, for example `DateTime(value: string) @onCreate(now()) @onUpdate(now())`, or declares their own alias with that line. `now()` picks its generator from the field's final codec, so it always writes the value that codec expects.
+Both are the default `TimestamptzJsDate(3)`. A type alias the target ships takes no arguments, so a user who wants another kind of value writes the attributes on the convenience call, for example `DateTime(value: string) @onCreate(now()) @onUpdate(now())`, or declares their own alias with that line. `now()` picks its generator from the field's final codec, so it always writes the value that codec expects.
 
 ## Consequences
 
 - A user can write `DateTime`, `Date`, `Time` or `Duration` without knowing PostgreSQL's column types or the Temporal API, and get a working field. A user who needs a specific column type or kind of value says so with an argument, or writes the explicit type.
 - The contract, the migration planner, `db verify` and the runtime see only explicit types, and nothing below the PSL and TypeScript surfaces changes.
 - A schema the tools write reads like one a user would write.
-- A type constructor still names one codec, as ADR 254 says. A type choice is a second kind of type declaration that resolves to a type constructor.
-- ADR 257's suffix rule applies to every codec of a column type that has several. The unsuffixed name of a concept belongs to a convenience type.
-- ADR 275's contributed `temporal.*` aliases are built on `DateTime`, and need no variants for other kinds of value.
+- A type constructor names one codec, as ADR 254 says. A type choice is a second kind of type declaration that resolves to a type constructor.
+- When a column type has several codecs, every explicit type for it names its kind of value in a suffix (ADR 257). The unsuffixed name of a concept belongs to a convenience type.
+- The target's `temporal.*` aliases (ADR 275) are built on `DateTime`, and need no variants for other kinds of value.
 - The editor's hover lists each convenience type's choices and the explicit type each combination becomes.
 
 ## Not decided here
@@ -236,6 +240,6 @@ Both are the default `TimestamptzJsDate(3)`. A contributed alias takes no argume
 
 **Name the convenience types after the Temporal API: `Instant`, `PlainDate`, `PlainTime`.** The names would say exactly what the application reads, but they are a library's vocabulary. A user modelling an application thinks "a birthday" or "when the order was paid".
 
-**A Prisma-owned value for calendar dates, times and durations, or a branded string type.** A class is one more date API to learn and convert from. It does not survive a trip through JSON, and becomes redundant once runtimes ship Temporal. A branded string forces every write, which almost always starts from a plain string, through a helper or a cast. It catches nothing the codec doesn't already refuse when the value is written.
+**A Prisma-owned value for calendar dates, times and durations, or a branded string type.** A class is one more date API to learn and convert from. It does not survive a trip through JSON, and it duplicates what Temporal provides. A branded string forces every write, which almost always starts from a plain string, through a helper or a cast. It catches nothing the codec doesn't already refuse when the value is written.
 
-**Infer the lossless string types for columns a `Date` cannot hold exactly.** The string types never lose a digit, but the inferred schema would then differ from what a user writing the same model would write. Infer takes the default instead, and the docs say how to keep microseconds.
+**Infer the lossless string types for columns a `Date` cannot hold exactly.** The string types never lose a digit, but the inferred schema would then differ from what a user writing the same model would write. Infer takes the default instead.
