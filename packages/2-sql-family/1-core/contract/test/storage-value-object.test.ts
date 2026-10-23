@@ -64,17 +64,27 @@ function contractWith(
   });
 }
 
+const addressWithMany = {
+  fields: { street: { ...text, many: false }, city: { ...text, many: false } },
+};
+
 describe('StorageValueObject', () => {
-  it('holds the fields it is given, frozen', () => {
+  it('holds the fields it is given, with many false where a field leaves it out, frozen', () => {
     const valueObject = new StorageValueObject(address);
-    expect({ fields: valueObject.fields, frozen: Object.isFrozen(valueObject) }).toEqual({
-      fields: address.fields,
-      frozen: true,
-    });
+    expect({
+      fields: valueObject.fields,
+      frozen: Object.isFrozen(valueObject),
+      fieldFrozen: Object.isFrozen(valueObject.fields['street']),
+    }).toEqual({ fields: addressWithMany.fields, frozen: true, fieldFrozen: true });
+  });
+
+  it('keeps the many a field gives', () => {
+    const tags = { ...text, many: { elementNullable: true } };
+    expect(new StorageValueObject({ fields: { tags } }).fields).toEqual({ tags });
   });
 
   it('serializes to its fields only', () => {
-    expect(JSON.parse(JSON.stringify(new StorageValueObject(address)))).toEqual(address);
+    expect(JSON.parse(JSON.stringify(new StorageValueObject(address)))).toEqual(addressWithMany);
   });
 
   it('is hydrated from the valueObject slot', () => {
