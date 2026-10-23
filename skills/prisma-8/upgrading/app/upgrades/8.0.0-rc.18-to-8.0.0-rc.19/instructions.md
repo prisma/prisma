@@ -1130,9 +1130,10 @@ Run `node <guide>/scripts/client-takes-contract-value/contract-from-json.ts <pro
 
 - adds `import { contractFromJson } from '<facade>/static';`, or adds `contractFromJson` to an existing import of that entry, in the file's quote, semicolon and line-ending style;
 - declares `export const contract = contractFromJson<Contract>(contractJson);` after the imports. In a module with a default export, such as a Worker entry, it declares `const contract` without `export` and prints a note: a Worker treats every named export of its entry module as an entrypoint, so a module that needs the value gets it from a separate module (see step 2 below);
-- removes the type argument from the call and replaces the `contractJson` property with `contract`.
+- removes the type argument from the call and replaces the `contractJson` property with `contract`;
+- where the call's result is destructured with `contract` in it, as in a `migration.ts` (`const { sql: db, contract } = postgres<End>({ contractJson: endContract })`), removes `contract` from the destructuring, because the declared value is that contract: `const { sql: db } = postgres({ contract })`.
 
-It prints each file it moved. It prints to stderr, with the reason, each file that passes `contractJson` but that it did not move, and then exits 1: a test file, a file that already has a binding named `contract` (rename that binding and run the script again), a file whose clients use different contracts, a file whose `contractJson` value uses a binding the file declares after its imports, and a call it cannot read. Move those by hand in the same way.
+It prints each file it moved. It prints to stderr, with the reason, each file that passes `contractJson` but that it did not move, and then exits 1: a test file, a file that already has another binding named `contract` (rename that binding and run the script again), a file whose clients use different contracts, a file whose `contractJson` value uses a binding the file declares after its imports, a file whose `contractJson` value uses a parameter or local binding of the function that creates the client (pass `contract: contractFromJson<Contract>(<value>)` to that call instead; the message gives the exact text), and a call it cannot read. Move those by hand in the same way.
 
 ### Then, by hand
 

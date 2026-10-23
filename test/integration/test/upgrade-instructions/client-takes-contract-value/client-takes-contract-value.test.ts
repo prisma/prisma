@@ -88,14 +88,21 @@ describe.each(['app', 'extension'] as const)('the %s script', (audience) => {
     });
   });
 
-  it('moves calls with comments, default-as imports, nested objects and a default export', () => {
+  it('moves calls with comments, default-as imports, nested objects, a default export and a destructured contract', () => {
     expect(run(fixtureTree('shapes', 'before'), audience)).toEqual({
       status: 0,
       stdout:
+        notExported('migrations/app/20261007T1630_backfill/migration.ts') +
         moved(['src/accessor.ts', 'src/comment.ts', 'src/default-as.ts']) +
         notExported('src/default-export.ts') +
         notExported('src/default-reexport.ts') +
-        moved(['src/members.ts', 'src/nested-object.ts', 'src/value-with-comma.ts']),
+        moved([
+          'src/inner-destructure.ts',
+          'src/members.ts',
+          'src/nested-object.ts',
+          'src/only-contract.ts',
+          'src/value-with-comma.ts',
+        ]),
       stderr: '',
       tree: fixtureTree('shapes', 'after'),
     });
@@ -128,6 +135,7 @@ describe.each(['app', 'extension'] as const)('the %s script', (audience) => {
       stderr: [
         'src/array-hole.ts: not moved, because it already has a binding named contract (line 6); rename that binding and run the script again',
         'src/binding.ts: not moved, because it already has a binding named contract (line 5); rename that binding and run the script again',
+        'src/client-in-function.ts: not moved, because its contractJson value uses contract, which is a parameter or local binding where the client is created, not a value the top of the file can read; pass contract: contractFromJson<OrmContractOf<C>>(contract.__cmp.contractJson) to the call instead of contractJson, and import contractFromJson from @prisma/orm-postgres/static',
         'src/destructured.ts: not moved, because it already has a binding named contract (line 7); rename that binding and run the script again',
         'src/enum.ts: not moved, because it already has a binding named contract (line 5); rename that binding and run the script again',
         'src/import-equals.ts: not moved, because it already has a binding named contract (line 5); rename that binding and run the script again',

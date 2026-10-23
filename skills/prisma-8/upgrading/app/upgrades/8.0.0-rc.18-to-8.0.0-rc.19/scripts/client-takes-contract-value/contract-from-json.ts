@@ -10,8 +10,9 @@
 // It rewrites each source file it can move, and prints it. In a module with a default export, such
 // as a Worker entry, it declares `contract` without `export` and says so. It prints to stderr, with the reason,
 // each file that passes `contractJson` to a client but that it did not move: a test file, a file
-// that already has a binding named `contract`, a file whose clients use different contracts, or
-// a call it cannot read. It exits 1 when it printed such a file, and changes nothing and exits 1
+// that already has another binding named `contract`, a file whose clients use different contracts,
+// a file whose `contractJson` value is not readable at the top of the file, or a call it cannot
+// read. A `contract` destructured from the moved call is dropped from the destructuring. It exits 1 when it printed such a file, and changes nothing and exits 1
 // when TypeScript is not installed. It skips node_modules, dist, build and every directory whose
 // name starts with a dot, such as .git, .agents or .claude.
 
@@ -38,6 +39,7 @@ interface Edit {
 }
 
 interface MovedCall {
+  readonly node: TS.CallExpression;
   readonly edits: readonly Edit[];
   readonly typeArguments: string;
   readonly json: string;
@@ -121,10 +123,20 @@ function bindingNames(ts: typeof TS, name: TS.BindingName): string[] {
   return bindingIdentifiers(ts, name).map((identifier) => identifier.text);
 }
 
-function bindingOf(ts: typeof TS, node: TS.Node, wanted: string): TS.Node | undefined {
+function bindingsOf(ts: typeof TS, root: TS.Node, wanted: string): TS.Node[] {
+  const found: TS.Node[] = [];
+  const visit = (node: TS.Node): void => {
+    const binding = ownBindingOf(ts, node, wanted);
+    if (binding !== undefined) found.push(binding);
+    ts.forEachChild(node, visit);
+  };
+  visit(root);
+  return found;
+}
+
+function ownBindingOf(ts: typeof TS, node: TS.Node, wanted: string): TS.Node | undefined {
   if (ts.isVariableDeclaration(node) || ts.isParameter(node)) {
-    const identifier = bindingIdentifiers(ts, node.name).find((name) => name.text === wanted);
-    if (identifier !== undefined) return identifier;
+    return bindingIdentifiers(ts, node.name).find((name) => name.text === wanted);
   }
   if (
     (ts.isFunctionDeclaration(node) ||
@@ -145,7 +157,60 @@ function bindingOf(ts: typeof TS, node: TS.Node, wanted: string): TS.Node | unde
   ) {
     return node.name;
   }
-  return ts.forEachChild(node, (child) => bindingOf(ts, child, wanted));
+  return undefined;
+}
+
+function topLevelStatementOf(ts: typeof TS, node: TS.Node): TS.Node | undefined {
+  let current = node;
+  while (current.parent !== undefined && !ts.isSourceFile(current.parent)) current = current.parent;
+  return current.parent === undefined ? undefined : current;
+}
+
+/** The edit that drops `contract` from `const { ..., contract } = client(...)`, whose value the moved declaration now holds. */
+function destructuredContractEdit(
+  ts: typeof TS,
+  sourceFile: TS.SourceFile,
+  call: TS.CallExpression,
+  exported: boolean,
+): { readonly binding: TS.Node; readonly edit: Edit } | undefined {
+  const declaration = call.parent;
+  if (!ts.isVariableDeclaration(declaration) || declaration.initializer !== call) return undefined;
+  const pattern = declaration.name;
+  if (!ts.isObjectBindingPattern(pattern)) return undefined;
+  if (pattern.elements.some((element) => element.dotDotDotToken !== undefined)) return undefined;
+  const index = pattern.elements.findIndex(
+    (element) =>
+      element.propertyName === undefined &&
+      element.initializer === undefined &&
+      ts.isIdentifier(element.name) &&
+      element.name.text === 'contract',
+  );
+  const element = pattern.elements[index];
+  if (element === undefined) return undefined;
+  const statement = declaration.parent.parent;
+  const isExported =
+    ts.isVariableStatement(statement) &&
+    (ts.getModifiers(statement)?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) ?? false);
+  if (isExported && !exported) return undefined;
+  if (pattern.elements.length === 1) {
+    if (
+      !ts.isVariableStatement(statement) ||
+      isExported ||
+      statement.declarationList.declarations.length !== 1
+    )
+      return undefined;
+    return {
+      binding: element.name,
+      edit: { start: statement.getStart(sourceFile), end: call.getStart(sourceFile), text: '' },
+    };
+  }
+  const next = pattern.elements[index + 1];
+  const previous = pattern.elements[index - 1];
+  const edit =
+    next !== undefined
+      ? { start: element.getStart(sourceFile), end: next.getStart(sourceFile), text: '' }
+      : { start: previous?.end ?? element.getStart(sourceFile), end: element.end, text: '' };
+  return { binding: element.name, edit };
 }
 
 function isReference(ts: typeof TS, identifier: TS.Identifier): boolean {
@@ -208,6 +273,7 @@ function movedCalls(
           });
         }
         calls.push({
+          node,
           edits,
           typeArguments:
             typeArguments === undefined
@@ -301,7 +367,27 @@ export function moveFile(ts: typeof TS, fileName: string, source: string): Outco
     };
   }
   const names = topLevelNames(ts, sourceFile);
-  const binding = bindingOf(ts, sourceFile, 'contract');
+  const topLevelStatement = topLevelStatementOf(ts, first.node);
+  const inner = first.jsonNames.find(
+    (name) =>
+      !names.imported.has(name) &&
+      !names.declared.has(name) &&
+      topLevelStatement !== undefined &&
+      bindingsOf(ts, topLevelStatement, name).length > 0,
+  );
+  if (inner !== undefined) {
+    return {
+      kind: 'refused',
+      reason: `its contractJson value uses ${inner}, which is a parameter or local binding where the client is created, not a value the top of the file can read; pass contract: contractFromJson${first.typeArguments}(${first.json}) to the call instead of contractJson, and import contractFromJson from ${first.staticEntry}`,
+    };
+  }
+  const exported = !hasDefaultExport(ts, sourceFile);
+  const destructured = calls
+    .map((call) => destructuredContractEdit(ts, sourceFile, call.node, exported))
+    .filter((found) => found !== undefined);
+  const binding = bindingsOf(ts, sourceFile, 'contract').find(
+    (found) => !destructured.some((entry) => entry.binding === found),
+  );
   if (binding !== undefined) {
     const line = sourceFile.getLineAndCharacterOfPosition(binding.getStart(sourceFile)).line + 1;
     return {
@@ -328,14 +414,16 @@ export function moveFile(ts: typeof TS, fileName: string, source: string): Outco
     semicolon: firstImportText.endsWith(';') ? ';' : '',
     eol: source.includes('\r\n') ? '\r\n' : '\n',
   };
-  const edits: Edit[] = calls.flatMap((call) => call.edits);
+  const edits: Edit[] = [
+    ...calls.flatMap((call) => call.edits),
+    ...destructured.map((entry) => entry.edit),
+  ];
   const staticImport = importEdit(ts, sourceFile, imports, first.staticEntry, style);
   const importedAfter = 'after' in staticImport ? staticImport.after : '';
   if ('start' in staticImport) edits.push(staticImport);
 
   let afterImports = lastImport.end;
   while (source[afterImports] === '\r' || source[afterImports] === '\n') afterImports++;
-  const exported = !hasDefaultExport(ts, sourceFile);
   const declaration = `${exported ? 'export ' : ''}const contract = contractFromJson${first.typeArguments}(${first.json})${style.semicolon}`;
   edits.push({
     start: lastImport.end,
