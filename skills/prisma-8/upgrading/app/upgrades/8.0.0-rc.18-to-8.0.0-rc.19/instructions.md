@@ -26,13 +26,12 @@ changes:
         - '\.noCheck\('
   - id: prisma7-lists-allow-null-elements
     summary: |
-      A contract read from a Prisma 7 `schema.prisma` now types the elements of every list as `T | null`, because Prisma 7 creates no check against null elements, and its storage hash changes. Run `stored-contracts-drop-nocheck` first. Otherwise, re-emit the contract and then run `prisma db sign` against every database. A database Prisma 7 built still matches the contract with no migration. The detection matches a Prisma 7 schema file, one without the `// use prisma-8` directive, with a list of a scalar type or of an enum the same file declares; check a list of an enum declared in another file of the schema yourself.
+      A contract read from a Prisma 7 `schema.prisma` now types the elements of every list as `T | null`, because Prisma 7 creates no check against null elements, and its storage hash changes. Run `stored-contracts-drop-nocheck` first. Otherwise, re-emit the contract and then run `prisma db sign` against every database. A database Prisma 7 built still matches the contract with no migration. The detection matches a Prisma 7 schema file, one without the `// use prisma-8` directive, with a list of a scalar type, or with any list when the same file declares an enum; check whether such a list is of an enum, and check a list of an enum declared in another file of the schema yourself.
     detection:
       glob: "**/*.prisma"
       matches:
-        - '^(?!\s*// *use +(?:prisma-8|prisma-next) *(?!\S))[\s\S]*\n[ \t]*\w+[ \t]+(?:String|Int|BigInt|Float|Decimal|Boolean|DateTime|Json|Bytes)\[\]'
-        - '^(?!\s*// *use +(?:prisma-8|prisma-next) *(?!\S))[\s\S]*\benum[ \t]+(\w+)[ \t]*\{[\s\S]*\n[ \t]*\w+[ \t]+\1\[\]'
-        - '^(?!\s*// *use +(?:prisma-8|prisma-next) *(?!\S))[\s\S]*\n[ \t]*\w+[ \t]+(\w+)\[\][\s\S]*\benum[ \t]+\1[ \t]*\{'
+        - '(?<![\s\S])(?!\s*// *use +(?:prisma-8|prisma-next) *(?!\S))[\s\S]*\n[ \t]*\w+[ \t]+(?:String|Int|BigInt|Float|Decimal|Boolean|DateTime|Json|Bytes)\[\]'
+        - '(?<![\s\S])(?!\s*// *use +(?:prisma-8|prisma-next) *(?!\S))(?=[\s\S]*\benum[ \t]+\w+[ \t]*\{)[\s\S]*\n[ \t]*\w+[ \t]+\w+\[\]'
   - id: supabase-contract-lists-allow-null-elements
     summary: |
       The `@prisma/orm-extension-supabase` contract now declares its four `text[]` columns as lists whose elements may be null, so code that reads them gets `string | null` elements, and the Supabase space's storage hash changes. Run `prisma db sign` against every database after upgrading.
@@ -50,13 +49,13 @@ changes:
     script: ./scripts/data-type-values/data-type-values.ts
   - id: date-time-interval-and-bytes-defaults-use-tags
     summary: |
-      A date, time, interval or bytes default is written with its type's tag instead of a quoted string: `@default(timestamptz`2024-01-01T00:00:00Z`)` on PostgreSQL, `@default(datetime`2024-01-01T00:00:00Z`)` on SQLite, and `@default(bytea`\x0102`)` for bytes on PostgreSQL and `@default(blob`0102`)` on SQLite. `contract emit` refuses the quoted form and names the tag to write. The detection matches Prisma 8 schema files, those with the `// use prisma-8` directive, with a quoted default that looks like a date, time or interval, or that sits on a date, time, interval or bytes column.
+      A date, time, interval or bytes default is written with its type's tag instead of a quoted string: `@default(timestamptz`2024-01-01T00:00:00Z`)` on PostgreSQL, `@default(datetime`2024-01-01T00:00:00Z`)` on SQLite, and `@default(bytea`\x0102`)` for bytes on PostgreSQL and `@default(blob`0102`)` on SQLite. `contract emit` refuses the quoted form and names the tag to write. The detection matches Prisma 8 schema files, those with the `// use prisma-8` directive, with a quoted default that looks like a date or an interval, or that sits on a date, time, interval or bytes column. It skips a quoted time such as `"12:30"` on a column whose type is a type alias, because a `String` default can look the same; `contract emit` names such a default.
     detection:
       glob: "**/*.prisma"
       matches:
-        - '^\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*@default\(\s*"(?:[+-]?\d{4,6}-\d{2}-\d{2}|-?P(?:\d|T\d)|[+-]?infinity")'
-        - '^\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*\b(?:DateTime|Date|Time|Timetz|Timestamp|Timestamptz|Interval)\b[^\n]*@default\(\s*"'
-        - '^\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*\bBytes\??[^\n]*@default\(\s*"'
+        - '(?<![\s\S])\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*@default\(\s*"(?:[+-]?\d{4,6}-\d{2}-\d{2}|-?P(?:\d|T\d)|[+-]?infinity")'
+        - '(?<![\s\S])\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*\b(?:DateTime|Date|Time|Timetz|Timestamp|Timestamptz|Interval)\b[^\n]*@default\(\s*"'
+        - '(?<![\s\S])\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*\bBytes\??[^\n]*@default\(\s*"'
   - id: postgres-defaults-stored-in-another-spelling
     summary: |
       The CLI refuses a PostgreSQL contract that an earlier release emitted when it stores a default in another spelling than its column's parameters give, for example `"1.5"` on `numeric(10,2)`, or a date or time default written as earlier releases stored it. Migration snapshots store such defaults too, and the CLI refuses to plan from them. Run `scripts/remove-nocheck/remove-nocheck.ts` (`stored-contracts-drop-nocheck`): it writes each stored default in the new form, migration snapshots included, and refreshes every hash that changes. Then run `prisma contract emit`, then `prisma db sign`.
@@ -92,7 +91,7 @@ changes:
     detection:
       glob: "**/*.prisma"
       matches:
-        - '^\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*@default\(\s*(?:uuid|cuid|ulid|nanoid)\s*\('
+        - '(?<![\s\S])\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*@default\(\s*(?:uuid|cuid|ulid|nanoid)\s*\('
     script: ./scripts/default-generators-to-on-create/rewrite-default-generators.mjs
   - id: contract-print-writes-generator-attributes
     summary: |
@@ -338,12 +337,11 @@ changes:
         - 'FieldTypesFromDomain,\s+RelationKeys,'
   - id: value-object-enum-fields-narrow
     summary: |
-      An enum field inside a value object (a composite type in PSL) now reads and writes the members of its enum, in an emitted `contract.d.ts` and in a contract built with `defineContract`, as an enum field of a model does. Before, the emitted contract typed it as its codec's type, such as `string`. A value object field whose codec renders its own type text, such as `arktype/json@1`, has that type, as before this change. Code that assigns an arbitrary string to such a field now fails to typecheck. Re-emit `contract.d.ts`. The detection matches PSL sources with a composite type that has a field of an enum declared in the same file (an enum in another file of a multi-file schema is not found), and TypeScript value objects whose fields include an enum field, also in the factory form of `defineContract` with renamed helpers.
+      An enum field inside a value object (a composite type in PSL) now reads and writes the members of its enum, in an emitted `contract.d.ts` and in a contract built with `defineContract`, as an enum field of a model does. Before, the emitted contract typed it as its codec's type, such as `string`. A value object field whose codec renders its own type text, such as `arktype/json@1`, has that type, as before this change. Code that assigns an arbitrary string to such a field now fails to typecheck. Re-emit `contract.d.ts`. The detection matches PSL sources that declare both an enum and a composite type, so check whether a field of the composite type has the enum's type (an enum in another file of a multi-file schema is not found), and TypeScript value objects whose fields include an enum field, also in the factory form of `defineContract` with renamed helpers.
     detection:
       glob: "**/*.{prisma,ts,mts,cts,tsx}"
       matches:
-        - '(?:^|\n)enum\s+(\w+)\s*\{[\s\S]*\n\s*type\s+\w+\s*\{[^}]*\s\1[?\[\]]*\s'
-        - '(?:^|\n)type\s+\w+\s*\{[^}]*\s(\w+)[?\[\]]*\s[\s\S]*\n\s*enum\s+\1\s*\{'
+        - '(?<![\s\S])(?=(?:[\s\S]*\n)?enum[ \t]+\w+\s*\{)(?:[\s\S]*\n)?[ \t]*type[ \t]+\w+\s*\{'
         - '(?:\bvalueObject|\bvalueObject\s*:\s*(\w+)[\s\S]*?\b\1)\(\s*[''"][^''"]+[''"]\s*,\s*\{\s*fields:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\.namedType\('
   - id: mongo-contracts-record-stored-field-names
     summary: |
@@ -361,7 +359,7 @@ changes:
       glob: "**/*.{ts,tsx,mts,cts,js,mjs,cjs}"
       matches:
         - '(?<![\s\S])(?![\s\S]*(?:GENERATED FILE - DO NOT EDIT|\bdefineContract\b|\bextends\s+Migration\b))[\s\S]*\._id\b'
-        - '(?<![\s\S])(?![\s\S]*(?:GENERATED FILE - DO NOT EDIT|\bdefineContract\b|\bextends\s+Migration\b))[\s\S]*(?<![\w$])_id\s*:'
+        - '(?<![\s\S])(?![\s\S]*(?:GENERATED FILE - DO NOT EDIT|\bdefineContract\b|\bextends\s+Migration\b))[\s\S]*(?<![\w$])_id\s*[:,}]'
         - '(?<![\s\S])(?![\s\S]*(?:GENERATED FILE - DO NOT EDIT|\bdefineContract\b|\bextends\s+Migration\b))[\s\S]*\.(?:select|orderBy|include|where|distinct)\([^)]*[''"]_id[''"]'
         - '(?<![\s\S])(?![\s\S]*(?:GENERATED FILE - DO NOT EDIT|\bdefineContract\b|\bextends\s+Migration\b))[\s\S]*\b(?:Omit|Pick)<[^>]*[''"]_id[''"]'
   - id: mongo-statements-name-fields
@@ -401,7 +399,7 @@ changes:
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - '\(?\s*(\w+)\s*\)?\s*=>\s*\[[\s\S]*?\b\1(?:\.\w+|\(\s*[''"][^''"]+[''"]\s*\))+\.(set|push|pull|addToSet|inc|mul)\('
+        - '(?:\(\s*)?(?<![\w$])(\w+)\s*\)?\s*=>\s*\[[^\]]*?\b\1(?:\.\w+|\(\s*[''"][^''"]+[''"]\s*\))+\.(?:set|push|pull|addToSet|inc|mul)\('
   - id: mongo-typescript-contract-validator
     summary: |
       A MongoDB contract written in TypeScript with `defineContract` now gets the same closed collection validator as a PSL contract, and its storage hash changes once. `defineContract` refuses what a validator cannot describe: a field whose codec has no MongoDB data type, a model whose `_id` field can hold an array, a regular expression, undefined or null, an enum a validator cannot list, and an embed relation to a model with variants. MongoDB does not check existing documents when a validator is added, so find and fix the documents the validator would refuse, then apply it with `prisma db update`, or with `prisma migration plan` and `prisma db migrate`. Writing an enum in a TypeScript contract to avoid the validator, as the rc.17 notes advised, no longer works.
@@ -604,7 +602,7 @@ The script paths are relative to the directory that holds this guide, which the 
 
 Prisma 8 adds a check to a list column of a managed table so that its elements cannot be null, and a check to an enum-typed column so that it holds only the enum's values. `@noCheck` in PSL and `.noCheck()` in TypeScript used to skip these checks while the field kept its non-null element type. The client type then said the elements could not be null while the database accepted null. Both are removed.
 
-Do the steps in this order: rewrite the stored contracts and sign the databases (`stored-contracts-drop-nocheck`), then change the contract source (`psl-nocheck-removed`, `ts-nocheck-method-removed`), then re-emit and migrate.
+Do the steps in this order: rewrite the stored contracts and sign the databases (`stored-contracts-drop-nocheck`), then change the contract source (`psl-nocheck-removed`, `ts-nocheck-method-removed`), then re-emit. Plan and apply a migration in step 8 of "Order of the steps", after each `ops.json` is written again.
 
 ### `stored-contracts-drop-nocheck`
 
@@ -665,9 +663,9 @@ tags String?[]
 
 The element type gains `| null`, so code that reads the list must handle null elements. The database does not change: neither form has a check. If you ran `stored-contracts-drop-nocheck`, re-emitting gives the contract the script wrote, so there is nothing to sign or migrate. If you did not, re-emit and then run `prisma db sign` against every database.
 
-If you want the check instead, delete the attribute and keep `T[]`. Re-emit, then run `prisma migration plan` and `prisma db migrate`, or `prisma db update` in a project without migrations. The migration adds the check. Applying it fails if a stored list already holds a null element, so fix those rows first.
+If you want the check instead, delete the attribute and keep `T[]`. Re-emit, then, in step 8 of "Order of the steps", run `prisma migration plan` and `prisma db migrate`, or `prisma db update` in a project without migrations. The migration adds the check. Applying it fails if a stored list already holds a null element, so fix those rows first.
 
-Delete `@noCheck(membership)`. Re-emit, then plan and apply a migration the same way. The migration adds the membership check to the enum column. Applying it fails if a stored value is not one of the enum's values, so fix those rows first.
+Delete `@noCheck(membership)`. Re-emit, then plan and apply a migration the same way, in step 8. The migration adds the membership check to the enum column. Applying it fails if a stored value is not one of the enum's values, so fix those rows first.
 
 A bare `@noCheck` waived every check the column had. Apply both rules above: a list column becomes `T?[]`, and an enum column loses the attribute.
 
@@ -1031,7 +1029,7 @@ await db.orm.public.Post.create({ title: 'Hello', publishedAt: new Date().toISOS
 
 A direct call of the codec's `encode` with a `Date` is now a type error as well.
 
-To work with `Date` values, you can change the column to `TimestamptzJsDate(p)` (`temporal.timestamptzJsDate(...)` as a preset). That changes the column type to `timestamptz`, so it needs a migration: plan and apply one with `prisma migration plan` and `prisma db migrate`, and check how existing `timestamp` values convert, because Postgres reads them in the session's time zone.
+To work with `Date` values, you can change the column to `TimestamptzJsDate(p)` (`temporal.timestamptzJsDate(...)` as a preset). That changes the column type to `timestamptz`, so it needs a migration: plan and apply one with `prisma migration plan` and `prisma db migrate` in step 8 of "Order of the steps", and check how existing `timestamp` values convert, because Postgres reads them in the session's time zone.
 
 ## Type-constructor arguments are values of data types
 

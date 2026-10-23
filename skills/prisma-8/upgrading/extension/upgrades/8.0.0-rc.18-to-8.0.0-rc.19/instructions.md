@@ -447,13 +447,13 @@ changes:
     script: ./scripts/mongo-field-storage-names/mongo-field-storage-names.ts
   - id: date-time-interval-and-bytes-defaults-use-tags
     summary: |
-      In the PSL source of an extension's contract, a date, time, interval or bytes default is written with its type's tag instead of a quoted string, such as `@default(timestamptz`2024-01-01T00:00:00Z`)` or `@default(bytea`\x0102`)`. `contract emit` refuses the quoted form and names the tag to write. The app guide's section of this name, in `../../../app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/`, lists every tag. The detection matches Prisma 8 schema files with a quoted default that looks like a date, time or interval, or that sits on a date, time, interval or bytes column.
+      In the PSL source of an extension's contract, a date, time, interval or bytes default is written with its type's tag instead of a quoted string, such as `@default(timestamptz`2024-01-01T00:00:00Z`)` or `@default(bytea`\x0102`)`. `contract emit` refuses the quoted form and names the tag to write. The app guide's section of this name, in `../../../app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/`, lists every tag. The detection matches Prisma 8 schema files with a quoted default that looks like a date or an interval, or that sits on a date, time, interval or bytes column. It skips a quoted time such as `"12:30"` on a column whose type is a type alias, because a `String` default can look the same; `contract emit` names such a default.
     detection:
       glob: "**/*.prisma"
       matches:
-        - '^\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*@default\(\s*"(?:[+-]?\d{4,6}-\d{2}-\d{2}|-?P(?:\d|T\d)|[+-]?infinity")'
-        - '^\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*\b(?:DateTime|Date|Time|Timetz|Timestamp|Timestamptz|Interval)\b[^\n]*@default\(\s*"'
-        - '^\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*\bBytes\??[^\n]*@default\(\s*"'
+        - '(?<![\s\S])\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*@default\(\s*"(?:[+-]?\d{4,6}-\d{2}-\d{2}|-?P(?:\d|T\d)|[+-]?infinity")'
+        - '(?<![\s\S])\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*\b(?:DateTime|Date|Time|Timetz|Timestamp|Timestamptz|Interval)\b[^\n]*@default\(\s*"'
+        - '(?<![\s\S])\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*\bBytes\??[^\n]*@default\(\s*"'
   - id: postgres-defaults-stored-in-another-spelling
     summary: |
       An extension that ships a PostgreSQL contract space: the CLI refuses a contract that an earlier release emitted when it stores a default in another spelling than its column's parameters give, for example `"1.5"` on `numeric(10,2)`. Run `scripts/remove-nocheck/remove-nocheck.ts` from the extension's package root (`stored-contracts-drop-nocheck`): it writes each stored default in the new form, migration snapshots included. Then re-emit the bundled contract. If the storage hash changes, tell the applications that use the extension to run `prisma db sign` after they upgrade.
@@ -464,7 +464,7 @@ changes:
     detection:
       glob: "**/*.prisma"
       matches:
-        - '^\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*@default\(\s*(?:uuid|cuid|ulid|nanoid)\s*\('
+        - '(?<![\s\S])\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*@default\(\s*(?:uuid|cuid|ulid|nanoid)\s*\('
     script: ./scripts/default-generators-to-on-create/rewrite-default-generators.mjs
   - id: setdefault-operation-class-derived
     summary: |
