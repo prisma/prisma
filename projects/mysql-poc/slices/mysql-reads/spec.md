@@ -57,3 +57,5 @@ One reviewer reads this as "MySQL can read": a runtime plane and a renderer, wit
 ## Done when
 
 The At a glance calls return the expected rows against MySQL 8.4 in live tests, including a nested include and an ordered to-many include; golden tests cover every rendered node kind; and build, typecheck, lint, `lint:deps` and the changed packages' tests pass.
+
+**Added 2026-10-23, after the reviews:** the runtime driver runs statements as server-side prepared statements with a bounded cache (design notes section 8), replacing client-side escaping.
