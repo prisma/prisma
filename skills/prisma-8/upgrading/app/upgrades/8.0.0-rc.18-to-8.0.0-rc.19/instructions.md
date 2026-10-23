@@ -48,12 +48,13 @@ changes:
     script: ./scripts/data-type-values/data-type-values.ts
   - id: date-time-interval-and-bytes-defaults-use-tags
     summary: |
-      A date, time, interval or bytes default is written with its type's tag instead of a quoted string: `@default(timestamptz`2024-01-01T00:00:00Z`)` on PostgreSQL, `@default(datetime`2024-01-01T00:00:00Z`)` on SQLite, and `@default(bytea`\x0102`)` for bytes on PostgreSQL and `@default(blob`0102`)` on SQLite. `contract emit` refuses the quoted form and names the tag to write.
+      A date, time, interval or bytes default is written with its type's tag instead of a quoted string: `@default(timestamptz`2024-01-01T00:00:00Z`)` on PostgreSQL, `@default(datetime`2024-01-01T00:00:00Z`)` on SQLite, and `@default(bytea`\x0102`)` for bytes on PostgreSQL and `@default(blob`0102`)` on SQLite. `contract emit` refuses the quoted form and names the tag to write. The detection matches Prisma 8 schema files, those with the `// use prisma-8` directive, with a quoted default that looks like a date, time or interval, or that sits on a date, time, interval or bytes column.
     detection:
       glob: "**/*.prisma"
       matches:
-        - '@default\(\s*"(?:[+-]?\d{4,6}-\d{2}-\d{2}|\d{2}:\d{2}|-?P(?:\d|T\d))'
-        - '\bBytes\??[^\n]*@default\(\s*"'
+        - '^\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*@default\(\s*"(?:[+-]?\d{4,6}-\d{2}-\d{2}|-?P(?:\d|T\d)|[+-]?infinity")'
+        - '^\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*\b(?:DateTime|Date|Time|Timetz|Timestamp|Timestamptz|Interval)\b[^\n]*@default\(\s*"'
+        - '^\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*\bBytes\??[^\n]*@default\(\s*"'
   - id: postgres-defaults-stored-in-another-spelling
     summary: |
       The CLI refuses a PostgreSQL contract that an earlier release emitted when it stores a default in another spelling than its column's parameters give, for example `"1.5"` on `numeric(10,2)`, or a date or time default written as earlier releases stored it. Run `prisma contract emit`, then `prisma db sign`.
@@ -78,11 +79,11 @@ changes:
       The upgrade changes the storage hash of every SQLite contract with a datetime or JSON column, and of every PostgreSQL contract you emit again. Run `prisma db sign` against every database before deploying the application built with the new contract.
   - id: client-functions-move-from-default-to-on-create
     summary: |
-      `@default` now sets a database default only. `@default(uuid())`, `@default(cuid(2))`, `@default(ulid())` and `@default(nanoid())`, with any arguments, are refused with `PSL_GENERATOR_IN_DEFAULT`. Write `@onCreate(uuid())` and so on instead. Run `scripts/default-generators-to-on-create/rewrite-default-generators.mjs` with every `.prisma` file of the project as arguments, including the schema copies in migration directories; it rewrites the Prisma 8 ones and leaves the others unchanged. The contract does not change, so there is nothing to re-emit, sign or migrate. The detection matches schema files that write one of these functions in `@default`.
+      `@default` now sets a database default only. `@default(uuid())`, `@default(cuid(2))`, `@default(ulid())` and `@default(nanoid())`, with any arguments, are refused with `PSL_GENERATOR_IN_DEFAULT`. Write `@onCreate(uuid())` and so on instead. Run `scripts/default-generators-to-on-create/rewrite-default-generators.mjs` with every `.prisma` file of the project as arguments, including the schema copies in migration directories; it rewrites the Prisma 8 ones and leaves the others unchanged. The contract does not change, so there is nothing to re-emit, sign or migrate. The detection matches Prisma 8 schema files, those with the `// use prisma-8` directive, that write one of these functions in `@default`.
     detection:
       glob: "**/*.prisma"
       matches:
-        - '@default\(\s*(uuid|cuid|ulid|nanoid)\s*\('
+        - '^\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*@default\(\s*(?:uuid|cuid|ulid|nanoid)\s*\('
     script: ./scripts/default-generators-to-on-create/rewrite-default-generators.mjs
   - id: contract-print-writes-generator-attributes
     summary: |
@@ -185,11 +186,13 @@ changes:
         - '(?<![\s\S])(?=[\s\S]*\bDEFAULT_INVALID\b)[\s\S]*\bnativeType\b'
   - id: client-takes-contract-value
     summary: |
-      Every client and static entry takes the contract only as a value, `{ contract }`. The `contractJson` option is removed, and so is the type argument on the client call: `postgres<Contract>({ contractJson, url })` no longer compiles. Turn the emitted JSON into a typed value once with `contractFromJson<Contract>(contractJson)` from the facade's `/static` entry (`@prisma/orm-postgres/static`, `@prisma/orm-sqlite/static`, `@prisma/orm-mongo/static`; Supabase uses the Postgres one), export it from the module that creates the client, and pass `{ contract }`. This applies to `postgres()`, `postgresServerless()`, `sqlite()`, `supabase()`, `mongo()`, `postgresStatic()`, `sqliteStatic()`, `mongoStatic()` and `mongoQuery()`. The colocated script moves source files; move test files by hand.
+      Every client and static entry takes the contract only as a value, `{ contract }`. The `contractJson` option is removed, and so is the type argument on the client call: `postgres<Contract>({ contractJson, url })` no longer compiles. Turn the emitted JSON into a typed value once with `contractFromJson<Contract>(contractJson)` from the facade's `/static` entry (`@prisma/orm-postgres/static`, `@prisma/orm-sqlite/static`, `@prisma/orm-mongo/static`; Supabase uses the Postgres one), export it from the module that creates the client, and pass `{ contract }`. This applies to `postgres()`, `postgresServerless()`, `sqlite()`, `supabase()`, `mongo()`, `postgresStatic()`, `sqliteStatic()`, `mongoStatic()` and `mongoQuery()`. A `migration.ts` that builds a client from `contractJson`, for example for a data transform, fails to load until it is moved too, so move it before you run it again. The colocated script moves source files; move test files by hand.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
         - '(?<![\w$.])(?:postgres|postgresServerless|sqlite|supabase|mongo|postgresStatic|sqliteStatic|mongoStatic|mongoQuery)(?:<[^>()]*(?:<[^>()]*>[^>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{[^{}]*\})*?,)?\s*contractJson\s*[,}:]'
+        - 'import\s+([\w$]+)\s*(?:,\s*\{[^}]*\}\s*)?from\s*[''"]@prisma/orm-(?:(?:postgres|sqlite|mongo)/(?:runtime|serverless|static|query-builder)|extension-supabase/runtime)[''"][\s\S]*(?<![\w$.])\1(?:<[^>()]*(?:<[^>()]*>[^>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{[^{}]*\})*?,)?\s*contractJson\s*[,}:]'
+        - 'import\s*(?:[\w$]+\s*,\s*)?\{[^}]*\b(?:default|supabase|mongoQuery|postgresStatic|sqliteStatic|mongoStatic)\s+as\s+([\w$]+)[^}]*\}\s*from\s*[''"]@prisma/orm-(?:(?:postgres|sqlite|mongo)/(?:runtime|serverless|static|query-builder)|extension-supabase/runtime)[''"][\s\S]*(?<![\w$.])\1(?:<[^>()]*(?:<[^>()]*>[^>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{[^{}]*\})*?,)?\s*contractJson\s*[,}:]'
     script: ./scripts/client-takes-contract-value/contract-from-json.ts
   - id: collections-on-the-client
     summary: |
@@ -201,12 +204,14 @@ changes:
         - 'import\s*\{[^}]*\borm\s+as\s+([\w$]+)[^}]*\}\s*from\s*[''\"][^''\"]+[''\"][\s\S]*(?<![\w$.])\1\s*(?:<[^>()]*(?:<[^>()]*>[^>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*?,)?\s*collections\s*[,}:]'
   - id: client-query-and-to-sql
     summary: |
-      Additive for code that only uses these types. Every SQL client gets `query(plan)` and `execute(plan)`, with the types a transaction's have, and `toSql(plan)`, which returns `{ sql, params }` with no database. A serverless connection gets `query` and `execute` too; the serverless client, `postgresStatic()`, `sqliteStatic()` and every transaction get `toSql`. `postgres()`, `postgresServerless()`, `sqlite()` and `supabase()` take `mode: 'strict' | 'permissive'`. `supabase()` creates its pool on the first query instead of when it is called. Application code can move from `db.runtime().query(plan)` to `db.query(plan)`; code that builds its own object of one of the changed types, such as a test double, must add the new members. The detection matches a file that names one of the changed types, or calls `runtime().query(` or `runtime().execute(`.
+      Additive for code that only uses these types. Every SQL client gets `query(plan)` and `execute(plan)`, with the types a transaction's have, and `toSql(plan)`, which returns `{ sql, params }` with no database. A serverless connection gets `query` and `execute` too; the serverless client, `postgresStatic()`, `sqliteStatic()` and every transaction get `toSql`. `postgres()`, `postgresServerless()`, `sqlite()` and `supabase()` take `mode: 'strict' | 'permissive'`. `supabase()` creates its pool on the first query instead of when it is called. Application code can move from `db.runtime().query(plan)` to `db.query(plan)`; code that builds its own object of one of the changed types, such as a test double, must add the new members. The detection matches a file that imports one of the changed types from a Prisma package, calls `runtime().query(` or `runtime().execute(`, or reads the renamed error details or the old message texts.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
-        - '(?<![\w$])(?:PostgresClient|PostgresServerlessClient|PostgresServerlessConnection|PostgresStaticContext|PostgresStaticMembers|PostgresQueryMembers|SqliteClient|SqliteStaticContext|SqliteQueryMembers|RoleBoundDb|ServiceRoleDb|SupabaseInternalDb|PostgresTransactionContext|SqliteTransactionContext|SupabaseTransactionContext|SqliteStaticMembers)(?![\w$])'
+        - 'import\s*(?:type\s*)?(?:[\w$]+\s*,\s*)?\{[^}]*(?<![\w$])(?:PostgresClient|PostgresServerlessClient|PostgresServerlessConnection|PostgresStaticContext|PostgresStaticMembers|PostgresQueryMembers|SqliteClient|SqliteStaticContext|SqliteQueryMembers|RoleBoundDb|ServiceRoleDb|SupabaseInternalDb|PostgresTransactionContext|SqliteTransactionContext|SupabaseTransactionContext|SqliteStaticMembers)(?![\w$])[^}]*\}\s*from\s*[''"]@prisma/orm-'
         - '\.runtime\(\)\s*\.(?:query|execute)\('
+        - '(?<![\w$])(?:runtimeTarget|runtimeStorageHash)\s*:|\.(?:runtimeTarget|runtimeStorageHash)\b|[''"](?:runtimeTarget|runtimeStorageHash)[''"]'
+        - 'Ad-hoc execute received a bind-site slot|Plan target does not match runtime target|Plan storage hash does not match runtime contract'
   - id: orm-collection-member-using-reserved
     summary: |
       Every ORM collection has a `using` member, which holds the collection methods packages contribute for the model, such as `db.orm.public.Post.using.post_search(q)` for a Postgres full-text index. A custom collection class that declares its own member named `using` no longer compiles; rename that member. The detection matches a file that extends `Collection` and declares a class member named `using`.
@@ -231,12 +236,13 @@ changes:
         - '\bderiveKey\b(?!FromContentHash)'
   - id: cache-store-holds-cached-values
     summary: |
-      A cache store holds `CachedValue`, `{ kind: 'statement-rows', rows } | { kind: 'call-result', result }`, not `CachedRows`. Type a custom store as `CacheStore<TMeta, CachedValue>` (or `CacheStore<TMeta>`), and make `get` give back a value equivalent to the one `set` was given, `kind` included. An ORM call's result holds decoded values such as `Date`, `bigint`, Temporal values and extension class instances, so a store that serializes needs a serializer that rebuilds them; `JSON.stringify` throws on a `bigint` and turns a `Date` into a string. `createInMemoryCacheStore` takes only the meta type now and always holds `CachedValue`: drop its second type argument.
+      A cache store holds `CachedValue`, `{ kind: 'statement-rows', rows } | { kind: 'call-result', result }`, not `CachedRows`. Type a custom store as `CacheStore<TMeta, CachedValue>` (or `CacheStore<TMeta>`), and make `get` give back a value equivalent to the one `set` was given, `kind` included. An ORM call's result holds decoded values such as `Date`, `bigint`, Temporal values and extension class instances, so a store that serializes needs a serializer that rebuilds them; `JSON.stringify` throws on a `bigint` and turns a `Date` into a string. `createInMemoryCacheStore` takes only the meta type now and always holds `CachedValue`: drop its second type argument. The detection matches a file that names `CachedRows`, or imports from the cache package and names `CacheStore` or `CacheEntry` but not `CachedValue`, or passes `createInMemoryCacheStore` a second type argument.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
         - '\bCachedRows\b'
         - 'createInMemoryCacheStore<[^>(]*,'
+        - '(?<![\s\S])(?![\s\S]*\bCachedValue\b)(?=[\s\S]*[''"](?:@prisma/orm-extension-middleware-cache|@internal/middleware-cache)[''"])[\s\S]*(?<![\w$])(?:CacheStore|CacheEntry)(?![\w$])'
   - id: orm-needs-a-runtime-queryable
     summary: |
       Pass `orm()` a runtime, connection or transaction from the SQL runtime itself, or `db.runtime()`. A hand-built object that copies only `query` and `execute` (for example `orm({ context, runtime: { query(plan) { return runtime.query(plan); }, execute(plan) { return runtime.execute(plan); } } })`) has no activity source, so every terminal method on it now fails with `ORM.ACTIVITY_SOURCE_MISSING`: `all()` and the other streaming terminals throw when called, and the others reject. If you need the wrapper, keep the original's `[activitySource]` member on it.
@@ -253,11 +259,11 @@ changes:
         - 'Runtime is closed|Postgres client is closed'
   - id: typescript-contract-include-row-types
     summary: |
-      A contract built with `defineContract` from TypeScript now types each relation with its target model, namespace and cardinality, as an emitted `contract.d.ts` does. Rows from `include(...)`, which were typed `unknown` and always as an array, now have the target model's field types: a has-many or many-to-many relation is an array, a belongs-to relation is one row (or `null` when optional), and a has-one relation is one row or `null`. A cast on an included value that disagrees with this type now fails to typecheck. The detection matches ORM `include` calls.
+      A contract built with `defineContract` from TypeScript now types each relation with its target model, namespace and cardinality, as an emitted `contract.d.ts` does. Rows from `include(...)`, which were typed `unknown` and always as an array, now have the target model's field types: a has-many or many-to-many relation is an array, a belongs-to relation is one row (or `null` when optional), and a has-one relation is one row or `null`. A cast on an included value that disagrees with this type now fails to typecheck. The detection matches a file that imports `defineContract` from a SQL contract builder; the change matters only where code queries through the contract it builds without an emitted `contract.d.ts`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - '\.include\(\s*[''"`]'
+        - '\bimport\s*\{[^}]*\bdefineContract\b[^}]*\}\s*from\s*[''"]@prisma/orm-(?:postgres|sqlite|family-sql/contract-ts)/contract-builder[''"]'
   - id: typescript-contract-aggregates-and-operations
     summary: |
       A contract built with `defineContract` now carries the aggregate types and query operation types of its target, adapter and extensions, and the capabilities of its adapter, in its type and in its value. `count`, `sum`, `max` and the other aggregates, inside `aggregate(...)` and inside include refinements, are typed; field operations such as `ilike` and capability-gated methods such as `distinctOn` and `forUpdate` are available in the types; `contract.capabilities.postgres.distinctOn` is `true` at run time. Casts that dispatched aggregates by name can be removed. The detection matches casts of the aggregate builder to a record of functions.
@@ -275,8 +281,8 @@ changes:
         - '\bfield\.(id\.)?(uuidv4String|uuidv7String|uuidString|ulid|nanoid|cuid2|ksuid)\('
         - '\bfield\.temporal\.(timestampString|timestamptzString)\(\s*\d'
         - '\b(charColumn|varcharColumn|numericColumn|bitColumn|varbitColumn|timetzColumn|intervalColumn|timeStringColumn)\(\s*\d'
-        - '\btype\.sql\.String\(\s*\d'
-        - '\bvector\(\s*\d'
+        - '\btype\.(?:sql\.String|pgvector\.Vector)\(\s*\d'
+        - '(?<![\s\S])(?=[\s\S]*\bimport\s*(?:type\s*)?\{[^}]*\bvector\b[^}]*\}\s*from\s*[''"]@prisma/orm-extension-pgvector/column-types[''"])[\s\S]*(?<![\w$.''"`])vector\(\s*\d'
         - '\bfield\.generated\('
   - id: orm-filters-and-writes-take-input-types
     summary: |
@@ -287,20 +293,18 @@ changes:
         - 'as\s+(unknown\s+as\s+)?(Char|Varchar|Numeric|Bit|VarBit|Timetz|Interval|TimeString|TimestampString|TimestamptzString)<'
   - id: typescript-contract-index-references
     summary: |
-      A contract built with `defineContract` now types each table's indexes as an emitted `contract.d.ts` does: the indexes `.sql({ indexes })` declares, under the `name:` or `map:` they were given or their default `<table>_<columns>_idx` name, and the backing indexes the build derives for foreign keys. In `where` and `orderBy` callbacks, `indexes.<name>` offers exactly these names, so a misspelt index name fails to typecheck instead of failing at run time, and `fns.fullTextMatches(indexes.<name>, query)` and `fns.fullTextRank(...)` now typecheck for a `fullTextIndex`. The detection matches index reads in callbacks.
+      A contract built with `defineContract` now types each table's indexes as an emitted `contract.d.ts` does: the indexes `.sql({ indexes })` declares, under the `name:` or `map:` they were given or their default `<table>_<columns>_idx` name, and the backing indexes the build derives for foreign keys. In `where` and `orderBy` callbacks, `indexes.<name>` offers exactly these names, so a misspelt index name fails to typecheck instead of failing at run time, and `fns.fullTextMatches(indexes.<name>, query)` and `fns.fullTextRank(...)` now typecheck for a `fullTextIndex`. The detection matches a file that imports `defineContract` from a SQL contract builder; the change matters only where code queries through the contract it builds without an emitted `contract.d.ts`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - '\bindexes\.\w+'
-        - '\{\s*(fns,\s*)?indexes\s*\}'
+        - '\bimport\s*\{[^}]*\bdefineContract\b[^}]*\}\s*from\s*[''"]@prisma/orm-(?:postgres|sqlite|family-sql/contract-ts)/contract-builder[''"]'
   - id: typescript-contract-storage-and-domain-types
     summary: |
-      A contract built with `defineContract` now types its unique constraints with their columns, so `whereUnique` accepts only the fields of the primary key or of one unique constraint, as with an emitted contract; it no longer accepts any record. `db.enums` lists only the enums the contract declares; a contract without enums no longer offers an accessor under any name. A many-to-many relation whose target has no primary key types its junction columns from the target's unique key. The detection matches `whereUnique` and `db.enums` reads.
+      A contract built with `defineContract` now types its unique constraints with their columns, so `whereUnique` accepts only the fields of the primary key or of one unique constraint, as with an emitted contract; it no longer accepts any record. `db.enums` lists only the enums the contract declares; a contract without enums no longer offers an accessor under any name. A many-to-many relation whose target has no primary key types its junction columns from the target's unique key. The detection matches a file that imports `defineContract` from a SQL contract builder; the change matters only where code queries through the contract it builds without an emitted `contract.d.ts`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - '\.whereUnique\('
-        - '\.enums\.'
+        - '\bimport\s*\{[^}]*\bdefineContract\b[^}]*\}\s*from\s*[''"]@prisma/orm-(?:postgres|sqlite|family-sql/contract-ts)/contract-builder[''"]'
   - id: typescript-contract-enums-in-domain
     summary: |
       The type of a contract built with `defineContract` carries its enums as an emitted `contract.d.ts` does: in the domain namespace's `enum` and `enumMemberTypes`, and in the storage namespace's `valueSet`. The type-only `enumAccessors` key is gone. `db.enums` reads its accessors from `enumMemberTypes` for both kinds of contract, so its types are the emitted ones: `has(value)` takes any value and narrows it to the enum's values, and `nameOf` and `ordinalOf` take the enum's values as before. An `enumType` keeps its codec id as a literal, so its fields gain their codec's query methods, such as `eq`, `ilike`, `gt` and `asc`. Code that read `enumAccessors` from the contract's type should use `NamespacedEnums<typeof contract>` from `@prisma/orm-framework/contract/enum-accessor`, or `db.enums`. The detection matches reads of `enumAccessors`.
@@ -372,14 +376,14 @@ changes:
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - '(?<![\s\S])(?=[\s\S]*orm-mongo/contract-builder)[\s\S]*(\.many\(|\.valueObject\(|\.vector\()'
+        - '(?<![\s\S])(?=[\s\S]*orm-(?:mongo|family-mongo/contract-ts)/contract-builder)[\s\S]*(\.many\(|\.valueObject\(|\.vector\()'
   - id: mongo-define-contract-factory-field-types
     summary: |
       `defineContract(scaffold, factory)` from `@prisma/orm-mongo/contract-builder` typed every codec, and so every field, row and create input, as `never`, because the scaffold's forbidden `family` and `target` keys made the whole definition type `never`. The contract type now leaves them out, so fields have their codec types. Code that compiled only because a field was `never`, such as assigning a row field to an unrelated type, now fails to typecheck. The detection matches the factory form of the Mongo `defineContract`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - '(?<![\s\S])(?=[\s\S]*orm-mongo/contract-builder)[\s\S]*defineContract\(\s*(?:\w+|\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\})\s*,\s*(?:\(|function\b|\w+\s*=>)'
+        - '(?<![\s\S])(?=[\s\S]*orm-(?:mongo|family-mongo/contract-ts)/contract-builder)[\s\S]*defineContract\(\s*(?:\w+|\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\})\s*,\s*(?:\(|function\b|\w+\s*=>)'
   - id: mongo-update-accessors-take-input-types
     summary: |
       In Mongo ORM updates, the field accessor's `set`, `push`, `pull` and `addToSet` take each field's input type from the contract, including fields reached by a dot path into a value object. `u.role.set(...)` on an enum field takes only its members, a list field takes a readonly list, and a vector field takes `readonly number[]`, which a `Vector<N>` satisfies. Code that passed a value outside an enum now fails to typecheck. A list of numbers no longer offers `inc` and `mul`, which only a single number takes. The detection matches update callbacks, `(u) => [...]`, that call one of these methods on a field of their argument, by name or by a dot path such as `u('home.kind')`.
@@ -579,9 +583,9 @@ Several changes in this release rewrite stored contracts and change storage hash
 3. If either script changed a storage hash, run `prisma db sign` against every database.
 4. Change the contract source as the entries below say. `scripts/default-generators-to-on-create/rewrite-default-generators.mjs` rewrites `@default(uuid())` and the other client generators in Prisma 8 schema files (`client-functions-move-from-default-to-on-create`).
 5. Run `prisma contract emit`. In a MongoDB project, then run `scripts/mongo-field-storage-names/mongo-field-storage-names.ts` (`mongo-contracts-record-stored-field-names`).
-6. Bring each database to the new contract: sign it where an entry says the database does not change (`sign-databases-after-data-type-values`, `prisma7-lists-allow-null-elements`, `supabase-contract-lists-allow-null-elements`), and plan and apply a migration where an entry says one is needed.
-7. Change the application code. `scripts/client-takes-contract-value/contract-from-json.ts` moves each client to a contract value (`client-takes-contract-value`).
-8. For each migration that is not applied yet, write its `ops.json` again when a postcheck entry at the end of this guide matches it.
+6. Change the application code and every `migration.ts`. `scripts/client-takes-contract-value/contract-from-json.ts` moves each client to a contract value (`client-takes-contract-value`); a `migration.ts` that builds a client from `contractJson` fails to load on this release until it is moved. In `migration.ts`, also delete `operationClass` from `setDefault` (`setdefault-operation-class-derived`) and rewrite an `alterColumnType` that `postgres-alter-column-type-unchanged-refused` refuses.
+7. For each migration that is not applied yet, write its `ops.json` again when a postcheck entry at the end of this guide matches it: run its `migration.ts` (`node migration.ts`). Do this before any database applies the migration, or it applies with the old checks.
+8. Bring each database to the new contract: sign it where an entry says the database does not change (`sign-databases-after-data-type-values`, `prisma7-lists-allow-null-elements`, `supabase-contract-lists-allow-null-elements`), and plan and apply a migration where an entry says one is needed.
 
 The script paths are relative to the directory that holds this guide, which the commands below call `<guide>`.
 
@@ -1149,7 +1153,21 @@ It prints each file it moved. It prints to stderr, with the reason, each file th
    const db = postgres({ contract, url });
    ```
 
-2. **Browser modules.** If a module that browser code imports (for example a file a `'use client'` component imports, to read `enums`) also needs the contract, it must not import the module that creates the client, because that module loads the database driver. Move the declaration into a module that imports no driver, and import it from both:
+2. **`migration.ts` files.** A `migration.ts` that builds a client over a contract snapshot, such as `const { sql: db, contract } = postgres<End>({ contractJson: endContract })` for a data transform, passes the value inline and keeps what it destructures:
+
+   ```ts
+   // Before
+   const { sql: db, contract } = postgres<End>({ contractJson: endContract });
+
+   // After
+   import { contractFromJson } from '@prisma/orm-postgres/static';
+
+   const { sql: db, contract } = postgres({ contract: contractFromJson<End>(endContract) });
+   ```
+
+   Move every such file, so that `node migration.ts` still runs when you write its `ops.json` again (step 7 of the order above). `prisma db migrate` applies `ops.json` and does not load `migration.ts`, so an applied migration keeps working either way.
+
+3. **Browser modules.** If a module that browser code imports (for example a file a `'use client'` component imports, to read `enums`) also needs the contract, it must not import the module that creates the client, because that module loads the database driver. Move the declaration into a module that imports no driver, and import it from both:
 
    ```ts
    // src/contract-value.ts
@@ -1172,11 +1190,11 @@ It prints each file it moved. It prints to stderr, with the reason, each file th
    export const enums = mongoStatic({ contract }).enums;
    ```
 
-3. **Several clients from one contract**, such as two serverless clients in a Worker, take the same `contract` value; the script already gives a file one value for all its clients.
+4. **Several clients from one contract**, such as two serverless clients in a Worker, take the same `contract` value; the script already gives a file one value for all its clients.
 
-4. **Types.** The option types `PostgresOptionsWithContract`, `PostgresOptionsWithContractJson`, `PostgresServerlessOptionsWithContract`, `PostgresServerlessOptionsWithContractJson`, `SqliteOptionsWithContract`, `SqliteOptionsWithContractJson`, `MongoOptionsWithContract`, `MongoOptionsWithContractJson`, `SupabaseOptionsWithContract` and `SupabaseOptionsWithContractJson` are removed. Use `PostgresOptions<Contract>`, `PostgresServerlessOptions<Contract>`, `SqliteOptions<Contract>`, `MongoOptions<Contract>` or `SupabaseOptions<Contract>`.
+5. **Types.** The option types `PostgresOptionsWithContract`, `PostgresOptionsWithContractJson`, `PostgresServerlessOptionsWithContract`, `PostgresServerlessOptionsWithContractJson`, `SqliteOptionsWithContract`, `SqliteOptionsWithContractJson`, `MongoOptionsWithContract`, `MongoOptionsWithContractJson`, `SupabaseOptionsWithContract` and `SupabaseOptionsWithContractJson` are removed. Use `PostgresOptions<Contract>`, `PostgresServerlessOptions<Contract>`, `SqliteOptions<Contract>`, `MongoOptions<Contract>` or `SupabaseOptions<Contract>`.
 
-5. **Docs and comments** in the project that show `postgres<Contract>({ contractJson })` or another client called with `contractJson`: rewrite them to the new form.
+6. **Docs and comments** in the project that show `postgres<Contract>({ contractJson })` or another client called with `contractJson`: rewrite them to the new form.
 
 ## Custom collection classes go on the client
 

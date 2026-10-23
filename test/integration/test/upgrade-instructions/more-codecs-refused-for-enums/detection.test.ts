@@ -248,3 +248,45 @@ describe('enum-block-written-values detection', () => {
     expect(detects(patterns, source)).toBe(false);
   });
 });
+
+describe('target-codec-adapters-take-a-factory detection', () => {
+  const patterns = patternsOf('extension', 'target-codec-adapters-take-a-factory');
+
+  it.each([
+    [
+      'an adapter without a factory',
+      'export const d = postgresCodec(sqlTextDescriptor, {\n  dataType: pgText,\n  jsonProjection: identityJsonProjection,\n});',
+    ],
+    [
+      'a factory that takes the parameters second',
+      'export const d = postgresCodec(sqlCharDescriptor, {\n  dataType: pgChar,\n  jsonProjection: unpaddedCharJsonProjection,\n  factory: (descriptor, params) => () => new PgCharCodec(descriptor, params.length),\n});',
+    ],
+    [
+      'a factory that takes only the descriptor',
+      'sqliteCodec(sqlIntDescriptor, { dataType: sqliteInteger, jsonProjection, factory: (descriptor) => () => new MyIntCodec(descriptor) })',
+    ],
+    [
+      'renderTypes',
+      'sqliteCodec(sqlCharDescriptor, { dataType: sqliteCharacter, jsonProjection, renderTypes: false })',
+    ],
+  ])('finds %s', (_name, source) => {
+    expect(detects(patterns, source)).toBe(true);
+  });
+
+  it.each([
+    [
+      'a factory that takes the data type',
+      'export const d = postgresCodec(sqlIntDescriptor, {\n  dataType: pgInt4,\n  renderValueLiteral: renderTsLiteral,\n  jsonProjection: identityJsonProjection,\n  factory: (descriptor, dataType) => () => new PgIntCodec(descriptor, dataType),\n});',
+    ],
+    [
+      'a factory that takes the data type and the parameters',
+      'sqliteCodec(sqlCharDescriptor, {\n  dataType: sqliteCharacter,\n  jsonProjection: (expression) => expression,\n  factory: (descriptor, dataType, params) => () => new SqlCharCodec(descriptor, dataType, params),\n})',
+    ],
+    [
+      'a factory listed before a projection method',
+      'sqliteCodec(genericDescriptor, {\n  dataType: fixtureType,\n  factory: (descriptor, type, params) => () => new VectorCodec(descriptor, type, params.length),\n  jsonProjection(expression, params) {\n    return expression;\n  },\n})',
+    ],
+  ])('skips %s', (_name, source) => {
+    expect(detects(patterns, source)).toBe(false);
+  });
+});

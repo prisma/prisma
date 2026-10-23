@@ -68,6 +68,29 @@ describe.each(['app', 'extension'] as const)(
       expect(detects(audience, 'cache-store-holds-cached-values', 'MyCachedRowsStore')).toBe(false);
     });
 
+    it.each([
+      [
+        'a store typed with only its meta type',
+        "import type { CacheStore } from '@prisma/orm-extension-middleware-cache';\nconst store: CacheStore<TagMeta> = createRedisStore();",
+      ],
+      [
+        'a store typed with its own rows type',
+        "import type { CacheStore } from '@internal/middleware-cache';\nclass RedisStore implements CacheStore<unknown, MyRows> {}",
+      ],
+    ])('finds %s', (_name, content) => {
+      expect(detects(audience, 'cache-store-holds-cached-values', content)).toBe(true);
+    });
+
+    it.each([
+      [
+        'a store typed with CachedValue',
+        "import type { CachedValue, CacheStore } from '@prisma/orm-extension-middleware-cache';\nconst store: CacheStore<TagMeta, CachedValue> = createRedisStore();",
+      ],
+      ['a CacheEntry type of its own', "type CacheEntry = { readonly kind: 'pending' };"],
+    ])('skips %s', (_name, content) => {
+      expect(detects(audience, 'cache-store-holds-cached-values', content)).toBe(false);
+    });
+
     it('skips a default store given only a meta type', () => {
       expect(
         detects(
@@ -139,17 +162,20 @@ describe('extension queryable-carries-the-activity-source detection', () => {
     ['another spread name', 'return { ...inner, query: record(inner) };'],
     ['execute before query', '{ ...conn, execute: async (plan) => conn.execute(plan) }'],
     ['a member spread', '{ ...this.runtime, query: wrap(this.runtime) }'],
+    ['an async method', '{ ...runtime, async execute(plan) { return runtime.execute(plan); } }'],
+    [
+      'other members between the spread and query',
+      '{\n  ...runtime,\n  connection: () => runtime.connection(),\n  query(plan) {',
+    ],
   ])('finds %s', (_name, content) => {
     expect(detects('extension', 'queryable-carries-the-activity-source', content)).toBe(true);
   });
 
-  it('skips a spread followed by another member', () => {
-    expect(
-      detects(
-        'extension',
-        'queryable-carries-the-activity-source',
-        '{ ...runtime,\n  queryTimeout: 1000 }',
-      ),
-    ).toBe(false);
+  it.each([
+    ['a spread followed by another member', '{ ...runtime,\n  queryTimeout: 1000 }'],
+    ['query in a nested object after the spread', '{ ...options, hooks: { query: log } }'],
+    ['query in a later object', '{ ...options };\nconst other = { query: log };'],
+  ])('skips %s', (_name, content) => {
+    expect(detects('extension', 'queryable-carries-the-activity-source', content)).toBe(false);
   });
 });

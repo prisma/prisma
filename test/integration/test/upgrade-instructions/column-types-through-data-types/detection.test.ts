@@ -69,13 +69,23 @@ describe('extension detection', () => {
     ],
     [
       'default-resolver-takes-the-column',
-      'readPostgresDefault(raw, "text[]")',
-      'readSqliteDefault(raw, "text")',
+      'parsePostgresDefault(raw, "text[]")',
+      'readPostgresDefault(raw, true)',
+    ],
+    [
+      'default-resolver-takes-the-column',
+      "import { parseSqliteDefault } from '@prisma/orm-sqlite/adapter/control';",
+      'readSqliteDefault(raw, column.typeText)',
+    ],
+    [
+      'default-resolver-takes-the-column',
+      'class MyAdapter implements SqlControlAdapter {\n  readonly normalizeDefault = parseMyDefault;\n}',
+      'class MyAdapter implements SqlControlAdapter {\n  readonly normalizeDefaults = true;\n}',
     ],
     [
       'default-resolver-takes-the-column',
       'const resolve: DefaultResolver = (def, nativeType) => def;',
-      'const resolve: DefaultReader = (def) => def;',
+      'const resolve: DefaultResolver = (def, column) => read(def, column.many);',
     ],
     [
       'alter-type-postcheck-by-data-type',

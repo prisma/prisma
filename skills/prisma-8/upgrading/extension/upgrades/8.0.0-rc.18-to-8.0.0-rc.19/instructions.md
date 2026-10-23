@@ -9,6 +9,8 @@ changes:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
         - '(?<![\w$.])(?:postgres|postgresServerless|sqlite|supabase|mongo|postgresStatic|sqliteStatic|mongoStatic|mongoQuery)(?:<[^>()]*(?:<[^>()]*>[^>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{[^{}]*\})*?,)?\s*contractJson\s*[,}:]'
+        - 'import\s+([\w$]+)\s*(?:,\s*\{[^}]*\}\s*)?from\s*[''"]@prisma/orm-(?:(?:postgres|sqlite|mongo)/(?:runtime|serverless|static|query-builder)|extension-supabase/runtime)[''"][\s\S]*(?<![\w$.])\1(?:<[^>()]*(?:<[^>()]*>[^>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{[^{}]*\})*?,)?\s*contractJson\s*[,}:]'
+        - 'import\s*(?:[\w$]+\s*,\s*)?\{[^}]*\b(?:default|supabase|mongoQuery|postgresStatic|sqliteStatic|mongoStatic)\s+as\s+([\w$]+)[^}]*\}\s*from\s*[''"]@prisma/orm-(?:(?:postgres|sqlite|mongo)/(?:runtime|serverless|static|query-builder)|extension-supabase/runtime)[''"][\s\S]*(?<![\w$.])\1(?:<[^>()]*(?:<[^>()]*>[^>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{[^{}]*\})*?,)?\s*contractJson\s*[,}:]'
     script: ./scripts/client-takes-contract-value/contract-from-json.ts
   - id: collections-on-the-client
     summary: |
@@ -20,12 +22,14 @@ changes:
         - 'import\s*\{[^}]*\borm\s+as\s+([\w$]+)[^}]*\}\s*from\s*[''\"][^''\"]+[''\"][\s\S]*(?<![\w$.])\1\s*(?:<[^>()]*(?:<[^>()]*>[^>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*?,)?\s*collections\s*[,}:]'
   - id: client-query-and-to-sql
     summary: |
-      Additive for code that only uses these types. Every SQL client gets `query(plan)` and `execute(plan)`, with the types a transaction's have, and `toSql(plan)`, which returns `{ sql, params }` with no database. A serverless connection gets `query` and `execute` too; the serverless client, `postgresStatic()`, `sqliteStatic()` and every transaction get `toSql`. `postgres()`, `postgresServerless()`, `sqlite()` and `supabase()` take `mode: 'strict' | 'permissive'`. `supabase()` creates its pool on the first query instead of when it is called. Extension code, examples and tests can move from `db.runtime().query(plan)` to `db.query(plan)`; code that builds its own object of one of the changed types, such as a test double, must add the new members. The detection matches a file that names one of the changed types, or calls `runtime().query(` or `runtime().execute(`.
+      Additive for code that only uses these types. Every SQL client gets `query(plan)` and `execute(plan)`, with the types a transaction's have, and `toSql(plan)`, which returns `{ sql, params }` with no database. A serverless connection gets `query` and `execute` too; the serverless client, `postgresStatic()`, `sqliteStatic()` and every transaction get `toSql`. `postgres()`, `postgresServerless()`, `sqlite()` and `supabase()` take `mode: 'strict' | 'permissive'`. `supabase()` creates its pool on the first query instead of when it is called. Extension code, examples and tests can move from `db.runtime().query(plan)` to `db.query(plan)`; code that builds its own object of one of the changed types, such as a test double, must add the new members. The detection matches a file that imports one of the changed types from a Prisma package, calls `runtime().query(` or `runtime().execute(`, or reads the renamed error details or the old message texts.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
-        - '(?<![\w$])(?:PostgresClient|PostgresServerlessClient|PostgresServerlessConnection|PostgresStaticContext|PostgresStaticMembers|PostgresQueryMembers|SqliteClient|SqliteStaticContext|SqliteQueryMembers|RoleBoundDb|ServiceRoleDb|SupabaseInternalDb|PostgresTransactionContext|SqliteTransactionContext|SupabaseTransactionContext|SqliteStaticMembers)(?![\w$])'
+        - 'import\s*(?:type\s*)?(?:[\w$]+\s*,\s*)?\{[^}]*(?<![\w$])(?:PostgresClient|PostgresServerlessClient|PostgresServerlessConnection|PostgresStaticContext|PostgresStaticMembers|PostgresQueryMembers|SqliteClient|SqliteStaticContext|SqliteQueryMembers|RoleBoundDb|ServiceRoleDb|SupabaseInternalDb|PostgresTransactionContext|SqliteTransactionContext|SupabaseTransactionContext|SqliteStaticMembers)(?![\w$])[^}]*\}\s*from\s*[''"]@prisma/orm-'
         - '\.runtime\(\)\s*\.(?:query|execute)\('
+        - '(?<![\w$])(?:runtimeTarget|runtimeStorageHash)\s*:|\.(?:runtimeTarget|runtimeStorageHash)\b|[''"](?:runtimeTarget|runtimeStorageHash)[''"]'
+        - 'Ad-hoc execute received a bind-site slot|Plan target does not match runtime target|Plan storage hash does not match runtime contract'
   - id: transaction-query-members
     summary: |
       Additive for code that only uses these types: a transaction now offers the client's query members (`sql`, `orm`, `raw`, `prepare`, `query`, `execute`) on every SQL client, a Supabase role-bound client gains `prepare`, and SQLite's `db.orm` gains `fragment`. Code that builds its own object of one of the changed types must add the new members. Changed: `PostgresTransactionContext` (adds `raw` and `prepare`), `SqliteTransactionContext` (adds `raw` and `prepare`; `orm` is now `SqliteOrm`), `RoleBoundDb` (adds `prepare`; `transaction` passes a `SupabaseTransactionContext`). New: `PostgresQueryMembers` and `SqliteQueryMembers` (the query members a client and its transactions share), `SupabaseTransactionContext`, `SqliteOrm`, and from the ORM client `OrmClientRootMembers` and `PrepareMember`. The detection matches a file that names one of these types, or `SqliteClient`, whose `orm` changed.
@@ -89,19 +93,20 @@ changes:
         - 'meta\.annotations\b'
   - id: cache-store-holds-cached-values
     summary: |
-      A cache store for `@internal/middleware-cache` holds `CachedValue`, `{ kind: 'statement-rows', rows } | { kind: 'call-result', result }`, not `CachedRows`; `CacheStore` and `CacheEntry` default their value type to `CachedValue`, and `createCacheMiddleware` accepts only a `CacheStore<TMeta, CachedValue>`. Type a custom store with `CachedValue`, and make `get` give back a value equivalent to the one `set` was given, `kind` included. An ORM call's result holds decoded values such as `Date`, `bigint`, Temporal values and extension class instances, so a store that serializes needs a serializer that rebuilds them; JSON does not. `createInMemoryCacheStore` takes only the meta type now and always holds `CachedValue`: drop its second type argument.
+      A cache store for `@internal/middleware-cache` holds `CachedValue`, `{ kind: 'statement-rows', rows } | { kind: 'call-result', result }`, not `CachedRows`; `CacheStore` and `CacheEntry` default their value type to `CachedValue`, and `createCacheMiddleware` accepts only a `CacheStore<TMeta, CachedValue>`. Type a custom store with `CachedValue`, and make `get` give back a value equivalent to the one `set` was given, `kind` included. An ORM call's result holds decoded values such as `Date`, `bigint`, Temporal values and extension class instances, so a store that serializes needs a serializer that rebuilds them; JSON does not. `createInMemoryCacheStore` takes only the meta type now and always holds `CachedValue`: drop its second type argument. The detection matches a file that names `CachedRows`, or imports from the cache package and names `CacheStore` or `CacheEntry` but not `CachedValue`, or passes `createInMemoryCacheStore` a second type argument.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
         - '\bCachedRows\b'
         - 'createInMemoryCacheStore<[^>(]*,'
+        - '(?<![\s\S])(?![\s\S]*\bCachedValue\b)(?=[\s\S]*[''"](?:@prisma/orm-extension-middleware-cache|@internal/middleware-cache)[''"])[\s\S]*(?<![\w$])(?:CacheStore|CacheEntry)(?![\w$])'
   - id: queryable-carries-the-activity-source
     summary: |
       The SQL ORM starts its `orm-call` activity on the queryable it was given, through the queryable's `activitySource` member, and sends every statement through the activity's handle. A wrapper that copies a runtime, connection or transaction to intercept its `query` and `execute` (for example to record plans) also copies the `[activitySource]` member, so ORM statements bypass the wrapper. Wrap the activity source too: return a source whose `startActivity` wraps each handle the same way, including the transaction its `transaction()` returns. A custom queryable passed to the ORM must carry an activity source: without one, every terminal method fails with `ORM.ACTIVITY_SOURCE_MISSING` (streaming terminals throw when called, the others reject). A test stub can use `delegatingActivitySource(() => realRuntime)`, or a source whose handles send their statements to the stub.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - '\.\.\.\s*[\w.]+\s*,\s*(?:query|execute)\s*[:(]'
+        - '\.\.\.\s*[\w$.]+(?:\(\))?\s*,(?:[^{};\[\]]|\{(?:[^{}]|\{[^{}]*\})*\})*?(?<![\w$.])(?:async\s+)?(?:query|execute)\s*(?:[:(<])'
   - id: aggregate-operation-using-reserved
     summary: |
       Every ORM collection has a `using` member, so `orm()` refuses a contributed aggregate operation named `using` with `ORM.AGGREGATE_OPERATION_RESERVED`, as it refuses `with` and `fragment`. An extension that contributes an aggregate operation named `using` renames it. The detection matches a file that names an aggregate operation `using`.
@@ -155,6 +160,15 @@ changes:
       glob: "**/*.{ts,mts,cts}"
       matches:
         - '\bemptyResultJson\b'
+  - id: target-codec-adapters-take-a-factory
+    summary: |
+      `postgresCodec` (`@prisma/orm-postgres/target/codec-descriptor`) and `sqliteCodec` (`@prisma/orm-sqlite/target/codec-descriptor`) require a `factory` option, and it receives the option's `dataType` between the descriptor and the column's parameters: `factory: (descriptor, dataType, params) => () => new MyCodec(descriptor, dataType, params)`. Before, `factory` was optional and took `(descriptor, params)`, and a call without it built the family template's codec. A family template names no data type, so it builds no codec of its own. `sqliteCodec` no longer takes `renderTypes`. The detection matches a call without `factory`, a `factory` whose second parameter is not the data type, and `renderTypes: false`.
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      matches:
+        - '\b(?:postgresCodec|sqliteCodec)\(\s*[\w$.]+\s*,\s*\{(?!(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\bfactory\b)'
+        - '\b(?:postgresCodec|sqliteCodec)\(\s*[\w$.]+\s*,\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*?\bfactory\s*:\s*(?:\(\s*(?:[\w$]+\s*(?::\s*[^,()]+)?)?\)|\(\s*[\w$]+\s*(?::\s*[^,()]+)?,(?!\s*_?dataType\b)\s*[^,()]+\)|(?!\()[\w$]+)\s*=>'
+        - '\brenderTypes\s*:\s*false\b'
   - id: family-codec-templates-render-no-literals
     summary: |
       `postgresCodec` and `sqliteCodec` now throw an `InternalError` when the family codec template they adapt declares `renderValueLiteral`. Earlier versions copied the template's renderer. A family template renders no literal, because only the target knows the form its data type stores a value in. Remove `renderValueLiteral` from the template and pass it in the adapter's options instead; the framework exports `renderTsLiteral`, `floatNumberLiteral`, `decimalTextNumberLiteral` and `decimalTextBigintLiteral` from `@internal/framework-components/codec` for the common stored forms.
@@ -200,12 +214,12 @@ changes:
         - '(?<![\s\S])(?=[\s\S]*\bSqlColumnIR)[\s\S]*\bnativeType\b'
   - id: default-resolver-takes-the-column
     summary: |
-      A `DefaultResolver` (`@prisma/orm-family-sql/family/control`) receives the column, `{ typeText, many }`, as its second argument instead of a type name with a `[]` suffix for a list, and `readPostgresDefault(raw, many)` (`@prisma/orm-postgres/target/default-normalizer`) takes whether the column is a list instead of a type name.
+      A `DefaultResolver` (`@prisma/orm-family-sql/family/control`) receives the column, `{ typeText, many }`, as its second argument instead of the resolved type name. `parsePostgresDefault(raw, nativeType?)` (`@prisma/orm-postgres/target/default-normalizer`, `@prisma/orm-postgres/adapter/control`) is replaced by `readPostgresDefault(raw, many)` from `@prisma/orm-postgres/target/default-normalizer`, which takes whether the column is a list and returns a `PostgresReportedDefault`, `{ kind: 'function', expression } | { kind: 'null' } | { kind: 'literal', literal }`, instead of a `ColumnDefault` or `undefined`. `parseSqliteDefault(raw, nativeType?)` (`@prisma/orm-sqlite/target/default-normalizer`, `@prisma/orm-sqlite/adapter/control`) is replaced the same way by `readSqliteDefault(raw, declaredType)`, which returns a `SqliteReportedDefault`. The optional `normalizeDefault` member of `SqlControlAdapter`, which nothing called, and its type `DefaultNormalizer` are removed.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - '\bDefaultResolver\b'
-        - '\breadPostgresDefault\s*\('
+        - '\b(?:parsePostgresDefault|parseSqliteDefault|DefaultNormalizer|normalizeDefault)\b'
+        - '(?<![\s\S])(?![\s\S]*\.(?:many|typeText)\b)[\s\S]*\bDefaultResolver\b'
   - id: alter-type-postcheck-by-data-type
     summary: |
       In `@prisma/orm-postgres/target/planner-sql-checks`, `buildExpectedFormatType` and `alterTypeCheckText` are removed. `alterTypeCheck(type, dataTypes, where)` returns how the `ALTER COLUMN TYPE` postcheck recognises the new type, a `ColumnTypeCheck`: `{ kind: 'catalog-text', text }`, the text `format_type` prints, or for an enum `{ kind: 'identity', typeName, many }`, checked with `to_regtype` whatever schema the enum is in. The `checkType` field of `AddColumnCall`, `AlterColumnTypeCall`, `AddRequiredColumnToEmptyTableCall` and `AddColumnWithTemporaryDefaultCall` (`@prisma/orm-postgres/target/op-factory-call`) is now a `ColumnTypeCheck` instead of a string.
@@ -425,6 +439,40 @@ changes:
       matches:
         - '"noCheck"\s*:'
     script: scripts/remove-nocheck/remove-nocheck.ts
+  - id: sqlite-contracts-name-datetime-and-json-data-types
+    summary: |
+      An extension that ships a SQLite contract space: a column whose codec is `sqlite/datetime@1` or `sqlite/json@1` names its own data type (`sqlite/datetime`, `sqlite/json`) instead of `sqlite/text`, and a datetime default or enum value is stored with exactly three fraction digits. The CLI refuses the old form. Run the app guide's script, `scripts/data-type-values/data-type-values.ts` in `../../../app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/` (relative to this guide), from the extension's package root, as the app guide's section of this name describes. It rewrites the contract and its migration snapshots and their hashes. The storage hash changes, so tell the applications that use the extension to run `prisma db sign` after they upgrade.
+    detection:
+      glob: "**/*.json"
+      matches:
+        - '"codecId"\s*:\s*"sqlite/(?:datetime|json)@1"\s*,\s*"dataType"\s*:\s*"sqlite/text"'
+  - id: mongo-contracts-record-stored-field-names
+    summary: |
+      An extension that ships a MongoDB contract space: a MongoDB contract records each field's stored name in `model.storage.fields`, and a contract without it is refused with `CONTRACT.VALIDATION_FAILED`. Re-emit the bundled contract, then run the app guide's script, `scripts/mongo-field-storage-names/mongo-field-storage-names.ts` in `../../../app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/` (relative to this guide), from the extension's package root, to rewrite the migration snapshots, as the app guide's section of this name describes. Storage hashes do not change.
+    detection:
+      glob: "**/*.json"
+      matches:
+        - '"storage"\s*:\s*\{\s*(?:"collection"\s*:\s*"[^"]*"\s*)?\}'
+        - '"storage"\s*:\s*\{\s*"collection"\s*:\s*"[^"]*"\s*,\s*"relations"'
+  - id: date-time-interval-and-bytes-defaults-use-tags
+    summary: |
+      In the PSL source of an extension's contract, a date, time, interval or bytes default is written with its type's tag instead of a quoted string, such as `@default(timestamptz`2024-01-01T00:00:00Z`)` or `@default(bytea`\x0102`)`. `contract emit` refuses the quoted form and names the tag to write. The app guide's section of this name, in `../../../app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/`, lists every tag. The detection matches Prisma 8 schema files with a quoted default that looks like a date, time or interval, or that sits on a date, time, interval or bytes column.
+    detection:
+      glob: "**/*.prisma"
+      matches:
+        - '^\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*@default\(\s*"(?:[+-]?\d{4,6}-\d{2}-\d{2}|-?P(?:\d|T\d)|[+-]?infinity")'
+        - '^\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*\b(?:DateTime|Date|Time|Timetz|Timestamp|Timestamptz|Interval)\b[^\n]*@default\(\s*"'
+        - '^\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*\bBytes\??[^\n]*@default\(\s*"'
+  - id: postgres-defaults-stored-in-another-spelling
+    summary: |
+      An extension that ships a PostgreSQL contract space: the CLI refuses a contract that an earlier release emitted when it stores a default in another spelling than its column's parameters give, for example `"1.5"` on `numeric(10,2)`. Re-emit the bundled contract, and bring its migration snapshots to the new spelling as the app guide's section of this name, in `../../../app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/`, describes, from the extension's package root. If the storage hash changes, tell the applications that use the extension to run `prisma db sign` after they upgrade.
+  - id: client-functions-move-from-default-to-on-create
+    summary: |
+      In the PSL source of an extension's contract, `@default(uuid())`, `@default(cuid(2))`, `@default(ulid())` and `@default(nanoid())` are refused with `PSL_GENERATOR_IN_DEFAULT`; write `@onCreate(...)` instead. The app guide's script, `scripts/default-generators-to-on-create/rewrite-default-generators.mjs` in `../../../app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/` (relative to this guide), rewrites the files it is given. The contract does not change. The detection matches Prisma 8 schema files, those with the `// use prisma-8` directive, that write one of these functions in `@default`.
+    detection:
+      glob: "**/*.prisma"
+      matches:
+        - '^\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*@default\(\s*(?:uuid|cuid|ulid|nanoid)\s*\('
   - id: setdefault-operation-class-derived
     summary: |
       On PostgreSQL, `this.setDefault` in `migration.ts` no longer takes `operationClass`. The operation is widening when the migration's start contract gives the column a default, and additive otherwise. `migration plan` no longer writes `operationClass` into the call. A `migration.ts` that passes it no longer type-checks; delete the option.
@@ -588,7 +636,7 @@ changes:
 
 # 8.0.0-rc.18 → 8.0.0-rc.19 — Extension author upgrade instructions
 
-Two changes come with scripts. Run `client-takes-contract-value` first, on source files. Run `stored-contracts-drop-nocheck` before you re-emit the extension's bundled contract. Make the other changes, then re-emit the bundled contract once.
+Run `client-takes-contract-value` first, on source files. An extension that ships a contract space then rewrites its stored contracts and contract source before it re-emits the bundled contract once; `Contract spaces an extension ships` lists the steps and their order. Make the other changes as their sections say.
 
 ## Clients
 
@@ -1164,6 +1212,41 @@ An aggregate descriptor that declares a value for an empty input names it `empty
 
 ## Family codec templates and enum blocks
 
+### `target-codec-adapters-take-a-factory`
+
+A family codec template names no data type, so it cannot build a codec: the codec's constructor needs the data type (`codecs-read-wire-and-data-type-values`). The target's adapter builds it, through a `factory` that every `postgresCodec` and `sqliteCodec` call now passes. The factory receives the adapted descriptor, the `dataType` the call names, and the column's parameters:
+
+```ts
+// before
+import { postgresCodec } from '@prisma/orm-postgres/target/codec-descriptor';
+
+export const myCharDescriptor = postgresCodec(myCharTemplate, {
+  dataType: pgChar,
+  jsonProjection: (expression) => expression,
+  factory: (descriptor, params) => () => new MyCharCodec(descriptor, params.length),
+});
+export const myTextDescriptor = postgresCodec(myTextTemplate, {
+  dataType: pgText,
+  jsonProjection: (expression) => expression,
+});
+
+// after
+import { postgresCodec } from '@prisma/orm-postgres/target/codec-descriptor';
+
+export const myCharDescriptor = postgresCodec(myCharTemplate, {
+  dataType: pgChar,
+  jsonProjection: (expression) => expression,
+  factory: (descriptor, dataType, params) => () => new MyCharCodec(descriptor, dataType, params),
+});
+export const myTextDescriptor = postgresCodec(myTextTemplate, {
+  dataType: pgText,
+  jsonProjection: (expression) => expression,
+  factory: (descriptor, dataType) => () => new MyTextCodec(descriptor, dataType),
+});
+```
+
+A call that passed no `factory` used the template's own codec; pass a factory that builds that codec class with the data type. `sqliteCodec` takes the same `factory`, and no longer takes `renderTypes: false`; delete the option.
+
 ### `family-codec-templates-render-no-literals`
 
 ```ts
@@ -1177,7 +1260,6 @@ export class MyTextTemplate extends CodecDescriptorTemplateImpl<void> {
 export const myTextDescriptor = postgresCodec(myTextTemplate, {
   dataType: pgText,
   jsonProjection: (expression) => expression,
-  factory: (descriptor, dataType) => () => new MyTextCodec(descriptor, dataType),
 });
 
 // after: the template renders nothing, and the target passes the renderer
@@ -1276,16 +1358,30 @@ Read `column.typeText` where you read `column.nativeType`, and `column.storedTyp
 
 ### `default-resolver-takes-the-column`
 
+A resolver reads the column's `many` or `typeText` instead of a type name, and reads a default with the new readers:
+
 ```ts
 // Before
+import type { DefaultResolver } from '@prisma/orm-family-sql/family/control';
+import { parsePostgresDefault } from '@prisma/orm-postgres/target/default-normalizer';
+
 const resolve: DefaultResolver = (def, resolvedNativeType) =>
-  read(def, resolvedNativeType.endsWith('[]'));
-readPostgresDefault(raw, 'text[]');
+  def.kind === 'function' ? (parsePostgresDefault(def.expression, resolvedNativeType) ?? def) : def;
 
 // After
-const resolve: DefaultResolver = (def, column) => read(def, column.many);
-readPostgresDefault(raw, true);
+import type { DefaultResolver } from '@prisma/orm-family-sql/family/control';
+import { readPostgresDefault } from '@prisma/orm-postgres/target/default-normalizer';
+
+const resolve: DefaultResolver = (def, column) => {
+  if (def.kind !== 'function') return def;
+  const read = readPostgresDefault(def.expression, column.many);
+  return read.kind === 'function' ? read : def;
+};
 ```
+
+`readPostgresDefault` and `readSqliteDefault` always return a value. Where `parsePostgresDefault` or `parseSqliteDefault` returned `undefined` for an expression they could not read, the new readers return `{ kind: 'function', expression }` with the expression as reported. A literal is `{ kind: 'literal', literal }`, which the column's codec reads, not a `ColumnDefault`. `readSqliteDefault` takes the column's declared type, as `column.typeText` gives it.
+
+A control adapter that implements `SqlControlAdapter` deletes its `normalizeDefault` member. Nothing called it.
 
 ### `control-adapters-take-declared-data-types`
 
@@ -1783,17 +1879,18 @@ const validator = deriveJsonSchema(
 );
 
 // after
-import { deriveCollectionValidators } from '@internal/mongo-contract';
+import { collectionControlPoliciesOf, deriveCollectionValidators } from '@internal/mongo-contract';
 
 const validator = deriveCollectionValidators({
   models: ns.models,
   lookups: { codecLookup, dataTypeLookup },
   valueObjects: ns.valueObjects ?? {},
   valueSets,
+  controlPolicies: collectionControlPoliciesOf(contract),
 })['accounts'];
 ```
 
-`ns` is `contract.domain.namespaces[namespaceId]`, and `valueSets` is the storage namespace's `entries.valueSet`, as before. A call to `derivePolymorphicJsonSchema` becomes the same call: the validator of a root model with variants already has one `oneOf` branch per variant.
+`ns` is `contract.domain.namespaces[namespaceId]`, and `valueSets` is the storage namespace's `entries.valueSet`, as before. `controlPolicies` is required: only a collection whose control policy is `managed` gets a validator, as in an emitted contract. `collectionControlPoliciesOf(contract)` reads the policies a built contract declares. A call to `derivePolymorphicJsonSchema` becomes the same call: the validator of a root model with variants already has one `oneOf` branch per variant.
 
 ## Generated checks can no longer be waived
 
@@ -1852,6 +1949,27 @@ The storage hash changes, so the script also renames each changed snapshot direc
 When it finishes, it prints how many files it rewrote, how many snapshot directories it renamed, and each storage hash it replaced (`<old> -> <new>`). A package with no `noCheck` key is left unchanged, and the script says so. It changes no file and exits 1, naming the file, when a `contract.json`, `migration.json` or ref is not valid JSON, when the `ops.json` of a migration whose hashes change is not valid JSON, when a contract's stored storage hash or snapshot directory name does not match its content (restore that file from version control, or re-emit it, and run the script again), or when a renamed snapshot directory already exists with different content. If it stops partway, for example on a full disk, it says so; run it again to finish.
 
 Then re-emit the bundled contract. The extension's storage hash changes, so tell the applications that use it, in your release notes, to run `prisma db sign` against every database after they upgrade, and name the old and new hash. The app upgrade guide for this release has such a note for the Supabase extension, `supabase-contract-lists-allow-null-elements`. Tell them too that `prisma migration status` no longer marks the extension's migrations applied before the upgrade as applied, because each rewritten migration has a new hash and their databases' migration history keeps the old ones. `prisma db migrate` runs none of them again, and `prisma db verify` passes.
+
+## Contract spaces an extension ships
+
+An extension that ships a contract space, with its own `contract.json`, migration snapshots and contract source, upgrades them as an application upgrades its own. The app guide for this release, `../../../app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md` relative to this guide, has the full steps and the scripts, under `../../../app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/scripts/`. Both guides ship in this skill, so the paths resolve where the skill is installed. Run each script from the extension's package root, which the app guide calls the project root.
+
+Do the steps in this order, and skip a step that does not apply to the extension's contract space:
+
+1. Commit your work, so every script's changes can be reviewed and undone with git.
+2. Rewrite the stored contracts: `stored-contracts-drop-nocheck` above, then, for a SQLite contract space, `sqlite-contracts-name-datetime-and-json-data-types` (`../../../app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/scripts/data-type-values/data-type-values.ts`).
+3. Change the contract source: `psl-nocheck-removed` and `ts-nocheck-method-removed` above, `date-time-interval-and-bytes-defaults-use-tags` and `client-functions-move-from-default-to-on-create` (`../../../app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/scripts/default-generators-to-on-create/rewrite-default-generators.mjs`, given the extension's Prisma 8 schema files).
+4. Re-emit the bundled contract. That also writes PostgreSQL defaults in the new spelling (`postgres-defaults-stored-in-another-spelling`); bring the migration snapshots to it as the app guide's section of that name says. For a MongoDB contract space, then run `../../../app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/scripts/mongo-field-storage-names/mongo-field-storage-names.ts` (`mongo-contracts-record-stored-field-names`).
+5. For each migration package of the contract space, change its `migration.ts` and write its `ops.json` again as `Migrations` below says.
+
+For example, with `<guide>` the directory that holds this guide:
+
+```sh
+node <guide>/../../../app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/scripts/data-type-values/data-type-values.ts
+node <guide>/../../../app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/scripts/mongo-field-storage-names/mongo-field-storage-names.ts
+```
+
+Each step that changes a storage hash changes the hash of the extension's contract space. Tell the applications that use the extension, in your release notes, to run `prisma db sign` against every database after they upgrade, and name the old and new hash, as `stored-contracts-drop-nocheck` says.
 
 ## Migrations
 
