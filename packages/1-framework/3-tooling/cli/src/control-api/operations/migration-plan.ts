@@ -16,7 +16,11 @@ import {
   type ResolvedMigrationStatement,
   type SchemaOwnership,
 } from '@internal/framework-components/control';
-import { changedElementCoordinates, UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import {
+  changedElementCoordinates,
+  isPlainRecord,
+  UNBOUND_NAMESPACE_ID,
+} from '@internal/framework-components/ir';
 import {
   snapshotsImportPathFrom,
   writeContractSnapshot,
@@ -27,6 +31,7 @@ import { formatMigrationDirName, writeMigrationPackage } from '@internal/migrati
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { writeMigrationTs } from '@internal/migration-tools/migration-ts';
 import type { ImportSpecifierResolver } from '@internal/publish-surface/import-roots';
+import { canonicalStringify } from '@internal/utils/canonical-stringify';
 import { castAs } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok, type Result } from '@internal/utils/result';
@@ -1123,7 +1128,7 @@ function withNoOperationsReport(
   const changed = changedElementCoordinates(fromContract?.storage ?? null, toContract.storage);
   const what =
     changed.length === 0
-      ? 'No storage entity changed; the change is elsewhere in the storage.'
+      ? `No storage entity changed; what changed is ${changedStorageKeys(fromContract, toContract).join(', ') || 'outside the storage entities'}.`
       : `What changed: ${changed.map(storageEntityText).join(', ')}.`;
   return {
     changedStorageEntities: changed.map(({ namespaceId, ...rest }) =>
@@ -1131,6 +1136,19 @@ function withNoOperationsReport(
     ),
     summary: `${summary}. The storage the contract describes changed, but the database needs no operation for it, so the migration has none. ${what}`,
   };
+}
+
+/** The top-level storage keys whose content differs between two contracts, such as `storage.types`, in key order. */
+function changedStorageKeys(fromContract: Contract | null, toContract: Contract): string[] {
+  const plain = (storage: unknown): Record<string, unknown> =>
+    isPlainRecord(storage) ? JSON.parse(JSON.stringify(storage)) : {};
+  const from = plain(fromContract?.storage);
+  const to = plain(toContract.storage);
+  return [...new Set([...Object.keys(from), ...Object.keys(to)])]
+    .filter((key) => key !== 'storageHash')
+    .filter((key) => canonicalStringify(from[key]) !== canonicalStringify(to[key]))
+    .sort()
+    .map((key) => `storage.${key}`);
 }
 
 function storageEntityText(coordinate: EntityCoordinate): string {

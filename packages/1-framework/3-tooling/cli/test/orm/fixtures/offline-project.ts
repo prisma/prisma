@@ -78,9 +78,14 @@ export function contractJson(
   storageHash: string,
   models?: readonly FixtureModel[],
   storageNamespaces: FixtureStorageNamespaces = {},
+  storageTypes?: Readonly<Record<string, unknown>>,
 ): Record<string, unknown> {
   return {
-    storage: { storageHash, namespaces: storageNamespaces },
+    storage: {
+      storageHash,
+      namespaces: storageNamespaces,
+      ...(storageTypes === undefined ? {} : { types: storageTypes }),
+    },
     schemaVersion: '1.0.0',
     target: 'postgres',
     targetFamily: 'sql',
@@ -103,6 +108,7 @@ export async function createOfflineProject(options: {
   readonly storageHash: string;
   readonly models?: readonly FixtureModel[];
   readonly storageNamespaces?: FixtureStorageNamespaces;
+  readonly storageTypes?: Readonly<Record<string, unknown>>;
 }): Promise<OfflineProject> {
   const dir = createTestProjectDir('orm-offline');
   created.push(dir);
@@ -110,7 +116,14 @@ export async function createOfflineProject(options: {
   await mkdir(join(dir, 'output'), { recursive: true });
   await writeFile(
     contractPath,
-    JSON.stringify(contractJson(options.storageHash, options.models, options.storageNamespaces)),
+    JSON.stringify(
+      contractJson(
+        options.storageHash,
+        options.models,
+        options.storageNamespaces,
+        options.storageTypes,
+      ),
+    ),
     'utf-8',
   );
   await writeFile(
