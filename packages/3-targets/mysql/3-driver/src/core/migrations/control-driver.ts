@@ -30,6 +30,9 @@ export class MysqlControlDriver implements SqlControlDriverInstance<'mysql'> {
     });
   }
 
+  /**
+   * Runs `sql` and returns its rows. A statement without values runs over the text protocol and reads every column as the text MySQL sends. A statement with values runs as a prepared statement over the binary protocol, so an integer reads as a number and a date as the text MySQL prints: the same query returns rows of a different shape depending on whether it has values.
+   */
   async query<Row = Record<string, unknown>>(
     sql: string,
     params?: readonly unknown[],

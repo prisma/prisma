@@ -26,6 +26,10 @@ Lowers the queries the ORM and the SQL builder build into MySQL SQL, and reads a
 - **Runtime adapter** (`./runtime`): lowers with the renderer, infers a codec for bare values in raw SQL, and reads the marker from the control tables through `src/core/marker-read.ts`, which the control adapter shares.
 - **Not yet built**: the control adapter's own query lowering, which still refuses with `RUNTIME.AST_UNSUPPORTED`; the control plane runs SQL text.
 
+## Driver contract
+
+The SQL this adapter lowers is not runnable as written: each parameter is a numbered `?N`, which MySQL does not read. A driver used with this adapter must rewrite each `?N` to MySQL's positional `?`, order the values to match, and send them as a server-side prepared statement's parameters, never inside the SQL. `@internal/driver-mysql` does this. The adapter writes an `int` or `bigint` parameter as `CAST(?N AS SIGNED)` only because mysql2 sends a JavaScript `BigInt` as text, and a comparison with no column to give that text a type, such as `?1 < ?2`, would compare it as text. A driver that sends integers as integers would not need the cast.
+
 ## Exports
 
 - `./runtime`: the runtime adapter descriptor

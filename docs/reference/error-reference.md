@@ -1180,7 +1180,7 @@ A built-in Postgres query operation or full-text helper received an argument it 
 
 ### RUNTIME.AST_INVALID
 
-A lowered SQL AST is structurally invalid: a subquery projecting other than one column, an INSERT with zero rows, a missing column value, an empty onConflict column list or do-update-set, an UPDATE with no SET assignments, an INSERT target table absent from contract storage, or an AST node constructed with invalid arguments (empty FunctionSource column aliases, a CaseExpr with no branches, a raw query declaring a `__proto__` result column, a name that cannot survive as a column, so alias it in SQL and declare the alias). Raised by the Postgres and SQLite SQL renderers and by AST node construction in relational-core. `fns.and` and `fns.or` raise it for a raw operand other than `true` or `false`, which they would otherwise write into the SQL as a literal; the payload is `node: 'and-or-operand'` and `valueType`. The MySQL drivers raise it for a parameter value MySQL has no parameter type for, such as an object, an array or a non-finite number, with `target: 'mysql'`, `index` and `valueType`, and for SQL text containing an executable `/*!` comment, whose content MySQL runs as SQL. Payload: `node`, `table`, `column`; construction sites carry node-specific fields.
+A lowered SQL AST is structurally invalid: a subquery projecting other than one column, an INSERT with zero rows, a missing column value, an empty onConflict column list or do-update-set, an UPDATE with no SET assignments, an INSERT target table absent from contract storage, or an AST node constructed with invalid arguments (empty FunctionSource column aliases, a CaseExpr with no branches, a raw query declaring a `__proto__` result column, a name that cannot survive as a column, so alias it in SQL and declare the alias). Raised by the Postgres and SQLite SQL renderers and by AST node construction in relational-core. `fns.and` and `fns.or` raise it for a raw operand other than `true` or `false`, which they would otherwise write into the SQL as a literal; the payload is `node: 'and-or-operand'` and `valueType`. The MySQL drivers raise it for a parameter value MySQL has no parameter type for, such as an object, an array or a non-finite number, with `target: 'mysql'`, `index` and `valueType`. The MySQL adapter and drivers raise it for SQL text containing an executable `/*!` comment, whose content MySQL runs as SQL: the adapter when it reads raw SQL to find the operands of `LIMIT` and `OFFSET`, the drivers when they find a statement's placeholders. Payload: `node`, `table`, `column`; construction sites carry node-specific fields.
 
 ### RUNTIME.AST_UNSUPPORTED
 
@@ -1336,6 +1336,13 @@ At query-render time a table references a namespace that is not present, or not 
 ### RUNTIME.PARAM_PLACEHOLDER_MISMATCH
 
 The SQLite SQL renderer wrote a statement whose placeholders do not match its parameters: a bare `?` or a numbered placeholder no parameter has, usually a `?` written into raw SQL text, or a parameter no placeholder binds. The renderer refuses the statement rather than bind a value to the wrong place. Pass values into raw SQL by interpolation, not as a `?` in the text. The message and payload give the counts and the first five placeholders written. Payload: `placeholderCount`, `paramCount`, `firstPlaceholders`.
+
+MySQL raises it in four places, each refusing the statement before it runs:
+
+- The MySQL adapter, after lowering, when a placeholder is not a numbered `?N` naming one of the statement's parameters, or a parameter has no placeholder, usually because of a `?` written into raw SQL text. Payload: `placeholders`, `params`.
+- The MySQL adapter, when raw SQL puts a digit right after an interpolated value, which would read as part of the value's `?N` (`?1` followed by `0` reads as `?10`). Payload: `reason: 'digit-after-value'`, `part`.
+- The MySQL drivers, when a statement mixes numbered `?N` and bare `?` placeholders, or its placeholders and values do not match. Payload: `placeholders`, `params`.
+- The MySQL drivers, when the number of placeholders MySQL reads in the prepared statement differs from the number of values, usually because a statement changed `sql_mode`, as turning on `NO_BACKSLASH_ESCAPES` or `ANSI_QUOTES` does. Payload: `prepared`, `params`.
 
 ### RUNTIME.PARAM_REF_CODEC_REQUIRED
 
