@@ -534,19 +534,29 @@ type DefinitionTargetId<Definition> = Definition extends {
   ? TargetId
   : string;
 
+type StorageValueObjectNamespaces<ValueObjects extends Record<string, AnyValueObjectBuilder>> = {
+  readonly [K in typeof UNBOUND_NAMESPACE_ID]: {
+    readonly entries: { readonly valueObject: ContractValueObjectsFromRecord<ValueObjects> };
+  };
+};
+
+type MaybeStorageValueObjectsSection<ValueObjects extends Record<string, AnyValueObjectBuilder>> =
+  keyof ValueObjects extends never
+    ? EmptyObject
+    : {
+        readonly namespaces: {
+          readonly [K in typeof UNBOUND_NAMESPACE_ID]: MongoStorageShape['namespaces'][string] &
+            StorageValueObjectNamespaces<ValueObjects>[K];
+        };
+      };
+
 type DefinitionStorage<Definition> = Simplify<
   MongoStorageShape & {
     readonly collections: StorageCollectionsFromModels<DefinitionModels<Definition>>;
     readonly storageHash: StorageHashBase<string>;
   }
->;
-
-type MaybeValueObjectsSection<ValueObjects extends Record<string, AnyValueObjectBuilder>> =
-  keyof ValueObjects extends never
-    ? EmptyObject
-    : {
-        readonly valueObjects: ContractValueObjectsFromRecord<ValueObjects>;
-      };
+> &
+  MaybeStorageValueObjectsSection<DefinitionValueObjects<Definition>>;
 
 type HandleName<Handle> = Handle extends EnumTypeHandle<infer Name> ? Name : never;
 
@@ -602,8 +612,7 @@ type MaybeEnumsSection<
 type MongoDomainNamespaceFromDefinition<Definition> = Simplify<
   {
     readonly models: ContractModelsFromRecord<DefinitionModels<Definition>>;
-  } & MaybeValueObjectsSection<DefinitionValueObjects<Definition>> &
-    MaybeEnumsSection<DefinitionEnums<Definition>, CodecTypesFromDefinition<Definition>>
+  } & MaybeEnumsSection<DefinitionEnums<Definition>, CodecTypesFromDefinition<Definition>>
 >;
 
 type MongoContractBaseFromDefinition<Definition> = Simplify<{
@@ -744,7 +753,8 @@ type FieldTypesFromDefinition<Definition, Side extends 'output' | 'input'> = Fie
   CodecTypesFromDefinition<Definition>,
   ParameterizedOutputTypesFromDefinition<Definition>,
   FieldTypeOverridesFromDefinition<Definition>,
-  Side
+  Side,
+  StorageValueObjectNamespaces<DefinitionValueObjects<Definition>>
 >;
 
 export type MongoContractResult<Definition> = MongoContractWithTypeMaps<

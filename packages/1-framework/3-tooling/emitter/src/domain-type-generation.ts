@@ -4,15 +4,20 @@ import type {
   ContractManyToManyRelation,
   ContractModelBase,
   ContractValueObject,
+  ContractValueObjectField,
   CrossReference,
   JsonValue,
+  StorageBase,
+  ValueObjectFieldType,
 } from '@internal/contract/types';
+import { valueObjectAt } from '@internal/contract/types';
 import type { CodecLookup } from '@internal/framework-components/codec';
 import {
   type ImportSpecifierResolver,
   keepInternalSpecifiers,
   type TypesImportSpec,
 } from '@internal/framework-components/emission';
+import { elementCoordinates, entityAt } from '@internal/framework-components/ir';
 import { type ImportRequirement, renderImports, tsStringLiteral } from '@internal/ts-render';
 import { blindCast } from '@internal/utils/casts';
 import { emitterError } from './emitter-errors';
@@ -78,6 +83,10 @@ export function generateRootsType(roots: Record<string, CrossReference> | undefi
   return `{ ${entries} }`;
 }
 
+function valueObjectFieldTypeText(type: ValueObjectFieldType): string {
+  return `{ readonly kind: "valueObject"; readonly plane: "storage"; readonly namespaceId: ${serializeValue(type.namespaceId)}; readonly entityKind: "valueObject"; readonly entityName: ${serializeValue(type.entityName)} }`;
+}
+
 function contractFieldModifierSuffix(field: ContractField): string {
   const many = field.many
     ? `; readonly many: { readonly elementNullable: ${field.many.elementNullable} }`
@@ -97,7 +106,7 @@ export function generateModelFieldEntry(fieldName: string, field: ContractField)
     return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${nullable}; readonly type: { readonly kind: "scalar"; readonly codecId: ${serializeValue(type.codecId)}${typeParamsSpec} }${mods} }`;
   }
   if (type.kind === 'valueObject') {
-    return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${nullable}; readonly type: { readonly kind: "valueObject"; readonly name: ${serializeValue(type.name)} }${mods} }`;
+    return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${nullable}; readonly type: ${valueObjectFieldTypeText(type)}${mods} }`;
   }
   return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${nullable}; readonly type: ${serializeValue(type)}${mods} }`;
 }
@@ -369,9 +378,13 @@ export function parameterizedOutputTypeFunctionsAlias(
   return `type ${PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS} = ${aliases.length > 0 ? aliases.join(' | ') : 'never'};`;
 }
 
-/** `FieldOutputTypes` (`side` `'output'`) or `FieldInputTypes` (`'input'`): the shared generic applied to the emitted contract's domain, with `FieldTypeOverrides`. */
-export function fieldTypesMapExpression(side: 'output' | 'input'): string {
-  return `FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ${PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS}, FieldTypeOverrides, ${serializeValue(side)}>`;
+/** `FieldOutputTypes` (`side` `'output'`) or `FieldInputTypes` (`'input'`): the shared generic applied to the emitted contract's domain, with `FieldTypeOverrides`, and to its storage namespaces when the contract has value objects. */
+export function fieldTypesMapExpression(
+  side: 'output' | 'input',
+  hasValueObjects: boolean,
+): string {
+  const storageNamespaces = hasValueObjects ? ", ContractBase['storage']['namespaces']" : '';
+  return `FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ${PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS}, FieldTypeOverrides, ${serializeValue(side)}${storageNamespaces}>`;
 }
 
 export function generateContractFieldDescriptor(fieldName: string, field: ContractField): string {
@@ -385,7 +398,7 @@ export function generateContractFieldDescriptor(fieldName: string, field: Contra
     return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${field.nullable}; readonly type: { readonly kind: "scalar"; readonly codecId: ${serializeValue(type.codecId)}${typeParamsSpec} }${modStr} }`;
   }
   if (type.kind === 'valueObject') {
-    return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${field.nullable}; readonly type: { readonly kind: "valueObject"; readonly name: ${serializeValue(type.name)} }${modStr} }`;
+    return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${field.nullable}; readonly type: ${valueObjectFieldTypeText(type)}${modStr} }`;
   }
   return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${field.nullable}; readonly type: ${serializeValue(type)}${modStr} }`;
 }
@@ -412,7 +425,7 @@ export function generateValueObjectsDescriptorType(
 }
 
 /**
- * `<Name>Output` and `<Name>Input` for each value object, read from the shared generic's value object types at the namespace that declares it.
+ * `<Name>Output` and `<Name>Input` for each value object, read from the shared generic's value object types at the storage namespace that holds it.
  */
 export function generateValueObjectTypeAliases(
   valueObjectNamespaces: ReadonlyArray<readonly [name: string, namespaceId: string]>,
@@ -421,7 +434,7 @@ export function generateValueObjectTypeAliases(
     return '';
   }
   const generic = (side: 'output' | 'input') =>
-    `ValueObjectTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ${PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS}, FieldTypeOverrides, ${serializeValue(side)}>`;
+    `ValueObjectTypesFromStorage<ContractBase['storage']['namespaces'], CodecTypes, ${PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS}, FieldTypeOverrides, ${serializeValue(side)}>`;
   const aliases = [
     `type ValueObjectOutputTypes = ${generic('output')};`,
     `type ValueObjectInputTypes = ${generic('input')};`,
@@ -441,7 +454,7 @@ export type TypeOverride = { readonly output?: string; readonly input?: string }
  * The type of a scalar field that its codec does not give, which the shared field type generic takes as an override: the literal union of the value set it holds, or the text its codec renders for its type parameters. `undefined` when the codec gives both sides, and for a value object or union field, which the generic types itself.
  */
 export function resolveFieldTypeOverride(
-  field: ContractField,
+  field: Pick<ContractField, 'type'>,
   codecLookup: CodecLookup | undefined,
   resolvedValueSet: ResolvedFieldValueSet | undefined,
 ): TypeOverride | undefined {
@@ -531,8 +544,12 @@ function renderOverrideTree(tree: OverrideTree): string {
   return `{ ${parts.join('; ')} }`;
 }
 
+type ContractPlanes = Pick<Contract, 'domain'> & {
+  readonly storage: Pick<StorageBase, 'namespaces'>;
+};
+
 /**
- * The values a field's value set holds, with the field's codec. A reference to a domain enum is read from the contract's domain, for model and value object fields alike. Any other model field goes to the family's `resolveStorageValueSet`, which reads its storage. A value object field has no storage of its own.
+ * The values a model field's value set holds, with the field's codec. A reference to a domain enum is read from the contract's domain. Any other model field goes to the family's `resolveStorageValueSet`, which reads its storage.
  */
 function resolveFieldValueSet(
   field: ContractField,
@@ -559,48 +576,69 @@ function resolveDomainValueSet(
   };
 }
 
-/** `FieldTypeOverrides`: per namespace, `models` or `valueObjects`, owner and field, the type of each field its codec does not give. */
+/** The values of the storage value set a value object field names, with the field's codec. */
+function resolveValueObjectFieldValueSet(
+  field: ContractValueObjectField,
+  storage: Pick<StorageBase, 'namespaces'>,
+): ResolvedFieldValueSet | undefined {
+  if (field.valueSet === undefined || field.type.kind !== 'scalar') return undefined;
+  const valueSet = entityAt<{ readonly values: readonly JsonValue[] }>(storage, field.valueSet);
+  if (valueSet === undefined) return undefined;
+  return { encodedValues: valueSet.values, codecId: field.type.codecId };
+}
+
+/** Each value object in storage, with the storage namespace that holds it. */
+export function storageValueObjects(
+  storage: Pick<StorageBase, 'namespaces'>,
+): ReadonlyArray<readonly [namespaceId: string, name: string, valueObject: ContractValueObject]> {
+  return [...elementCoordinates(storage)].flatMap(({ namespaceId, entityKind, entityName }) => {
+    if (entityKind !== 'valueObject') return [];
+    const valueObject = valueObjectAt(storage, {
+      plane: 'storage',
+      namespaceId,
+      entityKind,
+      entityName,
+    });
+    return valueObject === undefined ? [] : [[namespaceId, entityName, valueObject] as const];
+  });
+}
+
+/** `FieldTypeOverrides`: per namespace, `models` (domain namespace) or `valueObjects` (storage namespace), owner and field, the type of each field its codec does not give. */
 export function generateFieldTypeOverridesMap(
-  contract: Pick<Contract, 'domain'>,
+  contract: ContractPlanes,
   codecLookup: CodecLookup | undefined,
   resolveStorageValueSet: StorageValueSetResolver | undefined,
 ): string {
-  return renderTypeOverridesMap(
-    Object.entries(contract.domain.namespaces).flatMap(([nsId, ns]) => {
-      const modelFields = Object.entries(ns.models).flatMap(([modelName, model]) =>
-        Object.entries(model.fields).map(
-          ([fieldName, field]) =>
-            [
-              [nsId, 'models', modelName, fieldName],
-              resolveFieldTypeOverride(
-                field,
-                codecLookup,
-                resolveFieldValueSet(field, contract, () =>
-                  resolveStorageValueSet?.(modelName, fieldName, model),
-                ),
+  const modelFields = Object.entries(contract.domain.namespaces).flatMap(([nsId, ns]) =>
+    Object.entries(ns.models).flatMap(([modelName, model]) =>
+      Object.entries(model.fields).map(
+        ([fieldName, field]) =>
+          [
+            [nsId, 'models', modelName, fieldName],
+            resolveFieldTypeOverride(
+              field,
+              codecLookup,
+              resolveFieldValueSet(field, contract, () =>
+                resolveStorageValueSet?.(modelName, fieldName, model),
               ),
-            ] as const,
-        ),
-      );
-      const valueObjects = blindCast<
-        Record<string, ContractValueObject>,
-        'ns.valueObjects is a ContractValueObject record in the emitted IR (default to {} when absent)'
-      >(ns.valueObjects ?? {});
-      const valueObjectFields = Object.entries(valueObjects).flatMap(
-        ([valueObjectName, valueObject]) =>
-          Object.entries(valueObject.fields).map(
-            ([fieldName, field]) =>
-              [
-                [nsId, 'valueObjects', valueObjectName, fieldName],
-                resolveFieldTypeOverride(
-                  field,
-                  codecLookup,
-                  resolveFieldValueSet(field, contract, () => undefined),
-                ),
-              ] as const,
-          ),
-      );
-      return [...modelFields, ...valueObjectFields];
-    }),
+            ),
+          ] as const,
+      ),
+    ),
   );
+  const valueObjectFields = storageValueObjects(contract.storage).flatMap(
+    ([nsId, valueObjectName, valueObject]) =>
+      Object.entries(valueObject.fields).map(
+        ([fieldName, field]) =>
+          [
+            [nsId, 'valueObjects', valueObjectName, fieldName],
+            resolveFieldTypeOverride(
+              field,
+              codecLookup,
+              resolveValueObjectFieldValueSet(field, contract.storage),
+            ),
+          ] as const,
+      ),
+  );
+  return renderTypeOverridesMap([...modelFields, ...valueObjectFields]);
 }

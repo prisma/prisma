@@ -175,6 +175,20 @@ type ContractBase = Omit<
         readonly kind: 'mongo-namespace';
         readonly entries: {
           readonly collection: { readonly tasks: MongoCollection; readonly users: MongoCollection };
+          readonly valueObject: {
+            readonly HomeAddress: {
+              readonly fields: {
+                readonly city: {
+                  readonly nullable: false;
+                  readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
+                };
+                readonly country: {
+                  readonly nullable: false;
+                  readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
+                };
+              };
+            };
+          };
         };
       };
     };
@@ -340,7 +354,13 @@ type ContractBase = Omit<
               };
               readonly homeAddress: {
                 readonly nullable: true;
-                readonly type: { readonly kind: 'valueObject'; readonly name: 'HomeAddress' };
+                readonly type: {
+                  readonly kind: 'valueObject';
+                  readonly plane: 'storage';
+                  readonly namespaceId: '__unbound__';
+                  readonly entityKind: 'valueObject';
+                  readonly entityName: 'HomeAddress';
+                };
               };
             };
             readonly relations: {
@@ -366,40 +386,12 @@ type ContractBase = Omit<
             readonly storage: { readonly collection: 'users'; readonly fields: { readonly _id: { readonly field: '_id' }; readonly name: { readonly field: 'name' }; readonly email: { readonly field: 'email' }; readonly loginCount: { readonly field: 'loginCount' }; readonly tags: { readonly field: 'tags' }; readonly homeAddress: { readonly field: 'homeAddress' } }; readonly relations: { readonly addresses: { readonly field: 'addresses' } } };
           };
         };
-        readonly valueObjects: {
-          readonly HomeAddress: {
-            readonly fields: {
-              readonly city: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
-              };
-              readonly country: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
-              };
-            };
-          };
-        };
       };
     };
   };
   readonly capabilities: {};
   readonly extensions: {};
   readonly meta: {};
-  readonly valueObjects: {
-    readonly HomeAddress: {
-      readonly fields: {
-        readonly city: {
-          readonly nullable: false;
-          readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
-        };
-        readonly country: {
-          readonly nullable: false;
-          readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
-        };
-      };
-    };
-  };
   readonly profileHash: ProfileHash;
 };
 
