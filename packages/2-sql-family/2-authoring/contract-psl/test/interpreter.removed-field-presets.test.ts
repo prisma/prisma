@@ -12,13 +12,28 @@ import {
   sqliteTarget,
 } from './fixtures';
 
-const sqlChar = {
-  Char: {
-    kind: 'typeConstructor',
-    args: [{ kind: 'value', dataType: 'pg/int4', name: 'length' }],
-    output: { codecId: 'sql/char@1', typeParams: { length: { kind: 'arg', index: 0 } } },
-  },
+const char = {
+  kind: 'typeConstructor',
+  args: [{ kind: 'value', dataType: 'pg/int4', name: 'length' }],
+  output: { codecId: 'sql/char@1', typeParams: { length: { kind: 'arg', index: 0 } } },
 } as const;
+
+function charAlias(length: number) {
+  return {
+    kind: 'typeAlias',
+    output: { type: { codecId: 'sql/char@1', typeParams: { length } } },
+  } as const;
+}
+
+const identifierAliases = {
+  UuidString: charAlias(36),
+  Ulid: charAlias(26),
+  Nanoid: charAlias(21),
+  Cuid2: charAlias(24),
+  Ksuid: charAlias(27),
+} as const;
+
+const sqlChar = { Char: char, ...identifierAliases } as const;
 
 function precisionType(codecId: string) {
   return {
@@ -37,6 +52,8 @@ function temporalAliases(codecId: string) {
 
 const postgresTypes: AuthoringTypeNamespace = {
   ...postgresScalarAuthoringTypes,
+  Char: char,
+  ...identifierAliases,
   DateString: { kind: 'typeConstructor', output: { codecId: 'pg/date-string@1' } },
   TimestampString: precisionType('pg/timestamp-string@1'),
   TimestamptzString: precisionType('pg/timestamptz-string@1'),
@@ -116,19 +133,19 @@ function removed(call: string, rewrite: string) {
 describe('a removed field preset in a SQL schema', () => {
   describe('on Postgres', () => {
     it.each([
-      ['uuidString()', 'Write sql.Char(36).'],
-      ['ulid()', 'Write sql.Char(26).'],
-      ['nanoid()', 'Write sql.Char(21).'],
-      ['nanoid({ size: 12 })', 'Write sql.Char(12).'],
-      ['cuid2()', 'Write sql.Char(24).'],
-      ['ksuid()', 'Write sql.Char(27).'],
-      ['id.uuidv4String()', 'Write sql.Char(36) @id @onCreate(uuid()).'],
-      ['id.uuidv7String()', 'Write sql.Char(36) @id @onCreate(uuid(7)).'],
-      ['id.ulid()', 'Write sql.Char(26) @id @onCreate(ulid()).'],
-      ['id.nanoid()', 'Write sql.Char(21) @id @onCreate(nanoid()).'],
-      ['id.nanoid({ size: 16 })', 'Write sql.Char(16) @id @onCreate(nanoid(16)).'],
-      ['id.cuid2()', 'Write sql.Char(24) @id @onCreate(cuid(2)).'],
-      ['id.ksuid()', 'Write sql.Char(27) @id @onCreate(ksuid()).'],
+      ['uuidString()', 'Write UuidString.'],
+      ['ulid()', 'Write Ulid.'],
+      ['nanoid()', 'Write Nanoid.'],
+      ['nanoid({ size: 12 })', 'Write Char(12).'],
+      ['cuid2()', 'Write Cuid2.'],
+      ['ksuid()', 'Write Ksuid.'],
+      ['id.uuidv4String()', 'Write UuidString @id @onCreate(uuid()).'],
+      ['id.uuidv7String()', 'Write UuidString @id @onCreate(uuid(7)).'],
+      ['id.ulid()', 'Write Ulid @id @onCreate(ulid()).'],
+      ['id.nanoid()', 'Write Nanoid @id @onCreate(nanoid()).'],
+      ['id.nanoid({ size: 16 })', 'Write Char(16) @id @onCreate(nanoid(16)).'],
+      ['id.cuid2()', 'Write Cuid2 @id @onCreate(cuid(2)).'],
+      ['id.ksuid()', 'Write Ksuid @id @onCreate(ksuid()).'],
       ['text()', 'Write String.'],
       ['int()', 'Write Int.'],
       ['bigint()', 'Write BigInt.'],
@@ -204,7 +221,7 @@ describe('a removed field preset in a SQL schema', () => {
       expect(diagnosticsOf('id.nanoid({ length: 16 })', postgresInput)).toEqual(
         removed(
           'id.nanoid({ length: 16 })',
-          'Write sql.Char(21) @id @onCreate(nanoid()), or sql.Char(n) @id @onCreate(nanoid(n)) for a size of n.',
+          'Write Nanoid @id @onCreate(nanoid()), or Char(n) @id @onCreate(nanoid(n)) for a size of n.',
         ),
       );
     });
@@ -240,8 +257,15 @@ describe('a removed field preset in a SQL schema', () => {
       ],
       ['temporal.createdAt()', 'Write temporal.CreatedAt.'],
       ['temporal.updatedAt()', 'Write temporal.UpdatedAt.'],
-      ['id.uuidv4String()', 'Write sql.Char(36) @id @onCreate(uuid()).'],
+      ['id.uuidv4String()', 'Write sql.UuidString @id @onCreate(uuid()).'],
+      ['id.ulid()', 'Write sql.Ulid @id @onCreate(ulid()).'],
+      ['ksuid()', 'Write sql.Ksuid.'],
+      ['nanoid()', 'Write sql.Nanoid.'],
       ['nanoid({ size: 12 })', 'Write sql.Char(12).'],
+      [
+        'id.nanoid({ length: 16 })',
+        'Write sql.Nanoid @id @onCreate(nanoid()), or sql.Char(n) @id @onCreate(nanoid(n)) for a size of n.',
+      ],
     ])('refuses %s with its rewrite', (call, rewrite) => {
       expect(diagnosticsOf(call, sqliteInput)).toEqual(removed(call, rewrite));
     });

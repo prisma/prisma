@@ -15,8 +15,16 @@ export interface RemovedFieldPreset {
   readonly rewrite: (call: ResolvedTypeConstructorCall) => string;
 }
 
-/** A family's removed field presets, keyed by the path a schema called. */
-export type RemovedFieldPresets = Readonly<Record<string, RemovedFieldPreset>>;
+/** A family's removed field presets, keyed by the path a schema called. A path with several rows names the rewrite of the first that applies, such as a target's own type before the family's. */
+export type RemovedFieldPresets = Readonly<
+  Record<string, RemovedFieldPreset | readonly RemovedFieldPreset[]>
+>;
+
+function rowsOf(
+  entry: RemovedFieldPreset | readonly RemovedFieldPreset[],
+): readonly RemovedFieldPreset[] {
+  return 'rewrite' in entry ? [entry] : entry;
+}
 
 const PHASES = ['onCreate', 'onUpdate'] as const;
 
@@ -70,14 +78,15 @@ export function describeRemovedFieldPreset(
   types: ContributedTypeNamespace,
 ): string | undefined {
   const path = call.path.join('.');
-  const preset = Object.hasOwn(presets, path) ? presets[path] : undefined;
+  const entry = Object.hasOwn(presets, path) ? presets[path] : undefined;
+  if (entry === undefined) return undefined;
+  const preset = rowsOf(entry).find((row) => {
+    const replacement = contributedTypeAt(types, row.type);
+    return (
+      replacement !== undefined &&
+      (row.codecId === undefined || contributedTypeCodecId(replacement) === row.codecId)
+    );
+  });
   if (preset === undefined) return undefined;
-  const replacement = contributedTypeAt(types, preset.type);
-  if (
-    replacement === undefined ||
-    (preset.codecId !== undefined && contributedTypeCodecId(replacement) !== preset.codecId)
-  ) {
-    return undefined;
-  }
   return `${printTypeConstructorCall(call)} was a field preset, and Prisma 8 removed field presets. ${preset.rewrite(call)}`;
 }

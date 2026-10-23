@@ -25,6 +25,10 @@ const stamp = { kind: 'typeConstructor', output: { codecId: 'test/stamp@1' } } a
 const presets = {
   'ns.stamp': removedPresetWithPhases('Stamp', 'test/stamp@1', true),
   plain: removedPresetWrittenAs('Stamp @id', 'test/stamp@1'),
+  either: [
+    removedPresetWrittenAs('Stamp', 'test/stamp@1'),
+    removedPresetWrittenAs('ns.Stamp', 'test/stamp@1'),
+  ],
 };
 
 describe('describeRemovedFieldPreset', () => {
@@ -39,6 +43,18 @@ describe('describeRemovedFieldPreset', () => {
     );
   });
 
+  it('names the rewrite of the first row that applies to the stack', () => {
+    expect(
+      describeRemovedFieldPreset(presets, callOf('either()'), {
+        Stamp: stamp,
+        ns: { Stamp: stamp },
+      }),
+    ).toBe('either() was a field preset, and Prisma 8 removed field presets. Write Stamp.');
+    expect(describeRemovedFieldPreset(presets, callOf('either()'), { ns: { Stamp: stamp } })).toBe(
+      'either() was a field preset, and Prisma 8 removed field presets. Write ns.Stamp.',
+    );
+  });
+
   it('falls back to the phases sentence when the arguments do not bind', () => {
     expect(
       describeRemovedFieldPreset(presets, callOf('ns.stamp(onUpdate: later)'), { Stamp: stamp }),
@@ -49,6 +65,7 @@ describe('describeRemovedFieldPreset', () => {
 
   it.each([
     ['the stack has no type the rewrite writes', 'plain()', {}],
+    ['the stack has no type any row writes', 'either()', {}],
     [
       'the rewrite type stores another codec',
       'plain()',

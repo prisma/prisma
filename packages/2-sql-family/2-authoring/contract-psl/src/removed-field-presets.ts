@@ -19,40 +19,56 @@ function nanoidSize(call: ResolvedTypeConstructorCall): { readonly size?: string
   return match[1] === undefined ? {} : { size: match[1] };
 }
 
-function nanoid(id: boolean): RemovedFieldPreset {
-  const write = (size: string | undefined) =>
-    id ? `sql.Char(${size ?? 21}) @id @onCreate(nanoid(${size ?? ''}))` : `sql.Char(${size ?? 21})`;
-  return {
-    type: ['sql', 'Char'],
-    codecId: CHARACTER_CODEC_ID,
-    rewrite: (call) => {
-      const options = nanoidSize(call);
-      return options === undefined
-        ? `Write ${write(undefined)}, or ${write('n')} for a size of n.`
-        : `Write ${write(options.size)}.`;
-    },
-  };
+/** Where an identifier alias is looked up: a target's own top-level name first, then the `sql.` name every SQL target has. ADR 307. */
+const IDENTIFIER_NAMESPACES = [[], ['sql']] as const;
+
+function qualified(namespace: readonly string[], name: string): string {
+  return [...namespace, name].join('.');
 }
 
-/** The SQL family's removed field presets: each row applies only where its rewrite's type stores the preset's codec, and a row with no codec id writes a type alias only the targets with the preset contribute. */
+/** The rows of a preset whose rewrite writes the identifier alias `alias`, then `attributes` when given. */
+function identifier(alias: string, attributes?: string): readonly RemovedFieldPreset[] {
+  return IDENTIFIER_NAMESPACES.map((namespace) =>
+    removedPresetWrittenAs(
+      `${qualified(namespace, alias)}${attributes === undefined ? '' : ` ${attributes}`}`,
+      CHARACTER_CODEC_ID,
+    ),
+  );
+}
+
+function nanoid(id: boolean): readonly RemovedFieldPreset[] {
+  return IDENTIFIER_NAMESPACES.map((namespace) => {
+    const write = (size: string | undefined) => {
+      const column =
+        size === undefined ? qualified(namespace, 'Nanoid') : qualified(namespace, `Char(${size})`);
+      return id ? `${column} @id @onCreate(nanoid(${size ?? ''}))` : column;
+    };
+    return {
+      type: [...namespace, 'Nanoid'],
+      codecId: CHARACTER_CODEC_ID,
+      rewrite: (call) => {
+        const options = nanoidSize(call);
+        return options === undefined
+          ? `Write ${write(undefined)}, or ${write('n')} for a size of n.`
+          : `Write ${write(options.size)}.`;
+      },
+    };
+  });
+}
+
+/** The SQL family's removed field presets: each row applies only where its rewrite's type stores the preset's codec, and a row with no codec id writes a type alias only the targets with the preset contribute. An identifier preset is written with the target's top-level alias where it has one, and with the `sql.` alias elsewhere. */
 export const removedSqlFieldPresets: RemovedFieldPresets = {
-  uuidString: removedPresetWrittenAs('sql.Char(36)', CHARACTER_CODEC_ID),
-  ulid: removedPresetWrittenAs('sql.Char(26)', CHARACTER_CODEC_ID),
+  uuidString: identifier('UuidString'),
+  ulid: identifier('Ulid'),
   nanoid: nanoid(false),
-  cuid2: removedPresetWrittenAs('sql.Char(24)', CHARACTER_CODEC_ID),
-  ksuid: removedPresetWrittenAs('sql.Char(27)', CHARACTER_CODEC_ID),
-  'id.uuidv4String': removedPresetWrittenAs(
-    'sql.Char(36) @id @onCreate(uuid())',
-    CHARACTER_CODEC_ID,
-  ),
-  'id.uuidv7String': removedPresetWrittenAs(
-    'sql.Char(36) @id @onCreate(uuid(7))',
-    CHARACTER_CODEC_ID,
-  ),
-  'id.ulid': removedPresetWrittenAs('sql.Char(26) @id @onCreate(ulid())', CHARACTER_CODEC_ID),
+  cuid2: identifier('Cuid2'),
+  ksuid: identifier('Ksuid'),
+  'id.uuidv4String': identifier('UuidString', '@id @onCreate(uuid())'),
+  'id.uuidv7String': identifier('UuidString', '@id @onCreate(uuid(7))'),
+  'id.ulid': identifier('Ulid', '@id @onCreate(ulid())'),
   'id.nanoid': nanoid(true),
-  'id.cuid2': removedPresetWrittenAs('sql.Char(24) @id @onCreate(cuid(2))', CHARACTER_CODEC_ID),
-  'id.ksuid': removedPresetWrittenAs('sql.Char(27) @id @onCreate(ksuid())', CHARACTER_CODEC_ID),
+  'id.cuid2': identifier('Cuid2', '@id @onCreate(cuid(2))'),
+  'id.ksuid': identifier('Ksuid', '@id @onCreate(ksuid())'),
   text: removedPresetWrittenAs('String', 'pg/text@1'),
   int: removedPresetWrittenAs('Int', 'pg/int4@1'),
   bigint: removedPresetWrittenAs('BigInt', 'pg/int8@1'),
