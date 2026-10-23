@@ -788,7 +788,7 @@ describe('validateContractDomain()', () => {
         valueObjects: { Address: address },
       });
       expect(() => validateContractDomain(contract)).toThrow(
-        'Model "__unbound__:User" field "addr" refers to value object "Address" by name; contracts no longer do: a field refers to its value object by the coordinate of a storage entity under storage.namespaces.<namespace>.entries.valueObject, so re-emit the contract from its source',
+        'Model "__unbound__:User" field "addr" refers to value object "Address" by name; contracts no longer do: a field refers to its value object by the coordinate of a storage entity under storage.namespaces.<namespace>.entries.valueObject, so re-emit the contract from its source, or rewrite a stored contract such as a migration snapshot with value-objects-in-storage.ts, which ships in the value-objects-in-storage scripts of the Prisma 8 upgrade guide',
       );
     });
 
@@ -875,7 +875,7 @@ describe('validateContractDomain()', () => {
         roots: {},
       });
       expect(() => validateContractDomain(contract)).toThrow(
-        'domain.namespaces.public.valueObjects: contracts no longer store value objects in the domain plane; they are storage entities under storage.namespaces.<namespace>.entries.valueObject, so re-emit the contract from its source',
+        'domain.namespaces.public.valueObjects: contracts no longer store value objects in the domain plane; they are storage entities under storage.namespaces.<namespace>.entries.valueObject, so re-emit the contract from its source, or rewrite a stored contract such as a migration snapshot with value-objects-in-storage.ts, which ships in the value-objects-in-storage scripts of the Prisma 8 upgrade guide',
       );
     });
   });

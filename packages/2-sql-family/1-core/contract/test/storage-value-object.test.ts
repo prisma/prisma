@@ -220,7 +220,7 @@ describe('validateSqlContractFully with a value object in storage', () => {
       },
     };
     expect(() => validateSqlContractFully(old)).toThrow(
-      'Contract structural validation failed: domain.namespaces.__unbound__.valueObjects: contracts no longer store value objects in the domain plane; they are storage entities under storage.namespaces.<namespace>.entries.valueObject, so re-emit the contract from its source',
+      'Contract structural validation failed: domain.namespaces.__unbound__.valueObjects: contracts no longer store value objects in the domain plane; they are storage entities under storage.namespaces.<namespace>.entries.valueObject, so re-emit the contract from its source, or rewrite a stored contract such as a migration snapshot with value-objects-in-storage.ts, which ships in the value-objects-in-storage scripts of the Prisma 8 upgrade guide',
     );
   });
 });

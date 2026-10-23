@@ -71,7 +71,7 @@ export function removedDomainKeyProblems(contract: unknown): readonly string[] {
   return Object.entries(namespaces).flatMap(([namespaceId, namespace]) =>
     isPlainRecord(namespace) && Object.hasOwn(namespace, 'valueObjects')
       ? [
-          `domain.namespaces.${namespaceId}.valueObjects: contracts no longer store value objects in the domain plane; they are storage entities under storage.namespaces.<namespace>.entries.valueObject, so re-emit the contract from its source`,
+          `domain.namespaces.${namespaceId}.valueObjects: contracts no longer store value objects in the domain plane; they are storage entities under storage.namespaces.<namespace>.entries.valueObject, so re-emit the contract from its source, or rewrite a stored contract such as a migration snapshot with value-objects-in-storage.ts, which ships in the value-objects-in-storage scripts of the Prisma 8 upgrade guide`,
         ]
       : [],
   );

@@ -468,16 +468,10 @@ export function createMongoContractSchema(
     domain: type({
       namespaces: type({
         '[string]': type({
+          '+': 'reject',
           models: type({ '[string]': ModelDefinitionSchema }),
           'enum?': type({ '[string]': ContractEnumSchema }),
-        }).narrow((namespace, ctx) =>
-          Object.hasOwn(namespace, 'valueObjects')
-            ? ctx.reject({
-                expected:
-                  'a domain namespace without valueObjects: contracts no longer store value objects in the domain plane; they are storage entities under storage.namespaces.<namespace>.entries.valueObject, so re-emit the contract from its source',
-              })
-            : true,
-        ),
+        }),
       }),
     }),
     storage: type({
