@@ -106,6 +106,8 @@ export interface CollectResolvedFieldsInput {
   readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
   readonly diagnostics: PslDiagnosticCollector;
+  /** Collects each field left out because its type did not resolve, so the contract is not built without it. */
+  readonly droppedFields: Set<FieldSymbol>;
   readonly sources: PslSources;
   readonly binder: Binder;
   readonly scalarColumnDescriptors: ReadonlyMap<string, ColumnDescriptor>;
@@ -254,6 +256,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     generatorFunctions,
     dataTypes,
     diagnostics,
+    droppedFields,
     sources,
     scalarColumnDescriptors,
     enumHandles,
@@ -345,12 +348,14 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       }
       const resolved = resolveFieldTypeDescriptor(resolveInput);
       if (!resolved.ok) {
+        droppedFields.add(field);
         continue;
       }
       descriptor = resolved.descriptor;
     } else {
       const resolved = resolveFieldTypeDescriptor(resolveInput);
       if (!resolved.ok) {
+        droppedFields.add(field);
         continue;
       }
       descriptor = resolved.descriptor;

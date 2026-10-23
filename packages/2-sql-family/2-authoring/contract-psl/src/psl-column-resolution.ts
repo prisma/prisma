@@ -57,6 +57,7 @@ import {
   typeAttributeSpecContextOfField,
   typeAttributeSubjectLabel,
   typeGeneratorAttributeSpec,
+  typeReferenceNode,
 } from '@internal/psl-parser';
 import {
   isBareTypeConstructor,
@@ -483,10 +484,17 @@ export function resolveFieldTypeDescriptor(
   },
 ): ResolveFieldTypeResult {
   const { field, resolution, entityLabel, diagnostics } = input;
-  if (field.malformedType || resolution === undefined) {
+  if (field.malformedType) return NOT_RESOLVED;
+  const source = diagnosticSource(input.sources, field.node.syntax);
+  if (typeReferenceNode(field) === undefined) {
+    diagnostics.push({
+      code: 'PSL_UNSUPPORTED_FIELD_TYPE',
+      message: `${entityLabel} has no type. Write its type after the field name.`,
+      ...source.at(field.span),
+    });
     return NOT_RESOLVED;
   }
-  const source = diagnosticSource(input.sources, field.node.syntax);
+  if (resolution === undefined) return NOT_RESOLVED;
   const unsupported = (message: string): ResolveFieldTypeResult => {
     diagnostics.push({ code: 'PSL_UNSUPPORTED_FIELD_TYPE', message, ...source.at(field.span) });
     return NOT_RESOLVED;

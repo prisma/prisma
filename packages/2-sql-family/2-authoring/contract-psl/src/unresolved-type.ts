@@ -10,16 +10,20 @@ import { SQL_EXPRESSION_TAG } from '@internal/sql-contract/sql-expression';
 import { parseQuotedStringLiteral } from './psl-attribute-parsing';
 import { removedSqlFieldPresets } from './removed-field-presets';
 
-/** The default message for a bare type name, followed by the types of that name in a contributed namespace, such as `sql.Ulid` for `Ulid`, or `undefined` when no namespace has one. */
+/** The default message for a bare type name, followed by the types of that name in a contributed namespace in sorted order, such as `sql.Ulid` for `Ulid`, or `undefined` when no namespace has one. */
 function suggestNamespacedTypes(
   written: string,
   types: AuthoringTypeNamespace,
 ): string | undefined {
-  const candidates = Object.entries(types).flatMap(([namespace, member]) => {
-    if (isAuthoringTypeDescriptor(member) || !Object.hasOwn(member, written)) return [];
-    const type = member[written];
-    return type !== undefined && isAuthoringTypeDescriptor(type) ? [`${namespace}.${written}`] : [];
-  });
+  const candidates = Object.entries(types)
+    .flatMap(([namespace, member]) => {
+      if (isAuthoringTypeDescriptor(member) || !Object.hasOwn(member, written)) return [];
+      const type = member[written];
+      return type !== undefined && isAuthoringTypeDescriptor(type)
+        ? [`${namespace}.${written}`]
+        : [];
+    })
+    .sort();
   return candidates.length === 0
     ? undefined
     : `Cannot find type "${written}". Did you mean ${candidates.join(' or ')}?`;

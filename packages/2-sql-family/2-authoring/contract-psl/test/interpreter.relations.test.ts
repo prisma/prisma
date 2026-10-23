@@ -306,7 +306,7 @@ model Post {
     ).toEqual([{ code: 'PSL_UNRESOLVED_REFERENCE', message: 'Cannot find type "Foo"' }]);
   });
 
-  it('still reports a relation error when every field type resolves', () => {
+  it('still reports the relation error the build finds when every field type resolves', () => {
     const result = interpretSqlContract(
       `model User {
   id    Int @id
@@ -316,16 +316,52 @@ model Post {
 model Post {
   id       Int  @id
   authorId Int
-  author   User @relation(fields: [authorId], references: [missing])
+  author   User @relation(fields: [authorId], references: [id], index: "post_author_gone")
 }
 `,
       { ...baseInput },
     );
 
     expect(result.ok ? [] : result.failure.diagnostics.map(({ code }) => code)).toEqual([
-      'PSL_UNRESOLVED_REFERENCE',
-      'PSL_ORPHANED_BACKRELATION',
+      'PSL_INVALID_RELATION_ATTRIBUTE',
     ]);
+  });
+
+  it('names a field written with no type', () => {
+    const result = interpretSqlContract('model User {\n  id Int @id\n  name\n}\n', {
+      ...baseInput,
+    });
+
+    expect(
+      result.ok ? [] : result.failure.diagnostics.map(({ code, message }) => ({ code, message })),
+    ).toEqual([
+      {
+        code: 'PSL_UNSUPPORTED_FIELD_TYPE',
+        message: 'Field "User.name" has no type. Write its type after the field name.',
+      },
+    ]);
+  });
+
+  it.each([
+    ['an over-qualified type', 'a.b.Int', 'PSL_INVALID_QUALIFIED_TYPE'],
+    ['no type', '', 'PSL_UNSUPPORTED_FIELD_TYPE'],
+  ])('reports a key with %s, not the relation that joins on the key', (_, type, code) => {
+    const result = interpretSqlContract(
+      `model User {
+  id    ${type} @id
+  posts Post[]
+}
+
+model Post {
+  id       Int  @id
+  authorId Int
+  author   User @relation(fields: [authorId], references: [id])
+}
+`,
+      { ...baseInput },
+    );
+
+    expect(result.ok ? [] : result.failure.diagnostics.map(({ code }) => code)).toEqual([code]);
   });
 
   it('still rejects a field whose type is neither a model, enum, composite, nor scalar', () => {

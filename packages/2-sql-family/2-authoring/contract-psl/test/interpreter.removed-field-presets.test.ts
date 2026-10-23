@@ -305,6 +305,19 @@ describe('a removed field preset in a SQL schema', () => {
       ]);
     });
 
+    it('names every namespaced type of the same name, sorted', () => {
+      const input = inputFor(
+        { ...sqliteScalarAuthoringTypes, zz: { Ulid: charAlias(26) }, sql: sqlChar },
+        sqliteTarget,
+      );
+      expect(diagnosticsOf('Ulid', input)).toEqual([
+        {
+          code: 'PSL_UNRESOLVED_REFERENCE',
+          message: 'Cannot find type "Ulid". Did you mean sql.Ulid or zz.Ulid?',
+        },
+      ]);
+    });
+
     it.each([
       ['json()', 'json'],
       ['text()', 'text'],

@@ -520,6 +520,7 @@ function processEnumDeclarations(input: ProcessEnumDeclarationsInput): {
 
 interface BuildModelNodeInput {
   readonly model: ModelSymbol;
+  readonly droppedFields: Set<FieldSymbol>;
   readonly physicalNames: ReadonlyMap<ModelSymbol | FieldSymbol, string>;
   readonly namespaceId: string;
   /** The value objects the composite types declare, by name. */
@@ -657,6 +658,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
     generatorFunctions: input.generatorFunctions,
     dataTypes: input.dataTypes,
     diagnostics,
+    droppedFields: input.droppedFields,
     sources: input.sources,
     binder: input.binder,
     scalarColumnDescriptors: input.scalarColumnDescriptors,
@@ -1463,6 +1465,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
 
 interface BuildValueObjectNodesInput {
   readonly compositeTypes: readonly CompositeTypeSymbol[];
+  readonly droppedFields: Set<FieldSymbol>;
   readonly enumTypeDescriptors: ReadonlyMap<BlockSymbol, ColumnDescriptor>;
   readonly enumHandles: ReadonlyMap<BlockSymbol, EnumTypeHandle>;
   readonly typeAliases: ResolvedTypeAliases;
@@ -1527,6 +1530,7 @@ function buildValueObjectNodes(input: BuildValueObjectNodesInput): ValueObjectNo
         dataTypes: input.dataTypes,
       });
       if (!resolved.ok) {
+        input.droppedFields.add(field);
         continue;
       }
       const { descriptor } = resolved;
@@ -2459,8 +2463,10 @@ export function interpretPslDocumentToSqlContract(
     Record<string, Record<string, unknown>>
   >();
 
+  const droppedFields = new Set<FieldSymbol>();
   const valueObjects = buildValueObjectNodes({
     compositeTypes,
+    droppedFields,
     enumTypeDescriptors: allEnumTypeDescriptors,
     enumHandles,
     typeAliases,
@@ -2485,6 +2491,7 @@ export function interpretPslDocumentToSqlContract(
   for (const { model, namespaceId } of modelEntries) {
     const result = buildModelNodeFromPsl({
       model,
+      droppedFields,
       physicalNames,
       namespaceId,
       valueObjectTypes,
@@ -2699,7 +2706,7 @@ export function interpretPslDocumentToSqlContract(
   if (
     diagnostics.length > 0 ||
     (input.seedDiagnostics?.length ?? 0) > 0 ||
-    hasUnboundFieldType(input.symbolTable, input.binder)
+    droppedFields.size > 0
   ) {
     return notOk({
       summary: 'PSL to SQL contract interpretation failed',
@@ -2855,26 +2862,4 @@ export function interpretPslDocumentToSqlContract(
   };
 
   return ok(patchedContract);
-}
-
-const UNBOUND_TYPE_RESOLUTIONS: ReadonlySet<string> = new Set([
-  'unresolved',
-  'namespace',
-  'contributedNamespace',
-  'mixin',
-]);
-
-/**
- * Whether a field's type names no type. The binder reports each such field, and field resolution drops it, so a contract built from the remaining fields would be refused for what is missing, such as a relation that joins on the dropped key, instead of for the type.
- */
-function hasUnboundFieldType(symbolTable: SymbolTable, binder: Binder): boolean {
-  return Object.values(symbolTable.namespaces).some((namespace) =>
-    [...Object.values(namespace.models), ...Object.values(namespace.compositeTypes)].some((owner) =>
-      Object.values(owner.fields).some((field) => {
-        const node = typeReferenceNode(field);
-        const resolution = node === undefined ? undefined : binder.symbolForNode(node);
-        return resolution !== undefined && UNBOUND_TYPE_RESOLUTIONS.has(resolution.kind);
-      }),
-    ),
-  );
 }
