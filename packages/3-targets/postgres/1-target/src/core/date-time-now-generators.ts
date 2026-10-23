@@ -2,7 +2,7 @@ import type { MutationDefaultGeneratorDescriptor } from '@internal/framework-com
 import { requireTemporal } from './require-temporal';
 
 /**
- * The Postgres "now" generators, one per date and time codec except `pg/timestamptz-date@1`, which uses the framework's `timestampNow`. All read the clock through `Date.now()` and write UTC. The time generators round down to their `precision` param. The string generators are named after the codec they serve and write the codec's stored form (ADR 254, "Date and time types") in UTC, with milliseconds and no trailing zeros in the fraction.
+ * The Postgres "now" generators, one per date and time codec except `pg/timestamptz-date@1`, which uses the framework's `timestampNow`. All read the clock through `Date.now()` and write UTC. The time generators and the string timestamp generators round down to their `precision` param, so the column stores the value as written. The string generators are named after the codec they serve and write the codec's stored form (ADR 254, "Date and time types") in UTC, with milliseconds and no trailing zeros in the fraction.
  */
 export const INSTANT_NOW_GENERATOR_ID = 'instantNow' as const;
 export const PLAIN_DATE_TIME_NOW_GENERATOR_ID = 'plainDateTimeNow' as const;
@@ -76,13 +76,13 @@ export function plainTimeNow(params?: GeneratorParams): Temporal.PlainTime {
   );
 }
 
-export function timestampStringNow(): string {
-  const { date, time } = utcNow();
+export function timestampStringNow(params?: GeneratorParams): string {
+  const { date, time } = utcNow(fractionDigitsOf(params));
   return `${date}T${time}`;
 }
 
-export function timestamptzStringNow(): string {
-  return `${timestampStringNow()}${UTC_OFFSET}`;
+export function timestamptzStringNow(params?: GeneratorParams): string {
+  return `${timestampStringNow(params)}${UTC_OFFSET}`;
 }
 
 export function dateStringNow(): string {

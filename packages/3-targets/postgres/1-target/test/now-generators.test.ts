@@ -14,7 +14,11 @@ import {
   timestamptzStringNow,
   timetzNow,
 } from '../src/core/date-time-now-generators';
-import { postgresNowGeneratorIdFor, postgresNowGeneratorIds } from '../src/core/now-generators';
+import {
+  postgresNowGeneratorIdFor,
+  postgresNowGeneratorIds,
+  postgresNowGeneratorTakesPrecision,
+} from '../src/core/now-generators';
 import { postgresCodecRegistry } from '../src/core/registry';
 import { fromContractJson, toContractJson } from './contract-json';
 
@@ -141,6 +145,29 @@ describe('the text "now" generators', () => {
       '03:04:05.678',
       '03:04:05.678Z',
     ]);
+  });
+
+  it.each([
+    [0, '2024-01-02T23:59:59'],
+    [1, '2024-01-02T23:59:59.9'],
+    [2, '2024-01-02T23:59:59.99'],
+    [6, '2024-01-02T23:59:59.999'],
+  ])(
+    'round the timestamp down to precision %s, so the column stores what was written',
+    (precision, text) => {
+      vi.useFakeTimers({ now: new Date('2024-01-02T23:59:59.999Z') });
+      expect([timestampStringNow({ precision }), timestamptzStringNow({ precision })]).toEqual([
+        text,
+        `${text}Z`,
+      ]);
+    },
+  );
+
+  it('pass the column precision to the timestamp generators', () => {
+    expect(postgresNowGeneratorTakesPrecision).toMatchObject({
+      'pg/timestamp-string@1': true,
+      'pg/timestamptz-string@1': true,
+    });
   });
 
   it.each([
