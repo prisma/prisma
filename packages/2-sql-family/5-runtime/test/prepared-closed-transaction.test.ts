@@ -128,26 +128,42 @@ async function endedTransaction(
 describe.each(['commit', 'rollback'] as const)(
   'prepared statements against a transaction ended by %s',
   (ending) => {
-    it('refuses to query and leaves the driver alone', async () => {
+    it('rejects a query and leaves the driver alone', async () => {
       const { runtime, driverCalls } = setup();
       const prepared = await runtime.prepare({}, () => rowsPlan());
       const tx = await endedTransaction(runtime, ending);
 
-      expect(() => prepared.query(tx, {})).toThrow(
-        expect.objectContaining({ code: 'RUNTIME.TRANSACTION_CLOSED' }),
-      );
+      await expect(prepared.query(tx, {}).toArray()).rejects.toMatchObject({
+        code: 'RUNTIME.TRANSACTION_CLOSED',
+      });
       expect(driverCalls).toEqual([]);
     });
 
-    it('refuses to execute and leaves the driver alone', async () => {
+    it('rejects an execute and leaves the driver alone', async () => {
       const { runtime, driverCalls } = setup();
       const prepared = await runtime.prepare({}, () => affectedCountPlan());
       const tx = await endedTransaction(runtime, ending);
 
-      expect(() => prepared.execute(tx, {})).toThrow(
-        expect.objectContaining({ code: 'RUNTIME.TRANSACTION_CLOSED' }),
-      );
+      await expect(prepared.execute(tx, {})).rejects.toMatchObject({
+        code: 'RUNTIME.TRANSACTION_CLOSED',
+      });
       expect(driverCalls).toEqual([]);
     });
   },
 );
+
+describe('a prepared statement given a target that is not a runtime, connection or transaction', () => {
+  it('throws at the call, because the call itself is a mistake', async () => {
+    const { runtime } = setup();
+    const prepared = await runtime.prepare({}, () => rowsPlan());
+    const update = await runtime.prepare({}, () => affectedCountPlan());
+    const notATarget = { query: () => undefined, execute: () => undefined } as never;
+
+    expect(() => prepared.query(notATarget, {})).toThrow(
+      'RuntimeQueryable is missing the prepared statement query bridge',
+    );
+    expect(() => update.execute(notATarget, {})).toThrow(
+      'RuntimeQueryable is missing the prepared statement execute bridge',
+    );
+  });
+});

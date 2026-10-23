@@ -30,6 +30,7 @@ import {
 } from '../../control-api/operations/ref-advancement';
 import { retryCommandFor } from '../../control-api/operations/ref-resolution';
 import { matchConsents } from '../../control-api/statements/plan-questions';
+import { renamedAndDeleted } from '../../control-api/statements/resolve-statements';
 import { shellQuoted, statementFlag } from '../../control-api/statements/statement-flag';
 import { isStatementVerb, type StatementText } from '../../control-api/statements/statement-text';
 import type {
@@ -290,6 +291,8 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
       const given = ctx.statements
         .values()
         .flatMap(({ verb, text }) => (isStatementVerb(verb) ? [{ verb, text }] : []));
+      const contradicted = renamedAndDeleted(given);
+      if (contradicted !== undefined) return notOk(normalizeError(contradicted));
       const needsMigrationFile = (['convert', 'backfill'] as const).flatMap((verb) =>
         ctx.statements.take(verb),
       );
@@ -385,14 +388,17 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
         await client.connect(dbConnection);
 
         const plannerWarnings = plannerWarningsCollector(ctx.report);
+        const statementArgs = [
+          ...renames,
+          ...previewConsents,
+          ...unansweredConsents(ctx.statements),
+        ].map(statementFlag);
         const rerunArgs = [
           ...(args.flags.to === undefined ? [] : ['--to', shellQuoted(args.flags.to)]),
           ...(args.flags.advanceRef === undefined
             ? []
             : ['--advance-ref', shellQuoted(args.flags.advanceRef)]),
-          ...[...renames, ...previewConsents, ...unansweredConsents(ctx.statements)].map(
-            statementFlag,
-          ),
+          ...statementArgs,
         ];
         const result = await client.dbUpdate({
           contract: contractJson,
@@ -400,7 +406,7 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
           migrationsDir,
           statements: [...renames, ...previewConsents],
           answerQuestions: promptPlanQuestions(ctx.prompt, ctx.statements),
-          invocation: { ...cliInvocation(ctx, args.flags.db), rerunArgs },
+          invocation: { ...cliInvocation(ctx, args.flags.db), rerunArgs, statementArgs },
           onPlannerWarnings: plannerWarnings.onPlannerWarnings,
           onProgress: controlProgressReporter(ctx.report),
         });

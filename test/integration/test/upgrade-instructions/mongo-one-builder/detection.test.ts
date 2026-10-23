@@ -1,19 +1,10 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
-
-const here = dirname(fileURLToPath(import.meta.url));
-const repoRoot = join(here, '../../../../..');
+import { detectionPatterns } from '../guide-detections';
 
 function patternsOf(audience: string, id: string): readonly RegExp[] {
-  const guide = readFileSync(
-    join(repoRoot, 'upgrade-instructions/pending/mongo-one-builder', audience, 'instructions.md'),
-    'utf-8',
-  );
-  const block = guide.split(/\n {2}- id: /).find((entry) => entry.startsWith(`${id}\n`)) ?? '';
-  return [...block.matchAll(/^ {8}- '(.*)'$/gm)].map(
-    ([, pattern]) => new RegExp((pattern ?? '').replaceAll("''", "'")),
+  return detectionPatterns(
+    `upgrade-instructions/pending/mongo-one-builder/${audience}/instructions.md`,
+    id,
   );
 }
 

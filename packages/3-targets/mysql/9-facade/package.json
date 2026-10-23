@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "@internal/contract": "workspace:8.0.0-rc.20",
+    "@internal/migration-tools": "workspace:8.0.0-rc.20",
     "@internal/sql-schema-ir": "workspace:8.0.0-rc.20",
     "@prisma/cli-engine": "0.9.0",
     "@repo/test-utils": "workspace:8.0.0-rc.20",
@@ -57,6 +58,7 @@
     "./config": "./dist/config.mjs",
     "./contract-builder": "./dist/contract-builder.mjs",
     "./control": "./dist/control.mjs",
+    "./migration": "./dist/migration.mjs",
     "./package.json": "./package.json"
   },
   "engines": {

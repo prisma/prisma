@@ -44,7 +44,7 @@ import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { join } from 'pathe';
-import { CliStructuredError, errorMigrationPlanningFailed } from '../../utils/cli-errors';
+import { CliStructuredError } from '../../utils/cli-errors';
 import { dbInitPlanningFailedError, dbInitRunnerFailureError } from '../../utils/db-init-failure';
 import { dbUpdateRunnerFailureError } from '../../utils/db-update-failure';
 import {
@@ -52,11 +52,14 @@ import {
   errorExtensionPathUnreachable,
   type UnplannableExtensionSpace,
 } from '../../utils/extension-path-failure';
+import { dbUpdateKeepDataEditAdvice } from '../../utils/keep-data-edit-advice';
+import { planningRefusedError } from '../../utils/planning-refused-error';
 import type { CliInvocation } from '../../utils/printed-command';
 import {
   type AnswerPlanQuestions,
   askPlanQuestions,
   type ConsentedSubject,
+  givenConsents,
   type PlannedQuestions,
   refuseUnusedConsents,
   removedNamespaceOf,
@@ -175,9 +178,9 @@ export type ExecuteRunOptions<
  *    behaviour); every extension space walks its on-disk graph via
  *    `resolveRecordedPath`.
  * 4. **Apply** (when `mode === 'apply'`): every per-space `MigrationPlan`
- *    feeds into the runner's `execute` — one outer
- *    transaction across every space; failure on any space rolls back
- *    every space's writes.
+ *    feeds into the runner's `execute`. On a target whose DDL is
+ *    transactional a failure rolls back every space's writes; otherwise
+ *    the operations that already ran stay applied.
  */
 export async function executeRun<TFamilyId extends string, TTargetId extends string>(
   options: ExecuteRunOptions<TFamilyId, TTargetId>,
@@ -245,7 +248,8 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     }
     return resolved.value;
   };
-  const statements = resolveRenames(statementTexts);
+  const consentTexts = statementTexts.filter((statement) => !isPlannedStatement(statement));
+  const firstResolved = resolveRenames(statementTexts);
 
   // 2a. Orphan-marker pre-flight: refuse to *apply* when a marker row
   // exists for a space that is not declared in the aggregate. Plan mode
@@ -255,7 +259,11 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
   // run would do. Apply mode tells the user to clean up the orphan
   // before silently advancing the app's marker.
   if (mode === 'apply') {
-    const orphanMarkerError = detectOrphanMarkers(aggregate, markerRows);
+    const orphanMarkerError = detectOrphanMarkers(
+      aggregate,
+      markerRows,
+      familyInstance.markerLocation,
+    );
     if (orphanMarkerError !== null) {
       throw orphanMarkerError;
     }
@@ -277,6 +285,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
   // (today's `db init` / `db update` daily-driver behaviour); extensions
   // walk their on-disk migration graphs via resolveRecordedPath.
   const plan = async (
+    texts: readonly StatementText[],
     resolved: readonly ResolvedMigrationStatement[],
   ): Promise<Result<PlannedRun, PlanningRefused>> => {
     onProgress?.({
@@ -304,6 +313,8 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
           aggregate,
           markerRows,
           invocation: options.invocation,
+          statements: texts,
+          resolved,
         }),
       });
     }
@@ -333,7 +344,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     });
   };
 
-  const first = await plan(statements);
+  const first = await plan(statementTexts, firstResolved);
   if (!first.ok) {
     return notOk(first.failure.refused);
   }
@@ -349,13 +360,17 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       askAccess: true,
       canConvert: false,
       statements: plannedTexts,
-      preAnswers: statementTexts.filter((statement) => !isPlannedStatement(statement)),
+      preAnswers: consentTexts,
       consentAll: { delete: options.acceptDataLoss, allow: options.acceptAccessChanges },
       origin: fromContract ?? EMPTY_ORIGIN,
       originKnown: fromContract !== null,
       destination: contract,
       answer: options.answerQuestions,
-      replan: (planned) => plan(resolveRenames(planned)),
+      keepDataEditAdvice: dbUpdateKeepDataEditAdvice(
+        options.invocation,
+        recordedDatabaseContract(aggregate, markerRows),
+      ),
+      replan: (planned) => plan([...consentTexts, ...planned], resolveRenames(planned)),
     });
     if (!answered.ok) {
       if (CliStructuredError.is(answered.failure)) {
@@ -380,6 +395,16 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     if (!refused.ok) {
       throw refused.failure;
     }
+    consented = givenConsents({
+      plan: run,
+      statements: statementTexts,
+      consentAll: { delete: options.acceptDataLoss, allow: options.acceptAccessChanges },
+      contracts: {
+        origin: fromContract ?? EMPTY_ORIGIN,
+        destination: contract,
+        statements: plannedTexts,
+      },
+    });
   }
   const { planned, orderedResolutions } = run;
   const plannerWarnings = aggregatePlannerWarnings(orderedResolutions);
@@ -624,7 +649,7 @@ function aggregatePlannerWarnings(
 }
 
 /**
- * Compare the live `_prisma_marker` rows against the aggregate's
+ * Compare the live marker rows, kept in `markerLocation`, against the aggregate's
  * declared contract spaces. Any marker row whose `space` is not a space of
  * the aggregate is an "orphan" — typically a marker left behind by
  * an extension that was removed from `extensions` without first
@@ -641,6 +666,7 @@ function aggregatePlannerWarnings(
 function detectOrphanMarkers(
   aggregate: ContractSpaceAggregate,
   markerRows: ReadonlyMap<string, unknown>,
+  markerLocation: string,
 ): CliStructuredError | null {
   const aggregateSpaceIds = new Set<string>([
     aggregate.app.spaceId,
@@ -659,12 +685,12 @@ function detectOrphanMarkers(
       ? `Orphan contract-space marker detected for "${orphans[0]}"`
       : `Orphan contract-space markers detected for ${orphans.length} spaces`;
   return new CliStructuredError('MIGRATION.CONTRACT_SPACE_VIOLATION', summary, {
-    why: `The database has \`_prisma_marker\` rows for spaces (${orphans
+    why: `The database has \`${markerLocation}\` rows for spaces (${orphans
       .map((s) => `"${s}"`)
       .join(
         ', ',
       )}) that are not declared in the project's \`extensions\`. The aggregate pipeline refuses to advance markers it cannot account for.`,
-    fix: 'Either re-declare the missing extension(s) in `extensions` (so the aggregate owns them again), or remove the orphan marker row(s) from `_prisma_marker` once you have confirmed the corresponding tables can be safely retired.',
+    fix: `Either re-declare the missing extension(s) in \`extensions\` (so the aggregate owns them again), or remove the orphan marker row(s) from \`${markerLocation}\` once you have confirmed the corresponding tables can be safely retired.`,
     docsUrl: 'https://pris.ly/contract-spaces',
     meta: {
       violations: orphans.map((spaceId) => ({ kind: 'orphanMarker', spaceId })),
@@ -679,12 +705,20 @@ function mapPlannerError(
     readonly aggregate: ContractSpaceAggregate;
     readonly markerRows: ReadonlyMap<string, { readonly storageHash: string }>;
     readonly invocation: CliInvocation;
+    readonly statements: readonly StatementText[];
+    readonly resolved: readonly ResolvedMigrationStatement[];
   },
 ): CliStructuredError {
   if (error.kind === 'planFromDiffFailed') {
     return context.action === 'dbInit'
       ? dbInitPlanningFailedError(error.conflicts)
-      : errorMigrationPlanningFailed({ conflicts: error.conflicts });
+      : planningRefusedError(error.conflicts, {
+          invocation: context.invocation,
+          from: recordedDatabaseContract(context.aggregate, context.markerRows),
+          to: undefined,
+          statements: context.statements,
+          resolved: context.resolved,
+        });
   }
   if (error.kind === 'policyConflict') {
     throw new InternalError(

@@ -209,6 +209,8 @@ export interface FakePlannerScript {
   readonly statementsReceived?: unknown[][];
   /** Fails every `plan` call that is given statements, as a planner that refuses them does. */
   readonly refuseStatements?: boolean;
+  /** Fails every `plan` call that is given statements with a conflict that leaves them out, to be written by hand. */
+  readonly leaveOutStatements?: boolean;
   /** What every `plan` call reports would lose data. */
   readonly dataLoss?: readonly ScriptedDataLoss[];
   /** What each successive `plan` call reports would lose data; overrides `dataLoss`. */
@@ -269,6 +271,14 @@ function fakePlanner(script: FakePlannerScript): Record<string, unknown> {
         return {
           kind: 'failure',
           conflicts: [{ kind: 'statementRefused', summary: 'Refused', refusedStatement: refused }],
+        };
+      }
+      if (script.leaveOutStatements === true && options.statements.length > 0) {
+        return {
+          kind: 'failure',
+          conflicts: [
+            { kind: 'writeByHand', summary: 'Write by hand', leaveOut: options.statements },
+          ],
         };
       }
       return script.conflicts === undefined

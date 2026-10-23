@@ -78,7 +78,7 @@ const copyPlan = createMigrationPlan<SqlitePlanTargetDetails>({
       label: 'Convert email',
       summary: 'Copies user into the rebuilt table, converting email',
       operationClass: 'additive',
-      target: { id: 'sqlite', details: { schema: 'main', objectType: 'table', name: 'user' } },
+      target: { id: 'sqlite', details: { objectType: 'table', name: 'user' } },
       precheck: [],
       execute: [
         {

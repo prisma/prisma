@@ -89,9 +89,10 @@
         }
       }
     },
-    // An upgrade script keeps the import order of each migration.ts it rewrites.
+    // An upgrade script fixture holds the files a script reads and writes, byte for byte.
     {
-      "includes": ["**/upgrade-instructions/*/fixtures/**/migration.ts"],
+      "includes": ["**/upgrade-instructions/*/fixtures/**"],
+      "formatter": { "enabled": false },
       "assist": { "enabled": false }
     },
     {

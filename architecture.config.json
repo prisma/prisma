@@ -1231,6 +1231,12 @@
       "plane": "shared"
     },
     {
+      "glob": "packages/3-targets/mysql/1-target/src/exports/marker-lock.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
       "glob": "packages/3-targets/mysql/1-target/src/exports/control.ts",
       "domain": "extensions",
       "layer": "targets",
@@ -1259,6 +1265,12 @@
       "domain": "extensions",
       "layer": "targets",
       "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/mysql/1-target/src/exports/migration.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
     },
     {
       "glob": "packages/3-targets/mysql/1-target/src/exports/pack.ts",
@@ -1358,6 +1370,12 @@
     },
     {
       "glob": "packages/3-targets/mysql/9-facade/src/exports/control.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/mysql/9-facade/src/exports/migration.ts",
       "domain": "extensions",
       "layer": "adapters",
       "plane": "migration"

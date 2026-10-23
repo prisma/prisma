@@ -4,7 +4,7 @@ import { type } from 'arktype';
 import { mongoAdapterError } from './errors';
 
 export const COLLECTION = '_prisma_migrations';
-export const MONGO_MARKER_COLLECTION = `_prisma_migrations marker documents in ${COLLECTION}`;
+export const MONGO_MARKER_COLLECTION = COLLECTION;
 export const MONGO_LEDGER_COLLECTION = `_prisma_migrations ledger documents in ${COLLECTION}`;
 
 const MongoMarkerDocSchema = type({

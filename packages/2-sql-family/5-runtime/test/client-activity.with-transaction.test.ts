@@ -77,12 +77,14 @@ describe('a handle started on the context of withTransaction, inside the callbac
 });
 
 describe('a handle started on the context of withTransaction, after the callback', () => {
-  it('refuses a new read without reaching the driver', async () => {
+  it('rejects a new read without reaching the driver', async () => {
     const setup = createSetup();
     const call = await escapedHandle(setup);
     const before = driverCalls(setup);
 
-    expect(() => call.query(rawPlan('select 1'))).toThrow(transactionClosed);
+    await expect(call.query(rawPlan('select 1')).toArray()).rejects.toMatchObject(
+      transactionClosed,
+    );
     expect(driverCalls(setup)).toEqual(before);
   });
 
@@ -109,7 +111,7 @@ describe('a handle started on the context of withTransaction, after the callback
     await expect(iterator.next()).rejects.toMatchObject({ code: 'RUNTIME.TRANSACTION_CLOSED' });
   });
 
-  it('refuses prepared statements without reaching the driver', async () => {
+  it('rejects prepared statements without reaching the driver', async () => {
     const setup = createSetup();
     const rows = await setup.runtime.prepare({}, () => queryPlan());
     const affectedCount: SqlQueryPlan<AffectedCount> = planFromAst(
@@ -120,8 +122,8 @@ describe('a handle started on the context of withTransaction, after the callback
     const call = await escapedHandle(setup);
     const before = driverCalls(setup);
 
-    expect(() => rows.query(call, {})).toThrow(transactionClosed);
-    expect(() => update.execute(call, {})).toThrow(transactionClosed);
+    await expect(rows.query(call, {}).toArray()).rejects.toMatchObject(transactionClosed);
+    await expect(update.execute(call, {})).rejects.toMatchObject(transactionClosed);
     expect(driverCalls(setup)).toEqual(before);
   });
 
@@ -138,7 +140,9 @@ describe('a handle started on the context of withTransaction, after the callback
     await expect(startActivityOn(outer, testCall)).rejects.toMatchObject({
       code: 'RUNTIME.TRANSACTION_CLOSED',
     });
-    expect(() => inner.query(rawPlan('select 1'))).toThrow(transactionClosed);
+    await expect(inner.query(rawPlan('select 1')).toArray()).rejects.toMatchObject(
+      transactionClosed,
+    );
   });
 
   it('still hashes plans and ends', async () => {

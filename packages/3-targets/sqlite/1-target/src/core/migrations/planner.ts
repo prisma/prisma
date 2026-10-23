@@ -14,11 +14,13 @@ import {
   detectTableNameCaseChanges,
   extractCodecControlHooks,
   fieldStatementColumns,
+  planEnumValueRewrites,
   planFieldEventCalls,
   plannerFailure,
   planStatements,
   sqlTypeLookupsOf,
   subjectsOfCalls,
+  withEnumValueOperations,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
@@ -59,6 +61,11 @@ import {
 import { sqlitePlannerStrategies } from './planner-strategies';
 import type { SqlitePlanTargetDetails } from './planner-target-details';
 import { sqliteSchemaTables } from './schema-tables';
+import {
+  sqliteStoredValueCalls,
+  storedValueOperationIndexes,
+  storedValueSubjects,
+} from './stored-value-calls';
 import {
   renameTableByHandStatements,
   renderRenameTableCall,
@@ -212,6 +219,26 @@ export class SqliteMigrationPlanner
       return plannerFailure([defaultedBackfill]);
     }
     const codecHooks = extractCodecControlHooks(options.frameworkComponents);
+    const { codecLookup } = sqlTypeLookupsOf(options.frameworkComponents);
+    const rewrites = planEnumValueRewrites({
+      statements: options.statements,
+      fromContract: options.fromContract,
+      contract: options.contract,
+      tables: sqliteSchemaTables(statements.value.schema),
+      codecs: codecLookup,
+    });
+    if (!rewrites.ok) return plannerFailure([rewrites.failure]);
+    const storedValueCalls = sqliteStoredValueCalls(rewrites.value, codecLookup);
+    const disallowedStoredValueCalls = [...storedValueCalls.keys()].filter(
+      (call) => !options.policy.allowedOperationClasses.includes(call.operationClass),
+    );
+    if (disallowedStoredValueCalls.length > 0) {
+      return plannerFailure(
+        disallowedStoredValueCalls.map((call) =>
+          conflictForDisallowedCall(call, options.policy.allowedOperationClasses),
+        ),
+      );
+    }
 
     const result = planIssues({
       issues,
@@ -257,6 +284,7 @@ export class SqliteMigrationPlanner
       ...statements.value.calls,
       ...replacedIndexes.calls,
       ...result.value.calls,
+      ...storedValueCalls.keys(),
       ...fieldEventOps,
     ];
 
@@ -280,14 +308,15 @@ export class SqliteMigrationPlanner
         destination,
         this.#lowerer,
       ),
-      appliedStatements: appliedStatementsInOrder(
-        options.statements,
-        statements.value.appliedStatements,
+      appliedStatements: withEnumValueOperations(
+        appliedStatementsInOrder(options.statements, statements.value.appliedStatements),
+        (statement) => storedValueOperationIndexes(calls, storedValueCalls, statement),
       ),
       ...subjectsOfCalls(
         sqliteCallSubjects(
           calls,
           new Map(fieldEventCalls.map((fieldEvent) => [fieldEvent.call, fieldEvent])),
+          storedValueSubjects(storedValueCalls),
         ),
         {
           fromContract: options.fromContract,

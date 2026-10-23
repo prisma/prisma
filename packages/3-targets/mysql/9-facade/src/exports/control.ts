@@ -14,7 +14,7 @@ export interface MysqlControlClientOptions {
   readonly extensions?: ControlClientOptions['extensions'];
 }
 
-/** A control client for a MySQL database: introspection, and the marker and ledger reads. */
+/** A control client for a MySQL database: migrations, verify, sign and introspection. */
 export function createMysqlControlClient(options: MysqlControlClientOptions = {}): ControlClient {
   return createControlClient({
     family: sql,

@@ -17,12 +17,14 @@ import {
   otherSpaceDeclaring,
   partitionCallsByControlPolicy,
   partitionIssuesByControlPolicy,
+  planEnumValueRewrites,
   planFieldEventCalls,
   plannerFailure,
   planStatements,
   sqlTypeLookupsOf,
   subjectsOfCalls,
   type TargetRefusal,
+  withEnumValueOperations,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
@@ -103,6 +105,12 @@ import {
   resolveDdlSchemaForNamespaceStorage,
 } from './resolve-ddl-schema';
 import { postgresSchemaTables } from './schema-tables';
+import {
+  postgresStoredValueCalls,
+  storedValueCallsStrategy,
+  storedValueOperationIndexes,
+  storedValueSubjects,
+} from './stored-value-calls';
 import {
   postgresColumnRenameCall,
   postgresTableRenameByHand,
@@ -358,6 +366,21 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
 
     const codecHooks = extractCodecControlHooks(options.frameworkComponents);
     const types = sqlTypeLookupsOf(options.frameworkComponents);
+    const rewrites = planEnumValueRewrites({
+      statements: options.statements,
+      fromContract: options.fromContract,
+      contract: options.contract,
+      tables: postgresSchemaTables(schema, options.contract),
+      codecs: types.codecLookup,
+    });
+    if (!rewrites.ok) {
+      return plannerFailure([rewrites.failure]);
+    }
+    const storedValueCalls = postgresStoredValueCalls(
+      rewrites.value,
+      options.contract,
+      types.codecLookup,
+    );
     // Strategies get two views of the start state. `schema` is one namespace node, for probes by bare table name in the planned namespace (shared-temp-default safety, FK/unique probes); a flat merge of every namespace would collide same-named tables. `startTree` and `endTree` are the whole trees, for decisions that cross tables and namespaces, such as the foreign keys that depend on a primary key.
     const relationalSchema = relationalNamespaceNode(schema, schemaName);
 
@@ -450,6 +473,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
         dropRemovedSchemasStrategy(
           removedSchemas.filter((schemaName) => !keptSchema(options, schemaName)),
         ),
+        storedValueCallsStrategy([...storedValueCalls.keys()]),
       ],
     });
 
@@ -549,14 +573,15 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
         options.snapshotsImportPath,
         this.#lowerer,
       ),
-      appliedStatements: appliedStatementsInOrder(
-        options.statements,
-        statements.value.appliedStatements,
+      appliedStatements: withEnumValueOperations(
+        appliedStatementsInOrder(options.statements, statements.value.appliedStatements),
+        (statement) => storedValueOperationIndexes(calls, storedValueCalls, statement),
       ),
       ...subjectsOfCalls(
         postgresCallSubjects(calls, {
           contract: options.fromContract ?? options.contract,
           fieldEvents: new Map(fieldEventCalls.map((fieldEvent) => [fieldEvent.call, fieldEvent])),
+          storedValues: storedValueSubjects(storedValueCalls),
         }),
         {
           fromContract: options.fromContract,

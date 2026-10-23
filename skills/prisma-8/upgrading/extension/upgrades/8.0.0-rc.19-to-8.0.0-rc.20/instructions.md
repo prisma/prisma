@@ -4,11 +4,11 @@ to: "8.0.0-rc.20"
 changes:
   - id: engine-pin-moves-to-0-9-0
     summary: |
-      The toolchain now peers `@prisma/cli-engine@0.9.0` (up from 0.7.0). An extension package that depends on `@prisma/cli-engine` for its tests or tooling must move to `0.9.0`.
+      The toolchain now peers `@prisma/cli-engine@0.9.0` (up from 0.7.0). An extension package whose tests or tooling load `@prisma/cli-engine` alongside the Prisma toolchain must move it to `0.9.0`, in `package.json` or in a `pnpm-workspace.yaml` catalog. A separate CLI that the package builds on the engine is not affected. The detection matches an engine version below 0.9 in either file.
     detection:
-      glob: "**/package.json"
+      glob: "**/{package.json,pnpm-workspace.yaml}"
       matches:
-        - '"@prisma/cli-engine":\s*"[^"]*(?<![\d.])0\.[0-8](?!\d)'
+        - '[\x27"]@prisma/cli-engine[\x27"]\s*:\s*[\x27"]?[^\x27"\n#]*(?<![\d.])0\.[0-8](?!\d)'
   - id: piped-output-needs-json
     summary: |
       A piped Prisma ORM command no longer prints JSON. A test that runs the CLI with a non-terminal stdout and parses JSON frames from it must pass `--json`.
@@ -143,7 +143,9 @@ One change comes with a script. Run `stored-contracts-expand-type-aliases` befor
 
 ### `engine-pin-moves-to-0-9-0`
 
-For every `package.json` matched by `detection`, change the `@prisma/cli-engine` version (`0.7.0`, `^0.7.0` or any other 0.x below 0.9) to `0.9.0` and reinstall.
+This applies to tests and tooling that load `@prisma/cli-engine` alongside the Prisma toolchain. A separate CLI that the package builds on the engine runs its own engine, so it does not have to move with this upgrade.
+
+For every `package.json` or `pnpm-workspace.yaml` catalog matched by `detection`, change the `@prisma/cli-engine` version (`0.7.0`, `^0.7.0` or any other 0.x below 0.9) to `0.9.0` and reinstall.
 
 ### `piped-output-needs-json`
 
@@ -163,7 +165,7 @@ Migration snapshots that an extension ships, its bundled `contract.json`, and an
 node <guide>/scripts/expand-type-aliases/expand-type-aliases.ts
 ```
 
-`<guide>` is the directory that holds this guide. Node 24 or later runs the TypeScript script directly; it needs no `tsx`. The script reads and writes files only and needs no database. It rewrites every SQL contract under the root, skipping `node_modules`, `.git`, `dist` and `build`. That includes test fixtures: if you keep an old contract on purpose, restore it with git afterwards.
+`<guide>` is the directory that holds this guide. Node 24 or later runs the TypeScript script directly; it needs no `tsx`. The script reads and writes files only and needs no database. It rewrites every SQL contract under the root, skipping `node_modules`, `dist`, `build` and every directory whose name starts with `.`, such as `.git` and the worktrees under `.claude/worktrees/`. That includes test fixtures: if you keep an old contract on purpose, restore it with git afterwards.
 
 In each contract it replaces every column's `typeRef` with the parameters of the `storage.types` entry it names, and removes each entry a column named. It makes the same change in the `contract.d.ts` next to the contract. The extension's own contract space is an extension's space, because its `migrations/` directory holds `refs/` directly, so an entry that no column names is kept, as a database type the contract registers, and the script lists it. The script cannot tell such an entry from an alias your source declares but no field uses, so it keeps both. A re-emit drops an unused alias, so the bundled contract then gets another storage hash than the one the script wrote into `migrations/refs/head.json`. Do not change the script's output to match: each application runs the same script on its own copy of your migrations and gets the hash the script wrote. Add a migration to the re-emitted contract instead, as described after the re-emit below.
 
@@ -210,7 +212,7 @@ const contractSpace = contractSpaceFromJson<Contract<SqlStorage>>({
 });
 ```
 
-If the storage hash of the bundled contract changed, tell the applications that use the extension, in your release notes, to run `prisma db sign` against every database after they upgrade, and name the old and new hash. The old hash is the one the bundled contract had before you ran the script, and the new hash is the one in `migrations/refs/head.json` when you publish. The Supabase extension's contract is an example: its hash changes from `292489649ae6d6928de98a32b544bd9caf6b7d49718c10fe2720b83545a4b5a2` to `110ad99e1e466691bdb0a4349a17365561e76ad017f58beb272f4496b05b8e9e`. Tell them too that `prisma migration status` no longer marks the extension's migrations applied before the upgrade as applied, because each rewritten migration has a new hash. `prisma db migrate` runs none of them again, and `prisma db verify` passes.
+If the storage hash of the bundled contract changed, tell the applications that use the extension, in your release notes, to run `prisma db sign` against every database after they upgrade, and name the old and new hash. The old hash is the one the bundled contract had before you ran the script, and the new hash is the one in `migrations/refs/head.json` when you publish. The Supabase extension's contract is an example: its hash changes from `292489649ae6d6928de98a32b544bd9caf6b7d49718c10fe2720b83545a4b5a2` to `110ad99e1e466691bdb0a4349a17365561e76ad017f58beb272f4496b05b8e9e`. Tell them too that `prisma migration status` no longer marks the extension's migrations applied before the upgrade as applied, because each rewritten migration has a new hash. `prisma db migrate` runs none of them again, and `prisma db verify` passes. A database that has not applied every migration yet is refused by a plain `prisma db sign`, and `prisma db migrate` stops on it with `MIGRATION.MARKER_MISMATCH`: tell them to sign it with `prisma db sign --contract <the last migration it applied>` and then run `prisma db migrate`, as the app guide's `stored-contracts-expand-type-aliases` says.
 
 ### `types-key-is-database-types`
 

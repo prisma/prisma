@@ -24,6 +24,8 @@ import type {
 import type { OperationContext } from './control-operation-results';
 import type {
   AppliedMigrationStatement,
+  EnumValueCoordinateJson,
+  KeepDataEdit,
   MigrationPlanNamespaces,
   MigrationPlanSubjects,
   MigrationSubject,
@@ -310,6 +312,11 @@ export interface MigrationPlannerConflict {
    * on this field, not on the conflict's kind, which each family names.
    */
   readonly refusedStatement?: ResolvedMigrationStatement;
+  /**
+   * Set when the change can be written by hand instead: the statements to leave out of a plan, whose
+   * `migration.ts` the user then adds the operations the conflict's `why` names to.
+   */
+  readonly leaveOut?: readonly ResolvedMigrationStatement[];
 }
 
 /**
@@ -394,14 +401,14 @@ export interface MigrationRunnerFailure extends StructuredError {
 /** The facts of a failed migration run. Each fact appears once. */
 export interface MigrationRunnerFailureMeta {
   /**
-   * Identifier of the space whose plan caused the rollback when
-   * {@link MigrationRunner.execute} processes multiple spaces.
+   * The space whose plan failed when {@link MigrationRunner.execute} processes multiple spaces.
    */
   readonly failingSpace?: string;
   /**
    * Whether the database is as it was before the failed apply: `true` when the runner rolled the
    * apply back or failed before it changed anything, `false` when what it changed stays. Absent when
-   * the runner does not say.
+   * the runner does not say. Creating the runner's own control tables (the marker and the ledger)
+   * does not count as a change: it is `true` when only those were created.
    */
   readonly databaseUnchanged?: boolean;
   /** The check that did not hold, when a precheck or postcheck failed. */
@@ -413,6 +420,8 @@ export interface MigrationRunnerFailureMeta {
    * step fail: first the field of the failed step, then the others of the same migration.
    */
   readonly rowsWithoutValue?: readonly RowsWithoutValue[];
+  /** The data that still holds a stored enum value whose removal its storage cannot take, when that made a check fail. */
+  readonly rowsHoldingValue?: RowsHoldingValue;
   /** The objects in the database that kept the failed operation from running, such as a view on a table to drop. */
   readonly blockingObjects?: readonly BlockingObject[];
   /** The differences the schema check after apply found, when that check failed. */
@@ -483,6 +492,20 @@ export function withDatabaseUnchanged<TCode extends MigrationRunnerFailure['code
   });
   if (failure.stack !== undefined) attributed.stack = failure.stack;
   return attributed;
+}
+
+/** The data that still holds the stored value of an enum value a plan removes from storage that cannot do without it. */
+export interface RowsHoldingValue {
+  /** The enum value, in the JSON form statements report, which leaves out the unbound namespace. */
+  readonly enumValue: EnumValueCoordinateJson;
+  /** The stored value, as the database stores it. */
+  readonly value: string | number;
+  /** How many rows hold it. */
+  readonly rows: number;
+  /** The position of the operation in the operations of the failing space's plan. */
+  readonly operationIndex: number;
+  /** The edit to the migration's `migration.ts` that keeps the data, when the target can say it. */
+  readonly keepDataEdit?: KeepDataEdit;
 }
 
 /** A field that is to become required while existing rows have no value for it. */
@@ -773,9 +796,10 @@ export interface MigrationRunner<
    * at the load boundary. Runners do not re-verify plans and assume the
    * `(metadata, ops)` pairs on disk have not been tampered with since emit.
    *
-   * Atomicity semantics differ by family: SQL targets open one outer
-   * transaction across every space; Mongo iterates per-space without an
-   * outer transaction and relies on per-space verify-gated marker atomicity.
+   * A failure states what it left in {@link MigrationRunnerFailureMeta.failingSpace} and
+   * {@link MigrationRunnerFailureMeta.databaseUnchanged}. On a target whose DDL is transactional the
+   * runner rolls the whole apply back and reports `databaseUnchanged: true`; otherwise it reports
+   * whether the database changed, and the operations that already ran stay applied.
    */
   execute(options: {
     readonly driver: ControlDriverInstance<TFamilyId, TTargetId>;

@@ -332,6 +332,21 @@ describe('mongo() facade', () => {
     await expect(db.runtime()).rejects.toThrow('Mongo client is closed');
   });
 
+  it.each(['query', 'execute'] as const)(
+    'the ORM %s on a closed client rejects instead of throwing at the call',
+    async (member) => {
+      const db = mongo({ contract: fakeContract, url: 'mongodb://localhost:27017/mydb' });
+      const executor = mocks.mongoOrm.mock.calls.at(-1)?.[0].executor;
+      await db.close();
+
+      let result: PromiseLike<unknown> | undefined;
+      expect(() => {
+        result = executor[member]({});
+      }).not.toThrow();
+      await expect(Promise.resolve(result)).rejects.toMatchObject({ code: 'DRIVER.NOT_CONNECTED' });
+    },
+  );
+
   it('close() while a build is in flight still locks the client and skips driver-close on a failed build', async () => {
     mocks.driverFromConnection.mockReset().mockRejectedValueOnce(new Error('connection refused'));
 

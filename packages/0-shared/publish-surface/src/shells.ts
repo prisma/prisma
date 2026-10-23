@@ -130,9 +130,11 @@ export type ShellName =
   | '@prisma/orm-family-mongo'
   | '@prisma/orm-target-postgres'
   | '@prisma/orm-target-sqlite'
+  | '@prisma/orm-target-mysql'
   | '@prisma/orm-target-mongo'
   | '@prisma/orm-postgres'
   | '@prisma/orm-sqlite'
+  | '@prisma/orm-mysql'
   | '@prisma/orm-mongo'
   | '@prisma/orm-extension-postgis'
   | '@prisma/orm-extension-pgvector'
@@ -206,21 +208,38 @@ const COMMON_FACADE_REEXPORTS: readonly ShellReexportMapping[] = [
  * `targetSubpaths` limits the target forward where the target package exports
  * something the facade's own code imports but no application does.
  */
-function facadeReexports(options: {
+function facadeReexports(
+  options: FacadeContractReexportOptions & {
+    readonly runtime: string;
+    readonly queryBuilders: readonly ShellReexportMapping[];
+  },
+): ShellReexportMapping[] {
+  return [
+    ...facadeContractReexports(options),
+    { package: options.runtime, entry: 'family-runtime' },
+    ...options.queryBuilders,
+  ];
+}
+
+interface FacadeContractReexportOptions {
   readonly family: string;
   readonly familyPack: string;
-  readonly runtime: string;
   readonly target: string;
   readonly targetSubpaths?: readonly string[];
   readonly adapter: string;
   readonly driver: string;
-  readonly queryBuilders: readonly ShellReexportMapping[];
-}): ShellReexportMapping[] {
+}
+
+/**
+ * The part of a facade's republished surface that contracts, migrations and
+ * the control plane need, without the family runtime or the query surfaces.
+ * A facade whose target cannot run queries yet publishes only this.
+ */
+function facadeContractReexports(options: FacadeContractReexportOptions): ShellReexportMapping[] {
   return [
     ...COMMON_FACADE_REEXPORTS,
     { package: options.family, entry: 'family-contract' },
     { package: options.familyPack, entry: 'family', root: false },
-    { package: options.runtime, entry: 'family-runtime' },
     {
       package: options.target,
       entry: 'target',
@@ -229,7 +248,6 @@ function facadeReexports(options: {
     },
     { package: options.adapter, entry: 'adapter' },
     { package: options.driver, entry: 'driver' },
-    ...options.queryBuilders,
   ];
 }
 
@@ -603,6 +621,30 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
     },
   ],
   [
+    '@prisma/orm-target-mysql',
+    {
+      dir: 'packages/9-public/@prisma/orm-target-mysql',
+      kind: 'platform',
+      packages: [
+        {
+          dir: 'packages/3-targets/mysql/1-target',
+          name: '@internal/target-mysql',
+          entry: 'target',
+        },
+        {
+          dir: 'packages/3-targets/mysql/2-adapter',
+          name: '@internal/adapter-mysql',
+          entry: 'adapter',
+        },
+        {
+          dir: 'packages/3-targets/mysql/3-driver',
+          name: '@internal/driver-mysql',
+          entry: 'driver',
+        },
+      ],
+    },
+  ],
+  [
     '@prisma/orm-target-mongo',
     {
       dir: 'packages/9-public/@prisma/orm-target-mongo',
@@ -702,6 +744,21 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
         adapter: '@internal/adapter-sqlite',
         driver: '@internal/driver-sqlite',
         queryBuilders: SQL_QUERY_REEXPORTS,
+      }),
+    },
+  ],
+  [
+    '@prisma/orm-mysql',
+    {
+      dir: 'packages/9-public/@prisma/orm-mysql',
+      kind: 'facade',
+      packages: [{ dir: 'packages/3-targets/mysql/9-facade', name: '@internal/mysql', entry: '' }],
+      reexports: facadeContractReexports({
+        family: '@internal/sql-contract',
+        familyPack: '@internal/family-sql',
+        target: '@internal/target-mysql',
+        adapter: '@internal/adapter-mysql',
+        driver: '@internal/driver-mysql',
       }),
     },
   ],

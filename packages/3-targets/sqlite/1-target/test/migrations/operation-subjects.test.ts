@@ -9,6 +9,10 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
+import {
+  RemoveStoredValueCall,
+  ReplaceStoredValueCall,
+} from '../../src/core/migrations/op-factory-call';
 import { sqliteCallSubjects } from '../../src/core/migrations/operation-subjects';
 import { sqliteTableRenameByHand } from '../../src/core/migrations/table-rename-calls';
 import { sqliteCreateNamespace } from '../../src/core/sqlite-unbound-database';
@@ -146,6 +150,32 @@ describe('sqliteCallSubjects', () => {
         subject: { kind: 'storage', name: 'purge' },
         loss: 'drop',
         label: 'Drop the search config: purge',
+      },
+    ]);
+  });
+});
+
+describe('stored value operations', () => {
+  it('name the column a removed value is lost from, and lose nothing when a value is replaced', () => {
+    expect(
+      subjectsOf(
+        [
+          new ReplaceStoredValueCall('User', 'bio', 'a', 'b'),
+          new RemoveStoredValueCall('User', 'email', 'x'),
+        ],
+        [],
+      ),
+    ).toEqual([
+      {
+        operationIndex: 1,
+        subject: {
+          kind: 'field',
+          namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID),
+          model: 'User',
+          field: 'email',
+        },
+        loss: 'drop',
+        label: 'Remove value "x" from column "email" of "User"',
       },
     ]);
   });

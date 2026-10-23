@@ -5,14 +5,17 @@ import {
   resolveColumnRenameAgainst,
   resolveTableRenameAgainst,
   type SqlMigrationPlanOperation,
+  type StoredValueCodec,
+  sqlTypeLookupsOf,
   type TableRenameRequest,
   unmatchedColumnRename,
   unmatchedTableRename,
 } from '@internal/family-sql/control';
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import { Migration as SqlMigration } from '@internal/family-sql/migration';
+import type { CodecRef } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
-import type { ControlStack } from '@internal/framework-components/control';
+import type { ControlStack, EnumValueCoordinateJson } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { MigrationContractViews } from '@internal/migration-tools/migration';
 import type { SqlStorage } from '@internal/sql-contract/types';
@@ -55,10 +58,12 @@ import {
   DropSchemaCall,
   DropTableCall,
   EnableRowLevelSecurityCall,
+  RemoveStoredValueCall,
   RenameConstraintCall,
   RenameIndexCall,
   RenamePostgresRlsPolicyCall,
   RenameSchemaCall,
+  ReplaceStoredValueCall,
   SetDefaultCall,
   SetNotNullCall,
   SetTableSchemaCall,
@@ -153,6 +158,16 @@ export abstract class PostgresMigration<
       ...(stack.adapter === undefined ? [] : [stack.adapter]),
       ...stack.extensions,
     ];
+  }
+
+  /** The codec `codecRef` names, built from the stack's codecs; a codec needs a stack. */
+  private storedValueCodec(
+    operation: string,
+    codecRef: CodecRef | undefined,
+  ): StoredValueCodec | undefined {
+    if (codecRef === undefined) return undefined;
+    this.controlAdapterFor(operation);
+    return { codecRef, codecs: sqlTypeLookupsOf(this.frameworkComponents()).codecLookup };
   }
 
   private dataTypes(): ReturnType<typeof stackDataTypes> {
@@ -276,6 +291,55 @@ export abstract class PostgresMigration<
     readonly schema: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     return new DropSchemaCall(options.schema).toOp(this.controlAdapterFor('dropSchema'));
+  }
+
+  /**
+   * Emit an `UPDATE` operation that changes the stored value `from` to `to` in `column`, in every row that holds it. With `many`, the column is a list column and the value changes inside every list that holds it. Values are stored values, as the column's codec writes them, and are passed as parameters. Without `codecRef`, pass each value in the form the column stores it, or no row matches. Leave out `schema` for a table of the unbound namespace.
+   */
+  protected replaceStoredValue(options: {
+    readonly schema?: string;
+    readonly table: string;
+    readonly column: string;
+    readonly from: string | number;
+    readonly to: string | number;
+    readonly many?: boolean;
+    /** The column's codec: the values are then written as the contract stores them, and the codec writes them as the database does. */
+    readonly codecRef?: CodecRef;
+  }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    return new ReplaceStoredValueCall(
+      options.schema ?? UNBOUND_NAMESPACE_ID,
+      options.table,
+      options.column,
+      options.from,
+      options.to,
+      options.many === true,
+      this.storedValueCodec('replaceStoredValue', options.codecRef),
+    ).toOp();
+  }
+
+  /**
+   * Emit an `UPDATE` operation that removes the stored value `value` from `column`: it sets the column to NULL in every row that holds it, or, with `many`, takes the value out of every list that holds it. On a scalar column that takes no NULL, its check fails while any row holds the value. The operation is destructive.
+   */
+  protected removeStoredValue(options: {
+    readonly schema?: string;
+    readonly table: string;
+    readonly column: string;
+    readonly value: string | number;
+    readonly many?: boolean;
+    /** The column's codec, as for `replaceStoredValue`. */
+    readonly codecRef?: CodecRef;
+    /** The enum value the stored value belongs to: the check that fails while rows of a required column hold the value then names it. */
+    readonly enumValue?: EnumValueCoordinateJson;
+  }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    return new RemoveStoredValueCall(
+      options.schema ?? UNBOUND_NAMESPACE_ID,
+      options.table,
+      options.column,
+      options.value,
+      options.many === true,
+      this.storedValueCodec('removeStoredValue', options.codecRef),
+      options.enumValue,
+    ).toOp();
   }
 
   /**

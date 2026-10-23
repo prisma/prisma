@@ -1818,12 +1818,12 @@ export async function withTransaction<R>(
   let invalidated = false;
 
   async function* guardedStream<Row>(
-    inner: AsyncIterable<Row>,
+    open: () => AsyncIterable<Row>,
   ): AsyncGenerator<Row, void, unknown> {
     if (invalidated) {
       throw transactionClosedError();
     }
-    for await (const row of inner) {
+    for await (const row of open()) {
       yield row;
       if (invalidated) {
         throw transactionClosedError();
@@ -1839,8 +1839,7 @@ export async function withTransaction<R>(
         plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
         options?: RuntimeExecuteOptions,
       ): AsyncIterableResult<Row> {
-        if (invalidated) throw transactionClosedError();
-        return new AsyncIterableResult(guardedStream(target.query<Row>(plan, options)));
+        return new AsyncIterableResult(guardedStream(() => target.query<Row>(plan, options)));
       },
       async execute(
         plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
@@ -1854,12 +1853,11 @@ export async function withTransaction<R>(
         params: Params,
         options?: RuntimeExecuteOptions,
       ): AsyncIterableResult<Row> {
-        if (invalidated) throw transactionClosedError();
         return new AsyncIterableResult(
-          guardedStream(runPreparedQuery(target, ps, params, options)),
+          guardedStream(() => runPreparedQuery(target, ps, params, options)),
         );
       },
-      [preparedStatementExecute]<Params>(
+      async [preparedStatementExecute]<Params>(
         ps: PreparedExecution<Params>,
         params: Params,
         options?: RuntimeExecuteOptions,
