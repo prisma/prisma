@@ -11,7 +11,7 @@ changes:
         - 'pg/(?:timestamptz-string|timestamp-string|date-string|time-string|timetz)@1'
   - id: date-style-iso-required
     summary: |
-      Prisma sets `DateStyle=ISO` as a startup option on every PostgreSQL connection it opens from a URL. A `pg.Pool` or `pg.Client` passed to Prisma with another `DateStyle` fails every read of a date or timestamp, with any of its codecs (text, `Temporal` or `Date`), with `RUNTIME.DATE_STYLE_NOT_ISO`.
+      The PostgreSQL driver ensures `DateStyle=ISO` on every connection it uses, including a `pg.Pool` or `pg.Client` the application passes to Prisma, which it sets with a statement. A statement in the application that sets `DateStyle`, or a pooler that drops the startup option, makes every read of a date or timestamp fail with `RUNTIME.DATE_STYLE_NOT_ISO`.
     detection:
       glob: "**/*.{ts,tsx,mts,cts,js,mjs,cjs}"
       matches:
@@ -49,12 +49,10 @@ scheduledAt: field.column(timestamptzStringColumn).default('2024-01-15T10:30:00Z
 
 `contract emit` refuses a default in another form with `CONTRACT.DEFAULT_INVALID`, and the message shows the form to write. A PSL default written with a tag, such as `` @default(timestamptz`2024-01-15 10:30:00+00`) ``, is unchanged. An enum on `TimestampString`, `TimestamptzString` or `Timetz` is now allowed.
 
+The `now()` value of a `TimestampString(p)` or `TimestamptzString(p)` column is now rounded down to the column's precision, as a time column's is, so the column stores the value generated. Emit the contract again: its execution hash changes where such a column has a `now()` generator.
+
 ## `DateStyle=ISO` is required
 
-Prisma sets `DateStyle=ISO` as a startup option on every connection it opens from a URL. A `pg.Pool` or `pg.Client` you pass to Prisma keeps its own settings. If its `DateStyle` is not ISO, give it the option:
+The PostgreSQL driver now ensures `DateStyle=ISO` on every connection it uses. A connection Prisma opens from a URL starts with it as a startup option, after any `options` in the URL or `PGOPTIONS`. On a `pg.Pool` or `pg.Client` you pass to Prisma, the driver sets it with one statement on each connection before first use, and again after a connection held for a transaction, an ORM operation or a Supabase role scope is released. Nothing needs changing for either.
 
-```ts
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, options: '-c DateStyle=ISO' });
-```
-
-Without it, every date and time codec that reads a date or timestamp (text, `Temporal` or `Date`) fails with `RUNTIME.DATE_STYLE_NOT_ISO`. Behind a connection pooler that refuses or drops startup options, run `ALTER ROLE <role> SET DateStyle = 'ISO'` (or set it on the database) and pass Prisma your own `pg.Pool`, because a connection Prisma opens from a URL always sends the startup option.
+Remove any statement that sets `DateStyle` on a connection Prisma uses, such as a `SET DateStyle` in a pool's `connect` handler or in raw SQL: every date and time codec that reads a date or timestamp (text, `Temporal` or `Date`) refuses text in another style with `RUNTIME.DATE_STYLE_NOT_ISO`. Behind a connection pooler that refuses startup options, pass Prisma your own `pg.Pool` instead of a URL; behind one that runs each statement on another server connection, also run `ALTER ROLE <role> SET DateStyle = 'ISO'` (or set it on the database).

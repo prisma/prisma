@@ -41,8 +41,13 @@ describe('the wording that sends a user to a text date or time type', () => {
     });
   });
 
-  it('says a pooler that drops startup options is one cause of a non-ISO DateStyle', () => {
-    expect(errorDateStyleNotIso('pg/date-string@1', '02.01.2026').why).toContain('pooler');
+  it('says the driver could not ensure DateStyle=ISO, names a pooler as one cause, and gives no advice to set startup options', () => {
+    const error = errorDateStyleNotIso('pg/date-string@1', '02.01.2026');
+    expect({
+      couldNotEnsure: error.message.includes('the driver could not ensure'),
+      pooler: (error.why ?? '').includes('pooler'),
+      startupOptionAdvice: (error.fix ?? '').includes('options:'),
+    }).toEqual({ couldNotEnsure: true, pooler: true, startupOptionAdvice: false });
   });
 
   it.each(['DateString', 'TimeString', 'TimestampString', 'TimestamptzString', 'Timetz'] as const)(

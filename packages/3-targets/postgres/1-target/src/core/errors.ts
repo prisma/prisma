@@ -137,10 +137,10 @@ export function errorTemporalWrongType(
 export function errorDateStyleNotIso(codecId: string, received: string): StructuredError {
   return postgresError(
     'RUNTIME.DATE_STYLE_NOT_ISO',
-    `Codec '${codecId}' read ${JSON.stringify(received)}, which PostgreSQL prints only when the connection's DateStyle is not ISO. Prisma reads dates and times only in DateStyle ISO.`,
+    `Codec '${codecId}' read ${JSON.stringify(received)}, which PostgreSQL prints only when the connection's DateStyle is not ISO: the driver could not ensure the DateStyle=ISO the PostgreSQL target requires. Prisma reads dates and times only in DateStyle ISO.`,
     {
-      why: 'PostgreSQL prints a date or timestamp in the DateStyle of the connection. Prisma sets DateStyle=ISO as a startup option on every connection it opens from a URL, so the connection was supplied by the application, a statement changed its DateStyle, or a connection pooler between Prisma and PostgreSQL dropped the startup option, as PgBouncer does when ignore_startup_parameters lists options.',
-      fix: "Set DateStyle=ISO on the connection: give the pg.Pool or pg.Client you pass to Prisma the option options: '-c DateStyle=ISO'. Behind a pooler that drops startup options, set it on the role or database (ALTER ROLE <role> SET DateStyle = 'ISO') and pass Prisma your own pg.Pool.",
+      why: 'PostgreSQL prints a date or timestamp in the DateStyle of the connection. The PostgreSQL driver ensures DateStyle=ISO on every connection it uses: it starts each connection it opens with it, and sets it on a connection the application supplies before first use. A statement that sets DateStyle on a connection undoes that, and so does a connection pooler between Prisma and PostgreSQL that drops the startup option or runs each statement on another server connection.',
+      fix: "Do not change DateStyle on a connection Prisma uses. Behind a connection pooler, set DateStyle on the role or database (ALTER ROLE <role> SET DateStyle = 'ISO'), so every server connection holds it.",
       meta: { codecId, received: received.slice(0, 100) },
     },
   );
