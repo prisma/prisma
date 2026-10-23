@@ -101,7 +101,7 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     });
   });
 
-  it('keeps a value inside its literal even after the session turns on NO_BACKSLASH_ESCAPES', async (test) => {
+  it('keeps a value inside its literal even after the session turns on NO_BACKSLASH_ESCAPES, set without the raw-SQL flag so the driver leaves the mode on', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {
         const value = "\\' OR TRUE -- ";
@@ -246,7 +246,7 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     );
   });
 
-  it('refuses a statement whose placeholder count MySQL reads differently from the values, before running it', async (test) => {
+  it('refuses a statement whose placeholder count MySQL reads differently from the values, before running it, under NO_BACKSLASH_ESCAPES set without the raw-SQL flag so the driver leaves the mode on', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {
         const connection = await driver.acquireConnection();
@@ -271,7 +271,7 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     );
   });
 
-  it('restores the session settings after a statement that holds raw SQL', async (test) => {
+  it('gives the next borrower the session setup after a statement that holds raw SQL', async (test) => {
     await withMysqlDatabase(test, async ({ url }) => {
       const single = new URL(url);
       single.searchParams.set('connectionLimit', '1');
