@@ -1,3 +1,4 @@
+import { RAW_SQL_MARKER } from '@internal/target-mysql/sql-utils';
 import { timeouts } from '@repo/test-utils';
 import { withMysqlDatabase } from '@repo/test-utils/mysql-database';
 import { describe, expect, it } from 'vitest';
@@ -247,7 +248,7 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     );
   });
 
-  it('restores the session settings a statement changed before the connection serves another borrower', async (test) => {
+  it('restores the session settings after a statement the adapter marks as caller-written SQL', async (test) => {
     await withMysqlDatabase(test, async ({ url }) => {
       const single = new URL(url);
       single.searchParams.set('connectionLimit', '1');
@@ -261,13 +262,17 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
             )
           )[0];
         const held = await driver.acquireConnection();
-        await held.execute({ sql: "SET SESSION sql_mode = 'NO_BACKSLASH_ESCAPES'" });
-        await held.execute({ sql: "SET time_zone = '+05:00'" });
+        await held.execute({
+          sql: `${RAW_SQL_MARKER} SET SESSION sql_mode = 'NO_BACKSLASH_ESCAPES'`,
+        });
+        await held.execute({ sql: `${RAW_SQL_MARKER} SET time_zone = '+05:00'` });
         await held.release();
         const afterHeld = await session();
-        await driver.execute({ sql: 'SET NAMES latin1' });
+        await driver.execute({ sql: `${RAW_SQL_MARKER} SET NAMES latin1` });
         const afterPooled = await session();
-        for await (const _row of driver.query({ sql: "SET time_zone = '+03:00'" })) {
+        for await (const _row of driver.query({
+          sql: `${RAW_SQL_MARKER} SET time_zone = '+03:00'`,
+        })) {
         }
         const afterStream = await session();
         const restored = { nbe: '0', tz: '+00:00', cs: 'utf8mb4' };

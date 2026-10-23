@@ -9,6 +9,7 @@ import type {
   SqlStatementStats,
   SqlTransaction,
 } from '@internal/sql-relational-core/ast';
+import { RAW_SQL_MARKER } from '@internal/target-mysql/sql-utils';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { createPool, type Pool, type PoolConnection, type ResultSetHeader } from 'mysql2';
@@ -51,11 +52,11 @@ function prepareChecked(
 /** Runs a statement as a server-side prepared statement, its values sent apart from the SQL. */
 async function run(connection: PoolConnection, request: SqlExecuteRequest): Promise<unknown> {
   const { sql, values } = positionalParams(request.sql, request.params ?? []);
+  noteCallerSql(connection, sql);
   await prepareChecked(connection, sql, values);
   return new Promise((resolve, reject) => {
     connection.execute({ sql, values }, (error, result) => {
       if (error) return reject(statementError(error, sql));
-      noteSessionChange(connection, result);
       resolve(result);
     });
   });
@@ -72,23 +73,18 @@ function isResultSetHeader(result: unknown): result is ResultSetHeader {
   return typeof result === 'object' && result !== null && 'affectedRows' in result;
 }
 
-/** Connections whose session a statement changed, which run the session setup again before their next borrower. */
+/** Connections that ran caller-written SQL, which may have changed the session, and run the session setup again before their next statement. */
 const changedSessions = new WeakSet<PoolConnection>();
 
-/** Notes that `connection`'s session changed when a statement's result reports a change to a setting the session setup writes. */
-function noteSessionChange(connection: PoolConnection, result: unknown): void {
-  if (!isResultSetHeader(result) || !('stateChanges' in result)) return;
-  const { stateChanges } = result;
-  if (
-    typeof stateChanges === 'object' &&
-    stateChanges !== null &&
-    'systemVariables' in stateChanges &&
-    typeof stateChanges.systemVariables === 'object' &&
-    stateChanges.systemVariables !== null &&
-    Object.keys(stateChanges.systemVariables).length > 0
-  ) {
-    changedSessions.add(connection);
-  }
+/** Notes that `connection` ran caller-written SQL: the adapter starts such a statement with `RAW_SQL_MARKER`. The driver's own statements and the adapter's other output cannot change session variables. */
+function noteCallerSql(connection: PoolConnection, sql: string): void {
+  if (sql.startsWith(RAW_SQL_MARKER)) changedSessions.add(connection);
+}
+
+/** Runs the session setup on `connection`, and forgets that its session changed. */
+async function restoreSession(connection: PoolConnection): Promise<void> {
+  for (const sql of SESSION_SETUP) await runConstant(connection, sql);
+  changedSessions.delete(connection);
 }
 
 /** Counts what the driver has handed out, a connection or a stream, so `close()` can wait until every one is back. */
@@ -141,6 +137,7 @@ async function* streamRows<Row>(
   { onEarlyExit, outcome }: StreamOptions,
 ): AsyncGenerator<Row> {
   const { sql, values } = positionalParams(request.sql, request.params ?? []);
+  noteCallerSql(connection, sql);
   await prepareChecked(connection, sql, values);
   const command = connection.execute({ sql, values });
   let settle: () => void = () => {};
@@ -160,7 +157,6 @@ async function* streamRows<Row>(
   let failed = false;
   try {
     for await (const row of stream) {
-      noteSessionChange(connection, row);
       yield blindCast<Row, 'mysql2 streams the rows the statement produces, shaped by the query'>(
         row,
       );
@@ -228,6 +224,7 @@ class MysqlConnectionImpl extends MysqlQueryable implements SqlConnection {
   }
 
   protected async lend(): Promise<Lent> {
+    if (changedSessions.has(this.#connection)) await restoreSession(this.#connection);
     return { connection: this.#connection, onEarlyExit: 'drain', done: () => {} };
   }
 
@@ -256,6 +253,7 @@ class MysqlTransactionImpl extends MysqlQueryable implements SqlTransaction {
   }
 
   protected async lend(): Promise<Lent> {
+    if (changedSessions.has(this.#connection)) await restoreSession(this.#connection);
     return { connection: this.#connection, onEarlyExit: 'drain', done: () => {} };
   }
 
@@ -304,7 +302,7 @@ type DriverState =
   | { readonly kind: 'closed' };
 
 /**
- * The MySQL runtime driver: a mysql2 pool that runs every statement as a server-side prepared statement, so a value never travels inside the SQL. Each connection keeps a bounded cache of prepared statements (`statementCacheSize`) and closes the ones it drops. Each physical connection runs the session setup before its first statement, and again before its next borrower once a statement changed a setting the setup writes, which MySQL reports in that statement's result. `close()` waits for every connection and stream it has handed out before it ends the pool.
+ * The MySQL runtime driver: a mysql2 pool that runs every statement as a server-side prepared statement, so a value never travels inside the SQL. Each connection keeps a bounded cache of prepared statements (`statementCacheSize`) and closes the ones it drops. Each physical connection runs the session setup before its first statement, and again before its next statement after one that held caller-written SQL. `close()` waits for every connection and stream it has handed out before it ends the pool.
  */
 export class MysqlDriver extends MysqlQueryable implements MysqlRuntimeDriver {
   readonly familyId = 'sql' as const;
@@ -379,12 +377,11 @@ export class MysqlDriver extends MysqlQueryable implements MysqlRuntimeDriver {
     const connection = await waitForConnection(this.#state.pool, this.#state.poolTimeoutMs);
     if (this.#setUp.has(connection) && !changedSessions.has(connection)) return connection;
     try {
-      for (const sql of SESSION_SETUP) await runConstant(connection, sql);
+      await restoreSession(connection);
     } catch (error) {
       connection.destroy();
       throw normalizeMysqlError(error);
     }
-    changedSessions.delete(connection);
     this.#setUp.add(connection);
     return connection;
   }

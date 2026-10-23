@@ -376,7 +376,10 @@ describe('MySQL lowering of expressions', () => {
     expect([
       whereOf(raw),
       sqlOf(RawQueryAst.affectedCount(['SELECT ', ParamRef.of(1), ' + 1'])),
-    ]).toEqual(['SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`id` > ?1', 'SELECT ?1 + 1']);
+    ]).toEqual([
+      '/* prisma:raw */ SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`id` > ?1',
+      '/* prisma:raw */ SELECT ?1 + 1',
+    ]);
   });
 });
 
@@ -412,13 +415,13 @@ describe('MySQL placeholder check', () => {
       raw('SELECT id FROM t LIMIT ', int(1), ', /* count */ ', int(2)),
       raw('SELECT ', int(10), ' < ', int(9), ' FROM t WHERE x_limit = ', int(3)),
     ]).toEqual([
-      'SELECT id FROM t LIMIT ?1',
-      'SELECT id FROM t LIMIT ?1 OFFSET ?2',
-      'SELECT id FROM t limit ?1, ?2',
-      'SELECT id FROM t LIMIT /* page */ ?1 -- x\n OFFSET\n?2',
-      'SELECT id FROM t LIMIT 5, ?1',
-      'SELECT id FROM t LIMIT ?1, /* count */ ?2',
-      'SELECT CAST(?1 AS SIGNED) < CAST(?2 AS SIGNED) FROM t WHERE x_limit = CAST(?3 AS SIGNED)',
+      '/* prisma:raw */ SELECT id FROM t LIMIT ?1',
+      '/* prisma:raw */ SELECT id FROM t LIMIT ?1 OFFSET ?2',
+      '/* prisma:raw */ SELECT id FROM t limit ?1, ?2',
+      '/* prisma:raw */ SELECT id FROM t LIMIT /* page */ ?1 -- x\n OFFSET\n?2',
+      '/* prisma:raw */ SELECT id FROM t LIMIT 5, ?1',
+      '/* prisma:raw */ SELECT id FROM t LIMIT ?1, /* count */ ?2',
+      '/* prisma:raw */ SELECT CAST(?1 AS SIGNED) < CAST(?2 AS SIGNED) FROM t WHERE x_limit = CAST(?3 AS SIGNED)',
     ]);
   });
 
@@ -430,7 +433,7 @@ describe('MySQL placeholder check', () => {
           ParamRef.of(1),
         ]),
       ).sql,
-    ).toBe('SELECT \'why?\', "b?", `c?` /* d? */ # e?\n-- f?\n, ?1');
+    ).toBe('/* prisma:raw */ SELECT \'why?\', "b?", `c?` /* d? */ # e?\n-- f?\n, ?1');
   });
 });
 
