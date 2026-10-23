@@ -27,7 +27,7 @@ import { createControlClient } from '../client';
 import type { CreateControlClient } from '../types';
 import { errorFromCaught } from './caught-errors';
 import { buildReadAggregate } from './contract-space-aggregate-loader';
-import { refuseMarkerOutsideGraph } from './graph-queries';
+import { refuseMarkersOutsideGraphs } from './graph-queries';
 import { planSpacePath } from './migrate';
 import {
   liveMarkerUse,
@@ -199,21 +199,18 @@ export async function executeMigrateShowPlan(
       const allMarkers = await client.readAllMarkers();
       databaseMarkers = allMarkers;
       const appMarker = allMarkers.get(aggregate.app.spaceId);
-      if (appMarker !== undefined) {
-        const refusal = await refuseMarkerOutsideGraph({
-          spaceId: aggregate.app.spaceId,
-          markerHash: appMarker.storageHash,
-          targetHash,
-          graph: appGraph,
-          migrationsDir,
-          invocation:
-            options.invocation ??
-            cliInvocation({ cwd: options.cwd, configPath: undefined }, options.db),
-          readLedger: () => client.readLedger(aggregate.app.spaceId),
-        });
-        if (refusal) {
-          return notOk(refusal);
-        }
+      const refusal = await refuseMarkersOutsideGraphs({
+        aggregate,
+        markers: allMarkers,
+        appTargetHash: targetHash,
+        migrationsDir,
+        invocation:
+          options.invocation ??
+          cliInvocation({ cwd: options.cwd, configPath: undefined }, options.db),
+        readLedger: (spaceId) => client.readLedger(spaceId),
+      });
+      if (refusal) {
+        return notOk(refusal);
       }
       // Store the full marker record (storageHash + invariants) per space.
       // This is the same data executeMigrate uses via familyInstance.readAllMarkers().

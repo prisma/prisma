@@ -20,7 +20,7 @@ import {
   loadContractSpaceAggregateForCli,
   refuseContractSpaceIntegrity,
 } from '../control-api/operations/contract-space-aggregate-loader';
-import { refuseMarkerOutsideGraph } from '../control-api/operations/graph-queries';
+import { refuseMarkersOutsideGraphs } from '../control-api/operations/graph-queries';
 import { refuseUnknownInvariants } from '../control-api/operations/invariants';
 import {
   executeMigrateShowPlan,
@@ -407,24 +407,22 @@ export function createMigrateCommand(createClient: CreateControlClient) {
       try {
         await client.connect(dbConnection);
         const appGraph = aggregate.app.graph();
-        const appMarker = (await client.readAllMarkers()).get('app') ?? null;
+        const markers = await client.readAllMarkers();
+        const appMarker = markers.get(aggregate.app.spaceId) ?? null;
 
         const target: RequestedTarget =
           offlineTarget === undefined ? liveMarkerTarget(appMarker) : offlineTarget.value;
 
-        if (appMarker !== null) {
-          const markerRefusal = await refuseMarkerOutsideGraph({
-            spaceId: aggregate.app.spaceId,
-            markerHash: appMarker.storageHash,
-            targetHash: target.entry?.hash ?? appContract.storage.storageHash,
-            graph: appGraph,
-            migrationsDir,
-            invocation: cliInvocation(ctx, args.flags.db),
-            readLedger: () => client.readLedger(aggregate.app.spaceId),
-          });
-          if (markerRefusal) {
-            return notOk(normalizeError(markerRefusal));
-          }
+        const markerRefusal = await refuseMarkersOutsideGraphs({
+          aggregate,
+          markers,
+          appTargetHash: target.entry?.hash ?? appContract.storage.storageHash,
+          migrationsDir,
+          invocation: cliInvocation(ctx, args.flags.db),
+          readLedger: (spaceId) => client.readLedger(spaceId),
+        });
+        if (markerRefusal) {
+          return notOk(normalizeError(markerRefusal));
         }
         const refEntry = target.entry;
         if (refEntry !== undefined && refEntry.invariants.length > 0) {
