@@ -114,17 +114,30 @@ type VOValueObjectFieldKeys<Fields extends Record<string, ContractField>> = {
     : never;
 }[keyof Fields & string];
 
+/** A value object's storage coordinate as one string, so the value objects a path has entered form a union. */
+type ValueObjectKey<Reference extends ValueObjectFieldType> =
+  `${Reference['namespaceId']}.${Reference['entityName']}`;
+
+/** The dot paths into a value object's fields. A path ends at a value object it has already entered, so a value object that contains itself gives finitely many paths. */
 type VODotPaths<
   TContract extends MongoContract,
   Fields extends Record<string, ContractField>,
   Prefix extends string,
+  Entered extends string,
 > =
   | { [K in VOScalarFieldKeys<Fields>]: `${Prefix}${K}` }[VOScalarFieldKeys<Fields>]
   | {
       [K in VOValueObjectFieldKeys<Fields>]: Fields[K] extends {
         readonly type: infer Reference extends ValueObjectFieldType;
       }
-        ? VODotPaths<TContract, VOFields<TContract, Reference>, `${Prefix}${K}.`>
+        ? ValueObjectKey<Reference> extends Entered
+          ? never
+          : VODotPaths<
+              TContract,
+              VOFields<TContract, Reference>,
+              `${Prefix}${K}.`,
+              Entered | ValueObjectKey<Reference>
+            >
         : never;
     }[VOValueObjectFieldKeys<Fields>];
 
@@ -138,7 +151,7 @@ export type DotPath<
   >]: MongoModelsMap<TContract>[ModelName]['fields'][K] extends {
     readonly type: infer Reference extends ValueObjectFieldType;
   }
-    ? VODotPaths<TContract, VOFields<TContract, Reference>, `${K}.`>
+    ? VODotPaths<TContract, VOFields<TContract, Reference>, `${K}.`, ValueObjectKey<Reference>>
     : never;
 }[ValueObjectFieldKeys<TContract, ModelName>];
 
