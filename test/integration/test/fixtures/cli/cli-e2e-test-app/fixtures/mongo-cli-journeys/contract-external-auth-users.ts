@@ -1,4 +1,4 @@
-import { defineContract, field, index, model } from '@internal/mongo/contract-builder';
+import { defineContract, field, model } from '@internal/mongo/contract-builder';
 
 const User = model('User', {
   collection: 'users',
