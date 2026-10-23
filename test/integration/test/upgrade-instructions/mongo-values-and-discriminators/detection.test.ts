@@ -175,6 +175,45 @@ describe('decimal128-spelling detection', () => {
   });
 });
 
+describe('decimal128-spelling detection on a contract.json', () => {
+  const detects = detection('app', 'decimal128-spelling');
+  const contract = readFileSync(
+    join(repoRoot, 'test/integration/test/mongo/bson-scalars/_fixture/generated/contract.json'),
+    'utf-8',
+  );
+  const storageHash = /"storageHash": "([0-9a-f]{64})"/.exec(contract)?.[1] ?? '';
+
+  it('skips the bson-scalars contract', () => {
+    expect({ storageHash: storageHash.length, detected: detects(contract) }).toEqual({
+      storageHash: 64,
+      detected: false,
+    });
+  });
+
+  it('skips the bson-scalars contract with a storage hash that starts with 0 and a digit', () => {
+    expect(detects(contract.replace(storageHash, `07${storageHash.slice(2)}`))).toBe(false);
+  });
+});
+
+describe('detection patterns that look at the whole file', () => {
+  const lookAheadOverTheFile = String.raw`(?=[\s\S]*`;
+  const startOfFile = String.raw`(?<![\s\S])`;
+
+  it.each(['app', 'extension'] as const)(
+    'start at the start of the file in the %s guide, so each file is read once',
+    (audience) => {
+      const guide = readFileSync(join(repoRoot, GUIDE_PATHS[audience]), 'utf-8');
+      const frontmatter = guide.split('\n---\n')[0] ?? '';
+      const unanchored = [...frontmatter.matchAll(/^ {8}- '(.*)'$/gm)]
+        .map(([, pattern]) => (pattern ?? '').replaceAll("''", "'"))
+        .filter(
+          (pattern) => pattern.includes(lookAheadOverTheFile) && !pattern.startsWith(startOfFile),
+        );
+      expect(unanchored).toEqual([]);
+    },
+  );
+});
+
 describe('entity-context-data-types detection', () => {
   const detects = detection('extension', 'entity-context-data-types');
 
