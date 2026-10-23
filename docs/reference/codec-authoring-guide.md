@@ -96,6 +96,7 @@ export class PgTextDescriptor extends PostgresCodecDescriptor<void> {
     return expression;
   }
   override readonly dataType = pgText.id;
+  override readonly valueObjectJsonType = 'string' as const;
   override readonly codecId = 'pg/text@1' as const;
   override readonly traits = ['equality', 'order', 'textual'] as const;
   override readonly paramsSchema = undefined;
@@ -148,6 +149,7 @@ export class PgVectorDescriptor extends PostgresCodecDescriptor<VectorParams> {
     return CastExpr.as(expression, 'text');
   }
   override readonly dataType = pgvectorVector.id;
+  override readonly valueObjectJsonType = 'presenceOnly' as const;
   override readonly codecId = 'pg/vector@1' as const;
   override readonly traits = ['equality'] as const;
   override readonly paramsSchema: StandardSchemaV1<VectorParams> = pgvectorVectorParams;
@@ -234,6 +236,7 @@ export class ArktypeJsonDescriptor extends PostgresCodecDescriptor<ArktypeJsonTy
     return CastExpr.as(expression, 'text');
   }
   override readonly dataType = pgJsonb.id;
+  override readonly valueObjectJsonType = 'anyJson' as const;
   override readonly codecId = 'arktype/json@1' as const;
   override readonly traits = ['equality'] as const;
   override readonly paramsSchema = type({
@@ -289,7 +292,7 @@ import { pgVectorDescriptor } from './codecs';
 export const codecDescriptors = definePostgresCodecs([pgVectorDescriptor]);
 ```
 
-The descriptor does not say how its column type is written: the data type it represents does, for DDL, schema verification and PostgreSQL's parameter casts alike. `jsonProjection(expression, params)` declares the scalar AST transformation. Identity is an explicit, behavior-preserving declaration during the 0.17 transition, not an implicit default.
+The descriptor does not say how its column type is written: the data type it represents does, for DDL, schema verification and PostgreSQL's parameter casts alike. `jsonProjection(expression, params)` declares the scalar AST transformation. `valueObjectJsonType` declares what the derived check of a value object column accepts for a member of the codec: the JSON type the SQL ORM writes for its value (`'string'`, `'number'` or `'boolean'`), any JSON value (`'anyJson'`), or presence only (`'presenceOnly'`). A registry refuses a descriptor that declares none. Identity is an explicit, behavior-preserving declaration during the 0.17 transition, not an implicit default.
 
 The public `projectJson(expression, ref)` method validates parameters and dispatches scalar versus stored-array projection. For `ref.many === true`, the default `jsonArrayProjection` binds the input expression once, unnests with ordinality, applies the scalar hook to each non-null element, and preserves a null array, an empty array, null elements, and element order. Override `jsonArrayProjection` only when the target codec has an equivalent optimized transformation.
 
@@ -302,6 +305,7 @@ import { pgInt4 } from '@internal/target-postgres/data-types';
 
 const postgresSqlIntDescriptor = postgresCodec(sqlIntDescriptor, {
   dataType: pgInt4,
+  valueObjectJsonType: 'number',
   jsonProjection: (expression) => expression,
   factory: (descriptor, dataType) => () => new SqlIntCodec(descriptor, dataType),
 });

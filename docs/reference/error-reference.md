@@ -1204,7 +1204,7 @@ A codec projection used `CodecRef.many` against a SQLite codec descriptor: SQLit
 
 ### RUNTIME.CODEC_DESCRIPTOR_INVALID
 
-A codec descriptor handed to a target codec-descriptor registry (Postgres, SQLite) is not a valid descriptor for that target: wrong discriminant, missing target descriptor methods, or a malformed params schema. Extend the target's descriptor class or adapt a generic descriptor with the target's wrapper (`postgresCodec()` / `sqliteCodec()`). Payload: `codecId`.
+A codec descriptor handed to a target codec-descriptor registry (Postgres, SQLite) is not a valid descriptor for that target: wrong discriminant, missing target descriptor methods, a Postgres descriptor without `valueObjectJsonType`, or a malformed params schema. Extend the target's descriptor class or adapt a generic descriptor with the target's wrapper (`postgresCodec()` / `sqliteCodec()`). Payload: `codecId`.
 
 ### RUNTIME.CODEC_DESCRIPTOR_MISSING
 
