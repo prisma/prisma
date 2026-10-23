@@ -1,10 +1,8 @@
 # ADR 278 — Value objects are storage entities, and a discriminator column names a value set
 
-**Status:** Accepted, implementation pending
+**Status:** Accepted
 **Date:** 2026-10-21
 **Domain:** Contract, Migration System
-
-The contract gains the storage entity for value objects and the discriminator value set in a later change of this work; the contract today still keeps value objects in the domain plane.
 
 ## At a glance
 
@@ -70,7 +68,7 @@ Renaming `street` changes the storage entity, so it changes `storageHash`. The p
 ## Decision
 
 1. **A value object is a storage entity.** It lives at `storage.namespaces.<ns>.entries.valueObject.<Name>`, in both families, with the same definition it had in the domain plane: `fields`, each with `nullable`, `type` and, for a list, `many`. A domain field that holds one refers to it by entity coordinate, as a field typed by an enum refers to its value set. A value object field that holds another value object refers to it the same way.
-2. **A discriminator column names a value set.** The build writes one value set per base model that has variants, holding each variant's discriminator value as the column stores it, and the base table's discriminator column refers to it, as an enum column refers to its value set ([ADR 157](ADR%20157%20-%20Execution%20enums.md)).
+2. **A SQL discriminator column names a value set.** The SQL build writes one value set per base model that has variants, holding each variant's discriminator value as the column stores it, and the base table's discriminator column refers to it, as an enum column refers to its value set ([ADR 157](ADR%20157%20-%20Execution%20enums.md)). MongoDB writes none: its collection validator already pins each variant's discriminator value, so a change to one already changes the storage hash.
 
 Both are enforced where the database can enforce them, as an enum's value set is: on a managed Postgres table the build derives a check for the discriminator column and for a column that holds a value object, and on MongoDB the collection validator lists the value object's fields and the discriminator's values.
 
@@ -90,15 +88,15 @@ Storage already holds stored facts the database does not enforce. SQLite derives
 
 ## How
 
-**Value objects.** The storage entity keeps the field definition the domain plane used, so every reader of a value object's fields reads the same shape, from the storage plane. Scalar members carry their codec and, when an enum types them, a `valueSet` reference. A member that is a value object refers to its storage entity by coordinate, so a value object that contains itself, such as a `NavItem` whose `children` are `NavItem`s, is one entity that refers to itself. On SQL the column that holds a value object stays a JSON column; on MongoDB the validator is derived from the storage entity, as it is from the definition today.
+**Value objects.** The storage entity keeps the field definition the domain plane used, so every reader of a value object's fields reads the same shape, from the storage plane. Its fields have no stored names of their own: each is stored under its own name, in both families. Scalar members carry their codec and, when an enum types them, a `valueSet` reference to the enum's storage value set, since storage never refers to the domain plane. A member that is a value object refers to its storage entity by coordinate, so a value object that contains itself, such as a `NavItem` whose `children` are `NavItem`s, is one entity that refers to itself. On SQL the column that holds a value object stays a JSON column; on MongoDB the validator is derived from the storage entity, as it is from the definition today.
 
-**Discriminators.** The value set is keyed `<Base>.<discriminator field>`, such as `Task.type`. An enum's name cannot contain a dot, so the key never collides with an enum's value set. A variant stored in its own table changes nothing here: its rows are still told apart by the base table's column. The ORM writes a row only through a variant, so every row's value names a variant, and the derived check (`"type" IN ('bug', 'feature')`) rejects only a value no variant names, as an enum's check does.
+**Discriminators.** The value set is keyed `<Base>.<discriminator field>`, such as `Task.type`, and holds the values sorted, so the order variants are declared in does not change the hash. A discriminator an enum types keeps the enum's value set and check: the column has one value set reference, and the enum already restricts it. Enum value sets are keyed by the enum's name, so only an enum named exactly like a discriminator's key, in the same storage namespace, clashes with it. No authoring surface writes such a name, since PSL names are identifiers and the SQL TypeScript builder has no polymorphism; the build refuses it all the same, naming both and saying to rename the enum. Enum names are not otherwise restricted. A variant stored in its own table changes nothing here: its rows are still told apart by the base table's column. The ORM writes a row only through a variant, so every row's value names a variant, and the derived check (`"type" IN ('bug', 'feature')`) rejects only a value no variant names, as an enum's check does.
 
 ```json
 "type": { "codecId": "pg/text@1", "dataType": "pg/text", "nullable": false, "valueSet": { "entityKind": "valueSet", "entityName": "Task.type", "namespaceId": "public", "plane": "storage" } }
 ```
 
-**Enforcement on Postgres.** A column that holds a value object gets a derived check, as an enum column does, named `<table>_<column>_value_object`. It is one strict `jsonpath` predicate, written so that an unknown result fails:
+**Enforcement on Postgres.** On a managed table, a column that holds a value object gets a derived check, as an enum column does, named `<table>_<column>_value_object`. It is one strict `jsonpath` predicate, written so that an unknown result fails, rather than the key-set operators `?&` and `-`:
 
 ```sql
 jsonb_path_match("address", 'strict $.type() == "object"
@@ -106,7 +104,7 @@ jsonb_path_match("address", 'strict $.type() == "object"
   && !exists($.keyvalue() ? (@.key != "street"))') IS TRUE
 ```
 
-The value must be an object, or for a list an array of objects. Each required member must be present; a nullable member may be absent or JSON `null`; no other key may be. A scalar member must have the JSON type its codec writes, an enum member must hold a value of its value set, and a nested value object is checked the same way, inline. A nullable column also accepts SQL `NULL` and JSON `null`. Members are read through `keyvalue()`, so an absent member is never an error, and strict mode keeps a comparison from unwrapping an array. A value object that contains itself is checked in full down to where it refers back into itself, and any object is accepted below, as the MongoDB validator does. A member whose codec has no known JSON type is checked for presence only. The check is opaque and content-named ([ADR 244](ADR%20244%20-%20Check%20constraints%20are%20opaque%20wire-named%20expressions.md)), so any change to the value object changes the check's name, and the diff drops the old check and adds the new one.
+The value must be an object, or for a list an array of objects. Each required member must be present; a nullable member may be absent or JSON `null`; no other key may be. A scalar member must have the JSON type its codec writes, an enum member must hold a value of its value set, and a nested value object is checked the same way, inline. A nullable column also accepts SQL `NULL` and JSON `null`. Members are read through `keyvalue()`, so an absent member is never an error, and strict mode keeps a comparison from unwrapping an array. A value object that contains itself is checked in full down to where it refers back into itself, and any object is accepted below, as the MongoDB validator does. A `Decimal` member must be a JSON string, as the SQL ORM writes it. A member whose codec has no known JSON type is checked to be present and, when it is required, not JSON `null`; a JSON member may hold any value. The check is opaque and content-named ([ADR 244](ADR%20244%20-%20Check%20constraints%20are%20opaque%20wire-named%20expressions.md)), so any change to the value object changes the check's name, and the diff drops the old check and adds the new one.
 
 **Why every change is an operation.** The storage hash identifies a database state. Two different hashes are two different database states, so the migration between them does something to the database. Because the value object and the discriminator values are enforced, a change to either is a change to a check or a validator, which is an operation. A plan that changes the storage hash and produces no operation is therefore unexpected: it means the database cannot tell the two states apart. Such cases will still arise, so the system handles them rather than refusing: `migration plan` writes the package with no operations and says so, naming what changed, and `db migrate` applies it by moving the marker to the new hash.
 
@@ -117,7 +115,8 @@ The value must be an object, or for a list an array of objects. Each required me
 - Any change to a value object, and any change to a variant's discriminator value, changes `storageHash` and the enforcing check or validator. The planner asks about the ones that lose data and plans their rewrite, as for any other storage change.
 - A removed variant that has no columns of its own is visible to the planner through the value set.
 - Whether the rows are rewritten, and how efficiently, is a separate decision. This one only makes the change visible.
-- `valueObjects` is no longer a domain namespace key.
+- `valueObjects` is no longer a domain namespace key. A contract that keeps it there is refused, with a message saying to re-emit it.
+- Moving the value objects changes the storage hash of every contract that has them, including a project's committed migration snapshots. The upgrade rewrites the snapshots, renames their directories and updates the migrations that name them; the databases are then signed with the new hashes. On Postgres, the next migration adds the derived checks, and a row that does not fit, such as one whose value object has a key it does not declare, fails it.
 
 ## Alternatives considered
 
