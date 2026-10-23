@@ -87,6 +87,8 @@ WHERE NOT ("address" IS NULL OR jsonb_path_match("address", 'strict … ') IS TR
 SELECT id, type FROM "public"."task" WHERE NOT ("type" IN ('bug', 'feature'));
 ```
 
+Adding a check takes a lock on the table while Postgres reads every row to check it. Any later change to a value object renames the check, so the check is dropped and added again, and the rows are read again. Apply the migration when the table can wait for that read.
+
 Copy the expression from the preview between `CHECK (` and the closing `)`. Fix or delete each row the query returns, for example by removing the extra keys with `UPDATE "public"."user" SET address = address - 'extra' WHERE address ? 'extra'`, then apply the migration. A migration that fails on a row changes nothing, and the error names the check; fix the rows and run `prisma db migrate` again.
 
 ## `discriminator-typed-by-variant-values`

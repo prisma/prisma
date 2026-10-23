@@ -144,6 +144,12 @@ The re-run advice has a second gap of the same kind, found in the slice 3b PR 1 
 
 Slice 3b plans each row rewrite as one plain operation: an `UPDATE` for an enum value rename, a discriminator conversion or a value object key rename, and a `DELETE` for a removed variant's rows. A migration runs in one transaction, so on a large production table the rewrite blocks writes to every row it touches until it commits, and next to DDL such as a check rebuild it blocks the whole table. Nothing batches it or runs it in the background. 3a's `--backfill` and type conversions have the same cost. Will ruled that 3b's goal is that the planner sees these changes; making the rewrites cheap is a later optimization.
 
+## Derived checks are added with a full table read under lock
+
+**Found:** whole-branch review of the value object storage PR (2026-10-23).
+
+The planner adds each derived check, value object shape checks included, with a plain `ALTER TABLE … ADD CONSTRAINT … CHECK (…)`. Postgres holds a lock on the table while it reads every row. The check's name holds a hash of its expression, so any change to a value object drops the check and adds it again, and the rows are read again. Adding the check `NOT VALID` and then running `VALIDATE CONSTRAINT` takes a weaker lock while the rows are read. It changes how every derived check is planned, enum checks included, so it belongs with the row rewrite cost above.
+
 ## `--delete billing` is not offered as a next action, and the CLI copies the engine's unused-flag error
 
 **Found:** slice 3b PR 1 system-design review (2026-10-21), S04.
