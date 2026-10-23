@@ -30,6 +30,14 @@ describe('the app mongoQuery detection', () => {
       'an import from the family package',
       `import { acc, mongoQuery } from '${familyPackage}/query-builder';`,
     ],
+    [
+      'a call through a namespace import of the facade',
+      `import * as builder from '${facadePackage}/query-builder';\nconst q = builder.mongoQuery({ contract });`,
+    ],
+    [
+      'a call through a namespace import of the family package',
+      `import * as qb from '${familyPackage}/query-builder';\nqb.mongoQuery({ contract });`,
+    ],
   ])('finds %s', (_name, content) => {
     expect(detects('app', id, content)).toBe(true);
   });
@@ -38,6 +46,10 @@ describe('the app mongoQuery detection', () => {
     ['a method of the same name', 'db.mongoQuery({ contract })'],
     ['a longer name', 'myMongoQuery({ contract })'],
     ['an import of other names', `import { acc } from '${familyPackage}/query-builder';`],
+    [
+      'a member call on another namespace',
+      `import * as builder from '${facadePackage}/query-builder';\nother.mongoQuery({ contract });`,
+    ],
   ])('skips %s', (_name, content) => {
     expect(detects('app', id, content)).toBe(false);
   });
@@ -59,12 +71,20 @@ describe('the extension mongoQuery detection', () => {
       'an import from the internal package',
       "import { mongoQuery } from '@internal/mongo-query-builder';",
     ],
+    [
+      'a namespace import of the family package',
+      `import * as builder from '${familyPackage}/query-builder';`,
+    ],
   ])('finds %s', (_name, content) => {
     expect(detects('extension', id, content)).toBe(true);
   });
 
   it.each([
     ['an import from the facade', `import { mongoQuery } from '${facadePackage}/query-builder';`],
+    [
+      'a namespace import of the facade',
+      `import * as builder from '${facadePackage}/query-builder';`,
+    ],
     ['an import of other names', `import { acc } from '${familyPackage}/query-builder';`],
   ])('skips %s', (_name, content) => {
     expect(detects('extension', id, content)).toBe(false);

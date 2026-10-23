@@ -22,6 +22,8 @@ describe('the extension detection for a required stack driver', () => {
   it.each([
     ['the type name', 'function build(stack: SqlExecutionStackWithDriver<T>) {}'],
     ['a missing-driver check', 'if (!stack.driver) throw new Error();'],
+    ['a stack with a longer name', 'const driver = clientStack.driver.create();'],
+    ['a stack on this', 'if (!this.stack.driver) throw new Error();'],
   ])('finds %s', (_name, content) => {
     expect(detects(content)).toBe(true);
   });
@@ -29,7 +31,9 @@ describe('the extension detection for a required stack driver', () => {
   it.each([
     ['the stack with no driver', 'function build(stack: SqlExecutionStack<T>) {}'],
     ['a longer name', 'type MySqlExecutionStackWithDriverFactory = () => void;'],
-    ['another object', 'const d = runtimeStack.driverName;'],
+    ['another member', 'const d = runtimeStack.driverName;'],
+    ['the driver on this', 'this.driver.close();'],
+    ['the driver option', 'const d = options.driver;'],
   ])('skips %s', (_name, content) => {
     expect(detects(content)).toBe(false);
   });

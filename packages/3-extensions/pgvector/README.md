@@ -91,8 +91,8 @@ The `vector(N)` factory is registered through the unified `CodecDescriptor<{ len
 Register the extension when creating the client:
 
 ```typescript
-import postgres from '@internal/postgres/runtime';
-import pgvector from '@internal/extension-pgvector/runtime';
+import postgres from '@prisma/orm-postgres/runtime';
+import pgvector from '@prisma/orm-extension-pgvector/runtime';
 
 const db = postgres({ contract, url, extensions: [pgvector] });
 ```

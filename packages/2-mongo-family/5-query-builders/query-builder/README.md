@@ -7,7 +7,7 @@ A typed CRUD query builder for MongoDB contracts. Reads, writes, pipeline aggreg
 Applications use `mongoQuery` from `@prisma/orm-mongo/query-builder`, which validates the contract first. This package's builder, `mongoQueryOnValidatedContract`, lives on the internal entry `@internal/mongo-query-builder/internal/on-validated-contract` (published as `@prisma/orm-family-mongo/query-builder/internal/on-validated-contract`). It does not validate: pass it only a contract that is already validated, such as one from `contractFromJson`.
 
 ```typescript
-import { mongoQuery } from '@prisma/orm-mongo/query-builder';
+import { acc, mongoQuery } from '@prisma/orm-mongo/query-builder';
 
 const q = mongoQuery({ contract });
 

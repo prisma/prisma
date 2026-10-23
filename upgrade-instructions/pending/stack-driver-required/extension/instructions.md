@@ -2,12 +2,12 @@
 changes:
   - id: sql-stack-with-driver-requires-driver
     summary: |
-      `SqlExecutionStackWithDriver` now requires its `driver`, and `createSqlExecutionStack(...)` returns it only when given a driver. Without a driver it returns `SqlExecutionStack`, which has no `driver` member. `createToSql(stack, contract)` takes `SqlExecutionStack`. Type a stack built without a driver as `SqlExecutionStack`, and remove checks such as `if (!stack.driver) throw ...` on a stack typed `SqlExecutionStackWithDriver`, which can no longer fail. The framework `ExecutionStack` now declares `driver` optional. The detection matches files that name `SqlExecutionStackWithDriver` or read `stack.driver`.
+      `SqlExecutionStackWithDriver` now requires its `driver`, and `createSqlExecutionStack(...)` returns it only when given a driver. Without a driver it returns `SqlExecutionStack`, which has no `driver` member. `createToSql(stack, contract)` takes `SqlExecutionStack`. Type a stack built without a driver as `SqlExecutionStack`, and remove checks such as `if (!stack.driver) throw ...` on a stack typed `SqlExecutionStackWithDriver`, which can no longer fail. The framework `ExecutionStack` now declares `driver` optional. The detection matches files that name `SqlExecutionStackWithDriver` or read `driver` from a stack, such as `stack.driver` or `clientStack.driver`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
         - '(?<![\w$])SqlExecutionStackWithDriver(?![\w$])'
-        - '(?<![\w$])stack\.driver(?![\w$])'
+        - '(?<![\w$.])(?:this\.)?[\w$]*[sS]tack\.driver(?![\w$])'
   - id: runtime-mode-from-framework-components
     summary: |
       No action is needed. `RuntimeMode` is now declared in `@internal/framework-components/runtime` and still exported from `@internal/sql-runtime`.
