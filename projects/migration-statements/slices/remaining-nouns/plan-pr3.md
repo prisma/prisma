@@ -1,10 +1,10 @@
 # Slice plan — 3b, PR 3: value objects are storage entities, and a discriminator column names a value set
 
-**Spec:** [`spec.md`](./spec.md) decision 1 · **ADR:** ADR 278 (approved by Will, 2026-10-21) · **Linear:** [TML-3537](https://linear.app/prisma-company/issue/TML-3537) · **Branch:** `tml-3537-value-objects-storage`, from `origin/main` · **Grounding:** `wip/pr3-grounding.md` (gitignored, in this worktree; code references at main 9979a2d6ca)
+**Spec:** [`spec.md`](./spec.md) decision 1 · **ADR:** ADR 309 (approved by Will, 2026-10-21) · **Linear:** [TML-3537](https://linear.app/prisma-company/issue/TML-3537) · **Branch:** `tml-3537-value-objects-storage`, from `origin/main` · **Grounding:** `wip/pr3-grounding.md` (gitignored, in this worktree; code references at main 9979a2d6ca)
 
 This PR changes the contract shape. It adds no statements; PR 4 adds the value object and variant statements on top of it.
 
-## Decisions taken while planning (record each in ADR 278 in this PR)
+## Decisions taken while planning (record each in ADR 309 in this PR)
 
 - **The discriminator value set is SQL only.** On MongoDB the collection validator already pins each variant's discriminator value, so a change there already changes the storage hash.
 - **An enum-typed discriminator keeps the enum's value set and check.** The column has one `valueSet` slot, and the enum already restricts it; a variant value outside the enum is already refused.
@@ -28,7 +28,7 @@ As for PR 2: typecheck; lint and `test --coverage` in every touched package; `li
 | 13 | Emit and types: `contract.d.ts` types read value objects from the storage plane, with a defaulted type parameter so contracts without value objects emit the same text | 10 |
 | 14 | Runtime and tools read value objects through the domain field's reference: the SQL and Mongo ORMs and query builders, the CLI statement resolver, `contract print`, `contract infer`, verification | 12, 13 |
 | 15 | Postgres derived checks: the discriminator membership check, and the value object `jsonpath` check for every shape SQL authoring produces, starting from a test per shape on PGlite; a new SQL fixture with nested and list members; contract print and infer recognise the new checks | 12 |
-| 16 | Re-emit every fixture and committed contract; the `prisma-8-demo` migrations gain the operations that create the new checks; the app and extension upgrade fragments with a script that rewrites a user's contract snapshots and keeps their manifests' hashes consistent, validated by running it on a project with a real migration history; ADR 278, ADR 172 and ADR 178 notes, Data Contract and MongoDB Family docs, the skill | 11, 14, 15 |
+| 16 | Re-emit every fixture and committed contract; the `prisma-8-demo` migrations gain the operations that create the new checks; the app and extension upgrade fragments with a script that rewrites a user's contract snapshots and keeps their manifests' hashes consistent, validated by running it on a project with a real migration history; ADR 309, ADR 172 and ADR 178 notes, Data Contract and MongoDB Family docs, the skill | 11, 14, 15 |
 | 17 | Journeys, docs and the PR text | 16 |
 
 **Order:** 10 and 11 first (11 is independent); then 12 and 13; then 14 and 15; then 16; then 17. Then the two-reviewer `/drive-code-review`, fixes, manual QA, the PR.

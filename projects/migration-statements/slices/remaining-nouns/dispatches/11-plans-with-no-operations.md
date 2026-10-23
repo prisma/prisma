@@ -1,6 +1,6 @@
 # Dispatch 11 — a plan with no operations is written and applied
 
-**Plan:** [`../plan-pr3.md`](../plan-pr3.md) · **ADR:** ADR 278, "Why every change is an operation" · **Grounding:** `wip/pr3-grounding.md` § F · **Branch:** `tml-3537-value-objects-storage`
+**Plan:** [`../plan-pr3.md`](../plan-pr3.md) · **ADR:** ADR 309, "Why every change is an operation" · **Grounding:** `wip/pr3-grounding.md` § F · **Branch:** `tml-3537-value-objects-storage`
 
 ## Outcome
 

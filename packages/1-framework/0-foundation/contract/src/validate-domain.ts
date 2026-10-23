@@ -66,7 +66,7 @@ function* iterateIndexedModels(index: ModelIndex): IterableIterator<IndexedModel
 }
 
 /**
- * The keys an older contract stores in its domain plane that a contract no longer has: value objects, which are storage entities since ADR 278. A family's structural validation reports these before anything else, so an old contract is refused with a message that says to re-emit it.
+ * The keys an older contract stores in its domain plane that a contract no longer has: value objects, which are storage entities since ADR 309. A family's structural validation reports these before anything else, so an old contract is refused with a message that says to re-emit it.
  */
 export function removedDomainKeyProblems(contract: unknown): readonly string[] {
   if (!isPlainRecord(contract) || !isPlainRecord(contract['domain'])) return [];

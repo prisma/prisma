@@ -1,6 +1,6 @@
 # Dispatch 13 — `contract.d.ts` reads value objects from storage
 
-**Plan:** [`../plan-pr3.md`](../plan-pr3.md) · **ADR:** ADR 278 · **Grounding:** `wip/pr3-grounding.md` § A (foundation `field-value-types.ts`, framework emitter, SQL and Mongo emitters), C · **Builds on:** dispatch 10 · **Branch:** `tml-3537-value-objects-storage`
+**Plan:** [`../plan-pr3.md`](../plan-pr3.md) · **ADR:** ADR 309 · **Grounding:** `wip/pr3-grounding.md` § A (foundation `field-value-types.ts`, framework emitter, SQL and Mongo emitters), C · **Builds on:** dispatch 10 · **Branch:** `tml-3537-value-objects-storage`
 
 ## Outcome
 

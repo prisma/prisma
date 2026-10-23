@@ -1,4 +1,4 @@
-# ADR 278 — Value objects are storage entities, and a discriminator column names a value set
+# ADR 309 — Value objects are storage entities, and a discriminator column names a value set
 
 **Status:** Accepted
 **Date:** 2026-10-21

@@ -9,7 +9,7 @@ export type ScalarFieldType = {
   readonly typeParams?: Record<string, unknown>;
 };
 
-/** A field that holds a value object: the coordinate of its storage entity (ADR 278). */
+/** A field that holds a value object: the coordinate of its storage entity (ADR 309). */
 export interface ValueObjectFieldType extends EntityCoordinate<'storage', 'valueObject'> {
   readonly kind: 'valueObject';
 }
@@ -94,7 +94,7 @@ export type ContractDiscriminator = {
 };
 
 /**
- * A field of a value object, which is a storage entity (ADR 278). Storage never refers to the domain plane, so a member an enum types refers to the enum's storage value set.
+ * A field of a value object, which is a storage entity (ADR 309). Storage never refers to the domain plane, so a member an enum types refers to the enum's storage value set.
  */
 export interface ContractValueObjectField extends Omit<ContractField, 'valueSet'> {
   readonly valueSet?: EntityCoordinate<'storage', 'valueSet'> & { readonly spaceId?: string };

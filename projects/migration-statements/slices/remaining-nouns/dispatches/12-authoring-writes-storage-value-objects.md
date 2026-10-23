@@ -1,6 +1,6 @@
 # Dispatch 12 — authoring writes value objects and discriminator value sets into storage
 
-**Plan:** [`../plan-pr3.md`](../plan-pr3.md) · **ADR:** ADR 278 · **Grounding:** `wip/pr3-grounding.md` § A (SQL family, Mongo family), C, E · **Builds on:** dispatch 10 (`d607bde854`, `1792de2a67`, `965c0cf100`) · **Branch:** `tml-3537-value-objects-storage`
+**Plan:** [`../plan-pr3.md`](../plan-pr3.md) · **ADR:** ADR 309 · **Grounding:** `wip/pr3-grounding.md` § A (SQL family, Mongo family), C, E · **Builds on:** dispatch 10 (`d607bde854`, `1792de2a67`, `965c0cf100`) · **Branch:** `tml-3537-value-objects-storage`
 
 ## Outcome
 

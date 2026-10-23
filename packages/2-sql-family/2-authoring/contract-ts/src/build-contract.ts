@@ -204,7 +204,7 @@ function storageOf(
 }
 
 /**
- * Writes the value set of each discriminator, keyed `<Base>.<field>` in the base table's namespace and holding the variants' values as the column stores them, sorted, and points the discriminator column at it (ADR 278). A column an enum types keeps the enum's value set. An enum with the same name in the same namespace is refused, since the two value sets would share one entry.
+ * Writes the value set of each discriminator, keyed `<Base>.<field>` in the base table's namespace and holding the variants' values as the column stores them, sorted, and points the discriminator column at it (ADR 309). A column an enum types keeps the enum's value set. An enum with the same name in the same namespace is refused, since the two value sets would share one entry.
  */
 function writeDiscriminatorValueSets(
   definition: ContractDefinition,

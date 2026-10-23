@@ -1795,7 +1795,7 @@ type ResolvedPolymorphism = {
 };
 
 /**
- * Pairs each `@@discriminator` with the variants that declare `@@base` on it, before the build, so the build writes the discriminator's value set before it computes the storage hash (ADR 278). Reports a model with both attributes, a discriminator no variant names, a duplicate value, and a base with no discriminator.
+ * Pairs each `@@discriminator` with the variants that declare `@@base` on it, before the build, so the build writes the discriminator's value set before it computes the storage hash (ADR 309). Reports a model with both attributes, a discriminator no variant names, a duplicate value, and a base with no discriminator.
  */
 function resolveVariants(
   modelKeys: ReadonlySet<string>,

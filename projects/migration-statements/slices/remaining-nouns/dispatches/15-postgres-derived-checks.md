@@ -1,6 +1,6 @@
 # Dispatch 15 — Postgres derives a check for the discriminator column and for each value object column
 
-**Plan:** [`../plan-pr3.md`](../plan-pr3.md) · **ADR:** ADR 278 decisions 2 and 3, and the plan's decisions on the `jsonpath` predicate and on value objects that contain themselves · **Grounding:** `wip/pr3-grounding.md` § D · **Builds on:** dispatch 12 · **Branch:** `tml-3537-value-objects-storage`
+**Plan:** [`../plan-pr3.md`](../plan-pr3.md) · **ADR:** ADR 309 decisions 2 and 3, and the plan's decisions on the `jsonpath` predicate and on value objects that contain themselves · **Grounding:** `wip/pr3-grounding.md` § D · **Builds on:** dispatch 12 · **Branch:** `tml-3537-value-objects-storage`
 
 ## Outcome
 

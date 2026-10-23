@@ -5,7 +5,7 @@ export { UNBOUND_DOMAIN_NAMESPACE_ID } from './default-namespace';
 /**
  * One namespace's application-domain entities — models and optional enums
  * keyed by entity name within that namespace coordinate. Value objects are
- * storage entities (ADR 278).
+ * storage entities (ADR 309).
  */
 export interface ApplicationDomainNamespace {
   readonly models: Record<string, ContractModelBase>;

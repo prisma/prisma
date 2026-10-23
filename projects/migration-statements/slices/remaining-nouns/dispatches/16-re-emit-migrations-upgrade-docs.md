@@ -1,6 +1,6 @@
 # Dispatch 16 — re-emit, example migrations, the upgrade script, and docs
 
-**Plan:** [`../plan-pr3.md`](../plan-pr3.md) · **ADR:** ADR 278 · **Grounding:** `wip/pr3-grounding.md` § C and risks 6–8 · **Builds on:** dispatches 11, 14 and 15, and the merge of main (`4aaa36d9bc`) · **Branch:** `tml-3537-value-objects-storage`
+**Plan:** [`../plan-pr3.md`](../plan-pr3.md) · **ADR:** ADR 309 · **Grounding:** `wip/pr3-grounding.md` § C and risks 6–8 · **Builds on:** dispatches 11, 14 and 15, and the merge of main (`4aaa36d9bc`) · **Branch:** `tml-3537-value-objects-storage`
 
 ## Outcome
 
@@ -46,7 +46,7 @@ The whole repository is on the new contract shape, users can move their projects
 
 ### 4. Docs
 
-- **ADR 278:** check that it matches what was built. Notes on what changed from its first text, for example the jsonpath predicate and the discriminator value set on SQL only, go in the ADR's own words, with no ticket or dispatch ids.
+- **ADR 309:** check that it matches what was built. Notes on what changed from its first text, for example the jsonpath predicate and the discriminator value set on SQL only, go in the ADR's own words, with no ticket or dispatch ids.
 - **ADR 172 and ADR 178:** add a short note where they say value objects live in the domain plane.
 - **Data Contract subsystem doc and MongoDB Family doc:** update them for the new shape.
 - **Contract Emitter & Types subsystem doc**, around lines 262 and 272:

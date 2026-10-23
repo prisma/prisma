@@ -8,7 +8,7 @@ export interface StorageValueObjectInput {
 }
 
 /**
- * SQL Contract IR node for a value object in a namespace's `valueObject` map (`SqlNamespace.entries.valueObject`): the keys every row holds in a column that stores it (ADR 278). A domain field refers to it by its storage coordinate.
+ * SQL Contract IR node for a value object in a namespace's `valueObject` map (`SqlNamespace.entries.valueObject`): the keys every row holds in a column that stores it (ADR 309). A domain field refers to it by its storage coordinate.
  *
  * A field that leaves out `many` holds `many: false`, as the authoring builders write it, so a contract read from JSON equals the one built from its source.
  *

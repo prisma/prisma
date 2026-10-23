@@ -1,6 +1,6 @@
 # Dispatch 10 — value objects in the storage plane: contract shape and validators
 
-**Plan:** [`../plan-pr3.md`](../plan-pr3.md) · **ADR:** `docs/architecture docs/adrs/ADR 278 - Value objects are storage entities, and a discriminator column names a value set.md` · **Grounding:** `wip/pr3-grounding.md` § A, B · **Branch:** `tml-3537-value-objects-storage`
+**Plan:** [`../plan-pr3.md`](../plan-pr3.md) · **ADR:** `docs/architecture docs/adrs/ADR 309 - Value objects are storage entities, and a discriminator column names a value set.md` · **Grounding:** `wip/pr3-grounding.md` § A, B · **Branch:** `tml-3537-value-objects-storage`
 
 ## Outcome
 
@@ -14,9 +14,9 @@ The contract types and validators accept a value object as a storage entity, at 
 
 ## Do
 
-1. Read ADR 221, ADR 278, ADR 178, `domain-types.ts`, `value-set-ref.ts`, `validate-domain.ts`, the SQL and Mongo storage types and their validators, the JSON schema `data-contract-sql-v1.json`, and the domain accessors (`domainValueObjectsAtDefaultNamespace` and friends).
+1. Read ADR 221, ADR 309, ADR 178, `domain-types.ts`, `value-set-ref.ts`, `validate-domain.ts`, the SQL and Mongo storage types and their validators, the JSON schema `data-contract-sql-v1.json`, and the domain accessors (`domainValueObjectsAtDefaultNamespace` and friends).
 2. **Tests first, red before each change:** a contract with a value object in storage and a field referring to it validates; a reference to a missing storage value object is refused with a message naming the field and the coordinate; a nested reference resolves; a value object that refers to itself validates; the old domain `valueObjects` key is refused; both families.
-3. Implement the types, the validators and the accessors. Keep every name from the existing vocabulary (`valueObject` is the entity kind, as ADR 278 says). Do not invent new nouns; if a new name is unavoidable, say so in the report with candidates.
+3. Implement the types, the validators and the accessors. Keep every name from the existing vocabulary (`valueObject` is the entity kind, as ADR 309 says). Do not invent new nouns; if a new name is unavoidable, say so in the report with candidates.
 4. Update the JSON schema.
 
 ## Do not

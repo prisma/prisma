@@ -96,7 +96,7 @@ const StorageValueObjectFieldSchema = type({
 });
 
 /**
- * Storage value object entry under `storage.namespaces[id].entries.valueObject[name]` (ADR 278). Its fields have the shape a domain field has; a member typed by an enum refers to the storage value set, since storage never refers to the domain plane.
+ * Storage value object entry under `storage.namespaces[id].entries.valueObject[name]` (ADR 309). Its fields have the shape a domain field has; a member typed by an enum refers to the storage value set, since storage never refers to the domain plane.
  */
 export const StorageValueObjectSchema = type({
   '+': 'reject',
