@@ -7,6 +7,7 @@ import type {
   AnyExpression,
   AnyFromSource,
   AnyJsonValueProjection,
+  AnyParamRef,
   AnyQueryAst,
   BinaryExpr,
   CaseExpr,
@@ -40,7 +41,7 @@ import type {
   UpdateAst,
   WindowFuncExpr,
 } from '@internal/sql-relational-core/ast';
-import { isDdlNode } from '@internal/sql-relational-core/ast';
+import { collectOrderedParamRefs, isDdlNode } from '@internal/sql-relational-core/ast';
 import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
 import type { SqliteCodecDescriptorRegistry } from '@internal/target-sqlite/codec-descriptor';
 import type { SqliteCodecRegistry } from '@internal/target-sqlite/codecs';
@@ -54,6 +55,7 @@ import { escapeLiteral, quoteIdentifier } from '@internal/target-sqlite/sql-util
 import { assertNever, InternalError } from '@internal/utils/internal-error';
 import { structuredError } from '@internal/utils/structured-error';
 import { SqliteControlAdapter } from './control-adapter';
+import { assertPlaceholdersMatchParams } from './placeholders';
 import type { SqliteAdapterOptions, SqliteContract, SqliteLoweredStatement } from './types';
 
 function nodeKind(value: unknown): string {
@@ -178,6 +180,7 @@ export const sqliteRawCodecInferer: RawCodecInferer = {
 interface SqliteRenderContext {
   readonly contract: SqliteContract | undefined;
   readonly codecs: SqliteCodecDescriptorRegistry;
+  readonly placeholderNumbers: ReadonlyMap<AnyParamRef, number>;
 }
 
 /**
@@ -190,16 +193,15 @@ export function renderLoweredSql(
   contract: SqliteContract,
   codecs: SqliteCodecDescriptorRegistry,
 ): SqliteLoweredStatement {
-  const ctx: SqliteRenderContext = { contract, codecs };
-  const collectedParamRefs = ast.collectParamRefs();
-  const params: LoweredParam[] = [];
-  for (const ref of collectedParamRefs) {
-    params.push(
-      ref.kind === 'prepared-param-ref'
-        ? { kind: 'bind', name: ref.name }
-        : { kind: 'literal', value: ref.value },
-    );
-  }
+  const orderedRefs = collectOrderedParamRefs(ast);
+  const placeholderNumbers = new Map<AnyParamRef, number>();
+  const params: LoweredParam[] = orderedRefs.map((ref, index) => {
+    placeholderNumbers.set(ref, index + 1);
+    return ref.kind === 'prepared-param-ref'
+      ? { kind: 'bind', name: ref.name }
+      : { kind: 'literal', value: ref.value };
+  });
+  const ctx: SqliteRenderContext = { contract, codecs, placeholderNumbers };
 
   let sql: string;
 
@@ -224,7 +226,16 @@ export function renderLoweredSql(
       throw new InternalError(`Unsupported AST node kind: ${nodeKind(node)}`);
   }
 
+  assertPlaceholdersMatchParams(sql, params.length);
   return Object.freeze({ sql, params });
+}
+
+function renderPlaceholder(ref: AnyParamRef, ctx: SqliteRenderContext): string {
+  const number = ctx.placeholderNumbers.get(ref);
+  if (number === undefined) {
+    throw new InternalError('ParamRef was written but not collected from the AST');
+  }
+  return `?${number}`;
 }
 
 function renderLimitOffset(
@@ -420,7 +431,7 @@ function renderExpr(expr: AnyExpression, ctx: SqliteRenderContext): string {
       return `NOT (${renderExpr(node.expr, ctx)})`;
     case 'param-ref':
     case 'prepared-param-ref':
-      return '?';
+      return renderPlaceholder(node, ctx);
     case 'literal':
       return renderLiteral(node);
     case 'list':
@@ -481,13 +492,23 @@ function renderOperation(expr: OperationExpr, ctx: SqliteRenderContext): string 
   const self = renderExpr(expr.self, ctx);
   const args = expr.args.map((arg) => renderExpr(arg, ctx));
 
-  let result = expr.lowering.template;
-  result = result.replace(/\{\{self\}\}/g, self);
-  for (let i = 0; i < args.length; i++) {
-    result = result.replace(new RegExp(`\\{\\{arg${i}\\}\\}`, 'g'), args[i] ?? '');
-  }
-
-  return result;
+  return expr.lowering.template.replace(
+    /\{\{self\}\}|\{\{arg(\d+)\}\}/g,
+    (token, argIndex: string | undefined) => {
+      if (token === '{{self}}') {
+        return self;
+      }
+      const arg = args[Number(argIndex)];
+      if (arg === undefined) {
+        throw structuredError(
+          'CONTRACT.PACK_CONTRIBUTION_INVALID',
+          `Operation lowering template for "${expr.method}" referenced missing argument {{arg${argIndex}}}; template has ${args.length} arg(s)`,
+          { meta: { method: expr.method } },
+        );
+      }
+      return arg;
+    },
+  );
 }
 
 function renderSubqueryExpr(expr: SubqueryExpr, ctx: SqliteRenderContext): string {
@@ -568,7 +589,7 @@ function renderBinary(expr: BinaryExpr, ctx: SqliteRenderContext): string {
       break;
     case 'param-ref':
     case 'prepared-param-ref':
-      right = '?';
+      right = renderPlaceholder(rightNode, ctx);
       break;
     default:
       right = renderExpr(rightNode, ctx);
@@ -598,7 +619,8 @@ function renderListLiteral(expr: ListExpression, ctx: SqliteRenderContext): stri
   }
   const values = expr.values
     .map((v) => {
-      if (v.kind === 'param-ref' || v.kind === 'prepared-param-ref') return '?';
+      if (v.kind === 'param-ref' || v.kind === 'prepared-param-ref')
+        return renderPlaceholder(v, ctx);
       if (v.kind === 'literal') return renderLiteral(v);
       return renderExpr(v, ctx);
     })
@@ -753,7 +775,7 @@ function renderInsertValue(value: InsertValue, ctx: SqliteRenderContext): string
   switch (value.kind) {
     case 'param-ref':
     case 'prepared-param-ref':
-      return '?';
+      return renderPlaceholder(value, ctx);
     case 'column-ref':
       return renderColumn(value);
     case 'raw-expr':

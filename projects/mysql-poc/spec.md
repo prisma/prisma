@@ -94,7 +94,7 @@ The reasoning and the alternatives rejected are in [`design-notes.md`](./design-
 - No row locking, isolation levels, `distinctOn`, partial indexes or expression indexes on MySQL. Each is refused through a capability the target does not report.
 - No change to Postgres or SQLite behaviour beyond what a shared-code fix requires.
 
-**Added 2026-10-23 (Will): an example app and the public packages are in scope.** `examples/prisma-8-demo-mysql` mirrors the SQLite demo and imports only the public `@prisma/orm-mysql` facade, so the public `@prisma/orm-mysql` and `@prisma/orm-target-mysql` packages are built in this project. The MariaDB slice runs the same example against MariaDB.
+**Added 2026-10-23 (Will): an example app, built first, and the public packages are in scope.** `examples/prisma-8-demo-mysql` imports only the public `@prisma/orm-mysql` facade, so the public `@prisma/orm-mysql` and `@prisma/orm-target-mysql` packages are built in this project. The example is built in slice 2c, right after migrations work, and every later slice extends it: a slice is done only when the example runs what it delivered, in CI. The MariaDB slice runs the same example against MariaDB.
 
 ## Place in the larger world
 
