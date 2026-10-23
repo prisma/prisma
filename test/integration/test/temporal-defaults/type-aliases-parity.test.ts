@@ -7,7 +7,7 @@ const dateTime = {
   nullable: false,
   typeParams: { precision: 3 },
 };
-const now = { kind: 'generator', id: 'timestampNow' };
+const now = { kind: 'generator', id: 'timestampNow', params: { precision: 3 } };
 
 describe('columns typed by the temporal type aliases', () => {
   it('store the type bare DateTime becomes, with now on create and on update', () => {

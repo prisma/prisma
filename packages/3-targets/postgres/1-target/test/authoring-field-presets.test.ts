@@ -116,6 +116,7 @@ describe('postgres temporal per-codec presets', () => {
       timestamptzJsDate: temporalCodecPresetWithPrecision({
         sizeType: 'pg/int4',
         codecId: 'pg/timestamptz-date@1',
+        nowTakesPrecision: true,
       }),
       timestamp: temporalCodecPresetWithPrecision({
         sizeType: 'pg/int4',

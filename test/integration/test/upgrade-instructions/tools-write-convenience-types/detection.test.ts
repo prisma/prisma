@@ -70,4 +70,23 @@ describe('the detection of the changes the tools writing convenience types make'
       zeros: detects('  at DateTime @default(timestamptz`2024-01-01T01:00:00.123000Z`)\n'),
     }).toEqual({ micro: true, local: true, mysql: true, milli: false, zeros: false });
   });
+
+  it('matches a client now generator or a Prisma 7 config, and not a database default', () => {
+    const detects = (content: string) => matches('date-now-takes-column-precision', content);
+    expect({
+      prisma7: detects(
+        "export default defineConfig({ contract: prisma7Schema('schema.prisma') });",
+      ),
+      attribute: detects('  updatedAt DateTime @onCreate(now()) @onUpdate(now())\n'),
+      alias: detects('  createdAt temporal.CreatedAt\n'),
+      typescript: detects('createdAt: field.column(type.DateTime()).onCreate(gen.now()),'),
+      databaseDefault: detects('  createdAt DateTime @default(now())\n'),
+    }).toEqual({
+      prisma7: true,
+      attribute: true,
+      alias: true,
+      typescript: true,
+      databaseDefault: false,
+    });
+  });
 });

@@ -52,7 +52,7 @@
     }
   },
   "execution": {
-    "executionHash": "7eee0b611024cf3919f5e6ffeb1b249bc15868a222abede79cc85cab9d343ba3",
+    "executionHash": "1760fa0f34d6d5e40e3be067e8204259f351ff29ac6f9a4f86b497657976ed77",
     "mutations": {
       "defaults": [
         {
@@ -63,11 +63,17 @@
           },
           "onCreate": {
             "kind": "generator",
-            "id": "timestampNow"
+            "id": "timestampNow",
+            "params": {
+              "precision": 3
+            }
           },
           "onUpdate": {
             "kind": "generator",
-            "id": "timestampNow"
+            "id": "timestampNow",
+            "params": {
+              "precision": 3
+            }
           }
         }
       ]

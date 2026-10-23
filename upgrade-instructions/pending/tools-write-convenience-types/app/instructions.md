@@ -21,6 +21,16 @@ changes:
       glob: "**/*.prisma"
       matches:
         - '@default\((?:timestamp(?:tz)?|datetime)`[^`]*\.\d{3}\d*[1-9]'
+  - id: date-now-takes-column-precision
+    summary: |
+      On PostgreSQL, the `now` generator of a column read as a JavaScript `Date` (`DateTime`, `TimestamptzJsDate`, `TimestampJsDate`, `temporal.CreatedAt` and `temporal.UpdatedAt`) now takes the column's precision and rounds the time down to it, so the value the client holds is the value PostgreSQL stores. A `timestamp(0)` column no longer gets a time PostgreSQL rounds up to the next second. The generator's precision is in the contract's execution section, so re-emit with `prisma contract emit` and commit `contract.json` and `contract.d.ts`; only the execution hash changes, so there is no migration and no `prisma db sign`.
+    detection:
+      glob: "**/*.{prisma,ts,mts,cts,tsx}"
+      matches:
+        - '\bprisma7Schema\s*\('
+        - '@on(?:Create|Update)\(now\(\)\)'
+        - '(?<![\w$])temporal\.(?:Created|Updated)At(?![\w$])'
+        - '(?<![\w$])gen\.now\(\)'
 ---
 
 # The tools write the convenience date and time types
@@ -90,3 +100,9 @@ at DateTime(precision: 6) @default(sql`'2024-01-01 01:00:00.123456+00'::timestam
 ```
 
 The first reads the field as a string, which keeps every digit. The second keeps the field a `Date` and the database default as written. Run `prisma contract emit` again. A Prisma 7 schema read by `prisma7Schema(...)` needs no change: such a default is kept as the SQL Prisma 7 created.
+
+## `date-now-takes-column-precision`
+
+A JavaScript `Date` holds milliseconds. On a column with fewer fraction digits, such as a Prisma 7 `@db.Timestamp(0) @updatedAt` field, the client used to generate a time such as `10:00:00.700` and PostgreSQL stored `10:00:01`, so the value a create returned before a read differed from the stored one. The `now` generator of a column read as a `Date` now receives the column's precision, as the string and time generators already do, and writes `10:00:00`.
+
+The contract records the precision beside the generator, for example `{ "kind": "generator", "id": "timestampNow", "params": { "precision": 3 } }`. For each project with such a field, including every project whose `prisma.config.ts` uses `prisma7Schema(...)`, run `prisma contract emit` and commit the new `contract.json` and `contract.d.ts`. The storage hash does not change, and the database marker holds only the storage and profile hashes, so there is no migration to plan and no need to run `prisma db sign`. SQLite and MongoDB contracts do not change.

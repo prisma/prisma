@@ -29,7 +29,13 @@ model Clock {
   timestamptzString3 TimestamptzString(3) @onCreate(now()) @onUpdate(now())
   timestamptzString6 TimestamptzString(6) @onCreate(now()) @onUpdate(now())
   timestamptzJsDate0 TimestamptzJsDate(0) @onCreate(now()) @onUpdate(now())
+  timestamptzJsDate1 TimestamptzJsDate(1) @onCreate(now()) @onUpdate(now())
+  timestamptzJsDate2 TimestamptzJsDate(2) @onCreate(now()) @onUpdate(now())
   timestamptzJsDate3 TimestamptzJsDate(3) @onCreate(now()) @onUpdate(now())
   timestamptzJsDate6 TimestamptzJsDate(6) @onCreate(now()) @onUpdate(now())
+  timestampJsDate0   TimestampJsDate(0) @onCreate(now()) @onUpdate(now())
+  timestampJsDate1   TimestampJsDate(1) @onCreate(now()) @onUpdate(now())
+  timestampJsDate2   TimestampJsDate(2) @onCreate(now()) @onUpdate(now())
+  dateTime0          DateTime(precision: 0) @onCreate(now()) @onUpdate(now())
   @@map("clock")
 }

@@ -78,6 +78,8 @@ For Postgres, `now` maps each date and time codec to its generator. That map exi
 | `pg/date-temporal@1`, `pg/date-string@1` | `plainDateNow`, `dateStringNow` | none |
 | `pg/time-temporal@1`, `pg/time-string@1`, `pg/timetz@1` | `plainTimeNow`, `timeStringNow`, `timetzNow` | `precision` |
 
+(Amended 2026-10-23: the string and `Date` timestamp codecs, `pg/timestamptz-string@1`, `pg/timestamp-string@1`, `pg/timestamptz-date@1` and `pg/timestamp-date@1`, also pass `precision`, and their generators round down to it, so the client holds the value PostgreSQL stores instead of one PostgreSQL rounds up.)
+
 SQLite maps `sqlite/datetime@1` to `timestampNow`. Mongo maps `mongo/date@1` to `timestampNow`.
 
 `uuid`, `cuid`, `ulid`, `nanoid` and `ksuid` (new; a `ksuid` generator exists but no function names it) map every text-like codec of the target to their generators. The lists must be complete. Today the applicability lists name only `pg/text@1`, `sql/char@1` and `pg/uuid@1`, so `uuid()` on a SQLite `String` (`sqlite/text@1`) or a Postgres `VarChar` (`sql/varchar@1`) is refused; that is a defect this registry fixes.

@@ -42,9 +42,15 @@ const expectedAtLastMillisecond = {
   timestamptzString2: '2024-01-02T23:59:59.99Z',
   timestamptzString3: '2024-01-02T23:59:59.999Z',
   timestamptzString6: '2024-01-02T23:59:59.999Z',
-  timestamptzJsDate0: '2024-01-03T00:00:00.000Z',
+  timestamptzJsDate0: '2024-01-02T23:59:59.000Z',
+  timestamptzJsDate1: '2024-01-02T23:59:59.900Z',
+  timestamptzJsDate2: '2024-01-02T23:59:59.990Z',
   timestamptzJsDate3: '2024-01-02T23:59:59.999Z',
   timestamptzJsDate6: '2024-01-02T23:59:59.999Z',
+  timestampJsDate0: '2024-01-02T23:59:59.000Z',
+  timestampJsDate1: '2024-01-02T23:59:59.900Z',
+  timestampJsDate2: '2024-01-02T23:59:59.990Z',
+  dateTime0: '2024-01-02T23:59:59.000Z',
 };
 
 describe('the "now" generator of every Postgres date and time codec', () => {
