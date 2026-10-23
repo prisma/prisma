@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { chmodSync, readFileSync } from 'node:fs';
 import { computeStorageHash } from '@internal/contract/hashing';
 import { MongoContractSerializer } from '@internal/family-mongo/ir';
 import { mongoContractCanonicalizationHooks } from '@internal/mongo-contract/canonicalization-hooks';
@@ -235,6 +235,22 @@ describe('a project the script refuses to rewrite', () => {
         'sql/src/contract.json: the discriminator Task.type writes the value set Task.type in storage namespace public, which already holds a value set of that name; rename the enum',
       ),
     });
+  });
+
+  it('stops with one line on a directory it cannot read', () => {
+    const root = copyFixture('before');
+    const locked = join(root, 'sql', 'migrations', 'app');
+    chmodSync(locked, 0o000);
+    try {
+      expect(runScript(root)).toEqual({
+        status: 1,
+        stdout: '',
+        stderr:
+          'sql/migrations/app: cannot read the directory (EACCES); give the script read access to it, or move it out of the project, and run the script again\n',
+      });
+    } finally {
+      chmodSync(locked, 0o755);
+    }
   });
 
   it('says when it finds no contract', () => {

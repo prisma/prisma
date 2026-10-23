@@ -6,7 +6,7 @@
  *
  * Usage: node value-objects-in-storage.ts [project-root]
  *
- * The project root defaults to the working directory. The script reads and writes files only. It needs no database, network or configured stack, and a project whose contracts keep no value object in the domain plane is left unchanged. When it stops (a file it must read is not valid JSON, a contract whose stored hash does not match its content, a field naming a value object the contract does not declare, a value object whose namespace storage does not have, a member enum without a storage value set, a discriminator value set that already exists, or a snapshot directory that already exists with different content) it changes no file, prints one line per case and exits 1. When it finishes it prints how many files and snapshot directories it changed and each storage hash it replaced.
+ * The project root defaults to the working directory. The script reads and writes files only. It needs no database, network or configured stack, and a project whose contracts keep no value object in the domain plane is left unchanged. When it stops (a file it must read is not valid JSON, a contract whose stored hash does not match its content, a field naming a value object the contract does not declare, a value object whose namespace storage does not have, a member enum without a storage value set, a discriminator value set that already exists, a snapshot directory that already exists with different content, or a directory it cannot read) it changes no file, prints one line per case and exits 1. When it finishes it prints how many files and snapshot directories it changed and each storage hash it replaced.
  *
  * The storage hash and migration hash rules are copied from `@internal/contract`, `@internal/sql-contract`, `@internal/mongo-contract` and `@internal/migration-tools` because a project's strict `node_modules` does not expose them.
  */
@@ -295,6 +295,7 @@ interface ProjectFiles {
   readonly refs: readonly string[];
   readonly migrationTs: readonly string[];
   readonly leftovers: readonly string[];
+  readonly unreadable: readonly { readonly dir: string; readonly code: string }[];
 }
 
 function isDirectory(path: string): boolean {
@@ -329,13 +330,17 @@ function listFiles(root: string): ProjectFiles {
   const leftovers: string[] = [];
   const visited = new Set<string>();
   const found = new Map<string, FoundFile>();
+  const unreadable: { dir: string; code: string }[] = [];
   const visit = (dir: string): void => {
     const realDir = realpathSync(dir);
     if (visited.has(realDir)) return;
     visited.add(realDir);
-    const entries = readdirSync(dir, { withFileTypes: true }).sort((a, b) =>
-      compareCodeUnits(a.name, b.name),
-    );
+    const listed = listDirectory(dir);
+    if (!listed.ok) {
+      unreadable.push({ dir, code: listed.code });
+      return;
+    }
+    const entries = listed.entries.sort((a, b) => compareCodeUnits(a.name, b.name));
     const inMigrationPackage = entries.some(
       (entry) => entry.name === 'migration.json' && isFileEntry(dir, entry),
     );
@@ -367,7 +372,21 @@ function listFiles(root: string): ProjectFiles {
     refs: named((file, name) => name.endsWith('.json') && basename(dirname(file.path)) === 'refs'),
     migrationTs: named((file, name) => name === 'migration.ts' && file.inMigrationPackage),
     leftovers,
+    unreadable,
   };
+}
+
+type DirectoryListing =
+  | { readonly ok: true; readonly entries: Dirent[] }
+  | { readonly ok: false; readonly code: string };
+
+function listDirectory(dir: string): DirectoryListing {
+  try {
+    return { ok: true, entries: readdirSync(dir, { withFileTypes: true }) };
+  } catch (error) {
+    const code = error instanceof Error && 'code' in error ? String(error.code) : 'unknown error';
+    return { ok: false, code };
+  }
 }
 
 function isSnapshotContract(path: string): boolean {
@@ -947,6 +966,17 @@ function main({
   }
   const display = (path: string): string => relative(root, path).split(sep).join('/');
   const files = listFiles(root);
+  if (files.unreadable.length > 0) {
+    process.stderr.write(
+      `${files.unreadable
+        .map(
+          ({ dir, code }) =>
+            `${display(dir)}: cannot read the directory (${code}); give the script read access to it, or move it out of the project, and run the script again`,
+        )
+        .join('\n')}\n`,
+    );
+    return 1;
+  }
   const plans: ContractPlan[] = [];
   const stops: string[] = [];
   let contractsFound = 0;
