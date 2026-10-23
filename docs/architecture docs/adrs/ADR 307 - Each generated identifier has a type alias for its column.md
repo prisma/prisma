@@ -48,7 +48,7 @@ Each identifier format has a fixed length when it is stored as text:
 
 Without an alias, each schema writes these lengths by hand, such as `Char(26)`, and its author has to know them. A mistake has a cost:
 
-- **A column that is too short is refused.** Each generator states how many characters it writes, and a shorter column fails with a message such as `uuid() writes 36 characters, which does not fit a column of 5 characters.` (ADR 275).
+- **A column that is too short is refused.** Each generator states how many characters it writes, and a shorter column fails with a message such as `uuid() writes 36 characters, which does not fit a column of 5 characters.` (ADR 275). SQLite is the exception: it stores a longer value in any column, so it refuses no column for its length.
 - **A column that is too long is accepted, and it is wrong.** On Postgres, a `char` column pads a shorter value with spaces, so the stored identifier is not the one the client generated.
 
 Identifier columns appear in almost every model, as primary keys and as foreign keys. So without aliases, the length is written, and can be wrong, in almost every model.
@@ -154,7 +154,7 @@ const UlidId = field.column(type.Ulid()).id().onCreate(gen.ulid());
 
 - **An alias is only a name.** `Ulid` stores the same column as `Char(26)`, so the contract, its storage hash and its execution hash are the same whichever one a schema writes.
 - **A generating id writes three parts:** the alias, `@id`, and the generator. That is longer than a single name, but each part says one thing, and the mixin gives a single name to a user who wants one.
-- **The length check still applies.** A field that uses an alias is checked against its generator like any other field.
+- **The length check still applies.** A field that uses an alias is checked against its generator like any other field, on every target that checks lengths.
 - **A schema's own name hides the top-level alias.** A model, composite type or type alias the schema declares with the name `Ulid` takes that name, so `Ulid` names the declaration, not the column. `sql.Ulid` still names the column.
 
 ## Alternatives considered
