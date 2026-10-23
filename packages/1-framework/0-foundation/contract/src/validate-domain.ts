@@ -1,10 +1,9 @@
-import { blindCast } from '@internal/utils/casts';
 import { ContractValidationError } from './contract-validation-error';
 import type { CrossReference } from './cross-reference';
 import type { ContractWithDomain } from './domain-envelope';
+import { fieldLike, fieldModifierProblems, valueObjectTypeProblems } from './field-problems';
 import { isPlainRecord } from './is-plain-record';
 import { asNamespaceId, type NamespaceId } from './namespace-id';
-import { valueObjectAt, valueObjectsWithCoordinates } from './storage-value-objects';
 
 export interface DomainRelationShape {
   readonly to: CrossReference;
@@ -89,7 +88,7 @@ export function validateContractDomain(contract: DomainContractShape): void {
   validateDiscriminators(modelIndex, errors);
   validateOwnership(contract, modelIndex, errors);
   validateValueObjectReferences(contract, errors);
-  validateFieldModifiers(modelIndex, contract, errors);
+  validateFieldModifiers(modelIndex, errors);
 
   if (errors.length > 0) {
     throw new ContractValidationError(
@@ -276,147 +275,29 @@ function validateOwnership(
   }
 }
 
-interface FieldTypeLike {
-  readonly kind?: string;
-  readonly plane?: string;
-  readonly namespaceId?: string;
-  readonly entityKind?: string;
-  readonly entityName?: string;
-  readonly name?: string;
-  readonly members?: readonly FieldTypeLike[];
-}
-
-interface FieldLike {
-  readonly type?: FieldTypeLike;
-  readonly valueSet?: { readonly namespaceId?: string; readonly entityName?: string };
-  readonly many?: unknown;
-  readonly elementNullable?: unknown;
-  readonly dict?: boolean;
-}
-
-function fieldLike(field: unknown): FieldLike | undefined {
-  return blindCast<FieldLike | undefined, 'contract fields are runtime-validated shapes'>(field);
-}
-
-function valueObjectReferenceProblem(type: FieldTypeLike): string | undefined {
-  if (type.plane === undefined && type.entityKind === undefined) {
-    return `refers to value object "${type.name}" by name; contracts no longer do: a field refers to its value object by the coordinate of a storage entity under storage.namespaces.<namespace>.entries.valueObject, so re-emit the contract from its source`;
-  }
-  if (type.plane !== 'storage' || type.entityKind !== 'valueObject') {
-    return `refers to a value object with plane "${type.plane}" and entityKind "${type.entityKind}"; a value object reference has plane "storage" and entityKind "valueObject"`;
-  }
-  return undefined;
-}
-
 function validateValueObjectReferences(contract: DomainContractShape, errors: string[]): void {
-  function checkType(type: FieldTypeLike | undefined, location: string): void {
-    if (!type) return;
-    if (type.kind === 'valueObject') {
-      const problem = valueObjectReferenceProblem(type);
-      if (problem !== undefined) {
-        errors.push(`${location} ${problem}`);
-        return;
-      }
-      const namespaceId = type.namespaceId ?? '';
-      const entityName = type.entityName ?? '';
-      const found = valueObjectAt(contract.storage, {
-        plane: 'storage',
-        namespaceId,
-        entityKind: 'valueObject',
-        entityName,
-      });
-      if (found === undefined) {
-        errors.push(
-          `${location} refers to value object "${entityName}" in storage namespace "${namespaceId}", which storage.namespaces.${namespaceId}.entries.valueObject does not have`,
-        );
-      }
-      return;
-    }
-    if (type.kind === 'union') {
-      for (const member of type.members ?? []) checkType(member, location);
-    }
-  }
-
   for (const [namespaceKey, namespace] of Object.entries(contract.domain.namespaces)) {
     const namespaceId = asNamespaceId(namespaceKey);
     for (const [modelName, model] of Object.entries(namespace.models)) {
       for (const [fieldName, field] of Object.entries(model.fields)) {
-        checkType(
-          fieldLike(field)?.type,
-          `Model "${namespaceId}:${modelName}" field "${fieldName}"`,
+        errors.push(
+          ...valueObjectTypeProblems(
+            contract.storage,
+            fieldLike(field)?.type,
+            `Model "${namespaceId}:${modelName}" field "${fieldName}"`,
+          ),
         );
       }
     }
   }
-  for (const {
-    coordinate: { namespaceId, entityName: name },
-    valueObject,
-  } of valueObjectsWithCoordinates(contract.storage)) {
-    for (const [fieldName, field] of Object.entries(valueObject.fields)) {
-      const location = `Value object "${namespaceId}:${name}" field "${fieldName}"`;
-      checkType(fieldLike(field)?.type, location);
-      const problem = missingValueSetProblem(contract, fieldLike(field)?.valueSet);
-      if (problem !== undefined) errors.push(`${location} ${problem}`);
-    }
-  }
 }
 
-/** The problem with a value object member's storage value set when storage does not have it. */
-function missingValueSetProblem(
-  contract: DomainContractShape,
-  valueSet: FieldLike['valueSet'],
-): string | undefined {
-  if (valueSet === undefined) return undefined;
-  const namespaceId = valueSet.namespaceId ?? '';
-  const entityName = valueSet.entityName ?? '';
-  const slot = Object.hasOwn(contract.storage.namespaces, namespaceId)
-    ? contract.storage.namespaces[namespaceId]?.entries?.['valueSet']
-    : undefined;
-  return isPlainRecord(slot) && Object.hasOwn(slot, entityName)
-    ? undefined
-    : `refers to value set "${entityName}" in storage namespace "${namespaceId}", which storage.namespaces.${namespaceId}.entries.valueSet does not have`;
-}
-
-function validateFieldModifiers(
-  modelIndex: ModelIndex,
-  contract: DomainContractShape,
-  errors: string[],
-): void {
-  function validateField(location: string, field: unknown): void {
-    const candidate = fieldLike(field);
-    const many = candidate?.many;
-    const isList =
-      typeof many === 'object' &&
-      many !== null &&
-      !Array.isArray(many) &&
-      Object.keys(many).length === 1 &&
-      'elementNullable' in many &&
-      typeof many.elementNullable === 'boolean';
-
-    if (many !== undefined && many !== false && !isList) {
-      errors.push(
-        `${location} has invalid "many"; expected false or an elementNullable descriptor`,
-      );
-    }
-    if (candidate?.elementNullable !== undefined) {
-      errors.push(`${location} cannot have sibling "elementNullable"; put it inside "many"`);
-    }
-    if (isList && candidate?.dict) {
-      errors.push(`${location} cannot have both "many" and "dict" modifiers`);
-    }
-  }
-
+function validateFieldModifiers(modelIndex: ModelIndex, errors: string[]): void {
   for (const { namespaceId, name: modelName, model } of iterateIndexedModels(modelIndex)) {
     for (const [fieldName, field] of Object.entries(model.fields)) {
-      validateField(`Model "${namespaceId}:${modelName}" field "${fieldName}"`, field);
-    }
-  }
-  for (const {
-    coordinate: { namespaceId, entityName: name },
-    valueObject,
-  } of valueObjectsWithCoordinates(contract.storage)) {
-    for (const [fieldName, field] of Object.entries(valueObject.fields)) {
-      validateField(`Value object "${namespaceId}:${name}" field "${fieldName}"`, field);
+      errors.push(
+        ...fieldModifierProblems(`Model "${namespaceId}:${modelName}" field "${fieldName}"`, field),
+      );
     }
   }
 }

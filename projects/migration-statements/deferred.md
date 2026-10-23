@@ -239,7 +239,7 @@ An enum `A = "a", B = "b"` becomes `B = "a", A = "b"`: each member keeps its nam
 
 ## Column value-set references are not checked against storage
 
-A column's `valueSet: { plane: 'storage', entityKind: 'valueSet', entityName }` is not checked to name an existing `storage.namespaces.<ns>.entries.valueSet` entry, in either family. A hand-edited or corrupt `contract.json` with a dangling reference passes validation and fails later. PR 3 of the remaining-nouns slice adds the check for value object members only. Found in the review of that PR, 2026-10-23.
+A column's `valueSet: { plane: 'storage', entityKind: 'valueSet', entityName }` is not checked to name an existing `storage.namespaces.<ns>.entries.valueSet` entry, in either family. A hand-edited or corrupt `contract.json` with a dangling reference passes validation and fails later. PR 3 of the remaining-nouns slice adds the check for value object members only, in `validateStorageValueObjects` (`@internal/contract/validate-storage`), where the column check belongs too. Found in the review of that PR, 2026-10-23.
 
 ## Composite types are not namespaced in SQL PSL
 

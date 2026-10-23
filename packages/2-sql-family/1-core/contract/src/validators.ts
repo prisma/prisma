@@ -9,6 +9,7 @@ import {
   removedDomainKeyProblems,
   validateContractDomain,
 } from '@internal/contract/validate-domain';
+import { validateStorageValueObjects } from '@internal/contract/validate-storage';
 import {
   createDataTypeLookup,
   DATA_TYPE_ID_PATTERN,
@@ -982,6 +983,7 @@ export function validateExecutionDefaultsTargetMappedColumns(contract: Contract<
  * counts match their referenced columns. Throws on the first mismatch.
  */
 export function validateSqlStorageConsistency(contract: Contract<SqlStorage>): void {
+  validateStorageValueObjects(contract.storage);
   for (const { namespaceId, tableName, table: rawTable } of eachStorageTable(contract.storage)) {
     const table = blindCast<StorageTable, 'table entry in structurally validated SQL storage'>(
       rawTable,
