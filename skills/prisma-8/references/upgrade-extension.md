@@ -68,7 +68,7 @@ For each `(from, to)` step in the chain:
    - How a `detection` block runs: `glob` selects files relative to the project root. Each `matches` entry, once read from the YAML, is a JavaScript regular expression, built as `new RegExp(pattern)` with no flags and tested against the whole content of one file at a time; each `contains` entry is a plain substring. A file is a hit when any entry matches it. Patterns may span lines, and some look at the whole file (for example, to skip a file that declares something elsewhere in it), so a line-by-line search such as `grep` or `rg` without `-U` is not the same test and can report files the pattern excludes. From a shell, `rg -U --pcre2 -l -e '<pattern>' <files>` tests whole files and gives the same hits.
    - If the entry has no `detection`, apply unconditionally.
    - If the entry names a `script:` (a relative path next to `instructions.md`), invoke it from the project root:
-     - `*.ts` → `pnpm exec tsx <skill>/upgrading/extension/upgrades/<from>-to-<to>/<script>`
+     - `*.ts` → the command the guide's prose gives, such as `node <script>` (Node 24 or later runs TypeScript directly); with no command in the prose, `pnpm exec tsx <skill>/upgrading/extension/upgrades/<from>-to-<to>/<script>`
      - `*.sh` → `bash <skill>/upgrading/extension/upgrades/<from>-to-<to>/<script>`
      - codemods → invoke per the script's own `instructions.md` prose.
    - If the entry has no `script`, follow the prose body in `instructions.md` directly.

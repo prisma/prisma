@@ -170,7 +170,7 @@ changes:
         - 'enum\s+\w+\s*\{(?=[^}]*@@type\(\s*"(?!(?:pg/(?:text|char|varchar|uuid|inet|bit|varbit)|sql/(?:text|char|varchar)|sqlite/text|mongo/[\w-]+)@1")[^"]+"\s*\))[^}]*=\s*"'
   - id: enum-members-compare-by-their-data-type
     summary: |
-      An enum typed by `pg/numeric@1`, `pg/interval@1` or `mongo/decimal128@1` now compares values as its data type does, as PostgreSQL's CHECK constraint already did: `db.enums.<Enum>.has()`, `nameOf()` and `ordinalOf()` find `0.50` as the numeric member `0.5`, and `PT24H` as the interval member `P1D`. Two members that are one value in different forms, such as `0.5` and `0.50`, or `P1D` and `PT24H`, are now refused as duplicates: `CONTRACT.ENUM_INVALID` from `defineContract`, and `PSL_ENUM_DUPLICATE_MEMBER_VALUE` from PSL. Such an enum's members, and a column typed by it, are typed as the codec's type, such as `string` for `pg/numeric@1`, because a read can return a member in another form. This holds both in the emitted `contract.d.ts` and in the types `defineContract` infers. A `mongo/decimal128@1` enum is refused when the contract is built, because a collection validator cannot list BSON decimals, so for it only the types changed.
+      An enum typed by `pg/numeric@1`, `pg/interval@1` or `mongo/decimal128@1` now compares values as its data type does, as PostgreSQL's CHECK constraint already did: `db.enums.<namespace>.<Enum>.has()`, `nameOf()` and `ordinalOf()` find `0.50` as the numeric member `0.5`, and `PT24H` as the interval member `P1D`. Two members that are one value in different forms, such as `0.5` and `0.50`, or `P1D` and `PT24H`, are now refused as duplicates: `CONTRACT.ENUM_INVALID` from `defineContract`, and `PSL_ENUM_DUPLICATE_MEMBER_VALUE` from PSL. Such an enum's members, and a column typed by it, are typed as the codec's type, such as `string` for `pg/numeric@1`, because a read can return a member in another form. This holds both in the emitted `contract.d.ts` and in the types `defineContract` infers. A `mongo/decimal128@1` enum is refused when the contract is built, because a collection validator cannot list BSON decimals, so for it only the types changed.
     detection:
       glob: "**/*.{prisma,ts,tsx,mts,cts}"
       matches:
@@ -178,7 +178,7 @@ changes:
         - '(?<![\s\S])(?![\s\S]*GENERATED FILE - DO NOT EDIT)(?=[\s\S]*\benumType\()[\s\S]*?(?:[''"`](?:pg/(?:numeric|interval)|mongo/decimal128)@1[''"`]|\b(?:numericColumn|intervalColumn)\()'
   - id: enum-columns-typed-by-member-literals
     summary: |
-      A column typed by an enum whose codec is `pg/uuid@1`, `pg/inet@1`, `pg/bit@1`, `pg/varbit@1`, `pg/date-string@1`, `pg/time-string@1`, `sql/char@1`, `sql/varchar@1`, `sql/text@1`, `sql/int@1` or `sql/float@1` on Postgres, or `sqlite/text@1`, `sqlite/integer@1`, `sqlite/real@1`, `sqlite/bigint@1`, `sqlite/json@1`, `sql/char@1`, `sql/varchar@1`, `sql/int@1` or `sql/float@1` on SQLite, is now typed in the emitted `contract.d.ts` as the union of its members' values, as a `pg/text@1` or `pg/int4@1` enum column already was, instead of the codec's whole type. Re-emit the contract. Code that writes a value that is not a member to such a column, or compares a value read from it with one, no longer typechecks; use a member, such as `client.enums.Host.members.Loopback`.
+      A column typed by an enum whose codec is `pg/uuid@1`, `pg/inet@1`, `pg/bit@1`, `pg/varbit@1`, `pg/date-string@1`, `pg/time-string@1`, `sql/char@1`, `sql/varchar@1`, `sql/text@1`, `sql/int@1` or `sql/float@1` on Postgres, or `sqlite/text@1`, `sqlite/integer@1`, `sqlite/real@1`, `sqlite/bigint@1`, `sqlite/json@1`, `sql/char@1`, `sql/varchar@1`, `sql/int@1` or `sql/float@1` on SQLite, is now typed in the emitted `contract.d.ts` as the union of its members' values, as a `pg/text@1` or `pg/int4@1` enum column already was, instead of the codec's whole type. Re-emit the contract. Code that writes a value that is not a member to such a column, or compares a value read from it with one, no longer typechecks; use a member, such as `db.enums.public.Host.members.Loopback`.
   - id: db-schema-json-names-type-text
     summary: |
       `prisma db schema --json` names each column's type field `typeText` instead of `nativeType`, holding the type as introspection reads it from the database (`integer`, `timestamp(3) with time zone`), and no longer has `resolvedNativeType`. The tree output of `prisma db schema` shows the same text, such as `integer` where it showed `int4`.
@@ -195,7 +195,7 @@ changes:
         - '(?<![\s\S])(?=[\s\S]*\bDEFAULT_INVALID\b)[\s\S]*\bnativeType\b'
   - id: client-takes-contract-value
     summary: |
-      Every client and static entry takes the contract only as a value, `{ contract }`. The `contractJson` option is removed, and so is the type argument on the client call: `postgres<Contract>({ contractJson, url })` no longer compiles. Turn the emitted JSON into a typed value once with `contractFromJson<Contract>(contractJson)` from the facade's `/static` entry (`@prisma/orm-postgres/static`, `@prisma/orm-sqlite/static`, `@prisma/orm-mongo/static`; Supabase uses the Postgres one), export it from the module that creates the client, and pass `{ contract }`. This applies to `postgres()`, `postgresServerless()`, `sqlite()`, `supabase()`, `mongo()`, `postgresStatic()`, `sqliteStatic()`, `mongoStatic()` and `mongoQuery()`. A `migration.ts` that builds a client from `contractJson`, for example for a data transform, fails to load until it is moved too, so move it before you run it again. The colocated script moves source files; move test files by hand.
+      Every client and static entry takes the contract only as a value, `{ contract }`. The `contractJson` option is removed, so `postgres<Contract>({ contractJson, url })` no longer compiles, and the client infers its contract type from the value, so the call needs no type argument. Turn the emitted JSON into a typed value once with `contractFromJson<Contract>(contractJson)` from the facade's `/static` entry (`@prisma/orm-postgres/static`, `@prisma/orm-sqlite/static`, `@prisma/orm-mongo/static`; Supabase uses the Postgres one), export it from the module that creates the client, and pass `{ contract }`. This applies to `postgres()`, `postgresServerless()`, `sqlite()`, `supabase()`, `mongo()`, `postgresStatic()`, `sqliteStatic()`, `mongoStatic()` and `mongoQuery()`. A `migration.ts` that builds a client from `contractJson`, for example for a data transform, fails to load until it is moved too, so move it before you run it again. The colocated script moves source files; move test files by hand.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
@@ -217,7 +217,7 @@ changes:
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
-        - 'import\s*(?:type\s*)?(?:[\w$]+\s*,\s*)?\{[^}]*(?<![\w$])(?:PostgresClient|PostgresServerlessClient|PostgresServerlessConnection|PostgresStaticContext|PostgresStaticMembers|PostgresQueryMembers|SqliteClient|SqliteStaticContext|SqliteQueryMembers|RoleBoundDb|ServiceRoleDb|SupabaseInternalDb|PostgresTransactionContext|SqliteTransactionContext|SupabaseTransactionContext|SqliteStaticMembers)(?![\w$])[^}]*\}\s*from\s*[''"]@prisma/orm-'
+        - 'import\s*(?:type\s*)?(?:[\w$]+\s*,\s*)?\{[^}]*(?<![\w$])(?:PostgresClient|PostgresServerlessClient|PostgresServerlessConnection|PostgresStaticContext|PostgresStaticMembers|SqliteClient|SqliteStaticContext|RoleBoundDb|ServiceRoleDb|SupabaseInternalDb|PostgresTransactionContext|SqliteTransactionContext)(?![\w$])[^}]*\}\s*from\s*[''"]@prisma/orm-'
         - '\.runtime\(\)\s*\.(?:query|execute)\('
         - '(?<![\w$])(?:runtimeTarget|runtimeStorageHash)\s*:|\.(?:runtimeTarget|runtimeStorageHash)\b|[''"](?:runtimeTarget|runtimeStorageHash)[''"]'
         - 'Ad-hoc execute received a bind-site slot|Plan target does not match runtime target|Plan storage hash does not match runtime contract'
@@ -227,7 +227,7 @@ changes:
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
-        - '(?<![\s\S])(?=[\s\S]*\bextends\s+Collection\b)[\s\S]*\n[ \t]*(?:(?:public|private|protected|override|readonly|async|declare|static|accessor)[ \t]+)*(?:(?:(?:get|set)[ \t]+)?using[ \t]*[?!]?[ \t]*[(<]|using[ \t]*[?!]?[ \t]*=(?![=>])|using[ \t]*[?!]?[ \t]*:[^\n]*[^,\s][ \t]*(?:\n|$))'
+        - '(?<![\s\S])(?=[\s\S]*\bextends\s+Collection\b)[\s\S]*[\n{;][ \t]*(?:(?:public|private|protected|override|readonly|async|declare|static|accessor)[ \t]+)*(?:(?:(?:get|set)[ \t]+)?using[ \t]*[?!]?[ \t]*[(<]|using[ \t]*[?!]?[ \t]*=(?![=>])|using[ \t]*[?!]?[ \t]*:[^\n]*[^,\s][ \t]*(?:\n|$))'
   - id: orm-annotations-on-the-call
     summary: |
       Every SQL ORM terminal method runs as one `orm-call` activity, and the annotations a `configure` callback records live on that activity. The statements the call sends carry none, so a middleware that reads an ORM annotation from a statement plan (`handle.read(plan)` or `plan.meta.annotations`) in `beforeEncode`, `intercept.onQuery`, `onRow` or `activityStarted` of a statement finds nothing. Read it from the call instead: in `activityStarted(activity)`, `if (activity.kind === 'orm-call') handle.read(activity)`. The detection matches a file with a middleware hook, not a MongoDB one, that reads an annotation from something other than the activity, or reads `meta.annotations`.
@@ -254,7 +254,7 @@ changes:
         - '(?<![\s\S])(?![\s\S]*\bCachedValue\b)(?=[\s\S]*[''"](?:@prisma/orm-extension-middleware-cache|@internal/middleware-cache)[''"])[\s\S]*(?<![\w$])(?:CacheStore|CacheEntry)(?![\w$])'
   - id: orm-needs-a-runtime-queryable
     summary: |
-      Pass `orm()` a runtime, connection or transaction from the SQL runtime itself, or `db.runtime()`. A hand-built object that copies only `query` and `execute` (for example `orm({ context, runtime: { query(plan) { return runtime.query(plan); }, execute(plan) { return runtime.execute(plan); } } })`) has no activity source, so every terminal method on it now fails with `ORM.ACTIVITY_SOURCE_MISSING`: `all()` and the other streaming terminals throw when called, and the others reject. If you need the wrapper, keep the original's `[activitySource]` member on it.
+      Pass `orm()` a runtime, connection or transaction from the SQL runtime itself, or `db.runtime()`. A hand-built object that copies only `query` and `execute` (for example `orm({ context, runtime: { query(plan) { return runtime.query(plan); }, execute(plan) { return runtime.execute(plan); } } })`) has no activity source, so every terminal method on it now fails with `ORM.ACTIVITY_SOURCE_MISSING`: `all()` and the other streaming terminals throw when called, and the others reject. If you need the wrapper, keep the original's `[activitySource]` member on it; the symbol `activitySource` is exported from `@prisma/orm-postgres/family-runtime` (`@prisma/orm-sqlite/family-runtime` on SQLite).
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
@@ -1029,7 +1029,7 @@ Write each number argument of a type constructor as a number, positional or name
 
 A length, precision, scale or SRID on Postgres is a 32-bit integer, so a number written with a fraction is refused, even when the fraction is zero: `VarChar(255.0)` becomes `VarChar(255)`, and `Timestamptz(3.0)` becomes `Timestamptz(3)`. A number larger than 2147483647 is refused too; write the value the column needs.
 
-On SQLite, the length of `sql.String` is a value of `sqlite/real`, so `sql.String(2.0)` is accepted and gives the length `2`. Write `sql.String(2)` anyway, so the schema reads the same on every target. A SQLite length is at most 2147483647, SQLite's largest string length.
+On SQLite, the length of `sql.String` is a value of `sqlite/real`, so `sql.String(2.0)` is accepted and gives the length `2`. Write `sql.String(2)` anyway, so the schema reads the same on every target. The detection matches `sql.String(2.0)` on every target for this reason. A SQLite length is at most 2147483647, SQLite's largest string length.
 
 ## Enums refuse more codecs and read members as values of their data type
 
@@ -1079,7 +1079,7 @@ enum Ratio {
 
 1. If the contract build refuses two members as one value, such as `enum "Ratio": members "Half" and "Halves" store "0.5" and "0.50", which the database holds equal`, remove one of them. The database already held them equal, so a row could never tell them apart.
 2. Re-emit the contract.
-3. Typecheck the project. Code that reads such an enum column as a member literal type, such as `'0.5' | '1.50'`, now reads the codec's type; compare the value with a member through `db.enums.<Enum>.has()` or `nameOf()`, which find `0.50` as `0.5`.
+3. Typecheck the project. Code that reads such an enum column as a member literal type, such as `'0.5' | '1.50'`, now reads the codec's type; compare the value with a member through `db.enums.<namespace>.<Enum>.has()` or `nameOf()`, which find `0.50` as `0.5`.
 
 The TypeScript detection matches a file that calls `enumType(` and names one of these codecs or `numericColumn(` or `intervalColumn(` anywhere, even on a column that is not an enum. Check only the enums.
 
@@ -1121,7 +1121,7 @@ if (error.code === 'CONTRACT.DEFAULT_INVALID') console.log(error.meta.typeText);
 
 ## A client takes a typed contract value
 
-A client no longer takes `contractJson` or a type argument. The emitted JSON becomes a typed value in one call, and every client infers its contract type from that value:
+A client no longer takes `contractJson`, and it needs no type argument. The emitted JSON becomes a typed value in one call, and every client infers its contract type from that value:
 
 ```ts
 // Before
@@ -1771,9 +1771,9 @@ Read the facts from these `meta` keys:
 
 ```typescript
 // before
-this.setDefault({ table: 'user', column: col('role', 'text', { default: lit('member'), codecRef: { codecId: 'pg/text@1' } }), operationClass: 'widening' })
+this.setDefault({ schema: 'public', table: 'user', column: col('role', 'text', { default: lit('member'), codecRef: { codecId: 'pg/text@1' } }), operationClass: 'widening' })
 // after
-this.setDefault({ table: 'user', column: col('role', 'text', { default: lit('member'), codecRef: { codecId: 'pg/text@1' } }) })
+this.setDefault({ schema: 'public', table: 'user', column: col('role', 'text', { default: lit('member'), codecRef: { codecId: 'pg/text@1' } }) })
 ```
 
 `node migration.ts` does not check types, so a file that still passes `operationClass` runs and ignores it. An applied migration needs nothing: `prisma db migrate` applies `ops.json`.

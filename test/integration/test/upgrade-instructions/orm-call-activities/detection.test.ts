@@ -199,3 +199,63 @@ describe('extension queryable-carries-the-activity-source detection', () => {
     expect(detects('extension', 'queryable-carries-the-activity-source', content)).toBe(false);
   });
 });
+
+describe('extension activity detections', () => {
+  it.each([
+    [
+      'activity-includes-client-activities',
+      "if (result.kind === 'transaction') return;\nrecord(result.latencyMs);",
+      "if (result.kind !== 'statement') return;\nrecord(result.latencyMs);",
+    ],
+    [
+      'orm-runtime-objects-carry-an-activity-source',
+      'const client = orm({\n  runtime: {\n    query: (plan) => getRuntime().query(plan),\n  },\n  context,\n});',
+      'const client = orm({\n  runtime: {\n    query: (plan) => getRuntime().query(plan),\n    [activitySource]: delegatingActivitySource(() => getRuntime()),\n  },\n  context,\n});',
+    ],
+    [
+      'runtime-connections-carry-an-activity-source',
+      'const session = {\n  [transactionStart]: createTransactionStart(),\n  query,\n};',
+      'const session = {\n  [transactionStart]: createTransactionStart(),\n  [activitySource]: self.connectionActivitySource(conn, () => session),\n};',
+    ],
+    [
+      'transaction-activity-takes-a-parent',
+      'await startTransactionActivity({ middleware, context, holdFinishedChildren });',
+      'await startTransactionActivity({ middleware, context, parent: undefined, holdFinishedChildren });',
+    ],
+    [
+      'transaction-activity-takes-a-parent',
+      'class Parent implements ActivityParent {\n  adopt(child) {\n    return () => {};\n  }\n}',
+      'class Parent implements ActivityParent {\n  adopt(child): ActivityChildSlot {\n    return slot;\n  }\n}',
+    ],
+  ])('%s finds the old form and skips the new one', (id, before, after) => {
+    expect({
+      before: detects('extension', id, before),
+      after: detects('extension', id, after),
+    }).toEqual({ before: true, after: false });
+  });
+});
+
+describe('app orm-collection-member-using-reserved detection', () => {
+  it.each([
+    [
+      'a method on the class header line',
+      "class PostCollection extends Collection<Contract, 'Post'> { using(tag: string) { return this.where({ tag }); } }",
+    ],
+    [
+      'a method on its own line',
+      "class PostCollection extends Collection<Contract, 'Post'> {\n  using(tag: string) {\n    return this.where({ tag });\n  }\n}",
+    ],
+  ])('finds %s', (_name, content) => {
+    expect(detects('app', 'orm-collection-member-using-reserved', content)).toBe(true);
+  });
+
+  it('skips a read of the using member', () => {
+    expect(
+      detects(
+        'app',
+        'orm-collection-member-using-reserved',
+        "class PostCollection extends Collection<Contract, 'Post'> { search(q: string) { return this.using.post_search(q); } }",
+      ),
+    ).toBe(false);
+  });
+});

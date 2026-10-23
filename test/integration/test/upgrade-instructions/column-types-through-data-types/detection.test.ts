@@ -68,6 +68,11 @@ describe('extension detection', () => {
       'column.typeText === other.typeText',
     ],
     [
+      'schema-ir-column-type-text',
+      "import type { SqlTableIR } from '@prisma/orm-family-sql/schema-ir/types';\nconst types = Object.values(table.columns).map((column) => column.nativeType);",
+      "import type { SqlTableIR } from '@prisma/orm-family-sql/schema-ir/types';\nconst types = Object.values(table.columns).map((column) => column.typeText);",
+    ],
+    [
       'default-resolver-takes-the-column',
       'parsePostgresDefault(raw, "text[]")',
       'readPostgresDefault(raw, true)',
