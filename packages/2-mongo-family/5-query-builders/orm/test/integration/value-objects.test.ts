@@ -201,6 +201,13 @@ describe('value objects in the Mongo ORM', { timeout: timeouts.spinUpMongoMemory
     const firstId = new ObjectId().toHexString();
     const secondId = new ObjectId().toHexString();
     await places.create({
+      address: { city: 'Paris', landmark: { label: 'Louvre', placeId: secondId } },
+      stops: [
+        { label: 'Châtelet', placeId: secondId },
+        { label: 'Bastille', placeId: firstId },
+      ],
+    });
+    await places.create({
       address: { city: 'Lyon', landmark: { label: 'Fourvière', placeId: firstId } },
       stops: [
         { label: 'Bellecour', placeId: firstId },
@@ -208,9 +215,9 @@ describe('value objects in the Mongo ORM', { timeout: timeouts.spinUpMongoMemory
       ],
     });
 
-    const found = await places.where(MongoFieldFilter.eq('stops.1.placeId', secondId)).all();
-    expect(found.map((place) => place.stops.map((stop) => stop.label))).toEqual([
-      ['Bellecour', 'Terreaux'],
-    ]);
+    const found = await places.where(MongoFieldFilter.eq('stops.1.placeId', secondId)).first();
+    expect(found).toMatchObject({
+      stops: [{ label: 'Bellecour' }, { label: 'Terreaux' }],
+    });
   });
 });
