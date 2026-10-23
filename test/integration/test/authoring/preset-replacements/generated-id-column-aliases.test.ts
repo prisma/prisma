@@ -42,7 +42,7 @@ async function emitted(
   return JSON.parse(await emit(interpreted.value));
 }
 
-describe('an identifier type alias on a key and the foreign key that copies it', () => {
+describe('a generated id column alias on a key and the foreign key that copies it', () => {
   it.each(ALIASES)(
     'on postgres, %s emits the contract Char(%i) emits',
     async (alias, length, generator) => {
@@ -69,6 +69,37 @@ describe('an identifier type alias on a key and the foreign key that copies it',
       expect(await emitted(interpretSqlite, emitSqlite, schema(`sql.${alias}`, generator))).toEqual(
         await emitted(interpretSqlite, emitSqlite, schema(`sql.Char(${length})`, generator)),
       );
+    },
+  );
+});
+
+function diagnosticsOf(interpret: (schema: string) => Interpreted, field: string) {
+  const interpreted = interpret(`model Token {\n  id    Int @id\n  value ${field}\n}\n`);
+  return interpreted.ok
+    ? []
+    : interpreted.failure.diagnostics.map(({ code, message }) => ({ code, message }));
+}
+
+describe('a generator on a generated id column alias', () => {
+  it.each([
+    [
+      'Ulid @onCreate(uuid())',
+      'uuid() writes 36 characters, which does not fit a column of 26 characters.',
+    ],
+    [
+      'sql.Ulid @onCreate(uuid())',
+      'uuid() writes 36 characters, which does not fit a column of 26 characters.',
+    ],
+    [
+      'Nanoid @onCreate(nanoid(30))',
+      'nanoid(30) writes 30 characters, which does not fit a column of 21 characters.',
+    ],
+  ] as const)(
+    'is refused on postgres when it writes more than the alias stores: %s',
+    (field, message) => {
+      expect(diagnosticsOf(interpretPostgres, field)).toEqual([
+        { code: 'PSL_GENERATOR_NOT_APPLICABLE', message: `Field "Token.value": ${message}` },
+      ]);
     },
   );
 });
