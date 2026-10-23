@@ -11,7 +11,7 @@ changes:
         - 'pg/(?:timestamptz-string|timestamp-string|date-string|time-string|timetz)@1'
   - id: date-style-iso-required
     summary: |
-      The PostgreSQL driver ensures `DateStyle=ISO` on every connection it uses, including a `pg.Pool` or `pg.Client` the application passes to Prisma, which it sets with a statement. A statement in the application that sets `DateStyle`, or a pooler that drops the startup option, makes every read of a date or timestamp fail with `RUNTIME.DATE_STYLE_NOT_ISO`.
+      The PostgreSQL driver ensures `DateStyle=ISO` on every connection it uses, including a `pg.Pool` or `pg.Client` the application passes to Prisma, which it sets with a statement. A statement in the application that sets a `DateStyle` other than `ISO`, or a pooler that drops the startup option, makes every read of a date or timestamp fail with `RUNTIME.DATE_STYLE_NOT_ISO`.
     detection:
       glob: "**/*.{ts,tsx,mts,cts,js,mjs,cjs}"
       matches:
@@ -55,4 +55,4 @@ The `now()` value of a `TimestampString(p)` or `TimestamptzString(p)` column is 
 
 The PostgreSQL driver now ensures `DateStyle=ISO` on every connection it uses. A connection Prisma opens from a URL starts with it as a startup option, after any `options` in the URL or `PGOPTIONS`. On a `pg.Pool` or `pg.Client` you pass to Prisma, the driver sets it with one statement on each connection before first use, and again after a connection held for a transaction, an ORM operation or a Supabase role scope is released. Nothing needs changing for either.
 
-Remove any statement that sets `DateStyle` on a connection Prisma uses, such as a `SET DateStyle` in a pool's `connect` handler or in raw SQL: every date and time codec that reads a date or timestamp (text, `Temporal` or `Date`) refuses text in another style with `RUNTIME.DATE_STYLE_NOT_ISO`. Behind a connection pooler that refuses startup options, pass Prisma your own `pg.Pool` instead of a URL; behind one that runs each statement on another server connection, also run `ALTER ROLE <role> SET DateStyle = 'ISO'` (or set it on the database).
+Remove any statement that sets a `DateStyle` other than `ISO` on a connection Prisma uses, such as a `SET DateStyle` in a pool's `connect` handler or in raw SQL: every date and time codec that reads a date or timestamp (text, `Temporal` or `Date`) refuses text in another style with `RUNTIME.DATE_STYLE_NOT_ISO`. Behind a connection pooler that refuses startup options, pass Prisma your own `pg.Pool` instead of a URL; behind one that runs each statement on another server connection, also run `ALTER ROLE <role> SET DateStyle = 'ISO'` (or set it on the database).

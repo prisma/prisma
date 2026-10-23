@@ -111,13 +111,13 @@ A codec never sets a session setting. If a connection does not have the setting,
 
 ### How to pass driver create options when stack instantiation calls `create()` with no args
 
-Because `instantiateExecutionStack(...)` calls `descriptor.create()` with no arguments, the supported pattern is to **curry options into the descriptor** (i.e. wrap `create()`):
+Because `instantiateExecutionStack(...)` calls `descriptor.create()` with no driver options, the supported pattern is to **curry options into the descriptor** (i.e. wrap `create()`). The wrapper passes on the session settings the stack hands it:
 
 ```ts
 const driverWithCursor = {
   ...postgresDriverDescriptor,
-  create() {
-    return postgresDriverDescriptor.create({ cursor });
+  create(_options, sessionSettings) {
+    return postgresDriverDescriptor.create({ cursor }, sessionSettings);
   },
 };
 ```
