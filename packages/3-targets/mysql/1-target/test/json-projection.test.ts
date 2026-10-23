@@ -32,13 +32,13 @@ describe('MySQL codecs project a column into JSON as the row form reads it', () 
     );
   });
 
-  it('renders a datetime as text, so its fraction digits match the row form', () => {
+  it('passes a datetime through, whose JSON text the codec reads as the row form', () => {
     expect(
       mysqlDatetimeDescriptor.projectJson(column, {
         codecId: 'mysql/datetime@1',
         typeParams: { precision: 3 },
       }),
-    ).toEqual(CastExpr.as(column, 'CHAR'));
+    ).toBe(column);
   });
 
   it('refuses a raw column, whose JSON form no codec knows', () => {

@@ -185,6 +185,46 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     );
   });
 
+  it('reads each column type from the binary protocol in the form its codec takes', async (test) => {
+    await withMysqlDatabase(test, ({ url }) =>
+      withDriver(url, async (driver) => {
+        await driver.execute({
+          sql: "CREATE TABLE t (i INT, b BIGINT, ub BIGINT UNSIGNED, d DECIMAL(65,30), dt DATETIME(3), dd DATE, tm TIME(3), j JSON, vc VARCHAR(10), c CHAR(3), tx TEXT, e ENUM('A','B'), vb VARBINARY(4), f FLOAT, y YEAR)",
+        });
+        await driver.execute({
+          sql: "INSERT INTO t VALUES (?1, ?2, ?3, ?4, ?5, '2026-10-23', '01:02:03.450', '{\"a\": 1}', ?6, 'ab', 'tx', 'B', X'00ff', 0.1, 2026)",
+          params: [
+            -7,
+            9223372036854775807n,
+            '18446744073709551615',
+            '1.000000000000000000000000000001',
+            '2026-10-23 01:02:03.456',
+            "ħ\\'",
+          ],
+        });
+        expect(await collect(driver.query({ sql: 'SELECT * FROM t' }))).toEqual([
+          {
+            i: -7,
+            b: '9223372036854775807',
+            ub: '18446744073709551615',
+            d: '1.000000000000000000000000000001',
+            dt: '2026-10-23 01:02:03.456',
+            dd: '2026-10-23',
+            tm: '01:02:03.45',
+            j: '{"a": 1}',
+            vc: "ħ\\'",
+            c: 'ab',
+            tx: 'tx',
+            e: 'B',
+            vb: Buffer.from([0, 255]),
+            f: 0.10000000149011612,
+            y: 2026,
+          },
+        ]);
+      }),
+    );
+  });
+
   it('sets up every connection: no backslash escapes mode and UTC', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {

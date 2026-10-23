@@ -39,7 +39,6 @@ import {
   UpdateAst,
   WindowFuncExpr,
 } from '@internal/sql-relational-core/ast';
-import type { MysqlCodecDescriptorRegistry } from '@internal/target-mysql/codec-descriptor';
 import { createMysqlBuiltinCodecLookup } from '@internal/target-mysql/codecs';
 import { describe, expect, it } from 'vitest';
 import { renderMysqlSql } from '../src/core/sql-renderer';
@@ -74,7 +73,7 @@ describe('MySQL lowering of a select', () => {
     ).toEqual([{ kind: 'bind', name: 'email' }]);
   });
 
-  it('casts a bigint param to SIGNED, so MySQL compares it with an integer column as an integer', () => {
+  it('writes a bigint param as a plain placeholder, which the driver binds as an integer', () => {
     const big = ColumnRef.of('t', 'big');
     expect([
       sqlOf(
@@ -104,36 +103,11 @@ describe('MySQL lowering of a select', () => {
         ),
       ),
     ]).toEqual([
-      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` = CAST(?1 AS SIGNED)',
-      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` IN (CAST(?1 AS SIGNED))',
-      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` = CAST(?1 AS SIGNED)',
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` = ?1',
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` IN (?1)',
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` = ?1',
       'SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`id` = ?1',
     ]);
-  });
-
-  it('casts a param by its data type, so any codec over a bigint column compares as an integer', () => {
-    const bigintDescriptor = codecs.descriptorFor('mysql/bigint@1');
-    const withCounterCodec: MysqlCodecDescriptorRegistry = {
-      descriptorFor: (codecId) =>
-        codecId === 'ext/counter@1'
-          ? Object.assign(Object.create(bigintDescriptor ?? null), { codecId })
-          : codecs.descriptorFor(codecId),
-      values: () => codecs.values(),
-    };
-    const ast = selectId.withWhere(
-      BinaryExpr.eq(id, ParamRef.of(1n, { codec: { codecId: 'ext/counter@1' } })),
-    );
-    expect(renderMysqlSql(ast, undefined, withCounterCodec).sql).toBe(
-      'SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`id` = CAST(?1 AS SIGNED)',
-    );
-  });
-
-  it('refuses a param whose codec the registry lacks', () => {
-    expect(() =>
-      sqlOf(
-        selectId.withWhere(BinaryExpr.eq(id, ParamRef.of(1, { codec: { codecId: 'pg/x@1' } }))),
-      ),
-    ).toThrow(expect.objectContaining({ code: 'RUNTIME.PARAM_REF_MISSING_CODEC' }));
   });
 
   it('numbers params in the order the runtime encodes them', () => {
@@ -444,7 +418,7 @@ describe('MySQL lowering of JSON for includes', () => {
     JsonObjectExpr.entry('posts', new JsonDocumentProjection(rows('posts'))),
   ]);
   const objectSql =
-    "JSON_OBJECT('id', `rows`.`id`, 'big', CAST(`rows`.`big` AS CHAR), 'at', CAST(`rows`.`at` AS CHAR), 'raw', `rows`.`raw`, 'posts', `rows`.`posts`)";
+    "JSON_OBJECT('id', `rows`.`id`, 'big', CAST(`rows`.`big` AS CHAR), 'at', `rows`.`at`, 'raw', `rows`.`raw`, 'posts', `rows`.`posts`)";
 
   it('builds an object with JSON_OBJECT, each value projected by its codec', () => {
     expect(projectionOf(object)).toBe(`SELECT ${objectSql} AS \`v\``);

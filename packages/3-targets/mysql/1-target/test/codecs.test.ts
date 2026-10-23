@@ -44,7 +44,7 @@ describe('MySQL codecs read the text MySQL sends', () => {
   it('reads a bigint from its decimal text without losing digits', async () => {
     const codec = mysqlBigintDescriptor.factory()(instance);
     expect(await codec.fromWire('9007199254740993', ctx)).toBe(9007199254740993n);
-    expect(await codec.toWire(9007199254740993n, ctx)).toBe('9007199254740993');
+    expect(await codec.toWire(9007199254740993n, ctx)).toBe(9007199254740993n);
     await expect(codec.fromWire('x', ctx)).rejects.toThrow(/decimal text/);
     expect(codec.toDataTypeValue(12n)).toEqual(value(mysqlBigint, '12'));
     expect(codec.fromDataTypeValue(value(mysqlBigint, '12'))).toBe(12n);
@@ -129,7 +129,7 @@ describe('the MySQL bigint codec', () => {
     expect([
       await codec.toWire(2n ** 63n - 1n, ctx),
       await codec.toWire(-(2n ** 63n), ctx),
-    ]).toEqual(['9223372036854775807', '-9223372036854775808']);
+    ]).toEqual([2n ** 63n - 1n, -(2n ** 63n)]);
     for (const value of [2n ** 63n, -(2n ** 63n) - 1n, 2n ** 64n - 1n]) {
       await expect(codec.toWire(value, ctx)).rejects.toMatchObject({
         code: 'RUNTIME.ENCODE_FAILED',

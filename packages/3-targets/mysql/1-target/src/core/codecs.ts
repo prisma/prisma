@@ -50,7 +50,7 @@ const BIGINT_MAX = 2n ** 63n - 1n;
 /** Projects a column whose JSON form, a number or a string, is what its `fromWire` reads. */
 const identityJsonProjection = (expression: ProjectionExpr): ProjectionExpr => expression;
 
-/** Projects a column as the text MySQL sends for it in a row: a bigint past 2^53 keeps every digit, and a datetime keeps its column's fraction digits instead of JSON's six. */
+/** Projects a bigint as its decimal text: a JSON number past 2^53 would lose digits when JavaScript parses the include. */
 const textJsonProjection = (expression: ProjectionExpr): ProjectionExpr =>
   CastExpr.as(expression, 'CHAR');
 
@@ -173,14 +173,14 @@ export class MysqlIntDescriptor extends MysqlCodecDescriptor<void> {
 
 export const mysqlIntDescriptor = new MysqlIntDescriptor();
 
-/** A MySQL `bigint` as a JavaScript bigint. MySQL sends it as decimal text. */
+/** A MySQL `bigint` as a JavaScript bigint. The driver reads it as its decimal text and sends a bigint as a 64-bit integer, which MySQL compares exactly. */
 export class MysqlBigintCodec extends CodecImpl<
   typeof MYSQL_BIGINT_CODEC_ID,
   readonly ['equality', 'order', 'numeric'],
-  string,
+  string | bigint,
   bigint
 > {
-  async toWire(value: bigint, _ctx: CodecCallContext): Promise<string> {
+  async toWire(value: bigint, _ctx: CodecCallContext): Promise<bigint> {
     if (typeof value !== 'bigint' || value < BIGINT_MIN || value > BIGINT_MAX) {
       return encodeFailed(
         MYSQL_BIGINT_CODEC_ID,
@@ -188,9 +188,10 @@ export class MysqlBigintCodec extends CodecImpl<
         value,
       );
     }
-    return value.toString();
+    return value;
   }
-  async fromWire(wire: string, _ctx: CodecCallContext): Promise<bigint> {
+  async fromWire(wire: string | bigint, _ctx: CodecCallContext): Promise<bigint> {
+    if (typeof wire === 'bigint') return wire;
     if (!DECIMAL_INTEGER.test(wire)) {
       return decodeFailed(MYSQL_BIGINT_CODEC_ID, 'the decimal text of an integer', wire);
     }
@@ -273,7 +274,7 @@ export class MysqlDatetimeDescriptor extends MysqlCodecDescriptor<DatetimeParams
   override readonly traits = ['equality', 'order'] as const;
   override readonly paramsSchema = mysqlDatetimeParams;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
-    return textJsonProjection(expression);
+    return identityJsonProjection(expression);
   }
   override factory(params: DatetimeParams): (ctx: CodecInstanceContext) => MysqlDatetimeCodec {
     return () => new MysqlDatetimeCodec(this, mysqlDatetime, params);
