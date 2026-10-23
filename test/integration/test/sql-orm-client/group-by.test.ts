@@ -258,6 +258,9 @@ describe('integration/groupBy', () => {
         expect(() => posts.groupBy('userId').having((having) => having.count().gt(1.5))).toThrow(
           expect.objectContaining({ code: 'ORM.ARGUMENT_INVALID' }),
         );
+        expect(() =>
+          posts.groupBy('userId').having((having) => having.count().gt(2 ** 60)),
+        ).toThrow(expect.objectContaining({ code: 'ORM.ARGUMENT_INVALID' }));
       });
     },
     timeouts.spinUpPpgDev,

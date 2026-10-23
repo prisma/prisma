@@ -415,16 +415,15 @@ function createHavingBuilder<
 type IntegerOf = (codecId: string) => 'number' | 'bigint' | undefined;
 
 /**
- * A literal comparand as the aggregate's output codec takes it, read from the codec's declared `integer`. A codec whose values are integers takes only an integer: a number with a fraction, or past the safe range for a bigint codec, is refused. A codec that declares `'bigint'` gets a number as a bigint.
+ * A literal comparand as the aggregate's output codec takes it, read from the codec's declared `integer`. A codec whose values are integers takes only a safe integer number: a number with a fraction, or past the safe range, is refused. A codec that declares `'bigint'` gets a number as a bigint.
  */
 function havingComparand(value: unknown, codecId: string, integer: IntegerOf): unknown {
   const kind = integer(codecId);
   if (typeof value !== 'number' || kind === undefined) return value;
-  const valid = kind === 'bigint' ? Number.isSafeInteger(value) : Number.isInteger(value);
-  if (!valid) {
+  if (!Number.isSafeInteger(value)) {
     throw ormError(
       'ORM.ARGUMENT_INVALID',
-      `A having comparand for the integer codec ${codecId} must be ${kind === 'bigint' ? 'a bigint or a safe integer' : 'an integer'}, got ${value}`,
+      `A having comparand for the integer codec ${codecId} must be ${kind === 'bigint' ? 'a bigint or a safe integer' : 'a safe integer'}, got ${value}`,
       { meta: { codecId, received: String(value) } },
     );
   }
