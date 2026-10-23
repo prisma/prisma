@@ -2,7 +2,13 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import pg from 'pg';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { isoDateStyleConnectionConfig } from '../src/iso-date-style';
+import { pgConnectionConfig } from '../src/session-settings';
+
+const SETTINGS = { DateStyle: 'ISO' } as const;
+
+function fromUrl(url: string) {
+  return pgConnectionConfig({ connectionString: url }, SETTINGS);
+}
 
 const CONNECTION_FIELDS = [
   'user',
@@ -76,7 +82,7 @@ describe('a pg client built from the settings of a URL', () => {
   });
 
   it.each(URLS)('connects as pg does from the connection string %s', (url) => {
-    expect(connectsWith(new pg.Client(isoDateStyleConnectionConfig(url)))).toEqual(
+    expect(connectsWith(new pg.Client(fromUrl(url)))).toEqual(
       connectsWith(new pg.Client({ connectionString: url })),
     );
   });
@@ -86,39 +92,57 @@ describe('a pg client built from the settings of a URL', () => {
     (url) => {
       vi.stubEnv('PGSSLMODE', 'require');
       vi.stubEnv('PGAPPNAME', 'envapp');
-      expect(connectsWith(new pg.Client(isoDateStyleConnectionConfig(url)))).toEqual(
+      expect(connectsWith(new pg.Client(fromUrl(url)))).toEqual(
         connectsWith(new pg.Client({ connectionString: url })),
       );
     },
   );
 
   it('keeps TLS on without certificate checks for ssl=no-verify', () => {
-    const client = new pg.Client(
-      isoDateStyleConnectionConfig('postgres://u:p@localhost/db?ssl=no-verify'),
-    );
+    const client = new pg.Client(fromUrl('postgres://u:p@localhost/db?ssl=no-verify'));
     expect(Reflect.get(client, 'ssl')).toEqual({ rejectUnauthorized: false });
   });
 
   it.each(['true', 'false'])('reads text rows when the URL says binary=%s', (binary) => {
-    const client = new pg.Client(
-      isoDateStyleConnectionConfig(`postgres://u:p@localhost/db?binary=${binary}`),
-    );
+    const client = new pg.Client(fromUrl(`postgres://u:p@localhost/db?binary=${binary}`));
     expect(Reflect.get(client, 'binary')).toBe(false);
   });
 });
 
-describe('the connection settings of a connection Prisma opens from a URL', () => {
+describe('the connection settings of a connection Prisma opens', () => {
+  it('send each session setting as a startup option, escaping spaces and backslashes', () => {
+    expect(
+      pgConnectionConfig(
+        { connectionString: 'postgres://db.example.com/app' },
+        { DateStyle: 'ISO', search_path: 'my schema', application_name: 'a\\b' },
+      ).options,
+    ).toBe('-c DateStyle=ISO -c search_path=my\\ schema -c application_name=a\\\\b');
+  });
+
+  it('keep the settings given beside the connection string', () => {
+    expect(
+      pgConnectionConfig(
+        { connectionString: 'postgres://db.example.com/app', connectionTimeoutMillis: 5 },
+        SETTINGS,
+      ).connectionTimeoutMillis,
+    ).toBe(5);
+  });
+
+  it('add no startup options when the target declares no settings', () => {
+    expect(
+      pgConnectionConfig({ connectionString: 'postgres://db.example.com/app' }, {}).options,
+    ).toBeUndefined();
+  });
+
   it('set DateStyle=ISO as a startup option', () => {
     expect(
-      isoDateStyleConnectionConfig(
-        'postgres://someone:secret@db.example.com:6543/app?application_name=reports',
-      ).options,
+      fromUrl('postgres://someone:secret@db.example.com:6543/app?application_name=reports').options,
     ).toBe('-c DateStyle=ISO');
   });
 
   it('add DateStyle=ISO after the startup options the URL gives, so it wins over a DateStyle there', () => {
     expect(
-      isoDateStyleConnectionConfig(
+      fromUrl(
         'postgres://db.example.com/app?options=-c%20search_path%3Dreports%20-c%20DateStyle%3DGerman',
       ).options,
     ).toBe('-c search_path=reports -c DateStyle=German -c DateStyle=ISO');
@@ -132,7 +156,7 @@ describe('the connection settings of a connection Prisma opens from a URL', () =
     it('add DateStyle=ISO after PGOPTIONS when the URL gives no options, as pg reads PGOPTIONS then', () => {
       vi.stubEnv('PGOPTIONS', '-c search_path=reports');
 
-      expect(isoDateStyleConnectionConfig('postgres://db.example.com/app').options).toBe(
+      expect(fromUrl('postgres://db.example.com/app').options).toBe(
         '-c search_path=reports -c DateStyle=ISO',
       );
     });
@@ -140,15 +164,14 @@ describe('the connection settings of a connection Prisma opens from a URL', () =
     it('add DateStyle=ISO after the URL options, which pg reads in place of PGOPTIONS', () => {
       vi.stubEnv('PGOPTIONS', '-c search_path=reports');
 
-      expect(
-        isoDateStyleConnectionConfig('postgres://db.example.com/app?options=-c%20work_mem%3D64MB')
-          .options,
-      ).toBe('-c work_mem=64MB -c DateStyle=ISO');
+      expect(fromUrl('postgres://db.example.com/app?options=-c%20work_mem%3D64MB').options).toBe(
+        '-c work_mem=64MB -c DateStyle=ISO',
+      );
     });
   });
 
   it('pass on only the connection settings pg reads from a URL, so a query parameter cannot set up the pool or the socket', () => {
-    const config = isoDateStyleConnectionConfig(
+    const config = fromUrl(
       'postgres://db.example.com/app?max=3&keepAlive=false&idleTimeoutMillis=1',
     );
     const pool = new pg.Pool(config);

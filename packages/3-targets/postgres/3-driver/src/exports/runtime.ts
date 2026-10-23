@@ -1,3 +1,4 @@
+import type { SessionSettings } from '@internal/framework-components/components';
 import type {
   RuntimeDriverDescriptor,
   RuntimeDriverInstance,
@@ -9,6 +10,7 @@ import type {
   SqlExplainResult,
   SqlStatementStats,
 } from '@internal/sql-relational-core/ast';
+import { ifDefined } from '@internal/utils/defined';
 import { postgresDriverDescriptorMeta } from '../core/descriptor-meta';
 import { driverError } from '../driver-error';
 import {
@@ -56,10 +58,12 @@ class PostgresUnboundDriverImpl implements PostgresRuntimeDriver {
   #disconnectedState: DisconnectedState = 'unbound';
   #cursorOpts: PostgresDriverCreateOptions['cursor'];
   #preparedStatements: PostgresDriverCreateOptions['preparedStatements'];
+  #sessionSettings: PostgresDriverCreateOptions['sessionSettings'];
 
   constructor(options?: PostgresDriverCreateOptions) {
     this.#cursorOpts = options?.cursor;
     this.#preparedStatements = options?.preparedStatements;
+    this.#sessionSettings = options?.sessionSettings;
   }
 
   get state(): 'unbound' | 'connected' | 'closed' {
@@ -89,6 +93,7 @@ class PostgresUnboundDriverImpl implements PostgresRuntimeDriver {
     }
     this.#delegate = createBoundDriverFromBinding(binding, this.#cursorOpts, {
       preparedStatements: this.#preparedStatements,
+      sessionSettings: this.#sessionSettings,
     });
     this.#disconnectedState = 'unbound';
   }
@@ -174,16 +179,22 @@ const postgresRuntimeDriverDescriptor: RuntimeDriverDescriptor<
   PostgresRuntimeDriver
 > = {
   ...postgresDriverDescriptorMeta,
-  create(options?: PostgresDriverCreateOptions): PostgresRuntimeDriver {
-    return new PostgresUnboundDriverImpl(options);
+  create(
+    options?: PostgresDriverCreateOptions,
+    sessionSettings?: SessionSettings,
+  ): PostgresRuntimeDriver {
+    return new PostgresUnboundDriverImpl({
+      ...options,
+      ...ifDefined('sessionSettings', sessionSettings),
+    });
   },
 };
 
 export default postgresRuntimeDriverDescriptor;
 export { suppressIdleConnectionErrors } from '@internal/utils/suppress-idle-connection-errors';
-export { isoDateStyleConnectionConfig } from '../iso-date-style';
 export type {
   PostgresBinding,
   PostgresDriverCreateOptions,
   QueryResult,
 } from '../postgres-driver';
+export { createPgClient, createPgPool } from '../session-settings';
