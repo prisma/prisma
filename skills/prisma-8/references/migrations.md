@@ -475,7 +475,7 @@ When the error names an extension's contract space (`meta.spaceId` is not `app`)
 Reconcile it to the target with `db update`:
 
 1. `prisma db update --db $DATABASE_URL --to <target> --dry-run`, and read every operation, above all every drop.
-2. `db update` does not run data transforms or seed steps. List the migrations between `meta.lastGraphHash` and the target (`prisma migration list`), open each one's `migration.ts`, and read its data transforms. For each transform whose data matters:
+2. `db update` does not run data transforms or seed steps. Read the data transforms of every migration it skips: those in `meta.missingMigrations`, in ledger order (`prisma migration log`), recovered from the git commits that held them, and those on disk between `meta.lastGraphHash` and the target (`prisma migration list`, then each one's `migration.ts`). If a missing migration's source cannot be recovered, stop and ask a person. For each transform whose data matters:
    - if it moves data into a new column or table, create that column or table by hand and copy the data with SQL, the way the transform would;
    - if it inserts rows the application needs, insert them by hand.
 
