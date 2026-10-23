@@ -56,31 +56,3 @@ describe('MySQL codecs project a column into JSON as the row form reads it', () 
     ).toThrow(expect.objectContaining({ code: 'RUNTIME.CODEC_DESCRIPTOR_ARRAY_UNSUPPORTED' }));
   });
 });
-
-describe('MySQL codecs cast their parameters where MySQL would compare the text wrongly', () => {
-  it('casts only a bigint parameter, to SIGNED', () => {
-    expect(
-      Object.fromEntries(
-        [
-          mysqlIntDescriptor,
-          mysqlBigintDescriptor,
-          mysqlTextDescriptor,
-          mysqlSqlVarcharDescriptor,
-          mysqlSqlCharDescriptor,
-          mysqlEnumDescriptor,
-          mysqlDatetimeDescriptor,
-          mysqlSqlRawDescriptor,
-        ].map((descriptor) => [descriptor.codecId, descriptor.parameterCastType]),
-      ),
-    ).toEqual({
-      'mysql/int@1': undefined,
-      'mysql/bigint@1': 'SIGNED',
-      'mysql/text@1': undefined,
-      'sql/varchar@1': undefined,
-      'sql/char@1': undefined,
-      'mysql/enum@1': undefined,
-      'mysql/datetime@1': undefined,
-      'sql/raw@1': undefined,
-    });
-  });
-});

@@ -37,6 +37,7 @@ import type {
 } from '@internal/sql-relational-core/ast';
 import type { MysqlCodecDescriptorRegistry } from '@internal/target-mysql/codec-descriptor';
 import { encodeMysqlDatetime } from '@internal/target-mysql/codecs';
+import { mysqlBigint } from '@internal/target-mysql/data-types';
 import { mysqlError, mysqlQueryNotYetSupported } from '@internal/target-mysql/errors';
 import { escapeLiteral, quoteIdentifier } from '@internal/target-mysql/sql-utils';
 import { assertNever, InternalError } from '@internal/utils/internal-error';
@@ -382,15 +383,21 @@ function descriptorOf(codec: CodecRef, ctx: RenderContext, use: string) {
   return descriptor;
 }
 
+/**
+ * The `CAST` target a parameter of each data type is written with. The driver sends every value as text; MySQL converts text compared with a plain column to the column's type, but compares it with an integer expression as a double, which loses a bigint's digits past 2^53.
+ */
+const PARAMETER_CASTS: ReadonlyMap<string, string> = new Map([[mysqlBigint.id, 'SIGNED']]);
+
 function renderParam(ref: ParamRef | PreparedParamRef, ctx: RenderContext): string {
   ctx.params.push(
     ref.kind === 'prepared-param-ref'
       ? { kind: 'bind', name: ref.name }
       : { kind: 'literal', value: ref.value },
   );
-  const codec = ref.codec;
   const castType =
-    codec === undefined ? undefined : descriptorOf(codec, ctx, 'a parameter').parameterCastType;
+    ref.codec === undefined
+      ? undefined
+      : PARAMETER_CASTS.get(descriptorOf(ref.codec, ctx, 'a parameter').dataType);
   return castType === undefined ? '?' : `CAST(? AS ${castType})`;
 }
 

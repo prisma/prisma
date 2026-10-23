@@ -39,6 +39,7 @@ import {
   UpdateAst,
   WindowFuncExpr,
 } from '@internal/sql-relational-core/ast';
+import type { MysqlCodecDescriptorRegistry } from '@internal/target-mysql/codec-descriptor';
 import { createMysqlBuiltinCodecLookup } from '@internal/target-mysql/codecs';
 import { describe, expect, it } from 'vitest';
 import { renderMysqlSql } from '../src/core/sql-renderer';
@@ -108,6 +109,23 @@ describe('MySQL lowering of a select', () => {
       'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` = CAST(? AS SIGNED)',
       'SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`id` = ?',
     ]);
+  });
+
+  it('casts a param by its data type, so any codec over a bigint column compares as an integer', () => {
+    const bigintDescriptor = codecs.descriptorFor('mysql/bigint@1');
+    const withCounterCodec: MysqlCodecDescriptorRegistry = {
+      descriptorFor: (codecId) =>
+        codecId === 'ext/counter@1'
+          ? Object.assign(Object.create(bigintDescriptor ?? null), { codecId })
+          : codecs.descriptorFor(codecId),
+      values: () => codecs.values(),
+    };
+    const ast = selectId.withWhere(
+      BinaryExpr.eq(id, ParamRef.of(1n, { codec: { codecId: 'ext/counter@1' } })),
+    );
+    expect(renderMysqlSql(ast, undefined, withCounterCodec).sql).toBe(
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`id` = CAST(? AS SIGNED)',
+    );
   });
 
   it('refuses a param whose codec the registry lacks', () => {

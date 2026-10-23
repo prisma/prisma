@@ -209,8 +209,6 @@ export class MysqlBigintDescriptor extends MysqlCodecDescriptor<void> {
   override readonly codecId = MYSQL_BIGINT_CODEC_ID;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
   override readonly paramsSchema = undefined;
-  /** mysql2 sends a bigint as quoted text, which MySQL compares with an integer expression as a double, losing digits past 2^53. */
-  override readonly parameterCastType = 'SIGNED';
   override renderValueLiteral(value: JsonValue): string | undefined {
     return decimalTextBigintLiteral(value);
   }
