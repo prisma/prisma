@@ -104,6 +104,7 @@ class MysqlCodecDescriptorAdapter<
     value: JsonValue,
     side: 'output' | 'input',
   ) => string | undefined;
+  declare readonly integer?: 'number' | 'bigint';
 
   constructor(
     descriptor: D,
@@ -117,6 +118,9 @@ class MysqlCodecDescriptorAdapter<
       StandardSchemaV1<DescriptorParams<D>> | undefined,
       'the data type the codec represents declares the parameters the codec takes'
     >(options.dataType.params);
+    if (descriptor.integer !== undefined) {
+      this.integer = descriptor.integer;
+    }
     if (descriptor.renderValueLiteral !== undefined) {
       throw new InternalError(
         `${descriptor.codecId} is a family codec template with its own renderValueLiteral; pass renderValueLiteral in the options instead.`,

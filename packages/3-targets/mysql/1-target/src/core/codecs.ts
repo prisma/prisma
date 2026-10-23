@@ -158,6 +158,7 @@ export class MysqlIntCodec extends CodecImpl<
 export class MysqlIntDescriptor extends MysqlCodecDescriptor<void> {
   override readonly dataType = mysqlInt.id;
   override readonly codecId = MYSQL_INT_CODEC_ID;
+  override readonly integer = 'number' as const;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
   override readonly paramsSchema = undefined;
   override renderValueLiteral(value: JsonValue): string | undefined {
@@ -208,6 +209,7 @@ export class MysqlBigintCodec extends CodecImpl<
 export class MysqlBigintDescriptor extends MysqlCodecDescriptor<void> {
   override readonly dataType = mysqlBigint.id;
   override readonly codecId = MYSQL_BIGINT_CODEC_ID;
+  override readonly integer = 'bigint' as const;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
   override readonly paramsSchema = undefined;
   override renderValueLiteral(value: JsonValue): string | undefined {

@@ -285,6 +285,24 @@ describe('grouped having on SQLite', { timeout: timeouts.databaseOperation }, ()
   });
 });
 
+describe('grouped having over an integer aggregate on SQLite', {
+  timeout: timeouts.databaseOperation,
+}, () => {
+  it('refuses a fractional comparand before running the statement', async () => {
+    await withPostsRuntime(async (_runtime, posts) => {
+      expect(() =>
+        posts.groupBy('userId').having((having) => having.max('views').gt(15.5)),
+      ).toThrow(expect.objectContaining({ code: 'ORM.ARGUMENT_INVALID' }));
+      expect(() => posts.groupBy('userId').having((having) => having.count().gt(1.5))).toThrow(
+        expect.objectContaining({ code: 'ORM.ARGUMENT_INVALID' }),
+      );
+      expect(() =>
+        posts.groupBy('userId').having((having) => having.max('lifetime').gt(15.5)),
+      ).toThrow(expect.objectContaining({ code: 'ORM.ARGUMENT_INVALID' }));
+    });
+  });
+});
+
 describe('grouped having over a bigint column on SQLite', {
   timeout: timeouts.databaseOperation,
 }, () => {

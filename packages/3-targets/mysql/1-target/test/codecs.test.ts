@@ -1,5 +1,5 @@
 import type { JsonValue } from '@internal/contract/types';
-import type { DataTypeValue } from '@internal/framework-components/codec';
+import type { AnyCodecDescriptor, DataTypeValue } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
 import {
   buildMysqlCodecDescriptorRegistry,
@@ -135,5 +135,24 @@ describe('the MySQL bigint codec', () => {
         code: 'RUNTIME.ENCODE_FAILED',
       });
     }
+  });
+});
+
+describe("each codec's integer declaration", () => {
+  it('is declared by the integer codecs, and names the JavaScript type each reads an integer back as', async () => {
+    const { codecDescriptors } = await import('../src/core/codecs');
+    const descriptors: readonly AnyCodecDescriptor[] = codecDescriptors;
+    const declared = descriptors.flatMap((descriptor) =>
+      descriptor.integer === undefined ? [] : [{ descriptor, integer: descriptor.integer }],
+    );
+    const readBack = declared.map(({ descriptor, integer }) => {
+      const codec = descriptor.factory(undefined)({ name: 'integer' });
+      const seven = codec.fromDataTypeValue(codec.toDataTypeValue(integer === 'bigint' ? 7n : 7));
+      return [descriptor.codecId, typeof seven];
+    });
+    expect(readBack).toEqual([
+      ['mysql/int@1', 'number'],
+      ['mysql/bigint@1', 'bigint'],
+    ]);
   });
 });

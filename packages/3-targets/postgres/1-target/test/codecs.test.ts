@@ -1,4 +1,5 @@
 import type {
+  AnyCodecDescriptor,
   AnyCodecDescriptorTemplate,
   CodecInstanceContext,
   DataType,
@@ -413,5 +414,29 @@ describe('adapter-postgres codecs', () => {
     it('claims no traits, so no comparison, ordering or text operation applies to a tsquery', () => {
       expect(postgresCodecRegistry.descriptorFor('pg/tsquery@1')?.traits).toEqual([]);
     });
+  });
+});
+
+describe("each codec's integer declaration", () => {
+  it('is declared by the integer codecs, and names the JavaScript type each reads an integer back as', async () => {
+    const { codecDescriptors } = await import('../src/core/codecs');
+    const descriptors: readonly AnyCodecDescriptor[] = codecDescriptors;
+    const declared = descriptors.flatMap((descriptor) =>
+      descriptor.integer === undefined ? [] : [{ descriptor, integer: descriptor.integer }],
+    );
+    const readBack = declared.map(({ descriptor, integer }) => {
+      const codec = descriptor.factory(undefined)({ name: 'integer' });
+      const seven = codec.fromDataTypeValue(codec.toDataTypeValue(integer === 'bigint' ? 7n : 7));
+      return [descriptor.codecId, typeof seven];
+    });
+    expect(readBack).toEqual([
+      ['sql/int@1', 'number'],
+      ['pg/int@1', 'number'],
+      ['pg/int4@1', 'number'],
+      ['pg/int2@1', 'number'],
+      ['pg/int8@1', 'bigint'],
+      ['pg/int8number@1', 'number'],
+      ['pg/unboundedint@1', 'bigint'],
+    ]);
   });
 });
