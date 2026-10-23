@@ -430,7 +430,7 @@ changes:
     script: ./scripts/remove-nocheck/remove-nocheck.ts
   - id: sqlite-contracts-name-datetime-and-json-data-types
     summary: |
-      An extension that ships a SQLite contract space: a column whose codec is `sqlite/datetime@1` or `sqlite/json@1` names its own data type (`sqlite/datetime`, `sqlite/json`) instead of `sqlite/text`, and a datetime default or enum value is stored with exactly three fraction digits. The CLI refuses the old form. Run `scripts/data-type-values/data-type-values.ts` from the extension's package root, as the app guide's section of this name describes. It rewrites the contract and its migration snapshots and their hashes. The storage hash changes, so tell the applications that use the extension to run `prisma db sign` after they upgrade.
+      An extension that ships a SQLite contract space: a column whose codec is `sqlite/datetime@1` or `sqlite/json@1` names its own data type (`sqlite/datetime`, `sqlite/json`) instead of `sqlite/text`, and a datetime default or enum value is stored with exactly three fraction digits. The CLI refuses the old form. Run `scripts/data-type-values/data-type-values.ts` from the extension's package root, as the section of this name below describes. It rewrites the contract and its migration snapshots and their hashes. The storage hash changes, so tell the applications that use the extension to run `prisma db sign` after they upgrade.
     detection:
       glob: "**/*.json"
       matches:
@@ -438,7 +438,7 @@ changes:
     script: ./scripts/data-type-values/data-type-values.ts
   - id: mongo-contracts-record-stored-field-names
     summary: |
-      An extension that ships a MongoDB contract space: a MongoDB contract records each field's stored name in `model.storage.fields`, and a contract without it is refused with `CONTRACT.VALIDATION_FAILED`. Re-emit the bundled contract, then run `scripts/mongo-field-storage-names/mongo-field-storage-names.ts` from the extension's package root to rewrite the migration snapshots, as the app guide's section of this name describes. Storage hashes do not change.
+      An extension that ships a MongoDB contract space: a MongoDB contract records each field's stored name in `model.storage.fields`, and a contract without it is refused with `CONTRACT.VALIDATION_FAILED`. Re-emit the bundled contract, then run `scripts/mongo-field-storage-names/mongo-field-storage-names.ts` from the extension's package root to rewrite the migration snapshots, as the section of this name below describes. Storage hashes do not change.
     detection:
       glob: "**/*.json"
       matches:
@@ -447,7 +447,7 @@ changes:
     script: ./scripts/mongo-field-storage-names/mongo-field-storage-names.ts
   - id: date-time-interval-and-bytes-defaults-use-tags
     summary: |
-      In the PSL source of an extension's contract, a date, time, interval or bytes default is written with its type's tag instead of a quoted string, such as `@default(timestamptz`2024-01-01T00:00:00Z`)` or `@default(bytea`\x0102`)`. `contract emit` refuses the quoted form and names the tag to write. The app guide's section of this name, in `../../../app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/`, lists every tag. The detection matches Prisma 8 schema files with a quoted default that looks like a date or an interval, or that sits on a date, time, interval or bytes column. It skips a quoted time such as `"12:30"` on a column whose type is a type alias, because a `String` default can look the same; `contract emit` names such a default.
+      In the PSL source of an extension's contract, a date, time, interval or bytes default is written with its type's tag instead of a quoted string, such as `@default(timestamptz`2024-01-01T00:00:00Z`)` or `@default(bytea`\x0102`)`. `contract emit` refuses the quoted form and names the tag to write. The section of this name below lists every tag. The detection matches Prisma 8 schema files with a quoted default that looks like a date or an interval, or that sits on a date, time, interval or bytes column. It skips a quoted time such as `"12:30"` on a column whose type is a type alias, because a `String` default can look the same; `contract emit` names such a default.
     detection:
       glob: "**/*.prisma"
       matches:
@@ -1934,17 +1934,25 @@ Migration snapshots that an extension ships, and any other stored `contract.json
 node <guide>/scripts/remove-nocheck/remove-nocheck.ts
 ```
 
-`<guide>` is the directory that holds this guide. Node 24 or later runs the TypeScript script directly; it needs no `tsx`. The script reads and writes files only and needs no database. It removes the `noCheck` key from every column of every SQL contract under the root, in any `*.json` file, skipping `node_modules`, `dist`, `build` and every directory whose name starts with a dot, such as `.git`, `.agents` or `.claude`. It follows links to files and directories, also outside the root; commit or back up the files there too. That includes a test fixture of an old contract: if you keep one on purpose, restore it with git afterwards. Where the key waived the element check of a list, the script also makes the column, the field that maps it and their types in `contract.d.ts`, the row types such as `ReadonlyArray<CodecTypes['pg/text@1']['output'] | null>` included, lists whose elements may be null, which is what the source says after `psl-nocheck-removed`. The script does not change which checks a contract declares. In each PostgreSQL contract it also writes each literal default in the form this release stores, for example `"1.5"` on `numeric(10,2)` as `"1.50"`, because this release refuses a contract that stores another form, a snapshot included. The script carries this release's rules for each PostgreSQL built-in data type, so its result does not depend on the installed packages. It leaves a default of any other data type, such as one the extension defines, as it is.
+`<guide>` is the directory that holds this guide. Node 24 or later runs the TypeScript script directly; it needs no `tsx`. The script reads and writes files only and needs no database. It removes the `noCheck` key from every column of every SQL contract under the root, in any `*.json` file, skipping `node_modules`, `dist`, `build` and every directory whose name starts with a dot, such as `.git`, `.agents` or `.claude`. It follows links to files and directories, also outside the root; commit or back up the files there too. That includes a test fixture of an old contract: if you keep one on purpose, restore it with git afterwards. Where the key waived the element check of a list, the script also makes the column, the field that maps it and their types in `contract.d.ts`, the row types such as `ReadonlyArray<CodecTypes['pg/text@1']['output'] | null>` included, lists whose elements may be null, which is what the source says after `psl-nocheck-removed`. The script does not change which checks a contract declares. In each PostgreSQL contract it also writes each literal default in the form this release stores, for example `"1.5"` on `numeric(10,2)` as `"1.50"`, because this release refuses a contract that stores another form, a snapshot included. The script carries this release's rules for each PostgreSQL built-in data type and for `postgis/geometry` and `pgvector/vector`, so its result does not depend on the installed packages. A geometry default is written as the upper-case little-endian HEXEWKB PostGIS prints, whatever case and byte order it had. It leaves a default of any other data type, such as one the extension defines, as it is. Besides the project root, it takes one option, `--default`, described below.
 
 The storage hash changes, so the script also renames each changed snapshot directory to its new hash. It rewrites every `migration.json`, ref, `migration.ts` and `contract.d.ts` that names an old hash, and gives each changed migration a new `migrationHash`.
 
-When it finishes, it prints how many files it rewrote, how many snapshot directories it renamed, and each storage hash it replaced (`<old> -> <new>`). A package with no `noCheck` key and no default in another form is left unchanged, and the script says so. It changes no file and exits 1, naming the file, when a `contract.json`, `migration.json` or ref is not valid JSON, when the `ops.json` of a migration whose hashes change is not valid JSON, when a contract's stored storage hash or snapshot directory name does not match its content (restore that file from version control, or re-emit it, and run the script again), or when a renamed snapshot directory already exists with different content, or when a PostgreSQL default is not a value of its column's type at all (write the value the database stores in that file, and run it again). If it stops partway, for example on a full disk, it says so; run it again to finish.
+When it finishes, it prints how many files it rewrote, how many snapshot directories it renamed, and each storage hash it replaced (`<old> -> <new>`). A package with no `noCheck` key and no default in another form is left unchanged, and the script says so. It changes no file and exits 1, naming the file, when a `contract.json`, `migration.json` or ref is not valid JSON, when the `ops.json` of a migration whose hashes change is not valid JSON, when a contract's stored storage hash or snapshot directory name does not match its content (restore that file from version control, or re-emit it, and run the script again), or when a renamed snapshot directory already exists with different content, or when this release refuses a PostgreSQL default. If it stops partway, for example on a full disk, it says so; run it again to finish.
 
-Then re-emit the bundled contract. The extension's storage hash changes, so tell the applications that use it, in your release notes, to run `prisma db sign` against every database after they upgrade, and name the old and new hash. The app upgrade guide for this release has such a note for the Supabase extension, `supabase-contract-lists-allow-null-elements`. Tell them too that `prisma migration status` no longer marks the extension's migrations applied before the upgrade as applied, because each rewritten migration has a new hash and their databases' migration history keeps the old ones. `prisma db migrate` runs none of them again, and `prisma db verify` passes. A database that has not applied every migration yet is refused by a plain `prisma db sign`, and `prisma db migrate` stops on it with `MIGRATION.MARKER_MISMATCH`: tell them to sign it with `prisma db sign --contract <the last migration it applied>` and then run `prisma db migrate`, as the app guide's `stored-contracts-drop-nocheck` says.
+This release refuses a default that is not a value of its column's type, for example a time with more fraction digits than its column holds, a `pgvector/vector` element that `real` cannot hold exactly (`0.123456789` is stored as `0.12345679`), or a `postgis/geometry` in another SRID than its column's, and a list column's default that is not a list. The script names the file and column of each. Do not edit the stored file: that breaks its storage hash, and the next run refuses it. Choose the value the database stores, and run the script again with that value as JSON:
+
+```sh
+node <guide>/scripts/remove-nocheck/remove-nocheck.ts --default 'public.product.opensAt="12:34:00.123457"'
+```
+
+`--default` names the column as `<namespace>.<table>.<column>`, as the script's message does, and can be given once for each column. The script stores the value in every stored contract where that column's default is refused, migration snapshots included, checks it by the same rules and refreshes the hashes. It stops when the value is refused too, or when a `--default` names a column whose default it does not refuse. Then change the default in the contract source to the same value, so that re-emitting writes it.
+
+Then re-emit the bundled contract. The extension's storage hash changes, so tell the applications that use it, in your release notes, to run `prisma db sign` against every database after they upgrade, and name the old and new hash. The app upgrade guide for this release has such a note for the Supabase extension, `supabase-contract-lists-allow-null-elements`. Tell them too that `prisma migration status` no longer marks the extension's migrations applied before the upgrade as applied, because each rewritten migration has a new hash and their databases' migration history keeps the old ones. `prisma db migrate` runs none of them again, and `prisma db verify` passes. A database that has not applied every migration yet is refused by a plain `prisma db sign`, and `prisma db migrate` stops on it with `MIGRATION.MARKER_MISMATCH`: tell them to sign it with `prisma db sign --contract <the last migration it applied>` and then run `prisma db migrate`. `--contract` takes the migration's directory name, or the new hash that migration goes to. `prisma migration status` prints the start of the old hash the database's marker holds, and the `<old> -> <new>` list in your release notes gives the new hash to sign with.
 
 ## Contract spaces an extension ships
 
-An extension that ships a contract space, with its own `contract.json`, migration snapshots and contract source, upgrades them as an application upgrades its own. The app guide for this release, `../../../app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md` relative to this guide, explains each step in full. This guide ships the same scripts under `scripts/`. Run each script from the extension's package root, which the app guide calls the project root.
+An extension that ships a contract space, with its own `contract.json`, migration snapshots and contract source, upgrades them as an application upgrades its own. The sections of this guide named in the steps below explain each one. The scripts are under `scripts/` next to this guide. Run each script from the extension's package root.
 
 Do the steps in this order, and skip a step that does not apply to the extension's contract space:
 
@@ -1962,6 +1970,73 @@ node <guide>/scripts/mongo-field-storage-names/mongo-field-storage-names.ts
 ```
 
 Each step that changes a storage hash changes the hash of the extension's contract space. Tell the applications that use the extension, in your release notes, to run `prisma db sign` against every database after they upgrade, and name the old and new hash, as `stored-contracts-drop-nocheck` says.
+
+### `sqlite-contracts-name-datetime-and-json-data-types`
+
+A SQLite contract stores the data type of each column. This release gives datetime and JSON values their own data types, and stores a datetime as `toISOString()` writes it, with exactly three fraction digits. A contract emitted by the previous release still names `sqlite/text`, so the CLI of this release refuses it with `CONTRACT.VALIDATION_FAILED`:
+
+```text
+storage.namespaces.__unbound__.entries.table.events.columns.at: codec sqlite/datetime@1 represents sqlite/datetime, not sqlite/text
+```
+
+Commit your work first, then run the script from the extension's package root:
+
+```sh
+node <guide>/scripts/data-type-values/data-type-values.ts
+```
+
+Node 24 or later runs the TypeScript script directly. It reads and writes files only. It rewrites every `*.json` file under the root that parses as a SQLite contract in the previous release's form, skipping `node_modules`, `dist`, `build` and every directory whose name starts with a dot, and follows links to files and directories, also outside the root. A test fixture of a contract in the previous release's form is rewritten too; restore it with git afterwards if you keep it on purpose. In each contract it changes:
+
+- the `dataType` of each column and named type whose codec is `sqlite/datetime@1` or `sqlite/json@1`, from `sqlite/text` to `sqlite/datetime` or `sqlite/json`;
+- each literal default of a `sqlite/datetime@1` column, and each value of an enum typed by `sqlite/datetime@1`, to three fraction digits: `"2024-01-01T00:00:00Z"` becomes `"2024-01-01T00:00:00.000Z"`. A JSON default keeps its value.
+
+It then writes the storage hash each contract now has, renames the snapshot directory under `migrations/snapshots/` to that hash, and replaces the old hash in every `migration.json` (recomputing its `migrationHash`), every ref, every `migration.ts` and every `contract.d.ts`. The planned SQL does not change.
+
+It prints how many files it rewrote and how many snapshot directories it renamed, and each storage hash it replaced (`<old> -> <new>`); put that list in your release notes. A package already in the new form, or with no SQLite contract, is left unchanged, and the script says so. It prints `<file>: stored hash did not recompute; rehashed from content` for a contract whose stored hash does not match its content, and rewrites it anyway. It changes no file and exits 1 when a `contract.json`, `migration.json` or ref is not valid JSON, when the `ops.json` of a migration whose hashes change is not valid JSON, or when a renamed snapshot directory already exists with different content. If it stops partway, for example on a full disk, run it again to finish. Run your formatter afterwards.
+
+### `date-time-interval-and-bytes-defaults-use-tags`
+
+In a Prisma 8 schema, a default of a date, time, interval or bytes column is written with the tag of the column's type. `contract emit` refuses a quoted string and shows the tag to write:
+
+```text
+Field "Event.at": Expected timestamptz`...`; write timestamptz`2024-01-01T00:00:00Z`
+```
+
+```prisma
+// before
+at      DateTime  @default("2024-01-01T00:00:00Z")
+local   Timestamp @default("2024-01-01 12:34:56.500")
+day     Date      @default("2024-03-15")
+clock   Time      @default("12:34")
+zoned   Timetz    @default("12:34:56+02")
+span    Interval  @default("P1D")
+payload Bytes     @default("AQID")
+
+// after
+at      DateTime  @default(timestamptz`2024-01-01T00:00:00Z`)
+local   Timestamp @default(timestamp`2024-01-01 12:34:56.500`)
+day     Date      @default(date`2024-03-15`)
+clock   Time      @default(time`12:34`)
+zoned   Timetz    @default(timetz`12:34:56+02`)
+span    Interval  @default(interval`P1D`)
+payload Bytes     @default(bytea`\x010203`)
+```
+
+On PostgreSQL the tag is named after the column's type: `timestamptz` for `DateTime`, `timestamp`, `date`, `time`, `timetz` and `interval` for the types of those names, and `bytea` for `Bytes`. A date or time tag takes the text you wrote. A `bytea` tag takes the bytes as hexadecimal after `\x`, not base64: `"AQID"` is the bytes 01 02 03, so write `bytea`\x010203``. For a quoted base64 string, `contract emit` names only the tag, because it cannot tell base64 from hex text; convert the bytes to hex yourself. On SQLite, a `DateTime` default uses the `datetime` tag, and a `Bytes` default the `blob` tag, whose body is the hex digits the quoted string held before.
+
+### `mongo-contracts-record-stored-field-names`
+
+A MongoDB contract now records each field's stored name in `model.storage.fields`, and names fields by their names in the schema: a field `id ObjectId @id @map("_id")` is `id` in the contract's `fields`, with `"storage": { "collection": "users", "fields": { "id": { "field": "_id" } } }`. Relations and a base model's `discriminator` name fields the same way. Indexes, validators and `execution` keep naming stored names, so the storage hash does not change.
+
+1. Commit your work first.
+2. Re-emit the bundled contract and commit the regenerated `contract.json` and `contract.d.ts`.
+3. Run the script from the extension's package root:
+
+   ```sh
+   node <guide>/scripts/mongo-field-storage-names/mongo-field-storage-names.ts
+   ```
+
+   It rewrites every `*.json` file under the root that is a MongoDB contract with a model whose `storage` has no `fields`, skipping `node_modules`, `dist`, `build`, every directory whose name starts with a dot and every link it cannot follow, and the `contract.d.ts` next to it. These are the snapshots under `migrations/snapshots/<hash>/`, which no command regenerates. A snapshot cannot be rebuilt as a re-emit would write it, because the old contract does not say what the schema called a field, so the script keeps every field's name and records it as stored under that name: `"_id"` stays the field `_id`, stored as `_id`. Planning from such a snapshot to the re-emitted contract plans nothing. The script prints each file it rewrote, or that nothing changed. It edits the type of `storage` in each `contract.d.ts` on one line; run your formatter afterwards. If it cannot find a model's storage type in a `contract.d.ts`, it says so and exits 1: add `readonly fields: { readonly <field>: { readonly field: '<field>' }; ... }` inside that model's `readonly storage: { ... }` by hand.
 
 ## Migrations
 

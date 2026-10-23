@@ -67,8 +67,8 @@ export interface Run {
   readonly stderr: string;
 }
 
-export function runScript(root: string, script = appScript): Run {
-  const result = spawnSync(process.execPath, [script, root], {
+export function runScript(root: string, script = appScript, args: readonly string[] = []): Run {
+  const result = spawnSync(process.execPath, [script, root, ...args], {
     encoding: 'utf8',
     env: { ...process.env, NODE_PATH: '' },
   });

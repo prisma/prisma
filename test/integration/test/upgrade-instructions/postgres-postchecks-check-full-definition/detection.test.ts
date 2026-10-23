@@ -25,15 +25,17 @@ const FRAGMENT_CHANGES: Record<string, (id: string) => boolean> = {
 function changesOf(fragment: string): readonly Change[] {
   const belongs = FRAGMENT_CHANGES[fragment];
   if (belongs === undefined) throw new Error(`No changes listed for ${fragment}`);
-  return guideChanges(GUIDE_PATH)
-    .filter(({ id }) => belongs(id))
-    .map((change) => ({ id: change.id, patterns: patternsOf(change) }));
+  const changes = guideChanges(GUIDE_PATH).filter(({ id }) => belongs(id));
+  if (changes.length === 0) throw new Error(`The guide lists no change of ${fragment}`);
+  return changes.map((change) => ({ id: change.id, patterns: patternsOf(change) }));
 }
 
 function opsJsonChanges(fragment: string): readonly Change[] {
-  return changesOf(fragment).filter(
+  const changes = changesOf(fragment).filter(
     ({ id }) => id !== 'postgres-alter-column-type-unchanged-refused',
   );
+  if (changes.length === 0) throw new Error(`The guide lists no ops.json change of ${fragment}`);
+  return changes;
 }
 
 const fixture = (name: string) => readFileSync(join(here, 'fixtures', name), 'utf-8');

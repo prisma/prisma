@@ -30,10 +30,25 @@ const OLD_DEFAULTS_HASH = 'a086c916bc6bf55a62e34ea3fc3c264634e3a078f3e00e99b0e3a
 /** The storage hash `prisma contract emit` of 8.0.0-rc.19 gives the postgres-defaults schema. */
 const EMITTED_BY_RC19_HASH = '1dd0420f931282d68277216cdff0dc9059fde0f0e086bbc596cdf32675577e0b';
 
+interface Rc19Form {
+  readonly value: unknown;
+  readonly stored: unknown;
+}
+
 interface Rc19Forms {
-  readonly columns: readonly { readonly stored: unknown }[];
-  readonly list: { readonly stored: unknown };
-  readonly named: { readonly stored: unknown };
+  readonly columns: readonly Rc19Form[];
+  readonly list: Rc19Form;
+  readonly named: Rc19Form;
+}
+
+function sampleDefaultsOf(forms: Rc19Forms, side: keyof Rc19Form): Record<string, unknown> {
+  return {
+    ...Object.fromEntries(
+      forms.columns.map((form, index) => [`c${String(index).padStart(2, '0')}`, form[side]]),
+    ),
+    list: forms.list[side],
+    named: forms.named[side],
+  };
 }
 
 const rc19Forms: Rc19Forms = JSON.parse(
@@ -260,21 +275,16 @@ describe('remove-nocheck', () => {
       status: run.status,
       stderr: run.stderr,
       tree,
+      before: sampleDefaults(
+        fixtureTree('before', 'postgres-default-forms')['prisma/contract.json'] ?? '{}',
+      ),
       defaults: sampleDefaults(tree['prisma/contract.json'] ?? '{}'),
     }).toEqual({
       status: 0,
       stderr: '',
       tree: fixtureTree('after', 'postgres-default-forms'),
-      defaults: {
-        ...Object.fromEntries(
-          rc19Forms.columns.map(({ stored }, index) => [
-            `c${String(index).padStart(2, '0')}`,
-            stored,
-          ]),
-        ),
-        list: rc19Forms.list.stored,
-        named: rc19Forms.named.stored,
-      },
+      before: sampleDefaultsOf(rc19Forms, 'value'),
+      defaults: sampleDefaultsOf(rc19Forms, 'stored'),
     });
   });
 
@@ -296,7 +306,7 @@ describe('remove-nocheck', () => {
       status: 1,
       stdout: '',
       stderr:
-        'src/prisma/contract.json: namespace public, table product, column opensAt: the default "12:34:00.1234567" is not a value of pg/time (pg/time JSON value must be a time of day, as in "12:34:56": "12:34:00.1234567" has 7 digits after the decimal point, but pg/time holds microseconds, so at most 6. Round it, as in "12:34:56.123456".); write the value the database stores by hand\n',
+        'src/prisma/contract.json: namespace public, table product, column opensAt: the default "12:34:00.1234567" is not a value of pg/time (pg/time JSON value must be a time of day, as in "12:34:56": "12:34:00.1234567" has 7 digits after the decimal point, but pg/time holds microseconds, so at most 6. Round it, as in "12:34:56.123456".); choose the value the database stores and run the script again with --default \'public.product.opensAt=<that value as JSON>\'\n',
       tree: before,
     });
   });
@@ -339,12 +349,13 @@ describe('remove-nocheck', () => {
         {
           status: 1,
           stdout: '',
-          stderr: '--help: unknown option\nUsage: node remove-nocheck.ts [project-root]\n',
+          stderr:
+            '--help: unknown option\nUsage: node remove-nocheck.ts [project-root] [--default <namespace>.<table>.<column>=<JSON value>]...\n',
         },
         {
           status: 1,
           stdout: '',
-          stderr: `${missing}: not a directory\nUsage: node remove-nocheck.ts [project-root]\n`,
+          stderr: `${missing}: not a directory\nUsage: node remove-nocheck.ts [project-root] [--default <namespace>.<table>.<column>=<JSON value>]...\n`,
         },
       ],
       tree: fixtureTree('before'),

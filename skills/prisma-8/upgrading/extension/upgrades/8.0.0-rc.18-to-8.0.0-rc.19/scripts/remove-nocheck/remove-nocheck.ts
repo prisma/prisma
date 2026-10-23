@@ -2,11 +2,13 @@
 /**
  * Removes the `noCheck` key from every column of every SQL contract in a project. Where the key waived the element check of a list, the column and the field that maps it become lists whose elements may be null, in `contract.json` and `contract.d.ts`, because that is what the database enforces. The checks each contract declares are left as they are. In a PostgreSQL contract it also writes each literal default in the contract form this release stores, as its column's data type and parameters give it. The script then renames the snapshot directories and rewrites every migration, ref, `migration.ts` and `contract.d.ts` that names an old storage hash.
  *
- * Usage: node remove-nocheck.ts [project-root]
+ * Usage: node remove-nocheck.ts [project-root] [--default <namespace>.<table>.<column>=<JSON value>]...
  *
- * The project root defaults to the working directory. The script reads and writes files only. It needs no database, network or configured stack, and a project already in this release's form is left unchanged. When it stops (a file it must read is not valid JSON, a contract whose stored hash does not match its content, a default that is not a value of its column's type, or a snapshot directory that already exists with different content) it changes no file, prints one line per case and exits 1. When it finishes it prints how many files and snapshot directories it changed and each storage hash it replaced.
+ * The project root defaults to the working directory. The script reads and writes files only. It needs no database, network or configured stack, and a project already in this release's form is left unchanged. When it stops (a file it must read is not valid JSON, a contract whose stored hash does not match its content, a default that this release refuses, or a snapshot directory that already exists with different content) it changes no file, prints one line per case and exits 1. When it finishes it prints how many files and snapshot directories it changed and each storage hash it replaced.
  *
- * The storage hash and migration hash rules are copied from `@internal/contract` and `@internal/migration-tools`, and the PostgreSQL default rules from the data types of 8.0.0-rc.19, so the script gives the same result whatever is installed.
+ * `--default` gives the value to store in place of a default this release refuses, in every stored contract where that column's default is refused. The script checks the value by the same rules, and stops when a `--default` names a column whose default it does not refuse.
+ *
+ * The storage hash and migration hash rules are copied from `@internal/contract` and `@internal/migration-tools`, and the default rules from the data types of 8.0.0-rc.19, PostgreSQL's built-in types, `postgis/geometry` and `pgvector/vector`, so the script gives the same result whatever is installed.
  */
 import { createHash } from 'node:crypto';
 import {
@@ -426,8 +428,8 @@ interface Rewrite {
 }
 
 interface DefaultRewrite {
-  readonly from: string;
-  readonly to: string;
+  readonly from: string | number;
+  readonly to: string | number;
 }
 
 type DefaultForm =
@@ -1387,6 +1389,167 @@ const readString =
     readJsonString(typeId, json);
 const anyJson: PostgresDataType['read'] = (json) => json;
 
+const requiredInteger =
+  (min: number, max: number): ParamRule =>
+  (value) =>
+    typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max;
+
+const HEX_TEXT = /^(?:[0-9A-Fa-f]{2})*$/;
+const EWKB_FLAG_Z = 0x80000000;
+const EWKB_FLAG_M = 0x40000000;
+const EWKB_FLAG_SRID = 0x20000000;
+const EWKB_TYPE_MASK = 0x1fffffff;
+const EWKB_POINT = 1;
+const EWKB_LINESTRING = 2;
+const EWKB_POLYGON = 3;
+const EWKB_MULTI_PARTS: ReadonlyMap<number, number> = new Map([
+  [4, EWKB_POINT],
+  [5, EWKB_LINESTRING],
+  [6, EWKB_POLYGON],
+]);
+
+class NotEwkb extends Error {}
+
+interface EwkbGeometry {
+  readonly srid: number | undefined;
+  /** The geometry as the upper-case little-endian HEXEWKB PostGIS prints, or undefined when a coordinate is not finite. */
+  readonly printed: string | undefined;
+}
+
+/** Reads HEXEWKB in either case and byte order, as `postgis/geometry` of 8.0.0-rc.19 does: points, line strings, polygons and their multi forms, without Z or M coordinates. */
+function readEwkb(hex: string): EwkbGeometry {
+  const bytes = Buffer.from(hex, 'hex');
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const out: number[] = [];
+  let offset = 0;
+  let finite = true;
+  const take = (size: number): number => {
+    if (offset + size > view.byteLength) throw new NotEwkb();
+    const at = offset;
+    offset += size;
+    return at;
+  };
+  const writeUint32 = (value: number): void => {
+    const buffer = Buffer.alloc(4);
+    buffer.writeUInt32LE(value >>> 0);
+    out.push(...buffer);
+  };
+  const header = (top: boolean): { type: number; little: boolean; srid: number | undefined } => {
+    const order = view.getUint8(take(1));
+    if (order !== 0 && order !== 1) throw new NotEwkb();
+    const little = order === 1;
+    const code = view.getUint32(take(4), little) >>> 0;
+    if ((code & EWKB_FLAG_Z) !== 0 || (code & EWKB_FLAG_M) !== 0) throw new NotEwkb();
+    const type = code & EWKB_TYPE_MASK;
+    const srid = (code & EWKB_FLAG_SRID) !== 0 ? view.getUint32(take(4), little) >>> 0 : undefined;
+    out.push(1);
+    writeUint32(top && srid !== undefined ? type | EWKB_FLAG_SRID : type);
+    if (top && srid !== undefined) writeUint32(srid);
+    return { type, little, srid };
+  };
+  const count = (little: boolean): number => {
+    const value = view.getUint32(take(4), little) >>> 0;
+    writeUint32(value);
+    return value;
+  };
+  const positions = (amount: number, little: boolean): void => {
+    for (let index = 0; index < amount * 2; index++) {
+      const value = view.getFloat64(take(8), little);
+      if (!Number.isFinite(value)) finite = false;
+      const buffer = Buffer.alloc(8);
+      buffer.writeDoubleLE(value);
+      out.push(...buffer);
+    }
+  };
+  const body = (type: number, little: boolean): void => {
+    if (type === EWKB_POINT) positions(1, little);
+    else if (type === EWKB_LINESTRING) positions(count(little), little);
+    else if (type === EWKB_POLYGON)
+      for (let ring = count(little); ring > 0; ring--) positions(count(little), little);
+    else throw new NotEwkb();
+  };
+  const top = header(true);
+  const part = EWKB_MULTI_PARTS.get(top.type);
+  if (part === undefined) body(top.type, top.little);
+  else
+    for (let index = count(top.little); index > 0; index--) {
+      const sub = header(false);
+      if (sub.type !== part) throw new NotEwkb();
+      body(sub.type, sub.little);
+    }
+  if (offset !== view.byteLength) throw new NotEwkb();
+  return {
+    srid: top.srid,
+    printed: finite ? Buffer.from(out).toString('hex').toUpperCase() : undefined,
+  };
+}
+
+function ewkbOf(json: Json): EwkbGeometry | undefined {
+  if (typeof json !== 'string') return undefined;
+  try {
+    return readEwkb(json);
+  } catch (error) {
+    if (error instanceof NotEwkb) return undefined;
+    throw error;
+  }
+}
+
+function readGeometry(json: Json, params: Params): Json {
+  readJsonMatching('postgis/geometry', json, HEX_TEXT, 'a HEXEWKB string');
+  const srid = integerParam(params, 'srid');
+  const geometry = ewkbOf(json);
+  if (geometry === undefined || (srid !== undefined && geometry.srid !== srid))
+    return refuseJsonValue(
+      'postgis/geometry',
+      srid !== undefined ? `a HEXEWKB string of a geometry with SRID ${srid}` : 'a HEXEWKB string',
+    );
+  return json;
+}
+
+function spellGeometry(json: Json): Json {
+  const geometry = ewkbOf(json);
+  if (geometry === undefined) return json;
+  if (geometry.printed === undefined)
+    throw new NotAValue('Geometry encode: coordinates must be finite numbers');
+  return geometry.printed;
+}
+
+/** The text PostgreSQL prints for `value` stored as a `real`: the shortest decimal that reads back as the same single-precision number. */
+function realText(value: number): string {
+  const single = Math.fround(value);
+  for (let digits = 1; digits <= 9; digits++) {
+    const text = String(Number(single.toPrecision(digits)));
+    if (Math.fround(Number(text)) === single) return text;
+  }
+  return String(single);
+}
+
+function readVector(json: Json, params: Params): Json {
+  const length = integerParam(params, 'length');
+  const expected =
+    length === undefined
+      ? 'an array of finite numbers'
+      : `an array of ${counted(length, 'finite number')}`;
+  if (!Array.isArray(json) || (length !== undefined && json.length !== length))
+    return refuseJsonValue('pgvector/vector', expected);
+  for (const element of json)
+    if (typeof element !== 'number' || !Number.isFinite(element))
+      return refuseJsonValue('pgvector/vector', expected);
+  for (const [index, element] of json.entries()) {
+    if (typeof element !== 'number') continue;
+    const refuse = (why: string) =>
+      refuseJsonValue(
+        'pgvector/vector',
+        `an array of numbers real holds exactly; element ${index + 1}, ${element}, ${why}`,
+      );
+    if (!Number.isFinite(Math.fround(element)))
+      return refuse('is outside the range real holds, which PostgreSQL refuses');
+    const stored = realText(element);
+    if (Number(stored) !== element) return refuse(`would be stored as ${stored}`);
+  }
+  return json;
+}
+
 const POSTGRES_DATA_TYPES: ReadonlyMap<string, PostgresDataType> = new Map<
   string,
   PostgresDataType
@@ -1553,6 +1716,15 @@ const POSTGRES_DATA_TYPES: ReadonlyMap<string, PostgresDataType> = new Map<
       ),
     },
   ],
+  [
+    'postgis/geometry',
+    {
+      params: { srid: optionalInteger(1, Number.POSITIVE_INFINITY) },
+      read: readGeometry,
+      spell: spellGeometry,
+    },
+  ],
+  ['pgvector/vector', { params: { length: requiredInteger(1, 16000) }, read: readVector }],
 ]);
 
 function resolvedTypeParams(column: JsonRecord, namedTypes: Json | undefined): Json | undefined {
@@ -1575,17 +1747,26 @@ function declaredParams(type: PostgresDataType, typeParams: Json | undefined): P
   return params;
 }
 
-/** A literal default in the contract form this release stores, by the column's data type and parameters. A data type this release does not register, or parameters it refuses, leave the default unchanged. */
-function contractFormOfDefault(
-  value: Json,
-  column: JsonRecord,
-  namedTypes: Json | undefined,
-): DefaultForm {
-  const dataType = column['dataType'];
-  const type = typeof dataType === 'string' ? POSTGRES_DATA_TYPES.get(dataType) : undefined;
-  if (type === undefined) return { kind: 'unchanged' };
+interface ColumnType {
+  readonly id: string;
+  readonly type: PostgresDataType;
+  readonly params: Params;
+  readonly list: boolean;
+}
+
+/** The column's data type and parameters, or undefined when this release does not register the type or refuses the parameters, and so does not read the default. */
+function columnType(column: JsonRecord, namedTypes: Json | undefined): ColumnType | undefined {
+  const id = column['dataType'];
+  const type = typeof id === 'string' ? POSTGRES_DATA_TYPES.get(id) : undefined;
+  if (typeof id !== 'string' || type === undefined) return undefined;
   const params = declaredParams(type, resolvedTypeParams(column, namedTypes));
-  if (params === undefined) return { kind: 'unchanged' };
+  if (params === undefined) return undefined;
+  const many = column['many'];
+  return { id, type, params, list: many !== undefined && many !== false };
+}
+
+/** A literal default value in the contract form this release stores. */
+function contractFormOfDefault(value: Json, { type, params }: ColumnType): DefaultForm {
   let stored: Json;
   try {
     const read = type.read(value, params);
@@ -1597,6 +1778,55 @@ function contractFormOfDefault(
   return canonicalizeJson(stored) === canonicalizeJson(value)
     ? { kind: 'unchanged' }
     : { kind: 'rewritten', value: stored };
+}
+
+type StoredDefault =
+  | { readonly kind: 'stored'; readonly value: Json }
+  | { readonly kind: 'refused'; readonly reason: string };
+
+/** A column's default in the contract form this release stores, element by element on a list column, or why this release refuses it. */
+function storedDefault(value: Json, columnType: ColumnType): StoredDefault {
+  if (value === null) return { kind: 'stored', value };
+  if (columnType.list && !Array.isArray(value))
+    return {
+      kind: 'refused',
+      reason: `the default ${JSON.stringify(value)} is not a list, and the column holds a list of ${columnType.id}`,
+    };
+  const values = columnType.list && Array.isArray(value) ? value : [value];
+  const stored: Json[] = [];
+  for (const element of values) {
+    const form = element === null ? undefined : contractFormOfDefault(element, columnType);
+    if (form?.kind === 'notAValue')
+      return {
+        kind: 'refused',
+        reason: `the default ${JSON.stringify(element)} is not a value of ${columnType.id} (${form.reason})`,
+      };
+    stored.push(form?.kind === 'rewritten' ? form.value : element);
+  }
+  return { kind: 'stored', value: columnType.list ? stored : (stored[0] ?? null) };
+}
+
+/** The scalar values that changed between two defaults, pairing list elements by position, for the literal types of `contract.d.ts`. */
+function defaultRewrites(from: Json, to: Json): DefaultRewrite[] {
+  const pairs: [Json, Json][] =
+    Array.isArray(from) && Array.isArray(to)
+      ? from.length === to.length
+        ? from.map((element, index) => [element, to[index] ?? null])
+        : []
+      : [[from, to]];
+  return pairs.flatMap(([a, b]) =>
+    (typeof a === 'string' && typeof b === 'string') ||
+    (typeof a === 'number' && typeof b === 'number')
+      ? a === b
+        ? []
+        : [{ from: a, to: b }]
+      : [],
+  );
+}
+
+/** How `--default` names a column: `<namespace>.<table>.<column>`. */
+function defaultKey(namespaceId: string, tableName: string, columnName: string): string {
+  return `${namespaceId}.${tableName}.${columnName}`;
 }
 
 interface ColumnEntry {
@@ -1623,8 +1853,12 @@ function columnsOf(contract: JsonRecord): ColumnEntry[] {
   );
 }
 
-/** Mutates `copy`: each literal default in the contract form this release stores, element by element on a list column. */
-function rewriteDefaults(copy: JsonRecord): {
+/** Mutates `copy`: each literal default in the contract form this release stores, element by element on a list column. A default this release refuses takes the value given for its column with `--default`, and each column whose replacement was taken is added to `used`. */
+function rewriteDefaults(
+  copy: JsonRecord,
+  replacements: ReadonlyMap<string, Json>,
+  used: Set<string>,
+): {
   readonly defaults: Map<string, DefaultRewrite[]>;
   readonly notValues: string[];
 } {
@@ -1635,28 +1869,33 @@ function rewriteDefaults(copy: JsonRecord): {
   for (const { namespaceId, tableName, columnName, column } of columnsOf(copy)) {
     const columnDefault = column['default'];
     if (!isRecord(columnDefault) || columnDefault['kind'] !== 'literal') continue;
-    const value = columnDefault['value'];
-    if (value === undefined || value === null) continue;
-    const listed = isRecord(column['many']) && Array.isArray(value);
-    const values = listed && Array.isArray(value) ? value : [value];
-    const rewrites: DefaultRewrite[] = [];
-    const rewritten = values.map((element) => {
-      if (element === null) return element;
-      const form = contractFormOfDefault(element, column, namedTypes);
-      if (form.kind === 'notAValue') {
+    const original = columnDefault['value'];
+    const type = columnType(column, namedTypes);
+    if (original === undefined || type === undefined) continue;
+    const place = `namespace ${namespaceId}, table ${tableName}, column ${columnName}`;
+    const key = defaultKey(namespaceId, tableName, columnName);
+    let stored = storedDefault(original, type);
+    if (stored.kind === 'refused') {
+      const replacement = replacements.get(key);
+      if (replacement === undefined) {
         notValues.push(
-          `namespace ${namespaceId}, table ${tableName}, column ${columnName}: the default ${JSON.stringify(element)} is not a value of ${String(column['dataType'])} (${form.reason}); write the value the database stores by hand`,
+          `${place}: ${stored.reason}; choose the value the database stores and run the script again with --default '${key}=<that value as JSON>'`,
         );
-        return element;
+        continue;
       }
-      if (form.kind === 'unchanged') return element;
-      if (typeof element === 'string' && typeof form.value === 'string')
-        rewrites.push({ from: element, to: form.value });
-      return form.value;
-    });
-    if (rewritten.every((element, index) => element === values[index])) continue;
-    columnDefault['value'] = listed ? rewritten : (rewritten[0] ?? null);
-    defaults.set(listKey(namespaceId, tableName, columnName), rewrites);
+      used.add(key);
+      stored = storedDefault(replacement, type);
+      if (stored.kind === 'refused') {
+        notValues.push(`${place}: --default ${key}: ${stored.reason}`);
+        continue;
+      }
+    }
+    if (canonicalizeJson(stored.value) === canonicalizeJson(original)) continue;
+    columnDefault['value'] = stored.value;
+    defaults.set(
+      listKey(namespaceId, tableName, columnName),
+      defaultRewrites(original, stored.value),
+    );
   }
   return { defaults, notValues };
 }
@@ -1696,7 +1935,11 @@ function fieldsMappingColumns(copy: JsonRecord, columns: ReadonlySet<string>): S
 }
 
 /** The contract with the key removed from each column, the lists whose element check it waived made element-nullable, and each default in the contract form this release stores. */
-function rewriteContract(contract: JsonRecord): Rewrite {
+function rewriteContract(
+  contract: JsonRecord,
+  replacements: ReadonlyMap<string, Json>,
+  used: Set<string>,
+): Rewrite {
   const copy = parseJson(JSON.stringify(contract));
   if (!isRecord(copy))
     return {
@@ -1732,7 +1975,7 @@ function rewriteContract(contract: JsonRecord): Rewrite {
   }
   const { defaults, notValues } =
     contract['target'] === 'postgres'
-      ? rewriteDefaults(copy)
+      ? rewriteDefaults(copy, replacements, used)
       : { defaults: new Map<string, DefaultRewrite[]>(), notValues: [] };
   return {
     contract: copy,
@@ -1878,6 +2121,22 @@ function quoted(text: string, quote: string): string {
   return `${quote}${text.replaceAll('\\', '\\\\').replaceAll(quote, `\\${quote}`)}${quote}`;
 }
 
+const NUMBER_TOKEN = /(?<![\w.$'"])-?\d+(?:\.\d+)?(?:e[+-]?\d+)?(?![\w.$'"])/gi;
+
+/** A default's literal type with each rewritten value replaced: a string in either quote, a number as its own token. */
+function withRewrittenLiterals(literal: string, rewrites: readonly DefaultRewrite[]): string {
+  let result = literal;
+  const numbers = new Map<number, number>();
+  for (const { from, to } of rewrites) {
+    if (typeof from === 'number' && typeof to === 'number') numbers.set(from, to);
+    if (typeof from === 'string' && typeof to === 'string')
+      for (const quote of ["'", '"'])
+        result = result.replaceAll(quoted(from, quote), quoted(to, quote));
+  }
+  if (numbers.size === 0) return result;
+  return result.replace(NUMBER_TOKEN, (token) => String(numbers.get(Number(token)) ?? token));
+}
+
 function rewriteDts(
   text: string,
   columns: ReadonlySet<string>,
@@ -1894,12 +2153,11 @@ function rewriteDts(
     const rewrites = key === undefined ? undefined : defaults.get(key);
     const end = typeArgumentEnd(text, match.index + match[0].length);
     if (rewrites === undefined || end === -1) continue;
-    const start = match.index + match[0].length;
-    let literal = text.slice(start, end);
-    for (const { from, to } of rewrites)
-      for (const quote of ["'", '"'])
-        literal = literal.replaceAll(quoted(from, quote), quoted(to, quote));
-    edits.push({ start, end, text: literal });
+    const codecEnd = /^\s*(['"])(?:\\.|(?!\1).)*\1/.exec(
+      text.slice(match.index + match[0].length, end),
+    );
+    const start = match.index + match[0].length + (codecEnd?.[0].length ?? 0);
+    edits.push({ start, end, text: withRewrittenLiterals(text.slice(start, end), rewrites) });
   }
   const rowMember =
     /(?:readonly\s+)?([\p{ID_Start}_$][\p{ID_Continue}$]*|'[^']*'|"[^"]*")\s*\??\s*:\s*ReadonlyArray</gu;
@@ -1976,23 +2234,48 @@ function summary(
 
 const JSON_FILES_THAT_MUST_PARSE = new Set(['contract.json', 'migration.json']);
 
-function parseRoot(args: readonly string[]): { readonly root: string; readonly errors: string[] } {
-  const errors = args.filter((arg) => arg.startsWith('-')).map((arg) => `${arg}: unknown option`);
-  const positional = args.filter((arg) => !arg.startsWith('-'));
+const USAGE =
+  'Usage: node remove-nocheck.ts [project-root] [--default <namespace>.<table>.<column>=<JSON value>]...';
+
+interface Args {
+  readonly root: string;
+  readonly replacements: ReadonlyMap<string, Json>;
+  readonly errors: readonly string[];
+}
+
+function parseArgs(args: readonly string[]): Args {
+  const errors: string[] = [];
+  const positional: string[] = [];
+  const replacements = new Map<string, Json>();
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index] ?? '';
+    const given = arg === '--default' ? args[++index] : undefined;
+    const option = arg.startsWith('--default=') ? arg.slice('--default='.length) : given;
+    if (option === undefined && !arg.startsWith('-')) {
+      positional.push(arg);
+      continue;
+    }
+    if (option === undefined && arg !== '--default') {
+      errors.push(`${arg}: unknown option`);
+      continue;
+    }
+    const separator = option?.indexOf('=') ?? -1;
+    const value = option === undefined ? undefined : parseJson(option.slice(separator + 1));
+    if (option === undefined || separator < 1 || value === undefined) {
+      const shown = option === undefined ? '--default' : `--default ${option}`;
+      errors.push(`${shown}: expected <namespace>.<table>.<column>=<JSON value>`);
+      continue;
+    }
+    replacements.set(option.slice(0, separator), value);
+  }
   if (positional.length > 1) errors.push(`expected one project root, got ${positional.length}`);
   const root = resolve(positional[0] ?? process.cwd());
   if (errors.length === 0 && !isDirectory(root)) errors.push(`${root}: not a directory`);
-  if (errors.length > 0) errors.push('Usage: node remove-nocheck.ts [project-root]');
-  return { root, errors };
+  if (errors.length > 0) errors.push(USAGE);
+  return { root, replacements, errors };
 }
 
-function main({
-  root,
-  errors,
-}: {
-  readonly root: string;
-  readonly errors: readonly string[];
-}): number {
+function main({ root, replacements, errors }: Args): number {
   if (errors.length > 0) {
     process.stderr.write(`${errors.join('\n')}\n`);
     return 1;
@@ -2002,6 +2285,7 @@ function main({
   const plans: ContractPlan[] = [];
   const stops: string[] = [];
   let contractsFound = 0;
+  const used = new Set<string>();
 
   for (const path of files.json) {
     const text = readFileSync(path, 'utf8');
@@ -2021,7 +2305,7 @@ function main({
     )
       continue;
     contractsFound++;
-    const rewrite = rewriteContract(contract);
+    const rewrite = rewriteContract(contract, replacements, used);
     for (const problem of rewrite.notValues) stops.push(`${display(path)}: ${problem}`);
     if (!rewrite.changed || rewrite.notValues.length > 0) continue;
     const snapshot = isSnapshotContract(path);
@@ -2046,6 +2330,12 @@ function main({
       defaults: rewrite.defaults,
     });
   }
+
+  for (const key of replacements.keys())
+    if (!used.has(key))
+      stops.push(
+        `--default ${key}: no stored contract has a default of this column that this release refuses, so the script replaces nothing`,
+      );
 
   const hashes = new Map<string, string>();
   for (const plan of [...plans].sort((a, b) => Number(b.snapshot) - Number(a.snapshot)))
@@ -2169,4 +2459,4 @@ function main({
   return 0;
 }
 
-process.exitCode = main(parseRoot(process.argv.slice(2)));
+process.exitCode = main(parseArgs(process.argv.slice(2)));
