@@ -88,6 +88,11 @@ These were decided by the orchestrator from the slice 2 research, under Will's i
 - **No namespaces on MySQL in this project.** The target reports `supportsNamespaces: false` and the unbound default namespace, as SQLite does. Mapping namespaces to MySQL databases is later work.
 - **Slice 2 splits in two.** The research sized it at 10–13k lines. 2a: target, codecs, driver, facade, emit, introspection, CI. 2b: planner, runner, verify, sign, atomicity.
 
+## 7. Decided while shaping slice 3 (2026-10-23)
+
+- **A to-many include keeps its order with `GROUP_CONCAT(… ORDER BY …)`.** The MySQL manual says the element order of `JSON_ARRAYAGG` is undefined, and that the optimizer ignores a derived table's `ORDER BY` when the outer query aggregates, so neither keeps related rows in order. `GROUP_CONCAT` honours its own `ORDER BY`. The adapter builds the JSON array text with it and casts the result to JSON; the driver raises `group_concat_max_len` on every connection, so an overflow fails the cast instead of dropping rows. It needs no shared change. Rejected for now: carrying a sort key in each JSON object and sorting in the runtime's decoder, which needs a shared change and a new capability; it is the fallback if live tests show the chosen form breaks.
+- **Coupling rows 10, 11 and 26 wait.** Capability checks already refuse `distinctOn` and the Postgres-only lock strengths on MySQL, and MySQL never casts parameters, so none of the three blocks reads.
+
 ## Settled by testing in the proof of concept
 
 These are SQL-shape details the slices decide against a live server, and record here.
