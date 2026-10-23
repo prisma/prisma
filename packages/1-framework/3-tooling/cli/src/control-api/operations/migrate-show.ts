@@ -216,17 +216,20 @@ export async function executeMigrateShowPlan(
       if (liveTarget) {
         targetHash = contractHashAtMarker(appMarker);
       }
+      // Whichever end of the preview the database supplies, its markers are checked against their
+      // graphs exactly as db migrate checks them.
+      const checked = await planEverySpace({
+        ...planInputs(),
+        markers: allMarkers,
+        migrationsDir,
+        invocation: options.invocation,
+        readLedger: (spaceId) => client.readLedger(spaceId),
+      });
+      if (!checked.ok) {
+        return notOk(checked.failure);
+      }
       if (liveOrigin) {
-        const planned = await planEverySpace({
-          ...planInputs(),
-          migrationsDir,
-          invocation: options.invocation,
-          readLedger: (spaceId) => client.readLedger(spaceId),
-        });
-        if (!planned.ok) {
-          return notOk(planned.failure);
-        }
-        outcomes = planned.value;
+        outcomes = checked.value;
       }
     } catch (error) {
       return notOk(
