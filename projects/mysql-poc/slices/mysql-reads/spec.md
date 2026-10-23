@@ -37,7 +37,9 @@ One reviewer reads this as "MySQL can read": a runtime plane and a renderer, wit
 
 **In:** runtime entries, the client, lowering for reads, includes (to-one, to-many, nested), JSON projection, the runtime driver, golden lowering tests, live ORM and SQL builder read tests.
 
-**Out:** writes (slice 4); `count()` and scalar includes, which need MySQL aggregate descriptors (filed as follow-up); coupling rows 10, 11 and 26, which capabilities already handle for MySQL; public `@prisma/*` packages (slice 5).
+**Out:** writes (slice 4); `count()` and scalar includes, which need MySQL aggregate descriptors (filed as follow-up); coupling rows 10, 11 and 26, which capabilities already handle for MySQL.
+
+**Added 2026-10-23, when the example moved to slice 2c:** the public `@prisma/orm-mysql` package gains its `./runtime` and `./static` entries, and the example in `examples/prisma-8-demo-mysql` runs this slice's reads through them, in CI.
 
 ## Pre-investigated edge cases
 

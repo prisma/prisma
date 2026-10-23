@@ -36,3 +36,9 @@ From the system-design review of slice 2b (2026-10-22).
 From slice 2c (2026-10-23).
 
 Including `migrations/**` in the MySQL example's `tsconfig.json` fails with TS2742 on `get operations()`: the inferred type names a bundled chunk inside `@prisma/orm-target-mysql`, which an application that depends only on `@prisma/orm-mysql` cannot name. The Postgres and SQLite demos also leave `migrations/` out of type checking, so it may affect every target; not yet checked there. Fix: give the operations an explicit type the facade exports, and type-check `migrations/` in every example.
+
+## A family-level client builder and a shared SQL renderer core
+
+From the system-design review of slice 3 (2026-10-23).
+
+The MySQL facade's client (about 440 lines) and the MySQL SQL renderer are copied from SQLite's. The renderer copy is justified for now, because the dialect differences are throughout it. Two follow-ups: a family-level builder for a target's `mysql(...)`/`sqlite(...)`/`postgres(...)` client, so each facade supplies only its driver and options; and a shared renderer core that targets extend for their dialect, so a fix like collecting parameters in written order lands once.
