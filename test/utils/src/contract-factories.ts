@@ -53,23 +53,22 @@ const DEFAULT_SQL_STORAGE = {
   },
 } as const;
 
-function withValueObjects<TStorage extends { readonly namespaces: object }>(
-  storage: TStorage,
+type StorageWithoutHash = Omit<StorageBase, 'storageHash'>;
+
+function withValueObjects(
+  storage: StorageWithoutHash,
   valueObjects: Record<string, ContractValueObject> | undefined,
-): TStorage {
+): StorageWithoutHash {
   if (valueObjects === undefined) return storage;
-  const namespaces = storage.namespaces as Record<
-    string,
-    { readonly id: string; readonly entries: Record<string, unknown> }
-  >;
-  const namespace = namespaces[UNBOUND_NAMESPACE_ID] ?? { id: UNBOUND_NAMESPACE_ID, entries: {} };
+  const namespace = storage.namespaces[UNBOUND_NAMESPACE_ID];
   return {
     ...storage,
     namespaces: {
-      ...namespaces,
+      ...storage.namespaces,
       [UNBOUND_NAMESPACE_ID]: {
+        id: UNBOUND_NAMESPACE_ID,
         ...namespace,
-        entries: { ...namespace.entries, valueObject: valueObjects },
+        entries: { ...namespace?.entries, valueObject: valueObjects },
       },
     },
   };
