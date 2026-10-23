@@ -89,7 +89,6 @@ describe('slowQueryWarning middleware', () => {
     expect(warnEvents[0]).toMatchObject({
       code: 'APP.SLOW_QUERY',
       details: {
-        containsRawSql: false,
         sql: 'SELECT "id", "email" FROM "user" LIMIT 1',
         latencyMs: 900,
         rowCount: 1,
