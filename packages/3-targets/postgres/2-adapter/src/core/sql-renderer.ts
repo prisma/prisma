@@ -37,6 +37,7 @@ import {
   type LockStrength,
   type LockWaitPolicy,
   type LoweredParam,
+  type LoweredStatement,
   lockOptionCapabilities,
   lockStrengthCapabilities,
   missingCapability,
@@ -168,6 +169,8 @@ interface ParamIndexMap {
   readonly indexMap: Map<AnyParamRef, number>;
   readonly types: RenderTypes;
   readonly capabilities: CapabilityMatrix;
+  /** Set when the statement renders SQL text a caller wrote. */
+  readonly uses: { callerSql: boolean };
 }
 
 interface RenderTypes {
@@ -186,7 +189,7 @@ export function renderLoweredSql(
   codecDescriptorRegistry: PostgresCodecDescriptorRegistry,
   dataTypeLookup: DataTypeLookup,
   capabilities: CapabilityMatrix,
-): { readonly sql: string; readonly params: readonly LoweredParam[] } {
+): LoweredStatement {
   const orderedRefs = collectOrderedParamRefs(ast);
   const indexMap = new Map<AnyParamRef, number>();
   const params: LoweredParam[] = orderedRefs.map((ref, i) => {
@@ -199,6 +202,7 @@ export function renderLoweredSql(
     indexMap,
     types: { codecDescriptorRegistry, dataTypeLookup },
     capabilities,
+    uses: { callerSql: false },
   };
 
   const node = ast;
@@ -224,7 +228,11 @@ export function renderLoweredSql(
       assertNever(node, `Unsupported AST node kind: ${unreachableKind(node)}`);
   }
 
-  return Object.freeze({ sql, params: Object.freeze(params) });
+  return Object.freeze({
+    sql,
+    params: Object.freeze(params),
+    containsCallerSql: pim.uses.callerSql,
+  });
 }
 
 function renderLimitOffset(
@@ -1121,6 +1129,7 @@ function renderParts(
   contract: PostgresContract,
   pim: ParamIndexMap,
 ): string {
+  pim.uses.callerSql = true;
   return parts
     .map((part) => (typeof part === 'string' ? part : renderExpr(part, contract, pim)))
     .join('');

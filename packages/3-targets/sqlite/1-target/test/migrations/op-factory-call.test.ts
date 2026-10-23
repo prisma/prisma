@@ -21,7 +21,7 @@ import type {
 
 function stubLowerer(sql: string): ExecuteRequestLowerer {
   return {
-    lower: () => Object.freeze({ sql, params: Object.freeze([]) }),
+    lower: () => Object.freeze({ containsCallerSql: false, sql, params: Object.freeze([]) }),
     renderColumnDefault: async () => '',
     lowerToExecuteRequest: async () => Object.freeze({ sql, params: Object.freeze([]) }),
   };
@@ -150,7 +150,8 @@ describe('DropTableCall', () => {
 function recordingCheckLowerer(): { lowerer: ExecuteRequestLowerer; received: unknown[] } {
   const received: unknown[] = [];
   const lowerer: ExecuteRequestLowerer = {
-    lower: () => Object.freeze({ sql: 'UNUSED', params: Object.freeze([]) }),
+    lower: () =>
+      Object.freeze({ containsCallerSql: false, sql: 'UNUSED', params: Object.freeze([]) }),
     renderColumnDefault: async () => '',
     lowerToExecuteRequest: async (ast) => {
       received.push(ast);

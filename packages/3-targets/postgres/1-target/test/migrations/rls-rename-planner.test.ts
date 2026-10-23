@@ -30,7 +30,7 @@ import { introspectedColumn, postgresTypeComponents } from '../postgres-type-loo
 
 const TABLE_NAME = 'profiles';
 const stubLowerer: ExecuteRequestLowerer = {
-  lower: () => ({ sql: 'stub', params: [] }),
+  lower: () => ({ containsCallerSql: false, sql: 'stub', params: [] }),
   renderColumnDefault: async () => '',
   lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
 };

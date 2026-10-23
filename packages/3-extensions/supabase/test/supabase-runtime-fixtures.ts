@@ -222,7 +222,7 @@ function createStubAdapter() {
           ? { kind: 'bind' as const, name: ref.name }
           : { kind: 'literal' as const, value: ref.value },
       );
-      return Object.freeze({ sql: JSON.stringify(ast), params });
+      return Object.freeze({ containsCallerSql: false, sql: JSON.stringify(ast), params });
     },
   };
 }
@@ -306,6 +306,7 @@ export function createTestSetup(options?: {
 
 export function stubPlan(): SqlExecutionPlan<Record<string, unknown>> {
   return {
+    containsCallerSql: false,
     sql: 'select 1',
     params: [],
     ast: SelectAstCtor.from(TableSource.named('stub')),

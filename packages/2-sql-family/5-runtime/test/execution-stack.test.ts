@@ -42,7 +42,7 @@ function createStubAdapterDescriptor(): SqlRuntimeAdapterDescriptor<'postgres'> 
             readMarker: async () => ({ kind: 'absent' as const }),
           },
           lower() {
-            return Object.freeze({ sql: '', params: [] });
+            return Object.freeze({ containsCallerSql: false, sql: '', params: [] });
           },
         },
       );

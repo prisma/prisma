@@ -54,6 +54,7 @@ describe('SqlFamilyAdapter', () => {
         storageHash: 'test-hash',
         lane: 'sql',
       },
+      containsCallerSql: false,
       sql: 'SELECT 1',
       params: [],
       ast: stubAst(),
@@ -71,6 +72,7 @@ describe('SqlFamilyAdapter', () => {
         storageHash: 'test-hash',
         lane: 'sql',
       },
+      containsCallerSql: false,
       sql: 'SELECT 1',
       params: [],
       ast: stubAst(),
@@ -92,6 +94,7 @@ describe('SqlFamilyAdapter', () => {
         storageHash: 'different-hash', // Wrong hash
         lane: 'sql',
       },
+      containsCallerSql: false,
       sql: 'SELECT 1',
       params: [],
       ast: stubAst(),

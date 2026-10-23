@@ -29,6 +29,3 @@ export function escapeLiteral(value: string): string {
 export function quoteLiteral(value: string): string {
   return `'${escapeLiteral(value)}'`;
 }
-
-/** The comment the MySQL adapter starts a statement with when the statement holds SQL text a caller wrote, through the raw lane or a `fns.raw` fragment. Such SQL can change the session, so the driver restores its session settings after it. */
-export const RAW_SQL_MARKER = '/* prisma:raw */';

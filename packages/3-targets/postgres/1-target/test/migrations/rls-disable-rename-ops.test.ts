@@ -11,7 +11,8 @@ import { PostgresAlterPolicyRename, PostgresDisableRowLevelSecurity } from '../.
 function recordingCheckLowerer(): { lowerer: ExecuteRequestLowerer; received: unknown[] } {
   const received: unknown[] = [];
   const lowerer: ExecuteRequestLowerer = {
-    lower: () => Object.freeze({ sql: 'UNUSED', params: Object.freeze([]) }),
+    lower: () =>
+      Object.freeze({ containsCallerSql: false, sql: 'UNUSED', params: Object.freeze([]) }),
     renderColumnDefault: async () => '',
     lowerToExecuteRequest: async (ast) => {
       received.push(ast);

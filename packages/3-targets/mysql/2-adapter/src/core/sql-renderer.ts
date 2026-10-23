@@ -38,12 +38,7 @@ import { collectOrderedParamRefs } from '@internal/sql-relational-core/ast';
 import type { MysqlCodecDescriptorRegistry } from '@internal/target-mysql/codec-descriptor';
 import { mysqlBigint, mysqlInt } from '@internal/target-mysql/data-types';
 import { mysqlError, mysqlQueryNotYetSupported } from '@internal/target-mysql/errors';
-import {
-  escapeLiteral,
-  quoteIdentifier,
-  RAW_SQL_MARKER,
-  tokenizeMysqlSql,
-} from '@internal/target-mysql/sql-utils';
+import { escapeLiteral, quoteIdentifier, tokenizeMysqlSql } from '@internal/target-mysql/sql-utils';
 import { assertNever, InternalError } from '@internal/utils/internal-error';
 import { structuredError } from '@internal/utils/structured-error';
 import { assertPlaceholdersMatchParams } from './placeholders';
@@ -56,7 +51,7 @@ interface RenderContext {
   /** Each param's placeholder number: its position in `collectOrderedParamRefs`, the order the runtime encodes params in. */
   readonly placeholderNumbers: ReadonlyMap<AnyParamRef, number>;
   /** Set when the statement builds an array with `GROUP_CONCAT`, whose length limit the statement then raises itself. */
-  readonly uses: { groupConcat: boolean; rawSql: boolean };
+  readonly uses: { groupConcat: boolean; callerSql: boolean };
 }
 
 /**
@@ -78,7 +73,7 @@ function unsupported(feature: string, message: string): Error {
 }
 
 /**
- * Lowers a query AST to MySQL SQL. Each param is written as `?N`, N being its position in `collectOrderedParamRefs`, the order the runtime encodes and middleware edits params in; a param written twice is bound once. The driver fills the placeholders. A statement that holds caller-written SQL starts with `RAW_SQL_MARKER`, so the driver knows to restore its session settings after it.
+ * Lowers a query AST to MySQL SQL. Each param is written as `?N`, N being its position in `collectOrderedParamRefs`, the order the runtime encodes and middleware edits params in; a param written twice is bound once. The driver fills the placeholders. The statement records whether it holds caller-written SQL, which the driver needs to restore its session settings after it.
  */
 export function renderMysqlSql(
   ast: AnyQueryAst,
@@ -96,13 +91,12 @@ export function renderMysqlSql(
     contract,
     codecs,
     placeholderNumbers,
-    uses: { groupConcat: false, rawSql: false },
+    uses: { groupConcat: false, callerSql: false },
   };
   const rendered = renderStatement(ast, ctx);
-  const hinted = ctx.uses.groupConcat ? withGroupConcatHint(ast, rendered) : rendered;
-  const sql = ctx.uses.rawSql ? `${RAW_SQL_MARKER} ${hinted}` : hinted;
+  const sql = ctx.uses.groupConcat ? withGroupConcatHint(ast, rendered) : rendered;
   assertPlaceholdersMatchParams(sql, params.length);
-  return Object.freeze({ sql, params });
+  return Object.freeze({ sql, params, containsCallerSql: ctx.uses.callerSql });
 }
 
 /** Puts `GROUP_CONCAT_HINT` on the outermost `SELECT`; a statement without one would leave `GROUP_CONCAT` at the session's limit, which can cut an array after an element and still read as JSON, so it is refused. */
@@ -352,7 +346,7 @@ function limitOperandParts(parts: RawExpr['parts'] | RawQueryAst['parts']): Read
 }
 
 function renderParts(parts: RawExpr['parts'] | RawQueryAst['parts'], ctx: RenderContext): string {
-  ctx.uses.rawSql = true;
+  ctx.uses.callerSql = true;
   assertNoDigitAfterParam(parts);
   const limitOperands = limitOperandParts(parts);
   return parts

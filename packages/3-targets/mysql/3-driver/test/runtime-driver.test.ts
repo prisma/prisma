@@ -2,13 +2,17 @@ import { EventEmitter } from 'node:events';
 import { Readable } from 'node:stream';
 import { describe, expect, it, vi } from 'vitest';
 import mysqlRuntimeDriver from '../src/core/runtime/runtime-driver';
+import { SESSION_SETUP } from '../src/core/session-setup';
 
 class FakeConnection extends EventEmitter {
   readonly release = vi.fn();
   readonly destroy = vi.fn();
   prepareError: unknown;
 
-  query(_sql: unknown, callback: (error: unknown, result: unknown) => void) {
+  readonly constantSql: unknown[] = [];
+
+  query(sql: unknown, callback: (error: unknown, result: unknown) => void) {
+    this.constantSql.push(sql);
     queueMicrotask(() => callback(null, { affectedRows: 0 }));
     return new EventEmitter();
   }
@@ -17,7 +21,11 @@ class FakeConnection extends EventEmitter {
     queueMicrotask(() => callback(this.prepareError ?? null, { parameters: [] }));
   }
 
-  execute(_options: unknown) {
+  execute(_options: unknown, callback?: (error: unknown, result: unknown) => void) {
+    if (callback) {
+      queueMicrotask(() => callback(null, { affectedRows: 0 }));
+      return new EventEmitter();
+    }
     const command = new EventEmitter();
     return Object.assign(command, {
       stream: () =>
@@ -79,5 +87,25 @@ describe('MySQL runtime driver at the server limit on prepared statements', () =
     } finally {
       connection.prepareError = undefined;
     }
+  });
+});
+
+describe('MySQL runtime driver session restore', () => {
+  it('re-runs the session setup only after a statement that holds caller-written SQL', async () => {
+    const driver = mysqlRuntimeDriver.create();
+    await driver.connect({ kind: 'url', url: 'mysql://root@localhost/db' });
+    const setups = () => connection.constantSql.length / SESSION_SETUP.length;
+    await driver.execute({ sql: 'SELECT 0', containsCallerSql: false });
+    const start = setups();
+    await driver.execute({ sql: 'SELECT 1', containsCallerSql: false });
+    await driver.execute({ sql: 'SELECT 2' });
+    const withoutCallerSql = setups() - start;
+    await driver.execute({ sql: "SET time_zone = '+05:00'", containsCallerSql: true });
+    await driver.execute({ sql: 'SELECT 3', containsCallerSql: false });
+    const afterCallerSql = setups() - start;
+    expect({ withoutCallerSql, afterCallerSql }).toEqual({
+      withoutCallerSql: 0,
+      afterCallerSql: 1,
+    });
   });
 });

@@ -21,6 +21,7 @@ function buildPlan(): SqlExecutionPlan {
     ProjectionItem.of('value', ColumnRef.of('users', 'value'), { codecId: 'test/passthrough@1' }),
   ]);
   return {
+    containsCallerSql: false,
     sql: 'select value from users',
     params: [],
     ast,

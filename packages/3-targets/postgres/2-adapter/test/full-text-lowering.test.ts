@@ -83,6 +83,7 @@ describe('full-text lowering', () => {
     const lowered = lowerWhere("'zeb':*");
 
     expect(lowered).toEqual({
+      containsCallerSql: true,
       sql: `SELECT id FROM "post" WHERE to_tsvector('english', "post"."title") @@ $1::tsquery`,
       params: [{ kind: 'literal', value: "'zeb':*" }],
     });
@@ -92,6 +93,7 @@ describe('full-text lowering', () => {
     const lowered = lowerWhere(websearchToTsquery('zebra grazing'));
 
     expect(lowered).toEqual({
+      containsCallerSql: true,
       sql: `SELECT id FROM "post" WHERE to_tsvector('english', "post"."title") @@ websearch_to_tsquery('english', $1)`,
       params: [{ kind: 'literal', value: 'zebra grazing' }],
     });
@@ -124,6 +126,7 @@ describe('full-text lowering', () => {
         postgresAdapterCapabilities,
       ),
     ).toEqual({
+      containsCallerSql: true,
       sql: `SELECT ts_rank((setweight(to_tsvector('german', coalesce("post"."title", '')), 'A') || setweight(to_tsvector('german', coalesce("post"."body", '')), 'B')), websearch_to_tsquery('english', $1)) AS rank FROM "post"`,
       params: [{ kind: 'literal', value: 'zebra' }],
     });

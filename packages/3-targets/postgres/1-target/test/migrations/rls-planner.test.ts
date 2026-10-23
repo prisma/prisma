@@ -36,7 +36,7 @@ import { introspectedColumn, postgresTypeComponents } from '../postgres-type-loo
 
 const stubLowerer: ExecuteRequestLowerer = {
   lower(_ast, _ctx) {
-    return { sql: 'CREATE TABLE stub', params: [] };
+    return { containsCallerSql: false, sql: 'CREATE TABLE stub', params: [] };
   },
   renderColumnDefault: async () => '',
   async lowerToExecuteRequest(_ast, _ctx) {

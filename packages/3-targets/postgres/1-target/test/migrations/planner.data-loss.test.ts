@@ -21,7 +21,7 @@ import { postgresTypeComponents } from '../postgres-type-lookups';
 import { emailIndex } from './rename-column-fixtures';
 
 const stubLowerer: ExecuteRequestLowerer = {
-  lower: () => ({ sql: 'stub', params: [] }),
+  lower: () => ({ containsCallerSql: false, sql: 'stub', params: [] }),
   renderColumnDefault: async () => '',
   lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
 };

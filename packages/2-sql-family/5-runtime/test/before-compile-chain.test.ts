@@ -386,6 +386,7 @@ describe('runBeforeCompileChain', () => {
         '../src/codecs/decoding'
       );
       const plan: SqlExecutionPlan = {
+        containsCallerSql: false,
         sql: 'SELECT users.id AS user_id FROM users',
         params: [],
         ast: result.ast,
@@ -425,6 +426,7 @@ describe('runBeforeCompileChain', () => {
         '../src/codecs/decoding'
       );
       const plan: SqlExecutionPlan = {
+        containsCallerSql: false,
         sql: 'INSERT INTO users (id) VALUES ($1) RETURNING users.id',
         params: [1],
         ast: insert,

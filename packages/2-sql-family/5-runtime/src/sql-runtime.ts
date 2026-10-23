@@ -411,11 +411,16 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     return this.driver.query<Record<string, unknown>>({
       sql: exec.sql,
       params: exec.params,
+      containsCallerSql: exec.containsCallerSql,
     });
   }
 
   protected override runExecute(exec: SqlExecutionPlan): Promise<SqlStatementStats> {
-    return this.driver.execute({ sql: exec.sql, params: exec.params });
+    return this.driver.execute({
+      sql: exec.sql,
+      params: exec.params,
+      containsCallerSql: exec.containsCallerSql,
+    });
   }
 
   /**
@@ -545,6 +550,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
         sql: statement.sql,
         ast: statement.ast,
         meta: statement.meta,
+        containsCallerSql: statement.containsCallerSql,
         params: await encodePreparedParams(statement, params, {}, this.contractCodecs),
       });
     }
@@ -1007,7 +1013,11 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
               exec,
               () => buildDecodeContext(exec.ast, self.contractCodecs),
               () =>
-                queryable.query<Record<string, unknown>>({ sql: exec.sql, params: exec.params }),
+                queryable.query<Record<string, unknown>>({
+                  sql: exec.sql,
+                  params: exec.params,
+                  containsCallerSql: exec.containsCallerSql,
+                }),
               codecCtx,
               queryable,
               endOperation,
@@ -1047,7 +1057,11 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     return this.executeOn(queryable, options, plan, contextFields, async (run) => {
       const exec = await this.prepareOperation(plan, codecCtx, run);
       return this.executeEncodedPlan(run, exec, queryable, codecCtx, () =>
-        queryable.execute({ sql: exec.sql, params: exec.params }),
+        queryable.execute({
+          sql: exec.sql,
+          params: exec.params,
+          containsCallerSql: exec.containsCallerSql,
+        }),
       );
     });
   }
@@ -1129,6 +1143,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       sql: lowered.sql,
       ast: finalPlan.ast,
       meta: finalPlan.meta,
+      containsCallerSql: lowered.containsCallerSql,
       slots: lowered.params,
       decodeContext,
       paramMetadata,
@@ -1201,6 +1216,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       params: preEncodeValues,
       ast: ps.ast,
       meta: ps.meta,
+      containsCallerSql: ps.containsCallerSql,
     };
 
     const mutator: SqlParamRefMutatorInternal = createSqlParamRefMutator(preEncodeExec);
@@ -1217,12 +1233,14 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       params: encodedParams,
       ast: ps.ast,
       meta: ps.meta,
+      containsCallerSql: ps.containsCallerSql,
     };
 
     const handles = this.#preparedStatementHandles;
     const request: PreparedExecuteRequest = {
       sql: exec.sql,
       params: exec.params,
+      containsCallerSql: exec.containsCallerSql,
       preparedStatementHandle: {
         get: () => handles.get(ps),
         set: (value) => {
@@ -1289,6 +1307,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       params: preEncodeValues,
       ast: ps.ast,
       meta: ps.meta,
+      containsCallerSql: ps.containsCallerSql,
     };
 
     const mutator: SqlParamRefMutatorInternal = createSqlParamRefMutator(preEncodeExec);
@@ -1304,11 +1323,13 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       ),
       ast: ps.ast,
       meta: ps.meta,
+      containsCallerSql: ps.containsCallerSql,
     };
     const handles = this.#preparedStatementHandles;
     const request: PreparedExecuteRequest = {
       sql: exec.sql,
       params: exec.params,
+      containsCallerSql: exec.containsCallerSql,
       preparedStatementHandle: {
         get: () => handles.get(ps),
         set: (value) => {

@@ -12,7 +12,7 @@ import { sqliteCreateNamespace } from '../../src/core/sqlite-unbound-database';
 import { introspectedColumn, sqliteTestComponents } from '../sqlite-test-types';
 
 const stubLowerer: ExecuteRequestLowerer = {
-  lower: () => ({ sql: '', params: [] }),
+  lower: () => ({ containsCallerSql: false, sql: '', params: [] }),
   renderColumnDefault: async () => '',
   lowerToExecuteRequest: async () => ({ sql: '', params: [] }),
 };

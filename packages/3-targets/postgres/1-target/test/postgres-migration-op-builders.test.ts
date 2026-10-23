@@ -487,7 +487,7 @@ describe('PostgresMigration op-builder methods without a ControlStack', () => {
 function countingLowerer(): ExecuteRequestLowerer {
   let counter = 0;
   return {
-    lower: () => ({ sql: 'UNUSED', params: [] }),
+    lower: () => ({ containsCallerSql: false, sql: 'UNUSED', params: [] }),
     renderColumnDefault: async () => '',
     lowerToExecuteRequest: async () => {
       counter += 1;
@@ -730,7 +730,7 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
 
 function astRecordingControlStack(): ControlStack<'sql', 'postgres'> {
   const lowerer: ExecuteRequestLowerer = {
-    lower: () => ({ sql: 'UNUSED', params: [] }),
+    lower: () => ({ containsCallerSql: false, sql: 'UNUSED', params: [] }),
     renderColumnDefault: async (column) => JSON.stringify(column.default),
     lowerToExecuteRequest: async (ast) => ({ sql: JSON.stringify(ast), params: [] }),
   };

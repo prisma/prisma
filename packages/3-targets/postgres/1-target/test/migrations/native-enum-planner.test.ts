@@ -46,7 +46,7 @@ const MEMBERS = ['draft', 'review', 'done'] as const;
 
 const stubLowerer: ExecuteRequestLowerer = {
   lower(_ast, _ctx) {
-    return { sql: 'stub', params: [] };
+    return { containsCallerSql: false, sql: 'stub', params: [] };
   },
   renderColumnDefault: async () => '',
   async lowerToExecuteRequest(_ast, _ctx) {
@@ -63,7 +63,7 @@ function recordingLowerer(): { lowerer: ExecuteRequestLowerer; received: unknown
     lowerer: {
       lower(ast, _ctx) {
         received.push(ast);
-        return { sql: 'stub', params: [] };
+        return { containsCallerSql: false, sql: 'stub', params: [] };
       },
       renderColumnDefault: async () => '',
       async lowerToExecuteRequest(ast, _ctx) {

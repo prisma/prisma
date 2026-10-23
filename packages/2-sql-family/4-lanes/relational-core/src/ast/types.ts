@@ -2432,5 +2432,7 @@ export type LoweredParam =
 export interface LoweredStatement {
   readonly sql: string;
   readonly params: readonly LoweredParam[];
+  /** Whether the statement holds SQL text a caller wrote: a raw query or a `fns.raw` fragment. Such SQL can do what the ORM and the SQL builder never do, such as change session variables. */
+  readonly containsCallerSql: boolean;
   readonly annotations?: Record<string, unknown>;
 }

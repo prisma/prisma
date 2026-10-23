@@ -8,7 +8,8 @@ import { renameColumn } from '../../src/core/migrations/operations/columns';
 function recordingCheckLowerer(): { lowerer: ExecuteRequestLowerer; received: unknown[] } {
   const received: unknown[] = [];
   const lowerer: ExecuteRequestLowerer = {
-    lower: () => Object.freeze({ sql: 'UNUSED', params: Object.freeze([]) }),
+    lower: () =>
+      Object.freeze({ containsCallerSql: false, sql: 'UNUSED', params: Object.freeze([]) }),
     lowerToExecuteRequest: async (ast) => {
       received.push(ast);
       return Object.freeze({

@@ -65,7 +65,11 @@ describe('the MySQL runtime adapter', () => {
       lowered: adapter.lower(ast, { contract: undefined as never }),
     }).toEqual({
       profile: { id: 'mysql/default@1', capabilities: mysqlAdapterCapabilities },
-      lowered: { sql: 'SELECT `user`.`id` AS `id` FROM `user`', params: [] },
+      lowered: {
+        containsCallerSql: false,
+        sql: 'SELECT `user`.`id` AS `id` FROM `user`',
+        params: [],
+      },
     });
   });
 

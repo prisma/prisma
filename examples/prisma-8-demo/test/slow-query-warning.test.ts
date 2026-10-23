@@ -40,6 +40,7 @@ function makeContext(warnEvents: unknown[]): SqlMiddlewareContext {
 function makeExecutionPlan() {
   const built = db.sql.public.user.select('id', 'email').limit(1).build();
   return {
+    containsCallerSql: false,
     sql: 'SELECT "id", "email" FROM "user" LIMIT 1',
     params: [],
     ast: built.ast,

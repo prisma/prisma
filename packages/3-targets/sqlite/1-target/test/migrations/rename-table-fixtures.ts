@@ -13,7 +13,7 @@ import { applicationDomainOf } from '@repo/test-utils';
 import { sqliteCreateNamespace } from '../../src/core/sqlite-unbound-database';
 
 export const stubLowerer: ExecuteRequestLowerer = {
-  lower: () => ({ sql: 'stub', params: [] }),
+  lower: () => ({ containsCallerSql: false, sql: 'stub', params: [] }),
   lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
   renderColumnDefault: async () => '',
 };

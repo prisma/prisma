@@ -28,7 +28,7 @@ export type Op = SqlMigrationPlanOperation<PostgresPlanTargetDetails>;
 export function codecControlStack(): ControlStack<'sql', 'postgres'> {
   let counter = 0;
   const lowerer: ExecuteRequestLowerer = {
-    lower: () => ({ sql: 'UNUSED', params: [] }),
+    lower: () => ({ containsCallerSql: false, sql: 'UNUSED', params: [] }),
     renderColumnDefault: async () => '',
     lowerToExecuteRequest: async () => {
       counter += 1;

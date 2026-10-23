@@ -14,6 +14,8 @@ export interface PreparedStatementHandle {
 export interface SqlExecuteRequest {
   readonly sql: string;
   readonly params?: readonly unknown[];
+  /** Whether the statement holds SQL text a caller wrote, which a driver may need to clean up after, such as session variables it changed. The runtime always states it; a request without it holds none. */
+  readonly containsCallerSql?: boolean;
   readonly preparedStatementHandle?: PreparedStatementHandle;
 }
 

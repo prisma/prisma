@@ -35,7 +35,7 @@ import { postgresTypeComponents, postgresTypeLookups } from '../postgres-type-lo
 import { planTrees } from './node-issue-planner-fixtures';
 
 const stubLowerer: ExecuteRequestLowerer = {
-  lower: () => ({ sql: 'stub', params: [] }),
+  lower: () => ({ containsCallerSql: false, sql: 'stub', params: [] }),
   renderColumnDefault: async () => '',
   lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
 };

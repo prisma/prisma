@@ -9,7 +9,6 @@ import type {
   SqlStatementStats,
   SqlTransaction,
 } from '@internal/sql-relational-core/ast';
-import { RAW_SQL_MARKER } from '@internal/target-mysql/sql-utils';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { createPool, type Pool, type PoolConnection, type ResultSetHeader } from 'mysql2';
@@ -52,7 +51,7 @@ function prepareChecked(
 /** Runs a statement as a server-side prepared statement, its values sent apart from the SQL. */
 async function run(connection: PoolConnection, request: SqlExecuteRequest): Promise<unknown> {
   const { sql, values } = positionalParams(request.sql, request.params ?? []);
-  noteCallerSql(connection, sql);
+  noteCallerSql(connection, request);
   await prepareChecked(connection, sql, values);
   return new Promise((resolve, reject) => {
     connection.execute({ sql, values }, (error, result) => {
@@ -76,9 +75,9 @@ function isResultSetHeader(result: unknown): result is ResultSetHeader {
 /** Connections that ran caller-written SQL, which may have changed the session, and run the session setup again before their next statement. */
 const changedSessions = new WeakSet<PoolConnection>();
 
-/** Notes that `connection` ran caller-written SQL: the adapter starts such a statement with `RAW_SQL_MARKER`. The driver's own statements and the adapter's other output cannot change session variables. */
-function noteCallerSql(connection: PoolConnection, sql: string): void {
-  if (sql.startsWith(RAW_SQL_MARKER)) changedSessions.add(connection);
+/** Notes that `connection` ran caller-written SQL, which the request states. The driver's own statements and the ORM's and SQL builder's other statements cannot change session variables. */
+function noteCallerSql(connection: PoolConnection, request: SqlExecuteRequest): void {
+  if (request.containsCallerSql === true) changedSessions.add(connection);
 }
 
 /** Runs the session setup on `connection`, and forgets that its session changed. */
@@ -137,7 +136,7 @@ async function* streamRows<Row>(
   { onEarlyExit, outcome }: StreamOptions,
 ): AsyncGenerator<Row> {
   const { sql, values } = positionalParams(request.sql, request.params ?? []);
-  noteCallerSql(connection, sql);
+  noteCallerSql(connection, request);
   await prepareChecked(connection, sql, values);
   const command = connection.execute({ sql, values });
   let settle: () => void = () => {};

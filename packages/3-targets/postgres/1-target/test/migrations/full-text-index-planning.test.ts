@@ -167,7 +167,7 @@ function liveSchemaWithoutTheIndex(): PostgresDatabaseSchemaNode {
 async function plannedCreateIndexNodes(schema: string): Promise<readonly PostgresCreateIndex[]> {
   const lowered: unknown[] = [];
   const lowerer: ExecuteRequestLowerer = {
-    lower: () => ({ sql: 'stub', params: [] }),
+    lower: () => ({ containsCallerSql: false, sql: 'stub', params: [] }),
     renderColumnDefault: async () => '',
     lowerToExecuteRequest: async (ast) => {
       lowered.push(ast);
@@ -198,7 +198,7 @@ describe('a single-field index authored before full-text indexes were stored as 
       'the authored contract targets Postgres'
     >(authoredContract(HAND_WRITTEN_EXPRESSION_SCHEMA));
     const result = createPostgresMigrationPlanner({
-      lower: () => ({ sql: 'stub', params: [] }),
+      lower: () => ({ containsCallerSql: false, sql: 'stub', params: [] }),
       renderColumnDefault: async () => '',
       lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
     }).plan({
@@ -235,7 +235,7 @@ describe('a weighted full-text index over a column whose nullability changes', (
     >(authoredContract(WEIGHTED_SCHEMA));
     const after = authoredContract(WEIGHTED_SCHEMA.replace('note String?', 'note String'));
     const result = createPostgresMigrationPlanner({
-      lower: () => ({ sql: 'stub', params: [] }),
+      lower: () => ({ containsCallerSql: false, sql: 'stub', params: [] }),
       renderColumnDefault: async () => '',
       lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
     }).plan({
@@ -277,7 +277,7 @@ async function plannedLabels(beforeSchema: string, afterSchema: string): Promise
     'the authored contract targets Postgres'
   >(authoredContract(beforeSchema));
   const result = createPostgresMigrationPlanner({
-    lower: () => ({ sql: 'stub', params: [] }),
+    lower: () => ({ containsCallerSql: false, sql: 'stub', params: [] }),
     renderColumnDefault: async () => '',
     lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
   }).plan({

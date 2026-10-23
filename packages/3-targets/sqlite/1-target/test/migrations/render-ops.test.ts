@@ -12,7 +12,8 @@ describe('renderOps with a call that produces several ops', () => {
   it('renders the call and each of its companions, in order, with the same lowerer', async () => {
     const received: unknown[] = [];
     const lowerer: ExecuteRequestLowerer = {
-      lower: () => Object.freeze({ sql: 'UNUSED', params: Object.freeze([]) }),
+      lower: () =>
+        Object.freeze({ containsCallerSql: false, sql: 'UNUSED', params: Object.freeze([]) }),
       lowerToExecuteRequest: async (ast) => {
         received.push(ast);
         return Object.freeze({ sql: 'LOWERED', params: Object.freeze([]) });

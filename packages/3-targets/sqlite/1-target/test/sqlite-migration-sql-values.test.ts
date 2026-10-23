@@ -55,7 +55,7 @@ class ExposedMigration extends SqliteMigration<Contract, Contract> {
 
 function astRecordingControlStack(): ControlStack<'sql', 'sqlite'> {
   const lowerer: ExecuteRequestLowerer = {
-    lower: () => ({ sql: 'UNUSED', params: [] }),
+    lower: () => ({ containsCallerSql: false, sql: 'UNUSED', params: [] }),
     renderColumnDefault: async (column) => `DEFAULT ${JSON.stringify(column.default)}`,
     lowerToExecuteRequest: async (ast) => ({ sql: JSON.stringify(ast), params: [] }),
   };

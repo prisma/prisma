@@ -70,7 +70,11 @@ function createStubAdapter() {
       }),
     },
     lower(ast: Parameters<SqlRuntimeAdapterInstance<'postgres'>['lower']>[0]) {
-      return Object.freeze({ sql: JSON.stringify(ast), params: [] as const });
+      return Object.freeze({
+        containsCallerSql: false,
+        sql: JSON.stringify(ast),
+        params: [] as const,
+      });
     },
   };
 }
@@ -250,6 +254,7 @@ function rawPlan<Row = Record<string, unknown>>(
   overrides?: Partial<SqlExecutionPlan<Row>>,
 ): SqlExecutionPlan<Row> {
   return {
+    containsCallerSql: false,
     sql: 'select 1',
     params: [],
     ast: stubAst(),
