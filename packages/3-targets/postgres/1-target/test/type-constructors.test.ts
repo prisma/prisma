@@ -2,6 +2,7 @@ import type { AuthoringTypeNamespace } from '@internal/framework-components/auth
 import {
   collectScalarTypeConstructors,
   findAuthoringTypeConstructorCall,
+  instantiateAuthoringTypeCall,
   instantiateAuthoringTypeConstructor,
   validateAuthoringTypeParams,
 } from '@internal/framework-components/authoring';
@@ -74,21 +75,18 @@ describe('the type constructors the target contributes', () => {
       ),
     ).toEqual({
       CreatedAt:
-        'A timestamp the client sets to now when a row is created. Its value is a Temporal.Instant.',
-      UpdatedAt:
-        'A timestamp the client sets to now when a row is created and every time it is updated. Its value is a Temporal.Instant.',
-      CreatedAtString:
-        'A timestamp the client sets to now when a row is created. Its value is a string, the timestamp as Postgres writes it, such as 2024-01-02 03:04:05+00.',
-      UpdatedAtString:
-        'A timestamp the client sets to now when a row is created and every time it is updated. Its value is a string, the timestamp as Postgres writes it, such as 2024-01-02 03:04:05+00.',
-      CreatedAtJsDate:
         'A timestamp the client sets to now when a row is created. Its value is a JavaScript Date.',
-      UpdatedAtJsDate:
+      UpdatedAt:
         'A timestamp the client sets to now when a row is created and every time it is updated. Its value is a JavaScript Date.',
     });
   });
 
-  it('contribute the temporal type aliases, one pair per timestamptz codec', () => {
+  it('contribute the temporal type aliases on the type bare DateTime becomes', () => {
+    const dateTime = instantiateAuthoringTypeCall(
+      postgresScalarAndNativeTypeConstructors,
+      'DateTime',
+      [],
+    );
     expect(
       Object.fromEntries(
         Object.entries(postgresAuthoringTypes.temporal).map(([name, { kind, output }]) => [
@@ -97,40 +95,10 @@ describe('the type constructors the target contributes', () => {
         ]),
       ),
     ).toEqual({
-      CreatedAt: {
-        kind: 'typeAlias',
-        type: { codecId: 'pg/timestamptz-temporal@1' },
-        onCreate: now,
-      },
-      UpdatedAt: {
-        kind: 'typeAlias',
-        type: { codecId: 'pg/timestamptz-temporal@1' },
-        onCreate: now,
-        onUpdate: now,
-      },
-      CreatedAtString: {
-        kind: 'typeAlias',
-        type: { codecId: 'pg/timestamptz-string@1' },
-        onCreate: now,
-      },
-      UpdatedAtString: {
-        kind: 'typeAlias',
-        type: { codecId: 'pg/timestamptz-string@1' },
-        onCreate: now,
-        onUpdate: now,
-      },
-      CreatedAtJsDate: {
-        kind: 'typeAlias',
-        type: { codecId: 'pg/timestamptz-date@1' },
-        onCreate: now,
-      },
-      UpdatedAtJsDate: {
-        kind: 'typeAlias',
-        type: { codecId: 'pg/timestamptz-date@1' },
-        onCreate: now,
-        onUpdate: now,
-      },
+      CreatedAt: { kind: 'typeAlias', type: dateTime, onCreate: now },
+      UpdatedAt: { kind: 'typeAlias', type: dateTime, onCreate: now, onUpdate: now },
     });
+    expect(dateTime).toEqual({ codecId: 'pg/timestamptz-date@1', typeParams: { precision: 3 } });
   });
 });
 
@@ -161,11 +129,11 @@ const INFERRED = [
   'DateString',
   'TimeString',
   'Timetz',
-  'TimestampString',
-  'TimestamptzString',
+  'TimestampJsDate',
+  'TimestamptzJsDate',
   'Bit',
   'VarBit',
-  'IntervalParts',
+  'IntervalString',
   'pg.enum',
 ];
 
@@ -414,6 +382,7 @@ describe('postgresNativeAuthoringTypes', () => {
     expect(everyPostgresConstructor).not.toHaveProperty('TimestamptzDate');
     expect(postgresNativeAuthoringTypes).toHaveProperty('TimestamptzJsDate', {
       kind: 'typeConstructor',
+      inferred: true,
       documentation:
         'An instant stored as PostgreSQL timestamptz and represented as a JavaScript Date.',
       args: [{ kind: 'value', dataType: 'pg/int4', name: 'precision', optional: true }],

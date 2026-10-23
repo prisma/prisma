@@ -29,7 +29,13 @@ model Clock {
   timestamptzString3 temporal.timestamptzString(3, onCreate: now, onUpdate: now)
   timestamptzString6 temporal.timestamptzString(6, onCreate: now, onUpdate: now)
   timestamptzJsDate0 temporal.timestamptzJsDate(0, onCreate: now, onUpdate: now)
+  timestamptzJsDate1 temporal.timestamptzJsDate(1, onCreate: now, onUpdate: now)
+  timestamptzJsDate2 temporal.timestamptzJsDate(2, onCreate: now, onUpdate: now)
   timestamptzJsDate3 temporal.timestamptzJsDate(3, onCreate: now, onUpdate: now)
   timestamptzJsDate6 temporal.timestamptzJsDate(6, onCreate: now, onUpdate: now)
+  timestampJsDate0   TimestampJsDate(0) @onCreate(now()) @onUpdate(now())
+  timestampJsDate1   TimestampJsDate(1) @onCreate(now()) @onUpdate(now())
+  timestampJsDate2   TimestampJsDate(2) @onCreate(now()) @onUpdate(now())
+  dateTime0          DateTime(precision: 0) @onCreate(now()) @onUpdate(now())
   @@map("clock")
 }

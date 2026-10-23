@@ -73,16 +73,16 @@ const AUTHORED_TYPES = [
   'TimeString(3)',
   'Timetz',
   'Timetz(2)',
-  'TimestampString',
-  'TimestampString(3)',
-  'TimestamptzString',
-  'TimestamptzString(6)',
+  'TimestampJsDate',
+  'TimestampJsDate(3)',
+  'TimestamptzJsDate',
+  'TimestamptzJsDate(6)',
   'Bit',
   'Bit(8)',
   'VarBit',
   'VarBit(16)',
-  'IntervalParts',
-  'IntervalParts(3)',
+  'IntervalString',
+  'IntervalString(3)',
 ] as const;
 
 const AUTHORED_SCHEMA = `model Sample {

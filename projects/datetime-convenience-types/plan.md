@@ -42,6 +42,10 @@ A type constructor's `codecId` may be a `select` over `option` arguments; every 
 
 - Slices 1 and 4 both touch what string date and time values look like. The convenience-types journey (`convenience-date-time-types-without-temporal.e2e.test.ts`) asserts today's display text for `textAt` (`2024-02-29 10:00:00.123456+00`) and `localAt` (`09:30:00+02`). Whichever of the two slices merges second changes them to `2024-02-29T10:00:00.123456Z` and `09:30:00+02:00`.
 
+## Cross-slice notes
+
+- Slices 1 and 4 both touch what string date and time values look like. The convenience-types journey (`convenience-date-time-types-without-temporal.e2e.test.ts`) asserts today's display text for `textAt` (`2024-02-29 10:00:00.123456+00`) and `localAt` (`09:30:00+02`). Whichever of the two slices merges second changes them to `2024-02-29T10:00:00.123456Z` and `09:30:00+02:00`.
+
 ## Dependencies
 
 - **Field-preset removal project, slice 2.** Delivers the `type.*` helpers that expose slice 4's types in TypeScript, and the contributed aliases built on `DateTime`. Not blocking; coordinate so its `temporal.CreatedAt` and `temporal.UpdatedAt` land on `DateTime` once slice 4 merges.

@@ -61,7 +61,7 @@ export function reportedFromWritten(
   const [resolved] = resolveWrittenSqlTypes(typeText, postgresDataTypes);
   const text =
     resolved !== undefined && resolved.dataType.sql.claimsKind === undefined
-      ? renderSqlCatalogText(resolved.dataType, resolved.typeParams)
+      ? renderSqlCatalogText(resolved.dataType, resolved.writtenTypeParams)
       : typeText;
   return { text, kind: undefined, schema: 'pg_catalog', name: undefined };
 }
@@ -158,6 +158,7 @@ export function inferredColumnTypesOf(
       codecLookup: inferBuildContext.codecLookup,
       dataTypeLookup: inferBuildContext.dataTypes.lookup,
     }),
+    authoringTypes: inferBuildContext.authoringContributions.type,
     dataTypes: inferBuildContext.dataTypes,
     isEnumColumn: (column) => column.reportedType?.kind === 'enum',
   });

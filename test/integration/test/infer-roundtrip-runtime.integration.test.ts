@@ -163,7 +163,7 @@ withTempDir(({ createTempDir }) => {
     );
   });
 
-  describe('Runtime: inferred date and time columns decode as ISO 8601 in both top-level select and include()', () => {
+  describe('Runtime: inferred date and time columns decode as the convenience defaults read them, in both top-level select and include()', () => {
     let database: Awaited<ReturnType<typeof createDevDatabase>>;
 
     beforeAll(async () => {
@@ -199,8 +199,8 @@ withTempDir(({ createTempDir }) => {
         const contract = readEmittedContract(ctx);
         const stored = {
           notedOn: '2024-01-15',
-          loggedAt: '2024-01-15T10:00:00.5',
-          seenAt: '2024-01-15T10:00:00Z',
+          loggedAt: new Date('2024-01-15T10:00:00.500Z'),
+          seenAt: new Date('2024-01-15T10:00:00Z'),
           opensAt: '08:30:00',
         };
 

@@ -166,8 +166,8 @@ model Event {
         fieldLines: [
           'id String @id @onCreate(uuid(7))',
           'code VarChar(32) @onCreate(nanoid())',
-          'seenAt TimeTemporal(3) @onUpdate(now())',
-          'createdAt TimestamptzTemporal @default(now()) @onCreate(now())',
+          'seenAt Time(as: temporal, precision: 3) @onUpdate(now())',
+          'createdAt DateTime(as: temporal) @default(now()) @onCreate(now())',
         ],
         roundTrip: serializedWithoutCapabilities(authored),
       });

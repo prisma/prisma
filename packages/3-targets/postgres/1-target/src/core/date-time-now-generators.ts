@@ -3,7 +3,7 @@ import type { Temporal } from 'temporal-spec';
 import { requireTemporal } from './require-temporal';
 
 /**
- * The Postgres "now" generators, one per date and time codec except `pg/timestamptz-date@1`, which uses the framework's `timestampNow`. All read the clock through `Date.now()` and write UTC. The time generators and the string timestamp generators round down to their `precision` param, so the column stores the value as written. The string generators are named after the codec they serve and write the codec's stored form (ADR 254, "Date and time types") in UTC, with milliseconds and no trailing zeros in the fraction.
+ * The Postgres "now" generators, one per date and time codec except `pg/timestamptz-date@1` and `pg/timestamp-date@1`, which use the SQL family's `timestampNow`. All read the clock through `Date.now()` and write UTC. The time generators and the string timestamp generators round down to their `precision` param, so the column stores the value as written. The string generators are named after the codec they serve and write the codec's stored form (ADR 254, "Date and time types") in UTC, with milliseconds and no trailing zeros in the fraction.
  */
 export const INSTANT_NOW_GENERATOR_ID = 'instantNow' as const;
 export const PLAIN_DATE_TIME_NOW_GENERATOR_ID = 'plainDateTimeNow' as const;

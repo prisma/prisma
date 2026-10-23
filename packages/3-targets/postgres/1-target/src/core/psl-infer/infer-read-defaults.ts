@@ -13,7 +13,15 @@ import type { ColumnTypeOf } from '@internal/family-sql/psl-build';
 import { type Codec, codecForRef } from '@internal/framework-components/codec';
 import type { SqlColumnIR, SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { isInternalError } from '@internal/utils/internal-error';
-import { pgJson, pgJsonb } from '../data-types';
+import { isStructuredError } from '@internal/utils/structured-error';
+import {
+  pgJson,
+  pgJsonb,
+  pgTimestamp,
+  pgTimestampStoredText,
+  pgTimestamptz,
+  pgTimestamptzStoredText,
+} from '../data-types';
 import { readPostgresDefault } from '../default-normalizer';
 import { inferredCodecRef } from './infer-default-codec';
 import { jsonKeepsEveryNumber } from './json-exact-numbers';
@@ -90,7 +98,44 @@ export async function readDefaultWithCodec(
     return rawExpression;
   }
   const read = await readReportedDefault(codec, reported.literal, raw);
-  return 'resolvedDefault' in read ? read.resolvedDefault : rawExpression;
+  if (!('resolvedDefault' in read)) return rawExpression;
+  const storedText = TIMESTAMP_STORED_TEXT.get(codec.dataType.id);
+  if (
+    storedText !== undefined &&
+    !readsEveryDigit(storedText, reported.literal, read.resolvedDefault)
+  ) {
+    return rawExpression;
+  }
+  return read.resolvedDefault;
+}
+
+/** The value each timestamp type holds for the text PostgreSQL prints. A `Date` codec of these types reads only milliseconds. */
+const TIMESTAMP_STORED_TEXT: ReadonlyMap<string, (text: string) => string> = new Map([
+  [pgTimestamp.id, pgTimestampStoredText],
+  [pgTimestamptz.id, pgTimestamptzStoredText],
+]);
+
+/** Whether the codec read each body as the value the column holds, so a `Date` codec's millisecond reading of a microsecond default is printed as the raw expression instead. */
+function readsEveryDigit(
+  storedText: (text: string) => string,
+  literal: ReportedLiteralDefault,
+  read: ColumnDefault,
+): boolean {
+  const value = read.kind === 'literal' ? read.value : undefined;
+  const values = literal.kind === 'value' ? [value] : Array.isArray(value) ? value : [];
+  return bodiesOf(literal).every(
+    (body, index) => typeof body !== 'string' || storedTextOf(storedText, body) === values[index],
+  );
+}
+
+/** The value the column holds for `body`, or `undefined` when its type does not read it. */
+function storedTextOf(storedText: (text: string) => string, body: string): string | undefined {
+  try {
+    return storedText(body);
+  } catch (error) {
+    if (isStructuredError(error)) return undefined;
+    throw error;
+  }
 }
 
 const JSON_TYPES: ReadonlySet<string> = new Set([pgJson.id, pgJsonb.id]);
@@ -122,7 +167,7 @@ function codecOf(
   context: SqlPslBuildContext,
 ) {
   try {
-    const ref = inferredCodecRef(context, isEnum ? { path: [] } : pslType(), isEnum);
+    const ref = inferredCodecRef(context, isEnum ? { path: [] } : pslType().explicit, isEnum);
     return ref === undefined ? undefined : codecForRef(context.codecLookup, ref);
   } catch (error) {
     if (isInternalError(error)) throw error;

@@ -170,6 +170,8 @@ describe('the text "now" generators', () => {
     expect(postgresNowGeneratorTakesPrecision).toMatchObject({
       'pg/timestamp-string@1': true,
       'pg/timestamptz-string@1': true,
+      'pg/timestamptz-date@1': true,
+      'pg/timestamp-date@1': true,
     });
   });
 
