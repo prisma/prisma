@@ -517,11 +517,7 @@ export function createComposedAuthoringHelpers<
   assertNoCrossRegistryCollisions(typeNamespace, fieldNamespace, entityNamespace);
   assertNoBuiltInEntityCollisions(entityNamespace);
   for (const component of components) {
-    assertTypeChoicesValid(
-      component.authoring?.type ?? {},
-      component.id ?? '<unknown>',
-      typeNamespace,
-    );
+    assertTypeChoicesValid(component.authoring?.type ?? {}, component.id ?? '<unknown>');
   }
   const { support } = assembleDataTypeSupport(
     components,

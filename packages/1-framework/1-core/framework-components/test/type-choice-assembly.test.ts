@@ -42,31 +42,25 @@ const constructors = {
   WideText: { kind: 'typeConstructor', output: { codecId: 'test/wide-text@1' } },
 } as const satisfies AuthoringTypeNamespace;
 
-const check = (moment: AuthoringTypeChoiceDescriptor, assembled: AuthoringTypeNamespace = {}) => {
-  const contributed = { Moment: moment };
-  return () =>
-    assertTypeChoicesValid(contributed, 'x-pack', {
-      ...constructors,
-      ...contributed,
-      ...assembled,
-    });
-};
+const check = (moment: AuthoringTypeChoiceDescriptor) => () =>
+  assertTypeChoicesValid({ ...constructors, Moment: moment }, 'x-pack');
 
 describe('assertTypeChoicesValid', () => {
   it('passes a choice whose rows name constructors of its namespace', () => {
     expect(check(choice())).not.toThrow();
   });
 
-  it('passes a choice naming a constructor another component registers', () => {
-    const contributed = { Moment: choice() };
+  it('refuses a choice naming a constructor only another component registers', () => {
     expect(() =>
-      assertTypeChoicesValid(contributed, 'x-pack', { ...contributed, ...constructors }),
-    ).not.toThrow();
+      assertTypeChoicesValid({ Moment: choice(), WideText: constructors.WideText }, 'x-pack'),
+    ).toThrow(
+      'Type choice "Moment" contributed by "x-pack" chooses "WideDate", which is not a type constructor "x-pack" registers beside it.',
+    );
   });
 
   it('refuses a row naming a constructor no component registers, naming the pack and the name', () => {
     expect(check(choice({ choices: [{ when: { as: 'date' }, type: 'Missing' }] }))).toThrow(
-      'Type choice "Moment" contributed by "x-pack" chooses "Missing", which is not a type constructor any component registers beside it.',
+      'Type choice "Moment" contributed by "x-pack" chooses "Missing", which is not a type constructor "x-pack" registers beside it.',
     );
   });
 
@@ -157,6 +151,38 @@ describe('assertTypeChoicesValid', () => {
 });
 
 describe('createControlStack', () => {
+  it('refuses a type choice naming a constructor another component registers', () => {
+    const input = {
+      family: {
+        kind: 'family',
+        id: 'fam',
+        version: '0.0.1',
+        authoring: { type: { WideText: constructors.WideText } },
+      },
+      target: {
+        kind: 'target',
+        id: 'tgt',
+        version: '0.0.1',
+        authoring: {
+          type: {
+            Moment: choice({
+              args: [asOption],
+              choices: [
+                { when: { as: 'date' }, type: 'WideText' },
+                { when: { as: 'text' }, type: 'WideText' },
+              ],
+            }),
+          },
+        },
+      },
+      extensions: [],
+    } as unknown as CreateControlStackInput;
+
+    expect(() => createControlStack(input)).toThrow(
+      'Type choice "Moment" contributed by "tgt" chooses "WideText", which is not a type constructor "tgt" registers beside it.',
+    );
+  });
+
   it('refuses a type choice naming a constructor no component registers', () => {
     const input = {
       family: { kind: 'family', id: 'fam', version: '0.0.1' },

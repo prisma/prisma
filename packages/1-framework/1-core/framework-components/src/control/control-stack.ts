@@ -358,7 +358,7 @@ export function assembleAuthoringContributions(
   );
   for (const descriptor of descriptors) {
     if (descriptor.authoring?.type === undefined) continue;
-    assertTypeChoicesValid(descriptor.authoring.type, descriptor.id ?? '<unknown>', typeNamespace);
+    assertTypeChoicesValid(descriptor.authoring.type, descriptor.id ?? '<unknown>');
   }
 
   if (

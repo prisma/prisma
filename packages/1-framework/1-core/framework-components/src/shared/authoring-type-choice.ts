@@ -366,7 +366,7 @@ function assertTypeChoiceValid(
     const chosenType = constructorNamed(row.type);
     if (chosenType === undefined) {
       throw invalidError(
-        `chooses "${row.type}", which is not a type constructor any component registers beside it.`,
+        `chooses "${row.type}", which is not a type constructor "${contributedBy}" registers beside it.`,
       );
     }
     for (const name of Object.keys(row.defaults ?? {})) {
@@ -402,24 +402,20 @@ function assertTypeChoiceValid(
 }
 
 /**
- * Refuses a type choice of a component's `contributed` type namespace whose table cannot be resolved: a row that names no type constructor at the same level of the `assembled` namespace, a combination or default an option does not list, defaults with no row, a parameter default for an argument it does not pass on, or a passed-on argument of another data type than the constructor takes.
+ * Refuses a type choice of a component's `contributed` type namespace whose table cannot be resolved: a row that names no type constructor the same component contributes at the same level, a combination or default an option does not list, defaults with no row, a parameter default for an argument it does not pass on, or a passed-on argument of another data type than the constructor takes. ADR 279: each row names an explicit type of the same target.
  */
 export function assertTypeChoicesValid(
   contributed: AuthoringTypeNamespace,
   contributedBy: string,
-  assembled: AuthoringTypeNamespace,
   path: readonly string[] = [],
 ): void {
   for (const [name, value] of Object.entries(contributed)) {
     const currentPath = [...path, name];
     if (isAuthoringTypeChoiceDescriptor(value)) {
-      assertTypeChoiceValid(currentPath.join('.'), value, contributedBy, assembled);
+      assertTypeChoiceValid(currentPath.join('.'), value, contributedBy, contributed);
       continue;
     }
-    const contributedLevel = subNamespace(value);
-    const assembledLevel = subNamespace(memberNamed(assembled, name));
-    if (contributedLevel !== undefined && assembledLevel !== undefined) {
-      assertTypeChoicesValid(contributedLevel, contributedBy, assembledLevel, currentPath);
-    }
+    const level = subNamespace(value);
+    if (level !== undefined) assertTypeChoicesValid(level, contributedBy, currentPath);
   }
 }
