@@ -6,7 +6,7 @@
 
 ---
 
-> **Amended (2026-10-23).** The team does no new feature work on Prisma 7, but a feature contributed by the community may be accepted when it is in line with Prisma 7's design direction and meets the project's quality standards; a maintainer decides whether it does. Will Madden calls this a clarification of the policy, not a change. [Versioning](../../oss/versioning.md#what-lands-in-prisma-7) states the policy as it stands. The rest of this document is the original decision, kept for the record.
+> **Amended (2026-10-23).** The team does no new feature work on Prisma 7, but a feature contributed by the community may be accepted when it is in line with Prisma 7's design direction and meets the project's quality standards; a maintainer decides whether it does. Will Madden calls this a clarification of the policy, not a change. [Versioning](../../oss/versioning.md#supported-versions) states the policy as it stands. The rest of this document is the original decision, kept for the record.
 
 ## Decision
 

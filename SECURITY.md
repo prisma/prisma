@@ -44,7 +44,7 @@ Out of scope (please do not file vulnerability reports for these):
 | Prisma 8 | The latest release |
 | Prisma 7 | The latest `7.x` release, until eighteen months after `8.0.0` final |
 
-[Versioning](./docs/oss/versioning.md#version-lines) describes each line and what lands in it.
+[Supported versions](./docs/oss/versioning.md#supported-versions) says what each version receives.
 
 Prisma 8 ships as a release candidate (`8.0.0-rc.N`). While we are on the release-candidate line:
 
