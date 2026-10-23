@@ -55,7 +55,7 @@ function runOn(tree: Tree, audience: Audience, options: readonly string[]) {
   const result = spawnSync(
     process.execPath,
     [join(repoRoot, SCRIPT_PATHS[audience]), root, ...options],
-    { encoding: 'utf8' },
+    { encoding: 'utf8', env: { ...process.env, NODE_PATH: '' } },
   );
   return {
     status: result.status,
@@ -127,6 +127,8 @@ describe.each(['app', 'extension'] as const)('the %s script', (audience) => {
       stdout: '',
       stderr: [
         'src/binding.ts: not moved, because it already has a binding named contract; rename that binding and run the script again',
+        'src/destructured.ts: not moved, because it already has a binding named contract; rename that binding and run the script again',
+        'src/inner-binding.ts: not moved, because it already has a binding named contract; rename that binding and run the script again',
         'src/json-named-contract.ts: not moved, because it already has a binding named contract; rename that binding and run the script again',
         'src/two-contracts.ts: not moved, because its clients use different contracts; give each its own contractFromJson value',
         'src/unreadable.ts: not moved, because it passes contractJson to a client in a form the script cannot read',

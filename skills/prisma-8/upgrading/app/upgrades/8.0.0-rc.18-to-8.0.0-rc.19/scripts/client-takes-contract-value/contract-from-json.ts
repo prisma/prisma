@@ -97,7 +97,7 @@ function topLevelNames(ts: typeof TS, sourceFile: TS.SourceFile) {
       else for (const element of bindings?.elements ?? []) imported.add(element.name.text);
     } else if (ts.isVariableStatement(statement)) {
       for (const declaration of statement.declarationList.declarations) {
-        if (ts.isIdentifier(declaration.name)) declared.add(declaration.name.text);
+        for (const name of bindingNames(ts, declaration.name)) declared.add(name);
       }
     } else if (
       (ts.isFunctionDeclaration(statement) || ts.isClassDeclaration(statement)) &&
@@ -107,6 +107,30 @@ function topLevelNames(ts: typeof TS, sourceFile: TS.SourceFile) {
     }
   }
   return { imported, declared };
+}
+
+function bindingNames(ts: typeof TS, name: TS.BindingName): string[] {
+  if (ts.isIdentifier(name)) return [name.text];
+  return name.elements.flatMap((element) =>
+    ts.isOmittedExpression(element) ? [] : bindingNames(ts, element.name),
+  );
+}
+
+function bindsAnywhere(ts: typeof TS, node: TS.Node, wanted: string): boolean {
+  if (
+    (ts.isVariableDeclaration(node) || ts.isParameter(node)) &&
+    bindingNames(ts, node.name).includes(wanted)
+  )
+    return true;
+  if (
+    (ts.isFunctionDeclaration(node) ||
+      ts.isFunctionExpression(node) ||
+      ts.isClassDeclaration(node) ||
+      ts.isClassExpression(node)) &&
+    node.name?.text === wanted
+  )
+    return true;
+  return ts.forEachChild(node, (child) => bindsAnywhere(ts, child, wanted) || undefined) ?? false;
 }
 
 function identifiersIn(ts: typeof TS, node: TS.Node): string[] {
@@ -249,7 +273,7 @@ export function moveFile(ts: typeof TS, fileName: string, source: string): Outco
     };
   }
   const names = topLevelNames(ts, sourceFile);
-  if (names.imported.has('contract') || names.declared.has('contract')) {
+  if (names.imported.has('contract') || bindsAnywhere(ts, sourceFile, 'contract')) {
     return {
       kind: 'refused',
       reason:
@@ -318,7 +342,7 @@ function isTestPath(path: string): boolean {
 function sourceFiles(directory: string): string[] {
   const files: string[] = [];
   for (const entry of readdirSync(directory)) {
-    if (SKIPPED_DIRECTORIES.has(entry)) continue;
+    if (SKIPPED_DIRECTORIES.has(entry) || entry.startsWith('.')) continue;
     const path = join(directory, entry);
     if (statSync(path).isDirectory()) files.push(...sourceFiles(path));
     else if (SOURCE_FILE.test(entry) && !entry.endsWith('.d.ts')) files.push(path);
