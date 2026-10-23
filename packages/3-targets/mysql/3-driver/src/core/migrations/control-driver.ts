@@ -9,6 +9,7 @@ import { redactDatabaseUrl } from '@internal/utils/redact-db-url';
 import { type Connection, createConnection } from 'mysql2/promise';
 import { mysqlConnectionOptions } from '../connection-options';
 import { mysqlDriverDescriptorMeta } from '../descriptor-meta';
+import { formatMysqlQuery } from '../format-query';
 import { isFatal, normalizeMysqlError } from '../normalize-error';
 import { serverText } from '../server-text';
 import { SESSION_SETUP } from '../session-setup';
@@ -43,8 +44,7 @@ export class MysqlControlDriver implements SqlControlDriverInstance<'mysql'> {
     if (this.#lost !== undefined) throw connectionLost(this.#lost);
     try {
       const [result] = await this.connection.query({
-        sql,
-        values: params === undefined ? [] : [...params],
+        sql: formatMysqlQuery(sql, params ?? []),
         typeCast: serverText,
       });
       return {

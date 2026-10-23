@@ -41,6 +41,26 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     );
   });
 
+  it('fills only the placeholders outside quoted text, so a value cannot leave its literal', async (test) => {
+    await withMysqlDatabase(test, ({ url }) =>
+      withDriver(url, async (driver) => {
+        const value = "' OR 1=1 OR '";
+        expect({
+          rows: await collect(
+            driver.query({
+              sql: "SELECT 'why?' AS q, `a?` AS v FROM (SELECT ? AS `a?`) AS t /* ? */ WHERE \"?\" = '?'",
+              params: [value],
+            }),
+          ),
+          stats: await driver.execute({ sql: "SELECT 'why?', ?", params: [value] }),
+        }).toEqual({ rows: [{ q: 'why?', v: value }], stats: { affectedRows: 0 } });
+        await expect(
+          collect(driver.query({ sql: "SELECT '?' AS q", params: [value] })),
+        ).rejects.toMatchObject({ code: 'RUNTIME.AST_INVALID' });
+      }),
+    );
+  });
+
   it('sets up every connection: no backslash escapes mode, UTC, and a group_concat_max_len as large as a packet', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {

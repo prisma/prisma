@@ -12,6 +12,7 @@ import type {
 import { blindCast } from '@internal/utils/casts';
 import { createPool, type Pool, type PoolConnection, type ResultSetHeader } from 'mysql2';
 import { mysqlConnectionOptions } from '../connection-options';
+import { formatMysqlQuery } from '../format-query';
 import { isFatal, normalizeMysqlError } from '../normalize-error';
 import { serverText } from '../server-text';
 import { SESSION_SETUP } from '../session-setup';
@@ -27,15 +28,15 @@ function notConnected(message: string) {
   });
 }
 
-function values(request: SqlExecuteRequest): unknown[] {
-  return request.params === undefined ? [] : [...request.params];
+function formatted(request: SqlExecuteRequest): string {
+  return formatMysqlQuery(request.sql, request.params ?? []);
 }
 
 function run(connection: PoolConnection, request: SqlExecuteRequest): Promise<unknown> {
+  const sql = formatted(request);
   return new Promise((resolve, reject) => {
-    connection.query(
-      { sql: request.sql, values: values(request), typeCast: serverText },
-      (error, result) => (error ? reject(error) : resolve(result)),
+    connection.query({ sql, typeCast: serverText }, (error, result) =>
+      error ? reject(error) : resolve(result),
     );
   });
 }
@@ -80,11 +81,7 @@ async function* streamRows<Row>(
   connection: PoolConnection,
   request: SqlExecuteRequest,
 ): AsyncGenerator<Row> {
-  const command = connection.query({
-    sql: request.sql,
-    values: values(request),
-    typeCast: serverText,
-  });
+  const command = connection.query({ sql: formatted(request), typeCast: serverText });
   const finished = new Promise<void>((resolve) => command.once('end', () => resolve()));
   const stream = command.stream();
   let completed = false;

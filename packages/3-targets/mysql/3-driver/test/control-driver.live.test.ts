@@ -97,12 +97,29 @@ describe('MysqlControlDriver against a MySQL server', {
     });
   });
 
-  it('sends an object parameter as a string, not as SQL', async (test) => {
+  it('refuses an object parameter rather than writing it as SQL', async (test) => {
     await withMysqlDatabase(test, async ({ url }) => {
       const driver = await mysqlDriver.create(url);
       try {
-        expect(await driver.query('SELECT ? AS v', [{ id: 1 }])).toEqual({
-          rows: [{ v: '[object Object]' }],
+        await expect(driver.query('SELECT ? AS v', [{ id: 1 }])).rejects.toMatchObject({
+          code: 'RUNTIME.AST_INVALID',
+        });
+      } finally {
+        await driver.close();
+      }
+    });
+  });
+
+  it('fills only the placeholders outside quoted text, so a value cannot leave its literal', async (test) => {
+    await withMysqlDatabase(test, async ({ url }) => {
+      const driver = await mysqlDriver.create(url);
+      try {
+        const value = "' OR 1=1 OR '";
+        expect(await driver.query("SELECT 'why?' AS q, ? AS v /* ? */ -- ?\n", [value])).toEqual({
+          rows: [{ q: 'why?', v: value }],
+        });
+        await expect(driver.query("SELECT '?' AS q", [value])).rejects.toMatchObject({
+          code: 'RUNTIME.AST_INVALID',
         });
       } finally {
         await driver.close();
