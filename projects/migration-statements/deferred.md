@@ -245,3 +245,7 @@ Found in the review of the value object storage PR, 2026-10-23. Both limits are 
 
 - A `BigInt` member of a value object cannot be written: the `pg/jsonb@1` codec throws "Do not know how to serialize a BigInt".
 - A `Bytes` member is written as an object of byte indexes, such as `{"0":1,"1":2}`, not as bytes.
+
+## The SQL TypeScript builder has no value objects
+
+`defineContract` in `@internal/postgres/contract-builder` cannot declare a value object, so a SQL contract written in TypeScript cannot have one. The main SQL ORM test contract (`test/integration/test/sql-orm-client/fixtures/contract.ts`) used to patch a value object into its built contract; it now stores `User.address` as a plain `jsonb` column, and the value object type tests read a PSL fixture (`fixtures/value-objects`). That contract cannot move to PSL, because PSL cannot write its to-one relation without a foreign key (`Article.reviewer`).
