@@ -50,7 +50,7 @@ A Prisma 7 schema read by `prisma7Schema(...)`: `DateTime` becomes `TimestampJsD
 
 ## Scope
 
-**In:** the framework helper, print and infer (`psl-print/column-types.ts`, `psl-build/column-types.ts`, `infer-model-blocks.ts`, `infer-default-codec.ts`, `inferred-type-constructors.ts`), the data types' normal form, the marks, the Prisma 7 reader, the aliases, `orm init` templates, `examples/prisma7-adoption` (contract, snapshot, `src/main.ts`, README, tests), every fixture and test pinning today's output, docs (`scalar-types.md`, `gotchas.md`, the contract-prisma7 and contract-ts READMEs, skills), ADR 279 items 8 and 10 marked built, ADR 275's alias line.
+**In:** the framework helper, print and infer (`psl-print/column-types.ts`, `psl-build/column-types.ts`, `infer-model-blocks.ts`, `infer-default-codec.ts`, `inferred-type-constructors.ts`), the data types' normal form, the marks, the Prisma 7 reader, the aliases, `orm init` templates, `examples/prisma7-adoption` (contract, snapshot, `src/main.ts`, README, tests), every fixture and test pinning today's output, docs (`scalar-types.md`, `gotchas.md`, the contract-prisma7 and contract-ts READMEs, skills), ADR 275's alias line. ADR 279 already describes this design; it is not edited unless the built behaviour differs from it.
 
 **Out:** SQLite, MySQL and MongoDB (TML-3714); regenerating the Supabase pack contract (TML-3417).
 
