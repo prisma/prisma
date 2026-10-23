@@ -196,3 +196,7 @@ Reproduction: emit a PSL contract with a `namespace public` block and a `namespa
 ## Column value-set references are not checked against storage
 
 A column's `valueSet: { plane: 'storage', entityKind: 'valueSet', entityName }` is not checked to name an existing `storage.namespaces.<ns>.entries.valueSet` entry, in either family. A hand-edited or corrupt `contract.json` with a dangling reference passes validation and fails later. PR 3 of the remaining-nouns slice adds the check for value object members only. Found in the review of that PR, 2026-10-23.
+
+## Composite types are not namespaced in SQL PSL
+
+SQL PSL resolves a composite type by its bare name across all namespaces and writes every value object to the default storage namespace. Two composite types with the same name in different PSL namespaces are refused with `PSL_DUPLICATE_DECLARATION` (before PR 3 of the remaining-nouns slice they silently overwrote each other). Letting each namespace declare its own needs namespace-qualified type references in PSL and writing each value object to its namespace's storage. Found in the review of that PR, 2026-10-23.
