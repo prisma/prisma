@@ -42,6 +42,7 @@ describe('the extension detection for a required stack driver', () => {
     ['the driver option', 'const d = options.driver;'],
     ['driver destructured from options', 'const { driver } = options;'],
     ['another member destructured from a stack', 'const { adapter } = stack;'],
+    ['another member renamed to driver', 'const { adapter: driver } = stack;'],
   ])('skips %s', (_name, content) => {
     expect(detects(content)).toBe(false);
   });

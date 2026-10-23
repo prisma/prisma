@@ -8,7 +8,7 @@ changes:
       matches:
         - '(?<![\w$])SqlExecutionStackWithDriver(?![\w$])'
         - '(?<![\w$.])(?:this\.)?[\w$]*[sS]tack\.driver(?![\w$])'
-        - '\{[^{}]*(?<![\w$.])driver(?![\w$])[^{}]*\}\s*=\s*(?:createSqlExecutionStack\s*\(|(?:this\.)?[\w$]*[sS]tack(?![\w$]))'
+        - '\{(?:[^{}]*,)?\s*driver(?![\w$])[^{}]*\}\s*=\s*(?:createSqlExecutionStack\s*\(|(?:this\.)?[\w$]*[sS]tack(?![\w$]))'
   - id: runtime-mode-from-framework-components
     summary: |
       No action is needed. `RuntimeMode` is now declared in `@internal/framework-components/runtime` and still exported from `@internal/sql-runtime`.
