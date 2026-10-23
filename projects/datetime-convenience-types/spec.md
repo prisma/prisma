@@ -1,6 +1,6 @@
 # Project spec — Convenience date and time types
 
-**Linear:** [Convenience date and time types](https://linear.app/prisma-company/project/convenience-date-and-time-types-6a969ca1c76e) ([TML-3709](https://linear.app/prisma-company/issue/TML-3709)) · **Branch:** `tml-3709-plan-datetime-convenience-types` · **Design record:** [ADR 279 — Convenience date and time types choose an explicit type from their arguments](../../docs/architecture%20docs/adrs/ADR%20279%20-%20Convenience%20date%20and%20time%20types%20choose%20an%20explicit%20type%20from%20their%20arguments.md) (Proposed)
+**Linear:** [Convenience date and time types](https://linear.app/prisma-company/project/convenience-date-and-time-types-6a969ca1c76e) ([TML-3709](https://linear.app/prisma-company/issue/TML-3709)) · **Branch:** `tml-3709-plan-datetime-convenience-types` · **Design record:** [ADR 279 — Convenience date and time types choose an explicit type from their arguments](../../docs/architecture%20docs/adrs/ADR%20279%20-%20Convenience%20date%20and%20time%20types%20choose%20an%20explicit%20type%20from%20their%20arguments.md) (Accepted)
 
 ## Purpose
 

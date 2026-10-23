@@ -156,7 +156,7 @@ The defaults are chosen so that the value is right for the concept and needs not
 - **`DateTime` reads a JavaScript `Date`.** That is the right value for a moment in time, it works everywhere, and it is what Prisma 7 gave. A `Date` holds milliseconds, so the default precision is 3. A user who needs microseconds writes `DateTime(value: temporal)` or `DateTime(value: string)`.
 - **`Date`, `Time` and `Duration` read plain ISO 8601 strings.** JavaScript has no built-in calendar date, time of day or duration. A `Date` would bring back the wrong-day bug. A Prisma-owned class or branded string is rejected under Alternatives.
 
-A string is the ISO 8601 text of the stored value (ADR 254, "Date and time types"). It reads the same on every server, and a value written in that form reads back unchanged:
+A string is the ISO 8601 text of the stored value (ADR 254, "Date and time types"). It reads the same on every server, and a value written in that form reads back unchanged; a `timestamptz` written with another offset reads back as the same instant in UTC:
 - The `timestamptz` string codec converts any session time zone offset to UTC.
 - The `timetz` codec keeps the offset stored with the value.
 - The `interval` string codec reads every `IntervalStyle` PostgreSQL prints.
