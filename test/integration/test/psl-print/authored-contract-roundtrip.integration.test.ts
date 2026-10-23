@@ -61,6 +61,33 @@ const pslCases: ReadonlyArray<{ readonly name: string; readonly schema: string }
     ).replace('// use prisma-8\n', ''),
   },
   {
+    name: 'a value object field of a variant that shares the base table, whose column is nullable',
+    schema: `type Geo {
+  lat Float
+  lng Float
+}
+
+model Shape {
+  id   Int    @id
+  kind String
+
+  @@discriminator(kind)
+}
+
+model Circle {
+  center Geo
+
+  @@base(Shape, "circle")
+}
+
+model Square {
+  side Int
+
+  @@base(Shape, "square")
+}
+`,
+  },
+  {
     name: 'a model control policy',
     schema: `model Ledger {
   id Int @id

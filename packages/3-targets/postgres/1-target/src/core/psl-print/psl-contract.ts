@@ -107,7 +107,7 @@ function nativeEnumsOf(
   return nativeEnums;
 }
 
-/** The value object field each column of a table holds, over the fields of every model the table stores. */
+/** The value object field each column of a table holds, over the fields of every model the table stores. Nullability comes from the column, as in the build: a variant that shares its base table has a nullable column. */
 function valueObjectFieldsOf(
   contract: Contract<SqlStorage>,
   entries: readonly ModelWithTable[],
@@ -116,9 +116,12 @@ function valueObjectFieldsOf(
   for (const entry of entries) {
     for (const [fieldName, field] of Object.entries(entry.model.fields)) {
       const columnName = entry.storage.fields[fieldName]?.column;
-      if (field.type.kind !== 'valueObject' || columnName === undefined) continue;
+      const column = columnName === undefined ? undefined : entry.table.columns[columnName];
+      if (field.type.kind !== 'valueObject' || columnName === undefined || column === undefined) {
+        continue;
+      }
       fields.set(columnName, {
-        nullable: field.nullable,
+        nullable: column.nullable,
         many: field.many ?? false,
         type: {
           kind: 'valueObject',
