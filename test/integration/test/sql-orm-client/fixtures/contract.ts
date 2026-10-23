@@ -167,7 +167,7 @@ const User = UserBase.relations({
   ],
 }));
 
-const baseContract = defineContract({
+export const contract = defineContract({
   extensions: { pgvector },
   models: {
     User,
@@ -183,66 +183,3 @@ const baseContract = defineContract({
     ProjectLink,
   },
 });
-
-const defaultNamespace = baseContract.domain.namespaces['public']!;
-const userModel = defaultNamespace.models['User']!;
-const publicStorage = baseContract.storage.namespaces['public']!;
-
-const textMember = <const Nullable extends boolean>(nullable: Nullable) => ({
-  many: false as const,
-  nullable,
-  type: { kind: 'scalar' as const, codecId: 'pg/text@1' as const },
-});
-
-export const contract = {
-  ...baseContract,
-  storage: {
-    ...baseContract.storage,
-    namespaces: {
-      ...baseContract.storage.namespaces,
-      public: {
-        ...publicStorage,
-        entries: {
-          ...publicStorage.entries,
-          valueObject: {
-            Address: {
-              fields: {
-                street: textMember(false),
-                city: textMember(false),
-                zip: textMember(true),
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-  domain: {
-    namespaces: {
-      ...baseContract.domain.namespaces,
-      public: {
-        ...defaultNamespace,
-        models: {
-          ...defaultNamespace.models,
-          User: {
-            ...userModel,
-            fields: {
-              ...userModel.fields,
-              address: {
-                many: false as const,
-                nullable: true as const,
-                type: {
-                  kind: 'valueObject' as const,
-                  plane: 'storage' as const,
-                  namespaceId: 'public' as const,
-                  entityKind: 'valueObject' as const,
-                  entityName: 'Address' as const,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-};
