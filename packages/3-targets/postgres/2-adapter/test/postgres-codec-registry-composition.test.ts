@@ -131,6 +131,7 @@ function postgresDescriptor(
   const type = fixtureSqlDataType(codecId, typeText);
   const template = genericDescriptor(codecId, type);
   return postgresCodec(template, {
+    valueObjectJsonType: 'presenceOnly',
     dataType: type,
     jsonProjection(expression: ProjectionExpr): ProjectionExpr {
       onProjection?.();
@@ -163,6 +164,7 @@ function transformingPostgresDescriptor(
     },
   };
   return postgresCodec(descriptor, {
+    valueObjectJsonType: 'presenceOnly',
     dataType: type,
     jsonProjection: (expression: ProjectionExpr) => expression,
     factory: (_descriptor, _type, params) => descriptor.factory(params),

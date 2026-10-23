@@ -130,6 +130,7 @@ class RenderingVectorDescriptor extends GenericVectorDescriptor {
 }
 
 class DirectVectorDescriptor extends PostgresCodecDescriptor<VectorParams> {
+  override readonly valueObjectJsonType = 'presenceOnly' as const;
   override readonly dataType = dataTypeId('demo/fixture');
   override readonly codecId = 'demo/direct-vector@1' as const;
   override readonly traits = ['equality'] as const;
@@ -280,6 +281,7 @@ describe('postgresCodec', () => {
   it('refuses a family template that renders literals, naming the option to use instead', () => {
     expect(() =>
       postgresCodec(new RenderingVectorDescriptor(), {
+        valueObjectJsonType: 'presenceOnly',
         dataType: fixtureVectorType,
         jsonProjection: (expression) => expression,
         factory: vectorCodecFactory,
@@ -291,6 +293,7 @@ describe('postgresCodec', () => {
 
   it("renders literals with the renderer the target passes, never the template's", () => {
     const descriptor = postgresCodec(genericVectorDescriptor, {
+      valueObjectJsonType: 'presenceOnly',
       dataType: fixtureVectorType,
       renderValueLiteral: (value, side) => `${side}-from-target:${String(value)}`,
       jsonProjection: (expression) => expression,
@@ -302,6 +305,7 @@ describe('postgresCodec', () => {
 
   it('preserves the wrapped descriptor contract and builds its codec with the factory option', () => {
     const descriptor = postgresCodec(genericVectorDescriptor, {
+      valueObjectJsonType: 'presenceOnly',
       dataType: fixtureVectorType,
       factory: vectorCodecFactory,
       jsonProjection: (expression, params) =>
@@ -329,11 +333,13 @@ describe('postgresCodec', () => {
 
   it('takes its parameter schema from the data type, not the template', () => {
     const descriptor = postgresCodec(genericVectorDescriptor, {
+      valueObjectJsonType: 'presenceOnly',
       dataType: fixtureVectorType,
       factory: vectorCodecFactory,
       jsonProjection: (expression) => expression,
     });
     const withoutParams = postgresCodec(genericVectorDescriptor, {
+      valueObjectJsonType: 'presenceOnly',
       dataType: dataType('demo/plain', { read: (json) => json }),
       factory: vectorCodecFactory,
       jsonProjection: (expression) => expression,
@@ -352,6 +358,7 @@ describe('postgresCodec', () => {
     }
     const adapt = (wrapped: GenericVectorDescriptor) =>
       postgresCodec(wrapped, {
+        valueObjectJsonType: 'presenceOnly',
         dataType: fixtureVectorType,
         factory: vectorCodecFactory,
         jsonProjection: (expression) => expression,
@@ -369,6 +376,7 @@ describe('postgresCodec', () => {
   it('accepts an array override only after typed parameter validation', () => {
     const overrideCalls: VectorParams[] = [];
     const descriptor = postgresCodec(genericVectorDescriptor, {
+      valueObjectJsonType: 'presenceOnly',
       dataType: fixtureVectorType,
       factory: vectorCodecFactory,
       jsonProjection: (expression) => expression,
@@ -410,6 +418,7 @@ describe('Postgres codec descriptor registry', () => {
       isParameterized: descriptor.isParameterized,
       factory: descriptor.factory.bind(descriptor),
       projectJson: descriptor.projectJson.bind(descriptor),
+      valueObjectJsonType: descriptor.valueObjectJsonType,
     };
 
     expect(structuralDescriptor).not.toBeInstanceOf(PostgresCodecDescriptor);
@@ -431,6 +440,7 @@ describe('Postgres codec descriptor registry', () => {
       isParameterized: descriptor.isParameterized,
       factory: descriptor.factory.bind(descriptor),
       projectJson: descriptor.projectJson.bind(descriptor),
+      valueObjectJsonType: descriptor.valueObjectJsonType,
     };
 
     expect(() => buildPostgresCodecDescriptorRegistry([genericVectorDescriptor])).toThrow(

@@ -227,6 +227,7 @@ const printedTextJsonProjection = (expression: ProjectionExpr): ProjectionExpr =
   CastExpr.as(expression, 'text');
 
 export const postgresSqlCharDescriptor = postgresCodec(sqlCharDescriptor, {
+  valueObjectJsonType: 'string',
   dataType: pgChar,
   renderValueLiteral: renderTsLiteral,
   jsonProjection: unpaddedCharJsonProjection,
@@ -234,6 +235,7 @@ export const postgresSqlCharDescriptor = postgresCodec(sqlCharDescriptor, {
 });
 
 export const postgresSqlVarcharDescriptor = postgresCodec(sqlVarcharDescriptor, {
+  valueObjectJsonType: 'string',
   dataType: pgVarchar,
   renderValueLiteral: renderTsLiteral,
   jsonProjection: identityJsonProjection,
@@ -242,6 +244,7 @@ export const postgresSqlVarcharDescriptor = postgresCodec(sqlVarcharDescriptor, 
 });
 
 export const postgresSqlIntDescriptor = postgresCodec(sqlIntDescriptor, {
+  valueObjectJsonType: 'number',
   dataType: pgInt4,
   renderValueLiteral: renderTsLiteral,
   jsonProjection: identityJsonProjection,
@@ -249,6 +252,7 @@ export const postgresSqlIntDescriptor = postgresCodec(sqlIntDescriptor, {
 });
 
 export const postgresSqlFloatDescriptor = postgresCodec(sqlFloatDescriptor, {
+  valueObjectJsonType: 'number',
   dataType: pgFloat8,
   renderValueLiteral: floatNumberLiteral,
   jsonProjection: identityJsonProjection,
@@ -256,6 +260,7 @@ export const postgresSqlFloatDescriptor = postgresCodec(sqlFloatDescriptor, {
 });
 
 export const postgresSqlTextDescriptor = postgresCodec(sqlTextDescriptor, {
+  valueObjectJsonType: 'string',
   dataType: pgText,
   renderValueLiteral: renderTsLiteral,
   jsonProjection: identityJsonProjection,
@@ -276,6 +281,7 @@ const outputFunctionJsonProjection = (expression: ProjectionExpr): ProjectionExp
   );
 
 export const postgresSqlRawDescriptor = postgresCodec(sqlRawDescriptor, {
+  valueObjectJsonType: 'presenceOnly',
   dataType: sqlRawDataType,
   jsonProjection: outputFunctionJsonProjection,
   factory: (descriptor, dataType, params) => () => new SqlRawCodec(descriptor, dataType, params),
@@ -302,6 +308,7 @@ export class PgTextCodec extends CodecImpl<
 }
 
 export class PgTextDescriptor extends PostgresCodecDescriptor<void> {
+  override readonly valueObjectJsonType = 'string' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }
@@ -381,6 +388,7 @@ export function isPgEnumParams(value: unknown): value is PgEnumParams {
 }
 
 export class PgEnumDescriptor extends PostgresCodecDescriptor<PgEnumParams> {
+  override readonly valueObjectJsonType = 'presenceOnly' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }
@@ -506,6 +514,7 @@ export class PgTextArrayCodec extends CodecImpl<
 }
 
 export class PgTextArrayDescriptor extends PostgresCodecDescriptor<void> {
+  override readonly valueObjectJsonType = 'presenceOnly' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return printedTextJsonProjection(expression);
   }
@@ -541,6 +550,7 @@ export class PgInt4Codec extends CodecImpl<
 }
 
 export class PgInt4Descriptor extends PostgresCodecDescriptor<void> {
+  override readonly valueObjectJsonType = 'number' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }
@@ -585,6 +595,7 @@ export class PgInt2Codec extends CodecImpl<
 }
 
 export class PgInt2Descriptor extends PostgresCodecDescriptor<void> {
+  override readonly valueObjectJsonType = 'number' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }
@@ -635,6 +646,7 @@ export class PgInt8Codec extends CodecImpl<
 }
 
 export class PgInt8Descriptor extends PostgresCodecDescriptor<void> {
+  override readonly valueObjectJsonType = 'presenceOnly' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return decimalTextJsonProjection(expression);
   }
@@ -687,6 +699,7 @@ export class PgInt8NumberCodec extends CodecImpl<
 }
 
 export class PgInt8NumberDescriptor extends PostgresCodecDescriptor<void> {
+  override readonly valueObjectJsonType = 'number' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return decimalTextJsonProjection(expression);
   }
@@ -731,6 +744,7 @@ export class PgFloat4Codec extends CodecImpl<
 }
 
 export class PgFloat4Descriptor extends PostgresCodecDescriptor<void> {
+  override readonly valueObjectJsonType = 'number' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }
@@ -775,6 +789,7 @@ export class PgFloat8Codec extends CodecImpl<
 }
 
 export class PgFloat8Descriptor extends PostgresCodecDescriptor<void> {
+  override readonly valueObjectJsonType = 'number' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }
@@ -819,6 +834,7 @@ export class PgBoolCodec extends CodecImpl<
 }
 
 export class PgBoolDescriptor extends PostgresCodecDescriptor<void> {
+  override readonly valueObjectJsonType = 'boolean' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }
@@ -863,6 +879,7 @@ export class PgNumericCodec extends CodecImpl<
 }
 
 export class PgNumericDescriptor extends PostgresCodecDescriptor<NumericParams> {
+  override readonly valueObjectJsonType = 'string' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return decimalTextJsonProjection(expression);
   }
@@ -912,6 +929,7 @@ export class PgUnboundedIntCodec extends CodecImpl<
 }
 
 export class PgUnboundedIntDescriptor extends PostgresCodecDescriptor<NumericParams> {
+  override readonly valueObjectJsonType = 'presenceOnly' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return decimalTextJsonProjection(expression);
   }
@@ -962,6 +980,7 @@ export class PgTimetzCodec extends CodecImpl<
 }
 
 export class PgTimetzDescriptor extends PostgresCodecDescriptor<PrecisionParams> {
+  override readonly valueObjectJsonType = 'presenceOnly' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }
@@ -1006,6 +1025,7 @@ export class PgBitCodec extends CodecImpl<
 }
 
 export class PgBitDescriptor extends PostgresCodecDescriptor<LengthParams> {
+  override readonly valueObjectJsonType = 'presenceOnly' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }
@@ -1050,6 +1070,7 @@ export class PgVarbitCodec extends CodecImpl<
 }
 
 export class PgVarbitDescriptor extends PostgresCodecDescriptor<LengthParams> {
+  override readonly valueObjectJsonType = 'presenceOnly' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }
@@ -1094,6 +1115,7 @@ export class PgByteaCodec extends CodecImpl<
 }
 
 export class PgByteaDescriptor extends PostgresCodecDescriptor<void> {
+  override readonly valueObjectJsonType = 'presenceOnly' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return printedTextJsonProjection(expression);
   }
@@ -1137,6 +1159,7 @@ export class PgUuidCodec extends CodecImpl<
 }
 
 export class PgUuidDescriptor extends PostgresCodecDescriptor<void> {
+  override readonly valueObjectJsonType = 'string' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }
@@ -1181,6 +1204,7 @@ export class PgInetCodec extends CodecImpl<
 }
 
 export class PgInetDescriptor extends PostgresCodecDescriptor<void> {
+  override readonly valueObjectJsonType = 'presenceOnly' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }
@@ -1241,6 +1265,7 @@ export class PgTsqueryCodec extends CodecImpl<
  * column, and no traits, because comparing or ordering queries means nothing to an application.
  */
 export class PgTsqueryDescriptor extends PostgresCodecDescriptor<void> {
+  override readonly valueObjectJsonType = 'presenceOnly' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }
@@ -1300,6 +1325,7 @@ export class PgIntervalCodec extends CodecImpl<
 }
 
 export class PgIntervalDescriptor extends PostgresCodecDescriptor<PrecisionParams> {
+  override readonly valueObjectJsonType = 'presenceOnly' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return printedTextJsonProjection(expression);
   }
@@ -1342,6 +1368,7 @@ export class PgJsonCodec extends CodecImpl<
 }
 
 export class PgJsonDescriptor extends PostgresCodecDescriptor<void> {
+  override readonly valueObjectJsonType = 'anyJson' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return printedTextJsonProjection(expression);
   }
@@ -1385,6 +1412,7 @@ export class PgJsonbCodec extends CodecImpl<
 }
 
 export class PgJsonbDescriptor extends PostgresCodecDescriptor<void> {
+  override readonly valueObjectJsonType = 'anyJson' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return printedTextJsonProjection(expression);
   }
@@ -1426,6 +1454,7 @@ export class PgFloatCodec extends SqlFloatCodec {
 }
 
 export class PgCharDescriptor extends PostgresCodecDescriptor<LengthParams> {
+  override readonly valueObjectJsonType = 'string' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return unpaddedCharJsonProjection(expression);
   }
@@ -1449,6 +1478,7 @@ export const pgCharColumn = (params: LengthParams = {}) =>
 pgCharColumn satisfies ColumnHelperFor<PgCharDescriptor>;
 
 export class PgVarcharDescriptor extends PostgresCodecDescriptor<LengthParams> {
+  override readonly valueObjectJsonType = 'string' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }
@@ -1472,6 +1502,7 @@ export const pgVarcharColumn = (params: LengthParams = {}) =>
 pgVarcharColumn satisfies ColumnHelperFor<PgVarcharDescriptor>;
 
 export class PgIntDescriptor extends PostgresCodecDescriptor<void> {
+  override readonly valueObjectJsonType = 'number' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }
@@ -1495,6 +1526,7 @@ export const pgIntColumn = () =>
 pgIntColumn satisfies ColumnHelperFor<PgIntDescriptor>;
 
 export class PgFloatDescriptor extends PostgresCodecDescriptor<void> {
+  override readonly valueObjectJsonType = 'number' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }

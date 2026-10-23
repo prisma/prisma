@@ -49,6 +49,7 @@ const transformingCodecDescriptor: AnyCodecDescriptor = {
   factory: () => () => transformingCodec,
 };
 const transformingDescriptor = postgresCodec(transformingCodecDescriptor, {
+  valueObjectJsonType: 'presenceOnly',
   dataType: pgText,
   jsonProjection: (expression: ProjectionExpr) => expression,
   factory: () => () => transformingCodec,
@@ -323,6 +324,7 @@ class ExtTransformDescriptor extends CodecDescriptorImpl<void> {
 
 const extDescriptor = new ExtTransformDescriptor();
 const extTransformDescriptor = postgresCodec(extDescriptor, {
+  valueObjectJsonType: 'presenceOnly',
   dataType: pgText,
   jsonProjection: (expression: ProjectionExpr) => expression,
   factory: () => extDescriptor.factory(),

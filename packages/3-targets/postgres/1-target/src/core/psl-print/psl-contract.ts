@@ -221,6 +221,7 @@ function buildModel(
             [discriminatorValueSet.name, discriminatorValueSet.values],
           ]),
     columnValueObjects: columnValueObjectsOf(all.contract, [entry, ...singleTableVariants]),
+    codecLookup: all.context.codecLookup,
   });
   if (variant?.singleTable !== true) refuseUnderivedChecks(entry, checks);
   return {

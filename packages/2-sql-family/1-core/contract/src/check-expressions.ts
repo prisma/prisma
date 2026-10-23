@@ -5,6 +5,7 @@ import type {
   EntityCoordinate,
 } from '@internal/contract/types';
 import { valueObjectAt } from '@internal/contract/types';
+import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type { CheckKind } from '@internal/sql-schema-ir/naming';
 import { invariant } from '@internal/utils/assertions';
 import { isStorageValueSet } from './ir/storage-value-set';
@@ -57,8 +58,10 @@ export interface CheckExpressionCandidate {
   readonly expression: string;
 }
 
+/** A target's check renderer. It reads what it needs of a value object member's codec, such as the JSON type the codec declares, through `codecLookup`. */
 export type CheckExpressionRenderer = (
   input: CheckExpressionInput,
+  codecLookup: Pick<CodecLookupWithDescriptors, 'descriptorFor'>,
 ) => ReadonlyArray<CheckExpressionCandidate>;
 
 /**

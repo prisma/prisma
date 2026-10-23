@@ -83,6 +83,7 @@ class GenericVectorDescriptor extends CodecDescriptorImpl<VectorParams> {
 }
 
 class DirectVectorDescriptor extends PostgresCodecDescriptor<VectorParams> {
+  override readonly valueObjectJsonType = 'presenceOnly' as const;
   override readonly dataType = dataTypeId('demo/fixture');
   override readonly codecId = 'demo/direct-vector@1' as const;
   override readonly traits = ['equality'] as const;
@@ -105,6 +106,7 @@ class DirectVectorDescriptor extends PostgresCodecDescriptor<VectorParams> {
 const genericDescriptor = new GenericVectorDescriptor();
 const directDescriptor = new DirectVectorDescriptor();
 const adaptedDescriptor = postgresCodec(genericDescriptor, {
+  valueObjectJsonType: 'presenceOnly',
   dataType: fixtureType,
   factory: (descriptor, type, params) => () => new VectorCodec(descriptor, type, params.length),
   jsonProjection(expression, params) {
@@ -152,6 +154,7 @@ test('definePostgresCodecs rejects an unadapted generic descriptor', () => {
 test('postgresCodec requires explicit scalar projection behavior', () => {
   // @ts-expect-error -- jsonProjection is mandatory
   postgresCodec(genericDescriptor, {
+    valueObjectJsonType: 'presenceOnly',
     dataType: fixtureType,
     factory: (descriptor, type, params) => () => new VectorCodec(descriptor, type, params.length),
   });
@@ -174,11 +177,13 @@ class TextCodec extends CodecImpl<'demo/text@1', readonly ['equality'], string, 
 
 test('a factory option builds a codec of the family codec it adapts', () => {
   postgresCodec(genericDescriptor, {
+    valueObjectJsonType: 'presenceOnly',
     dataType: fixtureType,
     jsonProjection: (expression) => expression,
     factory: (descriptor, type, params) => () => new VectorCodec(descriptor, type, params.length),
   });
   postgresCodec(genericDescriptor, {
+    valueObjectJsonType: 'presenceOnly',
     dataType: fixtureType,
     jsonProjection: (expression) => expression,
     // @ts-expect-error -- the adapted descriptor's factory promises the family codec, so the option cannot build another
@@ -188,6 +193,7 @@ test('a factory option builds a codec of the family codec it adapts', () => {
 
 // @ts-expect-error -- direct descriptors must implement scalar JSON projection
 class MissingJsonProjection extends PostgresCodecDescriptor<VectorParams> {
+  override readonly valueObjectJsonType = 'presenceOnly' as const;
   override readonly dataType = dataTypeId('demo/fixture');
   override readonly codecId = 'demo/missing-json@1' as const;
   override readonly traits: readonly CodecTrait[] = [];

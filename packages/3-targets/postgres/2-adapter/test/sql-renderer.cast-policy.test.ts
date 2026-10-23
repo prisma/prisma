@@ -77,6 +77,7 @@ const verbatimTemplate = genericDescriptor('demo/verbatim@1', verbatimDataType);
 
 const verbatimRegistry = buildPostgresCodecDescriptorRegistry([
   postgresCodec(verbatimTemplate, {
+    valueObjectJsonType: 'presenceOnly',
     dataType: verbatimDataType,
     jsonProjection: (expression: ProjectionExpr) => expression,
     factory: (_descriptor, _type, params) => verbatimTemplate.factory(params),
@@ -87,6 +88,7 @@ function descriptorFor(codecId: string, name: string): AnyPostgresCodecDescripto
   const type = fixtureDataType(name);
   const template = genericDescriptor(codecId, type);
   return postgresCodec(template, {
+    valueObjectJsonType: 'presenceOnly',
     dataType: type,
     jsonProjection: (expression: ProjectionExpr) => expression,
     factory: (_descriptor, _type, params) => template.factory(params),

@@ -39,8 +39,17 @@ const ARRAY_ELEMENT_ALIAS = 'array_element';
 const ARRAY_VALUE_COLUMN = 'value';
 const ARRAY_ORDINALITY_COLUMN = 'ordinality';
 
+const VALUE_OBJECT_JSON_TYPES = ['string', 'number', 'boolean', 'anyJson', 'presenceOnly'] as const;
+
+/**
+ * What the check of a value object column accepts for a member of a codec: the JSON type the SQL ORM writes for its value (`'string'`, `'number'` or `'boolean'`), any JSON value (`'anyJson'`, for a JSON codec), or any value at all, checked only for being present and, when required, not JSON `null` (`'presenceOnly'`, for a codec whose JSON form the check does not pin down).
+ */
+export type ValueObjectJsonType = (typeof VALUE_OBJECT_JSON_TYPES)[number];
+
 export interface AnyPostgresCodecDescriptor extends AnyCodecDescriptor {
   readonly descriptorKind: typeof POSTGRES_CODEC_DESCRIPTOR_KIND;
+  /** See {@link ValueObjectJsonType}. Every PostgreSQL codec declares it. */
+  readonly valueObjectJsonType: ValueObjectJsonType;
   projectJson(expression: ProjectionExpr, ref: CodecRef): ProjectionExpr;
 }
 
@@ -49,6 +58,7 @@ export abstract class PostgresCodecDescriptor<P = void>
   implements AnyPostgresCodecDescriptor
 {
   readonly descriptorKind = POSTGRES_CODEC_DESCRIPTOR_KIND;
+  abstract readonly valueObjectJsonType: ValueObjectJsonType;
 
   protected abstract jsonProjection(expression: ProjectionExpr, params: P): ProjectionExpr;
 
@@ -123,6 +133,8 @@ export interface PostgresCodecOptions<
   readonly dataType: DataType;
   /** Renders the literal of the value the codec reads from a stored value of `dataType`. A family template renders no literal, because only the target knows the form its data type stores a value in, so the adapted codec renders with this and never with a renderer on the template. */
   readonly renderValueLiteral?: (value: JsonValue, side: 'output' | 'input') => string | undefined;
+  /** See {@link ValueObjectJsonType}. */
+  readonly valueObjectJsonType: ValueObjectJsonType;
   readonly jsonProjection: (expression: ProjectionExpr, params: P) => ProjectionExpr;
   readonly jsonArrayProjection?: (expression: ProjectionExpr, params: P) => ProjectionExpr;
   /**
@@ -140,12 +152,13 @@ export type AdaptedPostgresCodecDescriptor<D extends AnyCodecDescriptorTemplate>
   keyof CodecDescriptorTemplate<DescriptorParams<D>>
 > &
   Pick<CodecDescriptor, 'dataType'> &
-  Pick<AnyPostgresCodecDescriptor, 'descriptorKind' | 'projectJson'>;
+  Pick<AnyPostgresCodecDescriptor, 'descriptorKind' | 'projectJson' | 'valueObjectJsonType'>;
 
 class PostgresCodecDescriptorAdapter<
   D extends AnyCodecDescriptorTemplate,
 > extends PostgresCodecDescriptor<DescriptorParams<D>> {
   override readonly dataType: DataTypeId;
+  override readonly valueObjectJsonType: ValueObjectJsonType;
   override readonly codecId: string;
   override readonly traits: readonly CodecTrait[];
   override readonly paramsSchema: StandardSchemaV1<DescriptorParams<D>> | undefined;
@@ -166,6 +179,7 @@ class PostgresCodecDescriptorAdapter<
   ) {
     super();
     this.dataType = options.dataType.id;
+    this.valueObjectJsonType = options.valueObjectJsonType;
     this.codecId = descriptor.codecId;
     this.traits = descriptor.traits;
     this.paramsSchema = blindCast<
@@ -253,7 +267,9 @@ export function isPostgresCodecDescriptor(value: unknown): value is AnyPostgresC
     'factory' in value &&
     typeof value.factory === 'function' &&
     'projectJson' in value &&
-    typeof value.projectJson === 'function'
+    typeof value.projectJson === 'function' &&
+    'valueObjectJsonType' in value &&
+    VALUE_OBJECT_JSON_TYPES.some((jsonType) => jsonType === value.valueObjectJsonType)
   );
 }
 

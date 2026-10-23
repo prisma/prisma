@@ -12,15 +12,19 @@ import {
 import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import { postgresRenderCheckExpressions } from '../../../src/core/check-expressions';
+import { postgresCodecDescriptorRegistry } from '../../../src/core/registry';
 import { printPslFromFlat } from '../fixtures';
 
-const elementCandidate = postgresRenderCheckExpressions({
-  tableName: 'users',
-  columnName: 'tags',
-  many: { elementNullable: false },
-  memberValues: undefined,
-  valueObject: undefined,
-})[0];
+const elementCandidate = postgresRenderCheckExpressions(
+  {
+    tableName: 'users',
+    columnName: 'tags',
+    many: { elementNullable: false },
+    memberValues: undefined,
+    valueObject: undefined,
+  },
+  postgresCodecDescriptorRegistry,
+)[0];
 
 const derivedPrefix = composeCheckWirePrefix('users', 'tags', 'elementNotNull');
 const derivedHash = computeCheckContentHash(elementCandidate?.expression ?? '');

@@ -33,6 +33,7 @@ const citextTemplate: CodecDescriptorTemplate = {
 
 /** A codec the target does not own, as an extension would contribute it, representing text. */
 export const extensionCodec: AnyPostgresCodecDescriptor = postgresCodec(citextTemplate, {
+  valueObjectJsonType: 'presenceOnly',
   dataType: pgText,
   jsonProjection: (expression) => expression,
   factory: () => () => {

@@ -74,6 +74,7 @@ class IncludedTextDescriptor extends CodecDescriptorImpl<void> {
  * assuming. This one stores and projects text unchanged.
  */
 const includedTextDescriptor = postgresCodec(new IncludedTextDescriptor(), {
+  valueObjectJsonType: 'presenceOnly',
   dataType: pgText,
   jsonProjection: (expression) => expression,
   factory: (descriptor, dataType) => () => new IncludedTextCodec(descriptor, dataType),

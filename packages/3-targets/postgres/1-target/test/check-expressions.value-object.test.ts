@@ -6,6 +6,7 @@ import type {
 } from '@internal/sql-contract/check-expressions';
 import { describe, expect, it } from 'vitest';
 import { postgresRenderCheckExpressions } from '../src/core/check-expressions';
+import { postgresCodecDescriptorRegistry } from '../src/core/registry';
 
 function scalar(
   codecId: string,
@@ -29,13 +30,16 @@ function render(
   valueObject: ResolvedValueObject,
   column: Partial<Pick<ResolvedColumnValueObject, 'nullable' | 'many'>> = {},
 ): readonly { readonly kind: string; readonly expression: string }[] {
-  return postgresRenderCheckExpressions({
-    tableName: 'user',
-    columnName: 'address',
-    many: false,
-    memberValues: undefined,
-    valueObject: { nullable: false, many: false, ...column, valueObject },
-  }).map(({ kind, expression }) => ({ kind, expression }));
+  return postgresRenderCheckExpressions(
+    {
+      tableName: 'user',
+      columnName: 'address',
+      many: false,
+      memberValues: undefined,
+      valueObject: { nullable: false, many: false, ...column, valueObject },
+    },
+    postgresCodecDescriptorRegistry,
+  ).map(({ kind, expression }) => ({ kind, expression }));
 }
 
 const street = member(scalar('pg/text@1'));
@@ -137,7 +141,7 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
     ]);
   });
 
-  it('refuses JSON null for a required member whose codec has no known JSON type, and checks only the presence of a JSON member', () => {
+  it('refuses JSON null for a required member whose codec declares presence only, and checks only the presence of a JSON member', () => {
     const bytes = member(scalar('pg/bytea@1'));
     const data = member(scalar('pg/jsonb@1'));
     const notes = member(scalar('pg/jsonb@1'), { nullable: true });
