@@ -40,6 +40,7 @@ import { mysqlBigint, mysqlInt } from '@internal/target-mysql/data-types';
 import { mysqlError, mysqlQueryNotYetSupported } from '@internal/target-mysql/errors';
 import {
   escapeLiteral,
+  type MysqlPlaceholderToken,
   type MysqlSqlToken,
   quoteIdentifier,
   tokenizeMysqlSql,
@@ -323,7 +324,7 @@ function limitOperandParts(parts: RawExpr['parts'] | RawQueryAst['parts']): Read
   const tokens = tokenizeMysqlSql(sql).filter(
     (token) => token.kind !== 'whitespace' && token.kind !== 'comment',
   );
-  const partOf = (token: MysqlSqlToken) => Number(token.text.slice(1)) - 1;
+  const partOf = (token: MysqlPlaceholderToken) => (token.number ?? 0) - 1;
   const operands = new Set<number>();
   tokens.forEach((token, position) => {
     if (token.kind !== 'placeholder') return;

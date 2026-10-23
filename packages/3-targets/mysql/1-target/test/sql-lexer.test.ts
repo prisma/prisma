@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { placeholderNumber, tokenizeMysqlSql } from '../src/core/sql-lexer';
+import { tokenizeMysqlSql } from '../src/core/sql-lexer';
 
 const placeholders = (sql: string) =>
   tokenizeMysqlSql(sql)
@@ -30,7 +30,7 @@ describe('tokenizeMysqlSql', () => {
       { kind: 'whitespace', text: ' ' },
       { kind: 'comment', text: '/* a */' },
       { kind: 'whitespace', text: ' ' },
-      { kind: 'placeholder', text: '?1' },
+      { kind: 'placeholder', text: '?1', number: 1 },
       { kind: 'whitespace', text: ' ' },
       { kind: 'comment', text: '# b\n' },
     ]);
@@ -65,14 +65,12 @@ describe('tokenizeMysqlSql', () => {
   });
 });
 
-describe('placeholderNumber', () => {
-  it('reads ?N, and nothing for a bare ? or a leading zero', () => {
-    expect(['?1', '?12', '?', '?01', '?0'].map(placeholderNumber)).toEqual([
-      1,
-      12,
-      undefined,
-      undefined,
-      undefined,
-    ]);
+describe('a placeholder token', () => {
+  it('carries the number of ?N, and none for a bare ? or a leading zero', () => {
+    expect(
+      tokenizeMysqlSql('?1 ?12 ? ?01 ?0').flatMap((token) =>
+        token.kind === 'placeholder' ? [token.number] : [],
+      ),
+    ).toEqual([1, 12, undefined, undefined, undefined]);
   });
 });

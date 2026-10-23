@@ -1,4 +1,4 @@
-import { placeholderNumber, tokenizeMysqlSql } from '@internal/target-mysql/sql-utils';
+import { type MysqlPlaceholderToken, tokenizeMysqlSql } from '@internal/target-mysql/sql-utils';
 import { structuredError } from '@internal/utils/structured-error';
 
 function placeholderMismatch(placeholders: readonly string[], values: number): Error {
@@ -14,15 +14,19 @@ function placeholderMismatch(placeholders: readonly string[], values: number): E
 }
 
 /** The index into `values` each placeholder takes: `?N` takes value N, and bare `?`s take the values in order. */
-export function valueIndexes(placeholders: readonly string[], values: number): number[] {
-  if (placeholders.every((placeholder) => placeholder === '?')) {
-    if (placeholders.length !== values) throw placeholderMismatch(placeholders, values);
+export function valueIndexes(
+  placeholders: readonly MysqlPlaceholderToken[],
+  values: number,
+): number[] {
+  const texts = placeholders.map((placeholder) => placeholder.text);
+  if (texts.every((text) => text === '?')) {
+    if (placeholders.length !== values) throw placeholderMismatch(texts, values);
     return placeholders.map((_, index) => index);
   }
-  const indexes = placeholders.map((placeholder) => (placeholderNumber(placeholder) ?? 0) - 1);
+  const indexes = placeholders.map((placeholder) => (placeholder.number ?? 0) - 1);
   const valid =
     indexes.every((index) => index >= 0 && index < values) && new Set(indexes).size === values;
-  if (!valid) throw placeholderMismatch(placeholders, values);
+  if (!valid) throw placeholderMismatch(texts, values);
   return indexes;
 }
 
@@ -62,9 +66,9 @@ export function positionalParams(
   values: readonly unknown[],
 ): { readonly sql: string; readonly values: unknown[] } {
   const tokens = tokenizeMysqlSql(sql);
-  const placeholders = tokens
-    .filter((token) => token.kind === 'placeholder')
-    .map((token) => token.text);
+  const placeholders = tokens.filter(
+    (token): token is MysqlPlaceholderToken => token.kind === 'placeholder',
+  );
   const indexes = valueIndexes(placeholders, values.length);
   return {
     sql: tokens.map((token) => (token.kind === 'placeholder' ? '?' : token.text)).join(''),

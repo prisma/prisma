@@ -1,12 +1,13 @@
-import { placeholderNumber, tokenizeMysqlSql } from '@internal/target-mysql/sql-utils';
+import { type MysqlPlaceholderToken, tokenizeMysqlSql } from '@internal/target-mysql/sql-utils';
 import { structuredError } from '@internal/utils/structured-error';
 
 /** Refuses a lowered statement unless every placeholder is a numbered `?N` naming one of its parameters and every parameter has a placeholder. */
 export function assertPlaceholdersMatchParams(sql: string, paramCount: number): void {
-  const placeholders = tokenizeMysqlSql(sql)
-    .filter((token) => token.kind === 'placeholder')
-    .map((token) => token.text);
-  const numbers = placeholders.map((placeholder) => placeholderNumber(placeholder) ?? Number.NaN);
+  const tokens = tokenizeMysqlSql(sql).filter(
+    (token): token is MysqlPlaceholderToken => token.kind === 'placeholder',
+  );
+  const placeholders = tokens.map((token) => token.text);
+  const numbers = tokens.map((token) => token.number ?? Number.NaN);
   const matches =
     numbers.every((number) => number >= 1 && number <= paramCount) &&
     new Set(numbers).size === paramCount;

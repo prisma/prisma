@@ -1,11 +1,27 @@
 import { mysqlError } from './errors';
 
-/**
- * One token of MySQL SQL: a word (a keyword, an unquoted identifier or the digits of a number), a run of whitespace, quoted text (a string or a backtick identifier, quotes included), a comment, a `?` placeholder with the digits that follow it, or any other single character.
- */
-export interface MysqlSqlToken {
-  readonly kind: 'word' | 'whitespace' | 'quoted' | 'comment' | 'placeholder' | 'symbol';
+/** A `?` placeholder with the digits that follow it. `number` is N for a `?N`, and `undefined` for a bare `?` or one with a leading zero. */
+export interface MysqlPlaceholderToken {
+  readonly kind: 'placeholder';
   readonly text: string;
+  readonly number: number | undefined;
+}
+
+/**
+ * One token of MySQL SQL: a word (a keyword, an unquoted identifier or the digits of a number), a run of whitespace, quoted text (a string or a backtick identifier, quotes included), a comment, a placeholder, or any other single character.
+ */
+export type MysqlSqlToken =
+  | {
+      readonly kind: 'word' | 'whitespace' | 'quoted' | 'comment' | 'symbol';
+      readonly text: string;
+    }
+  | MysqlPlaceholderToken;
+
+const NUMBERED_PLACEHOLDER = /^\?([1-9]\d*)$/;
+
+function placeholderToken(text: string): MysqlPlaceholderToken {
+  const digits = NUMBERED_PLACEHOLDER.exec(text)?.[1];
+  return { kind: 'placeholder', text, number: digits === undefined ? undefined : Number(digits) };
 }
 
 /** The index just past the quoted text that opens at `start`, where a doubled quote stays inside and, outside a backtick identifier, a backslash escapes the next character. The session clears `NO_BACKSLASH_ESCAPES` and `ANSI_QUOTES`, so MySQL reads quotes the same way. */
@@ -108,16 +124,9 @@ export function tokenizeMysqlSql(sql: string): MysqlSqlToken[] {
       kind = 'word';
       end = endOfRun(sql, index, isWordChar);
     }
-    tokens.push({ kind, text: sql.slice(index, end) });
+    const text = sql.slice(index, end);
+    tokens.push(kind === 'placeholder' ? placeholderToken(text) : { kind, text });
     index = end;
   }
   return tokens;
-}
-
-const NUMBERED_PLACEHOLDER = /^\?([1-9]\d*)$/;
-
-/** The 1-based number of a `?N` placeholder, or `undefined` for a bare `?` or one with a leading zero. */
-export function placeholderNumber(placeholder: string): number | undefined {
-  const digits = NUMBERED_PLACEHOLDER.exec(placeholder)?.[1];
-  return digits === undefined ? undefined : Number(digits);
 }
