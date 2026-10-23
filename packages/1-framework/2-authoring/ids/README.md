@@ -2,7 +2,7 @@
 
 ID generators for Prisma 8 contracts: the built-in generator ids, the limits of their arguments, how many characters each writes, and the runtime that generates the values before Prisma 8 sends data to adapters.
 
-A contract does not import this package to declare a generated id. It writes the column type and the generator call, `field.column(type.sql.Char(36)).id().onCreate(gen.uuid())` in TypeScript or `sql.Char(36) @id @onCreate(uuid())` in PSL.
+A contract does not import this package to declare a generated id. It writes the column type, usually the identifier's type alias, and the generator call: `field.column(type.sql.Ulid()).id().onCreate(gen.ulid())` in TypeScript or `sql.Ulid @id @onCreate(ulid())` in PSL.
 
 ## Responsibilities
 

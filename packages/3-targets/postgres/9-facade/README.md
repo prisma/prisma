@@ -261,7 +261,7 @@ export const contract = defineContract(
   { extensions: {} },
   ({ field: f, model: m, gen, type }) => ({
     models: {
-      User: m('User', { fields: { id: f.column(type.Char(36)).id().onCreate(gen.uuid()) } }),
+      User: m('User', { fields: { id: f.column(type.Uuid()).id().onCreate(gen.uuid()) } }),
     },
   }),
 );

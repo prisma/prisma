@@ -20,6 +20,6 @@ type SqliteHelpers = ComposedAuthoringHelpers<typeof sqlFamilyPack, typeof sqlit
 export const field: SqliteHelpers['field'] = helpers.field;
 
 /**
- * The type constructors and type aliases of the `defineContract` callback for SQLite, without extensions, for `field.column(...)`: `type.DateTime()`, `type.sql.Char(36)`, `type.temporal.CreatedAt()`.
+ * The type constructors and type aliases of the `defineContract` callback for SQLite, without extensions, for `field.column(...)`: `type.DateTime()`, `type.sql.Ulid()`, `type.temporal.CreatedAt()`.
  */
 export const type: SqliteHelpers['type'] = helpers.type;

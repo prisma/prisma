@@ -32,6 +32,6 @@ export const field: PostgresHelpers['field'] = helpers.field;
 export const gen: PostgresHelpers['gen'] = helpers.gen;
 
 /**
- * The type constructors and type aliases of the `defineContract` callback for Postgres, without extensions, for `field.column(...)`: `type.Timestamptz()`, `type.Char(36)`, `type.temporal.CreatedAt()`.
+ * The type constructors and type aliases of the `defineContract` callback for Postgres, without extensions, for `field.column(...)`: `type.Timestamptz()`, `type.Ulid()`, `type.temporal.CreatedAt()`.
  */
 export const type: PostgresHelpers['type'] = helpers.type;

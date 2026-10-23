@@ -16,7 +16,7 @@ This package is part of the SQL family namespace (`packages/2-sql-family/2-autho
 
 - the SQL contract DSL centered on `defineContract(...)`
 - the base structural helpers exported from `./contract-builder`: `field.column(...)`, `field.namedType(...)`, plus `model(...)` and `rel.*`
-- an optional callback overload that exposes pack-composed helpers — the type constructors and type aliases on `type` (`type.Char(36)`, `type.temporal.CreatedAt()`), the generator function calls on `gen` (`gen.uuid(7)`), plus pack-contributed entity-type helpers at top level alongside the built-in `model` / `rel` (e.g. `enum({ name, values })`)
+- an optional callback overload that exposes pack-composed helpers — the type constructors and type aliases on `type` (`type.Char(36)`, `type.Ulid()`, `type.temporal.CreatedAt()`), the generator function calls on `gen` (`gen.uuid(7)`), plus pack-contributed entity-type helpers at top level alongside the built-in `model` / `rel` (e.g. `enum({ name, values })`)
 - lowering from authored model definitions into the canonical SQL `Contract`
 
 ## Responsibilities
@@ -174,7 +174,7 @@ export const contract = defineContract(
 
     const User = model('User', {
       fields: {
-        id: field.column(type.Char(36)).id().onCreate(gen.uuid(7)).sql({ id: { name: 'user_pkey' } }),
+        id: field.column(type.UuidString()).id().onCreate(gen.uuid(7)).sql({ id: { name: 'user_pkey' } }),
         shortName: ShortName,
         role: field.namedType(Role),
         embedding: Embedding1536.optional(),
@@ -185,8 +185,8 @@ export const contract = defineContract(
 
     const Post = model('Post', {
       fields: {
-        id: field.column(type.Char(36)).id().onCreate(gen.uuid(7)),
-        authorId: field.column(type.Char(36)),
+        id: field.column(type.UuidString()).id().onCreate(gen.uuid(7)),
+        authorId: field.column(type.UuidString()),
         title: field.column(type.String()),
       },
     });
@@ -287,7 +287,7 @@ constraints.index({ expression: sql`eql_v3.eq_term(email)`, name: 'users_email_e
 ### Helper Notes
 
 - Structural helpers: `field.column(...)`, `field.namedType(...)` (an enum handle only), plus `model(...)` and `rel.*`
-- Callback helpers: `type.*` and `gen.*`, as in `field.column(type.Char(36)).id().onCreate(gen.uuid())` or, on Postgres, `field.column(type.Uuid()).id().onCreate(gen.uuid(7))`, which emits `pg/uuid@1`
+- Callback helpers: `type.*` and `gen.*`, as in `field.column(type.UuidString()).id().onCreate(gen.uuid())` or, on Postgres, `field.column(type.Uuid()).id().onCreate(gen.uuid(7))`, which emits `pg/uuid@1`
 - Integer representation types: `field.column(type.BigIntNumber())` / `field.column(type.UnboundedInt())`, or the direct per-codec column helpers with `field.column(...)`. `BigIntNumber` emits `pg/int8number@1` on PostgreSQL or `sqlite/bigintnumber@1` on SQLite and throws outside ±(2^53 − 1); PostgreSQL-only `UnboundedInt` emits `pg/unboundedint@1` and reads and writes exact `bigint` values. `type.BigInt()` keeps the lossless `pg/int8@1`. See [Integer Representation Types](#integer-representation-types) for the TypeScript forms and [Integer representation types](../../../../docs/reference/integer-representation-types.md) for the canonical selection, runtime, JSON, and aggregate behavior reference.
 - Timestamp aliases mirror PSL: `field.column(type.temporal.CreatedAt())` generates a client-side timestamp on create, while `field.column(type.temporal.UpdatedAt())` uses the same execution generator on create and non-empty update mutations. Neither creates a database default; matching representations share one generated value per operation.
 - Keep field-local and FK-local storage overrides next to the authoring site with `field.sql(...)` and `rel.belongsTo(...).sql({ fk })`

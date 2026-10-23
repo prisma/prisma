@@ -27,7 +27,7 @@ import { defineContract } from '@internal/sqlite/contract-builder';
 export default defineContract({}, ({ field, model, gen, type }) => ({
   models: {
     User: model('User', {
-      fields: { id: field.column(type.sql.Char(36)).id().onCreate(gen.uuid()) },
+      fields: { id: field.column(type.sql.UuidString()).id().onCreate(gen.uuid()) },
     }),
   },
 }));
@@ -59,13 +59,13 @@ import { defineContract } from '@internal/sqlite/contract-builder';
 export default defineContract({}, ({ field, model, gen, type }) => ({
   models: {
     User: model('User', {
-      fields: { id: field.column(type.sql.Char(36)).id().onCreate(gen.uuid()) },
+      fields: { id: field.column(type.sql.UuidString()).id().onCreate(gen.uuid()) },
     }),
   },
 }));
 ```
 
-The entry also exports `field`, `type` and `gen`, the same helpers the callback receives, for code outside a contract, such as the fields of a query fragment: `field.column(type.sql.Char(36)).id().onCreate(gen.uuid())`.
+The entry also exports `field`, `type` and `gen`, the same helpers the callback receives, for code outside a contract, such as the fields of a query fragment: `field.column(type.sql.UuidString()).id().onCreate(gen.uuid())`.
 
 ### `@internal/sqlite/control`
 

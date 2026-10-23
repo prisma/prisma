@@ -28,7 +28,7 @@ function rowsOf(
 
 const PHASES = ['onCreate', 'onUpdate'] as const;
 
-/** A preset whose rewrite is always `written`, such as `sql.Char(36) @id @onCreate(uuid())`; its type is the first word of `written`. */
+/** A preset whose rewrite is always `written`, such as `Ulid @id @onCreate(ulid())`; its type is the first word of `written`. */
 export function removedPresetWrittenAs(written: string, codecId?: string): RemovedFieldPreset {
   const [type = written] = written.split(/[ (]/);
   return {
