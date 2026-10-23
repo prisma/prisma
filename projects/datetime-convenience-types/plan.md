@@ -32,7 +32,7 @@ Renames outright, with no deprecated aliases before RC: `Timestamptz` → `Times
 
 ### Slice 4 — The convenience types
 
-A type constructor's `codecId` may be a `select` over `option` arguments; every reader of a constructor's output resolves it. The four types with the spec's choices and defaults; an unlisted combination is an error at the argument. `DateTime`, `Date` and `Time` take over their names (breaking, with upgrade instructions). The TypeScript builder's type-level resolver evaluates the choice. Hover text and completion list each type's choices. ADR 279 moves to Accepted, with notes in ADR 246, 254, 257 and 275.
+A new framework declaration, the type choice, picks one explicit type constructor from a table by its `as:` and `storage:` options; every reader of a field's codec resolves the call first. The four types with the spec's choices and defaults; an unlisted combination is an error at the argument. `DateTime`, `Date` and `Time` take over their names (breaking, with upgrade instructions). The TypeScript `type.*` helpers take one object and are typed per row. Hover text and completion list each type's choices. ADR 254, 257 and 275 get notes pointing to ADR 279.
 
 ### Slice 5 — The tools write convenience types
 
@@ -48,7 +48,7 @@ A type constructor's `codecId` may be a `select` over `option` arguments; every 
 
 ## Dependencies
 
-- **Field-preset removal project, slice 2.** Delivers the `type.*` helpers that expose slice 4's types in TypeScript, and the contributed aliases built on `DateTime`. Not blocking; coordinate so its `temporal.CreatedAt` and `temporal.UpdatedAt` land on `DateTime` once slice 4 merges.
+- **Field-preset removal project.** Its remaining slices remove the presets; slice 5 here rebuilds its contributed `temporal.CreatedAt` and `temporal.UpdatedAt` on `DateTime`.
 - **PostgreSQL and SQLite rename project** (not started). Must not remove `DateTime` and must take slice 3's names. Its spec gets a note in this project's shaping PR.
 - **Release.** Users get the convenience types with the first `@prisma/orm-postgres` release after slice 4 merges.
 

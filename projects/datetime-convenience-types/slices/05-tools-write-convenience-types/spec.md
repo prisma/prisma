@@ -1,6 +1,6 @@
 # Slice 5 — `contract infer`, `contract print`, the Prisma 7 reader and `orm init` write the convenience types
 
-**Linear:** [TML-3713](https://linear.app/prisma-company/issue/TML-3713) · **Parent:** [project spec](../../spec.md), decision 10 · **Design record:** ADR 279, items 8 and 10 · **Builds on:** slice 4 (the type choices) and slice 2 (the Prisma 7 `now()` mapping)
+**Linear:** [TML-3713](https://linear.app/prisma-company/issue/TML-3713) · **Parent:** [project spec](../../spec.md), decision 10 · **Design record:** ADR 279, "What the tools write" · **Builds on:** slice 4 (the type choices) and slice 2 (the Prisma 7 `now()` mapping)
 
 ## At a glance
 
