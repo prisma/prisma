@@ -4248,6 +4248,9 @@ importers:
       '@internal/psl-parser':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../1-framework/2-authoring/psl-parser
+      '@internal/sql-errors':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../2-sql-family/1-core/errors
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../../test/utils
@@ -4652,6 +4655,9 @@ importers:
       '@internal/migration-tools':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../1-framework/3-tooling/migration
+      '@internal/sql-errors':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../2-sql-family/1-core/errors
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../../test/utils
