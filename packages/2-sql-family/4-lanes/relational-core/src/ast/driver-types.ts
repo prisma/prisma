@@ -14,7 +14,9 @@ export interface PreparedStatementHandle {
 export interface SqlExecuteRequest {
   readonly sql: string;
   readonly params?: readonly unknown[];
-  /** Whether the statement holds raw SQL, which can change connection state a driver relies on, such as session variables. */
+  /**
+   * `true` when the statement may change session state: raw SQL a user wrote, or a statement such as `SET`, `set_config(...)` or `RESET ALL`. A driver may ignore it.
+   */
   readonly containsRawSql: boolean;
   readonly preparedStatementHandle?: PreparedStatementHandle;
 }
