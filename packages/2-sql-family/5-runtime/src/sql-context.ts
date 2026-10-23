@@ -13,7 +13,6 @@ import {
   mergeCapabilityMatrices,
 } from '@internal/framework-components/components';
 import type {
-  ExecutionStack,
   RuntimeAdapterDescriptor,
   RuntimeAdapterInstance,
   RuntimeDriverDescriptor,
@@ -108,26 +107,15 @@ export interface SqlExecutionStack<TTargetId extends string = string> {
   readonly extensions: readonly SqlRuntimeExtensionDescriptor<TTargetId>[];
 }
 
-export type SqlExecutionStackWithDriver<TTargetId extends string = string> = Omit<
-  ExecutionStack<
-    'sql',
-    TTargetId,
-    SqlRuntimeAdapterInstance<TTargetId>,
-    SqlRuntimeDriverInstance<TTargetId>,
-    SqlRuntimeExtensionInstance<TTargetId>
-  >,
-  'target' | 'adapter' | 'driver' | 'extensions'
-> & {
-  readonly target: SqlRuntimeTargetDescriptor<TTargetId>;
-  readonly adapter: SqlRuntimeAdapterDescriptor<TTargetId, SqlRuntimeAdapterInstance<TTargetId>>;
-  readonly driver: RuntimeDriverDescriptor<
-    'sql',
-    TTargetId,
-    unknown,
-    SqlRuntimeDriverInstance<TTargetId>
-  >;
-  readonly extensions: readonly SqlRuntimeExtensionDescriptor<TTargetId>[];
-};
+export type SqlExecutionStackWithDriver<TTargetId extends string = string> =
+  SqlExecutionStack<TTargetId> & {
+    readonly driver: RuntimeDriverDescriptor<
+      'sql',
+      TTargetId,
+      unknown,
+      SqlRuntimeDriverInstance<TTargetId>
+    >;
+  };
 
 export interface SqlRuntimeExtensionInstance<TTargetId extends string>
   extends RuntimeExtensionInstance<'sql', TTargetId> {}
