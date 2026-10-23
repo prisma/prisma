@@ -4323,6 +4323,9 @@ importers:
       pg:
         specifier: 'catalog:'
         version: 8.22.0
+      pg-connection-string:
+        specifier: ^2.14.0
+        version: 2.14.0
       pg-cursor:
         specifier: ^2.21.0
         version: 2.21.0(pg@8.22.0)
@@ -5499,6 +5502,9 @@ importers:
       pg:
         specifier: 'catalog:'
         version: 8.22.0
+      pg-connection-string:
+        specifier: ^2.14.0
+        version: 2.14.0
       pg-cursor:
         specifier: ^2.21.0
         version: 2.21.0(pg@8.22.0)

@@ -328,21 +328,20 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
     value: undefined,
     nullValue: true,
   },
-  // The `*-string` codecs' application value is PostgreSQL's own rendering, so each case is written
-  // the way the server writes it — space separator, two-digit offset, microseconds. That is now
-  // what the projection returns too, which is the whole point of the text cast: one spelling,
-  // whether the column is read flat or built into a JSON document.
+  // The `*-string` codecs' application value is the ISO 8601 stored form of the value, which they
+  // read from the text PostgreSQL prints whether the column is read flat or built into a JSON
+  // document, in any session time zone.
   { codecId: 'pg/date-string@1', label: 'calendar date', value: '2026-01-02' },
   {
     codecId: 'pg/timestamp-string@1',
     label: 'microsecond precision',
-    value: '2026-01-02 03:04:05.123456',
+    value: '2026-01-02T03:04:05.123456',
     typeParams: { precision: 6 },
   },
   {
     codecId: 'pg/timestamptz-string@1',
     label: 'microsecond precision at UTC',
-    value: '2026-01-02 03:04:05.123456+00',
+    value: '2026-01-02T03:04:05.123456Z',
     typeParams: { precision: 6 },
   },
   {
@@ -351,34 +350,41 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
     value: '03:04:05.123456',
     typeParams: { precision: 6 },
   },
-  { codecId: 'pg/timetz@1', label: 'time of day at UTC', value: '03:04:05+00' },
+  { codecId: 'pg/timetz@1', label: 'time of day at UTC', value: '03:04:05Z' },
   {
     codecId: 'pg/timetz@1',
     label: 'time of day at UTC under a hostile session',
-    value: '03:04:05+00',
+    value: '03:04:05Z',
     setupSql: HOSTILE_TEMPORAL_SESSION,
   },
-  // Text PostgreSQL writes with ` BC`, with an offset that has seconds, and to a precision below six digits, read back
-  // as PostgreSQL wrote it.
-  { codecId: 'pg/date-string@1', label: 'a year before Christ', value: '0044-03-15 BC' },
+  // Values PostgreSQL prints with ` BC`, with an offset that has seconds, and to a precision below six digits, read
+  // back in their ISO 8601 form.
+  { codecId: 'pg/date-string@1', label: 'a year before Christ', value: '-000043-03-15' },
   {
     codecId: 'pg/timestamp-string@1',
     label: 'a year before Christ',
-    value: '0044-03-15 12:00:00 BC',
+    value: '-000043-03-15T12:00:00',
     typeParams: { precision: 6 },
   },
   {
     codecId: 'pg/timestamptz-string@1',
     label: 'a year before Christ at UTC',
-    value: '0044-03-15 12:00:00+00 BC',
+    value: '-000043-03-15T12:00:00Z',
     typeParams: { precision: 6 },
   },
   {
     codecId: 'pg/timestamptz-string@1',
     label: 'an offset with seconds, in the local mean time of Amsterdam',
-    value: '1800-01-01 00:17:30+00:17:30',
+    value: '1800-01-01T00:00:00Z',
     typeParams: { precision: 6 },
     setupSql: ["SET TimeZone = 'Europe/Amsterdam'"],
+  },
+  {
+    codecId: 'pg/timestamptz-string@1',
+    label: 'the same instant in a session in Tokyo',
+    value: '2026-01-02T03:04:05.123456Z',
+    typeParams: { precision: 6 },
+    setupSql: ["SET TimeZone = 'Asia/Tokyo'"],
   },
   {
     codecId: 'pg/time-string@1',

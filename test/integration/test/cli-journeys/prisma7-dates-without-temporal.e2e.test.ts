@@ -121,9 +121,9 @@ const DATE_COLUMN_CODECS = {
   opensAt: 'pg/time-string@1',
 };
 
-/** The written values, each in the text PostgreSQL prints for it, so a read returns it unchanged. */
+/** The written values, each in its ISO 8601 stored form, so a read returns it unchanged. */
 const WRITTEN = {
-  happensAt: '2024-01-15 10:00:00.123456+00',
+  happensAt: '2024-01-15T10:00:00.123456Z',
   day: '2024-01-15',
   opensAt: '08:30:15.25',
 };
@@ -153,7 +153,7 @@ function output(run: EngineCommandResult): string {
 }
 
 function utcMillis(timestampText: string): number {
-  return new Date(`${timestampText.replace(' ', 'T')}Z`).getTime();
+  return new Date(`${timestampText}Z`).getTime();
 }
 
 function expectNow(timestampText: string, before: number, after: number): void {
@@ -241,15 +241,15 @@ withTempDir(({ createTempDir }) => {
           expect(sign.exitCode, `db sign\n${output(sign)}`).toBe(0);
 
           const { result, before, after } = await runApp(ctx, db.connectionString, {
-            create: { title: 'a', updatedAt: '2024-01-15 09:00:00.5', ...WRITTEN },
-            update: { title: 'b', updatedAt: '2024-01-15 11:00:00.25' },
+            create: { title: 'a', updatedAt: '2024-01-15T09:00:00.5', ...WRITTEN },
+            update: { title: 'b', updatedAt: '2024-01-15T11:00:00.25' },
           });
 
           expect(result.created).toEqual({
             id: result.created.id,
             title: 'a',
             createdAt: result.created.createdAt,
-            updatedAt: '2024-01-15 09:00:00.5',
+            updatedAt: '2024-01-15T09:00:00.5',
             ...WRITTEN,
           });
           expectNow(result.created.createdAt, before, after);
@@ -257,7 +257,7 @@ withTempDir(({ createTempDir }) => {
           expect(result.updated).toEqual({
             ...result.created,
             title: 'b',
-            updatedAt: '2024-01-15 11:00:00.25',
+            updatedAt: '2024-01-15T11:00:00.25',
           });
           expect(result.readAfterUpdate).toEqual(result.updated);
         },

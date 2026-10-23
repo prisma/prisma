@@ -1,3 +1,4 @@
+import type { SessionSettings } from '@internal/framework-components/components';
 import type {
   PreparedStatementHandle,
   SqlConnection,
@@ -20,13 +21,13 @@ import type {
   QueryConfig,
   QueryResultRow,
 } from 'pg';
-import { Pool } from 'pg';
 import Cursor from 'pg-cursor';
 import { callbackToPromise } from './callback-to-promise';
 import { type DriverRuntimeError, driverError } from './driver-error';
 import { NamedCursor } from './named-cursor';
 import { isAlreadyConnectedError, isPostgresError, normalizePgError } from './normalize-error';
 import { serverTextTypes } from './server-text-types';
+import { createPgPool, SessionSettingsGuard } from './session-settings';
 
 export type QueryResult<T extends QueryResultRow = QueryResultRow> = PgQueryResult<T>;
 
@@ -63,6 +64,8 @@ interface PostgresDriverOptions {
    * transaction mode).
    */
   readonly preparedStatements?: boolean | undefined;
+  /** The session settings the stack's target declares, which the driver ensures on every connection it uses. */
+  readonly sessionSettings?: SessionSettings | undefined;
 }
 
 export type PostgresDriverCreateOptions = Omit<PostgresDriverOptions, 'connect'>;
@@ -631,11 +634,13 @@ class PostgresPoolDriverImpl
   implements SqlDriver<PostgresBinding>
 {
   private readonly pool: PoolType;
+  readonly #sessionSettings: SessionSettingsGuard;
   #closed = false;
 
   constructor(options: PostgresDriverOptions & { connect: { pool: PoolType } }) {
     super(buildConnectionOptions(options));
     this.pool = options.connect.pool;
+    this.#sessionSettings = new SessionSettingsGuard(options.sessionSettings ?? {}, this.pool);
   }
 
   get state(): SqlDriverState {
@@ -648,7 +653,9 @@ class PostgresPoolDriverImpl
 
   async acquireConnection(): Promise<SqlConnection> {
     const client = await this.acquireClient();
-    return new PostgresConnectionImpl(client, this.options);
+    return new PostgresConnectionImpl(client, this.options, () =>
+      this.#sessionSettings.forget(client),
+    );
   }
 
   async close(): Promise<void> {
@@ -664,7 +671,14 @@ class PostgresPoolDriverImpl
     // out, so a connection error during a held connection, transaction, or
     // cursor emits on the client itself; without a listener that kills the
     // process.
-    return suppressIdleConnectionErrors(await this.pool.connect());
+    const client = suppressIdleConnectionErrors(await this.pool.connect());
+    try {
+      await ensureSessionSettings(this.#sessionSettings, client);
+    } catch (error) {
+      client.release(true);
+      throw normalizePgError(error);
+    }
+    return client;
   }
 
   async releaseClient(client: PoolClient): Promise<void> {
@@ -677,6 +691,7 @@ class PostgresDirectDriverImpl
   implements SqlDriver<PostgresBinding>
 {
   private readonly directClient: Client;
+  readonly #sessionSettings: SessionSettingsGuard;
   readonly #connectionMutex = new AsyncMutex();
   #closed = false;
   #connected = false;
@@ -689,6 +704,10 @@ class PostgresDirectDriverImpl
   constructor(options: PostgresDriverOptions & { connect: { client: Client } }) {
     super(buildConnectionOptions(options));
     this.directClient = options.connect.client;
+    this.#sessionSettings = new SessionSettingsGuard(
+      options.sessionSettings ?? {},
+      this.directClient,
+    );
     // A pg.Client cannot be reused after its connection dies, so mark the
     // driver closed and let acquireClient reject with a clear error instead
     // of handing out the dead client.
@@ -717,7 +736,10 @@ class PostgresDirectDriverImpl
       return new PostgresConnectionImpl(
         client,
         this.options,
-        releaseLease,
+        () => {
+          this.#sessionSettings.forget(client);
+          releaseLease();
+        },
         // A direct driver has a single underlying socket, so a destroyed
         // connection means the driver itself is no longer usable. Tear down
         // the driver while still holding the lease so that any
@@ -774,12 +796,17 @@ class PostgresDirectDriverImpl
         'Postgres connection lost or closed. Create a new client to reconnect.',
       );
     }
-    if (this.#connected) {
-      return this.directClient;
-    }
+    if (!this.#connected) await this.#connectDirectClient();
+    await ensureSessionSettings(this.#sessionSettings, this.directClient).catch(
+      rethrowNormalizedError,
+    );
+    return this.directClient;
+  }
+
+  async #connectDirectClient(): Promise<void> {
     if (this.#connectPromise !== undefined) {
       await this.#connectPromise;
-      return this.directClient;
+      return;
     }
 
     this.#connectPromise = (async () => {
@@ -795,8 +822,6 @@ class PostgresDirectDriverImpl
       this.#connected = true;
     })();
     await this.#connectPromise;
-
-    return this.directClient;
   }
 
   async releaseClient(_client: Client): Promise<void> {}
@@ -805,22 +830,27 @@ class PostgresDirectDriverImpl
 export function createBoundDriverFromBinding(
   binding: PostgresBinding,
   cursorOpts: PostgresDriverCreateOptions['cursor'],
-  extraOpts?: Pick<PostgresDriverCreateOptions, 'preparedStatements'>,
+  extraOpts?: Pick<PostgresDriverCreateOptions, 'preparedStatements' | 'sessionSettings'>,
 ): SqlDriver<PostgresBinding> {
   const preparedStatements = extraOpts?.preparedStatements;
+  const sessionSettings = extraOpts?.sessionSettings;
   switch (binding.kind) {
     case 'url': {
       const pool = suppressIdleConnectionErrors(
-        new Pool({
-          connectionString: binding.url,
-          connectionTimeoutMillis: 20_000,
-          idleTimeoutMillis: 30_000,
-        }),
+        createPgPool(
+          {
+            connectionString: binding.url,
+            connectionTimeoutMillis: 20_000,
+            idleTimeoutMillis: 30_000,
+          },
+          sessionSettings ?? {},
+        ),
       );
       return new PostgresPoolDriverImpl({
         connect: { pool },
         cursor: cursorOpts,
         preparedStatements,
+        sessionSettings,
       });
     }
     case 'pgPool':
@@ -828,13 +858,29 @@ export function createBoundDriverFromBinding(
         connect: { pool: suppressIdleConnectionErrors(binding.pool) },
         cursor: cursorOpts,
         preparedStatements,
+        sessionSettings,
       });
     case 'pgClient':
       return new PostgresDirectDriverImpl({
         connect: { client: suppressIdleConnectionErrors(binding.client) },
         cursor: cursorOpts,
         preparedStatements,
+        sessionSettings,
       });
+  }
+}
+
+/** Ensures the session settings on a client the driver is about to use, holding the client's query lock while it does. */
+async function ensureSessionSettings(
+  guard: SessionSettingsGuard,
+  client: ClientBase,
+): Promise<void> {
+  if (!guard.needs(client)) return;
+  const releaseLock = await acquireClientQueryLock(client);
+  try {
+    await guard.ensure(client);
+  } finally {
+    releaseLock();
   }
 }
 

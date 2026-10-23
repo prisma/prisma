@@ -155,7 +155,8 @@ export const postgresNativeAuthoringTypes = {
   Timetz: {
     kind: 'typeConstructor',
     inferred: true,
-    documentation: 'A time of day with a UTC offset stored as PostgreSQL timetz.',
+    documentation:
+      'A time of day with a UTC offset stored as PostgreSQL timetz and represented as ISO 8601 text.',
     args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
     output: {
       codecId: 'pg/timetz@1',
@@ -197,18 +198,18 @@ export const postgresNativeAuthoringTypes = {
     output: { codecId: 'pg/date-temporal@1' },
   },
   // The representation-explicit spellings. Same columns, same precision, same native types — the
-  // only difference is that a read hands back PostgreSQL's own text instead of a `Temporal.*`, so a
-  // value Temporal cannot express still round-trips.
+  // only difference is that a read hands back ISO 8601 text instead of a `Temporal.*`, so a value
+  // Temporal cannot express still round-trips.
   DateString: {
     kind: 'typeConstructor',
     inferred: true,
-    documentation: 'A PostgreSQL date represented as database text rather than Temporal.PlainDate.',
+    documentation: 'A PostgreSQL date represented as ISO 8601 text rather than Temporal.PlainDate.',
     output: { codecId: 'pg/date-string@1' },
   },
   TimestampString: {
     kind: 'typeConstructor',
     inferred: true,
-    documentation: 'A timestamp without a time zone represented as PostgreSQL text.',
+    documentation: 'A timestamp without a time zone represented as ISO 8601 text.',
     args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
     output: {
       codecId: 'pg/timestamp-string@1',
@@ -248,7 +249,7 @@ export const postgresNativeAuthoringTypes = {
   TimestamptzString: {
     kind: 'typeConstructor',
     inferred: true,
-    documentation: 'A timestamp with time zone represented as PostgreSQL text.',
+    documentation: 'A timestamp with time zone represented as ISO 8601 text, the instant in UTC.',
     args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
     output: {
       codecId: 'pg/timestamptz-string@1',
@@ -258,7 +259,7 @@ export const postgresNativeAuthoringTypes = {
   TimeString: {
     kind: 'typeConstructor',
     inferred: true,
-    documentation: 'A time of day without a time zone represented as PostgreSQL text.',
+    documentation: 'A time of day without a time zone represented as ISO 8601 text.',
     args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
     output: {
       codecId: 'pg/time-string@1',

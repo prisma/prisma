@@ -14,7 +14,11 @@ import {
   timestamptzStringNow,
   timetzNow,
 } from '../src/core/date-time-now-generators';
-import { postgresNowGeneratorIdFor, postgresNowGeneratorIds } from '../src/core/now-generators';
+import {
+  postgresNowGeneratorIdFor,
+  postgresNowGeneratorIds,
+  postgresNowGeneratorTakesPrecision,
+} from '../src/core/now-generators';
 import { postgresCodecRegistry } from '../src/core/registry';
 import { fromContractJson, toContractJson } from './contract-json';
 
@@ -64,6 +68,18 @@ describe('the "now" generator for each codec', () => {
       expect(toContractJson(codec, fromContractJson(codec, json))).toEqual(json);
     },
   );
+
+  it.each([
+    'pg/date-string@1',
+    'pg/time-string@1',
+    'pg/timetz@1',
+    'pg/timestamp-string@1',
+    'pg/timestamptz-string@1',
+  ])('generates a value already in the stored form of %s', (codecId) => {
+    const generatorId = postgresNowGeneratorIdFor(codecId) ?? '';
+    const value = generate[generatorId]?.();
+    expect(toContractJson(codecFor(codecId), value)).toBe(value);
+  });
 
   it('gives every date and time codec a generator', () => {
     expect(
@@ -117,7 +133,7 @@ describe('the text "now" generators', () => {
     vi.useRealTimers();
   });
 
-  it('write the text PostgreSQL prints in a UTC session', () => {
+  it('write the stored form of the current UTC time, which reads back as written', () => {
     vi.useFakeTimers({ now: new Date('2024-01-02T03:04:05.678Z') });
     expect([
       timestampStringNow(),
@@ -126,18 +142,41 @@ describe('the text "now" generators', () => {
       timeStringNow(),
       timetzNow(),
     ]).toEqual([
-      '2024-01-02 03:04:05.678',
-      '2024-01-02 03:04:05.678+00',
+      '2024-01-02T03:04:05.678',
+      '2024-01-02T03:04:05.678Z',
       '2024-01-02',
       '03:04:05.678',
-      '03:04:05.678+00',
+      '03:04:05.678Z',
     ]);
   });
 
   it.each([
-    ['2024-01-02T03:04:05.670Z', '2024-01-02 03:04:05.67'],
-    ['2024-01-02T03:04:05.600Z', '2024-01-02 03:04:05.6'],
-    ['2024-01-02T03:04:00.000Z', '2024-01-02 03:04:00'],
+    [0, '2024-01-02T23:59:59'],
+    [1, '2024-01-02T23:59:59.9'],
+    [2, '2024-01-02T23:59:59.99'],
+    [6, '2024-01-02T23:59:59.999'],
+  ])(
+    'round the timestamp down to precision %s, so the column stores what was written',
+    (precision, text) => {
+      vi.useFakeTimers({ now: new Date('2024-01-02T23:59:59.999Z') });
+      expect([timestampStringNow({ precision }), timestamptzStringNow({ precision })]).toEqual([
+        text,
+        `${text}Z`,
+      ]);
+    },
+  );
+
+  it('pass the column precision to the timestamp generators', () => {
+    expect(postgresNowGeneratorTakesPrecision).toMatchObject({
+      'pg/timestamp-string@1': true,
+      'pg/timestamptz-string@1': true,
+    });
+  });
+
+  it.each([
+    ['2024-01-02T03:04:05.670Z', '2024-01-02T03:04:05.67'],
+    ['2024-01-02T03:04:05.600Z', '2024-01-02T03:04:05.6'],
+    ['2024-01-02T03:04:00.000Z', '2024-01-02T03:04:00'],
   ])('remove the trailing zeros of the fraction of %s', (now, text) => {
     vi.useFakeTimers({ now: new Date(now) });
     expect(timestampStringNow()).toBe(text);
@@ -161,7 +200,7 @@ describe('the time "now" generators', () => {
     const params = precision === undefined ? undefined : { precision };
     expect([timeStringNow(params), timetzNow(params), plainTimeNow(params).toString()]).toEqual([
       time,
-      `${time}+00`,
+      `${time}Z`,
       time,
     ]);
   });
