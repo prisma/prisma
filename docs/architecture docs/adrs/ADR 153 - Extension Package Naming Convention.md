@@ -21,7 +21,7 @@ This was documented in `docs/reference/Extension-Packs-Naming-and-Layout.md` wit
 
 ## Decision
 
-Use `@internal/extension-<name>` exclusively for all extension pack npm package names.
+Use `@internal/extension-<name>` exclusively as the private workspace name for extension packs in this repository. Prisma publishes them under the names ADR 242 gives, and community packages follow ADR 308.
 
 The `ext-*` pattern is deprecated and should not be used for new packages.
 
