@@ -123,6 +123,16 @@
                   }
                 }
               },
+              "timestamp1": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamp-temporal@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 1
+                  }
+                }
+              },
               "timestamp3": {
                 "nullable": false,
                 "type": {
@@ -140,6 +150,26 @@
                   "kind": "scalar",
                   "typeParams": {
                     "precision": 6
+                  }
+                }
+              },
+              "timestampInstant0": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamp-instant@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 0
+                  }
+                }
+              },
+              "timestampInstant2": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamp-instant@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 2
                   }
                 }
               },
@@ -210,6 +240,16 @@
                   "kind": "scalar",
                   "typeParams": {
                     "precision": 0
+                  }
+                }
+              },
+              "timestamptz2": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 2
                   }
                 }
               },
@@ -403,11 +443,20 @@
                 "timestamp0": {
                   "column": "timestamp0"
                 },
+                "timestamp1": {
+                  "column": "timestamp1"
+                },
                 "timestamp3": {
                   "column": "timestamp3"
                 },
                 "timestamp6": {
                   "column": "timestamp6"
+                },
+                "timestampInstant0": {
+                  "column": "timestampInstant0"
+                },
+                "timestampInstant2": {
+                  "column": "timestampInstant2"
                 },
                 "timestampJsDate0": {
                   "column": "timestampJsDate0"
@@ -429,6 +478,9 @@
                 },
                 "timestamptz0": {
                   "column": "timestamptz0"
+                },
+                "timestamptz2": {
+                  "column": "timestamptz2"
                 },
                 "timestamptz3": {
                   "column": "timestamptz3"
@@ -575,6 +627,14 @@
                     "precision": 0
                   }
                 },
+                "timestamp1": {
+                  "codecId": "pg/timestamp-temporal@1",
+                  "dataType": "pg/timestamp",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 1
+                  }
+                },
                 "timestamp3": {
                   "codecId": "pg/timestamp-temporal@1",
                   "dataType": "pg/timestamp",
@@ -589,6 +649,22 @@
                   "nullable": false,
                   "typeParams": {
                     "precision": 6
+                  }
+                },
+                "timestampInstant0": {
+                  "codecId": "pg/timestamp-instant@1",
+                  "dataType": "pg/timestamp",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 0
+                  }
+                },
+                "timestampInstant2": {
+                  "codecId": "pg/timestamp-instant@1",
+                  "dataType": "pg/timestamp",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 2
                   }
                 },
                 "timestampJsDate0": {
@@ -645,6 +721,14 @@
                   "nullable": false,
                   "typeParams": {
                     "precision": 0
+                  }
+                },
+                "timestamptz2": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 2
                   }
                 },
                 "timestamptz3": {
@@ -783,10 +867,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "6c0d1dcd5ed439ed0d02551b3fdfd56445a86f63c5914439db906a00ced83c9d"
+    "storageHash": "738a9bc34c15df72b535e7a13fcf0e72883a57d137b88ff175eeed75af13f33b"
   },
   "execution": {
-    "executionHash": "dfe82a8c68f47cc9f0da170366b163f1f4f27180594ded6a6575360c21894000",
+    "executionHash": "4eaa44c328b6ff71b05bc0c8397058c76293da5aad12e41c649f4c2f63fb67f6",
     "mutations": {
       "defaults": [
         {
@@ -969,11 +1053,17 @@
         {
           "onCreate": {
             "id": "plainDateTimeNow",
-            "kind": "generator"
+            "kind": "generator",
+            "params": {
+              "precision": 0
+            }
           },
           "onUpdate": {
             "id": "plainDateTimeNow",
-            "kind": "generator"
+            "kind": "generator",
+            "params": {
+              "precision": 0
+            }
           },
           "ref": {
             "entry": "clock",
@@ -984,11 +1074,38 @@
         {
           "onCreate": {
             "id": "plainDateTimeNow",
-            "kind": "generator"
+            "kind": "generator",
+            "params": {
+              "precision": 1
+            }
           },
           "onUpdate": {
             "id": "plainDateTimeNow",
-            "kind": "generator"
+            "kind": "generator",
+            "params": {
+              "precision": 1
+            }
+          },
+          "ref": {
+            "entry": "clock",
+            "field": "timestamp1",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "plainDateTimeNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "onUpdate": {
+            "id": "plainDateTimeNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
           },
           "ref": {
             "entry": "clock",
@@ -999,15 +1116,63 @@
         {
           "onCreate": {
             "id": "plainDateTimeNow",
-            "kind": "generator"
+            "kind": "generator",
+            "params": {
+              "precision": 6
+            }
           },
           "onUpdate": {
             "id": "plainDateTimeNow",
-            "kind": "generator"
+            "kind": "generator",
+            "params": {
+              "precision": 6
+            }
           },
           "ref": {
             "entry": "clock",
             "field": "timestamp6",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator",
+            "params": {
+              "precision": 0
+            }
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator",
+            "params": {
+              "precision": 0
+            }
+          },
+          "ref": {
+            "entry": "clock",
+            "field": "timestampInstant0",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator",
+            "params": {
+              "precision": 2
+            }
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator",
+            "params": {
+              "precision": 2
+            }
+          },
+          "ref": {
+            "entry": "clock",
+            "field": "timestampInstant2",
             "namespace": "public"
           }
         },
@@ -1140,11 +1305,17 @@
         {
           "onCreate": {
             "id": "instantNow",
-            "kind": "generator"
+            "kind": "generator",
+            "params": {
+              "precision": 0
+            }
           },
           "onUpdate": {
             "id": "instantNow",
-            "kind": "generator"
+            "kind": "generator",
+            "params": {
+              "precision": 0
+            }
           },
           "ref": {
             "entry": "clock",
@@ -1155,11 +1326,38 @@
         {
           "onCreate": {
             "id": "instantNow",
-            "kind": "generator"
+            "kind": "generator",
+            "params": {
+              "precision": 2
+            }
           },
           "onUpdate": {
             "id": "instantNow",
-            "kind": "generator"
+            "kind": "generator",
+            "params": {
+              "precision": 2
+            }
+          },
+          "ref": {
+            "entry": "clock",
+            "field": "timestamptz2",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
           },
           "ref": {
             "entry": "clock",
@@ -1170,11 +1368,17 @@
         {
           "onCreate": {
             "id": "instantNow",
-            "kind": "generator"
+            "kind": "generator",
+            "params": {
+              "precision": 6
+            }
           },
           "onUpdate": {
             "id": "instantNow",
-            "kind": "generator"
+            "kind": "generator",
+            "params": {
+              "precision": 6
+            }
           },
           "ref": {
             "entry": "clock",

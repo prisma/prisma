@@ -60,6 +60,9 @@ export const postgresNowGeneratorTakesPrecision = {
   [PG_TIMESTAMPTZ_STRING_CODEC_ID]: true,
   [PG_TIMESTAMPTZ_DATE_CODEC_ID]: true,
   [PG_TIMESTAMP_DATE_CODEC_ID]: true,
+  [PG_TIMESTAMP_TEMPORAL_CODEC_ID]: true,
+  [PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID]: true,
+  [PG_TIMESTAMP_INSTANT_CODEC_ID]: true,
 } as const;
 
 /** The `now` generator function bound to each Postgres date and time codec, with the column's precision on the codecs that take it. */

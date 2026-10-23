@@ -122,11 +122,13 @@ describe('postgres temporal per-codec presets', () => {
         sizeType: 'pg/int4',
         codecId: 'pg/timestamp-temporal@1',
         generatorId: 'plainDateTimeNow',
+        nowTakesPrecision: true,
       }),
       timestamptz: temporalCodecPresetWithPrecision({
         sizeType: 'pg/int4',
         codecId: 'pg/timestamptz-temporal@1',
         generatorId: 'instantNow',
+        nowTakesPrecision: true,
       }),
       timestampString: temporalCodecPresetWithPrecision({
         sizeType: 'pg/int4',
@@ -169,25 +171,6 @@ describe('postgres temporal per-codec presets', () => {
   it.each([
     ['timestamp', 'plainDateTimeNow'],
     ['timestamptz', 'instantNow'],
-  ] as const)(
-    'temporal.%s answers `now` with the %s generator, the representation its codec encodes',
-    (helper, generatorId) => {
-      expect(postgresAuthoringFieldPresets.temporal[helper].output.executionDefaults).toEqual({
-        onCreate: {
-          kind: 'select',
-          index: 1,
-          cases: { now: { kind: 'generator', id: generatorId } },
-        },
-        onUpdate: {
-          kind: 'select',
-          index: 2,
-          cases: { now: { kind: 'generator', id: generatorId } },
-        },
-      });
-    },
-  );
-
-  it.each([
     ['time', 'plainTimeNow'],
     ['timeString', 'timeStringNow'],
     ['timetz', 'timetzNow'],

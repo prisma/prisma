@@ -932,11 +932,13 @@ export const postgresAuthoringFieldPresets = {
       sizeType: PG_SIZE_TYPE,
       codecId: PG_TIMESTAMP_TEMPORAL_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIMESTAMP_TEMPORAL_CODEC_ID],
+      nowTakesPrecision: postgresNowGeneratorTakesPrecision[PG_TIMESTAMP_TEMPORAL_CODEC_ID],
     }),
     timestamptz: /* @__PURE__ */ temporalCodecPresetWithPrecision({
       sizeType: PG_SIZE_TYPE,
       codecId: PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID],
+      nowTakesPrecision: postgresNowGeneratorTakesPrecision[PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID],
     }),
     timestampString: /* @__PURE__ */ temporalCodecPresetWithPrecision({
       sizeType: PG_SIZE_TYPE,

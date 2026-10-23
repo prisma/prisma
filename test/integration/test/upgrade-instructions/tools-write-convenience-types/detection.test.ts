@@ -80,12 +80,16 @@ describe('the detection of the changes the tools writing convenience types make'
       attribute: detects('  updatedAt DateTime @onCreate(now()) @onUpdate(now())\n'),
       alias: detects('  createdAt temporal.CreatedAt\n'),
       typescript: detects('createdAt: field.column(type.DateTime()).onCreate(gen.now()),'),
+      temporalPreset: detects('  createdAt temporal.timestamptz(0, onCreate: now)\n'),
+      stringPreset: detects('  createdAt temporal.timestamptzString(0)\n'),
       databaseDefault: detects('  createdAt DateTime @default(now())\n'),
     }).toEqual({
       prisma7: true,
       attribute: true,
       alias: true,
       typescript: true,
+      temporalPreset: true,
+      stringPreset: false,
       databaseDefault: false,
     });
   });

@@ -78,7 +78,7 @@ For Postgres, `now` maps each date and time codec to its generator. That map exi
 | `pg/date-temporal@1`, `pg/date-string@1` | `plainDateNow`, `dateStringNow` | none |
 | `pg/time-temporal@1`, `pg/time-string@1`, `pg/timetz@1` | `plainTimeNow`, `timeStringNow`, `timetzNow` | `precision` |
 
-(Amended 2026-10-23: the string and `Date` timestamp codecs, `pg/timestamptz-string@1`, `pg/timestamp-string@1`, `pg/timestamptz-date@1` and `pg/timestamp-date@1`, also pass `precision`, and their generators round down to it, so the client holds the value PostgreSQL stores instead of one PostgreSQL rounds up.)
+(Amended 2026-10-23: every timestamp codec also passes `precision`, and its generator rounds down to it, so the client holds the value PostgreSQL stores instead of one PostgreSQL rounds up: the string and `Date` codecs, `pg/timestamptz-string@1`, `pg/timestamp-string@1`, `pg/timestamptz-date@1` and `pg/timestamp-date@1`, and the `Temporal` codecs, `pg/timestamptz-temporal@1`, `pg/timestamp-temporal@1` and `pg/timestamp-instant@1`. Only the date codecs, which have no precision, pass none.)
 
 SQLite maps `sqlite/datetime@1` to `timestampNow`. Mongo maps `mongo/date@1` to `timestampNow`.
 
