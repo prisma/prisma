@@ -374,7 +374,7 @@ async function answerPlannedDataLoss(input: {
 }
 
 /** The coordinate of a storage entity a plan changed, without the internal unbound namespace id. */
-type ChangedElementCoordinate = Omit<EntityCoordinate, 'namespaceId'> & {
+type ChangedStorageEntity = Omit<EntityCoordinate, 'namespaceId'> & {
   readonly namespaceId?: string;
 };
 
@@ -452,7 +452,7 @@ export interface MigrationPlanResult {
   /**
    * The storage entities that differ between the origin and the destination. Empty when nothing was written (`noOp`), since the storage hashes are equal. A written migration whose `operations` is empty still lists them. A coordinate in the unbound namespace has no `namespaceId`, since that id is internal.
    */
-  readonly changedElementCoordinates: readonly ChangedElementCoordinate[];
+  readonly changedStorageEntities: readonly ChangedStorageEntity[];
   readonly timings: {
     readonly total: number;
   };
@@ -724,7 +724,7 @@ async function executeMigrationPlanCommandInner(
       ...(warnings.length > 0 ? { warnings } : {}),
       appliedStatements: [],
       temporaryValues: [],
-      changedElementCoordinates: [],
+      changedStorageEntities: [],
       summary: 'No changes detected between contracts',
       timings: { total: Date.now() - startTime },
     };
@@ -907,7 +907,7 @@ async function executeMigrationPlanCommandInner(
             placeholderDirs: [baselineDir],
             appliedStatements: [...statementsWithoutOperations, ...deletes],
             temporaryValues: baselineLeg.value.temporaryValues,
-            changedElementCoordinates: changedElementCoordinates(
+            changedStorageEntities: changedElementCoordinates(
               fromContract?.storage ?? null,
               toContract.storage,
             ).map(withoutUnboundNamespaceId),
@@ -936,7 +936,7 @@ async function executeMigrationPlanCommandInner(
           ...(warnings.length > 0 ? { warnings } : {}),
           appliedStatements: [...statementsWithoutOperations, ...deletes],
           temporaryValues: baselineLeg.value.temporaryValues,
-          changedElementCoordinates: changedElementCoordinates(
+          changedStorageEntities: changedElementCoordinates(
             fromContract?.storage ?? null,
             toContract.storage,
           ).map(withoutUnboundNamespaceId),
@@ -978,7 +978,7 @@ async function executeMigrationPlanCommandInner(
           ],
           appliedStatements: [...deltaLeg.appliedStatements, ...deletes],
           temporaryValues: deltaLeg.temporaryValues,
-          changedElementCoordinates: changedElementCoordinates(
+          changedStorageEntities: changedElementCoordinates(
             fromContract?.storage ?? null,
             toContract.storage,
           ).map(withoutUnboundNamespaceId),
@@ -1083,7 +1083,7 @@ async function executeMigrationPlanCommandInner(
         ...(warnings.length > 0 ? { warnings } : {}),
         appliedStatements: [...deltaLeg.appliedStatements, ...deletes],
         temporaryValues: deltaLeg.temporaryValues,
-        changedElementCoordinates: [],
+        changedStorageEntities: [],
         summary: 'No changes to plan: the statements need no operations',
         timings: { total: Date.now() - startTime },
       };
@@ -1109,7 +1109,7 @@ async function executeMigrationPlanCommandInner(
         ...(fromDefaulted ? { fromDefaulted } : {}),
         appliedStatements: [...deltaLeg.appliedStatements, ...deletes],
         temporaryValues: deltaLeg.temporaryValues,
-        changedElementCoordinates: changedElementCoordinates(
+        changedStorageEntities: changedElementCoordinates(
           fromContract?.storage ?? null,
           toContract.storage,
         ).map(withoutUnboundNamespaceId),
@@ -1165,9 +1165,9 @@ function withNoOperationsReport(
   hasNoOperations: boolean,
   fromContract: Contract | null,
   toContract: Contract,
-): Pick<MigrationPlanResult, 'changedElementCoordinates' | 'summary'> {
+): Pick<MigrationPlanResult, 'changedStorageEntities' | 'summary'> {
   const changed = changedElementCoordinates(fromContract?.storage ?? null, toContract.storage);
-  const reported = { changedElementCoordinates: changed.map(withoutUnboundNamespaceId) };
+  const reported = { changedStorageEntities: changed.map(withoutUnboundNamespaceId) };
   if (!hasNoOperations) return { ...reported, summary };
   const what =
     changed.length === 0
@@ -1182,7 +1182,7 @@ function withNoOperationsReport(
 function withoutUnboundNamespaceId({
   namespaceId,
   ...rest
-}: EntityCoordinate): ChangedElementCoordinate {
+}: EntityCoordinate): ChangedStorageEntity {
   return namespaceId === UNBOUND_NAMESPACE_ID ? rest : { namespaceId, ...rest };
 }
 

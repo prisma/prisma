@@ -47,7 +47,7 @@ const TO_PSL = FROM_PSL.replace(
 
 interface NoOperationsPlan {
   readonly operations: readonly unknown[];
-  readonly changedElementCoordinates: readonly unknown[];
+  readonly changedStorageEntities: readonly unknown[];
   readonly summary: string;
 }
 
@@ -99,13 +99,13 @@ withTempDir(({ createTempDir }) => {
         expect(
           {
             operations: planned.operations,
-            changedElementCoordinates: planned.changedElementCoordinates,
+            changedStorageEntities: planned.changedStorageEntities,
             summary: planned.summary,
           },
           'N1.05: no operations',
         ).toEqual({
           operations: [],
-          changedElementCoordinates: [
+          changedStorageEntities: [
             { plane: 'storage', entityKind: 'valueSet', entityName: 'Role' },
           ],
           summary: expect.stringContaining('What changed: valueSet "Role".'),

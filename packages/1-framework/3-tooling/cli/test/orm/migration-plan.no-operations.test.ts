@@ -164,7 +164,7 @@ function writtenWithNoOperations(to: string) {
       from: HASH_FROM,
       to,
       operations: [],
-      changedElementCoordinates: CHANGED_ELEMENT_COORDINATES,
+      changedStorageEntities: CHANGED_ELEMENT_COORDINATES,
       summary: NO_OPERATIONS_SUMMARY,
     },
   };
@@ -211,7 +211,7 @@ describe('migration plan when the planner produces no operations', () => {
           {
             exitCode: 0,
             data: {
-              changedElementCoordinates: [],
+              changedStorageEntities: [],
               summary:
                 'Planned 0 operation(s). The storage the contract describes changed, but the database needs no operation for it, so the migration has none. No storage entity changed; what changed is storage.types.',
             },
@@ -240,7 +240,7 @@ describe('migration plan when the planner produces no operations', () => {
         data: {
           noOp: false,
           operations: [expect.objectContaining({ id: ADDITIVE_OP.id })],
-          changedElementCoordinates: CHANGED_ELEMENT_COORDINATES,
+          changedStorageEntities: CHANGED_ELEMENT_COORDINATES,
           summary: 'Planned 1 operation(s)',
         },
         summary: { status: 'ok' },
@@ -278,7 +278,7 @@ describe('migration plan when the planner produces no operations', () => {
           from: HASH_FROM,
           to: HASH_TO,
           operations: [],
-          changedElementCoordinates: CHANGED_ELEMENT_COORDINATES,
+          changedStorageEntities: CHANGED_ELEMENT_COORDINATES,
           summary: `Planned baseline (1 operation(s)) + 0 operation(s). ${NO_OPERATIONS_TEXT}`,
         },
       });
