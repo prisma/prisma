@@ -1,8 +1,8 @@
 /**
  * The routes that moved to Prisma 8: the same rows Prisma 7 wrote, read and
  * written through `db.orm.public.<Model>`, with the tags reached through the
- * `_PostToTag` junction Prisma 7 created, and `updatedAt`, a JavaScript `Date` as
- * Prisma 7 read it, set by Prisma 8's own generator on update.
+ * `_PostToTag` junction Prisma 7 created, and `updatedAt` set by Prisma 8's own
+ * generator on update.
  */
 import { db, prisma } from './db';
 
