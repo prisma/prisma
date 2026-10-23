@@ -70,6 +70,22 @@ type NamespaceValueObjectsOf<TNamespace> = TNamespace extends {
     : Record<never, never>
   : Record<never, never>;
 
+/** The value object of `TStorage` that `TReference` names, at `namespaces[namespaceId].entries.valueObject[entityName]`, or `never` when storage does not have it. */
+export type ContractValueObjectAt<
+  TStorage,
+  TReference extends { readonly namespaceId: string; readonly entityName: string },
+> = TStorage extends { readonly namespaces: infer Namespaces }
+  ? TReference['namespaceId'] extends keyof Namespaces
+    ? Namespaces[TReference['namespaceId']] extends {
+        readonly entries: { readonly valueObject: infer VOs };
+      }
+      ? TReference['entityName'] extends keyof VOs
+        ? VOs[TReference['entityName']]
+        : never
+      : never
+    : never
+  : never;
+
 /** Value-object map of the storage plane when the contract declares exactly one storage namespace. */
 export type ContractValueObjectDefinitions<TContract extends Contract> =
   NamespaceValueObjectsOf<

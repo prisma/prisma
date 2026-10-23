@@ -289,7 +289,6 @@ type ContractWithAssignee<Nullable extends boolean> = Omit<Contract, 'domain'> &
             'relations'
           > & { readonly relations: { readonly assignee: AssigneeRelation<Nullable> } };
         };
-        readonly valueObjects: Contract['domain']['namespaces']['__unbound__']['valueObjects'];
       };
     };
   };

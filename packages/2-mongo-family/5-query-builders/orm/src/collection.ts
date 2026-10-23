@@ -4,8 +4,9 @@ import {
   type ContractModel,
   type ContractReferenceRelation,
   type ContractValueObject,
-  domainValueObjectsAtDefaultNamespace,
   type PlanMeta,
+  type ValueObjectFieldType,
+  valueObjectAt,
 } from '@internal/contract/types';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
@@ -909,7 +910,7 @@ class MongoCollectionImpl<
       this.#state,
       this.#contract.storage.storageHash,
       model,
-      this.#valueObjects(),
+      this.#contract.storage,
     );
   }
 
@@ -996,11 +997,11 @@ class MongoCollectionImpl<
     if (!model) {
       return Object.freeze({ kind: 'unknown' as const });
     }
-    return contractModelToMongoResultShape(model, { valueObjects: this.#valueObjects() });
+    return contractModelToMongoResultShape(model, { storage: this.#contract.storage });
   }
 
-  #valueObjects(): Readonly<Record<string, ContractValueObject>> {
-    return domainValueObjectsAtDefaultNamespace(this.#contract.domain) ?? {};
+  #valueObjectAt(reference: ValueObjectFieldType): ContractValueObject | undefined {
+    return valueObjectAt(this.#contract.storage, reference);
   }
 
   #compileWhereObject(data: Record<string, unknown>): MongoFilterExpr[] {
@@ -1059,8 +1060,7 @@ class MongoCollectionImpl<
       head === undefined ? undefined : this.#modelFields()[head];
     for (const segment of rest) {
       if (field?.type.kind !== 'valueObject') return undefined;
-      field = domainValueObjectsAtDefaultNamespace(this.#contract.domain)?.[field.type.name]
-        ?.fields[segment];
+      field = this.#valueObjectAt(field.type)?.fields[segment];
     }
     return field;
   }
@@ -1083,8 +1083,7 @@ class MongoCollectionImpl<
     }
 
     if (field.type.kind === 'valueObject') {
-      const voName = field.type.name;
-      const voDef = domainValueObjectsAtDefaultNamespace(this.#contract.domain)?.[voName];
+      const voDef = this.#valueObjectAt(field.type);
       if (!voDef) return new MongoParamRef(value);
 
       if (field.many && Array.isArray(value)) {
@@ -1371,7 +1370,7 @@ class MongoCollectionImpl<
       return this.#fieldParam(value.value, field.type.codecId, path);
     }
     if (field.type.kind === 'valueObject' && isUnknownRecord(value.value)) {
-      const voDef = domainValueObjectsAtDefaultNamespace(this.#contract.domain)?.[field.type.name];
+      const voDef = this.#valueObjectAt(field.type);
       if (voDef) return this.#wrapValueObject(value.value, voDef, path, 'write');
     }
     return value;

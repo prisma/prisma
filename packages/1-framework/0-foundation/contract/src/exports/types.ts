@@ -1,6 +1,7 @@
 export type {
   Contract,
   ContractExecutionSection,
+  ContractValueObjectAt,
   ContractValueObjectDefinitions,
 } from '../contract-types';
 export type { ControlPolicy } from '../control-policy';
