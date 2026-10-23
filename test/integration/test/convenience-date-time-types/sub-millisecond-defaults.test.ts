@@ -25,7 +25,7 @@ describe('a default with digits below a millisecond on a field read as a Date', 
           fields: {
             id: field.column(type.Int()).id(),
             at: field
-              .column(type.DateTime(undefined, undefined, 6))
+              .column(type.DateTime({ precision: 6 }))
               .default(new Date('2024-01-01T01:00:00.123Z')),
           },
         }).sql({ table: 'event' }),
