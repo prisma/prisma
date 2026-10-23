@@ -67,7 +67,7 @@ export function positionalParams(
     .map((token) => token.text);
   const indexes = valueIndexes(placeholders, values.length);
   return {
-    sql: tokens.map((token) => (token.kind === 'text' ? token.text : '?')).join(''),
+    sql: tokens.map((token) => (token.kind === 'placeholder' ? '?' : token.text)).join(''),
     values: indexes.map((index) => bindValue(values[index], index)),
   };
 }

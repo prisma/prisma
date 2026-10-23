@@ -1,8 +1,8 @@
 import { mysqlError } from './errors';
 
-/** A run of SQL text, or a `?` placeholder with the digits that follow it. */
+/** A run of SQL text, a comment, or a `?` placeholder with the digits that follow it. */
 export interface MysqlSqlToken {
-  readonly kind: 'text' | 'placeholder';
+  readonly kind: 'text' | 'comment' | 'placeholder';
   readonly text: string;
 }
 
@@ -51,16 +51,19 @@ export function tokenizeMysqlSql(sql: string): MysqlSqlToken[] {
     let end = index + 1;
     if (char === "'" || char === '"' || char === '`') {
       end = endOfQuoted(sql, index, char);
-    } else if (char === '#' || opensDashComment(sql, index)) {
-      end = endOf(sql, index, '\n');
-    } else if (sql.startsWith('/*!', index)) {
-      throw mysqlError(
-        'RUNTIME.AST_INVALID',
-        'A MySQL statement may not contain an executable /*! comment, whose content MySQL runs as SQL',
-        { meta: { target: 'mysql', position: index } },
-      );
-    } else if (sql.startsWith('/*', index)) {
-      end = endOf(sql, index + 2, '*/');
+    } else if (char === '#' || opensDashComment(sql, index) || sql.startsWith('/*', index)) {
+      if (sql.startsWith('/*!', index)) {
+        throw mysqlError(
+          'RUNTIME.AST_INVALID',
+          'A MySQL statement may not contain an executable /*! comment, whose content MySQL runs as SQL',
+          { meta: { target: 'mysql', position: index } },
+        );
+      }
+      end = sql.startsWith('/*', index) ? endOf(sql, index + 2, '*/') : endOf(sql, index, '\n');
+      tokens.push({ kind: 'text', text }, { kind: 'comment', text: sql.slice(index, end) });
+      text = '';
+      index = end;
+      continue;
     } else if (char === '?') {
       while (isDigit(sql[end])) end += 1;
       tokens.push({ kind: 'text', text }, { kind: 'placeholder', text: sql.slice(index, end) });

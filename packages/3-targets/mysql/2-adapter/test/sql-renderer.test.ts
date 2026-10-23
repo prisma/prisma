@@ -399,6 +399,29 @@ describe('MySQL placeholder check', () => {
     );
   });
 
+  it('writes a raw integer value as a bare placeholder where it is the operand of LIMIT or OFFSET, and casts it elsewhere', () => {
+    const int = (value: number) => ParamRef.of(value, { codec: { codecId: 'mysql/int@1' } });
+    const raw = (...parts: (string | ReturnType<typeof int>)[]) =>
+      sqlOf(RawQueryAst.affectedCount(parts));
+    expect([
+      raw('SELECT id FROM t LIMIT ', int(2)),
+      raw('SELECT id FROM t LIMIT ', int(2), ' OFFSET ', int(1)),
+      raw('SELECT id FROM t limit ', int(1), ', ', int(2)),
+      raw('SELECT id FROM t LIMIT /* page */ ', int(2), ' -- x\n OFFSET\n', int(1)),
+      raw('SELECT id FROM t LIMIT 5, ', int(2)),
+      raw('SELECT id FROM t LIMIT ', int(1), ', /* count */ ', int(2)),
+      raw('SELECT ', int(10), ' < ', int(9), ' FROM t WHERE x_limit = ', int(3)),
+    ]).toEqual([
+      'SELECT id FROM t LIMIT ?1',
+      'SELECT id FROM t LIMIT ?1 OFFSET ?2',
+      'SELECT id FROM t limit ?1, ?2',
+      'SELECT id FROM t LIMIT /* page */ ?1 -- x\n OFFSET\n?2',
+      'SELECT id FROM t LIMIT 5, ?1',
+      'SELECT id FROM t LIMIT ?1, /* count */ ?2',
+      'SELECT CAST(?1 AS SIGNED) < CAST(?2 AS SIGNED) FROM t WHERE x_limit = CAST(?3 AS SIGNED)',
+    ]);
+  });
+
   it('ignores a ? inside quoted text, a backtick identifier or a comment', () => {
     expect(
       lower(

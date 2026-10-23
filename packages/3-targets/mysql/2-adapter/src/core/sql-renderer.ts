@@ -38,7 +38,7 @@ import { collectOrderedParamRefs } from '@internal/sql-relational-core/ast';
 import type { MysqlCodecDescriptorRegistry } from '@internal/target-mysql/codec-descriptor';
 import { mysqlBigint, mysqlInt } from '@internal/target-mysql/data-types';
 import { mysqlError, mysqlQueryNotYetSupported } from '@internal/target-mysql/errors';
-import { escapeLiteral, quoteIdentifier } from '@internal/target-mysql/sql-utils';
+import { escapeLiteral, quoteIdentifier, tokenizeMysqlSql } from '@internal/target-mysql/sql-utils';
 import { assertNever, InternalError } from '@internal/utils/internal-error';
 import { structuredError } from '@internal/utils/structured-error';
 import { assertPlaceholdersMatchParams } from './placeholders';
@@ -289,9 +289,68 @@ function assertNoDigitAfterParam(parts: RawExpr['parts'] | RawQueryAst['parts'])
   });
 }
 
+function isParamPart(part: RawExpr['parts'][number]): part is AnyParamRef {
+  return (
+    typeof part !== 'string' && (part.kind === 'param-ref' || part.kind === 'prepared-param-ref')
+  );
+}
+
+const ENDS_WITH_LIMIT_OR_OFFSET = /(?:^|[^\w$])(?:LIMIT|OFFSET)$/i;
+const ENDS_WITH_LIMIT_COUNT = /(?:^|[^\w$])LIMIT\s+\d+$/i;
+
+/**
+ * The raw parts that are the operand of `LIMIT` or `OFFSET`, which MySQL takes only as a bare placeholder: a param whose preceding text, past whitespace and comments, ends with `LIMIT` or `OFFSET`, or with the comma of `LIMIT a, b`. The raw text is read with the target's lexer, so a keyword inside a quoted string or a comment does not count.
+ */
+function limitOperandParts(parts: RawExpr['parts'] | RawQueryAst['parts']): ReadonlySet<number> {
+  const sql = parts
+    .map((part, index) =>
+      typeof part === 'string' ? part : isParamPart(part) ? `?${index + 1}` : ' 0 ',
+    )
+    .join('');
+  const operands = new Set<number>();
+  const tokens = tokenizeMysqlSql(sql);
+  const significantBefore = (position: number) => {
+    for (let i = position - 1; i >= 0; i--) {
+      const token = tokens[i];
+      if (token === undefined || token.kind === 'comment') continue;
+      if (token.kind === 'placeholder') return { token, position: i };
+      const text = token.text.trimEnd();
+      if (text.length > 0) return { token: { kind: 'text' as const, text }, position: i };
+    }
+    return undefined;
+  };
+  tokens.forEach((token, position) => {
+    if (token.kind !== 'placeholder') return;
+    const before = significantBefore(position);
+    if (before?.token.kind !== 'text') return;
+    const text = before.token.text;
+    let isOperand = ENDS_WITH_LIMIT_OR_OFFSET.test(text);
+    if (!isOperand && text.endsWith(',')) {
+      const ahead = text.slice(0, -1).trimEnd();
+      if (ahead.length > 0) {
+        isOperand = ENDS_WITH_LIMIT_COUNT.test(ahead);
+      } else {
+        const previous = significantBefore(before.position)?.token;
+        isOperand =
+          previous?.kind === 'placeholder' && operands.has(Number(previous.text.slice(1)) - 1);
+      }
+    }
+    if (isOperand) operands.add(Number(token.text.slice(1)) - 1);
+  });
+  return operands;
+}
+
 function renderParts(parts: RawExpr['parts'] | RawQueryAst['parts'], ctx: RenderContext): string {
   assertNoDigitAfterParam(parts);
-  return parts.map((part) => (typeof part === 'string' ? part : renderExpr(part, ctx))).join('');
+  const limitOperands = limitOperandParts(parts);
+  return parts
+    .map((part, index) => {
+      if (typeof part === 'string') return part;
+      return isParamPart(part) && limitOperands.has(index)
+        ? placeholder(part, ctx)
+        : renderExpr(part, ctx);
+    })
+    .join('');
 }
 
 function renderColumn(ref: ColumnRef): string {

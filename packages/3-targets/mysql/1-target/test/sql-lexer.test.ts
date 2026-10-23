@@ -24,6 +24,19 @@ describe('tokenizeMysqlSql', () => {
     ).toBe(sql);
   });
 
+  it('gives each comment a token of its own', () => {
+    expect(
+      tokenizeMysqlSql('LIMIT /* a */ ?1 # b\n').filter((token) => token.text.length > 0),
+    ).toEqual([
+      { kind: 'text', text: 'LIMIT ' },
+      { kind: 'comment', text: '/* a */' },
+      { kind: 'text', text: ' ' },
+      { kind: 'placeholder', text: '?1' },
+      { kind: 'text', text: ' ' },
+      { kind: 'comment', text: '# b\n' },
+    ]);
+  });
+
   it('refuses an executable /*! comment, but not an optimizer hint', () => {
     expect(() => tokenizeMysqlSql('SELECT /*!80000 1 */')).toThrow(
       expect.objectContaining({ code: 'RUNTIME.AST_INVALID' }),

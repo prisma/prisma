@@ -42,4 +42,32 @@ describe('MySQL raw SQL with integer values', { timeout: timeouts.databaseOperat
       },
     );
   });
+
+  it('takes integer values as the operands of LIMIT and OFFSET', async (test) => {
+    await withSeededDatabase(test, exampleDatabase, async (url) => {
+      await using db = mysql({ contract, url, verifyMarker: false });
+      const ids = (plan: Parameters<typeof db.query>[0]) => db.query(plan);
+      expect({
+        limit: await ids(
+          db.raw.sql`SELECT id FROM Post ORDER BY id LIMIT ${2}`
+            .returnsRow({ id: 'mysql/int@1' })
+            .build(),
+        ),
+        offset: await ids(
+          db.raw.sql`SELECT id FROM Post ORDER BY id LIMIT ${2} OFFSET ${1}`
+            .returnsRow({ id: 'mysql/int@1' })
+            .build(),
+        ),
+        pair: await ids(
+          db.raw.sql`SELECT id FROM Post ORDER BY id LIMIT ${1}, ${2}`
+            .returnsRow({ id: 'mysql/int@1' })
+            .build(),
+        ),
+      }).toEqual({
+        limit: [{ id: 1 }, { id: 2 }],
+        offset: [{ id: 2 }, { id: 3 }],
+        pair: [{ id: 2 }, { id: 3 }],
+      });
+    });
+  });
 });
