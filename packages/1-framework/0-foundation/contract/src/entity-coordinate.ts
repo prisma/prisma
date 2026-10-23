@@ -1,7 +1,7 @@
 /**
  * Canonical address for a named entity in a contract plane.
  *
- * `plane` is the top-level contract plane the entity lives on. `entityKind` equals the key of the slot the entity lives under (`'table'` for `entries.table`, `'valueObject'` for `entries.valueObject`, `'enum'` for the domain's `enum` slot), with no translation between the two (ADR 224). `entityName` is the entity's key in that slot.
+ * `plane` is the top-level contract plane the entity lives on. `entityKind` equals the key of the slot the entity lives under (`'valueSet'` for `entries.valueSet`, `'valueObject'` for `entries.valueObject`, `'enum'` for the domain's `enum` slot), with no translation between the two (ADR 224). `entityName` is the entity's key in that slot.
  *
  * References between planes obey a directional invariant: domain may refer to storage; storage may never refer to domain. The coordinate carries the plane a validator checks.
  *

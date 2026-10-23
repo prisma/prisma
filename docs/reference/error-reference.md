@@ -683,7 +683,7 @@ An `@@index`, `@@unique`, or `@@fulltext` path that reaches into a composite typ
 
 ### PSL.PRISMA6_MONGO_COMPOSITE_MAP_UNSUPPORTED
 
-`@map` on a field of a composite `type`, which the Mongo contract cannot express yet. Removing `@map` renames the stored field, so keep the schema until Prisma 8 supports it. Reported by the Prisma 6 MongoDB contract source (`prisma6Schema`) during `contract emit`, as a finding in the `diagnostics` list of `CONTRACT.SOURCE_LOAD_FAILED`, never on its own. `summary` is `<file>:<line>:<column> <message>`, with only the file when there is no position (the terminal prints the code before it), and `where` carries `path` and, when known, `line`. Payload: none.
+`@map` on a field of a composite `type`. Prisma 8 stores each field of a value object under its own name ([ADR 309](../architecture%20docs/adrs/ADR%20309%20-%20Value%20objects%20are%20storage%20entities%2C%20and%20a%20discriminator%20column%20names%20a%20value%20set.md)), so rename the field to the name it is stored under and remove `@map`. Reported by the Prisma 6 MongoDB contract source (`prisma6Schema`) during `contract emit`, as a finding in the `diagnostics` list of `CONTRACT.SOURCE_LOAD_FAILED`, never on its own. `summary` is `<file>:<line>:<column> <message>`, with only the file when there is no position (the terminal prints the code before it), and `where` carries `path` and, when known, `line`. Payload: none.
 
 ### PSL.PRISMA6_MONGO_CONTRACT_INVALID
 
