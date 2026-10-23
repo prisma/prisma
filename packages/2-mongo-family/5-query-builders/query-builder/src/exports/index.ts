@@ -24,7 +24,6 @@ export type {
 } from '../lookup-builder';
 export type { FindAndModifyEnabled, UpdateEnabled } from '../markers';
 export type { QueryRoot } from '../query';
-export { mongoQuery } from '../query';
 export type {
   ModelArrayField,
   ModelNestedShape,

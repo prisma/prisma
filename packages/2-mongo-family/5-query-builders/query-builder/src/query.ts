@@ -10,9 +10,7 @@ import { contractError } from './contract-errors';
 import { asMongoContract, type CollectionHandle, createCollectionHandle } from './state-classes';
 
 /**
- * Public entry point of the query builder. `mongoQuery(...).from(rootName)`
- * yields the root state of the three-state machine
- * (`CollectionHandle` → `FilteredCollection` → `PipelineChain`).
+ * The query builder over a contract that is already validated; it does not validate. Applications use `mongoQuery` from `@prisma/orm-mongo/query-builder`, which validates first. `mongoQueryOnValidatedContract(...).from(rootName)` yields the root state of the three-state machine (`CollectionHandle` → `FilteredCollection` → `PipelineChain`).
  *
  * `rawCommand(cmd)` is the escape hatch for cases the typed surface does
  * not cover (yet) — it accepts any `AnyMongoCommand` (typed CRUD or a
@@ -29,7 +27,7 @@ export interface QueryRoot<
   rawCommand<C extends AnyMongoCommand>(command: C): MongoQueryPlan<unknown, C>;
 }
 
-export function mongoQuery<
+export function mongoQueryOnValidatedContract<
   TContract extends MongoContractWithTypeMaps<MongoContract, AnyMongoTypeMaps>,
 >(options: { readonly contract: TContract }): QueryRoot<TContract> {
   const { contract } = options;
@@ -43,7 +41,7 @@ export function mongoQuery<
       if (!storageHash) {
         throw contractError(
           'CONTRACT.VALIDATION_FAILED',
-          'Contract is missing storage.storageHash. Pass a validated contract to mongoQuery().',
+          'Contract is missing storage.storageHash. Pass a validated contract to mongoQueryOnValidatedContract().',
         );
       }
       const meta: PlanMeta = {

@@ -1,0 +1,1 @@
+export { mongoQueryOnValidatedContract } from '../query';

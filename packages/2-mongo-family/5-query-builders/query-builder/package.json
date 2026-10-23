@@ -45,6 +45,7 @@
   "exports": {
     ".": "./dist/index.mjs",
     "./contract-free": "./dist/exports/contract-free.mjs",
+    "./internal/on-validated-contract": "./dist/internal/on-validated-contract.mjs",
     "./package.json": "./package.json"
   },
   "engines": {

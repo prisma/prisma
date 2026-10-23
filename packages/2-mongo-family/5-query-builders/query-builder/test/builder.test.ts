@@ -23,15 +23,15 @@ import { describe, expect, it } from 'vitest';
 import { acc } from '../src/accumulator-helpers';
 import { fn } from '../src/expression-helpers';
 import type { LookupOnResult } from '../src/lookup-builder';
-import { mongoQuery } from '../src/query';
+import { mongoQueryOnValidatedContract } from '../src/query';
 import { testContract } from './fixtures/test-contract';
 
 function createOrdersBuilder() {
-  return mongoQuery({ contract: testContract }).from('orders');
+  return mongoQueryOnValidatedContract({ contract: testContract }).from('orders');
 }
 
 function createCustomersBuilder() {
-  return mongoQuery({ contract: testContract }).from('customers');
+  return mongoQueryOnValidatedContract({ contract: testContract }).from('customers');
 }
 
 describe('PipelineChain', () => {
@@ -385,16 +385,16 @@ describe('PipelineChain', () => {
   });
 });
 
-describe('mongoQuery()', () => {
+describe('mongoQueryOnValidatedContract()', () => {
   it('from() creates builder for known root', () => {
-    const p = mongoQuery({ contract: testContract });
+    const p = mongoQueryOnValidatedContract({ contract: testContract });
     const builder = p.from('orders');
     const plan = builder.build();
     expect(plan.collection).toBe('orders');
   });
 
   it('from() throws for unknown root', () => {
-    const p = mongoQuery({ contract: testContract });
+    const p = mongoQueryOnValidatedContract({ contract: testContract });
     expect(() => p.from('nonexistent' as 'orders')).toThrow('Unknown root');
   });
 });

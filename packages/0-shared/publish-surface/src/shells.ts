@@ -276,7 +276,12 @@ const SQL_QUERY_REEXPORTS: readonly ShellReexportMapping[] = [
  */
 const MONGO_QUERY_REEXPORTS: readonly ShellReexportMapping[] = [
   { package: '@internal/mongo-orm', entry: 'orm' },
-  { package: '@internal/mongo-query-builder', entry: 'query-builder' },
+  {
+    package: '@internal/mongo-query-builder',
+    entry: 'query-builder',
+    root: false,
+    subpaths: ['contract-free'],
+  },
   { package: '@internal/mongo-query-ast', entry: 'query-ast' },
   { package: '@internal/mongo-value', entry: 'value' },
 ];
@@ -548,6 +553,7 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
           dir: 'packages/2-mongo-family/5-query-builders/query-builder',
           name: '@internal/mongo-query-builder',
           entry: 'query-builder',
+          subpaths: ['.', 'contract-free', 'internal/on-validated-contract'],
         },
         {
           dir: 'packages/2-mongo-family/6-transport/mongo-lowering',

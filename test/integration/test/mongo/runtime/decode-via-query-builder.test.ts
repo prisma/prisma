@@ -1,6 +1,6 @@
 /**
  * End-to-end test for the user-facing path: contract types →
- * `mongoQuery(...).from(...).<chain>.build()` → `runtime.query(plan)` →
+ * `mongoQueryOnValidatedContract(...).from(...).<chain>.build()` → `runtime.query(plan)` →
  * decoded rows.
  *
  * This file is the single artifact tying contract type inference, lane
@@ -13,7 +13,8 @@
 
 import { MongoContractSerializer } from '@internal/family-mongo/ir';
 import { contractFromJson } from '@internal/mongo/static';
-import { acc, mongoQuery } from '@internal/mongo-query-builder';
+import { acc } from '@internal/mongo-query-builder';
+import { mongoQueryOnValidatedContract } from '@internal/mongo-query-builder/internal/on-validated-contract';
 import { MongoParamRef } from '@internal/mongo-value';
 import { timeouts } from '@repo/test-utils';
 import { ObjectId } from 'mongodb';
@@ -24,7 +25,7 @@ import {
 } from './fixtures/decode-fixture-contract';
 import { withMongod } from './setup';
 
-const q = mongoQuery({
+const q = mongoQueryOnValidatedContract({
   contract: contractFromJson<TDecodeFixtureContract>(decodeFixtureContractJson),
 });
 
@@ -45,7 +46,7 @@ describe('Mongo runtime decode integration via query-builder', {
         embeddings: vec,
       });
 
-      const plan = mongoQuery({ contract })
+      const plan = mongoQueryOnValidatedContract({ contract })
         .from('users')
         .match((f) =>
           f['_id']!.eq(MongoParamRef.of(insert.insertedId, { codecId: 'mongo/objectId@1' })),

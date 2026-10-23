@@ -86,7 +86,7 @@ function writeMeta(storageHash: string): PlanMeta {
 
 /**
  * Root state of the query-builder state machine. Returned from
- * `mongoQuery(...).from(name)` and bound to a single collection.
+ * `mongoQueryOnValidatedContract(...).from(name)` and bound to a single collection.
  *
  * Inherits the entire pipeline-stage surface from `PipelineChain` (since an
  * empty `CollectionHandle` is observably an empty pipeline). Adds:
@@ -634,7 +634,7 @@ export interface BindingContext<
 
 /**
  * Construct a `CollectionHandle` from a validated contract + root name.
- * Used by `mongoQuery(...).from(name)` to enter the state machine.
+ * Used by `mongoQueryOnValidatedContract(...).from(name)` to enter the state machine.
  */
 export function createCollectionHandle<
   TContract extends MongoContractWithTypeMaps<MongoContract, AnyMongoTypeMaps>,
@@ -662,7 +662,7 @@ export function createCollectionHandle<
   if (!c.storage?.storageHash) {
     throw contractError(
       'CONTRACT.VALIDATION_FAILED',
-      'Contract is missing storage.storageHash. Pass a validated contract to mongoQuery().',
+      'Contract is missing storage.storageHash. Pass a validated contract to mongoQueryOnValidatedContract().',
     );
   }
   return new CollectionHandle(

@@ -9,10 +9,10 @@ import {
   UpdateOneCommand,
 } from '@internal/mongo-query-ast/execution';
 import { describe, expect, it } from 'vitest';
-import { mongoQuery } from '../src/query';
+import { mongoQueryOnValidatedContract } from '../src/query';
 import { testContract } from './fixtures/test-contract';
 
-const orders = () => mongoQuery({ contract: testContract }).from('orders');
+const orders = () => mongoQueryOnValidatedContract({ contract: testContract }).from('orders');
 
 describe('M2 write terminals', () => {
   describe('inserts (CollectionHandle)', () => {

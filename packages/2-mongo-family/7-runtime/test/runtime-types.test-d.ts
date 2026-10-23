@@ -6,7 +6,7 @@ import type {
   MongoTypeMaps,
 } from '@internal/mongo-contract';
 import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
-import { mongoQuery } from '@internal/mongo-query-builder';
+import { mongoQueryOnValidatedContract } from '@internal/mongo-query-builder/internal/on-validated-contract';
 import { expectTypeOf } from 'vitest';
 import type { MongoRuntime } from '../src/mongo-runtime';
 
@@ -93,7 +93,7 @@ declare const contract: TContract;
 
 describe('runtime type safety', () => {
   it('query() returns AsyncIterableResult<Row> where Row matches build() row type', () => {
-    const plan = mongoQuery({ contract }).from('orders').build();
+    const plan = mongoQueryOnValidatedContract({ contract }).from('orders').build();
     type Row = PlanRow<typeof plan>;
     expectTypeOf<Row>().toEqualTypeOf<OrderRow>();
 
@@ -103,7 +103,7 @@ describe('runtime type safety', () => {
   });
 
   it('query() result awaits to Row[]', () => {
-    const plan = mongoQuery({ contract }).from('orders').build();
+    const plan = mongoQueryOnValidatedContract({ contract }).from('orders').build();
     type Row = PlanRow<typeof plan>;
 
     const runtime = {} as MongoRuntime;

@@ -88,22 +88,13 @@ The `vector(N)` factory is registered through the unified `CodecDescriptor<{ len
 
 ### Runtime Setup
 
-Register the extension when creating your execution stack:
+Register the extension when creating the client:
 
 ```typescript
-import { instantiateExecutionStack } from '@internal/framework-components/execution';
-import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
-import postgresAdapter from '@internal/adapter-postgres/runtime';
-import postgresTarget from '@internal/target-postgres/runtime';
-import pgvector from '@internal/extension-pgvector/runtime';
+import postgres from '@prisma/orm-postgres/runtime';
+import pgvector from '@prisma/orm-extension-pgvector/runtime';
 
-const stack = createSqlExecutionStack({
-  target: postgresTarget,
-  adapter: postgresAdapter,
-  extensions: [pgvector],
-});
-const context = createExecutionContext({ contract, stack });
-const stackInstance = instantiateExecutionStack(stack);
+const db = postgres({ contract, url, extensions: [pgvector] });
 ```
 
 ### Query Usage

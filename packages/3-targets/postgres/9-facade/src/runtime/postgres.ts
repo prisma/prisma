@@ -185,9 +185,6 @@ export default function postgres<
 
     const adapter = stack.adapter.create(stack);
     const driverDescriptor = stack.driver;
-    if (!driverDescriptor) {
-      throw new InternalError('Driver descriptor missing from execution stack');
-    }
 
     const driver = driverDescriptor.create({
       cursor: toDriverCursorOptions(cursor),

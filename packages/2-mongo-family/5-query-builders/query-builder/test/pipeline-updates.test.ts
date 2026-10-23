@@ -7,13 +7,13 @@ import {
 } from '@internal/mongo-query-ast/execution';
 import { describe, expect, it } from 'vitest';
 import type { PipelineChain } from '../src/builder';
-import { mongoQuery } from '../src/query';
+import { mongoQueryOnValidatedContract } from '../src/query';
 import type { ModelToDocShape } from '../src/types';
 import type { UpdaterResult } from '../src/update-ops';
 import type { TContract } from './fixtures/test-contract';
 import { testContract } from './fixtures/test-contract';
 
-const orders = () => mongoQuery({ contract: testContract }).from('orders');
+const orders = () => mongoQueryOnValidatedContract({ contract: testContract }).from('orders');
 
 /**
  * After A25 (`CollectionHandle`/`FilteredCollection` start with

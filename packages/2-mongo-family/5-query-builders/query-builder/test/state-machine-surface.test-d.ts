@@ -1,17 +1,17 @@
 import { MongoFieldFilter } from '@internal/mongo-query-ast/execution';
 import { describe, it } from 'vitest';
-import { mongoQuery } from '../src/query';
+import { mongoQueryOnValidatedContract } from '../src/query';
 import type { TContract } from './fixtures/test-contract';
 
 declare const contract: TContract;
-const handle = () => mongoQuery({ contract }).from('orders');
+const handle = () => mongoQueryOnValidatedContract({ contract }).from('orders');
 const filtered = () => handle().match(MongoFieldFilter.eq('status', 'new'));
 
 /**
  * Negative-surface type tests for the M1 state machine + M2 write methods.
  *
  * The point is to lock down which methods *don't* exist on each state, so a
- * misuse like `mongoQuery(...).from('x').updateMany(...)` (writing to every
+ * misuse like `mongoQueryOnValidatedContract(...).from('x').updateMany(...)` (writing to every
  * doc through the wrong terminal) doesn't typecheck. Each `@ts-expect-error`
  * here is load-bearing — its absence would silently re-open a footgun the
  * spec set out to close.

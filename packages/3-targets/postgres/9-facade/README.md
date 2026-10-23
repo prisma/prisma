@@ -326,11 +326,11 @@ flowchart TD
     Client --> Bound[Runtime-bound members: orm runtime() transaction prepare]
     Bound --> Lazy[runtime() on first use]
 
-    Lazy --> Instantiate[instantiateExecutionStack]
+    Lazy --> Instantiate[stack.adapter.create and stack.driver.create]
     Lazy --> Bind[Resolve binding: url or pg]
     Bind --> Pool[pg.Pool for url binding]
     Bind --> Reuse[Reuse Pool or Client for pg binding]
-    Lazy --> Runtime[createRuntime]
+    Lazy --> Runtime[new PostgresRuntimeImpl]
 
     Runtime --> Target[@internal/target-postgres]
     Runtime --> Adapter[@internal/adapter-postgres]
