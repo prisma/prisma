@@ -4,7 +4,7 @@ import { defineContract, field, gen, type } from '../../src/exports/contract-bui
 describe('the type exported by contract-builder', () => {
   it('writes the rewrite the exported field names for a removed preset', () => {
     expect(() => Reflect.get(Reflect.get(field, 'id'), 'uuidv4String')).toThrow(
-      'Write field.column(type.sql.Char(36)).id().onCreate(gen.uuid()).',
+      'Write field.column(type.sql.UuidString()).id().onCreate(gen.uuid()).',
     );
     const fromCallback = defineContract(
       {},
