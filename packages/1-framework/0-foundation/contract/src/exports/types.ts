@@ -46,7 +46,7 @@ export type {
   EnumMemberValueType,
   FieldTypesFromDomain,
   StoredValueType,
-  ValueObjectTypesFromDomain,
+  ValueObjectTypesFromStorage,
   ValueTypeSide,
 } from '../field-value-types';
 export type { NamespaceId } from '../namespace-id';
