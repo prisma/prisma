@@ -4050,6 +4050,9 @@ importers:
       '@internal/sql-relational-core':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../2-sql-family/4-lanes/relational-core
+      '@internal/target-mysql':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../1-target
       '@internal/utils':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../1-framework/0-foundation/utils

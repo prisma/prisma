@@ -25,6 +25,24 @@ describe('formatMysqlQuery', () => {
     expect(formatMysqlQuery('SELECT 1--?', [2])).toBe('SELECT 1--2');
   });
 
+  it('treats -- as a comment before a control character, as MySQL does, and not before a non-ASCII space', () => {
+    expect(formatMysqlQuery("SELECT 1 --\x01 '\n, ?1", ['a'])).toBe("SELECT 1 --\x01 '\n, 'a'");
+    expect(formatMysqlQuery('SELECT 1 --\x7f ?1\n', [])).toBe('SELECT 1 --\x7f ?1\n');
+    expect(formatMysqlQuery('SELECT 1 --\u00a0?1', ['a'])).toBe("SELECT 1 --\u00a0'a'");
+  });
+
+  it('refuses an executable /*! comment, whose content MySQL runs as SQL', () => {
+    expect(() => formatMysqlQuery("SELECT 1 /*! , 'a*/ */ WHERE ?1", ['a'])).toThrow(
+      expect.objectContaining({ code: 'RUNTIME.AST_INVALID' }),
+    );
+  });
+
+  it('refuses a numbered placeholder with a leading zero', () => {
+    expect(() => formatMysqlQuery('SELECT ?01', ['a'])).toThrow(
+      expect.objectContaining({ code: 'RUNTIME.PARAM_PLACEHOLDER_MISMATCH' }),
+    );
+  });
+
   it('writes each value with mysql2 escaping, and NULL for null', () => {
     expect(
       formatMysqlQuery('SELECT ?, ?, ?, ?, ?', [null, 'a\\b', 1.5, true, Buffer.from([1, 255])]),

@@ -168,6 +168,29 @@ describe('MysqlControlDriver against a MySQL server', {
     });
   });
 
+  it('clears ANSI_QUOTES, so a double-quoted string is read as the driver scans it', async (test) => {
+    await withMysqlDatabase(test, async ({ url }) => {
+      const driver = await connectWhileServerDefaultIncludes(url, 'ANSI_QUOTES');
+      try {
+        const rows = await driver
+          .query<Record<string, string>>(
+            "SELECT 'leaked' AS \"r\\\", 'x\"' AS s FROM DUAL WHERE FALSE OR ' = ?1 OR ' -- '\n",
+            [' OR TRUE OR '],
+          )
+          .then(
+            (result) => result.rows,
+            () => [],
+          );
+        const { rows: mode } = await driver.query<{ ansi: string }>(
+          "SELECT FIND_IN_SET('ANSI_QUOTES', @@SESSION.sql_mode) AS ansi",
+        );
+        expect({ rows, mode }).toEqual({ rows: [], mode: [{ ansi: '0' }] });
+      } finally {
+        await driver.close();
+      }
+    });
+  });
+
   it('runs its session in UTC', async (test) => {
     await withMysqlDatabase(test, async ({ url }) => {
       const driver = await mysqlDriver.create(url);
