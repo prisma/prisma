@@ -36,7 +36,7 @@ changes:
         - 'PSL_PRESET_'
   - id: field-presets-in-extension-code
     summary: |
-      Code and documentation in an extension that calls a field preset, such as `field.id.uuidv4String()` in a test contract, a README or a message, uses the replacement of the app guide's tables: `field.column(type.Char(36)).id().onCreate(gen.uuid())`. A package that exports `field` and `gen` built by `createComposedAuthoringHelpers` for use outside a contract also exports `type` from the same call. The detection matches files that call a preset.
+      Code and documentation in an extension that calls a field preset, such as `field.id.uuidv4String()` in a test contract, a README or a message, uses the replacement of the app guide's tables: `field.column(type.UuidString()).id().onCreate(gen.uuid())`. A package that exports `field` and `gen` built by `createComposedAuthoringHelpers` for use outside a contract also exports `type` from the same call. The detection matches files that call a preset.
     detection:
       glob: "**/*.{ts,mts,cts,tsx,md}"
       matches:
@@ -87,7 +87,7 @@ authoring: {
 },
 ```
 
-`temporalTypeAliases(type, value)` from `@prisma/orm-framework/components/authoring` builds the `CreatedAt` and `UpdatedAt` pair for a timestamp type. A type alias calls a generator function by name, as `@onCreate(now())` does, and the stack's bindings pick the generator for the alias's codec. A preset that took arguments becomes a type constructor in `authoring.type`, and the user writes the generated values and `@id` as attributes. A preset whose only job was `@id` plus a generator, such as `id.uuidv4String()`, has no replacement in the pack: the user writes `Char(36) @id @onCreate(uuid())`.
+`temporalTypeAliases(type, value)` from `@prisma/orm-framework/components/authoring` builds the `CreatedAt` and `UpdatedAt` pair for a timestamp type. A type alias calls a generator function by name, as `@onCreate(now())` does, and the stack's bindings pick the generator for the alias's codec. A preset that took arguments becomes a type constructor in `authoring.type`, and the user writes the generated values and `@id` as attributes. A preset whose only job was `@id` plus a generator, such as `id.uuidv4String()`, has no replacement in the pack: the user writes the SQL family's identifier alias with the attributes, `UuidString @id @onCreate(uuid())`.
 
 Remove the `field` key from `authoring` on both the pack ref and the control descriptor. Then assemble the stack: if any `field` key is left, the control stack and the TypeScript builders throw `CONTRACT.PACK_CONTRIBUTION_INVALID` with `Component "<id>" contributes authoring.field, which Prisma 8 removed with field presets. Contribute a type alias (kind: 'typeAlias') or a type constructor in authoring.type.`
 
