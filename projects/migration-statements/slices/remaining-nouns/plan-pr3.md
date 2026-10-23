@@ -8,7 +8,7 @@ This PR changes the contract shape. It adds no statements; PR 4 adds the value o
 
 - **The discriminator value set is SQL only.** On MongoDB the collection validator already pins each variant's discriminator value, so a change there already changes the storage hash.
 - **An enum-typed discriminator keeps the enum's value set and check.** The column has one `valueSet` slot, and the enum already restricts it; a variant value outside the enum is already refused.
-- **`enumType()` refuses a name containing a dot**, so `<Base>.<field>` value-set keys cannot collide with an enum's.
+- **A clash between an enum's value set and a discriminator's is refused, and nothing else.** Enum value sets are keyed by the enum's name and a discriminator's by `<Base>.<field>`. Only an enum named exactly like a discriminator's key (possible only from the TypeScript builder, since PSL names are identifiers) clashes; the build refuses that case, naming both and saying to rename the enum. Enum names and members are otherwise unrestricted (Will, 2026-10-23: do not limit enum names to avoid a rare clash).
 - **The Postgres value object check is one strict `jsonpath` predicate**, written so a NULL result fails (`IS TRUE`). The ADR's `?&` and `-` operators are not used.
 - **A value object that contains itself** is checked as the MongoDB validator does: fully down to where the cycle starts, any object below.
 - **Value object fields have no separate stored names**; they are stored under their own names in both families.
@@ -24,7 +24,7 @@ As for PR 2: typecheck; lint and `test --coverage` in every touched package; `li
 | --- | --- | --- |
 | 10 | Contract shape and validators: a storage-plane value object entity in both families, a domain field referring to it by a storage coordinate (the first reference from domain to storage), validation across the two planes, the JSON schema, and the framework accessors | — |
 | 11 | A plan whose storage hash changes but that has no operations is written and applied: `migration plan` writes it, `db migrate` and `db update` move the marker, on Postgres, SQLite and MongoDB | — |
-| 12 | Authoring and build in both families write value objects into storage (SQL PSL, Mongo PSL, Mongo TS builder, Prisma 6 reader), and SQL PSL writes the discriminator value set and its column reference before the storage hash is computed; `enumType()` refuses dotted names; the MongoDB validator derivation reads value objects from storage | 10 |
+| 12 | Authoring and build in both families write value objects into storage (SQL PSL, Mongo PSL, Mongo TS builder, Prisma 6 reader), and SQL PSL writes the discriminator value set and its column reference before the storage hash is computed; a clash between an enum's value set and a discriminator's is refused; the MongoDB validator derivation reads value objects from storage | 10 |
 | 13 | Emit and types: `contract.d.ts` types read value objects from the storage plane, with a defaulted type parameter so contracts without value objects emit the same text | 10 |
 | 14 | Runtime and tools read value objects through the domain field's reference: the SQL and Mongo ORMs and query builders, the CLI statement resolver, `contract print`, `contract infer`, verification | 12, 13 |
 | 15 | Postgres derived checks: the discriminator membership check, and the value object `jsonpath` check for every shape SQL authoring produces, starting from a test per shape on PGlite; a new SQL fixture with nested and list members; contract print and infer recognise the new checks | 12 |
