@@ -467,7 +467,7 @@ withTempDir(({ createTempDir }) => {
             'V5.04: no operations',
           ).toMatchObject({
             operations: [],
-            summary: expect.stringContaining('What changed: valueObject "public.Home".'),
+            summary: expect.stringContaining('What changed: value object "public.Home".'),
           });
           const migrate = await runMigrate(ctx);
           expect(migrate.exitCode, `V5.05: migrate: ${migrate.stderr}`).toBe(0);

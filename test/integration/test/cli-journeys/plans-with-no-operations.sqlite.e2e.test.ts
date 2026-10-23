@@ -108,7 +108,7 @@ withTempDir(({ createTempDir }) => {
           changedStorageEntities: [
             { plane: 'storage', entityKind: 'valueSet', entityName: 'Role' },
           ],
-          summary: expect.stringContaining('What changed: valueSet "Role".'),
+          summary: expect.stringContaining('What changed: value set "Role".'),
         });
         const dir = join(ctx.testDir, 'migrations/app', latestMigrationDirName(ctx));
         expect(JSON.parse(readFileSync(join(dir, 'ops.json'), 'utf-8')), 'N1.05: ops.json').toEqual(
@@ -129,7 +129,7 @@ withTempDir(({ createTempDir }) => {
 
   describe('Journey N2 (SQLite): db update applies a change with no operations', () => {
     it(
-      'moves the marker to the new hash',
+      'names the changed value set and moves the marker to the new hash',
       async () => {
         const ctx = setupSqliteJourney(createTempDir);
         await emitContract(ctx, FROM_PSL, 'N2.01');
@@ -139,6 +139,9 @@ withTempDir(({ createTempDir }) => {
 
         const update = await runDbUpdate(ctx);
         expect(update.exitCode, `N2.04: db update: ${update.stderr}`).toBe(0);
+        expect(`${update.stdout}${update.stderr}`, 'N2.04: names the changed value set').toContain(
+          'The storage the contract describes changed, but the database needs no operation for it, so none ran and the database was signed with the new contract. What changed: value set "Role".',
+        );
         expect(markerHash(ctx.dbPath), 'N2.04: the marker').toBe(
           readEmittedContractStorageHash(ctx),
         );

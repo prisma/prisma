@@ -100,7 +100,7 @@ const CHANGED_ELEMENT_COORDINATES = [
 ];
 
 const NO_OPERATIONS_TEXT =
-  'The storage the contract describes changed, but the database needs no operation for it, so the migration has none. What changed: table "public.users", valueSet "public.Role", valueSet "public.Status".';
+  'The storage the contract describes changed, but the database needs no operation for it, so the migration has none. What changed: table "public.users", value set "public.Role", value set "public.Status".';
 const NO_OPERATIONS_SUMMARY = `Planned 0 operation(s). ${NO_OPERATIONS_TEXT}`;
 
 /** The database sits at HASH_FROM, which a migration reaches; the emitted contract is HASH_TO. */

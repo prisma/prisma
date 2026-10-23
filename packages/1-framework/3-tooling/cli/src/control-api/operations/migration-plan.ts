@@ -4,7 +4,7 @@
 
 import { readFile } from 'node:fs/promises';
 import type { PrismaNextConfig } from '@internal/config/config-types';
-import type { Contract, ContractWithDomain, EntityCoordinate } from '@internal/contract/types';
+import type { Contract, ContractWithDomain } from '@internal/contract/types';
 import {
   createControlStack,
   hasOperationPreview,
@@ -17,7 +17,6 @@ import {
   type ResolvedMigrationStatement,
   type SchemaOwnership,
 } from '@internal/framework-components/control';
-import { changedElementCoordinates, UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   snapshotsImportPathFrom,
   writeContractSnapshot,
@@ -28,7 +27,6 @@ import { formatMigrationDirName, writeMigrationPackage } from '@internal/migrati
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { writeMigrationTs } from '@internal/migration-tools/migration-ts';
 import type { ImportSpecifierResolver } from '@internal/publish-surface/import-roots';
-import { canonicalStringify } from '@internal/utils/canonical-stringify';
 import { castAs } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok, type Result } from '@internal/utils/result';
@@ -71,6 +69,11 @@ import { isPlannedStatement, type StatementText } from '../statements/statement-
 import { reportTemporaryValues, type TemporaryValueReport } from '../statements/temporary-values';
 import type { ControlClient } from '../types';
 import { errorFromCaught } from './caught-errors';
+import {
+  type ChangedStorageEntity,
+  changedStorageEntities,
+  whatChangedSentence,
+} from './changed-storage-entities';
 import {
   buildContractSpaceAggregate,
   loadContractSpaceAggregateForCli,
@@ -372,11 +375,6 @@ async function answerPlannedDataLoss(input: {
   );
   return ok({ delta, deletes });
 }
-
-/** The coordinate of a storage entity a plan changed, without the internal unbound namespace id. */
-type ChangedStorageEntity = Omit<EntityCoordinate, 'namespaceId'> & {
-  readonly namespaceId?: string;
-};
 
 export interface MigrationPlanResult {
   readonly ok: boolean;
@@ -907,10 +905,7 @@ async function executeMigrationPlanCommandInner(
             placeholderDirs: [baselineDir],
             appliedStatements: [...statementsWithoutOperations, ...deletes],
             temporaryValues: baselineLeg.value.temporaryValues,
-            changedStorageEntities: changedElementCoordinates(
-              fromContract?.storage ?? null,
-              toContract.storage,
-            ).map(withoutUnboundNamespaceId),
+            changedStorageEntities: changedStorageEntities(fromContract, toContract),
             summary: placeholderSummary('baseline', [baselinePackageDir], invocationOf(options)),
             timings: { total: Date.now() - startTime },
           };
@@ -936,10 +931,7 @@ async function executeMigrationPlanCommandInner(
           ...(warnings.length > 0 ? { warnings } : {}),
           appliedStatements: [...statementsWithoutOperations, ...deletes],
           temporaryValues: baselineLeg.value.temporaryValues,
-          changedStorageEntities: changedElementCoordinates(
-            fromContract?.storage ?? null,
-            toContract.storage,
-          ).map(withoutUnboundNamespaceId),
+          changedStorageEntities: changedStorageEntities(fromContract, toContract),
           summary: buildAutoBaselinePlanSummary(baselineOps.length, 0, emittedExtensionDirs.length),
           timings: { total: Date.now() - startTime },
         };
@@ -978,10 +970,7 @@ async function executeMigrationPlanCommandInner(
           ],
           appliedStatements: [...deltaLeg.appliedStatements, ...deletes],
           temporaryValues: deltaLeg.temporaryValues,
-          changedStorageEntities: changedElementCoordinates(
-            fromContract?.storage ?? null,
-            toContract.storage,
-          ).map(withoutUnboundNamespaceId),
+          changedStorageEntities: changedStorageEntities(fromContract, toContract),
           summary: placeholderSummary(
             'baseline + migration',
             [baselinePackageDir, deltaPackageDir],
@@ -1109,10 +1098,7 @@ async function executeMigrationPlanCommandInner(
         ...(fromDefaulted ? { fromDefaulted } : {}),
         appliedStatements: [...deltaLeg.appliedStatements, ...deletes],
         temporaryValues: deltaLeg.temporaryValues,
-        changedStorageEntities: changedElementCoordinates(
-          fromContract?.storage ?? null,
-          toContract.storage,
-        ).map(withoutUnboundNamespaceId),
+        changedStorageEntities: changedStorageEntities(fromContract, toContract),
         summary: placeholderSummary('migration', [packageDir], invocationOf(options)),
         timings: { total: Date.now() - startTime },
       };
@@ -1166,45 +1152,12 @@ function withNoOperationsReport(
   fromContract: Contract | null,
   toContract: Contract,
 ): Pick<MigrationPlanResult, 'changedStorageEntities' | 'summary'> {
-  const changed = changedElementCoordinates(fromContract?.storage ?? null, toContract.storage);
-  const reported = { changedStorageEntities: changed.map(withoutUnboundNamespaceId) };
+  const reported = { changedStorageEntities: changedStorageEntities(fromContract, toContract) };
   if (!hasNoOperations) return { ...reported, summary };
-  const what =
-    changed.length === 0
-      ? `No storage entity changed; what changed is ${changedStorageKeys(fromContract, toContract).join(', ') || 'outside the storage entities'}.`
-      : `What changed: ${changed.map(storageEntityText).join(', ')}.`;
   return {
     ...reported,
-    summary: `${summary}. The storage the contract describes changed, but the database needs no operation for it, so the migration has none. ${what}`,
+    summary: `${summary}. The storage the contract describes changed, but the database needs no operation for it, so the migration has none. ${whatChangedSentence(fromContract, toContract)}`,
   };
-}
-
-function withoutUnboundNamespaceId({
-  namespaceId,
-  ...rest
-}: EntityCoordinate): ChangedStorageEntity {
-  return namespaceId === UNBOUND_NAMESPACE_ID ? rest : { namespaceId, ...rest };
-}
-
-/** The top-level storage keys whose content differs between two contracts, such as `storage.types`, in key order. */
-function changedStorageKeys(fromContract: Contract | null, toContract: Contract): string[] {
-  const plain = (storage: unknown): Record<string, unknown> =>
-    typeof storage === 'object' && storage !== null ? JSON.parse(JSON.stringify(storage)) : {};
-  const from = plain(fromContract?.storage);
-  const to = plain(toContract.storage);
-  return [...new Set([...Object.keys(from), ...Object.keys(to)])]
-    .filter((key) => key !== 'storageHash')
-    .filter((key) => canonicalStringify(from[key]) !== canonicalStringify(to[key]))
-    .sort()
-    .map((key) => `storage.${key}`);
-}
-
-function storageEntityText(coordinate: EntityCoordinate): string {
-  const name =
-    coordinate.namespaceId === UNBOUND_NAMESPACE_ID
-      ? coordinate.entityName
-      : `${coordinate.namespaceId}.${coordinate.entityName}`;
-  return `${coordinate.entityKind} "${name}"`;
 }
 
 /**

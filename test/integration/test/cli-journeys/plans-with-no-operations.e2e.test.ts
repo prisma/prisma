@@ -120,7 +120,7 @@ withTempDir(({ createTempDir }) => {
     const db = useDevDatabase({ onReady: (cs) => sql(cs, AUTH_USERS_SQL) });
 
     it(
-      'moves the marker to the new hash',
+      'names the changed table and moves the marker to the new hash',
       async () => {
         const ctx = setupJourney({
           connectionString: db.connectionString,
@@ -132,8 +132,23 @@ withTempDir(({ createTempDir }) => {
         expect(initial.exitCode, `N2.02: db update initial: ${initial.stderr}`).toBe(0);
         await emitContract(ctx, TO_PSL, 'N2.03');
 
-        const update = await runDbUpdate(ctx);
+        const update = await runDbUpdate(ctx, ['--json']);
         expect(update.exitCode, `N2.04: db update: ${update.stderr}`).toBe(0);
+        expect(
+          parseJsonOutput<Record<string, unknown>>(update),
+          'N2.04: names the changed table',
+        ).toMatchObject({
+          plan: { operations: [] },
+          changedStorageEntities: [
+            {
+              plane: 'storage',
+              namespaceId: 'public',
+              entityKind: 'table',
+              entityName: 'auth_users',
+            },
+          ],
+          summary: expect.stringContaining('What changed: table "public.auth_users".'),
+        });
         expect(await markerHash(db.connectionString), 'N2.04: the marker').toBe(
           readEmittedContractStorageHash({ ...ctx, outputDir: ctx.testDir }),
         );
