@@ -2,22 +2,20 @@ import {
   type ContractField,
   type ContractModel,
   type ContractValueObject,
-  type StorageBase,
+  type ContractWithDomain,
   valueObjectAt,
 } from '@internal/contract/types';
 import { type MongoModelStorage, ownStoredNamesOf } from '@internal/mongo-contract';
 import type { MongoFieldShape, MongoResultShape } from '@internal/mongo-query-ast/execution';
 import { freezeMongoFieldShape, freezeMongoResultShape } from '@internal/mongo-query-ast/execution';
 
-type StorageNamespaces = Pick<StorageBase, 'namespaces'>;
-
 const UNKNOWN: MongoFieldShape = Object.freeze({ kind: 'unknown' as const });
 
-const NO_STORAGE: StorageNamespaces = { namespaces: {} };
+const NO_STORAGE: ContractWithDomain['storage'] = { namespaces: {} };
 
 function valueObjectFields(
   valueObject: ContractValueObject,
-  storage: StorageNamespaces,
+  storage: ContractWithDomain['storage'],
   enclosing: ReadonlySet<ContractValueObject>,
 ): Record<string, MongoFieldShape> {
   return Object.fromEntries(
@@ -30,7 +28,7 @@ function valueObjectFields(
 
 function elementShape(
   field: ContractField,
-  storage: StorageNamespaces,
+  storage: ContractWithDomain['storage'],
   enclosing: ReadonlySet<ContractValueObject>,
 ): MongoFieldShape {
   const { type } = field;
@@ -50,7 +48,7 @@ function elementShape(
 
 function fieldShape(
   field: ContractField,
-  storage: StorageNamespaces,
+  storage: ContractWithDomain['storage'],
   enclosing: ReadonlySet<ContractValueObject>,
 ): MongoFieldShape {
   if (field.dict === true) return UNKNOWN;
@@ -67,7 +65,7 @@ function fieldShape(
  */
 export function contractFieldToMongoFieldShape(
   field: ContractField,
-  storage: StorageNamespaces = NO_STORAGE,
+  storage: ContractWithDomain['storage'] = NO_STORAGE,
 ): MongoFieldShape {
   return freezeMongoFieldShape(fieldShape(field, storage, new Set()));
 }
@@ -81,7 +79,7 @@ export function contractModelToMongoResultShape(
     readonly selection?: readonly string[];
     /** The shape of each included relation, keyed by relation name. */
     readonly includes?: Readonly<Record<string, MongoFieldShape>>;
-    readonly storage?: StorageNamespaces;
+    readonly storage?: ContractWithDomain['storage'];
   },
 ): MongoResultShape {
   const fields: Record<string, MongoFieldShape> = { ...options?.includes };

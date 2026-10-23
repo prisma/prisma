@@ -7,7 +7,6 @@ import {
   type ContractFieldType,
   type ContractModelBase,
   type ContractWithDomain,
-  type StorageBase,
   valueObjectAt,
 } from '@internal/contract/types';
 import type { CliStructuredError } from '@internal/errors/control';
@@ -39,17 +38,12 @@ import {
 import { statementFlag } from './statement-flag';
 import { ENTITY_WORDS, type StatementText } from './statement-text';
 
-/** A contract statements resolve against: its domain models, and the value objects its storage holds. */
-export type StatementContract = ContractWithDomain & {
-  readonly storage: Pick<StorageBase, 'namespaces'>;
-};
-
 /**
  * The origin contract statements resolve against, or where the command looked
  * for it without finding it.
  */
 export type StatementOrigin =
-  | { readonly kind: 'contract'; readonly contract: StatementContract }
+  | { readonly kind: 'contract'; readonly contract: ContractWithDomain }
   | {
       readonly kind: 'missing';
       readonly hash: string | null;
@@ -66,14 +60,14 @@ export interface ResolveStatementsInput {
   /** The statements as the user wrote them, in the order given. */
   readonly statements: readonly StatementText[];
   readonly origin: StatementOrigin;
-  readonly destination: StatementContract;
+  readonly destination: ContractWithDomain;
 }
 
 type Side = 'old' | 'new';
 
 interface NamedContract {
   readonly name: 'origin' | 'destination';
-  readonly contract: StatementContract;
+  readonly contract: ContractWithDomain;
 }
 
 interface FoundModel {
@@ -197,7 +191,7 @@ function modelIn(
   return Object.hasOwn(namespace.models, name) ? namespace.models[name] : undefined;
 }
 
-function hasValueObject(contract: StatementContract, namespaceId: string, name: string): boolean {
+function hasValueObject(contract: ContractWithDomain, namespaceId: string, name: string): boolean {
   return (
     valueObjectAt(contract.storage, {
       plane: 'storage',

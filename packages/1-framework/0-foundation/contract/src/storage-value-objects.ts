@@ -1,14 +1,12 @@
 import { blindCast } from '@internal/utils/casts';
 import { contractError } from './contract-errors';
+import type { ContractWithDomain } from './domain-envelope';
 import type { ContractValueObject } from './domain-types';
 import type { EntityCoordinate } from './entity-coordinate';
 import { isPlainRecord } from './is-plain-record';
-import type { StorageBase } from './types';
-
-type StorageNamespaces = Pick<StorageBase, 'namespaces'>;
 
 function valueObjectsOf(
-  storage: StorageNamespaces,
+  storage: ContractWithDomain['storage'],
   namespaceId: string,
 ): Readonly<Record<string, ContractValueObject>> {
   const slot = Object.hasOwn(storage.namespaces, namespaceId)
@@ -24,7 +22,7 @@ function valueObjectsOf(
 
 /** The storage value object a reference names, or `undefined` when storage does not have it. */
 export function valueObjectAt(
-  storage: StorageNamespaces,
+  storage: ContractWithDomain['storage'],
   reference: EntityCoordinate<'storage', 'valueObject'>,
 ): ContractValueObject | undefined {
   const valueObjects = valueObjectsOf(storage, reference.namespaceId);
@@ -37,7 +35,7 @@ export function valueObjectAt(
  * The value objects of the storage's only namespace. Throws when storage does not declare exactly one namespace, since a bare value object name is then ambiguous.
  */
 export function storageValueObjectsAtDefaultNamespace(
-  storage: StorageNamespaces,
+  storage: ContractWithDomain['storage'],
 ): Readonly<Record<string, ContractValueObject>> {
   const namespaceIds = Object.keys(storage.namespaces);
   const [namespaceId] = namespaceIds;

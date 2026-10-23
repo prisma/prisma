@@ -8,12 +8,12 @@ import {
   type ContractEnum,
   type ContractModel,
   type ContractValueObject,
+  type ContractWithDomain,
   type CrossReference,
   coreHash,
   crossRef,
   type ExecutionMutationDefault,
   effectiveControlPolicy,
-  type StorageBase,
   type StorageHashBase,
 } from '@internal/contract/types';
 import { encodeEnumTypeMembers } from '@internal/contract-authoring';
@@ -185,7 +185,7 @@ function storageOf(
   defaultNamespaceId: string,
   valueObjects: Record<string, ContractValueObject> | undefined,
   storageValueSetsByNs: Readonly<Record<string, Record<string, StorageValueSetInput>>>,
-): Pick<StorageBase, 'namespaces'> {
+): ContractWithDomain['storage'] {
   const namespaceIds = new Set([defaultNamespaceId, ...Object.keys(storageValueSetsByNs)]);
   return {
     namespaces: Object.fromEntries(

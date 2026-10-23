@@ -6,7 +6,6 @@ import type { ContractValueObject } from './domain-types';
 import { isPlainRecord } from './is-plain-record';
 import { asNamespaceId, type NamespaceId } from './namespace-id';
 import { valueObjectAt } from './storage-value-objects';
-import type { StorageBase } from './types';
 
 export interface DomainRelationShape {
   readonly to: CrossReference;
@@ -26,7 +25,6 @@ export interface DomainModelShape {
 
 export interface DomainContractShape extends ContractWithDomain {
   readonly roots: Record<string, CrossReference>;
-  readonly storage: Pick<StorageBase, 'namespaces'>;
 }
 
 interface IndexedModel {

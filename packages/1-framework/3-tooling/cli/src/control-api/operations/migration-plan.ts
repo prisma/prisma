@@ -4,7 +4,7 @@
 
 import { readFile } from 'node:fs/promises';
 import type { PrismaNextConfig } from '@internal/config/config-types';
-import type { Contract, EntityCoordinate } from '@internal/contract/types';
+import type { Contract, ContractWithDomain, EntityCoordinate } from '@internal/contract/types';
 import {
   createControlStack,
   hasOperationPreview,
@@ -66,7 +66,7 @@ import {
   reportAppliedStatements,
   reportConsentStatement,
 } from '../statements/report-applied-statements';
-import { resolveStatements, type StatementContract } from '../statements/resolve-statements';
+import { resolveStatements } from '../statements/resolve-statements';
 import { isPlannedStatement, type StatementText } from '../statements/statement-text';
 import { reportTemporaryValues, type TemporaryValueReport } from '../statements/temporary-values';
 import type { ControlClient } from '../types';
@@ -147,7 +147,7 @@ function invocationOf(options: {
 }
 
 /** The origin of a plan from an empty database: no models, so no statement resolves. */
-const EMPTY_ORIGIN: StatementContract = {
+const EMPTY_ORIGIN: ContractWithDomain = {
   domain: { namespaces: {} },
   storage: { namespaces: {} },
 };
@@ -318,9 +318,9 @@ async function answerPlannedDataLoss(input: {
   readonly delta: PlannerSuccess | undefined;
   readonly statements: readonly StatementText[];
   readonly consents: readonly StatementText[];
-  readonly origin: StatementContract;
+  readonly origin: ContractWithDomain;
   readonly originKnown: boolean;
-  readonly destination: StatementContract;
+  readonly destination: ContractWithDomain;
   readonly answer: AnswerPlanQuestions;
   readonly invocation: CliInvocation;
   readonly planDelta: (

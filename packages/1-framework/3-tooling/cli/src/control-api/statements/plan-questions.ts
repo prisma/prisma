@@ -1,3 +1,4 @@
+import type { ContractWithDomain } from '@internal/contract/types';
 import type { CliStructuredError } from '@internal/errors/control';
 import {
   type EnumValueCoordinate,
@@ -24,7 +25,7 @@ import {
   type UnusedConsent,
 } from '../../utils/cli-errors';
 import type { ConsentVerb } from './parse-consent';
-import { resolveStatements, type StatementContract } from './resolve-statements';
+import { resolveStatements } from './resolve-statements';
 import { statementFlag } from './statement-flag';
 import { ENTITY_WORDS, type StatementText } from './statement-text';
 
@@ -106,9 +107,9 @@ export interface PlannedQuestions {
 
 /** The contracts a statement names things in, and the statements the plan carries out so far. */
 export interface StatementContracts {
-  readonly origin: StatementContract;
+  readonly origin: ContractWithDomain;
   /** The destination contract; needed only to name a field of a renamed model. */
-  readonly destination?: StatementContract;
+  readonly destination?: ContractWithDomain;
   /** The rename, convert and backfill statements the plan carries out, in the order given. */
   readonly statements: readonly StatementText[];
 }
@@ -322,7 +323,7 @@ function modelRenameAdvice(model: ModelCoordinate, contracts: StatementContracts
  */
 function onlyNewMember(
   subject: EnumValueCoordinate,
-  contracts: StatementContracts & { readonly destination: StatementContract },
+  contracts: StatementContracts & { readonly destination: ContractWithDomain },
 ): string | undefined {
   const value = renamedEnumValue(subject, contracts) ?? subject;
   const originMembers =
@@ -343,7 +344,7 @@ function onlyNewMember(
 function renameForm(
   subject: MigrationSubject,
   text: string,
-  contracts: StatementContracts & { readonly destination: StatementContract },
+  contracts: StatementContracts & { readonly destination: ContractWithDomain },
 ): string {
   if (subject.kind === 'field' || subject.kind === 'enumValue') {
     const parent = text.slice(0, text.lastIndexOf('.'));
@@ -370,7 +371,7 @@ function renamedByPlan(subject: MigrationSubject, contracts: StatementContracts)
 /** Whether the destination still has the subject's model or field, under the name a rename gives it. */
 function inDestination(
   subject: MigrationSubject,
-  contracts: StatementContracts & { readonly destination: StatementContract },
+  contracts: StatementContracts & { readonly destination: ContractWithDomain },
 ): boolean {
   if (subject.kind === 'storage') return false;
   if (subject.kind === 'enumValue') {
@@ -389,7 +390,7 @@ function inDestination(
 /** Checks a statement typed at a question against the plan's other statements. */
 function resolvesWith(
   statement: StatementText,
-  contracts: StatementContracts & { readonly destination: StatementContract },
+  contracts: StatementContracts & { readonly destination: ContractWithDomain },
 ): Result<ResolvedMigrationStatement | undefined, string> {
   const resolved = resolveStatements({
     statements: [...contracts.statements, statement],
@@ -402,7 +403,7 @@ function resolvesWith(
 }
 
 type DataLossContracts = StatementContracts & {
-  readonly destination: StatementContract;
+  readonly destination: ContractWithDomain;
   readonly originKnown: boolean;
   /** Whether the command writes a migration whose conversion the user fills in. */
   readonly canConvert: boolean;
@@ -435,7 +436,7 @@ export type KeepDataEditAdvice = (
  */
 function missingFieldModel(
   subject: MigrationSubject,
-  contracts: StatementContracts & { readonly destination: StatementContract },
+  contracts: StatementContracts & { readonly destination: ContractWithDomain },
 ): ModelCoordinate | undefined {
   if (subject.kind !== 'field') return undefined;
   const model = renamedModel(subject, contracts) ?? subject;
@@ -670,7 +671,7 @@ function withNamespaceDeleteOnFirstQuestion(
 function acceptingNamespaceAnswers(
   question: PlanQuestion,
   removedNamespace: string | undefined,
-  contracts: StatementContracts & { readonly destination: StatementContract },
+  contracts: StatementContracts & { readonly destination: ContractWithDomain },
 ): PlanQuestion {
   if (removedNamespace === undefined) return question;
   const namespaceAnswer = (verb: PlanQuestionVerb, text: string): NamespaceAnswer | undefined => {
@@ -725,9 +726,9 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
   readonly statements: readonly StatementText[];
   readonly preAnswers: readonly StatementText[];
   readonly consentAll: { readonly [verb in ConsentVerb]: boolean };
-  readonly origin: StatementContract;
+  readonly origin: ContractWithDomain;
   readonly originKnown: boolean;
-  readonly destination: StatementContract;
+  readonly destination: ContractWithDomain;
   readonly answer: AnswerPlanQuestions;
   readonly replan: (statements: readonly StatementText[]) => Promise<Result<TPlan, TFailure>>;
   /** The command's words for the edits that keep a subject's data. */

@@ -1,4 +1,5 @@
 import type { ContractEnum, ContractModelBase } from './domain-types';
+import type { StorageBase } from './types';
 
 export { UNBOUND_DOMAIN_NAMESPACE_ID } from './default-namespace';
 
@@ -20,6 +21,10 @@ export interface ApplicationDomain {
   readonly namespaces: Readonly<Record<string, ApplicationDomainNamespace>>;
 }
 
+/**
+ * What reading a contract's domain fields needs: the domain, and the storage namespaces that hold the value objects its fields refer to (ADR 309).
+ */
 export type ContractWithDomain = {
   readonly domain: ApplicationDomain;
+  readonly storage: Pick<StorageBase, 'namespaces'>;
 };

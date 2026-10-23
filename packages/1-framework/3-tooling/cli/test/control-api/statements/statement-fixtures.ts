@@ -3,12 +3,12 @@ import type {
   ContractModelBase,
   ContractRelation,
   ContractValueObject,
+  ContractWithDomain,
 } from '@internal/contract/types';
 import { crossRef } from '@internal/contract/types';
 import type { CliStructuredError } from '@internal/errors/control';
 import type { Result } from '@internal/utils/result';
 import { expect } from 'vitest';
-import type { StatementContract } from '../../../src/control-api/statements/resolve-statements';
 
 interface ModelSpec {
   readonly fields?: readonly string[];
@@ -90,7 +90,7 @@ function valueObjectOf(fields: readonly string[]): ContractValueObject {
   };
 }
 
-export function contractOf(namespaces: Record<string, NamespaceSpec>): StatementContract {
+export function contractOf(namespaces: Record<string, NamespaceSpec>): ContractWithDomain {
   const entries = Object.entries(namespaces);
   return {
     domain: {

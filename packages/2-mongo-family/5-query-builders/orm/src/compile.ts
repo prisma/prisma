@@ -1,4 +1,4 @@
-import type { ContractModel, PlanMeta, StorageBase } from '@internal/contract/types';
+import type { ContractModel, ContractWithDomain, PlanMeta } from '@internal/contract/types';
 import type { MongoModelStorage } from '@internal/mongo-contract';
 import type {
   MongoFieldShape,
@@ -29,7 +29,7 @@ function isToOne(include: MongoIncludeExpr): boolean {
  */
 function includeShape(
   include: MongoIncludeExpr,
-  storage: Pick<StorageBase, 'namespaces'>,
+  storage: ContractWithDomain['storage'],
 ): MongoFieldShape {
   const target = contractModelToMongoResultShape(include.targetModel, { storage });
   const fields = target.kind === 'document' ? target.fields : {};
@@ -64,7 +64,7 @@ export function compileMongoQuery<Row = unknown>(
   state: MongoCollectionState,
   storageHash: string,
   model: ContractModel<MongoModelStorage>,
-  storage: Pick<StorageBase, 'namespaces'>,
+  storage: ContractWithDomain['storage'],
 ): MongoQueryPlan<Row> {
   const stages: MongoPipelineStage[] = [];
 

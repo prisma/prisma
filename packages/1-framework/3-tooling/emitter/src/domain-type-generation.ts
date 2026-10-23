@@ -5,9 +5,9 @@ import type {
   ContractModelBase,
   ContractValueObject,
   ContractValueObjectField,
+  ContractWithDomain,
   CrossReference,
   JsonValue,
-  StorageBase,
   ValueObjectFieldType,
 } from '@internal/contract/types';
 import { valueObjectAt } from '@internal/contract/types';
@@ -544,10 +544,6 @@ function renderOverrideTree(tree: OverrideTree): string {
   return `{ ${parts.join('; ')} }`;
 }
 
-type ContractPlanes = Pick<Contract, 'domain'> & {
-  readonly storage: Pick<StorageBase, 'namespaces'>;
-};
-
 /**
  * The values a model field's value set holds, with the field's codec. A reference to a domain enum is read from the contract's domain. Any other model field goes to the family's `resolveStorageValueSet`, which reads its storage.
  */
@@ -579,7 +575,7 @@ function resolveDomainValueSet(
 /** The values of the storage value set a value object field names, with the field's codec. */
 function resolveValueObjectFieldValueSet(
   field: ContractValueObjectField,
-  storage: Pick<StorageBase, 'namespaces'>,
+  storage: ContractWithDomain['storage'],
 ): ResolvedFieldValueSet | undefined {
   if (field.valueSet === undefined || field.type.kind !== 'scalar') return undefined;
   const valueSet = entityAt<{ readonly values: readonly JsonValue[] }>(storage, field.valueSet);
@@ -589,7 +585,7 @@ function resolveValueObjectFieldValueSet(
 
 /** Each value object in storage, with the storage namespace that holds it. */
 export function storageValueObjects(
-  storage: Pick<StorageBase, 'namespaces'>,
+  storage: ContractWithDomain['storage'],
 ): ReadonlyArray<readonly [namespaceId: string, name: string, valueObject: ContractValueObject]> {
   return [...elementCoordinates(storage)].flatMap(({ namespaceId, entityKind, entityName }) => {
     if (entityKind !== 'valueObject') return [];
@@ -605,7 +601,7 @@ export function storageValueObjects(
 
 /** `FieldTypeOverrides`: per namespace, `models` (domain namespace) or `valueObjects` (storage namespace), owner and field, the type of each field its codec does not give. */
 export function generateFieldTypeOverridesMap(
-  contract: ContractPlanes,
+  contract: ContractWithDomain,
   codecLookup: CodecLookup | undefined,
   resolveStorageValueSet: StorageValueSetResolver | undefined,
 ): string {

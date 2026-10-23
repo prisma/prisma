@@ -1,8 +1,8 @@
 import type {
   ContractValueObject,
   ContractValueObjectField,
+  ContractWithDomain,
   EntityCoordinate,
-  StorageBase,
 } from '@internal/contract/types';
 import { valueObjectAt } from '@internal/contract/types';
 import type { CheckKind } from '@internal/sql-schema-ir/naming';
@@ -54,21 +54,20 @@ export type CheckExpressionRenderer = (
   input: CheckExpressionInput,
 ) => ReadonlyArray<CheckExpressionCandidate>;
 
-type StorageNamespaces = Pick<StorageBase, 'namespaces'>;
 type ValueObjectReference = EntityCoordinate<'storage', 'valueObject'>;
 
 /**
  * The value object a reference names, with nested value objects inlined and enum members' values read from their storage value sets.
  */
 export function resolveValueObject(
-  storage: StorageNamespaces,
+  storage: ContractWithDomain['storage'],
   reference: ValueObjectReference,
 ): ResolvedValueObject {
   return resolveEntered(storage, reference, [referenceKey(reference)]);
 }
 
 function resolveEntered(
-  storage: StorageNamespaces,
+  storage: ContractWithDomain['storage'],
   reference: ValueObjectReference,
   path: readonly string[],
 ): ResolvedValueObject {
@@ -88,7 +87,7 @@ function resolveEntered(
 }
 
 function resolveFieldType(
-  storage: StorageNamespaces,
+  storage: ContractWithDomain['storage'],
   field: ContractValueObjectField,
   path: readonly string[],
 ): ResolvedValueObjectFieldType {
@@ -113,7 +112,7 @@ function resolveFieldType(
  * Whether `from` refers, through its own fields or nested ones, to a value object on the path being resolved. Each value object on the path refers to `from`, so this holds exactly when `from` is in a group of value objects that contain each other which the path has already entered.
  */
 function reachesAny(
-  storage: StorageNamespaces,
+  storage: ContractWithDomain['storage'],
   from: ValueObjectReference,
   targets: ReadonlySet<string>,
 ): boolean {
@@ -132,7 +131,7 @@ function reachesAny(
 }
 
 function requiredValueObject(
-  storage: StorageNamespaces,
+  storage: ContractWithDomain['storage'],
   reference: ValueObjectReference,
 ): ContractValueObject {
   const valueObject = valueObjectAt(storage, reference);
@@ -144,7 +143,7 @@ function requiredValueObject(
 }
 
 function valueSetValues(
-  storage: StorageNamespaces,
+  storage: ContractWithDomain['storage'],
   reference: EntityCoordinate<'storage', 'valueSet'>,
 ): readonly (string | number)[] {
   const valueSet = Object.hasOwn(storage.namespaces, reference.namespaceId)

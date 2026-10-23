@@ -110,7 +110,7 @@ describe('validating a contract once', () => {
       JSON.parse(
         JSON.stringify(
           Object.values(contract.storage.namespaces).map(
-            (namespace) => namespace.entries.valueObject,
+            (namespace) => namespace.entries['valueObject'],
           ),
         ),
       ),
