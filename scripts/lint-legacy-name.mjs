@@ -48,6 +48,7 @@ const COMPATIBILITY_SITES = new Set([
   'docs/Telemetry.md',
   'test/integration/test/upgrade-instructions/default-generators-to-on-create/fixtures/before/older-header.prisma',
   'test/integration/test/upgrade-instructions/default-generators-to-on-create/fixtures/after/older-header.prisma',
+  'test/integration/test/upgrade-instructions/default-generators-to-on-create/detection.test.ts',
 ]);
 
 /**
