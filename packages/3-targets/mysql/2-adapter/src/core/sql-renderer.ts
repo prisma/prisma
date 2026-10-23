@@ -429,16 +429,21 @@ function renderJsonElementText(projection: AnyJsonValueProjection, ctx: RenderCo
 }
 
 /**
- * `JSON_ARRAYAGG` takes no `ORDER BY`, and MySQL drops a derived table's `ORDER BY` when the outer query aggregates, so an ordered array is built as text with `GROUP_CONCAT`, which keeps its own order, and cast to JSON. The statement raises `group_concat_max_len` itself (see `GROUP_CONCAT_HINT`). With no rows the aggregate is NULL; an empty array is `JSON_ARRAY()`, so the column stays JSON and a nested include stays an array.
+ * `JSON_ARRAYAGG` takes no `ORDER BY`, and MySQL drops a derived table's `ORDER BY` when the outer query aggregates, so an ordered array is built as text with `GROUP_CONCAT`, which keeps its own order, and cast to JSON. The statement raises `group_concat_max_len` past any result a connection can send (see `GROUP_CONCAT_HINT`), so `GROUP_CONCAT` never cuts the text short. Text longer than `max_allowed_packet` makes `CONCAT` return NULL with only a warning, which would read as an empty include; so an empty array is written only when there are no rows, and a NULL text with rows is replaced by text that is not JSON, which fails the cast and the statement. `JSON_ARRAYAGG` fails on its own when its result exceeds a packet. An empty array is `JSON_ARRAY()`, so the column stays JSON and a nested include stays an array.
  */
 function renderJsonArrayAgg(expr: JsonArrayAggExpr, ctx: RenderContext): string {
-  if (expr.orderBy !== undefined) ctx.uses.groupConcat = true;
-  const aggregated =
-    expr.orderBy === undefined
-      ? `JSON_ARRAYAGG(${renderJsonValue(expr.expr, ctx)})`
-      : `CAST(CONCAT('[', GROUP_CONCAT(${renderJsonElementText(expr.expr, ctx)} ORDER BY ${renderOrderByItems(expr.orderBy, ctx)} SEPARATOR ','), ']') AS JSON)`;
-  return expr.onEmpty === 'emptyArray' ? `COALESCE(${aggregated}, JSON_ARRAY())` : aggregated;
+  if (expr.orderBy === undefined) {
+    const aggregated = `JSON_ARRAYAGG(${renderJsonValue(expr.expr, ctx)})`;
+    return expr.onEmpty === 'emptyArray' ? `COALESCE(${aggregated}, JSON_ARRAY())` : aggregated;
+  }
+  ctx.uses.groupConcat = true;
+  const text = `CONCAT('[', GROUP_CONCAT(${renderJsonElementText(expr.expr, ctx)} ORDER BY ${renderOrderByItems(expr.orderBy, ctx)} SEPARATOR ','), ']')`;
+  const empty = expr.onEmpty === 'emptyArray' ? 'JSON_ARRAY()' : 'NULL';
+  return `CASE WHEN COUNT(*) = 0 THEN ${empty} ELSE CAST(COALESCE(${text}, ${OVERSIZED_ARRAY_TEXT}) AS JSON) END`;
 }
+
+/** Text that is not JSON, written in place of an array MySQL could not build because it is larger than a packet. It counts the rows, so MySQL evaluates it only when it is reached. */
+const OVERSIZED_ARRAY_TEXT = "CONCAT('array larger than max_allowed_packet: ', COUNT(*), ' rows')";
 
 const ORDER_DIRECTION: Readonly<Record<OrderByItem['dir'], string>> = { asc: 'ASC', desc: 'DESC' };
 

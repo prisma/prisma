@@ -409,12 +409,12 @@ describe('MySQL lowering of JSON for includes', () => {
     expect(projectionOf(object)).toBe(`SELECT ${objectSql} AS \`v\``);
   });
 
-  it('keeps a to-many include in order with GROUP_CONCAT, cast to JSON, raising the length limit for the statement, and an empty include as an empty JSON array', () => {
+  it('keeps a to-many include in order with GROUP_CONCAT, cast to JSON, raising the length limit for the statement, an empty include as an empty JSON array, and an array larger than a packet as an error', () => {
     const aggregate = JsonArrayAggExpr.of(new JsonDocumentProjection(object), 'emptyArray', [
       OrderByItem.desc(rows('order_0')),
     ]);
     expect(projectionOf(aggregate)).toBe(
-      `SELECT /*+ SET_VAR(group_concat_max_len = 4294967295) */ COALESCE(CAST(CONCAT('[', GROUP_CONCAT(${objectSql} ORDER BY \`rows\`.\`order_0\` DESC SEPARATOR ','), ']') AS JSON), JSON_ARRAY()) AS \`v\``,
+      `SELECT /*+ SET_VAR(group_concat_max_len = 4294967295) */ CASE WHEN COUNT(*) = 0 THEN JSON_ARRAY() ELSE CAST(COALESCE(CONCAT('[', GROUP_CONCAT(${objectSql} ORDER BY \`rows\`.\`order_0\` DESC SEPARATOR ','), ']'), CONCAT('array larger than max_allowed_packet: ', COUNT(*), ' rows')) AS JSON) END AS \`v\``,
     );
   });
 
@@ -426,7 +426,7 @@ describe('MySQL lowering of JSON for includes', () => {
         ]),
       ),
     ).toBe(
-      "SELECT /*+ SET_VAR(group_concat_max_len = 4294967295) */ CAST(CONCAT('[', GROUP_CONCAT(JSON_EXTRACT(JSON_ARRAY(`rows`.`title`), '$[0]') ORDER BY `rows`.`title` ASC SEPARATOR ','), ']') AS JSON) AS `v`",
+      "SELECT /*+ SET_VAR(group_concat_max_len = 4294967295) */ CASE WHEN COUNT(*) = 0 THEN NULL ELSE CAST(COALESCE(CONCAT('[', GROUP_CONCAT(JSON_EXTRACT(JSON_ARRAY(`rows`.`title`), '$[0]') ORDER BY `rows`.`title` ASC SEPARATOR ','), ']'), CONCAT('array larger than max_allowed_packet: ', COUNT(*), ' rows')) AS JSON) END AS `v`",
     );
   });
 

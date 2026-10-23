@@ -136,6 +136,25 @@ describe('MySQL includes through the ORM', { timeout: timeouts.databaseOperation
     );
   });
 
+  it('fails, rather than returning an empty array, when an ordered include is larger than a packet', async (test) => {
+    await withSeededDatabase(
+      test,
+      [
+        "CREATE TABLE `User` (`id` int NOT NULL, `email` varchar(191) NOT NULL, `role` enum('USER','ADMIN') NOT NULL, PRIMARY KEY (`id`))",
+        'CREATE TABLE `Post` (`id` int NOT NULL, `title` longtext NOT NULL, `authorId` int NOT NULL, PRIMARY KEY (`id`))',
+        "INSERT INTO `User` VALUES (1, 'b@example.com', 'ADMIN')",
+        "INSERT INTO `Post` (`id`, `title`, `authorId`) WITH RECURSIVE s(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM s WHERE n < 70) SELECT n, REPEAT('x', 1000000), 1 FROM s",
+      ],
+      async (url) => {
+        await using db = mysql({ contract, url, verifyMarker: false });
+        const user = db.orm.User.select('id')
+          .include('posts', (posts) => posts.select('title').orderBy((p) => p.id.asc()))
+          .first({ id: 1 });
+        await expect(user).rejects.toThrow(/Invalid JSON text/);
+      },
+    );
+  });
+
   it('returns whole rows for the include calls the project spec shows', async (test) => {
     await withSeededDatabase(test, exampleDatabase, async (url) => {
       await using db = mysql({ contract, url, verifyMarker: false });
