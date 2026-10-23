@@ -37,6 +37,7 @@
     "@internal/cli": "workspace:8.0.0-rc.20",
     "@internal/driver-postgres": "workspace:8.0.0-rc.20",
     "@internal/migration-tools": "workspace:8.0.0-rc.20",
+    "@internal/sql-errors": "workspace:8.0.0-rc.20",
     "@repo/test-utils": "workspace:8.0.0-rc.20",
     "@repo/tsconfig": "workspace:8.0.0-rc.20",
     "@repo/tsdown": "workspace:8.0.0-rc.20",

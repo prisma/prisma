@@ -715,6 +715,12 @@
       "plane": "shared"
     },
     {
+      "glob": "packages/3-targets/postgres/3-driver/src/pg-client-state.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "shared"
+    },
+    {
       "glob": "packages/3-targets/postgres/3-driver/src/postgres-driver.ts",
       "domain": "targets",
       "layer": "drivers",
@@ -1073,6 +1079,12 @@
       "domain": "targets",
       "layer": "drivers",
       "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/sqlite/3-driver/src/database-state.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "shared"
     },
     {
       "glob": "packages/3-targets/sqlite/3-driver/src/normalize-error.ts",
