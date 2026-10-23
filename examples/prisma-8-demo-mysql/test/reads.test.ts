@@ -1,12 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { getAdmins } from '../src/orm-client/get-admins';
+import { getPostsWithAuthors } from '../src/orm-client/get-posts-with-authors';
+import { getUserWithPosts } from '../src/orm-client/get-user-with-posts';
+import { getUsersWithPostAuthors } from '../src/orm-client/get-users-with-post-authors';
 import { createDb, type Db } from '../src/prisma/db';
-import {
-  getAdminEmails,
-  getAdmins,
-  getPostsWithAuthors,
-  getUsersWithPostAuthors,
-  getUserWithPosts,
-} from '../src/queries';
+import { getAdminEmails } from '../src/queries/get-admin-emails';
 import { seed } from '../src/seed';
 import { copyProject, prisma } from './cli';
 import { createTestDatabase, type TestDatabase } from './database';

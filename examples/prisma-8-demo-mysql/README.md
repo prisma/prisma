@@ -23,7 +23,7 @@ import { contractFromJson } from '@prisma/orm-mysql/static';
 const db = mysql({ contract: contractFromJson<Contract>(contractJson), url });
 ```
 
-`src/queries.ts` holds the reads, each one SQL statement:
+`src/orm-client/` holds the ORM reads and `src/queries/` the SQL builder read, one file each. Each read is one SQL statement:
 
 ```ts
 // Admins ordered by email
@@ -77,8 +77,7 @@ which contract the database is at.
 creates a uniquely named database on that server and drops it afterwards.
 `test/migrations.test.ts` runs `db migrate`, `db verify`, `db sign` and
 `migration plan` through the `prisma` CLI. `test/reads.test.ts` migrates with
-`db migrate`, seeds the rows and checks the whole result of each read in
-`src/queries.ts`. Without `MYSQL_URL` the tests are skipped.
+`db migrate`, seeds the rows and checks the whole result of each read. Without `MYSQL_URL` the tests are skipped.
 
 ## What the migration creates
 
@@ -109,7 +108,8 @@ index on a `text` column without a key length.
 - `prisma.config.ts` — CLI config; reads the connection from `MYSQL_URL`
 - `migrations/` — the committed migration and its contract snapshot
 - `src/prisma/db.ts` — the client
-- `src/queries.ts` — the reads
+- `src/orm-client/` — the ORM reads, one file each
+- `src/queries/` — the SQL builder read
 - `src/seed.ts` — the demo rows
 - `test/migrations.test.ts` — the migration flow
 - `test/reads.test.ts` — the reads against a migrated, seeded database
