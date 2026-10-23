@@ -1,7 +1,6 @@
 import type { ContractMarkerRecord } from '@internal/contract/types';
 import { withMarkerReadErrorHandling } from '@internal/errors/execution';
 import { parseContractMarkerRow } from '@internal/family-sql/verify';
-import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import type { MarkerReadResult } from '@internal/sql-relational-core/ast';
 import { decodeMysqlDatetime } from '@internal/target-mysql/codecs';
 import { MARKER_TABLE_NAME } from '@internal/target-mysql/control-tables';
@@ -9,7 +8,12 @@ import { quoteIdentifier } from '@internal/target-mysql/sql-utils';
 import { structuredError } from '@internal/utils/structured-error';
 
 /** What reading the marker needs of a connection: one statement at a time, its rows returned whole. */
-export type MarkerQuery = Pick<SqlControlDriverInstance<'mysql'>, 'query'>;
+export interface MarkerQuery {
+  query<Row = Record<string, unknown>>(
+    sql: string,
+    params?: readonly unknown[],
+  ): Promise<{ readonly rows: Row[] }>;
+}
 
 const MARKER_COLUMNS =
   'space, core_hash, profile_hash, contract_json, canonical_version, updated_at, app_tag, meta, invariants';
