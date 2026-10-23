@@ -228,4 +228,22 @@ describe('parameterizeQuery scalar values', () => {
     `)
     expect(result1.parameterizedQuery).toEqual(result2.parameterizedQuery)
   })
+
+  it('does not parameterize primitive values of Json comparison filters', () => {
+    const query: JsonQuery = {
+      modelName: 'User',
+      action: 'findMany',
+      query: {
+        arguments: { where: { metadata: { path: ['count'], gt: 5 } } },
+        selection: { $scalars: true },
+      },
+    }
+
+    const result = parameterizeQuery(query, paramGraph)
+
+    expect(result.parameterizedQuery.query.arguments).toEqual({
+      where: { metadata: { path: ['count'], gt: 5 } },
+    })
+    expect(result.placeholderValues).toEqual({})
+  })
 })
