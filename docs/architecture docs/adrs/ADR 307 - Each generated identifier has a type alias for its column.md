@@ -22,11 +22,69 @@ model Post {
 }
 ```
 
-- `Ulid` is a type alias for `Char(26)`, the column a ULID is stored in.
-- The id and the foreign key use the same alias, so the schema never states a length.
-- The id field writes its generator, `@onCreate(ulid())`. The foreign key does not, because its value is copied from the user it points at.
+`Ulid` is a type alias for `Char(26)`, the column a ULID is stored in. Three things follow from it:
 
-A user who wants the id in one word writes a mixin:
+- The id and the foreign key use the same alias, so nobody writes the length 26.
+- The id field generates its value with `@onCreate(ulid())`, written on the field.
+- The foreign key `authorId` uses the alias alone. Its value is copied from the user it points at, so it must not generate one.
+
+## Decision
+
+Prisma provides one type alias for the column of each identifier format that the client generates. The alias names the column type and nothing else. A field that generates the identifier adds `@id` and `@onCreate(...)` itself. A field that holds a copy of the identifier, such as a foreign key, uses the alias alone.
+
+These aliases are contributed aliases. The SQL family and the Postgres target provide them, as the temporal aliases such as `temporal.CreatedAt` are provided. They are not aliases the user declares in a schema's `types {}` block.
+
+## The problem: every identifier needs a fixed column length
+
+Each identifier format has a fixed length when it is stored as text:
+
+| Format | Characters |
+|---|---|
+| UUID as text | 36 |
+| ULID | 26 |
+| nanoid (default size) | 21 |
+| CUID2 | 24 |
+| KSUID | 27 |
+
+Without an alias, each schema writes these lengths by hand, such as `Char(26)`, and its author has to know them. A mistake has a cost:
+
+- **A column that is too short is refused.** Each generator states how many characters it writes, and a shorter column fails with a message such as `uuid() writes 36 characters, which does not fit a column of 5 characters.` (ADR 275).
+- **A column that is too long is accepted, and it is wrong.** On Postgres, a `char` column pads a shorter value with spaces, so the stored identifier is not the one the client generated.
+
+Identifier columns appear in almost every model, as primary keys and as foreign keys. So without aliases, the length is written, and can be wrong, in almost every model.
+
+## An alias names the column, and the field names the generator
+
+| Alias | Stands for | A field that generates the value writes |
+|---|---|---|
+| `UuidString` | `Char(36)` | `@onCreate(uuid())` or `@onCreate(uuid(7))` |
+| `Ulid` | `Char(26)` | `@onCreate(ulid())` |
+| `Nanoid` | `Char(21)` | `@onCreate(nanoid())` |
+| `Cuid2` | `Char(24)` | `@onCreate(cuid(2))` |
+| `Ksuid` | `Char(27)` | `@onCreate(ksuid())` |
+
+The alias does not carry the generator, because two kinds of field use the same column:
+
+- The primary key generates a new value.
+- A foreign key holds a copy of a primary key, so it needs the same column and must not generate a value.
+
+One alias for the column serves both. An alias that also carried the generator would serve only the primary key. Every foreign key would then need a second alias, or would write the length by hand again.
+
+Writing the generator on the field also keeps the schema readable. A reader sees at the field that the client generates the id, in the same `@onCreate` attribute that every other generated value uses.
+
+The alias also cannot carry `@id`. ADR 275 forbids an alias to carry `@id` or `@unique`, because the alias is used on fields that are not keys, such as the foreign key above. This ADR keeps that rule.
+
+## Where the names live on each target
+
+The aliases are written the way each target already writes its column types:
+
+- **Postgres** writes column types as top-level names, such as `Char` and `Uuid`. So the aliases are top-level too: `id Ulid @id @onCreate(ulid())`.
+- **Every SQL target** has the column types shared by SQL databases in the `sql` namespace, such as `sql.Char`. The aliases are there too: `sql.Ulid`.
+- **SQLite and MySQL** have no top-level names for these columns, so `sql.Ulid` is the only way to write them there: `id sql.Ulid @id @onCreate(ulid())`.
+
+## A one-word id is a mixin the user writes
+
+`id Ulid @id @onCreate(ulid())` is the same in every model. A user who wants to write it once declares a mixin (ADR 269) and includes it with `+`:
 
 ```prisma
 model mixin UlidId {
@@ -40,64 +98,68 @@ model Post {
 }
 ```
 
-## Decision
+Prisma provides the aliases but not this mixin. A mixin fixes the names of its fields, and a model cannot override them. A mixin provided by Prisma would only fit models whose key is named `id` with no `@map`. A user's own mixin uses the user's own names.
 
-1. Each generated identifier format gets a contributed type alias for the column it is stored in. The alias carries no generator and no attribute.
-2. A field that generates the identifier writes `@onCreate(fn())` itself. A field that holds a copy of one, such as a foreign key, uses the alias alone.
-3. A one-word id is a mixin the user writes. Prisma ships the aliases; packs do not contribute mixins.
-4. A native `uuid` column needs no alias, because the Postgres type constructor `Uuid` already names it.
+## Native UUIDs need no alias
 
-| Alias | Stands for | Generator a generating field writes |
-|---|---|---|
-| `UuidString` | `Char(36)` | `@onCreate(uuid())` or `@onCreate(uuid(7))` |
-| `Ulid` | `Char(26)` | `@onCreate(ulid())` |
-| `Nanoid` | `Char(21)` | `@onCreate(nanoid())` |
-| `Cuid2` | `Char(24)` | `@onCreate(cuid(2))` |
-| `Ksuid` | `Char(27)` | `@onCreate(ksuid())` |
+On Postgres, a UUID is best stored in the native `uuid` column, which the type constructor `Uuid` already names:
 
-On Postgres the aliases are top-level names, like the Postgres column types `Char` and `Uuid`. On every SQL target they are also in the `sql` namespace, like `sql.Char`, and on SQLite and MySQL that is the only way to write them: `id sql.Ulid @id @onCreate(ulid())`.
+```prisma
+model User {
+  id Uuid @id @onCreate(uuid(7))
+}
+```
 
-A nanoid of another size, such as `nanoid(12)`, has no alias, because a contributed alias takes no arguments. Its column is written out: `Char(12) @id @onCreate(nanoid(12))`.
+The native column is better than a text column in four ways:
 
-In TypeScript the aliases are `type.Ulid()` and the like, used through `field.column(...)`. The counterpart of the mixin is a constant:
+- It takes 16 bytes, against about 37 for the same value as text, so indexes and foreign keys are smaller.
+- Two values are compared as fixed-size binary values, with no text collation.
+- Postgres rejects a value that is not a UUID.
+- A version 7 UUID begins with a timestamp, so new rows are added at the end of a B-tree index. Random version 4 values are spread across the index.
+
+`UuidString` is for SQL targets that have no native UUID type, and for schemas that need a UUID stored as text.
+
+## Identifiers of another size
+
+A contributed alias takes no arguments, so it has one fixed length. A nanoid of another size, such as `nanoid(12)`, has no alias, and its column is written out:
+
+```prisma
+model Invite {
+  code Char(12) @id @onCreate(nanoid(12))
+}
+```
+
+The length check still applies, so a column too short for the size is refused.
+
+## TypeScript
+
+In the TypeScript contract builder, a contributed alias is written `type.<Name>()` and used through `field.column(...)`:
+
+```ts
+id: field.column(type.Ulid()).id().onCreate(gen.ulid()),
+authorId: field.column(type.Ulid()),
+```
+
+The TypeScript form of the mixin is a constant the user declares and reuses:
 
 ```ts
 const UlidId = field.column(type.Ulid()).id().onCreate(gen.ulid());
 ```
 
-This replaces one sentence of ADR 275, which said the identifier formats have no alias form because an alias may not carry `@id`. ADR 275's rule that an alias may not carry `@id` or `@unique` stands.
-
-## Why
-
-Every identifier format needs a fixed column length: 36 characters for a UUID written as text, 26 for a ULID, 21 for a nanoid, 24 for a CUID2, 27 for a KSUID. A schema that writes these lengths by hand needs its author to know them. A length that is too short is refused, because each generator states how many characters it writes. A length that is too long is accepted, and the stored value is padded with spaces. The identifier column is in almost every model, so the length would be written, and could be wrong, in almost every model.
-
-An alias that also carried the generator would hide the length for the id, but not for a foreign key. A foreign key holds a copy of the id it points at. It needs the id's column type and must not generate a new value. With the generator in the alias, a foreign key would either need a second alias for the bare column, or write the length by hand. An alias for the column alone serves both: the id adds the generator, and the foreign key does not.
-
-Keeping the generator out of the alias also keeps the schema readable. A reader sees at the field that the client generates the id, in the same `@onCreate` attribute every other generated value uses.
-
-A mixin is the right tool for the one-word id, because a mixin is a set of named fields and the id is a named field with its attributes. ADR 269 lets a user write one. A shipped mixin would fix the field's name and could not be overridden, so a model whose key is named `userId`, or whose key needs `@map`, could not use it. The user's own mixin has no such limit.
-
-## Native UUIDs
-
-On Postgres, a native `uuid` column is the better way to store a UUID. It takes 16 bytes, against about 37 for the same value as text, so it makes smaller indexes and foreign keys. Comparing two values is a fixed-size comparison, with no collation. Postgres also rejects a value that is not a UUID, which a text column does not. A version 7 UUID begins with a timestamp, so new rows are added at the end of a B-tree index, where random version 4 values are spread across it. Both generators fill a native column: `id Uuid @id @onCreate(uuid(7))`.
-
-A UUID stored as text, `UuidString`, is for SQL targets with no native type, and for schemas that need the text form.
-
 ## Consequences
 
-- **The same contracts.** Each alias stores exactly the column its identifier format was stored in before, so a schema that moves to the aliases keeps its storage and execution hashes.
-- **A generating id has one more attribute** than a single call that set the column and the generator together would. In return, the generator is visible, and a foreign key gets the same alias with no generator.
-- **No length check is lost.** The generator's fit check still applies to a field that uses an alias.
-- **Upgrade guidance** shows each identifier with its alias, and the mixin for a one-word id.
+- **An alias is only a name.** `Ulid` stores the same column as `Char(26)`, so the contract, its storage hash and its execution hash are the same whichever one a schema writes.
+- **A generating id writes three parts:** the alias, `@id`, and the generator. That is longer than a single name, but each part says one thing, and the mixin gives a single name to a user who wants one.
+- **The length check still applies.** A field that uses an alias is checked against its generator like any other field.
 
 ## Alternatives considered
 
-**An alias that carries the generator too.** Not chosen. It hides the length for the id but not for a foreign key, which must not generate a value. It would need a second alias per format for the bare column, two names for one column type.
+**An alias that carries the generator too.** Not chosen. It removes the length from the primary key but not from the foreign key, which must not generate a value. Each format would need a second alias for the bare column, so there would be two names for one column type.
 
-**A mixin that Prisma ships.** Not chosen. A mixin fixes the field's name and its members cannot be overridden, so it fits only models whose key is named as the mixin names it. Packs would also need a new way to contribute mixins. A user's own mixin has neither problem.
+**A mixin that Prisma provides.** Not chosen. A mixin fixes its field names, and a model cannot override them, so it fits only models whose key is named as the mixin names it. Targets and extensions would also need a new way to provide mixins. A user's own mixin has neither problem.
 
-**One namespace on every target, `sql.Ulid`.** Not chosen. On Postgres, the column types are top-level names, and `sql.Ulid` beside `Char` and `Uuid` would be the one exception users write there.
+**`sql.Ulid` on every target.** Not chosen. On Postgres the column types are top-level names, and `sql.Ulid` beside `Char` and `Uuid` would be the only `sql.` name Postgres users write.
 
-**A namespace for identifiers, such as `ids.Ulid`.** Not chosen. It groups the formats, but adds a namespace for five names, and `Ulid` reads as a column type, which it is.
+**A namespace for identifiers, such as `ids.Ulid`.** Not chosen. It groups the formats, but adds a namespace for five names. `Ulid` is a column type, and it reads best beside the other column types.
 
-**No aliases; write the column type and length.** Not chosen. It is the cost the aliases remove: every model would state, and could get wrong, the length of each identifier format.
+**No aliases.** Not chosen. Every model would write the length of each identifier by hand, which is the problem this ADR solves.
