@@ -42,8 +42,8 @@ const ARRAY_ORDINALITY_COLUMN = 'ordinality';
 
 export interface AnyPostgresCodecDescriptor extends AnyCodecDescriptor {
   readonly descriptorKind: typeof POSTGRES_CODEC_DESCRIPTOR_KIND;
-  /** The JSON type the codec's value is written as inside a JSON document. Every PostgreSQL codec declares it. */
-  readonly jsonType: JsonType;
+  /** The JSON type the codec's value is written as inside a JSON document. `PostgresCodecDescriptor` and `postgresCodec` require it; a registry may still hold a descriptor built without it. */
+  readonly jsonType?: JsonType;
   projectJson(expression: ProjectionExpr, ref: CodecRef): ProjectionExpr;
 }
 
@@ -144,7 +144,9 @@ export type AdaptedPostgresCodecDescriptor<D extends AnyCodecDescriptorTemplate>
   keyof CodecDescriptorTemplate<DescriptorParams<D>>
 > &
   Pick<CodecDescriptor, 'dataType'> &
-  Pick<AnyPostgresCodecDescriptor, 'descriptorKind' | 'projectJson' | 'jsonType'>;
+  Pick<AnyPostgresCodecDescriptor, 'descriptorKind' | 'projectJson'> & {
+    readonly jsonType: JsonType;
+  };
 
 class PostgresCodecDescriptorAdapter<
   D extends AnyCodecDescriptorTemplate & { readonly jsonType: JsonType },

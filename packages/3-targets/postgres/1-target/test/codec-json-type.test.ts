@@ -1,4 +1,4 @@
-import { JSON_TYPES } from '@internal/sql-contract/codec-json-type';
+import { declaredJsonType } from '@internal/sql-contract/codec-json-type';
 import { describe, expect, it } from 'vitest';
 import { buildPostgresCodecDescriptorRegistry } from '../src/core/codec-descriptor';
 import { postgresCodecDescriptorRegistry } from '../src/core/registry';
@@ -6,7 +6,7 @@ import { postgresCodecDescriptorRegistry } from '../src/core/registry';
 describe('the JSON type a codec declares', () => {
   it('is declared by every Postgres and SQL family codec', () => {
     const undeclared = [...postgresCodecDescriptorRegistry.values()]
-      .filter((descriptor) => !JSON_TYPES.includes(descriptor.jsonType))
+      .filter((descriptor) => declaredJsonType(descriptor) === undefined)
       .map((descriptor) => descriptor.codecId);
     expect(undeclared).toEqual([]);
   });

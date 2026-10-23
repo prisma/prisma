@@ -520,17 +520,17 @@ function valueSetsOf(storageNamespace: JsonRecord): JsonRecord {
   return isRecord(entries['valueSet']) ? entries['valueSet'] : {};
 }
 
-/** A value object member, with an enum reference pointed at the enum's storage value set. */
 /** The old MongoDB schema let a member leave `nullable` out, meaning `false`, and say `dict: false`; storage requires `nullable` and keeps `dict` only when it is `true`. */
 function withStorageModifiers(member: JsonRecord): JsonRecord {
   const { dict, ...rest } = member;
   return {
     ...rest,
-    nullable: typeof member['nullable'] === 'boolean' ? member['nullable'] : false,
+    nullable: member['nullable'] === undefined ? false : member['nullable'],
     ...(dict === undefined || dict === false ? {} : { dict }),
   };
 }
 
+/** A value object member, with an enum reference pointed at the enum's storage value set. */
 function rewrittenMember(
   stored: JsonRecord,
   storageNamespaces: JsonRecord,

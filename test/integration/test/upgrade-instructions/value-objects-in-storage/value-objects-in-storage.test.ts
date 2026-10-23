@@ -99,6 +99,38 @@ describe('an old MongoDB contract whose value object members leave nullable out 
     runScript(root);
     expect(readContract(join(root, path))).toEqual(readContract(join(fixturesDir, 'after', path)));
   });
+
+  it('keeps a nullable that is not a boolean, so validation refuses it', () => {
+    const path = 'mongo/src/contract.json';
+    const root = copyFixture('before');
+    editJson(root, path, (json) => {
+      const contract = json as {
+        domain: {
+          namespaces: {
+            __unbound__: {
+              valueObjects: { Address: { fields: Record<string, { nullable?: unknown }> } };
+            };
+          };
+        };
+      };
+      const city = contract.domain.namespaces.__unbound__.valueObjects.Address.fields['city'];
+      if (city !== undefined) city.nullable = 'yes';
+      return contract;
+    });
+    runScript(root);
+    const rewritten = JSON.parse(readFileSync(join(root, path), 'utf8')) as {
+      storage: {
+        namespaces: Record<
+          string,
+          { entries: { valueObject: { Address: { fields: { city: unknown } } } } }
+        >;
+      };
+    };
+    const city = Object.values(rewritten.storage.namespaces)
+      .map((namespace) => namespace.entries.valueObject?.Address?.fields.city)
+      .find((member) => member !== undefined);
+    expect(city).toMatchObject({ nullable: 'yes' });
+  });
 });
 
 describe('a contract.d.ts whose contract the script leaves unchanged', () => {

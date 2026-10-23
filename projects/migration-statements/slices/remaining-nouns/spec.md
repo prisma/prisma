@@ -104,7 +104,7 @@ Every operation the planner writes is also something a user could write in `migr
 | 1 | Namespaces: move, rename, delete, and a removed namespace becomes a question. The access question wording and rename | — |
 | 2 | Enum values: rename and delete in scalar and list columns, on Postgres and SQLite | 1 merged |
 | 3 | Value objects move to the storage plane and discriminator columns name a value set, both with derived checks on Postgres (decision 1), with ADR 309. First step: confirm a Postgres check can enforce every value object shape SQL authoring produces, nesting and lists included; raise any shape it cannot. A plan whose hash changed but has no operations is written and applied, not refused. Contracts re-emitted, with an upgrade fragment. No statements yet | 2 merged |
-| 4 | Value object field rename and delete, including enum values inside JSON. Variant convert and delete | 3 merged |
+| 4 | Value object field rename and delete, including enum values inside JSON. A value of a new required value object member for the rows that lack it (`--backfill`), since PR 3's Postgres check refuses those rows. Variant convert and delete | 3 merged |
 
 PR 3 is separate because it changes the contract shape and every contract with value objects or variants, and needs its own review, as slice 4p's first PR did. Slice 4b reuses PR 4's value object statement support for MongoDB.
 

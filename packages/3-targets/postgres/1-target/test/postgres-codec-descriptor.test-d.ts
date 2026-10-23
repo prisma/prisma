@@ -10,12 +10,14 @@ import {
   dataType,
   dataTypeId,
 } from '@internal/framework-components/codec';
+import type { JsonType } from '@internal/sql-contract/codec-json-type';
 import { FunctionCallExpr, type ProjectionExpr } from '@internal/sql-relational-core/ast';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { expectTypeOf, test } from 'vitest';
 import {
   definePostgresCodecs,
   PostgresCodecDescriptor,
+  type PostgresCodecDescriptorRegistry,
   postgresCodec,
 } from '../src/exports/codec-descriptor';
 
@@ -201,3 +203,8 @@ class MissingJsonProjection extends PostgresCodecDescriptor<VectorParams> {
 }
 
 void MissingJsonProjection;
+
+test('a registered descriptor may lack the JSON type, which only an author must declare', () => {
+  type Registered = NonNullable<ReturnType<PostgresCodecDescriptorRegistry['descriptorFor']>>;
+  expectTypeOf<Registered['jsonType']>().toEqualTypeOf<JsonType | undefined>();
+});

@@ -102,7 +102,7 @@ Storage already holds stored facts the database does not enforce. SQLite derives
 "type": { "codecId": "pg/text@1", "dataType": "pg/text", "nullable": false, "valueSet": { "entityKind": "valueSet", "entityName": "Task.type", "namespaceId": "public", "plane": "storage" } }
 ```
 
-**Enforcement on Postgres.** On a managed table, a column that holds a value object gets a derived check, as an enum column does, named `<table>_<column>_shape`. Its check kind is `shape`: like `membership` and `elementNotNull`, the kind names what the check enforces, here the shape of the column's value. It is one strict `jsonpath` predicate, written so that an unknown result fails, rather than the key-set operators `?&` and `-`:
+**Enforcement on Postgres.** On a managed table, a column that holds a value object gets a derived check, as an enum column does, named `<table>_<column>_shape_<hash>`, where `<hash>` is the first eight hexadecimal digits of the hash of the check's expression, such as `user_address_shape_5c02601b`. Its check kind is `shape`: like `membership` and `elementNotNull`, the kind names what the check enforces, here the shape of the column's value. It is one strict `jsonpath` predicate, written so that an unknown result fails, rather than the key-set operators `?&` and `-`:
 
 ```sql
 jsonb_path_match("address", 'strict $.type() == "object"
