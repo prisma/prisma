@@ -191,7 +191,7 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
    * Lower an AST all the way to a driver-ready statement. For DDL nodes,
    * literal column defaults are formatted as inline SQL with SQLite-specific
    * literal syntax (no cast suffix, boolean as 0/1, blob via X'hex'). For
-   * query ASTs, params are kept as `?` placeholders; wire values go in
+   * query ASTs, params are kept as numbered `?N` placeholders; wire values go in
    * `params`. Does NOT call `this.lower()` — independent implementation.
    */
   async lowerToExecuteRequest(

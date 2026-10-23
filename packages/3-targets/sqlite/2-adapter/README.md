@@ -89,7 +89,7 @@ flowchart TD
 
 **Adapter (`adapter.ts`)**
 - Main adapter implementation
-- Lowers SQL ASTs to SQLite SQL with `?` positional parameters
+- Lowers SQL ASTs to SQLite SQL with numbered `?N` parameters
 - Renders joins (INNER, LEFT, RIGHT, FULL) with ON conditions
 - Renders JSON aggregation (`json_group_array`, `json_object`) and scalar subqueries
 - Renders DML operations (INSERT, UPDATE, DELETE) with RETURNING clauses
