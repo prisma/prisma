@@ -6,6 +6,7 @@ import {
   postgresNativeScalarTypeDescriptors,
   testEnumEntityContributions,
   testEnumPslBlockDescriptor,
+  valueObjectsOf,
 } from './fixtures';
 import { sqlStorageFromSuccessfulSqlInterpretation } from './interpret-sql-contract-storage';
 import {
@@ -222,7 +223,7 @@ model Note {
   @@base(Post, "note")
 }`);
     expect({
-      member: contract.domain.namespaces['public']?.valueObjects?.['Label']?.fields['code'],
+      member: valueObjectsOf(contract)?.['Label']?.fields['code'],
       discriminator: unboundTables(sqlStorageFromSuccessfulSqlInterpretation(contract))['Post']
         ?.columns['kind'],
       types: documentScopedTypes(contract),
@@ -238,6 +239,12 @@ model Note {
         nullable: false,
         many: false,
         typeParams: { length: 8 },
+        valueSet: {
+          plane: 'storage',
+          entityKind: 'valueSet',
+          namespaceId: 'public',
+          entityName: 'Post.kind',
+        },
       },
       types: undefined,
     });
