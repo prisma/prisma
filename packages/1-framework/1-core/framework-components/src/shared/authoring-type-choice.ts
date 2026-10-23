@@ -1,7 +1,15 @@
 import type { JsonValue } from '@internal/contract/types';
-import type {
-  AuthoringTypeConstructorDescriptor,
-  AuthoringValueArgument,
+import { InternalError } from '@internal/utils/internal-error';
+import {
+  type AuthoringTypeConstructorDescriptor,
+  type AuthoringTypeNamespace,
+  type AuthoringTypeNamespaceMember,
+  type AuthoringValueArgument,
+  instantiateAuthoringTypeConstructor,
+  isAuthoringTypeChoiceDescriptor,
+  isAuthoringTypeConstructorDescriptor,
+  isAuthoringTypeDescriptor,
+  type ScalarTypeConstructorOutput,
 } from './framework-authoring';
 import type { AuthoringOption } from './option-descriptor';
 import { runtimeError } from './runtime-error';
@@ -200,42 +208,124 @@ export function resolveAuthoringTypeChoice(input: {
   };
 }
 
-type TypeNamespaceLevel = { readonly [name: string]: unknown };
-
 /** Looks a type constructor up by name in one level of a type namespace, as a type choice's rows name them. */
 export function typeConstructorLookup(
-  namespace: TypeNamespaceLevel,
+  namespace: AuthoringTypeNamespace,
 ): (name: string) => AuthoringTypeConstructorDescriptor | undefined {
   return (name) => {
-    const member = Object.hasOwn(namespace, name) ? namespace[name] : undefined;
-    return isTypeConstructor(member) ? member : undefined;
+    const member = memberNamed(namespace, name);
+    return member !== undefined && isAuthoringTypeConstructorDescriptor(member)
+      ? member
+      : undefined;
   };
 }
 
-function isTypeChoice(value: unknown): value is AuthoringTypeChoiceDescriptor {
-  return (
-    typeof value === 'object' && value !== null && 'kind' in value && value.kind === 'typeChoice'
-  );
+function memberNamed(
+  namespace: AuthoringTypeNamespace,
+  name: string,
+): AuthoringTypeNamespaceMember | undefined {
+  return Object.hasOwn(namespace, name) ? namespace[name] : undefined;
 }
 
-function isTypeConstructor(value: unknown): value is AuthoringTypeConstructorDescriptor {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'kind' in value &&
-    value.kind === 'typeConstructor'
-  );
+function subNamespace(
+  member: AuthoringTypeNamespaceMember | undefined,
+): AuthoringTypeNamespace | undefined {
+  return member === undefined || isAuthoringTypeDescriptor(member) ? undefined : member;
 }
 
-function isSubNamespace(value: unknown): value is TypeNamespaceLevel {
-  return typeof value === 'object' && value !== null && !('kind' in value);
+/** The sub-namespace at `path` of a type namespace, or `undefined` when a segment names no sub-namespace. */
+export function authoringTypeNamespaceLevel(
+  namespace: AuthoringTypeNamespace | undefined,
+  path: readonly string[],
+): AuthoringTypeNamespace | undefined {
+  let level = namespace;
+  for (const segment of path) {
+    level = level === undefined ? undefined : subNamespace(memberNamed(level, segment));
+  }
+  return level;
+}
+
+/** The type choice at `path` in the contributions' type namespace, with a lookup of the type constructors beside it that its rows name, or `undefined` when none is there. */
+export function getAuthoringTypeChoice(
+  contributions: { readonly type?: AuthoringTypeNamespace } | undefined,
+  path: readonly string[],
+):
+  | {
+      readonly descriptor: AuthoringTypeChoiceDescriptor;
+      readonly constructorNamed: (name: string) => AuthoringTypeConstructorDescriptor | undefined;
+    }
+  | undefined {
+  const level = authoringTypeNamespaceLevel(contributions?.type, path.slice(0, -1));
+  const name = path.at(-1);
+  const member = level === undefined || name === undefined ? undefined : memberNamed(level, name);
+  return member !== undefined && level !== undefined && isAuthoringTypeChoiceDescriptor(member)
+    ? { descriptor: member, constructorNamed: typeConstructorLookup(level) }
+    : undefined;
+}
+
+/**
+ * The column a call of the type constructor or type choice `name`, in one level of a type namespace, makes from its arguments. A type choice's arguments choose a constructor of the same level, which is instantiated with the arguments it passes on.
+ */
+export function instantiateAuthoringTypeCall(
+  namespace: AuthoringTypeNamespace,
+  name: string,
+  args: readonly unknown[],
+): ScalarTypeConstructorOutput {
+  const member = memberNamed(namespace, name);
+  if (member !== undefined && isAuthoringTypeConstructorDescriptor(member)) {
+    return instantiateAuthoringTypeConstructor(member, args);
+  }
+  if (member === undefined || !isAuthoringTypeChoiceDescriptor(member)) {
+    throw new InternalError(
+      `"${name}" is not a type constructor or type choice of this namespace.`,
+    );
+  }
+  const chosen = resolveAuthoringTypeChoice({
+    helperPath: name,
+    descriptor: member,
+    args,
+    constructorNamed: typeConstructorLookup(namespace),
+  });
+  return instantiateAuthoringTypeConstructor(chosen.descriptor, chosen.args);
+}
+
+/**
+ * Derives the scalar view of an assembled authoring type namespace: every
+ * **top-level** type constructor that is instantiable with an empty argument
+ * list — all declared args optional and no entity-ref argument. A bare type
+ * name `T` in a schema is semantically the zero-arg instantiation `T()`, so
+ * each entry is exactly what that call produces (defaulted template values
+ * applied, absent optional-arg typeParams keys omitted). Constructors
+ * registered under a namespace segment, constructors with required args, and
+ * entity-ref constructors are not scalars and are excluded.
+ *
+ * Eligibility needs no template inspection: templates that cannot resolve
+ * for their legal call shapes are rejected at the composition boundary by
+ * {@link assertResolvableTypeConstructorTemplates}, so the zero-arg
+ * instantiation below cannot fail for an eligible constructor.
+ */
+export function collectScalarTypeConstructors(
+  namespace: AuthoringTypeNamespace,
+): ReadonlyMap<string, ScalarTypeConstructorOutput> {
+  const result = new Map<string, ScalarTypeConstructorOutput>();
+  for (const [name, value] of Object.entries(namespace)) {
+    if (isAuthoringTypeChoiceDescriptor(value)) {
+      result.set(name, instantiateAuthoringTypeCall(namespace, name, []));
+      continue;
+    }
+    if (!isAuthoringTypeConstructorDescriptor(value)) continue;
+    if (value.entityRefArg !== undefined) continue;
+    if (value.args?.some((arg) => arg.optional !== true)) continue;
+    result.set(name, instantiateAuthoringTypeConstructor(value, []));
+  }
+  return result;
 }
 
 function assertTypeChoiceValid(
   path: string,
   descriptor: AuthoringTypeChoiceDescriptor,
   contributedBy: string,
-  level: TypeNamespaceLevel,
+  level: AuthoringTypeNamespace,
 ): void {
   const invalidError = (detail: string) =>
     runtimeError(
@@ -315,20 +405,21 @@ function assertTypeChoiceValid(
  * Refuses a type choice of a component's `contributed` type namespace whose table cannot be resolved: a row that names no type constructor at the same level of the `assembled` namespace, a combination or default an option does not list, defaults with no row, a parameter default for an argument it does not pass on, or a passed-on argument of another data type than the constructor takes.
  */
 export function assertTypeChoicesValid(
-  contributed: TypeNamespaceLevel,
+  contributed: AuthoringTypeNamespace,
   contributedBy: string,
-  assembled: TypeNamespaceLevel,
+  assembled: AuthoringTypeNamespace,
   path: readonly string[] = [],
 ): void {
   for (const [name, value] of Object.entries(contributed)) {
     const currentPath = [...path, name];
-    if (isTypeChoice(value)) {
+    if (isAuthoringTypeChoiceDescriptor(value)) {
       assertTypeChoiceValid(currentPath.join('.'), value, contributedBy, assembled);
       continue;
     }
-    const assembledLevel = Object.hasOwn(assembled, name) ? assembled[name] : undefined;
-    if (isSubNamespace(value) && isSubNamespace(assembledLevel)) {
-      assertTypeChoicesValid(value, contributedBy, assembledLevel, currentPath);
+    const contributedLevel = subNamespace(value);
+    const assembledLevel = subNamespace(memberNamed(assembled, name));
+    if (contributedLevel !== undefined && assembledLevel !== undefined) {
+      assertTypeChoicesValid(contributedLevel, contributedBy, assembledLevel, currentPath);
     }
   }
 }

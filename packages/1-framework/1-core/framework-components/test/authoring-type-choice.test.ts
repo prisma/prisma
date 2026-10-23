@@ -1,6 +1,8 @@
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import {
+  collectScalarTypeConstructors,
+  instantiateAuthoringTypeCall,
   resolveAuthoringTypeChoice,
   typeChoiceArgumentsFromObject,
   typeConstructorLookup,
@@ -8,8 +10,6 @@ import {
 import {
   type AuthoringTypeConstructorDescriptor,
   type AuthoringTypeNamespace,
-  collectScalarTypeConstructors,
-  instantiateAuthoringTypeCall,
   validateAuthoringTypeChoiceParams,
 } from '../src/shared/framework-authoring';
 

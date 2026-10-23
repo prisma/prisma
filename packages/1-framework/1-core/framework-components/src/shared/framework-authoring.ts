@@ -15,11 +15,7 @@ import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type { Type } from 'arktype';
-import {
-  type AuthoringTypeChoiceDescriptor,
-  resolveAuthoringTypeChoice,
-  typeConstructorLookup,
-} from './authoring-type-choice';
+import type { AuthoringTypeChoiceDescriptor } from './authoring-type-choice';
 import type { CodecLookupWithDescriptors } from './codec-types';
 import type { DataTypeId } from './data-type';
 import type {
@@ -775,32 +771,6 @@ export function getAuthoringTypeConstructor(
     : undefined;
 }
 
-/** The type choice at `path` in the contributions' type namespace, with a lookup of the type constructors beside it that its rows name, or `undefined` when none is there. */
-export function getAuthoringTypeChoice(
-  contributions: { readonly type?: AuthoringTypeNamespace } | undefined,
-  path: readonly string[],
-):
-  | {
-      readonly descriptor: AuthoringTypeChoiceDescriptor;
-      readonly constructorNamed: (name: string) => AuthoringTypeConstructorDescriptor | undefined;
-    }
-  | undefined {
-  let level: AuthoringTypeNamespace | undefined = contributions?.type;
-  for (const segment of path.slice(0, -1)) {
-    const member: AuthoringTypeNamespaceMember | undefined =
-      level !== undefined && Object.hasOwn(level, segment) ? level[segment] : undefined;
-    level = member !== undefined && !('kind' in member) ? member : undefined;
-  }
-  const name = path.at(-1);
-  const member =
-    level === undefined || name === undefined || !Object.hasOwn(level, name)
-      ? undefined
-      : level[name];
-  return member !== undefined && level !== undefined && isAuthoringTypeChoiceDescriptor(member)
-    ? { descriptor: member, constructorNamed: typeConstructorLookup(level) }
-    : undefined;
-}
-
 export function isAuthoringFieldPresetDescriptor(
   value: AuthoringFieldPresetDescriptor | AuthoringFieldNamespace,
 ): value is AuthoringFieldPresetDescriptor {
@@ -1101,38 +1071,6 @@ export function collectContributedDescriptorPaths(
 export interface ScalarTypeConstructorOutput {
   readonly codecId: string;
   readonly typeParams?: Record<string, unknown>;
-}
-
-/**
- * Derives the scalar view of an assembled authoring type namespace: every
- * **top-level** type constructor that is instantiable with an empty argument
- * list — all declared args optional and no entity-ref argument. A bare type
- * name `T` in a schema is semantically the zero-arg instantiation `T()`, so
- * each entry is exactly what that call produces (defaulted template values
- * applied, absent optional-arg typeParams keys omitted). Constructors
- * registered under a namespace segment, constructors with required args, and
- * entity-ref constructors are not scalars and are excluded.
- *
- * Eligibility needs no template inspection: templates that cannot resolve
- * for their legal call shapes are rejected at the composition boundary by
- * {@link assertResolvableTypeConstructorTemplates}, so the zero-arg
- * instantiation below cannot fail for an eligible constructor.
- */
-export function collectScalarTypeConstructors(
-  namespace: AuthoringTypeNamespace,
-): ReadonlyMap<string, ScalarTypeConstructorOutput> {
-  const result = new Map<string, ScalarTypeConstructorOutput>();
-  for (const [name, value] of Object.entries(namespace)) {
-    if (isAuthoringTypeChoiceDescriptor(value)) {
-      result.set(name, instantiateAuthoringTypeCall(namespace, name, []));
-      continue;
-    }
-    if (!isAuthoringTypeConstructorDescriptor(value)) continue;
-    if (value.entityRefArg !== undefined) continue;
-    if (value.args?.some((arg) => arg.optional !== true)) continue;
-    result.set(name, instantiateAuthoringTypeConstructor(value, []));
-  }
-  return result;
 }
 
 function visitTemplateArgRefs(
@@ -2020,32 +1958,6 @@ export function instantiateAuthoringTypeConstructor(
   args: readonly unknown[],
 ): ScalarTypeConstructorOutput {
   return resolveAuthoringStorageTypeTemplate(descriptor.output, args);
-}
-
-/**
- * The column a call of the type constructor or type choice `name`, in one level of a type namespace, makes from its arguments. A type choice's arguments choose a constructor of the same level, which is instantiated with the arguments it passes on.
- */
-export function instantiateAuthoringTypeCall(
-  namespace: AuthoringTypeNamespace,
-  name: string,
-  args: readonly unknown[],
-): ScalarTypeConstructorOutput {
-  const member = Object.hasOwn(namespace, name) ? namespace[name] : undefined;
-  if (member !== undefined && isAuthoringTypeConstructorDescriptor(member)) {
-    return instantiateAuthoringTypeConstructor(member, args);
-  }
-  if (member === undefined || !isAuthoringTypeChoiceDescriptor(member)) {
-    throw new InternalError(
-      `"${name}" is not a type constructor or type choice of this namespace.`,
-    );
-  }
-  const chosen = resolveAuthoringTypeChoice({
-    helperPath: name,
-    descriptor: member,
-    args,
-    constructorNamed: typeConstructorLookup(namespace),
-  });
-  return instantiateAuthoringTypeConstructor(chosen.descriptor, chosen.args);
 }
 
 /** What a field typed by a contributed type alias takes: the type, and the alias's generator calls. */

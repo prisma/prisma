@@ -1,6 +1,8 @@
 import { isInternalError } from '@internal/utils/internal-error';
 import {
   type AuthoringTypeChoiceDescriptor,
+  authoringTypeNamespaceLevel,
+  instantiateAuthoringTypeCall,
   isAuthoringTypeChoiceOption,
   resolveAuthoringTypeChoice,
   typeConstructorLookup,
@@ -12,8 +14,6 @@ import {
 } from './authoring-type-constructor-call';
 import {
   type AuthoringTypeNamespace,
-  type AuthoringTypeNamespaceMember,
-  instantiateAuthoringTypeCall,
   instantiateAuthoringTypeConstructor,
   isAuthoringTypeChoiceDescriptor,
 } from './framework-authoring';
@@ -30,19 +30,6 @@ export interface AuthoringTypeChoiceCall {
   readonly args: readonly AuthoringTypeChoiceCallArgument[];
   /** The type constructor call the type choice call becomes. */
   readonly becomes: AuthoringTypeConstructorCall;
-}
-
-function namespaceLevel(
-  namespace: AuthoringTypeNamespace,
-  path: readonly string[],
-): AuthoringTypeNamespace | undefined {
-  let level: AuthoringTypeNamespace | undefined = namespace;
-  for (const segment of path) {
-    const member: AuthoringTypeNamespaceMember | undefined =
-      level !== undefined && Object.hasOwn(level, segment) ? level[segment] : undefined;
-    level = member !== undefined && !('kind' in member) ? member : undefined;
-  }
-  return level;
 }
 
 interface ChoiceNaming {
@@ -86,7 +73,7 @@ export function findAuthoringTypeChoiceCall(input: {
   const sameOutput = input.sameOutput ?? sameAuthoringTypeConstructorOutput;
   const prefix = call.path.slice(0, -1);
   const constructorName = call.path.at(-1);
-  const level = namespaceLevel(input.namespace, prefix);
+  const level = authoringTypeNamespaceLevel(input.namespace, prefix);
   if (level === undefined || constructorName === undefined) return undefined;
   const explicit = typeConstructorLookup(level)(constructorName);
   const wanted =
