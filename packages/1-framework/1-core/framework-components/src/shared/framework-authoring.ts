@@ -723,7 +723,7 @@ function readTemplateArgumentValue(
 }
 
 export function isAuthoringTypeConstructorDescriptor(
-  value: AuthoringTypeNamespaceMember,
+  value: object,
 ): value is AuthoringTypeConstructorDescriptor {
   return 'kind' in value && value.kind === 'typeConstructor';
 }

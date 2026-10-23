@@ -209,11 +209,11 @@ export function resolveAuthoringTypeChoice(input: {
 }
 
 /** Looks a type constructor up by name in one level of a type namespace, as a type choice's rows name them. */
-export function typeConstructorLookup(
-  namespace: AuthoringTypeNamespace,
-): (name: string) => AuthoringTypeConstructorDescriptor | undefined {
+export function typeConstructorLookup(namespace: {
+  readonly [name: string]: object;
+}): (name: string) => AuthoringTypeConstructorDescriptor | undefined {
   return (name) => {
-    const member = memberNamed(namespace, name);
+    const member = Object.hasOwn(namespace, name) ? namespace[name] : undefined;
     return member !== undefined && isAuthoringTypeConstructorDescriptor(member)
       ? member
       : undefined;
