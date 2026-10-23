@@ -260,6 +260,8 @@ function isUnknownRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+const LIST_INDEX = /^\d+$/;
+
 class MongoCollectionImpl<
   TContract extends MongoContractWithTypeMaps<MongoContract, AnyMongoTypeMaps>,
   ModelName extends string & keyof MongoModelsMap<TContract>,
@@ -1059,6 +1061,10 @@ class MongoCollectionImpl<
     let field: ContractField | undefined =
       head === undefined ? undefined : this.#modelFields()[head];
     for (const segment of rest) {
+      if (field?.many && LIST_INDEX.test(segment)) {
+        field = { ...field, many: false };
+        continue;
+      }
       if (field?.type.kind !== 'valueObject') return undefined;
       field = this.#valueObjectAt(field.type)?.fields[segment];
     }

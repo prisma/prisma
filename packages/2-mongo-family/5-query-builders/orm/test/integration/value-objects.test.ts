@@ -195,4 +195,22 @@ describe('value objects in the Mongo ORM', { timeout: timeouts.spinUpMongoMemory
       landmark: { label: 'Basilique', placeId: new ObjectId(landmarkId) },
     });
   });
+
+  it('filters by a dot path through a list index into a list of value objects', async () => {
+    const places = placesOf(mongoOrm({ contract, executor: runtime, enums }));
+    const firstId = new ObjectId().toHexString();
+    const secondId = new ObjectId().toHexString();
+    await places.create({
+      address: { city: 'Lyon', landmark: { label: 'Fourvière', placeId: firstId } },
+      stops: [
+        { label: 'Bellecour', placeId: firstId },
+        { label: 'Terreaux', placeId: secondId },
+      ],
+    });
+
+    const found = await places.where(MongoFieldFilter.eq('stops.1.placeId', secondId)).all();
+    expect(found.map((place) => place.stops.map((stop) => stop.label))).toEqual([
+      ['Bellecour', 'Terreaux'],
+    ]);
+  });
 });
