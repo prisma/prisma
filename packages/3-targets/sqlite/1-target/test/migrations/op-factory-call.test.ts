@@ -689,7 +689,7 @@ describe('dataTransform factory (user-authored)', () => {
     expect(op.execute).toEqual([
       { description: 'fill nulls', sql: 'UPDATE "user" SET email = \'\' WHERE email IS NULL' },
     ]);
-    expect(op.target.details).toEqual({ schema: 'main', objectType: 'table', name: 'user' });
+    expect(op.target.details).toEqual({ objectType: 'table', name: 'user' });
   });
 });
 

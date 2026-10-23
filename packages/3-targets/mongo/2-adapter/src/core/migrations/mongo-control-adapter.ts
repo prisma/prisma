@@ -45,6 +45,7 @@ import { extractDb, isMongoControlDriver, requireMongoControlDriver } from './mo
 export class MongoControlAdapterImpl implements MongoControlAdapter<'mongo'> {
   readonly familyId = 'mongo' as const;
   readonly targetId = 'mongo' as const;
+  readonly markerLocation = MONGO_MARKER_COLLECTION;
   readonly #adapter: MongoAdapter = createMongoAdapter();
   readonly #markerLedgerCollection = collection<MarkerLedgerDocShape>(MARKER_LEDGER_COLLECTION);
 

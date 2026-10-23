@@ -13,6 +13,8 @@ export default defineConfig({
     'src/exports/ddl.ts',
     'src/exports/default-normalizer.ts',
     'src/exports/errors.ts',
+    'src/exports/marker-lock.ts',
+    'src/exports/migration.ts',
     'src/exports/pack.ts',
     'src/exports/sql-utils.ts',
   ],

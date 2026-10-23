@@ -277,6 +277,7 @@ export const pslContractFixtures = {
 export type PslContractVariant = keyof typeof pslContractFixtures;
 
 export const sqlitePslConfigFixture = join(JOURNEY_FIXTURES_DIR, 'prisma.config.sqlite.psl.ts');
+export const mysqlPslConfigFixture = join(JOURNEY_FIXTURES_DIR, 'prisma.config.mysql.psl.ts');
 
 /**
  * Swaps the active contract in the test directory to a different variant.

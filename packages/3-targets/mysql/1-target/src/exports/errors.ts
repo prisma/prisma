@@ -1,1 +1,1 @@
-export { mysqlNotYetSupported, mysqlQueryNotYetSupported } from '../core/errors';
+export { mysqlQueryNotYetSupported } from '../core/errors';

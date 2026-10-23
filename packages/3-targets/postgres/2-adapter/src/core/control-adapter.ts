@@ -202,6 +202,7 @@ type PostgresLedgerRow = {
 export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
   readonly familyId = 'sql' as const;
   readonly targetId = 'postgres' as const;
+  readonly markerLocation = POSTGRES_MARKER_TABLE;
 
   /** `declaredDataTypes` are the stack's data types in assembly order, which introspection resolves each column's reported type over. */
   constructor(

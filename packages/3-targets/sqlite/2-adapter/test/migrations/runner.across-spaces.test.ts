@@ -52,7 +52,7 @@ function buildSuccessfulExtensionPlan() {
         operationClass: 'additive',
         target: {
           id: 'sqlite',
-          details: { schema: 'main', objectType: 'table', name: '_ext_helper' },
+          details: { objectType: 'table', name: '_ext_helper' },
         },
         precheck: [],
         execute: [
@@ -81,7 +81,7 @@ function buildFailingExtensionPlan() {
         operationClass: 'additive',
         target: {
           id: 'sqlite',
-          details: { schema: 'main', objectType: 'table', name: '_ext_helper' },
+          details: { objectType: 'table', name: '_ext_helper' },
         },
         // Idempotency check passes (postcheck reports the table exists),
         // so we have to fail at execute time. Use SQL that always raises
@@ -113,7 +113,7 @@ function buildAppPlan() {
         operationClass: 'additive',
         target: {
           id: 'sqlite',
-          details: { schema: 'main', objectType: 'table', name: 'user' },
+          details: { objectType: 'table', name: 'user' },
         },
         precheck: [],
         execute: [

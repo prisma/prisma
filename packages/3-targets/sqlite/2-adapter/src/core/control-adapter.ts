@@ -138,6 +138,7 @@ type FkAccumulator = {
 export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
   readonly familyId = 'sql' as const;
   readonly targetId = 'sqlite' as const;
+  readonly markerLocation = SQLITE_MARKER_TABLE;
 
   private readonly codecRegistry: SqliteCodecRegistry;
   private readonly declaredDataTypes: readonly DataType[];
