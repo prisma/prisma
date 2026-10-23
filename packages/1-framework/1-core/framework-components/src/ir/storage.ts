@@ -1,5 +1,6 @@
 import { isPlainRecord } from '@internal/contract/is-plain-record';
 import type { StorageBase } from '@internal/contract/types';
+import { canonicalStringify } from '@internal/utils/canonical-stringify';
 import { blindCast } from '@internal/utils/casts';
 import type { IRNode } from './ir-node';
 import type { Namespace } from './namespace';
@@ -74,6 +75,42 @@ export function coordinateKey(
   return [coordinate.namespaceId, coordinate.entityKind, coordinate.entityName]
     .map((value) => JSON.stringify(value))
     .join('-');
+}
+
+/**
+ * The storage entities that differ between two `Storage`-shaped values: added, removed, or with
+ * different content. Content is compared as JSON, ignoring key order. Sorted by namespace id,
+ * entity kind and entity name. With no earlier storage, every entity counts as added.
+ */
+export function changedElementCoordinates(
+  from: Pick<StorageBase, 'namespaces'> | null,
+  to: Pick<StorageBase, 'namespaces'>,
+): EntityCoordinate[] {
+  const contentAt = (
+    storage: Pick<StorageBase, 'namespaces'> | null,
+    coordinate: EntityCoordinate,
+  ): string | undefined => {
+    if (storage === null) return undefined;
+    const entity = entityAt(storage, coordinate);
+    return entity === undefined
+      ? undefined
+      : canonicalStringify(JSON.parse(JSON.stringify(entity)));
+  };
+  const coordinates = new Map<string, EntityCoordinate>();
+  for (const coordinate of [
+    ...(from === null ? [] : elementCoordinates(from)),
+    ...elementCoordinates(to),
+  ]) {
+    coordinates.set(coordinateKey(coordinate), coordinate);
+  }
+  return [...coordinates.values()]
+    .filter((coordinate) => contentAt(from, coordinate) !== contentAt(to, coordinate))
+    .sort(
+      (a, b) =>
+        a.namespaceId.localeCompare(b.namespaceId, 'en') ||
+        a.entityKind.localeCompare(b.entityKind, 'en') ||
+        a.entityName.localeCompare(b.entityName, 'en'),
+    );
 }
 
 /**
