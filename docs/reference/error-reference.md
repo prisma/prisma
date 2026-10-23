@@ -1188,7 +1188,7 @@ The authored SQL AST uses a feature this target cannot render, e.g. DEFAULT as a
 
 ### RUNTIME.BINDING_INVALID
 
-A client (`postgres()`, `sqlite()`, `mongo()`) received a connection binding whose shape is wrong for the target: malformed connection string, unsupported binding kind, or missing required fields. Raised at `connect(...)` / client construction. The MySQL drivers raise it for a URL parameter they do not read (they read `ssl`, `charset`, `connectTimeout`, `flags`, `connectionLimit` and `poolTimeout`) or a pool setting that is not a positive integer. A serverless Postgres client raises it from `connect({ url })` for an empty URL, a string that is not a URL, or a scheme other than `postgres://` or `postgresql://`, before any `pg.Client` exists. Payload: `received`, `reason`.
+A client (`postgres()`, `sqlite()`, `mongo()`) received a connection binding whose shape is wrong for the target: malformed connection string, unsupported binding kind, or missing required fields. Raised at `connect(...)` / client construction. The MySQL drivers raise it for a URL parameter they do not read (they read `ssl`, `connectTimeout`, `flags`, `connectionLimit` and `poolTimeout`), for a `charset` parameter, because they always connect as utf8mb4, or for a pool setting that is not a positive integer. A serverless Postgres client raises it from `connect({ url })` for an empty URL, a string that is not a URL, or a scheme other than `postgres://` or `postgresql://`, before any `pg.Client` exists. Payload: `received`, `reason`.
 
 ### RUNTIME.BINDING_MISSING
 

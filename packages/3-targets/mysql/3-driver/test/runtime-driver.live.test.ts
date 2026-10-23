@@ -69,6 +69,31 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     );
   });
 
+  it('refuses a charset in the URL, and keeps a value whose characters a narrow charset would turn into quotes inside its literal', async (test) => {
+    await withMysqlDatabase(test, async ({ url }) => {
+      const latin1 = new URL(url);
+      latin1.searchParams.set('charset', 'latin1');
+      const narrow = mysqlRuntimeDriver.create();
+      await expect(narrow.connect({ kind: 'url', url: latin1.toString() })).rejects.toMatchObject({
+        code: 'RUNTIME.BINDING_INVALID',
+      });
+      await withDriver(url, async (driver) => {
+        const leaks = [];
+        for (const value of ['ħ OR TRUE -- ', "¥' OR TRUE -- "]) {
+          leaks.push(
+            ...(await collect(
+              driver.query({
+                sql: "SELECT 'leaked' AS r FROM DUAL WHERE 'secret' = ?1",
+                params: [value],
+              }),
+            )),
+          );
+        }
+        expect(leaks).toEqual([]);
+      });
+    });
+  });
+
   it('sets up every connection: no backslash escapes mode and UTC', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {

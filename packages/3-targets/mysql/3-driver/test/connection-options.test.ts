@@ -4,7 +4,7 @@ import { mysqlConnectionOptions, mysqlPoolSettings } from '../src/core/connectio
 describe('mysqlConnectionOptions', () => {
   it('reads the server, credentials, database and parameters from the URL', () => {
     expect(
-      mysqlConnectionOptions('mysql://app:p%40ss@db.example:3307/shop?ssl=true&charset=utf8mb4'),
+      mysqlConnectionOptions('mysql://app:p%40ss@db.example:3307/shop?ssl=true'),
     ).toMatchObject({
       host: 'db.example',
       port: 3307,
@@ -12,7 +12,7 @@ describe('mysqlConnectionOptions', () => {
       password: 'p@ss',
       database: 'shop',
       ssl: true,
-      charset: 'utf8mb4',
+      charset: 'UTF8MB4_UNICODE_CI',
     });
   });
 
@@ -27,6 +27,20 @@ describe('mysqlConnectionOptions', () => {
     expect(
       mysqlConnectionOptions('mysql://root@localhost/app?flags=["multi_statements"]'),
     ).toMatchObject({ multipleStatements: false, flags: [] });
+  });
+
+  it('always connects as utf8mb4, and refuses a charset in the URL', () => {
+    expect(mysqlConnectionOptions('mysql://root@localhost/app')).toMatchObject({
+      charset: 'UTF8MB4_UNICODE_CI',
+    });
+    for (const charset of ['latin1', 'utf8mb4']) {
+      expect(() => mysqlConnectionOptions(`mysql://root@localhost/app?charset=${charset}`)).toThrow(
+        expect.objectContaining({
+          code: 'RUNTIME.BINDING_INVALID',
+          message: expect.stringContaining('always uses utf8mb4'),
+        }),
+      );
+    }
   });
 
   it('refuses a URL parameter the driver does not understand', () => {

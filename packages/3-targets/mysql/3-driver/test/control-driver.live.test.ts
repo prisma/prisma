@@ -80,6 +80,16 @@ describe('MysqlControlDriver against a MySQL server', {
     });
   });
 
+  it('refuses a charset in the URL', async (test) => {
+    await withMysqlDatabase(test, async ({ url }) => {
+      const latin1 = new URL(url);
+      latin1.searchParams.set('charset', 'latin1');
+      await expect(mysqlDriver.create(latin1.toString())).rejects.toMatchObject({
+        code: 'RUNTIME.BINDING_INVALID',
+      });
+    });
+  });
+
   it('refuses a URL that asks for multiple statements', async (test) => {
     await withMysqlDatabase(test, async ({ url }) => {
       const withMultipleStatements = new URL(url);

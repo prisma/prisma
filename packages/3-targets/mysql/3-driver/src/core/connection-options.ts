@@ -6,12 +6,15 @@ import type { ConnectionOptions } from 'mysql2/promise';
 const MULTI_STATEMENTS_FLAG = 'MULTI_STATEMENTS';
 
 /** The URL parameters mysql2 reads as connection options. Any other mysql2 option could change how a statement is sent, such as `namedPlaceholders`, so none other is passed on. */
-const CONNECTION_PARAMETERS = new Set(['ssl', 'charset', 'connectTimeout', 'flags']);
+const CONNECTION_PARAMETERS = new Set(['ssl', 'connectTimeout', 'flags']);
 
 /** The URL parameters the runtime driver's pool reads. */
 const POOL_PARAMETERS = new Set(['connectionLimit', 'poolTimeout']);
 
 const DEFAULT_POOL_TIMEOUT_MS = 10_000;
+
+/** The connection's character set. The driver escapes each value as JavaScript text, which mysql2 then encodes in this charset; a narrower one, such as latin1 or sjis, can turn a character of the value into a quote or a backslash after escaping. */
+const CHARSET = 'UTF8MB4_UNICODE_CI';
 
 function parameterValue(text: string): unknown {
   try {
@@ -30,6 +33,12 @@ function invalidBinding(reason: string, received: string): Error {
 function urlParameters(parsed: URL): Map<string, string> {
   const parameters = new Map(parsed.searchParams);
   for (const name of parameters.keys()) {
+    if (name === 'charset') {
+      throw invalidBinding(
+        'the driver always uses utf8mb4, because a narrower charset can turn a character of a value into a quote after escaping; remove the charset parameter',
+        name,
+      );
+    }
     if (!CONNECTION_PARAMETERS.has(name) && !POOL_PARAMETERS.has(name)) {
       throw invalidBinding(
         `the parameter ${name} is not one the MySQL driver reads; it reads ${[...CONNECTION_PARAMETERS, ...POOL_PARAMETERS].join(', ')}`,
@@ -49,7 +58,7 @@ function flagsWithoutMultipleStatements(flags: unknown): string[] | undefined {
 }
 
 /**
- * The mysql2 options for a connection URL, with multiple statements kept off whatever the flags say. Refuses a URL parameter the driver does not read.
+ * The mysql2 options for a connection URL, always utf8mb4, with multiple statements kept off whatever the flags say. Refuses a URL parameter the driver does not read, and a charset.
  */
 export function mysqlConnectionOptions(url: string, connectTimeoutMs?: number): ConnectionOptions {
   const parsed = new URL(url);
@@ -71,6 +80,7 @@ export function mysqlConnectionOptions(url: string, connectTimeoutMs?: number): 
     database: decodeURIComponent(parsed.pathname.slice(1)),
     ...ifDefined('flags', flagsWithoutMultipleStatements(flags)),
     multipleStatements: false,
+    charset: CHARSET,
     timezone: 'Z',
     ...ifDefined('connectTimeout', connectTimeoutMs),
   };
