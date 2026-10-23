@@ -4,7 +4,7 @@
 //   export const contract = contractFromJson<Contract>(contractJson);
 //   postgres({ contract, url })
 //
-// Usage: node contract-from-json.ts [project root] [--typescript <path to the typescript package>]
+// Usage: node contract-from-json.ts [project-root] [--typescript <path to the typescript package>]
 //
 // The script reads source files with the TypeScript compiler, which it loads from the project.
 // It rewrites each source file it can move, and prints it. In a module with a default export, such
@@ -13,10 +13,10 @@
 // that already has another binding named `contract`, a file whose clients use different contracts,
 // a file whose `contractJson` value is not readable at the top of the file, or a call it cannot
 // read. A `contract` destructured from the moved call is dropped from the destructuring. It exits 1 when it printed such a file, and changes nothing and exits 1
-// when TypeScript is not installed. It skips node_modules, dist, build and every directory whose
-// name starts with a dot, such as .git, .agents or .claude.
+// when TypeScript is not installed or an argument is wrong. It skips node_modules, dist, build and every directory whose
+// name starts with a dot, such as .git, .agents or .claude, and links that lead nowhere.
 
-import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join, relative, resolve } from 'node:path';
 import type * as TS from 'typescript';
@@ -160,6 +160,23 @@ function ownBindingOf(ts: typeof TS, node: TS.Node, wanted: string): TS.Node | u
   return undefined;
 }
 
+/** Whether `identifier` names a variable the file declares at its top level. */
+function isTopLevelVariable(ts: typeof TS, identifier: TS.Node): boolean {
+  let node = identifier.parent;
+  while (
+    ts.isBindingElement(node) ||
+    ts.isObjectBindingPattern(node) ||
+    ts.isArrayBindingPattern(node)
+  )
+    node = node.parent;
+  return (
+    ts.isVariableDeclaration(node) &&
+    ts.isVariableDeclarationList(node.parent) &&
+    ts.isVariableStatement(node.parent.parent) &&
+    ts.isSourceFile(node.parent.parent.parent)
+  );
+}
+
 function topLevelStatementOf(ts: typeof TS, node: TS.Node): TS.Node | undefined {
   let current = node;
   while (current.parent !== undefined && !ts.isSourceFile(current.parent)) current = current.parent;
@@ -216,8 +233,8 @@ function destructuredContractEdit(
 function isReference(ts: typeof TS, identifier: TS.Identifier): boolean {
   const parent = identifier.parent;
   return !(
-    ((ts.isPropertyAccessExpression(parent) || ts.isQualifiedName(parent)) &&
-      parent.name === identifier) ||
+    (ts.isPropertyAccessExpression(parent) && parent.name === identifier) ||
+    (ts.isQualifiedName(parent) && parent.right === identifier) ||
     ((ts.isPropertyAssignment(parent) ||
       ts.isMethodDeclaration(parent) ||
       ts.isGetAccessorDeclaration(parent) ||
@@ -370,10 +387,8 @@ export function moveFile(ts: typeof TS, fileName: string, source: string): Outco
   const topLevelStatement = topLevelStatementOf(ts, first.node);
   const inner = first.jsonNames.find(
     (name) =>
-      !names.imported.has(name) &&
-      !names.declared.has(name) &&
       topLevelStatement !== undefined &&
-      bindingsOf(ts, topLevelStatement, name).length > 0,
+      bindingsOf(ts, topLevelStatement, name).some((found) => !isTopLevelVariable(ts, found)),
   );
   if (inner !== undefined) {
     return {
@@ -392,7 +407,9 @@ export function moveFile(ts: typeof TS, fileName: string, source: string): Outco
     const line = sourceFile.getLineAndCharacterOfPosition(binding.getStart(sourceFile)).line + 1;
     return {
       kind: 'refused',
-      reason: `it already has a binding named contract (line ${line}); rename that binding and run the script again`,
+      reason: ts.isExportSpecifier(binding.parent)
+        ? `it exports contract in an export statement (line ${line}); remove contract from that statement and run the script again`
+        : `it already has a binding named contract (line ${line}); rename that binding and run the script again`,
     };
   }
   const local = first.jsonNames.find((name) => names.declared.has(name));
@@ -456,16 +473,46 @@ function isTestPath(path: string): boolean {
   return TEST_FILE.test(path) || path.split(/[\\/]/).some((part) => TEST_DIRECTORIES.has(part));
 }
 
-function sourceFiles(directory: string): string[] {
-  const files: string[] = [];
-  for (const entry of readdirSync(directory)) {
-    const path = join(directory, entry);
-    if (statSync(path).isDirectory()) {
-      if (!SKIPPED_DIRECTORIES.has(entry) && !entry.startsWith('.'))
-        files.push(...sourceFiles(path));
-    } else if (SOURCE_FILE.test(entry) && !entry.endsWith('.d.ts')) files.push(path);
+function isDirectory(path: string): boolean {
+  try {
+    return statSync(path).isDirectory();
+  } catch {
+    return false;
   }
-  return files;
+}
+
+function isFile(path: string): boolean {
+  try {
+    return statSync(path).isFile();
+  } catch {
+    return false;
+  }
+}
+
+/** Each source file under `root`, once, by the first path that reaches it; a link to a directory already visited is not followed again. */
+function sourceFiles(root: string): string[] {
+  const visited = new Set<string>();
+  const found = new Map<string, string>();
+  const visit = (directory: string): void => {
+    const realDirectory = realpathSync(directory);
+    if (visited.has(realDirectory)) return;
+    visited.add(realDirectory);
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const path = join(directory, entry.name);
+      if (entry.isDirectory() || (entry.isSymbolicLink() && isDirectory(path))) {
+        if (!SKIPPED_DIRECTORIES.has(entry.name) && !entry.name.startsWith('.')) visit(path);
+      } else if (
+        (entry.isFile() || (entry.isSymbolicLink() && isFile(path))) &&
+        SOURCE_FILE.test(entry.name) &&
+        !entry.name.endsWith('.d.ts')
+      ) {
+        const realFile = realpathSync(path);
+        if (!found.has(realFile)) found.set(realFile, path);
+      }
+    }
+  };
+  visit(root);
+  return [...found.values()];
 }
 
 function loadTypeScript(root: string, explicit: string | undefined): typeof TS | undefined {
@@ -477,15 +524,41 @@ function loadTypeScript(root: string, explicit: string | undefined): typeof TS |
   }
 }
 
-function main(): number {
-  const args = process.argv.slice(2);
-  const flag = args.indexOf('--typescript');
-  const explicit = flag === -1 ? undefined : resolve(args[flag + 1] ?? '');
-  const positional = args.filter(
-    (_, index) => flag === -1 || (index !== flag && index !== flag + 1),
-  );
+const USAGE =
+  'Usage: node contract-from-json.ts [project-root] [--typescript <path to the typescript package>]';
+
+function parseArgs(args: readonly string[]): {
+  readonly root: string;
+  readonly typescript: string | undefined;
+  readonly errors: string[];
+} {
+  const errors: string[] = [];
+  const positional: string[] = [];
+  let typescript: string | undefined;
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index] ?? '';
+    if (arg === '--typescript') {
+      const path = args[++index];
+      if (path === undefined || path.startsWith('-'))
+        errors.push('--typescript: needs the path to the typescript package');
+      else typescript = resolve(path);
+    } else if (arg.startsWith('-')) errors.push(`${arg}: unknown option`);
+    else positional.push(arg);
+  }
+  if (positional.length > 1) errors.push(`expected one project root, got ${positional.length}`);
   const root = resolve(positional[0] ?? process.cwd());
-  const ts = loadTypeScript(root, explicit);
+  if (errors.length === 0 && !isDirectory(root)) errors.push(`${root}: not a directory`);
+  if (errors.length > 0) errors.push(USAGE);
+  return { root, typescript, errors };
+}
+
+function main(): number {
+  const { root, typescript, errors } = parseArgs(process.argv.slice(2));
+  if (errors.length > 0) {
+    process.stderr.write(`${errors.join('\n')}\n`);
+    return 1;
+  }
+  const ts = loadTypeScript(root, typescript);
   if (ts === undefined) {
     process.stderr.write(
       `TypeScript is not installed in ${root}. Install it (for example pnpm add -D typescript) and run the script again, or move each client by hand as the guide describes. No file was changed.\n`,
