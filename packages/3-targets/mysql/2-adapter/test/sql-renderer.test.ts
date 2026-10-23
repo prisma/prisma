@@ -411,6 +411,10 @@ describe('MySQL placeholder check', () => {
       raw('SELECT id FROM t LIMIT 5, ', int(2)),
       raw('SELECT id FROM t LIMIT ', int(1), ', /* count */ ', int(2)),
       raw('SELECT ', int(10), ' < ', int(9), ' FROM t WHERE x_limit = ', int(3)),
+      raw('SELECT * FROM (SELECT id FROM t LIMIT ', int(2), ') AS d'),
+      raw("SELECT 'LIMIT' = ", int(1), ', `limit` = ', int(2), ' FROM t'),
+      raw('SELECT id /* LIMIT */ , ', int(1), ' FROM t -- OFFSET\n WHERE id = ', int(2)),
+      raw('SELECT id FROM t LIMIT 5.0, ', int(2)),
     ]).toEqual([
       'SELECT id FROM t LIMIT ?1',
       'SELECT id FROM t LIMIT ?1 OFFSET ?2',
@@ -419,6 +423,10 @@ describe('MySQL placeholder check', () => {
       'SELECT id FROM t LIMIT 5, ?1',
       'SELECT id FROM t LIMIT ?1, /* count */ ?2',
       'SELECT CAST(?1 AS SIGNED) < CAST(?2 AS SIGNED) FROM t WHERE x_limit = CAST(?3 AS SIGNED)',
+      'SELECT * FROM (SELECT id FROM t LIMIT ?1) AS d',
+      "SELECT 'LIMIT' = CAST(?1 AS SIGNED), `limit` = CAST(?2 AS SIGNED) FROM t",
+      'SELECT id /* LIMIT */ , CAST(?1 AS SIGNED) FROM t -- OFFSET\n WHERE id = CAST(?2 AS SIGNED)',
+      'SELECT id FROM t LIMIT 5.0, CAST(?1 AS SIGNED)',
     ]);
   });
 

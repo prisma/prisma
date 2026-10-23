@@ -24,16 +24,36 @@ describe('tokenizeMysqlSql', () => {
     ).toBe(sql);
   });
 
-  it('gives each comment a token of its own', () => {
-    expect(
-      tokenizeMysqlSql('LIMIT /* a */ ?1 # b\n').filter((token) => token.text.length > 0),
-    ).toEqual([
-      { kind: 'text', text: 'LIMIT ' },
+  it('gives each comment and each run of whitespace a token of its own', () => {
+    expect(tokenizeMysqlSql('LIMIT /* a */ ?1 # b\n')).toEqual([
+      { kind: 'word', text: 'LIMIT' },
+      { kind: 'whitespace', text: ' ' },
       { kind: 'comment', text: '/* a */' },
-      { kind: 'text', text: ' ' },
+      { kind: 'whitespace', text: ' ' },
       { kind: 'placeholder', text: '?1' },
-      { kind: 'text', text: ' ' },
+      { kind: 'whitespace', text: ' ' },
       { kind: 'comment', text: '# b\n' },
+    ]);
+  });
+
+  it('reads a word, quoted text and each other character as one token', () => {
+    expect(tokenizeMysqlSql("SELECT a_$1, 'x LIMIT' FROM `t`.é\t\n(5)")).toEqual([
+      { kind: 'word', text: 'SELECT' },
+      { kind: 'whitespace', text: ' ' },
+      { kind: 'word', text: 'a_$1' },
+      { kind: 'symbol', text: ',' },
+      { kind: 'whitespace', text: ' ' },
+      { kind: 'quoted', text: "'x LIMIT'" },
+      { kind: 'whitespace', text: ' ' },
+      { kind: 'word', text: 'FROM' },
+      { kind: 'whitespace', text: ' ' },
+      { kind: 'quoted', text: '`t`' },
+      { kind: 'symbol', text: '.' },
+      { kind: 'word', text: 'é' },
+      { kind: 'whitespace', text: '\t\n' },
+      { kind: 'symbol', text: '(' },
+      { kind: 'word', text: '5' },
+      { kind: 'symbol', text: ')' },
     ]);
   });
 

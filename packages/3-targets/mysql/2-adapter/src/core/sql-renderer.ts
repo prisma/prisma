@@ -38,7 +38,12 @@ import { collectOrderedParamRefs } from '@internal/sql-relational-core/ast';
 import type { MysqlCodecDescriptorRegistry } from '@internal/target-mysql/codec-descriptor';
 import { mysqlBigint, mysqlInt } from '@internal/target-mysql/data-types';
 import { mysqlError, mysqlQueryNotYetSupported } from '@internal/target-mysql/errors';
-import { escapeLiteral, quoteIdentifier, tokenizeMysqlSql } from '@internal/target-mysql/sql-utils';
+import {
+  escapeLiteral,
+  type MysqlSqlToken,
+  quoteIdentifier,
+  tokenizeMysqlSql,
+} from '@internal/target-mysql/sql-utils';
 import { assertNever, InternalError } from '@internal/utils/internal-error';
 import { structuredError } from '@internal/utils/structured-error';
 import { assertPlaceholdersMatchParams } from './placeholders';
@@ -300,11 +305,14 @@ function isParamPart(part: RawExpr['parts'][number]): part is AnyParamRef {
   );
 }
 
-const ENDS_WITH_LIMIT_OR_OFFSET = /(?:^|[^\w$])(?:LIMIT|OFFSET)$/i;
-const ENDS_WITH_LIMIT_COUNT = /(?:^|[^\w$])LIMIT\s+\d+$/i;
+const isKeyword = (token: MysqlSqlToken | undefined, keyword: string): boolean =>
+  token?.kind === 'word' && token.text.toUpperCase() === keyword;
+
+const isIntegerLiteral = (token: MysqlSqlToken | undefined): boolean =>
+  token?.kind === 'word' && [...token.text].every((char) => char >= '0' && char <= '9');
 
 /**
- * The raw parts that are the operand of `LIMIT` or `OFFSET`, which MySQL takes only as a bare placeholder: a param whose preceding text, past whitespace and comments, ends with `LIMIT` or `OFFSET`, or with the comma of `LIMIT a, b`. The raw text is read with the target's lexer, so a keyword inside a quoted string or a comment does not count.
+ * The raw parts that are the operand of `LIMIT` or `OFFSET`, which MySQL takes only as a bare placeholder: a param whose previous token, past whitespace and comments, is `LIMIT` or `OFFSET`, or is the comma of `LIMIT a, b` after an integer or a param that is itself an operand. The raw text is read with the target's lexer, so a keyword inside a quoted string or a comment does not count.
  */
 function limitOperandParts(parts: RawExpr['parts'] | RawQueryAst['parts']): ReadonlySet<number> {
   const sql = parts
@@ -312,35 +320,25 @@ function limitOperandParts(parts: RawExpr['parts'] | RawQueryAst['parts']): Read
       typeof part === 'string' ? part : isParamPart(part) ? `?${index + 1}` : ' 0 ',
     )
     .join('');
+  const tokens = tokenizeMysqlSql(sql).filter(
+    (token) => token.kind !== 'whitespace' && token.kind !== 'comment',
+  );
+  const partOf = (token: MysqlSqlToken) => Number(token.text.slice(1)) - 1;
   const operands = new Set<number>();
-  const tokens = tokenizeMysqlSql(sql);
-  const significantBefore = (position: number) => {
-    for (let i = position - 1; i >= 0; i--) {
-      const token = tokens[i];
-      if (token === undefined || token.kind === 'comment') continue;
-      if (token.kind === 'placeholder') return { token, position: i };
-      const text = token.text.trimEnd();
-      if (text.length > 0) return { token: { kind: 'text' as const, text }, position: i };
-    }
-    return undefined;
-  };
   tokens.forEach((token, position) => {
     if (token.kind !== 'placeholder') return;
-    const before = significantBefore(position);
-    if (before?.token.kind !== 'text') return;
-    const text = before.token.text;
-    let isOperand = ENDS_WITH_LIMIT_OR_OFFSET.test(text);
-    if (!isOperand && text.endsWith(',')) {
-      const ahead = text.slice(0, -1).trimEnd();
-      if (ahead.length > 0) {
-        isOperand = ENDS_WITH_LIMIT_COUNT.test(ahead);
-      } else {
-        const previous = significantBefore(before.position)?.token;
-        isOperand =
-          previous?.kind === 'placeholder' && operands.has(Number(previous.text.slice(1)) - 1);
-      }
-    }
-    if (isOperand) operands.add(Number(token.text.slice(1)) - 1);
+    const [third, second, first] = [
+      tokens[position - 3],
+      tokens[position - 2],
+      tokens[position - 1],
+    ];
+    const afterKeyword = isKeyword(first, 'LIMIT') || isKeyword(first, 'OFFSET');
+    const afterLimitComma =
+      first?.kind === 'symbol' &&
+      first.text === ',' &&
+      ((isIntegerLiteral(second) && isKeyword(third, 'LIMIT')) ||
+        (second?.kind === 'placeholder' && operands.has(partOf(second))));
+    if (afterKeyword || afterLimitComma) operands.add(partOf(token));
   });
   return operands;
 }

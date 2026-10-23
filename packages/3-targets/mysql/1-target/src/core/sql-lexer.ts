@@ -1,8 +1,10 @@
 import { mysqlError } from './errors';
 
-/** A run of SQL text, a comment, or a `?` placeholder with the digits that follow it. */
+/**
+ * One token of MySQL SQL: a word (a keyword, an unquoted identifier or the digits of a number), a run of whitespace, quoted text (a string or a backtick identifier, quotes included), a comment, a `?` placeholder with the digits that follow it, or any other single character.
+ */
 export interface MysqlSqlToken {
-  readonly kind: 'text' | 'comment' | 'placeholder';
+  readonly kind: 'word' | 'whitespace' | 'quoted' | 'comment' | 'placeholder' | 'symbol';
   readonly text: string;
 }
 
@@ -39,17 +41,52 @@ function isDigit(char: string | undefined): boolean {
   return char !== undefined && char >= '0' && char <= '9';
 }
 
+/** A character of an unquoted identifier, keyword or number, as MySQL reads one: a letter, a digit, `$`, `_`, or any character past ASCII. */
+function isWordChar(char: string | undefined): boolean {
+  if (char === undefined) return false;
+  const lower = char.toLowerCase();
+  return (
+    isDigit(char) ||
+    (lower >= 'a' && lower <= 'z') ||
+    char === '$' ||
+    char === '_' ||
+    char >= '\u0080'
+  );
+}
+
+function isWhitespace(char: string | undefined): boolean {
+  return (
+    char === ' ' ||
+    char === '\t' ||
+    char === '\n' ||
+    char === '\r' ||
+    char === '\f' ||
+    char === '\v'
+  );
+}
+
+function endOfRun(
+  sql: string,
+  start: number,
+  belongs: (char: string | undefined) => boolean,
+): number {
+  let end = start;
+  while (end < sql.length && belongs(sql[end])) end += 1;
+  return end;
+}
+
 /**
- * Splits MySQL SQL text into text and `?` placeholders, as MySQL's lexer reads it: a `?` inside a quoted string, a backtick identifier or a `#`, `--` or block comment is text. Refuses an executable `/*!` comment, whose content MySQL runs as SQL and whose strings the comment's closing marker does not end.
+ * Splits MySQL SQL into tokens as MySQL's lexer reads it: a `?` inside a quoted string, a backtick identifier or a `#`, `--` or block comment is not a placeholder, and a keyword inside one is not a word. Joining the tokens' text gives the SQL back. Refuses an executable `/*!` comment, whose content MySQL runs as SQL and whose strings the comment's closing marker does not end.
  */
 export function tokenizeMysqlSql(sql: string): MysqlSqlToken[] {
   const tokens: MysqlSqlToken[] = [];
-  let text = '';
   let index = 0;
   while (index < sql.length) {
     const char = sql[index];
+    let kind: MysqlSqlToken['kind'] = 'symbol';
     let end = index + 1;
     if (char === "'" || char === '"' || char === '`') {
+      kind = 'quoted';
       end = endOfQuoted(sql, index, char);
     } else if (char === '#' || opensDashComment(sql, index) || sql.startsWith('/*', index)) {
       if (sql.startsWith('/*!', index)) {
@@ -59,22 +96,21 @@ export function tokenizeMysqlSql(sql: string): MysqlSqlToken[] {
           { meta: { target: 'mysql', position: index } },
         );
       }
+      kind = 'comment';
       end = sql.startsWith('/*', index) ? endOf(sql, index + 2, '*/') : endOf(sql, index, '\n');
-      tokens.push({ kind: 'text', text }, { kind: 'comment', text: sql.slice(index, end) });
-      text = '';
-      index = end;
-      continue;
     } else if (char === '?') {
-      while (isDigit(sql[end])) end += 1;
-      tokens.push({ kind: 'text', text }, { kind: 'placeholder', text: sql.slice(index, end) });
-      text = '';
-      index = end;
-      continue;
+      kind = 'placeholder';
+      end = endOfRun(sql, end, isDigit);
+    } else if (isWhitespace(char)) {
+      kind = 'whitespace';
+      end = endOfRun(sql, index, isWhitespace);
+    } else if (isWordChar(char)) {
+      kind = 'word';
+      end = endOfRun(sql, index, isWordChar);
     }
-    text += sql.slice(index, end);
+    tokens.push({ kind, text: sql.slice(index, end) });
     index = end;
   }
-  tokens.push({ kind: 'text', text });
   return tokens;
 }
 
