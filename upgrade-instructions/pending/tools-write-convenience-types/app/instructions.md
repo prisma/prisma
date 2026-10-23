@@ -44,11 +44,11 @@ changes:
 | `DateTime` | `TimestampJsDate(3)`, printed `DateTime(storage: timestamp)` | a JavaScript `Date`, the stored value read as UTC |
 | `@db.Timestamptz(p)` | `TimestamptzJsDate(p)`, printed `DateTime(precision: p)` | a JavaScript `Date` |
 | `@db.Timestamp(p)` | `TimestampJsDate(p)` | a JavaScript `Date`, the stored value read as UTC |
-| `@db.Date` | `DateString` | a string, unchanged |
-| `@db.Time(p)` | `TimeString(p)` | a string, unchanged |
-| `@db.Timetz(p)` | `Timetz(p)` | a string, unchanged |
+| `@db.Date` | `DateString` | an ISO 8601 string, such as `2026-09-14`, the same text as before |
+| `@db.Time(p)` | `TimeString(p)` | an ISO 8601 string, such as `10:00:00.5`, the same text as before |
+| `@db.Timetz(p)` | `Timetz(p)` | an ISO 8601 string with a full offset, such as `10:00:00+02:00`, or `10:00:00Z` for UTC; it was `10:00:00+02` and `10:00:00+00` |
 
-Before this release the first three read strings, such as `2026-09-14 10:00:00.123`. `@updatedAt` and `@default(now())` now write a `Date` for these fields.
+Before this release the first three read strings, such as `2026-09-14 10:00:00.123`. `@updatedAt` and `@default(now())` now write a `Date` for these fields. The three string types read ISO 8601 in this release, whatever the contract source. The `iso-string-date-time-values` change in this release's upgrade guide gives every form that changes, such as a date before year 1, and how to update code that reads them.
 
 For each project whose `prisma.config.ts` uses `prisma7Schema(...)`:
 
