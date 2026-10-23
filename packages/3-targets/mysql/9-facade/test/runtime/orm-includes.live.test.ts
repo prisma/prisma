@@ -30,6 +30,33 @@ const eventsContract = defineContract({}, ({ field, model, type }) => {
   };
 });
 
+const notesContract = defineContract({}, ({ field, model, type }) => {
+  const Author = model('Author', { fields: { id: field.column(type.Int()).id() } });
+  const Note = model('Note', {
+    fields: {
+      id: field.column(type.Int()).id(),
+      body: field.column(type.String()),
+      summary: field.column(type.String()).optional(),
+      authorId: field.column(type.Int()),
+    },
+  });
+  return {
+    models: {
+      Author: Author.relations({ notes: rel.hasMany(Note, { by: 'authorId' }) }),
+      Note: Note.relations({ author: rel.belongsTo(Author, { from: 'authorId', to: 'id' }) }),
+    },
+  };
+});
+
+const awkwardText = 'it\'s "quoted", a \\ backslash, ünïcödé and 🙂';
+
+const notesDatabase = [
+  'CREATE TABLE `Author` (`id` int NOT NULL, PRIMARY KEY (`id`))',
+  'CREATE TABLE `Note` (`id` int NOT NULL, `body` varchar(191) NOT NULL, `summary` varchar(191) NULL, `authorId` int NOT NULL, PRIMARY KEY (`id`)) DEFAULT CHARSET = utf8mb4',
+  'INSERT INTO `Author` VALUES (1)',
+  `INSERT INTO \`Note\` VALUES (1, '${awkwardText.replace(/\\/g, '\\\\').replace(/'/g, "''")}', NULL, 1), (2, 'plain', 'short', 1)`,
+] as const;
+
 const eventsDatabase = [
   'CREATE TABLE `Account` (`id` int NOT NULL, `name` varchar(191) NOT NULL, PRIMARY KEY (`id`))',
   'CREATE TABLE `Event` (`id` bigint NOT NULL, `at` datetime(3) NOT NULL, `accountId` int NOT NULL, PRIMARY KEY (`id`))',
@@ -181,6 +208,44 @@ describe('MySQL includes through the ORM', { timeout: timeouts.databaseOperation
           { id: 3, title: 'Beta', authorId: 1, author: b },
           { id: 4, title: 'Delta', authorId: 2, author: a },
         ],
+      });
+    });
+  });
+
+  it('carries text with quotes, backslashes and non-ASCII characters, and a NULL, through an include unchanged', async (test) => {
+    await withSeededDatabase(test, notesDatabase, async (url) => {
+      await using db = mysql({ contract: notesContract, url, verifyMarker: false });
+      const author = await db.orm.Author.select('id')
+        .include('notes', (notes) => notes.select('body', 'summary').orderBy((n) => n.id.asc()))
+        .first({ id: 1 });
+      expect(author).toEqual({
+        id: 1,
+        notes: [
+          { body: awkwardText, summary: null },
+          { body: 'plain', summary: 'short' },
+        ],
+      });
+    });
+  });
+
+  it('includes three levels deep', async (test) => {
+    await withSeededDatabase(test, exampleDatabase, async (url) => {
+      await using db = mysql({ contract, url, verifyMarker: false });
+      const user = await db.orm.User.select('id')
+        .include('posts', (posts) =>
+          posts
+            .select('title')
+            .orderBy((p) => p.id.asc())
+            .include('author', (author) =>
+              author
+                .select('email')
+                .include('posts', (again) => again.select('id').orderBy((p) => p.id.desc())),
+            ),
+        )
+        .first({ id: 2 });
+      expect(user).toEqual({
+        id: 2,
+        posts: [{ title: 'Delta', author: { email: 'a@example.com', posts: [{ id: 4 }] } }],
       });
     });
   });
