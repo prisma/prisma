@@ -45,7 +45,7 @@ export class PgDateStringCodec extends CodecImpl<
     return value.value;
   }
   toDataTypeValue(input: string): DataTypeValue {
-    return this.dataType.fromContract(input, this.dataTypeParams);
+    return this.storedDataTypeValueOf(input);
   }
 }
 
@@ -100,7 +100,7 @@ export class PgTimestampStringCodec extends CodecImpl<
     return value.value;
   }
   toDataTypeValue(input: string): DataTypeValue {
-    return this.dataType.fromContract(input, this.dataTypeParams);
+    return this.storedDataTypeValueOf(input);
   }
 }
 
@@ -144,7 +144,7 @@ export class PgTimestamptzStringCodec extends CodecImpl<
     return value.value;
   }
   toDataTypeValue(input: string): DataTypeValue {
-    return this.dataType.fromContract(input, this.dataTypeParams);
+    return this.storedDataTypeValueOf(input);
   }
 }
 
@@ -194,7 +194,7 @@ export class PgTimeStringCodec extends CodecImpl<
     return value.value;
   }
   toDataTypeValue(input: string): DataTypeValue {
-    return this.dataType.fromContract(input, this.dataTypeParams);
+    return this.storedDataTypeValueOf(input);
   }
 }
 

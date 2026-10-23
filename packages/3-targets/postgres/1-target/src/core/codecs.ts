@@ -955,7 +955,7 @@ export class PgTimetzCodec extends CodecImpl<
     return value.value;
   }
   toDataTypeValue(input: string): DataTypeValue {
-    return this.dataType.fromContract(input, this.dataTypeParams);
+    return this.storedDataTypeValueOf(input);
   }
 }
 
