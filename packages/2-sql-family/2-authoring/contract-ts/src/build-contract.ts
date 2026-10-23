@@ -181,7 +181,7 @@ function storageValueObjects(
 }
 
 /** The value objects and value sets storage will hold, in the shape storage readers take. */
-function valueObjectStorageOf(
+function storageOf(
   defaultNamespaceId: string,
   valueObjects: Record<string, ContractValueObject> | undefined,
   storageValueSetsByNs: Readonly<Record<string, Record<string, StorageValueSetInput>>>,
@@ -367,11 +367,7 @@ export function buildSqlContractFromDefinition(
     defaultNamespaceId,
     qualifyColumnType,
     renderCheckExpressions,
-    valueObjectStorage: valueObjectStorageOf(
-      defaultNamespaceId,
-      valueObjects,
-      storageValueSetsByNs,
-    ),
+    storage: storageOf(defaultNamespaceId, valueObjects, storageValueSetsByNs),
     collectedColumnEntities,
     defaultControlPolicy: definition.defaultControlPolicy,
     indexTypeRegistry,

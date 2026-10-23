@@ -79,7 +79,7 @@ export interface ColumnLoweringContext {
   readonly qualifyColumnType: ColumnTypeQualifier | undefined;
   readonly renderCheckExpressions: CheckExpressionRenderer | undefined;
   /** The value objects and value sets storage will hold, which a value object column's check is derived from. */
-  readonly valueObjectStorage: Pick<StorageBase, 'namespaces'>;
+  readonly storage: Pick<StorageBase, 'namespaces'>;
   /** Receives the pack entity a column's type constructor refers to. */
   readonly collectedColumnEntities: CollectedColumnEntities;
 }
@@ -183,7 +183,7 @@ function resolvedValueObjectField(
     many: valueObject.many,
     type: {
       kind: 'valueObject',
-      valueObject: resolveValueObject(context.valueObjectStorage, valueObject.reference),
+      valueObject: resolveValueObject(context.storage, valueObject.reference),
     },
   } as const;
 }
