@@ -3,6 +3,7 @@ import { assembleMysqlCodecRegistry } from '@internal/target-mysql/codecs';
 import { mysqlDataTypes } from '@internal/target-mysql/data-types';
 import { timeouts } from '@repo/test-utils';
 import { describe, expect, it, vi } from 'vitest';
+import { defineContract } from '../../src/exports/contract-builder';
 import mysql from '../../src/runtime/mysql';
 import { contractFromJson } from '../../src/static/contract-from-json';
 import type { Contract } from '../fixtures/generated/contract.d';
@@ -10,6 +11,19 @@ import contractJson from '../fixtures/generated/contract.json' with { type: 'jso
 import { exampleDatabase, withSeededDatabase } from './live-database';
 
 const contract = contractFromJson<Contract>(contractJson);
+
+const countersContract = defineContract({}, ({ field, model, type }) => ({
+  models: {
+    Counter: model('Counter', {
+      fields: { id: field.column(type.Int()).id(), big: field.column(type.BigInt()) },
+    }),
+  },
+}));
+
+const countersDatabase = [
+  'CREATE TABLE `Counter` (`id` int NOT NULL, `big` bigint NOT NULL, PRIMARY KEY (`id`))',
+  'INSERT INTO `Counter` VALUES (1, 9007199254740992), (2, 9007199254740993)',
+] as const;
 
 describe('MySQL reads through the ORM and the SQL builder', {
   timeout: timeouts.databaseOperation,
@@ -56,6 +70,32 @@ describe('MySQL reads through the ORM and the SQL builder', {
         found: await db.orm.User.select('id', 'email').first({ id: 3 }),
         missing: await db.orm.User.select('id').first({ id: 99 }),
       }).toEqual({ found: { id: 3, email: 'c@example.com' }, missing: null });
+    });
+  });
+
+  it('matches a bigint past 2^53 exactly on a column with no index', async (test) => {
+    await withSeededDatabase(test, countersDatabase, async (url) => {
+      await using db = mysql({ contract: countersContract, url, verifyMarker: false });
+      expect(
+        await db.orm.Counter.where({ big: 9007199254740993n })
+          .select('id', 'big')
+          .orderBy((c) => c.id.asc())
+          .all(),
+      ).toEqual([{ id: 2, big: 9007199254740993n }]);
+    });
+  });
+
+  it('compares a bigint past 2^53 as an integer when the column side is an expression', async (test) => {
+    await withSeededDatabase(test, countersDatabase, async (url) => {
+      await using db = mysql({ contract: countersContract, url, verifyMarker: false });
+      const rows = await db.query(
+        db.sql.Counter.select('id')
+          .where((f, fns) =>
+            fns.eq(fns.raw`${f.big} + 0`.returns('mysql/bigint@1'), 9007199254740993n),
+          )
+          .build(),
+      );
+      expect(rows).toEqual([{ id: 2 }]);
     });
   });
 

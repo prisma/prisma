@@ -228,7 +228,7 @@ function renderExpr(expr: AnyExpression, ctx: RenderContext): string {
       return `NOT (${renderExpr(expr.expr, ctx)})`;
     case 'param-ref':
     case 'prepared-param-ref':
-      return '?';
+      return renderParam(expr.codec, ctx);
     case 'literal':
       return renderLiteral(expr);
     case 'list':
@@ -363,25 +363,35 @@ function renderCase(expr: CaseExpr, ctx: RenderContext): string {
   return `CASE ${branches}${elseClause} END`;
 }
 
-function projectThroughCodec(
-  value: ProjectionExpr,
-  codec: CodecRef,
-  codecs: MysqlCodecDescriptorRegistry,
-): ProjectionExpr {
-  const descriptor = codecs.descriptorFor(codec.codecId);
+function descriptorOf(codec: CodecRef, ctx: RenderContext, use: string) {
+  const descriptor = ctx.codecs.descriptorFor(codec.codecId);
   if (descriptor === undefined) {
     throw structuredError(
       'RUNTIME.PARAM_REF_MISSING_CODEC',
-      `MySQL lowering: a JSON projection carries codecId "${codec.codecId}" but the MySQL codec registry has no entry for it. Register the extension pack that contributes this codec.`,
+      `MySQL lowering: ${use} carries codecId "${codec.codecId}" but the MySQL codec registry has no entry for it. Register the extension pack that contributes this codec.`,
       { meta: { codecId: codec.codecId } },
     );
   }
-  return descriptor.projectJson(value, codec);
+  return descriptor;
+}
+
+function renderParam(codec: CodecRef | undefined, ctx: RenderContext): string {
+  const castType =
+    codec === undefined ? undefined : descriptorOf(codec, ctx, 'a parameter').parameterCastType;
+  return castType === undefined ? '?' : `CAST(? AS ${castType})`;
+}
+
+function projectThroughCodec(
+  value: ProjectionExpr,
+  codec: CodecRef,
+  ctx: RenderContext,
+): ProjectionExpr {
+  return descriptorOf(codec, ctx, 'a JSON projection').projectJson(value, codec);
 }
 
 function renderJsonValue(projection: AnyJsonValueProjection, ctx: RenderContext): string {
   const visitor: JsonValueProjectionVisitor<string> = {
-    codec: ({ value, codec }) => renderExpr(projectThroughCodec(value, codec, ctx.codecs), ctx),
+    codec: ({ value, codec }) => renderExpr(projectThroughCodec(value, codec, ctx), ctx),
     native: ({ value }) => renderExpr(value, ctx),
     document: ({ value }) => renderExpr(value, ctx),
   };

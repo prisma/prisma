@@ -23,6 +23,8 @@ const MYSQL_CODEC_DESCRIPTOR_KIND = 'mysql-codec' as const;
 
 export interface AnyMysqlCodecDescriptor extends AnyCodecDescriptor {
   readonly descriptorKind: typeof MYSQL_CODEC_DESCRIPTOR_KIND;
+  /** The MySQL type a parameter of this codec is cast to, so MySQL compares it as that type rather than as the text it arrives as; `undefined` leaves the parameter as it is. */
+  readonly parameterCastType: string | undefined;
   projectJson(expression: ProjectionExpr, ref: CodecRef): ProjectionExpr;
 }
 
@@ -34,6 +36,7 @@ export abstract class MysqlCodecDescriptor<P = void>
   implements AnyMysqlCodecDescriptor
 {
   readonly descriptorKind = MYSQL_CODEC_DESCRIPTOR_KIND;
+  readonly parameterCastType: string | undefined = undefined;
 
   protected abstract jsonProjection(expression: ProjectionExpr, params: P): ProjectionExpr;
 
@@ -91,7 +94,7 @@ export type AdaptedMysqlCodecDescriptor<D extends AnyCodecDescriptorTemplate> = 
   keyof CodecDescriptorTemplate<DescriptorParams<D>>
 > &
   Pick<CodecDescriptor, 'dataType'> &
-  Pick<AnyMysqlCodecDescriptor, 'descriptorKind' | 'projectJson'>;
+  Pick<AnyMysqlCodecDescriptor, 'descriptorKind' | 'parameterCastType' | 'projectJson'>;
 
 class MysqlCodecDescriptorAdapter<
   D extends AnyCodecDescriptorTemplate,

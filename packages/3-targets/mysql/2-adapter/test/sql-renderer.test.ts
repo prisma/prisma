@@ -73,6 +73,51 @@ describe('MySQL lowering of a select', () => {
     ).toEqual([{ kind: 'bind', name: 'email' }]);
   });
 
+  it('casts a bigint param to SIGNED, so MySQL compares it with an integer column as an integer', () => {
+    const big = ColumnRef.of('t', 'big');
+    expect([
+      sqlOf(
+        selectId.withWhere(
+          BinaryExpr.eq(
+            big,
+            ParamRef.of(9007199254740993n, { codec: { codecId: 'mysql/bigint@1' } }),
+          ),
+        ),
+      ),
+      sqlOf(
+        selectId.withWhere(
+          BinaryExpr.in(
+            big,
+            ListExpression.of([ParamRef.of(1n, { codec: { codecId: 'mysql/bigint@1' } })]),
+          ),
+        ),
+      ),
+      sqlOf(
+        selectId.withWhere(
+          BinaryExpr.eq(big, PreparedParamRef.of('b', { codecId: 'mysql/bigint@1' })),
+        ),
+      ),
+      sqlOf(
+        selectId.withWhere(
+          BinaryExpr.eq(id, ParamRef.of(1, { codec: { codecId: 'mysql/int@1' } })),
+        ),
+      ),
+    ]).toEqual([
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` = CAST(? AS SIGNED)',
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` IN (CAST(? AS SIGNED))',
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` = CAST(? AS SIGNED)',
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`id` = ?',
+    ]);
+  });
+
+  it('refuses a param whose codec the registry lacks', () => {
+    expect(() =>
+      sqlOf(
+        selectId.withWhere(BinaryExpr.eq(id, ParamRef.of(1, { codec: { codecId: 'pg/x@1' } }))),
+      ),
+    ).toThrow(expect.objectContaining({ code: 'RUNTIME.PARAM_REF_MISSING_CODEC' }));
+  });
+
   it('keeps params in the order their placeholders appear', () => {
     const ast = fromUser
       .withProjection([ProjectionItem.of('p', ParamRef.of('first'))])
