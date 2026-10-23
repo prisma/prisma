@@ -1,4 +1,4 @@
-import { type DateTimeShape, dateTimeStoredText } from '@internal/sql-contract/data-type-support';
+import { type DateTimeShape, dateTimeStoredText } from '@internal/framework-components/codec';
 import { ifDefined } from '@internal/utils/defined';
 import { errorDateStyleNotIso } from './errors';
 import { isoYearText } from './postgres-year-text';
