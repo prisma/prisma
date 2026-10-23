@@ -1,9 +1,11 @@
 import type { ContractValueObjectField } from '@internal/contract/types';
 import { freezeNode, IRNodeBase } from '@internal/framework-components/ir';
 
-/** Hydration / construction input shape for {@link MongoValueObject}; mirrors the stored JSON. */
+/** Hydration / construction input shape for {@link MongoValueObject}; mirrors the stored JSON, where a field may leave out `nullable` and `many`. */
 export interface MongoValueObjectInput {
-  readonly fields: Readonly<Record<string, ContractValueObjectField>>;
+  readonly fields: Readonly<
+    Record<string, Omit<ContractValueObjectField, 'nullable'> & { readonly nullable?: boolean }>
+  >;
 }
 
 /**
@@ -21,7 +23,14 @@ export class MongoValueObject extends IRNodeBase {
       enumerable: false,
       configurable: false,
     });
-    this.fields = Object.freeze({ ...input.fields });
+    this.fields = Object.freeze(
+      Object.fromEntries(
+        Object.entries(input.fields).map(([name, field]) => [
+          name,
+          Object.freeze({ ...field, nullable: field.nullable ?? false, many: field.many ?? false }),
+        ]),
+      ),
+    );
     freezeNode(this);
   }
 }

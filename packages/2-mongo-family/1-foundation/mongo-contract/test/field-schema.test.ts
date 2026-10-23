@@ -33,11 +33,9 @@ function contractWithField(kind: 'model' | 'storage value object', field: Record
 describe.each(['model', 'storage value object'] as const)('%s field schema', (kind) => {
   const fieldType = { kind: 'scalar', codecId: 'mongo/string@1' };
 
-  it('normalizes an absent many property to false', () => {
-    const field = { type: fieldType };
-    expect(Object.hasOwn(field, 'many')).toBe(false);
-    expect(MongoContractSchema(contractWithField(kind, field))).toEqual(
-      contractWithField(kind, { type: fieldType, nullable: false, many: false }),
+  it('accepts a field with no many property', () => {
+    expect(MongoContractSchema(contractWithField(kind, { type: fieldType }))).not.toBeInstanceOf(
+      type.errors,
     );
   });
 

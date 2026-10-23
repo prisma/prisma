@@ -29,6 +29,14 @@ function valueObjectType(name: string) {
 
 const address = { fields: { street: text, city: text } };
 
+function deepFreeze<T>(value: T): T {
+  if (typeof value === 'object' && value !== null) {
+    for (const child of Object.values(value)) deepFreeze(child);
+    Object.freeze(value);
+  }
+  return value;
+}
+
 function contractWith(
   addressField: Record<string, unknown>,
   valueObject: Record<string, unknown> = { Address: address },
@@ -96,17 +104,16 @@ describe('the Mongo contract schema with value objects in storage', () => {
     expect(MongoContractSchema(contract)).toEqual(contract);
   });
 
-  it('normalizes an absent many on a storage value object member to false', () => {
+  it('leaves frozen storage unchanged, and the value object fills in an absent nullable and many', () => {
     const contract = contractWith(
       { type: valueObjectType('Address'), nullable: false, many: false },
       { Address: { fields: { street: { type: text.type } } } },
     );
-    expect(MongoContractSchema(contract)).toEqual(
-      contractWith(
-        { type: valueObjectType('Address'), nullable: false, many: false },
-        { Address: { fields: { street: text } } },
-      ),
-    );
+    deepFreeze(contract.storage);
+    expect({
+      parsed: MongoContractSchema(contract),
+      valueObject: new MongoValueObject({ fields: { street: { type: text.type } } }).fields,
+    }).toEqual({ parsed: contract, valueObject: { street: text } });
   });
 
   it('refuses a field type that names its value object the old way', () => {

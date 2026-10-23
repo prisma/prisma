@@ -73,7 +73,7 @@ const StorageValueSetRefSchema = type({
   'spaceId?': 'string',
 });
 
-const RawStorageValueObjectFieldSchema = type({
+const StorageValueObjectFieldSchema = type({
   '+': 'reject',
   type: FieldTypeSchema,
   'nullable?': 'boolean',
@@ -88,11 +88,7 @@ const RawStorageValueObjectFieldSchema = type({
 export const StorageValueObjectSchema = type({
   '+': 'reject',
   fields: type({
-    '[string]': RawStorageValueObjectFieldSchema.pipe((field) => ({
-      ...field,
-      nullable: field.nullable ?? false,
-      many: field.many ?? false,
-    })),
+    '[string]': StorageValueObjectFieldSchema,
   }),
 });
 

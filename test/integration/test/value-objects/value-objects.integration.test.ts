@@ -199,10 +199,6 @@ function valueObjectsAtDefaultNamespace(contract: Contract) {
   return storageValueObjectsAtDefaultNamespace(contract.storage);
 }
 
-function asJson(contract: Contract): unknown {
-  return JSON.parse(JSON.stringify(contract));
-}
-
 function valueObjectRef(namespaceId: string, entityName: string) {
   return {
     kind: 'valueObject',
@@ -227,7 +223,7 @@ describeWithMongoDB('value objects: end-to-end Mongo', (ctx) => {
     expect(userFields['homeAddress']!.type.kind).toBe('valueObject');
 
     const validated = {
-      contract: new MongoContractSerializer().deserializeContract(asJson(contract)),
+      contract: new MongoContractSerializer().deserializeContract(contract),
     };
 
     const orm = mongoOrm({
@@ -265,7 +261,7 @@ describeWithMongoDB('value objects: end-to-end Mongo', (ctx) => {
     if (!result.ok) throw new Error(`Interpretation failed: ${result.failure.summary}`);
 
     const validated = {
-      contract: new MongoContractSerializer().deserializeContract(asJson(result.value)),
+      contract: new MongoContractSerializer().deserializeContract(result.value),
     };
     const orm = mongoOrm({
       contract: validated.contract,
@@ -310,7 +306,7 @@ type Address {
     if (!result.ok) throw new Error(`Interpretation failed: ${result.failure.summary}`);
 
     const validated = {
-      contract: new MongoContractSerializer().deserializeContract(asJson(result.value)),
+      contract: new MongoContractSerializer().deserializeContract(result.value),
     };
     const orm = mongoOrm({
       contract: validated.contract,
