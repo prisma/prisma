@@ -10,6 +10,7 @@ import {
   planMigrationAndSelfEmit,
   runContractEmit,
   runDbInit,
+  runDbUpdate,
   runMigrate,
   setupJourney,
   swapContract,
@@ -54,6 +55,46 @@ function removeAppMigrationBundles(ctx: JourneyContext): void {
     if (name === 'refs' || name.startsWith('.')) continue;
     rmSync(join(dir, name), { recursive: true, force: true });
   }
+}
+
+interface Incident {
+  readonly initialHash: string;
+  readonly deleted: string;
+  readonly markerHash: string;
+  readonly targetHash: string;
+}
+
+/**
+ * A database that applied a migration which was then deleted, in a project whose graph has since
+ * moved on to a new target from the migration before it.
+ */
+async function incidentDatabase(ctx: JourneyContext): Promise<Incident> {
+  expect((await runContractEmit(ctx)).exitCode).toBe(0);
+  expect((await planMigrationAndSelfEmit(ctx, ['--name', 'initial'])).exitCode).toBe(0);
+  const initialHash = migrationTo(ctx, getLatestMigrationDir(ctx)!);
+  expect((await runMigrate(ctx, ['--advance-ref', 'db'])).exitCode).toBe(0);
+
+  swapContract(ctx, 'contract-additive');
+  expect((await runContractEmit(ctx)).exitCode).toBe(0);
+  expect((await planMigrationAndSelfEmit(ctx, ['--name', 'add-name'])).exitCode).toBe(0);
+  const deleted = getLatestMigrationDir(ctx)!;
+  const markerHash = migrationTo(ctx, deleted);
+  expect((await runMigrate(ctx)).exitCode).toBe(0);
+
+  rmSync(join(appMigrationsDir(ctx), deleted), { recursive: true, force: true });
+  swapContract(ctx, 'contract-phone');
+  expect((await runContractEmit(ctx)).exitCode).toBe(0);
+  expect((await planMigrationAndSelfEmit(ctx, ['--name', 'add-phone'])).exitCode).toBe(0);
+  const targetHash = migrationTo(ctx, getLatestMigrationDir(ctx)!);
+  return { initialHash, deleted, markerHash, targetHash };
+}
+
+/** The `db update` arguments of a printed next action, after `<bin> db update`. */
+function printedDbUpdateArgs(error: MigrateErrorJson, label: string): readonly string[] {
+  const command = error.nextActions?.find((action) => action.label === label)?.command;
+  const words = command?.split(' ') ?? [];
+  expect(words.slice(1, 3)).toEqual(['db', 'update']);
+  return words.slice(3);
 }
 
 async function withJourney(
@@ -105,23 +146,7 @@ withTempDir(({ createTempDir }) => {
       async () => {
         await withDevDatabase(async ({ connectionString }) => {
           await withJourney(createTempDir, connectionString, async (ctx) => {
-            expect((await runContractEmit(ctx)).exitCode).toBe(0);
-            expect((await planMigrationAndSelfEmit(ctx, ['--name', 'initial'])).exitCode).toBe(0);
-            const initialHash = migrationTo(ctx, getLatestMigrationDir(ctx)!);
-            expect((await runMigrate(ctx, ['--advance-ref', 'db'])).exitCode).toBe(0);
-
-            swapContract(ctx, 'contract-additive');
-            expect((await runContractEmit(ctx)).exitCode).toBe(0);
-            expect((await planMigrationAndSelfEmit(ctx, ['--name', 'add-name'])).exitCode).toBe(0);
-            const deleted = getLatestMigrationDir(ctx)!;
-            const markerHash = migrationTo(ctx, deleted);
-            expect((await runMigrate(ctx)).exitCode).toBe(0);
-
-            rmSync(join(appMigrationsDir(ctx), deleted), { recursive: true, force: true });
-            swapContract(ctx, 'contract-phone');
-            expect((await runContractEmit(ctx)).exitCode).toBe(0);
-            expect((await planMigrationAndSelfEmit(ctx, ['--name', 'add-phone'])).exitCode).toBe(0);
-            const targetHash = migrationTo(ctx, getLatestMigrationDir(ctx)!);
+            const { initialHash, deleted, markerHash, targetHash } = await incidentDatabase(ctx);
 
             const drift = await runMigrate(ctx, ['--json']);
 
@@ -163,6 +188,38 @@ withTempDir(({ createTempDir }) => {
                 missingMigrations: [deleted],
               },
             });
+          });
+        });
+      },
+      timeouts.spinUpPpgDev,
+    );
+
+    it(
+      'brings the incident database to the target with the db update the error prints',
+      async () => {
+        await withDevDatabase(async ({ connectionString }) => {
+          await withJourney(createTempDir, connectionString, async (ctx) => {
+            const { targetHash } = await incidentDatabase(ctx);
+            const refused = parseJsonOutput<MigrateErrorJson>(await runMigrate(ctx, ['--json']));
+            expect(refused.code).toBe('MIGRATION.MARKER_MISMATCH');
+
+            const preview = await runDbUpdate(ctx, [
+              ...printedDbUpdateArgs(refused, 'Preview the changes'),
+              '--json',
+            ]);
+            expect(preview.exitCode).toBe(0);
+            expect(preview.stdout).toContain('User.name');
+
+            const reconciled = await runDbUpdate(ctx, [
+              ...printedDbUpdateArgs(refused, 'Reconcile the database'),
+              '--delete',
+              'User.name',
+            ]);
+            expect(reconciled.exitCode).toBe(0);
+
+            const migrated = await runMigrate(ctx, ['--json']);
+            expect(migrated.exitCode).toBe(0);
+            expect(parseJsonOutput<{ markerHash: string }>(migrated).markerHash).toBe(targetHash);
           });
         });
       },
