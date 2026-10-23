@@ -289,18 +289,23 @@ describe('MySQL lowering of expressions', () => {
   });
 
   it.each([
-    ["it's \\ here", "'it''s \\\\ here'"],
     [42, '42'],
     [true, 'TRUE'],
     [false, 'FALSE'],
     [9007199254740993n, '9007199254740993'],
     [null, 'NULL'],
-    [new Date('2024-01-02T03:04:05.678Z'), "'2024-01-02 03:04:05.678'"],
-    [{ a: "b'c" }, `CAST('{"a":"b''c"}' AS JSON)`],
-    [[1, 'x'], `CAST('[1,"x"]' AS JSON)`],
   ])('renders the literal %s', (value, rendered) => {
     expect(projectionOf(LiteralExpr.of(value))).toBe(`SELECT ${rendered} AS \`v\``);
   });
+
+  it.each([["it's \\ here"], [new Date('2024-01-02T03:04:05.678Z')], [{ a: "b'c" }], [[1, 'x']]])(
+    'refuses the literal %s, which only a caller value could supply',
+    (value) => {
+      expect(() => projectionOf(LiteralExpr.of(value))).toThrow(
+        expect.objectContaining({ code: 'RUNTIME.AST_UNSUPPORTED' }),
+      );
+    },
+  );
 
   it('refuses a number MySQL has no literal for', () => {
     expect(() => projectionOf(LiteralExpr.of(Number.POSITIVE_INFINITY))).toThrow(
@@ -315,8 +320,8 @@ describe('MySQL lowering of expressions', () => {
       projectionOf(CastExpr.as(id, 'CHAR')),
       projectionOf(
         CaseExpr.of(
-          [{ condition: BinaryExpr.eq(id, LiteralExpr.of(1)), value: LiteralExpr.of('one') }],
-          LiteralExpr.of('other'),
+          [{ condition: BinaryExpr.eq(id, LiteralExpr.of(1)), value: LiteralExpr.of(10) }],
+          LiteralExpr.of(20),
         ),
       ),
       projectionOf(CaseExpr.of([{ condition: NullCheckExpr.isNull(id), value: id }])),
@@ -325,7 +330,7 @@ describe('MySQL lowering of expressions', () => {
       'SELECT `total` AS `v`',
       'SELECT LOWER(`user`.`email`) AS `v`',
       'SELECT CAST(`user`.`id` AS CHAR) AS `v`',
-      "SELECT CASE WHEN `user`.`id` = 1 THEN 'one' ELSE 'other' END AS `v`",
+      'SELECT CASE WHEN `user`.`id` = 1 THEN 10 ELSE 20 END AS `v`',
       'SELECT CASE WHEN `user`.`id` IS NULL THEN `user`.`id` END AS `v`',
       'SELECT (SELECT `user`.`id` AS `id` FROM `user`) AS `v`',
     ]);
@@ -354,10 +359,10 @@ describe('MySQL lowering of expressions', () => {
       lowering: { targetFamily: 'sql', template: 'CONCAT(LOWER({{self}}), {{arg0}})' },
     });
     expect([
-      whereOf(BinaryExpr.eq(lowerEmail, LiteralExpr.of('a'))),
+      whereOf(BinaryExpr.eq(lowerEmail, LiteralExpr.of(1))),
       whereOf(NullCheckExpr.isNull(lowerEmail)),
     ]).toEqual([
-      "SELECT `user`.`id` AS `id` FROM `user` WHERE (CONCAT(LOWER(`user`.`email`), ?1)) = 'a'",
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE (CONCAT(LOWER(`user`.`email`), ?1)) = 1',
       'SELECT `user`.`id` AS `id` FROM `user` WHERE (CONCAT(LOWER(`user`.`email`), ?1)) IS NULL',
     ]);
   });

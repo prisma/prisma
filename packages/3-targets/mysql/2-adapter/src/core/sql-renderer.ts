@@ -36,7 +36,6 @@ import type {
 } from '@internal/sql-relational-core/ast';
 import { collectOrderedParamRefs } from '@internal/sql-relational-core/ast';
 import type { MysqlCodecDescriptorRegistry } from '@internal/target-mysql/codec-descriptor';
-import { encodeMysqlDatetime } from '@internal/target-mysql/codecs';
 import { mysqlError, mysqlQueryNotYetSupported } from '@internal/target-mysql/errors';
 import { escapeLiteral, quoteIdentifier } from '@internal/target-mysql/sql-utils';
 import { assertNever, InternalError } from '@internal/utils/internal-error';
@@ -272,10 +271,12 @@ function renderColumn(ref: ColumnRef): string {
   return `${quoteIdentifier(ref.table)}.${quoteIdentifier(ref.column)}`;
 }
 
+/**
+ * A literal the code wrote: a number, a bigint, a boolean or NULL, such as the ORM's `1` and `fns.and(true, …)`. A `LiteralExpr` does not say where its value came from, and no part of Prisma writes a text, date or JSON literal into a MySQL runtime statement, so those are refused: a value of that kind can only be a caller's, which belongs in a param, sent apart from the SQL.
+ */
 function renderLiteral(expr: LiteralExpr): string {
   const { value } = expr;
   if (value === null || value === undefined) return 'NULL';
-  if (typeof value === 'string') return `'${escapeLiteral(value)}'`;
   if (typeof value === 'number') {
     if (!Number.isFinite(value)) {
       throw unsupported('non-finite-number', `MySQL has no literal for ${value}`);
@@ -284,9 +285,10 @@ function renderLiteral(expr: LiteralExpr): string {
   }
   if (typeof value === 'boolean') return value ? 'TRUE' : 'FALSE';
   if (typeof value === 'bigint') return String(value);
-  if (value instanceof Date) return `'${encodeMysqlDatetime(value)}'`;
-  const json = JSON.stringify(value);
-  return json === undefined ? 'NULL' : `CAST('${escapeLiteral(json)}' AS JSON)`;
+  throw unsupported(
+    'value-literal',
+    `MySQL lowering writes only numbers, booleans and NULL as literals; a ${value instanceof Date ? 'date' : Array.isArray(value) ? 'array' : typeof value} value must be a param`,
+  );
 }
 
 /** Renders each `{{self}}` and `{{argN}}` where the template writes it. */
