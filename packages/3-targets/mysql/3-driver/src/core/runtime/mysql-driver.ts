@@ -13,7 +13,7 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { createPool, type Pool, type PoolConnection, type ResultSetHeader } from 'mysql2';
 import { mysqlConnectionOptions, mysqlPoolSettings } from '../connection-options';
-import { connectionLost, isFatal, normalizeMysqlError } from '../normalize-error';
+import { connectionLost, isFatal, normalizeMysqlError, statementError } from '../normalize-error';
 import { positionalParams } from '../positional-params';
 import { SESSION_SETUP } from '../session-setup';
 
@@ -26,27 +26,6 @@ function notConnected(message: string) {
   return errorRuntime('DRIVER.NOT_CONNECTED', message, {
     fix: 'Call connect(binding) before running queries, and do not use the driver after close().',
   });
-}
-
-const ER_UNSUPPORTED_PS = 1295;
-
-function isUnpreparable(error: unknown): boolean {
-  return error instanceof Error && 'errno' in error && error.errno === ER_UNSUPPORTED_PS;
-}
-
-/** A statement's error: `DRIVER.PREPARE_FAILED` for one MySQL cannot run as a prepared statement, otherwise the driver's usual normalization. */
-function statementError(error: unknown, sql: string): unknown {
-  if (!isUnpreparable(error)) return normalizeMysqlError(error);
-  return errorRuntime(
-    'DRIVER.PREPARE_FAILED',
-    'MySQL cannot run this statement as a prepared statement',
-    {
-      why: 'The runtime driver sends every statement as a server-side prepared statement, so values never travel inside the SQL, and MySQL refuses to prepare a few statements, such as LOCK TABLES.',
-      fix: 'Run the statement outside the Prisma runtime.',
-      meta: { sql },
-      cause: error,
-    },
-  );
 }
 
 /** Runs a statement as a server-side prepared statement, its values sent apart from the SQL. */
@@ -275,14 +254,6 @@ function waitForConnection(pool: Pool, timeoutMs: number): Promise<PoolConnectio
   });
 }
 
-/** How mysql2 reads the binary protocol's rows: a bigint and a decimal as their exact text, a date and time as the text MySQL prints, JSON as its UTF-8 text, binary strings as Buffers, and every other string as text. */
-const BINARY_ROW_OPTIONS = {
-  supportBigNumbers: true,
-  bigNumberStrings: true,
-  dateStrings: true,
-  jsonStrings: true,
-} as const;
-
 type DriverState =
   | { readonly kind: 'unbound' }
   | { readonly kind: 'connected'; readonly pool: Pool; readonly poolTimeoutMs: number }
@@ -312,7 +283,6 @@ export class MysqlDriver extends MysqlQueryable implements MysqlRuntimeDriver {
     const { connectionLimit, poolTimeoutMs, statementCacheSize } = mysqlPoolSettings(binding.url);
     const pool = createPool({
       ...mysqlConnectionOptions(binding.url),
-      ...BINARY_ROW_OPTIONS,
       maxPreparedStatements: statementCacheSize,
       ...ifDefined('connectionLimit', connectionLimit),
     });

@@ -11,6 +11,14 @@ const CONNECTION_PARAMETERS = new Set(['ssl', 'connectTimeout', 'flags']);
 /** The URL parameters the runtime driver's pool reads. */
 const POOL_PARAMETERS = new Set(['connectionLimit', 'poolTimeout', 'statementCacheSize']);
 
+/** How mysql2 reads the binary protocol's rows: a bigint and a decimal as their exact text, a date and time as the text MySQL prints, JSON as its UTF-8 text, binary strings as Buffers, and every other string as text. */
+const BINARY_ROW_OPTIONS = {
+  supportBigNumbers: true,
+  bigNumberStrings: true,
+  dateStrings: true,
+  jsonStrings: true,
+} as const;
+
 const DEFAULT_POOL_TIMEOUT_MS = 10_000;
 
 /** Prepared statements each connection keeps open, as the Prisma engines' MySQL connector does. MySQL caps open statements server-wide (16,382 by default), and mysql2's own default of 16,000 per connection would let two connections reach it. */
@@ -83,6 +91,7 @@ export function mysqlConnectionOptions(url: string, connectTimeoutMs?: number): 
     database: decodeURIComponent(parsed.pathname.slice(1)),
     ...ifDefined('flags', flagsWithoutMultipleStatements(flags)),
     multipleStatements: false,
+    ...BINARY_ROW_OPTIONS,
     charset: CHARSET,
     timezone: 'Z',
     ...ifDefined('connectTimeout', connectTimeoutMs),

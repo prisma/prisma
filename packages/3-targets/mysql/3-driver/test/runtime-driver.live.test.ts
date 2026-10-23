@@ -163,7 +163,7 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
             );
           }
           const { rows } = await admin.query<{ open: string }>(
-            'SELECT COUNT(*) AS open FROM performance_schema.prepared_statements_instances p JOIN performance_schema.threads t ON p.OWNER_THREAD_ID = t.THREAD_ID WHERE t.PROCESSLIST_DB = ?',
+            'SELECT COUNT(*) AS open FROM performance_schema.prepared_statements_instances p JOIN performance_schema.threads t ON p.OWNER_THREAD_ID = t.THREAD_ID WHERE t.PROCESSLIST_DB = ? AND t.PROCESSLIST_ID <> CONNECTION_ID()',
             [name],
           );
           expect(Number(rows[0]?.open)).toBeLessThanOrEqual(10);

@@ -26,6 +26,16 @@ describe('positionalParams', () => {
     ]);
   });
 
+  it('reads the statement as MySQL does: -- before a control character opens a comment, and /*! is refused', () => {
+    expect(positionalParams("SELECT 1 --\x01 '\n, ?1", ['a'])).toEqual({
+      sql: "SELECT 1 --\x01 '\n, ?",
+      values: ['a'],
+    });
+    expect(() => positionalParams("SELECT 1 /*! , 'a*/ */ WHERE ?1", ['a'])).toThrow(
+      expect.objectContaining({ code: 'RUNTIME.AST_INVALID' }),
+    );
+  });
+
   it('refuses placeholders that do not match the values', () => {
     for (const [sql, values] of [
       ['SELECT ?1, ?', [1, 2]],

@@ -191,6 +191,32 @@ describe('MysqlControlDriver against a MySQL server', {
     });
   });
 
+  it('runs a statement with values as a prepared statement, and SQL with none as text', async (test) => {
+    await withMysqlDatabase(test, async ({ url }) => {
+      const driver = await mysqlDriver.create(url);
+      try {
+        const executed = async () => {
+          const { rows } = await driver.query<{ Value: string }>(
+            "SHOW SESSION STATUS LIKE 'Com_stmt_execute'",
+          );
+          return Number(rows[0]?.Value);
+        };
+        const start = await executed();
+        const withValue = await driver.query('SELECT ? AS v', ["it's"]);
+        const afterValue = await executed();
+        await driver.query('SELECT 1 AS v');
+        const afterConstant = await executed();
+        expect({
+          withValue: withValue.rows,
+          prepared: afterValue - start,
+          constant: afterConstant - afterValue,
+        }).toEqual({ withValue: [{ v: "it's" }], prepared: 1, constant: 0 });
+      } finally {
+        await driver.close();
+      }
+    });
+  });
+
   it('runs its session in UTC', async (test) => {
     await withMysqlDatabase(test, async ({ url }) => {
       const driver = await mysqlDriver.create(url);
