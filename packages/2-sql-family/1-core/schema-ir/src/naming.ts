@@ -158,13 +158,13 @@ export function computeCheckContentHash(expression: string): string {
  * The canonical spelling of this union — every layer that can depend on this
  * module imports it rather than re-spelling the literals.
  */
-export type CheckKind = 'membership' | 'elementNotNull' | 'valueObject';
+export type CheckKind = 'membership' | 'elementNotNull' | 'shape';
 
 /** The trailing segment a check's wire-name prefix carries, per kind. */
 const CHECK_KIND_SUFFIX = {
   membership: 'check',
   elementNotNull: 'elem_not_null',
-  valueObject: 'value_object',
+  shape: 'shape',
 } as const;
 
 /**

@@ -96,11 +96,11 @@ describe('composeCheckWirePrefix', () => {
     expect({
       membership: composeCheckWirePrefix('User', 'role', 'membership'),
       elementNotNull: composeCheckWirePrefix('User', 'tags', 'elementNotNull'),
-      valueObject: composeCheckWirePrefix('User', 'address', 'valueObject'),
+      shape: composeCheckWirePrefix('User', 'address', 'shape'),
     }).toEqual({
       membership: 'User_role_check',
       elementNotNull: 'User_tags_elem_not_null',
-      valueObject: 'User_address_value_object',
+      shape: 'User_address_shape',
     });
   });
 
@@ -316,10 +316,10 @@ describe('derivedCheckPrefixes', () => {
       new Set([
         composeCheckWirePrefix('User', 'role', 'membership'),
         composeCheckWirePrefix('User', 'role', 'elementNotNull'),
-        composeCheckWirePrefix('User', 'role', 'valueObject'),
+        composeCheckWirePrefix('User', 'role', 'shape'),
         composeCheckWirePrefix('User', 'tags', 'membership'),
         composeCheckWirePrefix('User', 'tags', 'elementNotNull'),
-        composeCheckWirePrefix('User', 'tags', 'valueObject'),
+        composeCheckWirePrefix('User', 'tags', 'shape'),
       ]),
     );
   });

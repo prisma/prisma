@@ -76,7 +76,7 @@ type Outputs = ValueObjectTypesFromStorage<Contract['storage']['namespaces'], Co
 
 ## `postgres-value-object-checks`
 
-For each column that holds a value object, the contract derives a check named `<table>_<column>_value_object_<hash>`. It accepts a JSON object with every required member, each of its JSON type, no other key, and for a list column an array of such objects; a nullable column also accepts SQL `NULL` and JSON `null`. For each discriminator column it derives `<table>_<column>_check_<hash>`, which accepts only the variants' values. A table whose control policy is not managed gets neither check.
+For each column that holds a value object, the contract derives a check named `<table>_<column>_shape_<hash>`. It accepts a JSON object with every required member, each of its JSON type, no other key, and for a list column an array of such objects; a nullable column also accepts SQL `NULL` and JSON `null`. For each discriminator column it derives `<table>_<column>_check_<hash>`, which accepts only the variants' values. A table whose control policy is not managed gets neither check.
 
 After you re-emit the contract, `prisma migration plan` writes a migration that adds the checks. A project with no `db` ref names the origin, the last migration: `prisma migration plan --from <last migration directory>`; without it the command refuses with `MIGRATION.PLAN_ORIGIN_UNKNOWN`, as it does for any plan in such a project. Its DDL preview prints each check's expression. Before you run `prisma db migrate`, find the rows that would fail by selecting the rows where the expression is not true, for example:
 

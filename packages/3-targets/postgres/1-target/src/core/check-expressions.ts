@@ -64,7 +64,7 @@ export function postgresRenderCheckExpressions(
 
   if (input.valueObject !== undefined) {
     candidates.push({
-      kind: 'valueObject',
+      kind: 'shape',
       columnName: input.columnName,
       expression: valueObjectCheck(column, input.valueObject, jsonTypeReader(codecLookup)),
     });

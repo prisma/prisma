@@ -26,7 +26,7 @@ function renderCheckExpressions(input: CheckExpressionInput) {
       ? []
       : [
           {
-            kind: 'valueObject' as const,
+            kind: 'shape' as const,
             columnName: input.columnName,
             expression: `shape of "${input.columnName}"`,
           },
@@ -171,10 +171,10 @@ describe('the derived check of a column that holds a value object', () => {
     ]);
   });
 
-  it('is named after the table, the column and the value object kind', () => {
+  it('is named after the table, the column and the shape kind', () => {
     expect(checkNames(build([userModel()]), 'user')).toEqual([
-      composeCheckWirePrefix('user', 'home', 'valueObject'),
-      composeCheckWirePrefix('user', 'stops', 'valueObject'),
+      composeCheckWirePrefix('user', 'home', 'shape'),
+      composeCheckWirePrefix('user', 'stops', 'shape'),
     ]);
   });
 
@@ -189,7 +189,7 @@ describe('the derived check of a column that holds a value object', () => {
         {
           expression: 'true',
           map: undefined,
-          name: composeCheckWirePrefix('user', 'home', 'valueObject'),
+          name: composeCheckWirePrefix('user', 'home', 'shape'),
         },
       ],
     };

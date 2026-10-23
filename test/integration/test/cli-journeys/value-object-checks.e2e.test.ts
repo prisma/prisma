@@ -1,7 +1,7 @@
 /**
  * Value objects and discriminators are storage entities, and Postgres enforces them with derived checks.
  *
- * `User.address` holds an `Address` value object in a `jsonb` column. On a managed table the build derives a check on the column, `user_address_value_object_<hash>`, which accepts the documents the ORM writes and refuses any other shape. `Task` is a base model whose variants are stored in their own tables; its discriminator column `type` gets a check on the variants' values, `task_type_check_<hash>`.
+ * `User.address` holds an `Address` value object in a `jsonb` column. On a managed table the build derives a check on the column, `user_address_shape_<hash>`, which accepts the documents the ORM writes and refuses any other shape. `Task` is a base model whose variants are stored in their own tables; its discriminator column `type` gets a check on the variants' values, `task_type_check_<hash>`.
  *
  * Every journey runs twice: once through `migration plan` and `migrate`, once through `db update`. Each ends with `db verify --schema-only` clean and a further plan empty.
  *
@@ -256,10 +256,10 @@ withTempDir(({ createTempDir }) => {
               'utf-8',
             ),
             'V1.02: the migration writes the check',
-          ).toMatch(/CONSTRAINT \\"user_address_value_object_[0-9a-f]{8}\\" CHECK/);
+          ).toMatch(/CONSTRAINT \\"user_address_shape_[0-9a-f]{8}\\" CHECK/);
         }
         expect(await checkNames(db.connectionString, 'user'), 'V1.02: the check').toEqual([
-          expect.stringMatching(/^user_address_value_object_[0-9a-f]{8}$/),
+          expect.stringMatching(/^user_address_shape_[0-9a-f]{8}$/),
         ]);
 
         expect(
@@ -314,7 +314,7 @@ withTempDir(({ createTempDir }) => {
         expect(await apply(ctx, via, 'V2.04'), 'V2.04: a member added').toEqual([
           `Drop check constraint "${first}" on "user"`,
           expect.stringMatching(
-            /^Add check constraint "user_address_value_object_[0-9a-f]{8}" on "user"$/,
+            /^Add check constraint "user_address_shape_[0-9a-f]{8}" on "user"$/,
           ),
         ]);
         const [second] = await checkNames(db.connectionString, 'user');
@@ -329,7 +329,7 @@ withTempDir(({ createTempDir }) => {
         expect(await apply(ctx, via, 'V2.07'), 'V2.07: a member made nullable').toEqual([
           `Drop check constraint "${second}" on "user"`,
           expect.stringMatching(
-            /^Add check constraint "user_address_value_object_[0-9a-f]{8}" on "user"$/,
+            /^Add check constraint "user_address_shape_[0-9a-f]{8}" on "user"$/,
           ),
         ]);
         await sql(
@@ -377,7 +377,7 @@ withTempDir(({ createTempDir }) => {
         }
         expect(failed.exitCode, 'V3.04: the apply fails').not.toBe(0);
         expect(JSON.stringify(engineError(failed)), 'V3.04: the failure names the check').toMatch(
-          /user_address_value_object_[0-9a-f]{8}/,
+          /user_address_shape_[0-9a-f]{8}/,
         );
 
         expect(await checkNames(db.connectionString, 'user'), 'V3.05: the old check stays').toEqual(

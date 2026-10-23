@@ -318,7 +318,7 @@ model User {
 
 Emitted `contract.json` carries the value object in storage, at `storage.namespaces.<ns>.entries.valueObject.Address` with its field descriptors, and the domain field `address` refers to it by coordinate: `{ "kind": "valueObject", "plane": "storage", "namespaceId": "public", "entityKind": "valueObject", "entityName": "Address" }`. The `address` column lands as `codecId: "pg/jsonb@1"` / `dataType: "pg/jsonb"`. Because the value object is in storage, renaming, adding or removing one of its fields changes the storage hash, and `prisma migration plan` writes a migration for it.
 
-On Postgres, a managed table gets a derived check on each value object column, `<table>_<column>_value_object_<hash>`: the value must be an object (an array of them for a list) with every required member, each of its JSON type, and no other key. A nullable column also accepts `NULL`. On SQL, a polymorphic base's discriminator column refers to a value set `<Base>.<field>` holding the variants' values, and Postgres derives a check from it, as for an enum.
+On Postgres, a managed table gets a derived check on each value object column, `<table>_<column>_shape_<hash>`: the value must be an object (an array of them for a list) with every required member, each of its JSON type, and no other key. A nullable column also accepts `NULL`. On SQL, a polymorphic base's discriminator column refers to a value set `<Base>.<field>` holding the variants' values, and Postgres derives a check from it, as for an enum.
 
 Canonical worked example: `examples/prisma-8-demo/src/prisma/contract.prisma`.
 
