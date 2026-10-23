@@ -26,6 +26,7 @@ import type {
   MigrationPlanOperation,
   MigrationPlanSubjects,
   OperationPreview,
+  RowsFailingCheck,
   VerifyDatabaseResult,
   VerifyDatabaseSchemaResult,
 } from '@internal/framework-components/control';
@@ -532,9 +533,14 @@ export interface RunnerFailureFacts {
   readonly failedPrecheck?: FailedPrecheckReport;
   /** The data that still holds a stored enum value whose removal its storage cannot take. */
   readonly rowsHoldingValue?: RowsHoldingValueReport;
+  /** The existing rows that a check the failed operation adds refuses. */
+  readonly rowsFailingCheck?: RowsFailingCheckReport;
   /** The written migration of the failed operation, when the runner named the operation, or the last one applied when the schema check after apply failed. */
   readonly failedMigration?: { readonly spaceId: string; readonly edge: AggregateMigrationEdgeRef };
 }
+
+/** The existing rows that a check the failed operation adds refuses, as the advice names them. */
+export type RowsFailingCheckReport = Omit<RowsFailingCheck, 'operationIndex'>;
 
 /** The data that still holds the stored value of an enum value the plan removes from storage that cannot do without it. */
 export interface RowsHoldingValueReport {

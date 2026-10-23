@@ -7,7 +7,7 @@
  *
  * - V1: the first migration creates the value object check. A row the ORM writes is accepted; a row with a key `Address` does not declare is refused, naming the check.
  * - V2: adding a member, and then making a member nullable, each drop the old check and add the new one, on a table whose rows fit the new shape.
- * - V3: adding a required member to a table that holds a row without it fails at apply, names the check, and changes nothing.
+ * - V3: adding a required member to a table that holds a row without it fails at apply, names the check, the table and the column, gives the query that finds the rows and the route that keeps them, and changes nothing. Following that route applies the change and keeps the row.
  * - V4: adding a variant replaces the discriminator check, and the new variant's value is accepted.
  * - V5: changing a value object that only an external table's column holds changes the storage hash and needs no operation: `migration plan` writes a migration with no operations, and `migrate` moves the marker.
  */
@@ -33,6 +33,7 @@ import {
   runDbVerify,
   runMigrate,
   runMigrationPlan,
+  selfEmitMigration,
   setupJourney,
   sql,
   timeouts,
@@ -185,6 +186,54 @@ async function expectSettled(ctx: JourneyContext, via: Via, label: string): Prom
     parseJsonOutput<{ plan: { operations: readonly PlannedOperation[] } }>(dryRun).plan.operations,
     `${label}: nothing left to plan`,
   ).toEqual([]);
+}
+
+const GIVE_EVERY_ADDRESS_A_COUNTRY = `rawSql({
+        id: 'data.user.address.country',
+        label: 'Give every address a country',
+        operationClass: 'data',
+        target: { id: 'postgres' },
+        precheck: [],
+        execute: [
+          {
+            description: 'give every address a country',
+            sql: \`UPDATE "public"."user" SET address = address || '{"country": "NO"}' WHERE address IS NOT NULL\`,
+          },
+        ],
+        postcheck: [],
+      }),
+      `;
+
+/** Keeps the rows as the failure's advice says: in the failed migration.ts, or for `db update` in the database by hand. */
+async function followTheAdvice(
+  ctx: JourneyContext,
+  via: Via,
+  oldCheck: string | undefined,
+  connectionString: string,
+): Promise<void> {
+  if (via === 'db update') {
+    await sql(connectionString, `ALTER TABLE "public"."user" DROP CONSTRAINT "${oldCheck}"`);
+    await sql(
+      connectionString,
+      `UPDATE "public"."user" SET address = address || '{"country": "NO"}' WHERE address IS NOT NULL`,
+    );
+    const update = await runDbUpdate(ctx, ['--json']);
+    expect(update.exitCode, `V3.06: db update: ${JSON.stringify(engineError(update))}`).toBe(0);
+    return;
+  }
+  const dir = join(ctx.testDir, 'migrations/app', latestMigrationDirName(ctx));
+  const path = join(dir, 'migration.ts');
+  const written = readFileSync(path, 'utf-8');
+  const filled = written
+    .replace(/import \{ ([^}]*) \} from '([^']+\/migration)';/, "import { $1, rawSql } from '$2';")
+    .replace('this.addCheckConstraint(', `${GIVE_EVERY_ADDRESS_A_COUNTRY}this.addCheckConstraint(`);
+  expect(filled, 'V3.06: the update sits before the new check').toContain('rawSql({');
+  expect(filled, 'V3.06: rawSql is imported').toContain('rawSql }');
+  writeFileSync(path, filled);
+  const emitted = await selfEmitMigration(ctx, ['--dir', dir, '--config', ctx.configPath]);
+  expect(emitted.exitCode, `V3.06: run migration.ts: ${emitted.stdout}${emitted.stderr}`).toBe(0);
+  const migrate = await runMigrate(ctx, ['--json']);
+  expect(migrate.exitCode, `V3.06: migrate: ${JSON.stringify(engineError(migrate))}`).toBe(0);
 }
 
 async function checkNames(connectionString: string, table: string): Promise<readonly string[]> {
@@ -376,8 +425,36 @@ withTempDir(({ createTempDir }) => {
           failed = await runDbUpdate(ctx, ['--json']);
         }
         expect(failed.exitCode, 'V3.04: the apply fails').not.toBe(0);
-        expect(JSON.stringify(engineError(failed)), 'V3.04: the failure names the check').toMatch(
-          /user_address_shape_[0-9a-f]{8}/,
+        const [oldCheck] = before;
+        const error = engineError(failed);
+        expect(
+          error,
+          'V3.04: the failure names the check, the table, the column and the route',
+        ).toMatchObject({
+          code: 'MIGRATION.EXECUTION_FAILED',
+          summary: expect.stringMatching(
+            /^Rows of table "user" fail check "user_address_shape_[0-9a-f]{8}" on column "address", so the check cannot be added\.$/,
+          ),
+          why: expect.stringContaining('Find them with `SELECT * FROM "public"."user" WHERE NOT ('),
+          nextActions: [
+            {
+              label:
+                via === 'migrate'
+                  ? expect.stringMatching(
+                      new RegExp(
+                        `^To keep the data, add an operation that updates those rows to fit check "user_address_shape_[0-9a-f]{8}" to \`.+/migration\\.ts\`, after the operation that drops check "${oldCheck}" and before the operation that adds check`,
+                      ),
+                    )
+                  : expect.stringMatching(
+                      new RegExp(
+                        `cannot keep this data, and no migration ends at the contract the database is at, so .+ cannot plan from it\\. Drop check "${oldCheck}" in the database yourself`,
+                      ),
+                    ),
+            },
+          ],
+        });
+        expect(JSON.stringify(error), 'V3.04: no advice that does not fit').not.toMatch(
+          /drift|<contract>/,
         );
 
         expect(await checkNames(db.connectionString, 'user'), 'V3.05: the old check stays').toEqual(
@@ -388,6 +465,14 @@ withTempDir(({ createTempDir }) => {
           (await sql(db.connectionString, 'SELECT id, address FROM "user"')).rows,
           'V3.05: the row stays',
         ).toEqual([{ id: 1, address: { street: 'Main St', city: 'Oslo' } }]);
+
+        await followTheAdvice(ctx, via, oldCheck, db.connectionString);
+        expect(
+          (await sql(db.connectionString, 'SELECT id, address FROM "user"')).rows,
+          'V3.06: the row is kept and fits',
+        ).toEqual([{ id: 1, address: { street: 'Main St', city: 'Oslo', country: 'NO' } }]);
+        const verify = await runDbVerify(ctx, ['--strict']);
+        expect(verify.exitCode, `V3.07: db verify --strict: ${verify.stderr}`).toBe(0);
       },
       timeouts.spinUpPpgDev,
     );
