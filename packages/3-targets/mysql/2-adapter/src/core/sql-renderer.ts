@@ -270,7 +270,7 @@ function renderLiteral(expr: LiteralExpr): string {
   if (typeof value === 'bigint') return String(value);
   if (value instanceof Date) return `'${encodeMysqlDatetime(value)}'`;
   const json = JSON.stringify(value);
-  return json === undefined ? 'NULL' : `'${escapeLiteral(json)}'`;
+  return json === undefined ? 'NULL' : `CAST('${escapeLiteral(json)}' AS JSON)`;
 }
 
 /** Renders each `{{self}}` and `{{argN}}` where the template writes it, so a repeated or reordered operand binds its params where its placeholders are. */

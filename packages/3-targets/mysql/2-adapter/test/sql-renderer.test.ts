@@ -322,7 +322,8 @@ describe('MySQL lowering of expressions', () => {
     [9007199254740993n, '9007199254740993'],
     [null, 'NULL'],
     [new Date('2024-01-02T03:04:05.678Z'), "'2024-01-02 03:04:05.678'"],
-    [{ a: "b'c" }, `'{"a":"b''c"}'`],
+    [{ a: "b'c" }, `CAST('{"a":"b''c"}' AS JSON)`],
+    [[1, 'x'], `CAST('[1,"x"]' AS JSON)`],
   ])('renders the literal %s', (value, rendered) => {
     expect(projectionOf(LiteralExpr.of(value))).toBe(`SELECT ${rendered} AS \`v\``);
   });
