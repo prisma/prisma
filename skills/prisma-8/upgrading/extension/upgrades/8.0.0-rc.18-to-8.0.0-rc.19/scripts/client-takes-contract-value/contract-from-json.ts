@@ -110,34 +110,41 @@ function topLevelNames(ts: typeof TS, sourceFile: TS.SourceFile) {
   return { imported, declared };
 }
 
-function bindingNames(ts: typeof TS, name: TS.BindingName): string[] {
-  if (ts.isIdentifier(name)) return [name.text];
+function bindingIdentifiers(ts: typeof TS, name: TS.BindingName): TS.Identifier[] {
+  if (ts.isIdentifier(name)) return [name];
   return name.elements.flatMap((element) =>
-    ts.isOmittedExpression(element) ? [] : bindingNames(ts, element.name),
+    ts.isOmittedExpression(element) ? [] : bindingIdentifiers(ts, element.name),
   );
 }
 
+function bindingNames(ts: typeof TS, name: TS.BindingName): string[] {
+  return bindingIdentifiers(ts, name).map((identifier) => identifier.text);
+}
+
 function bindingOf(ts: typeof TS, node: TS.Node, wanted: string): TS.Node | undefined {
-  const named =
-    ((ts.isVariableDeclaration(node) || ts.isParameter(node)) &&
-      bindingNames(ts, node.name).includes(wanted)) ||
-    ((ts.isFunctionDeclaration(node) ||
+  if (ts.isVariableDeclaration(node) || ts.isParameter(node)) {
+    const identifier = bindingIdentifiers(ts, node.name).find((name) => name.text === wanted);
+    if (identifier !== undefined) return identifier;
+  }
+  if (
+    (ts.isFunctionDeclaration(node) ||
       ts.isFunctionExpression(node) ||
       ts.isClassDeclaration(node) ||
       ts.isClassExpression(node) ||
       ts.isEnumDeclaration(node) ||
       ts.isModuleDeclaration(node) ||
-      ts.isImportEqualsDeclaration(node)) &&
-      node.name !== undefined &&
-      ts.isIdentifier(node.name) &&
-      node.name.text === wanted) ||
-    ((ts.isExportSpecifier(node) ||
+      ts.isImportEqualsDeclaration(node) ||
+      ts.isExportSpecifier(node) ||
       ts.isNamespaceExport(node) ||
       ts.isImportSpecifier(node) ||
-      ts.isNamespaceImport(node)) &&
-      node.name.text === wanted) ||
-    (ts.isImportClause(node) && node.name?.text === wanted);
-  if (named) return node;
+      ts.isNamespaceImport(node) ||
+      ts.isImportClause(node)) &&
+    node.name !== undefined &&
+    ts.isIdentifier(node.name) &&
+    node.name.text === wanted
+  ) {
+    return node.name;
+  }
   return ts.forEachChild(node, (child) => bindingOf(ts, child, wanted));
 }
 

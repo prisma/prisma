@@ -128,7 +128,7 @@ describe.each(['app', 'extension'] as const)('the %s script', (audience) => {
       stderr: [
         'src/array-hole.ts: not moved, because it already has a binding named contract (line 6); rename that binding and run the script again',
         'src/binding.ts: not moved, because it already has a binding named contract (line 5); rename that binding and run the script again',
-        'src/destructured.ts: not moved, because it already has a binding named contract (line 5); rename that binding and run the script again',
+        'src/destructured.ts: not moved, because it already has a binding named contract (line 7); rename that binding and run the script again',
         'src/enum.ts: not moved, because it already has a binding named contract (line 5); rename that binding and run the script again',
         'src/import-equals.ts: not moved, because it already has a binding named contract (line 5); rename that binding and run the script again',
         'src/inner-binding.ts: not moved, because it already has a binding named contract (line 6); rename that binding and run the script again',
