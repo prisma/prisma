@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
+import { detectionPatterns, guideChanges } from '../guide-detections';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '../../../../..');
@@ -13,12 +14,7 @@ const GUIDE_PATHS = {
 } as const;
 
 function patternsOf(audience: keyof typeof GUIDE_PATHS, id: string): readonly RegExp[] {
-  const guide = readFileSync(join(repoRoot, GUIDE_PATHS[audience]), 'utf-8');
-  const block = guide.split(/\n {2}- id: /).find((entry) => entry.startsWith(`${id}\n`));
-  if (block === undefined) throw new Error(`no change ${id}`);
-  return [...block.matchAll(/^ {8}- '(.*)'$/gm)].map(
-    ([, pattern]) => new RegExp((pattern ?? '').replaceAll("''", "'")),
-  );
+  return detectionPatterns(GUIDE_PATHS[audience], id);
 }
 
 function detection(audience: 'app' | 'extension', id: string) {
@@ -202,10 +198,8 @@ describe('detection patterns that look at the whole file', () => {
   it.each(['app', 'extension'] as const)(
     'start at the start of the file in the %s guide, so each file is read once',
     (audience) => {
-      const guide = readFileSync(join(repoRoot, GUIDE_PATHS[audience]), 'utf-8');
-      const frontmatter = guide.split('\n---\n')[0] ?? '';
-      const unanchored = [...frontmatter.matchAll(/^ {8}- '(.*)'$/gm)]
-        .map(([, pattern]) => (pattern ?? '').replaceAll("''", "'"))
+      const unanchored = guideChanges(GUIDE_PATHS[audience])
+        .flatMap((change) => change.detection?.matches ?? [])
         .filter(
           (pattern) => pattern.includes(lookAheadOverTheFile) && !pattern.startsWith(startOfFile),
         );

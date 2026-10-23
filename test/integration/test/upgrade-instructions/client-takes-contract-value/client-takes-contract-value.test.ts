@@ -15,6 +15,7 @@ import { timeouts } from '@repo/test-utils';
 import { dirname, join, relative } from 'pathe';
 import ts from 'typescript';
 import { afterAll, describe, expect, it } from 'vitest';
+import { detectionPatterns } from '../guide-detections';
 
 const SCRIPT_PATHS = {
   app: 'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/scripts/client-takes-contract-value/contract-from-json.ts',
@@ -296,14 +297,11 @@ function scriptDetection(audience: Audience): RegExp {
   return new RegExp(literal);
 }
 
+/** The first detection pattern of the guide's entry, which matches the call the script moves. */
 function detection(audience: Audience): RegExp {
-  const guide = readFileSync(join(repoRoot, GUIDE_PATHS[audience]), 'utf8');
-  const entry = guide
-    .split(/\n {2}- id: /)
-    .find((block) => block.startsWith('client-takes-contract-value\n'));
-  const pattern = /^ {8}- '(.*)'$/m.exec(entry ?? '')?.[1];
+  const [pattern] = detectionPatterns(GUIDE_PATHS[audience], 'client-takes-contract-value');
   if (pattern === undefined) throw new Error(`${GUIDE_PATHS[audience]} has no detection pattern`);
-  return new RegExp(pattern.replaceAll("''", "'"));
+  return pattern;
 }
 
 describe.each(['app', 'extension'] as const)('the %s detection', (audience) => {

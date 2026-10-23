@@ -1,7 +1,5 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
+import { detectionPatterns } from '../guide-detections';
 
 const GUIDE_PATHS = {
   app: 'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md',
@@ -9,15 +7,8 @@ const GUIDE_PATHS = {
     'skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md',
 } as const;
 
-const here = dirname(fileURLToPath(import.meta.url));
-
 function detects(audience: keyof typeof GUIDE_PATHS, id: string, content: string): boolean {
-  const guide = readFileSync(join(here, '../../../../..', GUIDE_PATHS[audience]), 'utf-8');
-  const entry = guide.split(/\n {2}- id: /).find((block) => block.startsWith(`${id}\n`));
-  if (entry === undefined) throw new Error(`The ${audience} guide has no change ${id}`);
-  return [...entry.matchAll(/^ {8}- '(.*)'$/gm)]
-    .map(([, pattern]) => new RegExp((pattern ?? '').replaceAll("''", "'")))
-    .some((pattern) => pattern.test(content));
+  return detectionPatterns(GUIDE_PATHS[audience], id).some((pattern) => pattern.test(content));
 }
 
 const prisma8 = (body: string) => `// use prisma-8\n\n${body}`;

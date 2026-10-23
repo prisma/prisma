@@ -1,7 +1,5 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
+import { detectionPatterns } from '../guide-detections';
 
 const GUIDE_PATHS = {
   app: 'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md',
@@ -9,18 +7,10 @@ const GUIDE_PATHS = {
     'skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md',
 } as const;
 
-const here = dirname(fileURLToPath(import.meta.url));
-
 function detects(audience: keyof typeof GUIDE_PATHS, content: string): boolean {
-  const guide = readFileSync(join(here, '../../../../..', GUIDE_PATHS[audience]), 'utf-8');
-  const entry = guide
-    .split(/\n {2}- id: /)
-    .find((block) => block.startsWith('client-takes-contract-value\n'));
-  if (entry === undefined)
-    throw new Error(`The ${audience} guide has no client-takes-contract-value`);
-  return [...entry.matchAll(/^ {8}- '(.*)'$/gm)]
-    .map(([, pattern]) => new RegExp((pattern ?? '').replaceAll("''", "'")))
-    .some((pattern) => pattern.test(content));
+  return detectionPatterns(GUIDE_PATHS[audience], 'client-takes-contract-value').some((pattern) =>
+    pattern.test(content),
+  );
 }
 
 describe.each(['app', 'extension'] as const)(

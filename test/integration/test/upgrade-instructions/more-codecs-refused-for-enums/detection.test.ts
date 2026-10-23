@@ -1,10 +1,5 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
-
-const here = dirname(fileURLToPath(import.meta.url));
-const repoRoot = join(here, '../../../../..');
+import { detectionPatterns } from '../guide-detections';
 
 const GUIDE_PATHS = {
   app: 'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md',
@@ -13,12 +8,7 @@ const GUIDE_PATHS = {
 } as const;
 
 function patternsOf(audience: 'app' | 'extension', id: string): readonly RegExp[] {
-  const guide = readFileSync(join(repoRoot, GUIDE_PATHS[audience]), 'utf-8');
-  const block = guide.split(/\n {2}- id: /).find((candidate) => candidate.startsWith(`${id}\n`));
-  if (block === undefined) throw new Error(`no change ${id}`);
-  return [...block.matchAll(/^ {8}- '(.*)'$/gm)].map(
-    ([, pattern]) => new RegExp((pattern ?? '').replaceAll("''", "'")),
-  );
+  return detectionPatterns(GUIDE_PATHS[audience], id);
 }
 
 const detects = (patterns: readonly RegExp[], source: string) =>
