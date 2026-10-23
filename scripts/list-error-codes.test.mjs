@@ -97,3 +97,30 @@ test('verify fails listing the missing codes', () => {
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('verify fails naming each line with a tag or brace outside code, which the docs site cannot compile', () => {
+  const root = makeFixtureRepo();
+  const page = join(root, 'page.md');
+  try {
+    writeFileSync(
+      page,
+      [
+        'CONFIG.FILE_NOT_FOUND and MIGRATION.CHECK_DANGLING_REF',
+        'Inside code is fine: `Field "<Model>.<field>"` and `{ a: 1 }`.',
+        '```',
+        '<fenced> {also fine}',
+        '```',
+        'Applies to every document in collection "<collection>".',
+        'A brace { outside code.',
+        '',
+      ].join('\n'),
+    );
+    const { code, stderr } = run(['--root', root, '--verify', page]);
+    assert.equal(code, 1);
+    assert.match(stderr, /line 6: .*"<collection>"/);
+    assert.match(stderr, /line 7: A brace \{ outside code/);
+    assert.doesNotMatch(stderr, /line [2-5]:/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

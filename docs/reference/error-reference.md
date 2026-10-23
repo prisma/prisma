@@ -950,7 +950,7 @@ A composite type carries a block attribute, as in `@@map("addresses")` inside a 
 
 ### PSL_PRESET_ON_VARIANT_FIELD
 
-A Mongo field preset that sets execution defaults, such as `temporal.createdAt()`, or an `@onCreate(...)` or `@onUpdate(...)` attribute, is declared on a field of a polymorphic variant model (one with `@@base`): `Preset "<preset>" on variant "<Model>" field "<field>":`, or `Generated value on variant "<Model>" field "<field>":` for an attribute, execution defaults apply to every document in collection "<collection>", so declare them on the base model.` Execution defaults are keyed by collection and field, so a default on one variant would also fill that field on the base model and every sibling variant. Declare the field on the base model; variants inherit it. Reported at the preset.
+A Mongo field preset that sets execution defaults, such as `temporal.createdAt()`, or an `@onCreate(...)` or `@onUpdate(...)` attribute, is declared on a field of a polymorphic variant model (one with `@@base`): `Preset "<preset>" on variant "<Model>" field "<field>":`, or `Generated value on variant "<Model>" field "<field>":` for an attribute, execution defaults apply to every document in collection `"<collection>"`, so declare them on the base model.` Execution defaults are keyed by collection and field, so a default on one variant would also fill that field on the base model and every sibling variant. Declare the field on the base model; variants inherit it. Reported at the preset.
 
 ### PSL_PRESET_CONFLICT
 
