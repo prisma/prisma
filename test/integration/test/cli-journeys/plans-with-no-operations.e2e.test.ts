@@ -48,7 +48,7 @@ const TO_PSL = FROM_PSL.replace('  id Int @id\n\n', '  id    Int     @id\n  emai
 
 interface NoOperationsPlan {
   readonly operations: readonly unknown[];
-  readonly changedStorageEntities: readonly unknown[];
+  readonly changedElementCoordinates: readonly unknown[];
   readonly summary: string;
 }
 
@@ -89,7 +89,7 @@ withTempDir(({ createTempDir }) => {
         expect(plan.exitCode, `N1.05: plan: ${plan.stderr}`).toBe(0);
         expect(parseJsonOutput<NoOperationsPlan>(plan), 'N1.05: no operations').toMatchObject({
           operations: [],
-          changedStorageEntities: [
+          changedElementCoordinates: [
             {
               plane: 'storage',
               namespaceId: 'public',

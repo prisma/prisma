@@ -373,8 +373,8 @@ async function answerPlannedDataLoss(input: {
   return ok({ delta, deletes });
 }
 
-/** A storage entity a plan with no operations names: its coordinate, without the internal unbound namespace id. */
-type ChangedStorageEntity = Omit<EntityCoordinate, 'namespaceId'> & {
+/** The coordinate of a storage entity a plan changed, without the internal unbound namespace id. */
+type ChangedElementCoordinate = Omit<EntityCoordinate, 'namespaceId'> & {
   readonly namespaceId?: string;
 };
 
@@ -450,11 +450,9 @@ export interface MigrationPlanResult {
   /** The new required fields whose existing rows the plan gives a temporary value. */
   readonly temporaryValues: readonly TemporaryValueReport[];
   /**
-   * The storage entities that differ between the origin and the destination, when the storage
-   * changed but the written migration has no operations. A coordinate in the unbound namespace has
-   * no `namespaceId`, since that id is internal.
+   * The storage entities that differ between the origin and the destination. Empty when nothing was written (`noOp`), since the storage hashes are equal. A written migration whose `operations` is empty still lists them. A coordinate in the unbound namespace has no `namespaceId`, since that id is internal.
    */
-  readonly changedStorageEntities?: readonly ChangedStorageEntity[];
+  readonly changedElementCoordinates: readonly ChangedElementCoordinate[];
   readonly timings: {
     readonly total: number;
   };
@@ -726,6 +724,7 @@ async function executeMigrationPlanCommandInner(
       ...(warnings.length > 0 ? { warnings } : {}),
       appliedStatements: [],
       temporaryValues: [],
+      changedElementCoordinates: [],
       summary: 'No changes detected between contracts',
       timings: { total: Date.now() - startTime },
     };
@@ -908,6 +907,10 @@ async function executeMigrationPlanCommandInner(
             placeholderDirs: [baselineDir],
             appliedStatements: [...statementsWithoutOperations, ...deletes],
             temporaryValues: baselineLeg.value.temporaryValues,
+            changedElementCoordinates: changedElementCoordinates(
+              fromContract?.storage ?? null,
+              toContract.storage,
+            ).map(withoutUnboundNamespaceId),
             summary: placeholderSummary('baseline', [baselinePackageDir], invocationOf(options)),
             timings: { total: Date.now() - startTime },
           };
@@ -933,6 +936,10 @@ async function executeMigrationPlanCommandInner(
           ...(warnings.length > 0 ? { warnings } : {}),
           appliedStatements: [...statementsWithoutOperations, ...deletes],
           temporaryValues: baselineLeg.value.temporaryValues,
+          changedElementCoordinates: changedElementCoordinates(
+            fromContract?.storage ?? null,
+            toContract.storage,
+          ).map(withoutUnboundNamespaceId),
           summary: buildAutoBaselinePlanSummary(baselineOps.length, 0, emittedExtensionDirs.length),
           timings: { total: Date.now() - startTime },
         };
@@ -971,6 +978,10 @@ async function executeMigrationPlanCommandInner(
           ],
           appliedStatements: [...deltaLeg.appliedStatements, ...deletes],
           temporaryValues: deltaLeg.temporaryValues,
+          changedElementCoordinates: changedElementCoordinates(
+            fromContract?.storage ?? null,
+            toContract.storage,
+          ).map(withoutUnboundNamespaceId),
           summary: placeholderSummary(
             'baseline + migration',
             [baselinePackageDir, deltaPackageDir],
@@ -1072,6 +1083,7 @@ async function executeMigrationPlanCommandInner(
         ...(warnings.length > 0 ? { warnings } : {}),
         appliedStatements: [...deltaLeg.appliedStatements, ...deletes],
         temporaryValues: deltaLeg.temporaryValues,
+        changedElementCoordinates: [],
         summary: 'No changes to plan: the statements need no operations',
         timings: { total: Date.now() - startTime },
       };
@@ -1097,6 +1109,10 @@ async function executeMigrationPlanCommandInner(
         ...(fromDefaulted ? { fromDefaulted } : {}),
         appliedStatements: [...deltaLeg.appliedStatements, ...deletes],
         temporaryValues: deltaLeg.temporaryValues,
+        changedElementCoordinates: changedElementCoordinates(
+          fromContract?.storage ?? null,
+          toContract.storage,
+        ).map(withoutUnboundNamespaceId),
         summary: placeholderSummary('migration', [packageDir], invocationOf(options)),
         timings: { total: Date.now() - startTime },
       };
@@ -1149,19 +1165,25 @@ function withNoOperationsReport(
   hasNoOperations: boolean,
   fromContract: Contract | null,
   toContract: Contract,
-): Pick<MigrationPlanResult, 'changedStorageEntities' | 'summary'> {
-  if (!hasNoOperations) return { summary };
+): Pick<MigrationPlanResult, 'changedElementCoordinates' | 'summary'> {
   const changed = changedElementCoordinates(fromContract?.storage ?? null, toContract.storage);
+  const reported = { changedElementCoordinates: changed.map(withoutUnboundNamespaceId) };
+  if (!hasNoOperations) return { ...reported, summary };
   const what =
     changed.length === 0
       ? `No storage entity changed; what changed is ${changedStorageKeys(fromContract, toContract).join(', ') || 'outside the storage entities'}.`
       : `What changed: ${changed.map(storageEntityText).join(', ')}.`;
   return {
-    changedStorageEntities: changed.map(({ namespaceId, ...rest }) =>
-      namespaceId === UNBOUND_NAMESPACE_ID ? rest : { namespaceId, ...rest },
-    ),
+    ...reported,
     summary: `${summary}. The storage the contract describes changed, but the database needs no operation for it, so the migration has none. ${what}`,
   };
+}
+
+function withoutUnboundNamespaceId({
+  namespaceId,
+  ...rest
+}: EntityCoordinate): ChangedElementCoordinate {
+  return namespaceId === UNBOUND_NAMESPACE_ID ? rest : { namespaceId, ...rest };
 }
 
 /** The top-level storage keys whose content differs between two contracts, such as `storage.types`, in key order. */

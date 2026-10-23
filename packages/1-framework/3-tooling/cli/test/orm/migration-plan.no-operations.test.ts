@@ -93,7 +93,7 @@ const STORAGE_TO: FixtureStorageNamespaces = {
   },
 };
 
-const CHANGED_STORAGE_ENTITIES = [
+const CHANGED_ELEMENT_COORDINATES = [
   { plane: 'storage', namespaceId: 'public', entityKind: 'table', entityName: 'users' },
   { plane: 'storage', namespaceId: 'public', entityKind: 'valueSet', entityName: 'Role' },
   { plane: 'storage', namespaceId: 'public', entityKind: 'valueSet', entityName: 'Status' },
@@ -164,7 +164,7 @@ function writtenWithNoOperations(to: string) {
       from: HASH_FROM,
       to,
       operations: [],
-      changedStorageEntities: CHANGED_STORAGE_ENTITIES,
+      changedElementCoordinates: CHANGED_ELEMENT_COORDINATES,
       summary: NO_OPERATIONS_SUMMARY,
     },
   };
@@ -211,7 +211,7 @@ describe('migration plan when the planner produces no operations', () => {
           {
             exitCode: 0,
             data: {
-              changedStorageEntities: [],
+              changedElementCoordinates: [],
               summary:
                 'Planned 0 operation(s). The storage the contract describes changed, but the database needs no operation for it, so the migration has none. No storage entity changed; what changed is storage.types.',
             },
@@ -219,6 +219,33 @@ describe('migration plan when the planner produces no operations', () => {
         );
       },
     );
+
+    it('names what changed in storage for a migration with operations too, and does not warn', async () => {
+      const project = await projectWithHistory();
+      const harness = createOrmTestCli({
+        commands: OFFLINE_COMMANDS,
+        groups: BIN_GROUPS,
+        orm: offlineConfig({ project, script: { operations: [ADDITIVE_OP] } }),
+      });
+
+      const plan = await harness.run(['migration', 'plan'], {
+        cwd: project.dir,
+        isTty: { stdout: true },
+      });
+
+      expect({
+        data: plan.presented?.data,
+        summary: plan.presented?.presentation.human.find((block) => block.kind === 'summary'),
+      }).toMatchObject({
+        data: {
+          noOp: false,
+          operations: [expect.objectContaining({ id: ADDITIVE_OP.id })],
+          changedElementCoordinates: CHANGED_ELEMENT_COORDINATES,
+          summary: 'Planned 1 operation(s)',
+        },
+        summary: { status: 'ok' },
+      });
+    });
 
     it('says so in a warning, above the contract edge', async () => {
       const project = await projectWithHistory();
@@ -251,7 +278,7 @@ describe('migration plan when the planner produces no operations', () => {
           from: HASH_FROM,
           to: HASH_TO,
           operations: [],
-          changedStorageEntities: CHANGED_STORAGE_ENTITIES,
+          changedElementCoordinates: CHANGED_ELEMENT_COORDINATES,
           summary: `Planned baseline (1 operation(s)) + 0 operation(s). ${NO_OPERATIONS_TEXT}`,
         },
       });

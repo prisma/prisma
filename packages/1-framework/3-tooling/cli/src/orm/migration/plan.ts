@@ -202,7 +202,7 @@ function planBlocks(result: MigrationPlanResult, migrationsRelative: string): re
     ...warningBlocks(result),
     {
       kind: 'summary',
-      status: result.changedStorageEntities === undefined ? 'ok' : 'warn',
+      status: result.operations.length === 0 ? 'warn' : 'ok',
       text: result.summary,
     },
     ...originNoticeBlocks(result),

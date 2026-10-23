@@ -30,7 +30,7 @@ const FIXTURES_DIR = join(fixtureAppDir, 'fixtures/mongo-cli-journeys');
 
 interface NoOperationsPlan {
   readonly operations: readonly unknown[];
-  readonly changedStorageEntities: readonly unknown[];
+  readonly changedElementCoordinates: readonly unknown[];
   readonly summary: string;
 }
 
@@ -128,7 +128,7 @@ describe('Journeys (MongoDB): a plan with no operations', {
     expect(plan.exitCode, `N1.05: plan: ${plan.stderr}`).toBe(0);
     expect(parseJsonOutput<NoOperationsPlan>(plan), 'N1.05: no operations').toMatchObject({
       operations: [],
-      changedStorageEntities: [
+      changedElementCoordinates: [
         expect.objectContaining({ entityKind: 'collection', entityName: 'auth_users' }),
       ],
       summary: expect.stringContaining('collection "'),
