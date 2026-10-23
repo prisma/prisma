@@ -27,6 +27,7 @@ export interface ColumnDescription {
 
 export interface ColumnValueObject {
   readonly reference: EntityCoordinate<'storage', 'valueObject'>;
+  /** Whether the column's JSON value is an array of value objects. The column's own `many` is a native array column, which a value object column never is. */
   readonly many: false | { readonly elementNullable: boolean };
 }
 

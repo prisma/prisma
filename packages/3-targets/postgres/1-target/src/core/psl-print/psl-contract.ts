@@ -19,8 +19,8 @@ import {
   UNSPECIFIED_PSL_NAMESPACE_ID,
 } from '@internal/framework-components/psl-ast';
 import {
-  type ResolvedValueObjectField,
-  resolveValueObject,
+  type ResolvedColumnValueObject,
+  resolveColumnValueObject,
 } from '@internal/sql-contract/check-expressions';
 import type { ForeignKey, SqlModelStorage, SqlStorage } from '@internal/sql-contract/types';
 import { invariant } from '@internal/utils/assertions';
@@ -107,12 +107,12 @@ function nativeEnumsOf(
   return nativeEnums;
 }
 
-/** The value object field each column of a table holds, over the fields of every model the table stores. Nullability comes from the column, as in the build: a variant that shares its base table has a nullable column. */
-function valueObjectFieldsOf(
+/** The value object each column of a table holds, over the fields of every model the table stores. Nullability comes from the column, as in the build: a variant that shares its base table has a nullable column. */
+function columnValueObjectsOf(
   contract: Contract<SqlStorage>,
   entries: readonly ModelWithTable[],
-): ReadonlyMap<string, ResolvedValueObjectField> {
-  const fields = new Map<string, ResolvedValueObjectField>();
+): ReadonlyMap<string, ResolvedColumnValueObject> {
+  const columnValueObjects = new Map<string, ResolvedColumnValueObject>();
   for (const entry of entries) {
     for (const [fieldName, field] of Object.entries(entry.model.fields)) {
       const columnName = entry.storage.fields[fieldName]?.column;
@@ -120,17 +120,17 @@ function valueObjectFieldsOf(
       if (field.type.kind !== 'valueObject' || columnName === undefined || column === undefined) {
         continue;
       }
-      fields.set(columnName, {
-        nullable: column.nullable,
-        many: field.many ?? false,
-        type: {
-          kind: 'valueObject',
-          valueObject: resolveValueObject(contract.storage, field.type),
-        },
-      });
+      columnValueObjects.set(
+        columnName,
+        resolveColumnValueObject(contract.storage, {
+          reference: field.type,
+          nullable: column.nullable,
+          many: field.many ?? false,
+        }),
+      );
     }
   }
-  return fields;
+  return columnValueObjects;
 }
 
 /** The value sets the PSL source derives for a namespace from the enum blocks written for it and from its discriminators. */
@@ -220,7 +220,7 @@ function buildModel(
             ...all.domainEnumValues,
             [discriminatorValueSet.name, discriminatorValueSet.values],
           ]),
-    valueObjectFields: valueObjectFieldsOf(all.contract, [entry, ...singleTableVariants]),
+    columnValueObjects: columnValueObjectsOf(all.contract, [entry, ...singleTableVariants]),
   });
   if (variant?.singleTable !== true) refuseUnderivedChecks(entry, checks);
   return {

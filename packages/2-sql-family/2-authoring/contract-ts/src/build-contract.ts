@@ -29,7 +29,10 @@ import type {
 import { mergeCapabilityMatrices } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { sqlContractCanonicalizationHooks } from '@internal/sql-contract/canonicalization-hooks';
-import type { CheckExpressionRenderer } from '@internal/sql-contract/check-expressions';
+import {
+  type CheckExpressionRenderer,
+  discriminatorValueSet,
+} from '@internal/sql-contract/check-expressions';
 import { sqlDataTypeOfCodec } from '@internal/sql-contract/data-type';
 import { validateIndexTypes } from '@internal/sql-contract/index-type-validation';
 import { type IndexTypeRegistry, indexTypeRegistryOf } from '@internal/sql-contract/index-types';
@@ -224,7 +227,11 @@ function writeDiscriminatorValueSets(
     const column = columnName === undefined ? undefined : table?.columns[columnName];
     if (table === undefined || columnName === undefined || column === undefined) continue;
     if (column.valueSet !== undefined) continue;
-    const valueSetName = `${model.modelName}.${discriminator.field}`;
+    const { name: valueSetName, values } = discriminatorValueSet(
+      model.modelName,
+      discriminator.field,
+      Object.keys(variants),
+    );
     const namespaceValueSets = storageValueSetsByNs[namespaceId] ?? {};
     if (Object.hasOwn(namespaceValueSets, valueSetName)) {
       throw contractError(
@@ -240,7 +247,6 @@ function writeDiscriminatorValueSets(
         },
       );
     }
-    const values = Object.keys(variants).sort();
     namespaceValueSets[valueSetName] = { kind: 'valueSet', values };
     storageValueSetsByNs[namespaceId] = namespaceValueSets;
     const render = checkRendererFor(table);
@@ -254,7 +260,7 @@ function writeDiscriminatorValueSets(
               columnName,
               many: false,
               memberValues: values,
-              valueObjectField: undefined,
+              valueObject: undefined,
             }),
           );
     const namespaceTables = tablesByNamespace[namespaceId] ?? {};

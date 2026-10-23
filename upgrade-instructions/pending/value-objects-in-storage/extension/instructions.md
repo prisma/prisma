@@ -64,7 +64,7 @@ import type { PostgresCheckExpressionInput } from '@prisma/orm-postgres/target/t
 import type { CheckExpressionInput } from '@prisma/orm-postgres/family-contract/check-expressions';
 ```
 
-`postgresRenderCheckExpressions` stays in `@prisma/orm-postgres/target/types`. Its input also takes `valueObjectField`, the value object a column holds, or `undefined`.
+`postgresRenderCheckExpressions` stays in `@prisma/orm-postgres/target/types`. Its input also takes `valueObject`, a `ResolvedColumnValueObject` (the column's nullability, whether its JSON value is an array, and the value object), or `undefined`.
 
 ## `field-types-read-storage-value-objects`
 

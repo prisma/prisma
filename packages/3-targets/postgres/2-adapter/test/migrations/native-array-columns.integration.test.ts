@@ -43,7 +43,7 @@ function declaredArrayElementChecks(): CheckConstraint[] {
       columnName,
       many: { elementNullable: false },
       memberValues: undefined,
-      valueObjectField: undefined,
+      valueObject: undefined,
     }).map(
       (candidate) =>
         new CheckConstraint({

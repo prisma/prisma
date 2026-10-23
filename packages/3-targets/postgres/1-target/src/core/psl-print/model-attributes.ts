@@ -1,5 +1,5 @@
 import type { PslModelAttribute } from '@internal/framework-components/psl-ast';
-import type { ResolvedValueObjectField } from '@internal/sql-contract/check-expressions';
+import type { ResolvedColumnValueObject } from '@internal/sql-contract/check-expressions';
 import { escapePslString } from '@internal/sql-contract/data-type-support';
 import type { StorageTable } from '@internal/sql-contract/types';
 import { pslModelMapName } from '@internal/sql-contract-psl/map-names';
@@ -48,7 +48,7 @@ export function derivedChecks(input: {
   /** The values of each value set a domain enum or a discriminator writes, by name. */
   readonly memberValueSets: ReadonlyMap<string, readonly unknown[]>;
   /** The value object field each column that holds one stores, by column name. */
-  readonly valueObjectFields: ReadonlyMap<string, ResolvedValueObjectField>;
+  readonly columnValueObjects: ReadonlyMap<string, ResolvedColumnValueObject>;
 }): ReadonlyMap<string, DerivedCheck> {
   const checks = new Map<string, DerivedCheck>();
   if (!input.managed) return checks;
@@ -65,7 +65,7 @@ export function derivedChecks(input: {
       columnName,
       many: column.many,
       memberValues: memberValues?.length === setValues?.length ? memberValues : undefined,
-      valueObjectField: input.valueObjectFields.get(columnName),
+      valueObject: input.columnValueObjects.get(columnName),
     })) {
       const prefix = composeCheckWirePrefix(input.tableName, columnName, candidate.kind);
       checks.set(formatWireName(prefix, computeCheckContentHash(candidate.expression)), {

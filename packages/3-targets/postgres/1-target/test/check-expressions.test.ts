@@ -7,7 +7,7 @@ const base: CheckExpressionInput = {
   columnName: 'role',
   many: false,
   memberValues: undefined,
-  valueObjectField: undefined,
+  valueObject: undefined,
 };
 
 describe('postgresRenderCheckExpressions', () => {
@@ -155,7 +155,7 @@ describe('postgresRenderCheckExpressions', () => {
         columnName: 'sta"tus',
         many: false,
         memberValues: ["o'brien"],
-        valueObjectField: undefined,
+        valueObject: undefined,
       }),
     ).toEqual([
       { kind: 'membership', columnName: 'sta"tus', expression: `"sta""tus" IN ('o''brien')` },

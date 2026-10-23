@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { resolveValueObject } from '../src/check-expressions';
+import {
+  discriminatorValueSet,
+  resolveColumnValueObject,
+  resolveValueObject,
+} from '../src/check-expressions';
 
 function valueObjectRef(name: string) {
   return {
@@ -105,7 +109,7 @@ describe('resolveValueObject', () => {
         children: {
           nullable: false,
           many: { elementNullable: false },
-          type: { kind: 'openObject' },
+          type: { kind: 'anyObject' },
         },
       },
     });
@@ -127,7 +131,7 @@ describe('resolveValueObject', () => {
           many: false,
           type: { kind: 'scalar', codecId: 'pg/text@1', values: undefined },
         },
-        entry: { nullable: false, many: false, type: { kind: 'openObject' } },
+        entry: { nullable: false, many: false, type: { kind: 'anyObject' } },
         meta: {
           nullable: false,
           many: false,
@@ -150,5 +154,31 @@ describe('resolveValueObject', () => {
 
   it('refuses a reference storage does not hold', () => {
     expect(() => resolveValueObject(storageWith({}), valueObjectRef('Missing'))).toThrow(/Missing/);
+  });
+});
+
+describe('resolveColumnValueObject', () => {
+  it('holds the column nullability and list shape with the resolved value object', () => {
+    const storage = storageWith({ valueObject: { Address: { fields: {} } } });
+    expect(
+      resolveColumnValueObject(storage, {
+        reference: valueObjectRef('Address'),
+        nullable: true,
+        many: { elementNullable: false },
+      }),
+    ).toEqual({
+      nullable: true,
+      many: { elementNullable: false },
+      valueObject: resolveValueObject(storage, valueObjectRef('Address')),
+    });
+  });
+});
+
+describe('discriminatorValueSet', () => {
+  it('is keyed by the base model and field, and holds the variant values sorted', () => {
+    expect(discriminatorValueSet('Task', 'type', ['feature', 'bug'])).toEqual({
+      name: 'Task.type',
+      values: ['bug', 'feature'],
+    });
   });
 });

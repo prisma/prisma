@@ -211,7 +211,7 @@ function computeDerivedCheckNames(table: SqlTableIR): ReadonlySet<string> {
       columnName: column.name,
       many: column.many === true ? { elementNullable: false } : false,
       memberValues: undefined,
-      valueObjectField: undefined,
+      valueObject: undefined,
     })) {
       const derivedName = formatWireName(
         composeCheckWirePrefix(table.name, column.name, candidate.kind),
@@ -332,7 +332,7 @@ function enforcesElementNotNull(
     columnName: column.name,
     many: { elementNullable: false },
     memberValues: undefined,
-    valueObjectField: undefined,
+    valueObject: undefined,
   }).some(
     (candidate) =>
       candidate.kind === 'elementNotNull' &&

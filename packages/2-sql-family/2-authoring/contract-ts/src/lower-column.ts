@@ -4,7 +4,7 @@ import { dataTypeParams } from '@internal/framework-components/codec';
 import {
   type CheckExpressionCandidate,
   type CheckExpressionRenderer,
-  resolveValueObject,
+  resolveColumnValueObject,
 } from '@internal/sql-contract/check-expressions';
 import {
   type SqlDataType,
@@ -25,7 +25,7 @@ import { contractError } from './contract-errors';
 import { type ColumnSite, columnSiteMeta, columnSiteSubject } from './declaration-sites';
 import { checkMemberValues, enumValueSetRefs } from './enum-members';
 import { type CollectedColumnEntities, collectEntityFromColumn } from './pack-entities';
-import type { ColumnDescription, ColumnValueObject } from './storage-description';
+import type { ColumnDescription } from './storage-description';
 import { type ColumnTypeQualifier, resolveColumnDescriptor } from './target-authoring-hooks';
 
 /**
@@ -165,25 +165,14 @@ export function lowerColumn(
     many,
     memberValues:
       enumTypeHandle !== undefined ? checkMemberValues(enumTypeHandle, codecLookup) : undefined,
-    valueObjectField:
+    valueObject:
       description.valueObject !== undefined
-        ? resolvedValueObjectField(description.valueObject, description.nullable, context)
+        ? resolveColumnValueObject(context.storage, {
+            reference: description.valueObject.reference,
+            nullable: description.nullable,
+            many: description.valueObject.many,
+          })
         : undefined,
   });
   return { column, derivedChecks: lowerRenderedChecks(placement.tableName, candidates) };
-}
-
-function resolvedValueObjectField(
-  valueObject: ColumnValueObject,
-  nullable: boolean,
-  context: ColumnLoweringContext,
-) {
-  return {
-    nullable,
-    many: valueObject.many,
-    type: {
-      kind: 'valueObject',
-      valueObject: resolveValueObject(context.storage, valueObject.reference),
-    },
-  } as const;
 }

@@ -307,7 +307,7 @@ describe('check emission — entity-ref-resolved value set (native enum shape)',
       columnName: 'role',
       many: false,
       memberValues: undefined,
-      valueObjectField: undefined,
+      valueObject: undefined,
     });
   });
 });
@@ -509,7 +509,7 @@ describe('check emission — guards', () => {
         columnName: 'special',
         many: many ? { elementNullable: false } : false,
         memberValues: [1.5, 'NaN'],
-        valueObjectField: undefined,
+        valueObject: undefined,
       });
     },
   );

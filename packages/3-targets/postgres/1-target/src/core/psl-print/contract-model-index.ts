@@ -2,6 +2,7 @@ import type { Contract, ContractModelBase, CrossReference } from '@internal/cont
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { UNBOUND_PSL_NAMESPACE_NAME } from '@internal/framework-components/psl-ast';
 import { canonicalizeJson } from '@internal/framework-components/utils';
+import { discriminatorValueSet } from '@internal/sql-contract/check-expressions';
 import type {
   ForeignKey,
   SqlModelStorage,
@@ -151,10 +152,10 @@ export function discriminatorValueSetOf(
 ): { readonly name: string; readonly values: readonly string[] } | undefined {
   const { discriminator, variants } = entry.model;
   if (discriminator === undefined || variants === undefined) return undefined;
-  const name = `${entry.name}.${discriminator.field}`;
+  const derived = discriminatorValueSet(entry.name, discriminator.field, Object.keys(variants));
   const columnName = entry.storage.fields[discriminator.field]?.column;
   const valueSet = columnName === undefined ? undefined : entry.table.columns[columnName]?.valueSet;
-  return valueSet?.entityName === name && valueSet.namespaceId === entry.namespaceId
-    ? { name, values: Object.keys(variants).sort() }
+  return valueSet?.entityName === derived.name && valueSet.namespaceId === entry.namespaceId
+    ? derived
     : undefined;
 }

@@ -22,7 +22,7 @@ function renderCheckExpressions(input: CheckExpressionInput) {
             expression: `"${input.columnName}" IN (${input.memberValues.join(', ')})`,
           },
         ]),
-    ...(input.valueObjectField === undefined
+    ...(input.valueObject === undefined
       ? []
       : [
           {
@@ -116,31 +116,28 @@ function checkNames(contract: ReturnType<typeof build>, tableName: string) {
 }
 
 const resolvedAddress = {
-  kind: 'valueObject',
-  valueObject: {
-    fields: {
-      street: {
-        nullable: false,
-        many: false,
-        type: { kind: 'scalar', codecId: 'pg/text@1', values: undefined },
-      },
-      kind: {
-        nullable: true,
-        many: false,
-        type: { kind: 'scalar', codecId: 'pg/text@1', values: ['home', 'work'] },
-      },
-      geo: {
-        nullable: false,
-        many: false,
-        type: {
-          kind: 'valueObject',
-          valueObject: {
-            fields: {
-              lat: {
-                nullable: false,
-                many: false,
-                type: { kind: 'scalar', codecId: 'pg/text@1', values: undefined },
-              },
+  fields: {
+    street: {
+      nullable: false,
+      many: false,
+      type: { kind: 'scalar', codecId: 'pg/text@1', values: undefined },
+    },
+    kind: {
+      nullable: true,
+      many: false,
+      type: { kind: 'scalar', codecId: 'pg/text@1', values: ['home', 'work'] },
+    },
+    geo: {
+      nullable: false,
+      many: false,
+      type: {
+        kind: 'valueObject',
+        valueObject: {
+          fields: {
+            lat: {
+              nullable: false,
+              many: false,
+              type: { kind: 'scalar', codecId: 'pg/text@1', values: undefined },
             },
           },
         },
@@ -154,21 +151,21 @@ describe('the derived check of a column that holds a value object', () => {
     build([userModel()]);
     expect(
       renderedInputs
-        .filter((input) => input.valueObjectField !== undefined)
-        .map(({ columnName, many, valueObjectField }) => ({ columnName, many, valueObjectField })),
+        .filter((input) => input.valueObject !== undefined)
+        .map(({ columnName, many, valueObject }) => ({ columnName, many, valueObject })),
     ).toEqual([
       {
         columnName: 'home',
         many: false,
-        valueObjectField: { nullable: true, many: false, type: resolvedAddress },
+        valueObject: { nullable: true, many: false, valueObject: resolvedAddress },
       },
       {
         columnName: 'stops',
         many: false,
-        valueObjectField: {
+        valueObject: {
           nullable: false,
           many: { elementNullable: true },
-          type: resolvedAddress,
+          valueObject: resolvedAddress,
         },
       },
     ]);

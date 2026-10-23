@@ -1,4 +1,5 @@
 import type {
+  ResolvedColumnValueObject,
   ResolvedValueObject,
   ResolvedValueObjectField,
   ResolvedValueObjectFieldType,
@@ -25,14 +26,15 @@ function holding(valueObject: ResolvedValueObject): ResolvedValueObjectFieldType
 }
 
 function render(
-  valueObjectField: ResolvedValueObjectField,
+  valueObject: ResolvedValueObject,
+  column: Partial<Pick<ResolvedColumnValueObject, 'nullable' | 'many'>> = {},
 ): readonly { readonly kind: string; readonly expression: string }[] {
   return postgresRenderCheckExpressions({
     tableName: 'user',
     columnName: 'address',
     many: false,
     memberValues: undefined,
-    valueObjectField,
+    valueObject: { nullable: false, many: false, ...column, valueObject },
   }).map(({ kind, expression }) => ({ kind, expression }));
 }
 
@@ -45,7 +47,7 @@ const onlyStreet = '!exists($.keyvalue() ? (@.key != "street"))';
 
 describe('postgresRenderCheckExpressions for a column that holds a value object', () => {
   it('requires an object with each required member, of its JSON type, and no other key', () => {
-    expect(render(member(holding(flat)))).toEqual([
+    expect(render(flat)).toEqual([
       {
         kind: 'valueObject',
         expression: `jsonb_path_match("address", 'strict ${isObject} && ${hasStreet} && ${onlyStreet}') IS TRUE`,
@@ -54,7 +56,7 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
   });
 
   it('accepts SQL NULL and JSON null in a nullable column', () => {
-    expect(render(member(holding(flat), { nullable: true }))).toEqual([
+    expect(render(flat, { nullable: true })).toEqual([
       {
         kind: 'valueObject',
         expression: `"address" IS NULL OR jsonb_path_match("address", 'strict $.type() == "null" || (${isObject} && ${hasStreet} && ${onlyStreet})') IS TRUE`,
@@ -64,7 +66,7 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
 
   it('lets a nullable member be absent or JSON null', () => {
     const zip = member(scalar('pg/int4@1'), { nullable: true });
-    expect(render(member(holding({ fields: { zip } })))).toEqual([
+    expect(render({ fields: { zip } })).toEqual([
       {
         kind: 'valueObject',
         expression: `jsonb_path_match("address", 'strict ${isObject} && !exists($.keyvalue() ? (@.key == "zip" && !(@.value.type() == "null" || (@.value.type() == "number")))) && !exists($.keyvalue() ? (@.key != "zip"))') IS TRUE`,
@@ -75,7 +77,7 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
   it('checks list members and their element nullability', () => {
     const tags = member(scalar('pg/text@1'), { many: { elementNullable: false } });
     const flags = member(scalar('pg/bool@1'), { many: { elementNullable: true } });
-    expect(render(member(holding({ fields: { tags, flags } })))).toEqual([
+    expect(render({ fields: { tags, flags } })).toEqual([
       {
         kind: 'valueObject',
         expression: `jsonb_path_match("address", 'strict ${isObject} && exists($.keyvalue() ? (@.key == "flags" && (@.value.type() == "array" && !exists(@.value[*] ? (!(@.type() == "null" || (@.type() == "boolean"))))))) && exists($.keyvalue() ? (@.key == "tags" && (@.value.type() == "array" && !exists(@.value[*] ? (!((@.type() == "string"))))))) && !exists($.keyvalue() ? (@.key != "flags" && @.key != "tags"))') IS TRUE`,
@@ -85,7 +87,7 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
 
   it('restricts an enum member to its value set', () => {
     const kind = member(scalar('pg/text@1', ['home', "o'brien"]));
-    expect(render(member(holding({ fields: { kind } })))).toEqual([
+    expect(render({ fields: { kind } })).toEqual([
       {
         kind: 'valueObject',
         expression: `jsonb_path_match("address", 'strict ${isObject} && exists($.keyvalue() ? (@.key == "kind" && (@.value.type() == "string" && (@.value == "home" || @.value == "o''brien")))) && !exists($.keyvalue() ? (@.key != "kind"))') IS TRUE`,
@@ -95,7 +97,7 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
 
   it('restricts a numeric enum member to its value set', () => {
     const rank = member(scalar('pg/int4@1', [1, -2]));
-    expect(render(member(holding({ fields: { rank } })))).toEqual([
+    expect(render({ fields: { rank } })).toEqual([
       {
         kind: 'valueObject',
         expression: `jsonb_path_match("address", 'strict ${isObject} && exists($.keyvalue() ? (@.key == "rank" && (@.value.type() == "number" && (@.value == 1 || @.value == -2)))) && !exists($.keyvalue() ? (@.key != "rank"))') IS TRUE`,
@@ -108,7 +110,7 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
     const stops = member(holding(flat), { many: { elementNullable: false } });
     const nestedAt = (path: string) =>
       `${path}.type() == "object" && exists(${path}.keyvalue() ? (@.key == "street" && (@.value.type() == "string"))) && !exists(${path}.keyvalue() ? (@.key != "street"))`;
-    expect(render(member(holding({ fields: { geo, stops } })))).toEqual([
+    expect(render({ fields: { geo, stops } })).toEqual([
       {
         kind: 'valueObject',
         expression: `jsonb_path_match("address", 'strict ${isObject} && exists($.keyvalue() ? (@.key == "geo" && (${nestedAt('@.value')}))) && exists($.keyvalue() ? (@.key == "stops" && (@.value.type() == "array" && !exists(@.value[*] ? (!((${nestedAt('@')}))))))) && !exists($.keyvalue() ? (@.key != "geo" && @.key != "stops"))') IS TRUE`,
@@ -117,8 +119,8 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
   });
 
   it('accepts any object where a value object refers back into itself', () => {
-    const children = member({ kind: 'openObject' }, { many: { elementNullable: false } });
-    expect(render(member(holding({ fields: { children } })))).toEqual([
+    const children = member({ kind: 'anyObject' }, { many: { elementNullable: false } });
+    expect(render({ fields: { children } })).toEqual([
       {
         kind: 'valueObject',
         expression: `jsonb_path_match("address", 'strict ${isObject} && exists($.keyvalue() ? (@.key == "children" && (@.value.type() == "array" && !exists(@.value[*] ? (!((@.type() == "object"))))))) && !exists($.keyvalue() ? (@.key != "children"))') IS TRUE`,
@@ -127,7 +129,7 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
   });
 
   it('checks a list column as an array of the value object', () => {
-    expect(render(member(holding(flat), { many: { elementNullable: false } }))).toEqual([
+    expect(render(flat, { many: { elementNullable: false } })).toEqual([
       {
         kind: 'valueObject',
         expression: `jsonb_path_match("address", 'strict $.type() == "array" && !exists($[*] ? (!((@.type() == "object" && exists(@.keyvalue() ? (@.key == "street" && (@.value.type() == "string"))) && !exists(@.keyvalue() ? (@.key != "street"))))))') IS TRUE`,
@@ -140,7 +142,7 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
     const data = member(scalar('pg/jsonb@1'));
     const notes = member(scalar('pg/jsonb@1'), { nullable: true });
     const blobs = member(scalar('pg/bytea@1'), { many: { elementNullable: false } });
-    expect(render(member(holding({ fields: { blobs, bytes, data, notes } })))).toEqual([
+    expect(render({ fields: { blobs, bytes, data, notes } })).toEqual([
       {
         kind: 'valueObject',
         expression: `jsonb_path_match("address", 'strict ${isObject} && exists($.keyvalue() ? (@.key == "blobs" && (@.value.type() == "array" && !exists(@.value[*] ? (@.type() == "null"))))) && exists($.keyvalue() ? (@.key == "bytes" && (@.value.type() != "null"))) && exists($.keyvalue() ? (@.key == "data")) && !exists($.keyvalue() ? (@.key != "blobs" && @.key != "bytes" && @.key != "data" && @.key != "notes"))') IS TRUE`,
@@ -150,7 +152,7 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
 
   it('requires a decimal member to be a JSON string, as the ORM writes it', () => {
     const amount = member(scalar('pg/numeric@1'));
-    expect(render(member(holding({ fields: { amount } })))).toEqual([
+    expect(render({ fields: { amount } })).toEqual([
       {
         kind: 'valueObject',
         expression: `jsonb_path_match("address", 'strict ${isObject} && exists($.keyvalue() ? (@.key == "amount" && (@.value.type() == "string"))) && !exists($.keyvalue() ? (@.key != "amount"))') IS TRUE`,
@@ -160,7 +162,7 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
 
   it('writes member names as jsonpath strings', () => {
     const quoted = member(scalar('pg/text@1'));
-    expect(render(member(holding({ fields: { 'say "hi"': quoted } })))).toEqual([
+    expect(render({ fields: { 'say "hi"': quoted } })).toEqual([
       {
         kind: 'valueObject',
         expression: `jsonb_path_match("address", 'strict ${isObject} && exists($.keyvalue() ? (@.key == "say \\"hi\\"" && (@.value.type() == "string"))) && !exists($.keyvalue() ? (@.key != "say \\"hi\\""))') IS TRUE`,

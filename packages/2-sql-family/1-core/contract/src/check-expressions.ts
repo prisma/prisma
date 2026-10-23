@@ -21,7 +21,7 @@ export interface ResolvedValueObjectField {
 }
 
 /**
- * `values` holds the stored values of the value set an enum member refers to. `openObject` stands where a value object that contains itself refers back into itself: any object is accepted there, as the MongoDB validator does.
+ * `values` holds the stored values of the value set an enum member refers to. `anyObject` stands where a value object that contains itself refers back into itself: any object is accepted there, as the MongoDB validator does.
  */
 export type ResolvedValueObjectFieldType =
   | {
@@ -30,7 +30,7 @@ export type ResolvedValueObjectFieldType =
       readonly values: readonly (string | number)[] | undefined;
     }
   | { readonly kind: 'valueObject'; readonly valueObject: ResolvedValueObject }
-  | { readonly kind: 'openObject' };
+  | { readonly kind: 'anyObject' };
 
 /** One column's shape, as the contract builder hands it to a target's check renderer. */
 export interface CheckExpressionInput {
@@ -39,8 +39,15 @@ export interface CheckExpressionInput {
   readonly many: false | { readonly elementNullable: boolean };
   /** The values a column typed by a domain enum, or a discriminator column, may hold. */
   readonly memberValues: readonly (string | number)[] | undefined;
-  /** The value object field a column holds: its nullability, whether it is a list, and the value object. */
-  readonly valueObjectField: ResolvedValueObjectField | undefined;
+  /** The value object the column holds, or `undefined` when it holds none. */
+  readonly valueObject: ResolvedColumnValueObject | undefined;
+}
+
+/** The value object a column holds, with the column's nullability, and whether the column's JSON value is an array of them. */
+export interface ResolvedColumnValueObject {
+  readonly nullable: boolean;
+  readonly many: false | { readonly elementNullable: boolean };
+  readonly valueObject: ResolvedValueObject;
 }
 
 /** A check the target wants written: what it enforces, the column it constrains, and the predicate body without the surrounding `CHECK (…)`. The family names it. */
@@ -53,6 +60,35 @@ export interface CheckExpressionCandidate {
 export type CheckExpressionRenderer = (
   input: CheckExpressionInput,
 ) => ReadonlyArray<CheckExpressionCandidate>;
+
+/**
+ * What the check of a column that holds a value object reads. The contract build and `contract print` both derive it here, so print recognises exactly the check the build writes.
+ */
+export function resolveColumnValueObject(
+  storage: ContractWithDomain['storage'],
+  column: {
+    readonly reference: EntityCoordinate<'storage', 'valueObject'>;
+    readonly nullable: boolean;
+    readonly many: false | { readonly elementNullable: boolean };
+  },
+): ResolvedColumnValueObject {
+  return {
+    nullable: column.nullable,
+    many: column.many,
+    valueObject: resolveValueObject(storage, column.reference),
+  };
+}
+
+/**
+ * The value set a discriminator column names (ADR 309): keyed `<Base>.<field>`, and holding the variants' values sorted, so the order variants are declared in does not change the storage hash. The contract build writes it and `contract print` compares a contract's value set with it.
+ */
+export function discriminatorValueSet(
+  baseModelName: string,
+  discriminatorField: string,
+  variantValues: readonly string[],
+): { readonly name: string; readonly values: readonly string[] } {
+  return { name: `${baseModelName}.${discriminatorField}`, values: [...variantValues].sort() };
+}
 
 /**
  * The value object a reference names, with nested value objects inlined and enum members' values read from their storage value sets.
@@ -102,7 +138,7 @@ function resolveFieldType(
     };
   }
   const key = referenceKey(type);
-  if (reachesAny(storage, type, new Set(path))) return { kind: 'openObject' };
+  if (reachesAny(storage, type, new Set(path))) return { kind: 'anyObject' };
   return { kind: 'valueObject', valueObject: resolveEntered(storage, type, [...path, key]) };
 }
 

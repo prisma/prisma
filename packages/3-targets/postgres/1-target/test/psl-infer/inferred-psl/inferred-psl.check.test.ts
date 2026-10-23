@@ -21,7 +21,7 @@ const elementCandidate = postgresRenderCheckExpressions({
   columnName: 'tags',
   many: { elementNullable: false },
   memberValues: undefined,
-  valueObjectField: undefined,
+  valueObject: undefined,
 })[0];
 
 const derivedPrefix = composeCheckWirePrefix('users', 'tags', 'elementNotNull');

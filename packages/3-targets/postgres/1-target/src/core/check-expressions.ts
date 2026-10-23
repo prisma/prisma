@@ -1,6 +1,7 @@
 import type {
   CheckExpressionCandidate,
   CheckExpressionInput,
+  ResolvedColumnValueObject,
   ResolvedValueObject,
   ResolvedValueObjectField,
   ResolvedValueObjectFieldType,
@@ -62,11 +63,11 @@ export function postgresRenderCheckExpressions(
     });
   }
 
-  if (input.valueObjectField !== undefined) {
+  if (input.valueObject !== undefined) {
     candidates.push({
       kind: 'valueObject',
       columnName: input.columnName,
-      expression: valueObjectCheck(column, input.valueObjectField),
+      expression: valueObjectCheck(column, input.valueObject),
     });
   }
 
@@ -76,7 +77,12 @@ export function postgresRenderCheckExpressions(
 /**
  * One strict `jsonpath` predicate over the whole column value. Strict mode keeps a comparison from unwrapping an array, and `IS TRUE` makes a predicate that evaluates to unknown fail the check, as a CHECK would otherwise pass on NULL. Member values are read through `keyvalue()`, so an absent member is never an error.
  */
-function valueObjectCheck(column: string, field: ResolvedValueObjectField): string {
+function valueObjectCheck(column: string, columnValueObject: ResolvedColumnValueObject): string {
+  const field: ResolvedValueObjectField = {
+    nullable: columnValueObject.nullable,
+    many: columnValueObject.many,
+    type: { kind: 'valueObject', valueObject: columnValueObject.valueObject },
+  };
   const predicate = fieldPredicate(field, '$');
   invariant(predicate !== undefined, 'a column that holds a value object always has a predicate');
   const match = (path: string) =>
@@ -109,7 +115,7 @@ function valuePredicate(type: ResolvedValueObjectFieldType, path: string): strin
   switch (type.kind) {
     case 'valueObject':
       return objectPredicate(type.valueObject, path);
-    case 'openObject':
+    case 'anyObject':
       return `${path}.type() == "object"`;
     case 'scalar': {
       if (type.values !== undefined) return valueSetPredicate(type.values, path);
