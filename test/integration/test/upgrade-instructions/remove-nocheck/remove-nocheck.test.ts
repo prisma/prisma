@@ -177,6 +177,25 @@ describe('remove-nocheck', () => {
     });
   });
 
+  it('makes the row types of a contract.d.ts that the previous release emitted allow null elements', () => {
+    const run = runScript(copyFixture('before', 'rc18-emitted'));
+    expect({
+      status: run.status,
+      stdout: run.stdout,
+      stderr: run.stderr,
+      tree: readTree(run.root),
+    }).toEqual({
+      status: 0,
+      stdout: [
+        'Rewrote 2 files and renamed 0 snapshot directories. Storage hashes changed (old -> new):',
+        '  0c5fd80b68d670bb15fcc9e86cbb9efba034dc0b0acbd84612ddfbb8ca1037f2 -> 57072494c534223d6da18107bde649add196a5f3d17dd55216541b4efa330fba',
+        '',
+      ].join('\n'),
+      stderr: '',
+      tree: fixtureTree('after', 'rc18-emitted'),
+    });
+  });
+
   it('skips every directory whose name starts with a dot, such as a worktree under .claude', () => {
     const root = copyFixture('before');
     const hidden = join(root, '.claude/worktrees/feature');

@@ -524,10 +524,11 @@ function scanBlocks(text: string): Block[] {
       continue;
     }
     if (char === '{') {
+      const before = text.slice(Math.max(0, index - 200), index);
       const key =
         /(?:readonly\s+)?([\p{ID_Start}_$][\p{ID_Continue}$]*|'[^']*'|"[^"]*")\s*\??\s*:\s*$/u.exec(
-          text.slice(Math.max(0, index - 200), index),
-        );
+          before,
+        ) ?? /\b(?:type|namespace)\s+([\p{ID_Start}_$][\p{ID_Continue}$]*)\s*=?\s*$/u.exec(before);
       const block: Block = {
         start: index,
         end: text.length,
@@ -574,6 +575,48 @@ function fieldBlockKey(block: Block): string | undefined {
   return listKey(namespace.label, model.label, block.label);
 }
 
+const FIELD_TYPE_MAPS = new Set(['FieldOutputTypes', 'FieldInputTypes']);
+const COLUMN_TYPE_MAPS = new Set(['StorageColumnTypes', 'StorageColumnInputTypes']);
+
+/** Whether a row type member names a waived list: in the field and column type maps, keyed namespace, model or table, member; or in a `Models` type alias, `<namespace>_<Model>` or `<Model>`. */
+function isWaivedRowMember(
+  block: Block,
+  member: string,
+  columns: ReadonlySet<string>,
+  fields: ReadonlySet<string>,
+): boolean {
+  const namespace = block.parent;
+  const map = namespace?.parent;
+  if (map !== undefined && map.parent === undefined) {
+    const key = listKey(namespace?.label ?? '', block.label, member);
+    if (FIELD_TYPE_MAPS.has(map.label)) return fields.has(key);
+    if (COLUMN_TYPE_MAPS.has(map.label)) return columns.has(key);
+  }
+  if (namespace?.label !== 'Models' || namespace.parent !== undefined) return false;
+  return [...fields].some((key) => {
+    const [fieldNamespace, model, field] = key.split('\u0000');
+    return (
+      field === member && (block.label === model || block.label === `${fieldNamespace}_${model}`)
+    );
+  });
+}
+
+/** The end of the type argument that starts at `start`: the index of its closing `>`. */
+function typeArgumentEnd(text: string, start: number): number {
+  let depth = 1;
+  let quote: string | undefined;
+  for (let index = start; index < text.length; index++) {
+    const char = text[index];
+    if (quote !== undefined) {
+      if (char === '\\') index++;
+      else if (char === quote) quote = undefined;
+    } else if (char === "'" || char === '"' || char === '`') quote = char;
+    else if (char === '<') depth++;
+    else if (char === '>' && text[index - 1] !== '=' && --depth === 0) return index;
+  }
+  return -1;
+}
+
 function rewriteDts(
   text: string,
   columns: ReadonlySet<string>,
@@ -582,6 +625,17 @@ function rewriteDts(
 ): string {
   const blocks = scanBlocks(text);
   const edits: { start: number; end: number; text: string }[] = [];
+  const rowMember =
+    /(?:readonly\s+)?([\p{ID_Start}_$][\p{ID_Continue}$]*|'[^']*'|"[^"]*")\s*\??\s*:\s*ReadonlyArray</gu;
+  for (const match of text.matchAll(rowMember)) {
+    const block = innermostBlock(blocks, match.index);
+    const member = match[1]?.replace(/^['"]|['"]$/g, '') ?? '';
+    if (block === undefined || !isWaivedRowMember(block, member, columns, fields)) continue;
+    const elementStart = match.index + match[0].length;
+    const elementEnd = typeArgumentEnd(text, elementStart);
+    if (elementEnd === -1 || /\|\s*null\s*$/.test(text.slice(elementStart, elementEnd))) continue;
+    edits.push({ start: elementEnd, end: elementEnd, text: ' | null' });
+  }
   for (const match of text.matchAll(/readonly elementNullable:\s*false/g)) {
     const many = innermostBlock(blocks, match.index);
     const holder = many?.label === 'many' ? many.parent : undefined;

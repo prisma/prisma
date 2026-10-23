@@ -54,9 +54,9 @@ export function writeTree(root: string, tree: Tree): void {
   }
 }
 
-export function copyFixture(side: 'before' | 'after'): string {
+export function copyFixture(side: 'before' | 'after', fixture = '.'): string {
   const root = makeWorkDir();
-  cpSync(join(fixturesDir, side), root, { recursive: true });
+  cpSync(join(fixturesDir, fixture, side), root, { recursive: true });
   return root;
 }
 
@@ -72,6 +72,6 @@ export function runScript(root: string, script = appScript): Run {
   return { root, status: result.status, stdout: result.stdout, stderr: result.stderr };
 }
 
-export function fixtureTree(side: 'before' | 'after'): Tree {
-  return readTree(join(fixturesDir, side));
+export function fixtureTree(side: 'before' | 'after', fixture = '.'): Tree {
+  return readTree(join(fixturesDir, fixture, side));
 }
