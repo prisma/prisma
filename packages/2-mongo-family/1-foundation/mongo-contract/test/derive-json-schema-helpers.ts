@@ -63,18 +63,22 @@ export function memberEnumField(codecId: string, enumName: string): ContractValu
   };
 }
 
-function valueObjectType(entityName: string): ContractField['type'] {
+function valueObjectType(entityName: string, namespaceId = '__unbound__'): ContractField['type'] {
   return {
     kind: 'valueObject',
     plane: 'storage',
-    namespaceId: '__unbound__',
+    namespaceId,
     entityKind: 'valueObject',
     entityName,
   };
 }
 
-export function voField(name: string, nullable = false): FieldWithoutValueSet {
-  return { type: valueObjectType(name), nullable, many: false };
+export function voField(
+  name: string,
+  nullable = false,
+  namespaceId = '__unbound__',
+): FieldWithoutValueSet {
+  return { type: valueObjectType(name, namespaceId), nullable, many: false };
 }
 
 export function voArrayField(

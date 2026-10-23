@@ -121,7 +121,11 @@ export function buildMongoContractFromDefinition(
     ? deriveCollectionValidators({
         models: builtModels,
         lookups,
-        valueObjects: builtValueObjects,
+        storage: {
+          namespaces: {
+            [namespaceId]: { id: namespaceId, entries: { valueObject: builtValueObjects } },
+          },
+        },
         valueSets: storageValueSets,
         controlPolicies,
       })
