@@ -1,7 +1,6 @@
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { postgresRenderCheckExpressions } from '../src/core/check-expressions';
-import { postgresCodecDescriptorRegistry } from '../src/core/registry';
 
 describe('numeric membership checks in Postgres', () => {
   it.each(['smallint', 'integer', 'real', 'double precision', 'numeric'])(
@@ -12,16 +11,13 @@ describe('numeric membership checks in Postgres', () => {
           const fractional = !['smallint', 'integer'].includes(storageType);
           const memberValues = fractional ? [-3, 1, 2.5] : [-3, 1, 2];
           for (const many of [false, true]) {
-            const checks = postgresRenderCheckExpressions(
-              {
-                tableName: 'members',
-                columnName: 'value',
-                many: many ? { elementNullable: false } : false,
-                memberValues,
-                valueObject: undefined,
-              },
-              postgresCodecDescriptorRegistry,
-            );
+            const checks = postgresRenderCheckExpressions({
+              tableName: 'members',
+              columnName: 'value',
+              many: many ? { elementNullable: false } : false,
+              memberValues,
+              valueObject: undefined,
+            });
             await client.query(
               `CREATE TABLE members (value ${storageType}${many ? '[]' : ''}, ${checks.map(({ expression }) => `CHECK (${expression})`).join(', ')})`,
             );
@@ -59,16 +55,13 @@ describe('list membership checks in Postgres', () => {
             labels: { type: 'varchar(20)', members: ['say "hi"', 'back\\slash', "o'brien"] },
           };
           const checks = Object.entries(columns).flatMap(([columnName, { members }]) =>
-            postgresRenderCheckExpressions(
-              {
-                tableName: 'lists',
-                columnName,
-                many: { elementNullable: false },
-                memberValues: members,
-                valueObject: undefined,
-              },
-              postgresCodecDescriptorRegistry,
-            ),
+            postgresRenderCheckExpressions({
+              tableName: 'lists',
+              columnName,
+              many: { elementNullable: false },
+              memberValues: members,
+              valueObject: undefined,
+            }),
           );
           await client.query(
             `CREATE TABLE lists (id int, ${Object.entries(columns)
@@ -131,16 +124,13 @@ describe('list membership checks in Postgres', () => {
           const members = ['a,b', '{brace}', '', 'NULL', ' lead'];
           const nearMisses = ['a', 'brace', ' ', 'Null', 'lead'];
           const checks = [false, true].flatMap((many) =>
-            postgresRenderCheckExpressions(
-              {
-                tableName: 'labels',
-                columnName: many ? 'list' : 'scalar',
-                many: many ? { elementNullable: false } : false,
-                memberValues: members,
-                valueObject: undefined,
-              },
-              postgresCodecDescriptorRegistry,
-            ),
+            postgresRenderCheckExpressions({
+              tableName: 'labels',
+              columnName: many ? 'list' : 'scalar',
+              many: many ? { elementNullable: false } : false,
+              memberValues: members,
+              valueObject: undefined,
+            }),
           );
           await client.query(
             `CREATE TABLE labels (id serial, scalar text, list text[], ${checks.map(({ expression }) => `CHECK (${expression})`).join(', ')})`,

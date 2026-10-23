@@ -14,10 +14,7 @@ import {
   sql,
 } from '@internal/sql-contract-ts/contract-builder';
 import { composeCheckWirePrefix, computeCheckContentHash } from '@internal/sql-schema-ir/naming';
-import {
-  createPostgresBuiltinCodecLookup,
-  postgresCodecDescriptorRegistry,
-} from '@internal/target-postgres/codecs';
+import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
 import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import {
   PostgresDatabaseSchemaNode,
@@ -106,16 +103,13 @@ function checksForColumn(
     readonly memberValues?: readonly string[];
   },
 ): CheckConstraint[] {
-  return postgresRenderCheckExpressions(
-    {
-      tableName,
-      columnName,
-      many: options.many,
-      memberValues: options.memberValues,
-      valueObject: undefined,
-    },
-    postgresCodecDescriptorRegistry,
-  ).map(
+  return postgresRenderCheckExpressions({
+    tableName,
+    columnName,
+    many: options.many,
+    memberValues: options.memberValues,
+    valueObject: undefined,
+  }).map(
     (candidate) =>
       new CheckConstraint({
         naming: {

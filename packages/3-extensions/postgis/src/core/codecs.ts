@@ -115,7 +115,7 @@ export class PostgisGeometryCodec extends CodecImpl<
 }
 
 export class PostgisGeometryDescriptor extends PostgresCodecDescriptor<GeometryParams> {
-  override readonly valueObjectJsonType = 'presenceOnly' as const;
+  override readonly jsonType = 'object' as const;
   /** The HEXEWKB text PostgreSQL prints for a geometry, which `fromWire` reads as it reads a row. A JSON constructor handed the geometry itself may write GeoJSON instead. */
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return CastExpr.as(expression, 'text');

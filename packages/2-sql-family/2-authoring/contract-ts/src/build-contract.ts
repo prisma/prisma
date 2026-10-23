@@ -214,7 +214,6 @@ function writeDiscriminatorValueSets(
   tablesByNamespace: Record<string, Record<string, StorageTableInput>>,
   storageValueSetsByNs: Record<string, Record<string, StorageValueSetInput>>,
   checkRendererFor: (table: StorageTableInput) => CheckExpressionRenderer | undefined,
-  codecLookup: CodecLookupWithDescriptors,
 ): void {
   const defaultNamespaceId = definition.target.defaultNamespaceId;
   for (const model of definition.models) {
@@ -256,16 +255,13 @@ function writeDiscriminatorValueSets(
         ? []
         : lowerRenderedChecks(
             model.tableName,
-            render(
-              {
-                tableName: model.tableName,
-                columnName,
-                many: false,
-                memberValues: values,
-                valueObject: undefined,
-              },
-              codecLookup,
-            ),
+            render({
+              tableName: model.tableName,
+              columnName,
+              many: false,
+              memberValues: values,
+              valueObject: undefined,
+            }),
           );
     const namespaceTables = tablesByNamespace[namespaceId] ?? {};
     namespaceTables[model.tableName] = {
@@ -392,16 +388,11 @@ export function buildSqlContractFromDefinition(
     namespaceTables[table.tableName] = lowerTable(table, tableLoweringContext);
     tablesByNamespace[table.namespaceId] = namespaceTables;
   }
-  writeDiscriminatorValueSets(
-    definition,
-    tablesByNamespace,
-    storageValueSetsByNs,
-    (table) =>
-      renderCheckExpressions !== undefined &&
-      effectiveControlPolicy(table.control, definition.defaultControlPolicy) === 'managed'
-        ? renderCheckExpressions
-        : undefined,
-    codecLookup,
+  writeDiscriminatorValueSets(definition, tablesByNamespace, storageValueSetsByNs, (table) =>
+    renderCheckExpressions !== undefined &&
+    effectiveControlPolicy(table.control, definition.defaultControlPolicy) === 'managed'
+      ? renderCheckExpressions
+      : undefined,
   );
 
   const executionDefaults: ExecutionMutationDefault[] = components.flatMap(

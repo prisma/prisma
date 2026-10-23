@@ -159,23 +159,24 @@ export function lowerColumn(
     return { column, derivedChecks: [] };
   }
   const { enumTypeHandle } = description;
-  const candidates = render(
-    {
-      tableName: placement.tableName,
-      columnName: description.columnName,
-      many,
-      memberValues:
-        enumTypeHandle !== undefined ? checkMemberValues(enumTypeHandle, codecLookup) : undefined,
-      valueObject:
-        description.valueObject !== undefined
-          ? resolveColumnValueObject(context.storage, {
+  const candidates = render({
+    tableName: placement.tableName,
+    columnName: description.columnName,
+    many,
+    memberValues:
+      enumTypeHandle !== undefined ? checkMemberValues(enumTypeHandle, codecLookup) : undefined,
+    valueObject:
+      description.valueObject !== undefined
+        ? resolveColumnValueObject(
+            context.storage,
+            {
               reference: description.valueObject.reference,
               nullable: description.nullable,
               many: description.valueObject.many,
-            })
-          : undefined,
-    },
-    codecLookup,
-  );
+            },
+            codecLookup,
+          )
+        : undefined,
+  });
   return { column, derivedChecks: lowerRenderedChecks(placement.tableName, candidates) };
 }

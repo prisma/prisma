@@ -32,15 +32,15 @@ changes:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
         - '\bValueObjectFieldType\b'
-  - id: postgres-codec-value-object-json-type
+  - id: postgres-codec-json-type
     summary: |
-      A PostgreSQL codec descriptor declares `valueObjectJsonType`: what the derived check of a value object column accepts for a member of the codec. It is `'string'`, `'number'` or `'boolean'` for the JSON type the SQL ORM writes for the codec's value, `'anyJson'` for a codec whose value is any JSON value, or `'presenceOnly'` when the check should only require the member to be present. A class that extends `PostgresCodecDescriptor` declares it as a property, and `postgresCodec(template, options)` takes it in its options. A registry refuses a descriptor without it, with `RUNTIME.CODEC_DESCRIPTOR_INVALID`. `postgresRenderCheckExpressions` takes the stack's codec lookup as a second argument.
+      A PostgreSQL codec descriptor declares `jsonType`: the JSON type the codec's value is written as inside a JSON document, one of `'string'`, `'number'`, `'boolean'`, `'object'`, `'array'` or `'any'`. `'any'` means any JSON value, including `null`, as for a JSON codec. The derived check of a value object column requires a member to be of its codec's JSON type, and a required member is never JSON `null` unless its codec's type is `'any'`. A class that extends `PostgresCodecDescriptor`, or an object that implements `AnyPostgresCodecDescriptor`, declares it as a property. `postgresCodec(template, options)` reads it from the template, so a family codec template declares it. A registry accepts a descriptor without it, but a contract build that derives the check of a value object whose member uses such a codec refuses it with `CONTRACT.CODEC_JSON_TYPE_MISSING`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
         - '\bextends\s+PostgresCodecDescriptor\b'
+        - '\bAnyPostgresCodecDescriptor\b'
         - '\bpostgresCodec\s*\('
-        - '\bpostgresRenderCheckExpressions\s*\('
 ---
 
 # Value objects are storage entities
@@ -117,7 +117,7 @@ const reference: ValueObjectReference = {
 };
 ```
 
-## `postgres-codec-value-object-json-type`
+## `postgres-codec-json-type`
 
 ```ts
 // before
@@ -128,10 +128,10 @@ export class CitextDescriptor extends PostgresCodecDescriptor<void> {
 
 // after
 export class CitextDescriptor extends PostgresCodecDescriptor<void> {
-  override readonly valueObjectJsonType = 'string' as const;
+  override readonly jsonType = 'string' as const;
   override readonly codecId = 'citext/text@1';
   // ...
 }
 ```
 
-Choose `'presenceOnly'` for a codec whose value the SQL ORM does not write as one JSON string, number or boolean, such as a vector or a geometry. A call of `postgresRenderCheckExpressions(input)` becomes `postgresRenderCheckExpressions(input, codecLookup)`, where `codecLookup` is the stack's codec lookup.
+Declare the type the codec's value is written as when the application value is turned into JSON: a vector is `'array'`, a geometry and bytes are `'object'`, and a JSON codec is `'any'`. A template passed to `postgresCodec(template, options)` declares `jsonType` itself, as the `sql/*` family codecs do.

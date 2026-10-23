@@ -140,7 +140,7 @@ const vectorTextJsonProjection = (expression: ProjectionExpr): ProjectionExpr =>
   CastExpr.as(expression, 'text');
 
 export class PgVectorDescriptor extends PostgresCodecDescriptor<VectorParams> {
-  override readonly valueObjectJsonType = 'presenceOnly' as const;
+  override readonly jsonType = 'array' as const;
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return vectorTextJsonProjection(expression);
   }

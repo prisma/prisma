@@ -249,8 +249,8 @@ SQL PSL resolves a composite type by its bare name across all namespaces and wri
 
 Found in the review of the value object storage PR, 2026-10-23. Both limits are older than that PR.
 
-- A `BigInt` member of a value object cannot be written: the `pg/jsonb@1` codec throws "Do not know how to serialize a BigInt".
-- A `Bytes` member is written as an object of byte indexes, such as `{"0":1,"1":2}`, not as bytes.
+- A `BigInt` member of a value object cannot be written: the `pg/jsonb@1` codec throws "Do not know how to serialize a BigInt". The same holds for a `pg/interval@1` member, whose value holds a `bigint`. Their codecs declare the JSON type their value would have: `pg/int8@1` and `pg/unboundedint@1` declare `number`, and `pg/interval@1` declares `object`.
+- A `Bytes` member is written as an object of byte indexes, such as `{"0":1,"1":2}`, not as bytes. Its codec declares `object`, the type it is written as today.
 
 ## The SQL TypeScript builder has no value objects
 

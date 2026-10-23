@@ -1,4 +1,3 @@
-import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type {
   CheckExpressionCandidate,
   CheckExpressionInput,
@@ -8,7 +7,6 @@ import type {
   ResolvedValueObjectFieldType,
 } from '@internal/sql-contract/check-expressions';
 import { invariant } from '@internal/utils/assertions';
-import { isPostgresCodecDescriptor, type ValueObjectJsonType } from './codec-descriptor';
 import { escapeLiteral, quoteIdentifier } from './sql-utils';
 
 /**
@@ -27,7 +25,6 @@ import { escapeLiteral, quoteIdentifier } from './sql-utils';
  */
 export function postgresRenderCheckExpressions(
   input: CheckExpressionInput,
-  codecLookup: Pick<CodecLookupWithDescriptors, 'descriptorFor'>,
 ): readonly CheckExpressionCandidate[] {
   const candidates: CheckExpressionCandidate[] = [];
   const column = quoteIdentifier(input.columnName);
@@ -66,43 +63,23 @@ export function postgresRenderCheckExpressions(
     candidates.push({
       kind: 'shape',
       columnName: input.columnName,
-      expression: valueObjectCheck(column, input.valueObject, jsonTypeReader(codecLookup)),
+      expression: valueObjectCheck(column, input.valueObject),
     });
   }
 
   return candidates;
 }
 
-type JsonTypeOfCodec = (codecId: string) => ValueObjectJsonType;
-
-/** The JSON type each codec declares for a value object member, read from the codec's descriptor. */
-function jsonTypeReader(
-  codecLookup: Pick<CodecLookupWithDescriptors, 'descriptorFor'>,
-): JsonTypeOfCodec {
-  return (codecId) => {
-    const descriptor = codecLookup.descriptorFor(codecId);
-    invariant(
-      descriptor !== undefined && isPostgresCodecDescriptor(descriptor),
-      `value object member codec "${codecId}" is not a PostgreSQL codec of the stack; the contract validators refuse a codec the stack does not register`,
-    );
-    return descriptor.valueObjectJsonType;
-  };
-}
-
 /**
  * One strict `jsonpath` predicate over the whole column value. Strict mode keeps a comparison from unwrapping an array, and `IS TRUE` makes a predicate that evaluates to unknown fail the check, as a CHECK would otherwise pass on NULL. Member values are read through `keyvalue()`, so an absent member is never an error.
  */
-function valueObjectCheck(
-  column: string,
-  columnValueObject: ResolvedColumnValueObject,
-  jsonTypeOf: JsonTypeOfCodec,
-): string {
+function valueObjectCheck(column: string, columnValueObject: ResolvedColumnValueObject): string {
   const field: ResolvedValueObjectField = {
     nullable: columnValueObject.nullable,
     many: columnValueObject.many,
     type: { kind: 'valueObject', valueObject: columnValueObject.valueObject },
   };
-  const predicate = fieldPredicate(field, '$', jsonTypeOf);
+  const predicate = fieldPredicate(field, '$');
   invariant(predicate !== undefined, 'a column that holds a value object always has a predicate');
   const match = (path: string) =>
     `jsonb_path_match(${column}, '${escapeLiteral(`strict ${path}`)}') IS TRUE`;
@@ -112,13 +89,9 @@ function valueObjectCheck(
 }
 
 /** What the value at `path` must satisfy, or `undefined` when any value is accepted. */
-function fieldPredicate(
-  field: ResolvedValueObjectField,
-  path: string,
-  jsonTypeOf: JsonTypeOfCodec,
-): string | undefined {
-  if (field.many === false) return valuePredicate(field.type, path, jsonTypeOf);
-  const element = valuePredicate(field.type, '@', jsonTypeOf);
+function fieldPredicate(field: ResolvedValueObjectField, path: string): string | undefined {
+  if (field.many === false) return valuePredicate(field.type, path);
+  const element = valuePredicate(field.type, '@');
   const { elementNullable } = field.many;
   const invalidElement =
     element === undefined
@@ -134,23 +107,16 @@ function fieldPredicate(
     : `${isArray} && !exists(${path}[*] ? (${invalidElement}))`;
 }
 
-function valuePredicate(
-  type: ResolvedValueObjectFieldType,
-  path: string,
-  jsonTypeOf: JsonTypeOfCodec,
-): string | undefined {
+/** A member of any JSON type accepts every value, JSON `null` included; a member of any other JSON type is of that type, so never JSON `null`. */
+function valuePredicate(type: ResolvedValueObjectFieldType, path: string): string | undefined {
   switch (type.kind) {
     case 'valueObject':
-      return objectPredicate(type.valueObject, path, jsonTypeOf);
+      return objectPredicate(type.valueObject, path);
     case 'anyObject':
       return `${path}.type() == "object"`;
-    case 'scalar': {
+    case 'scalar':
       if (type.values !== undefined) return valueSetPredicate(type.values, path);
-      const jsonType = jsonTypeOf(type.codecId);
-      return jsonType === 'anyJson' || jsonType === 'presenceOnly'
-        ? undefined
-        : `${path}.type() == "${jsonType}"`;
-    }
+      return type.jsonType === 'any' ? undefined : `${path}.type() == "${type.jsonType}"`;
   }
 }
 
@@ -165,21 +131,13 @@ function valueSetPredicate(values: readonly (string | number)[], path: string): 
   return `(${alternatives('string', strings)}) || (${alternatives('number', numbers)})`;
 }
 
-function objectPredicate(
-  valueObject: ResolvedValueObject,
-  path: string,
-  jsonTypeOf: JsonTypeOfCodec,
-): string {
+function objectPredicate(valueObject: ResolvedValueObject, path: string): string {
   const names = Object.keys(valueObject.fields).sort();
   const members = names.flatMap((name) => {
     const field = valueObject.fields[name];
     invariant(field !== undefined, `value object member "${name}" is missing`);
     const isMember = `@.key == ${jsonPathLiteral(name)}`;
-    const predicate = requiredMemberPredicate(
-      field,
-      fieldPredicate(field, '@.value', jsonTypeOf),
-      jsonTypeOf,
-    );
+    const predicate = fieldPredicate(field, '@.value');
     if (!field.nullable) {
       return [
         predicate === undefined
@@ -198,15 +156,6 @@ function objectPredicate(
       ? `!exists(${path}.keyvalue())`
       : `!exists(${path}.keyvalue() ? (${names.map((name) => `@.key != ${jsonPathLiteral(name)}`).join(' && ')}))`;
   return [`${path}.type() == "object"`, ...members, otherKey].join(' && ');
-}
-
-function requiredMemberPredicate(
-  field: ResolvedValueObjectField,
-  predicate: string | undefined,
-  jsonTypeOf: JsonTypeOfCodec,
-): string | undefined {
-  if (predicate !== undefined || field.nullable || field.type.kind !== 'scalar') return predicate;
-  return jsonTypeOf(field.type.codecId) === 'anyJson' ? undefined : '@.value.type() != "null"';
 }
 
 function jsonPathLiteral(value: string | number): string {

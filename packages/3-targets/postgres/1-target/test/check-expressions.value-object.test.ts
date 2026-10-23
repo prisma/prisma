@@ -4,15 +4,15 @@ import type {
   ResolvedValueObjectField,
   ResolvedValueObjectFieldType,
 } from '@internal/sql-contract/check-expressions';
+import type { JsonType } from '@internal/sql-contract/codec-json-type';
 import { describe, expect, it } from 'vitest';
 import { postgresRenderCheckExpressions } from '../src/core/check-expressions';
-import { postgresCodecDescriptorRegistry } from '../src/core/registry';
 
 function scalar(
-  codecId: string,
+  jsonType: JsonType,
   values: readonly (string | number)[] | undefined = undefined,
 ): ResolvedValueObjectFieldType {
-  return { kind: 'scalar', codecId, values };
+  return { kind: 'scalar', jsonType, values };
 }
 
 function member(
@@ -30,19 +30,16 @@ function render(
   valueObject: ResolvedValueObject,
   column: Partial<Pick<ResolvedColumnValueObject, 'nullable' | 'many'>> = {},
 ): readonly { readonly kind: string; readonly expression: string }[] {
-  return postgresRenderCheckExpressions(
-    {
-      tableName: 'user',
-      columnName: 'address',
-      many: false,
-      memberValues: undefined,
-      valueObject: { nullable: false, many: false, ...column, valueObject },
-    },
-    postgresCodecDescriptorRegistry,
-  ).map(({ kind, expression }) => ({ kind, expression }));
+  return postgresRenderCheckExpressions({
+    tableName: 'user',
+    columnName: 'address',
+    many: false,
+    memberValues: undefined,
+    valueObject: { nullable: false, many: false, ...column, valueObject },
+  }).map(({ kind, expression }) => ({ kind, expression }));
 }
 
-const street = member(scalar('pg/text@1'));
+const street = member(scalar('string'));
 const flat: ResolvedValueObject = { fields: { street } };
 
 const isObject = '$.type() == "object"';
@@ -69,7 +66,7 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
   });
 
   it('lets a nullable member be absent or JSON null', () => {
-    const zip = member(scalar('pg/int4@1'), { nullable: true });
+    const zip = member(scalar('number'), { nullable: true });
     expect(render({ fields: { zip } })).toEqual([
       {
         kind: 'shape',
@@ -79,8 +76,8 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
   });
 
   it('checks list members and their element nullability', () => {
-    const tags = member(scalar('pg/text@1'), { many: { elementNullable: false } });
-    const flags = member(scalar('pg/bool@1'), { many: { elementNullable: true } });
+    const tags = member(scalar('string'), { many: { elementNullable: false } });
+    const flags = member(scalar('boolean'), { many: { elementNullable: true } });
     expect(render({ fields: { tags, flags } })).toEqual([
       {
         kind: 'shape',
@@ -90,7 +87,7 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
   });
 
   it('restricts an enum member to its value set', () => {
-    const kind = member(scalar('pg/text@1', ['home', "o'brien"]));
+    const kind = member(scalar('string', ['home', "o'brien"]));
     expect(render({ fields: { kind } })).toEqual([
       {
         kind: 'shape',
@@ -100,7 +97,7 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
   });
 
   it('restricts a numeric enum member to its value set', () => {
-    const rank = member(scalar('pg/int4@1', [1, -2]));
+    const rank = member(scalar('number', [1, -2]));
     expect(render({ fields: { rank } })).toEqual([
       {
         kind: 'shape',
@@ -141,21 +138,22 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
     ]);
   });
 
-  it('refuses JSON null for a required member whose codec declares presence only, and checks only the presence of a JSON member', () => {
-    const bytes = member(scalar('pg/bytea@1'));
-    const data = member(scalar('pg/jsonb@1'));
-    const notes = member(scalar('pg/jsonb@1'), { nullable: true });
-    const blobs = member(scalar('pg/bytea@1'), { many: { elementNullable: false } });
-    expect(render({ fields: { blobs, bytes, data, notes } })).toEqual([
+  it('requires an object or array member to be of its JSON type, and lets a member of any JSON type hold any value, JSON null included', () => {
+    const bytes = member(scalar('object'));
+    const data = member(scalar('any'));
+    const notes = member(scalar('any'), { nullable: true });
+    const tags = member(scalar('array'));
+    const blobs = member(scalar('object'), { many: { elementNullable: false } });
+    expect(render({ fields: { blobs, bytes, data, notes, tags } })).toEqual([
       {
         kind: 'shape',
-        expression: `jsonb_path_match("address", 'strict ${isObject} && exists($.keyvalue() ? (@.key == "blobs" && (@.value.type() == "array" && !exists(@.value[*] ? (@.type() == "null"))))) && exists($.keyvalue() ? (@.key == "bytes" && (@.value.type() != "null"))) && exists($.keyvalue() ? (@.key == "data")) && !exists($.keyvalue() ? (@.key != "blobs" && @.key != "bytes" && @.key != "data" && @.key != "notes"))') IS TRUE`,
+        expression: `jsonb_path_match("address", 'strict ${isObject} && exists($.keyvalue() ? (@.key == "blobs" && (@.value.type() == "array" && !exists(@.value[*] ? (!((@.type() == "object"))))))) && exists($.keyvalue() ? (@.key == "bytes" && (@.value.type() == "object"))) && exists($.keyvalue() ? (@.key == "data")) && exists($.keyvalue() ? (@.key == "tags" && (@.value.type() == "array"))) && !exists($.keyvalue() ? (@.key != "blobs" && @.key != "bytes" && @.key != "data" && @.key != "notes" && @.key != "tags"))') IS TRUE`,
       },
     ]);
   });
 
-  it('requires a decimal member to be a JSON string, as the ORM writes it', () => {
-    const amount = member(scalar('pg/numeric@1'));
+  it('requires a member written as a JSON string to be a string', () => {
+    const amount = member(scalar('string'));
     expect(render({ fields: { amount } })).toEqual([
       {
         kind: 'shape',
@@ -165,7 +163,7 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
   });
 
   it('writes member names as jsonpath strings', () => {
-    const quoted = member(scalar('pg/text@1'));
+    const quoted = member(scalar('string'));
     expect(render({ fields: { 'say "hi"': quoted } })).toEqual([
       {
         kind: 'shape',

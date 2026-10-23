@@ -1,4 +1,3 @@
-import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type { PslModelAttribute } from '@internal/framework-components/psl-ast';
 import type { ResolvedColumnValueObject } from '@internal/sql-contract/check-expressions';
 import { escapePslString } from '@internal/sql-contract/data-type-support';
@@ -50,7 +49,6 @@ export function derivedChecks(input: {
   readonly memberValueSets: ReadonlyMap<string, readonly unknown[]>;
   /** The value object field each column that holds one stores, by column name. */
   readonly columnValueObjects: ReadonlyMap<string, ResolvedColumnValueObject>;
-  readonly codecLookup: Pick<CodecLookupWithDescriptors, 'descriptorFor'>;
 }): ReadonlyMap<string, DerivedCheck> {
   const checks = new Map<string, DerivedCheck>();
   if (!input.managed) return checks;
@@ -62,16 +60,13 @@ export function derivedChecks(input: {
     const memberValues = setValues?.filter(
       (value): value is string | number => typeof value === 'string' || typeof value === 'number',
     );
-    for (const candidate of postgresRenderCheckExpressions(
-      {
-        tableName: input.tableName,
-        columnName,
-        many: column.many,
-        memberValues: memberValues?.length === setValues?.length ? memberValues : undefined,
-        valueObject: input.columnValueObjects.get(columnName),
-      },
-      input.codecLookup,
-    )) {
+    for (const candidate of postgresRenderCheckExpressions({
+      tableName: input.tableName,
+      columnName,
+      many: column.many,
+      memberValues: memberValues?.length === setValues?.length ? memberValues : undefined,
+      valueObject: input.columnValueObjects.get(columnName),
+    })) {
       const prefix = composeCheckWirePrefix(input.tableName, columnName, candidate.kind);
       checks.set(formatWireName(prefix, computeCheckContentHash(candidate.expression)), {
         prefix,

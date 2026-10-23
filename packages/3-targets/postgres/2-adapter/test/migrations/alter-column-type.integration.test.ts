@@ -8,7 +8,6 @@ import {
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { CheckConstraint, SqlStorage } from '@internal/sql-contract/types';
 import { composeCheckWirePrefix, computeCheckContentHash } from '@internal/sql-schema-ir/naming';
-import { postgresCodecDescriptorRegistry } from '@internal/target-postgres/codecs';
 import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import { AlterColumnTypeCall } from '@internal/target-postgres/op-factory-call';
 import { createPostgresMigrationPlanner } from '@internal/target-postgres/planner';
@@ -47,16 +46,13 @@ const intList = {
 const textList = { ...intList, dataType: 'pg/text', codecId: 'pg/text@1' };
 
 function elementChecks(): CheckConstraint[] {
-  return postgresRenderCheckExpressions(
-    {
-      tableName: 'Item',
-      columnName: 'tags',
-      many: { elementNullable: false },
-      memberValues: undefined,
-      valueObject: undefined,
-    },
-    postgresCodecDescriptorRegistry,
-  ).map(
+  return postgresRenderCheckExpressions({
+    tableName: 'Item',
+    columnName: 'tags',
+    many: { elementNullable: false },
+    memberValues: undefined,
+    valueObject: undefined,
+  }).map(
     (candidate) =>
       new CheckConstraint({
         naming: {

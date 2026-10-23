@@ -8,5 +8,4 @@ export {
   type PostgresCodecDescriptorRegistry,
   type PostgresCodecOptions,
   postgresCodec,
-  type ValueObjectJsonType,
 } from '../core/codec-descriptor';

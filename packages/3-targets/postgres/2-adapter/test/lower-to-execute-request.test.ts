@@ -48,12 +48,14 @@ const transformingCodecDescriptor: AnyCodecDescriptor = {
   isParameterized: false,
   factory: () => () => transformingCodec,
 };
-const transformingDescriptor = postgresCodec(transformingCodecDescriptor, {
-  valueObjectJsonType: 'presenceOnly',
-  dataType: pgText,
-  jsonProjection: (expression: ProjectionExpr) => expression,
-  factory: () => () => transformingCodec,
-});
+const transformingDescriptor = postgresCodec(
+  Object.assign(transformingCodecDescriptor, { jsonType: 'any' as const }),
+  {
+    dataType: pgText,
+    jsonProjection: (expression: ProjectionExpr) => expression,
+    factory: () => () => transformingCodec,
+  },
+);
 const transformingCodecRegistry = createPostgresCodecRegistryWithBuiltins([transformingDescriptor]);
 
 describe('PostgresControlAdapter.lowerToExecuteRequest — DDL literal defaults', () => {
@@ -323,12 +325,14 @@ class ExtTransformDescriptor extends CodecDescriptorImpl<void> {
 }
 
 const extDescriptor = new ExtTransformDescriptor();
-const extTransformDescriptor = postgresCodec(extDescriptor, {
-  valueObjectJsonType: 'presenceOnly',
-  dataType: pgText,
-  jsonProjection: (expression: ProjectionExpr) => expression,
-  factory: () => extDescriptor.factory(),
-});
+const extTransformDescriptor = postgresCodec(
+  Object.assign(extDescriptor, { jsonType: 'any' as const }),
+  {
+    dataType: pgText,
+    jsonProjection: (expression: ProjectionExpr) => expression,
+    factory: () => extDescriptor.factory(),
+  },
+);
 
 function buildExtContractAndTable() {
   const tableColumns: StorageTableInput['columns'] = {

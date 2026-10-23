@@ -8,7 +8,11 @@ import { valueObjectAt } from '@internal/contract/types';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type { CheckKind } from '@internal/sql-schema-ir/naming';
 import { invariant } from '@internal/utils/assertions';
+import { declaredJsonType, type JsonType } from './codec-json-type';
+import { contractError } from './contract-errors';
 import { isStorageValueSet } from './ir/storage-value-set';
+
+type CodecDescriptors = Pick<CodecLookupWithDescriptors, 'descriptorFor'>;
 
 /** A value object with each nested value object inlined, as the target's check renderer reads it. */
 export interface ResolvedValueObject {
@@ -22,12 +26,12 @@ export interface ResolvedValueObjectField {
 }
 
 /**
- * `values` holds the stored values of the value set an enum member refers to. `anyObject` stands where a value object that contains itself refers back into itself: any object is accepted there, as the MongoDB validator does.
+ * `jsonType` is the JSON type the member's codec declares. `values` holds the stored values of the value set an enum member refers to. `anyObject` stands where a value object that contains itself refers back into itself: any object is accepted there, as the MongoDB validator does.
  */
 export type ResolvedValueObjectFieldType =
   | {
       readonly kind: 'scalar';
-      readonly codecId: string;
+      readonly jsonType: JsonType;
       readonly values: readonly (string | number)[] | undefined;
     }
   | { readonly kind: 'valueObject'; readonly valueObject: ResolvedValueObject }
@@ -58,10 +62,8 @@ export interface CheckExpressionCandidate {
   readonly expression: string;
 }
 
-/** A target's check renderer. It reads what it needs of a value object member's codec, such as the JSON type the codec declares, through `codecLookup`. */
 export type CheckExpressionRenderer = (
   input: CheckExpressionInput,
-  codecLookup: Pick<CodecLookupWithDescriptors, 'descriptorFor'>,
 ) => ReadonlyArray<CheckExpressionCandidate>;
 
 /**
@@ -74,11 +76,12 @@ export function resolveColumnValueObject(
     readonly nullable: boolean;
     readonly many: false | { readonly elementNullable: boolean };
   },
+  codecs: CodecDescriptors,
 ): ResolvedColumnValueObject {
   return {
     nullable: column.nullable,
     many: column.many,
-    valueObject: resolveValueObject(storage, column.reference),
+    valueObject: resolveValueObject(storage, column.reference, codecs),
   };
 }
 
@@ -94,19 +97,21 @@ export function discriminatorValueSet(
 }
 
 /**
- * The value object a reference names, with nested value objects inlined and enum members' values read from their storage value sets.
+ * The value object a reference names, with nested value objects inlined, enum members' values read from their storage value sets, and each scalar member's JSON type read from its codec.
  */
 export function resolveValueObject(
   storage: ContractWithDomain['storage'],
   reference: EntityCoordinate<'storage', 'valueObject'>,
+  codecs: CodecDescriptors,
 ): ResolvedValueObject {
-  return resolveEntered(storage, reference, [referenceKey(reference)]);
+  return resolveEntered(storage, reference, [referenceKey(reference)], codecs);
 }
 
 function resolveEntered(
   storage: ContractWithDomain['storage'],
   reference: EntityCoordinate<'storage', 'valueObject'>,
   path: readonly string[],
+  codecs: CodecDescriptors,
 ): ResolvedValueObject {
   const valueObject = requiredValueObject(storage, reference);
   return {
@@ -116,18 +121,26 @@ function resolveEntered(
         {
           nullable: field.nullable,
           many: field.many ?? false,
-          type: resolveFieldType(storage, field, path),
+          type: resolveFieldType(storage, { reference, name, field }, path, codecs),
         },
       ]),
     ),
   };
 }
 
+interface ValueObjectMember {
+  readonly reference: EntityCoordinate<'storage', 'valueObject'>;
+  readonly name: string;
+  readonly field: ContractValueObjectField;
+}
+
 function resolveFieldType(
   storage: ContractWithDomain['storage'],
-  field: ContractValueObjectField,
+  member: ValueObjectMember,
   path: readonly string[],
+  codecs: CodecDescriptors,
 ): ResolvedValueObjectFieldType {
+  const { field } = member;
   const { type } = field;
   invariant(
     type.kind !== 'union' && field.dict !== true,
@@ -136,13 +149,40 @@ function resolveFieldType(
   if (type.kind === 'scalar') {
     return {
       kind: 'scalar',
-      codecId: type.codecId,
+      jsonType: memberJsonType(member, type.codecId, codecs),
       values: field.valueSet === undefined ? undefined : valueSetValues(storage, field.valueSet),
     };
   }
   const key = referenceKey(type);
   if (reachesAny(storage, type, new Set(path))) return { kind: 'anyObject' };
-  return { kind: 'valueObject', valueObject: resolveEntered(storage, type, [...path, key]) };
+  return {
+    kind: 'valueObject',
+    valueObject: resolveEntered(storage, type, [...path, key], codecs),
+  };
+}
+
+function memberJsonType(
+  member: ValueObjectMember,
+  codecId: string,
+  codecs: CodecDescriptors,
+): JsonType {
+  const descriptor = codecs.descriptorFor(codecId);
+  invariant(
+    descriptor !== undefined,
+    `value object member codec "${codecId}" is not a codec of the stack; the contract validators refuse a codec the stack does not register`,
+  );
+  const jsonType = declaredJsonType(descriptor);
+  if (jsonType !== undefined) return jsonType;
+  const valueObject = `${member.reference.namespaceId}:${member.reference.entityName}`;
+  throw contractError(
+    'CONTRACT.CODEC_JSON_TYPE_MISSING',
+    `The codec "${codecId}" of value object "${valueObject}" member "${member.name}" declares no jsonType, so the check of the value object cannot be derived.`,
+    {
+      why: 'The check of a value object column requires each member to be of the JSON type its codec declares, and this codec was built against a release before codecs declared one.',
+      fix: `The author of the codec "${codecId}" adds a jsonType to its descriptor, the JSON type its value is written as inside a JSON document.`,
+      meta: { codecId, valueObject, member: member.name, property: 'jsonType' },
+    },
+  );
 }
 
 /**

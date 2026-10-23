@@ -111,6 +111,7 @@ function nativeEnumsOf(
 function columnValueObjectsOf(
   contract: Contract<SqlStorage>,
   entries: readonly ModelWithTable[],
+  codecLookup: SqlPslBuildContext['codecLookup'],
 ): ReadonlyMap<string, ResolvedColumnValueObject> {
   const columnValueObjects = new Map<string, ResolvedColumnValueObject>();
   for (const entry of entries) {
@@ -122,11 +123,15 @@ function columnValueObjectsOf(
       }
       columnValueObjects.set(
         columnName,
-        resolveColumnValueObject(contract.storage, {
-          reference: field.type,
-          nullable: column.nullable,
-          many: field.many ?? false,
-        }),
+        resolveColumnValueObject(
+          contract.storage,
+          {
+            reference: field.type,
+            nullable: column.nullable,
+            many: field.many ?? false,
+          },
+          codecLookup,
+        ),
       );
     }
   }
@@ -220,8 +225,11 @@ function buildModel(
             ...all.domainEnumValues,
             [discriminatorValueSet.name, discriminatorValueSet.values],
           ]),
-    columnValueObjects: columnValueObjectsOf(all.contract, [entry, ...singleTableVariants]),
-    codecLookup: all.context.codecLookup,
+    columnValueObjects: columnValueObjectsOf(
+      all.contract,
+      [entry, ...singleTableVariants],
+      all.context.codecLookup,
+    ),
   });
   if (variant?.singleTable !== true) refuseUnderivedChecks(entry, checks);
   return {

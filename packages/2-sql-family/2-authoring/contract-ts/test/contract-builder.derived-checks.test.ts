@@ -120,12 +120,12 @@ const resolvedAddress = {
     street: {
       nullable: false,
       many: false,
-      type: { kind: 'scalar', codecId: 'pg/text@1', values: undefined },
+      type: { kind: 'scalar', jsonType: 'string', values: undefined },
     },
     kind: {
       nullable: true,
       many: false,
-      type: { kind: 'scalar', codecId: 'pg/text@1', values: ['home', 'work'] },
+      type: { kind: 'scalar', jsonType: 'string', values: ['home', 'work'] },
     },
     geo: {
       nullable: false,
@@ -137,7 +137,7 @@ const resolvedAddress = {
             lat: {
               nullable: false,
               many: false,
-              type: { kind: 'scalar', codecId: 'pg/text@1', values: undefined },
+              type: { kind: 'scalar', jsonType: 'string', values: undefined },
             },
           },
         },

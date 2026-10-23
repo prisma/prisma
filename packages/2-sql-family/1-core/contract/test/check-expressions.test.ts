@@ -1,3 +1,4 @@
+import type { AnyCodecDescriptor } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
 import {
   discriminatorValueSet,
@@ -24,6 +25,11 @@ function nested(name: string, extra: Record<string, unknown> = {}) {
     ...extra,
   };
 }
+
+const codecs = {
+  descriptorFor: (codecId: string) =>
+    (codecId === 'pg/text@1' ? { codecId, jsonType: 'string' } : { codecId }) as AnyCodecDescriptor,
+};
 
 function storageWith(entries: Record<string, Record<string, unknown>>) {
   return { namespaces: { public: { id: 'public', entries } } };
@@ -55,17 +61,17 @@ describe('resolveValueObject', () => {
       valueSet: { AddressKind: { kind: 'valueSet', values: ['home', 'work'] } },
     });
 
-    expect(resolveValueObject(storage, valueObjectRef('Address'))).toEqual({
+    expect(resolveValueObject(storage, valueObjectRef('Address'), codecs)).toEqual({
       fields: {
         street: {
           nullable: false,
           many: false,
-          type: { kind: 'scalar', codecId: 'pg/text@1', values: undefined },
+          type: { kind: 'scalar', jsonType: 'string', values: undefined },
         },
         kind: {
           nullable: true,
           many: false,
-          type: { kind: 'scalar', codecId: 'pg/text@1', values: ['home', 'work'] },
+          type: { kind: 'scalar', jsonType: 'string', values: ['home', 'work'] },
         },
         geo: {
           nullable: false,
@@ -77,7 +83,7 @@ describe('resolveValueObject', () => {
                 lat: {
                   nullable: false,
                   many: false,
-                  type: { kind: 'scalar', codecId: 'pg/text@1', values: undefined },
+                  type: { kind: 'scalar', jsonType: 'string', values: undefined },
                 },
               },
             },
@@ -99,12 +105,12 @@ describe('resolveValueObject', () => {
       },
     });
 
-    expect(resolveValueObject(storage, valueObjectRef('NavItem'))).toEqual({
+    expect(resolveValueObject(storage, valueObjectRef('NavItem'), codecs)).toEqual({
       fields: {
         label: {
           nullable: false,
           many: false,
-          type: { kind: 'scalar', codecId: 'pg/text@1', values: undefined },
+          type: { kind: 'scalar', jsonType: 'string', values: undefined },
         },
         children: {
           nullable: false,
@@ -124,12 +130,12 @@ describe('resolveValueObject', () => {
       },
     });
 
-    expect(resolveValueObject(storage, valueObjectRef('Folder'))).toEqual({
+    expect(resolveValueObject(storage, valueObjectRef('Folder'), codecs)).toEqual({
       fields: {
         name: {
           nullable: false,
           many: false,
-          type: { kind: 'scalar', codecId: 'pg/text@1', values: undefined },
+          type: { kind: 'scalar', jsonType: 'string', values: undefined },
         },
         entry: { nullable: false, many: false, type: { kind: 'anyObject' } },
         meta: {
@@ -142,7 +148,7 @@ describe('resolveValueObject', () => {
                 owner: {
                   nullable: false,
                   many: false,
-                  type: { kind: 'scalar', codecId: 'pg/text@1', values: undefined },
+                  type: { kind: 'scalar', jsonType: 'string', values: undefined },
                 },
               },
             },
@@ -152,8 +158,33 @@ describe('resolveValueObject', () => {
     });
   });
 
+  it('refuses a member whose codec declares no JSON type, naming the codec, the member and what to add', () => {
+    const storage = storageWith({
+      valueObject: {
+        Address: {
+          fields: { zip: { nullable: false, type: { kind: 'scalar', codecId: 'demo/zip@1' } } },
+        },
+      },
+    });
+    expect(() => resolveValueObject(storage, valueObjectRef('Address'), codecs)).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.CODEC_JSON_TYPE_MISSING',
+        message:
+          'The codec "demo/zip@1" of value object "public:Address" member "zip" declares no jsonType, so the check of the value object cannot be derived.',
+        meta: {
+          codecId: 'demo/zip@1',
+          valueObject: 'public:Address',
+          member: 'zip',
+          property: 'jsonType',
+        },
+      }),
+    );
+  });
+
   it('refuses a reference storage does not hold', () => {
-    expect(() => resolveValueObject(storageWith({}), valueObjectRef('Missing'))).toThrow(/Missing/);
+    expect(() => resolveValueObject(storageWith({}), valueObjectRef('Missing'), codecs)).toThrow(
+      /Missing/,
+    );
   });
 });
 
@@ -161,15 +192,19 @@ describe('resolveColumnValueObject', () => {
   it('holds the column nullability and list shape with the resolved value object', () => {
     const storage = storageWith({ valueObject: { Address: { fields: {} } } });
     expect(
-      resolveColumnValueObject(storage, {
-        reference: valueObjectRef('Address'),
-        nullable: true,
-        many: { elementNullable: false },
-      }),
+      resolveColumnValueObject(
+        storage,
+        {
+          reference: valueObjectRef('Address'),
+          nullable: true,
+          many: { elementNullable: false },
+        },
+        codecs,
+      ),
     ).toEqual({
       nullable: true,
       many: { elementNullable: false },
-      valueObject: resolveValueObject(storage, valueObjectRef('Address')),
+      valueObject: resolveValueObject(storage, valueObjectRef('Address'), codecs),
     });
   });
 });

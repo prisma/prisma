@@ -197,9 +197,6 @@ export function buildModel(
   };
 }
 
-/** Infer derives no value object check, so the check renderer reads no codec. */
-const NO_CODECS = { descriptorFor: () => undefined };
-
 /**
  * The live check names that are derived: a live check's name matches `formatWireName(composeCheckWirePrefix(table, column, kind), computeCheckContentHash(expression))` for some column of the table and some candidate `postgresRenderCheckExpressions` would render for that column. Never by comparing expressions — the live body is a Postgres reprint, never the authored text. One set serves both the element nullability of list fields and `@@check` exclusion in `buildModel`, so the two decisions cannot drift apart.
  *
@@ -209,16 +206,13 @@ function computeDerivedCheckNames(table: SqlTableIR): ReadonlySet<string> {
   const liveCheckNames = new Set((table.checks ?? []).map((check) => check.name));
   const derivedCheckNames = new Set<string>();
   for (const column of Object.values(table.columns)) {
-    for (const candidate of postgresRenderCheckExpressions(
-      {
-        tableName: table.name,
-        columnName: column.name,
-        many: column.many === true ? { elementNullable: false } : false,
-        memberValues: undefined,
-        valueObject: undefined,
-      },
-      NO_CODECS,
-    )) {
+    for (const candidate of postgresRenderCheckExpressions({
+      tableName: table.name,
+      columnName: column.name,
+      many: column.many === true ? { elementNullable: false } : false,
+      memberValues: undefined,
+      valueObject: undefined,
+    })) {
       const derivedName = formatWireName(
         composeCheckWirePrefix(table.name, column.name, candidate.kind),
         computeCheckContentHash(candidate.expression),
@@ -333,16 +327,13 @@ function enforcesElementNotNull(
   column: SqlColumnIR,
   derivedCheckNames: ReadonlySet<string>,
 ): boolean {
-  return postgresRenderCheckExpressions(
-    {
-      tableName: table.name,
-      columnName: column.name,
-      many: { elementNullable: false },
-      memberValues: undefined,
-      valueObject: undefined,
-    },
-    NO_CODECS,
-  ).some(
+  return postgresRenderCheckExpressions({
+    tableName: table.name,
+    columnName: column.name,
+    many: { elementNullable: false },
+    memberValues: undefined,
+    valueObject: undefined,
+  }).some(
     (candidate) =>
       candidate.kind === 'elementNotNull' &&
       derivedCheckNames.has(

@@ -59,7 +59,7 @@ class CitextCodec extends CodecImpl<typeof CITEXT_CODEC_ID, readonly [], string,
 }
 
 class CitextDescriptor extends PostgresCodecDescriptor<Record<string, never>> {
-  override readonly valueObjectJsonType = 'presenceOnly' as const;
+  override readonly jsonType = 'any' as const;
   override readonly dataType = testtextCitext.id;
   override readonly codecId = CITEXT_CODEC_ID;
   override readonly traits = ['equality'] as const;

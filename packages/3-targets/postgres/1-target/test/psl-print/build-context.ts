@@ -21,7 +21,8 @@ import { postgresTargetDescriptorMeta } from '../../src/core/descriptor-meta';
 import { postgresCodecDescriptorRegistry } from '../../src/core/registry';
 import { postgresScalarAndNativeTypeConstructors } from '../../src/core/type-constructors';
 
-const citextTemplate: CodecDescriptorTemplate = {
+const citextTemplate: CodecDescriptorTemplate & { readonly jsonType: 'string' } = {
+  jsonType: 'string',
   codecId: 'ext/citext@1',
   traits: [],
   paramsSchema: undefined,
@@ -33,7 +34,6 @@ const citextTemplate: CodecDescriptorTemplate = {
 
 /** A codec the target does not own, as an extension would contribute it, representing text. */
 export const extensionCodec: AnyPostgresCodecDescriptor = postgresCodec(citextTemplate, {
-  valueObjectJsonType: 'presenceOnly',
   dataType: pgText,
   jsonProjection: (expression) => expression,
   factory: () => () => {
