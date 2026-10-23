@@ -75,6 +75,32 @@ describe('a project whose contracts keep value objects in the domain plane', () 
   });
 });
 
+describe('an old MongoDB contract whose value object members leave nullable out or say dict false', () => {
+  it('is written with nullable false and without dict, as this release reads it', () => {
+    const path = 'mongo/src/contract.json';
+    const root = copyFixture('before');
+    editJson(root, path, (json) => {
+      const contract = json as {
+        domain: {
+          namespaces: {
+            __unbound__: {
+              valueObjects: {
+                Address: { fields: Record<string, { nullable?: boolean; dict?: boolean }> };
+              };
+            };
+          };
+        };
+      };
+      const fields = contract.domain.namespaces.__unbound__.valueObjects.Address.fields;
+      if (fields['city'] !== undefined) delete fields['city'].nullable;
+      if (fields['street'] !== undefined) fields['street'].dict = false;
+      return contract;
+    });
+    runScript(root);
+    expect(readContract(join(root, path))).toEqual(readContract(join(fixturesDir, 'after', path)));
+  });
+});
+
 describe('a contract.d.ts whose contract the script leaves unchanged', () => {
   it('gains the storage namespaces argument of FieldTypesFromDomain, which is now required', () => {
     const root = copyFixture('after');

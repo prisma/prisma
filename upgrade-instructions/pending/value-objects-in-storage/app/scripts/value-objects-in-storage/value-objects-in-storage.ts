@@ -521,12 +521,23 @@ function valueSetsOf(storageNamespace: JsonRecord): JsonRecord {
 }
 
 /** A value object member, with an enum reference pointed at the enum's storage value set. */
+/** The old MongoDB schema let a member leave `nullable` out, meaning `false`, and say `dict: false`; storage requires `nullable` and keeps `dict` only when it is `true`. */
+function withStorageModifiers(member: JsonRecord): JsonRecord {
+  const { dict, ...rest } = member;
+  return {
+    ...rest,
+    nullable: typeof member['nullable'] === 'boolean' ? member['nullable'] : false,
+    ...(dict === undefined || dict === false ? {} : { dict }),
+  };
+}
+
 function rewrittenMember(
-  member: JsonRecord,
+  stored: JsonRecord,
   storageNamespaces: JsonRecord,
   where: string,
   problems: string[],
 ): JsonRecord {
+  const member = withStorageModifiers(stored);
   const valueSet = member['valueSet'];
   if (!isRecord(valueSet) || valueSet['plane'] === 'storage') return member;
   const namespaceId = valueSet['namespaceId'];
