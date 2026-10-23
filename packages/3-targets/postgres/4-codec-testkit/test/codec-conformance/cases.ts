@@ -29,6 +29,11 @@ const instantsEqual = (roundTripped: unknown, value: unknown): boolean =>
   value instanceof Temporal.Instant &&
   roundTripped.equals(value);
 
+const datesEqual = (roundTripped: unknown, value: unknown): boolean =>
+  roundTripped instanceof Date &&
+  value instanceof Date &&
+  roundTripped.getTime() === value.getTime();
+
 const plainDateTimesEqual = (roundTripped: unknown, value: unknown): boolean =>
   roundTripped instanceof Temporal.PlainDateTime &&
   value instanceof Temporal.PlainDateTime &&
@@ -276,6 +281,53 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
     projectionEquality: (left, right) =>
       left instanceof Date && right instanceof Date && left.getTime() === right.getTime(),
   },
+  // A timestamp read as a Date or a Temporal.Instant names the stored date and time in UTC, so a
+  // hostile session time zone must not move it.
+  {
+    codecId: 'pg/timestamp-date@1',
+    label: 'millisecond precision',
+    value: new Date('2026-01-02T03:04:05.123Z'),
+    typeParams: { precision: 3 },
+    valueEquality: datesEqual,
+    projectionEquality: datesEqual,
+  },
+  {
+    codecId: 'pg/timestamp-date@1',
+    label: 'a year before Christ under a hostile time zone',
+    value: new Date('-000043-03-15T12:00:00.000Z'),
+    setupSql: ["SET TimeZone = 'Asia/Kolkata'"],
+    valueEquality: datesEqual,
+    projectionEquality: datesEqual,
+  },
+  {
+    codecId: 'pg/timestamp-date@1',
+    label: 'null',
+    value: undefined,
+    typeParams: { precision: 3 },
+    nullValue: true,
+  },
+  {
+    codecId: 'pg/timestamp-instant@1',
+    label: 'microsecond precision',
+    value: Temporal.Instant.from('2026-01-02T03:04:05.123456Z'),
+    typeParams: { precision: 6 },
+    valueEquality: instantsEqual,
+    projectionEquality: instantsEqual,
+  },
+  {
+    codecId: 'pg/timestamp-instant@1',
+    label: 'a year past 9999 under a hostile time zone',
+    value: Temporal.Instant.from('+012026-01-02T03:04:05Z'),
+    setupSql: ["SET TimeZone = 'Asia/Kolkata'"],
+    valueEquality: instantsEqual,
+    projectionEquality: instantsEqual,
+  },
+  {
+    codecId: 'pg/timestamp-instant@1',
+    label: 'null',
+    value: undefined,
+    nullValue: true,
+  },
   // The `*-string` codecs' application value is the ISO 8601 stored form of the value, which they
   // read from the text PostgreSQL prints whether the column is read flat or built into a JSON
   // document, in any session time zone.
@@ -402,6 +454,24 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
     value: interval({ months: 1, days: -1 }),
     setupSql: HOSTILE_TEMPORAL_SESSION,
   },
+  // An interval read as a string is the ISO 8601 duration pg/interval stores, whatever the session's IntervalStyle.
+  { codecId: 'pg/interval-string@1', label: 'one month', value: 'P1M' },
+  { codecId: 'pg/interval-string@1', label: 'every component', value: 'P1Y2M3DT4H5M6.5S' },
+  { codecId: 'pg/interval-string@1', label: 'mixed signs', value: 'P1M-1DT-1H' },
+  { codecId: 'pg/interval-string@1', label: 'zero', value: 'PT0S' },
+  ...(['postgres_verbose', 'sql_standard', 'iso_8601'] as const).map((style) => ({
+    codecId: 'pg/interval-string@1',
+    label: `mixed signs under IntervalStyle ${style}`,
+    value: 'P1Y2M-3DT4H',
+    setupSql: [`SET IntervalStyle = '${style}'`],
+  })),
+  {
+    codecId: 'pg/interval-string@1',
+    label: 'every component under a hostile session',
+    value: 'P1Y2M3DT4H5M6.5S',
+    setupSql: HOSTILE_TEMPORAL_SESSION,
+  },
+  { codecId: 'pg/interval-string@1', label: 'null', value: undefined, nullValue: true },
   { codecId: 'pg/json@1', label: 'document', value: { a: 1, b: ['x'] } },
   { codecId: 'pg/jsonb@1', label: 'document', value: { a: 1, b: ['x'] } },
   // A document that is a string is where a JSON value and the JSON text of a document differ: the

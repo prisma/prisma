@@ -132,7 +132,7 @@ The same command with `--from 20260707T1005_init` (a migration directory name) s
 
 **Workaround.** `import 'temporal-polyfill/full/global'` before the client is created (the example did so in `src/db.ts` before the fix), or author the column with the `*String` presets to receive ISO 8601 text.
 
-**Resolved.** `prisma7Schema(...)` and `contract infer` now write `TimestampString(3)`, `TimestamptzString(p)`, `DateString` and `TimeString(p)` for these columns, so they read as ISO 8601 text, `@updatedAt` writes UTC text, and the application needs no `Temporal`. A column written by hand as `DateTime`, `Timestamp(p)`, `Date` or `Time(p)` still reads as a `Temporal` value and still needs one.
+**Resolved.** `prisma7Schema(...)` and `contract infer` now write `TimestampString(3)`, `TimestamptzString(p)`, `DateString` and `TimeString(p)` for these columns, so they read as ISO 8601 text, `@updatedAt` writes UTC text, and the application needs no `Temporal`. A column written by hand as `DateTime`, `TimestampTemporal(p)`, `Date` or `Time(p)` still reads as a `Temporal` value and still needs one.
 
 **Reproduction.**
 1. `cd examples/prisma7-adoption && pnpm db:start`, then `pnpm v7:migrate && pnpm emit && pnpm sign && pnpm seed`.

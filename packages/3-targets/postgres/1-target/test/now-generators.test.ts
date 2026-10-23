@@ -46,6 +46,8 @@ const DATE_AND_TIME_CODEC_IDS = [
   'pg/timestamptz-temporal@1',
   'pg/timestamptz-string@1',
   'pg/timestamptz-date@1',
+  'pg/timestamp-date@1',
+  'pg/timestamp-instant@1',
 ];
 
 function codecFor(codecId: string) {
@@ -86,10 +88,9 @@ describe('the "now" generator for each codec', () => {
   });
 
   it('has no generator for a codec without one', () => {
-    expect(['pg/text@1', 'pg/interval@1'].map(postgresNowGeneratorIdFor)).toEqual([
-      undefined,
-      undefined,
-    ]);
+    expect(
+      ['pg/text@1', 'pg/interval@1', 'pg/interval-string@1'].map(postgresNowGeneratorIdFor),
+    ).toEqual([undefined, undefined, undefined]);
   });
 
   it('pairs each date and time codec with its generator', () => {
@@ -104,6 +105,8 @@ describe('the "now" generator for each codec', () => {
       'pg/timestamptz-temporal@1': 'instantNow',
       'pg/timestamptz-string@1': 'timestamptzStringNow',
       'pg/timestamptz-date@1': 'timestampNow',
+      'pg/timestamp-date@1': 'timestampNow',
+      'pg/timestamp-instant@1': 'instantNow',
     });
   });
 

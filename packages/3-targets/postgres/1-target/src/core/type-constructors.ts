@@ -1,5 +1,10 @@
 import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
-import { PG_TIMESTAMPTZ_DATE_CODEC_ID } from './codec-ids';
+import {
+  PG_INTERVAL_STRING_CODEC_ID,
+  PG_TIMESTAMP_DATE_CODEC_ID,
+  PG_TIMESTAMP_INSTANT_CODEC_ID,
+  PG_TIMESTAMPTZ_DATE_CODEC_ID,
+} from './codec-ids';
 
 /** The data type of every size argument on Postgres, such as a length or a precision: a typmod is an `int4`. */
 export const PG_SIZE_TYPE = 'pg/int4' as const;
@@ -110,7 +115,7 @@ export const postgresNativeAuthoringTypes = {
       },
     },
   },
-  Timestamp: {
+  TimestampTemporal: {
     kind: 'typeConstructor',
     documentation: 'A date and time without a time zone, represented as Temporal.PlainDateTime.',
     args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
@@ -119,13 +124,22 @@ export const postgresNativeAuthoringTypes = {
       typeParams: { precision: { kind: 'arg', index: 0 } },
     },
   },
-  Timestamptz: {
+  TimestamptzTemporal: {
     kind: 'typeConstructor',
     documentation:
       'An instant represented as Temporal.Instant, with optional fractional-second precision.',
     args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
     output: {
       codecId: 'pg/timestamptz-temporal@1',
+      typeParams: { precision: { kind: 'arg', index: 0 } },
+    },
+  },
+  TimeTemporal: {
+    kind: 'typeConstructor',
+    documentation: 'A time of day without a time zone, represented as Temporal.PlainTime.',
+    args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
+    output: {
+      codecId: 'pg/time-temporal@1',
       typeParams: { precision: { kind: 'arg', index: 0 } },
     },
   },
@@ -173,6 +187,11 @@ export const postgresNativeAuthoringTypes = {
     documentation: 'A single-precision floating-point number.',
     output: { codecId: 'pg/float4@1' },
   },
+  DateTemporal: {
+    kind: 'typeConstructor',
+    documentation: 'A calendar date represented as Temporal.PlainDate.',
+    output: { codecId: 'pg/date-temporal@1' },
+  },
   Date: {
     kind: 'typeConstructor',
     documentation: 'A calendar date represented as Temporal.PlainDate.',
@@ -204,6 +223,26 @@ export const postgresNativeAuthoringTypes = {
     args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
     output: {
       codecId: PG_TIMESTAMPTZ_DATE_CODEC_ID,
+      typeParams: { precision: { kind: 'arg', index: 0 } },
+    },
+  },
+  TimestampJsDate: {
+    kind: 'typeConstructor',
+    documentation:
+      'A date and time stored as PostgreSQL timestamp and represented as a JavaScript Date, read and written as UTC.',
+    args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
+    output: {
+      codecId: PG_TIMESTAMP_DATE_CODEC_ID,
+      typeParams: { precision: { kind: 'arg', index: 0 } },
+    },
+  },
+  TimestampInstant: {
+    kind: 'typeConstructor',
+    documentation:
+      'A date and time stored as PostgreSQL timestamp and represented as Temporal.Instant, read and written as UTC.',
+    args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
+    output: {
+      codecId: PG_TIMESTAMP_INSTANT_CODEC_ID,
       typeParams: { precision: { kind: 'arg', index: 0 } },
     },
   },
@@ -247,14 +286,24 @@ export const postgresNativeAuthoringTypes = {
       typeParams: { length: { kind: 'arg', index: 0 } },
     },
   },
-  Interval: {
+  IntervalParts: {
     kind: 'typeConstructor',
     inferred: true,
     documentation:
-      'A span of time stored as PostgreSQL interval, with optional fractional-second precision.',
+      'A span of time stored as PostgreSQL interval and represented as { months, days, micros }, with optional fractional-second precision.',
     args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
     output: {
       codecId: 'pg/interval@1',
+      typeParams: { precision: { kind: 'arg', index: 0 } },
+    },
+  },
+  IntervalString: {
+    kind: 'typeConstructor',
+    documentation:
+      'A span of time stored as PostgreSQL interval and represented as an ISO 8601 duration such as P1Y2M, with optional fractional-second precision.',
+    args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
+    output: {
+      codecId: PG_INTERVAL_STRING_CODEC_ID,
       typeParams: { precision: { kind: 'arg', index: 0 } },
     },
   },
@@ -264,6 +313,6 @@ export const postgresNativeAuthoringTypes = {
  * The base scalars and native types as type constructors. The target contributes them, so PSL and the TypeScript builder's `type.*` see the same names.
  */
 export const postgresScalarAndNativeTypeConstructors = {
-  ...postgresScalarAuthoringTypes,
   ...postgresNativeAuthoringTypes,
+  ...postgresScalarAuthoringTypes,
 } as const satisfies AuthoringTypeNamespace;

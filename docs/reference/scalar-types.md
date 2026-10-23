@@ -80,19 +80,22 @@ These are the current names. The Postgres and SQLite rename project will change 
 | `Real` | — | `pg/float4@1` | `float4` | `number` |
 | `Float` | `field.float()` | `pg/float8@1` | `float8` | `number` |
 | `Decimal`, `Numeric(p?, s?)` | `field.decimal()` | `pg/numeric@1` | `numeric` | `string` (decimal text) |
-| `DateTime`, `Timestamptz(p?)` | `field.dateTime()` | `pg/timestamptz-temporal@1` | `timestamptz` | `Temporal.Instant` |
+| `DateTime`, `TimestamptzTemporal(p?)` | `field.dateTime()` | `pg/timestamptz-temporal@1` | `timestamptz` | `Temporal.Instant` |
 | `TimestamptzJsDate(p?)` | — | `pg/timestamptz-date@1` | `timestamptz` | `Date` |
 | `TimestamptzString(p?)` | — | `pg/timestamptz-string@1` | `timestamptz` | `string` (ISO 8601) |
-| `Timestamp(p?)` | — | `pg/timestamp-temporal@1` | `timestamp` | `Temporal.PlainDateTime` |
+| `TimestampTemporal(p?)` | — | `pg/timestamp-temporal@1` | `timestamp` | `Temporal.PlainDateTime` |
 | `TimestampString(p?)` | — | `pg/timestamp-string@1` | `timestamp` | `string` (ISO 8601) |
-| `Date` | — | `pg/date-temporal@1` | `date` | `Temporal.PlainDate` |
+| `TimestampJsDate(p?)` | — | `pg/timestamp-date@1` | `timestamp` | `Date`, the stored date and time read as UTC |
+| `TimestampInstant(p?)` | — | `pg/timestamp-instant@1` | `timestamp` | `Temporal.Instant`, the stored date and time read as UTC |
+| `Date`, `DateTemporal` | — | `pg/date-temporal@1` | `date` | `Temporal.PlainDate` |
 | `DateString` | — | `pg/date-string@1` | `date` | `string` (ISO 8601) |
-| `Time(p?)` | — | `pg/time-temporal@1` | `time` | `Temporal.PlainTime` |
+| `Time(p?)`, `TimeTemporal(p?)` | — | `pg/time-temporal@1` | `time` | `Temporal.PlainTime` |
 | `TimeString(p?)` | — | `pg/time-string@1` | `time` | `string` (ISO 8601) |
 | `Timetz(p?)` | — | `pg/timetz@1` | `timetz` | `string` (ISO 8601) |
 | `Uuid` | `field.uuidNative()` | `pg/uuid@1` | `uuid` | `string` |
 | `Inet` | — | `pg/inet@1` | `inet` | `string` |
-| `Interval(p?)` | — | `pg/interval@1` | `interval` | `{ months: number; days: number; micros: bigint }` |
+| `IntervalParts(p?)` | — | `pg/interval@1` | `interval` | `{ months: number; days: number; micros: bigint }` |
+| `IntervalString(p?)` | — | `pg/interval-string@1` | `interval` | `string`, the ISO 8601 duration, such as `P1Y2M` |
 | `Bit(n?)` | — | `pg/bit@1` | `bit` | `string` (the bits as `0` and `1`) |
 | `VarBit(n?)` | — | `pg/varbit@1` | `bit varying` | `string` (the bits as `0` and `1`) |
 | `Json` | — | `pg/json@1` | `json` | `JsonValue` |
@@ -100,9 +103,11 @@ These are the current names. The Postgres and SQLite rename project will change 
 | `Bytes` | `field.bytes()` | `pg/bytea@1` | `bytea` | `Uint8Array` |
 | `pg.enum(Name)` | — | `pg/enum@1` | the native enum type | `string` |
 
+`TimestampJsDate` and `TimestampInstant` read the date and time a `timestamp` column stores as UTC, and write a value's UTC date and time with no offset, so a value the application writes reads back as the same instant whatever the time zone of the server, the session or the application. A database default is different: PostgreSQL fills a `timestamp` column's `@default(now())` in the session's time zone, so on a server whose `TimeZone` is not UTC that value reads back shifted by the zone's offset. `@onCreate(now())` writes the client's time in UTC and reads back unshifted. A `Date` holds milliseconds, so on a `TimestampJsDate` column with a precision above 3 a read drops the extra digits, and an equality filter with a value read back misses a row stored with microseconds. Use `TimestampInstant` or `TimestampString` to keep them. They refuse `infinity`, `-infinity` and a value after `+275760-09-13T00:00:00`, which no `Date` or `Temporal.Instant` holds, and name `TimestampString`, which holds them. `IntervalString` reads every `IntervalStyle` and writes an ISO 8601 duration; it refuses any other text on write.
+
 A literal default of a date, time, interval or bytes type is written with the tag of its type, as in `@default(timestamptz`2024-01-01T00:00:00Z`)` or `@default(bytea`\x0102`)`; a quoted string is refused with a message that shows the tag. It is stored in the one form its data type stores, whichever codec the column uses and however the default was written, and a default with more fraction digits or more scale than its column holds is refused rather than rounded; [ADR 254](../architecture%20docs/adrs/ADR%20254%20-%20Data%20types%20and%20casts.md#date-and-time-types) states each form.
 
-The tools that write a schema for you use the text date and time types. In a PSL schema, `prisma orm init` writes `createdAt TimestamptzString @default(now())` and `updatedAt temporal.updatedAtString()`. In a TypeScript contract, it writes `field.temporal.createdAtString()` and `field.temporal.updatedAtString()`. All of these are `TimestamptzString` columns. `prisma contract infer` and `prisma7Schema(...)` write `TimestampString(p)`, `TimestamptzString(p)`, `DateString` and `TimeString(p)`. Four types read and write `Temporal` values: `Timestamptz` (also written `DateTime`), `Timestamp`, `Date` and `Time`. An application that uses them needs a global `Temporal`: on a runtime without one, such as Node.js 24, install it, for example with `import 'temporal-polyfill/full/global'`.
+The tools that write a schema for you use the text date and time types. In a PSL schema, `prisma orm init` writes `createdAt TimestamptzString @default(now())` and `updatedAt temporal.updatedAtString()`. In a TypeScript contract, it writes `field.temporal.createdAtString()` and `field.temporal.updatedAtString()`. All of these are `TimestamptzString` columns. `prisma contract infer` and `prisma7Schema(...)` write `TimestampString(p)`, `TimestamptzString(p)`, `DateString` and `TimeString(p)`. Five types read and write `Temporal` values: `TimestamptzTemporal` (also written `DateTime`), `TimestampTemporal`, `TimestampInstant`, `DateTemporal` (also written `Date`) and `TimeTemporal` (also written `Time`). Their TypeScript types come from `temporal-spec`, so a project needs no global `Temporal` declarations to type them. An application that uses them needs a global `Temporal`: on a runtime without one, such as Node.js 24, install it, for example with `import 'temporal-polyfill/full/global'`.
 
 A text date or time type reads and writes ISO 8601, the form its data type stores: `TimestamptzString` reads `2024-01-01T00:00:00Z`, the instant in UTC, whatever the session's time zone; `TimestampString` reads `2024-01-01T12:34:56.5`; `DateString` reads `2024-01-01`; `TimeString` reads `12:34:56`; and `Timetz` reads `12:34:56+02:00`, or `12:34:56Z` for a zero offset. A year before 1 or after 9999 is a sign and six digits, as in `-000043-03-15` for 44 BC. `infinity` and `-infinity` read as those words. A value PostgreSQL holds beyond the range of the `Temporal` and `Date` types reads in the same shape: the time `24:00:00`, and a date with a seven-digit year, such as `+5874897-12-31`. A value written in another form PostgreSQL reads is stored as the value it names and reads back in ISO 8601: `2024-01-01 01:00:00+01` written to a `TimestamptzString` column reads back as `2024-01-01T00:00:00Z`; a literal default or enum member must be written in the stored form.
 
@@ -138,7 +143,7 @@ The PSL name on each target for a concept, and the Prisma 6/7 name a migrating s
 | double | `Float` | `Float` | `Float` | `Double` |
 | decimal | `Decimal` | `Decimal`, `Numeric(p?, s?)` | `Decimal` (stored as text) | `Decimal128` |
 | boolean | `Boolean` | `Boolean` | — | `Bool` |
-| timestamp | `DateTime` | `DateTime`, `Timestamptz(p?)` | `DateTime` | `Date` |
+| timestamp | `DateTime` | `DateTime`, `TimestamptzTemporal(p?)` | `DateTime` | `Date` |
 | text | `String` | `String` | `String` | `String` |
 | bytes | `Bytes` | `Bytes` | `Bytes` | `Binary` |
 | JSON | `Json` | `Json`, `Jsonb` | `Json` | `Json` |

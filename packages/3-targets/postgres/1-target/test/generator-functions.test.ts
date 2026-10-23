@@ -14,6 +14,8 @@ describe('the Postgres generator functions', () => {
     ['pg/timestamptz-temporal@1', 'instantNow'],
     ['pg/timestamp-temporal@1', 'plainDateTimeNow'],
     ['pg/timestamptz-date@1', 'timestampNow'],
+    ['pg/timestamp-date@1', 'timestampNow'],
+    ['pg/timestamp-instant@1', 'instantNow'],
     ['pg/date-temporal@1', 'plainDateNow'],
     ['pg/date-string@1', 'dateStringNow'],
   ])('resolve now() on %s to %s with no params', (codecId, generatorId) => {

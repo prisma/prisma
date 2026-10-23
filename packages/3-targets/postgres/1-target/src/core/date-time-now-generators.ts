@@ -1,4 +1,5 @@
 import type { MutationDefaultGeneratorDescriptor } from '@internal/framework-components/control';
+import type { Temporal } from 'temporal-spec';
 import { requireTemporal } from './require-temporal';
 
 /**
