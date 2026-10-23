@@ -38,10 +38,10 @@ model Post {
     });
     expect(contract.execution?.mutations.defaults).toEqual([
       { ref: ref('clock'), onCreate: now('timeStringNow', { precision: 0 }) },
-      { ref: ref('createdAt'), onCreate: now('timestampStringNow') },
+      { ref: ref('createdAt'), onCreate: now('timestampNow') },
       { ref: ref('day'), onCreate: now('dateStringNow') },
-      { ref: ref('optionalAt'), onCreate: now('timestampStringNow') },
-      { ref: ref('zonedAt'), onCreate: now('timestamptzStringNow') },
+      { ref: ref('optionalAt'), onCreate: now('timestampNow') },
+      { ref: ref('zonedAt'), onCreate: now('timestampNow') },
     ]);
   });
 
@@ -61,8 +61,8 @@ model Post {
     expect(contract.execution?.mutations.defaults).toEqual([
       {
         ref: ref('updatedAt'),
-        onCreate: now('timestampStringNow'),
-        onUpdate: now('timestampStringNow'),
+        onCreate: now('timestampNow'),
+        onUpdate: now('timestampNow'),
       },
     ]);
   });

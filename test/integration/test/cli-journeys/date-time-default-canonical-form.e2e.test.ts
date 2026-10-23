@@ -124,14 +124,14 @@ withTempDir(({ createTempDir }) => {
         const infer = await runContractInfer(ctx);
         expect(infer.exitCode, `contract infer\n${output(infer)}`).toBe(0);
         expect(printedDefaultFields(ctx)).toEqual([
-          'a TimestamptzString @default(timestamptz`2024-01-01T00:00:00Z`)',
-          'b TimestamptzString @default(timestamptz`2024-01-01T00:00:00Z`)',
-          'c TimestamptzString @default(timestamptz`2024-01-01T00:00:00Z`)',
-          'clock TimeString @default(time`12:34:00`)',
-          'day DateString @default(date`2024-01-01`)',
-          'history TimestamptzString[] @default([timestamptz`2024-01-01T00:00:00Z`, timestamptz`2024-06-30T12:34:56Z`])',
-          'localAt TimestampString(3) @default(timestamp`2024-01-01T12:34:56.5`)',
-          'zoned Timetz @default(timetz`12:34:56+02:00`)',
+          'a DateTime(precision: 6) @default(timestamptz`2024-01-01T00:00:00Z`)',
+          'b DateTime(precision: 6) @default(timestamptz`2024-01-01T00:00:00Z`)',
+          'c DateTime(precision: 6) @default(timestamptz`2024-01-01T00:00:00Z`)',
+          'clock Time @default(time`12:34:00`)',
+          'day Date @default(date`2024-01-01`)',
+          'history DateTime(precision: 6)[] @default([timestamptz`2024-01-01T00:00:00Z`, timestamptz`2024-06-30T12:34:56Z`])',
+          'localAt DateTime(column: timestamp) @default(timestamp`2024-01-01T12:34:56.5`)',
+          'zoned Time(column: timetz) @default(timetz`12:34:56+02:00`)',
         ]);
 
         const emitInferred = await runContractEmit(ctx);

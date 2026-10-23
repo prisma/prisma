@@ -33,7 +33,7 @@
               "updatedAt": {
                 "type": {
                   "kind": "scalar",
-                  "codecId": "pg/timestamp-string@1",
+                  "codecId": "pg/timestamp-date@1",
                   "typeParams": {
                     "precision": 3
                   }
@@ -44,7 +44,7 @@
               "updatedAtTz": {
                 "type": {
                   "kind": "scalar",
-                  "codecId": "pg/timestamptz-string@1",
+                  "codecId": "pg/timestamptz-date@1",
                   "typeParams": {
                     "precision": 6
                   }
@@ -66,7 +66,7 @@
     }
   },
   "execution": {
-    "executionHash": "901dc5392c955173f23872f8945af11b6e29a21e54613ee9b821f7fc69f43c82",
+    "executionHash": "4c8d83c3c1f004512a786ea885ff3bdbcbb62b326cab17ee9a8301342b1f8495",
     "mutations": {
       "defaults": [
         {
@@ -77,11 +77,11 @@
           },
           "onCreate": {
             "kind": "generator",
-            "id": "timestampStringNow"
+            "id": "timestampNow"
           },
           "onUpdate": {
             "kind": "generator",
-            "id": "timestampStringNow"
+            "id": "timestampNow"
           }
         },
         {
@@ -92,11 +92,11 @@
           },
           "onCreate": {
             "kind": "generator",
-            "id": "timestamptzStringNow"
+            "id": "timestampNow"
           },
           "onUpdate": {
             "kind": "generator",
-            "id": "timestamptzStringNow"
+            "id": "timestampNow"
           }
         }
       ]
@@ -107,7 +107,7 @@
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "meta": {},
   "storage": {
-    "storageHash": "b6ff179714a91b72e54295867c9a137b278c3923f5bf7ff03b719763d5dfc60b",
+    "storageHash": "ca3e29fc4e90265e1b10a48ef33decf69b48a26c5df9b257afc326b457127339",
     "namespaces": {
       "public": {
         "id": "public",
@@ -124,7 +124,7 @@
                 },
                 "updatedAt": {
                   "dataType": "pg/timestamp",
-                  "codecId": "pg/timestamp-string@1",
+                  "codecId": "pg/timestamp-date@1",
                   "nullable": false,
                   "many": false,
                   "typeParams": {
@@ -133,7 +133,7 @@
                 },
                 "updatedAtTz": {
                   "dataType": "pg/timestamptz",
-                  "codecId": "pg/timestamptz-string@1",
+                  "codecId": "pg/timestamptz-date@1",
                   "nullable": false,
                   "many": false,
                   "typeParams": {

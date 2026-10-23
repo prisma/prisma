@@ -372,11 +372,9 @@ withTempDir(({ createTempDir }) => {
           const field = readFileSync(join(ctx.testDir, 'contract.prisma'), 'utf-8')
             .split('\n')
             .find((line) => line.trim().startsWith('localAt'));
-          expect(field?.trim().split(/\s+/)).toEqual([
-            'localAt',
-            'TimestampString(3)',
-            '@default(timestamp`2024-01-01T00:00:00`)',
-          ]);
+          expect(field?.trim().replace(/\s+/g, ' ')).toBe(
+            'localAt DateTime(column: timestamp) @default(timestamp`2024-01-01T00:00:00`)',
+          );
         },
         timeouts.spinUpPpgDev,
       );

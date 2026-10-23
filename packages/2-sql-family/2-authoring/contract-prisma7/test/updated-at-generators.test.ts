@@ -61,13 +61,13 @@ model Clock {
       },
       {
         ref: ref('stampedAt'),
-        onCreate: now('timestampStringNow'),
-        onUpdate: now('timestampStringNow'),
+        onCreate: now('timestampNow'),
+        onUpdate: now('timestampNow'),
       },
       {
         ref: ref('updatedAt'),
-        onCreate: now('timestampStringNow'),
-        onUpdate: now('timestampStringNow'),
+        onCreate: now('timestampNow'),
+        onUpdate: now('timestampNow'),
       },
     ]);
   });

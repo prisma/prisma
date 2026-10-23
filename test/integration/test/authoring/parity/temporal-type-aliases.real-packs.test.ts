@@ -73,33 +73,25 @@ function succeeded<T>(
 }
 
 describe('the temporal type aliases with real packs', () => {
-  it('store on Postgres exactly what the matching presets store', () => {
+  it('store on Postgres exactly what DateTime with the matching generators stores', () => {
     const throughAliases = succeeded(
       interpretPostgres(`model Event {
-  id              Int                       @id
-  createdAt       temporal.CreatedAt
-  updatedAt       temporal.UpdatedAt
-  createdAtString temporal.CreatedAtString
-  updatedAtString temporal.UpdatedAtString
-  createdAtJsDate temporal.CreatedAtJsDate
-  updatedAtJsDate temporal.UpdatedAtJsDate
+  id        Int                @id
+  createdAt temporal.CreatedAt
+  updatedAt temporal.UpdatedAt
 }
 `),
     );
-    const throughPresets = succeeded(
+    const throughAttributes = succeeded(
       interpretPostgres(`model Event {
-  id              Int                          @id
-  createdAt       temporal.createdAt()
-  updatedAt       temporal.updatedAt()
-  createdAtString temporal.createdAtString()
-  updatedAtString temporal.updatedAtString()
-  createdAtJsDate temporal.createdAtJsDate()
-  updatedAtJsDate temporal.updatedAtJsDate()
+  id        Int      @id
+  createdAt DateTime @onCreate(now())
+  updatedAt DateTime @onCreate(now()) @onUpdate(now())
 }
 `),
     );
-    expect(throughAliases).toEqual(throughPresets);
-    expect(throughAliases.execution?.mutations.defaults).toHaveLength(6);
+    expect(throughAliases).toEqual(throughAttributes);
+    expect(throughAliases.execution?.mutations.defaults).toHaveLength(2);
   });
 
   it('store on SQLite exactly what the matching presets store', () => {
@@ -123,7 +115,7 @@ describe('the temporal type aliases with real packs', () => {
     expect(throughAliases.execution?.mutations.defaults).toHaveLength(2);
   });
 
-  it('give the TypeScript builder on Postgres what the presets give it', () => {
+  it('give the TypeScript builder on Postgres what DateTime with the matching generators gives it', () => {
     const throughAliases = defineContract({}, ({ type, field, model }) => ({
       models: {
         Event: model('Event', {
@@ -131,40 +123,28 @@ describe('the temporal type aliases with real packs', () => {
             id: field.column(type.Int()).id(),
             createdAt: field.column(type.temporal.CreatedAt()),
             updatedAt: field.column(type.temporal.UpdatedAt()),
-            createdAtString: field.column(type.temporal.CreatedAtString()),
-            updatedAtString: field.column(type.temporal.UpdatedAtString()),
-            createdAtJsDate: field.column(type.temporal.CreatedAtJsDate()),
-            updatedAtJsDate: field.column(type.temporal.UpdatedAtJsDate()),
           },
         }).sql({ table: 'Event' }),
       },
     }));
-    const throughPresets = defineContract({}, ({ type, field, model }) => ({
+    const throughGenerators = defineContract({}, ({ type, field, model, gen }) => ({
       models: {
         Event: model('Event', {
           fields: {
             id: field.column(type.Int()).id(),
-            createdAt: field.temporal.createdAt(),
-            updatedAt: field.temporal.updatedAt(),
-            createdAtString: field.temporal.createdAtString(),
-            updatedAtString: field.temporal.updatedAtString(),
-            createdAtJsDate: field.temporal.createdAtJsDate(),
-            updatedAtJsDate: field.temporal.updatedAtJsDate(),
+            createdAt: field.column(type.DateTime()).onCreate(gen.now()),
+            updatedAt: field.column(type.DateTime()).onCreate(gen.now()).onUpdate(gen.now()),
           },
         }).sql({ table: 'Event' }),
       },
     }));
-    expect(throughAliases).toEqual(throughPresets);
+    expect(throughAliases).toEqual(throughGenerators);
     expect(throughAliases).toEqual(
       succeeded(
         interpretPostgres(`model Event {
-  id              Int                       @id
-  createdAt       temporal.CreatedAt
-  updatedAt       temporal.UpdatedAt
-  createdAtString temporal.CreatedAtString
-  updatedAtString temporal.UpdatedAtString
-  createdAtJsDate temporal.CreatedAtJsDate
-  updatedAtJsDate temporal.UpdatedAtJsDate
+  id        Int                @id
+  createdAt temporal.CreatedAt
+  updatedAt temporal.UpdatedAt
 }
 `),
       ),
