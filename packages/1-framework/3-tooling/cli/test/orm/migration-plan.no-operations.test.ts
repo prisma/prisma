@@ -95,8 +95,9 @@ const CHANGED_STORAGE_ENTITIES = [
   { plane: 'storage', namespaceId: 'public', entityKind: 'valueSet', entityName: 'Status' },
 ];
 
-const NO_OPERATIONS_SUMMARY =
+const NO_OPERATIONS_TEXT =
   'The storage the contract describes changed, but the database needs no operation for it, so the migration has none. What changed: table "public.users", valueSet "public.Role", valueSet "public.Status".';
+const NO_OPERATIONS_SUMMARY = `Planned 0 operation(s). ${NO_OPERATIONS_TEXT}`;
 
 /** The database sits at HASH_FROM, which a migration reaches; the emitted contract is HASH_TO. */
 async function projectWithHistory(): Promise<OfflineProject> {
@@ -210,6 +211,7 @@ describe('migration plan when the planner produces no operations', () => {
           to: HASH_TO,
           operations: [],
           changedStorageEntities: CHANGED_STORAGE_ENTITIES,
+          summary: `Planned baseline (1 operation(s)) + 0 operation(s). ${NO_OPERATIONS_TEXT}`,
         },
       });
       expect(await migrationsOf(project)).toEqual(

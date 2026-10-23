@@ -975,12 +975,16 @@ async function executeMigrationPlanCommandInner(
         ...(warnings.length > 0 ? { warnings } : {}),
         appliedStatements: [...deltaLeg.appliedStatements, ...deletes],
         temporaryValues: deltaLeg.temporaryValues,
-        summary: buildAutoBaselinePlanSummary(
-          baselineOps.length,
-          deltaOps.length,
-          emittedExtensionDirs.length,
+        ...withNoOperationsReport(
+          buildAutoBaselinePlanSummary(
+            baselineOps.length,
+            deltaOps.length,
+            emittedExtensionDirs.length,
+          ),
+          deltaOps.length === 0,
+          fromContract,
+          toContract,
         ),
-        ...(deltaOps.length === 0 ? noOperationsReport(fromContract, toContract) : {}),
         timings: { total: Date.now() - startTime },
       };
       return ok(result);
@@ -1083,8 +1087,12 @@ async function executeMigrationPlanCommandInner(
       ...(warnings.length > 0 ? { warnings } : {}),
       appliedStatements: [...deltaLeg.appliedStatements, ...deletes],
       temporaryValues: deltaLeg.temporaryValues,
-      summary: buildPlanSummary(plannedOps.length, emittedExtensionDirs.length),
-      ...(plannedOps.length === 0 ? noOperationsReport(fromContract, toContract) : {}),
+      ...withNoOperationsReport(
+        buildPlanSummary(plannedOps.length, emittedExtensionDirs.length),
+        plannedOps.length === 0,
+        fromContract,
+        toContract,
+      ),
       timings: { total: Date.now() - startTime },
     };
     return ok(result);
@@ -1096,13 +1104,16 @@ async function executeMigrationPlanCommandInner(
 }
 
 /**
- * What a migration with no operations reports: the storage entities that changed, and a summary
- * that says the database needs no operation for them.
+ * The summary of a written migration and, when it has no operations, the storage entities that
+ * changed, with a sentence added to the summary that says the database needs no operation for them.
  */
-function noOperationsReport(
+function withNoOperationsReport(
+  summary: string,
+  hasNoOperations: boolean,
   fromContract: Contract | null,
   toContract: Contract,
 ): Pick<MigrationPlanResult, 'changedStorageEntities' | 'summary'> {
+  if (!hasNoOperations) return { summary };
   const changed = changedElementCoordinates(fromContract?.storage ?? null, toContract.storage);
   const what =
     changed.length === 0
@@ -1110,7 +1121,7 @@ function noOperationsReport(
       : `What changed: ${changed.map(storageEntityText).join(', ')}.`;
   return {
     changedStorageEntities: changed,
-    summary: `The storage the contract describes changed, but the database needs no operation for it, so the migration has none. ${what}`,
+    summary: `${summary}. The storage the contract describes changed, but the database needs no operation for it, so the migration has none. ${what}`,
   };
 }
 
