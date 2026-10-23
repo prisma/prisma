@@ -75,14 +75,14 @@ changes:
     detection:
       glob: "**/*.prisma"
       matches:
-        - 'enum\s+\w+\s*\{(?=[^}]*@@type\(\s*"mongo/(?:double|int64|int64Number|decimal128|date|binary)@1"\s*\))[^}]*\n\s*\w+\s*=\s*"'
+        - 'enum\s+\w+\s*\{(?=[^{}]*@@type\(\s*"mongo/(?:double|int64|int64Number|decimal128|date|binary)@1"\s*\))[^{}]*\n\s*\w+\s*=\s*"'
   - id: mongo-integer-enum-members-with-a-fraction
     summary: |
       A MongoDB PSL number with a fraction, such as `1.0`, is now a Decimal128 value, and no integer type casts from Decimal128, so an Int32 or Int64 member written with a fraction is refused with `PSL_VALUE_TYPE_INCOMPATIBLE` (`Expected a number that mongo/int32 can hold; got mongo/decimal128`). Write the whole number, `One = 1`. The detection matches an Int32 or Int64 enum with a member written with a fraction.
     detection:
       glob: "**/*.prisma"
       matches:
-        - 'enum\s+\w+\s*\{(?=[^}]*@@type\(\s*"mongo/(?:int32|int64|int64Number)@1"\s*\))[^}]*\n\s*\w+\s*=\s*-?\d+\.\d'
+        - 'enum\s+\w+\s*\{(?=[^{}]*@@type\(\s*"mongo/(?:int32|int64|int64Number)@1"\s*\))[^{}]*\n\s*\w+\s*=\s*-?\d+\.\d'
   - id: discriminator-optional-or-list
     summary: |
       A `@@discriminator` field must be required and hold one value, in SQL and MongoDB schemas alike. An optional field is refused with `Discriminator field "<field>" on model "<Model>" must be required, but it is optional. Remove the "?"`, and a list with `... must hold one value, but it is a list. Remove the "[]"`, both `PSL_INVALID_ATTRIBUTE_ARGUMENT`. Make the field required and single: a document or row without the value has no variant. The detection matches a model whose `@@discriminator` names a field declared with `?` or `[]`.
