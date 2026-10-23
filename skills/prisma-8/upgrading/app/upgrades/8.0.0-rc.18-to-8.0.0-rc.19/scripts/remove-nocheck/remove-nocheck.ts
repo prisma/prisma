@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * Removes the `noCheck` key from every column of every SQL contract in a project. Where the key waived the element check of a list, the column and the field that maps it become lists whose elements may be null, in `contract.json` and `contract.d.ts`, because that is what the database enforces. The checks each contract declares are left as they are. The script then renames the snapshot directories and rewrites every migration, ref, `migration.ts` and `contract.d.ts` that names an old storage hash.
+ * Removes the `noCheck` key from every column of every SQL contract in a project. Where the key waived the element check of a list, the column and the field that maps it become lists whose elements may be null, in `contract.json` and `contract.d.ts`, because that is what the database enforces. The checks each contract declares are left as they are. In a PostgreSQL contract it also writes each literal default in the spelling this release stores, read with the data types of the `@prisma/orm-postgres` the contract's directory loads. The script then renames the snapshot directories and rewrites every migration, ref, `migration.ts` and `contract.d.ts` that names an old storage hash.
  *
  * Usage: node remove-nocheck.ts [project-root]
  *
- * The project root defaults to the working directory. The script reads and writes files only. It needs no database, network or configured stack, and a project with no `noCheck` key is left unchanged. When it stops (a file it must read is not valid JSON, a contract whose stored hash does not match its content, or a snapshot directory that already exists with different content) it changes no file, prints one line per case and exits 1. When it finishes it prints how many files and snapshot directories it changed and each storage hash it replaced.
+ * The project root defaults to the working directory. The script reads and writes files only. It needs no database, network or configured stack, and a project already in this release's form is left unchanged. When it stops (a file it must read is not valid JSON, a contract whose stored hash does not match its content, a default that is not a value of its column's type, or a snapshot directory that already exists with different content) it changes no file, prints one line per case and exits 1. When it finishes it prints how many files and snapshot directories it changed and each storage hash it replaced.
  *
  * The storage hash and migration hash rules are copied from `@internal/contract` and `@internal/migration-tools` because a project's strict `node_modules` does not expose them.
  */
@@ -22,6 +22,7 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs';
+import { createRequire } from 'node:module';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 
 type Json = null | boolean | number | string | Json[] | JsonRecord;
@@ -421,6 +422,169 @@ interface Rewrite {
   readonly changed: boolean;
   readonly columns: ReadonlySet<string>;
   readonly fields: ReadonlySet<string>;
+  readonly defaults: ReadonlyMap<string, readonly Respelling[]>;
+  readonly unreadable: readonly string[];
+}
+
+interface Respelling {
+  readonly from: string;
+  readonly to: string;
+}
+
+type Spelling =
+  | { readonly kind: 'kept' }
+  | { readonly kind: 'respelled'; readonly value: Json }
+  | { readonly kind: 'unreadable'; readonly reason: string };
+
+/** Spells a literal default of a column as this release stores it, by the column's data type and parameters. */
+type DefaultSpeller = (value: Json, column: JsonRecord, namedTypes: Json | undefined) => Spelling;
+
+type Call = (...args: unknown[]) => unknown;
+
+function methodOf(target: unknown, name: string): Call | undefined {
+  if (typeof target !== 'object' || target === null) return undefined;
+  const member: unknown = Reflect.get(target, name);
+  return typeof member === 'function'
+    ? (...args: unknown[]): unknown => Reflect.apply(member, target, args)
+    : undefined;
+}
+
+function isJson(value: unknown): value is Json {
+  if (value === null || ['boolean', 'number', 'string'].includes(typeof value)) return true;
+  if (Array.isArray(value)) return value.every(isJson);
+  return isRecord(value) && Object.values(value).every(isJson);
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function resolvedTypeParams(column: JsonRecord, namedTypes: Json | undefined): Json | undefined {
+  const typeRef = column['typeRef'];
+  const named =
+    typeof typeRef === 'string' && isRecord(namedTypes) ? namedTypes[typeRef] : undefined;
+  const typeParams = column['typeParams'] ?? (isRecord(named) ? named['typeParams'] : undefined);
+  return isRecord(typeParams) && Object.keys(typeParams).length > 0 ? typeParams : undefined;
+}
+
+/** The data types of the project's `@prisma/orm-postgres`, loaded from where `path` can load it, or undefined when it cannot. */
+function loadDefaultSpeller(path: string): DefaultSpeller | undefined {
+  const load = (specifier: string): unknown => {
+    try {
+      return createRequire(path)(specifier);
+    } catch {
+      return undefined;
+    }
+  };
+  const lookup = methodOf(
+    load('@prisma/orm-postgres/target/data-types'),
+    'createPostgresBuiltinDataTypeLookup',
+  )?.();
+  const dataTypeOf = methodOf(lookup, 'get');
+  if (dataTypeOf === undefined) return undefined;
+  const dataTypeParams = methodOf(load('@prisma/orm-postgres/components/codec'), 'dataTypeParams');
+  const validateParams = methodOf(
+    load('@prisma/orm-postgres/family-contract/data-type'),
+    'validateSqlTypeParams',
+  );
+  return (value, column, namedTypes) => {
+    const type = dataTypeOf(column['dataType']);
+    const fromContract = methodOf(type, 'fromContract');
+    const valueFrom = methodOf(type, 'valueFrom');
+    const toContract = methodOf(type, 'toContract');
+    if (fromContract === undefined || valueFrom === undefined || toContract === undefined)
+      return { kind: 'kept' };
+    const typeParams = resolvedTypeParams(column, namedTypes);
+    const params =
+      dataTypeParams === undefined ? (typeParams ?? {}) : dataTypeParams(type, typeParams);
+    try {
+      validateParams?.(type, params);
+    } catch {
+      return { kind: 'kept' };
+    }
+    try {
+      fromContract(value, params);
+      return { kind: 'kept' };
+    } catch {
+      try {
+        const respelled = toContract(valueFrom(value, params));
+        return isJson(respelled)
+          ? { kind: 'respelled', value: respelled }
+          : { kind: 'unreadable', reason: 'its data type gave no JSON value' };
+      } catch (error) {
+        return { kind: 'unreadable', reason: errorMessage(error) };
+      }
+    }
+  };
+}
+
+function hasLiteralDefault(contract: JsonRecord): boolean {
+  return columnsOf(contract).some(({ column }) => {
+    const columnDefault = column['default'];
+    return isRecord(columnDefault) && columnDefault['kind'] === 'literal';
+  });
+}
+
+interface ColumnEntry {
+  readonly namespaceId: string;
+  readonly tableName: string;
+  readonly columnName: string;
+  readonly column: JsonRecord;
+}
+
+function columnsOf(contract: JsonRecord): ColumnEntry[] {
+  const storage = contract['storage'];
+  const namespaces = isRecord(storage) ? storage['namespaces'] : undefined;
+  return Object.entries(isRecord(namespaces) ? namespaces : {}).flatMap(
+    ([namespaceId, namespace]) => {
+      const entries = isRecord(namespace) ? namespace['entries'] : undefined;
+      const tables = isRecord(entries) ? entries['table'] : undefined;
+      return Object.entries(isRecord(tables) ? tables : {}).flatMap(([tableName, table]) => {
+        const columns = isRecord(table) ? table['columns'] : undefined;
+        return Object.entries(isRecord(columns) ? columns : {}).flatMap(([columnName, column]) =>
+          isRecord(column) ? [{ namespaceId, tableName, columnName, column }] : [],
+        );
+      });
+    },
+  );
+}
+
+/** Mutates `copy`: each literal default the speller spells otherwise, element by element on a list column. */
+function respellDefaults(
+  copy: JsonRecord,
+  speller: DefaultSpeller,
+): { readonly defaults: Map<string, Respelling[]>; readonly unreadable: string[] } {
+  const defaults = new Map<string, Respelling[]>();
+  const unreadable: string[] = [];
+  const storage = copy['storage'];
+  const namedTypes = isRecord(storage) ? storage['types'] : undefined;
+  for (const { namespaceId, tableName, columnName, column } of columnsOf(copy)) {
+    const columnDefault = column['default'];
+    if (!isRecord(columnDefault) || columnDefault['kind'] !== 'literal') continue;
+    const value = columnDefault['value'];
+    if (value === undefined || value === null) continue;
+    const listed = isRecord(column['many']) && Array.isArray(value);
+    const values = listed && Array.isArray(value) ? value : [value];
+    const respellings: Respelling[] = [];
+    const spelled = values.map((element) => {
+      if (element === null) return element;
+      const spelling = speller(element, column, namedTypes);
+      if (spelling.kind === 'unreadable') {
+        unreadable.push(
+          `namespace ${namespaceId}, table ${tableName}, column ${columnName}: the default ${JSON.stringify(element)} is not a value of ${String(column['dataType'])} (${spelling.reason}); write the value the database stores by hand`,
+        );
+        return element;
+      }
+      if (spelling.kind === 'kept') return element;
+      if (typeof element === 'string' && typeof spelling.value === 'string')
+        respellings.push({ from: element, to: spelling.value });
+      return spelling.value;
+    });
+    if (spelled.every((element, index) => element === values[index])) continue;
+    columnDefault['value'] = listed ? spelled : (spelled[0] ?? null);
+    defaults.set(listKey(namespaceId, tableName, columnName), respellings);
+  }
+  return { defaults, unreadable };
 }
 
 function allowNullElements(holder: JsonRecord): void {
@@ -457,10 +621,18 @@ function fieldsMappingColumns(copy: JsonRecord, columns: ReadonlySet<string>): S
   return fields;
 }
 
-/** The contract with the key removed from each column, and the lists whose element check it waived made element-nullable. */
-function rewriteContract(contract: JsonRecord): Rewrite {
+/** The contract with the key removed from each column, the lists whose element check it waived made element-nullable, and each default spelled as this release stores it. */
+function rewriteContract(contract: JsonRecord, speller: DefaultSpeller | undefined): Rewrite {
   const copy = parseJson(JSON.stringify(contract));
-  if (!isRecord(copy)) return { contract, changed: false, columns: new Set(), fields: new Set() };
+  if (!isRecord(copy))
+    return {
+      contract,
+      changed: false,
+      columns: new Set(),
+      fields: new Set(),
+      defaults: new Map(),
+      unreadable: [],
+    };
   let changed = false;
   const columns = new Set<string>();
   const storage = copy['storage'];
@@ -484,7 +656,18 @@ function rewriteContract(contract: JsonRecord): Rewrite {
       }
     }
   }
-  return { contract: copy, changed, columns, fields: fieldsMappingColumns(copy, columns) };
+  const { defaults, unreadable } =
+    speller === undefined
+      ? { defaults: new Map(), unreadable: [] }
+      : respellDefaults(copy, speller);
+  return {
+    contract: copy,
+    changed: changed || defaults.size > 0,
+    columns,
+    fields: fieldsMappingColumns(copy, columns),
+    defaults,
+    unreadable,
+  };
 }
 
 function withStorageHash(contract: JsonRecord, hash: string): JsonRecord {
@@ -617,14 +800,33 @@ function typeArgumentEnd(text: string, start: number): number {
   return -1;
 }
 
+function quoted(text: string, quote: string): string {
+  return `${quote}${text.replaceAll('\\', '\\\\').replaceAll(quote, `\\${quote}`)}${quote}`;
+}
+
 function rewriteDts(
   text: string,
   columns: ReadonlySet<string>,
   fields: ReadonlySet<string>,
+  defaults: ReadonlyMap<string, readonly Respelling[]>,
   hashes: ReadonlyMap<string, string>,
 ): string {
   const blocks = scanBlocks(text);
   const edits: { start: number; end: number; text: string }[] = [];
+  for (const match of text.matchAll(/DefaultLiteralValue</g)) {
+    const holder = innermostBlock(blocks, match.index);
+    const column = holder?.label === 'default' ? holder.parent : undefined;
+    const key = column === undefined ? undefined : columnBlockKey(column);
+    const respellings = key === undefined ? undefined : defaults.get(key);
+    const end = typeArgumentEnd(text, match.index + match[0].length);
+    if (respellings === undefined || end === -1) continue;
+    const start = match.index + match[0].length;
+    let literal = text.slice(start, end);
+    for (const { from, to } of respellings)
+      for (const quote of ["'", '"'])
+        literal = literal.replaceAll(quoted(from, quote), quoted(to, quote));
+    edits.push({ start, end, text: literal });
+  }
   const rowMember =
     /(?:readonly\s+)?([\p{ID_Start}_$][\p{ID_Continue}$]*|'[^']*'|"[^"]*")\s*\??\s*:\s*ReadonlyArray</gu;
   for (const match of text.matchAll(rowMember)) {
@@ -674,6 +876,7 @@ interface ContractPlan {
   readonly content: string;
   readonly columns: ReadonlySet<string>;
   readonly fields: ReadonlySet<string>;
+  readonly defaults: ReadonlyMap<string, readonly Respelling[]>;
 }
 
 function summary(
@@ -685,7 +888,7 @@ function summary(
 ): readonly string[] {
   if (contractsFound === 0) return [`No SQL contract was found under ${root}; nothing changed.`];
   if (files === 0 && directories === 0)
-    return ['No contract stores a noCheck key; nothing changed.'];
+    return ['No contract stores a noCheck key or a default in another spelling; nothing changed.'];
   const renamed = count(directories, 'snapshot directory', 'snapshot directories');
   const changes = `Rewrote ${count(files, 'file', 'files')} and renamed ${renamed}.`;
   if (hashes.size === 0) return [changes];
@@ -723,6 +926,7 @@ function main({
   const display = (path: string): string => relative(root, path).split(sep).join('/');
   const files = listFiles(root);
   const plans: ContractPlan[] = [];
+  const notices: string[] = [];
   const stops: string[] = [];
   let contractsFound = 0;
 
@@ -744,8 +948,17 @@ function main({
     )
       continue;
     contractsFound++;
-    const rewrite = rewriteContract(contract);
-    if (!rewrite.changed) continue;
+    const speller =
+      contract['target'] === 'postgres' && hasLiteralDefault(contract)
+        ? loadDefaultSpeller(path)
+        : undefined;
+    if (speller === undefined && contract['target'] === 'postgres' && hasLiteralDefault(contract))
+      notices.push(
+        `${display(path)}: @prisma/orm-postgres cannot be loaded from here, so its defaults were not checked; install the upgraded packages and run the script again`,
+      );
+    const rewrite = rewriteContract(contract, speller);
+    for (const problem of rewrite.unreadable) stops.push(`${display(path)}: ${problem}`);
+    if (!rewrite.changed || rewrite.unreadable.length > 0) continue;
     const snapshot = isSnapshotContract(path);
     const stored = contract['storage']['storageHash'];
     const oldHash = snapshot ? basename(dirname(path)) : typeof stored === 'string' ? stored : '';
@@ -765,6 +978,7 @@ function main({
       content: writtenForm(withStorageHash(rewrite.contract, newHash), contract, text),
       columns: rewrite.columns,
       fields: rewrite.fields,
+      defaults: rewrite.defaults,
     });
   }
 
@@ -786,7 +1000,13 @@ function main({
       : `${plan.path.slice(0, -'.json'.length)}.d.ts`;
     const dtsHashes = new Map([...hashes, [plan.oldHash, plan.newHash]]);
     const dts = existsSync(dtsPath)
-      ? rewriteDts(readFileSync(dtsPath, 'utf8'), plan.columns, plan.fields, dtsHashes)
+      ? rewriteDts(
+          readFileSync(dtsPath, 'utf8'),
+          plan.columns,
+          plan.fields,
+          plan.defaults,
+          dtsHashes,
+        )
       : undefined;
     if (!plan.snapshot) {
       if (dts !== undefined) referenceWrites.set(dtsPath, dts);
@@ -879,7 +1099,10 @@ function main({
     return 1;
   }
   const rewrittenFiles = snapshotRewrites.length + referenceWrites.size + contractWrites.size;
-  const lines = summary(root, contractsFound, rewrittenFiles, removals.size, hashes);
+  const lines = [
+    ...notices,
+    ...summary(root, contractsFound, rewrittenFiles, removals.size, hashes),
+  ];
   process.stdout.write(`${lines.join('\n')}\n`);
   return 0;
 }

@@ -1,4 +1,5 @@
-import { cpSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, readFileSync, renameSync, symlinkSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { join } from 'pathe';
 import { afterAll, describe, expect, it } from 'vitest';
 import {
@@ -24,6 +25,26 @@ const HASHES: ReadonlyArray<readonly [string, string]> = [
 ];
 
 afterAll(removeWorkDirs);
+
+const POSTGRES_FACADE = fileURLToPath(
+  new URL('../../../../../packages/9-public/@prisma/orm-postgres', import.meta.url),
+);
+const OLD_DEFAULTS_HASH = 'a086c916bc6bf55a62e34ea3fc3c264634e3a078f3e00e99b0e3a332cd31ecc8';
+const EMITTED_BY_RC19_HASH = '1dd0420f931282d68277216cdff0dc9059fde0f0e086bbc596cdf32675577e0b';
+
+/** A copy of the postgres-defaults fixture that can load `@prisma/orm-postgres`, as an upgraded project can. */
+function postgresDefaultsProject(): string {
+  const root = copyFixture('before', 'postgres-defaults');
+  mkdirSync(join(root, 'node_modules/@prisma'), { recursive: true });
+  symlinkSync(POSTGRES_FACADE, join(root, 'node_modules/@prisma/orm-postgres'));
+  return root;
+}
+
+function withoutNodeModules(tree: Tree): Tree {
+  return Object.fromEntries(
+    Object.entries(tree).filter(([path]) => !path.startsWith('node_modules/')),
+  );
+}
 
 const SNAPSHOT_IMPORT = /^import [^;]*?'\.\.\/\.\.\/snapshots\/[\s\S]*?;\n/gm;
 
@@ -121,7 +142,8 @@ describe('remove-nocheck', () => {
     const run = runScript(copyFixture('after'));
     expect({ status: run.status, stdout: run.stdout, tree: readTree(run.root) }).toEqual({
       status: 0,
-      stdout: 'No contract stores a noCheck key; nothing changed.\n',
+      stdout:
+        'No contract stores a noCheck key or a default in another spelling; nothing changed.\n',
       tree: fixtureTree('after'),
     });
   });
@@ -193,6 +215,55 @@ describe('remove-nocheck', () => {
       ].join('\n'),
       stderr: '',
       tree: fixtureTree('after', 'rc18-emitted'),
+    });
+  });
+
+  it('writes each PostgreSQL default in the spelling this release stores, as contract emit does, and rewrites every hash that follows', () => {
+    const run = runScript(postgresDefaultsProject());
+    expect({
+      status: run.status,
+      stdout: run.stdout,
+      stderr: run.stderr,
+      tree: withoutNodeModules(readTree(run.root)),
+    }).toEqual({
+      status: 0,
+      stdout: [
+        'Rewrote 4 files and renamed 1 snapshot directory. Storage hashes changed (old -> new):',
+        `  ${OLD_DEFAULTS_HASH} -> ${EMITTED_BY_RC19_HASH}`,
+        '',
+      ].join('\n'),
+      stderr: '',
+      tree: fixtureTree('after', 'postgres-defaults'),
+    });
+  });
+
+  it('gives the rewritten snapshot the default and storage hash contract emit gives the schema', () => {
+    const snapshot = JSON.parse(
+      fixtureTree('after', 'postgres-defaults')[
+        `migrations/snapshots/${EMITTED_BY_RC19_HASH}/contract.json`
+      ] ?? '{}',
+    );
+    expect({
+      price: snapshot.storage.namespaces.public.entries.table.product.columns.price.default,
+      storageHash: snapshot.storage.storageHash,
+    }).toEqual({
+      price: { kind: 'literal', value: '1.50' },
+      storageHash: EMITTED_BY_RC19_HASH,
+    });
+  });
+
+  it('says it did not check the defaults of a contract that cannot load @prisma/orm-postgres, and changes nothing', () => {
+    const root = copyFixture('before', 'postgres-defaults');
+    const run = runScript(root);
+    expect({ status: run.status, stdout: run.stdout, tree: readTree(root) }).toEqual({
+      status: 0,
+      stdout: [
+        'migrations/snapshots/a086c916bc6bf55a62e34ea3fc3c264634e3a078f3e00e99b0e3a332cd31ecc8/contract.json: @prisma/orm-postgres cannot be loaded from here, so its defaults were not checked; install the upgraded packages and run the script again',
+        'src/prisma/contract.json: @prisma/orm-postgres cannot be loaded from here, so its defaults were not checked; install the upgraded packages and run the script again',
+        'No contract stores a noCheck key or a default in another spelling; nothing changed.',
+        '',
+      ].join('\n'),
+      tree: fixtureTree('before', 'postgres-defaults'),
     });
   });
 

@@ -68,7 +68,10 @@ export interface Run {
 }
 
 export function runScript(root: string, script = appScript): Run {
-  const result = spawnSync(process.execPath, [script, root], { encoding: 'utf8' });
+  const result = spawnSync(process.execPath, [script, root], {
+    encoding: 'utf8',
+    env: { ...process.env, NODE_PATH: '' },
+  });
   return { root, status: result.status, stdout: result.stdout, stderr: result.stderr };
 }
 
