@@ -11,7 +11,7 @@ describe('formatMysqlQuery', () => {
         [injection, 2],
       ),
     ).toBe(
-      "SELECT 'why?' AS `a?`, \"b?\" AS c /* d? */ FROM t -- e?\nWHERE x = '\\' OR 1=1 OR \\'' # f?\nAND y = 2",
+      "SELECT 'why?' AS `a?`, \"b?\" AS c /* d? */ FROM t -- e?\nWHERE x = ''' OR 1=1 OR ''' # f?\nAND y = 2",
     );
   });
 
@@ -41,6 +41,10 @@ describe('formatMysqlQuery', () => {
     expect(() => formatMysqlQuery('SELECT ?01', ['a'])).toThrow(
       expect.objectContaining({ code: 'RUNTIME.PARAM_PLACEHOLDER_MISMATCH' }),
     );
+  });
+
+  it('writes a string with its quotes and backslashes doubled, which both backslash modes read as one literal', () => {
+    expect(formatMysqlQuery('SELECT ?1', ["a\\'b\n\u0000"])).toBe("SELECT 'a\\\\''b\n\u0000'");
   });
 
   it('writes each value with mysql2 escaping, and NULL for null', () => {

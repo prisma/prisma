@@ -1,6 +1,7 @@
 import { EventEmitter } from 'node:events';
 import { Readable } from 'node:stream';
 import { describe, expect, it, vi } from 'vitest';
+import mysqlRuntimeDriver from '../src/core/runtime/runtime-driver';
 
 class FakeConnection extends EventEmitter {
   readonly release = vi.fn();
@@ -42,7 +43,6 @@ vi.mock('mysql2', async (importOriginal) => ({
 
 describe('MySQL runtime driver with a fatal stream error', () => {
   it('destroys the connection instead of returning it to the pool', async () => {
-    const { default: mysqlRuntimeDriver } = await import('../src/core/runtime/runtime-driver');
     const driver = mysqlRuntimeDriver.create();
     await driver.connect({ kind: 'url', url: 'mysql://root@localhost/db' });
     const rows = driver.query({ sql: 'SELECT 1' })[Symbol.asyncIterator]();

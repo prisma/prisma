@@ -94,6 +94,37 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     });
   });
 
+  it('keeps a value inside its literal even after the session turns on NO_BACKSLASH_ESCAPES', async (test) => {
+    await withMysqlDatabase(test, ({ url }) =>
+      withDriver(url, async (driver) => {
+        const value = "\\' OR TRUE -- ";
+        const connection = await driver.acquireConnection();
+        try {
+          const probe = {
+            sql: "SELECT 'leaked' AS r FROM DUAL WHERE 'secret' = ?1",
+            params: [value],
+          };
+          const before = await collect(connection.query(probe));
+          const awkward = "it's \\ a\nb\u0000c";
+          const roundTrip = await collect(
+            connection.query({ sql: 'SELECT ?1 AS v, ?2 AS w', params: [value, awkward] }),
+          );
+          await connection.execute({
+            sql: "SET SESSION sql_mode = CONCAT(@@SESSION.sql_mode, ',NO_BACKSLASH_ESCAPES')",
+          });
+          const after = await collect(connection.query(probe));
+          expect({ before, roundTrip, after }).toEqual({
+            before: [],
+            roundTrip: [{ v: value, w: awkward }],
+            after: [],
+          });
+        } finally {
+          await connection.destroy();
+        }
+      }),
+    );
+  });
+
   it('sets up every connection: no backslash escapes mode and UTC', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {

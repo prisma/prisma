@@ -6,6 +6,13 @@ function invalid(message: string, meta: Record<string, unknown>): Error {
   return structuredError('RUNTIME.AST_INVALID', message, { meta: { target: 'mysql', ...meta } });
 }
 
+/**
+ * A string literal with its quotes and backslashes doubled. With `NO_BACKSLASH_ESCAPES` off, MySQL reads `\\` as one backslash and `''` as one quote; with it on, it reads `\\` as two backslashes, which changes the value but cannot end the literal. mysql2 escapes a quote as `\'`, which a session that turned the mode on would read as a backslash and the end of the literal.
+ */
+function quoteString(value: string): string {
+  return `'${value.replace(/\\/g, '\\\\').replace(/'/g, "''")}'`;
+}
+
 function literal(value: unknown, index: number): string {
   if (value === null || value === undefined) return 'NULL';
   if (typeof value === 'number' && !Number.isFinite(value)) {
@@ -24,6 +31,7 @@ function literal(value: unknown, index: number): string {
       { index, valueType: Array.isArray(value) ? 'array' : typeof value },
     );
   }
+  if (typeof value === 'string') return quoteString(value);
   return escapeValue(isBytes ? Buffer.from(value) : value, false, 'Z');
 }
 
