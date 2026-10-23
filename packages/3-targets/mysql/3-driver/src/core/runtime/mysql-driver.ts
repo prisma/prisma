@@ -204,10 +204,11 @@ abstract class MysqlQueryable implements SqlQueryable {
 }
 
 /**
- * The session of a connection one caller holds, shared by the connection and its transactions. After raw SQL, the session setup runs again before the holder's next statement, and the connection is destroyed when the hold ends, because a raw statement may have changed any other setting.
+ * The session of a connection one caller holds, shared by the connection and its transactions. Its statements run one at a time: each waits until the one before it ends, a stream until it is read to the end or closed. After raw SQL, the session setup runs again before the holder's next statement, and the connection is closed when the hold ends, because a raw statement may have changed any other setting.
  */
 class HeldSession {
   readonly connection: PoolConnection;
+  #previous: Promise<void> = Promise.resolve();
   #setUpBeforeNext = false;
   #ranRawSql = false;
 
@@ -220,8 +221,19 @@ class HeldSession {
   }
 
   async lend(): Promise<Lent> {
+    const previous = this.#previous;
+    let finish: () => void = () => {};
+    this.#previous = new Promise((resolve) => {
+      finish = resolve;
+    });
+    await previous;
     if (this.#setUpBeforeNext) {
-      await setUpSession(this.connection);
+      try {
+        await setUpSession(this.connection);
+      } catch (error) {
+        finish();
+        throw error;
+      }
       this.#setUpBeforeNext = false;
     }
     return {
@@ -231,7 +243,7 @@ class HeldSession {
         this.#setUpBeforeNext = true;
         this.#ranRawSql = true;
       },
-      done: () => {},
+      done: finish,
     };
   }
 }
@@ -252,7 +264,12 @@ class MysqlConnectionImpl extends MysqlQueryable implements SqlConnection {
   }
 
   async beginTransaction(): Promise<SqlTransaction> {
-    await runConstant(this.#session.connection, 'START TRANSACTION');
+    const lent = await this.#session.lend();
+    try {
+      await runConstant(lent.connection, 'START TRANSACTION');
+    } finally {
+      lent.done(false);
+    }
     return new MysqlTransactionImpl(this.#session);
   }
 

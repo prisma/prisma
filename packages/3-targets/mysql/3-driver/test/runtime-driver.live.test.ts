@@ -311,6 +311,44 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     });
   });
 
+  it('runs the statements of a transaction one at a time, so a read started beside a raw SET still sees the session setup afterwards', async (test) => {
+    await withMysqlDatabase(test, ({ url }) =>
+      withDriver(url, async (driver) => {
+        const readMode = {
+          containsRawSql: false,
+          sql: "SELECT FIND_IN_SET('NO_BACKSLASH_ESCAPES', @@SESSION.sql_mode) AS nbe",
+        } as const;
+        const results = [];
+        for (const hops of [0, 1, 2, 4, 8]) {
+          const held = await driver.acquireConnection();
+          try {
+            const transaction = await held.beginTransaction();
+            const [, beside] = await Promise.all([
+              transaction.execute({
+                containsRawSql: true,
+                sql: "SET SESSION sql_mode = 'NO_BACKSLASH_ESCAPES'",
+              }),
+              (async () => {
+                for (let hop = 0; hop < hops; hop += 1) await Promise.resolve();
+                return collect(transaction.query(readMode));
+              })(),
+            ]);
+            const next = await collect(transaction.query(readMode));
+            const afterThat = await collect(transaction.query(readMode));
+            await transaction.commit();
+            results.push({ hops, beside, next, afterThat });
+          } finally {
+            await held.release();
+          }
+        }
+        const setUp = [{ nbe: '0' }];
+        expect(results).toEqual(
+          [0, 1, 2, 4, 8].map((hops) => ({ hops, beside: setUp, next: setUp, afterThat: setUp })),
+        );
+      }),
+    );
+  });
+
   describe('a setting raw SQL changes', () => {
     async function withOneConnection(
       test: Parameters<typeof withMysqlDatabase>[0],
