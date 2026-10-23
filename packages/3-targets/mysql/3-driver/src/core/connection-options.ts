@@ -24,7 +24,7 @@ const DEFAULT_POOL_TIMEOUT_MS = 10_000;
 /** Prepared statements each connection keeps open, as the Prisma engines' MySQL connector does. MySQL caps open statements server-wide (16,382 by default), and mysql2's own default of 16,000 per connection would let two connections reach it. */
 const DEFAULT_STATEMENT_CACHE_SIZE = 100;
 
-/** The connection's character set. The driver escapes each value as JavaScript text, which mysql2 then encodes in this charset; a narrower one, such as latin1 or sjis, can turn a character of the value into a quote or a backslash after escaping. */
+/** The connection's character set. The renderer writes literal text into the SQL, which mysql2 encodes in this charset; a narrower one, such as latin1 or sjis, can turn a character of it into a quote or a backslash after escaping. */
 const CHARSET = 'UTF8MB4_UNICODE_CI';
 
 function parameterValue(text: string): unknown {

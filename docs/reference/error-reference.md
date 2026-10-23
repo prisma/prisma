@@ -1180,7 +1180,7 @@ A built-in Postgres query operation or full-text helper received an argument it 
 
 ### RUNTIME.AST_INVALID
 
-A lowered SQL AST is structurally invalid: a subquery projecting other than one column, an INSERT with zero rows, a missing column value, an empty onConflict column list or do-update-set, an UPDATE with no SET assignments, an INSERT target table absent from contract storage, or an AST node constructed with invalid arguments (empty FunctionSource column aliases, a CaseExpr with no branches, a raw query declaring a `__proto__` result column, a name that cannot survive as a column, so alias it in SQL and declare the alias). Raised by the Postgres and SQLite SQL renderers and by AST node construction in relational-core. The MySQL drivers raise it for a parameter value MySQL's text protocol has no literal for, such as an object, an array or a non-finite number, with `target: 'mysql'`, `index` and `valueType`. Payload: `node`, `table`, `column`; construction sites carry node-specific fields.
+A lowered SQL AST is structurally invalid: a subquery projecting other than one column, an INSERT with zero rows, a missing column value, an empty onConflict column list or do-update-set, an UPDATE with no SET assignments, an INSERT target table absent from contract storage, or an AST node constructed with invalid arguments (empty FunctionSource column aliases, a CaseExpr with no branches, a raw query declaring a `__proto__` result column, a name that cannot survive as a column, so alias it in SQL and declare the alias). Raised by the Postgres and SQLite SQL renderers and by AST node construction in relational-core. The MySQL drivers raise it for a parameter value MySQL has no parameter type for, such as an object, an array or a non-finite number, with `target: 'mysql'`, `index` and `valueType`, and for SQL text containing an executable `/*!` comment, whose content MySQL runs as SQL. Payload: `node`, `table`, `column`; construction sites carry node-specific fields.
 
 ### RUNTIME.AST_UNSUPPORTED
 
@@ -1188,7 +1188,7 @@ The authored SQL AST uses a feature this target cannot render, e.g. DEFAULT as a
 
 ### RUNTIME.BINDING_INVALID
 
-A client (`postgres()`, `sqlite()`, `mongo()`) received a connection binding whose shape is wrong for the target: malformed connection string, unsupported binding kind, or missing required fields. Raised at `connect(...)` / client construction. The MySQL drivers raise it for a URL parameter they do not read (they read `ssl`, `connectTimeout`, `flags`, `connectionLimit` and `poolTimeout`), for a `charset` parameter, because they always connect as utf8mb4, or for a pool setting that is not a positive integer. A serverless Postgres client raises it from `connect({ url })` for an empty URL, a string that is not a URL, or a scheme other than `postgres://` or `postgresql://`, before any `pg.Client` exists. Payload: `received`, `reason`.
+A client (`postgres()`, `sqlite()`, `mongo()`) received a connection binding whose shape is wrong for the target: malformed connection string, unsupported binding kind, or missing required fields. Raised at `connect(...)` / client construction. The MySQL drivers raise it for a URL parameter they do not read (they read `ssl`, `connectTimeout`, `flags`, `connectionLimit`, `poolTimeout` and `statementCacheSize`), for a `charset` parameter, because they always connect as utf8mb4, or for a pool setting that is not a positive integer. A serverless Postgres client raises it from `connect({ url })` for an empty URL, a string that is not a URL, or a scheme other than `postgres://` or `postgresql://`, before any `pg.Client` exists. Payload: `received`, `reason`.
 
 ### RUNTIME.BINDING_MISSING
 
@@ -1416,7 +1416,7 @@ Using a driver, a client, or the CLI control client before `connect(...)` has be
 
 ### DRIVER.PREPARE_FAILED
 
-A prepared statement failed again after the PostgreSQL driver discarded a stale handle and retried with a fresh handle. The normalized PostgreSQL error is attached as `cause`. Payload: `handle`.
+A prepared statement failed again after the PostgreSQL driver discarded a stale handle and retried with a fresh handle. The normalized PostgreSQL error is attached as `cause`. Payload: `handle`. The MySQL drivers raise it for a statement MySQL cannot run as a prepared statement (MySQL error 1295, `ER_UNSUPPORTED_PS`), such as `LOCK TABLES`: they send every statement with values as a prepared statement. The MySQL error is attached as `cause`. Payload: `sql`.
 
 ## MIGRATION
 
