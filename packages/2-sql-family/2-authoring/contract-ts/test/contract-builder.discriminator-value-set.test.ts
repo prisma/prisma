@@ -98,6 +98,20 @@ describe('the value set of a discriminator', () => {
     });
   });
 
+  it('holds the values in sorted order, so the order the variants are declared in does not change the storage hash', () => {
+    const declaredFeatureFirst = build(
+      definitionWith({ variants: { feature: 'Feature', '10': 'Ten', bug: 'Bug', '2': 'Two' } }),
+    );
+    const declaredBugFirst = build(
+      definitionWith({ variants: { bug: 'Bug', '2': 'Two', feature: 'Feature', '10': 'Ten' } }),
+    );
+    expect({
+      values:
+        declaredFeatureFirst.storage.namespaces['public']?.entries.valueSet?.['Task.type']?.values,
+      sameHash: declaredFeatureFirst.storage.storageHash === declaredBugFirst.storage.storageHash,
+    }).toEqual({ values: ['10', '2', 'bug', 'feature'], sameHash: true });
+  });
+
   it('changes the storage hash when a variant is added', () => {
     expect(build(definitionWith({ variants: { bug: 'Bug' } })).storage.storageHash).not.toBe(
       build(definitionWith()).storage.storageHash,

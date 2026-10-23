@@ -211,7 +211,7 @@ function writeDiscriminatorValueSets(
       );
     }
     const namespaceValueSets = storageValueSetsByNs[namespaceId] ?? {};
-    namespaceValueSets[valueSetName] = { kind: 'valueSet', values: Object.keys(variants) };
+    namespaceValueSets[valueSetName] = { kind: 'valueSet', values: Object.keys(variants).sort() };
     storageValueSetsByNs[namespaceId] = namespaceValueSets;
     const namespaceTables = tablesByNamespace[namespaceId] ?? {};
     namespaceTables[model.tableName] = {
