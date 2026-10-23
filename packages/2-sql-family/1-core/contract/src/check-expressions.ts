@@ -1,8 +1,8 @@
 import type {
   ContractValueObject,
   ContractValueObjectField,
-  ContractWithDomain,
   EntityCoordinate,
+  StorageBase,
 } from '@internal/contract/types';
 import { valueObjectAt } from '@internal/contract/types';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
@@ -70,7 +70,7 @@ export type CheckExpressionRenderer = (
  * What the check of a column that holds a value object reads. The contract build and `contract print` both derive it here, so print recognises exactly the check the build writes.
  */
 export function resolveColumnValueObject(
-  storage: ContractWithDomain['storage'],
+  storage: Pick<StorageBase, 'namespaces'>,
   column: {
     readonly reference: EntityCoordinate<'storage', 'valueObject'>;
     readonly nullable: boolean;
@@ -100,7 +100,7 @@ export function discriminatorValueSet(
  * The value object a reference names, with nested value objects inlined, enum members' values read from their storage value sets, and each scalar member's JSON type read from its codec.
  */
 export function resolveValueObject(
-  storage: ContractWithDomain['storage'],
+  storage: Pick<StorageBase, 'namespaces'>,
   reference: EntityCoordinate<'storage', 'valueObject'>,
   codecs: CodecDescriptors,
 ): ResolvedValueObject {
@@ -108,7 +108,7 @@ export function resolveValueObject(
 }
 
 function resolveEntered(
-  storage: ContractWithDomain['storage'],
+  storage: Pick<StorageBase, 'namespaces'>,
   reference: EntityCoordinate<'storage', 'valueObject'>,
   path: readonly string[],
   codecs: CodecDescriptors,
@@ -135,7 +135,7 @@ interface ValueObjectMember {
 }
 
 function resolveFieldType(
-  storage: ContractWithDomain['storage'],
+  storage: Pick<StorageBase, 'namespaces'>,
   member: ValueObjectMember,
   path: readonly string[],
   codecs: CodecDescriptors,
@@ -189,7 +189,7 @@ function memberJsonType(
  * Whether `from` refers, through its own fields or nested ones, to a value object on the path being resolved. Each value object on the path refers to `from`, so this holds exactly when `from` is in a group of value objects that contain each other which the path has already entered.
  */
 function reachesAny(
-  storage: ContractWithDomain['storage'],
+  storage: Pick<StorageBase, 'namespaces'>,
   from: EntityCoordinate<'storage', 'valueObject'>,
   targets: ReadonlySet<string>,
 ): boolean {
@@ -208,7 +208,7 @@ function reachesAny(
 }
 
 function requiredValueObject(
-  storage: ContractWithDomain['storage'],
+  storage: Pick<StorageBase, 'namespaces'>,
   reference: EntityCoordinate<'storage', 'valueObject'>,
 ): ContractValueObject {
   const valueObject = valueObjectAt(storage, reference);
@@ -220,7 +220,7 @@ function requiredValueObject(
 }
 
 function valueSetValues(
-  storage: ContractWithDomain['storage'],
+  storage: Pick<StorageBase, 'namespaces'>,
   reference: EntityCoordinate<'storage', 'valueSet'>,
 ): readonly (string | number)[] {
   const valueSet = Object.hasOwn(storage.namespaces, reference.namespaceId)

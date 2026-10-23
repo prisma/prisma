@@ -1,4 +1,4 @@
-import type { ContractWithDomain } from '@internal/contract/types';
+import type { StorageBase } from '@internal/contract/types';
 import type { CodecLookupWithDescriptors, TypeLookups } from '@internal/framework-components/codec';
 import { dataTypeParams } from '@internal/framework-components/codec';
 import {
@@ -79,7 +79,7 @@ export interface ColumnLoweringContext {
   readonly qualifyColumnType: ColumnTypeQualifier | undefined;
   readonly renderCheckExpressions: CheckExpressionRenderer | undefined;
   /** The value objects and value sets storage will hold, which a value object column's check is derived from. */
-  readonly storage: ContractWithDomain['storage'];
+  readonly storage: Pick<StorageBase, 'namespaces'>;
   /** Receives the pack entity a column's type constructor refers to. */
   readonly collectedColumnEntities: CollectedColumnEntities;
 }

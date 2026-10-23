@@ -1,5 +1,5 @@
 import { isPlainRecord } from '@internal/contract/is-plain-record';
-import type { ContractWithDomain, EntityCoordinate } from '@internal/contract/types';
+import type { EntityCoordinate, StorageBase } from '@internal/contract/types';
 import { canonicalStringify } from '@internal/utils/canonical-stringify';
 import { blindCast } from '@internal/utils/casts';
 import type { IRNode } from './ir-node';
@@ -19,7 +19,7 @@ export { isPlainRecord };
  * entity name in that map. No family-specific kind vocabulary is required.
  */
 export function* elementCoordinates(
-  storage: ContractWithDomain['storage'],
+  storage: Pick<StorageBase, 'namespaces'>,
 ): Generator<EntityCoordinate> {
   for (const [namespaceId, ns] of Object.entries(storage.namespaces)) {
     const entries = ns.entries;
@@ -60,11 +60,11 @@ export function coordinateKey(
  * entity kind and entity name. With no earlier storage, every entity counts as added.
  */
 export function changedElementCoordinates(
-  from: ContractWithDomain['storage'] | null,
-  to: ContractWithDomain['storage'],
+  from: Pick<StorageBase, 'namespaces'> | null,
+  to: Pick<StorageBase, 'namespaces'>,
 ): EntityCoordinate[] {
   const contentAt = (
-    storage: ContractWithDomain['storage'] | null,
+    storage: Pick<StorageBase, 'namespaces'> | null,
     coordinate: EntityCoordinate,
   ): string | undefined => {
     if (storage === null) return undefined;
@@ -97,7 +97,7 @@ export function changedElementCoordinates(
  * and cannot verify the entity's shape.
  */
 export function entityAt<T = unknown>(
-  storage: ContractWithDomain['storage'],
+  storage: Pick<StorageBase, 'namespaces'>,
   coord: Pick<EntityCoordinate, 'namespaceId' | 'entityKind' | 'entityName'>,
 ): T | undefined {
   const ns = storage.namespaces[coord.namespaceId];

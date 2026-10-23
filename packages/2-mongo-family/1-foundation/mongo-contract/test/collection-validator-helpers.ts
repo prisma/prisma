@@ -3,7 +3,7 @@ import type {
   ContractField,
   ContractModel,
   ContractValueObject,
-  ContractWithDomain,
+  StorageBase,
 } from '@internal/contract/types';
 import { type CrossReference, crossRef } from '@internal/contract/types';
 import type { MongoModelStorage } from '../src/contract-types';
@@ -56,7 +56,7 @@ export function embedMany(to: string): ContractEmbedRelation {
 /** Storage holding `valueObjects` in the unbound namespace, where the test helpers' value object fields point. */
 export function storageWithValueObjects(
   valueObjects: Record<string, ContractValueObject>,
-): ContractWithDomain['storage'] {
+): Pick<StorageBase, 'namespaces'> {
   return {
     namespaces: { __unbound__: { id: '__unbound__', entries: { valueObject: valueObjects } } },
   };

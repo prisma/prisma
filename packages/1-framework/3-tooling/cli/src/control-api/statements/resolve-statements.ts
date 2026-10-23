@@ -7,6 +7,7 @@ import {
   type ContractFieldType,
   type ContractModelBase,
   type ContractWithDomain,
+  type StorageBase,
   valueObjectAt,
 } from '@internal/contract/types';
 import type { CliStructuredError } from '@internal/errors/control';
@@ -191,9 +192,13 @@ function modelIn(
   return Object.hasOwn(namespace.models, name) ? namespace.models[name] : undefined;
 }
 
-function hasValueObject(contract: ContractWithDomain, namespaceId: string, name: string): boolean {
+function hasValueObject(
+  storage: Pick<StorageBase, 'namespaces'>,
+  namespaceId: string,
+  name: string,
+): boolean {
   return (
-    valueObjectAt(contract.storage, {
+    valueObjectAt(storage, {
       plane: 'storage',
       namespaceId,
       entityKind: 'valueObject',
@@ -247,7 +252,7 @@ function lookupModelInNamespace(
       model,
     };
   }
-  if (hasValueObject(contract.contract, namespaceId, name)) {
+  if (hasValueObject(contract.contract.storage, namespaceId, name)) {
     return { kind: 'refused', ...valueObjectRefusal(displayName(namespaceId, name)) };
   }
   return {
@@ -303,7 +308,9 @@ function lookupModel(
   }
   const storageNamespaceIds = Object.keys(contract.contract.storage.namespaces);
   if (
-    storageNamespaceIds.some((namespaceId) => hasValueObject(contract.contract, namespaceId, name))
+    storageNamespaceIds.some((namespaceId) =>
+      hasValueObject(contract.contract.storage, namespaceId, name),
+    )
   ) {
     return { kind: 'refused', ...valueObjectRefusal(name) };
   }

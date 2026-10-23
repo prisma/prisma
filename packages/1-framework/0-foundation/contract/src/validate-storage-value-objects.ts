@@ -1,5 +1,4 @@
 import { ContractValidationError } from './contract-validation-error';
-import type { ContractWithDomain } from './domain-envelope';
 import {
   type FieldLike,
   fieldLike,
@@ -8,11 +7,12 @@ import {
 } from './field-problems';
 import { isPlainRecord } from './is-plain-record';
 import { valueObjectsWithCoordinates } from './storage-value-objects';
+import type { StorageBase } from './types';
 
 /**
  * Checks the fields of the value objects in storage (ADR 309): each value object a field refers to is in storage, each value set a member names is in storage, and each field's `many` and `dict` are well formed. Both families run it beside `validateContractDomain`, which checks the references from the domain to storage.
  */
-export function validateStorageValueObjects(storage: ContractWithDomain['storage']): void {
+export function validateStorageValueObjects(storage: Pick<StorageBase, 'namespaces'>): void {
   const errors = valueObjectsWithCoordinates(storage).flatMap(
     ({ coordinate: { namespaceId, entityName }, valueObject }) =>
       Object.entries(valueObject.fields).flatMap(([fieldName, field]) => {
@@ -34,7 +34,7 @@ export function validateStorageValueObjects(storage: ContractWithDomain['storage
 }
 
 function missingValueSetProblem(
-  storage: ContractWithDomain['storage'],
+  storage: Pick<StorageBase, 'namespaces'>,
   valueSet: FieldLike['valueSet'],
 ): string | undefined {
   if (valueSet === undefined) return undefined;

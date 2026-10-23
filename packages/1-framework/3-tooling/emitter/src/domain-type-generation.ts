@@ -8,6 +8,7 @@ import type {
   ContractWithDomain,
   CrossReference,
   JsonValue,
+  StorageBase,
   ValueObjectReference,
 } from '@internal/contract/types';
 import { valueObjectsWithCoordinates } from '@internal/contract/types';
@@ -571,7 +572,7 @@ function resolveDomainValueSet(
 /** The values of the storage value set a value object field names, with the field's codec. */
 function resolveValueObjectFieldValueSet(
   field: ContractValueObjectField,
-  storage: ContractWithDomain['storage'],
+  storage: Pick<StorageBase, 'namespaces'>,
 ): ResolvedFieldValueSet | undefined {
   if (field.valueSet === undefined || field.type.kind !== 'scalar') return undefined;
   const valueSet = entityAt<{ readonly values: readonly JsonValue[] }>(storage, field.valueSet);

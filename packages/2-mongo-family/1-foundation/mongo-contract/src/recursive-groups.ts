@@ -1,7 +1,7 @@
 import {
   type ContractField,
-  type ContractWithDomain,
   type EntityCoordinate,
+  type StorageBase,
   valueObjectsWithCoordinates,
 } from '@internal/contract/types';
 import type { ValidatorModel } from './derive-json-schema';
@@ -26,7 +26,7 @@ function referencesOf(fields: Record<string, ContractField>): string[] {
  * The recursive groups of value objects and embedded models: each set of types that can reach each other through value-object fields and embed relations (a strongly connected component of that graph), and each type that refers to itself. Maps the {@link valueObjectKey} or {@link modelKey} of every type in such a group to the group's number; a type in no recursive group is absent.
  */
 export function recursiveGroupsOf(
-  storage: ContractWithDomain['storage'],
+  storage: Pick<StorageBase, 'namespaces'>,
   models: Record<string, Pick<ValidatorModel, 'fields' | 'relations'>>,
 ): ReadonlyMap<string, number> {
   const edges = new Map<string, readonly string[]>();

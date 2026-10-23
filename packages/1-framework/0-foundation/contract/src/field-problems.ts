@@ -1,6 +1,6 @@
 import { blindCast } from '@internal/utils/casts';
-import type { ContractWithDomain } from './domain-envelope';
 import { valueObjectAt } from './storage-value-objects';
+import type { StorageBase } from './types';
 
 interface FieldTypeLike {
   readonly kind?: string;
@@ -36,7 +36,7 @@ function valueObjectReferenceProblem(type: FieldTypeLike): string | undefined {
 
 /** What is wrong with the value object references of a field's type, a union's members included, each prefixed with `location`. */
 export function valueObjectTypeProblems(
-  storage: ContractWithDomain['storage'],
+  storage: Pick<StorageBase, 'namespaces'>,
   type: FieldTypeLike | undefined,
   location: string,
 ): readonly string[] {

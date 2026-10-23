@@ -1,11 +1,11 @@
 import { blindCast } from '@internal/utils/casts';
-import type { ContractWithDomain } from './domain-envelope';
 import type { ContractValueObject } from './domain-types';
 import type { EntityCoordinate } from './entity-coordinate';
 import { isPlainRecord } from './is-plain-record';
+import type { StorageBase } from './types';
 
 function valueObjectsOf(
-  storage: ContractWithDomain['storage'],
+  storage: Pick<StorageBase, 'namespaces'>,
   namespaceId: string,
 ): Readonly<Record<string, ContractValueObject>> {
   const slot = Object.hasOwn(storage.namespaces, namespaceId)
@@ -21,7 +21,7 @@ function valueObjectsOf(
 
 /** The storage value object a reference names, or `undefined` when storage does not have it. */
 export function valueObjectAt(
-  storage: ContractWithDomain['storage'],
+  storage: Pick<StorageBase, 'namespaces'>,
   reference: EntityCoordinate<'storage', 'valueObject'>,
 ): ContractValueObject | undefined {
   const valueObjects = valueObjectsOf(storage, reference.namespaceId);
@@ -31,7 +31,9 @@ export function valueObjectAt(
 }
 
 /** Each value object in storage, in every namespace, with its coordinate. */
-export function valueObjectsWithCoordinates(storage: ContractWithDomain['storage']): ReadonlyArray<{
+export function valueObjectsWithCoordinates(
+  storage: Pick<StorageBase, 'namespaces'>,
+): ReadonlyArray<{
   readonly coordinate: EntityCoordinate<'storage', 'valueObject'>;
   readonly valueObject: ContractValueObject;
 }> {

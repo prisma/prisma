@@ -4,8 +4,8 @@ import type {
   ContractModel,
   ContractRelation,
   ContractValueObject,
-  ContractWithDomain,
   JsonValue,
+  StorageBase,
 } from '@internal/contract/types';
 import { valueObjectAt } from '@internal/contract/types';
 import type { TypeLookups } from '@internal/framework-components/codec';
@@ -311,7 +311,7 @@ export interface ModelValidatorSources {
   readonly models: Record<string, ValidatorModel>;
   readonly lookups: TypeLookups;
   /** The storage the value objects are read from, at the coordinate each field names. */
-  readonly storage: ContractWithDomain['storage'];
+  readonly storage: Pick<StorageBase, 'namespaces'>;
   readonly valueSets: FieldValueSets;
 }
 
