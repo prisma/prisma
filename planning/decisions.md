@@ -88,6 +88,10 @@ Stopping point for the open upgrade issues: every urgent and high issue is close
 
 Will, 2026-09-30: the emulator controls (start, stop, list, reset) are now urgent and start immediately. They were already required for GA; what changed is the order. They move to the top of the editor and tools stream. The VS Code extension work that depends on them (items 2 and 3 of that stream) waits on them. Background from 2026-09-28: several emulators of each type can run, so status is a list; the eval found that stopping `prisma dev` leaves the emulator processes running and no stop or cleanup command exists.
 
+## Changes of 2026-10-23
+
+- Date and time usability is a GA project (Will). It started on 2026-10-21, so it is Must. Stream 6, row 3.
+
 ## Changes of 2026-10-21
 
 - New work found after the plan was made goes into its own stream, "Work found along the way" (stream 6), not into the stream it belongs to (Will). Reason: the first five streams kept growing as work was found, so their progress looked like it went backwards. The `unbound` alias and shrinking the generated contract files moved there from stream 1.
